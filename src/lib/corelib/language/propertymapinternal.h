@@ -41,6 +41,7 @@
 #define QBS_PROPERTYMAPINTERNAL_H
 
 #include "forward_decls.h"
+#include <tools/persistence.h>
 #include <tools/qbs_export.h>
 #include <QtCore/qvariant.h>
 
@@ -61,13 +62,18 @@ public:
     void setValue(const QVariantMap &value);
 
     void load(PersistentPool &);
-    void store(PersistentPool &) const;
+    void store(PersistentPool &);
 
 private:
     friend bool operator==(const PropertyMapInternal &lhs, const PropertyMapInternal &rhs);
 
     PropertyMapInternal();
     PropertyMapInternal(const PropertyMapInternal &other);
+
+    template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
+    {
+        pool.serializationOp<opType>(m_value);
+    }
 
     QVariantMap m_value;
 };

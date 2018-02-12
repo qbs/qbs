@@ -40,7 +40,6 @@
 #include "propertymapinternal.h"
 
 #include <tools/jsliterals.h>
-#include <tools/persistence.h>
 #include <tools/scripttools.h>
 #include <tools/stringconstants.h>
 
@@ -90,12 +89,12 @@ void PropertyMapInternal::setValue(const QVariantMap &map)
 
 void PropertyMapInternal::load(PersistentPool &pool)
 {
-    pool.load(m_value);
+    serializationOp<PersistentPool::Load>(pool);
 }
 
-void PropertyMapInternal::store(PersistentPool &pool) const
+void PropertyMapInternal::store(PersistentPool &pool)
 {
-    pool.store(m_value);
+    serializationOp<PersistentPool::Store>(pool);
 }
 
 QVariant moduleProperty(const QVariantMap &properties, const QString &moduleName,

@@ -42,7 +42,6 @@
 #include <tools/error.h>
 #include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
-#include <tools/persistence.h>
 #include <tools/qbsassert.h>
 #include <tools/stringconstants.h>
 
@@ -127,24 +126,12 @@ void AbstractCommand::fillFromScriptValue(const QScriptValue *scriptValue, const
 
 void AbstractCommand::load(PersistentPool &pool)
 {
-    pool.load(m_description);
-    pool.load(m_extendedDescription);
-    pool.load(m_highlight);
-    pool.load(m_ignoreDryRun);
-    pool.load(m_silent);
-    pool.load(m_codeLocation);
-    pool.load(m_properties);
+    serializationOp<PersistentPool::Load>(pool);
 }
 
-void AbstractCommand::store(PersistentPool &pool) const
+void AbstractCommand::store(PersistentPool &pool)
 {
-    pool.store(m_description);
-    pool.store(m_extendedDescription);
-    pool.store(m_highlight);
-    pool.store(m_ignoreDryRun);
-    pool.store(m_silent);
-    pool.store(m_codeLocation);
-    pool.store(m_properties);
+    serializationOp<PersistentPool::Store>(pool);
 }
 
 void AbstractCommand::applyCommandProperties(const QScriptValue *scriptValue)
@@ -345,39 +332,13 @@ void ProcessCommand::addRelevantEnvValue(const QString &key, const QString &valu
 void ProcessCommand::load(PersistentPool &pool)
 {
     AbstractCommand::load(pool);
-    pool.load(m_program);
-    pool.load(m_arguments);
-    pool.load(m_environment);
-    pool.load(m_workingDir);
-    pool.load(m_stdoutFilterFunction);
-    pool.load(m_stderrFilterFunction);
-    pool.load(m_responseFileUsagePrefix);
-    pool.load(m_maxExitCode);
-    pool.load(m_responseFileThreshold);
-    pool.load(m_responseFileArgumentIndex);
-    pool.load(m_relevantEnvVars);
-    pool.load(m_relevantEnvValues);
-    pool.load(m_stdoutFilePath);
-    pool.load(m_stderrFilePath);
+    serializationOp<PersistentPool::Load>(pool);
 }
 
-void ProcessCommand::store(PersistentPool &pool) const
+void ProcessCommand::store(PersistentPool &pool)
 {
     AbstractCommand::store(pool);
-    pool.store(m_program);
-    pool.store(m_arguments);
-    pool.store(m_environment);
-    pool.store(m_workingDir);
-    pool.store(m_stdoutFilterFunction);
-    pool.store(m_stderrFilterFunction);
-    pool.store(m_responseFileUsagePrefix);
-    pool.store(m_maxExitCode);
-    pool.store(m_responseFileThreshold);
-    pool.store(m_responseFileArgumentIndex);
-    pool.store(m_relevantEnvVars);
-    pool.store(m_relevantEnvValues);
-    pool.store(m_stdoutFilePath);
-    pool.store(m_stderrFilePath);
+    serializationOp<PersistentPool::Store>(pool);
 }
 
 static QString currentImportScopeName(QScriptContext *context)
@@ -452,15 +413,13 @@ void JavaScriptCommand::fillFromScriptValue(const QScriptValue *scriptValue, con
 void JavaScriptCommand::load(PersistentPool &pool)
 {
     AbstractCommand::load(pool);
-    pool.load(m_scopeName);
-    pool.load(m_sourceCode);
+    serializationOp<PersistentPool::Load>(pool);
 }
 
-void JavaScriptCommand::store(PersistentPool &pool) const
+void JavaScriptCommand::store(PersistentPool &pool)
 {
     AbstractCommand::store(pool);
-    pool.store(m_scopeName);
-    pool.store(m_sourceCode);
+    serializationOp<PersistentPool::Store>(pool);
 }
 
 void CommandList::load(PersistentPool &pool)

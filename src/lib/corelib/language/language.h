@@ -47,6 +47,7 @@
 #include <buildgraph/forward_decls.h>
 #include <tools/codelocation.h>
 #include <tools/filetime.h>
+#include <tools/persistence.h>
 #include <tools/set.h>
 #include <tools/weakpointer.h>
 
@@ -88,11 +89,16 @@ public:
     int priority() const { return m_priority; }
 
     void load(PersistentPool &);
-    void store(PersistentPool &) const;
+    void store(PersistentPool &);
 
 private:
     FileTagger(const QStringList &patterns, const FileTags &fileTags, int priority);
     FileTagger() {}
+
+    template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
+    {
+        pool.serializationOp<opType>(m_patterns, m_fileTags, m_priority);
+    }
 
     void setPatterns(const QStringList &patterns);
 
@@ -126,7 +132,7 @@ public:
     bool needsReconfigure(const FileTime &referenceTime) const;
 
     void load(PersistentPool &pool);
-    void store(PersistentPool &pool) const;
+    void store(PersistentPool &pool);
 
 private:
     Probe() {}
@@ -145,6 +151,12 @@ private:
         , m_importedFilesUsed(importedFilesUsed)
         , m_condition(condition)
     {}
+
+    template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
+    {
+        pool.serializationOp<opType>(m_globalId, m_location, m_condition, m_configureScript,
+                                     m_properties, m_initialProperties, m_importedFilesUsed);
+    }
 
     QString m_globalId;
     CodeLocation m_location;
@@ -173,7 +185,11 @@ public:
         QString code;
         CodeLocation location;
 
-        void store(PersistentPool &pool) const;
+        template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
+        {
+            pool.serializationOp<opType>(name, code, location);
+        }
+        void store(PersistentPool &pool);
         void load(PersistentPool &pool);
 
         bool operator<(const Binding &other) const
@@ -190,12 +206,18 @@ public:
     std::vector<Binding> bindings;
 
     void load(PersistentPool &pool);
-    void store(PersistentPool &pool) const;
+    void store(PersistentPool &pool);
 
 private:
     RuleArtifact()
         : alwaysUpdated(true)
     {}
+
+    template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
+    {
+        pool.serializationOp<opType>(filePath, fileTags, alwaysUpdated, location, filePathLocation,
+                                     bindings);
+    }
 };
 uint qHash(const RuleArtifact::Binding &b);
 bool operator==(const RuleArtifact::Binding &b1, const RuleArtifact::Binding &b2);
@@ -217,10 +239,16 @@ public:
     PropertyMapPtr properties;
 
     void load(PersistentPool &pool);
-    void store(PersistentPool &pool) const;
+    void store(PersistentPool &pool);
 
 private:
     SourceArtifactInternal() : overrideFileTags(true) {}
+
+    template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
+    {
+        pool.serializationOp<opType>(absoluteFilePath, fileTags, overrideFileTags, properties,
+                                     targetOfModule);
+    }
 };
 bool operator==(const SourceArtifactInternal &sa1, const SourceArtifactInternal &sa2);
 inline bool operator!=(const SourceArtifactInternal &sa1, const SourceArtifactInternal &sa2) {
@@ -243,7 +271,7 @@ public:
     QList<SourceArtifactPtr> files;
 
     void load(PersistentPool &pool);
-    void store(PersistentPool &pool) const;
+    void store(PersistentPool &pool);
 
 private:
     Set<QString> expandPatterns(const GroupConstPtr &group, const QStringList &patterns,
@@ -251,6 +279,10 @@ private:
     void expandPatterns(Set<QString> &result, const GroupConstPtr &group,
                         const QStringList &parts, const QString &baseDir,
                         const QString &buildDir);
+    template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
+    {
+        pool.serializationOp<opType>(patterns, excludePatterns, dirTimeStamps, files);
+    }
 };
 
 class QBS_AUTOTEST_EXPORT ResolvedGroup
@@ -273,12 +305,18 @@ public:
     QList<SourceArtifactPtr> allFiles() const;
 
     void load(PersistentPool &pool);
-    void store(PersistentPool &pool) const;
+    void store(PersistentPool &pool);
 
 private:
     ResolvedGroup()
         : enabled(true)
     {}
+
+    template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
+    {
+        pool.serializationOp<opType>(name, enabled, location, prefix, files, wildcards, properties,
+                                     fileTags, targetOfModule, overrideTags);
+    }
 };
 
 class ScriptFunction
@@ -295,10 +333,15 @@ public:
     bool isValid() const;
 
     void load(PersistentPool &);
-    void store(PersistentPool &) const;
+    void store(PersistentPool &);
 
 private:
     ScriptFunction();
+
+    template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
+    {
+        pool.serializationOp<opType>(sourceCode, location, fileContext);
+    }
 };
 
 bool operator==(const ScriptFunction &a, const ScriptFunction &b);
@@ -313,8 +356,8 @@ public:
     void initialize(const ScriptFunctionPtr &sharedData) { m_sharedData = sharedData; }
     mutable QScriptValue scriptFunction; // not stored
 
-    void load(PersistentPool &pool) { pool.load(m_sharedData); }
-    void store(PersistentPool &pool) const { pool.store(m_sharedData); }
+    void load(PersistentPool &pool) { serializationOp<PersistentPool::Load>(pool); }
+    void store(PersistentPool &pool) { serializationOp<PersistentPool::Store>(pool); }
 
     QString &sourceCode() const { return m_sharedData->sourceCode; }
     CodeLocation &location()  const { return m_sharedData->location; }
@@ -322,6 +365,11 @@ public:
     bool isValid() const { return m_sharedData->isValid(); }
 
 private:
+    template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
+    {
+        pool.serializationOp<opType>(m_sharedData);
+    }
+
     ScriptFunctionPtr m_sharedData;
 };
 
@@ -347,10 +395,16 @@ public:
     static QStringList argumentNamesForSetupRunEnv();
 
     void load(PersistentPool &pool);
-    void store(PersistentPool &pool) const;
+    void store(PersistentPool &pool);
 
 private:
     ResolvedModule() {}
+
+    template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
+    {
+        pool.serializationOp<opType>(name, moduleDependencies, setupBuildEnvironmentScript,
+                                     setupRunEnvironmentScript, isProduct);
+    }
 };
 bool operator==(const ResolvedModule &m1, const ResolvedModule &m2);
 inline bool operator!=(const ResolvedModule &m1, const ResolvedModule &m2) { return !(m1 == m2); }
@@ -400,9 +454,17 @@ public:
     bool declaresInputs() const;
 
     void load(PersistentPool &pool);
-    void store(PersistentPool &pool) const;
+    void store(PersistentPool &pool);
 private:
     Rule() : multiplex(false), alwaysRun(false), ruleGraphId(-1) {}
+
+    template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
+    {
+        pool.serializationOp<opType>(name, prepareScript, outputArtifactsScript, module, inputs,
+                                     outputFileTags, auxiliaryInputs, excludedAuxiliaryInputs,
+                                     inputsFromDependencies, explicitlyDependsOn, multiplex,
+                                     requiresInputs, alwaysRun, artifacts);
+    }
 };
 bool operator==(const Rule &r1, const Rule &r2);
 inline bool operator!=(const Rule &r1, const Rule &r2) { return !(r1 == r2); }
@@ -420,9 +482,14 @@ public:
     PrivateScriptFunction scanScript;
 
     void load(PersistentPool &pool);
-    void store(PersistentPool &pool) const;
+    void store(PersistentPool &pool);
 
 private:
+    template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
+    {
+        pool.serializationOp<opType>(module, inputs, recursive, searchPathsScript, scanScript);
+    }
+
     ResolvedScanner() :
         recursive(false)
     {}
@@ -500,10 +567,20 @@ public:
     QString cachedExecutablePath(const QString &origFilePath) const;
 
     void load(PersistentPool &pool);
-    void store(PersistentPool &pool) const;
+    void store(PersistentPool &pool);
 
 private:
     ResolvedProduct();
+
+    template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
+    {
+        pool.serializationOp<opType>(enabled, fileTags, name, profile, multiplexConfigurationId,
+                                     targetName, sourceDirectory, destinationDirectory,
+                                     missingSourceFiles, location, productProperties,
+                                     moduleProperties, rules, dependencies, dependencyParameters,
+                                     fileTaggers, modules, moduleParameters, scanners, groups,
+                                     artifactProperties, probes, buildData);
+    }
 
     QHash<QString, QString> m_executablePathCache;
     mutable std::mutex m_executablePathCacheLock;
@@ -532,12 +609,18 @@ public:
     QList<ResolvedProductPtr> allProducts() const;
 
     virtual void load(PersistentPool &pool);
-    virtual void store(PersistentPool &pool) const;
+    virtual void store(PersistentPool &pool);
 
 protected:
     ResolvedProject();
 
 private:
+    template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
+    {
+        pool.serializationOp<opType>(name, location, enabled, products, subProjects,
+                                     m_projectProperties);
+    }
+
     QVariantMap m_projectProperties;
     TopLevelProject *m_topLevelProject;
 };
@@ -577,13 +660,20 @@ public:
     QVariantMap overriddenValues;
 
     QString buildGraphFilePath() const;
-    void store(Logger logger) const;
+    void store(Logger logger);
 
 private:
     TopLevelProject();
 
+    template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
+    {
+        pool.serializationOp<opType>(m_id, canonicalFilePathResults, fileExistsResults,
+                                     directoryEntriesResults, fileLastModifiedResults, environment,
+                                     probes, profileConfigs, overriddenValues, buildSystemFiles,
+                                     lastResolveTime, warningsEncountered, buildData);
+    }
     void load(PersistentPool &pool) override;
-    void store(PersistentPool &pool) const override;
+    void store(PersistentPool &pool) override;
 
     QString m_id;
     QVariantMap m_buildConfiguration;

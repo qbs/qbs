@@ -39,6 +39,7 @@
 #ifndef QBS_PROPERTY_H
 #define QBS_PROPERTY_H
 
+#include <tools/persistence.h>
 #include <tools/set.h>
 
 #include <QtCore/qstring.h>
@@ -46,7 +47,6 @@
 
 namespace qbs {
 namespace Internal {
-class PersistentPool;
 
 class Property
 {
@@ -70,8 +70,12 @@ public:
     {
     }
 
-    void store(PersistentPool &pool) const;
+    void store(PersistentPool &pool);
     void load(PersistentPool &pool);
+    template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
+    {
+        pool.serializationOp<opType>(productName, moduleName, propertyName, value, kind);
+    }
 
     QString productName; // In case of kind == PropertyInProject, this is the project name.
     QString moduleName;

@@ -45,7 +45,6 @@
 #include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/fileinfo.h>
-#include <tools/persistence.h>
 #include <tools/scripttools.h>
 #include <tools/qbsassert.h>
 #include <tools/stringconstants.h>
@@ -297,50 +296,12 @@ void Transformer::rescueChangeTrackingData(const TransformerConstPtr &other)
 
 void Transformer::load(PersistentPool &pool)
 {
-    pool.load(rule);
-    pool.load(inputs);
-    pool.load(outputs);
-    pool.load(explicitlyDependsOn);
-    pool.load(propertiesRequestedInPrepareScript);
-    pool.load(propertiesRequestedInCommands);
-    pool.load(propertiesRequestedFromArtifactInPrepareScript);
-    pool.load(propertiesRequestedFromArtifactInCommands);
-    pool.load(importedFilesUsedInPrepareScript);
-    pool.load(importedFilesUsedInCommands);
-    pool.load(depsRequestedInPrepareScript);
-    pool.load(depsRequestedInCommands);
-    pool.load(commands);
-    pool.load(artifactsMapRequestedInPrepareScript);
-    pool.load(artifactsMapRequestedInCommands);
-    pool.load(lastPrepareScriptExecutionTime);
-    pool.load(lastCommandExecutionTime);
-    pool.load(alwaysRun);
-    pool.load(prepareScriptNeedsChangeTracking);
-    pool.load(commandsNeedChangeTracking);
+    serializationOp<PersistentPool::Load>(pool);
 }
 
-void Transformer::store(PersistentPool &pool) const
+void Transformer::store(PersistentPool &pool)
 {
-    pool.store(rule);
-    pool.store(inputs);
-    pool.store(outputs);
-    pool.store(explicitlyDependsOn);
-    pool.store(propertiesRequestedInPrepareScript);
-    pool.store(propertiesRequestedInCommands);
-    pool.store(propertiesRequestedFromArtifactInPrepareScript);
-    pool.store(propertiesRequestedFromArtifactInCommands);
-    pool.store(importedFilesUsedInPrepareScript);
-    pool.store(importedFilesUsedInCommands);
-    pool.store(depsRequestedInPrepareScript);
-    pool.store(depsRequestedInCommands);
-    pool.store(commands);
-    pool.store(artifactsMapRequestedInPrepareScript);
-    pool.store(artifactsMapRequestedInCommands);
-    pool.store(lastPrepareScriptExecutionTime);
-    pool.store(lastCommandExecutionTime);
-    pool.store(alwaysRun);
-    pool.store(prepareScriptNeedsChangeTracking);
-    pool.store(commandsNeedChangeTracking);
+    serializationOp<PersistentPool::Store>(pool);
 }
 
 } // namespace Internal

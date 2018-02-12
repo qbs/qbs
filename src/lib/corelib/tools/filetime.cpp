@@ -197,24 +197,14 @@ QString FileTime::toString() const
 #endif
 }
 
-void qbs::Internal::FileTime::store(PersistentPool &pool) const
+void FileTime::store(PersistentPool &pool)
 {
-#if HAS_CLOCK_GETTIME
-    pool.store(m_fileTime.tv_sec);
-    pool.store(m_fileTime.tv_nsec);
-#else
-    pool.store(m_fileTime);
-#endif
+    return serializationOp<PersistentPool::Store>(pool);
 }
 
 void qbs::Internal::FileTime::load(PersistentPool &pool)
 {
-#if HAS_CLOCK_GETTIME
-    pool.load(m_fileTime.tv_sec);
-    pool.load(m_fileTime.tv_nsec);
-#else
-    pool.load(m_fileTime);
-#endif
+    return serializationOp<PersistentPool::Load>(pool);
 }
 
 } // namespace Internal

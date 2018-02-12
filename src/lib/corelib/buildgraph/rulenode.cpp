@@ -50,7 +50,6 @@
 #include <language/language.h>
 #include <logging/categories.h>
 #include <logging/logger.h>
-#include <tools/persistence.h>
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
 
@@ -162,15 +161,13 @@ void RuleNode::apply(const Logger &logger, const ArtifactSet &changedInputs,
 void RuleNode::load(PersistentPool &pool)
 {
     BuildGraphNode::load(pool);
-    pool.load(m_rule);
-    pool.load(m_oldInputArtifacts);
+    serializationOp<PersistentPool::Load>(pool);
 }
 
-void RuleNode::store(PersistentPool &pool) const
+void RuleNode::store(PersistentPool &pool)
 {
     BuildGraphNode::store(pool);
-    pool.store(m_rule);
-    pool.store(m_oldInputArtifacts);
+    serializationOp<PersistentPool::Store>(pool);
 }
 
 ArtifactSet RuleNode::currentInputArtifacts() const

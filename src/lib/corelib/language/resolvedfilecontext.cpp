@@ -40,7 +40,6 @@
 #include "resolvedfilecontext.h"
 
 #include "jsimports.h"
-#include <tools/persistence.h>
 #include <tools/stlutils.h>
 
 namespace qbs {
@@ -53,18 +52,12 @@ ResolvedFileContext::ResolvedFileContext(const FileContextBase &ctx)
 
 void ResolvedFileContext::load(PersistentPool &pool)
 {
-    pool.load(m_filePath);
-    pool.load(m_jsExtensions);
-    pool.load(m_searchPaths);
-    pool.load(m_jsImports);
+    serializationOp<PersistentPool::Load>(pool);
 }
 
-void ResolvedFileContext::store(PersistentPool &pool) const
+void ResolvedFileContext::store(PersistentPool &pool)
 {
-    pool.store(m_filePath);
-    pool.store(m_jsExtensions);
-    pool.store(m_searchPaths);
-    pool.store(m_jsImports);
+    serializationOp<PersistentPool::Store>(pool);
 }
 
 bool operator==(const ResolvedFileContext &a, const ResolvedFileContext &b)

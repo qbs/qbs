@@ -44,6 +44,7 @@
 #include "rescuableartifactdata.h"
 #include <language/filetags.h>
 #include <language/forward_decls.h>
+#include <tools/persistence.h>
 
 #include <QtCore/qlist.h>
 
@@ -91,10 +92,15 @@ public:
     void setJsArtifactsMapUpToDate() { m_jsArtifactsMapUpToDate = true; }
 
     void load(PersistentPool &pool);
-    void store(PersistentPool &pool) const;
+    void store(PersistentPool &pool);
 
 private:
     void removeArtifactFromSet(Artifact *artifact);
+    template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
+    {
+        pool.serializationOp<opType>(m_nodes, m_roots, m_rescuableArtifactData,
+                                     m_artifactsByFileTag, m_artifactsWithChangedInputsPerRule);
+    }
 
     NodeSet m_nodes;
     NodeSet m_roots;

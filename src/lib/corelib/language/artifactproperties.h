@@ -42,6 +42,7 @@
 
 #include "filetags.h"
 #include "forward_decls.h"
+#include <tools/persistence.h>
 
 namespace qbs {
 namespace Internal {
@@ -61,10 +62,15 @@ public:
     void setExtraFileTags(const FileTags &extraFileTags);
 
     void load(PersistentPool &);
-    void store(PersistentPool &) const;
+    void store(PersistentPool &);
 
 private:
     ArtifactProperties();
+
+    template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
+    {
+        pool.serializationOp<opType>(m_fileTagsFilter, m_extraFileTags, m_propertyMap);
+    }
 
     FileTags m_fileTagsFilter;
     FileTags m_extraFileTags;

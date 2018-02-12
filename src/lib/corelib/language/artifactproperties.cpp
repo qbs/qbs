@@ -39,7 +39,6 @@
 
 #include "artifactproperties.h"
 #include <language/propertymapinternal.h>
-#include <tools/persistence.h>
 
 namespace qbs {
 namespace Internal {
@@ -55,16 +54,12 @@ ArtifactProperties::ArtifactProperties()
 
 void ArtifactProperties::load(PersistentPool &pool)
 {
-    pool.load(m_fileTagsFilter);
-    pool.load(m_extraFileTags);
-    pool.load(m_propertyMap);
+    serializationOp<PersistentPool::Load>(pool);
 }
 
-void ArtifactProperties::store(PersistentPool &pool) const
+void ArtifactProperties::store(PersistentPool &pool)
 {
-    pool.store(m_fileTagsFilter);
-    pool.store(m_extraFileTags);
-    pool.store(m_propertyMap);
+    serializationOp<PersistentPool::Store>(pool);
 }
 
 FileTags ArtifactProperties::extraFileTags() const

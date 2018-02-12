@@ -40,7 +40,6 @@
 #include "rawscanneddependency.h"
 
 #include <tools/fileinfo.h>
-#include <tools/persistence.h>
 
 namespace qbs {
 namespace Internal {
@@ -65,15 +64,13 @@ void RawScannedDependency::setClean()
 
 void RawScannedDependency::load(PersistentPool &pool)
 {
-    pool.load(m_dirPath);
-    pool.load(m_fileName);
+    serializationOp<PersistentPool::Load>(pool);
     setClean();
 }
 
-void RawScannedDependency::store(PersistentPool &pool) const
+void RawScannedDependency::store(PersistentPool &pool)
 {
-    pool.store(m_dirPath);
-    pool.store(m_fileName);
+    serializationOp<PersistentPool::Store>(pool);
 }
 
 bool operator==(const RawScannedDependency &d1, const RawScannedDependency &d2)

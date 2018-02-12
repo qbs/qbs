@@ -56,7 +56,6 @@
 #include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/fileinfo.h>
-#include <tools/persistence.h>
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
 
@@ -255,16 +254,14 @@ void ProjectBuildData::removeArtifact(Artifact *artifact,
 
 void ProjectBuildData::load(PersistentPool &pool)
 {
-    pool.load(fileDependencies);
+    serializationOp<PersistentPool::Load>(pool);
     for (FileDependency * const dep : qAsConst(fileDependencies))
         insertIntoLookupTable(dep);
-    pool.load(rawScanResults);
 }
 
-void ProjectBuildData::store(PersistentPool &pool) const
+void ProjectBuildData::store(PersistentPool &pool)
 {
-    pool.store(fileDependencies);
-    pool.store(rawScanResults);
+    serializationOp<PersistentPool::Store>(pool);
 }
 
 

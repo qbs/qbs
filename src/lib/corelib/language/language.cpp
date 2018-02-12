@@ -58,7 +58,6 @@
 #include <tools/hostosinfo.h>
 #include <tools/error.h>
 #include <tools/fileinfo.h>
-#include <tools/persistence.h>
 #include <tools/scripttools.h>
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
@@ -109,16 +108,12 @@ void FileTagger::setPatterns(const QStringList &patterns)
  */
 void FileTagger::load(PersistentPool &pool)
 {
-    pool.load(m_patterns);
-    pool.load(m_fileTags);
-    pool.load(m_priority);
+    serializationOp<PersistentPool::Load>(pool);
 }
 
-void FileTagger::store(PersistentPool &pool) const
+void FileTagger::store(PersistentPool &pool)
 {
-    pool.store(m_patterns);
-    pool.store(m_fileTags);
-    pool.store(m_priority);
+    serializationOp<PersistentPool::Store>(pool);
 }
 
 
@@ -133,24 +128,12 @@ bool Probe::needsReconfigure(const FileTime &referenceTime) const
 
 void Probe::load(PersistentPool &pool)
 {
-    pool.load(m_globalId);
-    m_location.load(pool);
-    pool.load(m_condition);
-    pool.load(m_configureScript);
-    pool.load(m_properties);
-    pool.load(m_initialProperties);
-    pool.load(m_importedFilesUsed);
+    serializationOp<PersistentPool::Load>(pool);
 }
 
-void Probe::store(PersistentPool &pool) const
+void Probe::store(PersistentPool &pool)
 {
-    pool.store(m_globalId);
-    m_location.store(pool);
-    pool.store(condition());
-    pool.store(m_configureScript);
-    pool.store(m_properties);
-    pool.store(m_initialProperties);
-    pool.store(m_importedFilesUsed);
+    serializationOp<PersistentPool::Store>(pool);
 }
 
 
@@ -165,36 +148,22 @@ void Probe::store(PersistentPool &pool) const
  */
 void SourceArtifactInternal::load(PersistentPool &pool)
 {
-    pool.load(absoluteFilePath);
-    pool.load(fileTags);
-    pool.load(overrideFileTags);
-    pool.load(properties);
-    pool.load(targetOfModule);
+    serializationOp<PersistentPool::Load>(pool);
 }
 
-void SourceArtifactInternal::store(PersistentPool &pool) const
+void SourceArtifactInternal::store(PersistentPool &pool)
 {
-    pool.store(absoluteFilePath);
-    pool.store(fileTags);
-    pool.store(overrideFileTags);
-    pool.store(properties);
-    pool.store(targetOfModule);
+    serializationOp<PersistentPool::Store>(pool);
 }
 
 void SourceWildCards::load(PersistentPool &pool)
 {
-    pool.load(patterns);
-    pool.load(excludePatterns);
-    pool.load(dirTimeStamps);
-    pool.load(files);
+    serializationOp<PersistentPool::Load>(pool);
 }
 
-void SourceWildCards::store(PersistentPool &pool) const
+void SourceWildCards::store(PersistentPool &pool)
 {
-    pool.store(patterns);
-    pool.store(excludePatterns);
-    pool.store(dirTimeStamps);
-    pool.store(files);
+    serializationOp<PersistentPool::Store>(pool);
 }
 
 /*!
@@ -229,32 +198,14 @@ QList<SourceArtifactPtr> ResolvedGroup::allFiles() const
 
 void ResolvedGroup::load(PersistentPool &pool)
 {
-    pool.load(name);
-    pool.load(enabled);
-    pool.load(location);
-    pool.load(prefix);
-    pool.load(files);
-    pool.load(wildcards);
+    serializationOp<PersistentPool::Load>(pool);
     if (wildcards)
         wildcards->group = this;
-    pool.load(properties);
-    pool.load(fileTags);
-    pool.load(targetOfModule);
-    pool.load(overrideTags);
 }
 
-void ResolvedGroup::store(PersistentPool &pool) const
+void ResolvedGroup::store(PersistentPool &pool)
 {
-    pool.store(name);
-    pool.store(enabled);
-    pool.store(location);
-    pool.store(prefix);
-    pool.store(files);
-    pool.store(wildcards);
-    pool.store(properties);
-    pool.store(fileTags);
-    pool.store(targetOfModule);
-    pool.store(overrideTags);
+    serializationOp<PersistentPool::Store>(pool);
 }
 
 /*!
@@ -267,38 +218,24 @@ void ResolvedGroup::store(PersistentPool &pool) const
  * \sa Rule
  */
 
-void RuleArtifact::Binding::store(PersistentPool &pool) const
+void RuleArtifact::Binding::store(PersistentPool &pool)
 {
-    pool.store(name);
-    pool.store(code);
-    pool.store(location);
+    serializationOp<PersistentPool::Store>(pool);
 }
 
 void RuleArtifact::Binding::load(PersistentPool &pool)
 {
-    pool.load(name);
-    pool.load(code);
-    pool.load(location);
+    serializationOp<PersistentPool::Load>(pool);
 }
 
 void RuleArtifact::load(PersistentPool &pool)
 {
-    pool.load(filePath);
-    pool.load(fileTags);
-    pool.load(alwaysUpdated);
-    pool.load(location);
-    pool.load(filePathLocation);
-    pool.load(bindings);
+    serializationOp<PersistentPool::Load>(pool);
 }
 
-void RuleArtifact::store(PersistentPool &pool) const
+void RuleArtifact::store(PersistentPool &pool)
 {
-    pool.store(filePath);
-    pool.store(fileTags);
-    pool.store(alwaysUpdated);
-    pool.store(location);
-    pool.store(filePathLocation);
-    pool.store(bindings);
+    serializationOp<PersistentPool::Store>(pool);
 }
 
 
@@ -337,16 +274,12 @@ bool ScriptFunction::isValid() const
 
 void ScriptFunction::load(PersistentPool &pool)
 {
-    pool.load(sourceCode);
-    location.load(pool);
-    pool.load(fileContext);
+    serializationOp<PersistentPool::Load>(pool);
 }
 
-void ScriptFunction::store(PersistentPool &pool) const
+void ScriptFunction::store(PersistentPool &pool)
 {
-    pool.store(sourceCode);
-    location.store(pool);
-    pool.store(fileContext);
+    serializationOp<PersistentPool::Store>(pool);
 }
 
 bool operator==(const ScriptFunction &a, const ScriptFunction &b)
@@ -374,20 +307,12 @@ QStringList ResolvedModule::argumentNamesForSetupRunEnv()
 
 void ResolvedModule::load(PersistentPool &pool)
 {
-    pool.load(name);
-    pool.load(moduleDependencies);
-    pool.load(setupBuildEnvironmentScript);
-    pool.load(setupRunEnvironmentScript);
-    pool.load(isProduct);
+    serializationOp<PersistentPool::Load>(pool);
 }
 
-void ResolvedModule::store(PersistentPool &pool) const
+void ResolvedModule::store(PersistentPool &pool)
 {
-    pool.store(name);
-    pool.store(moduleDependencies);
-    pool.store(setupBuildEnvironmentScript);
-    pool.store(setupRunEnvironmentScript);
-    pool.store(isProduct);
+    serializationOp<PersistentPool::Store>(pool);
 }
 
 bool operator==(const ResolvedModule &m1, const ResolvedModule &m2)
@@ -467,38 +392,12 @@ bool Rule::declaresInputs() const
 
 void Rule::load(PersistentPool &pool)
 {
-    pool.load(name);
-    pool.load(prepareScript);
-    pool.load(outputArtifactsScript);
-    pool.load(module);
-    pool.load(inputs);
-    pool.load(outputFileTags);
-    pool.load(auxiliaryInputs);
-    pool.load(excludedAuxiliaryInputs);
-    pool.load(inputsFromDependencies);
-    pool.load(explicitlyDependsOn);
-    pool.load(multiplex);
-    pool.load(requiresInputs);
-    pool.load(alwaysRun);
-    pool.load(artifacts);
+    serializationOp<PersistentPool::Load>(pool);
 }
 
-void Rule::store(PersistentPool &pool) const
+void Rule::store(PersistentPool &pool)
 {
-    pool.store(name);
-    pool.store(prepareScript);
-    pool.store(outputArtifactsScript);
-    pool.store(module);
-    pool.store(inputs);
-    pool.store(outputFileTags);
-    pool.store(auxiliaryInputs);
-    pool.store(excludedAuxiliaryInputs);
-    pool.store(inputsFromDependencies);
-    pool.store(explicitlyDependsOn);
-    pool.store(multiplex);
-    pool.store(requiresInputs);
-    pool.store(alwaysRun);
-    pool.store(artifacts);
+    serializationOp<PersistentPool::Store>(pool);
 }
 
 ResolvedProduct::ResolvedProduct()
@@ -570,60 +469,16 @@ FileTags ResolvedProduct::fileTagsForFileName(const QString &fileName) const
 
 void ResolvedProduct::load(PersistentPool &pool)
 {
-    pool.load(enabled);
-    pool.load(fileTags);
-    pool.load(name);
-    pool.load(profile);
-    pool.load(multiplexConfigurationId);
-    pool.load(targetName);
-    pool.load(sourceDirectory);
-    pool.load(destinationDirectory);
-    pool.load(missingSourceFiles);
-    pool.load(location);
-    pool.load(productProperties);
-    pool.load(moduleProperties);
-    pool.load(rules);
+    serializationOp<PersistentPool::Load>(pool);
     for (const RulePtr &rule : rules)
         rule->product = this;
-    pool.load(dependencies);
-    pool.load(dependencyParameters);
-    pool.load(fileTaggers);
-    pool.load(modules);
     for (const ResolvedModulePtr &module : modules)
         module->product = this;
-    pool.load(moduleParameters);
-    pool.load(scanners);
-    pool.load(groups);
-    pool.load(artifactProperties);
-    pool.load(probes);
-    buildData.reset(pool.load<ProductBuildData *>());
 }
 
-void ResolvedProduct::store(PersistentPool &pool) const
+void ResolvedProduct::store(PersistentPool &pool)
 {
-    pool.store(enabled);
-    pool.store(fileTags);
-    pool.store(name);
-    pool.store(profile);
-    pool.store(multiplexConfigurationId);
-    pool.store(targetName);
-    pool.store(sourceDirectory);
-    pool.store(destinationDirectory);
-    pool.store(missingSourceFiles);
-    pool.store(location);
-    pool.store(productProperties);
-    pool.store(moduleProperties);
-    pool.store(rules);
-    pool.store(dependencies);
-    pool.store(dependencyParameters);
-    pool.store(fileTaggers);
-    pool.store(modules);
-    pool.store(moduleParameters);
-    pool.store(scanners);
-    pool.store(groups);
-    pool.store(artifactProperties);
-    pool.store(probes);
-    pool.store(buildData.get());
+    serializationOp<PersistentPool::Store>(pool);
 }
 
 void ResolvedProduct::registerArtifactWithChangedInputs(Artifact *artifact)
@@ -829,10 +684,7 @@ QList<ResolvedProductPtr> ResolvedProject::allProducts() const
 
 void ResolvedProject::load(PersistentPool &pool)
 {
-    pool.load(name);
-    pool.load(location);
-    pool.load(enabled);
-    pool.load(products);
+    serializationOp<PersistentPool::Load>(pool);
     std::for_each(products.cbegin(), products.cend(),
                   [](const ResolvedProductPtr &p) {
         if (!p->buildData)
@@ -845,18 +697,11 @@ void ResolvedProject::load(PersistentPool &pool)
                 child->parents.insert(node);
         }
     });
-    pool.load(subProjects);
-    pool.load(m_projectProperties);
 }
 
-void ResolvedProject::store(PersistentPool &pool) const
+void ResolvedProject::store(PersistentPool &pool)
 {
-    pool.store(name);
-    pool.store(location);
-    pool.store(enabled);
-    pool.store(products);
-    pool.store(subProjects);
-    pool.store(m_projectProperties);
+    serializationOp<PersistentPool::Store>(pool);
 }
 
 
@@ -899,7 +744,7 @@ QString TopLevelProject::buildGraphFilePath() const
     return ProjectBuildData::deriveBuildGraphFilePath(buildDirectory, id());
 }
 
-void TopLevelProject::store(Logger logger) const
+void TopLevelProject::store(Logger logger)
 {
     // TODO: Use progress observer here.
 
@@ -924,39 +769,15 @@ void TopLevelProject::store(Logger logger) const
 void TopLevelProject::load(PersistentPool &pool)
 {
     ResolvedProject::load(pool);
-    pool.load(m_id);
-    pool.load(canonicalFilePathResults);
-    pool.load(fileExistsResults);
-    pool.load(directoryEntriesResults);
-    pool.load(fileLastModifiedResults);
-    pool.load(environment);
-    pool.load(probes);
-    pool.load(profileConfigs);
-    pool.load(overriddenValues);
-    pool.load(buildSystemFiles);
-    pool.load(lastResolveTime);
-    pool.load(warningsEncountered);
-    buildData.reset(pool.load<ProjectBuildData *>());
+    serializationOp<PersistentPool::Load>(pool);
     QBS_CHECK(buildData);
     buildData->isDirty = false;
 }
 
-void TopLevelProject::store(PersistentPool &pool) const
+void TopLevelProject::store(PersistentPool &pool)
 {
     ResolvedProject::store(pool);
-    pool.store(m_id);
-    pool.store(canonicalFilePathResults);
-    pool.store(fileExistsResults);
-    pool.store(directoryEntriesResults);
-    pool.store(fileLastModifiedResults);
-    pool.store(environment);
-    pool.store(probes);
-    pool.store(profileConfigs);
-    pool.store(overriddenValues);
-    pool.store(buildSystemFiles);
-    pool.store(lastResolveTime);
-    pool.store(warningsEncountered);
-    pool.store(buildData.get());
+    serializationOp<PersistentPool::Store>(pool);
 }
 
 /*!
@@ -1199,20 +1020,12 @@ bool artifactPropertyListsAreEqual(const QList<ArtifactPropertiesPtr> &l1,
 
 void ResolvedScanner::load(PersistentPool &pool)
 {
-    pool.load(module);
-    pool.load(inputs);
-    pool.load(recursive);
-    pool.load(searchPathsScript);
-    pool.load(scanScript);
+    serializationOp<PersistentPool::Load>(pool);
 }
 
-void ResolvedScanner::store(PersistentPool &pool) const
+void ResolvedScanner::store(PersistentPool &pool)
 {
-    pool.store(module);
-    pool.store(inputs);
-    pool.store(recursive);
-    pool.store(searchPathsScript);
-    pool.store(scanScript);
+    serializationOp<PersistentPool::Store>(pool);
 }
 
 QString multiplexIdToString(const QString &id)

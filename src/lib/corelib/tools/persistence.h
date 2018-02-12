@@ -83,7 +83,7 @@ public:
     // member functions.
     template<typename T, typename Enable = void> struct Helper
     {
-        static void store(const T &object, PersistentPool *pool) { object.store(*pool); }
+        static void store(const T &object, PersistentPool *pool) { const_cast<T &>(object).store(*pool); }
         static void load(T &object, PersistentPool *pool) { object.load(*pool); }
     };
 
@@ -102,6 +102,33 @@ public:
         T tmp;
         Helper<T>().load(tmp, this);
         return tmp;
+    }
+
+    enum OpType { Store, Load };
+    template<OpType type, typename T, typename ...Types> struct OpTypeHelper { };
+    template<typename T, typename ...Types> struct OpTypeHelper<Store, T, Types...>
+    {
+        static void serializationOp(PersistentPool *pool, const T &value, const Types &...args)
+        {
+            pool->store(value, args...);
+        }
+    };
+    template<typename T, typename ...Types> struct OpTypeHelper<Load, T, Types...>
+    {
+        static void serializationOp(PersistentPool *pool, T &value, Types &...args)
+        {
+            pool->load(value, args...);
+        }
+    };
+    template<OpType type, typename T, typename ...Types> void serializationOp(const T &value,
+                                                                              const Types &...args)
+    {
+        OpTypeHelper<type, T, Types...>::serializationOp(this, value, args...);
+    }
+    template<OpType type, typename T, typename ...Types> void serializationOp(T &value,
+                                                                              Types &...args)
+    {
+        OpTypeHelper<type, T, Types...>::serializationOp(this, value, args...);
     }
 
     void load(const QString &filePath);
@@ -159,7 +186,7 @@ template<typename T> inline void PersistentPool::storeSharedObject(const T *obje
         id = m_lastStoredObjectId++;
         m_storageIndices.insert(addr, id);
         m_stream << id;
-        object->store(*this);
+        const_cast<T *>(object)->store(*this);
     } else {
         m_stream << id;
     }

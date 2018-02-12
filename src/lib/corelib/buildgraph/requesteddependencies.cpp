@@ -40,7 +40,6 @@
 
 #include <language/language.h>
 #include <logging/categories.h>
-#include <tools/persistence.h>
 #include <tools/qttools.h>
 
 namespace qbs {
@@ -90,12 +89,12 @@ bool RequestedDependencies::isUpToDate(const TopLevelProject *project) const
 
 void RequestedDependencies::load(PersistentPool &pool)
 {
-    pool.load(m_depsPerProduct);
+    serializationOp<PersistentPool::Load>(pool);
 }
 
-void RequestedDependencies::store(PersistentPool &pool) const
+void RequestedDependencies::store(PersistentPool &pool)
 {
-    pool.store(m_depsPerProduct);
+    serializationOp<PersistentPool::Store>(pool);
 }
 
 } // namespace Internal

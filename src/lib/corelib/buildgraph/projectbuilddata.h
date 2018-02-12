@@ -43,6 +43,7 @@
 #include "rawscanresults.h"
 #include <language/forward_decls.h>
 #include <logging/logger.h>
+#include <tools/persistence.h>
 #include <tools/set.h>
 
 #include <QtCore/qhash.h>
@@ -87,9 +88,14 @@ public:
     bool isDirty;
 
     void load(PersistentPool &pool);
-    void store(PersistentPool &pool) const;
+    void store(PersistentPool &pool);
 
 private:
+    template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
+    {
+        pool.serializationOp<opType>(fileDependencies, rawScanResults);
+    }
+
     typedef QHash<QString, QList<FileResourceBase *> > ResultsPerDirectory;
     typedef QHash<QString, ResultsPerDirectory> ArtifactLookupTable;
     ArtifactLookupTable m_artifactLookupTable;

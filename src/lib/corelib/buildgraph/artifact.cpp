@@ -147,7 +147,7 @@ void Artifact::load(PersistentPool &pool)
     oldDataPossiblyPresent = pool.load<bool>();
 }
 
-void Artifact::store(PersistentPool &pool) const
+void Artifact::store(PersistentPool &pool)
 {
     FileResourceBase::store(pool);
     BuildGraphNode::store(pool);

@@ -43,6 +43,7 @@
 #include "forward_decls.h"
 
 #include <tools/codelocation.h>
+#include <tools/persistence.h>
 #include <tools/set.h>
 
 #include <QtCore/qprocess.h>
@@ -84,7 +85,7 @@ public:
     const QVariantMap &properties() const { return m_properties; }
 
     virtual void load(PersistentPool &pool);
-    virtual void store(PersistentPool &pool) const;
+    virtual void store(PersistentPool &pool);
 
 protected:
     AbstractCommand();
@@ -93,6 +94,12 @@ protected:
     Set<QString> m_predefinedProperties;
 
 private:
+    template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
+    {
+        pool.serializationOp<opType>(m_description, m_extendedDescription, m_highlight,
+                                     m_ignoreDryRun, m_silent, m_codeLocation, m_properties);
+    }
+
     QString m_description;
     QString m_extendedDescription;
     QString m_highlight;
@@ -129,7 +136,7 @@ public:
     QString stderrFilePath() const { return m_stderrFilePath; }
 
     void load(PersistentPool &pool);
-    void store(PersistentPool &pool) const;
+    void store(PersistentPool &pool);
 
 private:
     ProcessCommand();
@@ -137,6 +144,16 @@ private:
     int defaultResponseFileThreshold() const;
 
     void getEnvironmentFromList(const QStringList &envList);
+
+    template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
+    {
+        pool.serializationOp<opType>(m_program, m_arguments, m_environment, m_workingDir,
+                                     m_stdoutFilterFunction, m_stderrFilterFunction,
+                                     m_responseFileUsagePrefix, m_maxExitCode,
+                                     m_responseFileThreshold, m_responseFileArgumentIndex,
+                                     m_relevantEnvVars, m_relevantEnvValues, m_stdoutFilePath,
+                                     m_stderrFilePath);
+    }
 
     QString m_program;
     QStringList m_arguments;
@@ -169,10 +186,15 @@ public:
     void setSourceCode(const QString &str) { m_sourceCode = str; }
 
     void load(PersistentPool &pool);
-    void store(PersistentPool &pool) const;
+    void store(PersistentPool &pool);
 
 private:
     JavaScriptCommand();
+
+    template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
+    {
+        pool.serializationOp<opType>(m_scopeName, m_sourceCode);
+    }
 
     QString m_scopeName;
     QString m_sourceCode;

@@ -78,7 +78,7 @@ public:
     FileTime();
     FileTime(const InternalType &ft);
 
-    void store(PersistentPool &pool) const;
+    void store(PersistentPool &pool);
     void load(PersistentPool &pool);
 
     bool operator<(const FileTime &rhs) const { return compare(rhs) < 0; }
@@ -99,6 +99,15 @@ public:
     double asDouble() const;
 
 private:
+    template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
+    {
+#if HAS_CLOCK_GETTIME
+        pool.serializationOp<opType>(m_fileTime.tv_sec, m_fileTime.tv_nsec);
+#else
+        pool.serializationOp<opType>(m_fileTime);
+#endif
+    }
+
     InternalType m_fileTime;
 };
 

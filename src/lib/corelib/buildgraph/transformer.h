@@ -49,6 +49,7 @@
 #include <language/property.h>
 #include <language/scriptengine.h>
 #include <tools/filetime.h>
+#include <tools/persistence.h>
 
 #include <QtCore/qhash.h>
 
@@ -98,7 +99,7 @@ public:
     void rescueChangeTrackingData(const TransformerConstPtr &other);
 
     void load(PersistentPool &pool);
-    void store(PersistentPool &pool) const;
+    void store(PersistentPool &pool);
 
 private:
     Transformer();
@@ -110,6 +111,22 @@ private:
     static QScriptValue translateInOutputs(ScriptEngine *scriptEngine,
                                            const ArtifactSet &artifacts,
                                            const QString &defaultModuleName);
+
+    template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
+    {
+        pool.serializationOp<opType>(rule, inputs, outputs, explicitlyDependsOn,
+                                     propertiesRequestedInPrepareScript,
+                                     propertiesRequestedInCommands,
+                                     propertiesRequestedFromArtifactInPrepareScript,
+                                     propertiesRequestedFromArtifactInCommands,
+                                     importedFilesUsedInPrepareScript, importedFilesUsedInCommands,
+                                     depsRequestedInPrepareScript, depsRequestedInCommands,
+                                     commands, artifactsMapRequestedInPrepareScript,
+                                     artifactsMapRequestedInCommands,
+                                     lastPrepareScriptExecutionTime,
+                                     lastCommandExecutionTime, alwaysRun,
+                                     prepareScriptNeedsChangeTracking, commandsNeedChangeTracking);
+    }
 };
 
 } // namespace Internal

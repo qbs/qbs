@@ -108,7 +108,7 @@ public:
     bool isTargetOfModule() const { return !targetOfModule.isEmpty(); }
 
     void load(PersistentPool &pool) override;
-    void store(PersistentPool &pool) const override;
+    void store(PersistentPool &pool) override;
 
 private:
     FileTags m_fileTags;

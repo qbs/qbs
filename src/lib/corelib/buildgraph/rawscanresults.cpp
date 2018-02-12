@@ -42,7 +42,6 @@
 #include "filedependency.h"
 #include "depscanner.h"
 
-#include <tools/persistence.h>
 #include <language/propertymapinternal.h>
 
 #include <utility>
@@ -52,30 +51,22 @@ namespace Internal {
 
 void RawScanResult::load(PersistentPool &pool)
 {
-    pool.load(deps);
-    pool.load(additionalFileTags);
+    serializationOp<PersistentPool::Load>(pool);
 }
 
-void RawScanResult::store(PersistentPool &pool) const
+void RawScanResult::store(PersistentPool &pool)
 {
-    pool.store(deps);
-    pool.store(additionalFileTags);
+    serializationOp<PersistentPool::Store>(pool);
 }
 
 void RawScanResults::ScanData::load(PersistentPool &pool)
 {
-    pool.load(scannerId);
-    pool.load(moduleProperties);
-    pool.load(lastScanTime);
-    pool.load(rawScanResult);
+    serializationOp<PersistentPool::Load>(pool);
 }
 
-void RawScanResults::ScanData::store(PersistentPool &pool) const
+void RawScanResults::ScanData::store(PersistentPool &pool)
 {
-    pool.store(scannerId);
-    pool.store(moduleProperties);
-    pool.store(lastScanTime);
-    pool.store(rawScanResult);
+    serializationOp<PersistentPool::Store>(pool);
 }
 
 RawScanResults::ScanData &RawScanResults::findScanData(
@@ -101,12 +92,12 @@ RawScanResults::ScanData &RawScanResults::findScanData(
 
 void RawScanResults::load(PersistentPool &pool)
 {
-    pool.load(m_rawScanData);
+    serializationOp<PersistentPool::Load>(pool);
 }
 
-void RawScanResults::store(PersistentPool &pool) const
+void RawScanResults::store(PersistentPool &pool)
 {
-    pool.store(m_rawScanData);
+    serializationOp<PersistentPool::Store>(pool);
 }
 
 } // namespace Internal

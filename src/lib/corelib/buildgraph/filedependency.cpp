@@ -40,7 +40,6 @@
 #include "filedependency.h"
 
 #include <tools/fileinfo.h>
-#include <tools/persistence.h>
 
 namespace qbs {
 namespace Internal {
@@ -77,14 +76,13 @@ const QString &FileResourceBase::filePath() const
 
 void FileResourceBase::load(PersistentPool &pool)
 {
-    setFilePath(pool.load<QString>());
-    pool.load(m_timestamp);
+    serializationOp<PersistentPool::Load>(pool);
+    FileInfo::splitIntoDirectoryAndFileName(m_filePath, &m_dirPath, &m_fileName);
 }
 
-void FileResourceBase::store(PersistentPool &pool) const
+void FileResourceBase::store(PersistentPool &pool)
 {
-    pool.store(m_filePath);
-    pool.store(m_timestamp);
+    serializationOp<PersistentPool::Store>(pool);
 }
 
 

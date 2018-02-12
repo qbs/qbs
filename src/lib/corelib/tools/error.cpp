@@ -54,18 +54,20 @@ namespace qbs {
 class ErrorItem::ErrorItemPrivate : public QSharedData
 {
 public:
-    void load(Internal::PersistentPool &pool)
+    template<Internal::PersistentPool::OpType opType>
+    void serializationOp(Internal::PersistentPool &pool)
     {
-        pool.load(description);
-        pool.load(codeLocation);
-        pool.load(isBacktraceItem);
+        pool.serializationOp<opType>(description, codeLocation, isBacktraceItem);
     }
 
-    void store(Internal::PersistentPool &pool) const
+    void load(Internal::PersistentPool &pool)
     {
-        pool.store(description);
-        pool.store(codeLocation);
-        pool.store(isBacktraceItem);
+        serializationOp<Internal::PersistentPool::Load>(pool);
+    }
+
+    void store(Internal::PersistentPool &pool)
+    {
+        serializationOp<Internal::PersistentPool::Store>(pool);
     }
 
     QString description;
@@ -160,16 +162,20 @@ class ErrorInfo::ErrorInfoPrivate : public QSharedData
 public:
     ErrorInfoPrivate() : internalError(false) { }
 
-    void load(Internal::PersistentPool &pool)
+    template<Internal::PersistentPool::OpType opType>
+    void serializationOp(Internal::PersistentPool &pool)
     {
-        pool.load(items);
-        pool.load(internalError);
+        pool.serializationOp<opType>(items, internalError);
     }
 
-    void store(Internal::PersistentPool &pool) const
+    void load(Internal::PersistentPool &pool)
     {
-        pool.store(items);
-        pool.store(internalError);
+        serializationOp<Internal::PersistentPool::Load>(pool);
+    }
+
+    void store(Internal::PersistentPool &pool)
+    {
+        serializationOp<Internal::PersistentPool::Store>(pool);
     }
 
     QList<ErrorItem> items;

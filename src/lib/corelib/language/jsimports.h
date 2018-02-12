@@ -65,18 +65,18 @@ public:
     QStringList filePaths;
     CodeLocation location;
 
-    void store(PersistentPool &pool) const
+    template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
     {
-        pool.store(scopeName);
-        pool.store(filePaths);
-        pool.store(location);
+        pool.serializationOp<opType>(scopeName, filePaths, location);
+    }
+    void store(PersistentPool &pool)
+    {
+        serializationOp<PersistentPool::Store>(pool);
     }
 
     void load(PersistentPool &pool)
     {
-        pool.load(scopeName);
-        pool.load(filePaths);
-        pool.load(location);
+        serializationOp<PersistentPool::Load>(pool);
     }
 };
 inline uint qHash(const JsImport &jsi) { return qHash(jsi.scopeName); }

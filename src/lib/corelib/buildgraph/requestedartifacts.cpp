@@ -113,12 +113,12 @@ void RequestedArtifacts::doSanityChecks() const
 
 void RequestedArtifacts::load(PersistentPool &pool)
 {
-    pool.load(m_requestedArtifactsPerProduct);
+    serializationOp<PersistentPool::Load>(pool);
 }
 
-void RequestedArtifacts::store(PersistentPool &pool) const
+void RequestedArtifacts::store(PersistentPool &pool)
 {
-    pool.store(m_requestedArtifactsPerProduct);
+    serializationOp<PersistentPool::Store>(pool);
 }
 
 bool RequestedArtifacts::RequestedArtifactsPerProduct::isUpToDate(
@@ -177,12 +177,12 @@ void RequestedArtifacts::RequestedArtifactsPerProduct::doSanityChecks() const
 
 void RequestedArtifacts::RequestedArtifactsPerProduct::load(PersistentPool &pool)
 {
-    pool.load(allTags, requestedTags);
+    serializationOp<PersistentPool::Load>(pool);
 }
 
-void RequestedArtifacts::RequestedArtifactsPerProduct::store(PersistentPool &pool) const
+void RequestedArtifacts::RequestedArtifactsPerProduct::store(PersistentPool &pool)
 {
-    pool.store(allTags, requestedTags);
+    serializationOp<PersistentPool::Store>(pool);
 }
 
 } // namespace Internal

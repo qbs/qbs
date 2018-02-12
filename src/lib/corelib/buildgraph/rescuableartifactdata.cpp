@@ -39,10 +39,6 @@
 
 #include "rescuableartifactdata.h"
 
-#include <language/propertymapinternal.h>
-
-#include <tools/persistence.h>
-
 namespace qbs {
 namespace Internal {
 
@@ -52,46 +48,12 @@ RescuableArtifactData::~RescuableArtifactData()
 
 void RescuableArtifactData::load(PersistentPool &pool)
 {
-    pool.load(timeStamp);
-    pool.load(children);
-    pool.load(fileDependencies);
-    pool.load(propertiesRequestedInPrepareScript);
-    pool.load(propertiesRequestedInCommands);
-    pool.load(propertiesRequestedFromArtifactInPrepareScript);
-    pool.load(propertiesRequestedFromArtifactInCommands);
-    pool.load(importedFilesUsedInPrepareScript);
-    pool.load(importedFilesUsedInCommands);
-    pool.load(depsRequestedInPrepareScript);
-    pool.load(depsRequestedInCommands);
-    pool.load(commands);
-    pool.load(artifactsMapRequestedInPrepareScript);
-    pool.load(artifactsMapRequestedInCommands);
-    pool.load(lastPrepareScriptExecutionTime);
-    pool.load(lastCommandExecutionTime);
-    pool.load(fileTags);
-    pool.load(properties);
+    serializationOp<PersistentPool::Load>(pool);
 }
 
-void RescuableArtifactData::store(PersistentPool &pool) const
+void RescuableArtifactData::store(PersistentPool &pool)
 {
-    pool.store(timeStamp);
-    pool.store(children);
-    pool.store(fileDependencies);
-    pool.store(propertiesRequestedInPrepareScript);
-    pool.store(propertiesRequestedInCommands);
-    pool.store(propertiesRequestedFromArtifactInPrepareScript);
-    pool.store(propertiesRequestedFromArtifactInCommands);
-    pool.store(importedFilesUsedInPrepareScript);
-    pool.store(importedFilesUsedInCommands);
-    pool.store(depsRequestedInPrepareScript);
-    pool.store(depsRequestedInCommands);
-    pool.store(commands);
-    pool.store(artifactsMapRequestedInPrepareScript);
-    pool.store(artifactsMapRequestedInCommands);
-    pool.store(lastPrepareScriptExecutionTime);
-    pool.store(lastCommandExecutionTime);
-    pool.store(fileTags);
-    pool.store(properties);
+    serializationOp<PersistentPool::Store>(pool);
 }
 
 } // namespace Internal

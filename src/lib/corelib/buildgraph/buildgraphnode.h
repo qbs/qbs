@@ -42,6 +42,7 @@
 
 #include "nodeset.h"
 #include <language/forward_decls.h>
+#include <tools/persistence.h>
 #include <tools/weakpointer.h>
 
 namespace qbs {
@@ -83,11 +84,18 @@ public:
     bool isBuilt() const { return buildState == Built; }
 
     virtual void load(PersistentPool &pool);
-    virtual void store(PersistentPool &pool) const;
+    virtual void store(PersistentPool &pool);
 
 protected:
     explicit BuildGraphNode();
     void acceptChildren(BuildGraphVisitor *visitor);
+
+    // Do not store parents to avoid recursion.
+    // Parents must be updated after loading all nodes.
+    template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
+    {
+        pool.serializationOp<opType>(children);
+    }
 };
 
 } // namespace Internal

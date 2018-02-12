@@ -75,14 +75,12 @@ void BuildGraphNode::acceptChildren(BuildGraphVisitor *visitor)
 
 void BuildGraphNode::load(PersistentPool &pool)
 {
-    children.load(pool);
-    // Parents must be updated after loading all nodes.
+    serializationOp<PersistentPool::Load>(pool);
 }
 
-void BuildGraphNode::store(PersistentPool &pool) const
+void BuildGraphNode::store(PersistentPool &pool)
 {
-    children.store(pool);
-    // Do not store parents to avoid recursion.
+    serializationOp<PersistentPool::Store>(pool);
 }
 
 } // namespace Internal

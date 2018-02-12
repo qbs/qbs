@@ -41,6 +41,7 @@
 #define QBS_FILEDEPENDENCY_H
 
 #include <tools/filetime.h>
+#include <tools/persistence.h>
 
 namespace qbs {
 namespace Internal {
@@ -66,9 +67,14 @@ public:
     QString fileName() const { return m_fileName.toString(); }
 
     virtual void load(PersistentPool &pool);
-    virtual void store(PersistentPool &pool) const;
+    virtual void store(PersistentPool &pool);
 
 private:
+    template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
+    {
+        pool.serializationOp<opType>(m_filePath, m_timestamp);
+    }
+
     FileTime m_timestamp;
     QString m_filePath;
     QStringRef m_dirPath;

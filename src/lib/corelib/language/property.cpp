@@ -39,27 +39,17 @@
 
 #include "property.h"
 
-#include <tools/persistence.h>
-
 namespace qbs {
 namespace Internal {
 
-void Property::store(PersistentPool &pool) const
+void Property::store(PersistentPool &pool)
 {
-    pool.store(productName);
-    pool.store(moduleName);
-    pool.store(propertyName);
-    pool.store(value);
-    pool.store(static_cast<quint8>(kind));
+    serializationOp<PersistentPool::Store>(pool);
 }
 
 void Property::load(PersistentPool &pool)
 {
-    pool.load(productName);
-    pool.load(moduleName);
-    pool.load(propertyName);
-    pool.load(value);
-    kind = static_cast<Kind>(pool.load<quint8>());
+    serializationOp<PersistentPool::Load>(pool);
 }
 
 bool operator<(const Property &p1, const Property &p2)

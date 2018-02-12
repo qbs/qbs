@@ -45,6 +45,7 @@
 #include <language/filetags.h>
 #include <language/forward_decls.h>
 #include <tools/filetime.h>
+#include <tools/persistence.h>
 
 #include <QtCore/qhash.h>
 #include <QtCore/qstring.h>
@@ -55,7 +56,6 @@ namespace qbs {
 namespace Internal {
 class DependencyScanner;
 class FileResourceBase;
-class PersistentPool;
 
 class RawScanResult
 {
@@ -64,7 +64,12 @@ public:
     FileTags additionalFileTags;
 
     void load(PersistentPool &pool);
-    void store(PersistentPool &pool) const;
+    void store(PersistentPool &pool);
+private:
+    template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
+    {
+        pool.serializationOp<opType>(deps, additionalFileTags);
+    }
 };
 
 class RawScanResults
@@ -78,7 +83,11 @@ public:
         RawScanResult rawScanResult;
 
         void load(PersistentPool &pool);
-        void store(PersistentPool &pool) const;
+        void store(PersistentPool &pool);
+        template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
+        {
+            pool.serializationOp<opType>(scannerId, moduleProperties, lastScanTime, rawScanResult);
+        }
     };
 
     ScanData &findScanData(
@@ -87,9 +96,14 @@ public:
             const PropertyMapConstPtr &moduleProperties);
 
     void load(PersistentPool &pool);
-    void store(PersistentPool &pool) const;
+    void store(PersistentPool &pool);
 
 private:
+    template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
+    {
+        pool.serializationOp<opType>(m_rawScanData);
+    }
+
     QHash<QString, std::vector<ScanData>> m_rawScanData;
 };
 

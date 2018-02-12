@@ -41,6 +41,7 @@
 #define QBS_REQUESTEDDEPENDENCIES_H
 
 #include <language/forward_decls.h>
+#include <tools/persistence.h>
 #include <tools/set.h>
 
 #include <QString>
@@ -49,7 +50,6 @@
 
 namespace qbs {
 namespace Internal {
-class PersistentPool;
 
 class RequestedDependencies
 {
@@ -62,8 +62,13 @@ public:
     bool isUpToDate(const TopLevelProject *project) const;
 
     void load(PersistentPool &pool);
-    void store(PersistentPool &pool) const;
+    void store(PersistentPool &pool);
 private:
+    template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
+    {
+        pool.serializationOp<opType>(m_depsPerProduct);
+    }
+
     struct QStringHash { std::size_t operator()(const QString &s) const { return qHash(s); } };
     std::unordered_map<QString, Set<QString>, QStringHash> m_depsPerProduct;
 };

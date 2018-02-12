@@ -66,7 +66,13 @@ public:
     void doSanityChecks() const;
 
     void load(PersistentPool &pool);
-    void store(PersistentPool &pool) const;
+    void store(PersistentPool &pool);
+
+    template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
+    {
+        pool.serializationOp<opType>(m_requestedArtifactsPerProduct);
+    }
+
 private:
     struct RequestedArtifactsPerProduct
     {
@@ -79,8 +85,13 @@ private:
 
         void doSanityChecks() const;
 
+        template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
+        {
+            pool.serializationOp<opType>(allTags, requestedTags);
+        }
+
         void load(PersistentPool &pool);
-        void store(PersistentPool &pool) const;
+        void store(PersistentPool &pool);
     };
 
     std::unordered_map<QString, RequestedArtifactsPerProduct> m_requestedArtifactsPerProduct;

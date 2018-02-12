@@ -45,6 +45,7 @@
 #include "forward_decls.h"
 #include <language/forward_decls.h>
 #include <tools/dynamictypecheck.h>
+#include <tools/persistence.h>
 
 #include <unordered_map>
 
@@ -80,9 +81,14 @@ public:
     void removeOldInputArtifact(Artifact *artifact) { m_oldInputArtifacts.remove(artifact); }
 
     void load(PersistentPool &pool);
-    void store(PersistentPool &pool) const;
+    void store(PersistentPool &pool);
 
 private:
+    template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
+    {
+        pool.serializationOp<opType>(m_rule, m_oldInputArtifacts);
+    }
+
     ArtifactSet currentInputArtifacts() const;
 
     RuleConstPtr m_rule;

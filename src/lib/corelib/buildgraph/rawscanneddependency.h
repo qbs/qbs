@@ -40,6 +40,8 @@
 #ifndef QBS_RAWSCANNEDDEPENDENCY_H
 #define QBS_RAWSCANNEDDEPENDENCY_H
 
+#include <tools/persistence.h>
+
 #include <QString>
 
 namespace qbs {
@@ -59,10 +61,14 @@ public:
     bool isValid() const { return !m_fileName.isEmpty(); }
 
     void load(PersistentPool &pool);
-    void store(PersistentPool &pool) const;
+    void store(PersistentPool &pool);
 
 private:
     void setClean();
+    template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
+    {
+        pool.serializationOp<opType>(m_dirPath, m_fileName);
+    }
 
     QString m_dirPath;
     QString m_fileName;

@@ -44,7 +44,6 @@
 #include <language/language.h>
 #include <logging/logger.h>
 #include <tools/error.h>
-#include <tools/persistence.h>
 #include <tools/qbsassert.h>
 
 namespace qbs {
@@ -68,20 +67,12 @@ void ProductBuildData::addArtifact(Artifact *artifact)
 
 void ProductBuildData::load(PersistentPool &pool)
 {
-    m_nodes.load(pool);
-    m_roots.load(pool);
-    pool.load(m_rescuableArtifactData);
-    pool.load(m_artifactsByFileTag);
-    pool.load(m_artifactsWithChangedInputsPerRule);
+    serializationOp<PersistentPool::Load>(pool);
 }
 
-void ProductBuildData::store(PersistentPool &pool) const
+void ProductBuildData::store(PersistentPool &pool)
 {
-    m_nodes.store(pool);
-    m_roots.store(pool);
-    pool.store(m_rescuableArtifactData);
-    pool.store(m_artifactsByFileTag);
-    pool.store(m_artifactsWithChangedInputsPerRule);
+    serializationOp<PersistentPool::Store>(pool);
 }
 
 void ProductBuildData::addArtifactToSet(Artifact *artifact)

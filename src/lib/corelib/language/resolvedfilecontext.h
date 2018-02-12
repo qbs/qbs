@@ -42,6 +42,7 @@
 
 #include "forward_decls.h"
 #include "filecontextbase.h"
+#include <tools/persistence.h>
 
 namespace qbs {
 namespace Internal {
@@ -60,11 +61,16 @@ public:
     }
 
     void load(PersistentPool &pool);
-    void store(PersistentPool &pool) const;
+    void store(PersistentPool &pool);
 
 private:
     ResolvedFileContext() {}
     ResolvedFileContext(const FileContextBase &ctx);
+
+    template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
+    {
+        pool.serializationOp<opType>(m_filePath, m_jsExtensions, m_searchPaths, m_jsImports);
+    }
 };
 
 bool operator==(const ResolvedFileContext &a, const ResolvedFileContext &b);
