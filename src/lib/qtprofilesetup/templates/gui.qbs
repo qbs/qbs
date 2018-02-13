@@ -60,6 +60,6 @@ QtModule {
                                      "Foundation", "CoreFoundation", "AudioToolbox"])
     }
     cpp.frameworks: base
-    @special_properties@
+    @additionalContent@
 }
 

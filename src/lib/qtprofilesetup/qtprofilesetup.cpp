@@ -465,7 +465,7 @@ static void replaceSpecialValues(QByteArray *content, const Profile &profile,
     dict.insert("minWatchosVersion", minVersionJsString(qtEnvironment.watchosVersion));
     dict.insert("minAndroidVersion", minVersionJsString(qtEnvironment.androidVersion));
 
-    QByteArray propertiesString;
+    QByteArray additionalContent;
     QByteArray compilerDefines = utf8JSLiteral(module.compilerDefines);
     if (module.qbsName == QLatin1String("declarative")
             || module.qbsName == QLatin1String("quick")) {
@@ -474,7 +474,7 @@ static void replaceSpecialValues(QByteArray *content, const Profile &profile,
                 ? "QT_DECLARATIVE_DEBUG" : "QT_QML_DEBUG";
 
         const QString indent = QLatin1String("    ");
-        QTextStream s(&propertiesString);
+        QTextStream s(&additionalContent);
         s << "property bool qmlDebugging: false" << endl;
         s << indent << "property string qmlPath";
         if (qtEnvironment.qmlPath.isEmpty())
@@ -506,13 +506,13 @@ static void replaceSpecialValues(QByteArray *content, const Profile &profile,
     if (module.qbsName == QLatin1String("qml"))
         dict.insert("qmlPath", pathToJSLiteral(qtEnvironment.qmlPath).toUtf8());
     if (module.isStaticLibrary) {
-        if (!propertiesString.isEmpty())
-            propertiesString += "\n    ";
-        propertiesString += "isStaticLibrary: true";
+        if (!additionalContent.isEmpty())
+            additionalContent += "\n    ";
+        additionalContent += "isStaticLibrary: true";
     }
     if (module.isPlugin)
         dict.insert("className", utf8JSLiteral(module.pluginData.className));
-    dict.insert("special_properties", propertiesString);
+    dict.insert("additionalContent", additionalContent);
 
     for (std::pair<int, int> pos = findVariable(*content, 0); pos.first != -1;
          pos = findVariable(*content, pos.first)) {

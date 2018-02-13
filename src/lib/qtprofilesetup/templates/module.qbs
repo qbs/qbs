@@ -25,5 +25,5 @@ QtModule {
     cpp.defines: @defines@
     cpp.includePaths: @includes@
     cpp.libraryPaths: @libraryPaths@
-    @special_properties@
+    @additionalContent@
 }
