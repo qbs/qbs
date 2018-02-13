@@ -912,7 +912,7 @@ void ProjectResolver::resolveRule(Item *item, ProjectContext *projectContext)
             = m_evaluator->fileTagsValue(item, StringConstants::inputsFromDependenciesProperty());
     bool requiresInputsSet = false;
     rule->requiresInputs = m_evaluator->boolValue(item, StringConstants::requiresInputsProperty(),
-                                                  true, &requiresInputsSet);
+                                                  &requiresInputsSet);
     if (!requiresInputsSet)
         rule->requiresInputs = rule->declaresInputs();
     rule->auxiliaryInputs

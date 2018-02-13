@@ -280,6 +280,11 @@ void TestBlackboxQt::qtScxml()
         QSKIP("QtScxml module not present");
     QVERIFY2(m_qbsStdout.contains("state machine name: qbs_test_machine"),
              m_qbsStdout.constData());
+    QCOMPARE(runQbs(QbsRunParameters("resolve",
+        QStringList("modules.Qt.scxml.additionalCompilerFlags:--blubb"))), 0);
+    QbsRunParameters params;
+    params.expectFailure = true;
+    QVERIFY2(runQbs(params) != 0, m_qbsStdout.constData());
 }
 
 void TestBlackboxQt::removeMocHeaderFromFileList()

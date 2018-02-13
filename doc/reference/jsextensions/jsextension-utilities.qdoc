@@ -37,10 +37,22 @@
 
     \section1 Available Operations
 
+    \section2 cStringQuote
+
+    \badcode
+    Utilities.cStringQuote(str: string): string
+    \endcode
+
+    Takes a string and escapes special characters in a way that the result is
+    suitable for use as a C/C++ string literal. This function is typically used
+    to specify values for \l{cpp::defines}{cpp.defines}.
+
     \section2 getHash
-    \code
+
+    \badcode
     Utilities.getHash(key: string): string
     \endcode
+
     Calculates a 16-byte hash of the input and returns it.
     Rules in modules should use this function to find unique locations for output
     artifacts in the build directory without duplicating the whole directory structure of
@@ -48,9 +60,23 @@
     subdirectories of the same product).
 
     \section2 rfc1034Identifier
-    \code
+
+    \badcode
     Utilities.rfc1034Identifier(str: string): string
     \endcode
-    Returns an RFC 1034 compliant identifier based on the given string by replacing each character
+
+    Returns an RFC-1034 compliant identifier based on the given string by replacing each character
     that is not Latin alphanumeric or \c{.} with \c{-}.
+
+    \section2 versionCompare
+
+    \badcode
+    Utilities.versionCompare(version1: string, version2: string): number
+    \endcode
+
+    Interprets the two arguments as version numbers and returns a number that
+    is smaller than, equal to, or greater than zero if \c version1 is smaller
+    than, equal to, or greater than \c version2, respectively.
+
+    The version strings consist of up to three numbers separated by dots.
 */

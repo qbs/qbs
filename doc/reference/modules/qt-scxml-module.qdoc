@@ -65,6 +65,16 @@
 */
 
 /*!
+    \qmlproperty string Qt.scxml::generateStateMethods
+
+    If this property is \c true, the Qt SCXML compiler will generate read and notify methods
+    for states.
+
+    \defaultvalue \c false
+    \since 1.11
+*/
+
+/*!
     \qmlproperty string Qt.scxml::namespace
 
     The C++ namespace in which to put the generated class.

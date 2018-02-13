@@ -286,7 +286,7 @@ Module {
     property string cxxLanguageVersion
     PropertyOptions {
         name: "cxxLanguageVersion"
-        allowedValues: ["c++98", "c++11", "c++14"]
+        allowedValues: ["c++98", "c++11", "c++14", "c++17"]
         description: "The version of the C++ standard with which the code must comply."
     }
 

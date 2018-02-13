@@ -86,13 +86,10 @@ QScriptValue Evaluator::value(const Item *item, const QString &name, bool *prope
     return v;
 }
 
-bool Evaluator::boolValue(const Item *item, const QString &name, bool defaultValue,
+bool Evaluator::boolValue(const Item *item, const QString &name,
                           bool *propertyWasSet)
 {
-    QScriptValue v;
-    if (!evaluateProperty(&v, item, name, propertyWasSet))
-        return defaultValue;
-    return v.toBool();
+    return value(item, name, propertyWasSet).toBool();
 }
 
 int Evaluator::intValue(const Item *item, const QString &name, int defaultValue,

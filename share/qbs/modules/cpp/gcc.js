@@ -803,7 +803,8 @@ function compilerFlags(project, product, input, output, explicitlyDependsOn) {
         if (cxxVersion) {
             var gccCxxVersionsMap = {
                 "c++11": "c++0x", // Deprecated, but compatible with older gcc versions.
-                "c++14": "c++1y"
+                "c++14": "c++1y",
+                "c++17": "c++1z",
             };
             args.push("-std=" + (gccCxxVersionsMap[cxxVersion] || cxxVersion));
         }

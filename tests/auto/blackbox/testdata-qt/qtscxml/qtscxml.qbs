@@ -14,6 +14,7 @@ Project {
 
         Qt.scxml.className: "QbsStateMachine"
         Qt.scxml.namespace: "QbsTest"
+        Qt.scxml.generateStateMethods: true
 
         files: ["main.cpp"]
         Group {
