@@ -45,10 +45,16 @@
 #include <tools/profile.h>
 #include <tools/qttools.h>
 #include <tools/set.h>
+#include <tools/stlutils.h>
 
 #include <QtCore/qdiriterator.h>
 #include <QtCore/qfile.h>
 #include <QtCore/qhash.h>
+
+#include <algorithm>
+#include <functional>
+#include <map>
+#include <unordered_map>
 
 namespace qbs {
 namespace Internal {
@@ -86,6 +92,105 @@ static void replaceQtLibNamesWithFilePath(QList<QtModuleInfo> *modules, const Qt
     }
 }
 
+class DuplicatedDependencyLibsRemover
+{
+public:
+    void apply(QList<QtModuleInfo> *modules)
+    {
+        setupReverseDependencies(modules);
+
+        // Traverse the debug variants of modules.
+        m_getLibraries = [](QtModuleInfo *module) {
+            return std::vector<QStringList *>{
+                &module->dynamicLibrariesDebug, &module->staticLibrariesDebug
+            };
+        };
+        m_getLibFilePath = [](QtModuleInfo *module) {
+            return module->libFilePathDebug;
+        };
+        const auto &rootModules = roots(modules);
+        for (QtModuleInfo *module : rootModules)
+            traverse(module, QStringList());
+
+        // Traverse the release variants of modules.
+        m_getLibraries = [](QtModuleInfo *module) {
+            return std::vector<QStringList *>{
+                &module->dynamicLibrariesRelease, &module->staticLibrariesRelease
+            };
+        };
+        m_getLibFilePath = [](QtModuleInfo *module) {
+            return module->libFilePathRelease;
+        };
+        for (QtModuleInfo *module : rootModules)
+            traverse(module, QStringList());
+    }
+
+private:
+    void setupReverseDependencies(QList<QtModuleInfo> *modules)
+    {
+        std::map<QString, QtModuleInfo *> moduleByName;
+        for (QtModuleInfo &module : *modules)
+            moduleByName[module.qbsName] = &module;
+        for (QtModuleInfo &module : *modules) {
+            for (const QString &dep : module.dependencies) {
+                QtModuleInfo *depmod = moduleByName[dep];
+                if (!depmod)
+                    continue;
+                m_revDeps[depmod].push_back(&module);
+            }
+        }
+    }
+
+    std::vector<QtModuleInfo *> roots(QList<QtModuleInfo> *modules)
+    {
+        std::vector<QtModuleInfo *> result;
+        for (auto it = modules->begin(); it != modules->end(); ++it) {
+            QtModuleInfo &module = *it;
+            if (module.dependencies.empty())
+                result.push_back(&module);
+        }
+        return result;
+    }
+
+    void traverse(QtModuleInfo *module, QStringList libs)
+    {
+        if (contains(m_currentPath, module))
+            return;
+        m_currentPath.push_back(module);
+
+        auto isInLibs = [&libs](const QString &str) {
+            return std::binary_search(libs.begin(), libs.end(), str);
+        };
+        auto moduleLibraryLists = m_getLibraries(module);
+        for (QStringList *lst : moduleLibraryLists) {
+            auto it = std::remove_if(lst->begin(), lst->end(), isInLibs);
+            if (it != lst->end())
+                lst->erase(it, lst->end());
+        }
+        const QString libFilePath = m_getLibFilePath(module);
+        if (!libFilePath.isEmpty())
+            libs.push_back(libFilePath);
+        for (QStringList *lst : moduleLibraryLists)
+            std::copy(lst->begin(), lst->end(), std::back_inserter(libs));
+        std::sort(libs.begin(), libs.end());
+
+        for (auto rdep : m_revDeps[module])
+            traverse(rdep, libs);
+
+        m_currentPath.pop_back();
+    }
+
+    std::unordered_map<QtModuleInfo *, std::vector<QtModuleInfo *>> m_revDeps;
+    std::vector<QtModuleInfo *> m_currentPath;
+    std::function<std::vector<QStringList *>(QtModuleInfo *)> m_getLibraries;
+    std::function<QString(QtModuleInfo *)> m_getLibFilePath;
+};
+
+static void removeDuplicatedDependencyLibs(QList<QtModuleInfo> *modules)
+{
+    DuplicatedDependencyLibsRemover dlr;
+    dlr.apply(modules);
+}
 
 QtModuleInfo::QtModuleInfo()
     : isPrivate(false), hasLibrary(true), isStaticLibrary(false), isPlugin(false), mustExist(true)
@@ -651,6 +756,7 @@ QList<QtModuleInfo> allQt5Modules(const Profile &profile, const QtEnvironment &q
     }
 
     replaceQtLibNamesWithFilePath(&modules, qtEnvironment);
+    removeDuplicatedDependencyLibs(&modules);
     return modules;
 }
 
