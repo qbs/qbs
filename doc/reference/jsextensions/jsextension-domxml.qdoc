@@ -1,0 +1,342 @@
+/****************************************************************************
+**
+** Copyright (C) 2018 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+/*!
+    \contentspage index.html
+    \page jsextension-domxml.html
+    \ingroup list-of-builtin-services
+
+    \title DomXml Service
+    \brief Provides a DOM parser and generator to JavaScript.
+
+    The \c DomXml service enables you to access and manipulate XML Document
+    Object Model (DOM) documents. The entire document is a \e {document node},
+    each XML element is an \e {element node}, the text paragraphs in the XML
+    elements are \e {text nodes}, and each attribute is an \e {attribute node}.
+
+    XML DOM presents documents as tree structures. The contents of the nodes
+    can be accessed in the tree. They can be modified or deleted, and new
+    nodes can be created.
+
+    The nodes in the node tree have a hierarchical relationship to each other.
+    The top node is called the \e root. Each node, except the root, has exactly
+    one \e parent node, while it can have any number of \e children. Nodes with
+    the same parent are called \e siblings.
+
+    \section1 XML DOM Document Node Operations
+
+    A document node represents an entire document. That is, the root of the DOM
+    tree.
+
+    \section2 Constructor
+
+    \badcode
+    XmlDomDocument()
+    \endcode
+
+    Creates an XML DOM root node that can contain one element.
+
+    \section2 createCDATASection
+
+    \badcode
+    XmlDomDocument.createCDATASection(value: string)
+    \endcode
+
+    Creates a CDATA section that is not parsed by a parser. It can be used to
+    include XML fragments without having to escape the delimiters, for example.
+    Tags inside the section are not treated as markup nor are entities expanded.
+
+    \section2 createElement
+
+    \badcode
+    XmlDomDocument.createElement(tagName: string)
+    \endcode
+
+    Creates an element that can contain other elements, CDATA sections, and text
+    nodes.
+
+    \section2 createTextNode
+
+    \badcode
+    XmlDomDocument.createTextNode(value: string)
+    \endcode
+
+    Creates a text node that represents textual content in an element or
+    attribute.
+
+    \section2 documentElement
+
+    \badcode
+    XmlDomDocument.documentElement()
+    \endcode
+
+    Returns the document element.
+
+    \section2 load
+
+    \badcode
+    XmlDomDocument.load(filePath: string): void
+    \endcode
+
+    Loads the document specified by \c filePath.
+
+    \section2 save
+
+    \badcode
+    XmlDomDocument.save(filePath: string, indentation: int): void
+    \endcode
+
+    Saves the document at the location specified by \c filePath with the
+    indentation specified by \c int.
+
+    \section2 setContent
+
+    \badcode
+    XmlDomDocument.setContent(content: string)
+    \endcode
+
+    Returns the content of the document.
+
+    \section2 toString
+
+    \badcode
+    XmlDomDocument.toString(indentation: int)
+    \endcode
+
+    Converts the document to a string with the indentation specified by \c int.
+
+    \section1 XML DOM Node Operations
+
+    A node represents a single node in the document tree. There are several
+    different types of nodes, such as element, attribute, and text nodes.
+
+    All objects inherit the node properties for handling parents and children,
+    even if they cannot have parents or children. For example, attempting to add
+    children to text nodes results in a DOM error.
+
+    \section2 Constructor
+
+    \badcode
+    XmlDomNode()
+    \endcode
+
+    Creates an XML DOM node.
+
+    \section2 appendChild
+
+    \badcode
+    XmlDomNode.appendChild(tagName: string)
+    \endcode
+
+    Appends a new child node to the end of the list of children of a node.
+
+    \section2 attribute
+
+    \badcode
+    XmlDomNode.attribute(name: string, defaultValue: string)
+    \endcode
+
+    Returns the name and default value of the attribute.
+
+    \section2 clear
+
+    \badcode
+    XmlDomNode.clear()
+    \endcode
+
+    Clears the contents of the node.
+
+    \section2 data
+
+    \badcode
+    XmlDomNode.data()
+    \endcode
+
+    Returns the contents of the text node, CDATA section, or character data
+    node.
+
+    \section2 firstChild
+
+    \badcode
+    XmlDomNode.firstChild(tagName: string)
+    \endcode
+
+    Returns the first child of a node.
+
+    \section2 hasAttribute
+
+    \badcode
+    XmlDomNode.hasAttribute(name: string) boolean
+    \endcode
+
+    Returns \c true if the node has the specified attribute.
+
+    \section2 hasAttributes
+
+    \badcode
+    XmlDomNode.hasAttributes() boolean
+    \endcode
+
+    Returns \c true if the node has attributes.
+
+    \section2 hasChildNodes
+
+    \badcode
+    XmlDomNode.hasChildNodes() boolean
+    \endcode
+
+    Returns \c true if the node has children.
+
+    \section2 insertAfter
+
+    \badcode
+    XmlDomNode.insertAfter(newChild: tagName, refChild: tagName)
+    \endcode
+
+    Inserts a new child node after the child node specified by \c refChild.
+
+    \section2 insertBefore
+
+    \badcode
+    XmlDomNode.insertBefore(newChild: tagName, refChild: tagName)
+    \endcode
+
+    Inserts a new child node before the child node specified by \c refChild.
+
+    \section2 isCDATASection
+
+    \badcode
+    XmlDomNode.isCDATASection() boolean
+    \endcode
+
+    Returns \c true if this is a CDATA section.
+
+    \section2 isElement
+
+    \badcode
+    XmlDomNode.isElement() boolean
+    \endcode
+
+    Returns \c true if this is an element.
+
+    \section2 isText
+
+    \badcode
+    XmlDomNode.isText() boolean
+    \endcode
+
+    Returns \c true if this is a text node.
+
+    \section2 lastChild
+
+    \badcode
+    XmlDomNode.lastChild(tagName: string)
+    \endcode
+
+    Returns the last child of a node.
+
+    \section2 nextSibling
+
+    \badcode
+    XmlDomNode.nextSibling(tagName: string)
+    \endcode
+
+    Returns the node immediately following a node.
+
+    \section2 parentNode
+
+    \badcode
+    XmlDomNode.parentNode()
+    \endcode
+
+    Returns the parent of the node.
+
+    \section2 previousSibling
+
+    \badcode
+    XmlDomNode.previousSibling(tagName: string)
+    \endcode
+
+    Returns the node before a node.
+
+    \section2 removeChild
+
+    \badcode
+    XmlDomNode.removeChild(tagName: string)
+    \endcode
+
+    Removes the child node.
+
+    \section2 replaceChild
+
+    \badcode
+    XmlDomNode.replaceChild(newChild: tagName, oldChild: tagName)
+    \endcode
+
+    Replaces a child node with another one.
+
+    \section2 setAttribute
+
+    \badcode
+    XmlDomNode.setAttribute(name: string, value: string)
+    \endcode
+
+    Sets the name and value of an attribute.
+
+    \section2 setData
+
+    \badcode
+    XmlDomNode.setData(value: string): void
+    \endcode
+
+    Sets the data of the node to a text node, CDATA section, or character data
+    node.
+
+    \section2 setTagName
+
+    \badcode
+    XmlDomNode.setTagName(tagName: string)
+    \endcode
+
+    Sets the tag name of the node.
+
+    \section2 tagName
+
+    \badcode
+    XmlDomNode.tagName()
+    \endcode
+
+    Returns the tag name of the node.
+
+    \section2 text
+
+    \badcode
+    XmlDomNode.text()
+    \endcode
+
+    Returns the text of the node.
+*/
