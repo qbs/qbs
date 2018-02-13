@@ -164,7 +164,7 @@ void TrafoChangeTracker::invalidateTransformer()
     const JavaScriptCommandPtr &pseudoCommand = JavaScriptCommand::create();
     pseudoCommand->setSourceCode(QStringLiteral("random stuff that will cause "
                                                 "commandsEqual() to fail"));
-    m_transformer->commands << pseudoCommand;
+    m_transformer->commands.addCommand(pseudoCommand);
 }
 
 bool TrafoChangeTracker::propertyChangeFound()
@@ -288,7 +288,7 @@ bool TrafoChangeTracker::checkForImportFileChange(const std::vector<QString> &im
 bool TrafoChangeTracker::environmentChangeFound()
 {
     // TODO: Also check results of getEnv() from commands here; we currently do not track them
-    for (const AbstractCommandPtr &c : qAsConst(m_transformer->commands)) {
+    for (const AbstractCommandPtr &c : qAsConst(m_transformer->commands.commands())) {
         if (c->type() != AbstractCommand::ProcessCommandType)
             continue;
         for (const QString &var : std::static_pointer_cast<ProcessCommand>(c)->relevantEnvVars()) {

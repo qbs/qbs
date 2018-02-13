@@ -455,11 +455,11 @@ void JavaScriptCommand::store(PersistentPool &pool) const
     pool.store(m_sourceCode);
 }
 
-QList<AbstractCommandPtr> loadCommandList(PersistentPool &pool)
+void CommandList::load(PersistentPool &pool)
 {
-    QList<AbstractCommandPtr> commands;
+    m_commands.clear();
     int count = pool.load<int>();
-    commands.reserve(count);
+    m_commands.reserve(count);
     while (--count >= 0) {
         const auto cmdType = pool.load<quint8>();
         AbstractCommandPtr cmd;
@@ -473,26 +473,25 @@ QList<AbstractCommandPtr> loadCommandList(PersistentPool &pool)
         default:
             QBS_CHECK(false);
         }
-        commands.push_back(cmd);
+        addCommand(cmd);
     }
-    return commands;
 }
 
-void storeCommandList(const QList<AbstractCommandPtr> &commands, PersistentPool &pool)
+void CommandList::store(PersistentPool &pool) const
 {
-    pool.store(commands.size());
-    for (const AbstractCommandPtr &cmd : commands) {
+    pool.store(m_commands.size());
+    for (const AbstractCommandPtr &cmd : m_commands) {
         pool.store(static_cast<quint8>(cmd->type()));
         pool.store(cmd);
     }
 }
 
-bool commandListsAreEqual(const QList<AbstractCommandPtr> &l1, const QList<AbstractCommandPtr> &l2)
+bool operator==(const CommandList &l1, const CommandList &l2)
 {
     if (l1.size() != l2.size())
         return false;
     for (int i = 0; i < l1.size(); ++i)
-        if (!l1.at(i)->equals(l2.at(i).get()))
+        if (!l1.commandAt(i)->equals(l2.commandAt(i).get()))
             return false;
     return true;
 }

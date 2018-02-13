@@ -174,10 +174,23 @@ private:
     QString m_sourceCode;
 };
 
-QList<AbstractCommandPtr> loadCommandList(PersistentPool &pool);
-void storeCommandList(const QList<AbstractCommandPtr> &commands, PersistentPool &pool);
+class CommandList
+{
+public:
+    bool empty() const { return m_commands.empty(); }
+    int size() const { return m_commands.size(); }
+    AbstractCommandPtr commandAt(int i) const { return m_commands.at(i); }
+    const QList<AbstractCommandPtr> &commands() const { return m_commands; }
 
-bool commandListsAreEqual(const QList<AbstractCommandPtr> &l1, const QList<AbstractCommandPtr> &l2);
+    void clear() { m_commands.clear(); }
+    void addCommand(const AbstractCommandPtr &cmd) { m_commands.push_back(cmd); }
+
+    void load(PersistentPool &pool);
+    void store(PersistentPool &pool) const;
+private:
+    QList<AbstractCommandPtr> m_commands;
+};
+bool operator==(const CommandList &cl1, const CommandList &cl2);
 
 } // namespace Internal
 } // namespace qbs

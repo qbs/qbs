@@ -130,7 +130,7 @@ void ExecutorJob::runNextCommand()
         return;
     }
 
-    const AbstractCommandPtr &command = m_transformer->commands.at(m_currentCommandIdx);
+    const AbstractCommandPtr &command = m_transformer->commands.commandAt(m_currentCommandIdx);
     switch (command->type()) {
     case AbstractCommand::ProcessCommandType:
         m_currentCommandExecutor = m_processCommandExecutor;

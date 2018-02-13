@@ -39,7 +39,6 @@
 #include "transformer.h"
 
 #include "artifact.h"
-#include "rulecommands.h"
 #include <jsextensions/moduleproperties.h>
 #include <language/language.h>
 #include <language/scriptengine.h>
@@ -256,14 +255,14 @@ void Transformer::createCommands(ScriptEngine *engine, const PrivateScriptFuncti
                 const AbstractCommandPtr cmd
                         = createCommandFromScriptValue(item, script.location());
                 if (cmd)
-                    commands.push_back(cmd);
+                    commands.addCommand(cmd);
             }
         }
     } else {
         const AbstractCommandPtr cmd = createCommandFromScriptValue(scriptValue,
                                                                     script.location());
         if (cmd)
-            commands.push_back(cmd);
+            commands.addCommand(cmd);
     }
 }
 
@@ -296,7 +295,7 @@ void Transformer::load(PersistentPool &pool)
     pool.load(importedFilesUsedInCommands);
     pool.load(depsRequestedInPrepareScript);
     pool.load(depsRequestedInCommands);
-    commands = loadCommandList(pool);
+    pool.load(commands);
     pool.load(alwaysRun);
 }
 
@@ -314,7 +313,7 @@ void Transformer::store(PersistentPool &pool) const
     pool.store(importedFilesUsedInCommands);
     pool.store(depsRequestedInPrepareScript);
     pool.store(depsRequestedInCommands);
-    storeCommandList(commands, pool);
+    pool.store(commands);
     pool.store(alwaysRun);
 }
 

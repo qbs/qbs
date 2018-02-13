@@ -726,7 +726,8 @@ RuleCommandList ProjectPrivate::ruleCommands(const ProductData &product,
         for (const Artifact * const inputArtifact : qAsConst(transformer->inputs)) {
             if (inputArtifact->filePath() == inputFilePath) {
                 RuleCommandList list;
-                for (const AbstractCommandPtr &internalCommand : qAsConst(transformer->commands)) {
+                for (const AbstractCommandPtr &internalCommand
+                     : qAsConst(transformer->commands.commands())) {
                     RuleCommand externalCommand;
                     externalCommand.d->description = internalCommand->description();
                     externalCommand.d->extendedDescription = internalCommand->extendedDescription();

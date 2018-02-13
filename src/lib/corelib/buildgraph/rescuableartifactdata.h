@@ -42,6 +42,7 @@
 
 #include "forward_decls.h"
 #include "requesteddependencies.h"
+#include "rulecommands.h"
 
 #include <language/filetags.h>
 #include <language/forward_decls.h>
@@ -101,7 +102,7 @@ public:
     std::vector<QString> fileDependencies;
 
     // Per-Transformer data
-    QList<AbstractCommandPtr> commands;
+    CommandList commands;
     PropertySet propertiesRequestedInPrepareScript;
     PropertySet propertiesRequestedInCommands;
     PropertyHash propertiesRequestedFromArtifactInPrepareScript;

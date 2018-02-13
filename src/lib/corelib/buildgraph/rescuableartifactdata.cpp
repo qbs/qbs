@@ -39,8 +39,6 @@
 
 #include "rescuableartifactdata.h"
 
-#include "rulecommands.h"
-
 #include <language/propertymapinternal.h>
 
 #include <tools/persistence.h>
@@ -65,7 +63,7 @@ void RescuableArtifactData::load(PersistentPool &pool)
     pool.load(importedFilesUsedInCommands);
     pool.load(depsRequestedInPrepareScript);
     pool.load(depsRequestedInCommands);
-    commands = loadCommandList(pool);
+    pool.load(commands);
     pool.load(fileTags);
     pool.load(properties);
 }
@@ -83,7 +81,7 @@ void RescuableArtifactData::store(PersistentPool &pool) const
     pool.store(importedFilesUsedInCommands);
     pool.store(depsRequestedInPrepareScript);
     pool.store(depsRequestedInCommands);
-    storeCommandList(commands, pool);
+    pool.store(commands);
     pool.store(fileTags);
     pool.store(properties);
 }

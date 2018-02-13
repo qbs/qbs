@@ -746,7 +746,7 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = 0)
 
     typedef std::pair<Artifact *, bool> ChildArtifactData;
     QList<ChildArtifactData> childrenToConnect;
-    bool canRescue = commandListsAreEqual(artifact->transformer->commands, rad.commands);
+    bool canRescue = artifact->transformer->commands == rad.commands;
     if (canRescue) {
         ResolvedProductPtr pseudoProduct = ResolvedProduct::create();
         for (const RescuableArtifactData::ChildData &cd : qAsConst(rad.children)) {
