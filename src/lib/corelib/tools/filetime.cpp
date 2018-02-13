@@ -200,20 +200,20 @@ QString FileTime::toString() const
 void qbs::Internal::FileTime::store(PersistentPool &pool) const
 {
 #if HAS_CLOCK_GETTIME
-    pool.store(static_cast<qint64>(m_fileTime.tv_sec));
-    pool.store(static_cast<qint64>(m_fileTime.tv_nsec));
+    pool.store(m_fileTime.tv_sec);
+    pool.store(m_fileTime.tv_nsec);
 #else
-    pool.store(static_cast<quint64>(m_fileTime));
+    pool.store(m_fileTime);
 #endif
 }
 
 void qbs::Internal::FileTime::load(PersistentPool &pool)
 {
 #if HAS_CLOCK_GETTIME
-    m_fileTime.tv_sec = pool.load<qint64>();
-    m_fileTime.tv_nsec = pool.load<qint64>();
+    pool.load(m_fileTime.tv_sec);
+    pool.load(m_fileTime.tv_nsec);
 #else
-    m_fileTime = pool.load<quint64>();
+    pool.load(m_fileTime);
 #endif
 }
 

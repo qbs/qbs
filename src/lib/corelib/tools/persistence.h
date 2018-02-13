@@ -50,6 +50,7 @@
 #include <QtCore/qstring.h>
 #include <QtCore/qvariant.h>
 
+#include <ctime>
 #include <memory>
 #include <type_traits>
 #include <unordered_map>
@@ -196,8 +197,33 @@ template <class T> inline std::shared_ptr<T> PersistentPool::idLoadS()
 template<typename T>
 struct PersistentPool::Helper<T, typename std::enable_if<std::is_integral<T>::value>::type>
 {
+    static void store(std::time_t value, PersistentPool *pool) { pool->m_stream << qint64(value); }
     static void store(const T &value, PersistentPool *pool) { pool->m_stream << value; }
     static void load(T &value, PersistentPool *pool) { pool->m_stream >> value; }
+};
+
+template<> struct PersistentPool::Helper<long>
+{
+    static void store(long value, PersistentPool *pool) { pool->m_stream << qint64(value); }
+    static void load(long &value, PersistentPool *pool)
+    {
+        qint64 v;
+        pool->m_stream >> v;
+        value = long(v);
+    }
+};
+
+template<typename T>
+struct PersistentPool::Helper<T, typename std::enable_if<std::is_same<T, std::time_t>::value
+        && !std::is_same<T, long>::value>::type>
+{
+    static void store(std::time_t value, PersistentPool *pool) { pool->m_stream << qint64(value); }
+    static void load(std::time_t &value, PersistentPool *pool)
+    {
+        qint64 v;
+        pool->m_stream >> v;
+        value = static_cast<std::time_t>(v);
+    }
 };
 
 template<typename T>
