@@ -42,32 +42,10 @@
 #include "filedependency.h"
 #include "depscanner.h"
 
-#include <language/propertymapinternal.h>
-
 #include <utility>
 
 namespace qbs {
 namespace Internal {
-
-void RawScanResult::load(PersistentPool &pool)
-{
-    serializationOp<PersistentPool::Load>(pool);
-}
-
-void RawScanResult::store(PersistentPool &pool)
-{
-    serializationOp<PersistentPool::Store>(pool);
-}
-
-void RawScanResults::ScanData::load(PersistentPool &pool)
-{
-    serializationOp<PersistentPool::Load>(pool);
-}
-
-void RawScanResults::ScanData::store(PersistentPool &pool)
-{
-    serializationOp<PersistentPool::Store>(pool);
-}
 
 RawScanResults::ScanData &RawScanResults::findScanData(
         const FileResourceBase *file,
@@ -88,16 +66,6 @@ RawScanResults::ScanData &RawScanResults::findScanData(
     newScanData.moduleProperties = moduleProperties;
     scanDataForFile.push_back(std::move(newScanData));
     return scanDataForFile.back();
-}
-
-void RawScanResults::load(PersistentPool &pool)
-{
-    serializationOp<PersistentPool::Load>(pool);
-}
-
-void RawScanResults::store(PersistentPool &pool)
-{
-    serializationOp<PersistentPool::Store>(pool);
 }
 
 } // namespace Internal

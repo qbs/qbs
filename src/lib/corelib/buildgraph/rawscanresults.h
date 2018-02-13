@@ -44,6 +44,7 @@
 
 #include <language/filetags.h>
 #include <language/forward_decls.h>
+#include <language/propertymapinternal.h>
 #include <tools/filetime.h>
 #include <tools/persistence.h>
 
@@ -63,10 +64,7 @@ public:
     std::vector<RawScannedDependency> deps;
     FileTags additionalFileTags;
 
-    void load(PersistentPool &pool);
-    void store(PersistentPool &pool);
-private:
-    template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
+    template<PersistentPool::OpType opType> void completeSerializationOp(PersistentPool &pool)
     {
         pool.serializationOp<opType>(deps, additionalFileTags);
     }
@@ -82,9 +80,7 @@ public:
         FileTime lastScanTime;
         RawScanResult rawScanResult;
 
-        void load(PersistentPool &pool);
-        void store(PersistentPool &pool);
-        template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
+        template<PersistentPool::OpType opType> void completeSerializationOp(PersistentPool &pool)
         {
             pool.serializationOp<opType>(scannerId, moduleProperties, lastScanTime, rawScanResult);
         }
@@ -95,15 +91,12 @@ public:
             const DependencyScanner *scanner,
             const PropertyMapConstPtr &moduleProperties);
 
-    void load(PersistentPool &pool);
-    void store(PersistentPool &pool);
-
-private:
-    template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
+    template<PersistentPool::OpType opType> void completeSerializationOp(PersistentPool &pool)
     {
         pool.serializationOp<opType>(m_rawScanData);
     }
 
+private:
     QHash<QString, std::vector<ScanData>> m_rawScanData;
 };
 

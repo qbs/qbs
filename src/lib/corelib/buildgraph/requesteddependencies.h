@@ -61,14 +61,12 @@ public:
     void clear() { m_depsPerProduct.clear(); }
     bool isUpToDate(const TopLevelProject *project) const;
 
-    void load(PersistentPool &pool);
-    void store(PersistentPool &pool);
-private:
-    template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
+    template<PersistentPool::OpType opType> void completeSerializationOp(PersistentPool &pool)
     {
         pool.serializationOp<opType>(m_depsPerProduct);
     }
 
+private:
     struct QStringHash { std::size_t operator()(const QString &s) const { return qHash(s); } };
     std::unordered_map<QString, Set<QString>, QStringHash> m_depsPerProduct;
 };

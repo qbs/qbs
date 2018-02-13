@@ -61,19 +61,16 @@ public:
     QVariant property(const QStringList &name) const;
     void setValue(const QVariantMap &value);
 
-    void load(PersistentPool &);
-    void store(PersistentPool &);
+    template<PersistentPool::OpType opType> void completeSerializationOp(PersistentPool &pool)
+    {
+        pool.serializationOp<opType>(m_value);
+    }
 
 private:
     friend bool operator==(const PropertyMapInternal &lhs, const PropertyMapInternal &rhs);
 
     PropertyMapInternal();
     PropertyMapInternal(const PropertyMapInternal &other);
-
-    template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
-    {
-        pool.serializationOp<opType>(m_value);
-    }
 
     QVariantMap m_value;
 };

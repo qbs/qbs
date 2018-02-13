@@ -30,7 +30,6 @@ SOURCES += \
     $$PWD/rawscanresults.cpp \
     $$PWD/requestedartifacts.cpp \
     $$PWD/requesteddependencies.cpp \
-    $$PWD/rescuableartifactdata.cpp \
     $$PWD/rulecommands.cpp \
     $$PWD/rulegraph.cpp \
     $$PWD/rulenode.cpp \

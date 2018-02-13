@@ -65,16 +65,6 @@ void ProductBuildData::addArtifact(Artifact *artifact)
     addArtifactToSet(artifact);
 }
 
-void ProductBuildData::load(PersistentPool &pool)
-{
-    serializationOp<PersistentPool::Load>(pool);
-}
-
-void ProductBuildData::store(PersistentPool &pool)
-{
-    serializationOp<PersistentPool::Store>(pool);
-}
-
 void ProductBuildData::addArtifactToSet(Artifact *artifact)
 {
     std::lock_guard<std::mutex> l(m_artifactsMapMutex);

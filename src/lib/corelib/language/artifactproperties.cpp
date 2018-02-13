@@ -52,16 +52,6 @@ ArtifactProperties::ArtifactProperties()
 {
 }
 
-void ArtifactProperties::load(PersistentPool &pool)
-{
-    serializationOp<PersistentPool::Load>(pool);
-}
-
-void ArtifactProperties::store(PersistentPool &pool)
-{
-    serializationOp<PersistentPool::Store>(pool);
-}
-
 FileTags ArtifactProperties::extraFileTags() const
 {
     return m_extraFileTags;

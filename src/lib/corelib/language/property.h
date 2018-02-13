@@ -70,9 +70,7 @@ public:
     {
     }
 
-    void store(PersistentPool &pool);
-    void load(PersistentPool &pool);
-    template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
+    template<PersistentPool::OpType opType> void completeSerializationOp(PersistentPool &pool)
     {
         pool.serializationOp<opType>(productName, moduleName, propertyName, value, kind);
     }

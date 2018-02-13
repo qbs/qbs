@@ -186,7 +186,7 @@ template<typename T> inline void PersistentPool::storeSharedObject(const T *obje
         id = m_lastStoredObjectId++;
         m_storageIndices.insert(addr, id);
         m_stream << id;
-        const_cast<T *>(object)->store(*this);
+        store(*object);
     } else {
         m_stream << id;
     }
@@ -210,7 +210,7 @@ template <typename T> inline T *PersistentPool::idLoad()
 
     auto t = new T;
     m_loadedRaw[id] = t;
-    t->load(*this);
+    load(*t);
     return t;
 }
 
@@ -228,11 +228,25 @@ template <class T> inline std::shared_ptr<T> PersistentPool::idLoadS()
     m_loaded.resize(id + 1);
     const std::shared_ptr<T> t = T::create();
     m_loaded[id] = t;
-    t->load(*this);
+    load(*t);
     return t;
 }
 
 /***** Specializations of Helper class *****/
+
+template<typename T>
+struct PersistentPool::Helper<T, std::enable_if_t<std::is_member_function_pointer<
+        decltype(&T::template completeSerializationOp<PersistentPool::Load>)>::value>>
+{
+    static void store(const T &value, PersistentPool *pool)
+    {
+        const_cast<T &>(value).template completeSerializationOp<PersistentPool::Store>(*pool);
+    }
+    static void load(T &value, PersistentPool *pool)
+    {
+        value.template completeSerializationOp<PersistentPool::Load>(*pool);
+    }
+};
 
 template<typename T> struct PersistentPool::Helper<T, std::enable_if_t<std::is_integral<T>::value>>
 {

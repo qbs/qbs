@@ -197,15 +197,5 @@ QString FileTime::toString() const
 #endif
 }
 
-void FileTime::store(PersistentPool &pool)
-{
-    return serializationOp<PersistentPool::Store>(pool);
-}
-
-void qbs::Internal::FileTime::load(PersistentPool &pool)
-{
-    return serializationOp<PersistentPool::Load>(pool);
-}
-
 } // namespace Internal
 } // namespace qbs

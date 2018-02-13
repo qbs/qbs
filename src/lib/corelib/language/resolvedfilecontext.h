@@ -60,17 +60,13 @@ public:
         return ResolvedFileContextPtr(new ResolvedFileContext(baseContext));
     }
 
-    void load(PersistentPool &pool);
-    void store(PersistentPool &pool);
-
-private:
-    ResolvedFileContext() {}
-    ResolvedFileContext(const FileContextBase &ctx);
-
-    template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
+    template<PersistentPool::OpType opType> void completeSerializationOp(PersistentPool &pool)
     {
         pool.serializationOp<opType>(m_filePath, m_jsExtensions, m_searchPaths, m_jsImports);
     }
+private:
+    ResolvedFileContext() {}
+    ResolvedFileContext(const FileContextBase &ctx);
 };
 
 bool operator==(const ResolvedFileContext &a, const ResolvedFileContext &b);

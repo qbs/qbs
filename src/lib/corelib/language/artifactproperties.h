@@ -61,16 +61,13 @@ public:
     FileTags extraFileTags() const;
     void setExtraFileTags(const FileTags &extraFileTags);
 
-    void load(PersistentPool &);
-    void store(PersistentPool &);
-
-private:
-    ArtifactProperties();
-
-    template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
+    template<PersistentPool::OpType opType> void completeSerializationOp(PersistentPool &pool)
     {
         pool.serializationOp<opType>(m_fileTagsFilter, m_extraFileTags, m_propertyMap);
     }
+
+private:
+    ArtifactProperties();
 
     FileTags m_fileTagsFilter;
     FileTags m_extraFileTags;

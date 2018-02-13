@@ -42,7 +42,6 @@
 #include "artifactproperties.h"
 #include "builtindeclarations.h"
 #include "propertymapinternal.h"
-#include "resolvedfilecontext.h"
 #include "scriptengine.h"
 
 #include <buildgraph/artifact.h>
@@ -87,6 +86,11 @@ template<typename T> bool equals(const T *v1, const T *v2)
 }
 
 
+/*!
+ * \class FileTagger
+ * \brief The \c FileTagger class maps 1:1 to the respective item in a qbs source file.
+ */
+
 FileTagger::FileTagger(const QStringList &patterns, const FileTags &fileTags, int priority)
     : m_fileTags(fileTags), m_priority(priority)
 {
@@ -102,20 +106,6 @@ void FileTagger::setPatterns(const QStringList &patterns)
     }
 }
 
-/*!
- * \class FileTagger
- * \brief The \c FileTagger class maps 1:1 to the respective item in a qbs source file.
- */
-void FileTagger::load(PersistentPool &pool)
-{
-    serializationOp<PersistentPool::Load>(pool);
-}
-
-void FileTagger::store(PersistentPool &pool)
-{
-    serializationOp<PersistentPool::Store>(pool);
-}
-
 
 bool Probe::needsReconfigure(const FileTime &referenceTime) const
 {
@@ -124,16 +114,6 @@ bool Probe::needsReconfigure(const FileTime &referenceTime) const
         return !fi.exists() || fi.lastModified() > referenceTime;
     };
     return std::any_of(m_importedFilesUsed.cbegin(), m_importedFilesUsed.cend(), criterion);
-}
-
-void Probe::load(PersistentPool &pool)
-{
-    serializationOp<PersistentPool::Load>(pool);
-}
-
-void Probe::store(PersistentPool &pool)
-{
-    serializationOp<PersistentPool::Store>(pool);
 }
 
 
@@ -146,25 +126,7 @@ void Probe::store(PersistentPool &pool)
  * SourceArtifact could simply have a back pointer to the group in addition to the file path.)
  * \sa ResolvedGroup
  */
-void SourceArtifactInternal::load(PersistentPool &pool)
-{
-    serializationOp<PersistentPool::Load>(pool);
-}
 
-void SourceArtifactInternal::store(PersistentPool &pool)
-{
-    serializationOp<PersistentPool::Store>(pool);
-}
-
-void SourceWildCards::load(PersistentPool &pool)
-{
-    serializationOp<PersistentPool::Load>(pool);
-}
-
-void SourceWildCards::store(PersistentPool &pool)
-{
-    serializationOp<PersistentPool::Store>(pool);
-}
 
 /*!
  * \class ResolvedGroup
@@ -218,26 +180,6 @@ void ResolvedGroup::store(PersistentPool &pool)
  * \sa Rule
  */
 
-void RuleArtifact::Binding::store(PersistentPool &pool)
-{
-    serializationOp<PersistentPool::Store>(pool);
-}
-
-void RuleArtifact::Binding::load(PersistentPool &pool)
-{
-    serializationOp<PersistentPool::Load>(pool);
-}
-
-void RuleArtifact::load(PersistentPool &pool)
-{
-    serializationOp<PersistentPool::Load>(pool);
-}
-
-void RuleArtifact::store(PersistentPool &pool)
-{
-    serializationOp<PersistentPool::Store>(pool);
-}
-
 
 /*!
  * \class ScriptFunction
@@ -272,16 +214,6 @@ bool ScriptFunction::isValid() const
     return location.line() != -1;
 }
 
-void ScriptFunction::load(PersistentPool &pool)
-{
-    serializationOp<PersistentPool::Load>(pool);
-}
-
-void ScriptFunction::store(PersistentPool &pool)
-{
-    serializationOp<PersistentPool::Store>(pool);
-}
-
 bool operator==(const ScriptFunction &a, const ScriptFunction &b)
 {
     return a.sourceCode == b.sourceCode
@@ -303,16 +235,6 @@ QStringList ResolvedModule::argumentNamesForSetupRunEnv()
             .argumentNamesForScriptFunction(ItemType::Module,
                                             StringConstants::setupRunEnvironmentProperty());
     return argNames;
-}
-
-void ResolvedModule::load(PersistentPool &pool)
-{
-    serializationOp<PersistentPool::Load>(pool);
-}
-
-void ResolvedModule::store(PersistentPool &pool)
-{
-    serializationOp<PersistentPool::Store>(pool);
 }
 
 bool operator==(const ResolvedModule &m1, const ResolvedModule &m2)
@@ -388,16 +310,6 @@ bool Rule::isDynamic() const
 bool Rule::declaresInputs() const
 {
     return !inputs.empty() || !inputsFromDependencies.empty();
-}
-
-void Rule::load(PersistentPool &pool)
-{
-    serializationOp<PersistentPool::Load>(pool);
-}
-
-void Rule::store(PersistentPool &pool)
-{
-    serializationOp<PersistentPool::Store>(pool);
 }
 
 ResolvedProduct::ResolvedProduct()
@@ -1016,16 +928,6 @@ bool artifactPropertyListsAreEqual(const QList<ArtifactPropertiesPtr> &l1,
                                    const QList<ArtifactPropertiesPtr> &l2)
 {
     return listsAreEqual(l1, l2);
-}
-
-void ResolvedScanner::load(PersistentPool &pool)
-{
-    serializationOp<PersistentPool::Load>(pool);
-}
-
-void ResolvedScanner::store(PersistentPool &pool)
-{
-    serializationOp<PersistentPool::Store>(pool);
 }
 
 QString multiplexIdToString(const QString &id)

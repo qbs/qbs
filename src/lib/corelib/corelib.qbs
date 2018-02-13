@@ -147,7 +147,6 @@ QbsLibrary {
             "requestedartifacts.h",
             "requesteddependencies.cpp",
             "requesteddependencies.h",
-            "rescuableartifactdata.cpp",
             "rescuableartifactdata.h",
             "rulecommands.cpp",
             "rulecommands.h",

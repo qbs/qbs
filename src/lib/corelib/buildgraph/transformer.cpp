@@ -294,15 +294,5 @@ void Transformer::rescueChangeTrackingData(const TransformerConstPtr &other)
     commandsNeedChangeTracking = other->commandsNeedChangeTracking;
 }
 
-void Transformer::load(PersistentPool &pool)
-{
-    serializationOp<PersistentPool::Load>(pool);
-}
-
-void Transformer::store(PersistentPool &pool)
-{
-    serializationOp<PersistentPool::Store>(pool);
-}
-
 } // namespace Internal
 } // namespace qbs

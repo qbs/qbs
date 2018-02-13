@@ -87,16 +87,6 @@ void PropertyMapInternal::setValue(const QVariantMap &map)
     m_value = map;
 }
 
-void PropertyMapInternal::load(PersistentPool &pool)
-{
-    serializationOp<PersistentPool::Load>(pool);
-}
-
-void PropertyMapInternal::store(PersistentPool &pool)
-{
-    serializationOp<PersistentPool::Store>(pool);
-}
-
 QVariant moduleProperty(const QVariantMap &properties, const QString &moduleName,
                         const QString &key, bool *isPresent)
 {

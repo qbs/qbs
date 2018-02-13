@@ -42,16 +42,6 @@
 namespace qbs {
 namespace Internal {
 
-void Property::store(PersistentPool &pool)
-{
-    serializationOp<PersistentPool::Store>(pool);
-}
-
-void Property::load(PersistentPool &pool)
-{
-    serializationOp<PersistentPool::Load>(pool);
-}
-
 bool operator<(const Property &p1, const Property &p2)
 {
     int cmpResult = QString::compare(p1.productName, p2.productName);

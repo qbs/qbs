@@ -91,16 +91,14 @@ public:
     bool isJsArtifactsMapUpToDate() const { return m_jsArtifactsMapUpToDate; }
     void setJsArtifactsMapUpToDate() { m_jsArtifactsMapUpToDate = true; }
 
-    void load(PersistentPool &pool);
-    void store(PersistentPool &pool);
-
-private:
-    void removeArtifactFromSet(Artifact *artifact);
-    template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
+    template<PersistentPool::OpType opType> void completeSerializationOp(PersistentPool &pool)
     {
         pool.serializationOp<opType>(m_nodes, m_roots, m_rescuableArtifactData,
                                      m_artifactsByFileTag, m_artifactsWithChangedInputsPerRule);
     }
+
+private:
+    void removeArtifactFromSet(Artifact *artifact);
 
     NodeSet m_nodes;
     NodeSet m_roots;

@@ -163,19 +163,9 @@ public:
     ErrorInfoPrivate() : internalError(false) { }
 
     template<Internal::PersistentPool::OpType opType>
-    void serializationOp(Internal::PersistentPool &pool)
+    void completeSerializationOp(Internal::PersistentPool &pool)
     {
         pool.serializationOp<opType>(items, internalError);
-    }
-
-    void load(Internal::PersistentPool &pool)
-    {
-        serializationOp<Internal::PersistentPool::Load>(pool);
-    }
-
-    void store(Internal::PersistentPool &pool)
-    {
-        serializationOp<Internal::PersistentPool::Store>(pool);
     }
 
     QList<ErrorItem> items;

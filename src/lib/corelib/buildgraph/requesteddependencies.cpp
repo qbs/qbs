@@ -87,15 +87,5 @@ bool RequestedDependencies::isUpToDate(const TopLevelProject *project) const
     return true;
 }
 
-void RequestedDependencies::load(PersistentPool &pool)
-{
-    serializationOp<PersistentPool::Load>(pool);
-}
-
-void RequestedDependencies::store(PersistentPool &pool)
-{
-    serializationOp<PersistentPool::Store>(pool);
-}
-
 } // namespace Internal
 } // namespace qbs

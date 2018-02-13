@@ -63,9 +63,7 @@ namespace Internal {
 class QBS_AUTOTEST_EXPORT RescuableArtifactData
 {
 public:
-    ~RescuableArtifactData();
-
-    template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
+    template<PersistentPool::OpType opType> void completeSerializationOp(PersistentPool &pool)
     {
         pool.serializationOp<opType>(timeStamp, children, fileDependencies,
                                      propertiesRequestedInPrepareScript,
@@ -79,8 +77,6 @@ public:
                                      lastPrepareScriptExecutionTime,
                                      lastCommandExecutionTime, fileTags, properties);
     }
-    void load(PersistentPool &pool);
-    void store(PersistentPool &pool);
 
     bool isValid() const { return !!properties; }
 
@@ -91,13 +87,11 @@ public:
             : productName(n), productMultiplexId(m), childFilePath(c), addedByScanner(byScanner)
         {}
 
-        template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
+        template<PersistentPool::OpType opType> void completeSerializationOp(PersistentPool &pool)
         {
             pool.serializationOp<opType>(productName, productMultiplexId, childFilePath,
                                          addedByScanner);
         }
-        void load(PersistentPool &pool) { serializationOp<PersistentPool::Load>(pool); }
-        void store(PersistentPool &pool) { serializationOp<PersistentPool::Store>(pool); }
 
         QString productName;
         QString productMultiplexId;

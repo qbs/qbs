@@ -50,16 +50,6 @@ ResolvedFileContext::ResolvedFileContext(const FileContextBase &ctx)
 {
 }
 
-void ResolvedFileContext::load(PersistentPool &pool)
-{
-    serializationOp<PersistentPool::Load>(pool);
-}
-
-void ResolvedFileContext::store(PersistentPool &pool)
-{
-    serializationOp<PersistentPool::Store>(pool);
-}
-
 bool operator==(const ResolvedFileContext &a, const ResolvedFileContext &b)
 {
     return a.filePath() == b.filePath()

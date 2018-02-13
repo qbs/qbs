@@ -98,21 +98,7 @@ public:
                         const QScriptValueList &args);
     void rescueChangeTrackingData(const TransformerConstPtr &other);
 
-    void load(PersistentPool &pool);
-    void store(PersistentPool &pool);
-
-private:
-    Transformer();
-    AbstractCommandPtr createCommandFromScriptValue(const QScriptValue &scriptValue,
-                                                    const CodeLocation &codeLocation);
-
-    static void setupInputs(QScriptValue targetScriptValue, const ArtifactSet &inputs,
-            const QString &defaultModuleName);
-    static QScriptValue translateInOutputs(ScriptEngine *scriptEngine,
-                                           const ArtifactSet &artifacts,
-                                           const QString &defaultModuleName);
-
-    template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
+    template<PersistentPool::OpType opType> void completeSerializationOp(PersistentPool &pool)
     {
         pool.serializationOp<opType>(rule, inputs, outputs, explicitlyDependsOn,
                                      propertiesRequestedInPrepareScript,
@@ -127,6 +113,17 @@ private:
                                      lastCommandExecutionTime, alwaysRun,
                                      prepareScriptNeedsChangeTracking, commandsNeedChangeTracking);
     }
+
+private:
+    Transformer();
+    AbstractCommandPtr createCommandFromScriptValue(const QScriptValue &scriptValue,
+                                                    const CodeLocation &codeLocation);
+
+    static void setupInputs(QScriptValue targetScriptValue, const ArtifactSet &inputs,
+            const QString &defaultModuleName);
+    static QScriptValue translateInOutputs(ScriptEngine *scriptEngine,
+                                           const ArtifactSet &artifacts,
+                                           const QString &defaultModuleName);
 };
 
 } // namespace Internal
