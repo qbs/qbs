@@ -394,55 +394,76 @@ static QStringList extractQbsArchs(const QtModuleInfo &module, const QtEnvironme
     return QStringList { qbsArch };
 }
 
+static std::pair<int, int> findVariable(const QByteArray &content, int start)
+{
+    std::pair<int, int> result = std::make_pair(-1, -1);
+    result.first = content.indexOf('@', start);
+    if (result.first == -1)
+        return result;
+    result.second = content.indexOf('@', result.first + 1);
+    if (result.second == -1) {
+        result.first = -1;
+        return result;
+    }
+    for (char forbidden : {' ', '\n'}) {
+        int k = content.indexOf(forbidden, result.first + 1);
+        if (k != -1 && k < result.second) {
+            return findVariable(content, result.first + 1);
+        }
+    }
+    return result;
+}
+
 static void replaceSpecialValues(QByteArray *content, const Profile &profile,
         const QtModuleInfo &module, const QtEnvironment &qtEnvironment)
 {
-    content->replace("@archs@", utf8JSLiteral(extractQbsArchs(module, qtEnvironment)));
-    content->replace("@targetPlatform@", utf8JSLiteral(qbsTargetPlatformFromQtMkspec(
-                                                           qtEnvironment.mkspecName)));
-    content->replace("@config@", utf8JSLiteral(qtEnvironment.configItems));
-    content->replace("@qtConfig@", utf8JSLiteral(qtEnvironment.qtConfigItems));
-    content->replace("@binPath@", utf8JSLiteral(qtEnvironment.binaryPath));
-    content->replace("@libPath@", utf8JSLiteral(qtEnvironment.libraryPath));
-    content->replace("@pluginPath@", utf8JSLiteral(qtEnvironment.pluginPath));
-    content->replace("@incPath@", utf8JSLiteral(qtEnvironment.includePath));
-    content->replace("@docPath@", utf8JSLiteral(qtEnvironment.documentationPath));
-    content->replace("@mkspecName@", utf8JSLiteral(qtEnvironment.mkspecName));
-    content->replace("@mkspecPath@", utf8JSLiteral(qtEnvironment.mkspecPath));
-    content->replace("@version@", utf8JSLiteral(qtEnvironment.qtVersion));
-    content->replace("@libInfix@", utf8JSLiteral(qtEnvironment.qtLibInfix));
-    content->replace("@availableBuildVariants@", utf8JSLiteral(qtEnvironment.buildVariant));
-    content->replace("@staticBuild@", utf8JSLiteral(qtEnvironment.staticBuild));
-    content->replace("@frameworkBuild@", utf8JSLiteral(qtEnvironment.frameworkBuild));
-    content->replace("@name@", utf8JSLiteral(module.moduleNameWithoutPrefix()));
-    content->replace("@has_library@", utf8JSLiteral(module.hasLibrary));
-    content->replace("@dependencies@", utf8JSLiteral(module.dependencies));
-    content->replace("@includes@", utf8JSLiteral(module.includePaths));
-    content->replace("@staticLibsDebug@", utf8JSLiteral(module.staticLibrariesDebug));
-    content->replace("@staticLibsRelease@", utf8JSLiteral(module.staticLibrariesRelease));
-    content->replace("@dynamicLibsDebug@", utf8JSLiteral(module.dynamicLibrariesDebug));
-    content->replace("@dynamicLibsRelease@", utf8JSLiteral(module.dynamicLibrariesRelease));
-    content->replace("@linkerFlagsDebug@", utf8JSLiteral(module.linkerFlagsDebug));
-    content->replace("@linkerFlagsRelease@", utf8JSLiteral(module.linkerFlagsRelease));
-    content->replace("@libraryPaths@", utf8JSLiteral(module.libraryPaths));
-    content->replace("@frameworkPathsDebug@", utf8JSLiteral(module.frameworkPathsDebug));
-    content->replace("@frameworkPathsRelease@", utf8JSLiteral(module.frameworkPathsRelease));
-    content->replace("@frameworksDebug@", utf8JSLiteral(module.frameworksDebug));
-    content->replace("@frameworksRelease@", utf8JSLiteral(module.frameworksRelease));
-    content->replace("@libFilePathDebug@", utf8JSLiteral(module.libFilePathDebug));
-    content->replace("@libFilePathRelease@", utf8JSLiteral(module.libFilePathRelease));
-    content->replace("@libNameForLinkerDebug@",
-                    utf8JSLiteral(module.libNameForLinker(qtEnvironment, true)));
-    content->replace("@libNameForLinkerRelease@",
-                    utf8JSLiteral(module.libNameForLinker(qtEnvironment, false)));
-    content->replace("@entryPointLibsDebug@", utf8JSLiteral(qtEnvironment.entryPointLibsDebug));
-    content->replace("@entryPointLibsRelease@", utf8JSLiteral(qtEnvironment.entryPointLibsRelease));
-    content->replace("@minWinVersion@", minVersionJsString(qtEnvironment.windowsVersion));
-    content->replace("@minMacVersion@", minVersionJsString(qtEnvironment.macosVersion));
-    content->replace("@minIosVersion@", minVersionJsString(qtEnvironment.iosVersion));
-    content->replace("@minTvosVersion@", minVersionJsString(qtEnvironment.tvosVersion));
-    content->replace("@minWatchosVersion@", minVersionJsString(qtEnvironment.watchosVersion));
-    content->replace("@minAndroidVersion@", minVersionJsString(qtEnvironment.androidVersion));
+    QHash<QByteArray, QByteArray> dict;
+    dict.insert("archs", utf8JSLiteral(extractQbsArchs(module, qtEnvironment)));
+    dict.insert("targetPlatform", utf8JSLiteral(qbsTargetPlatformFromQtMkspec(
+                                                      qtEnvironment.mkspecName)));
+    dict.insert("config", utf8JSLiteral(qtEnvironment.configItems));
+    dict.insert("qtConfig", utf8JSLiteral(qtEnvironment.qtConfigItems));
+    dict.insert("binPath", utf8JSLiteral(qtEnvironment.binaryPath));
+    dict.insert("libPath", utf8JSLiteral(qtEnvironment.libraryPath));
+    dict.insert("pluginPath", utf8JSLiteral(qtEnvironment.pluginPath));
+    dict.insert("incPath", utf8JSLiteral(qtEnvironment.includePath));
+    dict.insert("docPath", utf8JSLiteral(qtEnvironment.documentationPath));
+    dict.insert("mkspecName", utf8JSLiteral(qtEnvironment.mkspecName));
+    dict.insert("mkspecPath", utf8JSLiteral(qtEnvironment.mkspecPath));
+    dict.insert("version", utf8JSLiteral(qtEnvironment.qtVersion));
+    dict.insert("libInfix", utf8JSLiteral(qtEnvironment.qtLibInfix));
+    dict.insert("availableBuildVariants", utf8JSLiteral(qtEnvironment.buildVariant));
+    dict.insert("staticBuild", utf8JSLiteral(qtEnvironment.staticBuild));
+    dict.insert("frameworkBuild", utf8JSLiteral(qtEnvironment.frameworkBuild));
+    dict.insert("name", utf8JSLiteral(module.moduleNameWithoutPrefix()));
+    dict.insert("has_library", utf8JSLiteral(module.hasLibrary));
+    dict.insert("dependencies", utf8JSLiteral(module.dependencies));
+    dict.insert("includes", utf8JSLiteral(module.includePaths));
+    dict.insert("staticLibsDebug", utf8JSLiteral(module.staticLibrariesDebug));
+    dict.insert("staticLibsRelease", utf8JSLiteral(module.staticLibrariesRelease));
+    dict.insert("dynamicLibsDebug", utf8JSLiteral(module.dynamicLibrariesDebug));
+    dict.insert("dynamicLibsRelease", utf8JSLiteral(module.dynamicLibrariesRelease));
+    dict.insert("linkerFlagsDebug", utf8JSLiteral(module.linkerFlagsDebug));
+    dict.insert("linkerFlagsRelease", utf8JSLiteral(module.linkerFlagsRelease));
+    dict.insert("libraryPaths", utf8JSLiteral(module.libraryPaths));
+    dict.insert("frameworkPathsDebug", utf8JSLiteral(module.frameworkPathsDebug));
+    dict.insert("frameworkPathsRelease", utf8JSLiteral(module.frameworkPathsRelease));
+    dict.insert("frameworksDebug", utf8JSLiteral(module.frameworksDebug));
+    dict.insert("frameworksRelease", utf8JSLiteral(module.frameworksRelease));
+    dict.insert("libFilePathDebug", utf8JSLiteral(module.libFilePathDebug));
+    dict.insert("libFilePathRelease", utf8JSLiteral(module.libFilePathRelease));
+    dict.insert("libNameForLinkerDebug",
+                utf8JSLiteral(module.libNameForLinker(qtEnvironment, true)));
+    dict.insert("libNameForLinkerRelease",
+                utf8JSLiteral(module.libNameForLinker(qtEnvironment, false)));
+    dict.insert("entryPointLibsDebug", utf8JSLiteral(qtEnvironment.entryPointLibsDebug));
+    dict.insert("entryPointLibsRelease", utf8JSLiteral(qtEnvironment.entryPointLibsRelease));
+    dict.insert("minWinVersion", minVersionJsString(qtEnvironment.windowsVersion));
+    dict.insert("minMacVersion", minVersionJsString(qtEnvironment.macosVersion));
+    dict.insert("minIosVersion", minVersionJsString(qtEnvironment.iosVersion));
+    dict.insert("minTvosVersion", minVersionJsString(qtEnvironment.tvosVersion));
+    dict.insert("minWatchosVersion", minVersionJsString(qtEnvironment.watchosVersion));
+    dict.insert("minAndroidVersion", minVersionJsString(qtEnvironment.androidVersion));
 
     QByteArray propertiesString;
     QByteArray compilerDefines = utf8JSLiteral(module.compilerDefines);
@@ -477,21 +498,29 @@ static void replaceSpecialValues(QByteArray *content, const Profile &profile,
                 + baIndent + baIndent + "return result;\n"
                 + baIndent + "}";
     }
-    content->replace("@defines@", compilerDefines);
+    dict.insert("defines", compilerDefines);
     if (module.qbsName == QLatin1String("gui")) {
-        content->replace("@defaultQpaPlugin@",
-                        utf8JSLiteral(defaultQpaPlugin(profile, module, qtEnvironment)));
+        dict.insert("defaultQpaPlugin",
+                    utf8JSLiteral(defaultQpaPlugin(profile, module, qtEnvironment)));
     }
     if (module.qbsName == QLatin1String("qml"))
-        content->replace("@qmlPath@", pathToJSLiteral(qtEnvironment.qmlPath).toUtf8());
+        dict.insert("qmlPath", pathToJSLiteral(qtEnvironment.qmlPath).toUtf8());
     if (module.isStaticLibrary) {
         if (!propertiesString.isEmpty())
             propertiesString += "\n    ";
         propertiesString += "isStaticLibrary: true";
     }
     if (module.isPlugin)
-        content->replace("@className@", utf8JSLiteral(module.pluginData.className));
-    content->replace("@special_properties@", propertiesString);
+        dict.insert("className", utf8JSLiteral(module.pluginData.className));
+    dict.insert("special_properties", propertiesString);
+
+    for (std::pair<int, int> pos = findVariable(*content, 0); pos.first != -1;
+         pos = findVariable(*content, pos.first)) {
+        const QByteArray &replacement = dict.value(
+                    content->mid(pos.first + 1, pos.second - pos.first - 1));
+        content->replace(pos.first, pos.second - pos.first + 1, replacement);
+        pos.first += replacement.length();
+    }
 }
 
 static void copyTemplateFile(const QString &fileName, const QString &targetDirectory,
