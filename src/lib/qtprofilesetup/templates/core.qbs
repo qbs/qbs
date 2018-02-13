@@ -130,8 +130,6 @@ Module {
     }
     cpp.staticLibraries: {
         var libs = [];
-        if (staticBuild)
-            libs.push(libFilePath);
         if (qbs.targetOS.contains('windows') && !product.consoleApplication) {
             libs = libs.concat(qtBuildVariant === "debug"
                                ? @entryPointLibsDebug@ : @entryPointLibsRelease@);
@@ -139,13 +137,7 @@ Module {
         libs = libs.concat(staticLibs);
         return libs;
     }
-    cpp.dynamicLibraries: {
-        var libs = [];
-        if (!staticBuild && !frameworkBuild)
-            libs.push(libFilePath);
-        libs = libs.concat(dynamicLibs);
-        return libs;
-    }
+    cpp.dynamicLibraries: dynamicLibs
     cpp.linkerFlags: coreLinkerFlags
     cpp.frameworkPaths: coreFrameworkPaths.concat(frameworkBuild ? [libPath] : [])
     cpp.frameworks: {
@@ -458,4 +450,6 @@ Module {
             return cmd;
         }
     }
+
+    @additionalContent@
 }

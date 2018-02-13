@@ -414,6 +414,16 @@ static std::pair<int, int> findVariable(const QByteArray &content, int start)
     return result;
 }
 
+static QByteArray libraryFileTag(const QtEnvironment &env, const QtModuleInfo &module)
+{
+    QByteArray result;
+    if (module.isStaticLibrary)
+        result = "staticlibrary";
+    else
+        result = env.msvcVersion.isValid() ? "dynamiclibrary_import" : "dynamiclibrary";
+    return result;
+}
+
 static void replaceSpecialValues(QByteArray *content, const Profile &profile,
         const QtModuleInfo &module, const QtEnvironment &qtEnvironment)
 {
@@ -512,6 +522,18 @@ static void replaceSpecialValues(QByteArray *content, const Profile &profile,
     }
     if (module.isPlugin)
         dict.insert("className", utf8JSLiteral(module.pluginData.className));
+    if (module.hasLibrary && !module.isFramework(qtEnvironment)) {
+        if (!additionalContent.isEmpty())
+            additionalContent += "\n";
+        const QByteArray indent(4, ' ');
+        additionalContent += "Group {\n"
+                + indent + indent + "files: [product.Qt." + module.qbsName.toUtf8()
+                                  + ".libFilePath]\n"
+                + indent + indent + "filesAreTargets: true\n"
+                + indent + indent + "fileTags: [\"" + libraryFileTag(qtEnvironment, module)
+                                  + "\"]\n"
+                + indent + "}";
+    }
     dict.insert("additionalContent", additionalContent);
 
     for (std::pair<int, int> pos = findVariable(*content, 0); pos.first != -1;
