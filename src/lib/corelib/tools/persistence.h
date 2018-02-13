@@ -197,7 +197,6 @@ template <class T> inline std::shared_ptr<T> PersistentPool::idLoadS()
 template<typename T>
 struct PersistentPool::Helper<T, typename std::enable_if<std::is_integral<T>::value>::type>
 {
-    static void store(std::time_t value, PersistentPool *pool) { pool->m_stream << qint64(value); }
     static void store(const T &value, PersistentPool *pool) { pool->m_stream << value; }
     static void load(T &value, PersistentPool *pool) { pool->m_stream >> value; }
 };
