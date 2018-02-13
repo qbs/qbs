@@ -54,6 +54,20 @@ namespace qbs {
 class ErrorItem::ErrorItemPrivate : public QSharedData
 {
 public:
+    void load(Internal::PersistentPool &pool)
+    {
+        pool.load(description);
+        pool.load(codeLocation);
+        pool.load(isBacktraceItem);
+    }
+
+    void store(Internal::PersistentPool &pool) const
+    {
+        pool.store(description);
+        pool.store(codeLocation);
+        pool.store(isBacktraceItem);
+    }
+
     QString description;
     CodeLocation codeLocation;
     bool isBacktraceItem = false;
@@ -110,16 +124,12 @@ bool ErrorItem::isBacktraceItem() const
 
 void ErrorItem::load(Internal::PersistentPool &pool)
 {
-    pool.load(d->description);
-    pool.load(d->codeLocation);
-    pool.load(d->isBacktraceItem);
+    pool.load(*d);
 }
 
 void ErrorItem::store(Internal::PersistentPool &pool) const
 {
-    pool.store(d->description);
-    pool.store(d->codeLocation);
-    pool.store(d->isBacktraceItem);
+    pool.store(*d);
 }
 
 /*!
@@ -149,6 +159,18 @@ class ErrorInfo::ErrorInfoPrivate : public QSharedData
 {
 public:
     ErrorInfoPrivate() : internalError(false) { }
+
+    void load(Internal::PersistentPool &pool)
+    {
+        pool.load(items);
+        pool.load(internalError);
+    }
+
+    void store(Internal::PersistentPool &pool) const
+    {
+        pool.store(items);
+        pool.store(internalError);
+    }
 
     QList<ErrorItem> items;
     bool internalError;
@@ -280,14 +302,12 @@ bool ErrorInfo::hasLocation() const
 
 void ErrorInfo::load(Internal::PersistentPool &pool)
 {
-    pool.load(d->items);
-    pool.load(d->internalError);
+    pool.load(*d);
 }
 
 void ErrorInfo::store(Internal::PersistentPool &pool) const
 {
-    pool.store(d->items);
-    pool.store(d->internalError);
+    pool.store(*d);
 }
 
 void appendError(ErrorInfo &dst, const ErrorInfo &src)

@@ -53,6 +53,20 @@ namespace qbs {
 class CodeLocation::CodeLocationPrivate : public QSharedData
 {
 public:
+    void load(Internal::PersistentPool &pool)
+    {
+        pool.load(filePath);
+        pool.load(line);
+        pool.load(column);
+    }
+
+    void store(Internal::PersistentPool &pool) const
+    {
+        pool.store(filePath);
+        pool.store(line);
+        pool.store(column);
+    }
+
     QString filePath;
     int line;
     int column;
@@ -126,18 +140,14 @@ void CodeLocation::load(Internal::PersistentPool &pool)
     if (!isValid)
         return;
     d = new CodeLocationPrivate;
-    pool.load(d->filePath);
-    pool.load(d->line);
-    pool.load(d->column);
+    pool.load(*d);
 }
 
 void CodeLocation::store(Internal::PersistentPool &pool) const
 {
     if (d) {
         pool.store(true);
-        pool.store(d->filePath);
-        pool.store(d->line);
-        pool.store(d->column);
+        pool.store(*d);
     } else {
         pool.store(false);
     }
