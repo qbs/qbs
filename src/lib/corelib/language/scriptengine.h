@@ -200,18 +200,17 @@ public:
     using QScriptEngine::newFunction;
 
     template <typename T, typename E,
-              typename = typename std::enable_if<std::is_pointer<T>::value>::type,
-              typename = typename std::enable_if<std::is_pointer<E>::value>::type,
-              typename = typename std::enable_if<std::is_base_of<
-                QScriptEngine, typename std::remove_pointer<E>::type>::value>::type
+              typename = std::enable_if_t<std::is_pointer<T>::value>,
+              typename = std::enable_if_t<std::is_pointer<E>::value>,
+              typename = std::enable_if_t<std::is_base_of<
+                QScriptEngine, std::remove_pointer_t<E>>::value>
               > QScriptValue newFunction(QScriptValue (*signature)(QScriptContext *, E, T), T arg) {
         return QScriptEngine::newFunction(
                     reinterpret_cast<FunctionWithArgSignature>(signature),
                     reinterpret_cast<void *>(const_cast<
-                                             typename std::add_pointer<
-                                             typename std::remove_const<
-                                             typename std::remove_pointer<T>::type>::type>::type>(
-                                                 arg)));
+                                             std::add_pointer_t<
+                                             std::remove_const_t<
+                                             std::remove_pointer_t<T>>>>(arg)));
     }
 
     QScriptClass *modulePropertyScriptClass() const;

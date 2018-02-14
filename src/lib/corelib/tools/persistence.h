@@ -194,8 +194,7 @@ template <class T> inline std::shared_ptr<T> PersistentPool::idLoadS()
 
 /***** Specializations of Helper class *****/
 
-template<typename T>
-struct PersistentPool::Helper<T, typename std::enable_if<std::is_integral<T>::value>::type>
+template<typename T> struct PersistentPool::Helper<T, std::enable_if_t<std::is_integral<T>::value>>
 {
     static void store(const T &value, PersistentPool *pool) { pool->m_stream << value; }
     static void load(T &value, PersistentPool *pool) { pool->m_stream >> value; }
@@ -213,8 +212,8 @@ template<> struct PersistentPool::Helper<long>
 };
 
 template<typename T>
-struct PersistentPool::Helper<T, typename std::enable_if<std::is_same<T, std::time_t>::value
-        && !std::is_same<T, long>::value>::type>
+struct PersistentPool::Helper<T, std::enable_if_t<std::is_same<T, std::time_t>::value
+        && !std::is_same<T, long>::value>>
 {
     static void store(std::time_t value, PersistentPool *pool) { pool->m_stream << qint64(value); }
     static void load(std::time_t &value, PersistentPool *pool)
@@ -225,10 +224,9 @@ struct PersistentPool::Helper<T, typename std::enable_if<std::is_same<T, std::ti
     }
 };
 
-template<typename T>
-struct PersistentPool::Helper<T, typename std::enable_if<std::is_enum<T>::value>::type>
+template<typename T> struct PersistentPool::Helper<T, std::enable_if_t<std::is_enum<T>::value>>
 {
-    using U = typename std::underlying_type<T>::type;
+    using U = std::underlying_type_t<T>;
     static void store(const T &value, PersistentPool *pool)
     {
         pool->m_stream << static_cast<U>(value);
@@ -247,7 +245,7 @@ template<typename T> struct PersistentPool::Helper<std::shared_ptr<T>>
     }
     static void load(std::shared_ptr<T> &value, PersistentPool *pool)
     {
-        value = pool->idLoadS<typename std::remove_const<T>::type>();
+        value = pool->idLoadS<std::remove_const_t<T>>();
     }
 };
 
@@ -259,7 +257,7 @@ template<typename T> struct PersistentPool::Helper<std::unique_ptr<T>>
     }
     static void load(std::unique_ptr<T> &ptr, PersistentPool *pool)
     {
-        ptr.reset(pool->idLoad<typename std::remove_const<T>::type>());
+        ptr.reset(pool->idLoad<std::remove_const_t<T>>());
     }
 };
 
@@ -340,8 +338,7 @@ template<> struct IsSimpleContainer<QStringList> : std::true_type { };
 template<typename T> struct IsSimpleContainer<QList<T>> : std::true_type { };
 template<typename T> struct IsSimpleContainer<std::vector<T>> : std::true_type { };
 
-template<typename T>
-struct PersistentPool::Helper<T, typename std::enable_if<IsSimpleContainer<T>::value>::type>
+template<typename T> struct PersistentPool::Helper<T, std::enable_if_t<IsSimpleContainer<T>::value>>
 {
     static void store(const T &container, PersistentPool *pool)
     {
@@ -364,7 +361,7 @@ template<typename K, typename V> struct IsKeyValueContainer<QMap<K, V>> : std::t
 template<typename K, typename V> struct IsKeyValueContainer<QHash<K, V>> : std::true_type { };
 
 template<typename T>
-struct PersistentPool::Helper<T, typename std::enable_if<IsKeyValueContainer<T>::value>::type>
+struct PersistentPool::Helper<T, std::enable_if_t<IsKeyValueContainer<T>::value>>
 {
     static void store(const T &container, PersistentPool *pool)
     {

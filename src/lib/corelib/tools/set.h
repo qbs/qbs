@@ -353,7 +353,7 @@ template<typename T> template<typename U> Set<T> Set<T>::filtered(const Set<U> &
     static_assert(std::is_pointer<U>::value, "Set::filtered() assumes pointer types");
     Set<T> filteredSet;
     for (auto &u : s) {
-        if (hasDynamicType<typename std::remove_pointer<T>::type>(u))
+        if (hasDynamicType<std::remove_pointer_t<T>>(u))
             filteredSet.m_data.push_back(static_cast<T>(u));
     }
     return filteredSet;
