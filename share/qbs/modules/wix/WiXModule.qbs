@@ -179,7 +179,7 @@ Module {
     Rule {
         id: candleCompiler
         inputs: ["wxs"]
-        auxiliaryInputs: ["wxi", "wix.input"]
+        auxiliaryInputs: ["wxi", "installable"]
 
         Artifact {
             fileTags: ["wixobj"]
@@ -334,7 +334,7 @@ Module {
         id: lightLinker
         multiplex: true
         inputs: ["wixobj", "wxl"]
-        auxiliaryInputs: ["wix.input"]
+        auxiliaryInputs: ["installable"]
         inputsFromDependencies: product.type.contains("wixsetup") ? ["msi"] : []
 
         outputArtifacts: {

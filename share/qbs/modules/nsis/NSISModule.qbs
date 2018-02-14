@@ -145,7 +145,7 @@ Module {
         id: nsisCompiler
         multiplex: true
         inputs: ["nsi"]
-        auxiliaryInputs: ["nsis.input"]
+        auxiliaryInputs: ["installable"]
 
         Artifact {
             fileTags: ["nsissetup", "application"]
