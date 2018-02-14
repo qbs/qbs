@@ -5413,6 +5413,29 @@ void TestBlackbox::badInterpreter()
     QCOMPARE(runQbs(QbsRunParameters("run", QStringList() << "-p" << "script-ok")), 0);
 }
 
+void TestBlackbox::buildDataOfDisabledProduct()
+{
+    QDir::setCurrent(testDataDir + QLatin1String("/build-data-of-disabled-product"));
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("compiling test.cpp"), m_qbsStdout.constData());
+
+    // Touch a source file, disable the product, rebuild the project, verify nothing happens.
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("test.cpp");
+    QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList("products.app.condition:false"))), 0);
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(!m_qbsStdout.contains("compiling"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("linking"), m_qbsStdout.constData());
+
+    // Enable the product again, rebuild the project, verify that only the changed source file
+    // is rebuilt.
+    QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList("products.app.condition:true"))), 0);
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(!m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("compiling test.cpp"), m_qbsStdout.constData());
+}
+
 void TestBlackbox::qbsVersion()
 {
     const auto v = qbs::LanguageInfo::qbsVersion();

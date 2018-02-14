@@ -858,8 +858,10 @@ void BuildGraphLoader::rescueOldBuildData(const ResolvedProductConstPtr &restore
         const AllRescuableArtifactData &existingRad)
 {
     QBS_CHECK(newlyResolvedProduct);
-    if (!restoredProduct->enabled || !newlyResolvedProduct->enabled)
+    if (!restoredProduct->buildData)
         return;
+    if (!newlyResolvedProduct->buildData)
+        newlyResolvedProduct->buildData.reset(new ProductBuildData);
 
     qCDebug(lcBuildGraph) << "rescue data of product" << restoredProduct->uniqueName();
     QBS_CHECK(newlyResolvedProduct->buildData);

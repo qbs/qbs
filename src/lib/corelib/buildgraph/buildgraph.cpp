@@ -513,8 +513,9 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product,
     for (const ResolvedModuleConstPtr &m : qAsConst(product->modules))
         QBS_CHECK(m->product == product.get());
     qCDebug(lcBuildGraph) << "enabled:" << product->enabled << "build data:" << buildData;
-    QBS_CHECK(!!product->enabled == !!buildData);
-    if (!product->enabled)
+    if (product->enabled)
+        QBS_CHECK(buildData);
+    if (!product->buildData)
         return;
     for (BuildGraphNode * const node : qAsConst(buildData->rootNodes())) {
         qCDebug(lcBuildGraph) << "Checking root node" << node->toString();

@@ -47,6 +47,7 @@ private slots:
     void assembly();
     void auxiliaryInputsFromDependencies();
     void badInterpreter();
+    void buildDataOfDisabledProduct();
     void buildDirectories();
     void buildEnvChange();
     void buildGraphVersions();
