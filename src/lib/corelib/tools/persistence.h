@@ -336,10 +336,10 @@ template<typename T> struct PersistentPool::Helper<QFlags<T>>
     }
 };
 
-template<typename T> struct IsSimpleContainer { static const bool value = false; };
-template<> struct IsSimpleContainer<QStringList> { static const bool value = true; };
-template<typename T> struct IsSimpleContainer<QList<T>> { static const bool value = true; };
-template<typename T> struct IsSimpleContainer<std::vector<T>> { static const bool value = true; };
+template<typename T> struct IsSimpleContainer : std::false_type { };
+template<> struct IsSimpleContainer<QStringList> : std::true_type { };
+template<typename T> struct IsSimpleContainer<QList<T>> : std::true_type { };
+template<typename T> struct IsSimpleContainer<std::vector<T>> : std::true_type { };
 
 template<typename T>
 struct PersistentPool::Helper<T, typename std::enable_if<IsSimpleContainer<T>::value>::type>
@@ -360,15 +360,9 @@ struct PersistentPool::Helper<T, typename std::enable_if<IsSimpleContainer<T>::v
     }
 };
 
-template<typename T> struct IsKeyValueContainer { static const bool value = false; };
-template<typename K, typename V> struct IsKeyValueContainer<QMap<K, V>>
-{
-    static const bool value = true;
-};
-template<typename K, typename V> struct IsKeyValueContainer<QHash<K, V>>
-{
-    static const bool value = true;
-};
+template<typename T> struct IsKeyValueContainer : std::false_type { };
+template<typename K, typename V> struct IsKeyValueContainer<QMap<K, V>> : std::true_type { };
+template<typename K, typename V> struct IsKeyValueContainer<QHash<K, V>> : std::true_type { };
 
 template<typename T>
 struct PersistentPool::Helper<T, typename std::enable_if<IsKeyValueContainer<T>::value>::type>
