@@ -170,8 +170,6 @@
     \l{cpp} module:
 
     \code
-    import qbs
-
     Application {
         name: "helloworld"
         files: "main.cpp"
@@ -330,8 +328,6 @@
     The following example product contains one file tag, \e application:
 
     \code
-    import qbs
-
     Product {
         Depends { name: "cpp" }
         type: ["application"]
@@ -350,7 +346,6 @@
     artifacts that takes \c .cpp artifacts as input.
 
     \code
-    import qbs
     Module {
         // ...
         Rule {
@@ -819,8 +814,6 @@
     A very simple C++ hello world project looks like this:
     \code
         ---helloworld.qbs---
-        import qbs 1.0
-
         Application {
             name: "helloworld"
             files: "main.cpp"
@@ -862,8 +855,6 @@
 
     \code
     ---CrazyProduct.qbs---
-    import qbs 1.0
-
     Product {
         property string craziness: "low"
     }
@@ -887,7 +878,6 @@
     }
 
     ---myproject.qbs---
-    import qbs 1.0
     import "helpers.js" as Helpers
 
     Product {
@@ -934,8 +924,6 @@
     module. You specify the optimization level for your product (and all build variants) like this:
 
     \code ---helloworld.qbs---
-        import qbs 1.0
-
         Application {
             name: "helloworld"
             files: ["main.cpp"]

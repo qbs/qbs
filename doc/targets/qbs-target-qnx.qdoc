@@ -48,8 +48,6 @@
     \l{qnx::sdkDir}{qnx.sdkDir} property:
 
     \code
-    import qbs
-
     Application {
         name: "helloworld"
         files: "main.cpp"

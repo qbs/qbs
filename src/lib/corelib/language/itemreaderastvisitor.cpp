@@ -75,12 +75,12 @@ ItemReaderASTVisitor::ItemReaderASTVisitor(ItemReaderVisitorState &visitorState,
 {
 }
 
-bool ItemReaderASTVisitor::visit(AST::UiImportList *uiImportList)
+bool ItemReaderASTVisitor::visit(AST::UiProgram *uiProgram)
 {
     ASTImportsHandler importsHandler(m_visitorState, m_logger, m_file);
-    importsHandler.handleImports(uiImportList);
+    importsHandler.handleImports(uiProgram->imports);
     m_typeNameToFile = importsHandler.typeNameFileMap();
-    return false;
+    return true;
 }
 
 static ItemValuePtr findItemProperty(const Item *container, const Item *item)

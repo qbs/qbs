@@ -51,8 +51,6 @@
 
     Here is what the project file could look like for a simple DMG installer:
     \code
-        import qbs
-
         AppleApplicationDiskImage {
             Depends { name: "myapp" }
             name: "My App"

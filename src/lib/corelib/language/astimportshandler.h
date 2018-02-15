@@ -75,7 +75,7 @@ private:
     void collectPrototypes(const QString &path, const QString &as);
     void collectPrototypesAndJsCollections(const QString &path, const QString &as,
                                            const CodeLocation &location);
-    void handleImport(const QbsQmlJS::AST::UiImport *import);
+    void handleImport(const QbsQmlJS::AST::UiImport *import, bool *baseImported);
 
     ItemReaderVisitorState &m_visitorState;
     Logger &m_logger;

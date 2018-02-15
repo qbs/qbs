@@ -72,7 +72,6 @@
     This is achieved by introducing a \e dependency between the two products using the
     \l{Depends} item. Here is a simple, but complete example:
     \code
-    import qbs
     Project {
         CppApplication {
             name : "the-app"
@@ -120,8 +119,6 @@
     For example:
 
     \code
-    import qbs
-
     CppApplication {
         name: "the-app"
         files: ["main.cpp"]
@@ -210,7 +207,6 @@
     Finally, declare dependencies on \c ThirdParty in your project:
 
     \code
-    import qbs
     CppApplication {
         name: "the-app"
         files: ["main.cpp"]
@@ -227,8 +223,6 @@
     Here is a simple example for an application:
 
     \code
-    import qbs
-
     Application {
         Depends { name: "cpp" }
         Depends { name: "bundle" }
@@ -241,8 +235,6 @@
     and for a framework:
 
     \code
-    import qbs
-
     DynamicLibrary {
         Depends { name: "cpp" }
         Depends { name: "bundle" }

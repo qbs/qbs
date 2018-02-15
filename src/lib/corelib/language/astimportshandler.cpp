@@ -75,14 +75,22 @@ void ASTImportsHandler::handleImports(const QbsQmlJS::AST::UiImportList *uiImpor
     // files in the same directory are available as prototypes
     collectPrototypes(m_directory, QString());
 
+    bool baseImported = false;
     for (const auto *it = uiImportList; it; it = it->next)
-        handleImport(it->import);
+        handleImport(it->import, &baseImported);
+    if (!baseImported) {
+        QStringRef qbsref(&StringConstants::qbsModule());
+        QbsQmlJS::AST::UiQualifiedId qbsURI(qbsref);
+        qbsURI.finish();
+        QbsQmlJS::AST::UiImport imp(&qbsURI);
+        handleImport(&imp, &baseImported);
+    }
 
     for (auto it = m_jsImports.constBegin(); it != m_jsImports.constEnd(); ++it)
         m_file->addJsImport(it.value());
 }
 
-void ASTImportsHandler::handleImport(const QbsQmlJS::AST::UiImport *import)
+void ASTImportsHandler::handleImport(const QbsQmlJS::AST::UiImport *import, bool *baseImported)
 {
     QStringList importUri;
     bool isBase = false;
@@ -92,6 +100,7 @@ void ASTImportsHandler::handleImport(const QbsQmlJS::AST::UiImport *import)
                 || (importUri.size() == 2 && importUri.front() == StringConstants::qbsModule()
                     && importUri.last() == StringConstants::baseVar());
         if (isBase) {
+            *baseImported = true;
             checkImportVersion(import->versionToken);
         } else if (import->versionToken.length) {
             m_logger.printWarning(ErrorInfo(Tr::tr("Superfluous version specification."),

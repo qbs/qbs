@@ -41,7 +41,6 @@
     characters from them. The module's name is \c{txt_processor}.
 
     \code
-    import qbs
     import qbs.FileInfo
     import qbs.TextFile
 

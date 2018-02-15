@@ -67,7 +67,7 @@ public:
     Item *rootItem() const { return m_item; }
 
 private:
-    bool visit(QbsQmlJS::AST::UiImportList *uiImportList) override;
+    bool visit(QbsQmlJS::AST::UiProgram *uiProgram) override;
     bool visit(QbsQmlJS::AST::UiObjectDefinition *ast) override;
     bool visit(QbsQmlJS::AST::UiPublicMember *ast) override;
     bool visit(QbsQmlJS::AST::UiScriptBinding *ast) override;

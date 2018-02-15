@@ -43,8 +43,6 @@
     the NDK could look like:
 
     \code
-        import qbs
-
         Project {
             DynamicLibrary {
                 name: "hello-jni"

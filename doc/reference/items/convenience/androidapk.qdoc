@@ -43,8 +43,6 @@
     example that comes with the Android SDK:
 
     \code
-        import qbs
-
         AndroidApk {
             name: "Basic Media Decoder"
             packageName: "com.example.android.basicmediadecoder"
