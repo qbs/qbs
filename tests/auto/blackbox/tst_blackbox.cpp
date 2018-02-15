@@ -1423,6 +1423,7 @@ void TestBlackbox::cxxLanguageVersion()
     QbsRunParameters resolveParams;
     resolveParams.command = "resolve";
     resolveParams.arguments << "--force-probe-execution";
+    resolveParams.arguments << "modules.cpp.useLanguageVersionFallback:true";
     if (!version.isEmpty())
         resolveParams.arguments << ("modules.cpp.cxxLanguageVersion:" + version);
     QCOMPARE(runQbs(resolveParams), 0);

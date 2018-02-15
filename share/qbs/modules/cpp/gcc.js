@@ -629,6 +629,80 @@ function handleCpuFeatures(input, flags) {
     }
 }
 
+function standardFallbackValueOrDefault(toolchain, compilerVersion, languageVersion,
+                                        useLanguageVersionFallback) {
+    // NEVER use the fallback values (safety brake for users in case our version map is ever wrong)
+    if (useLanguageVersionFallback === false)
+        return languageVersion;
+
+    // Deprecated, but compatible with older compiler versions.
+    // Note that these versions are the first to support the *value* to the -std= command line
+    // option, not necessarily the first versions where support for that language standard was
+    // considered fully implemented. Tested manually.
+    var languageVersionsMap = {
+        "c++11": {
+            "fallback": "c++0x",
+            "toolchains": [
+                {"name": "xcode", "version": "4.3"},
+                {"name": "clang", "version": "3.0"},
+                {"name": "gcc", "version": "4.7"}
+            ]
+        },
+        "c11": {
+            "fallback": "c1x",
+            "toolchains": [
+                {"name": "xcode", "version": "5.0"},
+                {"name": "clang", "version": "3.1"},
+                {"name": "gcc", "version": "4.7"}
+            ]
+        },
+        "c++14": {
+            "fallback": "c++1y",
+            "toolchains": [
+                {"name": "xcode", "version": "6.3"},
+                {"name": "clang", "version": "3.5"},
+                {"name": "gcc", "version": "4.9"}
+            ]
+        },
+        "c++17": {
+            "fallback": "c++1z",
+            "toolchains": [
+                {"name": "xcode", "version": "9.3"},
+                {"name": "clang", "version": "5.0"},
+                {"name": "gcc", "version": "5.1"}
+            ]
+        },
+        "c++20": {
+            "fallback": "c++2a",
+            "toolchains": [
+                {"name": "xcode"}, // not yet implemented
+                {"name": "clang"}, // not yet implemented
+                {"name": "gcc"} // not yet implemented
+            ]
+        }
+    };
+
+    var m = languageVersionsMap[languageVersion];
+    if (m) {
+        for (var idx = 0; idx < m.toolchains.length; ++idx) {
+            var tc = m.toolchains[idx];
+            if (toolchain.contains(tc.name)) {
+                // If we found our toolchain and it doesn't yet support the language standard
+                // we're requesting, or we're using an older version that only supports the
+                // preliminary flag, use that.
+                if (useLanguageVersionFallback
+                        || !tc.version
+                        || Utilities.versionCompare(compilerVersion, tc.version) < 0)
+                    return m.fallback;
+                break;
+            }
+        }
+    }
+
+    // If we didn't find our toolchain at all, simply use the standard value.
+    return languageVersion;
+}
+
 function compilerFlags(project, product, input, output, explicitlyDependsOn) {
     var i;
 
@@ -788,27 +862,26 @@ function compilerFlags(project, product, input, output, explicitlyDependsOn) {
         }
     }
 
-    if (tag === "c" || tag === "objc") {
-        var cVersion = input.cpp.cLanguageVersion;
-        if (cVersion) {
-            var gccCVersionsMap = {
-                "c11": "c1x" // Deprecated, but compatible with older gcc versions.
-            };
-            args.push("-std=" + (gccCVersionsMap[cVersion] || cVersion));
+    function currentLanguageVersion(tag) {
+        switch (tag) {
+        case "c":
+        case "objc":
+            return input.cpp.cLanguageVersion;
+        case "cpp":
+        case "objcpp":
+            return input.cpp.cxxLanguageVersion;
         }
     }
 
-    if (tag === "cpp" || tag === "objcpp") {
-        var cxxVersion = input.cpp.cxxLanguageVersion;
-        if (cxxVersion) {
-            var gccCxxVersionsMap = {
-                "c++11": "c++0x", // Deprecated, but compatible with older gcc versions.
-                "c++14": "c++1y",
-                "c++17": "c++1z",
-            };
-            args.push("-std=" + (gccCxxVersionsMap[cxxVersion] || cxxVersion));
-        }
+    var langVersion = currentLanguageVersion(tag);
+    if (langVersion) {
+        args.push("-std=" + standardFallbackValueOrDefault(product.qbs.toolchain,
+                                                           product.cpp.compilerVersion,
+                                                           langVersion,
+                                                           product.cpp.useLanguageVersionFallback));
+    }
 
+    if (tag === "cpp" || tag === "objcpp") {
         var cxxStandardLibrary = product.cpp.cxxStandardLibrary;
         if (cxxStandardLibrary && product.qbs.toolchain.contains("clang")) {
             args.push("-stdlib=" + cxxStandardLibrary);
