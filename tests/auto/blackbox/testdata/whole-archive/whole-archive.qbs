@@ -1,4 +1,5 @@
 import qbs
+import qbs.Utilities
 
 Project {
     StaticLibrary {
@@ -26,6 +27,20 @@ Project {
         name: "dynamiclib"
         property string linkWholeArchive
         Depends { name: "cpp" }
+        Probe {
+            id: dummy
+            property string toolchainType: qbs.toolchainType
+            property string compilerVersion: cpp.compilerVersion
+            property string dummy: product.linkWholeArchive // To force probe re-execution
+            configure: {
+                if (toolchainType !== "msvc"
+                        || Utilities.versionCompare(compilerVersion, "19.0.25123") >= 0) {
+                    console.info("can link whole archives");
+                } else {
+                    console.info("cannot link whole archives");
+                }
+            }
+        }
         Depends { name: "staticlib 1"; cpp.linkWholeArchive: product.linkWholeArchive }
         Depends { name: "staticlib2"; cpp.linkWholeArchive: product.linkWholeArchive }
         Depends { name: "staticlib3" }

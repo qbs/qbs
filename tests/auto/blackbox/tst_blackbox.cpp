@@ -1352,9 +1352,14 @@ void TestBlackbox::wholeArchive()
     const QbsRunParameters resolveParams("resolve",
             QStringList("products.dynamiclib.linkWholeArchive:" + wholeArchiveString));
     QCOMPARE(runQbs(QbsRunParameters(resolveParams)), 0);
+    const bool linkerSupportsWholeArchive = m_qbsStdout.contains("can link whole archives");
+    const bool linkerDoesNotSupportWholeArchive
+            = m_qbsStdout.contains("cannot link whole archives");
+    QVERIFY(linkerSupportsWholeArchive != linkerDoesNotSupportWholeArchive);
+
     QCOMPARE(runQbs(QbsRunParameters(QStringList({ "-vvp", "dynamiclib" }))), 0);
     const bool wholeArchive = !wholeArchiveString.isEmpty();
-    const bool outdatedVisualStudio = wholeArchive && m_qbsStderr.contains("upgrade");
+    const bool outdatedVisualStudio = wholeArchive && linkerDoesNotSupportWholeArchive;
     const QByteArray invalidationOutput
             = "Value for property 'staticlib 1:cpp.linkWholeArchive' has changed.";
     if (!outdatedVisualStudio)
