@@ -89,12 +89,12 @@ template <typename U> struct IMultiplexableContainer {
         }
     }
 
-    const U operator[](const QString &configurationName)
+    const U operator[](const QString &configurationName) const
     {
         return data[configurationName];
     }
 
-    const U operator[](const std::string &configurationName)
+    const U operator[](const std::string &configurationName) const
     {
         return data[QString::fromStdString(configurationName)];
     }
