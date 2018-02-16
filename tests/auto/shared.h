@@ -171,9 +171,11 @@ inline QString objectFileName(const QString &baseName, const QString &profileNam
 {
     const SettingsPtr s = settings();
     qbs::Profile profile(profileName, s.get());
-    const auto tc = profile.value("qbs.toolchain").toStringList();
-    const QString suffix = tc.contains("msvc")
-            || (tc.isEmpty() && qbs::Internal::HostOsInfo::isWindowsHost()) ? "obj" : "o";
+    const auto tc = profile.value("qbs.toolchainType").toString();
+    const auto tcList = profile.value("qbs.toolchain").toStringList();
+    const bool isMsvc = tc == "msvc" || tcList.contains("msvc")
+            || (tc.isEmpty() && tcList.isEmpty() && qbs::Internal::HostOsInfo::isWindowsHost());
+    const QString suffix = isMsvc ? "obj" : "o";
     return baseName + '.' + suffix;
 }
 
