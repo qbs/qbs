@@ -32,6 +32,7 @@
 
 #include <api/languageinfo.h>
 #include <tools/hostosinfo.h>
+#include <tools/installoptions.h>
 #include <tools/profile.h>
 #include <tools/qttools.h>
 #include <tools/shellutils.h>
@@ -900,6 +901,8 @@ void TestBlackbox::dynamicLibraryInModule()
     QVERIFY2(m_qbsStdout.contains("Hello from thelib"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("Hello from theotherlib"), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("thirdlib"), m_qbsStdout.constData());
+    QVERIFY(!QFileInfo::exists(appParams.buildDirectory + '/'
+                               + qbs::InstallOptions::defaultInstallRoot()));
 }
 
 void TestBlackbox::symlinkRemoval()

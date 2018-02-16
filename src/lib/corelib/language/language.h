@@ -210,6 +210,8 @@ class SourceArtifactInternal
 public:
     static SourceArtifactPtr create() { return SourceArtifactPtr(new SourceArtifactInternal); }
 
+    bool isTargetOfModule() const { return !targetOfModule.isEmpty(); }
+
     QString absoluteFilePath;
     FileTags fileTags;
     bool overrideFileTags;
