@@ -485,6 +485,10 @@
     Whether to use a precompiled header for the respective language if one is
     present.
 
+    Set this property to \c false in a \l Group item to disable precompiled
+    headers for some sources even though a precompiled header is present in the
+    product.
+
     See \l{filetags-cpp}{Relevant File Tags} for the associated file tags.
 
     \defaultvalue \c true
@@ -496,6 +500,10 @@
 
     Whether to use a precompiled header for the respective language if one is
     present.
+
+    Set this property to \c false in a \l Group item to disable precompiled
+    headers for some sources even though a precompiled header is present in the
+    product.
 
     See \l{filetags-cpp}{Relevant File Tags} for the associated file tags.
 
@@ -509,6 +517,10 @@
     Whether to use a precompiled header for the respective language if one is
     present.
 
+    Set this property to \c false in a \l Group item to disable precompiled
+    headers for some sources even though a precompiled header is present in the
+    product.
+
     See \l{filetags-cpp}{Relevant File Tags} for the associated file tags.
 
     \defaultvalue \c true
@@ -520,6 +532,10 @@
 
     Whether to use a precompiled header for the respective language if one is
     present.
+
+    Set this property to \c false in a \l Group item to disable precompiled
+    headers for some sources even though a precompiled header is present in the
+    product.
 
     See \l{filetags-cpp}{Relevant File Tags} for the associated file tags.
 

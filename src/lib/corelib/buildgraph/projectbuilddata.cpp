@@ -446,7 +446,9 @@ void BuildDataResolver::connectRulesToDependencies(const ResolvedProductPtr &pro
             for (RuleNode *ruleNode : ruleNodes) {
                 static const FileTag installableTag("installable");
                 if (areRulesCompatible(ruleNode, depRuleNode)
-                        || (ruleNode->rule()->inputsFromDependencies.contains(installableTag)
+                        || ((ruleNode->rule()->inputsFromDependencies.contains(installableTag)
+                             || ruleNode->rule()->auxiliaryInputs.contains(installableTag)
+                             || ruleNode->rule()->explicitlyDependsOn.contains(installableTag))
                             && isRootRuleNode(depRuleNode))) {
                     connect(ruleNode, depRuleNode);
                 }

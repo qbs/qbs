@@ -152,6 +152,7 @@ private:
 
         Item *item;
         Item *scope;
+        QString name;
     };
 
     class ProjectContext;
@@ -163,7 +164,6 @@ private:
     public:
         ProjectContext *project;
         ModuleLoaderResult::ProductInfo info;
-        QString name;
         QString profileName;
         QString multiplexConfigurationId;
         QString multiplexConfigIdForModulePrototypes;
@@ -340,6 +340,9 @@ private:
     void evaluateProfileValues(const QualifiedId &namePrefix, Item *item, Item *profileItem,
                                QVariantMap &values);
     void handleProfile(Item *profileItem);
+    void collectNameFromOverride(const QString &overrideString);
+    void checkProjectNamesInOverrides(const TopLevelProjectContext &tlp);
+    void checkProductNamesInOverrides();
 
     ItemPool *m_pool;
     Logger &m_logger;
@@ -388,6 +391,9 @@ private:
     quint64 m_probesRun;
     quint64 m_probesCachedCurrent;
     quint64 m_probesCachedOld;
+    Set<QString> m_projectNamesUsedInOverrides;
+    Set<QString> m_productNamesUsedInOverrides;
+    Set<QString> m_disabledProjects;
 };
 
 } // namespace Internal

@@ -80,12 +80,6 @@
         \li 1.2
         \li This tag is attached to WiX source files.
             Each source file will be compiled into one WiX object file.
-    \row
-        \li \c{"wix.input"}
-        \li -
-        \li 1.10
-        \li The rule that creates the Microsoft Installer setup file or WiX setup executable
-            will be dependent on artifacts with this tag.
     \endtable
 */
 

@@ -37,6 +37,7 @@
     \list
     \li \l{How do I build a Qt-based project?}
     \li \l{How do I make my app build against my library?}
+    \li \l{How do I use precompiled headers?}
     \li \l{How do I create a module for a third-party library?}
     \li \l{How do I create application bundles and frameworks on iOS, macOS, tvOS, and watchOS?}
     \li \l{How do I apply C/C++ preprocessor macros to only a subset of the files in my product?}
@@ -105,6 +106,31 @@
           \l{Project::references}{Project.references} property to pull them into the project.
           The product definitions would stay exactly the same. In particular, their location
           in the project tree is irrelevant to the relationship between them.
+
+    \section1 How do I use precompiled headers?
+
+    If you use a \l Group item to add a precompiled header file to a product
+    and mark it with the \l{filetags-cpp}{relevant file tag} (\c c_pch_src,
+    \c cpp_pch_src, \c objc_pch_src, or \c objcpp_pch_src), it is used
+    automatically.
+
+    Only one precompiled header is allowed per product and language.
+
+    For example:
+
+    \code
+    import qbs
+
+    CppApplication {
+        name: "the-app"
+        files: ["main.cpp"]
+
+        Group {
+            files: ["precompiled-header.pch"]
+            fileTags: ["cpp_pch_src"]
+        }
+    }
+    \endcode
 
     \section1 How do I create a module for a third-party library?
 

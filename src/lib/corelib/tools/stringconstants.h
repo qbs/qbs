@@ -149,6 +149,9 @@ public:
     static const QString &projectPrefix() { return project(); }
     static const QString &productValue() { return product(); }
 
+    QBS_STRING_CONSTANT(projectsOverridePrefix, "projects.")
+    QBS_STRING_CONSTANT(productsOverridePrefix, "products.")
+
     QBS_STRING_CONSTANT(baseVar, "base")
     static const QString &explicitlyDependsOnVar() { return explicitlyDependsOn(); }
     QBS_STRING_CONSTANT(inputVar, "input")

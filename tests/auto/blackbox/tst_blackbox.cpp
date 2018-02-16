@@ -3419,6 +3419,13 @@ void TestBlackbox::installable()
     QCOMPARE(installList.readAll().count('\n'), 2);
 }
 
+void TestBlackbox::installableAsAuxiliaryInput()
+{
+    QDir::setCurrent(testDataDir + "/installable-as-auxiliary-input");
+    QCOMPARE(runQbs(QbsRunParameters("run")), 0);
+    QVERIFY2(m_qbsStdout.contains("f-impl"), m_qbsStdout.constData());
+}
+
 void TestBlackbox::installTree()
 {
     QDir::setCurrent(testDataDir + "/install-tree");

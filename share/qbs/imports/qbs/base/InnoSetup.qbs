@@ -30,8 +30,7 @@
 
 import qbs
 
-Installer {
+Product {
     Depends { name: "innosetup"; condition: qbs.targetOS.contains("windows") }
     type: ["innosetup.exe"]
-    auxiliaryInputs: ["innosetup.input"]
 }

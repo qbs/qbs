@@ -47,14 +47,16 @@ Project {
                 var cmd = new JavaScriptCommand();
                 cmd.silent = true;
                 cmd.sourceCode = function() {
-                    for (var i = 0; i < outputs["c"].length; ++i) {
-                        var tf;
-                        try {
-                            tf = new TextFile(outputs["c"][i].filePath, TextFile.WriteOnly);
-                            tf.writeLine("int main" + i + "() { return 0; }");
-                        } finally {
-                            if (tf)
-                                tf.close();
+                    for (var j = 0; j < 1000; ++j) { // Artificial delay.
+                        for (var i = 0; i < outputs["c"].length; ++i) {
+                            var tf;
+                            try {
+                                tf = new TextFile(outputs["c"][i].filePath, TextFile.WriteOnly);
+                                tf.writeLine("int main" + i + "() { return 0; }");
+                            } finally {
+                                if (tf)
+                                    tf.close();
+                            }
                         }
                     }
                 };

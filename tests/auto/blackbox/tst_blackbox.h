@@ -117,6 +117,7 @@ private slots:
     void innoSetupDependencies();
     void inputsFromDependencies();
     void installable();
+    void installableAsAuxiliaryInput();
     void installedApp();
     void installDuplicates();
     void installDuplicatesNoError();
