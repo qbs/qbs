@@ -60,6 +60,7 @@ QMap<QString, QString> TestBlackboxAndroid::findAndroid(int *status, const QStri
         {"sdk-build-tools-dx", QDir::fromNativeSeparators(tools["sdk-build-tools-dx"].toString())},
         {"ndk", QDir::fromNativeSeparators(tools["ndk"].toString())},
         {"ndk-samples", QDir::fromNativeSeparators(tools["ndk-samples"].toString())},
+        {"jar", QDir::fromNativeSeparators(tools["jar"].toString())},
     };
 }
 
@@ -109,7 +110,7 @@ void TestBlackboxAndroid::android()
             const QString apkFilePath = relativeProductBuildDir(productName, configName)
                     + '/' + productName + ".apk";
             QVERIFY2(regularFileExists(apkFilePath), qPrintable(apkFilePath));
-            const QString jarFilePath = findExecutable(QStringList("jar"));
+            const QString jarFilePath = androidPaths["jar"];
             QVERIFY(!jarFilePath.isEmpty());
             QProcess jar;
             jar.start(jarFilePath, QStringList() << "-tf" << apkFilePath);
