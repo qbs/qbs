@@ -107,13 +107,14 @@ int TestBlackboxBase::runQbs(const QbsRunParameters &params)
     m_qbsStdout = process.readAllStandardOutput();
     sanitizeOutput(&m_qbsStderr);
     sanitizeOutput(&m_qbsStdout);
-    if ((process.exitStatus() != QProcess::NormalExit
-             || process.exitCode() != 0) && !params.expectFailure) {
-        if (!m_qbsStderr.isEmpty())
-            qDebug("%s", m_qbsStderr.constData());
-        if (!m_qbsStdout.isEmpty())
-            qDebug("%s", m_qbsStdout.constData());
-    }
+    const bool shouldLog = (process.exitStatus() != QProcess::NormalExit
+            || process.exitCode() != 0) && !params.expectFailure;
+    if (!m_qbsStderr.isEmpty()
+            && (shouldLog || qEnvironmentVariableIsSet("QBS_AUTOTEST_ALWAYS_LOG_STDERR")))
+        qDebug("%s", m_qbsStderr.constData());
+    if (!m_qbsStdout.isEmpty()
+            && (shouldLog || qEnvironmentVariableIsSet("QBS_AUTOTEST_ALWAYS_LOG_STDOUT")))
+        qDebug("%s", m_qbsStdout.constData());
     return process.exitCode();
 }
 
