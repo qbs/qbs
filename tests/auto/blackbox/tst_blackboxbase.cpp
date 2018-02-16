@@ -46,9 +46,10 @@ using qbs::Profile;
 
 static QString initQbsExecutableFilePath()
 {
-    QString filePath = QCoreApplication::applicationDirPath() + QLatin1String("/qbs");
-    filePath = HostOsInfo::appendExecutableSuffix(QDir::cleanPath(filePath));
-    return filePath;
+    const QString qbsInstallRoot = QString::fromLocal8Bit(qgetenv("QBS_INSTALL_ROOT"));
+    return HostOsInfo::appendExecutableSuffix(QDir::cleanPath(!qbsInstallRoot.isEmpty()
+        ? qbsInstallRoot + QLatin1String("/bin/qbs")
+        : QCoreApplication::applicationDirPath() + QLatin1String("/qbs")));
 }
 
 static bool supportsBuildDirectoryOption(const QString &command) {

@@ -16,6 +16,7 @@ Project {
         wrapper: project.autotestWrapper
         environment: {
             var env = base;
+            env.push("QBS_INSTALL_ROOT=" + qbs.installRoot);
             if (qbs.hostOS.contains("windows") && qbs.targetOS.contains("windows")) {
                 var path = "";
                 for (var i = 0; i < env.length; ++i) {

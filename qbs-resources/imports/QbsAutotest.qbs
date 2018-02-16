@@ -30,4 +30,7 @@ QtApplication {
         ]
     }
     cpp.rpaths: [FileInfo.joinPaths(qbs.installRoot, qbs.installPrefix, qbsbuildconfig.libDirName)]
+    qbs.commonRunEnvironment: ({
+        "QBS_INSTALL_ROOT": qbs.installRoot
+    })
 }
