@@ -66,6 +66,7 @@ class QBS_EXPORT RunEnvironment
 {
     friend class CommandLineFrontend;
     friend class Project;
+    friend class TestApi;
 public:
     ~RunEnvironment();
 

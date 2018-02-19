@@ -2614,6 +2614,35 @@ void TestApi::ruleConflict()
              && errorString.contains("pch2.h"), qPrintable(errorString));
 }
 
+void TestApi::runEnvForDisabledProduct()
+{
+    const qbs::SetupProjectParameters params
+            = defaultSetupParameters("run-disabled-product/run-disabled-product.qbs");
+    const std::unique_ptr<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(params,
+                                                                                    m_logSink, 0));
+    QVERIFY(waitForFinished(setupJob.get()));
+    QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
+    const qbs::Project project = setupJob->project();
+    const std::unique_ptr<qbs::BuildJob> buildJob(project.buildAllProducts(qbs::BuildOptions()));
+    QVERIFY(waitForFinished(buildJob.get()));
+    QVERIFY2(!buildJob->error().hasError(), qPrintable(buildJob->error().toString()));
+    const qbs::ProjectData projectData = project.projectData();
+    const QList<qbs::ProductData> products = projectData.products();
+    QCOMPARE(products.size(), 1);
+    const qbs::ProductData product = products.front();
+    qbs::RunEnvironment runEnv = project.getRunEnvironment(
+                product, qbs::InstallOptions(), QProcessEnvironment(), QStringList(),
+                settings().get());
+    qbs::ErrorInfo runError;
+    const QProcessEnvironment env = runEnv.runEnvironment(&runError);
+    QVERIFY2(runError.toString().contains("Cannot run disabled product 'app'"),
+             qPrintable(runError.toString()));
+    runError.clear();
+    runEnv.runTarget(QString(), QStringList(), true, &runError);
+    QVERIFY2(runError.toString().contains("Cannot run disabled product 'app'"),
+             qPrintable(runError.toString()));
+}
+
 void TestApi::softDependency()
 {
     const qbs::ErrorInfo errorInfo = doBuildProject("soft-dependency");

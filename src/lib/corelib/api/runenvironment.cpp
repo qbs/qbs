@@ -85,6 +85,16 @@ public:
     {
     }
 
+    void checkProduct()
+    {
+        if (!resolvedProduct)
+            throw ErrorInfo(Tr::tr("Cannot run: No such product."));
+        if (!resolvedProduct->enabled) {
+            throw ErrorInfo(Tr::tr("Cannot run disabled product '%1'.")
+                            .arg(resolvedProduct->fullDisplayName()));
+        }
+    }
+
     const ResolvedProductPtr resolvedProduct;
     const TopLevelProjectConstPtr project;
     InstallOptions installOptions;
@@ -274,6 +284,7 @@ void RunEnvironment::printStartInfo(const QProcess &proc, bool dryRun)
 
 int RunEnvironment::doRunTarget(const QString &targetBin, const QStringList &arguments, bool dryRun)
 {
+    d->checkProduct();
     const QStringList targetOS = d->resolvedProduct->moduleProperties->qbsPropertyValue(
                 QLatin1String("targetOS")).toStringList();
     const QStringList toolchain = d->resolvedProduct->moduleProperties->qbsPropertyValue(
@@ -462,8 +473,7 @@ int RunEnvironment::doRunTarget(const QString &targetBin, const QStringList &arg
 
 const QProcessEnvironment RunEnvironment::getRunEnvironment() const
 {
-    if (!d->resolvedProduct)
-        return d->environment;
+    d->checkProduct();
     EnvironmentScriptRunner(d->resolvedProduct.get(), &d->evalContext, d->environment)
             .setupForRun(d->setupRunEnvConfig);
     return d->resolvedProduct->runEnvironment;
