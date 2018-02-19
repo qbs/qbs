@@ -41,7 +41,7 @@ set -e
 #############################################################################
 
 python_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../src/3rdparty/python"
-repos=(biplist.git@v1.0.2 dmgbuild.git@v1.3.1 ds_store@v1.1.2 mac_alias.git@v2.0.6)
+repos=(biplist.git@v1.0.3 dmgbuild.git@v1.3.2 ds_store@v1.1.2 mac_alias.git@v2.0.7)
 for repo in "${repos[@]}" ; do
     pip install -U --isolated "--prefix=$python_dir" --no-binary :all: --no-compile --no-deps \
         "git+git://github.com/qbs/$repo"
