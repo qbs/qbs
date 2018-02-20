@@ -8,6 +8,11 @@ Project {
         Depends { name: "thethirdlib" }
         Depends { name: "thefourthlib" }
         files: "main.cpp"
+        Group {
+            fileTagsFilter: "dynamiclibrary"
+            qbs.install: true
+            qbs.installSourceBase: buildDirectory
+        }
     }
     Dll {
         name: "thefourthlib"

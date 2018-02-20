@@ -27,6 +27,8 @@ Product {
                     tools["ndk"] = product.moduleProperty("Android.ndk", "ndkDir");
                     tools["ndk-samples"] = product.Android.ndk.ndkSamplesDir;
                 }
+                if (product.java && product.java.present)
+                    tools["jar"] = product.java.jarFilePath;
 
                 var tf;
                 try {

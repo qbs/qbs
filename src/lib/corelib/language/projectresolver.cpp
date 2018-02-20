@@ -1118,8 +1118,10 @@ void ProjectResolver::matchArtifactProperties(const ResolvedProductPtr &product,
     for (const SourceArtifactPtr &artifact : artifacts) {
         for (const ArtifactPropertiesConstPtr &artifactProperties :
                  qAsConst(product->artifactProperties)) {
-            if (artifact->fileTags.intersects(artifactProperties->fileTagsFilter()))
+            if (!artifact->isTargetOfModule()
+                    && artifact->fileTags.intersects(artifactProperties->fileTagsFilter())) {
                 artifact->properties = artifactProperties->propertyMap();
+            }
         }
     }
 }
