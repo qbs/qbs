@@ -515,7 +515,7 @@ static void replaceSpecialValues(QByteArray *content, const Profile &profile,
     }
     if (module.qbsName == QLatin1String("qml"))
         dict.insert("qmlPath", pathToJSLiteral(qtEnvironment.qmlPath).toUtf8());
-    if (module.isStaticLibrary) {
+    if (module.isStaticLibrary && module.qbsName != QLatin1String("core")) {
         if (!additionalContent.isEmpty())
             additionalContent += "\n    ";
         additionalContent += "isStaticLibrary: true";
