@@ -151,4 +151,36 @@ Project {
             qbs.installSourceBase: product.buildDirectory
         }
     }
+
+    DynamicLibrary {
+        Depends { name: "cpp" }
+        Depends { name: "bundle" }
+        Depends { name: "multilibB" }
+        name: "multilibA"
+        files: ["lib.c"]
+        cpp.sonamePrefix: "@rpath"
+        cpp.defines: ["VARIANT=" + Utilities.cStringQuote(qbs.buildVariant)]
+        qbs.architectures: ["x86", "x86_64"]
+        qbs.buildVariants: ["debug", "profile"]
+        Group {
+            fileTagsFilter: ["bundle.content"]
+            qbs.install: true
+            qbs.installSourceBase: product.buildDirectory
+        }
+    }
+    DynamicLibrary {
+        Depends { name: "cpp" }
+        Depends { name: "bundle" }
+        name: "multilibB"
+        files: ["lib.c"]
+        cpp.sonamePrefix: "@rpath"
+        cpp.defines: ["VARIANT=" + Utilities.cStringQuote(qbs.buildVariant)]
+        qbs.architectures: ["x86", "x86_64"]
+        qbs.buildVariants: ["debug", "profile"]
+        Group {
+            fileTagsFilter: ["bundle.content"]
+            qbs.install: true
+            qbs.installSourceBase: product.buildDirectory
+        }
+    }
 }

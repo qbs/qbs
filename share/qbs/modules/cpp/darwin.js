@@ -130,6 +130,8 @@ function lipoOutputArtifacts(product, inputs, fileTag, debugSuffix) {
 function prepareLipo(project, product, inputs, outputs, input, output) {
     var cmd;
     var commands = [];
+    for (var p in inputs)
+        inputs[p] = inputs[p].filter(function(inp) { return inp.product.name === product.name; });
     var allInputs = [].concat.apply([], Object.keys(inputs).map(function (tag) {
         return ["application", "dynamiclibrary", "staticlibrary", "loadablemodule"].contains(tag)
                 ? inputs[tag] : [];
