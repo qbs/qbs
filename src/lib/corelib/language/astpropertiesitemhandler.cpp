@@ -77,7 +77,8 @@ void ASTPropertiesItemHandler::setupAlternatives()
 class PropertiesBlockConverter
 {
 public:
-    PropertiesBlockConverter(const QString &condition, const QString &overrideListProperties,
+    PropertiesBlockConverter(const JSSourceValue::AltProperty &condition,
+                             const JSSourceValue::AltProperty &overrideListProperties,
                              Item *propertiesBlockContainer, const Item *propertiesBlock)
         : m_propertiesBlockContainer(propertiesBlockContainer)
         , m_propertiesBlock(propertiesBlock)
@@ -144,7 +145,7 @@ private:
     }
 };
 
-static QString getPropertyString(const Item *propertiesItem, const QString &name)
+static JSSourceValue::AltProperty getPropertyData(const Item *propertiesItem, const QString &name)
 {
     const ValuePtr value = propertiesItem->property(name);
     if (!value) {
@@ -152,7 +153,8 @@ static QString getPropertyString(const Item *propertiesItem, const QString &name
             throw ErrorInfo(Tr::tr("Properties.condition must be provided."),
                             propertiesItem->location());
         }
-        return StringConstants::falseValue();
+        return JSSourceValue::AltProperty(StringConstants::falseValue(),
+                                          propertiesItem->location());
     }
     if (Q_UNLIKELY(value->type() != Value::JSSourceValueType)) {
         throw ErrorInfo(Tr::tr("Properties.%1 must be a value binding.").arg(name),
@@ -172,14 +174,13 @@ static QString getPropertyString(const Item *propertiesItem, const QString &name
 
     }
     const JSSourceValuePtr srcval = std::static_pointer_cast<JSSourceValue>(value);
-    return srcval->sourceCodeForEvaluation();
+    return JSSourceValue::AltProperty(srcval->sourceCodeForEvaluation(), srcval->location());
 }
 
 void ASTPropertiesItemHandler::handlePropertiesBlock(const Item *propertiesItem)
 {
-    const QString condition = getPropertyString(propertiesItem,
-                                                StringConstants::conditionProperty());
-    const QString overrideListProperties = getPropertyString(propertiesItem,
+    const auto condition = getPropertyData(propertiesItem, StringConstants::conditionProperty());
+    const auto overrideListProperties = getPropertyData(propertiesItem,
             StringConstants::overrideListPropertiesProperty());
     PropertiesBlockConverter(condition, overrideListProperties, m_parentItem,
                              propertiesItem).apply();

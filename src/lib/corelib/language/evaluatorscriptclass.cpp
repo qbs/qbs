@@ -252,6 +252,12 @@ private:
         bool hasError = false;
     };
 
+    void injectErrorLocation(QScriptValue &sv, const CodeLocation &loc)
+    {
+        if (sv.isError() && !engine->lastErrorLocation(sv).isValid())
+            sv = engine->currentContext()->throwError(engine->lastError(sv, loc).toString());
+    }
+
     JSSourceValueEvaluationResult evaluateJSSourceValue(const JSSourceValue *value, Item *outerItem,
             const JSSourceValue::Alternative *alternative = nullptr,
             JSSourceValue *elseCaseValue = nullptr, QScriptValue *outerScriptValue = nullptr)
@@ -283,10 +289,11 @@ private:
         pushScope(maybeExtraScope.first);
         pushScope(fileCtxScopes.importScope);
         if (alternative) {
-            QScriptValue sv = engine->evaluate(alternative->condition);
+            QScriptValue sv = engine->evaluate(alternative->condition.value);
             if (engine->hasErrorOrException(sv)) {
                 result.scriptValue = sv;
                 result.hasError = true;
+                injectErrorLocation(result.scriptValue, alternative->condition.location);
                 return result;
             }
             if (sv.toBool()) {
@@ -297,10 +304,12 @@ private:
                 result.tryNextAlternative = true;
                 return result;
             }
-            sv = engine->evaluate(alternative->overrideListProperties);
+            sv = engine->evaluate(alternative->overrideListProperties.value);
             if (engine->hasErrorOrException(sv)) {
                 result.scriptValue = sv;
                 result.hasError = true;
+                injectErrorLocation(result.scriptValue,
+                                    alternative->overrideListProperties.location);
                 return result;
             }
             if (sv.toBool())

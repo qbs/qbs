@@ -795,7 +795,8 @@ void TestLanguage::erroneousFiles_data()
     QTest::newRow("wrongQbsVersionFormat")
             << "The value '.*' of Project.minimumQbsVersion is not a valid version string.";
     QTest::newRow("properties-item-with-invalid-condition")
-            << "TypeError: Result of expression 'cpp.nonexistingproperty'";
+            << "properties-item-with-invalid-condition.qbs:6:19.*TypeError: Result of expression "
+               "'cpp.nonexistingproperty'";
     QTest::newRow("misused-inherited-property") << "Binding to non-item property";
     QTest::newRow("undeclared_property_in_Properties_item") << "Item 'blubb' is not declared";
     QTest::newRow("same-module-prefix1") << "The name of module 'prefix1' is equal to the first "
