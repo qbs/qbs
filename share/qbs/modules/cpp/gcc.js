@@ -1011,6 +1011,12 @@ function linkerEnvVars(config, inputs)
     return list;
 }
 
+function setResponseFileThreshold(command, product)
+{
+    if (product.qbs.toolchain.contains("mingw") && product.qbs.hostOS.contains("windows"))
+        command.responseFileThreshold = 10000;
+}
+
 function prepareCompiler(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
     var compilerInfo = effectiveCompilerInfo(product.qbs.toolchain,
                                              input, output);
@@ -1036,6 +1042,7 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
     cmd.relevantEnvironmentVariables = compilerEnvVars(input, compilerInfo);
     cmd.responseFileArgumentIndex = wrapperArgsLength;
     cmd.responseFileUsagePrefix = '@';
+    setResponseFileThreshold(cmd, product);
     return cmd;
 }
 
@@ -1254,6 +1261,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     cmd.relevantEnvironmentVariables = linkerEnvVars(product, inputs);
     cmd.responseFileArgumentIndex = responseFileArgumentIndex;
     cmd.responseFileUsagePrefix = useQnxResponseFileHack ? "-Wl,@" : "@";
+    setResponseFileThreshold(cmd, product);
     commands.push(cmd);
 
     var debugInfo = outputs.debuginfo_app || outputs.debuginfo_dll
