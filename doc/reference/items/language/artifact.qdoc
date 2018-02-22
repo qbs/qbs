@@ -61,10 +61,9 @@
     \qmlproperty bool Artifact::alwaysUpdated
 
     Setting this property to \c false means the file is not necessarily always
-    written to by any command run by the rule. The timestamps of such artifacts
-    are therefore not checked to find out whether they are up to date.
-    Consequently, if all artifacts of a rule have this property set to \c false,
-    the commands of the rule are always executed.
+    written to by any command run by the rule.
+    If all artifacts of a rule have this property set to \c false, the commands
+    of the rule are only executed if all of them are out of date compared to the inputs.
 
     \defaultvalue \c true
 */

@@ -105,6 +105,8 @@ private slots:
     void externalLibs();
     void fileDependencies();
     void generatedArtifactAsInputToDynamicRule();
+    void generator();
+    void generator_data();
     void groupsInModules();
     void ico();
     void importChangeTracking();

@@ -4924,6 +4924,36 @@ void TestBlackbox::generatedArtifactAsInputToDynamicRule()
     QVERIFY2(!m_qbsStdout.contains("generating"), m_qbsStdout.constData());
 }
 
+void TestBlackbox::generator()
+{
+    QFETCH(QString, inputFile);
+    QFETCH(QStringList, toBeCompiled);
+    QDir::setCurrent(testDataDir + "/generator");
+    if (!inputFile.isEmpty()) {
+        WAIT_FOR_NEW_TIMESTAMP();
+        QFile input(inputFile);
+        QFile output("input.txt");
+        QVERIFY2(!output.exists() || output.remove(), qPrintable(output.errorString()));
+        QVERIFY2(input.copy(output.fileName()), qPrintable(input.errorString()));
+    }
+    QCOMPARE(runQbs(), 0);
+    QCOMPARE(toBeCompiled.contains("main.cpp"), m_qbsStdout.contains("compiling main.cpp"));
+    QCOMPARE(toBeCompiled.contains("file1.cpp"), m_qbsStdout.contains("compiling file1.cpp"));
+    QCOMPARE(toBeCompiled.contains("file2.cpp"), m_qbsStdout.contains("compiling file2.cpp"));
+}
+
+void TestBlackbox::generator_data()
+{
+    QTest::addColumn<QString>("inputFile");
+    QTest::addColumn<QStringList>("toBeCompiled");
+    QTest::newRow("both") << "input.both.txt" << QStringList{"main.cpp", "file1.cpp", "file2.cpp"};
+    QTest::newRow("file1") << "input.file1.txt" << QStringList{"file1.cpp"};
+    QTest::newRow("file2") << "input.file2.txt" << QStringList{"file2.cpp"};
+    QTest::newRow("none") << "input.none.txt" << QStringList();
+    QTest::newRow("both again") << "input.both.txt" << QStringList{"file1.cpp", "file2.cpp"};
+    QTest::newRow("no update") << QString() << QStringList();
+}
+
 static bool haveWiX(const Profile &profile)
 {
     if (profile.value("wix.toolchainInstallPath").isValid() &&

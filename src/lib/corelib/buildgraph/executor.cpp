@@ -422,14 +422,18 @@ bool Executor::mustExecuteTransformer(const TransformerPtr &transformer) const
 {
     if (transformer->alwaysRun)
         return true;
+
     bool hasAlwaysUpdatedArtifacts = false;
+    bool hasUpToDateNotAlwaysUpdatedArtifacts = false;
     for (Artifact *artifact : qAsConst(transformer->outputs)) {
-        if (artifact->alwaysUpdated)
-            hasAlwaysUpdatedArtifacts = true;
-        else if (!m_buildOptions.forceTimestampCheck())
-            continue;
-        if (!isUpToDate(artifact))
+        if (isUpToDate(artifact)) {
+            if (artifact->alwaysUpdated)
+                hasAlwaysUpdatedArtifacts = true;
+            else
+                hasUpToDateNotAlwaysUpdatedArtifacts = true;
+        } else if (artifact->alwaysUpdated || m_buildOptions.forceTimestampCheck()) {
             return true;
+        }
     }
 
     if (commandsNeedRerun(transformer.get(), transformer->product().get(), m_productsByName,
@@ -437,9 +441,9 @@ bool Executor::mustExecuteTransformer(const TransformerPtr &transformer) const
         return true;
     }
 
-    // If all artifacts in a transformer have "alwaysUpdated" set to false, that transformer
-    // is always run.
-    return !hasAlwaysUpdatedArtifacts;
+    // If all artifacts in a transformer have "alwaysUpdated" set to false, that transformer is
+    // run if and only if *all* of them are out of date.
+    return !hasAlwaysUpdatedArtifacts && !hasUpToDateNotAlwaysUpdatedArtifacts;
 }
 
 void Executor::buildArtifact(Artifact *artifact)
