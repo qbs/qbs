@@ -53,8 +53,10 @@ import qbs 1.0
 
 CppApplication {
     Depends { condition: product.condition; name: "ib" }
-    condition: qbs.targetOS.contains("ios")
+    condition: qbs.hostOS.contains("macos")
     name: "Cocoa Touch Application"
+
+    qbs.targetPlatform: "ios"
 
     cpp.useObjcPrecompiledHeader: true
     cpp.minimumIosVersion: "8.0"
