@@ -6,22 +6,27 @@ Project {
     CppApplication {
         name: "compiler"
         files: ["compiler.cpp"]
+        Group {
+            fileTagsFilter: ["application"]
+            fileTags: ["compiler"]
+        }
     }
     Product {
         name: "p"
         type: ["mytype"]
 
         Depends { name: "compiler" }
+        Depends { name: "cpp" }
 
         Rule {
             inputs: ["mytype.in"]
-            explicitlyDependsOn: ["application"]
+            explicitlyDependsOn: ["compiler"]
             Artifact {
                 filePath: input.fileName + ".out"
                 fileTags: product.type
             }
             prepare: {
-                var compiler = explicitlyDependsOn["application"][0].filePath;
+                var compiler = explicitlyDependsOn["compiler"][0].filePath;
                 var cmd = new Command(compiler, [input.filePath, output.filePath]);
                 cmd.description = "compiling " + input.fileName;
                 cmd.highlight = "compiler";
@@ -31,7 +36,7 @@ Project {
 
         Rule {
             multiplex: true
-            explicitlyDependsOn: ["application"]
+            explicitlyDependsOn: ["compiler"]
             Artifact {
                 filePath: "compiler-name.txt"
                 fileTags: product.type
@@ -40,7 +45,7 @@ Project {
                 var nameCmd = new JavaScriptCommand();
                 nameCmd.description = "writing compiler name";
                 nameCmd.sourceCode = function() {
-                    var compiler = explicitlyDependsOn["application"][0].filePath;
+                    var compiler = explicitlyDependsOn["compiler"][0].filePath;
                     var file = new TextFile(output.filePath, TextFile.WriteOnly);
                     file.write("compiler file name: " + FileInfo.baseName(compiler));
                     file.close();

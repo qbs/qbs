@@ -2,6 +2,7 @@ import qbs
 import qbs.FileInfo
 
 Module {
+    Depends { name: "cpp" }
     Group {
         name: "thetool binary"
         files: FileInfo.cleanPath(FileInfo.joinPaths(path, "..", "..",

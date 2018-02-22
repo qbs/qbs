@@ -12,6 +12,7 @@ Project {
         }
 
         Export {
+            Depends { name: "cpp" }
             Rule {
                 multiplex: true
                 explicitlyDependsOn: ["thetool.thetool"]
