@@ -64,6 +64,7 @@ UnixGCC {
 
     lipoName: "lipo"
     lipoPath: lipoPathPrefix + lipoName
+    property bool enableAggregationRules: product.aggregate && !product.multiplexConfigurationId
 
     targetVendor: "apple"
     targetSystem: "darwin"
@@ -206,7 +207,7 @@ UnixGCC {
     property bool libcxxAvailable: qbs.toolchain.contains("clang") && cxxLanguageVersion !== "c++98"
 
     Rule {
-        condition: product.aggregate
+        condition: enableAggregationRules
         inputsFromDependencies: ["application"]
         multiplex: true
 
@@ -217,7 +218,7 @@ UnixGCC {
     }
 
     Rule {
-        condition: product.aggregate
+        condition: enableAggregationRules
         inputsFromDependencies: ["loadablemodule"]
         multiplex: true
 
@@ -229,7 +230,7 @@ UnixGCC {
     }
 
     Rule {
-        condition: product.aggregate
+        condition: enableAggregationRules
         inputsFromDependencies: ["dynamiclibrary"]
         multiplex: true
 
@@ -241,7 +242,7 @@ UnixGCC {
     }
 
     Rule {
-        condition: product.aggregate
+        condition: enableAggregationRules
         inputsFromDependencies: ["staticlibrary"]
         multiplex: true
 

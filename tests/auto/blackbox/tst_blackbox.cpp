@@ -1565,6 +1565,7 @@ void TestBlackbox::cxxLanguageVersion()
     QbsRunParameters resolveParams;
     resolveParams.command = "resolve";
     resolveParams.arguments << "--force-probe-execution";
+    resolveParams.arguments << "modules.cpp.useLanguageVersionFallback:true";
     if (!version.isEmpty())
         resolveParams.arguments << ("modules.cpp.cxxLanguageVersion:" + version);
     QCOMPARE(runQbs(resolveParams), 0);
@@ -1788,7 +1789,6 @@ void TestBlackbox::separateDebugInfo()
 
 void TestBlackbox::trackAddFile()
 {
-    QProcess process;
     QList<QByteArray> output;
     QDir::setCurrent(testDataDir + "/trackAddFile");
     if (QFile::exists("work"))
@@ -1796,13 +1796,10 @@ void TestBlackbox::trackAddFile()
     QDir().mkdir("work");
     ccp("before", "work");
     QDir::setCurrent(testDataDir + "/trackAddFile/work");
-    QCOMPARE(runQbs(), 0);
+    const QbsRunParameters runParams("run", QStringList{"-qp", "someapp"});
+    QCOMPARE(runQbs(runParams), 0);
 
-    process.start(relativeExecutableFilePath("someapp"), QStringList());
-    QVERIFY2(process.waitForStarted(), qPrintable(process.errorString()));
-    QVERIFY2(process.waitForFinished(), qPrintable(process.errorString()));
-    QCOMPARE(process.exitCode(), 0);
-    output = process.readAllStandardOutput().split('\n');
+    output = m_qbsStdout.split('\n');
     QCOMPARE(output.takeFirst().trimmed().constData(), "Hello World!");
     QCOMPARE(output.takeFirst().trimmed().constData(), "NARF!");
     QString unchangedObjectFile = relativeBuildDir()
@@ -1813,13 +1810,9 @@ void TestBlackbox::trackAddFile()
     ccp("../after", ".");
     touch("trackAddFile.qbs");
     touch("main.cpp");
-    QCOMPARE(runQbs(), 0);
+    QCOMPARE(runQbs(runParams), 0);
 
-    process.start(relativeExecutableFilePath("someapp"), QStringList());
-    QVERIFY(process.waitForStarted());
-    QVERIFY(process.waitForFinished());
-    QCOMPARE(process.exitCode(), 0);
-    output = process.readAllStandardOutput().split('\n');
+    output = m_qbsStdout.split('\n');
     QCOMPARE(output.takeFirst().trimmed().constData(), "Hello World!");
     QCOMPARE(output.takeFirst().trimmed().constData(), "NARF!");
     QCOMPARE(output.takeFirst().trimmed().constData(), "ZORT!");
@@ -1924,7 +1917,6 @@ void TestBlackbox::trackGroupConditionChange()
 
 void TestBlackbox::trackRemoveFile()
 {
-    QProcess process;
     QList<QByteArray> output;
     QDir::setCurrent(testDataDir + "/trackAddFile");
     if (QFile::exists("work"))
@@ -1933,13 +1925,9 @@ void TestBlackbox::trackRemoveFile()
     ccp("before", "work");
     ccp("after", "work");
     QDir::setCurrent(testDataDir + "/trackAddFile/work");
-    QCOMPARE(runQbs(), 0);
-
-    process.start(relativeExecutableFilePath("someapp"), QStringList());
-    QVERIFY2(process.waitForStarted(), qPrintable(process.errorString()));
-    QVERIFY2(process.waitForFinished(), qPrintable(process.errorString()));
-    QCOMPARE(process.exitCode(), 0);
-    output = process.readAllStandardOutput().split('\n');
+    const QbsRunParameters runParams("run", QStringList{"-qp", "someapp"});
+    QCOMPARE(runQbs(runParams), 0);
+    output = m_qbsStdout.split('\n');
     QCOMPARE(output.takeFirst().trimmed().constData(), "Hello World!");
     QCOMPARE(output.takeFirst().trimmed().constData(), "NARF!");
     QCOMPARE(output.takeFirst().trimmed().constData(), "ZORT!");
@@ -1958,13 +1946,8 @@ void TestBlackbox::trackRemoveFile()
 
     touch("main.cpp");
     touch("trackAddFile.qbs");
-    QCOMPARE(runQbs(), 0);
-
-    process.start(relativeExecutableFilePath("someapp"), QStringList());
-    QVERIFY(process.waitForStarted());
-    QVERIFY(process.waitForFinished());
-    QCOMPARE(process.exitCode(), 0);
-    output = process.readAllStandardOutput().split('\n');
+    QCOMPARE(runQbs(runParams), 0);
+    output = m_qbsStdout.split('\n');
     QCOMPARE(output.takeFirst().trimmed().constData(), "Hello World!");
     QCOMPARE(output.takeFirst().trimmed().constData(), "NARF!");
 
@@ -1979,7 +1962,6 @@ void TestBlackbox::trackRemoveFile()
 
 void TestBlackbox::trackAddFileTag()
 {
-    QProcess process;
     QList<QByteArray> output;
     QDir::setCurrent(testDataDir + "/trackFileTags");
     if (QFile::exists("work"))
@@ -1987,32 +1969,22 @@ void TestBlackbox::trackAddFileTag()
     QDir().mkdir("work");
     ccp("before", "work");
     QDir::setCurrent(testDataDir + "/trackFileTags/work");
-    QCOMPARE(runQbs(), 0);
-
-    process.start(relativeExecutableFilePath("someapp"), QStringList());
-    QVERIFY2(process.waitForStarted(), qPrintable(process.errorString()));
-    QVERIFY2(process.waitForFinished(), qPrintable(process.errorString()));
-    QCOMPARE(process.exitCode(), 0);
-    output = process.readAllStandardOutput().split('\n');
+    const QbsRunParameters runParams("run", QStringList{"-qp", "someapp"});
+    QCOMPARE(runQbs(runParams), 0);
+    output = m_qbsStdout.split('\n');
     QCOMPARE(output.takeFirst().trimmed().constData(), "there's no foo here");
 
     WAIT_FOR_NEW_TIMESTAMP();
     ccp("../after", ".");
     touch("main.cpp");
     touch("trackFileTags.qbs");
-    QCOMPARE(runQbs(), 0);
-
-    process.start(relativeExecutableFilePath("someapp"), QStringList());
-    QVERIFY(process.waitForStarted());
-    QVERIFY(process.waitForFinished());
-    QCOMPARE(process.exitCode(), 0);
-    output = process.readAllStandardOutput().split('\n');
+    QCOMPARE(runQbs(runParams), 0);
+    output = m_qbsStdout.split('\n');
     QCOMPARE(output.takeFirst().trimmed().constData(), "there's 15 foo here");
 }
 
 void TestBlackbox::trackRemoveFileTag()
 {
-    QProcess process;
     QList<QByteArray> output;
     QDir::setCurrent(testDataDir + "/trackFileTags");
     if (QFile::exists("work"))
@@ -2020,32 +1992,23 @@ void TestBlackbox::trackRemoveFileTag()
     QDir().mkdir("work");
     ccp("after", "work");
     QDir::setCurrent(testDataDir + "/trackFileTags/work");
-    QCOMPARE(runQbs(), 0);
+    const QbsRunParameters runParams("run", QStringList{"-qp", "someapp"});
+    QCOMPARE(runQbs(runParams), 0);
 
     // check if the artifacts are here that will become stale in the 2nd step
     QVERIFY(regularFileExists(relativeProductBuildDir("someapp") + '/' + inputDirHash(".")
                               + objectFileName("/main_foo.cpp", profileName())));
     QVERIFY(regularFileExists(relativeProductBuildDir("someapp") + "/main_foo.cpp"));
     QVERIFY(regularFileExists(relativeProductBuildDir("someapp") + "/main.foo"));
-
-    process.start(relativeExecutableFilePath("someapp"), QStringList());
-    QVERIFY(process.waitForStarted());
-    QVERIFY(process.waitForFinished());
-    QCOMPARE(process.exitCode(), 0);
-    output = process.readAllStandardOutput().split('\n');
+    output = m_qbsStdout.split('\n');
     QCOMPARE(output.takeFirst().trimmed().constData(), "there's 15 foo here");
 
     WAIT_FOR_NEW_TIMESTAMP();
     ccp("../before", ".");
     touch("main.cpp");
     touch("trackFileTags.qbs");
-    QCOMPARE(runQbs(), 0);
-
-    process.start(relativeExecutableFilePath("someapp"), QStringList());
-    QVERIFY(process.waitForStarted());
-    QVERIFY(process.waitForFinished());
-    QCOMPARE(process.exitCode(), 0);
-    output = process.readAllStandardOutput().split('\n');
+    QCOMPARE(runQbs(runParams), 0);
+    output = m_qbsStdout.split('\n');
     QCOMPARE(output.takeFirst().trimmed().constData(), "there's no foo here");
 
     // check if stale artifacts have been removed

@@ -148,8 +148,16 @@ public:
 
     struct Alternative
     {
+        struct PropertyData
+        {
+            PropertyData() = default;
+            PropertyData(const QString &v, const CodeLocation &l) : value(v), location(l) {}
+            QString value;
+            CodeLocation location;
+        };
+
         Alternative() { }
-        Alternative(const QString &c, const QString &o, const JSSourceValuePtr &v)
+        Alternative(const PropertyData &c, const PropertyData &o, const JSSourceValuePtr &v)
             : condition(c), overrideListProperties(o), value(v) {}
         Alternative clone() const
         {
@@ -157,10 +165,11 @@ public:
                                std::static_pointer_cast<JSSourceValue>(value->clone()));
         }
 
-        QString condition;
-        QString overrideListProperties;
+        PropertyData condition;
+        PropertyData overrideListProperties;
         JSSourceValuePtr value;
     };
+    using AltProperty = Alternative::PropertyData;
 
     const std::vector<Alternative> &alternatives() const { return m_alternatives; }
     void addAlternative(const Alternative &alternative) { m_alternatives.push_back(alternative); }

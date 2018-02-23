@@ -9,6 +9,7 @@ Project {
         name: "app-caller"
         type: "mytype"
         Depends { name: "app" }
+        Depends { name: "cpp" }
         property bool redirectStdout
         property bool redirectStderr
         property int argument

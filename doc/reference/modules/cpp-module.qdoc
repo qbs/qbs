@@ -673,6 +673,49 @@
 */
 
 /*!
+    \qmlproperty bool cpp::useLanguageVersionFallback
+    \since Qbs 1.11
+
+    Whether to explicitly use the language standard version fallback values in
+    compiler command line invocations.
+
+    By default, \QBS will automatically substitute fallback values for the C and
+    C++ language standard versions specified by the \l cLanguageVersion and
+    \l cxxLanguageVersion properties, which are passed to the \c{-std=} compiler
+    command line option with GNU-compatible toolchains, if it detects that you
+    are using an older toolchain which does not support the standard values. The
+    substitutions are made as follows:
+
+    \table
+    \header
+        \li Value
+        \li Substitute
+    \row
+        \li c++11
+        \li c++0x
+    \row
+        \li c11
+        \li c1x
+    \row
+        \li c++14
+        \li c++1y
+    \row
+        \li c++17
+        \li c++1z
+    \endtable
+
+    If this property is explicitly set to \c true, \QBS will always use the
+    fallback values.
+
+    If this property is explicitly set to \c false, \QBS will never use the
+    fallback values.
+
+    This property has no effect with the Microsoft Visual C++ compiler.
+
+    \nodefaultvalue
+*/
+
+/*!
     \qmlproperty string cpp::cxxStandardLibrary
     \since Qbs 1.4
 

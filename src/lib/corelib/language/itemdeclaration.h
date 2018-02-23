@@ -59,7 +59,7 @@ public:
 
     typedef QList<PropertyDeclaration> Properties;
     void setProperties(const Properties &props) { m_properties = props; }
-    const Properties &properties() const { return m_properties; }
+    Properties properties() const { return m_properties; }
 
     void setDeprecationInfo(const DeprecationInfo &di) { m_deprecationInfo = di; }
     DeprecationInfo deprecationInfo() const { return m_deprecationInfo; }

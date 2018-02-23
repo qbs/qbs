@@ -134,6 +134,7 @@ private slots:
     void resolveProjectDryRun_data();
     void restoredWarnings();
     void ruleConflict();
+    void runEnvForDisabledProduct();
     void softDependency();
     void sourceFileInBuildDir();
     void subProjects();

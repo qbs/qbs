@@ -11,6 +11,7 @@ Project {
     Product {
         name: "response-file-text"
         type: ["text"]
+        Depends { name: "cpp" }
         Depends { name: "cat-response-file" }
         Group {
             fileTagsFilter: ["text"]

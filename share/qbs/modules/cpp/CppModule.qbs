@@ -290,6 +290,13 @@ Module {
         description: "The version of the C++ standard with which the code must comply."
     }
 
+    property bool useLanguageVersionFallback
+    PropertyOptions {
+        name: "useLanguageVersionFallback"
+        description: "whether to explicitly use the language standard version fallback values in " +
+                     "compiler command line invocations"
+    }
+
     property string cxxStandardLibrary
     PropertyOptions {
         name: "cxxStandardLibrary"
