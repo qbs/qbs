@@ -29,11 +29,11 @@ Project {
         Depends { name: "cpp" }
         Probe {
             id: dummy
-            property string toolchainType: qbs.toolchainType
+            property stringList toolchain: qbs.toolchain
             property string compilerVersion: cpp.compilerVersion
             property string dummy: product.linkWholeArchive // To force probe re-execution
             configure: {
-                if (toolchainType !== "msvc"
+                if (!toolchain.contains("msvc")
                         || Utilities.versionCompare(compilerVersion, "19.0.25123") >= 0) {
                     console.info("can link whole archives");
                 } else {
