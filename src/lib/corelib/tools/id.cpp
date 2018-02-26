@@ -43,6 +43,7 @@
 #include <QtCore/qbytearray.h>
 #include <QtCore/qhash.h>
 
+#include <mutex>
 #include <vector>
 
 namespace qbs {
@@ -117,11 +118,19 @@ static int firstUnusedId = Id::IdsPerPlugin * Id::ReservedPlugins;
 
 static QHash<int, StringHolder> stringFromId;
 static IdCache idFromString;
+static std::mutex mutex;
+
+static QByteArray getStringFromId(int id)
+{
+    std::lock_guard<std::mutex> lock(mutex);
+    return stringFromId.value(id).str;
+}
 
 static int theId(const char *str, int n = 0)
 {
     QBS_ASSERT(str && *str, return 0);
     StringHolder sh(str, n);
+    std::lock_guard<std::mutex> lock(mutex);
     int res = idFromString.value(sh, 0);
     if (res == 0) {
         res = firstUnusedId++;
@@ -178,7 +187,7 @@ Id::Id(const QByteArray &name)
 
 QByteArray Id::name() const
 {
-    return stringFromId.value(m_id).str;
+    return getStringFromId(m_id);
 }
 
 /*!
@@ -193,7 +202,7 @@ QByteArray Id::name() const
 
 QString Id::toString() const
 {
-    return QString::fromUtf8(stringFromId.value(m_id).str);
+    return QString::fromUtf8(getStringFromId(m_id));
 }
 
 /*!
@@ -205,7 +214,7 @@ QString Id::toString() const
 
 QVariant Id::toSetting() const
 {
-    return QVariant(QString::fromUtf8(stringFromId.value(m_id).str));
+    return QVariant(QString::fromUtf8(getStringFromId(m_id)));
 }
 
 /*!
@@ -260,26 +269,9 @@ Id Id::withPrefix(const char *prefix) const
     return Id(ba.constData());
 }
 
-
-/*!
-  Associates a id with its uid and its string
-  representation.
-
-  The uid should be taken from the plugin's private range.
-
-  \sa fromSetting()
-*/
-
-void Id::registerId(int uid, const char *name)
-{
-    StringHolder sh(name, 0);
-    idFromString[sh] = uid;
-    stringFromId[uid] = sh;
-}
-
 bool Id::operator==(const char *name) const
 {
-    const char *string = stringFromId.value(m_id).str;
+    const char *string = getStringFromId(m_id);
     if (string && name)
         return strcmp(string, name) == 0;
     else
