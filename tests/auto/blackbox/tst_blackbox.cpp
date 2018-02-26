@@ -4935,6 +4935,7 @@ void TestBlackbox::generator()
         QFile output("input.txt");
         QVERIFY2(!output.exists() || output.remove(), qPrintable(output.errorString()));
         QVERIFY2(input.copy(output.fileName()), qPrintable(input.errorString()));
+        touch(output.fileName());
     }
     QCOMPARE(runQbs(), 0);
     QCOMPARE(toBeCompiled.contains("main.cpp"), m_qbsStdout.contains("compiling main.cpp"));
