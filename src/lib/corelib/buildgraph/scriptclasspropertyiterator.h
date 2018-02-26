@@ -71,7 +71,7 @@ private:
     }
     bool hasPrevious() const override { return m_index > -1 || m_it.hasPrevious(); }
     void toFront() override { m_it.toFront(); m_index = -1; }
-    void toBack() override { m_it.toBack(); m_index = m_additionalProperties.size() - 1; }
+    void toBack() override { m_it.toBack(); m_index = int(m_additionalProperties.size()) - 1; }
 
     void next() override
     {
