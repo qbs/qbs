@@ -11,6 +11,7 @@ CONFIG(static, static|shared) {
     DEFINES += QBS_STATIC_LIB
 } else {
     isEmpty(QBSLIBDIR): QBSLIBDIR = $$OUT_PWD/../../../../$${QBS_LIBRARY_DIRNAME}
+    isEmpty(QBS_RPATH): QBS_RPATH = ../..
     include($${PWD}/../lib/corelib/use_corelib.pri)
 }
 TEMPLATE = lib
