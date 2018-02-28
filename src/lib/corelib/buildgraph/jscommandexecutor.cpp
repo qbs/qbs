@@ -167,7 +167,7 @@ private:
     ScriptEngine *provideScriptEngine()
     {
         if (!m_scriptEngine)
-            m_scriptEngine = new ScriptEngine(m_logger, EvalContext::JsCommand, this);
+            m_scriptEngine = ScriptEngine::create(m_logger, EvalContext::JsCommand, this);
         return m_scriptEngine;
     }
 

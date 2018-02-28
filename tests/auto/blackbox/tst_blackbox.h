@@ -153,6 +153,7 @@ private slots:
     void missingOverridePrefix();
     void movedFileDependency();
     void multipleChanges();
+    void multipleConfigurations();
     void nestedGroups();
     void nestedProperties();
     void newOutputArtifact();

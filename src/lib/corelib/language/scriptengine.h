@@ -56,6 +56,7 @@
 #include <QtScript/qscriptengine.h>
 
 #include <memory>
+#include <mutex>
 #include <stack>
 #include <tuple>
 #include <unordered_map>
@@ -96,8 +97,9 @@ enum class ObserveMode { Enabled, Disabled };
 class QBS_AUTOTEST_EXPORT ScriptEngine : public QScriptEngine
 {
     Q_OBJECT
-public:
     ScriptEngine(Logger &logger, EvalContext evalContext, QObject *parent = nullptr);
+public:
+    static ScriptEngine *create(Logger &logger, EvalContext evalContext, QObject *parent = nullptr);
     ~ScriptEngine();
 
     Logger &logger() const { return m_logger; }
@@ -244,6 +246,7 @@ private:
     friend bool operator==(const PropertyCacheKey &lhs, const PropertyCacheKey &rhs);
     friend uint qHash(const ScriptEngine::PropertyCacheKey &k, uint seed);
 
+    static std::mutex m_creationDestructionMutex;
     ScriptImporter *m_scriptImporter;
     QScriptClass *m_modulePropertyScriptClass;
     QHash<JsImport, QScriptValue> m_jsImportCache;
