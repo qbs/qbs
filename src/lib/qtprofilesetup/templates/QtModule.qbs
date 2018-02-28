@@ -5,7 +5,7 @@ Module {
     condition: (qbs.targetPlatform === targetPlatform || isCombinedUIKitBuild)
                && (!qbs.architecture
                    || architectures.length === 0
-                   || architectures.contains(qbs.architecture) || !hasLibrary)
+                   || architectures.contains(qbs.architecture))
 
     readonly property bool isCombinedUIKitBuild: ["ios", "tvos", "watchos"].contains(targetPlatform)
         && ["x86", "x86_64"].contains(qbs.architecture)
