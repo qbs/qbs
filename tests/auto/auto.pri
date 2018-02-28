@@ -7,7 +7,7 @@ DEFINES += QBS_TEST_SUITE_NAME=\\\"$${qbs_test_suite_name}\\\"
 INCLUDEPATH += $$PWD/../../src $$PWD/../../src/app/shared
 
 QT = core testlib
-CONFIG += depend_includepath testcase console
+CONFIG += testcase console
 CONFIG -= app_bundle
 CONFIG += c++14
 target.CONFIG += no_default_install

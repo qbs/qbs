@@ -11,9 +11,6 @@ QT += core-private network script
 qbs_enable_project_file_updates: QT += gui
 
 INCLUDEPATH += $$PWD
-
-CONFIG += depend_includepath
-
 DEFINES += SRCDIR=\\\"$$PWD\\\"
 
 include(api/api.pri)

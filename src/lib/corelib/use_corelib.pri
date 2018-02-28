@@ -39,8 +39,6 @@ win32 {
 INCLUDEPATH += \
     $$PWD
 
-CONFIG += depend_includepath
-
 CONFIG(static, static|shared) {
     DEFINES += QBS_STATIC_LIB
 }

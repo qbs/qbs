@@ -15,7 +15,6 @@ CONFIG(static, static|shared) {
 }
 TEMPLATE = lib
 
-CONFIG += depend_includepath
 CONFIG += c++14
 CONFIG += create_prl
 unix: CONFIG += plugin
