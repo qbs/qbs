@@ -54,9 +54,12 @@
 #endif
 
 #include <algorithm>
+#include <mutex>
 
 using namespace qbs;
 using namespace qbs::Internal;
+
+static std::recursive_mutex envMutex;
 
 static QString mkStr(const char *s) { return QString::fromLocal8Bit(s); }
 static QString mkStr(const QByteArray &ba) { return mkStr(ba.constData()); }
@@ -64,7 +67,7 @@ static QString mkStr(const QByteArray &ba) { return mkStr(ba.constData()); }
 class TemporaryEnvChanger
 {
 public:
-    TemporaryEnvChanger(const QProcessEnvironment &envChanges)
+    TemporaryEnvChanger(const QProcessEnvironment &envChanges) : m_locker(envMutex)
     {
         QProcessEnvironment currentEnv = QProcessEnvironment::systemEnvironment();
         for (const QString &key : envChanges.keys()) {
@@ -81,6 +84,7 @@ public:
 
 private:
     QProcessEnvironment m_changesToRestore;
+    std::lock_guard<std::recursive_mutex> m_locker;
 };
 
 static QByteArray runProcess(const QString &exeFilePath, const QStringList &args,
@@ -235,6 +239,7 @@ void MSVC::determineCompilerVersion()
     }
     DummyFile fileDeleter(cppFilePath);
 
+    std::lock_guard<std::recursive_mutex> locker(envMutex);
     const QByteArray origPath = qgetenv("PATH");
     qputenv("PATH", environment.value(StringConstants::pathEnvVar()).toLatin1() + ';' + origPath);
     QByteArray versionStr = runProcess(
