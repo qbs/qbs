@@ -97,6 +97,8 @@ uint qHash(const ScriptEngine::PropertyCacheKey &k, uint seed = 0)
                        combineHash(qHash(k.m_propertyName), qHash(k.m_propertyMap), seed), seed);
 }
 
+std::mutex ScriptEngine::m_creationDestructionMutex;
+
 ScriptEngine::ScriptEngine(Logger &logger, EvalContext evalContext, QObject *parent)
     : QScriptEngine(parent), m_scriptImporter(new ScriptImporter(this)),
       m_modulePropertyScriptClass(nullptr),
@@ -116,8 +118,17 @@ ScriptEngine::ScriptEngine(Logger &logger, EvalContext evalContext, QObject *par
     extendJavaScriptBuiltins();
 }
 
+ScriptEngine *ScriptEngine::create(Logger &logger, EvalContext evalContext, QObject *parent)
+{
+    std::lock_guard<std::mutex> lock(m_creationDestructionMutex);
+    return new ScriptEngine(logger, evalContext, parent);
+}
+
 ScriptEngine::~ScriptEngine()
 {
+    m_creationDestructionMutex.lock();
+    connect(this, &QObject::destroyed, std::bind(&std::mutex::unlock, &m_creationDestructionMutex));
+
     releaseResourcesOfScriptObjects();
     delete (m_scriptImporter);
     if (m_elapsedTimeImporting != -1) {

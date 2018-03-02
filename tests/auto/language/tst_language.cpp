@@ -174,7 +174,7 @@ void TestLanguage::init()
 void TestLanguage::initTestCase()
 {
     m_logger = Logger(m_logSink);
-    m_engine = new ScriptEngine(m_logger, EvalContext::PropertyEvaluation, this);
+    m_engine = ScriptEngine::create(m_logger, EvalContext::PropertyEvaluation, this);
     loader = new Loader(m_engine, m_logger);
     loader->setSearchPaths(QStringList()
                            << QLatin1String(SRCDIR "/../../../share/qbs"));

@@ -77,7 +77,6 @@ public:
     int uniqueIdentifier() const { return m_id; }
     static Id fromUniqueIdentifier(int uid) { return Id(uid); }
     static Id fromSetting(const QVariant &variant); // Good to use.
-    static void registerId(int uid, const char *name);
 
 private:
     // Intentionally unimplemented

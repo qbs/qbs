@@ -3957,6 +3957,35 @@ void TestBlackbox::multipleChanges()
     QVERIFY(m_qbsStdout.contains("prop: true"));
 }
 
+void TestBlackbox::multipleConfigurations()
+{
+    QDir::setCurrent(testDataDir + "/multiple-configurations");
+    QbsRunParameters params(QStringList{"config:x", "config:y", "config:z"});
+    params.profile.clear();
+    struct DefaultProfileSwitcher
+    {
+        DefaultProfileSwitcher()
+        {
+            const SettingsPtr s = settings();
+            oldDefaultProfile = s->defaultProfile();
+            s->setValue("defaultProfile", profileName());
+            s->sync();
+        }
+        ~DefaultProfileSwitcher()
+        {
+            const SettingsPtr s = settings();
+            s->setValue("defaultProfile", oldDefaultProfile);
+            s->sync();
+        }
+        QVariant oldDefaultProfile;
+    };
+    DefaultProfileSwitcher dps;
+    QCOMPARE(runQbs(params), 0);
+    QCOMPARE(m_qbsStdout.count("compiling lib.cpp"), 3);
+    QCOMPARE(m_qbsStdout.count("compiling file.cpp"), 3);
+    QCOMPARE(m_qbsStdout.count("compiling main.cpp"), 3);
+}
+
 void TestBlackbox::nestedGroups()
 {
     QDir::setCurrent(testDataDir + "/nested-groups");

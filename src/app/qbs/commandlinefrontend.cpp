@@ -254,7 +254,7 @@ void CommandLineFrontend::handleJobFinished(bool success, AbstractJob *job)
                     // fall through
                 case BuildCommandType:
                 case CleanCommandType:
-                    qApp->quit();
+                    qApp->exit(m_cancelStatus == CancelStatusNone ? EXIT_SUCCESS : EXIT_FAILURE);
                     break;
                 default:
                     Q_ASSERT_X(false, Q_FUNC_INFO, "Missing case in switch statement");
