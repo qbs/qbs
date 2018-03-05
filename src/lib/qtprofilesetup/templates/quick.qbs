@@ -29,8 +29,9 @@
 ****************************************************************************/
 
 import qbs
-import qbs.Process
+import qbs.File
 import qbs.FileInfo
+import qbs.Process
 import qbs.TextFile
 import '../QtModule.qbs' as QtModule
 import 'quick.js' as QC
@@ -60,22 +61,28 @@ QtModule {
     cpp.includePaths: @includes@
     cpp.libraryPaths: @libraryPaths@
     @special_properties@
+
+    property string compilerFilePath: FileInfo.joinPaths(Qt.core.binPath,
+            "qtquickcompiler" + product.cpp.executableSuffix)
+    property bool compilerAvailable: File.exists(compilerFilePath);
+    property bool useCompiler: compilerAvailable
+
     Scanner {
-        condition: compilerAvailable
+        condition: useCompiler
         inputs: 'qt.quick.qrc'
         searchPaths: [FileInfo.path(input.filePath)]
         scan: QC.scanQrc(input.filePath)
     }
 
     FileTagger {
-        condition: compilerAvailable
+        condition: useCompiler
         patterns: "*.qrc"
         fileTags: ["qt.quick.qrc"]
         priority: 100
     }
 
     Rule {
-        condition: compilerAvailable
+        condition: useCompiler
         inputs: ["qt.quick.qrc"]
         Artifact {
             filePath: input.fileName + ".json"
@@ -97,7 +104,7 @@ QtModule {
     }
 
     Rule {
-        condition: compilerAvailable
+        condition: useCompiler
         inputs: ["qt.quick.qrcinfo"]
         outputFileTags: ["cpp", "qrc"]
         multiplex: true
@@ -139,8 +146,7 @@ QtModule {
             });
 
             var cmds = [];
-            var qmlCompiler = FileInfo.joinPaths(product.Qt.core.binPath,
-                                                 "qtquickcompiler" + product.cpp.executableSuffix);
+            var qmlCompiler = product.Qt.quick.compilerFilePath;
             var cmd;
             var loaderFlags = [];
 

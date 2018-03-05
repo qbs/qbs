@@ -464,11 +464,6 @@ static void replaceSpecialValues(QByteArray *content, const Profile &profile,
         s << indent << "property string qmlImportsPath: "
                 << pathToJSLiteral(qtEnvironment.qmlImportPath);
 
-        if (module.qbsName == QLatin1String("quick")) {
-            s << endl << indent << "property bool compilerAvailable: "
-              << toJSLiteral(qtEnvironment.hasQtQuickCompiler);
-        }
-
         const QByteArray baIndent(4, ' ');
         compilerDefines = "{\n"
                 + baIndent + baIndent + "var result = " + compilerDefines + ";\n"
@@ -760,10 +755,6 @@ void doSetupQtProfile(const QString &profileName, Settings *settings,
 
     Profile profile(profileName, settings);
     profile.removeProfile();
-    if (QFileInfo::exists(qtEnvironment.mkspecBasePath
-                          + QStringLiteral("/features/qtquickcompiler.prf"))) {
-        qtEnvironment.hasQtQuickCompiler = true;
-    }
     createModules(profile, settings, qtEnvironment);
 }
 
