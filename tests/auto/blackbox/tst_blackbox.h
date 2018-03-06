@@ -106,6 +106,7 @@ private slots:
     void exportedPropertyInDisabledProduct_data();
     void exportRule();
     void exportToOutsideSearchPath();
+    void exportsPkgconfig();
     void exportsQbs();
     void externalLibs();
     void fileDependencies();

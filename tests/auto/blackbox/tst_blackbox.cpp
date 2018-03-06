@@ -3332,6 +3332,26 @@ void TestBlackbox::exportToOutsideSearchPath()
              m_qbsStderr.constData());
 }
 
+void TestBlackbox::exportsPkgconfig()
+{
+    QDir::setCurrent(testDataDir + "/exports-pkgconfig");
+    QCOMPARE(runQbs(), 0);
+    QFile sourcePcFile(HostOsInfo::isWindowsHost() ? "TheFirstLib_windows.pc" : "TheFirstLib.pc");
+    QString generatedPcFilePath = relativeProductBuildDir("TheFirstLib") + "/TheFirstLib.pc";
+    QFile generatedPcFile(generatedPcFilePath);
+    QVERIFY2(sourcePcFile.open(QIODevice::ReadOnly), qPrintable(sourcePcFile.errorString()));
+    QVERIFY2(generatedPcFile.open(QIODevice::ReadOnly), qPrintable(generatedPcFile.errorString()));
+    QCOMPARE(generatedPcFile.readAll().replace("\r", ""), sourcePcFile.readAll().replace("\r", ""));
+    sourcePcFile.close();
+    generatedPcFile.close();
+    sourcePcFile.setFileName("TheSecondLib.pc");
+    generatedPcFilePath = relativeProductBuildDir("TheSecondLib") + "/TheSecondLib.pc";
+    generatedPcFile.setFileName(generatedPcFilePath);
+    QVERIFY2(sourcePcFile.open(QIODevice::ReadOnly), qPrintable(sourcePcFile.errorString()));
+    QVERIFY2(generatedPcFile.open(QIODevice::ReadOnly), qPrintable(generatedPcFile.errorString()));
+    QCOMPARE(generatedPcFile.readAll(), sourcePcFile.readAll());
+}
+
 void TestBlackbox::exportsQbs()
 {
     QDir::setCurrent(testDataDir + "/exports-qbs");
