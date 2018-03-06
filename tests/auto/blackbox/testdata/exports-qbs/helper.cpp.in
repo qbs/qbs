@@ -1,0 +1,6 @@
+#include <mylib.h>
+
+void helper()
+{
+    MyLib::f();
+}

@@ -3270,6 +3270,65 @@ void TestBlackbox::exportToOutsideSearchPath()
              m_qbsStderr.constData());
 }
 
+void TestBlackbox::exportsQbs()
+{
+    QDir::setCurrent(testDataDir + "/exports-qbs");
+
+    // First we build exportable products and use them (as products) inside
+    // the original project.
+    QCOMPARE(runQbs(QStringList{"-f", "exports-qbs.qbs", "--command-echo-mode", "command-line"}),
+             0);
+    QVERIFY2(m_qbsStdout.contains("somelocaldir"), m_qbsStdout.constData());
+
+    // Now we build an external product against the modules that were just installed.
+    // We try debug and release mode; one module exists for each of them.
+    QbsRunParameters paramsExternalBuild(QStringList{"-f", "consumer.qbs",
+                                                     "--command-echo-mode", "command-line",
+                                                     "modules.qbs.buildVariant:debug",});
+    paramsExternalBuild.buildDirectory = QDir::currentPath() + "/external-consumer-debug";
+    QCOMPARE(runQbs(paramsExternalBuild), 0);
+    QVERIFY2(!m_qbsStdout.contains("somelocaldir"), m_qbsStdout.constData());
+
+    paramsExternalBuild.arguments = QStringList{"-f", "consumer.qbs",
+            "modules.qbs.buildVariant:release"};
+    paramsExternalBuild.buildDirectory = QDir::currentPath() + "/external-consumer-release";
+    QCOMPARE(runQbs(paramsExternalBuild), 0);
+
+    // Trying to build with an unsupported build variant must fail.
+    paramsExternalBuild.arguments = QStringList{"-f", "consumer.qbs",
+            "modules.qbs.buildVariant:unknown"};
+    paramsExternalBuild.buildDirectory = QDir::currentPath() + "/external-consumer-profile";
+    paramsExternalBuild.expectFailure = true;
+    QVERIFY(runQbs(paramsExternalBuild) != 0);
+    QVERIFY2(m_qbsStderr.contains("MyLib could not be loaded"), m_qbsStderr.constData());
+
+    // Removing the condition from the generated module leaves us with two conflicting
+    // candidates.
+    QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList{ "-f", "exports-qbs.qbs",
+            "modules.Exporter.qbs.additionalContent:''"})), 0);
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(runQbs(paramsExternalBuild) != 0);
+    QVERIFY2(m_qbsStderr.contains("There is more than one equally prioritized candidate "
+                                  "for module 'MyLib'."), m_qbsStderr.constData());
+
+    // Change tracking for accesses to product.exports (negative).
+    QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList{"-f", "exports-qbs.qbs"})), 0);
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("Creating MyTool.qbs"), m_qbsStdout.constData());
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("exports-qbs.qbs");
+    QCOMPARE(runQbs(QStringList({"-p", "MyTool"})), 0);
+    if (HostOsInfo::isMacosHost())
+        QEXPECT_FAIL("", "darwin-specific rules have fake dependencies on 'qbs' tag", Continue);
+    QVERIFY2(!m_qbsStdout.contains("Creating MyTool.qbs"), m_qbsStdout.constData());
+
+    // Change tracking for accesses to product.exports (positive).
+    WAIT_FOR_NEW_TIMESTAMP();
+    REPLACE_IN_FILE("exports-qbs.qbs", "product.toolTags", "[]");
+    QCOMPARE(runQbs(QStringList({"-p", "MyTool"})), 0);
+    QVERIFY2(m_qbsStdout.contains("Creating MyTool.qbs"), m_qbsStdout.constData());
+}
+
 void TestBlackbox::externalLibs()
 {
     QDir::setCurrent(testDataDir + "/external-libs");

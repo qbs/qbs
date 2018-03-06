@@ -1,0 +1,130 @@
+/****************************************************************************
+**
+** Copyright (C) 2018 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+/*!
+    \contentspage index.html
+    \qmltype Exporter.qbs
+    \inqmlmodule QbsModules
+    \since Qbs 1.12
+
+    \brief Provides support for generating \QBS modules from products.
+
+    The Exporter.qbs module contains the properties and rules to create a \QBS module from
+    the \l Export item of a \l Product.
+
+    Such a module acts as your product's interface to other projects written in \QBS.
+    For instance, suppose you are creating a library. To allow other products both within
+    and outside of your project to make use of it, you would write something like the following:
+    \code
+    DynamicLibrary {
+        name: "mylibrary"
+        qbs.installPrefix: "/opt/mylibrary"
+        Depends { name: "Exporter.qbs" }
+        property string headersInstallDir: "include"
+        // ...
+        Group {
+            name: "API headers"
+            files: ["mylib.h"]
+            qbs.install: true
+            qbs.installDir: headersInstallDir
+        }
+        Group {
+            fileTagsFilter: ["Exporter.qbs.module"]
+            qbs.installDir: "qbs/modules/mylibrary"
+        }
+        Export {
+            Depends { name: "cpp" }
+            cpp.includePaths: [product.sourceDirectory]
+            prefixMapping: [{
+                    prefix: product.sourceDirectory,
+                    replacement: FileInfo.joinPaths(qbs.installPrefix, product.headersInstallDir)
+                }]
+        }
+    }
+    \endcode
+    To build against this library, from within your project or any other one, you simply
+    declare a \l{Depends}{dependency}:
+    \code
+    Depends { name: "mylibrary" }
+    \endcode
+
+    \section2 Relevant File Tags
+    \target filetags-exporter-qbs
+
+    \table
+    \header
+        \li Tag
+        \li Since
+        \li Description
+    \row
+        \li \c{"Exporter.qbs.module"}
+        \li 1.12.0
+        \li This tag is attached to the generated module file.
+    \endtable
+*/
+
+/*!
+    \qmlproperty stringList Exporter.qbs::artifactTypes
+
+    Artifacts that match these tags will become \l{Group::filesAreTargets}{target artifacts}
+    of the generated module, so they can get picked up by the rules of depending products.
+
+    If you do not specify anything here, all installed artifacts of the product are considered.
+    \note You can only limit the default set of artifacts by setting this property, but you
+          cannot extend it, because only artifacts that are to be installed are considered.
+
+    \defaultvalue \c undefined
+*/
+
+/*!
+    \qmlproperty string Exporter.qbs::additionalContent
+
+    The value of this property will be copied verbatim into the generated module.
+
+    \defaultvalue \c undefined
+*/
+
+/*!
+    \qmlproperty stringList Exporter.qbs::excludedDependencies
+
+    Normally, all \l Depends items in the \l Export item are copied into the generated
+    module. However, if there are any exported dependencies that only make sense for
+    products in the same project, then you can enter their names into this array, and they
+    will get filtered out.
+    \note You should strive to structure your projects in such a way that you do not need to set
+          this property.
+
+    \defaultvalue \c undefined
+*/
+
+/*!
+    \qmlproperty string Exporter.qbs::fileName
+
+    The name of the generated module file.
+
+    \defaultvalue \c {product.targetName + ".qbs"}
+*/

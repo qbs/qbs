@@ -102,6 +102,7 @@ private slots:
     void exportedPropertyInDisabledProduct_data();
     void exportRule();
     void exportToOutsideSearchPath();
+    void exportsQbs();
     void externalLibs();
     void fileDependencies();
     void generatedArtifactAsInputToDynamicRule();
