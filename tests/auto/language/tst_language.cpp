@@ -68,6 +68,7 @@
 #include <QtCore/qprocess.h>
 
 #include <algorithm>
+#include <set>
 #include <utility>
 #include <vector>
 
@@ -832,7 +833,7 @@ void TestLanguage::erroneousFiles_data()
             << "original-in-product-property.qbs"
                ":4:21.*The special value 'original' can only be used with module properties.";
     QTest::newRow("mismatching-multiplex-dependency")
-            << "mismatching-multiplex-dependency.qbs:9:5 Dependency from product "
+            << "mismatching-multiplex-dependency.qbs:9:5.*Dependency from product "
                "'b \\{\"architecture\":\"mips\"\\}' to product 'a \\{\"architecture\":\"mips\"\\}'"
                " not fulfilled.";
 }
@@ -1885,6 +1886,42 @@ void TestLanguage::modules()
     expectedModulesInProduct.sort();
     QCOMPARE(modulesInProduct, expectedModulesInProduct);
     QCOMPARE(product->productProperties.value("foo").toString(), expectedProductProperty);
+}
+
+void TestLanguage::multiplexedExports()
+{
+    bool exceptionCaught = false;
+    try {
+        SetupProjectParameters params = defaultParameters;
+        params.setProjectFilePath(testProject("multiplexed-exports.qbs"));
+        const TopLevelProjectPtr project = loader->loadProject(params);
+        QVERIFY(!!project);
+        const auto products = project->allProducts();
+        QCOMPARE(products.size(), 4);
+        std::set<ResolvedProductPtr> pVariants;
+        for (const auto &product : products) {
+            if (product->name != "p")
+                continue;
+            static const auto buildVariant = [](const ResolvedProductConstPtr &p) {
+                return p->moduleProperties->qbsPropertyValue("buildVariant").toString();
+            };
+            static const auto cppIncludePaths = [](const ResolvedProductConstPtr &p) {
+                return p->moduleProperties->moduleProperty("cpp", "includePaths").toStringList();
+            };
+            if (buildVariant(product) == "debug") {
+                pVariants.insert(product);
+                QCOMPARE(cppIncludePaths(product), QStringList("/d"));
+            } else if (buildVariant(product) == "release") {
+                pVariants.insert(product);
+                QCOMPARE(cppIncludePaths(product), QStringList("/r"));
+            }
+        }
+        QCOMPARE(int(pVariants.size()), 2);
+    } catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
 }
 
 void TestLanguage::multiplexingByProfile()
