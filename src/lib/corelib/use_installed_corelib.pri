@@ -29,7 +29,7 @@ win32 {
     LIBS += $$QBSCORELIB
 }
 
-INCLUDEPATH += $${PWD} $${PWD}/..
+INCLUDEPATH += $${PWD}
 
 CONFIG(static, static|shared) {
     DEFINES += QBS_STATIC_LIB
