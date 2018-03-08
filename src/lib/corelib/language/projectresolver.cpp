@@ -547,6 +547,7 @@ void ProjectResolver::resolveModule(const QualifiedId &moduleName, Item *item, b
         { ItemType::PropertyOptions, &ProjectResolver::ignoreItem },
         { ItemType::Depends, &ProjectResolver::ignoreItem },
         { ItemType::Parameter, &ProjectResolver::ignoreItem },
+        { ItemType::Properties, &ProjectResolver::ignoreItem },
         { ItemType::Probe, &ProjectResolver::ignoreItem }
     };
     for (Item *child : item->children())

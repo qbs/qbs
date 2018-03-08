@@ -408,6 +408,9 @@ private:
         if (m_parentItem->type() == ItemType::Artifact)
             return false;
 
+        if (m_parentItem->type() == ItemType::Properties)
+            return false;
+
         if (m_parentItem->isOfTypeOrhasParentOfType(ItemType::Export)) {
             // Export item prototypes do not have instantiated modules.
             // The module instances are where the Export is used.

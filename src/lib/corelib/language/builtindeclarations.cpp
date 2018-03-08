@@ -250,6 +250,7 @@ void BuiltinDeclarations::addExportItem()
     ItemDeclaration item = moduleLikeItem(ItemType::Export);
     auto allowedChildTypes = item.allowedChildTypes();
     allowedChildTypes.insert(ItemType::Parameters);
+    allowedChildTypes.insert(ItemType::Properties);
     item.setAllowedChildTypes(allowedChildTypes);
     insert(item);
 }
@@ -448,7 +449,9 @@ void BuiltinDeclarations::addProjectItem()
 
 void BuiltinDeclarations::addPropertiesItem()
 {
-    insert(ItemDeclaration(ItemType::Properties));
+    ItemDeclaration item(ItemType::Properties);
+    item << conditionProperty();
+    insert(item);
 }
 
 void BuiltinDeclarations::addPropertyOptionsItem()

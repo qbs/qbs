@@ -65,12 +65,15 @@ void ASTPropertiesItemHandler::setupAlternatives()
     auto it = m_parentItem->m_children.begin();
     while (it != m_parentItem->m_children.end()) {
         Item * const child = *it;
+        bool remove = false;
         if (child->type() == ItemType::Properties) {
             handlePropertiesBlock(child);
-            it = m_parentItem->m_children.erase(it);
-        } else {
-            ++it;
+            remove = m_parentItem->type() != ItemType::Export;
         }
+        if (remove)
+            it = m_parentItem->m_children.erase(it);
+        else
+            ++it;
     }
 }
 
