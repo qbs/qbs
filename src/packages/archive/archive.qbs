@@ -55,6 +55,7 @@ QbsProduct {
             "LGPL_EXCEPTION.txt",
             "LICENSE.LGPLv3",
             "LICENSE.LGPLv21",
+            "LICENSE.GPL3-EXCEPT",
         ]
         qbs.install: true
         qbs.installDir: "share/doc/qbs"
