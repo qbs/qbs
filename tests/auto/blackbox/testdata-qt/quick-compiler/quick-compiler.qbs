@@ -2,6 +2,7 @@ import qbs
 
 CppApplication {
     Depends { name: "Qt.quick" }
+    Qt.quick.useCompiler: Qt.quick.compilerAvailable
 
     cpp.cxxLanguageVersion: "c++11"
 

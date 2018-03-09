@@ -275,7 +275,7 @@ QScriptValue FileInfoExtension::js_joinPaths(QScriptContext *context, QScriptEng
     }
     return engine->toScriptValue(QString::fromStdString(
                                      std::regex_replace(paths.join(QLatin1Char('/')).toStdString(),
-                                                        std::regex("/{2,}"), "/")));
+                                                        std::regex("/{2,}"), std::string("/"))));
 }
 
 } // namespace Internal

@@ -188,6 +188,7 @@ private:
     struct ProductModuleInfo
     {
         Item *exportItem = nullptr;
+        QString multiplexId;
         QVariantMap defaultParameters;
     };
 
@@ -199,7 +200,7 @@ private:
         ~TopLevelProjectContext() { qDeleteAll(projects); }
 
         std::vector<ProjectContext *> projects;
-        QHash<QString, ProductModuleInfo> productModules;
+        QMultiHash<QString, ProductModuleInfo> productModules;
         QList<ProbeConstPtr> probes;
         QString buildDirectory;
     };
@@ -276,13 +277,14 @@ private:
     void resolveParameterDeclarations(const Item *module);
     QVariantMap extractParameters(Item *dependsItem) const;
     Item *moduleInstanceItem(Item *containerItem, const QualifiedId &moduleName);
-    static ProductModuleInfo *productModule(ProductContext *productContext, const QString &name);
+    static ProductModuleInfo *productModule(ProductContext *productContext, const QString &name,
+                                            const QString &multiplexId);
     static ProductContext *product(ProjectContext *projectContext, const QString &name);
     static ProductContext *product(TopLevelProjectContext *tlpContext, const QString &name);
     Item *loadModule(ProductContext *productContext, Item *exportingProductItem, Item *item,
             const CodeLocation &dependsItemLocation, const QString &moduleId,
-            const QualifiedId &moduleName, bool isRequired, bool *isProductDependency,
-            QVariantMap *defaultParameters);
+            const QualifiedId &moduleName, const QString &multiplexId, bool isRequired,
+                     bool *isProductDependency, QVariantMap *defaultParameters);
     Item *searchAndLoadModuleFile(ProductContext *productContext,
             const CodeLocation &dependsItemLocation, const QualifiedId &moduleName,
             bool isRequired, Item *moduleInstance);

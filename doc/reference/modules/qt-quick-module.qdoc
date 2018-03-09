@@ -62,7 +62,17 @@
 
     Whether the Qt installation contains the Qt Quick compiler.
 
-    \defaultvalue Determined by \l{setup-qt}.
+    \defaultvalue auto-detected
+    \since 1.10
+*/
+
+/*!
+    \qmlproperty bool Qt.quick::useCompiler
+
+    Whether to make use of the Qt Quick compiler.
+
+    \defaultvalue \l compilerAvailable
+    \since 1.11
 */
 
 /*!

@@ -270,6 +270,10 @@ void TestBlackboxQt::quickCompiler()
     QCOMPARE(m_qbsStdout.contains("compiling qml_subdir_test_qml.cpp"), hasCompiler);
     if (doesNotHaveCompiler)
         QSKIP("qtquickcompiler not available");
+    QCOMPARE(runQbs(QbsRunParameters(QStringList{"config:off",
+                                                 "modules.Qt.quick.useCompiler:false"})), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("compiling qml_subdir_test_qml.cpp"), m_qbsStdout.constData());
 }
 
 void TestBlackboxQt::qtScxml()
