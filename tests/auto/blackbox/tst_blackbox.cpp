@@ -1048,19 +1048,22 @@ void TestBlackbox::vcsGit()
     QVERIFY(waitForProcessSuccess(git));
 
     // Initial run.
-    QCOMPARE(runQbs(), 0);
+    QbsRunParameters params(QStringList{"-f", repoDir.path()});
+    params.workingDir = repoDir.path() + "/..";
+    params.buildDirectory = repoDir.path();
+    QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("generating vcs-repo-state.h"), m_qbsStderr.constData());
     QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStderr.constData());
 
     // Run with no changes.
-    QCOMPARE(runQbs(), 0);
+    QCOMPARE(runQbs(params), 0);
     QVERIFY2(!m_qbsStdout.contains("generating vcs-repo-state.h"), m_qbsStderr.constData());
     QVERIFY2(!m_qbsStdout.contains("compiling main.cpp"), m_qbsStderr.constData());
 
     // Run with changed source file.
     WAIT_FOR_NEW_TIMESTAMP();
     touch("main.cpp");
-    QCOMPARE(runQbs(), 0);
+    QCOMPARE(runQbs(params), 0);
     QVERIFY2(!m_qbsStdout.contains("generating vcs-repo-state.h"), m_qbsStderr.constData());
     QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStderr.constData());
 
@@ -1071,7 +1074,7 @@ void TestBlackbox::vcsGit()
     QVERIFY(waitForProcessSuccess(git));
     git.start(gitFilePath, QStringList({"commit", "-m", "blubb!"}));
     QVERIFY(waitForProcessSuccess(git));
-    QCOMPARE(runQbs(), 0);
+    QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("generating vcs-repo-state.h"), m_qbsStderr.constData());
     QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStderr.constData());
 }

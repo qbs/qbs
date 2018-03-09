@@ -51,6 +51,8 @@ Module {
                     found = true;
                     type = "git";
                     metaDataBaseDir = detector.readStdOut().trim();
+                    if (!FileInfo.isAbsolutePath(metaDataBaseDir))
+                        metaDataBaseDir = FileInfo.joinPaths(theRepoDir, metaDataBaseDir);
                     return;
                 }
                 if (detector.exec(tool || "svn",
