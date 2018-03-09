@@ -201,7 +201,7 @@ JsCommandExecutor::~JsCommandExecutor()
     m_thread->wait();
 }
 
-void JsCommandExecutor::doReportCommandDescription()
+void JsCommandExecutor::doReportCommandDescription(const QString &productName)
 {
     if ((m_echoMode == CommandEchoModeCommandLine
          || m_echoMode == CommandEchoModeCommandLineWithEnvironment)
@@ -210,7 +210,7 @@ void JsCommandExecutor::doReportCommandDescription()
         return;
     }
 
-    AbstractCommandExecutor::doReportCommandDescription();
+    AbstractCommandExecutor::doReportCommandDescription(productName);
 }
 
 void JsCommandExecutor::waitForFinished()

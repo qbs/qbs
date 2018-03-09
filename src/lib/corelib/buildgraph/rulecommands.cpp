@@ -124,6 +124,11 @@ void AbstractCommand::fillFromScriptValue(const QScriptValue *scriptValue, const
             << silentProperty();
 }
 
+QString AbstractCommand::fullDescription(const QString &productName) const
+{
+    return description() + QLatin1String(" [") + productName + QLatin1Char(']');
+}
+
 void AbstractCommand::load(PersistentPool &pool)
 {
     serializationOp<PersistentPool::Load>(pool);

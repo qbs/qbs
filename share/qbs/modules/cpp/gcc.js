@@ -959,17 +959,6 @@ function prepareAssembler(project, product, inputs, outputs, input, output) {
     return cmd;
 }
 
-function nativeConfigString(product) {
-    var props = [];
-    if ((product.multiplexed || product.aggregate) && product.multiplexConfigurationId) {
-        if (product.qbs.targetOS.containsAny(["android", "darwin"]))
-            props.push(product.qbs.architecture);
-        if (product.qbs.targetOS.contains("darwin"))
-            props.push(product.qbs.buildVariant);
-    }
-    return props.length > 0 ? (" (" + props.join(", ") + ")") : "";
-}
-
 function compilerEnvVars(config, compilerInfo)
 {
     if (config.qbs.toolchain.contains("qcc"))
@@ -1037,7 +1026,6 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
     cmd.description = (pchOutput ? 'pre' : '') + 'compiling ' + input.fileName;
     if (pchOutput)
         cmd.description += ' (' + compilerInfo.tag + ')';
-    cmd.description += nativeConfigString(product);
     cmd.highlight = "compiler";
     cmd.relevantEnvironmentVariables = compilerEnvVars(input, compilerInfo);
     cmd.responseFileArgumentIndex = wrapperArgsLength;
@@ -1256,7 +1244,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     }
 
     cmd = new Command(linkerPath, args);
-    cmd.description = 'linking ' + primaryOutput.fileName + nativeConfigString(product);
+    cmd.description = 'linking ' + primaryOutput.fileName;
     cmd.highlight = 'linker';
     cmd.relevantEnvironmentVariables = linkerEnvVars(product, inputs);
     cmd.responseFileArgumentIndex = responseFileArgumentIndex;

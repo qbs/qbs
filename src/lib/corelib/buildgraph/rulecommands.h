@@ -75,6 +75,7 @@ public:
     virtual bool equals(const AbstractCommand *other) const;
     virtual void fillFromScriptValue(const QScriptValue *scriptValue, const CodeLocation &codeLocation);
 
+    QString fullDescription(const QString &productName) const;
     const QString description() const { return m_description; }
     const QString extendedDescription() const { return m_extendedDescription; }
     const QString highlight() const { return m_highlight; }

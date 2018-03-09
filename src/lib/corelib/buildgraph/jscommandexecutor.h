@@ -64,7 +64,7 @@ signals:
 private:
     void onJavaScriptCommandFinished();
 
-    void doReportCommandDescription();
+    void doReportCommandDescription(const QString &productName);
     void doStart();
     void cancel();
 

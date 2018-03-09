@@ -73,7 +73,7 @@ signals:
     void finished(const qbs::ErrorInfo &err = ErrorInfo()); // !hasError() <=> command successful
 
 protected:
-    virtual void doReportCommandDescription();
+    virtual void doReportCommandDescription(const QString &productName);
     AbstractCommand *command() const { return m_command; }
     Transformer *transformer() const { return m_transformer; }
     ScriptEngine *scriptEngine() const { return m_mainThreadScriptEngine; }

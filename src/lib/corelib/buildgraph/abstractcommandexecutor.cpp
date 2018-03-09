@@ -40,7 +40,9 @@
 #include "abstractcommandexecutor.h"
 
 #include "rulecommands.h"
+#include "transformer.h"
 
+#include <language/language.h>
 #include <logging/translator.h>
 #include <tools/error.h>
 
@@ -63,11 +65,11 @@ void AbstractCommandExecutor::start(Transformer *transformer, AbstractCommand *c
     m_transformer = transformer;
     m_command = cmd;
     doSetup();
-    doReportCommandDescription();
+    doReportCommandDescription(transformer->product()->fullDisplayName());
     doStart();
 }
 
-void AbstractCommandExecutor::doReportCommandDescription()
+void AbstractCommandExecutor::doReportCommandDescription(const QString &productName)
 {
     if (m_command->isSilent() || m_echoMode == CommandEchoModeSilent)
         return;
@@ -77,7 +79,8 @@ void AbstractCommandExecutor::doReportCommandDescription()
                     ErrorInfo(Tr::tr("Command is not marked silent, but has no description."),
                               m_command->codeLocation()));
     } else {
-        emit reportCommandDescription(m_command->highlight(), m_command->description());
+        emit reportCommandDescription(m_command->highlight(),
+                                      m_command->fullDescription(productName));
     }
 }
 

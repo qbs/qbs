@@ -372,7 +372,7 @@ static QString environmentVariableString(const QString &key, const QString &valu
     return str;
 }
 
-void ProcessCommandExecutor::doReportCommandDescription()
+void ProcessCommandExecutor::doReportCommandDescription(const QString &productName)
 {
     if (m_echoMode == CommandEchoModeCommandLine ||
             m_echoMode == CommandEchoModeCommandLineWithEnvironment) {
@@ -391,7 +391,7 @@ void ProcessCommandExecutor::doReportCommandDescription()
         return;
     }
 
-    AbstractCommandExecutor::doReportCommandDescription();
+    AbstractCommandExecutor::doReportCommandDescription(productName);
 }
 
 void ProcessCommandExecutor::removeResponseFile()

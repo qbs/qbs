@@ -70,7 +70,7 @@ private:
     void onProcessFinished();
 
     void doSetup();
-    void doReportCommandDescription();
+    void doReportCommandDescription(const QString &productName);
     void doStart();
     void cancel();
 
