@@ -34,7 +34,5 @@
 
 # Other
 * The `InnoSetup`, `nsis`, and `wix` modules' rules now have a dependency on installable artifacts
-  of dependencies by default, via the default item templates `InnoSetup`, `NSISSetup`,
-  and `WindowsInstallerPackage`. This can be explicitly controlled via the `dependsOnInstallables`
-  boolean property of those item templates.
+  of dependencies.
 * Introduced the `ico` module for creating .ico and .cur files.
