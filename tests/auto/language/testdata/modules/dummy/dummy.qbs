@@ -20,4 +20,5 @@ DummyBase {
     property bool controllingProp: false
     property stringList listProp2: controllingProp
                                    ? ["DEFAULT_STUFF", "EXTRA_STUFF"] : ["DEFAULT_STUFF"]
+    property varList varListProp: [{a: controllingProp, b: someString}]
 }

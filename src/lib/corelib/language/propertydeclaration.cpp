@@ -107,7 +107,7 @@ bool PropertyDeclaration::isValid() const
 bool PropertyDeclaration::isScalar() const
 {
     // ### Should be determined by a PropertyOption in the future.
-    return d->type != PathList && d->type != StringList;
+    return d->type != PathList && d->type != StringList && d->type != VariantList;
 }
 
 static QString boolString() { return QStringLiteral("bool"); }
@@ -117,6 +117,7 @@ static QString stringString() { return QStringLiteral("string"); }
 static QString stringListString() { return QStringLiteral("stringList"); }
 static QString varString() { return QStringLiteral("var"); }
 static QString variantString() { return QStringLiteral("variant"); }
+static QString varListString() { return QStringLiteral("varList"); }
 
 PropertyDeclaration::Type PropertyDeclaration::propertyTypeFromString(const QString &typeName)
 {
@@ -134,6 +135,8 @@ PropertyDeclaration::Type PropertyDeclaration::propertyTypeFromString(const QStr
         return PropertyDeclaration::StringList;
     if (typeName == varString() || typeName == variantString())
         return PropertyDeclaration::Variant;
+    if (typeName == varListString())
+        return PropertyDeclaration::VariantList;
     return PropertyDeclaration::UnknownType;
 }
 
@@ -147,6 +150,7 @@ QString PropertyDeclaration::typeString() const
     case String: return stringString();
     case StringList: return stringListString();
     case Variant: return variantString();
+    case VariantList: return varListString();
     case UnknownType: return QLatin1String("unknown");
     }
     Q_UNREACHABLE(); // For stupid compilers.

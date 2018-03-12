@@ -64,7 +64,8 @@ public:
         PathList,
         String,
         StringList,
-        Variant
+        Variant,
+        VariantList,
     };
 
     enum Flag

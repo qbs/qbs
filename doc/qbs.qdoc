@@ -1090,6 +1090,10 @@
         \li \c var
         \li \c{property var aMap: ({ key1: "value1", key2: "value2" })}
         \li Generic data, as in QML.
+    \row
+        \li \c varList
+        \li \c{property var aMapList: [{ key1: "value1", key2: "value2" }, { key1: "value3" }]
+        \li A list of generic data, typically JavaScript objects.
     \endtable
 
 

@@ -64,4 +64,12 @@ Project {
         Depends { name: "dummy" }
         dummy.someString: projectName + "_" + productName
     }
+    Product {
+        name: "merged-varlist"
+        property string productName: name
+        Depends { name: "dummy" }
+        Depends { name: "dummyqt.core" }
+        dummy.controllingProp: true
+        dummy.varListProp: ({d: "product"})
+    }
 }

@@ -1518,6 +1518,12 @@ void TestLanguage::moduleProperties_data()
     QTest::newRow("shadowed-scalar-property")
             << "someString"
             << QVariant(QString("MyProject_shadowed-scalar-property"));
+    QTest::newRow("merged-varlist")
+            << "varListProp"
+            << QVariant(QVariantList() << QVariantMap({std::make_pair("d", "product")})
+                        << QVariantMap({std::make_pair("c", "qtcore")})
+                        << QVariantMap({std::make_pair("a", true),
+                                        std::make_pair("b", QVariant())}));
     QTest::newRow("cleanup") << QString() << QVariant();
 }
 

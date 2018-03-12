@@ -110,6 +110,9 @@ std::string LanguageInfo::qmlTypeInfo()
             case qbs::Internal::PropertyDeclaration::Variant:
                 result.append("type: \"QVariant\"");
                 break;
+            case qbs::Internal::PropertyDeclaration::VariantList:
+                result.append("type: \"QVariantList\"");
+                break;
             }
             result.append(" }\n"); // Property
         }

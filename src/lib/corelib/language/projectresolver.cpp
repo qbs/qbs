@@ -1335,6 +1335,8 @@ QVariantMap ProjectResolver::evaluateProperties(const Item *item, const Item *pr
             } else if (pd.type() == PropertyDeclaration::PathList
                        || pd.type() == PropertyDeclaration::StringList) {
                 v = v.toStringList();
+            } else if (pd.type() == PropertyDeclaration::VariantList) {
+                v = v.toList();
             }
             result[it.key()] = v;
             break;

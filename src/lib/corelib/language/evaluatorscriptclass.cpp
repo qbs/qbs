@@ -131,7 +131,8 @@ private:
                 = itemOfProperty->propertyDeclaration(propertyName->toString()).type();
         const bool isArray = type == PropertyDeclaration::StringList
                 || type == PropertyDeclaration::PathList
-                || type == PropertyDeclaration::Variant;
+                || type == PropertyDeclaration::Variant // TODO: Why?
+                || type == PropertyDeclaration::VariantList;
         QScriptValue valueToSet = scriptValue;
         if (isArray) {
             if (!valueToSet.isValid() || valueToSet.isUndefined())
@@ -561,6 +562,13 @@ static void convertToPropertyType_impl(const QString &pathPropertiesBaseDir, con
         }
         break;
     }
+    case PropertyDeclaration::VariantList:
+        if (!v.isArray()) {
+            QScriptValue x = v.engine()->newArray(1);
+            x.setProperty(0, v);
+            v = x;
+        }
+        break;
     }
 }
 

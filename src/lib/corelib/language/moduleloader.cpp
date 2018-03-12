@@ -2763,6 +2763,8 @@ static QVariant::Type variantType(PropertyDeclaration::Type t)
         return QVariant::String;
     case PropertyDeclaration::StringList:
         return QVariant::StringList;
+    case PropertyDeclaration::VariantList:
+        return QVariant::List;
     case PropertyDeclaration::Variant:
         break;
     }
