@@ -1,2 +1,4 @@
 TEMPLATE = subdirs
-SUBDIRS = auto fuzzy-test benchmarker
+SUBDIRS = auto fuzzy-test
+
+qtHaveModule(concurrent): SUBDIRS += benchmarker
