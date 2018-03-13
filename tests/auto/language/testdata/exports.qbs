@@ -109,8 +109,24 @@ Project {
 
     Product {
         name: "dependency"
+
+        Probe {
+            id: configProbe
+            property var config
+            configure: {
+                var obj = {};
+                obj.featureX = true;
+                obj.featureY = false;
+                obj.featureZ = true;
+                config = obj;
+                found = true;
+            }
+        }
+        property var config: configProbe.config
+
         Export {
             property bool depend: false
+            property var config: product.config
             Depends { condition: depend; name: "cpp" }
             Properties { condition: depend; cpp.includePaths: ["."] }
         }
@@ -118,6 +134,9 @@ Project {
     Product {
         name: "depender"
         Depends { name: "dependency" }
+        property bool featureX: dependency.config.featureX
+        property bool featureY: dependency.config.featureY
+        property bool featureZ: dependency.config.featureZ
     }
 
     Product {

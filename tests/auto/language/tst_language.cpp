@@ -963,6 +963,9 @@ void TestLanguage::exports()
             QVERIFY2(m->name == QString("qbs") || m->name == QString("dependency"),
                      qPrintable(m->name));
         }
+        QCOMPARE(product->productProperties.value("featureX"), true);
+        QCOMPARE(product->productProperties.value("featureY"), false);
+        QCOMPARE(product->productProperties.value("featureZ"), true);
 
         product = products.value("broken_cycle3");
         QVERIFY(!!product);
