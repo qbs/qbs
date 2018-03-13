@@ -126,3 +126,12 @@
     \internal
 */
 
+/*!
+    \externalpage https://ccache.samba.org/
+    \title ccache
+*/
+
+/*!
+    \externalpage https://ccache.samba.org/manual.html#_precompiled_headers
+    \title ccache documentation about precompiled headers
+*/
