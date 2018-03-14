@@ -85,7 +85,7 @@
 
        \li  \l{Appendix A: Building Qbs}
        \li  \l{Appendix B: Migrating from Other Build Systems}
-       \li  \l{Appendix C: Code Attributions}
+       \li  \l{Appendix C: Licenses and Code Attributions}
     \endlist
 */
 
@@ -1572,7 +1572,42 @@
     \previouspage porting-to-qbs.html
     \page attributions.html
 
-    \title Appendix C: Code Attributions
+    \title Appendix C: Licenses and Code Attributions
+
+    \section1 Licenses
+
+    The \QBS library and tools are available under commercial licenses from
+    \l{Qt Licensing}{The Qt Company}. In addition, they are available under
+    \l{GNU Lesser General Public License, Version 3} (LGPL version 3) and
+    \l{GNU General Public License, version 2} (GPL version 2).
+
+    Shared functionality, which might be pulled in by user build scripts, is
+    available under commercial licenses,
+    \l{GNU Lesser General Public License, Version 2.1} (LGPL version 2.1) with
+    \l{The Qt Company LGPL Exception version 1.1}, and LGPL version 3.
+
+    Autotests are available under commercial licenses and
+    \l{GNU General Public License Version 3, Annotated with The Qt Company GPL Exception 1.0}.
+
+    Examples are available under commercial licenses and \l{BSD}.
+
+    \section2 GNU Lesser General Public License, Version 3
+
+    \quotefile ../LICENSE.LGPLv3
+
+    \section2 GNU General Public License Version 3, Annotated with The Qt Company GPL Exception 1.0
+
+    \quotefile ../LICENSE.GPL3-EXCEPT
+
+    \section2 GNU Lesser General Public License, Version 2.1
+
+    \quotefile ../LICENSE.LGPLv21
+
+    \section2 The Qt Company LGPL Exception version 1.1
+
+    \quotefile ../LGPL_EXCEPTION.txt
+
+    \section1 Third-Party Attibutions
 
     \QBS contains third-party code, which we gratefully acknowledge:
     \generatelist{groupsbymodule attributions-qbs}
