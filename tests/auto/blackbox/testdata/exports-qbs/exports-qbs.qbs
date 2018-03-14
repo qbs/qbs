@@ -81,6 +81,7 @@ Project {
             bundle.isBundle: false
         }
         files: ["mylib.cpp"]
+        property var config: ({feature_x: false, feature_y: true})
         Group {
             name: "API headers"
             files: ["mylib.h"]
@@ -101,6 +102,7 @@ Project {
         Export {
             Depends { name: "cpp" }
             property string includeDir: product.sourceDirectory
+            property var config: product.config
             Properties {
                 condition: true
                 cpp.includePaths: [includeDir]

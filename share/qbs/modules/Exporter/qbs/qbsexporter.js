@@ -111,24 +111,28 @@ function checkValuePrefix(name, value, forbiddenPrefix, prefixDescription)
     }
 }
 
-function stringifyValue(project, product, moduleInstallDir, name, value)
+function stringifyValue(project, product, moduleInstallDir, prop, value)
 {
     if (Array.isArray(value)) {
         var repr = "[";
         for (var i = 0; i < value.length; ++i) {
-            repr += stringifyValue(project, product, moduleInstallDir, name, value[i]) + ", ";
+            repr += stringifyValue(project, product, moduleInstallDir, prop, value[i]) + ", ";
         }
         repr += "]";
         return repr;
     }
-    if (typeof(value) !== "string")
-        return JSON.stringify(value);
+    if (typeof(value) !== "string") {
+        var value = JSON.stringify(value);
+        if (prop.type === "variant")
+            value = '(' + value + ')';
+        return value;
+    }
 
     // Catch user oversights: Paths that point into the project source or build directories
     // make no sense in the module.
     if (!value.startsWith(product.qbs.installRoot)) {
-        checkValuePrefix(name, value, project.buildDirectory, "project build directory");
-        checkValuePrefix(name, value, project.sourceDirectory, "project source directory");
+        checkValuePrefix(prop.name, value, project.buildDirectory, "project build directory");
+        checkValuePrefix(prop.name, value, project.sourceDirectory, "project source directory");
     }
 
     // Adapt file paths pointing into the install dir, that is, make them relative to the
@@ -183,7 +187,7 @@ function writeProperty(project, product, moduleInstallDir, prop, indentation, co
         } else {
             value = product.exports[prop.name];
         }
-        line += stringifyValue(project, product, moduleInstallDir, prop.name, value);
+        line += stringifyValue(project, product, moduleInstallDir, prop, value);
     } else {
         line += prop.sourceCode.replace(/importingProduct\./g, "product.");
     }

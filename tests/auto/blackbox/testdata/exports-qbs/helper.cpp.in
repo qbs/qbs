@@ -1,5 +1,13 @@
 #include <mylib.h>
 
+#ifdef FEATURE_X
+#error "feature x must not be present!"
+#endif
+
+#ifndef FEATURE_Y
+#error "feature y is required!"
+#endif
+
 void helper()
 {
     MyLib::f();
