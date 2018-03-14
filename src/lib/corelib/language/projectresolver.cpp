@@ -941,7 +941,7 @@ void ProjectResolver::setupExportedProperties(const Item *item, const QString &n
     for (auto it = props.cbegin(); it != props.cend(); ++it) {
         const QString qualifiedName = namePrefix.isEmpty()
                 ? it.key() : namePrefix + QLatin1Char('.') + it.key();
-        if (item->type() == ItemType::Export
+        if ((item->type() == ItemType::Export || item->type() == ItemType::Properties)
                 && qualifiedName == StringConstants::prefixMappingProperty()) {
             continue;
         }

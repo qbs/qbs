@@ -452,6 +452,7 @@ private:
             return;
         if (m_disabledItems.contains(item)
                 || (item->type() == ItemType::ModuleInstance && !item->isPresentModule())
+                || item->type() == ItemType::Properties
 
                 // The Properties child of a SubProject item is not a regular item.
                 || item->type() == ItemType::PropertiesInSubProject) {

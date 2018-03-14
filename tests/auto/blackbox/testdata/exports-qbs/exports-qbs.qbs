@@ -111,10 +111,13 @@ Project {
             cpp.dynamicLibraries: ["nosuchlib"]
             Depends { name: "local" }
             local.dummy: true
-            prefixMapping: [{
+            Properties {
+                condition: true
+                prefixMapping: [{
                     prefix: includeDir,
                     replacement: FileInfo.joinPaths(qbs.installPrefix, product.headersInstallDir)
                 }]
+            }
         }
     }
 
