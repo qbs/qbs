@@ -376,7 +376,7 @@ static bool areRulesCompatible(const RuleNode *ruleNode, const RuleNode *depende
     if (ruleNode->rule()->explicitlyDependsOn.intersects(outTags))
         return true;
     return ruleNode->rule()->auxiliaryInputs.intersects(outTags)
-            && !ruleNode->rule()->excludedAuxiliaryInputs.intersects(outTags);
+            && !ruleNode->rule()->excludedInputs.intersects(outTags);
 }
 
 void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &product)

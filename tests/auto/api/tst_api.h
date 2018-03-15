@@ -84,6 +84,7 @@ private slots:
     void emptySubmodulesList();
     void enableAndDisableProduct();
     void errorInSetupRunEnvironment();
+    void excludedInputs();
     void explicitlyDependsOn();
     void exportSimple();
     void exportWithRecursiveDepends();

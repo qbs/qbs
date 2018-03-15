@@ -81,6 +81,7 @@ public:
     QBS_STRING_CONSTANT(destinationDirProperty, "destinationDirectory")
     QBS_STRING_CONSTANT(excludeFilesProperty, "excludeFiles")
     QBS_STRING_CONSTANT(excludedAuxiliaryInputsProperty, "excludedAuxiliaryInputs")
+    QBS_STRING_CONSTANT(excludedInputsProperty, "excludedInputs")
     static const QString &explicitlyDependsOnProperty() { return explicitlyDependsOn(); }
     static const QString &fileNameProperty() { return fileName(); }
     static const QString &filePathProperty() { return filePath(); }

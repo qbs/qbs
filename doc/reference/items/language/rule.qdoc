@@ -222,13 +222,13 @@
 */
 
 /*!
-    \qmlproperty stringList Rule::excludedAuxiliaryInputs
+    \qmlproperty stringList Rule::excludedInputs
 
     A list of file tags. Connections to rules that produce these file tags are
-    prevented. This property has no effect on the content of the \c inputs
-    variable in the \l{prepare} script.
+    prevented.
 
     \nodefaultvalue
+    \since Qbs 1.12
 */
 
 /*!

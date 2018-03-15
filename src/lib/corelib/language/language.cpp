@@ -892,7 +892,7 @@ bool operator==(const Rule &r1, const Rule &r2)
             && r1.inputs == r2.inputs
             && r1.outputFileTags == r2.outputFileTags
             && r1.auxiliaryInputs == r2.auxiliaryInputs
-            && r1.excludedAuxiliaryInputs == r2.excludedAuxiliaryInputs
+            && r1.excludedInputs == r2.excludedInputs
             && r1.inputsFromDependencies == r2.inputsFromDependencies
             && r1.explicitlyDependsOn == r2.explicitlyDependsOn
             && r1.multiplex == r2.multiplex

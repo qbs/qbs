@@ -1173,8 +1173,12 @@ void ProjectResolver::resolveRule(Item *item, ProjectContext *projectContext)
         rule->requiresInputs = rule->declaresInputs();
     rule->auxiliaryInputs
             = m_evaluator->fileTagsValue(item, StringConstants::auxiliaryInputsProperty());
-    rule->excludedAuxiliaryInputs
-            = m_evaluator->fileTagsValue(item, StringConstants::excludedAuxiliaryInputsProperty());
+    rule->excludedInputs
+            = m_evaluator->fileTagsValue(item, StringConstants::excludedInputsProperty());
+    if (rule->excludedInputs.empty()) {
+        rule->excludedInputs = m_evaluator->fileTagsValue(
+                    item, StringConstants::excludedAuxiliaryInputsProperty());
+    }
     rule->explicitlyDependsOn
             = m_evaluator->fileTagsValue(item, StringConstants::explicitlyDependsOnProperty());
     rule->module = m_moduleContext ? m_moduleContext->module : projectContext->dummyModule;

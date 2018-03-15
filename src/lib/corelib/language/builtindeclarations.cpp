@@ -500,8 +500,13 @@ void BuiltinDeclarations::addRuleItem()
                                 PropertyDeclaration::StringList);
     item << PropertyDeclaration(StringConstants::auxiliaryInputsProperty(),
                                       PropertyDeclaration::StringList);
-    item << PropertyDeclaration(StringConstants::excludedAuxiliaryInputsProperty(),
-                                      PropertyDeclaration::StringList);
+    PropertyDeclaration excludedAuxInputs(StringConstants::excludedAuxiliaryInputsProperty(),
+                                          PropertyDeclaration::StringList);
+    excludedAuxInputs.setDeprecationInfo(DeprecationInfo(Version(1, 14),
+                                                         Tr::tr("Use 'excludedInputs' instead")));
+    item << excludedAuxInputs;
+    item << PropertyDeclaration(StringConstants::excludedInputsProperty(),
+                                PropertyDeclaration::StringList);
     item << PropertyDeclaration(StringConstants::explicitlyDependsOnProperty(),
                                       PropertyDeclaration::StringList);
     item << prepareScriptProperty();

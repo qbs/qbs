@@ -505,7 +505,7 @@ Module {
 
         // Make sure the inputs of this rule are only those rules which produce outputs compatible
         // with the type of the bundle being produced.
-        excludedAuxiliaryInputs: Bundle.excludedAuxiliaryInputs(project, product)
+        excludedInputs: Bundle.excludedAuxiliaryInputs(project, product)
 
         outputFileTags: [
             "bundle.content",

@@ -1224,12 +1224,12 @@ void Executor::setupForBuildingSelectedFiles(const BuildGraphNode *node)
     const Rule * const rule = ruleNode->rule().get();
     if (rule->inputs.intersects(m_tagsOfFilesToConsider)) {
         FileTags otherInputs = rule->auxiliaryInputs;
-        otherInputs.unite(rule->explicitlyDependsOn).subtract(rule->excludedAuxiliaryInputs);
+        otherInputs.unite(rule->explicitlyDependsOn).subtract(rule->excludedInputs);
         m_tagsNeededForFilesToConsider.unite(otherInputs);
     } else if (rule->collectedOutputFileTags().intersects(m_tagsNeededForFilesToConsider)) {
         FileTags allInputs = rule->inputs;
         allInputs.unite(rule->auxiliaryInputs).unite(rule->explicitlyDependsOn)
-                .subtract(rule->excludedAuxiliaryInputs);
+                .subtract(rule->excludedInputs);
         m_tagsNeededForFilesToConsider.unite(allInputs);
     }
 }

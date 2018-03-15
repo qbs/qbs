@@ -295,12 +295,16 @@ ArtifactSet RulesApplicator::collectExplicitlyDependsOn()
 {
     ArtifactSet artifacts;
     for (const FileTag &fileTag : qAsConst(m_rule->explicitlyDependsOn)) {
-        for (Artifact *dependency : m_product->lookupArtifactsByFileTag(fileTag))
-            artifacts << dependency;
+        for (Artifact *dependency : m_product->lookupArtifactsByFileTag(fileTag)) {
+            if (!dependency->fileTags().intersects(m_rule->excludedInputs))
+                artifacts << dependency;
+        }
         for (const ResolvedProductConstPtr &depProduct : qAsConst(m_product->dependencies)) {
             for (Artifact * const ta : depProduct->targetArtifacts()) {
-                if (ta->fileTags().contains(fileTag))
+                if (ta->fileTags().contains(fileTag)
+                        && !ta->fileTags().intersects(m_rule->excludedInputs)) {
                     artifacts << ta;
+                }
             }
         }
     }

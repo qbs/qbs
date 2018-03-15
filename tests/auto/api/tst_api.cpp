@@ -1039,6 +1039,52 @@ void TestApi::errorInSetupRunEnvironment()
     QVERIFY(!exceptionCaught);
 }
 
+void TestApi::excludedInputs()
+{
+    qbs::SetupProjectParameters setupParams = defaultSetupParameters("excluded-inputs");
+    std::unique_ptr<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
+                                                                        m_logSink, 0));
+    waitForFinished(job.get());
+    QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
+    const qbs::Project project = job->project();
+    std::unique_ptr<qbs::BuildJob> buildJob(project.buildAllProducts(qbs::BuildOptions()));
+    waitForFinished(buildJob.get());
+    QVERIFY2(!buildJob->error().hasError(), qPrintable(job->error().toString()));
+    QVERIFY(project.isValid());
+    QCOMPARE(project.projectData().products().size(), 2);
+    qbs::ProductData depProduct;
+    qbs::ProductData pProduct;
+    for (qbs::ProductData &p : project.projectData().products()) {
+        if (p.name() == "dep")
+            depProduct = p;
+        else if (p.name() == "p")
+            pProduct = p;
+    }
+    QVERIFY(depProduct.isValid());
+    QVERIFY(pProduct.isValid());
+    int theTagCount = 0;
+    for (const qbs::ArtifactData &artifact : depProduct.targetArtifacts()) {
+        if (!artifact.fileTags().contains("the_tag"))
+            continue;
+        ++theTagCount;
+        QFile f(artifact.filePath());
+        QVERIFY2(f.open(QIODevice::ReadOnly), qPrintable(f.errorString()));
+        const QByteArray content = f.readAll();
+        QVERIFY2(content.contains("the_content"), content.constData());
+        QCOMPARE(artifact.fileTags().contains("the_other_tag"),
+                 content.contains("the_other_content"));
+    }
+    QCOMPARE(theTagCount, 2);
+    int dummyCount = 0;
+    for (const qbs::ArtifactData &artifact : pProduct.targetArtifacts()) {
+        QFileInfo fi(artifact.filePath());
+        QVERIFY2(fi.exists(), qPrintable(fi.filePath()));
+        if (fi.fileName().startsWith("dummy"))
+            ++dummyCount;
+    }
+    QCOMPARE(dummyCount, 3);
+}
+
 static qbs::ErrorInfo forceRuleEvaluation(const qbs::Project project)
 {
     qbs::BuildOptions buildOptions;

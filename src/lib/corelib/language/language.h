@@ -411,7 +411,7 @@ public:
     PrivateScriptFunction outputArtifactsScript;    // unused, if artifacts is non-empty
     FileTags inputs;
     FileTags auxiliaryInputs;
-    FileTags excludedAuxiliaryInputs;
+    FileTags excludedInputs;
     FileTags inputsFromDependencies;
     FileTags explicitlyDependsOn;
     bool multiplex;
@@ -435,7 +435,7 @@ public:
     template<PersistentPool::OpType opType> void completeSerializationOp(PersistentPool &pool)
     {
         pool.serializationOp<opType>(name, prepareScript, outputArtifactsScript, module, inputs,
-                                     outputFileTags, auxiliaryInputs, excludedAuxiliaryInputs,
+                                     outputFileTags, auxiliaryInputs, excludedInputs,
                                      inputsFromDependencies, explicitlyDependsOn, multiplex,
                                      requiresInputs, alwaysRun, artifacts);
     }

@@ -194,6 +194,8 @@ ArtifactSet RuleNode::currentInputArtifacts() const
                 continue;
             if (artifact->transformer && artifact->transformer->rule == m_rule)
                 continue;
+            if (artifact->fileTags().intersects(m_rule->excludedInputs))
+                continue;
             s += artifact;
         }
     }
@@ -202,7 +204,8 @@ ArtifactSet RuleNode::currentInputArtifacts() const
         if (!dep->buildData)
             continue;
         for (Artifact * const a : filterByType<Artifact>(dep->buildData->allNodes())) {
-            if (a->fileTags().intersects(m_rule->inputsFromDependencies))
+            if (a->fileTags().intersects(m_rule->inputsFromDependencies)
+                    && !a->fileTags().intersects(m_rule->excludedInputs))
                 s += a;
         }
     }

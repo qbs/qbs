@@ -257,7 +257,7 @@ Module {
         name: "QtCoreMocRule"
         inputs: ["objcpp", "cpp", "hpp"]
         auxiliaryInputs: ["qt_plugin_metadata"]
-        excludedAuxiliaryInputs: ["unmocable"]
+        excludedInputs: ["unmocable"]
         outputFileTags: ["hpp", "cpp", "moc_cpp", "unmocable"]
         outputArtifacts: {
             if (input.fileTags.contains("unmocable"))

@@ -71,7 +71,7 @@ void RuleGraph::build(const QList<RulePtr> &rules, const FileTags &productFileTa
             inputFileTagToRule[fileTag].push_back(rule.get());
             for (const Rule * const producingRule : m_outputFileTagToRule.value(fileTag)) {
                 if (!producingRule->collectedOutputFileTags().intersects(
-                        rule->excludedAuxiliaryInputs)) {
+                        rule->excludedInputs)) {
                     connect(rule.get(), producingRule);
                 }
             }
