@@ -166,15 +166,6 @@ double FileTime::asDouble() const
 #endif
 }
 
-static Qt::DateFormat stringFormat()
-{
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 8, 0))
-    return Qt::ISODateWithMs;
-#else
-    return Qt::ISODate;
-#endif
-}
-
 QString FileTime::toString() const
 {
 #ifdef Q_OS_WIN
@@ -193,7 +184,7 @@ QString FileTime::toString() const
 #else
     dt.setTime_t(m_fileTime);
 #endif
-    return dt.toString(stringFormat());
+    return dt.toString(Qt::ISODateWithMs);
 #endif
 }
 

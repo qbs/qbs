@@ -53,55 +53,6 @@ template<> struct hash<QString> {
 
 QT_BEGIN_NAMESPACE
 uint qHash(const QStringList &list);
-
-#if QT_VERSION < QT_VERSION_CHECK(5, 7, 0)
-template <typename T1, typename T2> inline uint qHash(const std::pair<T1, T2> &key, uint seed = 0)
-    Q_DECL_NOEXCEPT_EXPR(noexcept(qHash(key.first, seed)) && noexcept(qHash(key.second, seed)))
-{
-    QtPrivate::QHashCombine hash;
-    seed = hash(seed, key.first);
-    seed = hash(seed, key.second);
-    return seed;
-}
-
-namespace QtPrivate {
-template <typename T> struct QAddConst { typedef const T Type; };
-}
-
-// this adds const to non-const objects (like std::as_const)
-template <typename T>
-Q_DECL_CONSTEXPR typename QtPrivate::QAddConst<T>::Type &qAsConst(T &t) Q_DECL_NOTHROW { return t; }
-// prevent rvalue arguments:
-template <typename T>
-void qAsConst(const T &&) Q_DECL_EQ_DELETE;
-#endif // Qt Version < 5.7.0
 QT_END_NAMESPACE
-
-#ifndef Q_FALLTHROUGH
-#ifndef QT_HAS_CPP_ATTRIBUTE
-#ifdef __has_cpp_attribute
-#  define QT_HAS_CPP_ATTRIBUTE(x)       __has_cpp_attribute(x)
-#else
-#  define QT_HAS_CPP_ATTRIBUTE(x)       0
-#endif
-#endif
-#if defined(__cplusplus)
-#if QT_HAS_CPP_ATTRIBUTE(fallthrough)
-#  define Q_FALLTHROUGH() [[fallthrough]]
-#elif QT_HAS_CPP_ATTRIBUTE(clang::fallthrough)
-#    define Q_FALLTHROUGH() [[clang::fallthrough]]
-#elif QT_HAS_CPP_ATTRIBUTE(gnu::fallthrough)
-#    define Q_FALLTHROUGH() [[gnu::fallthrough]]
-#endif
-#endif
-#ifndef Q_FALLTHROUGH
-#  if (defined(Q_CC_GNU) && Q_CC_GNU >= 700) && !defined(Q_CC_INTEL)
-#    define Q_FALLTHROUGH() __attribute__((fallthrough))
-#  else
-#    define Q_FALLTHROUGH() (void)0
-#endif
-#endif
-#endif
-
 
 #endif // QBSQTTOOLS_H

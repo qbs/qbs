@@ -44,7 +44,6 @@
 #include "processutils.h"
 #include "progressobserver.h"
 #include "stringconstants.h"
-#include "version.h"
 
 #include <logging/translator.h>
 
@@ -93,15 +92,6 @@ void DirectoryManager::removeEmptyCreatedDirectories()
     }
 }
 
-static bool hasQtBug53392()
-{
-    if (!HostOsInfo::isWindowsHost())
-        return false;
-    const Version qtVersion = Version::fromString(QLatin1String(qVersion()));
-    // The fix is included in 5.6.2 and 5.7.1, but not in 5.7.0.
-    return qtVersion == Version(5, 7, 0) || qtVersion < Version(5, 6, 2);
-}
-
 static void tryCreateBuildDirectory(const QString &buildDir, const QString &buildGraphFilePath)
 {
     if (!QDir::root().mkpath(buildDir)) {
@@ -139,7 +129,7 @@ BuildGraphLocker::BuildGraphLocker(const QString &buildGraphFilePath, const Logg
             QString hostName;
             QString appName;
             if (m_lockFile.getLockInfo(&pid, &hostName, &appName)) {
-                if ((!hasQtBug53392()) || appNamesAreEqual(appName, processNameByPid(pid))) {
+                if (appNamesAreEqual(appName, processNameByPid(pid))) {
                     throw ErrorInfo(Tr::tr("Cannot lock build graph file '%1': "
                                            "Already locked by '%2' (PID %3).")
                                     .arg(buildGraphFilePath, appName).arg(pid));
