@@ -482,7 +482,7 @@
     \qmlproperty bool cpp::useCPrecompiledHeader
     \since Qbs 1.5
 
-    Whether to use a precompiled header for the respective language if one is
+    Whether to use a precompiled header for compiling C sources if one is
     present.
 
     Set this property to \c false in a \l Group item to disable precompiled
@@ -498,14 +498,7 @@
     \qmlproperty bool cpp::useCxxPrecompiledHeader
     \since Qbs 1.5
 
-    Whether to use a precompiled header for the respective language if one is
-    present.
-
-    Set this property to \c false in a \l Group item to disable precompiled
-    headers for some sources even though a precompiled header is present in the
-    product.
-
-    See \l{filetags-cpp}{Relevant File Tags} for the associated file tags.
+    Like \l useCPrecompiledHeader, but for C++.
 
     \defaultvalue \c true
 */
@@ -514,14 +507,7 @@
     \qmlproperty bool cpp::useObjcPrecompiledHeader
     \since Qbs 1.5
 
-    Whether to use a precompiled header for the respective language if one is
-    present.
-
-    Set this property to \c false in a \l Group item to disable precompiled
-    headers for some sources even though a precompiled header is present in the
-    product.
-
-    See \l{filetags-cpp}{Relevant File Tags} for the associated file tags.
+    Like \l useCPrecompiledHeader, but for Objective-C.
 
     \defaultvalue \c true
 */
@@ -530,14 +516,7 @@
     \qmlproperty bool cpp::useObjcxxPrecompiledHeader
     \since Qbs 1.5
 
-    Whether to use a precompiled header for the respective language if one is
-    present.
-
-    Set this property to \c false in a \l Group item to disable precompiled
-    headers for some sources even though a precompiled header is present in the
-    product.
-
-    See \l{filetags-cpp}{Relevant File Tags} for the associated file tags.
+    Like \l useCPrecompiledHeader, but for Objective-C++.
 
     \defaultvalue \c true
 */

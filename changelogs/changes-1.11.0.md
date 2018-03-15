@@ -15,6 +15,9 @@
   `--setup-run-env-config` option of the `run` command. The only value currently supported
   is `ignore-lib-dependencies`, which turns off the abovementioned injection of library
   dependencies' paths into the run environment.
+* Module.setupBuildEnvironment and Module.setupRunEnvironment now have access to the `product`
+  and `project` variables. With regards to accessing module properties, these script now behave
+  like rules, rather than normal properties.
 * Added the `BinaryFile` service for reading and writing binary data files.
 * The `SubProject` item now has a condition property.
 
@@ -24,17 +27,31 @@
 * Added the `qbs.toolchainType` property, which is a scalar version of the `qbs.toolchain`
   property and is used to set the current toolchain.
 * Added `cpp.driverLinkerFlags` for flags to be passed to the compiler driver only when linking.
+* We now properly support `"c++17"` as a possible value of `cpp.cxxLanguageVersion`.
+* The auto-detection mechanism for GCC-like compilers now considers typical mingw prefixes.
+
+# Qt Support
+* Added the Qt.scxml.generateStateMethods property to back the --statemethods option.
 
 # Command-line interface
 * Configuration names are now passed as "config:<name>".
 * Options do not have to precede property assignments anymore.
+* Referencing a non-existing product in a property override now results in an error.
 
 # Documentation
 * Major overhaul of the module and item reference for improved readability.
+* Added a how-to on the topic of pre-compiled headers.
+* Added documentation for the built-in XML support.
+* Added documentation for qbs.Utilities.
+* Added documentation on how to target specific platforms.
+
+# Important bug fixes
+* Fixed some inconsistencies related to item ids (QBS-1016, QBS-1262).
+* Fixed slow project resolving on macOS (QBS-1277).
+* Fixed problems with qtquickcompiler support in Qt 5.11 (QBS-1299).
+* Fixed race conditions in multi-configuration builds (QBS-1308).
 
 # Other
 * The `InnoSetup`, `nsis`, and `wix` modules' rules now have a dependency on installable artifacts
-  of dependencies by default, via the default item templates `InnoSetup`, `NSISSetup`,
-  and `WindowsInstallerPackage`. This can be explicitly controlled via the `dependsOnInstallables`
-  boolean property of those item templates.
+  of dependencies.
 * Introduced the `ico` module for creating .ico and .cur files.

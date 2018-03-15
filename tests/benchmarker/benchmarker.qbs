@@ -6,7 +6,11 @@ QtApplication {
     type: "application"
     consoleApplication: true
     cpp.cxxLanguageVersion: "c++14"
-    Depends { name: "Qt.concurrent" }
+    condition: Qt.concurrent.present
+    Depends {
+        name: "Qt.concurrent"
+        required: false
+    }
     files: [
         "activities.h",
         "benchmarker-main.cpp",

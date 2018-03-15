@@ -91,6 +91,8 @@ int TestBlackboxBase::runQbs(const QbsRunParameters &params)
         args.push_back(QLatin1String("profile:") + params.profile);
     }
     QProcess process;
+    if (!params.workingDir.isEmpty())
+        process.setWorkingDirectory(params.workingDir);
     process.setProcessEnvironment(params.environment);
     process.start(qbsExecutableFilePath, args);
     if (!process.waitForStarted() || !process.waitForFinished(testTimeoutInMsecs())

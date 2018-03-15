@@ -69,6 +69,7 @@ public:
     QProcessEnvironment environment;
     QString profile;
     QString settingsDir;
+    QString workingDir;
     bool expectFailure;
     bool expectCrash;
 };

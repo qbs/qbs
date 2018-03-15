@@ -1186,19 +1186,22 @@ void TestBlackbox::vcsGit()
     QVERIFY(waitForProcessSuccess(git));
 
     // Initial run.
-    QCOMPARE(runQbs(), 0);
+    QbsRunParameters params(QStringList{"-f", repoDir.path()});
+    params.workingDir = repoDir.path() + "/..";
+    params.buildDirectory = repoDir.path();
+    QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("generating vcs-repo-state.h"), m_qbsStderr.constData());
     QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStderr.constData());
 
     // Run with no changes.
-    QCOMPARE(runQbs(), 0);
+    QCOMPARE(runQbs(params), 0);
     QVERIFY2(!m_qbsStdout.contains("generating vcs-repo-state.h"), m_qbsStderr.constData());
     QVERIFY2(!m_qbsStdout.contains("compiling main.cpp"), m_qbsStderr.constData());
 
     // Run with changed source file.
     WAIT_FOR_NEW_TIMESTAMP();
     touch("main.cpp");
-    QCOMPARE(runQbs(), 0);
+    QCOMPARE(runQbs(params), 0);
     QVERIFY2(!m_qbsStdout.contains("generating vcs-repo-state.h"), m_qbsStderr.constData());
     QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStderr.constData());
 
@@ -1209,7 +1212,7 @@ void TestBlackbox::vcsGit()
     QVERIFY(waitForProcessSuccess(git));
     git.start(gitFilePath, QStringList({"commit", "-m", "blubb!"}));
     QVERIFY(waitForProcessSuccess(git));
-    QCOMPARE(runQbs(), 0);
+    QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("generating vcs-repo-state.h"), m_qbsStderr.constData());
     QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStderr.constData());
 }
@@ -3787,34 +3790,29 @@ void TestBlackbox::symbolLinkMode()
     QDir::setCurrent(testDataDir + "/symbolLinkMode");
 
     QbsRunParameters params;
+    params.command = "run";
+    const QStringList commonArgs{"-p", "driver", "--setup-run-env-config",
+                                 "ignore-lib-dependencies"};
 
     rmDirR(relativeBuildDir());
-    params.command = "run";
-    params.arguments = QStringList() << "-p" << "driver"
-                                     << "project.shouldInstallLibrary:true";
+    params.arguments = QStringList() << commonArgs << "project.shouldInstallLibrary:true";
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("somefunction existed and it returned 42"),
              m_qbsStdout.constData());
 
     rmDirR(relativeBuildDir());
-    params.command = "run";
-    params.arguments = QStringList() << "-p" << "driver"
-                                     << "project.shouldInstallLibrary:false";
+    params.arguments = QStringList() << commonArgs << "project.shouldInstallLibrary:false";
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("somefunction did not exist"), m_qbsStdout.constData());
 
     rmDirR(relativeBuildDir());
-    params.command = "run";
-    params.arguments = QStringList() << "-p" << "driver"
-                                     << "project.lazy:false";
+    params.arguments = QStringList() << commonArgs << "project.lazy:false";
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("Lib was loaded!\nmeow\n"), m_qbsStdout.constData());
 
     if (HostOsInfo::isMacosHost()) {
         rmDirR(relativeBuildDir());
-        params.command = "run";
-        params.arguments = QStringList() << "-p" << "driver"
-                                         << "project.lazy:true";
+        params.arguments = QStringList() << commonArgs << "project.lazy:true";
         QCOMPARE(runQbs(params), 0);
         QVERIFY2(m_qbsStdout.contains("meow\nLib was loaded!\n"), m_qbsStdout.constData());
     }

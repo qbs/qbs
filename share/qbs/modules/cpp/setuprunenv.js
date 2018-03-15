@@ -57,13 +57,6 @@ function addExternalLibPath(product, list, path)
 
 function gatherPaths(product, libPaths, frameworkPaths)
 {
-    // Heuristic: If any rpaths are set, assume environment paths should not be set up.
-    // Let's not try to be super fancy, evaluating all the rpaths, expanding $ORIGIN, relative paths
-    // and whatnot.
-    if (!product.qbs.targetOS.contains("windows") && product.cpp && product.cpp.useRPaths
-            && product.cpp.rpaths && product.cpp.rpaths.length > 0)
-        return;
-
     // Gather explicitly given library paths.
     if (product.cpp && product.cpp.libraryPaths)
         product.cpp.libraryPaths.forEach(function(p) { addExternalLibPath(product, libPaths, p); });
