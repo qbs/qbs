@@ -82,18 +82,18 @@ public:
 
     template<typename T, typename ...Types> void store(const T &value, const Types &...args)
     {
-        PPHelper<T>().store(value, this);
+        PPHelper<T>::store(value, this);
         store(args...);
     }
 
     template<typename T, typename ...Types> void load(T &value, Types &...args)
     {
-        PPHelper<T>().load(value, this);
+        PPHelper<T>::load(value, this);
         load(args...);
     }
     template<typename T> T load() {
         T tmp;
-        PPHelper<T>().load(tmp, this);
+        PPHelper<T>::load(tmp, this);
         return tmp;
     }
 
@@ -331,7 +331,7 @@ template<typename T> struct PPHelper<std::unique_ptr<T>>
 template<typename T> struct PPHelper<T *>
 {
     static void store(const T *value, PersistentPool *pool) { pool->storeSharedObject(value); }
-    void load(T* &value, PersistentPool *pool) { value = pool->idLoad<T>(); }
+    static void load(T* &value, PersistentPool *pool) { value = pool->idLoad<T>(); }
 };
 
 template<> struct PPHelper<QString>
