@@ -317,7 +317,7 @@ static void setupExportedPropertiesScriptValue(QScriptValue &parentObject,
                                                const std::vector<ExportedProperty> &properties,
                                                ScriptEngine *engine)
 {
-    QScriptValue propertiesScriptValue = engine->newArray(properties.size());
+    QScriptValue propertiesScriptValue = engine->newArray(static_cast<uint>(properties.size()));
     parentObject.setProperty(QStringLiteral("properties"), propertiesScriptValue);
     quint32 arrayIndex = 0;
     for (const ExportedProperty &p : properties) {
@@ -331,7 +331,7 @@ static QScriptValue setupExportedItemScriptValue(const ExportedItem *item, Scrip
     QScriptValue itemScriptValue = engine->newObject();
     itemScriptValue.setProperty(StringConstants::nameProperty(), item->name);
     setupExportedPropertiesScriptValue(itemScriptValue, item->properties, engine);
-    QScriptValue childrenScriptValue = engine->newArray(item->children.size());
+    QScriptValue childrenScriptValue = engine->newArray(static_cast<uint>(item->children.size()));
     itemScriptValue.setProperty(childItemsProperty(), childrenScriptValue);
     quint32 arrayIndex = 0;
     for (const auto &childItem : item->children) {
@@ -347,7 +347,7 @@ static QScriptValue setupExportsScriptValue(const ExportedModule &module, Script
     for (auto it = module.propertyValues.cbegin(); it != module.propertyValues.cend(); ++it)
         exportsScriptValue.setProperty(it.key(), engine->toScriptValue(it.value()));
     setupExportedPropertiesScriptValue(exportsScriptValue, module.m_properties, engine);
-    QScriptValue childrenScriptValue = engine->newArray(module.children.size());
+    QScriptValue childrenScriptValue = engine->newArray(static_cast<uint>(module.children.size()));
     exportsScriptValue.setProperty(childItemsProperty(), childrenScriptValue);
     quint32 arrayIndex = 0;
     for (const auto &exportedItem : module.children) {
