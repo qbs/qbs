@@ -65,6 +65,9 @@ public:
     NoBuildGraphError(const QString &filePath);
 };
 
+template<typename T, typename Enable = void>
+struct PPHelper;
+
 class PersistentPool
 {
 public:
@@ -77,30 +80,20 @@ public:
         QVariantMap projectConfig;
     };
 
-    // We need a helper class template, because we require partial specialization for some of
-    // the aggregate types, which is not possible with function templates.
-    // The generic implementation assumes that T is of class type and has load() and store()
-    // member functions.
-    template<typename T, typename Enable = void> struct Helper
-    {
-        static void store(const T &object, PersistentPool *pool) { const_cast<T &>(object).store(*pool); }
-        static void load(T &object, PersistentPool *pool) { object.load(*pool); }
-    };
-
     template<typename T, typename ...Types> void store(const T &value, const Types &...args)
     {
-        Helper<T>().store(value, this);
+        PPHelper<T>().store(value, this);
         store(args...);
     }
 
     template<typename T, typename ...Types> void load(T &value, Types &...args)
     {
-        Helper<T>().load(value, this);
+        PPHelper<T>().load(value, this);
         load(args...);
     }
     template<typename T> T load() {
         T tmp;
-        Helper<T>().load(tmp, this);
+        PPHelper<T>().load(tmp, this);
         return tmp;
     }
 
@@ -170,6 +163,9 @@ private:
     QHash<QString, int> m_inverseStringStorage;
     PersistentObjectId m_lastStoredStringId;
     Logger &m_logger;
+
+    template<typename T, typename Enable>
+    friend struct PPHelper;
 };
 
 template<typename T> inline const void *uniqueAddress(const T *t) { return t; }
@@ -232,10 +228,27 @@ template <class T> inline std::shared_ptr<T> PersistentPool::idLoadS()
     return t;
 }
 
+// We need a helper class template, because we require partial specialization for some of
+// the aggregate types, which is not possible with function templates.
+// The generic implementation assumes that T is of class type and has load() and store()
+// member functions.
+template<typename T, typename Enable>
+struct PPHelper
+{
+    static void store(const T &object, PersistentPool *pool)
+    {
+        const_cast<T &>(object).store(*pool);
+    }
+    static void load(T &object, PersistentPool *pool)
+    {
+        object.load(*pool);
+    }
+};
+
 /***** Specializations of Helper class *****/
 
 template<typename T>
-struct PersistentPool::Helper<T, std::enable_if_t<std::is_member_function_pointer<
+struct PPHelper<T, std::enable_if_t<std::is_member_function_pointer<
         decltype(&T::template completeSerializationOp<PersistentPool::Load>)>::value>>
 {
     static void store(const T &value, PersistentPool *pool)
@@ -248,13 +261,13 @@ struct PersistentPool::Helper<T, std::enable_if_t<std::is_member_function_pointe
     }
 };
 
-template<typename T> struct PersistentPool::Helper<T, std::enable_if_t<std::is_integral<T>::value>>
+template<typename T> struct PPHelper<T, std::enable_if_t<std::is_integral<T>::value>>
 {
     static void store(const T &value, PersistentPool *pool) { pool->m_stream << value; }
     static void load(T &value, PersistentPool *pool) { pool->m_stream >> value; }
 };
 
-template<> struct PersistentPool::Helper<long>
+template<> struct PPHelper<long>
 {
     static void store(long value, PersistentPool *pool) { pool->m_stream << qint64(value); }
     static void load(long &value, PersistentPool *pool)
@@ -266,7 +279,7 @@ template<> struct PersistentPool::Helper<long>
 };
 
 template<typename T>
-struct PersistentPool::Helper<T, std::enable_if_t<std::is_same<T, std::time_t>::value
+struct PPHelper<T, std::enable_if_t<std::is_same<T, std::time_t>::value
         && !std::is_same<T, long>::value>>
 {
     static void store(std::time_t value, PersistentPool *pool) { pool->m_stream << qint64(value); }
@@ -278,7 +291,7 @@ struct PersistentPool::Helper<T, std::enable_if_t<std::is_same<T, std::time_t>::
     }
 };
 
-template<typename T> struct PersistentPool::Helper<T, std::enable_if_t<std::is_enum<T>::value>>
+template<typename T> struct PPHelper<T, std::enable_if_t<std::is_enum<T>::value>>
 {
     using U = std::underlying_type_t<T>;
     static void store(const T &value, PersistentPool *pool)
@@ -291,7 +304,7 @@ template<typename T> struct PersistentPool::Helper<T, std::enable_if_t<std::is_e
     }
 };
 
-template<typename T> struct PersistentPool::Helper<std::shared_ptr<T>>
+template<typename T> struct PPHelper<std::shared_ptr<T>>
 {
     static void store(const std::shared_ptr<T> &value, PersistentPool *pool)
     {
@@ -303,7 +316,7 @@ template<typename T> struct PersistentPool::Helper<std::shared_ptr<T>>
     }
 };
 
-template<typename T> struct PersistentPool::Helper<std::unique_ptr<T>>
+template<typename T> struct PPHelper<std::unique_ptr<T>>
 {
     static void store(const std::unique_ptr<T> &value, PersistentPool *pool)
     {
@@ -315,31 +328,31 @@ template<typename T> struct PersistentPool::Helper<std::unique_ptr<T>>
     }
 };
 
-template<typename T> struct PersistentPool::Helper<T *>
+template<typename T> struct PPHelper<T *>
 {
     static void store(const T *value, PersistentPool *pool) { pool->storeSharedObject(value); }
     void load(T* &value, PersistentPool *pool) { value = pool->idLoad<T>(); }
 };
 
-template<> struct PersistentPool::Helper<QString>
+template<> struct PPHelper<QString>
 {
     static void store(const QString &s, PersistentPool *pool) { pool->storeString(s); }
     static void load(QString &s, PersistentPool *pool) { s = pool->idLoadString(); }
 };
 
-template<> struct PersistentPool::Helper<QVariant>
+template<> struct PPHelper<QVariant>
 {
     static void store(const QVariant &v, PersistentPool *pool) { pool->storeVariant(v); }
     static void load(QVariant &v, PersistentPool *pool) { v = pool->loadVariant(); }
 };
 
-template<> struct PersistentPool::Helper<QRegExp>
+template<> struct PPHelper<QRegExp>
 {
     static void store(const QRegExp &re, PersistentPool *pool) { pool->store(re.pattern()); }
     static void load(QRegExp &re, PersistentPool *pool) { re.setPattern(pool->idLoadString()); }
 };
 
-template<> struct PersistentPool::Helper<QProcessEnvironment>
+template<> struct PPHelper<QProcessEnvironment>
 {
     static void store(const QProcessEnvironment &env, PersistentPool *pool)
     {
@@ -360,7 +373,7 @@ template<> struct PersistentPool::Helper<QProcessEnvironment>
         }
     }
 };
-template<typename T, typename U> struct PersistentPool::Helper<std::pair<T, U>>
+template<typename T, typename U> struct PPHelper<std::pair<T, U>>
 {
     static void store(const std::pair<T, U> &pair, PersistentPool *pool)
     {
@@ -374,7 +387,7 @@ template<typename T, typename U> struct PersistentPool::Helper<std::pair<T, U>>
     }
 };
 
-template<typename T> struct PersistentPool::Helper<QFlags<T>>
+template<typename T> struct PPHelper<QFlags<T>>
 {
     using Int = typename QFlags<T>::Int;
     static void store(const QFlags<T> &flags, PersistentPool *pool)
@@ -392,7 +405,7 @@ template<> struct IsSimpleContainer<QStringList> : std::true_type { };
 template<typename T> struct IsSimpleContainer<QList<T>> : std::true_type { };
 template<typename T> struct IsSimpleContainer<std::vector<T>> : std::true_type { };
 
-template<typename T> struct PersistentPool::Helper<T, std::enable_if_t<IsSimpleContainer<T>::value>>
+template<typename T> struct PPHelper<T, std::enable_if_t<IsSimpleContainer<T>::value>>
 {
     static void store(const T &container, PersistentPool *pool)
     {
@@ -415,7 +428,7 @@ template<typename K, typename V> struct IsKeyValueContainer<QMap<K, V>> : std::t
 template<typename K, typename V> struct IsKeyValueContainer<QHash<K, V>> : std::true_type { };
 
 template<typename T>
-struct PersistentPool::Helper<T, std::enable_if_t<IsKeyValueContainer<T>::value>>
+struct PPHelper<T, std::enable_if_t<IsKeyValueContainer<T>::value>>
 {
     static void store(const T &container, PersistentPool *pool)
     {
@@ -438,7 +451,7 @@ struct PersistentPool::Helper<T, std::enable_if_t<IsKeyValueContainer<T>::value>
 };
 
 template<typename K, typename V, typename H>
-struct PersistentPool::Helper<std::unordered_map<K, V, H>>
+struct PPHelper<std::unordered_map<K, V, H>>
 {
     static void store(const std::unordered_map<K, V, H> &map, PersistentPool *pool)
     {
