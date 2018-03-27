@@ -760,6 +760,9 @@ void doSetupQtProfile(const QString &profileName, Settings *settings,
 
 QString qbsTargetPlatformFromQtMkspec(const QString &mkspec)
 {
+    int idx = mkspec.lastIndexOf(QLatin1Char('/'));
+    if (idx != -1)
+        return qbsTargetPlatformFromQtMkspec(mkspec.mid(idx + 1));
     if (mkspec.startsWith(QLatin1String("aix-")))
         return QLatin1String("aix");
     if (mkspec.startsWith(QLatin1String("android-")))
