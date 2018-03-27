@@ -44,8 +44,6 @@
 
 #include <QtCore/qstringlist.h>
 
-#include <stack>
-
 namespace qbs {
 namespace Internal {
 class Item;
