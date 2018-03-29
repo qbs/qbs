@@ -110,21 +110,20 @@ osx {
 !qbs_no_dev_install {
     tools_headers.files = \
         $$PWD/architectures.h \
+        $$PWD/buildoptions.h \
         $$PWD/cleanoptions.h \
         $$PWD/codelocation.h \
         $$PWD/commandechomode.h \
         $$PWD/error.h \
+        $$PWD/generateoptions.h \
+        $$PWD/installoptions.h \
+        $$PWD/preferences.h \
+        $$PWD/processresult.h \
+        $$PWD/profile.h \
+        $$PWD/projectgeneratormanager.h \
+        $$PWD/qbs_export.h \
         $$PWD/settings.h \
         $$PWD/settingsmodel.h \
-        $$PWD/preferences.h \
-        $$PWD/profile.h \
-        $$PWD/processresult.h \
-        $$PWD/qbs_export.h \
-        $$PWD/buildoptions.h \
-        $$PWD/generateoptions.h \
-        $$PWD/generatorpluginmanager.h \
-        $$PWD/installoptions.h \
-        $$PWD/qbspluginmanager.h \
         $$PWD/setupprojectparameters.h \
         $$PWD/toolchains.h \
         $$PWD/version.h
