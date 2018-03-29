@@ -72,7 +72,7 @@ class SVConverter : ValueHandler
     ScriptEngine * const engine;
     QScriptContext * const scriptContext;
     const QScriptValue * const object;
-    const ValuePtr &valuePtr;
+    Value * const valuePtr;
     const Item * const itemOfProperty;
     const QScriptString * const propertyName;
     const EvaluationData * const data;
@@ -88,7 +88,7 @@ public:
         , engine(static_cast<ScriptEngine *>(esc->engine()))
         , scriptContext(esc->engine()->currentContext())
         , object(obj)
-        , valuePtr(v)
+        , valuePtr(v.get())
         , itemOfProperty(_itemOfProperty)
         , propertyName(propertyName)
         , data(data)
