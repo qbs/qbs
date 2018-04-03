@@ -164,6 +164,11 @@ QbsProduct {
                             }
                         }
 
+                        // QTBUG-65916
+                        var fileName = FileInfo.fileName(inputFilePaths[i]);
+                        if (fileName.endsWith(".qm") && !fileName.startsWith("qt_"))
+                            ignore = true;
+
                         if (!ignore)
                             tf.writeLine(relativePath);
                     }
