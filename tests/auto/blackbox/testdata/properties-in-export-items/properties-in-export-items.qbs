@@ -17,12 +17,14 @@ Project {
         consoleApplication: true
         Depends { name: "dep" }
         dep.theDefine: "P1"
+        cpp.minimumMacosVersion: "10.9"
         files: ["main1.cpp"]
     }
     Application {
         name: "p2"
         consoleApplication: true
         Depends { name: "dep" }
+        cpp.minimumMacosVersion: "10.9"
         Group {
             dep.theDefine: "P2"
             files: ["main2.cpp"]
