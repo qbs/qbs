@@ -46,6 +46,21 @@
 */
 
 /*!
+    \externalpage https://doc.qt.io/qt-5/licensing.html
+    \title Qt Licensing
+*/
+
+/*!
+    \externalpage https://www.gnu.org/licenses/gpl-2.0.html
+    \title GNU General Public License, version 2
+*/
+
+/*!
+    \externalpage http://www.linfo.org/bsdlicense.html
+    \title BSD
+*/
+
+/*!
     \externalpage https://chocolatey.org/packages/qbs
     \title Chocolatey
 */

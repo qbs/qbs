@@ -44,8 +44,9 @@ static QString qbsCommandLine(const GeneratableProject &project,
                               const QString &qbsSettingsDir,
                               const Internal::VisualStudioVersionInfo &versionInfo)
 {
-    auto addEnvironmentVariableArgument = [&](Internal::CommandLine &cl, const QString &var) {
-        cl.appendRawArgument(QStringLiteral("\"$(%1)\"").arg(var));
+    auto addEnvironmentVariableArgument = [](Internal::CommandLine &cl, const QString &var,
+                                             const QString &prefix = QString()) {
+        cl.appendRawArgument(QStringLiteral("\"%1$(%2)\"").arg(prefix, var));
     };
 
     auto realSubCommand = subCommand;
@@ -92,7 +93,8 @@ static QString qbsCommandLine(const GeneratableProject &project,
         commandLine.appendArgument(QStringLiteral("--force-probe-execution"));
     }
 
-    addEnvironmentVariableArgument(commandLine, QStringLiteral("Configuration"));
+    addEnvironmentVariableArgument(commandLine, QStringLiteral("Configuration"),
+                                   QStringLiteral("config:"));
 
     return commandLine.toCommandLine(Internal::HostOsInfo::HostOsWindows);
 }
