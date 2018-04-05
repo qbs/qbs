@@ -191,7 +191,7 @@ void ASTImportsHandler::handleImport(const QbsQmlJS::AST::UiImport *import)
                     // ### versioning, qbsdir file, etc.
                     const QString &resultPath = fi.absoluteFilePath();
                     collectPrototypesAndJsCollections(resultPath, as,
-                            toCodeLocation(m_file->filePath(), import->importIdToken));
+                            toCodeLocation(m_file->filePath(), import->fileNameToken));
                     found = true;
                     break;
                 }
