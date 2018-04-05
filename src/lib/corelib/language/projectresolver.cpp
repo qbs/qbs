@@ -1051,6 +1051,7 @@ void ProjectResolver::resolveExport(Item *exportItem, ProjectContext *)
         if (usesImport(exportedModule, builtinImport))
             exportedModule.importStatements << QStringLiteral("import qbs.") + builtinImport;
     }
+    exportedModule.importStatements.sort();
 }
 
 // TODO: This probably wouldn't be necessary if we had item serialization.
