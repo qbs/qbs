@@ -1010,11 +1010,12 @@ static bool usesImport(const ExportedItem &item, const QRegularExpression &regex
 
 static bool usesImport(const ExportedModule &module, const QString &name)
 {
-    // Imports are used in two ways:
+    // Imports are used in three ways:
     // (1) var f = new TextFile(...);
     // (2) var path = FileInfo.joinPaths(...)
-    const QString pattern
-            = QStringLiteral("(?:new[[:space:]]+%1[[:space:]]+\\()|(?:[^[:alnum:]_]?%1\\.)");
+    // (3) var obj = DataCollection;
+    const QString pattern = QStringLiteral("\\b%1\\b");
+
     const QRegularExpression regex(pattern.arg(name)); // std::regex is much slower
     return any_of(module.m_properties,
                   [regex](const ExportedProperty &p) { return usesImport(p, regex); })
