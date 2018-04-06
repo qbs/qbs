@@ -3321,8 +3321,6 @@ void TestBlackbox::exportsQbs()
     WAIT_FOR_NEW_TIMESTAMP();
     touch("exports-qbs.qbs");
     QCOMPARE(runQbs(QStringList({"-p", "MyTool"})), 0);
-    if (HostOsInfo::isMacosHost())
-        QEXPECT_FAIL("", "darwin-specific rules have fake dependencies on 'qbs' tag", Continue);
     QVERIFY2(!m_qbsStdout.contains("Creating MyTool.qbs"), m_qbsStdout.constData());
 
     // Change tracking for accesses to product.exports (positive).
