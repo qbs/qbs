@@ -92,7 +92,12 @@ static QString qbsCommandLine(const GeneratableProject &project,
         commandLine.appendArgument(QStringLiteral("--force-probe-execution"));
     }
 
-    addEnvironmentVariableArgument(commandLine, QStringLiteral("Configuration"));
+    if (subCommand == QStringLiteral("generate")) {
+        commandLine.appendRawArgument(QStringLiteral("config:$(Configuration)"));
+    }
+    else {
+        addEnvironmentVariableArgument(commandLine, QStringLiteral("Configuration"));
+    }
 
     return commandLine.toCommandLine(Internal::HostOsInfo::HostOsWindows);
 }
