@@ -164,16 +164,6 @@ TopLevelProjectPtr ProjectResolver::resolve()
     try {
         tlp = resolveTopLevelProject();
         printProfilingInfo();
-    } catch (const ErrorInfo &errorInfo) {
-        ErrorInfo e;
-        for (auto it = m_loadResult.productInfos.cbegin(); it != m_loadResult.productInfos.cend();
-             ++it) {
-            const auto &productInfo = it.value();
-            if (productInfo.delayedError.hasError())
-                appendError(e, productInfo.delayedError);
-        }
-        appendError(e, errorInfo);
-        throw e;
     } catch (const CancelException &) {
         throw ErrorInfo(Tr::tr("Project resolving canceled for configuration '%1'.")
                     .arg(TopLevelProject::deriveId(m_setupParams.finalBuildConfigurationTree())));
@@ -249,7 +239,14 @@ TopLevelProjectPtr ProjectResolver::resolveTopLevelProject()
     project->probes = m_loadResult.projectProbes;
     ProjectContext projectContext;
     projectContext.project = project;
+
     resolveProject(m_loadResult.root, &projectContext);
+    ErrorInfo accumulatedErrors;
+    for (const ErrorInfo &e : m_queuedErrors)
+        appendError(accumulatedErrors, e);
+    if (accumulatedErrors.hasError())
+        throw accumulatedErrors;
+
     project->setBuildConfiguration(m_setupParams.finalBuildConfigurationTree());
     project->overriddenValues = m_setupParams.overriddenValues();
     project->canonicalFilePathResults = m_engine->canonicalFilePathResults();
@@ -340,8 +337,13 @@ void ProjectResolver::resolveProjectFully(Item *item, ProjectResolver::ProjectCo
         { ItemType::PropertyOptions, &ProjectResolver::ignoreItem }
     };
 
-    for (Item * const child : item->children())
-        callItemFunction(mapping, child, projectContext);
+    for (Item * const child : item->children()) {
+        try {
+            callItemFunction(mapping, child, projectContext);
+        } catch (const ErrorInfo &e) {
+            m_queuedErrors.push_back(e);
+        }
+    }
 
     for (const ResolvedProductPtr &product : qAsConst(projectContext->project->products))
         postProcess(product, projectContext);

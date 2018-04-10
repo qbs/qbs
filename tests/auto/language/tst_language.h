@@ -155,6 +155,7 @@ private slots:
     void relaxedErrorMode_data();
     void requiredAndNonRequiredDependencies();
     void requiredAndNonRequiredDependencies_data();
+    void suppressedAndNonSuppressedErrors();
     void throwingProbe();
     void throwingProbe_data();
     void defaultValue();

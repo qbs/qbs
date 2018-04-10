@@ -185,6 +185,7 @@ private:
     ModuleLoaderResult m_loadResult;
     Set<CodeLocation> m_groupLocationWarnings;
     std::vector<std::pair<ResolvedProductPtr, Item *>> m_productExportInfo;
+    std::vector<ErrorInfo> m_queuedErrors;
     qint64 m_elapsedTimeModPropEval;
     qint64 m_elapsedTimeAllPropEval;
     qint64 m_elapsedTimeGroups;

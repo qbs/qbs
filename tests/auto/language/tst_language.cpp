@@ -2636,6 +2636,20 @@ void TestLanguage::requiredAndNonRequiredDependencies_data()
                                                       << false;
 }
 
+void TestLanguage::suppressedAndNonSuppressedErrors()
+{
+    try {
+        SetupProjectParameters params = defaultParameters;
+        const QString projectFilePath = "suppressed-and-non-suppressed-errors.qbs";
+        params.setProjectFilePath(testProject(projectFilePath.toLocal8Bit()));
+        const TopLevelProjectConstPtr project = loader->loadProject(params);
+        QFAIL("failure expected");
+    } catch (const ErrorInfo &e) {
+        QVERIFY2(e.toString().contains("easter bunny"), qPrintable(e.toString()));
+        QVERIFY2(!e.toString().contains("TheBeautifulSausage"), qPrintable(e.toString()));
+    }
+}
+
 void TestLanguage::throwingProbe()
 {
     QFETCH(bool, enableProbe);
