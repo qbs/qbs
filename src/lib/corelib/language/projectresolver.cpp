@@ -913,12 +913,19 @@ void ProjectResolver::collectExportedProductDependencies()
             if (!contains(directDepNames, dep.product->name))
                 continue;
 
-            exportingProduct->exportedModule.productDependencies.insert(dep.product);
+            if (!contains(exportingProduct->exportedModule.productDependencies, dep.product))
+                exportingProduct->exportedModule.productDependencies.push_back(dep.product);
             if (!dep.parameters.isEmpty()) {
                 exportingProduct->exportedModule.dependencyParameters.insert(dep.product,
                                                                              dep.parameters);
             }
         }
+        auto &productDeps = exportingProduct->exportedModule.productDependencies;
+        static const auto cmpFunc = [](const ResolvedProductConstPtr &p1,
+                const ResolvedProductConstPtr &p2) {
+            return p1->uniqueName() < p2->uniqueName();
+        };
+        std::sort(productDeps.begin(), productDeps.end(), cmpFunc);
     }
 }
 
@@ -1042,6 +1049,10 @@ void ProjectResolver::resolveExport(Item *exportItem, ProjectContext *)
 {
     ExportedModule &exportedModule = m_productContext->product->exportedModule;
     setupExportedProperties(exportItem, QString(), exportedModule.m_properties);
+    static const auto cmpFunc = [](const ExportedProperty &p1, const ExportedProperty &p2) {
+        return p1.fullName < p2.fullName;
+    };
+    std::sort(exportedModule.m_properties.begin(), exportedModule.m_properties.end(), cmpFunc);
     for (const Item * const child : exportItem->children())
         exportedModule.children.push_back(resolveExportChild(child, exportedModule));
     for (const JsImport &jsImport : exportItem->file()->jsImports()) {
@@ -1533,7 +1544,8 @@ void ProjectResolver::resolveProductDependencies(const ProjectContext &projectCo
         if (depInfos.hasDisabledDependency)
             disabledDependency = true;
         for (const auto &dep : depInfos.dependencies) {
-            rproduct->dependencies.insert(dep.product);
+            if (!contains(rproduct->dependencies, dep.product))
+                rproduct->dependencies.push_back(dep.product);
             if (!dep.parameters.empty())
                 rproduct->dependencyParameters.insert(dep.product, dep.parameters);
         }

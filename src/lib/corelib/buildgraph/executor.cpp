@@ -189,8 +189,10 @@ public:
     void apply()
     {
         Set<ResolvedProductPtr> allDependencies;
-        for (const ResolvedProductPtr &product : m_allProducts)
-            allDependencies += product->dependencies;
+        for (const ResolvedProductPtr &product : m_allProducts) {
+            for (const ResolvedProductPtr &dep : product->dependencies)
+                allDependencies += dep;
+        }
         const Set<ResolvedProductPtr> rootProducts
                 = Set<ResolvedProductPtr>::fromList(m_allProducts) - allDependencies;
         m_priority = UINT_MAX;

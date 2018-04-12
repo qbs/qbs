@@ -538,10 +538,10 @@ public:
     QVariantMap propertyValues;
     QVariantMap modulePropertyValues;
     std::vector<ExportedItemPtr> children;
-    Set<ResolvedProductPtr> productDependencies;
+    std::vector<ResolvedProductPtr> productDependencies;
     std::vector<ExportedModuleDependency> moduleDependencies;
     std::vector<ExportedProperty> m_properties;
-    QHash<ResolvedProductConstPtr, QVariantMap> dependencyParameters;
+    QMap<ResolvedProductConstPtr, QVariantMap> dependencyParameters;
     QStringList importStatements;
 };
 
@@ -571,7 +571,7 @@ public:
     QVariantMap productProperties;
     PropertyMapPtr moduleProperties;
     QList<RulePtr> rules;
-    Set<ResolvedProductPtr> dependencies;
+    std::vector<ResolvedProductPtr> dependencies;
     QHash<ResolvedProductConstPtr, QVariantMap> dependencyParameters;
     QList<FileTaggerConstPtr> fileTaggers;
     QList<ResolvedModulePtr> modules;

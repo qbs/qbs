@@ -58,6 +58,7 @@
 #include <tools/fileinfo.h>
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
+#include <tools/stlutils.h>
 
 namespace qbs {
 namespace Internal {
@@ -66,7 +67,7 @@ static Set<ResolvedProductPtr> findDependentProducts(const ResolvedProductPtr &p
 {
     Set<ResolvedProductPtr> result;
     for (const ResolvedProductPtr &parent : product->topLevelProject()->allProducts()) {
-        if (parent->dependencies.contains(product))
+        if (contains(parent->dependencies, product))
             result += parent;
     }
     return result;
@@ -297,7 +298,7 @@ void BuildDataResolver::resolveProductBuildDataForExistingProject(const TopLevel
             resolveProductBuildData(product);
     }
 
-    QHash<ResolvedProductPtr, Set<ResolvedProductPtr>> dependencyMap;
+    QHash<ResolvedProductPtr, std::vector<ResolvedProductPtr>> dependencyMap;
     for (const ResolvedProductPtr &product : freshProducts) {
         if (!product->enabled)
             continue;
@@ -306,7 +307,8 @@ void BuildDataResolver::resolveProductBuildDataForExistingProject(const TopLevel
         for (const ResolvedProductPtr &dependentProduct : dependents) {
             if (!dependentProduct->enabled)
                 continue;
-            dependencyMap[dependentProduct] << product;
+            if (!contains(dependencyMap[dependentProduct], product))
+                dependencyMap[dependentProduct].push_back(product);
         }
     }
     for (auto it = dependencyMap.cbegin(); it != dependencyMap.cend(); ++it) {
@@ -431,7 +433,7 @@ static bool isRootRuleNode(RuleNode *ruleNode)
 }
 
 void BuildDataResolver::connectRulesToDependencies(const ResolvedProductPtr &product,
-                                                   const Set<ResolvedProductPtr> &dependencies)
+        const std::vector<ResolvedProductPtr> &dependencies)
 {
     // Connect the rules of this product to the compatible rules of all product dependencies.
     // Rules that take "installable" artifacts are connected to all root rules of product

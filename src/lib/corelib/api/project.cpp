@@ -837,7 +837,6 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
         qSort(product.d->type);
         qSort(product.d->groups);
         qSort(product.d->generatedArtifacts);
-        qSort(product.d->dependencies);
         product.d->isValid = true;
         projectData.d->products << product;
     }

@@ -975,8 +975,8 @@ bool operator==(const ExportedModule &m1, const ExportedModule &m2)
             const ResolvedProductConstPtr &p2) {
         return p1->name == p2->name;
     };
-    static const auto depMapsEqual = [](const QHash<ResolvedProductConstPtr, QVariantMap> &m1,
-            const QHash<ResolvedProductConstPtr, QVariantMap> &m2) {
+    static const auto depMapsEqual = [](const QMap<ResolvedProductConstPtr, QVariantMap> &m1,
+            const QMap<ResolvedProductConstPtr, QVariantMap> &m2) {
         if (m1.size() != m2.size())
             return false;
         for (auto it1 = m1.cbegin(), it2 = m2.cbegin(); it1 != m1.cend(); ++it1, ++it2) {
@@ -987,6 +987,7 @@ bool operator==(const ExportedModule &m1, const ExportedModule &m2)
         }
         return true;
     };
+
     return m1.propertyValues == m2.propertyValues
             && m1.modulePropertyValues == m2.modulePropertyValues
             && equals(m1.children, m2.children)

@@ -115,7 +115,7 @@ public:
 private:
     void resolveProductBuildData(const ResolvedProductPtr &product);
     void connectRulesToDependencies(const ResolvedProductPtr &product,
-                                    const Set<ResolvedProductPtr> &dependencies);
+                                    const std::vector<ResolvedProductPtr> &dependencies);
 
     RulesEvaluationContextPtr evalContext() const;
     ScriptEngine *engine() const;

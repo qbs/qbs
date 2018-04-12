@@ -62,6 +62,7 @@
 #include <tools/profile.h>
 #include <tools/qttools.h>
 #include <tools/settings.h>
+#include <tools/stlutils.h>
 
 #include "../shared/logging/consolelogger.h"
 
@@ -901,9 +902,9 @@ void TestLanguage::exports()
 
         product = products.value("A");
         QVERIFY(!!product);
-        QVERIFY(product->dependencies.contains(products.value("B")));
-        QVERIFY(product->dependencies.contains(products.value("C")));
-        QVERIFY(product->dependencies.contains(products.value("D")));
+        QVERIFY(contains(product->dependencies, products.value("B")));
+        QVERIFY(contains(product->dependencies, products.value("C")));
+        QVERIFY(contains(product->dependencies, products.value("D")));
         product = products.value("B");
         QVERIFY(!!product);
         QVERIFY(product->dependencies.empty());
@@ -2715,8 +2716,8 @@ void TestLanguage::recursiveProductDependencies()
         QVERIFY(!!p3);
         const ResolvedProductPtr p4 = products.value("p4");
         QVERIFY(!!p4);
-        QVERIFY(p1->dependencies == Set<ResolvedProductPtr>() << p3 << p4);
-        QVERIFY(p2->dependencies == Set<ResolvedProductPtr>() << p3 << p4);
+        QVERIFY(p1->dependencies == std::vector<ResolvedProductPtr>({p3, p4}));
+        QVERIFY(p2->dependencies == std::vector<ResolvedProductPtr>({p3, p4}));
     } catch (const ErrorInfo &e) {
         exceptionCaught = true;
         qDebug() << e.toString();

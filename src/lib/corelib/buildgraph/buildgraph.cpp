@@ -222,20 +222,16 @@ private:
         QScriptValue result = engine->newArray();
         quint32 idx = 0;
         const bool exportCase = depType == DependencyType::Exported;
-        QList<ResolvedProductPtr> productDeps = (exportCase
+        const std::vector<ResolvedProductPtr> &productDeps = (exportCase
                                                  ? product->exportedModule.productDependencies
-                                                 : product->dependencies).toList();
-        std::sort(productDeps.begin(), productDeps.end(),
-                  [](const ResolvedProductPtr &p1, const ResolvedProductPtr &p2) {
-                          return p1->name < p2->name;
-                  });
+                                                 : product->dependencies);
         for (const ResolvedProductPtr &dependency : qAsConst(productDeps)) {
             QScriptValue obj = engine->newObject(engine->productPropertyScriptClass());
             obj.setPrototype(setupProductScriptValue(static_cast<ScriptEngine *>(engine),
                                                      dependency.get()));
             const QVariantMap &params
-                    = (exportCase ? product->exportedModule.dependencyParameters
-                                  : product->dependencyParameters).value(dependency);
+                    = (exportCase ? product->exportedModule.dependencyParameters.value(dependency)
+                                  : product->dependencyParameters.value(dependency));
             QScriptValue data = getDataForProductScriptValue(engine, dependency.get());
             data.setProperty(DependencyParametersKey, dependencyParametersValue(
                                  product->uniqueName(), dependency->name, params, engine));
