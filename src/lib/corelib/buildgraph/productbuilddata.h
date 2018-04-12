@@ -88,8 +88,7 @@ public:
     unsigned int buildPriority() const { return m_buildPriority; }
     void setBuildPriority(unsigned int prio) { m_buildPriority = prio; }
 
-    bool isJsArtifactsMapUpToDate() const { return m_jsArtifactsMapUpToDate; }
-    void setJsArtifactsMapUpToDate() { m_jsArtifactsMapUpToDate = true; }
+    bool checkAndSetJsArtifactsMapUpToDateFlag();
 
     template<PersistentPool::OpType opType> void completeSerializationOp(PersistentPool &pool)
     {

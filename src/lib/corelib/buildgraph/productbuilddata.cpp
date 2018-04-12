@@ -143,6 +143,16 @@ void ProductBuildData::addRescuableArtifactData(const QString &filePath,
     m_rescuableArtifactData.insert(filePath, rad);
 }
 
+bool ProductBuildData::checkAndSetJsArtifactsMapUpToDateFlag()
+{
+    std::lock_guard<std::mutex> l(m_artifactsMapMutex);
+    if (!m_jsArtifactsMapUpToDate) {
+        m_jsArtifactsMapUpToDate = true;
+        return false;
+    }
+    return true;
+}
+
 void ProductBuildData::removeArtifactFromSet(Artifact *artifact)
 {
     for (const FileTag &t : artifact->fileTags())

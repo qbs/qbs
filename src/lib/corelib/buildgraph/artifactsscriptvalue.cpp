@@ -74,17 +74,11 @@ static ArtifactSetByFileTag artifactsMap(const ResolvedModule *module)
     return artifactsMap(module->product);
 }
 
-static bool isArtifactsMapUpToDate(const ResolvedProduct *p)
+static bool checkAndSetArtifactsMapUpToDateFlag(const ResolvedProduct *p)
 {
-    return p->buildData->isJsArtifactsMapUpToDate();
+    return p->buildData->checkAndSetJsArtifactsMapUpToDateFlag();
 }
-static bool isArtifactsMapUpToDate(const ResolvedModule *) { return true; }
-
-static void setArtifactsMapUpToDate(const ResolvedProduct *p)
-{
-    p->buildData->setJsArtifactsMapUpToDate();
-}
-static void setArtifactsMapUpToDate(const ResolvedModule *) { }
+static bool checkAndSetArtifactsMapUpToDateFlag(const ResolvedModule *) { return true; }
 
 static void registerArtifactsMapAccess(const ResolvedProduct *p, ScriptEngine *e)
 {
@@ -123,7 +117,7 @@ template<class ProductOrModule> static QScriptValue js_artifacts(
 {
     registerArtifactsMapAccess(productOrModule, engine);
     QScriptValue artifactsObj = ctx->callee().property(CachedValueKey);
-    if (artifactsObj.isObject() && isArtifactsMapUpToDate(productOrModule))
+    if (artifactsObj.isObject() && checkAndSetArtifactsMapUpToDateFlag(productOrModule))
         return artifactsObj;
     artifactsObj = engine->newObject();
     ctx->callee().setProperty(CachedValueKey, artifactsObj);
@@ -137,7 +131,6 @@ template<class ProductOrModule> static QScriptValue js_artifacts(
                                  QScriptValue::ReadOnly | QScriptValue::Undeletable
                                  | QScriptValue::PropertyGetter);
     }
-    setArtifactsMapUpToDate(productOrModule);
     return artifactsObj;
 }
 
