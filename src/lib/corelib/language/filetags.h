@@ -76,6 +76,7 @@ public:
 };
 
 template<> inline bool Set<FileTag>::sortAfterLoadRequired() const { return true; }
+QDebug operator<<(QDebug debug, const FileTag &tag);
 
 class FileTags : public Set<FileTag>
 {

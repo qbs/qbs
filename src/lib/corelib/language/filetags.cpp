@@ -60,6 +60,12 @@ void FileTag::load(PersistentPool &pool)
     *this = FileTag(pool.load<QString>().toUtf8());
 }
 
+QDebug operator<<(QDebug debug, const FileTag &tag)
+{
+    QDebugStateSaver saver(debug);
+    return debug.resetFormat().noquote() << tag.toString();
+}
+
 FileTags FileTags::fromStringList(const QStringList &strings)
 {
     FileTags result;
