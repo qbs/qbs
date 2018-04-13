@@ -289,8 +289,6 @@ Module {
             var cmd = new JavaScriptCommand();
             cmd.description = "generating Info.plist for " + product.name;
             cmd.highlight = "codegen";
-            cmd.infoPlistFiles = inputs.infoplist;
-            cmd.partialInfoPlistFiles = inputs.partial_infoplist;
             cmd.infoPlist = ModUtils.moduleProperty(product, "infoPlist") || {};
             cmd.processInfoPlist = ModUtils.moduleProperty(product, "processInfoPlist");
             cmd.infoPlistFormat = ModUtils.moduleProperty(product, "infoPlistFormat");
@@ -312,12 +310,15 @@ Module {
                 // Contains the combination of default, file, and in-source keys and values
                 // Start out with the contents of this file as the "base", if given
                 var aggregatePlist = {};
-                for (i in infoPlistFiles) {
-                    aggregatePlist = BundleTools.infoPlistContents(infoPlistFiles[i].filePath);
-                    infoPlistFormat = (infoPlistFormat === "same-as-input")
-                            ? BundleTools.infoPlistFormat(infoPlistFiles[i].filePath)
-                            : "xml1";
-                    break;
+                if (typeof inputs.infoplist !== 'undefined') {
+                    for (i = 0; i < inputs.infoplist.length; ++i) {
+                        aggregatePlist =
+                                BundleTools.infoPlistContents(inputs.infoplist[i].filePath);
+                        infoPlistFormat = (infoPlistFormat === "same-as-input")
+                                ? BundleTools.infoPlistFormat(inputs.infoplist[i].filePath)
+                                : "xml1";
+                        break;
+                    }
                 }
 
                 // Add local key-value pairs (overrides equivalent keys specified in the file if
@@ -406,8 +407,10 @@ Module {
                                 + varName + "' when expanding value for key '" + key
                                 + "', defined in one of the following files:\n\t";
                         var allFilePaths = [];
-                        for (i in infoPlistFiles)
-                            allFilePaths.push(infoPlistFiles[i].filePath);
+                        if (typeof inputs.infoplist !== 'undefined') {
+                            for (i = 0; i < inputs.infoplist.length; ++i)
+                                allFilePaths.push(inputs.infoplist[i].filePath);
+                        }
                         if (platformInfoPlist)
                             allFilePaths.push(platformInfoPlist);
                         msg += allFilePaths.join("\n\t") + "\n";
@@ -418,8 +421,10 @@ Module {
                     aggregatePlist = expander.expand(aggregatePlist, env);
 
                     // Add keys from partial Info.plists from asset catalogs, XIBs, and storyboards
-                    for (i in partialInfoPlistFiles) {
-                        var partialInfoPlist = BundleTools.infoPlistContents(partialInfoPlistFiles[i].filePath) || {};
+                    for (var j = 0; j < inputs.partial_infoplist.length; ++j) {
+                        var partialInfoPlist =
+                                BundleTools.infoPlistContents(inputs.partial_infoplist[j].filePath)
+                                || {};
                         for (key in partialInfoPlist) {
                             if (partialInfoPlist.hasOwnProperty(key))
                                 aggregatePlist[key] = partialInfoPlist[key];
