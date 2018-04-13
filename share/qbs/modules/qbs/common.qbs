@@ -83,7 +83,7 @@ Module {
     property string pathSeparator: hostOS.contains("windows") ? "\\" : "/"
     property string nullDevice: hostOS.contains("windows") ? "NUL" : "/dev/null"
     property path shellPath: hostOS.contains("windows") ? windowsShellPath : "/bin/sh"
-    property string profile
+    property string profile: project.profile
     property string toolchainType: {
         if (targetOS.contains("windows"))
             return hostOS.contains("windows") ? "msvc" : "mingw";

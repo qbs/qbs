@@ -852,10 +852,6 @@ QList<Item *> ModuleLoader::multiplexProductItem(ProductContext *dummyContext, I
             const QString &propertyName = multiplexInfo.properties.at(column);
             const VariantValuePtr &mpvalue = mprow.at(column);
             qbsItem->setProperty(propertyName, mpvalue);
-
-            // Backward compatibility
-            if (propertyName == StringConstants::profileProperty())
-                item->setProperty(StringConstants::profileProperty(), mpvalue);
         }
     }
 
@@ -967,8 +963,16 @@ void ModuleLoader::prepareProduct(ProjectContext *projectContext, Item *productI
     productContext.project = projectContext;
     productContext.name = m_evaluator->stringValue(productItem, StringConstants::nameProperty());
     QBS_CHECK(!productContext.name.isEmpty());
-    productContext.profileName = m_evaluator->stringValue(
-                productItem, StringConstants::profileProperty(), QString());
+    const ItemValueConstPtr qbsItemValue = productItem->itemProperty(StringConstants::qbsModule());
+    if (!!qbsItemValue && qbsItemValue->item()->hasProperty(StringConstants::profileProperty())) {
+        qbsItemValue->item()->setProperty(StringConstants::nameProperty(),
+                                          VariantValue::create(StringConstants::nameProperty()));
+        productContext.profileName = m_evaluator->stringValue(
+                    qbsItemValue->item(),
+                    StringConstants::profileProperty(), QString());
+    } else {
+        productContext.profileName = m_parameters.topLevelProfile();
+    }
     productContext.multiplexConfigurationId = m_evaluator->stringValue(
                 productItem, StringConstants::multiplexConfigurationIdProperty());
     productContext.multiplexConfigIdForModulePrototypes = m_evaluator->stringValue(

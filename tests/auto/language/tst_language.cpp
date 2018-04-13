@@ -538,7 +538,7 @@ void TestLanguage::dependencyOnAllProfiles()
         QCOMPARE(mainProduct->dependencies.size(), size_t { 2 });
         for (const ResolvedProductConstPtr &p : mainProduct->dependencies) {
             QCOMPARE(p->name, QLatin1String("dep"));
-            QVERIFY(p->profile == "p1" || p->profile == "p2");
+            QVERIFY(p->profile() == "p1" || p->profile() == "p2");
         }
     } catch (const ErrorInfo &e) {
         exceptionCaught = true;

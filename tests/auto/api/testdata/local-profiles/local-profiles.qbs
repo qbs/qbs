@@ -20,9 +20,9 @@ Project {
         name: "app"
         Depends { name: "cpp"; required: false }
         aggregate: false
-        multiplexByQbsProperties: ["buildVariants", "profiles"]
+        multiplexByQbsProperties: ["buildVariants"]
         qbs.buildVariants: ["debug", "release"]
-        qbs.profiles: ["mingwProfile"]
+        qbs.profile: "mingwProfile"
     }
     DynamicLibrary {
         name: "lib"

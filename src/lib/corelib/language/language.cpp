@@ -481,6 +481,11 @@ QString ResolvedProduct::fullDisplayName() const
     return fullDisplayName(name, multiplexConfigurationId);
 }
 
+QString ResolvedProduct::profile() const
+{
+    return moduleProperties->qbsPropertyValue(StringConstants::profileProperty()).toString();
+}
+
 static QStringList findGeneratedFiles(const Artifact *base, bool recursive, const FileTags &tags)
 {
     QStringList result;

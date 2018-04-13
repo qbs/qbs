@@ -206,7 +206,6 @@ QList<ResolvedProductPtr> ProjectPrivate::allEnabledInternalProducts(bool includ
 static bool matches(const ProductData &product, const ResolvedProductConstPtr &rproduct)
 {
     return product.name() == rproduct->name
-            && product.profile() == rproduct->profile
             && product.multiplexConfigurationId() == rproduct->multiplexConfigurationId;
 }
 
@@ -786,7 +785,6 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
         product.d->targetName = resolvedProduct->targetName;
         product.d->version = resolvedProduct
                 ->productProperties.value(StringConstants::versionProperty()).toString();
-        product.d->profile = resolvedProduct->profile;
         product.d->multiplexConfigurationId = resolvedProduct->multiplexConfigurationId;
         product.d->location = resolvedProduct->location;
         product.d->buildDirectory = resolvedProduct->buildDirectory();
@@ -1156,7 +1154,7 @@ Project::BuildGraphInfo Project::getBuildGraphInfo(const QString &bgFilePath,
         for (const ResolvedProductConstPtr &product : project->allProducts()) {
             if (props.empty())
                 break;
-            if (product->profile != project->profile())
+            if (product->profile() != project->profile())
                 continue;
             for (auto it = props.begin(); it != props.end();) {
                 const QVariant value

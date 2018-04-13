@@ -376,8 +376,6 @@ void BuiltinDeclarations::addProductItem()
     profilesDecl.setDeprecationInfo(DeprecationInfo(Version::fromString(QLatin1String("1.9.0")),
                                                     Tr::tr("Use qbs.profiles instead.")));
     item << profilesDecl;
-    item << PropertyDeclaration(StringConstants::profileProperty(), PropertyDeclaration::String,
-                                QLatin1String("project.profile")); // Internal
     item << PropertyDeclaration(StringConstants::targetNameProperty(), PropertyDeclaration::String,
                                 QLatin1String("new String(name)"
                                               ".replace(/[/\\\\?%*:|\"<>]/g, '_').valueOf()"));

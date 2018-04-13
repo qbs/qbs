@@ -435,8 +435,6 @@ void ProjectResolver::resolveProductFully(Item *item, ProjectContext *projectCon
     // product->buildDirectory() isn't valid yet, because the productProperties map is not ready.
     m_productContext->buildDirectory
             = m_evaluator->stringValue(item, StringConstants::buildDirectoryProperty());
-    product->profile = m_evaluator->stringValue(item, StringConstants::profileProperty());
-    QBS_CHECK(!product->profile.isEmpty());
     product->multiplexConfigurationId
             = m_evaluator->stringValue(item, StringConstants::multiplexConfigurationIdProperty());
     qCDebug(lcProjectResolver) << "resolveProduct" << product->uniqueName();
@@ -1353,10 +1351,10 @@ ProjectResolver::ProductDependencyInfos ProjectResolver::getProductDependencies(
                                 .arg(product->fullDisplayName(), depDisplayName),
                                 product->location);
             }
-            if (!dependency.profile.isEmpty() && usedProduct->profile != dependency.profile) {
+            if (!dependency.profile.isEmpty() && usedProduct->profile() != dependency.profile) {
                 usedProduct.reset();
                 for (const ResolvedProductPtr &p : qAsConst(m_productsByName)) {
-                    if (p->name == dependency.name && p->profile == dependency.profile) {
+                    if (p->name == dependency.name && p->profile() == dependency.profile) {
                         usedProduct = p;
                         break;
                     }

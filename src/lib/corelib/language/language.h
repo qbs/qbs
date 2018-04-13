@@ -562,7 +562,6 @@ public:
     FileTags fileTags;
     QString name;
     QString targetName;
-    QString profile;
     QString multiplexConfigurationId;
     QString sourceDirectory;
     QString destinationDirectory;
@@ -608,6 +607,7 @@ public:
     QString uniqueName() const;
     static QString fullDisplayName(const QString &name, const QString &multiplexConfigurationId);
     QString fullDisplayName() const;
+    QString profile() const;
 
     QStringList generatedFiles(const QString &baseFile, bool recursive, const FileTags &tags) const;
 
@@ -629,7 +629,7 @@ private:
 
     template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
     {
-        pool.serializationOp<opType>(enabled, fileTags, name, profile, multiplexConfigurationId,
+        pool.serializationOp<opType>(enabled, fileTags, name, multiplexConfigurationId,
                                      targetName, sourceDirectory, destinationDirectory,
                                      missingSourceFiles, location, productProperties,
                                      moduleProperties, rules, dependencies, dependencyParameters,

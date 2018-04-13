@@ -46,6 +46,7 @@
 #include <tools/jsliterals.h>
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
+#include <tools/stringconstants.h>
 
 #include <QtCore/qdir.h>
 
@@ -484,7 +485,9 @@ QString ProductData::version() const
  */
 QString ProductData::profile() const
 {
-    return d->profile;
+    return d->moduleProperties.getModuleProperty(
+                Internal::StringConstants::qbsModule(),
+                Internal::StringConstants::profileProperty()).toString();
 }
 
 QString ProductData::multiplexConfigurationId() const

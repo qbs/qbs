@@ -110,7 +110,6 @@ public:
     QString name;
     QString targetName;
     QString version;
-    QString profile;
     QString multiplexConfigurationId;
     CodeLocation location;
     QString buildDirectory;
