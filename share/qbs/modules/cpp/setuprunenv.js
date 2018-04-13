@@ -55,8 +55,12 @@ function addExternalLibPath(product, list, path)
     }
 }
 
-function gatherPaths(product, libPaths, frameworkPaths)
+function gatherPaths(product, libPaths, frameworkPaths, seenProducts)
 {
+    if (seenProducts.contains(product.name))
+        return;
+    seenProducts.push(product.name);
+
     // Gather explicitly given library paths.
     if (product.cpp && product.cpp.libraryPaths)
         product.cpp.libraryPaths.forEach(function(p) { addExternalLibPath(product, libPaths, p); });
@@ -92,7 +96,7 @@ function gatherPaths(product, libPaths, frameworkPaths)
                 loadableModuleArtifacts.forEach(addArtifact);
         }
         if (!dep.hasOwnProperty("present")) // Recurse if the dependency is a product. TODO: Provide non-heuristic way to decide whether dependency is a product.
-            gatherPaths(dep, libPaths, frameworkPaths);
+            gatherPaths(dep, libPaths, frameworkPaths, seenProducts);
     }
 }
 
@@ -107,7 +111,7 @@ function setupRunEnvironment(product, config)
 
     var libPaths = [];
     var frameworkPaths = [];
-    gatherPaths(product, libPaths, frameworkPaths);
+    gatherPaths(product, libPaths, frameworkPaths, []);
 
     var runPaths = product.cpp ? product.cpp.systemRunPaths : undefined;
     if (runPaths && runPaths.length > 0) {
