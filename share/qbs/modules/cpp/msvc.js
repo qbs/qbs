@@ -183,6 +183,9 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
         }
     }
 
+    if (product.cpp.debugInformation && product.cpp.separateDebugInformation)
+        args.push("/Fd" + product.targetName + ".cl" + product.cpp.debugInfoSuffix);
+
     var objOutput = outputs.obj ? outputs.obj[0] : undefined
     args.push('/Fo' + FileInfo.toWindowsSeparators(objOutput.filePath))
     args.push(FileInfo.toWindowsSeparators(input.filePath))
