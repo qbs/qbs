@@ -146,6 +146,11 @@ template<class ProductOrModule> static QScriptValue js_artifacts(
     ctx->callee().setProperty(CachedValueKey, artifactsObj);
     const auto &map = artifactsMap(productOrModule);
     for (auto it = map.cbegin(); it != map.cend(); ++it) {
+        const auto filter = [productOrModule](const Artifact *a) {
+            return isRelevantArtifact(productOrModule, a);
+        };
+        if (std::none_of(it.value().cbegin(), it.value().cend(), filter))
+            continue;
         QScriptValue fileTagFunc = engine->newFunction(&js_artifactsForFileTag<ProductOrModule>,
                                                        productOrModule);
         const QString fileTag = it.key().toString();

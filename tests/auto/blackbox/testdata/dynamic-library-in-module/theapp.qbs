@@ -7,6 +7,7 @@ Project {
         Depends { name: "theotherlib" }
         Depends { name: "thethirdlib" }
         Depends { name: "thefourthlib" }
+        Depends { name: "staticlib" }
         files: "main.cpp"
         Group {
             fileTagsFilter: "dynamiclibrary"
@@ -22,5 +23,11 @@ Project {
             Depends { name: "cpp" }
             cpp.rpaths: [qbs.installRoot]
         }
+    }
+    StaticLibrary {
+        name: "staticlib"
+        Depends { name: "cpp" }
+        Depends { name: "theotherlib" }
+        files: "lib5.cpp"
     }
 }
