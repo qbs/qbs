@@ -310,15 +310,14 @@ Module {
                 // Contains the combination of default, file, and in-source keys and values
                 // Start out with the contents of this file as the "base", if given
                 var aggregatePlist = {};
-                if (typeof inputs.infoplist !== 'undefined') {
-                    for (i = 0; i < inputs.infoplist.length; ++i) {
-                        aggregatePlist =
-                                BundleTools.infoPlistContents(inputs.infoplist[i].filePath);
-                        infoPlistFormat = (infoPlistFormat === "same-as-input")
-                                ? BundleTools.infoPlistFormat(inputs.infoplist[i].filePath)
-                                : "xml1";
-                        break;
-                    }
+
+                for (i = 0; i < (inputs.infoplist || []).length; ++i) {
+                    aggregatePlist =
+                            BundleTools.infoPlistContents(inputs.infoplist[i].filePath);
+                    infoPlistFormat = (infoPlistFormat === "same-as-input")
+                            ? BundleTools.infoPlistFormat(inputs.infoplist[i].filePath)
+                            : "xml1";
+                    break;
                 }
 
                 // Add local key-value pairs (overrides equivalent keys specified in the file if
@@ -407,10 +406,10 @@ Module {
                                 + varName + "' when expanding value for key '" + key
                                 + "', defined in one of the following files:\n\t";
                         var allFilePaths = [];
-                        if (typeof inputs.infoplist !== 'undefined') {
-                            for (i = 0; i < inputs.infoplist.length; ++i)
-                                allFilePaths.push(inputs.infoplist[i].filePath);
-                        }
+
+                        for (i = 0; i < (inputs.infoplist || []).length; ++i)
+                            allFilePaths.push(inputs.infoplist[i].filePath);
+
                         if (platformInfoPlist)
                             allFilePaths.push(platformInfoPlist);
                         msg += allFilePaths.join("\n\t") + "\n";
@@ -420,16 +419,18 @@ Module {
                     };
                     aggregatePlist = expander.expand(aggregatePlist, env);
 
-                    // Add keys from partial Info.plists from asset catalogs, XIBs, and storyboards
-                    for (var j = 0; j < inputs.partial_infoplist.length; ++j) {
+                    // Add keys from partial Info.plists from asset catalogs, XIBs, and storyboards.
+                    for (var j = 0; j < (inputs.partial_infoplist || []).length; ++j) {
                         var partialInfoPlist =
-                                BundleTools.infoPlistContents(inputs.partial_infoplist[j].filePath)
+                                BundleTools.infoPlistContents(
+                                    inputs.partial_infoplist[j].filePath)
                                 || {};
                         for (key in partialInfoPlist) {
                             if (partialInfoPlist.hasOwnProperty(key))
                                 aggregatePlist[key] = partialInfoPlist[key];
                         }
                     }
+
                 }
 
                 // Anything with an undefined or otherwise empty value should be removed
