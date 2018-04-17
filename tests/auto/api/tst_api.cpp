@@ -2816,6 +2816,49 @@ void TestApi::trackRemoveQObjectHeader()
     QVERIFY2(isAboutUndefinedSymbols(receiver.output), qPrintable(receiver.output));
 }
 
+void TestApi::transformerData()
+{
+    const qbs::SetupProjectParameters params
+            = defaultSetupParameters("transformer-data/transformer-data.qbs");
+    const std::unique_ptr<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(params,
+                                                                                    m_logSink, 0));
+    QVERIFY(waitForFinished(setupJob.get()));
+    QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
+    const qbs::Project project = setupJob->project();
+    const std::unique_ptr<qbs::BuildJob> buildJob(project.buildAllProducts(qbs::BuildOptions()));
+    QVERIFY(waitForFinished(buildJob.get()));
+    QVERIFY2(!buildJob->error().hasError(), qPrintable(buildJob->error().toString()));
+    qbs::ErrorInfo error;
+    const qbs::ProjectTransformerData projectTData = project.transformerData(&error);
+    QVERIFY2(!error.hasError(), qPrintable(error.toString()));
+    QCOMPARE(projectTData.size(), 1);
+    const qbs::ProductTransformerData productTData = projectTData.first().second;
+    QCOMPARE(productTData.size(), 2);
+    bool firstTransformerFound = false;
+    bool secondTransformerFound = false;
+    for (const qbs::TransformerData &tData : productTData) {
+        if (tData.inputs().empty()) {
+            firstTransformerFound = true;
+            QCOMPARE(tData.outputs().size(), 1);
+            QCOMPARE(QFileInfo(tData.outputs().first().filePath()).fileName(),
+                     QString("artifact1"));
+            QCOMPARE(tData.commands().size(), 1);
+            QCOMPARE(tData.commands().first().type(), qbs::RuleCommand::JavaScriptCommandType);
+        } else {
+            secondTransformerFound = true;
+            QCOMPARE(tData.inputs().size(), 1);
+            QCOMPARE(QFileInfo(tData.inputs().first().filePath()).fileName(), QString("artifact1"));
+            QCOMPARE(tData.outputs().size(), 1);
+            QCOMPARE(QFileInfo(tData.outputs().first().filePath()).fileName(),
+                     QString("artifact2"));
+            QCOMPARE(tData.commands().size(), 1);
+            QCOMPARE(tData.commands().first().type(), qbs::RuleCommand::JavaScriptCommandType);
+        }
+    }
+    QVERIFY(firstTransformerFound);
+    QVERIFY(secondTransformerFound);
+}
+
 void TestApi::transformers()
 {
     const qbs::ErrorInfo errorInfo = doBuildProject("transformers/transformers.qbs");

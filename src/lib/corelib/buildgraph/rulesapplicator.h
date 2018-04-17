@@ -73,6 +73,7 @@ public:
     void applyRule(const RuleConstPtr &rule, const ArtifactSet &inputArtifacts);
     static void handleRemovedRuleOutputs(const ArtifactSet &inputArtifacts,
             const ArtifactSet &artifactsToRemove, const Logger &logger);
+    static ArtifactSet collectAuxiliaryInputs(const Rule *rule, const ResolvedProduct *product);
 
 private:
     void doApply(const ArtifactSet &inputArtifacts, QScriptValue &prepareScriptContext);
@@ -90,6 +91,9 @@ private:
     const RulesEvaluationContextPtr &evalContext() const;
     ScriptEngine *engine() const;
     QScriptValue scope() const;
+
+    static ArtifactSet collectAdditionalInputs(const FileTags &tags,
+                                               const Rule *rule, const ResolvedProduct *product);
 
     const ResolvedProductPtr m_product;
     const std::unordered_map<QString, const ResolvedProduct *> &m_productsByName;

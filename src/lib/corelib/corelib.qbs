@@ -77,6 +77,8 @@ QbsLibrary {
             "rulecommand.cpp",
             "rulecommand_p.h",
             "runenvironment.cpp",
+            "transformerdata.cpp",
+            "transformerdata_p.h",
         ]
     }
     Group {
@@ -90,7 +92,8 @@ QbsLibrary {
             "project.h",
             "projectdata.h",
             "rulecommand.h",
-            "runenvironment.h"
+            "runenvironment.h",
+            "transformerdata.h",
         ]
     }
     Group {

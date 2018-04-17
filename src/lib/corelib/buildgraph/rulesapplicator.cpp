@@ -151,6 +151,12 @@ void RulesApplicator::handleRemovedRuleOutputs(const ArtifactSet &inputArtifacts
     }
 }
 
+ArtifactSet RulesApplicator::collectAuxiliaryInputs(const Rule *rule,
+                                                    const ResolvedProduct *product)
+{
+    return collectAdditionalInputs(rule->auxiliaryInputs, rule, product);
+}
+
 static void copyProperty(const QString &name, const QScriptValue &src, QScriptValue dst)
 {
     dst.setProperty(name, src.property(name));
@@ -291,24 +297,30 @@ ArtifactSet RulesApplicator::collectOldOutputArtifacts(const ArtifactSet &inputA
     return result;
 }
 
-ArtifactSet RulesApplicator::collectExplicitlyDependsOn()
+ArtifactSet RulesApplicator::collectAdditionalInputs(const FileTags &tags, const Rule *rule,
+                                                     const ResolvedProduct *product)
 {
     ArtifactSet artifacts;
-    for (const FileTag &fileTag : qAsConst(m_rule->explicitlyDependsOn)) {
-        for (Artifact *dependency : m_product->lookupArtifactsByFileTag(fileTag)) {
-            if (!dependency->fileTags().intersects(m_rule->excludedInputs))
+    for (const FileTag &fileTag : tags) {
+        for (Artifact *dependency : product->lookupArtifactsByFileTag(fileTag)) {
+            if (!dependency->fileTags().intersects(rule->excludedInputs))
                 artifacts << dependency;
         }
-        for (const ResolvedProductConstPtr &depProduct : qAsConst(m_product->dependencies)) {
+        for (const ResolvedProductConstPtr &depProduct : product->dependencies) {
             for (Artifact * const ta : depProduct->targetArtifacts()) {
                 if (ta->fileTags().contains(fileTag)
-                        && !ta->fileTags().intersects(m_rule->excludedInputs)) {
+                        && !ta->fileTags().intersects(rule->excludedInputs)) {
                     artifacts << ta;
                 }
             }
         }
     }
     return artifacts;
+}
+
+ArtifactSet RulesApplicator::collectExplicitlyDependsOn()
+{
+    return collectAdditionalInputs(m_rule->explicitlyDependsOn, m_rule.get(), m_product.get());
 }
 
 Artifact *RulesApplicator::createOutputArtifactFromRuleArtifact(

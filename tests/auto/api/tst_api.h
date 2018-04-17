@@ -142,6 +142,7 @@ private slots:
     void toolInModule();
     void trackAddQObjectHeader();
     void trackRemoveQObjectHeader();
+    void transformerData();
     void transformers();
     void typeChange();
     void uic();

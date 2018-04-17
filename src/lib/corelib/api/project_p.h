@@ -41,6 +41,7 @@
 
 #include "projectdata.h"
 #include "rulecommand.h"
+#include "transformerdata.h"
 
 #include <language/language.h>
 #include <logging/logger.h>
@@ -85,6 +86,9 @@ public:
     GroupData createGroupDataFromGroup(const GroupPtr &resolvedGroup,
                                        const ResolvedProductConstPtr &product);
     ArtifactData createApiSourceArtifact(const SourceArtifactConstPtr &sa);
+    ArtifactData createArtifactData(const Artifact *artifact,
+                                    const ResolvedProductConstPtr &product,
+                                    const ArtifactSet &targetArtifacts);
     void setupInstallData(ArtifactData &artifact, const ResolvedProductConstPtr &product);
 
     struct GroupUpdateContext {
@@ -118,8 +122,10 @@ public:
                                      const CodeLocation &changeLocation, int lineOffset);
     void prepareChangeToProject();
 
+    RuleCommandList ruleCommandListForTransformer(const Transformer *transformer);
     RuleCommandList ruleCommands(const ProductData &product,
-            const QString &inputFilePath, const QString &outputFileTag) const;
+            const QString &inputFilePath, const QString &outputFileTag);
+    ProjectTransformerData transformerData();
 
     TopLevelProjectPtr internalProject;
     Logger logger;

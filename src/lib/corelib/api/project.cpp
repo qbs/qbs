@@ -49,6 +49,7 @@
 #include "propertymap_p.h"
 #include "rulecommand_p.h"
 #include "runenvironment.h"
+#include "transformerdata_p.h"
 #include <buildgraph/artifact.h>
 #include <buildgraph/buildgraph.h>
 #include <buildgraph/buildgraphloader.h>
@@ -59,6 +60,7 @@
 #include <buildgraph/projectbuilddata.h>
 #include <buildgraph/rulecommands.h>
 #include <buildgraph/rulesevaluationcontext.h>
+#include <buildgraph/rulesapplicator.h>
 #include <buildgraph/timestampsupdater.h>
 #include <buildgraph/transformer.h>
 #include <language/language.h>
@@ -297,6 +299,20 @@ ArtifactData ProjectPrivate::createApiSourceArtifact(const SourceArtifactConstPt
     saApi.d->isTargetArtifact = false;
     saApi.d->properties.d->m_map = sa->properties;
     return saApi;
+}
+
+ArtifactData ProjectPrivate::createArtifactData(const Artifact *artifact,
+        const ResolvedProductConstPtr &product, const ArtifactSet &targetArtifacts)
+{
+    ArtifactData ta;
+    ta.d->filePath = artifact->filePath();
+    ta.d->fileTags = artifact->fileTags().toStringList();
+    ta.d->properties.d->m_map = artifact->properties;
+    ta.d->isGenerated = artifact->artifactType == Artifact::Generated;
+    ta.d->isTargetArtifact = targetArtifacts.contains(const_cast<Artifact *>(artifact));
+    ta.d->isValid = true;
+    setupInstallData(ta, product);
+    return ta;
 }
 
 void ProjectPrivate::setupInstallData(ArtifactData &artifact,
@@ -705,8 +721,39 @@ void ProjectPrivate::prepareChangeToProject()
         retrieveProjectData(m_projectData, internalProject);
 }
 
+RuleCommandList ProjectPrivate::ruleCommandListForTransformer(const Transformer *transformer)
+{
+    RuleCommandList list;
+    for (const AbstractCommandPtr &internalCommand : qAsConst(transformer->commands.commands())) {
+        RuleCommand externalCommand;
+        externalCommand.d->description = internalCommand->description();
+        externalCommand.d->extendedDescription = internalCommand->extendedDescription();
+        switch (internalCommand->type()) {
+        case AbstractCommand::JavaScriptCommandType: {
+            externalCommand.d->type = RuleCommand::JavaScriptCommandType;
+            const JavaScriptCommandPtr &jsCmd
+                    = std::static_pointer_cast<JavaScriptCommand>(internalCommand);
+            externalCommand.d->sourceCode = jsCmd->sourceCode();
+            break;
+        }
+        case AbstractCommand::ProcessCommandType: {
+            externalCommand.d->type = RuleCommand::ProcessCommandType;
+            const ProcessCommandPtr &procCmd
+                    = std::static_pointer_cast<ProcessCommand>(internalCommand);
+            externalCommand.d->executable = procCmd->program();
+            externalCommand.d->arguments = procCmd->arguments();
+            externalCommand.d->workingDir = procCmd->workingDir();
+            externalCommand.d->environment = procCmd->environment();
+            break;
+        }
+        }
+        list << externalCommand;
+    }
+    return list;
+}
+
 RuleCommandList ProjectPrivate::ruleCommands(const ProductData &product,
-        const QString &inputFilePath, const QString &outputFileTag) const
+        const QString &inputFilePath, const QString &outputFileTag)
 {
     if (internalProject->locked)
         throw ErrorInfo(Tr::tr("A job is currently in process."));
@@ -723,41 +770,53 @@ RuleCommandList ProjectPrivate::ruleCommands(const ProductData &product,
         if (!transformer)
             continue;
         for (const Artifact * const inputArtifact : qAsConst(transformer->inputs)) {
-            if (inputArtifact->filePath() == inputFilePath) {
-                RuleCommandList list;
-                for (const AbstractCommandPtr &internalCommand
-                     : qAsConst(transformer->commands.commands())) {
-                    RuleCommand externalCommand;
-                    externalCommand.d->description = internalCommand->description();
-                    externalCommand.d->extendedDescription = internalCommand->extendedDescription();
-                    switch (internalCommand->type()) {
-                    case AbstractCommand::JavaScriptCommandType: {
-                        externalCommand.d->type = RuleCommand::JavaScriptCommandType;
-                        const JavaScriptCommandPtr &jsCmd
-                                = std::static_pointer_cast<JavaScriptCommand>(internalCommand);
-                        externalCommand.d->sourceCode = jsCmd->sourceCode();
-                        break;
-                    }
-                    case AbstractCommand::ProcessCommandType: {
-                        externalCommand.d->type = RuleCommand::ProcessCommandType;
-                        const ProcessCommandPtr &procCmd
-                                = std::static_pointer_cast<ProcessCommand>(internalCommand);
-                        externalCommand.d->executable = procCmd->program();
-                        externalCommand.d->arguments = procCmd->arguments();
-                        externalCommand.d->workingDir = procCmd->workingDir();
-                        externalCommand.d->environment = procCmd->environment();
-                        break;
-                    }
-                    }
-                    list << externalCommand;
-                }
-                return list;
-            }
+            if (inputArtifact->filePath() == inputFilePath)
+                return ruleCommandListForTransformer(transformer.get());
         }
     }
 
     throw ErrorInfo(Tr::tr("No rule was found that produces an artifact tagged '%1' "
                            "from input file '%2'.").arg(outputFileTag, inputFilePath));
+}
+
+ProjectTransformerData ProjectPrivate::transformerData()
+{
+    if (!m_projectData.isValid())
+        retrieveProjectData(m_projectData, internalProject);
+    ProjectTransformerData projectTransformerData;
+    for (const ProductData &productData : m_projectData.allProducts()) {
+        if (!productData.isEnabled())
+            continue;
+        const ResolvedProductConstPtr product = internalProduct(productData);
+        QBS_ASSERT(!!product, continue);
+        QBS_ASSERT(!!product->buildData, continue);
+        const ArtifactSet targetArtifacts = product->targetArtifacts();
+        Set<const Transformer *> allTransformers;
+        for (const Artifact * const a : TypeFilter<Artifact>(product->buildData->allNodes())) {
+            if (a->artifactType == Artifact::Generated)
+                allTransformers.insert(a->transformer.get());
+        }
+        if (allTransformers.empty())
+            continue;
+        ProductTransformerData productTransformerData;
+        for (const Transformer * const t : allTransformers) {
+            TransformerData tData;
+            for (Artifact * const a : t->inputs)
+                tData.d->inputs << createArtifactData(a, product, targetArtifacts);
+            for (Artifact * const a : t->explicitlyDependsOn)
+                tData.d->inputs << createArtifactData(a, product, targetArtifacts);
+            for (Artifact * const a
+                 : RulesApplicator::collectAuxiliaryInputs(t->rule.get(), product.get())) {
+                tData.d->inputs << createArtifactData(a, product, targetArtifacts);
+            }
+            for (Artifact * const a : t->outputs)
+                tData.d->outputs << createArtifactData(a, product, targetArtifacts);
+            tData.d->commands = ruleCommandListForTransformer(t);
+            productTransformerData << tData;
+        }
+        projectTransformerData << qMakePair(productData, productTransformerData);
+    }
+    return projectTransformerData;
 }
 
 static bool productIsRunnable(const ResolvedProductConstPtr &product)
@@ -804,15 +863,8 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
                  : filterByType<Artifact>(resolvedProduct->buildData->allNodes())) {
                 if (a->artifactType != Artifact::Generated)
                     continue;
-                ArtifactData ta;
-                ta.d->filePath = a->filePath();
-                ta.d->fileTags = a->fileTags().toStringList();
-                ta.d->properties.d->m_map = a->properties;
-                ta.d->isGenerated = true;
-                ta.d->isTargetArtifact = targetArtifacts.contains(a);
-                ta.d->isValid = true;
-                setupInstallData(ta, resolvedProduct);
-                product.d->generatedArtifacts << ta;
+                product.d->generatedArtifacts << createArtifactData(a, resolvedProduct,
+                                                                    targetArtifacts);
             }
             const AllRescuableArtifactData &rad
                     = resolvedProduct->buildData->rescuableArtifactData();
@@ -1123,6 +1175,18 @@ RuleCommandList Project::ruleCommands(const ProductData &product,
         if (error)
             *error = e;
         return RuleCommandList();
+    }
+}
+
+ProjectTransformerData Project::transformerData(ErrorInfo *error) const
+{
+    QBS_ASSERT(isValid(), return ProjectTransformerData());
+    try {
+        return d->transformerData();
+    } catch (const ErrorInfo &e) {
+        if (error)
+            *error = e;
+        return ProjectTransformerData();
     }
 }
 

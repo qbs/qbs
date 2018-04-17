@@ -40,6 +40,7 @@
 #define QBS_PROJECT_H
 
 #include "rulecommand.h"
+#include "transformerdata.h"
 #include "../language/forward_decls.h"
 #include "../tools/error.h"
 #include "../tools/qbs_export.h"
@@ -136,6 +137,7 @@ public:
 
     RuleCommandList ruleCommands(const ProductData &product, const QString &inputFilePath,
                                  const QString &outputFileTag, ErrorInfo *error = 0) const;
+    ProjectTransformerData transformerData(ErrorInfo *error = nullptr) const;
 
     ErrorInfo dumpNodesTree(QIODevice &outDevice, const QList<ProductData> &products);
 
