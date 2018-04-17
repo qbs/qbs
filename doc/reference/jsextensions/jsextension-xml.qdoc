@@ -27,13 +27,13 @@
 
 /*!
     \contentspage index.html
-    \page jsextension-domxml.html
+    \page jsextension-xml.html
     \ingroup list-of-builtin-services
 
-    \title DomXml Service
+    \title Xml Service
     \brief Provides a DOM parser and generator to JavaScript.
 
-    The \c DomXml service enables you to access and manipulate XML Document
+    The \c Xml service enables you to access and manipulate XML Document
     Object Model (DOM) documents. The entire document is a \e {document node},
     each XML element is an \e {element node}, the text paragraphs in the XML
     elements are \e {text nodes}, and each attribute is an \e {attribute node}.
@@ -55,7 +55,7 @@
     \section2 Constructor
 
     \badcode
-    XmlDomDocument()
+    Xml.DomDocument()
     \endcode
 
     Creates an XML DOM root node that can contain one element.
@@ -63,7 +63,7 @@
     \section2 createCDATASection
 
     \badcode
-    XmlDomDocument.createCDATASection(value: string)
+    Xml.DomDocument.createCDATASection(value: string)
     \endcode
 
     Creates a CDATA section that is not parsed by a parser. It can be used to
@@ -73,7 +73,7 @@
     \section2 createElement
 
     \badcode
-    XmlDomDocument.createElement(tagName: string)
+    Xml.DomDocument.createElement(tagName: string)
     \endcode
 
     Creates an element that can contain other elements, CDATA sections, and text
@@ -82,7 +82,7 @@
     \section2 createTextNode
 
     \badcode
-    XmlDomDocument.createTextNode(value: string)
+    Xml.DomDocument.createTextNode(value: string)
     \endcode
 
     Creates a text node that represents textual content in an element or
@@ -91,7 +91,7 @@
     \section2 documentElement
 
     \badcode
-    XmlDomDocument.documentElement()
+    Xml.DomDocument.documentElement()
     \endcode
 
     Returns the document element.
@@ -99,7 +99,7 @@
     \section2 load
 
     \badcode
-    XmlDomDocument.load(filePath: string): void
+    Xml.DomDocument.load(filePath: string): void
     \endcode
 
     Loads the document specified by \c filePath.
@@ -107,7 +107,7 @@
     \section2 save
 
     \badcode
-    XmlDomDocument.save(filePath: string, indentation: int): void
+    Xml.DomDocument.save(filePath: string, indentation: int): void
     \endcode
 
     Saves the document at the location specified by \c filePath with the
@@ -116,7 +116,7 @@
     \section2 setContent
 
     \badcode
-    XmlDomDocument.setContent(content: string)
+    Xml.DomDocument.setContent(content: string)
     \endcode
 
     Returns the content of the document.
@@ -124,7 +124,7 @@
     \section2 toString
 
     \badcode
-    XmlDomDocument.toString(indentation: int)
+    Xml.DomDocument.toString(indentation: int)
     \endcode
 
     Converts the document to a string with the indentation specified by \c int.
@@ -141,7 +141,7 @@
     \section2 Constructor
 
     \badcode
-    XmlDomNode()
+    Xml.DomNode()
     \endcode
 
     Creates an XML DOM node.
@@ -149,7 +149,7 @@
     \section2 appendChild
 
     \badcode
-    XmlDomNode.appendChild(tagName: string)
+    Xml.DomNode.appendChild(tagName: string)
     \endcode
 
     Appends a new child node to the end of the list of children of a node.
@@ -157,7 +157,7 @@
     \section2 attribute
 
     \badcode
-    XmlDomNode.attribute(name: string, defaultValue: string)
+    Xml.DomNode.attribute(name: string, defaultValue: string)
     \endcode
 
     Returns the name and default value of the attribute.
@@ -165,7 +165,7 @@
     \section2 clear
 
     \badcode
-    XmlDomNode.clear()
+    Xml.DomNode.clear()
     \endcode
 
     Clears the contents of the node.
@@ -173,7 +173,7 @@
     \section2 data
 
     \badcode
-    XmlDomNode.data()
+    Xml.DomNode.data()
     \endcode
 
     Returns the contents of the text node, CDATA section, or character data
@@ -182,7 +182,7 @@
     \section2 firstChild
 
     \badcode
-    XmlDomNode.firstChild(tagName: string)
+    Xml.DomNode.firstChild(tagName: string)
     \endcode
 
     Returns the first child of a node.
@@ -190,7 +190,7 @@
     \section2 hasAttribute
 
     \badcode
-    XmlDomNode.hasAttribute(name: string) boolean
+    Xml.DomNode.hasAttribute(name: string) boolean
     \endcode
 
     Returns \c true if the node has the specified attribute.
@@ -198,7 +198,7 @@
     \section2 hasAttributes
 
     \badcode
-    XmlDomNode.hasAttributes() boolean
+    Xml.DomNode.hasAttributes() boolean
     \endcode
 
     Returns \c true if the node has attributes.
@@ -206,7 +206,7 @@
     \section2 hasChildNodes
 
     \badcode
-    XmlDomNode.hasChildNodes() boolean
+    Xml.DomNode.hasChildNodes() boolean
     \endcode
 
     Returns \c true if the node has children.
@@ -214,7 +214,7 @@
     \section2 insertAfter
 
     \badcode
-    XmlDomNode.insertAfter(newChild: tagName, refChild: tagName)
+    Xml.DomNode.insertAfter(newChild: tagName, refChild: tagName)
     \endcode
 
     Inserts a new child node after the child node specified by \c refChild.
@@ -222,7 +222,7 @@
     \section2 insertBefore
 
     \badcode
-    XmlDomNode.insertBefore(newChild: tagName, refChild: tagName)
+    Xml.DomNode.insertBefore(newChild: tagName, refChild: tagName)
     \endcode
 
     Inserts a new child node before the child node specified by \c refChild.
@@ -230,7 +230,7 @@
     \section2 isCDATASection
 
     \badcode
-    XmlDomNode.isCDATASection() boolean
+    Xml.DomNode.isCDATASection() boolean
     \endcode
 
     Returns \c true if this is a CDATA section.
@@ -238,7 +238,7 @@
     \section2 isElement
 
     \badcode
-    XmlDomNode.isElement() boolean
+    Xml.DomNode.isElement() boolean
     \endcode
 
     Returns \c true if this is an element.
@@ -246,7 +246,7 @@
     \section2 isText
 
     \badcode
-    XmlDomNode.isText() boolean
+    Xml.DomNode.isText() boolean
     \endcode
 
     Returns \c true if this is a text node.
@@ -254,7 +254,7 @@
     \section2 lastChild
 
     \badcode
-    XmlDomNode.lastChild(tagName: string)
+    Xml.DomNode.lastChild(tagName: string)
     \endcode
 
     Returns the last child of a node.
@@ -262,7 +262,7 @@
     \section2 nextSibling
 
     \badcode
-    XmlDomNode.nextSibling(tagName: string)
+    Xml.DomNode.nextSibling(tagName: string)
     \endcode
 
     Returns the node immediately following a node.
@@ -270,7 +270,7 @@
     \section2 parentNode
 
     \badcode
-    XmlDomNode.parentNode()
+    Xml.DomNode.parentNode()
     \endcode
 
     Returns the parent of the node.
@@ -278,7 +278,7 @@
     \section2 previousSibling
 
     \badcode
-    XmlDomNode.previousSibling(tagName: string)
+    Xml.DomNode.previousSibling(tagName: string)
     \endcode
 
     Returns the node before a node.
@@ -286,7 +286,7 @@
     \section2 removeChild
 
     \badcode
-    XmlDomNode.removeChild(tagName: string)
+    Xml.DomNode.removeChild(tagName: string)
     \endcode
 
     Removes the child node.
@@ -294,7 +294,7 @@
     \section2 replaceChild
 
     \badcode
-    XmlDomNode.replaceChild(newChild: tagName, oldChild: tagName)
+    Xml.DomNode.replaceChild(newChild: tagName, oldChild: tagName)
     \endcode
 
     Replaces a child node with another one.
@@ -302,7 +302,7 @@
     \section2 setAttribute
 
     \badcode
-    XmlDomNode.setAttribute(name: string, value: string)
+    Xml.DomNode.setAttribute(name: string, value: string)
     \endcode
 
     Sets the name and value of an attribute.
@@ -310,7 +310,7 @@
     \section2 setData
 
     \badcode
-    XmlDomNode.setData(value: string): void
+    Xml.DomNode.setData(value: string): void
     \endcode
 
     Sets the data of the node to a text node, CDATA section, or character data
@@ -319,7 +319,7 @@
     \section2 setTagName
 
     \badcode
-    XmlDomNode.setTagName(tagName: string)
+    Xml.DomNode.setTagName(tagName: string)
     \endcode
 
     Sets the tag name of the node.
@@ -327,7 +327,7 @@
     \section2 tagName
 
     \badcode
-    XmlDomNode.tagName()
+    Xml.DomNode.tagName()
     \endcode
 
     Returns the tag name of the node.
@@ -335,7 +335,7 @@
     \section2 text
 
     \badcode
-    XmlDomNode.text()
+    Xml.DomNode.text()
     \endcode
 
     Returns the text of the node.
