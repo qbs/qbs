@@ -128,11 +128,6 @@ static void initializeJsExtensionXml(QScriptValue extensionObject)
     QScriptValue nodeObj = engine->newQMetaObject(&XmlDomNode::staticMetaObject,
                                                   engine->newFunction(&XmlDomNode::ctor));
     QScriptValue contextObject = engine->newObject();
-
-    // TODO: Deprecated, remove in Qbs 1.12
-    extensionObject.setProperty(QLatin1String("XmlDomDocument"), docObj);
-    extensionObject.setProperty(QLatin1String("XmlDomElement"), nodeObj);
-
     contextObject.setProperty(QLatin1String("DomDocument"), docObj);
     contextObject.setProperty(QLatin1String("DomElement"), nodeObj);
 
