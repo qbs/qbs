@@ -154,6 +154,7 @@ private slots:
     void listPropertyOrder();
     void loadableModule();
     void localDeployment();
+    void makefileGenerator();
     void minimumSystemVersion();
     void minimumSystemVersion_data();
     void missingBuildGraph();

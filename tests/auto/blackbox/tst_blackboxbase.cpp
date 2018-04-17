@@ -86,7 +86,8 @@ int TestBlackboxBase::runQbs(const QbsRunParameters &params)
     }
     args << params.arguments;
     const bool commandImpliesResolve = params.command.isEmpty() || params.command == "resolve"
-            || params.command == "build" || params.command == "install" || params.command == "run";
+            || params.command == "build" || params.command == "install" || params.command == "run"
+            || params.command == "generate";
     if (!params.profile.isEmpty() && commandImpliesResolve) {
         args.push_back(QLatin1String("profile:") + params.profile);
     }

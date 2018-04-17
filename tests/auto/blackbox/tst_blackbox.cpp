@@ -5464,6 +5464,30 @@ void TestBlackbox::localDeployment()
     QVERIFY2(m_qbsStdout.contains(content), m_qbsStdout.constData());
 }
 
+void TestBlackbox::makefileGenerator()
+{
+    QDir::setCurrent(testDataDir + "/makefile-generator");
+    const QbsRunParameters params("generate", QStringList{"-g", "makefile"});
+    QCOMPARE(runQbs(params), 0);
+    if (HostOsInfo::isWindowsHost())
+        return;
+    QProcess make;
+    make.setWorkingDirectory(QDir::currentPath() + '/' + relativeBuildDir());
+    const QString customInstallRoot = QDir::currentPath() + "/my-install-root";
+    make.start("make", QStringList{"INSTALL_ROOT=" + customInstallRoot, "install"});
+    QVERIFY(waitForProcessSuccess(make));
+    QVERIFY(QFile::exists(relativeExecutableFilePath("the app")));
+    QVERIFY(!QFile::exists(relativeBuildGraphFilePath()));
+    QProcess app;
+    app.start('"' + customInstallRoot + "/usr/local/bin/the app\"");
+    QVERIFY(waitForProcessSuccess(app));
+    const QByteArray appStdout = app.readAllStandardOutput();
+    QVERIFY2(appStdout.contains("Hello, World!"), appStdout.constData());
+    make.start("make", QStringList("clean"));
+    QVERIFY(waitForProcessSuccess(make));
+    QVERIFY(!QFile::exists(relativeExecutableFilePath("the app")));
+}
+
 void TestBlackbox::minimumSystemVersion()
 {
     rmDirR(relativeBuildDir());
