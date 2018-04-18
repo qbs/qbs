@@ -4,13 +4,14 @@ Project {
     property string windowsProfile: "windowsProfile"
     property bool enableProfiles
     property string mingwToolchain: "mingw"
+    property string mingwProfile: "mingwProfile"
     Profile {
         name: windowsProfile
         qbs.targetPlatform: "windows"
     }
 
     Profile {
-        name: "mingwProfile"
+        name: project.mingwProfile
         condition: enableProfiles
         baseProfile: project.windowsProfile
         qbs.toolchainType: project.mingwToolchain
@@ -22,7 +23,7 @@ Project {
         aggregate: false
         multiplexByQbsProperties: ["buildVariants"]
         qbs.buildVariants: ["debug", "release"]
-        qbs.profile: "mingwProfile"
+        qbs.profile: project.mingwProfile
     }
     DynamicLibrary {
         name: "lib"
@@ -40,6 +41,6 @@ Project {
         }
 
         multiplexByQbsProperties: ["profiles"]
-        qbs.profiles: ["mingwProfile", "clangProfile"]
+        qbs.profiles: [project.mingwProfile, "clangProfile"]
     }
 }

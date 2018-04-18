@@ -787,30 +787,20 @@ ModuleLoader::MultiplexInfo ModuleLoader::extractMultiplexInfo(Item *productItem
     return multiplexInfo;
 }
 
-QList<Item *> ModuleLoader::multiplexProductItem(ProductContext *dummyContext, Item *productItem)
+template <typename T, typename F>
+T ModuleLoader::callWithTemporaryBaseModule(ProductContext *productContext, const F &func)
 {
     // Temporarily attach the qbs module here, in case we need to access one of its properties
-    // to evaluate properties needed for multiplexing.
+    // to evaluate properties.
     const QString &qbsKey = StringConstants::qbsModule();
+    Item *productItem = productContext->item;
     ValuePtr qbsValue = productItem->property(qbsKey); // Retrieve now to restore later.
     if (qbsValue)
         qbsValue = qbsValue->clone();
-    const Item::Module qbsModule = loadBaseModule(dummyContext, productItem);
+    const Item::Module qbsModule = loadBaseModule(productContext, productItem);
     productItem->addModule(qbsModule);
 
-    // Overriding the product item properties must be done here already, because multiplexing
-    // properties might depend on product properties.
-    const QString &nameKey = StringConstants::nameProperty();
-    QString productName = m_evaluator->stringValue(productItem, nameKey);
-    if (productName.isEmpty()) {
-        productName = FileInfo::completeBaseName(productItem->file()->filePath());
-        productItem->setProperty(nameKey, VariantValue::create(productName));
-    }
-    overrideItemProperties(productItem, StringConstants::productsOverridePrefix() + productName,
-                           m_parameters.overriddenValuesTree());
-
-    const MultiplexInfo &multiplexInfo = extractMultiplexInfo(productItem, qbsModule.item);
-    //dump(multiplexInfo);
+    auto &&result = func(qbsModule);
 
     // "Unload" the qbs module again.
     if (qbsValue)
@@ -818,6 +808,32 @@ QList<Item *> ModuleLoader::multiplexProductItem(ProductContext *dummyContext, I
     else
         productItem->removeProperty(qbsKey);
     productItem->removeModules();
+
+    return result;
+}
+
+QList<Item *> ModuleLoader::multiplexProductItem(ProductContext *dummyContext, Item *productItem)
+{
+    QString productName;
+    dummyContext->item = productItem;
+    auto extractMultiplexInfoFromProduct
+            = [this, productItem, &productName](const Item::Module &qbsModule) {
+        // Overriding the product item properties must be done here already, because multiplexing
+        // properties might depend on product properties.
+        const QString &nameKey = StringConstants::nameProperty();
+        productName = m_evaluator->stringValue(productItem, nameKey);
+        if (productName.isEmpty()) {
+            productName = FileInfo::completeBaseName(productItem->file()->filePath());
+            productItem->setProperty(nameKey, VariantValue::create(productName));
+        }
+        overrideItemProperties(productItem, StringConstants::productsOverridePrefix() + productName,
+                               m_parameters.overriddenValuesTree());
+
+        return extractMultiplexInfo(productItem, qbsModule.item);
+    };
+    const MultiplexInfo multiplexInfo
+            = callWithTemporaryBaseModule<const MultiplexInfo>(dummyContext,
+                                                               extractMultiplexInfoFromProduct);
 
     if (multiplexInfo.table.size() > 1)
         productItem->setProperty(StringConstants::multiplexedProperty(), VariantValue::trueValue());
@@ -848,7 +864,7 @@ QList<Item *> ModuleLoader::multiplexProductItem(ProductContext *dummyContext, I
         if (multiplexInfo.multiplexedType)
             item->setProperty(StringConstants::typeProperty(), multiplexInfo.multiplexedType);
         for (size_t column = 0; column < mprow.size(); ++column) {
-            Item *qbsItem = moduleInstanceItem(item, qbsKey);
+            Item *qbsItem = moduleInstanceItem(item, StringConstants::qbsModule());
             const QString &propertyName = multiplexInfo.properties.at(column);
             const VariantValuePtr &mpvalue = mprow.at(column);
             qbsItem->setProperty(propertyName, mpvalue);
@@ -861,7 +877,7 @@ QList<Item *> ModuleLoader::multiplexProductItem(ProductContext *dummyContext, I
         // Add dependencies to all multiplexed instances.
         for (const auto &v : multiplexConfigurationIdValues) {
             Item *dependsItem = Item::create(aggregator->pool(), ItemType::Depends);
-            dependsItem->setProperty(nameKey, productNameValue);
+            dependsItem->setProperty(StringConstants::nameProperty(), productNameValue);
             dependsItem->setProperty(StringConstants::multiplexConfigurationIdProperty(), v);
             dependsItem->setProperty(StringConstants::profilesProperty(),
                                      VariantValue::create(QStringList()));
@@ -967,9 +983,13 @@ void ModuleLoader::prepareProduct(ProjectContext *projectContext, Item *productI
     if (!!qbsItemValue && qbsItemValue->item()->hasProperty(StringConstants::profileProperty())) {
         qbsItemValue->item()->setProperty(StringConstants::nameProperty(),
                                           VariantValue::create(StringConstants::nameProperty()));
-        productContext.profileName = m_evaluator->stringValue(
-                    qbsItemValue->item(),
-                    StringConstants::profileProperty(), QString());
+        auto evaluateQbsProfileProperty = [this](const Item::Module &qbsModule) {
+            return m_evaluator->stringValue(qbsModule.item,
+                                            StringConstants::profileProperty(), QString());
+        };
+        productContext.profileName
+                = callWithTemporaryBaseModule<QString>(&productContext,
+                                                       evaluateQbsProfileProperty);
     } else {
         productContext.profileName = m_parameters.topLevelProfile();
     }

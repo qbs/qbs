@@ -291,6 +291,8 @@ private:
             bool isBaseModule, const QString &filePath, bool *triedToLoad, Item *moduleInstance);
     Item::Module loadBaseModule(ProductContext *productContext, Item *item);
     void setupBaseModulePrototype(Item *prototype);
+    template <typename T, typename F>
+    T callWithTemporaryBaseModule(ProductContext *productContext, const F &func);
     void instantiateModule(ProductContext *productContext, Item *exportingProductItem,
             Item *instanceScope, Item *moduleInstance, Item *modulePrototype,
             const QualifiedId &moduleName, ProductModuleInfo *productModuleInfo);
