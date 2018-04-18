@@ -57,7 +57,7 @@
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
 #include <tools/settings.h>
-#include <tools/settingsmodel.h>
+#include <tools/settingsrepresentation.h>
 
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qdir.h>

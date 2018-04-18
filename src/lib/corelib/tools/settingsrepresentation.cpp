@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2018 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -37,50 +37,39 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_SETTINGSMODEL_H
-#define QBS_SETTINGSMODEL_H
+#include "settingsrepresentation.h"
 
-#include <tools/qbs_export.h>
+#include "jsliterals.h"
 
-#include <QtCore/qabstractitemmodel.h>
-#include <QtCore/qvariant.h>
+#include <QtScript/qscriptengine.h>
+#include <QtScript/qscriptvalue.h>
 
 namespace qbs {
 
-class QBS_EXPORT SettingsModel : public QAbstractItemModel
+QString settingsValueToRepresentation(const QVariant &value)
 {
-    Q_OBJECT
-public:
-    SettingsModel(const QString &settingsDir, QObject *parent = nullptr);
-    ~SettingsModel();
+    return toJSLiteral(value);
+}
 
-    int keyColumn() const { return 0; }
-    int valueColumn() const { return 1; }
-    bool hasUnsavedChanges() const;
+static QVariant variantFromString(const QString &str, bool &ok)
+{
+    // ### use Qt5's JSON reader at some point.
+    QScriptEngine engine;
+    QScriptValue sv = engine.evaluate(QLatin1String("(function(){return ")
+                                      + str + QLatin1String(";})()"));
+    ok = !sv.isError();
+    return sv.toVariant();
+}
 
-    void setEditable(bool isEditable);
-    void setAdditionalProperties(const QVariantMap &properties); // Flat map.
-    void reload();
-    void save();
-    void updateSettingsDir(const QString &settingsDir);
+QVariant representationToSettingsValue(const QString &representation)
+{
+    bool ok;
+    const QVariant variant = variantFromString(representation, ok);
+    if (ok)
+        return variant;
 
-    void addNewKey(const QModelIndex &parent);
-    void removeKey(const QModelIndex &index);
-
-    Qt::ItemFlags flags(const QModelIndex &index) const;
-    QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
-    int columnCount(const QModelIndex &parent = QModelIndex()) const;
-    int rowCount(const QModelIndex &parent = QModelIndex()) const;
-    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
-    bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole);
-    QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const;
-    QModelIndex parent(const QModelIndex &child) const;
-
-private:
-    class SettingsModelPrivate;
-    SettingsModelPrivate * const d;
-};
+    // If it's not valid JavaScript, interpret the value as a string.
+    return representation;
+}
 
 } // namespace qbs
-
-#endif // QBS_SETTINGSMODEL_H

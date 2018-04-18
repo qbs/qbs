@@ -27,6 +27,7 @@ HEADERS += \
     $$PWD/set.h \
     $$PWD/settings.h \
     $$PWD/settingsmodel.h \
+    $$PWD/settingsrepresentation.h \
     $$PWD/pathutils.h \
     $$PWD/preferences.h \
     $$PWD/profile.h \
@@ -79,6 +80,7 @@ SOURCES += \
     $$PWD/scripttools.cpp \
     $$PWD/settings.cpp \
     $$PWD/settingsmodel.cpp \
+    $$PWD/settingsrepresentation.cpp \
     $$PWD/preferences.cpp \
     $$PWD/processresult.cpp \
     $$PWD/processutils.cpp \

@@ -432,6 +432,8 @@ QbsLibrary {
             "settingscreator.cpp",
             "settingscreator.h",
             "settingsmodel.cpp",
+            "settingsrepresentation.cpp",
+            "settingsrepresentation.h",
             "setupprojectparameters.cpp",
             "shellutils.cpp",
             "shellutils.h",

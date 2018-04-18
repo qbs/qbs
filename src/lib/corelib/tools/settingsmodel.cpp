@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 #include "settingsmodel.h"
+#include "settingsrepresentation.h"
 
-#include <tools/jsliterals.h>
 #include <tools/profile.h>
 #include <tools/qttools.h>
 #include <tools/settings.h>
@@ -50,9 +50,6 @@
 #ifdef QT_GUI_LIB
 #include <QtGui/qbrush.h>
 #endif
-
-#include <QtScript/qscriptengine.h>
-#include <QtScript/qscriptvalue.h>
 
 #include <memory>
 
@@ -393,31 +390,5 @@ Node *SettingsModel::SettingsModelPrivate::indexToNode(const QModelIndex &index)
     return index.isValid() ? static_cast<Node *>(index.internalPointer()) : &rootNode;
 }
 
-
-QString settingsValueToRepresentation(const QVariant &value)
-{
-    return toJSLiteral(value);
-}
-
-static QVariant variantFromString(const QString &str, bool &ok)
-{
-    // ### use Qt5's JSON reader at some point.
-    QScriptEngine engine;
-    QScriptValue sv = engine.evaluate(QLatin1String("(function(){return ")
-                                      + str + QLatin1String(";})()"));
-    ok = !sv.isError();
-    return sv.toVariant();
-}
-
-QVariant representationToSettingsValue(const QString &representation)
-{
-    bool ok;
-    const QVariant variant = variantFromString(representation, ok);
-    if (ok)
-        return variant;
-
-    // If it's not valid JavaScript, interpret the value as a string.
-    return representation;
-}
 
 } // namespace qbs

@@ -41,7 +41,7 @@
 #include "configcommand.h"
 #include "../shared/logging/consolelogger.h"
 
-#include <tools/settingsmodel.h>
+#include <tools/settingsrepresentation.h>
 #include <tools/error.h>
 
 #include <QtCore/qdir.h>
