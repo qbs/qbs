@@ -67,7 +67,7 @@
 #include <tools/stringconstants.h>
 
 #include <QtCore/qdir.h>
-#include <QtCore/qregularexpression.h>
+#include <QtCore/qregexp.h>
 
 #include <algorithm>
 #include <queue>
@@ -1002,12 +1002,12 @@ void ProjectResolver::setupExportedProperties(const Item *item, const QString &n
     std::sort(properties.begin(), properties.end(), less);
 }
 
-static bool usesImport(const ExportedProperty &prop, const QRegularExpression &regex)
+static bool usesImport(const ExportedProperty &prop, const QRegExp &regex)
 {
-    return regex.match(prop.sourceCode).hasMatch();
+    return regex.indexIn(prop.sourceCode) != -1;
 }
 
-static bool usesImport(const ExportedItem &item, const QRegularExpression &regex)
+static bool usesImport(const ExportedItem &item, const QRegExp &regex)
 {
     return any_of(item.properties,
                   [regex](const ExportedProperty &p) { return usesImport(p, regex); })
@@ -1023,7 +1023,7 @@ static bool usesImport(const ExportedModule &module, const QString &name)
     // (3) var obj = DataCollection;
     const QString pattern = QStringLiteral("\\b%1\\b");
 
-    const QRegularExpression regex(pattern.arg(name)); // std::regex is much slower
+    const QRegExp regex(pattern.arg(name)); // std::regex is much slower
     return any_of(module.m_properties,
                   [regex](const ExportedProperty &p) { return usesImport(p, regex); })
             || any_of(module.children,
