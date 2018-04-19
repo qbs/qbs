@@ -79,7 +79,7 @@ static QString _configurationName(const QVariantMap &buildConfiguration)
     return buildConfiguration.value(QStringLiteral("qbs.configurationName")).toString();
 }
 
-void ProjectGenerator::generate(const QList<Project> &projects,
+ErrorInfo ProjectGenerator::generate(const QList<Project> &projects,
                                 const QList<QVariantMap> &buildConfigurations,
                                 const InstallOptions &installOptions,
                                 const QString &qbsSettingsDir,
@@ -96,7 +96,12 @@ void ProjectGenerator::generate(const QList<Project> &projects,
     d->installOptions = installOptions;
     d->qbsSettingsDir = qbsSettingsDir;
     d->logger = logger;
-    generate();
+    try {
+        generate();
+    } catch (const ErrorInfo &e) {
+        return e;
+    }
+    return ErrorInfo();
 }
 
 QList<Project> ProjectGenerator::projects() const

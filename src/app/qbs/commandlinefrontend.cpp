@@ -531,11 +531,13 @@ void CommandLineFrontend::checkGeneratorName()
 void CommandLineFrontend::generate()
 {
     QBS_CHECK(!!m_generator);
-    m_generator->generate(m_projects,
-                          m_parser.buildConfigurations(),
-                          m_parser.installOptions(QString()),
-                          m_parser.settingsDir(),
-                          ConsoleLogger::instance(m_settings));
+    const ErrorInfo error = m_generator->generate(m_projects,
+                                                  m_parser.buildConfigurations(),
+                                                  m_parser.installOptions(QString()),
+                                                  m_parser.settingsDir(),
+                                                  ConsoleLogger::instance(m_settings));
+    if (error.hasError())
+        throw error;
 }
 
 int CommandLineFrontend::runTarget()

@@ -66,11 +66,11 @@ public:
      */
     virtual QString generatorName() const = 0;
 
-    void generate(const QList<Project> &projects,
-                  const QList<QVariantMap> &buildConfigurations,
-                  const InstallOptions &installOptions,
-                  const QString &qbsSettingsDir,
-                  const Internal::Logger &logger);
+    ErrorInfo generate(const QList<Project> &projects,
+                       const QList<QVariantMap> &buildConfigurations,
+                       const InstallOptions &installOptions,
+                       const QString &qbsSettingsDir,
+                       const Internal::Logger &logger);
 
     const GeneratableProject project() const;
     QFileInfo qbsExecutableFilePath() const;
