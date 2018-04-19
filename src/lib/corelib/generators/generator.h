@@ -66,8 +66,6 @@ public:
      */
     virtual QString generatorName() const = 0;
 
-    virtual void generate() = 0;
-
     void generate(const QList<Project> &projects,
                   const QList<QVariantMap> &buildConfigurations,
                   const InstallOptions &installOptions,
@@ -78,19 +76,19 @@ public:
     QFileInfo qbsExecutableFilePath() const;
     QString qbsSettingsDir() const;
 
-private:
-    QList<Project> projects() const;
-    QList<QVariantMap> buildConfigurations() const;
-    QVariantMap buildConfiguration(const Project &project) const;
-
-    QStringList buildConfigurationCommandLine(const Project &project) const;
-
 protected:
     ProjectGenerator();
 
     const Internal::Logger &logger() const;
 
 private:
+    virtual void generate() = 0;
+
+    QList<Project> projects() const;
+    QList<QVariantMap> buildConfigurations() const;
+    QVariantMap buildConfiguration(const Project &project) const;
+    QStringList buildConfigurationCommandLine(const Project &project) const;
+
     ProjectGeneratorPrivate *d;
 };
 
