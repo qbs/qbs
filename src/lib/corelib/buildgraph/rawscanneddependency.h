@@ -42,7 +42,7 @@
 
 #include <tools/persistence.h>
 
-#include <QString>
+#include <QtCore/qstring.h>
 
 namespace qbs {
 namespace Internal {

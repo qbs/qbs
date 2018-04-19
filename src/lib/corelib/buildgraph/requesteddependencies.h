@@ -44,7 +44,7 @@
 #include <tools/persistence.h>
 #include <tools/set.h>
 
-#include <QString>
+#include <QtCore/qstring.h>
 
 #include <unordered_map>
 
