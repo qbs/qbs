@@ -126,7 +126,7 @@ QStringList ProjectGenerator::buildConfigurationCommandLine(const Project &proje
         throw ErrorInfo(QStringLiteral("Can't find configuration name for project"));
 
     QStringList commandLineParameters;
-    commandLineParameters += name;
+    commandLineParameters += QStringLiteral("config:") + name;
 
     QMapIterator<QString, QVariant> it(config);
     while (it.hasNext()) {
