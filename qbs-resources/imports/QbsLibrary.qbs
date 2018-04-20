@@ -16,7 +16,7 @@ QbsProduct {
         cpp.soVersion: version.replace(/\.\d+$/, '')
     }
     cpp.visibility: "minimal"
-    property bool visibilityType: Qt.core.staticBuild ? "static" : "dynamic"
+    property string visibilityType: Qt.core.staticBuild ? "static" : "dynamic"
     property string headerInstallPrefix: "/include/qbs"
     property bool hasExporter: Utilities.versionCompare(qbs.version, "1.12") >= 0
     property bool generateQbsModule: install && qbsbuildconfig.generateQbsModules && hasExporter
