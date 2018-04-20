@@ -57,6 +57,7 @@
 #include <map>
 #include <memory>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 namespace qbs {
@@ -347,6 +348,9 @@ private:
     void collectNameFromOverride(const QString &overrideString);
     void checkProjectNamesInOverrides(const TopLevelProjectContext &tlp);
     void checkProductNamesInOverrides();
+
+    using ShadowProductInfo = std::pair<bool, QString>;
+    ShadowProductInfo getShadowProductInfo(const ProductContext &product) const;
 
     ItemPool *m_pool;
     Logger &m_logger;

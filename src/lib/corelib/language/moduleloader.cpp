@@ -938,8 +938,8 @@ void ModuleLoader::adjustDependenciesForMultiplexing(const ModuleLoader::Product
             continue;
 
         QStringList multiplexIds;
-        const bool isShadowProduct = product.name.startsWith(shadowProductPrefix())
-                && product.name.mid(shadowProductPrefix().size()) == name;
+        const ShadowProductInfo shadowProductInfo = getShadowProductInfo(product);
+        const bool isShadowProduct = shadowProductInfo.first && shadowProductInfo.second == name;
         for (const ProductContext *dependency : dependencies) {
             const bool depMatchesShadowProduct = isShadowProduct
                     && dependency->item == product.item->parent();
@@ -1030,7 +1030,7 @@ void ModuleLoader::prepareProduct(ProjectContext *projectContext, Item *productI
 
     projectContext->products.push_back(productContext);
 
-    if (!hasExportItems || productContext.name.startsWith(shadowProductPrefix()))
+    if (!hasExportItems || getShadowProductInfo(productContext).first)
         return;
 
     // This "shadow product" exists only to pull in a dependency on the actual product
@@ -1926,6 +1926,14 @@ void ModuleLoader::checkProductNamesInOverrides()
                                 .arg(productNameInOverride), m_parameters, m_logger);
         }
     }
+}
+
+ModuleLoader::ShadowProductInfo ModuleLoader::getShadowProductInfo(
+        const ModuleLoader::ProductContext &product) const
+{
+    const bool isShadowProduct = product.name.startsWith(shadowProductPrefix());
+    return std::make_pair(isShadowProduct, isShadowProduct
+                          ? product.name.mid(shadowProductPrefix().size()) : QString());
 }
 
 void ModuleLoader::collectProductsByName(const TopLevelProjectContext &topLevelProject)
