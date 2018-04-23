@@ -1044,7 +1044,25 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
     var args = compilerFlags(project, product, input, output, explicitlyDependsOn);
     var wrapperArgsLength = 0;
     var wrapperArgs = product.cpp.compilerWrapper;
+    var extraEnv;
     if (wrapperArgs && wrapperArgs.length > 0) {
+
+        // distcc cannot deal with absolute compiler paths (QBS-1336).
+        for (var i = 0; i < wrapperArgs.length; ++i) {
+            if (FileInfo.baseName(wrapperArgs[i]) !== "distcc")
+                continue;
+            if (i === wrapperArgs.length - 1) {
+                if (FileInfo.isAbsolutePath(compilerPath)) {
+                    extraEnv = ["PATH=" + FileInfo.path(compilerPath)];
+                    compilerPath = FileInfo.fileName(compilerPath);
+                }
+            } else if (FileInfo.isAbsolutePath(wrapperArgs[i + 1])) {
+                extraEnv = ["PATH=" + FileInfo.path(FileInfo.path(wrapperArgs[i + 1]))];
+                wrapperArgs[i + 1] = FileInfo.fileName(wrapperArgs[i + 1]);
+            }
+            break;
+        }
+
         wrapperArgsLength = wrapperArgs.length;
         args.unshift(compilerPath);
         compilerPath = wrapperArgs.shift();
@@ -1058,6 +1076,8 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
     cmd.highlight = "compiler";
     cmd.jobPool = "compiler";
     cmd.relevantEnvironmentVariables = compilerEnvVars(input, compilerInfo);
+    if (extraEnv)
+        cmd.environment = extraEnv;
     cmd.responseFileArgumentIndex = wrapperArgsLength;
     cmd.responseFileUsagePrefix = '@';
     setResponseFileThreshold(cmd, product);
