@@ -2617,6 +2617,13 @@ void TestBlackbox::precompiledAndPrefixHeaders()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackbox::preventFloatingPointValues()
+{
+    QDir::setCurrent(testDataDir + "/prevent-floating-point-values");
+    QCOMPARE(runQbs(QStringList("products.p.version:1.50")), 0);
+    QVERIFY2(m_qbsStdout.contains("version: 1.50"), m_qbsStdout.constData());
+}
+
 void TestBlackbox::probeChangeTracking()
 {
     QDir::setCurrent(testDataDir + "/probe-change-tracking");
