@@ -127,7 +127,7 @@ Module {
     }
 
     Rule {
-        condition: repoState && headerFileName
+        condition: headerFileName
         multiplex: true
         Artifact {
             filePath: FileInfo.joinPaths(product.vcs.includeDir, product.vcs.headerFileName)
@@ -143,7 +143,7 @@ Module {
                 try {
                     f.writeLine("#ifndef VCS_REPO_STATE_H");
                     f.writeLine("#define VCS_REPO_STATE_H");
-                    f.writeLine('#define VCS_REPO_STATE "' + repoState + '"')
+                    f.writeLine('#define VCS_REPO_STATE "' + (repoState ? repoState : "none") + '"')
                     f.writeLine("#endif");
                 } finally {
                     f.close();

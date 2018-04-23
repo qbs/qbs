@@ -1,7 +1,7 @@
-#include <vcs-repo-state.h>
+#include <my-repo-state.h>
 #include <iostream>
 
 int main()
 {
-    std::cout << "I was built from " << VCS_REPO_STATE << std::endl;
+    std::cout << "__" << VCS_REPO_STATE << "__" << std::endl;
 }

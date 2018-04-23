@@ -1174,10 +1174,26 @@ void TestBlackbox::vcsGit()
     git.start(gitFilePath, QStringList({"config", "user.email", "me@example.com"}));
     QVERIFY(waitForProcessSuccess(git));
 
-    // First qbs run fails: No git metadata yet.
-    QbsRunParameters failParams;
-    failParams.expectFailure = true;
-    QVERIFY(runQbs(failParams) != 0);
+    const auto getRepoStateFromApp = [this] {
+        const int startIndex = m_qbsStdout.indexOf("__");
+        if (startIndex == -1)
+            return QByteArray();
+        const int endIndex = m_qbsStdout.indexOf("__", startIndex + 2);
+        if (endIndex == -1)
+            return QByteArray();
+        return m_qbsStdout.mid(startIndex + 2, endIndex - startIndex - 2);
+    };
+
+    // Run without git metadata.
+    QbsRunParameters params("run", QStringList{"-f", repoDir.path()});
+    params.workingDir = repoDir.path() + "/..";
+    params.buildDirectory = repoDir.path();
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(m_qbsStdout.contains("generating my-repo-state.h"), m_qbsStderr.constData());
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStderr.constData());
+    QByteArray newRepoState = getRepoStateFromApp();
+    QCOMPARE(newRepoState, "none");
+    QByteArray oldRepoState = newRepoState;
 
     // Initial commit
     git.start(gitFilePath, QStringList({"add", "main.cpp"}));
@@ -1185,25 +1201,29 @@ void TestBlackbox::vcsGit()
     git.start(gitFilePath, QStringList({"commit", "-m", "initial commit"}));
     QVERIFY(waitForProcessSuccess(git));
 
-    // Initial run.
-    QbsRunParameters params(QStringList{"-f", repoDir.path()});
-    params.workingDir = repoDir.path() + "/..";
-    params.buildDirectory = repoDir.path();
+    // Run with git metadata.
     QCOMPARE(runQbs(params), 0);
-    QVERIFY2(m_qbsStdout.contains("generating vcs-repo-state.h"), m_qbsStderr.constData());
+    QVERIFY2(m_qbsStdout.contains("generating my-repo-state.h"), m_qbsStderr.constData());
     QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStderr.constData());
+    newRepoState = getRepoStateFromApp();
+    QVERIFY(oldRepoState != newRepoState);
+    oldRepoState = newRepoState;
 
     // Run with no changes.
     QCOMPARE(runQbs(params), 0);
-    QVERIFY2(!m_qbsStdout.contains("generating vcs-repo-state.h"), m_qbsStderr.constData());
+    QVERIFY2(!m_qbsStdout.contains("generating my-repo-state.h"), m_qbsStderr.constData());
     QVERIFY2(!m_qbsStdout.contains("compiling main.cpp"), m_qbsStderr.constData());
+    newRepoState = getRepoStateFromApp();
+    QCOMPARE(oldRepoState, newRepoState);
 
     // Run with changed source file.
     WAIT_FOR_NEW_TIMESTAMP();
     touch("main.cpp");
     QCOMPARE(runQbs(params), 0);
-    QVERIFY2(!m_qbsStdout.contains("generating vcs-repo-state.h"), m_qbsStderr.constData());
+    QVERIFY2(!m_qbsStdout.contains("generating my-repo-state.h"), m_qbsStderr.constData());
     QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStderr.constData());
+    newRepoState = getRepoStateFromApp();
+    QCOMPARE(oldRepoState, newRepoState);
 
     // Add new file to repo.
     WAIT_FOR_NEW_TIMESTAMP();
@@ -1213,8 +1233,10 @@ void TestBlackbox::vcsGit()
     git.start(gitFilePath, QStringList({"commit", "-m", "blubb!"}));
     QVERIFY(waitForProcessSuccess(git));
     QCOMPARE(runQbs(params), 0);
-    QVERIFY2(m_qbsStdout.contains("generating vcs-repo-state.h"), m_qbsStderr.constData());
+    QVERIFY2(m_qbsStdout.contains("generating my-repo-state.h"), m_qbsStderr.constData());
     QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStderr.constData());
+    newRepoState = getRepoStateFromApp();
+    QVERIFY(oldRepoState != newRepoState);
 }
 
 void TestBlackbox::vcsSubversion()
@@ -1252,19 +1274,19 @@ void TestBlackbox::vcsSubversion()
     if (m_qbsStderr.contains("svn too old"))
         QSKIP("svn too old");
     QCOMPARE(retval, 0);
-    QVERIFY2(m_qbsStdout.contains("I was built from 1"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("__1__"), m_qbsStdout.constData());
     QCOMPARE(runQbs(QbsRunParameters("run")), 0);
-    QVERIFY2(!m_qbsStdout.contains("generating vcs-repo-state.h"), m_qbsStderr.constData());
+    QVERIFY2(!m_qbsStdout.contains("generating my-repo-state.h"), m_qbsStderr.constData());
     QVERIFY2(!m_qbsStdout.contains("compiling main.cpp"), m_qbsStderr.constData());
-    QVERIFY2(m_qbsStdout.contains("I was built from 1"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("__1__"), m_qbsStdout.constData());
 
     // Run with changed source file.
     WAIT_FOR_NEW_TIMESTAMP();
     touch("main.cpp");
     QCOMPARE(runQbs(QbsRunParameters("run")), 0);
-    QVERIFY2(!m_qbsStdout.contains("generating vcs-repo-state.h"), m_qbsStderr.constData());
+    QVERIFY2(!m_qbsStdout.contains("generating my-repo-state.h"), m_qbsStderr.constData());
     QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStderr.constData());
-    QVERIFY2(m_qbsStdout.contains("I was built from 1"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("__1__"), m_qbsStdout.constData());
 
     // Add new file to repo.
     WAIT_FOR_NEW_TIMESTAMP();
@@ -1274,7 +1296,7 @@ void TestBlackbox::vcsSubversion()
     proc.start(svnFilePath, QStringList({"commit", "-m", "blubb!"}));
     QVERIFY(waitForProcessSuccess(proc));
     QCOMPARE(runQbs(QbsRunParameters("run")), 0);
-    QVERIFY2(m_qbsStdout.contains("I was built from 2"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("__2__"), m_qbsStdout.constData());
 }
 
 void TestBlackbox::versionCheck()
