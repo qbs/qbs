@@ -74,7 +74,8 @@ void RuleNode::accept(BuildGraphVisitor *visitor)
 QString RuleNode::toString() const
 {
     return QLatin1String("RULE ") + m_rule->toString() + QLatin1String(" [")
-            + (!product.expired() ? product->name : QLatin1String("<null>")) + QLatin1Char(']');
+            + (!product.expired() ? product->name : QLatin1String("<null>")) + QLatin1Char(']')
+            + QLatin1String(" located at ") + m_rule->prepareScript.location().toString();
 }
 
 void RuleNode::apply(const Logger &logger, const ArtifactSet &changedInputs,
