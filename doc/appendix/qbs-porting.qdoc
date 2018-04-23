@@ -488,9 +488,7 @@
 
     \section2 message(), warning(), error(), log()
 
-    You can use the JavaScript console printing functions (\c console.info,
-    \c console.warn, \c console.error, and \c console.log) to print info,
-    warning, error, and log messages to the console.
+    You can use the \l{Console API} to print info, warning, error, and log messages to the console.
 
     \code
     Product {
