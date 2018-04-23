@@ -179,6 +179,12 @@ void TestBlackboxQt::mixedBuildVariants()
     }
 }
 
+void TestBlackboxQt::mocAndCppCombining()
+{
+    QDir::setCurrent(testDataDir + "/moc-and-cxx-combining");
+    QCOMPARE(runQbs(), 0);
+}
+
 void TestBlackboxQt::mocFlags()
 {
     QDir::setCurrent(testDataDir + "/moc-flags");

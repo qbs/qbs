@@ -63,12 +63,14 @@ namespace Internal {
 struct CommonFileTags
 {
     const FileTag cpp = "cpp";
+    const FileTag cppCombine = "cpp.combine";
     const FileTag hpp = "hpp";
     const FileTag moc_cpp = "moc_cpp";
     const FileTag moc_cpp_plugin = "moc_cpp_plugin";
     const FileTag moc_hpp_plugin = "moc_hpp_plugin";
     const FileTag moc_hpp = "moc_hpp";
     const FileTag objcpp = "objcpp";
+    const FileTag objcppCombine = "objcpp.combine";
 };
 
 Q_GLOBAL_STATIC(CommonFileTags, commonFileTags)
@@ -117,9 +119,9 @@ QtMocScanner::~QtMocScanner()
 
 ScannerPlugin *QtMocScanner::scannerPluginForFileTags(const FileTags &ft)
 {
-    if (ft.contains(m_tags.objcpp))
+    if (ft.contains(m_tags.objcpp) || ft.contains(m_tags.objcppCombine))
         return m_objcppScanner;
-    if (ft.contains(m_tags.cpp))
+    if (ft.contains(m_tags.cpp) || ft.contains(m_tags.cppCombine))
         return m_cppScanner;
     return m_hppScanner;
 }
@@ -133,8 +135,16 @@ static RawScanResult runScanner(ScannerPlugin *scanner, const Artifact *artifact
     RawScanResults::ScanData &scanData = rawScanResults.findScanData(artifact, &depScanner,
                                                                      artifact->properties);
     if (scanData.lastScanTime < artifact->timestamp()) {
-        const QByteArray tagsForScanner
-                = artifact->fileTags().toStringList().join(QLatin1Char(',')).toLatin1();
+        FileTags tags = artifact->fileTags();
+        if (tags.contains(commonFileTags->cppCombine)) {
+            tags.remove(commonFileTags->cppCombine);
+            tags.insert(commonFileTags->cpp);
+        }
+        if (tags.contains(commonFileTags->objcppCombine)) {
+            tags.remove(commonFileTags->objcppCombine);
+            tags.insert(commonFileTags->objcpp);
+        }
+        const QByteArray tagsForScanner = tags.toStringList().join(QLatin1Char(',')).toLatin1();
         void *opaq = scanner->open(filepath.utf16(), tagsForScanner.constData(),
                                    ScanForDependenciesFlag | ScanForFileTagsFlag);
         if (!opaq || !scanner->additionalFileTags)

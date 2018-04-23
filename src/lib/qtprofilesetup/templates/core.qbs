@@ -255,8 +255,11 @@ Module {
 
     Rule {
         name: "QtCoreMocRule"
-        inputs: ["objcpp", "cpp", "hpp"]
-        auxiliaryInputs: ["qt_plugin_metadata"]
+        property string cppInput: cpp.combineCxxSources ? "cpp.combine" : "cpp"
+        property string objcppInput: cpp.combineCxxSources ? "objcpp.combine" : "cpp"
+        property stringList additionalAuxInputs: cpp.combineCxxSources ? ["cpp", "objcpp"] : []
+        inputs: [objcppInput, cppInput, "hpp"]
+        auxiliaryInputs: ["qt_plugin_metadata"].concat(additionalAuxInputs)
         excludedInputs: ["unmocable"]
         outputFileTags: ["hpp", "cpp", "moc_cpp", "unmocable"]
         outputArtifacts: {

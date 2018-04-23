@@ -50,6 +50,7 @@ private slots:
     void dbusInterfaces();
     void lrelease();
     void mixedBuildVariants();
+    void mocAndCppCombining();
     void mocFlags();
     void mocSameFileName();
     void pkgconfig();
