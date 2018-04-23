@@ -1192,7 +1192,7 @@ void TestBlackbox::vcsGit()
     QVERIFY2(m_qbsStdout.contains("generating my-repo-state.h"), m_qbsStderr.constData());
     QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStderr.constData());
     QByteArray newRepoState = getRepoStateFromApp();
-    QCOMPARE(newRepoState, "none");
+    QCOMPARE(newRepoState, QByteArray("none"));
     QByteArray oldRepoState = newRepoState;
 
     // Initial commit
