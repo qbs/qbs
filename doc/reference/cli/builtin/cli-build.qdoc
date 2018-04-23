@@ -113,6 +113,6 @@
     size of the build artifacts will be optimized:
 
     \code
-    qbs build debug modules.cpp.treatWarningsAsErrors:true release modules.cpp.optimization:small
+    qbs build config:debug modules.cpp.treatWarningsAsErrors:true config:release modules.cpp.optimization:small
     \endcode
 */
