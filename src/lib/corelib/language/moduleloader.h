@@ -266,7 +266,8 @@ private:
                                                    const Item::Modules &dependentModules);
 
     bool mergeExportItems(const ProductContext &productContext);
-    void resolveDependencies(DependsContext *dependsContext, Item *item);
+    void resolveDependencies(DependsContext *dependsContext, Item *item,
+                             ProductContext *productContext = nullptr);
     class ItemModuleList;
     void resolveDependsItem(DependsContext *dependsContext, Item *parentItem, Item *dependsItem,
                             ItemModuleList *moduleResults, ProductDependencies *productResults);

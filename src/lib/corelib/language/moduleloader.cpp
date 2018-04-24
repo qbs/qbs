@@ -1078,7 +1078,7 @@ void ModuleLoader::setupProductDependencies(ProductContext *productContext)
     DependsContext dependsContext;
     dependsContext.product = productContext;
     dependsContext.productDependencies = &productContext->info.usedProducts;
-    resolveDependencies(&dependsContext, item);
+    resolveDependencies(&dependsContext, item, productContext);
     addTransitiveDependencies(productContext);
     productContext->project->result->productInfos.insert(item, productContext->info);
 }
@@ -2178,7 +2178,8 @@ void ModuleLoader::adjustDefiningItemsInGroupModuleInstances(const Item::Module 
     }
 }
 
-void ModuleLoader::resolveDependencies(DependsContext *dependsContext, Item *item)
+void ModuleLoader::resolveDependencies(DependsContext *dependsContext, Item *item,
+                                       ProductContext *productContext)
 {
     const Item::Module baseModule = loadBaseModule(dependsContext->product, item);
     // Resolve all Depends items.
@@ -2191,7 +2192,13 @@ void ModuleLoader::resolveDependencies(DependsContext *dependsContext, Item *ite
             continue;
 
         int lastModulesCount = loadedModules.size();
-        resolveDependsItem(dependsContext, item, child, &loadedModules, &productDependencies);
+        try {
+            resolveDependsItem(dependsContext, item, child, &loadedModules, &productDependencies);
+        } catch (const ErrorInfo &e) {
+            if (!productContext)
+                throw;
+            handleProductError(e, productContext);
+        }
         for (int i = lastModulesCount; i < loadedModules.size(); ++i)
             dependsItemPerLoadedModule.push_back(child);
     }

@@ -5,6 +5,7 @@ DummyBase {
 
     additionalProductTypes: ["tag2"]
 
+    property bool falseProperty: false
     property stringList defines
     property stringList cFlags
     property stringList cxxFlags

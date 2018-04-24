@@ -707,7 +707,7 @@ void TestLanguage::errorInDisabledProduct()
         auto project = loader->loadProject(params);
         QVERIFY(!!project);
         auto products = productsFromProject(project);
-        QCOMPARE(products.size(), 4);
+        QCOMPARE(products.size(), 5);
     } catch (const ErrorInfo &e) {
         exceptionCaught = true;
         qDebug() << e.toString();

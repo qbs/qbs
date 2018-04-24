@@ -46,4 +46,11 @@ Project {
         condition: false
         minimumQbsVersion: false
     }
+
+    Product {
+        name: "e"
+        condition: dummy.falseProperty
+        Depends { name: "does.not.exist" }
+        Depends { name: "dummy" }
+    }
 }
