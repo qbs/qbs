@@ -50,10 +50,15 @@
 namespace qbs {
 namespace Internal {
 
-void makePathsCanonical(QStringList &paths)
+static void makePathsCanonical(QStringList &paths)
 {
-    for (QString &p : paths)
+    auto it = std::remove_if(paths.begin(), paths.end(), [](QString &p) {
         p = QFileInfo(p).canonicalFilePath();
+        return p.isEmpty();
+    });
+    auto e = paths.end();
+    if (it != e)
+        paths.erase(it, e);
 }
 
 ItemReader::ItemReader(Logger &logger) : m_visitorState(new ItemReaderVisitorState(logger))
