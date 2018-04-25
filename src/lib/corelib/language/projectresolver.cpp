@@ -1322,19 +1322,8 @@ ProjectResolver::ProductDependencyInfos ProjectResolver::getProductDependencies(
     ProductDependencyInfos result;
     result.dependencies.reserve(productInfo.usedProducts.size());
     for (const auto &dependency : productInfo.usedProducts) {
-        QBS_CHECK(dependency.name.isEmpty() != dependency.productTypes.empty());
-        if (!dependency.productTypes.empty()) {
-            for (const FileTag &tag : dependency.productTypes) {
-                const QList<ResolvedProductPtr> productsForTag = m_productsByType.value(tag);
-                for (const ResolvedProductPtr &p : productsForTag) {
-                    if (p == product || !p->enabled
-                            || (dependency.limitToSubProject && !product->isInParentProject(p))) {
-                        continue;
-                    }
-                    result.dependencies.emplace_back(p, dependency.parameters);
-                }
-            }
-        } else if (dependency.profile == StringConstants::star()) {
+        QBS_CHECK(!dependency.name.isEmpty());
+        if (dependency.profile == StringConstants::star()) {
             for (const ResolvedProductPtr &p : qAsConst(m_productsByName)) {
                 if (p->name != dependency.name || p == product || !p->enabled
                         || (dependency.limitToSubProject && !product->isInParentProject(p))) {

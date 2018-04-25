@@ -85,7 +85,6 @@ struct ModuleLoaderResult
     {
         struct Dependency
         {
-            FileTags productTypes;
             QString name;
             QString profile; // "*" <=> Match all profiles.
             QString multiplexConfigurationId;
@@ -236,8 +235,11 @@ private:
     static MultiplexTable combine(const MultiplexTable &table, const MultiplexRow &values);
     MultiplexInfo extractMultiplexInfo(Item *productItem, Item *qbsModuleItem);
     QList<Item *> multiplexProductItem(ProductContext *dummyContext, Item *productItem);
+    void normalizeDependencies(const TopLevelProjectContext &tlp);
+    void normalizeDependencies(const ProductContext &product);
     void adjustDependenciesForMultiplexing(const TopLevelProjectContext &tlp);
     void adjustDependenciesForMultiplexing(const ProductContext &product);
+
 
     void prepareProduct(ProjectContext *projectContext, Item *productItem);
     void setupProductDependencies(ProductContext *productContext);
@@ -338,7 +340,7 @@ private:
     void handleProductError(const ErrorInfo &error, ProductContext *productContext);
     QualifiedIdSet gatherModulePropertiesSetInGroup(const Item *group);
     Item *loadItemFromFile(const QString &filePath);
-    void collectProductsByName(const TopLevelProjectContext &topLevelProject);
+    void collectProductsByNameAndType(const TopLevelProjectContext &topLevelProject);
 
     void handleProfileItems(Item *item, ProjectContext *projectContext);
     std::vector<Item *> collectProfileItems(Item *item, ProjectContext *projectContext);
@@ -384,6 +386,7 @@ private:
     QVariantMap m_storedProfiles;
     QVariantMap m_localProfiles;
     std::multimap<QString, const ProductContext *> m_productsByName;
+    std::multimap<FileTag, const ProductContext *> m_productsByType;
     SetupProjectParameters m_parameters;
     std::unique_ptr<Settings> m_settings;
     Version m_qbsVersion;

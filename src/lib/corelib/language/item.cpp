@@ -365,6 +365,12 @@ void Item::addChild(Item *parent, Item *child)
     child->setParent(parent);
 }
 
+void Item::removeChild(Item *parent, Item *child)
+{
+    parent->m_children.removeOne(child);
+    child->setParent(nullptr);
+}
+
 void Item::setPropertyDeclaration(const QString &name, const PropertyDeclaration &declaration)
 {
     if (declaration.isExpired()) {

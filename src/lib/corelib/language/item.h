@@ -135,6 +135,7 @@ public:
     void setChildren(const QList<Item *> &children) { m_children = children; }
     void setParent(Item *item) { m_parent = item; }
     static void addChild(Item *parent, Item *child);
+    static void removeChild(Item *parent, Item *child);
     void dump() const;
     bool isPresentModule() const;
     void setupForBuiltinType(Logger &logger);

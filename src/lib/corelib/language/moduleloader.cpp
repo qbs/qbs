@@ -137,8 +137,6 @@ public:
         for (auto productContext : qAsConst(allProducts)) {
             auto &productDependencies = m_dependencyMap[productContext];
             for (const auto &dep : qAsConst(productContext->info.usedProducts)) {
-                if (!dep.productTypes.empty())
-                    continue;
                 QBS_CHECK(!dep.name.isEmpty());
                 const auto &deps = productsMap.value(dep.name);
                 if (dep.profile == StringConstants::star()) {
@@ -536,9 +534,10 @@ void ModuleLoader::handleTopLevelProject(ModuleLoaderResult *loadResult, Item *p
     tlp.buildDirectory = buildDirectory;
     handleProject(loadResult, &tlp, projectItem, referencedFilePaths);
     checkProjectNamesInOverrides(tlp);
-    collectProductsByName(tlp);
+    collectProductsByNameAndType(tlp);
     checkProductNamesInOverrides();
 
+    normalizeDependencies(tlp);
     adjustDependenciesForMultiplexing(tlp);
 
     for (ProjectContext * const projectContext : qAsConst(tlp.projects)) {
@@ -889,6 +888,82 @@ QList<Item *> ModuleLoader::multiplexProductItem(ProductContext *dummyContext, I
     }
 
     return additionalProductItems;
+}
+
+void ModuleLoader::normalizeDependencies(const ModuleLoader::TopLevelProjectContext &tlp)
+{
+    for (const ProjectContext * const project : tlp.projects) {
+        for (const ProductContext &product : project->products)
+            normalizeDependencies(product);
+    }
+}
+
+void ModuleLoader::normalizeDependencies(const ModuleLoader::ProductContext &product)
+{
+    std::vector<Item *> dependsItemsToAdd;
+    std::vector<Item *> dependsItemsToRemove;
+    for (Item *dependsItem : product.item->children()) {
+        if (dependsItem->type() != ItemType::Depends)
+            continue;
+        bool productTypesIsSet;
+        const FileTags productTypes = m_evaluator->fileTagsValue(dependsItem,
+                StringConstants::productTypesProperty(), &productTypesIsSet);
+        if (productTypesIsSet) {
+            bool nameIsSet;
+            m_evaluator->stringValue(dependsItem, StringConstants::nameProperty(), QString(),
+                                     &nameIsSet);
+            if (nameIsSet) {
+                throw ErrorInfo(Tr::tr("The 'productTypes' and 'name' properties are mutually "
+                                       "exclusive."), dependsItem->location());
+            }
+            bool submodulesPropertySet;
+            m_evaluator->stringListValue( dependsItem, StringConstants::submodulesProperty(),
+                                          &submodulesPropertySet);
+            if (submodulesPropertySet) {
+                throw ErrorInfo(Tr::tr("The 'productTypes' and 'subModules' properties are "
+                                       "mutually exclusive."), dependsItem->location());
+            }
+            const bool limitToSubProject = m_evaluator->boolValue
+                    (dependsItem, StringConstants::limitToSubProjectProperty());
+            static const auto hasSameSubProject
+                    = [](const ProductContext &product, const ProductContext &other) {
+                for (const Item *otherParent = other.item->parent(); otherParent;
+                     otherParent = otherParent->parent()) {
+                    if (otherParent == product.item->parent())
+                        return true;
+                }
+                return false;
+            };
+            std::vector<const ProductContext *> matchingProducts;
+            for (const FileTag &typeTag : productTypes) {
+                const auto range = m_productsByType.equal_range(typeTag);
+                for (auto it = range.first; it != range.second; ++it) {
+                    if (it->second != &product
+                            && (!limitToSubProject || hasSameSubProject(product, *it->second))) {
+                        matchingProducts.push_back(it->second);
+                    }
+                }
+            }
+            if (matchingProducts.empty()) {
+                qCDebug(lcModuleLoader) << "Depends.productTypes does not match anything."
+                                        << dependsItem->location();
+                dependsItemsToRemove.push_back(dependsItem);
+                continue;
+            }
+            for (std::size_t i = 1; i < matchingProducts.size(); ++i) {
+                Item * const dependsClone = dependsItem->clone();
+                dependsClone->setProperty(StringConstants::nameProperty(),
+                                         VariantValue::create(matchingProducts.at(i)->name));
+                dependsItemsToAdd.push_back(dependsClone);
+            }
+            dependsItem->setProperty(StringConstants::nameProperty(),
+                                     VariantValue::create(matchingProducts.front()->name));
+        }
+    }
+    for (Item * const newDependsItem : dependsItemsToAdd)
+        Item::addChild(product.item, newDependsItem);
+    for (Item * const dependsItem : dependsItemsToRemove)
+        Item::removeChild(product.item, dependsItem);
 }
 
 void ModuleLoader::adjustDependenciesForMultiplexing(const TopLevelProjectContext &tlp)
@@ -1939,11 +2014,24 @@ ModuleLoader::ShadowProductInfo ModuleLoader::getShadowProductInfo(
                           ? product.name.mid(shadowProductPrefix().size()) : QString());
 }
 
-void ModuleLoader::collectProductsByName(const TopLevelProjectContext &topLevelProject)
+void ModuleLoader::collectProductsByNameAndType(const TopLevelProjectContext &topLevelProject)
 {
     for (ProjectContext * const project : topLevelProject.projects) {
-        for (ProductContext &product : project->products)
+        for (ProductContext &product : project->products) {
             m_productsByName.insert({ product.name, &product });
+            try {
+                // Load the qbs module here already, in case it is needed in the type
+                // property.
+                product.item->addModule(loadBaseModule(&product, product.item));
+                const FileTags productTags
+                        = m_evaluator->fileTagsValue(product.item, StringConstants::typeProperty());
+                for (const FileTag &tag : productTags)
+                    m_productsByType.insert({ tag, &product});
+            } catch (const ErrorInfo &e) {
+                qCDebug(lcModuleLoader) << "product" << product.name << "has complex type "
+                                           " and won't get an entry in the type map";
+            }
+        }
     }
 }
 
@@ -2192,7 +2280,11 @@ void ModuleLoader::adjustDefiningItemsInGroupModuleInstances(const Item::Module 
 void ModuleLoader::resolveDependencies(DependsContext *dependsContext, Item *item,
                                        ProductContext *productContext)
 {
-    const Item::Module baseModule = loadBaseModule(dependsContext->product, item);
+    if (!productContext) {
+        // For products, we already did this in collectProductsByNameAndType().
+        const Item::Module baseModule = loadBaseModule(dependsContext->product, item);
+        item->addModule(baseModule);
+    }
     // Resolve all Depends items.
     ItemModuleList loadedModules;
     QList<Item *> dependsItemPerLoadedModule;
@@ -2224,7 +2316,6 @@ void ModuleLoader::resolveDependencies(DependsContext *dependsContext, Item *ite
         lastDependsItem = dependsItem;
     }
 
-    item->addModule(baseModule);
     for (int i = 0; i < loadedModules.size(); ++i) {
         Item::Module &module = loadedModules[i];
         mergeParameters(module.parameters, extractParameters(dependsItemPerLoadedModule.at(i)));
@@ -2267,38 +2358,12 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
         qCDebug(lcModuleLoader) << "Depends item disabled, ignoring.";
         return;
     }
-    bool productTypesIsSet;
-    const FileTags productTypes = m_evaluator->fileTagsValue(dependsItem,
-            StringConstants::productTypesProperty(), &productTypesIsSet);
     bool nameIsSet;
     const QString name = m_evaluator->stringValue(dependsItem, StringConstants::nameProperty(),
                                                   QString(), &nameIsSet);
     bool submodulesPropertySet;
     const QStringList submodules = m_evaluator->stringListValue(
                 dependsItem, StringConstants::submodulesProperty(), &submodulesPropertySet);
-    if (productTypesIsSet) {
-        if (nameIsSet) {
-            throw ErrorInfo(Tr::tr("The 'productTypes' and 'name' properties are mutually "
-                                   "exclusive."), dependsItem->location());
-        }
-        if (submodulesPropertySet) {
-            throw ErrorInfo(Tr::tr("The 'productTypes' and 'subModules' properties are mutually "
-                                   "exclusive."), dependsItem->location());
-        }
-        if (productTypes.empty()) {
-            qCDebug(lcModuleLoader) << "Ignoring Depends item with empty productTypes list.";
-            return;
-        }
-
-        // TODO: We could also filter by the "profiles" property. This would required a refactoring
-        //       (Dependency needs a list of profiles and the multiplexing must happen later).
-        ModuleLoaderResult::ProductInfo::Dependency dependency;
-        dependency.productTypes = productTypes;
-        dependency.limitToSubProject
-                = m_evaluator->boolValue(dependsItem, StringConstants::limitToSubProjectProperty());
-        productResults->push_back(dependency);
-        return;
-    }
     if (submodules.empty() && submodulesPropertySet) {
         qCDebug(lcModuleLoader) << "Ignoring Depends item with empty submodules list.";
         return;
