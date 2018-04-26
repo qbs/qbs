@@ -678,7 +678,7 @@ void ProjectPrivate::updateInternalCodeLocations(const ResolvedProjectPtr &proje
             updateLocationIfNecessary(group->location, changeLocation, lineOffset);
         for (const RulePtr &rule : qAsConst(product->rules)) {
             updateLocationIfNecessary(rule->prepareScript.location(), changeLocation, lineOffset);
-            for (const RuleArtifactPtr &artifact : qAsConst(rule->artifacts)) {
+            for (const RuleArtifactPtr &artifact : rule->artifacts) {
                 for (auto &binding : artifact->bindings) {
                     updateLocationIfNecessary(binding.location, changeLocation, lineOffset);
                 }

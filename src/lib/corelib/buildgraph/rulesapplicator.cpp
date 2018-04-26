@@ -208,7 +208,7 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
         handleRemovedRuleOutputs(m_completeInputSet, oldOutputs - newOutputs, m_logger);
     } else {
         Set<QString> outputFilePaths;
-        for (const RuleArtifactConstPtr &ruleArtifact : qAsConst(m_rule->artifacts)) {
+        for (const RuleArtifactConstPtr &ruleArtifact : m_rule->artifacts) {
             Artifact * const outputArtifact
                     = createOutputArtifactFromRuleArtifact(ruleArtifact, inputArtifacts,
                                                            &outputFilePaths);

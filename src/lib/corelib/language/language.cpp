@@ -287,7 +287,7 @@ bool Rule::acceptsAsInput(Artifact *artifact) const
 FileTags Rule::staticOutputFileTags() const
 {
     FileTags result;
-    for (const RuleArtifactConstPtr &artifact : qAsConst(artifacts))
+    for (const RuleArtifactConstPtr &artifact : artifacts)
         result.unite(artifact->fileTags);
     return result;
 }
@@ -857,9 +857,8 @@ QString keyFromElem(const RulePtr &r) {
     QString key = r->toString() + r->prepareScript.sourceCode();
     if (r->outputArtifactsScript.isValid())
         key += r->outputArtifactsScript.sourceCode();
-    for (const auto &a : qAsConst(r->artifacts)) {
+    for (const auto &a : r->artifacts)
         key += a->filePath;
-    }
     return key;
 }
 
@@ -889,7 +888,7 @@ bool operator==(const Rule &r1, const Rule &r2)
 {
     if (r1.artifacts.size() != r2.artifacts.size())
         return false;
-    for (int i = 0; i < r1.artifacts.size(); ++i) {
+    for (size_t i = 0; i < r1.artifacts.size(); ++i) {
         if (!equals(r1.artifacts.at(i).get(), r2.artifacts.at(i).get()))
             return false;
     }

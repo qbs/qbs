@@ -416,7 +416,7 @@ public:
     FileTags explicitlyDependsOn;
     bool multiplex;
     bool requiresInputs;
-    QList<RuleArtifactPtr> artifacts;           // unused, if outputFileTags/outputArtifactsScript is non-empty
+    std::vector<RuleArtifactPtr> artifacts;     // unused, if outputFileTags/outputArtifactsScript is non-empty
     bool alwaysRun;
 
     // members that we don't need to save
