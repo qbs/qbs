@@ -88,7 +88,7 @@ struct ProjectResolver::ProjectContext
     ProjectContext *parentContext = nullptr;
     ResolvedProjectPtr project;
     std::vector<FileTaggerConstPtr> fileTaggers;
-    QList<RulePtr> rules;
+    std::vector<RulePtr> rules;
     ResolvedModulePtr dummyModule;
 };
 
@@ -1592,7 +1592,7 @@ void ProjectResolver::postProcess(const ResolvedProductPtr &product,
               [] (const FileTaggerConstPtr &a, const FileTaggerConstPtr &b) {
         return a->priority() > b->priority();
     });
-    for (const RulePtr &rule : qAsConst(projectContext->rules)) {
+    for (const RulePtr &rule : projectContext->rules) {
         RulePtr clonedRule = rule->clone();
         clonedRule->product = product.get();
         product->rules.push_back(clonedRule);
