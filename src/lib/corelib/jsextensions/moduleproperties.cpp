@@ -192,7 +192,7 @@ static QScriptValue js_moduleDependencies(QScriptContext *, ScriptEngine *engine
     QScriptValue result = engine->newArray();
     quint32 idx = 0;
     for (const QString &depName : qAsConst(module->moduleDependencies)) {
-        for (const ResolvedModuleConstPtr &dep : qAsConst(module->product->modules)) {
+        for (const ResolvedModuleConstPtr &dep : module->product->modules) {
             if (dep->name != depName)
                 continue;
             QScriptValue obj = engine->newObject(engine->modulePropertyScriptClass());
@@ -292,7 +292,7 @@ void ModuleProperties::setupModules(QScriptValue &object, const ResolvedProduct 
         modulePropertyScriptClass = new ModulePropertyScriptClass(engine);
         engine->setModulePropertyScriptClass(modulePropertyScriptClass);
     }
-    for (const auto &module : qAsConst(product->modules)) {
+    for (const auto &module : product->modules) {
         QScriptValue moduleObjectPrototype = setupModuleScriptValue(engine, module.get());
         QScriptValue moduleObject = engine->newObject(modulePropertyScriptClass);
         moduleObject.setPrototype(moduleObjectPrototype);

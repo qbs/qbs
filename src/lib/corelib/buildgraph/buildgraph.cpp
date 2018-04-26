@@ -260,7 +260,7 @@ private:
             }
             return result;
         }
-        for (const ResolvedModuleConstPtr &dependency : qAsConst(product->modules)) {
+        for (const ResolvedModuleConstPtr &dependency : product->modules) {
             if (dependency->isProduct)
                 continue;
             QScriptValue obj = engine->newObject(engine->modulePropertyScriptClass());
@@ -629,7 +629,7 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product,
     CycleDetector cycleDetector(logger);
     cycleDetector.visitProduct(product);
     const ProductBuildData * const buildData = product->buildData.get();
-    for (const ResolvedModuleConstPtr &m : qAsConst(product->modules))
+    for (const ResolvedModuleConstPtr &m : product->modules)
         QBS_CHECK(m->product == product.get());
     qCDebug(lcBuildGraph) << "enabled:" << product->enabled << "build data:" << buildData;
     if (product->enabled)

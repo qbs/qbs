@@ -959,8 +959,8 @@ void TestLanguage::exports()
 
         product = products.value("depender");
         QVERIFY(!!product);
-        QCOMPARE(product->modules.size(), 2);
-        for (const ResolvedModuleConstPtr &m : qAsConst(product->modules)) {
+        QCOMPARE(product->modules.size(), size_t(2));
+        for (const ResolvedModuleConstPtr &m : product->modules) {
             QVERIFY2(m->name == QString("qbs") || m->name == QString("dependency"),
                      qPrintable(m->name));
         }
@@ -970,8 +970,8 @@ void TestLanguage::exports()
 
         product = products.value("broken_cycle3");
         QVERIFY(!!product);
-        QCOMPARE(product->modules.size(), 3);
-        for (const ResolvedModuleConstPtr &m : qAsConst(product->modules)) {
+        QCOMPARE(product->modules.size(), size_t(3));
+        for (const ResolvedModuleConstPtr &m : product->modules) {
             QVERIFY2(m->name == QString("qbs") || m->name == QString("broken_cycle1")
                      || m->name == QString("broken_cycle2"),
                      qPrintable(m->name));

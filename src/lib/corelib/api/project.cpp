@@ -689,7 +689,7 @@ void ProjectPrivate::updateInternalCodeLocations(const ResolvedProjectPtr &proje
                                       lineOffset);
             updateLocationIfNecessary(scanner->scanScript.location(), changeLocation, lineOffset);
         }
-        for (const ResolvedModuleConstPtr &module : qAsConst(product->modules)) {
+        for (const ResolvedModuleConstPtr &module : product->modules) {
             updateLocationIfNecessary(module->setupBuildEnvironmentScript.location(),
                                       changeLocation, lineOffset);
             updateLocationIfNecessary(module->setupRunEnvironmentScript.location(),
