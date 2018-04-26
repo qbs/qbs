@@ -97,7 +97,7 @@ void RulesApplicator::applyRule(const RuleConstPtr &rule, const ArtifactSet &inp
     if (inputArtifacts.empty() && rule->declaresInputs() && rule->requiresInputs)
         return;
 
-    m_product->topLevelProject()->buildData->isDirty = true;
+    m_product->topLevelProject()->buildData->setDirty();
     m_createdArtifacts.clear();
     m_invalidatedArtifacts.clear();
     RulesEvaluationContext::Scope s(evalContext().get());

@@ -667,7 +667,7 @@ void TopLevelProject::store(Logger logger)
 
     if (!buildData)
         return;
-    if (!buildData->isDirty) {
+    if (!buildData->isDirty()) {
         qCDebug(lcBuildGraph) << "build graph is unchanged in project" << id();
         return;
     }
@@ -680,7 +680,7 @@ void TopLevelProject::store(Logger logger)
     pool.setupWriteStream(fileName);
     store(pool);
     pool.finalizeWriteStream();
-    buildData->isDirty = false;
+    buildData->setClean();
 }
 
 void TopLevelProject::load(PersistentPool &pool)
@@ -688,7 +688,6 @@ void TopLevelProject::load(PersistentPool &pool)
     ResolvedProject::load(pool);
     serializationOp<PersistentPool::Load>(pool);
     QBS_CHECK(buildData);
-    buildData->isDirty = false;
 }
 
 void TopLevelProject::store(PersistentPool &pool)

@@ -560,7 +560,7 @@ void Executor::finishJob(ExecutorJob *job, bool success)
     m_processingJobs.erase(it);
     m_availableJobs.push_back(job);
     if (success) {
-        m_project->buildData->isDirty = true;
+        m_project->buildData->setDirty();
         for (Artifact * const artifact : qAsConst(transformer->outputs)) {
             if (artifact->alwaysUpdated) {
                 artifact->setTimestamp(FileTime::currentTime());

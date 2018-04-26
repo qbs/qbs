@@ -464,7 +464,7 @@ void connect(BuildGraphNode *p, BuildGraphNode *c)
     }
     p->children.insert(c);
     c->parents.insert(p);
-    p->product->topLevelProject()->buildData->isDirty = true;
+    p->product->topLevelProject()->buildData->setDirty();
 }
 
 static bool existsPath_impl(BuildGraphNode *u, BuildGraphNode *v, NodeSet *seen)
@@ -619,7 +619,6 @@ void insertArtifact(const ResolvedProductPtr &product, Artifact *artifact)
     QBS_CHECK(!artifact->filePath().isEmpty());
     artifact->product = product;
     product->topLevelProject()->buildData->insertIntoLookupTable(artifact);
-    product->topLevelProject()->buildData->isDirty = true;
     product->buildData->addArtifact(artifact);
 }
 

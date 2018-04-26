@@ -331,7 +331,7 @@ void BuildGraphLoader::trackProjectChanges()
         return;
     }
 
-    restoredProject->buildData->isDirty = true;
+    restoredProject->buildData->setDirty();
     markTransformersForChangeTracking(allRestoredProducts);
     if (!m_parameters.overrideBuildGraphData())
         m_parameters.setEnvironment(restoredProject->environment);
@@ -393,7 +393,7 @@ void BuildGraphLoader::trackProjectChanges()
     // Move over restored build data to newly resolved project.
     m_result.newlyResolvedProject->buildData.swap(restoredProject->buildData);
     QBS_CHECK(m_result.newlyResolvedProject->buildData);
-    m_result.newlyResolvedProject->buildData->isDirty = true;
+    m_result.newlyResolvedProject->buildData->setDirty();
     for (int i = allNewlyResolvedProducts.size() - 1; i >= 0; --i) {
         const ResolvedProductPtr &newlyResolvedProduct = allNewlyResolvedProducts.at(i);
         for (int j = allRestoredProducts.size() - 1; j >= 0; --j) {

@@ -74,7 +74,6 @@ static Set<ResolvedProductPtr> findDependentProducts(const ResolvedProductPtr &p
 }
 
 ProjectBuildData::ProjectBuildData(const ProjectBuildData *other)
-    : isDirty(true), m_doCleanupInDestructor(true)
 {
     // This is needed for temporary duplication of build data when doing change tracking.
     if (other) {
@@ -120,6 +119,7 @@ void ProjectBuildData::insertIntoLookupTable(FileResourceBase *fileres)
     }
     QBS_CHECK(!lst.contains(fileres));
     lst.push_back(fileres);
+    m_isDirty = true;
 }
 
 void ProjectBuildData::removeFromLookupTable(FileResourceBase *fileres)
@@ -250,7 +250,19 @@ void ProjectBuildData::removeArtifact(Artifact *artifact,
     }
     if (removeFromProduct)
         artifact->product->buildData->removeArtifact(artifact);
-    isDirty = true;
+    m_isDirty = false;
+}
+
+void ProjectBuildData::setDirty()
+{
+    qCDebug(lcBuildGraph) << "Marking build graph as dirty";
+    m_isDirty = true;
+}
+
+void ProjectBuildData::setClean()
+{
+    qCDebug(lcBuildGraph) << "Marking build graph as clean";
+    m_isDirty = false;
 }
 
 void ProjectBuildData::load(PersistentPool &pool)
@@ -258,6 +270,7 @@ void ProjectBuildData::load(PersistentPool &pool)
     serializationOp<PersistentPool::Load>(pool);
     for (FileDependency * const dep : qAsConst(fileDependencies))
         insertIntoLookupTable(dep);
+    m_isDirty = false;
 }
 
 void ProjectBuildData::store(PersistentPool &pool)

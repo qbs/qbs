@@ -79,13 +79,16 @@ public:
     void removeArtifact(Artifact *artifact, const Logger &logger, bool removeFromDisk = true,
                         bool removeFromProduct = true);
 
+    void setDirty();
+    void setClean();
+    bool isDirty() const { return m_isDirty; }
+
 
     Set<FileDependency *> fileDependencies;
     RawScanResults rawScanResults;
 
     // do not serialize:
     RulesEvaluationContextPtr evaluationContext;
-    bool isDirty;
 
     void load(PersistentPool &pool);
     void store(PersistentPool &pool);
@@ -99,7 +102,8 @@ private:
     typedef QHash<QString, QList<FileResourceBase *> > ResultsPerDirectory;
     typedef QHash<QString, ResultsPerDirectory> ArtifactLookupTable;
     ArtifactLookupTable m_artifactLookupTable;
-    bool m_doCleanupInDestructor;
+    bool m_doCleanupInDestructor = true;
+    bool m_isDirty = true;
 };
 
 
