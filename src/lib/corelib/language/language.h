@@ -651,7 +651,7 @@ public:
     CodeLocation location;
     bool enabled;
     std::vector<ResolvedProductPtr> products;
-    QList<ResolvedProjectPtr> subProjects;
+    std::vector<ResolvedProjectPtr> subProjects;
     WeakPointer<ResolvedProject> parentProject;
 
     void accept(BuildGraphVisitor *visitor) const;
@@ -660,7 +660,7 @@ public:
     const QVariantMap &projectProperties() const { return m_projectProperties; }
 
     TopLevelProject *topLevelProject();
-    QList<ResolvedProjectPtr> allSubProjects() const;
+    std::vector<ResolvedProjectPtr> allSubProjects() const;
     std::vector<ResolvedProductPtr> allProducts() const;
 
     virtual void load(PersistentPool &pool);

@@ -583,10 +583,10 @@ TopLevelProject *ResolvedProject::topLevelProject()
     return m_topLevelProject;
 }
 
-QList<ResolvedProjectPtr> ResolvedProject::allSubProjects() const
+std::vector<ResolvedProjectPtr> ResolvedProject::allSubProjects() const
 {
-    QList<ResolvedProjectPtr> projectList = subProjects;
-    for (const ResolvedProjectConstPtr &subProject : qAsConst(subProjects))
+    std::vector<ResolvedProjectPtr> projectList = subProjects;
+    for (const ResolvedProjectConstPtr &subProject : subProjects)
         projectList << subProject->allSubProjects();
     return projectList;
 }
