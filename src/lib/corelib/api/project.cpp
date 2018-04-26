@@ -684,7 +684,7 @@ void ProjectPrivate::updateInternalCodeLocations(const ResolvedProjectPtr &proje
                 }
             }
         }
-        for (const ResolvedScannerConstPtr &scanner : qAsConst(product->scanners)) {
+        for (const ResolvedScannerConstPtr &scanner : product->scanners) {
             updateLocationIfNecessary(scanner->searchPathsScript.location(), changeLocation,
                                       lineOffset);
             updateLocationIfNecessary(scanner->scanScript.location(), changeLocation, lineOffset);

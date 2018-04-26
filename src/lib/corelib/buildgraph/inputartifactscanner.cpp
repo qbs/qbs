@@ -190,7 +190,7 @@ Set<DependencyScanner *> InputArtifactScanner::scannersForArtifact(const Artifac
                 auto pluginScanner = new PluginDependencyScanner(scanner);
                 cache.scanners.push_back(DependencyScannerPtr(pluginScanner));
             }
-            for (const ResolvedScannerConstPtr &scanner : qAsConst(product->scanners)) {
+            for (const ResolvedScannerConstPtr &scanner : product->scanners) {
                 if (scanner->inputs.contains(fileTag)) {
                     cache.scanners.push_back(DependencyScannerPtr(
                                 new UserDependencyScanner(scanner, engine)));

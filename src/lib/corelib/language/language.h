@@ -575,7 +575,7 @@ public:
     std::vector<FileTaggerConstPtr> fileTaggers;
     std::vector<ResolvedModulePtr> modules;
     QHash<ResolvedModuleConstPtr, QVariantMap> moduleParameters;
-    QList<ResolvedScannerConstPtr> scanners;
+    std::vector<ResolvedScannerConstPtr> scanners;
     QList<GroupPtr> groups;
     QList<ProbeConstPtr> probes;
     QList<ArtifactPropertiesPtr> artifactProperties;
