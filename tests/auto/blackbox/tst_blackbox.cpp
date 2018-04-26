@@ -2741,6 +2741,19 @@ void TestBlackbox::probeProperties()
     QVERIFY2(m_qbsStdout.contains("probe2.filePath=" + dir + "/bin/tool"), m_qbsStdout.constData());
 }
 
+void TestBlackbox::probesAndShadowProducts()
+{
+    QDir::setCurrent(testDataDir + "/probes-and-shadow-products");
+    QCOMPARE(runQbs(QStringList("--log-time")), 0);
+    QVERIFY2(m_qbsStdout.contains("2 probes encountered, 1 configure scripts executed"),
+             m_qbsStdout.constData());
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("probes-and-shadow-products.qbs");
+    QCOMPARE(runQbs(QStringList("--log-time")), 0);
+    QVERIFY2(m_qbsStdout.contains("2 probes encountered, 0 configure scripts executed"),
+             m_qbsStdout.constData());
+}
+
 void TestBlackbox::probeInExportedModule()
 {
     QDir::setCurrent(testDataDir + "/probe-in-exported-module");

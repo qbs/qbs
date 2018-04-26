@@ -193,6 +193,7 @@ private slots:
     void preventFloatingPointValues();
     void probeChangeTracking();
     void probeProperties();
+    void probesAndShadowProducts();
     void probeInExportedModule();
     void probesAndArrayProperties();
     void probesInNestedModules();

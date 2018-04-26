@@ -581,6 +581,8 @@ void ModuleLoader::handleTopLevelProject(ModuleLoaderResult *loadResult, Item *p
     for (ProductContext * const p : productSorter.sortedProducts()) {
         try {
             handleProduct(p);
+            if (p->name.startsWith(shadowProductPrefix()))
+                tlp.probes << p->info.probes;
         } catch (const ErrorInfo &err) {
             handleProductError(err, p);
         }
@@ -3418,7 +3420,8 @@ void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, It
     const bool condition = m_evaluator->boolValue(probe, StringConstants::conditionProperty());
     const QString &sourceCode = configureScript->sourceCode().toString();
     ProbeConstPtr resolvedProbe;
-    if (parent->type() == ItemType::Project) {
+    if (parent->type() == ItemType::Project
+            || productContext->name.startsWith(shadowProductPrefix())) {
         resolvedProbe = findOldProjectProbe(probeId, condition, initialProperties, sourceCode);
     } else {
         const QString &uniqueProductName = productContext->uniqueName();
