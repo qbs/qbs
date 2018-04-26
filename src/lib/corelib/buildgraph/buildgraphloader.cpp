@@ -591,10 +591,8 @@ bool BuildGraphLoader::hasProductFileChanged(const QList<ResolvedProductPtr> &re
                         FileInfo::path(group->location.filePath()),
                         product->topLevelProject()->buildDirectory);
                 Set<QString> wcFiles;
-                for (const SourceArtifactConstPtr &sourceArtifact
-                     : qAsConst(group->wildcards->files)) {
+                for (const SourceArtifactConstPtr &sourceArtifact : group->wildcards->files)
                     wcFiles += sourceArtifact->absoluteFilePath;
-                }
                 if (files == wcFiles)
                     continue;
                 hasChanged = true;

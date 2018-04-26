@@ -157,7 +157,7 @@ private:
                                  const PropertyDeclaration &decl) const;
     QString sourceCodeForEvaluation(const JSSourceValueConstPtr &value) const;
     static void matchArtifactProperties(const ResolvedProductPtr &product,
-            const QList<SourceArtifactPtr> &artifacts);
+            const std::vector<SourceArtifactPtr> &artifacts);
     void printProfilingInfo();
 
     void collectPropertiesForExportItem(Item *productModuleInstance);

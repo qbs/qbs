@@ -269,13 +269,13 @@ GroupData ProjectPrivate::createGroupDataFromGroup(const GroupPtr &resolvedGroup
     group.d->name = resolvedGroup->name;
     group.d->prefix = resolvedGroup->prefix;
     group.d->location = resolvedGroup->location;
-    for (const SourceArtifactConstPtr &sa : qAsConst(resolvedGroup->files)) {
+    for (const SourceArtifactConstPtr &sa : resolvedGroup->files) {
         ArtifactData artifact = createApiSourceArtifact(sa);
         setupInstallData(artifact, product);
         group.d->sourceArtifacts.push_back(artifact);
     }
     if (resolvedGroup->wildcards) {
-        for (const SourceArtifactConstPtr &sa : qAsConst(resolvedGroup->wildcards->files)) {
+        for (const SourceArtifactConstPtr &sa : resolvedGroup->wildcards->files) {
             ArtifactData artifact = createApiSourceArtifact(sa);
             setupInstallData(artifact, product);
             group.d->sourceArtifactsFromWildcards.push_back(artifact);
@@ -497,7 +497,7 @@ void ProjectPrivate::addFiles(const ProductData &product, const GroupData &group
     // due to conditions.
     for (const GroupPtr &group : qAsConst(groupContext.resolvedGroups)) {
         for (const QString &filePath : qAsConst(filesContext.absoluteFilePaths)) {
-            for (const SourceArtifactConstPtr &sa : qAsConst(group->files)) {
+            for (const SourceArtifactConstPtr &sa : group->files) {
                 if (sa->absoluteFilePath == filePath) {
                     throw ErrorInfo(Tr::tr("File '%1' already exists in group '%2'.")
                                     .arg(filePath, group->name));
@@ -574,8 +574,8 @@ void ProjectPrivate::removeFiles(const ProductData &product, const GroupData &gr
                 .arg(filesContext.absoluteFilePathsFromWildcards.join(QLatin1String(", "))));
     }
     QStringList filesNotFound = filesContext.absoluteFilePaths;
-    QList<SourceArtifactPtr> sourceArtifacts;
-    for (const SourceArtifactPtr &sa : qAsConst(groupContext.resolvedGroups.front()->files)) {
+    std::vector<SourceArtifactPtr> sourceArtifacts;
+    for (const SourceArtifactPtr &sa : groupContext.resolvedGroups.front()->files) {
         if (filesNotFound.removeOne(sa->absoluteFilePath))
             sourceArtifacts << sa;
     }
@@ -591,8 +591,8 @@ void ProjectPrivate::removeFiles(const ProductData &product, const GroupData &gr
 
     for (int i = 0; i < groupContext.resolvedProducts.size(); ++i) {
         removeFilesFromBuildGraph(groupContext.resolvedProducts.at(i), sourceArtifacts);
-        for (const SourceArtifactPtr &sa : qAsConst(sourceArtifacts))
-            groupContext.resolvedGroups.at(i)->files.removeOne(sa);
+        for (const SourceArtifactPtr &sa : sourceArtifacts)
+            removeOne(groupContext.resolvedGroups.at(i)->files, sa);
     }
     doSanityChecks(internalProject, logger);
 
@@ -634,7 +634,7 @@ void ProjectPrivate::removeGroup(const ProductData &product, const GroupData &gr
 #endif // QBS_ENABLE_PROJECT_FILE_UPDATES
 
 void ProjectPrivate::removeFilesFromBuildGraph(const ResolvedProductConstPtr &product,
-                                               const QList<SourceArtifactPtr> &files)
+                                               const std::vector<SourceArtifactPtr> &files)
 {
     if (!product->enabled)
         return;

@@ -150,9 +150,9 @@ bool Probe::needsReconfigure(const FileTime &referenceTime) const
  * \brief Returns all files specified in the group item as source artifacts.
  * This includes the expanded list of wildcards.
  */
-QList<SourceArtifactPtr> ResolvedGroup::allFiles() const
+std::vector<SourceArtifactPtr> ResolvedGroup::allFiles() const
 {
-    QList<SourceArtifactPtr> lst = files;
+    std::vector<SourceArtifactPtr> lst = files;
     if (wildcards)
         lst << wildcards->files;
     return lst;
@@ -333,9 +333,9 @@ void ResolvedProduct::accept(BuildGraphVisitor *visitor) const
  * \brief Returns all files of all groups as source artifacts.
  * This includes the expanded list of wildcards.
  */
-QList<SourceArtifactPtr> ResolvedProduct::allFiles() const
+std::vector<SourceArtifactPtr> ResolvedProduct::allFiles() const
 {
-    QList<SourceArtifactPtr> lst;
+    std::vector<SourceArtifactPtr> lst;
     for (const GroupConstPtr &group : groups)
         lst << group->allFiles();
     return lst;
@@ -345,9 +345,9 @@ QList<SourceArtifactPtr> ResolvedProduct::allFiles() const
  * \brief Returns all files of all enabled groups as source artifacts.
  * \sa ResolvedProduct::allFiles()
  */
-QList<SourceArtifactPtr> ResolvedProduct::allEnabledFiles() const
+std::vector<SourceArtifactPtr> ResolvedProduct::allEnabledFiles() const
 {
-    QList<SourceArtifactPtr> lst;
+    std::vector<SourceArtifactPtr> lst;
     for (const GroupConstPtr &group : groups) {
         if (group->enabled)
             lst << group->allFiles();
@@ -879,8 +879,8 @@ bool operator==(const SourceArtifactInternal &sa1, const SourceArtifactInternal 
             && *sa1.properties == *sa2.properties;
 }
 
-bool sourceArtifactSetsAreEqual(const QList<SourceArtifactPtr> &l1,
-                                 const QList<SourceArtifactPtr> &l2)
+bool sourceArtifactSetsAreEqual(const std::vector<SourceArtifactPtr> &l1,
+                                 const std::vector<SourceArtifactPtr> &l2)
 {
     return listsAreEqual(l1, l2);
 }

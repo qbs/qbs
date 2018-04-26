@@ -611,7 +611,7 @@ void TestLanguage::enumerateProjectProperties()
         auto product = products.values().front();
         auto files = product->groups.front()->allFiles();
         QCOMPARE(product->groups.size(), size_t(1));
-        QCOMPARE(files.size(), 1);
+        QCOMPARE(files.size(), size_t(1));
         auto fileName = FileInfo::fileName(files.front()->absoluteFilePath);
         QCOMPARE(fileName, QString("dummy.txt"));
     } catch (const ErrorInfo &e) {
@@ -2061,14 +2061,14 @@ void TestLanguage::outerInGroup()
         GroupPtr group = product->groups.at(0);
         QVERIFY(!!group);
         QCOMPARE(group->name, product->name);
-        QCOMPARE(group->files.size(), 1);
+        QCOMPARE(group->files.size(), size_t(1));
         SourceArtifactConstPtr artifact = group->files.front();
         QVariant installDir = artifact->properties->qbsPropertyValue("installDir");
         QCOMPARE(installDir.toString(), QString("/somewhere"));
         group = product->groups.at(1);
         QVERIFY(!!group);
         QCOMPARE(group->name, QString("Special Group"));
-        QCOMPARE(group->files.size(), 1);
+        QCOMPARE(group->files.size(), size_t(1));
         artifact = group->files.front();
         installDir = artifact->properties->qbsPropertyValue("installDir");
         QCOMPARE(installDir.toString(), QString("/somewhere/else"));
@@ -2571,27 +2571,27 @@ void TestLanguage::relaxedErrorMode()
         const ResolvedProductConstPtr brokenProduct = productMap.value("broken");
         QVERIFY(!brokenProduct->enabled);
         QVERIFY(brokenProduct->location.isValid());
-        QCOMPARE(brokenProduct->allFiles().size(), 0);
+        QCOMPARE(brokenProduct->allFiles().size(), size_t(0));
         const ResolvedProductConstPtr dependerRequired = productMap.value("depender required");
         QVERIFY(!dependerRequired->enabled);
         QVERIFY(dependerRequired->location.isValid());
-        QCOMPARE(dependerRequired->allFiles().size(), 1);
+        QCOMPARE(dependerRequired->allFiles().size(), size_t(1));
         const ResolvedProductConstPtr dependerNonRequired
                 = productMap.value("depender nonrequired");
         QVERIFY(dependerNonRequired->enabled);
-        QCOMPARE(dependerNonRequired->allFiles().size(), 1);
+        QCOMPARE(dependerNonRequired->allFiles().size(), size_t(1));
         const ResolvedProductConstPtr recursiveDepender = productMap.value("recursive depender");
         QVERIFY(!recursiveDepender->enabled);
         QVERIFY(recursiveDepender->location.isValid());
-        QCOMPARE(recursiveDepender->allFiles().size(), 1);
+        QCOMPARE(recursiveDepender->allFiles().size(), size_t(1));
         const ResolvedProductConstPtr missingFile = productMap.value("missing file");
         QVERIFY(missingFile->enabled);
         QCOMPARE(missingFile->groups.size(), size_t(1));
         QVERIFY(missingFile->groups.front()->enabled);
-        QCOMPARE(missingFile->groups.front()->allFiles().size(), 2);
+        QCOMPARE(missingFile->groups.front()->allFiles().size(), size_t(2));
         const ResolvedProductConstPtr fine = productMap.value("fine");
         QVERIFY(fine->enabled);
-        QCOMPARE(fine->allFiles().size(), 1);
+        QCOMPARE(fine->allFiles().size(), size_t(1));
     } catch (const ErrorInfo &e) {
         QVERIFY2(strictMode, qPrintable(e.toString()));
     }
@@ -2754,7 +2754,7 @@ void TestLanguage::fileTags()
     QCOMPARE(product->groups.size(), numberOfGroups);
     GroupPtr group = *(product->groups.end() - 1);
     QVERIFY(!!group);
-    QCOMPARE(group->files.size(), 1);
+    QCOMPARE(group->files.size(), size_t(1));
     SourceArtifactConstPtr sourceFile = group->files.front();
     QStringList fileTags = sourceFile->fileTags.toStringList();
     fileTags.sort();
@@ -2981,10 +2981,10 @@ void TestLanguage::wildcards()
             group = product->groups.front();
         }
         QVERIFY(!!group);
-        QCOMPARE(group->files.size(), 0);
+        QCOMPARE(group->files.size(), size_t(0));
         QVERIFY(!!group->wildcards);
         QStringList actualFilePaths;
-        for (const SourceArtifactConstPtr &artifact : qAsConst(group->wildcards->files)) {
+        for (const SourceArtifactConstPtr &artifact : group->wildcards->files) {
             QString str = artifact->absoluteFilePath;
             int idx = str.indexOf(m_wildcardsTestDirPath);
             if (idx != -1)

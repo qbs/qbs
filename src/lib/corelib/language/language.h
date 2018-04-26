@@ -245,8 +245,8 @@ inline bool operator!=(const SourceArtifactInternal &sa1, const SourceArtifactIn
     return !(sa1 == sa2);
 }
 
-bool sourceArtifactSetsAreEqual(const QList<SourceArtifactPtr> &l1,
-                                 const QList<SourceArtifactPtr> &l2);
+bool sourceArtifactSetsAreEqual(const std::vector<SourceArtifactPtr> &l1,
+                                 const std::vector<SourceArtifactPtr> &l2);
 
 class SourceWildCards
 {
@@ -258,7 +258,7 @@ public:
     QStringList patterns;
     QStringList excludePatterns;
     std::vector<std::pair<QString, FileTime>> dirTimeStamps;
-    QList<SourceArtifactPtr> files;
+    std::vector<SourceArtifactPtr> files;
 
     template<PersistentPool::OpType opType> void completeSerializationOp(PersistentPool &pool)
     {
@@ -283,14 +283,14 @@ public:
     QString name;
     bool enabled;
     QString prefix;
-    QList<SourceArtifactPtr> files;
+    std::vector<SourceArtifactPtr> files;
     std::unique_ptr<SourceWildCards> wildcards;
     PropertyMapPtr properties;
     FileTags fileTags;
     QString targetOfModule;
     bool overrideTags;
 
-    QList<SourceArtifactPtr> allFiles() const;
+    std::vector<SourceArtifactPtr> allFiles() const;
 
     void load(PersistentPool &pool);
     void store(PersistentPool &pool);
@@ -588,8 +588,8 @@ public:
     QProcessEnvironment runEnvironment; // must not be saved
 
     void accept(BuildGraphVisitor *visitor) const;
-    QList<SourceArtifactPtr> allFiles() const;
-    QList<SourceArtifactPtr> allEnabledFiles() const;
+    std::vector<SourceArtifactPtr> allFiles() const;
+    std::vector<SourceArtifactPtr> allEnabledFiles() const;
     FileTags fileTagsForFileName(const QString &fileName) const;
 
     void registerArtifactWithChangedInputs(Artifact *artifact);

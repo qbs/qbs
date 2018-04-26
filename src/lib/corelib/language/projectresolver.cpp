@@ -1386,7 +1386,7 @@ ProjectResolver::ProductDependencyInfos ProjectResolver::getProductDependencies(
 }
 
 void ProjectResolver::matchArtifactProperties(const ResolvedProductPtr &product,
-        const QList<SourceArtifactPtr> &artifacts)
+        const std::vector<SourceArtifactPtr> &artifacts)
 {
     for (const SourceArtifactPtr &artifact : artifacts) {
         for (const ArtifactPropertiesConstPtr &artifactProperties : product->artifactProperties) {

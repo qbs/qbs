@@ -115,7 +115,7 @@ public:
                      const QStringList &filePaths);
     void removeGroup(const ProductData &product, const GroupData &group);
     void removeFilesFromBuildGraph(const ResolvedProductConstPtr &product,
-                                   const QList<SourceArtifactPtr> &files);
+                                   const std::vector<SourceArtifactPtr> &files);
     void updateInternalCodeLocations(const ResolvedProjectPtr &project,
                                      const CodeLocation &changeLocation, int lineOffset);
     void updateExternalCodeLocations(const ProjectData &project,
