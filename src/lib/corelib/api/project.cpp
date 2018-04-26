@@ -353,7 +353,7 @@ void ProjectPrivate::addGroup(const ProductData &product, const QString &groupNa
     const QList<ResolvedProductPtr> resolvedProducts = internalProducts(products);
     QBS_CHECK(products.size() == resolvedProducts.size());
 
-    for (const GroupPtr &resolvedGroup : qAsConst(resolvedProducts.front()->groups)) {
+    for (const GroupPtr &resolvedGroup : resolvedProducts.front()->groups) {
         if (resolvedGroup->name == groupName) {
             throw ErrorInfo(Tr::tr("Group '%1' already exists in product '%2'.")
                             .arg(groupName, product.name()), resolvedGroup->location);
@@ -398,7 +398,7 @@ ProjectPrivate::GroupUpdateContext ProjectPrivate::getGroupContext(const Product
 
     const QString groupName = group.isValid() ? group.name() : product.name();
     for (const ResolvedProductPtr &p : qAsConst(context.resolvedProducts)) {
-        for (const GroupPtr &g : qAsConst(p->groups)) {
+        for (const GroupPtr &g : p->groups) {
             if (g->name == groupName) {
                 context.resolvedGroups << g;
                 break;
@@ -618,7 +618,7 @@ void ProjectPrivate::removeGroup(const ProductData &product, const GroupData &gr
         const ResolvedProductPtr &product = context.resolvedProducts.at(i);
         const GroupPtr &group = context.resolvedGroups.at(i);
         removeFilesFromBuildGraph(product, group->allFiles());
-        const bool removed = product->groups.removeOne(group);
+        const bool removed = removeOne(product->groups, group);
         QBS_CHECK(removed);
     }
     doSanityChecks(internalProject, logger);
@@ -674,7 +674,7 @@ void ProjectPrivate::updateInternalCodeLocations(const ResolvedProjectPtr &proje
         updateInternalCodeLocations(subProject, changeLocation, lineOffset);
     for (const ResolvedProductPtr &product : qAsConst(project->products)) {
         updateLocationIfNecessary(product->location, changeLocation, lineOffset);
-        for (const GroupPtr &group : qAsConst(product->groups))
+        for (const GroupPtr &group : product->groups)
             updateLocationIfNecessary(group->location, changeLocation, lineOffset);
         for (const RulePtr &rule : qAsConst(product->rules)) {
             updateLocationIfNecessary(rule->prepareScript.location(), changeLocation, lineOffset);
@@ -852,7 +852,7 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
         product.d->isMultiplexed = productIsMultiplexed(resolvedProduct);
         product.d->properties = resolvedProduct->productProperties;
         product.d->moduleProperties.d->m_map = resolvedProduct->moduleProperties;
-        for (const GroupPtr &resolvedGroup : qAsConst(resolvedProduct->groups)) {
+        for (const GroupPtr &resolvedGroup : resolvedProduct->groups) {
             if (resolvedGroup->targetOfModule.isEmpty())
                 product.d->groups << createGroupDataFromGroup(resolvedGroup, resolvedProduct);
         }

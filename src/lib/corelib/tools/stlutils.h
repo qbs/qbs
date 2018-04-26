@@ -68,6 +68,17 @@ bool containsKey(const C &container, const typename C::key_type &v)
     return container.find(v) != end;
 }
 
+template <typename C>
+bool removeOne(C &container, const typename C::value_type &v)
+{
+    auto end = std::end(container);
+    auto it = std::find(std::begin(container), end, v);
+    if (it == end)
+        return false;
+    container.erase(it);
+    return true;
+}
+
 template <class Container, class UnaryPredicate>
 bool any_of(const Container &container, const UnaryPredicate &predicate)
 {

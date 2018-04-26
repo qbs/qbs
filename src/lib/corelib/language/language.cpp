@@ -336,7 +336,7 @@ void ResolvedProduct::accept(BuildGraphVisitor *visitor) const
 QList<SourceArtifactPtr> ResolvedProduct::allFiles() const
 {
     QList<SourceArtifactPtr> lst;
-    for (const GroupConstPtr &group : qAsConst(groups))
+    for (const GroupConstPtr &group : groups)
         lst << group->allFiles();
     return lst;
 }
@@ -348,7 +348,7 @@ QList<SourceArtifactPtr> ResolvedProduct::allFiles() const
 QList<SourceArtifactPtr> ResolvedProduct::allEnabledFiles() const
 {
     QList<SourceArtifactPtr> lst;
-    for (const GroupConstPtr &group : qAsConst(groups)) {
+    for (const GroupConstPtr &group : groups) {
         if (group->enabled)
             lst << group->allFiles();
     }

@@ -610,7 +610,7 @@ void TestLanguage::enumerateProjectProperties()
         QCOMPARE(products.size(), 1);
         auto product = products.values().front();
         auto files = product->groups.front()->allFiles();
-        QCOMPARE(product->groups.size(), 1);
+        QCOMPARE(product->groups.size(), size_t(1));
         QCOMPARE(files.size(), 1);
         auto fileName = FileInfo::fileName(files.front()->absoluteFilePath);
         QCOMPARE(fileName, QString("dummy.txt"));
@@ -1037,39 +1037,39 @@ void TestLanguage::getNativeSetting()
 
 void TestLanguage::groupConditions_data()
 {
-    QTest::addColumn<int>("groupCount");
+    QTest::addColumn<size_t>("groupCount");
     QTest::addColumn<QList<bool> >("groupEnabled");
-    QTest::newRow("init") << 0 << QList<bool>();
+    QTest::newRow("init") << size_t(0) << QList<bool>();
     QTest::newRow("no_condition_no_group")
-            << 1 << (QList<bool>() << true);
+            << size_t(1) << (QList<bool>() << true);
     QTest::newRow("no_condition")
-            << 2 << (QList<bool>() << true << true);
+            << size_t(2) << (QList<bool>() << true << true);
     QTest::newRow("true_condition")
-            << 2 << (QList<bool>() << true << true);
+            << size_t(2) << (QList<bool>() << true << true);
     QTest::newRow("false_condition")
-            << 2 << (QList<bool>() << true << false);
+            << size_t(2) << (QList<bool>() << true << false);
     QTest::newRow("true_condition_from_product")
-            << 2 << (QList<bool>() << true << true);
+            << size_t(2) << (QList<bool>() << true << true);
     QTest::newRow("true_condition_from_project")
-            << 2 << (QList<bool>() << true << true);
+            << size_t(2) << (QList<bool>() << true << true);
     QTest::newRow("condition_accessing_module_property")
-            << 2 << (QList<bool>() << true << false);
-    QTest::newRow("cleanup") << 0 << QList<bool>();
+            << size_t(2) << (QList<bool>() << true << false);
+    QTest::newRow("cleanup") << size_t(0) << QList<bool>();
 }
 
 void TestLanguage::groupConditions()
 {
     HANDLE_INIT_CLEANUP_DATATAGS("groupconditions.qbs");
-    QFETCH(int, groupCount);
+    QFETCH(size_t, groupCount);
     QFETCH(QList<bool>, groupEnabled);
-    QCOMPARE(groupCount, groupEnabled.size());
+    QCOMPARE(groupCount, size_t(groupEnabled.size()));
     const QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
     const QString productName = QString::fromLocal8Bit(QTest::currentDataTag());
     ResolvedProductPtr product = products.value(productName);
     QVERIFY(!!product);
     QCOMPARE(product->name, productName);
     QCOMPARE(product->groups.size(), groupCount);
-    for (int i = 0; i < groupCount; ++i) {
+    for (size_t i = 0; i < groupCount; ++i) {
         if (product->groups.at(i)->enabled != groupEnabled.at(i)) {
             QFAIL(qPrintable(
                       QString("groups.at(%1)->enabled != %2").arg(i).arg(groupEnabled.at(i))));
@@ -1089,7 +1089,7 @@ void TestLanguage::groupName()
 
         ResolvedProductPtr product = products.value("MyProduct");
         QVERIFY(!!product);
-        QCOMPARE(product->groups.size(), 2);
+        QCOMPARE(product->groups.size(), size_t(2));
         GroupConstPtr group = product->groups.at(0);
         QVERIFY(!!group);
         QCOMPARE(group->name, QString("MyProduct"));
@@ -1099,7 +1099,7 @@ void TestLanguage::groupName()
 
         product = products.value("My2ndProduct");
         QVERIFY(!!product);
-        QCOMPARE(product->groups.size(), 3);
+        QCOMPARE(product->groups.size(), size_t(3));
         group = product->groups.at(0);
         QVERIFY(!!group);
         QCOMPARE(group->name, QString("My2ndProduct"));
@@ -1734,7 +1734,7 @@ void TestLanguage::modulePropertiesInGroups()
         QVERIFY(!!product);
         g1.reset();
         g11.reset();
-        for (const GroupConstPtr &g : qAsConst(product->groups)) {
+        for (const GroupConstPtr &g : product->groups) {
             if (g->name == "g1")
                 g1= g;
             else if (g->name == "g1.1")
@@ -2057,7 +2057,7 @@ void TestLanguage::outerInGroup()
         QCOMPARE(products.size(), 1);
         ResolvedProductPtr product = products.value("OuterInGroup");
         QVERIFY(!!product);
-        QCOMPARE(product->groups.size(), 2);
+        QCOMPARE(product->groups.size(), size_t(2));
         GroupPtr group = product->groups.at(0);
         QVERIFY(!!group);
         QCOMPARE(group->name, product->name);
@@ -2438,9 +2438,9 @@ void TestLanguage::propertiesBlockInGroup()
         QVERIFY(!!project);
         QCOMPARE(project->allProducts().size(), 1);
         const ResolvedProductConstPtr product = project->allProducts().front();
-        const auto groupIt = std::find_if(product->groups.constBegin(), product->groups.constEnd(),
+        const auto groupIt = std::find_if(product->groups.cbegin(), product->groups.cend(),
                 [](const GroupConstPtr &g) { return g->name == "the group"; });
-        QVERIFY(groupIt != product->groups.constEnd());
+        QVERIFY(groupIt != product->groups.cend());
         const QVariantMap propertyMap = (*groupIt)->properties->value();
         const QVariantList value = moduleProperty(propertyMap, "dummy", "defines").toList();
         QStringList stringListValue;
@@ -2586,7 +2586,7 @@ void TestLanguage::relaxedErrorMode()
         QCOMPARE(recursiveDepender->allFiles().size(), 1);
         const ResolvedProductConstPtr missingFile = productMap.value("missing file");
         QVERIFY(missingFile->enabled);
-        QCOMPARE(missingFile->groups.size(), 1);
+        QCOMPARE(missingFile->groups.size(), size_t(1));
         QVERIFY(missingFile->groups.front()->enabled);
         QCOMPARE(missingFile->groups.front()->allFiles().size(), 2);
         const ResolvedProductConstPtr fine = productMap.value("fine");
@@ -2727,32 +2727,32 @@ void TestLanguage::recursiveProductDependencies()
 
 void TestLanguage::fileTags_data()
 {
-    QTest::addColumn<int>("numberOfGroups");
+    QTest::addColumn<size_t>("numberOfGroups");
     QTest::addColumn<QStringList>("expectedFileTags");
 
-    QTest::newRow("init") << 0 << QStringList();
-    QTest::newRow("filetagger_project_scope") << 1 << (QStringList() << "cpp");
-    QTest::newRow("filetagger_product_scope") << 1 << (QStringList() << "asm");
-    QTest::newRow("filetagger_static_pattern") << 1 << (QStringList() << "yellow");
-    QTest::newRow("unknown_file_tag") << 1 << (QStringList() << "unknown-file-tag");
-    QTest::newRow("set_file_tag_via_group") << 2 << (QStringList() << "c++");
-    QTest::newRow("override_file_tag_via_group") << 2 << (QStringList() << "c++");
-    QTest::newRow("add_file_tag_via_group") << 2 << (QStringList() << "cpp" << "zzz");
-    QTest::newRow("prioritized_filetagger") << 1 << (QStringList() << "cpp1" << "cpp2");
-    QTest::newRow("cleanup") << 0 << QStringList();
+    QTest::newRow("init") << size_t(0) << QStringList();
+    QTest::newRow("filetagger_project_scope") << size_t(1) << (QStringList() << "cpp");
+    QTest::newRow("filetagger_product_scope") << size_t(1) << (QStringList() << "asm");
+    QTest::newRow("filetagger_static_pattern") << size_t(1) << (QStringList() << "yellow");
+    QTest::newRow("unknown_file_tag") << size_t(1) << (QStringList() << "unknown-file-tag");
+    QTest::newRow("set_file_tag_via_group") << size_t(2) << (QStringList() << "c++");
+    QTest::newRow("override_file_tag_via_group") << size_t(2) << (QStringList() << "c++");
+    QTest::newRow("add_file_tag_via_group") << size_t(2) << (QStringList() << "cpp" << "zzz");
+    QTest::newRow("prioritized_filetagger") << size_t(1) << (QStringList() << "cpp1" << "cpp2");
+    QTest::newRow("cleanup") << size_t(0) << QStringList();
 }
 
 void TestLanguage::fileTags()
 {
     HANDLE_INIT_CLEANUP_DATATAGS("filetags.qbs");
-    QFETCH(int, numberOfGroups);
+    QFETCH(size_t, numberOfGroups);
     QFETCH(QStringList, expectedFileTags);
     QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
     ResolvedProductPtr product;
     const QString productName = QString::fromLocal8Bit(QTest::currentDataTag());
     QVERIFY(!!(product = products.value(productName)));
     QCOMPARE(product->groups.size(), numberOfGroups);
-    GroupPtr group = product->groups.last();
+    GroupPtr group = *(product->groups.end() - 1);
     QVERIFY(!!group);
     QCOMPARE(group->files.size(), 1);
     SourceArtifactConstPtr sourceFile = group->files.front();
@@ -2969,15 +2969,15 @@ void TestLanguage::wildcards()
         QVERIFY(!!product);
         GroupPtr group;
         if (useGroup) {
-            QCOMPARE(product->groups.size(), HostOsInfo::isMacosHost() ? 3 : 2);
-            for (const GroupPtr &rg : qAsConst(product->groups)) {
+            QCOMPARE(product->groups.size(), size_t(HostOsInfo::isMacosHost() ? 3 : 2));
+            for (const GroupPtr &rg : product->groups) {
                 if (rg->name == groupName) {
                     group = rg;
                     break;
                 }
             }
         } else {
-            QCOMPARE(product->groups.size(), HostOsInfo::isMacosHost() ? 2 : 1);
+            QCOMPARE(product->groups.size(), size_t(HostOsInfo::isMacosHost() ? 2 : 1));
             group = product->groups.front();
         }
         QVERIFY(!!group);

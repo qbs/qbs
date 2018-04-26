@@ -576,7 +576,7 @@ bool BuildGraphLoader::hasProductFileChanged(const QList<ResolvedProductPtr> &re
 
             AccumulatingTimer wildcardTimer(m_parameters.logElapsedTime()
                                             ? &m_wildcardExpansionEffort : nullptr);
-            for (const GroupPtr &group : qAsConst(product->groups)) {
+            for (const GroupPtr &group : product->groups) {
                 if (!group->wildcards)
                     continue;
                 const bool reExpansionRequired = std::any_of(
