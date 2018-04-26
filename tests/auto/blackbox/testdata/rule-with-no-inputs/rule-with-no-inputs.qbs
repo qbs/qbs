@@ -5,6 +5,7 @@ Product {
     name: "theProduct"
     type: ["output"]
     version: "1"
+    property bool dummy: false
     Rule {
         inputs: []
         multiplex: true
@@ -13,6 +14,7 @@ Product {
             fileTags: ["output"]
         }
         prepare: {
+            console.info("running the rule: " + product.dummy);
             var cmd = new JavaScriptCommand();
             cmd.description = "creating output";
             cmd.sourceCode = function() {

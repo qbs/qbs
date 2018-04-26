@@ -86,8 +86,7 @@ void RuleNode::apply(const Logger &logger, const ArtifactSet &changedInputs,
     ArtifactSet allCompatibleInputs = currentInputArtifacts();
     const ArtifactSet addedInputs = allCompatibleInputs - m_oldInputArtifacts;
     const ArtifactSet removedInputs = m_oldInputArtifacts - allCompatibleInputs;
-    result->upToDate = changedInputs.empty() && addedInputs.empty() && removedInputs.empty()
-            && m_rule->declaresInputs() && m_rule->requiresInputs;
+    result->upToDate = changedInputs.empty() && addedInputs.empty() && removedInputs.empty();
 
     qCDebug(lcBuildGraph).noquote().nospace()
             << "consider " << (m_rule->isDynamic() ? "dynamic " : "")
@@ -125,6 +124,28 @@ void RuleNode::apply(const Logger &logger, const ArtifactSet &changedInputs,
         }
         if (m_rule->multiplex)
             break;
+    }
+
+    // Handle rules without inputs: We want to run such a rule if and only if it has not run yet
+    // or its transformer is not up to date regarding the prepare script.
+    if (result->upToDate && (!m_rule->declaresInputs() || !m_rule->requiresInputs)
+            && inputs.empty()) {
+        bool hasOutputs = false;
+        for (const Artifact * const output : filterByType<Artifact>(parents)) {
+            if (output->transformer->rule != m_rule)
+                continue;
+            hasOutputs = true;
+            if (prepareScriptNeedsRerun(output->transformer.get(),
+                                        output->transformer->product().get(),
+                                        productsByName, projectsByName)) {
+                result->upToDate = false;
+                break;
+            }
+            if (m_rule->multiplex)
+                break;
+        }
+        if (!hasOutputs)
+            result->upToDate = false;
     }
 
     if (result->upToDate)
