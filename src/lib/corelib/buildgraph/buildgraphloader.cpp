@@ -340,7 +340,7 @@ void BuildGraphLoader::trackProjectChanges()
     ldr.setProgressObserver(m_evalContext->observer());
     ldr.setOldProjectProbes(restoredProject->probes);
     ldr.setLastResolveTime(restoredProject->lastResolveTime);
-    QHash<QString, QList<ProbeConstPtr>> restoredProbes;
+    QHash<QString, std::vector<ProbeConstPtr>> restoredProbes;
     for (const auto &restoredProduct : qAsConst(allRestoredProducts))
         restoredProbes.insert(restoredProduct->uniqueName(), restoredProduct->probes);
     ldr.setOldProductProbes(restoredProbes);

@@ -89,12 +89,12 @@ void Loader::setSearchPaths(const QStringList &_searchPaths)
     m_searchPaths = searchPaths;
 }
 
-void Loader::setOldProjectProbes(const QList<ProbeConstPtr> &oldProbes)
+void Loader::setOldProjectProbes(const std::vector<ProbeConstPtr> &oldProbes)
 {
     m_oldProjectProbes = oldProbes;
 }
 
-void Loader::setOldProductProbes(const QHash<QString, QList<ProbeConstPtr>> &oldProbes)
+void Loader::setOldProductProbes(const QHash<QString, std::vector<ProbeConstPtr>> &oldProbes)
 {
     m_oldProductProbes = oldProbes;
 }

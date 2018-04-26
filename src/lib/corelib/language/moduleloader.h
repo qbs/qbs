@@ -95,7 +95,7 @@ struct ModuleLoaderResult
             QString uniqueName() const;
         };
 
-        QList<ProbeConstPtr> probes;
+        std::vector<ProbeConstPtr> probes;
         std::vector<Dependency> usedProducts;
         ModulePropertiesPerGroup modulePropertiesSetInGroups;
         ErrorInfo delayedError;
@@ -104,7 +104,7 @@ struct ModuleLoaderResult
     std::shared_ptr<ItemPool> itemPool;
     Item *root;
     QHash<Item *, ProductInfo> productInfos;
-    QList<ProbeConstPtr> projectProbes;
+    std::vector<ProbeConstPtr> projectProbes;
     Set<QString> qbsFiles;
     QVariantMap profileConfigs;
 };
@@ -123,8 +123,8 @@ public:
 
     void setProgressObserver(ProgressObserver *progressObserver);
     void setSearchPaths(const QStringList &searchPaths);
-    void setOldProjectProbes(const QList<ProbeConstPtr> &oldProbes);
-    void setOldProductProbes(const QHash<QString, QList<ProbeConstPtr>> &oldProbes);
+    void setOldProjectProbes(const std::vector<ProbeConstPtr> &oldProbes);
+    void setOldProductProbes(const QHash<QString, std::vector<ProbeConstPtr>> &oldProbes);
     void setLastResolveTime(const FileTime &time) { m_lastResolveTime = time; }
     void setStoredProfiles(const QVariantMap &profiles);
     Evaluator *evaluator() const { return m_evaluator; }
@@ -200,7 +200,7 @@ private:
 
         std::vector<ProjectContext *> projects;
         QMultiHash<QString, ProductModuleInfo> productModules;
-        QList<ProbeConstPtr> probes;
+        std::vector<ProbeConstPtr> probes;
         QString buildDirectory;
     };
 
@@ -374,7 +374,7 @@ private:
     std::vector<DependsChainEntry> m_dependsChain;
 
     QHash<QString, QList<ProbeConstPtr>> m_oldProjectProbes;
-    QHash<QString, QList<ProbeConstPtr>> m_oldProductProbes;
+    QHash<QString, std::vector<ProbeConstPtr>> m_oldProductProbes;
     FileTime m_lastResolveTime;
     QHash<CodeLocation, QList<ProbeConstPtr>> m_currentProbes;
     QVariantMap m_storedProfiles;

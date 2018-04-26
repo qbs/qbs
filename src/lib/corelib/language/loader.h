@@ -60,8 +60,8 @@ public:
 
     void setProgressObserver(ProgressObserver *observer);
     void setSearchPaths(const QStringList &searchPaths);
-    void setOldProjectProbes(const QList<ProbeConstPtr> &oldProbes);
-    void setOldProductProbes(const QHash<QString, QList<ProbeConstPtr>> &oldProbes);
+    void setOldProjectProbes(const std::vector<ProbeConstPtr> &oldProbes);
+    void setOldProductProbes(const QHash<QString, std::vector<ProbeConstPtr>> &oldProbes);
     void setLastResolveTime(const FileTime &time) { m_lastResolveTime = time; }
     void setStoredProfiles(const QVariantMap &profiles);
     TopLevelProjectPtr loadProject(const SetupProjectParameters &parameters);
@@ -73,8 +73,8 @@ private:
     ProgressObserver *m_progressObserver;
     ScriptEngine * const m_engine;
     QStringList m_searchPaths;
-    QList<ProbeConstPtr> m_oldProjectProbes;
-    QHash<QString, QList<ProbeConstPtr>> m_oldProductProbes;
+    std::vector<ProbeConstPtr> m_oldProjectProbes;
+    QHash<QString, std::vector<ProbeConstPtr>> m_oldProductProbes;
     QVariantMap m_storedProfiles;
     FileTime m_lastResolveTime;
 };

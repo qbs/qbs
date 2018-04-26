@@ -577,7 +577,7 @@ public:
     QHash<ResolvedModuleConstPtr, QVariantMap> moduleParameters;
     std::vector<ResolvedScannerConstPtr> scanners;
     std::vector<GroupPtr> groups;
-    QList<ProbeConstPtr> probes;
+    std::vector<ProbeConstPtr> probes;
     QList<ArtifactPropertiesPtr> artifactProperties;
     QStringList missingSourceFiles;
     std::unique_ptr<ProductBuildData> buildData;
@@ -693,7 +693,7 @@ public:
 
     QString buildDirectory; // Not saved
     QProcessEnvironment environment;
-    QList<ProbeConstPtr> probes;
+    std::vector<ProbeConstPtr> probes;
 
     QHash<QString, QString> canonicalFilePathResults; // Results of calls to "File.canonicalFilePath()."
     QHash<QString, bool> fileExistsResults; // Results of calls to "File.exists()".

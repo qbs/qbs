@@ -257,14 +257,14 @@ void ModuleLoader::setSearchPaths(const QStringList &searchPaths)
     qCDebug(lcModuleLoader) << "initial search paths:" << searchPaths;
 }
 
-void ModuleLoader::setOldProjectProbes(const QList<ProbeConstPtr> &oldProbes)
+void ModuleLoader::setOldProjectProbes(const std::vector<ProbeConstPtr> &oldProbes)
 {
     m_oldProjectProbes.clear();
     for (const ProbeConstPtr& probe : oldProbes)
         m_oldProjectProbes[probe->globalId()] << probe;
 }
 
-void ModuleLoader::setOldProductProbes(const QHash<QString, QList<ProbeConstPtr>> &oldProbes)
+void ModuleLoader::setOldProductProbes(const QHash<QString, std::vector<ProbeConstPtr>> &oldProbes)
 {
     m_oldProductProbes = oldProbes;
 }
