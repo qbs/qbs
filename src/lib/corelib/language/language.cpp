@@ -824,22 +824,26 @@ void SourceWildCards::expandPatterns(Set<QString> &result, const GroupConstPtr &
     }
 }
 
-template<typename T> QMap<QString, T> listToMap(const QList<T> &list)
+template<typename L>
+QMap<QString, typename L::value_type> listToMap(const L &list)
 {
-    QMap<QString, T> map;
-    for (const T &elem : list)
+    using V = typename L::value_type;
+    QMap<QString, V> map;
+    for (const V &elem : list)
         map.insert(keyFromElem(elem), elem);
     return map;
 }
 
-template<typename T> bool listsAreEqual(const QList<T> &l1, const QList<T> &l2)
+template<typename L>
+bool listsAreEqual(const L &l1, const L &l2)
 {
     if (l1.size() != l2.size())
         return false;
-    const QMap<QString, T> map1 = listToMap(l1);
-    const QMap<QString, T> map2 = listToMap(l2);
+    using V = typename L::value_type;
+    const QMap<QString, V> map1 = listToMap(l1);
+    const QMap<QString, V> map2 = listToMap(l2);
     for (const QString &key : map1.keys()) {
-        const T value2 = map2.value(key);
+        const V &value2 = map2.value(key);
         if (!value2)
             return false;
         if (!equals(map1.value(key).get(), value2.get()))
@@ -904,7 +908,7 @@ bool operator==(const Rule &r1, const Rule &r2)
             && r1.alwaysRun == r2.alwaysRun;
 }
 
-bool ruleListsAreEqual(const QList<RulePtr> &l1, const QList<RulePtr> &l2)
+bool ruleListsAreEqual(const std::vector<RulePtr> &l1, const std::vector<RulePtr> &l2)
 {
     return listsAreEqual(l1, l2);
 }

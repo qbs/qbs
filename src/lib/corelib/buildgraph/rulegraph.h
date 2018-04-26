@@ -65,7 +65,7 @@ class RuleGraph
 public:
     RuleGraph();
 
-    void build(const QList<RulePtr> &rules, const FileTags &productFileTag);
+    void build(const std::vector<RulePtr> &rules, const FileTags &productFileTag);
     void accept(RuleGraphVisitor *visitor) const;
 
     void dump() const;

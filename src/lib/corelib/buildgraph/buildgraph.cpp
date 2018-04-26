@@ -663,7 +663,7 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product,
             QBS_CHECK(ruleNode->rule()->product);
             QBS_CHECK(ruleNode->rule()->product == ruleNode->product.get());
             QBS_CHECK(ruleNode->rule()->product == product.get());
-            QBS_CHECK(product->rules.contains(std::const_pointer_cast<Rule>(ruleNode->rule())));
+            QBS_CHECK(contains(product->rules, std::const_pointer_cast<Rule>(ruleNode->rule())));
             continue;
         }
 
@@ -685,7 +685,7 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product,
         QBS_CHECK(transformer->rule->product == artifact->product.get());
         QBS_CHECK(transformer->rule->product == product.get());
         QBS_CHECK(transformer->outputs.contains(artifact));
-        QBS_CHECK(product->rules.contains(std::const_pointer_cast<Rule>(transformer->rule)));
+        QBS_CHECK(contains(product->rules, std::const_pointer_cast<Rule>(transformer->rule)));
         qCDebug(lcBuildGraph)
                 << "The transformer has" << transformer->outputs.size() << "outputs.";
         ArtifactSet transformerOutputChildren;

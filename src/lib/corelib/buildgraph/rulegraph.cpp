@@ -50,7 +50,7 @@ RuleGraph::RuleGraph()
 {
 }
 
-void RuleGraph::build(const QList<RulePtr> &rules, const FileTags &productFileTags)
+void RuleGraph::build(const std::vector<RulePtr> &rules, const FileTags &productFileTags)
 {
     QMap<FileTag, QList<const Rule *> > inputFileTagToRule;
     m_rules.reserve(rules.size());

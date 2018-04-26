@@ -444,7 +444,7 @@ private:
 };
 bool operator==(const Rule &r1, const Rule &r2);
 inline bool operator!=(const Rule &r1, const Rule &r2) { return !(r1 == r2); }
-bool ruleListsAreEqual(const QList<RulePtr> &l1, const QList<RulePtr> &l2);
+bool ruleListsAreEqual(const std::vector<RulePtr> &l1, const std::vector<RulePtr> &l2);
 
 class ResolvedScanner
 {
@@ -569,7 +569,7 @@ public:
     WeakPointer<ResolvedProject> project;
     QVariantMap productProperties;
     PropertyMapPtr moduleProperties;
-    QList<RulePtr> rules;
+    std::vector<RulePtr> rules;
     std::vector<ResolvedProductPtr> dependencies;
     QHash<ResolvedProductConstPtr, QVariantMap> dependencyParameters;
     QList<FileTaggerConstPtr> fileTaggers;
