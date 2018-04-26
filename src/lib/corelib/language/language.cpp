@@ -295,7 +295,7 @@ FileTags Rule::staticOutputFileTags() const
 FileTags Rule::collectedOutputFileTags() const
 {
     FileTags result = outputFileTags.empty() ? staticOutputFileTags() : outputFileTags;
-    for (const auto &ap : qAsConst(product->artifactProperties)) {
+    for (const auto &ap : product->artifactProperties) {
         if (ap->fileTagsFilter().intersects(result))
             result += ap->extraFileTags();
     }
@@ -932,8 +932,8 @@ uint qHash(const RuleArtifact::Binding &b)
     return qHash(std::make_pair(b.code, b.name.join(QLatin1Char(','))));
 }
 
-bool artifactPropertyListsAreEqual(const QList<ArtifactPropertiesPtr> &l1,
-                                   const QList<ArtifactPropertiesPtr> &l2)
+bool artifactPropertyListsAreEqual(const std::vector<ArtifactPropertiesPtr> &l1,
+                                   const std::vector<ArtifactPropertiesPtr> &l2)
 {
     return listsAreEqual(l1, l2);
 }

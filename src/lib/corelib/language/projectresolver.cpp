@@ -727,7 +727,7 @@ void ProjectResolver::resolveGroupFully(Item *item, ProjectResolver::ProjectCont
             }
 
             // Discard any Group with the same fileTagsFilter that was defined in a base file.
-            m_productContext->product->artifactProperties.removeAll(apinfo.first);
+            removeAll(m_productContext->product->artifactProperties, apinfo.first);
         }
         if (!isEnabled)
             return;
@@ -1389,8 +1389,7 @@ void ProjectResolver::matchArtifactProperties(const ResolvedProductPtr &product,
         const QList<SourceArtifactPtr> &artifacts)
 {
     for (const SourceArtifactPtr &artifact : artifacts) {
-        for (const ArtifactPropertiesConstPtr &artifactProperties :
-                 qAsConst(product->artifactProperties)) {
+        for (const ArtifactPropertiesConstPtr &artifactProperties : product->artifactProperties) {
             if (!artifact->isTargetOfModule()
                     && artifact->fileTags.intersects(artifactProperties->fileTagsFilter())) {
                 artifact->properties = artifactProperties->propertyMap();

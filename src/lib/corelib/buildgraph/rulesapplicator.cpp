@@ -404,7 +404,7 @@ Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const F
 
     FileTags outputArtifactFileTags = fileTags.empty()
             ? m_product->fileTagsForFileName(outputArtifact->fileName()) : fileTags;
-    for (const ArtifactPropertiesConstPtr &props : qAsConst(m_product->artifactProperties)) {
+    for (const ArtifactPropertiesConstPtr &props : m_product->artifactProperties) {
         if (outputArtifactFileTags.intersects(props->fileTagsFilter())) {
             outputArtifact->properties = props->propertyMap();
             outputArtifactFileTags += props->extraFileTags();

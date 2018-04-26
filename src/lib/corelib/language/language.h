@@ -578,7 +578,7 @@ public:
     std::vector<ResolvedScannerConstPtr> scanners;
     std::vector<GroupPtr> groups;
     std::vector<ProbeConstPtr> probes;
-    QList<ArtifactPropertiesPtr> artifactProperties;
+    std::vector<ArtifactPropertiesPtr> artifactProperties;
     QStringList missingSourceFiles;
     std::unique_ptr<ProductBuildData> buildData;
 
@@ -734,8 +734,8 @@ private:
     QVariantMap m_buildConfiguration;
 };
 
-bool artifactPropertyListsAreEqual(const QList<ArtifactPropertiesPtr> &l1,
-                                   const QList<ArtifactPropertiesPtr> &l2);
+bool artifactPropertyListsAreEqual(const std::vector<ArtifactPropertiesPtr> &l1,
+                                   const std::vector<ArtifactPropertiesPtr> &l2);
 
 QString multiplexIdToString(const QString &id);
 
