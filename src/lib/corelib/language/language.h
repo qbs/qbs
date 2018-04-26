@@ -572,7 +572,7 @@ public:
     std::vector<RulePtr> rules;
     std::vector<ResolvedProductPtr> dependencies;
     QHash<ResolvedProductConstPtr, QVariantMap> dependencyParameters;
-    QList<FileTaggerConstPtr> fileTaggers;
+    std::vector<FileTaggerConstPtr> fileTaggers;
     QList<ResolvedModulePtr> modules;
     QHash<ResolvedModuleConstPtr, QVariantMap> moduleParameters;
     QList<ResolvedScannerConstPtr> scanners;

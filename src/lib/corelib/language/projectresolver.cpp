@@ -87,7 +87,7 @@ struct ProjectResolver::ProjectContext
 {
     ProjectContext *parentContext = nullptr;
     ResolvedProjectPtr project;
-    QList<FileTaggerConstPtr> fileTaggers;
+    std::vector<FileTaggerConstPtr> fileTaggers;
     QList<RulePtr> rules;
     ResolvedModulePtr dummyModule;
 };
@@ -1277,7 +1277,7 @@ void ProjectResolver::resolveFileTagger(Item *item, ProjectContext *projectConte
     checkCancelation();
     if (!m_evaluator->boolValue(item, StringConstants::conditionProperty()))
         return;
-    QList<FileTaggerConstPtr> &fileTaggers = m_productContext
+    std::vector<FileTaggerConstPtr> &fileTaggers = m_productContext
             ? m_productContext->product->fileTaggers
             : projectContext->fileTaggers;
     const QStringList patterns = m_evaluator->stringListValue(item,
