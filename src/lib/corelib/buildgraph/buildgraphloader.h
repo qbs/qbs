@@ -84,21 +84,21 @@ private:
     bool checkBuildGraphCompatibility(const TopLevelProjectConstPtr &project);
     void trackProjectChanges();
     bool probeExecutionForced(const TopLevelProjectConstPtr &restoredProject,
-                              const QList<ResolvedProductPtr> &restoredProducts) const;
+                              const std::vector<ResolvedProductPtr> &restoredProducts) const;
     bool hasEnvironmentChanged(const TopLevelProjectConstPtr &restoredProject) const;
     bool hasCanonicalFilePathResultChanged(const TopLevelProjectConstPtr &restoredProject) const;
     bool hasFileExistsResultChanged(const TopLevelProjectConstPtr &restoredProject) const;
     bool hasDirectoryEntriesResultChanged(const TopLevelProjectConstPtr &restoredProject) const;
     bool hasFileLastModifiedResultChanged(const TopLevelProjectConstPtr &restoredProject) const;
-    bool hasProductFileChanged(const QList<ResolvedProductPtr> &restoredProducts,
+    bool hasProductFileChanged(const std::vector<ResolvedProductPtr> &restoredProducts,
                                const FileTime &referenceTime,
                                Set<QString> &remainingBuildSystemFiles,
-                               QList<ResolvedProductPtr> &productsWithChangedFiles);
+                               std::vector<ResolvedProductPtr> &productsWithChangedFiles);
     bool hasBuildSystemFileChanged(const Set<QString> &buildSystemFiles,
                                    const FileTime &referenceTime);
-    void markTransformersForChangeTracking(const QList<ResolvedProductPtr> &restoredProducts);
-    void checkAllProductsForChanges(const QList<ResolvedProductPtr> &restoredProducts,
-            QList<ResolvedProductPtr> &changedProducts);
+    void markTransformersForChangeTracking(const std::vector<ResolvedProductPtr> &restoredProducts);
+    void checkAllProductsForChanges(const std::vector<ResolvedProductPtr> &restoredProducts,
+            std::vector<ResolvedProductPtr> &changedProducts);
     bool checkProductForChanges(const ResolvedProductPtr &restoredProduct,
                                 const ResolvedProductPtr &newlyResolvedProduct);
     bool checkProductForInstallInfoChanges(const ResolvedProductPtr &restoredProduct,

@@ -650,7 +650,7 @@ public:
     QString name;
     CodeLocation location;
     bool enabled;
-    QList<ResolvedProductPtr> products;
+    std::vector<ResolvedProductPtr> products;
     QList<ResolvedProjectPtr> subProjects;
     WeakPointer<ResolvedProject> parentProject;
 
@@ -661,7 +661,7 @@ public:
 
     TopLevelProject *topLevelProject();
     QList<ResolvedProjectPtr> allSubProjects() const;
-    QList<ResolvedProductPtr> allProducts() const;
+    std::vector<ResolvedProductPtr> allProducts() const;
 
     virtual void load(PersistentPool &pool);
     virtual void store(PersistentPool &pool);

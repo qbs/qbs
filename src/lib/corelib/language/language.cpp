@@ -565,7 +565,7 @@ ResolvedProject::~ResolvedProject()
 
 void ResolvedProject::accept(BuildGraphVisitor *visitor) const
 {
-    for (const ResolvedProductPtr &product : qAsConst(products))
+    for (const ResolvedProductPtr &product : products)
         product->accept(visitor);
     for (const ResolvedProjectPtr &subProject : qAsConst(subProjects))
         subProject->accept(visitor);
@@ -591,9 +591,9 @@ QList<ResolvedProjectPtr> ResolvedProject::allSubProjects() const
     return projectList;
 }
 
-QList<ResolvedProductPtr> ResolvedProject::allProducts() const
+std::vector<ResolvedProductPtr> ResolvedProject::allProducts() const
 {
-    QList<ResolvedProductPtr> productList = products;
+    std::vector<ResolvedProductPtr> productList = products;
     for (const ResolvedProjectConstPtr &subProject : qAsConst(subProjects))
         productList << subProject->allProducts();
     return productList;

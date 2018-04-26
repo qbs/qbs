@@ -725,7 +725,7 @@ static void doSanityChecks(const ResolvedProjectPtr &project,
     for (const ResolvedProjectPtr &subProject : qAsConst(project->subProjects))
         doSanityChecks(subProject, allProducts, productNames, logger);
 
-    for (const ResolvedProductConstPtr &product : qAsConst(project->products)) {
+    for (const ResolvedProductConstPtr &product : project->products) {
         QBS_CHECK(product->project == project);
         QBS_CHECK(product->topLevelProject() == project->topLevelProject());
         doSanityChecksForProduct(product, allProducts, logger);
@@ -740,7 +740,7 @@ void doSanityChecks(const ResolvedProjectPtr &project, const Logger &logger)
         return;
     Set<QString> productNames;
     const Set<ResolvedProductPtr> allProducts
-            = Set<ResolvedProductPtr>::fromList(project->allProducts());
+            = Set<ResolvedProductPtr>::fromStdVector(project->allProducts());
     doSanityChecks(project, allProducts, productNames, logger);
 }
 

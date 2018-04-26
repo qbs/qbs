@@ -167,7 +167,7 @@ void Executor::setProject(const TopLevelProjectPtr &project)
         m_projectsByName.insert(std::make_pair(p->name, p.get()));
 }
 
-void Executor::setProducts(const QList<ResolvedProductPtr> &productsToBuild)
+void Executor::setProducts(const std::vector<ResolvedProductPtr> &productsToBuild)
 {
     m_productsToBuild = productsToBuild;
     m_productsByName.clear();
@@ -177,11 +177,11 @@ void Executor::setProducts(const QList<ResolvedProductPtr> &productsToBuild)
 
 class ProductPrioritySetter
 {
-    const QList<ResolvedProductPtr> &m_allProducts;
+    const std::vector<ResolvedProductPtr> &m_allProducts;
     unsigned int m_priority;
     Set<ResolvedProductPtr> m_seenProducts;
 public:
-    ProductPrioritySetter(const QList<ResolvedProductPtr> &allProducts) // TODO: Use only products to build?
+    ProductPrioritySetter(const std::vector<ResolvedProductPtr> &allProducts) // TODO: Use only products to build?
         : m_allProducts(allProducts)
     {
     }
@@ -194,7 +194,7 @@ public:
                 allDependencies += dep;
         }
         const Set<ResolvedProductPtr> rootProducts
-                = Set<ResolvedProductPtr>::fromList(m_allProducts) - allDependencies;
+                = Set<ResolvedProductPtr>::fromStdVector(m_allProducts) - allDependencies;
         m_priority = UINT_MAX;
         m_seenProducts.clear();
         for (const ResolvedProductPtr &rootProduct : rootProducts)
@@ -244,7 +244,7 @@ void Executor::doBuild()
                 if (file->fileType() != FileResourceBase::FileTypeArtifact)
                     continue;
                 const Artifact * const artifact = static_cast<const Artifact *>(file);
-                if (m_productsToBuild.contains(artifact->product.lock())) {
+                if (contains(m_productsToBuild, artifact->product.lock())) {
                     m_tagsOfFilesToConsider.unite(artifact->fileTags());
                     m_productsOfFilesToConsider << artifact->product.lock();
                 }
@@ -699,7 +699,7 @@ void Executor::setupProgressObserver()
     if (!m_progressObserver)
         return;
     int totalEffort = 1; // For the effort after the last rule application;
-    for (const ResolvedProductConstPtr &product : qAsConst(m_productsToBuild)) {
+    for (const ResolvedProductConstPtr &product : m_productsToBuild) {
         QBS_CHECK(product->buildData);
         const auto filtered = filterByType<RuleNode>(product->buildData->allNodes());
         totalEffort += std::distance(filtered.begin(), filtered.end());
@@ -711,7 +711,7 @@ void Executor::doSanityChecks()
 {
     QBS_CHECK(m_project);
     QBS_CHECK(!m_productsToBuild.empty());
-    for (const ResolvedProductConstPtr &product : qAsConst(m_productsToBuild)) {
+    for (const ResolvedProductConstPtr &product : m_productsToBuild) {
         QBS_CHECK(product->buildData);
         QBS_CHECK(product->topLevelProject() == m_project.get());
     }
@@ -1030,7 +1030,7 @@ void Executor::checkForUnbuiltProducts()
     if (m_buildOptions.executeRulesOnly())
         return;
     QList<ResolvedProductPtr> unbuiltProducts;
-    for (const ResolvedProductPtr &product : qAsConst(m_productsToBuild)) {
+    for (const ResolvedProductPtr &product : m_productsToBuild) {
         bool productBuilt = true;
         for (BuildGraphNode *rootNode : qAsConst(product->buildData->rootNodes())) {
             if (rootNode->buildState != BuildGraphNode::Built) {
@@ -1066,7 +1066,7 @@ void Executor::checkForUnbuiltProducts()
 
 bool Executor::checkNodeProduct(BuildGraphNode *node)
 {
-    if (!m_partialBuild || m_productsToBuild.contains(node->product.lock()))
+    if (!m_partialBuild || contains(m_productsToBuild, node->product.lock()))
         return true;
 
     // TODO: Turn this into a warning once we have a reliable C++ scanner.
@@ -1151,7 +1151,7 @@ void Executor::prepareAllNodes()
                 node->buildState = BuildGraphNode::Untouched;
         }
     }
-    for (const ResolvedProductPtr &product : qAsConst(m_productsToBuild)) {
+    for (const ResolvedProductPtr &product : m_productsToBuild) {
         QBS_CHECK(product->buildData);
         for (Artifact * const artifact : filterByType<Artifact>(product->buildData->allNodes()))
             prepareArtifact(artifact);
@@ -1262,7 +1262,7 @@ void Executor::prepareProducts()
 {
     ProductPrioritySetter prioritySetter(m_allProducts);
     prioritySetter.apply();
-    for (const ResolvedProductPtr &product : qAsConst(m_productsToBuild)) {
+    for (const ResolvedProductPtr &product : m_productsToBuild) {
         EnvironmentScriptRunner(product.get(), m_evalContext.get(), m_project->environment)
                 .setupForBuild();
     }
@@ -1271,7 +1271,7 @@ void Executor::prepareProducts()
 void Executor::setupRootNodes()
 {
     m_roots.clear();
-    for (const ResolvedProductPtr &product : qAsConst(m_productsToBuild))
+    for (const ResolvedProductPtr &product : m_productsToBuild)
         m_roots += product->buildData->rootNodes();
 }
 

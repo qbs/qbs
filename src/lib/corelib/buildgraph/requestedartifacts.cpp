@@ -54,7 +54,7 @@ bool RequestedArtifacts::isUpToDate(const TopLevelProject *project) const
 {
     if (m_requestedArtifactsPerProduct.empty())
         return true;
-    const QList<ResolvedProductPtr> &allProducts = project->allProducts();
+    const std::vector<ResolvedProductPtr> &allProducts = project->allProducts();
     for (auto it = m_requestedArtifactsPerProduct.cbegin();
          it != m_requestedArtifactsPerProduct.cend(); ++it) {
         const QString &productName = it->first;

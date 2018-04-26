@@ -81,7 +81,7 @@ public:
     ~Executor();
 
     void setProject(const TopLevelProjectPtr &project);
-    void setProducts(const QList<ResolvedProductPtr> &productsToBuild);
+    void setProducts(const std::vector<ResolvedProductPtr> &productsToBuild);
     void setBuildOptions(const BuildOptions &buildOptions);
     void setProgressObserver(ProgressObserver *observer) { m_progressObserver = observer; }
 
@@ -165,8 +165,8 @@ private:
     QList<ExecutorJob*> m_availableJobs;
     ExecutorState m_state;
     TopLevelProjectPtr m_project;
-    QList<ResolvedProductPtr> m_productsToBuild;
-    QList<ResolvedProductPtr> m_allProducts;
+    std::vector<ResolvedProductPtr> m_productsToBuild;
+    std::vector<ResolvedProductPtr> m_allProducts;
     std::unordered_map<QString, const ResolvedProduct *> m_productsByName;
     std::unordered_map<QString, const ResolvedProject *> m_projectsByName;
     NodeSet m_roots;

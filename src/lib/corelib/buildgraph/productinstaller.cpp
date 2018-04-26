@@ -60,7 +60,7 @@ namespace qbs {
 namespace Internal {
 
 ProductInstaller::ProductInstaller(const TopLevelProjectPtr &project,
-        const QList<ResolvedProductPtr> &products, const InstallOptions &options,
+        const std::vector<ResolvedProductPtr> &products, const InstallOptions &options,
         ProgressObserver *observer, const Logger &logger)
     : m_project(project),
       m_products(products),

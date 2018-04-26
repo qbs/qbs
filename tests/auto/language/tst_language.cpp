@@ -308,7 +308,7 @@ void TestLanguage::chainedProbes()
         parameters.setProjectFilePath(testProject("chained-probes/chained-probes.qbs"));
         const TopLevelProjectConstPtr project = loader->loadProject(parameters);
         QVERIFY(!!project);
-        QCOMPARE(project->products.size(), 1);
+        QCOMPARE(project->products.size(), size_t(1));
         const QString prop2Val = project->products.front()->moduleProperties
                 ->moduleProperty("m", "prop2").toString();
         QCOMPARE(prop2Val, QLatin1String("probe1Valprobe2Val"));
@@ -491,7 +491,7 @@ void TestLanguage::delayedError()
         project = loader->loadProject(params);
         QCOMPARE(productEnabled, false);
         QVERIFY(!!project);
-        QCOMPARE(project->products.size(), 1);
+        QCOMPARE(project->products.size(), size_t(1));
         const ResolvedProductConstPtr theProduct = productsFromProject(project).value("theProduct");
         QVERIFY(!!theProduct);
         QCOMPARE(theProduct->enabled, false);
@@ -532,7 +532,7 @@ void TestLanguage::dependencyOnAllProfiles()
         params.setOverriddenValues(overriddenValues);
         project = loader->loadProject(params);
         QVERIFY(!!project);
-        QCOMPARE(project->products.size(), 3);
+        QCOMPARE(project->products.size(), size_t(3));
         const ResolvedProductConstPtr mainProduct = productsFromProject(project).value("main");
         QVERIFY(!!mainProduct);
         QCOMPARE(mainProduct->dependencies.size(), size_t { 2 });
@@ -1907,7 +1907,7 @@ void TestLanguage::multiplexedExports()
         const TopLevelProjectPtr project = loader->loadProject(params);
         QVERIFY(!!project);
         const auto products = project->allProducts();
-        QCOMPARE(products.size(), 4);
+        QCOMPARE(products.size(), size_t(4));
         std::set<ResolvedProductPtr> pVariants;
         for (const auto &product : products) {
             if (product->name != "p")
@@ -2091,8 +2091,8 @@ void TestLanguage::overriddenPropertiesAndPrototypes()
         params.setOverriddenValues({std::make_pair("modules.qbs.targetPlatform", osName)});
         TopLevelProjectConstPtr project = loader->loadProject(params);
         QVERIFY(!!project);
-        QCOMPARE(project->products.size(), 1);
-        QCOMPARE(project->products.first()->moduleProperties->moduleProperty(
+        QCOMPARE(project->products.size(), size_t(1));
+        QCOMPARE(project->products.front()->moduleProperties->moduleProperty(
                      "multiple_backends", "prop").toString(), backendName);
     }
     catch (const ErrorInfo &e) {
@@ -2436,7 +2436,7 @@ void TestLanguage::propertiesBlockInGroup()
         defaultParameters.setProjectFilePath(testProject("properties-block-in-group.qbs"));
         const TopLevelProjectPtr project = loader->loadProject(defaultParameters);
         QVERIFY(!!project);
-        QCOMPARE(project->allProducts().size(), 1);
+        QCOMPARE(project->allProducts().size(), size_t(1));
         const ResolvedProductConstPtr product = project->allProducts().front();
         const auto groupIt = std::find_if(product->groups.cbegin(), product->groups.cend(),
                 [](const GroupConstPtr &g) { return g->name == "the group"; });
@@ -2546,8 +2546,8 @@ void TestLanguage::qbsPropertyConvenienceOverride()
         params.setOverriddenValues({std::make_pair("qbs.installPrefix", "/opt")});
         TopLevelProjectConstPtr project = loader->loadProject(params);
         QVERIFY(!!project);
-        QCOMPARE(project->products.count(), 1);
-        QCOMPARE(project->products.first()->moduleProperties->qbsPropertyValue("installPrefix")
+        QCOMPARE(project->products.size(), size_t(1));
+        QCOMPARE(project->products.front()->moduleProperties->qbsPropertyValue("installPrefix")
                  .toString(), QString("/opt"));
     }
     catch (const ErrorInfo &e) {

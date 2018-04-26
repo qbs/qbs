@@ -374,7 +374,7 @@ void InternalBuildJob::build(const TopLevelProjectPtr &project,
 
     m_executor = new Executor(logger());
     m_executor->setProject(project);
-    m_executor->setProducts(products);
+    m_executor->setProducts(std::vector<ResolvedProductPtr>(products.cbegin(), products.cend()));
     m_executor->setBuildOptions(buildOptions);
     m_executor->setProgressObserver(observer());
 
@@ -441,7 +441,7 @@ InternalInstallJob::~InternalInstallJob()
 }
 
 void InternalInstallJob::init(const TopLevelProjectPtr &project,
-        const QList<ResolvedProductPtr> &products, const InstallOptions &options)
+        const std::vector<ResolvedProductPtr> &products, const InstallOptions &options)
 {
     m_project = project;
     m_products = products;

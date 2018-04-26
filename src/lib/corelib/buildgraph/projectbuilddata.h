@@ -114,7 +114,7 @@ public:
     void resolveBuildData(const TopLevelProjectPtr &resolvedProject,
                           const RulesEvaluationContextPtr &evalContext);
     void resolveProductBuildDataForExistingProject(const TopLevelProjectPtr &project,
-            const QList<ResolvedProductPtr> &freshProducts);
+            const std::vector<ResolvedProductPtr> &freshProducts);
 
 private:
     void resolveProductBuildData(const ResolvedProductPtr &product);

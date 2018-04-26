@@ -134,11 +134,11 @@ void ProjectResolver::setProgressObserver(ProgressObserver *observer)
 
 static void checkForDuplicateProductNames(const TopLevelProjectConstPtr &project)
 {
-    const QList<ResolvedProductPtr> allProducts = project->allProducts();
-    for (int i = 0; i < allProducts.size(); ++i) {
+    const std::vector<ResolvedProductPtr> allProducts = project->allProducts();
+    for (size_t i = 0; i < allProducts.size(); ++i) {
         const ResolvedProductConstPtr product1 = allProducts.at(i);
         const QString productName = product1->uniqueName();
-        for (int j = i + 1; j < allProducts.size(); ++j) {
+        for (size_t j = i + 1; j < allProducts.size(); ++j) {
             const ResolvedProductConstPtr product2 = allProducts.at(j);
             if (product2->uniqueName() == productName) {
                 ErrorInfo error;
@@ -345,7 +345,7 @@ void ProjectResolver::resolveProjectFully(Item *item, ProjectResolver::ProjectCo
         }
     }
 
-    for (const ResolvedProductPtr &product : qAsConst(projectContext->project->products))
+    for (const ResolvedProductPtr &product : projectContext->project->products)
         postProcess(product, projectContext);
 }
 
@@ -1518,7 +1518,7 @@ void gatherDependencies(ResolvedProduct *product, DependencyMap &dependencies)
 
 
 
-static DependencyMap allDependencies(const QList<ResolvedProductPtr> &products)
+static DependencyMap allDependencies(const std::vector<ResolvedProductPtr> &products)
 {
     DependencyMap dependencies;
     for (const ResolvedProductPtr &product : products)
@@ -1529,7 +1529,7 @@ static DependencyMap allDependencies(const QList<ResolvedProductPtr> &products)
 void ProjectResolver::resolveProductDependencies(const ProjectContext &projectContext)
 {
     // Resolve all inter-product dependencies.
-    const QList<ResolvedProductPtr> allProducts = projectContext.project->allProducts();
+    const std::vector<ResolvedProductPtr> allProducts = projectContext.project->allProducts();
     bool disabledDependency = false;
     for (const ResolvedProductPtr &rproduct : allProducts) {
         if (!rproduct->enabled)

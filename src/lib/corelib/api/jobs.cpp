@@ -373,7 +373,9 @@ void InstallJob::install(const TopLevelProjectPtr &project,
         return;
     InternalJobThreadWrapper *wrapper = qobject_cast<InternalJobThreadWrapper *>(internalJob());
     InternalInstallJob *installJob = qobject_cast<InternalInstallJob *>(wrapper->synchronousJob());
-    installJob->init(project, products, options);
+    installJob->init(project,
+                     std::vector<ResolvedProductPtr>(products.cbegin(), products.cend()),
+                     options);
     wrapper->start();
 }
 

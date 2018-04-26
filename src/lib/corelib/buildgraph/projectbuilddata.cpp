@@ -290,7 +290,7 @@ void BuildDataResolver::resolveBuildData(const TopLevelProjectPtr &resolvedProje
     m_project = resolvedProject;
     resolvedProject->buildData.reset(new ProjectBuildData);
     resolvedProject->buildData->evaluationContext = evalContext;
-    const QList<ResolvedProductPtr> allProducts = resolvedProject->allProducts();
+    const std::vector<ResolvedProductPtr> &allProducts = resolvedProject->allProducts();
     evalContext->initializeObserver(Tr::tr("Setting up build graph for configuration %1")
                                     .arg(resolvedProject->id()), allProducts.size() + 1);
     for (ResolvedProductPtr rProduct : allProducts) {
@@ -303,7 +303,7 @@ void BuildDataResolver::resolveBuildData(const TopLevelProjectPtr &resolvedProje
 }
 
 void BuildDataResolver::resolveProductBuildDataForExistingProject(const TopLevelProjectPtr &project,
-        const QList<ResolvedProductPtr> &freshProducts)
+        const std::vector<ResolvedProductPtr> &freshProducts)
 {
     m_project = project;
     for (const ResolvedProductPtr &product : freshProducts) {
@@ -325,7 +325,7 @@ void BuildDataResolver::resolveProductBuildDataForExistingProject(const TopLevel
         }
     }
     for (auto it = dependencyMap.cbegin(); it != dependencyMap.cend(); ++it) {
-        if (!freshProducts.contains(it.key()))
+        if (!contains(freshProducts, it.key()))
            connectRulesToDependencies(it.key(), it.value());
     }
 }

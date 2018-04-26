@@ -55,7 +55,8 @@ class ProgressObserver;
 class ProductInstaller
 {
 public:
-    ProductInstaller(const TopLevelProjectPtr &project, const QList<ResolvedProductPtr> &products,
+    ProductInstaller(const TopLevelProjectPtr &project,
+            const std::vector<ResolvedProductPtr> &products,
             const InstallOptions &options, ProgressObserver *observer, const Logger &logger);
     void install();
 
@@ -71,7 +72,7 @@ private:
     void handleError(const QString &message);
 
     const TopLevelProjectConstPtr m_project;
-    const QList<ResolvedProductPtr> m_products;
+    const std::vector<ResolvedProductPtr> m_products;
     InstallOptions m_options;
     ProgressObserver * const m_observer;
     Logger m_logger;

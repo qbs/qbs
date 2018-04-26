@@ -191,7 +191,7 @@ static QList<ResolvedProductPtr> enabledInternalProducts(const ResolvedProjectCo
                                                          bool includingNonDefault)
 {
     QList<ResolvedProductPtr> products;
-    for (const ResolvedProductPtr &p : qAsConst(project->products)) {
+    for (const ResolvedProductPtr &p : project->products) {
         if (p->enabled && (includingNonDefault || p->builtByDefault()))
             products.push_back(p);
     }
@@ -214,7 +214,7 @@ static bool matches(const ProductData &product, const ResolvedProductConstPtr &r
 static ResolvedProductPtr internalProductForProject(const ResolvedProjectConstPtr &project,
                                                     const ProductData &product)
 {
-    for (const ResolvedProductPtr &resolvedProduct : qAsConst(project->products)) {
+    for (const ResolvedProductPtr &resolvedProduct : project->products) {
         if (matches(product, resolvedProduct))
             return resolvedProduct;
     }
@@ -672,7 +672,7 @@ void ProjectPrivate::updateInternalCodeLocations(const ResolvedProjectPtr &proje
     updateLocationIfNecessary(project->location, changeLocation, lineOffset);
     for (const ResolvedProjectPtr &subProject : qAsConst(project->subProjects))
         updateInternalCodeLocations(subProject, changeLocation, lineOffset);
-    for (const ResolvedProductPtr &product : qAsConst(project->products)) {
+    for (const ResolvedProductPtr &product : project->products) {
         updateLocationIfNecessary(product->location, changeLocation, lineOffset);
         for (const GroupPtr &group : product->groups)
             updateLocationIfNecessary(group->location, changeLocation, lineOffset);
@@ -837,7 +837,7 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
     projectData.d->name = internalProject->name;
     projectData.d->location = internalProject->location;
     projectData.d->enabled = internalProject->enabled;
-    for (const ResolvedProductConstPtr &resolvedProduct : qAsConst(internalProject->products)) {
+    for (const ResolvedProductConstPtr &resolvedProduct : internalProject->products) {
         ProductData product;
         product.d->type = resolvedProduct->fileTags.toStringList();
         product.d->name = resolvedProduct->name;

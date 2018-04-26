@@ -88,7 +88,7 @@ BuildGraphLoader::~BuildGraphLoader()
 
 static void restoreBackPointers(const ResolvedProjectPtr &project)
 {
-    for (const ResolvedProductPtr &product : qAsConst(project->products)) {
+    for (const ResolvedProductPtr &product : project->products) {
         product->project = project;
         if (!product->buildData)
             continue;
@@ -234,12 +234,12 @@ bool BuildGraphLoader::checkBuildGraphCompatibility(const TopLevelProjectConstPt
     throw ErrorInfo(message);
 }
 
-static bool checkProductForChangedDependency(QList<ResolvedProductPtr> &changedProducts,
+static bool checkProductForChangedDependency(std::vector<ResolvedProductPtr> &changedProducts,
         Set<ResolvedProductPtr> &seenProducts, const ResolvedProductPtr &product)
 {
     if (seenProducts.contains(product))
         return false;
-    if (changedProducts.contains(product))
+    if (contains(changedProducts, product))
         return true;
     for (const ResolvedProductPtr &dep : qAsConst(product->dependencies)) {
         if (checkProductForChangedDependency(changedProducts, seenProducts, dep)) {
@@ -255,8 +255,8 @@ static bool checkProductForChangedDependency(QList<ResolvedProductPtr> &changedP
 // artifacts of the rules taking the artifacts from the dependency as inputs will be
 // rebuilt due to their rule getting re-applied (as the rescued input artifacts will show
 // up as newly added) and no rescue data being available.
-static void makeChangedProductsListComplete(QList<ResolvedProductPtr> &changedProducts,
-                                            const QList<ResolvedProductPtr> &allRestoredProducts)
+static void makeChangedProductsListComplete(std::vector<ResolvedProductPtr> &changedProducts,
+        const std::vector<ResolvedProductPtr> &allRestoredProducts)
 {
     Set<ResolvedProductPtr> seenProducts;
     for (const ResolvedProductPtr &p : allRestoredProducts)
@@ -302,8 +302,8 @@ void BuildGraphLoader::trackProjectChanges()
                                       m_parameters.logElapsedTime());
     const TopLevelProjectPtr &restoredProject = m_result.loadedProject;
     Set<QString> buildSystemFiles = restoredProject->buildSystemFiles;
-    QList<ResolvedProductPtr> allRestoredProducts = restoredProject->allProducts();
-    QList<ResolvedProductPtr> changedProducts;
+    std::vector<ResolvedProductPtr> allRestoredProducts = restoredProject->allProducts();
+    std::vector<ResolvedProductPtr> changedProducts;
     bool reResolvingNecessary = false;
     if (!checkConfigCompatibility())
         reResolvingNecessary = true;
@@ -349,7 +349,7 @@ void BuildGraphLoader::trackProjectChanges()
         ldr.setStoredProfiles(restoredProject->profileConfigs);
     m_result.newlyResolvedProject = ldr.loadProject(m_parameters);
 
-    QList<ResolvedProductPtr> allNewlyResolvedProducts
+    std::vector<ResolvedProductPtr> allNewlyResolvedProducts
             = m_result.newlyResolvedProject->allProducts();
     for (const ResolvedProductPtr &cp : qAsConst(allNewlyResolvedProducts))
         m_freshProductsByName.insert(cp->uniqueName(), cp);
@@ -388,7 +388,7 @@ void BuildGraphLoader::trackProjectChanges()
             rescuableArtifactData.insert(product->uniqueName(),
                                          product->buildData->rescuableArtifactData());
         }
-        allRestoredProducts.removeOne(product);
+        removeOne(allRestoredProducts, product);
     }
 
     // Move over restored build data to newly resolved project.
@@ -407,9 +407,9 @@ void BuildGraphLoader::trackProjectChanges()
 
                 // Keep in list if build data still needs to be resolved.
                 if (!newlyResolvedProduct->enabled || newlyResolvedProduct->buildData)
-                    allNewlyResolvedProducts.removeAt(i);
+                    allNewlyResolvedProducts.erase(allNewlyResolvedProducts.begin() + i);
 
-                allRestoredProducts.removeAt(j);
+                allRestoredProducts.erase(allRestoredProducts.begin() + j);
                 break;
             }
         }
@@ -417,7 +417,7 @@ void BuildGraphLoader::trackProjectChanges()
 
     // Products still left in the list do not exist anymore.
     for (const ResolvedProductPtr &removedProduct : qAsConst(allRestoredProducts)) {
-        changedProducts.removeOne(removedProduct);
+        removeOne(changedProducts, removedProduct);
         onProductRemoved(removedProduct, m_result.newlyResolvedProject->buildData.get());
     }
 
@@ -447,7 +447,7 @@ void BuildGraphLoader::trackProjectChanges()
 
 bool BuildGraphLoader::probeExecutionForced(
         const TopLevelProjectConstPtr &restoredProject,
-        const QList<ResolvedProductPtr> &restoredProducts) const
+        const std::vector<ResolvedProductPtr> &restoredProducts) const
 {
     if (!m_parameters.forceProbeExecution())
         return false;
@@ -544,9 +544,9 @@ bool BuildGraphLoader::hasFileLastModifiedResultChanged(const TopLevelProjectCon
     return false;
 }
 
-bool BuildGraphLoader::hasProductFileChanged(const QList<ResolvedProductPtr> &restoredProducts,
+bool BuildGraphLoader::hasProductFileChanged(const std::vector<ResolvedProductPtr> &restoredProducts,
         const FileTime &referenceTime, Set<QString> &remainingBuildSystemFiles,
-        QList<ResolvedProductPtr> &changedProducts)
+        std::vector<ResolvedProductPtr> &changedProducts)
 {
     bool hasChanged = false;
     for (const ResolvedProductPtr &product : restoredProducts) {
@@ -559,7 +559,7 @@ bool BuildGraphLoader::hasProductFileChanged(const QList<ResolvedProductPtr> &re
         } else if (referenceTime < pfi.lastModified()) {
             qCDebug(lcBuildGraph) << "A product was changed, must re-resolve project";
             hasChanged = true;
-        } else if (!changedProducts.contains(product)) {
+        } else if (!contains(changedProducts, product)) {
             bool foundMissingSourceFile = false;
             for (const QString &file : qAsConst(product->missingSourceFiles)) {
                 if (FileInfo(file).exists()) {
@@ -620,7 +620,7 @@ bool BuildGraphLoader::hasBuildSystemFileChanged(const Set<QString> &buildSystem
 }
 
 void BuildGraphLoader::markTransformersForChangeTracking(
-        const QList<ResolvedProductPtr> &restoredProducts)
+        const std::vector<ResolvedProductPtr> &restoredProducts)
 {
     for (const ResolvedProductPtr &product : restoredProducts) {
         if (!product->buildData)
@@ -634,8 +634,9 @@ void BuildGraphLoader::markTransformersForChangeTracking(
     }
 }
 
-void BuildGraphLoader::checkAllProductsForChanges(const QList<ResolvedProductPtr> &restoredProducts,
-        QList<ResolvedProductPtr> &changedProducts)
+void BuildGraphLoader::checkAllProductsForChanges(
+        const std::vector<ResolvedProductPtr> &restoredProducts,
+        std::vector<ResolvedProductPtr> &changedProducts)
 {
     for (const ResolvedProductPtr &restoredProduct : restoredProducts) {
         const ResolvedProductPtr newlyResolvedProduct
@@ -645,7 +646,7 @@ void BuildGraphLoader::checkAllProductsForChanges(const QList<ResolvedProductPtr
         if (newlyResolvedProduct->enabled != restoredProduct->enabled) {
             qCDebug(lcBuildGraph) << "Condition of product" << restoredProduct->uniqueName()
                                   << "was changed, must set up build data from scratch";
-            if (!changedProducts.contains(restoredProduct))
+            if (!contains(changedProducts, restoredProduct))
                 changedProducts << restoredProduct;
             continue;
         }
@@ -653,7 +654,7 @@ void BuildGraphLoader::checkAllProductsForChanges(const QList<ResolvedProductPtr
         if (checkProductForChanges(restoredProduct, newlyResolvedProduct)) {
             qCDebug(lcBuildGraph) << "Product" << restoredProduct->uniqueName()
                                   << "was changed, must set up build data from scratch";
-            if (!changedProducts.contains(restoredProduct))
+            if (!contains(changedProducts, restoredProduct))
                 changedProducts << restoredProduct;
             continue;
         }
@@ -662,7 +663,7 @@ void BuildGraphLoader::checkAllProductsForChanges(const QList<ResolvedProductPtr
                                         newlyResolvedProduct->allEnabledFiles())) {
             qCDebug(lcBuildGraph) << "File list of product" << restoredProduct->uniqueName()
                                   << "was changed.";
-            if (!changedProducts.contains(restoredProduct))
+            if (!contains(changedProducts, restoredProduct))
                 changedProducts << restoredProduct;
         }
     }
@@ -747,7 +748,7 @@ void BuildGraphLoader::onProductRemoved(const ResolvedProductPtr &product,
 {
     qCDebug(lcBuildGraph) << "product" << product->uniqueName() << "removed.";
 
-    product->project->products.removeOne(product);
+    removeOne(product->project->products, product);
     if (product->buildData) {
         for (BuildGraphNode * const node : qAsConst(product->buildData->allNodes())) {
             if (node->type() == BuildGraphNode::ArtifactNodeType) {
