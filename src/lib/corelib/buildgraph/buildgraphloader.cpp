@@ -204,6 +204,7 @@ void BuildGraphLoader::loadBuildGraphFromDisk()
     if (!checkBuildGraphCompatibility(project))
         return;
     restoreBackPointers(project);
+    project->buildData->setClean();
     project->location = CodeLocation(m_parameters.projectFilePath(), project->location.line(),
                                      project->location.column());
     m_result.loadedProject = project;
