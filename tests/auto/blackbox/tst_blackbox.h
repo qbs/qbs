@@ -97,6 +97,8 @@ private slots:
     void erroneousFiles();
     void errorInfo();
     void escapedLinkerFlags();
+    void explicitlyDependsOn();
+    void explicitlyDependsOn_data();
     void exportedDependencyInDisabledProduct();
     void exportedDependencyInDisabledProduct_data();
     void exportedPropertyInDisabledProduct();

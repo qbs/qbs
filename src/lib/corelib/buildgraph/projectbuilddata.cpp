@@ -390,7 +390,7 @@ static bool areRulesCompatible(const RuleNode *ruleNode, const RuleNode *depende
         return true;
     if (!dependencyRule->product->fileTags.intersects(outTags))
         return false;
-    if (ruleNode->rule()->explicitlyDependsOn.intersects(outTags))
+    if (ruleNode->rule()->explicitlyDependsOnFromDependencies.intersects(outTags))
         return true;
     return ruleNode->rule()->auxiliaryInputs.intersects(outTags);
 }
@@ -464,7 +464,8 @@ void BuildDataResolver::connectRulesToDependencies(const ResolvedProductPtr &pro
                 if (areRulesCompatible(ruleNode, depRuleNode)
                         || ((ruleNode->rule()->inputsFromDependencies.contains(installableTag)
                              || ruleNode->rule()->auxiliaryInputs.contains(installableTag)
-                             || ruleNode->rule()->explicitlyDependsOn.contains(installableTag))
+                             || ruleNode->rule()->explicitlyDependsOnFromDependencies.contains(
+                                 installableTag))
                             && isRootRuleNode(depRuleNode))) {
                     connect(ruleNode, depRuleNode);
                 }

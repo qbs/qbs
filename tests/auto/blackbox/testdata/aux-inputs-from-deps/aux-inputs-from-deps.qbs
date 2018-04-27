@@ -16,7 +16,7 @@ Project {
         Depends { name: "dep" }
         Rule {
             multiplex: true
-            explicitlyDependsOn: ["hpp"]
+            explicitlyDependsOnFromDependencies: ["hpp"]
             Artifact {
                 filePath: "dummy.out"
                 fileTags: ["p.out"]

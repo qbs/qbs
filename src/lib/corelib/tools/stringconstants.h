@@ -83,6 +83,9 @@ public:
     QBS_STRING_CONSTANT(excludedAuxiliaryInputsProperty, "excludedAuxiliaryInputs")
     QBS_STRING_CONSTANT(excludedInputsProperty, "excludedInputs")
     static const QString &explicitlyDependsOnProperty() { return explicitlyDependsOn(); }
+    static const QString &explicitlyDependsOnFromDependenciesProperty() {
+        return explicitlyDependsOnFromDependencies();
+    }
     static const QString &fileNameProperty() { return fileName(); }
     static const QString &filePathProperty() { return filePath(); }
     QBS_STRING_CONSTANT(fileTagsFilterProperty, "fileTagsFilter")
@@ -225,6 +228,7 @@ public:
 private:
     QBS_STRING_CONSTANT(cpp, "cpp")
     QBS_STRING_CONSTANT(explicitlyDependsOn, "explicitlyDependsOn")
+    QBS_STRING_CONSTANT(explicitlyDependsOnFromDependencies, "explicitlyDependsOnFromDependencies")
     QBS_STRING_CONSTANT(fileName, "fileName")
     QBS_STRING_CONSTANT(filePath, "filePath")
     QBS_STRING_CONSTANT(inputs, "inputs")

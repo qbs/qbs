@@ -13,7 +13,7 @@ Module {
 
     Rule {
         multiplex: true
-        explicitlyDependsOn: ["thetool.thetool"]
+        explicitlyDependsOnFromDependencies: ["thetool.thetool"]
         Artifact {
             filePath: "tool-output.txt"
             fileTags: ["thetool.output"]

@@ -15,7 +15,7 @@ Project {
             Depends { name: "cpp" }
             Rule {
                 multiplex: true
-                explicitlyDependsOn: ["thetool.thetool"]
+                explicitlyDependsOnFromDependencies: ["thetool.thetool"]
                 Artifact {
                     filePath: "tool-output.txt"
                     fileTags: ["thetool.output"]

@@ -902,6 +902,7 @@ bool operator==(const Rule &r1, const Rule &r2)
             && r1.excludedInputs == r2.excludedInputs
             && r1.inputsFromDependencies == r2.inputsFromDependencies
             && r1.explicitlyDependsOn == r2.explicitlyDependsOn
+            && r1.explicitlyDependsOnFromDependencies == r2.explicitlyDependsOnFromDependencies
             && r1.multiplex == r2.multiplex
             && r1.requiresInputs == r2.requiresInputs
             && r1.alwaysRun == r2.alwaysRun;

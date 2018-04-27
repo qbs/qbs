@@ -20,7 +20,7 @@ Project {
 
         Rule {
             inputs: ["mytype.in"]
-            explicitlyDependsOn: ["compiler"]
+            explicitlyDependsOnFromDependencies: ["compiler"]
             Artifact {
                 filePath: input.fileName + ".out"
                 fileTags: product.type
@@ -36,7 +36,7 @@ Project {
 
         Rule {
             multiplex: true
-            explicitlyDependsOn: ["compiler"]
+            explicitlyDependsOnFromDependencies: ["compiler"]
             Artifact {
                 filePath: "compiler-name.txt"
                 fileTags: product.type

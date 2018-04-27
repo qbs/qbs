@@ -1194,6 +1194,8 @@ void ProjectResolver::resolveRule(Item *item, ProjectContext *projectContext)
     }
     rule->explicitlyDependsOn
             = m_evaluator->fileTagsValue(item, StringConstants::explicitlyDependsOnProperty());
+    rule->explicitlyDependsOnFromDependencies = m_evaluator->fileTagsValue(
+                item, StringConstants::explicitlyDependsOnFromDependenciesProperty());
     rule->module = m_moduleContext ? m_moduleContext->module : projectContext->dummyModule;
     if (!rule->multiplex && !rule->declaresInputs()) {
         throw ErrorInfo(Tr::tr("Rule has no inputs, but is not a multiplex rule."),

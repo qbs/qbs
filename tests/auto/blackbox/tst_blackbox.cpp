@@ -4936,6 +4936,70 @@ void TestBlackbox::auxiliaryInputsFromDependencies()
     QVERIFY2(m_qbsStdout.contains("generating dummy.out"), m_qbsStdout.constData());
 }
 
+void TestBlackbox::explicitlyDependsOn()
+{
+    QFETCH(QString, useExplicitlyDependsOn);
+    QFETCH(QString, useExplicitlyDependsOnFromDependencies);
+    QFETCH(QString, useModule);
+    QFETCH(bool, expectFailure);
+
+    QDir::setCurrent(testDataDir + "/explicitly-depends-on");
+    QbsRunParameters params("",
+                QStringList("products.prod1.useExplicitlyDependsOn:" + useExplicitlyDependsOn)
+                << "products.prod1.useExplicitlyDependsOnFromDependencies:"
+                    + useExplicitlyDependsOnFromDependencies
+                << "projects.proj1.useModule:"
+                    + useModule);
+    params.expectFailure = expectFailure;
+
+    rmDirR(relativeBuildDir());
+
+    if (params.expectFailure) {
+        // Build should fail because a rule cycle is created within the product when
+        // explicitlyDependsOn is used.
+        QVERIFY(runQbs(params) != 0);
+        QVERIFY2(m_qbsStderr.contains("Cycle detected in rule dependencies"),
+                 m_qbsStderr.constData());
+    } else {
+        // When explicitlyDependsOnFromDependencies is used, build should succeed due to the
+        // "final" tag being pulled in from dependencies.
+        QCOMPARE(runQbs(params), 0);
+
+        if (useModule == QLatin1String("false")) {
+            QVERIFY2(m_qbsStdout.contains("creating 'product-fish.txt' tagged with 'final'"),
+                     m_qbsStdout.constData());
+            QVERIFY2(m_qbsStdout.contains("Using explicitlyDependsOnArtifact: product-fish.txt"),
+                     m_qbsStdout.constData());
+            QVERIFY2(m_qbsStdout.contains("step1 -> step2"), m_qbsStdout.constData());
+            QVERIFY2(m_qbsStdout.contains("step2 -> step3"), m_qbsStdout.constData());
+            QVERIFY2(m_qbsStdout.contains("step3 -> final"), m_qbsStdout.constData());
+        } else {
+            QVERIFY2(!m_qbsStdout.contains("creating 'product-fish.txt' tagged with 'final'"),
+                     m_qbsStdout.constData());
+            QVERIFY2(m_qbsStdout.contains("Using explicitlyDependsOnArtifact: module-fish.txt"),
+                     m_qbsStdout.constData());
+            QVERIFY2(m_qbsStdout.contains("step1 -> step2"), m_qbsStdout.constData());
+            QVERIFY2(m_qbsStdout.contains("step2 -> step3"), m_qbsStdout.constData());
+            QVERIFY2(m_qbsStdout.contains("step3 -> final"), m_qbsStdout.constData());
+        }
+    }
+}
+
+void TestBlackbox::explicitlyDependsOn_data()
+{
+    QTest::addColumn<QString>("useExplicitlyDependsOn");
+    QTest::addColumn<QString>("useExplicitlyDependsOnFromDependencies");
+    QTest::addColumn<QString>("useModule");
+    QTest::addColumn<bool>("expectFailure");
+
+    QTest::newRow("useExplicitlyDependsOn -> causes cycle")
+            << "true" << "false" << "false" << true;
+    QTest::newRow("explicitlyDependsOnFromDependencies + product")
+            << "false" << "true" << "false" << false;
+    QTest::newRow("explicitlyDependsOnFromDependencies + module + filesAreTargets")
+            << "false" << "true" << "true" << false;
+}
+
 static bool haveMakeNsis()
 {
     QStringList regKeys;

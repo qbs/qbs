@@ -40,7 +40,7 @@ CppApplication {
         property var helper2Obj: Helper2
         Rule {
             inputs: Helper.toolInputs()
-            explicitlyDependsOn: toolTags
+            explicitlyDependsOnFromDependencies: toolTags
 
             outputFileTags: parent.outTags
             outputArtifacts: [{

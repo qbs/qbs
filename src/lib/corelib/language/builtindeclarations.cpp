@@ -507,6 +507,8 @@ void BuiltinDeclarations::addRuleItem()
                                 PropertyDeclaration::StringList);
     item << PropertyDeclaration(StringConstants::explicitlyDependsOnProperty(),
                                       PropertyDeclaration::StringList);
+    item << PropertyDeclaration(StringConstants::explicitlyDependsOnFromDependenciesProperty(),
+                                      PropertyDeclaration::StringList);
     item << prepareScriptProperty();
     insert(item);
 }

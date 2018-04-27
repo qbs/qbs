@@ -414,6 +414,7 @@ public:
     FileTags excludedInputs;
     FileTags inputsFromDependencies;
     FileTags explicitlyDependsOn;
+    FileTags explicitlyDependsOnFromDependencies;
     bool multiplex;
     bool requiresInputs;
     std::vector<RuleArtifactPtr> artifacts;     // unused, if outputFileTags/outputArtifactsScript is non-empty
@@ -436,7 +437,8 @@ public:
     {
         pool.serializationOp<opType>(name, prepareScript, outputArtifactsScript, module, inputs,
                                      outputFileTags, auxiliaryInputs, excludedInputs,
-                                     inputsFromDependencies, explicitlyDependsOn, multiplex,
+                                     inputsFromDependencies, explicitlyDependsOn,
+                                     explicitlyDependsOnFromDependencies, multiplex,
                                      requiresInputs, alwaysRun, artifacts);
     }
 private:

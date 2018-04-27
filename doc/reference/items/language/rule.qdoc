@@ -303,10 +303,20 @@
 
     A list of file tags. Each artifact that matches the file tags is added to
     the dependencies of each output node. All artifacts in the current product
-    and target artifacts of products that this product depends on are
-    considered.
+    are considered.
 
     \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty stringList Rule::explicitlyDependsOnFromDependencies
+
+    A list of file tags. Each artifact that matches the file tags is added to
+    the dependencies of each output node. Only target artifacts of products that this product
+    depends on are considered.
+
+    \nodefaultvalue
+    \since Qbs 1.12
 */
 
 /*!

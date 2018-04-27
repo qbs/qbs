@@ -46,6 +46,7 @@
 #include <language/forward_decls.h>
 #include <logging/logger.h>
 
+#include <QtCore/qflags.h>
 #include <QtCore/qhash.h>
 #include <QtCore/qstring.h>
 #include <QtScript/qscriptvalue.h>
@@ -75,10 +76,14 @@ public:
             const ArtifactSet &artifactsToRemove, const Logger &logger);
     static ArtifactSet collectAuxiliaryInputs(const Rule *rule, const ResolvedProduct *product);
 
+    enum InputsSourceFlag { CurrentProduct, Dependencies };
+    Q_DECLARE_FLAGS(InputsSources, InputsSourceFlag)
+
 private:
     void doApply(const ArtifactSet &inputArtifacts, QScriptValue &prepareScriptContext);
     ArtifactSet collectOldOutputArtifacts(const ArtifactSet &inputArtifacts) const;
     ArtifactSet collectExplicitlyDependsOn();
+    ArtifactSet collectExplicitlyDependsOnFromDependencies();
     Artifact *createOutputArtifactFromRuleArtifact(const RuleArtifactConstPtr &ruleArtifact,
             const ArtifactSet &inputArtifacts, Set<QString> *outputFilePaths);
     Artifact *createOutputArtifact(const QString &filePath, const FileTags &fileTags,
@@ -93,7 +98,8 @@ private:
     QScriptValue scope() const;
 
     static ArtifactSet collectAdditionalInputs(const FileTags &tags,
-                                               const Rule *rule, const ResolvedProduct *product);
+                                               const Rule *rule, const ResolvedProduct *product,
+                                               InputsSources inputsSources);
 
     const ResolvedProductPtr m_product;
     const std::unordered_map<QString, const ResolvedProduct *> &m_productsByName;
@@ -107,6 +113,8 @@ private:
     QtMocScanner *m_mocScanner;
     Logger m_logger;
 };
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(RulesApplicator::InputsSources)
 
 } // namespace Internal
 } // namespace qbs

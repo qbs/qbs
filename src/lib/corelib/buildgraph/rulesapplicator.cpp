@@ -154,7 +154,8 @@ void RulesApplicator::handleRemovedRuleOutputs(const ArtifactSet &inputArtifacts
 ArtifactSet RulesApplicator::collectAuxiliaryInputs(const Rule *rule,
                                                     const ResolvedProduct *product)
 {
-    return collectAdditionalInputs(rule->auxiliaryInputs, rule, product);
+    return collectAdditionalInputs(rule->auxiliaryInputs, rule, product,
+                                   RulesApplicator::CurrentProduct | RulesApplicator::Dependencies);
 }
 
 static void copyProperty(const QString &name, const QScriptValue &src, QScriptValue dst)
@@ -298,19 +299,37 @@ ArtifactSet RulesApplicator::collectOldOutputArtifacts(const ArtifactSet &inputA
 }
 
 ArtifactSet RulesApplicator::collectAdditionalInputs(const FileTags &tags, const Rule *rule,
-                                                     const ResolvedProduct *product)
+                                                     const ResolvedProduct *product,
+                                                     InputsSources inputsSources)
 {
     ArtifactSet artifacts;
     for (const FileTag &fileTag : tags) {
         for (Artifact *dependency : product->lookupArtifactsByFileTag(fileTag)) {
-            if (!dependency->fileTags().intersects(rule->excludedInputs))
+            // Skip excluded inputs.
+            if (dependency->fileTags().intersects(rule->excludedInputs))
+                continue;
+
+            // Two cases are considered:
+            // 1) An artifact is considered a dependency when it's part of the current product.
+            // 2) An artifact marked with filesAreTargets: true inside a Group inside of a
+            // Module also ends up in the results returned by product->lookupArtifactsByFileTag,
+            // so it should be considered conceptually as a "dependent product artifact".
+            if ((inputsSources.testFlag(RulesApplicator::CurrentProduct)
+                 && !dependency->isTargetOfModule())
+                 || (inputsSources.testFlag(RulesApplicator::Dependencies)
+                     && dependency->isTargetOfModule())
+                    ) {
                 artifacts << dependency;
+            }
         }
-        for (const ResolvedProductConstPtr &depProduct : product->dependencies) {
-            for (Artifact * const ta : depProduct->targetArtifacts()) {
-                if (ta->fileTags().contains(fileTag)
-                        && !ta->fileTags().intersects(rule->excludedInputs)) {
-                    artifacts << ta;
+
+        if (inputsSources.testFlag(RulesApplicator::Dependencies)) {
+            for (const ResolvedProductConstPtr &depProduct : product->dependencies) {
+                for (Artifact * const ta : depProduct->targetArtifacts()) {
+                    if (ta->fileTags().contains(fileTag)
+                            && !ta->fileTags().intersects(rule->excludedInputs)) {
+                        artifacts << ta;
+                    }
                 }
             }
         }
@@ -320,7 +339,13 @@ ArtifactSet RulesApplicator::collectAdditionalInputs(const FileTags &tags, const
 
 ArtifactSet RulesApplicator::collectExplicitlyDependsOn()
 {
-    return collectAdditionalInputs(m_rule->explicitlyDependsOn, m_rule.get(), m_product.get());
+   ArtifactSet first = collectAdditionalInputs(
+               m_rule->explicitlyDependsOn, m_rule.get(), m_product.get(),
+                                   RulesApplicator::CurrentProduct);
+   ArtifactSet second = collectAdditionalInputs(
+               m_rule->explicitlyDependsOnFromDependencies, m_rule.get(), m_product.get(),
+                                                RulesApplicator::Dependencies);
+   return first.unite(second);
 }
 
 Artifact *RulesApplicator::createOutputArtifactFromRuleArtifact(
