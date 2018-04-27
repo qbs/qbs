@@ -593,8 +593,11 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
                            m_parameters.overriddenValuesTree());
     projectContext.name = m_evaluator->stringValue(projectItem,
                                                    StringConstants::nameProperty());
-    if (projectContext.name.isEmpty())
+    if (projectContext.name.isEmpty()) {
         projectContext.name = FileInfo::baseName(projectItem->location().filePath());
+        projectItem->setProperty(StringConstants::nameProperty(),
+                                 VariantValue::create(projectContext.name));
+    }
     overrideItemProperties(projectItem,
                            StringConstants::projectsOverridePrefix() + projectContext.name,
                            m_parameters.overriddenValuesTree());
