@@ -1421,9 +1421,9 @@ void TestApi::installableFiles()
     });
     QVERIFY(product.isValid());
     const QList<qbs::ArtifactData> beforeInstallableFiles = product.installableArtifacts();
-    QCOMPARE(beforeInstallableFiles.size(), 2);
+    QCOMPARE(beforeInstallableFiles.size(), 3);
     for (const qbs::ArtifactData &f : beforeInstallableFiles) {
-        if (!f.filePath().endsWith("main.cpp")) {
+        if (!QFileInfo(f.filePath()).fileName().startsWith("main")) {
             QVERIFY(f.isExecutable());
             QString expectedTargetFilePath = qbs::Internal::HostOsInfo
                     ::appendExecutableSuffix(QLatin1String("/tmp/usr/bin/installedApp"));

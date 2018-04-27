@@ -23,5 +23,10 @@ Project {
             qbs.install: true
             qbs.installDir: "bin"
         }
+        Group {
+            fileTagsFilter: "obj"
+            qbs.install: true
+            qbs.installDir: "objects"
+        }
     }
 }

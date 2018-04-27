@@ -544,7 +544,7 @@ QList<ArtifactData> ProductData::installableArtifacts() const
                 artifacts << a;
         }
     }
-    for (const ArtifactData &a : targetArtifacts()) {
+    for (const ArtifactData &a : generatedArtifacts()) {
         if (a.installData().isInstallable())
             artifacts << a;
     }
