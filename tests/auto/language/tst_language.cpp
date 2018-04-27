@@ -1038,31 +1038,31 @@ void TestLanguage::getNativeSetting()
 void TestLanguage::groupConditions_data()
 {
     QTest::addColumn<size_t>("groupCount");
-    QTest::addColumn<QList<bool> >("groupEnabled");
-    QTest::newRow("init") << size_t(0) << QList<bool>();
+    QTest::addColumn<std::vector<bool>>("groupEnabled");
+    QTest::newRow("init") << size_t(0) << std::vector<bool>();
     QTest::newRow("no_condition_no_group")
-            << size_t(1) << (QList<bool>() << true);
+            << size_t(1) << std::vector<bool>{ true };
     QTest::newRow("no_condition")
-            << size_t(2) << (QList<bool>() << true << true);
+            << size_t(2) << std::vector<bool>{ true, true };
     QTest::newRow("true_condition")
-            << size_t(2) << (QList<bool>() << true << true);
+            << size_t(2) << std::vector<bool>{ true, true };
     QTest::newRow("false_condition")
-            << size_t(2) << (QList<bool>() << true << false);
+            << size_t(2) << std::vector<bool>{ true, false };
     QTest::newRow("true_condition_from_product")
-            << size_t(2) << (QList<bool>() << true << true);
+            << size_t(2) << std::vector<bool>{ true, true };
     QTest::newRow("true_condition_from_project")
-            << size_t(2) << (QList<bool>() << true << true);
+            << size_t(2) << std::vector<bool>{ true, true };
     QTest::newRow("condition_accessing_module_property")
-            << size_t(2) << (QList<bool>() << true << false);
-    QTest::newRow("cleanup") << size_t(0) << QList<bool>();
+            << size_t(2) << std::vector<bool>{ true, false };
+    QTest::newRow("cleanup") << size_t(0) << std::vector<bool>();
 }
 
 void TestLanguage::groupConditions()
 {
     HANDLE_INIT_CLEANUP_DATATAGS("groupconditions.qbs");
     QFETCH(size_t, groupCount);
-    QFETCH(QList<bool>, groupEnabled);
-    QCOMPARE(groupCount, size_t(groupEnabled.size()));
+    QFETCH(std::vector<bool>, groupEnabled);
+    QCOMPARE(groupCount, groupEnabled.size());
     const QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
     const QString productName = QString::fromLocal8Bit(QTest::currentDataTag());
     ResolvedProductPtr product = products.value(productName);
