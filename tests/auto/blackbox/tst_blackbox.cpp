@@ -144,6 +144,12 @@ QString TestBlackbox::findArchiver(const QString &fileName, int *status)
     return binary;
 }
 
+bool TestBlackbox::lexYaccExist()
+{
+    return !findExecutable(QStringList("lex")).isEmpty()
+            && !findExecutable(QStringList("yacc")).isEmpty();
+}
+
 void TestBlackbox::sevenZip()
 {
     QDir::setCurrent(testDataDir + "/archiver");
@@ -3910,10 +3916,8 @@ void TestBlackbox::linkerMode()
 
 void TestBlackbox::lexyacc()
 {
-    if (findExecutable(QStringList("lex")).isEmpty()
-            || findExecutable(QStringList("yacc")).isEmpty()) {
+    if (!lexYaccExist())
         QSKIP("lex or yacc not present");
-    }
     QDir::setCurrent(testDataDir + "/lexyacc/one-grammar");
     QCOMPARE(runQbs(), 0);
     const QString parserBinary = relativeExecutableFilePath("one-grammar");
@@ -3942,6 +3946,58 @@ void TestBlackbox::lexyacc()
     QCOMPARE(runQbs(params), 0);
     QCOMPARE(runQbs(), 0);
     QVERIFY2(m_qbsStderr.contains("whatever"), m_qbsStderr.constData());
+}
+
+void TestBlackbox::lexyaccOutputs()
+{
+    if (!lexYaccExist())
+        QSKIP("lex or yacc not present");
+
+    QFETCH(QString, lexOutputFilePath);
+    QFETCH(QString, yaccOutputFilePath);
+    QbsRunParameters params;
+    if (!lexOutputFilePath.isEmpty())
+        params.arguments << "modules.lex_yacc.lexOutputFilePath:" + lexOutputFilePath;
+    if (!yaccOutputFilePath.isEmpty())
+        params.arguments << "modules.lex_yacc.yaccOutputFilePath:" + yaccOutputFilePath;
+
+#define VERIFY_COMPILATION(file) \
+    if (!file.isEmpty()) { \
+        QByteArray expected = "compiling " + file.toUtf8(); \
+        if (!m_qbsStdout.contains(expected)) { \
+            qDebug() << "Expected output:" << expected; \
+            qDebug() << "Actual output:" << m_qbsStdout; \
+            QFAIL("Expected stdout content missing."); \
+        } \
+    }
+
+    QVERIFY(QDir::setCurrent(testDataDir + "/lexyacc/lex_prefix"));
+    rmDirR(relativeBuildDir());
+    QCOMPARE(runQbs(params), 0);
+    VERIFY_COMPILATION(yaccOutputFilePath);
+
+    QVERIFY(QDir::setCurrent(testDataDir + "/lexyacc/lex_outfile"));
+    rmDirR(relativeBuildDir());
+    QCOMPARE(runQbs(params), 0);
+    VERIFY_COMPILATION(yaccOutputFilePath);
+
+    QVERIFY(QDir::setCurrent(testDataDir + "/lexyacc/yacc_output"));
+    rmDirR(relativeBuildDir());
+    QCOMPARE(runQbs(params), 0);
+    VERIFY_COMPILATION(lexOutputFilePath);
+
+#undef VERIFY_COMPILATION
+}
+
+void TestBlackbox::lexyaccOutputs_data()
+{
+    QTest::addColumn<QString>("lexOutputFilePath");
+    QTest::addColumn<QString>("yaccOutputFilePath");
+    QTest::newRow("none") << QString() << QString();
+    QTest::newRow("lexOutputFilePath")
+            << QString{"lex_luthor.cpp"} << QString();
+    QTest::newRow("yaccOutputFilePath")
+            << QString() << QString{"shaven_yak.cpp"};
 }
 
 void TestBlackbox::linkerScripts()

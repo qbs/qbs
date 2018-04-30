@@ -89,6 +89,18 @@
 */
 
 /*!
+    \qmlproperty string lex_yacc::lexOutputFilePath
+
+    The output file for the \c lex tool.
+
+    This corresponds to \c{%option outfile} in the .l file.
+    If \c{%option outfile} is set in the .l file then this property is ignored.
+
+    \defaultvalue \c undefined
+    \since 1.12
+*/
+
+/*!
     \qmlproperty string lex_yacc::outputTag
 
     The file tag for the generated scanner and parser sources.
@@ -129,4 +141,16 @@
     Additional command-line options for the \c yacc tool.
 
     \defaultvalue \c []
+*/
+
+/*!
+    \qmlproperty string lex_yacc::yaccOutputFilePath
+
+    Main output file for the \c yacc tool.
+
+    This corresponds to \c{%output} in the .y file.
+    If \c{%output} is set in the .y file then this property is ignored.
+
+    \defaultvalue \c undefined
+    \since 1.12
 */

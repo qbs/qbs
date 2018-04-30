@@ -145,6 +145,8 @@ private slots:
     void ld();
     void linkerMode();
     void lexyacc();
+    void lexyaccOutputs();
+    void lexyaccOutputs_data();
     void linkerScripts();
     void listProducts();
     void listPropertiesWithOuter();
@@ -267,6 +269,7 @@ private:
     QMap<QString, QString> findNodejs(int *status);
     QMap<QString, QString> findTypeScript(int *status);
     QString findArchiver(const QString &fileName, int *status = nullptr);
+    static bool lexYaccExist();
 };
 
 #endif // TST_BLACKBOX_H
