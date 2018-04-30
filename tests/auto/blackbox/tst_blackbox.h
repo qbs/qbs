@@ -47,6 +47,7 @@ private slots:
     void artifactsMapRaceCondition();
     void artifactScanning();
     void assembly();
+    void autotestWithDependencies();
     void auxiliaryInputsFromDependencies();
     void badInterpreter();
     void buildDataOfDisabledProduct();

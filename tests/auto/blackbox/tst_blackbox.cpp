@@ -4914,6 +4914,14 @@ void TestBlackbox::assembly()
     QCOMPARE(m_qbsStdout.contains("creating testd.lib"), haveMSVC);
 }
 
+void TestBlackbox::autotestWithDependencies()
+{
+    QDir::setCurrent(testDataDir + "/autotest-with-dependencies");
+    QCOMPARE(runQbs(QStringList({"-p", "autotest-runner"})), 0);
+    QVERIFY2(m_qbsStdout.contains("i am the test app")
+             && m_qbsStdout.contains("i am the helper"), m_qbsStdout.constData());
+}
+
 void TestBlackbox::auxiliaryInputsFromDependencies()
 {
     QDir::setCurrent(testDataDir + "/aux-inputs-from-deps");

@@ -78,6 +78,18 @@
 */
 
 /*!
+    \qmlproperty stringList AutotestRunner::auxiliaryInputs
+
+    This property can contain arbitrary file tags. The AutotestRunner will get dependencies
+    on all products whose type matches at least one of these tags, and invocation of the
+    test executables will happen only after all of the respective artifacts have been built.
+    Set this property if your test executables have run-time dependencies on other products.
+
+    \nodefaultvalue
+    \since Qbs 1.12
+*/
+
+/*!
     \qmlproperty stringList AutotestRunner::environment
 
     A list of environment variables that are added to the run environment.

@@ -43,12 +43,20 @@ Product {
     property bool limitToSubProject: true
     property stringList wrapper: []
     property string workingDir
+    property stringList auxiliaryInputs
+
     Depends {
         productTypes: "autotest"
         limitToSubProject: product.limitToSubProject
     }
+    Depends {
+        productTypes: auxiliaryInputs
+        limitToSubProject: product.limitToSubProject
+    }
+
     Rule {
         inputsFromDependencies: "application"
+        auxiliaryInputs: product.auxiliaryInputs
         Artifact {
             filePath: Utilities.getHash(input.filePath) + ".result.dummy" // Will never exist.
             fileTags: "autotest-result"
