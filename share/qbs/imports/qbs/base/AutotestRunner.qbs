@@ -42,6 +42,7 @@ Product {
     property stringList environment: ModUtils.flattenDictionary(qbs.commonRunEnvironment)
     property bool limitToSubProject: true
     property stringList wrapper: []
+    property string workingDir
     Depends {
         productTypes: "autotest"
         limitToSubProject: product.limitToSubProject
@@ -66,6 +67,8 @@ Product {
             var cmd = new Command(fullCommandLine[0], fullCommandLine.slice(1));
             cmd.description = "Running test " + input.fileName;
             cmd.environment = product.environment;
+            cmd.workingDirectory = product.workingDir ? product.workingDir
+                                                      : FileInfo.path(input.filePath);
             return cmd;
         }
     }
