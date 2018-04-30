@@ -102,8 +102,6 @@ QtMocScanner::QtMocScanner(const ResolvedProductPtr &product, QScriptValue targe
     : m_tags(*commonFileTags())
     , m_product(product)
     , m_targetScriptValue(targetScriptValue)
-    , m_cppScanner(nullptr)
-    , m_hppScanner(nullptr)
 {
     const auto engine = static_cast<ScriptEngine *>(targetScriptValue.engine());
     QScriptValue scannerObj = engine->newObject();
@@ -115,15 +113,6 @@ QtMocScanner::QtMocScanner(const ResolvedProductPtr &product, QScriptValue targe
 QtMocScanner::~QtMocScanner()
 {
     m_targetScriptValue.setProperty(qtMocScannerJsName(), QScriptValue());
-}
-
-ScannerPlugin *QtMocScanner::scannerPluginForFileTags(const FileTags &ft)
-{
-    if (ft.contains(m_tags.objcpp) || ft.contains(m_tags.objcppCombine))
-        return m_objcppScanner;
-    if (ft.contains(m_tags.cpp) || ft.contains(m_tags.cppCombine))
-        return m_cppScanner;
-    return m_hppScanner;
 }
 
 static RawScanResult runScanner(ScannerPlugin *scanner, const Artifact *artifact)
@@ -192,8 +181,7 @@ void QtMocScanner::findIncludedMocCppFiles()
 
     static const FileTags mocCppTags = {m_tags.cpp, m_tags.objcpp};
     for (Artifact *artifact : m_product->lookupArtifactsByFileTags(mocCppTags)) {
-        const RawScanResult scanResult
-                = runScanner(scannerPluginForFileTags(artifact->fileTags()), artifact);
+        const RawScanResult scanResult = runScanner(m_cppScanner, artifact);
         for (const RawScannedDependency &dependency : scanResult.deps) {
             QString includedFileName = dependency.fileName();
             if (includedFileName.startsWith(QLatin1String("moc_"))
@@ -229,14 +217,6 @@ QScriptValue QtMocScanner::apply(QScriptEngine *engine, const Artifact *artifact
         if (scanners.size() != 1)
             return scannerCountError(engine, scanners.size(), m_tags.cpp.toString());
         m_cppScanner = scanners.front();
-        scanners = ScannerPluginManager::scannersForFileTag(m_tags.objcpp);
-        if (scanners.size() != 1)
-            return scannerCountError(engine, scanners.size(), m_tags.objcpp.toString());
-        m_objcppScanner = scanners.front();
-        scanners = ScannerPluginManager::scannersForFileTag(m_tags.hpp);
-        if (scanners.size() != 1)
-            return scannerCountError(engine, scanners.size(), m_tags.hpp.toString());
-        m_hppScanner = scanners.front();
     }
 
     findIncludedMocCppFiles();
@@ -248,9 +228,7 @@ QScriptValue QtMocScanner::apply(QScriptEngine *engine, const Artifact *artifact
     bool hasPluginMetaDataMacro = false;
     const bool isHeaderFile = artifact->fileTags().contains(m_tags.hpp);
 
-    ScannerPlugin * const scanner = scannerPluginForFileTags(artifact->fileTags());
-
-    const RawScanResult scanResult = runScanner(scanner, artifact);
+    const RawScanResult scanResult = runScanner(m_cppScanner, artifact);
     if (!scanResult.additionalFileTags.empty()) {
         if (isHeaderFile) {
             if (scanResult.additionalFileTags.contains(m_tags.moc_hpp))

@@ -66,7 +66,6 @@ public:
     ~QtMocScanner();
 
 private:
-    ScannerPlugin *scannerPluginForFileTags(const FileTags &ft);
     void findIncludedMocCppFiles();
     static QScriptValue js_apply(QScriptContext *ctx, QScriptEngine *engine, QtMocScanner *that);
     QScriptValue apply(QScriptEngine *engine, const Artifact *artifact);
@@ -75,9 +74,7 @@ private:
     const ResolvedProductPtr &m_product;
     QScriptValue m_targetScriptValue;
     QHash<QString, QString> m_includedMocCppFiles;
-    ScannerPlugin *m_cppScanner;
-    ScannerPlugin *m_objcppScanner;
-    ScannerPlugin *m_hppScanner;
+    ScannerPlugin *m_cppScanner = nullptr;
 };
 
 } // namespace Internal
