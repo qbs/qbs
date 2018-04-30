@@ -384,14 +384,15 @@ private:
 static bool areRulesCompatible(const RuleNode *ruleNode, const RuleNode *dependencyRule)
 {
     const FileTags outTags = dependencyRule->rule()->collectedOutputFileTags();
+    if (ruleNode->rule()->excludedInputs.intersects(outTags))
+        return false;
     if (ruleNode->rule()->inputsFromDependencies.intersects(outTags))
         return true;
     if (!dependencyRule->product->fileTags.intersects(outTags))
         return false;
     if (ruleNode->rule()->explicitlyDependsOn.intersects(outTags))
         return true;
-    return ruleNode->rule()->auxiliaryInputs.intersects(outTags)
-            && !ruleNode->rule()->excludedInputs.intersects(outTags);
+    return ruleNode->rule()->auxiliaryInputs.intersects(outTags);
 }
 
 void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &product)
