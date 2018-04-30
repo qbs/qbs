@@ -18,19 +18,19 @@ Module {
         inputs: ["lex.input"]
         Artifact {
             filePath: HelperFunctions.outputFilePath(product, input, "lex.yy.c", false)
-            fileTags: [product.moduleProperty("lex_yacc", "outputTag")]
-            cpp.includePaths: (product.moduleProperty("cpp", "includePaths") || [])
-                .concat([product.moduleProperty("lex_yacc", "outputDir")])
+            fileTags: [product.lex_yacc.outputTag]
+            cpp.includePaths: (input.cpp.includePaths || [])
+                .concat([input.lex_yacc.outputDir])
             cpp.warningLevel: input.moduleProperty("lex_yacc", "enableCompilerWarnings")
                               ? "all" : "none"
         }
         prepare: {
-            var args = product.moduleProperty("lex_yacc", "lexFlags");
-            if (product.moduleProperty("lex_yacc", "uniqueSymbolPrefix"))
+            var args = input.lex_yacc.lexFlags;
+            if (input.lex_yacc.uniqueSymbolPrefix)
                 args.push("-P" + input.baseName, "-o" + output.filePath);
             args.push(input.filePath);
-            var cmd = new Command(product.moduleProperty("lex_yacc", "lexBinary"), args);
-            cmd.workingDirectory = product.moduleProperty("lex_yacc", "outputDir");
+            var cmd = new Command(input.lex_yacc.lexBinary, args);
+            cmd.workingDirectory = input.lex_yacc.outputDir;
             cmd.description = "generating " + output.fileName;
             return [cmd];
         }
@@ -40,7 +40,7 @@ Module {
         inputs: ["yacc.input"]
         Artifact {
             filePath: HelperFunctions.outputFilePath(product, input, "y.tab.c", true)
-            fileTags: [product.moduleProperty("lex_yacc", "outputTag")]
+            fileTags: [product.lex_yacc.outputTag]
             cpp.warningLevel: input.moduleProperty("lex_yacc", "enableCompilerWarnings")
                               ? "all" : "none"
         }
@@ -49,16 +49,16 @@ Module {
             fileTags: ["hpp"]
         }
         prepare: {
-            var args = product.moduleProperty("lex_yacc", "yaccFlags");
+            var args = input.lex_yacc.yaccFlags;
             args.push("-d");
-            if (product.moduleProperty("lex_yacc", "uniqueSymbolPrefix")) {
+            if (input.lex_yacc.uniqueSymbolPrefix) {
                 args.push("-b", input.baseName, "-p", input.baseName);
             }
             args.push(input.filePath);
-            var cmd = new Command(product.moduleProperty("lex_yacc", "yaccBinary"), args);
-            cmd.workingDirectory = product.moduleProperty("lex_yacc", "outputDir");
+            var cmd = new Command(input.lex_yacc.yaccBinary, args);
+            cmd.workingDirectory = input.lex_yacc.outputDir;
             cmd.description = "generating "
-                    + outputs[product.moduleProperty("lex_yacc", "outputTag")][0].fileName
+                    + outputs[input.lex_yacc.outputTag][0].fileName
                     + " and " + outputs["hpp"][0].fileName;
             return [cmd];
         }
