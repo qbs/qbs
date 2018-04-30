@@ -68,6 +68,8 @@ public:
     static QString fileName(const QString &fp);
     static QString baseName(const QString &fp);
     static QString completeBaseName(const QString &fp);
+    static QString suffix(const QString &fp);
+    static QString completeSuffix(const QString &fp);
     static QString path(const QString &fp, HostOsInfo::HostOs hostOs = HostOsInfo::hostOs());
     static void splitIntoDirectoryAndFileName(const QString &filePath, QString *dirPath, QString *fileName);
     static void splitIntoDirectoryAndFileName(const QString &filePath, QStringRef *dirPath, QStringRef *fileName);

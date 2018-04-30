@@ -206,6 +206,8 @@ void TestTools::testFileInfo()
     QCOMPARE(FileInfo::fileName("C:/waffl/copter.exe"), QString("copter.exe"));
     QCOMPARE(FileInfo::baseName("C:/waffl/copter.exe.lib"), QString("copter"));
     QCOMPARE(FileInfo::completeBaseName("C:/waffl/copter.exe.lib"), QString("copter.exe"));
+    QCOMPARE(FileInfo::suffix("C:/waffl/copter.exe.lib"), QString("lib"));
+    QCOMPARE(FileInfo::completeSuffix("C:/waffl/copter.exe.lib"), QString("exe.lib"));
     QCOMPARE(FileInfo::path("abc"), QString("."));
     QCOMPARE(FileInfo::path("/abc/lol"), QString("/abc"));
     QCOMPARE(FileInfo::path("/fileInRoot"), QString(QLatin1Char('/')));

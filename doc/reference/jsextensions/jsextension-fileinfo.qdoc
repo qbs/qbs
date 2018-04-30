@@ -57,6 +57,13 @@
     \endcode
     Returns the file name of \c filePath up to (but not including) the last '.' character.
 
+    \section2 completeSuffix
+    \code
+    FileInfo.completeSuffix(filePath: string): string
+    \endcode
+    Returns the file suffix of \c filePath from (but not including) the last '.' character.
+    \funsince 1.12
+
     \section2 fileName
     \code
     FileInfo.fileName(filePath: string): string
@@ -111,6 +118,13 @@
     If necessary, '..' components are inserted.
     The function assumes \c dirPath and \c filePath to be absolute paths and \c dirPath to
     be a directory.
+
+    \section2 suffix
+    \code
+    FileInfo.suffix(filePath: string): string
+    \endcode
+    Returns the file suffix of \c filePath from (but not including) the first '.' character.
+    \funsince 1.12
 
     \section2 toNativeSeparators
     \code

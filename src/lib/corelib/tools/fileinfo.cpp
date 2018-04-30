@@ -86,6 +86,24 @@ QString FileInfo::completeBaseName(const QString &fp)
     return fn.mid(0, dot);
 }
 
+QString FileInfo::suffix(const QString &fp)
+{
+    QString fn = fileName(fp);
+    int dot = fn.lastIndexOf(QLatin1Char('.'));
+    if (dot < 0)
+        return fn;
+    return fn.mid(dot + 1);
+}
+
+QString FileInfo::completeSuffix(const QString &fp)
+{
+    QString fn = fileName(fp);
+    int dot = fn.indexOf(QLatin1Char('.'));
+    if (dot < 0)
+        return fn;
+    return fn.mid(dot + 1);
+}
+
 QString FileInfo::path(const QString &fp, HostOsInfo::HostOs hostOs)
 {
     if (fp.isEmpty())

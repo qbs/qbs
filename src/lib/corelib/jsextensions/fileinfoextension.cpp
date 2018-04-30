@@ -63,6 +63,8 @@ public:
     static QScriptValue js_path(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_fileName(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_baseName(QScriptContext *context, QScriptEngine *engine);
+    static QScriptValue js_suffix(QScriptContext *context, QScriptEngine *engine);
+    static QScriptValue js_completeSuffix(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_cleanPath(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_completeBaseName(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_relativePath(QScriptContext *context, QScriptEngine *engine);
@@ -86,6 +88,10 @@ static void initializeJsExtensionFileInfo(QScriptValue extensionObject)
                             engine->newFunction(FileInfoExtension::js_fileName));
     fileInfoObj.setProperty(StringConstants::baseNameProperty(),
                             engine->newFunction(FileInfoExtension::js_baseName));
+    fileInfoObj.setProperty(QLatin1String("suffix"),
+                            engine->newFunction(FileInfoExtension::js_suffix));
+    fileInfoObj.setProperty(QLatin1String("completeSuffix"),
+                            engine->newFunction(FileInfoExtension::js_completeSuffix));
     fileInfoObj.setProperty(QLatin1String("cleanPath"),
                             engine->newFunction(FileInfoExtension::js_cleanPath));
     fileInfoObj.setProperty(StringConstants::completeBaseNameProperty(),
@@ -150,6 +156,26 @@ QScriptValue FileInfoExtension::js_baseName(QScriptContext *context, QScriptEngi
                                    Tr::tr("baseName expects 1 argument"));
     }
     return FileInfo::baseName(context->argument(0).toString());
+}
+
+QScriptValue FileInfoExtension::js_suffix(QScriptContext *context, QScriptEngine *engine)
+{
+    Q_UNUSED(engine);
+    if (Q_UNLIKELY(context->argumentCount() < 1)) {
+        return context->throwError(QScriptContext::SyntaxError,
+                                   Tr::tr("suffix expects 1 argument"));
+    }
+    return FileInfo::suffix(context->argument(0).toString());
+}
+
+QScriptValue FileInfoExtension::js_completeSuffix(QScriptContext *context, QScriptEngine *engine)
+{
+    Q_UNUSED(engine);
+    if (Q_UNLIKELY(context->argumentCount() < 1)) {
+        return context->throwError(QScriptContext::SyntaxError,
+                                   Tr::tr("completeSuffix expects 1 argument"));
+    }
+    return FileInfo::completeSuffix(context->argument(0).toString());
 }
 
 QScriptValue FileInfoExtension::js_cleanPath(QScriptContext *context, QScriptEngine *engine)
