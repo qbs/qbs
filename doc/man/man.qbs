@@ -31,7 +31,9 @@ Product {
     Rule {
         condition: updateManPage
         multiplex: true
+        // TODO: Remove in 1.14.
         explicitlyDependsOn: ["application"]
+        property stringList explicitlyDependsOnFromDependencies: ["application"]
         inputs: ["man.section"]
         Artifact {
             filePath: "qbs.1"
