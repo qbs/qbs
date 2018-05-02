@@ -2387,9 +2387,12 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
     }
 
     Item::Module result;
+    bool productTypesIsSet;
+    m_evaluator->stringValue(dependsItem, StringConstants::productTypesProperty(),
+                             QString(), &productTypesIsSet);
     for (const QualifiedId &moduleName : qAsConst(moduleNames)) {
-        const bool isRequired = m_evaluator->boolValue(dependsItem,
-                                                       StringConstants::requiredProperty())
+        const bool isRequired = !productTypesIsSet
+                && m_evaluator->boolValue(dependsItem, StringConstants::requiredProperty())
                 && !contains(m_requiredChain, false);
         const Version minVersion = Version::fromString(
                     m_evaluator->stringValue(dependsItem,

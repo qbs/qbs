@@ -24,6 +24,12 @@ Project {
             name: "app3"
             files: "main.cpp"
         }
+        CppApplication {
+            condition: false
+            consoleApplication: true
+            name: "disabled-app"
+            files: "main.cpp"
+        }
 
         DynamicLibrary {
             Depends { name: "cpp" }
