@@ -474,6 +474,6 @@ QbsLibrary {
     }
     Export {
         Depends { name: "cpp" }
-        cpp.defines: product.projectFileUpdateDefines
+        cpp.defines: base.concat(product.projectFileUpdateDefines)
     }
 }
