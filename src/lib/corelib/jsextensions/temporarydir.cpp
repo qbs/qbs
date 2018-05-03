@@ -38,8 +38,6 @@
 **
 ****************************************************************************/
 
-#include "jsextensions_p.h"
-
 #include <language/scriptengine.h>
 
 #include <QtCore/qobject.h>
@@ -66,15 +64,13 @@ private:
     QTemporaryDir dir;
 };
 
-static void initializeJsExtensionTemporaryDir(QScriptValue extensionObject)
+void initializeJsExtensionTemporaryDir(QScriptValue extensionObject)
 {
     QScriptEngine *engine = extensionObject.engine();
     QScriptValue obj = engine->newQMetaObject(&TemporaryDir::staticMetaObject,
                                               engine->newFunction(&TemporaryDir::ctor));
     extensionObject.setProperty(QLatin1String("TemporaryDir"), obj);
 }
-
-QBS_JSEXTENSION_REGISTER(TemporaryDir, &initializeJsExtensionTemporaryDir)
 
 QScriptValue TemporaryDir::ctor(QScriptContext *context, QScriptEngine *engine)
 {

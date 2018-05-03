@@ -37,8 +37,6 @@
 **
 ****************************************************************************/
 
-#include "jsextensions_p.h"
-
 #include <language/scriptengine.h>
 #include <logging/translator.h>
 #include <tools/hostosinfo.h>
@@ -95,15 +93,13 @@ private:
     QTextStream *m_stream;
 };
 
-static void initializeJsExtensionTextFile(QScriptValue extensionObject)
+void initializeJsExtensionTextFile(QScriptValue extensionObject)
 {
     QScriptEngine *engine = extensionObject.engine();
     QScriptValue obj = engine->newQMetaObject(&TextFile::staticMetaObject,
                                               engine->newFunction(&TextFile::ctor));
     extensionObject.setProperty(QLatin1String("TextFile"), obj);
 }
-
-QBS_JSEXTENSION_REGISTER(TextFile, &initializeJsExtensionTextFile)
 
 QScriptValue TextFile::ctor(QScriptContext *context, QScriptEngine *engine)
 {

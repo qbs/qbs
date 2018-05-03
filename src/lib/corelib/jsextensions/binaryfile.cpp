@@ -39,8 +39,6 @@
 **
 ****************************************************************************/
 
-#include "jsextensions_p.h"
-
 #include <language/scriptengine.h>
 #include <logging/translator.h>
 #include <tools/hostosinfo.h>
@@ -92,15 +90,13 @@ private:
     QFile *m_file = nullptr;
 };
 
-static void initializeJsExtensionBinaryFile(QScriptValue extensionObject)
+void initializeJsExtensionBinaryFile(QScriptValue extensionObject)
 {
     QScriptEngine *engine = extensionObject.engine();
     const QScriptValue obj = engine->newQMetaObject(&BinaryFile::staticMetaObject,
                                                     engine->newFunction(&BinaryFile::ctor));
     extensionObject.setProperty(QLatin1String("BinaryFile"), obj);
 }
-
-QBS_JSEXTENSION_REGISTER(BinaryFile, &initializeJsExtensionBinaryFile)
 
 QScriptValue BinaryFile::ctor(QScriptContext *context, QScriptEngine *engine)
 {

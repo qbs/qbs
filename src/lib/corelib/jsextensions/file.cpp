@@ -37,8 +37,6 @@
 **
 ****************************************************************************/
 
-#include "jsextensions_p.h"
-
 #include <language/scriptengine.h>
 #include <logging/translator.h>
 #include <tools/fileinfo.h>
@@ -97,7 +95,7 @@ public:
     static QScriptValue js_canonicalFilePath(QScriptContext *context, QScriptEngine *engine);
 };
 
-static void initializeJsExtensionFile(QScriptValue extensionObject)
+void initializeJsExtensionFile(QScriptValue extensionObject)
 {
     QScriptEngine *engine = extensionObject.engine();
     QScriptValue fileObj = engine->newQMetaObject(&File::staticMetaObject,
@@ -114,8 +112,6 @@ static void initializeJsExtensionFile(QScriptValue extensionObject)
                         engine->newFunction(File::js_canonicalFilePath));
     extensionObject.setProperty(QLatin1String("File"), fileObj);
 }
-
-QBS_JSEXTENSION_REGISTER(File, &initializeJsExtensionFile)
 
 QScriptValue File::js_ctor(QScriptContext *context, QScriptEngine *engine)
 {

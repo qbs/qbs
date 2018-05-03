@@ -37,8 +37,6 @@
 **
 ****************************************************************************/
 
-#include "jsextensions_p.h"
-
 #include <language/scriptengine.h>
 #include <logging/translator.h>
 #include <tools/executablefinder.h>
@@ -107,15 +105,13 @@ private:
     QTextStream *m_textStream;
 };
 
-static void initializeJsExtensionProcess(QScriptValue extensionObject)
+void initializeJsExtensionProcess(QScriptValue extensionObject)
 {
     QScriptEngine *engine = extensionObject.engine();
     QScriptValue obj = engine->newQMetaObject(&Process::staticMetaObject, engine->newFunction(&Process::ctor));
     extensionObject.setProperty(QLatin1String("Process"), obj);
     obj.setProperty(QStringLiteral("shellQuote"), engine->newFunction(Process::js_shellQuote, 3));
 }
-
-QBS_JSEXTENSION_REGISTER(Process, &initializeJsExtensionProcess)
 
 QScriptValue Process::ctor(QScriptContext *context, QScriptEngine *engine)
 {

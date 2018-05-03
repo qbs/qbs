@@ -215,7 +215,6 @@ QbsLibrary {
             "fileinfoextension.cpp",
             "jsextensions.cpp",
             "jsextensions.h",
-            "jsextensions_p.h",
             "moduleproperties.cpp",
             "moduleproperties.h",
             "process.cpp",

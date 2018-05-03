@@ -38,21 +38,17 @@
 **
 ****************************************************************************/
 
-#include "jsextensions_p.h"
-
 #include <QtScript/qscriptengine.h>
 
 namespace qbs {
 namespace Internal {
 
-static void initializeJsExtensionPropertyList(QScriptValue extensionObject)
+void initializeJsExtensionPropertyList(QScriptValue extensionObject)
 {
     QScriptEngine *engine = extensionObject.engine();
     QScriptValue obj = engine->newObject(); // provide a fake object
     extensionObject.setProperty(QLatin1String("PropertyList"), obj);
 }
-
-QBS_JSEXTENSION_REGISTER(PropertyList, &initializeJsExtensionPropertyList)
 
 } // namespace Internal
 } // namespace qbs

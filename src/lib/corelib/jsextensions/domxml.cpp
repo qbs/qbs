@@ -38,8 +38,6 @@
 **
 ****************************************************************************/
 
-#include "jsextensions_p.h"
-
 #include <QtCore/qfile.h>
 #include <QtCore/qobject.h>
 #include <QtCore/qvariant.h>
@@ -120,7 +118,7 @@ private:
     QDomDocument m_domDocument;
 };
 
-static void initializeJsExtensionXml(QScriptValue extensionObject)
+void initializeJsExtensionXml(QScriptValue extensionObject)
 {
     QScriptEngine *engine = extensionObject.engine();
     QScriptValue docObj = engine->newQMetaObject(&XmlDomDocument::staticMetaObject,
@@ -133,8 +131,6 @@ static void initializeJsExtensionXml(QScriptValue extensionObject)
 
     extensionObject.setProperty(QLatin1String("Xml"), contextObject);
 }
-
-QBS_JSEXTENSION_REGISTER(Xml, &initializeJsExtensionXml)
 
 QScriptValue XmlDomDocument::ctor(QScriptContext *context, QScriptEngine *engine)
 {

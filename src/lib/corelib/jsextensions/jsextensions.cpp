@@ -38,8 +38,8 @@
 ****************************************************************************/
 
 #include "jsextensions.h"
-#include "jsextensions_p.h"
 
+#include <QtCore/qmap.h>
 #include <QtScript/qscriptengine.h>
 
 #include <utility>
@@ -47,9 +47,31 @@
 namespace qbs {
 namespace Internal {
 
-InitializerMap &initializers()
+using InitializerMap = QMap<QString, void (*)(QScriptValue)>;
+static InitializerMap setupMap()
 {
-    static InitializerMap theMap;
+#define INITIALIZER_NAME(name) initializeJsExtension##name
+#define ADD_JS_EXTENSION(name) \
+    void INITIALIZER_NAME(name)(QScriptValue); \
+    map.insert(QStringLiteral(#name), &INITIALIZER_NAME(name))
+
+    InitializerMap map;
+    ADD_JS_EXTENSION(BinaryFile);
+    ADD_JS_EXTENSION(Environment);
+    ADD_JS_EXTENSION(File);
+    ADD_JS_EXTENSION(FileInfo);
+    ADD_JS_EXTENSION(Process);
+    ADD_JS_EXTENSION(PropertyList);
+    ADD_JS_EXTENSION(TemporaryDir);
+    ADD_JS_EXTENSION(TextFile);
+    ADD_JS_EXTENSION(Utilities);
+    ADD_JS_EXTENSION(Xml);
+    return map;
+}
+
+static InitializerMap &initializers()
+{
+    static InitializerMap theMap = setupMap();
     return theMap;
 }
 
@@ -76,9 +98,7 @@ bool JsExtensions::hasExtension(const QString &name)
 
 QStringList JsExtensions::extensionNames()
 {
-    auto keys = initializers().keys();
-    std::sort(keys.begin(), keys.end());
-    return keys;
+    return initializers().keys();
 }
 
 } // namespace Internal

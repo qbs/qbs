@@ -2,8 +2,7 @@ QT += xml
 
 HEADERS += \
     $$PWD/moduleproperties.h \
-    $$PWD/jsextensions.h \
-    $$PWD/jsextensions_p.h
+    $$PWD/jsextensions.h
 
 SOURCES += \
     $$PWD/environmentextension.cpp \

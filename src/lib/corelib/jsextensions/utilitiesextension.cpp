@@ -37,8 +37,6 @@
 **
 ****************************************************************************/
 
-#include "jsextensions_p.h"
-
 #include <api/languageinfo.h>
 #include <jsextensions/jsextensions.h>
 #include <language/scriptengine.h>
@@ -95,7 +93,7 @@ public:
     static QScriptValue js_builtinExtensionNames(QScriptContext *context, QScriptEngine *engine);
 };
 
-static void initializeJsExtensionUtilities(QScriptValue extensionObject)
+void initializeJsExtensionUtilities(QScriptValue extensionObject)
 {
     QScriptEngine *engine = extensionObject.engine();
     QScriptValue environmentObj = engine->newQMetaObject(&UtilitiesExtension::staticMetaObject,
@@ -137,8 +135,6 @@ static void initializeJsExtensionUtilities(QScriptValue extensionObject)
                                engine->newFunction(UtilitiesExtension::js_builtinExtensionNames, 0));
     extensionObject.setProperty(QStringLiteral("Utilities"), environmentObj);
 }
-
-QBS_JSEXTENSION_REGISTER(Utilities, &initializeJsExtensionUtilities)
 
 QScriptValue UtilitiesExtension::js_ctor(QScriptContext *context, QScriptEngine *engine)
 {
