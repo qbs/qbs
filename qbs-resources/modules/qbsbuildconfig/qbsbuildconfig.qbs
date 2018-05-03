@@ -8,6 +8,7 @@ Module {
     property bool installApiHeaders: true
     property bool enableBundledQt: true
     property bool useBundledQtScript: false
+    property bool staticBuild: false
     property string libDirName: "lib"
     property string appInstallDir: "bin"
     property string libInstallDir: qbs.targetOS.contains("windows") ? "bin" : libDirName

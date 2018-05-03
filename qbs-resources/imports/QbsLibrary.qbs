@@ -16,11 +16,12 @@ QbsProduct {
         cpp.soVersion: version.replace(/\.\d+$/, '')
     }
     cpp.visibility: "minimal"
-    property string visibilityType: Qt.core.staticBuild ? "static" : "dynamic"
+    property string visibilityType: staticBuild ? "static" : "dynamic"
     property string headerInstallPrefix: "/include/qbs"
     property bool hasExporter: Utilities.versionCompare(qbs.version, "1.12") >= 0
     property bool generateQbsModule: install && qbsbuildconfig.generateQbsModules && hasExporter
-    property stringList libType: [Qt.core.staticBuild ? "staticlibrary" : "dynamiclibrary"]
+    property bool staticBuild: Qt.core.staticBuild || qbsbuildconfig.staticBuild
+    property stringList libType: [staticBuild ? "staticlibrary" : "dynamiclibrary"]
     Depends { name: "Exporter.qbs"; condition: generateQbsModule }
     Group {
         fileTagsFilter: libType.concat("dynamiclibrary_symlink")

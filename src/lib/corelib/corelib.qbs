@@ -15,7 +15,7 @@ QbsLibrary {
         condition: qbsbuildconfig.useBundledQtScript || !Qt.script.present
     }
     Depends { condition: qbsbuildconfig.enableProjectFileUpdates; name: "Qt.gui" }
-    Depends { condition: Qt.core.staticBuild; productTypes: ["qbsplugin"] }
+    Depends { condition: staticBuild; productTypes: ["qbsplugin"] }
     name: "qbscore"
     cpp.includePaths: base.concat([
         ".",

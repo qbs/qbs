@@ -3,16 +3,16 @@ import qbs.FileInfo
 
 QbsProduct {
     property bool isForDarwin: qbs.targetOS.contains("darwin")
+    property bool staticBuild: Qt.core.staticBuild || qbsbuildconfig.staticBuild
     Depends { name: "cpp" }
     Depends { name: "bundle"; condition: isForDarwin }
     Depends { name: "Qt.core" }
     Depends { name: "qbsbuildconfig" }
-    Depends { name: "qbscore"; condition: !Qt.core.staticBuild }
-    type: (Qt.core.staticBuild ? ["staticlibrary"]
-                               : [isForDarwin ? "loadablemodule" : "dynamiclibrary"])
+    Depends { name: "qbscore"; condition: !staticBuild }
+    type: (staticBuild ? ["staticlibrary"] : [isForDarwin ? "loadablemodule" : "dynamiclibrary"])
         .concat(["qbsplugin"])
     Properties {
-        condition: Qt.core.staticBuild
+        condition: staticBuild
         cpp.defines: ["QBS_STATIC_LIB"]
     }
     cpp.includePaths: base.concat(["../../../lib/corelib"])
