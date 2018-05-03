@@ -28,6 +28,7 @@
 **
 ****************************************************************************/
 
+var Cpp = require("cpp.js");
 var File = require("qbs.File");
 var FileInfo = require("qbs.FileInfo");
 var ModUtils = require("qbs.ModUtils");
@@ -65,7 +66,8 @@ function hasCxx17Option(input)
 }
 
 function addLanguageVersionFlag(input, args) {
-    var cxxVersion = input.cpp.cxxLanguageVersion;
+    var cxxVersion = Cpp.languageVersion(input.cpp.cxxLanguageVersion,
+                                         ["c++17", "c++14", "c++11", "c++98"], "C++");
     if (!cxxVersion)
         return;
 

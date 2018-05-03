@@ -28,6 +28,7 @@
 **
 ****************************************************************************/
 
+var Cpp = require("cpp.js");
 var File = require("qbs.File");
 var FileInfo = require("qbs.FileInfo");
 var DarwinTools = require("qbs.DarwinTools");
@@ -866,10 +867,14 @@ function compilerFlags(project, product, input, output, explicitlyDependsOn) {
         switch (tag) {
         case "c":
         case "objc":
-            return input.cpp.cLanguageVersion;
+            var knownValues = ["c11", "c99", "c90", "c89"];
+            return Cpp.languageVersion(input.cpp.cLanguageVersion, knownValues, "C");
         case "cpp":
         case "objcpp":
-            return input.cpp.cxxLanguageVersion;
+            knownValues = ["c++20", "c++2a", "c++17", "c++1z",
+                           "c++14", "c++1y", "c++11", "c++0x",
+                           "c++03", "c++98"];
+            return Cpp.languageVersion(input.cpp.cxxLanguageVersion, knownValues, "C++");
         }
     }
 

@@ -620,7 +620,7 @@
 */
 
 /*!
-    \qmlproperty string cpp::cLanguageVersion
+    \qmlproperty stringList cpp::cLanguageVersion
     \since Qbs 1.4
 
     The version of the C standard with which the code must comply.
@@ -629,6 +629,7 @@
     added, depending on the toolchain.
 
     If the value is left undefined, the compiler default will be used.
+    If the list contains more than one value, the highest version is chosen.
 
     Possible values include: \c{"c89"}, \c{"c99"}, \c{"c11"}.
 
@@ -636,7 +637,7 @@
 */
 
 /*!
-    \qmlproperty string cpp::cxxLanguageVersion
+    \qmlproperty stringList cpp::cxxLanguageVersion
     \since Qbs 1.4
 
     The version of the C++ standard with which the code must comply.
@@ -645,6 +646,7 @@
     added, depending on the toolchain.
 
     If the value is left undefined, the compiler default will be used.
+    If the list contains more than one value, the highest version is chosen.
 
     Possible values include: \c{"c++98"}, \c{"c++11"}, \c{"c++14"}, \c{"c++17"}.
 
