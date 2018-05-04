@@ -24,6 +24,14 @@ Project {
             name: "app3"
             files: "main.cpp"
         }
+        Product {
+            type: myconfig.typeDecider ? ["application"] : []
+            Depends { name: "cpp" }
+            Depends { name: "myconfig" }
+            consoleApplication: true
+            name: "app4"
+            files: "main.cpp"
+        }
         CppApplication {
             condition: false
             consoleApplication: true

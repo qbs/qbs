@@ -132,7 +132,7 @@
     The \l required and \l profiles properties are ignored if this property is
     set.
 
-    Products whose types depend on module dependencies cannot be matched by this property.
+    Product types attached via Module::additionalProductTypes are not considered.
 
     \nodefaultvalue
 */

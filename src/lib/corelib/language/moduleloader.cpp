@@ -534,12 +534,12 @@ void ModuleLoader::handleTopLevelProject(ModuleLoaderResult *loadResult, Item *p
     tlp.buildDirectory = buildDirectory;
     handleProject(loadResult, &tlp, projectItem, referencedFilePaths);
     checkProjectNamesInOverrides(tlp);
-    collectProductsByNameAndType(tlp);
+    collectProductsByName(tlp);
     checkProductNamesInOverrides();
 
-    normalizeDependencies(tlp);
     adjustDependenciesForMultiplexing(tlp);
 
+    m_dependencyResolvingPass = 1;
     for (ProjectContext * const projectContext : qAsConst(tlp.projects)) {
         m_reader->setExtraSearchPathsStack(projectContext->searchPathsStack);
         for (ProductContext &productContext : projectContext->products) {
@@ -549,6 +549,18 @@ void ModuleLoader::handleTopLevelProject(ModuleLoaderResult *loadResult, Item *p
                 if (productContext.name.isEmpty())
                     throw err;
                 handleProductError(err, &productContext);
+            }
+        }
+    }
+    if (!m_productsWithDeferredDependsItems.empty()) {
+        collectProductsByType(tlp);
+        m_dependencyResolvingPass = 2;
+        for (ProductContext * const productContext : m_productsWithDeferredDependsItems) {
+            m_reader->setExtraSearchPathsStack(productContext->project->searchPathsStack);
+            try {
+                setupProductDependencies(productContext);
+            } catch (const ErrorInfo &err) {
+                handleProductError(err, productContext);
             }
         }
     }
@@ -890,15 +902,7 @@ QList<Item *> ModuleLoader::multiplexProductItem(ProductContext *dummyContext, I
     return additionalProductItems;
 }
 
-void ModuleLoader::normalizeDependencies(const ModuleLoader::TopLevelProjectContext &tlp)
-{
-    for (const ProjectContext * const project : tlp.projects) {
-        for (const ProductContext &product : project->products)
-            normalizeDependencies(product);
-    }
-}
-
-void ModuleLoader::normalizeDependencies(const ModuleLoader::ProductContext &product)
+void ModuleLoader::normalizeDependencies(ProductContext &product)
 {
     std::vector<Item *> dependsItemsToAdd;
     std::vector<Item *> dependsItemsToRemove;
@@ -950,11 +954,13 @@ void ModuleLoader::normalizeDependencies(const ModuleLoader::ProductContext &pro
                 dependsItemsToRemove.push_back(dependsItem);
                 continue;
             }
+            product.deferredDependsItems.push_back(dependsItem);
             for (std::size_t i = 1; i < matchingProducts.size(); ++i) {
                 Item * const dependsClone = dependsItem->clone();
                 dependsClone->setProperty(StringConstants::nameProperty(),
                                          VariantValue::create(matchingProducts.at(i)->name));
                 dependsItemsToAdd.push_back(dependsClone);
+                product.deferredDependsItems.push_back(dependsClone);
             }
             dependsItem->setProperty(StringConstants::nameProperty(),
                                      VariantValue::create(matchingProducts.front()->name));
@@ -977,71 +983,76 @@ void ModuleLoader::adjustDependenciesForMultiplexing(const TopLevelProjectContex
 void ModuleLoader::adjustDependenciesForMultiplexing(const ModuleLoader::ProductContext &product)
 {
     for (Item *dependsItem : product.item->children()) {
-        if (dependsItem->type() != ItemType::Depends)
-            continue;
-        const QString name = m_evaluator->stringValue(dependsItem, StringConstants::nameProperty());
-        const bool productIsMultiplexed = !product.multiplexConfigurationId.isEmpty();
-        if (name == product.name) {
-            QBS_CHECK(!productIsMultiplexed); // This product must be an aggregator.
-            continue;
-        }
-        const auto productRange = m_productsByName.equal_range(name);
-        std::vector<const ProductContext *> dependencies;
-        bool hasNonMultiplexedDependency = false;
-        for (auto it = productRange.first; it != productRange.second; ++it) {
-            if (!it->second->multiplexConfigurationId.isEmpty()) {
-                dependencies.push_back(it->second);
-                if (productIsMultiplexed)
-                    break;
-            } else {
-                hasNonMultiplexedDependency = true;
-                break;
-            }
-        }
+        if (dependsItem->type() == ItemType::Depends)
+            adjustDependenciesForMultiplexing(product, dependsItem);
+    }
+}
 
-        // These are the allowed cases:
-        // (1) Normal dependency with no multiplexing whatsoever.
-        // (2) Both product and dependency are multiplexed.
-        // (3) The product is not multiplexed, but the dependency is.
-        //     (3a) The dependency has an aggregator. We want to depend on the aggregator.
-        //     (3b) The dependency does not have an aggregator. We want to depend on all the
-        //          multiplexed variants.
-        // (4) The product is multiplexed, but the dependency is not. This case is implicitly
-        //     handled, because we don't have to adapt any Depends items.
-        // (5) The product is a "shadow product". In that case, we know which product
-        //     it should have a dependency on, and we make sure we depend on that.
-
-        // (1) and (3a)
-        if (!productIsMultiplexed && hasNonMultiplexedDependency)
-            continue;
-
-        QStringList multiplexIds;
-        const ShadowProductInfo shadowProductInfo = getShadowProductInfo(product);
-        const bool isShadowProduct = shadowProductInfo.first && shadowProductInfo.second == name;
-        for (const ProductContext *dependency : dependencies) {
-            const bool depMatchesShadowProduct = isShadowProduct
-                    && dependency->item == product.item->parent();
-            const QString depMultiplexId = dependency->multiplexConfigurationId;
-            if (depMatchesShadowProduct) { // (5)
-                dependsItem->setProperty(StringConstants::multiplexConfigurationIdsProperty(),
-                                         VariantValue::create(depMultiplexId));
-                multiplexIds.clear();
+void ModuleLoader::adjustDependenciesForMultiplexing(const ProductContext &product,
+                                                     Item *dependsItem)
+{
+    const QString name = m_evaluator->stringValue(dependsItem, StringConstants::nameProperty());
+    const bool productIsMultiplexed = !product.multiplexConfigurationId.isEmpty();
+    if (name == product.name) {
+        QBS_CHECK(!productIsMultiplexed); // This product must be an aggregator.
+        return;
+    }
+    const auto productRange = m_productsByName.equal_range(name);
+    std::vector<const ProductContext *> dependencies;
+    bool hasNonMultiplexedDependency = false;
+    for (auto it = productRange.first; it != productRange.second; ++it) {
+        if (!it->second->multiplexConfigurationId.isEmpty()) {
+            dependencies.push_back(it->second);
+            if (productIsMultiplexed)
                 break;
-            }
-            if (productIsMultiplexed) { // (2)
-                const ValuePtr &multiplexId = product.item->property(
-                            StringConstants::multiplexConfigurationIdProperty());
-                dependsItem->setProperty(StringConstants::multiplexConfigurationIdsProperty(),
-                                         multiplexId);
-                break;
-            }
-            // (3b)
-            multiplexIds << depMultiplexId;
+        } else {
+            hasNonMultiplexedDependency = true;
+            break;
         }
-        if (!multiplexIds.empty()) {
+    }
+
+    // These are the allowed cases:
+    // (1) Normal dependency with no multiplexing whatsoever.
+    // (2) Both product and dependency are multiplexed.
+    // (3) The product is not multiplexed, but the dependency is.
+    //     (3a) The dependency has an aggregator. We want to depend on the aggregator.
+    //     (3b) The dependency does not have an aggregator. We want to depend on all the
+    //          multiplexed variants.
+    // (4) The product is multiplexed, but the dependency is not. This case is implicitly
+    //     handled, because we don't have to adapt any Depends items.
+    // (5) The product is a "shadow product". In that case, we know which product
+    //     it should have a dependency on, and we make sure we depend on that.
+
+    // (1) and (3a)
+    if (!productIsMultiplexed && hasNonMultiplexedDependency)
+        return;
+
+    QStringList multiplexIds;
+    const ShadowProductInfo shadowProductInfo = getShadowProductInfo(product);
+    const bool isShadowProduct = shadowProductInfo.first && shadowProductInfo.second == name;
+    for (const ProductContext *dependency : dependencies) {
+        const bool depMatchesShadowProduct = isShadowProduct
+                && dependency->item == product.item->parent();
+        const QString depMultiplexId = dependency->multiplexConfigurationId;
+        if (depMatchesShadowProduct) { // (5)
             dependsItem->setProperty(StringConstants::multiplexConfigurationIdsProperty(),
-                                     VariantValue::create(multiplexIds));
+                                     VariantValue::create(depMultiplexId));
+            multiplexIds.clear();
+            break;
         }
+        if (productIsMultiplexed) { // (2)
+            const ValuePtr &multiplexId = product.item->property(
+                        StringConstants::multiplexConfigurationIdProperty());
+            dependsItem->setProperty(StringConstants::multiplexConfigurationIdsProperty(),
+                                     multiplexId);
+            break;
+        }
+        // (3b)
+        multiplexIds << depMultiplexId;
+    }
+    if (!multiplexIds.empty()) {
+        dependsItem->setProperty(StringConstants::multiplexConfigurationIdsProperty(),
+                                 VariantValue::create(multiplexIds));
     }
 }
 
@@ -1134,6 +1145,12 @@ void ModuleLoader::prepareProduct(ProjectContext *projectContext, Item *productI
 
 void ModuleLoader::setupProductDependencies(ProductContext *productContext)
 {
+    if (m_dependencyResolvingPass == 2) {
+        normalizeDependencies(*productContext);
+        QBS_CHECK(!productContext->deferredDependsItems.empty());
+        for (Item * const deferredDependsItem : productContext->deferredDependsItems)
+            adjustDependenciesForMultiplexing(*productContext, deferredDependsItem);
+    }
     AccumulatingTimer timer(m_parameters.logElapsedTime()
                             ? &m_elapsedTimeProductDependencies : nullptr);
     checkCancelation();
@@ -1157,7 +1174,10 @@ void ModuleLoader::setupProductDependencies(ProductContext *productContext)
     dependsContext.product = productContext;
     dependsContext.productDependencies = &productContext->info.usedProducts;
     resolveDependencies(&dependsContext, item, productContext);
-    addTransitiveDependencies(productContext);
+    if (m_dependencyResolvingPass == 2
+            || !m_productsWithDeferredDependsItems.contains(productContext)) {
+        addTransitiveDependencies(productContext);
+    }
     productContext->project->result->productInfos.insert(item, productContext->info);
 }
 
@@ -2014,15 +2034,19 @@ ModuleLoader::ShadowProductInfo ModuleLoader::getShadowProductInfo(
                           ? product.name.mid(shadowProductPrefix().size()) : QString());
 }
 
-void ModuleLoader::collectProductsByNameAndType(const TopLevelProjectContext &topLevelProject)
+void ModuleLoader::collectProductsByName(const TopLevelProjectContext &topLevelProject)
+{
+    for (ProjectContext * const project : topLevelProject.projects) {
+        for (ProductContext &product : project->products)
+            m_productsByName.insert({ product.name, &product });
+    }
+}
+
+void ModuleLoader::collectProductsByType(const ModuleLoader::TopLevelProjectContext &topLevelProject)
 {
     for (ProjectContext * const project : topLevelProject.projects) {
         for (ProductContext &product : project->products) {
-            m_productsByName.insert({ product.name, &product });
             try {
-                // Load the qbs module here already, in case it is needed in the type
-                // property.
-                product.item->addModule(loadBaseModule(&product, product.item));
                 const FileTags productTags
                         = m_evaluator->fileTagsValue(product.item, StringConstants::typeProperty());
                 for (const FileTag &tag : productTags)
@@ -2280,16 +2304,19 @@ void ModuleLoader::adjustDefiningItemsInGroupModuleInstances(const Item::Module 
 void ModuleLoader::resolveDependencies(DependsContext *dependsContext, Item *item,
                                        ProductContext *productContext)
 {
-    if (!productContext) {
-        // For products, we already did this in collectProductsByNameAndType().
+    QBS_CHECK(m_dependencyResolvingPass == 1 || m_dependencyResolvingPass == 2);
+
+    if (!productContext || m_dependencyResolvingPass == 1) {
         const Item::Module baseModule = loadBaseModule(dependsContext->product, item);
         item->addModule(baseModule);
     }
+
     // Resolve all Depends items.
     ItemModuleList loadedModules;
     QList<Item *> dependsItemPerLoadedModule;
     ProductDependencies productDependencies;
-    const auto &itemChildren = item->children();
+    const auto &itemChildren = productContext && m_dependencyResolvingPass == 2
+            ? productContext->deferredDependsItems : item->children();
     for (Item * const child : itemChildren) {
         if (child->type() != ItemType::Depends)
             continue;
@@ -2390,6 +2417,12 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
     bool productTypesIsSet;
     m_evaluator->stringValue(dependsItem, StringConstants::productTypesProperty(),
                              QString(), &productTypesIsSet);
+    if (m_dependencyResolvingPass == 1 && productTypesIsSet) {
+        qCDebug(lcModuleLoader) << "queuing product" << dependsContext->product->name
+                                << "for a second dependencies resolving pass";
+        m_productsWithDeferredDependsItems.insert(dependsContext->product);
+        return;
+    }
     for (const QualifiedId &moduleName : qAsConst(moduleNames)) {
         const bool isRequired = !productTypesIsSet
                 && m_evaluator->boolValue(dependsItem, StringConstants::requiredProperty())

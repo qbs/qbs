@@ -169,6 +169,7 @@ private:
         QVariantMap moduleProperties;
         std::map<QString, ProductDependencies> productModuleDependencies;
         std::unordered_map<const Item *, std::vector<ErrorInfo>> unknownProfilePropertyErrors;
+        QList<Item *> deferredDependsItems;
 
         QString uniqueName() const;
     };
@@ -235,11 +236,10 @@ private:
     static MultiplexTable combine(const MultiplexTable &table, const MultiplexRow &values);
     MultiplexInfo extractMultiplexInfo(Item *productItem, Item *qbsModuleItem);
     QList<Item *> multiplexProductItem(ProductContext *dummyContext, Item *productItem);
-    void normalizeDependencies(const TopLevelProjectContext &tlp);
-    void normalizeDependencies(const ProductContext &product);
+    void normalizeDependencies(ProductContext &product);
     void adjustDependenciesForMultiplexing(const TopLevelProjectContext &tlp);
     void adjustDependenciesForMultiplexing(const ProductContext &product);
-
+    void adjustDependenciesForMultiplexing(const ProductContext &product, Item *dependsItem);
 
     void prepareProduct(ProjectContext *projectContext, Item *productItem);
     void setupProductDependencies(ProductContext *productContext);
@@ -340,7 +340,8 @@ private:
     void handleProductError(const ErrorInfo &error, ProductContext *productContext);
     QualifiedIdSet gatherModulePropertiesSetInGroup(const Item *group);
     Item *loadItemFromFile(const QString &filePath);
-    void collectProductsByNameAndType(const TopLevelProjectContext &topLevelProject);
+    void collectProductsByName(const TopLevelProjectContext &topLevelProject);
+    void collectProductsByType(const TopLevelProjectContext &topLevelProject);
 
     void handleProfileItems(Item *item, ProjectContext *projectContext);
     std::vector<Item *> collectProfileItems(Item *item, ProjectContext *projectContext);
@@ -387,6 +388,7 @@ private:
     QVariantMap m_localProfiles;
     std::multimap<QString, const ProductContext *> m_productsByName;
     std::multimap<FileTag, const ProductContext *> m_productsByType;
+    Set<ProductContext *> m_productsWithDeferredDependsItems;
     SetupProjectParameters m_parameters;
     std::unique_ptr<Settings> m_settings;
     Version m_qbsVersion;
@@ -405,6 +407,8 @@ private:
     Set<QString> m_projectNamesUsedInOverrides;
     Set<QString> m_productNamesUsedInOverrides;
     Set<QString> m_disabledProjects;
+
+    int m_dependencyResolvingPass = 0;
 };
 
 } // namespace Internal
