@@ -5,6 +5,7 @@ Project {
     CppApplication {
         name: "helper-app"
         type: ["application", "test-helper"]
+        consoleApplication: true
         files: "helper-main.cpp"
         cpp.executableSuffix: ".exe"
         Group {
