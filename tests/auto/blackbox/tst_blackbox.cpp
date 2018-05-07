@@ -4557,12 +4557,15 @@ void TestBlackbox::productDependenciesByType()
     QFile appListFile(relativeProductBuildDir("app list") + "/app-list.txt");
     QVERIFY2(appListFile.open(QIODevice::ReadOnly), qPrintable(appListFile.fileName()));
     const QList<QByteArray> appList = appListFile.readAll().trimmed().split('\n');
-    QCOMPARE(appList.size(), 4);
+    QCOMPARE(appList.size(), 6);
     QStringList apps = QStringList()
             << QDir::currentPath() + '/' + relativeExecutableFilePath("app1")
             << QDir::currentPath() + '/' + relativeExecutableFilePath("app2")
             << QDir::currentPath() + '/' + relativeExecutableFilePath("app3")
-            << QDir::currentPath() + '/' + relativeExecutableFilePath("app4");
+            << QDir::currentPath() + '/' + relativeExecutableFilePath("app4")
+            << QDir::currentPath() + '/' + relativeProductBuildDir("other-product") + "/output.txt"
+            << QDir::currentPath() + '/' + relativeProductBuildDir("yet-another-product")
+               + "/output.txt";
     for (const QByteArray &line : appList) {
         const QString cleanLine = QString::fromLocal8Bit(line.trimmed());
         QVERIFY2(apps.removeOne(cleanLine), qPrintable(cleanLine));

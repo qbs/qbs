@@ -545,7 +545,7 @@ void ModuleLoader::handleTopLevelProject(ModuleLoaderResult *loadResult, Item *p
         m_reader->setExtraSearchPathsStack(projectContext->searchPathsStack);
         for (ProductContext &productContext : projectContext->products) {
             try {
-                setupProductDependencies(&productContext);
+                setupProductDependencies(&productContext, Set<DeferredDependsContext>());
             } catch (const ErrorInfo &err) {
                 if (productContext.name.isEmpty())
                     throw err;
@@ -553,13 +553,23 @@ void ModuleLoader::handleTopLevelProject(ModuleLoaderResult *loadResult, Item *p
             }
         }
     }
-    if (!m_productsWithDeferredDependsItems.empty()) {
+    if (!m_productsWithDeferredDependsItems.empty() || !m_exportsWithDeferredDependsItems.empty()) {
         collectProductsByType(tlp);
         m_dependencyResolvingPass = 2;
-        for (ProductContext * const productContext : m_productsWithDeferredDependsItems) {
+
+        // Doing the normalization for the Export items themselves (as opposed to doing it only
+        // for the corresponding module instances) serves two purposes:
+        // (1) It makes recursive use of Depends.productTypes via Export items work; otherwise,
+        //     we'd need an additional dependency resolving pass for every export level.
+        // (2) The "expanded" Depends items are available to the Exporter.qbs module.
+        for (Item * const exportItem : m_exportsWithDeferredDependsItems)
+            normalizeDependencies(nullptr, DeferredDependsContext(nullptr, exportItem));
+
+        for (const auto deferredDependsData : m_productsWithDeferredDependsItems) {
+            ProductContext * const productContext = deferredDependsData.first;
             m_reader->setExtraSearchPathsStack(productContext->project->searchPathsStack);
             try {
-                setupProductDependencies(productContext);
+                setupProductDependencies(productContext, deferredDependsData.second);
             } catch (const ErrorInfo &err) {
                 handleProductError(err, productContext);
             }
@@ -903,11 +913,13 @@ QList<Item *> ModuleLoader::multiplexProductItem(ProductContext *dummyContext, I
     return additionalProductItems;
 }
 
-void ModuleLoader::normalizeDependencies(ProductContext &product)
+void ModuleLoader::normalizeDependencies(ProductContext *product,
+                                         const DeferredDependsContext &dependsContext)
 {
     std::vector<Item *> dependsItemsToAdd;
     std::vector<Item *> dependsItemsToRemove;
-    for (Item *dependsItem : product.item->children()) {
+    std::vector<Item *> deferredDependsItems;
+    for (Item *dependsItem : dependsContext.parentItem->children()) {
         if (dependsItem->type() != ItemType::Depends)
             continue;
         bool productTypesIsSet;
@@ -917,10 +929,14 @@ void ModuleLoader::normalizeDependencies(ProductContext &product)
             bool nameIsSet;
             m_evaluator->stringValue(dependsItem, StringConstants::nameProperty(), QString(),
                                      &nameIsSet);
-            if (nameIsSet) {
+
+            // The second condition is for the case where the dependency comes from an Export item
+            // that has itself been normalized in the mean time.
+            if (nameIsSet && !dependsItem->variantProperty(StringConstants::nameProperty())) {
                 throw ErrorInfo(Tr::tr("The 'productTypes' and 'name' properties are mutually "
                                        "exclusive."), dependsItem->location());
             }
+
             bool submodulesPropertySet;
             m_evaluator->stringListValue( dependsItem, StringConstants::submodulesProperty(),
                                           &submodulesPropertySet);
@@ -928,8 +944,13 @@ void ModuleLoader::normalizeDependencies(ProductContext &product)
                 throw ErrorInfo(Tr::tr("The 'productTypes' and 'subModules' properties are "
                                        "mutually exclusive."), dependsItem->location());
             }
-            const bool limitToSubProject = m_evaluator->boolValue
-                    (dependsItem, StringConstants::limitToSubProjectProperty());
+
+            // We ignore the "limitToSubProject" property for dependencies from Export items,
+            // because we cannot make it work consistently, as the importing product is not
+            // yet known when normalizing via an Export item.
+            const bool limitToSubProject = dependsContext.parentItem->type() == ItemType::Product
+                    && m_evaluator->boolValue(dependsItem,
+                                              StringConstants::limitToSubProjectProperty());
             static const auto hasSameSubProject
                     = [](const ProductContext &product, const ProductContext &other) {
                 for (const Item *otherParent = other.item->parent(); otherParent;
@@ -943,8 +964,8 @@ void ModuleLoader::normalizeDependencies(ProductContext &product)
             for (const FileTag &typeTag : productTypes) {
                 const auto range = m_productsByType.equal_range(typeTag);
                 for (auto it = range.first; it != range.second; ++it) {
-                    if (it->second != &product
-                            && (!limitToSubProject || hasSameSubProject(product, *it->second))) {
+                    if (it->second != product
+                            && (!limitToSubProject || hasSameSubProject(*product, *it->second))) {
                         matchingProducts.push_back(it->second);
                     }
                 }
@@ -955,22 +976,31 @@ void ModuleLoader::normalizeDependencies(ProductContext &product)
                 dependsItemsToRemove.push_back(dependsItem);
                 continue;
             }
-            product.deferredDependsItems.push_back(dependsItem);
+            if (dependsContext.parentItem->type() != ItemType::Export)
+                deferredDependsItems.push_back(dependsItem);
             for (std::size_t i = 1; i < matchingProducts.size(); ++i) {
                 Item * const dependsClone = dependsItem->clone();
                 dependsClone->setProperty(StringConstants::nameProperty(),
                                          VariantValue::create(matchingProducts.at(i)->name));
                 dependsItemsToAdd.push_back(dependsClone);
-                product.deferredDependsItems.push_back(dependsClone);
+                if (dependsContext.parentItem->type() != ItemType::Export)
+                    deferredDependsItems.push_back(dependsClone);
+
             }
             dependsItem->setProperty(StringConstants::nameProperty(),
                                      VariantValue::create(matchingProducts.front()->name));
         }
     }
     for (Item * const newDependsItem : dependsItemsToAdd)
-        Item::addChild(product.item, newDependsItem);
+        Item::addChild(dependsContext.parentItem, newDependsItem);
     for (Item * const dependsItem : dependsItemsToRemove)
-        Item::removeChild(product.item, dependsItem);
+        Item::removeChild(dependsContext.parentItem, dependsItem);
+    if (!deferredDependsItems.empty()) {
+        auto &allDeferredDependsItems
+                = product->deferredDependsItems[dependsContext.exportingProductItem];
+        allDeferredDependsItems.insert(allDeferredDependsItems.end(), deferredDependsItems.cbegin(),
+                                       deferredDependsItems.cend());
+    }
 }
 
 void ModuleLoader::adjustDependenciesForMultiplexing(const TopLevelProjectContext &tlp)
@@ -1153,12 +1183,20 @@ void ModuleLoader::prepareProduct(ProjectContext *projectContext, Item *productI
     prepareProduct(projectContext, importer);
 }
 
-void ModuleLoader::setupProductDependencies(ProductContext *productContext)
+void ModuleLoader::setupProductDependencies(ProductContext *productContext,
+        const Set<DeferredDependsContext> &deferredDependsContext)
 {
     if (m_dependencyResolvingPass == 2) {
-        normalizeDependencies(*productContext);
-        for (Item * const deferredDependsItem : productContext->deferredDependsItems)
-            adjustDependenciesForMultiplexing(*productContext, deferredDependsItem);
+        for (const DeferredDependsContext &ctx : deferredDependsContext)
+            normalizeDependencies(productContext, ctx);
+        for (const auto &deferralData : productContext->deferredDependsItems) {
+            for (Item * const deferredDependsItem : deferralData.second) {
+
+                // Dependencies from Export items are handled in addProductModuleDependencies().
+                if (deferredDependsItem->parent() == productContext->item)
+                    adjustDependenciesForMultiplexing(*productContext, deferredDependsItem);
+            }
+        }
     }
     AccumulatingTimer timer(m_parameters.logElapsedTime()
                             ? &m_elapsedTimeProductDependencies : nullptr);
@@ -1184,7 +1222,7 @@ void ModuleLoader::setupProductDependencies(ProductContext *productContext)
     dependsContext.productDependencies = &productContext->info.usedProducts;
     resolveDependencies(&dependsContext, item, productContext);
     if (m_dependencyResolvingPass == 2
-            || !m_productsWithDeferredDependsItems.contains(productContext)) {
+            || !containsKey(m_productsWithDeferredDependsItems, productContext)) {
         addTransitiveDependencies(productContext);
     }
     productContext->project->result->productInfos.insert(item, productContext->info);
@@ -1827,6 +1865,7 @@ bool ModuleLoader::mergeExportItems(const ProductContext &productContext)
     merged->setProperty(nameKey, nameValue);
     Set<FileContextConstPtr> filesWithExportItem;
     ProductModuleInfo pmi;
+    bool hasDependenciesOnProductType = false;
     for (Item * const exportItem : qAsConst(exportItems)) {
         checkCancelation();
         if (Q_UNLIKELY(filesWithExportItem.contains(exportItem->file())))
@@ -1842,6 +1881,13 @@ bool ModuleLoader::mergeExportItems(const ProductContext &productContext)
                 mergeParameters(pmi.defaultParameters,
                                 m_evaluator->scriptValue(child).toVariant().toMap());
             } else {
+                if (child->type() == ItemType::Depends) {
+                    bool productTypesIsSet;
+                    m_evaluator->stringValue(child, StringConstants::productTypesProperty(),
+                                             QString(), &productTypesIsSet);
+                    if (productTypesIsSet)
+                        hasDependenciesOnProductType = true;
+                }
                 Item::addChild(merged, child);
             }
         }
@@ -1870,6 +1916,8 @@ bool ModuleLoader::mergeExportItems(const ProductContext &productContext)
     pmi.exportItem = merged;
     pmi.multiplexId = productContext.multiplexConfigurationId;
     productContext.project->topLevelProject->productModules.insert(productContext.name, pmi);
+    if (hasDependenciesOnProductType)
+        m_exportsWithDeferredDependsItems.insert(merged);
     return exportItems.size() > 0;
 }
 
@@ -2332,15 +2380,14 @@ void ModuleLoader::resolveDependencies(DependsContext *dependsContext, Item *ite
     ItemModuleList loadedModules;
     QList<Item *> dependsItemPerLoadedModule;
     ProductDependencies productDependencies;
-    const auto &itemChildren = productContext && m_dependencyResolvingPass == 2
-            ? productContext->deferredDependsItems : item->children();
-    for (Item * const child : itemChildren) {
+    const auto handleDependsItem = [&](Item *child) {
         if (child->type() != ItemType::Depends)
-            continue;
+            return;
 
         int lastModulesCount = loadedModules.size();
         try {
-            resolveDependsItem(dependsContext, item, child, &loadedModules, &productDependencies);
+            resolveDependsItem(dependsContext, child->parent(), child, &loadedModules,
+                               &productDependencies);
         } catch (const ErrorInfo &e) {
             if (!productContext)
                 throw;
@@ -2348,6 +2395,17 @@ void ModuleLoader::resolveDependencies(DependsContext *dependsContext, Item *ite
         }
         for (int i = lastModulesCount; i < loadedModules.size(); ++i)
             dependsItemPerLoadedModule.push_back(child);
+
+    };
+    if (productContext && m_dependencyResolvingPass == 2) {
+        for (const auto &deferData : productContext->deferredDependsItems) {
+            dependsContext->exportingProductItem = deferData.first;
+            for (Item * const dependsItem : deferData.second)
+                handleDependsItem(dependsItem);
+        }
+    } else {
+        for (Item * const child : item->children())
+            handleDependsItem(child);
     }
     QBS_CHECK(loadedModules.size() == dependsItemPerLoadedModule.size());
 
@@ -2437,7 +2495,8 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
     if (m_dependencyResolvingPass == 1 && productTypesIsSet) {
         qCDebug(lcModuleLoader) << "queuing product" << dependsContext->product->name
                                 << "for a second dependencies resolving pass";
-        m_productsWithDeferredDependsItems.insert(dependsContext->product);
+        m_productsWithDeferredDependsItems[dependsContext->product].insert(
+                    DeferredDependsContext(dependsContext->exportingProductItem, parentItem));
         return;
     }
 

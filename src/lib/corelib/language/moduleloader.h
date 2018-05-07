@@ -151,6 +151,24 @@ private:
 
     typedef std::vector<ModuleLoaderResult::ProductInfo::Dependency> ProductDependencies;
 
+    // This is the data we need to store at the point where a dependency is deferred
+    // in order to properly resolve the dependency in pass 2.
+    struct DeferredDependsContext {
+        DeferredDependsContext(Item *exportingProduct, Item *parent)
+            : exportingProductItem(exportingProduct), parentItem(parent) {}
+        Item *exportingProductItem = nullptr;
+        Item *parentItem = nullptr;
+        bool operator==(const DeferredDependsContext &other) const
+        {
+            return exportingProductItem == other.exportingProductItem
+                    && parentItem == other.parentItem;
+        }
+        bool operator<(const DeferredDependsContext &other) const
+        {
+            return parentItem < other.parentItem;
+        }
+    };
+
     class ProductContext : public ContextBase
     {
     public:
@@ -162,7 +180,10 @@ private:
         QVariantMap moduleProperties;
         std::map<QString, ProductDependencies> productModuleDependencies;
         std::unordered_map<const Item *, std::vector<ErrorInfo>> unknownProfilePropertyErrors;
-        QList<Item *> deferredDependsItems;
+
+        // The key corresponds to DeferredDependsContext.exportingProductItem, which is the
+        // only value from that data structure that we still need here.
+        std::unordered_map<Item *, std::vector<Item *>> deferredDependsItems;
 
         QString uniqueName() const;
     };
@@ -229,13 +250,15 @@ private:
     static MultiplexTable combine(const MultiplexTable &table, const MultiplexRow &values);
     MultiplexInfo extractMultiplexInfo(Item *productItem, Item *qbsModuleItem);
     QList<Item *> multiplexProductItem(ProductContext *dummyContext, Item *productItem);
-    void normalizeDependencies(ProductContext &product);
+    void normalizeDependencies(ProductContext *product,
+                               const DeferredDependsContext &dependsContext);
     void adjustDependenciesForMultiplexing(const TopLevelProjectContext &tlp);
     void adjustDependenciesForMultiplexing(const ProductContext &product);
     void adjustDependenciesForMultiplexing(const ProductContext &product, Item *dependsItem);
 
     void prepareProduct(ProjectContext *projectContext, Item *productItem);
-    void setupProductDependencies(ProductContext *productContext);
+    void setupProductDependencies(ProductContext *productContext,
+                                  const Set<DeferredDependsContext> &deferredDependsContext);
     void handleProduct(ProductContext *productContext);
     void checkDependencyParameterDeclarations(const ProductContext *productContext) const;
     void handleModuleSetupError(ProductContext *productContext, const Item::Module &module,
@@ -390,7 +413,10 @@ private:
     QVariantMap m_localProfiles;
     std::multimap<QString, const ProductContext *> m_productsByName;
     std::multimap<FileTag, const ProductContext *> m_productsByType;
-    Set<ProductContext *> m_productsWithDeferredDependsItems;
+
+    std::unordered_map<ProductContext *, Set<DeferredDependsContext>> m_productsWithDeferredDependsItems;
+    Set<Item *> m_exportsWithDeferredDependsItems;
+
     SetupProjectParameters m_parameters;
     std::unique_ptr<Settings> m_settings;
     Version m_qbsVersion;

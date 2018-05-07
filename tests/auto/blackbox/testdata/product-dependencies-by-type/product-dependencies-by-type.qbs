@@ -32,6 +32,54 @@ Project {
             name: "app4"
             files: "main.cpp"
         }
+        Product {
+            name: "other-product"
+            type: "other"
+            Rule {
+                multiplex: true
+                Artifact {
+                    filePath: "output.txt"
+                    fileTags: "other"
+                }
+                prepare: {
+                    var cmd = new JavaScriptCommand();
+                    cmd.description = "creating " + output.filePath;
+                    cmd.sourceCode = function() {
+                        var f = new TextFile(output.filePath, TextFile.WriteOnly);
+                    }
+                    return cmd;
+                }
+            }
+            Export {
+                Depends { productTypes: "other2" }
+            }
+        }
+        Product {
+            name: "yet-another-product"
+            type: "other2"
+            Rule {
+                multiplex: true
+                Artifact {
+                    filePath: "output.txt"
+                    fileTags: "other2"
+                }
+                prepare: {
+                    var cmd = new JavaScriptCommand();
+                    cmd.description = "creating " + output.filePath;
+                    cmd.sourceCode = function() {
+                        var f = new TextFile(output.filePath, TextFile.WriteOnly);
+                    }
+                    return cmd;
+                }
+            }
+        }
+        Product {
+            name: "helper"
+            Export {
+                Depends { productTypes: "other" }
+            }
+        }
+
         CppApplication {
             condition: false
             consoleApplication: true
@@ -57,11 +105,12 @@ Project {
                 productTypes: ["application"]
                 limitToSubProject: true
             }
+            Depends { name: "helper" }
             files: ["main.cpp"]
 
             Rule {
                 multiplex: true
-                inputsFromDependencies: "application"
+                inputsFromDependencies: ["application", "other", "other2"]
                 Artifact {
                     filePath: "app-list.txt"
                     fileTags: "app-list"
@@ -73,6 +122,10 @@ Project {
                         var file = new TextFile(output.filePath, TextFile.WriteOnly);
                         for (var i = 0; i < inputs["application"].length; ++i)
                             file.writeLine(inputs["application"][i].filePath);
+                        for (i = 0; i < inputs["other"].length; ++i)
+                            file.writeLine(inputs["other"][i].filePath);
+                        for (i = 0; i < inputs["other2"].length; ++i)
+                            file.writeLine(inputs["other2"][i].filePath);
                         file.close();
                     };
                     return cmd;
