@@ -2051,7 +2051,7 @@ void ModuleLoader::collectProductsByType(const ModuleLoader::TopLevelProjectCont
                         = m_evaluator->fileTagsValue(product.item, StringConstants::typeProperty());
                 for (const FileTag &tag : productTags)
                     m_productsByType.insert({ tag, &product});
-            } catch (const ErrorInfo &e) {
+            } catch (const ErrorInfo &) {
                 qCDebug(lcModuleLoader) << "product" << product.name << "has complex type "
                                            " and won't get an entry in the type map";
             }
