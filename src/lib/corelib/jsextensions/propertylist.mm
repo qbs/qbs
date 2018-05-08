@@ -38,8 +38,6 @@
 **
 ****************************************************************************/
 
-#include "jsextensions_p.h"
-
 #include <language/scriptengine.h>
 #include <tools/hostosinfo.h>
 
@@ -101,15 +99,13 @@ public:
     QByteArray writeToData(QScriptContext *context, const QString &format);
 };
 
-static void initializeJsExtensionPropertyList(QScriptValue extensionObject)
+void initializeJsExtensionPropertyList(QScriptValue extensionObject)
 {
     QScriptEngine *engine = extensionObject.engine();
     QScriptValue obj = engine->newQMetaObject(&PropertyList::staticMetaObject,
                                               engine->newFunction(&PropertyList::ctor));
     extensionObject.setProperty(QLatin1String("PropertyList"), obj);
 }
-
-QBS_JSEXTENSION_REGISTER(PropertyList, &initializeJsExtensionPropertyList)
 
 QScriptValue PropertyList::ctor(QScriptContext *context, QScriptEngine *engine)
 {
