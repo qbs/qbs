@@ -553,7 +553,7 @@ void TestTools::set_size()
 void TestTools::set_capacity()
 {
     Set<int> set;
-    int n = set.capacity();
+    size_t n = set.capacity();
     QVERIFY(n == 0);
 
     for (int i = 0; i < 1000; ++i) {

@@ -292,7 +292,7 @@ void BuildDataResolver::resolveBuildData(const TopLevelProjectPtr &resolvedProje
     resolvedProject->buildData->evaluationContext = evalContext;
     const std::vector<ResolvedProductPtr> &allProducts = resolvedProject->allProducts();
     evalContext->initializeObserver(Tr::tr("Setting up build graph for configuration %1")
-                                    .arg(resolvedProject->id()), allProducts.size() + 1);
+                                    .arg(resolvedProject->id()), int(allProducts.size()) + 1);
     for (ResolvedProductPtr rProduct : allProducts) {
         if (rProduct->enabled)
             resolveProductBuildData(rProduct);

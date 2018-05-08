@@ -395,23 +395,27 @@ void BuildGraphLoader::trackProjectChanges()
     m_result.newlyResolvedProject->buildData.swap(restoredProject->buildData);
     QBS_CHECK(m_result.newlyResolvedProject->buildData);
     m_result.newlyResolvedProject->buildData->setDirty();
-    for (int i = allNewlyResolvedProducts.size() - 1; i >= 0; --i) {
-        const ResolvedProductPtr &newlyResolvedProduct = allNewlyResolvedProducts.at(i);
-        for (int j = allRestoredProducts.size() - 1; j >= 0; --j) {
-            const ResolvedProductPtr &restoredProduct = allRestoredProducts.at(j);
-            if (newlyResolvedProduct->uniqueName() == restoredProduct->uniqueName()) {
-                if (newlyResolvedProduct->enabled)
-                    newlyResolvedProduct->buildData.swap(restoredProduct->buildData);
-                if (newlyResolvedProduct->buildData)
-                    updateProductAndRulePointers(newlyResolvedProduct);
 
-                // Keep in list if build data still needs to be resolved.
-                if (!newlyResolvedProduct->enabled || newlyResolvedProduct->buildData)
-                    allNewlyResolvedProducts.erase(allNewlyResolvedProducts.begin() + i);
+    for (auto it = allNewlyResolvedProducts.begin(); it != allNewlyResolvedProducts.end();) {
+        const ResolvedProductPtr &newlyResolvedProduct = *it;
+        auto k = std::find_if(allRestoredProducts.begin(), allRestoredProducts.end(),
+                     [&newlyResolvedProduct](const ResolvedProductPtr &restoredProduct) {
+            return newlyResolvedProduct->uniqueName() == restoredProduct->uniqueName();
+        });
+        if (k == allRestoredProducts.end()) {
+            ++it;
+        } else {
+            const ResolvedProductPtr &restoredProduct = *k;
+            if (newlyResolvedProduct->enabled)
+                newlyResolvedProduct->buildData.swap(restoredProduct->buildData);
+            if (newlyResolvedProduct->buildData)
+                updateProductAndRulePointers(newlyResolvedProduct);
 
-                allRestoredProducts.erase(allRestoredProducts.begin() + j);
-                break;
-            }
+            // Keep in list if build data still needs to be resolved.
+            if (!newlyResolvedProduct->enabled || newlyResolvedProduct->buildData)
+                it = allNewlyResolvedProducts.erase(it);
+
+            allRestoredProducts.erase(k);
         }
     }
 
