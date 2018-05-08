@@ -118,20 +118,6 @@ private:
     QDomDocument m_domDocument;
 };
 
-void initializeJsExtensionXml(QScriptValue extensionObject)
-{
-    QScriptEngine *engine = extensionObject.engine();
-    QScriptValue docObj = engine->newQMetaObject(&XmlDomDocument::staticMetaObject,
-                                                 engine->newFunction(&XmlDomDocument::ctor));
-    QScriptValue nodeObj = engine->newQMetaObject(&XmlDomNode::staticMetaObject,
-                                                  engine->newFunction(&XmlDomNode::ctor));
-    QScriptValue contextObject = engine->newObject();
-    contextObject.setProperty(QLatin1String("DomDocument"), docObj);
-    contextObject.setProperty(QLatin1String("DomElement"), nodeObj);
-
-    extensionObject.setProperty(QLatin1String("Xml"), contextObject);
-}
-
 QScriptValue XmlDomDocument::ctor(QScriptContext *context, QScriptEngine *engine)
 {
     XmlDomDocument *xml = nullptr;
@@ -455,6 +441,21 @@ XmlDomNode::XmlDomNode(const QDomNode &other)
 
 } // namespace Internal
 } // namespace qbs
+
+void initializeJsExtensionXml(QScriptValue extensionObject)
+{
+    using namespace qbs::Internal;
+    QScriptEngine *engine = extensionObject.engine();
+    QScriptValue docObj = engine->newQMetaObject(&XmlDomDocument::staticMetaObject,
+                                                 engine->newFunction(&XmlDomDocument::ctor));
+    QScriptValue nodeObj = engine->newQMetaObject(&XmlDomNode::staticMetaObject,
+                                                  engine->newFunction(&XmlDomNode::ctor));
+    QScriptValue contextObject = engine->newObject();
+    contextObject.setProperty(QLatin1String("DomDocument"), docObj);
+    contextObject.setProperty(QLatin1String("DomElement"), nodeObj);
+
+    extensionObject.setProperty(QLatin1String("Xml"), contextObject);
+}
 
 Q_DECLARE_METATYPE(qbs::Internal::XmlDomDocument *)
 Q_DECLARE_METATYPE(qbs::Internal::XmlDomNode *)

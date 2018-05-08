@@ -44,9 +44,6 @@
 
 #include <utility>
 
-namespace qbs {
-namespace Internal {
-
 using InitializerMap = QMap<QString, void (*)(QScriptValue)>;
 static InitializerMap setupMap()
 {
@@ -68,6 +65,9 @@ static InitializerMap setupMap()
     ADD_JS_EXTENSION(Xml);
     return map;
 }
+
+namespace qbs {
+namespace Internal {
 
 static InitializerMap &initializers()
 {

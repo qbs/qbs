@@ -105,14 +105,6 @@ private:
     QTextStream *m_textStream;
 };
 
-void initializeJsExtensionProcess(QScriptValue extensionObject)
-{
-    QScriptEngine *engine = extensionObject.engine();
-    QScriptValue obj = engine->newQMetaObject(&Process::staticMetaObject, engine->newFunction(&Process::ctor));
-    extensionObject.setProperty(QLatin1String("Process"), obj);
-    obj.setProperty(QStringLiteral("shellQuote"), engine->newFunction(Process::js_shellQuote, 3));
-}
-
 QScriptValue Process::ctor(QScriptContext *context, QScriptEngine *engine)
 {
     Process *t;
@@ -340,6 +332,15 @@ QScriptValue Process::js_shellQuote(QScriptContext *context, QScriptEngine *engi
 
 } // namespace Internal
 } // namespace qbs
+
+void initializeJsExtensionProcess(QScriptValue extensionObject)
+{
+    using namespace qbs::Internal;
+    QScriptEngine *engine = extensionObject.engine();
+    QScriptValue obj = engine->newQMetaObject(&Process::staticMetaObject, engine->newFunction(&Process::ctor));
+    extensionObject.setProperty(QLatin1String("Process"), obj);
+    obj.setProperty(QStringLiteral("shellQuote"), engine->newFunction(Process::js_shellQuote, 3));
+}
 
 Q_DECLARE_METATYPE(qbs::Internal::Process *)
 

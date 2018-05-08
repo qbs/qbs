@@ -62,22 +62,6 @@ public:
     static QScriptValue js_currentEnv(QScriptContext *context, QScriptEngine *engine);
 };
 
-void initializeJsExtensionEnvironment(QScriptValue extensionObject)
-{
-    QScriptEngine *engine = extensionObject.engine();
-    QScriptValue environmentObj = engine->newQMetaObject(&EnvironmentExtension::staticMetaObject,
-                                             engine->newFunction(&EnvironmentExtension::js_ctor));
-    environmentObj.setProperty(QStringLiteral("getEnv"),
-                               engine->newFunction(EnvironmentExtension::js_getEnv, 1));
-    environmentObj.setProperty(QStringLiteral("putEnv"),
-                               engine->newFunction(EnvironmentExtension::js_putEnv, 2));
-    environmentObj.setProperty(QStringLiteral("unsetEnv"),
-                               engine->newFunction(EnvironmentExtension::js_unsetEnv, 1));
-    environmentObj.setProperty(QStringLiteral("currentEnv"),
-                               engine->newFunction(EnvironmentExtension::js_currentEnv, 0));
-    extensionObject.setProperty(QStringLiteral("Environment"), environmentObj);
-}
-
 QScriptValue EnvironmentExtension::js_ctor(QScriptContext *context, QScriptEngine *engine)
 {
     Q_UNUSED(engine);
@@ -152,6 +136,23 @@ QScriptValue EnvironmentExtension::js_currentEnv(QScriptContext *context, QScrip
 
 } // namespace Internal
 } // namespace qbs
+
+void initializeJsExtensionEnvironment(QScriptValue extensionObject)
+{
+    using namespace qbs::Internal;
+    QScriptEngine *engine = extensionObject.engine();
+    QScriptValue environmentObj = engine->newQMetaObject(&EnvironmentExtension::staticMetaObject,
+                                             engine->newFunction(&EnvironmentExtension::js_ctor));
+    environmentObj.setProperty(QStringLiteral("getEnv"),
+                               engine->newFunction(EnvironmentExtension::js_getEnv, 1));
+    environmentObj.setProperty(QStringLiteral("putEnv"),
+                               engine->newFunction(EnvironmentExtension::js_putEnv, 2));
+    environmentObj.setProperty(QStringLiteral("unsetEnv"),
+                               engine->newFunction(EnvironmentExtension::js_unsetEnv, 1));
+    environmentObj.setProperty(QStringLiteral("currentEnv"),
+                               engine->newFunction(EnvironmentExtension::js_currentEnv, 0));
+    extensionObject.setProperty(QStringLiteral("Environment"), environmentObj);
+}
 
 Q_DECLARE_METATYPE(qbs::Internal::EnvironmentExtension *)
 

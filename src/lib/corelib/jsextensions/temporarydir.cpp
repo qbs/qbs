@@ -64,14 +64,6 @@ private:
     QTemporaryDir dir;
 };
 
-void initializeJsExtensionTemporaryDir(QScriptValue extensionObject)
-{
-    QScriptEngine *engine = extensionObject.engine();
-    QScriptValue obj = engine->newQMetaObject(&TemporaryDir::staticMetaObject,
-                                              engine->newFunction(&TemporaryDir::ctor));
-    extensionObject.setProperty(QLatin1String("TemporaryDir"), obj);
-}
-
 QScriptValue TemporaryDir::ctor(QScriptContext *context, QScriptEngine *engine)
 {
     const auto se = static_cast<ScriptEngine *>(engine);
@@ -108,5 +100,14 @@ bool TemporaryDir::remove()
 
 } // namespace Internal
 } // namespace qbs
+
+void initializeJsExtensionTemporaryDir(QScriptValue extensionObject)
+{
+    using namespace qbs::Internal;
+    QScriptEngine *engine = extensionObject.engine();
+    QScriptValue obj = engine->newQMetaObject(&TemporaryDir::staticMetaObject,
+                                              engine->newFunction(&TemporaryDir::ctor));
+    extensionObject.setProperty(QLatin1String("TemporaryDir"), obj);
+}
 
 #include "temporarydir.moc"

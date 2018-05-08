@@ -93,49 +93,6 @@ public:
     static QScriptValue js_builtinExtensionNames(QScriptContext *context, QScriptEngine *engine);
 };
 
-void initializeJsExtensionUtilities(QScriptValue extensionObject)
-{
-    QScriptEngine *engine = extensionObject.engine();
-    QScriptValue environmentObj = engine->newQMetaObject(&UtilitiesExtension::staticMetaObject,
-                                             engine->newFunction(&UtilitiesExtension::js_ctor));
-    environmentObj.setProperty(QStringLiteral("canonicalArchitecture"),
-                               engine->newFunction(UtilitiesExtension::js_canonicalArchitecture, 1));
-    environmentObj.setProperty(QStringLiteral("canonicalPlatform"),
-                               engine->newFunction(UtilitiesExtension::js_canonicalPlatform, 1));
-    environmentObj.setProperty(QStringLiteral("canonicalTargetArchitecture"),
-                               engine->newFunction(
-                                   UtilitiesExtension::js_canonicalTargetArchitecture, 4));
-    environmentObj.setProperty(QStringLiteral("canonicalToolchain"),
-                               engine->newFunction(UtilitiesExtension::js_canonicalToolchain));
-    environmentObj.setProperty(QStringLiteral("cStringQuote"),
-                               engine->newFunction(UtilitiesExtension::js_cStringQuote, 1));
-    environmentObj.setProperty(QStringLiteral("getHash"),
-                               engine->newFunction(UtilitiesExtension::js_getHash, 1));
-    environmentObj.setProperty(QStringLiteral("getNativeSetting"),
-                               engine->newFunction(UtilitiesExtension::js_getNativeSetting, 3));
-    environmentObj.setProperty(QStringLiteral("kernelVersion"),
-                               engine->newFunction(UtilitiesExtension::js_kernelVersion, 0));
-    environmentObj.setProperty(QStringLiteral("nativeSettingGroups"),
-                               engine->newFunction(UtilitiesExtension::js_nativeSettingGroups, 1));
-    environmentObj.setProperty(QStringLiteral("rfc1034Identifier"),
-                               engine->newFunction(UtilitiesExtension::js_rfc1034identifier, 1));
-    environmentObj.setProperty(QStringLiteral("smimeMessageContent"),
-                               engine->newFunction(UtilitiesExtension::js_smimeMessageContent, 1));
-    environmentObj.setProperty(QStringLiteral("certificateInfo"),
-                               engine->newFunction(UtilitiesExtension::js_certificateInfo, 1));
-    environmentObj.setProperty(QStringLiteral("signingIdentities"),
-                               engine->newFunction(UtilitiesExtension::js_signingIdentities, 0));
-    environmentObj.setProperty(QStringLiteral("msvcCompilerInfo"),
-                               engine->newFunction(UtilitiesExtension::js_msvcCompilerInfo, 1));
-    environmentObj.setProperty(QStringLiteral("versionCompare"),
-                               engine->newFunction(UtilitiesExtension::js_versionCompare, 2));
-    environmentObj.setProperty(QStringLiteral("qmlTypeInfo"),
-                               engine->newFunction(UtilitiesExtension::js_qmlTypeInfo, 0));
-    environmentObj.setProperty(QStringLiteral("builtinExtensionNames"),
-                               engine->newFunction(UtilitiesExtension::js_builtinExtensionNames, 0));
-    extensionObject.setProperty(QStringLiteral("Utilities"), environmentObj);
-}
-
 QScriptValue UtilitiesExtension::js_ctor(QScriptContext *context, QScriptEngine *engine)
 {
     Q_UNUSED(engine);
@@ -549,6 +506,50 @@ QScriptValue UtilitiesExtension::js_builtinExtensionNames(QScriptContext *contex
 
 } // namespace Internal
 } // namespace qbs
+
+void initializeJsExtensionUtilities(QScriptValue extensionObject)
+{
+    using namespace qbs::Internal;
+    QScriptEngine *engine = extensionObject.engine();
+    QScriptValue environmentObj = engine->newQMetaObject(&UtilitiesExtension::staticMetaObject,
+                                             engine->newFunction(&UtilitiesExtension::js_ctor));
+    environmentObj.setProperty(QStringLiteral("canonicalArchitecture"),
+                               engine->newFunction(UtilitiesExtension::js_canonicalArchitecture, 1));
+    environmentObj.setProperty(QStringLiteral("canonicalPlatform"),
+                               engine->newFunction(UtilitiesExtension::js_canonicalPlatform, 1));
+    environmentObj.setProperty(QStringLiteral("canonicalTargetArchitecture"),
+                               engine->newFunction(
+                                   UtilitiesExtension::js_canonicalTargetArchitecture, 4));
+    environmentObj.setProperty(QStringLiteral("canonicalToolchain"),
+                               engine->newFunction(UtilitiesExtension::js_canonicalToolchain));
+    environmentObj.setProperty(QStringLiteral("cStringQuote"),
+                               engine->newFunction(UtilitiesExtension::js_cStringQuote, 1));
+    environmentObj.setProperty(QStringLiteral("getHash"),
+                               engine->newFunction(UtilitiesExtension::js_getHash, 1));
+    environmentObj.setProperty(QStringLiteral("getNativeSetting"),
+                               engine->newFunction(UtilitiesExtension::js_getNativeSetting, 3));
+    environmentObj.setProperty(QStringLiteral("kernelVersion"),
+                               engine->newFunction(UtilitiesExtension::js_kernelVersion, 0));
+    environmentObj.setProperty(QStringLiteral("nativeSettingGroups"),
+                               engine->newFunction(UtilitiesExtension::js_nativeSettingGroups, 1));
+    environmentObj.setProperty(QStringLiteral("rfc1034Identifier"),
+                               engine->newFunction(UtilitiesExtension::js_rfc1034identifier, 1));
+    environmentObj.setProperty(QStringLiteral("smimeMessageContent"),
+                               engine->newFunction(UtilitiesExtension::js_smimeMessageContent, 1));
+    environmentObj.setProperty(QStringLiteral("certificateInfo"),
+                               engine->newFunction(UtilitiesExtension::js_certificateInfo, 1));
+    environmentObj.setProperty(QStringLiteral("signingIdentities"),
+                               engine->newFunction(UtilitiesExtension::js_signingIdentities, 0));
+    environmentObj.setProperty(QStringLiteral("msvcCompilerInfo"),
+                               engine->newFunction(UtilitiesExtension::js_msvcCompilerInfo, 1));
+    environmentObj.setProperty(QStringLiteral("versionCompare"),
+                               engine->newFunction(UtilitiesExtension::js_versionCompare, 2));
+    environmentObj.setProperty(QStringLiteral("qmlTypeInfo"),
+                               engine->newFunction(UtilitiesExtension::js_qmlTypeInfo, 0));
+    environmentObj.setProperty(QStringLiteral("builtinExtensionNames"),
+                               engine->newFunction(UtilitiesExtension::js_builtinExtensionNames, 0));
+    extensionObject.setProperty(QStringLiteral("Utilities"), environmentObj);
+}
 
 Q_DECLARE_METATYPE(qbs::Internal::UtilitiesExtension *)
 

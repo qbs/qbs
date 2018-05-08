@@ -90,14 +90,6 @@ private:
     QFile *m_file = nullptr;
 };
 
-void initializeJsExtensionBinaryFile(QScriptValue extensionObject)
-{
-    QScriptEngine *engine = extensionObject.engine();
-    const QScriptValue obj = engine->newQMetaObject(&BinaryFile::staticMetaObject,
-                                                    engine->newFunction(&BinaryFile::ctor));
-    extensionObject.setProperty(QLatin1String("BinaryFile"), obj);
-}
-
 QScriptValue BinaryFile::ctor(QScriptContext *context, QScriptEngine *engine)
 {
     BinaryFile *t = nullptr;
@@ -268,6 +260,15 @@ void BinaryFile::releaseResources()
 
 } // namespace Internal
 } // namespace qbs
+
+void initializeJsExtensionBinaryFile(QScriptValue extensionObject)
+{
+    using namespace qbs::Internal;
+    QScriptEngine *engine = extensionObject.engine();
+    const QScriptValue obj = engine->newQMetaObject(&BinaryFile::staticMetaObject,
+                                                    engine->newFunction(&BinaryFile::ctor));
+    extensionObject.setProperty(QLatin1String("BinaryFile"), obj);
+}
 
 Q_DECLARE_METATYPE(qbs::Internal::BinaryFile *)
 

@@ -99,14 +99,6 @@ public:
     QByteArray writeToData(QScriptContext *context, const QString &format);
 };
 
-void initializeJsExtensionPropertyList(QScriptValue extensionObject)
-{
-    QScriptEngine *engine = extensionObject.engine();
-    QScriptValue obj = engine->newQMetaObject(&PropertyList::staticMetaObject,
-                                              engine->newFunction(&PropertyList::ctor));
-    extensionObject.setProperty(QLatin1String("PropertyList"), obj);
-}
-
 QScriptValue PropertyList::ctor(QScriptContext *context, QScriptEngine *engine)
 {
     ScriptEngine * const se = static_cast<ScriptEngine *>(engine);
@@ -366,6 +358,15 @@ QByteArray PropertyListPrivate::writeToData(QScriptContext *context, const QStri
 
 } // namespace Internal
 } // namespace qbs
+
+void initializeJsExtensionPropertyList(QScriptValue extensionObject)
+{
+    using namespace qbs::Internal;
+    QScriptEngine *engine = extensionObject.engine();
+    QScriptValue obj = engine->newQMetaObject(&PropertyList::staticMetaObject,
+                                              engine->newFunction(&PropertyList::ctor));
+    extensionObject.setProperty(QLatin1String("PropertyList"), obj);
+}
 
 Q_DECLARE_METATYPE(qbs::Internal::PropertyList *)
 

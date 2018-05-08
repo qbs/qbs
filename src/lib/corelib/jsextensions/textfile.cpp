@@ -93,14 +93,6 @@ private:
     QTextStream *m_stream;
 };
 
-void initializeJsExtensionTextFile(QScriptValue extensionObject)
-{
-    QScriptEngine *engine = extensionObject.engine();
-    QScriptValue obj = engine->newQMetaObject(&TextFile::staticMetaObject,
-                                              engine->newFunction(&TextFile::ctor));
-    extensionObject.setProperty(QLatin1String("TextFile"), obj);
-}
-
 QScriptValue TextFile::ctor(QScriptContext *context, QScriptEngine *engine)
 {
     TextFile *t;
@@ -255,6 +247,15 @@ void TextFile::releaseResources()
 
 } // namespace Internal
 } // namespace qbs
+
+void initializeJsExtensionTextFile(QScriptValue extensionObject)
+{
+    using namespace qbs::Internal;
+    QScriptEngine *engine = extensionObject.engine();
+    QScriptValue obj = engine->newQMetaObject(&TextFile::staticMetaObject,
+                                              engine->newFunction(&TextFile::ctor));
+    extensionObject.setProperty(QLatin1String("TextFile"), obj);
+}
 
 Q_DECLARE_METATYPE(qbs::Internal::TextFile *)
 

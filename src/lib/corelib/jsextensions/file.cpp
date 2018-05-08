@@ -95,24 +95,6 @@ public:
     static QScriptValue js_canonicalFilePath(QScriptContext *context, QScriptEngine *engine);
 };
 
-void initializeJsExtensionFile(QScriptValue extensionObject)
-{
-    QScriptEngine *engine = extensionObject.engine();
-    QScriptValue fileObj = engine->newQMetaObject(&File::staticMetaObject,
-                                                  engine->newFunction(&File::js_ctor));
-    fileObj.setProperty(QLatin1String("copy"), engine->newFunction(File::js_copy));
-    fileObj.setProperty(QLatin1String("exists"), engine->newFunction(File::js_exists));
-    fileObj.setProperty(QLatin1String("directoryEntries"),
-                        engine->newFunction(File::js_directoryEntries));
-    fileObj.setProperty(QLatin1String("lastModified"), engine->newFunction(File::js_lastModified));
-    fileObj.setProperty(QLatin1String("makePath"), engine->newFunction(File::js_makePath));
-    fileObj.setProperty(QLatin1String("move"), engine->newFunction(File::js_move));
-    fileObj.setProperty(QLatin1String("remove"), engine->newFunction(File::js_remove));
-    fileObj.setProperty(QLatin1String("canonicalFilePath"),
-                        engine->newFunction(File::js_canonicalFilePath));
-    extensionObject.setProperty(QLatin1String("File"), fileObj);
-}
-
 QScriptValue File::js_ctor(QScriptContext *context, QScriptEngine *engine)
 {
     Q_UNUSED(engine);
@@ -283,6 +265,25 @@ QScriptValue File::js_canonicalFilePath(QScriptContext *context, QScriptEngine *
 
 } // namespace Internal
 } // namespace qbs
+
+void initializeJsExtensionFile(QScriptValue extensionObject)
+{
+    using namespace qbs::Internal;
+    QScriptEngine *engine = extensionObject.engine();
+    QScriptValue fileObj = engine->newQMetaObject(&File::staticMetaObject,
+                                                  engine->newFunction(&File::js_ctor));
+    fileObj.setProperty(QLatin1String("copy"), engine->newFunction(File::js_copy));
+    fileObj.setProperty(QLatin1String("exists"), engine->newFunction(File::js_exists));
+    fileObj.setProperty(QLatin1String("directoryEntries"),
+                        engine->newFunction(File::js_directoryEntries));
+    fileObj.setProperty(QLatin1String("lastModified"), engine->newFunction(File::js_lastModified));
+    fileObj.setProperty(QLatin1String("makePath"), engine->newFunction(File::js_makePath));
+    fileObj.setProperty(QLatin1String("move"), engine->newFunction(File::js_move));
+    fileObj.setProperty(QLatin1String("remove"), engine->newFunction(File::js_remove));
+    fileObj.setProperty(QLatin1String("canonicalFilePath"),
+                        engine->newFunction(File::js_canonicalFilePath));
+    extensionObject.setProperty(QLatin1String("File"), fileObj);
+}
 
 Q_DECLARE_METATYPE(qbs::Internal::File *)
 
