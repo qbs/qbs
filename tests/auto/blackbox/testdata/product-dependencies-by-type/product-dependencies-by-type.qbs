@@ -79,5 +79,9 @@ Project {
                 }
             }
         }
+        Product {
+            name: "dummy"
+            Depends { productTypes: [] }
+        }
     }
 }

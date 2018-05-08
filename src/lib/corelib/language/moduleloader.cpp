@@ -1147,7 +1147,6 @@ void ModuleLoader::setupProductDependencies(ProductContext *productContext)
 {
     if (m_dependencyResolvingPass == 2) {
         normalizeDependencies(*productContext);
-        QBS_CHECK(!productContext->deferredDependsItems.empty());
         for (Item * const deferredDependsItem : productContext->deferredDependsItems)
             adjustDependenciesForMultiplexing(*productContext, deferredDependsItem);
     }
