@@ -327,7 +327,7 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
     Item *root;
     {
         SearchPathsManager searchPathsManager(m_reader, topLevelSearchPaths);
-        root = loadItemFromFile(parameters.projectFilePath());
+        root = loadItemFromFile(parameters.projectFilePath(), CodeLocation());
         if (!root)
             return ModuleLoaderResult();
     }
@@ -1473,7 +1473,7 @@ void ModuleLoader::handleSubProject(ModuleLoader::ProjectContext *projectContext
         if (referencedFilePaths.contains(subProjectFilePath))
             throw ErrorInfo(Tr::tr("Cycle detected while loading subproject file '%1'.")
                             .arg(relativeFilePath), projectItem->location());
-        loadedItem = loadItemFromFile(subProjectFilePath);
+        loadedItem = loadItemFromFile(subProjectFilePath, projectItem->location());
     } catch (const ErrorInfo &error) {
         if (m_parameters.productErrorMode() == ErrorHandlingMode::Strict)
             throw;
@@ -1528,7 +1528,7 @@ QList<Item *> ModuleLoader::loadReferencedFile(const QString &relativePath,
     if (referencedFilePaths.contains(absReferencePath))
         throw ErrorInfo(Tr::tr("Cycle detected while referencing file '%1'.").arg(relativePath),
                         referencingLocation);
-    Item * const subItem = loadItemFromFile(absReferencePath);
+    Item * const subItem = loadItemFromFile(absReferencePath, referencingLocation);
     if (subItem->type() != ItemType::Project && subItem->type() != ItemType::Product) {
         ErrorInfo error(Tr::tr("Item type should be 'Product' or 'Project', but is '%1'.")
                         .arg(subItem->typeName()));
@@ -1863,9 +1863,17 @@ bool ModuleLoader::mergeExportItems(const ProductContext &productContext)
     return exportItems.size() > 0;
 }
 
-Item *ModuleLoader::loadItemFromFile(const QString &filePath)
+Item *ModuleLoader::loadItemFromFile(const QString &filePath,
+                                     const CodeLocation &referencingLocation)
 {
-    Item * const item = m_reader->readFile(filePath);
+    Item *item;
+    try {
+        item = m_reader->readFile(filePath);
+    } catch (const ErrorInfo &e) {
+        if (e.hasLocation())
+            throw;
+        throw ErrorInfo(e.toString(), referencingLocation);
+    }
     handleAllPropertyOptionsItems(item);
     return item;
 }
@@ -2997,7 +3005,7 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
         qCDebug(lcModuleLoader) << "loadModuleFile cache hit";
         return cacheValue.enabled ? cacheValue.module : 0;
     }
-    Item * const module = loadItemFromFile(filePath);
+    Item * const module = loadItemFromFile(filePath, CodeLocation());
     if (module->type() != ItemType::Module) {
         qCDebug(lcModuleLoader).nospace()
                             << "Alleged module " << fullModuleName << " has type '"

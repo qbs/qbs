@@ -339,7 +339,7 @@ private:
     void printProfilingInfo();
     void handleProductError(const ErrorInfo &error, ProductContext *productContext);
     QualifiedIdSet gatherModulePropertiesSetInGroup(const Item *group);
-    Item *loadItemFromFile(const QString &filePath);
+    Item *loadItemFromFile(const QString &filePath, const CodeLocation &referencingLocation);
     void collectProductsByName(const TopLevelProjectContext &topLevelProject);
     void collectProductsByType(const TopLevelProjectContext &topLevelProject);
 

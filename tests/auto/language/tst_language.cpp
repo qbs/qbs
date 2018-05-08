@@ -837,6 +837,8 @@ void TestLanguage::erroneousFiles_data()
             << "mismatching-multiplex-dependency.qbs:9:5.*Dependency from product "
                "'b \\{\"architecture\":\"mips\"\\}' to product 'a \\{\"architecture\":\"mips\"\\}'"
                " not fulfilled.";
+    QTest::newRow("invalid-references")
+            << "invalid-references.qbs:4:17.*Cannot open '.*nosuchproject.qbs'";
 }
 
 void TestLanguage::erroneousFiles()
