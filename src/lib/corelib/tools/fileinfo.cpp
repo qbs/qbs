@@ -339,7 +339,7 @@ FileTime FileInfo::lastStatusChange() const
 
 bool FileInfo::isDir() const
 {
-    return z(m_stat)->dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY;
+    return exists() && z(m_stat)->dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY;
 }
 
 static QString resolveSymlinks(const QString &fileName)
