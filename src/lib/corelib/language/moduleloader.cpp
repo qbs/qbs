@@ -3025,7 +3025,6 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
     // Module properties that are defined in the profile are used as default values.
     const QVariantMap profileModuleProperties
             = productContext->moduleProperties.value(fullModuleName).toMap();
-    QList<ErrorInfo> unknownProfilePropertyErrors;
     for (QVariantMap::const_iterator vmit = profileModuleProperties.begin();
             vmit != profileModuleProperties.end(); ++vmit)
     {
