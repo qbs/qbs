@@ -278,7 +278,8 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
                                           parameters.logElapsedTime());
     qCDebug(lcModuleLoader) << "load" << parameters.projectFilePath();
     m_parameters = parameters;
-    m_modulePrototypeItemCache.clear();
+    m_modulePrototypes.clear();
+    m_modulePrototypeEnabledInfo.clear();
     m_parameterDeclarations.clear();
     m_disabledItems.clear();
     m_reader->clearExtraSearchPathsStack();
@@ -3012,21 +3013,20 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
 
     qCDebug(lcModuleLoader) << "loadModuleFile" << fullModuleName << "from" << filePath;
 
-    const QString keyUniquifier = productContext->multiplexConfigIdForModulePrototypes.isEmpty()
-            ? productContext->profileName : productContext->multiplexConfigIdForModulePrototypes;
-    const ModuleItemCache::key_type cacheKey(filePath, keyUniquifier);
-    const ItemCacheValue cacheValue = m_modulePrototypeItemCache.value(cacheKey);
-    if (cacheValue.module) {
-        qCDebug(lcModuleLoader) << "loadModuleFile cache hit";
-        return cacheValue.enabled ? cacheValue.module : 0;
-    }
-    Item * const module = loadItemFromFile(filePath, CodeLocation());
-    if (module->type() != ItemType::Module) {
-        qCDebug(lcModuleLoader).nospace()
-                            << "Alleged module " << fullModuleName << " has type '"
-                            << module->typeName() << "', so it's not a module after all.";
-        *triedToLoad = false;
+    Item * const module = getModulePrototype(productContext, fullModuleName, filePath, triedToLoad);
+    if (!module)
         return nullptr;
+
+    auto &conditionInfoList = m_modulePrototypeEnabledInfo[module];
+
+    // TODO: This is not good enough. qbs properties can differ independent of multiplexing.
+    const QString uniqueConfigKey = productContext->multiplexConfigIdForModulePrototypes;
+
+    for (const auto &conditionInfo : conditionInfoList) {
+        if (conditionInfo.first == uniqueConfigKey) {
+            qCDebug(lcModuleLoader) << "prototype cache hit (level 2)";
+            return conditionInfo.second ? module : nullptr;
+        }
     }
 
     // Set the name before evaluating any properties. EvaluatorScriptClass reads the module name.
@@ -3037,7 +3037,48 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
         loadBaseModule(productContext, module);
     }
 
+    Item *deepestModuleInstance = findDeepestModuleInstance(moduleInstance);
+    Item *origDeepestModuleInstancePrototype = deepestModuleInstance->prototype();
+    deepestModuleInstance->setPrototype(module);
+    bool enabled = checkItemCondition(moduleInstance, module);
+    deepestModuleInstance->setPrototype(origDeepestModuleInstancePrototype);
+    if (!enabled) {
+        qCDebug(lcModuleLoader) << "condition of module" << fullModuleName << "is false";
+        conditionInfoList.push_back(std::make_pair(uniqueConfigKey, false));
+        return nullptr;
+    }
+
+    if (isBaseModule)
+        setupBaseModulePrototype(module);
+    else
+        resolveParameterDeclarations(module);
+
+    conditionInfoList.push_back(std::make_pair(uniqueConfigKey, true));
+    return module;
+}
+
+Item *ModuleLoader::getModulePrototype(ProductContext *productContext,
+        const QString &fullModuleName, const QString &filePath, bool *triedToLoad)
+{
+    auto &prototypeList = m_modulePrototypes[filePath];
+    for (const auto &prototype : prototypeList) {
+        if (prototype.second == productContext->profileName) {
+            qCDebug(lcModuleLoader) << "prototype cache hit (level 1)";
+            return prototype.first;
+        }
+    }
+    Item * const module = loadItemFromFile(filePath, CodeLocation());
+    prototypeList.push_back(std::make_pair(module, productContext->profileName));
+    if (module->type() != ItemType::Module) {
+        qCDebug(lcModuleLoader).nospace()
+                            << "Alleged module " << fullModuleName << " has type '"
+                            << module->typeName() << "', so it's not a module after all.";
+        *triedToLoad = false;
+        return nullptr;
+    }
+
     // Module properties that are defined in the profile are used as default values.
+    // This is the reason we need to have different items per profile.
     const QVariantMap profileModuleProperties
             = productContext->moduleProperties.value(fullModuleName).toMap();
     for (QVariantMap::const_iterator vmit = profileModuleProperties.begin();
@@ -3054,25 +3095,6 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
         module->setProperty(vmit.key(), v);
     }
 
-    // Check the condition last in case the condition needs to evaluate other properties that were
-    // set by the profile
-    Item *deepestModuleInstance = findDeepestModuleInstance(moduleInstance);
-    Item *origDeepestModuleInstancePrototype = deepestModuleInstance->prototype();
-    deepestModuleInstance->setPrototype(module);
-    bool enabled = checkItemCondition(moduleInstance, module);
-    deepestModuleInstance->setPrototype(origDeepestModuleInstancePrototype);
-    if (!enabled) {
-        qCDebug(lcModuleLoader) << "condition of module" << fullModuleName << "is false";
-        m_modulePrototypeItemCache.insert(cacheKey, ItemCacheValue(module, false));
-        return nullptr;
-    }
-
-    if (isBaseModule)
-        setupBaseModulePrototype(module);
-    else
-        resolveParameterDeclarations(module);
-
-    m_modulePrototypeItemCache.insert(cacheKey, ItemCacheValue(module, true));
     return module;
 }
 

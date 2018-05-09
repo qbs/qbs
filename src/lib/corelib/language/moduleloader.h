@@ -46,6 +46,7 @@
 #include "itempool.h"
 #include <logging/logger.h>
 #include <tools/filetime.h>
+#include <tools/qttools.h>
 #include <tools/set.h>
 #include <tools/setupprojectparameters.h>
 #include <tools/version.h>
@@ -133,14 +134,6 @@ public:
 
 private:
     class ProductSortByDependencies;
-    struct ItemCacheValue {
-        explicit ItemCacheValue(Item *module = 0, bool enabled = false)
-            : module(module), enabled(enabled) {}
-        Item *module;
-        bool enabled;
-    };
-
-    typedef QMap<std::pair<QString, QString>, ItemCacheValue> ModuleItemCache;
 
     class ContextBase
     {
@@ -293,6 +286,8 @@ private:
             bool isRequired, Item *moduleInstance);
     Item *loadModuleFile(ProductContext *productContext, const QString &fullModuleName,
             bool isBaseModule, const QString &filePath, bool *triedToLoad, Item *moduleInstance);
+    Item *getModulePrototype(ProductContext *productContext, const QString &fullModuleName,
+                             const QString &filePath, bool *triedToLoad);
     Item::Module loadBaseModule(ProductContext *productContext, Item *item);
     void setupBaseModulePrototype(Item *prototype);
     template <typename T, typename F>
@@ -361,7 +356,14 @@ private:
     ItemReader *m_reader;
     Evaluator *m_evaluator;
     QMap<QString, QStringList> m_moduleDirListCache;
-    ModuleItemCache m_modulePrototypeItemCache;
+
+    // The keys are file paths, the values are module prototype items accompanied by a profile.
+    std::unordered_map<QString, std::vector<std::pair<Item *, QString>>> m_modulePrototypes;
+
+    // The keys are module prototypes, the values specify whether the module's condition
+    // is true for the respective configuration.
+    std::unordered_map<Item *, std::vector<std::pair<QString, bool>>> m_modulePrototypeEnabledInfo;
+
     QHash<const Item *, Item::PropertyDeclarationMap> m_parameterDeclarations;
     Set<Item *> m_disabledItems;
     std::vector<bool> m_requiredChain;
