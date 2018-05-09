@@ -115,7 +115,11 @@ function setupRunEnvironment(product, config)
 
     var runPaths = product.cpp ? product.cpp.systemRunPaths : undefined;
     if (runPaths && runPaths.length > 0) {
-        var filterFunc = function(p) { return !runPaths.contains(p); };
+        var canonicalRunPaths = runPaths.map(function(p) { return File.canonicalFilePath(p); });
+        var filterFunc = function(libPath) {
+            return !runPaths.contains(libPath)
+                    && !canonicalRunPaths.contains(File.canonicalFilePath(libPath));
+        };
         libPaths = libPaths.filter(filterFunc);
         frameworkPaths = frameworkPaths.filter(filterFunc);
     }
