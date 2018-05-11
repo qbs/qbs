@@ -4138,6 +4138,13 @@ void TestBlackbox::multipleConfigurations()
     QCOMPARE(m_qbsStdout.count("compiling main.cpp"), 3);
 }
 
+void TestBlackbox::multiplexedTool()
+{
+    QDir::setCurrent(testDataDir + "/multiplexed-tool");
+    QCOMPARE(runQbs(), 0);
+    QCOMPARE(m_qbsStdout.count("creating tool.out"), 4);
+}
+
 void TestBlackbox::nestedGroups()
 {
     QDir::setCurrent(testDataDir + "/nested-groups");

@@ -997,13 +997,18 @@ void ModuleLoader::adjustDependenciesForMultiplexing(const ProductContext &produ
         QBS_CHECK(!productIsMultiplexed); // This product must be an aggregator.
         return;
     }
+
+    bool profilesPropertyIsSet;
+    const QStringList profiles = m_evaluator->stringListValue(dependsItem,
+            StringConstants::profilesProperty(), &profilesPropertyIsSet);
+
     const auto productRange = m_productsByName.equal_range(name);
     std::vector<const ProductContext *> dependencies;
     bool hasNonMultiplexedDependency = false;
     for (auto it = productRange.first; it != productRange.second; ++it) {
         if (!it->second->multiplexConfigurationId.isEmpty()) {
             dependencies.push_back(it->second);
-            if (productIsMultiplexed)
+            if (productIsMultiplexed && !profilesPropertyIsSet)
                 break;
         } else {
             hasNonMultiplexedDependency = true;
@@ -1040,15 +1045,19 @@ void ModuleLoader::adjustDependenciesForMultiplexing(const ProductContext &produ
             multiplexIds.clear();
             break;
         }
-        if (productIsMultiplexed) { // (2)
+        if (productIsMultiplexed && !profilesPropertyIsSet) { // (2)
             const ValuePtr &multiplexId = product.item->property(
                         StringConstants::multiplexConfigurationIdProperty());
             dependsItem->setProperty(StringConstants::multiplexConfigurationIdsProperty(),
                                      multiplexId);
             break;
         }
-        // (3b)
-        multiplexIds << depMultiplexId;
+
+        // (3b) (or (2) if Depends.profiles is set).
+        const bool profileMatch = !profilesPropertyIsSet || profiles.empty()
+                || profiles.contains(dependency->profileName);
+        if (profileMatch)
+            multiplexIds << depMultiplexId;
     }
     if (!multiplexIds.empty()) {
         dependsItem->setProperty(StringConstants::multiplexConfigurationIdsProperty(),
@@ -3543,7 +3552,7 @@ void ModuleLoader::addProductModuleDependencies(ProductContext *productContext,
                                                 const Item::Module &module)
 {
     auto deps = productContext->productModuleDependencies.at(module.name.toString());
-    QList<ModuleLoaderResult::ProductInfo::Dependency> additionalDependencies;
+    QList<ModuleLoaderResult::ProductInfo::Dependency> depsToAdd;
     const bool productIsMultiplexed = !productContext->multiplexConfigurationId.isEmpty();
     for (auto &dep : deps) {
         const auto productRange = m_productsByName.equal_range(dep.name);
@@ -3552,7 +3561,7 @@ void ModuleLoader::addProductModuleDependencies(ProductContext *productContext,
         for (auto it = productRange.first; it != productRange.second; ++it) {
             if (!it->second->multiplexConfigurationId.isEmpty()) {
                 dependencies.push_back(it->second);
-                if (productIsMultiplexed)
+                if (productIsMultiplexed && dep.profile.isEmpty())
                     break;
             } else {
                 hasNonMultiplexedDependency = true;
@@ -3560,32 +3569,37 @@ void ModuleLoader::addProductModuleDependencies(ProductContext *productContext,
             }
         }
 
-        if (!productIsMultiplexed && hasNonMultiplexedDependency)
+        if (hasNonMultiplexedDependency) {
+            depsToAdd.push_back(dep);
             continue;
+        }
 
         for (std::size_t i = 0; i < dependencies.size(); ++i) {
+            const bool profileMatch = dep.profile.isEmpty()
+                    || dep.profile == StringConstants::star()
+                    || dep.profile == dependencies.at(i)->profileName;
             if (i == 0) {
-                if (productIsMultiplexed) {
+                if (productIsMultiplexed && dep.profile.isEmpty()) {
                     const ValuePtr &multiplexConfigIdProp = productContext->item->property(
                                 StringConstants::multiplexConfigurationIdProperty());
                     dep.multiplexConfigurationId = std::static_pointer_cast<VariantValue>(
                                 multiplexConfigIdProp)->value().toString();
+                    depsToAdd.push_back(dep);
                     break;
-                } else {
+                } else if (profileMatch) {
                     dep.multiplexConfigurationId = dependencies.at(i)->multiplexConfigurationId;
+                    depsToAdd.push_back(dep);
                 }
-            } else {
+            } else if (profileMatch) {
                 ModuleLoaderResult::ProductInfo::Dependency newDependency = dep;
                 newDependency.multiplexConfigurationId
                         = dependencies.at(i)->multiplexConfigurationId;
-                additionalDependencies << newDependency;
+                depsToAdd << newDependency;
             }
         }
     }
     productContext->info.usedProducts.insert(productContext->info.usedProducts.end(),
-                deps.cbegin(), deps.cend());
-    productContext->info.usedProducts.insert(productContext->info.usedProducts.end(),
-                additionalDependencies.cbegin(), additionalDependencies.cend());
+                depsToAdd.cbegin(), depsToAdd.cend());
 }
 
 void ModuleLoader::addTransitiveDependencies(ProductContext *ctx)

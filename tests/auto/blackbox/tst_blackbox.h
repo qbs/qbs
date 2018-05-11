@@ -168,6 +168,7 @@ private slots:
     void movedFileDependency();
     void multipleChanges();
     void multipleConfigurations();
+    void multiplexedTool();
     void nestedGroups();
     void nestedProperties();
     void newOutputArtifact();
