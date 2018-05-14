@@ -2439,17 +2439,23 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
         m_productsWithDeferredDependsItems.insert(dependsContext->product);
         return;
     }
-    for (const QualifiedId &moduleName : qAsConst(moduleNames)) {
-        const bool isRequired = !productTypesIsSet
-                && m_evaluator->boolValue(dependsItem, StringConstants::requiredProperty())
-                && !contains(m_requiredChain, false);
-        const Version minVersion = Version::fromString(
-                    m_evaluator->stringValue(dependsItem,
-                                             StringConstants::versionAtLeastProperty()));
-        const Version maxVersion = Version::fromString(
-                    m_evaluator->stringValue(dependsItem, StringConstants::versionBelowProperty()));
-        const VersionRange versionRange(minVersion, maxVersion);
 
+    const bool isRequired = !productTypesIsSet
+            && m_evaluator->boolValue(dependsItem, StringConstants::requiredProperty())
+            && !contains(m_requiredChain, false);
+    const Version minVersion = Version::fromString(
+                m_evaluator->stringValue(dependsItem,
+                                         StringConstants::versionAtLeastProperty()));
+    const Version maxVersion = Version::fromString(
+                m_evaluator->stringValue(dependsItem, StringConstants::versionBelowProperty()));
+    const VersionRange versionRange(minVersion, maxVersion);
+    QStringList multiplexConfigurationIds = m_evaluator->stringListValue(
+                dependsItem,
+                StringConstants::multiplexConfigurationIdsProperty());
+    if (multiplexConfigurationIds.empty())
+        multiplexConfigurationIds << QString();
+
+    for (const QualifiedId &moduleName : qAsConst(moduleNames)) {
         // Don't load the same module twice. Duplicate Depends statements can easily
         // happen due to inheritance.
         const auto it = std::find_if(moduleResults->begin(), moduleResults->end(),
@@ -2462,11 +2468,6 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
         }
 
         QVariantMap defaultParameters;
-        QStringList multiplexConfigurationIds = m_evaluator->stringListValue(
-                    dependsItem,
-                    StringConstants::multiplexConfigurationIdsProperty());
-        if (multiplexConfigurationIds.empty())
-            multiplexConfigurationIds << QString();
         Item *moduleItem = loadModule(dependsContext->product, dependsContext->exportingProductItem,
                                       parentItem, dependsItem->location(), dependsItem->id(),
                                       moduleName, multiplexConfigurationIds.first(), isRequired,
