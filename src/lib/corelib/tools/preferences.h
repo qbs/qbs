@@ -42,6 +42,7 @@
 #include "qbs_export.h"
 
 #include "commandechomode.h"
+#include "settings.h"
 
 #include <QtCore/qstringlist.h>
 #include <QtCore/qvariant.h>
@@ -66,6 +67,9 @@ public:
 private:
     QVariant getPreference(const QString &key, const QVariant &defaultValue = QVariant()) const;
     QStringList pathList(const QString &key, const QString &defaultValue) const;
+
+    bool ignoreSystemSearchPaths() const;
+    Settings::Scopes scopesForSearchPaths() const;
 
     Settings *m_settings;
     QString m_profile;

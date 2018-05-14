@@ -41,6 +41,8 @@
 
 #include "configcommand.h"
 
+#include <tools/settings.h>
+
 #include <QtCore/qstringlist.h>
 
 class ConfigCommandLineParser
@@ -50,15 +52,27 @@ public:
 
     ConfigCommand command() const { return m_command; }
 
+    qbs::Settings::Scopes scope() const { return m_scope; }
     QString settingsDir() const { return m_settingsDir; }
     bool helpRequested() const { return m_helpRequested; }
     void printUsage() const;
 
+    class Error
+    {
+    public:
+        Error(const QString &message) : m_message(message) { }
+        QString message() const { return m_message; }
+    private:
+        QString m_message;
+    };
+
 private:
     void assignOptionArgument(const QString &option, QString &argument);
     void setCommand(ConfigCommand::Command command);
+    void setScope(qbs::Settings::Scope scope);
 
     ConfigCommand m_command;
+    qbs::Settings::Scopes m_scope = qbs::Settings::allScopes();
     bool m_helpRequested;
     QString m_settingsDir;
     QStringList m_commandLine;

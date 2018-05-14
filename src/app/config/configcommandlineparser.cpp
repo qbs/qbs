@@ -54,7 +54,7 @@ void ConfigCommandLineParser::parse(const QStringList &commandLine)
 
     m_commandLine = commandLine;
     if (m_commandLine.empty())
-        throw ErrorInfo(Tr::tr("No parameters supplied."));
+        throw Error(Tr::tr("No parameters supplied."));
     if (m_commandLine.size() == 1 && (m_commandLine.front() == QLatin1String("--help")
                                       || m_commandLine.front() == QLatin1String("-h"))) {
         m_helpRequested = true;
@@ -73,16 +73,20 @@ void ConfigCommandLineParser::parse(const QStringList &commandLine)
             setCommand(ConfigCommand::CfgImport);
         else if (arg == QLatin1String("settings-dir"))
             assignOptionArgument(arg, m_settingsDir);
+        else if (arg == QLatin1String("user"))
+            setScope(qbs::Settings::UserScope);
+        else if (arg == QLatin1String("system"))
+            setScope(qbs::Settings::SystemScope);
         else
-            throw ErrorInfo(Tr::tr("Unknown option for config command."));
+            throw Error(Tr::tr("Unknown option for config command."));
     }
 
     switch (command().command) {
     case ConfigCommand::CfgNone:
         if (m_commandLine.empty())
-            throw ErrorInfo(Tr::tr("No parameters supplied."));
+            throw Error(Tr::tr("No parameters supplied."));
         if (m_commandLine.size() > 2)
-            throw ErrorInfo(Tr::tr("Too many arguments."));
+            throw Error(Tr::tr("Too many arguments."));
         m_command.varNames << m_commandLine.front();
         if (m_commandLine.size() == 1) {
             setCommand(ConfigCommand::CfgList);
@@ -93,17 +97,17 @@ void ConfigCommandLineParser::parse(const QStringList &commandLine)
         break;
     case ConfigCommand::CfgUnset:
         if (m_commandLine.empty())
-            throw ErrorInfo(Tr::tr("Need name of variable to unset."));
+            throw Error(Tr::tr("Need name of variable to unset."));
         m_command.varNames = m_commandLine;
         break;
     case ConfigCommand::CfgExport:
         if (m_commandLine.size() != 1)
-            throw ErrorInfo(Tr::tr("Need name of file to which to export."));
+            throw Error(Tr::tr("Need name of file to which to export."));
         m_command.fileName = m_commandLine.front();
         break;
     case ConfigCommand::CfgImport:
         if (m_commandLine.size() != 1)
-            throw ErrorInfo(Tr::tr("Need name of file from which to import."));
+            throw Error(Tr::tr("Need name of file from which to import."));
         m_command.fileName = m_commandLine.front();
         break;
     case ConfigCommand::CfgList:
@@ -117,8 +121,15 @@ void ConfigCommandLineParser::parse(const QStringList &commandLine)
 void ConfigCommandLineParser::setCommand(ConfigCommand::Command command)
 {
     if (m_command.command != ConfigCommand::CfgNone)
-        throw ErrorInfo(Tr::tr("You cannot specify more than one command."));
+        throw Error(Tr::tr("You cannot specify more than one command."));
     m_command.command = command;
+}
+
+void ConfigCommandLineParser::setScope(Settings::Scope scope)
+{
+    if (m_scope != qbs::Settings::allScopes())
+        throw Error(Tr::tr("The --user and --system options can only appear once."));
+    m_scope = scope;
 }
 
 void ConfigCommandLineParser::printUsage() const
@@ -130,6 +141,8 @@ void ConfigCommandLineParser::printUsage() const
         "\n"
          "Options:\n"
          "    --list [<root> ...] list keys under key <root> or all keys\n"
+         "    --user              consider only user-level settings\n"
+         "    --system            consider only system-level settings\n"
          "    --unset <name>      remove key with given name\n"
          "    --import <file>     import settings from given file\n"
          "    --export <file>     export settings to given file\n");
@@ -138,8 +151,8 @@ void ConfigCommandLineParser::printUsage() const
 void ConfigCommandLineParser::assignOptionArgument(const QString &option, QString &argument)
 {
     if (m_commandLine.empty())
-        throw ErrorInfo(Tr::tr("Option '%1' needs an argument.").arg(option));
+        throw Error(Tr::tr("Option '%1' needs an argument.").arg(option));
     argument = m_commandLine.takeFirst();
     if (argument.isEmpty())
-        throw ErrorInfo(Tr::tr("Argument for option '%1' must not be empty.").arg(option));
+        throw Error(Tr::tr("Argument for option '%1' must not be empty.").arg(option));
 }

@@ -205,6 +205,7 @@ private slots:
     void properQuoting();
     void propertiesInExportItems();
     void pseudoMultiplexing();
+    void qbsConfig();
     void qbsVersion();
     void qtBug51237();
     void radAfterIncompleteBuild();

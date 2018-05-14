@@ -64,10 +64,13 @@ int main(int argc, char *argv[])
             return EXIT_SUCCESS;
         }
         Settings settings(parser.settingsDir());
-        ConfigCommandExecutor(&settings).execute(parser.command());
+        ConfigCommandExecutor(&settings, parser.scope()).execute(parser.command());
+    } catch (const ConfigCommandLineParser::Error &e) {
+        std::cerr << qPrintable(e.message()) << std::endl;
+        parser.printUsage();
+        return EXIT_FAILURE;
     } catch (const qbs::ErrorInfo &e) {
         std::cerr << qPrintable(e.toString()) << std::endl;
-        parser.printUsage();
         return EXIT_FAILURE;
     }
 }

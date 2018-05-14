@@ -68,6 +68,7 @@ int main(int argc, char *argv[])
         }
 
         Settings settings(clParser.settingsDir());
+        settings.setScopeForWriting(clParser.settingsScope());
 
         if (clParser.autoDetectionMode()) {
             // search all Qt's in path and dump their settings

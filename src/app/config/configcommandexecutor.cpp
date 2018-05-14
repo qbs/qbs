@@ -52,8 +52,11 @@
 
 using namespace qbs;
 
-ConfigCommandExecutor::ConfigCommandExecutor(Settings *settings) : m_settings(settings)
+ConfigCommandExecutor::ConfigCommandExecutor(Settings *settings, Settings::Scopes scope)
+    : m_settings(settings), m_scope(scope)
 {
+    if (m_scope == qbs::Settings::SystemScope)
+        m_settings->setScopeForWriting(qbs::Settings::SystemScope);
 }
 
 void ConfigCommandExecutor::execute(const ConfigCommand &command)
@@ -94,15 +97,15 @@ void ConfigCommandExecutor::setValue(const QString &key, const QString &rawInput
 void ConfigCommandExecutor::printSettings(const ConfigCommand &command)
 {
     if (command.varNames.empty()) {
-        const auto keys = m_settings->allKeys();
+        const auto keys = m_settings->allKeys(m_scope);
         for (const QString &key : keys)
             printOneSetting(key);
     } else {
         for (const QString &parentKey : command.varNames) {
-            if (m_settings->value(parentKey).isValid()) { // Key is a leaf.
+            if (m_settings->value(parentKey, m_scope).isValid()) { // Key is a leaf.
                 printOneSetting(parentKey);
             } else {                                     // Key is a node.
-                const auto keys = m_settings->allKeysWithPrefix(parentKey);
+                const auto keys = m_settings->allKeysWithPrefix(parentKey, m_scope);
                 for (const QString &key : keys)
                     printOneSetting(parentKey + QLatin1Char('.') + key);
             }
@@ -113,7 +116,7 @@ void ConfigCommandExecutor::printSettings(const ConfigCommand &command)
 void ConfigCommandExecutor::printOneSetting(const QString &key)
 {
     printf("%s: %s\n", qPrintable(key),
-           qPrintable(qbs::settingsValueToRepresentation(m_settings->value(key))));
+           qPrintable(qbs::settingsValueToRepresentation(m_settings->value(key, m_scope))));
  }
 
 void ConfigCommandExecutor::exportSettings(const QString &filename)
@@ -125,9 +128,10 @@ void ConfigCommandExecutor::exportSettings(const QString &filename)
     }
     QTextStream stream(&file);
     stream.setCodec("UTF-8");
-    const auto keys = m_settings->allKeys();
+    const auto keys = m_settings->allKeys(m_scope);
     for (const QString &key : keys)
-        stream << key << ": " << qbs::settingsValueToRepresentation(m_settings->value(key)) << endl;
+        stream << key << ": " << qbs::settingsValueToRepresentation(m_settings->value(key, m_scope))
+               << endl;
 }
 
 void ConfigCommandExecutor::importSettings(const QString &filename)
@@ -138,7 +142,7 @@ void ConfigCommandExecutor::importSettings(const QString &filename)
                 .arg(QDir::toNativeSeparators(filename), file.errorString()));
     }
     // Remove all current settings
-    const auto keys = m_settings->allKeys();
+    const auto keys = m_settings->allKeys(m_scope);
     for (const QString &key : keys)
         m_settings->remove(key);
 

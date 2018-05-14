@@ -509,6 +509,10 @@
     \row    \li qbs_use_bundled_qtscript        \li Use the bundled QtScript library.
     \endtable
 
+    In addition, you can set the \c QBS_SYSTEM_SETTINGS_DIR environment variable
+    before running qmake to specify a custom location for \QBS to look for its
+    system-level settings.
+
     \section1 Using Docker
 
     A set of Docker images for developing \QBS (which are maintained by the \QBS team) is available

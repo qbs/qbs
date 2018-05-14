@@ -287,6 +287,33 @@
 
 //! [list-root]
 
+//! [config-user]
+
+    \section2 \c {--user}
+
+    Causes read operations to display only the user-level settings,
+    while the system-level settings are ignored.
+    Write operations will target the user-level settings, which is also the default.
+
+//! [config-user]
+
+//! [config-system]
+
+    \section2 \c {--system}
+
+    Read and write operations will consider only the system-level settings.
+
+//! [config-system]
+
+//! [config-ui-system]
+
+    \section2 \c {--system}
+
+    Instructs the tool to work on the system-level settings. Otherwise,
+    the user-level settings are presented.
+
+//! [config-ui-system]
+
 //! [log-level]
 
     \section2 \c {--log-level <level>}
@@ -417,6 +444,16 @@
     \note This option is not available on a Windows host.
 
 //! [show-progress]
+
+//! [setup-tools-system]
+
+    \section2 \c {--system}
+
+    If this option is given, the profile(s) created by this tool will end up
+    in the system-level settings and thus be available to all users.
+    Otherwise, they go into the user-level settings.
+
+//! [setup-tools-system]
 
 //! [type]
 

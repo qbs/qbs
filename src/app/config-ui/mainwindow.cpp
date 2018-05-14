@@ -53,11 +53,11 @@
 #include <QtWidgets/qmenubar.h>
 #include <QtWidgets/qmessagebox.h>
 
-MainWindow::MainWindow(const QString &settingsDir, QWidget *parent)
+MainWindow::MainWindow(const QString &settingsDir, qbs::Settings::Scope scope, QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    m_model = new qbs::SettingsModel(settingsDir, this);
+    m_model = new qbs::SettingsModel(settingsDir, scope, this);
     ui->treeView->setModel(m_model);
     ui->treeView->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->treeView, &QTreeView::expanded, this, &MainWindow::adjustColumns);

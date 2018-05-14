@@ -582,7 +582,8 @@ static void createModules(Profile &profile, Settings *settings,
             ? allQt4Modules(qtEnvironment)
             : allQt5Modules(profile, qtEnvironment);
     const QString profileBaseDir = QString::fromLatin1("%1/profiles/%2")
-            .arg(QFileInfo(settings->fileName()).dir().absolutePath(), profile.name());
+            .arg(QFileInfo(settings->fileName()).dir().absolutePath(),
+                 profile.name());
     const QString qbsQtModuleBaseDir = profileBaseDir + QLatin1String("/modules/Qt");
     QStringList allFiles;
     copyTemplateFile(QLatin1String("QtModule.qbs"), qbsQtModuleBaseDir, profile, qtEnvironment,

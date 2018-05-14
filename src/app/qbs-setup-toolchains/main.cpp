@@ -69,6 +69,7 @@ int main(int argc, char **argv)
             return EXIT_SUCCESS;
         }
         Settings settings(clParser.settingsDir());
+        settings.setScopeForWriting(clParser.settingsScope());
         if (clParser.autoDetectionMode()) {
             probe(&settings);
             return EXIT_SUCCESS;

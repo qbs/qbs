@@ -300,11 +300,11 @@ void TestTools::testSettingsMigration()
     if (hasOldSettings) {
         QVERIFY(QFileInfo(settings.baseDirectory() + "/qbs/" QBS_VERSION "/profiles/right.txt")
                 .exists());
-        QCOMPARE(settings.value("key").toString(),
+        QCOMPARE(settings.value("key", Settings::UserScope).toString(),
                  settings.baseDirectory() + "/qbs/" QBS_VERSION "/profilesright");
     } else {
         QVERIFY(!QFileInfo(settings.baseDirectory() + "/qbs/" QBS_VERSION "/profiles").exists());
-        QVERIFY(settings.allKeys().empty());
+        QVERIFY(settings.allKeys(Settings::UserScope).empty());
     }
 }
 
