@@ -5563,12 +5563,13 @@ void TestBlackbox::maximumCxxLanguageVersion()
 {
     QDir::setCurrent(testDataDir + "/maximum-cxx-language-version");
     QCOMPARE(runQbs(QStringList({"--command-echo-mode", "command-line"})), 0);
-    QVERIFY2(m_qbsStdout.contains("c++17") || m_qbsStdout.contains("c++latest"),
-             m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("c++17") || m_qbsStdout.contains("c++1z")
+             || m_qbsStdout.contains("c++latest"), m_qbsStdout.constData());
     QCOMPARE(runQbs(QbsRunParameters("resolve",
                                      QStringList("products.app.enableNewestModule:false"))), 0);
     QCOMPARE(runQbs(QStringList({"--command-echo-mode", "command-line"})), 0);
-    QVERIFY2(m_qbsStdout.contains("c++14"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("c++14") || m_qbsStdout.contains("c++1y"),
+             m_qbsStdout.constData());
 }
 
 void TestBlackbox::minimumSystemVersion()
