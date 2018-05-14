@@ -119,6 +119,8 @@ private slots:
     void jsExtensions();
     void jsImportUsedInMultipleScopes_data();
     void jsImportUsedInMultipleScopes();
+    void modulePrioritizationBySearchPath_data();
+    void modulePrioritizationBySearchPath();
     void moduleProperties_data();
     void moduleProperties();
     void modulePropertiesInGroups();

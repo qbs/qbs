@@ -2839,13 +2839,14 @@ Item *ModuleLoader::loadModule(ProductContext *productContext, Item *exportingPr
 
 struct PrioritizedItem
 {
-    PrioritizedItem(Item *item, int priority)
-        : item(item), priority(priority)
+    PrioritizedItem(Item *item, int priority, int searchPathIndex)
+        : item(item), priority(priority), searchPathIndex(searchPathIndex)
     {
     }
 
     Item *item = nullptr;
     int priority = 0;
+    int searchPathIndex = 0;
 };
 
 static Item *chooseModuleCandidate(const std::vector<PrioritizedItem> &candidates,
@@ -2853,13 +2854,16 @@ static Item *chooseModuleCandidate(const std::vector<PrioritizedItem> &candidate
 {
     auto maxIt = std::max_element(candidates.begin(), candidates.end(),
             [] (const PrioritizedItem &a, const PrioritizedItem &b) {
-        return a.priority < b.priority;
+        if (a.priority < b.priority)
+            return true;
+        if (a.priority > b.priority)
+            return false;
+        return a.searchPathIndex > b.searchPathIndex;
     });
 
-    int maxPriority = maxIt->priority;
     size_t nmax = std::count_if(candidates.begin(), candidates.end(),
-            [maxPriority] (const PrioritizedItem &i) {
-        return i.priority == maxPriority;
+            [maxIt] (const PrioritizedItem &i) {
+        return i.priority == maxIt->priority && i.searchPathIndex == maxIt->searchPathIndex;
     });
 
     if (nmax > 1) {
@@ -2867,7 +2871,7 @@ static Item *chooseModuleCandidate(const std::vector<PrioritizedItem> &candidate
                     .arg(moduleName));
         for (size_t i = 0; i < candidates.size(); ++i) {
             const auto candidate = candidates.at(i);
-            if (candidate.priority == maxPriority) {
+            if (candidate.priority == maxIt->priority) {
                 //: The %1 denotes the number of the candidate.
                 e.append(Tr::tr("candidate %1").arg(i + 1), candidates.at(i).item->location());
             }
@@ -2886,7 +2890,8 @@ Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
     const QString fullName = moduleName.toString();
     std::vector<PrioritizedItem> candidates;
     const QStringList &searchPaths = m_reader->allSearchPaths();
-    for (const QString &path : searchPaths) {
+    for (int i = 0; i < searchPaths.size(); ++i) {
+        const QString &path = searchPaths.at(i);
         const QString dirPath = findExistingModulePath(path, moduleName);
         if (dirPath.isEmpty())
             continue;
@@ -2903,7 +2908,7 @@ Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
             Item *module = loadModuleFile(productContext, fullName, isBaseModule(moduleName),
                                           filePath, &triedToLoadModule, moduleInstance);
             if (module)
-                candidates.emplace_back(module, 0);
+                candidates.emplace_back(module, 0, i);
             if (!triedToLoadModule)
                 m_moduleDirListCache[dirPath].removeOne(filePath);
         }

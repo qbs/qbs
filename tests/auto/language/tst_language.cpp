@@ -819,9 +819,6 @@ void TestLanguage::erroneousFiles_data()
     QTest::newRow("conflicting-module-instances")
             << "There is more than one equally prioritized candidate for module "
                "'conflicting-instances'.";
-    QTest::newRow("conflicting-module-instances-in-search-paths/project")
-            << "There is more than one equally prioritized candidate for module "
-               "'conflicting-instances'.";
     QTest::newRow("module-depends-on-product")
             << "module-with-product-dependency.qbs:4:5.*Modules cannot depend on products.";
     QTest::newRow("overwrite-inherited-readonly-property")
@@ -1484,6 +1481,43 @@ void TestLanguage::jsImportUsedInMultipleScopes()
         ResolvedProductPtr product = products.values().front();
         QVERIFY(!!product);
         QCOMPARE(product->name, expectedProductName);
+    }
+    catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QVERIFY(!exceptionCaught);
+}
+
+void TestLanguage::modulePrioritizationBySearchPath_data()
+{
+    QTest::addColumn<QStringList>("searchPaths");
+    QTest::addColumn<QString>("expectedVariant");
+    QTest::newRow("foo has priority") << QStringList{"./foo", "./bar"} << "foo";
+    QTest::newRow("bar has priority") << QStringList{"./bar", "./foo"} << "bar";
+}
+
+void TestLanguage::modulePrioritizationBySearchPath()
+{
+    QFETCH(QStringList, searchPaths);
+    QFETCH(QString, expectedVariant);
+
+    bool exceptionCaught = false;
+    try {
+        SetupProjectParameters params = defaultParameters;
+        params.setProjectFilePath(testProject("module-prioritization-by-search-path/project.qbs"));
+        params.setOverriddenValues({std::make_pair(QLatin1String("project.qbsSearchPaths"),
+                                                   searchPaths)});
+        params.expandBuildConfiguration();
+        TopLevelProjectPtr project = loader->loadProject(params);
+        QVERIFY(!!project);
+        QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+        QCOMPARE(products.size(), 1);
+        ResolvedProductPtr product = products.values().front();
+        QVERIFY(!!product);
+        const QString actualVariant = product->moduleProperties->moduleProperty
+                ("conflicting-instances", "moduleVariant").toString();
+        QCOMPARE(actualVariant, expectedVariant);
     }
     catch (const ErrorInfo &e) {
         exceptionCaught = true;
