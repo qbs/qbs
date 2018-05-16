@@ -78,6 +78,7 @@ private:
     Set<const Item *> m_seenInstancesBottomUp;
     Set<Item *> m_moduleInstanceContainers;
     bool m_required;
+    const bool m_isBaseModule;
     VersionRange m_versionRange;
 };
 

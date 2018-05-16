@@ -3091,11 +3091,6 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
     // Set the name before evaluating any properties. EvaluatorScriptClass reads the module name.
     module->setProperty(StringConstants::nameProperty(), VariantValue::create(fullModuleName));
 
-    if (!isBaseModule) {
-        // We need the base module for the Module.condition check below.
-        loadBaseModule(productContext, module);
-    }
-
     Item *deepestModuleInstance = findDeepestModuleInstance(moduleInstance);
     Item *origDeepestModuleInstancePrototype = deepestModuleInstance->prototype();
     deepestModuleInstance->setPrototype(module);

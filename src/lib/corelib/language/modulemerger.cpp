@@ -55,6 +55,7 @@ ModuleMerger::ModuleMerger(Logger &logger, Item *root, Item::Module &moduleToMer
     , m_rootItem(root)
     , m_mergedModule(moduleToMerge)
     , m_required(moduleToMerge.required)
+    , m_isBaseModule(moduleToMerge.name.first() == StringConstants::qbsModule())
     , m_versionRange(moduleToMerge.versionRange)
 {
     QBS_CHECK(moduleToMerge.item->type() == ItemType::ModuleInstance);
@@ -226,11 +227,21 @@ void ModuleMerger::insertProperties(Item::PropertyMap *dst, Item *srcItem, Prope
             for (Item::PropertyMap::const_iterator it = srcItem->properties().constBegin();
                  it != srcItem->properties().constEnd(); ++it) {
                 const ValuePtr &srcVal = it.value();
-                if (srcVal->type() != Value::JSSourceValueType)
+                if (srcVal->type() == Value::ItemValueType)
+                    continue;
+                if (it.key() == StringConstants::qbsSourceDirPropertyInternal())
                     continue;
                 const PropertyDeclaration srcDecl = srcItem->propertyDeclaration(it.key());
                 if (!srcDecl.isValid() || srcDecl.isScalar() != (type == ScalarProperties))
                     continue;
+
+                // Scalar variant values could stem from product multiplexing, in which case
+                // the merged qbs module instance needs to get that value.
+                if (srcVal->type() == Value::VariantValueType
+                        && (!srcDecl.isScalar() || !m_isBaseModule)) {
+                    continue;
+                }
+
                 ValuePtr &v = (*dst)[it.key()];
                 if (v && type == ScalarProperties)
                     continue;

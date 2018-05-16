@@ -1489,6 +1489,24 @@ void TestLanguage::jsImportUsedInMultipleScopes()
     QVERIFY(!exceptionCaught);
 }
 
+void TestLanguage::moduleMergingVariantValues()
+{
+    bool exceptionCaught = false;
+    try {
+        SetupProjectParameters params = defaultParameters;
+        params.setProjectFilePath
+                (testProject("module-merging-variant-values/module-merging-variant-values.qbs"));
+        params.expandBuildConfiguration();
+        const TopLevelProjectPtr project = loader->loadProject(params);
+        QVERIFY(!!project);
+        QCOMPARE(int(project->products.size()), 2);
+    } catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+}
+
 void TestLanguage::modulePrioritizationBySearchPath_data()
 {
     QTest::addColumn<QStringList>("searchPaths");
