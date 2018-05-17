@@ -180,6 +180,7 @@ private:
         QVariantMap moduleProperties;
         std::map<QString, ProductDependencies> productModuleDependencies;
         std::unordered_map<const Item *, std::vector<ErrorInfo>> unknownProfilePropertyErrors;
+        QStringList searchPaths;
 
         // The key corresponds to DeferredDependsContext.exportingProductItem, which is the
         // only value from that data structure that we still need here.
@@ -332,7 +333,8 @@ private:
     static void setScopeForDescendants(Item *item, Item *scope);
     void overrideItemProperties(Item *item, const QString &buildConfigKey,
                                 const QVariantMap &buildConfig);
-    void addProductModuleDependencies(ProductContext *ctx, const Item::Module &module);
+    void addProductModuleDependencies(ProductContext *ctx, const QString &name);
+    void addProductModuleDependencies(ProductContext *ctx);
     void addTransitiveDependencies(ProductContext *ctx);
     Item *createNonPresentModule(const QString &name, const QString &reason, Item *module);
     void copyGroupsFromModuleToProduct(const ProductContext &productContext,
@@ -369,6 +371,13 @@ private:
     void collectNameFromOverride(const QString &overrideString);
     void checkProjectNamesInOverrides(const TopLevelProjectContext &tlp);
     void checkProductNamesInOverrides();
+    void setSearchPathsForProduct(ProductContext *product);
+
+    Item::Modules modulesSortedByDependency(const Item *productItem);
+    void createSortedModuleList(const Item::Module &parentModule, Item::Modules &modules);
+    void collectAllModules(Item *item, std::vector<Item::Module> *modules);
+    std::vector<Item::Module> allModules(Item *item);
+    bool moduleRepresentsDisabledProduct(const Item::Module &module);
 
     using ShadowProductInfo = std::pair<bool, QString>;
     ShadowProductInfo getShadowProductInfo(const ProductContext &product) const;

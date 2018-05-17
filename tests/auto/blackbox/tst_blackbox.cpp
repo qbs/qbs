@@ -3209,9 +3209,6 @@ void TestBlackbox::exportedDependencyInDisabledProduct()
     rmDirR(relativeBuildDir());
     const QString propertyArg = "products.dep.conditionString:" + depCondition;
     QCOMPARE(runQbs(QStringList(propertyArg)), 0);
-    QEXPECT_FAIL("dependency directly disabled", "QBS-1250", Continue);
-    QEXPECT_FAIL("dependency disabled via non-present module", "QBS-1250", Continue);
-    QEXPECT_FAIL("dependency disabled via failed module", "QBS-1250", Continue);
     QCOMPARE(m_qbsStdout.contains("compiling"), compileExpected);
 }
 

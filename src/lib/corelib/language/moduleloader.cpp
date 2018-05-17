@@ -1205,17 +1205,9 @@ void ModuleLoader::setupProductDependencies(ProductContext *productContext,
     qCDebug(lcModuleLoader) << "setupProductDependencies" << productContext->name
                             << productContext->item->location();
 
-    QStringList extraSearchPaths = readExtraSearchPaths(item);
-    Settings settings(m_parameters.settingsDirectory());
-    const QVariantMap profileContents = productContext->project->result->profileConfigs
-            .value(productContext->profileName).toMap();
-    const QStringList prefsSearchPaths = Preferences(&settings, profileContents).searchPaths();
-    const QStringList &currentSearchPaths = m_reader->allSearchPaths();
-    for (const QString &p : prefsSearchPaths) {
-        if (!currentSearchPaths.contains(p) && FileInfo(p).exists())
-            extraSearchPaths << p;
-    }
-    SearchPathsManager searchPathsManager(m_reader, extraSearchPaths);
+    if (m_dependencyResolvingPass == 1)
+        setSearchPathsForProduct(productContext);
+    SearchPathsManager searchPathsManager(m_reader, productContext->searchPaths);
 
     DependsContext dependsContext;
     dependsContext.product = productContext;
@@ -1223,26 +1215,29 @@ void ModuleLoader::setupProductDependencies(ProductContext *productContext,
     resolveDependencies(&dependsContext, item, productContext);
     if (m_dependencyResolvingPass == 2
             || !containsKey(m_productsWithDeferredDependsItems, productContext)) {
-        addTransitiveDependencies(productContext);
+        addProductModuleDependencies(productContext);
     }
     productContext->project->result->productInfos.insert(item, productContext->info);
 }
 
 // Leaf modules first.
-static void createSortedModuleList(const Item::Module &parentModule, Item::Modules &modules)
+// TODO: Can this be merged with addTransitiveDependencies? Looks suspiciously similar.
+void ModuleLoader::createSortedModuleList(const Item::Module &parentModule, Item::Modules &modules)
 {
     if (std::find_if(modules.cbegin(), modules.cend(),
                      [parentModule](const Item::Module &m) { return m.name == parentModule.name;})
             != modules.cend()) {
         return;
     }
-    for (const Item::Module &dep : parentModule.item->modules())
-        createSortedModuleList(dep, modules);
+    if (!moduleRepresentsDisabledProduct(parentModule)) {
+        for (const Item::Module &dep : parentModule.item->modules())
+            createSortedModuleList(dep, modules);
+    }
     modules.push_back(parentModule);
     return;
 }
 
-static Item::Modules modulesSortedByDependency(const Item *productItem)
+Item::Modules ModuleLoader::modulesSortedByDependency(const Item *productItem)
 {
     QBS_CHECK(productItem->type() == ItemType::Product);
     Item::Modules sortedModules;
@@ -1298,6 +1293,9 @@ void ModuleLoader::handleProduct(ModuleLoader::ProductContext *productContext)
         return;
 
     Item * const item = productContext->item;
+
+    SearchPathsManager searchPathsManager(m_reader, productContext->searchPaths);
+    addTransitiveDependencies(productContext);
 
     // It is important that dependent modules are merged after their dependency, because
     // the dependent module's merger potentially needs to replace module items that were
@@ -2088,6 +2086,20 @@ void ModuleLoader::checkProductNamesInOverrides()
             handlePropertyError(Tr::tr("Unknown product '%1' in property override.")
                                 .arg(productNameInOverride), m_parameters, m_logger);
         }
+    }
+}
+
+void ModuleLoader::setSearchPathsForProduct(ModuleLoader::ProductContext *product)
+{
+    product->searchPaths = readExtraSearchPaths(product->item);
+    Settings settings(m_parameters.settingsDirectory());
+    const QVariantMap profileContents = product->project->result->profileConfigs
+            .value(product->profileName).toMap();
+    const QStringList prefsSearchPaths = Preferences(&settings, profileContents).searchPaths();
+    const QStringList &currentSearchPaths = m_reader->allSearchPaths();
+    for (const QString &p : prefsSearchPaths) {
+        if (!currentSearchPaths.contains(p) && FileInfo(p).exists())
+            product->searchPaths << p;
     }
 }
 
@@ -3606,7 +3618,7 @@ void ModuleLoader::overrideItemProperties(Item *item, const QString &buildConfig
     }
 }
 
-static void collectAllModules(Item *item, std::vector<Item::Module> *modules)
+void ModuleLoader::collectAllModules(Item *item, std::vector<Item::Module> *modules)
 {
     for (const Item::Module &m : item->modules()) {
         auto it = std::find_if(modules->begin(), modules->end(),
@@ -3619,21 +3631,35 @@ static void collectAllModules(Item *item, std::vector<Item::Module> *modules)
             continue;
         }
         modules->push_back(m);
+        if (moduleRepresentsDisabledProduct(m))
+            continue;
         collectAllModules(m.item, modules);
     }
 }
 
-static std::vector<Item::Module> allModules(Item *item)
+std::vector<Item::Module> ModuleLoader::allModules(Item *item)
 {
     std::vector<Item::Module> lst;
     collectAllModules(item, &lst);
     return lst;
 }
 
-void ModuleLoader::addProductModuleDependencies(ProductContext *productContext,
-                                                const Item::Module &module)
+bool ModuleLoader::moduleRepresentsDisabledProduct(const Item::Module &module)
 {
-    auto deps = productContext->productModuleDependencies.at(module.name.toString());
+    if (!module.isProduct)
+        return false;
+    const Item *exportItem = module.item->prototype();
+    while (exportItem && exportItem->type() != ItemType::Export)
+        exportItem = exportItem->prototype();
+    QBS_CHECK(exportItem);
+    Item * const productItem = exportItem->parent();
+    QBS_CHECK(productItem->type() == ItemType::Product);
+    return m_disabledItems.contains(productItem) || !checkItemCondition(productItem);
+}
+
+void ModuleLoader::addProductModuleDependencies(ProductContext *productContext, const QString &name)
+{
+    auto deps = productContext->productModuleDependencies.at(name);
     QList<ModuleLoaderResult::ProductInfo::Dependency> depsToAdd;
     const bool productIsMultiplexed = !productContext->multiplexConfigurationId.isEmpty();
     for (auto &dep : deps) {
@@ -3684,6 +3710,22 @@ void ModuleLoader::addProductModuleDependencies(ProductContext *productContext,
                 depsToAdd.cbegin(), depsToAdd.cend());
 }
 
+static void collectProductModuleDependencies(Item *item, Set<QualifiedId> &allDeps)
+{
+    for (const Item::Module &m : item->modules()) {
+        if (m.isProduct && allDeps.insert(m.name).second)
+            collectProductModuleDependencies(m.item, allDeps);
+    }
+}
+
+void ModuleLoader::addProductModuleDependencies(ModuleLoader::ProductContext *ctx)
+{
+    Set<QualifiedId> deps;
+    collectProductModuleDependencies(ctx->item, deps);
+    for (const QualifiedId &dep : deps)
+        addProductModuleDependencies(ctx, dep.toString());
+}
+
 void ModuleLoader::addTransitiveDependencies(ProductContext *ctx)
 {
     AccumulatingTimer timer(m_parameters.logElapsedTime()
@@ -3693,9 +3735,6 @@ void ModuleLoader::addTransitiveDependencies(ProductContext *ctx)
     std::vector<Item::Module> transitiveDeps = allModules(ctx->item);
     std::sort(transitiveDeps.begin(), transitiveDeps.end());
     for (const Item::Module &m : ctx->item->modules()) {
-        if (m.isProduct)
-            addProductModuleDependencies(ctx, m);
-
         auto it = std::lower_bound(transitiveDeps.begin(), transitiveDeps.end(), m);
         QBS_CHECK(it != transitiveDeps.end() && it->name == m.name);
         transitiveDeps.erase(it);
@@ -3703,7 +3742,6 @@ void ModuleLoader::addTransitiveDependencies(ProductContext *ctx)
     for (const Item::Module &module : qAsConst(transitiveDeps)) {
         if (module.isProduct) {
             ctx->item->addModule(module);
-            addProductModuleDependencies(ctx, module);
         } else {
             Item::Module dep;
             dep.item = loadModule(ctx, nullptr, ctx->item, ctx->item->location(), QString(),
