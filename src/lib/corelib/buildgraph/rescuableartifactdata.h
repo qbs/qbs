@@ -66,7 +66,7 @@ class QBS_AUTOTEST_EXPORT RescuableArtifactData
 public:
     template<PersistentPool::OpType opType> void completeSerializationOp(PersistentPool &pool)
     {
-        pool.serializationOp<opType>(timeStamp, children, fileDependencies,
+        pool.serializationOp<opType>(timeStamp, children, fileDependencies, knownOutOfDate,
                                      propertiesRequestedInPrepareScript,
                                      propertiesRequestedInCommands,
                                      propertiesRequestedFromArtifactInPrepareScript,
@@ -105,6 +105,7 @@ public:
     FileTime timeStamp;
     QList<ChildData> children;
     std::vector<QString> fileDependencies;
+    bool knownOutOfDate = false;
 
     // Per-Transformer data
     CommandList commands;

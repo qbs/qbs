@@ -857,6 +857,7 @@ void BuildGraphLoader::rescueOldBuildData(const ResolvedProductConstPtr &restore
         if (!newArtifact) {
             RescuableArtifactData rad;
             rad.timeStamp = oldArtifact->timestamp();
+            rad.knownOutOfDate = oldArtifact->knownOutOfDate;
             rad.fileTags = oldArtifact->fileTags();
             rad.properties = oldArtifact->properties;
             rad.commands = oldArtifact->transformer->commands;

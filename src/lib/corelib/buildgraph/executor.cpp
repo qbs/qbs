@@ -391,6 +391,11 @@ bool Executor::isUpToDate(Artifact *artifact) const
         return false;
     }
 
+    if (artifact->knownOutOfDate) {
+        qCDebug(lcUpToDateCheck) << "Explicitly marked as out of date.";
+        return false;
+    }
+
     for (Artifact *childArtifact : filterByType<Artifact>(artifact->children)) {
         QBS_CHECK(childArtifact->timestamp().isValid());
         qCDebug(lcUpToDateCheck) << "child timestamp"
@@ -564,6 +569,9 @@ void Executor::finishJob(ExecutorJob *job, bool success)
         for (Artifact * const artifact : qAsConst(transformer->outputs)) {
             if (artifact->alwaysUpdated) {
                 artifact->setTimestamp(FileTime::currentTime());
+                artifact->knownOutOfDate = false;
+                for (Artifact * const parent : artifact->parentArtifacts())
+                    parent->knownOutOfDate = true;
                 if (m_buildOptions.forceOutputCheck()
                         && !m_buildOptions.dryRun() && !FileInfo(artifact->filePath()).exists()) {
                     if (transformer->rule) {
@@ -854,6 +862,7 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = 0)
         artifact->transformer->lastPrepareScriptExecutionTime = rad.lastPrepareScriptExecutionTime;
         artifact->transformer->commandsNeedChangeTracking = true;
         artifact->setTimestamp(rad.timeStamp);
+        artifact->knownOutOfDate = artifact->knownOutOfDate || rad.knownOutOfDate;
         if (childrenAdded && !childrenToConnect.empty())
             *childrenAdded = true;
         for (const ChildArtifactData &cad : qAsConst(childrenToConnect)) {

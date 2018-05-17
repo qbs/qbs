@@ -178,6 +178,7 @@ private slots:
     void nonDefaultProduct();
     void nsis();
     void nsisDependencies();
+    void outOfDateMarking();
     void outputArtifactAutoTagging();
     void overrideProjectProperties();
     void pchChangeTracking();

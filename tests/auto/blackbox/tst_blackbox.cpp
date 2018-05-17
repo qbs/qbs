@@ -5066,6 +5066,16 @@ void TestBlackbox::nsisDependencies()
     QCOMPARE(m_qbsStdout.contains("compiling hello.nsi"), targetIsWindows);
 }
 
+void TestBlackbox::outOfDateMarking()
+{
+    QDir::setCurrent(testDataDir + "/out-of-date-marking");
+    for (int i = 0; i < 25; ++i) {
+        QCOMPARE(runQbs(), 0);
+        QVERIFY2(m_qbsStdout.contains("generating myheader.h"), qPrintable(QString::number(i)));
+        QVERIFY2(m_qbsStdout.contains("compiling main.c"), qPrintable(QString::number(i)));
+    }
+}
+
 void TestBlackbox::enableExceptions()
 {
     QFETCH(QString, file);
