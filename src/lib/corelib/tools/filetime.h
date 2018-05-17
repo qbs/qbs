@@ -45,17 +45,27 @@
 #include <QtCore/qdatastream.h>
 #include <QtCore/qdebug.h>
 
-#if defined(Q_OS_UNIX)
+#if defined(Q_OS_UNIX) && !defined(__APPLE__)
 #include <time.h>
-#define BUILD_HOST_HAS_CLOCK_GETTIME (_POSIX_C_SOURCE >= 199309L)
-#ifdef __APPLE__
-#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101200
-#define HAS_CLOCK_GETTIME BUILD_HOST_HAS_CLOCK_GETTIME
-#endif // __MAC_OS_X_VERSION_MIN_REQUIRED
-#else // __APPLE__
-#define HAS_CLOCK_GETTIME BUILD_HOST_HAS_CLOCK_GETTIME
-#endif // __APPLE__
+#define HAS_CLOCK_GETTIME (_POSIX_C_SOURCE >= 199309L)
 #endif // Q_OS_UNIX
+
+#ifdef __APPLE__
+
+#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101200
+// macOS 10.12+ ships clock_gettime.
+#else
+// We implement our own clock_gettime.
+#define APPLE_CUSTOM_CLOCK_GETTIME 1
+#endif // __MAC_OS_X_VERSION_MIN_REQUIRED
+
+// Either way we have a clock_gettime in the end.
+#define HAS_CLOCK_GETTIME 1
+
+// Apple stat struct has slightly different names for time fields.
+#define APPLE_STAT_TIMESPEC 1
+
+#endif // __APPLE__
 
 namespace qbs {
 namespace Internal {
