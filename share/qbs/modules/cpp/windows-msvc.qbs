@@ -173,9 +173,15 @@ CppModule {
         auxiliaryInputs: ["hpp"]
         explicitlyDependsOn: ["c_pch", "cpp_pch"]
 
-        Artifact {
-            fileTags: ['obj']
-            filePath: Utilities.getHash(input.baseDir) + "/" + input.fileName + ".obj"
+        outputFileTags: ["obj", "intermediate_obj"]
+        outputArtifacts: {
+            var tags = input.fileTags.contains("cpp_intermediate_object")
+                ? ["intermediate_obj"]
+                : ["obj"];
+            return [{
+                fileTags: tags,
+                filePath: Utilities.getHash(input.baseDir) + "/" + input.fileName + ".obj"
+            }];
         }
 
         prepare: {

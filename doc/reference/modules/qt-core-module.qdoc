@@ -140,6 +140,15 @@
 */
 
 /*!
+    \qmlproperty bool Qt.core::enableBigResources
+
+    Whether the Qt resource compiler is run in a two-pass fashion that supports
+    the creation of big resources.
+
+    \defaultvalue \c{false}
+*/
+
+/*!
     \qmlproperty stringList Qt.core::config
 
     Corresponds to the default value of qmake's \c CONFIG variable.

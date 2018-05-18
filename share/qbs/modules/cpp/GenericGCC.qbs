@@ -581,9 +581,13 @@ CppModule {
         auxiliaryInputs: ["hpp"]
         explicitlyDependsOn: ["c_pch", "cpp_pch", "objc_pch", "objcpp_pch"]
 
-        outputFileTags: ["obj", "c_obj", "cpp_obj"]
+        outputFileTags: ["obj", "c_obj", "cpp_obj", "intermediate_obj"]
         outputArtifacts: {
-            var tags = ["obj"];
+            var tags;
+            if (input.fileTags.contains("cpp_intermediate_object"))
+                tags = ["intermediate_obj"];
+            else
+                tags = ["obj"];
             if (inputs.c || inputs.objc)
                 tags.push("c_obj");
             if (inputs.cpp || inputs.objcpp)

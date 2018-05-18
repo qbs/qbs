@@ -98,6 +98,18 @@ static QScriptValue js_baseDir(QScriptContext *ctx, QScriptEngine *engine,
     return basedir;
 }
 
+static QScriptValue js_children(QScriptContext *ctx, QScriptEngine *engine, const Artifact *artifact)
+{
+    Q_UNUSED(ctx);
+    QScriptValue sv = engine->newArray();
+    uint idx = 0;
+    for (const Artifact *parent : artifact->childArtifacts()) {
+        sv.setProperty(idx++, Transformer::translateFileConfig(static_cast<ScriptEngine *>(engine),
+                                                               parent, QString()));
+    }
+    return sv;
+}
+
 static void setArtifactProperty(QScriptValue &obj, const QString &name,
         QScriptValue (*func)(QScriptContext *, QScriptEngine *, const Artifact *),
         const Artifact *artifact)
@@ -118,6 +130,7 @@ QScriptValue Transformer::translateFileConfig(ScriptEngine *scriptEngine, const 
     setArtifactProperty(obj, StringConstants::completeBaseNameProperty(), js_completeBaseName,
                         artifact);
     setArtifactProperty(obj, QStringLiteral("baseDir"), js_baseDir, artifact);
+    setArtifactProperty(obj, QStringLiteral("children"), js_children, artifact);
     const QStringList fileTags = sorted(artifact->fileTags().toStringList());
     scriptEngine->setObservedProperty(obj, StringConstants::fileTagsProperty(),
                                       scriptEngine->toScriptValue(fileTags));

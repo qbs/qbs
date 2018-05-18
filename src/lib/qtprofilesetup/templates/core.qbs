@@ -271,6 +271,7 @@ Module {
     }
 
     property bool combineMocOutput: cpp.combineCxxSources
+    property bool enableBigResources: false
 
     Rule {
         name: "QtCoreMocRuleCpp"
@@ -369,17 +370,60 @@ Module {
 
     Rule {
         inputs: ["qrc"]
-
-        Artifact {
-            filePath: "qrc_" + input.completeBaseName + ".cpp"
-            fileTags: ["cpp"]
+        outputFileTags: ["cpp", "cpp_intermediate_object"]
+        outputArtifacts: {
+            var artifact = {
+                filePath: "qrc_" + input.completeBaseName + ".cpp",
+                fileTags: ["cpp"]
+            };
+            if (input.Qt.core.enableBigResources)
+                artifact.fileTags.push("cpp_intermediate_object");
+            return [artifact];
         }
         prepare: {
+            var args = [input.filePath,
+                        "-name", FileInfo.completeBaseName(input.filePath),
+                        "-o", output.filePath];
+            if (input.Qt.core.enableBigResources)
+                args.push("-pass", "1");
+            var cmd = new Command(product.Qt.core.binPath + '/rcc', args);
+            cmd.description = "rcc "
+                + (input.Qt.core.enableBigResources ? "(pass 1) " : "")
+                + input.fileName;
+            cmd.highlight = 'codegen';
+            return cmd;
+        }
+    }
+
+    Rule {
+        inputs: ["intermediate_obj"]
+        Artifact {
+            filePath: input.completeBaseName + ".2.o"
+            fileTags: ["obj"]
+        }
+        prepare: {
+            function findChild(artifact, predicate) {
+                var children = artifact.children;
+                var len = children.length;
+                for (var i = 0; i < len; ++i) {
+                    var child = children[i];
+                    if (predicate(child))
+                        return child;
+                    child = findChild(child, predicate);
+                    if (child)
+                        return child;
+                }
+                return undefined;
+            }
+            var qrcArtifact = findChild(input, function(c) { return c.fileTags.contains("qrc"); });
+            var cppArtifact = findChild(input, function(c) { return c.fileTags.contains("cpp"); });
             var cmd = new Command(product.Qt.core.binPath + '/rcc',
-                                  [input.filePath, '-name',
-                                   FileInfo.completeBaseName(input.filePath),
-                                   '-o', output.filePath]);
-            cmd.description = 'rcc ' + input.fileName;
+                                  [qrcArtifact.filePath,
+                                   "-temp", input.filePath,
+                                   "-name", FileInfo.completeBaseName(input.filePath),
+                                   "-o", output.filePath,
+                                   "-pass", "2"]);
+            cmd.description = "rcc (pass 2) " + qrcArtifact.fileName;
             cmd.highlight = 'codegen';
             return cmd;
         }
