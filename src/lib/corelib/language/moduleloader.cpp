@@ -1292,6 +1292,7 @@ void ModuleLoader::handleProduct(ModuleLoader::ProductContext *productContext)
 
     Item * const item = productContext->item;
 
+    m_reader->setExtraSearchPathsStack(productContext->project->searchPathsStack);
     SearchPathsManager searchPathsManager(m_reader, productContext->searchPaths);
     addTransitiveDependencies(productContext);
 
