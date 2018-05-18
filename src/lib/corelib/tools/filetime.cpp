@@ -57,6 +57,11 @@ template<> struct CompileTimeAssert<true> {};
 
 #ifdef APPLE_CUSTOM_CLOCK_GETTIME
 #include <sys/time.h>
+
+#ifndef CLOCK_REALTIME
+#define CLOCK_REALTIME 0
+#endif
+
 // clk_id isn't used, only the CLOCK_REALTIME case is implemented.
 int clock_gettime(int /*clk_id*/, struct timespec *t)
 {
