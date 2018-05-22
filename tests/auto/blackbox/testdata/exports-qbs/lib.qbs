@@ -28,11 +28,9 @@ DynamicLibrary {
         qbs.install: true
         qbs.installDir: headersInstallDir
     }
-    Group {
-        fileTagsFilter: ["dynamiclibrary", "dynamiclibrary_import"]
-        qbs.install: true
-        qbs.installDir: "lib"
-    }
+    install: true
+    installImportLib: true
+    installDir: "lib"
     Group {
         fileTagsFilter: ["Exporter.qbs.module"]
         qbs.install: true

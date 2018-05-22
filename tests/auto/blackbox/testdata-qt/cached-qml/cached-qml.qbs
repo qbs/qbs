@@ -2,9 +2,13 @@ import qbs
 
 CppApplication {
     name: "app"
+    consoleApplication: true
     Depends { name: "Qt.core" }
     Depends { name: "Qt.quick" }
     Depends { name: "Qt.qml" }
+    install: true
+    installDir: ""
+    qbs.installPrefix: ""
     Qt.qml.generateCacheFiles: true
     Qt.qml.cacheFilesInstallDir: "data"
 
@@ -14,11 +18,6 @@ CppApplication {
         "main.qml",
         "stuff.js"
     ]
-
-    Group {
-        fileTagsFilter: ["application"]
-        qbs.install: true
-    }
 
     // Install the C++ sources to tell the blackbox test that Qt.qmlcache is not available.
     Group {

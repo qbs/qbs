@@ -22,11 +22,8 @@ StaticLibrary {
     cpp.staticLibraryPrefix: "lib"
     cpp.staticLibrarySuffix: ".ext"
 
-    Group {
-        fileTagsFilter: ["staticlibrary"]
-        qbs.install: true
-        qbs.installDir: "lib"
-    }
+    qbs.installPrefix: ""
+    install: true
 
     Depends { name: "cpp" }
 

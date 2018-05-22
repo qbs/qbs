@@ -3442,6 +3442,59 @@ void TestBlackbox::installedTransformerOutput()
     QVERIFY2(QFile::exists(installedFilePath), qPrintable(installedFilePath));
 }
 
+void TestBlackbox::installLocations_data()
+{
+    QTest::addColumn<QString>("binDir");
+    QTest::addColumn<QString>("dllDir");
+    QTest::addColumn<QString>("libDir");
+    QTest::newRow("explicit values") << QString("bindir") << QString("dlldir") << QString("libdir");
+    QTest::newRow("default values") << QString() << QString() << QString();
+}
+
+void TestBlackbox::installLocations()
+{
+    QDir::setCurrent(testDataDir + "/install-locations");
+    QFETCH(QString, binDir);
+    QFETCH(QString, dllDir);
+    QFETCH(QString, libDir);
+    QbsRunParameters params("resolve");
+    if (!binDir.isEmpty())
+        params.arguments.push_back("products.theapp.installDir:" + binDir);
+    if (!dllDir.isEmpty())
+        params.arguments.push_back("products.thelib.installDir:" + dllDir);
+    if (!libDir.isEmpty())
+        params.arguments.push_back("products.thelib.importLibInstallDir:" + libDir);
+    QCOMPARE(runQbs(params), 0);
+    const bool isWindows = m_qbsStdout.contains("is windows");
+    const bool isMac = m_qbsStdout.contains("is mac");
+    const bool isUnix = m_qbsStdout.contains("is unix");
+    QVERIFY(isWindows || isMac || isUnix);
+    QCOMPARE(runQbs(QbsRunParameters(QStringList("--clean-install-root"))), 0);
+    const QString dllFileName = isWindows ? "thelib.dll" : isMac ? "thelib" : "libthelib.so";
+    const QString appFileName = isWindows ? "theapp.exe" : "theapp";
+    if (binDir.isEmpty())
+        binDir = isMac ? "/Applications" : "/bin";
+    if (dllDir.isEmpty())
+        dllDir = isMac ? "/Library/Frameworks" : isWindows ? "/bin" : "/lib";
+    if (libDir.isEmpty())
+        libDir = "/lib";
+    if (isMac) {
+        binDir += "/theapp.app/Contents/MacOS";
+        dllDir += "/thelib.framework";
+    }
+    const QString installRoot = QDir::currentPath() + "/default/install-root";
+    const QString installPrefix = isWindows ? QString() : "/usr/local";
+    const QString fullInstallPrefix = installRoot + '/' + installPrefix + '/';
+    const QString appFilePath = fullInstallPrefix + binDir + '/' + appFileName;
+    QVERIFY2(QFile::exists(appFilePath), qPrintable(appFilePath));
+    const QString dllFilePath = fullInstallPrefix + dllDir + '/' + dllFileName;
+    QVERIFY2(QFile::exists(dllFilePath), qPrintable(dllFilePath));
+    if (isWindows) {
+        const QString libFilePath = fullInstallPrefix + libDir + "/thelib.lib";
+        QVERIFY2(QFile::exists(libFilePath), qPrintable(libFilePath));
+    }
+}
+
 void TestBlackbox::inputsFromDependencies()
 {
     QDir::setCurrent(testDataDir + "/inputs-from-dependencies");
@@ -3846,7 +3899,7 @@ void TestBlackbox::symbolLinkMode()
     QbsRunParameters params;
     params.command = "run";
     const QStringList commonArgs{"-p", "driver", "--setup-run-env-config",
-                                 "ignore-lib-dependencies"};
+                                 "ignore-lib-dependencies", "qbs.installPrefix:''"};
 
     rmDirR(relativeBuildDir());
     params.arguments = QStringList() << commonArgs << "project.shouldInstallLibrary:true";
@@ -3878,7 +3931,7 @@ void TestBlackbox::linkerMode()
         QSKIP("only applies on Unix");
 
     QDir::setCurrent(testDataDir + "/linkerMode");
-    QCOMPARE(runQbs(), 0);
+    QCOMPARE(runQbs(QbsRunParameters(QStringList("qbs.installPrefix:''"))), 0);
 
     auto testCondition = [&](const QString &lang,
             const std::function<bool(const QByteArray &)> &condition) {

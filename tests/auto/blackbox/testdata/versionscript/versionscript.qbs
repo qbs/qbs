@@ -23,8 +23,7 @@ DynamicLibrary {
         }
     }
 
-    Group {
-        fileTagsFilter: ["dynamiclibrary"]
-        qbs.install: true
-    }
+    qbs.installPrefix: ""
+    install: true
+    installDir: ""
 }

@@ -11,6 +11,7 @@ CppApplication {
     Depends { name: "Exporter.qbs" }
     Exporter.qbs.artifactTypes: ["installable", "blubb"]
     files: ["tool.cpp"]
+    install: true
     qbs.installPrefix: project.installPrefix
     Group {
         files: ["helper.js"]
@@ -25,8 +26,6 @@ CppApplication {
 
     Group {
         fileTagsFilter: ["application"]
-        qbs.install: true
-        qbs.installDir: "bin"
         fileTags: toolTags
     }
     Group {

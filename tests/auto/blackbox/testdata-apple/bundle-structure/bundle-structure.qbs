@@ -17,11 +17,8 @@ Project {
         bundle.privateHeaders: ["dummy_p.h"]
         bundle.resources: ["resource.txt"]
         files: ["dummy.c"]
-        Group {
-            fileTagsFilter: product.type.concat(project.bundleFileTags)
-            qbs.install: true
-            qbs.installSourceBase: product.buildDirectory
-        }
+        install: true
+        installDir: ""
     }
 
     Application {
@@ -37,11 +34,8 @@ Project {
         bundle.privateHeaders: ["dummy_p.h"]
         bundle.resources: ["resource.txt"]
         files: ["dummy.c"]
-        Group {
-            fileTagsFilter: product.type.concat(project.bundleFileTags)
-            qbs.install: true
-            qbs.installSourceBase: product.buildDirectory
-        }
+        install: true
+        installDir: ""
     }
 
     Application {
@@ -57,11 +51,8 @@ Project {
         bundle.privateHeaders: ["dummy_p.h"]
         bundle.resources: ["resource.txt"]
         files: ["dummy.c"]
-        Group {
-            fileTagsFilter: product.type.concat(project.bundleFileTags)
-            qbs.install: true
-            qbs.installSourceBase: product.buildDirectory
-        }
+        install: true
+        installDir: ""
     }
 
     DynamicLibrary {
@@ -73,11 +64,8 @@ Project {
         bundle.privateHeaders: ["dummy_p.h"]
         bundle.resources: ["resource.txt"]
         files: ["dummy.c"]
-        Group {
-            fileTagsFilter: product.type.concat(project.bundleFileTags)
-            qbs.install: true
-            qbs.installSourceBase: product.buildDirectory
-        }
+        install: true
+        installDir: ""
     }
 
     StaticLibrary {
@@ -89,11 +77,8 @@ Project {
         bundle.privateHeaders: ["dummy_p.h"]
         bundle.resources: ["resource.txt"]
         files: ["dummy.c"]
-        Group {
-            fileTagsFilter: product.type.concat(project.bundleFileTags)
-            qbs.install: true
-            qbs.installSourceBase: product.buildDirectory
-        }
+        install: true
+        installDir: ""
     }
 
     LoadableModule {
@@ -105,11 +90,8 @@ Project {
         bundle.privateHeaders: ["dummy_p.h"]
         bundle.resources: ["resource.txt"]
         files: ["dummy.c"]
-        Group {
-            fileTagsFilter: product.type.concat(project.bundleFileTags)
-            qbs.install: true
-            qbs.installSourceBase: product.buildDirectory
-        }
+        install: true
+        installDir: ""
     }
 
     ApplicationExtension {
@@ -121,11 +103,8 @@ Project {
         bundle.privateHeaders: ["dummy_p.h"]
         bundle.resources: ["resource.txt"]
         files: ["dummy.c"]
-        Group {
-            fileTagsFilter: product.type.concat(project.bundleFileTags)
-            qbs.install: true
-            qbs.installSourceBase: product.buildDirectory
-        }
+        install: true
+        installDir: ""
     }
 
     XPCService {
@@ -137,11 +116,8 @@ Project {
         bundle.privateHeaders: ["dummy_p.h"]
         bundle.resources: ["resource.txt"]
         files: ["dummy.c"]
-        Group {
-            fileTagsFilter: product.type.concat(project.bundleFileTags)
-            qbs.install: true
-            qbs.installSourceBase: product.buildDirectory
-        }
+        install: true
+        installDir: ""
     }
 
     Product {

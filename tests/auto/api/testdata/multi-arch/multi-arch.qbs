@@ -14,6 +14,7 @@ Project {
             files: "host+target.input"
             fileTags: "input"
         }
+        qbs.installPrefix: ""
         Group {
             fileTagsFilter: "output"
             qbs.install: true
@@ -28,6 +29,7 @@ Project {
             files: "host-tool.input"
             fileTags: "input"
         }
+        qbs.installPrefix: ""
         Group {
             fileTagsFilter: "output"
             qbs.install: true

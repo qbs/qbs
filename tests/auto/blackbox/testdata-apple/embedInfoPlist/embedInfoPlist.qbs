@@ -13,10 +13,8 @@ Project {
         bundle.infoPlist: ({
             "QBS": "org.qt-project.qbs.testdata.embedInfoPlist"
         })
-        Group {
-            fileTagsFilter: product.type
-            qbs.install: true
-        }
+        install: true
+        installDir: ""
     }
 
     DynamicLibrary {
@@ -30,10 +28,8 @@ Project {
         bundle.infoPlist: ({
             "QBS": "org.qt-project.qbs.testdata.embedInfoPlist.dylib"
         })
-        Group {
-            fileTagsFilter: product.type
-            qbs.install: true
-        }
+        install: true
+        installDir: ""
     }
 
     LoadableModule {

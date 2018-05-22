@@ -39,9 +39,30 @@
     An Application item is a \l{Product} of the \l{Product::}{type}
     \c "application".
 
-    It exists for the convenience of project file authors.
-
     \note On Android, an Application item instead builds a shared library for
     products whose \l{Product::}{consoleApplication} property is set to
     \c false.
+*/
+
+/*!
+    \qmlproperty bool Application::install
+
+    If \c{true}, the executable that is produced when building the application will be installed
+    to \l installDir.
+
+    \defaultvalue \c false
+    \since Qbs 1.13
+*/
+
+/*!
+    \qmlproperty string Application::installDir
+
+    Where to install the executable that is produced when building the application, if \l install
+    is enabled.
+
+    The value is appended to \l{qbs::installPrefix}{qbs.installPrefix}
+    when constructing the actual installation directory.
+
+    \defaultvalue \c Applications if the app is a \l{bundle::isBundle}{bundle}, \c bin otherwise.
+    \since Qbs 1.13
 */

@@ -34,6 +34,7 @@ Project {
 
         property string installDir: "include"
 
+        qbs.installPrefix: ""
         Group {
             fileTagsFilter: "header"
             qbs.install: true

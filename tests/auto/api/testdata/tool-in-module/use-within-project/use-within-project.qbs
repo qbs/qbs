@@ -3,12 +3,15 @@ import qbs
 Project {
     CppApplication {
         name: "thetool"
+        consoleApplication: true
         files: "main.cpp"
 
+        install: true
+        installDir: ""
+        qbs.installPrefix: ""
         Group {
             fileTagsFilter: ["application"]
             fileTags: ["thetool.thetool"]
-            qbs.install: true
         }
 
         Export {

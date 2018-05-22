@@ -13,6 +13,7 @@ Project {
         type: ["text"]
         Depends { name: "cpp" }
         Depends { name: "cat-response-file" }
+        qbs.installPrefix: ""
         Group {
             fileTagsFilter: ["text"]
             qbs.install: true

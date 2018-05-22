@@ -33,6 +33,10 @@ import qbs
 Product {
     property bool isForAndroid: qbs.targetOS.contains("android")
     property bool isForDarwin: qbs.targetOS.contains("darwin")
+    property bool isBundle: isForDarwin && bundle.isBundle
+
+    property bool install: false
+    property string installDir
 
     Depends { name: "bundle" }
 

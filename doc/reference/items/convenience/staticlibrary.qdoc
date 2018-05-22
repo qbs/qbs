@@ -37,11 +37,27 @@
     \brief Static library.
 
     A StaticLibrary item is a \l{Product}{product} of the \l{Product::}{type}
-    \c "staticlibrary" that is normally entirely equivalent to the following:
+    \c "staticlibrary".
+*/
 
-    \code
-    Product {
-        type: "staticlibrary"
-    }
-    \endcode
+/*!
+    \qmlproperty bool StaticLibrary::install
+
+    If \c{true}, the library will be installed to \l installDir.
+
+    \defaultvalue \c false
+    \since Qbs 1.13
+*/
+
+/*!
+    \qmlproperty string StaticLibrary::installDir
+
+    Where to install the library, if \l install is enabled.
+
+    The value is appended to \l{qbs::installPrefix}{qbs.installPrefix}
+    when constructing the actual installation directory.
+
+    \defaultvalue \c Library/Frameworks if the library is a \l{bundle::isBundle}{bundle},
+                  \c lib otherwise.
+    \since Qbs 1.13
 */

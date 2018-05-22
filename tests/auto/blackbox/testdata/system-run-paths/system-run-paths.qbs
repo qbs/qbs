@@ -6,6 +6,7 @@ Project {
         name: "theLib"
         type: ["dynamiclibrary"]
         Depends { name: "cpp" }
+        qbs.installPrefix: ""
         Group {
             fileTagsFilter: product.type
             qbs.install: true

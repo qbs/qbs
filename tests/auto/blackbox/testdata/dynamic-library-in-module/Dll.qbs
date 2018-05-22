@@ -9,8 +9,9 @@ DynamicLibrary {
         cpp.minimumMacosVersion: "10.5" // For -rpath
     }
 
-    Group {
-        fileTagsFilter: ["dynamiclibrary", "dynamiclibrary_import"]
-        qbs.install: true
-    }
+    install: true
+    installImportLib: true
+    qbs.installPrefix: ""
+    installDir: ""
+    importLibInstallDir: ""
 }

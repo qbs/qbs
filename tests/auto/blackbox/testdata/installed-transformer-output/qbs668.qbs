@@ -4,6 +4,7 @@ import qbs.TextFile
 Product {
     name: "install-test"
     type: ["text"]
+    qbs.installPrefix: ""
     Group {
         qbs.install: true
         qbs.installDir: "textfiles"

@@ -5,15 +5,14 @@ Project {
     CppApplication {
         type: ["application"]
         name: "app"
+        consoleApplication: true
         Group {
             files: ["main.cpp"]
             qbs.install: true
         }
 
-        Group {
-            fileTagsFilter: ["application"]
-            qbs.install: true
-        }
+        install: true
+        installDir: ""
     }
 
     Product {

@@ -9,6 +9,7 @@ Product {
         files: ["input.txt"]
         fileTags: ["input"]
     }
+    qbs.installPrefix: ""
     Group {
         fileTagsFilter: product.type
         qbs.install: true

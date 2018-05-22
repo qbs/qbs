@@ -3,6 +3,7 @@ import qbs.TextFile
 
 Product {
     type: ["txt.out"]
+    qbs.installPrefix: ""
     Group {
         files: "dir/**"
         qbs.install: true

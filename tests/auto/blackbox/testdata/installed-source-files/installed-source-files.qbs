@@ -3,6 +3,7 @@ import qbs
 CppApplication {
     consoleApplication: true
     files: ["main.cpp"]
+    qbs.installPrefix: ""
     Group {
         fileTagsFilter: ["cpp"]
         qbs.install: true

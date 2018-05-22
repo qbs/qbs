@@ -38,7 +38,7 @@
     \brief Dynamic library.
 
     A DynamicLibrary item is a \l{Product} of the \l{Product::}{type}
-    \c "dynamiclibrary". It exists for the convenience of project file authors.
+    \c "dynamiclibrary".
 
     For Android targets, the following applies:
     \list
@@ -48,3 +48,50 @@
     \endlist
 */
 
+/*!
+    \qmlproperty bool DynamicLibrary::install
+
+    If \c{true}, the library will be installed to \l installDir.
+
+    \defaultvalue \c false
+    \since Qbs 1.13
+*/
+
+/*!
+    \qmlproperty string DynamicLibrary::installDir
+
+    Where to install the library, if \l install is enabled. On Unix, the symbolic links
+    are also installed to this location.
+
+    The value is appended to \l{qbs::installPrefix}{qbs.installPrefix}
+    when constructing the actual installation directory.
+
+    \defaultvalue \c Library/Frameworks if the library is a \l{bundle::isBundle}{bundle},
+                  otherwise \c bin for Windows and \c lib for Unix-like targets.
+    \since Qbs 1.13
+*/
+
+/*!
+    \qmlproperty bool DynamicLibrary::installImportLib
+
+    If \c{true}, the import library will be installed to \l importLibInstallDir.
+    This property is only relevant for Windows targets.
+    Enable it if you want to create a development package.
+
+    \defaultvalue \c false
+    \since Qbs 1.13
+*/
+
+/*!
+    \qmlproperty string DynamicLibrary::importLibInstallDir
+
+    Where to install the import library, if \l installImportLib is enabled.
+
+    The value is appended to \l{qbs::installPrefix}{qbs.installPrefix}
+    when constructing the actual installation directory.
+
+    This property is only relevant for Windows targets.
+
+    \defaultvalue \c lib
+    \since Qbs 1.13
+*/

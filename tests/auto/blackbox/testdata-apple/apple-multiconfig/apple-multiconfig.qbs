@@ -17,11 +17,8 @@ Project {
         aggregate: false
         multiplexByQbsProperties: []
 
-        Group {
-            fileTagsFilter: ["bundle.content"]
-            qbs.install: true
-            qbs.installSourceBase: product.buildDirectory
-        }
+        install: true
+        installDir: ""
     }
 
     CppApplication {
@@ -38,11 +35,8 @@ Project {
         qbs.architectures: ["x86_64"]
         qbs.buildVariants: ["release"]
 
-        Group {
-            fileTagsFilter: ["bundle.content"]
-            qbs.install: true
-            qbs.installSourceBase: product.buildDirectory
-        }
+        install: true
+        installDir: ""
     }
 
     DynamicLibrary {
@@ -58,11 +52,8 @@ Project {
         aggregate: false
         multiplexByQbsProperties: []
 
-        Group {
-            fileTagsFilter: ["bundle.content"]
-            qbs.install: true
-            qbs.installSourceBase: product.buildDirectory
-        }
+        install: true
+        installDir: ""
     }
 
     CppApplication {
@@ -74,11 +65,8 @@ Project {
         cpp.rpaths: [cpp.rpathOrigin + "/../../../"]
         cpp.minimumMacosVersion: "10.5"
 
-        Group {
-            fileTagsFilter: ["bundle.content"]
-            qbs.install: true
-            qbs.installSourceBase: product.buildDirectory
-        }
+        install: true
+        installDir: ""
     }
 
     CppApplication {
@@ -91,11 +79,8 @@ Project {
         cpp.minimumMacosVersion: "10.5"
         qbs.architectures: ["x86", "x86_64"]
 
-        Group {
-            fileTagsFilter: ["bundle.content"]
-            qbs.install: true
-            qbs.installSourceBase: product.buildDirectory
-        }
+        install: true
+        installDir: ""
     }
 
     CppApplication {
@@ -109,11 +94,8 @@ Project {
         qbs.architectures: ["x86", "x86_64"]
         qbs.buildVariants: ["debug", "profile"]
 
-        Group {
-            fileTagsFilter: ["bundle.content"]
-            qbs.install: true
-            qbs.installSourceBase: product.buildDirectory
-        }
+        install: true
+        installDir: ""
     }
 
     DynamicLibrary {
@@ -127,11 +109,8 @@ Project {
         qbs.architectures: ["x86", "x86_64"]
         qbs.buildVariants: ["release", "debug", "profile"]
 
-        Group {
-            fileTagsFilter: ["bundle.content"]
-            qbs.install: true
-            qbs.installSourceBase: product.buildDirectory
-        }
+        install: true
+        installDir: ""
     }
 
     DynamicLibrary {
@@ -145,11 +124,8 @@ Project {
         qbs.architectures: ["x86", "x86_64"]
         qbs.buildVariants: ["debug", "profile"]
 
-        Group {
-            fileTagsFilter: ["bundle.content"]
-            qbs.install: true
-            qbs.installSourceBase: product.buildDirectory
-        }
+        install: true
+        installDir: ""
     }
 
     DynamicLibrary {
@@ -162,11 +138,8 @@ Project {
         cpp.defines: ["VARIANT=" + Utilities.cStringQuote(qbs.buildVariant)]
         qbs.architectures: ["x86", "x86_64"]
         qbs.buildVariants: ["debug", "profile"]
-        Group {
-            fileTagsFilter: ["bundle.content"]
-            qbs.install: true
-            qbs.installSourceBase: product.buildDirectory
-        }
+        install: true
+        installDir: ""
     }
     DynamicLibrary {
         Depends { name: "cpp" }
@@ -177,10 +150,7 @@ Project {
         cpp.defines: ["VARIANT=" + Utilities.cStringQuote(qbs.buildVariant)]
         qbs.architectures: ["x86", "x86_64"]
         qbs.buildVariants: ["debug", "profile"]
-        Group {
-            fileTagsFilter: ["bundle.content"]
-            qbs.install: true
-            qbs.installSourceBase: product.buildDirectory
-        }
+        install: true
+        installDir: ""
     }
 }

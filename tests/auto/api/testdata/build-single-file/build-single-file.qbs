@@ -2,6 +2,7 @@ import qbs
 import qbs.TextFile
 
 CppApplication {
+    consoleApplication: true
     files: ["ignored1.cpp", "ignored2.cpp", "compiled.cpp"]
 
     cpp.includePaths: [buildDirectory]
@@ -10,10 +11,8 @@ CppApplication {
         fileTags: ["cpp_pch_src"]
     }
 
-    Group {
-        fileTagsFilter: ["application"]
-        qbs.install: true
-    }
+    install: true
+    installDir: ""
 
     Rule {
         multiplex: true

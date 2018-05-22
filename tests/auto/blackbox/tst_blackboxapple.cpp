@@ -77,7 +77,7 @@ void TestBlackboxApple::initTestCase()
 void TestBlackboxApple::appleMultiConfig()
 {
     QDir::setCurrent(testDataDir + "/apple-multiconfig");
-    QCOMPARE(runQbs(), 0);
+    QCOMPARE(runQbs(QbsRunParameters(QStringList{"qbs.installPrefix:''"})), 0);
 
     QVERIFY(QFileInfo2(defaultInstallRoot + "/singleapp.app/Contents/MacOS/singleapp").isExecutable());
     QVERIFY(QFileInfo2(defaultInstallRoot + "/singleapp.app/Contents/Info.plist").isRegularFile());
@@ -285,7 +285,7 @@ void TestBlackboxApple::bundleStructure()
     QFETCH(bool, isShallow);
 
     QDir::setCurrent(testDataDir + "/bundle-structure");
-    QbsRunParameters params;
+    QbsRunParameters params(QStringList{"qbs.installPrefix:''"});
     params.arguments << "project.buildableProducts:" + productName;
     if (isShallow) {
         // Coerce shallow bundles - don't set bundle.isShallow directly because we want to test the
@@ -624,7 +624,7 @@ void TestBlackboxApple::embedInfoPlist()
 {
     QDir::setCurrent(testDataDir + QLatin1String("/embedInfoPlist"));
 
-    QbsRunParameters params;
+    QbsRunParameters params(QStringList{"qbs.installPrefix:''"});
     QCOMPARE(runQbs(params), 0);
 
     QVERIFY(!getEmbeddedBinaryPlist(defaultInstallRoot + "/app").isEmpty());

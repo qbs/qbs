@@ -18,12 +18,7 @@ Project {
         targetName: "My Great App"
         files: ["main.c"]
 
-        Group {
-            fileTagsFilter: ["bundle.content"]
-            qbs.install: true
-            qbs.installDir: "/Applications"
-            qbs.installSourceBase: product.buildDirectory
-        }
+        install: true
     }
 
     AppleDiskImage {

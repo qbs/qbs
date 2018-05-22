@@ -18,11 +18,8 @@ Project {
             qbs.installDir: "src"
         }
         qbs.installPrefix: "/usr"
-        Group {
-            fileTagsFilter: "application"
-            qbs.install: true
-            qbs.installDir: "bin"
-        }
+        install: true
+        installDir: "bin"
         Group {
             fileTagsFilter: "obj"
             qbs.install: true

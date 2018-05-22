@@ -14,10 +14,9 @@ Project {
         name: "native"
         files: ["engine.c"]
 
-        Group {
-            fileTagsFilter: ["dynamiclibrary"]
-            qbs.install: true
-        }
+        qbs.installPrefix: ""
+        install: true
+        installDir: ""
     }
 
     JavaClassCollection {
@@ -44,6 +43,7 @@ Project {
         name: "random_stuff"
         files: ["RandomStuff.java"]
 
+        qbs.installPrefix: ""
         Group {
             fileTagsFilter: ["java.jar"]
             qbs.install: true
@@ -78,6 +78,7 @@ Project {
             java.manifestClassPath: [product.targetName + ".jar"]
         }
 
+        qbs.installPrefix: ""
         Group {
             fileTagsFilter: ["java.jar"]
             qbs.install: true
@@ -98,6 +99,7 @@ Project {
             return mf;
         }
 
+        qbs.installPrefix: ""
         Group {
             fileTagsFilter: ["java.jar"]
             qbs.install: true

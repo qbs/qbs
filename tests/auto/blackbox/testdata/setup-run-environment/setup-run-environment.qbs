@@ -8,12 +8,11 @@ Project {
 
         files: ["lib1.cpp"]
 
-        Group {
-        condition: !qbs.targetOS.contains("darwin")
-            fileTagsFilter: ["dynamiclibrary", "dynamiclibrary_import"]
-            qbs.install: true
-            qbs.installDir: "/lib1"
-        }
+        install: !qbs.targetOS.contains("darwin")
+        installImportLib: true
+        installDir: "lib1"
+        importLibInstallDir: installDir
+
         Group {
         condition: qbs.targetOS.contains("darwin")
             fileTagsFilter: ["bundle.content"]
@@ -41,16 +40,15 @@ Project {
 
         files: ["lib3.cpp"]
 
-    Properties {
+        Properties {
             condition: qbs.targetOS.contains("darwin")
             bundle.isBundle: false
         }
 
-        Group {
-            fileTagsFilter: ["dynamiclibrary", "dynamiclibrary_import"]
-            qbs.install: true
-            qbs.installDir: "/lib3"
-        }
+        install: true
+        installImportLib: true
+        installDir: "lib3"
+        importLibInstallDir: installDir
     }
 
     DynamicLibrary { // Non-dependency, referred to by name
@@ -59,16 +57,15 @@ Project {
 
         files: ["lib4.cpp"]
 
-    Properties {
+        Properties {
             condition: qbs.targetOS.contains("darwin")
             bundle.isBundle: false
         }
 
-        Group {
-            fileTagsFilter: ["dynamiclibrary", "dynamiclibrary_import"]
-            qbs.install: true
-            qbs.installDir: "/lib4"
-        }
+        install: true
+        installImportLib: true
+        installDir: "lib4"
+        importLibInstallDir: installDir
     }
 
     DynamicLibrary { // Recursive product dependency

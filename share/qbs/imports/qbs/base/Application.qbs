@@ -36,4 +36,14 @@ NativeBinary {
             return ["dynamiclibrary", "android.nativelibrary"];
         return ["application"];
     }
+
+    installDir: isBundle ? "Applications" : "bin"
+
+    Group {
+        condition: install
+        fileTagsFilter: isBundle ? "bundle.content" : "application";
+        qbs.install: true
+        qbs.installDir: installDir
+        qbs.installSourceBase: isBundle ? destinationDirectory : outer
+    }
 }

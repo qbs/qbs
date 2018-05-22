@@ -14,9 +14,5 @@ CppApplication {
 
     files: "main.cpp"
     qbs.installPrefix: "/usr/local"
-    Group {
-        fileTagsFilter: "application"
-        qbs.install: true
-        qbs.installDir: "bin"
-    }
+    install: true
 }

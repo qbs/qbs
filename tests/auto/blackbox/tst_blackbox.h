@@ -132,6 +132,8 @@ private slots:
     void installDuplicatesNoError();
     void installedSourceFiles();
     void installedTransformerOutput();
+    void installLocations_data();
+    void installLocations();
     void installPackage();
     void installRootFromProjectFile();
     void installTree();

@@ -1,4 +1,5 @@
 Product {
+    qbs.installPrefix: ""
     Group {
         files: "dir/**"
         qbs.install: true
