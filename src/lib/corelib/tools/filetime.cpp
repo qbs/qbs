@@ -55,6 +55,25 @@ template<bool> struct CompileTimeAssert;
 template<> struct CompileTimeAssert<true> {};
 #endif
 
+#ifdef APPLE_CUSTOM_CLOCK_GETTIME
+#include <sys/time.h>
+
+#ifndef CLOCK_REALTIME
+#define CLOCK_REALTIME 0
+#endif
+
+// clk_id isn't used, only the CLOCK_REALTIME case is implemented.
+int clock_gettime(int /*clk_id*/, struct timespec *t)
+{
+    struct timeval tv;
+    // Resolution of gettimeofday is 1000nsecs = 1 microsecond.
+    int ret = gettimeofday(&tv, NULL);
+    t->tv_sec  = tv.tv_sec;
+    t->tv_nsec = tv.tv_usec * 1000;
+    return ret;
+}
+#endif
+
 FileTime::FileTime()
 {
 #ifdef Q_OS_WIN
@@ -124,6 +143,13 @@ FileTime FileTime::currentTime()
     FILETIME *const ft = reinterpret_cast<FILETIME *>(&result.m_fileTime);
     SystemTimeToFileTime(&st, ft);
     return result;
+#elif defined APPLE_CUSTOM_CLOCK_GETTIME
+    InternalType t;
+    // Explicitly use our custom version, so that we don't get an additional unresolved symbol on a
+    // system that actually provides one, but isn't used due to the minimium deployment target
+    // being lower.
+    qbs::Internal::clock_gettime(CLOCK_REALTIME, &t);
+    return t;
 #elif HAS_CLOCK_GETTIME
     InternalType t;
     clock_gettime(CLOCK_REALTIME, &t);

@@ -1229,10 +1229,8 @@ void ModuleLoader::createSortedModuleList(const Item::Module &parentModule, Item
             != modules.cend()) {
         return;
     }
-    if (!moduleRepresentsDisabledProduct(parentModule)) {
-        for (const Item::Module &dep : parentModule.item->modules())
-            createSortedModuleList(dep, modules);
-    }
+    for (const Item::Module &dep : parentModule.item->modules())
+        createSortedModuleList(dep, modules);
     modules.push_back(parentModule);
     return;
 }
@@ -1294,6 +1292,7 @@ void ModuleLoader::handleProduct(ModuleLoader::ProductContext *productContext)
 
     Item * const item = productContext->item;
 
+    m_reader->setExtraSearchPathsStack(productContext->project->searchPathsStack);
     SearchPathsManager searchPathsManager(m_reader, productContext->searchPaths);
     addTransitiveDependencies(productContext);
 
@@ -3621,6 +3620,8 @@ void ModuleLoader::overrideItemProperties(Item *item, const QString &buildConfig
 void ModuleLoader::collectAllModules(Item *item, std::vector<Item::Module> *modules)
 {
     for (const Item::Module &m : item->modules()) {
+        if (moduleRepresentsDisabledProduct(m))
+            m.item->removeModules();
         auto it = std::find_if(modules->begin(), modules->end(),
                                [m] (const Item::Module &m2) { return m.name == m2.name; });
         if (it != modules->end()) {
@@ -3631,8 +3632,6 @@ void ModuleLoader::collectAllModules(Item *item, std::vector<Item::Module> *modu
             continue;
         }
         modules->push_back(m);
-        if (moduleRepresentsDisabledProduct(m))
-            continue;
         collectAllModules(m.item, modules);
     }
 }

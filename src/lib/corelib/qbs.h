@@ -60,6 +60,7 @@
 #include "tools/projectgeneratormanager.h"
 #include "tools/settings.h"
 #include "tools/settingsmodel.h"
+#include "tools/settingsrepresentation.h"
 #include "tools/setupprojectparameters.h"
 #include "tools/toolchains.h"
 #include "tools/version.h"

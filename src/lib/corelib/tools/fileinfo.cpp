@@ -371,7 +371,9 @@ bool FileInfo::exists() const
 
 FileTime FileInfo::lastModified() const
 {
-#if HAS_CLOCK_GETTIME
+#if APPLE_STAT_TIMESPEC
+    return m_stat.st_mtimespec;
+#elif HAS_CLOCK_GETTIME
     return m_stat.st_mtim;
 #else
     return m_stat.st_mtime;
@@ -380,7 +382,9 @@ FileTime FileInfo::lastModified() const
 
 FileTime FileInfo::lastStatusChange() const
 {
-#if HAS_CLOCK_GETTIME
+#if APPLE_STAT_TIMESPEC
+    return m_stat.st_ctimespec;
+#elif HAS_CLOCK_GETTIME
     return m_stat.st_ctim;
 #else
     return m_stat.st_ctime;

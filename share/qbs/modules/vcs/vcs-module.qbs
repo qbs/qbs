@@ -117,7 +117,7 @@ Module {
                 proc.setWorkingDirectory(theRepoDir);
                 proc.exec(tool, ["info", "-r", "HEAD", "--show-item", "revision", "--no-newline"],
                           true);
-                repoState = proc.readStdOut();
+                repoState = proc.readStdOut().trim();
                 if (repoState)
                     found = true;
             } finally {

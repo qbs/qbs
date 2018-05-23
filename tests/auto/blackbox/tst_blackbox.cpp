@@ -1208,6 +1208,7 @@ void TestBlackbox::vcsGit()
     QVERIFY(waitForProcessSuccess(git));
 
     // Run with git metadata.
+    WAIT_FOR_NEW_TIMESTAMP();
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("generating my-repo-state.h"), m_qbsStderr.constData());
     QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStderr.constData());
