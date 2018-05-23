@@ -59,7 +59,7 @@ public:
     void setPropertyMapInternal(const PropertyMapPtr &pmap) { m_propertyMap = pmap; }
 
     FileTags extraFileTags() const;
-    void setExtraFileTags(const FileTags &extraFileTags);
+    void addExtraFileTags(const FileTags &extraFileTags);
 
     template<PersistentPool::OpType opType> void completeSerializationOp(PersistentPool &pool)
     {

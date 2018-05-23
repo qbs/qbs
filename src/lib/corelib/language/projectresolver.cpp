@@ -97,7 +97,7 @@ struct ProjectResolver::ProductContext
     ResolvedProductPtr product;
     QString buildDirectory;
     Item *item;
-    typedef std::pair<ArtifactPropertiesPtr, CodeLocation> ArtifactPropertiesInfo;
+    typedef std::pair<ArtifactPropertiesPtr, std::vector<CodeLocation>> ArtifactPropertiesInfo;
     QHash<QStringList, ArtifactPropertiesInfo> artifactPropertiesPerFilter;
     QHash<QString, CodeLocation> sourceArtifactLocations;
     GroupConstPtr currentGroup;
@@ -692,18 +692,29 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
 void ProjectResolver::resolveGroupFully(Item *item, ProjectResolver::ProjectContext *projectContext,
                                         bool isEnabled)
 {
-    PropertyMapPtr moduleProperties = m_productContext->currentGroup
-            ? m_productContext->currentGroup->properties
-            : m_productContext->product->moduleProperties;
-    const QVariantMap newModuleProperties
-            = resolveAdditionalModuleProperties(item, moduleProperties->value());
-    if (!newModuleProperties.empty()) {
-        moduleProperties = PropertyMapInternal::create();
-        moduleProperties->setValue(newModuleProperties);
-    }
-
     AccumulatingTimer groupTimer(m_setupParams.logElapsedTime()
                                        ? &m_elapsedTimeGroups : nullptr);
+
+    const auto getGroupPropertyMap = [this, item](const ArtifactProperties *existingProps) {
+        PropertyMapPtr moduleProperties;
+        bool newPropertyMapRequired = false;
+        if (existingProps)
+            moduleProperties = existingProps->propertyMap();
+        if (!moduleProperties) {
+            newPropertyMapRequired = true;
+            moduleProperties = m_productContext->currentGroup
+                    ? m_productContext->currentGroup->properties
+                    : m_productContext->product->moduleProperties;
+        }
+        const QVariantMap newModuleProperties
+                = resolveAdditionalModuleProperties(item, moduleProperties->value());
+        if (!newModuleProperties.empty()) {
+            if (newPropertyMapRequired)
+                moduleProperties = PropertyMapInternal::create();
+            moduleProperties->setValue(newModuleProperties);
+        }
+        return moduleProperties;
+    };
 
     QStringList files = m_evaluator->stringListValue(item, StringConstants::filesProperty());
     bool fileTagsSet;
@@ -716,28 +727,30 @@ void ProjectResolver::resolveGroupFully(Item *item, ProjectResolver::ProjectCont
             throw ErrorInfo(Tr::tr("Group.files and Group.fileTagsFilters are exclusive."),
                         item->location());
 
-        ProductContext::ArtifactPropertiesInfo apinfo
-                = m_productContext->artifactPropertiesPerFilter.value(fileTagsFilter);
+        if (!isEnabled)
+            return;
+
+        ProductContext::ArtifactPropertiesInfo &apinfo
+                = m_productContext->artifactPropertiesPerFilter[fileTagsFilter];
         if (apinfo.first) {
-            if (apinfo.second.filePath() == item->location().filePath()) {
+            const auto it = std::find_if(apinfo.second.cbegin(), apinfo.second.cend(),
+                                         [item](const CodeLocation &loc) {
+                return item->location().filePath() == loc.filePath();
+            });
+            if (it != apinfo.second.cend()) {
                 ErrorInfo error(Tr::tr("Conflicting fileTagsFilter in Group items."));
-                error.append(Tr::tr("First item"), apinfo.second);
+                error.append(Tr::tr("First item"), *it);
                 error.append(Tr::tr("Second item"), item->location());
                 throw error;
             }
-
-            // Discard any Group with the same fileTagsFilter that was defined in a base file.
-            removeAll(m_productContext->product->artifactProperties, apinfo.first);
+        } else {
+            apinfo.first = ArtifactProperties::create();
+            apinfo.first->setFileTagsFilter(FileTags::fromStringList(fileTagsFilter));
+            m_productContext->product->artifactProperties.push_back(apinfo.first);
         }
-        if (!isEnabled)
-            return;
-        ArtifactPropertiesPtr aprops = ArtifactProperties::create();
-        aprops->setFileTagsFilter(FileTags::fromStringList(fileTagsFilter));
-        aprops->setExtraFileTags(fileTags);
-        aprops->setPropertyMapInternal(moduleProperties);
-        m_productContext->product->artifactProperties.push_back(aprops);
-        m_productContext->artifactPropertiesPerFilter.insert(fileTagsFilter,
-                                ProductContext::ArtifactPropertiesInfo(aprops, item->location()));
+        apinfo.second.push_back(item->location());
+        apinfo.first->setPropertyMapInternal(getGroupPropertyMap(apinfo.first.get()));
+        apinfo.first->addExtraFileTags(fileTags);
         return;
     }
     QStringList patterns;
@@ -757,7 +770,7 @@ void ProjectResolver::resolveGroupFully(Item *item, ProjectResolver::ProjectCont
     }
     group->location = item->location();
     group->enabled = isEnabled;
-    group->properties = moduleProperties;
+    group->properties = getGroupPropertyMap(nullptr);
     group->fileTags = fileTags;
     group->overrideTags = m_evaluator->boolValue(item, StringConstants::overrideTagsProperty());
     if (group->overrideTags && fileTagsSet) {

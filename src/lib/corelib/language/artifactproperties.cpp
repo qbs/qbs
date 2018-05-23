@@ -57,9 +57,9 @@ FileTags ArtifactProperties::extraFileTags() const
     return m_extraFileTags;
 }
 
-void ArtifactProperties::setExtraFileTags(const FileTags &extraFileTags)
+void ArtifactProperties::addExtraFileTags(const FileTags &extraFileTags)
 {
-    m_extraFileTags = extraFileTags;
+    m_extraFileTags.unite(extraFileTags);
 }
 
 bool operator==(const ArtifactProperties &ap1, const ArtifactProperties &ap2)

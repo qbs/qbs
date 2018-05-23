@@ -3423,6 +3423,17 @@ void TestBlackbox::fileDependencies()
     QVERIFY(!m_qbsStdout.contains("compiling zort.cpp"));
 }
 
+void TestBlackbox::fileTagsFilterMerging()
+{
+    QDir::setCurrent(testDataDir + "/filetagsfilter-merging");
+    QCOMPARE(runQbs(QStringList{"-f", "filetagsfilter-merging.qbs"}), 0);
+    const QString installedApp = defaultInstallRoot + "/myapp/binDir/"
+            + QFileInfo(relativeExecutableFilePath("myapp")).fileName();
+    QVERIFY2(QFile::exists(installedApp), qPrintable(installedApp));
+    const QString otherOutput = relativeProductBuildDir("myapp") + "/myapp.txt";
+    QVERIFY2(QFile::exists(otherOutput), qPrintable(otherOutput));
+}
+
 void TestBlackbox::installedTransformerOutput()
 {
     QDir::setCurrent(testDataDir + "/installed-transformer-output");

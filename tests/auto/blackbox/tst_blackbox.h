@@ -108,6 +108,7 @@ private slots:
     void exportsQbs();
     void externalLibs();
     void fileDependencies();
+    void fileTagsFilterMerging();
     void generatedArtifactAsInputToDynamicRule();
     void generator();
     void generator_data();
