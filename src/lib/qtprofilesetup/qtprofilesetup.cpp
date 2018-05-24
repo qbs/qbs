@@ -40,6 +40,7 @@
 #include "qtprofilesetup.h"
 
 #include "qtmoduleinfo.h"
+#include "qtmsvctools.h"
 
 #include <logging/translator.h>
 #include <tools/architectures.h>
@@ -420,7 +421,7 @@ static QByteArray libraryFileTag(const QtEnvironment &env, const QtModuleInfo &m
     if (module.isStaticLibrary)
         result = "staticlibrary";
     else
-        result = env.msvcVersion.isValid() ? "dynamiclibrary_import" : "dynamiclibrary";
+        result = isMsvcQt(env) ? "dynamiclibrary_import" : "dynamiclibrary";
     return result;
 }
 
