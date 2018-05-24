@@ -13,7 +13,7 @@ MyApplication {
     Rule {
         inputs: "extra-input"
         Artifact {
-            filePath: input.fileName + ".txt"
+            filePath: input.baseName + ".txt"
             fileTags: "extra-output"
         }
         prepare: {
