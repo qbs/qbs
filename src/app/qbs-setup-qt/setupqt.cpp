@@ -40,6 +40,7 @@
 #include "setupqt.h"
 
 #include "../shared/logging/consolelogger.h"
+#include <qtmsvctools.h>
 #include <qtprofilesetup.h>
 #include <logging/translator.h>
 #include <tools/architectures.h>
@@ -186,41 +187,6 @@ typedef QMap<QByteArray, QByteArray> QueryMap;
 static QString pathQueryValue(const QueryMap &queryMap, const QByteArray &key)
 {
     return QDir::fromNativeSeparators(QString::fromLocal8Bit(queryMap.value(key)));
-}
-
-static const QString msvcPrefix = QLatin1String("win32-msvc");
-
-static bool isMsvcQt(const QtEnvironment &env)
-{
-    return env.mkspecName.startsWith(msvcPrefix);
-}
-
-static Version msvcCompilerVersionForYear(int year)
-{
-    switch (year)
-    {
-    case 2005:
-        return Version(14);
-    case 2008:
-        return Version(15);
-    case 2010:
-        return Version(16);
-    case 2012:
-        return Version(17);
-    case 2013:
-        return Version(18);
-    case 2015:
-        return Version(19);
-    case 2017:
-        return Version(19, 1);
-    default:
-        return Version();
-    }
-}
-
-static Version msvcCompilerVersionFromMkspecName(const QString &mkspecName)
-{
-    return msvcCompilerVersionForYear(mkspecName.mid(msvcPrefix.size()).toInt());
 }
 
 QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
