@@ -103,6 +103,10 @@ struct MSVCArchInfo
 static std::vector<MSVCArchInfo> findSupportedArchitectures(const MSVC &msvc)
 {
     std::vector<MSVCArchInfo> result;
+    auto addResult = [&result](const MSVCArchInfo &ai) {
+        if (QFile::exists(ai.binPath + QLatin1String("/cl.exe")))
+            result.push_back(ai);
+    };
     if (msvc.internalVsVersion.majorVersion() < 15) {
         static const QStringList knownArchitectures = QStringList()
             << QStringLiteral("x86")
@@ -117,8 +121,7 @@ static std::vector<MSVCArchInfo> findSupportedArchitectures(const MSVC &msvc)
             MSVCArchInfo ai;
             ai.arch = knownArchitecture;
             ai.binPath = msvc.binPathForArchitecture(knownArchitecture);
-            if (QFile::exists(ai.binPath + QLatin1String("/cl.exe")))
-                result.push_back(ai);
+            addResult(ai);
         }
     } else {
         QDir vcInstallDir(msvc.vcInstallPath);
@@ -136,7 +139,7 @@ static std::vector<MSVCArchInfo> findSupportedArchitectures(const MSVC &msvc)
                     ai.arch = arch;
                 else
                     ai.arch = shortHostArch + QLatin1Char('_') + arch;
-                result.push_back(ai);
+                addResult(ai);
             }
         }
     }
