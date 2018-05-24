@@ -5,10 +5,7 @@ Module {
 
     Rule {
         inputs: ["intype"]
-        Artifact {
-            filePath: "dummy.out"
-            fileTags: ["outtype"]
-        }
+        outputFileTags: "outtype"
         prepare: {
             var cmd = new JavaScriptCommand();
             cmd.silent = true;

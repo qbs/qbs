@@ -14,10 +14,7 @@ CppApplication {
 
     Rule {
         multiplex: true
-        Artifact {
-            filePath: "dummy.txt"
-            fileTags: ["custom"]
-        }
+        outputFileTags: "custom"
         prepare: {
             var cmd = new JavaScriptCommand();
             cmd.silent = true;

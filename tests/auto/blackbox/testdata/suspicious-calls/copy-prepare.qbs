@@ -9,10 +9,7 @@ Product {
     }
     Rule {
         inputs: ["in"]
-        Artifact {
-            filePath: "dummy.txt"
-            fileTags: ["out"]
-        }
+        outputFileTags: "out"
         prepare: {
             File.copy(input.filePath, output.filePath);
             var cmd = new JavaScriptCommand();

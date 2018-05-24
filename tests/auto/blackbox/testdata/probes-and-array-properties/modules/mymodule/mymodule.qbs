@@ -15,11 +15,7 @@ Module {
 
     Rule {
         multiplex: true
-        alwaysRun: true
-        Artifact {
-            filePath: "dummy"
-            fileTags: ["the-output"]
-        }
+        outputFileTags: "the-output"
         prepare: {
             var cmd = new JavaScriptCommand();
             cmd.description = "generating dummy";

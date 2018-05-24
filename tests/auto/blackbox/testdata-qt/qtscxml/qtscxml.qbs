@@ -29,10 +29,7 @@ Project {
         Depends { name: "app" }
         Rule {
             inputsFromDependencies: ["application"]
-            Artifact {
-                filePath: "dummy"
-                fileTags: ["runner"]
-            }
+            outputFileTags: ["runner"]
             prepare: {
                 var cmd = new Command(input.filePath);
                 cmd.description = "running " + input.filePath;

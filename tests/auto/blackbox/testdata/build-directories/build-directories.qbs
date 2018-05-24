@@ -6,10 +6,7 @@ Project {
         type: "blubb1"
         Rule {
             multiplex: true
-            Artifact {
-                filePath: "dummy1.txt"
-                fileTags: product.type
-            }
+            outputFileTags: "blubb1"
             prepare: {
                 var cmd = new JavaScriptCommand();
                 cmd.silent = true;
@@ -26,10 +23,7 @@ Project {
         Depends { name: "p1" }
         Rule {
             inputsFromDependencies: "blubb1"
-            Artifact {
-                filePath: "dummy2.txt"
-                fileTags: product.type
-            }
+            outputFileTags: "blubb2"
             prepare: {
                 var cmd = new JavaScriptCommand();
                 cmd.silent = true;

@@ -11,10 +11,7 @@ Module {
 
     Rule {
         multiplex: true
-        Artifact {
-            filePath: "dummy.out"
-            fileTags: ["theType"]
-        }
+        outputFileTags: "theType"
         prepare: {
             var cmd = new JavaScriptCommand();
             cmd.silent = true;

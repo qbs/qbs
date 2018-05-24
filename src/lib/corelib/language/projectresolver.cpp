@@ -1174,19 +1174,18 @@ void ProjectResolver::resolveRule(Item *item, ProjectContext *projectContext)
     rule->prepareScript.initialize(scriptFunctionValue(item, StringConstants::prepareProperty()));
     rule->outputArtifactsScript.initialize(scriptFunctionValue(
                                                item, StringConstants::outputArtifactsProperty()));
+    rule->outputFileTags = m_evaluator->fileTagsValue(
+                item, StringConstants::outputFileTagsProperty());
     if (rule->outputArtifactsScript.isValid()) {
         if (hasArtifactChildren)
             throw ErrorInfo(Tr::tr("The Rule.outputArtifacts script is not allowed in rules "
                                    "that contain Artifact items."),
                         item->location());
-        rule->outputFileTags = m_evaluator->fileTagsValue(
-                    item, StringConstants::outputFileTagsProperty());
-        if (rule->outputFileTags.empty())
-            throw ErrorInfo(Tr::tr("Rule.outputFileTags must be specified if "
-                                   "Rule.outputArtifacts is specified."),
-                            item->location());
     }
-
+    if (!hasArtifactChildren && rule->outputFileTags.empty()) {
+        throw ErrorInfo(Tr::tr("A rule needs to have Artifact items or a non-empty "
+                               "outputFileTags property."), item->location());
+    }
     rule->multiplex = m_evaluator->boolValue(item, StringConstants::multiplexProperty());
     rule->alwaysRun = m_evaluator->boolValue(item, StringConstants::alwaysRunProperty());
     rule->inputs = m_evaluator->fileTagsValue(item, StringConstants::inputsProperty());

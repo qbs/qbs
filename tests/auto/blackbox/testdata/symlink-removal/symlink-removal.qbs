@@ -5,10 +5,7 @@ Product {
     type: "removal"
     Rule {
         multiplex: true
-        Artifact {
-            filePath: "dummy"
-            fileTags: product.type
-        }
+        outputFileTags: "removal"
         prepare: {
             var cmd = new JavaScriptCommand();
             cmd.silent = true;

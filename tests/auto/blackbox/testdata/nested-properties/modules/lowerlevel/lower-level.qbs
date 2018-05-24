@@ -7,10 +7,7 @@ Module {
 
     Rule {
         inputs: ["dummy-input"]
-        Artifact {
-            filePath: "dummy.out"
-            fileTags: "mytype"
-        }
+        outputFileTags: "mytype"
         prepare: {
             var cmd = new JavaScriptCommand();
             cmd.sourceCode = function() { };

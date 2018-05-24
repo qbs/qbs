@@ -830,6 +830,9 @@ void TestLanguage::erroneousFiles_data()
     QTest::newRow("original-in-product-property")
             << "original-in-product-property.qbs"
                ":4:21.*The special value 'original' can only be used with module properties.";
+    QTest::newRow("rule-without-output-tags")
+            << "rule-without-output-tags.qbs:4:5.*A rule needs to have Artifact items or "
+               "a non-empty outputFileTags property.";
     QTest::newRow("mismatching-multiplex-dependency")
             << "mismatching-multiplex-dependency.qbs:9:5.*Dependency from product "
                "'b \\{\"architecture\":\"mips\"\\}' to product 'a \\{\"architecture\":\"mips\"\\}'"

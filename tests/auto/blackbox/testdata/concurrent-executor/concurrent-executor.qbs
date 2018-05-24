@@ -52,10 +52,7 @@ Product {
     }
     Rule {
         inputs: ["intermediate"]
-        Artifact {
-            filePath: "dummy2.final"
-            fileTags: ["final2"]
-        }
+        outputFileTags: "final2"
         prepare: {
             do
                 Utils.sleep(6000);

@@ -5,7 +5,7 @@ Product {
     type: ["custom1", "custom2", "custom3", "custom4", "custom5"]
     Rule {
         multiplex: true
-        Artifact { filePath: "dummy"; fileTags: "custom1" }
+        outputFileTags: "custom1"
         prepare: {
             var cmd = new JavaScriptCommand();
             cmd.description = "reader1";
@@ -24,7 +24,7 @@ Product {
     }
     Rule {
         multiplex: true
-        Artifact { filePath: "helperdummy"; fileTags: "helper" }
+        outputFileTags: "helper"
         prepare: {
             var cmd = new JavaScriptCommand();
             cmd.description = "helper";
@@ -55,7 +55,7 @@ Product {
     }
     Rule {
         multiplex: true
-        Artifact { filePath: "dummy2"; fileTags: "custom5" }
+        outputFileTags: "custom5"
         prepare: {
             var cmd = new JavaScriptCommand();
             cmd.description = "reader2";

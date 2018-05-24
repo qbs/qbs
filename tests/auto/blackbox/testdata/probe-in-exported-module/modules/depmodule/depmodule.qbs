@@ -6,10 +6,7 @@ Module {
 
     Rule {
         inputs: ["dep-in"]
-        Artifact {
-            filePath: "dummy.txt"
-            fileTags: ["dep-out"]
-        }
+        outputFileTags: "dep-out"
         prepare: {
             var cmd = new JavaScriptCommand();
             cmd.description = "Creating dep-out artifact";

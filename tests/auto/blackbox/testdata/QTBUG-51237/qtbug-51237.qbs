@@ -5,10 +5,7 @@ Product {
     Depends { name: "mymodule" }
     Rule {
         multiplex: true
-        Artifact {
-            filePath: "dummy.custom"
-            fileTags: ["custom"]
-        }
+        outputFileTags: ["custom"]
         prepare: {
             var theProperty = product.mymodule.theProperty;
             if (!theProperty)

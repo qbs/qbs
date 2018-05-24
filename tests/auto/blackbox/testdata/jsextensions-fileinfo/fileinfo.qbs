@@ -6,10 +6,7 @@ Product {
     type: ["dummy"]
     Rule {
         multiplex: true
-        Artifact {
-            filePath: "dummy.txt"
-            fileTags: ["dummy"]
-        }
+        outputFileTags: "dummy"
         prepare: {
             var cmd = new JavaScriptCommand();
             cmd.silent = true;

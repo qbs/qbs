@@ -6,11 +6,7 @@ Module {
 
     Rule {
         inputs: ["rule-input"]
-        Artifact {
-            filePath: "dummy"
-            fileTags: ["rule-output"]
-            alwaysUpdated: false
-        }
+        outputFileTags: "rule-output"
         prepare: {
             var cmd = new JavaScriptCommand();
             cmd.silent = true;

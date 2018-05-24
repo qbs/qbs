@@ -9,10 +9,7 @@ Product {
     }
     Rule {
         inputs: ["in"]
-        Artifact {
-            filePath: "dummy.txt"
-            fileTags: ["out"]
-        }
+        outputFileTags: "out"
         prepare: {
             var cmd = new JavaScriptCommand();
             cmd.silent = true;

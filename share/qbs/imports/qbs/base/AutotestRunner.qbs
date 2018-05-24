@@ -32,7 +32,6 @@ import qbs
 import qbs.File
 import qbs.FileInfo
 import qbs.ModUtils
-import qbs.Utilities
 
 Product {
     name: "autotest-runner"
@@ -57,11 +56,7 @@ Product {
     Rule {
         inputsFromDependencies: "application"
         auxiliaryInputs: product.auxiliaryInputs
-        Artifact {
-            filePath: Utilities.getHash(input.filePath) + ".result.dummy" // Will never exist.
-            fileTags: "autotest-result"
-            alwaysUpdated: false
-        }
+        outputFileTags: "autotest-result"
         prepare: {
             var commandFilePath;
             var installed = input.moduleProperty("qbs", "install");

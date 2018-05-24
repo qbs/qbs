@@ -15,11 +15,7 @@ Project {
         property int argument
         Rule {
             inputsFromDependencies: ["application"]
-            Artifact {
-                filePath: "dummy"
-                fileTags: product.type
-                alwaysUpdated: false
-            }
+            outputFileTags: "mytype"
             prepare: {
                 var cmd = new Command(inputs["application"][0].filePath, [product.argument]);
                 if (product.redirectStdout)

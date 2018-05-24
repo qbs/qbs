@@ -12,10 +12,7 @@ Module {
 
     Rule {
         inputs: ["in"]
-        Artifact {
-            filePath: "dummy2.txt"
-            fileTags: ["out"]
-        }
+        outputFileTags: "out"
         prepare: {
             var cmd = new JavaScriptCommand();
             cmd.description = "Creating out artifact";

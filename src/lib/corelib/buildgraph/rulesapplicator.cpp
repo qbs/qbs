@@ -65,6 +65,7 @@
 #include <tools/qttools.h>
 #include <tools/stringconstants.h>
 
+#include <QtCore/qcryptographichash.h>
 #include <QtCore/qdir.h>
 #include <QtScript/qscriptvalueiterator.h>
 
@@ -218,6 +219,10 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
             outputArtifacts.push_back(outputArtifact);
             ruleArtifactArtifactMap.push_back({ ruleArtifact.get(), outputArtifact });
         }
+        if (m_rule->artifacts.empty()) {
+            outputArtifacts.push_back(createOutputArtifactFromRuleArtifact(nullptr, inputArtifacts,
+                                                                           &outputFilePaths));
+        }
     }
 
     if (outputArtifacts.empty())
@@ -352,18 +357,34 @@ Artifact *RulesApplicator::createOutputArtifactFromRuleArtifact(
         const RuleArtifactConstPtr &ruleArtifact, const ArtifactSet &inputArtifacts,
         Set<QString> *outputFilePaths)
 {
-    QScriptValue scriptValue = engine()->evaluate(ruleArtifact->filePath,
-                                                  ruleArtifact->filePathLocation.filePath(),
-                                                  ruleArtifact->filePathLocation.line());
-    if (Q_UNLIKELY(engine()->hasErrorOrException(scriptValue)))
-        throw engine()->lastError(scriptValue, ruleArtifact->filePathLocation);
-    QString outputPath = FileInfo::resolvePath(m_product->buildDirectory(), scriptValue.toString());
+    QString outputPath;
+    FileTags fileTags;
+    bool alwaysUpdated;
+    if (ruleArtifact) {
+        QScriptValue scriptValue = engine()->evaluate(ruleArtifact->filePath,
+                                                      ruleArtifact->filePathLocation.filePath(),
+                                                      ruleArtifact->filePathLocation.line());
+        if (Q_UNLIKELY(engine()->hasErrorOrException(scriptValue)))
+            throw engine()->lastError(scriptValue, ruleArtifact->filePathLocation);
+        outputPath = scriptValue.toString();
+        fileTags = ruleArtifact->fileTags;
+        alwaysUpdated = ruleArtifact->alwaysUpdated;
+    } else {
+        outputPath = QStringLiteral("__dummyoutput__");
+        QByteArray hashInput = m_rule->toString().toLatin1();
+        for (const Artifact * const input : inputArtifacts)
+            hashInput += input->filePath().toLatin1();
+        outputPath += QLatin1String(QCryptographicHash::hash(hashInput, QCryptographicHash::Sha1)
+                                    .toHex().left(16));
+        fileTags = m_rule->outputFileTags;
+        alwaysUpdated = false;
+    }
+    outputPath = FileInfo::resolvePath(m_product->buildDirectory(), outputPath);
     if (Q_UNLIKELY(!outputFilePaths->insert(outputPath).second)) {
         throw ErrorInfo(Tr::tr("Rule %1 already created '%2'.")
                         .arg(m_rule->toString(), outputPath));
     }
-    return createOutputArtifact(outputPath, ruleArtifact->fileTags, ruleArtifact->alwaysUpdated,
-                                inputArtifacts);
+    return createOutputArtifact(outputPath, fileTags, alwaysUpdated, inputArtifacts);
 }
 
 Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const FileTags &fileTags,

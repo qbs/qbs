@@ -13,10 +13,7 @@ Project {
         Rule {
             multiplex: true
             inputs: ["application"]
-            Artifact {
-                filePath: "dummy.txt"
-                fileTags: ["dummy"]
-            }
+            outputFileTags: "dummy"
             prepare: {
                 var cmd = new JavaScriptCommand();
                 cmd.silent = true;

@@ -14,10 +14,7 @@ Project {
         Depends { name: "infinite-loop" }
         Rule {
             inputsFromDependencies: "application"
-            Artifact {
-                filePath: "dummy"
-                fileTags: "mytype"
-            }
+            outputFileTags: "mytype"
             prepare: {
                 var cmd = new Command(inputs["application"][0].filePath);
                 cmd.description = "Calling application that runs forever";
