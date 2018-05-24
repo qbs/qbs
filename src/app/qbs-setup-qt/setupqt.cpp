@@ -105,14 +105,14 @@ bool SetupQt::isQMakePathValid(const QString &qmakePath)
     return qmakeFileInfo.exists() && qmakeFileInfo.isFile() && qmakeFileInfo.isExecutable();
 }
 
-QList<QtEnvironment> SetupQt::fetchEnvironments()
+std::vector<EnhancedQtEnvironment> SetupQt::fetchEnvironments()
 {
-    QList<QtEnvironment> qtEnvironments;
+    std::vector<EnhancedQtEnvironment> qtEnvironments;
 
     const auto qmakePaths = collectQmakePaths();
     for (const QString &qmakePath : qmakePaths) {
-        const QtEnvironment env = fetchEnvironment(qmakePath);
-        if (none_of(qtEnvironments, [&env](const QtEnvironment &otherEnv) {
+        const EnhancedQtEnvironment env = fetchEnvironment(qmakePath);
+        if (none_of(qtEnvironments, [&env](const EnhancedQtEnvironment &otherEnv) {
                         return env.includePath == otherEnv.includePath;
                     })) {
             qtEnvironments.push_back(env);
@@ -189,9 +189,9 @@ static QString pathQueryValue(const QueryMap &queryMap, const QByteArray &key)
     return QDir::fromNativeSeparators(QString::fromLocal8Bit(queryMap.value(key)));
 }
 
-QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
+EnhancedQtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
 {
-    QtEnvironment qtEnvironment;
+    EnhancedQtEnvironment qtEnvironment;
     QueryMap queryOutput = qmakeQueryOutput(qmakePath);
 
     qtEnvironment.installPrefixPath = pathQueryValue(queryOutput, "QT_INSTALL_PREFIX");
@@ -358,7 +358,7 @@ static QStringList qbsToolchainFromQtMkspec(const QString &mkspec)
 
 enum Match { MatchFull, MatchPartial, MatchNone };
 
-static Match compatibility(const QtEnvironment &env, const Profile &toolchainProfile)
+static Match compatibility(const EnhancedQtEnvironment &env, const Profile &toolchainProfile)
 {
     Match match = MatchFull;
 
@@ -430,7 +430,8 @@ static void compressMsvcProfiles(QStringList &profiles)
         profiles.erase(it, profiles.end());
 }
 
-void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnvironment &qtEnvironment,
+void SetupQt::saveToQbsSettings(const QString &qtVersionName,
+                                const EnhancedQtEnvironment &qtEnvironment,
                                 Settings *settings)
 {
     const QString cleanQtVersionName = Profile::cleanName(qtVersionName);
@@ -503,7 +504,7 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName, const QtEnvironmen
 }
 
 bool SetupQt::checkIfMoreThanOneQtWithTheSameVersion(const QString &qtVersion,
-        const QList<QtEnvironment> &qtEnvironments)
+        const std::vector<EnhancedQtEnvironment> &qtEnvironments)
 {
     bool foundOneVersion = false;
     for (const QtEnvironment &qtEnvironment : qtEnvironments) {
