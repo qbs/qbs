@@ -100,13 +100,13 @@
 
 //! [check-timestamps]
 
-//! [clean-install-root]
+//! [clean_install_root]
 
     \section2 \c --clean-install-root
 
     Removes the installation base directory before installing.
 
-//! [clean-install-root]
+//! [clean_install_root]
 
 //! [command-echo-mode]
 
