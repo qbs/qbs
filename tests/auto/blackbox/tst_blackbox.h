@@ -50,6 +50,7 @@ private slots:
     void autotestWithDependencies();
     void auxiliaryInputsFromDependencies();
     void badInterpreter();
+    void bomSources();
     void buildDataOfDisabledProduct();
     void buildDirectories();
     void buildEnvChange();

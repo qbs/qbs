@@ -5839,6 +5839,21 @@ void TestBlackbox::badInterpreter()
     QCOMPARE(runQbs(QbsRunParameters("run", QStringList() << "-p" << "script-ok")), 0);
 }
 
+void TestBlackbox::bomSources()
+{
+    QDir::setCurrent(testDataDir + "/bom-sources");
+    const bool success = runQbs() == 0;
+    if (!success)
+        QSKIP("Assuming compiler cannot deal with byte order mark");
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+    WAIT_FOR_NEW_TIMESTAMP();
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(!m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+    touch("theheader.h");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+}
+
 void TestBlackbox::buildDataOfDisabledProduct()
 {
     QDir::setCurrent(testDataDir + QLatin1String("/build-data-of-disabled-product"));
