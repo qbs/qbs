@@ -5570,6 +5570,21 @@ void TestBlackbox::makefileGenerator()
     QVERIFY(!QFile::exists(relativeExecutableFilePath("the app")));
 }
 
+void TestBlackbox::maximumCLanguageVersion()
+{
+    QDir::setCurrent(testDataDir + "/maximum-c-language-version");
+    QCOMPARE(runQbs(QbsRunParameters("resolve",
+                                     QStringList("products.app.enableNewestModule:true"))), 0);
+    if (m_qbsStdout.contains("is msvc"))
+        QSKIP("MSVC has no support for setting the C language version.");
+    QCOMPARE(runQbs(QStringList({"--command-echo-mode", "command-line", "-n"})), 0);
+    QVERIFY2(m_qbsStdout.contains("c11") || m_qbsStdout.contains("c1x"), m_qbsStdout.constData());
+    QCOMPARE(runQbs(QbsRunParameters("resolve",
+                                     QStringList("products.app.enableNewestModule:false"))), 0);
+    QCOMPARE(runQbs(QStringList({"--command-echo-mode", "command-line", "-n"})), 0);
+    QVERIFY2(m_qbsStdout.contains("c99"), m_qbsStdout.constData());
+}
+
 void TestBlackbox::maximumCxxLanguageVersion()
 {
     QDir::setCurrent(testDataDir + "/maximum-cxx-language-version");

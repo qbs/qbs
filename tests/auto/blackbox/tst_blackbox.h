@@ -157,6 +157,7 @@ private slots:
     void loadableModule();
     void localDeployment();
     void makefileGenerator();
+    void maximumCLanguageVersion();
     void maximumCxxLanguageVersion();
     void minimumSystemVersion();
     void minimumSystemVersion_data();
