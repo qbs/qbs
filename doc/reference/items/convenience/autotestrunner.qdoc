@@ -110,7 +110,7 @@
 */
 
 /*!
-    \qmlproperty stringList AutotestRunner::workingDir
+    \qmlproperty string AutotestRunner::workingDir
 
     If this property is set, it will be the working directory for all invoked test executables.
     Otherwise, the working directory will the the parent directory of the respective executable.
