@@ -1,0 +1,12 @@
+foo bar baz
+fu bar baz
+foo BAR baz
+foo bar buzz
+fu BAR baz
+fu bar buzz
+fu BAR buzz
+fooBARbaz
+foo\BARbaz
+foo\\BARbaz
+foo\\\BARbaz
+foo${bar}baz

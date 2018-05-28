@@ -249,6 +249,7 @@ private slots:
     void systemRunPaths();
     void systemRunPaths_data();
     void tar();
+    void textTemplate();
     void toolLookup();
     void topLevelSearchPath();
     void trackAddFile();

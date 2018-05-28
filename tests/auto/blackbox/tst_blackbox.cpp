@@ -258,6 +258,19 @@ void TestBlackbox::tar()
     QCOMPARE(listContents.readAllStandardOutput(), listFile.readAll());
 }
 
+void TestBlackbox::textTemplate()
+{
+    QVERIFY(QDir::setCurrent(testDataDir + "/texttemplate"));
+    rmDirR(relativeBuildDir());
+    QCOMPARE(runQbs(), 0);
+    QString outputFilePath = relativeProductBuildDir("one") + "/output.txt";
+    QString expectedOutputFilePath = QFINDTESTDATA("expected/output.txt");
+    TEXT_FILE_COMPARE(outputFilePath, expectedOutputFilePath);
+    outputFilePath = relativeProductBuildDir("one") + "/lalala.txt";
+    expectedOutputFilePath = QFINDTESTDATA("expected/lalala.txt");
+    TEXT_FILE_COMPARE(outputFilePath, expectedOutputFilePath);
+}
+
 static QStringList sortedFileList(const QByteArray &ba)
 {
     auto list = QString::fromUtf8(ba).split(QRegExp("[\r\n]"), QString::SkipEmptyParts);
@@ -3113,6 +3126,8 @@ void TestBlackbox::erroneousFiles_data()
             << "Error in Rule\\.outputArtifacts\\[0\\]\n\r?"
                "Property fileTags for artifact 'outputArtifacts-missing-fileTags\\.txt' "
                "must be a non-empty string list\\.";
+    QTest::newRow("texttemplate-unknown-placeholder")
+            << "Placeholder 'what' is not defined in textemplate.dict for 'boom.txt.in'";
 }
 
 void TestBlackbox::erroneousFiles()

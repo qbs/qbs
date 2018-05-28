@@ -1,0 +1,118 @@
+/****************************************************************************
+**
+** Copyright (C) 2018 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+/*!
+    \contentspage index.html
+    \qmltype texttemplate
+    \inqmlmodule QbsModules
+    \since Qbs 1.13
+
+    \brief Provides support for text template files
+
+    The \c texttemplate module provides support for text template files.
+
+    \section2 Example
+
+    Consider the following text file \e{greeting.txt.in}.
+
+    \code
+    ${greeting} ${name}!
+    \endcode
+
+    This can be used in a project like this:
+
+    \code
+    Product {
+        type: ["text"]
+        files: ["greeting.txt.in"]
+        Depends { name: "texttemplate" }
+        texttemplate.dict: ({
+                greeting: "Hello",
+                name: "World"
+            })
+    }
+    \endcode
+
+    Which will create the file \e{greeting.txt}.
+
+    \code
+    Hello World!
+    \endcode
+
+
+    \section2 Placeholder Syntax
+
+    A placeholder \c{${foo}} is replaced by its corresponding value in
+    \e{texttemplate.dict}.
+    Placeholder names consist of alphanumeric characters only.
+
+    The placeholder \c{${$}} is always replaced with \c{$}.
+    If you need a literal \c{${foo}} in your template, use \c{${$}{foo}}.
+
+    Placeholders that are not defined in the dictionary will produce an error.
+
+
+    \section2 Relevant File Tags
+    \target filetags-texttemplate
+
+    \table
+    \header
+        \li Tag
+        \li Auto-tagged File Names
+        \li Since
+        \li Description
+    \row
+        \li \c{"texttemplate.input"}
+        \li \c{*.in}
+        \li 1.13.0
+        \li Source files with this tag serve as inputs for the text template rule.
+    \endtable
+*/
+
+/*!
+    \qmlproperty var texttemplate::dict
+
+    The dictionary containing values for all keys used in the template file.
+
+    \defaultvalue \c{{}}
+*/
+
+/*!
+    \qmlproperty string outputFileName
+
+    The output file name that is assigned to produced artifacts.
+
+    \defaultvalue Complete base name of the input file
+*/
+
+/*!
+    \qmlproperty string outputTag
+
+    The output tag that is assigned to produced artifacts.
+
+    \defaultvalue \c{"text"}
+*/

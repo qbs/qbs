@@ -16,3 +16,6 @@ for(data_dir, DATA_DIRS) {
 }
 
 OTHER_FILES += $$FILES
+
+DISTFILES += \
+    testdata/texttemplate/expected-output-one.txt

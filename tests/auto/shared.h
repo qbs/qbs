@@ -32,8 +32,10 @@
 #include <tools/profile.h>
 #include <tools/settings.h>
 
+#include <QtCore/qbytearray.h>
 #include <QtCore/qcryptographichash.h>
 #include <QtCore/qdatetime.h>
+#include <QtCore/qdebug.h>
 #include <QtCore/qdir.h>
 #include <QtCore/qfile.h>
 #include <QtCore/qfileinfo.h>
@@ -102,6 +104,79 @@ inline bool directoryExists(const QString &dirPath)
     const QFileInfo fi(dirPath);
     return fi.exists() && fi.isDir();
 }
+
+struct ReadFileContentResult
+{
+    QByteArray content;
+    QString errorString;
+};
+
+inline ReadFileContentResult readFileContent(const QString &filePath)
+{
+    ReadFileContentResult result;
+    QFile file(filePath);
+    if (!file.open(QIODevice::ReadOnly)) {
+        result.errorString = file.errorString();
+        return result;
+    }
+    result.content = file.readAll();
+    return result;
+}
+
+inline QByteArray diffText(const QByteArray &actual, const QByteArray &expected)
+{
+    QByteArray result;
+    QList<QByteArray> actualLines = actual.split('\n');
+    QList<QByteArray> expectedLines = expected.split('\n');
+    int n = 1;
+    while (!actualLines.isEmpty() && !expectedLines.isEmpty()) {
+        QByteArray actualLine = actualLines.takeFirst();
+        QByteArray expectedLine = expectedLines.takeFirst();
+        if (actualLine != expectedLine) {
+            result += QStringLiteral("%1:  actual: %2\n%1:expected: %3\n")
+                    .arg(n, 2)
+                    .arg(QString::fromUtf8(actualLine))
+                    .arg(QString::fromUtf8(expectedLine))
+                    .toUtf8();
+        }
+        n++;
+    }
+    auto addLines = [&result, &n] (const QList<QByteArray> &lines) {
+        for (const QByteArray &line : qAsConst(lines)) {
+            result += QStringLiteral("%1:          %2\n").arg(n).arg(QString::fromUtf8(line));
+            n++;
+        }
+    };
+    if (!actualLines.isEmpty()) {
+        result += "Extra unexpected lines:\n";
+        addLines(actualLines);
+    }
+    if (!expectedLines.isEmpty()) {
+        result += "Missing expected lines:\n";
+        addLines(expectedLines);
+    }
+    return result;
+}
+
+#define READ_TEXT_FILE(filePath, contentVariable)                                                  \
+    QByteArray contentVariable;                                                                    \
+    {                                                                                              \
+        auto c = readFileContent(filePath);                                                        \
+        QVERIFY2(c.errorString.isEmpty(),                                                          \
+                 qUtf8Printable(QStringLiteral("Cannot open file %1. %2")                          \
+                                .arg(filePath, c.errorString)));                                   \
+        contentVariable = std::move(c.content);                                                    \
+    }
+
+#define TEXT_FILE_COMPARE(actualFilePath, expectedFilePath)                                        \
+    {                                                                                              \
+        READ_TEXT_FILE(actualFilePath, ba1);                                                       \
+        READ_TEXT_FILE(expectedFilePath, ba2);                                                     \
+        if (ba1 != ba2) {                                                                          \
+            QByteArray msg = "File contents differ:\n" + diffText(ba1, ba2);                       \
+            QFAIL(msg.constData());                                                                \
+        }                                                                                          \
+    }
 
 template <typename T>
 inline QString prefixedIfNonEmpty(const T &prefix, const QString &str)
