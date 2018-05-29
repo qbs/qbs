@@ -48,6 +48,8 @@ private slots:
     void artifactScanning();
     void assembly();
     void autotestWithDependencies();
+    void autotests_data();
+    void autotests();
     void auxiliaryInputsFromDependencies();
     void badInterpreter();
     void buildDataOfDisabledProduct();

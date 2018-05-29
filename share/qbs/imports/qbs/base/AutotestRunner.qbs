@@ -64,14 +64,26 @@ Product {
                 commandFilePath = ModUtils.artifactInstalledFilePath(input);
             if (!commandFilePath || !File.exists(commandFilePath))
                 commandFilePath = input.filePath;
+            var workingDir = product.workingDir ? product.workingDir
+                                                : FileInfo.path(input.filePath);
+            var arguments = product.arguments;
+            var allowFailure = false;
+            if (input.autotest) {
+                if (input.autotest.arguments)
+                    arguments = input.autotest.arguments;
+                if (input.autotest.workingDir)
+                    workingDir = input.autotest.workingDir;
+                allowFailure = input.autotest.allowFailure;
+            }
             var fullCommandLine = product.wrapper
                 .concat([commandFilePath])
-                .concat(product.arguments);
+                .concat(arguments);
             var cmd = new Command(fullCommandLine[0], fullCommandLine.slice(1));
             cmd.description = "Running test " + input.fileName;
             cmd.environment = product.environment;
-            cmd.workingDirectory = product.workingDir ? product.workingDir
-                                                      : FileInfo.path(input.filePath);
+            cmd.workingDirectory = workingDir;
+            if (allowFailure)
+                cmd.maxExitCode = 32767;
             return cmd;
         }
     }

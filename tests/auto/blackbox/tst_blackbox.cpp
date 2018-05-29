@@ -4942,6 +4942,44 @@ void TestBlackbox::autotestWithDependencies()
              && m_qbsStdout.contains("i am the helper"), m_qbsStdout.constData());
 }
 
+void TestBlackbox::autotests_data()
+{
+    QTest::addColumn<QString>("evilPropertySpec");
+    QTest::addColumn<QByteArray>("expectedErrorMessage");
+    QTest::newRow("missing arguments") << QString("products.test1.autotest.arguments:[]")
+                                       << QByteArray("This test needs exactly one argument");
+    QTest::newRow("missing working dir") << QString("products.test2.autotest.workingDir:''")
+                                         << QByteArray("Test resource not found");
+    QTest::newRow("missing flaky specifier")
+            << QString("products.test3.autotest.allowFailure:false")
+            << QByteArray("I am an awful test");
+    QTest::newRow("everything's fine") << QString() << QByteArray();
+}
+
+void TestBlackbox::autotests()
+{
+    QDir::setCurrent(testDataDir + "/autotests");
+    QFETCH(QString, evilPropertySpec);
+    QFETCH(QByteArray, expectedErrorMessage);
+    QbsRunParameters resolveParams("resolve");
+    if (!evilPropertySpec.isEmpty())
+        resolveParams.arguments << evilPropertySpec;
+    QCOMPARE(runQbs(resolveParams), 0);
+    QbsRunParameters testParams(QStringList{"-p", "autotest-runner"});
+    if (!evilPropertySpec.isEmpty())
+        testParams.expectFailure = true;
+    QCOMPARE(runQbs(testParams) == 0, !testParams.expectFailure);
+    if (testParams.expectFailure) {
+        QVERIFY2(m_qbsStderr.contains(expectedErrorMessage), m_qbsStderr.constData());
+        return;
+    }
+    QVERIFY2(m_qbsStdout.contains("Running test test1")
+             && m_qbsStdout.contains("Running test test2")
+             && m_qbsStdout.contains("Running test test3"), m_qbsStdout.constData());
+    QCOMPARE(m_qbsStdout.count("PASS"), 2);
+    QCOMPARE(m_qbsStderr.count("FAIL"), 1);
+}
+
 void TestBlackbox::auxiliaryInputsFromDependencies()
 {
     QDir::setCurrent(testDataDir + "/aux-inputs-from-deps");

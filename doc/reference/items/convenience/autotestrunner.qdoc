@@ -73,6 +73,8 @@
     \qmlproperty stringList AutotestRunner::arguments
 
     The list of arguments to invoke the autotest with.
+    A test can override this by setting the \l{autotest::arguments}{arguments} property
+    of the \l autotest module.
 
     \defaultvalue \c []
 */
@@ -114,6 +116,8 @@
 
     If this property is set, it will be the working directory for all invoked test executables.
     Otherwise, the working directory will the the parent directory of the respective executable.
+    A test can override this by setting the \l{autotest::workingDir}{workingDir} property
+    of the \l autotest module.
 
     \nodefaultvalue
     \since Qbs 1.12
