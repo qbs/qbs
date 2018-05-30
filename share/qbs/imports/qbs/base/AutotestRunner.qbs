@@ -63,6 +63,13 @@ Product {
             alwaysUpdated: false
         }
         prepare: {
+            // TODO: This is hacky. Possible solution: Add autotest tag to application
+            // in autotest module and have that as inputsFromDependencies instead of application.
+            if (!input.product.type.contains("autotest")) {
+                var cmd = new JavaScriptCommand();
+                cmd.silent = true;
+                return cmd;
+            }
             var commandFilePath;
             var installed = input.moduleProperty("qbs", "install");
             if (installed)
