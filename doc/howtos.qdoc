@@ -145,7 +145,7 @@
         // ...
     }
     \endcode
-    The second step is to instantate an \l AutotestRunner product in your project:
+    The second step is to instantiate an \l AutotestRunner product in your project:
     \code
     Project {
         // ...
