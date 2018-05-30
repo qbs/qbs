@@ -76,7 +76,7 @@ Product {
             cmd.description = "Running test " + input.fileName;
             cmd.environment = product.environment;
             cmd.workingDirectory = product.workingDir ? product.workingDir
-                                                      : FileInfo.path(input.filePath);
+                                                      : FileInfo.path(commandFilePath);
             return cmd;
         }
     }
