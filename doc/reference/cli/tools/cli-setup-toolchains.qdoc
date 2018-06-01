@@ -36,8 +36,8 @@
     \section1 Synopsis
 
     \code
-    qbs setup-toolchains [--settings-dir <directory>] --detect
-    qbs setup-toolchains [--settings-dir <directory>] [--type <toolchain type>]
+    qbs setup-toolchains [--settings-dir <directory>] [--system] --detect
+    qbs setup-toolchains [--settings-dir <directory>] [--system] [--type <toolchain type>]
                          <compiler path> <profile name>
     \endcode
 
@@ -57,6 +57,7 @@
     \section1 Options
 
     \include cli-options.qdocinc settings-dir
+    \include cli-options.qdocinc setup-tools-system
     \include cli-options.qdocinc detect-toolchains
     \include cli-options.qdocinc type
     \include cli-options.qdocinc help

@@ -248,6 +248,16 @@ static void *openScanner(const unsigned short *filePath, const char *fileTags, i
         return nullptr;
 
     opaque->fileContent = reinterpret_cast<char *>(vmap);
+
+    // Check for UTF-8 Byte Order Mark (BOM). Skip if found.
+    if (mapl >= 3
+            && opaque->fileContent[0] == char(0xef)
+            && opaque->fileContent[1] == char(0xbb)
+            && opaque->fileContent[2] == char(0xbf)) {
+        opaque->fileContent += 3;
+        mapl -= 3;
+    }
+
     CPlusPlus::Lexer lex(opaque->fileContent, opaque->fileContent + mapl);
     scanCppFile(opaque.get(), lex, flags & ScanForFileTagsFlag, flags & ScanForDependenciesFlag);
     return opaque.release();

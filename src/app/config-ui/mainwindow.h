@@ -39,6 +39,8 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <tools/settings.h>
+
 #include <QtWidgets/qmainwindow.h>
 
 namespace qbs { class SettingsModel; }
@@ -53,7 +55,8 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(const QString &settingsDir, QWidget *parent = nullptr);
+    explicit MainWindow(const QString &settingsDir, qbs::Settings::Scope scope,
+                        QWidget *parent = nullptr);
     ~MainWindow();
 
     bool eventFilter(QObject *watched, QEvent *event);

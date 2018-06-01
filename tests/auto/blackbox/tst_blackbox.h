@@ -52,6 +52,7 @@ private slots:
     void autotests();
     void auxiliaryInputsFromDependencies();
     void badInterpreter();
+    void bomSources();
     void buildDataOfDisabledProduct();
     void buildDirectories();
     void buildEnvChange();
@@ -162,6 +163,7 @@ private slots:
     void loadableModule();
     void localDeployment();
     void makefileGenerator();
+    void maximumCLanguageVersion();
     void maximumCxxLanguageVersion();
     void minimumSystemVersion();
     void minimumSystemVersion_data();
@@ -208,6 +210,7 @@ private slots:
     void properQuoting();
     void propertiesInExportItems();
     void pseudoMultiplexing();
+    void qbsConfig();
     void qbsVersion();
     void qtBug51237();
     void radAfterIncompleteBuild();

@@ -75,7 +75,7 @@ Profile::Profile(const QString &name, Settings *settings, const QVariantMap &pro
 bool Profile::exists() const
 {
     return m_name == fallbackName() || !m_values.empty()
-            || !m_settings->allKeysWithPrefix(profileKey()).empty();
+            || !m_settings->allKeysWithPrefix(profileKey(), Settings::allScopes()).empty();
 }
 
 /*!
@@ -200,7 +200,7 @@ QVariant Profile::localValue(const QString &key) const
 {
     QVariant val = m_values.value(key);
     if (!val.isValid())
-        val = m_settings->value(fullyQualifiedKey(key));
+        val = m_settings->value(fullyQualifiedKey(key), Settings::allScopes());
     return val;
 }
 
@@ -230,7 +230,7 @@ QStringList Profile::allKeysInternal(Profile::KeySelection selection,
     extendAndCheckProfileChain(profileChain);
     QStringList keys = m_values.keys();
     if (keys.empty())
-        keys = m_settings->allKeysWithPrefix(profileKey());
+        keys = m_settings->allKeysWithPrefix(profileKey(), Settings::allScopes());
     if (selection == KeySelectionNonRecursive)
         return keys;
     const QString baseProfileName = baseProfile();

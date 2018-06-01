@@ -44,6 +44,7 @@
 #include "settingscreator.h"
 
 #include <logging/translator.h>
+#include <tools/hostosinfo.h>
 #include <tools/stringconstants.h>
 
 #include <QtCore/qsettings.h>
@@ -53,8 +54,46 @@
 namespace qbs {
 using namespace Internal;
 
-Settings::Settings(const QString &baseDir)
-    : m_settings(SettingsCreator(baseDir).getQSettings()), m_baseDir(baseDir)
+static QString defaultSystemSettingsBaseDir()
+{
+    switch (HostOsInfo::hostOs()) {
+    case HostOsInfo::HostOsWindows: {
+        const char key[] = "ALLUSERSAPPDATA";
+        if (qEnvironmentVariableIsSet(key))
+            return QLatin1String(key);
+        return QStringLiteral("C:/ProgramData");
+    }
+    case HostOsInfo::HostOsMacos:
+        return QStringLiteral("/Library/Application Support");
+    case HostOsInfo::HostOsLinux:
+    case HostOsInfo::HostOsOtherUnix:
+        return QStringLiteral("/etc/xdg");
+    default:
+        return QString();
+    }
+}
+
+static QString systemSettingsBaseDir()
+{
+#ifdef QBS_ENABLE_UNIT_TESTS
+    const char key[] = "QBS_AUTOTEST_SYSTEM_SETTINGS_DIR";
+    if (qEnvironmentVariableIsSet(key))
+        return QLatin1String(qgetenv(key));
+#endif
+#ifdef QBS_SYSTEM_SETTINGS_DIR
+    return QLatin1String(QBS_SYSTEM_SETTINGS_DIR);
+#else
+    return defaultSystemSettingsBaseDir() + QStringLiteral("/qbs");
+#endif
+}
+
+Settings::Settings(const QString &baseDir) : Settings(baseDir, systemSettingsBaseDir()) { }
+
+Settings::Settings(const QString &baseDir, const QString &systemBaseDir)
+    : m_settings(SettingsCreator(baseDir).getQSettings()),
+      m_systemSettings(new QSettings(systemBaseDir + QStringLiteral("/qbs.conf"),
+                                     QSettings::IniFormat)),
+      m_baseDir(baseDir)
 {
     // Actual qbs settings are stored transparently within a group, because QSettings
     // can see non-qbs fallback settings e.g. from QtProject that we're not interested in.
@@ -64,35 +103,66 @@ Settings::Settings(const QString &baseDir)
 Settings::~Settings()
 {
     delete m_settings;
+    delete m_systemSettings;
 }
 
-QVariant Settings::value(const QString &key, const QVariant &defaultValue) const
+QVariant Settings::value(const QString &key, Scopes scopes, const QVariant &defaultValue) const
 {
-    return m_settings->value(internalRepresentation(key), defaultValue);
+    QVariant userValue;
+    if (scopes & UserScope)
+        userValue = m_settings->value(internalRepresentation(key));
+    QVariant systemValue;
+    if (scopes & SystemScope)
+        systemValue = m_systemSettings->value(internalRepresentation(key));
+    if (!userValue.isValid()) {
+        if (systemValue.isValid())
+            return systemValue;
+        return defaultValue;
+    }
+    if (!systemValue.isValid())
+        return userValue;
+    if (static_cast<QMetaType::Type>(userValue.type()) == QMetaType::QStringList)
+        return userValue.toStringList() + systemValue.toStringList();
+    if (static_cast<QMetaType::Type>(userValue.type()) == QMetaType::QVariantList)
+        return userValue.toList() + systemValue.toList();
+    return userValue;
 }
 
-QStringList Settings::allKeys() const
+QStringList Settings::allKeys(Scopes scopes) const
 {
-    QStringList keys  = m_settings->allKeys();
+    QStringList keys;
+    if (scopes & UserScope)
+        keys = m_settings->allKeys();
+    if (scopes & SystemScope)
+        keys += m_systemSettings->allKeys();
     fixupKeys(keys);
     return keys;
 }
 
-QStringList Settings::directChildren(const QString &parentGroup)
+QStringList Settings::directChildren(const QString &parentGroup, Scope scope) const
 {
-    m_settings->beginGroup(internalRepresentation(parentGroup));
-    QStringList children = m_settings->childGroups();
-    children << m_settings->childKeys();
-    m_settings->endGroup();
+    QSettings * const settings = settingsForScope(scope);
+    settings->beginGroup(internalRepresentation(parentGroup));
+    QStringList children = settings->childGroups();
+    children << settings->childKeys();
+    settings->endGroup();
     fixupKeys(children);
     return children;
 }
 
-QStringList Settings::allKeysWithPrefix(const QString &group) const
+QStringList Settings::allKeysWithPrefix(const QString &group, Scopes scopes) const
 {
-    m_settings->beginGroup(internalRepresentation(group));
-    QStringList keys = m_settings->allKeys();
-    m_settings->endGroup();
+    QStringList keys;
+    if (scopes & UserScope) {
+        m_settings->beginGroup(internalRepresentation(group));
+        keys = m_settings->allKeys();
+        m_settings->endGroup();
+    }
+    if (scopes & SystemScope) {
+        m_systemSettings->beginGroup(internalRepresentation(group));
+        keys += m_systemSettings->allKeys();
+        m_systemSettings->endGroup();
+    }
     fixupKeys(keys);
     return keys;
 }
@@ -103,40 +173,50 @@ void Settings::setValue(const QString &key, const QVariant &value)
         throw ErrorInfo(Tr::tr("Invalid use of special profile name '%1'.")
                         .arg(Profile::fallbackName()));
     }
-    m_settings->setValue(internalRepresentation(key), value);
+    targetForWriting()->setValue(internalRepresentation(key), value);
+    checkForWriteError();
 }
 
 void Settings::remove(const QString &key)
 {
-    m_settings->remove(internalRepresentation(key));
+    targetForWriting()->remove(internalRepresentation(key));
+    checkForWriteError();
 }
 
 void Settings::clear()
 {
-    m_settings->clear();
+    targetForWriting()->clear();
+    checkForWriteError();
 }
 
 void Settings::sync()
 {
-    m_settings->sync();
+    targetForWriting()->sync();
 }
 
 QString Settings::defaultProfile() const
 {
-    return value(QLatin1String("defaultProfile")).toString();
+    return value(QLatin1String("defaultProfile"), allScopes()).toString();
 }
 
 QStringList Settings::profiles() const
 {
-    m_settings->beginGroup(StringConstants::profilesSettingsKey());
-    QStringList result = m_settings->childGroups();
-    m_settings->endGroup();
+    QStringList result;
+    if (m_scopeForWriting == UserScope) {
+        m_settings->beginGroup(StringConstants::profilesSettingsKey());
+        result = m_settings->childGroups();
+        m_settings->endGroup();
+    }
+    m_systemSettings->beginGroup(StringConstants::profilesSettingsKey());
+    result += m_systemSettings->childGroups();
+    m_systemSettings->endGroup();
+    result.removeDuplicates();
     return result;
 }
 
 QString Settings::fileName() const
 {
-    return m_settings->fileName();
+    return targetForWriting()->fileName();
 }
 
 QString Settings::internalRepresentation(const QString &externalKey) const
@@ -157,6 +237,27 @@ void Settings::fixupKeys(QStringList &keys) const
     keys.removeDuplicates();
     for (auto &key : keys)
         key = externalRepresentation(key);
+}
+
+QSettings *Settings::settingsForScope(Settings::Scope scope) const
+{
+    return scope == UserScope ? m_settings : m_systemSettings;
+}
+
+QSettings *Settings::targetForWriting() const
+{
+    return settingsForScope(m_scopeForWriting);
+}
+
+void Settings::checkForWriteError()
+{
+    if (m_scopeForWriting == SystemScope && m_systemSettings->status() == QSettings::NoError) {
+        sync();
+        if (m_systemSettings->status() == QSettings::AccessError)
+            throw ErrorInfo(Tr::tr("Failure writing system settings file '%1': "
+                                   "You do not have permission to write to that location.")
+                            .arg(fileName()));
+    }
 }
 
 } // namespace qbs

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2018 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -36,47 +36,14 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef QBS_PREFERENCES_H
-#define QBS_PREFERENCES_H
 
-#include "qbs_export.h"
-
-#include "commandechomode.h"
-#include "settings.h"
-
-#include <QtCore/qstringlist.h>
-#include <QtCore/qvariant.h>
+#include "qtenvironment.h"
+#include <tools/qbs_export.h>
+#include <tools/version.h>
 
 namespace qbs {
-class Settings;
 
-class QBS_EXPORT Preferences
-{
-public:
-    explicit Preferences(Settings *settings, const QString &profileName = QString());
-    Preferences(Settings *settings, const QVariantMap &profileContents);
-
-    bool useColoredOutput() const;
-    int jobs() const;
-    QString shell() const;
-    QString defaultBuildDirectory() const;
-    CommandEchoMode defaultEchoMode() const;
-    QStringList searchPaths(const QString &baseDir = QString()) const;
-    QStringList pluginPaths(const QString &baseDir = QString()) const;
-
-private:
-    QVariant getPreference(const QString &key, const QVariant &defaultValue = QVariant()) const;
-    QStringList pathList(const QString &key, const QString &defaultValue) const;
-
-    bool ignoreSystemSearchPaths() const;
-    Settings::Scopes scopesForSearchPaths() const;
-
-    Settings *m_settings;
-    QString m_profile;
-    QVariantMap m_profileContents;
-};
+QBS_EXPORT bool isMsvcQt(const QtEnvironment &env);
+QBS_EXPORT Version msvcCompilerVersionFromMkspecName(const QString &mkspecName);
 
 } // namespace qbs
-
-
-#endif // Header guard

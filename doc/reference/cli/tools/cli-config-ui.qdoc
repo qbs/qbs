@@ -37,7 +37,7 @@
     \section1 Synopsis
 
     \code
-    qbs config-ui [--settings-dir <directory>]
+    qbs config-ui [--settings-dir <directory>] [--system]
     \endcode
 
     \section1 Description
@@ -54,6 +54,7 @@
     \section1 Options
 
     \include cli-options.qdocinc settings-dir
+    \include cli-options.qdocinc config-ui-system
     \include cli-options.qdocinc help
 
     \section1 Examples

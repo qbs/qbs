@@ -58,7 +58,7 @@
     \include cli-options.qdocinc changed-files
     \include cli-options.qdocinc check-outputs
     \include cli-options.qdocinc check-timestamps
-    \include cli-options.qdocinc clean-install-root
+    \include cli-options.qdocinc clean_install_root
     \include cli-options.qdocinc command-echo-mode
     \include cli-options.qdocinc dry-run
     \include cli-options.qdocinc project-file

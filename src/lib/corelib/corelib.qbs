@@ -25,10 +25,13 @@ QbsLibrary {
         qbsbuildconfig.enableProjectFileUpdates ? ["QBS_ENABLE_PROJECT_FILE_UPDATES"] : []
     property stringList enableUnitTestsDefines:
         qbsbuildconfig.enableUnitTests ? ["QBS_ENABLE_UNIT_TESTS"] : []
+    property stringList systemSettingsDirDefines: qbsbuildconfig.systemSettingsDir
+        ? ['QBS_SYSTEM_SETTINGS_DIR="' + qbsbuildconfig.systemSettingsDir + '"'] : []
     cpp.defines: base.concat([
         "QBS_RELATIVE_LIBEXEC_PATH=" + Utilities.cStringQuote(qbsbuildconfig.relativeLibexecPath),
         "QBS_VERSION=" + Utilities.cStringQuote(version),
     ]).concat(projectFileUpdateDefines).concat(enableUnitTestsDefines)
+    .concat(systemSettingsDirDefines)
 
     Properties {
         condition: qbs.targetOS.contains("windows")

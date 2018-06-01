@@ -41,6 +41,7 @@
 #define QBS_SETTINGSMODEL_H
 
 #include <tools/qbs_export.h>
+#include <tools/settings.h>
 
 #include <QtCore/qabstractitemmodel.h>
 #include <QtCore/qvariant.h>
@@ -51,7 +52,7 @@ class QBS_EXPORT SettingsModel : public QAbstractItemModel
 {
     Q_OBJECT
 public:
-    SettingsModel(const QString &settingsDir, QObject *parent = nullptr);
+    SettingsModel(const QString &settingsDir, Settings::Scope scope, QObject *parent = nullptr);
     ~SettingsModel();
 
     int keyColumn() const { return 0; }

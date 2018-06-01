@@ -36,10 +36,10 @@
     \section1 Synopsis
 
     \code
-    qbs config [--settings-dir <directory>] [--list [<root> ...]]
+    qbs config [--settings-dir <directory>] [--user|--system] [--list [<root> ...]]
                [--unset <key>] [--export <file>] [--import <file>]
-    qbs config [--settings-dir <directory>] <key>
-    qbs config [--settings-dir <directory>] <key> <value>
+    qbs config [--settings-dir <directory>] [--user|--system] <key>
+    qbs config [--settings-dir <directory>] [--user|--system] <key> <value>
     \endcode
 
     \section1 Description
@@ -51,6 +51,22 @@
     The second form of this command displays the specified \c <key>.
 
     The third form sets the specified \c <key> with the specified \c <value>.
+
+    There are two sets of settings: The system-level settings affect all users,
+    while the user-level settings are specific to the current user.
+    By default, the read operations consider both sources. If the same key is
+    present in both settings, then for list values, the system value is
+    appended to the user value, while for other types of values the user-level
+    one takes precedence. Write operations go to the user-level settings by default.
+    Use the \c {--user} and \c {--system} options to change this behavior.
+    \note It is conceivable that the default system value of the
+    \c {preferences.qbsSearchPaths} setting could pull in unwanted \QBS modules,
+    in particular when doing cross-builds. In such a case, you can set
+    \c {preferences.ignoreSystemSearchPaths} to exclude the search paths coming
+    from the system settings. You'll typically do this for a specific profile:
+    \code
+    $ qbs config profiles.myprofile.preferences.ignoreSystemSearchPaths true
+    \endcode
 
     You can use the \l{config-ui} command to open the Qbs Settings tool for
     managing settings in a hierarchical view.
@@ -65,6 +81,8 @@
     \include cli-options.qdocinc unset
     \include cli-options.qdocinc export
     \include cli-options.qdocinc import
+    \include cli-options.qdocinc config-user
+    \include cli-options.qdocinc config-system
     \include cli-options.qdocinc help
 
     \section1 Parameters

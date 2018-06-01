@@ -50,6 +50,7 @@ static QString helpOptionLong() { return QLatin1String("--help"); }
 static QString detectOption() { return QLatin1String("--detect"); }
 static QString typeOption() { return QLatin1String("--type"); }
 static QString settingsDirOption() { return QLatin1String("--settings-dir"); }
+static QString systemOption() { return QLatin1String("--system"); }
 
 void CommandLineParser::parse(const QStringList &commandLine)
 {
@@ -75,6 +76,8 @@ void CommandLineParser::parse(const QStringList &commandLine)
             m_helpRequested = true;
         else if (arg == detectOption())
             m_autoDetectionMode = true;
+        else if (arg == systemOption())
+            m_settingsScope = qbs::Settings::SystemScope;
         else if (arg == typeOption())
             assignOptionArgument(typeOption(), m_toolchainType);
         else if (arg == settingsDirOption())
@@ -111,11 +114,11 @@ QString CommandLineParser::usageString() const
 {
     QString s = Tr::tr("This tool creates qbs profiles from toolchains.\n");
     s += Tr::tr("Usage:\n");
-    s += Tr::tr("    %1 [%2 <settings directory>] %3\n")
-            .arg(m_command, settingsDirOption(), detectOption());
-    s += Tr::tr("    %1 [%3 <settings directory>] [%2 <toolchain type>] "
+    s += Tr::tr("    %1 [%2 <settings directory>] [%4] %3\n")
+            .arg(m_command, settingsDirOption(), detectOption(), systemOption());
+    s += Tr::tr("    %1 [%3 <settings directory>] [%4] [%2 <toolchain type>] "
                 "<compiler path> <profile name>\n")
-            .arg(m_command, typeOption(), settingsDirOption());
+            .arg(m_command, typeOption(), settingsDirOption(), systemOption());
     s += Tr::tr("    %1 %2|%3\n").arg(m_command, helpOptionShort(), helpOptionLong());
     s += Tr::tr("The first form tries to auto-detect all known toolchains, looking them up "
                 "via the PATH environment variable.\n");

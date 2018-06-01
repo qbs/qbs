@@ -33,6 +33,7 @@
 #include <api/languageinfo.h>
 #include <tools/hostosinfo.h>
 #include <tools/installoptions.h>
+#include <tools/preferences.h>
 #include <tools/profile.h>
 #include <tools/qttools.h>
 #include <tools/shellutils.h>
@@ -4664,6 +4665,94 @@ void TestBlackbox::pseudoMultiplexing()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackbox::qbsConfig()
+{
+    QbsRunParameters params("config");
+#ifdef QBS_ENABLE_UNIT_TESTS
+    QTemporaryDir tempSystemSettingsDir;
+    params.environment.insert("QBS_AUTOTEST_SYSTEM_SETTINGS_DIR", tempSystemSettingsDir.path());
+    QTemporaryDir tempUserSettingsDir;
+    QVERIFY(tempSystemSettingsDir.isValid());
+    QVERIFY(tempUserSettingsDir.isValid());
+    const QStringList settingsDirArgs = QStringList{"--settings-dir", tempUserSettingsDir.path()};
+
+    // Set values.
+    params.arguments = settingsDirArgs + QStringList{"--system", "key.subkey.scalar", "s"};
+    QCOMPARE(runQbs(params), 0);
+    params.arguments = settingsDirArgs + QStringList{"--system", "key.subkey.list", "['sl']"};
+    QCOMPARE(runQbs(params), 0);
+    params.arguments = settingsDirArgs + QStringList{"--user", "key.subkey.scalar", "u"};
+    QCOMPARE(runQbs(params), 0);
+    params.arguments = settingsDirArgs + QStringList{"key.subkey.list", "[\"u1\",\"u2\"]"};
+    QCOMPARE(runQbs(params), 0);
+
+    // Check outputs.
+    const auto valueExtractor = [this] {
+        const QByteArray trimmed = m_qbsStdout.trimmed();
+        return trimmed.mid(trimmed.lastIndexOf(':') + 2);
+    };
+    params.arguments = settingsDirArgs + QStringList{"--list", "key.subkey.scalar"};
+    QCOMPARE(runQbs(params), 0);
+    QCOMPARE(valueExtractor(), QByteArray("\"u\""));
+    params.arguments = settingsDirArgs + QStringList{"--list", "--user", "key.subkey.scalar"};
+    QCOMPARE(runQbs(params), 0);
+    QCOMPARE(valueExtractor(), QByteArray("\"u\""));
+    params.arguments = settingsDirArgs + QStringList{"--list", "--system", "key.subkey.scalar"};
+    QCOMPARE(runQbs(params), 0);
+    QCOMPARE(valueExtractor(), QByteArray("\"s\""));
+    params.arguments = settingsDirArgs + QStringList{"--list", "key.subkey.list"};
+    QCOMPARE(runQbs(params), 0);
+    QCOMPARE(valueExtractor(), QByteArray("[\"u1\", \"u2\", \"sl\"]"));
+    params.arguments = settingsDirArgs + QStringList{"--list", "--user", "key.subkey.list"};
+    QCOMPARE(runQbs(params), 0);
+    QCOMPARE(valueExtractor(), QByteArray("[\"u1\", \"u2\"]"));
+    params.arguments = settingsDirArgs + QStringList{"--list", "--system", "key.subkey.list"};
+    QCOMPARE(runQbs(params), 0);
+    QCOMPARE(valueExtractor(), QByteArray("[\"sl\"]"));
+
+    // Remove some values and re-check.
+    params.arguments = settingsDirArgs + QStringList{"--unset", "key.subkey.scalar"};
+    QCOMPARE(runQbs(params), 0);
+    params.arguments = settingsDirArgs + QStringList{"--system", "--unset", "key.subkey.list"};
+    QCOMPARE(runQbs(params), 0);
+    params.arguments = settingsDirArgs + QStringList{"--list", "key.subkey.scalar"};
+    QCOMPARE(runQbs(params), 0);
+    QCOMPARE(valueExtractor(), QByteArray("\"s\""));
+    params.arguments = settingsDirArgs + QStringList{"--list", "key.subkey.list"};
+    QCOMPARE(runQbs(params), 0);
+    QCOMPARE(valueExtractor(), QByteArray("[\"u1\", \"u2\"]"));
+
+    // Check preferences.ignoreSystemSearchPaths
+    params.arguments = settingsDirArgs
+            + QStringList{"--system", "preferences.qbsSearchPaths", "['/usr/lib/qbs']"};
+    QCOMPARE(runQbs(params), 0);
+    params.arguments = settingsDirArgs
+            + QStringList{"preferences.qbsSearchPaths", "['/home/user/qbs']"};
+    QCOMPARE(runQbs(params), 0);
+    qbs::Settings settings(tempUserSettingsDir.path(), tempSystemSettingsDir.path());
+    const qbs::Preferences prefs(&settings, "SomeProfile");
+    QVERIFY2(prefs.searchPaths().contains("/usr/lib/qbs")
+             && prefs.searchPaths().contains("/home/user/qbs"),
+             qPrintable(prefs.searchPaths().join(',')));
+    settings.setValue("profiles.SomeProfile.preferences.ignoreSystemSearchPaths", true);
+    QVERIFY2(!prefs.searchPaths().contains("/usr/lib/qbs")
+             && prefs.searchPaths().contains("/home/user/qbs"),
+             qPrintable(prefs.searchPaths().join(',')));
+
+#else
+    qDebug() << "ability to redirect the system settings dir not compiled in, skipping"
+                "most qbs-config tests";
+#endif // QBS_ENABLE_UNIT_TESTS
+
+    // Check that trying to write to actual system settings causes access failure.
+    params.expectFailure = true;
+    params.environment.clear();
+    params.arguments = QStringList{"--system", "key.subkey.scalar", "s"};
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY2(m_qbsStderr.contains("You do not have permission to write to that location."),
+             m_qbsStderr.constData());
+}
+
 void TestBlackbox::radAfterIncompleteBuild_data()
 {
     QTest::addColumn<QString>("projectFileName");
@@ -5672,6 +5761,21 @@ void TestBlackbox::makefileGenerator()
     QVERIFY(!QFile::exists(relativeExecutableFilePath("the app")));
 }
 
+void TestBlackbox::maximumCLanguageVersion()
+{
+    QDir::setCurrent(testDataDir + "/maximum-c-language-version");
+    QCOMPARE(runQbs(QbsRunParameters("resolve",
+                                     QStringList("products.app.enableNewestModule:true"))), 0);
+    if (m_qbsStdout.contains("is msvc"))
+        QSKIP("MSVC has no support for setting the C language version.");
+    QCOMPARE(runQbs(QStringList({"--command-echo-mode", "command-line", "-n"})), 0);
+    QVERIFY2(m_qbsStdout.contains("c11") || m_qbsStdout.contains("c1x"), m_qbsStdout.constData());
+    QCOMPARE(runQbs(QbsRunParameters("resolve",
+                                     QStringList("products.app.enableNewestModule:false"))), 0);
+    QCOMPARE(runQbs(QStringList({"--command-echo-mode", "command-line", "-n"})), 0);
+    QVERIFY2(m_qbsStdout.contains("c99"), m_qbsStdout.constData());
+}
+
 void TestBlackbox::maximumCxxLanguageVersion()
 {
     QDir::setCurrent(testDataDir + "/maximum-cxx-language-version");
@@ -5924,6 +6028,21 @@ void TestBlackbox::badInterpreter()
     params.arguments = QStringList() << "-p" << "script-noexec";
     QCOMPARE(runQbs(params), 1);
     QCOMPARE(runQbs(QbsRunParameters("run", QStringList() << "-p" << "script-ok")), 0);
+}
+
+void TestBlackbox::bomSources()
+{
+    QDir::setCurrent(testDataDir + "/bom-sources");
+    const bool success = runQbs() == 0;
+    if (!success)
+        QSKIP("Assuming compiler cannot deal with byte order mark");
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+    WAIT_FOR_NEW_TIMESTAMP();
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(!m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+    touch("theheader.h");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
 }
 
 void TestBlackbox::buildDataOfDisabledProduct()
