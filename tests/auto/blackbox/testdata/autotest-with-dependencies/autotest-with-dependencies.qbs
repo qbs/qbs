@@ -17,6 +17,7 @@ Project {
     CppApplication {
         name: "test-app"
         type: ["application", "autotest"]
+        Depends { name: "autotest" }
         files: "test-main.cpp"
     }
 

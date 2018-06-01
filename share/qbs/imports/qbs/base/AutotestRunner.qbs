@@ -76,8 +76,11 @@ Product {
             var arguments = product.arguments;
             var allowFailure = false;
             if (input.autotest) {
-                if (input.autotest.arguments)
+                // FIXME: We'd like to let the user override with an empty list, but
+                //        qbscore turns undefined lists into empty ones at the moment.
+                if (input.autotest.arguments && input.autotest.arguments.length > 0)
                     arguments = input.autotest.arguments;
+
                 if (input.autotest.workingDir)
                     workingDir = input.autotest.workingDir;
                 allowFailure = input.autotest.allowFailure;
