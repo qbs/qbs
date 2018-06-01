@@ -77,7 +77,11 @@ void TestBlackboxQt::cachedQml()
     QDir::setCurrent(testDataDir + "/cached-qml");
     QCOMPARE(runQbs(), 0);
     QString dataDir = relativeBuildDir() + "/install-root/data";
-    if (QFile::exists(dataDir + "/main.cpp")) {
+    QVERIFY2(m_qbsStdout.contains("qmlcachegen must work: true")
+             || m_qbsStdout.contains("qmlcachegen must work: false"),
+             m_qbsStdout.constData());
+    if (m_qbsStdout.contains("qmlcachegen must work: false")
+            && QFile::exists(dataDir + "/main.cpp")) {
         // If C++ source files were installed then Qt.qmlcache is not available. See project file.
         QSKIP("No QML cache files generated.");
     }
