@@ -58,6 +58,13 @@ Product {
         auxiliaryInputs: product.auxiliaryInputs
         outputFileTags: "autotest-result"
         prepare: {
+            // TODO: This is hacky. Possible solution: Add autotest tag to application
+            // in autotest module and have that as inputsFromDependencies instead of application.
+            if (!input.product.type.contains("autotest")) {
+                var cmd = new JavaScriptCommand();
+                cmd.silent = true;
+                return cmd;
+            }
             var commandFilePath;
             var installed = input.moduleProperty("qbs", "install");
             if (installed)
@@ -65,7 +72,7 @@ Product {
             if (!commandFilePath || !File.exists(commandFilePath))
                 commandFilePath = input.filePath;
             var workingDir = product.workingDir ? product.workingDir
-                                                : FileInfo.path(input.filePath);
+                                                : FileInfo.path(commandFilePath);
             var arguments = product.arguments;
             var allowFailure = false;
             if (input.autotest) {

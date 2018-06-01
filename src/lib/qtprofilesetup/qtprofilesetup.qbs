@@ -9,6 +9,7 @@ QbsLibrary {
         files: [
             "qtenvironment.h",
             "qtprofilesetup.h",
+            "qtmsvctools.h",
             "use_installed_qtprofilesetup.pri",
         ]
         qbs.install: qbsbuildconfig.installApiHeaders
@@ -19,6 +20,7 @@ QbsLibrary {
         "qtprofilesetup.cpp",
         "qtmoduleinfo.cpp",
         "qtmoduleinfo.h",
+        "qtmsvctools.cpp",
         "templates.qrc",
         "templates/*"
     ]

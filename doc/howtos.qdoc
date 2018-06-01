@@ -38,6 +38,7 @@
     \li \l{How do I build a Qt-based project?}
     \li \l{How do I make my app build against my library?}
     \li \l{How do I use precompiled headers?}
+    \li \l{How do I run my autotests?}
     \li \l{How do I create a module for a third-party library?}
     \li \l{How do I create application bundles and frameworks on iOS, macOS, tvOS, and watchOS?}
     \li \l{How do I apply C/C++ preprocessor macros to only a subset of the files in my product?}
@@ -131,6 +132,36 @@
         }
     }
     \endcode
+
+    \section1 How do I run my autotests?
+
+    There are two simple things you need to do in your project. Firstly, you
+    mark your test executables as such. This is done by adding the tag \c{"autotest"}
+    to the product type:
+    \code
+    CppApplication {
+        name: "test1"
+        type: base.concat("autotest")
+        // ...
+    }
+    \endcode
+    The second step is to instantiate an \l AutotestRunner product in your project:
+    \code
+    Project {
+        // ...
+        AutotestRunner { name: "run_my_tests" }
+    }
+    \endcode
+    Building an AutotestRunner product does not produce artifacts, but triggers execution of all
+    applications whose products are tagged as autotests:
+    \code
+    $ qbs -p run_my_tests
+    test1: PASS
+    test2: PASS
+    test3: FAIL
+    ...
+    \endcode
+    See the \l{AutotestRunner}{AutotestRunner documentation} for how to fine-tune the behavior.
 
     \section1 How do I create a module for a third-party library?
 

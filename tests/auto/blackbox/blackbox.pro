@@ -4,6 +4,7 @@ HEADERS = tst_blackbox.h tst_blackboxbase.h
 SOURCES = tst_blackbox.cpp tst_blackboxbase.cpp
 OBJECTS_DIR = generic
 MOC_DIR = $${OBJECTS_DIR}-moc
+qbs_enable_unit_tests:DEFINES += QBS_ENABLE_UNIT_TESTS
 
 include(../auto.pri)
 

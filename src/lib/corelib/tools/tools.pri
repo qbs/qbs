@@ -2,6 +2,11 @@ include(../../../install_prefix.pri)
 
 INCLUDEPATH += $$PWD/../.. # for plugins
 
+QBS_SYSTEM_SETTINGS_DIR = $$(QBS_SYSTEM_SETTINGS_DIR)
+!isEmpty(QBS_SYSTEM_SETTINGS_DIR) {
+    DEFINES += QBS_SYSTEM_SETTINGS_DIR=\\\"$$QBS_SYSTEM_SETTINGS_DIR\\\"
+}
+
 HEADERS += \
     $$PWD/architectures.h \
     $$PWD/buildgraphlocker.h \

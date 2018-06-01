@@ -39,6 +39,8 @@
 #ifndef QBS_CONFIGUI_COMMANDLINEPARSER_H
 #define QBS_CONFIGUI_COMMANDLINEPARSER_H
 
+#include <tools/settings.h>
+
 #include <QtCore/qstringlist.h>
 
 class CommandLineParser
@@ -48,6 +50,7 @@ public:
 
     bool helpRequested() const { return m_helpRequested; }
     QString settingsDir() const { return m_settingsDir; }
+    qbs::Settings::Scope settingsScope() const { return m_settingsScope; }
 
     QString usageString() const;
 
@@ -57,6 +60,7 @@ private:
     [[noreturn]] void complainAboutExtraArguments();
 
     bool m_helpRequested;
+    qbs::Settings::Scope m_settingsScope = qbs::Settings::UserScope;
     QString m_settingsDir;
     QStringList m_commandLine;
     QString m_command;

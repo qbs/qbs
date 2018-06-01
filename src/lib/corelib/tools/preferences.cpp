@@ -41,7 +41,6 @@
 #include "buildoptions.h"
 #include "hostosinfo.h"
 #include "profile.h"
-#include "settings.h"
 #include "stringconstants.h"
 
 namespace qbs {
@@ -129,23 +128,30 @@ QVariant Preferences::getPreference(const QString &key, const QVariant &defaultV
 {
     static const QString keyPrefix = QLatin1String("preferences");
     const QString fullKey = keyPrefix + QLatin1Char('.') + key;
+    const bool isSearchPaths = key == Internal::StringConstants::qbsSearchPathsProperty();
     if (!m_profile.isEmpty()) {
         QVariant value = Profile(m_profile, m_settings).value(fullKey);
         if (value.isValid()) {
-            if (key == Internal::StringConstants::qbsSearchPathsProperty()) // Merge with top-level value.
-                value = value.toStringList() + m_settings->value(fullKey).toStringList();
+            if (isSearchPaths) { // Merge with top-level value.
+                value = value.toStringList() + m_settings->value(
+                            fullKey, scopesForSearchPaths()).toStringList();
+            }
             return value;
         }
     }
 
     QVariant value = m_profileContents.value(keyPrefix).toMap().value(key);
     if (value.isValid()) {
-        if (key == Internal::StringConstants::qbsSearchPathsProperty()) // Merge with top-level value
-            value = value.toStringList() + m_settings->value(fullKey).toStringList();
+        if (isSearchPaths) {// Merge with top-level value
+            value = value.toStringList() + m_settings->value(
+                        fullKey, scopesForSearchPaths()).toStringList();
+        }
         return value;
     }
 
-    return m_settings->value(fullKey, defaultValue);
+    return m_settings->value(fullKey,
+                             isSearchPaths ? scopesForSearchPaths() : Settings::allScopes(),
+                             defaultValue);
 }
 
 QStringList Preferences::pathList(const QString &key, const QString &defaultValue) const
@@ -153,6 +159,16 @@ QStringList Preferences::pathList(const QString &key, const QString &defaultValu
     QStringList paths = getPreference(key).toStringList();
     paths << defaultValue;
     return paths;
+}
+
+bool Preferences::ignoreSystemSearchPaths() const
+{
+    return getPreference(QStringLiteral("ignoreSystemSearchPaths")).toBool();
+}
+
+Settings::Scopes Preferences::scopesForSearchPaths() const
+{
+    return ignoreSystemSearchPaths() ? Settings::UserScope : Settings::allScopes();
 }
 
 } // namespace qbs

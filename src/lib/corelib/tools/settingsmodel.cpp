@@ -113,6 +113,8 @@ public:
     void doSave(const Node *node, const QString &prefix);
     Node *indexToNode(const QModelIndex &index);
 
+    Settings::Scope scope() const { return settings->scopeForWriting(); }
+
     Node rootNode;
     std::unique_ptr<qbs::Settings> settings;
     QVariantMap additionalProperties;
@@ -120,10 +122,11 @@ public:
     bool editable;
 };
 
-SettingsModel::SettingsModel(const QString &settingsDir, QObject *parent)
+SettingsModel::SettingsModel(const QString &settingsDir, Settings::Scope scope, QObject *parent)
     : QAbstractItemModel(parent), d(new SettingsModelPrivate)
 {
     d->settings.reset(new qbs::Settings(settingsDir));
+    d->settings->setScopeForWriting(scope);
     d->readSettings();
 }
 
@@ -150,8 +153,10 @@ void SettingsModel::save()
 
 void SettingsModel::updateSettingsDir(const QString &settingsDir)
 {
+    const Settings::Scope scope = d->scope();
     beginResetModel();
     d->settings.reset(new qbs::Settings(settingsDir));
+    d->settings->setScopeForWriting(scope);
     d->readSettings();
     endResetModel();
 }
@@ -322,7 +327,7 @@ void SettingsModel::SettingsModelPrivate::readSettings()
 {
     qDeleteAll(rootNode.children);
     rootNode.children.clear();
-    for (const QString &topLevelKey : settings->directChildren(QString()))
+    for (const QString &topLevelKey : settings->directChildren(QString(), scope()))
         addNodeFromSettings(&rootNode, topLevelKey);
     for (QVariantMap::ConstIterator it = additionalProperties.constBegin();
          it != additionalProperties.constEnd(); ++it) {
@@ -347,8 +352,8 @@ void SettingsModel::SettingsModelPrivate::addNodeFromSettings(Node *parentNode,
     const QString &nodeName
             = fullyQualifiedName.mid(fullyQualifiedName.lastIndexOf(QLatin1Char('.')) + 1);
     Node * const node = createNode(parentNode, nodeName);
-    node->value = settingsValueToRepresentation(settings->value(fullyQualifiedName));
-    for (const QString &childKey : settings->directChildren(fullyQualifiedName))
+    node->value = settingsValueToRepresentation(settings->value(fullyQualifiedName, scope()));
+    for (const QString &childKey : settings->directChildren(fullyQualifiedName, scope()))
         addNodeFromSettings(node, fullyQualifiedName + QLatin1Char('.') + childKey);
     dirty = true;
 }

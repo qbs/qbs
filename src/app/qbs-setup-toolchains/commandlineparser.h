@@ -39,6 +39,8 @@
 #ifndef QBS_SETUPTOOLCHAINS_COMMANDLINEPARSER_H
 #define QBS_SETUPTOOLCHAINS_COMMANDLINEPARSER_H
 
+#include <tools/settings.h>
+
 #include <QtCore/qstringlist.h>
 
 class CommandLineParser
@@ -53,6 +55,7 @@ public:
     QString toolchainType() const { return m_toolchainType; }
     QString profileName() const { return m_profileName; }
     QString settingsDir() const { return m_settingsDir; }
+    qbs::Settings::Scope settingsScope() const { return m_settingsScope; }
 
     QString usageString() const;
 
@@ -63,6 +66,7 @@ private:
 
     bool m_helpRequested;
     bool m_autoDetectionMode;
+    qbs::Settings::Scope m_settingsScope = qbs::Settings::UserScope;
     QString m_compilerPath;
     QString m_toolchainType;
     QString m_profileName;

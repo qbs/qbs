@@ -68,16 +68,17 @@ int main(int argc, char *argv[])
         }
 
         Settings settings(clParser.settingsDir());
+        settings.setScopeForWriting(clParser.settingsScope());
 
         if (clParser.autoDetectionMode()) {
             // search all Qt's in path and dump their settings
-            const QList<QtEnvironment> qtEnvironments = SetupQt::fetchEnvironments();
+            const std::vector<EnhancedQtEnvironment> qtEnvironments = SetupQt::fetchEnvironments();
             if (qtEnvironments.empty()) {
                 std::cout << qPrintable(Tr::tr("No Qt installations detected. "
                                                "No profiles created."))
                           << std::endl;
             }
-            for (const QtEnvironment &qtEnvironment : qtEnvironments) {
+            for (const EnhancedQtEnvironment &qtEnvironment : qtEnvironments) {
                 QString profileName = QLatin1String("qt-") + qtEnvironment.qtVersion;
                 if (SetupQt::checkIfMoreThanOneQtWithTheSameVersion(qtEnvironment.qtVersion, qtEnvironments)) {
                     QStringList prefixPathParts = qtEnvironment.installPrefixPath
@@ -96,7 +97,7 @@ int main(int argc, char *argv[])
             return EXIT_FAILURE;
         }
 
-        QtEnvironment qtEnvironment = SetupQt::fetchEnvironment(clParser.qmakePath());
+        EnhancedQtEnvironment qtEnvironment = SetupQt::fetchEnvironment(clParser.qmakePath());
         QString profileName = clParser.profileName();
         profileName.replace(QLatin1Char('.'), QLatin1Char('-'));
         SetupQt::saveToQbsSettings(profileName, qtEnvironment, &settings);

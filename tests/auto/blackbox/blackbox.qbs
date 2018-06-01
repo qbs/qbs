@@ -25,4 +25,5 @@ QbsAutotest {
         "tst_blackbox.h",
     ]
     cpp.defines: base.concat(["SRCDIR=" + Utilities.cStringQuote(path)])
+        .concat(qbsbuildconfig.enableUnitTests ? ["QBS_ENABLE_UNIT_TESTS"] : [])
 }

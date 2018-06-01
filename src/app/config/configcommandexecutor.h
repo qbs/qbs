@@ -39,9 +39,9 @@
 #ifndef CONFIGCOMMANDEXECUTOR_H
 #define CONFIGCOMMANDEXECUTOR_H
 
-#include <QtCore/qcoreapplication.h>
+#include <tools/settings.h>
 
-namespace qbs { class Settings; }
+#include <QtCore/qcoreapplication.h>
 
 class ConfigCommand;
 
@@ -49,7 +49,7 @@ class ConfigCommandExecutor
 {
     Q_DECLARE_TR_FUNCTIONS(ConfigCommandExecutor)
 public:
-    ConfigCommandExecutor(qbs::Settings *settings);
+    ConfigCommandExecutor(qbs::Settings *settings, qbs::Settings::Scopes scope);
 
     void execute(const ConfigCommand &command);
 
@@ -61,6 +61,7 @@ private:
     void importSettings(const QString &filename);
 
     qbs::Settings *m_settings;
+    const qbs::Settings::Scopes m_scope;
 };
 
 #endif // CONFIGCOMMANDEXECUTOR_H

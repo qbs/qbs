@@ -78,7 +78,6 @@ public:
     int qtMajorVersion;
     int qtMinorVersion;
     int qtPatchVersion;
-    Version msvcVersion;
     bool staticBuild = false;
     bool frameworkBuild = false;
 };

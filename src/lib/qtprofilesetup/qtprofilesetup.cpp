@@ -40,6 +40,7 @@
 #include "qtprofilesetup.h"
 
 #include "qtmoduleinfo.h"
+#include "qtmsvctools.h"
 
 #include <logging/translator.h>
 #include <tools/architectures.h>
@@ -420,7 +421,7 @@ static QByteArray libraryFileTag(const QtEnvironment &env, const QtModuleInfo &m
     if (module.isStaticLibrary)
         result = "staticlibrary";
     else
-        result = env.msvcVersion.isValid() ? "dynamiclibrary_import" : "dynamiclibrary";
+        result = isMsvcQt(env) ? "dynamiclibrary_import" : "dynamiclibrary";
     return result;
 }
 
@@ -581,7 +582,8 @@ static void createModules(Profile &profile, Settings *settings,
             ? allQt4Modules(qtEnvironment)
             : allQt5Modules(profile, qtEnvironment);
     const QString profileBaseDir = QString::fromLatin1("%1/profiles/%2")
-            .arg(QFileInfo(settings->fileName()).dir().absolutePath(), profile.name());
+            .arg(QFileInfo(settings->fileName()).dir().absolutePath(),
+                 profile.name());
     const QString qbsQtModuleBaseDir = profileBaseDir + QLatin1String("/modules/Qt");
     QStringList allFiles;
     copyTemplateFile(QLatin1String("QtModule.qbs"), qbsQtModuleBaseDir, profile, qtEnvironment,

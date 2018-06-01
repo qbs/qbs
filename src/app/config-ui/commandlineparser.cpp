@@ -48,6 +48,7 @@ using qbs::Internal::Tr;
 static QString helpOptionShort() { return QLatin1String("-h"); }
 static QString helpOptionLong() { return QLatin1String("--help"); }
 static QString settingsDirOption() { return QLatin1String("--settings-dir"); }
+static QString systemOption() { return QLatin1String("--system"); }
 
 void CommandLineParser::parse(const QStringList &commandLine)
 {
@@ -63,6 +64,9 @@ void CommandLineParser::parse(const QStringList &commandLine)
     if (arg == helpOptionShort() || arg == helpOptionLong()) {
         m_commandLine.removeFirst();
         m_helpRequested = true;
+    } else if (arg == systemOption()) {
+        m_commandLine.removeFirst();
+        m_settingsScope = qbs::Settings::SystemScope;
     } else if (arg == settingsDirOption()) {
         m_commandLine.removeFirst();
         assignOptionArgument(settingsDirOption(), m_settingsDir);
@@ -85,8 +89,9 @@ QString CommandLineParser::usageString() const
                        "If you have more than a few settings, this might be preferable to "
                        "plain \"qbs config\", as it presents a hierarchical view.\n");
     s += Tr::tr("Usage:\n");
-    s += Tr::tr("    %1 [%2 <settings directory>] [%3|%4]\n")
-            .arg(m_command, settingsDirOption(), helpOptionShort(), helpOptionLong());
+    s += Tr::tr("    %1 [%2 <settings directory>] [%5] [%3|%4]\n")
+            .arg(m_command, settingsDirOption(), helpOptionShort(), helpOptionLong(),
+                 systemOption());
     return s;
 }
 

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2018 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -36,47 +36,44 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef QBS_PREFERENCES_H
-#define QBS_PREFERENCES_H
 
-#include "qbs_export.h"
-
-#include "commandechomode.h"
-#include "settings.h"
-
-#include <QtCore/qstringlist.h>
-#include <QtCore/qvariant.h>
+#include "qtmsvctools.h"
 
 namespace qbs {
-class Settings;
 
-class QBS_EXPORT Preferences
+static const QString msvcPrefix = QLatin1String("win32-msvc");
+
+bool isMsvcQt(const QtEnvironment &env)
 {
-public:
-    explicit Preferences(Settings *settings, const QString &profileName = QString());
-    Preferences(Settings *settings, const QVariantMap &profileContents);
+    return env.mkspecName.startsWith(msvcPrefix);
+}
 
-    bool useColoredOutput() const;
-    int jobs() const;
-    QString shell() const;
-    QString defaultBuildDirectory() const;
-    CommandEchoMode defaultEchoMode() const;
-    QStringList searchPaths(const QString &baseDir = QString()) const;
-    QStringList pluginPaths(const QString &baseDir = QString()) const;
+static Version msvcCompilerVersionForYear(int year)
+{
+    switch (year)
+    {
+    case 2005:
+        return Version(14);
+    case 2008:
+        return Version(15);
+    case 2010:
+        return Version(16);
+    case 2012:
+        return Version(17);
+    case 2013:
+        return Version(18);
+    case 2015:
+        return Version(19);
+    case 2017:
+        return Version(19, 1);
+    default:
+        return Version();
+    }
+}
 
-private:
-    QVariant getPreference(const QString &key, const QVariant &defaultValue = QVariant()) const;
-    QStringList pathList(const QString &key, const QString &defaultValue) const;
-
-    bool ignoreSystemSearchPaths() const;
-    Settings::Scopes scopesForSearchPaths() const;
-
-    Settings *m_settings;
-    QString m_profile;
-    QVariantMap m_profileContents;
-};
+Version msvcCompilerVersionFromMkspecName(const QString &mkspecName)
+{
+    return msvcCompilerVersionForYear(mkspecName.mid(msvcPrefix.size()).toInt());
+}
 
 } // namespace qbs
-
-
-#endif // Header guard

@@ -276,7 +276,7 @@ Module {
         allowedValues: ['default', 'hidden', 'hiddenInlines', 'minimal']
     }
 
-    property string cLanguageVersion
+    property stringList cLanguageVersion
     PropertyOptions {
         name: "cLanguageVersion"
         allowedValues: ["c89", "c99", "c11"]

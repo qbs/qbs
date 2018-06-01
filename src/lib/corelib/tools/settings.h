@@ -57,17 +57,26 @@ class QBS_EXPORT Settings
 public:
     // The "pure" base directory without any version scope. Empty string means "system default".
     Settings(const QString &baseDir);
+    Settings(const QString &baseDir, const QString &systemBaseDir);
 
     ~Settings();
 
-    QVariant value(const QString &key, const QVariant &defaultValue = QVariant()) const;
-    QStringList allKeys() const;
-    QStringList directChildren(const QString &parentGroup); // Keys and groups.
-    QStringList allKeysWithPrefix(const QString &group) const;
+    enum Scope { UserScope = 0x1, SystemScope = 0x2 };
+    Q_DECLARE_FLAGS(Scopes, Scope)
+    static Scopes allScopes() { return Scopes{UserScope, SystemScope}; }
+
+    QVariant value(const QString &key, Scopes scopes,
+                   const QVariant &defaultValue = QVariant()) const;
+    QStringList allKeys(Scopes scopes) const;
+    QStringList directChildren(const QString &parentGroup, Scope scope) const; // Keys and groups.
+    QStringList allKeysWithPrefix(const QString &group, Scopes scopes) const;
     void setValue(const QString &key, const QVariant &value);
     void remove(const QString &key);
     void clear();
     void sync();
+
+    void setScopeForWriting(Scope scope) { m_scopeForWriting = scope; }
+    Scope scopeForWriting() const { return m_scopeForWriting; }
 
     QString defaultProfile() const;
     QStringList profiles() const;
@@ -79,10 +88,17 @@ private:
     QString internalRepresentation(const QString &externalKey) const;
     QString externalRepresentation(const QString &internalKey) const;
     void fixupKeys(QStringList &keys) const;
+    QSettings *settingsForScope(Scope scope) const;
+    QSettings *targetForWriting() const;
+    void checkForWriteError();
 
     QSettings * const m_settings;
+    QSettings * const m_systemSettings;
     const QString m_baseDir;
+    Scope m_scopeForWriting = UserScope;
 };
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(Settings::Scopes)
 
 } // namespace qbs
 
