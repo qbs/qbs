@@ -473,11 +473,7 @@ void TestBlackbox::artifactsMapInvalidation()
     const QString projectDir = testDataDir + "/artifacts-map-invalidation";
     QDir::setCurrent(projectDir);
     QCOMPARE(runQbs(), 0);
-    QFile sourceFile("file.in");
-    QVERIFY2(sourceFile.open(QIODevice::ReadOnly), qPrintable(sourceFile.errorString()));
-    QFile generatedFile(relativeProductBuildDir("p") + "/myfile.out");
-    QVERIFY2(generatedFile.open(QIODevice::ReadOnly), qPrintable(generatedFile.errorString()));
-    QCOMPARE(sourceFile.readAll(), generatedFile.readAll());
+    TEXT_FILE_COMPARE(relativeProductBuildDir("p") + "/myfile.out", "file.in");
 }
 
 void TestBlackbox::artifactsMapRaceCondition()
