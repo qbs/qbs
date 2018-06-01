@@ -1,5 +1,6 @@
 # General
 * Added new module `Exporter.qbs` for creating qbs modules from products.
+* Introduced the concept of system-level qbs settings.
 * Added a Makefile generator.
 * All command descriptions now contain the product name.
 
