@@ -21,6 +21,7 @@ qbsres.commands = \
     -f $$shell_quote($$PWD/qbs.qbs) \
     -d $$shell_quote($$builddirname) \
     -p $$shell_quote("qbs resources") \
+    qbs.installPrefix:undefined \
     project.withCode:false \
     project.withDocumentation:false \
     profile:none
