@@ -6180,6 +6180,14 @@ void TestBlackbox::ico()
     }
 }
 
+void TestBlackbox::importAssignment()
+{
+    QDir::setCurrent(testDataDir + "/import-assignment");
+    QCOMPARE(runQbs(QStringList("project.qbsSearchPaths:" + QDir::currentPath())), 0);
+    QVERIFY2(m_qbsStdout.contains("key 1 = value1") && m_qbsStdout.contains("key 2 = value2"),
+             m_qbsStdout.constData());
+}
+
 void TestBlackbox::importChangeTracking()
 {
     QDir::setCurrent(testDataDir + "/import-change-tracking");

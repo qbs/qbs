@@ -115,6 +115,7 @@ private slots:
     void generator_data();
     void groupsInModules();
     void ico();
+    void importAssignment();
     void importChangeTracking();
     void importInPropertiesCondition();
     void importSearchPath();
