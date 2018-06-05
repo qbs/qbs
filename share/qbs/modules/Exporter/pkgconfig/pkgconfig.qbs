@@ -21,6 +21,8 @@ Module {
     property stringList requiresPrivateEntry: []
     property stringList conflictsEntry: []
 
+    property var customVariables
+
     property bool _usePrefix: autoDetect && qbs.installPrefix
 
     additionalProductTypes: ["Exporter.pkgconfig.pc"]
@@ -53,6 +55,12 @@ Module {
                 var f = new TextFile(output.filePath, TextFile.WriteOnly);
                 if (product.Exporter.pkgconfig._usePrefix)
                     f.writeLine("prefix=" + product.qbs.installPrefix + "\n");
+                var customVariables = product.Exporter.pkgconfig.customVariables;
+                if (customVariables) {
+                    for (var customVar in customVariables)
+                        f.writeLine(customVar + "=" + customVariables[customVar]);
+                    f.writeLine("");
+                }
                 var autoDetectedData = HelperFunctions.collectAutodetectedData(product);
                 HelperFunctions.writeEntry(product, f, "Name", "nameEntry", true);
                 HelperFunctions.writeEntry(product, f, "Description", "descriptionEntry", true);

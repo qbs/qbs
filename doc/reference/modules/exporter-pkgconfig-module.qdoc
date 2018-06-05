@@ -196,3 +196,15 @@
 
     \defaultvalue \c {product.version}
 */
+
+/*!
+    \qmlproperty string Exporter.pkgconfig::customVariables
+
+    Use this property to add arbitrary variable assignments into the \c .pc file.
+    The property is a map that will produce one assignment per entry.
+    The keys and values of the map represent the left-hand sides and right-hand
+    sides of these assignments, respectively. The values are strings that will
+    be written into the file verbatim.
+
+    \nodefaultvalue
+*/

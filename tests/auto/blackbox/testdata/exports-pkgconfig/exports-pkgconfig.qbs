@@ -80,6 +80,7 @@ Project {
                 return value.filter(function(p) { return p !== product.sourceDirectory; });
             return value;
         })
+        Exporter.pkgconfig.customVariables: ({config1: "a b", config2: "c"})
 
         Depends { name: "cpp" }
         cpp.defines: ["SECONDLIB"]
