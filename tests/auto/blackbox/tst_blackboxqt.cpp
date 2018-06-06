@@ -365,7 +365,7 @@ void TestBlackboxQt::track_qobject_change()
 void TestBlackboxQt::track_qrc()
 {
     QDir::setCurrent(testDataDir + "/qrc");
-    QCOMPARE(runQbs(), 0);
+    QCOMPARE(runQbs(QbsRunParameters("run")), 0);
     const QString fileName = relativeExecutableFilePath("i");
     QVERIFY2(regularFileExists(fileName), qPrintable(fileName));
     QDateTime dt = QFileInfo(fileName).lastModified();
@@ -377,9 +377,14 @@ void TestBlackboxQt::track_qrc()
         f.write("bla");
         f.close();
     }
-    QCOMPARE(runQbs(), 0);
+    QCOMPARE(runQbs(QbsRunParameters("run")), 0);
     QVERIFY(regularFileExists(fileName));
     QVERIFY(dt < QFileInfo(fileName).lastModified());
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("i.qbs");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("Resolving"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("rcc"), m_qbsStdout.constData());
 }
 
 void TestBlackboxQt::unmocable()

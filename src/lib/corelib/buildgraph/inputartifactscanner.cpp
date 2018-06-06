@@ -255,6 +255,8 @@ void InputArtifactScanner::resolveScanResultDependencies(const Artifact *inputAr
 
         if (FileInfo::isAbsolute(dependencyFilePath)) {
             resolveDepencency(dependency, inputArtifact->product.get(), &resolvedDependency);
+            if (resolvedDependency.filePath.isEmpty())
+                goto unresolved;
             goto resolved;
         }
 

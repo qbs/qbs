@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file>stuff.txt</file>
+        <file>subdir/</file>
     </qresource>
 </RCC>
