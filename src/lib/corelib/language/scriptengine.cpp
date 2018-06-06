@@ -371,6 +371,11 @@ void ScriptEngine::setEnvironment(const QProcessEnvironment &env)
 void ScriptEngine::importFile(const QString &filePath, QScriptValue &targetObject)
 {
     AccumulatingTimer importTimer(m_elapsedTimeImporting != -1 ? &m_elapsedTimeImporting : nullptr);
+    QScriptValue &evaluationResult = m_jsFileCache[filePath];
+    if (evaluationResult.isValid()) {
+        ScriptImporter::copyProperties(evaluationResult, targetObject);
+        return;
+    }
     QFile file(filePath);
     if (Q_UNLIKELY(!file.open(QFile::ReadOnly)))
         throw ErrorInfo(tr("Cannot open '%1'.").arg(filePath));
@@ -379,7 +384,7 @@ void ScriptEngine::importFile(const QString &filePath, QScriptValue &targetObjec
     const QString sourceCode = stream.readAll();
     file.close();
     m_currentDirPathStack.push(FileInfo::path(filePath));
-    m_scriptImporter->importSourceCode(sourceCode, filePath, targetObject);
+    evaluationResult = m_scriptImporter->importSourceCode(sourceCode, filePath, targetObject);
     m_currentDirPathStack.pop();
 }
 

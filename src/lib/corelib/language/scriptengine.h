@@ -299,6 +299,7 @@ private:
     QScriptClass *m_modulePropertyScriptClass;
     QScriptClass *m_productPropertyScriptClass = nullptr;
     QHash<JsImport, QScriptValue> m_jsImportCache;
+    std::unordered_map<QString, QScriptValue> m_jsFileCache;
     bool m_propertyCacheEnabled;
     bool m_active;
     QHash<PropertyCacheKey, QVariant> m_propertyCache;

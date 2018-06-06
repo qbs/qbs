@@ -53,11 +53,11 @@ class ScriptImporter
 {
 public:
     ScriptImporter(ScriptEngine *scriptEngine);
-    void importSourceCode(const QString &sourceCode, const QString &filePath, QScriptValue &targetObject);
+    QScriptValue importSourceCode(const QString &sourceCode, const QString &filePath, QScriptValue &targetObject);
 
-private:
     static void copyProperties(const QScriptValue &src, QScriptValue &dst);
 
+private:
     ScriptEngine *m_engine;
     QHash<QString, QString> m_sourceCodeCache;
 };

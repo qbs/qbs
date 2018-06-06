@@ -120,7 +120,7 @@ ScriptImporter::ScriptImporter(ScriptEngine *scriptEngine)
 {
 }
 
-void ScriptImporter::importSourceCode(const QString &sourceCode, const QString &filePath,
+QScriptValue ScriptImporter::importSourceCode(const QString &sourceCode, const QString &filePath,
         QScriptValue &targetObject)
 {
     Q_ASSERT(targetObject.isObject());
@@ -146,6 +146,7 @@ void ScriptImporter::importSourceCode(const QString &sourceCode, const QString &
     QScriptValue result = m_engine->evaluate(code, filePath, 0);
     throwOnEvaluationError(m_engine, result, [&filePath] () { return CodeLocation(filePath, 0); });
     copyProperties(result, targetObject);
+    return result;
 }
 
 void ScriptImporter::copyProperties(const QScriptValue &src, QScriptValue &dst)
