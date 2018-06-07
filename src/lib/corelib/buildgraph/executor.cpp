@@ -771,8 +771,7 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = 0)
         return;
     qCDebug(lcBuildGraph) << "Attempting to rescue data of artifact" << artifact->fileName();
 
-    typedef std::pair<Artifact *, bool> ChildArtifactData;
-    QList<ChildArtifactData> childrenToConnect;
+    std::vector<Artifact *> childrenToConnect;
     bool canRescue = artifact->transformer->commands == rad.commands;
     if (canRescue) {
         ResolvedProductPtr pseudoProduct = ResolvedProduct::create();
@@ -796,10 +795,15 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = 0)
                     removeGeneratedArtifactFromDisk(cd.childFilePath, m_logger);
                 }
             }
-            // TODO: Shouldn't addedByScanner always be true here? Otherwise the child would be
-            //       in the list already, no?
+            if (!cd.addedByScanner) {
+                // If an artifact has disappeared from the list of children, the commands
+                // might need to run again.
+                canRescue = false;
+                qCDebug(lcBuildGraph) << "Former child artifact" << cd.childFilePath <<
+                                         "is no longer in the list of children";
+            }
             if (canRescue)
-                childrenToConnect.push_back({child, cd.addedByScanner});
+                childrenToConnect.push_back(child);
         }
         for (const QString &depPath : rad.fileDependencies) {
             const QList<FileResourceBase *> depList = m_project->buildData->lookupFiles(depPath);
@@ -865,10 +869,9 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = 0)
         artifact->knownOutOfDate = artifact->knownOutOfDate || rad.knownOutOfDate;
         if (childrenAdded && !childrenToConnect.empty())
             *childrenAdded = true;
-        for (const ChildArtifactData &cad : qAsConst(childrenToConnect)) {
-            safeConnect(artifact, cad.first);
-            if (cad.second)
-                artifact->childrenAddedByScanner << cad.first;
+        for (Artifact * const child : childrenToConnect) {
+            safeConnect(artifact, child);
+            artifact->childrenAddedByScanner << child;
         }
         qCDebug(lcBuildGraph) << "Data was rescued.";
     } else {

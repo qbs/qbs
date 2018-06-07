@@ -707,6 +707,35 @@ void TestBlackbox::changedFiles()
     QVERIFY2(m_qbsStdout.contains("file1.cpp"), m_qbsStdout.constData());
 }
 
+void TestBlackbox::changedRuleInputs()
+{
+    QDir::setCurrent(testDataDir + "/changed-rule-inputs");
+
+    // Initial build.
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("generating p1-dummy"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("generating p2-dummy"), m_qbsStdout.constData());
+
+    // Re-build: p1 is always regenerated, and p2 has a dependency on it.
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("generating p1-dummy"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("generating p2-dummy"), m_qbsStdout.constData());
+
+    // Remove the dependency. p2 gets re-generated one last time, because its set of
+    // inputs changed.
+    WAIT_FOR_NEW_TIMESTAMP();
+    REPLACE_IN_FILE("changed-rule-inputs.qbs", "inputsFromDependencies: \"p1\"",
+                    "inputsFromDependencies: \"p3\"");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("generating p1-dummy"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("generating p2-dummy"), m_qbsStdout.constData());
+
+    // Now the artifacts are no longer connected, and p2 must not get rebuilt anymore.
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("generating p1-dummy"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("generating p2-dummy"), m_qbsStdout.constData());
+}
+
 void TestBlackbox::changeInDisabledProduct()
 {
     QDir::setCurrent(testDataDir + "/change-in-disabled-product");
