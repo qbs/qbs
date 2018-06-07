@@ -7,4 +7,5 @@
 }
 
 INCLUDEPATH += \
+    $$PWD/include \
     $$shadowed($$PWD/include)

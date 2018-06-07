@@ -17,12 +17,18 @@ Project {
         type: ["staticlibrary"]
         name: "qbsscriptengine"
 
+        generatePkgConfigFile: false
+        generateQbsModule: false
+
         property bool useSystemMalloc: !qbs.targetOS.contains("macos")
                                        && !qbs.targetOS.contains("unix")
         property string qtscriptPath: "../../shared/qtscript/src/"
 
         cpp.includePaths: {
-            var result = base.concat(["."]);
+            var result = base.concat(
+                ".",
+                "include"
+            );
 
             var jscBaseDir = qtscriptPath + "3rdparty/javascriptcore";
             result.push(jscBaseDir);
@@ -355,7 +361,8 @@ Project {
         Export {
             Depends { name: "QtScriptFwdHeaders" }
             Depends { name: "cpp" }
-            cpp.includePaths: QtScriptFwdHeaders.publicIncludePaths
+            property stringList includePaths: [product.sourceDirectory + "/include"]
+                                              .concat(QtScriptFwdHeaders.publicIncludePaths)
             Properties {
                 condition: qbs.targetOS.contains("unix")
                 cpp.dynamicLibraries: base.concat(["pthread"])
