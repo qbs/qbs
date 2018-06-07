@@ -25,6 +25,14 @@ Project {
         condition: tcProbe.found
         name:"app"
         Depends { name: "lib" }
+        Depends { name: "staticlib" }
         files: ["main.cpp"]
+    }
+    StaticLibrary {
+        condition: tcProbe.found
+        name: "staticlib"
+        Depends { name: "lib" }
+        Depends { name: "cpp" }
+        files: "staticlib.cpp"
     }
 }
