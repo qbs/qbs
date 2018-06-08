@@ -61,6 +61,7 @@ DEFINES += JS_NO_EXPORT
 }
 
 INCLUDEPATH += \
+    $$PWD/include \
     $$OUT_PWD/include \
     $$OUT_PWD/include/QtScript/$$[QT_VERSION]/QtScript \
     $$PWD/../../shared/qtscript/src/script \

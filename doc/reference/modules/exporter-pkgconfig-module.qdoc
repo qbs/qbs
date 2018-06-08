@@ -1,0 +1,210 @@
+/****************************************************************************
+**
+** Copyright (C) 2018 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+/*!
+    \contentspage index.html
+    \qmltype Exporter.pkgconfig
+    \inqmlmodule QbsModules
+    \since Qbs 1.12
+
+    \brief Provides support for generating pkg-config files.
+
+    The \c Exporter.pkgconfig module contains the properties and rules to create a
+    \l{https://www.freedesktop.org/wiki/Software/pkg-config}{pkg-config}
+    metadata (\c{.pc}) file for a \l Product.
+
+    By default, \QBS will attempt to derive some of the \c {.pc} file's contents from
+    the product's \l Export item. This behavior can be suppressed by setting the
+    \l autoDetect property to \c false.
+
+    \section2 Relevant File Tags
+    \target filetags-exporter-pkgconfig
+
+    \table
+    \header
+        \li Tag
+        \li Since
+        \li Description
+    \row
+        \li \c{"Exporter.pkgconfig.pc"}
+        \li 1.12.0
+        \li This tag is attached to the generated \c{.pc} file.
+    \endtable
+*/
+
+/*!
+    \qmlproperty bool Exporter.pkgconfig::autoDetect
+
+    If this property is enabled, then \QBS will try to derive various \c {.pc} file
+    entries from the contents of the product's \l Export item, including the dependencies
+    declared therein. Values for these fields can still be explicitly provided via the
+    respective properties, in which case they will be concatenated with the auto-detected ones.
+    If an exported dependency is known to correspond to a pkg-config module (either by
+    pulling in the \c{Exporter.pkgconfig} module or by appearing in the \l requiresEntry
+    property), it will end up in the \c Requires field of the \c{.pc} file, otherwise
+    its exported \l cpp properties will be collected for use in the \c Cflags and \c Libs fields.
+    The \l excludedDependencies property can be used to ignore specific products altogether.
+
+    \defaultvalue \c true
+*/
+
+/*!
+    \qmlproperty stringList Exporter.pkgconfig::cflagsEntry
+
+    The value of the \c Cflags field in the \c {.pc} file.
+
+    If \l autoDetect is enabled, then this value will be appended to the flags derived from
+    the product's \l Export item and the dependencies declared therein.
+
+    \defaultvalue \c {[]}
+*/
+
+/*!
+    \qmlproperty stringList Exporter.pkgconfig::conflictsEntry
+
+    The value of the \c Conflicts field in the \c {.pc} file.
+
+    \defaultvalue \c {[]}
+*/
+
+/*!
+    \qmlproperty stringList Exporter.pkgconfig::excludedDependencies
+
+    If \l autoDetect is enabled, the entries of this property will be matched against
+    the product's exported dependencies. In case such a dependency's name is present in the array,
+    \QBS will not traverse that dependency to collect entries for the
+    \c Cflags, \c Libs, \c Requires and \c {Requires.private} fields.
+
+    This list must not contain any values that are present in \l requiresEntry.
+
+    \defaultvalue \c undefined
+*/
+
+/*!
+    \qmlproperty string Exporter.pkgconfig::fileName
+
+    The file name of the generated pkg-config metadata file.
+
+    \defaultvalue \c {product.targetName + ".pc"}
+*/
+
+/*!
+    \qmlproperty stringList Exporter.pkgconfig::libsEntry
+
+    The value of the \c Libs field in the \c {.pc} file.
+
+    If \l autoDetect is enabled, then this value will be appended to the flags derived from
+    the product's \l Export item and the dependencies declared therein.
+
+    \defaultvalue \c {[]}
+*/
+
+/*!
+    \qmlproperty stringList Exporter.pkgconfig::libsPrivateEntry
+
+    The value of the \c Libs.Private field in the \c {.pc} file.
+
+    \defaultvalue \c {[]}
+*/
+
+/*!
+    \qmlproperty string Exporter.pkgconfig::nameEntry
+
+    The value of the \c Name field in the \c {.pc} file.
+
+    \defaultvalue \c {product.name}
+*/
+
+
+/*!
+    \qmlproperty stringList Exporter.pkgconfig::requiresEntry
+
+    The value of the \c Requires field in the \c {.pc} file.
+
+    If \l autoDetect is enabled, then those of the product's exported dependencies
+    that pull in the \c {Exporter.pkgconfig} module will also end up in the
+    \c Requires field, provided they are not listed in \l excludedDependencies.
+
+    If an exported dependency matches an entry of this array, \QBS will not traverse that
+    dependency to gather \l cpp properties for use in the \l cflagsEntry and \l libsEntry values,
+    as pkg-config takes care of that itself.
+
+    \defaultvalue \c {[]}
+*/
+
+/*!
+    \qmlproperty stringList Exporter.pkgconfig::requiresPrivateEntry
+
+    The value of the \c Requires.private field in the \c {.pc} file.
+
+    If \l autoDetect is enabled, then those of the product's non-exported dependencies
+    that pull in the \c {Exporter.pkgconfig} module will also end up in the
+    \c Requires.private field, provided they are not listed in \l excludedDependencies.
+
+    \defaultvalue \c {[]}
+*/
+
+/*!
+    \qmlproperty var Exporter.pkgconfig::transformFunction
+
+    A function with the signature
+    \c {function(product, moduleName, propertyName, value)}.
+    This can be useful to "fine-tune" property values if \l autoDetect is enabled, in case
+    they need amending for the purpose of pkg-config.
+    The \c product parameter represents the exporting product, the remaining parameters describe
+    the module property. The modified value of the module property shall be returned.
+
+    \defaultvalue \c undefined
+*/
+
+/*!
+    \qmlproperty string Exporter.pkgconfig::urlEntry
+
+    The value of the \c URL field in the \c {.pc} file.
+
+    \defaultvalue \c undefined
+*/
+
+/*!
+    \qmlproperty string Exporter.pkgconfig::versionEntry
+
+    The value of the \c Version field in the \c {.pc} file.
+
+    \defaultvalue \c {product.version}
+*/
+
+/*!
+    \qmlproperty string Exporter.pkgconfig::customVariables
+
+    Use this property to add arbitrary variable assignments into the \c .pc file.
+    The property is a map that will produce one assignment per entry.
+    The keys and values of the map represent the left-hand sides and right-hand
+    sides of these assignments, respectively. The values are strings that will
+    be written into the file verbatim.
+
+    \nodefaultvalue
+*/

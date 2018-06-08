@@ -91,5 +91,7 @@
     \endcode
 
     \defaultvalue \c undefined
+    \see Exporter.qbs
+    \see Exporter.pkgconfig
     \since 1.12
 */

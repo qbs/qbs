@@ -1,4 +1,5 @@
 import qbs
+import qbs.Utilities
 
 CppApplication {
     name: "app"
@@ -25,5 +26,14 @@ CppApplication {
         fileTagsFilter: ["cpp"]
         qbs.install: true
         qbs.installDir: "data"
+    }
+
+    Probe {
+        id: qtVersionProbe
+        property string qtVersion: Qt.core.version
+        configure: {
+            console.info("qmlcachegen must work: "
+                         + (Utilities.versionCompare(qtVersion, "5.11") >= 0))
+        }
     }
 }

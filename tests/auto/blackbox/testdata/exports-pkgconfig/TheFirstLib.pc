@@ -1,0 +1,10 @@
+prefix=/opt/the firstlib
+
+Name: TheFirstLib
+Description: TheFirstLib
+Version: 1.0
+URL: http://www.example.com/thefirstlib
+Cflags: -DTheFirstLib -I"${prefix}/include" -pthread -DHAVE_INDUSTRIAL_STRENGTH_HAIR_DRYER -I/otherdir/include1 -I/otherdir/include2
+Libs: -L"${prefix}/lib" -lTheFirstLib -pthread
+Requires: Qt5Core
+Requires.private: SomeHelper

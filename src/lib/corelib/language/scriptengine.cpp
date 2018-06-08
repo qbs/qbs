@@ -152,6 +152,7 @@ void ScriptEngine::import(const FileContextBaseConstPtr &fileCtx, QScriptValue &
     if (m_observeMode == ObserveMode::Enabled) {
         for (QScriptValue &sv : m_requireResults)
             observeImport(sv);
+        m_requireResults.clear();
     }
 
     m_currentDirPathStack.pop();
@@ -507,8 +508,7 @@ QScriptValue ScriptEngine::js_require(QScriptContext *context, QScriptEngine *qt
 
             if (!values.empty()) {
                 const QScriptValue mergedValue = mergeExtensionObjects(values);
-                if (engine->m_observeMode == ObserveMode::Enabled)
-                    engine->m_requireResults.push_back(mergedValue);
+                engine->m_requireResults.push_back(mergedValue);
                 engine->m_filePathsPerImport[mergedValue.objectId()] = filePaths;
                 return mergedValue;
             }
@@ -533,8 +533,7 @@ QScriptValue ScriptEngine::js_require(QScriptContext *context, QScriptEngine *qt
         const QString scopeName = scopeNamePrefix + QString::number(qHash(filePath), 16);
         result.setProperty(StringConstants::importScopeNamePropertyInternal(), scopeName);
         context->thisObject().setProperty(scopeName, result);
-        if (engine->m_observeMode == ObserveMode::Enabled)
-            engine->m_requireResults.push_back(result);
+        engine->m_requireResults.push_back(result);
         engine->m_filePathsPerImport[result.objectId()] = { filePath };
     } catch (const ErrorInfo &e) {
         result = context->throwError(e.toString());

@@ -456,7 +456,7 @@ CppModule {
         condition: product.cpp.shouldLink
         multiplex: true
         inputs: ["obj", "linkerscript"]
-        inputsFromDependencies: ["dynamiclibrary", "staticlibrary"]
+        inputsFromDependencies: ["dynamiclibrary_symbols", "staticlibrary"]
 
         outputFileTags: ["bundle.input", "staticlibrary", "c_staticlibrary", "cpp_staticlibrary"]
         outputArtifacts: {

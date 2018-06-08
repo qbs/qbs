@@ -59,6 +59,7 @@ private slots:
     void buildGraphVersions();
     void changedFiles_data();
     void changedFiles();
+    void changedRuleInputs();
     void changeInDisabledProduct();
     void changeInImportedFile();
     void changeTrackingAndMultiplexing();
@@ -108,6 +109,7 @@ private slots:
     void exportedPropertyInDisabledProduct_data();
     void exportRule();
     void exportToOutsideSearchPath();
+    void exportsPkgconfig();
     void exportsQbs();
     void externalLibs();
     void fileDependencies();
@@ -117,6 +119,7 @@ private slots:
     void generator_data();
     void groupsInModules();
     void ico();
+    void importAssignment();
     void importChangeTracking();
     void importInPropertiesCondition();
     void importSearchPath();
@@ -198,6 +201,7 @@ private slots:
     void preventFloatingPointValues();
     void probeChangeTracking();
     void probeProperties();
+    void probesAndShadowProducts();
     void probeInExportedModule();
     void probesAndArrayProperties();
     void probesInNestedModules();

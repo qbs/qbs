@@ -392,7 +392,14 @@ static Match compatibility(const EnhancedQtEnvironment &env, const Profile &tool
         // because it's especially important for this toolchain
         const Version compilerVersion = Version::fromString(
             toolchainProfile.value(QLatin1String("cpp.compilerVersion")).toString());
-        if (env.msvcVersion.majorVersion() != compilerVersion.majorVersion()
+
+        static const Version vs2017Version{19, 10};
+        if (env.msvcVersion >= vs2017Version) {
+            if (env.msvcVersion.majorVersion() != compilerVersion.majorVersion()
+                    || compilerVersion < vs2017Version) {
+                return MatchNone;
+            }
+        } else if (env.msvcVersion.majorVersion() != compilerVersion.majorVersion()
                 || env.msvcVersion.minorVersion() != compilerVersion.minorVersion()) {
             return MatchNone;
         }

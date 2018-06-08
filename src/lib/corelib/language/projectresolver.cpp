@@ -1682,7 +1682,21 @@ void ProjectResolver::evaluateProperty(const Item *item, const QString &propName
 
         // NOTE: Loses type information if scriptValue.isUndefined == true,
         //       as such QScriptValues become invalid QVariants.
-        QVariant v = scriptValue.isFunction() ? scriptValue.toString() : scriptValue.toVariant();
+        QVariant v;
+        if (scriptValue.isFunction()) {
+            v = scriptValue.toString();
+        } else {
+            v = scriptValue.toVariant();
+            QVariantMap m = v.toMap();
+            if (m.contains(StringConstants::importScopeNamePropertyInternal())) {
+                QVariantMap tmp = m;
+                m = scriptValue.prototype().toVariant().toMap();
+                for (auto it = tmp.begin(); it != tmp.end(); ++it)
+                    m.insert(it.key(), it.value());
+                v = m;
+            }
+        }
+
         if (pd.type() == PropertyDeclaration::Path && v.isValid()) {
             v = v.toString();
         } else if (pd.type() == PropertyDeclaration::PathList

@@ -1,14 +1,22 @@
+import qbs.File
 import qbs.FileInfo
 import qbs.Process
+import qbs.Utilities
 
 Module {
     additionalProductTypes: ["qt.qml.qmlc", "qt.qml.jsc"]
-    validate: qmlcachegenProbe.found
+    validate: {
+        if (!qmlcachegenProbe.found)
+            throw "qmlcachegen unsupported for this target";
+    }
     property string qmlCacheGenPath: FileInfo.joinPaths(Qt.core.binPath, "qmlcachegen")
                                      + (qbs.hostOS.contains("windows") ? ".exe" : "")
+    property bool supportsAllArchitectures: Utilities.versionCompare(Qt.core.version, "5.11") >= 0
     property string installDir
 
     readonly property stringList _targetArgs: {
+        if (supportsAllArchitectures)
+            return [];
         function translateArch(arch) {
             if (arch === "x86")
                 return "i386";
@@ -24,15 +32,25 @@ Module {
     Depends { name: "Qt.core" }
     Probe {
         id: qmlcachegenProbe
+
+        property string arch: qbs.architecture
+        property string _qmlCacheGenPath: qmlCacheGenPath
+        property stringList targetArgs: _targetArgs
+        property bool _supportsAllArchitectures: supportsAllArchitectures
+
         configure: {
+            if (_supportsAllArchitectures) {
+                found = File.exists(_qmlCacheGenPath);
+                return;
+            }
             var process = new Process();
             found = false;
             try {
-                found = process.exec(qmlCacheGenPath,
-                                     _targetArgs.concat("--check-if-supported")) == 0;
+                found = process.exec(_qmlCacheGenPath,
+                                     targetArgs.concat("--check-if-supported")) == 0;
                 if (!found) {
                     var msg = "QML cache generation was requested but is unsupported on "
-                               + "architecture '" + qbs.architecture + "'.";
+                               + "architecture '" + arch + "'.";
                     console.warn(msg);
                 }
             } finally {

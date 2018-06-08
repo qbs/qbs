@@ -716,6 +716,35 @@ void TestBlackbox::changedFiles()
     QVERIFY2(m_qbsStdout.contains("file1.cpp"), m_qbsStdout.constData());
 }
 
+void TestBlackbox::changedRuleInputs()
+{
+    QDir::setCurrent(testDataDir + "/changed-rule-inputs");
+
+    // Initial build.
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("generating p1-dummy"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("generating p2-dummy"), m_qbsStdout.constData());
+
+    // Re-build: p1 is always regenerated, and p2 has a dependency on it.
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("generating p1-dummy"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("generating p2-dummy"), m_qbsStdout.constData());
+
+    // Remove the dependency. p2 gets re-generated one last time, because its set of
+    // inputs changed.
+    WAIT_FOR_NEW_TIMESTAMP();
+    REPLACE_IN_FILE("changed-rule-inputs.qbs", "inputsFromDependencies: \"p1\"",
+                    "inputsFromDependencies: \"p3\"");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("generating p1-dummy"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("generating p2-dummy"), m_qbsStdout.constData());
+
+    // Now the artifacts are no longer connected, and p2 must not get rebuilt anymore.
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("generating p1-dummy"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("generating p2-dummy"), m_qbsStdout.constData());
+}
+
 void TestBlackbox::changeInDisabledProduct()
 {
     QDir::setCurrent(testDataDir + "/change-in-disabled-product");
@@ -2750,6 +2779,19 @@ void TestBlackbox::probeProperties()
     QVERIFY2(m_qbsStdout.contains("probe2.filePath=" + dir + "/bin/tool"), m_qbsStdout.constData());
 }
 
+void TestBlackbox::probesAndShadowProducts()
+{
+    QDir::setCurrent(testDataDir + "/probes-and-shadow-products");
+    QCOMPARE(runQbs(QStringList("--log-time")), 0);
+    QVERIFY2(m_qbsStdout.contains("2 probes encountered, 1 configure scripts executed"),
+             m_qbsStdout.constData());
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("probes-and-shadow-products.qbs");
+    QCOMPARE(runQbs(QStringList("--log-time")), 0);
+    QVERIFY2(m_qbsStdout.contains("2 probes encountered, 0 configure scripts executed"),
+             m_qbsStdout.constData());
+}
+
 void TestBlackbox::probeInExportedModule()
 {
     QDir::setCurrent(testDataDir + "/probe-in-exported-module");
@@ -3328,6 +3370,22 @@ void TestBlackbox::exportToOutsideSearchPath()
     QVERIFY(runQbs(params) != 0);
     QVERIFY2(m_qbsStderr.contains("Dependency 'aModule' not found for product 'theProduct'."),
              m_qbsStderr.constData());
+}
+
+void TestBlackbox::exportsPkgconfig()
+{
+    QDir::setCurrent(testDataDir + "/exports-pkgconfig");
+    QCOMPARE(runQbs(), 0);
+    QFile sourcePcFile(HostOsInfo::isWindowsHost() ? "TheFirstLib_windows.pc" : "TheFirstLib.pc");
+    QString generatedPcFilePath = relativeProductBuildDir("TheFirstLib") + "/TheFirstLib.pc";
+    QFile generatedPcFile(generatedPcFilePath);
+    QVERIFY2(sourcePcFile.open(QIODevice::ReadOnly), qPrintable(sourcePcFile.errorString()));
+    QVERIFY2(generatedPcFile.open(QIODevice::ReadOnly), qPrintable(generatedPcFile.errorString()));
+    QCOMPARE(generatedPcFile.readAll().replace("\r", ""), sourcePcFile.readAll().replace("\r", ""));
+    sourcePcFile.close();
+    generatedPcFile.close();
+    TEXT_FILE_COMPARE(relativeProductBuildDir("TheSecondLib") + "/TheSecondLib.pc",
+                      "TheSecondLib.pc");
 }
 
 void TestBlackbox::exportsQbs()
@@ -6258,6 +6316,14 @@ void TestBlackbox::ico()
         QCOMPARE(b.at(26), '\0');
         QCOMPARE(b.at(28), '\0');
     }
+}
+
+void TestBlackbox::importAssignment()
+{
+    QDir::setCurrent(testDataDir + "/import-assignment");
+    QCOMPARE(runQbs(QStringList("project.qbsSearchPaths:" + QDir::currentPath())), 0);
+    QVERIFY2(m_qbsStdout.contains("key 1 = value1") && m_qbsStdout.contains("key 2 = value2"),
+             m_qbsStdout.constData());
 }
 
 void TestBlackbox::importChangeTracking()

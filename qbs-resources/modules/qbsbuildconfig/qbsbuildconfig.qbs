@@ -19,8 +19,11 @@ Module {
     property bool installManPage: qbs.targetOS.contains("unix")
     property bool installHtml: true
     property bool installQch: false
+    property bool generatePkgConfigFiles: installApiHeaders && qbs.targetOS.contains("unix")
+                                          && !qbs.targetOS.contains("darwin")
     property bool generateQbsModules: installApiHeaders
     property string docInstallDir: "share/doc/qbs/html"
+    property string pkgConfigInstallDir: FileInfo.joinPaths(libDirName, "pkgconfig")
     property string qbsModulesBaseDir: FileInfo.joinPaths(libDirName, "qbs", "modules")
     property string relativeLibexecPath: "../" + libexecInstallDir
     property string relativePluginsPath: "../" + libDirName
