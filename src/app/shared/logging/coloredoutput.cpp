@@ -38,7 +38,7 @@
 ****************************************************************************/
 
 #include "coloredoutput.h"
-#include <QtCore/qglobal.h>
+#include <QtCore/qbytearray.h>
 #ifdef Q_OS_WIN32
 # include <QtCore/qt_windows.h>
 #endif
@@ -98,4 +98,14 @@ void fprintfColored(TextColor color, FILE *file, const char *str, ...)
     va_start(vl, str);
     fprintfColored(color, file, str, vl);
     va_end(vl);
+}
+
+bool terminalSupportsColor()
+{
+#if defined(Q_OS_UNIX)
+    const QByteArray &term = qgetenv("TERM");
+    return !term.isEmpty() && term != "dumb";
+#else
+    return true;
+#endif
 }

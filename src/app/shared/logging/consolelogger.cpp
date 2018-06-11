@@ -91,7 +91,7 @@ void ConsoleLogSink::fprintfWrapper(TextColor color, FILE *file, const char *str
 {
     va_list vl;
     va_start(vl, str);
-    if (m_coloredOutputEnabled)
+    if (m_coloredOutputEnabled && terminalSupportsColor())
         fprintfColored(color, file, str, vl);
     else
         vfprintf(file, str, vl);

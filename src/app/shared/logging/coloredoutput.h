@@ -68,5 +68,6 @@ void printfColored(TextColor color, const char *str, va_list vl);
 void printfColored(TextColor color, const char *str, ...);
 void fprintfColored(TextColor color, FILE *file, const char *str, va_list vl);
 void fprintfColored(TextColor color, FILE *file, const char *str, ...);
+bool terminalSupportsColor();
 
 #endif // QBS_COLOREDOUTPUT_H
