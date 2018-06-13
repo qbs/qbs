@@ -49,7 +49,7 @@
     Or, alternatively:
 
     \code
-    Depends { name: "Qt"; submodules: ["core", "network" } }
+    Depends { name: "Qt"; submodules: [ "core", "network" ] }
     \endcode
 
     The Qt modules that have properties and relevant file tags are described in
