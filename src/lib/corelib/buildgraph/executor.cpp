@@ -828,7 +828,7 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = 0)
 
         if (canRescue) {
             const TypeFilter<Artifact> childArtifacts(artifact->children);
-            const int newChildCount = childrenToConnect.size()
+            const size_t newChildCount = childrenToConnect.size()
                     + std::distance(childArtifacts.begin(), childArtifacts.end());
             QBS_CHECK(newChildCount >= rad.children.size());
             if (newChildCount > rad.children.size()) {
