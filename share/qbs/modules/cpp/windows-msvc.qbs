@@ -170,7 +170,7 @@ CppModule {
     }
 
     Rule {
-        id: compiler
+        name: "compiler"
         inputs: ["cpp", "c"]
         auxiliaryInputs: ["hpp"]
         explicitlyDependsOn: ["c_pch", "cpp_pch"]
@@ -191,7 +191,7 @@ CppModule {
     }
 
     Rule {
-        id: applicationLinker
+        name: "applicationLinker"
         multiplex: true
         inputs: ['obj', 'native.pe.manifest']
         inputsFromDependencies: ['staticlibrary', 'dynamiclibrary_import', "debuginfo_app"]
@@ -221,7 +221,7 @@ CppModule {
     }
 
     Rule {
-        id: dynamicLibraryLinker
+        name: "dynamicLibraryLinker"
         multiplex: true
         inputs: ['obj', 'native.pe.manifest']
         inputsFromDependencies: ['staticlibrary', 'dynamiclibrary_import', "debuginfo_dll"]
@@ -256,7 +256,7 @@ CppModule {
     }
 
     Rule {
-        id: libtool
+        name: "libtool"
         multiplex: true
         inputs: ["obj"]
         inputsFromDependencies: ["staticlibrary", "dynamiclibrary_import"]

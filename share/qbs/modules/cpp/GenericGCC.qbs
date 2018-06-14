@@ -390,7 +390,7 @@ CppModule {
                                        || product.multiplexConfigurationId
 
     Rule {
-        id: dynamicLibraryLinker
+        name: "dynamicLibraryLinker"
         condition: product.cpp.shouldLink
         multiplex: true
         inputs: {
@@ -452,7 +452,7 @@ CppModule {
     }
 
     Rule {
-        id: staticLibraryLinker
+        name: "staticLibraryLinker"
         condition: product.cpp.shouldLink
         multiplex: true
         inputs: ["obj", "linkerscript"]
@@ -494,7 +494,7 @@ CppModule {
     }
 
     Rule {
-        id: loadableModuleLinker
+        name: "loadableModuleLinker"
         condition: product.cpp.shouldLink
         multiplex: true
         inputs: {
@@ -531,7 +531,7 @@ CppModule {
     }
 
     Rule {
-        id: applicationLinker
+        name: "applicationLinker"
         condition: product.cpp.shouldLink
         multiplex: true
         inputs: {
@@ -567,7 +567,7 @@ CppModule {
     }
 
     Rule {
-        id: compiler
+        name: "compiler"
         inputs: ["cpp", "c", "objcpp", "objc", "asm_cpp"]
         auxiliaryInputs: ["hpp"]
         explicitlyDependsOn: ["c_pch", "cpp_pch", "objc_pch", "objcpp_pch"]
@@ -592,7 +592,7 @@ CppModule {
     }
 
     Rule {
-        id: assembler
+        name: "assembler"
         inputs: ["asm"]
 
         Artifact {
