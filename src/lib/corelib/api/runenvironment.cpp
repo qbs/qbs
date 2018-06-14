@@ -311,7 +311,7 @@ int RunEnvironment::doRunTarget(const QString &targetBin, const QStringList &arg
                           << QStringLiteral("-t") // allow test packages
                           << QStringLiteral("-d") // allow version code downgrade
                           << targetBin);
-            if (!process.waitForFinished()) {
+            if (!process.waitForFinished(-1)) {
                 if (process.error() == QProcess::FailedToStart) {
                     throw ErrorInfo(Tr::tr("The process '%1' could not be started: %2")
                                     .arg(targetExecutable)
@@ -351,7 +351,7 @@ int RunEnvironment::doRunTarget(const QString &targetBin, const QStringList &arg
                               << StringConstants::simctlInstallCommand()
                               << simulatorId
                               << QDir::cleanPath(bundlePath));
-                if (!process.waitForFinished()) {
+                if (!process.waitForFinished(-1)) {
                     if (process.error() == QProcess::FailedToStart) {
                         throw ErrorInfo(Tr::tr("The process '%1' could not be started: %2")
                                         .arg(targetExecutable)

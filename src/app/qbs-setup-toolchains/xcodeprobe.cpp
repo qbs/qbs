@@ -102,7 +102,7 @@ void XcodeProbe::detectDeveloperPaths()
     QString program = QLatin1String("/usr/bin/xcode-select");
     QStringList arguments(QLatin1String("--print-path"));
     selectedXcode.start(program, arguments, QProcess::ReadOnly);
-    if (!selectedXcode.waitForFinished() || selectedXcode.exitCode()) {
+    if (!selectedXcode.waitForFinished(-1) || selectedXcode.exitCode()) {
         qbsInfo() << Tr::tr("Could not detect selected Xcode with /usr/bin/xcode-select");
     } else {
         QString path = QString::fromLocal8Bit(selectedXcode.readAllStandardOutput());
@@ -114,7 +114,7 @@ void XcodeProbe::detectDeveloperPaths()
     program = QLatin1String("/usr/bin/mdfind");
     arguments = QStringList(QLatin1String("kMDItemCFBundleIdentifier == 'com.apple.dt.Xcode'"));
     launchServices.start(program, arguments, QProcess::ReadOnly);
-    if (!launchServices.waitForFinished() || launchServices.exitCode()) {
+    if (!launchServices.waitForFinished(-1) || launchServices.exitCode()) {
         qbsInfo() << Tr::tr("Could not detect additional Xcode installations with /usr/bin/mdfind");
     } else {
         for (const QString &path : QString::fromLocal8Bit(launchServices.readAllStandardOutput())

@@ -101,7 +101,7 @@ static QByteArray runProcess(const QString &exeFilePath, const QStringList &args
         process.write(pipeData);
         process.closeWriteChannel();
     }
-    if (!process.waitForFinished() || process.exitStatus() != QProcess::NormalExit)
+    if (!process.waitForFinished(-1) || process.exitStatus() != QProcess::NormalExit)
         throw ErrorInfo(mkStr("Could not run %1 (%2)").arg(exeFilePath, process.errorString()));
     if (process.exitCode() != 0 && !allowFailure) {
         ErrorInfo e(mkStr("Process '%1' failed with exit code %2.")
