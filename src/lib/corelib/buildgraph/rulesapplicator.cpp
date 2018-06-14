@@ -155,7 +155,7 @@ ArtifactSet RulesApplicator::collectAuxiliaryInputs(const Rule *rule,
                                                     const ResolvedProduct *product)
 {
     return collectAdditionalInputs(rule->auxiliaryInputs, rule, product,
-                                   RulesApplicator::CurrentProduct | RulesApplicator::Dependencies);
+                                   CurrentProduct | Dependencies);
 }
 
 static void copyProperty(const QString &name, const QScriptValue &src, QScriptValue dst)
@@ -314,16 +314,13 @@ ArtifactSet RulesApplicator::collectAdditionalInputs(const FileTags &tags, const
             // 2) An artifact marked with filesAreTargets: true inside a Group inside of a
             // Module also ends up in the results returned by product->lookupArtifactsByFileTag,
             // so it should be considered conceptually as a "dependent product artifact".
-            if ((inputsSources.testFlag(RulesApplicator::CurrentProduct)
-                 && !dependency->isTargetOfModule())
-                 || (inputsSources.testFlag(RulesApplicator::Dependencies)
-                     && dependency->isTargetOfModule())
-                    ) {
+            if ((inputsSources.testFlag(CurrentProduct) && !dependency->isTargetOfModule())
+                 || (inputsSources.testFlag(Dependencies) && dependency->isTargetOfModule())) {
                 artifacts << dependency;
             }
         }
 
-        if (inputsSources.testFlag(RulesApplicator::Dependencies)) {
+        if (inputsSources.testFlag(Dependencies)) {
             for (const ResolvedProductConstPtr &depProduct : product->dependencies) {
                 for (Artifact * const ta : depProduct->targetArtifacts()) {
                     if (ta->fileTags().contains(fileTag)
@@ -340,11 +337,10 @@ ArtifactSet RulesApplicator::collectAdditionalInputs(const FileTags &tags, const
 ArtifactSet RulesApplicator::collectExplicitlyDependsOn()
 {
    ArtifactSet first = collectAdditionalInputs(
-               m_rule->explicitlyDependsOn, m_rule.get(), m_product.get(),
-                                   RulesApplicator::CurrentProduct);
+               m_rule->explicitlyDependsOn, m_rule.get(), m_product.get(), CurrentProduct);
    ArtifactSet second = collectAdditionalInputs(
                m_rule->explicitlyDependsOnFromDependencies, m_rule.get(), m_product.get(),
-                                                RulesApplicator::Dependencies);
+               Dependencies);
    return first.unite(second);
 }
 
