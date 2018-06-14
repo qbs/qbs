@@ -775,7 +775,7 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = 0)
     bool canRescue = artifact->transformer->commands == rad.commands;
     if (canRescue) {
         ResolvedProductPtr pseudoProduct = ResolvedProduct::create();
-        for (const RescuableArtifactData::ChildData &cd : qAsConst(rad.children)) {
+        for (const RescuableArtifactData::ChildData &cd : rad.children) {
             pseudoProduct->name = cd.productName;
             pseudoProduct->multiplexConfigurationId = cd.productMultiplexId;
             Artifact * const child = lookupArtifact(pseudoProduct, m_project->buildData.get(),
