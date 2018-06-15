@@ -360,8 +360,10 @@ QString applicationDirPath()
 
 FileInfo::FileInfo(const QString &fileName)
 {
-    if (stat(fileName.toLocal8Bit(), &m_stat) == -1)
+    if (stat(fileName.toLocal8Bit(), &m_stat) == -1) {
         m_stat.st_mtime = 0;
+        m_stat.st_mode = 0;
+    }
 }
 
 bool FileInfo::exists() const

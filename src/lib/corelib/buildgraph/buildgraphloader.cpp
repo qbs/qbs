@@ -888,7 +888,7 @@ void BuildGraphLoader::rescueOldBuildData(const ResolvedProductConstPtr &restore
                     = oldArtifact->transformer->lastPrepareScriptExecutionTime;
             const ChildrenInfo &childrenInfo = childLists.value(oldArtifact);
             for (Artifact * const child : qAsConst(childrenInfo.children)) {
-                rad.children << RescuableArtifactData::ChildData(child->product->name,
+                rad.children.emplace_back(child->product->name,
                         child->product->multiplexConfigurationId, child->filePath(),
                         childrenInfo.childrenAddedByScanner.contains(child));
                 std::transform(oldArtifact->fileDependencies.cbegin(),

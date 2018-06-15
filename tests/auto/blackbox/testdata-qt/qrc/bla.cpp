@@ -26,8 +26,19 @@
 **
 ****************************************************************************/
 
+#include <QFileInfo>
+
 int main()
 {
-    return 3;
+    QFileInfo f(":/stuff.txt");
+    if (!f.exists())
+        return 1;
+    if (!f.isFile())
+        return 2;
+    QFileInfo d(":/subdir");
+    if (!d.exists())
+        return 3;
+    if (!d.isDir())
+        return 4;
 }
 

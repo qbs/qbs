@@ -775,7 +775,7 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = 0)
     bool canRescue = artifact->transformer->commands == rad.commands;
     if (canRescue) {
         ResolvedProductPtr pseudoProduct = ResolvedProduct::create();
-        for (const RescuableArtifactData::ChildData &cd : qAsConst(rad.children)) {
+        for (const RescuableArtifactData::ChildData &cd : rad.children) {
             pseudoProduct->name = cd.productName;
             pseudoProduct->multiplexConfigurationId = cd.productMultiplexId;
             Artifact * const child = lookupArtifact(pseudoProduct, m_project->buildData.get(),
@@ -828,7 +828,7 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = 0)
 
         if (canRescue) {
             const TypeFilter<Artifact> childArtifacts(artifact->children);
-            const int newChildCount = childrenToConnect.size()
+            const size_t newChildCount = childrenToConnect.size()
                     + std::distance(childArtifacts.begin(), childArtifacts.end());
             QBS_CHECK(newChildCount >= rad.children.size());
             if (newChildCount > rad.children.size()) {

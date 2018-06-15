@@ -54,7 +54,6 @@
 #include <tools/persistence.h>
 
 #include <QtCore/qhash.h>
-#include <QtCore/qlist.h>
 
 #include <vector>
 
@@ -103,7 +102,7 @@ public:
     };
 
     FileTime timeStamp;
-    QList<ChildData> children;
+    std::vector<ChildData> children;
     std::vector<QString> fileDependencies;
     bool knownOutOfDate = false;
 

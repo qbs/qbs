@@ -523,7 +523,7 @@ static void replaceSpecialValues(QByteArray *content, const Profile &profile,
             additionalContent += "\n";
         const QByteArray indent(4, ' ');
         additionalContent += "Group {\n"
-                + indent + indent + "files: [product.Qt[\"" + module.qbsName.toUtf8() + "\"]"
+                + indent + indent + "files: [Qt[\"" + module.qbsName.toUtf8() + "\"]"
                                   + ".libFilePath]\n"
                 + indent + indent + "filesAreTargets: true\n"
                 + indent + indent + "fileTags: [\"" + libraryFileTag(qtEnvironment, module)

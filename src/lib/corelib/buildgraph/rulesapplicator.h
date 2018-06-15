@@ -76,7 +76,7 @@ public:
             const ArtifactSet &artifactsToRemove, const Logger &logger);
     static ArtifactSet collectAuxiliaryInputs(const Rule *rule, const ResolvedProduct *product);
 
-    enum InputsSourceFlag { CurrentProduct, Dependencies };
+    enum InputsSourceFlag { CurrentProduct = 1, Dependencies = 2 };
     Q_DECLARE_FLAGS(InputsSources, InputsSourceFlag)
 
 private:

@@ -801,16 +801,14 @@ ProjectTransformerData ProjectPrivate::transformerData()
         ProductTransformerData productTransformerData;
         for (const Transformer * const t : allTransformers) {
             TransformerData tData;
-            for (Artifact * const a : t->inputs)
-                tData.d->inputs << createArtifactData(a, product, targetArtifacts);
-            for (Artifact * const a : t->explicitlyDependsOn)
-                tData.d->inputs << createArtifactData(a, product, targetArtifacts);
-            for (Artifact * const a
-                 : RulesApplicator::collectAuxiliaryInputs(t->rule.get(), product.get())) {
-                tData.d->inputs << createArtifactData(a, product, targetArtifacts);
-            }
-            for (Artifact * const a : t->outputs)
+            Set<const Artifact *> allInputs;
+            for (Artifact * const a : t->outputs) {
                 tData.d->outputs << createArtifactData(a, product, targetArtifacts);
+                for (const Artifact * const child : filterByType<Artifact>(a->children))
+                    allInputs << child;
+            }
+            for (const Artifact * const input : allInputs)
+                tData.d->inputs << createArtifactData(input, product, targetArtifacts);
             tData.d->commands = ruleCommandListForTransformer(t);
             productTransformerData << tData;
         }
