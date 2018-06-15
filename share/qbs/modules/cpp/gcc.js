@@ -157,6 +157,12 @@ function collectLibraryDependencies(product, isDarwin) {
 
         var nextIsBelowIndirectDynamicLib = isBelowIndirectDynamicLib || isDynamicLibrary;
         dep.dependencies.forEach(function(depdep) {
+            // If "dep" is an aggregate product, and "depdep" is one of the multiplexed variants
+            // of the same product, we don't want to depend on the multiplexed variants, because
+            // that could mean linking more than one time against the same library. Instead skip
+            // the multiplexed dependency, and depend only on the aggregate one.
+            if (depdep.name === dep.name)
+                return;
             traverse(depdep, nextIsBelowIndirectDynamicLib);
         });
         if (isStaticLibrary) {

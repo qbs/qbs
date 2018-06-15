@@ -145,6 +145,20 @@ void TestBlackboxApple::appleMultiConfig()
     }
 }
 
+void TestBlackboxApple::aggregateDependencyLinking()
+{
+    if (HostOsInfo::hostOsVersion() > qbs::Version(10, 13, 4))
+        QSKIP("32-bit arch build is no longer supported on macOS versions higher than 10.13.4.");
+
+    QDir::setCurrent(testDataDir + "/aggregateDependencyLinking");
+    QCOMPARE(runQbs(QStringList{"-p", "multi_arch_lib"}), 0);
+
+    QCOMPARE(runQbs(QStringList{"-p", "just_app", "--command-echo-mode", "command-line"}), 0);
+    int linkedInLibrariesCount =
+            QString::fromUtf8(m_qbsStdout).count(QStringLiteral("multi_arch_lib.a"));
+    QCOMPARE(linkedInLibrariesCount, 1);
+}
+
 void TestBlackboxApple::assetCatalog()
 {
     QFETCH(bool, flatten);

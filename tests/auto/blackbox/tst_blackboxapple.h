@@ -47,6 +47,7 @@ public slots:
 
 private slots:
     void appleMultiConfig();
+    void aggregateDependencyLinking();
     void assetCatalog();
     void assetCatalog_data();
     void assetCatalogsEmpty();
