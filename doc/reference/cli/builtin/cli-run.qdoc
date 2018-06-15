@@ -36,7 +36,7 @@
     \section1 Synopsis
 
     \code
-    qbs run [options] [configuration-name] [property:value] ... [ -- <arguments>]
+    qbs run [options] [config:configuration-name] [property:value] ... [ -- <arguments>]
     \endcode
 
     \section1 Description

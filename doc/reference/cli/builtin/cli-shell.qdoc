@@ -36,7 +36,7 @@
     \section1 Synopsis
 
     \code
-    qbs shell [options] [configuration-name] [property:value]
+    qbs shell [options] [config:configuration-name] [property:value]
     \endcode
 
     \section1 Description

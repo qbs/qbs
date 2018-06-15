@@ -36,7 +36,7 @@
     \section1 Synopsis
 
     \code
-    qbs build [options] [[configuration-name] [property:value] ...]
+    qbs build [options] [[config:configuration-name] [property:value] ...]
     \endcode
 
     \section1 Description
