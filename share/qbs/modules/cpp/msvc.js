@@ -320,7 +320,7 @@ function collectLibraryDependencies(product) {
 
 function linkerSupportsWholeArchive(product)
 {
-    return Utilities.versionCompare(product.cpp.compilerVersion, "19.0.25123") >= 0
+    return Utilities.versionCompare(product.cpp.compilerVersion, "19.0.24215.1") >= 0
 }
 
 function handleDiscardProperty(product, flags) {
