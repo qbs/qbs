@@ -789,10 +789,17 @@ ModuleLoader::MultiplexInfo ModuleLoader::extractMultiplexInfo(Item *productItem
     if (!multiplexedType.isEmpty())
         multiplexInfo.multiplexedType = VariantValue::create(multiplexedType);
 
+    Set<QString> uniqueMultiplexByQbsProperties;
     for (const QString &key : multiplexByQbsProperties) {
         const QString mappedKey = multiplexMap.property(key).toString();
         if (mappedKey.isEmpty())
             throw ErrorInfo(Tr::tr("There is no entry for '%1' in 'qbs.multiplexMap'.").arg(key));
+
+        if (!uniqueMultiplexByQbsProperties.insert(mappedKey).second) {
+            throw ErrorInfo(Tr::tr("Duplicate entry '%1' in Product.%2.")
+                            .arg(mappedKey, StringConstants::multiplexByQbsPropertiesProperty()),
+                            productItem->location());
+        }
 
         const QScriptValue arr = m_evaluator->value(qbsModuleItem, key);
         if (arr.isUndefined())
@@ -806,8 +813,15 @@ ModuleLoader::MultiplexInfo ModuleLoader::extractMultiplexInfo(Item *productItem
 
         MultiplexRow mprow;
         mprow.resize(arrlen);
-        for (quint32 i = 0; i < arrlen; ++i)
-            mprow[i] = VariantValue::create(arr.property(i).toVariant());
+        Set<QVariant> entriesForKey;
+        for (quint32 i = 0; i < arrlen; ++i) {
+            const QVariant value = arr.property(i).toVariant();
+            if (!entriesForKey.insert(value).second) {
+                throw ErrorInfo(Tr::tr("Duplicate entry '%1' in qbs.%2.")
+                                .arg(value.toString(), key), productItem->location());
+            }
+            mprow[i] = VariantValue::create(value);
+        }
         multiplexInfo.table = combine(multiplexInfo.table, mprow);
         multiplexInfo.properties.push_back(mappedKey);
     }
