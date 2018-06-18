@@ -929,6 +929,8 @@ void ProjectResolver::collectExportedProductDependencies()
 
 void ProjectResolver::resolveShadowProduct(Item *item, ProjectResolver::ProjectContext *)
 {
+    if (!m_productContext->product->enabled)
+        return;
     for (const auto &m : item->modules()) {
         if (m.name.toString() != m_productContext->product->name)
             continue;
@@ -1418,6 +1420,8 @@ private:
 
 void ProjectResolver::collectPropertiesForExportItem(Item *productModuleInstance)
 {
+    if (!productModuleInstance->isPresentModule())
+        return;
     Item * const exportItem = productModuleInstance->prototype();
     QBS_CHECK(exportItem && exportItem->type() == ItemType::Export);
     TempScopeSetter tempScopeSetter(exportItem, productModuleInstance->scope());
@@ -1445,6 +1449,8 @@ void ProjectResolver::collectPropertiesForExportItem(Item *productModuleInstance
 // Collects module properties assigned to in other (higher-level) modules.
 void ProjectResolver::collectPropertiesForModuleInExportItem(const Item::Module &module)
 {
+    if (!module.item->isPresentModule())
+        return;
     ExportedModule &exportedModule = m_productContext->product->exportedModule;
     if (module.isProduct || module.name.first() == StringConstants::qbsModule())
         return;
