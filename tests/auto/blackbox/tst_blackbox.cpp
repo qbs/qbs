@@ -3539,6 +3539,9 @@ void TestBlackbox::installLocations()
     const bool isMac = m_qbsStdout.contains("is mac");
     const bool isUnix = m_qbsStdout.contains("is unix");
     QVERIFY(isWindows || isMac || isUnix);
+    const bool isMsvc = m_qbsStdout.contains("is msvc");
+    const bool isGcc = m_qbsStdout.contains("is gcc");
+    QVERIFY(isMsvc || isGcc);
     QCOMPARE(runQbs(QbsRunParameters(QStringList("--clean-install-root"))), 0);
     const QString dllFileName = isWindows ? "thelib.dll" : isMac ? "thelib" : "libthelib.so";
     const QString appFileName = isWindows ? "theapp.exe" : "theapp";
@@ -3561,7 +3564,7 @@ void TestBlackbox::installLocations()
     QVERIFY2(QFile::exists(dllFilePath), qPrintable(dllFilePath));
     if (isWindows) {
         const QString libFilePath = fullInstallPrefix + libDir + "/thelib.lib";
-        QVERIFY2(QFile::exists(libFilePath), qPrintable(libFilePath));
+        QVERIFY2(QFile::exists(libFilePath) == isMsvc, qPrintable(libFilePath));
     }
 }
 
