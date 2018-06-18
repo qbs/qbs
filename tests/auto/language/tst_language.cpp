@@ -830,6 +830,12 @@ void TestLanguage::erroneousFiles_data()
     QTest::newRow("original-in-product-property")
             << "original-in-product-property.qbs"
                ":4:21.*The special value 'original' can only be used with module properties.";
+    QTest::newRow("original-in-module-prototype")
+            << "module-with-invalid-original.qbs:2:24.*The special value 'original' cannot be used "
+               "on the right-hand side of a property declaration.";
+    QTest::newRow("original-in-export-item")
+            << "original-in-export-item.qbs:7:32.*The special value 'original' cannot be used "
+               "on the right-hand side of a property declaration.";
     QTest::newRow("mismatching-multiplex-dependency")
             << "mismatching-multiplex-dependency.qbs:9:5.*Dependency from product "
                "'b \\{\"architecture\":\"mips\"\\}' to product 'a \\{\"architecture\":\"mips\"\\}'"
