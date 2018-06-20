@@ -171,6 +171,7 @@ static void disconnectArtifactParents(Artifact *artifact)
         QBS_CHECK(parentArtifact->transformer);
         parentArtifact->childrenAddedByScanner.remove(artifact);
         parentArtifact->transformer->inputs.remove(artifact);
+        parentArtifact->transformer->explicitlyDependsOn.remove(artifact);
         parentArtifact->product->registerArtifactWithChangedInputs(parentArtifact);
     }
 
