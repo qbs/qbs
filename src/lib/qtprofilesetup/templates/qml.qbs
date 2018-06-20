@@ -15,9 +15,13 @@ QtModule {
     Depends { name: "Qt.qmlcache"; condition: generateCacheFiles; required: false }
     readonly property bool cachingEnabled: generateCacheFiles && Qt.qmlcache.present
     property string qmlCacheGenPath
-    Qt.qmlcache.qmlCacheGenPath: qmlCacheGenPath || original
+    Properties {
+        condition: cachingEnabled
+        Qt.qmlcache.qmlCacheGenPath: qmlCacheGenPath || original
+        Qt.qmlcache.installDir: cacheFilesInstallDir || original
+    }
+
     property string cacheFilesInstallDir
-    Qt.qmlcache.installDir: cacheFilesInstallDir || original
 
     readonly property string pluginListFilePathDebug: product.buildDirectory + "/plugins.list.d"
     readonly property string pluginListFilePathRelease: product.buildDirectory + "/plugins.list"

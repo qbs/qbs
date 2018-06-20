@@ -430,12 +430,12 @@ private:
 
         if (!itemIsModuleInstance
                 && value->item()->type() != ItemType::ModulePrefix
-                && m_parentItem->file()
-                && (!m_parentItem->file()->idScope()
+                && (!m_parentItem->file() || !m_parentItem->file()->idScope()
                     || !m_parentItem->file()->idScope()->hasProperty(m_currentName))
                 && !value->createdByPropertiesBlock()) {
             const ErrorInfo error(Tr::tr("Item '%1' is not declared. "
-                                         "Did you forget to add a Depends item?").arg(m_currentName),
+                                         "Did you forget to add a Depends item?")
+                                  .arg(m_currentModuleName.toString()),
                                   value->location().isValid() ? value->location()
                                                               : m_parentItem->location());
             handlePropertyError(error, m_params, m_logger);
