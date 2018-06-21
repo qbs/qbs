@@ -263,7 +263,8 @@ Module {
     Rule {
         condition: qbs.targetOS.contains("darwin")
         multiplex: true
-        inputs: ["qbs", "infoplist", "partial_infoplist"]
+        requiresInputs: false // TODO: The resources property should probably be a tag instead.
+        inputs: ["infoplist", "partial_infoplist"]
 
         outputFileTags: ["bundle.input", "aggregate_infoplist"]
         outputArtifacts: {

@@ -139,7 +139,7 @@ Module {
 
     Rule {
         multiplex: true
-        inputs: ["qbs", "dmg.input", "dmg.license", "icns", "tiff"]
+        inputs: ["dmg.input", "dmg.license", "icns", "tiff"]
 
         Artifact {
             fileTags: ["dmg.dmg"]

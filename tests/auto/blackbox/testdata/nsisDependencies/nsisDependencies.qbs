@@ -37,7 +37,7 @@ Project {
             // This rule tries to provoke the installer into building too early (and the test
             // verifies that it does not) by causing the build of the installables to take
             // a lot longer.
-            inputs: ["qbs"]
+            multiplex: true
             outputFileTags: ["c"]
             outputArtifacts: {
                 var artifacts = [];
