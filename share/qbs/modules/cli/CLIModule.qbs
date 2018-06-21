@@ -1,5 +1,4 @@
 // base for Common Language Infrastructure modules
-import qbs
 import qbs.FileInfo
 import qbs.ModUtils
 import "cli.js" as CLI

@@ -28,7 +28,6 @@
 **
 ****************************************************************************/
 
-import qbs 1.0
 import "path-probe.js" as PathProbeConfigure
 
 Probe {

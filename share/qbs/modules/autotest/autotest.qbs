@@ -1,5 +1,3 @@
-import qbs
-
 Module {
     property stringList arguments
     property bool allowFailure: false

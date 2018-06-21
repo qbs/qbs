@@ -28,8 +28,6 @@
 **
 ****************************************************************************/
 
-import qbs
-
 NativeBinary {
     type: {
         if (isForAndroid && !consoleApplication)

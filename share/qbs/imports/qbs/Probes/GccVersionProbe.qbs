@@ -28,7 +28,6 @@
 **
 ****************************************************************************/
 
-import qbs
 import qbs.File
 import "../../../modules/cpp/gcc.js" as Gcc
 

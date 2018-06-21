@@ -28,7 +28,6 @@
 **
 ****************************************************************************/
 
-import qbs
 import qbs.ModUtils
 import "path-probe.js" as PathProbeConfigure
 import "../../../modules/nodejs/nodejs.js" as NodeJs

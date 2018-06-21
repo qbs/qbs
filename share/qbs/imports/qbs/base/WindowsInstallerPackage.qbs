@@ -28,8 +28,6 @@
 **
 ****************************************************************************/
 
-import qbs
-
 Product {
     Depends { name: "wix"; condition: qbs.targetOS.contains("windows") }
     type: ["msi"]

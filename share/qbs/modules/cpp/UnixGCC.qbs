@@ -28,8 +28,6 @@
 **
 ****************************************************************************/
 
-import qbs 1.0
-
 GenericGCC {
     condition: qbs.toolchain && qbs.toolchain.contains("gcc")
                && qbs.targetOS && qbs.targetOS.contains("unix")

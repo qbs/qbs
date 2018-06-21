@@ -29,7 +29,6 @@
 **
 ****************************************************************************/
 
-import qbs
 import qbs.Environment
 import "../../../modules/java/utils.js" as JavaUtils
 

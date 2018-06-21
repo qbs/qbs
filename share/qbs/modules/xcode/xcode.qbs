@@ -1,4 +1,3 @@
-import qbs
 import qbs.BundleTools
 import qbs.Environment
 import qbs.File

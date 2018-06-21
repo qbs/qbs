@@ -28,8 +28,6 @@
 **
 ****************************************************************************/
 
-import qbs 1.0
-
 PathProbe {
     platformPaths: [
         "~/Library/Frameworks",

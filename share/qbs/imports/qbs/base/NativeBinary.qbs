@@ -28,8 +28,6 @@
 **
 ****************************************************************************/
 
-import qbs
-
 Product {
     property bool isForAndroid: qbs.targetOS.contains("android")
     property bool isForDarwin: qbs.targetOS.contains("darwin")

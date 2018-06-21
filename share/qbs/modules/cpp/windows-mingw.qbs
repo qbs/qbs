@@ -28,7 +28,6 @@
 **
 ****************************************************************************/
 
-import qbs 1.0
 import qbs.ModUtils
 import qbs.TextFile
 import qbs.Utilities

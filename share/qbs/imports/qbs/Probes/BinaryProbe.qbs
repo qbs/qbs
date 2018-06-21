@@ -28,8 +28,6 @@
 **
 ****************************************************************************/
 
-import qbs 1.0
-
 PathProbe {
     nameSuffixes: qbs.hostOS.contains("windows") ? [".com", ".exe", ".bat", ".cmd"] : undefined
     platformPaths: hostOS.contains("unix") ? ["/usr/bin", "/usr/local/bin"] : []

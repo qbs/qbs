@@ -28,8 +28,6 @@
 **
 ****************************************************************************/
 
-import qbs
-
 CppApplication {
     Depends { name: "Qt.gui" }
     Depends {

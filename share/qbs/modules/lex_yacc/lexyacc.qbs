@@ -1,4 +1,3 @@
-import qbs
 import "lexyacc.js" as HelperFunctions
 
 Module {

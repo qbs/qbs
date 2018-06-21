@@ -28,7 +28,6 @@
 **
 ****************************************************************************/
 
-import qbs
 import qbs.BundleTools
 import qbs.DarwinTools
 import qbs.File
