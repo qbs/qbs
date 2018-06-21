@@ -104,12 +104,12 @@ static void printResults(Activities activities, const BenchmarkResults &results,
 
 int main(int argc, char *argv[])
 {
+    QCoreApplication app(argc, argv);
+    CommandLineParser clParser;
+    clParser.parse();
+    Benchmarker benchmarker(clParser.activies(), clParser.oldCommit(), clParser.newCommit(),
+                            clParser.testProjectFilePath(), clParser.qbsRepoDirPath());
     try {
-        QCoreApplication app(argc, argv);
-        CommandLineParser clParser;
-        clParser.parse();
-        Benchmarker benchmarker(clParser.activies(), clParser.oldCommit(), clParser.newCommit(),
-                                clParser.testProjectFilePath(), clParser.qbsRepoDirPath());
         benchmarker.benchmark();
         printResults(clParser.activies(), benchmarker.results(), clParser.regressionThreshold());
         if (hasRegression) {
@@ -118,7 +118,10 @@ int main(int argc, char *argv[])
                          "under " << qPrintable(benchmarker.rawDataBaseDir()) << '.' << std::endl;
         }
     } catch (const Exception &e) {
+        benchmarker.keepRawData();
         std::cerr << qPrintable(e.description()) << std::endl;
+        std::cerr << "Build data available under " << qPrintable(benchmarker.rawDataBaseDir())
+                  << '.' << std::endl;
         return EXIT_FAILURE;
     }
 }
