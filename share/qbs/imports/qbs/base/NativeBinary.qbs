@@ -36,7 +36,7 @@ Product {
     property bool install: false
     property string installDir
 
-    Depends { name: "bundle" }
+    Depends { name: "bundle"; condition: isForDarwin }
 
     aggregate: {
         if (!isForDarwin)

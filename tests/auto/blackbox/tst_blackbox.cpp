@@ -386,6 +386,8 @@ void TestBlackbox::artifactsMapChangeTracking()
 {
     QDir::setCurrent(testDataDir + "/artifacts-map-change-tracking");
     QCOMPARE(runQbs(QStringList{"-p", "TheApp"}), 0);
+    QVERIFY2(m_qbsStdout.contains("is darwin:"), m_qbsStdout.constData());
+    const bool isDarwin = m_qbsStdout.contains("is darwin: true");
     QVERIFY2(m_qbsStdout.contains("running rule for test.cpp"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("creating test.cpp"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("linking"), m_qbsStdout.constData());
@@ -402,8 +404,13 @@ void TestBlackbox::artifactsMapChangeTracking()
     const QString projectFile("artifacts-map-change-tracking.qbs");
     REPLACE_IN_FILE(projectFile, "TheBinary", "TheNewBinary");
     QCOMPARE(runQbs(QStringList{"-p", "TheApp"}), 0);
-    QEXPECT_FAIL("", "change tracking could become even more fine-grained", Continue);
-    QVERIFY2(!m_qbsStdout.contains("running rule for test.cpp"), m_qbsStdout.constData());
+
+    // Changing the target binary affects bundle properties, and property changes on source
+    // artifacts currently cause the build graph loader to invalidate the product's rules.
+    if (isDarwin)
+        QEXPECT_FAIL("", "change tracking could become even more fine-grained", Continue);
+
+    QVERIFY2(m_qbsStdout.contains("running rule for test.cpp") == isDarwin, m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("creating test.cpp"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("linking"), m_qbsStdout.constData());
     QCOMPARE(runQbs(QStringList{"-p", "meta"}), 0);

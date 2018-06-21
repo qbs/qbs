@@ -1,7 +1,10 @@
 Project {
     CppApplication {
         name: "public_tool"
-        bundle.isBundle: false
+        Properties {
+            condition: qbs.targetOS.contains("darwin")
+            bundle.isBundle: false
+        }
         Depends { name: "mylib" }
         files: ["main.cpp"]
         Group {
@@ -16,7 +19,10 @@ Project {
         files: ["main.cpp"]
     }
     DynamicLibrary {
-        bundle.isBundle: false
+        Properties {
+            condition: qbs.targetOS.contains("darwin")
+            bundle.isBundle: false
+        }
         Depends { name: "cpp" }
         name: "mylib"
         files: ["lib.cpp"]
