@@ -883,6 +883,9 @@ void TestLanguage::erroneousFiles_data()
     QTest::newRow("original-in-export-item2")
             << "original-in-export-item2.qbs:6:9.*Item 'x.y' is not declared. Did you forget "
                "to add a Depends item";
+    QTest::newRow("original-in-export-item3")
+            << "original-in-export-item3.qbs:6:9.*Item 'x.y' is not declared. Did you forget "
+               "to add a Depends item";
     QTest::newRow("mismatching-multiplex-dependency")
             << "mismatching-multiplex-dependency.qbs:9:5.*Dependency from product "
                "'b \\{\"architecture\":\"mips\"\\}' to product 'a \\{\"architecture\":\"mips\"\\}'"
@@ -912,6 +915,7 @@ void TestLanguage::erroneousFiles()
         return;
     }
     QEXPECT_FAIL("undeclared_property_in_Properties_item", "Too expensive to check", Continue);
+    QEXPECT_FAIL("original-in-export-item3", "Too expensive to check", Continue);
     QVERIFY(!"No error thrown on invalid input.");
 }
 
