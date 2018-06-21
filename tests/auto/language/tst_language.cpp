@@ -880,6 +880,9 @@ void TestLanguage::erroneousFiles_data()
     QTest::newRow("original-in-export-item")
             << "original-in-export-item.qbs:7:32.*The special value 'original' cannot be used "
                "on the right-hand side of a property declaration.";
+    QTest::newRow("original-in-export-item2")
+            << "original-in-export-item2.qbs:6:9.*Item 'x.y' is not declared. Did you forget "
+               "to add a Depends item";
     QTest::newRow("mismatching-multiplex-dependency")
             << "mismatching-multiplex-dependency.qbs:9:5.*Dependency from product "
                "'b \\{\"architecture\":\"mips\"\\}' to product 'a \\{\"architecture\":\"mips\"\\}'"
