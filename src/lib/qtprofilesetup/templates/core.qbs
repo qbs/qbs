@@ -1,4 +1,3 @@
-import qbs 1.0
 import qbs.FileInfo
 import qbs.ModUtils
 import qbs.TextFile

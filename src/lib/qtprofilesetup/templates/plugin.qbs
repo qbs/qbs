@@ -1,4 +1,3 @@
-import qbs 1.0
 import '../QtPlugin.qbs' as QtPlugin
 
 QtPlugin {
