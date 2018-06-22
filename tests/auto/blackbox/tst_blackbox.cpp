@@ -3450,7 +3450,7 @@ void TestBlackbox::exportsQbs()
     // Changing a setting that influences the name of a target artifact should cause
     // recreating the module file.
     const QbsRunParameters resolveParams("resolve", QStringList{"-f", "exports-qbs.qbs",
-            "modules.cpp.dynamicLibrarySuffix:blubb"});
+            "modules.cpp.dynamicLibrarySuffix:.blubb"});
     QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(), 0);
     QVERIFY2(m_qbsStdout.count("linking") >= 2, m_qbsStdout.constData());
