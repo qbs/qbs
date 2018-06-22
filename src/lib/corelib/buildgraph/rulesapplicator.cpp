@@ -439,22 +439,8 @@ Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const F
     }
 
     outputArtifact->alwaysUpdated = alwaysUpdated;
-    outputArtifact->properties = m_product->moduleProperties;
-
-    FileTags outputArtifactFileTags = fileTags.empty()
-            ? m_product->fileTagsForFileName(outputArtifact->fileName()) : fileTags;
-    for (const ArtifactPropertiesConstPtr &props : m_product->artifactProperties) {
-        if (outputArtifactFileTags.intersects(props->fileTagsFilter())) {
-            outputArtifact->properties = props->propertyMap();
-            outputArtifactFileTags += props->extraFileTags();
-            break;
-        }
-    }
-    outputArtifact->setFileTags(outputArtifactFileTags);
-
-    // Let a positive value of qbs.install imply the file tag "installable".
-    if (outputArtifact->properties->qbsPropertyValue(StringConstants::installProperty()).toBool())
-        outputArtifact->addFileTag("installable");
+    outputArtifact->pureFileTags = fileTags;
+    provideFullFileTagsAndProperties(outputArtifact);
 
     for (Artifact * const inputArtifact : inputArtifacts) {
         QBS_CHECK(outputArtifact != inputArtifact);

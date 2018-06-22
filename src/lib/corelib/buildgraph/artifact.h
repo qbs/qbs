@@ -87,6 +87,11 @@ public:
     PropertyMapPtr properties;
     QString targetOfModule;
 
+    // The tags set directly via an Artifact item or an outputArtifacts script,
+    // not the result of file taggers or fileTagsFilter groups, nor the ones inherited from
+    // the product.
+    FileTags pureFileTags;
+
     enum ArtifactType
     {
         Unknown = 1,

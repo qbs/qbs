@@ -848,12 +848,6 @@ bool operator==(const SourceArtifactInternal &sa1, const SourceArtifactInternal 
             && *sa1.properties == *sa2.properties;
 }
 
-bool sourceArtifactSetsAreEqual(const std::vector<SourceArtifactPtr> &l1,
-                                 const std::vector<SourceArtifactPtr> &l2)
-{
-    return listsAreEqual(l1, l2);
-}
-
 bool operator==(const Rule &r1, const Rule &r2)
 {
     if (r1.artifacts.size() != r2.artifacts.size())

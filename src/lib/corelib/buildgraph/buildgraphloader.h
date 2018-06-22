@@ -51,6 +51,8 @@
 #include <QtCore/qprocess.h>
 #include <QtCore/qvariant.h>
 
+#include <unordered_map>
+
 namespace qbs {
 
 namespace Internal {
@@ -101,6 +103,8 @@ private:
             std::vector<ResolvedProductPtr> &changedProducts);
     bool checkProductForChanges(const ResolvedProductPtr &restoredProduct,
                                 const ResolvedProductPtr &newlyResolvedProduct);
+    bool checkProductForChangesInSourceFiles(const ResolvedProductPtr &restoredProduct,
+                                             const ResolvedProductPtr &newlyResolvedProduct);
     bool checkProductForInstallInfoChanges(const ResolvedProductPtr &restoredProduct,
                                            const ResolvedProductPtr &newlyResolvedProduct);
     bool checkForPropertyChanges(const ResolvedProductPtr &restoredProduct,
@@ -135,6 +139,8 @@ private:
     BuildGraphLoadResult m_result;
     Logger m_logger;
     QStringList m_artifactsRemovedFromDisk;
+    std::unordered_map<QString, std::vector<SourceArtifactConstPtr>> m_changedSourcesByProduct;
+    Set<QString> m_productsWhoseArtifactsNeedUpdate;
     qint64 m_wildcardExpansionEffort;
     qint64 m_propertyComparisonEffort;
 

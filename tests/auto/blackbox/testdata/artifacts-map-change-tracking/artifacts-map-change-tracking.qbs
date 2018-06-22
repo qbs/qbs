@@ -20,14 +20,6 @@ Project {
             files: "test.cpp.in"
             fileTags: "cpp.in"
         }
-        Probe {
-            id: osProbe
-            property stringList targetOS: qbs.targetOS
-            configure: {
-                found = targetOS.contains("darwin");
-                console.info("is darwin: " + found);
-            }
-        }
     }
     Product {
         name: "meta"

@@ -386,8 +386,6 @@ void TestBlackbox::artifactsMapChangeTracking()
 {
     QDir::setCurrent(testDataDir + "/artifacts-map-change-tracking");
     QCOMPARE(runQbs(QStringList{"-p", "TheApp"}), 0);
-    QVERIFY2(m_qbsStdout.contains("is darwin:"), m_qbsStdout.constData());
-    const bool isDarwin = m_qbsStdout.contains("is darwin: true");
     QVERIFY2(m_qbsStdout.contains("running rule for test.cpp"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("creating test.cpp"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("linking"), m_qbsStdout.constData());
@@ -404,11 +402,6 @@ void TestBlackbox::artifactsMapChangeTracking()
     const QString projectFile("artifacts-map-change-tracking.qbs");
     REPLACE_IN_FILE(projectFile, "TheBinary", "TheNewBinary");
     QCOMPARE(runQbs(QStringList{"-p", "TheApp"}), 0);
-
-    // Changing the target binary affects bundle properties, and property changes on source
-    // artifacts currently cause the build graph loader to invalidate the product's rules.
-    if (isDarwin)
-        QEXPECT_FAIL("", "change tracking could become even more fine-grained", Continue);
 
     QVERIFY2(!m_qbsStdout.contains("running rule for test.cpp"), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("creating test.cpp"), m_qbsStdout.constData());
@@ -2525,6 +2518,78 @@ void TestBlackbox::soVersion_data()
                                                     << QString("libmylib.so.5");
     QTest::newRow("no version, default soVersion") << QString() << false << QString("libmylib.so");
     QTest::newRow("no version, empty soVersion") << QString("") << false << QString("libmylib.so");
+}
+
+void TestBlackbox::sourceArtifactChanges()
+{
+    QDir::setCurrent(testDataDir + "/source-artifact-changes");
+    bool useCustomFileTags = false;
+    bool overrideFileTags = true;
+    bool filesAreTargets = false;
+    bool useCxx11 = false;
+    const QString appFilePath = QDir::currentPath() + '/' + relativeExecutableFilePath("app");
+    static const auto b2s = [](bool b) { return QString(b ? "true" : "false"); };
+    const auto resolveParams = [&useCustomFileTags, &overrideFileTags, &filesAreTargets, &useCxx11] {
+        return QbsRunParameters("resolve", QStringList{
+            "modules.module_with_files.overrideTags:" + b2s(overrideFileTags),
+            "modules.module_with_files.filesAreTargets:" + b2s(filesAreTargets),
+            "modules.module_with_files.fileTags:" + QString(useCustomFileTags ? "custom" : "cpp"),
+            "modules.cpp.cxxLanguageVersion:" + QString(useCxx11 ? "c++11" : "c++98")
+        });
+    };
+#define VERIFY_COMPILATION(expected) \
+    do { \
+        QVERIFY2(m_qbsStdout.contains("compiling main.cpp") == expected, m_qbsStdout.constData()); \
+        QVERIFY2(QFile::exists(appFilePath) == expected, qPrintable(appFilePath)); \
+    } while (false)
+
+    // Initial build.
+    QCOMPARE(runQbs(resolveParams()), 0);
+    QVERIFY2(m_qbsStdout.contains("is gcc: "), m_qbsStdout.constData());
+    const bool isGcc = m_qbsStdout.contains("is gcc: true");
+    QCOMPARE(runQbs(), 0);
+    VERIFY_COMPILATION(true);
+
+    // Overwrite the file tags. Now the source file is no longer tagged "cpp" and nothing
+    // should get built.
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("modules/module_with_files/main.cpp");
+    useCustomFileTags = true;
+    QCOMPARE(runQbs(resolveParams()), 0);
+    QCOMPARE(runQbs(), 0);
+    VERIFY_COMPILATION(false);
+
+    // Now the custom file tag exists in addition to "cpp", and the app should get built again.
+    overrideFileTags = false;
+    QCOMPARE(runQbs(resolveParams()), 0);
+    QCOMPARE(runQbs(), 0);
+    VERIFY_COMPILATION(true);
+
+    // Mark the cpp file as a module target. Now it will no longer be considered an input
+    // by the compiler rule, and nothing should get built.
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("modules/module_with_files/main.cpp");
+    filesAreTargets = true;
+    QCOMPARE(runQbs(resolveParams()), 0);
+    QCOMPARE(runQbs(), 0);
+    VERIFY_COMPILATION(false);
+
+    // Now just revert the last change.
+    filesAreTargets = false;
+    QCOMPARE(runQbs(resolveParams()), 0);
+    QCOMPARE(runQbs(), 0);
+    VERIFY_COMPILATION(true);
+
+    // Change a relevant cpp property. A rebuild is expected.
+    useCxx11 = true;
+    QCOMPARE(runQbs(resolveParams()), 0);
+    QCOMPARE(runQbs(QStringList({"--command-echo-mode", "command-line"})), 0);
+    if (isGcc) {
+        QVERIFY2(m_qbsStdout.contains("-std=c++11") || m_qbsStdout.contains("-std=c++0x"),
+                 m_qbsStdout.constData());
+    }
+
+#undef VERIFY_COMPILATION
 }
 
 void TestBlackbox::overrideProjectProperties()

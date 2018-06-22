@@ -69,9 +69,13 @@ Artifact *lookupArtifact(const ResolvedProductConstPtr &product, const Artifact 
 
 Artifact *createArtifact(const ResolvedProductPtr &product,
                          const SourceArtifactConstPtr &sourceArtifact);
+void setArtifactData(Artifact *artifact, const SourceArtifactConstPtr &sourceArtifact);
+void updateArtifactFromSourceArtifact(const ResolvedProductPtr &product,
+                    const SourceArtifactConstPtr &sourceArtifact);
 void insertArtifact(const ResolvedProductPtr &product, Artifact *artifact);
 void dumpProductBuildData(const ResolvedProductConstPtr &product);
-
+void provideFullFileTagsAndProperties(Artifact *artifact);
+void updateGeneratedArtifacts(ResolvedProduct *product);
 
 bool findPath(BuildGraphNode *u, BuildGraphNode *v, QList<BuildGraphNode*> &path);
 void QBS_AUTOTEST_EXPORT connect(BuildGraphNode *p, BuildGraphNode *c);

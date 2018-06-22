@@ -50,6 +50,7 @@
 
 #include <jsextensions/jsextensions.h>
 #include <jsextensions/moduleproperties.h>
+#include <language/artifactproperties.h>
 #include <language/language.h>
 #include <language/preparescriptobserver.h>
 #include <language/propertymapinternal.h>
@@ -604,12 +605,25 @@ Artifact *createArtifact(const ResolvedProductPtr &product,
 {
     auto artifact = new Artifact;
     artifact->artifactType = Artifact::SourceFile;
+    setArtifactData(artifact, sourceArtifact);
+    insertArtifact(product, artifact);
+    return artifact;
+}
+
+void setArtifactData(Artifact *artifact, const SourceArtifactConstPtr &sourceArtifact)
+{
     artifact->targetOfModule = sourceArtifact->targetOfModule;
     artifact->setFilePath(sourceArtifact->absoluteFilePath);
     artifact->setFileTags(sourceArtifact->fileTags);
     artifact->properties = sourceArtifact->properties;
-    insertArtifact(product, artifact);
-    return artifact;
+}
+
+void updateArtifactFromSourceArtifact(const ResolvedProductPtr &product,
+                                      const SourceArtifactConstPtr &sourceArtifact)
+{
+    Artifact * const artifact = lookupArtifact(product, sourceArtifact->absoluteFilePath, false);
+    QBS_CHECK(artifact);
+    setArtifactData(artifact, sourceArtifact);
 }
 
 void insertArtifact(const ResolvedProductPtr &product, Artifact *artifact)
@@ -620,6 +634,35 @@ void insertArtifact(const ResolvedProductPtr &product, Artifact *artifact)
     artifact->product = product;
     product->topLevelProject()->buildData->insertIntoLookupTable(artifact);
     product->buildData->addArtifact(artifact);
+}
+
+void provideFullFileTagsAndProperties(Artifact *artifact)
+{
+    artifact->properties = artifact->product->moduleProperties;
+    FileTags allTags = artifact->pureFileTags.empty()
+            ? artifact->product->fileTagsForFileName(artifact->fileName()) : artifact->pureFileTags;
+    for (const ArtifactPropertiesConstPtr &props : artifact->product->artifactProperties) {
+        if (allTags.intersects(props->fileTagsFilter())) {
+            artifact->properties = props->propertyMap();
+            allTags += props->extraFileTags();
+            break;
+        }
+    }
+    artifact->setFileTags(allTags);
+
+    // Let a positive value of qbs.install imply the file tag "installable".
+    if (artifact->properties->qbsPropertyValue(StringConstants::installProperty()).toBool())
+        artifact->addFileTag("installable");
+}
+
+void updateGeneratedArtifacts(ResolvedProduct *product)
+{
+    if (!product->buildData)
+        return;
+    for (Artifact * const artifact : filterByType<Artifact>(product->buildData->allNodes())) {
+        if (artifact->artifactType == Artifact::Generated)
+            provideFullFileTagsAndProperties(artifact);
+    }
 }
 
 static void doSanityChecksForProduct(const ResolvedProductConstPtr &product,

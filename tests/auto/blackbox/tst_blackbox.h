@@ -238,6 +238,7 @@ private slots:
     void smartRelinking_data();
     void soVersion();
     void soVersion_data();
+    void sourceArtifactChanges();
     void subProfileChangeTracking();
     void successiveChanges();
     void symbolLinkMode();

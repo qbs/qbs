@@ -245,9 +245,6 @@ inline bool operator!=(const SourceArtifactInternal &sa1, const SourceArtifactIn
     return !(sa1 == sa2);
 }
 
-bool sourceArtifactSetsAreEqual(const std::vector<SourceArtifactPtr> &l1,
-                                 const std::vector<SourceArtifactPtr> &l2);
-
 class SourceWildCards
 {
 public:

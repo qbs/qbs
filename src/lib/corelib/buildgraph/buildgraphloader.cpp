@@ -380,7 +380,10 @@ void BuildGraphLoader::trackProjectChanges()
     // an a per-artifact basis by the Executor on the next build.
     QHash<QString, AllRescuableArtifactData> rescuableArtifactData;
     for (const ResolvedProductPtr &product : qAsConst(changedProducts)) {
-        ResolvedProductPtr freshProduct = m_freshProductsByName.value(product->uniqueName());
+        const QString name = product->uniqueName();
+        m_changedSourcesByProduct.erase(name);
+        m_productsWhoseArtifactsNeedUpdate.remove(name);
+        ResolvedProductPtr freshProduct = m_freshProductsByName.value(name);
         if (!freshProduct)
             continue;
         onProductRemoved(product, product->topLevelProject()->buildData.get(), false);
@@ -431,6 +434,20 @@ void BuildGraphLoader::trackProjectChanges()
         BuildDataResolver bpr(m_logger);
         bpr.resolveProductBuildDataForExistingProject(m_result.newlyResolvedProject,
                                                       allNewlyResolvedProducts);
+    }
+
+    for (auto it = m_changedSourcesByProduct.cbegin(); it != m_changedSourcesByProduct.cend();
+         ++it) {
+        const ResolvedProductPtr product = m_freshProductsByName.value(it->first);
+        QBS_CHECK(!!product);
+        for (const SourceArtifactConstPtr &sa : it->second)
+            updateArtifactFromSourceArtifact(product, sa);
+    }
+
+    for (const QString &productName : m_productsWhoseArtifactsNeedUpdate) {
+        const ResolvedProductPtr product = m_freshProductsByName.value(productName);
+        QBS_CHECK(!!product);
+        updateGeneratedArtifacts(product.get());
     }
 
     for (const ResolvedProductConstPtr &changedProduct : qAsConst(changedProducts)) {
@@ -663,14 +680,45 @@ void BuildGraphLoader::checkAllProductsForChanges(
             continue;
         }
 
-        if (!sourceArtifactSetsAreEqual(restoredProduct->allEnabledFiles(),
-                                        newlyResolvedProduct->allEnabledFiles())) {
+        if (checkProductForChangesInSourceFiles(restoredProduct, newlyResolvedProduct)) {
             qCDebug(lcBuildGraph) << "File list of product" << restoredProduct->uniqueName()
                                   << "was changed.";
             if (!contains(changedProducts, restoredProduct))
                 changedProducts << restoredProduct;
         }
     }
+}
+
+bool BuildGraphLoader::checkProductForChangesInSourceFiles(
+        const ResolvedProductPtr &restoredProduct, const ResolvedProductPtr &newlyResolvedProduct)
+{
+    std::vector<SourceArtifactPtr> oldFiles = restoredProduct->allEnabledFiles();
+    std::vector<SourceArtifactPtr> newFiles = newlyResolvedProduct->allEnabledFiles();
+    // TODO: Also handle added and removed files in a fine-grained manner.
+    if (oldFiles.size() != newFiles.size())
+        return true;
+    static const auto cmp = [](const SourceArtifactConstPtr &a1,
+            const SourceArtifactConstPtr &a2) {
+        return a1->absoluteFilePath < a2->absoluteFilePath;
+    };
+    std::sort(oldFiles.begin(), oldFiles.end(), cmp);
+    std::sort(newFiles.begin(), newFiles.end(), cmp);
+    std::vector<SourceArtifactConstPtr> changedFiles;
+    for (int i = 0; i < int(oldFiles.size()); ++i) {
+        const SourceArtifactConstPtr &oldFile = oldFiles.at(i);
+        const SourceArtifactConstPtr &newFile = newFiles.at(i);
+        if (oldFile->absoluteFilePath != newFile->absoluteFilePath)
+            return true;
+        if (*oldFile != *newFile) {
+            qCDebug(lcBuildGraph) << "source artifact" << oldFile->absoluteFilePath << "changed";
+            changedFiles.push_back(newFile);
+        }
+    }
+    if (!changedFiles.empty()) {
+        m_changedSourcesByProduct.insert(std::make_pair(restoredProduct->uniqueName(),
+                                                        changedFiles));
+    }
+    return false;
 }
 
 static bool dependenciesAreEqual(const ResolvedProductConstPtr &p1,
@@ -742,7 +790,14 @@ bool BuildGraphLoader::checkForPropertyChanges(const ResolvedProductPtr &restore
         return true;
     if (!artifactPropertyListsAreEqual(restoredProduct->artifactProperties,
                                        newlyResolvedProduct->artifactProperties)) {
-        return true;
+        qCDebug(lcBuildGraph) << "a fileTagFilter group changed for product"
+                              << restoredProduct->uniqueName();
+        m_productsWhoseArtifactsNeedUpdate << restoredProduct->uniqueName();
+    }
+    if (restoredProduct->moduleProperties != newlyResolvedProduct->moduleProperties) {
+        qCDebug(lcBuildGraph) << "module properties changed for product"
+                              << restoredProduct->uniqueName();
+        m_productsWhoseArtifactsNeedUpdate << restoredProduct->uniqueName();
     }
     return false;
 }
