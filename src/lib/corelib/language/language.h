@@ -594,10 +594,6 @@ public:
     std::vector<SourceArtifactPtr> allEnabledFiles() const;
     FileTags fileTagsForFileName(const QString &fileName) const;
 
-    void registerArtifactWithChangedInputs(Artifact *artifact);
-    void unregisterArtifactWithChangedInputs(Artifact *artifact);
-    void unmarkForReapplication(const RuleConstPtr &rule);
-    bool isMarkedForReapplication(const RuleConstPtr &rule) const;
     ArtifactSet lookupArtifactsByFileTag(const FileTag &tag) const;
     ArtifactSet lookupArtifactsByFileTags(const FileTags &tags) const;
     ArtifactSet targetArtifacts() const;

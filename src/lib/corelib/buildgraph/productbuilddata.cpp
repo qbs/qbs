@@ -100,27 +100,6 @@ void ProductBuildData::addFileTagToArtifact(Artifact *artifact, const FileTag &t
     m_jsArtifactsMapUpToDate = false;
 }
 
-void ProductBuildData::addArtifactWithChangedInputsForRule(const RuleConstPtr &rule,
-                                                           Artifact *artifact)
-{
-    m_artifactsWithChangedInputsPerRule[rule] += artifact;
-}
-
-void ProductBuildData::removeArtifactWithChangedInputsForRule(const RuleConstPtr &rule, Artifact *artifact)
-{
-    m_artifactsWithChangedInputsPerRule[rule] -= artifact;
-}
-
-void ProductBuildData::removeAllArtifactsWithChangedInputsForRule(const RuleConstPtr &rule)
-{
-    m_artifactsWithChangedInputsPerRule.remove(rule);
-}
-
-bool ProductBuildData::ruleHasArtifactWithChangedInputs(const RuleConstPtr &rule) const
-{
-    return !m_artifactsWithChangedInputsPerRule.value(rule).empty();
-}
-
 ArtifactSetByFileTag ProductBuildData::artifactsByFileTag() const
 {
     std::lock_guard<std::mutex> l(m_artifactsMapMutex);

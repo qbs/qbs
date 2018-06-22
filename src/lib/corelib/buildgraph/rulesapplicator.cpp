@@ -140,11 +140,6 @@ void RulesApplicator::handleRemovedRuleOutputs(const ArtifactSet &inputArtifacts
         project->buildData->removeArtifactAndExclusiveDependents(removedArtifact, logger, true,
                                                                  &artifactsToRemove);
     }
-    // parents of removed artifacts must update their transformers
-    for (Artifact *removedArtifact : qAsConst(artifactsToRemove)) {
-        for (Artifact *parent : removedArtifact->parentArtifacts())
-            parent->product->registerArtifactWithChangedInputs(parent);
-    }
     EmptyDirectoriesRemover(project, logger).removeEmptyParentDirectories(artifactsToRemove);
     for (Artifact * const artifact : qAsConst(artifactsToRemove)) {
         QBS_CHECK(!inputArtifacts.contains(artifact));
@@ -231,7 +226,6 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
     for (Artifact * const outputArtifact : qAsConst(outputArtifacts)) {
         for (Artifact * const dependency : qAsConst(m_transformer->explicitlyDependsOn))
             connect(outputArtifact, dependency);
-        outputArtifact->product->unregisterArtifactWithChangedInputs(outputArtifact);
     }
 
     if (inputArtifacts != m_transformer->inputs)

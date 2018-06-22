@@ -73,10 +73,6 @@ public:
     void removeArtifact(Artifact *artifact);
     void removeArtifactFromSetByFileTag(Artifact *artifact, const FileTag &fileTag);
     void addFileTagToArtifact(Artifact *artifact, const FileTag &tag);
-    void addArtifactWithChangedInputsForRule(const RuleConstPtr &rule, Artifact *artifact);
-    void removeArtifactWithChangedInputsForRule(const RuleConstPtr &rule, Artifact *artifact);
-    void removeAllArtifactsWithChangedInputsForRule(const RuleConstPtr &rule);
-    bool ruleHasArtifactWithChangedInputs(const RuleConstPtr &rule) const;
 
     ArtifactSetByFileTag artifactsByFileTag() const;
 
@@ -93,7 +89,7 @@ public:
     template<PersistentPool::OpType opType> void completeSerializationOp(PersistentPool &pool)
     {
         pool.serializationOp<opType>(m_nodes, m_roots, m_rescuableArtifactData,
-                                     m_artifactsByFileTag, m_artifactsWithChangedInputsPerRule);
+                                     m_artifactsByFileTag);
     }
 
 private:
@@ -113,9 +109,6 @@ private:
 
     ArtifactSetByFileTag m_artifactsByFileTag;
     mutable std::mutex m_artifactsMapMutex;
-
-    typedef QHash<RuleConstPtr, ArtifactSet> ArtifactSetByRule;
-    ArtifactSetByRule m_artifactsWithChangedInputsPerRule;
 
     bool m_jsArtifactsMapUpToDate = true;
 };

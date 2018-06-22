@@ -393,36 +393,6 @@ void ResolvedProduct::store(PersistentPool &pool)
     serializationOp<PersistentPool::Store>(pool);
 }
 
-void ResolvedProduct::registerArtifactWithChangedInputs(Artifact *artifact)
-{
-    QBS_CHECK(buildData);
-    QBS_CHECK(artifact->product == this);
-    QBS_CHECK(artifact->transformer);
-    if (artifact->transformer->rule->multiplex) {
-        // Reapplication of rules only makes sense for multiplex rules (e.g. linker).
-        buildData->addArtifactWithChangedInputsForRule(artifact->transformer->rule, artifact);
-    }
-}
-
-void ResolvedProduct::unregisterArtifactWithChangedInputs(Artifact *artifact)
-{
-    QBS_CHECK(buildData);
-    QBS_CHECK(artifact->product == this);
-    QBS_CHECK(artifact->transformer);
-    buildData->removeArtifactWithChangedInputsForRule(artifact->transformer->rule, artifact);
-}
-
-void ResolvedProduct::unmarkForReapplication(const RuleConstPtr &rule)
-{
-    QBS_CHECK(buildData);
-    buildData->removeAllArtifactsWithChangedInputsForRule(rule);
-}
-
-bool ResolvedProduct::isMarkedForReapplication(const RuleConstPtr &rule) const
-{
-    return buildData->ruleHasArtifactWithChangedInputs(rule);
-}
-
 ArtifactSet ResolvedProduct::lookupArtifactsByFileTag(const FileTag &tag) const
 {
     QBS_CHECK(buildData);

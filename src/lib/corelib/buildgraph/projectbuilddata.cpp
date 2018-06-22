@@ -172,7 +172,6 @@ static void disconnectArtifactParents(Artifact *artifact)
         parentArtifact->childrenAddedByScanner.remove(artifact);
         parentArtifact->transformer->inputs.remove(artifact);
         parentArtifact->transformer->explicitlyDependsOn.remove(artifact);
-        parentArtifact->product->registerArtifactWithChangedInputs(parentArtifact);
     }
 
     artifact->parents.clear();
@@ -205,7 +204,6 @@ void ProjectBuildData::removeArtifactAndExclusiveDependents(Artifact *artifact,
         if (parent->children.empty()) {
             removeParent = true;
         } else if (parent->transformer) {
-            parent->product->registerArtifactWithChangedInputs(parent);
             parent->transformer->inputs.remove(artifact);
             removeParent = parent->transformer->inputs.empty();
         }
@@ -245,10 +243,8 @@ void ProjectBuildData::removeArtifact(Artifact *artifact,
     removeFromLookupTable(artifact);
     removeFromRuleNodes(artifact);
     disconnectArtifact(artifact);
-    if (artifact->transformer) {
-        artifact->product->unregisterArtifactWithChangedInputs(artifact);
+    if (artifact->transformer)
         artifact->transformer->outputs.remove(artifact);
-    }
     if (removeFromProduct)
         artifact->product->buildData->removeArtifact(artifact);
     m_isDirty = false;

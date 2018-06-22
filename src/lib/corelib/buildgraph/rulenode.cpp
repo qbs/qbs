@@ -98,13 +98,6 @@ void RuleNode::apply(const Logger &logger, const ArtifactSet &changedInputs,
             << "\n\tremoved: " << removedInputs.toString();
 
     ArtifactSet inputs = changedInputs;
-    if (product->isMarkedForReapplication(m_rule)) {
-        QBS_CHECK(m_rule->multiplex);
-        result->upToDate = false;
-        product->unmarkForReapplication(m_rule);
-        qCDebug(lcBuildGraph) << "rule is marked for reapplication " << m_rule->toString();
-    }
-
     if (m_rule->multiplex)
         inputs = allCompatibleInputs;
     else
