@@ -169,7 +169,7 @@ void RuleNode::apply(const Logger &logger, const ArtifactSet &changedInputs,
         applicator.applyRule(m_rule, inputs);
         result->createdNodes = applicator.createdArtifacts();
         result->invalidatedNodes = applicator.invalidatedArtifacts();
-        m_oldInputArtifacts.unite(inputs);
+        m_oldInputArtifacts = inputs;
     }
 }
 
