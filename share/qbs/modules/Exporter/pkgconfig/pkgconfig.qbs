@@ -32,11 +32,8 @@ Module {
         requiresInputs: false
 
         // Make sure all relevant library artifacts have been created by the time we run.
-        inputsFromDependencies: autoDetect
-                                ? ["Exporter.pkgconfig.pc", "staticlibrary", "dynamiclibrary"]
-                                : []
-        inputs: {
-            if (!product.Exporter.pkgconfig.autoDetect)
+        auxiliaryInputs: {
+            if (!autoDetect)
                 return undefined;
             if (product.type.contains("staticlibrary"))
                 return ["staticlibrary"];

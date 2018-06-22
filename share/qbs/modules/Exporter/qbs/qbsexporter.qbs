@@ -49,7 +49,9 @@ Module {
         requiresInputs: false
 
         // Make sure we only run when all other artifacts are already present.
-        inputs: product.type.filter(function(t) { return t !== "Exporter.qbs.module"; })
+        // TODO: This also matches target artifacts in dependencies. Should not hurt,
+        //       but might be a hint that we should have auxiliaryInputsFromDependencies.
+        auxiliaryInputs: product.type.filter(function(t) { return t !== "Exporter.qbs.module"; })
 
         Artifact {
             filePath: product.Exporter.qbs.fileName
