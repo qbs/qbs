@@ -1,5 +1,3 @@
-import qbs
-
 Project {
     QtApplication {
         name: "app"

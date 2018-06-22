@@ -1,5 +1,3 @@
-import qbs
-
 Product {
     type: ["text"]
     Depends { name: "texttemplate" }

@@ -1,4 +1,3 @@
-import qbs 1.0
 import "idusagebase.qbs" as DerivedProduct
 
 Project {

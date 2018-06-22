@@ -1,5 +1,3 @@
-import qbs
-
 QtApplication {
     Properties {
         condition: qbs.toolchain.contains("msvc")

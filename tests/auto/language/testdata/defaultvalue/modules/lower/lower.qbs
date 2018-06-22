@@ -1,5 +1,3 @@
-import qbs
-
 Module {
     property string prop1
     property string prop2: prop1 === "blubb" ? "withBlubb" : "withoutBlubb"

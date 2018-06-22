@@ -1,4 +1,3 @@
-import qbs
 import qbs.Utilities
 
 // non-existent versions of Windows should print a QBS warning

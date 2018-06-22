@@ -1,5 +1,3 @@
-import qbs
-
 DynamicLibrary {
     name: "mylib"
     property bool useVersion

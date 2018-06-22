@@ -35,7 +35,6 @@
 **
 ****************************************************************************/
 
-import qbs 1.0
 import qbs.FileInfo
 import qbs.Probes
 import qbs.TextFile

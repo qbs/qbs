@@ -1,5 +1,3 @@
-import qbs
-
 Project {
     name: "My.Project"
     property bool x

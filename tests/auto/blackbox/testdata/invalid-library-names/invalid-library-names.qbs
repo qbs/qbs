@@ -1,5 +1,3 @@
-import qbs
-
 Project {
     minimumQbsVersion: "1.6"
     property var values: [null, undefined, 5, [], ""]

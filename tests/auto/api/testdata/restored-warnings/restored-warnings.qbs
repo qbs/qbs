@@ -1,4 +1,3 @@
-import qbs
 import qbs.Process 1.5
 
 CppApplication {

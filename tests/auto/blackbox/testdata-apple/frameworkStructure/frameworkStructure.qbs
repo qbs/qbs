@@ -1,5 +1,3 @@
-import qbs
-
 Project {
     property bool includeHeaders: true
     Library {

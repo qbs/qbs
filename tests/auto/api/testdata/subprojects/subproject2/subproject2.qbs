@@ -1,5 +1,3 @@
-import qbs
-
 Project {
     name: "subproject2"
     property string libNamePrefix: "test"

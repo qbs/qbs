@@ -1,5 +1,3 @@
-import qbs
-
 Product {
     Depends { name: "module_with_parameters" }
     Depends {

@@ -742,7 +742,7 @@ void TestLanguage::erroneousFiles_data()
     QTest::newRow("throw_in_property_binding")
             << "something is wrong";
     QTest::newRow("no-configure-in-probe")
-            << "no-configure-in-probe.qbs:4:5.*Probe.configure must be set";
+            << "no-configure-in-probe.qbs:2:5.*Probe.configure must be set";
     QTest::newRow("dependency_cycle")
             << "Cyclic dependencies detected.";
     QTest::newRow("dependency_cycle2")
@@ -786,18 +786,18 @@ void TestLanguage::erroneousFiles_data()
             << "Conflicting fileTagsFilter in Group items";
     QTest::newRow("duplicate_sources")
             << "Duplicate source file '.*main.cpp'"
-               ".*duplicate_sources.qbs:4:12.*duplicate_sources.qbs:6:16.";
+               ".*duplicate_sources.qbs:2:12.*duplicate_sources.qbs:4:16.";
     QTest::newRow("duplicate_sources_wildcards")
             << "Duplicate source file '.*duplicate_sources_wildcards.qbs'"
-               ".*duplicate_sources_wildcards.qbs:4:12"
-               ".*duplicate_sources_wildcards.qbs:6:16.";
+               ".*duplicate_sources_wildcards.qbs:2:12"
+               ".*duplicate_sources_wildcards.qbs:4:16.";
     QTest::newRow("oldQbsVersion")
             << "The project requires at least qbs version \\d+\\.\\d+.\\d+, "
                "but this is qbs version " QBS_VERSION ".";
     QTest::newRow("wrongQbsVersionFormat")
             << "The value '.*' of Project.minimumQbsVersion is not a valid version string.";
     QTest::newRow("properties-item-with-invalid-condition")
-            << "properties-item-with-invalid-condition.qbs:6:19.*TypeError: Result of expression "
+            << "properties-item-with-invalid-condition.qbs:4:19.*TypeError: Result of expression "
                "'cpp.nonexistingproperty'";
     QTest::newRow("misused-inherited-property") << "Binding to non-item property";
     QTest::newRow("undeclared_property_in_Properties_item") << "Item 'blubb' is not declared";
@@ -812,26 +812,26 @@ void TestLanguage::erroneousFiles_data()
     QTest::newRow("missing-colon")
             << "Invalid item 'cpp.dynamicLibraries'. Did you mean to set a module property?";
     QTest::newRow("syntax-error-in-probe")
-            << "syntax-error-in-probe.qbs:6:20.*ReferenceError";
+            << "syntax-error-in-probe.qbs:4:20.*ReferenceError";
     QTest::newRow("wrong-toplevel-item")
-            << "wrong-toplevel-item.qbs:3:1.*The top-level item must be of type 'Project' or "
+            << "wrong-toplevel-item.qbs:1:1.*The top-level item must be of type 'Project' or "
                "'Product', but it is of type 'Artifact'.";
     QTest::newRow("conflicting-module-instances")
             << "There is more than one equally prioritized candidate for module "
                "'conflicting-instances'.";
     QTest::newRow("module-depends-on-product")
-            << "module-with-product-dependency.qbs:4:5.*Modules cannot depend on products.";
+            << "module-with-product-dependency.qbs:2:5.*Modules cannot depend on products.";
     QTest::newRow("overwrite-inherited-readonly-property")
             << "overwrite-inherited-readonly-property.qbs"
-               ":4:21.*Cannot set read-only property 'readOnlyString'.";
+               ":2:21.*Cannot set read-only property 'readOnlyString'.";
     QTest::newRow("overwrite-readonly-module-property")
             << "overwrite-readonly-module-property.qbs"
-               ":5:30.*Cannot set read-only property 'readOnlyString'.";
+               ":3:30.*Cannot set read-only property 'readOnlyString'.";
     QTest::newRow("original-in-product-property")
             << "original-in-product-property.qbs"
-               ":4:21.*The special value 'original' can only be used with module properties.";
+               ":2:21.*The special value 'original' can only be used with module properties.";
     QTest::newRow("rule-without-output-tags")
-            << "rule-without-output-tags.qbs:4:5.*A rule needs to have Artifact items or "
+            << "rule-without-output-tags.qbs:2:5.*A rule needs to have Artifact items or "
                "a non-empty outputFileTags property.";
     QTest::newRow("original-in-module-prototype")
             << "module-with-invalid-original.qbs:2:24.*The special value 'original' cannot be used "
@@ -840,7 +840,7 @@ void TestLanguage::erroneousFiles_data()
             << "original-in-export-item.qbs:7:32.*The special value 'original' cannot be used "
                "on the right-hand side of a property declaration.";
     QTest::newRow("mismatching-multiplex-dependency")
-            << "mismatching-multiplex-dependency.qbs:9:5.*Dependency from product "
+            << "mismatching-multiplex-dependency.qbs:7:5.*Dependency from product "
                "'b \\{\"architecture\":\"mips\"\\}' to product 'a \\{\"architecture\":\"mips\"\\}'"
                " not fulfilled.";
     QTest::newRow("duplicate-multiplex-value")
@@ -849,7 +849,7 @@ void TestLanguage::erroneousFiles_data()
             << "duplicate-multiplex-value2.qbs:3:1.*Duplicate entry 'architecture' in "
                "Product.multiplexByQbsProperties.";
     QTest::newRow("invalid-references")
-            << "invalid-references.qbs:4:17.*Cannot open '.*nosuchproject.qbs'";
+            << "invalid-references.qbs:2:17.*Cannot open '.*nosuchproject.qbs'";
 }
 
 void TestLanguage::erroneousFiles()
@@ -1284,8 +1284,8 @@ void TestLanguage::idUniqueness()
         const QList<ErrorItem> items = e.items();
         QCOMPARE(items.size(), 3);
         QCOMPARE(items.at(0).toString(), QString::fromUtf8("The id 'baseProduct' is not unique."));
-        QVERIFY(items.at(1).toString().contains("id-uniqueness.qbs:6:5 First occurrence is here."));
-        QVERIFY(items.at(2).toString().contains("id-uniqueness.qbs:9:5 Next occurrence is here."));
+        QVERIFY(items.at(1).toString().contains("id-uniqueness.qbs:5:5 First occurrence is here."));
+        QVERIFY(items.at(2).toString().contains("id-uniqueness.qbs:8:5 Next occurrence is here."));
     }
     QVERIFY(exceptionCaught);
 }

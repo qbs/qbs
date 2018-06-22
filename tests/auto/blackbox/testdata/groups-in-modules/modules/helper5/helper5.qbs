@@ -1,5 +1,3 @@
-import qbs
-
 Module {
     Depends { name: "cpp" }
     Depends {

@@ -1,5 +1,3 @@
-import qbs
-
 Project {
     Dll {
         name: "thelib"

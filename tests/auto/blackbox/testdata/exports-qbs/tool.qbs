@@ -1,4 +1,3 @@
-import qbs
 import qbs.FileInfo
 
 import "helper.js" as Helper

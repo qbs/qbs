@@ -1,5 +1,3 @@
-import qbs
-
 Product {
     name: "p"
     type: ["custom1", "custom2", "custom3", "custom4", "custom5"]

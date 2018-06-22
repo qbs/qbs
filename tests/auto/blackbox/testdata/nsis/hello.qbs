@@ -1,5 +1,3 @@
-import qbs
-
 NSISSetup {
     condition: qbs.targetOS.contains("windows")
     name: "Qbs Hello"

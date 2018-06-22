@@ -1,4 +1,3 @@
-import qbs
 import "irrelevant.js" as Irrelevant
 import "custom1prepare1.js" as Custom1Prepare
 import "custom2prepare" as Custom2Prepare

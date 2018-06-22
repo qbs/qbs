@@ -1,5 +1,3 @@
-import qbs
-
 Project {
     DynamicLibrary {
         Depends { name: "Android.ndk" }

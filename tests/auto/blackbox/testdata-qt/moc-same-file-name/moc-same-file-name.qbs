@@ -1,5 +1,3 @@
-import qbs
-
 QtApplication {
     name: "app"
     cpp.cxxLanguageVersion: "c++11"

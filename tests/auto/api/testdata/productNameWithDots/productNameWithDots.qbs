@@ -1,4 +1,3 @@
-import qbs
 Project {
     CppApplication {
         name: "myapp"

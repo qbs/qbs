@@ -1,5 +1,3 @@
-import qbs
-
 // $ g++ 'i like spaces.cpp' '-DSPACES="!have \\fun\x5c!\n"' '-DSPICES=%T% # && $$ 1>&2 '\''\n'\''\n' '-DSLICES=(42>24)' && ./a.out
 // SPACES=!have \fun\!
 // SPICES=%T% # && $$ 1>&2 '\n'

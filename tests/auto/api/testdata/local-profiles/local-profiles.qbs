@@ -1,5 +1,3 @@
-import qbs
-
 Project {
     property string windowsProfile: "windowsProfile"
     property bool enableProfiles

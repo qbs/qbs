@@ -1,4 +1,3 @@
-import qbs 1.0
 import "modulescope_base.qbs" as MyProduct
 
 Project {

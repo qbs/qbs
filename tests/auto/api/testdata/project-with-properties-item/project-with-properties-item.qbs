@@ -1,5 +1,3 @@
-import qbs 1.0
-
 Project {
     property string binPath: "/usr/bin"
     property string libPath: "/usr/lib"

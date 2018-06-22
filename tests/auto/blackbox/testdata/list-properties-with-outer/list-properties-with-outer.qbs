@@ -1,5 +1,3 @@
-import qbs
-
 Product {
     type: ["outtype"]
     Depends { name: "higher" }

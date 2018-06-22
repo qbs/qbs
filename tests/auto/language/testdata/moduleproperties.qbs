@@ -1,5 +1,3 @@
-import qbs 1.0
-
 Project {
     name: "MyProject"
     property string projectName: name

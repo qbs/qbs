@@ -1,5 +1,3 @@
-import qbs
-
 Project {
     name: "toplevel"
     property stringList theDefines: []

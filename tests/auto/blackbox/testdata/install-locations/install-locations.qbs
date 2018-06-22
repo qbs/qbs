@@ -1,5 +1,3 @@
-import qbs
-
 Project {
     property bool dummy: {
         if (qbs.targetOS.contains("windows"))

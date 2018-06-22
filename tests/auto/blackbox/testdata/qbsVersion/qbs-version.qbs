@@ -1,5 +1,3 @@
-import qbs
-
 Project {
     property string qbsVersion
     property int qbsVersionMajor

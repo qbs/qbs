@@ -1,5 +1,3 @@
-import qbs
-
 StaticLibrary {
     name: "somelib"
     Probe {

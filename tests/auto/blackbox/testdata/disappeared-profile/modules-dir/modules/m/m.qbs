@@ -1,5 +1,3 @@
-import qbs
-
 Module {
     property string p1
     property string p2

@@ -1,5 +1,3 @@
-import qbs
-
 CppApplication {
     name: "car"
     condition: Qt.dbus.present

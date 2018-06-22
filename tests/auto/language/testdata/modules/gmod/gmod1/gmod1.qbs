@@ -1,5 +1,3 @@
-import qbs
-
 Module {
     Depends { name: "gmod2" }
     Depends { name: "gmod4" }

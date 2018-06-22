@@ -1,5 +1,3 @@
-import qbs
-
 Product {
     type: "custom"
     Depends { name: "mymodule" }

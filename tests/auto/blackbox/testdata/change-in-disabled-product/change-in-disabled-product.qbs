@@ -1,5 +1,3 @@
-import qbs
-
 Product {
     condition: false
     files: [

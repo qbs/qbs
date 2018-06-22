@@ -1,5 +1,3 @@
-import qbs
-
 CppApplication {
     Depends { name: "cpufeatures" }
     cpufeatures.x86_sse2: true

@@ -1,5 +1,3 @@
-import qbs
-
 Project {
     minimumQbsVersion: "1.6"
     Probe {

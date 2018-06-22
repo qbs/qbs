@@ -1,5 +1,3 @@
-import qbs
-
 Product {
     Properties {
         condition: true

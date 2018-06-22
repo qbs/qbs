@@ -1,5 +1,3 @@
-import qbs 1.0
-
 Project {
     property bool someTrueProperty: true
     Product {

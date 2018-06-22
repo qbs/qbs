@@ -285,7 +285,7 @@ void TestApi::buildErrorCodeLocation()
              QString("Rule.outputArtifacts must return an array of objects."));
     const qbs::CodeLocation errorLoc = errorItem.codeLocation();
     QCOMPARE(QFileInfo(errorLoc.filePath()).fileName(), QString("build-error-code-location.qbs"));
-    QCOMPARE(errorLoc.line(), 9);
+    QCOMPARE(errorLoc.line(), 7);
     QCOMPARE(errorLoc.column(), 26);
 }
 

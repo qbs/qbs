@@ -1,5 +1,3 @@
-import qbs
-
 Product {
     property string requestedMinVersion
     property string requestedMaxVersion

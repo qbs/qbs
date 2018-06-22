@@ -1,5 +1,3 @@
-import qbs
-
 CppApplication {
     files: ["app.c"]
 

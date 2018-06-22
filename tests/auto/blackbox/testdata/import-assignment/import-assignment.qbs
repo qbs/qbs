@@ -1,4 +1,3 @@
-import qbs
 import MyImport
 
 Product {

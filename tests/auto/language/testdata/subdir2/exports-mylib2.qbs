@@ -1,5 +1,3 @@
-import qbs
-
 StaticLibrary {
     name: "mylib2"
     Depends { name: "dummy" }

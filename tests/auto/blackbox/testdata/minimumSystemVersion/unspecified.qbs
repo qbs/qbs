@@ -1,4 +1,3 @@
-import qbs
 import qbs.Utilities
 
 // no minimum versions are specified so the profile defaults will be used

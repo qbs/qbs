@@ -1,5 +1,3 @@
-import qbs 1.0
-
 Module {
     property int a: 1
     property int b: 1

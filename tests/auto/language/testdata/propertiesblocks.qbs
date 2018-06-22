@@ -1,4 +1,3 @@
-import qbs 1.0
 import "propertiesblocks_base.qbs" as ProductBase
 
 Project {

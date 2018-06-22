@@ -1,5 +1,3 @@
-import qbs
-
 Product {
     multiplexByQbsProperties: ["architectures"]
     qbs.architectures: ["a1", "a2"]

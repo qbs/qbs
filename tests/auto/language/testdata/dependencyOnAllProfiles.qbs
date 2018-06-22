@@ -1,5 +1,3 @@
-import qbs
-
 Project {
     property string profile1
     property string profile2

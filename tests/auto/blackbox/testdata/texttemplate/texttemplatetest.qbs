@@ -1,5 +1,3 @@
-import qbs
-
 Product {
     name: "one"
     type: ["text"]

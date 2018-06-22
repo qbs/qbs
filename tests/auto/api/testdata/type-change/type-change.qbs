@@ -1,5 +1,3 @@
-import qbs
-
 Product {
     files: "main.cpp"
     Depends { name: "cpp" }

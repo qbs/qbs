@@ -1,5 +1,3 @@
-import qbs
-
 CppApplication {
     name: "app"
     type: base.concat("custom")

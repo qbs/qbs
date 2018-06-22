@@ -1,5 +1,3 @@
-import qbs
-
 DynamicLibrary {
     Depends { name: "cpp" }
     Depends { name: "bundle"; condition: qbs.targetOS.contains("darwin") }

@@ -1,4 +1,2 @@
-import qbs
-
 Artifact {
 }

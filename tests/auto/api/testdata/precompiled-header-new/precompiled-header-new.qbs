@@ -1,5 +1,3 @@
-import qbs 1.0
-
 CppApplication {
     name: "MyApp"
     consoleApplication: true

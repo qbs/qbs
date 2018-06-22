@@ -1,5 +1,3 @@
-import qbs
-
 Product {
     name: "in-group"
     property bool featureEnabled: true

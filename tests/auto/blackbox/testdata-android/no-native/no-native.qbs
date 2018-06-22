@@ -1,5 +1,3 @@
-import qbs
-
 AndroidApk {
     name: "com.example.android.basicmediadecoder"
 

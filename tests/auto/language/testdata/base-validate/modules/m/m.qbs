@@ -1,5 +1,3 @@
-import qbs
-
 MParent {
     condition: true
     validate: {

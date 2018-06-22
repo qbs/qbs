@@ -1,5 +1,3 @@
-import qbs
-
 Product {
     name: "ruletest"
     type: "test-output"

@@ -1,5 +1,3 @@
-import qbs
-
 Project {
     DerivedSubProject {
         filePath: "subproject.qbs"

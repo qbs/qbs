@@ -1,5 +1,3 @@
-import qbs
-
 Project {
     Product {
         Depends { name: "dep" }

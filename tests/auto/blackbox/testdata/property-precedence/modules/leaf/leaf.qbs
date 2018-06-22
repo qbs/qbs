@@ -1,5 +1,3 @@
-import qbs
-
 Module {
     property string scalarProp: "leaf"
     property stringList listProp: ["leaf"]

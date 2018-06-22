@@ -1,5 +1,3 @@
-import qbs
-
 Project {
     name: "top level project"
     references: ["subproject2"]

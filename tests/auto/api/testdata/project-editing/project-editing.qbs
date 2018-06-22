@@ -1,5 +1,3 @@
-import qbs
-
 CppApplication {
     Group {
         name: "Existing Group 1"

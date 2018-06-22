@@ -1,5 +1,3 @@
-import qbs
-
 Application {
     name: "kaputt"
     type: ["nutritious"]

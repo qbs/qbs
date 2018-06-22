@@ -1,5 +1,3 @@
-import qbs
-
 QtApplication {
     name: "p"
     files: [

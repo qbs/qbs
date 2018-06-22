@@ -1,5 +1,3 @@
-import qbs
-
 CppApplication {
     type: base.concat(["out"])
     Depends { name: "m" }

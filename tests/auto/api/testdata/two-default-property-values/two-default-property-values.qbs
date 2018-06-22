@@ -1,5 +1,3 @@
-import qbs
-
 Product {
     name: "two-default-property-values"
     type: "mymodule"

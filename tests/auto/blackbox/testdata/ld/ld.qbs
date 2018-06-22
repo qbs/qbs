@@ -1,5 +1,3 @@
-import qbs
-
 Project {
     Library {
         Depends { name: "cpp" }

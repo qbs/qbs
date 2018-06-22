@@ -1,5 +1,3 @@
-import qbs
-
 Module {
     Group {
         filesAreTargets: true

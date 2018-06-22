@@ -1,4 +1,3 @@
-import qbs 1.0
 import "exports_product.qbs" as ProductWithInheritedExportItem
 
 Project {

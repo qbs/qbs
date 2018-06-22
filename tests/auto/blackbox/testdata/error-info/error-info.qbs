@@ -1,4 +1,3 @@
-import qbs
 import "helper.js" as Helper
 
 Project {

@@ -1,5 +1,3 @@
-import qbs
-
 QtApplication {
     name: "debuggable-app"
     consoleApplication: true

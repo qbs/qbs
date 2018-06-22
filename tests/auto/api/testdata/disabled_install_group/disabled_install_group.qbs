@@ -1,5 +1,3 @@
-import qbs
-
 CppApplication {
     consoleApplication: true
     files: "main.cpp"

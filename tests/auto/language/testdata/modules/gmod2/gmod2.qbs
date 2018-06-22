@@ -1,5 +1,3 @@
-import qbs
-
 Module {
     property int prop: 0
     property string gmod2_string: "gmod2_string_proto"

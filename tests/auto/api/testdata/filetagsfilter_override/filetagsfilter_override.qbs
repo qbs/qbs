@@ -1,4 +1,3 @@
-import qbs
 import "InstalledApp.qbs" as InstalledApp
 
 InstalledApp {

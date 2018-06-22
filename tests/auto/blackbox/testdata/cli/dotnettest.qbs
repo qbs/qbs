@@ -1,5 +1,3 @@
-import qbs
-
 Project {
     Application {
         Depends { name: "cli" }

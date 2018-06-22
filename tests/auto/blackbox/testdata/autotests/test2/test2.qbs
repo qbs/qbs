@@ -1,5 +1,3 @@
-import qbs
-
 CppApplication {
     name: "test2"
     type: base.concat("autotest")

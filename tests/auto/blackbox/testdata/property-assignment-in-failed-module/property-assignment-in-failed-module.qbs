@@ -1,5 +1,3 @@
-import qbs
-
 CppApplication {
     name: "app"
     Depends { name: "m"; required: false }

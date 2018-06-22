@@ -1,5 +1,3 @@
-import qbs
-
 Application {
     Depends { name: "Qt.core" }
     files: ["main.cpp"]

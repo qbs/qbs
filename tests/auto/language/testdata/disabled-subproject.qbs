@@ -1,5 +1,3 @@
-import qbs
-
 Project {
     SubProject {
         condition: false

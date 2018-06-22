@@ -1,5 +1,3 @@
-import qbs
-
 Product {
     Group {
         files: ["*.txt"]

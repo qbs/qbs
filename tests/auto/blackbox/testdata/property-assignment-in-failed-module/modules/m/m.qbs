@@ -1,5 +1,3 @@
-import qbs
-
 Module {
     property bool doFail
     Depends { name: "cpp" }

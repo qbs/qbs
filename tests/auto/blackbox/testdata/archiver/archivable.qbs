@@ -1,5 +1,3 @@
-import qbs
-
 Product {
     name: "archivable"
     type: "archiver.archive"

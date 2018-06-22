@@ -1,4 +1,3 @@
-import qbs
 import "prepare.js" as PrepareHelper
 
 Product {

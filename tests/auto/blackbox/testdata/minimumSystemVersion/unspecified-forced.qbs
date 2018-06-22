@@ -1,4 +1,3 @@
-import qbs
 import qbs.Utilities
 
 // no minimum versions are specified, and explicitly set to undefined in

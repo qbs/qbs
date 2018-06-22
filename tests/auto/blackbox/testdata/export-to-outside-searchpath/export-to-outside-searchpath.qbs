@@ -1,5 +1,3 @@
-import qbs
-
 Project {
     Project {
         qbsSearchPaths: ["qbs-resources"]

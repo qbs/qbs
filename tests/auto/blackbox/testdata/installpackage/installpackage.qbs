@@ -1,5 +1,3 @@
-import qbs
-
 Project {
     CppApplication {
         name: "public_tool"

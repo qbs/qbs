@@ -1,5 +1,3 @@
-import qbs
-
 Project {
     LoadableModule {
         Depends { name: "cpp" }

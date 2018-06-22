@@ -1,5 +1,3 @@
-import qbs 1.0
-
 Product {
     property bool defineBase: true
     Depends { name: "dummy" }

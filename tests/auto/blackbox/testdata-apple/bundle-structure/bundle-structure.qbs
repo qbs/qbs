@@ -1,5 +1,3 @@
-import qbs
-
 Project {
     property stringList bundleFileTags: ["bundle.content"]
 

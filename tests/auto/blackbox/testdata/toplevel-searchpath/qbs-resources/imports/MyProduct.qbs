@@ -1,3 +1,1 @@
-import qbs
-
 Product { }

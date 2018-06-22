@@ -1,5 +1,3 @@
-import qbs 1.0
-
 Bar {
     type: "application"
     consoleApplication: true

@@ -1,5 +1,3 @@
-import qbs 1.0
-
 Module {
     id: qtcore
     property int versionMajor: 5

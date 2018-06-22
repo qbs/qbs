@@ -1,5 +1,3 @@
-import qbs 1.0
-
 CppApplication {
     type: base.concat("txt")
     files : ["main.cpp"]

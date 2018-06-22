@@ -1,5 +1,3 @@
-import qbs
-
 Product {
     type: ["out1", "out2"]
     Depends { name: "m" }

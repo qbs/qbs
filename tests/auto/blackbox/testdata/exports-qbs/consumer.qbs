@@ -1,5 +1,3 @@
-import qbs
-
 CppApplication {
     name: "consumer"
     qbsSearchPaths: "default/install-root/usr/qbs"

@@ -1,5 +1,3 @@
-import qbs
-
 Project {
     AppleApplicationDiskImage {
         Depends { name: "myapp" }

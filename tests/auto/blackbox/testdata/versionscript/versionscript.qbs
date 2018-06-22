@@ -1,5 +1,3 @@
-import qbs
-
 DynamicLibrary {
     type: base.concat("custom")
     Depends { name: "cpp" }

@@ -1,4 +1,3 @@
-import qbs
 import qbs.Process
 import qbs.PropertyList
 import qbs.TextFile

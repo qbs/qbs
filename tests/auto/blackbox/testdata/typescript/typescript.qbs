@@ -1,5 +1,3 @@
-import qbs
-
 Project {
     NodeJSApplication {
         Depends { name: "typescript" }

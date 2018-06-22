@@ -1,5 +1,3 @@
-import qbs
-
 Product {
     Rule {
         inputs: "input-tag"

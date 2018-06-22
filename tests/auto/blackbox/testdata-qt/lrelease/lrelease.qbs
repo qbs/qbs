@@ -1,5 +1,3 @@
-import qbs
-
 Product {
     name: "lrelease-test"
     type: ["ts"]

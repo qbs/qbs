@@ -1,5 +1,3 @@
-import qbs 1.0
-
 Product {
     consoleApplication: true
     type: "application"

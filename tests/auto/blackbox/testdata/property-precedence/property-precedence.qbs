@@ -1,5 +1,3 @@
-import qbs
-
 Project {
     references: ["dep.qbs"]
     Product {

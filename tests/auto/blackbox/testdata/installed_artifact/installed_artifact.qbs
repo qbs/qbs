@@ -1,5 +1,3 @@
-import qbs 1.0
-
 Application {
     name: "installedApp"
     type: "application"

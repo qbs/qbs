@@ -1,5 +1,3 @@
-import qbs
-
 Project {
     qbsSearchPaths: base.concat(["qbs"])
 

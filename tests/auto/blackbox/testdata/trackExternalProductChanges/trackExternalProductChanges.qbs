@@ -1,4 +1,3 @@
-import qbs
 import qbs.Environment
 import "fileList.js" as FileList
 

@@ -1,5 +1,3 @@
-import qbs
-
 Module {
     Group {
         cpp.defines: ["REQUIRED_FOR_FILE3"]

@@ -1,4 +1,3 @@
-import qbs 1.0
 import 'blubb.js' as blubb
 
 Product {

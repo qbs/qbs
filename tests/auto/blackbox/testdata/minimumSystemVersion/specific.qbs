@@ -1,4 +1,3 @@
-import qbs
 import qbs.Utilities
 
 // a specific version of the operating systems is specified

@@ -1,5 +1,3 @@
-import qbs
-
 CppApplication {
     Depends { name: "lex_yacc" }
     consoleApplication: true

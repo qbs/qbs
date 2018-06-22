@@ -1,5 +1,3 @@
-import qbs
-
 Product {
     name: "p"
     type: ["tag1"]

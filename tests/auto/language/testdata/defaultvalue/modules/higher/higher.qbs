@@ -1,5 +1,3 @@
-import qbs
-
 Module {
     Depends { name: "lower" }
     lower.prop2: lower.prop1 === "egon" ? "withEgon" : original

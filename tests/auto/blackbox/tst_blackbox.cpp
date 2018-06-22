@@ -2212,7 +2212,7 @@ void TestBlackbox::referenceErrorInExport()
     params.expectFailure = true;
     QVERIFY(runQbs(params) != 0);
     QVERIFY(m_qbsStderr.contains(
-        "referenceErrorInExport.qbs:17:12 ReferenceError: Can't find variable: includePaths"));
+        "referenceErrorInExport.qbs:15:12 ReferenceError: Can't find variable: includePaths"));
 }
 
 void TestBlackbox::reproducibleBuild()
@@ -3197,25 +3197,25 @@ void TestBlackbox::errorInfo()
     QCOMPARE(runQbs(resolveParams), 0);
     buildParams.arguments = resolveParams.arguments;
     QVERIFY(runQbs(buildParams) != 0);
-    QVERIFY2(m_qbsStderr.contains("error-info.qbs:25"), m_qbsStderr);
+    QVERIFY2(m_qbsStderr.contains("error-info.qbs:24"), m_qbsStderr);
 
     resolveParams.arguments = QStringList() << "project.fail2:true";
     QCOMPARE(runQbs(resolveParams), 0);
     buildParams.arguments = resolveParams.arguments;
     QVERIFY(runQbs(buildParams) != 0);
-    QVERIFY2(m_qbsStderr.contains("error-info.qbs:37"), m_qbsStderr);
+    QVERIFY2(m_qbsStderr.contains("error-info.qbs:36"), m_qbsStderr);
 
     resolveParams.arguments = QStringList() << "project.fail3:true";
     QCOMPARE(runQbs(resolveParams), 0);
     buildParams.arguments = resolveParams.arguments;
     QVERIFY(runQbs(buildParams) != 0);
-    QVERIFY2(m_qbsStderr.contains("error-info.qbs:52"), m_qbsStderr);
+    QVERIFY2(m_qbsStderr.contains("error-info.qbs:51"), m_qbsStderr);
 
     resolveParams.arguments = QStringList() << "project.fail4:true";
     QCOMPARE(runQbs(resolveParams), 0);
     buildParams.arguments = resolveParams.arguments;
     QVERIFY(runQbs(buildParams) != 0);
-    QVERIFY2(m_qbsStderr.contains("error-info.qbs:67"), m_qbsStderr);
+    QVERIFY2(m_qbsStderr.contains("error-info.qbs:66"), m_qbsStderr);
 
     resolveParams.arguments = QStringList() << "project.fail5:true";
     QCOMPARE(runQbs(resolveParams), 0);
@@ -3234,7 +3234,7 @@ void TestBlackbox::errorInfo()
     buildParams.arguments = resolveParams.arguments;
     QVERIFY(runQbs(buildParams) != 0);
     QVERIFY2(m_qbsStderr.contains("JavaScriptCommand.sourceCode"), m_qbsStderr);
-    QVERIFY2(m_qbsStderr.contains("error-info.qbs:58"), m_qbsStderr);
+    QVERIFY2(m_qbsStderr.contains("error-info.qbs:57"), m_qbsStderr);
 }
 
 void TestBlackbox::escapedLinkerFlags()
@@ -3698,7 +3698,7 @@ void TestBlackbox::invalidExtensionInstantiation()
     params.expectFailure = true;
     params.arguments << (QString("products.theProduct.extension:") + QTest::currentDataTag());
     QVERIFY(runQbs(params) != 0);
-    QVERIFY2(m_qbsStderr.contains("invalid-extension-instantiation.qbs:18")
+    QVERIFY2(m_qbsStderr.contains("invalid-extension-instantiation.qbs:17")
              && m_qbsStderr.contains('\'' + QByteArray(QTest::currentDataTag())
                                      + "' cannot be instantiated"),
              m_qbsStderr.constData());

@@ -1,5 +1,3 @@
-import qbs
-
 Product {
     files: [
         "file1.txt",

@@ -1,5 +1,3 @@
-import qbs
-
 Project {
     condition: qbs.targetOS.contains("whatever")
 
