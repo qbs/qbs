@@ -410,7 +410,7 @@ void TestBlackbox::artifactsMapChangeTracking()
     if (isDarwin)
         QEXPECT_FAIL("", "change tracking could become even more fine-grained", Continue);
 
-    QVERIFY2(m_qbsStdout.contains("running rule for test.cpp") == isDarwin, m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("running rule for test.cpp"), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("creating test.cpp"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("linking"), m_qbsStdout.constData());
     QCOMPARE(runQbs(QStringList{"-p", "meta"}), 0);
