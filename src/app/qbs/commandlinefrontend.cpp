@@ -346,17 +346,28 @@ CommandLineFrontend::ProductMap CommandLineFrontend::productsToUse() const
         const ProjectData projectData = project.projectData();
         const auto products = projectData.allProducts();
         for (const ProductData &product : products) {
+            productNames << product.name();
             if (useAll || m_parser.products().contains(product.name())) {
                 productList.push_back(product);
-                productNames << product.name();
             }
         }
     }
 
     const auto parsedProductNames = m_parser.products();
     for (const QString &productName : parsedProductNames) {
-        if (!productNames.contains(productName))
-            throw ErrorInfo(Tr::tr("No such product '%1'.").arg(productName));
+        if (!productNames.contains(productName)) {
+            QString msg;
+            if (productNames.size() <= 10) {
+                productNames.sort();
+                const QString available = productNames.join(QLatin1String("', '"));
+                msg = Tr::tr("No such product '%1'. "
+                             "Available products: '%2'").arg(productName, available);
+            } else {
+                msg = Tr::tr("No such product '%1'. Use 'list-products' to see "
+                                  "all available products.").arg(productName);
+            }
+            throw ErrorInfo(msg);
+        }
     }
 
     return products;

@@ -177,6 +177,13 @@ private:
             QScriptValue originalValue;
             if (data->item->propertyDeclaration(propertyName->toString()).isScalar()) {
                 const Item *item = itemOfProperty;
+                if (item->type() == ItemType::Module || item->type() == ItemType::Export) {
+                    const QString errorMessage = Tr::tr("The special value 'original' cannot "
+                            "be used on the right-hand side of a property declaration.");
+                    extraScope = engine->currentContext()->throwError(errorMessage);
+                    result.second = false;
+                    return result;
+                }
                 while (item->type() == ItemType::ModuleInstance)
                     item = item->prototype();
                 if (item->type() != ItemType::Module && item->type() != ItemType::Export) {

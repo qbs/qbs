@@ -36,7 +36,7 @@
     \section1 Synopsis
 
     \code
-    qbs update-timestamps [options] [configuration-name] ...
+    qbs update-timestamps [options] [config:configuration-name] ...
     \endcode
 
     \section1 Description

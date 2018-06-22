@@ -4080,7 +4080,8 @@ void TestBlackbox::lexyacc()
     params.arguments << "modules.lex_yacc.enableCompilerWarnings:true";
     QCOMPARE(runQbs(params), 0);
     QCOMPARE(runQbs(), 0);
-    QVERIFY2(m_qbsStderr.contains("whatever"), m_qbsStderr.constData());
+    const QByteArray outputToCheck = m_qbsStdout + m_qbsStderr;
+    QVERIFY2(outputToCheck.contains("whatever"), outputToCheck.constData());
 }
 
 void TestBlackbox::lexyaccOutputs()

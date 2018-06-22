@@ -37,7 +37,7 @@
 
 //! [configuration-name]
 
-    \section2 \c configuration-name
+    \section2 \c config:configuration-name
 
     Specifies the build configuration to use.
 

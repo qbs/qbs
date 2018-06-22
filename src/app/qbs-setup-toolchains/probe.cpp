@@ -92,7 +92,7 @@ static QString qsystem(const QString &exe, const QStringList &args = QStringList
         throw qbs::ErrorInfo(Tr::tr("Failed to start compiler '%1': %2")
                              .arg(exe, p.errorString()));
     }
-    if (!p.waitForFinished() || p.exitCode() != 0)
+    if (!p.waitForFinished(-1) || p.exitCode() != 0)
         throw qbs::ErrorInfo(Tr::tr("Failed to run compiler '%1': %2").arg(exe, p.errorString()));
     return QString::fromLocal8Bit(p.readAll());
 }

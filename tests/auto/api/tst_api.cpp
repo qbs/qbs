@@ -1822,7 +1822,7 @@ void TestApi::multiArch()
     setupJob.reset(project.setupProject(setupParams, m_logSink, 0));
     waitForFinished(setupJob.get());
     QVERIFY(setupJob->error().hasError());
-    QVERIFY2(setupJob->error().toString().contains("Duplicate product name 'p1'"),
+    QVERIFY2(setupJob->error().toString().contains("Duplicate entry 'host' in qbs.profiles."),
              qPrintable(setupJob->error().toString()));
 
     // Error check: Try to build for the same profile twice, this time attaching
@@ -1834,7 +1834,7 @@ void TestApi::multiArch()
     setupJob.reset(project.setupProject(setupParams, m_logSink, 0));
     waitForFinished(setupJob.get());
     QVERIFY(setupJob->error().hasError());
-    QVERIFY2(setupJob->error().toString().contains("Duplicate product name 'p1'"),
+    QVERIFY2(setupJob->error().toString().contains("Duplicate entry 'target' in qbs.profiles."),
              qPrintable(setupJob->error().toString()));
 }
 

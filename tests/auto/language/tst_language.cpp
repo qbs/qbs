@@ -833,10 +833,21 @@ void TestLanguage::erroneousFiles_data()
     QTest::newRow("rule-without-output-tags")
             << "rule-without-output-tags.qbs:4:5.*A rule needs to have Artifact items or "
                "a non-empty outputFileTags property.";
+    QTest::newRow("original-in-module-prototype")
+            << "module-with-invalid-original.qbs:2:24.*The special value 'original' cannot be used "
+               "on the right-hand side of a property declaration.";
+    QTest::newRow("original-in-export-item")
+            << "original-in-export-item.qbs:7:32.*The special value 'original' cannot be used "
+               "on the right-hand side of a property declaration.";
     QTest::newRow("mismatching-multiplex-dependency")
             << "mismatching-multiplex-dependency.qbs:9:5.*Dependency from product "
                "'b \\{\"architecture\":\"mips\"\\}' to product 'a \\{\"architecture\":\"mips\"\\}'"
                " not fulfilled.";
+    QTest::newRow("duplicate-multiplex-value")
+            << "duplicate-multiplex-value.qbs:3:1.*Duplicate entry 'x86' in qbs.architectures.";
+    QTest::newRow("duplicate-multiplex-value2")
+            << "duplicate-multiplex-value2.qbs:3:1.*Duplicate entry 'architecture' in "
+               "Product.multiplexByQbsProperties.";
     QTest::newRow("invalid-references")
             << "invalid-references.qbs:4:17.*Cannot open '.*nosuchproject.qbs'";
 }

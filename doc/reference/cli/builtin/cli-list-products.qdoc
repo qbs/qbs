@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2017 The Qt Company Ltd.
+** Copyright (C) 2018 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -27,43 +27,37 @@
 
 /*!
     \contentspage cli.html
-    \page cli-shell.html
+    \page cli-list-products.html
     \ingroup cli
 
-    \title shell
-    \brief Opens a shell with a product's environment.
+    \title list-products
+    \brief Lists all products in the given project.
 
     \section1 Synopsis
 
     \code
-    qbs shell [options] [config:configuration-name] [property:value]
+    qbs list-products [options] [config:configuration-name]
     \endcode
 
     \section1 Description
 
-    Opens a shell in the environment that a build with the specified parameters
-    would use.
-
-    For more information, see \l{Using the Shell}.
+    Lists all products that exist in a project.
 
     \section1 Options
 
-    \include cli-options.qdocinc build-directory
     \include cli-options.qdocinc project-file
-    \include cli-options.qdocinc products-specified
+    \include cli-options.qdocinc build-directory
     \include cli-options.qdocinc settings-dir
 
     \section1 Parameters
 
     \include cli-parameters.qdocinc configuration-name
-    \include cli-parameters.qdocinc property
 
     \section1 Examples
 
-    Opens a shell with the same environment that \QBS uses when building the
-    project:
+    To list all products for the project in the current directory:
 
     \code
-    qbs shell
+    qbs list-products
     \endcode
 */
