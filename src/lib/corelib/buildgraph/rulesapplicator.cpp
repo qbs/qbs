@@ -274,6 +274,8 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
         throw ErrorInfo(Tr::tr("There is a rule without commands: %1.")
                         .arg(m_rule->toString()), m_rule->prepareScript.location());
     if (!m_oldTransformer || m_oldTransformer->outputs != m_transformer->outputs
+            || m_oldTransformer->inputs != m_transformer->inputs
+            || m_oldTransformer->explicitlyDependsOn != m_transformer->explicitlyDependsOn
             || m_oldTransformer->commands != m_transformer->commands
             || commandsNeedRerun(m_transformer.get(), m_product.get(), m_productsByName,
                                  m_projectsByName)) {
