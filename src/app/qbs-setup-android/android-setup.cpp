@@ -197,8 +197,12 @@ static void setupNdk(qbs::Settings *settings, const QString &profileName, const 
     mainProfile.setValue(qls("qbs.toolchain"), QStringList() << qls("gcc"));
     const QStringList archs = expectedArchs();
     const QtInfoPerArch infoPerArch = getQtAndroidInfo(qtSdkDirPath);
-    mainProfile.setValue(qls("qbs.architectures"), infoPerArch.empty()
-                         ? archs : QStringList(infoPerArch.keys()));
+    const QStringList archsForProfile = infoPerArch.empty()
+            ? archs : QStringList(infoPerArch.keys());
+    if (archsForProfile.size() == 1)
+        mainProfile.setValue(qls("qbs.architecture"), archsForProfile.front());
+    else
+        mainProfile.setValue(qls("qbs.architectures"), archsForProfile);
     QStringList searchPaths;
     QString platform;
     for (const QString &arch : archs) {
