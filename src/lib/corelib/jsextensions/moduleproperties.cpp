@@ -82,12 +82,6 @@ static QScriptValue getModuleProperty(const ResolvedProduct *product, const Arti
         value = engine->retrieveFromPropertyCache(moduleName, propertyName, properties);
     if (!value.isValid()) {
         value = properties->moduleProperty(moduleName, propertyName, isPresent);
-        const Property p(product->uniqueName(), moduleName, propertyName, value,
-                         Property::PropertyInModule);
-        if (artifact)
-            engine->addPropertyRequestedFromArtifact(artifact, p);
-        else
-            engine->addPropertyRequestedInScript(p);
 
         // Cache the variant value. We must not cache the QScriptValue here, because it's a
         // reference and the user might change the actual object.
@@ -96,6 +90,14 @@ static QScriptValue getModuleProperty(const ResolvedProduct *product, const Arti
     } else if (isPresent) {
         *isPresent = true;
     }
+
+    const Property p(product->uniqueName(), moduleName, propertyName, value,
+                     Property::PropertyInModule);
+    if (artifact)
+        engine->addPropertyRequestedFromArtifact(artifact, p);
+    else
+        engine->addPropertyRequestedInScript(p);
+
     return engine->toScriptValue(value);
 }
 
