@@ -45,6 +45,10 @@
 
 #include <functional>
 
+QT_BEGIN_NAMESPACE
+class QProcessEnvironment;
+QT_END_NAMESPACE
+
 namespace std {
 template<> struct hash<QString> {
     std::size_t operator()(const QString &s) const { return qHash(s); }
@@ -53,6 +57,7 @@ template<> struct hash<QString> {
 
 QT_BEGIN_NAMESPACE
 uint qHash(const QStringList &list);
+uint qHash(const QProcessEnvironment &env);
 QT_END_NAMESPACE
 
 #endif // QBSQTTOOLS_H

@@ -42,6 +42,8 @@
 
 #include "error.h"
 #include <logging/logger.h>
+#include <tools/qbsassert.h>
+#include <tools/qttools.h>
 
 #include <QtCore/qdatastream.h>
 #include <QtCore/qflags.h>
@@ -138,19 +140,33 @@ private:
 
     template <typename T> T *idLoad();
     template <class T> std::shared_ptr<T> idLoadS();
+    template <typename T> T idLoadValue();
+
+    void doLoadValue(QString &s);
+    void doLoadValue(QStringList &l);
+    void doLoadValue(QProcessEnvironment &env);
 
     template<typename T> void storeSharedObject(const T *object);
 
     void storeVariant(const QVariant &variant);
     QVariant loadVariant();
 
-    void storeString(const QString &t);
-    QString loadString(int id);
-    QString idLoadString();
+    template <typename T> void idStoreValue(const T &value);
+
+    void doStoreValue(const QString &s);
+    void doStoreValue(const QStringList &l);
+    void doStoreValue(const QProcessEnvironment &env);
+
+    template<typename T> std::vector<T> &idStorage();
+    template<typename T> QHash<T, PersistentObjectId> &idMap();
+    template<typename T> PersistentObjectId &lastStoredId();
 
     // Recursion termination
     void store() {}
     void load() {}
+
+    static const PersistentObjectId ValueNotFoundId = -1;
+    static const PersistentObjectId EmptyValueId = -2;
 
     QDataStream m_stream;
     HeadData m_headData;
@@ -162,6 +178,12 @@ private:
     std::vector<QString> m_stringStorage;
     QHash<QString, int> m_inverseStringStorage;
     PersistentObjectId m_lastStoredStringId;
+    std::vector<QProcessEnvironment> m_envStorage;
+    QHash<QProcessEnvironment, int> m_inverseEnvStorage;
+    PersistentObjectId m_lastStoredEnvId;
+    std::vector<QStringList> m_stringListStorage;
+    QHash<QStringList, int> m_inverseStringListStorage;
+    PersistentObjectId m_lastStoredStringListId;
     Logger &m_logger;
 
     template<typename T, typename Enable>
@@ -210,6 +232,42 @@ template <typename T> inline T *PersistentPool::idLoad()
     return t;
 }
 
+template<> inline std::vector<QString> &PersistentPool::idStorage() { return m_stringStorage; }
+template<> inline QHash<QString, PersistentPool::PersistentObjectId> &PersistentPool::idMap()
+{
+    return m_inverseStringStorage;
+}
+template<> inline PersistentPool::PersistentObjectId &PersistentPool::lastStoredId<QString>()
+{
+    return m_lastStoredStringId;
+}
+template<> inline std::vector<QStringList> &PersistentPool::idStorage()
+{
+    return m_stringListStorage;
+}
+template<> inline QHash<QStringList, PersistentPool::PersistentObjectId> &PersistentPool::idMap()
+{
+    return m_inverseStringListStorage;
+}
+template<> inline PersistentPool::PersistentObjectId &PersistentPool::lastStoredId<QStringList>()
+{
+    return m_lastStoredStringListId;
+}
+template<> inline std::vector<QProcessEnvironment> &PersistentPool::idStorage()
+{
+    return m_envStorage;
+}
+template<> inline QHash<QProcessEnvironment, PersistentPool::PersistentObjectId>
+&PersistentPool::idMap()
+{
+    return m_inverseEnvStorage;
+}
+template<> inline PersistentPool::PersistentObjectId
+&PersistentPool::lastStoredId<QProcessEnvironment>()
+{
+    return m_lastStoredEnvId;
+}
+
 template <class T> inline std::shared_ptr<T> PersistentPool::idLoadS()
 {
     PersistentObjectId id;
@@ -226,6 +284,41 @@ template <class T> inline std::shared_ptr<T> PersistentPool::idLoadS()
     m_loaded[id] = t;
     load(*t);
     return t;
+}
+
+template<typename T> inline T PersistentPool::idLoadValue()
+{
+    int id;
+    m_stream >> id;
+    if (id == EmptyValueId)
+        return T();
+    QBS_CHECK(id >= 0);
+    if (id >= static_cast<int>(idStorage<T>().size())) {
+        T value;
+        doLoadValue(value);
+        idStorage<T>().resize(id + 1);
+        idStorage<T>()[id] = value;
+        return value;
+    }
+    return idStorage<T>().at(id);
+}
+
+template<typename T>
+void PersistentPool::idStoreValue(const T &value)
+{
+    if (value.isEmpty()) {
+        m_stream << EmptyValueId;
+        return;
+    }
+    int id = idMap<T>().value(value, ValueNotFoundId);
+    if (id < 0) {
+        id = lastStoredId<T>()++;
+        idMap<T>().insert(value, id);
+        m_stream << id;
+        doStoreValue(value);
+    } else {
+        m_stream << id;
+    }
 }
 
 // We need a helper class template, because we require partial specialization for some of
@@ -334,10 +427,11 @@ template<typename T> struct PPHelper<T *>
     static void load(T* &value, PersistentPool *pool) { value = pool->idLoad<T>(); }
 };
 
-template<> struct PPHelper<QString>
+template<typename T> struct PPHelper<T, std::enable_if_t<std::is_same<T, QString>::value
+        || std::is_same<T, QStringList>::value || std::is_same<T, QProcessEnvironment>::value>>
 {
-    static void store(const QString &s, PersistentPool *pool) { pool->storeString(s); }
-    static void load(QString &s, PersistentPool *pool) { s = pool->idLoadString(); }
+    static void store(const T &v, PersistentPool *pool) { pool->idStoreValue(v); }
+    static void load(T &v, PersistentPool *pool) { v = pool->idLoadValue<T>(); }
 };
 
 template<> struct PPHelper<QVariant>
@@ -349,30 +443,9 @@ template<> struct PPHelper<QVariant>
 template<> struct PPHelper<QRegExp>
 {
     static void store(const QRegExp &re, PersistentPool *pool) { pool->store(re.pattern()); }
-    static void load(QRegExp &re, PersistentPool *pool) { re.setPattern(pool->idLoadString()); }
+    static void load(QRegExp &re, PersistentPool *pool) { re.setPattern(pool->load<QString>()); }
 };
 
-template<> struct PPHelper<QProcessEnvironment>
-{
-    static void store(const QProcessEnvironment &env, PersistentPool *pool)
-    {
-        const QStringList &keys = env.keys();
-        pool->store(keys.size());
-        for (const QString &key : keys) {
-            pool->store(key);
-            pool->store(env.value(key));
-        }
-    }
-    static void load(QProcessEnvironment &env, PersistentPool *pool)
-    {
-        const int count = pool->load<int>();
-        for (int i = 0; i < count; ++i) {
-            const auto &key = pool->load<QString>();
-            const auto &value = pool->load<QString>();
-            env.insert(key, value);
-        }
-    }
-};
 template<typename T, typename U> struct PPHelper<std::pair<T, U>>
 {
     static void store(const std::pair<T, U> &pair, PersistentPool *pool)
@@ -401,7 +474,6 @@ template<typename T> struct PPHelper<QFlags<T>>
 };
 
 template<typename T> struct IsSimpleContainer : std::false_type { };
-template<> struct IsSimpleContainer<QStringList> : std::true_type { };
 template<typename T> struct IsSimpleContainer<QList<T>> : std::true_type { };
 template<typename T> struct IsSimpleContainer<std::vector<T>> : std::true_type { };
 

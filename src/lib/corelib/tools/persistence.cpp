@@ -42,7 +42,6 @@
 #include "fileinfo.h"
 #include <logging/translator.h>
 #include <tools/error.h>
-#include <tools/qbsassert.h>
 
 #include <QtCore/qdir.h>
 
@@ -121,6 +120,8 @@ void PersistentPool::setupWriteStream(const QString &filePath)
     m_stream << QByteArray(qstrlen(QBS_PERSISTENCE_MAGIC), 0) << m_headData.projectConfig;
     m_lastStoredObjectId = 0;
     m_lastStoredStringId = 0;
+    m_lastStoredEnvId = 0;
+    m_lastStoredStringListId = 0;
 }
 
 void PersistentPool::finalizeWriteStream()
@@ -153,7 +154,7 @@ void PersistentPool::storeVariant(const QVariant &variant)
     m_stream << type;
     switch (type) {
     case QMetaType::QString:
-        storeString(variant.toString());
+        store(variant.toString());
         break;
     case QMetaType::QStringList:
         store(variant.toStringList());
@@ -175,7 +176,7 @@ QVariant PersistentPool::loadVariant()
     QVariant value;
     switch (type) {
     case QMetaType::QString:
-        value = idLoadString();
+        value = load<QString>();
         break;
     case QMetaType::QStringList:
         value = load<QStringList>();
@@ -200,50 +201,48 @@ void PersistentPool::clear()
     m_inverseStringStorage.clear();
 }
 
-const int StringNotFoundId = -1;
-const int NullStringId = -2;
-
-void PersistentPool::storeString(const QString &t)
+void PersistentPool::doLoadValue(QString &s)
 {
-    if (t.isNull()) {
-        m_stream << NullStringId;
-        return;
-    }
-
-    int id = m_inverseStringStorage.value(t, StringNotFoundId);
-    if (id < 0) {
-        id = m_lastStoredStringId++;
-        m_inverseStringStorage.insert(t, id);
-        m_stream << id << t;
-    } else {
-        m_stream << id;
-    }
+    m_stream >> s;
 }
 
-QString PersistentPool::loadString(int id)
+void PersistentPool::doLoadValue(QStringList &l)
 {
-    if (id == NullStringId)
-        return QString();
-
-    QBS_CHECK(id >= 0);
-
-    if (id >= static_cast<int>(m_stringStorage.size())) {
-        QString s;
-        m_stream >> s;
-        m_stringStorage.resize(id + 1);
-        m_stringStorage[id] = s;
-        return s;
-    }
-
-    return m_stringStorage.at(id);
+    int size;
+    m_stream >> size;
+    for (int i = 0; i < size; ++i)
+        l << load<QString>();
 }
 
-QString PersistentPool::idLoadString()
+void PersistentPool::doLoadValue(QProcessEnvironment &env)
 {
-    int id;
-    m_stream >> id;
-    return loadString(id);
+    const QStringList keys = load<QStringList>();
+    for (const QString &key : keys)
+        env.insert(key, load<QString>());
 }
+
+void PersistentPool::doStoreValue(const QString &s)
+{
+    m_stream << s;
+}
+
+void PersistentPool::doStoreValue(const QStringList &l)
+{
+    m_stream << l.size();
+    for (const QString &s : l)
+        store(s);
+}
+
+void PersistentPool::doStoreValue(const QProcessEnvironment &env)
+{
+    const QStringList &keys = env.keys();
+    store(keys);
+    for (const QString &key : keys)
+        store(env.value(key));
+}
+
+const PersistentPool::PersistentObjectId PersistentPool::ValueNotFoundId;
+const PersistentPool::PersistentObjectId PersistentPool::EmptyValueId;
 
 } // namespace Internal
 } // namespace qbs

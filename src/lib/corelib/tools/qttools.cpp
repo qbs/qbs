@@ -39,7 +39,10 @@
 
 #include "qttools.h"
 
+#include <QtCore/qprocess.h>
+
 QT_BEGIN_NAMESPACE
+
 uint qHash(const QStringList &list)
 {
     uint s = 0;
@@ -47,4 +50,10 @@ uint qHash(const QStringList &list)
         s ^= qHash(n) + 0x9e3779b9 + (s << 6) + (s >> 2);
     return s;
 }
+
+uint qHash(const QProcessEnvironment &env)
+{
+    return qHash(env.toStringList());
+}
+
 QT_END_NAMESPACE
