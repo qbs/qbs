@@ -200,9 +200,6 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
     if (m_rule->isDynamic()) {
         outputArtifacts = runOutputArtifactsScript(inputArtifacts,
                     ScriptEngine::argumentList(Rule::argumentNamesForOutputArtifacts(), scope()));
-        ArtifactSet newOutputs = ArtifactSet::fromList(outputArtifacts);
-        const ArtifactSet oldOutputs = collectOldOutputArtifacts(inputArtifacts);
-        handleRemovedRuleOutputs(m_completeInputSet, oldOutputs - newOutputs, m_logger);
     } else {
         Set<QString> outputFilePaths;
         for (const RuleArtifactConstPtr &ruleArtifact : m_rule->artifacts) {
@@ -219,6 +216,10 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
                                                                            &outputFilePaths));
         }
     }
+
+    ArtifactSet newOutputs = ArtifactSet::fromList(outputArtifacts);
+    const ArtifactSet oldOutputs = collectOldOutputArtifacts(inputArtifacts);
+    handleRemovedRuleOutputs(m_completeInputSet, oldOutputs - newOutputs, m_logger);
 
     if (outputArtifacts.empty())
         return;
