@@ -29,6 +29,7 @@
 ****************************************************************************/
 
 import qbs 1.0
+import qbs.File
 
 GenericGCC {
     condition: qbs.toolchain && qbs.toolchain.contains("gcc")
@@ -42,7 +43,7 @@ GenericGCC {
     dynamicLibrarySuffix: ".so"
     debugInfoSuffix: ".debug"
     imageFormat: "elf"
-    systemRunPaths: ["/lib", "/usr/lib"]
+    systemRunPaths: ["/lib", "/usr/lib"].filter(function(p) { return File.exists(p); })
     rpathOrigin: "$ORIGIN"
     useRPathLink: true
     rpathLinkFlag: "-rpath-link="
