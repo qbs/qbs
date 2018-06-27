@@ -13,7 +13,7 @@ Module {
     }
     Group {
         name: "thelib dll import"
-        condition: qbs.targetOS.contains("windows") && !qbs.toolchain.contains("mingw")
+        condition: qbs.targetOS.contains("windows")
         files: FileInfo.joinPaths(product.thelib.baseDir, "thelib.lib")
         fileTags: ["dynamiclibrary_import"]
         filesAreTargets: true

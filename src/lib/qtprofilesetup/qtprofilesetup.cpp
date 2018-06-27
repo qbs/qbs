@@ -418,10 +418,12 @@ static std::pair<int, int> findVariable(const QByteArray &content, int start)
 static QByteArray libraryFileTag(const QtEnvironment &env, const QtModuleInfo &module)
 {
     QByteArray result;
-    if (module.isStaticLibrary)
+    if (module.isStaticLibrary) {
         result = "staticlibrary";
-    else
-        result = isMsvcQt(env) ? "dynamiclibrary_import" : "dynamiclibrary";
+    } else {
+        result = isMsvcQt(env) || env.mkspecName.startsWith(QLatin1String("win32-g++"))
+                ? "dynamiclibrary_import" : "dynamiclibrary";
+    }
     return result;
 }
 

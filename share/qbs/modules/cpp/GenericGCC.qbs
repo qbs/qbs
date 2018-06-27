@@ -400,11 +400,12 @@ CppModule {
             }
             return tags;
         }
-        inputsFromDependencies: ["dynamiclibrary_symbols", "staticlibrary"]
+        inputsFromDependencies: ["dynamiclibrary_symbols", "staticlibrary", "dynamiclibrary_import"]
 
         outputFileTags: [
             "bundle.input",
-            "dynamiclibrary", "dynamiclibrary_symlink", "dynamiclibrary_symbols", "debuginfo_dll"
+            "dynamiclibrary", "dynamiclibrary_symlink", "dynamiclibrary_symbols", "debuginfo_dll",
+            "dynamiclibrary_import",
         ]
         outputArtifacts: {
             var artifacts = [{
@@ -416,7 +417,14 @@ CppModule {
                                      + PathTools.bundleExecutableFilePath(product)
                 }
             }];
-            if (!product.qbs.toolchain.contains("mingw")) {
+            if (product.qbs.toolchain.contains("mingw")) {
+                artifacts.push({
+                    fileTags: ["dynamiclibrary_import"],
+                    filePath: FileInfo.joinPaths(product.destinationDirectory,
+                                                 PathTools.importLibraryFilePath(product)),
+                    alwaysUpdated: false
+                });
+            } else {
                 // List of libfoo's public symbols for smart re-linking.
                 artifacts.push({
                     filePath: product.destinationDirectory + "/.sosymbols/"
@@ -455,7 +463,7 @@ CppModule {
         condition: product.cpp.shouldLink
         multiplex: true
         inputs: ["obj", "linkerscript"]
-        inputsFromDependencies: ["dynamiclibrary_symbols", "staticlibrary"]
+        inputsFromDependencies: ["dynamiclibrary_symbols", "dynamiclibrary_import", "staticlibrary"]
 
         outputFileTags: ["bundle.input", "staticlibrary", "c_staticlibrary", "cpp_staticlibrary"]
         outputArtifacts: {
@@ -504,7 +512,7 @@ CppModule {
             }
             return tags;
         }
-        inputsFromDependencies: ["dynamiclibrary_symbols", "staticlibrary"]
+        inputsFromDependencies: ["dynamiclibrary_symbols", "dynamiclibrary_import", "staticlibrary"]
 
         outputFileTags: ["bundle.input", "loadablemodule", "debuginfo_loadablemodule"]
         outputArtifacts: {
@@ -541,7 +549,7 @@ CppModule {
             }
             return tags;
         }
-        inputsFromDependencies: ["dynamiclibrary_symbols", "staticlibrary"]
+        inputsFromDependencies: ["dynamiclibrary_symbols", "dynamiclibrary_import", "staticlibrary"]
 
         outputFileTags: ["bundle.input", "application", "debuginfo_app"]
         outputArtifacts: {

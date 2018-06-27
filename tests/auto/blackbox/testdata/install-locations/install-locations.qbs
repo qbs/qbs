@@ -6,10 +6,6 @@ Project {
             console.info("is mac");
         else
             console.info("is unix");
-        if (qbs.toolchain.contains("msvc"))
-            console.info("is msvc")
-        else
-            console.info("is gcc");
     }
     CppApplication {
         name: "theapp"

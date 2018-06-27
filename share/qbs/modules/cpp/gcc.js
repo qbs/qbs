@@ -78,6 +78,8 @@ function collectLibraryDependencies(product, isDarwin) {
     var publicDeps = {};
     var objects = [];
     var objectByFilePath = {};
+    var tagForLinkingAgainstSharedLib = product.qbs.toolchain.contains("mingw")
+            ? "dynamiclibrary_import" : "dynamiclibrary";
 
     function addObject(obj, addFunc) {
         addFunc.call(objects, obj);
@@ -151,7 +153,7 @@ function collectLibraryDependencies(product, isDarwin) {
 
         var isStaticLibrary = typeof dep.artifacts["staticlibrary"] !== "undefined";
         var isDynamicLibrary = !isStaticLibrary
-                && typeof dep.artifacts["dynamiclibrary"] !== "undefined";
+                && typeof dep.artifacts[tagForLinkingAgainstSharedLib] !== "undefined";
         if (!isStaticLibrary && !isDynamicLibrary)
             return;
 
@@ -173,10 +175,10 @@ function collectLibraryDependencies(product, isDarwin) {
             }
         } else if (isDynamicLibrary) {
             if (!isBelowIndirectDynamicLib) {
-                addArtifactFilePaths(dep, "dynamiclibrary", addPublicFilePath);
+                addArtifactFilePaths(dep, tagForLinkingAgainstSharedLib, addPublicFilePath);
                 publicDeps[dep.name] = true;
             } else {
-                addArtifactFilePaths(dep, "dynamiclibrary", addPrivateFilePath);
+                addArtifactFilePaths(dep, tagForLinkingAgainstSharedLib, addPrivateFilePath);
             }
         }
     }
@@ -245,7 +247,7 @@ function escapeLinkerFlags(product, inputs, linkerFlags) {
     return linkerFlags;
 }
 
-function linkerFlags(project, product, inputs, output, linkerPath) {
+function linkerFlags(project, product, inputs, outputs, primaryOutput, linkerPath) {
     var libraryPaths = product.cpp.libraryPaths;
     var distributionLibraryPaths = product.cpp.distributionLibraryPaths;
     var isDarwin = product.qbs.targetOS.contains("darwin");
@@ -261,7 +263,7 @@ function linkerFlags(project, product, inputs, output, linkerPath) {
 
     var escapableLinkerFlags = [];
 
-    if (output.fileTags.contains("dynamiclibrary")) {
+    if (primaryOutput.fileTags.contains("dynamiclibrary")) {
         if (isDarwin) {
             args.push((function () {
                 var tags = ["c", "cpp", "objc", "objcpp", "asm_cpp"];
@@ -279,16 +281,18 @@ function linkerFlags(project, product, inputs, output, linkerPath) {
             var internalVersion = product.cpp.internalVersion;
             if (internalVersion && isNumericProductVersion(internalVersion))
                 args.push("-current_version", internalVersion);
-            escapableLinkerFlags.push("-install_name", UnixUtils.soname(product, output.fileName));
+            escapableLinkerFlags.push("-install_name", UnixUtils.soname(product,
+                                                                        primaryOutput.fileName));
         } else {
-            escapableLinkerFlags.push("-soname=" + UnixUtils.soname(product, output.fileName));
+            escapableLinkerFlags.push("-soname=" + UnixUtils.soname(product,
+                                                                    primaryOutput.fileName));
         }
     }
 
-    if (output.fileTags.contains("loadablemodule"))
+    if (primaryOutput.fileTags.contains("loadablemodule"))
         args.push(isDarwin ? "-bundle" : "-shared");
 
-    if (output.fileTags.containsAny(["dynamiclibrary", "loadablemodule"])) {
+    if (primaryOutput.fileTags.containsAny(["dynamiclibrary", "loadablemodule"])) {
         if (isDarwin)
             escapableLinkerFlags.push("-headerpad_max_install_names");
         else
@@ -414,7 +418,7 @@ function linkerFlags(project, product, inputs, output, linkerPath) {
     // Note: due to the QCC response files hack in prepareLinker(), at least one object file or
     // library file must follow the output file path so that QCC has something to process before
     // sending the rest of the arguments through the response file.
-    args.push("-o", output.filePath);
+    args.push("-o", primaryOutput.filePath);
 
     if (inputs.obj)
         args = args.concat(inputs.obj.map(function (obj) { return obj.filePath }));
@@ -500,6 +504,10 @@ function linkerFlags(project, product, inputs, output, linkerPath) {
                                            return product.cpp.rpathLinkFlag + dir;
                                        }));
     }
+
+    var importLibs = outputs.dynamiclibrary_import;
+    if (importLibs)
+        escapableLinkerFlags.push("--out-implib", importLibs[0].filePath);
 
     var escapedLinkerFlags = escapeLinkerFlags(product, inputs, escapableLinkerFlags);
     Array.prototype.push.apply(escapedLinkerFlags, args);
@@ -1240,7 +1248,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
 
     var linkerPath = effectiveLinkerPath(product, inputs)
 
-    var args = linkerFlags(project, product, inputs, primaryOutput, linkerPath);
+    var args = linkerFlags(project, product, inputs, outputs, primaryOutput, linkerPath);
     var wrapperArgsLength = 0;
     var wrapperArgs = product.cpp.linkerWrapper;
     if (wrapperArgs && wrapperArgs.length > 0) {

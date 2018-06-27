@@ -113,7 +113,6 @@ CppModule {
     dynamicLibrarySuffix: ".dll"
     executableSuffix: ".exe"
     debugInfoSuffix: ".pdb"
-    property string dynamicLibraryImportSuffix: ".lib"
     imageFormat: "pe"
     Properties {
         condition: product.multiplexByQbsProperties.contains("buildVariants")
