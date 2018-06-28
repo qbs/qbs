@@ -588,8 +588,14 @@ void CommandLineFrontend::listProducts()
 {
     const QList<ProductData> products = productsToUse().begin().value();
     QStringList output;
-    for (const ProductData &p : products)
-        output += p.fullDisplayName();
+    for (const ProductData &p : products) {
+        QString productInfo = p.fullDisplayName();
+        if (!p.isEnabled())
+            productInfo.append(QLatin1Char(' ')).append(Tr::tr("[disabled]"));
+        else if (!p.properties().value(QLatin1String("builtByDefault")).toBool())
+            productInfo.append(QLatin1Char(' ')).append(Tr::tr("[not built by default]"));
+        output += productInfo;
+    }
     output.sort();
     qbsInfo() << output.join(QLatin1Char('\n'));
 }
