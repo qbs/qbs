@@ -89,6 +89,7 @@ public:
     bool alwaysRun;
     bool prepareScriptNeedsChangeTracking = false;
     bool commandsNeedChangeTracking = false;
+    bool markedForRerun = false;
 
     static QScriptValue translateFileConfig(ScriptEngine *scriptEngine,
                                             const Artifact *artifact,
@@ -116,7 +117,7 @@ public:
                                      exportedModulesAccessedInPrepareScript,
                                      exportedModulesAccessedInCommands,
                                      alwaysRun, prepareScriptNeedsChangeTracking,
-                                     commandsNeedChangeTracking);
+                                     commandsNeedChangeTracking, markedForRerun);
     }
 
 private:

@@ -296,6 +296,7 @@ void Transformer::rescueChangeTrackingData(const TransformerConstPtr &other)
     lastPrepareScriptExecutionTime = other->lastPrepareScriptExecutionTime;
     prepareScriptNeedsChangeTracking = other->prepareScriptNeedsChangeTracking;
     commandsNeedChangeTracking = other->commandsNeedChangeTracking;
+    markedForRerun = other->markedForRerun;
     exportedModulesAccessedInPrepareScript = other->exportedModulesAccessedInPrepareScript;
     exportedModulesAccessedInCommands = other->exportedModulesAccessedInCommands;
 }

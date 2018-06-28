@@ -145,7 +145,6 @@ void Artifact::load(PersistentPool &pool)
     artifactType = static_cast<ArtifactType>(pool.load<quint8>());
     alwaysUpdated = pool.load<bool>();
     oldDataPossiblyPresent = pool.load<bool>();
-    pool.load(knownOutOfDate);
 }
 
 void Artifact::store(PersistentPool &pool)
@@ -163,7 +162,6 @@ void Artifact::store(PersistentPool &pool)
     pool.store(static_cast<quint8>(artifactType));
     pool.store(alwaysUpdated);
     pool.store(oldDataPossiblyPresent);
-    pool.store(knownOutOfDate);
 }
 
 } // namespace Internal

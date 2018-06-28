@@ -100,8 +100,6 @@ public:
     bool alwaysUpdated : 1;
     bool oldDataPossiblyPresent : 1;
 
-    bool knownOutOfDate = false;
-
     void initialize();
     const TypeFilter<Artifact> parentArtifacts() const;
     const TypeFilter<Artifact> childArtifacts() const;

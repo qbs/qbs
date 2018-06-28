@@ -104,7 +104,6 @@ public:
     FileTime timeStamp;
     std::vector<ChildData> children;
     std::vector<QString> fileDependencies;
-    bool knownOutOfDate = false;
 
     // Per-Transformer data
     CommandList commands;
@@ -122,6 +121,7 @@ public:
     FileTime lastCommandExecutionTime;
     std::unordered_map<QString, ExportedModule> exportedModulesAccessedInPrepareScript;
     std::unordered_map<QString, ExportedModule> exportedModulesAccessedInCommands;
+    bool knownOutOfDate = false;
 
     // Only needed for API purposes
     FileTags fileTags;
