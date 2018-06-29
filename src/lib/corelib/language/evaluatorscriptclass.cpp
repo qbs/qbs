@@ -184,6 +184,18 @@ private:
                     result.second = false;
                     return result;
                 }
+
+                // TODO: Provide a dedicated item type for not-yet-instantiated things that
+                //       look like module instances in the AST visitor.
+                if (item->type() == ItemType::ModuleInstance
+                        && !item->hasProperty(StringConstants::presentProperty())) {
+                    const QString errorMessage = Tr::tr("Trying to assign property '%1' "
+                            "on something that is not a module.").arg(propertyName->toString());
+                    extraScope = engine->currentContext()->throwError(errorMessage);
+                    result.second = false;
+                    return result;
+                }
+
                 while (item->type() == ItemType::ModuleInstance)
                     item = item->prototype();
                 if (item->type() != ItemType::Module && item->type() != ItemType::Export) {

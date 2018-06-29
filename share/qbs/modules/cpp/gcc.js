@@ -254,6 +254,9 @@ function linkerFlags(project, product, inputs, output, linkerPath) {
     var weakFrameworks = product.cpp.weakFrameworks;
     var rpaths = (product.cpp.useRPaths !== false) ? product.cpp.rpaths : undefined;
     var systemRunPaths = product.cpp.systemRunPaths || [];
+    var canonicalSystemRunPaths = systemRunPaths.map(function(p) {
+        return File.canonicalFilePath(p);
+    });
     var i, args = additionalCompilerAndLinkerFlags(product);
 
     var escapableLinkerFlags = [];
@@ -337,8 +340,12 @@ function linkerFlags(project, product, inputs, output, linkerPath) {
         return rpath;
     }
 
+    function isNotSystemRunPath(p) {
+        return !systemRunPaths.contains(p)
+                && !canonicalSystemRunPaths.contains(File.canonicalFilePath(p));
+    };
     for (i in rpaths) {
-        if (systemRunPaths.indexOf(rpaths[i]) === -1)
+        if (isNotSystemRunPath(rpaths[i]))
             escapableLinkerFlags.push("-rpath", fixupRPath(rpaths[i]));
     }
 
@@ -382,6 +389,8 @@ function linkerFlags(project, product, inputs, output, linkerPath) {
         allLibraryPaths = allLibraryPaths.uniqueConcat(libraryPaths);
     if (distributionLibraryPaths)
         allLibraryPaths = allLibraryPaths.uniqueConcat(distributionLibraryPaths);
+    if (systemRunPaths.length > 0)
+        allLibraryPaths = allLibraryPaths.filter(isNotSystemRunPath);
     args = args.concat(allLibraryPaths.map(function(path) { return '-L' + path }));
 
     var linkerScripts = inputs.linkerscript

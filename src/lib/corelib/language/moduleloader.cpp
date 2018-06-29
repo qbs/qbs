@@ -366,7 +366,7 @@ class PropertyDeclarationCheck : public ValueHandler
 {
     const Set<Item *> &m_disabledItems;
     Set<Item *> m_handledItems;
-    Item *m_parentItem;
+    std::vector<Item *> m_parentItems;
     Item *m_currentModuleInstance = nullptr;
     QualifiedId m_currentModuleName;
     QString m_currentName;
@@ -376,7 +376,6 @@ public:
     PropertyDeclarationCheck(const Set<Item *> &disabledItems,
                              const SetupProjectParameters &params, Logger &logger)
         : m_disabledItems(disabledItems)
-        , m_parentItem(nullptr)
         , m_params(params)
         , m_logger(logger)
     {
@@ -406,13 +405,13 @@ private:
     bool checkItemValue(ItemValue *value)
     {
         // TODO: Remove once QBS-1030 is fixed.
-        if (m_parentItem->type() == ItemType::Artifact)
+        if (parentItem()->type() == ItemType::Artifact)
             return false;
 
-        if (m_parentItem->type() == ItemType::Properties)
+        if (parentItem()->type() == ItemType::Properties)
             return false;
 
-        if (m_parentItem->isOfTypeOrhasParentOfType(ItemType::Export)) {
+        if (parentItem()->isOfTypeOrhasParentOfType(ItemType::Export)) {
             // Export item prototypes do not have instantiated modules.
             // The module instances are where the Export is used.
             QBS_ASSERT(m_currentModuleInstance, return false);
@@ -430,14 +429,15 @@ private:
 
         if (!itemIsModuleInstance
                 && value->item()->type() != ItemType::ModulePrefix
-                && m_parentItem->file()
-                && (!m_parentItem->file()->idScope()
-                    || !m_parentItem->file()->idScope()->hasProperty(m_currentName))
+                && (!parentItem()->file() || !parentItem()->file()->idScope()
+                    || !parentItem()->file()->idScope()->hasProperty(m_currentName))
                 && !value->createdByPropertiesBlock()) {
+            CodeLocation location = value->location();
+            for (int i = int(m_parentItems.size() - 1); !location.isValid() && i >= 0; --i)
+                location = m_parentItems.at(i)->location();
             const ErrorInfo error(Tr::tr("Item '%1' is not declared. "
-                                         "Did you forget to add a Depends item?").arg(m_currentName),
-                                  value->location().isValid() ? value->location()
-                                                              : m_parentItem->location());
+                                         "Did you forget to add a Depends item?")
+                                  .arg(m_currentModuleName.toString()), location);
             handlePropertyError(error, m_params, m_logger);
             return false;
         }
@@ -458,8 +458,7 @@ private:
             return;
         }
 
-        Item *oldParentItem = m_parentItem;
-        m_parentItem = item;
+        m_parentItems.push_back(item);
         for (Item::PropertyMap::const_iterator it = item->properties().constBegin();
                 it != item->properties().constEnd(); ++it) {
             const PropertyDeclaration decl = item->propertyDeclaration(it.key());
@@ -490,13 +489,13 @@ private:
             }
             m_currentName = it.key();
             const QualifiedId oldModuleName = m_currentModuleName;
-            if (m_parentItem->type() != ItemType::ModulePrefix)
+            if (parentItem()->type() != ItemType::ModulePrefix)
                 m_currentModuleName.clear();
             m_currentModuleName.push_back(m_currentName);
             it.value()->apply(this);
             m_currentModuleName = oldModuleName;
         }
-        m_parentItem = oldParentItem;
+        m_parentItems.pop_back();
         for (Item * const child : item->children()) {
             switch (child->type()) {
             case ItemType::Export:
@@ -526,6 +525,8 @@ private:
     }
 
     void handle(VariantValue *) override { /* only created internally - no need to check */ }
+
+    Item *parentItem() const { return m_parentItems.back(); }
 };
 
 void ModuleLoader::handleTopLevelProject(ModuleLoaderResult *loadResult, Item *projectItem,

@@ -3383,6 +3383,8 @@ void TestBlackbox::exportsPkgconfig()
 {
     QDir::setCurrent(testDataDir + "/exports-pkgconfig");
     QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("Creating TheFirstLib.pc"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("Creating TheSecondLib.pc"), m_qbsStdout.constData());
     QFile sourcePcFile(HostOsInfo::isWindowsHost() ? "TheFirstLib_windows.pc" : "TheFirstLib.pc");
     QString generatedPcFilePath = relativeProductBuildDir("TheFirstLib") + "/TheFirstLib.pc";
     QFile generatedPcFile(generatedPcFilePath);
@@ -3393,6 +3395,12 @@ void TestBlackbox::exportsPkgconfig()
     generatedPcFile.close();
     TEXT_FILE_COMPARE(relativeProductBuildDir("TheSecondLib") + "/TheSecondLib.pc",
                       "TheSecondLib.pc");
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("firstlib.cpp");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("linking"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("Creating TheFirstLib.pc"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("Creating TheSecondLib.pc"), m_qbsStdout.constData());
 }
 
 void TestBlackbox::exportsQbs()
@@ -3443,6 +3451,24 @@ void TestBlackbox::exportsQbs()
     WAIT_FOR_NEW_TIMESTAMP();
     touch("exports-qbs.qbs");
     QCOMPARE(runQbs(QStringList({"-p", "MyTool"})), 0);
+    QVERIFY2(!m_qbsStdout.contains("Creating MyTool.qbs"), m_qbsStdout.constData());
+
+    // Rebuilding the target binary should not cause recreating the module file.
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("mylib.cpp");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.count("linking") >= 2, m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("Creating MyLib"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("Creating MyTool.qbs"), m_qbsStdout.constData());
+
+    // Changing a setting that influences the name of a target artifact should cause
+    // recreating the module file.
+    const QbsRunParameters resolveParams("resolve", QStringList{"-f", "exports-qbs.qbs",
+            "modules.cpp.dynamicLibrarySuffix:.blubb"});
+    QCOMPARE(runQbs(resolveParams), 0);
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.count("linking") >= 2, m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.count("Creating MyLib") == 2, m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("Creating MyTool.qbs"), m_qbsStdout.constData());
 
     // Change tracking for accesses to product.exports (positive).

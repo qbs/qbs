@@ -581,6 +581,50 @@ void TestLanguage::disabledSubProject()
     QCOMPARE(exceptionCaught, false);
 }
 
+void TestLanguage::dottedNames_data()
+{
+    QTest::addColumn<bool>("useProduct");
+    QTest::addColumn<bool>("useModule");
+    QTest::addColumn<bool>("expectSuccess");
+    QTest::addColumn<QString>("expectedErrorMessage");
+    QTest::newRow("missing product dependency") << false << true << false
+            << QString("Item 'a.b' is not declared. Did you forget to add a Depends item");
+    QTest::newRow("missing module dependency") << true << false << false
+            << QString("Item 'x.y' is not declared. Did you forget to add a Depends item");
+    QTest::newRow("missing both dependencies") << false << false << false << QString();
+    QTest::newRow("ok") << true << true << true << QString();
+}
+
+void TestLanguage::dottedNames()
+{
+    QFETCH(bool, expectSuccess);
+    try {
+        SetupProjectParameters params = defaultParameters;
+        params.setProjectFilePath(testProject("dotted-names/dotted-names.qbs"));
+        QFETCH(bool, useProduct);
+        QFETCH(bool, useModule);
+        const QVariantMap overridden{
+            std::make_pair("projects.theProject.includeDottedProduct", useProduct),
+            std::make_pair("projects.theProject.includeDottedModule", useModule)
+        };
+        params.setOverriddenValues(overridden);
+        TopLevelProjectPtr project = loader->loadProject(params);
+        QVERIFY(expectSuccess);
+        QVERIFY(!!project);
+        QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+        QCOMPARE(products.size(), useProduct ? 2 : 1);
+        const ResolvedProductPtr product = products.value("p");
+        QVERIFY(!!product);
+        QCOMPARE(product->moduleProperties->moduleProperty("a.b", "c").toString(), QString("p"));
+        QCOMPARE(product->moduleProperties->moduleProperty("x.y", "z").toString(), QString("p"));
+    } catch (const ErrorInfo &e) {
+        QVERIFY(!expectSuccess);
+        QFETCH(QString, expectedErrorMessage);
+        if (!expectedErrorMessage.isEmpty())
+            QVERIFY2(e.toString().contains(expectedErrorMessage), qPrintable(e.toString()));
+    }
+}
+
 void TestLanguage::emptyJsFile()
 {
     bool exceptionCaught = false;
@@ -839,6 +883,12 @@ void TestLanguage::erroneousFiles_data()
     QTest::newRow("original-in-export-item")
             << "original-in-export-item.qbs:7:32.*The special value 'original' cannot be used "
                "on the right-hand side of a property declaration.";
+    QTest::newRow("original-in-export-item2")
+            << "original-in-export-item2.qbs:6:9.*Item 'x.y' is not declared. Did you forget "
+               "to add a Depends item";
+    QTest::newRow("original-in-export-item3")
+            << "original-in-export-item3.qbs:6:9.*Item 'x.y' is not declared. Did you forget "
+               "to add a Depends item";
     QTest::newRow("mismatching-multiplex-dependency")
             << "mismatching-multiplex-dependency.qbs:7:5.*Dependency from product "
                "'b \\{\"architecture\":\"mips\"\\}' to product 'a \\{\"architecture\":\"mips\"\\}'"
@@ -868,6 +918,7 @@ void TestLanguage::erroneousFiles()
         return;
     }
     QEXPECT_FAIL("undeclared_property_in_Properties_item", "Too expensive to check", Continue);
+    QEXPECT_FAIL("original-in-export-item3", "Too expensive to check", Continue);
     QVERIFY(!"No error thrown on invalid input.");
 }
 
