@@ -2202,10 +2202,7 @@ void TestApi::projectDataAfterProductInvalidation()
 
 void TestApi::processResult()
 {
-    // On Windows, even closed files seem to sometimes block the removal of their parent directories
-    // for a while.
-    if (qbs::Internal::HostOsInfo::isWindowsHost())
-        QTest::qWait(500);
+    waitForFileUnlock();
     removeBuildDir(defaultSetupParameters("process-result"));
 
     QFETCH(int, expectedExitCode);

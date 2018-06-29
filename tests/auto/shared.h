@@ -65,6 +65,18 @@ inline int testTimeoutInMsecs()
     return timeoutInSecs * 1000;
 }
 
+// On Windows, it appears that a lock is sometimes held on files for a short while even after
+// they are closed. The likelihood for that seems to increase with the slowness of the machine.
+inline void waitForFileUnlock()
+{
+    bool ok;
+    int timeoutInSecs = qEnvironmentVariableIntValue("QBS_AUTOTEST_IO_GRACE_PERIOD", &ok);
+    if (!ok)
+        timeoutInSecs = qbs::Internal::HostOsInfo::isWindowsHost() ? 1 : 0;
+    if (timeoutInSecs > 0)
+        QTest::qWait(timeoutInSecs * 1000);
+}
+
 using SettingsPtr = std::unique_ptr<qbs::Settings>;
 inline SettingsPtr settings()
 {
