@@ -4287,6 +4287,16 @@ void TestBlackbox::noProfile()
     QVERIFY2(m_qbsStdout.contains("profile: none"), m_qbsStdout.constData());
 }
 
+void TestBlackbox::noSuchProfile()
+{
+    QDir::setCurrent(testDataDir + "/no-such-profile");
+    QbsRunParameters params(QStringList("products.theProduct.p:1"));
+    params.profile = "jibbetnich";
+    params.expectFailure = true;
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY2(m_qbsStderr.contains("Profile 'jibbetnich' does not exist"), m_qbsStderr.constData());
+}
+
 void TestBlackbox::nonBrokenFilesInBrokenProduct()
 {
     QDir::setCurrent(testDataDir + "/non-broken-files-in-broken-product");

@@ -2087,6 +2087,8 @@ void ModuleLoader::checkProjectNamesInOverrides(const ModuleLoader::TopLevelProj
 void ModuleLoader::checkProductNamesInOverrides()
 {
     for (const QString &productNameInOverride : m_productNamesUsedInOverrides) {
+        if (m_erroneousProducts.contains(productNameInOverride))
+            continue;
         bool found = false;
         for (auto it = m_productsByName.cbegin(); it != m_productsByName.cend(); ++it) {
             // In an override string such as "a.b.c:d, we cannot tell whether we have a product
@@ -3804,6 +3806,7 @@ void ModuleLoader::handleProductError(const ErrorInfo &error,
     productContext->project->result->productInfos.insert(productContext->item,
                                                          productContext->info);
     m_disabledItems << productContext->item;
+    m_erroneousProducts.insert(productContext->name);
 }
 
 static void gatherAssignedProperties(ItemValue *iv, const QualifiedId &prefix,

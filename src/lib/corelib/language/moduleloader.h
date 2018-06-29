@@ -444,6 +444,7 @@ private:
     Set<QString> m_projectNamesUsedInOverrides;
     Set<QString> m_productNamesUsedInOverrides;
     Set<QString> m_disabledProjects;
+    Set<QString> m_erroneousProducts;
 
     int m_dependencyResolvingPass = 0;
 };
