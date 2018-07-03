@@ -446,7 +446,7 @@ bool findPath(BuildGraphNode *u, BuildGraphNode *v, QList<BuildGraphNode *> &pat
 void connect(BuildGraphNode *p, BuildGraphNode *c)
 {
     QBS_CHECK(p != c);
-    qCDebug(lcBuildGraph) << "connect" << p->toString() << "->" << c->toString();
+    qCDebug(lcBuildGraph).noquote() << "connect" << p->toString() << "->" << c->toString();
     if (c->type() == BuildGraphNode::ArtifactNodeType) {
         Artifact * const ac = static_cast<Artifact *>(c);
         for (const Artifact *child : filterByType<Artifact>(p->children)) {
@@ -516,7 +516,7 @@ bool safeConnect(Artifact *u, Artifact *v)
 
 void disconnect(BuildGraphNode *u, BuildGraphNode *v)
 {
-    qCDebug(lcBuildGraph) << "disconnect:" << u->toString() << v->toString();
+    qCDebug(lcBuildGraph).noquote() << "disconnect:" << u->toString() << v->toString();
     u->children.remove(v);
     v->parents.remove(u);
     u->onChildDisconnected(v);
@@ -637,12 +637,12 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product,
     if (!product->buildData)
         return;
     for (BuildGraphNode * const node : qAsConst(buildData->rootNodes())) {
-        qCDebug(lcBuildGraph) << "Checking root node" << node->toString();
+        qCDebug(lcBuildGraph).noquote() << "Checking root node" << node->toString();
         QBS_CHECK(buildData->allNodes().contains(node));
     }
     Set<QString> filePaths;
     for (BuildGraphNode * const node : qAsConst(buildData->allNodes())) {
-        qCDebug(lcBuildGraph) << "Sanity checking node" << node->toString();
+        qCDebug(lcBuildGraph).noquote() << "Sanity checking node" << node->toString();
         QBS_CHECK(node->product == product);
         for (const BuildGraphNode * const parent : qAsConst(node->parents))
             QBS_CHECK(parent->children.contains(node));

@@ -338,7 +338,7 @@ void Executor::updateLeaves(BuildGraphNode *node, NodeSet &seenNodes)
     }
 
     if (isLeaf) {
-        qCDebug(lcExec) << "adding leaf" << node->toString();
+        qCDebug(lcExec).noquote() << "adding leaf" << node->toString();
         m_leaves.push(node);
     }
 }
@@ -361,11 +361,11 @@ bool Executor::scheduleJobs()
             nodeToBuild->accept(this);
             break;
         case BuildGraphNode::Building:
-            qCDebug(lcExec) << nodeToBuild->toString();
+            qCDebug(lcExec).noquote() << nodeToBuild->toString();
             qCDebug(lcExec) << "node is currently being built. Skipping.";
             break;
         case BuildGraphNode::Built:
-            qCDebug(lcExec) << nodeToBuild->toString();
+            qCDebug(lcExec).noquote() << nodeToBuild->toString();
             qCDebug(lcExec) << "node already built. Skipping.";
             break;
         }
@@ -520,9 +520,9 @@ void Executor::executeRuleNode(RuleNode *ruleNode)
     ruleNode->apply(m_logger, changedInputArtifacts, m_productsByName, m_projectsByName, &result);
 
     if (result.upToDate) {
-        qCDebug(lcExec) << ruleNode->toString() << "is up to date. Skipping.";
+        qCDebug(lcExec).noquote() << ruleNode->toString() << "is up to date. Skipping.";
     } else {
-        qCDebug(lcExec) << ruleNode->toString();
+        qCDebug(lcExec).noquote() << ruleNode->toString();
         const WeakPointer<ResolvedProduct> &product = ruleNode->product;
         Set<RuleNode *> parentRules;
         if (!result.createdNodes.empty()) {
@@ -532,7 +532,7 @@ void Executor::executeRuleNode(RuleNode *ruleNode)
             }
         }
         for (BuildGraphNode *node : qAsConst(result.createdNodes)) {
-            qCDebug(lcExec) << "rule created" << node->toString();
+            qCDebug(lcExec).noquote() << "rule created" << node->toString();
             Internal::connect(node, ruleNode);
             if (node->type() != BuildGraphNode::ArtifactNodeType)
                 continue;
@@ -629,18 +629,18 @@ void Executor::finishNode(BuildGraphNode *leaf)
     leaf->buildState = BuildGraphNode::Built;
     for (BuildGraphNode * const parent : qAsConst(leaf->parents)) {
         if (parent->buildState != BuildGraphNode::Buildable) {
-            qCDebug(lcExec) << "parent" << parent->toString()
-                            << "build state:" << toString(parent->buildState);
+            qCDebug(lcExec).noquote() << "parent" << parent->toString()
+                                      << "build state:" << toString(parent->buildState);
             continue;
         }
 
         if (allChildrenBuilt(parent)) {
             m_leaves.push(parent);
-            qCDebug(lcExec) << "finishNode adds leaf"
-                            << parent->toString() << toString(parent->buildState);
+            qCDebug(lcExec).noquote() << "finishNode adds leaf"
+                                      << parent->toString() << toString(parent->buildState);
         } else {
-            qCDebug(lcExec) << "parent" << parent->toString()
-                            << "build state:" << toString(parent->buildState);
+            qCDebug(lcExec).noquote() << "parent" << parent->toString()
+                                      << "build state:" << toString(parent->buildState);
         }
     }
 }
@@ -889,11 +889,11 @@ bool Executor::checkForUnbuiltDependencies(Artifact *artifact)
         switch (dependency->buildState) {
         case BuildGraphNode::Untouched:
         case BuildGraphNode::Buildable:
-            qCDebug(lcExec) << "unbuilt dependency:" << dependency->toString();
+            qCDebug(lcExec).noquote() << "unbuilt dependency:" << dependency->toString();
             unbuiltDependencies += dependency;
             break;
         case BuildGraphNode::Building: {
-            qCDebug(lcExec) << "dependency in state 'Building':" << dependency->toString();
+            qCDebug(lcExec).noquote() << "dependency in state 'Building':" << dependency->toString();
             buildingDependenciesFound = true;
             break;
         }
@@ -1082,10 +1082,11 @@ bool Executor::checkNodeProduct(BuildGraphNode *node)
         return true;
 
     // TODO: Turn this into a warning once we have a reliable C++ scanner.
-    qCDebug(lcExec) << "Ignoring node " << node->toString() << ", which belongs to a "
-                       "product that is not part of the list of products to build. "
-                       "Possible reasons are an erroneous project design or a false "
-                       "positive from a dependency scanner.";
+    qCDebug(lcExec).noquote()
+            << "Ignoring node " << node->toString() << ", which belongs to a "
+               "product that is not part of the list of products to build. "
+               "Possible reasons are an erroneous project design or a false "
+               "positive from a dependency scanner.";
     finishNode(node);
     return false;
 }

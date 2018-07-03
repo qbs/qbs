@@ -132,8 +132,8 @@ void RulesApplicator::handleRemovedRuleOutputs(const ArtifactSet &inputArtifacts
     ArtifactSet artifactsToRemove;
     const TopLevelProject *project = nullptr;
     for (Artifact * const removedArtifact : outputArtifactsToRemove) {
-        qCDebug(lcBuildGraph) << "dynamic rule removed output artifact"
-                              << removedArtifact->toString();
+        qCDebug(lcBuildGraph).noquote() << "dynamic rule removed output artifact"
+                                        << removedArtifact->toString();
         if (!project)
             project = removedArtifact->product->topLevelProject();
         project->buildData->removeArtifactAndExclusiveDependents(removedArtifact, logger, true,
