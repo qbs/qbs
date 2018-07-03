@@ -2651,6 +2651,24 @@ void TestBlackbox::pluginDependency()
     QVERIFY(!output.contains("plugin2"));
     QVERIFY(!output.contains("helper2"));
 
+    // Test change tracking for parameter in Parameters item.
+    WAIT_FOR_NEW_TIMESTAMP();
+    REPLACE_IN_FILE("plugin-dependency.qbs", "false // marker 1", "true");
+    QCOMPARE(runQbs(QStringList{"-p", "plugin2"}), 0);
+    QVERIFY2(!m_qbsStdout.contains("linking"), m_qbsStdout.constData());
+    QCOMPARE(runQbs(QStringList{"--command-echo-mode", "command-line"}), 0);
+    output = m_qbsStdout + '\n' + m_qbsStderr;
+    QVERIFY2(!output.contains("plugin1"), output.constData());
+    QVERIFY2(output.contains("plugin2"), output.constData());
+    QVERIFY2(!output.contains("helper2"), output.constData());
+
+    // Test change tracking for parameter in Depends item.
+    WAIT_FOR_NEW_TIMESTAMP();
+    REPLACE_IN_FILE("plugin-dependency.qbs", "false /* marker 2 */", "true");
+    QCOMPARE(runQbs(QStringList{"-p", "helper1", "--command-echo-mode", "command-line"}), 0);
+    output = m_qbsStdout + '\n' + m_qbsStderr;
+    QVERIFY2(output.contains("helper2"), output.constData());
+
     // Check that the build dependency still works.
     QCOMPARE(runQbs(QStringLiteral("clean")), 0);
     QCOMPARE(runQbs(QStringList{"--products", "myapp", "--command-echo-mode", "command-line"}), 0);

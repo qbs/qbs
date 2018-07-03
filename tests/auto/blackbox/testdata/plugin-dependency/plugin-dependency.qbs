@@ -28,7 +28,7 @@ Project {
         Depends { name: "cpp" }
         Export {
             Parameters {
-                cpp.link: false
+                cpp.link: false // marker 1
             }
         }
     }
@@ -57,7 +57,7 @@ Project {
         name: "helper1"
         files: ["helper1.cpp"]
         Depends { name: "cpp" }
-        Depends { name: "helper2"; cpp.link: false }
+        Depends { name: "helper2"; cpp.link: false /* marker 2 */ }
         Export {
             Depends { name: "cpp" }
             Depends { name: "helper2"; cpp.link: false }
