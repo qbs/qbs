@@ -1,6 +1,13 @@
 CppApplication {
     name: "app"
     type: base.concat("dummy")
+    consoleApplication: true
+
+    Properties {
+        condition: qbs.targetOS.contains("darwin")
+        bundle.embedInfoPlist: false
+    }
+
     Probe {
         id: toolchainProbe
         property stringList toolchain: qbs.toolchain
