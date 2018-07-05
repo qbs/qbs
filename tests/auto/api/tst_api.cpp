@@ -1187,6 +1187,7 @@ void TestApi::explicitlyDependsOn()
 
     WAIT_FOR_NEW_TIMESTAMP();
     touch("compiler.cpp");
+    waitForFileUnlock();
     errorInfo = doBuildProject("explicitly-depends-on", &receiver);
     VERIFY_NO_ERROR(errorInfo);
     QVERIFY2(receiver.descriptions.contains("compiling compiler.cpp"),
