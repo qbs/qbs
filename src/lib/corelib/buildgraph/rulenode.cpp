@@ -169,8 +169,9 @@ void RuleNode::apply(const Logger &logger, const ArtifactSet &changedInputs,
         applicator.applyRule(m_rule, inputs);
         result->createdNodes = applicator.createdArtifacts();
         result->invalidatedNodes = applicator.invalidatedArtifacts();
-        m_oldInputArtifacts = inputs;
     }
+    m_oldInputArtifacts = inputs;
+    product->topLevelProject()->buildData->setDirty();
 }
 
 void RuleNode::load(PersistentPool &pool)
