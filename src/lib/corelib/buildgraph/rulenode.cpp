@@ -143,28 +143,44 @@ void RuleNode::apply(const Logger &logger, const ArtifactSet &changedInputs,
 
     if (result->upToDate)
         return;
-    if (!removedInputs.empty()) {
-        ArtifactSet outputArtifactsToRemove;
-        for (Artifact * const artifact : removedInputs) {
-            for (Artifact *parent : filterByType<Artifact>(artifact->parents)) {
-                if (parent->transformer->rule != m_rule) {
-                    // parent was not created by our rule.
-                    continue;
-                }
 
-                // parent must always have a transformer, because it's generated.
-                QBS_CHECK(parent->transformer);
+    const bool mustApplyRule = !inputs.empty() || !m_rule->declaresInputs()
+            || !m_rule->requiresInputs;
 
-                // artifact is a former input of m_rule and parent was created by m_rule
-                // the inputs of the transformer must contain artifact
-                QBS_CHECK(parent->transformer->inputs.contains(artifact));
-
-                outputArtifactsToRemove += parent;
+    // For a non-multiplex rule, the removal of an input always implies that the
+    // corresponding outputs disappear.
+    // For a multiplex rule, the outputs disappear only if *all* inputs are gone *and*
+    // the rule requires inputs. This is exactly the opposite condition of whether to
+    // re-apply the rule.
+    const bool removedInputForcesOutputRemoval = !m_rule->multiplex || !mustApplyRule;
+    ArtifactSet outputArtifactsToRemove;
+    std::vector<std::pair<Artifact *, Artifact *>> connectionsToBreak;
+    for (Artifact * const artifact : removedInputs) {
+        for (Artifact *parent : filterByType<Artifact>(artifact->parents)) {
+            if (parent->transformer->rule != m_rule) {
+                // parent was not created by our rule.
+                continue;
             }
+
+            // parent must always have a transformer, because it's generated.
+            QBS_CHECK(parent->transformer);
+
+            // artifact is a former input of m_rule and parent was created by m_rule
+            // the inputs of the transformer must contain artifact
+            QBS_CHECK(parent->transformer->inputs.contains(artifact));
+
+            if (removedInputForcesOutputRemoval)
+                outputArtifactsToRemove += parent;
+            else
+                connectionsToBreak.push_back(std::make_pair(parent, artifact));
         }
-        RulesApplicator::handleRemovedRuleOutputs(inputs, outputArtifactsToRemove, logger);
     }
-    if (!inputs.empty() || !m_rule->declaresInputs() || !m_rule->requiresInputs) {
+    for (const auto &connection : connectionsToBreak)
+        disconnect(connection.first, connection.second);
+    if (!outputArtifactsToRemove.empty())
+        RulesApplicator::handleRemovedRuleOutputs(inputs, outputArtifactsToRemove, logger);
+
+    if (mustApplyRule) {
         RulesApplicator applicator(product.lock(), productsByName, projectsByName, logger);
         applicator.applyRule(m_rule, inputs);
         result->createdNodes = applicator.createdArtifacts();
