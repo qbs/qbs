@@ -655,13 +655,26 @@ void provideFullFileTagsAndProperties(Artifact *artifact)
         artifact->addFileTag("installable");
 }
 
+void applyPerArtifactProperties(Artifact *artifact)
+{
+    if (artifact->pureProperties.empty())
+        return;
+    QVariantMap props = artifact->properties->value();
+    for (const auto &property : artifact->pureProperties)
+        setConfigProperty(props, property.first, property.second);
+    artifact->properties = artifact->properties->clone();
+    artifact->properties->setValue(props);
+}
+
 void updateGeneratedArtifacts(ResolvedProduct *product)
 {
     if (!product->buildData)
         return;
     for (Artifact * const artifact : filterByType<Artifact>(product->buildData->allNodes())) {
-        if (artifact->artifactType == Artifact::Generated)
+        if (artifact->artifactType == Artifact::Generated) {
             provideFullFileTagsAndProperties(artifact);
+            applyPerArtifactProperties(artifact);
+        }
     }
 }
 

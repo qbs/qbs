@@ -260,7 +260,9 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
                                         engine()->lastErrorString(scriptValue)),
                                 engine()->lastErrorLocation(scriptValue, binding.location));
             }
-            setConfigProperty(artifactModulesCfg, binding.name, scriptValue.toVariant());
+            const QVariant value = scriptValue.toVariant();
+            setConfigProperty(artifactModulesCfg, binding.name, value);
+            outputArtifact->pureProperties.push_back(std::make_pair(binding.name, value));
         }
         outputArtifact->properties->setValue(artifactModulesCfg);
     }
@@ -552,8 +554,11 @@ public:
 
         outputArtifact->properties = outputArtifact->properties->clone();
         QVariantMap artifactCfg = outputArtifact->properties->value();
-        for (const auto &e : m_propertyValues)
-            setConfigProperty(artifactCfg, {e.module, e.name}, e.value);
+        for (const auto &e : m_propertyValues) {
+            const QStringList key{e.module, e.name};
+            setConfigProperty(artifactCfg, key, e.value);
+            outputArtifact->pureProperties.push_back(std::make_pair(key, e.value));
+        }
         outputArtifact->properties->setValue(artifactCfg);
     }
 };

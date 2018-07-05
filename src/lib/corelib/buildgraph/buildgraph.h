@@ -75,6 +75,7 @@ void updateArtifactFromSourceArtifact(const ResolvedProductPtr &product,
 void insertArtifact(const ResolvedProductPtr &product, Artifact *artifact);
 void dumpProductBuildData(const ResolvedProductConstPtr &product);
 void provideFullFileTagsAndProperties(Artifact *artifact);
+void applyPerArtifactProperties(Artifact *artifact);
 void updateGeneratedArtifacts(ResolvedProduct *product);
 
 bool findPath(BuildGraphNode *u, BuildGraphNode *v, QList<BuildGraphNode*> &path);

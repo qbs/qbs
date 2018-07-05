@@ -143,6 +143,7 @@ void Artifact::load(PersistentPool &pool)
     pool.load(transformer);
     pool.load(m_fileTags);
     pool.load(pureFileTags);
+    pool.load(pureProperties);
     artifactType = static_cast<ArtifactType>(pool.load<quint8>());
     alwaysUpdated = pool.load<bool>();
     oldDataPossiblyPresent = pool.load<bool>();
@@ -161,6 +162,7 @@ void Artifact::store(PersistentPool &pool)
     pool.store(transformer);
     pool.store(m_fileTags);
     pool.store(pureFileTags);
+    pool.store(pureProperties);
     pool.store(static_cast<quint8>(artifactType));
     pool.store(alwaysUpdated);
     pool.store(oldDataPossiblyPresent);

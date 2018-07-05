@@ -50,6 +50,9 @@
 
 #include <QtCore/qstring.h>
 
+#include <utility>
+#include <vector>
+
 namespace qbs {
 namespace Internal {
 class Logger;
@@ -91,6 +94,10 @@ public:
     // not the result of file taggers or fileTagsFilter groups, nor the ones inherited from
     // the product.
     FileTags pureFileTags;
+
+    // The properties attached directly to an artifact in an Artifact item or outputArtifacts
+    // script.
+    std::vector<std::pair<QStringList, QVariant>> pureProperties;
 
     enum ArtifactType
     {
