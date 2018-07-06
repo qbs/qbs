@@ -278,5 +278,12 @@ ArtifactSet RuleNode::changedInputArtifacts(const QList<Artifact *> &allChangedS
     return changedInputArtifacts;
 }
 
+void RuleNode::removeOldInputArtifact(Artifact *artifact)
+{
+    static Artifact dummyArtifact;
+    if (m_oldInputArtifacts.remove(artifact))
+        m_oldInputArtifacts.insert(&dummyArtifact);
+}
+
 } // namespace Internal
 } // namespace qbs

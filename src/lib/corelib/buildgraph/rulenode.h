@@ -78,7 +78,7 @@ public:
                const std::unordered_map<QString, const ResolvedProduct *> &productsByName,
                const std::unordered_map<QString, const ResolvedProject *> &projectsByName,
                ApplicationResult *result);
-    void removeOldInputArtifact(Artifact *artifact) { m_oldInputArtifacts.remove(artifact); }
+    void removeOldInputArtifact(Artifact *artifact);
 
     void load(PersistentPool &pool);
     void store(PersistentPool &pool);
