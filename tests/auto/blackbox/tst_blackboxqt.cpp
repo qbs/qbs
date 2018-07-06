@@ -377,6 +377,7 @@ void TestBlackboxQt::track_qrc()
         f.write("bla");
         f.close();
     }
+    waitForFileUnlock();
     QCOMPARE(runQbs(QbsRunParameters("run")), 0);
     QVERIFY(regularFileExists(fileName));
     QVERIFY(dt < QFileInfo(fileName).lastModified());

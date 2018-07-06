@@ -183,6 +183,7 @@ private slots:
     void nestedProperties();
     void newOutputArtifact();
     void noProfile();
+    void noSuchProfile();
     void nodejs();
     void nonBrokenFilesInBrokenProduct();
     void nonDefaultProduct();
