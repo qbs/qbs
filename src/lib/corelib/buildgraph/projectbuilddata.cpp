@@ -359,8 +359,8 @@ private:
             node->product = m_product;
             node->setRule(rule);
             m_product->buildData->addNode(node);
-            qCDebug(lcBuildGraph) << "create" << node->toString()
-                                  << "for product" << m_product->uniqueName();
+            qCDebug(lcBuildGraph).noquote() << "create" << node->toString()
+                                            << "for product" << m_product->uniqueName();
         }
         if (parentRule) {
             RuleNode *parent = m_nodePerRule.value(parentRule);

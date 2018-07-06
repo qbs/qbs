@@ -221,7 +221,7 @@ QScriptValue QtMocScanner::apply(QScriptEngine *engine, const Artifact *artifact
 
     findIncludedMocCppFiles();
 
-    qCDebug(lcMocScan) << "scanning" << artifact->toString();
+    qCDebug(lcMocScan).noquote() << "scanning" << artifact->toString();
 
     bool hasQObjectMacro = false;
     bool mustCompile = false;

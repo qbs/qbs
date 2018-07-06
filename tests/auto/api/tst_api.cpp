@@ -1187,6 +1187,7 @@ void TestApi::explicitlyDependsOn()
 
     WAIT_FOR_NEW_TIMESTAMP();
     touch("compiler.cpp");
+    waitForFileUnlock();
     errorInfo = doBuildProject("explicitly-depends-on", &receiver);
     VERIFY_NO_ERROR(errorInfo);
     QVERIFY2(receiver.descriptions.contains("compiling compiler.cpp"),
@@ -2202,10 +2203,7 @@ void TestApi::projectDataAfterProductInvalidation()
 
 void TestApi::processResult()
 {
-    // On Windows, even closed files seem to sometimes block the removal of their parent directories
-    // for a while.
-    if (qbs::Internal::HostOsInfo::isWindowsHost())
-        QTest::qWait(500);
+    waitForFileUnlock();
     removeBuildDir(defaultSetupParameters("process-result"));
 
     QFETCH(int, expectedExitCode);
