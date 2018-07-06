@@ -74,7 +74,7 @@ public:
         NodeSet invalidatedNodes;
     };
 
-    void apply(const Logger &logger, const ArtifactSet &changedInputs,
+    void apply(const Logger &logger, const QList<Artifact *> &allChangedSources,
                const std::unordered_map<QString, const ResolvedProduct *> &productsByName,
                const std::unordered_map<QString, const ResolvedProject *> &projectsByName,
                ApplicationResult *result);
@@ -90,6 +90,7 @@ private:
     }
 
     ArtifactSet currentInputArtifacts() const;
+    ArtifactSet changedInputArtifacts(const QList<Artifact *> &allChangedSources) const;
 
     RuleConstPtr m_rule;
     ArtifactSet m_oldInputArtifacts;

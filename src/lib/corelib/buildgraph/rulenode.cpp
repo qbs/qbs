@@ -78,7 +78,7 @@ QString RuleNode::toString() const
             + QLatin1String(" located at ") + m_rule->prepareScript.location().toString();
 }
 
-void RuleNode::apply(const Logger &logger, const ArtifactSet &changedInputs,
+void RuleNode::apply(const Logger &logger, const QList<Artifact *> &allChangedSources,
                      const std::unordered_map<QString, const ResolvedProduct *> &productsByName,
                      const std::unordered_map<QString, const ResolvedProject *> &projectsByName,
                      ApplicationResult *result)
@@ -86,6 +86,7 @@ void RuleNode::apply(const Logger &logger, const ArtifactSet &changedInputs,
     ArtifactSet allCompatibleInputs = currentInputArtifacts();
     const ArtifactSet addedInputs = allCompatibleInputs - m_oldInputArtifacts;
     const ArtifactSet removedInputs = m_oldInputArtifacts - allCompatibleInputs;
+    const ArtifactSet changedInputs = changedInputArtifacts(allChangedSources);
     result->upToDate = changedInputs.empty() && addedInputs.empty() && removedInputs.empty();
 
     qCDebug(lcBuildGraph).noquote().nospace()
@@ -243,6 +244,38 @@ ArtifactSet RuleNode::currentInputArtifacts() const
     }
 
     return s;
+}
+
+ArtifactSet RuleNode::changedInputArtifacts(const QList<Artifact *> &allChangedSources) const
+{
+    ArtifactSet changedInputArtifacts;
+    if (!rule()->isDynamic())
+        return changedInputArtifacts;
+    for (Artifact * const artifact : qAsConst(allChangedSources)) {
+        if (artifact->product != product)
+            continue;
+        if (artifact->isTargetOfModule())
+            continue;
+        if (rule()->acceptsAsInput(artifact))
+            changedInputArtifacts += artifact;
+    }
+    for (Artifact *artifact : filterByType<Artifact>(product->buildData->allNodes())) {
+        if (artifact->artifactType == Artifact::SourceFile)
+            continue;
+        if (rule()->acceptsAsInput(artifact)) {
+            for (const Artifact * const parent : artifact->parentArtifacts()) {
+                if (parent->transformer->rule != rule())
+                    continue;
+                if (!parent->alwaysUpdated)
+                    continue;
+                if (parent->timestamp() < artifact->timestamp()) {
+                    changedInputArtifacts += artifact;
+                    break;
+                }
+            }
+        }
+    }
+    return changedInputArtifacts;
 }
 
 } // namespace Internal

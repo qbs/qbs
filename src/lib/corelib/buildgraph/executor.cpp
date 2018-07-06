@@ -487,37 +487,10 @@ void Executor::executeRuleNode(RuleNode *ruleNode)
         return;
 
     QBS_CHECK(!m_evalContext->engine()->isActive());
-    ArtifactSet changedInputArtifacts;
-    if (ruleNode->rule()->isDynamic()) {
-        for (Artifact * const artifact : qAsConst(m_changedSourceArtifacts)) {
-            if (artifact->product != ruleNode->product)
-                continue;
-            if (artifact->isTargetOfModule())
-                continue;
-            if (ruleNode->rule()->acceptsAsInput(artifact))
-                changedInputArtifacts += artifact;
-        }
-        for (Artifact *artifact : filterByType<Artifact>(ruleNode->product->buildData->allNodes())) {
-            if (artifact->artifactType == Artifact::SourceFile)
-                continue;
-            if (ruleNode->rule()->acceptsAsInput(artifact)) {
-                for (const Artifact * const parent : artifact->parentArtifacts()) {
-                    if (parent->transformer->rule != ruleNode->rule())
-                        continue;
-                    if (!parent->alwaysUpdated)
-                        continue;
-                    if (parent->timestamp() < artifact->timestamp()) {
-                        changedInputArtifacts += artifact;
-                        break;
-                    }
-                }
-            }
-        }
-    }
 
     RuleNode::ApplicationResult result;
-    ruleNode->apply(m_logger, changedInputArtifacts, m_productsByName, m_projectsByName, &result);
-
+    ruleNode->apply(m_logger, m_changedSourceArtifacts, m_productsByName, m_projectsByName,
+                    &result);
     if (result.upToDate) {
         qCDebug(lcExec).noquote() << ruleNode->toString() << "is up to date. Skipping.";
     } else {
