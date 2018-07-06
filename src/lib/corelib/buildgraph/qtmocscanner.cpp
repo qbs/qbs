@@ -257,6 +257,7 @@ QScriptValue QtMocScanner::apply(QScriptEngine *engine, const Artifact *artifact
     obj.setProperty(QStringLiteral("hasQObjectMacro"), hasQObjectMacro);
     obj.setProperty(QStringLiteral("mustCompile"), mustCompile);
     obj.setProperty(QStringLiteral("hasPluginMetaDataMacro"), hasPluginMetaDataMacro);
+    static_cast<ScriptEngine *>(engine)->setUsesIo();
     return obj;
 }
 

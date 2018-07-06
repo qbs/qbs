@@ -186,6 +186,8 @@ void RuleNode::apply(const Logger &logger, const QList<Artifact *> &allChangedSo
         applicator.applyRule(m_rule, inputs);
         result->createdNodes = applicator.createdArtifacts();
         result->invalidatedNodes = applicator.invalidatedArtifacts();
+        if (applicator.ruleUsesIo())
+            m_needsToConsiderChangedInputs = true;
     }
     m_oldInputArtifacts = inputs;
     product->topLevelProject()->buildData->setDirty();
@@ -249,7 +251,7 @@ ArtifactSet RuleNode::currentInputArtifacts() const
 ArtifactSet RuleNode::changedInputArtifacts(const QList<Artifact *> &allChangedSources) const
 {
     ArtifactSet changedInputArtifacts;
-    if (!rule()->isDynamic())
+    if (!m_needsToConsiderChangedInputs)
         return changedInputArtifacts;
     for (Artifact * const artifact : qAsConst(allChangedSources)) {
         if (artifact->product != product)

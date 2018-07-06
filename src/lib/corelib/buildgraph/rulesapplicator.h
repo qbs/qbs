@@ -70,6 +70,7 @@ public:
 
     const NodeSet &createdArtifacts() const { return m_createdArtifacts; }
     const NodeSet &invalidatedArtifacts() const { return m_invalidatedArtifacts; }
+    bool ruleUsesIo() const { return m_ruleUsesIo; }
 
     void applyRule(const RuleConstPtr &rule, const ArtifactSet &inputArtifacts);
     static void handleRemovedRuleOutputs(const ArtifactSet &inputArtifacts,
@@ -112,6 +113,7 @@ private:
     TransformerConstPtr m_oldTransformer;
     QtMocScanner *m_mocScanner;
     Logger m_logger;
+    bool m_ruleUsesIo = false;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(RulesApplicator::InputsSources)

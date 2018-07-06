@@ -86,7 +86,7 @@ public:
 private:
     template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
     {
-        pool.serializationOp<opType>(m_rule, m_oldInputArtifacts);
+        pool.serializationOp<opType>(m_rule, m_oldInputArtifacts, m_needsToConsiderChangedInputs);
     }
 
     ArtifactSet currentInputArtifacts() const;
@@ -94,6 +94,7 @@ private:
 
     RuleConstPtr m_rule;
     ArtifactSet m_oldInputArtifacts;
+    bool m_needsToConsiderChangedInputs = false;
 };
 
 template<> inline bool hasDynamicType<RuleNode>(const BuildGraphNode *n)

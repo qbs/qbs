@@ -125,6 +125,7 @@ QScriptValue TextFile::ctor(QScriptContext *context, QScriptEngine *engine)
             DubiousContext(EvalContext::PropertyEvaluation, DubiousContext::SuggestMoving)
     });
     se->checkContext(QLatin1String("qbs.TextFile"), dubiousContexts);
+    se->setUsesIo();
 
     return engine->newQObject(t, QScriptEngine::QtOwnership);
 }

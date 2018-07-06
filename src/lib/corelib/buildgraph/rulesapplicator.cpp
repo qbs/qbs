@@ -116,6 +116,7 @@ void RulesApplicator::applyRule(const RuleConstPtr &rule, const ArtifactSet &inp
     setupScriptEngineForProduct(engine(), m_product.get(), m_rule->module.get(),
                                 prepareScriptContext, true);
 
+    engine()->clearUsesIo();
     if (m_rule->multiplex) { // apply the rule once for a set of inputs
         doApply(inputArtifacts, prepareScriptContext);
     } else { // apply the rule once for each input
@@ -125,6 +126,8 @@ void RulesApplicator::applyRule(const RuleConstPtr &rule, const ArtifactSet &inp
             doApply(lst, prepareScriptContext);
         }
     }
+    if (engine()->usesIo())
+        m_ruleUsesIo = true;
 }
 
 void RulesApplicator::handleRemovedRuleOutputs(const ArtifactSet &inputArtifacts,

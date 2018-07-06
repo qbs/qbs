@@ -135,6 +135,7 @@ QScriptValue Process::ctor(QScriptContext *context, QScriptEngine *engine)
         t->m_environment
             = QProcessEnvironment(*reinterpret_cast<QProcessEnvironment*>(v.value<void*>()));
     }
+    se->setUsesIo();
 
     return obj;
 }

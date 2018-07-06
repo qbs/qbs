@@ -156,6 +156,10 @@ public:
     void addImportRequestedInScript(qint64 importValueId);
     std::vector<QString> importedFilesUsedInScript() const;
 
+    void setUsesIo() { m_usesIo = true; }
+    void clearUsesIo() { m_usesIo = false; }
+    bool usesIo() const { return m_usesIo; }
+
     void enableProfiling(bool enable);
 
     void setPropertyCacheEnabled(bool enable) { m_propertyCacheEnabled = enable; }
@@ -322,6 +326,7 @@ private:
     QScriptValue m_consoleObject;
     QScriptValue m_cancelationError;
     qint64 m_elapsedTimeImporting = -1;
+    bool m_usesIo = false;
     EvalContext m_evalContext;
     std::vector<ResourceAcquiringScriptObject *> m_resourceAcquiringScriptObjects;
     const std::unique_ptr<PrepareScriptObserver> m_observer;

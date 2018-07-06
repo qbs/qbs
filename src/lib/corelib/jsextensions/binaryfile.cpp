@@ -115,6 +115,7 @@ QScriptValue BinaryFile::ctor(QScriptContext *context, QScriptEngine *engine)
         DubiousContext(EvalContext::PropertyEvaluation, DubiousContext::SuggestMoving)
     };
     se->checkContext(QLatin1String("qbs.BinaryFile"), dubiousContexts);
+    se->setUsesIo();
 
     return engine->newQObject(t, QScriptEngine::QtOwnership);
 }

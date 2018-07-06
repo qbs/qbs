@@ -38,6 +38,8 @@
 **
 ****************************************************************************/
 
+#include <language/scriptengine.h>
+
 #include <QtCore/qfile.h>
 #include <QtCore/qobject.h>
 #include <QtCore/qvariant.h>
@@ -132,6 +134,7 @@ QScriptValue XmlDomDocument::ctor(QScriptContext *context, QScriptEngine *engine
         return context->throwError(QLatin1String("DomXml(QString file = QLatin1String(\"\"))"));
     }
     QScriptValue obj = engine->newQObject(xml, QScriptEngine::ScriptOwnership);
+    static_cast<ScriptEngine *>(engine)->setUsesIo();
     return obj;
 }
 
