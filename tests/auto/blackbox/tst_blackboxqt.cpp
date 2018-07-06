@@ -225,6 +225,7 @@ void TestBlackboxQt::pluginMetaData()
     QVERIFY2(m_qbsStderr.contains("all ok!"), m_qbsStderr.constData());
     WAIT_FOR_NEW_TIMESTAMP();
     touch("metadata.json");
+    waitForFileUnlock();
     QCOMPARE(runQbs(), 0);
     QVERIFY2(m_qbsStdout.contains("moc"), m_qbsStdout.constData());
 }
