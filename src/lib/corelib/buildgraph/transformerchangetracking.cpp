@@ -124,6 +124,7 @@ QVariantMap TrafoChangeTracker::propertyMapByKind(const Property &property) cons
             return v;
         return getParameterValue(p->moduleParameters, depName);
     }
+    case Property::PropertyInArtifact:
     default:
         QBS_CHECK(false);
     }
@@ -151,7 +152,10 @@ bool TrafoChangeTracker::checkForPropertyChange(const Property &restoredProperty
         while (!moduleName.empty())
             map = map.value(moduleName.takeFirst()).toMap();
         v = map.value(restoredProperty.propertyName);
+        break;
     }
+    case Property::PropertyInArtifact:
+        QBS_CHECK(false);
     }
     if (restoredProperty.value != v) {
         qCDebug(lcBuildGraph).noquote().nospace()
@@ -271,6 +275,11 @@ bool TrafoChangeTracker::prepareScriptNeedsRerun() const
             const Artifact * const artifact = getArtifact(it.key(), property.productName);
             if (!artifact)
                 return true;
+            if (property.kind == Property::PropertyInArtifact) {
+                if (artifact->fileTags().toStringList() != property.value.toStringList())
+                    return true;
+                continue;
+            }
             if (checkForPropertyChange(property, artifact->properties->value()))
                 return true;
         }
@@ -302,6 +311,11 @@ bool TrafoChangeTracker::commandsNeedRerun() const
             const Artifact * const artifact = getArtifact(it.key(), property.productName);
             if (!artifact)
                 return true;
+            if (property.kind == Property::PropertyInArtifact) {
+                if (artifact->fileTags().toStringList() != property.value.toStringList())
+                    return true;
+                continue;
+            }
             if (checkForPropertyChange(property, artifact->properties->value()))
                 return true;
         }

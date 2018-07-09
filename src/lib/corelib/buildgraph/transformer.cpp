@@ -41,6 +41,7 @@
 #include "artifact.h"
 #include <jsextensions/moduleproperties.h>
 #include <language/language.h>
+#include <language/preparescriptobserver.h>
 #include <language/scriptengine.h>
 #include <logging/translator.h>
 #include <tools/error.h>
@@ -117,7 +118,9 @@ QScriptValue Transformer::translateFileConfig(ScriptEngine *scriptEngine, const 
                         artifact);
     setArtifactProperty(obj, QStringLiteral("baseDir"), js_baseDir, artifact);
     const QStringList fileTags = artifact->fileTags().toStringList();
-    obj.setProperty(StringConstants::fileTagsProperty(), scriptEngine->toScriptValue(fileTags));
+    scriptEngine->setObservedProperty(obj, StringConstants::fileTagsProperty(),
+                                      scriptEngine->toScriptValue(fileTags));
+    scriptEngine->observer()->addArtifactId(obj.objectId());
     if (!defaultModuleName.isEmpty())
         obj.setProperty(StringConstants::moduleNameProperty(), defaultModuleName);
     return obj;

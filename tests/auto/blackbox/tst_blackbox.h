@@ -128,6 +128,7 @@ private slots:
     void includeLookup();
     void innoSetup();
     void innoSetupDependencies();
+    void inputTagsChangeTracking();
     void inputsFromDependencies();
     void installable();
     void installableAsAuxiliaryInput();

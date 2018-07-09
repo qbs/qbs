@@ -68,6 +68,7 @@ public:
         m_exportsObjectIds.insert(std::make_pair(exportsId, product));
     }
 
+    void addArtifactId(qint64 artifactId) { m_artifactIds.insert(artifactId); }
     bool addImportId(qint64 importId) { return m_importIds.insert(importId).second; }
     void clearImportIds() { m_importIds.clear(); }
     void addParameterObjectId(qint64 id, const QString &productName, const QString &depName,
@@ -85,6 +86,7 @@ private:
     std::unordered_map<qint64, std::pair<QString, QString>> m_parameterObjects;
     std::unordered_map<qint64, const ResolvedProduct *> m_exportsObjectIds;
     Set<qint64> m_importIds;
+    Set<qint64> m_artifactIds;
 };
 
 } // namespace Internal

@@ -56,7 +56,8 @@ public:
         PropertyInModule,
         PropertyInProduct,
         PropertyInProject,
-        PropertyInParameters
+        PropertyInParameters,
+        PropertyInArtifact,
     };
 
     Property()

@@ -42,7 +42,11 @@
 #include "property.h"
 #include "scriptengine.h"
 
+#include <buildgraph/artifact.h>
+#include <language/language.h>
+#include <tools/scripttools.h>
 #include <tools/stlutils.h>
+#include <tools/stringconstants.h>
 
 #include <QtScript/qscriptvalue.h>
 
@@ -79,6 +83,13 @@ void PrepareScriptObserver::onPropertyRead(const QScriptValue &object, const QSt
         engine()->addPropertyRequestedInScript(
                     Property(it->second.first, it->second.second, name, value.toVariant(),
                              Property::PropertyInParameters));
+    }
+    if (name == StringConstants::fileTagsProperty() && m_artifactIds.contains(objectId)) {
+        const Artifact * const artifact = attachedPointer<Artifact>(object);
+        QBS_CHECK(artifact);
+        const Property p(artifact->product->uniqueName(), QString(), name, value.toVariant(),
+                         Property::PropertyInArtifact);
+        engine()->addPropertyRequestedFromArtifact(artifact, p);
     }
 }
 

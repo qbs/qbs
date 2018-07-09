@@ -5872,6 +5872,22 @@ void TestBlackbox::innoSetupDependencies()
     QVERIFY(regularFileExists(relativeBuildDir() + "/qbs.setup.test.exe"));
 }
 
+void TestBlackbox::inputTagsChangeTracking()
+{
+    QDir::setCurrent(testDataDir + "/input-tags-change-tracking");
+    const QString xOut = QDir::currentPath() + '/' + relativeProductBuildDir("p") + "/x.out";
+    const QString yOut = QDir::currentPath() + '/' + relativeProductBuildDir("p") + "/y.out";
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(QFile::exists(xOut), qPrintable(xOut));
+    QVERIFY2(!QFile::exists(yOut), qPrintable(yOut));
+    WAIT_FOR_NEW_TIMESTAMP();
+    REPLACE_IN_FILE("input-tags-change-tracking.qbs", "fileTags: \"txt\"",
+                    "fileTags: [\"txt\", \"y\"]");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(!QFile::exists(xOut), qPrintable(xOut));
+    QVERIFY2(QFile::exists(yOut), qPrintable(yOut));
+}
+
 void TestBlackbox::outputArtifactAutoTagging()
 {
     QDir::setCurrent(testDataDir + QLatin1String("/output-artifact-auto-tagging"));
