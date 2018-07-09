@@ -2739,10 +2739,8 @@ void TestBlackbox::pluginDependency()
     QVERIFY2(!m_qbsStdout.contains("linking"), m_qbsStdout.constData());
     QCOMPARE(runQbs(QStringList{"--command-echo-mode", "command-line"}), 0);
     output = m_qbsStdout + '\n' + m_qbsStderr;
-    if (!HostOsInfo::isMacosHost()) { // TODO: Remove in master
-        QVERIFY2(!output.contains("plugin1"), output.constData());
-        QVERIFY2(!output.contains("helper2"), output.constData());
-    }
+    QVERIFY2(!output.contains("plugin1"), output.constData());
+    QVERIFY2(!output.contains("helper2"), output.constData());
     QVERIFY2(output.contains("plugin2"), output.constData());
 
     // Test change tracking for parameter in Depends item.
