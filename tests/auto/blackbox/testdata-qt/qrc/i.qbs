@@ -13,7 +13,7 @@ Project {
         files: [
             "bla.cpp",
             "bla.qrc",
-            "stuff.txt"
+            //"test.cpp",
         ]
     }
 }
