@@ -204,6 +204,8 @@ ArtifactSet RuleNode::currentInputArtifacts() const
                 // This can e.g. happen for the ["cpp", "hpp"] -> ["hpp", "cpp", "unmocable"] rule.
                 continue;
             }
+            if (artifact->fileTags().intersects(m_rule->excludedInputs))
+                continue;
             s += artifact;
         }
     }

@@ -177,6 +177,8 @@ static QStringList toStringList(const ArtifactSet &artifacts)
 void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &prepareScriptContext)
 {
     evalContext()->checkForCancelation();
+    for (const Artifact *inputArtifact : inputArtifacts)
+        QBS_CHECK(!inputArtifact->fileTags().intersects(m_rule->excludedInputs));
 
     qCDebug(lcBuildGraph) << "apply rule" << m_rule->toString()
                           << toStringList(inputArtifacts).join(QLatin1String(",\n            "));
