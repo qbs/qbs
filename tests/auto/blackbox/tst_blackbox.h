@@ -59,6 +59,7 @@ private slots:
     void buildGraphVersions();
     void changedFiles_data();
     void changedFiles();
+    void changedInputsFromDependencies();
     void changedRuleInputs();
     void changeInDisabledProduct();
     void changeInImportedFile();

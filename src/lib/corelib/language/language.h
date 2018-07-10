@@ -424,7 +424,6 @@ public:
     static QStringList argumentNamesForPrepare();
 
     QString toString() const;
-    bool acceptsAsInput(Artifact *artifact) const;
     FileTags staticOutputFileTags() const;
     FileTags collectedOutputFileTags() const;
     bool isDynamic() const;

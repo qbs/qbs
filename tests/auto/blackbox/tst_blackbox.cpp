@@ -716,6 +716,19 @@ void TestBlackbox::changedFiles()
     QVERIFY2(m_qbsStdout.contains("file1.cpp"), m_qbsStdout.constData());
 }
 
+void TestBlackbox::changedInputsFromDependencies()
+{
+    QDir::setCurrent(testDataDir + "/changed-inputs-from-dependencies");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("final prepare script"), m_qbsStdout.constData());
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(!m_qbsStdout.contains("final prepare script"), m_qbsStdout.constData());
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("input.txt");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("final prepare script"), m_qbsStdout.constData());
+}
+
 void TestBlackbox::changedRuleInputs()
 {
     QDir::setCurrent(testDataDir + "/changed-rule-inputs");

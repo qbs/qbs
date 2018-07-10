@@ -279,12 +279,6 @@ QString Rule::toString() const
             + inputTagsSorted.join(QLatin1Char(',')) + QLatin1Char(']');
 }
 
-bool Rule::acceptsAsInput(Artifact *artifact) const
-{
-    return artifact->fileTags().intersects(inputs)
-            && !artifact->fileTags().intersects(excludedInputs);
-}
-
 FileTags Rule::staticOutputFileTags() const
 {
     FileTags result;

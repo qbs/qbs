@@ -73,7 +73,7 @@ public:
         NodeSet invalidatedArtifacts;
     };
 
-    void apply(const Logger &logger, const QList<Artifact *> &allChangedSources,
+    void apply(const Logger &logger,
                const std::unordered_map<QString, const ResolvedProduct *> &productsByName,
                const std::unordered_map<QString, const ResolvedProject *> &projectsByName,
                ApplicationResult *result);
@@ -85,14 +85,16 @@ public:
 private:
     template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
     {
-        pool.serializationOp<opType>(m_rule, m_oldInputArtifacts, m_needsToConsiderChangedInputs);
+        pool.serializationOp<opType>(m_rule, m_oldInputArtifacts, m_lastApplicationTime,
+                                     m_needsToConsiderChangedInputs);
     }
 
     ArtifactSet currentInputArtifacts() const;
-    ArtifactSet changedInputArtifacts(const QList<Artifact *> &allChangedSources) const;
+    ArtifactSet changedInputArtifacts(const ArtifactSet &allCompatibleInputs) const;
 
     RuleConstPtr m_rule;
     ArtifactSet m_oldInputArtifacts;
+    FileTime m_lastApplicationTime;
     bool m_needsToConsiderChangedInputs = false;
 };
 

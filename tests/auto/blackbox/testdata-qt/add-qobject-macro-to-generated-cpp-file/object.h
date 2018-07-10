@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2018 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -26,47 +26,7 @@
 **
 ****************************************************************************/
 
-#ifndef TST_BLACKBOXQT_H
-#define TST_BLACKBOXQT_H
-
-#include "tst_blackboxbase.h"
-
-class TestBlackboxQt : public TestBlackboxBase
-{
-    Q_OBJECT
-
+class Object {
 public:
-    TestBlackboxQt();
-
-protected:
-    void validateTestProfile() override;
-
-private slots:
-    void addQObjectMacroToGeneratedCppFile();
-    void autoQrc();
-    void cachedQml();
-    void combinedMoc();
-    void createProject();
-    void dbusAdaptors();
-    void dbusInterfaces();
-    void lrelease();
-    void mixedBuildVariants();
-    void mocAndCppCombining();
-    void mocFlags();
-    void mocSameFileName();
-    void pkgconfig();
-    void pluginMetaData();
-    void qmlDebugging();
-    void qobjectInObjectiveCpp();
-    void qtKeywords();
-    void quickCompiler();
-    void qtScxml();
-    void removeMocHeaderFromFileList();
-    void staticQtPluginLinking();
-    void trackAddMocInclude();
-    void track_qobject_change();
-    void track_qrc();
-    void unmocable();
+    void f();
 };
-
-#endif // TST_BLACKBOXQT_H

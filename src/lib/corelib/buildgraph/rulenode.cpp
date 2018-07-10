@@ -78,7 +78,7 @@ QString RuleNode::toString() const
             + QLatin1String(" located at ") + m_rule->prepareScript.location().toString();
 }
 
-void RuleNode::apply(const Logger &logger, const QList<Artifact *> &allChangedSources,
+void RuleNode::apply(const Logger &logger,
                      const std::unordered_map<QString, const ResolvedProduct *> &productsByName,
                      const std::unordered_map<QString, const ResolvedProject *> &projectsByName,
                      ApplicationResult *result)
@@ -86,7 +86,7 @@ void RuleNode::apply(const Logger &logger, const QList<Artifact *> &allChangedSo
     ArtifactSet allCompatibleInputs = currentInputArtifacts();
     const ArtifactSet addedInputs = allCompatibleInputs - m_oldInputArtifacts;
     const ArtifactSet removedInputs = m_oldInputArtifacts - allCompatibleInputs;
-    const ArtifactSet changedInputs = changedInputArtifacts(allChangedSources);
+    const ArtifactSet changedInputs = changedInputArtifacts(allCompatibleInputs);
     bool upToDate = changedInputs.empty() && addedInputs.empty() && removedInputs.empty();
 
     qCDebug(lcBuildGraph).noquote().nospace()
@@ -187,6 +187,7 @@ void RuleNode::apply(const Logger &logger, const QList<Artifact *> &allChangedSo
         applicator.applyRule(this, inputs);
         result->createdArtifacts = applicator.createdArtifacts();
         result->invalidatedArtifacts = applicator.invalidatedArtifacts();
+        m_lastApplicationTime = FileTime::currentTime();
         if (applicator.ruleUsesIo())
             m_needsToConsiderChangedInputs = true;
     } else {
@@ -253,34 +254,14 @@ ArtifactSet RuleNode::currentInputArtifacts() const
     return s;
 }
 
-ArtifactSet RuleNode::changedInputArtifacts(const QList<Artifact *> &allChangedSources) const
+ArtifactSet RuleNode::changedInputArtifacts(const ArtifactSet &allCompatibleInputs) const
 {
     ArtifactSet changedInputArtifacts;
     if (!m_needsToConsiderChangedInputs)
         return changedInputArtifacts;
-    for (Artifact * const artifact : qAsConst(allChangedSources)) {
-        if (artifact->product != product)
-            continue;
-        if (artifact->isTargetOfModule())
-            continue;
-        if (rule()->acceptsAsInput(artifact))
-            changedInputArtifacts += artifact;
-    }
-    for (Artifact *artifact : filterByType<Artifact>(product->buildData->allNodes())) {
-        if (artifact->artifactType == Artifact::SourceFile)
-            continue;
-        if (rule()->acceptsAsInput(artifact)) {
-            for (const Artifact * const parent : artifact->parentArtifacts()) {
-                if (parent->transformer->rule != rule())
-                    continue;
-                if (!parent->alwaysUpdated)
-                    continue;
-                if (parent->timestamp() < artifact->timestamp()) {
-                    changedInputArtifacts += artifact;
-                    break;
-                }
-            }
-        }
+    for (Artifact * const artifact : allCompatibleInputs) {
+        if (artifact->timestamp() > m_lastApplicationTime)
+            changedInputArtifacts.insert(artifact);
     }
     return changedInputArtifacts;
 }

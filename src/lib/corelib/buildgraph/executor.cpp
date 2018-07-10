@@ -223,7 +223,6 @@ void Executor::doBuild()
     }
     QBS_CHECK(m_state == ExecutorIdle);
     m_leaves = Leaves();
-    m_changedSourceArtifacts.clear();
     m_error.clear();
     m_explicitlyCanceled = false;
     m_activeFileTags = FileTags::fromStringList(m_buildOptions.activeFileTags());
@@ -485,8 +484,7 @@ void Executor::executeRuleNode(RuleNode *ruleNode)
     QBS_CHECK(!m_evalContext->engine()->isActive());
 
     RuleNode::ApplicationResult result;
-    ruleNode->apply(m_logger, m_changedSourceArtifacts, m_productsByName, m_projectsByName,
-                    &result);
+    ruleNode->apply(m_logger, m_productsByName, m_projectsByName, &result);
     updateLeaves(result.createdArtifacts);
     updateLeaves(result.invalidatedArtifacts);
     finishNode(ruleNode);
@@ -1156,10 +1154,7 @@ void Executor::prepareArtifact(Artifact *artifact)
     artifact->timestampRetrieved = false;
 
     if (artifact->artifactType == Artifact::SourceFile) {
-        const FileTime oldTimestamp = artifact->timestamp();
         retrieveSourceFileTimestamp(artifact);
-        if (oldTimestamp != artifact->timestamp())
-            m_changedSourceArtifacts.push_back(artifact);
         possiblyInstallArtifact(artifact);
     }
 }

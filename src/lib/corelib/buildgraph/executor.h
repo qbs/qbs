@@ -171,7 +171,6 @@ private:
     std::unordered_map<QString, const ResolvedProject *> m_projectsByName;
     NodeSet m_roots;
     Leaves m_leaves;
-    QList<Artifact *> m_changedSourceArtifacts;
     InputArtifactScannerContext *m_inputArtifactScanContext;
     ErrorInfo m_error;
     bool m_explicitlyCanceled;

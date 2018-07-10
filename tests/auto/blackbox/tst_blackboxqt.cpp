@@ -64,6 +64,17 @@ void TestBlackboxQt::validateTestProfile()
                      "in the global search paths."));
 }
 
+void TestBlackboxQt::addQObjectMacroToGeneratedCppFile()
+{
+    QDir::setCurrent(testDataDir + "/add-qobject-macro-to-generated-cpp-file");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(!m_qbsStdout.contains("moc"), m_qbsStdout.constData());
+    WAIT_FOR_NEW_TIMESTAMP();
+    REPLACE_IN_FILE("object.cpp.in", "// ", "");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("moc"), m_qbsStdout.constData());
+}
+
 void TestBlackboxQt::autoQrc()
 {
     QDir::setCurrent(testDataDir + "/auto-qrc");
