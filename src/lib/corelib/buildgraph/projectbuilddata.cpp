@@ -220,14 +220,8 @@ void ProjectBuildData::removeArtifactAndExclusiveDependents(Artifact *artifact,
 
 static void removeFromRuleNodes(Artifact *artifact)
 {
-    for (const ResolvedProductPtr &product : artifact->product->topLevelProject()->allProducts()) {
-        if (!product->buildData)
-            continue;
-        for (BuildGraphNode *n : qAsConst(product->buildData->allNodes())) {
-            if (n->type() == BuildGraphNode::RuleNodeType)
-                static_cast<RuleNode *>(n)->removeOldInputArtifact(artifact);
-        }
-    }
+    for (RuleNode * const ruleNode : filterByType<RuleNode>(artifact->parents))
+        ruleNode->removeOldInputArtifact(artifact);
 }
 
 void ProjectBuildData::removeArtifact(Artifact *artifact,
