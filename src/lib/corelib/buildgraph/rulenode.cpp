@@ -283,8 +283,11 @@ ArtifactSet RuleNode::changedInputArtifacts(const QList<Artifact *> &allChangedS
 void RuleNode::removeOldInputArtifact(Artifact *artifact)
 {
     static Artifact dummyArtifact;
-    if (m_oldInputArtifacts.remove(artifact))
+    if (m_oldInputArtifacts.remove(artifact)) {
+        qCDebug(lcBuildGraph) << "remove old input" << artifact->filePath()
+                              << "from rule" << rule()->toString();
         m_oldInputArtifacts.insert(&dummyArtifact);
+    }
 }
 
 } // namespace Internal

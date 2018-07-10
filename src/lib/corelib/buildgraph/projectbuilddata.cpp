@@ -224,12 +224,8 @@ static void removeFromRuleNodes(Artifact *artifact)
         if (!product->buildData)
             continue;
         for (BuildGraphNode *n : qAsConst(product->buildData->allNodes())) {
-            if (n->type() != BuildGraphNode::RuleNodeType)
-                continue;
-            const auto ruleNode = static_cast<RuleNode *>(n);
-            qCDebug(lcBuildGraph) << "remove old input" << artifact->filePath()
-                                  << "from rule" << ruleNode->rule()->toString();
-            ruleNode->removeOldInputArtifact(artifact);
+            if (n->type() == BuildGraphNode::RuleNodeType)
+                static_cast<RuleNode *>(n)->removeOldInputArtifact(artifact);
         }
     }
 }
