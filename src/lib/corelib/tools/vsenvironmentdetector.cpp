@@ -217,7 +217,8 @@ void VsEnvironmentDetector::writeBatchFile(QIODevice *device, const QString &vcv
                                            const std::vector<MSVC *> &msvcs) const
 {
     const QStringList varnames = QStringList() << StringConstants::pathEnvVar()
-            << QLatin1String("INCLUDE") << QLatin1String("LIB");
+            << QLatin1String("INCLUDE") << QLatin1String("LIB") << QLatin1String("WindowsSdkDir")
+            << QLatin1String("WindowsSDKVersion");
     QTextStream s(device);
     s << "@echo off" << endl;
     for (const MSVC *msvc : msvcs) {
