@@ -176,6 +176,7 @@ void RuleNode::apply(const Logger &logger,
             else
                 connectionsToBreak.push_back(std::make_pair(parent, artifact));
         }
+        disconnect(this, artifact);
     }
     for (const auto &connection : connectionsToBreak)
         disconnect(connection.first, connection.second);
