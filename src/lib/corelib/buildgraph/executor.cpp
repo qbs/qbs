@@ -497,17 +497,16 @@ void Executor::executeRuleNode(RuleNode *ruleNode)
         qCDebug(lcExec).noquote() << ruleNode->toString();
         const WeakPointer<ResolvedProduct> &product = ruleNode->product;
         Set<RuleNode *> parentRules;
-        if (!result.createdNodes.empty()) {
+        if (!result.createdArtifacts.empty()) {
             for (BuildGraphNode *parent : qAsConst(ruleNode->parents)) {
                 if (parent->type() == BuildGraphNode::RuleNodeType)
                     parentRules += static_cast<RuleNode *>(parent);
             }
         }
-        for (BuildGraphNode *node : qAsConst(result.createdNodes)) {
+        for (BuildGraphNode *node : qAsConst(result.createdArtifacts)) {
             qCDebug(lcExec).noquote() << "rule created" << node->toString();
             Internal::connect(node, ruleNode);
-            if (node->type() != BuildGraphNode::ArtifactNodeType)
-                continue;
+            QBS_CHECK(node->type() == BuildGraphNode::ArtifactNodeType);
             Artifact * const outputArtifact = static_cast<Artifact *>(node);
             if (outputArtifact->fileTags().intersects(product->fileTags))
                 product->buildData->addRootNode(outputArtifact);
@@ -518,8 +517,8 @@ void Executor::executeRuleNode(RuleNode *ruleNode)
             for (RuleNode *parentRule : qAsConst(parentRules))
                 Internal::connect(parentRule, outputArtifact);
         }
-        updateLeaves(result.createdNodes);
-        updateLeaves(result.invalidatedNodes);
+        updateLeaves(result.createdArtifacts);
+        updateLeaves(result.invalidatedArtifacts);
     }
     finishNode(ruleNode);
     if (m_progressObserver)

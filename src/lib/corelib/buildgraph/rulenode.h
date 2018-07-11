@@ -70,8 +70,8 @@ public:
     struct ApplicationResult
     {
         bool upToDate;
-        NodeSet createdNodes;
-        NodeSet invalidatedNodes;
+        NodeSet createdArtifacts;
+        NodeSet invalidatedArtifacts;
     };
 
     void apply(const Logger &logger, const QList<Artifact *> &allChangedSources,
