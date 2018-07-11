@@ -806,6 +806,11 @@ ProjectTransformerData ProjectPrivate::transformerData()
                 tData.d->outputs << createArtifactData(a, product, targetArtifacts);
                 for (const Artifact * const child : filterByType<Artifact>(a->children))
                     allInputs << child;
+                for (Artifact * const a
+                     : RulesApplicator::collectAuxiliaryInputs(t->rule.get(), product.get())) {
+                    if (a->artifactType == Artifact::Generated)
+                        tData.d->inputs << createArtifactData(a, product, targetArtifacts);
+                }
             }
             for (const Artifact * const input : allInputs)
                 tData.d->inputs << createArtifactData(input, product, targetArtifacts);
