@@ -195,7 +195,7 @@ void RuleNode::apply(const Logger &logger,
     } else {
         qCDebug(lcExec).noquote() << "prepare script does not need to run";
     }
-    m_oldInputArtifacts = inputs;
+    m_oldInputArtifacts = allCompatibleInputs;
     product->topLevelProject()->buildData->setDirty();
 }
 
