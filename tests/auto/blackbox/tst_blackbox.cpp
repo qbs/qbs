@@ -3257,6 +3257,9 @@ void TestBlackbox::erroneousFiles_data()
                "must be a non-empty string list\\.";
     QTest::newRow("texttemplate-unknown-placeholder")
             << "Placeholder 'what' is not defined in textemplate.dict for 'boom.txt.in'";
+    QTest::newRow("tag-mismatch")
+            << "tag-mismatch.qbs:8:18.*Artifact '.*dummy1' has undeclared file tags "
+               "\\[\"y\",\"z\"\\].";
 }
 
 void TestBlackbox::erroneousFiles()
@@ -3268,8 +3271,8 @@ void TestBlackbox::erroneousFiles()
     QVERIFY(runQbs(params) != 0);
     QString err = QString::fromLocal8Bit(m_qbsStderr);
     if (!err.contains(QRegExp(errorMessage))) {
-        qDebug() << "Output:  " << err;
-        qDebug() << "Expected: " << errorMessage;
+        qDebug().noquote() << "Output:  " << err;
+        qDebug().noquote() << "Expected: " << errorMessage;
         QFAIL("Unexpected error message.");
     }
 }

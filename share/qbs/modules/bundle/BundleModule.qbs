@@ -518,7 +518,7 @@ Module {
             "bundle.symlink.headers", "bundle.symlink.private-headers",
             "bundle.symlink.resources", "bundle.symlink.executable",
             "bundle.symlink.version", "bundle.hpp", "bundle.resource",
-            "bundle.provisioningprofile"]
+            "bundle.provisioningprofile", "bundle.content.copied", "bundle.application-executable"]
         outputArtifacts: {
             var i, artifacts = [];
             if (ModUtils.moduleProperty(product, "isBundle")) {

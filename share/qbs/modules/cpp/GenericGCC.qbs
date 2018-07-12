@@ -405,7 +405,7 @@ CppModule {
         outputFileTags: [
             "bundle.input",
             "dynamiclibrary", "dynamiclibrary_symlink", "dynamiclibrary_symbols", "debuginfo_dll",
-            "dynamiclibrary_import",
+            "debuginfo_bundle","dynamiclibrary_import", "debuginfo_plist",
         ]
         outputArtifacts: {
             var artifacts = [{
@@ -514,7 +514,8 @@ CppModule {
         }
         inputsFromDependencies: ["dynamiclibrary_symbols", "dynamiclibrary_import", "staticlibrary"]
 
-        outputFileTags: ["bundle.input", "loadablemodule", "debuginfo_loadablemodule"]
+        outputFileTags: ["bundle.input", "loadablemodule", "debuginfo_loadablemodule",
+                         "debuginfo_bundle","debuginfo_plist"]
         outputArtifacts: {
             var app = {
                 filePath: FileInfo.joinPaths(product.destinationDirectory,
@@ -551,7 +552,8 @@ CppModule {
         }
         inputsFromDependencies: ["dynamiclibrary_symbols", "dynamiclibrary_import", "staticlibrary"]
 
-        outputFileTags: ["bundle.input", "application", "debuginfo_app"]
+        outputFileTags: ["bundle.input", "application", "debuginfo_app","debuginfo_bundle",
+                         "debuginfo_plist"]
         outputArtifacts: {
             var app = {
                 filePath: FileInfo.joinPaths(product.destinationDirectory,

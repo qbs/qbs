@@ -253,7 +253,7 @@ Module {
             var gdbServerArtifacts = SdkUtils.outputArtifactsFromInfoFiles(inputs,
                     product, "android.gdbserver-info", "android.gdbserver");
             var stlArtifacts = SdkUtils.outputArtifactsFromInfoFiles(inputs, product,
-                    "android.stl-info", "android.deployed-stl");
+                    "android.stl-info", "android.stl");
             return libArtifacts.concat(gdbServerArtifacts).concat(stlArtifacts);
         }
         prepare: {

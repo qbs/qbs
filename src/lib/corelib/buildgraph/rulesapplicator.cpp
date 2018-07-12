@@ -406,6 +406,16 @@ Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const F
     outputPath.replace(StringConstants::dotDot(), QStringLiteral("dotdot"));
     outputPath = resolveOutPath(outputPath);
 
+    if (m_rule->isDynamic()) {
+        const Set<FileTag> undeclaredTags = fileTags - m_rule->collectedOutputFileTags();
+        if (!undeclaredTags.empty()) {
+            throw ErrorInfo(Tr::tr("Artifact '%1' has undeclared file tags [\"%2\"].")
+                            .arg(outputPath, undeclaredTags.toStringList()
+                                 .join(QLatin1String("\",\""))),
+                            m_rule->prepareScript.location());
+        }
+    }
+
     Artifact *outputArtifact = lookupArtifact(m_product, outputPath);
     if (outputArtifact) {
         const Transformer * const transformer = outputArtifact->transformer.get();
