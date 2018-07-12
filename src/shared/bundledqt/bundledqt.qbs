@@ -32,6 +32,8 @@ Product {
         name: "Qt libraries"
         files: !Qt.core.staticBuild ? Array.prototype.concat.apply(
                                           [], Object.getOwnPropertyNames(Qt).map(function(mod) {
+            if (mod === "script" && !Qt[mod].present)
+                return [];
             var fp = Qt[mod].libFilePathRelease;
             var fpd = Qt.core.frameworkBuild ? fp + qtDebugLibrarySuffix : Qt[mod].libFilePathDebug;
 
