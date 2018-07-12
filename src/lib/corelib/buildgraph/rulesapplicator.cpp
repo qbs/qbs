@@ -44,6 +44,7 @@
 #include "projectbuilddata.h"
 #include "qtmocscanner.h"
 #include "rulecommands.h"
+#include "rulenode.h"
 #include "rulesevaluationcontext.h"
 #include "transformer.h"
 #include "transformerchangetracking.h"
@@ -93,19 +94,19 @@ RulesApplicator::~RulesApplicator()
     delete m_mocScanner;
 }
 
-void RulesApplicator::applyRule(const RuleConstPtr &rule, const ArtifactSet &inputArtifacts)
+void RulesApplicator::applyRule(RuleNode *ruleNode, const ArtifactSet &inputArtifacts)
 {
-    if (inputArtifacts.empty() && rule->declaresInputs() && rule->requiresInputs)
-        return;
+    m_ruleNode = ruleNode;
+    m_rule = ruleNode->rule();
+    QBS_CHECK(!inputArtifacts.empty() || !m_rule->declaresInputs() || !m_rule->requiresInputs);
 
     m_product->topLevelProject()->buildData->setDirty();
     m_createdArtifacts.clear();
     m_invalidatedArtifacts.clear();
     RulesEvaluationContext::Scope s(evalContext().get());
 
-    m_rule = rule;
     m_completeInputSet = inputArtifacts;
-    if (rule->name == QLatin1String("QtCoreMocRule")) {
+    if (m_rule->name == QLatin1String("QtCoreMocRule")) {
         delete m_mocScanner;
         m_mocScanner = new QtMocScanner(m_product, scope());
     }
@@ -228,6 +229,16 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
 
     if (outputArtifacts.empty())
         return;
+
+    // The inputs become children of the rule node. Generated artifacts in the same product
+    // already are children, because output artifacts become children of the producing
+    // rule node's parent rule node.
+    for (Artifact * const input : inputArtifacts) {
+        if (input->artifactType == Artifact::SourceFile || input->product != m_ruleNode->product)
+            connect(m_ruleNode, input);
+        else
+            QBS_CHECK(m_ruleNode->children.contains(input));
+    }
 
     for (Artifact * const outputArtifact : qAsConst(outputArtifacts)) {
         for (Artifact * const dependency : qAsConst(m_transformer->explicitlyDependsOn))

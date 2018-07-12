@@ -72,7 +72,7 @@ public:
     const NodeSet &invalidatedArtifacts() const { return m_invalidatedArtifacts; }
     bool ruleUsesIo() const { return m_ruleUsesIo; }
 
-    void applyRule(const RuleConstPtr &rule, const ArtifactSet &inputArtifacts);
+    void applyRule(RuleNode *ruleNode, const ArtifactSet &inputArtifacts);
     static void handleRemovedRuleOutputs(const ArtifactSet &inputArtifacts,
             const ArtifactSet &artifactsToRemove, const Logger &logger);
     static ArtifactSet collectAuxiliaryInputs(const Rule *rule, const ResolvedProduct *product);
@@ -107,6 +107,7 @@ private:
     const std::unordered_map<QString, const ResolvedProject *> &m_projectsByName;
     NodeSet m_createdArtifacts;
     NodeSet m_invalidatedArtifacts;
+    RuleNode *m_ruleNode = nullptr;
     RuleConstPtr m_rule;
     ArtifactSet m_completeInputSet;
     TransformerPtr m_transformer;

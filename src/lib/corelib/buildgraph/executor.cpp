@@ -506,10 +506,6 @@ void Executor::executeRuleNode(RuleNode *ruleNode)
             Artifact * const outputArtifact = static_cast<Artifact *>(node);
             if (outputArtifact->fileTags().intersects(product->fileTags))
                 product->buildData->addRootNode(outputArtifact);
-
-            for (Artifact *inputArtifact : qAsConst(outputArtifact->transformer->inputs))
-                Internal::connect(ruleNode, inputArtifact);
-
             for (RuleNode *parentRule : qAsConst(parentRules))
                 Internal::connect(parentRule, outputArtifact);
         }

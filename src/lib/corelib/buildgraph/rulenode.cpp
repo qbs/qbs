@@ -183,7 +183,7 @@ void RuleNode::apply(const Logger &logger, const QList<Artifact *> &allChangedSo
 
     if (mustApplyRule) {
         RulesApplicator applicator(product.lock(), productsByName, projectsByName, logger);
-        applicator.applyRule(m_rule, inputs);
+        applicator.applyRule(this, inputs);
         result->createdArtifacts = applicator.createdArtifacts();
         result->invalidatedArtifacts = applicator.invalidatedArtifacts();
         if (applicator.ruleUsesIo())

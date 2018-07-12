@@ -48,6 +48,7 @@ class Artifact;
 class BuildGraphNode;
 class ProjectBuildData;
 class ProductBuildData;
+class RuleNode;
 
 class Transformer;
 typedef std::shared_ptr<Transformer> TransformerPtr;
