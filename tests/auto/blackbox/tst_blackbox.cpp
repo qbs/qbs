@@ -2049,6 +2049,7 @@ void TestBlackbox::trackAddFileTag()
     ccp("../after", ".");
     touch("main.cpp");
     touch("trackFileTags.qbs");
+    waitForFileUnlock();
     QCOMPARE(runQbs(runParams), 0);
     output = m_qbsStdout.split('\n');
     QCOMPARE(output.takeFirst().trimmed().constData(), "there's 15 foo here");

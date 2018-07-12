@@ -281,7 +281,8 @@ QString Rule::toString() const
 
 bool Rule::acceptsAsInput(Artifact *artifact) const
 {
-    return artifact->fileTags().intersects(inputs);
+    return artifact->fileTags().intersects(inputs)
+            && !artifact->fileTags().intersects(excludedInputs);
 }
 
 FileTags Rule::staticOutputFileTags() const

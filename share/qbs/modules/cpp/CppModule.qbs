@@ -486,7 +486,7 @@ Module {
                 + "'; expected one of: "
                 + WindowsUtils.knownWindowsVersions().map(function (a) {
                     return '"' + a + '"'; }).join(", ")
-                + ". See https://msdn.microsoft.com/en-us/library/windows/desktop/ms724832.aspx");
+                + ". See https://docs.microsoft.com/en-us/windows/desktop/SysInfo/operating-system-version");
         }
     }
 

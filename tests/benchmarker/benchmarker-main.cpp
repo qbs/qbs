@@ -105,8 +105,15 @@ static void printResults(Activities activities, const BenchmarkResults &results,
 int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
+
     CommandLineParser clParser;
-    clParser.parse();
+    try {
+        clParser.parse();
+    } catch (const Exception &e) {
+        std::cerr << qPrintable(e.description()) << std::endl;
+        return EXIT_FAILURE;
+    }
+
     Benchmarker benchmarker(clParser.activies(), clParser.oldCommit(), clParser.newCommit(),
                             clParser.testProjectFilePath(), clParser.qbsRepoDirPath());
     try {

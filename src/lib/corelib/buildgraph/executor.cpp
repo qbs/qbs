@@ -794,7 +794,9 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = 0)
                                       << "not in the project's list of dependencies anymore.";
                 break;
             }
-            artifact->fileDependencies.insert(static_cast<FileDependency *>(*depIt));
+            FileDependency * const dep = static_cast<FileDependency *>(*depIt);
+            dep->clearTimestamp();
+            artifact->fileDependencies.insert(dep);
         }
 
         if (canRescue) {
