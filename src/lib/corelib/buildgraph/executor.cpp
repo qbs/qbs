@@ -402,13 +402,9 @@ bool Executor::isUpToDate(Artifact *artifact) const
 
     for (FileDependency *fileDependency : qAsConst(artifact->fileDependencies)) {
         if (!fileDependency->timestamp().isValid()) {
-            FileInfo fi(fileDependency->filePath());
-            fileDependency->setTimestamp(fi.lastModified());
-            if (!fileDependency->timestamp().isValid()) {
-                qCDebug(lcUpToDateCheck) << "file dependency doesn't exist"
-                                         << fileDependency->filePath();
-                return false;
-            }
+            qCDebug(lcUpToDateCheck) << "file dependency doesn't exist"
+                                     << fileDependency->filePath();
+            return false;
         }
         qCDebug(lcUpToDateCheck) << "file dependency timestamp"
                                  << fileDependency->timestamp().toString()
@@ -793,9 +789,7 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = 0)
                                       << "not in the project's list of dependencies anymore.";
                 break;
             }
-            FileDependency * const dep = static_cast<FileDependency *>(*depIt);
-            dep->clearTimestamp();
-            artifact->fileDependencies.insert(dep);
+            artifact->fileDependencies.insert(static_cast<FileDependency *>(*depIt));
         }
 
         if (canRescue) {
@@ -1150,7 +1144,9 @@ void Executor::syncFileDependencies()
     Set<FileDependency *> &globalFileDepList = m_project->buildData->fileDependencies;
     for (auto it = globalFileDepList.begin(); it != globalFileDepList.end(); ) {
         FileDependency * const dep = *it;
-        if (FileInfo(dep->filePath()).exists()) {
+        FileInfo fi(dep->filePath());
+        if (fi.exists()) {
+            dep->setTimestamp(fi.lastModified());
             ++it;
             continue;
         }
@@ -1175,6 +1171,7 @@ void Executor::syncFileDependencies()
             it = globalFileDepList.erase(it);
             delete dep;
         } else {
+            dep->clearTimestamp();
             ++it;
         }
     }
@@ -1192,13 +1189,6 @@ void Executor::prepareArtifact(Artifact *artifact)
             m_changedSourceArtifacts.push_back(artifact);
         possiblyInstallArtifact(artifact);
     }
-
-    // Timestamps of file dependencies must be invalid for every build.
-    // TODO: These should be a subset of ProjectBuildData::fileDependencies, so clear the
-    // timestamps in syncFileDepencencies() instead.
-    // TODO: Verify this assumption in the sanity checks.
-    for (FileDependency * const fileDependency : qAsConst(artifact->fileDependencies))
-        fileDependency->clearTimestamp();
 }
 
 void Executor::setupForBuildingSelectedFiles(const BuildGraphNode *node)
