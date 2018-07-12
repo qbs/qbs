@@ -37,16 +37,6 @@ Module {
     }
     property stringList libRPaths: {
         if (enableRPath && rpathOrigin && product.targetInstallDir) {
-            if (!FileInfo.cleanPath) {
-                // qbs < 1.10 compatibility
-                FileInfo.cleanPath = function (a) {
-                    if (a.endsWith("/."))
-                        return a.slice(0, -2);
-                    if (a.endsWith("/"))
-                        return a.slice(0, -1);
-                    return a;
-                }
-            }
             return [FileInfo.joinPaths(rpathOrigin, FileInfo.relativePath(
                                            FileInfo.joinPaths('/', product.targetInstallDir),
                                            FileInfo.joinPaths('/', libDirName)))];
