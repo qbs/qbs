@@ -87,7 +87,7 @@ void RuleNode::apply(const Logger &logger, const QList<Artifact *> &allChangedSo
     const ArtifactSet addedInputs = allCompatibleInputs - m_oldInputArtifacts;
     const ArtifactSet removedInputs = m_oldInputArtifacts - allCompatibleInputs;
     const ArtifactSet changedInputs = changedInputArtifacts(allChangedSources);
-    result->upToDate = changedInputs.empty() && addedInputs.empty() && removedInputs.empty();
+    bool upToDate = changedInputs.empty() && addedInputs.empty() && removedInputs.empty();
 
     qCDebug(lcBuildGraph).noquote().nospace()
             << "consider " << (m_rule->isDynamic() ? "dynamic " : "")
@@ -111,7 +111,7 @@ void RuleNode::apply(const Logger &logger, const QList<Artifact *> &allChangedSo
             if (prepareScriptNeedsRerun(output->transformer.get(),
                                         output->transformer->product().get(),
                                         productsByName, projectsByName)) {
-                result->upToDate = false;
+                upToDate = false;
                 inputs += input;
             }
             break;
@@ -122,8 +122,7 @@ void RuleNode::apply(const Logger &logger, const QList<Artifact *> &allChangedSo
 
     // Handle rules without inputs: We want to run such a rule if and only if it has not run yet
     // or its transformer is not up to date regarding the prepare script.
-    if (result->upToDate && (!m_rule->declaresInputs() || !m_rule->requiresInputs)
-            && inputs.empty()) {
+    if (upToDate && (!m_rule->declaresInputs() || !m_rule->requiresInputs) && inputs.empty()) {
         bool hasOutputs = false;
         for (const Artifact * const output : filterByType<Artifact>(parents)) {
             if (output->transformer->rule != m_rule)
@@ -132,18 +131,20 @@ void RuleNode::apply(const Logger &logger, const QList<Artifact *> &allChangedSo
             if (prepareScriptNeedsRerun(output->transformer.get(),
                                         output->transformer->product().get(),
                                         productsByName, projectsByName)) {
-                result->upToDate = false;
+                upToDate = false;
                 break;
             }
             if (m_rule->multiplex)
                 break;
         }
         if (!hasOutputs)
-            result->upToDate = false;
+            upToDate = false;
     }
 
-    if (result->upToDate)
+    if (upToDate) {
+        qCDebug(lcExec) << "rule is up to date. Skipping.";
         return;
+    }
 
     const bool mustApplyRule = !inputs.empty() || !m_rule->declaresInputs()
             || !m_rule->requiresInputs;
@@ -188,6 +189,8 @@ void RuleNode::apply(const Logger &logger, const QList<Artifact *> &allChangedSo
         result->invalidatedArtifacts = applicator.invalidatedArtifacts();
         if (applicator.ruleUsesIo())
             m_needsToConsiderChangedInputs = true;
+    } else {
+        qCDebug(lcExec).noquote() << "prepare script does not need to run";
     }
     m_oldInputArtifacts = inputs;
     product->topLevelProject()->buildData->setDirty();

@@ -69,7 +69,6 @@ public:
 
     struct ApplicationResult
     {
-        bool upToDate;
         NodeSet createdArtifacts;
         NodeSet invalidatedArtifacts;
     };

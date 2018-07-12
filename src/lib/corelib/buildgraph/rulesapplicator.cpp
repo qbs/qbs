@@ -464,11 +464,17 @@ Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const F
         insertArtifact(m_product, newArtifact.get());
         m_createdArtifacts += newArtifact.get();
         outputArtifact = newArtifact.release();
+        qCDebug(lcExec).noquote() << "rule created" << outputArtifact->toString();
+        connect(outputArtifact, m_ruleNode);
+        for (RuleNode * const parentRule : filterByType<RuleNode>(m_ruleNode->parents))
+            connect(parentRule, outputArtifact);
     }
 
     outputArtifact->alwaysUpdated = alwaysUpdated;
     outputArtifact->pureFileTags = fileTags;
     provideFullFileTagsAndProperties(outputArtifact);
+    if (outputArtifact->fileTags().intersects(m_ruleNode->product->fileTags))
+        m_ruleNode->product->buildData->addRootNode(outputArtifact);
 
     for (Artifact * const inputArtifact : inputArtifacts) {
         QBS_CHECK(outputArtifact != inputArtifact);
