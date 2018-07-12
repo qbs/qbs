@@ -2,6 +2,7 @@ import qbs
 import qbs.FileInfo
 
 Module {
+    Depends { name: "cpp" }
     property bool enableUnitTests: false
     property bool enableProjectFileUpdates: false
     property bool enableRPath: true
@@ -28,16 +29,9 @@ Module {
     property string relativeLibexecPath: "../" + libexecInstallDir
     property string relativePluginsPath: "../" + libDirName
     property string relativeSearchPath: ".."
-    property string rpathOrigin: {
-        // qbs < 1.11 compatibility for cpp.rpathOrigin
-        if (qbs.targetOS.contains("darwin"))
-            return "@loader_path";
-        if (qbs.targetOS.contains("unix"))
-            return "$ORIGIN";
-    }
     property stringList libRPaths: {
-        if (enableRPath && rpathOrigin && product.targetInstallDir) {
-            return [FileInfo.joinPaths(rpathOrigin, FileInfo.relativePath(
+        if (enableRPath && cpp.rpathOrigin && product.targetInstallDir) {
+            return [FileInfo.joinPaths(cpp.rpathOrigin, FileInfo.relativePath(
                                            FileInfo.joinPaths('/', product.targetInstallDir),
                                            FileInfo.joinPaths('/', libDirName)))];
         }
