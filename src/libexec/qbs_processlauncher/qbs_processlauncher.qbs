@@ -5,8 +5,6 @@ QbsProduct {
     type: "application"
     name: "qbs_processlauncher"
     consoleApplication: true
-    destinationDirectory: FileInfo.joinPaths(project.buildDirectory,
-                                             qbsbuildconfig.libexecInstallDir)
 
     Depends { name: "Qt.network" }
 
@@ -34,8 +32,8 @@ QbsProduct {
         fileTagsFilter: product.type
             .concat(qbs.buildVariant === "debug" ? ["debuginfo_app"] : [])
         qbs.install: true
-        qbs.installSourceBase: destinationDirectory
         qbs.installDir: targetInstallDir
+        qbs.installSourceBase: buildDirectory
     }
     targetInstallDir: qbsbuildconfig.libexecInstallDir
 }

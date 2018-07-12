@@ -8,7 +8,6 @@ QbsProduct {
     type: ["application", "qbsapplication"]
     version: qbsversion.version
     consoleApplication: true
-    destinationDirectory: FileInfo.joinPaths(project.buildDirectory, "bin")
     cpp.includePaths: [
         "../shared",    // for the logger
     ]
@@ -16,8 +15,8 @@ QbsProduct {
         fileTagsFilter: product.type
             .concat(qbs.buildVariant === "debug" ? ["debuginfo_app"] : [])
         qbs.install: true
-        qbs.installSourceBase: destinationDirectory
         qbs.installDir: targetInstallDir
+        qbs.installSourceBase: buildDirectory
     }
     targetInstallDir: qbsbuildconfig.appInstallDir
     Group {

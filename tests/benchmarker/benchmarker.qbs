@@ -2,11 +2,11 @@ import qbs
 
 QtApplication {
     name: "qbs_benchmarker"
-    destinationDirectory: "bin"
     type: "application"
     consoleApplication: true
     cpp.cxxLanguageVersion: "c++14"
     condition: Qt.concurrent.present
+    Depends { name: "qbsbuildconfig" }
     Depends {
         name: "Qt.concurrent"
         required: false
@@ -24,4 +24,9 @@ QtApplication {
         "valgrindrunner.cpp",
         "valgrindrunner.h",
     ]
+    Group {
+        fileTagsFilter: product.type
+        qbs.install: true
+        qbs.installDir: qbsbuildconfig.appInstallDir
+    }
 }

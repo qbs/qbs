@@ -18,7 +18,6 @@ QtApplication {
         "../../../src/app/shared", // for the logger
     ]
     cpp.cxxLanguageVersion: "c++14"
-    destinationDirectory: "bin"
     Group {
         name: "logging"
         prefix: FileInfo.joinPaths(product.sourceDirectory, "../../../src/app/shared/logging") + '/'
@@ -33,4 +32,9 @@ QtApplication {
     qbs.commonRunEnvironment: ({
         "QBS_INSTALL_ROOT": qbs.installRoot
     })
+    Group {
+        fileTagsFilter: product.type
+        qbs.install: true
+        qbs.installDir: qbsbuildconfig.appInstallDir
+    }
 }

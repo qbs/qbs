@@ -6,7 +6,7 @@ import qbs.Utilities
 
 Product {
     name: "qbs resources"
-    type: ["copied qbs resources", "qbs qml type descriptions", "qbs qml type bundle"]
+    type: ["qbs qml type descriptions", "qbs qml type bundle"]
     Depends { name: "qbsbuildconfig" }
 
     Group {
@@ -65,31 +65,10 @@ Product {
     }
 
     Rule {
-        inputs: ["qbs resources"]
-        Artifact {
-            filePath: FileInfo.joinPaths(
-                          project.buildDirectory,
-                          input.moduleProperty("qbs", "installDir"),
-                          FileInfo.relativePath(input.moduleProperty("qbs", "installSourceBase"),
-                                                input.filePath))
-            fileTags: ["copied qbs resources"]
-        }
-        prepare: {
-            var cmd = new JavaScriptCommand();
-            cmd.description = "Copying resource " + input.fileName + " to build directory.";
-            cmd.highlight = "codegen";
-            cmd.sourceCode = function() { File.copy(input.filePath, output.filePath); }
-            return cmd;
-        }
-    }
-
-    Rule {
         condition: Utilities.versionCompare(product.qbs.version, "1.9.1") >= 0
         multiplex: true
         Artifact {
-            filePath: FileInfo.joinPaths(
-                          project.buildDirectory,
-                          product.qbsbuildconfig.qmlTypeDescriptionsInstallDir, "qbs.qmltypes")
+            filePath: "qbs.qmltypes"
             fileTags: ["qbs qml type descriptions"]
         }
         prepare: {
@@ -114,9 +93,7 @@ Product {
         condition: Utilities.versionCompare(product.qbs.version, "1.9.1") >= 0
         multiplex: true
         Artifact {
-            filePath: FileInfo.joinPaths(
-                          project.buildDirectory,
-                          product.qbsbuildconfig.qmlTypeDescriptionsInstallDir, "qbs-bundle.json")
+            filePath: "qbs-bundle.json"
             fileTags: ["qbs qml type bundle"]
         }
         prepare: {
@@ -155,6 +132,6 @@ Product {
         name: "QML Type Info"
         fileTagsFilter: ["qbs qml type descriptions", "qbs qml type bundle"]
         qbs.install: true
-        qbs.installSourceBase: project.buildDirectory
+        qbs.installDir: qbsbuildconfig.qmlTypeDescriptionsInstallDir
     }
 }
