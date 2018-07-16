@@ -21,7 +21,7 @@ QtModule {
         }
         Artifact {
             filePath: input.baseName + ".cpp"
-            fileTags: ["cpp"]
+            fileTags: ["cpp", "unmocable"]
         }
 
         prepare: {
