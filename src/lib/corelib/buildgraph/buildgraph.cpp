@@ -72,6 +72,7 @@
 #include <QtScript/qscriptclass.h>
 
 #include <algorithm>
+#include <iterator>
 #include <vector>
 
 namespace qbs {
@@ -734,6 +735,9 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product,
         const TransformerConstPtr transformer = artifact->transformer;
         if (artifact->artifactType == Artifact::SourceFile)
             continue;
+
+        const auto parentRuleNodes = filterByType<RuleNode>(artifact->children);
+        QBS_CHECK(std::distance(parentRuleNodes.begin(), parentRuleNodes.end()) == 1);
 
         QBS_CHECK(transformer);
         QBS_CHECK(transformer->rule);
