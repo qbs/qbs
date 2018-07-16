@@ -232,10 +232,13 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
     // already are children, because output artifacts become children of the producing
     // rule node's parent rule node.
     for (Artifact * const input : inputArtifacts) {
-        if (input->artifactType == Artifact::SourceFile || input->product != m_ruleNode->product)
+        if (input->artifactType == Artifact::SourceFile || input->product != m_ruleNode->product
+                || input->producer()->rule()->collectedOutputFileTags().intersects(
+                    m_ruleNode->rule()->excludedInputs)) {
             connect(m_ruleNode, input);
-        else
+        } else {
             QBS_CHECK(m_ruleNode->children.contains(input));
+        }
     }
 
     if (outputArtifacts.empty())

@@ -84,6 +84,8 @@ public:
     void setFileTags(const FileTags &newFileTags);
     const FileTags &fileTags() const { return m_fileTags; }
 
+    RuleNode *producer() const;
+
     ArtifactSet childrenAddedByScanner;
     Set<FileDependency *> fileDependencies;
     TransformerPtr transformer;

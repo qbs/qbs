@@ -2297,6 +2297,14 @@ void TestBlackbox::ruleConditions()
     QVERIFY(!QFileInfo(relativeProductBuildDir("unzorted") + "/unzorted.foo.narf.zort").exists());
 }
 
+void TestBlackbox::ruleConnectionWithExcludedInputs()
+{
+    QDir::setCurrent(testDataDir + "/rule-connection-with-excluded-inputs");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("inputs.x: 2") && m_qbsStdout.contains("inputs.y: 0"),
+             m_qbsStdout.constData());
+}
+
 void TestBlackbox::ruleCycle()
 {
     QDir::setCurrent(testDataDir + "/ruleCycle");

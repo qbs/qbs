@@ -233,6 +233,7 @@ private slots:
     void rescueTransformerData();
     void responseFiles();
     void ruleConditions();
+    void ruleConnectionWithExcludedInputs();
     void ruleCycle();
     void ruleWithNoInputs();
     void ruleWithNonRequiredInputs();

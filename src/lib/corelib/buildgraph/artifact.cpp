@@ -42,6 +42,7 @@
 #include "transformer.h"
 #include "buildgraphvisitor.h"
 #include "productbuilddata.h"
+#include "rulenode.h"
 #include <language/language.h>
 #include <language/propertymapinternal.h>
 #include <tools/persistence.h>
@@ -102,6 +103,15 @@ void Artifact::setFileTags(const FileTags &newFileTags)
     const Set<FileTag> removedTags = m_fileTags - newFileTags;
     for (const FileTag &t : removedTags)
         removeFileTag(t);
+}
+
+RuleNode *Artifact::producer() const
+{
+    if (artifactType == SourceFile)
+        return nullptr;
+    const auto ruleNodes = filterByType<RuleNode>(children);
+    QBS_CHECK(ruleNodes.begin() != ruleNodes.end());
+    return *ruleNodes.begin();
 }
 
 void Artifact::initialize()
