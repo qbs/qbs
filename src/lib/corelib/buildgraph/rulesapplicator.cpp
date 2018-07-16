@@ -183,7 +183,7 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
     qCDebug(lcBuildGraph) << "apply rule" << m_rule->toString()
                           << toStringList(inputArtifacts).join(QLatin1String(",\n            "));
 
-    QList<std::pair<const RuleArtifact *, Artifact *> > ruleArtifactArtifactMap;
+    QList<std::pair<const RuleArtifact *, OutputArtifactInfo>> ruleArtifactArtifactMap;
     QList<Artifact *> outputArtifacts;
 
     m_transformer = Transformer::create();
@@ -209,26 +209,22 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
     } else {
         Set<QString> outputFilePaths;
         for (const RuleArtifactConstPtr &ruleArtifact : m_rule->artifacts) {
-            Artifact * const outputArtifact
-                    = createOutputArtifactFromRuleArtifact(ruleArtifact, inputArtifacts,
-                                                           &outputFilePaths);
-            if (!outputArtifact)
+            const OutputArtifactInfo outputInfo = createOutputArtifactFromRuleArtifact(
+                        ruleArtifact, inputArtifacts, &outputFilePaths);
+            if (!outputInfo.artifact)
                 continue;
-            outputArtifacts.push_back(outputArtifact);
-            ruleArtifactArtifactMap.push_back({ ruleArtifact.get(), outputArtifact });
+            outputArtifacts.push_back(outputInfo.artifact);
+            ruleArtifactArtifactMap.push_back({ ruleArtifact.get(), outputInfo });
         }
         if (m_rule->artifacts.empty()) {
-            outputArtifacts.push_back(createOutputArtifactFromRuleArtifact(nullptr, inputArtifacts,
-                                                                           &outputFilePaths));
+            outputArtifacts.push_back(createOutputArtifactFromRuleArtifact(
+                                          nullptr, inputArtifacts, &outputFilePaths).artifact);
         }
     }
 
     ArtifactSet newOutputs = ArtifactSet::fromList(outputArtifacts);
     const ArtifactSet oldOutputs = collectOldOutputArtifacts(inputArtifacts);
     handleRemovedRuleOutputs(m_completeInputSet, oldOutputs - newOutputs, m_logger);
-
-    if (outputArtifacts.empty())
-        return;
 
     // The inputs become children of the rule node. Generated artifacts in the same product
     // already are children, because output artifacts become children of the producing
@@ -239,6 +235,9 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
         else
             QBS_CHECK(m_ruleNode->children.contains(input));
     }
+
+    if (outputArtifacts.empty())
+        return;
 
     for (Artifact * const outputArtifact : qAsConst(outputArtifacts)) {
         for (Artifact * const dependency : qAsConst(m_transformer->explicitlyDependsOn))
@@ -259,7 +258,8 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
             continue;
 
         // expose attributes of this artifact
-        Artifact *outputArtifact = it->second;
+        const OutputArtifactInfo outputInfo = it->second;
+        Artifact *outputArtifact = outputInfo.artifact;
         outputArtifact->properties = outputArtifact->properties->clone();
 
         scope().setProperty(StringConstants::fileNameProperty(),
@@ -281,6 +281,10 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
             outputArtifact->pureProperties.push_back(std::make_pair(binding.name, value));
         }
         outputArtifact->properties->setValue(artifactModulesCfg);
+        if (!outputInfo.newlyCreated && (outputArtifact->fileTags() != outputInfo.oldFileTags
+                || outputArtifact->properties->value() != outputInfo.oldProperties)) {
+            invalidateArtifactAsRuleInputIfNecessary(outputArtifact);
+        }
     }
     if (!ruleArtifactArtifactMap.empty())
         engine()->setGlobalObject(prepareScriptContext.prototype());
@@ -364,7 +368,7 @@ ArtifactSet RulesApplicator::collectExplicitlyDependsOn()
    return first.unite(second);
 }
 
-Artifact *RulesApplicator::createOutputArtifactFromRuleArtifact(
+RulesApplicator::OutputArtifactInfo RulesApplicator::createOutputArtifactFromRuleArtifact(
         const RuleArtifactConstPtr &ruleArtifact, const ArtifactSet &inputArtifacts,
         Set<QString> *outputFilePaths)
 {
@@ -398,8 +402,8 @@ Artifact *RulesApplicator::createOutputArtifactFromRuleArtifact(
     return createOutputArtifact(outputPath, fileTags, alwaysUpdated, inputArtifacts);
 }
 
-Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const FileTags &fileTags,
-        bool alwaysUpdated, const ArtifactSet &inputArtifacts)
+RulesApplicator::OutputArtifactInfo RulesApplicator::createOutputArtifact(const QString &filePath,
+        const FileTags &fileTags, bool alwaysUpdated, const ArtifactSet &inputArtifacts)
 {
     QString outputPath = filePath;
     // don't let the output artifact "escape" its build dir
@@ -416,7 +420,10 @@ Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const F
         }
     }
 
-    Artifact *outputArtifact = lookupArtifact(m_product, outputPath);
+    OutputArtifactInfo outputInfo;
+    Artifact *& outputArtifact = outputInfo.artifact;
+    outputArtifact = lookupArtifact(m_product, outputPath);
+    outputInfo.newlyCreated = !outputArtifact;
     if (outputArtifact) {
         const Transformer * const transformer = outputArtifact->transformer.get();
         if (transformer && transformer->rule != m_rule) {
@@ -457,6 +464,8 @@ Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const F
         }
         m_transformer->rescueChangeTrackingData(outputArtifact->transformer);
         m_oldTransformer = outputArtifact->transformer;
+        outputInfo.oldFileTags = outputArtifact->fileTags();
+        outputInfo.oldProperties = outputArtifact->properties->value();
     } else {
         std::unique_ptr<Artifact> newArtifact(new Artifact);
         newArtifact->artifactType = Artifact::Generated;
@@ -485,7 +494,7 @@ Artifact *RulesApplicator::createOutputArtifact(const QString &filePath, const F
     m_transformer->outputs.insert(outputArtifact);
     QBS_CHECK(m_rule->multiplex || m_transformer->inputs.size() == 1);
 
-    return outputArtifact;
+    return outputInfo;
 }
 
 class RuleOutputArtifactsException : public ErrorInfo
@@ -614,8 +623,9 @@ Artifact *RulesApplicator::createOutputArtifactFromScriptValue(const QScriptValu
     const QVariant alwaysUpdatedVar
             = obj.property(StringConstants::alwaysUpdatedProperty()).toVariant();
     const bool alwaysUpdated = alwaysUpdatedVar.isValid() ? alwaysUpdatedVar.toBool() : true;
-    Artifact *output = createOutputArtifact(filePath, fileTags, alwaysUpdated, inputArtifacts);
-    if (output->fileTags().empty()) {
+    OutputArtifactInfo outputInfo = createOutputArtifact(filePath, fileTags, alwaysUpdated,
+                                                         inputArtifacts);
+    if (outputInfo.artifact->fileTags().empty()) {
         // Check the file tags after file taggers were run.
         throw RuleOutputArtifactsException(
                 Tr::tr("Property fileTags for artifact '%1' must be a non-empty string list. "
@@ -627,10 +637,14 @@ Artifact *RulesApplicator::createOutputArtifactFromScriptValue(const QScriptValu
                 .toVariant().toStringList());
     for (const FileTag &tag : explicitlyDependsOn) {
         for (Artifact * const dependency : m_product->lookupArtifactsByFileTag(tag))
-            connect(output, dependency);
+            connect(outputInfo.artifact, dependency);
     }
-    ArtifactBindingsExtractor().apply(output, obj);
-    return output;
+    ArtifactBindingsExtractor().apply(outputInfo.artifact, obj);
+    if (!outputInfo.newlyCreated && (outputInfo.artifact->fileTags() != outputInfo.oldFileTags
+            || outputInfo.artifact->properties->value() != outputInfo.oldProperties)) {
+        invalidateArtifactAsRuleInputIfNecessary(outputInfo.artifact);
+    }
+    return outputInfo.artifact;
 }
 
 QString RulesApplicator::resolveOutPath(const QString &path) const

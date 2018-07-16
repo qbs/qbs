@@ -77,6 +77,7 @@ void dumpProductBuildData(const ResolvedProductConstPtr &product);
 void provideFullFileTagsAndProperties(Artifact *artifact);
 void applyPerArtifactProperties(Artifact *artifact);
 void updateGeneratedArtifacts(ResolvedProduct *product);
+void invalidateArtifactAsRuleInputIfNecessary(Artifact *artifact);
 
 bool findPath(BuildGraphNode *u, BuildGraphNode *v, QList<BuildGraphNode*> &path);
 void QBS_AUTOTEST_EXPORT connect(BuildGraphNode *p, BuildGraphNode *c);

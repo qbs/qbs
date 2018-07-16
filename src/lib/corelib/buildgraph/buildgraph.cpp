@@ -624,7 +624,13 @@ void updateArtifactFromSourceArtifact(const ResolvedProductPtr &product,
 {
     Artifact * const artifact = lookupArtifact(product, sourceArtifact->absoluteFilePath, false);
     QBS_CHECK(artifact);
+    const FileTags oldFileTags = artifact->fileTags();
+    const QVariantMap oldModuleProperties = artifact->properties->value();
     setArtifactData(artifact, sourceArtifact);
+    if (oldFileTags != artifact->fileTags()
+            || oldModuleProperties != artifact->properties->value()) {
+        invalidateArtifactAsRuleInputIfNecessary(artifact);
+    }
 }
 
 void insertArtifact(const ResolvedProductPtr &product, Artifact *artifact)
@@ -673,9 +679,37 @@ void updateGeneratedArtifacts(ResolvedProduct *product)
         return;
     for (Artifact * const artifact : filterByType<Artifact>(product->buildData->allNodes())) {
         if (artifact->artifactType == Artifact::Generated) {
+            const FileTags oldFileTags = artifact->fileTags();
+            const QVariantMap oldModuleProperties = artifact->properties->value();
             provideFullFileTagsAndProperties(artifact);
             applyPerArtifactProperties(artifact);
+            if (oldFileTags != artifact->fileTags()
+                    || oldModuleProperties != artifact->properties->value()) {
+                invalidateArtifactAsRuleInputIfNecessary(artifact);
+            }
         }
+    }
+}
+
+// This is needed for artifacts which are inputs to rules whose outputArtifacts script
+// returned an empty array for this input. Since there is no transformer, our usual change
+// tracking procedure will not notice if the artifact's file tags or module properties have
+// changed, so we need to force a re-run of the outputArtifacts script.
+void invalidateArtifactAsRuleInputIfNecessary(Artifact *artifact)
+{
+    for (RuleNode * const parentRuleNode : filterByType<RuleNode>(artifact->parents)) {
+        if (!parentRuleNode->rule()->isDynamic())
+            continue;
+        bool artifactNeedsExplicitInvalidation = true;
+        for (Artifact * const output : filterByType<Artifact>(parentRuleNode->parents)) {
+            if (output->children.contains(artifact)
+                    && !output->childrenAddedByScanner.contains(artifact)) {
+                artifactNeedsExplicitInvalidation = false;
+                break;
+            }
+        }
+        if (artifactNeedsExplicitInvalidation)
+            parentRuleNode->removeOldInputArtifact(artifact);
     }
 }
 

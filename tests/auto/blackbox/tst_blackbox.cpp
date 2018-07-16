@@ -5891,20 +5891,45 @@ void TestBlackbox::innoSetupDependencies()
     QVERIFY(regularFileExists(relativeBuildDir() + "/qbs.setup.test.exe"));
 }
 
+void TestBlackbox::inputTagsChangeTracking_data()
+{
+    QTest::addColumn<QString>("generateInput");
+    QTest::newRow("source artifact") << QString("no");
+    QTest::newRow("generated artifact (static)") << QString("static");
+    QTest::newRow("generated artifact (dynamic)") << QString("dynamic");
+}
+
 void TestBlackbox::inputTagsChangeTracking()
 {
     QDir::setCurrent(testDataDir + "/input-tags-change-tracking");
     const QString xOut = QDir::currentPath() + '/' + relativeProductBuildDir("p") + "/x.out";
     const QString yOut = QDir::currentPath() + '/' + relativeProductBuildDir("p") + "/y.out";
+    QFETCH(QString, generateInput);
+    const QbsRunParameters resolveParams("resolve",
+                                         QStringList("products.p.generateInput:" + generateInput));
+    QCOMPARE(runQbs(resolveParams), 0);
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(m_qbsStdout.contains("generating input.txt") == (generateInput == "static"));
+    QVERIFY2(!QFile::exists(xOut), qPrintable(xOut));
+    QVERIFY2(!QFile::exists(yOut), qPrintable(yOut));
+    WAIT_FOR_NEW_TIMESTAMP();
+    REPLACE_IN_FILE("input-tags-change-tracking.qbs", "Tags: [\"txt\", \"empty\"]",
+                    "Tags: \"txt\"");
     QCOMPARE(runQbs(), 0);
     QVERIFY2(QFile::exists(xOut), qPrintable(xOut));
     QVERIFY2(!QFile::exists(yOut), qPrintable(yOut));
     WAIT_FOR_NEW_TIMESTAMP();
-    REPLACE_IN_FILE("input-tags-change-tracking.qbs", "fileTags: \"txt\"",
-                    "fileTags: [\"txt\", \"y\"]");
+    REPLACE_IN_FILE("input-tags-change-tracking.qbs", "Tags: \"txt\"",
+                    "Tags: [\"txt\", \"y\"]");
     QCOMPARE(runQbs(), 0);
     QVERIFY2(!QFile::exists(xOut), qPrintable(xOut));
     QVERIFY2(QFile::exists(yOut), qPrintable(yOut));
+    WAIT_FOR_NEW_TIMESTAMP();
+    REPLACE_IN_FILE("input-tags-change-tracking.qbs", "Tags: [\"txt\", \"y\"]",
+                    "Tags: [\"txt\", \"empty\"]");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(!QFile::exists(xOut), qPrintable(xOut));
+    QVERIFY2(!QFile::exists(yOut), qPrintable(yOut));
 }
 
 void TestBlackbox::outputArtifactAutoTagging()

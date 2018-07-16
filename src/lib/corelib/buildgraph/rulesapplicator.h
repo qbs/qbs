@@ -85,9 +85,17 @@ private:
     ArtifactSet collectOldOutputArtifacts(const ArtifactSet &inputArtifacts) const;
     ArtifactSet collectExplicitlyDependsOn();
     ArtifactSet collectExplicitlyDependsOnFromDependencies();
-    Artifact *createOutputArtifactFromRuleArtifact(const RuleArtifactConstPtr &ruleArtifact,
-            const ArtifactSet &inputArtifacts, Set<QString> *outputFilePaths);
-    Artifact *createOutputArtifact(const QString &filePath, const FileTags &fileTags,
+
+    struct OutputArtifactInfo {
+        Artifact *artifact = nullptr;
+        bool newlyCreated = false;
+        FileTags oldFileTags;
+        QVariantMap oldProperties;
+    };
+    OutputArtifactInfo createOutputArtifactFromRuleArtifact(
+            const RuleArtifactConstPtr &ruleArtifact, const ArtifactSet &inputArtifacts,
+            Set<QString> *outputFilePaths);
+    OutputArtifactInfo createOutputArtifact(const QString &filePath, const FileTags &fileTags,
             bool alwaysUpdated, const ArtifactSet &inputArtifacts);
     QList<Artifact *> runOutputArtifactsScript(const ArtifactSet &inputArtifacts,
             const QScriptValueList &args);
