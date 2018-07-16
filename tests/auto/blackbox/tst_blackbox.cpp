@@ -2555,6 +2555,10 @@ void TestBlackbox::sourceArtifactChanges()
     do { \
         QVERIFY2(m_qbsStdout.contains("compiling main.cpp") == expected, m_qbsStdout.constData()); \
         QVERIFY2(QFile::exists(appFilePath) == expected, qPrintable(appFilePath)); \
+        if (expected) \
+            QVERIFY2(m_qbsStdout.contains("cpp artifacts: 1"), m_qbsStdout.constData()); \
+        else \
+            QVERIFY2(m_qbsStdout.contains("cpp artifacts: 0"), m_qbsStdout.constData()); \
     } while (false)
 
     // Initial build.

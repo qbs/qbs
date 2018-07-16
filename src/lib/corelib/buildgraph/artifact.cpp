@@ -94,10 +94,14 @@ void Artifact::setFileTags(const FileTags &newFileTags)
         m_fileTags = newFileTags;
         return;
     }
-    for (const FileTag &t : qAsConst(m_fileTags))
-        product->buildData->removeArtifactFromSetByFileTag(this, t);
-    m_fileTags = newFileTags;
-    product->buildData->addArtifactToSet(this);
+    if (m_fileTags == newFileTags)
+        return;
+    const Set<FileTag> addedTags = newFileTags - m_fileTags;
+    for (const FileTag &t : addedTags)
+        addFileTag(t);
+    const Set<FileTag> removedTags = m_fileTags - newFileTags;
+    for (const FileTag &t : removedTags)
+        removeFileTag(t);
 }
 
 void Artifact::initialize()

@@ -36,5 +36,21 @@ CppApplication {
         }
     }
 
+    Rule {
+        multiplex: true
+        inputs: "cpp"
+        requiresInputs: false
+        Artifact { filePath: "dummy2"; fileTags: "dummy" }
+        prepare: {
+            var cmd = new JavaScriptCommand();
+            cmd.silent = true;
+            cmd.sourceCode = function() {
+                console.info("cpp artifacts: "
+                             + (product.artifacts.cpp ? product.artifacts.cpp.length : 0))
+            };
+            return cmd;
+        }
+    }
+
     Depends { name: "module_with_files" }
 }
