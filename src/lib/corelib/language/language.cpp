@@ -408,8 +408,8 @@ ArtifactSet ResolvedProduct::targetArtifacts() const
     QBS_CHECK(buildData);
     ArtifactSet taSet;
     for (Artifact * const a : buildData->rootArtifacts()) {
-        if (a->fileTags().intersects(fileTags))
-            taSet << a;
+        QBS_CHECK(a->fileTags().intersects(fileTags));
+        taSet << a;
     }
     return taSet;
 }

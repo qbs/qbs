@@ -487,8 +487,6 @@ RulesApplicator::OutputArtifactInfo RulesApplicator::createOutputArtifact(const 
     outputArtifact->alwaysUpdated = alwaysUpdated;
     outputArtifact->pureFileTags = fileTags;
     provideFullFileTagsAndProperties(outputArtifact);
-    if (outputArtifact->fileTags().intersects(m_ruleNode->product->fileTags))
-        m_ruleNode->product->buildData->addRootNode(outputArtifact);
 
     for (Artifact * const inputArtifact : inputArtifacts) {
         QBS_CHECK(outputArtifact != inputArtifact);

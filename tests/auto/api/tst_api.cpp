@@ -2733,6 +2733,36 @@ void TestApi::subProjects()
              qPrintable(errorInfo.toString()));
 }
 
+void TestApi::targetArtifactStatus_data()
+{
+    QTest::addColumn<bool>("enableTagging");
+    QTest::newRow("tagging off") << false;
+    QTest::newRow("tagging on") << true;
+    QTest::newRow("tagging off again") << false;
+}
+
+void TestApi::targetArtifactStatus()
+{
+    QFETCH(bool, enableTagging);
+    qbs::SetupProjectParameters params
+            = defaultSetupParameters("target-artifact-status/target-artifact-status.qbs");
+    params.setOverriddenValues({std::make_pair("products.p.enableTagging", enableTagging)});
+    const std::unique_ptr<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(params,
+                                                                                     m_logSink, 0));
+    waitForFinished(setupJob.get());
+    VERIFY_NO_ERROR(setupJob->error());
+    const qbs::Project project = setupJob->project();
+    QVERIFY(project.isValid());
+    const std::unique_ptr<qbs::BuildJob> buildJob(project.buildAllProducts(qbs::BuildOptions()));
+    QVERIFY(waitForFinished(buildJob.get()));
+    VERIFY_NO_ERROR(buildJob->error());
+    const qbs::ProjectData projectData = project.projectData();
+    const QList<qbs::ProductData> products = projectData.products();
+    QCOMPARE(products.size(), 1);
+    const qbs::ProductData product = products.front();
+    QCOMPARE(product.targetArtifacts().size(), enableTagging ? 2 : 1);
+}
+
 void TestApi::toolInModule()
 {
     QVariantMap overrides({std::make_pair("qbs.installRoot", m_workingDataDir

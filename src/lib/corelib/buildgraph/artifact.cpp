@@ -78,15 +78,21 @@ QString Artifact::toString() const
 void Artifact::addFileTag(const FileTag &t)
 {
     m_fileTags += t;
-    if (!product.expired() && product->buildData)
+    if (!product.expired() && product->buildData) {
         product->buildData->addFileTagToArtifact(this, t);
+        if (product->fileTags.contains(t))
+            product->buildData->addRootNode(this);
+    }
 }
 
 void Artifact::removeFileTag(const FileTag &t)
 {
     m_fileTags -= t;
-    if (!product.expired() && product->buildData)
+    if (!product.expired() && product->buildData) {
         product->buildData->removeArtifactFromSetByFileTag(this, t);
+        if (product->fileTags.contains(t) && !product->fileTags.intersects(m_fileTags))
+            product->buildData->removeFromRootNodes(this);
+    }
 }
 
 void Artifact::setFileTags(const FileTags &newFileTags)

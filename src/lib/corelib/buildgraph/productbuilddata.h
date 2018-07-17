@@ -68,6 +68,7 @@ public:
 
     void addNode(BuildGraphNode *node) { m_nodes.insert(node); }
     void addRootNode(BuildGraphNode *node) { m_roots.insert(node); }
+    void removeFromRootNodes(BuildGraphNode *node) { m_roots.remove(node); }
     void addArtifact(Artifact *artifact);
     void addArtifactToSet(Artifact *artifact);
     void removeArtifact(Artifact *artifact);
