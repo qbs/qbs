@@ -487,6 +487,7 @@ void Executor::executeRuleNode(RuleNode *ruleNode)
     ruleNode->apply(m_logger, m_productsByName, m_projectsByName, &result);
     updateLeaves(result.createdArtifacts);
     updateLeaves(result.invalidatedArtifacts);
+    m_artifactsRemovedFromDisk << result.removedArtifacts;
     finishNode(ruleNode);
     if (m_progressObserver)
         m_progressObserver->incrementProgressValue();

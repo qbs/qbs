@@ -179,8 +179,10 @@ void RuleNode::apply(const Logger &logger,
     }
     for (const auto &connection : connectionsToBreak)
         disconnect(connection.first, connection.second);
-    if (!outputArtifactsToRemove.empty())
-        RulesApplicator::handleRemovedRuleOutputs(inputs, outputArtifactsToRemove, logger);
+    if (!outputArtifactsToRemove.empty()) {
+        RulesApplicator::handleRemovedRuleOutputs(inputs, outputArtifactsToRemove,
+                                                  result->removedArtifacts, logger);
+    }
 
     if (mustApplyRule) {
         RulesApplicator applicator(product.lock(), productsByName, projectsByName, logger);

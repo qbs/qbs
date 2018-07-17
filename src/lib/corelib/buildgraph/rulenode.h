@@ -71,6 +71,7 @@ public:
     {
         NodeSet createdArtifacts;
         NodeSet invalidatedArtifacts;
+        QStringList removedArtifacts;
     };
 
     void apply(const Logger &logger,

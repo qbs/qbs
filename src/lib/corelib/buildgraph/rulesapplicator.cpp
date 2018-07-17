@@ -39,7 +39,6 @@
 #include "rulesapplicator.h"
 
 #include "buildgraph.h"
-#include "emptydirectoriesremover.h"
 #include "productbuilddata.h"
 #include "projectbuilddata.h"
 #include "qtmocscanner.h"
@@ -103,6 +102,7 @@ void RulesApplicator::applyRule(RuleNode *ruleNode, const ArtifactSet &inputArti
     m_product->topLevelProject()->buildData->setDirty();
     m_createdArtifacts.clear();
     m_invalidatedArtifacts.clear();
+    m_removedArtifacts.clear();
     RulesEvaluationContext::Scope s(evalContext().get());
 
     m_completeInputSet = inputArtifacts;
@@ -132,7 +132,8 @@ void RulesApplicator::applyRule(RuleNode *ruleNode, const ArtifactSet &inputArti
 }
 
 void RulesApplicator::handleRemovedRuleOutputs(const ArtifactSet &inputArtifacts,
-        const ArtifactSet &outputArtifactsToRemove, const Logger &logger)
+        const ArtifactSet &outputArtifactsToRemove, QStringList &removedArtifacts,
+        const Logger &logger)
 {
     ArtifactSet artifactsToRemove;
     const TopLevelProject *project = nullptr;
@@ -144,9 +145,9 @@ void RulesApplicator::handleRemovedRuleOutputs(const ArtifactSet &inputArtifacts
         project->buildData->removeArtifactAndExclusiveDependents(removedArtifact, logger, true,
                                                                  &artifactsToRemove);
     }
-    EmptyDirectoriesRemover(project, logger).removeEmptyParentDirectories(artifactsToRemove);
     for (Artifact * const artifact : qAsConst(artifactsToRemove)) {
         QBS_CHECK(!inputArtifacts.contains(artifact));
+        removedArtifacts << artifact->filePath();
         delete artifact;
     }
 }
@@ -224,7 +225,8 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
 
     ArtifactSet newOutputs = ArtifactSet::fromList(outputArtifacts);
     const ArtifactSet oldOutputs = collectOldOutputArtifacts(inputArtifacts);
-    handleRemovedRuleOutputs(m_completeInputSet, oldOutputs - newOutputs, m_logger);
+    handleRemovedRuleOutputs(m_completeInputSet, oldOutputs - newOutputs, m_removedArtifacts,
+                             m_logger);
 
     // The inputs become children of the rule node. Generated artifacts in the same product
     // already are children, because output artifacts become children of the producing

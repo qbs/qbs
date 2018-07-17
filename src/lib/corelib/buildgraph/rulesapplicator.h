@@ -70,11 +70,13 @@ public:
 
     const NodeSet &createdArtifacts() const { return m_createdArtifacts; }
     const NodeSet &invalidatedArtifacts() const { return m_invalidatedArtifacts; }
+    QStringList removedArtifacts() const { return m_removedArtifacts; }
     bool ruleUsesIo() const { return m_ruleUsesIo; }
 
     void applyRule(RuleNode *ruleNode, const ArtifactSet &inputArtifacts);
     static void handleRemovedRuleOutputs(const ArtifactSet &inputArtifacts,
-            const ArtifactSet &artifactsToRemove, const Logger &logger);
+            const ArtifactSet &artifactsToRemove, QStringList &removedArtifacts,
+            const Logger &logger);
     static ArtifactSet collectAuxiliaryInputs(const Rule *rule, const ResolvedProduct *product);
 
     enum InputsSourceFlag { CurrentProduct = 1, Dependencies = 2 };
@@ -115,6 +117,7 @@ private:
     const std::unordered_map<QString, const ResolvedProject *> &m_projectsByName;
     NodeSet m_createdArtifacts;
     NodeSet m_invalidatedArtifacts;
+    QStringList m_removedArtifacts;
     RuleNode *m_ruleNode = nullptr;
     RuleConstPtr m_rule;
     ArtifactSet m_completeInputSet;
