@@ -1,10 +1,12 @@
 import qbs.File
 
 Project {
+    property bool enableTagging
     CppApplication {
         name: "my_app"
         files: "main.cpp"
         Group {
+            condition: project.enableTagging
             fileTagsFilter: ["application"]
             fileTags: ["app-to-compress"]
         }
