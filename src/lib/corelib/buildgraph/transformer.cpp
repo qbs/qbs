@@ -48,6 +48,7 @@
 #include <tools/scripttools.h>
 #include <tools/qbsassert.h>
 #include <tools/stringconstants.h>
+#include <tools/stlutils.h>
 
 #include <QtCore/qdir.h>
 
@@ -116,7 +117,7 @@ QScriptValue Transformer::translateFileConfig(ScriptEngine *scriptEngine, const 
     setArtifactProperty(obj, StringConstants::completeBaseNameProperty(), js_completeBaseName,
                         artifact);
     setArtifactProperty(obj, QStringLiteral("baseDir"), js_baseDir, artifact);
-    const QStringList fileTags = artifact->fileTags().toStringList();
+    const QStringList fileTags = sorted(artifact->fileTags().toStringList());
     obj.setProperty(StringConstants::fileTagsProperty(), scriptEngine->toScriptValue(fileTags));
     if (!defaultModuleName.isEmpty())
         obj.setProperty(StringConstants::moduleNameProperty(), defaultModuleName);
