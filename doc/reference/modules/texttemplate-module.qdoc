@@ -102,7 +102,7 @@
 */
 
 /*!
-    \qmlproperty string outputFileName
+    \qmlproperty string texttemplate::outputFileName
 
     The output file name that is assigned to produced artifacts.
 
@@ -110,7 +110,7 @@
 */
 
 /*!
-    \qmlproperty string outputTag
+    \qmlproperty string texttemplate::outputTag
 
     The output tag that is assigned to produced artifacts.
 
