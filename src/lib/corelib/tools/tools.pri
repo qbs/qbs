@@ -131,6 +131,7 @@ osx {
         $$PWD/qbs_export.h \
         $$PWD/settings.h \
         $$PWD/settingsmodel.h \
+        $$PWD/settingsrepresentation.h \
         $$PWD/setupprojectparameters.h \
         $$PWD/toolchains.h \
         $$PWD/version.h
