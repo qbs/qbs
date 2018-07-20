@@ -61,6 +61,8 @@ public:
     void clear() { m_requestedArtifactsPerProduct.clear(); }
     void setAllArtifactTags(const ResolvedProduct *product);
     void setArtifactsForTag(const ResolvedProduct *product, const FileTag &tag);
+    void setNonExistingTagRequested(const ResolvedProduct *product, const QString &tag);
+    void setArtifactsEnumerated(const ResolvedProduct *product);
     void unite(const RequestedArtifacts &other);
 
     void doSanityChecks() const;
@@ -78,6 +80,7 @@ private:
     {
         Set<QString> allTags;
         std::unordered_map<QString, Set<QString>> requestedTags;
+        bool artifactsEnumerated = false;
 
         bool isUpToDate(const ResolvedProduct *product) const;
 
@@ -87,7 +90,7 @@ private:
 
         template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
         {
-            pool.serializationOp<opType>(allTags, requestedTags);
+            pool.serializationOp<opType>(allTags, requestedTags, artifactsEnumerated);
         }
 
         void load(PersistentPool &pool);

@@ -56,4 +56,31 @@ Project {
             }
         }
     }
+
+    Product {
+        name: "p"
+        type: "p_type"
+        Rule {
+            multiplex: true
+            Artifact { filePath: "dummy1"; fileTags: "d_type" }
+            prepare: {
+                var cmd = new JavaScriptCommand();
+                cmd.description = "generating " + output.fileName;
+                cmd.sourceCode = function() {
+                    var blubb = product.artifacts.qbs;
+                };
+                return cmd;
+            }
+        }
+        Rule {
+            inputs: "d_type"
+            Artifact { filePath: "dummy2"; fileTags: "p_type" }
+            prepare: {
+                var cmd = new JavaScriptCommand();
+                cmd.description = "generating " + output.fileName;
+                cmd.sourceCode = function() { };
+                return cmd;
+            }
+        }
+    }
 }

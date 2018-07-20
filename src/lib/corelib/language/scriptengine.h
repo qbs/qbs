@@ -128,6 +128,14 @@ public:
     {
         m_requestedArtifacts.setArtifactsForTag(product, tag);
     }
+    void setNonExistingArtifactSetRequested(const ResolvedProduct *product, const QString &tag)
+    {
+        m_requestedArtifacts.setNonExistingTagRequested(product, tag);
+    }
+    void setArtifactsEnumerated(const ResolvedProduct *product)
+    {
+        m_requestedArtifacts.setArtifactsEnumerated(product);
+    }
     void addPropertyRequestedFromArtifact(const Artifact *artifact, const Property &property);
     void addRequestedExport(const ResolvedProduct *product) { m_requestedExports.insert(product); }
     void clearRequestedProperties() {
@@ -238,6 +246,12 @@ public:
         m_productPropertyScriptClass = productPropertyScriptClass;
     }
 
+    QScriptClass *artifactsScriptClass() const { return m_artifactsScriptClass; }
+    void setArtifactsScriptClass(QScriptClass *artifactsScriptClass)
+    {
+        m_artifactsScriptClass = artifactsScriptClass;
+    }
+
     void addResourceAcquiringScriptObject(ResourceAcquiringScriptObject *obj);
     void releaseResourcesOfScriptObjects();
 
@@ -298,6 +312,7 @@ private:
     ScriptImporter *m_scriptImporter;
     QScriptClass *m_modulePropertyScriptClass;
     QScriptClass *m_productPropertyScriptClass = nullptr;
+    QScriptClass *m_artifactsScriptClass = nullptr;
     QHash<JsImport, QScriptValue> m_jsImportCache;
     bool m_propertyCacheEnabled;
     bool m_active;
