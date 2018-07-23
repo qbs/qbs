@@ -50,11 +50,6 @@
 namespace qbs {
 namespace Internal {
 
-#ifdef Q_OS_WIN
-template<bool> struct CompileTimeAssert;
-template<> struct CompileTimeAssert<true> {};
-#endif
-
 #ifdef APPLE_CUSTOM_CLOCK_GETTIME
 #include <sys/time.h>
 
@@ -77,8 +72,8 @@ int clock_gettime(int /*clk_id*/, struct timespec *t)
 FileTime::FileTime()
 {
 #ifdef Q_OS_WIN
-    static CompileTimeAssert<sizeof(FileTime::InternalType) == sizeof(FILETIME)> internal_type_has_wrong_size;
-    Q_UNUSED(internal_type_has_wrong_size);
+    static_assert(sizeof(FileTime::InternalType) == sizeof(FILETIME),
+                  "FileTime::InternalType has wrong size.");
     m_fileTime = 0;
 #elif HAS_CLOCK_GETTIME
     m_fileTime = {0, 0};

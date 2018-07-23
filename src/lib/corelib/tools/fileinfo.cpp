@@ -295,15 +295,10 @@ bool FileInfo::fileExists(const QFileInfo &fi)
 
 #define z(x) reinterpret_cast<WIN32_FILE_ATTRIBUTE_DATA*>(const_cast<FileInfo::InternalStatType*>(&x))
 
-template<bool> struct CompileTimeAssert;
-template<> struct CompileTimeAssert<true> {};
-
 FileInfo::FileInfo(const QString &fileName)
 {
-    static CompileTimeAssert<
-        sizeof(FileInfo::InternalStatType) == sizeof(WIN32_FILE_ATTRIBUTE_DATA)
-            > internal_type_has_wrong_size;
-    Q_UNUSED(internal_type_has_wrong_size);
+    static_assert(sizeof(FileInfo::InternalStatType) == sizeof(WIN32_FILE_ATTRIBUTE_DATA),
+                  "FileInfo::InternalStatType has wrong size.");
 
     QString filePath = fileName;
 
