@@ -1,0 +1,107 @@
+/****************************************************************************
+**
+** Copyright (C) 2018 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+/*!
+    \contentspage list-of-language-items.html
+    \previouspage Group
+    \nextpage Module
+    \qmltype JobLimit
+    \inqmlmodule QbsLanguageItems
+    \ingroup list-of-items
+    \keyword QML.JobLimit
+
+    \brief Restricts concurrent execution of jobs in a given pool.
+
+    In addition to the global limit on concurrently running commands, a project might
+    want to restrict concurrent execution of certain types of commands even further,
+    for instance because they are not well-suited to share certain types of resources.
+
+    In the following example, we define a rule that runs a tool of which at most one
+    instance can be running for the same project at any given time:
+    \code
+    Rule {
+        // ...
+        prepare: {
+            var cmd = new Command("my-exclusive-tool", [project.buildDirectory]);
+            cmd.description = "running the exclusive tool";
+            cmd.jobPool = "exclusive_tool";
+            return cmd;
+        }
+    }
+    JobLimit {
+        jobPool: "exclusive_tool"
+        jobCount: 1
+    }
+    \endcode
+
+    \c JobLimit items can appear inside \l Product, \l Project and \l Module items.
+    In the case of collisions, that is, items matching the same job pool but setting
+    different values, the ones defined inside products have the highest precedence,
+    and the ones inside modules have the lowest. Items defined in sub-projects have
+    higher precedence than those defined in parent projects. For items with the same
+    precedence level, the most restrictive one is chosen, that is, the one with the
+    lowest job number greater than zero.
+
+    \see {How do I limit the number of concurrent jobs for the linker only?}
+*/
+
+/*!
+    \qmlproperty bool JobLimit::condition
+
+    Determines whether the job limit is active.
+
+    If this property is set to \c false, the job limit is ignored.
+
+    \defaultvalue \c true
+*/
+
+/*!
+    \qmlproperty string JobLimit::jobCount
+
+    The maximum number of commands in the given \l{jobPool}{job pool} that can run
+    concurrently.
+
+    A value of zero means "unlimited", negative values are not allowed.
+
+    \note The global job limit always applies: For instance, if you set this
+          property to 100 for some job pool, and "-j 8" was given on the
+          command line, then no more than eight instances of commands from
+          the respective job pool will run at any time.
+
+    This property must always be set.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string JobLimit::jobPool
+
+    The job pool to which apply the limit.
+
+    This property must always be set to a non-empty value.
+
+    \nodefaultvalue
+*/

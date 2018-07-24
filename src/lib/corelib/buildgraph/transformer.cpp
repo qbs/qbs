@@ -305,5 +305,15 @@ void Transformer::rescueChangeTrackingData(const TransformerConstPtr &other)
     exportedModulesAccessedInCommands = other->exportedModulesAccessedInCommands;
 }
 
+Set<QString> Transformer::jobPools() const
+{
+    Set<QString> pools;
+    for (const AbstractCommandPtr &c : commands.commands()) {
+        if (!c->jobPool().isEmpty())
+            pools.insert(c->jobPool());
+    }
+    return pools;
+}
+
 } // namespace Internal
 } // namespace qbs

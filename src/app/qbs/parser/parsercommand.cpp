@@ -287,6 +287,8 @@ static QList<CommandLineOption::Type> buildOptions()
             << CommandLineOption::CommandEchoModeOptionType
             << CommandLineOption::NoInstallOptionType
             << CommandLineOption::RemoveFirstOptionType
+            << CommandLineOption::JobLimitsOptionType
+            << CommandLineOption::RespectProjectJobLimitsOptionType
             << CommandLineOption::WaitLockOptionType;
 }
 

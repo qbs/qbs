@@ -58,6 +58,8 @@ public:
     QStringList changedFiles;
     QStringList filesToConsider;
     QStringList activeFileTags;
+    JobLimits jobLimits;
+    QString settingsDir;
     int maxJobCount;
     bool dryRun;
     bool keepGoing;
@@ -68,6 +70,7 @@ public:
     bool install;
     bool removeExistingInstallation;
     bool onlyExecuteRules;
+    bool jobLimitsFromProjectTakePrecedence = false;
 };
 
 } // namespace Internal
@@ -186,6 +189,44 @@ int BuildOptions::maxJobCount() const
 void BuildOptions::setMaxJobCount(int jobCount)
 {
     d->maxJobCount = jobCount;
+}
+
+/*!
+ * \brief The base directory for qbs settings.
+ * This value is used to locate profiles and preferences.
+ */
+QString BuildOptions::settingsDirectory() const
+{
+    return d->settingsDir;
+}
+
+/*!
+ * \brief Sets the base directory for qbs settings.
+ * \param settingsBaseDir Will be used to locate profiles and preferences.
+ */
+void BuildOptions::setSettingsDirectory(const QString &settingsBaseDir)
+{
+    d->settingsDir = settingsBaseDir;
+}
+
+JobLimits BuildOptions::jobLimits() const
+{
+    return d->jobLimits;
+}
+
+void BuildOptions::setJobLimits(const JobLimits &jobLimits)
+{
+    d->jobLimits = jobLimits;
+}
+
+bool BuildOptions::projectJobLimitsTakePrecedence() const
+{
+    return d->jobLimitsFromProjectTakePrecedence;
+}
+
+void BuildOptions::setProjectJobLimitsTakePrecedence(bool toggle)
+{
+    d->jobLimitsFromProjectTakePrecedence = toggle;
 }
 
 /*!

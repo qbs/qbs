@@ -42,6 +42,7 @@
 #include "qbs_export.h"
 
 #include "commandechomode.h"
+#include "joblimits.h"
 #include "settings.h"
 
 #include <QtCore/qstringlist.h>
@@ -63,6 +64,7 @@ public:
     CommandEchoMode defaultEchoMode() const;
     QStringList searchPaths(const QString &baseDir = QString()) const;
     QStringList pluginPaths(const QString &baseDir = QString()) const;
+    JobLimits jobLimits() const;
 
 private:
     QVariant getPreference(const QString &key, const QVariant &defaultValue = QVariant()) const;

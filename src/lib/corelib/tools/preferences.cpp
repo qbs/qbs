@@ -124,6 +124,32 @@ QStringList Preferences::pluginPaths(const QString &baseDir) const
     return pathList(QLatin1String("pluginsPath"), baseDir + QLatin1String("/qbs/plugins"));
 }
 
+/*!
+ * \brief Returns the per-pool job limits.
+ */
+JobLimits Preferences::jobLimits() const
+{
+    const QString prefix = QLatin1String("preferences.jobLimit");
+    JobLimits limits;
+    for (const QString &key : m_settings->allKeysWithPrefix(prefix, Settings::allScopes())) {
+        limits.setJobLimit(key, m_settings->value(prefix + QLatin1Char('.') + key,
+                                                  Settings::allScopes()).toInt());
+    }
+    const QString fullPrefix = prefix + QLatin1Char('.');
+    if (!m_profile.isEmpty()) {
+        Profile p(m_profile, m_settings, m_profileContents);
+        for (const QString &key : p.allKeys(Profile::KeySelectionRecursive)) {
+            if (!key.startsWith(fullPrefix))
+                continue;
+            const QString jobPool = key.mid(fullPrefix.size());
+            const int limit = p.value(key).toInt();
+            if (limit >= 0)
+                limits.setJobLimit(jobPool, limit);
+        }
+    }
+    return limits;
+}
+
 QVariant Preferences::getPreference(const QString &key, const QVariant &defaultValue) const
 {
     static const QString keyPrefix = QLatin1String("preferences");

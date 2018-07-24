@@ -154,6 +154,10 @@ private:
     bool artifactHasMatchingOutputTags(const Artifact *artifact) const;
     bool transformerHasMatchingInputFiles(const TransformerConstPtr &transformer) const;
 
+    void setupJobLimits();
+    void updateJobCounts(const Transformer *transformer, int diff);
+    bool schedulingBlockedByJobLimit(const BuildGraphNode *node);
+
     typedef QHash<ExecutorJob *, TransformerPtr> JobMap;
     JobMap m_processingJobs;
 
@@ -169,6 +173,8 @@ private:
     std::vector<ResolvedProductPtr> m_allProducts;
     std::unordered_map<QString, const ResolvedProduct *> m_productsByName;
     std::unordered_map<QString, const ResolvedProject *> m_projectsByName;
+    std::unordered_map<QString, int> m_jobCountPerPool;
+    std::unordered_map<const ResolvedProduct *, JobLimits> m_jobLimitsPerProduct;
     NodeSet m_roots;
     Leaves m_leaves;
     InputArtifactScannerContext *m_inputArtifactScanContext;

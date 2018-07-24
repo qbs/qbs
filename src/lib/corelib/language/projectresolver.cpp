@@ -56,6 +56,7 @@
 #include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/fileinfo.h>
+#include <tools/joblimits.h>
 #include <tools/jsliterals.h>
 #include <tools/profiling.h>
 #include <tools/progressobserver.h>
@@ -89,6 +90,7 @@ struct ProjectResolver::ProjectContext
     ResolvedProjectPtr project;
     std::vector<FileTaggerConstPtr> fileTaggers;
     std::vector<RulePtr> rules;
+    JobLimits jobLimits;
     ResolvedModulePtr dummyModule;
 };
 
@@ -106,6 +108,7 @@ struct ProjectResolver::ProductContext
 struct ProjectResolver::ModuleContext
 {
     ResolvedModulePtr module;
+    JobLimits jobLimits;
 };
 
 class CancelException { };
@@ -333,6 +336,7 @@ void ProjectResolver::resolveProjectFully(Item *item, ProjectResolver::ProjectCo
         { ItemType::Product, &ProjectResolver::resolveProduct },
         { ItemType::Probe, &ProjectResolver::ignoreItem },
         { ItemType::FileTagger, &ProjectResolver::resolveFileTagger },
+        { ItemType::JobLimit, &ProjectResolver::resolveJobLimit },
         { ItemType::Rule, &ProjectResolver::resolveRule },
         { ItemType::PropertyOptions, &ProjectResolver::ignoreItem }
     };
@@ -494,6 +498,7 @@ void ProjectResolver::resolveProductFully(Item *item, ProjectContext *projectCon
         { ItemType::Depends, &ProjectResolver::ignoreItem },
         { ItemType::Rule, &ProjectResolver::resolveRule },
         { ItemType::FileTagger, &ProjectResolver::resolveFileTagger },
+        { ItemType::JobLimit, &ProjectResolver::resolveJobLimit },
         { ItemType::Group, &ProjectResolver::resolveGroup },
         { ItemType::Product, &ProjectResolver::resolveShadowProduct },
         { ItemType::Export, &ProjectResolver::resolveExport },
@@ -504,6 +509,11 @@ void ProjectResolver::resolveProductFully(Item *item, ProjectContext *projectCon
     for (Item * const child : qAsConst(subItems))
         callItemFunction(mapping, child, projectContext);
 
+    for (const ProjectContext *p = projectContext; p; p = p->parentContext) {
+        JobLimits tempLimits = p->jobLimits;
+        product->jobLimits = tempLimits.update(product->jobLimits);
+    }
+
     resolveModules(item, projectContext);
 
     for (const FileTag &t : qAsConst(product->fileTags))
@@ -512,12 +522,19 @@ void ProjectResolver::resolveProductFully(Item *item, ProjectContext *projectCon
 
 void ProjectResolver::resolveModules(const Item *item, ProjectContext *projectContext)
 {
+    JobLimits jobLimits;
     for (const Item::Module &m : item->modules())
-        resolveModule(m.name, m.item, m.isProduct, m.parameters, projectContext);
+        resolveModule(m.name, m.item, m.isProduct, m.parameters, jobLimits, projectContext);
+    for (int i = 0; i < jobLimits.count(); ++i) {
+        const JobLimit &moduleJobLimit = jobLimits.jobLimitAt(i);
+        if (m_productContext->product->jobLimits.getLimit(moduleJobLimit.pool()) == -1)
+            m_productContext->product->jobLimits.setJobLimit(moduleJobLimit);
+    }
 }
 
 void ProjectResolver::resolveModule(const QualifiedId &moduleName, Item *item, bool isProduct,
-                                    const QVariantMap &parameters, ProjectContext *projectContext)
+                                    const QVariantMap &parameters, JobLimits &jobLimits,
+                                    ProjectContext *projectContext)
 {
     checkCancelation();
     if (!item->isPresentModule())
@@ -550,6 +567,7 @@ void ProjectResolver::resolveModule(const QualifiedId &moduleName, Item *item, b
         { ItemType::Group, &ProjectResolver::ignoreItem },
         { ItemType::Rule, &ProjectResolver::resolveRule },
         { ItemType::FileTagger, &ProjectResolver::resolveFileTagger },
+        { ItemType::JobLimit, &ProjectResolver::resolveJobLimit },
         { ItemType::Scanner, &ProjectResolver::resolveScanner },
         { ItemType::PropertyOptions, &ProjectResolver::ignoreItem },
         { ItemType::Depends, &ProjectResolver::ignoreItem },
@@ -559,6 +577,12 @@ void ProjectResolver::resolveModule(const QualifiedId &moduleName, Item *item, b
     };
     for (Item *child : item->children())
         callItemFunction(mapping, child, projectContext);
+    for (int i = 0; i < moduleContext.jobLimits.count(); ++i) {
+        const JobLimit &newJobLimit = moduleContext.jobLimits.jobLimitAt(i);
+        const int oldLimit = jobLimits.getLimit(newJobLimit.pool());
+        if (oldLimit == -1 || oldLimit > newJobLimit.limit())
+            jobLimits.setJobLimit(newJobLimit);
+    }
 
     m_moduleContext = oldModuleContext;
 }
@@ -1312,6 +1336,35 @@ void ProjectResolver::resolveFileTagger(Item *item, ProjectContext *projectConte
 
     const int priority = m_evaluator->intValue(item, StringConstants::priorityProperty());
     fileTaggers.push_back(FileTagger::create(patterns, fileTags, priority));
+}
+
+void ProjectResolver::resolveJobLimit(Item *item, ProjectResolver::ProjectContext *projectContext)
+{
+    if (!m_evaluator->boolValue(item, StringConstants::conditionProperty()))
+        return;
+    const QString jobPool = m_evaluator->stringValue(item, StringConstants::jobPoolProperty());
+    if (jobPool.isEmpty())
+        throw ErrorInfo(Tr::tr("A JobLimit item needs to have a non-empty '%1' property.")
+                        .arg(StringConstants::jobPoolProperty()), item->location());
+    bool jobCountWasSet;
+    const int jobCount = m_evaluator->intValue(item, StringConstants::jobCountProperty(), -1,
+                                               &jobCountWasSet);
+    if (!jobCountWasSet) {
+        throw ErrorInfo(Tr::tr("A JobLimit item needs to have a '%1' property.")
+                        .arg(StringConstants::jobCountProperty()), item->location());
+    }
+    if (jobCount < 0) {
+        throw ErrorInfo(Tr::tr("A JobLimit item must have a non-negative '%1' property.")
+                        .arg(StringConstants::jobCountProperty()), item->location());
+    }
+    JobLimits &jobLimits = m_moduleContext
+            ? m_moduleContext->jobLimits
+            : m_productContext ? m_productContext->product->jobLimits
+            : projectContext->jobLimits;
+    JobLimit jobLimit(jobPool, jobCount);
+    const int oldLimit = jobLimits.getLimit(jobPool);
+    if (oldLimit == -1 || oldLimit > jobCount)
+        jobLimits.setJobLimit(jobLimit);
 }
 
 void ProjectResolver::resolveScanner(Item *item, ProjectResolver::ProjectContext *projectContext)

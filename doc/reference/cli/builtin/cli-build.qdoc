@@ -68,6 +68,7 @@
     \target build-force-probe-execution
     \include cli-options.qdocinc force-probe-execution
     \include cli-options.qdocinc jobs
+    \include cli-options.qdocinc job-limits
     \include cli-options.qdocinc keep-going
     \include cli-options.qdocinc less-verbose
     \include cli-options.qdocinc log-level

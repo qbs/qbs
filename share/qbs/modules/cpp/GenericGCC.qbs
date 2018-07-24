@@ -494,6 +494,7 @@ CppModule {
             var cmd = new Command(product.cpp.archiverPath, args);
             cmd.description = 'creating ' + output.fileName;
             cmd.highlight = 'linker'
+            cmd.jobPool = "linker";
             cmd.responseFileUsagePrefix = '@';
             return cmd;
         }

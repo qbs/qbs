@@ -102,6 +102,8 @@ public:
                         const QScriptValueList &args);
     void rescueChangeTrackingData(const TransformerConstPtr &other);
 
+    Set<QString> jobPools() const;
+
     template<PersistentPool::OpType opType> void completeSerializationOp(PersistentPool &pool)
     {
         pool.serializationOp<opType>(rule, inputs, outputs, explicitlyDependsOn,

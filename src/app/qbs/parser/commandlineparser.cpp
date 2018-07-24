@@ -462,6 +462,10 @@ void CommandLineParser::CommandLineParserPrivate::setupBuildOptions()
     buildOptions.setEchoMode(echoMode());
     buildOptions.setInstall(!optionPool.noInstallOption()->enabled());
     buildOptions.setRemoveExistingInstallation(optionPool.removeFirstoption()->enabled());
+    buildOptions.setJobLimits(optionPool.jobLimitsOption()->jobLimits());
+    buildOptions.setProjectJobLimitsTakePrecedence(
+                optionPool.respectProjectJobLimitsOption()->enabled());
+    buildOptions.setSettingsDirectory(settingsDir());
 }
 
 void CommandLineParser::CommandLineParserPrivate::setupBuildConfigurations()

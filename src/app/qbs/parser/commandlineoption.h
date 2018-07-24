@@ -42,6 +42,7 @@
 #include "commandtype.h"
 
 #include <tools/commandechomode.h>
+#include <tools/joblimits.h>
 
 #include <QtCore/qstringlist.h>
 
@@ -69,6 +70,8 @@ public:
         LogTimeOptionType,
         CommandEchoModeOptionType,
         SettingsDirOptionType,
+        JobLimitsOptionType,
+        RespectProjectJobLimitsOptionType,
         GeneratorOptionType,
         WaitLockOptionType,
         RunEnvConfigOptionType,
@@ -378,6 +381,29 @@ private:
     void doParse(const QString &representation, QStringList &input) override;
 
     QString m_settingsDir;
+};
+
+class JobLimitsOption : public CommandLineOption
+{
+public:
+    JobLimits jobLimits() const { return m_jobLimits; }
+
+    QString description(CommandType command) const override;
+    QString shortRepresentation() const override { return QString(); }
+    QString longRepresentation() const override;
+
+private:
+    void doParse(const QString &representation, QStringList &input) override;
+
+    JobLimits m_jobLimits;
+};
+
+class RespectProjectJobLimitsOption : public OnOffOption
+{
+public:
+    QString description(CommandType command) const override;
+    QString shortRepresentation() const override { return QString(); }
+    QString longRepresentation() const override;
 };
 
 class WaitLockOption : public OnOffOption

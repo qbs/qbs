@@ -246,6 +246,7 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
     if (pchOutput)
         cmd.description += ' (' + tag + ')';
     cmd.highlight = "compiler";
+    cmd.jobPool = "compiler";
     cmd.workingDirectory = product.buildDirectory;
     cmd.responseFileUsagePrefix = '@';
     // cl.exe outputs the cpp file name. We filter that out.
@@ -469,6 +470,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     var cmd = new Command(linkerPath, args)
     cmd.description = 'linking ' + primaryOutput.fileName;
     cmd.highlight = 'linker';
+    cmd.jobPool = "linker";
     cmd.relevantEnvironmentVariables = ["LINK", "_LINK_", "LIB", "TMP"];
     cmd.workingDirectory = FileInfo.path(primaryOutput.filePath)
     cmd.responseFileUsagePrefix = '@';

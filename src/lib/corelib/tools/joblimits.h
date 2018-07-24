@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2018 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -36,55 +36,67 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
+#ifndef QBS_JOB_LIMITS_H
+#define QBS_JOB_LIMITS_H
 
-#ifndef QBS_ITEMTYPE_H
-#define QBS_ITEMTYPE_H
+#include "qbs_export.h"
 
-#include <QtCore/qhash.h>
+#include <QtCore/qshareddata.h>
+
+QT_BEGIN_NAMESPACE
+class QString;
+QT_END_NAMESPACE
 
 namespace qbs {
 namespace Internal {
+class JobLimitPrivate;
+class JobLimitsPrivate;
+class PersistentPool;
+}
 
-enum class ItemType {
-    // Actual user-visible items.
-    FirstActualItem,
-    Artifact = FirstActualItem,
-    Depends,
-    Export,
-    FileTagger,
-    Group,
-    JobLimit,
-    Module,
-    Parameter,
-    Parameters,
-    Probe,
-    Product,
-    Profile,
-    Project,
-    Properties,
-    PropertiesInSubProject,
-    PropertyOptions,
-    Rule,
-    Scanner,
-    SubProject,
-    Transformer,
-    LastActualItem = Transformer,
+class QBS_EXPORT JobLimit
+{
+public:
+    JobLimit();
+    JobLimit(const QString &pool, int limit);
+    JobLimit(const JobLimit &other);
+    JobLimit &operator=(const JobLimit &other);
+    ~JobLimit();
 
-    // Internal items created mainly by the module loader.
-    IdScope,
-    ModuleInstance,
-    ModuleParameters,
-    ModulePrefix,
-    Outer,
-    Scope,
+    QString pool() const;
+    int limit() const;
 
-    Unknown
+    void load(Internal::PersistentPool &pool);
+    void store(Internal::PersistentPool &pool);
+private:
+    QSharedDataPointer<Internal::JobLimitPrivate> d;
 };
 
-inline uint qHash(ItemType t) { return QT_PREPEND_NAMESPACE(qHash)(uint(t)); }
+class QBS_EXPORT JobLimits
+{
+public:
+    JobLimits();
+    JobLimits(const JobLimits &other);
+    JobLimits &operator=(const JobLimits &other);
+    ~JobLimits();
 
-} // namespace Internal
+    void setJobLimit(const JobLimit &limit);
+    void setJobLimit(const QString &pool, int limit);
+    int getLimit(const QString &pool) const;
+    bool hasLimit(const QString &pool) const { return getLimit(pool) != -1; }
+    bool isEmpty() const;
+
+    int count() const;
+    JobLimit jobLimitAt(int i) const;
+
+    JobLimits &update(const JobLimits &other);
+
+    void load(Internal::PersistentPool &pool);
+    void store(Internal::PersistentPool &pool);
+private:
+    QSharedDataPointer<Internal::JobLimitsPrivate> d;
+};
+
 } // namespace qbs
 
-#endif // Include guard.
-
+#endif // include guard

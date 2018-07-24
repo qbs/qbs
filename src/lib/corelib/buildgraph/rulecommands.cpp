@@ -103,6 +103,7 @@ bool AbstractCommand::equals(const AbstractCommand *other) const
             && m_highlight == other->m_highlight
             && m_ignoreDryRun == other->m_ignoreDryRun
             && m_silent == other->m_silent
+            && m_jobPool == other->m_jobPool
             && m_properties == other->m_properties;
 }
 
@@ -113,6 +114,7 @@ void AbstractCommand::fillFromScriptValue(const QScriptValue *scriptValue, const
     m_highlight = scriptValue->property(highlightProperty()).toString();
     m_ignoreDryRun = scriptValue->property(ignoreDryRunProperty()).toBool();
     m_silent = scriptValue->property(silentProperty()).toBool();
+    m_jobPool = scriptValue->property(StringConstants::jobPoolProperty()).toString();
     m_codeLocation = codeLocation;
 
     m_predefinedProperties
@@ -120,6 +122,7 @@ void AbstractCommand::fillFromScriptValue(const QScriptValue *scriptValue, const
             << extendedDescriptionProperty()
             << highlightProperty()
             << ignoreDryRunProperty()
+            << StringConstants::jobPoolProperty()
             << silentProperty();
 }
 

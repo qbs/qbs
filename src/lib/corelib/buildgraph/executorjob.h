@@ -43,8 +43,10 @@
 #include <language/forward_decls.h>
 #include <tools/commandechomode.h>
 #include <tools/error.h>
+#include <tools/set.h>
 
 #include <QtCore/qobject.h>
+#include <QtCore/qstring.h>
 
 namespace qbs {
 class CodeLocation;
@@ -71,6 +73,8 @@ public:
     void setEchoMode(CommandEchoMode echoMode);
     void run(Transformer *t);
     void cancel();
+    const Transformer *transformer() const { return m_transformer; }
+    Set<QString> jobPools() const { return m_jobPools; }
 
 signals:
     void reportCommandDescription(const QString &highlight, const QString &message);
@@ -88,6 +92,7 @@ private:
     ProcessCommandExecutor *m_processCommandExecutor;
     JsCommandExecutor *m_jsCommandExecutor;
     Transformer *m_transformer;
+    Set<QString> m_jobPools;
     int m_currentCommandIdx;
     ErrorInfo m_error;
 };

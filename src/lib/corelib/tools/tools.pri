@@ -21,6 +21,7 @@ HEADERS += \
     $$PWD/generateoptions.h \
     $$PWD/id.h \
     $$PWD/iosutils.h \
+    $$PWD/joblimits.h \
     $$PWD/jsliterals.h \
     $$PWD/launcherinterface.h \
     $$PWD/launcherpackets.h \
@@ -75,6 +76,7 @@ SOURCES += \
     $$PWD/filetime.cpp \
     $$PWD/generateoptions.cpp \
     $$PWD/id.cpp \
+    $$PWD/joblimits.cpp \
     $$PWD/jsliterals.cpp \
     $$PWD/launcherinterface.cpp \
     $$PWD/launcherpackets.cpp \
@@ -124,6 +126,7 @@ osx {
         $$PWD/error.h \
         $$PWD/generateoptions.h \
         $$PWD/installoptions.h \
+        $$PWD/joblimits.h \
         $$PWD/preferences.h \
         $$PWD/processresult.h \
         $$PWD/profile.h \

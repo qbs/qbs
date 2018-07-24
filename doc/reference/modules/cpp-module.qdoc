@@ -217,6 +217,31 @@
             This file tag only has an effect with GCC-like toolchains. The linker needs to be
             \c{ld}-compatible.
     \endtable
+
+    \section2 Relevant Job Pools
+    \target cpp-job-pools
+
+    \table
+    \header
+        \li Pool
+        \li Since
+        \li Description
+    \row
+        \li \c{"assembler"}
+        \li 1.13
+        \li The job pool used by rules that run the toolchain's assembler. This is only
+            relevant for direct invocations of the assembler binary, not for running it
+            indirectly via the compiler.
+    \row
+        \li \c{"compiler"}
+        \li 1.13
+        \li The job pool used by rules that run a compiler. All language variants use
+            the same pool.
+    \row
+        \li \c{"linker"}
+        \li 1.13
+        \li The job pool used by rules that run a linker.
+    \endtable
 */
 
 /*!

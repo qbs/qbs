@@ -574,6 +574,59 @@ void SettingsDirOption::doParse(const QString &representation, QStringList &inpu
     m_settingsDir = input.takeFirst();
 }
 
+QString JobLimitsOption::description(CommandType command) const
+{
+    Q_UNUSED(command);
+    return Tr::tr("%1 <pool1>:<limit1>[,<pool2>:<limit2>...]\n"
+                  "\tSet pool-specific job limits.\n").arg(longRepresentation());
+}
+
+QString JobLimitsOption::longRepresentation() const
+{
+    return QLatin1String("--job-limits");
+}
+
+void JobLimitsOption::doParse(const QString &representation, QStringList &input)
+{
+    if (input.empty()) {
+        throw ErrorInfo(Tr::tr("Invalid use of option '%1: Argument expected.\n"
+                           "Usage: %2").arg(representation, description(command())));
+    }
+    const QString jobLimitsSpec = input.takeFirst();
+    const QStringList jobLimitStrings = jobLimitsSpec.split(QLatin1Char(','));
+    for (const QString &jobLimitString : jobLimitStrings) {
+        const int sepIndex = jobLimitString.indexOf(QLatin1Char(':'));
+        if (sepIndex <= 0 || sepIndex == jobLimitString.size() - 1) {
+            throw ErrorInfo(Tr::tr("Invalid use of option '%1: "
+                                   "Invalid job limits specification '%2'.\n"
+                                   "Usage: %3").arg(representation, jobLimitsSpec,
+                                                    description(command())));
+        }
+        const QString pool = jobLimitString.left(sepIndex);
+        const QString limitString = jobLimitString.mid(sepIndex + 1);
+        bool isValidNumber;
+        const int limit = limitString.toInt(&isValidNumber);
+        if (!isValidNumber) {
+            throw ErrorInfo(Tr::tr("Invalid use of option '%1: '%2' is not a number.\n"
+                                   "Usage: %3").arg(representation, limitString,
+                                                    description(command())));
+        }
+        m_jobLimits.setJobLimit(pool, limit);
+    }
+}
+
+QString RespectProjectJobLimitsOption::description(CommandType command) const
+{
+    Q_UNUSED(command);
+    return Tr::tr("%1\n\tGive maximum priority to job limits defined inside the project.\n")
+            .arg(longRepresentation());
+}
+
+QString RespectProjectJobLimitsOption::longRepresentation() const
+{
+    return QLatin1String("--enforce-project-job-limits");
+}
+
 CommandEchoModeOption::CommandEchoModeOption()
 {
 }

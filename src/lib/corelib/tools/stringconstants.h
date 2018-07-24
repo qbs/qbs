@@ -104,6 +104,8 @@ public:
     QBS_STRING_CONSTANT(installPrefixProperty, "installPrefix")
     QBS_STRING_CONSTANT(installDirProperty, "installDir")
     QBS_STRING_CONSTANT(installSourceBaseProperty, "installSourceBase")
+    QBS_STRING_CONSTANT(jobCountProperty, "jobCount")
+    QBS_STRING_CONSTANT(jobPoolProperty, "jobPool")
     QBS_STRING_CONSTANT(lengthProperty, "length")
     QBS_STRING_CONSTANT(limitToSubProjectProperty, "limitToSubProject")
     QBS_STRING_CONSTANT(minimumQbsVersionProperty, "minimumQbsVersion")

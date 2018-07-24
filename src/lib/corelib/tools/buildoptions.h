@@ -42,6 +42,7 @@
 #include "qbs_export.h"
 
 #include "commandechomode.h"
+#include "joblimits.h"
 
 #include <QtCore/qshareddata.h>
 
@@ -72,6 +73,15 @@ public:
     static int defaultMaxJobCount();
     int maxJobCount() const;
     void setMaxJobCount(int jobCount);
+
+    QString settingsDirectory() const;
+    void setSettingsDirectory(const QString &settingsBaseDir);
+
+    JobLimits jobLimits() const;
+    void setJobLimits(const JobLimits &jobLimits);
+
+    bool projectJobLimitsTakePrecedence() const;
+    void setProjectJobLimitsTakePrecedence(bool toggle);
 
     bool dryRun() const;
     void setDryRun(bool dryRun);

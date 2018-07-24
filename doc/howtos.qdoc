@@ -44,6 +44,7 @@
     \li \l{How do I create application bundles and frameworks on iOS, macOS, tvOS, and watchOS?}
     \li \l{How do I apply C/C++ preprocessor macros to only a subset of the files in my product?}
     \li \l{How do I make the state of my Git repository available to my source files?}
+    \li \l{How do I limit the number of concurrent jobs for the linker only?}
     \endlist
 
     \section1 How do I build a Qt-based project?
@@ -366,4 +367,52 @@
 
     This value is also available via the \l{vcs::repoState}{vcs.repoState}
     property.
+
+    \section1 How do I limit the number of concurrent jobs for the linker only?
+    \target job-pool-howto
+
+    While it is usually desirable to run as many compiler jobs as there are CPU cores,
+    the same is not true for linker jobs. The reason is that linkers are typically
+    I/O bound rather than CPU bound. When building large libraries, they also tend
+    to use up enormous amounts of memory. Therefore, we'd like to make sure that
+    only a few linkers are running at the same time without limiting other types
+    of jobs. In \QBS, this is achieved via \e{job pools}. There are several ways
+    to make use of them.
+
+    Firstly, you can provide a limit via the command line:
+    \code
+    $ qbs --job-limits linker:4
+    \endcode
+    The above call instructs \QBS to run at most four linker instances at the same
+    time, while leaving the general number of concurrent jobs at the default
+    value, which is derived from the number of CPU cores.
+    The \c linker string on the command line refers to the job pool of the same
+    name, which the \l{cpp-job-pools}{cpp module} assigns to all its commands that
+    invoke a linker.
+
+    Secondly, you can set a limit via the settings, either generally
+    or for a specific profile:
+    \code
+    $ qbs config preferences.jobLimit.linker 4
+    $ qbs config profiles.myprofile.preferences.jobLimit.linker 2
+    \endcode
+
+    And finally, you can also set the limit per project or per product, using a
+    \l JobLimit item:
+    \code
+    Product {
+        name: "my_huge_library"
+        JobLimit {
+            jobPool: "linker"
+            jobCount: 1
+        }
+        // ...
+    }
+    \endcode
+    The above construct ensures that this specific library is never linked at
+    the same time as any other binary in the project.
+
+    Job limits set on the command line override those from the settings, which in turn
+    override the ones defined within a project. Use the \c{--enforce-project-job-limits}
+    option to give the job limits defined via \c JobLimit items maximum precedence.
 */

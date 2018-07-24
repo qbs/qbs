@@ -81,6 +81,7 @@ public:
     const QString highlight() const { return m_highlight; }
     bool ignoreDryRun() const { return m_ignoreDryRun; }
     bool isSilent() const { return m_silent; }
+    QString jobPool() const { return m_jobPool; }
     CodeLocation codeLocation() const { return m_codeLocation; }
 
     const QVariantMap &properties() const { return m_properties; }
@@ -98,7 +99,8 @@ private:
     template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
     {
         pool.serializationOp<opType>(m_description, m_extendedDescription, m_highlight,
-                                     m_ignoreDryRun, m_silent, m_codeLocation, m_properties);
+                                     m_ignoreDryRun, m_silent, m_codeLocation, m_jobPool,
+                                     m_properties);
     }
 
     QString m_description;
@@ -107,6 +109,7 @@ private:
     bool m_ignoreDryRun;
     bool m_silent;
     CodeLocation m_codeLocation;
+    QString m_jobPool;
     QVariantMap m_properties;
 };
 

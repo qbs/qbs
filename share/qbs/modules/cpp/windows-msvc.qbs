@@ -287,6 +287,7 @@ CppModule {
             var cmd = new Command("lib.exe", args);
             cmd.description = 'creating ' + lib.fileName;
             cmd.highlight = 'linker';
+            cmd.jobPool = "linker";
             cmd.workingDirectory = FileInfo.path(lib.filePath)
             cmd.responseFileUsagePrefix = '@';
             return cmd;
@@ -339,6 +340,7 @@ CppModule {
             var cmd = new Command('rc', args);
             cmd.description = 'compiling ' + input.fileName;
             cmd.highlight = 'compiler';
+            cmd.jobPool = "compiler";
 
             if (!hasNoLogo) {
                 // Remove the first two lines of stdout. That's the logo.
@@ -375,6 +377,7 @@ CppModule {
                                ModUtils.moduleProperty(input, 'flags', 'asm'));
             var cmd = new Command(product.cpp.assemblerPath, args);
             cmd.description = "assembling " + input.fileName;
+            cmd.jobPool = "assembler";
             cmd.inputFileName = input.fileName;
             cmd.stdoutFilterFunction = function(output) {
                 var lines = output.split("\r\n").filter(function (s) {

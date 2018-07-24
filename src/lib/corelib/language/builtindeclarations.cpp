@@ -67,6 +67,7 @@ BuiltinDeclarations::BuiltinDeclarations()
         { QLatin1String("Export"), ItemType::Export },
         { QLatin1String("FileTagger"), ItemType::FileTagger },
         { QLatin1String("Group"), ItemType::Group },
+        { QLatin1String("JobLimit"), ItemType::JobLimit },
         { QLatin1String("Module"), ItemType::Module },
         { QLatin1String("Parameter"), ItemType::Parameter },
         { QLatin1String("Parameters"), ItemType::Parameters },
@@ -87,6 +88,7 @@ BuiltinDeclarations::BuiltinDeclarations()
     addExportItem();
     addFileTaggerItem();
     addGroupItem();
+    addJobLimitItem();
     addModuleItem();
     addProbeItem();
     addProductItem();
@@ -298,6 +300,15 @@ void BuiltinDeclarations::addGroupItem()
     insert(item);
 }
 
+void BuiltinDeclarations::addJobLimitItem()
+{
+    ItemDeclaration item(ItemType::JobLimit);
+    item << conditionProperty();
+    item << PropertyDeclaration(StringConstants::jobPoolProperty(), PropertyDeclaration::String);
+    item << PropertyDeclaration(StringConstants::jobCountProperty(), PropertyDeclaration::Integer);
+    insert(item);
+}
+
 void BuiltinDeclarations::addModuleItem()
 {
     ItemDeclaration item = moduleLikeItem(ItemType::Module);
@@ -312,6 +323,7 @@ ItemDeclaration BuiltinDeclarations::moduleLikeItem(ItemType type)
             << ItemType::Group
             << ItemType::Depends
             << ItemType::FileTagger
+            << ItemType::JobLimit
             << ItemType::Rule
             << ItemType::Parameter
             << ItemType::Probe
@@ -360,6 +372,7 @@ void BuiltinDeclarations::addProductItem()
             << ItemType::Depends
             << ItemType::Group
             << ItemType::FileTagger
+            << ItemType::JobLimit
             << ItemType::Export
             << ItemType::Probe
             << ItemType::Profile
@@ -429,6 +442,7 @@ void BuiltinDeclarations::addProjectItem()
             << ItemType::Profile
             << ItemType::Probe
             << ItemType::FileTagger
+            << ItemType::JobLimit
             << ItemType::Rule);
     item << nameProperty();
     item << conditionProperty();

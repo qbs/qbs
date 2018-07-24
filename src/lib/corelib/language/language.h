@@ -49,6 +49,7 @@
 #include <buildgraph/forward_decls.h>
 #include <tools/codelocation.h>
 #include <tools/filetime.h>
+#include <tools/joblimits.h>
 #include <tools/persistence.h>
 #include <tools/set.h>
 #include <tools/weakpointer.h>
@@ -571,6 +572,7 @@ public:
     std::vector<ResolvedProductPtr> dependencies;
     QHash<ResolvedProductConstPtr, QVariantMap> dependencyParameters;
     std::vector<FileTaggerConstPtr> fileTaggers;
+    JobLimits jobLimits;
     std::vector<ResolvedModulePtr> modules;
     QHash<ResolvedModuleConstPtr, QVariantMap> moduleParameters;
     std::vector<ResolvedScannerConstPtr> scanners;
@@ -628,7 +630,8 @@ private:
                                      missingSourceFiles, location, productProperties,
                                      moduleProperties, rules, dependencies, dependencyParameters,
                                      fileTaggers, modules, moduleParameters, scanners, groups,
-                                     artifactProperties, probes, exportedModule, buildData);
+                                     artifactProperties, probes, exportedModule, buildData,
+                                     jobLimits);
     }
 
     QHash<QString, QString> m_executablePathCache;

@@ -249,6 +249,22 @@
 
 //! [jobs]
 
+//! [job-limits]
+
+    \section2 \c {--job-limits <pool1>:<limit1>[,<pool2>:<limit2>...]}
+
+    Sets pool-specific job limits. See \l{job-pool-howto}{here} for more information on
+    job pools.
+
+    \section2 \c {--enforce-project-job-limits}
+
+    Normally, job limits defined in project files via the \l JobLimit item get overridden
+    by those set on the command line. If this option is passed, they get maximum priority
+    instead. Use it if there are product-specific limits that make more sense for
+    that part of the code base than the generic ones you'd like to apply globally.
+
+//! [jobs]
+
 //! [keep-going]
 
     \section2 \c --keep-going|-k

@@ -103,6 +103,13 @@
             \endlist
             All other values are mapped to the default color.
     \row
+        \li \c jobPool
+        \li string
+        \li empty
+        \li Determines which job pool the command will use. An empty
+            string, which is the default, stands for the global job pool.
+            See \l{JobLimit}{here} and \l{job-pool-howto}{here} for more information on job pools.
+    \row
         \li \c silent
         \li bool
         \li false

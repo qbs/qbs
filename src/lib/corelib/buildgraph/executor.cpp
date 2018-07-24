@@ -61,10 +61,12 @@
 #include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/fileinfo.h>
+#include <tools/preferences.h>
 #include <tools/profiling.h>
 #include <tools/progressobserver.h>
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
+#include <tools/settings.h>
 #include <tools/stringconstants.h>
 
 #include <QtCore/qdir.h>
@@ -230,6 +232,9 @@ void Executor::doBuild()
     m_tagsNeededForFilesToConsider.clear();
     m_productsOfFilesToConsider.clear();
     m_artifactsRemovedFromDisk.clear();
+    m_jobCountPerPool.clear();
+
+    setupJobLimits();
 
     // TODO: The "filesToConsider" thing is badly designed; we should know exactly which artifact
     //       it is. Remove this from the BuildOptions class and introduce Project::buildSomeFiles()
@@ -346,6 +351,7 @@ void Executor::updateLeaves(BuildGraphNode *node, NodeSet &seenNodes)
 bool Executor::scheduleJobs()
 {
     QBS_CHECK(m_state == ExecutorRunning);
+    std::vector<BuildGraphNode *> delayedLeaves;
     while (!m_leaves.empty() && !m_availableJobs.empty()) {
         BuildGraphNode * const nodeToBuild = m_leaves.top();
         m_leaves.pop();
@@ -355,9 +361,17 @@ bool Executor::scheduleJobs()
             QBS_ASSERT(!"untouched node in leaves list",
                        qDebug("%s", qPrintable(nodeToBuild->toString())));
             break;
-        case BuildGraphNode::Buildable:
-            // This is the only state in which we want to build a node.
-            nodeToBuild->accept(this);
+        case BuildGraphNode::Buildable: // This is the only state in which we want to build a node.
+            // TODO: It's a bit annoying that we have to check this here already, when we
+            //       don't know whether the transformer needs to run at all. Investigate
+            //       moving the whole job allocation logic to runTransformer().
+            if (schedulingBlockedByJobLimit(nodeToBuild)) {
+                qCDebug(lcExec).noquote() << "node delayed due to occupied job pool:"
+                                          << nodeToBuild->toString();
+                delayedLeaves.push_back(nodeToBuild);
+            } else {
+                nodeToBuild->accept(this);
+            }
             break;
         case BuildGraphNode::Building:
             qCDebug(lcExec).noquote() << nodeToBuild->toString();
@@ -369,7 +383,48 @@ bool Executor::scheduleJobs()
             break;
         }
     }
+    for (BuildGraphNode * const delayedLeaf : delayedLeaves)
+        m_leaves.push(delayedLeaf);
     return !m_leaves.empty() || !m_processingJobs.empty();
+}
+
+bool Executor::schedulingBlockedByJobLimit(const BuildGraphNode *node)
+{
+    if (node->type() != BuildGraphNode::ArtifactNodeType)
+        return false;
+    const Artifact * const artifact = static_cast<const Artifact *>(node);
+    if (artifact->artifactType == Artifact::SourceFile)
+        return false;
+
+    const Transformer * const transformer = artifact->transformer.get();
+    for (const QString &jobPool : transformer->jobPools()) {
+        const int currentJobCount = m_jobCountPerPool[jobPool];
+        if (currentJobCount == 0)
+            continue;
+        const auto jobLimitIsExceeded = [currentJobCount, jobPool, this](const Transformer *t) {
+            const int maxJobCount = m_jobLimitsPerProduct.at(t->product().get())
+                    .getLimit(jobPool);
+            return maxJobCount > 0 && currentJobCount >= maxJobCount;
+        };
+
+        // Different products can set different limits. The effective limit is the minimum of what
+        // is set in this transformer's product and in the products of all currently
+        // running transformers.
+        if (jobLimitIsExceeded(transformer))
+            return true;
+        for (const ExecutorJob * const runningJob : m_processingJobs.keys()) {
+            if (!runningJob->jobPools().contains(jobPool))
+                continue;
+            const Transformer * const runningTransformer = runningJob->transformer();
+            if (!runningTransformer)
+                continue; // This can happen if the ExecutorJob has already finished.
+            if (runningTransformer->product() == transformer->product())
+                continue; // We have already checked this product's job limit.
+            if (jobLimitIsExceeded(runningTransformer))
+                return true;
+        }
+    }
+    return false;
 }
 
 bool Executor::isUpToDate(Artifact *artifact) const
@@ -503,6 +558,7 @@ void Executor::finishJob(ExecutorJob *job, bool success)
     const TransformerPtr transformer = it.value();
     m_processingJobs.erase(it);
     m_availableJobs.push_back(job);
+    updateJobCounts(transformer.get(), -1);
     if (success) {
         m_project->buildData->setDirty();
         for (Artifact * const artifact : qAsConst(transformer->outputs)) {
@@ -628,6 +684,30 @@ bool Executor::transformerHasMatchingInputFiles(const TransformerConstPtr &trans
     }
 
     return false;
+}
+
+void Executor::setupJobLimits()
+{
+    Settings settings(m_buildOptions.settingsDirectory());
+    for (const ResolvedProductConstPtr &p : m_productsToBuild) {
+        const Preferences prefs(&settings, p->profile());
+        const JobLimits &jobLimitsFromSettings = prefs.jobLimits();
+        JobLimits effectiveJobLimits;
+        if (m_buildOptions.projectJobLimitsTakePrecedence()) {
+            effectiveJobLimits.update(jobLimitsFromSettings).update(m_buildOptions.jobLimits())
+                    .update(p->jobLimits);
+        } else {
+            effectiveJobLimits.update(p->jobLimits).update(jobLimitsFromSettings)
+                    .update(m_buildOptions.jobLimits());
+        }
+        m_jobLimitsPerProduct.insert(std::make_pair(p.get(), effectiveJobLimits));
+    }
+}
+
+void Executor::updateJobCounts(const Transformer *transformer, int diff)
+{
+    for (const QString &jobPool : transformer->jobPools())
+        m_jobCountPerPool[jobPool] += diff;
 }
 
 void Executor::cancelJobs()
@@ -923,6 +1003,7 @@ void Executor::runTransformer(const TransformerPtr &transformer)
     for (Artifact * const artifact : qAsConst(transformer->outputs))
         artifact->buildState = BuildGraphNode::Building;
     m_processingJobs.insert(job, transformer);
+    updateJobCounts(transformer.get(), 1);
     job->run(transformer.get());
 }
 

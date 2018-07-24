@@ -28,7 +28,7 @@
 /*!
     \contentspage list-of-language-items.html
     \previouspage FileTagger
-    \nextpage Module
+    \nextpage JobLimit
     \qmltype Group
     \inqmlmodule QbsLanguageItems
     \ingroup list-of-items

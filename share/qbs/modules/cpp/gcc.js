@@ -984,6 +984,7 @@ function prepareAssembler(project, product, inputs, outputs, input, output) {
     var cmd = new Command(assemblerPath, args);
     cmd.description = "assembling " + input.fileName;
     cmd.highlight = "compiler";
+    cmd.jobPool = "assembler";
     return cmd;
 }
 
@@ -1055,6 +1056,7 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
     if (pchOutput)
         cmd.description += ' (' + compilerInfo.tag + ')';
     cmd.highlight = "compiler";
+    cmd.jobPool = "compiler";
     cmd.relevantEnvironmentVariables = compilerEnvVars(input, compilerInfo);
     cmd.responseFileArgumentIndex = wrapperArgsLength;
     cmd.responseFileUsagePrefix = '@';
@@ -1274,6 +1276,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     cmd = new Command(linkerPath, args);
     cmd.description = 'linking ' + primaryOutput.fileName;
     cmd.highlight = 'linker';
+    cmd.jobPool = "linker";
     cmd.relevantEnvironmentVariables = linkerEnvVars(product, inputs);
     cmd.responseFileArgumentIndex = responseFileArgumentIndex;
     cmd.responseFileUsagePrefix = useQnxResponseFileHack ? "-Wl,@" : "@";

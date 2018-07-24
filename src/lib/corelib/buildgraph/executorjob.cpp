@@ -113,6 +113,7 @@ void ExecutorJob::run(Transformer *t)
     m_processCommandExecutor->setProcessEnvironment(
                 (*t->outputs.cbegin())->product->buildEnvironment);
     m_transformer = t;
+    m_jobPools = t->jobPools();
     runNextCommand();
 }
 
@@ -171,6 +172,7 @@ void ExecutorJob::setFinished()
 void ExecutorJob::reset()
 {
     m_transformer = nullptr;
+    m_jobPools.clear();
     m_currentCommandExecutor = nullptr;
     m_currentCommandIdx = -1;
     m_error.clear();

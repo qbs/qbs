@@ -116,6 +116,12 @@ CommandLineOption *CommandLineOptionPool::getOption(CommandLineOption::Type type
         case CommandLineOption::SettingsDirOptionType:
             option = new SettingsDirOption;
             break;
+        case CommandLineOption::JobLimitsOptionType:
+            option = new JobLimitsOption;
+            break;
+        case CommandLineOption::RespectProjectJobLimitsOptionType:
+            option = new RespectProjectJobLimitsOption;
+            break;
         case CommandLineOption::GeneratorOptionType:
             option = new GeneratorOption;
             break;
@@ -244,6 +250,17 @@ CommandEchoModeOption *CommandLineOptionPool::commandEchoModeOption() const
 SettingsDirOption *CommandLineOptionPool::settingsDirOption() const
 {
     return static_cast<SettingsDirOption *>(getOption(CommandLineOption::SettingsDirOptionType));
+}
+
+JobLimitsOption *CommandLineOptionPool::jobLimitsOption() const
+{
+    return static_cast<JobLimitsOption *>(getOption(CommandLineOption::JobLimitsOptionType));
+}
+
+RespectProjectJobLimitsOption *CommandLineOptionPool::respectProjectJobLimitsOption() const
+{
+    return static_cast<RespectProjectJobLimitsOption *>(
+                getOption(CommandLineOption::RespectProjectJobLimitsOptionType));
 }
 
 GeneratorOption *CommandLineOptionPool::generatorOption() const

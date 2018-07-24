@@ -14,5 +14,6 @@ SUBDIRS += \
     blackbox/blackbox-apple.pro \
     blackbox/blackbox-clangdb.pro \
     blackbox/blackbox-java.pro \
+    blackbox/blackbox-joblimits.pro \
     blackbox/blackbox-qt.pro \
     api

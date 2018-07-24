@@ -56,6 +56,7 @@
 #include <vector>
 
 namespace qbs {
+class JobLimits;
 namespace Internal {
 
 class Evaluator;
@@ -101,7 +102,8 @@ private:
     void resolveProductFully(Item *item, ProjectContext *projectContext);
     void resolveModules(const Item *item, ProjectContext *projectContext);
     void resolveModule(const QualifiedId &moduleName, Item *item, bool isProduct,
-                       const QVariantMap &parameters, ProjectContext *projectContext);
+                       const QVariantMap &parameters, JobLimits &jobLimits,
+                       ProjectContext *projectContext);
     void gatherProductTypes(ResolvedProduct *product, Item *item);
     QVariantMap resolveAdditionalModuleProperties(const Item *group,
                                                   const QVariantMap &currentValues);
@@ -117,6 +119,7 @@ private:
                                     const QStringList &namePrefix,
                                     QualifiedIdSet *seenBindings);
     void resolveFileTagger(Item *item, ProjectContext *projectContext);
+    void resolveJobLimit(Item *item, ProjectContext *projectContext);
     void resolveScanner(Item *item, ProjectContext *projectContext);
     void resolveProductDependencies(const ProjectContext &projectContext);
     void postProcess(const ResolvedProductPtr &product, ProjectContext *projectContext) const;

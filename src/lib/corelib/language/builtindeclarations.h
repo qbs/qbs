@@ -76,6 +76,7 @@ private:
     void addExportItem();
     void addFileTaggerItem();
     void addGroupItem();
+    void addJobLimitItem();
     void addModuleItem();
     static ItemDeclaration moduleLikeItem(ItemType type);
     void addProbeItem();
