@@ -341,8 +341,8 @@ function linkerFlags(project, product, inputs, output, linkerPath) {
     }
 
     function isNotSystemRunPath(p) {
-        return !systemRunPaths.contains(p)
-                && !canonicalSystemRunPaths.contains(File.canonicalFilePath(p));
+        return !FileInfo.isAbsolutePath(p) || (!systemRunPaths.contains(p)
+                && !canonicalSystemRunPaths.contains(File.canonicalFilePath(p)));
     };
     for (i in rpaths) {
         if (isNotSystemRunPath(rpaths[i]))
