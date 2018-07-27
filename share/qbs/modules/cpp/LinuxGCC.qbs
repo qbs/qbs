@@ -54,8 +54,12 @@ UnixGCC {
                 var line;
                 do {
                     line = ldconfig.readLine();
-                    if (line.charAt(0) === '/')
-                        paths.push(line.slice(0, line.length - 1));
+                    if (line.charAt(0) === '/') {
+                        var colonIndex = line.indexOf(':');
+                        if (colonIndex == -1)
+                            continue;
+                        paths.push(line.slice(0, colonIndex));
+                    }
                 } while (line && line.length > 0)
                 found = true;
                 systemRunPaths = paths;
