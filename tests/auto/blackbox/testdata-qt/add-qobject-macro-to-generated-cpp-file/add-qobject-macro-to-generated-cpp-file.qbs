@@ -1,6 +1,7 @@
 import qbs.File
 
 QtApplication {
+    name: "p"
     files: ["main.cpp", "object.h"]
     Group {
         files: "object.cpp.in"

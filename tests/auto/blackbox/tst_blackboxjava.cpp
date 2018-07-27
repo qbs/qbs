@@ -79,8 +79,7 @@ void TestBlackboxJava::java()
             QStringList() << "Jet" << "Ship" << "Vehicles";
     QStringList classFiles1 = QStringList(classFiles) << "io/qt/qbs/HelloWorld" << "NoPackage";
     for (QString &classFile : classFiles1) {
-        classFile = relativeProductBuildDir("class_collection") + "/classes/"
-                + classFile + ".class";
+        classFile = relativeProductBuildDir("cc") + "/classes/" + classFile + ".class";
         QVERIFY2(regularFileExists(classFile), qPrintable(classFile));
     }
 

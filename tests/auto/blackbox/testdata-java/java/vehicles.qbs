@@ -20,7 +20,7 @@ Project {
 
     JavaClassCollection {
         Depends { name: "random_stuff" }
-        name: "class_collection"
+        name: "cc"
         java.additionalCompilerFlags: ["-Xlint:all"]
         files: [
             "Car.java", "HelloWorld.java", "Jet.java", "NoPackage.java", "Ship.java",
