@@ -86,15 +86,19 @@ public:
 private:
     template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
     {
-        pool.serializationOp<opType>(m_rule, m_oldInputArtifacts, m_lastApplicationTime,
+        pool.serializationOp<opType>(m_rule, m_oldInputArtifacts, m_oldExplicitlyDependsOn,
+                                     m_oldAuxiliaryInputs, m_lastApplicationTime,
                                      m_needsToConsiderChangedInputs);
     }
 
     ArtifactSet currentInputArtifacts() const;
-    ArtifactSet changedInputArtifacts(const ArtifactSet &allCompatibleInputs) const;
+    ArtifactSet changedInputArtifacts(const ArtifactSet &allCompatibleInputs,
+                                      const ArtifactSet &explicitlyDependsOn, const ArtifactSet &auxiliaryInputs) const;
 
     RuleConstPtr m_rule;
     ArtifactSet m_oldInputArtifacts;
+    ArtifactSet m_oldExplicitlyDependsOn;
+    ArtifactSet m_oldAuxiliaryInputs;
     FileTime m_lastApplicationTime;
     bool m_needsToConsiderChangedInputs = false;
 };

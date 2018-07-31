@@ -73,11 +73,13 @@ public:
     QStringList removedArtifacts() const { return m_removedArtifacts; }
     bool ruleUsesIo() const { return m_ruleUsesIo; }
 
-    void applyRule(RuleNode *ruleNode, const ArtifactSet &inputArtifacts);
+    void applyRule(RuleNode *ruleNode, const ArtifactSet &inputArtifacts,
+                   const ArtifactSet &explicitlyDependsOn);
     static void handleRemovedRuleOutputs(const ArtifactSet &inputArtifacts,
             const ArtifactSet &artifactsToRemove, QStringList &removedArtifacts,
             const Logger &logger);
     static ArtifactSet collectAuxiliaryInputs(const Rule *rule, const ResolvedProduct *product);
+    static ArtifactSet collectExplicitlyDependsOn(const Rule *rule, const ResolvedProduct *product);
 
     enum InputsSourceFlag { CurrentProduct = 1, Dependencies = 2 };
     Q_DECLARE_FLAGS(InputsSources, InputsSourceFlag)
@@ -85,8 +87,6 @@ public:
 private:
     void doApply(const ArtifactSet &inputArtifacts, QScriptValue &prepareScriptContext);
     ArtifactSet collectOldOutputArtifacts(const ArtifactSet &inputArtifacts) const;
-    ArtifactSet collectExplicitlyDependsOn();
-    ArtifactSet collectExplicitlyDependsOnFromDependencies();
 
     struct OutputArtifactInfo {
         Artifact *artifact = nullptr;
@@ -115,6 +115,7 @@ private:
     const ResolvedProductPtr m_product;
     const std::unordered_map<QString, const ResolvedProduct *> &m_productsByName;
     const std::unordered_map<QString, const ResolvedProject *> &m_projectsByName;
+    ArtifactSet m_explicitlyDependsOn;
     NodeSet m_createdArtifacts;
     NodeSet m_invalidatedArtifacts;
     QStringList m_removedArtifacts;

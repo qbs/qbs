@@ -93,7 +93,8 @@ RulesApplicator::~RulesApplicator()
     delete m_mocScanner;
 }
 
-void RulesApplicator::applyRule(RuleNode *ruleNode, const ArtifactSet &inputArtifacts)
+void RulesApplicator::applyRule(RuleNode *ruleNode, const ArtifactSet &inputArtifacts,
+                                const ArtifactSet &explicitlyDependsOn)
 {
     m_ruleNode = ruleNode;
     m_rule = ruleNode->rule();
@@ -103,6 +104,7 @@ void RulesApplicator::applyRule(RuleNode *ruleNode, const ArtifactSet &inputArti
     m_createdArtifacts.clear();
     m_invalidatedArtifacts.clear();
     m_removedArtifacts.clear();
+    m_explicitlyDependsOn = explicitlyDependsOn;
     RulesEvaluationContext::Scope s(evalContext().get());
 
     m_completeInputSet = inputArtifacts;
@@ -190,7 +192,7 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
     m_transformer = Transformer::create();
     m_transformer->rule = m_rule;
     m_transformer->inputs = inputArtifacts;
-    m_transformer->explicitlyDependsOn = collectExplicitlyDependsOn();
+    m_transformer->explicitlyDependsOn = m_explicitlyDependsOn;
     m_transformer->alwaysRun = m_rule->alwaysRun;
     m_oldTransformer.reset();
 
@@ -363,13 +365,13 @@ ArtifactSet RulesApplicator::collectAdditionalInputs(const FileTags &tags, const
     return artifacts;
 }
 
-ArtifactSet RulesApplicator::collectExplicitlyDependsOn()
+ArtifactSet RulesApplicator::collectExplicitlyDependsOn(const Rule *rule,
+                                                        const ResolvedProduct *product)
 {
    ArtifactSet first = collectAdditionalInputs(
-               m_rule->explicitlyDependsOn, m_rule.get(), m_product.get(), CurrentProduct);
+               rule->explicitlyDependsOn, rule, product, CurrentProduct);
    ArtifactSet second = collectAdditionalInputs(
-               m_rule->explicitlyDependsOnFromDependencies, m_rule.get(), m_product.get(),
-               Dependencies);
+               rule->explicitlyDependsOnFromDependencies, rule, product, Dependencies);
    return first.unite(second);
 }
 

@@ -84,9 +84,15 @@ void RuleNode::apply(const Logger &logger,
                      ApplicationResult *result)
 {
     ArtifactSet allCompatibleInputs = currentInputArtifacts();
+    const ArtifactSet explicitlyDependsOn
+            = RulesApplicator::collectExplicitlyDependsOn(m_rule.get(), product.get());
+    const ArtifactSet auxiliaryInputs
+            = RulesApplicator::collectAuxiliaryInputs(m_rule.get(), product.get());
     const ArtifactSet addedInputs = allCompatibleInputs - m_oldInputArtifacts;
     const ArtifactSet removedInputs = m_oldInputArtifacts - allCompatibleInputs;
-    const ArtifactSet changedInputs = changedInputArtifacts(allCompatibleInputs);
+    const ArtifactSet changedInputs = changedInputArtifacts(allCompatibleInputs,
+                                                            explicitlyDependsOn,
+                                                            auxiliaryInputs);
     bool upToDate = changedInputs.empty() && addedInputs.empty() && removedInputs.empty();
 
     qCDebug(lcBuildGraph).noquote().nospace()
@@ -187,7 +193,7 @@ void RuleNode::apply(const Logger &logger,
 
     if (mustApplyRule) {
         RulesApplicator applicator(product.lock(), productsByName, projectsByName, logger);
-        applicator.applyRule(this, inputs);
+        applicator.applyRule(this, inputs, explicitlyDependsOn);
         result->createdArtifacts = applicator.createdArtifacts();
         result->invalidatedArtifacts = applicator.invalidatedArtifacts();
         m_lastApplicationTime = FileTime::currentTime();
@@ -197,6 +203,8 @@ void RuleNode::apply(const Logger &logger,
         qCDebug(lcExec).noquote() << "prepare script does not need to run";
     }
     m_oldInputArtifacts = allCompatibleInputs;
+    m_oldExplicitlyDependsOn = explicitlyDependsOn;
+    m_oldAuxiliaryInputs = auxiliaryInputs;
     product->topLevelProject()->buildData->setDirty();
 }
 
@@ -257,11 +265,26 @@ ArtifactSet RuleNode::currentInputArtifacts() const
     return s;
 }
 
-ArtifactSet RuleNode::changedInputArtifacts(const ArtifactSet &allCompatibleInputs) const
+ArtifactSet RuleNode::changedInputArtifacts(const ArtifactSet &allCompatibleInputs,
+                                            const ArtifactSet &explicitlyDependsOn,
+                                            const ArtifactSet &auxiliaryInputs) const
 {
     ArtifactSet changedInputArtifacts;
+    if (explicitlyDependsOn != m_oldExplicitlyDependsOn)
+        return allCompatibleInputs;
     if (!m_needsToConsiderChangedInputs)
         return changedInputArtifacts;
+
+    for (Artifact * const artifact : explicitlyDependsOn) {
+        if (artifact->timestamp() > m_lastApplicationTime)
+            return allCompatibleInputs;
+    }
+    if (auxiliaryInputs != m_oldAuxiliaryInputs)
+        return allCompatibleInputs;
+    for (Artifact * const artifact : auxiliaryInputs) {
+        if (artifact->timestamp() > m_lastApplicationTime)
+            return allCompatibleInputs;
+    }
     for (Artifact * const artifact : allCompatibleInputs) {
         if (artifact->timestamp() > m_lastApplicationTime)
             changedInputArtifacts.insert(artifact);
@@ -276,6 +299,16 @@ void RuleNode::removeOldInputArtifact(Artifact *artifact)
         qCDebug(lcBuildGraph) << "remove old input" << artifact->filePath()
                               << "from rule" << rule()->toString();
         m_oldInputArtifacts.insert(&dummyArtifact);
+    }
+    if (m_oldExplicitlyDependsOn.remove(artifact)) {
+        qCDebug(lcBuildGraph) << "remove old explicitlyDependsOn" << artifact->filePath()
+                              << "from rule" << rule()->toString();
+        m_oldExplicitlyDependsOn.insert(&dummyArtifact);
+    }
+    if (m_oldAuxiliaryInputs.remove(artifact)) {
+        qCDebug(lcBuildGraph) << "remove old auxiliaryInput" << artifact->filePath()
+                              << "from rule" << rule()->toString();
+        m_oldAuxiliaryInputs.insert(&dummyArtifact);
     }
 }
 
