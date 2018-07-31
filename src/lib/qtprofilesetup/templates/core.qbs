@@ -268,8 +268,6 @@ Module {
         excludedInputs: ["unmocable"]
         outputFileTags: ["hpp", "cpp", "moc_cpp", "unmocable"]
         outputArtifacts: {
-            if (input.fileTags.contains("unmocable"))
-                return [];
             var mocinfo = QtMocScanner.apply(input);
             if (!mocinfo.hasQObjectMacro)
                 return [];
