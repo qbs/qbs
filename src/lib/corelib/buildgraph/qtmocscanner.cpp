@@ -219,8 +219,6 @@ QScriptValue QtMocScanner::apply(QScriptEngine *engine, const Artifact *artifact
         m_cppScanner = scanners.front();
     }
 
-    findIncludedMocCppFiles();
-
     qCDebug(lcMocScan).noquote() << "scanning" << artifact->toString();
 
     bool hasQObjectMacro = false;
@@ -237,6 +235,7 @@ QScriptValue QtMocScanner::apply(QScriptEngine *engine, const Artifact *artifact
                 hasQObjectMacro = true;
                 hasPluginMetaDataMacro = true;
             }
+            findIncludedMocCppFiles();
             if (!m_includedMocCppFiles.contains(FileInfo::completeBaseName(artifact->fileName())))
                 mustCompile = true;
         } else {
