@@ -154,6 +154,7 @@ void TestBlackboxQt::includedMocCpp()
     REPLACE_IN_FILE("myobject.cpp", "#include <moc_myobject.cpp", "// #include <moc_myobject.cpp");
     QCOMPARE(runQbs(), 0);
     QVERIFY2(m_qbsStdout.contains("compiling moc_myobject.cpp"), m_qbsStdout.constData());
+    WAIT_FOR_NEW_TIMESTAMP();
     REPLACE_IN_FILE("myobject.cpp", "// #include <moc_myobject.cpp", "#include <moc_myobject.cpp");
     QCOMPARE(runQbs(), 0);
     QVERIFY2(!m_qbsStdout.contains("compiling moc_myobject.cpp"), m_qbsStdout.constData());
