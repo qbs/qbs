@@ -257,14 +257,7 @@ Module {
         property string cppInput: cpp.combineCxxSources ? "cpp.combine" : "cpp"
         property string objcppInput: cpp.combineObjcxxSources ? "objcpp.combine" : "objcpp"
         inputs: [objcppInput, cppInput, "hpp"]
-        auxiliaryInputs: {
-            var auxInputs = ["qt_plugin_metadata"];
-            if (cpp.combineCxxSources)
-                auxInputs.push("cpp");
-            if (cpp.combineObjcxxSources)
-                auxInputs.push("objcpp");
-            return auxInputs;
-        }
+        auxiliaryInputs: ["qt_plugin_metadata", "cpp", "objcpp"];
         excludedInputs: ["unmocable"]
         outputFileTags: ["hpp", "cpp", "moc_cpp", "unmocable"]
         outputArtifacts: {

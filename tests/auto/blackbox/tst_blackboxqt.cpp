@@ -145,6 +145,20 @@ void TestBlackboxQt::dbusInterfaces()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackboxQt::includedMocCpp()
+{
+    QDir::setCurrent(testDataDir + "/included-moc-cpp");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(!m_qbsStdout.contains("compiling moc_myobject.cpp"), m_qbsStdout.constData());
+    WAIT_FOR_NEW_TIMESTAMP();
+    REPLACE_IN_FILE("myobject.cpp", "#include <moc_myobject.cpp", "// #include <moc_myobject.cpp");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling moc_myobject.cpp"), m_qbsStdout.constData());
+    REPLACE_IN_FILE("myobject.cpp", "// #include <moc_myobject.cpp", "#include <moc_myobject.cpp");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(!m_qbsStdout.contains("compiling moc_myobject.cpp"), m_qbsStdout.constData());
+}
+
 void TestBlackboxQt::lrelease()
 {
     QDir::setCurrent(testDataDir + QLatin1String("/lrelease"));

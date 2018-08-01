@@ -49,6 +49,7 @@ private slots:
     void createProject();
     void dbusAdaptors();
     void dbusInterfaces();
+    void includedMocCpp();
     void lrelease();
     void mixedBuildVariants();
     void mocAndCppCombining();
