@@ -253,38 +253,24 @@ Module {
     property bool combineMocOutput: cpp.combineCxxSources
 
     Rule {
-        name: "QtCoreMocRule"
+        name: "QtCoreMocRuleCpp"
         property string cppInput: cpp.combineCxxSources ? "cpp.combine" : "cpp"
         property string objcppInput: cpp.combineObjcxxSources ? "objcpp.combine" : "objcpp"
-        inputs: [objcppInput, cppInput, "hpp"]
+        inputs: [objcppInput, cppInput]
+        auxiliaryInputs: "qt_plugin_metadata"
+        excludedInputs: "unmocable"
+        outputFileTags: ["hpp", "unmocable"]
+        outputArtifacts: Moc.outputArtifacts.apply(Moc, arguments)
+        prepare: Moc.commands.apply(Moc, arguments)
+    }
+    Rule {
+        name: "QtCoreMocRuleHpp"
+        inputs: "hpp"
         auxiliaryInputs: ["qt_plugin_metadata", "cpp", "objcpp"];
-        excludedInputs: ["unmocable"]
+        excludedInputs: "unmocable"
         outputFileTags: ["hpp", "cpp", "moc_cpp", "unmocable"]
-        outputArtifacts: {
-            var mocinfo = QtMocScanner.apply(input);
-            if (!mocinfo.hasQObjectMacro)
-                return [];
-            var artifact = { fileTags: ["unmocable"] };
-            if (input.fileTags.contains("hpp")) {
-                artifact.filePath = input.Qt.core.generatedHeadersDir
-                        + "/moc_" + input.completeBaseName + ".cpp";
-            } else {
-                artifact.filePath = input.Qt.core.generatedHeadersDir
-                          + '/' + input.completeBaseName + ".moc";
-            }
-            var amalgamate = input.Qt.core.combineMocOutput;
-            artifact.fileTags.push(mocinfo.mustCompile ? (amalgamate ? "moc_cpp" : "cpp") : "hpp");
-            if (mocinfo.hasPluginMetaDataMacro)
-                artifact.explicitlyDependsOn = ["qt_plugin_metadata"];
-            return [artifact];
-        }
-        prepare: {
-            var cmd = new Command(Moc.fullPath(product),
-                                  Moc.args(product, input, output.filePath));
-            cmd.description = 'moc ' + input.fileName;
-            cmd.highlight = 'codegen';
-            return cmd;
-        }
+        outputArtifacts: Moc.outputArtifacts.apply(Moc, arguments)
+        prepare: Moc.commands.apply(Moc, arguments)
     }
 
     Rule {

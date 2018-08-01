@@ -71,3 +71,32 @@ function fullPath(product)
 {
     return product.Qt.core.binPath + '/' + product.Qt.core.mocName;
 }
+
+function outputArtifacts(project, product, inputs, input)
+{
+    var mocInfo = QtMocScanner.apply(input);
+    if (!mocInfo.hasQObjectMacro)
+        return [];
+    var artifact = { fileTags: ["unmocable"] };
+    if (mocInfo.hasPluginMetaDataMacro)
+        artifact.explicitlyDependsOn = ["qt_plugin_metadata"];
+    if (input.fileTags.contains("hpp")) {
+        artifact.filePath = input.Qt.core.generatedHeadersDir
+                + "/moc_" + input.completeBaseName + ".cpp";
+        var amalgamate = input.Qt.core.combineMocOutput;
+        artifact.fileTags.push(mocInfo.mustCompile ? (amalgamate ? "moc_cpp" : "cpp") : "hpp");
+    } else {
+        artifact.filePath = input.Qt.core.generatedHeadersDir + '/'
+                + input.completeBaseName + ".moc";
+        artifact.fileTags.push("hpp");
+    }
+    return [artifact];
+}
+
+function commands(project, product, inputs, outputs, input, output)
+{
+    var cmd = new Command(fullPath(product), args(product, input, output.filePath));
+    cmd.description = 'moc ' + input.fileName;
+    cmd.highlight = 'codegen';
+    return cmd;
+}

@@ -108,7 +108,7 @@ void RulesApplicator::applyRule(RuleNode *ruleNode, const ArtifactSet &inputArti
     RulesEvaluationContext::Scope s(evalContext().get());
 
     m_completeInputSet = inputArtifacts;
-    if (m_rule->name == QLatin1String("QtCoreMocRule")) {
+    if (m_rule->name.startsWith(QLatin1String("QtCoreMocRule"))) {
         delete m_mocScanner;
         m_mocScanner = new QtMocScanner(m_product, scope());
     }
