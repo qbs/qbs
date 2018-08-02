@@ -123,7 +123,20 @@
 /*!
     \qmlproperty bool qbs::enableDebugCode
 
-    Whether to compile debug code in the product.
+    Whether to enable debug functionality in the product. Not to be confused
+    with generation of debug symbols or the code optimization level.
+
+    The property changes the following things when enabled:
+    \list
+         \li Passes a flag to the Windows linker to link against a debug
+             Windows CRT (common runtime) library
+             (for example /MTd instead of /MT)
+    \endlist
+
+    The property changes the following things when disabled:
+    \list
+         \li Passes the \c{NDEBUG} define to the compiler
+    \endlist
 
     Typically, this property is enabled for debug builds and disabled for
     release builds.
