@@ -84,13 +84,13 @@ public:
     PluginDependencyScanner(ScannerPlugin *plugin);
 
 private:
-    QStringList collectSearchPaths(Artifact *artifact);
-    QStringList collectDependencies(FileResourceBase *file, const char *fileTags);
-    bool recursive() const;
-    const void *key() const;
-    QString createId() const;
+    QStringList collectSearchPaths(Artifact *artifact) override;
+    QStringList collectDependencies(FileResourceBase *file, const char *fileTags) override;
+    bool recursive() const override;
+    const void *key() const override;
+    QString createId() const override;
     bool areModulePropertiesCompatible(const PropertyMapConstPtr &m1,
-                                       const PropertyMapConstPtr &m2) const;
+                                       const PropertyMapConstPtr &m2) const override;
 
     ScannerPlugin* m_plugin;
 };
@@ -101,13 +101,13 @@ public:
     UserDependencyScanner(const ResolvedScannerConstPtr &scanner, ScriptEngine *engine);
 
 private:
-    QStringList collectSearchPaths(Artifact *artifact);
-    QStringList collectDependencies(FileResourceBase *file, const char *fileTags);
-    bool recursive() const;
-    const void *key() const;
-    QString createId() const;
+    QStringList collectSearchPaths(Artifact *artifact) override;
+    QStringList collectDependencies(FileResourceBase *file, const char *fileTags) override;
+    bool recursive() const override;
+    const void *key() const override;
+    QString createId() const override;
     bool areModulePropertiesCompatible(const PropertyMapConstPtr &m1,
-                                       const PropertyMapConstPtr &m2) const;
+                                       const PropertyMapConstPtr &m2) const override;
 
     QStringList evaluate(Artifact *artifact, const PrivateScriptFunction &script);
 

@@ -58,8 +58,8 @@ public:
     void visitProduct(const ResolvedProductConstPtr &product);
 
 private:
-    bool visit(Artifact *artifact);
-    bool visit(RuleNode *ruleNode);
+    bool visit(Artifact *artifact) override;
+    bool visit(RuleNode *ruleNode) override;
 
     bool visitNode(BuildGraphNode *node);
 

@@ -71,7 +71,7 @@ public:
     UiObjectDefinition *item() const { return m_item; }
 
 private:
-    bool visit(UiObjectDefinition *ast)
+    bool visit(UiObjectDefinition *ast) override
     {
         if (toCodeLocation(m_cl.filePath(), ast->firstSourceLocation()) == m_cl) {
             m_item = ast;
@@ -95,14 +95,14 @@ public:
     UiScriptBinding *binding() const { return m_binding; }
 
 private:
-    bool visit(UiObjectDefinition *ast)
+    bool visit(UiObjectDefinition *ast) override
     {
         // We start with the direct parent of the binding, so do not descend into any
         // other item.
         return ast == m_startItem;
     }
 
-    bool visit(UiScriptBinding *ast)
+    bool visit(UiScriptBinding *ast) override
     {
         if (ast->qualifiedId->name.toString() != StringConstants::filesProperty())
             return true;

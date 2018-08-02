@@ -57,8 +57,8 @@ public:
     void add(const QString &name, bool *found);
 
 private:
-    bool preVisit(QbsQmlJS::AST::Node *);
-    bool visit(QbsQmlJS::AST::IdentifierExpression *e);
+    bool preVisit(QbsQmlJS::AST::Node *) override;
+    bool visit(QbsQmlJS::AST::IdentifierExpression *e) override;
 
     QMap<QString, bool *> m_requests;
     int m_numberOfFoundIds;

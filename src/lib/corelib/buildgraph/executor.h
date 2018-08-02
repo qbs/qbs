@@ -99,8 +99,8 @@ private:
     void checkForCancellation();
 
     // BuildGraphVisitor implementation
-    bool visit(Artifact *artifact);
-    bool visit(RuleNode *ruleNode);
+    bool visit(Artifact *artifact) override;
+    bool visit(RuleNode *ruleNode) override;
 
     enum ExecutorState { ExecutorIdle, ExecutorRunning, ExecutorCanceling };
 

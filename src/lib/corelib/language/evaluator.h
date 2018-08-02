@@ -104,7 +104,7 @@ public:
 
     bool isNonDefaultValue(const Item *item, const QString &name) const;
 private:
-    void onItemPropertyChanged(Item *item);
+    void onItemPropertyChanged(Item *item) override;
     bool evaluateProperty(QScriptValue *result, const Item *item, const QString &name,
             bool *propertyWasSet);
 

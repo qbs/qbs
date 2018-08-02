@@ -117,8 +117,8 @@ public:
     static JSSourceValuePtr QBS_AUTOTEST_EXPORT create(bool createdByPropertiesBlock = false);
     ~JSSourceValue();
 
-    void apply(ValueHandler *handler) { handler->handle(this); }
-    ValuePtr clone() const;
+    void apply(ValueHandler *handler) override { handler->handle(this); }
+    ValuePtr clone() const override;
 
     void setSourceCode(const QStringRef &sourceCode) { m_sourceCode = sourceCode; }
     const QStringRef &sourceCode() const { return m_sourceCode; }
@@ -127,7 +127,7 @@ public:
     void setLocation(int line, int column);
     int line() const { return m_line; }
     int column() const { return m_column; }
-    CodeLocation location() const;
+    CodeLocation location() const override;
 
     void setFile(const FileContextPtr &file) { m_file = file; }
     const FileContextPtr &file() const { return m_file; }
@@ -175,7 +175,7 @@ public:
     void addAlternative(const Alternative &alternative) { m_alternatives.push_back(alternative); }
     void clearAlternatives();
 
-    void setDefiningItem(Item *item);
+    void setDefiningItem(Item *item) override;
 
 private:
     QStringRef m_sourceCode;
@@ -211,8 +211,8 @@ class VariantValue : public Value
 public:
     static VariantValuePtr create(const QVariant &v = QVariant());
 
-    void apply(ValueHandler *handler) { handler->handle(this); }
-    ValuePtr clone() const;
+    void apply(ValueHandler *handler) override { handler->handle(this); }
+    ValuePtr clone() const override;
 
     const QVariant &value() const { return m_value; }
 

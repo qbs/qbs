@@ -80,7 +80,8 @@ public:
     }
 
 private:
-    void onPropertyRead(const QScriptValue &object, const QString &name, const QScriptValue &value);
+    void onPropertyRead(const QScriptValue &object, const QString &name,
+                        const QScriptValue &value) override;
 
     std::unordered_map<qint64, QString> m_projectObjectIds;
     std::unordered_map<qint64, std::pair<QString, QString>> m_parameterObjects;

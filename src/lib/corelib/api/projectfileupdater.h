@@ -94,7 +94,7 @@ public:
     ProjectFileGroupInserter(const ProductData &product, const QString &groupName);
 
 private:
-    void doApply(QString &fileContent, QbsQmlJS::AST::UiProgram *ast);
+    void doApply(QString &fileContent, QbsQmlJS::AST::UiProgram *ast) override;
 
     const ProductData m_product;
     const QString m_groupName;
@@ -108,7 +108,7 @@ public:
                           const QStringList &files);
 
 private:
-    void doApply(QString &fileContent, QbsQmlJS::AST::UiProgram *ast);
+    void doApply(QString &fileContent, QbsQmlJS::AST::UiProgram *ast) override;
 
     const ProductData m_product;
     const GroupData m_group;
@@ -122,7 +122,7 @@ public:
                             const QStringList &files);
 
 private:
-    void doApply(QString &fileContent, QbsQmlJS::AST::UiProgram *ast);
+    void doApply(QString &fileContent, QbsQmlJS::AST::UiProgram *ast) override;
 
     const ProductData m_product;
     const GroupData m_group;
@@ -135,7 +135,7 @@ public:
     ProjectFileGroupRemover(const ProductData &product, const GroupData &group);
 
 private:
-    void doApply(QString &fileContent, QbsQmlJS::AST::UiProgram *ast);
+    void doApply(QString &fileContent, QbsQmlJS::AST::UiProgram *ast) override;
 
     const ProductData m_product;
     const GroupData m_group;

@@ -56,8 +56,8 @@ public:
 
     void visitProduct(const ResolvedProductConstPtr &product);
     void visitProject(const ResolvedProjectConstPtr &project);
-    bool visit(RuleNode *ruleNode);
-    bool visit(Artifact *artifact);
+    bool visit(RuleNode *ruleNode) override;
+    bool visit(Artifact *artifact) override;
 
 private:
     virtual void doVisit(Artifact *artifact) = 0;

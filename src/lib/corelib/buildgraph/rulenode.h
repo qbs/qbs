@@ -63,9 +63,9 @@ public:
     void setRule(const RuleConstPtr &rule) { m_rule = rule; }
     const RuleConstPtr &rule() const { return m_rule; }
 
-    Type type() const { return RuleNodeType; }
-    void accept(BuildGraphVisitor *visitor);
-    QString toString() const;
+    Type type() const override { return RuleNodeType; }
+    void accept(BuildGraphVisitor *visitor) override;
+    QString toString() const override;
 
     struct ApplicationResult
     {
@@ -80,8 +80,8 @@ public:
                ApplicationResult *result);
     void removeOldInputArtifact(Artifact *artifact);
 
-    void load(PersistentPool &pool);
-    void store(PersistentPool &pool);
+    void load(PersistentPool &pool) override;
+    void store(PersistentPool &pool) override;
 
 private:
     template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)

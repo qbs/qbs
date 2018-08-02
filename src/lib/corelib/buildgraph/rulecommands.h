@@ -119,9 +119,10 @@ public:
     static ProcessCommandPtr create() { return ProcessCommandPtr(new ProcessCommand); }
     static void setupForJavaScript(QScriptValue targetObject);
 
-    CommandType type() const { return ProcessCommandType; }
-    bool equals(const AbstractCommand *otherAbstractCommand) const;
-    void fillFromScriptValue(const QScriptValue *scriptValue, const CodeLocation &codeLocation);
+    CommandType type() const override { return ProcessCommandType; }
+    bool equals(const AbstractCommand *otherAbstractCommand) const override;
+    void fillFromScriptValue(const QScriptValue *scriptValue,
+                             const CodeLocation &codeLocation) override;
     const QString program() const { return m_program; }
     const QStringList arguments() const { return m_arguments; }
     const QString workingDir() const { return m_workingDir; }
@@ -139,8 +140,8 @@ public:
     QString stdoutFilePath() const { return m_stdoutFilePath; }
     QString stderrFilePath() const { return m_stderrFilePath; }
 
-    void load(PersistentPool &pool);
-    void store(PersistentPool &pool);
+    void load(PersistentPool &pool) override;
+    void store(PersistentPool &pool) override;
 
 private:
     ProcessCommand();
@@ -181,16 +182,17 @@ public:
     static JavaScriptCommandPtr create() { return JavaScriptCommandPtr(new JavaScriptCommand); }
     static void setupForJavaScript(QScriptValue targetObject);
 
-    virtual CommandType type() const { return JavaScriptCommandType; }
-    bool equals(const AbstractCommand *otherAbstractCommand) const;
-    void fillFromScriptValue(const QScriptValue *scriptValue, const CodeLocation &codeLocation);
+    CommandType type() const override { return JavaScriptCommandType; }
+    bool equals(const AbstractCommand *otherAbstractCommand) const override;
+    void fillFromScriptValue(const QScriptValue *scriptValue,
+                             const CodeLocation &codeLocation) override;
 
     const QString &scopeName() const { return m_scopeName; }
     const QString &sourceCode() const { return m_sourceCode; }
     void setSourceCode(const QString &str) { m_sourceCode = str; }
 
-    void load(PersistentPool &pool);
-    void store(PersistentPool &pool);
+    void load(PersistentPool &pool) override;
+    void store(PersistentPool &pool) override;
 
 private:
     JavaScriptCommand();

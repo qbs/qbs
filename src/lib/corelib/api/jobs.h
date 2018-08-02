@@ -118,7 +118,7 @@ private:
     void resolve(const Project &existingProject, const SetupProjectParameters &parameters);
     void reportError(const ErrorInfo &error);
 
-    void finish();
+    void finish() override;
 
     Project m_existingProject;
 };
@@ -140,7 +140,7 @@ private:
                const BuildOptions &options);
     void handleLauncherError(const ErrorInfo &error);
 
-    void finish();
+    void finish() override;
 };
 
 

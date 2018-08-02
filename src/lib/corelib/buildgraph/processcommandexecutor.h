@@ -69,10 +69,10 @@ private:
     void onProcessError();
     void onProcessFinished();
 
-    void doSetup();
-    void doReportCommandDescription(const QString &productName);
-    void doStart();
-    void cancel();
+    void doSetup() override;
+    void doReportCommandDescription(const QString &productName) override;
+    void doStart() override;
+    void cancel() override;
 
     void startProcessCommand();
     QString filterProcessOutput(const QByteArray &output, const QString &filterFunctionSource);
