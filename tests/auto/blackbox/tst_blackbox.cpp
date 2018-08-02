@@ -6142,6 +6142,7 @@ void TestBlackbox::groupsInModules()
     WAIT_FOR_NEW_TIMESTAMP();
     touch("modules/helper/diamondc.c");
 
+    waitForFileUnlock();
     QCOMPARE(runQbs(params), 0);
     QVERIFY(m_qbsStdout.contains("compiling diamondc.c"));
     QVERIFY(m_qbsStdout.contains("compile rock.coal => rock.diamond"));
