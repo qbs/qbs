@@ -166,7 +166,7 @@ public:
         for (ProductContext * const rootProduct : rootProducts)
             traverse(rootProduct);
         if (m_sortedProducts.size() < allProducts.size()) {
-            for (auto * const product : qAsConst(allProducts)) {
+            for (auto const product : qAsConst(allProducts)) {
                 QList<ModuleLoader::ProductContext *> path;
                 findCycle(product, path);
             }
@@ -201,7 +201,7 @@ private:
             throw error;
         }
         path << product;
-        for (auto * const dep : m_dependencyMap.value(product))
+        for (auto const dep : m_dependencyMap.value(product))
             findCycle(dep, path);
         path.removeLast();
     }

@@ -80,8 +80,7 @@ QbsPluginManager::~QbsPluginManager()
     unloadStaticPlugins();
 
     for (QLibrary * const lib : qAsConst(d->libs)) {
-        QbsPluginUnloadFunction unload = reinterpret_cast<QbsPluginUnloadFunction>(
-                    lib->resolve("QbsPluginUnload"));
+        auto unload = reinterpret_cast<QbsPluginUnloadFunction>(lib->resolve("QbsPluginUnload"));
         if (unload)
             unload();
         lib->unload();
@@ -146,8 +145,7 @@ void QbsPluginManager::loadPlugins(const std::vector<std::string> &pluginPaths,
                 continue;
             }
 
-            QbsPluginLoadFunction load = reinterpret_cast<QbsPluginLoadFunction>(
-                        lib->resolve("QbsPluginLoad"));
+            auto load = reinterpret_cast<QbsPluginLoadFunction>(lib->resolve("QbsPluginLoad"));
             if (load) {
                 load();
                 qCDebug(lcPluginManager) << "plugin" << QDir::toNativeSeparators(fileName)

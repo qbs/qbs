@@ -167,7 +167,7 @@ static void disconnectArtifactParents(Artifact *artifact)
         parent->children.remove(artifact);
         if (parent->type() != BuildGraphNode::ArtifactNodeType)
             continue;
-        Artifact * const parentArtifact = static_cast<Artifact *>(parent);
+        auto const parentArtifact = static_cast<Artifact *>(parent);
         QBS_CHECK(parentArtifact->transformer);
         parentArtifact->childrenAddedByScanner.remove(artifact);
         parentArtifact->transformer->inputs.remove(artifact);

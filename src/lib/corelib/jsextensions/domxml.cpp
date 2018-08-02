@@ -367,7 +367,7 @@ QScriptValue XmlDomNode::nextSibling(const QString &tagName) const
 
 QScriptValue XmlDomNode::appendChild(QScriptValue newChild)
 {
-    XmlDomNode *newNode = qobject_cast<XmlDomNode*>(newChild.toQObject());
+    auto newNode = qobject_cast<XmlDomNode*>(newChild.toQObject());
     if (!newNode) {
         context()->throwError(QString::fromLatin1("First argument is not a XmlDomNode object"));
         return QScriptValue();
@@ -377,13 +377,13 @@ QScriptValue XmlDomNode::appendChild(QScriptValue newChild)
 
 QScriptValue XmlDomNode::insertBefore(const QScriptValue &newChild, const QScriptValue &refChild)
 {
-    XmlDomNode *newNode = qobject_cast<XmlDomNode*>(newChild.toQObject());
+    auto newNode = qobject_cast<XmlDomNode*>(newChild.toQObject());
     if (!newNode) {
         context()->throwError(QString::fromLatin1("First argument is not a XmlDomNode object"));
         return QScriptValue();
     }
 
-    XmlDomNode *refNode = qobject_cast<XmlDomNode*>(refChild.toQObject());
+    auto refNode = qobject_cast<XmlDomNode*>(refChild.toQObject());
     if (!refNode) {
         context()->throwError(QString::fromLatin1("Second argument is not a XmlDomNode object"));
         return QScriptValue();
@@ -394,13 +394,13 @@ QScriptValue XmlDomNode::insertBefore(const QScriptValue &newChild, const QScrip
 
 QScriptValue XmlDomNode::insertAfter(const QScriptValue &newChild, const QScriptValue &refChild)
 {
-    XmlDomNode *newNode = qobject_cast<XmlDomNode*>(newChild.toQObject());
+    auto newNode = qobject_cast<XmlDomNode*>(newChild.toQObject());
     if (!newNode) {
         context()->throwError(QString::fromLatin1("First argument is not a XmlDomNode object"));
         return QScriptValue();
     }
 
-    XmlDomNode *refNode = qobject_cast<XmlDomNode*>(refChild.toQObject());
+    auto refNode = qobject_cast<XmlDomNode*>(refChild.toQObject());
     if (!refNode) {
         context()->throwError(QString::fromLatin1("Second argument is not a XmlDomNode object"));
         return QScriptValue();
@@ -411,13 +411,13 @@ QScriptValue XmlDomNode::insertAfter(const QScriptValue &newChild, const QScript
 
 QScriptValue XmlDomNode::replaceChild(const QScriptValue &newChild, const QScriptValue &oldChild)
 {
-    XmlDomNode *newNode = qobject_cast<XmlDomNode*>(newChild.toQObject());
+    auto newNode = qobject_cast<XmlDomNode*>(newChild.toQObject());
     if (!newNode) {
         context()->throwError(QString::fromLatin1("First argument is not a XmlDomNode object"));
         return QScriptValue();
     }
 
-    XmlDomNode *oldNode = qobject_cast<XmlDomNode*>(oldChild.toQObject());
+    auto oldNode = qobject_cast<XmlDomNode*>(oldChild.toQObject());
     if (!oldNode) {
         context()->throwError(QString::fromLatin1("Second argument is not a XmlDomNode object"));
         return QScriptValue();
@@ -428,7 +428,7 @@ QScriptValue XmlDomNode::replaceChild(const QScriptValue &newChild, const QScrip
 
 QScriptValue XmlDomNode::removeChild(const QScriptValue &oldChild)
 {
-    XmlDomNode *oldNode = qobject_cast<XmlDomNode*>(oldChild.toQObject());
+    auto oldNode = qobject_cast<XmlDomNode*>(oldChild.toQObject());
     if (!oldNode) {
         context()->throwError(QString::fromLatin1("First argument is not a XmlDomNode object"));
         return QScriptValue();

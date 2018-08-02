@@ -261,7 +261,7 @@ void ModuleProperties::init(QScriptValue artifactObject, const Artifact *artifac
 void ModuleProperties::setModuleScriptValue(QScriptValue targetObject,
         const QScriptValue &moduleObject, const QString &moduleName)
 {
-    ScriptEngine * const e = static_cast<ScriptEngine *>(targetObject.engine());
+    auto const e = static_cast<ScriptEngine *>(targetObject.engine());
     const QualifiedId name = QualifiedId::fromString(moduleName);
     QScriptValue obj = targetObject;
     for (int i = 0; i < name.size() - 1; ++i) {

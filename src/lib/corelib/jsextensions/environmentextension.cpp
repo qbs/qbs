@@ -72,7 +72,7 @@ static QProcessEnvironment *getProcessEnvironment(QScriptContext *context, QScri
                                                   const QString &func, bool doThrow = true)
 {
     QVariant v = engine->property(StringConstants::qbsProcEnvVarInternal());
-    QProcessEnvironment *procenv = reinterpret_cast<QProcessEnvironment *>(v.value<void *>());
+    auto procenv = reinterpret_cast<QProcessEnvironment *>(v.value<void *>());
     if (!procenv && doThrow)
         throw context->throwError(QScriptContext::UnknownError,
                                   QStringLiteral("%1 can only be called from ").arg(func) +

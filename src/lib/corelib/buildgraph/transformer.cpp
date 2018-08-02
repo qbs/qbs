@@ -227,7 +227,7 @@ AbstractCommandPtr Transformer::createCommandFromScriptValue(const QScriptValue 
     if (cmdBase)
         cmdBase->fillFromScriptValue(&scriptValue, codeLocation);
     if (className == StringConstants::commandType()) {
-        ProcessCommand *procCmd = static_cast<ProcessCommand *>(cmdBase.get());
+        auto procCmd = static_cast<ProcessCommand *>(cmdBase.get());
         procCmd->clearRelevantEnvValues();
         for (const QString &key : procCmd->relevantEnvVars())
             procCmd->addRelevantEnvValue(key, product()->buildEnvironment.value(key));

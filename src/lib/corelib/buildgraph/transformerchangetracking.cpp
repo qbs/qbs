@@ -231,7 +231,7 @@ const Artifact *TrafoChangeTracker::getArtifact(const QString &filePath,
     const Artifact *artifact = nullptr;
     for (const FileResourceBase * const candidate : candidates) {
         if (candidate->fileType() == FileResourceBase::FileTypeArtifact) {
-            const Artifact * const a = static_cast<const Artifact *>(candidate);
+            auto const a = static_cast<const Artifact *>(candidate);
             if (a->product.get() == product) {
                 m_lastArtifact = artifact = a;
                 break;

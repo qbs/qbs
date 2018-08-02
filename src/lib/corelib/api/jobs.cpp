@@ -229,10 +229,8 @@ SetupProjectJob::SetupProjectJob(const Logger &logger, QObject *parent)
  */
 Project SetupProjectJob::project() const
 {
-    const InternalJobThreadWrapper * const wrapper
-            = qobject_cast<InternalJobThreadWrapper *>(internalJob());
-    const InternalSetupProjectJob * const job
-            = qobject_cast<InternalSetupProjectJob *>(wrapper->synchronousJob());
+    auto const wrapper = qobject_cast<const InternalJobThreadWrapper *>(internalJob());
+    auto const job = qobject_cast<const InternalSetupProjectJob *>(wrapper->synchronousJob());
     return Project(job->project(), job->logger());
 }
 
@@ -244,20 +242,16 @@ void SetupProjectJob::resolve(const Project &existingProject,
             = existingProject.d ? existingProject.d->internalProject : TopLevelProjectPtr();
     if (existingInternalProject && !lockProject(existingInternalProject))
         return;
-    InternalJobThreadWrapper * const wrapper
-            = qobject_cast<InternalJobThreadWrapper *>(internalJob());
-    InternalSetupProjectJob * const job
-            = qobject_cast<InternalSetupProjectJob *>(wrapper->synchronousJob());
+    auto const wrapper = qobject_cast<InternalJobThreadWrapper *>(internalJob());
+    auto const job = qobject_cast<InternalSetupProjectJob *>(wrapper->synchronousJob());
     job->init(existingInternalProject, parameters);
     wrapper->start();
 }
 
 void SetupProjectJob::reportError(const ErrorInfo &error)
 {
-    InternalJobThreadWrapper * const wrapper
-            = qobject_cast<InternalJobThreadWrapper *>(internalJob());
-    InternalSetupProjectJob * const job
-            = qobject_cast<InternalSetupProjectJob *>(wrapper->synchronousJob());
+    auto const wrapper = qobject_cast<const InternalJobThreadWrapper *>(internalJob());
+    auto const job = qobject_cast<InternalSetupProjectJob *>(wrapper->synchronousJob());
     job->reportError(error);
 }
 
@@ -351,7 +345,7 @@ void CleanJob::clean(const TopLevelProjectPtr &project, const QList<ResolvedProd
 {
     if (!lockProject(project))
         return;
-    InternalJobThreadWrapper * wrapper = qobject_cast<InternalJobThreadWrapper *>(internalJob());
+    auto wrapper = qobject_cast<InternalJobThreadWrapper *>(internalJob());
     qobject_cast<InternalCleanJob *>(wrapper->synchronousJob())->init(project, products, options);
     wrapper->start();
 }
@@ -371,8 +365,8 @@ void InstallJob::install(const TopLevelProjectPtr &project,
 {
     if (!lockProject(project))
         return;
-    InternalJobThreadWrapper *wrapper = qobject_cast<InternalJobThreadWrapper *>(internalJob());
-    InternalInstallJob *installJob = qobject_cast<InternalInstallJob *>(wrapper->synchronousJob());
+    auto wrapper = qobject_cast<InternalJobThreadWrapper *>(internalJob());
+    auto installJob = qobject_cast<InternalInstallJob *>(wrapper->synchronousJob());
     installJob->init(project,
                      std::vector<ResolvedProductPtr>(products.cbegin(), products.cend()),
                      options);

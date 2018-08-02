@@ -84,7 +84,7 @@ static void resolveDepencency(const RawScannedDependency &dependency,
             fileDependencyArtifact = static_cast<FileDependency *>(lookupResult);
             break;
         case FileResourceBase::FileTypeArtifact: {
-            Artifact * const foundArtifact = static_cast<Artifact *>(lookupResult);
+            auto const foundArtifact = static_cast<Artifact *>(lookupResult);
             if (foundArtifact->product == product)
                 dependencyInProduct = foundArtifact;
             else
@@ -277,8 +277,7 @@ resolved:
         if (artifactsToScan && resolvedDependency.file) {
             if (resolvedDependency.file->fileType() == FileResourceBase::FileTypeArtifact) {
                 // Do not scan an artifact that is not built yet: Its contents might still change.
-                Artifact * const artifactDependency
-                        = static_cast<Artifact *>(resolvedDependency.file);
+                auto const artifactDependency = static_cast<Artifact *>(resolvedDependency.file);
                 if (artifactDependency->artifactType == Artifact::SourceFile
                         || artifactDependency->buildState == BuildGraphNode::Built) {
                     artifactsToScan->push_back(artifactDependency);

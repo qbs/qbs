@@ -450,7 +450,7 @@ void connect(BuildGraphNode *p, BuildGraphNode *c)
     QBS_CHECK(p != c);
     qCDebug(lcBuildGraph).noquote() << "connect" << p->toString() << "->" << c->toString();
     if (c->type() == BuildGraphNode::ArtifactNodeType) {
-        Artifact * const ac = static_cast<Artifact *>(c);
+        auto const ac = static_cast<Artifact *>(c);
         for (const Artifact *child : filterByType<Artifact>(p->children)) {
             if (child == ac)
                 return;
@@ -562,7 +562,7 @@ Artifact *lookupArtifact(const ResolvedProductConstPtr &product,
             it != lookupResults.constEnd(); ++it) {
         if ((*it)->fileType() != FileResourceBase::FileTypeArtifact)
             continue;
-        Artifact *artifact = static_cast<Artifact *>(*it);
+        auto artifact = static_cast<Artifact *>(*it);
         if (compareByName
                 ? artifact->product->uniqueName() == product->uniqueName()
                 : artifact->product == product) {
@@ -749,7 +749,7 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product,
                 ? static_cast<Artifact *>(node) : nullptr;
         if (!artifact) {
             QBS_CHECK(node->type() == BuildGraphNode::RuleNodeType);
-            RuleNode * const ruleNode = static_cast<RuleNode *>(node);
+            auto const ruleNode = static_cast<RuleNode *>(node);
             QBS_CHECK(ruleNode->rule());
             QBS_CHECK(ruleNode->rule()->product);
             QBS_CHECK(ruleNode->rule()->product == ruleNode->product.get());

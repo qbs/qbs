@@ -93,8 +93,8 @@ FileTime::FileTime(const FileTime::InternalType &ft) : m_fileTime(ft)
 int FileTime::compare(const FileTime &other) const
 {
 #ifdef Q_OS_WIN
-    const FILETIME *const t1 = reinterpret_cast<const FILETIME *>(&m_fileTime);
-    const FILETIME *const t2 = reinterpret_cast<const FILETIME *>(&other.m_fileTime);
+    auto const t1 = reinterpret_cast<const FILETIME *>(&m_fileTime);
+    auto const t2 = reinterpret_cast<const FILETIME *>(&other.m_fileTime);
     return CompareFileTime(t1, t2);
 #elif HAS_CLOCK_GETTIME
     if (m_fileTime.tv_sec < other.m_fileTime.tv_sec)
@@ -135,7 +135,7 @@ FileTime FileTime::currentTime()
     FileTime result;
     SYSTEMTIME st;
     GetSystemTime(&st);
-    FILETIME *const ft = reinterpret_cast<FILETIME *>(&result.m_fileTime);
+    auto const ft = reinterpret_cast<FILETIME *>(&result.m_fileTime);
     SystemTimeToFileTime(&st, ft);
     return result;
 #elif defined APPLE_CUSTOM_CLOCK_GETTIME
@@ -168,7 +168,7 @@ FileTime FileTime::oldestTime()
         0
     };
     FileTime result;
-    FILETIME *const ft = reinterpret_cast<FILETIME *>(&result.m_fileTime);
+    auto const ft = reinterpret_cast<FILETIME *>(&result.m_fileTime);
     SystemTimeToFileTime(&st, ft);
     return result;
 #elif HAS_CLOCK_GETTIME
@@ -190,7 +190,7 @@ double FileTime::asDouble() const
 QString FileTime::toString() const
 {
 #ifdef Q_OS_WIN
-    const FILETIME *const ft = reinterpret_cast<const FILETIME *>(&m_fileTime);
+    auto const ft = reinterpret_cast<const FILETIME *>(&m_fileTime);
     SYSTEMTIME stUTC, stLocal;
     FileTimeToSystemTime(ft, &stUTC);
     SystemTimeToTzSpecificLocalTime(NULL, &stUTC, &stLocal);

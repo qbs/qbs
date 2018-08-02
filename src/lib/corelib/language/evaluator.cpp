@@ -175,7 +175,7 @@ QScriptValue Evaluator::scriptValue(const Item *item)
 
 void Evaluator::onItemPropertyChanged(Item *item)
 {
-    EvaluationData *data = attachedPointer<EvaluationData>(m_scriptValueMap.value(item));
+    auto data = attachedPointer<EvaluationData>(m_scriptValueMap.value(item));
     if (data)
         data->valueCache.clear();
 }

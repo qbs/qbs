@@ -247,7 +247,7 @@ void Executor::doBuild()
             for (const FileResourceBase * const file : files) {
                 if (file->fileType() != FileResourceBase::FileTypeArtifact)
                     continue;
-                const Artifact * const artifact = static_cast<const Artifact *>(file);
+                auto const artifact = static_cast<const Artifact *>(file);
                 if (contains(m_productsToBuild, artifact->product.lock())) {
                     m_tagsOfFilesToConsider.unite(artifact->fileTags());
                     m_productsOfFilesToConsider << artifact->product.lock();
@@ -327,7 +327,7 @@ void Executor::updateLeaves(BuildGraphNode *node, NodeSet &seenNodes)
     if (node->buildState == BuildGraphNode::Untouched) {
         node->buildState = BuildGraphNode::Buildable;
         if (node->type() == BuildGraphNode::ArtifactNodeType) {
-            Artifact * const artifact = static_cast<Artifact *>(node);
+            auto const artifact = static_cast<Artifact *>(node);
             if (artifact->artifactType == Artifact::SourceFile)
                 retrieveSourceFileTimestamp(artifact);
         }
@@ -1032,7 +1032,7 @@ void Executor::possiblyInstallArtifact(const Artifact *artifact)
 void Executor::onJobFinished(const qbs::ErrorInfo &err)
 {
     try {
-        ExecutorJob * const job = qobject_cast<ExecutorJob *>(sender());
+        auto const job = qobject_cast<ExecutorJob *>(sender());
         QBS_CHECK(job);
         if (m_evalContext->engine()->isActive()) {
             qCDebug(lcExec) << "Executor job finished while rule execution is pausing. "

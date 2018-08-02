@@ -395,8 +395,7 @@ bool JavaScriptCommand::equals(const AbstractCommand *otherAbstractCommand) cons
 {
     if (!AbstractCommand::equals(otherAbstractCommand))
         return false;
-    const JavaScriptCommand * const other
-            = static_cast<const JavaScriptCommand *>(otherAbstractCommand);
+    auto const other = static_cast<const JavaScriptCommand *>(otherAbstractCommand);
     return m_sourceCode == other->m_sourceCode;
 }
 

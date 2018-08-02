@@ -101,13 +101,13 @@ public:
 
 QScriptValue PropertyList::ctor(QScriptContext *context, QScriptEngine *engine)
 {
-    ScriptEngine * const se = static_cast<ScriptEngine *>(engine);
+    auto const se = static_cast<ScriptEngine *>(engine);
     const DubiousContextList dubiousContexts({
             DubiousContext(EvalContext::PropertyEvaluation, DubiousContext::SuggestMoving)
     });
     se->checkContext(QLatin1String("qbs.PropertyList"), dubiousContexts);
 
-    PropertyList *p = new PropertyList(context);
+    auto p = new PropertyList(context);
     QScriptValue obj = engine->newQObject(p, QScriptEngine::ScriptOwnership);
     return obj;
 }
@@ -132,14 +132,14 @@ PropertyList::PropertyList(QScriptContext *context)
 bool PropertyList::isEmpty() const
 {
     Q_ASSERT(thisObject().engine() == engine());
-    PropertyList *p = qscriptvalue_cast<PropertyList*>(thisObject());
+    auto p = qscriptvalue_cast<PropertyList*>(thisObject());
     return p->d->propertyListObject.isNull();
 }
 
 void PropertyList::clear()
 {
     Q_ASSERT(thisObject().engine() == engine());
-    PropertyList *p = qscriptvalue_cast<PropertyList*>(thisObject());
+    auto p = qscriptvalue_cast<PropertyList*>(thisObject());
     p->d->propertyListObject = QVariant();
     p->d->propertyListFormat = 0;
 }
@@ -147,7 +147,7 @@ void PropertyList::clear()
 void PropertyList::readFromObject(const QScriptValue &value)
 {
     Q_ASSERT(thisObject().engine() == engine());
-    PropertyList *p = qscriptvalue_cast<PropertyList*>(thisObject());
+    auto p = qscriptvalue_cast<PropertyList*>(thisObject());
     p->d->propertyListObject = value.toVariant();
     p->d->propertyListFormat = 0; // wasn't deserialized from any external format
 }
@@ -160,7 +160,7 @@ void PropertyList::readFromString(const QString &input)
 void PropertyList::readFromFile(const QString &filePath)
 {
     Q_ASSERT(thisObject().engine() == engine());
-    PropertyList *p = qscriptvalue_cast<PropertyList*>(thisObject());
+    auto p = qscriptvalue_cast<PropertyList*>(thisObject());
 
     QFile file(filePath);
     if (file.open(QIODevice::ReadOnly)) {
@@ -177,14 +177,14 @@ void PropertyList::readFromFile(const QString &filePath)
 void PropertyList::readFromData(const QByteArray &data)
 {
     Q_ASSERT(thisObject().engine() == engine());
-    PropertyList *p = qscriptvalue_cast<PropertyList*>(thisObject());
+    auto p = qscriptvalue_cast<PropertyList*>(thisObject());
     p->d->readFromData(p->context(), data);
 }
 
 void PropertyList::writeToFile(const QString &filePath, const QString &plistFormat)
 {
     Q_ASSERT(thisObject().engine() == engine());
-    PropertyList *p = qscriptvalue_cast<PropertyList*>(thisObject());
+    auto p = qscriptvalue_cast<PropertyList*>(thisObject());
 
     QFile file(filePath);
     QByteArray data = p->d->writeToData(p->context(), plistFormat);
@@ -200,7 +200,7 @@ void PropertyList::writeToFile(const QString &filePath, const QString &plistForm
 QScriptValue PropertyList::format() const
 {
     Q_ASSERT(thisObject().engine() == engine());
-    PropertyList *p = qscriptvalue_cast<PropertyList*>(thisObject());
+    auto p = qscriptvalue_cast<PropertyList*>(thisObject());
     switch (p->d->propertyListFormat)
     {
     case QPropertyListOpenStepFormat:
@@ -219,14 +219,14 @@ QScriptValue PropertyList::format() const
 QScriptValue PropertyList::toObject() const
 {
     Q_ASSERT(thisObject().engine() == engine());
-    PropertyList *p = qscriptvalue_cast<PropertyList*>(thisObject());
+    auto p = qscriptvalue_cast<PropertyList*>(thisObject());
     return p->engine()->toScriptValue(p->d->propertyListObject);
 }
 
 QString PropertyList::toString(const QString &plistFormat) const
 {
     Q_ASSERT(thisObject().engine() == engine());
-    PropertyList *p = qscriptvalue_cast<PropertyList*>(thisObject());
+    auto p = qscriptvalue_cast<PropertyList*>(thisObject());
 
     if (plistFormat == QLatin1String("binary1")) {
         p->context()->throwError(QLatin1String("Property list object cannot be converted to a "

@@ -381,7 +381,7 @@ QScriptClass::QueryFlags EvaluatorScriptClass::queryProperty(const QScriptValue 
     if (debugProperties)
         qDebug() << "[SC] queryProperty " << object.objectId() << " " << name;
 
-    EvaluationData *const data = attachedPointer<EvaluationData>(object);
+    auto const data = attachedPointer<EvaluationData>(object);
     const QString nameString = name.toString();
     if (nameString == QStringLiteral("parent")) {
         *id = QPTParentProperty;
@@ -751,7 +751,7 @@ private:
 
 QScriptClassPropertyIterator *EvaluatorScriptClass::newIterator(const QScriptValue &object)
 {
-    EvaluationData *const data = attachedPointer<EvaluationData>(object);
+    auto const data = attachedPointer<EvaluationData>(object);
     return data ? new EvaluatorScriptClassPropertyIterator(object, data) : nullptr;
 }
 

@@ -177,11 +177,11 @@ UiObjectMemberList *Rewriter::searchMemberToInsertAfter(UiObjectMemberList *memb
 
         if (cast<UiObjectDefinition*>(member))
             lastObjectDef = iter;
-        else if (UiArrayBinding *arrayBinding = cast<UiArrayBinding*>(member))
+        else if (auto arrayBinding = cast<UiArrayBinding*>(member))
             idx = propertyOrder.indexOf(toString(arrayBinding->qualifiedId));
-        else if (UiObjectBinding *objectBinding = cast<UiObjectBinding*>(member))
+        else if (auto objectBinding = cast<UiObjectBinding*>(member))
             idx = propertyOrder.indexOf(toString(objectBinding->qualifiedId));
-        else if (UiScriptBinding *scriptBinding = cast<UiScriptBinding*>(member))
+        else if (auto scriptBinding = cast<UiScriptBinding*>(member))
             idx = propertyOrder.indexOf(toString(scriptBinding->qualifiedId));
         else if (cast<UiPublicMember*>(member))
             idx = propertyOrder.indexOf(QLatin1String("property"));
@@ -210,11 +210,11 @@ UiArrayMemberList *Rewriter::searchMemberToInsertAfter(UiArrayMemberList *member
 
         if (cast<UiObjectDefinition*>(member))
             lastObjectDef = iter;
-        else if (UiArrayBinding *arrayBinding = cast<UiArrayBinding*>(member))
+        else if (auto arrayBinding = cast<UiArrayBinding*>(member))
             idx = propertyOrder.indexOf(toString(arrayBinding->qualifiedId));
-        else if (UiObjectBinding *objectBinding = cast<UiObjectBinding*>(member))
+        else if (auto objectBinding = cast<UiObjectBinding*>(member))
             idx = propertyOrder.indexOf(toString(objectBinding->qualifiedId));
-        else if (UiScriptBinding *scriptBinding = cast<UiScriptBinding*>(member))
+        else if (auto scriptBinding = cast<UiScriptBinding*>(member))
             idx = propertyOrder.indexOf(toString(scriptBinding->qualifiedId));
         else if (cast<UiPublicMember*>(member))
             idx = propertyOrder.indexOf(QLatin1String("property"));
@@ -241,13 +241,13 @@ UiObjectMemberList *Rewriter::searchMemberToInsertAfter(UiObjectMemberList *memb
     for (UiObjectMemberList *iter = members; iter; iter = iter->next) {
         UiObjectMember *member = iter->member;
 
-        if (UiArrayBinding *arrayBinding = cast<UiArrayBinding*>(member))
+        if (auto arrayBinding = cast<UiArrayBinding*>(member))
             orderedMembers[toString(arrayBinding->qualifiedId)] = iter;
-        else if (UiObjectBinding *objectBinding = cast<UiObjectBinding*>(member))
+        else if (auto objectBinding = cast<UiObjectBinding*>(member))
             orderedMembers[toString(objectBinding->qualifiedId)] = iter;
         else if (cast<UiObjectDefinition*>(member))
             orderedMembers[QString::null] = iter;
-        else if (UiScriptBinding *scriptBinding = cast<UiScriptBinding*>(member))
+        else if (auto scriptBinding = cast<UiScriptBinding*>(member))
             orderedMembers[toString(scriptBinding->qualifiedId)] = iter;
         else if (cast<UiPublicMember*>(member))
             orderedMembers[QLatin1String("property")] = iter;
@@ -306,7 +306,7 @@ void Rewriter::changeBinding(UiObjectInitializer *ast,
             break;
         // for grouped properties:
         } else if (!prefix.isEmpty()) {
-            if (UiObjectDefinition *def = cast<UiObjectDefinition *>(member)) {
+            if (auto def = cast<UiObjectDefinition *>(member)) {
                 if (toString(def->qualifiedTypeNameId) == prefix)
                     changeBinding(def->initializer, suffix, newValue, binding);
             }
@@ -321,16 +321,16 @@ void Rewriter::replaceMemberValue(UiObjectMember *propertyMember,
     QString replacement = newValue;
     int startOffset = -1;
     int endOffset = -1;
-    if (UiObjectBinding *objectBinding = AST::cast<UiObjectBinding *>(propertyMember)) {
+    if (auto objectBinding = AST::cast<UiObjectBinding *>(propertyMember)) {
         startOffset = objectBinding->qualifiedTypeNameId->identifierToken.offset;
         endOffset = objectBinding->initializer->rbraceToken.end();
-    } else if (UiScriptBinding *scriptBinding = AST::cast<UiScriptBinding *>(propertyMember)) {
+    } else if (auto scriptBinding = AST::cast<UiScriptBinding *>(propertyMember)) {
         startOffset = scriptBinding->statement->firstSourceLocation().offset;
         endOffset = scriptBinding->statement->lastSourceLocation().end();
-    } else if (UiArrayBinding *arrayBinding = AST::cast<UiArrayBinding *>(propertyMember)) {
+    } else if (auto arrayBinding = AST::cast<UiArrayBinding *>(propertyMember)) {
         startOffset = arrayBinding->lbracketToken.offset;
         endOffset = arrayBinding->rbracketToken.end();
-    } else if (UiPublicMember *publicMember = AST::cast<UiPublicMember*>(propertyMember)) {
+    } else if (auto publicMember = AST::cast<UiPublicMember*>(propertyMember)) {
         if (publicMember->statement) {
             startOffset = publicMember->statement->firstSourceLocation().offset;
             if (publicMember->semicolonToken.isValid())
@@ -357,13 +357,13 @@ void Rewriter::replaceMemberValue(UiObjectMember *propertyMember,
 bool Rewriter::isMatchingPropertyMember(const QString &propertyName,
                                         UiObjectMember *member)
 {
-    if (UiPublicMember *publicMember = cast<UiPublicMember*>(member))
+    if (auto publicMember = cast<UiPublicMember*>(member))
         return publicMember->name == propertyName;
-    else if (UiObjectBinding *objectBinding = cast<UiObjectBinding*>(member))
+    else if (auto objectBinding = cast<UiObjectBinding*>(member))
         return toString(objectBinding->qualifiedId) == propertyName;
-    else if (UiScriptBinding *scriptBinding = cast<UiScriptBinding*>(member))
+    else if (auto scriptBinding = cast<UiScriptBinding*>(member))
         return toString(scriptBinding->qualifiedId) == propertyName;
-    else if (UiArrayBinding *arrayBinding = cast<UiArrayBinding*>(member))
+    else if (auto arrayBinding = cast<UiArrayBinding*>(member))
         return toString(arrayBinding->qualifiedId) == propertyName;
     else
         return false;
@@ -409,7 +409,7 @@ void Rewriter::removeBindingByName(UiObjectInitializer *ast, const QString &prop
             removeMember(member);
         // check for grouped properties:
         } else if (!prefix.isEmpty()) {
-            if (UiObjectDefinition *def = cast<UiObjectDefinition *>(member)) {
+            if (auto def = cast<UiObjectDefinition *>(member)) {
                 if (toString(def->qualifiedTypeNameId) == prefix)
                     removeGroupedProperty(def, propertyName);
             }
@@ -680,10 +680,10 @@ void Rewriter::removeObjectMember(UiObjectMember *member, UiObjectMember *parent
     int start = member->firstSourceLocation().offset;
     int end = member->lastSourceLocation().end();
 
-    if (UiArrayBinding *parentArray = cast<UiArrayBinding *>(parent)) {
+    if (auto parentArray = cast<UiArrayBinding *>(parent)) {
         extendToLeadingOrTrailingComma(parentArray, member, start, end);
     } else {
-        if (UiObjectDefinition *parentObjectDefinition = cast<UiObjectDefinition *>(parent))
+        if (auto parentObjectDefinition = cast<UiObjectDefinition *>(parent))
             includeEmptyGroupedProperty(parentObjectDefinition, member, start, end);
         includeSurroundingWhitespace(m_originalText, start, end);
     }
