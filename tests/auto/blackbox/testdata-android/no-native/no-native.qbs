@@ -1,6 +1,6 @@
-AndroidApk {
+Application {
     name: "com.example.android.basicmediadecoder"
 
-    sourceSetDir: Android.sdk.sdkDir
+    Android.sdk.sourceSetDir: Android.sdk.sdkDir
             + "/samples/android-BasicMediaDecoder/Application/src/main"
 }

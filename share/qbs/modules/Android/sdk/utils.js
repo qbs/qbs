@@ -137,11 +137,11 @@ function commonAaptPackageArgs(project, product, inputs, outputs, input, output,
                 "-I", product.Android.sdk.androidJarFilePath];
     var resources = inputs["android.resources"];
     if (resources && resources.length)
-        args.push("-S", product.resourcesDir);
+        args.push("-S", product.Android.sdk.resourcesDir);
     if (product.qbs.buildVariant === "debug")
         args.push("--debug-mode");
-    if (File.exists(product.assetsDir))
-        args.push("-A", product.assetsDir);
+    if (File.exists(product.Android.sdk.assetsDir))
+        args.push("-A", product.Android.sdk.assetsDir);
     return args;
 }
 

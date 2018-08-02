@@ -26,7 +26,6 @@
 ****************************************************************************/
 /*!
     \contentspage list-of-convenience-items.html
-    \previouspage AndroidApk
     \nextpage AppleDiskImage
     \qmltype AppleApplicationDiskImage
     \since Qbs 1.9

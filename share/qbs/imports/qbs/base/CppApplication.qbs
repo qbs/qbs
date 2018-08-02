@@ -30,5 +30,6 @@
 
 Application {
     Depends { name: "cpp" }
+    usesNativeCode: true
 }
 

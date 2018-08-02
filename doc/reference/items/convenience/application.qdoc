@@ -39,9 +39,10 @@
     An Application item is a \l{Product} of the \l{Product::}{type}
     \c "application".
 
-    \note On Android, an Application item instead builds a shared library for
-    products whose \l{Product::}{consoleApplication} property is set to
-    \c false.
+    The target artifact of this type of product is usually an executable binary.
+    However, on Android, unless you set \l{Product::}{consoleApplication} to \c true,
+    the application target will be an APK package, and a dependency to the
+    \l{Android.sdk} module is automatically added to the product.
 */
 
 /*!

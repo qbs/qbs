@@ -35,9 +35,7 @@
 
     The Android.sdk module contains the properties and rules to create Android
     application packages from Java sources, resources, and so on.
-
-    Normally, you will not use this module directly, but instead work
-    with the \l{AndroidApk} item that \QBS provides.
+    It is usually pulled in indirectly by declaring an \l Application product.
 
     \section2 Relevant File Tags
     \target filetags-android-sdk
@@ -59,14 +57,8 @@
         \li -
         \li 1.4.0
         \li Attached to Android assets, which are typically located in an
-            \c{assets/} subdirectory. Using the \l{AndroidApk} item takes care
-            of tagging these files for you.
-    \row
-        \li \c{"android.apk"}
-        \li n/a
-        \li 1.4.0
-        \li Attached to the output artifact of the rule that creates an APK
-            package. It is the default type of the \l{AndroidApk} item.
+            \c{assets/} subdirectory. These files are tagged automatically
+            if the \l automaticSources property is enabled.
     \row
         \li \c{"android.manifest"}
         \li \c{AndroidManifest.xml}
@@ -78,8 +70,8 @@
         \li -
         \li 1.4.0
         \li Attached to Android resources, which are typically located in a
-            \c{res/} subdirectory. Using the \l{AndroidApk} item takes care of
-            tagging these files for you.
+            \c{res/} subdirectory. These files are tagged automatically
+            if the \l automaticSources property is enabled.
     \endtable
 */
 
@@ -124,4 +116,74 @@
     be recursively processed by \c{dex} and included in the final APK.
 
     \defaultvalue \c{true}
+*/
+
+/*!
+    \qmlproperty string Android.sdk::assetsDir
+
+    The base directory for Android assets in the respective product.
+
+    \note Android requires that the file name of this directory is always
+    \c "assets".
+
+    \defaultvalue \c "src/main/assets" in the product source directory
+*/
+
+/*!
+    \qmlproperty bool Android.sdk::automaticSources
+
+    If \c true, Java sources as well as Android resources, assets, and the
+    manifest file will be automatically included in the respective product
+    via wildcards. Set this property to \c false if you want to specify
+    these files manually.
+
+    \defaultvalue \c true
+*/
+
+/*!
+    \qmlproperty string Android.sdk::manifestFile
+
+    The file path to the Android manifest file.
+    This property is only relevant if \l automaticSources is enabled.
+
+    \note Android requires that the file name is always "AndroidManifest.xml".
+
+    \defaultvalue \c "src/main/AndroidManifest.xml" in the product source directory
+*/
+
+/*!
+    \qmlproperty string Android.sdk::packageName
+
+    The package name of the respective product. Must match the one given in the manifest file.
+
+    \defaultvalue \c name
+*/
+
+/*!
+    \qmlproperty string Android.sdk::resourcesDir
+
+    The base directory for Android resources in the respective product.
+
+    \note Android requires that the file name of this directory is always
+    \c "res".
+
+    \defaultvalue \c "src/main/res" in the product source directory
+*/
+
+/*!
+    \qmlproperty path Android.sdk::sourcesDir
+
+    The base directory for Java sources. This property is only relevant if
+    \l automaticSources is enabled.
+
+    \defaultvalue \c "src/main/java" in the product source directory
+*/
+
+/*!
+    \qmlproperty string Android.sdk::apkBaseName
+
+    The base name of the APK file to to be built, that is, the file name
+    without the ".apk" extension.
+
+    \defaultvalue \l packageName
 */

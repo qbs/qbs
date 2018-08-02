@@ -76,14 +76,30 @@ Project {
         }
     }
 
-    DynamicLibrary {
+    CppApplication {
         name: "TeapotNativeActivity"
         qbs.targetPlatform: "android"
+
         Depends { name: "Android.ndk" }
         Depends { name: "cpp" }
         Depends { name: "android_cpufeatures" }
         Depends { name: "native-glue" }
         Depends { name: "ndk-helper" }
+
+        Probe {
+            id: teapotProbe
+            property string samplesDir: Android.sdk.ndkSamplesDir
+            property string dir
+            configure: {
+                var paths = ["/teapots/classic-teapot/src/main", "/Teapot/app/src/main", "/Teapot"];
+                for (var i = 0; i < paths.length; ++i) {
+                    if (File.exists(samplesDir + paths[i])) {
+                        dir = samplesDir + paths[i];
+                        break;
+                    }
+                }
+            }
+        }
 
         Probe {
             id: teapotProbeJni
@@ -114,6 +130,9 @@ Project {
 
         FileTagger { patterns: ["*.inl"]; fileTags: ["hpp"] }
 
+        Android.sdk.apkBaseName: name
+        Android.sdk.packageName: "com.sample.teapot"
+        Android.sdk.sourceSetDir: teapotProbe.dir
         Android.ndk.appStl: "gnustl_shared"
         cpp.cxxLanguageVersion: "c++11"
         cpp.dynamicLibraries: ["log", "android", "EGL", "GLESv2"]
@@ -122,26 +141,5 @@ Project {
         // Export ANativeActivity_onCreate(),
         // Refer to: https://github.com/android-ndk/ndk/issues/381
         cpp.linkerFlags: ["-u", "ANativeActivity_onCreate"]
-    }
-
-    AndroidApk {
-        Probe {
-            id: teapotProbe
-            property string samplesDir: Android.sdk.ndkSamplesDir
-            property string dir
-            configure: {
-                var paths = ["/teapots/classic-teapot/src/main", "/Teapot/app/src/main", "/Teapot"];
-                for (var i = 0; i < paths.length; ++i) {
-                    if (File.exists(samplesDir + paths[i])) {
-                        dir = samplesDir + paths[i];
-                        break;
-                    }
-                }
-            }
-        }
-
-        name: "com.sample.teapot"
-        sourceSetDir: teapotProbe.dir
-        Depends { productTypes: ["android.nativelibrary"] }
     }
 }

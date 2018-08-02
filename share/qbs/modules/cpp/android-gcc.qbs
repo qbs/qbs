@@ -87,7 +87,7 @@ LinuxGCC {
 
     Group {
         name: "Android STL"
-        condition: product.cpp.sharedStlFilePath
+        condition: product.cpp.sharedStlFilePath && product.cpp.shouldLink
         files: product.cpp.sharedStlFilePath ? [product.cpp.sharedStlFilePath] : []
         fileTags: ["android.unstripped-stl"]
     }
@@ -210,6 +210,7 @@ LinuxGCC {
     endianness: "little"
 
     Rule {
+        condition: shouldLink
         inputs: ["android.unstripped-stl"]
         Artifact {
             filePath: FileInfo.joinPaths("stripped-libs", input.fileName);
@@ -224,6 +225,7 @@ LinuxGCC {
     }
 
     Rule {
+        condition: shouldLink
         inputs: ["dynamiclibrary"]
         explicitlyDependsOn: ["android.stripped-stl"];
         outputFileTags: ["android.nativelibrary", "android.gdbserver-info", "android.stl-info"]
@@ -284,8 +286,10 @@ LinuxGCC {
         }
     }
 
+    _skipAllChecks: !shouldLink
+
     validate: {
-        if (!_skipAllChecks)
+        if (_skipAllChecks)
             return;
         var baseValidator = new ModUtils.PropertyValidator("qbs");
         baseValidator.addCustomValidator("architecture", targetArch, function (value) {

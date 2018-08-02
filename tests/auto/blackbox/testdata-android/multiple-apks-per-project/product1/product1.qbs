@@ -20,9 +20,10 @@ Project {
         cpp.useRPaths: false
     }
 
-    AndroidApk {
+    Application {
         name: "twolibs1"
-        packageName: "io.qt.dummy1"
+        Android.sdk.apkBaseName: name
+        Android.sdk.packageName: "io.qt.dummy1"
         Depends {
             productTypes: ["android.nativelibrary"]
             limitToSubProject: true

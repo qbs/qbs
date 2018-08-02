@@ -354,7 +354,7 @@ Module {
     property stringList targetDriverFlags
     property stringList targetLinkerFlags
 
-    property bool _skipAllChecks: false // Internal, for testing only.
+    property bool _skipAllChecks: false // Internal
 
     property bool validateTargetTriple: true
 

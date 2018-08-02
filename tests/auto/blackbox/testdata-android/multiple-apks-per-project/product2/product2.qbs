@@ -16,9 +16,10 @@ Project {
         Android.ndk.appStl: "stlport_shared"
     }
 
-    AndroidApk {
+    Application {
         name: "twolibs2"
-        packageName: "io.qt.dummy2"
+        Android.sdk.apkBaseName: name
+        Android.sdk.packageName: "io.qt.dummy2"
         Depends {
             productTypes: ["android.nativelibrary"]
             limitToSubProject: true

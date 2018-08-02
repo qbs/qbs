@@ -29,11 +29,31 @@
 ****************************************************************************/
 
 NativeBinary {
-    type: {
-        if (isForAndroid && !consoleApplication)
-            return ["dynamiclibrary", "android.nativelibrary"];
-        return ["application"];
+    type: ["application"]
+
+    property bool usesNativeCode
+
+    Depends {
+        // Note: If we are multiplexing, then this dependency is technically only needed in
+        //       the aggregate. However, the user should not have to write the respective
+        //       condition when assigning to properties of this module, so we load it
+        //       regardless and turn off its rules for the native part of the build.
+        name: "Android.sdk"
+        condition: isForAndroid && !consoleApplication
     }
+    Properties {
+        condition: isForAndroid && !consoleApplication && !usesNativeCode
+        multiplexByQbsProperties: []
+        aggregate: false
+    }
+    Properties {
+        condition: isForAndroid && !consoleApplication && usesNativeCode
+        aggregate: true
+        multiplexedType: "android.nativelibrary"
+    }
+    aggregate: base
+    multiplexByQbsProperties: base
+    multiplexedType: base
 
     installDir: isBundle ? "Applications" : "bin"
 

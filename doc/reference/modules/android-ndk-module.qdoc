@@ -34,27 +34,21 @@
     \brief Provides support for building native Android libraries.
 
     The \c Android.ndk module contains the properties and rules to create native libraries
-    for use in \l{AndroidApk}{Android application packages}.
+    for use in Android applications.
 
     Normally, you will not use this module directly, but instead work
-    with the \l{DynamicLibrary} and \l{StaticLibrary} items that \QBS provides.
+    with the \l{DynamicLibrary}, \l{StaticLibrary} and \l Application items
+    that \QBS provides.
 
     Here is what the project file for the \c hello-jni example that comes with
     the NDK could look like:
 
     \code
-        Project {
-            DynamicLibrary {
-                name: "hello-jni"
-                qbs.architectures: ["mips", "x86"]
-                files: ["jni/hello-jni.c"]
-            }
-
-            AndroidApk {
-                name: "HelloJni"
-                packageName: "com.example.hellojni"
-                Depends { productTypes: ["android.nativelibrary"] }
-            }
+        CppApplication {
+            name: "HelloJni"
+            Android.sdk.packageName: "com.example.hellojni"
+            qbs.architectures: ["mips", "x86"]
+            files: "app/src/main/jni/hello-jni.c"
         }
     \endcode
 

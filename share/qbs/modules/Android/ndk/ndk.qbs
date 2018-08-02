@@ -167,7 +167,8 @@ Module {
                                        + "ANDROID_NDK_ROOT environment variable to a valid "
                                        + "Android NDK location.");
         }
-
+        if (product.aggregate && !product.multiplexConfigurationId)
+            return;
         var validator = new ModUtils.PropertyValidator("Android.ndk");
         validator.setRequiredProperty("abi", abi);
         validator.setRequiredProperty("appStl", appStl);

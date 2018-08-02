@@ -106,6 +106,7 @@ void TestBlackboxAndroid::android()
         params.profile = p.name();
         QCOMPARE(runQbs(params), 0);
         for (const QString &productName : qAsConst(productNames)) {
+            QCOMPARE(m_qbsStdout.count("Generating BuildConfig.java"), productNames.size());
             QVERIFY(m_qbsStdout.contains(productName.toLocal8Bit() + ".apk"));
             const QString apkFilePath = relativeProductBuildDir(productName, configName)
                     + '/' + productName + ".apk";
@@ -203,7 +204,7 @@ void TestBlackboxAndroid::android_data()
     QTest::addColumn<QStringList>("productNames");
     QTest::addColumn<QList<QByteArrayList>>("expectedFilesLists");
     QTest::newRow("teapot")
-            << "teapot" << QStringList("com.sample.teapot")
+            << "teapot" << QStringList("TeapotNativeActivity")
             << (QList<QByteArrayList>() << commonFiles + expandArchs(archs, {
                        "assets/Shaders/ShaderPlain.fsh",
                        "assets/Shaders/VS_ShaderPlain.vsh",

@@ -59,6 +59,58 @@ Module {
     property int buildToolsVersionPatch: buildToolsVersionParts[2]
     property string platform: sdkProbe.platform
 
+    // Product-specific properties and files
+    property string packageName: product.name
+    property string apkBaseName: packageName
+    property bool automaticSources: true
+    property bool legacyLayout: false
+    property string sourceSetDir: legacyLayout
+                                ? product.sourceDirectory
+                                : FileInfo.joinPaths(product.sourceDirectory, "src/main")
+    property string resourcesDir: FileInfo.joinPaths(sourceSetDir, "res")
+    property string assetsDir: FileInfo.joinPaths(sourceSetDir, "assets")
+    property string sourcesDir: FileInfo.joinPaths(sourceSetDir, legacyLayout ? "src" : "java")
+    property string manifestFile: defaultManifestFile
+    readonly property string defaultManifestFile: FileInfo.joinPaths(sourceSetDir,
+                                                                   "AndroidManifest.xml")
+
+    property bool _enableRules: !product.multiplexConfigurationId && !!packageName
+
+    Group {
+        name: "java sources"
+        condition: Android.sdk.automaticSources
+        prefix: Android.sdk.sourcesDir + '/'
+        files: "**/*.java"
+    }
+
+    Group {
+        name: "android resources"
+        condition: Android.sdk.automaticSources
+        fileTags: ["android.resources"]
+        prefix: Android.sdk.resourcesDir + '/'
+        files: "**/*"
+    }
+
+    Group {
+        name: "android assets"
+        condition: Android.sdk.automaticSources
+        fileTags: ["android.assets"]
+        prefix: Android.sdk.assetsDir + '/'
+        files: "**/*"
+    }
+
+    Group {
+        name: "manifest"
+        condition: Android.sdk.automaticSources
+        fileTags: ["android.manifest"]
+        files: Android.sdk.manifestFile
+               && Android.sdk.manifestFile !== Android.sdk.defaultManifestFile
+               ? [Android.sdk.manifestFile]
+               : (File.exists(Android.sdk.defaultManifestFile)
+                  ? [Android.sdk.defaultManifestFile] : [])
+    }
+
+
     // Internal properties.
     property int platformVersion: {
         if (platform) {
@@ -85,7 +137,7 @@ Module {
                                                          "android.jar")
     property path generatedJavaFilesBaseDir: FileInfo.joinPaths(product.buildDirectory, "gen")
     property path generatedJavaFilesDir: FileInfo.joinPaths(generatedJavaFilesBaseDir,
-                                         (product.packageName || "").split('.').join('/'))
+                                         (packageName || "").split('.').join('/'))
     property string apkContentsDir: FileInfo.joinPaths(product.buildDirectory, "bin")
     property string debugKeyStorePath: FileInfo.joinPaths(
                                            Environment.getEnv(qbs.hostOS.contains("windows")
@@ -155,6 +207,7 @@ Module {
     }
 
     Rule {
+        condition: _enableRules
         inputs: ["android.aidl"]
         Artifact {
             filePath: FileInfo.joinPaths(Utilities.getHash(input.filePath),
@@ -171,6 +224,7 @@ Module {
     }
 
     Rule {
+        condition: _enableRules
         multiplex: true
         inputs: ["android.resources", "android.assets", "android.manifest"]
 
@@ -194,8 +248,8 @@ Module {
     }
 
     Rule {
+        condition: _enableRules
         multiplex: true
-        condition: !!product.packageName
 
         Artifact {
             filePath: FileInfo.joinPaths(ModUtils.moduleProperty(product, "generatedJavaFilesDir"),
@@ -210,7 +264,7 @@ Module {
                 var debugValue = product.moduleProperty("qbs", "buildVariant") === "debug"
                         ? "true" : "false";
                 var ofile = new TextFile(output.filePath, TextFile.WriteOnly);
-                ofile.writeLine("package " + product.packageName +  ";")
+                ofile.writeLine("package " + product.Android.sdk.packageName +  ";")
                 ofile.writeLine("public final class BuildConfig {");
                 ofile.writeLine("    public final static boolean DEBUG = " + debugValue + ";");
                 ofile.writeLine("}");
@@ -221,6 +275,7 @@ Module {
     }
 
     Rule {
+        condition: _enableRules
         multiplex: true
         inputs: ["java.class"]
         inputsFromDependencies: ["java.jar"]
@@ -232,6 +287,7 @@ Module {
     }
 
     Rule {
+        condition: _enableRules
         multiplex: true
         inputsFromDependencies: [
             "android.gdbserver-info", "android.stl-info", "android.nativelibrary"
@@ -288,6 +344,7 @@ Module {
     }
 
     Rule {
+        condition: _enableRules
         multiplex: true
         inputs: [
             "android.resources", "android.assets", "android.manifest",
@@ -295,8 +352,8 @@ Module {
             "android.nativelibrary-deployed", "android.keystore"
         ]
         Artifact {
-            filePath: product.targetName + ".apk"
-            fileTags: ["android.apk"]
+            filePath: product.Android.sdk.apkBaseName + ".apk"
+            fileTags: ["android.apk", "application"]
         }
         prepare: SdkUtils.prepareAaptPackage.apply(SdkUtils, arguments)
     }
