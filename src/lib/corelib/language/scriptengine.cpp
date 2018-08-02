@@ -768,7 +768,7 @@ void ScriptEngine::extendJavaScriptBuiltins()
 }
 
 void ScriptEngine::installFunction(const QString &name, int length, QScriptValue *functionValue,
-        FunctionSignature f, QScriptValue *targetObject = 0)
+        FunctionSignature f, QScriptValue *targetObject = nullptr)
 {
     if (!functionValue->isValid())
         *functionValue = newFunction(f, length);

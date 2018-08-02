@@ -59,7 +59,7 @@ public:
 
     bool exists() const;
     QVariant value(const QString &key, const QVariant &defaultValue = QVariant(),
-                   ErrorInfo *error = 0) const;
+                   ErrorInfo *error = nullptr) const;
     void setValue(const QString &key, const QVariant &value);
     void remove(const QString &key);
 
@@ -72,7 +72,7 @@ public:
     void removeProfile();
 
     enum KeySelection { KeySelectionRecursive,  KeySelectionNonRecursive };
-    QStringList allKeys(KeySelection selection, ErrorInfo *error = 0) const;
+    QStringList allKeys(KeySelection selection, ErrorInfo *error = nullptr) const;
 
     static QString cleanName(const QString &name);
 

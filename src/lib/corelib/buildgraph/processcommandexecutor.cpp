@@ -197,7 +197,7 @@ void ProcessCommandExecutor::doStart()
 void ProcessCommandExecutor::cancel()
 {
     // We don't want this command to be reported as failing, since we explicitly terminated it.
-    disconnect(this, &ProcessCommandExecutor::reportProcessResult, 0, 0);
+    disconnect(this, &ProcessCommandExecutor::reportProcessResult, nullptr, nullptr);
 
     m_process.cancel();
 }

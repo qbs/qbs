@@ -69,14 +69,15 @@ public:
     ScriptEngine *engine() const { return m_scriptEngine; }
     QScriptValue property(const Item *item, const QString &name);
 
-    QScriptValue value(const Item *item, const QString &name, bool *propertySet = 0);
+    QScriptValue value(const Item *item, const QString &name, bool *propertySet = nullptr);
     bool boolValue(const Item *item, const QString &name, bool *propertyWasSet = nullptr);
     int intValue(const Item *item, const QString &name, int defaultValue = 0,
-                 bool *propertyWasSet = 0);
-    FileTags fileTagsValue(const Item *item, const QString &name, bool *propertySet = 0);
+                 bool *propertyWasSet = nullptr);
+    FileTags fileTagsValue(const Item *item, const QString &name, bool *propertySet = nullptr);
     QString stringValue(const Item *item, const QString &name,
-                        const QString &defaultValue = QString(), bool *propertyWasSet = 0);
-    QStringList stringListValue(const Item *item, const QString &name, bool *propertyWasSet = 0);
+                        const QString &defaultValue = QString(), bool *propertyWasSet = nullptr);
+    QStringList stringListValue(const Item *item, const QString &name,
+                                bool *propertyWasSet = nullptr);
 
     void convertToPropertyType(const PropertyDeclaration& decl, const CodeLocation &loc,
                                QScriptValue &v);

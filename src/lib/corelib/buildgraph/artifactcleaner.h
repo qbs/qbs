@@ -59,7 +59,7 @@ public:
 
 private:
     void removeEmptyDirectories(const QString &rootDir, const CleanOptions &options,
-                                bool *isEmpty = 0);
+                                bool *isEmpty = nullptr);
 
     Logger m_logger;
     bool m_hasError;

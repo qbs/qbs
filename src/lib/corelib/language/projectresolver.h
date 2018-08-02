@@ -89,8 +89,8 @@ private:
     class ProductContextSwitcher;
 
     void checkCancelation() const;
-    QString verbatimValue(const ValueConstPtr &value, bool *propertyWasSet = 0) const;
-    QString verbatimValue(Item *item, const QString &name, bool *propertyWasSet = 0) const;
+    QString verbatimValue(const ValueConstPtr &value, bool *propertyWasSet = nullptr) const;
+    QString verbatimValue(Item *item, const QString &name, bool *propertyWasSet = nullptr) const;
     ScriptFunctionPtr scriptFunctionValue(Item *item, const QString &name) const;
     ResolvedFileContextPtr resolvedFileContext(const FileContextConstPtr &ctx) const;
     void ignoreItem(Item *item, ProjectContext *projectContext);

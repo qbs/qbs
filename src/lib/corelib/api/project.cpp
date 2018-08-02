@@ -1031,7 +1031,7 @@ RunEnvironment Project::getRunEnvironment(const ProductData &product,
 BuildJob *Project::buildAllProducts(const BuildOptions &options, ProductSelection productSelection,
                                     QObject *jobOwner) const
 {
-    QBS_ASSERT(isValid(), return 0);
+    QBS_ASSERT(isValid(), return nullptr);
     const bool includingNonDefault = productSelection == ProductSelectionWithNonDefault;
     return d->buildProducts(d->allEnabledInternalProducts(includingNonDefault), options,
                             !includingNonDefault, jobOwner);
@@ -1046,7 +1046,7 @@ BuildJob *Project::buildAllProducts(const BuildOptions &options, ProductSelectio
 BuildJob *Project::buildSomeProducts(const QList<ProductData> &products,
                                      const BuildOptions &options, QObject *jobOwner) const
 {
-    QBS_ASSERT(isValid(), return 0);
+    QBS_ASSERT(isValid(), return nullptr);
     return d->buildProducts(d->internalProducts(products), options, true, jobOwner);
 }
 
@@ -1067,7 +1067,7 @@ BuildJob *Project::buildOneProduct(const ProductData &product, const BuildOption
  */
 CleanJob *Project::cleanAllProducts(const CleanOptions &options, QObject *jobOwner) const
 {
-    QBS_ASSERT(isValid(), return 0);
+    QBS_ASSERT(isValid(), return nullptr);
     return d->cleanProducts(d->allEnabledInternalProducts(true), options, jobOwner);
 }
 
@@ -1078,7 +1078,7 @@ CleanJob *Project::cleanAllProducts(const CleanOptions &options, QObject *jobOwn
 CleanJob *Project::cleanSomeProducts(const QList<ProductData> &products,
         const CleanOptions &options, QObject *jobOwner) const
 {
-    QBS_ASSERT(isValid(), return 0);
+    QBS_ASSERT(isValid(), return nullptr);
     return d->cleanProducts(d->internalProducts(products), options, jobOwner);
 }
 
@@ -1101,7 +1101,7 @@ CleanJob *Project::cleanOneProduct(const ProductData &product, const CleanOption
 InstallJob *Project::installAllProducts(const InstallOptions &options,
                                         ProductSelection productSelection, QObject *jobOwner) const
 {
-    QBS_ASSERT(isValid(), return 0);
+    QBS_ASSERT(isValid(), return nullptr);
     const bool includingNonDefault = productSelection == ProductSelectionWithNonDefault;
     return d->installProducts(d->allEnabledInternalProducts(includingNonDefault), options,
                               !includingNonDefault, jobOwner);
@@ -1114,7 +1114,7 @@ InstallJob *Project::installAllProducts(const InstallOptions &options,
 InstallJob *Project::installSomeProducts(const QList<ProductData> &products,
                                          const InstallOptions &options, QObject *jobOwner) const
 {
-    QBS_ASSERT(isValid(), return 0);
+    QBS_ASSERT(isValid(), return nullptr);
     return d->installProducts(d->internalProducts(products), options, true, jobOwner);
 }
 

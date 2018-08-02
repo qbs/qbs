@@ -262,7 +262,7 @@ UiObjectMemberList *Rewriter::searchMemberToInsertAfter(UiObjectMemberList *memb
     for (; idx > 0; --idx) {
         const QString prop = propertyOrder.at(idx - 1);
         UiObjectMemberList *candidate = orderedMembers.value(prop, 0);
-        if (candidate != 0)
+        if (candidate != nullptr)
             return candidate;
     }
 

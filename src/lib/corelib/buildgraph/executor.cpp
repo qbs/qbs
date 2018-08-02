@@ -772,7 +772,7 @@ void Executor::addExecutorJobs()
     }
 }
 
-void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = 0)
+void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = nullptr)
 {
     if (childrenAdded)
         *childrenAdded = false;

@@ -104,25 +104,26 @@ public:
     enum ProductSelection { ProductSelectionDefaultOnly, ProductSelectionWithNonDefault };
     BuildJob *buildAllProducts(const BuildOptions &options,
                                ProductSelection productSelection = ProductSelectionDefaultOnly,
-                               QObject *jobOwner = 0) const;
+                               QObject *jobOwner = nullptr) const;
     BuildJob *buildSomeProducts(const QList<ProductData> &products, const BuildOptions &options,
-                                QObject *jobOwner = 0) const;
+                                QObject *jobOwner = nullptr) const;
     BuildJob *buildOneProduct(const ProductData &product, const BuildOptions &options,
-                              QObject *jobOwner = 0) const;
+                              QObject *jobOwner = nullptr) const;
 
-    CleanJob *cleanAllProducts(const CleanOptions &options, QObject *jobOwner = 0) const;
+    CleanJob *cleanAllProducts(const CleanOptions &options, QObject *jobOwner = nullptr) const;
     CleanJob *cleanSomeProducts(const QList<ProductData> &products, const CleanOptions &options,
-                                QObject *jobOwner = 0) const;
+                                QObject *jobOwner = nullptr) const;
     CleanJob *cleanOneProduct(const ProductData &product, const CleanOptions &options,
-                              QObject *jobOwner = 0) const;
+                              QObject *jobOwner = nullptr) const;
 
     InstallJob *installAllProducts(const InstallOptions &options,
                                    ProductSelection productSelection = ProductSelectionDefaultOnly,
-                                   QObject *jobOwner = 0) const;
+                                   QObject *jobOwner = nullptr) const;
     InstallJob *installSomeProducts(const QList<ProductData> &products,
-                                    const InstallOptions &options, QObject *jobOwner = 0) const;
+                                    const InstallOptions &options,
+                                    QObject *jobOwner = nullptr) const;
     InstallJob *installOneProduct(const ProductData &product, const InstallOptions &options,
-                                  QObject *jobOwner = 0) const;
+                                  QObject *jobOwner = nullptr) const;
 
     void updateTimestamps(const QList<ProductData> &products);
 
@@ -136,7 +137,7 @@ public:
     std::set<QString> buildSystemFiles() const;
 
     RuleCommandList ruleCommands(const ProductData &product, const QString &inputFilePath,
-                                 const QString &outputFileTag, ErrorInfo *error = 0) const;
+                                 const QString &outputFileTag, ErrorInfo *error = nullptr) const;
     ProjectTransformerData transformerData(ErrorInfo *error = nullptr) const;
 
     ErrorInfo dumpNodesTree(QIODevice &outDevice, const QList<ProductData> &products);

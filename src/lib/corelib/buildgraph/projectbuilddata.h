@@ -62,7 +62,7 @@ class ScriptEngine;
 class QBS_AUTOTEST_EXPORT ProjectBuildData
 {
 public:
-    ProjectBuildData(const ProjectBuildData *other = 0);
+    ProjectBuildData(const ProjectBuildData *other = nullptr);
     ~ProjectBuildData();
 
     static QString deriveBuildGraphFilePath(const QString &buildDir, const QString &projectId);
@@ -75,7 +75,7 @@ public:
     QList<FileResourceBase *> lookupFiles(const Artifact *artifact) const;
     void insertFileDependency(FileDependency *dependency);
     void removeArtifactAndExclusiveDependents(Artifact *artifact, const Logger &logger,
-            bool removeFromProduct = true, ArtifactSet *removedArtifacts = 0);
+            bool removeFromProduct = true, ArtifactSet *removedArtifacts = nullptr);
     void removeArtifact(Artifact *artifact, const Logger &logger, bool removeFromDisk = true,
                         bool removeFromProduct = true);
 

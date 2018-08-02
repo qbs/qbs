@@ -324,7 +324,7 @@ private:
     void resolveProbe(ProductContext *productContext, Item *parent, Item *probe);
     void checkCancelation() const;
     bool checkItemCondition(Item *item, Item *itemToDisable = nullptr);
-    QStringList readExtraSearchPaths(Item *item, bool *wasSet = 0);
+    QStringList readExtraSearchPaths(Item *item, bool *wasSet = nullptr);
     void copyProperties(const Item *sourceProject, Item *targetProject);
     Item *wrapInProjectIfNecessary(Item *item);
     static QString findExistingModulePath(const QString &searchPath,

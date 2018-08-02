@@ -246,7 +246,7 @@ TopLevelProjectPtr InternalSetupProjectJob::project() const
 
 void InternalSetupProjectJob::start()
 {
-    BuildGraphLocker *bgLocker = m_existingProject ? m_existingProject->bgLocker : 0;
+    BuildGraphLocker *bgLocker = m_existingProject ? m_existingProject->bgLocker : nullptr;
     bool deleteLocker = false;
     try {
         const ErrorInfo err = m_parameters.expandBuildConfiguration();

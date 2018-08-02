@@ -97,7 +97,9 @@ public:
     void setOverriddenValues(const QVariantMap &values);
     QVariantMap overriddenValuesTree() const;
 
-    static QVariantMap expandedBuildConfiguration(const Profile &profile, const QString &configurationName, ErrorInfo *errorInfo = 0);
+    static QVariantMap expandedBuildConfiguration(const Profile &profile,
+                                                  const QString &configurationName,
+                                                  ErrorInfo *errorInfo = nullptr);
     ErrorInfo expandBuildConfiguration();
     QVariantMap buildConfiguration() const;
     QVariantMap buildConfigurationTree() const;

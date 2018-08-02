@@ -170,7 +170,7 @@ void InputArtifactScanner::scanForFileDependencies(Artifact *inputArtifact)
 
         for (DependencyScanner * const scanner : scanners) {
             scanForScannerFileDependencies(scanner, inputArtifact, fileToBeScanned,
-                scanner->recursive() ? &filesToScan : 0, cacheItem[scanner->key()]);
+                scanner->recursive() ? &filesToScan : nullptr, cacheItem[scanner->key()]);
         }
     }
 }
