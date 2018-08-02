@@ -482,13 +482,15 @@ RulesApplicator::OutputArtifactInfo RulesApplicator::createOutputArtifact(const 
         outputArtifact = newArtifact.release();
         qCDebug(lcExec).noquote() << "rule created" << outputArtifact->toString();
         connect(outputArtifact, m_ruleNode);
-        for (RuleNode * const parentRule : filterByType<RuleNode>(m_ruleNode->parents))
-            connect(parentRule, outputArtifact);
     }
 
     outputArtifact->alwaysUpdated = alwaysUpdated;
     outputArtifact->pureFileTags = fileTags;
     provideFullFileTagsAndProperties(outputArtifact);
+    if (outputInfo.newlyCreated || outputInfo.oldFileTags != outputArtifact->fileTags()) {
+        for (RuleNode * const parentRule : filterByType<RuleNode>(m_ruleNode->parents))
+            connect(parentRule, outputArtifact);
+    }
 
     for (Artifact * const inputArtifact : inputArtifacts) {
         QBS_CHECK(outputArtifact != inputArtifact);

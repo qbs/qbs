@@ -2290,6 +2290,29 @@ void TestBlackbox::responseFiles()
     QCOMPARE(lines, expected);
 }
 
+void TestBlackbox::retaggedOutputArtifact()
+{
+    QDir::setCurrent(testDataDir + "/retagged-output-artifact");
+    QbsRunParameters resolveParams("resolve");
+    resolveParams.arguments = QStringList("products.p.useTag1:true");
+    QCOMPARE(runQbs(resolveParams), 0);
+    QCOMPARE(runQbs(), 0);
+    const QString a2 = relativeProductBuildDir("p") + "/a2.txt";
+    const QString a3 = relativeProductBuildDir("p") + "/a3.txt";
+    QVERIFY2(QFile::exists(a2), qPrintable(a2));
+    QVERIFY2(!QFile::exists(a3), qPrintable(a3));
+    resolveParams.arguments = QStringList("products.p.useTag1:false");
+    QCOMPARE(runQbs(resolveParams), 0);
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(!QFile::exists(a2), qPrintable(a2));
+    QVERIFY2(QFile::exists(a3), qPrintable(a3));
+    resolveParams.arguments = QStringList("products.p.useTag1:true");
+    QCOMPARE(runQbs(resolveParams), 0);
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(QFile::exists(a2), qPrintable(a2));
+    QVERIFY2(!QFile::exists(a3), qPrintable(a3));
+}
+
 void TestBlackbox::ruleConditions()
 {
     QDir::setCurrent(testDataDir + "/ruleConditions");

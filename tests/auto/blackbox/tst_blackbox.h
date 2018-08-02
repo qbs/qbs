@@ -232,6 +232,7 @@ private slots:
     void requireDeprecated();
     void rescueTransformerData();
     void responseFiles();
+    void retaggedOutputArtifact();
     void ruleConditions();
     void ruleConnectionWithExcludedInputs();
     void ruleCycle();
