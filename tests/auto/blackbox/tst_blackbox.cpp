@@ -392,12 +392,14 @@ void TestBlackbox::artifactsMapChangeTracking()
     QVERIFY2(m_qbsStdout.contains("running rule for test.cpp"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("creating test.cpp"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("linking"), m_qbsStdout.constData());
-    QCOMPARE(runQbs(QStringList{"-p", "meta"}), 0);
+    QCOMPARE(runQbs(QStringList{"-p", "meta,p"}), 0);
     QVERIFY2(m_qbsStdout.contains("printing artifacts"), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("test.txt"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("main.cpp"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("test.cpp"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("TheBinary"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("dummy1"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("dummy2"), m_qbsStdout.constData());
 
     // Change name of target binary. Command must be re-run, because the file name of an
     // artifact changed.
@@ -409,13 +411,15 @@ void TestBlackbox::artifactsMapChangeTracking()
     QVERIFY2(!m_qbsStdout.contains("running rule for test.cpp"), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("creating test.cpp"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("linking"), m_qbsStdout.constData());
-    QCOMPARE(runQbs(QStringList{"-p", "meta"}), 0);
+    QCOMPARE(runQbs(QStringList{"-p", "meta,p"}), 0);
     QVERIFY2(m_qbsStdout.contains("printing artifacts"), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("test.txt"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("main.cpp"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("test.cpp"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("TheNewBinary"), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("TheBinary"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("dummy1"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("dummy2"), m_qbsStdout.constData());
 
     // Add file tag to generated artifact. Command must be re-run, because it enumerates the keys
     // of the artifacts map.
@@ -425,12 +429,14 @@ void TestBlackbox::artifactsMapChangeTracking()
     QVERIFY2(m_qbsStdout.contains("running rule for test.cpp"), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("creating test.cpp"), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("linking"), m_qbsStdout.constData());
-    QCOMPARE(runQbs(QStringList{"-p", "meta"}), 0);
+    QCOMPARE(runQbs(QStringList{"-p", "meta,p"}), 0);
     QVERIFY2(m_qbsStdout.contains("printing artifacts"), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("test.txt"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("main.cpp"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("test.cpp"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("TheNewBinary"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("dummy1"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("dummy2"), m_qbsStdout.constData());
 
     // Add redundant file tag to generated artifact. Command must not be re-run, because
     // the artifacts map has not changed.
@@ -442,8 +448,10 @@ void TestBlackbox::artifactsMapChangeTracking()
     QVERIFY2(!m_qbsStdout.contains("running rule for test.cpp"), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("creating test.cpp"), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("linking"), m_qbsStdout.constData());
-    QCOMPARE(runQbs(QStringList{"-p", "meta"}), 0);
+    QCOMPARE(runQbs(QStringList{"-p", "meta,p"}), 0);
     QVERIFY2(!m_qbsStdout.contains("printing artifacts"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("dummy1"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("dummy2"), m_qbsStdout.constData());
 
     // Rebuild the app. Command must not be re-run, because the artifacts map has not changed.
     WAIT_FOR_NEW_TIMESTAMP();
@@ -452,8 +460,10 @@ void TestBlackbox::artifactsMapChangeTracking()
     QVERIFY2(!m_qbsStdout.contains("running rule for test.cpp"), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("creating test.cpp"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("linking"), m_qbsStdout.constData());
-    QCOMPARE(runQbs(QStringList{"-p", "meta"}), 0);
+    QCOMPARE(runQbs(QStringList{"-p", "meta,p"}), 0);
     QVERIFY2(!m_qbsStdout.contains("printing artifacts"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("dummy1"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("dummy2"), m_qbsStdout.constData());
 
     // Add source file to app. Command must be re-run, because the artifacts map has changed.
     WAIT_FOR_NEW_TIMESTAMP();
@@ -463,12 +473,14 @@ void TestBlackbox::artifactsMapChangeTracking()
     QVERIFY2(!m_qbsStdout.contains("running rule for test.cpp"), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("creating test.cpp"), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("linking"), m_qbsStdout.constData());
-    QCOMPARE(runQbs(QStringList{"-p", "meta"}), 0);
+    QCOMPARE(runQbs(QStringList{"-p", "meta,p"}), 0);
     QVERIFY2(m_qbsStdout.contains("printing artifacts"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("test.txt"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("main.cpp"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("test.cpp"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("TheNewBinary"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("dummy1"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("dummy2"), m_qbsStdout.constData());
 }
 
 void TestBlackbox::artifactsMapInvalidation()
@@ -6381,6 +6393,7 @@ void TestBlackbox::groupsInModules()
     WAIT_FOR_NEW_TIMESTAMP();
     touch("modules/helper/diamondc.c");
 
+    waitForFileUnlock();
     QCOMPARE(runQbs(params), 0);
     QVERIFY(m_qbsStdout.contains("compiling diamondc.c"));
     QVERIFY(m_qbsStdout.contains("compile rock.coal => rock.diamond"));

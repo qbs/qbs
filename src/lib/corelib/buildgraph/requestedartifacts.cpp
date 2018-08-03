@@ -95,6 +95,20 @@ void RequestedArtifacts::setArtifactsForTag(const ResolvedProduct *product,
         filePaths.insert(a->filePath());
 }
 
+void RequestedArtifacts::setNonExistingTagRequested(const ResolvedProduct *product,
+                                                    const QString &tag)
+{
+    RequestedArtifactsPerProduct &ra = m_requestedArtifactsPerProduct[product->uniqueName()];
+    QBS_ASSERT(!ra.allTags.empty(), ;);
+    Set<QString> &filePaths = ra.requestedTags[tag];
+    QBS_CHECK(filePaths.empty());
+}
+
+void RequestedArtifacts::setArtifactsEnumerated(const ResolvedProduct *product)
+{
+    m_requestedArtifactsPerProduct[product->uniqueName()].artifactsEnumerated = true;
+}
+
 void RequestedArtifacts::unite(const RequestedArtifacts &other)
 {
     for (auto it = other.m_requestedArtifactsPerProduct.begin();
@@ -129,24 +143,33 @@ bool RequestedArtifacts::RequestedArtifactsPerProduct::isUpToDate(
                               << "is now disabled";
         return false;
     }
+
+    if (!artifactsEnumerated && requestedTags.empty())
+        return true;
+
     const ArtifactSetByFileTag currentArtifacts = product->buildData->artifactsByFileTag();
-    Set<QString> currentTags;
-    for (auto it = currentArtifacts.begin(); it != currentArtifacts.end(); ++it) {
-        const QString tagString = it.key().toString();
-        currentTags.insert(tagString);
-        const auto reqTagsIt = requestedTags.find(tagString);
-        if (reqTagsIt == requestedTags.end())
-            continue;
+    for (auto reqIt = requestedTags.cbegin(); reqIt != requestedTags.cend(); ++reqIt) {
+        const FileTag tag = FileTag(reqIt->first.toUtf8());
+        const auto currentIt = currentArtifacts.constFind(tag);
         Set<QString> currentFilePathsForTag;
-        for (const Artifact * const a : it.value())
-            currentFilePathsForTag.insert(a->filePath());
-        if (currentFilePathsForTag != reqTagsIt->second) {
+        if (currentIt != currentArtifacts.constEnd()) {
+            for (const Artifact * const a : currentIt.value())
+                currentFilePathsForTag.insert(a->filePath());
+        }
+        if (currentFilePathsForTag != reqIt->second) {
             qCDebug(lcBuildGraph) << "artifacts map not up to date: requested artifact set for "
-                                     "file tag" << tagString << "in product"
+                                     "file tag" << reqIt->first << "in product"
                                   << product->uniqueName() << "differs from the current one";
             return false;
         }
     }
+
+    if (!artifactsEnumerated)
+        return true;
+
+    Set<QString> currentTags;
+    for (auto it = currentArtifacts.begin(); it != currentArtifacts.end(); ++it)
+        currentTags.insert(it.key().toString());
     if (currentTags != allTags) {
         qCDebug(lcBuildGraph) << "artifacts map not up to date: overall file tags differ for "
                               << "product" << product->uniqueName();
@@ -169,10 +192,8 @@ void RequestedArtifacts::RequestedArtifactsPerProduct::unite(
 
 void RequestedArtifacts::RequestedArtifactsPerProduct::doSanityChecks() const
 {
-    Set<QString> requestedTagsSet;
     for (auto it = requestedTags.begin(); it != requestedTags.end(); ++it)
-        requestedTagsSet.insert(it->first);
-    QBS_CHECK(allTags.contains(requestedTagsSet));
+        QBS_CHECK(allTags.contains(it->first) || it->second.empty());
 }
 
 void RequestedArtifacts::RequestedArtifactsPerProduct::load(PersistentPool &pool)

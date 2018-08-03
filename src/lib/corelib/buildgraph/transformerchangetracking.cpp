@@ -276,7 +276,7 @@ bool TrafoChangeTracker::prepareScriptNeedsRerun() const
             if (!artifact)
                 return true;
             if (property.kind == Property::PropertyInArtifact) {
-                if (artifact->fileTags().toStringList() != property.value.toStringList())
+                if (sorted(artifact->fileTags().toStringList()) != property.value.toStringList())
                     return true;
                 continue;
             }
@@ -312,7 +312,7 @@ bool TrafoChangeTracker::commandsNeedRerun() const
             if (!artifact)
                 return true;
             if (property.kind == Property::PropertyInArtifact) {
-                if (artifact->fileTags().toStringList() != property.value.toStringList())
+                if (sorted(artifact->fileTags().toStringList()) != property.value.toStringList())
                     return true;
                 continue;
             }

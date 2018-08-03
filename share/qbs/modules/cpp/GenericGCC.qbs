@@ -342,8 +342,7 @@ CppModule {
         var validateFlagsFunction = function (value) {
             if (value) {
                 for (var i = 0; i < value.length; ++i) {
-                    if (["-target", "-triple", "-arch"].contains(value[i])
-                            || value[i].startsWith("-march="))
+                    if (["-target", "-triple", "-arch"].contains(value[i]))
                         return false;
                 }
             }
@@ -351,7 +350,7 @@ CppModule {
         }
 
         var validator = new ModUtils.PropertyValidator("cpp");
-        var msg = "'-target', '-triple', '-arch' and '-march' cannot appear in flags; set qbs.architecture instead";
+        var msg = "'-target', '-triple' and '-arch' cannot appear in flags; set qbs.architecture instead";
         validator.addCustomValidator("assemblerFlags", assemblerFlags, validateFlagsFunction, msg);
         validator.addCustomValidator("cppFlags", cppFlags, validateFlagsFunction, msg);
         validator.addCustomValidator("cFlags", cFlags, validateFlagsFunction, msg);

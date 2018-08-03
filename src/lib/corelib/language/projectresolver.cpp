@@ -573,7 +573,7 @@ void ProjectResolver::gatherProductTypes(ResolvedProduct *product, Item *item)
         }
     }
     item->setProperty(StringConstants::typeProperty(),
-                      VariantValue::create(product->fileTags.toStringList()));
+                      VariantValue::create(sorted(product->fileTags.toStringList())));
 }
 
 SourceArtifactPtr ProjectResolver::createSourceArtifact(const ResolvedProductPtr &rproduct,

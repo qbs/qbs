@@ -45,6 +45,7 @@
 #include <language/language.h>
 #include <language/scriptengine.h>
 
+#include <QtScript/qscriptclass.h>
 #include <QtScript/qscriptcontext.h>
 
 namespace qbs {
@@ -52,7 +53,44 @@ namespace Internal {
 
 enum BuildGraphScriptValueCommonPropertyKeys : quint32 {
     CachedValueKey,
-    FileTagKey
+    FileTagKey,
+    ProductPtrKey,
+};
+
+class ArtifactsScriptClass : public QScriptClass
+{
+public:
+    ArtifactsScriptClass(QScriptEngine *engine) : QScriptClass(engine) { }
+
+private:
+    QueryFlags queryProperty(const QScriptValue &object, const QScriptString &name,
+                             QueryFlags flags, uint *id) override
+    {
+        getProduct(object);
+        qbsEngine()->setNonExistingArtifactSetRequested(m_product, name.toString());
+        return QScriptClass::queryProperty(object, name, flags, id);
+    }
+
+    QScriptClassPropertyIterator *newIterator(const QScriptValue &object) override
+    {
+        getProduct(object);
+        qbsEngine()->setArtifactsEnumerated(m_product);
+        return QScriptClass::newIterator(object);
+    }
+
+    void getProduct(const QScriptValue &object)
+    {
+        if (m_lastObjectId != object.objectId()) {
+            m_lastObjectId = object.objectId();
+            m_product = reinterpret_cast<const ResolvedProduct *>(
+                        object.data().property(ProductPtrKey).toVariant().value<quintptr>());
+        }
+    }
+
+    ScriptEngine *qbsEngine() const { return static_cast<ScriptEngine *>(engine()); }
+
+    qint64 m_lastObjectId = 0;
+    const ResolvedProduct *m_product = nullptr;
 };
 
 static bool isRelevantArtifact(const ResolvedProduct *, const Artifact *artifact)
@@ -72,6 +110,27 @@ static ArtifactSetByFileTag artifactsMap(const ResolvedProduct *product)
 static ArtifactSetByFileTag artifactsMap(const ResolvedModule *module)
 {
     return artifactsMap(module->product);
+}
+
+static QScriptValue createArtifactsObject(const ResolvedProduct *product, ScriptEngine *engine)
+{
+    QScriptClass *scriptClass = engine->artifactsScriptClass();
+    if (!scriptClass) {
+        scriptClass = new ArtifactsScriptClass(engine);
+        engine->setArtifactsScriptClass(scriptClass);
+    }
+    QScriptValue artifactsObj = engine->newObject(scriptClass);
+    QScriptValue data = engine->newObject();
+    QVariant v;
+    v.setValue<quintptr>(reinterpret_cast<quintptr>(product));
+    data.setProperty(ProductPtrKey, engine->newVariant(v));
+    artifactsObj.setData(data);
+    return artifactsObj;
+}
+
+static QScriptValue createArtifactsObject(const ResolvedModule *, ScriptEngine *engine)
+{
+    return engine->newObject();
 }
 
 static bool checkAndSetArtifactsMapUpToDateFlag(const ResolvedProduct *p)
@@ -119,7 +178,7 @@ template<class ProductOrModule> static QScriptValue js_artifacts(
     QScriptValue artifactsObj = ctx->callee().property(CachedValueKey);
     if (artifactsObj.isObject() && checkAndSetArtifactsMapUpToDateFlag(productOrModule))
         return artifactsObj;
-    artifactsObj = engine->newObject();
+    artifactsObj = createArtifactsObject(productOrModule, engine);
     ctx->callee().setProperty(CachedValueKey, artifactsObj);
     const auto &map = artifactsMap(productOrModule);
     for (auto it = map.cbegin(); it != map.cend(); ++it) {

@@ -3796,10 +3796,32 @@ Item *ModuleLoader::createNonPresentModule(const QString &name, const QString &r
 void ModuleLoader::handleProductError(const ErrorInfo &error,
                                       ModuleLoader::ProductContext *productContext)
 {
-    if (!productContext->info.delayedError.hasError()) {
+    const bool alreadyHadError = productContext->info.delayedError.hasError();
+    if (!alreadyHadError) {
         productContext->info.delayedError.append(Tr::tr("Error while handling product '%1':")
                                                  .arg(productContext->name),
                                                  productContext->item->location());
+    }
+    if (error.isInternalError()) {
+        if (alreadyHadError) {
+            qCDebug(lcModuleLoader()) << "ignoring subsequent internal error" << error.toString()
+                                      << "in product" << productContext->name;
+            return;
+        }
+        const auto &deps = productContext->productModuleDependencies;
+        for (auto it = deps.cbegin(); it != deps.cend(); ++it) {
+            const auto rangeForName = m_productsByName.equal_range(it->first);
+            for (auto rangeIt = rangeForName.first; rangeIt != rangeForName.second; ++rangeIt) {
+                const ProductContext * const dep = rangeIt->second;
+                if (dep->info.delayedError.hasError()) {
+                    qCDebug(lcModuleLoader()) << "ignoring internal error" << error.toString()
+                                              << "in product" << productContext->name
+                                              << "assumed to be caused by erroneous dependency"
+                                              << dep->name;
+                    return;
+                }
+            }
+        }
     }
     for (const ErrorItem &ei : error.items())
         productContext->info.delayedError.append(ei.description(), ei.codeLocation());
