@@ -51,6 +51,7 @@
 #include <tools/error.h>
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
+#include <tools/stlutils.h>
 #include <tools/stringconstants.h>
 
 #include <QtScript/qscriptclass.h>
@@ -249,7 +250,7 @@ void ModuleProperties::init(QScriptValue artifactObject, const Artifact *artifac
         {StringConstants::nameProperty(), product->name},
         {StringConstants::sourceDirectoryProperty(), product->sourceDirectory},
         {StringConstants::targetNameProperty(), product->targetName},
-        {StringConstants::typeProperty(), product->fileTags.toStringList()}
+        {StringConstants::typeProperty(), sorted(product->fileTags.toStringList())}
     };
     QScriptEngine * const engine = artifactObject.engine();
     artifactObject.setProperty(StringConstants::productVar(),

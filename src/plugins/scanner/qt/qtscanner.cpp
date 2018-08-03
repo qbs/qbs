@@ -119,7 +119,8 @@ static void *openScannerQrc(const unsigned short *filePath, const char *fileTags
     int r = fstat(opaque->fd, &s);
     if (r != 0)
         return nullptr;
-    opaque->mapl = s.st_size;
+    const int fileSize = static_cast<int>(s.st_size);
+    opaque->mapl = fileSize;
 
     void *map = mmap(0, s.st_size, PROT_READ, MAP_PRIVATE, opaque->fd, 0);
     if (map == nullptr)
@@ -129,13 +130,14 @@ static void *openScannerQrc(const unsigned short *filePath, const char *fileTags
     if (!opaque->file->open(QFile::ReadOnly))
         return nullptr;
 
-    uchar *map = opaque->file->map(0, opaque->file->size());
+    const int fileSize = opaque->file->size();
+    uchar *map = opaque->file->map(0, fileSize);
     if (!map)
         return nullptr;
 #endif
 
     opaque->map = reinterpret_cast<char *>(map);
-    opaque->xml = new QXmlStreamReader(opaque->map);
+    opaque->xml = new QXmlStreamReader(QByteArray::fromRawData(opaque->map, fileSize));
 
     return static_cast<void *>(opaque.release());
 }
