@@ -75,6 +75,7 @@ private slots:
     void checkOutputs();
     void checkOutputs_data();
     void commandExtraction();
+    void dependencyOnMultiplexedType();
     void disabledInstallGroup();
     void disabledProduct();
     void disabledProject();

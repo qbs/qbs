@@ -965,6 +965,49 @@ void TestApi::commandExtraction()
     QVERIFY(!command.arguments().empty());
 }
 
+void TestApi::dependencyOnMultiplexedType()
+{
+    qbs::SetupProjectParameters setupParams
+            = defaultSetupParameters("/dependency-on-multiplexed-type");
+    std::unique_ptr<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
+                                                                              m_logSink, 0));
+    waitForFinished(setupJob.get());
+    QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
+    qbs::Project project = setupJob->project();
+    qbs::ProjectData projectData = project.projectData();
+    const QList<qbs::ProductData> allProducts = projectData.allProducts();
+    QCOMPARE(allProducts.size(), 5);
+    int depCount = 0;
+    int p1Count = 0;
+    int p2Count = 0;
+    for (const qbs::ProductData &p : allProducts) {
+        if (p.name() == "dep") {
+            ++depCount;
+            QCOMPARE(p.dependencies().size(), 0);
+        } else if (p.name() == "p1") {
+            ++p1Count;
+            if (p.multiplexConfigurationId().isEmpty()) // aggregate
+                QCOMPARE(p.dependencies().size(), 3);
+            else
+                QCOMPARE(p.dependencies().size(), 1);
+        } else {
+            QVERIFY(p.name() == "p2");
+            ++p2Count;
+
+            // FIXME: This is an odd effect of our current algorithm: We collect the products
+            // matching the requested type and add Depends items with their names ("p1" in
+            // this case). Later, the algorithm checking for compatibility regarding the
+            // multiplexing axes picks the aggregate. However, the aggregate does not have
+            // a matching type... It's not entirely clear what the real expected
+            // result should be here.
+            QCOMPARE(p.dependencies().size(), 2);
+        }
+    }
+    std::unique_ptr<qbs::BuildJob> buildJob(project.buildAllProducts(qbs::BuildOptions()));
+    waitForFinished(buildJob.get());
+    QVERIFY2(!buildJob->error().hasError(), qPrintable(buildJob->error().toString()));
+}
+
 void TestApi::changeDependentLib()
 {
     qbs::ErrorInfo errorInfo = doBuildProject("change-dependent-lib");

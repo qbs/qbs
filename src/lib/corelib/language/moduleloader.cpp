@@ -982,6 +982,7 @@ void ModuleLoader::normalizeDependencies(ProductContext *product,
                 const auto range = m_productsByType.equal_range(typeTag);
                 for (auto it = range.first; it != range.second; ++it) {
                     if (it->second != product
+                            && (!product || it->second->name != product->name)
                             && (!limitToSubProject || hasSameSubProject(*product, *it->second))) {
                         matchingProducts.push_back(it->second);
                     }
