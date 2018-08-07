@@ -97,7 +97,7 @@ public:
     Item *outerItem() const { return m_outerItem; }
     Item *parent() const { return m_parent; }
     const FileContextPtr &file() const { return m_file; }
-    QList<Item *> children() const { return m_children; }
+    const QList<Item *> &children() const { return m_children; }
     Item *child(ItemType type, bool checkForMultiple = true) const;
     const PropertyMap &properties() const { return m_properties; }
     const PropertyDeclarationMap &propertyDeclarations() const { return m_propertyDeclarations; }

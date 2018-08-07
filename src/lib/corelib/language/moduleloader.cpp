@@ -180,7 +180,7 @@ public:
     }
 
     // No product at position i has dependencies to a product at position j > i.
-    QList<ProductContext *> sortedProducts()
+    const QList<ProductContext *> &sortedProducts() const
     {
         return m_sortedProducts;
     }
@@ -3882,8 +3882,7 @@ void ModuleLoader::copyGroupsFromModuleToProduct(const ProductContext &productCo
                                                  const Item::Module &module,
                                                  const Item *modulePrototype)
 {
-    const auto children = modulePrototype->children();
-    for (Item * const child : children) {
+    for (Item * const child : modulePrototype->children()) {
         if (child->type() == ItemType::Group) {
             Item * const clonedGroup = child->clone();
             clonedGroup->setScope(productContext.scope);
