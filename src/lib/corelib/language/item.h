@@ -134,6 +134,7 @@ public:
     void setOuterItem(Item *item) { m_outerItem = item; }
     void setChildren(const QList<Item *> &children) { m_children = children; }
     void setParent(Item *item) { m_parent = item; }
+    void childrenReserve(int size) { m_children.reserve(size); }
     static void addChild(Item *parent, Item *child);
     static void removeChild(Item *parent, Item *child);
     void dump() const;

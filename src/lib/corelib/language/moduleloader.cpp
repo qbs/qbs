@@ -3383,6 +3383,8 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
 void ModuleLoader::createChildInstances(Item *instance, Item *prototype,
                                         QHash<Item *, Item *> *prototypeInstanceMap) const
 {
+    instance->childrenReserve(instance->children().size() + prototype->children().size());
+
     for (Item * const childPrototype : prototype->children()) {
         Item *childInstance = Item::create(m_pool, childPrototype->type());
         prototypeInstanceMap->insert(childPrototype, childInstance);
