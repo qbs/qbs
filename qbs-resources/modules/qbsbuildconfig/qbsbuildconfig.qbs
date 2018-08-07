@@ -2,7 +2,10 @@ import qbs
 import qbs.FileInfo
 
 Module {
-    Depends { name: "cpp" }
+    Depends {
+        condition: project.withCode
+        name: "cpp"
+    }
     property bool enableUnitTests: false
     property bool enableProjectFileUpdates: false
     property bool enableRPath: true
@@ -30,7 +33,7 @@ Module {
     property string relativePluginsPath: "../" + libDirName
     property string relativeSearchPath: ".."
     property stringList libRPaths: {
-        if (enableRPath && cpp.rpathOrigin && product.targetInstallDir) {
+        if (enableRPath && project.withCode && cpp.rpathOrigin && product.targetInstallDir) {
             return [FileInfo.joinPaths(cpp.rpathOrigin, FileInfo.relativePath(
                                            FileInfo.joinPaths('/', product.targetInstallDir),
                                            FileInfo.joinPaths('/', libDirName)))];
