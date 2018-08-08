@@ -18,6 +18,10 @@ Project {
         name: "tool"
         consoleApplication: true
         cpp.cxxLanguageVersion: "c++14"
+        Properties {
+            condition: qbs.targetOS.contains("macos")
+            cpp.minimumMacosVersion: "10.9"
+        }
         files: "main.cpp"
         Group {
             fileTagsFilter: "application"
