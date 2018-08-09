@@ -176,7 +176,6 @@ private:
         ModuleLoaderResult::ProductInfo info;
         QString profileName;
         QString multiplexConfigurationId;
-        QString multiplexConfigIdForModulePrototypes;
         QVariantMap moduleProperties;
         std::map<QString, ProductDependencies> productModuleDependencies;
         std::unordered_map<const Item *, std::vector<ErrorInfo>> unknownProfilePropertyErrors;
@@ -392,9 +391,9 @@ private:
     // The keys are file paths, the values are module prototype items accompanied by a profile.
     std::unordered_map<QString, std::vector<std::pair<Item *, QString>>> m_modulePrototypes;
 
-    // The keys are module prototypes, the values specify whether the module's condition
-    // is true for the respective configuration.
-    std::unordered_map<Item *, std::vector<std::pair<QString, bool>>> m_modulePrototypeEnabledInfo;
+    // The keys are module prototypes and products, the values specify whether the module's
+    // condition is true for that product.
+    QHash<std::pair<Item *, ProductContext *>, bool> m_modulePrototypeEnabledInfo;
 
     QHash<const Item *, Item::PropertyDeclarationMap> m_parameterDeclarations;
     Set<Item *> m_disabledItems;

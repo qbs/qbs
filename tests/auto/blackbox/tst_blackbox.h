@@ -170,6 +170,7 @@ private slots:
     void missingDependency();
     void missingProjectFile();
     void missingOverridePrefix();
+    void moduleConditions();
     void movedFileDependency();
     void multipleChanges();
     void multipleConfigurations();
