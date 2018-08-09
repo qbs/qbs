@@ -1,7 +1,7 @@
 /****************************************************************************
 **
-** Copyright (C) 2015 The Qt Company Ltd.
-** Contact: http://www.qt.io/licensing
+** Copyright (C) 2018 Ivan Komissarov
+** Contact: abbapoh@gmail.com
 **
 ** This file is part of Qbs.
 **
@@ -28,17 +28,31 @@
 **
 ****************************************************************************/
 
-PathProbe {
-    platformPaths: (qbs.sysroot ? [qbs.sysroot + "/System/Library/Frameworks"] : []).concat([
-            "~/Library/Frameworks",
-            "/usr/local/lib",
-            "/Library/Frameworks",
-            "/System/Library/Frameworks"
-        ])
+#include <google/protobuf/util/time_util.h>
+#include <string>
 
-    nameFilter: {
-        return function(name) {
-            return name + ".framework";
-        }
-    }
+#include "addressbook.pb.h"
+
+using google::protobuf::util::TimeUtil;
+
+int main(int /*argc*/, char* /*argv*/[]) {
+    GOOGLE_PROTOBUF_VERIFY_VERSION;
+
+    tutorial::AddressBook addressBook;
+
+    auto person = addressBook.add_people();
+    person->set_name("name");
+    person->set_id(1);
+    person->set_email("email");
+
+    auto phone_number = person->add_phones();
+    phone_number->set_number("number");
+    phone_number->set_type(tutorial::Person::MOBILE);
+
+    *person->mutable_last_updated() = TimeUtil::SecondsToTimestamp(time(nullptr));
+
+    google::protobuf::ShutdownProtobufLibrary();
+
+    return 0;
 }
+

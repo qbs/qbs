@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2015 The Qt Company Ltd.
+** Copyright (C) 2018 Ivan Komissarov.
 ** Contact: http://www.qt.io/licensing
 **
 ** This file is part of Qbs.
@@ -29,16 +29,32 @@
 ****************************************************************************/
 
 PathProbe {
-    platformPaths: (qbs.sysroot ? [qbs.sysroot + "/System/Library/Frameworks"] : []).concat([
-            "~/Library/Frameworks",
-            "/usr/local/lib",
-            "/Library/Frameworks",
-            "/System/Library/Frameworks"
-        ])
-
+    nameSuffixes: {
+        if (qbs.targetOS.contains("windows"))
+            return [".lib"];
+        if (qbs.targetOS.contains("macos"))
+            return [".dylib", ".a"];
+        return [".so", ".a"];
+    }
+    platformPaths: qbs.targetOS.contains("unix") ? [
+        "/usr/lib",
+        "/usr/local/lib",
+    ] : []
     nameFilter: {
-        return function(name) {
-            return name + ".framework";
+        if (qbs.targetOS.contains("unix")) {
+            return function(name) {
+                return "lib" + name;
+            }
+        } else {
+            return function(name) {
+                return name;
+            }
         }
+    }
+    platformEnvironmentPaths: {
+        if (qbs.targetOS.contains("windows"))
+            return [ "PATH" ];
+        else
+            return [ "LIBRARY_PATH" ];
     }
 }

@@ -222,6 +222,8 @@ private slots:
     void propertyPrecedence();
     void properQuoting();
     void propertiesInExportItems();
+    void protobuf_data();
+    void protobuf();
     void pseudoMultiplexing();
     void qbsConfig();
     void qbsVersion();

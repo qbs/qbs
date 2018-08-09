@@ -1,0 +1,103 @@
+/****************************************************************************
+**
+** Copyright (C) 2018 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+/*!
+    \contentspage index.html
+    \qmltype protobuf.objc
+    \inqmlmodule QbsModules
+    \since Qbs 1.13
+
+    \brief Provides support for protocol buffers for the Objective-C language.
+
+    The \c protobuf.objc module provides support for generating Objective-C
+    headers and sources from proto definition files using the \c protoc tool.
+
+    \section2 Relevant File Tags
+
+    \table
+    \header
+        \li Tag
+        \li Auto-tagged File Names
+        \li Since
+        \li Description
+    \row
+        \li \c{"protobuf.input"}
+        \li \c{*.proto}
+        \li 1.13.0
+        \li Source files with this tag are considered inputs to the \c protoc compiler.
+    \endtable
+*/
+
+/*!
+    \qmlproperty string protobuf.objc::protocBinary
+
+    The command which to invoke when compiling proto definition files.
+
+    \defaultvalue \c auto-detected
+*/
+
+/*!
+    \qmlproperty pathList protobuf.cpp::importPaths
+
+    The list of imports that are passed to the \c protoc tool via the \c --proto_path option.
+    These imports should contain the proto files - they are used to determine
+    the relative structure of the generated files.
+    \note The paths are passed to \c protoc in the same order as specified in this property and
+    \c protoc output may differ depending on that order.
+
+    \defaultvalue \c []
+*/
+
+/*!
+    \qmlproperty string protobuf.objc::includePath
+
+    The path where protobuf Objective-C headers are located. Set this property
+    to override the default location.
+
+    \note If a \l{protobuf.objc::frameworkPath}{framework} is present, this property
+          has no effect.
+
+    \defaultvalue \c auto-detected
+*/
+
+/*!
+    \qmlproperty string protobuf.objc::libraryPath
+
+    \note If a \l{protobuf.objc::frameworkPath}{framework} is present, this property
+          has no effect.
+
+    \defaultvalue \c auto-detected
+*/
+
+/*!
+    \qmlproperty string protobuf.objc::frameworkPath
+
+    The path where \c Protobuf.framework is located. Set this property to override the
+    default location.
+
+    \defaultvalue \c auto-detected
+*/

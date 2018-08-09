@@ -1,7 +1,7 @@
 /****************************************************************************
 **
-** Copyright (C) 2015 The Qt Company Ltd.
-** Contact: http://www.qt.io/licensing
+** Copyright (C) 2018 Ivan Komissarov
+** Contact: abbapoh@gmail.com
 **
 ** This file is part of Qbs.
 **
@@ -28,17 +28,11 @@
 **
 ****************************************************************************/
 
-PathProbe {
-    platformPaths: (qbs.sysroot ? [qbs.sysroot + "/System/Library/Frameworks"] : []).concat([
-            "~/Library/Frameworks",
-            "/usr/local/lib",
-            "/Library/Frameworks",
-            "/System/Library/Frameworks"
-        ])
+#include <needs-import-dir.pb.h>
 
-    nameFilter: {
-        return function(name) {
-            return name + ".framework";
-        }
-    }
+int main()
+{
+    MyMessage message;
+    message.set_msg("msg");
+    return 0;
 }

@@ -62,5 +62,7 @@ Project {
         "helloworld-minimal/hello.qbs",
         "helloworld-qt/hello.qbs",
         "install-bundle/install-bundle.qbs",
+        "protobuf/cpp/addressbook.qbs",
+        "protobuf/objc/addressbook.qbs",
     ]
 }

@@ -1,7 +1,7 @@
 /****************************************************************************
 **
-** Copyright (C) 2015 The Qt Company Ltd.
-** Contact: http://www.qt.io/licensing
+** Copyright (C) 2018 Ivan Komissarov
+** Contact: abbapoh@gmail.com
 **
 ** This file is part of Qbs.
 **
@@ -28,17 +28,23 @@
 **
 ****************************************************************************/
 
-PathProbe {
-    platformPaths: (qbs.sysroot ? [qbs.sysroot + "/System/Library/Frameworks"] : []).concat([
-            "~/Library/Frameworks",
-            "/usr/local/lib",
-            "/Library/Frameworks",
-            "/System/Library/Frameworks"
-        ])
+#import "Addressbook.pbobjc.h"
 
-    nameFilter: {
-        return function(name) {
-            return name + ".framework";
-        }
-    }
+int main(int argc, char* argv[])
+{
+    AddressBook *addressBook = [[AddressBook alloc] init];
+
+    Person *person = [[Person alloc] init];
+    person.name = @"name";
+    person.id_p = 1;
+    person.email = @"email";
+
+    Person_PhoneNumber *number = [[Person_PhoneNumber alloc] init];
+    number.number = @"number";
+    number.type = Person_PhoneType_Mobile;
+
+    [addressBook.peopleArray addObject:person];
+    [addressBook release];
+
+    return  0;
 }

@@ -4971,6 +4971,40 @@ void TestBlackbox::propertiesInExportItems()
     QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
 }
 
+void TestBlackbox::protobuf_data()
+{
+    QTest::addColumn<QString>("projectFile");
+    QTest::addColumn<QStringList>("properties");
+    QTest::addColumn<bool>("successExpected");
+    QTest::newRow("cpp") << QString("addressbook_cpp.qbs") << QStringList() << true;
+    QTest::newRow("objc") << QString("addressbook_objc.qbs") << QStringList() << true;
+    QTest::newRow("import") << QString("import.qbs") << QStringList() << true;
+    QTest::newRow("missing import dir") << QString("needs-import-dir.qbs")
+                                        << QStringList() << false;
+    QTest::newRow("provided import dir")
+            << QString("needs-import-dir.qbs")
+            << QStringList("products.app.theImportDir:subdir") << true;
+}
+
+void TestBlackbox::protobuf()
+{
+    QDir::setCurrent(testDataDir + "/protobuf");
+    QFETCH(QString, projectFile);
+    QFETCH(QStringList, properties);
+    QFETCH(bool, successExpected);
+    rmDirR(relativeBuildDir());
+    QbsRunParameters resolveParams("resolve", QStringList{"-f", projectFile} << properties);
+    QCOMPARE(runQbs(resolveParams), 0);
+    const bool withProtobuf = m_qbsStdout.contains("has protobuf: true");
+    const bool withoutProtobuf = m_qbsStdout.contains("has protobuf: false");
+    QVERIFY2(withProtobuf || withoutProtobuf, m_qbsStdout.constData());
+    if (withoutProtobuf)
+        QSKIP("protobuf module not present");
+    QbsRunParameters runParams("run");
+    runParams.expectFailure = !successExpected;
+    QCOMPARE(runQbs(runParams) == 0, successExpected);
+}
+
 void TestBlackbox::pseudoMultiplexing()
 {
     // This is "pseudo-multiplexing" on all platforms that initialize qbs.architectures

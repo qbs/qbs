@@ -1,0 +1,6 @@
+syntax = "proto2";
+import "myenum.proto";
+
+message MyMessage {
+  required string msg = 1;
+}
