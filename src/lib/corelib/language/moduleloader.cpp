@@ -83,11 +83,6 @@ namespace Internal {
 
 static QString shadowProductPrefix() { return QStringLiteral("__shadow__"); }
 
-static QString multiplexConfigurationIdPropertyInternal()
-{
-    return QStringLiteral("__multiplexConfigIdForModulePrototypes");
-}
-
 static void handlePropertyError(const ErrorInfo &error, const SetupProjectParameters &params,
                                 Logger &logger)
 {
@@ -896,8 +891,6 @@ QList<Item *> ModuleLoader::multiplexProductItem(ProductContext *dummyContext, I
         const QString multiplexConfigurationId = multiplexInfo.toIdString(row);
         const VariantValuePtr multiplexConfigurationIdValue
             = VariantValue::create(multiplexConfigurationId);
-        item->setProperty(multiplexConfigurationIdPropertyInternal(),
-                          multiplexConfigurationIdValue);
         if (multiplexInfo.table.size() > 1 || aggregator) {
             multiplexConfigurationIdValues.push_back(multiplexConfigurationIdValue);
             item->setProperty(StringConstants::multiplexConfigurationIdProperty(),
@@ -982,6 +975,7 @@ void ModuleLoader::normalizeDependencies(ProductContext *product,
                 const auto range = m_productsByType.equal_range(typeTag);
                 for (auto it = range.first; it != range.second; ++it) {
                     if (it->second != product
+                            && (!product || it->second->name != product->name)
                             && (!limitToSubProject || hasSameSubProject(*product, *it->second))) {
                         matchingProducts.push_back(it->second);
                     }
@@ -1141,8 +1135,6 @@ void ModuleLoader::prepareProduct(ProjectContext *projectContext, Item *productI
     }
     productContext.multiplexConfigurationId = m_evaluator->stringValue(
                 productItem, StringConstants::multiplexConfigurationIdProperty());
-    productContext.multiplexConfigIdForModulePrototypes = m_evaluator->stringValue(
-                productItem, multiplexConfigurationIdPropertyInternal());
     QBS_CHECK(!productContext.profileName.isEmpty());
     const auto it = projectContext->result->profileConfigs.constFind(productContext.profileName);
     if (it == projectContext->result->profileConfigs.constEnd()) {
@@ -3106,16 +3098,11 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
     if (!module)
         return nullptr;
 
-    auto &conditionInfoList = m_modulePrototypeEnabledInfo[module];
-
-    // TODO: This is not good enough. qbs properties can differ independent of multiplexing.
-    const QString uniqueConfigKey = productContext->multiplexConfigIdForModulePrototypes;
-
-    for (const auto &conditionInfo : conditionInfoList) {
-        if (conditionInfo.first == uniqueConfigKey) {
-            qCDebug(lcModuleLoader) << "prototype cache hit (level 2)";
-            return conditionInfo.second ? module : nullptr;
-        }
+    const auto key = std::make_pair(module, productContext);
+    const auto it = m_modulePrototypeEnabledInfo.find(key);
+    if (it != m_modulePrototypeEnabledInfo.end()) {
+        qCDebug(lcModuleLoader) << "prototype cache hit (level 2)";
+        return it.value() ? module : nullptr;
     }
 
     // Set the name before evaluating any properties. EvaluatorScriptClass reads the module name.
@@ -3128,7 +3115,7 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
     deepestModuleInstance->setPrototype(origDeepestModuleInstancePrototype);
     if (!enabled) {
         qCDebug(lcModuleLoader) << "condition of module" << fullModuleName << "is false";
-        conditionInfoList.push_back(std::make_pair(uniqueConfigKey, false));
+        m_modulePrototypeEnabledInfo.insert(key, false);
         return nullptr;
     }
 
@@ -3137,7 +3124,7 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
     else
         resolveParameterDeclarations(module);
 
-    conditionInfoList.push_back(std::make_pair(uniqueConfigKey, true));
+    m_modulePrototypeEnabledInfo.insert(key, true);
     return module;
 }
 

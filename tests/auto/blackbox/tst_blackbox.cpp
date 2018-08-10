@@ -6278,6 +6278,16 @@ void TestBlackbox::missingOverridePrefix()
              m_qbsStderr.constData());
 }
 
+void TestBlackbox::moduleConditions()
+{
+    QDir::setCurrent(testDataDir + "/module-conditions");
+    QCOMPARE(runQbs(), 0);
+    QCOMPARE(m_qbsStdout.count("loaded m1"), 1);
+    QCOMPARE(m_qbsStdout.count("loaded m2"), 2);
+    QCOMPARE(m_qbsStdout.count("loaded m3"), 1);
+    QCOMPARE(m_qbsStdout.count("loaded m4"), 1);
+}
+
 void TestBlackbox::movedFileDependency()
 {
     QDir::setCurrent(testDataDir + "/moved-file-dependency");
