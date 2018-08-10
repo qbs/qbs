@@ -263,7 +263,7 @@
     instead. Use it if there are product-specific limits that make more sense for
     that part of the code base than the generic ones you'd like to apply globally.
 
-//! [jobs]
+//! [job-limits]
 
 //! [keep-going]
 
