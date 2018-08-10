@@ -157,7 +157,6 @@ void TestBlackboxJobLimits::jobLimits()
     if (projectPrecedence)
         buildParams.arguments << "--enforce-project-job-limits";
     buildParams.profile = profile.p.name();
-    QFile::remove(relativeExecutableFilePath("tool") + ".lock");
     const int exitCode = runQbs(buildParams);
     if (expectSuccess)
         QCOMPARE(exitCode, 0);

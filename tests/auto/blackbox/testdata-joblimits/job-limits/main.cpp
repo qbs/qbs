@@ -26,12 +26,32 @@
 **
 ****************************************************************************/
 
+#include <cerrno>
 #include <chrono>
 #include <cstdio>
 #include <cstring>
 #include <iostream>
 #include <string>
 #include <thread>
+
+#if defined(_WIN32) || defined(WIN32)
+#include <io.h>
+#include <sys/locking.h>
+#else
+#include <unistd.h>
+#endif
+
+static bool tryLock(FILE *f)
+{
+    const int exitCode =
+#if defined(_WIN32) || defined(WIN32)
+        _locking(_fileno(f), _LK_NBLCK, 10);
+
+#else
+        lockf(fileno(f), F_TLOCK, 10);
+#endif
+    return exitCode == 0;
+}
 
 int main(int argc, char *argv[])
 {
@@ -41,21 +61,23 @@ int main(int argc, char *argv[])
     }
 
     const std::string lockFilePath = std::string(argv[0]) + ".lock";
-    if (std::fopen(lockFilePath.c_str(), "r")) {
-        std::cerr << "tool is exclusive" << std::endl;
-        return 2;
-    }
     std::FILE * const lockFile = std::fopen(lockFilePath.c_str(), "w");
     if (!lockFile) {
-        std::cerr << "cannot create lock file: " << strerror(errno) << std::endl;
-        return 3;
+        std::cerr << "cannot open lock file: " << strerror(errno) << std::endl;
+        return 2;
+    }
+    if (!tryLock(lockFile)) {
+        if (errno == EACCES || errno == EAGAIN) {
+            std::cerr << "tool is exclusive" << std::endl;
+            return 3;
+        } else {
+            std::cerr << "unexpected lock failure: " << strerror(errno) << std::endl;
+            fclose(lockFile);
+            return 4;
+        }
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     fclose(lockFile);
-    if (std::remove(lockFilePath.c_str()) != 0) {
-        std::cerr << "cannot remove lock file: " << strerror(errno) << std::endl;
-        return 4;
-    }
     std::FILE * const output = std::fopen(argv[1], "w");
     if (!output) {
         std::cerr << "cannot create output file: " << strerror(errno) << std::endl;
