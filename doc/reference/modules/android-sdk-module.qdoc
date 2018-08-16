@@ -187,3 +187,8 @@
 
     \defaultvalue \l packageName
 */
+
+/*!
+  \qmlproperty stringList Android.sdk::aidlSearchPaths
+  Search paths for import statements to pass to the \c aidl tool via the \c{-I} option.
+*/

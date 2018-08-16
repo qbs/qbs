@@ -197,7 +197,7 @@ void TestBlackboxAndroid::android_data()
 
     const QByteArrayList commonFiles = expandArchs(archs, {
         "AndroidManifest.xml", "META-INF/ANDROIDD.RSA", "META-INF/ANDROIDD.SF",
-        "META-INF/MANIFEST.MF", "classes.dex", "resources.arsc"
+        "META-INF/MANIFEST.MF", "classes.dex"
     });
 
     QTest::addColumn<QString>("projectDir");
@@ -206,6 +206,7 @@ void TestBlackboxAndroid::android_data()
     QTest::newRow("teapot")
             << "teapot" << QStringList("TeapotNativeActivity")
             << (QList<QByteArrayList>() << commonFiles + expandArchs(archs, {
+                       "resources.arsc",
                        "assets/Shaders/ShaderPlain.fsh",
                        "assets/Shaders/VS_ShaderPlain.vsh",
                        "lib/${ARCH}/gdbserver",
@@ -216,6 +217,7 @@ void TestBlackboxAndroid::android_data()
             << "no-native"
             << QStringList("com.example.android.basicmediadecoder")
             << (QList<QByteArrayList>() << commonFiles + expandArchs(archs, {
+                       "resources.arsc",
                        "res/drawable-hdpi-v4/ic_action_play_disabled.png",
                        "res/drawable-hdpi-v4/ic_action_play.png",
                        "res/drawable-hdpi-v4/ic_launcher.png",
@@ -232,24 +234,30 @@ void TestBlackboxAndroid::android_data()
                        "res/menu/action_menu.xml",
                        "res/menu-v11/action_menu.xml",
                        "res/raw/vid_bigbuckbunny.mp4"}));
+    QTest::newRow("aidl") << "aidl" << QStringList("io.qbs.aidltest")
+                               << QList<QByteArrayList>{commonFiles};
     QTest::newRow("multiple libs")
             << "multiple-libs-per-apk"
             << QStringList("twolibs")
             << (QList<QByteArrayList>() << commonFiles + expandArchs(archs, {
+                       "resources.arsc",
                        "lib/${ARCH}/gdbserver",
                        "lib/${ARCH}/liblib1.so",
                        "lib/${ARCH}/liblib2.so",
                        "lib/${ARCH}/libstlport_shared.so"}));
     QByteArrayList expectedFiles1 = (commonFiles
             + expandArchs(QByteArrayList{"mips", "x86"}, {
+                              "resources.arsc",
                               "lib/${ARCH}/gdbserver",
                               "lib/${ARCH}/libp1lib1.so",
                               "lib/${ARCH}/libstlport_shared.so"})
             + expandArchs(QByteArrayList{archs}, {
+                              "resources.arsc",
                               "lib/${ARCH}/gdbserver",
                               "lib/${ARCH}/libp1lib2.so",
                               "lib/${ARCH}/libstlport_shared.so"})).toSet().toList();
     QByteArrayList expectedFiles2 = commonFiles + expandArchs(archs, {
+                       "resources.arsc",
                        "lib/${ARCH}/gdbserver",
                        "lib/${ARCH}/libp2lib1.so",
                        "lib/${ARCH}/libp2lib2.so",

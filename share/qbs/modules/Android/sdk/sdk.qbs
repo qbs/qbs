@@ -135,6 +135,8 @@ Module {
     property path zipalignFilePath: FileInfo.joinPaths(buildToolsDir, "zipalign")
     property path androidJarFilePath: FileInfo.joinPaths(sdkDir, "platforms", platform,
                                                          "android.jar")
+    property path frameworkAidlFilePath: FileInfo.joinPaths(sdkDir, "platforms", platform,
+                                                            "framework.aidl")
     property path generatedJavaFilesBaseDir: FileInfo.joinPaths(product.buildDirectory, "gen")
     property path generatedJavaFilesDir: FileInfo.joinPaths(generatedJavaFilesBaseDir,
                                          (packageName || "").split('.').join('/'))
@@ -145,6 +147,7 @@ Module {
                                            ".android", "debug.keystore")
     property bool useApksigner: buildToolsVersion && Utilities.versionCompare(
                                     buildToolsVersion, "24.0.3") >= 0
+    property stringList aidlSearchPaths
 
     Depends { name: "java" }
     java.languageVersion: platformJavaVersion
@@ -216,8 +219,13 @@ Module {
         }
 
         prepare: {
-            var aidl = ModUtils.moduleProperty(product, "aidlFilePath");
-            cmd = new Command(aidl, [input.filePath, output.filePath]);
+            var aidl = product.Android.sdk.aidlFilePath;
+            var args = ["-p" + product.Android.sdk.frameworkAidlFilePath];
+            var aidlSearchPaths = input.Android.sdk.aidlSearchPaths;
+            for (var i = 0; i < (aidlSearchPaths ? aidlSearchPaths.length : 0); ++i)
+                args.push("-I" + aidlSearchPaths[i]);
+            args.push(input.filePath, output.filePath);
+            cmd = new Command(aidl, args);
             cmd.description = "Processing " + input.fileName;
             return [cmd];
         }
