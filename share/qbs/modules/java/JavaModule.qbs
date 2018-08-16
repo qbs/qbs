@@ -64,6 +64,8 @@ Module {
     property string keytoolFilePath: FileInfo.joinPaths(jdkPath, "bin", keytoolName)
     property string keytoolName: "keytool"
 
+    property bool _tagJniHeaders: true
+
     property string jdkPath: jdk.path
 
     version: [compilerVersionMajor, compilerVersionMinor, compilerVersionPatch].join(".")
@@ -232,9 +234,17 @@ Module {
         inputsFromDependencies: ["java.jar"]
         explicitlyDependsOn: ["java.class-internal"]
 
-        outputFileTags: ["java.class", "hpp"] // Annotations can produce additional java source files. Ignored for now.
+        outputFileTags: ["java.class"].concat(_tagJniHeaders ? ["hpp"] : []) // Annotations can produce additional java source files. Ignored for now.
         outputArtifacts: {
-            return JavaUtils.outputArtifacts(product, inputs);
+            var artifacts = JavaUtils.outputArtifacts(product, inputs);
+            if (!product.java._tagJniHeaders) {
+                for (var i = 0; i < artifacts.length; ++i) {
+                    var a = artifacts[i];
+                    if (Array.isArray(a.fileTags))
+                        a.fileTags = a.fileTags.filter(function(tag) { return tag != "hpp"; });
+                }
+            }
+            return artifacts;
         }
         prepare: {
             var cmd = new Command(ModUtils.moduleProperty(product, "compilerFilePath"),

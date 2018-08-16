@@ -18,6 +18,13 @@ Module {
 
     Depends { name: "cpp" }
 
+    Depends { name: "Qt.android_support"; condition: qbs.targetOS.contains("android") }
+    Properties {
+        condition: qbs.targetOS.contains("android")
+        Qt.android_support._qtInstallDir: FileInfo.path(binPath)
+        Qt.android_support.version: version
+    }
+
     version: @version@
     property stringList architectures: @archs@
     property string targetPlatform: @targetPlatform@

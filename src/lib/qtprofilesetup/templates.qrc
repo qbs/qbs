@@ -17,5 +17,6 @@
         <file>templates/quick.js</file>
         <file>templates/quick.qbs</file>
         <file>templates/plugin_support.qbs</file>
+        <file>templates/android_support.qbs</file>
     </qresource>
 </RCC>

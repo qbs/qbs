@@ -656,6 +656,13 @@ static void createModules(Profile &profile, Settings *settings,
         copyTemplateFile(moduleTemplateFileName, qbsQtModuleDir, profile, qtEnvironment, &allFiles,
                          &module);
     }
+
+    // Note that it's not strictly necessary to copy this one, as it has no variable content.
+    // But we do it anyway for consistency (and it has no impact on the project files this way).
+    copyTemplateFile(QLatin1String("android_support.qbs"),
+                     qbsQtModuleBaseDir + QLatin1String("/android_support"), profile, qtEnvironment,
+                     &allFiles);
+
     QDirIterator dit(qbsQtModuleBaseDir, QDirIterator::Subdirectories);
     while (dit.hasNext()) {
         dit.next();

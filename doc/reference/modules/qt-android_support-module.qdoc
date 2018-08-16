@@ -1,0 +1,86 @@
+/****************************************************************************
+**
+** Copyright (C) 2018 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+/*!
+    \contentspage index.html
+    \qmltype Qt.android_support
+    \inqmlmodule QbsModules
+    \brief Provides Qt support for the Android platform.
+
+    The \c Qt.android_support module provides the glue for \QBS'
+    Qt and Android support.
+    It is automatically pulled in by \c Qt.core, so you do not need to
+    add an explicit dependency to it in your product, unless you want
+    to set one of its properties.
+*/
+
+/*!
+    \qmlproperty bool Qt.android_support::useMinistro
+
+    Whether or not to use the Ministro service. If this property is enabled, then
+    the Qt libraries required by your application as well as some other resources
+    will not be packaged into the APK file, but are expected to be present on the
+    device at run time.
+
+    \defaultvalue \c false
+*/
+
+/*!
+    \qmlproperty string Qt.android_support::qmlRootDir
+
+    The root directory of the product's QML files. This information is passed to
+    the \c androiddeployqt tool, which will use it to decide which resources to
+    include in the APK file.
+
+    \defaultvalue \c product.sourceDirectory
+*/
+
+/*!
+    \qmlproperty stringList Qt.android_support::deploymentDependencies
+
+    Use this property to completely override the Qt deployment dependencies
+    of your app. Corresponds to qmake's ANDROID_DEPLOYMENT_DEPENDENCIES.
+
+    \defaultvalue \c undefined
+*/
+
+/*!
+    \qmlproperty stringList Qt.android_support::extraPlugins
+
+    Additional non-asset files to be packaged. Corresponds to qmake's ANDROID_EXTRA_PLUGINS.
+
+    \defaultvalue \c undefined
+*/
+
+/*!
+    \qmlproperty bool Qt.android_support::verboseAndroidDeployQt
+
+    Enable this property if you want verbose output from the
+    \c androiddeployqt tool.
+
+    \defaultvalue \c false
+*/
