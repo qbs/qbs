@@ -74,6 +74,7 @@ void TestBlackboxAndroid::android()
     QFETCH(QString, projectDir);
     QFETCH(QStringList, productNames);
     QFETCH(QList<QByteArrayList>, expectedFilesLists);
+    QFETCH(QStringList, customProperties);
 
     const SettingsPtr s = settings();
     Profile p(profileName(), s.get());
@@ -100,11 +101,16 @@ void TestBlackboxAndroid::android()
     static const QStringList configNames { "debug", "release" };
     for (const QString &configName : configNames) {
         auto currentExpectedFilesLists = expectedFilesLists;
-        QbsRunParameters params(QStringList { "--command-echo-mode", "command-line",
-                                              "modules.Android.ndk.platform:android-21",
-                                              "config:" + configName });
-        params.profile = p.name();
-        QCOMPARE(runQbs(params), 0);
+        const QString configArgument = "config:" + configName;
+        QbsRunParameters resolveParams("resolve");
+        resolveParams.arguments << "modules.Android.ndk.platform:android-21" << configArgument
+                                << customProperties;
+        resolveParams.profile = p.name();
+        QCOMPARE(runQbs(resolveParams), 0);
+        QbsRunParameters buildParams(QStringList{"--command-echo-mode", "command-line",
+                                                 configArgument});
+        buildParams.profile = p.name();
+        QCOMPARE(runQbs(buildParams), 0);
         for (const QString &productName : qAsConst(productNames)) {
             QCOMPARE(m_qbsStdout.count("Generating BuildConfig.java"), productNames.size());
             QVERIFY(m_qbsStdout.contains(productName.toLocal8Bit() + ".apk"));
@@ -207,6 +213,7 @@ void TestBlackboxAndroid::android_data()
     QTest::addColumn<QString>("projectDir");
     QTest::addColumn<QStringList>("productNames");
     QTest::addColumn<QList<QByteArrayList>>("expectedFilesLists");
+    QTest::addColumn<QStringList>("customProperties");
     QTest::newRow("teapot")
             << "teapot" << QStringList("TeapotNativeActivity")
             << (QList<QByteArrayList>() << commonFiles + expandArchs(archs, {
@@ -216,7 +223,16 @@ void TestBlackboxAndroid::android_data()
                        "lib/${ARCH}/libgdbserver.so",
                        cxxLibPath("libgnustl_shared.so"),
                        "lib/${ARCH}/libTeapotNativeActivity.so",
-                       "res/layout/widgets.xml"}));
+                       "res/layout/widgets.xml"}))
+            << QStringList();
+    QTest::newRow("minimal-native")
+            << "minimal-native" << QStringList("minimalnative")
+            << (QList<QByteArrayList>() << commonFiles + expandArchs({archs.first()}, {
+                       "lib/${ARCH}/libminimalnative.so",
+                       cxxLibPath("libstlport_shared.so"),
+                       "lib/${ARCH}/libdependency.so"}))
+            << QStringList{"products.minimalnative.multiplexByQbsProperties:[]",
+                           "modules.qbs.architecture:" + archsStringList.first()};
     QTest::newRow("no native")
             << "no-native"
             << QStringList("com.example.android.basicmediadecoder")
@@ -237,9 +253,10 @@ void TestBlackboxAndroid::android_data()
                        "res/layout/sample_main.xml",
                        "res/menu/action_menu.xml",
                        "res/menu-v11/action_menu.xml",
-                       "res/raw/vid_bigbuckbunny.mp4"}));
+                       "res/raw/vid_bigbuckbunny.mp4"}))
+            << QStringList();
     QTest::newRow("aidl") << "aidl" << QStringList("io.qbs.aidltest")
-                               << QList<QByteArrayList>{commonFiles};
+                               << QList<QByteArrayList>{commonFiles} << QStringList();
     QTest::newRow("multiple libs")
             << "multiple-libs-per-apk"
             << QStringList("twolibs")
@@ -248,7 +265,8 @@ void TestBlackboxAndroid::android_data()
                        "lib/${ARCH}/libgdbserver.so",
                        "lib/${ARCH}/liblib1.so",
                        "lib/${ARCH}/liblib2.so",
-                       cxxLibPath("libstlport_shared.so")}));
+                       cxxLibPath("libstlport_shared.so")}))
+            << QStringList();
     QByteArrayList expectedFiles1 = (commonFiles
             + expandArchs(QByteArrayList{"armeabi-v7a", "x86"}, {
                               "resources.arsc",
@@ -268,7 +286,8 @@ void TestBlackboxAndroid::android_data()
     QTest::newRow("multiple apks")
             << "multiple-apks-per-project"
             << (QStringList() << "twolibs1" << "twolibs2")
-            << QList<QByteArrayList>{expectedFiles1, expectedFiles2};
+            << QList<QByteArrayList>{expectedFiles1, expectedFiles2}
+            << QStringList();
 }
 
 QTEST_MAIN(TestBlackboxAndroid)

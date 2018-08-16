@@ -36,13 +36,13 @@
 
     \brief Product of the type application.
 
-    An Application item is a \l{Product} of the \l{Product::}{type}
-    \c "application".
+    An Application item is a \l{Product} representing an application.
 
-    The target artifact of this type of product is usually an executable binary.
+    The target artifact of this type of product is usually an executable binary
+    tagged \c "application".
     However, on Android, unless you set \l{Product::}{consoleApplication} to \c true,
-    the application target will be an APK package, and a dependency to the
-    \l{Android.sdk} module is automatically added to the product.
+    the application target will be an APK package tagged \c "android.apk", and a
+    dependency to the \l{Android.sdk} module is automatically added to the product.
 */
 
 /*!

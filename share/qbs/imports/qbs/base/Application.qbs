@@ -29,7 +29,7 @@
 ****************************************************************************/
 
 NativeBinary {
-    type: ["application"]
+    type: isForAndroid && !consoleApplication ? ["android.apk"] : ["application"]
 
     property bool usesNativeCode
 
@@ -48,6 +48,8 @@ NativeBinary {
     }
     Properties {
         condition: isForAndroid && !consoleApplication && usesNativeCode
+                   && multiplexByQbsProperties && multiplexByQbsProperties.contains("architectures")
+                   && qbs.architectures && qbs.architectures.length > 1
         aggregate: true
         multiplexedType: "android.nativelibrary"
     }

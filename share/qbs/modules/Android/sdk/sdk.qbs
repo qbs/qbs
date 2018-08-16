@@ -418,7 +418,7 @@ Module {
         ]
         Artifact {
             filePath: product.Android.sdk.apkBaseName + ".apk"
-            fileTags: ["android.apk", "application"]
+            fileTags: "android.apk"
         }
         prepare: SdkUtils.prepareAaptPackage.apply(SdkUtils, arguments)
     }
