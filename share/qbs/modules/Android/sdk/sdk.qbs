@@ -275,9 +275,8 @@ Module {
             var resources = inputs["android.resources"];
             if (resources && resources.length) {
                 artifacts.push({
-                    filePath: FileInfo.joinPaths(
-                                  ModUtils.moduleProperty(product, "generatedJavaFilesDir"),
-                                  "R.java"),
+                    filePath: FileInfo.joinPaths(product.Android.sdk.generatedJavaFilesDir,
+                                                 "R.java"),
                     fileTags: ["java.java"]
                 });
             }
@@ -293,7 +292,7 @@ Module {
         multiplex: true
 
         Artifact {
-            filePath: FileInfo.joinPaths(ModUtils.moduleProperty(product, "generatedJavaFilesDir"),
+            filePath: FileInfo.joinPaths(product.Android.sdk.generatedJavaFilesDir,
                                          "BuildConfig.java")
             fileTags: ["java.java"]
         }
@@ -302,8 +301,7 @@ Module {
             var cmd = new JavaScriptCommand();
             cmd.description = "Generating BuildConfig.java";
             cmd.sourceCode = function() {
-                var debugValue = product.moduleProperty("qbs", "buildVariant") === "debug"
-                        ? "true" : "false";
+                var debugValue = product.qbs.buildVariant === "debug" ? "true" : "false";
                 var ofile = new TextFile(output.filePath, TextFile.WriteOnly);
                 ofile.writeLine("package " + product.Android.sdk.packageName +  ";")
                 ofile.writeLine("public final class BuildConfig {");
