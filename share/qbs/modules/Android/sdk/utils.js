@@ -115,7 +115,7 @@ function findParentDir(filePath, parentDirName)
 
 function commonAaptPackageArgs(project, product, inputs, outputs, input, output,
                                explicitlyDependsOn) {
-    var manifestFilePath = inputs["android.manifest"][0].filePath;
+    var manifestFilePath = inputs["android.manifest_final"][0].filePath;
     var args = ["package", "-f",
                 "-M", manifestFilePath,
                 "-I", product.Android.sdk.androidJarFilePath];

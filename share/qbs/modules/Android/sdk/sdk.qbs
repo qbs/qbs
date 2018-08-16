@@ -35,6 +35,7 @@ import qbs.ModUtils
 import qbs.Probes
 import qbs.TextFile
 import qbs.Utilities
+import qbs.Xml
 import "utils.js" as SdkUtils
 
 Module {
@@ -234,10 +235,39 @@ Module {
         }
     }
 
+    property bool customManifestProcessing: false
+    Group {
+        condition: !Android.sdk.customManifestProcessing
+        fileTagsFilter: "android.manifest_processed"
+        fileTags: "android.manifest_final"
+    }
+    Rule {
+        condition: _enableRules
+        inputs: "android.manifest"
+        Artifact {
+            filePath: FileInfo.joinPaths("processed_manifest", input.fileName)
+            fileTags: "android.manifest_processed"
+        }
+        prepare: {
+            var cmd = new JavaScriptCommand();
+            cmd.description = "Ensuring correct package name in Android manifest file";
+            cmd.sourceCode = function() {
+                var manifestData = new Xml.DomDocument();
+                manifestData.load(input.filePath);
+                var rootElem = manifestData.documentElement();
+                if (!rootElem || !rootElem.isElement() || rootElem.tagName() != "manifest")
+                    throw "No manifest tag found in '" + input.filePath + "'.";
+                rootElem.setAttribute("package", product.Android.sdk.packageName);
+                manifestData.save(output.filePath, 4);
+            }
+            return cmd;
+        }
+    }
+
     Rule {
         condition: _enableRules
         multiplex: true
-        inputs: ["android.resources", "android.assets", "android.manifest"]
+        inputs: ["android.resources", "android.assets", "android.manifest_final"]
 
         outputFileTags: ["java.java"]
         outputArtifacts: {
@@ -382,7 +412,7 @@ Module {
         condition: _enableRules
         multiplex: true
         inputs: [
-            "android.resources", "android.assets", "android.manifest",
+            "android.resources", "android.assets", "android.manifest_final",
             "android.dex", "android.gdbserver_deployed", "android.stl_deployed",
             "android.nativelibrary_deployed", "android.keystore"
         ]

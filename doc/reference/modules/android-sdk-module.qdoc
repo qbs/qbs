@@ -154,7 +154,8 @@
 /*!
     \qmlproperty string Android.sdk::packageName
 
-    The package name of the respective product. Must match the one given in the manifest file.
+    The package name of the respective product. The \c package attribute in the manifest file
+    will be set to this value automatically.
 
     \defaultvalue \c name
 */
