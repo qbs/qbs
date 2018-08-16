@@ -101,6 +101,18 @@ function prepareDex(project, product, inputs, outputs, input, output, explicitly
     return [cmd];
 }
 
+function findParentDir(filePath, parentDirName)
+{
+    var lastDir;
+    var currentDir = FileInfo.path(filePath);
+    while (lastDir !== currentDir) {
+        if (FileInfo.fileName(currentDir) === parentDirName)
+            return currentDir;
+        lastDir = currentDir;
+        currentDir = FileInfo.path(currentDir);
+    }
+}
+
 function commonAaptPackageArgs(project, product, inputs, outputs, input, output,
                                explicitlyDependsOn) {
     var manifestFilePath = inputs["android.manifest"][0].filePath;
@@ -108,12 +120,37 @@ function commonAaptPackageArgs(project, product, inputs, outputs, input, output,
                 "-M", manifestFilePath,
                 "-I", product.Android.sdk.androidJarFilePath];
     var resources = inputs["android.resources"];
-    if (resources && resources.length)
-        args.push("-S", product.Android.sdk.resourcesDir);
+    var resourceDirs = [];
+    if (resources) {
+        for (var i = 0; i < resources.length; ++i) {
+            var resDir = findParentDir(resources[i].filePath, "res");
+            if (!resDir) {
+                throw "File '" + resources[i].filePath + "' is tagged as an Android resource, "
+                        + "but is not located under a directory called 'res'.";
+            }
+            if (!resourceDirs.contains(resDir))
+                resourceDirs.push(resDir);
+        }
+    }
+    for (i = 0; i < resourceDirs.length; ++i)
+        args.push("-S", resourceDirs[i]);
+    var assets = inputs["android.assets"];
+    var assetDirs = [];
+    if (assets) {
+        for (i = 0; i < assets.length; ++i) {
+            var assetDir = findParentDir(assets[i].filePath, "assets");
+            if (!assetDir) {
+                throw "File '" + assets[i].filePath + "' is tagged as an Android asset, "
+                        + "but is not located under a directory called 'assets'.";
+            }
+            if (!assetDirs.contains(assetDir))
+                assetDirs.push(assetDir);
+        }
+    }
+    for (i = 0; i < assetDirs.length; ++i)
+        args.push("-A", assetDirs[i]);
     if (product.qbs.buildVariant === "debug")
         args.push("--debug-mode");
-    if (File.exists(product.Android.sdk.assetsDir))
-        args.push("-A", product.Android.sdk.assetsDir);
     return args;
 }
 
