@@ -296,58 +296,82 @@ Module {
 
     Rule {
         condition: _enableRules
-        multiplex: true
-        inputsFromDependencies: [
-            "android.gdbserver-info", "android.stl-info", "android.nativelibrary"
-        ]
-        outputFileTags: ["android.gdbserver", "android.stl", "android.nativelibrary-deployed"]
-        outputArtifacts: {
-            var libArtifacts = [];
-            if (inputs["android.nativelibrary"]) {
-                for (var i = 0; i < inputs["android.nativelibrary"].length; ++i) {
-                    var inp = inputs["android.nativelibrary"][i];
-                    var destDir = FileInfo.joinPaths(product.Android.sdk.apkContentsDir, "lib",
-                                                     inp.moduleProperty("Android.ndk", "abi"));
-                    libArtifacts.push({
-                            filePath: FileInfo.joinPaths(destDir, inp.fileName),
-                            fileTags: ["android.nativelibrary-deployed"]
-                    });
-                }
-            }
-            var gdbServerArtifacts = SdkUtils.outputArtifactsFromInfoFiles(inputs,
-                    product, "android.gdbserver-info", "android.gdbserver");
-            var stlArtifacts = SdkUtils.outputArtifactsFromInfoFiles(inputs, product,
-                    "android.stl-info", "android.stl");
-            return libArtifacts.concat(gdbServerArtifacts).concat(stlArtifacts);
+        property stringList inputTags: "android.nativelibrary"
+        inputsFromDependencies: inputTags
+        inputs: product.aggregate ? [] : inputTags
+        Artifact {
+            filePath: FileInfo.joinPaths(product.Android.sdk.apkContentsDir, "lib",
+                                         input.Android.ndk.abi, input.fileName)
+            fileTags: "android.nativelibrary_deployed"
         }
         prepare: {
             var cmd = new JavaScriptCommand();
-            cmd.description = "Pre-packaging native binaries";
+            cmd.description = "copying " + input.fileName + " for packaging";
+            cmd.sourceCode = function() { File.copy(input.filePath, output.filePath); };
+            return cmd;
+        }
+    }
+
+    Rule {
+        condition: _enableRules
+        multiplex: true
+        property stringList inputTags: "android.gdbserver"
+        inputsFromDependencies: inputTags
+        inputs: product.aggregate ? [] : inputTags
+        outputFileTags: "android.gdbserver_deployed"
+        outputArtifacts: {
+            var deploymentData = SdkUtils.gdbserverOrStlDeploymentData(product, inputs,
+                                                                       "gdbserver");
+            var outputs = [];
+            for (i = 0; i < deploymentData.outputFilePaths.length; ++i) {
+                outputs.push({filePath: deploymentData.outputFilePaths[i],
+                              fileTags: "android.gdbserver_deployed"});
+            }
+            return outputs;
+        }
+        prepare: {
+            var cmd = new JavaScriptCommand;
+            cmd.description = "deploying gdbserver binaries";
             cmd.sourceCode = function() {
-                if (inputs["android.nativelibrary"]) {
-                    for (var i = 0; i < inputs["android.nativelibrary"].length; ++i) {
-                        for (var j = 0; j < outputs["android.nativelibrary-deployed"].length; ++j) {
-                            var inp = inputs["android.nativelibrary"][i];
-                            var outp = outputs["android.nativelibrary-deployed"][j];
-                            var inpAbi = inp.moduleProperty("Android.ndk", "abi");
-                            var outpAbi = FileInfo.fileName(outp.baseDir);
-                            if (inp.fileName === outp.fileName && inpAbi === outpAbi) {
-                                File.copy(inp.filePath, outp.filePath);
-                                break;
-                            }
-                        }
-                    }
+                var deploymentData = SdkUtils.gdbserverOrStlDeploymentData(product, inputs,
+                                                                           "gdbserver");
+                for (var i = 0; i < deploymentData.uniqueInputs.length; ++i) {
+                    File.copy(deploymentData.uniqueInputs[i].filePath,
+                              deploymentData.outputFilePaths[i]);
                 }
-                var pathsSpecs = SdkUtils.sourceAndTargetFilePathsFromInfoFiles(inputs, product,
-                        "android.gdbserver-info");
-                for (i = 0; i < pathsSpecs.sourcePaths.length; ++i)
-                    File.copy(pathsSpecs.sourcePaths[i], pathsSpecs.targetPaths[i]);
-                pathsSpecs = SdkUtils.sourceAndTargetFilePathsFromInfoFiles(inputs, product,
-                        "android.stl-info");
-                for (i = 0; i < pathsSpecs.sourcePaths.length; ++i)
-                    File.copy(pathsSpecs.sourcePaths[i], pathsSpecs.targetPaths[i]);
             };
-            return [cmd];
+            return cmd;
+        }
+    }
+
+    Rule {
+        condition: _enableRules
+        multiplex: true
+        property stringList inputTags: "android.stl"
+        inputsFromDependencies: inputTags
+        inputs: product.aggregate ? [] : inputTags
+        outputFileTags: "android.stl_deployed"
+        outputArtifacts: {
+            var deploymentData = SdkUtils.gdbserverOrStlDeploymentData(product, inputs, "stl");
+            var outputs = [];
+            for (i = 0; i < deploymentData.outputFilePaths.length; ++i) {
+                outputs.push({filePath: deploymentData.outputFilePaths[i],
+                              fileTags: "android.stl_deployed"});
+            }
+            return outputs;
+        }
+        prepare: {
+            var cmds = [];
+            var deploymentData = SdkUtils.gdbserverOrStlDeploymentData(product, inputs);
+            for (var i = 0; i < deploymentData.uniqueInputs.length; ++i) {
+                var input = deploymentData.uniqueInputs[i];
+                var stripArgs = ["--strip-unneeded", "-o", deploymentData.outputFilePaths[i],
+                                 input.filePath];
+                var cmd = new Command(input.cpp.stripPath, stripArgs);
+                cmd.description = "deploying " + input.fileName;
+                cmds.push(cmd);
+            }
+            return cmds;
         }
     }
 
@@ -356,8 +380,8 @@ Module {
         multiplex: true
         inputs: [
             "android.resources", "android.assets", "android.manifest",
-            "android.dex", "android.gdbserver", "android.stl",
-            "android.nativelibrary-deployed", "android.keystore"
+            "android.dex", "android.gdbserver_deployed", "android.stl_deployed",
+            "android.nativelibrary_deployed", "android.keystore"
         ]
         Artifact {
             filePath: product.Android.sdk.apkBaseName + ".apk"

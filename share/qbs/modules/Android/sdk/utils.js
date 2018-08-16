@@ -34,34 +34,6 @@ var Process = require("qbs.Process");
 var TextFile = require("qbs.TextFile");
 var Utilities = require("qbs.Utilities");
 
-function sourceAndTargetFilePathsFromInfoFiles(inputs, product, inputTag)
-{
-    var sourceFilePaths = [];
-    var targetFilePaths = [];
-    var inputsLength = inputs[inputTag] ? inputs[inputTag].length : 0;
-    for (var i = 0; i < inputsLength; ++i) {
-        var infoFile = new TextFile(inputs[inputTag][i].filePath, TextFile.ReadOnly);
-        var sourceFilePath = infoFile.readLine();
-        var targetFilePath = FileInfo.joinPaths(product.Android.sdk.apkContentsDir,
-                                                infoFile.readLine());
-        if (!targetFilePaths.contains(targetFilePath)) {
-            sourceFilePaths.push(sourceFilePath);
-            targetFilePaths.push(targetFilePath);
-        }
-        infoFile.close();
-    }
-    return { sourcePaths: sourceFilePaths, targetPaths: targetFilePaths };
-}
-
-function outputArtifactsFromInfoFiles(inputs, product, inputTag, outputTag)
-{
-    var pathSpecs = sourceAndTargetFilePathsFromInfoFiles(inputs, product, inputTag)
-    var artifacts = [];
-    for (i = 0; i < pathSpecs.targetPaths.length; ++i)
-        artifacts.push({filePath: pathSpecs.targetPaths[i], fileTags: [outputTag]});
-    return artifacts;
-}
-
 function availableSdkPlatforms(sdkDir) {
     var re = /^android-([0-9]+)$/;
     var platforms = File.directoryEntries(FileInfo.joinPaths(sdkDir, "platforms"),
@@ -209,4 +181,25 @@ function createDebugKeyStoreCommandString(keytoolFilePath, keystoreFilePath) {
                 "-keysize", "2048", "-validity", "10000", "-dname",
                 "CN=Android Debug,O=Android,C=US"];
     return Process.shellQuote(keytoolFilePath, args);
+}
+
+function gdbserverOrStlDeploymentData(product, inputs, type)
+{
+    var data = { uniqueInputs: [], outputFilePaths: []};
+    var uniqueFilePaths = [];
+    var theInputs = inputs[type === "gdbserver" ? "android.gdbserver" : "android.stl"];
+    if (!theInputs)
+        return data;
+    for (var i = 0; i < theInputs.length; ++i) {
+        var currentInput = theInputs[i];
+        if (uniqueFilePaths.contains(currentInput.filePath))
+            continue;
+        uniqueFilePaths.push(currentInput.filePath);
+        data.uniqueInputs.push(currentInput);
+        var outputFileName = type === "gdbserver" ? "libgdbserver.so" : currentInput.fileName;
+        data.outputFilePaths.push(FileInfo.joinPaths(product.Android.sdk.apkContentsDir, "lib",
+                                                     currentInput.Android.ndk.abi,
+                                                     outputFileName));
+    }
+    return data;
 }

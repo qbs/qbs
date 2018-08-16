@@ -124,7 +124,7 @@ void TestBlackboxAndroid::android()
             QByteArrayList missingExpectedFiles;
             QByteArrayList expectedFiles = currentExpectedFilesLists.takeFirst();
             for (const QByteArray &expectedFile : expectedFiles) {
-                if (expectedFile.endsWith("/gdbserver") && configName == "release")
+                if (expectedFile.endsWith("/libgdbserver.so") && configName == "release")
                     continue;
                 auto it = std::find(actualFiles.begin(), actualFiles.end(), expectedFile);
                 if (it != actualFiles.end()) {
@@ -209,7 +209,7 @@ void TestBlackboxAndroid::android_data()
                        "resources.arsc",
                        "assets/Shaders/ShaderPlain.fsh",
                        "assets/Shaders/VS_ShaderPlain.vsh",
-                       "lib/${ARCH}/gdbserver",
+                       "lib/${ARCH}/libgdbserver.so",
                        "lib/${ARCH}/libgnustl_shared.so",
                        "lib/${ARCH}/libTeapotNativeActivity.so",
                        "res/layout/widgets.xml"}));
@@ -241,28 +241,26 @@ void TestBlackboxAndroid::android_data()
             << QStringList("twolibs")
             << (QList<QByteArrayList>() << commonFiles + expandArchs(archs, {
                        "resources.arsc",
-                       "lib/${ARCH}/gdbserver",
+                       "lib/${ARCH}/libgdbserver.so",
                        "lib/${ARCH}/liblib1.so",
                        "lib/${ARCH}/liblib2.so",
                        "lib/${ARCH}/libstlport_shared.so"}));
     QByteArrayList expectedFiles1 = (commonFiles
             + expandArchs(QByteArrayList{"mips", "x86"}, {
                               "resources.arsc",
-                              "lib/${ARCH}/gdbserver",
+                              "lib/${ARCH}/libgdbserver.so",
                               "lib/${ARCH}/libp1lib1.so",
                               "lib/${ARCH}/libstlport_shared.so"})
             + expandArchs(QByteArrayList{archs}, {
                               "resources.arsc",
-                              "lib/${ARCH}/gdbserver",
+                              "lib/${ARCH}/libgdbserver.so",
                               "lib/${ARCH}/libp1lib2.so",
                               "lib/${ARCH}/libstlport_shared.so"})).toSet().toList();
     QByteArrayList expectedFiles2 = commonFiles + expandArchs(archs, {
-                       "resources.arsc",
-                       "lib/${ARCH}/gdbserver",
+                       "lib/${ARCH}/libgdbserver.so",
                        "lib/${ARCH}/libp2lib1.so",
                        "lib/${ARCH}/libp2lib2.so",
                        "lib/${ARCH}/libstlport_shared.so"});
-    expectedFiles2.removeOne("resources.arsc");
     QTest::newRow("multiple apks")
             << "multiple-apks-per-project"
             << (QStringList() << "twolibs1" << "twolibs2")

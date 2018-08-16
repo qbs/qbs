@@ -89,7 +89,16 @@ LinuxGCC {
         name: "Android STL"
         condition: product.cpp.sharedStlFilePath && product.cpp.shouldLink
         files: product.cpp.sharedStlFilePath ? [product.cpp.sharedStlFilePath] : []
-        fileTags: ["android.unstripped-stl"]
+        fileTags: "android.stl"
+    }
+
+    Group {
+        name: "gdbserver"
+        condition: qbs.buildVariant !== "release" && product.cpp.shouldLink
+        files: FileInfo.joinPaths(Android.ndk.ndkDir, "prebuilt",
+                                  "android-" + NdkUtils.abiNameToDirName(Android.ndk.abi),
+                                  "gdbserver", "gdbserver")
+        fileTags: "android.gdbserver"
     }
 
     toolchainInstallPath: FileInfo.joinPaths(Android.ndk.ndkDir, "toolchains",
@@ -211,78 +220,16 @@ LinuxGCC {
 
     Rule {
         condition: shouldLink
-        inputs: ["android.unstripped-stl"]
+        inputs: "dynamiclibrary"
         Artifact {
-            filePath: FileInfo.joinPaths("stripped-libs", input.fileName);
-            fileTags: ["android.stripped-stl"]
+            filePath: FileInfo.joinPaths("stripped-libs", input.fileName)
+            fileTags: "android.nativelibrary"
         }
         prepare: {
-            var args = ["--strip-unneeded", "-o", output.filePath, input.filePath];
-            var cmd = new Command(product.cpp.stripPath, args);
-            cmd.description = "stripping " + input.fileName;
-            return [cmd];
-        }
-    }
-
-    Rule {
-        condition: shouldLink
-        inputs: ["dynamiclibrary"]
-        explicitlyDependsOn: ["android.stripped-stl"];
-        outputFileTags: ["android.nativelibrary", "android.gdbserver-info", "android.stl-info"]
-        outputArtifacts: {
-            var artifacts = [{
-                    filePath: FileInfo.joinPaths("stripped-libs",
-                                                 inputs["dynamiclibrary"][0].fileName),
-                    fileTags: ["android.nativelibrary"]
-            }];
-            if (product.moduleProperty("qbs", "buildVariant") === "debug") {
-                artifacts.push({
-                        filePath: "android.gdbserver-info.txt",
-                        fileTags: ["android.gdbserver-info"]
-                });
-            }
-            if (explicitlyDependsOn["android.stripped-stl"])
-                artifacts.push({filePath: "android.stl-info.txt", fileTags: ["android.stl-info"]});
-            return artifacts;
-        }
-
-        prepare: {
-            var copyCmd = new JavaScriptCommand();
-            copyCmd.silent = true;
-            copyCmd.sourceCode = function() {
-                File.copy(inputs["dynamiclibrary"][0].filePath,
-                          outputs["android.nativelibrary"][0].filePath);
-                var arch = product.moduleProperty("Android.ndk", "abi");
-                var destDir = FileInfo.joinPaths("lib", arch);
-                if (product.moduleProperty("qbs", "buildVariant") === "debug") {
-                    arch = NdkUtils.abiNameToDirName(arch);
-                    var srcPath = FileInfo.joinPaths(
-                        product.moduleProperty("Android.ndk", "ndkDir"),
-                                "prebuilt/android-" + arch, "gdbserver/gdbserver");
-                    var targetPath = FileInfo.joinPaths(destDir,
-                        product.moduleProperty("Android.ndk", "gdbserverFileName"));
-                    var infoFile = new TextFile(outputs["android.gdbserver-info"][0].filePath,
-                                                TextFile.WriteOnly);
-                    infoFile.writeLine(srcPath);
-                    infoFile.writeLine(targetPath);
-                    infoFile.close();
-                }
-                var strippedStlList = explicitlyDependsOn["android.stripped-stl"];
-                if (strippedStlList) {
-                    var srcPath = strippedStlList[0].filePath;
-                    var targetPath = FileInfo.joinPaths(destDir, FileInfo.fileName(srcPath));
-                    var infoFile = new TextFile(outputs["android.stl-info"][0].filePath,
-                                                TextFile.WriteOnly);
-                    infoFile.writeLine(srcPath);
-                    infoFile.writeLine(targetPath);
-                    infoFile.close();
-                }
-            }
-            var stripArgs = ["--strip-unneeded", outputs["android.nativelibrary"][0].filePath];
-            var stripCmd = new Command(product.moduleProperty("cpp", "stripPath"), stripArgs);
-            stripCmd.description = "Stripping unneeded symbols from "
-                    + outputs["android.nativelibrary"][0].fileName;
-            return [copyCmd, stripCmd];
+            var stripArgs = ["--strip-unneeded", "-o", output.filePath, input.filePath];
+            var stripCmd = new Command(product.cpp.stripPath, stripArgs);
+            stripCmd.description = "Stripping unneeded symbols from " + input.fileName;
+            return stripCmd;
         }
     }
 

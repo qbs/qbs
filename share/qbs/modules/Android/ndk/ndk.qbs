@@ -145,8 +145,6 @@ Module {
         return toolchainVersion;
     }
 
-    property string gdbserverFileName: "gdbserver"
-
     property string armMode: abi && abi.startsWith("armeabi")
             ? (qbs.buildVariant === "debug" ? "arm" : "thumb")
             : undefined;
