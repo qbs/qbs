@@ -186,6 +186,8 @@ private slots:
     void nestedGroups();
     void nestedProperties();
     void newOutputArtifact();
+    void noExportedSymbols_data();
+    void noExportedSymbols();
     void noProfile();
     void noSuchProfile();
     void nodejs();

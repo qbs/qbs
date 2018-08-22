@@ -4488,6 +4488,37 @@ void TestBlackbox::newOutputArtifact()
     QVERIFY(regularFileExists(the100thArtifact));
 }
 
+void TestBlackbox::noExportedSymbols_data()
+{
+    QTest::addColumn<bool>("link");
+    QTest::addColumn<bool>("dryRun");
+    QTest::newRow("link") << true << false;
+    QTest::newRow("link (dry run)") << true << true;
+    QTest::newRow("do not link") << false << false;
+}
+
+void TestBlackbox::noExportedSymbols()
+{
+    QDir::setCurrent(testDataDir + "/no-exported-symbols");
+    QFETCH(bool, link);
+    QFETCH(bool, dryRun);
+    QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList{"--force-probe-execution",
+            QString("products.the_app.link:") + (link ? "true" : "false")})), 0);
+    const bool isMsvc = m_qbsStdout.contains("compiler is MSVC");
+    const bool isNotMsvc = m_qbsStdout.contains("compiler is not MSVC");
+    QVERIFY2(isMsvc || isNotMsvc, m_qbsStdout.constData());
+    if (isNotMsvc)
+        QSKIP("Test applies with MSVC only");
+    QbsRunParameters buildParams;
+    if (dryRun)
+        buildParams.arguments << "--dry-run";
+    buildParams.expectFailure = link && !dryRun;
+    QCOMPARE(runQbs(buildParams) == 0, !buildParams.expectFailure);
+    QVERIFY2(m_qbsStderr.contains("This typically happens when a DLL does not export "
+                                  "any symbols.") == buildParams.expectFailure,
+             m_qbsStderr.constData());
+}
+
 void TestBlackbox::noProfile()
 {
     QDir::setCurrent(testDataDir + "/no-profile");

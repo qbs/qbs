@@ -262,8 +262,8 @@ function collectLibraryDependencies(product) {
     var seen = {};
     var result = [];
 
-    function addFilePath(filePath, wholeArchive) {
-        result.push({ filePath: filePath, wholeArchive: wholeArchive });
+    function addFilePath(filePath, wholeArchive, productName) {
+        result.push({ filePath: filePath, wholeArchive: wholeArchive, productName: productName });
     }
 
     function addArtifactFilePaths(dep, artifacts) {
@@ -271,8 +271,12 @@ function collectLibraryDependencies(product) {
             return;
         var artifactFilePaths = artifacts.map(function(a) { return a.filePath; });
         var wholeArchive = dep.parameters.cpp && dep.parameters.cpp.linkWholeArchive;
-        for (var i = 0; i < artifactFilePaths.length; ++i)
-            addFilePath(artifactFilePaths[i], wholeArchive);
+        var artifactsAreImportLibs = artifacts.length > 0
+                && artifacts[0].fileTags.contains("dynamiclibrary_import");
+        for (var i = 0; i < artifactFilePaths.length; ++i) {
+            addFilePath(artifactFilePaths[i], wholeArchive,
+                        artifactsAreImportLibs ? dep.name : undefined);
+        }
     }
 
     function addExternalLibs(obj) {
@@ -467,6 +471,21 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
         args = wrapperArgs.concat(args);
     }
     var commands = [];
+    var warningCmd = new JavaScriptCommand();
+    warningCmd.silent = true;
+    warningCmd.libDeps = libDeps;
+    warningCmd.sourceCode = function() {
+        for (var i = 0; i < libDeps.length; ++i) {
+            if (!libDeps[i].productName || File.exists(libDeps[i].filePath))
+                continue;
+            console.warn("Import library '" + FileInfo.toNativeSeparators(libDeps[i].filePath)
+                         + "' does not exist. This typically happens when a DLL does not "
+                         + "export any symbols. Please make sure the '" + libDeps[i].productName
+                         + "' library exports symbols, or, if you do not intend to actually "
+                         + "link against it, specify \"cpp.link: false\" in the Depends item.");
+        }
+    };
+    commands.push(warningCmd);
     var cmd = new Command(linkerPath, args)
     cmd.description = 'linking ' + primaryOutput.fileName;
     cmd.highlight = 'linker';
