@@ -475,7 +475,8 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     cmd.workingDirectory = FileInfo.path(primaryOutput.filePath)
     cmd.responseFileUsagePrefix = '@';
     cmd.stdoutFilterFunction = function(output) {
-        return output.replace(/^(.*performing full link.*\r\n)? +Creating library.*\r\n$/, "");
+        res = output.replace(/^.*performing full link.*\s*/, "");
+        return res.replace(/^ *Creating library.*\r\n$/, "");
     };
     commands.push(cmd);
 
