@@ -859,19 +859,26 @@ void ProjectResolver::resolveGroupFully(Item *item, ProjectResolver::ProjectCont
         resolveGroup(childItem, projectContext);
 }
 
-void ProjectResolver::adaptExportedPropertyValues()
+void ProjectResolver::adaptExportedPropertyValues(const Item *shadowProductItem)
 {
     ExportedModule &m = m_productContext->product->exportedModule;
     const QVariantList prefixList = m.propertyValues.take(
                 StringConstants::prefixMappingProperty()).toList();
-    if (prefixList.empty())
-        return;
+    const QString shadowProductName = m_evaluator->stringValue(
+                shadowProductItem, StringConstants::nameProperty());
+    const QString shadowProductBuildDir = m_evaluator->stringValue(
+                shadowProductItem, StringConstants::buildDirectoryProperty());
     QVariantMap prefixMap;
     for (const QVariant &v : prefixList) {
         const QVariantMap o = v.toMap();
         prefixMap.insert(o.value(QLatin1String("prefix")).toString(),
                          o.value(QLatin1String("replacement")).toString());
     }
+    const auto valueRefersToImportingProduct
+            = [shadowProductName, shadowProductBuildDir](const QString &value) {
+        return value.toLower().contains(shadowProductName.toLower())
+                || value.contains(shadowProductBuildDir);
+    };
     static const auto stringMapper = [](const QVariantMap &mappings, const QString &value)
             -> QString {
         for (auto it = mappings.cbegin(); it != mappings.cend(); ++it) {
@@ -880,17 +887,19 @@ void ProjectResolver::adaptExportedPropertyValues()
         }
         return value;
     };
-    static const auto stringListMapper = [](const QVariantMap &mappings, const QStringList &value)
-            -> QStringList {
+    const auto stringListMapper = [&valueRefersToImportingProduct](
+            const QVariantMap &mappings, const QStringList &value)  -> QStringList {
         QStringList result;
         result.reserve(value.size());
         for (const QString &s : value) {
-            result.push_back(stringMapper(mappings, s));
+            if (!valueRefersToImportingProduct(s))
+                result.push_back(stringMapper(mappings, s));
         }
         return result;
     };
-    static const std::function<QVariant(const QVariantMap &, const QVariant &)> mapper
-            = [](const QVariantMap &mappings, const QVariant &value) -> QVariant {
+    const std::function<QVariant(const QVariantMap &, const QVariant &)> mapper
+            = [&stringListMapper, &mapper](
+            const QVariantMap &mappings, const QVariant &value) -> QVariant {
         switch (static_cast<QMetaType::Type>(value.type())) {
         case QMetaType::QString:
             return stringMapper(mappings, value.toString());
@@ -975,7 +984,9 @@ void ProjectResolver::resolveShadowProduct(Item *item, ProjectResolver::ProjectC
             collectPropertiesForModuleInExportItem(dep);
         break;
     }
-    adaptExportedPropertyValues();
+    try {
+        adaptExportedPropertyValues(item);
+    } catch (const ErrorInfo &) {}
     m_productExportInfo.push_back(std::make_pair(m_productContext->product, item));
 }
 

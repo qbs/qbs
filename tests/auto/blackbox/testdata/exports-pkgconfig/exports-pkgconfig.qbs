@@ -92,8 +92,13 @@ Project {
             Depends { name: "TheFirstLib" }
             Depends { name: "dummy" }
             Depends { name: "cpp" }
-            cpp.includePaths: ["/opt/thesecondlib/include", product.sourceDirectory]
+            cpp.includePaths: [
+                "/opt/thesecondlib/include",
+                product.sourceDirectory,
+                importingProduct.buildDirectory
+            ]
             property string hurz: importingProduct.name
+            cpp.defines: hurz.toUpperCase()
 
             Rule {
                 property int n: 5

@@ -133,7 +133,7 @@ private:
                           QVariantMap &result, bool checkErrors);
     void createProductConfig(ResolvedProduct *product);
     ProjectContext createProjectContext(ProjectContext *parentProjectContext) const;
-    void adaptExportedPropertyValues();
+    void adaptExportedPropertyValues(const Item *shadowProductItem);
     void collectExportedProductDependencies();
 
     struct ProductDependencyInfo
