@@ -6,6 +6,7 @@ Module {
         condition: project.withCode
         name: "cpp"
     }
+    property bool enableAddressSanitizer: false
     property bool enableUnitTests: false
     property bool enableProjectFileUpdates: false
     property bool enableRPath: true
@@ -44,4 +45,10 @@ Module {
     property string pluginsInstallDir: libDirName + "/qbs/plugins"
     property string qmlTypeDescriptionsInstallDir: FileInfo.joinPaths(resourcesInstallDir,
                                                                   "share/qbs/qml-type-descriptions")
+
+    Properties {
+        condition: project.withCode && enableAddressSanitizer && qbs.toolchain.contains("gcc")
+        cpp.cxxFlags: "-fno-omit-frame-pointer"
+        cpp.driverFlags: "-fsanitize=address"
+    }
 }
