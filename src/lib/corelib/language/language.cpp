@@ -979,11 +979,6 @@ bool operator==(const ExportedItem &i1, const ExportedItem &i2)
 
 bool operator==(const ExportedModule &m1, const ExportedModule &m2)
 {
-    static const auto cmpProductsByName = [](
-            const ResolvedProductConstPtr &p1,
-            const ResolvedProductConstPtr &p2) {
-        return p1->name == p2->name;
-    };
     static const auto depMapsEqual = [](const QMap<ResolvedProductConstPtr, QVariantMap> &m1,
             const QMap<ResolvedProductConstPtr, QVariantMap> &m2) {
         if (m1.size() != m2.size())
@@ -1003,8 +998,7 @@ bool operator==(const ExportedModule &m1, const ExportedModule &m2)
             && m1.m_properties == m2.m_properties
             && m1.importStatements == m2.importStatements
             && m1.productDependencies.size() == m2.productDependencies.size()
-            && std::equal(m1.productDependencies.cbegin(), m1.productDependencies.cend(),
-                          m2.productDependencies.cbegin(), cmpProductsByName)
+            && m1.productDependencies == m2.productDependencies
             && depMapsEqual(m1.dependencyParameters, m2.dependencyParameters);
 }
 

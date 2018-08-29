@@ -222,9 +222,25 @@ private:
         QScriptValue result = engine->newArray();
         quint32 idx = 0;
         const bool exportCase = depType == DependencyType::Exported;
-        const std::vector<ResolvedProductPtr> &productDeps = (exportCase
-                                                 ? product->exportedModule.productDependencies
-                                                 : product->dependencies);
+        std::vector<ResolvedProductPtr> productDeps;
+        if (exportCase) {
+            if (!product->exportedModule.productDependencies.empty()) {
+                const auto allProducts = product->topLevelProject()->allProducts();
+                const auto getProductForName = [&allProducts](const QString &name) {
+                    const auto cmp = [name](const ResolvedProductConstPtr &p) {
+                        return p->uniqueName() == name;
+                    };
+                    const auto it = std::find_if(allProducts.cbegin(), allProducts.cend(), cmp);
+                    QBS_ASSERT(it != allProducts.cend(), return ResolvedProductPtr());
+                    return *it;
+                };
+                std::transform(product->exportedModule.productDependencies.cbegin(),
+                               product->exportedModule.productDependencies.cend(),
+                               std::back_inserter(productDeps), getProductForName);
+            }
+        } else {
+            productDeps = product->dependencies;
+        }
         for (const ResolvedProductPtr &dependency : qAsConst(productDeps)) {
             QScriptValue obj = engine->newObject(engine->productPropertyScriptClass());
             obj.setPrototype(setupProductScriptValue(static_cast<ScriptEngine *>(engine),

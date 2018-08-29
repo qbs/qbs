@@ -540,7 +540,7 @@ public:
     QVariantMap propertyValues;
     QVariantMap modulePropertyValues;
     std::vector<ExportedItemPtr> children;
-    std::vector<ResolvedProductPtr> productDependencies;
+    std::vector<QString> productDependencies;
     std::vector<ExportedModuleDependency> moduleDependencies;
     std::vector<ExportedProperty> m_properties;
     QMap<ResolvedProductConstPtr, QVariantMap> dependencyParameters;
