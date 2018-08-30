@@ -164,6 +164,8 @@ void RuleNode::apply(const Logger &logger,
     ArtifactSet outputArtifactsToRemove;
     std::vector<std::pair<Artifact *, Artifact *>> connectionsToBreak;
     for (Artifact * const artifact : removedInputs) {
+        if (!artifact) // dummy artifact
+            continue;
         for (Artifact *parent : filterByType<Artifact>(artifact->parents)) {
             if (parent->transformer->rule != m_rule) {
                 // parent was not created by our rule.
@@ -294,21 +296,20 @@ ArtifactSet RuleNode::changedInputArtifacts(const ArtifactSet &allCompatibleInpu
 
 void RuleNode::removeOldInputArtifact(Artifact *artifact)
 {
-    static Artifact dummyArtifact;
     if (m_oldInputArtifacts.remove(artifact)) {
         qCDebug(lcBuildGraph) << "remove old input" << artifact->filePath()
                               << "from rule" << rule()->toString();
-        m_oldInputArtifacts.insert(&dummyArtifact);
+        m_oldInputArtifacts.insert(nullptr);
     }
     if (m_oldExplicitlyDependsOn.remove(artifact)) {
         qCDebug(lcBuildGraph) << "remove old explicitlyDependsOn" << artifact->filePath()
                               << "from rule" << rule()->toString();
-        m_oldExplicitlyDependsOn.insert(&dummyArtifact);
+        m_oldExplicitlyDependsOn.insert(nullptr);
     }
     if (m_oldAuxiliaryInputs.remove(artifact)) {
         qCDebug(lcBuildGraph) << "remove old auxiliaryInput" << artifact->filePath()
                               << "from rule" << rule()->toString();
-        m_oldAuxiliaryInputs.insert(&dummyArtifact);
+        m_oldAuxiliaryInputs.insert(nullptr);
     }
 }
 
