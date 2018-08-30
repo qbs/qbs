@@ -597,7 +597,7 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
         TopLevelProjectContext *topLevelProjectContext, Item *projectItem,
         const Set<QString> &referencedFilePaths)
 {
-    auto p = new ProjectContext;
+    QScopedPointer<ProjectContext> p(new ProjectContext);
     auto &projectContext = *p;
     projectContext.topLevelProject = topLevelProjectContext;
     projectContext.result = loadResult;
@@ -623,9 +623,9 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
                            m_parameters.overriddenValuesTree());
     if (!checkItemCondition(projectItem)) {
         m_disabledProjects.insert(projectContext.name);
-        delete p;
         return;
     }
+    p.take();
     topLevelProjectContext->projects.push_back(&projectContext);
     m_reader->pushExtraSearchPaths(readExtraSearchPaths(projectItem)
                                    << projectItem->file()->dirPath());
