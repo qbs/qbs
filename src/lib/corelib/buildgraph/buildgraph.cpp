@@ -708,12 +708,16 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product,
         for (const Artifact * const output : qAsConst(transformer->outputs)) {
             QBS_CHECK(output->transformer == transformer);
             transformerOutputChildren.unite(ArtifactSet::filtered(output->children));
-            Set<QString> childFilePaths;
             for (const Artifact *a : filterByType<Artifact>(output->children)) {
-                if (!childFilePaths.insert(a->filePath()).second) {
-                    throw ErrorInfo(QString::fromLatin1("There is more than one artifact for "
-                        "file '%1' in the child list for output '%2'.")
-                        .arg(a->filePath(), output->filePath()), CodeLocation(), true);
+                for (const Artifact *other : filterByType<Artifact>(output->children)) {
+                    if (other != a && other->filePath() == a->filePath()
+                            && (other->artifactType != Artifact::SourceFile
+                                || a->artifactType != Artifact::SourceFile
+                                || other->product == a->product)) {
+                        throw ErrorInfo(QString::fromLatin1("There is more than one artifact for "
+                                "file '%1' in the child list for output '%2'.")
+                                .arg(a->filePath(), output->filePath()), CodeLocation(), true);
+                    }
                 }
             }
         }
