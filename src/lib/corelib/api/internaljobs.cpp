@@ -161,7 +161,10 @@ void InternalJob::storeBuildGraph(const TopLevelProjectPtr &project)
         TimedActivityLogger storeTimer(m_logger, Tr::tr("Storing build graph"), timed());
         project->store(logger());
     } catch (const ErrorInfo &error) {
-        logger().printWarning(error);
+        ErrorInfo fullError = this->error();
+        for (const ErrorItem &item : error.items())
+            fullError.append(item);
+        setError(fullError);
     }
 }
 
