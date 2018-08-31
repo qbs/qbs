@@ -183,6 +183,7 @@ private slots:
     void nodejs();
     void nonBrokenFilesInBrokenProduct();
     void nonDefaultProduct();
+    void notAlwaysUpdated();
     void nsis();
     void nsisDependencies();
     void outOfDateMarking();

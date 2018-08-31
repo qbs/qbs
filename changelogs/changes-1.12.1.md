@@ -5,3 +5,4 @@
 * Fixed possible crash when scanning qrc files (QBS-1375).
 * Fixed spurious re-building of .pc and .qbs module files.
 * Fixed possible crash on storing a build graph after re-resolving.
+* Fixed possible assertion on input artifacts with alwaysUpdated == false.
