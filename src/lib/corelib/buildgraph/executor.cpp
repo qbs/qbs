@@ -889,8 +889,8 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = null
         if (childrenAdded && !childrenToConnect.empty())
             *childrenAdded = true;
         for (Artifact * const child : childrenToConnect) {
-            safeConnect(artifact, child);
-            artifact->childrenAddedByScanner << child;
+            if (safeConnect(artifact, child))
+                artifact->childrenAddedByScanner << child;
         }
         qCDebug(lcBuildGraph) << "Data was rescued.";
     } else {

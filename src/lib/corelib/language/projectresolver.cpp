@@ -948,19 +948,18 @@ void ProjectResolver::collectExportedProductDependencies()
             if (!contains(directDepNames, dep.product->name))
                 continue;
 
-            if (!contains(exportingProduct->exportedModule.productDependencies, dep.product))
-                exportingProduct->exportedModule.productDependencies.push_back(dep.product);
+            if (!contains(exportingProduct->exportedModule.productDependencies,
+                          dep.product->uniqueName())) {
+                exportingProduct->exportedModule.productDependencies.push_back(
+                            dep.product->uniqueName());
+            }
             if (!dep.parameters.isEmpty()) {
                 exportingProduct->exportedModule.dependencyParameters.insert(dep.product,
                                                                              dep.parameters);
             }
         }
         auto &productDeps = exportingProduct->exportedModule.productDependencies;
-        static const auto cmpFunc = [](const ResolvedProductConstPtr &p1,
-                const ResolvedProductConstPtr &p2) {
-            return p1->uniqueName() < p2->uniqueName();
-        };
-        std::sort(productDeps.begin(), productDeps.end(), cmpFunc);
+        std::sort(productDeps.begin(), productDeps.end());
     }
 }
 

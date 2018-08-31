@@ -343,8 +343,8 @@ void InputArtifactScanner::handleDependency(ResolvedDependency &dependency)
     } else {
         if (m_artifact->children.contains(artifactDependency))
             return;
-        safeConnect(m_artifact, artifactDependency);
-        m_artifact->childrenAddedByScanner += artifactDependency;
+        if (safeConnect(m_artifact, artifactDependency))
+            m_artifact->childrenAddedByScanner += artifactDependency;
         m_newDependencyAdded = true;
     }
 }
