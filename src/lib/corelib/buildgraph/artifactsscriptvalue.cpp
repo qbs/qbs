@@ -139,11 +139,11 @@ static bool checkAndSetArtifactsMapUpToDateFlag(const ResolvedProduct *p)
 }
 static bool checkAndSetArtifactsMapUpToDateFlag(const ResolvedModule *) { return true; }
 
-static void registerArtifactsMapAccess(const ResolvedProduct *p, ScriptEngine *e)
+static void registerArtifactsMapAccess(const ResolvedProduct *p, ScriptEngine *e, bool forceUpdate)
 {
-    e->setArtifactsMapRequested(p);
+    e->setArtifactsMapRequested(p, forceUpdate);
 }
-static void registerArtifactsMapAccess(const ResolvedModule *, ScriptEngine *) {}
+static void registerArtifactsMapAccess(const ResolvedModule *, ScriptEngine *, bool) {}
 static void registerArtifactsSetAccess(const ResolvedProduct *p, const FileTag &t, ScriptEngine *e)
 {
     e->setArtifactSetRequestedForTag(p, t);
@@ -174,10 +174,12 @@ template<class ProductOrModule> static QScriptValue js_artifactsForFileTag(
 template<class ProductOrModule> static QScriptValue js_artifacts(
         QScriptContext *ctx, ScriptEngine *engine, const ProductOrModule *productOrModule)
 {
-    registerArtifactsMapAccess(productOrModule, engine);
     QScriptValue artifactsObj = ctx->callee().property(CachedValueKey);
-    if (artifactsObj.isObject() && checkAndSetArtifactsMapUpToDateFlag(productOrModule))
+    if (artifactsObj.isObject() && checkAndSetArtifactsMapUpToDateFlag(productOrModule)) {
+        registerArtifactsMapAccess(productOrModule, engine, false);
         return artifactsObj;
+    }
+    registerArtifactsMapAccess(productOrModule, engine, true);
     artifactsObj = createArtifactsObject(productOrModule, engine);
     ctx->callee().setProperty(CachedValueKey, artifactsObj);
     const auto &map = artifactsMap(productOrModule);

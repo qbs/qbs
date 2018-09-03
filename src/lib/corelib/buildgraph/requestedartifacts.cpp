@@ -73,13 +73,12 @@ bool RequestedArtifacts::isUpToDate(const TopLevelProject *project) const
     return true;
 }
 
-void RequestedArtifacts::setAllArtifactTags(const ResolvedProduct *product)
+void RequestedArtifacts::setAllArtifactTags(const ResolvedProduct *product, bool forceUpdate)
 {
-    if (m_requestedArtifactsPerProduct.find(product->uniqueName())
-            != m_requestedArtifactsPerProduct.cend()) {
-        return;
-    }
     RequestedArtifactsPerProduct &ra = m_requestedArtifactsPerProduct[product->uniqueName()];
+    if (!ra.allTags.empty() && !forceUpdate)
+        return;
+    ra.allTags.clear();
     const ArtifactSetByFileTag artifactsMap = product->buildData->artifactsByFileTag();
     for (auto it = artifactsMap.begin(); it != artifactsMap.end(); ++it)
         ra.allTags.insert(it.key().toString());
