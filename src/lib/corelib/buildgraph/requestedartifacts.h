@@ -59,7 +59,7 @@ public:
     bool isUpToDate(const TopLevelProject *project) const;
 
     void clear() { m_requestedArtifactsPerProduct.clear(); }
-    void setAllArtifactTags(const ResolvedProduct *product);
+    void setAllArtifactTags(const ResolvedProduct *product, bool forceUpdate);
     void setArtifactsForTag(const ResolvedProduct *product, const FileTag &tag);
     void setNonExistingTagRequested(const ResolvedProduct *product, const QString &tag);
     void setArtifactsEnumerated(const ResolvedProduct *product);

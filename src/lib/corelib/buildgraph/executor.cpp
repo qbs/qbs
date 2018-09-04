@@ -446,7 +446,7 @@ bool Executor::isUpToDate(Artifact *artifact) const
     }
 
     for (Artifact *childArtifact : filterByType<Artifact>(artifact->children)) {
-        QBS_CHECK(childArtifact->timestamp().isValid());
+        QBS_CHECK(!childArtifact->alwaysUpdated || childArtifact->timestamp().isValid());
         qCDebug(lcUpToDateCheck) << "child timestamp"
                                  << childArtifact->timestamp().toString()
                                  << childArtifact->filePath();

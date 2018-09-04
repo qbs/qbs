@@ -120,9 +120,9 @@ public:
     {
         m_productsWithRequestedDependencies.insert(p);
     }
-    void setArtifactsMapRequested(const ResolvedProduct *product)
+    void setArtifactsMapRequested(const ResolvedProduct *product, bool forceUpdate)
     {
-        m_requestedArtifacts.setAllArtifactTags(product);
+        m_requestedArtifacts.setAllArtifactTags(product, forceUpdate);
     }
     void setArtifactSetRequestedForTag(const ResolvedProduct *product, const FileTag &tag)
     {

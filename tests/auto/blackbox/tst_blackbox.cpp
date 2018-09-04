@@ -4563,6 +4563,13 @@ void TestBlackbox::nonDefaultProduct()
     QVERIFY2(QFile::exists(nonDefaultAppExe), qPrintable(nonDefaultAppExe));
 }
 
+void TestBlackbox::notAlwaysUpdated()
+{
+    QDir::setCurrent(testDataDir + "/not-always-updated");
+    QCOMPARE(runQbs(), 0);
+    QCOMPARE(runQbs(), 0);
+}
+
 static void switchProfileContents(qbs::Profile &p, qbs::Settings *s, bool on)
 {
     const QString scalarKey = "leaf.scalarProp";
