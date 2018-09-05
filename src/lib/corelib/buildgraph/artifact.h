@@ -130,7 +130,7 @@ private:
 
 template<> inline QString Set<Artifact *>::toString(Artifact * const &artifact) const
 {
-    return artifact->filePath();
+    return artifact ? artifact->filePath() : QLatin1String("<null>");
 }
 template<> inline const void *uniqueAddress(const Artifact *a)
 {
