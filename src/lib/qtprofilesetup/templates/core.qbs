@@ -157,7 +157,6 @@ Module {
     cpp.cxxFlags: {
         var flags = [];
         if (qbs.toolchain.contains('msvc')) {
-            flags.push('/Zm200');
             if (versionMajor < 5)
                 flags.push('/Zc:wchar_t-');
         }
