@@ -135,7 +135,6 @@ private:
     void doApply(const QString &propertyName, Item *item, JSSourceValuePtr value,
                const JSSourceValuePtr &conditionalValue)
     {
-        QBS_ASSERT(!value || value->file() == conditionalValue->file(), return);
         if (!value) {
             value = JSSourceValue::create(true);
             value->setFile(conditionalValue->file());

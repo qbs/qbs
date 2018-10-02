@@ -1357,6 +1357,37 @@ void TestLanguage::importCollection()
     QVERIFY(!exceptionCaught);
 }
 
+void TestLanguage::inheritedPropertiesItems_data()
+{
+    QTest::addColumn<QString>("buildVariant");
+    QTest::addColumn<QString>("productName");
+    QTest::newRow("debug build") << "debug" << "product_debug";
+    QTest::newRow("release build") << "release" << "product_release";
+}
+
+void TestLanguage::inheritedPropertiesItems()
+{
+    bool exceptionCaught = false;
+    try {
+        SetupProjectParameters params = defaultParameters;
+        QFETCH(QString, buildVariant);
+        QFETCH(QString, productName);
+        params.setProjectFilePath
+                (testProject("inherited-properties-items/inherited-properties-items.qbs"));
+        params.setOverriddenValues(QVariantMap{std::make_pair("qbs.buildVariant", buildVariant)});
+        TopLevelProjectPtr project = loader->loadProject(params);
+        QVERIFY(!!project);
+        QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+        QCOMPARE(products.size(), 1);
+        QVERIFY(!!products.value(productName));
+    }
+    catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QVERIFY(!exceptionCaught);
+}
+
 void TestLanguage::invalidBindingInDisabledItem()
 {
     bool exceptionCaught = false;
