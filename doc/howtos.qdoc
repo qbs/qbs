@@ -45,6 +45,7 @@
     \li \l{How do I apply C/C++ preprocessor macros to only a subset of the files in my product?}
     \li \l{How do I make the state of my Git repository available to my source files?}
     \li \l{How do I limit the number of concurrent jobs for the linker only?}
+    \li \l{How do I add QML files to a project?}
     \endlist
 
     \section1 How do I build a Qt-based project?
@@ -415,4 +416,27 @@
     Job limits set on the command line override those from the settings, which in turn
     override the ones defined within a project. Use the \c{--enforce-project-job-limits}
     option to give the job limits defined via \c JobLimit items maximum precedence.
+
+    \section1 How do I add QML files to a project?
+
+    The simplest way to add QML files to a project is to add them to a
+    \l {The Qt Resource System}{resource file}:
+
+    \code
+    QtGuiApplication {
+        // ...
+
+        files: "main.cpp"
+
+        Group {
+            prefix: "qml/"
+            files: ["main.qml", "HomePage.qml"]
+            fileTags: ["qml", "qt.core.resource_data"]
+        }
+    }
+    \endcode
+
+    In the example above, we declare each QML file as having the
+    \l {filetags-qtcore}{"qt.core.resource_data"} file tag. This ensures
+    that it is added to a generated resource file.
 */
