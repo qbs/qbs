@@ -50,7 +50,6 @@
 #include <QtCore/qstring.h>
 #include <QtCore/qvariant.h>
 
-#include <ctime>
 #include <memory>
 #include <type_traits>
 #include <unordered_map>
@@ -275,19 +274,6 @@ template<> struct PPHelper<long>
         qint64 v;
         pool->m_stream >> v;
         value = long(v);
-    }
-};
-
-template<typename T>
-struct PPHelper<T, std::enable_if_t<std::is_same<T, std::time_t>::value
-        && !std::is_same<T, long>::value>>
-{
-    static void store(std::time_t value, PersistentPool *pool) { pool->m_stream << qint64(value); }
-    static void load(std::time_t &value, PersistentPool *pool)
-    {
-        qint64 v;
-        pool->m_stream >> v;
-        value = static_cast<std::time_t>(v);
     }
 };
 
