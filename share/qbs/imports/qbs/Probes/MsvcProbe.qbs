@@ -82,6 +82,8 @@ PathProbe {
         var inclPath = FileInfo.joinPaths(clParentDir, "INCLUDE");
         if (!File.exists(inclPath))
             inclPath = FileInfo.joinPaths(clParentDir, "..", "INCLUDE");
+        if (!File.exists(inclPath))
+            inclPath = FileInfo.joinPaths(clParentDir, "..", "..", "INCLUDE");
         if (File.exists(inclPath))
             includePaths = [inclPath];
 
