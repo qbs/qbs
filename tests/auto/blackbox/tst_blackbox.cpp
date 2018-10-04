@@ -1646,7 +1646,7 @@ void TestBlackbox::cxxLanguageVersion()
     QString mapKey;
     if (version == "c++17" && m_qbsStdout.contains("is even newer MSVC: true"))
         mapKey = "msvc-brandnew";
-    if (m_qbsStdout.contains("is newer MSVC: true"))
+    else if (m_qbsStdout.contains("is newer MSVC: true"))
         mapKey = "msvc-new";
     else if (m_qbsStdout.contains("is older MSVC: true"))
         mapKey = "msvc_old";
