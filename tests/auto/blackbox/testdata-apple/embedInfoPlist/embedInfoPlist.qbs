@@ -9,7 +9,7 @@ Project {
         files: ["main.m"]
         cpp.frameworks: ["Foundation"]
         cpp.rpaths: [cpp.rpathOrigin]
-        cpp.minimumMacosVersion: "10.5"
+        cpp.minimumMacosVersion: "10.6"
         bundle.infoPlist: ({
             "QBS": "org.qt-project.qbs.testdata.embedInfoPlist"
         })

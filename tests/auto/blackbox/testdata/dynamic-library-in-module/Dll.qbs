@@ -6,7 +6,7 @@ DynamicLibrary {
     Properties {
         condition: qbs.targetOS.contains("darwin")
         bundle.isBundle: false
-        cpp.minimumMacosVersion: "10.5" // For -rpath
+        cpp.minimumMacosVersion: "10.7" // For -rpath
     }
 
     Group {

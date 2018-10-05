@@ -3,6 +3,7 @@ import qbs.Utilities
 
 Project {
     minimumQbsVersion: "1.8"
+    property bool enableX86
 
     CppApplication {
         Depends { name: "singlelib" }
@@ -11,7 +12,7 @@ Project {
         targetName: "singleapp"
         files: ["app.c"]
         cpp.rpaths: [cpp.rpathOrigin + "/../../../"]
-        cpp.minimumMacosVersion: "10.5"
+        cpp.minimumMacosVersion: "10.6"
 
         // Turn off multiplexing
         aggregate: false
@@ -31,7 +32,7 @@ Project {
         targetName: "singleapp_agg"
         files: ["app.c"]
         cpp.rpaths: [cpp.rpathOrigin + "/../../../"]
-        cpp.minimumMacosVersion: "10.5"
+        cpp.minimumMacosVersion: "10.6"
 
         // Force aggregation when not needed
         aggregate: true
@@ -72,7 +73,7 @@ Project {
         targetName: "multiapp"
         files: ["app.c"]
         cpp.rpaths: [cpp.rpathOrigin + "/../../../"]
-        cpp.minimumMacosVersion: "10.5"
+        cpp.minimumMacosVersion: "10.6"
 
         Group {
             fileTagsFilter: ["bundle.content"]
@@ -88,8 +89,10 @@ Project {
         targetName: "fatmultiapp"
         files: ["app.c"]
         cpp.rpaths: [cpp.rpathOrigin + "/../../../"]
-        cpp.minimumMacosVersion: "10.5"
-        qbs.architectures: ["x86", "x86_64"]
+        cpp.minimumMacosVersion: "10.6"
+        qbs.architectures: project.enableX86 ? ["x86", "x86_64"] : ["x86_64"]
+        qbs.architecture: "x86_64"
+        multiplexByQbsProperties: project.enableX86 ? ["architectures"] : []
 
         Group {
             fileTagsFilter: ["bundle.content"]
@@ -105,8 +108,8 @@ Project {
         targetName: "fatmultiappmultivariant"
         files: ["app.c"]
         cpp.rpaths: [cpp.rpathOrigin + "/../../../"]
-        cpp.minimumMacosVersion: "10.5"
-        qbs.architectures: ["x86", "x86_64"]
+        cpp.minimumMacosVersion: "10.6"
+        qbs.architectures: project.enableX86 ? ["x86", "x86_64"] : ["x86_64"]
         qbs.buildVariants: ["debug", "profile"]
 
         Group {
@@ -124,7 +127,7 @@ Project {
         files: ["lib.c"]
         cpp.sonamePrefix: qbs.targetOS.contains("darwin") ? "@rpath" : undefined
         cpp.defines: ["VARIANT=" + Utilities.cStringQuote(qbs.buildVariant)]
-        qbs.architectures: ["x86", "x86_64"]
+        qbs.architectures: project.enableX86 ? ["x86", "x86_64"] : ["x86_64"]
         qbs.buildVariants: ["release", "debug", "profile"]
 
         Group {
@@ -142,7 +145,7 @@ Project {
         files: ["lib.c"]
         cpp.sonamePrefix: qbs.targetOS.contains("darwin") ? "@rpath" : undefined
         cpp.defines: ["VARIANT=" + Utilities.cStringQuote(qbs.buildVariant)]
-        qbs.architectures: ["x86", "x86_64"]
+        qbs.architectures: project.enableX86 ? ["x86", "x86_64"] : ["x86_64"]
         qbs.buildVariants: ["debug", "profile"]
 
         Group {
@@ -160,7 +163,7 @@ Project {
         files: ["lib.c"]
         cpp.sonamePrefix: "@rpath"
         cpp.defines: ["VARIANT=" + Utilities.cStringQuote(qbs.buildVariant)]
-        qbs.architectures: ["x86", "x86_64"]
+        qbs.architectures: project.enableX86 ? ["x86", "x86_64"] : ["x86_64"]
         qbs.buildVariants: ["debug", "profile"]
         Group {
             fileTagsFilter: ["bundle.content"]
@@ -175,7 +178,7 @@ Project {
         files: ["lib.c"]
         cpp.sonamePrefix: "@rpath"
         cpp.defines: ["VARIANT=" + Utilities.cStringQuote(qbs.buildVariant)]
-        qbs.architectures: ["x86", "x86_64"]
+        qbs.architectures: project.enableX86 ? ["x86", "x86_64"] : ["x86_64"]
         qbs.buildVariants: ["debug", "profile"]
         Group {
             fileTagsFilter: ["bundle.content"]
