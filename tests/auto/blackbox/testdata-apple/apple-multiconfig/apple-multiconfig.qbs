@@ -92,7 +92,8 @@ Project {
         cpp.minimumMacosVersion: "10.6"
         qbs.architectures: project.enableX86 ? ["x86", "x86_64"] : ["x86_64"]
         qbs.architecture: "x86_64"
-        multiplexByQbsProperties: project.enableX86 ? ["architectures"] : []
+        multiplexByQbsProperties: project.enableX86 ? ["architectures", "buildVariants"]
+                                                    : ["buildVariants"]
 
         Group {
             fileTagsFilter: ["bundle.content"]
