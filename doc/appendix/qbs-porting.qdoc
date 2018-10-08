@@ -144,15 +144,16 @@
     }
     \endcode
 
-    \section2 HEADERS, SOURCES, FORMS, RESOURCES
+    \section2 HEADERS, SOURCES, FORMS, RESOURCES, OTHER_FILES
 
-    Include header, source, form, and resource files as values of
-    \l{Product::files}{Product.files} property:
+    Include header, source, form, and resource files as well as any
+    other files as values of a \l{Product::files}{Product.files}
+    or \l{Group::files}{Group.files}  property:
 
     \code
     QtApplication {
         name: "myapp"
-        files: ["myapp.h", "myapp.cpp", "myapp.ui", "myapp.qrc"]
+        files: ["myapp.h", "myapp.cpp", "myapp.ui", "myapp.qrc", "readme.txt"]
     }
     \endcode
 
