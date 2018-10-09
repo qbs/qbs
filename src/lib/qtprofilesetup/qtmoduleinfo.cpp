@@ -643,6 +643,34 @@ static QList<QByteArray> getPriFileContentsRecursively(const Profile &profile,
     return lines;
 }
 
+static QStringList extractPaths(const QByteArray &rhs, const QString &filePath)
+{
+    QStringList paths;
+    int startIndex = 0;
+    for (;;) {
+        while (startIndex < rhs.size() && rhs.at(startIndex) == ' ')
+            ++startIndex;
+        if (startIndex >= rhs.size())
+            break;
+        int endIndex;
+        if (rhs.at(startIndex) == '"') {
+            ++startIndex;
+            endIndex = rhs.indexOf('"', startIndex);
+            if (endIndex == -1) {
+                qDebug("Unmatched quote in file '%s'", qPrintable(filePath));
+                break;
+            }
+        } else {
+            endIndex = rhs.indexOf(' ', startIndex + 1);
+            if (endIndex == -1)
+                endIndex = rhs.size();
+        }
+        paths << QString::fromLocal8Bit(rhs.mid(startIndex, endIndex - startIndex));
+        startIndex = endIndex + 1;
+    }
+    return paths;
+}
+
 QList<QtModuleInfo> allQt5Modules(const Profile &profile, const QtEnvironment &qtEnvironment)
 {
     Internal::Set<QString> nonExistingPrlFiles;
@@ -705,7 +733,7 @@ QList<QtModuleInfo> allQt5Modules(const Profile &profile, const QtEnvironment &q
                         hasV2 = true;
                 }
             } else if (key.endsWith(".includes")) {
-                moduleInfo.includePaths = QString::fromLocal8Bit(value).split(QLatin1Char(' '));
+                moduleInfo.includePaths = extractPaths(value, dit.filePath());
                 for (auto &includePath : moduleInfo.includePaths) {
                     includePath
                             .replace(QLatin1String("$$QT_MODULE_INCLUDE_BASE"),
