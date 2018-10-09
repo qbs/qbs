@@ -116,6 +116,20 @@ Module {
         }
         return defines;
     }
+    cpp.driverFlags: {
+        var flags = [];
+        if (qbs.toolchain.contains("gcc")) {
+            if (config.contains("sanitize_address"))
+                flags.push("-fsanitize=address");
+            if (config.contains("sanitize_undefined"))
+                flags.push("-fsanitize=undefined");
+            if (config.contains("sanitize_thread"))
+                flags.push("-fsanitize=thread");
+            if (config.contains("sanitize_memory"))
+                flags.push("-fsanitize=memory");
+        }
+        return flags;
+    }
     cpp.includePaths: {
         var paths = @includes@;
         paths.push(mkspecPath, generatedHeadersDir);
