@@ -690,21 +690,36 @@ static QStringList fillEntryPointLibs(const QtEnvironment &qtEnvironment, const 
         bool debug)
 {
     QStringList result;
-    QString qtmain = qtEnvironment.libraryPath + QLatin1Char('/');
     const bool isMinGW = qtEnvironment.isForMinGw();
-    if (isMinGW)
-        qtmain += QLatin1String("lib");
-    qtmain += QLatin1String("qtmain") + qtEnvironment.qtLibInfix;
-    if (debug)
-        qtmain += QLatin1Char('d');
-    if (isMinGW) {
-        qtmain += QLatin1String(".a");
-    } else {
-        qtmain += QLatin1String(".lib");
-        if (qtVersion >= Version(5, 4, 0))
-            result << QLatin1String("Shell32.lib");
+
+    // Some Linux distributions rename the qtmain library.
+    QStringList qtMainCandidates(QLatin1String("qtmain"));
+    if (isMinGW && qtEnvironment.qtMajorVersion == 5)
+        qtMainCandidates << QLatin1String("qt5main");
+
+    for (const QString &baseNameCandidate : qtMainCandidates) {
+        QString qtmain = qtEnvironment.libraryPath + QLatin1Char('/');
+        if (isMinGW)
+            qtmain += QLatin1String("lib");
+        qtmain += baseNameCandidate + qtEnvironment.qtLibInfix;
+        if (debug)
+            qtmain += QLatin1Char('d');
+        if (isMinGW) {
+            qtmain += QLatin1String(".a");
+        } else {
+            qtmain += QLatin1String(".lib");
+            if (qtVersion >= Version(5, 4, 0))
+                result << QLatin1String("Shell32.lib");
+        }
+        if (QFile::exists(qtmain)) {
+            result << qtmain;
+            break;
+        }
     }
-    result << qtmain;
+    if (result.isEmpty()) {
+        qDebug("Warning: Could not find the qtmain library. "
+               "You will not be able to link Qt applications.");
+    }
     return result;
 }
 
