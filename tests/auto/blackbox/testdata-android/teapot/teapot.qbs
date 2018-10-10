@@ -50,6 +50,7 @@ Project {
             files: ["*.cpp", "*.h"].concat(
                 !File.exists(ndkHelperProbe.dir + "/gl3stub.cpp") ? ["gl3stub.c"] : [])
         }
+        Properties { condition: qbs.toolchain.contains("clang"); Android.ndk.appStl: "c++_shared" }
         Android.ndk.appStl: "gnustl_shared"
         cpp.cxxLanguageVersion: "c++11"
 
@@ -115,6 +116,7 @@ Project {
 
         FileTagger { patterns: ["*.inl"]; fileTags: ["hpp"] }
 
+        Properties { condition: qbs.toolchain.contains("clang"); Android.ndk.appStl: "c++_shared" }
         Android.ndk.appStl: "gnustl_shared"
         cpp.cxxLanguageVersion: "c++11"
         cpp.dynamicLibraries: ["log", "android", "EGL", "GLESv2"]

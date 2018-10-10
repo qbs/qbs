@@ -46,6 +46,7 @@
 #include <tools/settings.h>
 #include <tools/version.h>
 
+#include <QtCore/qbytearraylist.h>
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qdir.h>
 #include <QtCore/qdiriterator.h>
@@ -65,10 +66,7 @@ static QStringList expectedArchs()
 {
     return QStringList()
             << QStringLiteral("arm64")
-            << QStringLiteral("armv5te")
             << QStringLiteral("armv7a")
-            << QStringLiteral("mips")
-            << QStringLiteral("mips64")
             << QStringLiteral("x86")
             << QStringLiteral("x86_64");
 }
@@ -181,6 +179,29 @@ static QString maximumPlatform(const QString &platform1, const QString &platform
     return prefix + QString::number(std::max(value1, value2));
 }
 
+static QString getToolchainType(const QString &ndkDirPath)
+{
+    QFile sourceProperties(ndkDirPath + qls("/source.properties"));
+    if (!sourceProperties.open(QIODevice::ReadOnly))
+        return QLatin1String("gcc"); // <= r10
+    while (!sourceProperties.atEnd()) {
+        const QByteArray curLine = sourceProperties.readLine().simplified();
+        static const QByteArray prefix = "Pkg.Revision = ";
+        if (!curLine.startsWith(prefix))
+            continue;
+        qbs::Version ndkVersion = qbs::Version::fromString(
+                    QString::fromLatin1(curLine.mid(prefix.size())));
+        if (!ndkVersion.isValid()) {
+            qWarning("Unexpected format of NDK revision string in '%s'",
+                     qPrintable(sourceProperties.fileName()));
+            return QLatin1String("clang");
+        }
+        return qls(ndkVersion.majorVersion() >= 18 ? "clang" : "gcc");
+    }
+    qWarning("No revision entry found in '%s'", qPrintable(sourceProperties.fileName()));
+    return QLatin1String("clang");
+}
+
 static void setupNdk(qbs::Settings *settings, const QString &profileName, const QString &ndkDirPath,
                      const QString &qtSdkDirPath)
 {
@@ -194,7 +215,7 @@ static void setupNdk(qbs::Settings *settings, const QString &profileName, const 
         mainProfile.setValue(qls("Android.ndk.ndkDir"), QDir::cleanPath(ndkDirPath));
         mainProfile.setValue(qls("Android.sdk.ndkDir"), QDir::cleanPath(ndkDirPath));
     }
-    mainProfile.setValue(qls("qbs.toolchain"), QStringList() << qls("gcc"));
+    mainProfile.setValue(qls("qbs.toolchainType"), getToolchainType(ndkDirPath));
     const QStringList archs = expectedArchs();
     const QtInfoPerArch infoPerArch = getQtAndroidInfo(qtSdkDirPath);
     const QStringList archsForProfile = infoPerArch.empty()

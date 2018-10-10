@@ -94,12 +94,12 @@
     \list
         \li \c "c++_shared"
         \li \c "c++_static"
-        \li \c "gabi++_shared"
-        \li \c "gabi++_static"
-        \li \c "gnustl_shared"
-        \li \c "gnustl_static"
-        \li \c "stlport_shared"
-        \li \c "stlport_static"
+        \li \c "gabi++_shared" (until r17)
+        \li \c "gabi++_static" (until r17)
+        \li \c "gnustl_shared" (until r17)
+        \li \c "gnustl_static" (until r17)
+        \li \c "stlport_shared" (until r17)
+        \li \c "stlport_static" (until r17)
         \li \c "system"
     \endlist
 
