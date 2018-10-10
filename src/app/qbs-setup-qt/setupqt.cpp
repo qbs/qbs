@@ -337,11 +337,12 @@ template <typename T> bool areProfilePropertiesIncompatible(const T &set1, const
     return set1.size() > 0 && set2.size() > 0 && set1 != set2;
 }
 
-static QStringList qbsToolchainFromQtMkspec(const QString &mkspec)
+static QStringList qbsToolchainFromQtMkspec(const QtEnvironment &qtEnv)
 {
+    const QString mkspec = qtEnv.mkspecName;
     if (mkspec.contains(QLatin1String("-msvc")))
         return QStringList() << QLatin1String("msvc");
-    if (mkspec == QLatin1String("win32-g++"))
+    if (qtEnv.isForMinGw())
         return QStringList() << QLatin1String("mingw") << QLatin1String("gcc");
 
     if (mkspec.contains(QLatin1String("-clang")))
@@ -365,7 +366,7 @@ static Match compatibility(const EnhancedQtEnvironment &env, const Profile &tool
     const auto toolchainNames = Internal::Set<QString>::fromList(
                 toolchainProfile.value(QLatin1String("qbs.toolchain")).toStringList());
     const auto mkspecToolchainNames = Internal::Set<QString>::fromList(
-                qbsToolchainFromQtMkspec(env.mkspecName));
+                qbsToolchainFromQtMkspec(env));
     if (areProfilePropertiesIncompatible(toolchainNames, mkspecToolchainNames)) {
         auto intersection = toolchainNames;
         intersection.intersect(mkspecToolchainNames);
@@ -377,8 +378,7 @@ static Match compatibility(const EnhancedQtEnvironment &env, const Profile &tool
 
     const auto targetPlatform = toolchainProfile.value(
                 QLatin1String("qbs.targetPlatform")).toString();
-    if (!targetPlatform.isEmpty()
-            && targetPlatform != qbsTargetPlatformFromQtMkspec(env.mkspecName))
+    if (!targetPlatform.isEmpty() && targetPlatform != qbsTargetPlatformFromQtMkspec(env))
         return MatchNone;
 
     const QString toolchainArchitecture = toolchainProfile.value(QLatin1String("qbs.architecture"))

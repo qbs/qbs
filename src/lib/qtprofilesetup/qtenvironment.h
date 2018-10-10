@@ -48,6 +48,9 @@ namespace qbs {
 
 class QBS_EXPORT QtEnvironment {
 public:
+    inline bool targetsDesktopWindows() const;
+    inline bool isForMinGw() const;
+
     QString installPrefixPath;
     QString libraryPath;
     QString includePath;
@@ -81,6 +84,17 @@ public:
     bool staticBuild = false;
     bool frameworkBuild = false;
 };
+
+bool QtEnvironment::targetsDesktopWindows() const
+{
+    return mkspecName.startsWith(QLatin1String("win32-")) || isForMinGw();
+}
+
+bool QtEnvironment::isForMinGw() const
+{
+    return mkspecName.startsWith(QLatin1String("win32-g++"))
+            || mkspecName.startsWith(QLatin1String("mingw"));
+}
 
 } // namespace qbs
 

@@ -430,8 +430,7 @@ static void replaceSpecialValues(QByteArray *content, const Profile &profile,
 {
     QHash<QByteArray, QByteArray> dict;
     dict.insert("archs", utf8JSLiteral(extractQbsArchs(module, qtEnvironment)));
-    dict.insert("targetPlatform", utf8JSLiteral(qbsTargetPlatformFromQtMkspec(
-                                                      qtEnvironment.mkspecName)));
+    dict.insert("targetPlatform", utf8JSLiteral(qbsTargetPlatformFromQtMkspec(qtEnvironment)));
     dict.insert("config", utf8JSLiteral(qtEnvironment.configItems));
     dict.insert("qtConfig", utf8JSLiteral(qtEnvironment.qtConfigItems));
     dict.insert("binPath", utf8JSLiteral(qtEnvironment.binaryPath));
@@ -648,7 +647,7 @@ static QString guessMinimumWindowsVersion(const QtEnvironment &qt)
     if (qt.mkspecName.startsWith(QLatin1String("winrt-")))
         return QLatin1String("10.0");
 
-    if (!qt.mkspecName.startsWith(QLatin1String("win32-")))
+    if (!qt.targetsDesktopWindows())
         return QString();
 
     if (qt.architecture == QLatin1String("x86_64")
@@ -692,7 +691,7 @@ static QStringList fillEntryPointLibs(const QtEnvironment &qtEnvironment, const 
 {
     QStringList result;
     QString qtmain = qtEnvironment.libraryPath + QLatin1Char('/');
-    const bool isMinGW = qtEnvironment.mkspecName.startsWith(QLatin1String("win32-g++"));
+    const bool isMinGW = qtEnvironment.isForMinGw();
     if (isMinGW)
         qtmain += QLatin1String("lib");
     qtmain += QLatin1String("qtmain") + qtEnvironment.qtLibInfix;
@@ -811,11 +810,12 @@ void doSetupQtProfile(const QString &profileName, Settings *settings,
     createModules(profile, settings, qtEnvironment);
 }
 
-QString qbsTargetPlatformFromQtMkspec(const QString &mkspec)
+QString qbsTargetPlatformFromQtMkspec(const QtEnvironment &qtEnv)
 {
+    QString mkspec = qtEnv.mkspecName;
     int idx = mkspec.lastIndexOf(QLatin1Char('/'));
     if (idx != -1)
-        return qbsTargetPlatformFromQtMkspec(mkspec.mid(idx + 1));
+        mkspec = mkspec.mid(idx + 1);
     if (mkspec.startsWith(QLatin1String("aix-")))
         return QLatin1String("aix");
     if (mkspec.startsWith(QLatin1String("android-")))
@@ -855,7 +855,7 @@ QString qbsTargetPlatformFromQtMkspec(const QString &mkspec)
         return QLatin1String("solaris");
     if (mkspec.startsWith(QLatin1String("vxworks-")))
         return QLatin1String("vxworks");
-    if (mkspec.startsWith(QLatin1String("win32-")) || mkspec.startsWith(QLatin1String("winrt-")))
+    if (qtEnv.targetsDesktopWindows() || mkspec.startsWith(QLatin1String("winrt-")))
         return QLatin1String("windows");
     return QString();
 }
