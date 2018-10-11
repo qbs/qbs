@@ -181,7 +181,7 @@ void TestBlackboxAndroid::android_data()
     });
     const bool usesClang = p.value(QLatin1String("qbs.toolchainType")).toString() == "clang";
     const auto cxxLibPath = [usesClang](const QByteArray &oldcxxLib) {
-        return "lib/${ARCH}/" + (usesClang ? "libc++_shared.so" : oldcxxLib);
+        return QByteArray("lib/${ARCH}/") + (usesClang ? "libc++_shared.so" : oldcxxLib);
     };
 
     auto expandArchs = [] (const QByteArrayList &archs, const QByteArrayList &lst) {
