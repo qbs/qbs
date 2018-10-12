@@ -20,6 +20,6 @@ CppApplication {
     Properties {
         condition: qbs.targetOS.contains("macos")
         cpp.frameworks: "Foundation"
-        cpp.minimumMacosVersion: "10.6"
+        cpp.minimumMacosVersion: "10.7"
     }
 }

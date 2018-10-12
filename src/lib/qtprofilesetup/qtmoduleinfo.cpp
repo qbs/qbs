@@ -280,6 +280,25 @@ static QStringList makeList(const QByteArray &s)
     return QString::fromLatin1(s).split(QLatin1Char(' '), QString::SkipEmptyParts);
 }
 
+static QString guessLibraryFilePath(const QString &prlFilePath, const QString &libDir,
+                                    const QtEnvironment &qtEnv)
+{
+    const QString baseName = QFileInfo(prlFilePath).baseName();
+    const QStringList prefixCandidates{QString(), QLatin1String("lib")};
+    const QStringList suffixCandidates{QLatin1String("so.") + qtEnv.qtVersion,
+                QLatin1String("so"), QLatin1String("a"), QLatin1String("lib"),
+                QLatin1String("dll.a")};
+    for (const QString &prefix : prefixCandidates) {
+        for (const QString &suffix : suffixCandidates) {
+            const QString candidate = libDir + QLatin1Char('/') + prefix + baseName
+                    + QLatin1Char('.') + suffix;
+            if (QFile::exists(candidate))
+                return candidate;
+        }
+    }
+    return QString();
+}
+
 void QtModuleInfo::setupLibraries(const QtEnvironment &qtEnv, bool debugBuild,
                                   Internal::Set<QString> *nonExistingPrlFiles)
 {
@@ -337,19 +356,17 @@ void QtModuleInfo::setupLibraries(const QtEnvironment &qtEnv, bool debugBuild,
     if (isNonStaticQt4OnWindows)
         prlFilePath.chop(1); // The prl file base name does *not* contain the version number...
     prlFilePath.append(QLatin1String(".prl"));
-    if (nonExistingPrlFiles->contains(prlFilePath))
-        return;
     QFile prlFile(prlFilePath);
     if (!prlFile.open(QIODevice::ReadOnly)) {
-        // We can't error out here, as some modules in a self-built Qt don't have the expected
-        // file names. Real-life example: "libQt0Feedback.prl". This is just too stupid
-        // to work around, so let's ignore it.
-        if (mustExist) {
-            qDebug("Skipping prl file '%s', because it cannot be opened (%s).",
-                   qPrintable(prlFilePath),
-                   qPrintable(prlFile.errorString()));
+        libFilePath = guessLibraryFilePath(prlFilePath, libDir, qtEnv);
+        if (nonExistingPrlFiles->insert(prlFilePath).second) {
+            if (mustExist && libFilePath.isEmpty()) {
+                qDebug("Could not open prl file '%s' for module '%s' (%s), and failed to deduce "
+                       "the library file path. This module will likely not be usable by qbs.",
+                       qPrintable(prlFilePath), qPrintable(name),
+                       qPrintable(prlFile.errorString()));
+            }
         }
-        nonExistingPrlFiles->insert(prlFilePath);
         return;
     }
     const QList<QByteArray> prlLines = prlFile.readAll().split('\n');
@@ -643,6 +660,34 @@ static QList<QByteArray> getPriFileContentsRecursively(const Profile &profile,
     return lines;
 }
 
+static QStringList extractPaths(const QByteArray &rhs, const QString &filePath)
+{
+    QStringList paths;
+    int startIndex = 0;
+    for (;;) {
+        while (startIndex < rhs.size() && rhs.at(startIndex) == ' ')
+            ++startIndex;
+        if (startIndex >= rhs.size())
+            break;
+        int endIndex;
+        if (rhs.at(startIndex) == '"') {
+            ++startIndex;
+            endIndex = rhs.indexOf('"', startIndex);
+            if (endIndex == -1) {
+                qDebug("Unmatched quote in file '%s'", qPrintable(filePath));
+                break;
+            }
+        } else {
+            endIndex = rhs.indexOf(' ', startIndex + 1);
+            if (endIndex == -1)
+                endIndex = rhs.size();
+        }
+        paths << QString::fromLocal8Bit(rhs.mid(startIndex, endIndex - startIndex));
+        startIndex = endIndex + 1;
+    }
+    return paths;
+}
+
 QList<QtModuleInfo> allQt5Modules(const Profile &profile, const QtEnvironment &qtEnvironment)
 {
     Internal::Set<QString> nonExistingPrlFiles;
@@ -705,7 +750,7 @@ QList<QtModuleInfo> allQt5Modules(const Profile &profile, const QtEnvironment &q
                         hasV2 = true;
                 }
             } else if (key.endsWith(".includes")) {
-                moduleInfo.includePaths = QString::fromLocal8Bit(value).split(QLatin1Char(' '));
+                moduleInfo.includePaths = extractPaths(value, dit.filePath());
                 for (auto &includePath : moduleInfo.includePaths) {
                     includePath
                             .replace(QLatin1String("$$QT_MODULE_INCLUDE_BASE"),

@@ -5,6 +5,7 @@ Project {
     StaticLibrary {
         name: "native-glue"
         qbs.targetPlatform: "android"
+        cpp.warningLevel: "none"
         Depends { name: "cpp" }
         Group {
             id: glue_sources
@@ -22,6 +23,7 @@ Project {
     StaticLibrary {
         name: "ndk-helper"
         qbs.targetPlatform: "android"
+        cpp.warningLevel: "none"
         Depends { name: "Android.ndk" }
         Depends { name: "cpp" }
         Depends { name: "native-glue" }
@@ -49,6 +51,7 @@ Project {
             files: ["*.cpp", "*.h"].concat(
                 !File.exists(ndkHelperProbe.dir + "/gl3stub.cpp") ? ["gl3stub.c"] : [])
         }
+        Properties { condition: qbs.toolchain.contains("clang"); Android.ndk.appStl: "c++_shared" }
         Android.ndk.appStl: "gnustl_shared"
         cpp.cxxLanguageVersion: "c++11"
 
@@ -133,6 +136,7 @@ Project {
         Android.sdk.apkBaseName: name
         Android.sdk.packageName: "com.sample.teapot"
         Android.sdk.sourceSetDir: teapotProbe.dir
+        Properties { condition: qbs.toolchain.contains("clang"); Android.ndk.appStl: "c++_shared" }
         Android.ndk.appStl: "gnustl_shared"
         cpp.cxxLanguageVersion: "c++11"
         cpp.dynamicLibraries: ["log", "android", "EGL", "GLESv2"]

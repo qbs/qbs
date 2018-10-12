@@ -113,6 +113,8 @@ private slots:
     void idUsage();
     void idUniqueness();
     void importCollection();
+    void inheritedPropertiesItems_data();
+    void inheritedPropertiesItems();
     void invalidBindingInDisabledItem();
     void invalidOverrides();
     void invalidOverrides_data();

@@ -180,6 +180,10 @@ void TestBlackboxAndroid::android_data()
                 .replace("armv5te", "armeabi")
                 .replace("arm64", "arm64-v8a");
     });
+    const bool usesClang = p.value(QLatin1String("qbs.toolchainType")).toString() == "clang";
+    const auto cxxLibPath = [usesClang](const QByteArray &oldcxxLib) {
+        return QByteArray("lib/${ARCH}/") + (usesClang ? "libc++_shared.so" : oldcxxLib);
+    };
 
     auto expandArchs = [] (const QByteArrayList &archs, const QByteArrayList &lst) {
         const QByteArray &archPlaceHolder = "${ARCH}";
@@ -210,7 +214,7 @@ void TestBlackboxAndroid::android_data()
                        "assets/Shaders/ShaderPlain.fsh",
                        "assets/Shaders/VS_ShaderPlain.vsh",
                        "lib/${ARCH}/libgdbserver.so",
-                       "lib/${ARCH}/libgnustl_shared.so",
+                       cxxLibPath("libgnustl_shared.so"),
                        "lib/${ARCH}/libTeapotNativeActivity.so",
                        "res/layout/widgets.xml"}));
     QTest::newRow("no native")
@@ -244,23 +248,23 @@ void TestBlackboxAndroid::android_data()
                        "lib/${ARCH}/libgdbserver.so",
                        "lib/${ARCH}/liblib1.so",
                        "lib/${ARCH}/liblib2.so",
-                       "lib/${ARCH}/libstlport_shared.so"}));
+                       cxxLibPath("libstlport_shared.so")}));
     QByteArrayList expectedFiles1 = (commonFiles
-            + expandArchs(QByteArrayList{"mips", "x86"}, {
+            + expandArchs(QByteArrayList{"armeabi-v7a", "x86"}, {
                               "resources.arsc",
                               "lib/${ARCH}/libgdbserver.so",
                               "lib/${ARCH}/libp1lib1.so",
-                              "lib/${ARCH}/libstlport_shared.so"})
+                              cxxLibPath("libstlport_shared.so")})
             + expandArchs(QByteArrayList{archs}, {
                               "resources.arsc",
                               "lib/${ARCH}/libgdbserver.so",
                               "lib/${ARCH}/libp1lib2.so",
-                              "lib/${ARCH}/libstlport_shared.so"})).toSet().toList();
+                              cxxLibPath("libstlport_shared.so")})).toSet().toList();
     QByteArrayList expectedFiles2 = commonFiles + expandArchs(archs, {
                        "lib/${ARCH}/libgdbserver.so",
                        "lib/${ARCH}/libp2lib1.so",
                        "lib/${ARCH}/libp2lib2.so",
-                       "lib/${ARCH}/libstlport_shared.so"});
+                       cxxLibPath("libstlport_shared.so")});
     QTest::newRow("multiple apks")
             << "multiple-apks-per-project"
             << (QStringList() << "twolibs1" << "twolibs2")

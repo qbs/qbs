@@ -1671,7 +1671,7 @@ void TestBlackbox::cxxLanguageVersion()
     QString mapKey;
     if (version == "c++17" && m_qbsStdout.contains("is even newer MSVC: true"))
         mapKey = "msvc-brandnew";
-    if (m_qbsStdout.contains("is newer MSVC: true"))
+    else if (m_qbsStdout.contains("is newer MSVC: true"))
         mapKey = "msvc-new";
     else if (m_qbsStdout.contains("is older MSVC: true"))
         mapKey = "msvc_old";
@@ -6212,7 +6212,7 @@ void TestBlackbox::minimumSystemVersion_data()
 
     const QString specific = []() -> QString {
         if (HostOsInfo::isMacosHost())
-            return "__MAC_OS_X_VERSION_MIN_REQUIRED=1060\nversion 10.6\n";
+            return "__MAC_OS_X_VERSION_MIN_REQUIRED=1070\nversion 10.7\n";
 
         if (HostOsInfo::isWindowsHost())
             return "WINVER=1536\n6.00 operating system version\n6.00 subsystem version\n";
@@ -6228,8 +6228,8 @@ void TestBlackbox::minimumSystemVersion_data()
         QTest::newRow("fakewindows") << "fakewindows" << "WINVER=1283\n5.03 operating system "
                                                          "version\n5.03 subsystem version\n";
     if (HostOsInfo::isMacosHost())
-        QTest::newRow("macappstore") << "macappstore" << "__MAC_OS_X_VERSION_MIN_REQUIRED=1068\n"
-                                                         "version 10.6";
+        QTest::newRow("macappstore") << "macappstore" << "__MAC_OS_X_VERSION_MIN_REQUIRED=1071\n"
+                                                         "version 10.7";
 }
 
 void TestBlackbox::missingBuildGraph()

@@ -61,7 +61,7 @@ function androidAbi(arch) {
     }
 }
 
-function commonCompilerFlags(buildVariant, abi, armMode) {
+function commonCompilerFlags(toolchain, buildVariant, abi, armMode) {
     var flags = ["-ffunction-sections", "-funwind-tables",
                  "-Wa,--noexecstack", "-Werror=format-security"];
 
@@ -71,13 +71,17 @@ function commonCompilerFlags(buildVariant, abi, armMode) {
         flags.push("-fomit-frame-pointer");
 
     if (abi === "arm64-v8a") {
-        flags.push("-fpic", "-fstack-protector", "-funswitch-loops", "-finline-limit=300");
+        flags.push("-fpic", "-fstack-protector")
+        if (!toolchain.contains("clang"))
+            flags.push("-finline-limit=300", "-funswitch-loops");
         if (buildVariant === "release")
             flags.push("-fstrict-aliasing");
     }
 
     if (abi === "armeabi" || abi === "armeabi-v7a") {
-        flags.push("-fpic", "-fstack-protector", "-finline-limit=64");
+        flags.push("-fpic", "-fstack-protector");
+        if (!toolchain.contains("clang"))
+            flags.push("-finline-limit=64");
 
         if (abi === "armeabi")
             flags.push("-mtune=xscale", "-msoft-float");
@@ -95,12 +99,17 @@ function commonCompilerFlags(buildVariant, abi, armMode) {
         flags.push("-fpic", "-finline-functions", "-fmessage-length=0",
                    "-fno-inline-functions-called-once", "-fgcse-after-reload",
                    "-frerun-cse-after-loop", "-frename-registers");
-        if (buildVariant === "release")
-            flags.push("-funswitch-loops", "-finline-limit=300", "-fno-strict-aliasing");
+        if (buildVariant === "release") {
+            flags.push("-fno-strict-aliasing");
+            if (!toolchain.contains("clang"))
+                flags.push("-funswitch-loops", "-finline-limit=300");
+        }
     }
 
     if (abi === "x86" || abi === "x86_64") {
-        flags.push("-fstack-protector", "-funswitch-loops", "-finline-limit=300");
+        flags.push("-fstack-protector");
+        if (!toolchain.contains("clang"))
+            flags.push("-funswitch-loops", "-finline-limit=300");
         if (buildVariant === "release")
             flags.push("-fstrict-aliasing");
     }
@@ -113,4 +122,10 @@ function commonCompilerFlags(buildVariant, abi, armMode) {
 
 function commonLinkerFlags(abi) {
     return ["-z", "noexecstack", "-z", "relro", "-z", "now"];
+}
+
+function getBinutilsPath(ndk, toolchainPrefix) {
+    if (["x86", "x86_64"].contains(ndk.abi))
+        return ndk.abi + "-" + ndk.toolchainVersionNumber;
+    return toolchainPrefix + ndk.toolchainVersionNumber;
 }

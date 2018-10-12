@@ -76,8 +76,13 @@ void TestBlackboxApple::initTestCase()
 
 void TestBlackboxApple::appleMultiConfig()
 {
+    const auto xcodeVersion = findXcodeVersion();
+    const bool supportsX86 = xcodeVersion < qbs::Version(10);
+
     QDir::setCurrent(testDataDir + "/apple-multiconfig");
-    QCOMPARE(runQbs(QbsRunParameters(QStringList{"qbs.installPrefix:''"})), 0);
+    QCOMPARE(runQbs(QbsRunParameters(QStringList{
+        "qbs.installPrefix:''",
+        QString("project.enableX86:") + (supportsX86 ? "true" : "false")})), 0);
 
     QVERIFY(QFileInfo2(defaultInstallRoot + "/singleapp.app/Contents/MacOS/singleapp").isExecutable());
     QVERIFY(QFileInfo2(defaultInstallRoot + "/singleapp.app/Contents/Info.plist").isRegularFile());
@@ -164,7 +169,6 @@ void TestBlackboxApple::assetCatalog()
     QFETCH(bool, flatten);
 
     const auto xcodeVersion = findXcodeVersion();
-
     QDir::setCurrent(testDataDir + QLatin1String("/ib/assetcatalog"));
 
     rmDirR(relativeBuildDir());
@@ -578,14 +582,16 @@ void TestBlackboxApple::deploymentTarget_data()
     QTest::addColumn<QString>("cflags");
     QTest::addColumn<QString>("lflags");
 
-    QTest::newRow("macos x86") << "macosx" << macos << "x86"
-                         << "-triple i386-apple-macosx10.4"
-                         << "-macosx_version_min 10.4";
-    QTest::newRow("macos x86_64") << "macosx" << macos << "x86_64"
-                         << "-triple x86_64-apple-macosx10.4"
-                         << "-macosx_version_min 10.4";
-
     const auto xcodeVersion = findXcodeVersion();
+    if (xcodeVersion < qbs::Version(10)) {
+        QTest::newRow("macos x86") << "macosx" << macos << "x86"
+                                   << "-triple i386-apple-macosx10.6"
+                                   << "-macosx_version_min 10.6";
+    }
+    QTest::newRow("macos x86_64") << "macosx" << macos << "x86_64"
+                         << "-triple x86_64-apple-macosx10.6"
+                         << "-macosx_version_min 10.6";
+
     if (xcodeVersion >= qbs::Version(6))
         QTest::newRow("macos x86_64h") << "macosx" << macos << "x86_64h"
                              << "-triple x86_64h-apple-macosx10.12"

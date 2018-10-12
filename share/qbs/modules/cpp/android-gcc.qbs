@@ -32,7 +32,9 @@ import qbs.File
 import qbs.FileInfo
 import qbs.ModUtils
 import qbs.TextFile
+import qbs.Utilities
 import "../../modules/Android/ndk/utils.js" as NdkUtils
+import 'gcc.js' as Gcc
 
 LinuxGCC {
     Depends { name: "Android.ndk" }
@@ -43,11 +45,11 @@ LinuxGCC {
     rpaths: [rpathOrigin]
 
     property string toolchainDir: {
-        if (qbs.toolchain && qbs.toolchain.contains("clang"))
-            return "llvm-" + Android.ndk.toolchainVersionNumber;
-        if (["x86", "x86_64"].contains(Android.ndk.abi))
-            return Android.ndk.abi + "-" + Android.ndk.toolchainVersionNumber;
-        return toolchainPrefix + Android.ndk.toolchainVersionNumber;
+        if (qbs.toolchain && qbs.toolchain.contains("clang")) {
+            return Utilities.versionCompare(Android.ndk.version, "10") <= 0
+                    ? "llvm-" + Android.ndk.toolchainVersionNumber : "llvm";
+        }
+        return NdkUtils.getBinutilsPath(Android.ndk, toolchainTriple + "-")
     }
 
     property string cxxStlBaseDir: FileInfo.joinPaths(Android.ndk.ndkDir, "sources", "cxx-stl")
@@ -126,8 +128,8 @@ LinuxGCC {
     enableExceptions: Android.ndk.appStl !== "system"
     enableRtti: Android.ndk.appStl !== "system"
 
-    commonCompilerFlags: NdkUtils.commonCompilerFlags(qbs.buildVariant, Android.ndk.abi,
-                                                      Android.ndk.armMode)
+    commonCompilerFlags: NdkUtils.commonCompilerFlags(qbs.toolchain, qbs.buildVariant,
+                                                      Android.ndk.abi, Android.ndk.armMode)
 
     linkerFlags: NdkUtils.commonLinkerFlags(Android.ndk.abi)
 
@@ -171,7 +173,10 @@ LinuxGCC {
             includes.push(FileInfo.joinPaths(gnuStlBaseDir, "libs", Android.ndk.abi, "include"));
             includes.push(FileInfo.joinPaths(gnuStlBaseDir, "include", "backward"));
         } else if (Android.ndk.appStl.startsWith("c++_")) {
-            includes.push(FileInfo.joinPaths(llvmStlBaseDir, "libcxx", "include"));
+            if (Utilities.versionCompare(Android.ndk.version, "13") >= 0)
+                includes.push(FileInfo.joinPaths(llvmStlBaseDir, "include"));
+            else
+                includes.push(FileInfo.joinPaths(llvmStlBaseDir, "libcxx", "include"));
             includes.push(FileInfo.joinPaths(llvmStlBaseDir + "abi", "libcxxabi", "include"));
         }
         return includes;
@@ -184,6 +189,12 @@ LinuxGCC {
         }
         return list;
     }
+    binutilsPath: FileInfo.joinPaths(Android.ndk.ndkDir, "toolchains",
+                                     NdkUtils.getBinutilsPath(Android.ndk, toolchainTriple + "-"),
+                                     "prebuilt", Android.ndk.hostArch, "bin");
+    binutilsPathPrefix: Gcc.pathPrefix(binutilsPath, toolchainTriple + "-")
+    driverFlags: qbs.toolchain.contains("clang")
+                 ? ["-gcc-toolchain", FileInfo.path(binutilsPath)].concat(base || []) : base
     syslibroot: FileInfo.joinPaths(Android.ndk.ndkDir, "platforms",
                                    Android.ndk.platform, "arch-"
                                    + NdkUtils.abiNameToDirName(Android.ndk.abi))

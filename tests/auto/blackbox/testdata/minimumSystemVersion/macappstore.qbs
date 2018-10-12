@@ -6,5 +6,5 @@ CppApplication {
     files: ["main.mm"]
     consoleApplication: true
     cpp.frameworks: "Foundation"
-    cpp.minimumMacosVersion: "10.6.8"
+    cpp.minimumMacosVersion: "10.7.1"
 }

@@ -5,6 +5,7 @@ Project {
         name: "lib1"
         files: ["src/main/jni/lib1.cpp"]
         qbs.targetPlatform: "android"
+        Properties { condition: qbs.toolchain.contains("clang"); Android.ndk.appStl: "c++_shared" }
         Android.ndk.appStl: "stlport_shared"
         cpp.useRPaths: false
     }
@@ -15,6 +16,7 @@ Project {
         name: "lib2"
         files: ["src/main/jni/lib2.cpp"]
         qbs.targetPlatform: "android"
+        Properties { condition: qbs.toolchain.contains("clang"); Android.ndk.appStl: "c++_shared" }
         Android.ndk.appStl: "stlport_shared"
         cpp.useRPaths: false
     }

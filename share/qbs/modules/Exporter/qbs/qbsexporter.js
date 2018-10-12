@@ -154,7 +154,7 @@ function stringifyValue(project, product, moduleInstallDir, prop, value)
         var deployedModuleInstallDir = moduleInstallDir.slice(fullInstallPrefix.length);
         return "FileInfo.cleanPath(FileInfo.joinPaths(path, FileInfo.relativePath("
                 + JSON.stringify(deployedModuleInstallDir) + ", "
-                + JSON.stringify(value.slice(valuePrefixToStrip.length)) + ")))";
+                + JSON.stringify(value.slice(valuePrefixToStrip.length) || "/") + ")))";
     }
 
     return JSON.stringify(value);

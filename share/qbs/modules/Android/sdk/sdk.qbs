@@ -149,10 +149,13 @@ Module {
                                     buildToolsVersion, "24.0.3") >= 0
     property stringList aidlSearchPaths
 
-    Depends { name: "java" }
-    java.languageVersion: platformJavaVersion
-    java.runtimeVersion: platformJavaVersion
-    java.bootClassPaths: androidJarFilePath
+    Depends { name: "java"; condition: _enableRules }
+    Properties {
+        condition: _enableRules
+        java.languageVersion: platformJavaVersion
+        java.runtimeVersion: platformJavaVersion
+        java.bootClassPaths: androidJarFilePath
+    }
 
     validate: {
         if (!sdkDir) {

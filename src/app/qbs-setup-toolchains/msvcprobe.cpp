@@ -55,9 +55,14 @@
 
 #include <QtCore/qdir.h>
 #include <QtCore/qfileinfo.h>
+#include <QtCore/qjsonarray.h>
+#include <QtCore/qjsondocument.h>
+#include <QtCore/qjsonobject.h>
+#include <QtCore/qprocess.h>
 #include <QtCore/qsettings.h>
 #include <QtCore/qstringlist.h>
 
+#include <algorithm>
 #include <vector>
 
 using namespace qbs;
@@ -155,15 +160,92 @@ static QString wow6432Key()
 #endif
 }
 
-struct MSVCRegistryEntry
+struct MSVCInstallInfo
 {
     QString version;
     QString installDir;
 };
 
-static std::vector<MSVCRegistryEntry> installedMSVCsFromRegistry()
+static QString vswhereFilePath()
 {
-    std::vector<MSVCRegistryEntry> result;
+    static const std::vector<const char *> envVarCandidates{"ProgramFiles", "ProgramFiles(x86)"};
+    for (const char * const envVar : envVarCandidates) {
+        const QString value = QDir::fromNativeSeparators(QString::fromLocal8Bit(qgetenv(envVar)));
+        const QString cmd = value
+                + QStringLiteral("/Microsoft Visual Studio/Installer/vswhere.exe");
+        if (QFileInfo(cmd).exists())
+            return cmd;
+    }
+    return QString();
+}
+
+enum class ProductType { VisualStudio, BuildTools };
+static std::vector<MSVCInstallInfo> retrieveInstancesFromVSWhere(ProductType productType)
+{
+    std::vector<MSVCInstallInfo> result;
+    const QString cmd = vswhereFilePath();
+    if (cmd.isEmpty())
+        return result;
+    QProcess vsWhere;
+    QStringList args = productType == ProductType::VisualStudio
+            ? QStringList({QStringLiteral("-all"), QStringLiteral("-legacy"),
+                           QStringLiteral("-prerelease")})
+            : QStringList({QStringLiteral("-products"),
+                           QStringLiteral("Microsoft.VisualStudio.Product.BuildTools")});
+    args << QStringLiteral("-format") << QStringLiteral("json") << QStringLiteral("-utf8");
+    vsWhere.start(cmd, args);
+    if (!vsWhere.waitForStarted(-1))
+        return result;
+    if (!vsWhere.waitForFinished(-1)) {
+        qbsWarning() << Tr::tr("The vswhere tool failed to run: %1").arg(vsWhere.errorString());
+        return result;
+    }
+    if (vsWhere.exitCode() != 0) {
+        qbsWarning() << Tr::tr("The vswhere tool failed to run: %1")
+                        .arg(QString::fromLocal8Bit(vsWhere.readAllStandardError()));
+        return result;
+    }
+    QJsonParseError parseError;
+    QJsonDocument jsonOutput = QJsonDocument::fromJson(vsWhere.readAllStandardOutput(),
+                                                       &parseError);
+    if (parseError.error != QJsonParseError::NoError) {
+        qbsWarning() << Tr::tr("The vswhere tool produced invalid JSON output: %1")
+                        .arg(parseError.errorString());
+        return result;
+    }
+    for (const QJsonValue &v : jsonOutput.array()) {
+        const QJsonObject o = v.toObject();
+        MSVCInstallInfo info;
+        info.version = o.value(QStringLiteral("installationVersion")).toString();
+        if (productType == ProductType::BuildTools) {
+            // For build tools, the version is e.g. "15.8.28010.2036", rather than "15.0".
+            const int dotIndex = info.version.indexOf(QLatin1Char('.'));
+            if (dotIndex != -1)
+                info.version = info.version.left(dotIndex);
+        }
+        info.installDir = o.value(QStringLiteral("installationPath")).toString();
+        if (!info.version.isEmpty() && !info.installDir.isEmpty())
+            result.push_back(info);
+    }
+    return result;
+}
+
+static std::vector<MSVCInstallInfo> installedMSVCsFromVsWhere()
+{
+    const std::vector<MSVCInstallInfo> vsInstallations
+            = retrieveInstancesFromVSWhere(ProductType::VisualStudio);
+    const std::vector<MSVCInstallInfo> buildToolInstallations
+            = retrieveInstancesFromVSWhere(ProductType::BuildTools);
+    std::vector<MSVCInstallInfo> all;
+    std::copy(vsInstallations.begin(), vsInstallations.end(), std::back_inserter(all));
+    std::copy(buildToolInstallations.begin(), buildToolInstallations.end(),
+              std::back_inserter(all));
+    return all;
+}
+
+static std::vector<MSVCInstallInfo> installedMSVCsFromRegistry()
+{
+    std::vector<MSVCInstallInfo> result;
 
     // Detect Visual Studio
     const QSettings vsRegistry(
@@ -172,7 +254,7 @@ static std::vector<MSVCRegistryEntry> installedMSVCsFromRegistry()
                 QSettings::NativeFormat);
     const auto vsNames = vsRegistry.childKeys();
     for (const QString &vsName : vsNames) {
-        MSVCRegistryEntry entry;
+        MSVCInstallInfo entry;
         entry.version = vsName;
         entry.installDir = vsRegistry.value(vsName).toString();
         result.push_back(entry);
@@ -189,7 +271,7 @@ static std::vector<MSVCRegistryEntry> installedMSVCsFromRegistry()
         bool ok;
         int installed = vcbtRegistry.value(QStringLiteral("Installed")).toInt(&ok);
         if (ok && installed) {
-            MSVCRegistryEntry entry;
+            MSVCInstallInfo entry;
             entry.version = childGroup;
             const QSettings vsRegistry(
                         QStringLiteral("HKEY_LOCAL_MACHINE\\SOFTWARE") + wow6432Key()
@@ -208,14 +290,16 @@ static std::vector<MSVCRegistryEntry> installedMSVCsFromRegistry()
 static std::vector<MSVC> installedMSVCs()
 {
     std::vector<MSVC> msvcs;
-    const std::vector<MSVCRegistryEntry> &registryEntries = installedMSVCsFromRegistry();
-    for (const MSVCRegistryEntry &registryEntry : registryEntries) {
+    std::vector<MSVCInstallInfo> installInfos = installedMSVCsFromVsWhere();
+    if (installInfos.empty())
+        installInfos = installedMSVCsFromRegistry();
+    for (const MSVCInstallInfo &installInfo : installInfos) {
         MSVC msvc;
-        msvc.internalVsVersion = Version::fromString(registryEntry.version);
+        msvc.internalVsVersion = Version::fromString(installInfo.version);
         if (!msvc.internalVsVersion.isValid())
             continue;
 
-        QDir vsInstallDir(registryEntry.installDir);
+        QDir vsInstallDir(installInfo.installDir);
         msvc.vsInstallPath = vsInstallDir.absolutePath();
         if (vsInstallDir.dirName() != QStringLiteral("VC")
                 && !vsInstallDir.cd(QStringLiteral("VC"))) {
@@ -223,9 +307,9 @@ static std::vector<MSVC> installedMSVCs()
         }
 
         msvc.version = QString::number(Internal::VisualStudioVersionInfo(
-            Version::fromString(registryEntry.version)).marketingVersion());
+            Version::fromString(installInfo.version)).marketingVersion());
         if (msvc.version.isEmpty()) {
-            qbsWarning() << Tr::tr("Unknown MSVC version %1 found.").arg(registryEntry.version);
+            qbsWarning() << Tr::tr("Unknown MSVC version %1 found.").arg(installInfo.version);
             continue;
         }
 

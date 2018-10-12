@@ -1,7 +1,7 @@
 Project {
     CppApplication {
         name: "theapp"
-        cpp.minimumMacosVersion: "10.5" // For -rpath
+        cpp.minimumMacosVersion: "10.7" // For -rpath
         Depends { name: "theotherlib" }
         Depends { name: "thethirdlib" }
         Depends { name: "thefourthlib" }
