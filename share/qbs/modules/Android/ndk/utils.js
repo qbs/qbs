@@ -63,25 +63,13 @@ function androidAbi(arch) {
 
 function commonCompilerFlags(toolchain, buildVariant, abi, armMode) {
     var flags = ["-ffunction-sections", "-funwind-tables",
-                 "-Wa,--noexecstack", "-Werror=format-security"];
+                 "-Wa,--noexecstack", "-Werror=format-security", "-fstack-protector-strong"];
 
-    if (buildVariant === "debug")
-        flags.push("-fno-omit-frame-pointer", "-fno-strict-aliasing");
-    if (buildVariant === "release")
-        flags.push("-fomit-frame-pointer");
-
-    if (abi === "arm64-v8a") {
-        flags.push("-fpic", "-fstack-protector")
-        if (!toolchain.contains("clang"))
-            flags.push("-finline-limit=300", "-funswitch-loops");
-        if (buildVariant === "release")
-            flags.push("-fstrict-aliasing");
-    }
+    if (abi === "arm64-v8a")
+        flags.push("-fpic");
 
     if (abi === "armeabi" || abi === "armeabi-v7a") {
-        flags.push("-fpic", "-fstack-protector");
-        if (!toolchain.contains("clang"))
-            flags.push("-finline-limit=64");
+        flags.push("-fpic");
 
         if (abi === "armeabi")
             flags.push("-mtune=xscale", "-msoft-float");
@@ -90,29 +78,16 @@ function commonCompilerFlags(toolchain, buildVariant, abi, armMode) {
             flags.push("-mfpu=vfpv3-d16");
             flags.push("-mfloat-abi=softfp");
         }
-
-        if (buildVariant === "release")
-            flags.push("-fno-strict-aliasing");
     }
 
     if (abi === "mips" || abi === "mips64") {
         flags.push("-fpic", "-finline-functions", "-fmessage-length=0",
                    "-fno-inline-functions-called-once", "-fgcse-after-reload",
                    "-frerun-cse-after-loop", "-frename-registers");
-        if (buildVariant === "release") {
-            flags.push("-fno-strict-aliasing");
-            if (!toolchain.contains("clang"))
-                flags.push("-funswitch-loops", "-finline-limit=300");
-        }
     }
 
-    if (abi === "x86" || abi === "x86_64") {
-        flags.push("-fstack-protector");
-        if (!toolchain.contains("clang"))
-            flags.push("-funswitch-loops", "-finline-limit=300");
-        if (buildVariant === "release")
-            flags.push("-fstrict-aliasing");
-    }
+    if ((abi === "x86" || abi === "x86_64") && toolchain.contains("clang"))
+        flags.push("-fPIC");
 
     if (armMode)
         flags.push("-m" + armMode);
