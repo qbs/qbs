@@ -2,6 +2,8 @@ TARGET = qbsqtprofilesetup
 include(../library.pri)
 include(../corelib/use_corelib.pri)
 
+CONFIG -= qtquickcompiler
+
 HEADERS = \
     qtenvironment.h \
     qtmoduleinfo.h \
