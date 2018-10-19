@@ -49,7 +49,7 @@ namespace qbs {
 class ErrorInfo;
 class Settings;
 
-QBS_EXPORT QString qbsTargetPlatformFromQtMkspec(const QString &mkspec);
+QBS_EXPORT QString qbsTargetPlatformFromQtMkspec(const QtEnvironment &qtEnv);
 
 QBS_EXPORT ErrorInfo setupQtProfile(const QString &profileName, Settings *settings,
                                     const QtEnvironment &qtEnvironment);
