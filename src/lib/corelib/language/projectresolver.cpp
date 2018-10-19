@@ -1620,6 +1620,8 @@ QVariantMap ProjectResolver::evaluateModuleValues(Item *item, bool lookupPrototy
                                        ? &m_elapsedTimeModPropEval : nullptr);
     QVariantMap moduleValues;
     for (const Item::Module &module : item->modules()) {
+        if (!module.item->isPresentModule())
+            continue;
         const QString fullName = module.name.toString();
         moduleValues[fullName] = evaluateProperties(module.item, lookupPrototype, true);
     }
