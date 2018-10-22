@@ -45,8 +45,8 @@ Product {
             var cmd = new JavaScriptCommand();
             var output = outputs["mytype.final"][0];
             cmd.description = "generating " + output.fileName;
-            cmd.output = output;
-            cmd.sourceCode = function() { File.copy(input.filePath, output.filePath); };
+            cmd.outputFilePath = output.filePath;
+            cmd.sourceCode = function() { File.copy(input.filePath, outputFilePath); };
             return [cmd];
         }
     }

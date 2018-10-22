@@ -3831,9 +3831,21 @@ void TestBlackbox::installTree()
     QVERIFY(QFile::exists(installRoot + "content/subdir2/baz.txt"));
 }
 
+void TestBlackbox::invalidCommandProperty_data()
+{
+    QTest::addColumn<QString>("errorType");
+
+    QTest::newRow("assigning QObject") << QString("qobject");
+    QTest::newRow("assigning input artifact") << QString("input");
+    QTest::newRow("assigning other artifact") << QString("artifact");
+}
+
 void TestBlackbox::invalidCommandProperty()
 {
     QDir::setCurrent(testDataDir + "/invalid-command-property");
+    QFETCH(QString, errorType);
+    QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList("products.p.errorType:" + errorType))),
+             0);
     QbsRunParameters params;
     params.expectFailure = true;
     QVERIFY(runQbs(params) != 0);

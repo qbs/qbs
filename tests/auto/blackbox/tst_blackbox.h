@@ -144,6 +144,7 @@ private slots:
     void installPackage();
     void installRootFromProjectFile();
     void installTree();
+    void invalidCommandProperty_data();
     void invalidCommandProperty();
     void invalidExtensionInstantiation();
     void invalidExtensionInstantiation_data();

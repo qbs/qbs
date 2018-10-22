@@ -149,7 +149,9 @@ void AbstractCommand::applyCommandProperties(const QScriptValue *scriptValue)
         if (m_predefinedProperties.contains(it.name()))
             continue;
         const QVariant value = it.value().toVariant();
-        if (QMetaType::Type(value.type()) == QMetaType::QObjectStar) {
+        if (QMetaType::Type(value.type()) == QMetaType::QObjectStar
+                || it.value().scriptClass()
+                || it.value().data().isValid()) {
             throw ErrorInfo(Tr::tr("Property '%1' has a type unsuitable for storing in a command "
                                    "object.").arg(it.name()), m_codeLocation);
         }
