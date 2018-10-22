@@ -724,8 +724,14 @@ void doSetupQtProfile(const QString &profileName, Settings *settings,
         const Version qtVersion = Version(qtEnvironment.qtMajorVersion,
                                           qtEnvironment.qtMinorVersion,
                                           qtEnvironment.qtPatchVersion);
-        qtEnvironment.entryPointLibsDebug = fillEntryPointLibs(qtEnvironment, qtVersion, true);
-        qtEnvironment.entryPointLibsRelease = fillEntryPointLibs(qtEnvironment, qtVersion, false);
+        if (qtEnvironment.buildVariant.contains(QLatin1String("debug"))) {
+            qtEnvironment.entryPointLibsDebug = fillEntryPointLibs(qtEnvironment, qtVersion,
+                                                                   true);
+        }
+        if (qtEnvironment.buildVariant.contains(QLatin1String("release"))) {
+            qtEnvironment.entryPointLibsRelease = fillEntryPointLibs(qtEnvironment, qtVersion,
+                                                                     false);
+        }
     } else if (qtEnvironment.mkspecPath.contains(QLatin1String("macx"))) {
         if (qtEnvironment.qtMajorVersion >= 5) {
             QFile qmakeConf(qtEnvironment.mkspecPath + QStringLiteral("/qmake.conf"));
