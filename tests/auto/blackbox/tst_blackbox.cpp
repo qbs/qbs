@@ -47,6 +47,7 @@
 #include <QtCore/qjsonvalue.h>
 #include <QtCore/qlocale.h>
 #include <QtCore/qregexp.h>
+#include <QtCore/qsettings.h>
 #include <QtCore/qtemporarydir.h>
 #include <QtCore/qtemporaryfile.h>
 
@@ -4819,13 +4820,28 @@ void TestBlackbox::qbsConfig()
                 "most qbs-config tests";
 #endif // QBS_ENABLE_UNIT_TESTS
 
+    bool canWriteToSystemSettings;
+    QString testSettingsFilePath;
+    {
+        QSettings testSettings(QSettings::IniFormat, QSettings::SystemScope,
+                               "dummyOrg", "dummyApp");
+        testSettings.setValue("dummyKey", "dummyValue");
+        testSettings.sync();
+        canWriteToSystemSettings = testSettings.status() == QSettings::NoError;
+        testSettingsFilePath = testSettings.fileName();
+    }
+    if (canWriteToSystemSettings)
+        QVERIFY(QFile::remove(testSettingsFilePath));
+
     // Check that trying to write to actual system settings causes access failure.
-    params.expectFailure = true;
+    params.expectFailure = !canWriteToSystemSettings;
     params.environment.clear();
     params.arguments = QStringList{"--system", "key.subkey.scalar", "s"};
-    QVERIFY(runQbs(params) != 0);
-    QVERIFY2(m_qbsStderr.contains("You do not have permission to write to that location."),
-             m_qbsStderr.constData());
+    QCOMPARE(runQbs(params) == 0, canWriteToSystemSettings);
+    if (!canWriteToSystemSettings) {
+        QVERIFY2(m_qbsStderr.contains("You do not have permission to write to that location."),
+                 m_qbsStderr.constData());
+    }
 }
 
 void TestBlackbox::radAfterIncompleteBuild_data()
