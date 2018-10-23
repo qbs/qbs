@@ -1,4 +1,5 @@
 Application {
+    qbs.targetPlatform: "android"
     name: "com.example.android.basicmediadecoder"
 
     Android.sdk.sourceSetDir: Android.sdk.sdkDir

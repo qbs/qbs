@@ -2,6 +2,7 @@ import qbs.TextFile
 
 Product {
     property string packageName: ""
+    qbs.targetPlatform: "android"
 
     Depends { name: "Android.sdk"; required: false }
     Depends { name: "Android.ndk"; required: false }
