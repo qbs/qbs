@@ -81,6 +81,7 @@ Project {
         qbs.architecture: "x86_64"
         multiplexByQbsProperties: project.enableX86 ? ["architectures", "buildVariants"]
                                                     : ["buildVariants"]
+        qbs.buildVariants: "debug"
 
         install: true
         installDir: ""

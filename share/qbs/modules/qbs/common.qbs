@@ -196,27 +196,8 @@ Module {
 
     // Properties that can be set for multiplexing products.
     property stringList profiles
-    property stringList architectures: {
-        if (targetOS.contains("android"))
-            return ["armv7a"]; // default should be armv5te for NDK < r16, but we can't check here
-        if (targetOS.contains("ios-simulator"))
-            return ["x86", "x86_64"];
-        if (targetOS.contains("ios"))
-            return ["armv7a", "arm64"];
-        if (targetOS.contains("macos"))
-            return ["x86_64"];
-        if (targetOS.contains("tvos-simulator"))
-            return ["x86_64"];
-        if (targetOS.contains("tvos"))
-            return ["arm64"];
-        if (targetOS.contains("watchos-simulator"))
-            return ["x86"];
-        if (targetOS.contains("watchos"))
-            return ["armv7k"];
-        return architecture ? [architecture] : undefined;
-    }
-
-    property stringList buildVariants: [buildVariant]
+    property stringList architectures
+    property stringList buildVariants
 
     // internal properties
     readonly property string version: [versionMajor, versionMinor, versionPatch].join(".")
