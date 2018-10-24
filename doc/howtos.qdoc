@@ -431,7 +431,7 @@
         Group {
             prefix: "qml/"
             files: ["main.qml", "HomePage.qml"]
-            fileTags: ["qml", "qt.core.resource_data"]
+            fileTags: ["qt.qml.qml", "qt.core.resource_data"]
         }
     }
     \endcode
