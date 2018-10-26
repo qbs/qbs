@@ -110,6 +110,21 @@
           The product definitions would stay exactly the same. In particular, their location
           in the project tree is irrelevant to the relationship between them.
 
+    \section2 Choosing Between Dynamic and Statically-built Qt Projects
+
+    To build \c "the-lib" as either a dynamic or static library, depending on
+    how Qt was built, you can use the following code:
+
+    \code
+    Product {
+        name: "the-lib"
+        type: Qt.core.staticBuild ? "staticlibrary" : "dynamiclibrary"
+
+        Depends { name: "Qt.core" }
+        // ...
+    }
+    \endcode
+
     \section1 How do I use precompiled headers?
 
     If you use a \l Group item to add a precompiled header file to a product
