@@ -95,6 +95,8 @@ private slots:
     void dottedNames();
     void emptyJsFile();
     void enumerateProjectProperties();
+    void evalErrorInNonPresentModule_data();
+    void evalErrorInNonPresentModule();
     void environmentVariable();
     void errorInDisabledProduct();
     void erroneousFiles_data();
