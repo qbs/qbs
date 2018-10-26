@@ -457,8 +457,6 @@
 
     This option is mutually exclusive with \c --log-time.
 
-    \note This option is not available on a Windows host.
-
 //! [show-progress]
 
 //! [setup-tools-system]

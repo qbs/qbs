@@ -94,8 +94,6 @@ void Command::parsePropertyAssignment(const QString &argument)
 QList<CommandLineOption::Type> Command::actualSupportedOptions() const
 {
     QList<CommandLineOption::Type> options = supportedOptions();
-    if (!HostOsInfo::isAnyUnixHost())
-        options.removeOne(CommandLineOption::ShowProgressOptionType);
     if (type() != HelpCommandType)
         options.push_back(CommandLineOption::SettingsDirOptionType); // Valid for almost all commands.
     return options;

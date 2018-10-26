@@ -87,11 +87,16 @@ void ConsoleProgressObserver::setProgressValue(int value)
 void ConsoleProgressObserver::eraseCurrentPercentageString()
 {
     const int charsToErase = m_percentage == 0 ? 2 : m_percentage < 10 ? 3 : 4;
+    const QByteArray backspaceCommand(charsToErase, '\b');
 
-    // (1) Move cursor before the old percentage string.
-    // (2) Erase current line content to the right of the cursor.
-    std::cout << QString::fromLatin1("\x1b[%1D").arg(charsToErase).toLocal8Bit().constData();
-    std::cout << "\x1b[K";
+    // Move cursor before the old percentage string.
+    std::cout << backspaceCommand.constData();
+
+    // Erase old percentage string.
+    std::cout << QByteArray(charsToErase, ' ').constData();
+
+    // Move cursor before the erased string.
+    std::cout << backspaceCommand.constData();
 }
 
 void ConsoleProgressObserver::updateProgressBarIfNecessary()
