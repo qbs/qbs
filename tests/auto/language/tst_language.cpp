@@ -665,6 +665,40 @@ void TestLanguage::enumerateProjectProperties()
     QCOMPARE(exceptionCaught, false);
 }
 
+void TestLanguage::evalErrorInNonPresentModule_data()
+{
+    QTest::addColumn<bool>("moduleRequired");
+    QTest::addColumn<QString>("errorMessage");
+
+    QTest::newRow("module required")
+            << true << "broken.qbs:4:5 Element at index 0 of list property 'broken' "
+                       "does not have string type";
+    QTest::newRow("module not required") << false << QString();
+}
+
+void TestLanguage::evalErrorInNonPresentModule()
+{
+    QFETCH(bool, moduleRequired);
+    QFETCH(QString, errorMessage);
+    try {
+        SetupProjectParameters params = defaultParameters;
+        params.setProjectFilePath(testProject("eval-error-in-non-present-module.qbs"));
+        QVariantMap overridden{std::make_pair("products.p.moduleRequired", moduleRequired)};
+        params.setOverriddenValues(overridden);
+        TopLevelProjectPtr project = loader->loadProject(params);
+        QVERIFY(errorMessage.isEmpty());
+        QVERIFY(!!project);
+        QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+        QCOMPARE(products.size(), 1);
+        const ResolvedProductPtr product = products.value("p");
+        QVERIFY(!!product);
+    }
+    catch (const ErrorInfo &e) {
+        QVERIFY(!errorMessage.isEmpty());
+        QVERIFY2(e.toString().contains(errorMessage), qPrintable(e.toString()));
+    }
+}
+
 void TestLanguage::defaultValue()
 {
     bool exceptionCaught = false;
