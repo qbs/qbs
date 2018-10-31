@@ -9,7 +9,8 @@ Product {
 
     property bool deployQt: qbsbuildconfig.enableBundledQt && qbs.targetOS.contains("macos")
                             && Qt.core.qtConfig.contains("rpath")
-    property bool deployDebugLibraries: qbs.buildVariants.contains("debug")
+    property bool deployDebugLibraries: qbs.buildVariant === "debug"
+        || (qbs.buildVariants && qbs.buildVariants.contains("debug"))
 
     readonly property string qtDebugLibrarySuffix: {
         if (qbs.targetOS.contains("windows"))
