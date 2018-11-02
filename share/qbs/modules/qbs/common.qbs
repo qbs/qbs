@@ -195,9 +195,9 @@ Module {
     }
 
     // Properties that can be set for multiplexing products.
-    property stringList profiles
-    property stringList architectures
-    property stringList buildVariants
+    property stringList profiles: []
+    property stringList architectures: []
+    property stringList buildVariants: []
 
     // internal properties
     readonly property string version: [versionMajor, versionMinor, versionPatch].join(".")
