@@ -13,6 +13,25 @@ Module {
     Depends { name: "cpp" }
     Depends { name: "Qt.core" }
 
+    Depends { name: "Qt.plugin_support" }
+    property stringList pluginTypes
+    Qt.plugin_support.pluginTypes: pluginTypes
+    Depends {
+        condition: Qt.core.staticBuild && !isPlugin
+        name: "Qt";
+        submodules: {
+            // We have to pull in all plugins here, because dependency resolving happens
+            // before module merging, and we don't know yet if someone set
+            // Qt.pluginSupport.pluginsByType in the product.
+            // The real filtering is done later by the plugin module files themselves.
+            var list = [];
+            var allPlugins = Qt.plugin_support.allPluginsByType;
+            for (var i = 0; i < (pluginTypes || []).length; ++i)
+                Array.prototype.push.apply(list, allPlugins[pluginTypes[i]])
+            return list;
+        }
+    }
+
     property string qtModuleName
     property path binPath: Qt.core.binPath
     property path incPath: Qt.core.incPath
@@ -53,9 +72,10 @@ Module {
             ? frameworkPathsDebug: frameworkPathsRelease
     cpp.linkerFlags: Qt.core.qtBuildVariant === "debug"
             ? linkerFlagsDebug : linkerFlagsRelease
+    property bool enableLinking: qtModuleName != undefined && hasLibrary
 
     Properties {
-        condition: qtModuleName != undefined && hasLibrary
+        condition: enableLinking
         cpp.staticLibraries: staticLibs
         cpp.dynamicLibraries: dynamicLibs
         cpp.frameworks: mFrameworks.concat(!isStaticLibrary && Qt.core.frameworkBuild

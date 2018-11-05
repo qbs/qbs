@@ -22,5 +22,6 @@ QtPlugin {
     libFilePathDebug: @libFilePathDebug@
     libFilePathRelease: @libFilePathRelease@
     cpp.libraryPaths: @libraryPaths@
+    extendsModules: @extends@
     @additionalContent@
 }

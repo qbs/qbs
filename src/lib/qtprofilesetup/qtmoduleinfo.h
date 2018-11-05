@@ -95,8 +95,9 @@ public:
 
     struct PluginData {
         QString type;
-        QString extends;
+        QStringList extends;
         QString className;
+        bool autoLoad = true;
     } pluginData;
 
 private:

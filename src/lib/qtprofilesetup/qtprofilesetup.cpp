@@ -466,6 +466,7 @@ static void replaceSpecialValues(QByteArray *content, const Profile &profile,
     dict.insert("libFilePathRelease", utf8JSLiteral(module.libFilePathRelease));
     dict.insert("libNameForLinkerDebug",
                 utf8JSLiteral(module.libNameForLinker(qtEnvironment, true)));
+    dict.insert("pluginTypes", utf8JSLiteral(module.supportedPluginTypes));
     dict.insert("libNameForLinkerRelease",
                 utf8JSLiteral(module.libNameForLinker(qtEnvironment, false)));
     dict.insert("entryPointLibsDebug", utf8JSLiteral(qtEnvironment.entryPointLibsDebug));
@@ -517,15 +518,21 @@ static void replaceSpecialValues(QByteArray *content, const Profile &profile,
             additionalContent += "\n    ";
         additionalContent += "isStaticLibrary: true";
     }
-    if (module.isPlugin)
+    if (module.isPlugin) {
         dict.insert("className", utf8JSLiteral(module.pluginData.className));
+        dict.insert("extends", utf8JSLiteral(module.pluginData.extends));
+    }
     if (module.hasLibrary && !module.isFramework(qtEnvironment)) {
         if (!additionalContent.isEmpty())
             additionalContent += "\n";
         const QByteArray indent(4, ' ');
-        additionalContent += "Group {\n"
-                + indent + indent + "files: [Qt[\"" + module.qbsName.toUtf8() + "\"]"
-                                  + ".libFilePath]\n"
+        additionalContent += "Group {\n";
+        if (module.isPlugin) {
+            additionalContent += indent + indent
+                    + "condition: Qt[\"" + module.qbsName.toUtf8() + "\"].enableLinking\n";
+        }
+        additionalContent += indent + indent + "files: [Qt[\"" + module.qbsName.toUtf8() + "\"]"
+                + ".libFilePath]\n"
                 + indent + indent + "filesAreTargets: true\n"
                 + indent + indent + "fileTags: [\"" + libraryFileTag(qtEnvironment, module)
                                   + "\"]\n"
@@ -544,7 +551,8 @@ static void replaceSpecialValues(QByteArray *content, const Profile &profile,
 
 static void copyTemplateFile(const QString &fileName, const QString &targetDirectory,
         const Profile &profile, const QtEnvironment &qtEnv, QStringList *allFiles,
-        const QtModuleInfo *module = 0)
+        const QtModuleInfo *module = nullptr, const QVariantMap &pluginMap = QVariantMap(),
+        const QStringList &nonEssentialPlugins = QStringList())
 {
     if (!QDir::root().mkpath(targetDirectory)) {
         throw ErrorInfo(Internal::Tr::tr("Setting up Qt profile '%1' failed: "
@@ -557,8 +565,12 @@ static void copyTemplateFile(const QString &fileName, const QString &targetDirec
                 "Cannot open '%1' (%2).").arg(sourceFile.fileName(), sourceFile.errorString()));
     }
     QByteArray newContent = sourceFile.readAll();
-    if (module)
+    if (module) {
         replaceSpecialValues(&newContent, profile, *module, qtEnv);
+    } else {
+        newContent.replace("@allPluginsByType@", '(' + utf8JSLiteral(pluginMap) + ')');
+        newContent.replace("@nonEssentialPlugins@", utf8JSLiteral(nonEssentialPlugins));
+    }
     sourceFile.close();
     const QString targetPath = targetDirectory + QLatin1Char('/') + fileName;
     allFiles->push_back(QFileInfo(targetPath).absoluteFilePath());
@@ -582,6 +594,16 @@ static void createModules(Profile &profile, Settings *settings,
     const QList<QtModuleInfo> modules = qtEnvironment.qtMajorVersion < 5
             ? allQt4Modules(qtEnvironment)
             : allQt5Modules(profile, qtEnvironment);
+    QVariantMap pluginsByType;
+    QStringList nonEssentialPlugins;
+    for (const QtModuleInfo &m : modules) {
+        if (m.isPlugin) {
+            QVariant &v = pluginsByType[m.pluginData.type];
+            v = v.toStringList() << m.name;
+            if (!m.pluginData.autoLoad)
+                nonEssentialPlugins << m.name;
+        }
+    }
     const QString profileBaseDir = QString::fromLatin1("%1/profiles/%2")
             .arg(QFileInfo(settings->fileName()).dir().absolutePath(),
                  profile.name());
@@ -591,6 +613,9 @@ static void createModules(Profile &profile, Settings *settings,
                      &allFiles);
     copyTemplateFile(QLatin1String("QtPlugin.qbs"), qbsQtModuleBaseDir, profile, qtEnvironment,
                      &allFiles);
+    copyTemplateFile(QLatin1String("plugin_support.qbs"),
+                     qbsQtModuleBaseDir + QLatin1String("/plugin_support"), profile, qtEnvironment,
+                     &allFiles, nullptr, pluginsByType, nonEssentialPlugins);
     for (const QtModuleInfo &module : modules) {
         const QString qbsQtModuleDir = qbsQtModuleBaseDir + QLatin1Char('/') + module.qbsName;
         QString moduleTemplateFileName;

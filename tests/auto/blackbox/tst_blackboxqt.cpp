@@ -256,6 +256,24 @@ void TestBlackboxQt::pluginMetaData()
     QVERIFY2(m_qbsStdout.contains("moc"), m_qbsStdout.constData());
 }
 
+void TestBlackboxQt::pluginSupport()
+{
+    QDir::setCurrent(testDataDir + "/plugin-support");
+    QCOMPARE(runQbs(), 0);
+    const bool isStaticQt = m_qbsStdout.contains("static Qt: true");
+    const bool isDynamicQt = m_qbsStdout.contains("static Qt: false");
+    QVERIFY(isStaticQt != isDynamicQt);
+    QVERIFY2(!m_qbsStdout.contains("qt_plugin_import_qico.cpp"), m_qbsStdout.constData());
+    if (isStaticQt) {
+        QVERIFY2(m_qbsStdout.contains("image plugins: qjpeg,qgif"), m_qbsStdout.constData());
+        QVERIFY2(m_qbsStdout.contains("platform plugin count: 1"), m_qbsStdout.constData());
+        QVERIFY2(m_qbsStdout.contains("qt_plugin_import_qjpeg.cpp"), m_qbsStdout.constData());
+        QVERIFY2(m_qbsStdout.contains("qt_plugin_import_qgif.cpp"), m_qbsStdout.constData());
+    } else {
+        QSKIP("Qt is not static");
+    }
+}
+
 void TestBlackboxQt::qmlDebugging()
 {
     QDir::setCurrent(testDataDir + "/qml-debugging");

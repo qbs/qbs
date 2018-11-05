@@ -1,0 +1,77 @@
+/****************************************************************************
+**
+** Copyright (C) 2018 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+/*!
+    \contentspage index.html
+    \qmltype Qt.plugin_support
+    \inqmlmodule QbsModules
+    \since Qbs 1.13.0
+    \brief Allows to fine-tune which Qt plugins get pulled in.
+
+    The \c Qt.plugin_support module provides properties that allow users to control
+    which Qt plugins to pull into a product.
+    This is mostly relevant if Qt was built statically, in which case the respective
+    plugins are static libraries that get linked into your application or library.
+*/
+
+/*!
+    \qmlproperty varList Qt.plugin_support::pluginsByType
+
+    Set this property if you want to override the set of plugins for a certain
+    plugin type. For instance, to disable all image plugins except the JPEG
+    one:
+    \code
+    Qt.plugin_support.pluginsByType: ({imageformats: "qjpeg"})
+    \endcode
+    For plugin types that are not specifically overridden like this, the value in
+    defaultPluginsByType is used.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty var Qt.plugin_support::allPluginsByType
+
+    Provides the complete set of plugins in a statically built Qt.
+    The value is a map. The keys are the plugin types, and the values
+    are lists of plugin names.
+
+    \readonly
+*/
+
+/*!
+    \qmlproperty var Qt.plugin_support::defaultPluginsByType
+
+    Provides the set of plugins that your application or library will
+    link to if you do not set pluginsByType.
+    The value is a map. The keys are the plugin types, and the values
+    are lists of plugin names.
+    The value depends on the Qt modules your product pulls in.
+
+    \readonly
+*/
+

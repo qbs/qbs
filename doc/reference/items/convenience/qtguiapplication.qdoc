@@ -37,15 +37,5 @@
     \brief Application with a dependency on the Qt GUI module.
 
     A QtGuiApplication is an application that extends the \l{QtApplication} item
-    by loading the \l{Qt.gui} module and possibly also the default
-    QPA plugin.
-*/
-
-/*!
-    \qmlproperty bool QtGuiApplication::linkDefaultQpaPlugin
-
-    Whether or not to add a depencency to the default QPA plugin. The default is
-    to do that in the case of a static build, where it is normally required.
-
-    \defaultvalue \l{Qt.core::staticBuild}{Qt.core.staticBuild}
+    by loading the \l{Qt.gui} module.
 */

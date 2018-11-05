@@ -5,9 +5,27 @@ QtModule {
     isPlugin: true
 
     property string className
+    property stringList extendsModules
+
+    enableLinking: {
+        if (!base)
+            return false;
+        if (!isStaticLibrary)
+            return false;
+        if (!(Qt.plugin_support.enabledPlugins || []).contains(qtModuleName))
+            return false;
+        if (!extendsModules || extendsModules.length === 0)
+            return true;
+        for (var i = 0; i < extendsModules.length; ++i) {
+            var moduleName = extendsModules[i];
+            if (product.Qt[moduleName] && product.Qt[moduleName].present)
+                return true;
+        }
+        return false;
+    }
 
     Rule {
-        condition: isStaticLibrary
+        condition: enableLinking
         multiplex: true
         Artifact {
             filePath: product.targetName + "_qt_plugin_import_"

@@ -69,6 +69,7 @@ QtModule {
     libNameForLinkerRelease: @libNameForLinkerRelease@
     libFilePathDebug: @libFilePathDebug@
     libFilePathRelease: @libFilePathRelease@
+    pluginTypes: @pluginTypes@
 
     cpp.defines: @defines@
     cpp.includePaths: @includes@

@@ -768,7 +768,9 @@ QList<QtModuleInfo> allQt5Modules(const Profile &profile, const QtEnvironment &q
             } else if (key.endsWith(".TYPE")) {
                 moduleInfo.pluginData.type = QString::fromLatin1(value);
             } else if (key.endsWith(".EXTENDS")) {
-                moduleInfo.pluginData.extends = QString::fromLatin1(value);
+                moduleInfo.pluginData.extends = makeList(value);
+                if (moduleInfo.pluginData.extends.removeOne(QLatin1String("-")))
+                    moduleInfo.pluginData.autoLoad = false;
             } else if (key.endsWith(".CLASS_NAME")) {
                 moduleInfo.pluginData.className = QString::fromLatin1(value);
             }
