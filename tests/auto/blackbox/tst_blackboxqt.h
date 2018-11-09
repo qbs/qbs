@@ -57,6 +57,7 @@ private slots:
     void mocSameFileName();
     void pkgconfig();
     void pluginMetaData();
+    void pluginSupport_data();
     void pluginSupport();
     void qmlDebugging();
     void qobjectInObjectiveCpp();

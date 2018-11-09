@@ -256,21 +256,53 @@ void TestBlackboxQt::pluginMetaData()
     QVERIFY2(m_qbsStdout.contains("moc"), m_qbsStdout.constData());
 }
 
+void TestBlackboxQt::pluginSupport_data()
+{
+    QTest::addColumn<bool>("invalidPlugin");
+    QTest::newRow("request valid plugins") << false;
+    QTest::newRow("request invalid plugin") << true;
+}
+
 void TestBlackboxQt::pluginSupport()
 {
     QDir::setCurrent(testDataDir + "/plugin-support");
-    QCOMPARE(runQbs(), 0);
+    QFETCH(bool, invalidPlugin);
+    QbsRunParameters resolveParams("resolve");
+    if (invalidPlugin) {
+        resolveParams.arguments << "modules.m1.useDummy:true";
+        resolveParams.expectFailure = true;
+    }
+    QCOMPARE(runQbs(resolveParams) == 0, !invalidPlugin);
+    if (invalidPlugin) {
+        QVERIFY2(m_qbsStderr.contains("Plugin 'dummy' of type 'imageformats' was requested, "
+                                      "but is not available"), m_qbsStderr.constData());
+        return;
+    }
     const bool isStaticQt = m_qbsStdout.contains("static Qt: true");
     const bool isDynamicQt = m_qbsStdout.contains("static Qt: false");
     QVERIFY(isStaticQt != isDynamicQt);
-    QVERIFY2(!m_qbsStdout.contains("qt_plugin_import_qico.cpp"), m_qbsStdout.constData());
-    if (isStaticQt) {
-        QVERIFY2(m_qbsStdout.contains("image plugins: qjpeg,qgif"), m_qbsStdout.constData());
+    if (isStaticQt)
         QVERIFY2(m_qbsStdout.contains("platform plugin count: 1"), m_qbsStdout.constData());
-        QVERIFY2(m_qbsStdout.contains("qt_plugin_import_qjpeg.cpp"), m_qbsStdout.constData());
-        QVERIFY2(m_qbsStdout.contains("qt_plugin_import_qgif.cpp"), m_qbsStdout.constData());
-    } else {
-        QSKIP("Qt is not static");
+    else
+        QVERIFY2(m_qbsStdout.contains("platform plugin count: 0"), m_qbsStdout.constData());
+    const auto extractList = [this](const char sep) {
+        const int listStartIndex = m_qbsStdout.indexOf(sep);
+        const int listEndIndex = m_qbsStdout.indexOf(sep, listStartIndex + 1);
+        const QByteArray listString = m_qbsStdout.mid(listStartIndex + 1,
+                                                      listEndIndex - listStartIndex - 1);
+        return listString.isEmpty() ? QByteArrayList() : listString.split(',');
+    };
+    const QByteArrayList enabledPlugins = extractList('%');
+    if (isStaticQt)
+        QCOMPARE(enabledPlugins.size(), 2);
+    else
+        QVERIFY(enabledPlugins.empty());
+    const QByteArrayList allPlugins = extractList('#');
+    QVERIFY(allPlugins.size() >= enabledPlugins.size());
+    QCOMPARE(runQbs(), 0);
+    for (const QByteArray &plugin : allPlugins) {
+        QCOMPARE(m_qbsStdout.contains("qt_plugin_import_" + plugin + ".cpp"),
+                 enabledPlugins.contains(plugin));
     }
 }
 

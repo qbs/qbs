@@ -49,4 +49,27 @@ Module {
             Array.prototype.push.apply(list, eppt[t]);
         return list;
     }
+
+    validate: {
+        var ppt = pluginsByType;
+        if (!ppt)
+            return;
+        var appt = allPluginsByType;
+        for (var i = 0; i < ppt.length; ++i) {
+            for (var pluginType in ppt[i]) {
+                var requestedPlugins = ppt[i][pluginType];
+                if (!requestedPlugins)
+                    continue;
+                var availablePlugins = appt[pluginType] || [];
+                if (typeof requestedPlugins === "string")
+                    requestedPlugins = [requestedPlugins];
+                for (var j = 0; j < requestedPlugins.length; ++j) {
+                    if (!availablePlugins.contains(requestedPlugins[j])) {
+                        throw "Plugin '" + requestedPlugins[j] +  "' of type '" + pluginType
+                                + "' was requested, but is not available.";
+                    }
+                }
+            }
+        }
+    }
 }
