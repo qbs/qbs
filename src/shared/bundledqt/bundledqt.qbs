@@ -35,6 +35,8 @@ Product {
                                           [], Object.getOwnPropertyNames(Qt).map(function(mod) {
             if (mod === "script" && !Qt[mod].present)
                 return [];
+            if (!Qt[mod].hasLibrary)
+                return [];
             var fp = Qt[mod].libFilePathRelease;
             var fpd = Qt.core.frameworkBuild ? fp + qtDebugLibrarySuffix : Qt[mod].libFilePathDebug;
 
