@@ -3,6 +3,18 @@ TEMPLATE = aux
 !isEmpty(QBS_APPS_DESTDIR): qbsbindir = $${QBS_APPS_DESTDIR}
 else: qbsbindir = bin
 
+envSpec =
+unix:qbs_disable_rpath {
+    !isEmpty(QBS_DESTDIR): qbslibdir = $$QBS_DESTDIR
+    else: qbslibdir = $$OUT_PWD/lib
+    macos: envVar = DYLD_LIBRARY_PATH
+    else: envVar = LD_LIBRARY_PATH
+    oldVal = $$getenv($$envVar)
+    newVal = $$qbslibdir
+    !isEmpty(oldVal): newVal = $$newVal:$$oldVal
+    envSpec = $$envVar=$$newVal
+}
+
 builddirname = qbsres
 typedescdir = share/qbs/qml-type-descriptions
 typedescdir_src = $$builddirname/default/install-root/$$typedescdir
@@ -15,7 +27,7 @@ else: \
 
 qbsres.target = $$builddirname/default/default.bg
 qbsres.commands = \
-    $$shell_quote($$shell_path($$qbsbindir/qbs)) \
+    $$envSpec $$shell_quote($$shell_path($$qbsbindir/qbs)) \
     build \
     --settings-dir $$shell_quote($$builddirname/settings) \
     -f $$shell_quote($$PWD/qbs.qbs) \
