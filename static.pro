@@ -77,6 +77,7 @@ python_bin.files = $$files(src/3rdparty/python/bin/*)
     python_bin.path = $${QBS_LIBEXEC_INSTALL_DIR}
 else: \
     python_bin.path = $${QBS_INSTALL_PREFIX}/libexec/qbs
-python.files = $$files(src/3rdparty/python/lib/python2.7/site-packages/*)
+python.files = $$files(src/3rdparty/python/lib/python2.7/site-packages/*.py, true)
+python.base = $$PWD/src/3rdparty/python/lib/python2.7/site-packages
 python.path = $${share.path}/qbs/python
 INSTALLS += share examples python_bin python
