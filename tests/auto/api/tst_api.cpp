@@ -1350,7 +1350,8 @@ void TestApi::generatedFilesList()
                 << "moc_mainwindow.cpp" << "moc_mainwindow.cpp.o" << "moc_mainwindow.cpp.obj"
                 << "ui_mainwindow.h"
                 << HostOsInfo::appendExecutableSuffix("generated-files-list");
-        QVERIFY2(possibleFileNames.contains(fi.fileName()) || fi.fileName().endsWith(".plist"),
+        QVERIFY2(possibleFileNames.contains(fi.fileName()) || fi.fileName().endsWith(".plist")
+                 || fi.fileName().contains("qt_plugin_import"),
                  qPrintable(fi.fileName()));
     }
     const auto groups = product.groups();
