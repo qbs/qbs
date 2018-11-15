@@ -53,6 +53,7 @@ import qbs 1.0
 Application {
     name : "CollidingMice"
     Depends { name: "Qt.widgets" }
+    property bool isBundle: qbs.targetOS.contains("darwin") && bundle.isBundle
     files : [
         "images/cheese.jpg",
         "main.cpp",
@@ -61,9 +62,9 @@ Application {
         "mice.qrc"
     ]
     Group {
-        fileTagsFilter: bundle.isBundle ?  ["bundle.content"] : ["application"]
+        fileTagsFilter: isBundle ?  ["bundle.content"] : ["application"]
         qbs.install: true
-        qbs.installPrefix: bundle.isBundle ? "Applications" : "bin"
+        qbs.installPrefix: isBundle ? "Applications" : "bin"
         qbs.installSourceBase: product.buildDirectory
     }
 }
