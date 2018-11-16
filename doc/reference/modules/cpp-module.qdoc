@@ -150,6 +150,14 @@
         \li The rule that creates dynamic libraries (typically via a linker) attaches this tag
             to its output artifact.
     \row
+        \li \c{"dynamiclibrary_import"}
+        \li n/a
+        \li 1.0.0
+        \li This tag is used for import libraries of dynamic libraries.  For
+            example, the MSVC linker rule creates a \c{dynamiclibrary_import}
+            artifact \c{foo.lib} in addition to a \c{dynamiclibrary} artifact
+            \c{foo.dll}.
+    \row
         \li \c{"hpp"}
         \li \c{*.h}, \c{*.H}, \c{*.hpp}, \c{*.hxx}, \c{*.h++}
         \li 1.0.1
