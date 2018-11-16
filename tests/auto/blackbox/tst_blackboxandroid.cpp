@@ -83,6 +83,8 @@ void TestBlackboxAndroid::android()
 
     const SettingsPtr s = settings();
     Profile p(theProfileName(projectDir == "qml-app"), s.get());
+    if (!p.exists())
+        p = Profile("none", s.get());
     int status;
     const auto androidPaths = findAndroid(&status, p.name());
     QCOMPARE(status, 0);
