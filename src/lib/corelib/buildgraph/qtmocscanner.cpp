@@ -230,7 +230,17 @@ QScriptValue QtMocScanner::apply(QScriptEngine *engine, const Artifact *artifact
     bool hasPluginMetaDataMacro = false;
     const bool isHeaderFile = artifact->fileTags().contains(m_tags.hpp);
 
-    const RawScanResult scanResult = runScanner(m_cppScanner, artifact);
+    RawScanResult scanResult = runScanner(m_cppScanner, artifact);
+    if (scanResult.additionalFileTags.empty() && artifact->fileTags().contains("mocable")) {
+        if (isHeaderFile) {
+            scanResult.additionalFileTags.insert(m_tags.moc_hpp);
+        } else if (artifact->fileTags().contains(m_tags.cpp)
+                   || artifact->fileTags().contains(m_tags.cppCombine)
+                   || artifact->fileTags().contains(m_tags.objcpp)
+                   || artifact->fileTags().contains(m_tags.objcppCombine)) {
+            scanResult.additionalFileTags.insert(m_tags.moc_cpp);
+        }
+    }
     if (!scanResult.additionalFileTags.empty()) {
         if (isHeaderFile) {
             if (scanResult.additionalFileTags.contains(m_tags.moc_hpp))

@@ -109,6 +109,18 @@
         \li \c{*.ts}
         \li 1.0
         \li Files with this tag serve as inputs to the rule running the \c lrelease tool.
+    \row
+        \li \c{"mocable"}
+        \li -
+        \li 1.13
+        \li Use this tag to force \QBS to run \c moc on the respective files, even though
+            they do not contain \c Q_OBJECT or a related macro.
+    \row
+        \li \c{"unmocable"}
+        \li -
+        \li 1.2
+        \li Use this tag for files that \QBS should not run \c moc on, even though they contain
+            \c Q_OBJECT or a related macro.
     \endtable
 */
 

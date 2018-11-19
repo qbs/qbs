@@ -145,6 +145,13 @@ void TestBlackboxQt::dbusInterfaces()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackboxQt::forcedMoc()
+{
+    QDir::setCurrent(testDataDir + "/forced-moc");
+    QCOMPARE(runQbs(QbsRunParameters("run")), 0);
+    QVERIFY2(m_qbsStderr.contains("Hello from slot"), m_qbsStderr.constData());
+}
+
 void TestBlackboxQt::includedMocCpp()
 {
     QDir::setCurrent(testDataDir + "/included-moc-cpp");
