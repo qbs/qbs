@@ -30,7 +30,7 @@ QtApplication {
     }
     cpp.rpaths: [FileInfo.joinPaths(qbs.installRoot, qbs.installPrefix, qbsbuildconfig.libDirName)]
     qbs.commonRunEnvironment: ({
-        "QBS_INSTALL_ROOT": qbs.installRoot
+        "QBS_INSTALL_DIR": FileInfo.joinPaths(qbs.installRoot, qbs.installPrefix)
     })
     Group {
         fileTagsFilter: product.type

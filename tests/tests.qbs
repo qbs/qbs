@@ -1,4 +1,5 @@
 import qbs
+import qbs.FileInfo
 
 Project {
     references: [
@@ -16,7 +17,7 @@ Project {
         wrapper: project.autotestWrapper
         environment: {
             var env = base;
-            env.push("QBS_INSTALL_ROOT=" + qbs.installRoot);
+            env.push("QBS_INSTALL_DIR=" + FileInfo.joinPaths(qbs.installRoot, qbs.installPrefix));
             if (qbs.hostOS.contains("windows") && qbs.targetOS.contains("windows")) {
                 var path = "";
                 for (var i = 0; i < env.length; ++i) {
