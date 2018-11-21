@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2017 The Qt Company Ltd.
+** Copyright (C) 2018 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -31,6 +31,7 @@
     \qmltype Probe
     \inqmlmodule QbsLanguageItems
     \ingroup list-of-items
+    \ingroup list-of-probes
     \keyword QML.Probe
 
     \brief Locates files outside the project.

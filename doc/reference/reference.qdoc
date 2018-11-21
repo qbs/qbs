@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2017 The Qt Company Ltd.
+** Copyright (C) 2018 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -37,6 +37,7 @@
         \list
             \li \l{List of Language Items}
             \li \l{List of Convenience Items}
+            \li \l{List of Probes}
         \endlist
         \li \l{List of Built-in Services}
         \li \l{Command-Line Interface}
@@ -81,8 +82,9 @@
     \group list-of-items
     \title List of All Items
 
-    \QBS provides the following \l{List of Language Items}{built-in} and
-    \l{List of Convenience Items}{convenience} items to define projects.
+    \QBS provides the following \l{List of Language Items}{built-in},
+    \l{List of Convenience Items}{convenience}, and \l{List of Probes}{probe}
+    items to define projects.
 */
 
 /*!
@@ -100,4 +102,12 @@
     \title List of Convenience Items
 
     \QBS provides the following QML items for convenience.
+*/
+
+/*!
+    \contentspage reference.html
+    \group list-of-probes
+    \title List of Probes
+
+    \QBS provides the following probes.
 */

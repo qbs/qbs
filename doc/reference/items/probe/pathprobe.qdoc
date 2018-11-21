@@ -1,0 +1,163 @@
+/****************************************************************************
+**
+** Copyright (C) 2018 Ivan Komissarov
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+/*!
+    \contentspage list-of-probes.html
+    \qmltype PathProbe
+    \ingroup list-of-probes
+    \ingroup list-of-items
+    \keyword QML.PathProbe
+
+    \brief Locates files outside the project.
+
+    Finds files that have the specified file name suffix, such as \e .exe, from the specified
+    locations.
+
+    PathProbe takes as input lists of paths to search files from and file name patterns. The paths
+    are specified by using the searchPaths, platformSearchPaths, environmentPaths, and
+    platformEnvironmentPaths properties. The file name patterns are specified by the \l names and
+    nameSuffixes properties. Returns the first file that matches the file name patterns. If no such
+    file is found, the \l {Probe::found}{probe.found} property is set to \c false.
+
+    For example, a simple PathProbe that searches for the stdio.h header can be used as follows:
+
+    \code
+    Product {
+        Depends { name: "cpp" }
+        PathProbe {
+            id: probe
+            pathSuffixes: ["include"]
+            names: ["stdio.h"]
+        }
+        cpp.includePaths: probe.found ? [probe.path] : []
+    }
+    \endcode
+*/
+
+/*!
+    \qmlproperty stringList PathProbe::names
+
+    The list of file names to search for.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty stringList PathProbe::nameSuffixes
+
+    The list of file suffixes to search for. These suffixes are appended to every file name passed
+    via the \l names property. If \l names is empty, the probe looks for any file that ends with the
+    given suffix.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty script PathProbe::nameFilter
+
+    A script that is executed for each file name before prepending file suffixes. Can be used to
+    transform file names.
+*/
+
+/*!
+    \qmlproperty pathList PathProbe::searchPaths
+
+    The list of paths where to search files.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty pathList PathProbe::platformSearchPaths
+
+    The list of platform paths where to search files.
+
+    \defaultvalue \c {['/usr', '/usr/local']} on Unix hosts, empty otherwise
+*/
+
+/*!
+    \qmlproperty stringList PathProbe::pathSuffixes
+
+    A list of relative paths that are appended to each path where PathProbe searches for files.
+    That is, the file should be located within one of the subfolders passed using this
+    property.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty stringList PathProbe::environmentPaths
+
+    The list of environment variables that contains paths where to search files. Paths in the
+    environment variable should be separated using
+    \l{qbs::pathListSeparator}{qbs.pathListSeparator}.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty stringList PathProbe::platformEnvironmentPaths
+
+    The list of platform environment variables that contains paths where to search files. Paths in
+    the environment variable should be separated using
+    \l{qbs::pathListSeparator}{qbs.pathListSeparator}.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty stringList PathProbe::candidatePaths
+
+    This property contains the result list of all paths that were checked before a file was found
+    (including the file names).
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string PathProbe::path
+
+    This property contains the full path where the found file is located
+    (that is, the file directory).
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string PathProbe::filePath
+
+    This property contains the full path to the found file, including the file name.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string PathProbe::fileName
+
+    This property contains the found file's name (excluding the path).
+
+    \nodefaultvalue
+*/
