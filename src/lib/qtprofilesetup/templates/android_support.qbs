@@ -60,15 +60,25 @@ Module {
                 } else {
                     for (i = 0; i < nativeLibs.length; ++i) {
                         var candidate = nativeLibs[i];
-                        if (candidate.fileName.contains(candidate.product.targetName)) {
-                            if (theBinary) {
-                                throw "Qt applications for Android support only one native binary "
-                                        + "per package.\n"
-                                        + "In particular, you cannot build a Qt app for more than "
-                                        + "one architecture at the same time.";
-                            }
+                        if (!candidate.fileName.contains(candidate.product.targetName))
+                            continue;
+                        if (!theBinary) {
                             theBinary = candidate;
+                            continue;
                         }
+                        if (theBinary.product.name === product.name
+                                && candidate.product.name !== product.name) {
+                            continue; // We already have a better match.
+                        }
+                        if (candidate.product.name === product.name
+                                && theBinary.product.name !== product.name) {
+                            theBinary = candidate; // The new candidate is a better match.
+                            continue;
+                        }
+                        throw "Qt applications for Android support only one native binary "
+                                + "per package.\n"
+                                + "In particular, you cannot build a Qt app for more than "
+                                + "one architecture at the same time.";
                     }
                 }
                 var f = new TextFile(output.filePath, TextFile.WriteOnly);
