@@ -86,6 +86,8 @@ void CommandLineParser::parse(const QStringList &commandLine)
             assignOptionArgument(ndkDirOption(), m_ndkDir);
         else if (arg == qtSdkDirOption())
             assignOptionArgument(arg, m_qtSdkDir);
+        else
+            throwError(Tr::tr("Unknown option '%1'.").arg(arg));
     }
 
     if (m_helpRequested) {
