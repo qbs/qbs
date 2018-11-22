@@ -3,7 +3,7 @@ import qbs
 CppApplication {
     name: "app"
     consoleApplication: true
-    condition: protobuf.cpp.present
+    condition: hasProtobuf
 
     property path theImportDir
     protobuf.cpp.importPaths: (theImportDir ? [theImportDir] : []).concat([sourceDirectory])
@@ -11,12 +11,9 @@ CppApplication {
     cpp.cxxLanguageVersion: "c++11"
 
     Depends { name: "protobuf.cpp"; required: false }
-    Probe {
-        id: presentProbe
-        property bool hasModule: protobuf.cpp.present
-        configure: {
-            console.info("has protobuf: " + hasModule);
-        }
+    property bool hasProtobuf: {
+        console.info("has protobuf: " + protobuf.cpp.present);
+        return protobuf.cpp.present;
     }
 
     files: [

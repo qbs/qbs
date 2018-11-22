@@ -3,16 +3,13 @@ import qbs
 CppApplication {
     name: "addressbook_objc"
     consoleApplication: true
-    condition: protobuf.present && qbs.targetOS.contains("darwin")
+    condition: hasProtobuf
 
     Depends { name: "cpp" }
-    Depends { id: protobuf; name: "protobuf.objc"; required: false }
-    Probe {
-        id: presentProbe
-        property bool hasModule: protobuf.present && qbs.targetOS.contains("darwin")
-        configure: {
-            console.info("has protobuf: " + hasModule);
-        }
+    Depends { name: "protobuf.objc"; required: false }
+    property bool hasProtobuf: {
+        console.info("has protobuf: " + protobuf.objc.present);
+        return protobuf.objc.present;
     }
 
     files: [

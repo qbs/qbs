@@ -3,18 +3,15 @@ import qbs
 CppApplication {
     name: "addressbook_cpp"
     consoleApplication: true
-    condition: protobuf.present
+    condition: hasProtobuf
 
     Depends { name: "cpp" }
     cpp.cxxLanguageVersion: "c++11"
 
-    Depends { id: protobuf; name: "protobuf.cpp"; required: false }
-    Probe {
-        id: presentProbe
-        property bool hasModule: protobuf.present
-        configure: {
-            console.info("has protobuf: " + hasModule);
-        }
+    Depends { name: "protobuf.cpp"; required: false }
+    property bool hasProtobuf: {
+        console.info("has protobuf: " + protobuf.cpp.present);
+        return protobuf.cpp.present;
     }
 
     files: [
