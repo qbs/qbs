@@ -33,8 +33,8 @@
 
     \brief Provides support for protocol buffers for the C++ language.
 
-    The \c protobuf.cpp module provides support for generating C++ headers and
-    sources from proto definition files using the \c protoc tool.
+    The \c protobuf.cpp module provides support for generating C++ headers
+    and sources from proto definition files using the \l protoc tool.
 
     \section2 Relevant File Tags
 
@@ -55,7 +55,7 @@
 /*!
     \qmlproperty string protobuf.cpp::protocBinary
 
-    The command which to invoke when compiling proto definition files.
+    The command to invoke when compiling proto definition files.
 
     \defaultvalue \c auto-detected
 */
@@ -64,7 +64,7 @@
     \qmlproperty pathList protobuf.cpp::importPaths
 
     The list of imports that are passed to the \c protoc tool via the \c --proto_path option.
-    These imports should contain the proto files - they are used to determine
+    These imports should contain the proto files. They are used to determine
     the relative structure of the generated files.
     \note The paths are passed to \c protoc in the same order as specified in this property and
     \c protoc output may differ depending on that order.

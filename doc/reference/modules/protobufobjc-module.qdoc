@@ -34,7 +34,7 @@
     \brief Provides support for protocol buffers for the Objective-C language.
 
     The \c protobuf.objc module provides support for generating Objective-C
-    headers and sources from proto definition files using the \c protoc tool.
+    headers and sources from proto definition files using the \l protoc tool.
 
     \section2 Relevant File Tags
 
@@ -55,16 +55,16 @@
 /*!
     \qmlproperty string protobuf.objc::protocBinary
 
-    The command which to invoke when compiling proto definition files.
+    The command to invoke when compiling proto definition files.
 
     \defaultvalue \c auto-detected
 */
 
 /*!
-    \qmlproperty pathList protobuf.cpp::importPaths
+    \qmlproperty pathList protobuf.objc::importPaths
 
     The list of imports that are passed to the \c protoc tool via the \c --proto_path option.
-    These imports should contain the proto files - they are used to determine
+    These imports should contain the proto files. They are used to determine
     the relative structure of the generated files.
     \note The paths are passed to \c protoc in the same order as specified in this property and
     \c protoc output may differ depending on that order.
@@ -78,8 +78,7 @@
     The path where protobuf Objective-C headers are located. Set this property
     to override the default location.
 
-    \note If a \l{protobuf.objc::frameworkPath}{framework} is present, this property
-          has no effect.
+    \note If frameworkPath is specified, this property has no effect.
 
     \defaultvalue \c auto-detected
 */
@@ -87,8 +86,7 @@
 /*!
     \qmlproperty string protobuf.objc::libraryPath
 
-    \note If a \l{protobuf.objc::frameworkPath}{framework} is present, this property
-          has no effect.
+    \note If frameworkPath is specified, this property has no effect.
 
     \defaultvalue \c auto-detected
 */
