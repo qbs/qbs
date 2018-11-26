@@ -10,7 +10,7 @@ BinaryProbe {
     // Outputs
     property string tcPrefix
 
-    platformPaths: {
+    platformSearchPaths: {
         var paths = base;
         if (qbs.targetOS.contains("windows") && qbs.hostOS.contains("windows"))
             paths.push(FileInfo.joinPaths(
@@ -47,8 +47,8 @@ BinaryProbe {
     }
 
     configure: {
-        var result = PathProbeConfigure.configure(names, nameSuffixes, nameFilter, pathPrefixes,
-                                                  pathSuffixes, platformPaths, environmentPaths,
+        var result = PathProbeConfigure.configure(names, nameSuffixes, nameFilter, searchPaths,
+                                                  pathSuffixes, platformSearchPaths, environmentPaths,
                                                   platformEnvironmentPaths, pathListSeparator);
         found = result.found;
         candidatePaths = result.candidatePaths;

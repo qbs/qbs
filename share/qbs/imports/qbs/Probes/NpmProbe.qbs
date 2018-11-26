@@ -47,9 +47,10 @@ NodeJsProbe {
         if (!interpreterPath)
             throw '"interpreterPath" must be specified';
 
-        var result = PathProbeConfigure.configure(names, nameSuffixes, nameFilter, pathPrefixes,
-                                                  pathSuffixes, platformPaths, environmentPaths,
-                                                  platformEnvironmentPaths, pathListSeparator);
+        var result = PathProbeConfigure.configure(names, nameSuffixes, nameFilter, searchPaths,
+                                                  pathSuffixes, platformSearchPaths,
+                                                  environmentPaths, platformEnvironmentPaths,
+                                                  pathListSeparator);
 
         var v = new ModUtils.EnvironmentVariable("PATH", pathListSeparator,
                                                  hostOS.contains("windows"));

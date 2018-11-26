@@ -35,7 +35,7 @@ import "../../../modules/Android/sdk/utils.js" as SdkUtils
 
 BinaryProbe {
     environmentPaths: Environment.getEnv("ANDROID_HOME")
-    platformPaths: {
+    platformSearchPaths: {
         if (qbs.hostOS.contains("windows"))
             return [FileInfo.joinPaths(Environment.getEnv("LOCALAPPDATA"), "Android", "sdk")];
         if (qbs.hostOS.contains("macos"))
@@ -53,7 +53,7 @@ BinaryProbe {
 
     configure: {
         var suffixes = nameSuffixes || [""];
-        var i, allPaths = (environmentPaths || []).concat(platformPaths || []);
+        var i, allPaths = (environmentPaths || []).concat(platformSearchPaths || []);
         candidatePaths = allPaths;
         for (i in allPaths) {
             for (var j in suffixes) {

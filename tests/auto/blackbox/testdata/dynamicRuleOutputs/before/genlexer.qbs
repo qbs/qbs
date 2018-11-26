@@ -53,7 +53,7 @@ Project {
         Probes.PathProbe {
             id: flexProbe
             names: ["flex"]
-            platformPaths: ["/usr/local/bin", "/usr/bin", "/bin"]
+            platformSearchPaths: ["/usr/local/bin", "/usr/bin", "/bin"]
         }
         property bool isFlexAvailable: flexProbe.found
         Rule {

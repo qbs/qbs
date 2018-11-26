@@ -7,7 +7,7 @@ Module {
     Probes.IncludeProbe {
         id: includeNode
         names: "fakeopenssl/sha.h"
-        platformPaths: [modulePath]
+        platformSearchPaths: [modulePath]
     }
     cpp.defines: includeNode.found ? 'TEXT="' + includeNode.path + '"' : undefined
 }

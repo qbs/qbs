@@ -49,7 +49,7 @@ UnixGCC {
         id: lipoProbe
         condition: !_skipAllChecks
         names: [lipoName]
-        platformPaths: {
+        platformSearchPaths: {
             var paths = (xcode.present && xcode.devicePlatformPath)
                     ? [xcode.devicePlatformPath + "/Developer/usr/bin"]
                     : [];

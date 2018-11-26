@@ -29,7 +29,7 @@
 ****************************************************************************/
 
 PathProbe {
-    platformPaths: (qbs.sysroot ? [qbs.sysroot + "/System/Library/Frameworks"] : []).concat([
+    platformSearchPaths: (qbs.sysroot ? [qbs.sysroot + "/System/Library/Frameworks"] : []).concat([
             "~/Library/Frameworks",
             "/usr/local/lib",
             "/Library/Frameworks",

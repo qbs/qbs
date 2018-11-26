@@ -4,13 +4,13 @@ CppApplication {
     Probes.PathProbe {
         id: probe1
         names: ["bin/tool"]
-        platformPaths: [product.sourceDirectory]
+        platformSearchPaths: [product.sourceDirectory]
     }
 
     Probes.PathProbe {
         id: probe2
         names: ["tool"]
-        platformPaths: [product.sourceDirectory + "/bin"]
+        platformSearchPaths: [product.sourceDirectory + "/bin"]
     }
 
     targetName: {

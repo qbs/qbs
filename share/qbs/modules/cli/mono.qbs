@@ -12,7 +12,7 @@ CLIModule {
     Probes.PathProbe {
         id: monoProbe
         names: ["mono"]
-        platformPaths: {
+        platformSearchPaths: {
             var paths = [];
             if (qbs.hostOS.contains("macos"))
                 paths.push("/Library/Frameworks/Mono.framework/Commands");

@@ -36,7 +36,7 @@ PathProbe {
             return [".dylib", ".a"];
         return [".so", ".a"];
     }
-    platformPaths: qbs.targetOS.contains("unix") ? [
+    platformSearchPaths: qbs.targetOS.contains("unix") ? [
         "/usr/lib",
         "/usr/local/lib",
     ] : []

@@ -41,12 +41,12 @@ Module {
 
     Probes.NodeJsProbe {
         id: nodejs
-        pathPrefixes: toolchainInstallPath ? [toolchainInstallPath] : []
+        searchPaths: toolchainInstallPath ? [toolchainInstallPath] : []
     }
 
     Probes.NpmProbe {
         id: npm
-        pathPrefixes: toolchainInstallPath ? [toolchainInstallPath] : []
+        searchPaths: toolchainInstallPath ? [toolchainInstallPath] : []
         interpreterPath: FileInfo.path(nodejs.filePath)
     }
 

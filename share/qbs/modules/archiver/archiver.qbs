@@ -51,7 +51,7 @@ Module {
     Probes.BinaryProbe {
         id: sevenZipProbe
         names: ["7z"]
-        platformPaths: {
+        platformSearchPaths: {
             var paths = base;
             if (qbs.hostOS.contains("windows")) {
                 var env32 = Environment.getEnv("PROGRAMFILES(X86)");
