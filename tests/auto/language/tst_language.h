@@ -103,6 +103,8 @@ private slots:
     void erroneousFiles();
     void exports();
     void fileContextProperties();
+    void fileInProductAndModule_data();
+    void fileInProductAndModule();
     void fileTags_data();
     void fileTags();
     void groupConditions_data();
