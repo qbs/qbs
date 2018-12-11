@@ -99,6 +99,7 @@ void CommandLineParser::parse(const QStringList &commandLine)
         throwError(Tr::tr("No profile name supplied."));
     case 1:
         m_profileName = m_commandLine.takeFirst();
+        m_profileName.replace(QLatin1Char('.'), QLatin1Char('-'));
         break;
     default:
         complainAboutExtraArguments();

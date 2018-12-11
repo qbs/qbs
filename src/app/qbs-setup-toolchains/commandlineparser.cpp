@@ -97,6 +97,7 @@ void CommandLineParser::parse(const QStringList &commandLine)
     case 2:
         m_compilerPath = m_commandLine.at(0);
         m_profileName = m_commandLine.at(1);
+        m_profileName.replace(QLatin1Char('.'), QLatin1Char('-'));
         break;
     default:
         complainAboutExtraArguments();
