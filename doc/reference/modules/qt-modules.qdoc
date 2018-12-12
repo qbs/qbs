@@ -98,7 +98,7 @@
     \row
         \li \l{Qt.gui}{gui}
         \li Qt GUI
-        \li For more information , see \l {Qt.gui}.
+        \li For more information, see \l {Qt.gui}.
     \row
         \li help
         \li Qt Help
@@ -138,6 +138,10 @@
         \li \l{Qt.qml}{qml}
         \li Qt QML
         \li For more information, see \l{Qt.qml}.
+    \row
+        \li qmltest
+        \li Qt Quick Test
+        \li
     \row
         \li script
         \li Qt Script
