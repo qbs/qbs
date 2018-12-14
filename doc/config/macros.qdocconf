@@ -6,6 +6,7 @@ macro.nodefaultvalue    = "Default: Undefined"
 macro.appleproperty     = "This property is specific to Apple platforms."
 macro.unixproperty      = "This property is specific to Unix platforms."
 macro.windowsproperty   = "This property is specific to Windows."
+macro.baremetalproperty = "This property is specific to bare-metal platforms."
 macro.funsince.HTML     = "<p>This function was introduced in version \1.</p>"
 
 macro.aacute.HTML       = "&aacute;"

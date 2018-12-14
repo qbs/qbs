@@ -1662,3 +1662,14 @@
 
     \nodefaultvalue
 */
+
+/*!
+    \qmlproperty bool cpp::generateMapFile
+    \since Qbs 1.13
+
+    \baremetalproperty
+
+    Whether to auto-generate a linker map file.
+
+    \defaultvalue \c{true}
+*/
