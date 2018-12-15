@@ -79,6 +79,13 @@ CppModule {
         description: "don't emit code to destroy C++ static variables (disabled by default)"
     }
 
+    property bool enableSymbolsCaseSensitivity: true
+    PropertyOptions {
+        name: "enableSymbolsCaseSensitivity"
+        description: "enable/disable case sensitivity for user symbols"
+            + " (enabled by default)"
+    }
+
     property string cpu;
     PropertyOptions {
         name: "cpu"

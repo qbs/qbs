@@ -220,8 +220,12 @@ function assemblerFlags(project, product, input, output, explicitlyDependsOn) {
     else
         args.push('-w+');
 
-    // Enable sensitivity for user symbols.
-    args.push('-s+');
+    // Case sensitivity for user symbols.
+    var sensitivity = input.cpp.enableSymbolsCaseSensitivity;
+    if (sensitivity)
+        args.push('-s+');
+    else
+        args.push('-s-');
 
     // ASM macro argument quotes.
     var quotes = input.cpp.macroQuoteCharacters;
