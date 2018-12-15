@@ -214,7 +214,7 @@ function assemblerFlags(project, product, input, output, explicitlyDependsOn) {
     if (input.cpp.debugInformation)
         args.push('-r');
 
-    var warnings = input.cpp.warningLevel
+    var warnings = input.cpp.warningLevel;
     if (warnings === 'none')
         args.push('-w-');
     else
@@ -224,7 +224,9 @@ function assemblerFlags(project, product, input, output, explicitlyDependsOn) {
     args.push('-s+');
 
     // ASM macro argument quotes.
-    args.push('-M<>');
+    var quotes = input.cpp.macroQuoteCharacters;
+    if (quotes)
+        args.push('-M' + quotes);
 
     args.push('-o', output.filePath);
 

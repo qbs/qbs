@@ -82,14 +82,20 @@ CppModule {
     property string cpu;
     PropertyOptions {
         name: "cpu"
-        description: "specify target CPU core (Cortex-M3 is default)"
+        description: "specify target CPU core support"
     }
 
     property string fpu;
     PropertyOptions {
         name: "fpu"
-        description: "specify target FPU coprocessor support " +
-            "(default is none, which selects the software floating-point library)"
+        description: "specify target FPU coprocessor support"
+    }
+
+    property string macroQuoteCharacters: "<>"
+    PropertyOptions {
+        name: "macroQuoteCharacters"
+        allowedValues: ["<>", "()", "[]", "{}"]
+        description: "assembler macro quote begin and end characters (default is <>)"
     }
 
     compilerName: {
