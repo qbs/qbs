@@ -86,6 +86,12 @@ CppModule {
             + " (enabled by default)"
     }
 
+    property bool generateMapFile: true
+    PropertyOptions {
+        name: "generateMapFile"
+        description: "produce a linker list file (enabled by default)"
+    }
+
     property string cpu;
     PropertyOptions {
         name: "cpu"
@@ -186,11 +192,24 @@ CppModule {
         multiplex: true
         inputs: ["obj", "linkerscript"]
 
-        Artifact {
-            fileTags: ['application']
-            filePath: FileInfo.joinPaths(
+        outputFileTags: ["application", "map_file"]
+                outputArtifacts: {
+            var app = {
+                fileTags: ["application"],
+                filePath: FileInfo.joinPaths(
                               product.destinationDirectory,
                               PathTools.applicationFilePath(product))
+            };
+            var artifacts = [app];
+            if (product.cpp.generateMapFile) {
+                artifacts.push({
+                    fileTags: ["map_file"],
+                filePath: FileInfo.joinPaths(
+                              product.destinationDirectory,
+                              product.targetName + '.map')
+                });
+            }
+            return artifacts;
         }
 
         prepare: {

@@ -239,7 +239,7 @@ function assemblerFlags(project, product, input, output, explicitlyDependsOn) {
     return args;
 }
 
-function linkerFlags(project, product, input, output) {
+function linkerFlags(project, product, input, outputs) {
     var i;
     var args = [];
 
@@ -252,7 +252,10 @@ function linkerFlags(project, product, input, output) {
         args.push(redirects[i]);
     }
 
-    args.push('-o', output.filePath);
+    args.push('-o', outputs.application[0].filePath);
+
+    if (product.cpp.generateMapFile)
+        args.push('--map', outputs.map_file[0].filePath);
 
     var linkerScripts = inputs.linkerscript
             ? inputs.linkerscript.map(function(a) { return a.filePath; }) : [];
@@ -299,7 +302,7 @@ function prepareAssembler(project, product, inputs, outputs, input, output, expl
 
 function prepareLinker(project, product, inputs, outputs, input, output) {
     var primaryOutput = outputs.application[0];
-    var args = linkerFlags(project, product, input, output);
+    var args = linkerFlags(project, product, input, outputs);
     var linkerPath = product.cpp.linkerPath;
     var cmd = new Command(linkerPath, args)
     cmd.description = 'linking ' + primaryOutput.fileName;
