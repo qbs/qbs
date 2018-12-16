@@ -279,6 +279,31 @@ function linkerFlags(project, product, input, outputs) {
     return args;
 }
 
+function converterFlags(project, product, input, outputs) {
+    var args = [];
+
+    switch (product.cpp.additionalOutputFormat) {
+    case "intel":
+        args.push('--ihex');
+        break;
+    case "motorola":
+        args.push('--srec');
+        break;
+    case "binary":
+        args.push('--bin');
+        break;
+    case "simple":
+        args.push('--simple');
+        break;
+    }
+
+    args.push('--verbose');
+    args.push(input.filePath);
+    args.push(outputs.hex_file[0].filePath);
+
+    return args;
+}
+
 function prepareCompiler(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
     var args = compilerFlags(project, product, input, output, explicitlyDependsOn);
     var compilerPath = product.cpp.compilerPath;
@@ -306,6 +331,17 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     var linkerPath = product.cpp.linkerPath;
     var cmd = new Command(linkerPath, args)
     cmd.description = 'linking ' + primaryOutput.fileName;
+    cmd.highlight = "linker";
+    cmd.workingDirectory = product.buildDirectory;
+    return [cmd];
+}
+
+function prepareConverter(project, product, inputs, outputs, input, output) {
+    var primaryOutput = outputs.hex_file[0];
+    var args = converterFlags(project, product, input, outputs);
+    var converterPath = product.cpp.converterPath;
+    var cmd = new Command(converterPath, args)
+    cmd.description = 'generating ' + primaryOutput.fileName;
     cmd.highlight = "linker";
     cmd.workingDirectory = product.buildDirectory;
     return [cmd];

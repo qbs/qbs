@@ -41,6 +41,8 @@ CppModule {
     condition: qbs.hostOS.contains('windows') &&
                qbs.toolchain && qbs.toolchain.contains('iar')
 
+    additionalProductTypes: ['hex_file']
+
     Probes.BinaryProbe {
         id: compilerPathProbe
         condition: !toolchainInstallPath && !_skipAllChecks
@@ -111,6 +113,13 @@ CppModule {
         description: "assembler macro quote begin and end characters (default is <>)"
     }
 
+    property string additionalOutputFormat: "intel"
+    PropertyOptions {
+        name: "additionalOutputFormat"
+        allowedValues: ["intel", "motorola", "binary", "simple"]
+        description: "additional generated output file format (default is 'intel')"
+    }
+
     compilerName: {
         switch (qbs.architecture) {
         case "arm":
@@ -142,6 +151,25 @@ CppModule {
         }
     }
     linkerPath: FileInfo.joinPaths(toolchainInstallPath, linkerName)
+
+    property string converterName: {
+        switch (qbs.architecture) {
+        case "arm":
+            return "ielftool.exe";
+        default:
+            return "";
+        }
+    }
+    PropertyOptions {
+        name: "converterName"
+        description: "name of the output converter binary"
+    }
+
+    property string converterPath: FileInfo.joinPaths(toolchainInstallPath, converterName)
+    PropertyOptions {
+        name: "converterPath"
+        description: "full path of the output converter binary"
+    }
 
     warningLevel: "default"
     runtimeLibrary: "static"
@@ -193,7 +221,7 @@ CppModule {
         inputs: ["obj", "linkerscript"]
 
         outputFileTags: ["application", "map_file"]
-                outputArtifacts: {
+        outputArtifacts: {
             var app = {
                 fileTags: ["application"],
                 filePath: FileInfo.joinPaths(
@@ -222,4 +250,19 @@ CppModule {
         fileTags: ["linkerscript"]
     }
 
+    Rule {
+        id: converter
+        condition: product.cpp.additionalOutputFormat ? true : false
+        inputs: ["application"]
+        multiplex: true
+
+        Artifact {
+            fileTags: ['hex_file']
+            filePath: FileInfo.joinPaths(
+                          product.destinationDirectory,
+                          product.targetName + '.hex')
+        }
+
+        prepare: IAR.prepareConverter.apply(IAR, arguments);
+    }
 }
