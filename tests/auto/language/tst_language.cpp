@@ -1103,6 +1103,54 @@ void TestLanguage::fileContextProperties()
     QCOMPARE(exceptionCaught, false);
 }
 
+void TestLanguage::fileInProductAndModule_data()
+{
+    QTest::addColumn<bool>("file1IsTarget");
+    QTest::addColumn<bool>("file2IsTarget");
+    QTest::addColumn<bool>("addFileToProduct");
+    QTest::addColumn<bool>("successExpected");
+    QTest::newRow("file occurs twice in module as non-target") << false << false << false << false;
+    QTest::newRow("file occurs twice in module as non-target, and in product as well")
+            << false << false << true << false;
+    QTest::newRow("file occurs in module as non-target and target")
+            << false << true << false << true;
+    QTest::newRow("file occurs in module as non-target and target, and in product as well")
+            << false << true << true << false;
+    QTest::newRow("file occurs in module as target and non-target")
+            << true << false << false << true;
+    QTest::newRow("file occurs in module as target and non-target, and in product as well")
+            << true << false << true << false;
+    QTest::newRow("file occurs twice in module as target") << true << true << false << false;
+    QTest::newRow("file occurs twice in module as target, and in product as well")
+            << true << true << true << false;
+}
+
+void TestLanguage::fileInProductAndModule()
+{
+    bool exceptionCaught = false;
+    QFETCH(bool, file1IsTarget);
+    QFETCH(bool, file2IsTarget);
+    QFETCH(bool, addFileToProduct);
+    QFETCH(bool, successExpected);
+    try {
+        SetupProjectParameters params = defaultParameters;
+        params.setProjectFilePath(testProject("file-in-product-and-module.qbs"));
+        params.setOverriddenValues(QVariantMap{
+            std::make_pair("modules.module_with_file.file1IsTarget", file1IsTarget),
+            std::make_pair("modules.module_with_file.file2IsTarget", file2IsTarget),
+            std::make_pair("products.p.addFileToProduct", addFileToProduct),
+        });
+        project = loader->loadProject(params);
+        QVERIFY(!!project);
+        QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+        QCOMPARE(products.size(), 1);
+    } catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        QVERIFY2(e.toString().contains("Duplicate"), qPrintable(e.toString()));
+    }
+    QCOMPARE(exceptionCaught, !successExpected);
+}
+
 void TestLanguage::getNativeSetting()
 {
     bool exceptionCaught = false;

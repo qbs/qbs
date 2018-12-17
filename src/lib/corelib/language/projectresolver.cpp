@@ -101,7 +101,7 @@ struct ProjectResolver::ProductContext
     Item *item;
     typedef std::pair<ArtifactPropertiesPtr, std::vector<CodeLocation>> ArtifactPropertiesInfo;
     QHash<QStringList, ArtifactPropertiesInfo> artifactPropertiesPerFilter;
-    QHash<QString, CodeLocation> sourceArtifactLocations;
+    ProjectResolver::FileLocations sourceArtifactLocations;
     GroupConstPtr currentGroup;
 };
 
@@ -602,7 +602,7 @@ void ProjectResolver::gatherProductTypes(ResolvedProduct *product, Item *item)
 
 SourceArtifactPtr ProjectResolver::createSourceArtifact(const ResolvedProductPtr &rproduct,
         const QString &fileName, const GroupPtr &group, bool wildcard,
-        const CodeLocation &filesLocation, QHash<QString, CodeLocation> *fileLocations,
+        const CodeLocation &filesLocation, FileLocations *fileLocations,
         ErrorInfo *errorInfo)
 {
     const QString &baseDir = FileInfo::path(group->location.filePath());
@@ -614,7 +614,7 @@ SourceArtifactPtr ProjectResolver::createSourceArtifact(const ResolvedProductPtr
         return SourceArtifactPtr();
     }
     if (group->enabled && fileLocations) {
-        CodeLocation &loc = (*fileLocations)[absFilePath];
+        CodeLocation &loc = (*fileLocations)[std::make_pair(group->targetOfModule, absFilePath)];
         if (loc.isValid()) {
             if (errorInfo) {
                 errorInfo->append(Tr::tr("Duplicate source file '%1'.").arg(absFilePath));

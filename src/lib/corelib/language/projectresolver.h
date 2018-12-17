@@ -77,10 +77,11 @@ public:
     static void applyFileTaggers(const SourceArtifactPtr &artifact,
             const ResolvedProductConstPtr &product);
 
+    using FileLocations = QHash<std::pair<QString, QString>, CodeLocation>;
     static SourceArtifactPtr createSourceArtifact(const ResolvedProductPtr &rproduct,
             const QString &fileName, const GroupPtr &group, bool wildcard,
             const CodeLocation &filesLocation = CodeLocation(),
-            QHash<QString, CodeLocation> *fileLocations = nullptr, ErrorInfo *errorInfo = nullptr);
+            FileLocations *fileLocations = nullptr, ErrorInfo *errorInfo = nullptr);
 
 private:
     struct ProjectContext;
