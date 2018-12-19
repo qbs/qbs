@@ -399,6 +399,11 @@ void QtModuleInfo::setupLibraries(const QtEnvironment &qtEnv, bool debugBuild,
             }
             continue;
         }
+        if (simplifiedLine.startsWith("QMAKE_PRL_CONFIG")) {
+            config = QString::fromLatin1(simplifiedLine.mid(equalsOffset + 1).trimmed())
+                    .split(QLatin1Char(' '), QString::SkipEmptyParts);
+            continue;
+        }
         if (!simplifiedLine.startsWith("QMAKE_PRL_LIBS"))
             continue;
 

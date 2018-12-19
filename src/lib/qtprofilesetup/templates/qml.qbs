@@ -43,6 +43,7 @@ QtModule {
     libFilePathDebug: @libFilePathDebug@
     libFilePathRelease: @libFilePathRelease@
     pluginTypes: @pluginTypes@
+    moduleConfig: @moduleConfig@
     cpp.defines: @defines@
     cpp.includePaths: @includes@
     cpp.libraryPaths: @libraryPaths@

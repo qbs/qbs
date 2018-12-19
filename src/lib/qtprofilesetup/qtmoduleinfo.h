@@ -86,6 +86,7 @@ public:
     QStringList frameworkPathsDebug;
     QStringList frameworkPathsRelease;
     QStringList libraryPaths;
+    QStringList config;
     bool isPrivate;
     bool hasLibrary;
     bool isStaticLibrary;

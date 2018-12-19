@@ -73,6 +73,7 @@ Module {
     cpp.linkerFlags: Qt.core.qtBuildVariant === "debug"
             ? linkerFlagsDebug : linkerFlagsRelease
     property bool enableLinking: qtModuleName != undefined && hasLibrary
+    property stringList moduleConfig
 
     Properties {
         condition: enableLinking

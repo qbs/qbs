@@ -467,6 +467,7 @@ static void replaceSpecialValues(QByteArray *content, const Profile &profile,
     dict.insert("libNameForLinkerDebug",
                 utf8JSLiteral(module.libNameForLinker(qtEnvironment, true)));
     dict.insert("pluginTypes", utf8JSLiteral(module.supportedPluginTypes));
+    dict.insert("moduleConfig", utf8JSLiteral(module.config));
     dict.insert("libNameForLinkerRelease",
                 utf8JSLiteral(module.libNameForLinker(qtEnvironment, false)));
     dict.insert("entryPointLibsDebug", utf8JSLiteral(qtEnvironment.entryPointLibsDebug));

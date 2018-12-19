@@ -160,6 +160,16 @@ void TestBlackboxQt::includedMocCpp()
     QVERIFY2(!m_qbsStdout.contains("compiling moc_myobject.cpp"), m_qbsStdout.constData());
 }
 
+void TestBlackboxQt::linkerVariant()
+{
+    QDir::setCurrent(testDataDir + "/linker-variant");
+    QCOMPARE(runQbs(QStringList{"--command-echo-mode", "command-line"}), 0);
+    const bool goldRequired = m_qbsStdout.contains("Qt requires gold: true");
+    const bool goldNotRequired = m_qbsStdout.contains("Qt requires gold: false");
+    QVERIFY2(goldRequired != goldNotRequired, m_qbsStdout.constData());
+    QCOMPARE(m_qbsStdout.contains("-fuse-ld=gold"), goldRequired ? 1 : 0);
+}
+
 void TestBlackboxQt::lrelease()
 {
     QDir::setCurrent(testDataDir + QLatin1String("/lrelease"));

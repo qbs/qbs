@@ -99,6 +99,12 @@ Module {
     property string qmBaseName: product.targetName
     property bool lreleaseMultiplexMode: false
 
+    property stringList moduleConfig: @moduleConfig@
+    Properties {
+        condition: moduleConfig.contains("use_gold_linker")
+        cpp.linkerVariant: "gold"
+    }
+
     cpp.entryPoint: qbs.targetOS.containsAny(["ios", "tvos"])
                         && Utilities.versionCompare(version, "5.6.0") >= 0
                     ? "_qt_main_wrapper"
