@@ -63,6 +63,7 @@ public:
     static QScriptValue js_baseName(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_suffix(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_completeSuffix(QScriptContext *context, QScriptEngine *engine);
+    static QScriptValue js_canonicalPath(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_cleanPath(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_completeBaseName(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_relativePath(QScriptContext *context, QScriptEngine *engine);
@@ -134,6 +135,16 @@ QScriptValue FileInfoExtension::js_completeSuffix(QScriptContext *context, QScri
                                    Tr::tr("completeSuffix expects 1 argument"));
     }
     return FileInfo::completeSuffix(context->argument(0).toString());
+}
+
+QScriptValue FileInfoExtension::js_canonicalPath(QScriptContext *context, QScriptEngine *engine)
+{
+    Q_UNUSED(engine);
+    if (Q_UNLIKELY(context->argumentCount() < 1)) {
+        return context->throwError(QScriptContext::SyntaxError,
+                                   Tr::tr("canonicalPath expects 1 argument"));
+    }
+    return QFileInfo(context->argument(0).toString()).canonicalFilePath();
 }
 
 QScriptValue FileInfoExtension::js_cleanPath(QScriptContext *context, QScriptEngine *engine)
@@ -281,6 +292,8 @@ void initializeJsExtensionFileInfo(QScriptValue extensionObject)
                             engine->newFunction(FileInfoExtension::js_suffix));
     fileInfoObj.setProperty(QLatin1String("completeSuffix"),
                             engine->newFunction(FileInfoExtension::js_completeSuffix));
+    fileInfoObj.setProperty(QLatin1String("canonicalPath"),
+                            engine->newFunction(FileInfoExtension::js_canonicalPath));
     fileInfoObj.setProperty(QLatin1String("cleanPath"),
                             engine->newFunction(FileInfoExtension::js_cleanPath));
     fileInfoObj.setProperty(StringConstants::completeBaseNameProperty(),

@@ -4015,9 +4015,10 @@ void TestBlackbox::jsExtensionsFileInfo()
     QVERIFY(output.exists());
     QVERIFY(output.open(QIODevice::ReadOnly));
     const QList<QByteArray> lines = output.readAll().trimmed().split('\n');
-    QCOMPARE(lines.size(), 25);
+    QCOMPARE(lines.size(), 26);
     int i = 0;
     QCOMPARE(lines.at(i++).trimmed().constData(), "blubb");
+    QCOMPARE(lines.at(i++).trimmed().constData(), "/usr/bin");
     QCOMPARE(lines.at(i++).trimmed().constData(), "/usr/bin");
     QCOMPARE(lines.at(i++).trimmed().constData(), "blubb.tar");
     QCOMPARE(lines.at(i++).trimmed().constData(), "blubb.tar.gz");

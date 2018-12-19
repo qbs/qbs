@@ -44,6 +44,18 @@
     \endcode
     Returns the file name of \c filePath up to (but not including) the first '.' character.
 
+    \section2 canonicalPath
+    \code
+    FileInfo.canonicalPath(filePath: string): string
+    \endcode
+    Returns a canonicalized \c filePath, i.e. an absolute path without symbolic
+    links or redundant "." or ".." elements.
+    On Windows, drive substitutions are also resolved.
+
+    It is recommended to use \c{canonicalPath} in only those cases where
+    canonical paths are really necessary. In most cases, \c{cleanPath} should
+    be enough.
+
     \section2 cleanPath
     \code
     FileInfo.cleanPath(filePath: string): string
