@@ -160,6 +160,8 @@ private slots:
     void jsExtensionsBinaryFile();
     void ld();
     void linkerMode();
+    void linkerVariant_data();
+    void linkerVariant();
     void lexyacc();
     void lexyaccOutputs();
     void lexyaccOutputs_data();

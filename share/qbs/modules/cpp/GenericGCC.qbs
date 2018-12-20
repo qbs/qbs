@@ -173,6 +173,18 @@ CppModule {
             + "such as \"--no-undefined\", then you should set this property to \"strict\"."
     }
 
+    property string linkerVariant
+    PropertyOptions {
+        name: "linkerVariant"
+        allowedValues: ["bfd", "gold", "lld"]
+        description: "Allows to specify the linker variant. Maps to gcc's and clang's -fuse-ld "
+                     + "option."
+    }
+    Properties {
+        condition: linkerVariant
+        driverLinkerFlags: "-fuse-ld=" + linkerVariant
+    }
+
     property string toolchainPathPrefix: Gcc.pathPrefix(toolchainInstallPath, toolchainPrefix)
     property string binutilsPathPrefix: Gcc.pathPrefix(binutilsPath, toolchainPrefix)
 

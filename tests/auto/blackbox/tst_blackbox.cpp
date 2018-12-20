@@ -4245,6 +4245,34 @@ void TestBlackbox::linkerMode()
         testCondition(lang, [](const QByteArray &lddOutput) { return lddOutput.contains("objc"); });
 }
 
+void TestBlackbox::linkerVariant_data()
+{
+    QTest::addColumn<QString>("theType");
+    QTest::newRow("default") << QString();
+    QTest::newRow("bfd") << QString("bfd");
+    QTest::newRow("gold") << QString("gold");
+}
+
+void TestBlackbox::linkerVariant()
+{
+    QDir::setCurrent(testDataDir + "/linker-variant");
+    QFETCH(QString, theType);
+    QStringList resolveArgs("--force-probe-execution");
+    if (!theType.isEmpty())
+        resolveArgs << ("products.p.linkerVariant:" + theType);
+    QCOMPARE(runQbs(QbsRunParameters("resolve", resolveArgs)), 0);
+    const bool isGcc = m_qbsStdout.contains("is GCC: true");
+    const bool isNotGcc = m_qbsStdout.contains("is GCC: false");
+    QVERIFY2(isGcc != isNotGcc, m_qbsStdout.constData());
+    QbsRunParameters buildParams("build", QStringList{"--command-echo-mode", "command-line"});
+    buildParams.expectFailure = true;
+    runQbs(buildParams);
+    if (isGcc && !theType.isEmpty())
+        QCOMPARE(m_qbsStdout.count("-fuse-ld=" + theType.toLocal8Bit()), 1);
+    else
+        QVERIFY2(!m_qbsStdout.contains("-fuse-ld"), m_qbsStdout.constData());
+}
+
 void TestBlackbox::lexyacc()
 {
     if (!lexYaccExist())
