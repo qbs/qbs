@@ -4018,7 +4018,8 @@ void TestBlackbox::jsExtensionsFileInfo()
     QCOMPARE(lines.size(), 26);
     int i = 0;
     QCOMPARE(lines.at(i++).trimmed().constData(), "blubb");
-    QCOMPARE(lines.at(i++).trimmed().constData(), "/usr/bin");
+    QCOMPARE(lines.at(i++).trimmed().constData(), qUtf8Printable(
+                 QFileInfo(QDir::currentPath()).canonicalFilePath()));
     QCOMPARE(lines.at(i++).trimmed().constData(), "/usr/bin");
     QCOMPARE(lines.at(i++).trimmed().constData(), "blubb.tar");
     QCOMPARE(lines.at(i++).trimmed().constData(), "blubb.tar.gz");

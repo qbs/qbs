@@ -3,6 +3,7 @@ import qbs.TextFile
 
 Product {
     type: ["dummy"]
+    property string messyPath: path + "/../" + FileInfo.fileName(path)
     Rule {
         multiplex: true
         outputFileTags: "dummy"
@@ -13,7 +14,7 @@ Product {
                 var output = new TextFile(FileInfo.joinPaths(product.sourceDirectory, "output.txt"),
                                           TextFile.WriteOnly);
                 output.writeLine(FileInfo.baseName("/tmp/blubb.tar.gz"));
-                output.writeLine(FileInfo.canonicalPath("/usr/local//../bin/"));
+                output.writeLine(FileInfo.canonicalPath(product.messyPath));
                 output.writeLine(FileInfo.cleanPath("/usr/local//../bin/"));
                 output.writeLine(FileInfo.completeBaseName("/tmp/blubb.tar.gz"));
                 output.writeLine(FileInfo.fileName("/tmp/blubb.tar.gz"));
