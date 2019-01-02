@@ -2341,9 +2341,11 @@ void ModuleLoader::adjustDefiningItemsInGroupModuleInstances(const Item::Module 
                         << ", old defining item was " << v->definingItem()
                         << " with scope" << v->definingItem()->scope()
                         << ", new defining item is" << replacement
-                        << " with scope" << replacement->scope()
-                        << ", value source code is "
+                        << " with scope" << replacement->scope();
+                if (v->type() == Value::JSSourceValueType) {
+                    qCDebug(lcModuleLoader) << "value source code is"
                         << std::static_pointer_cast<JSSourceValue>(v)->sourceCode().toString();
+                }
                 replacement->setPropertyDeclaration(propName, decl);
                 replacement->setProperty(propName, v);
             } else {
