@@ -61,6 +61,24 @@ Project {
                     output.write(process.readStdOut());
                     process.close();
 
+                    // readLine and atEnd
+                    var testReadlineFile = new TextFile("123.txt", TextFile.WriteOnly);
+                    testReadlineFile.writeLine("1");
+                    testReadlineFile.writeLine("2");
+                    testReadlineFile.writeLine("3");
+                    testReadlineFile.close();
+
+                    process = new Process();
+                    if (product.qbs.hostOS.contains("windows"))
+                        process.exec(product.qbs.windowsShellPath,
+                                     ["/C", "type", "123.txt"],
+                                     true);
+                    else
+                        process.exec("cat", ["123.txt"], true);
+
+                    while(!process.atEnd())
+                        output.write(process.readLine());
+
                     // TODO: Test all the other Process methods as well.
 
                     output.close();

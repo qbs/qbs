@@ -81,6 +81,7 @@ public:
     Q_INVOKABLE void kill();
 
     Q_INVOKABLE QString readLine();
+    Q_INVOKABLE bool atEnd() const;
     Q_INVOKABLE QString readStdOut();
     Q_INVOKABLE QString readStdErr();
 
@@ -267,6 +268,11 @@ void Process::setCodec(const QString &codec)
 QString Process::readLine()
 {
     return m_textStream->readLine();
+}
+
+bool Process::atEnd() const
+{
+    return m_textStream->atEnd();
 }
 
 QString Process::readStdOut()

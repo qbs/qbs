@@ -95,6 +95,13 @@
     \endcode
     Reads and returns one line of text from the process output, without the newline character(s).
 
+    \section2 atEnd
+    \code
+    atEnd(): boolean
+    \endcode
+    Returns true if there is no more data to be read from the process output, otherwise
+    returns false.
+
     \section2 readStdErr
     \code
     readStdErr(): string
