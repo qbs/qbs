@@ -1,0 +1,2 @@
+TEST_SYMBOL_FROM_INCLUDE = 1;
+INCLUDE linkerscript_recursive

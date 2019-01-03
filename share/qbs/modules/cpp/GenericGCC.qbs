@@ -34,6 +34,7 @@ import qbs.ModUtils
 import qbs.PathTools
 import qbs.Probes
 import qbs.Process
+import qbs.TextFile
 import qbs.Utilities
 import qbs.UnixUtils
 import qbs.WindowsUtils
@@ -695,5 +696,44 @@ CppModule {
     FileTagger {
         patterns: "*.sx"
         fileTags: ["asm_cpp"]
+    }
+
+    Scanner {
+        inputs: ["linkerscript"]
+        recursive: true
+        scan: {
+            console.debug("scanning linkerscript " + filePath + " for dependencies");
+            var retval = [];
+            var linkerScript = new TextFile(filePath, TextFile.ReadOnly);
+            var regexp = /[\s]*INCLUDE[\s]+(\S+).*/ // "INCLUDE filename"
+            var match;
+            while (!linkerScript.atEof()) {
+                match = regexp.exec(linkerScript.readLine());
+                if (match) {
+                    var dependencyFileName = match[1];
+                    retval.push(dependencyFileName);
+                    console.debug("linkerscript " + filePath + " depends on " + dependencyFileName);
+                }
+            }
+            linkerScript.close();
+            return retval;
+        }
+        searchPaths: {
+            var retval = [];
+            for (var i = 0; i < (product.cpp.libraryPaths || []).length; i++)
+                retval.push(product.cpp.libraryPaths[i]);
+            var regexp = /[\s]*SEARCH_DIR\((\S+)\).*/ // "SEARCH_DIR(path)"
+            var match;
+            var linkerScript = new TextFile(input.filePath, TextFile.ReadOnly);
+            while (!linkerScript.atEof()) {
+                match = regexp.exec(linkerScript.readLine());
+                if(match) {
+                    var additionalPath = match[1];
+                    retval.push(additionalPath);
+                }
+            }
+            linkerScript.close();
+            return retval;
+        }
     }
 }

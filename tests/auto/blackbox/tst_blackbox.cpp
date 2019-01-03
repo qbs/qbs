@@ -4385,9 +4385,15 @@ void TestBlackbox::linkerScripts()
     QStringList toolchain = buildProfile.value("qbs.toolchain").toStringList();
     if (!toolchain.contains("gcc") || targetOs() != HostOsInfo::HostOsLinux)
         QSKIP("linker script test only applies to Linux ");
-    QDir::setCurrent(testDataDir + "/linkerscripts");
-    QCOMPARE(runQbs(QbsRunParameters(QStringList("-q")
-                                     << ("qbs.installRoot:" + QDir::currentPath()))), 0);
+
+    QbsRunParameters runParams(QStringList()
+//                               << "--log-level" << "debug"
+                               << ("qbs.installRoot:" + QDir::currentPath()));
+    const QString sourceDir = QDir::cleanPath(testDataDir + "/linkerscripts");
+    runParams.buildDirectory = sourceDir + "/build";
+    runParams.workingDir = sourceDir;
+
+    QCOMPARE(runQbs(runParams), 0);
     const QString output = QString::fromLocal8Bit(m_qbsStderr);
     QRegExp pattern(".*---(.*)---.*");
     QVERIFY2(pattern.exactMatch(output), qPrintable(output));
@@ -4395,14 +4401,74 @@ void TestBlackbox::linkerScripts()
     const QString nmPath = pattern.capturedTexts().at(1);
     if (!QFile::exists(nmPath))
         QSKIP("Cannot check for symbol presence: No nm found.");
-    QProcess nm;
-    nm.start(nmPath, QStringList(QDir::currentPath() + "/liblinkerscripts.so"));
-    QVERIFY(nm.waitForStarted());
-    QVERIFY(nm.waitForFinished());
-    const QByteArray nmOutput = nm.readAllStandardOutput();
-    QCOMPARE(nm.exitCode(), 0);
-    QVERIFY2(nmOutput.contains("TEST_SYMBOL1"), nmOutput.constData());
-    QVERIFY2(nmOutput.contains("TEST_SYMBOL2"), nmOutput.constData());
+
+    const auto verifySymbols = [nmPath](const QByteArrayList& symbols) -> bool {
+        QProcess nm;
+        nm.start(nmPath, QStringList(QDir::currentPath() + "/liblinkerscripts.so"));
+        if (!nm.waitForStarted()) {
+            qDebug() << "Wait for process started failed.";
+            return false;
+        }
+        if (!nm.waitForFinished()) {
+            qDebug() << "Wait for process finished failed.";
+            return false;
+        }
+        if (nm.exitCode() != 0) {
+            qDebug() << "nm returned exit code " << nm.exitCode();
+            return false;
+        }
+        const QByteArray nmOutput = nm.readAllStandardOutput();
+        for (const QByteArray& symbol : symbols) {
+            if (!nmOutput.contains(symbol)) {
+                qDebug() << "Expected symbol" << symbol
+                         << "not found in" << nmOutput.constData();
+                return false;
+            }
+        }
+        return true;
+    };
+
+    QVERIFY(verifySymbols({"TEST_SYMBOL1",
+                           "TEST_SYMBOL2",
+                           "TEST_SYMBOL_FROM_INCLUDE",
+                           "TEST_SYMBOL_FROM_DIRECTORY",
+                           "TEST_SYMBOL_FROM_RECURSIVE"}));
+    WAIT_FOR_NEW_TIMESTAMP();
+    REPLACE_IN_FILE(sourceDir + "/linkerscript_to_include",
+                    "TEST_SYMBOL_FROM_INCLUDE = 1;",
+                    "TEST_SYMBOL_FROM_INCLUDE_MODIFIED = 1;\n");
+    QCOMPARE(runQbs(runParams), 0);
+    QVERIFY2(m_qbsStdout.contains("linking liblinkerscripts.so"),
+             "No linking after modifying included file");
+    QVERIFY(verifySymbols({"TEST_SYMBOL1",
+                           "TEST_SYMBOL2",
+                           "TEST_SYMBOL_FROM_INCLUDE_MODIFIED",
+                           "TEST_SYMBOL_FROM_DIRECTORY",
+                           "TEST_SYMBOL_FROM_RECURSIVE"}));
+    WAIT_FOR_NEW_TIMESTAMP();
+    REPLACE_IN_FILE(sourceDir + "/scripts/linkerscript_in_directory",
+                    "TEST_SYMBOL_FROM_DIRECTORY = 1;\n",
+                    "TEST_SYMBOL_FROM_DIRECTORY_MODIFIED = 1;\n");
+    QCOMPARE(runQbs(runParams), 0);
+    QVERIFY2(m_qbsStdout.contains("linking liblinkerscripts.so"),
+             "No linking after modifying file in directory");
+    QVERIFY(verifySymbols({"TEST_SYMBOL1",
+                           "TEST_SYMBOL2",
+                           "TEST_SYMBOL_FROM_INCLUDE_MODIFIED",
+                           "TEST_SYMBOL_FROM_DIRECTORY_MODIFIED",
+                           "TEST_SYMBOL_FROM_RECURSIVE"}));
+    WAIT_FOR_NEW_TIMESTAMP();
+    REPLACE_IN_FILE(sourceDir + "/linkerscript_recursive",
+                    "TEST_SYMBOL_FROM_RECURSIVE = 1;\n",
+                    "TEST_SYMBOL_FROM_RECURSIVE_MODIFIED = 1;\n");
+    QCOMPARE(runQbs(runParams), 0);
+    QVERIFY2(m_qbsStdout.contains("linking liblinkerscripts.so"),
+             "No linking after modifying recursive file");
+    QVERIFY(verifySymbols({"TEST_SYMBOL1",
+                           "TEST_SYMBOL2",
+                           "TEST_SYMBOL_FROM_INCLUDE_MODIFIED",
+                           "TEST_SYMBOL_FROM_DIRECTORY_MODIFIED",
+                           "TEST_SYMBOL_FROM_RECURSIVE_MODIFIED"}));
 }
 
 void TestBlackbox::listProducts()
