@@ -784,6 +784,18 @@
 */
 
 /*!
+    \qmlproperty string cpp::toolchainInstallPath
+
+    The directory path where the toolchain is installed. This property is set
+    in the build profile.
+
+    This is usually the base property from which all compiler and tool paths
+    are automatically derived.
+
+    \defaultvalue Determined by \l{setup-toolchains}{qbs setup-toolchains}.
+*/
+
+/*!
     \qmlproperty string cpp::assemblerPath
     \since Qbs 1.5
 
