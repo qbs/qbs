@@ -31,7 +31,7 @@
     \inqmlmodule QbsModules
     \since Qbs 1.10
 
-    \brief Provides support for fine-tuning CPU features
+    \brief Provides support for fine-tuning CPU features.
 
     The \c cpufeatures module offers properties for enabling or disabling specific CPU features.
     Use it if you want to override the compiler defaults for a given platform.

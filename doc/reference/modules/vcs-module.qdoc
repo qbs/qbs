@@ -31,7 +31,7 @@
     \inqmlmodule QbsModules
     \since Qbs 1.10
 
-    \brief Provides support for version control systems
+    \brief Provides support for version control systems.
 
     The \c vcs module provides the current state of the project's repository via
     the \l{vcs::}{repoState} property. By default, a \c C header is also

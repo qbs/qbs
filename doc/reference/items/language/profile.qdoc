@@ -33,7 +33,7 @@
     \ingroup list-of-items
     \keyword QML.Profile
 
-    \brief Creates a profile within the project
+    \brief Creates a profile within the project.
 
     The profiles used by \QBS are normally set up on a user's machine and are then available
     to all projects. See the \l Configuring section for information on how to set up and

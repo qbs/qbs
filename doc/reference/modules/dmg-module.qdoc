@@ -31,7 +31,7 @@
     \inqmlmodule QbsModules
     \since Qbs 1.9
 
-    \brief Provides support for building Apple Disk Images
+    \brief Provides support for building Apple Disk Images.
 
     The \c dmg module contains properties and rules for building Apple Disk Images, which are
     typically used to distribute applications and installers on macOS.

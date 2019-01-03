@@ -31,7 +31,7 @@
     \inqmlmodule QbsModules
     \since Qbs 1.13
 
-    \brief Provides support for text template files
+    \brief Provides support for text template files.
 
     The \c texttemplate module provides support for text template files.
 
