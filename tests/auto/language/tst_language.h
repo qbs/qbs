@@ -147,6 +147,7 @@ private slots:
     void outerInGroup();
     void overriddenPropertiesAndPrototypes();
     void overriddenPropertiesAndPrototypes_data();
+    void overriddenVariantProperty();
     void parameterTypes();
     void pathProperties();
     void productConditions();

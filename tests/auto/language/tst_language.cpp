@@ -2342,6 +2342,26 @@ void TestLanguage::overriddenPropertiesAndPrototypes_data()
     QTest::newRow("second backend") << "os2" << "backend 2";
 }
 
+void TestLanguage::overriddenVariantProperty()
+{
+    bool exceptionCaught = false;
+    try {
+        SetupProjectParameters params = defaultParameters;
+        const QVariantMap objectValue{std::make_pair("x", 1), std::make_pair("y", 2)};
+        params.setOverriddenValues({std::make_pair("products.p.myObject", objectValue)});
+        params.setProjectFilePath(testProject("overridden-variant-property.qbs"));
+        TopLevelProjectConstPtr project = loader->loadProject(params);
+        QVERIFY(!!project);
+        QCOMPARE(project->products.size(), size_t(1));
+        QCOMPARE(project->products.front()->productProperties.value("myObject").toMap(),
+                 objectValue);
+    } catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+}
+
 void TestLanguage::parameterTypes()
 {
     bool exceptionCaught = false;

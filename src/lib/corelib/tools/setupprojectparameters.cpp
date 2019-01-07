@@ -295,11 +295,6 @@ QVariantMap SetupProjectParameters::overriddenValues() const
  */
 void SetupProjectParameters::setOverriddenValues(const QVariantMap &values)
 {
-    // warn if somebody tries to set a build configuration tree:
-    for (QVariantMap::const_iterator i = values.constBegin();
-         i != values.constEnd(); ++i) {
-        QBS_ASSERT(i.value().type() != QVariant::Map, return);
-    }
     d->overriddenValues = values;
     d->overriddenValuesTree.clear();
     d->finalBuildConfigTree.clear();
