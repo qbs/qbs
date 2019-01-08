@@ -74,7 +74,7 @@
 /*!
     \qmlproperty bool Scanner::recursive
 
-    Determines whether to scan the returned \l{Depends}{dependencies} using
+    Determines whether to scan the returned dependencies using
     the same scanner.
 
     \defaultvalue \c false
@@ -83,8 +83,7 @@
 /*!
     \qmlproperty script Scanner::searchPaths
 
-    A script that returns the paths where to look for \l{Depends}
-    {dependencies}.
+    A script that returns the paths where to look for dependencies.
 
     The code in this script is treated as a function with the signature
     \c{function(project, product, input)}.
@@ -96,7 +95,7 @@
     \qmlproperty script Scanner::scan
 
     A script that reads the input artifact and returns a string list with
-    \l{Depends}{dependencies}.
+    dependencies.
 
     The code in this script is treated as a function with the signature
     \c{function(project, product, input)}.
