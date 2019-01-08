@@ -14,7 +14,7 @@ Product {
         id: choco
         condition: qbs.targetOS.contains("windows")
         names: ["choco"]
-        platformSearchPaths: {
+        platformPaths: { // TODO: Change to platformSearchPaths in qbs 1.15
             var chocolateyInstall = Environment.getEnv("ChocolateyInstall");
             if (chocolateyInstall)
                 return [FileInfo.joinPaths(chocolateyInstall, "bin")];
