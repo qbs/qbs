@@ -846,7 +846,7 @@ T ModuleLoader::callWithTemporaryBaseModule(ProductContext *productContext, cons
         productItem->removeProperty(qbsKey);
     productItem->removeModules();
 
-    return result;
+    return std::forward<T>(result);
 }
 
 QList<Item *> ModuleLoader::multiplexProductItem(ProductContext *dummyContext, Item *productItem)
