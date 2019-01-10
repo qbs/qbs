@@ -80,6 +80,8 @@ CppModule {
         switch (qbs.architecture) {
         case "arm":
             return "iccarm" + compilerExtension;
+        case "mcs51":
+            return "icc8051" + compilerExtension;
         }
     }
     compilerPath: FileInfo.joinPaths(toolchainInstallPath, compilerName)
@@ -88,6 +90,8 @@ CppModule {
         switch (qbs.architecture) {
         case "arm":
             return "iasmarm" + compilerExtension;
+        case "mcs51":
+            return "a8051" + compilerExtension;
         }
     }
     assemblerPath: FileInfo.joinPaths(toolchainInstallPath, assemblerName)
@@ -96,6 +100,8 @@ CppModule {
         switch (qbs.architecture) {
         case "arm":
             return "ilinkarm" + compilerExtension;
+        case "mcs51":
+            return "xlink" + compilerExtension;
         }
     }
     linkerPath: FileInfo.joinPaths(toolchainInstallPath, linkerName)
@@ -104,14 +110,50 @@ CppModule {
         switch (qbs.architecture) {
         case "arm":
             return "iarchive" + compilerExtension;
+        case "mcs51":
+            return "xlib" + compilerExtension;
         }
     }
     property string archiverPath: FileInfo.joinPaths(toolchainInstallPath, archiverName)
 
     runtimeLibrary: "static"
-    staticLibrarySuffix: ".a"
-    executableSuffix: ".out"
-    imageFormat: "elf"
+
+    staticLibrarySuffix: {
+        switch (qbs.architecture) {
+        case "arm":
+            return ".a";
+        case "mcs51":
+            return ".r51";
+        }
+    }
+
+    executableSuffix: {
+        switch (qbs.architecture) {
+        case "arm":
+            return ".out";
+        case "mcs51":
+            return qbs.debugInformation ? ".d51" : ".a51";
+        }
+    }
+
+    property string objectSuffix: {
+        switch (qbs.architecture) {
+        case "arm":
+            return ".o";
+        case "mcs51":
+            return ".r51";
+        }
+    }
+
+    imageFormat: {
+        switch (qbs.architecture) {
+        case "arm":
+            return "elf";
+        case "mcs51":
+            return "ubrof";
+        }
+    }
+
     enableExceptions: false
     enableRtti: false
 
@@ -121,14 +163,22 @@ CppModule {
 
         Artifact {
             fileTags: ["obj"]
-            filePath: Utilities.getHash(input.baseDir) + "/" + input.fileName + ".o"
+            filePath: Utilities.getHash(input.baseDir) + "/"
+                      + input.fileName + input.cpp.objectSuffix
         }
 
         prepare: IAR.prepareAssembler.apply(IAR, arguments);
     }
 
     FileTagger {
+        condition: qbs.architecture === "arm";
         patterns: "*.s"
+        fileTags: ["asm"]
+    }
+
+    FileTagger {
+        condition: qbs.architecture === "mcs51";
+        patterns: ["*.s51", "*.asm"]
         fileTags: ["asm"]
     }
 
@@ -139,7 +189,8 @@ CppModule {
 
         Artifact {
             fileTags: ["obj"]
-            filePath: Utilities.getHash(input.baseDir) + "/" + input.fileName + ".o"
+            filePath: Utilities.getHash(input.baseDir) + "/"
+                      + input.fileName + input.cpp.objectSuffix
         }
 
         prepare: IAR.prepareCompiler.apply(IAR, arguments);

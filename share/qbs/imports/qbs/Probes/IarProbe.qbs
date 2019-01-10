@@ -56,9 +56,16 @@ PathProbe {
         endianness = IAR.guessEndianness(macros);
 
         var version = parseInt(macros["__VER__"], 10);
-        versionMajor = parseInt(version / 1000000);
-        versionMinor = parseInt(version / 1000) % 1000;
-        versionPatch = parseInt(version) % 1000;
+
+        if (architecture === "arm") {
+            versionMajor = parseInt(version / 1000000);
+            versionMinor = parseInt(version / 1000) % 1000;
+            versionPatch = parseInt(version) % 1000;
+        } else if (architecture === "mcs51") {
+            versionMajor = parseInt(version / 100);
+            versionMinor = parseInt(version % 100);
+            versionPatch = 0;
+        }
 
         found = version && architecture && endianness;
    }

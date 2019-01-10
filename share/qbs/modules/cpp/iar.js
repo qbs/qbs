@@ -43,6 +43,8 @@ function guessArchitecture(macros)
 {
     if (macros["__ICCARM__"] === "1")
         return "arm";
+    else if (macros["__ICC8051__"] === "1")
+        return "mcs51";
 }
 
 function guessEndianness(macros)
@@ -159,25 +161,30 @@ function compilerFlags(project, product, input, output, explicitlyDependsOn) {
         if (tag === "cpp")
             args.push("--warn_about_c_style_casts");
     }
-    if (input.cpp.treatWarningsAsErrors) {
+    if (input.cpp.treatWarningsAsErrors)
         args.push("--warnings_are_errors");
-    }
 
     // Choose byte order.
     var endianness = input.cpp.endianness;
-    if (endianness)
-        args.push("--endian=" + endianness);
+    if (endianness) {
+        if (input.qbs.architecture === "arm")
+            args.push("--endian=" + endianness);
+    }
 
     if (tag === "c") {
         // Language version.
         if (input.cpp.cLanguageVersion === "c89")
             args.push("--c89");
     } else if (tag === "cpp") {
-        args.push("--c++");
-        if (!input.cpp.enableExceptions)
-            args.push("--no_exceptions");
-        if (!input.cpp.enableRtti)
-            args.push("--no_rtti");
+        if (input.qbs.architecture === "arm") {
+            args.push("--c++");
+            if (!input.cpp.enableExceptions)
+                args.push("--no_exceptions");
+            if (!input.cpp.enableRtti)
+                args.push("--no_rtti");
+        } else if (input.qbs.architecture === "mcs51") {
+            args.push("--ec++");
+        }
     }
 
     var allDefines = [];
@@ -229,6 +236,15 @@ function assemblerFlags(project, product, input, output, explicitlyDependsOn) {
     else
         args.push("-w+");
 
+    var allIncludePaths = [];
+    var systemIncludePaths = input.cpp.systemIncludePaths;
+    if (systemIncludePaths)
+        allIncludePaths = allIncludePaths.uniqueConcat(systemIncludePaths);
+    var compilerIncludePaths = input.cpp.compilerIncludePaths;
+    if (compilerIncludePaths)
+        allIncludePaths = allIncludePaths.uniqueConcat(compilerIncludePaths);
+    args = args.concat(allIncludePaths.map(function(include) { return "-I" + include }));
+
     args.push("-o", output.filePath);
 
     args.push("-S"); // Silent operation.
@@ -248,8 +264,12 @@ function linkerFlags(project, product, input, outputs) {
 
     args.push("-o", outputs.application[0].filePath);
 
-    if (product.cpp.generateMapFile)
-        args.push("--map", outputs.map_file[0].filePath);
+    if (product.cpp.generateMapFile) {
+        if (product.qbs.architecture === "arm")
+            args.push("--map", outputs.map_file[0].filePath);
+        else if (product.qbs.architecture === "mcs51")
+            args.push("-l", outputs.map_file[0].filePath);
+    }
 
     var allLibraryPaths = [];
     var libraryPaths = product.cpp.libraryPaths;
@@ -264,15 +284,31 @@ function linkerFlags(project, product, input, outputs) {
     if (libraryDependencies)
         args = args.concat(libraryDependencies.map(function(dep) { return dep.filePath }));
 
+    if (product.cpp.debugInformation) {
+        if (product.qbs.architecture === "mcs51")
+            args.push("-rt");
+    }
+
     var linkerScripts = inputs.linkerscript
             ? inputs.linkerscript.map(function(a) { return a.filePath; }) : [];
-    for (i in linkerScripts)
-        args.push("--config", linkerScripts[i]);
+    for (i in linkerScripts) {
+        if (product.qbs.architecture === "arm")
+            args.push("--config", linkerScripts[i]);
+        else if (product.qbs.architecture === "mcs51")
+            args.push("-f", linkerScripts[i]);
+    }
 
-    if (product.cpp.entryPoint)
-        args.push("--entry", product.cpp.entryPoint);
+    if (product.cpp.entryPoint) {
+        if (product.qbs.architecture === "arm")
+            args.push("--entry", product.cpp.entryPoint);
+        else if (product.qbs.architecture === "mcs51")
+            args.push("-s", product.cpp.entryPoint);
+    }
 
-    args.push("--silent"); // Silent operation.
+    if (product.qbs.architecture === "arm")
+        args.push("--silent"); // Silent operation.
+    else if (product.qbs.architecture === "mcs51")
+        args.push("-S"); // Silent operation.
 
     args = args.concat(ModUtils.moduleProperty(product, "driverLinkerFlags"));
     return args;
