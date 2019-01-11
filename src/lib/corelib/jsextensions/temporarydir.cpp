@@ -40,6 +40,7 @@
 
 #include <language/scriptengine.h>
 
+#include <QtCore/qfileinfo.h>
 #include <QtCore/qobject.h>
 #include <QtCore/qtemporarydir.h>
 #include <QtCore/qvariant.h>
@@ -50,6 +51,14 @@
 
 namespace qbs {
 namespace Internal {
+
+static bool tempDirIsCanonical()
+{
+#if QT_VERSION >= 0x050c00
+    return true;
+#endif
+    return false;
+}
 
 class TemporaryDir : public QObject, public QScriptable
 {
@@ -90,7 +99,7 @@ bool TemporaryDir::isValid() const
 
 QString TemporaryDir::path() const
 {
-    return dir.path();
+    return tempDirIsCanonical() ? dir.path() : QFileInfo(dir.path()).canonicalFilePath();
 }
 
 bool TemporaryDir::remove()
