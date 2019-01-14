@@ -167,7 +167,7 @@ void TestBlackboxQt::linkerVariant()
     const bool goldRequired = m_qbsStdout.contains("Qt requires gold: true");
     const bool goldNotRequired = m_qbsStdout.contains("Qt requires gold: false");
     QVERIFY2(goldRequired != goldNotRequired, m_qbsStdout.constData());
-    QCOMPARE(m_qbsStdout.contains("-fuse-ld=gold"), goldRequired ? 1 : 0);
+    QCOMPARE(m_qbsStdout.contains("-fuse-ld=gold"), goldRequired);
 }
 
 void TestBlackboxQt::lrelease()
