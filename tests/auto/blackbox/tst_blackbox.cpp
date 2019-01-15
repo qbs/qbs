@@ -2410,6 +2410,24 @@ void TestBlackbox::ruleWithNonRequiredInputs()
     QVERIFY2(m_qbsStdout.contains("Generating"), m_qbsStdout.constData());
 }
 
+void TestBlackbox::scannerItem()
+{
+    QDir::setCurrent(testDataDir + "/scanner-item");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("handling file1.in"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("handling file2.in"), m_qbsStdout.constData());
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("subdir1/file.inc");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("handling file1.in"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("handling file2.in"), m_qbsStdout.constData());
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("subdir2/file.inc");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(!m_qbsStdout.contains("handling file1.in"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("handling file2.in"), m_qbsStdout.constData());
+}
+
 void TestBlackbox::setupBuildEnvironment()
 {
     QDir::setCurrent(testDataDir + "/setup-build-environment");

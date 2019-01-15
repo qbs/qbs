@@ -247,6 +247,7 @@ private slots:
     void ruleCycle();
     void ruleWithNoInputs();
     void ruleWithNonRequiredInputs();
+    void scannerItem();
     void setupBuildEnvironment();
     void setupRunEnvironment();
     void smartRelinking();

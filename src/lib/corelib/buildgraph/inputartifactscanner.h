@@ -107,7 +107,8 @@ class InputArtifactScannerContext
 
     typedef QHash<const void *, ScannerResolvedDependenciesCache> CacheItem;
 
-    QHash<PropertyMapConstPtr, CacheItem> cache;
+    QHash<PropertyMapConstPtr, CacheItem> cachePerProperties;
+    QHash<Artifact *, CacheItem> cachePerFile;
     QHash<ResolvedProduct*, QHash<FileTag, DependencyScannerCacheItem> > scannersCache;
 
     friend class InputArtifactScanner;

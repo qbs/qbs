@@ -71,6 +71,7 @@ public:
     virtual const void *key() const = 0;
     virtual bool areModulePropertiesCompatible(const PropertyMapConstPtr &m1,
                                                const PropertyMapConstPtr &m2) const = 0;
+    virtual bool cacheIsPerFile() const = 0;
 
 private:
     virtual QString createId() const = 0;
@@ -91,6 +92,7 @@ private:
     QString createId() const override;
     bool areModulePropertiesCompatible(const PropertyMapConstPtr &m1,
                                        const PropertyMapConstPtr &m2) const override;
+    bool cacheIsPerFile() const override { return false; }
 
     ScannerPlugin* m_plugin;
 };
@@ -108,6 +110,7 @@ private:
     QString createId() const override;
     bool areModulePropertiesCompatible(const PropertyMapConstPtr &m1,
                                        const PropertyMapConstPtr &m2) const override;
+    bool cacheIsPerFile() const override { return true; }
 
     QStringList evaluate(Artifact *artifact, const PrivateScriptFunction &script);
 

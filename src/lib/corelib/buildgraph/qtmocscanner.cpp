@@ -92,6 +92,7 @@ private:
     {
         return true;
     }
+    bool cacheIsPerFile() const override { return false; }
 
     const QString m_id;
 };

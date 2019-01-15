@@ -153,7 +153,6 @@ void InputArtifactScanner::scanForFileDependencies(Artifact *inputArtifact)
     qCDebug(lcDepScan) << "input artifact" << inputArtifact->filePath()
                        << inputArtifact->fileTags();
 
-    InputArtifactScannerContext::CacheItem &cacheItem = m_context->cache[inputArtifact->properties];
     Set<QString> visitedFilePaths;
     QList<FileResourceBase *> filesToScan;
     filesToScan.push_back(inputArtifact);
@@ -162,6 +161,8 @@ void InputArtifactScanner::scanForFileDependencies(Artifact *inputArtifact)
         return;
     m_fileTagsForScanner
             = inputArtifact->fileTags().toStringList().join(QLatin1Char(',')).toLatin1();
+    InputArtifactScannerContext::CacheItem *lastPerFileCacheItem = nullptr;
+    InputArtifactScannerContext::CacheItem *lastPerPropsCacheItem = nullptr;
     while (!filesToScan.empty()) {
         FileResourceBase *fileToBeScanned = filesToScan.takeFirst();
         const QString &filePathToBeScanned = fileToBeScanned->filePath();
@@ -169,8 +170,20 @@ void InputArtifactScanner::scanForFileDependencies(Artifact *inputArtifact)
             continue;
 
         for (DependencyScanner * const scanner : scanners) {
+            InputArtifactScannerContext::CacheItem *cacheItem;
+            if (scanner->cacheIsPerFile()) {
+                if (!lastPerFileCacheItem)
+                    lastPerFileCacheItem = &m_context->cachePerFile[inputArtifact];
+                cacheItem = lastPerFileCacheItem;
+            } else {
+                if (!lastPerPropsCacheItem) {
+                    lastPerPropsCacheItem = &m_context->cachePerProperties
+                            [inputArtifact->properties];
+                }
+                cacheItem = lastPerPropsCacheItem;
+            }
             scanForScannerFileDependencies(scanner, inputArtifact, fileToBeScanned,
-                scanner->recursive() ? &filesToScan : nullptr, cacheItem[scanner->key()]);
+                scanner->recursive() ? &filesToScan : nullptr, (*cacheItem)[scanner->key()]);
         }
     }
 }
