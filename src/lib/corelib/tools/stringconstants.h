@@ -88,6 +88,7 @@ public:
     }
     static const QString &fileNameProperty() { return fileName(); }
     static const QString &filePathProperty() { return filePath(); }
+    static const QString &filePathVar() { return filePath(); }
     QBS_STRING_CONSTANT(fileTagsFilterProperty, "fileTagsFilter")
     QBS_STRING_CONSTANT(fileTagsProperty, "fileTags")
     QBS_STRING_CONSTANT(filesProperty, "files")

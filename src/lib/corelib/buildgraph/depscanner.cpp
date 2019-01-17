@@ -100,9 +100,10 @@ QStringList PluginDependencyScanner::collectSearchPaths(Artifact *artifact)
     return QStringList();
 }
 
-QStringList PluginDependencyScanner::collectDependencies(FileResourceBase *file,
+QStringList PluginDependencyScanner::collectDependencies(Artifact *artifact, FileResourceBase *file,
                                                          const char *fileTags)
 {
+    Q_UNUSED(artifact);
     Set<QString> result;
     QString baseDirOfInFilePath = file->dirPath();
     const QString &filepath = file->filePath();
@@ -167,16 +168,14 @@ UserDependencyScanner::UserDependencyScanner(const ResolvedScannerConstPtr &scan
 
 QStringList UserDependencyScanner::collectSearchPaths(Artifact *artifact)
 {
-    return evaluate(artifact, m_scanner->searchPathsScript);
+    return evaluate(artifact, nullptr, m_scanner->searchPathsScript);
 }
 
-QStringList UserDependencyScanner::collectDependencies(FileResourceBase *file, const char *fileTags)
+QStringList UserDependencyScanner::collectDependencies(Artifact *artifact, FileResourceBase *file,
+                                                       const char *fileTags)
 {
     Q_UNUSED(fileTags);
-    // ### support user dependency scanners for file deps
-    if (file->fileType() != FileResourceBase::FileTypeArtifact)
-        return QStringList();
-    return evaluate(static_cast<Artifact *>(file), m_scanner->scanScript);
+    return evaluate(artifact, file, m_scanner->scanScript);
 }
 
 bool UserDependencyScanner::recursive() const
@@ -219,7 +218,8 @@ public:
     }
 };
 
-QStringList UserDependencyScanner::evaluate(Artifact *artifact, const PrivateScriptFunction &script)
+QStringList UserDependencyScanner::evaluate(const Artifact *artifact,
+        const FileResourceBase *fileToScan, const PrivateScriptFunction &script)
 {
     ScriptEngineActiveFlagGuard guard(m_engine);
 
@@ -230,10 +230,12 @@ QStringList UserDependencyScanner::evaluate(Artifact *artifact, const PrivateScr
     }
 
     QScriptValueList args;
-    args.reserve(3);
+    args.reserve(fileToScan ? 4 : 3);
     args.push_back(m_global.property(StringConstants::projectVar()));
     args.push_back(m_global.property(StringConstants::productVar()));
     args.push_back(Transformer::translateFileConfig(m_engine, artifact, m_scanner->module->name));
+    if (fileToScan)
+        args.push_back(fileToScan->filePath());
 
     m_engine->setGlobalObject(m_global);
     QScriptValue &function = script.scriptFunction;

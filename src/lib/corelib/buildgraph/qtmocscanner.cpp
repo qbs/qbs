@@ -83,7 +83,10 @@ public:
 
 private:
     QStringList collectSearchPaths(Artifact *) override { return QStringList(); }
-    QStringList collectDependencies(FileResourceBase *, const char *) override { return QStringList(); }
+    QStringList collectDependencies(Artifact *, FileResourceBase *, const char *) override
+    {
+        return QStringList();
+    }
     bool recursive() const override { return false; }
     const void *key() const override { return nullptr; }
     QString createId() const override { return m_id; }

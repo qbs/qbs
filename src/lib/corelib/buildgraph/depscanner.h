@@ -66,7 +66,8 @@ public:
     QString id() const;
 
     virtual QStringList collectSearchPaths(Artifact *artifact) = 0;
-    virtual QStringList collectDependencies(FileResourceBase *file, const char *fileTags) = 0;
+    virtual QStringList collectDependencies(Artifact *artifact, FileResourceBase *file,
+                                            const char *fileTags) = 0;
     virtual bool recursive() const = 0;
     virtual const void *key() const = 0;
     virtual bool areModulePropertiesCompatible(const PropertyMapConstPtr &m1,
@@ -86,7 +87,8 @@ public:
 
 private:
     QStringList collectSearchPaths(Artifact *artifact) override;
-    QStringList collectDependencies(FileResourceBase *file, const char *fileTags) override;
+    QStringList collectDependencies(Artifact *artifact, FileResourceBase *file,
+                                    const char *fileTags) override;
     bool recursive() const override;
     const void *key() const override;
     QString createId() const override;
@@ -104,7 +106,8 @@ public:
 
 private:
     QStringList collectSearchPaths(Artifact *artifact) override;
-    QStringList collectDependencies(FileResourceBase *file, const char *fileTags) override;
+    QStringList collectDependencies(Artifact *artifact, FileResourceBase *file,
+                                    const char *fileTags) override;
     bool recursive() const override;
     const void *key() const override;
     QString createId() const override;
@@ -112,7 +115,7 @@ private:
                                        const PropertyMapConstPtr &m2) const override;
     bool cacheIsPerFile() const override { return true; }
 
-    QStringList evaluate(Artifact *artifact, const PrivateScriptFunction &script);
+    QStringList evaluate(const Artifact *artifact, const FileResourceBase *fileToScan, const PrivateScriptFunction &script);
 
     ResolvedScannerConstPtr m_scanner;
     ScriptEngine *m_engine;

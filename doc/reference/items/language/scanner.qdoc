@@ -98,7 +98,11 @@
     dependencies.
 
     The code in this script is treated as a function with the signature
-    \c{function(project, product, input)}.
+    \c{function(project, product, input, filePath)}, where \c input is
+    the artifact at which the scan originated, and \c filePath is the
+    currently scanned file. For non-recursive scans, \c filePath is
+    always equal to \c{input.filePath}.
+
 
     \nodefaultvalue
 */

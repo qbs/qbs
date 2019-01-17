@@ -578,7 +578,8 @@ void BuiltinDeclarations::addScannerItem()
                 QStringList()
                 << StringConstants::projectVar()
                 << StringConstants::productVar()
-                << StringConstants::inputVar());
+                << StringConstants::inputVar()
+                << StringConstants::filePathVar());
     item << scan;
     insert(item);
 }
