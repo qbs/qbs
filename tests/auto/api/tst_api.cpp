@@ -2380,12 +2380,30 @@ void TestApi::rc()
 {
     BuildDescriptionReceiver bdr;
     ProcessResultReceiver prr;
-    const qbs::ErrorInfo errorInfo = doBuildProject("rc", &bdr, &prr);
-    if (errorInfo.hasError())
-        qDebug() << prr.output;
-    VERIFY_NO_ERROR(errorInfo);
-    const bool rcFileWasCompiled = bdr.descriptions.contains("compiling test.rc");
-    QCOMPARE(rcFileWasCompiled, qbs::Internal::HostOsInfo::isWindowsHost());
+    const auto buildRc = [this, &bdr, &prr]() {
+        bdr.descriptions.clear();
+        bdr.descriptionLines.clear();
+        prr.output.clear();
+        prr.results.clear();
+        const qbs::ErrorInfo errorInfo = doBuildProject("rc", &bdr, &prr);
+        if (errorInfo.hasError())
+            qDebug() << prr.output;
+        return errorInfo;
+    };
+    const auto rcFileWasCompiled = [&bdr]() {
+        return bdr.descriptions.contains("compiling test.rc");
+    };
+    qbs::ErrorInfo error = buildRc();
+    VERIFY_NO_ERROR(error);
+    QCOMPARE(rcFileWasCompiled(), qbs::Internal::HostOsInfo::isWindowsHost());
+    WAIT_FOR_NEW_TIMESTAMP();
+    error = buildRc();
+    VERIFY_NO_ERROR(error);
+    QVERIFY(!rcFileWasCompiled());
+    touch("subdir/rc-include.h");
+    error = buildRc();
+    VERIFY_NO_ERROR(error);
+    QCOMPARE(rcFileWasCompiled(), qbs::Internal::HostOsInfo::isWindowsHost());
 }
 
 void TestApi::referencedFileErrors()

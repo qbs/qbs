@@ -311,7 +311,7 @@ static const char **additionalFileTags(void *opaq, int *size)
 ScannerPlugin includeScanner =
 {
     "include_scanner",
-    "cpp,cpp_pch_src,c,c_pch_src,objcpp,objcpp_pch_src,objc,objc_pch_src",
+    "cpp,cpp_pch_src,c,c_pch_src,objcpp,objcpp_pch_src,objc,objc_pch_src,rc",
     openScanner,
     closeScanner,
     next,
