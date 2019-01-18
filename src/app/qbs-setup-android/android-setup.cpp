@@ -224,7 +224,7 @@ static void setupNdk(qbs::Settings *settings, const QString &profileName, const 
         mainProfile.setValue(qls("qbs.architecture"), archsForProfile.front());
     else
         mainProfile.setValue(qls("qbs.architectures"), archsForProfile);
-    QStringList searchPaths;
+    QStringList qmakeFilePaths;
     QString platform;
     for (const QString &arch : archs) {
         const QtAndroidInfo qtAndroidInfo = infoPerArch.value(arch);
@@ -248,11 +248,11 @@ static void setupNdk(qbs::Settings *settings, const QString &profileName, const 
         }
         settings->sync();
         qbs::Internal::TemporaryProfile p(subProName, settings);
-        searchPaths << p.p.value(qls("preferences.qbsSearchPaths")).toStringList();
+        qmakeFilePaths << p.p.value(qls("moduleProviders.Qt.qmakeFilePaths")).toStringList();
         platform = maximumPlatform(platform, qtAndroidInfo.platform);
     }
-    if (!searchPaths.empty())
-        mainProfile.setValue(qls("preferences.qbsSearchPaths"), searchPaths);
+    if (!qmakeFilePaths.empty())
+        mainProfile.setValue(qls("moduleProviders.Qt.qmakeFilePaths"), qmakeFilePaths);
     if (!platform.isEmpty())
         mainProfile.setValue(qls("Android.ndk.platform"), platform);
 }

@@ -50,15 +50,12 @@ void TestBlackboxQt::validateTestProfile()
     if (profileName() != "none" && !s->profiles().contains(profileName()))
         QFAIL(QByteArray("The build profile '" + profileName().toLocal8Bit() +
                          "' could not be found. Please set it up on your machine."));
-
-    const QStringList searchPaths
-            = qbs::Preferences(s.get(), profileName()).searchPaths(
-                QDir::cleanPath(QCoreApplication::applicationDirPath()));
-    for (const auto &searchPath : searchPaths) {
-        if (QFileInfo(searchPath + "/modules/Qt").isDir())
-            return;
-    }
-
+    const QStringList qmakeFilePaths = Profile(profileName(), s.get())
+            .value("moduleProviders.Qt.qmakeFilePaths").toStringList();
+    if (!qmakeFilePaths.empty())
+        return;
+    if (!findExecutable(QStringList{"qmake"}).isEmpty())
+        return;
     QSKIP(QByteArray("The build profile '" + profileName().toLocal8Bit() +
                      "' is not a valid Qt profile and Qt was not found "
                      "in the global search paths."));

@@ -51,6 +51,26 @@
 #include <tools/applecodesignutils.h>
 #endif
 
+#ifdef __APPLE__
+#include <ar.h>
+#include <mach/machine.h>
+#include <mach-o/fat.h>
+#include <mach-o/loader.h>
+#ifndef FAT_MAGIC_64
+#define FAT_MAGIC_64 0xcafebabf
+#define FAT_CIGAM_64 0xbfbafeca
+struct fat_arch_64 {
+    cpu_type_t cputype;
+    cpu_subtype_t cpusubtype;
+    uint64_t offset;
+    uint64_t size;
+    uint32_t align;
+    uint32_t reserved;
+};
+#endif
+#endif
+
+
 #ifdef Q_OS_WIN
 #include <tools/msvcinfo.h>
 #include <tools/vsenvironmentdetector.h>
@@ -58,6 +78,9 @@
 
 #include <QtCore/qcryptographichash.h>
 #include <QtCore/qdir.h>
+#include <QtCore/qendian.h>
+#include <QtCore/qfile.h>
+#include <QtCore/qlibrary.h>
 
 #include <QtScript/qscriptable.h>
 #include <QtScript/qscriptengine.h>
@@ -91,6 +114,10 @@ public:
 
     static QScriptValue js_qmlTypeInfo(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_builtinExtensionNames(QScriptContext *context, QScriptEngine *engine);
+    static QScriptValue js_isSharedLibrary(QScriptContext *context, QScriptEngine *engine);
+
+    static QScriptValue js_getArchitecturesFromBinary(QScriptContext *context,
+                                                      QScriptEngine *engine);
 };
 
 QScriptValue UtilitiesExtension::js_ctor(QScriptContext *context, QScriptEngine *engine)
@@ -504,6 +531,237 @@ QScriptValue UtilitiesExtension::js_builtinExtensionNames(QScriptContext *contex
     return engine->toScriptValue(JsExtensions::extensionNames());
 }
 
+QScriptValue UtilitiesExtension::js_isSharedLibrary(QScriptContext *context, QScriptEngine *engine)
+{
+    if (context->argumentCount() == 1) {
+        const QScriptValue value = context->argument(0);
+        if (value.isString())
+            return engine->toScriptValue(QLibrary::isLibrary(value.toString()));
+    }
+    return context->throwError(QScriptContext::SyntaxError,
+        QStringLiteral("isSharedLibrary expects one argument of type string"));
+}
+
+#ifdef __APPLE__
+template <typename T = uint32_t> T readInt(QIODevice *ioDevice, bool *ok,
+                                           bool swap, bool peek = false) {
+    const auto bytes = peek
+            ? ioDevice->peek(sizeof(T))
+            : ioDevice->read(sizeof(T));
+    if (bytes.size() != sizeof(T)) {
+        if (ok)
+            *ok = false;
+        return T();
+    }
+    if (ok)
+        *ok = true;
+    T n = *reinterpret_cast<const T *>(bytes.constData());
+    return swap ? qbswap(n) : n;
+}
+
+static QString archName(cpu_type_t cputype, cpu_subtype_t cpusubtype)
+{
+    switch (cputype) {
+    case CPU_TYPE_X86:
+        switch (cpusubtype) {
+        case CPU_SUBTYPE_X86_ALL:
+            return QStringLiteral("i386");
+        default:
+            return QString();
+        }
+    case CPU_TYPE_X86_64:
+        switch (cpusubtype) {
+        case CPU_SUBTYPE_X86_64_ALL:
+            return QStringLiteral("x86_64");
+        case CPU_SUBTYPE_X86_64_H:
+            return QStringLiteral("x86_64h");
+        default:
+            return QString();
+        }
+    case CPU_TYPE_ARM:
+        switch (cpusubtype) {
+        case CPU_SUBTYPE_ARM_V7:
+            return QStringLiteral("armv7a");
+        case CPU_SUBTYPE_ARM_V7S:
+            return QStringLiteral("armv7s");
+        case CPU_SUBTYPE_ARM_V7K:
+            return QStringLiteral("armv7k");
+        default:
+            return QString();
+        }
+    case CPU_TYPE_ARM64:
+        switch (cpusubtype) {
+        case CPU_SUBTYPE_ARM64_ALL:
+            return QStringLiteral("arm64");
+        default:
+            return QString();
+        }
+    default:
+        return QString();
+    }
+}
+
+static QStringList detectMachOArchs(QIODevice *device)
+{
+    bool ok;
+    bool foundMachO = false;
+    qint64 pos = device->pos();
+
+    char ar_header[SARMAG];
+    if (device->read(ar_header, SARMAG) == SARMAG) {
+        if (strncmp(ar_header, ARMAG, SARMAG) == 0) {
+            while (!device->atEnd()) {
+                static_assert(sizeof(ar_hdr) == 60, "sizeof(ar_hdr) != 60");
+                ar_hdr header;
+                if (device->read(reinterpret_cast<char *>(&header),
+                                 sizeof(ar_hdr)) != sizeof(ar_hdr))
+                    return {  };
+
+                // If the file name is stored in the "extended format" manner,
+                // the real filename is prepended to the data section, so skip that many bytes
+                int filenameLength = 0;
+                if (strncmp(header.ar_name, AR_EFMT1, sizeof(AR_EFMT1) - 1) == 0) {
+                    char arName[sizeof(header.ar_name)] = { 0 };
+                    memcpy(arName, header.ar_name + sizeof(AR_EFMT1) - 1,
+                           sizeof(header.ar_name) - (sizeof(AR_EFMT1) - 1) - 1);
+                    filenameLength = strtoul(arName, nullptr, 10);
+                    if (device->read(filenameLength).size() != filenameLength)
+                        return { };
+                }
+
+                switch (readInt(device, nullptr, false, true)) {
+                case MH_CIGAM:
+                case MH_CIGAM_64:
+                case MH_MAGIC:
+                case MH_MAGIC_64:
+                    foundMachO = true;
+                    break;
+                default: {
+                    // Skip the data and go to the next archive member...
+                    char szBuf[sizeof(header.ar_size) + 1] = { 0 };
+                    memcpy(szBuf, header.ar_size, sizeof(header.ar_size));
+                    int sz = static_cast<int>(strtoul(szBuf, nullptr, 10));
+                    if (sz % 2 != 0)
+                        ++sz;
+                    sz -= filenameLength;
+                    const auto data = device->read(sz);
+                    if (data.size() != sz)
+                        return { };
+                }
+                }
+
+                if (foundMachO)
+                    break;
+            }
+        }
+    }
+
+    // Wasn't an archive file, so try a fat file
+    if (!foundMachO && !device->seek(pos))
+        return QStringList();
+
+    pos = device->pos();
+
+    fat_header fatheader;
+    fatheader.magic = readInt(device, nullptr, false);
+    if (fatheader.magic == FAT_MAGIC || fatheader.magic == FAT_CIGAM ||
+        fatheader.magic == FAT_MAGIC_64 || fatheader.magic == FAT_CIGAM_64) {
+        const bool swap = fatheader.magic == FAT_CIGAM || fatheader.magic == FAT_CIGAM_64;
+        const bool is64bit = fatheader.magic == FAT_MAGIC_64 || fatheader.magic == FAT_CIGAM_64;
+        fatheader.nfat_arch = readInt(device, &ok, swap);
+        if (!ok)
+            return QStringList();
+
+        QStringList archs;
+
+        for (uint32_t n = 0; n < fatheader.nfat_arch; ++n) {
+            fat_arch_64 fatarch;
+            static_assert(sizeof(fat_arch_64) == 32, "sizeof(fat_arch_64) != 32");
+            static_assert(sizeof(fat_arch) == 20, "sizeof(fat_arch) != 20");
+            const qint64 expectedBytes = is64bit ? sizeof(fat_arch_64) : sizeof(fat_arch);
+            if (device->read(reinterpret_cast<char *>(&fatarch), expectedBytes) != expectedBytes)
+                return QStringList();
+
+            if (swap) {
+                fatarch.cputype = qbswap(fatarch.cputype);
+                fatarch.cpusubtype = qbswap(fatarch.cpusubtype);
+            }
+
+            const QString name = archName(fatarch.cputype, fatarch.cpusubtype);
+            if (name.isEmpty()) {
+                qWarning("Unknown cputype %d and cpusubtype %d",
+                         fatarch.cputype, fatarch.cpusubtype);
+                return QStringList();
+            }
+            archs.push_back(name);
+        }
+
+        std::sort(archs.begin(), archs.end());
+        return archs;
+    }
+
+    // Wasn't a fat file, so we just read a thin Mach-O from the original offset
+    if (!device->seek(pos))
+        return QStringList();
+
+    bool swap = false;
+    mach_header header;
+    header.magic = readInt(device, nullptr, swap);
+    switch (header.magic) {
+    case MH_CIGAM:
+    case MH_CIGAM_64:
+        swap = true;
+        break;
+    case MH_MAGIC:
+    case MH_MAGIC_64:
+        break;
+    default:
+        return QStringList();
+    }
+
+    header.cputype = static_cast<cpu_type_t>(readInt(device, &ok, swap));
+    if (!ok)
+        return QStringList();
+
+    header.cpusubtype = static_cast<cpu_subtype_t>(readInt(device, &ok, swap));
+    if (!ok)
+        return QStringList();
+
+    const QString name = archName(header.cputype, header.cpusubtype);
+    if (name.isEmpty()) {
+        qWarning("Unknown cputype %d and cpusubtype %d",
+                 header.cputype, header.cpusubtype);
+        return { };
+    }
+    return { name };
+}
+#endif
+
+QScriptValue UtilitiesExtension::js_getArchitecturesFromBinary(QScriptContext *context,
+                                                               QScriptEngine *engine)
+{
+    if (context->argumentCount() != 1) {
+        return context->throwError(QScriptContext::SyntaxError,
+                QStringLiteral("getArchitecturesFromBinary expects exactly one argument"));
+    }
+    const QScriptValue arg = context->argument(0);
+    if (!arg.isString()) {
+        return context->throwError(QScriptContext::SyntaxError,
+                QStringLiteral("getArchitecturesFromBinary expects a string argument"));
+    }
+    QStringList archs;
+#ifdef __APPLE__
+    QFile file(arg.toString());
+    if (!file.open(QIODevice::ReadOnly)) {
+        return context->throwError(QScriptContext::SyntaxError,
+                QStringLiteral("Failed to open file '%1': %2")
+                                   .arg(file.fileName(), file.errorString()));
+    }
+    archs = detectMachOArchs(&file);
+#endif // __APPLE__
+    return engine->toScriptValue(archs);
+}
+
 } // namespace Internal
 } // namespace qbs
 
@@ -548,6 +806,10 @@ void initializeJsExtensionUtilities(QScriptValue extensionObject)
                                engine->newFunction(UtilitiesExtension::js_qmlTypeInfo, 0));
     environmentObj.setProperty(QStringLiteral("builtinExtensionNames"),
                                engine->newFunction(UtilitiesExtension::js_builtinExtensionNames, 0));
+    environmentObj.setProperty(QStringLiteral("isSharedLibrary"),
+                               engine->newFunction(UtilitiesExtension::js_isSharedLibrary, 1));
+    environmentObj.setProperty(QStringLiteral("getArchitecturesFromBinary"),
+                               engine->newFunction(UtilitiesExtension::js_getArchitecturesFromBinary, 1));
     extensionObject.setProperty(QStringLiteral("Utilities"), environmentObj);
 }
 

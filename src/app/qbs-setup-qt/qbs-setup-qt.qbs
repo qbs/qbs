@@ -2,7 +2,6 @@ import qbs 1.0
 
 QbsApp {
     name: "qbs-setup-qt"
-    Depends { name: "qbsqtprofilesetup" }
     files: [
         "commandlineparser.cpp",
         "commandlineparser.h",

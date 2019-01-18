@@ -40,8 +40,8 @@
 #ifndef QBS_SETUPQT_H
 #define QBS_SETUPQT_H
 
-#include <qtenvironment.h>
 #include <tools/error.h>
+#include <tools/version.h>
 
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qstringlist.h>
@@ -50,27 +50,30 @@
 
 namespace qbs {
 
-class EnhancedQtEnvironment : public QtEnvironment
+class Settings;
+
+class QtEnvironment
 {
 public:
+    QString qmakeFilePath;
+    QStringList qbsToolchain;
+    QString architecture;
+    QString targetPlatform;
+    Version qtVersion;
     Version msvcVersion;
 };
-
-class Settings;
 
 class SetupQt
 {
     Q_DECLARE_TR_FUNCTIONS(SetupQt)
 public:
     static bool isQMakePathValid(const QString &qmakePath);
-    static std::vector<EnhancedQtEnvironment> fetchEnvironments();
-    static void addQtBuildVariant(QtEnvironment *env, const QString &buildVariantName);
-    static EnhancedQtEnvironment fetchEnvironment(const QString &qmakePath);
-    static void saveToQbsSettings(const QString &qtVersionName,
-                                  const EnhancedQtEnvironment &qtEnvironment,
+    static std::vector<QtEnvironment> fetchEnvironments();
+    static QtEnvironment fetchEnvironment(const QString &qmakePath);
+    static bool checkIfMoreThanOneQtWithTheSameVersion(const Version &qtVersion,
+                                                       const std::vector<QtEnvironment> &qtEnvironments);
+    static void saveToQbsSettings(const QString &qtVersionName, const QtEnvironment &qtEnvironment,
                                   Settings *settings);
-    static bool checkIfMoreThanOneQtWithTheSameVersion(const QString &qtVersion,
-            const std::vector<EnhancedQtEnvironment> &qtEnvironments);
 };
 
 } // namespace qbs

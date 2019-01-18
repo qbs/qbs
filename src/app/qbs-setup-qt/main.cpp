@@ -40,7 +40,6 @@
 
 #include "commandlineparser.h"
 
-#include <qtprofilesetup.h>
 #include <logging/translator.h>
 #include <tools/settings.h>
 
@@ -72,16 +71,16 @@ int main(int argc, char *argv[])
 
         if (clParser.autoDetectionMode()) {
             // search all Qt's in path and dump their settings
-            const std::vector<EnhancedQtEnvironment> qtEnvironments = SetupQt::fetchEnvironments();
+            const std::vector<QtEnvironment> qtEnvironments = SetupQt::fetchEnvironments();
             if (qtEnvironments.empty()) {
                 std::cout << qPrintable(Tr::tr("No Qt installations detected. "
                                                "No profiles created."))
                           << std::endl;
             }
-            for (const EnhancedQtEnvironment &qtEnvironment : qtEnvironments) {
-                QString profileName = QLatin1String("qt-") + qtEnvironment.qtVersion;
+            for (const QtEnvironment &qtEnvironment : qtEnvironments) {
+                QString profileName = QLatin1String("qt-") + qtEnvironment.qtVersion.toString();
                 if (SetupQt::checkIfMoreThanOneQtWithTheSameVersion(qtEnvironment.qtVersion, qtEnvironments)) {
-                    QStringList prefixPathParts = qtEnvironment.installPrefixPath
+                    QStringList prefixPathParts = QFileInfo(qtEnvironment.qmakeFilePath).path()
                             .split(QLatin1Char('/'), QString::SkipEmptyParts);
                     if (!prefixPathParts.empty())
                         profileName += QLatin1String("-") + prefixPathParts.last();
@@ -97,7 +96,7 @@ int main(int argc, char *argv[])
             return EXIT_FAILURE;
         }
 
-        EnhancedQtEnvironment qtEnvironment = SetupQt::fetchEnvironment(clParser.qmakePath());
+        const QtEnvironment qtEnvironment = SetupQt::fetchEnvironment(clParser.qmakePath());
         QString profileName = clParser.profileName();
         profileName.replace(QLatin1Char('.'), QLatin1Char('-'));
         SetupQt::saveToQbsSettings(profileName, qtEnvironment, &settings);

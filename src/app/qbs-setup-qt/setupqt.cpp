@@ -40,8 +40,6 @@
 #include "setupqt.h"
 
 #include "../shared/logging/consolelogger.h"
-#include <qtmsvctools.h>
-#include <qtprofilesetup.h>
 #include <logging/translator.h>
 #include <tools/architectures.h>
 #include <tools/hostosinfo.h>
@@ -56,10 +54,10 @@
 #include <QtCore/qdir.h>
 #include <QtCore/qfileinfo.h>
 #include <QtCore/qprocess.h>
-#include <QtCore/qregexp.h>
 #include <QtCore/qstringlist.h>
 
 #include <algorithm>
+#include <regex>
 
 namespace qbs {
 using Internal::none_of;
@@ -105,210 +103,91 @@ bool SetupQt::isQMakePathValid(const QString &qmakePath)
     return qmakeFileInfo.exists() && qmakeFileInfo.isFile() && qmakeFileInfo.isExecutable();
 }
 
-std::vector<EnhancedQtEnvironment> SetupQt::fetchEnvironments()
+std::vector<QtEnvironment> SetupQt::fetchEnvironments()
 {
-    std::vector<EnhancedQtEnvironment> qtEnvironments;
-
+    std::vector<QtEnvironment> qtEnvironments;
     const auto qmakePaths = collectQmakePaths();
     for (const QString &qmakePath : qmakePaths) {
-        const EnhancedQtEnvironment env = fetchEnvironment(qmakePath);
-        if (none_of(qtEnvironments, [&env](const EnhancedQtEnvironment &otherEnv) {
-                        return env.includePath == otherEnv.includePath;
+        const QtEnvironment env = fetchEnvironment(qmakePath);
+        if (none_of(qtEnvironments, [&env](const QtEnvironment &otherEnv) {
+                        return env.qmakeFilePath == otherEnv.qmakeFilePath;
                     })) {
             qtEnvironments.push_back(env);
         }
     }
-
     return qtEnvironments;
 }
 
-void SetupQt::addQtBuildVariant(QtEnvironment *env, const QString &buildVariantName)
+// These functions work only for Qt from installer.
+static QStringList qbsToolchainFromDirName(const QString &dir)
 {
-    if (env->qtConfigItems.contains(buildVariantName))
-        env->buildVariant << buildVariantName;
+    if (dir.startsWith(QLatin1String("msvc")))
+        return QStringList(QLatin1String("msvc"));
+    if (dir.startsWith(QLatin1String("mingw")))
+        return QStringList{QLatin1String("mingw"), QLatin1String("gcc")};
+    if (dir.startsWith(QLatin1String("clang")))
+        return QStringList{QLatin1String("clang"), QLatin1String("llvm"), QLatin1String("gcc")};
+    if (dir.startsWith(QLatin1String("gcc")))
+        return QStringList(QLatin1String("gcc"));
+    return QStringList();
 }
 
-static QMap<QByteArray, QByteArray> qmakeQueryOutput(const QString &qmakePath)
+static Version msvcVersionFromDirName(const QString &dir)
 {
-    QProcess qmakeProcess;
-    qmakeProcess.start(qmakePath, QStringList() << QLatin1String("-query"));
-    if (!qmakeProcess.waitForStarted())
-        throw ErrorInfo(SetupQt::tr("%1 cannot be started.").arg(qmakePath));
-    qmakeProcess.waitForFinished();
-    const QByteArray output = qmakeProcess.readAllStandardOutput();
+    static const std::regex regexp("^msvc(\\d\\d\\d\\d)_.*$");
+    std::smatch match;
+    const std::string dirString = dir.toStdString();
+    if (!std::regex_match(dirString, match, regexp))
+        return Version();
+    QMap<std::string, std::string> mapping{
+        std::make_pair("2005", "14"), std::make_pair("2008", "15"), std::make_pair("2010", "16"),
+        std::make_pair("2012", "17"), std::make_pair("2013", "18"), std::make_pair("2015", "19"),
+        std::make_pair("2017", "19.1")
+    };
+    return Version::fromString(QString::fromStdString(mapping.value(match[1].str())));
+}
 
-    QMap<QByteArray, QByteArray> ret;
-    const auto lines = output.split('\n');
-    for (const QByteArray &line : lines) {
-        int idx = line.indexOf(':');
-        if (idx >= 0)
-            ret[line.left(idx)] = line.mid(idx + 1).trimmed();
+static QString archFromDirName(const QString &dir)
+{
+    static const std::regex regexp("^[^_]+_(.*).*$");
+    std::smatch match;
+    const std::string dirString = dir.toStdString();
+    if (!std::regex_match(dirString, match, regexp))
+        return QString();
+    const QString arch = QString::fromStdString(match[1]);
+    if (arch == QLatin1String("32"))
+        return QLatin1String("x86");
+    if (arch == QLatin1String("64"))
+        return QLatin1String("x86_64");
+    if (arch.contains(QLatin1String("arm64")))
+        return QLatin1String("arm64");
+    return arch;
+}
+
+static QString platformFromDirName(const QString &dir)
+{
+    if (dir.startsWith(QLatin1String("android")))
+        return QLatin1String("android");
+    if (dir == QLatin1String("Boot2Qt"))
+        return QLatin1String("linux");
+    return QString::fromStdString(HostOsInfo::hostOSIdentifier());
+}
+
+QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
+{
+    QtEnvironment env;
+    env.qmakeFilePath = qmakePath;
+    QDir qtDir = QFileInfo(qmakePath).dir();
+    if (qtDir.dirName() == QLatin1String("bin")) {
+        qtDir.cdUp();
+        env.qbsToolchain = qbsToolchainFromDirName(qtDir.dirName());
+        env.msvcVersion = msvcVersionFromDirName(qtDir.dirName());
+        env.architecture = archFromDirName(qtDir.dirName());
+        env.targetPlatform = platformFromDirName(qtDir.dirName());
+        qtDir.cdUp();
+        env.qtVersion = Version::fromString(qtDir.dirName());
     }
-    return ret;
-}
-
-static QByteArray readFileContent(const QString &filePath)
-{
-    QFile file(filePath);
-    if (file.open(QFile::ReadOnly))
-        return file.readAll();
-
-    return QByteArray();
-}
-
-static QString configVariable(const QByteArray &configContent, const QString &key)
-{
-    QRegExp regexp(QLatin1String("\\s*") + key + QLatin1String("\\s*\\+{0,1}=(.*)"),
-                   Qt::CaseSensitive);
-
-    const QList<QByteArray> configContentLines = configContent.split('\n');
-
-    bool success = false;
-
-    for (const QByteArray &configContentLine : configContentLines) {
-        success = regexp.exactMatch(QString::fromLocal8Bit(configContentLine));
-        if (success)
-            break;
-    }
-
-    if (success)
-        return regexp.capturedTexts()[1].simplified();
-
-    return QString();
-}
-
-static QStringList configVariableItems(const QByteArray &configContent, const QString &key)
-{
-    return configVariable(configContent, key).split(QLatin1Char(' '), QString::SkipEmptyParts);
-}
-
-typedef QMap<QByteArray, QByteArray> QueryMap;
-
-static QString pathQueryValue(const QueryMap &queryMap, const QByteArray &key)
-{
-    return QDir::fromNativeSeparators(QString::fromLocal8Bit(queryMap.value(key)));
-}
-
-EnhancedQtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
-{
-    EnhancedQtEnvironment qtEnvironment;
-    QueryMap queryOutput = qmakeQueryOutput(qmakePath);
-
-    qtEnvironment.installPrefixPath = pathQueryValue(queryOutput, "QT_INSTALL_PREFIX");
-    qtEnvironment.documentationPath = pathQueryValue(queryOutput, "QT_INSTALL_DOCS");
-    qtEnvironment.includePath = pathQueryValue(queryOutput, "QT_INSTALL_HEADERS");
-    qtEnvironment.libraryPath = pathQueryValue(queryOutput, "QT_INSTALL_LIBS");
-    qtEnvironment.binaryPath = pathQueryValue(queryOutput, "QT_HOST_BINS");
-    if (qtEnvironment.binaryPath.isEmpty())
-        qtEnvironment.binaryPath = pathQueryValue(queryOutput, "QT_INSTALL_BINS");
-    qtEnvironment.documentationPath = pathQueryValue(queryOutput, "QT_INSTALL_DOCS");
-    qtEnvironment.pluginPath = pathQueryValue(queryOutput, "QT_INSTALL_PLUGINS");
-    qtEnvironment.qmlPath = pathQueryValue(queryOutput, "QT_INSTALL_QML");
-    qtEnvironment.qmlImportPath = pathQueryValue(queryOutput, "QT_INSTALL_IMPORTS");
-    qtEnvironment.qtVersion = QString::fromLocal8Bit(queryOutput.value("QT_VERSION"));
-
-    const Version qtVersion = Version::fromString(qtEnvironment.qtVersion);
-
-    QString mkspecsBaseSrcPath;
-    if (qtVersion.majorVersion() >= 5) {
-        qtEnvironment.mkspecBasePath
-                = pathQueryValue(queryOutput, "QT_HOST_DATA") + QLatin1String("/mkspecs");
-        mkspecsBaseSrcPath
-                = pathQueryValue(queryOutput, "QT_HOST_DATA/src") + QLatin1String("/mkspecs");
-    } else {
-        qtEnvironment.mkspecBasePath
-                = pathQueryValue(queryOutput, "QT_INSTALL_DATA") + QLatin1String("/mkspecs");
-    }
-
-    if (!QFile::exists(qtEnvironment.mkspecBasePath))
-        throw ErrorInfo(tr("Cannot extract the mkspecs directory."));
-
-    const QByteArray qconfigContent = readFileContent(qtEnvironment.mkspecBasePath
-                                                      + QLatin1String("/qconfig.pri"));
-    qtEnvironment.qtMajorVersion = configVariable(qconfigContent,
-                                                  QLatin1String("QT_MAJOR_VERSION")).toInt();
-    qtEnvironment.qtMinorVersion = configVariable(qconfigContent,
-                                                  QLatin1String("QT_MINOR_VERSION")).toInt();
-    qtEnvironment.qtPatchVersion = configVariable(qconfigContent,
-                                                  QLatin1String("QT_PATCH_VERSION")).toInt();
-    qtEnvironment.qtNameSpace = configVariable(qconfigContent, QLatin1String("QT_NAMESPACE"));
-    qtEnvironment.qtLibInfix = configVariable(qconfigContent, QLatin1String("QT_LIBINFIX"));
-    qtEnvironment.architecture = configVariable(qconfigContent, QLatin1String("QT_TARGET_ARCH"));
-    if (qtEnvironment.architecture.isEmpty())
-        qtEnvironment.architecture = configVariable(qconfigContent, QLatin1String("QT_ARCH"));
-    if (qtEnvironment.architecture.isEmpty())
-        qtEnvironment.architecture = QLatin1String("x86");
-    qtEnvironment.configItems = configVariableItems(qconfigContent, QLatin1String("CONFIG"));
-    qtEnvironment.qtConfigItems = configVariableItems(qconfigContent, QLatin1String("QT_CONFIG"));
-
-    // retrieve the mkspec
-    if (qtVersion.majorVersion() >= 5) {
-        const QString mkspecName = QString::fromLocal8Bit(queryOutput.value("QMAKE_XSPEC"));
-        qtEnvironment.mkspecName = mkspecName;
-        qtEnvironment.mkspecPath = qtEnvironment.mkspecBasePath + QLatin1Char('/') + mkspecName;
-        if (!mkspecsBaseSrcPath.isEmpty() && !QFile::exists(qtEnvironment.mkspecPath))
-            qtEnvironment.mkspecPath = mkspecsBaseSrcPath + QLatin1Char('/') + mkspecName;
-    } else {
-        if (HostOsInfo::isWindowsHost()) {
-            const QString baseDirPath = qtEnvironment.mkspecBasePath + QLatin1String("/default/");
-            const QByteArray fileContent = readFileContent(baseDirPath
-                                                           + QLatin1String("qmake.conf"));
-            qtEnvironment.mkspecPath = configVariable(fileContent,
-                                                      QLatin1String("QMAKESPEC_ORIGINAL"));
-            if (!QFile::exists(qtEnvironment.mkspecPath)) {
-                // Work around QTBUG-28792.
-                // The value of QMAKESPEC_ORIGINAL is wrong for MinGW packages. Y u h8 me?
-                const QRegExp rex(QLatin1String("\\binclude\\(([^)]+)/qmake\\.conf\\)"));
-                if (rex.indexIn(QString::fromLocal8Bit(fileContent)) != -1)
-                    qtEnvironment.mkspecPath = QDir::cleanPath(baseDirPath + rex.cap(1));
-            }
-        } else {
-            qtEnvironment.mkspecPath = QFileInfo(qtEnvironment.mkspecBasePath
-                                                 + QLatin1String("/default")).symLinkTarget();
-        }
-
-        // E.g. in qmake.conf for Qt 4.8/mingw we find this gem:
-        //    QMAKESPEC_ORIGINAL=C:\\Qt\\Qt\\4.8\\mingw482\\mkspecs\\win32-g++
-        qtEnvironment.mkspecPath = QDir::cleanPath(qtEnvironment.mkspecPath);
-
-        qtEnvironment.mkspecName = qtEnvironment.mkspecPath;
-        int idx = qtEnvironment.mkspecName.lastIndexOf(QLatin1Char('/'));
-        if (idx != -1)
-            qtEnvironment.mkspecName.remove(0, idx + 1);
-    }
-
-    // determine MSVC version
-    if (isMsvcQt(qtEnvironment)) {
-        bool ok;
-        qtEnvironment.msvcVersion.setMajorVersion(
-                    configVariable(qconfigContent,
-                                   QLatin1String("QT_MSVC_MAJOR_VERSION")).toInt(&ok));
-        if (ok) {
-            qtEnvironment.msvcVersion.setMinorVersion(
-                        configVariable(qconfigContent,
-                                       QLatin1String("QT_MSVC_MINOR_VERSION")).toInt(&ok));
-        }
-        if (ok) {
-            qtEnvironment.msvcVersion.setPatchLevel(
-                        configVariable(qconfigContent,
-                                       QLatin1String("QT_MSVC_PATCH_VERSION")).toInt(&ok));
-        }
-        if (!ok)
-            qtEnvironment.msvcVersion = msvcCompilerVersionFromMkspecName(qtEnvironment.mkspecName);
-    }
-
-    // determine whether we have a framework build
-    qtEnvironment.frameworkBuild = qtEnvironment.mkspecPath.contains(QLatin1String("macx"))
-            && qtEnvironment.configItems.contains(QLatin1String("qt_framework"));
-
-    // determine whether Qt is built with debug, release or both
-    addQtBuildVariant(&qtEnvironment, QLatin1String("debug"));
-    addQtBuildVariant(&qtEnvironment, QLatin1String("release"));
-
-    if (!QFileInfo(qtEnvironment.mkspecPath).exists())
-        throw ErrorInfo(tr("mkspec '%1' does not exist").arg(qtEnvironment.mkspecPath));
-
-    return qtEnvironment;
+    return env;
 }
 
 static bool isToolchainProfile(const Profile &profile)
@@ -323,6 +202,12 @@ static bool isToolchainProfile(const Profile &profile)
 
 static bool isQtProfile(const Profile &profile)
 {
+    if (!profile.value(QStringLiteral("moduleProviders.Qt.qmakeFilePaths")).toStringList()
+            .empty()) {
+        return true;
+    }
+
+    // For Profiles created with setup-qt < 5.13.
     const QStringList searchPaths
             = profile.value(QStringLiteral("preferences.qbsSearchPaths")).toStringList();
     return std::any_of(searchPaths.cbegin(), searchPaths.cend(), [] (const QString &path) {
@@ -337,39 +222,18 @@ template <typename T> bool areProfilePropertiesIncompatible(const T &set1, const
     return set1.size() > 0 && set2.size() > 0 && set1 != set2;
 }
 
-static QStringList qbsToolchainFromQtMkspec(const QtEnvironment &qtEnv)
-{
-    const QString mkspec = qtEnv.mkspecName;
-    if (mkspec.contains(QLatin1String("-msvc")))
-        return QStringList() << QLatin1String("msvc");
-    if (qtEnv.isForMinGw())
-        return QStringList() << QLatin1String("mingw") << QLatin1String("gcc");
-
-    if (mkspec.contains(QLatin1String("-clang")))
-        return QStringList() << QLatin1String("clang") << QLatin1String("llvm")
-                             << QLatin1String("gcc");
-    if (mkspec.contains(QLatin1String("-llvm")))
-        return QStringList() << QLatin1String("llvm") << QLatin1String("gcc");
-    if (mkspec.contains(QLatin1String("-g++")))
-        return QStringList() << QLatin1String("gcc");
-
-    // Worry about other, less common toolchains (ICC, QCC, etc.) later...
-    return QStringList();
-}
-
 enum Match { MatchFull, MatchPartial, MatchNone };
 
-static Match compatibility(const EnhancedQtEnvironment &env, const Profile &toolchainProfile)
+static Match compatibility(const QtEnvironment &env, const Profile &toolchainProfile)
 {
     Match match = MatchFull;
 
     const auto toolchainNames = Internal::Set<QString>::fromList(
                 toolchainProfile.value(QLatin1String("qbs.toolchain")).toStringList());
-    const auto mkspecToolchainNames = Internal::Set<QString>::fromList(
-                qbsToolchainFromQtMkspec(env));
-    if (areProfilePropertiesIncompatible(toolchainNames, mkspecToolchainNames)) {
+    const auto qtToolchainNames = Internal::Set<QString>::fromList(env.qbsToolchain);
+    if (areProfilePropertiesIncompatible(toolchainNames, qtToolchainNames)) {
         auto intersection = toolchainNames;
-        intersection.intersect(mkspecToolchainNames);
+        intersection.intersect(qtToolchainNames);
         if (!intersection.empty())
             match = MatchPartial;
         else
@@ -378,7 +242,7 @@ static Match compatibility(const EnhancedQtEnvironment &env, const Profile &tool
 
     const auto targetPlatform = toolchainProfile.value(
                 QLatin1String("qbs.targetPlatform")).toString();
-    if (!targetPlatform.isEmpty() && targetPlatform != qbsTargetPlatformFromQtMkspec(env))
+    if (!targetPlatform.isEmpty() && targetPlatform != env.targetPlatform)
         return MatchNone;
 
     const QString toolchainArchitecture = toolchainProfile.value(QLatin1String("qbs.architecture"))
@@ -438,7 +302,7 @@ static void compressMsvcProfiles(QStringList &profiles)
 }
 
 void SetupQt::saveToQbsSettings(const QString &qtVersionName,
-                                const EnhancedQtEnvironment &qtEnvironment,
+                                const QtEnvironment &qtEnvironment,
                                 Settings *settings)
 {
     const QString cleanQtVersionName = Profile::cleanName(qtVersionName);
@@ -446,14 +310,10 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName,
             .arg(cleanQtVersionName);
     printf("%s\n", qPrintable(msg));
 
-    const ErrorInfo errorInfo = setupQtProfile(cleanQtVersionName, settings, qtEnvironment);
-    if (errorInfo.hasError())
-        throw errorInfo;
-
-    // If this profile does not specify a toolchain and we find exactly one profile that looks
-    // like it might have been added by qbs-setup-toolchains, let's use that one as our
-    // base profile.
     Profile profile(cleanQtVersionName, settings);
+    profile.removeProfile();
+    profile.setValue(QLatin1String("moduleProviders.Qt.qmakeFilePaths"),
+                     QStringList(qtEnvironment.qmakeFilePath));
     if (!profile.baseProfile().isEmpty())
         return;
     if (isToolchainProfile(profile))
@@ -490,19 +350,14 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName,
     else if (fullMatches.empty() && partialMatches.size() == 1)
         bestMatch = partialMatches.front();
     if (bestMatch.isEmpty()) {
-        QString message = Tr::tr("You need to set up toolchain information before you can "
-                                 "use this Qt version for building. ");
-        if (fullMatches.empty() && partialMatches.empty()) {
-            message += Tr::tr("However, no toolchain profile was found. Either create one "
-                              "using qbs-setup-toolchains and set it as this profile's "
-                              "base profile or add the toolchain settings manually "
-                              "to this profile.");
-        } else {
+        QString message = Tr::tr("You may want to set up toolchain information "
+                                 "for the generated Qt profile. ");
+        if (!fullMatches.empty() || !partialMatches.empty()) {
             message += Tr::tr("Consider setting one of these profiles as this profile's base "
                               "profile: %1.").arg((fullMatches + partialMatches)
                                                   .join(QLatin1String(", ")));
         }
-        qbsWarning() << message;
+        qbsInfo() << message;
     } else {
         profile.setBaseProfile(bestMatch);
         qbsInfo() << Tr::tr("Setting profile '%1' as the base profile for this profile.")
@@ -510,8 +365,8 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName,
     }
 }
 
-bool SetupQt::checkIfMoreThanOneQtWithTheSameVersion(const QString &qtVersion,
-        const std::vector<EnhancedQtEnvironment> &qtEnvironments)
+bool SetupQt::checkIfMoreThanOneQtWithTheSameVersion(const Version &qtVersion,
+        const std::vector<QtEnvironment> &qtEnvironments)
 {
     bool foundOneVersion = false;
     for (const QtEnvironment &qtEnvironment : qtEnvironments) {

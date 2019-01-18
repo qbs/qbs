@@ -55,6 +55,22 @@
     The Qt modules that have properties and relevant file tags are described in
     separate topics.
 
+    \section1 Qt-specific Module Provider Properties
+
+    Looking up a Qt installation happens via a \l{Module Providers}{module provider}.
+    By default, if a dependency to a Qt module is encountered, \QBS collects all Qt installations
+    it can find. This lookup happens by searching for \c qmake executables in the \c PATH
+    environment variable. Alternatively, you can explicitly tell \QBS which Qt
+    installations it should consider by setting the \c Qt.qmakeFilePaths
+    \l{Parameterizing Module Providers}{module provider property}. In that case,
+    the environment will be ignored. For instance, with the following Linux command line,
+    \QBS will build the project against a custom Qt instead of the standard one in \c{/usr/bin}:
+    \code
+    $ qbs moduleProviders.Qt.qmakeFilePaths:/opt/myqt/bin/qmake
+    \endcode
+    You can also set the module provider property in a profile. The simplest way to do
+    this is via the \l setup-qt tool.
+
     \section1 List of Submodules
 
     \table

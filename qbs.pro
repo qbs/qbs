@@ -31,10 +31,8 @@ defineTest(minQtVersion) {
 
 TEMPLATE = subdirs
 corelib.file = src/lib/corelib/corelib.pro
-setupqtprofilelib.subdir = src/lib/qtprofilesetup
-setupqtprofilelib.depends = corelib
 src_app.subdir = src/app
-src_app.depends = setupqtprofilelib
+src_app.depends = corelib
 src_libexec.subdir = src/libexec
 src_plugins.subdir = src/plugins
 CONFIG(shared, static|shared): src_plugins.depends = corelib
@@ -48,7 +46,6 @@ qbs_use_bundled_qtscript {
 }
 SUBDIRS += \
     corelib\
-    setupqtprofilelib\
     src_app\
     src_libexec\
     src_plugins\

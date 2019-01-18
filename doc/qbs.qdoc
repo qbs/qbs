@@ -675,7 +675,7 @@
     For example, a profile for building C++ applications contains at least the
     installation path and the type of the compiler toolchain. A profile for
     building Qt applications contains the toolchain-specific properties as well
-    as the installation paths of the Qt modules.
+    as \l{Qt-specific Module Provider Properties}{the path to the Qt installation}.
 
     This topic describes profiles stored in the \QBS settings. In some cases it
     might be beneficial to keep profiles explicitly in the project sources. This
@@ -707,7 +707,7 @@
     \endcode
 
     You have successfully built your first \QBS project. If you want to build
-    projects that use Qt, additional steps are necessary. Please refer to
+    projects that use Qt, additional steps might be necessary. Please refer to
     \l{Managing Qt Versions} for more information.
 
     \section1 Global Preferences
@@ -754,10 +754,10 @@
 
     \section1 Introduction
 
-    To let \QBS know where the Qt build or Qt version is that you want to use,
-    you must register it.
+    If your environment has the right \c qmake binary in its \c PATH and is also set up
+    properly for a matching toolchain, then you do not necessarily need a profile
+    to build projects with a Qt dependency. Otherwise, you should create one:
 
-    Register a Qt version like this:
     \code
     qbs setup-qt /usr/bin/qmake myqt
     \endcode
