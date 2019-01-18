@@ -1016,10 +1016,10 @@
     You can set these properties on the command line or by using a profile.
 
     \code
-    $ qbs                   # qbs.buildVariant:debug, profile:<default profile> (or profile:none, if no default profile exists)
-    $ qbs release           # qbs.buildVariant:release, profile:<default profile>
-    $ qbs debug release     # builds two configurations of the project
-    $ qbs profile:none      # all module properties have their default values
+    $ qbs                             # qbs.buildVariant:debug, profile:<default profile> (or profile:none, if no default profile exists)
+    $ qbs config:release              # qbs.buildVariant:release, profile:<default profile>
+    $ qbs config:debug config:release # builds two configurations of the project
+    $ qbs profile:none                # all module properties have their default values
     \endcode
 
     To select files by build variant:
@@ -1243,7 +1243,7 @@
     the \e Android profile, enter the following command:
 
     \code
-    qbs build profile:Android debug release
+    qbs build profile:Android config:debug config:release
     \endcode
 
     The position of the property assignment is important. In the example
@@ -1257,7 +1257,7 @@
     \l{cpp::optimization}{cpp.optimization} is set to \c small for release only.
 
     \code
-    qbs build debug modules.cpp.treatWarningsAsErrors:true release modules.cpp.optimization:small
+    qbs build config:debug modules.cpp.treatWarningsAsErrors:true config:release modules.cpp.optimization:small
     \endcode
 */
 
