@@ -71,6 +71,61 @@ function dumpMacros(compilerFilePath, qbs, nullDevice) {
     return map;
 }
 
+function collectLibraryDependencies(product) {
+    var seen = {};
+    var result = [];
+
+    function addFilePath(filePath) {
+        result.push({ filePath: filePath });
+    }
+
+    function addArtifactFilePaths(dep, artifacts) {
+        if (!artifacts)
+            return;
+        var artifactFilePaths = artifacts.map(function(a) { return a.filePath; });
+        artifactFilePaths.forEach(addFilePath);
+    }
+
+    function addExternalStaticLibs(obj) {
+        if (!obj.cpp)
+            return;
+        function ensureArray(a) {
+            return Array.isArray(a) ? a : [];
+        }
+        function sanitizedModuleListProperty(obj, moduleName, propertyName) {
+            return ensureArray(ModUtils.sanitizedModuleProperty(obj, moduleName, propertyName));
+        }
+        var externalLibs = [].concat(
+                    sanitizedModuleListProperty(obj, "cpp", "staticLibraries"));
+        var staticLibrarySuffix = obj.moduleProperty("cpp", "staticLibrarySuffix");
+        externalLibs.forEach(function(staticLibraryName) {
+            if (!staticLibraryName.endsWith(staticLibrarySuffix))
+                staticLibraryName += staticLibrarySuffix;
+            addFilePath(staticLibraryName);
+        });
+    }
+
+    function traverse(dep) {
+        if (seen.hasOwnProperty(dep.name))
+            return;
+        seen[dep.name] = true;
+
+        if (dep.parameters.cpp && dep.parameters.cpp.link === false)
+            return;
+
+        var staticLibraryArtifacts = dep.artifacts["staticlibrary"];
+        if (staticLibraryArtifacts) {
+            dep.dependencies.forEach(traverse);
+            addArtifactFilePaths(dep, staticLibraryArtifacts);
+            addExternalStaticLibs(dep);
+        }
+    }
+
+    product.dependencies.forEach(traverse);
+    addExternalStaticLibs(product);
+    return result;
+}
+
 function compilerFlags(project, product, input, output, explicitlyDependsOn) {
     // Determine which C-language we"re compiling.
     var tag = ModUtils.fileTagForTargetLanguage(input.fileTags.concat(output.fileTags));
@@ -196,6 +251,19 @@ function linkerFlags(project, product, input, outputs) {
 
     if (product.cpp.generateMapFile)
         args.push("--map", outputs.map_file[0].filePath);
+
+    var allLibraryPaths = [];
+    var libraryPaths = product.cpp.libraryPaths;
+    if (libraryPaths)
+        allLibraryPaths = allLibraryPaths.uniqueConcat(libraryPaths);
+    var distributionLibraryPaths = product.cpp.distributionLibraryPaths;
+    if (distributionLibraryPaths)
+        allLibraryPaths = allLibraryPaths.uniqueConcat(distributionLibraryPaths);
+    args = args.concat(allLibraryPaths.map(function(path) { return '-L' + path }));
+
+    var libraryDependencies = collectLibraryDependencies(product);
+    if (libraryDependencies)
+        args = args.concat(libraryDependencies.map(function(dep) { return dep.filePath }));
 
     var linkerScripts = inputs.linkerscript
             ? inputs.linkerscript.map(function(a) { return a.filePath; }) : [];

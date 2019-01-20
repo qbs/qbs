@@ -149,6 +149,7 @@ CppModule {
         id: applicationLinker
         multiplex: true
         inputs: ["obj", "linkerscript"]
+        inputsFromDependencies: ["staticlibrary"]
 
         outputFileTags: {
             var tags = ["application"];
@@ -182,6 +183,7 @@ CppModule {
         id: staticLibraryLinker
         multiplex: true
         inputs: ["obj"]
+        inputsFromDependencies: ["staticlibrary"]
 
         Artifact {
             fileTags: ["staticlibrary"]
