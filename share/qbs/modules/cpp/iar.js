@@ -152,7 +152,6 @@ function compilerFlags(project, product, input, output, explicitlyDependsOn) {
     if (warnings === "none") {
         args.push("--no_warnings");
     } else if (warnings === "all") {
-        args.push("--warnings_affect_exit_code");
         args.push("--deprecated_feature_warnings="
             +"+attribute_syntax,"
             +"+preprocessor_extensions,"
