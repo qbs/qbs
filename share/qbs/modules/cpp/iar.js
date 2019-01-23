@@ -45,6 +45,8 @@ function guessArchitecture(macros)
         return "arm";
     else if (macros["__ICC8051__"] === "1")
         return "mcs51";
+    else if (macros["__ICCAVR__"] === "1")
+        return "avr";
 }
 
 function guessEndianness(macros)
@@ -184,6 +186,8 @@ function compilerFlags(project, product, input, output, explicitlyDependsOn) {
                 args.push("--no_rtti");
         } else if (input.qbs.architecture === "mcs51") {
             args.push("--ec++");
+        } else if (input.qbs.architecture === "avr") {
+            args.push("--ec++");
         }
     }
 
@@ -269,6 +273,8 @@ function linkerFlags(project, product, input, outputs) {
             args.push("--map", outputs.map_file[0].filePath);
         else if (product.qbs.architecture === "mcs51")
             args.push("-l", outputs.map_file[0].filePath);
+        else if (product.qbs.architecture === "avr")
+            args.push("-l", outputs.map_file[0].filePath);
     }
 
     var allLibraryPaths = [];
@@ -287,6 +293,8 @@ function linkerFlags(project, product, input, outputs) {
     if (product.cpp.debugInformation) {
         if (product.qbs.architecture === "mcs51")
             args.push("-rt");
+        else if (product.qbs.architecture === "avr")
+            args.push("-rt");
     }
 
     var linkerScripts = inputs.linkerscript
@@ -295,6 +303,8 @@ function linkerFlags(project, product, input, outputs) {
         if (product.qbs.architecture === "arm")
             args.push("--config", linkerScripts[i]);
         else if (product.qbs.architecture === "mcs51")
+            args.push("-f", linkerScripts[i]);
+        else if (product.qbs.architecture === "avr")
             args.push("-f", linkerScripts[i]);
     }
 

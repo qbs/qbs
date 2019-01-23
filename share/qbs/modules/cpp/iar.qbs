@@ -82,6 +82,8 @@ CppModule {
             return "iccarm" + compilerExtension;
         case "mcs51":
             return "icc8051" + compilerExtension;
+        case "avr":
+            return "iccavr" + compilerExtension;
         }
     }
     compilerPath: FileInfo.joinPaths(toolchainInstallPath, compilerName)
@@ -92,6 +94,8 @@ CppModule {
             return "iasmarm" + compilerExtension;
         case "mcs51":
             return "a8051" + compilerExtension;
+        case "avr":
+            return "aavr" + compilerExtension;
         }
     }
     assemblerPath: FileInfo.joinPaths(toolchainInstallPath, assemblerName)
@@ -102,6 +106,8 @@ CppModule {
             return "ilinkarm" + compilerExtension;
         case "mcs51":
             return "xlink" + compilerExtension;
+        case "avr":
+            return "xlink" + compilerExtension;
         }
     }
     linkerPath: FileInfo.joinPaths(toolchainInstallPath, linkerName)
@@ -111,6 +117,8 @@ CppModule {
         case "arm":
             return "iarchive" + compilerExtension;
         case "mcs51":
+            return "xlib" + compilerExtension;
+        case "avr":
             return "xlib" + compilerExtension;
         }
     }
@@ -124,6 +132,8 @@ CppModule {
             return ".a";
         case "mcs51":
             return ".r51";
+        case "avr":
+            return ".r90";
         }
     }
 
@@ -133,6 +143,8 @@ CppModule {
             return ".out";
         case "mcs51":
             return qbs.debugInformation ? ".d51" : ".a51";
+        case "avr":
+            return qbs.debugInformation ? ".d90" : ".a90";
         }
     }
 
@@ -142,6 +154,8 @@ CppModule {
             return ".o";
         case "mcs51":
             return ".r51";
+        case "avr":
+            return ".r90";
         }
     }
 
@@ -150,6 +164,8 @@ CppModule {
         case "arm":
             return "elf";
         case "mcs51":
+            return "ubrof";
+        case "avr":
             return "ubrof";
         }
     }

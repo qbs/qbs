@@ -65,6 +65,10 @@ PathProbe {
             versionMajor = parseInt(version / 100);
             versionMinor = parseInt(version % 100);
             versionPatch = 0;
+        } else if (architecture === "avr") {
+            versionMajor = parseInt(version / 100);
+            versionMinor = parseInt(version % 100);
+            versionPatch = 0;
         }
 
         found = version && architecture && endianness;
