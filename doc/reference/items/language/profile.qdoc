@@ -36,8 +36,8 @@
     \brief Creates a profile within the project.
 
     The profiles used by \QBS are normally set up on a user's machine and are then available
-    to all projects. See the \l Configuring section for information on how to set up and
-    use profiles on the command line.
+    to all projects. See \l{Configuring Profiles and Preferences} for information on how
+    to set up and use profiles on the command line.
     In some rare cases, however, the creator of a project has complete knowledge about the system
     on which that project is to be built. Then it can make sense to integrate the profile into
     the project:

@@ -52,7 +52,7 @@
     compiler executable. If that fails, you need to provide the compiler type as
     a value of the \c --type option.
 
-    For more information, see \l{Configuring}.
+    For more information, see \l{Configuring Profiles and Preferences}.
 
     \section1 Options
 

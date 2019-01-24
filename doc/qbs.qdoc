@@ -54,7 +54,7 @@
        \li  \l{Setup}
            \list
                \li  \l{Installing}
-               \li  \l{Configuring}
+               \li  \l{Configuring Profiles and Preferences}
                \li  \l{Managing Qt Versions}
            \endlist
        \li  \l{Usage}
@@ -417,7 +417,7 @@
 
     \list
         \li  \l{Installing}
-        \li  \l{Configuring}
+        \li  \l{Configuring Profiles and Preferences}
         \li  \l{Managing Qt Versions}
     \endlist
 */
@@ -656,37 +656,76 @@
     \page configuring.html
     \nextpage qt-versions.html
 
-    \title Configuring
+    \title Configuring Profiles and Preferences
 
-    \section1 Setting Up Toolchains
+    Profiles contain properties that apply to one or more projects. They are
+    stored independently of the project files and are usually not shared between
+    build hosts. Typically, profiles contain module properties, such as
+    installation paths of tools or libraries on the host computer. This approach
+    has the following advantages, among others:
 
-    Open a build shell (on Windows open an MSVC command prompt,
-    on other platforms you can usually open the default shell):
+    \list
+        \li Team members with different computer setups can work together
+            smoothly because no host-specific settings end up in the project
+            files.
+        \li Different versions of a tool or library can be used to build the
+            same project without affecting each other.
+    \endlist
+
+    For example, a profile for building C++ applications contains at least the
+    installation path and the type of the compiler toolchain. A profile for
+    building Qt applications contains the toolchain-specific properties as well
+    as the installation paths of the Qt modules.
+
+    This topic describes profiles stored in the \QBS settings. In some cases it
+    might be beneficial to keep profiles explicitly in the project sources. This
+    can be achieved with the \l{Profile} item.
+
+    \section1 Setting Up Toolchain Profiles
+
+    \QBS comes with a helper tool \l{setup-toolchains} that can
+    create profiles for many toolchains. Open a terminal window and type:
+
     \code
     qbs setup-toolchains --detect
     \endcode
 
-    The tool chain detector automatically sets up a profile for each detected tool chain.
-    You can list the existing profiles by running:
+    This will automatically set up a profile for each detected toolchain on your
+    computer. You can list the existing profiles by running:
+
     \code
     qbs config --list profiles
     \endcode
 
-    Now you should be ready to build your first project with \QBS.
-    Go into examples/helloworld-minimal and type:
+    Some toolchains, especially for bare-metal targets, may require additional
+    module properties. Those can be added with the \l{config} or the
+    \l{config-ui} tools. Now you should be ready to build your first project
+    with \QBS. Go into examples/helloworld-minimal and type:
 
     \code
-    qbs profile:<profile name>
+    qbs build profile:<profile name>
     \endcode
 
-    If you want to build projects that use Qt, additional steps are necessary. Please refer to
+    You have successfully built your first \QBS project. If you want to build
+    projects that use Qt, additional steps are necessary. Please refer to
     \l{Managing Qt Versions} for more information.
 
-    \section1 Managing Settings
+    \section1 Global Preferences
 
-    You can use the \l{config} command to manage \QBS settings, such as
-    preferences and profiles from the command line or the \l{config-ui}
-    command to open the \QBS Settings application where you can manage the
+    In addition to profiles, \QBS provides some global preferences such as \c
+    qbsSearchPaths and \c defaultProfile.
+
+    \section1 Managing Profiles and Preferences
+
+    You can use the \l{config} command to manage all \QBS configuration
+    settings, such as profiles and global preferences from the command line,
+    for example:
+
+    \code
+    qbs config profiles.<someprofile>.qbs.architecture arm
+    \endcode
+
+    For convenience, \QBS provides a tool \l{config-ui} where you can manage the
     settings in a hierarchical view.
 
     \image qbs-settings-gui.png
@@ -921,7 +960,7 @@
     \endcode
 
     The properties that can be set for the \a cpp module are used to control the behavior of
-    your C++ tool chain.
+    your C++ toolchain.
     In addition, you can use FileTaggers and Rules that are explained later.
 
     As soon as your product depends on a module, it can set the properties of the

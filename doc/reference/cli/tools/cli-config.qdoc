@@ -71,7 +71,7 @@
     You can use the \l{config-ui} command to open the Qbs Settings tool for
     managing settings in a hierarchical view.
 
-    For more information, see \l{Configuring}, \l{Managing Qt Versions},
+    For more information, see \l{Configuring Profiles and Preferences}, \l{Managing Qt Versions},
     \l{Modules}, \l {List of Modules}, and \l{Custom Modules and Items}.
 
     \section1 Options
