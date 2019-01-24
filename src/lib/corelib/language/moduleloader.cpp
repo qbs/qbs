@@ -464,6 +464,27 @@ private:
             return;
         }
 
+        // If a module was found but its validate script failed, only the canonical
+        // module instance will have the "non-present" flag set, so we need to locate it.
+        if (item->type() == ItemType::ModuleInstance) {
+            const Item *productItem = nullptr;
+            for (auto it = m_parentItems.rbegin(); it != m_parentItems.rend(); ++it) {
+                if ((*it)->type() == ItemType::Product) {
+                    productItem = *it;
+                    break;
+                }
+            }
+            if (productItem) {
+                for (const Item::Module &m : productItem->modules()) {
+                    if (m.name == m_currentModuleName) {
+                        if (!m.item->isPresentModule())
+                            return;
+                        break;
+                    }
+                }
+            }
+        }
+
         m_parentItems.push_back(item);
         for (Item::PropertyMap::const_iterator it = item->properties().constBegin();
                 it != item->properties().constEnd(); ++it) {
