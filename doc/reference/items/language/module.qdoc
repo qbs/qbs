@@ -35,28 +35,56 @@
 
     \brief Represents a collection of properties and items that can be loaded into a product.
 
-    A Module item is a collection of properties and language items that are used for building a
-    product if the product has a \l{Depends}{dependency} on the module.
+    A Module item is a collection of properties and language items. It
+    contributes to building a product if the product has a
+    \l{Depends}{dependency} on the module. Modules may contain the following
+    items:
+
+    \list
+        \li \l{Depends}
+        \li \l{FileTagger}
+        \li \l{Group}
+        \li \l{JobLimit}
+        \li \l{Parameter}
+        \li \l{Probe}
+        \li \l{PropertyOptions}
+        \li \l{Rule}
+        \li \l{Scanner}
+    \endlist
+
+    When a product expresses a dependency on a module, \QBS will create an
+    instance of the module item in the scope of the product. The product can
+    then read and write properties from and to the loaded module, respectively.
+
+    Modules in different products are isolated from each other, just as products
+    cannot access each other's properties. However, products can use the
+    \l{Export} item to pass dependencies and properties of modules to other
+    dependent products.
+
     The following (somewhat artificial) module pre-processes text files by removing certain
     characters from them. The module's name is \c{txt_processor}.
 
-    \code
+    \qml
     import qbs.FileInfo
     import qbs.TextFile
 
     Module {
         property stringList unwantedCharacters: []
+
         FileTagger {
             patterns: ["*.raw"]
             fileTags: ["raw-txt"]
         }
+
         Rule {
             inputs: ["raw-txt"]
+
             Artifact {
                 filePath: FileInfo.relativePath(input.filePath, product.sourceDirectory) +
                            "/" + input.fileName + ".processed"
                 fileTags: ["processed-txt"]
             }
+
             prepare: {
                 var cmd = new JavaScriptCommand();
                 cmd.description = "Processing " + input.fileName;
@@ -64,7 +92,7 @@
                     var inFile = new TextFile(input.filePath, TextFile.ReadOnly);
                     var content = inFile.readAll();
                     inFile.close();
-                    var unwantedChars = product.txt_processor.unwantedCharacters;
+                    var unwantedChars = input.txt_processor.unwantedCharacters;
                     for (var c in unwantedChars)
                         content = content.replace(unwantedChars[c], "");
                     var outFile = new TextFile(output.filePath, TextFile.WriteOnly);
@@ -75,11 +103,11 @@
             }
         }
     }
-    \endcode
+    \endqml
 
     And this is how a \l{Product} would use the module:
 
-    \code
+    \qml
     Product {
         type: "processed-txt"
         Depends { name: "txt_processor" }
@@ -89,13 +117,62 @@
             "file2.raw"
         ]
     }
-    \endcode
+    \endqml
 
-    Of course, normally the pre-processed files would not be the target artifacts of the product,
-    but rather serve as inputs to a different rule that will often come from a different module.
+    The resulting files are tagged with \c{processed-txt} and might be consumed
+    by a rule in another module. That is possible if another rule has
+    \c{processed-txt} in its \l{Rule::inputs}{inputs} property.
 
     For more information about how you make your own modules available to \QBS,
     see \l{Custom Modules and Items}.
+
+    \section1 Accessing Product and Module Properties
+
+    When defining a property in a module item, the right-hand side expression is
+    a binding. Bindings may reference other properties of:
+
+    \list
+        \li the current module
+        \li other modules that this module depends on
+        \li the dependent product
+    \endlist
+
+    Please note that this applies to bindings in modules only. Property access
+    in rules and other nested items is different.
+
+    \section2 Accessing Properties of the Current Module
+
+    Sibling properties in the same module can be accessed directly by their name:
+
+    \qml
+    Module {
+        property stringList windowsDefaults: ["\r"]
+        property stringList unwantedCharacters: windowsDefaults
+    }
+    \endqml
+
+    \section2 Properties of the Dependent Modules
+
+    When a module loads another module through a \l{Depends} element, it can
+    access properties of the other module through its name. Assuming there was a
+    module \c OtherModule with a property \c otherProperty, such an access would
+    look like this:
+
+    \qml
+    Module {
+        Depends { name: "OtherModule" }
+        property string myProperty: "something-" + OtherModule.otherProperty
+    }
+    \endqml
+
+    \section2 Accessing Properties of the Dependent Product
+
+    \qml
+    Module {
+        property bool featureEnabled:
+                (product.type.contains("application")) ?  true : false
+    }
+    \endqml
 
     \section1 Special Property Values
 
