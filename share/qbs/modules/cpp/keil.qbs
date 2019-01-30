@@ -80,6 +80,8 @@ CppModule {
         switch (qbs.architecture) {
         case "mcs51":
             return "c51" + compilerExtension;
+        case "arm":
+            return "armcc" + compilerExtension;
         }
     }
     compilerPath: FileInfo.joinPaths(toolchainInstallPath, compilerName)
@@ -88,6 +90,8 @@ CppModule {
         switch (qbs.architecture) {
         case "mcs51":
             return "a51" + compilerExtension;
+        case "arm":
+            return "armasm" + compilerExtension;
         }
     }
     assemblerPath: FileInfo.joinPaths(toolchainInstallPath, assemblerName)
@@ -96,6 +100,8 @@ CppModule {
         switch (qbs.architecture) {
         case "mcs51":
             return "bl51" + compilerExtension;
+        case "arm":
+            return "armlink" + compilerExtension;
         }
     }
     linkerPath: FileInfo.joinPaths(toolchainInstallPath, linkerName)
@@ -104,6 +110,8 @@ CppModule {
         switch (qbs.architecture) {
         case "mcs51":
             return "lib51" + compilerExtension;
+        case "arm":
+            return "armar" + compilerExtension;
         }
     }
     property string archiverPath: FileInfo.joinPaths(toolchainInstallPath, archiverName)
@@ -114,6 +122,8 @@ CppModule {
         switch (qbs.architecture) {
         case "mcs51":
             return ".lib";
+        case "arm":
+            return ".lib";
         }
     }
 
@@ -121,6 +131,8 @@ CppModule {
         switch (qbs.architecture) {
         case "mcs51":
             return ".abs";
+        case "arm":
+            return ".axf";
         }
     }
 
@@ -128,6 +140,8 @@ CppModule {
         switch (qbs.architecture) {
         case "mcs51":
             return ".obj";
+        case "arm":
+            return ".o";
         }
     }
 
@@ -137,6 +151,8 @@ CppModule {
             // Keil OMF51 or OMF2 Object Module Format (which is an
             // extension of the original Intel OMF51).
             return "omf";
+        case "arm":
+            return "elf";
         }
     }
 
@@ -159,6 +175,12 @@ CppModule {
     FileTagger {
         condition: qbs.architecture === "mcs51";
         patterns: ["*.a51", "*.A51"]
+        fileTags: ["asm"]
+    }
+
+    FileTagger {
+        condition: qbs.architecture === "arm";
+        patterns: "*.s"
         fileTags: ["asm"]
     }
 

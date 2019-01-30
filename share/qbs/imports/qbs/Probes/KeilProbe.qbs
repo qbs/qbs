@@ -35,6 +35,8 @@ PathProbe {
     // Inputs
     property string compilerFilePath;
 
+    property string _nullDevice: qbs.nullDevice
+
     // Outputs
     property string architecture;
     property string endianness;
@@ -48,7 +50,7 @@ PathProbe {
             return;
         }
 
-        var macros = KEIL.dumpMacros(compilerFilePath, qbs);
+        var macros = KEIL.dumpMacros(compilerFilePath, qbs, _nullDevice);
 
         architecture = KEIL.guessArchitecture(macros);
         endianness = KEIL.guessEndianness(macros);
