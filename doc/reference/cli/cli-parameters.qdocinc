@@ -41,17 +41,29 @@
 
     Specifies the build configuration to use.
 
-    The \c debug and \c release configuration names imply the respective build
-    variant. A debug build contains additional debug symbols that are needed for
-    debugging the application but that can be left out from the release
-    version. Generally, debug builds are used for testing and release builds
-    for creating the final installation file.
+    \QBS can build a project for one or multiple configurations at once, each
+    having a different set of parameters. The \c config parameter has a
+    special function: with each occurrence a new configuration instance begins
+    and all subsequent parameters until the next \c config are assigned to this
+    instance. Parameter assignments before the first occurrence of \c config are
+    applied to all build configurations. Inside products and modules, the
+    current active build configuration can be retrieved via
+    \l{qbs::configurationName}{qbs.configurationName}.
 
-    The build variant can also be specified explicitly by using the
-    \l{qbs::buildVariant}{qbs.buildVariant} property.
+    In the following snippet, a profile \c clang is applied to all
+    configurations while \c cpp.optimization is different for \c debug and
+    \c release:
 
-    When naming configurations created for special purposes, follow the
-    rules for legal names generally used in programming languages:
+    \code
+    profile:clang config:debug cpp.optimization:none config:release cpp.optimization:small
+    \endcode
+
+    The value of \c config determines the name of the build folder and affects
+    the default value of the \l{qbs::buildVariant}{qbs.buildVariant} property.
+    \QBS knows the \c config values \c{"debug"} and \c{"release"}, but in
+    general any name can be chosen. When naming configurations created for
+    special purposes, follow the rules for legal names generally used in
+    programming languages:
 
     \list
         \li The first character must be a letter (a-z), an underscore (_), or a

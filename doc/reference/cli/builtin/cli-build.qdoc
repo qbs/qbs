@@ -113,9 +113,10 @@
     Builds the application using different \l{cpp} module properties
     for debug and release configurations. For the debug configuration, warnings
     will cause the build to fail, whereas for the release configuration, the
-    size of the build artifacts will be optimized:
+    size of the build artifacts will be optimized. Both configurations are built
+    with a profile named \c{"qt"}:
 
     \code
-    qbs build config:debug modules.cpp.treatWarningsAsErrors:true config:release modules.cpp.optimization:small
+    qbs build profile:qt config:debug modules.cpp.treatWarningsAsErrors:true config:release modules.cpp.optimization:small
     \endcode
 */

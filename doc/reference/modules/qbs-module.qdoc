@@ -98,8 +98,12 @@
 /*!
     \qmlproperty string qbs::configurationName
     \since Qbs 1.6
+    \readonly
 
     The name of the current build configuration.
+
+    The build configuration is set via the command line parameter \c
+    config. For more information, see \l{build}{build}.
 
     \defaultvalue \c{"default"}
 */
@@ -109,7 +113,15 @@
 
     The name of the build variant for the current build.
 
-    \defaultvalue \c{"debug"}
+    Possible values are \c{"debug"} and \c{"release"}. A debug build usually
+    contains additional debug symbols that are needed for debugging the
+    application but that can be left out from the release version. Debug builds
+    are used for testing and release builds for creating the final installation
+    file.
+
+    \defaultvalue \c{"release"} if
+    \l{qbs::configurationName}{qbs.configurationName} is \c{"release"}. Otherwise
+    \c{"debug"}
 */
 
 /*!
