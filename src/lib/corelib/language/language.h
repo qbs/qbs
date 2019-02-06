@@ -703,7 +703,8 @@ public:
     bool locked; // This is the API-level lock for the project instance.
 
     Set<QString> buildSystemFiles;
-    FileTime lastResolveTime;
+    FileTime lastStartResolveTime;
+    FileTime lastEndResolveTime;
     QList<ErrorInfo> warningsEncountered;
 
     void setBuildConfiguration(const QVariantMap &config);
@@ -724,8 +725,8 @@ private:
         pool.serializationOp<opType>(m_id, canonicalFilePathResults, fileExistsResults,
                                      directoryEntriesResults, fileLastModifiedResults, environment,
                                      probes, profileConfigs, overriddenValues, buildSystemFiles,
-                                     lastResolveTime, warningsEncountered, buildData,
-                                     moduleProviderInfo);
+                                     lastStartResolveTime, lastEndResolveTime, warningsEncountered,
+                                     buildData, moduleProviderInfo);
     }
     void load(PersistentPool &pool) override;
     void store(PersistentPool &pool) override;

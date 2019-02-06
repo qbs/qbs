@@ -72,7 +72,9 @@ class PrepareScriptObserver;
 class ScriptImporter;
 class ScriptPropertyObserver;
 
-enum class EvalContext { PropertyEvaluation, ProbeExecution, RuleExecution, JsCommand };
+enum class EvalContext {
+    PropertyEvaluation, ProbeExecution, ModuleProvider, RuleExecution, JsCommand
+};
 class DubiousContext
 {
 public:
@@ -278,6 +280,8 @@ private:
     QScriptValue newFunction(FunctionWithArgSignature signature, void *arg) Q_DECL_EQ_DELETE;
 
     void abort();
+
+    bool gatherFileResults() const;
 
     void installQbsBuiltins();
     void extendJavaScriptBuiltins();

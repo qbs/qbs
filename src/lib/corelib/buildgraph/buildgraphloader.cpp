@@ -307,7 +307,7 @@ void BuildGraphLoader::trackProjectChanges()
     bool reResolvingNecessary = false;
     if (!checkConfigCompatibility())
         reResolvingNecessary = true;
-    if (hasProductFileChanged(allRestoredProducts, restoredProject->lastResolveTime,
+    if (hasProductFileChanged(allRestoredProducts, restoredProject->lastStartResolveTime,
                               buildSystemFiles, changedProducts)) {
         reResolvingNecessary = true;
     }
@@ -317,7 +317,7 @@ void BuildGraphLoader::trackProjectChanges()
     // having been touched. In such a case, the build data for that product will have to be set up
     // anew.
     if (probeExecutionForced(restoredProject, allRestoredProducts)
-            || hasBuildSystemFileChanged(buildSystemFiles, restoredProject->lastResolveTime)
+            || hasBuildSystemFileChanged(buildSystemFiles, restoredProject.get())
             || hasEnvironmentChanged(restoredProject)
             || hasCanonicalFilePathResultChanged(restoredProject)
             || hasFileExistsResultChanged(restoredProject)
@@ -342,7 +342,7 @@ void BuildGraphLoader::trackProjectChanges()
     ldr.setOldProjectProbes(restoredProject->probes);
     if (!m_parameters.forceProbeExecution())
         ldr.setStoredModuleProviderInfo(restoredProject->moduleProviderInfo);
-    ldr.setLastResolveTime(restoredProject->lastResolveTime);
+    ldr.setLastResolveTime(restoredProject->lastStartResolveTime);
     QHash<QString, std::vector<ProbeConstPtr>> restoredProbes;
     for (const auto &restoredProduct : qAsConst(allRestoredProducts))
         restoredProbes.insert(restoredProduct->uniqueName(), restoredProduct->probes);
@@ -630,12 +630,24 @@ bool BuildGraphLoader::hasProductFileChanged(const std::vector<ResolvedProductPt
 }
 
 bool BuildGraphLoader::hasBuildSystemFileChanged(const Set<QString> &buildSystemFiles,
-                                                 const FileTime &referenceTime)
+                                                 const TopLevelProject *restoredProject)
 {
     for (const QString &file : buildSystemFiles) {
         const FileInfo fi(file);
-        if (!fi.exists() || referenceTime < fi.lastModified()) {
-            qCDebug(lcBuildGraph) << "A qbs or js file changed, must re-resolve project.";
+        if (!fi.exists()) {
+            qCDebug(lcBuildGraph) << "Project file" << file
+                                  << "no longer exists, must re-resolve project.";
+            return true;
+        }
+        const auto generatedChecker = [&file, restoredProject](const ModuleProviderInfo &mpi) {
+            return file.startsWith(mpi.outputDirPath(restoredProject->buildDirectory));
+        };
+        const bool fileWasCreatedByModuleProvider = any_of(restoredProject->moduleProviderInfo,
+                                                           generatedChecker);
+        const FileTime referenceTime = fileWasCreatedByModuleProvider
+                ? restoredProject->lastEndResolveTime : restoredProject->lastStartResolveTime;
+        if (referenceTime < fi.lastModified()) {
+            qCDebug(lcBuildGraph) << "Project file" << file << "changed, must re-resolve project.";
             return true;
         }
     }

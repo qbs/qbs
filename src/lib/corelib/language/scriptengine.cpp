@@ -234,6 +234,7 @@ void ScriptEngine::checkContext(const QString &operation,
                         + Tr::tr("Should this call be in a JavaScriptCommand instead?");
             }
             break;
+        case EvalContext::ModuleProvider:
         case EvalContext::ProbeExecution:
         case EvalContext::JsCommand:
             QBS_ASSERT(false, continue);
@@ -574,25 +575,30 @@ void ScriptEngine::releaseResourcesOfScriptObjects()
 void ScriptEngine::addCanonicalFilePathResult(const QString &filePath,
                                               const QString &resultFilePath)
 {
-    m_canonicalFilePathResult.insert(filePath, resultFilePath);
+    if (gatherFileResults())
+        m_canonicalFilePathResult.insert(filePath, resultFilePath);
 }
 
 void ScriptEngine::addFileExistsResult(const QString &filePath, bool exists)
 {
-    m_fileExistsResult.insert(filePath, exists);
+    if (gatherFileResults())
+        m_fileExistsResult.insert(filePath, exists);
 }
 
 void ScriptEngine::addDirectoryEntriesResult(const QString &path, QDir::Filters filters,
                                              const QStringList &entries)
 {
-    m_directoryEntriesResult.insert(
-                std::pair<QString, quint32>(path, static_cast<quint32>(filters)),
-                entries);
+    if (gatherFileResults()) {
+        m_directoryEntriesResult.insert(
+                    std::pair<QString, quint32>(path, static_cast<quint32>(filters)),
+                    entries);
+    }
 }
 
 void ScriptEngine::addFileLastModifiedResult(const QString &filePath, const FileTime &fileTime)
 {
-    m_fileLastModifiedResult.insert(filePath, fileTime);
+    if (gatherFileResults())
+        m_fileLastModifiedResult.insert(filePath, fileTime);
 }
 
 Set<QString> ScriptEngine::imports() const
@@ -653,6 +659,12 @@ void ScriptEngine::cancel()
 void ScriptEngine::abort()
 {
     abortEvaluation(m_cancelationError);
+}
+
+bool ScriptEngine::gatherFileResults() const
+{
+    return evalContext() == EvalContext::PropertyEvaluation
+            || evalContext() == EvalContext::ProbeExecution;
 }
 
 class JSTypeExtender

@@ -361,7 +361,7 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
     handleTopLevelProject(&result, root, buildDirectory,
                   Set<QString>() << QDir::cleanPath(parameters.projectFilePath()));
     result.root = root;
-    result.qbsFiles = m_reader->filesRead();
+    result.qbsFiles = m_reader->filesRead() - m_tempQbsFiles;
     for (auto it = m_localProfiles.cbegin(); it != m_localProfiles.cend(); ++it)
         result.profileConfigs.remove(it.key());
     printProfilingInfo();
@@ -2156,7 +2156,10 @@ void ModuleLoader::setSearchPathsForProduct(ModuleLoader::ProductContext *produc
     if (!m_moduleProviderInfo.empty()) {
         const QVariantMap configForProduct = moduleProviderConfig(*product);
         for (const ModuleProviderInfo &c : m_moduleProviderInfo) {
-            if (configForProduct.value(c.name.toString()) == c.config) {
+            if (configForProduct.value(c.name.toString()).toMap() == c.config) {
+                qCDebug(lcModuleLoader) << "re-using search paths" << c.searchPaths
+                                        << "from module provider" << c.name
+                                        << "for product" << product->name;
                 product->knownModuleProviders.insert(c.name);
                 product->searchPaths << c.searchPaths;
             }
@@ -2622,10 +2625,6 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
             }
             ErrorInfo e(Tr::tr("Dependency '%1' not found for product '%2'.")
                         .arg(moduleName.toString(), productName), dependsItem->location());
-            if (moduleName.size() == 2 && moduleName.front() == QStringLiteral("Qt")) {
-                e.append(Tr::tr("Please create a Qt profile using the qbs-setup-qt tool "
-                                "if you haven't already done so."));
-            }
             throw e;
         }
         if (result.isProduct && !m_dependsChain.empty() && !m_dependsChain.back().isProduct) {
@@ -3761,6 +3760,7 @@ ModuleLoader::ModuleProviderResult ModuleLoader::findModuleProvider(const Qualif
                                    "for dependency '%1': %2").arg(name.toString(),
                                                                   dummyItemFile.errorString()));
         }
+        m_tempQbsFiles << dummyItemFile.fileName();
         qCDebug(lcModuleLoader) << "Instantiating module provider at" << providerFile;
         const QString projectBuildDir = product.project->item->variantProperty(
                     StringConstants::buildDirectoryProperty())->value().toString();
@@ -3789,6 +3789,7 @@ ModuleLoader::ModuleProviderResult ModuleLoader::findModuleProvider(const Qualif
                 .arg(providerFile, providerItem->typeName(),
                      BuiltinDeclarations::instance().nameForType(ItemType::ModuleProvider)));
         }
+        providerItem->setParent(product.item);
         const QVariantMap configMap = moduleConfig.toMap();
         for (auto it = configMap.begin(); it != configMap.end(); ++it) {
             const PropertyDeclaration decl = providerItem->propertyDeclaration(it.key());
@@ -3798,7 +3799,7 @@ ModuleLoader::ModuleProviderResult ModuleLoader::findModuleProvider(const Qualif
             }
             providerItem->setProperty(it.key(), VariantValue::create(it.value()));
         }
-        EvalContextSwitcher contextSwitcher(m_evaluator->engine(), EvalContext::ProbeExecution);
+        EvalContextSwitcher contextSwitcher(m_evaluator->engine(), EvalContext::ModuleProvider);
         const QStringList searchPaths
                 = m_evaluator->stringListValue(providerItem, QStringLiteral("searchPaths"));
         if (searchPaths.empty()) {

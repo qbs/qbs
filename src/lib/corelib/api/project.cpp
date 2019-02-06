@@ -1256,7 +1256,7 @@ ErrorInfo Project::addGroup(const ProductData &product, const QString &groupName
         QBS_CHECK(isValid());
         d->prepareChangeToProject();
         d->addGroup(product, groupName);
-        d->internalProject->lastResolveTime = FileTime::currentTime();
+        d->internalProject->lastStartResolveTime = FileTime::currentTime();
         d->internalProject->store(d->logger);
         return ErrorInfo();
     } catch (ErrorInfo errorInfo) {
@@ -1283,7 +1283,7 @@ ErrorInfo Project::addFiles(const ProductData &product, const GroupData &group,
         QBS_CHECK(isValid());
         d->prepareChangeToProject();
         d->addFiles(product, group, filePaths);
-        d->internalProject->lastResolveTime = FileTime::currentTime();
+        d->internalProject->lastStartResolveTime = FileTime::currentTime();
         d->internalProject->store(d->logger);
         return ErrorInfo();
     } catch (ErrorInfo errorInfo) {
@@ -1309,7 +1309,7 @@ ErrorInfo Project::removeFiles(const ProductData &product, const GroupData &grou
         QBS_CHECK(isValid());
         d->prepareChangeToProject();
         d->removeFiles(product, group, filePaths);
-        d->internalProject->lastResolveTime = FileTime::currentTime();
+        d->internalProject->lastStartResolveTime = FileTime::currentTime();
         d->internalProject->store(d->logger);
         return ErrorInfo();
     } catch (ErrorInfo errorInfo) {
@@ -1330,7 +1330,7 @@ ErrorInfo Project::removeGroup(const ProductData &product, const GroupData &grou
         QBS_CHECK(isValid());
         d->prepareChangeToProject();
         d->removeGroup(product, group);
-        d->internalProject->lastResolveTime = FileTime::currentTime();
+        d->internalProject->lastStartResolveTime = FileTime::currentTime();
         d->internalProject->store(d->logger);
         return ErrorInfo();
     } catch (ErrorInfo errorInfo) {

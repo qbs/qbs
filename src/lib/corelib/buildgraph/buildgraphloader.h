@@ -97,7 +97,7 @@ private:
                                Set<QString> &remainingBuildSystemFiles,
                                std::vector<ResolvedProductPtr> &productsWithChangedFiles);
     bool hasBuildSystemFileChanged(const Set<QString> &buildSystemFiles,
-                                   const FileTime &referenceTime);
+                                   const TopLevelProject *restoredProject);
     void markTransformersForChangeTracking(const std::vector<ResolvedProductPtr> &restoredProducts);
     void checkAllProductsForChanges(const std::vector<ResolvedProductPtr> &restoredProducts,
             std::vector<ResolvedProductPtr> &changedProducts);

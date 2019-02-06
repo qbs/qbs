@@ -450,6 +450,7 @@ private:
     Set<Item *> m_exportsWithDeferredDependsItems;
 
     ModuleProviderInfoList m_moduleProviderInfo;
+    Set<QString> m_tempQbsFiles;
 
     SetupProjectParameters m_parameters;
     std::unique_ptr<Settings> m_settings;

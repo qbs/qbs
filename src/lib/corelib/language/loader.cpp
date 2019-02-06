@@ -170,7 +170,8 @@ TopLevelProjectPtr Loader::loadProject(const SetupProjectParameters &_parameters
     ProjectResolver resolver(&evaluator, loadResult, parameters, m_logger);
     resolver.setProgressObserver(m_progressObserver);
     const TopLevelProjectPtr project = resolver.resolve();
-    project->lastResolveTime = resolveTime;
+    project->lastStartResolveTime = resolveTime;
+    project->lastEndResolveTime = FileTime::currentTime();
 
     // E.g. if the top-level project is disabled.
     if (m_progressObserver)

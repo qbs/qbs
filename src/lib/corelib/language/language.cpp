@@ -588,7 +588,7 @@ void ResolvedProject::store(PersistentPool &pool)
 
 
 TopLevelProject::TopLevelProject()
-    : bgLocker(nullptr), locked(false), lastResolveTime(FileTime::oldestTime())
+    : bgLocker(nullptr), locked(false), lastStartResolveTime(FileTime::oldestTime())
 {
 }
 

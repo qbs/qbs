@@ -6396,7 +6396,8 @@ void TestBlackbox::fallbackModuleProvider()
     static const auto b2s = [](bool b) { return QString(b ? "true" : "false"); };
     QbsRunParameters resolveParams("resolve",
         QStringList{"modules.pkgconfig.libDirs:" + pkgConfigLibDirs.join(','),
-                    "products.p.fallbacksEnabled:" + b2s(fallbacksEnabledInProduct)});
+                    "products.p.fallbacksEnabled:" + b2s(fallbacksEnabledInProduct),
+                    "--force-probe-execution"});
     if (!fallbacksEnabledGlobally)
         resolveParams.arguments << "--no-fallback-module-provider";
     QCOMPARE(runQbs(resolveParams), 0);
