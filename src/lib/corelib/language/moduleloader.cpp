@@ -3802,9 +3802,14 @@ ModuleLoader::ModuleProviderResult ModuleLoader::findModuleProvider(const Qualif
         EvalContextSwitcher contextSwitcher(m_evaluator->engine(), EvalContext::ModuleProvider);
         const QStringList searchPaths
                 = m_evaluator->stringListValue(providerItem, QStringLiteral("searchPaths"));
+        const auto addToGlobalInfo = [=] {
+            m_moduleProviderInfo.emplace_back(ModuleProviderInfo(name, moduleConfig.toMap(),
+                                                         searchPaths, m_parameters.dryRun()));
+        };
         if (searchPaths.empty()) {
             qCDebug(lcModuleLoader) << "Module provider did run, but did not set up "
                                        "any modules.";
+            addToGlobalInfo();
             return ModuleProviderResult(true, false);
         }
         qCDebug(lcModuleLoader) << "Module provider added" << searchPaths.size()
@@ -3818,8 +3823,7 @@ ModuleLoader::ModuleProviderResult ModuleLoader::findModuleProvider(const Qualif
         m_reader->pushExtraSearchPaths(searchPaths); // (1)
         product.searchPaths << searchPaths; // (2)
         product.newlyAddedModuleProviderSearchPaths.push_back(searchPaths); // (3)
-        m_moduleProviderInfo.emplace_back(ModuleProviderInfo(name, moduleConfig.toMap(), // (4)
-                                                     searchPaths, m_parameters.dryRun()));
+        addToGlobalInfo(); // (4)
         return ModuleProviderResult(true, true);
     }
     return ModuleProviderResult();
