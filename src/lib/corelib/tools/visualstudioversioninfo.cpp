@@ -169,9 +169,14 @@ QString VisualStudioVersionInfo::toolsVersion() const
 
 QString VisualStudioVersionInfo::platformToolsetVersion() const
 {
-    // Default PlatformToolset for VS 2017 is v141.
-    if (m_version.majorVersion() == 15)
-        return QStringLiteral("v141");
+    static std::pair<int, QString> table[] = {
+        {16, QStringLiteral("v142")},             // VS 2019
+        {15, QStringLiteral("v141")}              // VS 2017
+    };
+    for (auto p : table) {
+        if (p.first == m_version.majorVersion())
+            return p.second;
+    }
     return QStringLiteral("v%1").arg(m_version.majorVersion() * 10);
 }
 
