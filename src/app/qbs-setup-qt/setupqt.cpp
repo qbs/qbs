@@ -134,7 +134,7 @@ static QStringList qbsToolchainFromDirName(const QString &dir)
 
 static Version msvcVersionFromDirName(const QString &dir)
 {
-    static const std::regex regexp("^msvc(\\d\\d\\d\\d)_.*$");
+    static const std::regex regexp("^msvc(\\d\\d\\d\\d).*$");
     std::smatch match;
     const std::string dirString = dir.toStdString();
     if (!std::regex_match(dirString, match, regexp))
@@ -183,6 +183,8 @@ QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
         env.qbsToolchain = qbsToolchainFromDirName(qtDir.dirName());
         env.msvcVersion = msvcVersionFromDirName(qtDir.dirName());
         env.architecture = archFromDirName(qtDir.dirName());
+        if (env.msvcVersion.isValid() && env.architecture.isEmpty())
+            env.architecture = QLatin1String("x86");
         env.targetPlatform = platformFromDirName(qtDir.dirName());
         qtDir.cdUp();
         env.qtVersion = Version::fromString(qtDir.dirName());
