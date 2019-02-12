@@ -92,7 +92,7 @@ Project {
         Rule {
             multiplex: true
             explicitlyDependsOnFromDependencies: "the_tag"
-            excludedAuxiliaryInputs: "the_other_tag"
+            excludedInputs: "the_other_tag"
             Artifact {
                 filePath: "dummy3.txt"
                 fileTags: "p_type"
