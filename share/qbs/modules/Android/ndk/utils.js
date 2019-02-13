@@ -63,7 +63,7 @@ function androidAbi(arch) {
 
 function commonCompilerFlags(toolchain, buildVariant, abi, armMode) {
     var flags = ["-ffunction-sections", "-funwind-tables",
-                 "-Wa,--noexecstack", "-Werror=format-security", "-fstack-protector-strong"];
+                 "-Werror=format-security", "-fstack-protector-strong"];
 
     if (abi === "arm64-v8a")
         flags.push("-fpic");
