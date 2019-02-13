@@ -152,8 +152,14 @@ LinuxGCC {
     }
     staticLibraries: {
         var libs = ["gcc"];
-        if (staticStlFilePath)
+        if (staticStlFilePath) {
             libs.push(staticStlFilePath);
+            if (Android.ndk.appStl === "c++_static") {
+                var libAbi = FileInfo.joinPaths(stlLibsDir, "libc++abi.a");
+                if (File.exists(libAbi))
+                    libs.push(libAbi);
+            }
+        }
         return libs;
     }
     systemIncludePaths: {
@@ -173,11 +179,13 @@ LinuxGCC {
             includes.push(FileInfo.joinPaths(gnuStlBaseDir, "libs", Android.ndk.abi, "include"));
             includes.push(FileInfo.joinPaths(gnuStlBaseDir, "include", "backward"));
         } else if (Android.ndk.appStl.startsWith("c++_")) {
-            if (Utilities.versionCompare(Android.ndk.version, "13") >= 0)
+            if (Utilities.versionCompare(Android.ndk.version, "13") >= 0) {
                 includes.push(FileInfo.joinPaths(llvmStlBaseDir, "include"));
-            else
+                includes.push(FileInfo.joinPaths(llvmStlBaseDir + "abi", "include"));
+            } else {
                 includes.push(FileInfo.joinPaths(llvmStlBaseDir, "libcxx", "include"));
-            includes.push(FileInfo.joinPaths(llvmStlBaseDir + "abi", "libcxxabi", "include"));
+                includes.push(FileInfo.joinPaths(llvmStlBaseDir + "abi", "libcxxabi", "include"));
+            }
         }
         return includes;
     }
