@@ -683,8 +683,7 @@ function doSetupLibraries(modInfo, qtProps, debugBuild, nonExistingPrlFiles) {
             if (!line.startsWith("QMAKE_PRL_LIBS"))
                 continue;
 
-            // Assuming lib names and directories without spaces here.
-            var parts = splitNonEmpty(line.slice(equalsOffset + 1).trim(), ' ');
+            var parts = extractPaths(line.slice(equalsOffset + 1).trim(), prlFilePath);
             for (i = 0; i < parts.length; ++i) {
                 var part = parts[i];
                 part = part.replace("$$[QT_INSTALL_LIBS]", qtProps.libraryPath);
@@ -910,7 +909,7 @@ function extractPaths(rhs, filePath) {
             if (endIndex === -1)
                 endIndex = rhs.length;
         }
-        paths.push(rhs.slice(startIndex, endIndex));
+        paths.push(FileInfo.cleanPath(rhs.slice(startIndex, endIndex)));
         startIndex = endIndex + 1;
     }
     return paths;
