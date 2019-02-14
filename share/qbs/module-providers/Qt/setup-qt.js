@@ -515,7 +515,7 @@ function moduleNameWithoutPrefix(modInfo) {
 
 function libraryBaseName(modInfo, qtProps, debugBuild) {
     if (modInfo.isPlugin)
-        return libBaseName(modInfo, name, debugBuild, qtProps);
+        return libBaseName(modInfo, modInfo.name, debugBuild, qtProps);
 
     // Some modules use a different naming scheme, so it doesn't get boring.
     var libNameBroken = modInfo.name === "Enginio"
@@ -1077,7 +1077,7 @@ function allQt5Modules(qtProps) {
                 moduleInfo.pluginData["extends"] = splitNonEmpty(value, ' ');
                 for (k = 0; k < moduleInfo.pluginData["extends"].length; ++k) {
                     if (moduleInfo.pluginData["extends"][k] === "-") {
-                        moduleInfo.pluginData.splice(k, 1);
+                        moduleInfo.pluginData["extends"].splice(k, 1);
                         moduleInfo.pluginData.autoLoad = false;
                         break;
                     }
@@ -1217,7 +1217,7 @@ function defaultQpaPlugin(module, qtProps) {
                 match = line.match(includeRegexp);
                 if (match) {
                     var includedFile = match[1];
-                    if (!FileInfo.isAbsolute(includedFile)) {
+                    if (!FileInfo.isAbsolutePath(includedFile)) {
                         includedFile = FileInfo.cleanPath(
                                     FileInfo.joinPaths(FileInfo.path(filePath), includedFile));
                     }
