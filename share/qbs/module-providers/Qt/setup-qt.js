@@ -71,6 +71,10 @@ function getQmakeFilePaths(qmakeFilePaths, qbs) {
 function queryQmake(qmakeFilePath) {
     var qmakeProcess = new Process;
     qmakeProcess.exec(qmakeFilePath, ["-query"]);
+    if (qmakeProcess.exitCode() !== 0) {
+        throw "The qmake executable '" + toNative(qmakeFilePath) + "' failed with exit code "
+                + qmakeProcess.exitCode() + ".";
+    }
     var queryResult = {};
     while (!qmakeProcess.atEnd()) {
         var line = qmakeProcess.readLine();
