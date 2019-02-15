@@ -1415,7 +1415,7 @@ function setupOneQt(qmakeFilePath, outputBaseDir, uniquify, location, qbs) {
         throw "The specified qmake file path '" + toNative(qmakeFilePath) + "' does not exist.";
     var qtProps = getQtProperties(qmakeFilePath, qbs);
     var modules = qtProps.qtMajorVersion < 5 ? allQt4Modules(qtProps) : allQt5Modules(qtProps);
-    var pluginsByType = [];
+    var pluginsByType = {};
     var nonEssentialPlugins = [];
     for (var i = 0; i < modules.length; ++i) {
         var m = modules[i];
