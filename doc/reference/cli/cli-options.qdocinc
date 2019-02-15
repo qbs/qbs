@@ -494,6 +494,7 @@
         \li \c gcc
         \li \c mingw
         \li \c msvc
+        \li \c iar
      \endlist
 
 //! [type]

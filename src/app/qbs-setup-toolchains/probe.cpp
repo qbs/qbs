@@ -108,6 +108,18 @@ static QStringList validMinGWMachines()
             << QLatin1String("i586-mingw32msvc") << QLatin1String("amd64-mingw32msvc");
 }
 
+static QStringList knownIarCompilerNames()
+{
+    return { QLatin1String("icc8051"), QLatin1String("iccarm"), QLatin1String("iccavr") };
+}
+
+static bool isIarCompiler(const QString &compilerName)
+{
+    return Internal::any_of(knownIarCompilerNames(), [compilerName](const QString &knownName) {
+        return compilerName.contains(knownName);
+    });
+}
+
 static QStringList toolchainTypeFromCompilerName(const QString &compilerName)
 {
     if (compilerName == QLatin1String("cl.exe"))
@@ -120,6 +132,8 @@ static QStringList toolchainTypeFromCompilerName(const QString &compilerName)
     }
     if (compilerName == QLatin1String("g++"))
         return canonicalToolchain(QLatin1String("gcc"));
+    if (isIarCompiler(compilerName))
+        return canonicalToolchain(QLatin1String("iar"));
     return QStringList();
 }
 
@@ -237,6 +251,38 @@ static Profile createGccProfile(const QString &compilerFilePath, Settings *setti
     return profile;
 }
 
+static QString guessIarArchitecture(const QFileInfo &compiler)
+{
+    const auto baseName = compiler.baseName();
+    if (baseName == QLatin1String("icc8051"))
+        return QLatin1String("mcs51");
+    if (baseName == QLatin1String("iccarm"))
+        return QLatin1String("arm");
+    if (baseName == QLatin1String("iccavr"))
+        return QLatin1String("avr");
+    return {};
+}
+
+static Profile createIarProfile(const QFileInfo &compiler, Settings *settings,
+                                QString profileName = QString())
+{
+    const QString architecture = guessIarArchitecture(compiler);
+
+    // In case the profile is auto-detected.
+    if (profileName.isEmpty())
+        profileName = QLatin1String("iar-") + architecture;
+
+    Profile profile(profileName, settings);
+    profile.setValue(QLatin1String("cpp.toolchainInstallPath"), compiler.absolutePath());
+    profile.setValue(QLatin1String("qbs.toolchainType"), QLatin1String("iar"));
+    profile.setValue(QLatin1String("qbs.architecture"), architecture);
+
+    qStdout << Tr::tr("Profile '%1' created for '%2'.").arg(
+                   profile.name(), compiler.absoluteFilePath())
+            << endl;
+    return profile;
+}
+
 static void gccProbe(Settings *settings, QList<Profile> &profiles, const QString &compilerName)
 {
     qStdout << Tr::tr("Trying to detect %1...").arg(compilerName) << endl;
@@ -275,6 +321,24 @@ static void mingwProbe(Settings *settings, QList<Profile> &profiles)
     }
 }
 
+static void iarProbe(Settings *settings, QList<Profile> &profiles)
+{
+    qStdout << Tr::tr("Trying to detect IAR toolchains...") << endl;
+
+    bool isFound = false;
+    for (const QString &compilerName : knownIarCompilerNames()) {
+        const QString iarPath = findExecutable(HostOsInfo::appendExecutableSuffix(compilerName));
+        if (!iarPath.isEmpty()) {
+            const auto profile = createIarProfile(iarPath, settings);
+            profiles.push_back(profile);
+            isFound = true;
+        }
+    }
+
+    if (!isFound)
+        qStdout << Tr::tr("No IAR toolchains found.") << endl;
+}
+
 void probe(Settings *settings)
 {
     QList<Profile> profiles;
@@ -290,6 +354,7 @@ void probe(Settings *settings)
     }
 
     mingwProbe(settings, profiles);
+    iarProbe(settings, profiles);
 
     if (profiles.empty()) {
         qStderr << Tr::tr("Could not detect any toolchains. No profile created.") << endl;
@@ -322,6 +387,8 @@ void createProfile(const QString &profileName, const QString &toolchainType,
         createMsvcProfile(profileName, compiler.absoluteFilePath(), settings);
     else if (toolchainTypes.contains(QLatin1String("gcc")))
         createGccProfile(compiler.absoluteFilePath(), settings, toolchainTypes, profileName);
+    else if (toolchainTypes.contains(QLatin1String("iar")))
+        createIarProfile(compiler, settings, profileName);
     else
         throw qbs::ErrorInfo(Tr::tr("Cannot create profile: Unknown toolchain type."));
 }
