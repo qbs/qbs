@@ -120,6 +120,18 @@ static bool isIarCompiler(const QString &compilerName)
     });
 }
 
+static QStringList knownKeilCompilerNames()
+{
+    return { QStringLiteral("c51"), QStringLiteral("armcc") };
+}
+
+static bool isKeilCompiler(const QString &compilerName)
+{
+    return Internal::any_of(knownKeilCompilerNames(), [compilerName](const QString &knownName) {
+        return compilerName.contains(knownName);
+    });
+}
+
 static QStringList toolchainTypeFromCompilerName(const QString &compilerName)
 {
     if (compilerName == QLatin1String("cl.exe"))
@@ -134,6 +146,8 @@ static QStringList toolchainTypeFromCompilerName(const QString &compilerName)
         return canonicalToolchain(QLatin1String("gcc"));
     if (isIarCompiler(compilerName))
         return canonicalToolchain(QLatin1String("iar"));
+    if (isKeilCompiler(compilerName))
+        return canonicalToolchain(QLatin1String("keil"));
     return QStringList();
 }
 
@@ -284,6 +298,37 @@ static Profile createIarProfile(const QFileInfo &compiler, Settings *settings,
     return profile;
 }
 
+static QString guessKeilArchitecture(const QFileInfo &compiler)
+{
+    const auto baseName = compiler.baseName();
+    if (baseName == QLatin1String("c51"))
+        return QStringLiteral("mcs51");
+    if (baseName == QLatin1String("armcc"))
+        return QStringLiteral("arm");
+    return {};
+}
+
+static Profile createKeilProfile(const QFileInfo &compiler, Settings *settings,
+                                 QString profileName = QString())
+{
+    const QString architecture = guessKeilArchitecture(compiler);
+
+    // In case the profile is auto-detected.
+    if (profileName.isEmpty())
+        profileName = QLatin1String("keil-") + architecture;
+
+    Profile profile(profileName, settings);
+    profile.setValue(QStringLiteral("cpp.toolchainInstallPath"), compiler.absolutePath());
+    profile.setValue(QStringLiteral("qbs.toolchainType"), QStringLiteral("keil"));
+    if (!architecture.isEmpty())
+        profile.setValue(QStringLiteral("qbs.architecture"), architecture);
+
+    qStdout << Tr::tr("Profile '%1' created for '%2'.").arg(
+                   profile.name(), compiler.absoluteFilePath())
+            << endl;
+    return profile;
+}
+
 static void gccProbe(Settings *settings, QList<Profile> &profiles, const QString &compilerName)
 {
     qStdout << Tr::tr("Trying to detect %1...").arg(compilerName) << endl;
@@ -340,6 +385,24 @@ static void iarProbe(Settings *settings, QList<Profile> &profiles)
         qStdout << Tr::tr("No IAR toolchains found.") << endl;
 }
 
+static void keilProbe(Settings *settings, QList<Profile> &profiles)
+{
+    qStdout << Tr::tr("Trying to detect KEIL toolchains...") << endl;
+
+    bool isFound = false;
+    for (const QString &compilerName : knownKeilCompilerNames()) {
+        const QString keilPath = findExecutable(HostOsInfo::appendExecutableSuffix(compilerName));
+        if (!keilPath.isEmpty()) {
+            const auto profile = createKeilProfile(keilPath, settings);
+            profiles.push_back(profile);
+            isFound = true;
+        }
+    }
+
+    if (!isFound)
+        qStdout << Tr::tr("No KEIL toolchains found.") << endl;
+}
+
 void probe(Settings *settings)
 {
     QList<Profile> profiles;
@@ -356,6 +419,7 @@ void probe(Settings *settings)
 
     mingwProbe(settings, profiles);
     iarProbe(settings, profiles);
+    keilProbe(settings, profiles);
 
     if (profiles.empty()) {
         qStderr << Tr::tr("Could not detect any toolchains. No profile created.") << endl;
@@ -390,6 +454,8 @@ void createProfile(const QString &profileName, const QString &toolchainType,
         createGccProfile(compiler.absoluteFilePath(), settings, toolchainTypes, profileName);
     else if (toolchainTypes.contains(QLatin1String("iar")))
         createIarProfile(compiler, settings, profileName);
+    else if (toolchainTypes.contains(QLatin1String("keil")))
+        createKeilProfile(compiler, settings, profileName);
     else
         throw qbs::ErrorInfo(Tr::tr("Cannot create profile: Unknown toolchain type."));
 }
