@@ -59,8 +59,13 @@ function getQmakeFilePaths(qmakeFilePaths, qbs) {
     var suffix = exeSuffix(qbs);
     var filePaths = [];
     for (var i = 0; i < dirs.length; ++i) {
-        var candidate = FileInfo.canonicalPath(FileInfo.joinPaths(dirs[i], "qmake" + suffix));
-        if (candidate && File.exists(candidate) && !filePaths.contains(candidate)) {
+        var candidate = FileInfo.joinPaths(dirs[i], "qmake" + suffix);
+        var canonicalCandidate = FileInfo.canonicalPath(candidate);
+        if (!canonicalCandidate || !File.exists(canonicalCandidate))
+            continue;
+        if (FileInfo.completeBaseName(canonicalCandidate) !== "qtchooser")
+            candidate = canonicalCandidate;
+        if (!filePaths.contains(candidate)) {
             console.info("Found Qt at '" + toNative(candidate) + "'.");
             filePaths.push(candidate);
         }
