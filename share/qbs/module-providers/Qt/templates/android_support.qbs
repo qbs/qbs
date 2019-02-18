@@ -110,6 +110,12 @@ Module {
                     f.writeLine('"extraPrefixDirs": ' + JSON.stringify(prefixDirs) + ',');
                 if (Array.isArray(product.qmlImportPaths) && product.qmlImportPaths.length > 0)
                     f.writeLine('"qml-import-paths": "' + product.qmlImportPaths.join(',') + '",');
+
+                // QBS-1429
+                f.writeLine('"stdcpp-path": "' + (product.cpp.sharedStlFilePath
+                            ? product.cpp.sharedStlFilePath : product.cpp.staticStlFilePath)
+                            + '",');
+
                 f.writeLine('"application-binary": "' + theBinary.filePath + '"');
                 f.writeLine("}");
                 f.close();
