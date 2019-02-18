@@ -563,9 +563,6 @@ function guessArchitecture(m) {
                 architecture += "64";
         } else if (hasAnyOf(m, ["__AVR__"])) {
             architecture = "avr";
-            var avrSuffix = m["__AVR_ARCH__"];
-            if (avrSuffix)
-                architecture += avrSuffix;
         } else if (hasAnyOf(m, ["__AVR32__"])) {
             architecture = "avr32";
         }
