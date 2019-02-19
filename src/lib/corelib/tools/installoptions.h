@@ -60,7 +60,9 @@ class QBS_EXPORT InstallOptions
 public:
     InstallOptions();
     InstallOptions(const InstallOptions &other);
+    InstallOptions(InstallOptions &&other) Q_DECL_NOEXCEPT;
     InstallOptions &operator=(const InstallOptions &other);
+    InstallOptions &operator=(InstallOptions &&other) Q_DECL_NOEXCEPT;
     ~InstallOptions();
 
     static QString defaultInstallRoot();

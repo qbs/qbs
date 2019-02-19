@@ -81,11 +81,15 @@ CleanOptions::CleanOptions(const CleanOptions &other) : d(other.d)
 {
 }
 
+CleanOptions::CleanOptions(CleanOptions &&other) Q_DECL_NOEXCEPT = default;
+
 CleanOptions &CleanOptions::operator=(const CleanOptions &other)
 {
     d = other.d;
     return *this;
 }
+
+CleanOptions &CleanOptions::operator=(CleanOptions &&other) Q_DECL_NOEXCEPT = default;
 
 CleanOptions::~CleanOptions()
 {

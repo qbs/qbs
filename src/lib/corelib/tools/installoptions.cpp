@@ -92,11 +92,15 @@ InstallOptions::InstallOptions(const InstallOptions &other) : d(other.d)
 {
 }
 
+InstallOptions::InstallOptions(InstallOptions &&other) Q_DECL_NOEXCEPT = default;
+
 InstallOptions &InstallOptions::operator=(const InstallOptions &other)
 {
     d = other.d;
     return *this;
 }
+
+InstallOptions &InstallOptions::operator=(InstallOptions &&other) Q_DECL_NOEXCEPT = default;
 
 InstallOptions::~InstallOptions()
 {
