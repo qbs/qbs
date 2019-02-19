@@ -113,10 +113,10 @@ MSBuildFiltersProject::MSBuildFiltersProject(const GeneratableProductData &produ
     // filters projects are always v4.0
     setToolsVersion(QStringLiteral("4.0"));
 
-    auto itemGroup = new MSBuildItemGroup(this);
+    const auto itemGroup = new MSBuildItemGroup(this);
     const auto filterOptions = defaultItemGroupFilters();
     for (const auto options : filterOptions) {
-        auto filter = new MSBuildFilter(options->include(), options->extensions(), itemGroup);
+        const auto filter = new MSBuildFilter(options->include(), options->extensions(), itemGroup);
         filter->appendProperty(QStringLiteral("ParseFiles"), options->parseFiles());
         filter->appendProperty(QStringLiteral("SourceControlFiles"), options->sourceControlFiles());
     }

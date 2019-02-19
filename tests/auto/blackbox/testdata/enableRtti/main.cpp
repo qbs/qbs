@@ -47,7 +47,7 @@ class B : public I {
 };
 
 int main() {
-    auto a = new A();
+    const auto a = new A();
     B *b = dynamic_cast<B *>(a);
     (void)b;
     delete a;

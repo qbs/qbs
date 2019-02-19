@@ -47,7 +47,7 @@ MSBuildSolutionPropertiesProject::MSBuildSolutionPropertiesProject(
     setDefaultTargets(QStringLiteral("Build"));
     setToolsVersion(versionInfo.toolsVersion());
 
-    auto group = new MSBuildPropertyGroup(this);
+    const auto group = new MSBuildPropertyGroup(this);
     group->setLabel(QStringLiteral("UserMacros"));
 
     static const auto win = Internal::HostOsInfo::HostOsWindows;

@@ -1567,7 +1567,7 @@ public:
     {
         JSSourceValuePtr value = JSSourceValue::create();
         value->setFile(m_fileContext);
-        auto str = new QString(sourceCode);
+        const auto str = new QString(sourceCode);
         m_strings.push_back(str);
         value->setSourceCode(QStringRef(str));
         return value;

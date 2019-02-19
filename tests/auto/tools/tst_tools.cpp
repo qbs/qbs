@@ -319,7 +319,7 @@ void TestTools::testSettingsMigration_data()
 
 QString TestTools::setupSettingsDir1()
 {
-    auto baseDir = new QTemporaryDir;
+    const auto baseDir = new QTemporaryDir;
     m_tmpDirs.push_back(baseDir);
 
     const Version thisVersion = Version::fromString(QBS_VERSION);
@@ -362,7 +362,7 @@ QString TestTools::setupSettingsDir1()
 
 QString TestTools::setupSettingsDir2()
 {
-    auto baseDir = new QTemporaryDir;
+    const auto baseDir = new QTemporaryDir;
     m_tmpDirs.push_back(baseDir);
     const QString settingsDir = baseDir->path();
     QSettings s(settingsDir + QLatin1String("/qbs.conf"),
@@ -378,7 +378,7 @@ QString TestTools::setupSettingsDir2()
 
 QString TestTools::setupSettingsDir3()
 {
-    auto baseDir = new QTemporaryDir;
+    const auto baseDir = new QTemporaryDir;
     m_tmpDirs.push_back(baseDir);
     return baseDir->path();
 }

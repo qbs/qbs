@@ -108,7 +108,7 @@ MSBuildSharedSolutionPropertiesProject::MSBuildSharedSolutionPropertiesProject(
     setDefaultTargets(QStringLiteral("Build"));
     setToolsVersion(versionInfo.toolsVersion());
 
-    auto group = new MSBuildPropertyGroup(this);
+    const auto group = new MSBuildPropertyGroup(this);
     group->setLabel(QStringLiteral("UserMacros"));
 
     // Order's important here... a variable must be listed before one that uses it

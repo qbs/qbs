@@ -210,14 +210,14 @@ static QString targetFilePath(const GeneratableProductData &product,
 static void addDefaultGlobalSections(const GeneratableProject &topLevelProject,
                                      VisualStudioSolution *solution)
 {
-    auto configurationPlatformsSection = new VisualStudioSolutionGlobalSection(
+    const auto configurationPlatformsSection = new VisualStudioSolutionGlobalSection(
                 QStringLiteral("SolutionConfigurationPlatforms"), solution);
     solution->appendGlobalSection(configurationPlatformsSection);
     for (const auto &qbsProject : topLevelProject.projects)
         configurationPlatformsSection->appendProperty(MSBuildUtils::fullName(qbsProject),
                                                       MSBuildUtils::fullName(qbsProject));
 
-    auto projectConfigurationPlatformsSection = new VisualStudioSolutionGlobalSection(
+    const auto projectConfigurationPlatformsSection = new VisualStudioSolutionGlobalSection(
                 QStringLiteral("ProjectConfigurationPlatforms"), solution);
     solution->appendGlobalSection(projectConfigurationPlatformsSection);
     projectConfigurationPlatformsSection->setPost(true);
@@ -236,7 +236,7 @@ static void addDefaultGlobalSections(const GeneratableProject &topLevelProject,
         }
     }
 
-    auto solutionPropsSection = new VisualStudioSolutionGlobalSection(
+    const auto solutionPropsSection = new VisualStudioSolutionGlobalSection(
                 QStringLiteral("SolutionProperties"), solution);
     solution->appendGlobalSection(solutionPropsSection);
     solutionPropsSection->appendProperty(QStringLiteral("HideSolutionNode"),
@@ -318,7 +318,7 @@ void VisualStudioGenerator::visitProject(const GeneratableProject &project)
 
     addPropertySheets(targetProject);
 
-    auto solutionProject = new VisualStudioSolutionFileProject(
+    const auto solutionProject = new VisualStudioSolutionFileProject(
                 targetFilePath(qbsGenerate, project.baseBuildDirectory().absolutePath()),
                 d->solution.get());
     solutionProject->setGuid(targetProject->guid());
@@ -330,7 +330,7 @@ void VisualStudioGenerator::visitProjectData(const GeneratableProject &project,
                                              const GeneratableProjectData &projectData)
 {
     Q_UNUSED(project);
-    auto solutionFolder = new VisualStudioSolutionFolderProject(d->solution.get());
+    const auto solutionFolder = new VisualStudioSolutionFolderProject(d->solution.get());
     solutionFolder->setName(projectData.name());
     d->solution->appendProject(solutionFolder);
     QBS_CHECK(!d->solutionFolders.contains(projectData.uniqueName()));
@@ -356,7 +356,7 @@ void VisualStudioGenerator::visitProduct(const GeneratableProject &project,
     d->msbuildProjects.insert(projectFilePath + QStringLiteral(".filters"),
                           std::make_shared<MSBuildFiltersProject>(productData));
 
-    auto solutionProject = new VisualStudioSolutionFileProject(
+    const auto solutionProject = new VisualStudioSolutionFileProject(
                 targetFilePath(productData, project.baseBuildDirectory().absolutePath()),
                 d->solution.get());
     solutionProject->setGuid(targetProject->guid());

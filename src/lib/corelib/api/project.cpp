@@ -150,7 +150,7 @@ BuildJob *ProjectPrivate::buildProducts(const QList<ResolvedProductPtr> &product
     if (needsDepencencyResolving)
         addDependencies(productsToBuild);
 
-    auto job = new BuildJob(logger, jobOwner);
+    const auto job = new BuildJob(logger, jobOwner);
     job->build(internalProject, productsToBuild, options);
     QBS_ASSERT(job->state() == AbstractJob::StateRunning,);
     return job;
@@ -159,7 +159,7 @@ BuildJob *ProjectPrivate::buildProducts(const QList<ResolvedProductPtr> &product
 CleanJob *ProjectPrivate::cleanProducts(const QList<ResolvedProductPtr> &products,
         const CleanOptions &options, QObject *jobOwner)
 {
-    auto job = new CleanJob(logger, jobOwner);
+    const auto job = new CleanJob(logger, jobOwner);
     job->clean(internalProject, products, options);
     QBS_ASSERT(job->state() == AbstractJob::StateRunning,);
     return job;
@@ -171,7 +171,7 @@ InstallJob *ProjectPrivate::installProducts(const QList<ResolvedProductPtr> &pro
     QList<ResolvedProductPtr> productsToInstall = products;
     if (needsDepencencyResolving)
         addDependencies(productsToInstall);
-    auto job = new InstallJob(logger, jobOwner);
+    const auto job = new InstallJob(logger, jobOwner);
     job->install(internalProject, productsToInstall, options);
     QBS_ASSERT(job->state() == AbstractJob::StateRunning,);
     return job;
@@ -972,7 +972,7 @@ SetupProjectJob *Project::setupProject(const SetupProjectParameters &parameters,
                                        ILogSink *logSink, QObject *jobOwner)
 {
     Logger logger(logSink);
-    auto job = new SetupProjectJob(logger, jobOwner);
+    const auto job = new SetupProjectJob(logger, jobOwner);
     try {
         loadPlugins(parameters.pluginPaths(), logger);
         job->resolve(*this, parameters);

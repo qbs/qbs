@@ -166,7 +166,7 @@ void SettingsModel::addNewKey(const QModelIndex &parent)
     Node *parentNode = d->indexToNode(parent);
     if (!parentNode)
         return;
-    auto newNode = new Node;
+    const auto newNode = new Node;
     newNode->parent = parentNode;
     newNode->name = parentNode->uniqueChildName();
     beginInsertRows(parent, parentNode->children.size(), parentNode->children.size());
@@ -339,7 +339,7 @@ void SettingsModel::SettingsModelPrivate::readSettings()
 
 static Node *createNode(Node *parentNode, const QString &name)
 {
-    auto node = new Node;
+    const auto node = new Node;
     node->name = name;
     node->parent = parentNode;
     parentNode->children.push_back(node);

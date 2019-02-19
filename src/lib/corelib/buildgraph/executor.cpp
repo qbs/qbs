@@ -767,7 +767,7 @@ void Executor::addExecutorJobs()
     qCDebug(lcExec) << "preparing executor for" << m_buildOptions.maxJobCount()
                     << "jobs in parallel";
     for (int i = 1; i <= m_buildOptions.maxJobCount(); i++) {
-        auto job = new ExecutorJob(m_logger, this);
+        const auto job = new ExecutorJob(m_logger, this);
         job->setMainThreadScriptEngine(m_evalContext->engine());
         job->setObjectName(QString::fromLatin1("J%1").arg(i));
         job->setDryRun(m_buildOptions.dryRun());

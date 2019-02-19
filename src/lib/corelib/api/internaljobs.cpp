@@ -381,7 +381,7 @@ void InternalBuildJob::build(const TopLevelProjectPtr &project,
     m_executor->setBuildOptions(buildOptions);
     m_executor->setProgressObserver(observer());
 
-    auto executorThread = new QThread(this);
+    const auto executorThread = new QThread(this);
     m_executor->moveToThread(executorThread);
     connect(m_executor, &Executor::reportCommandDescription,
             this, &BuildGraphTouchingJob::reportCommandDescription);

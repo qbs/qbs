@@ -128,7 +128,7 @@ public:
 static QStringList parseCommandLine(const QString &commandLine)
 {
     QStringList list;
-    auto buf = new wchar_t[commandLine.size() + 1];
+    const auto buf = new wchar_t[commandLine.size() + 1];
     buf[commandLine.toWCharArray(buf)] = 0;
     int argCount = 0;
     LPWSTR *args = CommandLineToArgvW(buf, &argCount);

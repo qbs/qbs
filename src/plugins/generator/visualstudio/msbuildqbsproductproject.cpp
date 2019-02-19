@@ -72,7 +72,7 @@ MSBuildQbsProductProject::MSBuildQbsProductProject(
 
     globalsPropertyGroup()->appendProperty(QStringLiteral("QbsProductName"), product.name());
 
-    auto cppDefaultProps = new MSBuildImport(this);
+    const auto cppDefaultProps = new MSBuildImport(this);
     cppDefaultProps->setProject(QStringLiteral("$(VCTargetsPath)\\Microsoft.Cpp.Default.props"));
 
     for (int i = 0; i < count; ++i) {
@@ -83,7 +83,7 @@ MSBuildQbsProductProject::MSBuildQbsProductProject(
                     project.commandLines.values().at(i));
     }
 
-    auto cppProps = new MSBuildImport(this);
+    const auto cppProps = new MSBuildImport(this);
     cppProps->setProject(QStringLiteral("$(VCTargetsPath)\\Microsoft.Cpp.props"));
 
     for (int i = 0; i < count; ++i)
@@ -142,7 +142,7 @@ void MSBuildQbsProductProject::addConfiguration(const GeneratableProject &projec
 
     const auto sep = Internal::HostOsInfo::pathListSeparator(Internal::HostOsInfo::HostOsWindows);
 
-    auto propertyGroup1 = new MSBuildPropertyGroup(this);
+    const auto propertyGroup1 = new MSBuildPropertyGroup(this);
     propertyGroup1->setCondition(MSBuildUtils::buildTaskCondition(buildTask));
     propertyGroup1->setLabel(QStringLiteral("Configuration"));
     propertyGroup1->appendProperty(QStringLiteral("UseDebugLibraries"),
@@ -271,10 +271,10 @@ void MSBuildQbsProductProject::addItemDefGroup(const Project &project,
 
     const auto sep = Internal::HostOsInfo::pathListSeparator(Internal::HostOsInfo::HostOsWindows);
 
-    auto itemDefGroup = new MSBuildItemDefinitionGroup(this);
+    const auto itemDefGroup = new MSBuildItemDefinitionGroup(this);
     itemDefGroup->setCondition(MSBuildUtils::buildTaskCondition(project));
 
-    auto compile = new MSBuildClCompile(itemDefGroup);
+    const auto compile = new MSBuildClCompile(itemDefGroup);
 
     // C++ - General
     compile->appendProperty(QStringLiteral("AdditionalIncludeDirectories"),
@@ -308,7 +308,7 @@ void MSBuildQbsProductProject::addItemDefGroup(const Project &project,
                             ? QStringLiteral("MultiThreadedDebugDLL")
                             : QStringLiteral("MultiThreadedDLL"));
 
-    auto link = new MSBuildLink(itemDefGroup);
+    const auto link = new MSBuildLink(itemDefGroup);
 
     // Linker - General
     link->appendProperty(QStringLiteral("AdditionalLibraryDirectories"),
@@ -352,7 +352,7 @@ static MSBuildFileItem *fileItemForFileTags(const QList<QString> &fileTags,
 void MSBuildQbsProductProject::addFiles(const GeneratableProject &project,
                                         const GeneratableProductData &product)
 {
-    auto itemGroup = new MSBuildItemGroup(this);
+    const auto itemGroup = new MSBuildItemGroup(this);
 
     addQbsFile(project, product, itemGroup);
 
@@ -393,7 +393,7 @@ void MSBuildQbsProductProject::addFiles(const GeneratableProject &project,
         while (projIt.hasNext()) {
             projIt.next();
             if (!sourceFileEnabledConfigurations[sourceFileNode.first].contains(projIt.key())) {
-                auto metadata = new MSBuildItemMetadata(
+                const auto metadata = new MSBuildItemMetadata(
                             QStringLiteral("ExcludedFromBuild"),
                             QStringLiteral("true"),
                             sourceFileNode.second);
@@ -404,7 +404,7 @@ void MSBuildQbsProductProject::addFiles(const GeneratableProject &project,
         }
     }
 
-    auto import = new MSBuildImport(this);
+    const auto import = new MSBuildImport(this);
     import->setProject(QStringLiteral("$(VCTargetsPath)\\Microsoft.Cpp.targets"));
 }
 
@@ -412,7 +412,7 @@ void MSBuildQbsProductProject::addQbsFile(const GeneratableProject &project,
                                           const GeneratableProductData &product,
                                           MSBuildItemGroup *itemGroup)
 {
-    auto fileItem = new MSBuildNone(itemGroup);
+    const auto fileItem = new MSBuildNone(itemGroup);
     QString path = project.baseBuildDirectory().relativeFilePath(product.location().filePath());
     // The path still might not be relative (for example if the file item is
     // located on a different drive)

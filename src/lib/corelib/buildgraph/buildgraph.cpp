@@ -620,7 +620,7 @@ Artifact *lookupArtifact(const ResolvedProductConstPtr &product, const Artifact 
 Artifact *createArtifact(const ResolvedProductPtr &product,
                          const SourceArtifactConstPtr &sourceArtifact)
 {
-    auto artifact = new Artifact;
+    const auto artifact = new Artifact;
     artifact->artifactType = Artifact::SourceFile;
     setArtifactData(artifact, sourceArtifact);
     insertArtifact(product, artifact);
