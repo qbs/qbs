@@ -815,7 +815,7 @@ void TestBlackbox::changeTrackingAndMultiplexing()
 
 static QJsonObject findByName(const QJsonArray &objects, const QString &name)
 {
-    for (const QJsonValue v : objects) {
+    for (const QJsonValue &v : objects) {
         if (!v.isObject())
             continue;
         QJsonObject obj = v.toObject();
@@ -5484,7 +5484,7 @@ void TestBlackbox::chooseModuleInstanceByPriority()
     QFile file(installRoot + "/gerbil.txt");
     QVERIFY(file.open(QIODevice::ReadOnly));
     const QString content = QString::fromUtf8(file.readAll());
-    for (auto str : expectedSubStrings) {
+    for (const auto &str : expectedSubStrings) {
         if (content.contains(str))
             continue;
         qDebug() << "content:" << content;

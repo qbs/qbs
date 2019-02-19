@@ -599,7 +599,7 @@ void ModuleLoader::handleTopLevelProject(ModuleLoaderResult *loadResult, Item *p
         for (Item * const exportItem : m_exportsWithDeferredDependsItems)
             normalizeDependencies(nullptr, DeferredDependsContext(nullptr, exportItem));
 
-        for (const auto deferredDependsData : m_productsWithDeferredDependsItems) {
+        for (const auto &deferredDependsData : m_productsWithDeferredDependsItems) {
             ProductContext * const productContext = deferredDependsData.first;
             m_reader->setExtraSearchPathsStack(productContext->project->searchPathsStack);
             try {
@@ -1877,7 +1877,7 @@ static void adjustParametersScopes(Item *item, Item *scope)
         return;
     }
 
-    for (auto value : item->properties()) {
+    for (const auto &value : item->properties()) {
         if (value->type() != Value::ItemValueType)
             continue;
         adjustParametersScopes(std::static_pointer_cast<ItemValue>(value)->item(), scope);
@@ -3415,7 +3415,7 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
     }
 
     // For foo.bar in modulePrototype create an item foo in moduleInstance.
-    for (auto iip : instanceItemProperties(modulePrototype)) {
+    for (const auto &iip : instanceItemProperties(modulePrototype)) {
         if (iip.second->item()->properties().empty())
             continue;
         qCDebug(lcModuleLoader) << "The prototype of " << moduleName
