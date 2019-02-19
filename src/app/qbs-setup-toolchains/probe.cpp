@@ -275,7 +275,8 @@ static Profile createIarProfile(const QFileInfo &compiler, Settings *settings,
     Profile profile(profileName, settings);
     profile.setValue(QLatin1String("cpp.toolchainInstallPath"), compiler.absolutePath());
     profile.setValue(QLatin1String("qbs.toolchainType"), QLatin1String("iar"));
-    profile.setValue(QLatin1String("qbs.architecture"), architecture);
+    if (!architecture.isEmpty())
+        profile.setValue(QLatin1String("qbs.architecture"), architecture);
 
     qStdout << Tr::tr("Profile '%1' created for '%2'.").arg(
                    profile.name(), compiler.absoluteFilePath())
