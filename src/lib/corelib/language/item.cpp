@@ -249,7 +249,8 @@ bool Item::isPresentModule() const
 void Item::setupForBuiltinType(Logger &logger)
 {
     const BuiltinDeclarations &builtins = BuiltinDeclarations::instance();
-    for (const PropertyDeclaration &pd : builtins.declarationsForType(type()).properties()) {
+    const auto properties = builtins.declarationsForType(type()).properties();
+    for (const PropertyDeclaration &pd : properties) {
         m_propertyDeclarations.insert(pd.name(), pd);
         const ValuePtr value = m_properties.value(pd.name());
         if (!value) {

@@ -826,7 +826,7 @@ void ProjectResolver::resolveGroupFully(Item *item, ProjectResolver::ProjectCont
                                  &m_productContext->sourceArtifactLocations, &fileError);
     }
 
-    for (const QString &fileName : files) {
+    for (const QString &fileName : qAsConst(files)) {
         createSourceArtifact(m_productContext->product, fileName, group, false, filesLocation,
                              &m_productContext->sourceArtifactLocations, &fileError);
     }
@@ -1022,7 +1022,8 @@ void ProjectResolver::setupExportedProperties(const Item *item, const QString &n
         const ItemDeclaration itemDecl
                 = BuiltinDeclarations::instance().declarationsForType(item->type());
         PropertyDeclaration propertyDecl;
-        for (const PropertyDeclaration &decl : itemDecl.properties()) {
+        const auto itemProperties = itemDecl.properties();
+        for (const PropertyDeclaration &decl : itemProperties) {
             if (decl.name() == it.key()) {
                 propertyDecl = decl;
                 exportedProperty.isBuiltin = true;
@@ -1109,7 +1110,8 @@ void ProjectResolver::resolveExport(Item *exportItem, ProjectContext *)
                                                                  exportItem->file()->content());
         }
     }
-    for (const QString &builtinImport: JsExtensions::extensionNames()) {
+    const auto builtInImports = JsExtensions::extensionNames();
+    for (const QString &builtinImport: builtInImports) {
         if (usesImport(exportedModule, builtinImport))
             exportedModule.importStatements << QStringLiteral("import qbs.") + builtinImport;
     }

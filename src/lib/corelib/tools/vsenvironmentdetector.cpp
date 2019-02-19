@@ -201,9 +201,12 @@ static QString vcArchitecture(const MSVC *msvc)
     if (msvc->architecture == StringConstants::x86_64Arch())
         vcArch = StringConstants::amd64Arch();
 
-    for (const QString &hostPrefix :
-         QStringList({StringConstants::x86Arch(), QStringLiteral("amd64_"),
-                     QStringLiteral("x86_")})) {
+    const QString hostPrefixes[] = {
+        StringConstants::x86Arch(),
+        QStringLiteral("amd64_"),
+        QStringLiteral("x86_")
+    };
+    for (const QString &hostPrefix : hostPrefixes) {
         if (QFile::exists(msvc->clPathForArchitecture(hostPrefix + vcArch))) {
             vcArch.prepend(hostPrefix);
             break;
@@ -237,7 +240,8 @@ void VsEnvironmentDetector::parseBatOutput(const QByteArray &output, std::vector
 {
     QString arch;
     QProcessEnvironment *targetEnv = nullptr;
-    for (QByteArray line : output.split('\n')) {
+    const auto lines = output.split('\n');
+    for (QByteArray line : lines) {
         line = line.trimmed();
         if (line.isEmpty())
             continue;

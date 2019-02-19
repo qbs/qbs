@@ -404,8 +404,9 @@ bool removeFileRecursion(const QFileInfo &f, QString *errorMessage)
         const QDir dir(f.absoluteFilePath());
 
         // QDir::System is needed for broken symlinks.
-        for (const QFileInfo &fi : dir.entryInfoList(QDir::AllEntries | QDir::NoDotAndDotDot
-                                                     | QDir::Hidden | QDir::System))
+        const auto fileInfos = dir.entryInfoList(QDir::AllEntries | QDir::NoDotAndDotDot
+                                                 | QDir::Hidden | QDir::System);
+        for (const QFileInfo &fi : fileInfos)
             removeFileRecursion(fi, errorMessage);
         QDir parent = f.absoluteDir();
         if (!parent.rmdir(f.fileName())) {

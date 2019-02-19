@@ -2847,7 +2847,8 @@ void TestApi::toolInModule()
     const QList<qbs::ProductData> products = projectData.products();
     QCOMPARE(products.size(), 1);
     const qbs::ProductData product = products.front();
-    for (const qbs::GroupData &group : product.groups())
+    const auto groups = product.groups();
+    for (const qbs::GroupData &group : groups)
         QVERIFY(group.name() != "thetool binary");
     const std::unique_ptr<qbs::BuildJob> buildJob(setupJob->project()
                                                   .buildAllProducts(qbs::BuildOptions()));

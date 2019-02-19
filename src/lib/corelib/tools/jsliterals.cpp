@@ -77,7 +77,8 @@ QString toJSLiteral(const QVariant &val)
         return Internal::StringConstants::undefinedValue();
     if (val.type() == QVariant::List || val.type() == QVariant::StringList) {
         QString res;
-        for (const QVariant &child : val.toList()) {
+        const auto list = val.toList();
+        for (const QVariant &child : list) {
             if (res.length()) res.append(QLatin1String(", "));
             res.append(toJSLiteral(child));
         }

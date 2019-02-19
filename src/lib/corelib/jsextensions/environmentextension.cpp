@@ -127,7 +127,8 @@ QScriptValue EnvironmentExtension::js_currentEnv(QScriptContext *context, QScrip
     if (!procenv)
         procenv = &env;
     QScriptValue envObject = engine->newObject();
-    for (const QString &key : procenv->keys()) {
+    const auto keys = procenv->keys();
+    for (const QString &key : keys) {
         const QString keyName = HostOsInfo::isWindowsHost() ? key.toUpper() : key;
         envObject.setProperty(keyName, QScriptValue(procenv->value(key)));
     }

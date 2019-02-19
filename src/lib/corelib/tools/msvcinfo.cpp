@@ -70,7 +70,8 @@ public:
     TemporaryEnvChanger(const QProcessEnvironment &envChanges) : m_locker(envMutex)
     {
         QProcessEnvironment currentEnv = QProcessEnvironment::systemEnvironment();
-        for (const QString &key : envChanges.keys()) {
+        const auto keys = envChanges.keys();
+        for (const QString &key : keys) {
             m_changesToRestore.insert(key, currentEnv.value(key));
             qputenv(qPrintable(key), qPrintable(envChanges.value(key)));
         }
@@ -78,7 +79,8 @@ public:
 
     ~TemporaryEnvChanger()
     {
-        for (const QString &key : m_changesToRestore.keys())
+        const auto keys = m_changesToRestore.keys();
+        for (const QString &key : keys)
             qputenv(qPrintable(key), qPrintable(m_changesToRestore.value(key)));
     }
 

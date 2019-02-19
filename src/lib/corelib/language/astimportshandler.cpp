@@ -69,7 +69,8 @@ ASTImportsHandler::ASTImportsHandler(ItemReaderVisitorState &visitorState, Logge
 
 void ASTImportsHandler::handleImports(const QbsQmlJS::AST::UiImportList *uiImportList)
 {
-    for (const QString &searchPath : m_file->searchPaths())
+    const auto searchPaths = m_file->searchPaths();
+    for (const QString &searchPath : searchPaths)
         collectPrototypes(searchPath + QStringLiteral("/imports"), QString());
 
     // files in the same directory are available as prototypes
@@ -191,7 +192,8 @@ void ASTImportsHandler::handleImport(const QbsQmlJS::AST::UiImport *import, bool
                 ? QStringLiteral("qbs/base") : importUri.join(QDir::separator());
         bool found = m_typeNameToFile.contains(importUri);
         if (!found) {
-            for (const QString &searchPath : m_file->searchPaths()) {
+            const auto searchPaths = m_file->searchPaths();
+            for (const QString &searchPath : searchPaths) {
                 const QFileInfo fi(FileInfo::resolvePath(
                                        FileInfo::resolvePath(searchPath,
                                                              StringConstants::importsDir()),

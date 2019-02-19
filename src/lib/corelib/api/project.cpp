@@ -233,7 +233,8 @@ ResolvedProductPtr ProjectPrivate::internalProduct(const ProductData &product) c
 
 ProductData ProjectPrivate::findProductData(const ProductData &product) const
 {
-    for (const ProductData &p : m_projectData.allProducts()) {
+    const auto products = m_projectData.allProducts();
+    for (const ProductData &p : products) {
         if (p.name() == product.name()
                 && p.profile() == product.profile()
                 && p.multiplexConfigurationId() == product.multiplexConfigurationId()) {
@@ -246,7 +247,8 @@ ProductData ProjectPrivate::findProductData(const ProductData &product) const
 QList<ProductData> ProjectPrivate::findProductsByName(const QString &name) const
 {
     QList<ProductData> list;
-    for (const ProductData &p : m_projectData.allProducts()) {
+    const auto products = m_projectData.allProducts();
+    for (const ProductData &p : products) {
         if (p.name() == name)
             list.push_back(p);
     }
@@ -255,7 +257,8 @@ QList<ProductData> ProjectPrivate::findProductsByName(const QString &name) const
 
 GroupData ProjectPrivate::findGroupData(const ProductData &product, const QString &groupName) const
 {
-    for (const GroupData &g : product.groups()) {
+    const auto groups = product.groups();
+    for (const GroupData &g : groups) {
         if (g.name() == groupName)
             return g;
     }
@@ -704,11 +707,14 @@ void ProjectPrivate::updateExternalCodeLocations(const ProjectData &project,
     if (lineOffset == 0)
         return;
     updateLocationIfNecessary(project.d->location, changeLocation, lineOffset);
-    for (const ProjectData &subProject : project.subProjects())
+    const auto subProjects = project.subProjects();
+    for (const ProjectData &subProject : subProjects)
         updateExternalCodeLocations(subProject, changeLocation, lineOffset);
-    for (const ProductData &product : project.products()) {
+    const auto products = project.products();
+    for (const ProductData &product : products) {
         updateLocationIfNecessary(product.d->location, changeLocation, lineOffset);
-        for (const GroupData &group : product.groups())
+        const auto groups = product.groups();
+        for (const GroupData &group : groups)
             updateLocationIfNecessary(group.d->location, changeLocation, lineOffset);
     }
 }
@@ -784,7 +790,8 @@ ProjectTransformerData ProjectPrivate::transformerData()
     if (!m_projectData.isValid())
         retrieveProjectData(m_projectData, internalProject);
     ProjectTransformerData projectTransformerData;
-    for (const ProductData &productData : m_projectData.allProducts()) {
+    const auto allProducts = m_projectData.allProducts();
+    for (const ProductData &productData : allProducts) {
         if (!productData.isEnabled())
             continue;
         const ResolvedProductConstPtr product = internalProduct(productData);

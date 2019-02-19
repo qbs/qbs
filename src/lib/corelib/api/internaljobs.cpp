@@ -162,7 +162,8 @@ void InternalJob::storeBuildGraph(const TopLevelProjectPtr &project)
         project->store(logger());
     } catch (const ErrorInfo &error) {
         ErrorInfo fullError = this->error();
-        for (const ErrorItem &item : error.items())
+        const auto items = error.items();
+        for (const ErrorItem &item : items)
             fullError.append(item);
         setError(fullError);
     }

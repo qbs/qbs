@@ -308,7 +308,7 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
             || m_oldTransformer->commands != m_transformer->commands
             || commandsNeedRerun(m_transformer.get(), m_product.get(), m_productsByName,
                                  m_projectsByName)) {
-        for (Artifact * const output : outputArtifacts) {
+        for (Artifact * const output : qAsConst(outputArtifacts)) {
             output->clearTimestamp();
             m_invalidatedArtifacts += output;
         }
@@ -558,9 +558,9 @@ class ArtifactBindingsExtractor
     static Set<QString> getArtifactItemPropertyNames()
     {
         Set<QString> s;
-        for (const PropertyDeclaration &pd :
-                 BuiltinDeclarations::instance().declarationsForType(
-                     ItemType::Artifact).properties()) {
+        const auto properties = BuiltinDeclarations::instance().declarationsForType(
+                ItemType::Artifact).properties();
+        for (const PropertyDeclaration &pd : properties) {
             s.insert(pd.name());
         }
         s.insert(StringConstants::explicitlyDependsOnProperty());

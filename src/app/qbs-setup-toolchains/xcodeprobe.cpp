@@ -117,8 +117,9 @@ void XcodeProbe::detectDeveloperPaths()
     if (!launchServices.waitForFinished(-1) || launchServices.exitCode()) {
         qbsInfo() << Tr::tr("Could not detect additional Xcode installations with /usr/bin/mdfind");
     } else {
-        for (const QString &path : QString::fromLocal8Bit(launchServices.readAllStandardOutput())
-             .split(QLatin1Char('\n'), QString::SkipEmptyParts))
+        const auto paths = QString::fromLocal8Bit(launchServices.readAllStandardOutput())
+                .split(QLatin1Char('\n'), QString::SkipEmptyParts);
+        for (const QString &path : paths)
             addDeveloperPath(path + QStringLiteral("/Contents/Developer"));
     }
 }
@@ -188,14 +189,15 @@ void XcodeProbe::setupDefaultToolchains(const QString &devPath, const QString &x
               << QStringLiteral("appletvsimulator")
               << QStringLiteral("watchos")
               << QStringLiteral("watchsimulator");
-    for (const QString &platform : platforms) {
+    for (const QString &platform : qAsConst(platforms)) {
         Profile platformProfile(xcodeName + QLatin1Char('-') + platform, settings);
         platformProfile.removeProfile();
         platformProfile.setBaseProfile(installationProfile.name());
         platformProfile.setValue(QStringLiteral("qbs.targetPlatform"), targetOS(platform));
         profiles.push_back(platformProfile);
 
-        for (const QString &arch : archList(platform)) {
+        const auto architectures = archList(platform);
+        for (const QString &arch : architectures) {
             Profile archProfile(xcodeName + QLatin1Char('-') + platform + QLatin1Char('-') + arch,
                                 settings);
             archProfile.removeProfile();
@@ -211,7 +213,7 @@ void XcodeProbe::detectAll()
 {
     int i = 1;
     detectDeveloperPaths();
-    for (const QString &developerPath : developerPaths) {
+    for (const QString &developerPath : qAsConst(developerPaths)) {
         QString profileName = QStringLiteral("xcode");
         if (developerPath != defaultDeveloperPath) {
             const auto devPath = developerPath.toStdString();

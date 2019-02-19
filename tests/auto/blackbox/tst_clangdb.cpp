@@ -111,7 +111,8 @@ void TestClangDb::ensureBuildTreeCreated()
 
     if (m_qbsStdout.contains("is msvc") || m_qbsStdout.contains("is mingw")) {
         sanitizeOutput(&m_qbsStdout);
-        for (const auto &line : m_qbsStdout.split('\n')) {
+        const auto lines = m_qbsStdout.split('\n');
+        for (const auto &line : lines) {
             static const QByteArray includeEnv = "INCLUDE=";
             static const QByteArray libEnv = "LIB=";
             static const QByteArray pathEnv = "PATH=";

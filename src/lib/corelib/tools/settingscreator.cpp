@@ -102,7 +102,8 @@ void SettingsCreator::migrate()
     // that's only preferences.qbsSearchPaths as written by libqtprofilesetup, but we don't want
     // to hardcode that here.
     m_settings.reset(new QSettings(m_newSettingsFilePath, format()));
-    for (const QString &key : m_settings->allKeys()) {
+    const auto allKeys = m_settings->allKeys();
+    for (const QString &key : allKeys) {
         QVariant v = m_settings->value(key);
         if (v.type() == QVariant::String) {
             QString s = v.toString();

@@ -165,7 +165,8 @@ LogWriter operator<<(LogWriter w, const QVariant &variant)
     QString str = QLatin1String(variant.typeName()) + QLatin1Char('(');
     if (variant.type() == QVariant::List) {
         bool firstLoop = true;
-        for (const QVariant &item : variant.toList()) {
+        const auto list = variant.toList();
+        for (const QVariant &item : list) {
             str += item.toString();
             if (firstLoop)
                 firstLoop = false;

@@ -77,8 +77,9 @@ static void resolveDepencency(const RawScannedDependency &dependency,
     FileDependency *fileDependencyArtifact = nullptr;
     Artifact *dependencyInProduct = nullptr;
     Artifact *dependencyInOtherProduct = nullptr;
-    for (FileResourceBase *lookupResult : project->topLevelProject()
-             ->buildData->lookupFiles(absDirPath, dependency.fileName())) {
+    const auto files = project->topLevelProject()
+            ->buildData->lookupFiles(absDirPath, dependency.fileName());
+    for (FileResourceBase *lookupResult : files) {
         switch (lookupResult->fileType()) {
         case FileResourceBase::FileTypeDependency:
             fileDependencyArtifact = static_cast<FileDependency *>(lookupResult);
@@ -274,7 +275,7 @@ void InputArtifactScanner::resolveScanResultDependencies(const Artifact *inputAr
         }
 
         // try include paths
-        for (const QString &includePath : cache.searchPaths) {
+        for (const QString &includePath : qAsConst(cache.searchPaths)) {
             resolveDepencency(dependency, inputArtifact->product.get(),
                               &resolvedDependency, includePath);
             if (resolvedDependency.isValid())

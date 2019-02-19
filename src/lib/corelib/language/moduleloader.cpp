@@ -294,7 +294,8 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
     m_probesEncountered = m_probesRun = m_probesCachedCurrent = m_probesCachedOld = 0;
     m_settings.reset(new Settings(parameters.settingsDirectory()));
 
-    for (const QString &key : m_parameters.overriddenValues().keys()) {
+    const auto keys = m_parameters.overriddenValues().keys();
+    for (const QString &key : keys) {
         static const QStringList prefixes({ StringConstants::projectPrefix(),
                                             QStringLiteral("projects"),
                                             QStringLiteral("products"), QStringLiteral("modules"),
@@ -695,7 +696,7 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
         if (child->type() == ItemType::Product)
             multiplexedProducts << multiplexProductItem(&dummyProductContext, child);
     }
-    for (Item * const additionalProductItem : multiplexedProducts)
+    for (Item * const additionalProductItem : qAsConst(multiplexedProducts))
         Item::addChild(projectItem, additionalProductItem);
 
     resolveProbes(&dummyProductContext, projectItem);
@@ -2653,7 +2654,7 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
                     profiles.push_back(QString());
             }
             for (const QString &profile : qAsConst(profiles)) {
-                for (const QString &multiplexId : multiplexConfigurationIds) {
+                for (const QString &multiplexId : qAsConst(multiplexConfigurationIds)) {
                     ModuleLoaderResult::ProductInfo::Dependency dependency;
                     dependency.name = moduleName.toString();
                     dependency.profile = profile;
@@ -3405,7 +3406,8 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
 
     // create ids from from the prototype in the instance
     if (modulePrototype->file()->idScope()) {
-        for (Item * const itemWithId : collectItemsWithId(modulePrototype)) {
+        const auto items = collectItemsWithId(modulePrototype);
+        for (Item * const itemWithId : items) {
             Item *idProto = itemWithId;
             Item *idInstance = prototypeInstanceMap.value(idProto);
             QBS_ASSERT(idInstance, continue);
@@ -4044,7 +4046,8 @@ void ModuleLoader::handleProductError(const ErrorInfo &error,
             }
         }
     }
-    for (const ErrorItem &ei : error.items())
+    const auto errorItems = error.items();
+    for (const ErrorItem &ei : errorItems)
         productContext->info.delayedError.append(ei.description(), ei.codeLocation());
     productContext->project->result->productInfos.insert(productContext->item,
                                                          productContext->info);

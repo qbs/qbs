@@ -338,7 +338,8 @@ bool TrafoChangeTracker::commandsNeedRerun() const
         if (c->type() != AbstractCommand::ProcessCommandType)
             continue;
         const ProcessCommandPtr &processCmd = std::static_pointer_cast<ProcessCommand>(c);
-        for (const QString &var : processCmd->relevantEnvVars()) {
+        const auto envVars = processCmd->relevantEnvVars();
+        for (const QString &var : envVars) {
             const QString &oldValue = processCmd->relevantEnvValue(var);
             const QString &newValue = m_product->buildEnvironment.value(var);
             if (oldValue != newValue) {

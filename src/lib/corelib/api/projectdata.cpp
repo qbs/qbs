@@ -538,13 +538,14 @@ QList<ArtifactData> ProductData::targetArtifacts() const
 QList<ArtifactData> ProductData::installableArtifacts() const
 {
     QList<ArtifactData> artifacts;
-    for (const GroupData &g : groups()) {
-        for (const ArtifactData &a : g.allSourceArtifacts()) {
+    for (const GroupData &g : qAsConst(d->groups)) {
+        const auto sourceArtifacts = g.allSourceArtifacts();
+        for (const ArtifactData &a : sourceArtifacts) {
             if (a.installData().isInstallable())
                 artifacts << a;
         }
     }
-    for (const ArtifactData &a : generatedArtifacts()) {
+    for (const ArtifactData &a : qAsConst(d->generatedArtifacts)) {
         if (a.installData().isInstallable())
             artifacts << a;
     }
@@ -560,7 +561,8 @@ QString ProductData::targetExecutable() const
     QBS_ASSERT(isValid(), return {});
     if (d->moduleProperties.getModuleProperty(QStringLiteral("bundle"),
                                               QStringLiteral("isBundle")).toBool()) {
-        for (const ArtifactData &ta : targetArtifacts()) {
+        const auto artifacts = targetArtifacts();
+        for (const ArtifactData &ta : artifacts) {
             if (ta.fileTags().contains(QLatin1String("bundle.application-executable"))) {
                 if (ta.installData().isInstallable())
                     return ta.installData().localInstallFilePath();
@@ -568,7 +570,8 @@ QString ProductData::targetExecutable() const
             }
         }
     }
-    for (const ArtifactData &ta : targetArtifacts()) {
+    const auto artifacts = targetArtifacts();
+    for (const ArtifactData &ta : artifacts) {
         if (ta.isExecutable()) {
             if (ta.installData().isInstallable())
                 return ta.installData().localInstallFilePath();
@@ -758,7 +761,7 @@ QList<ProjectData> ProjectData::subProjects() const
 QList<ProductData> ProjectData::allProducts() const
 {
     QList<ProductData> productList = products();
-    for (const ProjectData &pd : subProjects())
+    for (const ProjectData &pd : qAsConst(d->subProjects))
         productList << pd.allProducts();
     return productList;
 }
@@ -769,7 +772,8 @@ QList<ProductData> ProjectData::allProducts() const
 QList<ArtifactData> ProjectData::installableArtifacts() const
 {
     QList<ArtifactData> artifacts;
-    for (const ProductData &p : allProducts())
+    const auto products = allProducts();
+    for (const ProductData &p : products)
         artifacts << p.installableArtifacts();
     return artifacts;
 }

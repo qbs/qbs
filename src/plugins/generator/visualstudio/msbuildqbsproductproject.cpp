@@ -176,7 +176,8 @@ void MSBuildQbsProductProject::addConfiguration(const GeneratableProject &projec
             .runEnvironment();
     if (!env.isEmpty()) {
         const auto systemEnv = QProcessEnvironment::systemEnvironment();
-        for (const auto &key : systemEnv.keys()) {
+        const auto keys = systemEnv.keys();
+        for (const auto &key : keys) {
             if (!env.contains(key))
                 continue;
 
@@ -364,8 +365,10 @@ void MSBuildQbsProductProject::addFiles(const GeneratableProject &project,
     QMapIterator<QString, qbs::ProductData> productDataIt(product.data);
     while (productDataIt.hasNext()) {
         productDataIt.next();
-        for (const auto &group : productDataIt.value().groups()) {
-            for (const auto &sourceArtifact : group.allSourceArtifacts()) {
+        const auto groups = productDataIt.value().groups();
+        for (const auto &group : groups) {
+            const auto sourceArtifacts = group.allSourceArtifacts();
+            for (const auto &sourceArtifact : sourceArtifacts) {
                 const auto filePath = sourceArtifact.filePath();
                 if (sourceFileNodes.find(filePath) == sourceFileNodes.end()) {
                     sourceFileNodes.insert({

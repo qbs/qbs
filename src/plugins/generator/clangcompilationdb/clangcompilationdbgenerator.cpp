@@ -69,14 +69,18 @@ QString ClangCompilationDatabaseGenerator::generatorName() const
 
 void ClangCompilationDatabaseGenerator::generate()
 {
-    for (const Project &theProject : project().projects.values()) {
+    const auto projects = project().projects.values();
+    for (const Project &theProject : projects) {
         QJsonArray database;
         const ProjectData projectData = theProject.projectData();
         const QString buildDir = projectData.buildDirectory();
 
-        for (const ProductData &productData : projectData.allProducts()) {
-            for (const GroupData &groupData : productData.groups()) {
-                for (const ArtifactData &sourceArtifact : groupData.allSourceArtifacts()) {
+        const auto products = projectData.allProducts();
+        for (const ProductData &productData : products) {
+            const auto groups = productData.groups();
+            for (const GroupData &groupData : groups) {
+                const auto sourceArtifacts = groupData.allSourceArtifacts();
+                for (const ArtifactData &sourceArtifact : sourceArtifacts) {
                     if (!hasValidInputFileTag(sourceArtifact.fileTags()))
                         continue;
 

@@ -80,7 +80,8 @@ bool CycleDetector::visitNode(BuildGraphNode *node)
 {
     if (Q_UNLIKELY(m_nodesInCurrentPath.contains(node))) {
         ErrorInfo error(Tr::tr("Cycle in build graph detected."));
-        for (const BuildGraphNode * const n : cycle(node))
+        const auto nodes = cycle(node);
+        for (const BuildGraphNode * const n : nodes)
             error.append(n->toString());
         throw error;
     }

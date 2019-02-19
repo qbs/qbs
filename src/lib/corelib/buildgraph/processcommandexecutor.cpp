@@ -89,7 +89,8 @@ static QProcessEnvironment mergeEnvironments(const QProcessEnvironment &baseEnv,
         QStringLiteral("DYLD_LIBRARY_PATH"),
         QStringLiteral("DYLD_FRAMEWORK_PATH"),
     };
-    for (const QString &key : additionalEnv.keys()) {
+    const auto keys = additionalEnv.keys();
+    for (const QString &key : keys) {
         QString newValue = additionalEnv.value(key);
         if (pathListVariables.contains(key, HostOsInfo::fileNameCaseSensitivity())) {
             const QString &oldValue = baseEnv.value(key);
@@ -108,7 +109,8 @@ void ProcessCommandExecutor::doSetup()
                                              transformer()->product()->buildEnvironment)
             .findExecutable(cmd->program(), cmd->workingDir());
     cmd->clearRelevantEnvValues();
-    for (const QString &key : cmd->relevantEnvVars())
+    const auto keys = cmd->relevantEnvVars();
+    for (const QString &key : keys)
         cmd->addRelevantEnvValue(key, transformer()->product()->buildEnvironment.value(key));
 
     m_commandEnvironment = mergeEnvironments(m_buildEnvironment, cmd->environment());

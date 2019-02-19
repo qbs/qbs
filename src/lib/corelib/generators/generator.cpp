@@ -213,7 +213,7 @@ const GeneratableProject ProjectGenerator::project() const
 {
     QMap<QString, ProjectData> rootProjects;
     GeneratableProject proj;
-    for (const auto &project : projects()) {
+    for (const auto &project : qAsConst(d->projects)) {
         const QString configurationName = _configurationName(project);
         rootProjects.insert(configurationName, project.projectData());
         proj.projects.insert(configurationName, project);

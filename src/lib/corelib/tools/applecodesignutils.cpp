@@ -80,7 +80,8 @@ QVariantMap certificateInfo(const QByteArray &data)
     // Also potentially useful, but these are for signing pkgs which aren't used here
     // 1.2.840.113635.100.4.9 - 3rd Party Mac Developer Installer: <name>
     // 1.2.840.113635.100.4.13 - Developer ID Installer: <name>
-    for (const auto &extension : cert.extensions()) {
+    const auto extensions = cert.extensions();
+    for (const auto &extension : extensions) {
         if (extension.name() == QStringLiteral("extendedKeyUsage")) {
              if (!extension.value().toStringList().contains(QStringLiteral("Code Signing")))
                  return {};
@@ -89,7 +90,8 @@ QVariantMap certificateInfo(const QByteArray &data)
 
     const auto subjectInfo = [](const QSslCertificate &cert) {
         QVariantMap map;
-        for (const auto &attr : cert.subjectInfoAttributes())
+        const auto attributes = cert.subjectInfoAttributes();
+        for (const auto &attr : attributes)
             map.insert(QString::fromUtf8(attr), cert.subjectInfo(attr).front());
         return map;
     };

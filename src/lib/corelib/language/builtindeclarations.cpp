@@ -150,7 +150,8 @@ QStringList BuiltinDeclarations::argumentNamesForScriptFunction(ItemType itemTyp
                                                                 const QString &scriptName) const
 {
     const ItemDeclaration itemDecl = declarationsForType(itemType);
-    for (const PropertyDeclaration &propDecl : itemDecl.properties()) {
+    const auto properties = itemDecl.properties();
+    for (const PropertyDeclaration &propDecl : properties) {
         if (propDecl.name() == scriptName)
             return propDecl.functionArgumentNames();
     }

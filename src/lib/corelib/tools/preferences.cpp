@@ -131,14 +131,16 @@ JobLimits Preferences::jobLimits() const
 {
     const QString prefix = QStringLiteral("preferences.jobLimit");
     JobLimits limits;
-    for (const QString &key : m_settings->allKeysWithPrefix(prefix, Settings::allScopes())) {
+    const auto keys = m_settings->allKeysWithPrefix(prefix, Settings::allScopes());
+    for (const QString &key : keys) {
         limits.setJobLimit(key, m_settings->value(prefix + QLatin1Char('.') + key,
                                                   Settings::allScopes()).toInt());
     }
     const QString fullPrefix = prefix + QLatin1Char('.');
     if (!m_profile.isEmpty()) {
         Profile p(m_profile, m_settings, m_profileContents);
-        for (const QString &key : p.allKeys(Profile::KeySelectionRecursive)) {
+        const auto keys = p.allKeys(Profile::KeySelectionRecursive);
+        for (const QString &key : keys) {
             if (!key.startsWith(fullPrefix))
                 continue;
             const QString jobPool = key.mid(fullPrefix.size());

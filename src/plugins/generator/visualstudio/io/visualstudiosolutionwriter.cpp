@@ -87,7 +87,8 @@ bool VisualStudioSolutionWriter::write(const VisualStudioSolution *solution)
         << solution->versionInfo().version().majorVersion()
         << u8"\n";
 
-    for (const auto &project : solution->fileProjects()) {
+    const auto fileProjects = solution->fileProjects();
+    for (const auto &project : fileProjects) {
         auto projectFilePath = project->filePath().toStdString();
 
         // Try to make the project file path relative to the
@@ -126,7 +127,8 @@ bool VisualStudioSolutionWriter::write(const VisualStudioSolution *solution)
         out << u8"EndProject\n";
     }
 
-    for (const auto &project : solution->folderProjects()) {
+    const auto folderProjects = solution->folderProjects();
+    for (const auto &project : folderProjects) {
         out << u8"Project(\""
             << project->projectTypeGuid().toString().toStdString()
             << u8"\") = \""
@@ -142,7 +144,8 @@ bool VisualStudioSolutionWriter::write(const VisualStudioSolution *solution)
 
     out << u8"Global\n";
 
-    for (const auto &globalSection : solution->globalSections()) {
+    const auto globalSections = solution->globalSections();
+    for (const auto &globalSection : globalSections) {
         out << u8"\tGlobalSection("
             << globalSection->name().toStdString()
             << u8") = "

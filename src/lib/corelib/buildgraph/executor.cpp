@@ -105,7 +105,8 @@ Executor::~Executor()
     // jobs must be destroyed before deleting the shared scan result cache
     for (ExecutorJob *job : qAsConst(m_availableJobs))
         delete job;
-    for (ExecutorJob *job : m_processingJobs.keys())
+    const auto processingJobs = m_processingJobs.keys();
+    for (ExecutorJob *job : processingJobs)
         delete job;
     delete m_inputArtifactScanContext;
     delete m_productInstaller;
@@ -412,7 +413,8 @@ bool Executor::schedulingBlockedByJobLimit(const BuildGraphNode *node)
         // running transformers.
         if (jobLimitIsExceeded(transformer))
             return true;
-        for (const ExecutorJob * const runningJob : m_processingJobs.keys()) {
+        const auto runningJobs = m_processingJobs.keys();
+        for (const ExecutorJob * const runningJob : runningJobs) {
             if (!runningJob->jobPools().contains(jobPool))
                 continue;
             const Transformer * const runningTransformer = runningJob->transformer();
@@ -684,7 +686,8 @@ bool Executor::transformerHasMatchingInputFiles(const TransformerConstPtr &trans
     if (transformer->inputs.empty())
         return true;
     for (const Artifact * const input : qAsConst(transformer->inputs)) {
-        for (const QString &filePath : m_buildOptions.filesToConsider()) {
+        const auto files = m_buildOptions.filesToConsider();
+        for (const QString &filePath : files) {
             if (input->filePath() == filePath
                     || input->fileTags().intersects(m_tagsNeededForFilesToConsider)) {
                 return true;
@@ -725,7 +728,8 @@ void Executor::cancelJobs()
         return;
     qCDebug(lcExec) << "Canceling all jobs.";
     setState(ExecutorCanceling);
-    for (ExecutorJob *job : m_processingJobs.keys())
+    const auto jobs = m_processingJobs.keys();
+    for (ExecutorJob *job : jobs)
         job->cancel();
 }
 
@@ -734,7 +738,7 @@ void Executor::setupProgressObserver()
     if (!m_progressObserver)
         return;
     int totalEffort = 1; // For the effort after the last rule application;
-    for (const ResolvedProductConstPtr &product : m_productsToBuild) {
+    for (const ResolvedProductConstPtr &product : qAsConst(m_productsToBuild)) {
         QBS_CHECK(product->buildData);
         const auto filtered = filterByType<RuleNode>(product->buildData->allNodes());
         totalEffort += std::distance(filtered.begin(), filtered.end());
@@ -746,7 +750,7 @@ void Executor::doSanityChecks()
 {
     QBS_CHECK(m_project);
     QBS_CHECK(!m_productsToBuild.empty());
-    for (const ResolvedProductConstPtr &product : m_productsToBuild) {
+    for (const ResolvedProductConstPtr &product : qAsConst(m_productsToBuild)) {
         QBS_CHECK(product->buildData);
         QBS_CHECK(product->topLevelProject() == m_project.get());
     }
@@ -754,7 +758,8 @@ void Executor::doSanityChecks()
 
 void Executor::handleError(const ErrorInfo &error)
 {
-    for (const ErrorItem &ei : error.items())
+    const auto items = error.items();
+    for (const ErrorItem &ei : items)
         m_error.append(ei);
     if (m_processingJobs.empty())
         finish();

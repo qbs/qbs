@@ -130,7 +130,8 @@ public:
                       const GeneratableProductData &productData) override {
         Q_UNUSED(project);
         Q_UNUSED(projectData);
-        for (const auto &dep : productData.dependencies()) {
+        const auto dependencies = productData.dependencies();
+        for (const auto &dep : dependencies) {
             generator->d->solution->addDependency(
                         generator->d->solutionProjects.value(productData.name()),
                         generator->d->solutionProjects.value(dep));
@@ -190,7 +191,7 @@ void VisualStudioGenerator::addPropertySheets(const GeneratableProject &project)
 void VisualStudioGenerator::addPropertySheets(
         const std::shared_ptr<MSBuildTargetProject> &targetProject)
 {
-    for (const auto &pair : d->propertySheetNames) {
+    for (const auto &pair : qAsConst(d->propertySheetNames)) {
         targetProject->appendPropertySheet(
                     QStringLiteral("$(SolutionDir)\\") + pair.first, pair.second);
     }
@@ -221,7 +222,8 @@ static void addDefaultGlobalSections(const GeneratableProject &topLevelProject,
                 QStringLiteral("ProjectConfigurationPlatforms"), solution);
     solution->appendGlobalSection(projectConfigurationPlatformsSection);
     projectConfigurationPlatformsSection->setPost(true);
-    for (const auto project : solution->projects()) {
+    const auto projects = solution->projects();
+    for (const auto project : projects) {
         for (const auto &qbsProject : topLevelProject.projects) {
             projectConfigurationPlatformsSection->appendProperty(
                 QStringLiteral("%1.%2.ActiveCfg")

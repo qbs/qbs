@@ -369,7 +369,8 @@ static void iarProbe(Settings *settings, QList<Profile> &profiles)
     qStdout << Tr::tr("Trying to detect IAR toolchains...") << endl;
 
     bool isFound = false;
-    for (const QString &compilerName : knownIarCompilerNames()) {
+    const auto compilerNames = knownIarCompilerNames();
+    for (const QString &compilerName : compilerNames) {
         const QString iarPath = findExecutable(HostOsInfo::appendExecutableSuffix(compilerName));
         if (!iarPath.isEmpty()) {
             const auto profile = createIarProfile(iarPath, settings);
@@ -387,7 +388,8 @@ static void keilProbe(Settings *settings, QList<Profile> &profiles)
     qStdout << Tr::tr("Trying to detect KEIL toolchains...") << endl;
 
     bool isFound = false;
-    for (const QString &compilerName : knownKeilCompilerNames()) {
+    const auto compilerNames = knownKeilCompilerNames();
+    for (const QString &compilerName : compilerNames) {
         const QString keilPath = findExecutable(HostOsInfo::appendExecutableSuffix(compilerName));
         if (!keilPath.isEmpty()) {
             const auto profile = createKeilProfile(keilPath, settings);

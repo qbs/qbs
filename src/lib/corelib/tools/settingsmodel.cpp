@@ -327,7 +327,8 @@ void SettingsModel::SettingsModelPrivate::readSettings()
 {
     qDeleteAll(rootNode.children);
     rootNode.children.clear();
-    for (const QString &topLevelKey : settings->directChildren(QString(), scope()))
+    const auto topLevelKeys = settings->directChildren(QString(), scope());
+    for (const QString &topLevelKey : topLevelKeys)
         addNodeFromSettings(&rootNode, topLevelKey);
     for (QVariantMap::ConstIterator it = additionalProperties.constBegin();
          it != additionalProperties.constEnd(); ++it) {
@@ -353,7 +354,8 @@ void SettingsModel::SettingsModelPrivate::addNodeFromSettings(Node *parentNode,
             = fullyQualifiedName.mid(fullyQualifiedName.lastIndexOf(QLatin1Char('.')) + 1);
     Node * const node = createNode(parentNode, nodeName);
     node->value = settingsValueToRepresentation(settings->value(fullyQualifiedName, scope()));
-    for (const QString &childKey : settings->directChildren(fullyQualifiedName, scope()))
+    const auto childKeys = settings->directChildren(fullyQualifiedName, scope());
+    for (const QString &childKey : childKeys)
         addNodeFromSettings(node, fullyQualifiedName + QLatin1Char('.') + childKey);
     dirty = true;
 }

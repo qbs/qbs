@@ -6093,14 +6093,14 @@ static bool haveInnoSetup(const Profile &profile)
     QStringList paths = QProcessEnvironment::systemEnvironment().value("PATH")
             .split(HostOsInfo::pathListSeparator(), QString::SkipEmptyParts);
 
-    for (const QString &key : regKeys) {
+    for (const QString &key : qAsConst(regKeys)) {
         QSettings settings(key, QSettings::NativeFormat);
         QString str = settings.value(QStringLiteral("InstallLocation")).toString();
         if (!str.isEmpty())
             paths.prepend(str);
     }
 
-    for (const QString &path : paths) {
+    for (const QString &path : qAsConst(paths)) {
         if (regularFileExists(QDir::fromNativeSeparators(path) +
                           HostOsInfo::appendExecutableSuffix(QStringLiteral("/ISCC"))))
             return true;

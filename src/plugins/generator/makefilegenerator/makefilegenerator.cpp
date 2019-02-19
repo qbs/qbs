@@ -156,7 +156,8 @@ static QString removeCommand()
 
 void qbs::MakefileGenerator::generate()
 {
-    for (const Project &theProject : project().projects.values()) {
+    const auto projects = project().projects.values();
+    for (const Project &theProject : projects) {
         const QString makefileFilePath = theProject.projectData().buildDirectory()
                 + QLatin1String("/Makefile");
         QFile makefile(makefileFilePath);
@@ -241,16 +242,19 @@ void qbs::MakefileGenerator::generate()
                 allDefaultTargets.push_back(productTarget);
             allTargets.push_back(productTarget);
             stream << productTarget << ':';
-            for (const ArtifactData &ta : productData.targetArtifacts())
+            const auto targetArtifacts = productData.targetArtifacts();
+            for (const ArtifactData &ta : targetArtifacts)
                 stream << ' ' << transformedOutputFilePath(ta);
             stream << '\n';
             for (const TransformerData &transformerData : productTransformerData) {
                 stream << transformedOutputFilePath(transformerData.outputs().constFirst()) << ":";
-                for (const ArtifactData &input : transformerData.inputs())
+                const auto inputs = transformerData.inputs();
+                for (const ArtifactData &input : inputs)
                     stream << ' ' << transformedArtifactFilePath(input);
                 stream << '\n';
                 Set<QString> createdDirs;
-                for (const ArtifactData &output : transformerData.outputs()) {
+                const auto outputs = transformerData.outputs();
+                for (const ArtifactData &output : outputs) {
                     const QString outputDir = QFileInfo(output.filePath()).path();
                     if (createdDirs.insert(outputDir).second)
                         stream << "\t" << mkdirCmdLine(QDir::toNativeSeparators(
@@ -258,7 +262,8 @@ void qbs::MakefileGenerator::generate()
                                << '\n';
                 }
                 bool processCommandEncountered = false;
-                for (const RuleCommand &command : transformerData.commands()) {
+                const auto commands = transformerData.commands();
+                for (const RuleCommand &command : commands) {
                     if (command.type() == RuleCommand::JavaScriptCommandType) {
                         jsCommandsEncountered = true;
                         continue;
@@ -268,7 +273,8 @@ void qbs::MakefileGenerator::generate()
                                   quote(bruteForcePathReplace(command.executable(), srcDir,
                                                               buildDir, installRoot)));
                     // TODO: Optionally use environment?
-                    for (const QString &arg : command.arguments()) {
+                    const auto args = command.arguments();
+                    for (const QString &arg : args) {
                         stream << ' '
                                << quote(bruteForcePathReplace(arg, srcDir, buildDir, installRoot));
                     }
@@ -279,13 +285,15 @@ void qbs::MakefileGenerator::generate()
                            << transformedOutputFilePath(transformerData.outputs().at(i-1)) << '\n';
                 }
                 if (!processCommandEncountered && builtByDefault) {
-                    for (const ArtifactData &output : transformerData.outputs())
+                    const auto outputs = transformerData.outputs();
+                    for (const ArtifactData &output : outputs)
                         filesCreatedByJsCommands.push_back(output.filePath());
                 }
             }
             stream << "install-" << productTarget << ": " << productTarget << '\n';
             Set<QString> createdDirs;
-            for (const ArtifactData &artifact : productData.installableArtifacts()) {
+            const auto installableArtifacts = productData.installableArtifacts();
+            for (const ArtifactData &artifact : installableArtifacts) {
                 const QString &outputDir = artifact.installData().localInstallDir();
                 if (outputDir.contains(QLatin1Char(' '))) {
                     logger().qbsWarning() << Tr::tr("Skipping installation of '%1', because "
@@ -311,7 +319,8 @@ void qbs::MakefileGenerator::generate()
                        << transformedInputFilePath << ' ' << transformedOutputDir << '\n';
             }
             stream << "clean-" << productTarget << ":\n";
-            for (const ArtifactData &artifact : productData.generatedArtifacts()) {
+            const auto generatedArtifacts = productData.generatedArtifacts();
+            for (const ArtifactData &artifact : generatedArtifacts) {
                 const QFileInfo fileInfo(artifact.filePath());
                 const QString transformedFilePath = QDir::toNativeSeparators(
                             prefixifiedBuildDirPath(fileInfo.path())
@@ -324,15 +333,15 @@ void qbs::MakefileGenerator::generate()
         }
 
         stream << "all:";
-        for (const QString &target : allDefaultTargets)
+        for (const QString &target : qAsConst(allDefaultTargets))
             stream << ' ' << target;
         stream << '\n';
         stream << "install:";
-        for (const QString &target : allDefaultTargets)
+        for (const QString &target : qAsConst(allDefaultTargets))
             stream << ' ' << "install-" << target;
         stream << '\n';
         stream << "clean:";
-        for (const QString &target : allTargets)
+        for (const QString &target : qAsConst(allTargets))
             stream << ' ' << "clean-" << target;
         stream << '\n';
         if (!filesCreatedByJsCommands.empty()) {

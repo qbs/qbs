@@ -184,7 +184,8 @@ int RunEnvironment::doRunShell()
 #if defined(Q_OS_LINUX)
     clearenv();
 #endif
-    for (const QString &key : environment.keys())
+    const auto keys = environment.keys();
+    for (const QString &key : keys)
         qputenv(key.toLocal8Bit().constData(), environment.value(key).toLocal8Bit());
     QString command;
     if (HostOsInfo::isWindowsHost()) {
@@ -260,7 +261,8 @@ static QString findMainIntent(const QString &aapt, const QString &apkFilePath)
                       << QStringLiteral("badging")
                       << apkFilePath);
     if (aaptProcess.waitForFinished(-1)) {
-        for (auto line : aaptProcess.readAllStandardOutput().split('\n')) {
+        const auto lines = aaptProcess.readAllStandardOutput().split('\n');
+        for (const auto &line : lines) {
             if (line.startsWith(QByteArrayLiteral("package:")))
                 packageId = QString::fromStdString(readAaptBadgingAttribute(line.toStdString()));
             else if (line.startsWith(QByteArrayLiteral("launchable-activity:")))
