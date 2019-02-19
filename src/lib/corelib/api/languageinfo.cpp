@@ -69,7 +69,7 @@ std::string LanguageInfo::qmlTypeInfo()
         result.append(utf8TypeName);
         result.append(" ");
         const auto v = builtins.languageVersion();
-        result.append(QString::fromLatin1("%1.%2")
+        result.append(QStringLiteral("%1.%2")
                       .arg(v.majorVersion()).arg(v.minorVersion()).toUtf8());
         result.append("\" ]\n");
         result.append("        prototype: \"QQuickItem\"\n");

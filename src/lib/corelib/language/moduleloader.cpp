@@ -296,8 +296,8 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
 
     for (const QString &key : m_parameters.overriddenValues().keys()) {
         static const QStringList prefixes({ StringConstants::projectPrefix(),
-                                            QLatin1String("projects"),
-                                            QLatin1String("products"), QLatin1String("modules"),
+                                            QStringLiteral("projects"),
+                                            QStringLiteral("products"), QStringLiteral("modules"),
                                             StringConstants::moduleProviders(),
                                             StringConstants::qbsModule()});
         bool ok = false;
@@ -673,7 +673,7 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
 
     const QString minVersionStr
             = m_evaluator->stringValue(projectItem, StringConstants::minimumQbsVersionProperty(),
-                                       QLatin1String("1.3.0"));
+                                       QStringLiteral("1.3.0"));
     const Version minVersion = Version::fromString(minVersionStr);
     if (!minVersion.isValid()) {
         throw ErrorInfo(Tr::tr("The value '%1' of Project.minimumQbsVersion "
@@ -809,7 +809,7 @@ ModuleLoader::MultiplexTable ModuleLoader::combine(const MultiplexTable &table,
 ModuleLoader::MultiplexInfo ModuleLoader::extractMultiplexInfo(Item *productItem,
                                                                Item *qbsModuleItem)
 {
-    static const QString mpmKey = QLatin1String("multiplexMap");
+    static const QString mpmKey = QStringLiteral("multiplexMap");
 
     const QScriptValue multiplexMap = m_evaluator->value(qbsModuleItem, mpmKey);
     QStringList multiplexByQbsProperties = m_evaluator->stringListValue(
@@ -1214,15 +1214,15 @@ void ModuleLoader::prepareProduct(ProjectContext *projectContext, Item *productI
     // and nothing else, thus providing us with the pure environment that we need to
     // evaluate the product's exported properties in isolation in the project resolver.
     Item * const importer = Item::create(productItem->pool(), ItemType::Product);
-    importer->setProperty(QLatin1String("name"),
+    importer->setProperty(QStringLiteral("name"),
                           VariantValue::create(shadowProductPrefix() + productContext.name));
     importer->setFile(productItem->file());
     importer->setLocation(productItem->location());
     importer->setScope(projectContext->scope);
     importer->setupForBuiltinType(m_logger);
     Item * const dependsItem = Item::create(productItem->pool(), ItemType::Depends);
-    dependsItem->setProperty(QLatin1String("name"), VariantValue::create(productContext.name));
-    dependsItem->setProperty(QLatin1String("required"), VariantValue::create(false));
+    dependsItem->setProperty(QStringLiteral("name"), VariantValue::create(productContext.name));
+    dependsItem->setProperty(QStringLiteral("required"), VariantValue::create(false));
     dependsItem->setFile(importer->file());
     dependsItem->setLocation(importer->location());
     dependsItem->setupForBuiltinType(m_logger);
@@ -1418,7 +1418,7 @@ void ModuleLoader::handleProduct(ModuleLoader::ProductContext *productContext)
         for (auto it = exportsData.find(productContext->name);
              it != exportsData.end() && it.key() == productContext->name; ++it) {
             if (it.value().multiplexId == productContext->multiplexConfigurationId) {
-                createNonPresentModule(productContext->name, QLatin1String("disabled"),
+                createNonPresentModule(productContext->name, QStringLiteral("disabled"),
                                        it.value().exportItem);
                 break;
             }
@@ -1525,7 +1525,7 @@ void ModuleLoader::handleModuleSetupError(ModuleLoader::ProductContext *productC
         qCDebug(lcModuleLoader()) << "non-required module" << module.name.toString()
                                   << "found, but not usable in product" << productContext->name
                                   << error.toString();
-        createNonPresentModule(module.name.toString(), QLatin1String("failed validation"),
+        createNonPresentModule(module.name.toString(), QStringLiteral("failed validation"),
                                module.item);
     }
 }
@@ -2337,7 +2337,7 @@ void ModuleLoader::adjustDefiningItemsInGroupModuleInstances(const Item::Module 
             QBS_CHECK(v->definingItem());
 
             Item *& replacement = definingItemReplacements[v->definingItem()];
-            static const QString caseA = QLatin1String("__group_case_a");
+            static const QString caseA = QStringLiteral("__group_case_a");
             if (v->definingItem() == instanceWithProperty
                     || v->definingItem()->variantProperty(caseA)) {
                 // Case a)
@@ -3085,7 +3085,7 @@ Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
             }
         }
         if (!isRequired)
-            return createNonPresentModule(fullName, QLatin1String("not found"), nullptr);
+            return createNonPresentModule(fullName, QStringLiteral("not found"), nullptr);
         if (Q_UNLIKELY(triedToLoadModule))
             throw ErrorInfo(Tr::tr("Module %1 could not be loaded.").arg(fullName),
                         dependsItemLocation);

@@ -50,12 +50,12 @@ CommandLineParser::CommandLineParser()
 
 using qbs::Internal::Tr;
 
-static QString helpOptionShort() { return QLatin1String("-h"); }
-static QString helpOptionLong() { return QLatin1String("--help"); }
-static QString settingsDirOption() { return QLatin1String("--settings-dir"); }
-static QString sdkDirOption() { return QLatin1String("--sdk-dir"); }
-static QString ndkDirOption() { return QLatin1String("--ndk-dir"); }
-static QString qtSdkDirOption() { return QLatin1String("--qt-dir"); }
+static QString helpOptionShort() { return QStringLiteral("-h"); }
+static QString helpOptionLong() { return QStringLiteral("--help"); }
+static QString settingsDirOption() { return QStringLiteral("--settings-dir"); }
+static QString sdkDirOption() { return QStringLiteral("--sdk-dir"); }
+static QString ndkDirOption() { return QStringLiteral("--ndk-dir"); }
+static QString qtSdkDirOption() { return QStringLiteral("--qt-dir"); }
 
 void CommandLineParser::parse(const QStringList &commandLine)
 {

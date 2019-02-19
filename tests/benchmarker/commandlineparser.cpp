@@ -64,7 +64,7 @@ void CommandLineParser::parse()
                                      "repo path");
     parser.addOption(qbsRepoOption);
     QCommandLineOption activitiesOption(QStringList{"activities", "a"},
-            QString::fromLatin1("The activities to benchmark. Possible values (CSV): %1,%2,%3,%4")
+            QStringLiteral("The activities to benchmark. Possible values (CSV): %1,%2,%3,%4")
                     .arg(resolveActivity(), ruleExecutionActivity(), nullBuildActivity(),
                          allActivities()), "activities", allActivities());
     parser.addOption(activitiesOption);
@@ -119,14 +119,14 @@ void CommandLineParser::parse()
 void CommandLineParser::throwException(const QString &optionName, const QString &illegalValue,
                                        const QString &helpText)
 {
-    const QString errorText(QString::fromLatin1("Error parsing command line: Illegal value '%1' "
+    const QString errorText(QStringLiteral("Error parsing command line: Illegal value '%1' "
             "for option '--%2'.\n%3").arg(illegalValue, optionName, helpText));
     throw Exception(errorText);
 }
 
 void CommandLineParser::throwException(const QString &missingOption, const QString &helpText)
 {
-    const QString errorText(QString::fromLatin1("Error parsing command line: Missing mandatory "
+    const QString errorText(QStringLiteral("Error parsing command line: Missing mandatory "
             "option '--%1'.\n%3").arg(missingOption, helpText));
     throw Exception(errorText);
 }

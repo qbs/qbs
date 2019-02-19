@@ -106,12 +106,12 @@ Item *Item::clone() const
 QString Item::typeName() const
 {
     switch (type()) {
-    case ItemType::IdScope: return QLatin1String("[IdScope]");
-    case ItemType::ModuleInstance: return QLatin1String("[ModuleInstance]");
-    case ItemType::ModuleParameters: return QLatin1String("[ModuleParametersInstance]");
-    case ItemType::ModulePrefix: return QLatin1String("[ModulePrefix]");
-    case ItemType::Outer: return QLatin1String("[Outer]");
-    case ItemType::Scope: return QLatin1String("[Scope]");
+    case ItemType::IdScope: return QStringLiteral("[IdScope]");
+    case ItemType::ModuleInstance: return QStringLiteral("[ModuleInstance]");
+    case ItemType::ModuleParameters: return QStringLiteral("[ModuleParametersInstance]");
+    case ItemType::ModulePrefix: return QStringLiteral("[ModulePrefix]");
+    case ItemType::Outer: return QStringLiteral("[Outer]");
+    case ItemType::Scope: return QStringLiteral("[Scope]");
     default: return BuiltinDeclarations::instance().nameForType(type());
     }
 }

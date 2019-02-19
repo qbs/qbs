@@ -769,7 +769,7 @@ void Executor::addExecutorJobs()
     for (int i = 1; i <= m_buildOptions.maxJobCount(); i++) {
         const auto job = new ExecutorJob(m_logger, this);
         job->setMainThreadScriptEngine(m_evalContext->engine());
-        job->setObjectName(QString::fromLatin1("J%1").arg(i));
+        job->setObjectName(QStringLiteral("J%1").arg(i));
         job->setDryRun(m_buildOptions.dryRun());
         job->setEchoMode(m_buildOptions.echoMode());
         m_availableJobs.push_back(job);

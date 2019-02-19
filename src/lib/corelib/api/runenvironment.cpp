@@ -188,10 +188,10 @@ int RunEnvironment::doRunShell()
         qputenv(key.toLocal8Bit().constData(), environment.value(key).toLocal8Bit());
     QString command;
     if (HostOsInfo::isWindowsHost()) {
-        command = environment.value(QLatin1String("COMSPEC"));
+        command = environment.value(QStringLiteral("COMSPEC"));
         if (command.isEmpty())
-            command = QLatin1String("cmd");
-        const QString prompt = environment.value(QLatin1String("PROMPT"));
+            command = QStringLiteral("cmd");
+        const QString prompt = environment.value(QStringLiteral("PROMPT"));
         command += QLatin1String(" /k prompt [qbs] ") + prompt;
     } else {
         const QVariantMap qbsProps =
@@ -201,7 +201,7 @@ int RunEnvironment::doRunShell()
         const QString profileName = qbsProps.value(StringConstants::profileProperty()).toString();
         command = Preferences(d->settings, profileName).shell();
         if (command.isEmpty())
-            command = environment.value(QLatin1String("SHELL"), QLatin1String("/bin/sh"));
+            command = environment.value(QStringLiteral("SHELL"), QStringLiteral("/bin/sh"));
 
         // Yes, we have to use this procedure. PS1 is not inherited from the environment.
         const QString prompt = QLatin1String("qbs ") + configName
@@ -286,9 +286,9 @@ int RunEnvironment::doRunTarget(const QString &targetBin, const QStringList &arg
 {
     d->checkProduct();
     const QStringList targetOS = d->resolvedProduct->moduleProperties->qbsPropertyValue(
-                QLatin1String("targetOS")).toStringList();
+                QStringLiteral("targetOS")).toStringList();
     const QStringList toolchain = d->resolvedProduct->moduleProperties->qbsPropertyValue(
-                QLatin1String("toolchain")).toStringList();
+                QStringLiteral("toolchain")).toStringList();
 
     QString targetExecutable = targetBin;
     QStringList targetArguments = arguments;
@@ -403,24 +403,24 @@ int RunEnvironment::doRunTarget(const QString &targetBin, const QStringList &arg
         // Run Windows executables through Wine when not on Windows
         if (!HostOsInfo::isWindowsHost()) {
             targetArguments.prepend(targetExecutable);
-            targetExecutable = QLatin1String("wine");
+            targetExecutable = QStringLiteral("wine");
         }
     }
 
     if (toolchain.contains(QLatin1String("mono"))) {
         targetArguments.prepend(targetExecutable);
-        targetExecutable = QLatin1String("mono");
+        targetExecutable = QStringLiteral("mono");
     }
 
     if (completeSuffix == QLatin1String("js")) {
         targetExecutable = d->resolvedProduct->moduleProperties->moduleProperty(
-                    QLatin1String("nodejs"), QLatin1String("interpreterFilePath")).toString();
+                    QStringLiteral("nodejs"), QStringLiteral("interpreterFilePath")).toString();
         if (targetExecutable.isEmpty())
             // The Node.js binary is called nodejs on Debian/Ubuntu-family operating systems due to
             // conflict with another package containing a binary named node
             targetExecutable = findExecutable(QStringList()
-                                              << QLatin1String("nodejs")
-                                              << QLatin1String("node"));
+                                              << QStringLiteral("nodejs")
+                                              << QStringLiteral("node"));
         targetArguments.prepend(targetBin);
     }
 
@@ -434,7 +434,7 @@ int RunEnvironment::doRunTarget(const QString &targetBin, const QStringList &arg
     }
 
     QProcessEnvironment env = d->environment;
-    env.insert(QLatin1String("QBS_RUN_FILE_PATH"), targetBin);
+    env.insert(QStringLiteral("QBS_RUN_FILE_PATH"), targetBin);
     EnvironmentScriptRunner(d->resolvedProduct.get(), &d->evalContext, env)
             .setupForRun(d->setupRunEnvConfig);
 

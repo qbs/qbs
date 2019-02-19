@@ -872,8 +872,8 @@ void ProjectResolver::adaptExportedPropertyValues(const Item *shadowProductItem)
     QVariantMap prefixMap;
     for (const QVariant &v : prefixList) {
         const QVariantMap o = v.toMap();
-        prefixMap.insert(o.value(QLatin1String("prefix")).toString(),
-                         o.value(QLatin1String("replacement")).toString());
+        prefixMap.insert(o.value(QStringLiteral("prefix")).toString(),
+                         o.value(QStringLiteral("replacement")).toString());
     }
     const auto valueRefersToImportingProduct
             = [shadowProductName, shadowProductBuildDir](const QString &value) {

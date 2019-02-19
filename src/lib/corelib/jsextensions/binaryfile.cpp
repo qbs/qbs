@@ -114,7 +114,7 @@ QScriptValue BinaryFile::ctor(QScriptContext *context, QScriptEngine *engine)
     const DubiousContextList dubiousContexts {
         DubiousContext(EvalContext::PropertyEvaluation, DubiousContext::SuggestMoving)
     };
-    se->checkContext(QLatin1String("qbs.BinaryFile"), dubiousContexts);
+    se->checkContext(QStringLiteral("qbs.BinaryFile"), dubiousContexts);
     se->setUsesIo();
 
     return engine->newQObject(t, QScriptEngine::QtOwnership);
@@ -268,7 +268,7 @@ void initializeJsExtensionBinaryFile(QScriptValue extensionObject)
     QScriptEngine *engine = extensionObject.engine();
     const QScriptValue obj = engine->newQMetaObject(&BinaryFile::staticMetaObject,
                                                     engine->newFunction(&BinaryFile::ctor));
-    extensionObject.setProperty(QLatin1String("BinaryFile"), obj);
+    extensionObject.setProperty(QStringLiteral("BinaryFile"), obj);
 }
 
 Q_DECLARE_METATYPE(qbs::Internal::BinaryFile *)

@@ -45,11 +45,11 @@
 
 using qbs::Internal::Tr;
 
-static QString helpOptionShort() { return QLatin1String("-h"); }
-static QString helpOptionLong() { return QLatin1String("--help"); }
-static QString detectOption() { return QLatin1String("--detect"); }
-static QString settingsDirOption() { return QLatin1String("--settings-dir"); }
-static QString systemOption() { return QLatin1String("--system"); }
+static QString helpOptionShort() { return QStringLiteral("-h"); }
+static QString helpOptionLong() { return QStringLiteral("--help"); }
+static QString detectOption() { return QStringLiteral("--detect"); }
+static QString settingsDirOption() { return QStringLiteral("--settings-dir"); }
+static QString systemOption() { return QStringLiteral("--system"); }
 
 void CommandLineParser::parse(const QStringList &commandLine)
 {

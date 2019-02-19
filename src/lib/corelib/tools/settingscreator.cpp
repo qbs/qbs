@@ -124,8 +124,8 @@ void SettingsCreator::migrate()
 void SettingsCreator::createQSettings()
 {
     std::unique_ptr<QSettings> tmp(m_settingsBaseDir.isEmpty()
-            ? new QSettings(format(), QSettings::UserScope, QLatin1String("QtProject"),
-                            QLatin1String("qbs"))
+            ? new QSettings(format(), QSettings::UserScope, QStringLiteral("QtProject"),
+                            QStringLiteral("qbs"))
             : new QSettings(m_settingsBaseDir + QLatin1String("/qbs.conf"), format()));
     const QFileInfo fi(tmp->fileName());
     m_settingsBaseDir = fi.path();

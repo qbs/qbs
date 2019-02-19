@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
 #endif
     if (metaData.isEmpty())
         metaData = QPluginLoader("thePlugin").metaData();
-    const QJsonValue v = metaData.value(QLatin1String("theKey"));
+    const QJsonValue v = metaData.value(QStringLiteral("theKey"));
     if (!v.isArray()) {
         qDebug() << "value is" << v;
         return 1;
@@ -72,8 +72,8 @@ int main(int argc, char *argv[])
         qDebug() << "value is" << v;
         return 1;
     }
-    const QJsonValue v2 = metaData.value(QLatin1String("MetaData")).toObject()
-            .value(QLatin1String("theOtherKey"));
+    const QJsonValue v2 = metaData.value(QStringLiteral("MetaData")).toObject()
+            .value(QStringLiteral("theOtherKey"));
     if (v2.toString() != QLatin1String("theOtherValue")) {
         qDebug() << "metadata:" << metaData;
         return 1;

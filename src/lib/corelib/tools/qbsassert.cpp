@@ -52,7 +52,7 @@ void writeAssertLocation(const char *condition, const char *file, int line)
 
 void throwAssertLocation(const char *condition, const char *file, int line)
 {
-    throw ErrorInfo(QString::fromLatin1("ASSERT: %1").arg(QLatin1String(condition)),
+    throw ErrorInfo(QStringLiteral("ASSERT: %1").arg(QLatin1String(condition)),
                     CodeLocation(QString::fromLocal8Bit(file), line, -1, false), true);
 }
 

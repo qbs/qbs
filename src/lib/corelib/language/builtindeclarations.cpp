@@ -62,26 +62,26 @@ const char QBS_LANGUAGE_VERSION[] = "1.0";
 BuiltinDeclarations::BuiltinDeclarations()
     : m_languageVersion(Version::fromString(QLatin1String(QBS_LANGUAGE_VERSION)))
     , m_typeMap(std::initializer_list<std::pair<QString, ItemType>>({
-        { QLatin1String("Artifact"), ItemType::Artifact },
-        { QLatin1String("Depends"), ItemType::Depends },
-        { QLatin1String("Export"), ItemType::Export },
-        { QLatin1String("FileTagger"), ItemType::FileTagger },
-        { QLatin1String("Group"), ItemType::Group },
-        { QLatin1String("JobLimit"), ItemType::JobLimit },
-        { QLatin1String("Module"), ItemType::Module },
-        { QLatin1String("ModuleProvider"), ItemType::ModuleProvider },
-        { QLatin1String("Parameter"), ItemType::Parameter },
-        { QLatin1String("Parameters"), ItemType::Parameters },
-        { QLatin1String("Probe"), ItemType::Probe },
-        { QLatin1String("Product"), ItemType::Product },
-        { QLatin1String("Profile"), ItemType::Profile },
-        { QLatin1String("Project"), ItemType::Project },
-        { QLatin1String("Properties"), ItemType::Properties }, // Callers have to handle the SubProject case.
-        { QLatin1String("PropertyOptions"), ItemType::PropertyOptions },
-        { QLatin1String("Rule"), ItemType::Rule },
-        { QLatin1String("Scanner"), ItemType::Scanner },
-        { QLatin1String("SubProject"), ItemType::SubProject },
-        { QLatin1String("Transformer"), ItemType::Transformer }
+        { QStringLiteral("Artifact"), ItemType::Artifact },
+        { QStringLiteral("Depends"), ItemType::Depends },
+        { QStringLiteral("Export"), ItemType::Export },
+        { QStringLiteral("FileTagger"), ItemType::FileTagger },
+        { QStringLiteral("Group"), ItemType::Group },
+        { QStringLiteral("JobLimit"), ItemType::JobLimit },
+        { QStringLiteral("Module"), ItemType::Module },
+        { QStringLiteral("ModuleProvider"), ItemType::ModuleProvider },
+        { QStringLiteral("Parameter"), ItemType::Parameter },
+        { QStringLiteral("Parameters"), ItemType::Parameters },
+        { QStringLiteral("Probe"), ItemType::Probe },
+        { QStringLiteral("Product"), ItemType::Product },
+        { QStringLiteral("Profile"), ItemType::Profile },
+        { QStringLiteral("Project"), ItemType::Project },
+        { QStringLiteral("Properties"), ItemType::Properties }, // Callers have to handle the SubProject case.
+        { QStringLiteral("PropertyOptions"), ItemType::PropertyOptions },
+        { QStringLiteral("Rule"), ItemType::Rule },
+        { QStringLiteral("Scanner"), ItemType::Scanner },
+        { QStringLiteral("SubProject"), ItemType::SubProject },
+        { QStringLiteral("Transformer"), ItemType::Transformer }
     }))
 {
     addArtifactItem();
@@ -137,7 +137,7 @@ QString BuiltinDeclarations::nameForType(ItemType itemType) const
 {
     // Iterating is okay here, as this mapping is not used in hot code paths.
     if (itemType == ItemType::PropertiesInSubProject)
-        return QLatin1String("Properties");
+        return QStringLiteral("Properties");
     for (auto it = m_typeMap.constBegin(); it != m_typeMap.constEnd(); ++it) {
         if (it.value() == itemType)
             return it.key();
@@ -400,11 +400,11 @@ void BuiltinDeclarations::addProductItem()
                                 PropertyDeclaration::Boolean, StringConstants::trueValue());
     PropertyDeclaration profilesDecl(StringConstants::profilesProperty(),
                                      PropertyDeclaration::StringList);
-    profilesDecl.setDeprecationInfo(DeprecationInfo(Version::fromString(QLatin1String("1.9.0")),
+    profilesDecl.setDeprecationInfo(DeprecationInfo(Version::fromString(QStringLiteral("1.9.0")),
                                                     Tr::tr("Use qbs.profiles instead.")));
     item << profilesDecl;
     item << PropertyDeclaration(StringConstants::targetNameProperty(), PropertyDeclaration::String,
-                                QLatin1String("new String(name)"
+                                QStringLiteral("new String(name)"
                                               ".replace(/[/\\\\?%*:|\"<>]/g, '_').valueOf()"));
     item << buildDirProperty();
     item << PropertyDeclaration(StringConstants::destinationDirProperty(),
@@ -422,7 +422,7 @@ void BuiltinDeclarations::addProductItem()
     item << PropertyDeclaration(StringConstants::versionProperty(), PropertyDeclaration::String);
 
     item << PropertyDeclaration(StringConstants::multiplexByQbsPropertiesProperty(),
-                                PropertyDeclaration::StringList, QLatin1String("[\"profiles\"]"));
+                                PropertyDeclaration::StringList, QStringLiteral("[\"profiles\"]"));
     item << PropertyDeclaration(StringConstants::multiplexedTypeProperty(),
                                 PropertyDeclaration::StringList);
     item << PropertyDeclaration(StringConstants::aggregateProperty(), PropertyDeclaration::Boolean);
@@ -518,7 +518,7 @@ void BuiltinDeclarations::addRuleItem()
                 << StringConstants::projectVar() << StringConstants::productVar()
                 << StringConstants::inputsVar() << StringConstants::inputVar());
     item << outputArtifactsDecl;
-    PropertyDeclaration usingsDecl(QLatin1String("usings"), PropertyDeclaration::StringList);
+    PropertyDeclaration usingsDecl(QStringLiteral("usings"), PropertyDeclaration::StringList);
     usingsDecl.setDeprecationInfo(DeprecationInfo(Version(1, 5),
                                                   Tr::tr("Use 'inputsFromDependencies' instead")));
     item << usingsDecl;

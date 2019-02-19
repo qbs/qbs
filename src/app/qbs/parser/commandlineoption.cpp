@@ -84,12 +84,12 @@ QString FileOption::description(CommandType command) const
 
 QString FileOption::shortRepresentation() const
 {
-    return QLatin1String("-f");
+    return QStringLiteral("-f");
 }
 
 QString FileOption::longRepresentation() const
 {
-    return QLatin1String("--file");
+    return QStringLiteral("--file");
 }
 
 void FileOption::doParse(const QString &representation, QStringList &input)
@@ -114,22 +114,22 @@ QString BuildDirectoryOption::description(CommandType command) const
 
 QString BuildDirectoryOption::shortRepresentation() const
 {
-    return QLatin1String("-d");
+    return QStringLiteral("-d");
 }
 
 QString BuildDirectoryOption::longRepresentation() const
 {
-    return QLatin1String("--build-directory");
+    return QStringLiteral("--build-directory");
 }
 
 QString BuildDirectoryOption::magicProjectString()
 {
-    return QLatin1String("@project");
+    return QStringLiteral("@project");
 }
 
 QString BuildDirectoryOption::magicProjectDirString()
 {
-    return QLatin1String("@path");
+    return QStringLiteral("@path");
 }
 
 void BuildDirectoryOption::doParse(const QString &representation, QStringList &input)
@@ -147,12 +147,12 @@ QString GeneratorOption::description(CommandType command) const
 
 QString GeneratorOption::shortRepresentation() const
 {
-    return QLatin1String("-g");
+    return QStringLiteral("-g");
 }
 
 QString GeneratorOption::longRepresentation() const
 {
-    return QLatin1String("--generator");
+    return QStringLiteral("--generator");
 }
 
 void GeneratorOption::doParse(const QString &representation, QStringList &input)
@@ -164,7 +164,7 @@ void GeneratorOption::doParse(const QString &representation, QStringList &input)
     }
 }
 
-static QString loglevelLongRepresentation() { return QLatin1String("--log-level"); }
+static QString loglevelLongRepresentation() { return QStringLiteral("--log-level"); }
 
 QString VerboseOption::description(CommandType command) const
 {
@@ -180,12 +180,12 @@ QString VerboseOption::description(CommandType command) const
 
 QString VerboseOption::shortRepresentation() const
 {
-    return QLatin1String("-v");
+    return QStringLiteral("-v");
 }
 
 QString VerboseOption::longRepresentation() const
 {
-    return QLatin1String("--more-verbose");
+    return QStringLiteral("--more-verbose");
 }
 
 QString QuietOption::description(CommandType command) const
@@ -202,12 +202,12 @@ QString QuietOption::description(CommandType command) const
 
 QString QuietOption::shortRepresentation() const
 {
-    return QLatin1String("-q");
+    return QStringLiteral("-q");
 }
 
 QString QuietOption::longRepresentation() const
 {
-    return QLatin1String("--less-verbose");
+    return QStringLiteral("--less-verbose");
 }
 
 QString JobsOption::description(CommandType command) const
@@ -221,12 +221,12 @@ QString JobsOption::description(CommandType command) const
 
 QString JobsOption::shortRepresentation() const
 {
-    return QLatin1String("-j");
+    return QStringLiteral("-j");
 }
 
 QString JobsOption::longRepresentation() const
 {
-    return QLatin1String("--jobs");
+    return QStringLiteral("--jobs");
 }
 
 void JobsOption::doParse(const QString &representation, QStringList &input)
@@ -249,12 +249,12 @@ QString KeepGoingOption::description(CommandType command) const
 
 QString KeepGoingOption::shortRepresentation() const
 {
-    return QLatin1String("-k");
+    return QStringLiteral("-k");
 }
 
 QString KeepGoingOption::longRepresentation() const
 {
-    return QLatin1String("--keep-going");
+    return QStringLiteral("--keep-going");
 }
 
 QString DryRunOption::description(CommandType command) const
@@ -268,12 +268,12 @@ QString DryRunOption::description(CommandType command) const
 
 QString DryRunOption::shortRepresentation() const
 {
-    return QLatin1String("-n");
+    return QStringLiteral("-n");
 }
 
 QString DryRunOption::longRepresentation() const
 {
-    return QLatin1String("--dry-run");
+    return QStringLiteral("--dry-run");
 }
 
 QString ForceProbesOption::description(CommandType command) const
@@ -287,7 +287,7 @@ QString ForceProbesOption::description(CommandType command) const
 
 QString ForceProbesOption::longRepresentation() const
 {
-    return QLatin1String("--force-probe-execution");
+    return QStringLiteral("--force-probe-execution");
 }
 
 QString NoInstallOption::description(CommandType command) const
@@ -300,13 +300,13 @@ QString NoInstallOption::description(CommandType command) const
 
 QString NoInstallOption::longRepresentation() const
 {
-    return QLatin1String("--no-install");
+    return QStringLiteral("--no-install");
 }
 
 
 static QString logTimeRepresentation()
 {
-    return QLatin1String("--log-time");
+    return QStringLiteral("--log-time");
 }
 
 QString ShowProgressOption::description(CommandType command) const
@@ -321,7 +321,7 @@ QString ShowProgressOption::description(CommandType command) const
 
 static QString showProgressRepresentation()
 {
-    return QLatin1String("--show-progress");
+    return QStringLiteral("--show-progress");
 }
 
 QString ShowProgressOption::longRepresentation() const
@@ -354,7 +354,7 @@ QString ChangedFilesOption::description(CommandType command) const
 
 QString ChangedFilesOption::longRepresentation() const
 {
-    return QLatin1String("--changed-files");
+    return QStringLiteral("--changed-files");
 }
 
 QString ProductsOption::description(CommandType command) const
@@ -373,12 +373,12 @@ QString ProductsOption::description(CommandType command) const
 
 QString ProductsOption::shortRepresentation() const
 {
-    return QLatin1String("-p");
+    return QStringLiteral("-p");
 }
 
 QString ProductsOption::longRepresentation() const
 {
-    return QLatin1String("--products");
+    return QStringLiteral("--products");
 }
 
 static QStringList allLogLevelStrings()
@@ -433,7 +433,7 @@ QString ForceTimeStampCheckOption::description(CommandType command) const
 
 QString ForceTimeStampCheckOption::longRepresentation() const
 {
-    return QLatin1String("--check-timestamps");
+    return QStringLiteral("--check-timestamps");
 }
 
 QString ForceOutputCheckOption::description(CommandType command) const
@@ -446,7 +446,7 @@ QString ForceOutputCheckOption::description(CommandType command) const
 
 QString ForceOutputCheckOption::longRepresentation() const
 {
-    return QLatin1String("--check-outputs");
+    return QStringLiteral("--check-outputs");
 }
 
 QString BuildNonDefaultOption::description(CommandType command) const
@@ -458,7 +458,7 @@ QString BuildNonDefaultOption::description(CommandType command) const
 
 QString BuildNonDefaultOption::longRepresentation() const
 {
-    return QLatin1String("--all-products");
+    return QStringLiteral("--all-products");
 }
 
 
@@ -466,7 +466,7 @@ InstallRootOption::InstallRootOption() : m_useSysroot(false)
 {
 }
 
-static QString magicSysrootString() { return QLatin1String("@sysroot"); }
+static QString magicSysrootString() { return QStringLiteral("@sysroot"); }
 
 QString InstallRootOption::description(CommandType command) const
 {
@@ -482,7 +482,7 @@ QString InstallRootOption::description(CommandType command) const
 
 QString InstallRootOption::longRepresentation() const
 {
-    return QLatin1String("--install-root");
+    return QStringLiteral("--install-root");
 }
 
 void InstallRootOption::doParse(const QString &representation, QStringList &input)
@@ -507,7 +507,7 @@ QString RemoveFirstOption::description(CommandType command) const
 
 QString RemoveFirstOption::longRepresentation() const
 {
-    return QLatin1String("--clean-install-root");
+    return QStringLiteral("--clean-install-root");
 }
 
 
@@ -520,7 +520,7 @@ QString NoBuildOption::description(CommandType command) const
 
 QString NoBuildOption::longRepresentation() const
 {
-    return QLatin1String("--no-build");
+    return QStringLiteral("--no-build");
 }
 
 
@@ -537,7 +537,7 @@ QString LogTimeOption::description(CommandType command) const
 
 QString LogTimeOption::shortRepresentation() const
 {
-    return QLatin1String("-t");
+    return QStringLiteral("-t");
 }
 
 QString LogTimeOption::longRepresentation() const
@@ -562,7 +562,7 @@ QString SettingsDirOption::description(CommandType command) const
 
 QString SettingsDirOption::longRepresentation() const
 {
-    return QLatin1String("--settings-dir");
+    return QStringLiteral("--settings-dir");
 }
 
 void SettingsDirOption::doParse(const QString &representation, QStringList &input)
@@ -583,7 +583,7 @@ QString JobLimitsOption::description(CommandType command) const
 
 QString JobLimitsOption::longRepresentation() const
 {
-    return QLatin1String("--job-limits");
+    return QStringLiteral("--job-limits");
 }
 
 void JobLimitsOption::doParse(const QString &representation, QStringList &input)
@@ -624,7 +624,7 @@ QString RespectProjectJobLimitsOption::description(CommandType command) const
 
 QString RespectProjectJobLimitsOption::longRepresentation() const
 {
-    return QLatin1String("--enforce-project-job-limits");
+    return QStringLiteral("--enforce-project-job-limits");
 }
 
 CommandEchoModeOption::CommandEchoModeOption()
@@ -644,7 +644,7 @@ QString CommandEchoModeOption::description(CommandType command) const
 
 QString CommandEchoModeOption::longRepresentation() const
 {
-    return QLatin1String("--command-echo-mode");
+    return QStringLiteral("--command-echo-mode");
 }
 
 CommandEchoMode CommandEchoModeOption::commandEchoMode() const
@@ -678,7 +678,7 @@ QString WaitLockOption::description(CommandType command) const
 
 QString WaitLockOption::longRepresentation() const
 {
-    return QLatin1String("--wait-lock");
+    return QStringLiteral("--wait-lock");
 }
 
 QString DisableFallbackProviderOption::description(CommandType) const
@@ -689,7 +689,7 @@ QString DisableFallbackProviderOption::description(CommandType) const
 
 QString DisableFallbackProviderOption::longRepresentation() const
 {
-    return QLatin1String("--no-fallback-module-provider");
+    return QStringLiteral("--no-fallback-module-provider");
 }
 
 QString RunEnvConfigOption::description(CommandType command) const
@@ -701,7 +701,7 @@ QString RunEnvConfigOption::description(CommandType command) const
 
 QString RunEnvConfigOption::longRepresentation() const
 {
-    return QLatin1String("--setup-run-env-config");
+    return QStringLiteral("--setup-run-env-config");
 }
 
 } // namespace qbs

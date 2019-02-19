@@ -178,7 +178,7 @@ void ProductInstaller::removeInstallRoot()
         m_logger.qbsInfo() << Tr::tr("Would remove install root '%1'.").arg(nativeInstallRoot);
         return;
     }
-    m_logger.qbsDebug() << QString::fromLatin1("Removing install root '%1'.")
+    m_logger.qbsDebug() << QStringLiteral("Removing install root '%1'.")
             .arg(nativeInstallRoot);
 
     QString errorMessage;
@@ -207,7 +207,7 @@ void ProductInstaller::copyFile(const Artifact *artifact)
                                .arg(nativeFilePath, nativeTargetDir);
         return;
     }
-    m_logger.qbsDebug() << QString::fromLatin1("Copying file '%1' into target directory '%2'.")
+    m_logger.qbsDebug() << QStringLiteral("Copying file '%1' into target directory '%2'.")
                            .arg(nativeFilePath, nativeTargetDir);
 
     if (!QDir::root().mkpath(targetDir)) {

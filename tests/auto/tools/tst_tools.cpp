@@ -387,37 +387,37 @@ void TestTools::testBuildConfigMerging()
 {
     TemporaryProfile tp(QLatin1String("tst_tools_profile"), m_settings);
     Profile profile = tp.p;
-    profile.setValue(QLatin1String("topLevelKey"), QLatin1String("topLevelValue"));
-    profile.setValue(QLatin1String("qbs.toolchain"), QLatin1String("gcc"));
-    profile.setValue(QLatin1String("qbs.architecture"),
-                     QLatin1String("Jean-Claude Pillemann"));
-    profile.setValue(QLatin1String("cpp.treatWarningsAsErrors"), true);
+    profile.setValue(QStringLiteral("topLevelKey"), QStringLiteral("topLevelValue"));
+    profile.setValue(QStringLiteral("qbs.toolchain"), QStringLiteral("gcc"));
+    profile.setValue(QStringLiteral("qbs.architecture"),
+                     QStringLiteral("Jean-Claude Pillemann"));
+    profile.setValue(QStringLiteral("cpp.treatWarningsAsErrors"), true);
     QVariantMap overrideMap;
-    overrideMap.insert(QLatin1String("qbs.toolchain"), QLatin1String("clang"));
-    overrideMap.insert(QLatin1String("qbs.installRoot"), QLatin1String("/blubb"));
+    overrideMap.insert(QStringLiteral("qbs.toolchain"), QStringLiteral("clang"));
+    overrideMap.insert(QStringLiteral("qbs.installRoot"), QStringLiteral("/blubb"));
     SetupProjectParameters params;
     params.setSettingsDirectory(m_settings->baseDirectory());
     params.setTopLevelProfile(profile.name());
-    params.setConfigurationName(QLatin1String("debug"));
+    params.setConfigurationName(QStringLiteral("debug"));
     params.setOverriddenValues(overrideMap);
     const ErrorInfo error = params.expandBuildConfiguration();
     QVERIFY2(!error.hasError(), qPrintable(error.toString()));
     const QVariantMap finalMap = params.finalBuildConfigurationTree();
     QCOMPARE(finalMap.size(), 3);
-    QCOMPARE(finalMap.value(QLatin1String("topLevelKey")).toString(),
-             QString::fromLatin1("topLevelValue"));
-    const QVariantMap finalQbsMap = finalMap.value(QLatin1String("qbs")).toMap();
+    QCOMPARE(finalMap.value(QStringLiteral("topLevelKey")).toString(),
+             QStringLiteral("topLevelValue"));
+    const QVariantMap finalQbsMap = finalMap.value(QStringLiteral("qbs")).toMap();
     QCOMPARE(finalQbsMap.size(), 4);
-    QCOMPARE(finalQbsMap.value(QLatin1String("toolchain")).toString(),
-             QString::fromLatin1("clang"));
-    QCOMPARE(finalQbsMap.value(QLatin1String("configurationName")).toString(),
-             QString::fromLatin1("debug"));
-    QCOMPARE(finalQbsMap.value(QLatin1String("architecture")).toString(),
-             QString::fromLatin1("Jean-Claude Pillemann"));
-    QCOMPARE(finalQbsMap.value(QLatin1String("installRoot")).toString(), QLatin1String("/blubb"));
-    const QVariantMap finalCppMap = finalMap.value(QLatin1String("cpp")).toMap();
+    QCOMPARE(finalQbsMap.value(QStringLiteral("toolchain")).toString(),
+             QStringLiteral("clang"));
+    QCOMPARE(finalQbsMap.value(QStringLiteral("configurationName")).toString(),
+             QStringLiteral("debug"));
+    QCOMPARE(finalQbsMap.value(QStringLiteral("architecture")).toString(),
+             QStringLiteral("Jean-Claude Pillemann"));
+    QCOMPARE(finalQbsMap.value(QStringLiteral("installRoot")).toString(), QLatin1String("/blubb"));
+    const QVariantMap finalCppMap = finalMap.value(QStringLiteral("cpp")).toMap();
     QCOMPARE(finalCppMap.size(), 1);
-    QCOMPARE(finalCppMap.value(QLatin1String("treatWarningsAsErrors")).toBool(), true);
+    QCOMPARE(finalCppMap.value(QStringLiteral("treatWarningsAsErrors")).toBool(), true);
 }
 
 void TestTools::testProcessNameByPid()

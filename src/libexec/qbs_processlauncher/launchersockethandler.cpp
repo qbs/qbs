@@ -133,7 +133,7 @@ void LauncherSocketHandler::handleSocketData()
         if (!m_packetParser.parse())
             return;
     } catch (const PacketParser::InvalidPacketSizeException &e) {
-        logWarn(QString::fromLatin1("Internal protocol error: invalid packet size %1.")
+        logWarn(QStringLiteral("Internal protocol error: invalid packet size %1.")
                 .arg(e.size));
         return;
     }
@@ -148,7 +148,7 @@ void LauncherSocketHandler::handleSocketData()
         handleShutdownPacket();
         return;
     default:
-        logWarn(QString::fromLatin1("Internal protocol error: invalid packet type %1.")
+        logWarn(QStringLiteral("Internal protocol error: invalid packet type %1.")
                 .arg(static_cast<int>(m_packetParser.type())));
         return;
     }
@@ -158,7 +158,7 @@ void LauncherSocketHandler::handleSocketData()
 void LauncherSocketHandler::handleSocketError()
 {
     if (m_socket->error() != QLocalSocket::PeerClosedError) {
-        logError(QString::fromLatin1("socket error: %1").arg(m_socket->errorString()));
+        logError(QStringLiteral("socket error: %1").arg(m_socket->errorString()));
         m_socket->disconnect();
         qApp->quit();
     }

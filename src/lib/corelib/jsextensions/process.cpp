@@ -114,7 +114,7 @@ QScriptValue Process::ctor(QScriptContext *context, QScriptEngine *engine)
         t = new Process(context);
         break;
     default:
-        return context->throwError(QLatin1String("Process()"));
+        return context->throwError(QStringLiteral("Process()"));
     }
 
     const auto se = static_cast<ScriptEngine *>(engine);
@@ -122,7 +122,7 @@ QScriptValue Process::ctor(QScriptContext *context, QScriptEngine *engine)
     const DubiousContextList dubiousContexts ({
             DubiousContext(EvalContext::PropertyEvaluation, DubiousContext::SuggestMoving)
     });
-    se->checkContext(QLatin1String("qbs.Process"), dubiousContexts);
+    se->checkContext(QStringLiteral("qbs.Process"), dubiousContexts);
 
     QScriptValue obj = engine->newQObject(t, QScriptEngine::QtOwnership);
 
@@ -325,7 +325,7 @@ QScriptValue Process::js_shellQuote(QScriptContext *context, QScriptEngine *engi
 {
     if (Q_UNLIKELY(context->argumentCount() < 2)) {
         return context->throwError(QScriptContext::SyntaxError,
-                                   QLatin1String("shellQuote expects at least 2 arguments"));
+                                   QStringLiteral("shellQuote expects at least 2 arguments"));
     }
     const QString program = context->argument(0).toString();
     const QStringList args = context->argument(1).toVariant().toStringList();
@@ -345,7 +345,7 @@ void initializeJsExtensionProcess(QScriptValue extensionObject)
     using namespace qbs::Internal;
     QScriptEngine *engine = extensionObject.engine();
     QScriptValue obj = engine->newQMetaObject(&Process::staticMetaObject, engine->newFunction(&Process::ctor));
-    extensionObject.setProperty(QLatin1String("Process"), obj);
+    extensionObject.setProperty(QStringLiteral("Process"), obj);
     obj.setProperty(QStringLiteral("shellQuote"), engine->newFunction(Process::js_shellQuote, 3));
 }
 

@@ -125,9 +125,9 @@ QString CodeLocation::toString() const
     if (isValid()) {
         str = QDir::toNativeSeparators(filePath());
         QString lineAndColumn;
-        if (line() > 0 && !str.contains(QRegExp(QLatin1String(":[0-9]+$"))))
+        if (line() > 0 && !str.contains(QRegExp(QStringLiteral(":[0-9]+$"))))
             lineAndColumn += QLatin1Char(':') + QString::number(line());
-        if (column() > 0 && !str.contains(QRegExp(QLatin1String(":[0-9]+:[0-9]+$"))))
+        if (column() > 0 && !str.contains(QRegExp(QStringLiteral(":[0-9]+:[0-9]+$"))))
             lineAndColumn += QLatin1Char(':') + QString::number(column());
         str += lineAndColumn;
     }

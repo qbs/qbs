@@ -156,9 +156,9 @@ void CommandLineFrontend::start()
         const auto buildConfigs = m_parser.buildConfigurations();
         for (const QVariantMap &buildConfig : buildConfigs) {
             QVariantMap userConfig = buildConfig;
-            const QString configurationKey = QLatin1String("qbs.configurationName");
-            const QString profileKey = QLatin1String("qbs.profile");
-            const QString installRootKey = QLatin1String("qbs.installRoot");
+            const QString configurationKey = QStringLiteral("qbs.configurationName");
+            const QString profileKey = QStringLiteral("qbs.profile");
+            const QString installRootKey = QStringLiteral("qbs.installRoot");
             QString installRoot = userConfig.value(installRootKey).toString();
             if (!installRoot.isEmpty() && QFileInfo(installRoot).isRelative()) {
                 installRoot.prepend(QLatin1Char('/')).prepend(QDir::currentPath());
@@ -316,7 +316,7 @@ void CommandLineFrontend::handleProcessResultReport(const qbs::ProcessResult &re
 
     LogWriter w = result.success() ? qbsInfo() : qbsError();
     w << shellQuote(QDir::toNativeSeparators(result.executableFilePath()), result.arguments())
-      << (hasOutput ? QString::fromLatin1("\n") : QString())
+      << (hasOutput ? QStringLiteral("\n") : QString())
       << (result.stdOut().empty() ? QString() : result.stdOut().join(QLatin1Char('\n')));
     if (!result.stdErr().empty())
         w << result.stdErr().join(QLatin1Char('\n')) << MessageTag(QStringLiteral("stdErr"));
@@ -593,7 +593,7 @@ void CommandLineFrontend::listProducts()
         QString productInfo = p.fullDisplayName();
         if (!p.isEnabled())
             productInfo.append(QLatin1Char(' ')).append(Tr::tr("[disabled]"));
-        else if (!p.properties().value(QLatin1String("builtByDefault")).toBool())
+        else if (!p.properties().value(QStringLiteral("builtByDefault")).toBool())
             productInfo.append(QLatin1Char(' ')).append(Tr::tr("[not built by default]"));
         output += productInfo;
     }

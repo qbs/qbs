@@ -92,9 +92,9 @@ static void addMSVCPlatform(Settings *settings, QList<Profile> &profiles, QStrin
     qbsInfo() << Tr::tr("Setting up profile '%1'.").arg(name);
     Profile p(name, settings);
     p.removeProfile();
-    p.setValue(QLatin1String("qbs.targetPlatform"), QLatin1String("windows"));
-    p.setValue(QLatin1String("qbs.toolchain"), QStringList(QLatin1String("msvc")));
-    p.setValue(QLatin1String("cpp.toolchainInstallPath"), msvc->binPath);
+    p.setValue(QStringLiteral("qbs.targetPlatform"), QStringLiteral("windows"));
+    p.setValue(QStringLiteral("qbs.toolchain"), QStringList(QStringLiteral("msvc")));
+    p.setValue(QStringLiteral("cpp.toolchainInstallPath"), msvc->binPath);
     setQtHelperProperties(p, msvc);
     profiles.push_back(p);
 }
@@ -154,7 +154,7 @@ static std::vector<MSVCArchInfo> findSupportedArchitectures(const MSVC &msvc)
 static QString wow6432Key()
 {
 #ifdef Q_OS_WIN64
-    return QLatin1String("\\Wow6432Node");
+    return QStringLiteral("\\Wow6432Node");
 #else
     return QString();
 #endif
@@ -351,7 +351,7 @@ void msvcProbe(Settings *settings, QList<Profile> &profiles)
     const QSettings sdkRegistry(QLatin1String("HKEY_LOCAL_MACHINE\\SOFTWARE") + wow6432Key()
                                 + QLatin1String("\\Microsoft\\Microsoft SDKs\\Windows"),
                                 QSettings::NativeFormat);
-    const QString defaultSdkPath = sdkRegistry.value(QLatin1String("CurrentInstallFolder")).toString();
+    const QString defaultSdkPath = sdkRegistry.value(QStringLiteral("CurrentInstallFolder")).toString();
     if (!defaultSdkPath.isEmpty()) {
         const auto sdkKeys = sdkRegistry.childGroups();
         for (const QString &sdkKey : sdkKeys) {

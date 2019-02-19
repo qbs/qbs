@@ -101,16 +101,16 @@ static QStringList validMinGWMachines()
 {
     // List of MinGW machine names (gcc -dumpmachine) recognized by Qbs
     return QStringList()
-            << QLatin1String("mingw32") << QLatin1String("mingw64")
-            << QLatin1String("i686-w64-mingw32") << QLatin1String("x86_64-w64-mingw32")
-            << QLatin1String("i686-w64-mingw32.shared") << QLatin1String("x86_64-w64-mingw32.shared")
-            << QLatin1String("i686-w64-mingw32.static") << QLatin1String("x86_64-w64-mingw32.static")
-            << QLatin1String("i586-mingw32msvc") << QLatin1String("amd64-mingw32msvc");
+            << QStringLiteral("mingw32") << QStringLiteral("mingw64")
+            << QStringLiteral("i686-w64-mingw32") << QStringLiteral("x86_64-w64-mingw32")
+            << QStringLiteral("i686-w64-mingw32.shared") << QStringLiteral("x86_64-w64-mingw32.shared")
+            << QStringLiteral("i686-w64-mingw32.static") << QStringLiteral("x86_64-w64-mingw32.static")
+            << QStringLiteral("i586-mingw32msvc") << QStringLiteral("amd64-mingw32msvc");
 }
 
 static QStringList knownIarCompilerNames()
 {
-    return { QLatin1String("icc8051"), QLatin1String("iccarm"), QLatin1String("iccavr") };
+    return { QStringLiteral("icc8051"), QStringLiteral("iccarm"), QStringLiteral("iccavr") };
 }
 
 static bool isIarCompiler(const QString &compilerName)
@@ -135,25 +135,25 @@ static bool isKeilCompiler(const QString &compilerName)
 static QStringList toolchainTypeFromCompilerName(const QString &compilerName)
 {
     if (compilerName == QLatin1String("cl.exe"))
-        return canonicalToolchain(QLatin1String("msvc"));
-    const auto types = { QLatin1String("clang"), QLatin1String("llvm"),
-                         QLatin1String("mingw"), QLatin1String("gcc") };
+        return canonicalToolchain(QStringLiteral("msvc"));
+    const auto types = { QStringLiteral("clang"), QStringLiteral("llvm"),
+                         QStringLiteral("mingw"), QStringLiteral("gcc") };
     for (const auto &type : types) {
         if (compilerName.contains(type))
             return canonicalToolchain(type);
     }
     if (compilerName == QLatin1String("g++"))
-        return canonicalToolchain(QLatin1String("gcc"));
+        return canonicalToolchain(QStringLiteral("gcc"));
     if (isIarCompiler(compilerName))
-        return canonicalToolchain(QLatin1String("iar"));
+        return canonicalToolchain(QStringLiteral("iar"));
     if (isKeilCompiler(compilerName))
-        return canonicalToolchain(QLatin1String("keil"));
+        return canonicalToolchain(QStringLiteral("keil"));
     return QStringList();
 }
 
 static QString gccMachineName(const QString &compilerFilePath)
 {
-    return qsystem(compilerFilePath, QStringList() << QLatin1String("-dumpmachine")).trimmed();
+    return qsystem(compilerFilePath, QStringList() << QStringLiteral("-dumpmachine")).trimmed();
 }
 
 static QStringList standardCompilerFileNames()
@@ -176,15 +176,15 @@ static void setCommonProperties(Profile &profile, const QString &compilerFilePat
 
     const QString prefix = compilerName.left(compilerName.lastIndexOf(QLatin1Char('-')) + 1);
     if (!prefix.isEmpty())
-        profile.setValue(QLatin1String("cpp.toolchainPrefix"), prefix);
+        profile.setValue(QStringLiteral("cpp.toolchainPrefix"), prefix);
 
-    profile.setValue(QLatin1String("cpp.toolchainInstallPath"), cfi.absolutePath());
-    profile.setValue(QLatin1String("qbs.toolchain"), toolchainTypes);
+    profile.setValue(QStringLiteral("cpp.toolchainInstallPath"), cfi.absolutePath());
+    profile.setValue(QStringLiteral("qbs.toolchain"), toolchainTypes);
 
     const QString suffix = compilerName.right(compilerName.size() - prefix.size());
     if (!standardCompilerFileNames().contains(suffix))
         qWarning("%s", qPrintable(
-                     QString::fromLatin1("'%1' is not a standard compiler file name; "
+                     QStringLiteral("'%1' is not a standard compiler file name; "
                                             "you must set the cpp.cCompilerName and "
                                             "cpp.cxxCompilerName properties of this profile "
                                             "manually").arg(compilerName)));
@@ -205,9 +205,8 @@ public:
             return;
         const QString toolFilePath = findExecutable(toolFileName);
         if (toolFilePath.isEmpty()) {
-            qWarning("%s", qPrintable(
-                         QString(QLatin1String("'%1' exists neither in '%2' nor in PATH."))
-                            .arg(toolFileName, m_compilerDirPath)));
+            qWarning("%s", qPrintable(QStringLiteral("'%1' exists neither in '%2' nor in PATH.")
+                     .arg(toolFileName, m_compilerDirPath)));
         }
         m_profile->setValue(propertyName, toolFilePath);
     }
@@ -251,14 +250,14 @@ static Profile createGccProfile(const QString &compilerFilePath, Settings *setti
     const ToolPathSetup toolPathSetup(&profile, compilerDirPath,
                                       profile.value(QStringLiteral("cpp.toolchainPrefix"))
                                       .toString());
-    toolPathSetup.apply(QLatin1String("ar"), QLatin1String("cpp.archiverPath"));
-    toolPathSetup.apply(QLatin1String("as"), QLatin1String("cpp.assemblerPath"));
-    toolPathSetup.apply(QLatin1String("nm"), QLatin1String("cpp.nmPath"));
+    toolPathSetup.apply(QStringLiteral("ar"), QStringLiteral("cpp.archiverPath"));
+    toolPathSetup.apply(QStringLiteral("as"), QStringLiteral("cpp.assemblerPath"));
+    toolPathSetup.apply(QStringLiteral("nm"), QStringLiteral("cpp.nmPath"));
     if (doesProfileTargetOS(profile, QStringLiteral("darwin")))
-        toolPathSetup.apply(QLatin1String("dsymutil"), QLatin1String("cpp.dsymutilPath"));
+        toolPathSetup.apply(QStringLiteral("dsymutil"), QStringLiteral("cpp.dsymutilPath"));
     else
-        toolPathSetup.apply(QLatin1String("objcopy"), QLatin1String("cpp.objcopyPath"));
-    toolPathSetup.apply(QLatin1String("strip"), QLatin1String("cpp.stripPath"));
+        toolPathSetup.apply(QStringLiteral("objcopy"), QStringLiteral("cpp.objcopyPath"));
+    toolPathSetup.apply(QStringLiteral("strip"), QStringLiteral("cpp.stripPath"));
 
     qStdout << Tr::tr("Profile '%1' created for '%2'.").arg(profile.name(), compilerFilePath)
             << endl;
@@ -269,11 +268,11 @@ static QString guessIarArchitecture(const QFileInfo &compiler)
 {
     const auto baseName = compiler.baseName();
     if (baseName == QLatin1String("icc8051"))
-        return QLatin1String("mcs51");
+        return QStringLiteral("mcs51");
     if (baseName == QLatin1String("iccarm"))
-        return QLatin1String("arm");
+        return QStringLiteral("arm");
     if (baseName == QLatin1String("iccavr"))
-        return QLatin1String("avr");
+        return QStringLiteral("avr");
     return {};
 }
 
@@ -350,7 +349,7 @@ static void mingwProbe(Settings *settings, QList<Profile> &profiles)
     // List of possible compiler binary names for this platform
     QStringList compilerNames;
     if (HostOsInfo::isWindowsHost()) {
-        compilerNames << QLatin1String("gcc");
+        compilerNames << QStringLiteral("gcc");
     } else {
         const auto machineNames = validMinGWMachines();
         for (const QString &machineName : machineNames) {
@@ -363,7 +362,7 @@ static void mingwProbe(Settings *settings, QList<Profile> &profiles)
                 = findExecutable(HostOsInfo::appendExecutableSuffix(compilerName));
         if (!gccPath.isEmpty())
             profiles.push_back(createGccProfile(gccPath, settings,
-                                                canonicalToolchain(QLatin1String("mingw"))));
+                                                canonicalToolchain(QStringLiteral("mingw"))));
     }
 }
 
@@ -409,8 +408,8 @@ void probe(Settings *settings)
     if (HostOsInfo::isWindowsHost()) {
         msvcProbe(settings, profiles);
     } else {
-        gccProbe(settings, profiles, QLatin1String("gcc"));
-        gccProbe(settings, profiles, QLatin1String("clang"));
+        gccProbe(settings, profiles, QStringLiteral("gcc"));
+        gccProbe(settings, profiles, QStringLiteral("clang"));
 
         if (HostOsInfo::isMacosHost()) {
             xcodeProbe(settings, profiles);
@@ -426,7 +425,7 @@ void probe(Settings *settings)
     } else if (profiles.size() == 1 && settings->defaultProfile().isEmpty()) {
         const QString profileName = profiles.front().name();
         qStdout << Tr::tr("Making profile '%1' the default.").arg(profileName) << endl;
-        settings->setValue(QLatin1String("defaultProfile"), profileName);
+        settings->setValue(QStringLiteral("defaultProfile"), profileName);
     }
 }
 

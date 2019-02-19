@@ -73,7 +73,7 @@ struct Node
 
 QString Node::uniqueChildName() const
 {
-    QString newName = QLatin1String("newkey");
+    QString newName = QStringLiteral("newkey");
     bool unique;
     do {
         unique = true;

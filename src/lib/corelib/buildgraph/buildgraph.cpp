@@ -473,7 +473,7 @@ void connect(BuildGraphNode *p, BuildGraphNode *c)
             const bool filePathsMustBeDifferent = child->artifactType == Artifact::Generated
                     || child->product == ac->product || child->artifactType != ac->artifactType;
             if (filePathsMustBeDifferent && child->filePath() == ac->filePath()) {
-                throw ErrorInfo(QString::fromLatin1("%1 already has a child artifact %2 as "
+                throw ErrorInfo(QStringLiteral("%1 already has a child artifact %2 as "
                                                     "different object.").arg(p->toString(),
                                                                              ac->filePath()),
                                 CodeLocation(), true);
@@ -554,7 +554,7 @@ void removeGeneratedArtifactFromDisk(const QString &filePath, const Logger &logg
         return;
     logger.qbsDebug() << "removing " << filePath;
     if (!file.remove())
-        logger.qbsWarning() << QString::fromLatin1("Cannot remove '%1'.").arg(filePath);
+        logger.qbsWarning() << QStringLiteral("Cannot remove '%1'.").arg(filePath);
 }
 
 QString relativeArtifactFileName(const Artifact *artifact)
@@ -808,7 +808,7 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product,
                             && (other->artifactType != Artifact::SourceFile
                                 || a->artifactType != Artifact::SourceFile
                                 || other->product == a->product)) {
-                        throw ErrorInfo(QString::fromLatin1("There is more than one artifact for "
+                        throw ErrorInfo(QStringLiteral("There is more than one artifact for "
                                 "file '%1' in the child list for output '%2'.")
                                 .arg(a->filePath(), output->filePath()), CodeLocation(), true);
                     }

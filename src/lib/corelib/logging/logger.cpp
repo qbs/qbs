@@ -139,7 +139,7 @@ LogWriter operator<<(LogWriter w, const QStringList &strList)
     for (int i = 0; i < strList.size(); ++i) {
         w.write(strList.at(i));
         if (i != strList.size() - 1)
-            w.write(QLatin1String(", "));
+            w.write(QStringLiteral(", "));
     }
     w.write(']');
     return w;
@@ -153,7 +153,7 @@ LogWriter operator<<(LogWriter w, const Internal::Set<QString> &strSet)
         if (firstLoop)
             firstLoop = false;
         else
-            w.write(QLatin1String(", "));
+            w.write(QStringLiteral(", "));
         w.write(str);
     }
     w.write(')');

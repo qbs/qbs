@@ -213,7 +213,7 @@ void MSBuildQbsProductProject::addConfiguration(const GeneratableProject &projec
         }
 
         propertyGroup1->appendProperty(QStringLiteral("LocalDebuggerEnvironment"),
-                                       env.toStringList().join(QStringLiteral("\n")));
+                                       env.toStringList().join(QLatin1String("\n")));
     }
 
     // NMake - General

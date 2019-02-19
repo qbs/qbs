@@ -81,7 +81,7 @@ public:
     static inline Version hostOsVersion() {
         Version v;
         if (HostOsInfo::isWindowsHost()) {
-            QSettings settings(QString::fromLatin1("HKEY_LOCAL_MACHINE\\Software\\"
+            QSettings settings(QStringLiteral("HKEY_LOCAL_MACHINE\\Software\\"
                                                    "Microsoft\\Windows NT\\CurrentVersion"),
                                QSettings::NativeFormat);
             v = v.fromString(settings.value(QStringLiteral("CurrentVersion")).toString() +

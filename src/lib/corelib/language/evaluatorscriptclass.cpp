@@ -433,7 +433,7 @@ QScriptClass::QueryFlags EvaluatorScriptClass::queryItemProperty(const Evaluatio
 QString EvaluatorScriptClass::resultToString(const QScriptValue &scriptValue)
 {
     return (scriptValue.isObject()
-        ? QLatin1String("[Object: ")
+        ? QStringLiteral("[Object: ")
             + QString::number(scriptValue.objectId()) + QLatin1Char(']')
         : scriptValue.toVariant().toString());
 }
@@ -509,7 +509,7 @@ static void convertToPropertyType_impl(const QString &pathPropertiesBaseDir, con
     QString actualBaseDir;
     if (item && !pathPropertiesBaseDir.isEmpty()) {
         const VariantValueConstPtr itemSourceDir
-                = item->variantProperty(QLatin1String("sourceDirectory"));
+                = item->variantProperty(QStringLiteral("sourceDirectory"));
         actualBaseDir = itemSourceDir ? itemSourceDir->value().toString() : pathPropertiesBaseDir;
     }
     switch (decl.type()) {

@@ -111,7 +111,7 @@ void ConsoleProgressObserver::updateProgressBarIfNecessary()
 
 void ConsoleProgressObserver::writePercentageString()
 {
-    std::cout << QString::fromLatin1(" %1%").arg(m_percentage).toLocal8Bit().constData();
+    std::cout << QStringLiteral(" %1%").arg(m_percentage).toLocal8Bit().constData();
 }
 
 } // namespace qbs

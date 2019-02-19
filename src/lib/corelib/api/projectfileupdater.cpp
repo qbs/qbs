@@ -378,7 +378,7 @@ void ProjectFileFilesAdder::doApply(QString &fileContent, UiProgram *ast)
 
             // It cannot be the other way around, since the existing right-hand side could
             // have string type.
-            filesRepresentation += QString::fromLatin1(".concat(%1)").arg(rhsRepr);
+            filesRepresentation += QStringLiteral(".concat(%1)").arg(rhsRepr);
 
         }
         }
@@ -468,10 +468,11 @@ void ProjectFileFilesRemover::doApply(QString &fileContent, UiProgram *ast)
             throw ErrorInfo(Tr::tr("The following files were not found in the 'files' list: %1")
                             .arg(filesToRemove.join(QLatin1String(", "))), bindingLocation);
         }
-        QString filesString = QLatin1String("[\n");
+        QString filesString;
+        filesString += QLatin1String("[\n");
         for (const QString &file : qAsConst(newFilesList)) {
             filesString += QString(arrayElemIndentation, QLatin1Char(' '));
-            filesString += QString::fromLatin1("\"%1\",\n").arg(file);
+            filesString += QStringLiteral("\"%1\",\n").arg(file);
         }
         filesString += QString(bindingIndentation, QLatin1Char(' '));
         filesString += QLatin1Char(']');

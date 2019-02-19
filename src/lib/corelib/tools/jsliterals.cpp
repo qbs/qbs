@@ -61,7 +61,7 @@ QString toJSLiteral(const QString &str)
 
 QString toJSLiteral(const QStringList &strs)
 {
-    QString js = QLatin1String("[");
+    QString js = QStringLiteral("[");
     for (int i = 0; i < strs.size(); ++i) {
         if (i != 0)
             js.append(QLatin1String(", "));
@@ -87,7 +87,7 @@ QString toJSLiteral(const QVariant &val)
     }
     if (val.type() == QVariant::Map) {
         const QVariantMap &vm = val.toMap();
-        QString str = QLatin1String("{");
+        QString str = QStringLiteral("{");
         for (QVariantMap::const_iterator it = vm.begin(); it != vm.end(); ++it) {
             if (it != vm.begin())
                 str += QLatin1Char(',');
@@ -100,7 +100,7 @@ QString toJSLiteral(const QVariant &val)
         return toJSLiteral(val.toBool());
     if (val.canConvert(QVariant::String))
         return toJSLiteral(val.toString());
-    return QString::fromLatin1("Unconvertible type %1").arg(QLatin1String(val.typeName()));
+    return QStringLiteral("Unconvertible type %1").arg(QLatin1String(val.typeName()));
 }
 
 } // namespace qbs

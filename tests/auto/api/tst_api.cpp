@@ -1372,7 +1372,7 @@ void TestApi::generatedFilesList()
     const QStringList directParents = project.generatedFiles(product, uiFilePath, false);
     QCOMPARE(directParents.size(), 1);
     const QFileInfo uiHeaderFileInfo(directParents.front());
-    QCOMPARE(uiHeaderFileInfo.fileName(), QLatin1String("ui_mainwindow.h"));
+    QCOMPARE(uiHeaderFileInfo.fileName(), QStringLiteral("ui_mainwindow.h"));
     QVERIFY(!uiHeaderFileInfo.exists());
     const QStringList allParents = project.generatedFiles(product, uiFilePath, true);
     QCOMPARE(allParents.size(), 3);
@@ -1448,7 +1448,7 @@ void TestApi::installableFiles()
 {
     qbs::SetupProjectParameters setupParams = defaultSetupParameters("installed-artifact");
     QVariantMap overriddenValues;
-    overriddenValues.insert(QLatin1String("qbs.installRoot"), QLatin1String("/tmp"));
+    overriddenValues.insert(QStringLiteral("qbs.installRoot"), QStringLiteral("/tmp"));
     setupParams.setOverriddenValues(overriddenValues);
     std::unique_ptr<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
                                                                          m_logSink, 0));
@@ -1471,7 +1471,7 @@ void TestApi::installableFiles()
         if (!QFileInfo(f.filePath()).fileName().startsWith("main")) {
             QVERIFY(f.isExecutable());
             QString expectedTargetFilePath = qbs::Internal::HostOsInfo
-                    ::appendExecutableSuffix(QLatin1String("/tmp/usr/bin/installedApp"));
+                    ::appendExecutableSuffix(QStringLiteral("/tmp/usr/bin/installedApp"));
             QCOMPARE(f.installData().localInstallFilePath(), expectedTargetFilePath);
             QCOMPARE(product.targetExecutable(), expectedTargetFilePath);
             break;
@@ -1872,7 +1872,7 @@ void TestApi::multiArch()
 
     // Error check: Try to build for the same profile twice, this time attaching
     // the properties via the product name.
-    overriddenValues.remove(QLatin1String("project.targetProfile"));
+    overriddenValues.remove(QStringLiteral("project.targetProfile"));
     overriddenValues.insert("products.p1.myProfiles",
                             targetProfile.name() + ',' + targetProfile.name());
     setupParams.setOverriddenValues(overriddenValues);
@@ -2185,7 +2185,7 @@ void TestApi::nonexistingProjectPropertyFromCommandLine()
             = defaultSetupParameters("nonexistingprojectproperties");
     removeBuildDir(setupParams);
     QVariantMap projectProperties;
-    projectProperties.insert(QLatin1String("project.blubb"), QLatin1String("true"));
+    projectProperties.insert(QStringLiteral("project.blubb"), QStringLiteral("true"));
     setupParams.setOverriddenValues(projectProperties);
     std::unique_ptr<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
                                                                         m_logSink, 0));

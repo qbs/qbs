@@ -99,8 +99,8 @@ bool XcodeProbe::addDeveloperPath(const QString &path)
 void XcodeProbe::detectDeveloperPaths()
 {
     QProcess selectedXcode;
-    QString program = QLatin1String("/usr/bin/xcode-select");
-    QStringList arguments(QLatin1String("--print-path"));
+    QString program = QStringLiteral("/usr/bin/xcode-select");
+    QStringList arguments(QStringLiteral("--print-path"));
     selectedXcode.start(program, arguments, QProcess::ReadOnly);
     if (!selectedXcode.waitForFinished(-1) || selectedXcode.exitCode()) {
         qbsInfo() << Tr::tr("Could not detect selected Xcode with /usr/bin/xcode-select");
@@ -111,8 +111,8 @@ void XcodeProbe::detectDeveloperPaths()
     addDeveloperPath(defaultDeveloperPath);
 
     QProcess launchServices;
-    program = QLatin1String("/usr/bin/mdfind");
-    arguments = QStringList(QLatin1String("kMDItemCFBundleIdentifier == 'com.apple.dt.Xcode'"));
+    program = QStringLiteral("/usr/bin/mdfind");
+    arguments = QStringList(QStringLiteral("kMDItemCFBundleIdentifier == 'com.apple.dt.Xcode'"));
     launchServices.start(program, arguments, QProcess::ReadOnly);
     if (!launchServices.waitForFinished(-1) || launchServices.exitCode()) {
         qbsInfo() << Tr::tr("Could not detect additional Xcode installations with /usr/bin/mdfind");
@@ -172,10 +172,10 @@ void XcodeProbe::setupDefaultToolchains(const QString &devPath, const QString &x
     Profile installationProfile(xcodeName, settings);
     installationProfile.removeProfile();
     installationProfile.setValue(QStringLiteral("qbs.toolchain"), QStringList()
-                                 << QLatin1String("xcode")
-                                 << QLatin1String("clang")
-                                 << QLatin1String("llvm")
-                                 << QLatin1String("gcc"));
+                                 << QStringLiteral("xcode")
+                                 << QStringLiteral("clang")
+                                 << QStringLiteral("llvm")
+                                 << QStringLiteral("gcc"));
     if (devPath != defaultDeveloperPath)
         installationProfile.setValue(QStringLiteral("xcode.developerPath"), devPath);
     profiles.push_back(installationProfile);
@@ -212,7 +212,7 @@ void XcodeProbe::detectAll()
     int i = 1;
     detectDeveloperPaths();
     for (const QString &developerPath : developerPaths) {
-        QString profileName = QLatin1String("xcode");
+        QString profileName = QStringLiteral("xcode");
         if (developerPath != defaultDeveloperPath) {
             const auto devPath = developerPath.toStdString();
             std::smatch match;

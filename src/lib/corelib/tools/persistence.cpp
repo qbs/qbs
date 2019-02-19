@@ -84,7 +84,7 @@ void PersistentPool::load(const QString &filePath)
         m_stream.setDevice(nullptr);
         throw ErrorInfo(Tr::tr("Cannot use stored build graph at '%1': Incompatible file format. "
                            "Expected magic token '%2', got '%3'.")
-                    .arg(filePath, QString::fromLatin1(QBS_PERSISTENCE_MAGIC),
+                    .arg(filePath, QLatin1String(QBS_PERSISTENCE_MAGIC),
                          QString::fromLatin1(magic)));
     }
 

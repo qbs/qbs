@@ -48,7 +48,7 @@ namespace qbs {
 QString GeneratableProductData::name() const
 {
     return uniqueValue<QString>(&ProductData::name,
-        QLatin1String("Products with different names per configuration are not "
+        QStringLiteral("Products with different names per configuration are not "
                       "compatible with this generator. "
                       "Consider using the targetName property instead."));
 }
@@ -56,34 +56,34 @@ QString GeneratableProductData::name() const
 CodeLocation GeneratableProductData::location() const
 {
     return uniqueValue<CodeLocation>(&ProductData::location,
-        QLatin1String("GeneratableProductData::location: internal bug; this should not happen."));
+        QStringLiteral("GeneratableProductData::location: internal bug; this should not happen."));
 }
 
 QStringList GeneratableProductData::dependencies() const
 {
     return uniqueValue<QStringList>(&ProductData::dependencies,
-        QLatin1String("Products with different dependency lists per configuration are not "
+        QStringLiteral("Products with different dependency lists per configuration are not "
                       "compatible with this generator."));
 }
 
 QStringList GeneratableProductData::type() const
 {
     return uniqueValue<QStringList>(&ProductData::type,
-        QLatin1String("Products with different types per configuration are not "
+        QStringLiteral("Products with different types per configuration are not "
                       "compatible with this generator."));
 }
 
 QString GeneratableProductData::buildDirectory() const
 {
     return uniqueValue<QString>(&ProductData::buildDirectory,
-        QLatin1String("GeneratableProductData::buildDirectory: "
+        QStringLiteral("GeneratableProductData::buildDirectory: "
                       "internal bug; this should not happen."));
 }
 
 QString GeneratableProjectData::name() const
 {
     return uniqueValue<QString>(&ProjectData::name,
-        QLatin1String("Projects with different names per configuration are not "
+        QStringLiteral("Projects with different names per configuration are not "
                       "compatible with this generator."));
 }
 
@@ -96,7 +96,7 @@ CodeLocation GeneratableProjectData::location() const
         CodeLocation oldLocation = location;
         location = it.value().location();
         if (oldLocation.isValid() && oldLocation != location)
-            throw ErrorInfo(QLatin1String("Projects with different code locations "
+            throw ErrorInfo(QStringLiteral("Projects with different code locations "
                                           "per configuration are not compatible with this "
                                           "generator."));
     }

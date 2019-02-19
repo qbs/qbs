@@ -132,15 +132,15 @@ Rewriter::Range Rewriter::addBinding(AST::UiObjectInitializer *ast,
     QString newPropertyTemplate;
     switch (bindingType) {
     case ArrayBinding:
-        newPropertyTemplate = QLatin1String("%1: [\n%2\n]");
+        newPropertyTemplate = QStringLiteral("%1: [\n%2\n]");
         break;
 
     case ObjectBinding:
-        newPropertyTemplate = QLatin1String("%1: %2");
+        newPropertyTemplate = QStringLiteral("%1: %2");
         break;
 
     case ScriptBinding:
-        newPropertyTemplate = QLatin1String("%1: %2");
+        newPropertyTemplate = QStringLiteral("%1: %2");
         break;
 
     default:
@@ -250,7 +250,7 @@ UiObjectMemberList *Rewriter::searchMemberToInsertAfter(UiObjectMemberList *memb
         else if (auto scriptBinding = cast<UiScriptBinding*>(member))
             orderedMembers[toString(scriptBinding->qualifiedId)] = iter;
         else if (cast<UiPublicMember*>(member))
-            orderedMembers[QLatin1String("property")] = iter;
+            orderedMembers[QStringLiteral("property")] = iter;
     }
 
     int idx = propertyOrder.indexOf(propertyName);
@@ -592,7 +592,7 @@ UiObjectMemberList *QMLRewriter::searchMemberToInsertAfter(UiObjectMemberList *m
         else if (UiScriptBinding *scriptBinding = cast<UiScriptBinding*>(member))
             orderedMembers[toString(scriptBinding->qualifiedId)] = iter;
         else if (cast<UiPublicMember*>(member))
-            orderedMembers[QLatin1String("property")] = iter;
+            orderedMembers[QStringLiteral("property")] = iter;
     }
 
     int idx = propertyOrder.indexOf(propertyName);

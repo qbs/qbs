@@ -107,7 +107,7 @@ public:
 
     WinSDK()
     {
-        pathPrefix = QLatin1String("bin");
+        pathPrefix = QStringLiteral("bin");
     }
 };
 

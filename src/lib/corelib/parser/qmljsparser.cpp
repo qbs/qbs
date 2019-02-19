@@ -291,7 +291,7 @@ case 20: {
         node->importToken = loc(1);
     } else {
        diagnostic_messages.append(DiagnosticMessage(DiagnosticMessage::Error, loc(1),
-         QLatin1String("Expected a qualified name id or a string literal")));
+         QStringLiteral("Expected a qualified name id or a string literal")));
 
         return false; // ### remove me
     }
@@ -681,7 +681,7 @@ case 88: {
 case 89: {
   if (const auto *mem = AST::cast<AST::ArrayMemberExpression *>(sym(1).Expression)) {
     diagnostic_messages.append(DiagnosticMessage(DiagnosticMessage::Warning, mem->lbracketToken,
-      QLatin1String("Ignored annotation")));
+      QStringLiteral("Ignored annotation")));
 
     sym(1).Expression = mem->base;
   }
@@ -692,7 +692,7 @@ case 89: {
     sym(1).UiQualifiedId = nullptr;
 
     diagnostic_messages.append(DiagnosticMessage(DiagnosticMessage::Error, loc(1),
-      QLatin1String("Expected a qualified name id")));
+      QStringLiteral("Expected a qualified name id")));
 
     return false; // ### recover
   }

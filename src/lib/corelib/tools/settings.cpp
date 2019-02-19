@@ -196,7 +196,7 @@ void Settings::sync()
 
 QString Settings::defaultProfile() const
 {
-    return value(QLatin1String("defaultProfile"), allScopes()).toString();
+    return value(QStringLiteral("defaultProfile"), allScopes()).toString();
 }
 
 QStringList Settings::profiles() const

@@ -44,5 +44,5 @@ void initializeJsExtensionPropertyList(QScriptValue extensionObject)
 {
     QScriptEngine *engine = extensionObject.engine();
     QScriptValue obj = engine->newObject(); // provide a fake object
-    extensionObject.setProperty(QLatin1String("PropertyList"), obj);
+    extensionObject.setProperty(QStringLiteral("PropertyList"), obj);
 }

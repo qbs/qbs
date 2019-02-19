@@ -109,7 +109,7 @@ QStringList canonicalToolchain(const QString &name)
         toolchains << canonicalToolchain(llvmToolchain());
     else if (toolchainName == llvmToolchain() ||
              toolchainName == mingwToolchain()) {
-        toolchains << canonicalToolchain(QLatin1String("gcc"));
+        toolchains << canonicalToolchain(QStringLiteral("gcc"));
     }
     return toolchains;
 }

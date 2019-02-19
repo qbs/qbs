@@ -819,7 +819,7 @@ static QJsonObject findByName(const QJsonArray &objects, const QString &name)
         if (!v.isObject())
             continue;
         QJsonObject obj = v.toObject();
-        const QString objName = obj.value(QLatin1String("name")).toString();
+        const QString objName = obj.value(QStringLiteral("name")).toString();
         if (objName == name)
             return obj;
     }
@@ -850,14 +850,14 @@ void TestBlackbox::dependenciesProperty()
     QJsonArray dependencies = jsondoc.array();
     QCOMPARE(dependencies.size(), 2);
     QJsonObject product2 = findByName(dependencies, QStringLiteral("product2"));
-    QJsonArray product2_type = product2.value(QLatin1String("type")).toArray();
+    QJsonArray product2_type = product2.value(QStringLiteral("type")).toArray();
     QCOMPARE(product2_type.size(), 1);
     QCOMPARE(product2_type.first().toString(), QLatin1String("application"));
     QCOMPARE(product2.value(QLatin1String("narf")).toString(), QLatin1String("zort"));
     QJsonArray product2_cppArtifacts
             = product2.value("artifacts").toObject().value("cpp").toArray();
     QCOMPARE(product2_cppArtifacts.size(), 1);
-    QJsonArray product2_deps = product2.value(QLatin1String("dependencies")).toArray();
+    QJsonArray product2_deps = product2.value(QStringLiteral("dependencies")).toArray();
     QVERIFY(!product2_deps.empty());
     QJsonObject product2_qbs = findByName(product2_deps, QStringLiteral("qbs"));
     QVERIFY(!product2_qbs.empty());
@@ -918,9 +918,9 @@ void TestBlackbox::dependenciesProperty()
     dependencies = jsondoc.array();
     QCOMPARE(dependencies.size(), 3);
     product2 = findByName(dependencies, QStringLiteral("product2"));
-    product2_deps = product2.value(QLatin1String("dependencies")).toArray();
+    product2_deps = product2.value(QStringLiteral("dependencies")).toArray();
     product2_cpp = findByName(product2_deps, QStringLiteral("cpp"));
-    product2_cpp_defines = product2_cpp.value(QLatin1String("defines")).toArray();
+    product2_cpp_defines = product2_cpp.value(QStringLiteral("defines")).toArray();
     QCOMPARE(product2_cpp_defines.size(), 1);
     QCOMPARE(product2_cpp_defines.first().toString(), QLatin1String("DIGEDAG"));
 }
@@ -1532,7 +1532,7 @@ void TestBlackbox::clean()
     QCOMPARE(runQbs(), 0);
     QVERIFY(regularFileExists(appObjectFilePath));
     QVERIFY(regularFileExists(appExeFilePath));
-    QCOMPARE(runQbs(QbsRunParameters(QLatin1String("clean"))), 0);
+    QCOMPARE(runQbs(QbsRunParameters(QStringLiteral("clean"))), 0);
     QVERIFY(!QFile(appObjectFilePath).exists());
     QVERIFY(!QFile(appExeFilePath).exists());
     QVERIFY(!QFile(depObjectFilePath).exists());
@@ -1563,7 +1563,7 @@ void TestBlackbox::clean()
     QCOMPARE(runQbs(), 0);
     QVERIFY(regularFileExists(appObjectFilePath));
     QVERIFY(regularFileExists(appExeFilePath));
-    QCOMPARE(runQbs(QbsRunParameters(QLatin1String("clean"), QStringList("-n"))), 0);
+    QCOMPARE(runQbs(QbsRunParameters(QStringLiteral("clean"), QStringList("-n"))), 0);
     QVERIFY(regularFileExists(appObjectFilePath));
     QVERIFY(regularFileExists(appExeFilePath));
     QVERIFY(regularFileExists(depObjectFilePath));
@@ -1577,7 +1577,7 @@ void TestBlackbox::clean()
     QVERIFY(regularFileExists(appExeFilePath));
     QVERIFY(regularFileExists(depObjectFilePath));
     QVERIFY(regularFileExists(depLibFilePath));
-    QCOMPARE(runQbs(QbsRunParameters(QLatin1String("clean"), QStringList("-p") << "dep")), 0);
+    QCOMPARE(runQbs(QbsRunParameters(QStringLiteral("clean"), QStringList("-p") << "dep")), 0);
     QVERIFY(regularFileExists(appObjectFilePath));
     QVERIFY(regularFileExists(appExeFilePath));
     QVERIFY(!QFile(depObjectFilePath).exists());
@@ -1591,7 +1591,7 @@ void TestBlackbox::clean()
     QVERIFY(regularFileExists(appExeFilePath));
     QVERIFY(regularFileExists(depObjectFilePath));
     QVERIFY(regularFileExists(depLibFilePath));
-    QCOMPARE(runQbs(QbsRunParameters(QLatin1String("clean"), QStringList("-p") << "app")), 0);
+    QCOMPARE(runQbs(QbsRunParameters(QStringLiteral("clean"), QStringList("-p") << "app")), 0);
     QVERIFY(!QFile(appObjectFilePath).exists());
     QVERIFY(!QFile(appExeFilePath).exists());
     QVERIFY(regularFileExists(depObjectFilePath));
@@ -2042,7 +2042,7 @@ void TestBlackbox::trackRemoveFile()
     QFile::copy("../before/main.cpp", "main.cpp");
     QVERIFY(QFile::remove("zort.h"));
     QVERIFY(QFile::remove("zort.cpp"));
-    QCOMPARE(runQbs(QbsRunParameters(QLatin1String("resolve"))), 0);
+    QCOMPARE(runQbs(QbsRunParameters(QStringLiteral("resolve"))), 0);
 
     touch("main.cpp");
     touch("trackAddFile.qbs");
@@ -2184,7 +2184,7 @@ void TestBlackbox::wildcardRenaming()
     QVERIFY(QFileInfo(defaultInstallRoot + "/pioniere.txt").exists());
     WAIT_FOR_NEW_TIMESTAMP();
     QFile::rename(QDir::currentPath() + "/pioniere.txt", QDir::currentPath() + "/fdj.txt");
-    QCOMPARE(runQbs(QbsRunParameters(QLatin1String("install"),
+    QCOMPARE(runQbs(QbsRunParameters(QStringLiteral("install"),
                                      QStringList("--clean-install-root"))), 0);
     QVERIFY(!QFileInfo(defaultInstallRoot + "/pioniere.txt").exists());
     QVERIFY(QFileInfo(defaultInstallRoot + "/fdj.txt").exists());
@@ -2198,7 +2198,7 @@ void TestBlackbox::recursiveRenaming()
     QVERIFY(QFileInfo(defaultInstallRoot + "/dir/subdir/blubb.txt").exists());
     WAIT_FOR_NEW_TIMESTAMP();
     QVERIFY(QFile::rename(QDir::currentPath() + "/dir/wasser.txt", QDir::currentPath() + "/dir/wein.txt"));
-    QCOMPARE(runQbs(QbsRunParameters(QLatin1String("install"),
+    QCOMPARE(runQbs(QbsRunParameters(QStringLiteral("install"),
                                      QStringList("--clean-install-root"))), 0);
     QVERIFY(!QFileInfo(defaultInstallRoot + "/dir/wasser.txt").exists());
     QVERIFY(QFileInfo(defaultInstallRoot + "/dir/wein.txt").exists());
@@ -2679,25 +2679,25 @@ void TestBlackbox::overrideProjectProperties()
 {
     QDir::setCurrent(testDataDir + "/overrideProjectProperties");
     QCOMPARE(runQbs(QbsRunParameters(QStringList()
-                                     << QLatin1String("-f")
-                                     << QLatin1String("overrideProjectProperties.qbs")
-                                     << QLatin1String("project.nameSuffix:ForYou")
-                                     << QLatin1String("project.someBool:false")
-                                     << QLatin1String("project.someInt:156")
-                                     << QLatin1String("project.someStringList:one")
-                                     << QLatin1String("products.MyAppForYou.mainFile:main.cpp"))),
+                                     << QStringLiteral("-f")
+                                     << QStringLiteral("overrideProjectProperties.qbs")
+                                     << QStringLiteral("project.nameSuffix:ForYou")
+                                     << QStringLiteral("project.someBool:false")
+                                     << QStringLiteral("project.someInt:156")
+                                     << QStringLiteral("project.someStringList:one")
+                                     << QStringLiteral("products.MyAppForYou.mainFile:main.cpp"))),
              0);
     QVERIFY(regularFileExists(relativeExecutableFilePath("MyAppForYou")));
     QVERIFY(QFile::remove(relativeBuildGraphFilePath()));
     QbsRunParameters params;
-    params.arguments << QLatin1String("-f") << QLatin1String("project_using_helper_lib.qbs");
+    params.arguments << QStringLiteral("-f") << QStringLiteral("project_using_helper_lib.qbs");
     params.expectFailure = true;
     QVERIFY(runQbs(params) != 0);
 
     rmDirR(relativeBuildDir());
-    params.arguments = QStringList() << QLatin1String("-f")
-            << QLatin1String("project_using_helper_lib.qbs")
-            << QLatin1String("project.linkSuccessfully:true");
+    params.arguments = QStringList() << QStringLiteral("-f")
+            << QStringLiteral("project_using_helper_lib.qbs")
+            << QStringLiteral("project.linkSuccessfully:true");
     params.expectFailure = false;
     QCOMPARE(runQbs(params), 0);
 }
@@ -2968,8 +2968,8 @@ void TestBlackbox::probesAndShadowProducts()
 void TestBlackbox::probeInExportedModule()
 {
     QDir::setCurrent(testDataDir + "/probe-in-exported-module");
-    QCOMPARE(runQbs(QbsRunParameters(QStringList() << QLatin1String("-f")
-                                     << QLatin1String("probe-in-exported-module.qbs"))), 0);
+    QCOMPARE(runQbs(QbsRunParameters(QStringList() << QStringLiteral("-f")
+                                     << QStringLiteral("probe-in-exported-module.qbs"))), 0);
     QVERIFY2(m_qbsStdout.contains("found: true"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("prop: yes"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("listProp: my,myother"), m_qbsStdout.constData());
@@ -2989,8 +2989,8 @@ void TestBlackbox::probesAndArrayProperties()
 void TestBlackbox::productProperties()
 {
     QDir::setCurrent(testDataDir + "/productproperties");
-    QCOMPARE(runQbs(QbsRunParameters(QStringList() << QLatin1String("-f")
-                                     << QLatin1String("productproperties.qbs"))), 0);
+    QCOMPARE(runQbs(QbsRunParameters(QStringList() << QStringLiteral("-f")
+                                     << QStringLiteral("productproperties.qbs"))), 0);
     QVERIFY(regularFileExists(relativeExecutableFilePath("blubb_user")));
 }
 
@@ -5069,7 +5069,7 @@ void TestBlackbox::properQuoting()
 {
     QDir::setCurrent(testDataDir + "/proper quoting");
     QCOMPARE(runQbs(), 0);
-    QbsRunParameters params(QLatin1String("run"), QStringList() << "-q" << "-p" << "Hello World");
+    QbsRunParameters params(QStringLiteral("run"), QStringList() << "-q" << "-p" << "Hello World");
     params.expectFailure = true; // Because the exit code is non-zero.
     QCOMPARE(runQbs(params), 156);
     const char * const expectedOutput = "whitespaceless\ncontains space\ncontains\ttab\n"
@@ -5318,7 +5318,7 @@ void TestBlackbox::installedApp()
 
     QCOMPARE(runQbs(), 0);
     QVERIFY(regularFileExists(defaultInstallRoot
-            + HostOsInfo::appendExecutableSuffix(QLatin1String("/usr/bin/installedApp"))));
+            + HostOsInfo::appendExecutableSuffix(QStringLiteral("/usr/bin/installedApp"))));
 
     QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList("qbs.installRoot:" + testDataDir
                                                             + "/installed-app"))), 0);
@@ -5333,7 +5333,7 @@ void TestBlackbox::installedApp()
     QCOMPARE(runQbs(QbsRunParameters("resolve")), 0);
     QCOMPARE(runQbs(QbsRunParameters(QStringList() << "--clean-install-root")), 0);
     QVERIFY(regularFileExists(defaultInstallRoot
-            + HostOsInfo::appendExecutableSuffix(QLatin1String("/usr/bin/installedApp"))));
+            + HostOsInfo::appendExecutableSuffix(QStringLiteral("/usr/bin/installedApp"))));
     QVERIFY(regularFileExists(defaultInstallRoot + QLatin1String("/usr/src/main.cpp")));
     QVERIFY(!addedFile.exists());
 
@@ -5343,7 +5343,7 @@ void TestBlackbox::installedApp()
                     "qbs.installPrefix: '/usr/local'");
     QCOMPARE(runQbs(), 0);
     QVERIFY(regularFileExists(defaultInstallRoot
-            + HostOsInfo::appendExecutableSuffix(QLatin1String("/usr/local/bin/installedApp"))));
+            + HostOsInfo::appendExecutableSuffix(QStringLiteral("/usr/local/bin/installedApp"))));
     QVERIFY(regularFileExists(defaultInstallRoot + QLatin1String("/usr/local/src/main.cpp")));
 
     // Check whether changing install parameters on the artifact causes re-installation.
@@ -5352,7 +5352,7 @@ void TestBlackbox::installedApp()
                     "qbs.installDir: 'custom'");
     QCOMPARE(runQbs(), 0);
     QVERIFY(regularFileExists(defaultInstallRoot
-            + HostOsInfo::appendExecutableSuffix(QLatin1String("/usr/local/custom/installedApp"))));
+            + HostOsInfo::appendExecutableSuffix(QStringLiteral("/usr/local/custom/installedApp"))));
 
     // Check whether changing install parameters on a source file causes re-installation.
     WAIT_FOR_NEW_TIMESTAMP();
@@ -5410,7 +5410,7 @@ void TestBlackbox::installedSourceFiles()
 
 void TestBlackbox::toolLookup()
 {
-    QbsRunParameters params(QLatin1String("setup-toolchains"), QStringList("--help"));
+    QbsRunParameters params(QStringLiteral("setup-toolchains"), QStringList("--help"));
     params.profile.clear();
     QCOMPARE(runQbs(params), 0);
 }
@@ -5514,13 +5514,13 @@ public:
     TemporaryDefaultProfileRemover(qbs::Settings *settings)
         : m_settings(settings), m_defaultProfile(settings->defaultProfile())
     {
-        m_settings->remove(QLatin1String("defaultProfile"));
+        m_settings->remove(QStringLiteral("defaultProfile"));
     }
 
     ~TemporaryDefaultProfileRemover()
     {
         if (!m_defaultProfile.isEmpty())
-            m_settings->setValue(QLatin1String("defaultProfile"), m_defaultProfile);
+            m_settings->setValue(QStringLiteral("defaultProfile"), m_defaultProfile);
     }
 
 private:
@@ -5680,15 +5680,15 @@ void TestBlackbox::explicitlyDependsOn_data()
 static bool haveMakeNsis()
 {
     QStringList regKeys;
-    regKeys << QLatin1String("HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\NSIS")
-            << QLatin1String("HKEY_LOCAL_MACHINE\\SOFTWARE\\NSIS");
+    regKeys << QStringLiteral("HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\NSIS")
+            << QStringLiteral("HKEY_LOCAL_MACHINE\\SOFTWARE\\NSIS");
 
     QStringList paths = QProcessEnvironment::systemEnvironment().value("PATH")
             .split(HostOsInfo::pathListSeparator(), QString::SkipEmptyParts);
 
     for (const QString &key : qAsConst(regKeys)) {
         QSettings settings(key, QSettings::NativeFormat);
-        QString str = settings.value(QLatin1String(".")).toString();
+        QString str = settings.value(QStringLiteral(".")).toString();
         if (!str.isEmpty())
             paths.prepend(str);
     }
@@ -5696,7 +5696,7 @@ static bool haveMakeNsis()
     bool haveMakeNsis = false;
     for (const QString &path : qAsConst(paths)) {
         if (regularFileExists(QDir::fromNativeSeparators(path) +
-                          HostOsInfo::appendExecutableSuffix(QLatin1String("/makensis")))) {
+                          HostOsInfo::appendExecutableSuffix(QStringLiteral("/makensis")))) {
             haveMakeNsis = true;
             break;
         }
@@ -5904,8 +5904,8 @@ static bool haveWiX(const Profile &profile)
     }
 
     QStringList regKeys;
-    regKeys << QLatin1String("HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows Installer XML\\")
-            << QLatin1String("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows Installer XML\\");
+    regKeys << QStringLiteral("HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows Installer XML\\")
+            << QStringLiteral("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows Installer XML\\");
 
     QStringList paths = QProcessEnvironment::systemEnvironment().value("PATH")
             .split(HostOsInfo::pathListSeparator(), QString::SkipEmptyParts);
@@ -5914,7 +5914,7 @@ static bool haveWiX(const Profile &profile)
         const QStringList versions = QSettings(key, QSettings::NativeFormat).childGroups();
         for (const QString &version : versions) {
             QSettings settings(key + version, QSettings::NativeFormat);
-            QString str = settings.value(QLatin1String("InstallRoot")).toString();
+            QString str = settings.value(QStringLiteral("InstallRoot")).toString();
             if (!str.isEmpty())
                 paths.prepend(str);
         }
@@ -5922,9 +5922,9 @@ static bool haveWiX(const Profile &profile)
 
     for (const QString &path : qAsConst(paths)) {
         if (regularFileExists(QDir::fromNativeSeparators(path) +
-                          HostOsInfo::appendExecutableSuffix(QLatin1String("/candle"))) &&
+                          HostOsInfo::appendExecutableSuffix(QStringLiteral("/candle"))) &&
             regularFileExists(QDir::fromNativeSeparators(path) +
-                          HostOsInfo::appendExecutableSuffix(QLatin1String("/light")))) {
+                          HostOsInfo::appendExecutableSuffix(QStringLiteral("/light")))) {
             return true;
         }
     }
@@ -6043,7 +6043,7 @@ void TestBlackbox::typescript()
     QCOMPARE(status, 0);
 
     params.expectFailure = false;
-    params.command = QLatin1String("run");
+    params.command = QStringLiteral("run");
     params.arguments = QStringList() << "-p" << "animals";
     QCOMPARE(runQbs(params), 0);
 
@@ -6093,22 +6093,22 @@ static bool haveInnoSetup(const Profile &profile)
         return true;
 
     QStringList regKeys;
-    regKeys << QLatin1String("HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Inno Setup 5_is1")
-            << QLatin1String("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Inno Setup 5_is1");
+    regKeys << QStringLiteral("HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Inno Setup 5_is1")
+            << QStringLiteral("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Inno Setup 5_is1");
 
     QStringList paths = QProcessEnvironment::systemEnvironment().value("PATH")
             .split(HostOsInfo::pathListSeparator(), QString::SkipEmptyParts);
 
     for (const QString &key : regKeys) {
         QSettings settings(key, QSettings::NativeFormat);
-        QString str = settings.value(QLatin1String("InstallLocation")).toString();
+        QString str = settings.value(QStringLiteral("InstallLocation")).toString();
         if (!str.isEmpty())
             paths.prepend(str);
     }
 
     for (const QString &path : paths) {
         if (regularFileExists(QDir::fromNativeSeparators(path) +
-                          HostOsInfo::appendExecutableSuffix(QLatin1String("/ISCC"))))
+                          HostOsInfo::appendExecutableSuffix(QStringLiteral("/ISCC"))))
             return true;
     }
 

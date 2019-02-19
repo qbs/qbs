@@ -160,7 +160,7 @@ bool VsEnvironmentDetector::startDetection(const std::vector<MSVC *> &compatible
     tmpFile.flush();
 
     QProcess process;
-    static const QString shellFilePath = QLatin1String("cmd.exe");
+    static const QString shellFilePath = QStringLiteral("cmd.exe");
     process.start(shellFilePath, QStringList()
                   << QStringLiteral("/C") << tmpFile.fileName());
     if (!process.waitForStarted()) {
@@ -217,8 +217,8 @@ void VsEnvironmentDetector::writeBatchFile(QIODevice *device, const QString &vcv
                                            const std::vector<MSVC *> &msvcs) const
 {
     const QStringList varnames = QStringList() << StringConstants::pathEnvVar()
-            << QLatin1String("INCLUDE") << QLatin1String("LIB") << QLatin1String("WindowsSdkDir")
-            << QLatin1String("WindowsSDKVersion") << QLatin1String("VSINSTALLDIR");
+            << QStringLiteral("INCLUDE") << QStringLiteral("LIB") << QStringLiteral("WindowsSdkDir")
+            << QStringLiteral("WindowsSDKVersion") << QStringLiteral("VSINSTALLDIR");
     QTextStream s(device);
     s << "@echo off" << endl;
     for (const MSVC *msvc : msvcs) {

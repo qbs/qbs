@@ -122,13 +122,13 @@ std::vector<QtEnvironment> SetupQt::fetchEnvironments()
 static QStringList qbsToolchainFromDirName(const QString &dir)
 {
     if (dir.startsWith(QLatin1String("msvc")))
-        return QStringList(QLatin1String("msvc"));
+        return QStringList(QStringLiteral("msvc"));
     if (dir.startsWith(QLatin1String("mingw")))
-        return QStringList{QLatin1String("mingw"), QLatin1String("gcc")};
+        return QStringList{QStringLiteral("mingw"), QStringLiteral("gcc")};
     if (dir.startsWith(QLatin1String("clang")))
-        return QStringList{QLatin1String("clang"), QLatin1String("llvm"), QLatin1String("gcc")};
+        return QStringList{QStringLiteral("clang"), QStringLiteral("llvm"), QStringLiteral("gcc")};
     if (dir.startsWith(QLatin1String("gcc")))
-        return QStringList(QLatin1String("gcc"));
+        return QStringList(QStringLiteral("gcc"));
     return QStringList();
 }
 
@@ -156,20 +156,20 @@ static QString archFromDirName(const QString &dir)
         return QString();
     const QString arch = QString::fromStdString(match[1]);
     if (arch == QLatin1String("32"))
-        return QLatin1String("x86");
+        return QStringLiteral("x86");
     if (arch == QLatin1String("64"))
-        return QLatin1String("x86_64");
+        return QStringLiteral("x86_64");
     if (arch.contains(QLatin1String("arm64")))
-        return QLatin1String("arm64");
+        return QStringLiteral("arm64");
     return arch;
 }
 
 static QString platformFromDirName(const QString &dir)
 {
     if (dir.startsWith(QLatin1String("android")))
-        return QLatin1String("android");
+        return QStringLiteral("android");
     if (dir == QLatin1String("Boot2Qt"))
-        return QLatin1String("linux");
+        return QStringLiteral("linux");
     return QString::fromStdString(HostOsInfo::hostOSIdentifier());
 }
 
@@ -184,7 +184,7 @@ QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
         env.msvcVersion = msvcVersionFromDirName(qtDir.dirName());
         env.architecture = archFromDirName(qtDir.dirName());
         if (env.msvcVersion.isValid() && env.architecture.isEmpty())
-            env.architecture = QLatin1String("x86");
+            env.architecture = QStringLiteral("x86");
         env.targetPlatform = platformFromDirName(qtDir.dirName());
         qtDir.cdUp();
         env.qtVersion = Version::fromString(qtDir.dirName());
@@ -196,9 +196,9 @@ static bool isToolchainProfile(const Profile &profile)
 {
     const auto actual = Internal::Set<QString>::fromList(
                 profile.allKeys(Profile::KeySelectionRecursive));
-    Internal::Set<QString> expected = Internal::Set<QString> { QLatin1String("qbs.toolchain") };
+    Internal::Set<QString> expected = Internal::Set<QString> { QStringLiteral("qbs.toolchain") };
     if (HostOsInfo::isMacosHost())
-        expected.insert(QLatin1String("qbs.targetPlatform")); // match only Xcode profiles
+        expected.insert(QStringLiteral("qbs.targetPlatform")); // match only Xcode profiles
     return Internal::Set<QString>(actual).unite(expected) == actual;
 }
 
@@ -231,7 +231,7 @@ static Match compatibility(const QtEnvironment &env, const Profile &toolchainPro
     Match match = MatchFull;
 
     const auto toolchainNames = Internal::Set<QString>::fromList(
-                toolchainProfile.value(QLatin1String("qbs.toolchain")).toStringList());
+                toolchainProfile.value(QStringLiteral("qbs.toolchain")).toStringList());
     const auto qtToolchainNames = Internal::Set<QString>::fromList(env.qbsToolchain);
     if (areProfilePropertiesIncompatible(toolchainNames, qtToolchainNames)) {
         auto intersection = toolchainNames;
@@ -243,11 +243,11 @@ static Match compatibility(const QtEnvironment &env, const Profile &toolchainPro
     }
 
     const auto targetPlatform = toolchainProfile.value(
-                QLatin1String("qbs.targetPlatform")).toString();
+                QStringLiteral("qbs.targetPlatform")).toString();
     if (!targetPlatform.isEmpty() && targetPlatform != env.targetPlatform)
         return MatchNone;
 
-    const QString toolchainArchitecture = toolchainProfile.value(QLatin1String("qbs.architecture"))
+    const QString toolchainArchitecture = toolchainProfile.value(QStringLiteral("qbs.architecture"))
             .toString();
     if (areProfilePropertiesIncompatible(canonicalArchitecture(env.architecture),
                                          canonicalArchitecture(toolchainArchitecture)))
@@ -257,7 +257,7 @@ static Match compatibility(const QtEnvironment &env, const Profile &toolchainPro
         // We want to know for sure that MSVC compiler versions match,
         // because it's especially important for this toolchain
         const Version compilerVersion = Version::fromString(
-            toolchainProfile.value(QLatin1String("cpp.compilerVersion")).toString());
+            toolchainProfile.value(QStringLiteral("cpp.compilerVersion")).toString());
 
         static const Version vs2017Version{19, 10};
         if (env.msvcVersion >= vs2017Version) {
@@ -314,7 +314,7 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName,
 
     Profile profile(cleanQtVersionName, settings);
     profile.removeProfile();
-    profile.setValue(QLatin1String("moduleProviders.Qt.qmakeFilePaths"),
+    profile.setValue(QStringLiteral("moduleProviders.Qt.qmakeFilePaths"),
                      QStringList(qtEnvironment.qmakeFilePath));
     if (!profile.baseProfile().isEmpty())
         return;

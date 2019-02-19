@@ -73,8 +73,8 @@ static QString qbsCommandLine(const GeneratableProject &project,
 
     if (subCommand == QStringLiteral("generate")) {
         commandLine.appendArgument(QStringLiteral("-g"));
-        commandLine.appendArgument(
-                    QString(QStringLiteral("visualstudio%1")).arg(versionInfo.marketingVersion()));
+        commandLine.appendArgument(QStringLiteral("visualstudio%1")
+                                   .arg(versionInfo.marketingVersion()));
     } else {
         commandLine.appendArgument(QStringLiteral("-p"));
         addEnvironmentVariableArgument(commandLine, QStringLiteral("QbsProductName"));

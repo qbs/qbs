@@ -336,7 +336,7 @@ QScriptValue UtilitiesExtension::js_getHash(QScriptContext *context, QScriptEngi
 {
     if (Q_UNLIKELY(context->argumentCount() < 1)) {
         return context->throwError(QScriptContext::SyntaxError,
-                                   QLatin1String("getHash expects 1 argument"));
+                                   QStringLiteral("getHash expects 1 argument"));
     }
     const QByteArray input = context->argument(0).toString().toLatin1();
     const QByteArray hash
@@ -348,7 +348,7 @@ QScriptValue UtilitiesExtension::js_getNativeSetting(QScriptContext *context, QS
 {
     if (Q_UNLIKELY(context->argumentCount() < 1 || context->argumentCount() > 3)) {
         return context->throwError(QScriptContext::SyntaxError,
-                                   QLatin1String("getNativeSetting expects between 1 and 3 arguments"));
+                                   QStringLiteral("getNativeSetting expects between 1 and 3 arguments"));
     }
 
     QString key = context->argumentCount() > 1 ? context->argument(1).toString() : QString();
@@ -375,7 +375,7 @@ QScriptValue UtilitiesExtension::js_nativeSettingGroups(QScriptContext *context,
 {
     if (Q_UNLIKELY(context->argumentCount() != 1)) {
         return context->throwError(QScriptContext::SyntaxError,
-                                   QLatin1String("nativeSettingGroups expects 1 argument"));
+                                   QStringLiteral("nativeSettingGroups expects 1 argument"));
     }
 
     QSettings settings(context->argument(0).toString(), QSettings::NativeFormat);
@@ -387,7 +387,7 @@ QScriptValue UtilitiesExtension::js_rfc1034identifier(QScriptContext *context,
 {
     if (Q_UNLIKELY(context->argumentCount() != 1))
         return context->throwError(QScriptContext::SyntaxError,
-                                   QLatin1String("rfc1034Identifier expects 1 argument"));
+                                   QStringLiteral("rfc1034Identifier expects 1 argument"));
     const QString identifier = context->argument(0).toString();
     return engine->toScriptValue(HostOsInfo::rfc1034Identifier(identifier));
 }
@@ -408,11 +408,11 @@ QScriptValue UtilitiesExtension::js_smimeMessageContent(QScriptContext *context,
 #if !defined(Q_OS_MACOS) && !defined(Q_OS_OSX)
     Q_UNUSED(engine);
     return context->throwError(QScriptContext::UnknownError,
-        QLatin1String("smimeMessageContent is not available on this platform"));
+        QStringLiteral("smimeMessageContent is not available on this platform"));
 #else
     if (Q_UNLIKELY(context->argumentCount() != 1))
         return context->throwError(QScriptContext::SyntaxError,
-                                   QLatin1String("smimeMessageContent expects 1 argument"));
+                                   QStringLiteral("smimeMessageContent expects 1 argument"));
 
     const QString filePath = context->argument(0).toString();
     QFile file(filePath);
@@ -432,11 +432,11 @@ QScriptValue UtilitiesExtension::js_certificateInfo(QScriptContext *context,
 #if !defined(Q_OS_MACOS) && !defined(Q_OS_OSX)
     Q_UNUSED(engine);
     return context->throwError(QScriptContext::UnknownError,
-        QLatin1String("certificateInfo is not available on this platform"));
+        QStringLiteral("certificateInfo is not available on this platform"));
 #else
     if (Q_UNLIKELY(context->argumentCount() != 1))
         return context->throwError(QScriptContext::SyntaxError,
-                                   QLatin1String("certificateInfo expects 1 argument"));
+                                   QStringLiteral("certificateInfo expects 1 argument"));
     return engine->toScriptValue(certificateInfo(context->argument(0).toVariant().toByteArray()));
 #endif
 }
@@ -448,7 +448,7 @@ QScriptValue UtilitiesExtension::js_signingIdentities(QScriptContext *context,
 #if !defined(Q_OS_MACOS) && !defined(Q_OS_OSX)
     Q_UNUSED(engine);
     return context->throwError(QScriptContext::UnknownError,
-        QLatin1String("signingIdentities is not available on this platform"));
+        QStringLiteral("signingIdentities is not available on this platform"));
 #else
     Q_UNUSED(context);
     return engine->toScriptValue(identitiesProperties());
@@ -460,11 +460,11 @@ QScriptValue UtilitiesExtension::js_msvcCompilerInfo(QScriptContext *context, QS
 #ifndef Q_OS_WIN
     Q_UNUSED(engine);
     return context->throwError(QScriptContext::UnknownError,
-        QLatin1String("msvcCompilerInfo is not available on this platform"));
+        QStringLiteral("msvcCompilerInfo is not available on this platform"));
 #else
     if (Q_UNLIKELY(context->argumentCount() < 1))
         return context->throwError(QScriptContext::SyntaxError,
-                                   QLatin1String("msvcCompilerInfo expects at least 1 argument"));
+                                   QStringLiteral("msvcCompilerInfo expects at least 1 argument"));
 
     const QString compilerFilePath = context->argument(0).toString();
     const QString compilerLanguage = context->argumentCount() > 1

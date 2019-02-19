@@ -156,7 +156,7 @@ QString PropertyDeclaration::typeString(PropertyDeclaration::Type t)
     case StringList: return stringListString();
     case Variant: return variantString();
     case VariantList: return varListString();
-    case UnknownType: return QLatin1String("unknown");
+    case UnknownType: return QStringLiteral("unknown");
     }
     Q_UNREACHABLE(); // For stupid compilers.
 }

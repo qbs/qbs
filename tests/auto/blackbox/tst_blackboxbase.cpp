@@ -79,9 +79,9 @@ int TestBlackboxBase::runQbs(const QbsRunParameters &params)
     if (!params.settingsDir.isEmpty() && supportsSettingsDirOption(params.command))
         args << "--settings-dir" << params.settingsDir;
     if (supportsBuildDirectoryOption(params.command)) {
-        args.push_back(QLatin1String("-d"));
+        args.push_back(QStringLiteral("-d"));
         args.push_back(params.buildDirectory.isEmpty()
-                       ? QLatin1String(".")
+                       ? QStringLiteral(".")
                        : params.buildDirectory);
     }
     args << params.arguments;

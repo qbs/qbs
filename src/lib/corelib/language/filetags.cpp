@@ -82,7 +82,7 @@ LogWriter operator <<(LogWriter w, const FileTags &tags)
         if (firstLoop)
             firstLoop = false;
         else
-            w.write(QLatin1String(", "));
+            w.write(QStringLiteral(", "));
         w.write(tag.toString());
     }
     w.write(')');

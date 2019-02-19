@@ -329,7 +329,7 @@ void InternalSetupProjectJob::resolveProjectFromScratch(ScriptEngine *engine)
 
 void InternalSetupProjectJob::resolveBuildDataFromScratch(const RulesEvaluationContextPtr &evalContext)
 {
-    TimedActivityLogger resolveLogger(logger(), QLatin1String("Resolving build project"), timed());
+    TimedActivityLogger resolveLogger(logger(), QStringLiteral("Resolving build project"), timed());
     BuildDataResolver(logger()).resolveBuildData(m_newProject, evalContext);
 }
 

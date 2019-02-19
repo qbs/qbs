@@ -68,7 +68,7 @@ Preferences::Preferences(Settings *settings, const QVariantMap &profileContents)
  */
 bool Preferences::useColoredOutput() const
 {
-    return getPreference(QLatin1String("useColoredOutput"), true).toBool();
+    return getPreference(QStringLiteral("useColoredOutput"), true).toBool();
 }
 
 /*!
@@ -77,7 +77,7 @@ bool Preferences::useColoredOutput() const
  */
 int Preferences::jobs() const
 {
-    return getPreference(QLatin1String("jobs"), BuildOptions::defaultMaxJobCount()).toInt();
+    return getPreference(QStringLiteral("jobs"), BuildOptions::defaultMaxJobCount()).toInt();
 }
 
 /*!
@@ -86,7 +86,7 @@ int Preferences::jobs() const
  */
 QString Preferences::shell() const
 {
-    return getPreference(QLatin1String("shell")).toString();
+    return getPreference(QStringLiteral("shell")).toString();
 }
 
 /*!
@@ -94,7 +94,7 @@ QString Preferences::shell() const
  */
 QString Preferences::defaultBuildDirectory() const
 {
-    return getPreference(QLatin1String("defaultBuildDirectory")).toString();
+    return getPreference(QStringLiteral("defaultBuildDirectory")).toString();
 }
 
 /*!
@@ -102,7 +102,7 @@ QString Preferences::defaultBuildDirectory() const
  */
 CommandEchoMode Preferences::defaultEchoMode() const
 {
-    return commandEchoModeFromName(getPreference(QLatin1String("defaultEchoMode")).toString());
+    return commandEchoModeFromName(getPreference(QStringLiteral("defaultEchoMode")).toString());
 }
 
 /*!
@@ -121,7 +121,7 @@ QStringList Preferences::searchPaths(const QString &baseDir) const
  */
 QStringList Preferences::pluginPaths(const QString &baseDir) const
 {
-    return pathList(QLatin1String("pluginsPath"), baseDir + QLatin1String("/qbs/plugins"));
+    return pathList(QStringLiteral("pluginsPath"), baseDir + QStringLiteral("/qbs/plugins"));
 }
 
 /*!
@@ -129,7 +129,7 @@ QStringList Preferences::pluginPaths(const QString &baseDir) const
  */
 JobLimits Preferences::jobLimits() const
 {
-    const QString prefix = QLatin1String("preferences.jobLimit");
+    const QString prefix = QStringLiteral("preferences.jobLimit");
     JobLimits limits;
     for (const QString &key : m_settings->allKeysWithPrefix(prefix, Settings::allScopes())) {
         limits.setJobLimit(key, m_settings->value(prefix + QLatin1Char('.') + key,
@@ -152,7 +152,7 @@ JobLimits Preferences::jobLimits() const
 
 QVariant Preferences::getPreference(const QString &key, const QVariant &defaultValue) const
 {
-    static const QString keyPrefix = QLatin1String("preferences");
+    static const QString keyPrefix = QStringLiteral("preferences");
     const QString fullKey = keyPrefix + QLatin1Char('.') + key;
     const bool isSearchPaths = key == Internal::StringConstants::qbsSearchPathsProperty();
     if (!m_profile.isEmpty()) {

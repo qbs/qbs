@@ -258,8 +258,8 @@ static QString prependLongPathPrefix(const QString &absolutePath)
 {
     QString nativePath = QDir::toNativeSeparators(absolutePath);
     if (nativePath.startsWith(QStringLiteral("\\\\")))
-        nativePath.remove(0, 1).prepend(QStringLiteral("UNC"));
-    nativePath.prepend(QStringLiteral("\\\\?\\"));
+        nativePath.remove(0, 1).prepend(QLatin1String("UNC"));
+    nativePath.prepend(QLatin1String("\\\\?\\"));
     return nativePath;
 }
 #endif
