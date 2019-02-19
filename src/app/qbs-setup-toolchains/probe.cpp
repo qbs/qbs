@@ -138,7 +138,7 @@ static QStringList toolchainTypeFromCompilerName(const QString &compilerName)
         return canonicalToolchain(QLatin1String("msvc"));
     const auto types = { QLatin1String("clang"), QLatin1String("llvm"),
                          QLatin1String("mingw"), QLatin1String("gcc") };
-    for (const QString &type : types) {
+    for (const auto &type : types) {
         if (compilerName.contains(type))
             return canonicalToolchain(type);
     }
