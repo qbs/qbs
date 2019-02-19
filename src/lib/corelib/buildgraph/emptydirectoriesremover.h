@@ -53,7 +53,7 @@ class TopLevelProject;
 class EmptyDirectoriesRemover
 {
 public:
-    EmptyDirectoriesRemover(const TopLevelProject *project, const Logger &logger);
+    EmptyDirectoriesRemover(const TopLevelProject *project, Logger logger);
     void removeEmptyParentDirectories(const QStringList &artifactFilePaths);
     void removeEmptyParentDirectories(const ArtifactSet &artifacts);
 

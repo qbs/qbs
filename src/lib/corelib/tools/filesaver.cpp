@@ -48,8 +48,8 @@
 namespace qbs {
 namespace Internal {
 
-FileSaver::FileSaver(const std::string &filePath, bool overwriteIfUnchanged)
-    : m_filePath(filePath), m_overwriteIfUnchanged(overwriteIfUnchanged)
+FileSaver::FileSaver(std::string filePath, bool overwriteIfUnchanged)
+    : m_filePath(std::move(filePath)), m_overwriteIfUnchanged(overwriteIfUnchanged)
 {
 }
 

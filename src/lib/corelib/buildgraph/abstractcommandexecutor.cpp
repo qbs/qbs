@@ -49,14 +49,14 @@
 namespace qbs {
 namespace Internal {
 
-AbstractCommandExecutor::AbstractCommandExecutor(const Logger &logger, QObject *parent)
+AbstractCommandExecutor::AbstractCommandExecutor(Logger logger, QObject *parent)
     : QObject(parent)
     , m_echoMode(defaultCommandEchoMode())
     , m_command(nullptr)
     , m_transformer(nullptr)
     , m_mainThreadScriptEngine(nullptr)
     , m_dryRun(false)
-    , m_logger(logger)
+    , m_logger(std::move(logger))
 {
 }
 

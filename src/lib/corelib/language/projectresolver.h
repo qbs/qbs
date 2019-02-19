@@ -67,8 +67,8 @@ class ScriptEngine;
 class ProjectResolver
 {
 public:
-    ProjectResolver(Evaluator *evaluator, const ModuleLoaderResult &loadResult,
-                    const SetupProjectParameters &setupParameters, Logger &logger);
+    ProjectResolver(Evaluator *evaluator, ModuleLoaderResult loadResult,
+                    SetupProjectParameters setupParameters, Logger &logger);
     ~ProjectResolver();
 
     void setProgressObserver(ProgressObserver *observer);
@@ -185,7 +185,7 @@ private:
     mutable QHash<CodeLocation, ScriptFunctionPtr> m_scriptFunctionMap;
     mutable QHash<std::pair<QStringRef, QStringList>, QString> m_scriptFunctions;
     mutable QHash<QStringRef, QString> m_sourceCode;
-    const SetupProjectParameters &m_setupParams;
+    const SetupProjectParameters m_setupParams;
     ModuleLoaderResult m_loadResult;
     Set<CodeLocation> m_groupLocationWarnings;
     std::vector<std::pair<ResolvedProductPtr, Item *>> m_productExportInfo;

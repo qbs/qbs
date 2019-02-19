@@ -102,7 +102,7 @@ private:
 class UserDependencyScanner : public DependencyScanner
 {
 public:
-    UserDependencyScanner(const ResolvedScannerConstPtr &scanner, ScriptEngine *engine);
+    UserDependencyScanner(ResolvedScannerConstPtr scanner, ScriptEngine *engine);
 
 private:
     QStringList collectSearchPaths(Artifact *artifact) override;

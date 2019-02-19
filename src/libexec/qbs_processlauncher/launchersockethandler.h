@@ -58,7 +58,7 @@ class LauncherSocketHandler : public QObject
 {
     Q_OBJECT
 public:
-    explicit LauncherSocketHandler(const QString &socketPath, QObject *parent = nullptr);
+    explicit LauncherSocketHandler(QString socketPath, QObject *parent = nullptr);
     ~LauncherSocketHandler();
 
     void start();

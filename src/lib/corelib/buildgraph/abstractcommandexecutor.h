@@ -58,7 +58,7 @@ class AbstractCommandExecutor : public QObject
 {
     Q_OBJECT
 public:
-    explicit AbstractCommandExecutor(const Internal::Logger &logger, QObject *parent = nullptr);
+    explicit AbstractCommandExecutor(Internal::Logger logger, QObject *parent = nullptr);
 
     void setMainThreadScriptEngine(ScriptEngine *engine) { m_mainThreadScriptEngine = engine; }
     void setDryRunEnabled(bool enabled) { m_dryRun = enabled; }

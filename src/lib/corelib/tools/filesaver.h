@@ -55,7 +55,7 @@ namespace Internal {
  */
 class QBS_EXPORT FileSaver {
 public:
-    FileSaver(const std::string &filePath, bool overwriteIfUnchanged = false);
+    FileSaver(std::string filePath, bool overwriteIfUnchanged = false);
 
     std::ostream *device();
     bool open();

@@ -53,7 +53,7 @@ namespace Internal {
 class ExecutableFinder
 {
 public:
-    ExecutableFinder(const ResolvedProductPtr &product, const QProcessEnvironment &env);
+    ExecutableFinder(ResolvedProductPtr product, QProcessEnvironment env);
 
     QString findExecutable(const QString &path, const QString &workingDirPath);
 

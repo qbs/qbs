@@ -207,7 +207,7 @@ private:
 
 class VariantValue : public Value
 {
-    VariantValue(const QVariant &v);
+    VariantValue(QVariant v);
 public:
     static VariantValuePtr create(const QVariant &v = QVariant());
 

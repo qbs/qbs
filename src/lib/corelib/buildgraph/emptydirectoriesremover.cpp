@@ -49,8 +49,8 @@ namespace qbs {
 namespace Internal {
 
 EmptyDirectoriesRemover::EmptyDirectoriesRemover(const TopLevelProject *project,
-                                                 const Logger &logger)
-    : m_project(project), m_logger(logger)
+                                                 Logger logger)
+    : m_project(project), m_logger(std::move(logger))
 {
 }
 

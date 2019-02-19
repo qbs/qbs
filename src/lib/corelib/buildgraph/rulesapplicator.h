@@ -62,10 +62,10 @@ class ScriptEngine;
 class RulesApplicator
 {
 public:
-    RulesApplicator(const ResolvedProductPtr &product,
-                    const std::unordered_map<QString, const ResolvedProduct *> &productsByName,
-                    const std::unordered_map<QString, const ResolvedProject *> &projectsByName,
-                    const Logger &logger);
+    RulesApplicator(ResolvedProductPtr product,
+                    std::unordered_map<QString, const ResolvedProduct *> productsByName,
+                    std::unordered_map<QString, const ResolvedProject *> projectsByName,
+                    Logger logger);
     ~RulesApplicator();
 
     const NodeSet &createdArtifacts() const { return m_createdArtifacts; }

@@ -121,7 +121,7 @@ static QByteArray runProcess(const QString &exeFilePath, const QStringList &args
 
 class DummyFile {
 public:
-    DummyFile(const QString &fp) : filePath(fp) { }
+    DummyFile(QString fp) : filePath(std::move(fp)) { }
     ~DummyFile() { QFile::remove(filePath); }
     const QString filePath;
 };

@@ -1,3 +1,5 @@
+#include <utility>
+
 /****************************************************************************
 **
 ** Copyright (C) 2016 The Qt Company Ltd.
@@ -51,13 +53,13 @@ namespace qbs {
  * If a non-empty \c profileName is given, the profile's preferences take precedence over global
  * ones. Otherwise, the global preferences are used.
  */
-Preferences::Preferences(Settings *settings, const QString &profileName)
-    : m_settings(settings), m_profile(profileName)
+Preferences::Preferences(Settings *settings, QString profileName)
+    : m_settings(settings), m_profile(std::move(profileName))
 {
 }
 
-Preferences::Preferences(Settings *settings, const QVariantMap &profileContents)
-    : m_settings(settings), m_profileContents(profileContents)
+Preferences::Preferences(Settings *settings, QVariantMap profileContents)
+    : m_settings(settings), m_profileContents(std::move(profileContents))
 {
 }
 

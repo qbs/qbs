@@ -67,9 +67,9 @@ namespace qbs {
 namespace Internal {
 
 ItemReaderASTVisitor::ItemReaderASTVisitor(ItemReaderVisitorState &visitorState,
-        const FileContextPtr &file, ItemPool *itemPool, Logger &logger)
+        FileContextPtr file, ItemPool *itemPool, Logger &logger)
     : m_visitorState(visitorState)
-    , m_file(file)
+    , m_file(std::move(file))
     , m_itemPool(itemPool)
     , m_logger(logger)
 {

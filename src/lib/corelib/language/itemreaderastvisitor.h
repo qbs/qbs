@@ -60,7 +60,7 @@ class ItemReaderVisitorState;
 class ItemReaderASTVisitor : public QbsQmlJS::AST::Visitor
 {
 public:
-    ItemReaderASTVisitor(ItemReaderVisitorState &visitorState, const FileContextPtr &file,
+    ItemReaderASTVisitor(ItemReaderVisitorState &visitorState, FileContextPtr file,
                          ItemPool *itemPool, Logger &logger);
     void checkItemTypes() { doCheckItemTypes(rootItem()); }
 

@@ -817,9 +817,11 @@ void ScriptEngine::uninstallImportFunctions()
     globalObject().setProperty(requireString(), QScriptValue());
 }
 
-ScriptEngine::PropertyCacheKey::PropertyCacheKey(const QString &moduleName,
-        const QString &propertyName, const PropertyMapConstPtr &propertyMap)
-    : m_moduleName(moduleName), m_propertyName(propertyName), m_propertyMap(propertyMap)
+ScriptEngine::PropertyCacheKey::PropertyCacheKey(QString moduleName,
+        QString propertyName, PropertyMapConstPtr propertyMap)
+    : m_moduleName(std::move(moduleName))
+    , m_propertyName(std::move(propertyName))
+    , m_propertyMap(std::move(propertyMap))
 {
 }
 

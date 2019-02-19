@@ -71,16 +71,16 @@ using namespace Internal;
 class RunEnvironment::RunEnvironmentPrivate
 {
 public:
-    RunEnvironmentPrivate(const ResolvedProductPtr &product, const TopLevelProjectConstPtr &project,
-            const InstallOptions &installOptions, const QProcessEnvironment &environment,
-            const QStringList &setupRunEnvConfig, Settings *settings, const Logger &logger)
-        : resolvedProduct(product)
-        , project(project)
-        , installOptions(installOptions)
+    RunEnvironmentPrivate(ResolvedProductPtr product, TopLevelProjectConstPtr project,
+            InstallOptions installOptions, const QProcessEnvironment &environment,
+            QStringList setupRunEnvConfig, Settings *settings, Logger logger)
+        : resolvedProduct(std::move(product))
+        , project(std::move(project))
+        , installOptions(std::move(installOptions))
         , environment(environment)
-        , setupRunEnvConfig(setupRunEnvConfig)
+        , setupRunEnvConfig(std::move(setupRunEnvConfig))
         , settings(settings)
-        , logger(logger)
+        , logger(std::move(logger))
         , evalContext(this->logger)
     {
     }

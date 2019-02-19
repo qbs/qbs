@@ -41,8 +41,8 @@
 
 namespace qbs {
 
-GeneratableProjectIterator::GeneratableProjectIterator(const GeneratableProject &project)
-    : project(project)
+GeneratableProjectIterator::GeneratableProjectIterator(GeneratableProject project)
+    : project(std::move(project))
 {
 }
 

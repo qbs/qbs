@@ -98,7 +98,7 @@ public:
     }
 
 private:
-    FileTagger(const QStringList &patterns, const FileTags &fileTags, int priority);
+    FileTagger(const QStringList &patterns, FileTags fileTags, int priority);
     FileTagger() {}
 
     void setPatterns(const QStringList &patterns);

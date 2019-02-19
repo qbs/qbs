@@ -266,7 +266,7 @@ void ProjectBuildData::store(PersistentPool &pool)
 }
 
 
-BuildDataResolver::BuildDataResolver(const Logger &logger) : m_logger(logger)
+BuildDataResolver::BuildDataResolver(Logger logger) : m_logger(std::move(logger))
 {
 }
 

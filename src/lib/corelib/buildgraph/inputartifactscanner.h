@@ -118,7 +118,7 @@ class InputArtifactScanner
 {
 public:
     InputArtifactScanner(Artifact *artifact, InputArtifactScannerContext *ctx,
-                         const Logger &logger);
+                         Logger logger);
     void scan();
     bool newDependencyAdded() const { return m_newDependencyAdded; }
 

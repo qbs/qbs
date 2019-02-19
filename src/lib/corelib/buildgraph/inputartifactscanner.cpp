@@ -116,12 +116,12 @@ static void resolveDepencency(const RawScannedDependency &dependency,
 }
 
 InputArtifactScanner::InputArtifactScanner(Artifact *artifact, InputArtifactScannerContext *ctx,
-                                           const Logger &logger)
+                                           Logger logger)
     : m_artifact(artifact),
       m_rawScanResults(artifact->product->topLevelProject()->buildData->rawScanResults),
       m_context(ctx),
       m_newDependencyAdded(false),
-      m_logger(logger)
+      m_logger(std::move(logger))
 {
 }
 

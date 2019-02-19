@@ -1,3 +1,5 @@
+#include <utility>
+
 /****************************************************************************
 **
 ** Copyright (C) 2016 The Qt Company Ltd.
@@ -98,12 +100,12 @@ static void removeArtifactFromDisk(Artifact *artifact, bool dryRun, const Logger
 class CleanupVisitor : public ArtifactVisitor
 {
 public:
-    CleanupVisitor(const CleanOptions &options, const ProgressObserver *observer,
-                   const Logger &logger)
+    CleanupVisitor(CleanOptions options, const ProgressObserver *observer,
+                   Logger logger)
         : ArtifactVisitor(Artifact::Generated)
-        , m_options(options)
+        , m_options(std::move(options))
         , m_observer(observer)
-        , m_logger(logger)
+        , m_logger(std::move(logger))
         , m_hasError(false)
     {
     }
@@ -154,8 +156,8 @@ private:
     Set<QString> m_directories;
 };
 
-ArtifactCleaner::ArtifactCleaner(const Logger &logger, ProgressObserver *observer)
-    : m_logger(logger), m_observer(observer)
+ArtifactCleaner::ArtifactCleaner(Logger logger, ProgressObserver *observer)
+    : m_logger(std::move(logger)), m_observer(observer)
 {
 }
 

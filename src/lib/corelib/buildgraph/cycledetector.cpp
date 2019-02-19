@@ -51,8 +51,8 @@
 namespace qbs {
 namespace Internal {
 
-CycleDetector::CycleDetector(const Logger &logger)
-    : m_parent(nullptr), m_logger(logger)
+CycleDetector::CycleDetector(Logger logger)
+    : m_parent(nullptr), m_logger(std::move(logger))
 {
 }
 

@@ -61,8 +61,8 @@
 namespace qbs {
 namespace Internal {
 
-Loader::Loader(ScriptEngine *engine, const Logger &logger)
-    : m_logger(logger)
+Loader::Loader(ScriptEngine *engine, Logger logger)
+    : m_logger(std::move(logger))
     , m_progressObserver(nullptr)
     , m_engine(engine)
 {
@@ -167,7 +167,7 @@ TopLevelProjectPtr Loader::loadProject(const SetupProjectParameters &_parameters
     moduleLoader.setStoredProfiles(m_storedProfiles);
     moduleLoader.setStoredModuleProviderInfo(m_storedModuleProviderInfo);
     const ModuleLoaderResult loadResult = moduleLoader.load(parameters);
-    ProjectResolver resolver(&evaluator, loadResult, parameters, m_logger);
+    ProjectResolver resolver(&evaluator, loadResult, std::move(parameters), m_logger);
     resolver.setProgressObserver(m_progressObserver);
     const TopLevelProjectPtr project = resolver.resolve();
     project->lastStartResolveTime = resolveTime;

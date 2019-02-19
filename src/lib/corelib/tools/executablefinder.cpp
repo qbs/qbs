@@ -64,10 +64,9 @@ static QStringList populateExecutableSuffixes()
 
 QStringList ExecutableFinder::m_executableSuffixes = populateExecutableSuffixes();
 
-ExecutableFinder::ExecutableFinder(const ResolvedProductPtr &m_product,
-        const QProcessEnvironment &env)
-    : m_product(m_product)
-    , m_environment(env)
+ExecutableFinder::ExecutableFinder(ResolvedProductPtr product, QProcessEnvironment env)
+    : m_product(std::move(product))
+    , m_environment(std::move(env))
 {
 }
 

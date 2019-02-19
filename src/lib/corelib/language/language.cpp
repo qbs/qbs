@@ -91,8 +91,8 @@ template<typename T> bool equals(const T *v1, const T *v2)
  * \brief The \c FileTagger class maps 1:1 to the respective item in a qbs source file.
  */
 
-FileTagger::FileTagger(const QStringList &patterns, const FileTags &fileTags, int priority)
-    : m_fileTags(fileTags), m_priority(priority)
+FileTagger::FileTagger(const QStringList &patterns, FileTags fileTags, int priority)
+    : m_fileTags(std::move(fileTags)), m_priority(priority)
 {
     setPatterns(patterns);
 }

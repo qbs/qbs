@@ -2268,8 +2268,12 @@ void TestApi::processResult()
     QCOMPARE(expectedExitCode == 0, result.success());
     QCOMPARE(result.error(), QProcess::UnknownError);
     struct CheckParams {
-        CheckParams(bool r, const QString &f, const QByteArray &c, const QStringList &co)
-            : redirect(r), fileName(f), expectedContent(c), consoleOutput(co) {}
+        CheckParams(bool r, QString f, QByteArray c, QStringList co)
+            : redirect(r)
+            , fileName(std::move(f))
+            , expectedContent(std::move(c))
+            , consoleOutput(std::move(co))
+        {}
         bool redirect;
         QString fileName;
         QByteArray expectedContent;

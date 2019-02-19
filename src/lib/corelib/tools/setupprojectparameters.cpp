@@ -109,6 +109,8 @@ SetupProjectParameters::SetupProjectParameters(const SetupProjectParameters &oth
 {
 }
 
+SetupProjectParameters::SetupProjectParameters(SetupProjectParameters &&other) Q_DECL_NOEXCEPT = default;
+
 SetupProjectParameters::~SetupProjectParameters()
 {
 }
@@ -118,6 +120,8 @@ SetupProjectParameters &SetupProjectParameters::operator=(const SetupProjectPara
     d = other.d;
     return *this;
 }
+
+SetupProjectParameters &SetupProjectParameters::operator=(SetupProjectParameters &&other) Q_DECL_NOEXCEPT = default;
 
 /*!
  * \brief Returns the name of the top-level profile for building the project.

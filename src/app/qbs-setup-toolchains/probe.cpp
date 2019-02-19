@@ -191,8 +191,10 @@ static void setCommonProperties(Profile &profile, const QString &compilerFilePat
 class ToolPathSetup
 {
 public:
-    ToolPathSetup(Profile *profile, const QString &path, const QString &toolchainPrefix)
-        : m_profile(profile), m_compilerDirPath(path), m_toolchainPrefix(toolchainPrefix)
+    ToolPathSetup(Profile *profile, QString path, QString toolchainPrefix)
+        : m_profile(profile),
+          m_compilerDirPath(std::move(path)),
+          m_toolchainPrefix(std::move(toolchainPrefix))
     {
     }
 

@@ -80,7 +80,7 @@ public:
     void shareObserverWith(InternalJob *otherJob);
 
 protected:
-    explicit InternalJob(const Logger &logger, QObject *parent = nullptr);
+    explicit InternalJob(Logger logger, QObject *parent = nullptr);
 
     JobObserver *observer() const { return m_observer; }
     void setTimed(bool timed) { m_timed = timed; }

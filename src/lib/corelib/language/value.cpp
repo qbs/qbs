@@ -183,9 +183,9 @@ ValuePtr ItemValue::clone() const
     return create(m_item->clone(), createdByPropertiesBlock());
 }
 
-VariantValue::VariantValue(const QVariant &v)
+VariantValue::VariantValue(QVariant v)
     : Value(VariantValueType, false)
-    , m_value(v)
+    , m_value(std::move(v))
 {
 }
 

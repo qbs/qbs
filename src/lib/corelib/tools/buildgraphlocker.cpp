@@ -55,8 +55,8 @@
 namespace qbs {
 namespace Internal {
 
-DirectoryManager::DirectoryManager(const QString &dir, const Logger &logger)
-    : m_dir(dir), m_logger(logger)
+DirectoryManager::DirectoryManager(QString dir, Logger logger)
+    : m_dir(std::move(dir)), m_logger(std::move(logger))
 {
     rememberCreatedDirectories();
 }

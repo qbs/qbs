@@ -65,9 +65,11 @@ class QBS_EXPORT SetupProjectParameters
 public:
     SetupProjectParameters();
     SetupProjectParameters(const SetupProjectParameters &other);
+    SetupProjectParameters(SetupProjectParameters &&other) Q_DECL_NOEXCEPT;
     ~SetupProjectParameters();
 
     SetupProjectParameters &operator=(const SetupProjectParameters &other);
+    SetupProjectParameters &operator=(SetupProjectParameters &&other) Q_DECL_NOEXCEPT;
 
     QString topLevelProfile() const;
     void setTopLevelProfile(const QString &profile);

@@ -110,7 +110,7 @@ private:
 class BuildDataResolver
 {
 public:
-    BuildDataResolver(const Logger &logger);
+    BuildDataResolver(Logger logger);
     void resolveBuildData(const TopLevelProjectPtr &resolvedProject,
                           const RulesEvaluationContextPtr &evalContext);
     void resolveProductBuildDataForExistingProject(const TopLevelProjectPtr &project,

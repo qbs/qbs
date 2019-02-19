@@ -76,8 +76,8 @@
 namespace qbs {
 namespace Internal {
 
-BuildGraphLoader::BuildGraphLoader(const Logger &logger) :
-    m_logger(logger)
+BuildGraphLoader::BuildGraphLoader(Logger logger) :
+    m_logger(std::move(logger))
 {
 }
 

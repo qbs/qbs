@@ -53,8 +53,8 @@
 namespace qbs {
 namespace Internal {
 
-RulesEvaluationContext::RulesEvaluationContext(const Logger &logger)
-    : m_logger(logger),
+RulesEvaluationContext::RulesEvaluationContext(Logger logger)
+    : m_logger(std::move(logger)),
       m_engine(ScriptEngine::create(m_logger, EvalContext::RuleExecution)),
       m_observer(nullptr),
       m_initScopeCalls(0)

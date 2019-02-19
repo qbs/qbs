@@ -49,7 +49,7 @@ class QBS_EXPORT GeneratableProjectIterator {
     GeneratableProject project;
 
 public:
-    GeneratableProjectIterator(const GeneratableProject &project);
+    GeneratableProjectIterator(GeneratableProject project);
     void accept(IGeneratableProjectVisitor *visitor);
 
 private:

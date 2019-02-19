@@ -154,9 +154,9 @@ bool PluginDependencyScanner::areModulePropertiesCompatible(const PropertyMapCon
     return true;
 }
 
-UserDependencyScanner::UserDependencyScanner(const ResolvedScannerConstPtr &scanner,
+UserDependencyScanner::UserDependencyScanner(ResolvedScannerConstPtr scanner,
                                              ScriptEngine *engine)
-    : m_scanner(scanner),
+    : m_scanner(std::move(scanner)),
       m_engine(engine),
       m_product(nullptr)
 {

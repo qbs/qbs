@@ -56,7 +56,7 @@ class ScriptEngine;
 class RulesEvaluationContext
 {
 public:
-    RulesEvaluationContext(const Logger &logger);
+    RulesEvaluationContext(Logger logger);
     ~RulesEvaluationContext();
 
     class Scope

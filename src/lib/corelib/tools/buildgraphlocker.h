@@ -55,7 +55,7 @@ class ProgressObserver;
 class DirectoryManager
 {
 public:
-    DirectoryManager(const QString &dir, const Logger &logger);
+    DirectoryManager(QString dir, Logger logger);
     ~DirectoryManager();
     QString dir() const { return m_dir; }
 

@@ -59,14 +59,14 @@
 namespace qbs {
 namespace Internal {
 
-ProductInstaller::ProductInstaller(const TopLevelProjectPtr &project,
-        const std::vector<ResolvedProductPtr> &products, const InstallOptions &options,
-        ProgressObserver *observer, const Logger &logger)
-    : m_project(project),
-      m_products(products),
-      m_options(options),
+ProductInstaller::ProductInstaller(TopLevelProjectPtr project,
+        std::vector<ResolvedProductPtr> products, InstallOptions options,
+        ProgressObserver *observer, Logger logger)
+    : m_project(std::move(project)),
+      m_products(std::move(products)),
+      m_options(std::move(options)),
       m_observer(observer),
-      m_logger(logger)
+      m_logger(std::move(logger))
 {
     if (!m_options.installRoot().isEmpty()) {
         QFileInfo installRootFileInfo(m_options.installRoot());
@@ -85,7 +85,7 @@ ProductInstaller::ProductInstaller(const TopLevelProjectPtr &project,
         if (m_options.removeExistingInstallation())
             throw ErrorInfo(Tr::tr("Refusing to remove sysroot."));
     }
-    initInstallRoot(project.get(), m_options);
+    initInstallRoot(m_project.get(), m_options);
 }
 
 void ProductInstaller::install()

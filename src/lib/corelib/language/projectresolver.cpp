@@ -114,14 +114,14 @@ struct ProjectResolver::ModuleContext
 class CancelException { };
 
 
-ProjectResolver::ProjectResolver(Evaluator *evaluator, const ModuleLoaderResult &loadResult,
-        const SetupProjectParameters &setupParameters, Logger &logger)
+ProjectResolver::ProjectResolver(Evaluator *evaluator, ModuleLoaderResult loadResult,
+        SetupProjectParameters setupParameters, Logger &logger)
     : m_evaluator(evaluator)
     , m_logger(logger)
     , m_engine(m_evaluator->engine())
     , m_progressObserver(nullptr)
-    , m_setupParams(setupParameters)
-    , m_loadResult(loadResult)
+    , m_setupParams(std::move(setupParameters))
+    , m_loadResult(std::move(loadResult))
 {
     QBS_CHECK(FileInfo::isAbsolute(m_setupParams.buildRoot()));
 }

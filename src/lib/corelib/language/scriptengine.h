@@ -302,8 +302,8 @@ private:
     class PropertyCacheKey
     {
     public:
-        PropertyCacheKey(const QString &moduleName, const QString &propertyName,
-                         const PropertyMapConstPtr &propertyMap);
+        PropertyCacheKey(QString moduleName, QString propertyName,
+                         PropertyMapConstPtr propertyMap);
     private:
         const QString m_moduleName;
         const QString m_propertyName;

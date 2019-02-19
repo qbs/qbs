@@ -1,3 +1,5 @@
+#include <utility>
+
 /****************************************************************************
 **
 ** Copyright (C) 2016 The Qt Company Ltd.
@@ -56,8 +58,9 @@ static QSettings::Format format()
 }
 
 
-SettingsCreator::SettingsCreator(const QString &baseDir)
-    : m_settingsBaseDir(baseDir), m_qbsVersion(Version::fromString(QLatin1String(QBS_VERSION)))
+SettingsCreator::SettingsCreator(QString baseDir)
+    : m_settingsBaseDir(std::move(baseDir))
+    , m_qbsVersion(Version::fromString(QLatin1String(QBS_VERSION)))
 {
 }
 

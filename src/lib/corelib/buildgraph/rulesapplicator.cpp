@@ -1,3 +1,5 @@
+#include <utility>
+
 /****************************************************************************
 **
 ** Copyright (C) 2016 The Qt Company Ltd.
@@ -76,15 +78,15 @@ namespace qbs {
 namespace Internal {
 
 RulesApplicator::RulesApplicator(
-        const ResolvedProductPtr &product,
-        const std::unordered_map<QString, const ResolvedProduct *> &productsByName,
-        const std::unordered_map<QString, const ResolvedProject *> &projectsByName,
-        const Logger &logger)
-    : m_product(product)
-    , m_productsByName(productsByName)
-    , m_projectsByName(projectsByName)
+        ResolvedProductPtr product,
+        std::unordered_map<QString, const ResolvedProduct *> productsByName,
+        std::unordered_map<QString, const ResolvedProject *> projectsByName,
+        Logger logger)
+    : m_product(std::move(product))
+    , m_productsByName(std::move(productsByName))
+    , m_projectsByName(std::move(projectsByName))
     , m_mocScanner(nullptr)
-    , m_logger(logger)
+    , m_logger(std::move(logger))
 {
 }
 
@@ -545,8 +547,8 @@ class ArtifactBindingsExtractor
 {
     struct Entry
     {
-        Entry(const QString &module, const QString &name, const QVariant &value)
-            : module(module), name(name), value(value)
+        Entry(QString module, QString name, QVariant value)
+            : module(std::move(module)), name(std::move(name)), value(std::move(value))
         {}
 
         QString module;

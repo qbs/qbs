@@ -72,7 +72,7 @@ public:
 class BuildGraphLoader
 {
 public:
-    BuildGraphLoader(const Logger &logger);
+    BuildGraphLoader(Logger logger);
     ~BuildGraphLoader();
 
     BuildGraphLoadResult load(const TopLevelProjectPtr &existingProject,

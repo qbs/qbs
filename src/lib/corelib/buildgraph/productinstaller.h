@@ -55,9 +55,9 @@ class ProgressObserver;
 class ProductInstaller
 {
 public:
-    ProductInstaller(const TopLevelProjectPtr &project,
-            const std::vector<ResolvedProductPtr> &products,
-            const InstallOptions &options, ProgressObserver *observer, const Logger &logger);
+    ProductInstaller(TopLevelProjectPtr project,
+            std::vector<ResolvedProductPtr> products,
+            InstallOptions options, ProgressObserver *observer, Logger logger);
     void install();
 
     static QString targetFilePath(const TopLevelProject *project, const QString &productSourceDir,

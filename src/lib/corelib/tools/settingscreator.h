@@ -56,7 +56,7 @@ namespace Internal {
 class SettingsCreator
 {
 public:
-    SettingsCreator(const QString &baseDir);
+    SettingsCreator(QString baseDir);
 
     QSettings *getQSettings();
 

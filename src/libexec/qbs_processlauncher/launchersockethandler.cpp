@@ -97,9 +97,9 @@ private:
     enum class StopState { Inactive, Terminating, Killing } m_stopState = StopState::Inactive;
 };
 
-LauncherSocketHandler::LauncherSocketHandler(const QString &serverPath, QObject *parent)
+LauncherSocketHandler::LauncherSocketHandler(QString serverPath, QObject *parent)
     : QObject(parent),
-      m_serverPath(serverPath),
+      m_serverPath(std::move(serverPath)),
       m_socket(new QLocalSocket(this))
 {
     m_packetParser.setDevice(m_socket);

@@ -71,8 +71,8 @@ class JsCommandExecutorThreadObject : public QObject
 {
     Q_OBJECT
 public:
-    JsCommandExecutorThreadObject(const Logger &logger)
-        : m_logger(logger)
+    JsCommandExecutorThreadObject(Logger logger)
+        : m_logger(std::move(logger))
         , m_scriptEngine(nullptr)
     {
     }

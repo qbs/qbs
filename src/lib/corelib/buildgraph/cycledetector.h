@@ -52,7 +52,7 @@ class BuildGraphNode;
 class QBS_AUTOTEST_EXPORT CycleDetector : private BuildGraphVisitor
 {
 public:
-    CycleDetector(const Logger &logger);
+    CycleDetector(Logger logger);
 
     void visitProject(const TopLevelProjectConstPtr &project);
     void visitProduct(const ResolvedProductConstPtr &product);

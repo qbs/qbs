@@ -57,7 +57,7 @@ class ScriptEngine;
 class QBS_AUTOTEST_EXPORT Loader
 {
 public:
-    Loader(ScriptEngine *engine, const Logger &logger);
+    Loader(ScriptEngine *engine, Logger logger);
 
     void setProgressObserver(ProgressObserver *observer);
     void setSearchPaths(const QStringList &searchPaths);

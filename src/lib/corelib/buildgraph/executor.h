@@ -77,7 +77,7 @@ class Executor : public QObject, private BuildGraphVisitor
 public:
     void build();
 
-    Executor(const Logger &logger, QObject *parent = nullptr);
+    Executor(Logger logger, QObject *parent = nullptr);
     ~Executor();
 
     void setProject(const TopLevelProjectPtr &project);
