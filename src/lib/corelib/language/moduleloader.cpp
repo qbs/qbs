@@ -3493,7 +3493,7 @@ void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, It
     QBS_CHECK(configureScript);
     if (Q_UNLIKELY(configureScript->sourceCode() == StringConstants::undefinedValue()))
         throw ErrorInfo(Tr::tr("Probe.configure must be set."), probe->location());
-    typedef std::pair<QString, QScriptValue> ProbeProperty;
+    using ProbeProperty = std::pair<QString, QScriptValue>;
     QList<ProbeProperty> probeBindings;
     QVariantMap initialProperties;
     for (Item *obj = probe; obj; obj = obj->prototype()) {

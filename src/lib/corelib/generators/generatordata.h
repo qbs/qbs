@@ -50,7 +50,7 @@
 
 namespace qbs {
 
-typedef QMap<QString, Project> GeneratableProjectMap;
+using GeneratableProjectMap = QMap<QString, Project>;
 
 template <typename U> struct IMultiplexableContainer {
     QMap<QString, U> data;

@@ -57,7 +57,7 @@ public:
 
     ItemType type() const { return m_type; }
 
-    typedef QList<PropertyDeclaration> Properties;
+    using Properties = QList<PropertyDeclaration>;
     void setProperties(const Properties &props) { m_properties = props; }
     Properties properties() const { return m_properties; }
 
@@ -66,7 +66,7 @@ public:
 
     ItemDeclaration &operator<<(const PropertyDeclaration &decl);
 
-    typedef Set<ItemType> TypeNames;
+    using TypeNames = Set<ItemType>;
     void setAllowedChildTypes(const TypeNames &typeNames) { m_allowedChildTypes = typeNames; }
     const TypeNames &allowedChildTypes() const { return m_allowedChildTypes; }
     bool isChildTypeAllowed(ItemType type) const;

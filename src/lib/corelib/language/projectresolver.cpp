@@ -99,7 +99,7 @@ struct ProjectResolver::ProductContext
     ResolvedProductPtr product;
     QString buildDirectory;
     Item *item;
-    typedef std::pair<ArtifactPropertiesPtr, std::vector<CodeLocation>> ArtifactPropertiesInfo;
+    using ArtifactPropertiesInfo = std::pair<ArtifactPropertiesPtr, std::vector<CodeLocation>>;
     QHash<QStringList, ArtifactPropertiesInfo> artifactPropertiesPerFilter;
     ProjectResolver::FileLocations sourceArtifactLocations;
     GroupConstPtr currentGroup;

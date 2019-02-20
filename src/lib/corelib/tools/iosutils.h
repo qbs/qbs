@@ -49,12 +49,12 @@
 #include <locale>
 #define QBS_RENAME_IMPL ::_wrename
 #define QBS_UNLINK_IMPL ::_wunlink
-typedef std::wstring qbs_filesystem_path_string_type;
+using qbs_filesystem_path_string_type = std::wstring;
 #else
 #include <unistd.h>
 #define QBS_RENAME_IMPL ::rename
 #define QBS_UNLINK_IMPL ::unlink
-typedef std::string qbs_filesystem_path_string_type;
+using qbs_filesystem_path_string_type = std::string;
 #endif
 
 namespace qbs {

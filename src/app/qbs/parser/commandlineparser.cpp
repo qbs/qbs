@@ -477,7 +477,7 @@ void CommandLineParser::CommandLineParserPrivate::setupBuildConfigurations()
 {
     // first: configuration name, second: properties.
     // Empty configuration name used for global properties.
-    typedef std::pair<QString, QVariantMap> PropertyListItem;
+    using PropertyListItem = std::pair<QString, QVariantMap>;
     QList<PropertyListItem> propertiesPerConfiguration;
 
     const QString configurationNameKey = QLatin1String("qbs.configurationName");

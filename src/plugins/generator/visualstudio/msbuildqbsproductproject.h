@@ -57,7 +57,7 @@ public:
                              VisualStudioGenerator *parent = nullptr);
 
 private:
-    typedef QHash<QString, std::set<Project>> ProjectConfigurations;
+    using ProjectConfigurations = QHash<QString, std::set<Project>>;
 
     void addConfiguration(const GeneratableProject &project, const Project &buildTask,
                           const ProductData &productData,

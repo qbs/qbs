@@ -127,7 +127,7 @@ private:
         ArtifactSet children;
         ArtifactSet childrenAddedByScanner;
     };
-    typedef QHash<const Artifact *, ChildrenInfo> ChildListHash;
+    using ChildListHash = QHash<const Artifact *, ChildrenInfo>;
     void rescueOldBuildData(const ResolvedProductConstPtr &restoredProduct,
                             const ResolvedProductPtr &newlyResolvedProduct,
                             const ChildListHash &childLists,

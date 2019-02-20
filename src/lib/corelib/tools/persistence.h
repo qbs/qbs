@@ -135,7 +135,7 @@ public:
     void setHeadData(const HeadData &hd) { m_headData = hd; }
 
 private:
-    typedef int PersistentObjectId;
+    using PersistentObjectId = int;
 
     template <typename T> T *idLoad();
     template <class T> std::shared_ptr<T> idLoadS();

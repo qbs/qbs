@@ -128,7 +128,7 @@ public:
     PropertyMapPtr properties;
 
 };
-typedef QHash<QString, RescuableArtifactData> AllRescuableArtifactData;
+using AllRescuableArtifactData = QHash<QString, RescuableArtifactData>;
 
 } // namespace Internal
 } // namespace qbs

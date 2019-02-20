@@ -152,7 +152,7 @@ private:
 
     class ProjectContext;
 
-    typedef std::vector<ModuleLoaderResult::ProductInfo::Dependency> ProductDependencies;
+    using ProductDependencies = std::vector<ModuleLoaderResult::ProductInfo::Dependency>;
 
     // This is the data we need to store at the point where a dependency is deferred
     // in order to properly resolve the dependency in pass 2.
@@ -241,8 +241,8 @@ private:
             TopLevelProjectContext *topLevelProjectContext, Item *projectItem,
             const Set<QString> &referencedFilePaths);
 
-    typedef std::vector<VariantValuePtr> MultiplexRow;
-    typedef std::vector<MultiplexRow> MultiplexTable;
+    using MultiplexRow = std::vector<VariantValuePtr>;
+    using MultiplexTable = std::vector<MultiplexRow>;
 
     struct MultiplexInfo
     {

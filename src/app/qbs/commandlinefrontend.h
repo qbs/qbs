@@ -81,7 +81,7 @@ private:
     void handleProcessResultReport(const qbs::ProcessResult &result);
     void checkCancelStatus();
 
-    typedef QHash<Project, QList<ProductData> > ProductMap;
+    using ProductMap = QHash<Project, QList<ProductData>>;
     ProductMap productsToUse() const;
 
     bool resolvingMultipleProjects() const;

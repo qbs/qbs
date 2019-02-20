@@ -245,11 +245,11 @@ public:
     public:
         JsonArray *a;
         int i;
-        typedef std::random_access_iterator_tag  iterator_category;
-        typedef int difference_type;
-        typedef JsonValue value_type;
-        typedef JsonValueRef reference;
-        typedef JsonValueRefPtr pointer;
+        using iterator_category = std::random_access_iterator_tag;
+        using difference_type = int;
+        using value_type = JsonValue;
+        using reference = JsonValueRef;
+        using pointer = JsonValueRefPtr;
 
         iterator() : a(nullptr), i(0) { }
         explicit iterator(JsonArray *array, int index) : a(array), i(index) { }
@@ -286,11 +286,11 @@ public:
     public:
         const JsonArray *a;
         int i;
-        typedef std::random_access_iterator_tag  iterator_category;
-        typedef std::ptrdiff_t difference_type;
-        typedef JsonValue value_type;
-        typedef JsonValue reference;
-        typedef JsonValuePtr pointer;
+        using iterator_category = std::random_access_iterator_tag;
+        using difference_type = std::ptrdiff_t;
+        using value_type = JsonValue;
+        using reference = JsonValue;
+        using pointer = JsonValuePtr;
 
         const_iterator() : a(nullptr), i(0) { }
         explicit const_iterator(const JsonArray *array, int index) : a(array), i(index) { }
@@ -332,13 +332,13 @@ public:
     void pop_front() { removeFirst(); }
     void pop_back() { removeLast(); }
     bool empty() const { return isEmpty(); }
-    typedef int size_type;
-    typedef JsonValue value_type;
-    typedef value_type *pointer;
-    typedef const value_type *const_pointer;
-    typedef JsonValueRef reference;
-    typedef JsonValue const_reference;
-    typedef int difference_type;
+    using size_type = int ;
+    using value_type = JsonValue;
+    using pointer = value_type *;
+    using const_pointer = const value_type *;
+    using reference = JsonValueRef;
+    using const_reference = JsonValue;
+    using difference_type = int;
 
 private:
     friend class Internal::Data;
@@ -364,7 +364,7 @@ public:
     JsonObject(const JsonObject &other);
     JsonObject &operator =(const JsonObject &other);
 
-    typedef std::vector<std::string> Keys;
+    using Keys = std::vector<std::string>;
     Keys keys() const;
     int size() const;
     int count() const { return size(); }
@@ -392,10 +392,10 @@ public:
         int i;
 
     public:
-        typedef std::bidirectional_iterator_tag iterator_category;
-        typedef int difference_type;
-        typedef JsonValue value_type;
-        typedef JsonValueRef reference;
+        using iterator_category = std::bidirectional_iterator_tag;
+        using difference_type = int;
+        using value_type = JsonValue;
+        using reference = JsonValueRef;
 
         iterator() : o(nullptr), i(0) {}
         iterator(JsonObject *obj, int index) : o(obj), i(index) {}
@@ -430,10 +430,10 @@ public:
         int i;
 
     public:
-        typedef std::bidirectional_iterator_tag iterator_category;
-        typedef int difference_type;
-        typedef JsonValue value_type;
-        typedef JsonValue reference;
+        using iterator_category = std::bidirectional_iterator_tag;
+        using difference_type = int;
+        using value_type = JsonValue;
+        using reference = JsonValue;
 
         const_iterator() : o(nullptr), i(0) {}
         const_iterator(const JsonObject *obj, int index)
@@ -479,9 +479,9 @@ public:
     iterator insert(const std::string &key, const JsonValue &value);
 
     // STL compatibility
-    typedef JsonValue mapped_type;
-    typedef std::string key_type;
-    typedef int size_type;
+    using mapped_type = JsonValue;
+    using key_type = std::string;
+    using size_type = int;
 
     bool empty() const { return isEmpty(); }
 

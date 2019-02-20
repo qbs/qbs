@@ -149,7 +149,7 @@ QScriptValue Transformer::translateInOutputs(ScriptEngine *scriptEngine,
                                              const ArtifactSet &artifacts,
                                              const QString &defaultModuleName)
 {
-    typedef QMap<QString, QList<Artifact*> > TagArtifactsMap;
+    using TagArtifactsMap = QMap<QString, QList<Artifact*>>;
     TagArtifactsMap tagArtifactsMap;
     for (Artifact *artifact : artifacts)
         for (const FileTag &fileTag : artifact->fileTags())

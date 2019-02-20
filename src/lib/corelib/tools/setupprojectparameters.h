@@ -48,7 +48,7 @@
 QT_BEGIN_NAMESPACE
 class QProcessEnvironment;
 class QStringList;
-typedef QMap<QString, QVariant> QVariantMap;
+using QVariantMap = QMap<QString, QVariant>;
 QT_END_NAMESPACE
 
 namespace qbs {

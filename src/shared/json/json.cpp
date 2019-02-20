@@ -196,7 +196,7 @@ public:
     void operator-=(int i) { *this = (int(*this) - i); }
 };
 
-typedef uint32_t offset;
+using offset = uint32_t;
 
 // round the size up to the next 4 byte boundary
 int alignedSize(int size) { return (size + 3) & ~3; }

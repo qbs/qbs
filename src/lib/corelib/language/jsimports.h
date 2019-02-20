@@ -82,7 +82,7 @@ inline bool operator==(const JsImport &jsi1, const JsImport &jsi2)
     return jsi1.scopeName == jsi2.scopeName && jsi1.filePaths.toSet() == jsi2.filePaths.toSet();
 }
 
-typedef std::vector<JsImport> JsImports;
+using JsImports = std::vector<JsImport>;
 
 } // namespace Internal
 } // namespace qbs

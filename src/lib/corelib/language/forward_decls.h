@@ -47,89 +47,89 @@ namespace Internal {
 enum class ObserveMode;
 
 class Value;
-typedef std::shared_ptr<Value> ValuePtr;
-typedef std::shared_ptr<const Value> ValueConstPtr;
+using ValuePtr = std::shared_ptr<Value>;
+using ValueConstPtr = std::shared_ptr<const Value>;
 
 class ItemValue;
-typedef std::shared_ptr<ItemValue> ItemValuePtr;
-typedef std::shared_ptr<const ItemValue> ItemValueConstPtr;
+using ItemValuePtr = std::shared_ptr<ItemValue>;
+using ItemValueConstPtr = std::shared_ptr<const ItemValue>;
 
 class JSSourceValue;
-typedef std::shared_ptr<JSSourceValue> JSSourceValuePtr;
-typedef std::shared_ptr<const JSSourceValue> JSSourceValueConstPtr;
+using JSSourceValuePtr = std::shared_ptr<JSSourceValue>;
+using JSSourceValueConstPtr = std::shared_ptr<const JSSourceValue>;
 
 class VariantValue;
-typedef std::shared_ptr<VariantValue> VariantValuePtr;
-typedef std::shared_ptr<const VariantValue> VariantValueConstPtr;
+using VariantValuePtr = std::shared_ptr<VariantValue>;
+using VariantValueConstPtr = std::shared_ptr<const VariantValue>;
 
 class FileContext;
-typedef std::shared_ptr<FileContext> FileContextPtr;
-typedef std::shared_ptr<const FileContext> FileContextConstPtr;
+using FileContextPtr = std::shared_ptr<FileContext>;
+using FileContextConstPtr = std::shared_ptr<const FileContext>;
 
 class FileContextBase;
-typedef std::shared_ptr<FileContextBase> FileContextBasePtr;
-typedef std::shared_ptr<const FileContextBase> FileContextBaseConstPtr;
+using FileContextBasePtr = std::shared_ptr<FileContextBase>;
+using FileContextBaseConstPtr = std::shared_ptr<const FileContextBase>;
 
 class Probe;
-typedef std::shared_ptr<Probe> ProbePtr;
-typedef std::shared_ptr<const Probe> ProbeConstPtr;
+using ProbePtr = std::shared_ptr<Probe>;
+using ProbeConstPtr = std::shared_ptr<const Probe>;
 
 class PropertyMapInternal;
-typedef std::shared_ptr<PropertyMapInternal> PropertyMapPtr;
-typedef std::shared_ptr<const PropertyMapInternal> PropertyMapConstPtr;
+using PropertyMapPtr = std::shared_ptr<PropertyMapInternal>;
+using PropertyMapConstPtr = std::shared_ptr<const PropertyMapInternal>;
 
 class FileTagger;
-typedef std::shared_ptr<FileTagger> FileTaggerPtr;
-typedef std::shared_ptr<const FileTagger> FileTaggerConstPtr;
+using FileTaggerPtr = std::shared_ptr<FileTagger>;
+using FileTaggerConstPtr = std::shared_ptr<const FileTagger>;
 
 class ResolvedProduct;
-typedef std::shared_ptr<ResolvedProduct> ResolvedProductPtr;
-typedef std::shared_ptr<const ResolvedProduct> ResolvedProductConstPtr;
+using ResolvedProductPtr = std::shared_ptr<ResolvedProduct>;
+using ResolvedProductConstPtr = std::shared_ptr<const ResolvedProduct>;
 
 class ResolvedProject;
-typedef std::shared_ptr<ResolvedProject> ResolvedProjectPtr;
-typedef std::shared_ptr<const ResolvedProject> ResolvedProjectConstPtr;
+using ResolvedProjectPtr = std::shared_ptr<ResolvedProject>;
+using ResolvedProjectConstPtr = std::shared_ptr<const ResolvedProject>;
 
 class TopLevelProject;
-typedef std::shared_ptr<TopLevelProject> TopLevelProjectPtr;
-typedef std::shared_ptr<const TopLevelProject> TopLevelProjectConstPtr;
+using TopLevelProjectPtr = std::shared_ptr<TopLevelProject>;
+using TopLevelProjectConstPtr = std::shared_ptr<const TopLevelProject>;
 
 class ResolvedFileContext;
-typedef std::shared_ptr<ResolvedFileContext> ResolvedFileContextPtr;
-typedef std::shared_ptr<const ResolvedFileContext> ResolvedFileContextConstPtr;
+using ResolvedFileContextPtr = std::shared_ptr<ResolvedFileContext>;
+using ResolvedFileContextConstPtr = std::shared_ptr<const ResolvedFileContext>;
 
 class Rule;
-typedef std::shared_ptr<Rule> RulePtr;
-typedef std::shared_ptr<const Rule> RuleConstPtr;
+using RulePtr = std::shared_ptr<Rule>;
+using RuleConstPtr = std::shared_ptr<const Rule>;
 
 class ResolvedScanner;
-typedef std::shared_ptr<ResolvedScanner> ResolvedScannerPtr;
-typedef std::shared_ptr<const ResolvedScanner> ResolvedScannerConstPtr;
+using ResolvedScannerPtr = std::shared_ptr<ResolvedScanner>;
+using ResolvedScannerConstPtr = std::shared_ptr<const ResolvedScanner>;
 
 class SourceArtifactInternal;
-typedef std::shared_ptr<SourceArtifactInternal> SourceArtifactPtr;
-typedef std::shared_ptr<const SourceArtifactInternal> SourceArtifactConstPtr;
+using SourceArtifactPtr = std::shared_ptr<SourceArtifactInternal>;
+using SourceArtifactConstPtr = std::shared_ptr<const SourceArtifactInternal>;
 
 class ScriptFunction;
-typedef std::shared_ptr<ScriptFunction> ScriptFunctionPtr;
-typedef std::shared_ptr<const ScriptFunction> ScriptFunctionConstPtr;
+using ScriptFunctionPtr = std::shared_ptr<ScriptFunction>;
+using ScriptFunctionConstPtr = std::shared_ptr<const ScriptFunction>;
 class PrivateScriptFunction;
 
 class RuleArtifact;
-typedef std::shared_ptr<RuleArtifact> RuleArtifactPtr;
-typedef std::shared_ptr<const RuleArtifact> RuleArtifactConstPtr;
+using RuleArtifactPtr = std::shared_ptr<RuleArtifact>;
+using RuleArtifactConstPtr = std::shared_ptr<const RuleArtifact>;
 
 class ResolvedModule;
-typedef std::shared_ptr<ResolvedModule> ResolvedModulePtr;
-typedef std::shared_ptr<const ResolvedModule> ResolvedModuleConstPtr;
+using ResolvedModulePtr = std::shared_ptr<ResolvedModule>;
+using ResolvedModuleConstPtr = std::shared_ptr<const ResolvedModule>;
 
 class ResolvedGroup;
-typedef std::shared_ptr<ResolvedGroup> GroupPtr;
-typedef std::shared_ptr<const ResolvedGroup> GroupConstPtr;
+using GroupPtr = std::shared_ptr<ResolvedGroup>;
+using GroupConstPtr = std::shared_ptr<const ResolvedGroup>;
 
 class ArtifactProperties;
-typedef std::shared_ptr<ArtifactProperties> ArtifactPropertiesPtr;
-typedef std::shared_ptr<const ArtifactProperties> ArtifactPropertiesConstPtr;
+using ArtifactPropertiesPtr = std::shared_ptr<ArtifactProperties>;
+using ArtifactPropertiesConstPtr = std::shared_ptr<const ArtifactProperties>;
 
 class ExportedItem;
 using ExportedItemPtr = std::shared_ptr<ExportedItem>;
