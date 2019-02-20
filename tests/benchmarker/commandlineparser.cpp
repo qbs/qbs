@@ -78,9 +78,9 @@ void CommandLineParser::parse()
             << oldCommitOption << newCommitOption << testProjectOption << qbsRepoOption;
     for (const QCommandLineOption &o : mandatoryOptions) {
         if (!parser.isSet(o))
-            throwException(o.names().front(), parser.helpText());
+            throwException(o.names().constFirst(), parser.helpText());
         if (parser.value(o).isEmpty())
-            throwException(o.names().front(), QString(), parser.helpText());
+            throwException(o.names().constFirst(), QString(), parser.helpText());
     }
     m_oldCommit = parser.value(oldCommitOption);
     m_newCommit = parser.value(newCommitOption);
@@ -99,7 +99,9 @@ void CommandLineParser::parse()
         } else if (activityString == nullBuildActivity()) {
             m_activities |= ActivityNullBuild;
         } else {
-            throwException(activitiesOption.names().front(), activityString, parser.helpText());
+            throwException(activitiesOption.names().constFirst(),
+                           activityString,
+                           parser.helpText());
         }
     }
     m_regressionThreshold = 5;
@@ -108,7 +110,9 @@ void CommandLineParser::parse()
         const QString rawThresholdValue = parser.value(thresholdOption);
         m_regressionThreshold = rawThresholdValue.toInt(&ok);
         if (!ok)
-            throwException(thresholdOption.names().first(), rawThresholdValue, parser.helpText());
+            throwException(thresholdOption.names().constFirst(),
+                           rawThresholdValue,
+                           parser.helpText());
     }
 }
 

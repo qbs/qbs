@@ -587,7 +587,7 @@ void CommandLineFrontend::dumpNodesTree()
 
 void CommandLineFrontend::listProducts()
 {
-    const QList<ProductData> products = productsToUse().begin().value();
+    const QList<ProductData> products = productsToUse().constBegin().value();
     QStringList output;
     for (const ProductData &p : products) {
         QString productInfo = p.fullDisplayName();
@@ -642,7 +642,7 @@ ProductData CommandLineFrontend::getTheOneRunnableProduct()
     if (m_parser.products().size() == 1) {
         const auto products = m_projects.front().projectData().allProducts();
         for (const ProductData &p : products) {
-            if (p.name() == m_parser.products().front())
+            if (p.name() == m_parser.products().constFirst())
                 return p;
         }
         QBS_CHECK(false);

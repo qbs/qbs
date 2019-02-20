@@ -135,7 +135,7 @@ QMap<QString, QString> TestBlackbox::findTypeScript(int *status)
 QString TestBlackbox::findArchiver(const QString &fileName, int *status)
 {
     if (fileName == "jar")
-        return findJdkTools(status)[fileName];
+        return findJdkTools(status).value(fileName);
 
     QString binary = findExecutable(QStringList(fileName));
     if (binary.isEmpty()) {

@@ -245,7 +245,7 @@ void qbs::MakefileGenerator::generate()
                 stream << ' ' << transformedOutputFilePath(ta);
             stream << '\n';
             for (const TransformerData &transformerData : productTransformerData) {
-                stream << transformedOutputFilePath(transformerData.outputs().first()) << ":";
+                stream << transformedOutputFilePath(transformerData.outputs().constFirst()) << ":";
                 for (const ArtifactData &input : transformerData.inputs())
                     stream << ' ' << transformedArtifactFilePath(input);
                 stream << '\n';
