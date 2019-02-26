@@ -73,7 +73,7 @@ static unsigned char convertHex(ushort c)
 
 static QChar convertHex(QChar c1, QChar c2)
 {
-    return QChar((convertHex(c1.unicode()) << 4) + convertHex(c2.unicode()));
+    return {(convertHex(c1.unicode()) << 4) + convertHex(c2.unicode())};
 }
 
 static QChar convertUnicode(QChar c1, QChar c2, QChar c3, QChar c4)
@@ -267,7 +267,7 @@ QChar Lexer::decodeUnicodeEscapeCharacter(bool *ok)
     }
 
     *ok = false;
-    return QChar();
+    return {};
 }
 
 int Lexer::scanToken()

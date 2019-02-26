@@ -219,14 +219,14 @@ class DryRunOption : public OnOffOption
 class ForceProbesOption : public OnOffOption
 {
     QString description(CommandType command) const override;
-    QString shortRepresentation() const override { return QString(); }
+    QString shortRepresentation() const override { return {}; }
     QString longRepresentation() const override;
 };
 
 class NoInstallOption : public OnOffOption
 {
     QString description(CommandType command) const override;
-    QString shortRepresentation() const override { return QString(); }
+    QString shortRepresentation() const override { return {}; }
     QString longRepresentation() const override;
 };
 
@@ -234,28 +234,28 @@ class ShowProgressOption : public OnOffOption
 {
 public:
     QString description(CommandType command) const override;
-    QString shortRepresentation() const override { return QString(); }
+    QString shortRepresentation() const override { return {}; }
     QString longRepresentation() const override;
 };
 
 class ForceTimeStampCheckOption : public OnOffOption
 {
     QString description(CommandType command) const override;
-    QString shortRepresentation() const override { return QString(); }
+    QString shortRepresentation() const override { return {}; }
     QString longRepresentation() const override;
 };
 
 class ForceOutputCheckOption : public OnOffOption
 {
     QString description(CommandType command) const override;
-    QString shortRepresentation() const override { return QString(); }
+    QString shortRepresentation() const override { return {}; }
     QString longRepresentation() const override;
 };
 
 class BuildNonDefaultOption : public OnOffOption
 {
     QString description(CommandType command) const override;
-    QString shortRepresentation() const override { return QString(); }
+    QString shortRepresentation() const override { return {}; }
     QString longRepresentation() const override;
 };
 
@@ -274,7 +274,7 @@ private:
 class ChangedFilesOption : public StringListOption
 {
     QString description(CommandType command) const override;
-    QString shortRepresentation() const override { return QString(); }
+    QString shortRepresentation() const override { return {}; }
     QString longRepresentation() const override;
 };
 
@@ -289,7 +289,7 @@ public:
 class RunEnvConfigOption : public StringListOption
 {
     QString description(CommandType command) const override;
-    QString shortRepresentation() const override { return QString(); }
+    QString shortRepresentation() const override { return {}; }
     QString longRepresentation() const override;
 };
 
@@ -301,7 +301,7 @@ public:
 
 private:
     QString description(CommandType command) const override;
-    QString shortRepresentation() const override { return QString(); }
+    QString shortRepresentation() const override { return {}; }
     QString longRepresentation() const override;
     void doParse(const QString &representation, QStringList &input) override;
 
@@ -317,7 +317,7 @@ public:
     bool useSysroot() const { return m_useSysroot; }
 
     QString description(CommandType command) const override;
-    QString shortRepresentation() const override { return QString(); }
+    QString shortRepresentation() const override { return {}; }
     QString longRepresentation() const override;
 
 private:
@@ -331,7 +331,7 @@ class RemoveFirstOption : public OnOffOption
 {
 public:
     QString description(CommandType command) const override;
-    QString shortRepresentation() const override { return QString(); }
+    QString shortRepresentation() const override { return {}; }
     QString longRepresentation() const override;
 };
 
@@ -339,7 +339,7 @@ class NoBuildOption : public OnOffOption
 {
 public:
     QString description(CommandType command) const override;
-    QString shortRepresentation() const override { return QString(); }
+    QString shortRepresentation() const override { return {}; }
     QString longRepresentation() const override;
 };
 
@@ -357,7 +357,7 @@ public:
     CommandEchoModeOption();
 
     QString description(CommandType command) const override;
-    QString shortRepresentation() const override { return QString(); }
+    QString shortRepresentation() const override { return {}; }
     QString longRepresentation() const override;
     CommandEchoMode commandEchoMode() const;
 
@@ -375,7 +375,7 @@ public:
     QString settingsDir() const { return m_settingsDir; }
 
     QString description(CommandType command) const override;
-    QString shortRepresentation() const override { return QString(); }
+    QString shortRepresentation() const override { return {}; }
     QString longRepresentation() const override;
 
 private:
@@ -390,7 +390,7 @@ public:
     JobLimits jobLimits() const { return m_jobLimits; }
 
     QString description(CommandType command) const override;
-    QString shortRepresentation() const override { return QString(); }
+    QString shortRepresentation() const override { return {}; }
     QString longRepresentation() const override;
 
 private:
@@ -403,7 +403,7 @@ class RespectProjectJobLimitsOption : public OnOffOption
 {
 public:
     QString description(CommandType command) const override;
-    QString shortRepresentation() const override { return QString(); }
+    QString shortRepresentation() const override { return {}; }
     QString longRepresentation() const override;
 };
 
@@ -411,7 +411,7 @@ class WaitLockOption : public OnOffOption
 {
 public:
     QString description(CommandType command) const override;
-    QString shortRepresentation() const override { return QString(); }
+    QString shortRepresentation() const override { return {}; }
     QString longRepresentation() const override;
 };
 
@@ -419,7 +419,7 @@ class DisableFallbackProviderOption : public OnOffOption
 {
 public:
     QString description(CommandType command) const override;
-    QString shortRepresentation() const override { return QString(); }
+    QString shortRepresentation() const override { return {}; }
     QString longRepresentation() const override;
 };
 

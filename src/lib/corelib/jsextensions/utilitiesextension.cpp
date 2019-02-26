@@ -567,7 +567,7 @@ static QString archName(cpu_type_t cputype, cpu_subtype_t cpusubtype)
         case CPU_SUBTYPE_X86_ALL:
             return QStringLiteral("i386");
         default:
-            return QString();
+            return {};
         }
     case CPU_TYPE_X86_64:
         switch (cpusubtype) {
@@ -576,7 +576,7 @@ static QString archName(cpu_type_t cputype, cpu_subtype_t cpusubtype)
         case CPU_SUBTYPE_X86_64_H:
             return QStringLiteral("x86_64h");
         default:
-            return QString();
+            return {};
         }
     case CPU_TYPE_ARM:
         switch (cpusubtype) {
@@ -587,17 +587,17 @@ static QString archName(cpu_type_t cputype, cpu_subtype_t cpusubtype)
         case CPU_SUBTYPE_ARM_V7K:
             return QStringLiteral("armv7k");
         default:
-            return QString();
+            return {};
         }
     case CPU_TYPE_ARM64:
         switch (cpusubtype) {
         case CPU_SUBTYPE_ARM64_ALL:
             return QStringLiteral("arm64");
         default:
-            return QString();
+            return {};
         }
     default:
-        return QString();
+        return {};
     }
 }
 
@@ -615,7 +615,7 @@ static QStringList detectMachOArchs(QIODevice *device)
                 ar_hdr header;
                 if (device->read(reinterpret_cast<char *>(&header),
                                  sizeof(ar_hdr)) != sizeof(ar_hdr))
-                    return {  };
+                    return {};
 
                 // If the file name is stored in the "extended format" manner,
                 // the real filename is prepended to the data section, so skip that many bytes
@@ -626,7 +626,7 @@ static QStringList detectMachOArchs(QIODevice *device)
                            sizeof(header.ar_name) - (sizeof(AR_EFMT1) - 1) - 1);
                     filenameLength = strtoul(arName, nullptr, 10);
                     if (device->read(filenameLength).size() != filenameLength)
-                        return { };
+                        return {};
                 }
 
                 switch (readInt(device, nullptr, false, true)) {
@@ -646,7 +646,7 @@ static QStringList detectMachOArchs(QIODevice *device)
                     sz -= filenameLength;
                     const auto data = device->read(sz);
                     if (data.size() != sz)
-                        return { };
+                        return {};
                 }
                 }
 
@@ -658,7 +658,7 @@ static QStringList detectMachOArchs(QIODevice *device)
 
     // Wasn't an archive file, so try a fat file
     if (!foundMachO && !device->seek(pos))
-        return QStringList();
+        return {};
 
     pos = device->pos();
 
@@ -670,7 +670,7 @@ static QStringList detectMachOArchs(QIODevice *device)
         const bool is64bit = fatheader.magic == FAT_MAGIC_64 || fatheader.magic == FAT_CIGAM_64;
         fatheader.nfat_arch = readInt(device, &ok, swap);
         if (!ok)
-            return QStringList();
+            return {};
 
         QStringList archs;
 
@@ -680,7 +680,7 @@ static QStringList detectMachOArchs(QIODevice *device)
             static_assert(sizeof(fat_arch) == 20, "sizeof(fat_arch) != 20");
             const qint64 expectedBytes = is64bit ? sizeof(fat_arch_64) : sizeof(fat_arch);
             if (device->read(reinterpret_cast<char *>(&fatarch), expectedBytes) != expectedBytes)
-                return QStringList();
+                return {};
 
             if (swap) {
                 fatarch.cputype = qbswap(fatarch.cputype);
@@ -691,7 +691,7 @@ static QStringList detectMachOArchs(QIODevice *device)
             if (name.isEmpty()) {
                 qWarning("Unknown cputype %d and cpusubtype %d",
                          fatarch.cputype, fatarch.cpusubtype);
-                return QStringList();
+                return {};
             }
             archs.push_back(name);
         }
@@ -702,7 +702,7 @@ static QStringList detectMachOArchs(QIODevice *device)
 
     // Wasn't a fat file, so we just read a thin Mach-O from the original offset
     if (!device->seek(pos))
-        return QStringList();
+        return {};
 
     bool swap = false;
     mach_header header;
@@ -716,24 +716,24 @@ static QStringList detectMachOArchs(QIODevice *device)
     case MH_MAGIC_64:
         break;
     default:
-        return QStringList();
+        return {};
     }
 
     header.cputype = static_cast<cpu_type_t>(readInt(device, &ok, swap));
     if (!ok)
-        return QStringList();
+        return {};
 
     header.cpusubtype = static_cast<cpu_subtype_t>(readInt(device, &ok, swap));
     if (!ok)
-        return QStringList();
+        return {};
 
     const QString name = archName(header.cputype, header.cpusubtype);
     if (name.isEmpty()) {
         qWarning("Unknown cputype %d and cpusubtype %d",
                  header.cputype, header.cpusubtype);
-        return { };
+        return {};
     }
-    return { name };
+    return {name};
 }
 #endif
 

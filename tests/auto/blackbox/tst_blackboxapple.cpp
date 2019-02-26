@@ -784,7 +784,7 @@ QVariantMap TestBlackboxApple::findXcode(int *status)
     QFile file(temp.path() + "/" + relativeProductBuildDir("find-xcode")
                + "/xcode.json");
     if (!file.open(QIODevice::ReadOnly))
-        return QVariantMap { };
+        return {};
     return QJsonDocument::fromJson(file.readAll()).toVariant().toMap();
 }
 

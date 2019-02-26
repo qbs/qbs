@@ -160,7 +160,7 @@ Rewriter::Range Rewriter::addBinding(AST::UiObjectInitializer *ast,
     m_changeSet->insert(endOfPreviousMember.end(),
                          newPropertyTemplate.arg(propertyName, propertyValue));
 
-    return Range(endOfPreviousMember.end(), endOfPreviousMember.end());
+    return {int(endOfPreviousMember.end()), int(endOfPreviousMember.end())};
 }
 
 UiObjectMemberList *Rewriter::searchMemberToInsertAfter(UiObjectMemberList *members,
@@ -342,7 +342,7 @@ void Rewriter::replaceMemberValue(UiObjectMember *propertyMember,
             endOffset = startOffset;
             if (publicMember->semicolonToken.isValid())
                 startOffset = publicMember->semicolonToken.offset;
-            replacement.prepend(QLatin1String(": "));
+            replacement.prepend(QStringLiteral(": "));
         }
     } else {
         return;

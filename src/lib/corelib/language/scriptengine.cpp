@@ -397,7 +397,7 @@ static QString findExtensionDir(const QStringList &searchPaths, const QString &e
         if (fi.exists() && fi.isDir())
             return dirPath;
     }
-    return QString();
+    return {};
 }
 
 static QScriptValue mergeExtensionObjects(const QScriptValueList &lst)

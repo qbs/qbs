@@ -167,7 +167,7 @@ void BinaryFile::close()
 QString BinaryFile::filePath()
 {
     if (checkForClosed())
-        return QString();
+        return {};
     return QFileInfo(*m_file).absoluteFilePath();
 }
 
@@ -215,7 +215,7 @@ void BinaryFile::seek(qint64 pos)
 QVariantList BinaryFile::read(qint64 size)
 {
     if (checkForClosed())
-        return QVariantList();
+        return {};
     const QByteArray bytes = m_file->read(size);
     if (Q_UNLIKELY(bytes.size() == 0 && m_file->error() != QFile::NoError)) {
         context()->throwError(Tr::tr("Could not read from '%1': %2")

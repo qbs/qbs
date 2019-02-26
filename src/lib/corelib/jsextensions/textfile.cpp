@@ -173,7 +173,7 @@ void TextFile::close()
 QString TextFile::filePath()
 {
     if (checkForClosed())
-        return QString();
+        return {};
     return QFileInfo(*m_file).absoluteFilePath();
 }
 
@@ -187,14 +187,14 @@ void TextFile::setCodec(const QString &codec)
 QString TextFile::readLine()
 {
     if (checkForClosed())
-        return QString();
+        return {};
     return m_stream->readLine();
 }
 
 QString TextFile::readAll()
 {
     if (checkForClosed())
-        return QString();
+        return {};
     return m_stream->readAll();
 }
 

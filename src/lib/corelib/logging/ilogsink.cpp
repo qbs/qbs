@@ -49,7 +49,7 @@ namespace qbs {
 QString logLevelTag(LoggerLevel level)
 {
     if (level == LoggerInfo)
-        return QString();
+        return {};
     QString str = logLevelName(level).toUpper();
     if (!str.isEmpty())
         str.append(QLatin1String(": "));
@@ -72,7 +72,7 @@ QString logLevelName(LoggerLevel level)
     default:
         break;
     }
-    return QString();
+    return {};
 }
 
 class ILogSink::ILogSinkPrivate

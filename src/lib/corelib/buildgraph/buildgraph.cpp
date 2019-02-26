@@ -118,14 +118,14 @@ private:
         }
 
         getProduct(object);
-        QBS_ASSERT(m_product, return QueryFlags());
+        QBS_ASSERT(m_product, {});
 
         const auto it = m_product->productProperties.find(name);
 
         // It is important that we reject unknown property names. Otherwise QtScript will forward
         // *everything* to us, including built-in stuff like the hasOwnProperty function.
         if (it == m_product->productProperties.cend())
-            return QueryFlags();
+            return {};
 
         qbsEngine()->addPropertyRequestedInScript(Property(m_product->uniqueName(), QString(), name,
                 it.value(), Property::PropertyInProduct));

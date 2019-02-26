@@ -97,7 +97,7 @@ QStringList PluginDependencyScanner::collectSearchPaths(Artifact *artifact)
 {
     if (m_plugin->flags & ScannerUsesCppIncludePaths)
         return collectCppIncludePaths(artifact->properties->value());
-    return QStringList();
+    return {};
 }
 
 QStringList PluginDependencyScanner::collectDependencies(Artifact *artifact, FileResourceBase *file,
@@ -109,7 +109,7 @@ QStringList PluginDependencyScanner::collectDependencies(Artifact *artifact, Fil
     const QString &filepath = file->filePath();
     void *scannerHandle = m_plugin->open(filepath.utf16(), fileTags, ScanForDependenciesFlag);
     if (!scannerHandle)
-        return QStringList();
+        return {};
     forever {
         int flags = 0;
         int length = 0;
@@ -127,7 +127,7 @@ QStringList PluginDependencyScanner::collectDependencies(Artifact *artifact, Fil
         result += outFilePath;
     }
     m_plugin->close(scannerHandle);
-    return QStringList(result.toList());
+    return result.toList();
 }
 
 bool PluginDependencyScanner::recursive() const

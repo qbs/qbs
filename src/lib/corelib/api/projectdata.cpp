@@ -359,7 +359,7 @@ bool InstallData::isInstallable() const
  */
 QString InstallData::installDir() const
 {
-    QBS_ASSERT(isValid(), return QString());
+    QBS_ASSERT(isValid(), return {});
     return Internal::FileInfo::path(installFilePath());
 }
 
@@ -368,7 +368,7 @@ QString InstallData::installDir() const
  */
 QString InstallData::installFilePath() const
 {
-    QBS_ASSERT(isValid(), return QString());
+    QBS_ASSERT(isValid(), return {});
     return d->installFilePath;
 }
 
@@ -377,7 +377,7 @@ QString InstallData::installFilePath() const
  */
 QString InstallData::installRoot() const
 {
-    QBS_ASSERT(isValid(), return QString());
+    QBS_ASSERT(isValid(), return {});
     return d->installRoot;
 }
 
@@ -557,7 +557,7 @@ QList<ArtifactData> ProductData::installableArtifacts() const
  */
 QString ProductData::targetExecutable() const
 {
-    QBS_ASSERT(isValid(), return QString());
+    QBS_ASSERT(isValid(), return {});
     if (d->moduleProperties.getModuleProperty(QStringLiteral("bundle"),
                                               QStringLiteral("isBundle")).toBool()) {
         for (const ArtifactData &ta : targetArtifacts()) {
@@ -575,7 +575,7 @@ QString ProductData::targetExecutable() const
             return ta.filePath();
         }
     }
-    return QString();
+    return {};
 }
 
 /*!

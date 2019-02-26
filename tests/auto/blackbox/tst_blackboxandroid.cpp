@@ -53,9 +53,9 @@ QMap<QString, QString> TestBlackboxAndroid::findAndroid(int *status, const QStri
     QFile file(temp.path() + "/" + relativeProductBuildDir("find-android")
                + "/android.json");
     if (!file.open(QIODevice::ReadOnly))
-        return QMap<QString, QString> { };
+        return {};
     const auto tools = QJsonDocument::fromJson(file.readAll()).toVariant().toMap();
-    return QMap<QString, QString> {
+    return {
         {"sdk", QDir::fromNativeSeparators(tools["sdk"].toString())},
         {"sdk-build-tools-dx", QDir::fromNativeSeparators(tools["sdk-build-tools-dx"].toString())},
         {"ndk", QDir::fromNativeSeparators(tools["ndk"].toString())},

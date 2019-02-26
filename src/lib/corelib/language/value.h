@@ -68,7 +68,7 @@ public:
     Type type() const { return m_type; }
     virtual void apply(ValueHandler *) = 0;
     virtual ValuePtr clone() const = 0;
-    virtual CodeLocation location() const { return CodeLocation(); }
+    virtual CodeLocation location() const { return {}; }
 
     Item *definingItem() const;
     virtual void setDefiningItem(Item *item);

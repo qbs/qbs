@@ -134,7 +134,7 @@ static QString dpkgArch(const QString &prefix = QString())
     dpkg.waitForFinished();
     if (dpkg.exitStatus() == QProcess::NormalExit && dpkg.exitCode() == 0)
         return prefix + QString::fromLocal8Bit(dpkg.readAllStandardOutput().trimmed());
-    return QString();
+    return {};
 }
 
 void TestBlackboxJava::javaDependencyTracking()
@@ -191,7 +191,7 @@ void TestBlackboxJava::javaDependencyTracking_data()
             }
         }
 
-        return QString();
+        return {};
     };
 
     static const auto knownJdkVersions = QStringList() << "1.6" << "1.7" << "1.8" << "1.9"

@@ -214,7 +214,7 @@ QString Id::toString() const
 
 QVariant Id::toSetting() const
 {
-    return QVariant(QString::fromUtf8(getStringFromId(m_id)));
+    return QString::fromUtf8(getStringFromId(m_id));
 }
 
 /*!
@@ -227,8 +227,8 @@ Id Id::fromSetting(const QVariant &variant)
 {
     const QByteArray ba = variant.toString().toUtf8();
     if (ba.isEmpty())
-        return Id();
-    return Id(theId(ba));
+        return {};
+    return {theId(ba)};
 }
 
 /*!
@@ -242,7 +242,7 @@ Id Id::fromSetting(const QVariant &variant)
 Id Id::withSuffix(int suffix) const
 {
     const QByteArray ba = name() + QByteArray::number(suffix);
-    return Id(ba.constData());
+    return {ba.constData()};
 }
 
 /*!
@@ -252,7 +252,7 @@ Id Id::withSuffix(int suffix) const
 Id Id::withSuffix(const char *suffix) const
 {
     const QByteArray ba = name() + suffix;
-    return Id(ba.constData());
+    return {ba.constData()};
 }
 
 /*!
@@ -266,7 +266,7 @@ Id Id::withSuffix(const char *suffix) const
 Id Id::withPrefix(const char *prefix) const
 {
     const QByteArray ba = prefix + name();
-    return Id(ba.constData());
+    return {ba.constData()};
 }
 
 bool Id::operator==(const char *name) const

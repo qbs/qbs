@@ -80,7 +80,7 @@ static QString findExecutable(const QString &fileName)
         if (QFileInfo::exists(fullPath))
             return QDir::cleanPath(fullPath);
     }
-    return QString();
+    return {};
 }
 
 static QString qsystem(const QString &exe, const QStringList &args = QStringList())
@@ -100,17 +100,16 @@ static QString qsystem(const QString &exe, const QStringList &args = QStringList
 static QStringList validMinGWMachines()
 {
     // List of MinGW machine names (gcc -dumpmachine) recognized by Qbs
-    return QStringList()
-            << QStringLiteral("mingw32") << QStringLiteral("mingw64")
-            << QStringLiteral("i686-w64-mingw32") << QStringLiteral("x86_64-w64-mingw32")
-            << QStringLiteral("i686-w64-mingw32.shared") << QStringLiteral("x86_64-w64-mingw32.shared")
-            << QStringLiteral("i686-w64-mingw32.static") << QStringLiteral("x86_64-w64-mingw32.static")
-            << QStringLiteral("i586-mingw32msvc") << QStringLiteral("amd64-mingw32msvc");
+    return {QStringLiteral("mingw32"), QStringLiteral("mingw64"),
+            QStringLiteral("i686-w64-mingw32"), QStringLiteral("x86_64-w64-mingw32"),
+            QStringLiteral("i686-w64-mingw32.shared"), QStringLiteral("x86_64-w64-mingw32.shared"),
+            QStringLiteral("i686-w64-mingw32.static"), QStringLiteral("x86_64-w64-mingw32.static"),
+            QStringLiteral("i586-mingw32msvc"), QStringLiteral("amd64-mingw32msvc")};
 }
 
 static QStringList knownIarCompilerNames()
 {
-    return { QStringLiteral("icc8051"), QStringLiteral("iccarm"), QStringLiteral("iccavr") };
+    return {QStringLiteral("icc8051"), QStringLiteral("iccarm"), QStringLiteral("iccavr")};
 }
 
 static bool isIarCompiler(const QString &compilerName)
@@ -122,7 +121,7 @@ static bool isIarCompiler(const QString &compilerName)
 
 static QStringList knownKeilCompilerNames()
 {
-    return { QStringLiteral("c51"), QStringLiteral("armcc") };
+    return {QStringLiteral("c51"), QStringLiteral("armcc")};
 }
 
 static bool isKeilCompiler(const QString &compilerName)
@@ -148,7 +147,7 @@ static QStringList toolchainTypeFromCompilerName(const QString &compilerName)
         return canonicalToolchain(QStringLiteral("iar"));
     if (isKeilCompiler(compilerName))
         return canonicalToolchain(QStringLiteral("keil"));
-    return QStringList();
+    return {};
 }
 
 static QString gccMachineName(const QString &compilerFilePath)
@@ -158,11 +157,10 @@ static QString gccMachineName(const QString &compilerFilePath)
 
 static QStringList standardCompilerFileNames()
 {
-    return QStringList()
-            << HostOsInfo::appendExecutableSuffix(QStringLiteral("gcc"))
-            << HostOsInfo::appendExecutableSuffix(QStringLiteral("g++"))
-            << HostOsInfo::appendExecutableSuffix(QStringLiteral("clang"))
-            << HostOsInfo::appendExecutableSuffix(QStringLiteral("clang++"));
+    return {HostOsInfo::appendExecutableSuffix(QStringLiteral("gcc")),
+            HostOsInfo::appendExecutableSuffix(QStringLiteral("g++")),
+            HostOsInfo::appendExecutableSuffix(QStringLiteral("clang")),
+            HostOsInfo::appendExecutableSuffix(QStringLiteral("clang++"))};
 }
 
 static void setCommonProperties(Profile &profile, const QString &compilerFilePath,

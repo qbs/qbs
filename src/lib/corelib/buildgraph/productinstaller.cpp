@@ -117,7 +117,7 @@ QString ProductInstaller::targetFilePath(const TopLevelProject *project,
         InstallOptions &options)
 {
     if (!properties->qbsPropertyValue(StringConstants::installProperty()).toBool())
-        return QString();
+        return {};
     const QString relativeInstallDir
             = properties->qbsPropertyValue(StringConstants::installDirProperty()).toString();
     const QString installPrefix

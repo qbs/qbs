@@ -280,7 +280,7 @@ static void updateProductAndRulePointers(const ResolvedProductPtr &newProduct)
                 }
             }
             QBS_CHECK(false);
-            return RuleConstPtr();
+            return {};
         };
         if (node->type() == BuildGraphNode::RuleNodeType) {
             const auto ruleNode = static_cast<RuleNode *>(node);

@@ -88,7 +88,7 @@ QVariant Profile::value(const QString &key, const QVariant &defaultValue, ErrorI
     } catch (const ErrorInfo &e) {
         if (error)
             *error = e;
-        return QVariant();
+        return {};
     }
 }
 
@@ -132,7 +132,7 @@ QStringList Profile::allKeys(KeySelection selection, ErrorInfo *error) const
     } catch (const ErrorInfo &e) {
         if (error)
             *error = e;
-        return QStringList();
+        return {};
     }
 }
 

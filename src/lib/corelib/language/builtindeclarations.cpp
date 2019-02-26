@@ -143,7 +143,7 @@ QString BuiltinDeclarations::nameForType(ItemType itemType) const
             return it.key();
     }
     QBS_CHECK(false);
-    return QString();
+    return {};
 }
 
 QStringList BuiltinDeclarations::argumentNamesForScriptFunction(ItemType itemType,
@@ -155,7 +155,7 @@ QStringList BuiltinDeclarations::argumentNamesForScriptFunction(ItemType itemTyp
             return propDecl.functionArgumentNames();
     }
     QBS_CHECK(false);
-    return QStringList();
+    return {};
 }
 
 void BuiltinDeclarations::insert(const ItemDeclaration &decl)
@@ -201,7 +201,7 @@ static PropertyDeclaration prepareScriptProperty()
 
 static PropertyDeclaration priorityProperty()
 {
-    return PropertyDeclaration(StringConstants::priorityProperty(), PropertyDeclaration::Integer);
+    return {StringConstants::priorityProperty(), PropertyDeclaration::Integer};
 }
 
 void BuiltinDeclarations::addArtifactItem()

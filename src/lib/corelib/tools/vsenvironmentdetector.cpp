@@ -66,7 +66,7 @@ static QString windowsSystem32Path()
     if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_SYSTEM, NULL, 0, str)))
         return QString::fromUtf16(reinterpret_cast<ushort*>(str));
 #endif
-    return QString();
+    return {};
 }
 
 VsEnvironmentDetector::VsEnvironmentDetector()
@@ -114,7 +114,7 @@ QString VsEnvironmentDetector::findVcVarsAllBat(const MSVC &msvc,
     QDir dir(msvc.vcInstallPath);
     for (;;) {
         if (!dir.cdUp())
-            return QString();
+            return {};
         if (dir.dirName() == QLatin1String("VC"))
             break;
     }
@@ -131,7 +131,7 @@ QString VsEnvironmentDetector::findVcVarsAllBat(const MSVC &msvc,
         return fullPath;
     else
         searchedPaths.push_back(fullPath);
-    return QString();
+    return {};
 }
 
 bool VsEnvironmentDetector::startDetection(const std::vector<MSVC *> &compatibleMSVCs)

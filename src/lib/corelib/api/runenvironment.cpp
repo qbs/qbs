@@ -149,7 +149,7 @@ const QProcessEnvironment RunEnvironment::runEnvironment(ErrorInfo *error) const
     } catch (const ErrorInfo &e) {
         if (error)
             *error = e;
-        return QProcessEnvironment();
+        return {};
     }
 }
 
@@ -160,7 +160,7 @@ const QProcessEnvironment RunEnvironment::buildEnvironment(ErrorInfo *error) con
     } catch (const ErrorInfo &e) {
         if (error)
             *error = e;
-        return QProcessEnvironment();
+        return {};
     }
 }
 
@@ -238,7 +238,7 @@ static QString findExecutable(const QStringList &fileNames)
                 return QDir::cleanPath(fullPath);
         }
     }
-    return QString();
+    return {};
 }
 
 static std::string readAaptBadgingAttribute(const std::string &line)
@@ -247,7 +247,7 @@ static std::string readAaptBadgingAttribute(const std::string &line)
     std::smatch match;
     if (std::regex_match(line, match, re))
         return match[1];
-    return { };
+    return {};
 }
 
 static QString findMainIntent(const QString &aapt, const QString &apkFilePath)
@@ -270,7 +270,7 @@ static QString findMainIntent(const QString &aapt, const QString &apkFilePath)
 
     if (!packageId.isEmpty() && !activity.isEmpty())
         return packageId + QStringLiteral("/") + activity;
-    return QString();
+    return {};
 }
 
 void RunEnvironment::printStartInfo(const QProcess &proc, bool dryRun)

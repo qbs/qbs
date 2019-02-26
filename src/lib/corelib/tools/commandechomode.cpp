@@ -74,7 +74,7 @@ QString commandEchoModeName(CommandEchoMode mode)
     default:
         break;
     }
-    return QString();
+    return {};
 }
 
 CommandEchoMode commandEchoModeFromName(const QString &name)

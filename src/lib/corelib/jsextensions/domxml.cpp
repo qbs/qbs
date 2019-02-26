@@ -268,7 +268,7 @@ QString XmlDomNode::tagName() const
     QDomElement el = m_domNode.toElement();
     if (el.isNull()) {
         context()->throwError(QStringLiteral("Node '%1' is not an element node").arg(m_domNode.nodeName()));
-        return QString();
+        return {};
     }
     return el.tagName();
 }
@@ -288,7 +288,7 @@ QString XmlDomNode::text() const
     QDomElement el = m_domNode.toElement();
     if (el.isNull()) {
         context()->throwError(QStringLiteral("Node '%1' is not an element node").arg(m_domNode.nodeName()));
-        return QString();
+        return {};
     }
     return el.text();
 }
@@ -302,7 +302,7 @@ QString XmlDomNode::data() const
     if (m_domNode.isCharacterData())
         return m_domNode.toCharacterData().data();
     context()->throwError(QStringLiteral("Node '%1' is not a character data node").arg(m_domNode.nodeName()));
-    return QString();
+    return {};
 }
 
 void XmlDomNode::setData(const QString &v) const
@@ -370,7 +370,7 @@ QScriptValue XmlDomNode::appendChild(QScriptValue newChild)
     auto newNode = qobject_cast<XmlDomNode*>(newChild.toQObject());
     if (!newNode) {
         context()->throwError(QStringLiteral("First argument is not a XmlDomNode object"));
-        return QScriptValue();
+        return {};
     }
     return engine()->newQObject(new XmlDomNode(m_domNode.appendChild(newNode->m_domNode)), QScriptEngine::ScriptOwnership);
 }
@@ -380,13 +380,13 @@ QScriptValue XmlDomNode::insertBefore(const QScriptValue &newChild, const QScrip
     auto newNode = qobject_cast<XmlDomNode*>(newChild.toQObject());
     if (!newNode) {
         context()->throwError(QStringLiteral("First argument is not a XmlDomNode object"));
-        return QScriptValue();
+        return {};
     }
 
     auto refNode = qobject_cast<XmlDomNode*>(refChild.toQObject());
     if (!refNode) {
         context()->throwError(QStringLiteral("Second argument is not a XmlDomNode object"));
-        return QScriptValue();
+        return {};
     }
 
     return engine()->newQObject(new XmlDomNode(m_domNode.insertBefore(newNode->m_domNode, refNode->m_domNode)), QScriptEngine::ScriptOwnership);
@@ -397,13 +397,13 @@ QScriptValue XmlDomNode::insertAfter(const QScriptValue &newChild, const QScript
     auto newNode = qobject_cast<XmlDomNode*>(newChild.toQObject());
     if (!newNode) {
         context()->throwError(QStringLiteral("First argument is not a XmlDomNode object"));
-        return QScriptValue();
+        return {};
     }
 
     auto refNode = qobject_cast<XmlDomNode*>(refChild.toQObject());
     if (!refNode) {
         context()->throwError(QStringLiteral("Second argument is not a XmlDomNode object"));
-        return QScriptValue();
+        return {};
     }
 
     return engine()->newQObject(new XmlDomNode(m_domNode.insertAfter(newNode->m_domNode, refNode->m_domNode)), QScriptEngine::ScriptOwnership);
@@ -414,13 +414,13 @@ QScriptValue XmlDomNode::replaceChild(const QScriptValue &newChild, const QScrip
     auto newNode = qobject_cast<XmlDomNode*>(newChild.toQObject());
     if (!newNode) {
         context()->throwError(QStringLiteral("First argument is not a XmlDomNode object"));
-        return QScriptValue();
+        return {};
     }
 
     auto oldNode = qobject_cast<XmlDomNode*>(oldChild.toQObject());
     if (!oldNode) {
         context()->throwError(QStringLiteral("Second argument is not a XmlDomNode object"));
-        return QScriptValue();
+        return {};
     }
 
     return engine()->newQObject(new XmlDomNode(m_domNode.replaceChild(newNode->m_domNode, oldNode->m_domNode)), QScriptEngine::ScriptOwnership);
@@ -431,7 +431,7 @@ QScriptValue XmlDomNode::removeChild(const QScriptValue &oldChild)
     auto oldNode = qobject_cast<XmlDomNode*>(oldChild.toQObject());
     if (!oldNode) {
         context()->throwError(QStringLiteral("First argument is not a XmlDomNode object"));
-        return QScriptValue();
+        return {};
     }
 
     return engine()->newQObject(new XmlDomNode(m_domNode.removeChild(oldNode->m_domNode)), QScriptEngine::ScriptOwnership);

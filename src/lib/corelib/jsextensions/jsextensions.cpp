@@ -84,7 +84,7 @@ void JsExtensions::setupExtensions(const QStringList &names, QScriptValue scope)
 QScriptValue JsExtensions::loadExtension(QScriptEngine *engine, const QString &name)
 {
     if (!hasExtension(name))
-        return QScriptValue();
+        return {};
 
     QScriptValue extensionObj = engine->newObject();
     initializers().value(name)(extensionObj);

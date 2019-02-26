@@ -118,7 +118,7 @@ QString Evaluator::stringValue(const Item *item, const QString &name,
 static QStringList toStringList(const QScriptValue &scriptValue)
 {
     if (scriptValue.isString()) {
-        return QStringList(scriptValue.toString());
+        return {scriptValue.toString()};
     } else if (scriptValue.isArray()) {
         QStringList lst;
         int i = 0;
@@ -130,7 +130,7 @@ static QStringList toStringList(const QScriptValue &scriptValue)
         }
         return lst;
     }
-    return QStringList();
+    return {};
 }
 
 QStringList Evaluator::stringListValue(const Item *item, const QString &name, bool *propertyWasSet)

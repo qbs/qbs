@@ -63,7 +63,7 @@ public:
 
     enum Scope { UserScope = 0x1, SystemScope = 0x2 };
     Q_DECLARE_FLAGS(Scopes, Scope)
-    static Scopes allScopes() { return Scopes{UserScope, SystemScope}; }
+    static Scopes allScopes() { return {UserScope, SystemScope}; }
 
     QVariant value(const QString &key, Scopes scopes,
                    const QVariant &defaultValue = QVariant()) const;

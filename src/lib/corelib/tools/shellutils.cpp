@@ -58,7 +58,7 @@ QString shellInterpreter(const QString &filePath) {
         }
     }
 
-    return QString();
+    return {};
 }
 
 // isSpecialChar, hasSpecialChars, shellQuoteUnix, shellQuoteWin:

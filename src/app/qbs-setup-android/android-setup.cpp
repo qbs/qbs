@@ -64,11 +64,8 @@ static QString qls(const char *s) { return QLatin1String(s); }
 
 static QStringList expectedArchs()
 {
-    return QStringList()
-            << QStringLiteral("arm64")
-            << QStringLiteral("armv7a")
-            << QStringLiteral("x86")
-            << QStringLiteral("x86_64");
+    return {QStringLiteral("arm64"), QStringLiteral("armv7a"),
+            QStringLiteral("x86"), QStringLiteral("x86_64")};
 }
 
 

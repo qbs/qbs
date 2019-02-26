@@ -71,7 +71,7 @@ std::vector<ScannerPlugin *> ScannerPluginManager::scannersForFileTag(const File
     auto it = instance()->d->scannerPlugins.find(fileTag);
     if (it != instance()->d->scannerPlugins.cend())
         return it->second;
-    return { };
+    return {};
 }
 
 void ScannerPluginManager::registerPlugins(ScannerPlugin **plugins)

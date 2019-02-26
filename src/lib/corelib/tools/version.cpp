@@ -97,12 +97,12 @@ Version Version::fromString(const QString &versionString, bool buildNumberAllowe
         pattern += QStringLiteral("(?:-(\\d+))?"); // And possibly a dash followed by the build number.
     QRegExp rex(pattern);
     if (!rex.exactMatch(versionString))
-        return Version();
+        return Version{};
     const int majorNr = rex.cap(1).toInt();
     const int minorNr = rex.captureCount() >= 2 ? rex.cap(2).toInt() : 0;
     const int patchNr = rex.captureCount() >= 3 ? rex.cap(3).toInt() : 0;
     const int buildNr = rex.captureCount() >= 4 ? rex.cap(4).toInt() : 0;
-    return Version(majorNr, minorNr, patchNr, buildNr);
+    return Version{majorNr, minorNr, patchNr, buildNr};
 }
 
 QString Version::toString() const

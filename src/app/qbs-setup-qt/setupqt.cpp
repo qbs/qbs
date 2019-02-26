@@ -122,14 +122,14 @@ std::vector<QtEnvironment> SetupQt::fetchEnvironments()
 static QStringList qbsToolchainFromDirName(const QString &dir)
 {
     if (dir.startsWith(QLatin1String("msvc")))
-        return QStringList(QStringLiteral("msvc"));
+        return {QStringLiteral("msvc")};
     if (dir.startsWith(QLatin1String("mingw")))
-        return QStringList{QStringLiteral("mingw"), QStringLiteral("gcc")};
+        return {QStringLiteral("mingw"), QStringLiteral("gcc")};
     if (dir.startsWith(QLatin1String("clang")))
-        return QStringList{QStringLiteral("clang"), QStringLiteral("llvm"), QStringLiteral("gcc")};
+        return {QStringLiteral("clang"), QStringLiteral("llvm"), QStringLiteral("gcc")};
     if (dir.startsWith(QLatin1String("gcc")))
-        return QStringList(QStringLiteral("gcc"));
-    return QStringList();
+        return {QStringLiteral("gcc")};
+    return {};
 }
 
 static Version msvcVersionFromDirName(const QString &dir)
@@ -138,7 +138,7 @@ static Version msvcVersionFromDirName(const QString &dir)
     std::smatch match;
     const std::string dirString = dir.toStdString();
     if (!std::regex_match(dirString, match, regexp))
-        return Version();
+        return Version{};
     QMap<std::string, std::string> mapping{
         std::make_pair("2005", "14"), std::make_pair("2008", "15"), std::make_pair("2010", "16"),
         std::make_pair("2012", "17"), std::make_pair("2013", "18"), std::make_pair("2015", "19"),
@@ -153,7 +153,7 @@ static QString archFromDirName(const QString &dir)
     std::smatch match;
     const std::string dirString = dir.toStdString();
     if (!std::regex_match(dirString, match, regexp))
-        return QString();
+        return {};
     const QString arch = QString::fromStdString(match[1]);
     if (arch == QLatin1String("32"))
         return QStringLiteral("x86");

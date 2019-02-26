@@ -147,7 +147,7 @@ bool QmlError::isValid() const
 QUrl QmlError::url() const
 {
     if (d) return d->url;
-    else return QUrl();
+    else return {};
 }
 
 /*!
@@ -165,7 +165,7 @@ void QmlError::setUrl(const QUrl &url)
 QString QmlError::description() const
 {
     if (d) return d->description;
-    else return QString();
+    else return {};
 }
 
 /*!

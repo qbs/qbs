@@ -82,10 +82,10 @@ public:
         : m_id(QStringLiteral("qt") + actualScanner.id()) {}
 
 private:
-    QStringList collectSearchPaths(Artifact *) override { return QStringList(); }
+    QStringList collectSearchPaths(Artifact *) override { return {}; }
     QStringList collectDependencies(Artifact *, FileResourceBase *, const char *) override
     {
-        return QStringList();
+        return {};
     }
     bool recursive() const override { return false; }
     const void *key() const override { return nullptr; }

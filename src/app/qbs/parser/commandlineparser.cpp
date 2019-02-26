@@ -374,20 +374,19 @@ Command *CommandLineParser::CommandLineParserPrivate::commandFromString(const QS
 
 QList<Command *> CommandLineParser::CommandLineParserPrivate::allCommands() const
 {
-    return QList<Command *>()
-            << commandPool.getCommand(GenerateCommandType)
-            << commandPool.getCommand(ResolveCommandType)
-            << commandPool.getCommand(BuildCommandType)
-            << commandPool.getCommand(CleanCommandType)
-            << commandPool.getCommand(RunCommandType)
-            << commandPool.getCommand(ShellCommandType)
-            << commandPool.getCommand(StatusCommandType)
-            << commandPool.getCommand(UpdateTimestampsCommandType)
-            << commandPool.getCommand(InstallCommandType)
-            << commandPool.getCommand(DumpNodesTreeCommandType)
-            << commandPool.getCommand(ListProductsCommandType)
-            << commandPool.getCommand(VersionCommandType)
-            << commandPool.getCommand(HelpCommandType);
+    return {commandPool.getCommand(GenerateCommandType),
+            commandPool.getCommand(ResolveCommandType),
+            commandPool.getCommand(BuildCommandType),
+            commandPool.getCommand(CleanCommandType),
+            commandPool.getCommand(RunCommandType),
+            commandPool.getCommand(ShellCommandType),
+            commandPool.getCommand(StatusCommandType),
+            commandPool.getCommand(UpdateTimestampsCommandType),
+            commandPool.getCommand(InstallCommandType),
+            commandPool.getCommand(DumpNodesTreeCommandType),
+            commandPool.getCommand(ListProductsCommandType),
+            commandPool.getCommand(VersionCommandType),
+            commandPool.getCommand(HelpCommandType)};
 }
 
 static QString extractToolDescription(const QString &tool, const QString &output)

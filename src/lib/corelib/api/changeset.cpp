@@ -364,7 +364,7 @@ QString ChangeSet::textAt(int pos, int length)
         m_cursor->setPosition(pos + length, QTextCursor::KeepAnchor);
         return m_cursor->selectedText();
     }
-    return QString();
+    return {};
 }
 
 void ChangeSet::apply_helper()

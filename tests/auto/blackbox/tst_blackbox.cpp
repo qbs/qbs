@@ -89,11 +89,9 @@ QMap<QString, QString> TestBlackbox::findCli(int *status)
         *status = res;
     QFile file(temp.path() + "/" + relativeProductBuildDir("find-cli") + "/cli.json");
     if (!file.open(QIODevice::ReadOnly))
-        return QMap<QString, QString> { };
+        return {};
     const auto tools = QJsonDocument::fromJson(file.readAll()).toVariant().toMap();
-    return QMap<QString, QString> {
-        {"path", QDir::fromNativeSeparators(tools["path"].toString())},
-    };
+    return {{"path", QDir::fromNativeSeparators(tools["path"].toString())}};
 }
 
 QMap<QString, QString> TestBlackbox::findNodejs(int *status)
@@ -107,11 +105,9 @@ QMap<QString, QString> TestBlackbox::findNodejs(int *status)
         *status = res;
     QFile file(temp.path() + "/" + relativeProductBuildDir("find-nodejs") + "/nodejs.json");
     if (!file.open(QIODevice::ReadOnly))
-        return QMap<QString, QString> { };
+        return {};
     const auto tools = QJsonDocument::fromJson(file.readAll()).toVariant().toMap();
-    return QMap<QString, QString> {
-        {"node", QDir::fromNativeSeparators(tools["node"].toString())}
-    };
+    return {{"node", QDir::fromNativeSeparators(tools["node"].toString())}};
 }
 
 QMap<QString, QString> TestBlackbox::findTypeScript(int *status)
@@ -125,11 +121,9 @@ QMap<QString, QString> TestBlackbox::findTypeScript(int *status)
         *status = res;
     QFile file(temp.path() + "/" + relativeProductBuildDir("find-typescript") + "/typescript.json");
     if (!file.open(QIODevice::ReadOnly))
-        return QMap<QString, QString> { };
+        return {};
     const auto tools = QJsonDocument::fromJson(file.readAll()).toVariant().toMap();
-    return QMap<QString, QString> {
-        {"tsc", QDir::fromNativeSeparators(tools["tsc"].toString())}
-    };
+    return {{"tsc", QDir::fromNativeSeparators(tools["tsc"].toString())}};
 }
 
 QString TestBlackbox::findArchiver(const QString &fileName, int *status)
@@ -823,7 +817,7 @@ static QJsonObject findByName(const QJsonArray &objects, const QString &name)
         if (objName == name)
             return obj;
     }
-    return QJsonObject();
+    return {};
 }
 
 static void readDepsOutput(const QString &depsFilePath, QJsonDocument &jsonDocument)
@@ -2546,16 +2540,16 @@ static QString soName(const QString &readElfPath, const QString &libFilePath)
     readElf.start(readElfPath, QStringList() << "-a" << libFilePath);
     if (!readElf.waitForStarted() || !readElf.waitForFinished() || readElf.exitCode() != 0) {
         qDebug() << readElf.errorString() << readElf.readAllStandardError();
-        return QString();
+        return {};
     }
     const QByteArray output = readElf.readAllStandardOutput();
     const QByteArray magicString = "Library soname: [";
     const int magicStringIndex = output.indexOf(magicString);
     if (magicStringIndex == -1)
-        return QString();
+        return {};
     const int endIndex = output.indexOf(']', magicStringIndex);
     if (endIndex == -1)
-        return QString();
+        return {};
     const int nameIndex = magicStringIndex + magicString.size();
     const QByteArray theName = output.mid(nameIndex, endIndex - nameIndex);
     return QString::fromLatin1(theName);
@@ -5537,7 +5531,7 @@ void TestBlackbox::assembly()
         QFile propertiesFile(relativeProductBuildDir("assembly") + "/properties.json");
         if (propertiesFile.open(QIODevice::ReadOnly))
             return QJsonDocument::fromJson(propertiesFile.readAll()).toVariant().toMap();
-        return QVariantMap();
+        return QVariantMap{};
     })();
     QVERIFY(!properties.empty());
     const auto toolchain = properties.value("qbs.toolchain").toStringList();

@@ -192,7 +192,7 @@ static QVariantMap getMsvcDefines(const QString &compilerFilePath,
     Q_UNUSED(compilerFilePath);
     Q_UNUSED(compilerEnv);
     Q_UNUSED(language);
-    return QVariantMap();
+    return {};
 #endif
 }
 

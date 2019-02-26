@@ -612,7 +612,7 @@ SourceArtifactPtr ProjectResolver::createSourceArtifact(const ResolvedProductPtr
         if (errorInfo)
             errorInfo->append(Tr::tr("File '%1' does not exist.").arg(absFilePath), filesLocation);
         rproduct->missingSourceFiles << absFilePath;
-        return SourceArtifactPtr();
+        return {};
     }
     if (group->enabled && fileLocations) {
         CodeLocation &loc = (*fileLocations)[std::make_pair(group->targetOfModule, absFilePath)];
@@ -622,7 +622,7 @@ SourceArtifactPtr ProjectResolver::createSourceArtifact(const ResolvedProductPtr
                 errorInfo->append(Tr::tr("First occurrence is here."), loc);
                 errorInfo->append(Tr::tr("Next occurrence is here."), filesLocation);
             }
-            return SourceArtifactPtr();
+            return {};
         }
         loc = filesLocation;
     }
@@ -660,7 +660,7 @@ QVariantMap ProjectResolver::resolveAdditionalModuleProperties(const Item *group
             .modulePropertiesSetInGroups;
     const auto it = mp.find(group);
     if (it == mp.end())
-        return QVariantMap();
+        return {};
     const QualifiedIdSet &propsSetInGroup = it->second;
 
     // Step 2: Gather all properties that depend on these properties.

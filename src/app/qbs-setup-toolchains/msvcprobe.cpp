@@ -156,7 +156,7 @@ static QString wow6432Key()
 #ifdef Q_OS_WIN64
     return QStringLiteral("\\Wow6432Node");
 #else
-    return QString();
+    return {};
 #endif
 }
 
@@ -176,7 +176,7 @@ static QString vswhereFilePath()
         if (QFileInfo(cmd).exists())
             return cmd;
     }
-    return QString();
+    return {};
 }
 
 enum class ProductType { VisualStudio, BuildTools };

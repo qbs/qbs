@@ -232,13 +232,13 @@ QString PropertyList::toString(const QString &plistFormat) const
         p->context()->throwError(QStringLiteral("Property list object cannot be converted to a "
                                                "string in the binary1 format; this format can only "
                                                "be written directly to a file"));
-        return QString();
+        return {};
     }
 
     if (!isEmpty())
         return QString::fromUtf8(p->d->writeToData(p->context(), plistFormat));
 
-    return QString();
+    return {};
 }
 
 QString PropertyList::toXMLString() const

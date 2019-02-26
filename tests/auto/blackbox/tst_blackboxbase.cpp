@@ -210,7 +210,7 @@ QString TestBlackboxBase::findExecutable(const QStringList &fileNames)
                 return QDir::cleanPath(fullPath);
         }
     }
-    return QString();
+    return {};
 }
 
 QMap<QString, QString> TestBlackboxBase::findJdkTools(int *status)
@@ -224,9 +224,9 @@ QMap<QString, QString> TestBlackboxBase::findJdkTools(int *status)
         *status = res;
     QFile file(temp.path() + "/" + relativeProductBuildDir("find-jdk") + "/jdk.json");
     if (!file.open(QIODevice::ReadOnly))
-        return QMap<QString, QString> { };
+        return {};
     const auto tools = QJsonDocument::fromJson(file.readAll()).toVariant().toMap();
-    return QMap<QString, QString> {
+    return {
         {"java", QDir::fromNativeSeparators(tools["java"].toString())},
         {"javac", QDir::fromNativeSeparators(tools["javac"].toString())},
         {"jar", QDir::fromNativeSeparators(tools["jar"].toString())}

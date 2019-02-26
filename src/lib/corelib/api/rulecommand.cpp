@@ -109,7 +109,7 @@ QString RuleCommand::extendedDescription() const
  */
 QString RuleCommand::sourceCode() const
 {
-    QBS_ASSERT(type() == JavaScriptCommandType, return QString());
+    QBS_ASSERT(type() == JavaScriptCommandType, return {});
     return d->sourceCode;
 }
 
@@ -120,7 +120,7 @@ QString RuleCommand::sourceCode() const
  */
 QString RuleCommand::executable() const
 {
-    QBS_ASSERT(type() == ProcessCommandType, return QString());
+    QBS_ASSERT(type() == ProcessCommandType, return {});
     return d->executable;
 }
 
@@ -131,7 +131,7 @@ QString RuleCommand::executable() const
  */
 QStringList RuleCommand::arguments() const
 {
-    QBS_ASSERT(type() == ProcessCommandType, return QStringList());
+    QBS_ASSERT(type() == ProcessCommandType, return {});
     return d->arguments;
 }
 
@@ -142,7 +142,7 @@ QStringList RuleCommand::arguments() const
  */
 QString RuleCommand::workingDirectory() const
 {
-    QBS_ASSERT(type() == ProcessCommandType, return QString());
+    QBS_ASSERT(type() == ProcessCommandType, return {});
     return d->workingDir;
 }
 
@@ -153,7 +153,7 @@ QString RuleCommand::workingDirectory() const
  */
 QProcessEnvironment RuleCommand::environment() const
 {
-    QBS_ASSERT(type() == ProcessCommandType, return QProcessEnvironment());
+    QBS_ASSERT(type() == ProcessCommandType, return {});
     return d->environment;
 }
 

@@ -108,7 +108,7 @@ static QString probeGlobalId(Item *probe)
     }
 
     if (id.isEmpty())
-        return QString();
+        return {};
 
     QBS_CHECK(probe->file());
     return id + QLatin1Char('_') + probe->file()->filePath();
@@ -1773,14 +1773,14 @@ ProbeConstPtr ModuleLoader::findOldProjectProbe(
         const QString &sourceCode) const
 {
     if (m_parameters.forceProbeExecution())
-        return ProbeConstPtr();
+        return {};
 
     for (const ProbeConstPtr &oldProbe : m_oldProjectProbes.value(globalId)) {
         if (probeMatches(oldProbe, condition, initialProperties, sourceCode, CompareScript::Yes))
             return oldProbe;
     }
 
-    return ProbeConstPtr();
+    return {};
 }
 
 ProbeConstPtr ModuleLoader::findOldProductProbe(
@@ -1790,14 +1790,14 @@ ProbeConstPtr ModuleLoader::findOldProductProbe(
         const QString &sourceCode) const
 {
     if (m_parameters.forceProbeExecution())
-        return ProbeConstPtr();
+        return {};
 
     for (const ProbeConstPtr &oldProbe : m_oldProductProbes.value(productName)) {
         if (probeMatches(oldProbe, condition, initialProperties, sourceCode, CompareScript::Yes))
             return oldProbe;
     }
 
-    return ProbeConstPtr();
+    return {};
 }
 
 ProbeConstPtr ModuleLoader::findCurrentProbe(
@@ -1810,7 +1810,7 @@ ProbeConstPtr ModuleLoader::findCurrentProbe(
         if (probeMatches(probe, condition, initialProperties, QString(), CompareScript::No))
             return probe;
     }
-    return ProbeConstPtr();
+    return {};
 }
 
 bool ModuleLoader::probeMatches(const ProbeConstPtr &probe, bool condition,
@@ -3679,7 +3679,7 @@ QString ModuleLoader::findExistingModulePath(const QString &searchPath,
     for (const QString &moduleNamePart : moduleName) {
         dirPath = FileInfo::resolvePath(dirPath, moduleNamePart);
         if (!FileInfo::exists(dirPath) || !FileInfo::isFileCaseCorrect(dirPath))
-            return QString();
+            return {};
     }
     return dirPath;
 }
@@ -3810,7 +3810,7 @@ ModuleLoader::ModuleProviderResult ModuleLoader::findModuleProvider(const Qualif
             qCDebug(lcModuleLoader) << "Module provider did run, but did not set up "
                                        "any modules.";
             addToGlobalInfo();
-            return ModuleProviderResult(true, false);
+            return {true, false};
         }
         qCDebug(lcModuleLoader) << "Module provider added" << searchPaths.size()
                                 << "new search path(s)";
@@ -3824,9 +3824,9 @@ ModuleLoader::ModuleProviderResult ModuleLoader::findModuleProvider(const Qualif
         product.searchPaths << searchPaths; // (2)
         product.newlyAddedModuleProviderSearchPaths.push_back(searchPaths); // (3)
         addToGlobalInfo(); // (4)
-        return ModuleProviderResult(true, true);
+        return {true, true};
     }
-    return ModuleProviderResult();
+    return {};
 }
 
 void ModuleLoader::setScopeForDescendants(Item *item, Item *scope)

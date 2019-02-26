@@ -468,13 +468,13 @@ QStringList ResolvedProduct::generatedFiles(const QString &baseFile, bool recurs
 {
     ProductBuildData *data = buildData.get();
     if (!data)
-        return QStringList();
+        return {};
 
     for (const Artifact *art : filterByType<Artifact>(data->allNodes())) {
         if (art->filePath() == baseFile)
             return findGeneratedFiles(art, recursive, tags);
     }
-    return QStringList();
+    return {};
 }
 
 QString ResolvedProduct::deriveBuildDirectoryName(const QString &name,

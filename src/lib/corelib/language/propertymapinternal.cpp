@@ -94,14 +94,14 @@ QVariant moduleProperty(const QVariantMap &properties, const QString &moduleName
     if (moduleIt == properties.end()) {
         if (isPresent)
             *isPresent = false;
-        return QVariant();
+        return {};
     }
     const QVariantMap &moduleMap = moduleIt.value().toMap();
     const auto propertyIt = moduleMap.find(key);
     if (propertyIt == moduleMap.end()) {
         if (isPresent)
             *isPresent = false;
-        return QVariant();
+        return {};
     }
     if (isPresent)
         *isPresent = true;

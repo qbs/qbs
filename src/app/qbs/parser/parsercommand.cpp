@@ -201,17 +201,16 @@ QString ResolveCommand::representation() const
 
 static QList<CommandLineOption::Type> resolveOptions()
 {
-    return QList<CommandLineOption::Type>()
-            << CommandLineOption::FileOptionType
-            << CommandLineOption::BuildDirectoryOptionType
-            << CommandLineOption::LogLevelOptionType
-            << CommandLineOption::VerboseOptionType
-            << CommandLineOption::QuietOptionType
-            << CommandLineOption::ShowProgressOptionType
-            << CommandLineOption::DryRunOptionType
-            << CommandLineOption::ForceProbesOptionType
-            << CommandLineOption::LogTimeOptionType
-            << CommandLineOption::DisableFallbackProviderType;
+    return {CommandLineOption::FileOptionType,
+            CommandLineOption::BuildDirectoryOptionType,
+            CommandLineOption::LogLevelOptionType,
+            CommandLineOption::VerboseOptionType,
+            CommandLineOption::QuietOptionType,
+            CommandLineOption::ShowProgressOptionType,
+            CommandLineOption::DryRunOptionType,
+            CommandLineOption::ForceProbesOptionType,
+            CommandLineOption::LogTimeOptionType,
+            CommandLineOption::DisableFallbackProviderType};
 }
 
 QList<CommandLineOption::Type> ResolveCommand::supportedOptions() const
@@ -240,16 +239,15 @@ QString GenerateCommand::representation() const
 
 QList<CommandLineOption::Type> GenerateCommand::supportedOptions() const
 {
-    return QList<CommandLineOption::Type>()
-            << CommandLineOption::FileOptionType
-            << CommandLineOption::BuildDirectoryOptionType
-            << CommandLineOption::LogLevelOptionType
-            << CommandLineOption::VerboseOptionType
-            << CommandLineOption::QuietOptionType
-            << CommandLineOption::ShowProgressOptionType
-            << CommandLineOption::InstallRootOptionType
-            << CommandLineOption::LogTimeOptionType
-            << CommandLineOption::GeneratorOptionType;
+    return {CommandLineOption::FileOptionType,
+            CommandLineOption::BuildDirectoryOptionType,
+            CommandLineOption::LogLevelOptionType,
+            CommandLineOption::VerboseOptionType,
+            CommandLineOption::QuietOptionType,
+            CommandLineOption::ShowProgressOptionType,
+            CommandLineOption::InstallRootOptionType,
+            CommandLineOption::LogTimeOptionType,
+            CommandLineOption::GeneratorOptionType};
 }
 
 QString BuildCommand::shortDescription() const
@@ -317,17 +315,15 @@ QString CleanCommand::representation() const
 
 QList<CommandLineOption::Type> CleanCommand::supportedOptions() const
 {
-    return QList<CommandLineOption::Type>{
-        CommandLineOption::BuildDirectoryOptionType,
-        CommandLineOption::DryRunOptionType,
-        CommandLineOption::KeepGoingOptionType,
-        CommandLineOption::LogTimeOptionType,
-        CommandLineOption::ProductsOptionType,
-        CommandLineOption::QuietOptionType,
-        CommandLineOption::SettingsDirOptionType,
-        CommandLineOption::ShowProgressOptionType,
-        CommandLineOption::VerboseOptionType,
-    };
+    return {CommandLineOption::BuildDirectoryOptionType,
+            CommandLineOption::DryRunOptionType,
+            CommandLineOption::KeepGoingOptionType,
+            CommandLineOption::LogTimeOptionType,
+            CommandLineOption::ProductsOptionType,
+            CommandLineOption::QuietOptionType,
+            CommandLineOption::SettingsDirOptionType,
+            CommandLineOption::ShowProgressOptionType,
+            CommandLineOption::VerboseOptionType};
 }
 
 QString InstallCommand::shortDescription() const
@@ -429,10 +425,9 @@ QString ShellCommand::representation() const
 
 QList<CommandLineOption::Type> ShellCommand::supportedOptions() const
 {
-    return QList<CommandLineOption::Type>()
-            << CommandLineOption::FileOptionType
-            << CommandLineOption::BuildDirectoryOptionType
-            << CommandLineOption::ProductsOptionType;
+    return {CommandLineOption::FileOptionType,
+            CommandLineOption::BuildDirectoryOptionType,
+            CommandLineOption::ProductsOptionType};
 }
 
 QString StatusCommand::shortDescription() const
@@ -456,7 +451,7 @@ QString StatusCommand::representation() const
 
 QList<CommandLineOption::Type> StatusCommand::supportedOptions() const
 {
-    return QList<CommandLineOption::Type>({CommandLineOption::BuildDirectoryOptionType});
+    return {CommandLineOption::BuildDirectoryOptionType};
 }
 
 QString UpdateTimestampsCommand::shortDescription() const
@@ -485,12 +480,11 @@ QString UpdateTimestampsCommand::representation() const
 
 QList<CommandLineOption::Type> UpdateTimestampsCommand::supportedOptions() const
 {
-    return QList<CommandLineOption::Type>()
-            << CommandLineOption::BuildDirectoryOptionType
-            << CommandLineOption::LogLevelOptionType
-            << CommandLineOption::VerboseOptionType
-            << CommandLineOption::QuietOptionType
-            << CommandLineOption::ProductsOptionType;
+    return {CommandLineOption::BuildDirectoryOptionType,
+            CommandLineOption::LogLevelOptionType,
+            CommandLineOption::VerboseOptionType,
+            CommandLineOption::QuietOptionType,
+            CommandLineOption::ProductsOptionType};
 }
 
 QString DumpNodesTreeCommand::shortDescription() const
@@ -513,9 +507,8 @@ QString DumpNodesTreeCommand::representation() const
 
 QList<CommandLineOption::Type> DumpNodesTreeCommand::supportedOptions() const
 {
-    return QList<CommandLineOption::Type>()
-            << CommandLineOption::BuildDirectoryOptionType
-            << CommandLineOption::ProductsOptionType;
+    return {CommandLineOption::BuildDirectoryOptionType,
+            CommandLineOption::ProductsOptionType};
 }
 
 QString ListProductsCommand::shortDescription() const
@@ -537,9 +530,8 @@ QString ListProductsCommand::representation() const
 
 QList<CommandLineOption::Type> ListProductsCommand::supportedOptions() const
 {
-    return QList<CommandLineOption::Type>()
-            << CommandLineOption::FileOptionType
-            << CommandLineOption::BuildDirectoryOptionType;
+    return {CommandLineOption::FileOptionType,
+            CommandLineOption::BuildDirectoryOptionType};
 }
 
 QString HelpCommand::shortDescription() const
@@ -561,7 +553,7 @@ QString HelpCommand::representation() const
 
 QList<CommandLineOption::Type> HelpCommand::supportedOptions() const
 {
-    return QList<CommandLineOption::Type>();
+    return {};
 }
 
 void HelpCommand::parseNext(QStringList &input)
@@ -592,7 +584,7 @@ QString VersionCommand::representation() const
 
 QList<CommandLineOption::Type> VersionCommand::supportedOptions() const
 {
-    return QList<CommandLineOption::Type>();
+    return {};
 }
 
 void VersionCommand::parseNext(QStringList &input)

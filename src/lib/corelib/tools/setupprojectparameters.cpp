@@ -378,7 +378,7 @@ QVariantMap SetupProjectParameters::expandedBuildConfiguration(const Profile &pr
     } catch (const ErrorInfo &err) {
         if (errorInfo)
             *errorInfo = err;
-        return QVariantMap();
+        return {};
     }
 }
 

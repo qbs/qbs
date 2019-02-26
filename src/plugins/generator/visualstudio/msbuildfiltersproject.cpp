@@ -49,28 +49,16 @@ namespace {
 
 static QStringList sourceFileExtensions()
 {
-    return QStringList()
-            << QStringLiteral("c")
-            << QStringLiteral("C")
-            << QStringLiteral("cpp")
-            << QStringLiteral("cxx")
-            << QStringLiteral("c++")
-            << QStringLiteral("cc")
-            << QStringLiteral("cs")
-            << QStringLiteral("def")
-            << QStringLiteral("java")
-            << QStringLiteral("m")
-            << QStringLiteral("mm");
+    return {QStringLiteral("c"), QStringLiteral("C"), QStringLiteral("cpp"),
+            QStringLiteral("cxx"), QStringLiteral("c++"), QStringLiteral("cc"),
+            QStringLiteral("cs"), QStringLiteral("def"), QStringLiteral("java"),
+            QStringLiteral("m"), QStringLiteral("mm")};
 }
 
 static QStringList headerFileExtensions()
 {
-    return QStringList()
-            << QStringLiteral("h")
-            << QStringLiteral("H")
-            << QStringLiteral("hpp")
-            << QStringLiteral("hxx")
-            << QStringLiteral("h++");
+    return {QStringLiteral("h"), QStringLiteral("H"), QStringLiteral("hpp"),
+            QStringLiteral("hxx"),  QStringLiteral("h++")};
 }
 
 static std::vector<MSBuildFilter *> defaultItemGroupFilters(IMSBuildItemGroup *parent = nullptr)

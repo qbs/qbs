@@ -130,7 +130,7 @@ private:
         }
 
         setup(object);
-        QBS_ASSERT(m_product || m_artifact, return QueryFlags());
+        QBS_ASSERT(m_product || m_artifact, return {});
         bool isPresent;
         m_result = getModuleProperty(m_product, m_artifact, static_cast<ScriptEngine *>(engine()),
                                      m_moduleName, name, &isPresent);

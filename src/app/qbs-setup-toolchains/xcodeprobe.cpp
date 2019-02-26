@@ -139,7 +139,7 @@ static QString targetOS(const QString &applePlatformName)
         return QStringLiteral("watchos");
     if (applePlatformName == QStringLiteral("watchsimulator"))
         return QStringLiteral("watchos-simulator");
-    return QString();
+    return {};
 }
 
 static QStringList archList(const QString &applePlatformName)

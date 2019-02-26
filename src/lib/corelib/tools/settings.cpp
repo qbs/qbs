@@ -69,7 +69,7 @@ static QString defaultSystemSettingsBaseDir()
     case HostOsInfo::HostOsOtherUnix:
         return QStringLiteral("/etc/xdg");
     default:
-        return QString();
+        return {};
     }
 }
 
