@@ -90,7 +90,7 @@ QVariantMap certificateInfo(const QByteArray &data)
     const auto subjectInfo = [](const QSslCertificate &cert) {
         QVariantMap map;
         for (const auto &attr : cert.subjectInfoAttributes())
-            map.insert(QStringLiteral(attr), cert.subjectInfo(attr).front());
+            map.insert(QString::fromUtf8(attr), cert.subjectInfo(attr).front());
         return map;
     };
 
