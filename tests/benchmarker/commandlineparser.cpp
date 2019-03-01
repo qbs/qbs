@@ -64,7 +64,7 @@ void CommandLineParser::parse()
                                      "repo path");
     parser.addOption(qbsRepoOption);
     QCommandLineOption activitiesOption(QStringList{"activities", "a"},
-            QString::fromLatin1("The activities to benchmark. Possible values (CSV): %1,%2,%3,%4")
+            QStringLiteral("The activities to benchmark. Possible values (CSV): %1,%2,%3,%4")
                     .arg(resolveActivity(), ruleExecutionActivity(), nullBuildActivity(),
                          allActivities()), "activities", allActivities());
     parser.addOption(activitiesOption);
@@ -78,9 +78,9 @@ void CommandLineParser::parse()
             << oldCommitOption << newCommitOption << testProjectOption << qbsRepoOption;
     for (const QCommandLineOption &o : mandatoryOptions) {
         if (!parser.isSet(o))
-            throwException(o.names().front(), parser.helpText());
+            throwException(o.names().constFirst(), parser.helpText());
         if (parser.value(o).isEmpty())
-            throwException(o.names().front(), QString(), parser.helpText());
+            throwException(o.names().constFirst(), QString(), parser.helpText());
     }
     m_oldCommit = parser.value(oldCommitOption);
     m_newCommit = parser.value(newCommitOption);
@@ -99,7 +99,9 @@ void CommandLineParser::parse()
         } else if (activityString == nullBuildActivity()) {
             m_activities |= ActivityNullBuild;
         } else {
-            throwException(activitiesOption.names().front(), activityString, parser.helpText());
+            throwException(activitiesOption.names().constFirst(),
+                           activityString,
+                           parser.helpText());
         }
     }
     m_regressionThreshold = 5;
@@ -108,21 +110,23 @@ void CommandLineParser::parse()
         const QString rawThresholdValue = parser.value(thresholdOption);
         m_regressionThreshold = rawThresholdValue.toInt(&ok);
         if (!ok)
-            throwException(thresholdOption.names().first(), rawThresholdValue, parser.helpText());
+            throwException(thresholdOption.names().constFirst(),
+                           rawThresholdValue,
+                           parser.helpText());
     }
 }
 
 void CommandLineParser::throwException(const QString &optionName, const QString &illegalValue,
                                        const QString &helpText)
 {
-    const QString errorText(QString::fromLatin1("Error parsing command line: Illegal value '%1' "
+    const QString errorText(QStringLiteral("Error parsing command line: Illegal value '%1' "
             "for option '--%2'.\n%3").arg(illegalValue, optionName, helpText));
     throw Exception(errorText);
 }
 
 void CommandLineParser::throwException(const QString &missingOption, const QString &helpText)
 {
-    const QString errorText(QString::fromLatin1("Error parsing command line: Missing mandatory "
+    const QString errorText(QStringLiteral("Error parsing command line: Missing mandatory "
             "option '--%1'.\n%3").arg(missingOption, helpText));
     throw Exception(errorText);
 }

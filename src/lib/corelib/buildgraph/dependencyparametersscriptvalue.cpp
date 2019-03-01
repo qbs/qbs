@@ -72,7 +72,7 @@ static QScriptValue toScriptValue(ScriptEngine *engine, const QString &productNa
 static QScriptValue toScriptValue(ScriptEngine *scriptEngine, const QString &productName,
                                   const QVariantMap &v, const QString &depName)
 {
-    return toScriptValue(scriptEngine, productName, v, depName, QualifiedId());
+    return toScriptValue(scriptEngine, productName, v, depName, {});
 }
 
 QScriptValue dependencyParametersValue(const QString &productName, const QString &dependencyName,

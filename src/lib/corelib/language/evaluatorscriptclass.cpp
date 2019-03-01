@@ -376,7 +376,7 @@ QScriptClass::QueryFlags EvaluatorScriptClass::queryProperty(const QScriptValue 
 
     // We assume that it's safe to save the result of the query in a member of the scriptclass.
     // It must be cleared in the property method before doing any further lookup.
-    QBS_ASSERT(m_queryResult.isNull(), return QueryFlags());
+    QBS_ASSERT(m_queryResult.isNull(), return {});
 
     if (debugProperties)
         qDebug() << "[SC] queryProperty " << object.objectId() << " " << name;
@@ -393,7 +393,7 @@ QScriptClass::QueryFlags EvaluatorScriptClass::queryProperty(const QScriptValue 
     if (!data) {
         if (debugProperties)
             qDebug() << "[SC] queryProperty: no data attached";
-        return QScriptClass::QueryFlags();
+        return {};
     }
 
     return queryItemProperty(data, nameString);
@@ -427,13 +427,13 @@ QScriptClass::QueryFlags EvaluatorScriptClass::queryItemProperty(const Evaluatio
 
     if (debugProperties)
         qDebug() << "[SC] queryProperty: no such property";
-    return QScriptClass::QueryFlags();
+    return {};
 }
 
 QString EvaluatorScriptClass::resultToString(const QScriptValue &scriptValue)
 {
     return (scriptValue.isObject()
-        ? QLatin1String("[Object: ")
+        ? QStringLiteral("[Object: ")
             + QString::number(scriptValue.objectId()) + QLatin1Char(']')
         : scriptValue.toVariant().toString());
 }
@@ -509,7 +509,7 @@ static void convertToPropertyType_impl(const QString &pathPropertiesBaseDir, con
     QString actualBaseDir;
     if (item && !pathPropertiesBaseDir.isEmpty()) {
         const VariantValueConstPtr itemSourceDir
-                = item->variantProperty(QLatin1String("sourceDirectory"));
+                = item->variantProperty(QStringLiteral("sourceDirectory"));
         actualBaseDir = itemSourceDir ? itemSourceDir->value().toString() : pathPropertiesBaseDir;
     }
     switch (decl.type()) {
@@ -652,7 +652,7 @@ QScriptValue EvaluatorScriptClass::property(const QScriptValue &object, const QS
     m_queryResult.foundInParent = false;
     m_queryResult.data = nullptr;
     m_queryResult.itemOfProperty = nullptr;
-    QBS_ASSERT(data, return QScriptValue());
+    QBS_ASSERT(data, {});
 
     const auto qpt = static_cast<QueryPropertyType>(id);
     if (qpt == QPTParentProperty) {
@@ -663,8 +663,8 @@ QScriptValue EvaluatorScriptClass::property(const QScriptValue &object, const QS
 
     ValuePtr value;
     m_queryResult.value.swap(value);
-    QBS_ASSERT(value, return QScriptValue());
-    QBS_ASSERT(m_queryResult.isNull(), return QScriptValue());
+    QBS_ASSERT(value, return {});
+    QBS_ASSERT(m_queryResult.isNull(), return {});
 
     if (debugProperties)
         qDebug() << "[SC] property " << name;

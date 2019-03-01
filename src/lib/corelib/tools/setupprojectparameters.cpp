@@ -378,7 +378,7 @@ QVariantMap SetupProjectParameters::expandedBuildConfiguration(const Profile &pr
     } catch (const ErrorInfo &err) {
         if (errorInfo)
             *errorInfo = err;
-        return QVariantMap();
+        return {};
     }
 }
 
@@ -541,7 +541,7 @@ QProcessEnvironment SetupProjectParameters::adjustedEnvironment() const
 {
     QProcessEnvironment result = environment();
     const QVariantMap environmentFromProfile
-            = buildConfigurationTree().value(QLatin1String("buildEnvironment")).toMap();
+            = buildConfigurationTree().value(QStringLiteral("buildEnvironment")).toMap();
     for (QVariantMap::const_iterator it = environmentFromProfile.begin();
          it != environmentFromProfile.end(); ++it) {
         result.insert(it.key(), it.value().toString());

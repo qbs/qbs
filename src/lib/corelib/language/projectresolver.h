@@ -195,7 +195,7 @@ private:
     qint64 m_elapsedTimeGroups;
 
     typedef void (ProjectResolver::*ItemFuncPtr)(Item *item, ProjectContext *projectContext);
-    typedef QMap<ItemType, ItemFuncPtr> ItemFuncMap;
+    using ItemFuncMap = QMap<ItemType, ItemFuncPtr>;
     void callItemFunction(const ItemFuncMap &mappings, Item *item, ProjectContext *projectContext);
 };
 

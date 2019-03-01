@@ -64,11 +64,8 @@ static QString qls(const char *s) { return QLatin1String(s); }
 
 static QStringList expectedArchs()
 {
-    return QStringList()
-            << QStringLiteral("arm64")
-            << QStringLiteral("armv7a")
-            << QStringLiteral("x86")
-            << QStringLiteral("x86_64");
+    return {QStringLiteral("arm64"), QStringLiteral("armv7a"),
+            QStringLiteral("x86"), QStringLiteral("x86_64")};
 }
 
 
@@ -145,7 +142,7 @@ static QtInfoPerArch getQtAndroidInfo(const QString &qtSdkDir)
         return archs;
 
     QStringList qtDirs(qtSdkDir);
-    QDirIterator dit(qtSdkDir, QStringList() << QLatin1String("android_*"), QDir::Dirs);
+    QDirIterator dit(qtSdkDir, QStringList() << QStringLiteral("android_*"), QDir::Dirs);
     while (dit.hasNext())
         qtDirs << dit.next();
     for (auto it = qtDirs.cbegin(); it != qtDirs.cend(); ++it) {
@@ -183,7 +180,7 @@ static QString getToolchainType(const QString &ndkDirPath)
 {
     QFile sourceProperties(ndkDirPath + qls("/source.properties"));
     if (!sourceProperties.open(QIODevice::ReadOnly))
-        return QLatin1String("gcc"); // <= r10
+        return QStringLiteral("gcc"); // <= r10
     while (!sourceProperties.atEnd()) {
         const QByteArray curLine = sourceProperties.readLine().simplified();
         static const QByteArray prefix = "Pkg.Revision = ";
@@ -194,12 +191,12 @@ static QString getToolchainType(const QString &ndkDirPath)
         if (!ndkVersion.isValid()) {
             qWarning("Unexpected format of NDK revision string in '%s'",
                      qPrintable(sourceProperties.fileName()));
-            return QLatin1String("clang");
+            return QStringLiteral("clang");
         }
         return qls(ndkVersion.majorVersion() >= 18 ? "clang" : "gcc");
     }
     qWarning("No revision entry found in '%s'", qPrintable(sourceProperties.fileName()));
-    return QLatin1String("clang");
+    return QStringLiteral("clang");
 }
 
 static void setupNdk(qbs::Settings *settings, const QString &profileName, const QString &ndkDirPath,

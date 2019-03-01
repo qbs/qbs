@@ -51,20 +51,20 @@ class ProductBuildData;
 class RuleNode;
 
 class Transformer;
-typedef std::shared_ptr<Transformer> TransformerPtr;
-typedef std::shared_ptr<const Transformer> TransformerConstPtr;
+using TransformerPtr = std::shared_ptr<Transformer>;
+using TransformerConstPtr = std::shared_ptr<const Transformer>;
 
 class RulesEvaluationContext;
-typedef std::shared_ptr<RulesEvaluationContext> RulesEvaluationContextPtr;
+using RulesEvaluationContextPtr = std::shared_ptr<RulesEvaluationContext>;
 
 class AbstractCommand;
-typedef std::shared_ptr<AbstractCommand> AbstractCommandPtr;
+using AbstractCommandPtr = std::shared_ptr<AbstractCommand>;
 
 class ProcessCommand;
-typedef std::shared_ptr<ProcessCommand> ProcessCommandPtr;
+using ProcessCommandPtr = std::shared_ptr<ProcessCommand>;
 
 class JavaScriptCommand;
-typedef std::shared_ptr<JavaScriptCommand> JavaScriptCommandPtr;
+using JavaScriptCommandPtr = std::shared_ptr<JavaScriptCommand>;
 
 template<typename T> class Set;
 using ArtifactSet = Set<Artifact *>;

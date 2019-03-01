@@ -65,9 +65,9 @@ public:
         JavaScriptCommandType
     };
 
-    static QString defaultDescription() { return QString(); }
-    static QString defaultExtendedDescription() { return QString(); }
-    static QString defaultHighLight() { return QString(); }
+    static QString defaultDescription() { return {}; }
+    static QString defaultExtendedDescription() { return {}; }
+    static QString defaultHighLight() { return {}; }
     static bool defaultIgnoreDryRun() { return false; }
     static bool defaultIsSilent() { return false; }
 

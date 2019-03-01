@@ -79,9 +79,9 @@ QScriptValue TemporaryDir::ctor(QScriptContext *context, QScriptEngine *engine)
     const DubiousContextList dubiousContexts({
             DubiousContext(EvalContext::PropertyEvaluation, DubiousContext::SuggestMoving)
     });
-    se->checkContext(QLatin1String("qbs.TemporaryDir"), dubiousContexts);
+    se->checkContext(QStringLiteral("qbs.TemporaryDir"), dubiousContexts);
 
-    auto t = new TemporaryDir(context);
+    const auto t = new TemporaryDir(context);
     QScriptValue obj = engine->newQObject(t, QScriptEngine::ScriptOwnership);
     return obj;
 }
@@ -116,7 +116,7 @@ void initializeJsExtensionTemporaryDir(QScriptValue extensionObject)
     QScriptEngine *engine = extensionObject.engine();
     QScriptValue obj = engine->newQMetaObject(&TemporaryDir::staticMetaObject,
                                               engine->newFunction(&TemporaryDir::ctor));
-    extensionObject.setProperty(QLatin1String("TemporaryDir"), obj);
+    extensionObject.setProperty(QStringLiteral("TemporaryDir"), obj);
 }
 
 #include "temporarydir.moc"

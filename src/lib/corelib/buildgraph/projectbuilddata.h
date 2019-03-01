@@ -99,8 +99,8 @@ private:
         pool.serializationOp<opType>(fileDependencies, rawScanResults);
     }
 
-    typedef QHash<QString, QList<FileResourceBase *> > ResultsPerDirectory;
-    typedef QHash<QString, ResultsPerDirectory> ArtifactLookupTable;
+    using ResultsPerDirectory = QHash<QString, QList<FileResourceBase *>>;
+    using ArtifactLookupTable = QHash<QString, ResultsPerDirectory>;
     ArtifactLookupTable m_artifactLookupTable;
     bool m_doCleanupInDestructor = true;
     bool m_isDirty = true;

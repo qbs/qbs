@@ -99,7 +99,7 @@ struct ProjectResolver::ProductContext
     ResolvedProductPtr product;
     QString buildDirectory;
     Item *item;
-    typedef std::pair<ArtifactPropertiesPtr, std::vector<CodeLocation>> ArtifactPropertiesInfo;
+    using ArtifactPropertiesInfo = std::pair<ArtifactPropertiesPtr, std::vector<CodeLocation>>;
     QHash<QStringList, ArtifactPropertiesInfo> artifactPropertiesPerFilter;
     ProjectResolver::FileLocations sourceArtifactLocations;
     GroupConstPtr currentGroup;
@@ -612,7 +612,7 @@ SourceArtifactPtr ProjectResolver::createSourceArtifact(const ResolvedProductPtr
         if (errorInfo)
             errorInfo->append(Tr::tr("File '%1' does not exist.").arg(absFilePath), filesLocation);
         rproduct->missingSourceFiles << absFilePath;
-        return SourceArtifactPtr();
+        return {};
     }
     if (group->enabled && fileLocations) {
         CodeLocation &loc = (*fileLocations)[std::make_pair(group->targetOfModule, absFilePath)];
@@ -622,7 +622,7 @@ SourceArtifactPtr ProjectResolver::createSourceArtifact(const ResolvedProductPtr
                 errorInfo->append(Tr::tr("First occurrence is here."), loc);
                 errorInfo->append(Tr::tr("Next occurrence is here."), filesLocation);
             }
-            return SourceArtifactPtr();
+            return {};
         }
         loc = filesLocation;
     }
@@ -660,7 +660,7 @@ QVariantMap ProjectResolver::resolveAdditionalModuleProperties(const Item *group
             .modulePropertiesSetInGroups;
     const auto it = mp.find(group);
     if (it == mp.end())
-        return QVariantMap();
+        return {};
     const QualifiedIdSet &propsSetInGroup = it->second;
 
     // Step 2: Gather all properties that depend on these properties.
@@ -872,8 +872,8 @@ void ProjectResolver::adaptExportedPropertyValues(const Item *shadowProductItem)
     QVariantMap prefixMap;
     for (const QVariant &v : prefixList) {
         const QVariantMap o = v.toMap();
-        prefixMap.insert(o.value(QLatin1String("prefix")).toString(),
-                         o.value(QLatin1String("replacement")).toString());
+        prefixMap.insert(o.value(QStringLiteral("prefix")).toString(),
+                         o.value(QStringLiteral("replacement")).toString());
     }
     const auto valueRefersToImportingProduct
             = [shadowProductName, shadowProductBuildDir](const QString &value) {

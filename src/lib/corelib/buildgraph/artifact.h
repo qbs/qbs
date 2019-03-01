@@ -130,7 +130,7 @@ private:
 
 template<> inline QString Set<Artifact *>::toString(Artifact * const &artifact) const
 {
-    return artifact ? artifact->filePath() : QLatin1String("<null>");
+    return artifact ? artifact->filePath() : QStringLiteral("<null>");
 }
 template<> inline const void *uniqueAddress(const Artifact *a)
 {
@@ -147,12 +147,12 @@ inline QString toString(Artifact::ArtifactType t)
 {
     switch (t) {
     case Artifact::SourceFile:
-        return QLatin1String("SourceFile");
+        return QStringLiteral("SourceFile");
     case Artifact::Generated:
-        return QLatin1String("Generated");
+        return QStringLiteral("Generated");
     case Artifact::Unknown:
     default:
-        return QLatin1String("Unknown");
+        return QStringLiteral("Unknown");
     }
 }
 
@@ -161,15 +161,15 @@ inline QString toString(BuildGraphNode::BuildState s)
 {
     switch (s) {
     case BuildGraphNode::Untouched:
-        return QLatin1String("Untouched");
+        return QStringLiteral("Untouched");
     case BuildGraphNode::Buildable:
-        return QLatin1String("Buildable");
+        return QStringLiteral("Buildable");
     case BuildGraphNode::Building:
-        return QLatin1String("Building");
+        return QStringLiteral("Building");
     case BuildGraphNode::Built:
-        return QLatin1String("Built");
+        return QStringLiteral("Built");
     default:
-        return QLatin1String("Unknown");
+        return QStringLiteral("Unknown");
     }
 }
 

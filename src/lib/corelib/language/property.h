@@ -95,8 +95,8 @@ inline uint qHash(const Property &p)
     return QT_PREPEND_NAMESPACE(qHash)(p.productName + p.moduleName + p.propertyName);
 }
 
-typedef Set<Property> PropertySet;
-typedef QHash<QString, PropertySet> PropertyHash;
+using PropertySet = Set<Property>;
+using PropertyHash = QHash<QString, PropertySet>;
 
 } // namespace Internal
 } // namespace qbs

@@ -135,7 +135,7 @@ public:
     void setHeadData(const HeadData &hd) { m_headData = hd; }
 
 private:
-    typedef int PersistentObjectId;
+    using PersistentObjectId = int;
 
     template <typename T> T *idLoad();
     template <class T> std::shared_ptr<T> idLoadS();
@@ -225,7 +225,7 @@ template <typename T> inline T *PersistentPool::idLoad()
     for (; i < m_loadedRaw.size(); ++i)
         m_loadedRaw[i] = nullptr;
 
-    auto t = new T;
+    const auto t = new T;
     m_loadedRaw[id] = t;
     load(*t);
     return t;

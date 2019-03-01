@@ -1,0 +1,93 @@
+/****************************************************************************
+**
+** Copyright (C) 2019 Denis Shienkov <denis.shienkov@gmail.com>
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+/*!
+    \contentspage list-of-probes.html
+    \qmltype IarProbe
+    \ingroup list-of-probes
+    \ingroup list-of-items
+    \keyword QML.IarProbe
+    \inherits PathProbe
+    \brief Collects IAR toolchain compiler information.
+    \since Qbs 1.13
+    \internal
+
+    Detects the version, supported architecture and the platform
+    endianness of the specified compiler executable file from the
+    \l{https://www.iar.com/}{IAR} toolchain.
+*/
+
+/*!
+    \qmlproperty string IarProbe::compilerFilePath
+
+    An input property which is a full path to the IAR compiler executable file.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string IarProbe::architecture
+
+    Detected architecture of the target platform's processor.
+
+    The possible values are \c "arm", \c "mcs51" and \c "avr".
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string IarProbe::endianness
+
+    Detected endianness of the target platform's processor architecture.
+
+    The possible values are \c "big" or \c "little".
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty int IarProbe::versionMajor
+
+    Detected major compiler version.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty int IarProbe::versionMinor
+
+    Detected minor compiler version.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty int IarProbe::versionPatch
+
+    Detected patch compiler version.
+
+    \nodefaultvalue
+*/

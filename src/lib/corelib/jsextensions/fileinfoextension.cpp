@@ -288,33 +288,33 @@ void initializeJsExtensionFileInfo(QScriptValue extensionObject)
                             engine->newFunction(FileInfoExtension::js_fileName));
     fileInfoObj.setProperty(StringConstants::baseNameProperty(),
                             engine->newFunction(FileInfoExtension::js_baseName));
-    fileInfoObj.setProperty(QLatin1String("suffix"),
+    fileInfoObj.setProperty(QStringLiteral("suffix"),
                             engine->newFunction(FileInfoExtension::js_suffix));
-    fileInfoObj.setProperty(QLatin1String("completeSuffix"),
+    fileInfoObj.setProperty(QStringLiteral("completeSuffix"),
                             engine->newFunction(FileInfoExtension::js_completeSuffix));
-    fileInfoObj.setProperty(QLatin1String("canonicalPath"),
+    fileInfoObj.setProperty(QStringLiteral("canonicalPath"),
                             engine->newFunction(FileInfoExtension::js_canonicalPath));
-    fileInfoObj.setProperty(QLatin1String("cleanPath"),
+    fileInfoObj.setProperty(QStringLiteral("cleanPath"),
                             engine->newFunction(FileInfoExtension::js_cleanPath));
     fileInfoObj.setProperty(StringConstants::completeBaseNameProperty(),
                             engine->newFunction(FileInfoExtension::js_completeBaseName));
-    fileInfoObj.setProperty(QLatin1String("relativePath"),
+    fileInfoObj.setProperty(QStringLiteral("relativePath"),
                             engine->newFunction(FileInfoExtension::js_relativePath));
-    fileInfoObj.setProperty(QLatin1String("resolvePath"),
+    fileInfoObj.setProperty(QStringLiteral("resolvePath"),
                             engine->newFunction(FileInfoExtension::js_resolvePath));
-    fileInfoObj.setProperty(QLatin1String("isAbsolutePath"),
+    fileInfoObj.setProperty(QStringLiteral("isAbsolutePath"),
                             engine->newFunction(FileInfoExtension::js_isAbsolutePath));
-    fileInfoObj.setProperty(QLatin1String("toWindowsSeparators"),
+    fileInfoObj.setProperty(QStringLiteral("toWindowsSeparators"),
                             engine->newFunction(FileInfoExtension::js_toWindowsSeparators));
-    fileInfoObj.setProperty(QLatin1String("fromWindowsSeparators"),
+    fileInfoObj.setProperty(QStringLiteral("fromWindowsSeparators"),
                             engine->newFunction(FileInfoExtension::js_fromWindowsSeparators));
-    fileInfoObj.setProperty(QLatin1String("toNativeSeparators"),
+    fileInfoObj.setProperty(QStringLiteral("toNativeSeparators"),
                             engine->newFunction(FileInfoExtension::js_toNativeSeparators));
-    fileInfoObj.setProperty(QLatin1String("fromNativeSeparators"),
+    fileInfoObj.setProperty(QStringLiteral("fromNativeSeparators"),
                             engine->newFunction(FileInfoExtension::js_fromNativeSeparators));
-    fileInfoObj.setProperty(QLatin1String("joinPaths"),
+    fileInfoObj.setProperty(QStringLiteral("joinPaths"),
                             engine->newFunction(FileInfoExtension::js_joinPaths));
-    extensionObject.setProperty(QLatin1String("FileInfo"), fileInfoObj);
+    extensionObject.setProperty(QStringLiteral("FileInfo"), fileInfoObj);
 }
 
 Q_DECLARE_METATYPE(qbs::Internal::FileInfoExtension *)

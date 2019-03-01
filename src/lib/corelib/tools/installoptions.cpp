@@ -70,7 +70,7 @@ QString effectiveInstallRoot(const InstallOptions &options, const TopLevelProjec
 
     if (options.installIntoSysroot()) {
         return project->buildConfiguration().value(StringConstants::qbsModule()).toMap()
-                .value(QLatin1String("sysroot")).toString();
+                .value(QStringLiteral("sysroot")).toString();
     }
     return project->buildConfiguration().value(StringConstants::qbsModule()).toMap()
             .value(StringConstants::installRootProperty()).toString();
@@ -92,11 +92,15 @@ InstallOptions::InstallOptions(const InstallOptions &other) : d(other.d)
 {
 }
 
+InstallOptions::InstallOptions(InstallOptions &&other) Q_DECL_NOEXCEPT = default;
+
 InstallOptions &InstallOptions::operator=(const InstallOptions &other)
 {
     d = other.d;
     return *this;
 }
+
+InstallOptions &InstallOptions::operator=(InstallOptions &&other) Q_DECL_NOEXCEPT = default;
 
 InstallOptions::~InstallOptions()
 {
@@ -107,7 +111,7 @@ InstallOptions::~InstallOptions()
  */
 QString InstallOptions::defaultInstallRoot()
 {
-    return QLatin1String("install-root");
+    return QStringLiteral("install-root");
 }
 
 /*!

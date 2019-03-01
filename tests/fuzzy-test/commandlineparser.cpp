@@ -64,7 +64,7 @@ void CommandLineParser::parse(const QStringList &commandLine)
         else if (arg == logOption())
             m_log = true;
         else
-            throw ParseException(QString::fromLatin1("Unknown parameter '%1'").arg(arg));
+            throw ParseException(QStringLiteral("Unknown parameter '%1'").arg(arg));
     }
     if (m_profile.isEmpty())
         throw ParseException("No profile given.");
@@ -74,7 +74,7 @@ void CommandLineParser::parse(const QStringList &commandLine)
 
 QString CommandLineParser::usageString() const
 {
-    return QString::fromLatin1("%1 %2 <profile> %3 <start commit> [%4 <duration>] "
+    return QStringLiteral("%1 %2 <profile> %3 <start commit> [%4 <duration>] "
                                "[%5 <job count>] [%6]")
             .arg(QFileInfo(m_command).fileName(), profileOption(), startCommitOption(),
                  maxDurationoption(), jobCountOption(), logOption());
@@ -83,10 +83,10 @@ QString CommandLineParser::usageString() const
 void CommandLineParser::assignOptionArgument(const QString &option, QString &argument)
 {
     if (m_commandLine.empty())
-        throw ParseException(QString::fromLatin1("Option '%1' needs an argument.").arg(option));
+        throw ParseException(QStringLiteral("Option '%1' needs an argument.").arg(option));
     argument = m_commandLine.takeFirst();
     if (argument.isEmpty()) {
-        throw ParseException(QString::fromLatin1("Argument for option '%1' must not be empty.")
+        throw ParseException(QStringLiteral("Argument for option '%1' must not be empty.")
                              .arg(option));
     }
 }
@@ -98,7 +98,7 @@ void CommandLineParser::assignOptionArgument(const QString &option, int &argumen
     bool ok;
     argument = numberString.toInt(&ok);
     if (!ok || argument <= 0) {
-        throw ParseException(QString::fromLatin1("Invalid argument '%1' for option '%2'.")
+        throw ParseException(QStringLiteral("Invalid argument '%1' for option '%2'.")
                              .arg(numberString, option));
     }
 }
@@ -116,7 +116,7 @@ void CommandLineParser::parseDuration()
     bool ok;
     m_maxDuration = choppedDurationString.toInt(&ok);
     if (!ok || m_maxDuration <= 0) {
-        throw ParseException(QString::fromLatin1("Invalid duration argument '%1'.")
+        throw ParseException(QStringLiteral("Invalid duration argument '%1'.")
                              .arg(durationString));
     }
     if (hasSuffix) {
@@ -125,7 +125,7 @@ void CommandLineParser::parseDuration()
         case 'd': m_maxDuration *= 24; // Fall-through.
         case 'h': m_maxDuration *= 60; break;
         default:
-            throw ParseException(QString::fromLatin1("Invalid duration suffix '%1'.")
+            throw ParseException(QStringLiteral("Invalid duration suffix '%1'.")
                                  .arg(suffix));
         }
     }

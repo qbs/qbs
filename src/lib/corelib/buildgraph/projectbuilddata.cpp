@@ -280,7 +280,7 @@ void BuildDataResolver::resolveBuildData(const TopLevelProjectPtr &resolvedProje
     const std::vector<ResolvedProductPtr> &allProducts = resolvedProject->allProducts();
     evalContext->initializeObserver(Tr::tr("Setting up build graph for configuration %1")
                                     .arg(resolvedProject->id()), int(allProducts.size()) + 1);
-    for (ResolvedProductPtr rProduct : allProducts) {
+    for (const auto &rProduct : allProducts) {
         if (rProduct->enabled)
             resolveProductBuildData(rProduct);
         evalContext->incrementProgressValue();
@@ -392,7 +392,7 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
     product->buildData.reset(new ProductBuildData);
     ArtifactSetByFileTag artifactsPerFileTag;
 
-    for (ResolvedProductPtr dependency : qAsConst(product->dependencies)) {
+    for (const auto &dependency : qAsConst(product->dependencies)) {
         QBS_CHECK(dependency->enabled);
         resolveProductBuildData(dependency);
     }

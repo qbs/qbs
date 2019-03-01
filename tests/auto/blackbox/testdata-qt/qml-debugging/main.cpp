@@ -32,13 +32,13 @@
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
-typedef QGuiApplication Application;
+using Application = QGuiApplication;
 #define AH_SO_THIS_IS_QT5
 #else
 #include <QApplication>
 #include <QDeclarativeView>
 #define AH_SO_THIS_IS_QT4
-typedef QApplication Application;
+using Application = QApplication;
 #endif
 
 int main(int argc, char *argv[])

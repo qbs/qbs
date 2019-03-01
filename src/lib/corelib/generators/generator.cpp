@@ -101,7 +101,7 @@ ErrorInfo ProjectGenerator::generate(const QList<Project> &projects,
     } catch (const ErrorInfo &e) {
         return e;
     }
-    return ErrorInfo();
+    return {};
 }
 
 QList<Project> ProjectGenerator::projects() const
@@ -118,7 +118,7 @@ QVariantMap ProjectGenerator::buildConfiguration(const Project &project) const
 {
     int idx = d->projects.indexOf(project);
     if (idx < 0)
-        return QVariantMap();
+        return {};
     return d->buildConfigurations.at(idx);
 }
 

@@ -85,9 +85,9 @@ ResolvedProductConstPtr TestBuildGraph::productWithDirectCycle()
     const ResolvedProductPtr product = ResolvedProduct::create();
     product->project = project;
     product->buildData.reset(new ProductBuildData);
-    auto root = new Artifact;
+    const auto root = new Artifact;
     root->product = product;
-    auto child = new Artifact;
+    const auto child = new Artifact;
     child->product = product;
     product->buildData->addRootNode(root);
     product->buildData->addNode(root);
@@ -102,9 +102,9 @@ ResolvedProductConstPtr TestBuildGraph::productWithLessDirectCycle()
     const ResolvedProductPtr product = ResolvedProduct::create();
     product->project = project;
     product->buildData.reset(new ProductBuildData);
-    auto root = new Artifact;
-    auto child = new Artifact;
-    auto grandchild = new Artifact;
+    const auto root = new Artifact;
+    const auto child = new Artifact;
+    const auto grandchild = new Artifact;
     root->product = product;
     child->product = product;
     grandchild->product = product;
@@ -124,8 +124,8 @@ ResolvedProductConstPtr TestBuildGraph::productWithNoCycle()
     const ResolvedProductPtr product = ResolvedProduct::create();
     product->project = project;
     product->buildData.reset(new ProductBuildData);
-    auto root = new Artifact;
-    auto root2 = new Artifact;
+    const auto root = new Artifact;
+    const auto root2 = new Artifact;
     root->product = product;
     root2->product = product;
     product->buildData->addRootNode(root);

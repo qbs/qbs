@@ -64,17 +64,17 @@ QString commandEchoModeName(CommandEchoMode mode)
 {
     switch (mode) {
     case CommandEchoModeSilent:
-        return QLatin1String("silent");
+        return QStringLiteral("silent");
     case CommandEchoModeSummary:
-        return QLatin1String("summary");
+        return QStringLiteral("summary");
     case CommandEchoModeCommandLine:
-        return QLatin1String("command-line");
+        return QStringLiteral("command-line");
     case CommandEchoModeCommandLineWithEnvironment:
-        return QLatin1String("command-line-with-environment");
+        return QStringLiteral("command-line-with-environment");
     default:
         break;
     }
-    return QString();
+    return {};
 }
 
 CommandEchoMode commandEchoModeFromName(const QString &name)

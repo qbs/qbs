@@ -103,7 +103,7 @@ void EmptyDirectoriesRemover::removeDirIfEmpty()
         return;
     dir.cdUp();
     if (!dir.rmdir(fi.fileName())) {
-        m_logger.qbsWarning() << QString::fromLatin1("Cannot remove empty directory '%1'.")
+        m_logger.qbsWarning() << QStringLiteral("Cannot remove empty directory '%1'.")
                                  .arg(dirPath);
         return;
     }

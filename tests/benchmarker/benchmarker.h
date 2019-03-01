@@ -48,7 +48,7 @@ public:
     qint64 oldPeakMemoryUsage;
     qint64 newPeakMemoryUsage;
 };
-typedef QHash<Activity, BenchmarkResult> BenchmarkResults;
+using BenchmarkResults = QHash<Activity, BenchmarkResult>;
 
 class Benchmarker
 {

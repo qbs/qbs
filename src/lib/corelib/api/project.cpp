@@ -150,7 +150,7 @@ BuildJob *ProjectPrivate::buildProducts(const QList<ResolvedProductPtr> &product
     if (needsDepencencyResolving)
         addDependencies(productsToBuild);
 
-    auto job = new BuildJob(logger, jobOwner);
+    const auto job = new BuildJob(logger, jobOwner);
     job->build(internalProject, productsToBuild, options);
     QBS_ASSERT(job->state() == AbstractJob::StateRunning,);
     return job;
@@ -159,7 +159,7 @@ BuildJob *ProjectPrivate::buildProducts(const QList<ResolvedProductPtr> &product
 CleanJob *ProjectPrivate::cleanProducts(const QList<ResolvedProductPtr> &products,
         const CleanOptions &options, QObject *jobOwner)
 {
-    auto job = new CleanJob(logger, jobOwner);
+    const auto job = new CleanJob(logger, jobOwner);
     job->clean(internalProject, products, options);
     QBS_ASSERT(job->state() == AbstractJob::StateRunning,);
     return job;
@@ -171,7 +171,7 @@ InstallJob *ProjectPrivate::installProducts(const QList<ResolvedProductPtr> &pro
     QList<ResolvedProductPtr> productsToInstall = products;
     if (needsDepencencyResolving)
         addDependencies(productsToInstall);
-    auto job = new InstallJob(logger, jobOwner);
+    const auto job = new InstallJob(logger, jobOwner);
     job->install(internalProject, productsToInstall, options);
     QBS_ASSERT(job->state() == AbstractJob::StateRunning,);
     return job;
@@ -223,7 +223,7 @@ static ResolvedProductPtr internalProductForProject(const ResolvedProjectConstPt
         if (p)
             return p;
     }
-    return ResolvedProductPtr();
+    return {};
 }
 
 ResolvedProductPtr ProjectPrivate::internalProduct(const ProductData &product) const
@@ -240,7 +240,7 @@ ProductData ProjectPrivate::findProductData(const ProductData &product) const
             return p;
         }
     }
-    return ProductData();
+    return {};
 }
 
 QList<ProductData> ProjectPrivate::findProductsByName(const QString &name) const
@@ -259,7 +259,7 @@ GroupData ProjectPrivate::findGroupData(const ProductData &product, const QStrin
         if (g.name() == groupName)
             return g;
     }
-    return GroupData();
+    return {};
 }
 
 GroupData ProjectPrivate::createGroupDataFromGroup(const GroupPtr &resolvedGroup,
@@ -942,7 +942,7 @@ bool Project::isValid() const
  */
 QString Project::profile() const
 {
-    QBS_ASSERT(isValid(), return QString());
+    QBS_ASSERT(isValid(), return {});
     return d->internalProject->profile();
 }
 
@@ -972,7 +972,7 @@ SetupProjectJob *Project::setupProject(const SetupProjectParameters &parameters,
                                        ILogSink *logSink, QObject *jobOwner)
 {
     Logger logger(logSink);
-    auto job = new SetupProjectJob(logger, jobOwner);
+    const auto job = new SetupProjectJob(logger, jobOwner);
     try {
         loadPlugins(parameters.pluginPaths(), logger);
         job->resolve(*this, parameters);
@@ -997,7 +997,7 @@ Project::Project()
  */
 ProjectData Project::projectData() const
 {
-    QBS_ASSERT(isValid(), return ProjectData());
+    QBS_ASSERT(isValid(), return {});
     return d->projectData();
 }
 
@@ -1149,47 +1149,47 @@ void Project::updateTimestamps(const QList<ProductData> &products)
 QStringList Project::generatedFiles(const ProductData &product, const QString &file,
                                     bool recursive, const QStringList &tags) const
 {
-    QBS_ASSERT(isValid(), return QStringList());
+    QBS_ASSERT(isValid(), return {});
     const ResolvedProductConstPtr internalProduct = d->internalProduct(product);
     return internalProduct->generatedFiles(file, recursive, FileTags::fromStringList(tags));
 }
 
 QVariantMap Project::projectConfiguration() const
 {
-    QBS_ASSERT(isValid(), return QVariantMap());
+    QBS_ASSERT(isValid(), return {});
     return d->internalProject->buildConfiguration();
 }
 
 std::set<QString> Project::buildSystemFiles() const
 {
-    QBS_ASSERT(isValid(), return std::set<QString>());
+    QBS_ASSERT(isValid(), return {});
     return d->internalProject->buildSystemFiles.toStdSet();
 }
 
 RuleCommandList Project::ruleCommands(const ProductData &product,
         const QString &inputFilePath, const QString &outputFileTag, ErrorInfo *error) const
 {
-    QBS_ASSERT(isValid(), return RuleCommandList());
-    QBS_ASSERT(product.isValid(), return RuleCommandList());
+    QBS_ASSERT(isValid(), return {});
+    QBS_ASSERT(product.isValid(), return {});
 
     try {
         return d->ruleCommands(product, inputFilePath, outputFileTag);
     } catch (const ErrorInfo &e) {
         if (error)
             *error = e;
-        return RuleCommandList();
+        return {};
     }
 }
 
 ProjectTransformerData Project::transformerData(ErrorInfo *error) const
 {
-    QBS_ASSERT(isValid(), return ProjectTransformerData());
+    QBS_ASSERT(isValid(), return {});
     try {
         return d->transformerData();
     } catch (const ErrorInfo &e) {
         if (error)
             *error = e;
-        return ProjectTransformerData();
+        return {};
     }
 }
 
@@ -1200,7 +1200,7 @@ ErrorInfo Project::dumpNodesTree(QIODevice &outDevice, const QList<ProductData> 
     } catch (const ErrorInfo &e) {
         return e;
     }
-    return ErrorInfo();
+    return {};
 }
 
 Project::BuildGraphInfo Project::getBuildGraphInfo(const QString &bgFilePath,
@@ -1258,7 +1258,7 @@ ErrorInfo Project::addGroup(const ProductData &product, const QString &groupName
         d->addGroup(product, groupName);
         d->internalProject->lastStartResolveTime = FileTime::currentTime();
         d->internalProject->store(d->logger);
-        return ErrorInfo();
+        return {};
     } catch (ErrorInfo errorInfo) {
         errorInfo.prepend(Tr::tr("Failure adding group '%1' to product '%2'.")
                           .arg(groupName, product.name()));
@@ -1285,7 +1285,7 @@ ErrorInfo Project::addFiles(const ProductData &product, const GroupData &group,
         d->addFiles(product, group, filePaths);
         d->internalProject->lastStartResolveTime = FileTime::currentTime();
         d->internalProject->store(d->logger);
-        return ErrorInfo();
+        return {};
     } catch (ErrorInfo errorInfo) {
         errorInfo.prepend(Tr::tr("Failure adding files to product."));
         return errorInfo;
@@ -1311,7 +1311,7 @@ ErrorInfo Project::removeFiles(const ProductData &product, const GroupData &grou
         d->removeFiles(product, group, filePaths);
         d->internalProject->lastStartResolveTime = FileTime::currentTime();
         d->internalProject->store(d->logger);
-        return ErrorInfo();
+        return {};
     } catch (ErrorInfo errorInfo) {
         errorInfo.prepend(Tr::tr("Failure removing files from product '%1'.").arg(product.name()));
         return errorInfo;
@@ -1332,7 +1332,7 @@ ErrorInfo Project::removeGroup(const ProductData &product, const GroupData &grou
         d->removeGroup(product, group);
         d->internalProject->lastStartResolveTime = FileTime::currentTime();
         d->internalProject->store(d->logger);
-        return ErrorInfo();
+        return {};
     } catch (ErrorInfo errorInfo) {
         errorInfo.prepend(Tr::tr("Failure removing group '%1' from product '%2'.")
                           .arg(group.name(), product.name()));

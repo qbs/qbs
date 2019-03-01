@@ -59,7 +59,7 @@ CodeLocation toCodeLocation(const QString &filePath, const QbsQmlJS::AST::Source
 QString textOf(const QString &source, QbsQmlJS::AST::Node *node)
 {
     if (!node)
-        return QString();
+        return {};
     return source.mid(node->firstSourceLocation().begin(),
                       node->lastSourceLocation().end() - node->firstSourceLocation().begin());
 }

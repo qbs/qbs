@@ -75,7 +75,7 @@ private:
 
 static QString launcherSocketName()
 {
-    return QString::fromLatin1("qbs_processlauncher-%1")
+    return QStringLiteral("qbs_processlauncher-%1")
             .arg(QString::number(qApp->applicationPid()));
 }
 

@@ -57,7 +57,7 @@ public:
         ArrayBinding
     };
 
-    typedef ChangeSet::Range Range;
+    using Range = ChangeSet::Range;
 
 public:
     Rewriter(const QString &originalText,

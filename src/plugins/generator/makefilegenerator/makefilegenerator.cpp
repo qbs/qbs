@@ -68,10 +68,10 @@ QString qbs::MakefileGenerator::generatorName() const
 static QString quote(const QString &s)
 {
     QString quoted = shellQuote(s);
-    quoted.replace(QLatin1Char('$'), QStringLiteral("$$")); // For make
-    quoted.replace(QStringLiteral("$$(SRCDIR)"), QStringLiteral("$(SRCDIR)"));
-    quoted.replace(QStringLiteral("$$(BUILD_ROOT)"), QStringLiteral("$(BUILD_ROOT)"));
-    quoted.replace(QStringLiteral("$$(INSTALL_ROOT)"), QStringLiteral("$(INSTALL_ROOT)"));
+    quoted.replace(QLatin1Char('$'), QLatin1String("$$")); // For make
+    quoted.replace(QLatin1String("$$(SRCDIR)"), QLatin1String("$(SRCDIR)"));
+    quoted.replace(QLatin1String("$$(BUILD_ROOT)"), QLatin1String("$(BUILD_ROOT)"));
+    quoted.replace(QLatin1String("$$(INSTALL_ROOT)"), QLatin1String("$(INSTALL_ROOT)"));
     return quoted;
 }
 
@@ -133,7 +133,7 @@ static QString bruteForcePathReplace(const QString &value, const QString &srcDir
 static QString mkdirCmdLine(const QString &dir)
 {
     if (HostOsInfo::isWindowsHost())
-        return QString::fromLatin1("if not exist %1 mkdir %1 & if not exist %1 exit 1").arg(dir);
+        return QStringLiteral("if not exist %1 mkdir %1 & if not exist %1 exit 1").arg(dir);
     return QStringLiteral("mkdir -p ") + dir;
 }
 
@@ -245,7 +245,7 @@ void qbs::MakefileGenerator::generate()
                 stream << ' ' << transformedOutputFilePath(ta);
             stream << '\n';
             for (const TransformerData &transformerData : productTransformerData) {
-                stream << transformedOutputFilePath(transformerData.outputs().first()) << ":";
+                stream << transformedOutputFilePath(transformerData.outputs().constFirst()) << ":";
                 for (const ArtifactData &input : transformerData.inputs())
                     stream << ' ' << transformedArtifactFilePath(input);
                 stream << '\n';
@@ -340,7 +340,7 @@ void qbs::MakefileGenerator::generate()
                 "Makefile-compatible, because they depend entirely on JavaScriptCommands. "
                 "The build is probably not fully functional. "
                 "Affected build artifacts:\n\t%1")
-                    .arg(filesCreatedByJsCommands.join(QStringLiteral("\n\t")));
+                    .arg(filesCreatedByJsCommands.join(QLatin1String("\n\t")));
         } else if (jsCommandsEncountered) {
             logger().qbsWarning() << Tr::tr("Some rules in this project use JavaScriptCommands, "
                 "which cannot be converted to Makefile-compatible constructs. The build may "

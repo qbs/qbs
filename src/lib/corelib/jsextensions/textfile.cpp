@@ -124,7 +124,7 @@ QScriptValue TextFile::ctor(QScriptContext *context, QScriptEngine *engine)
     const DubiousContextList dubiousContexts({
             DubiousContext(EvalContext::PropertyEvaluation, DubiousContext::SuggestMoving)
     });
-    se->checkContext(QLatin1String("qbs.TextFile"), dubiousContexts);
+    se->checkContext(QStringLiteral("qbs.TextFile"), dubiousContexts);
     se->setUsesIo();
 
     return engine->newQObject(t, QScriptEngine::QtOwnership);
@@ -173,7 +173,7 @@ void TextFile::close()
 QString TextFile::filePath()
 {
     if (checkForClosed())
-        return QString();
+        return {};
     return QFileInfo(*m_file).absoluteFilePath();
 }
 
@@ -187,14 +187,14 @@ void TextFile::setCodec(const QString &codec)
 QString TextFile::readLine()
 {
     if (checkForClosed())
-        return QString();
+        return {};
     return m_stream->readLine();
 }
 
 QString TextFile::readAll()
 {
     if (checkForClosed())
-        return QString();
+        return {};
     return m_stream->readAll();
 }
 
@@ -255,7 +255,7 @@ void initializeJsExtensionTextFile(QScriptValue extensionObject)
     QScriptEngine *engine = extensionObject.engine();
     QScriptValue obj = engine->newQMetaObject(&TextFile::staticMetaObject,
                                               engine->newFunction(&TextFile::ctor));
-    extensionObject.setProperty(QLatin1String("TextFile"), obj);
+    extensionObject.setProperty(QStringLiteral("TextFile"), obj);
 }
 
 Q_DECLARE_METATYPE(qbs::Internal::TextFile *)

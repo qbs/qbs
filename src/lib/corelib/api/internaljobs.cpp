@@ -329,7 +329,7 @@ void InternalSetupProjectJob::resolveProjectFromScratch(ScriptEngine *engine)
 
 void InternalSetupProjectJob::resolveBuildDataFromScratch(const RulesEvaluationContextPtr &evalContext)
 {
-    TimedActivityLogger resolveLogger(logger(), QLatin1String("Resolving build project"), timed());
+    TimedActivityLogger resolveLogger(logger(), QStringLiteral("Resolving build project"), timed());
     BuildDataResolver(logger()).resolveBuildData(m_newProject, evalContext);
 }
 
@@ -381,7 +381,7 @@ void InternalBuildJob::build(const TopLevelProjectPtr &project,
     m_executor->setBuildOptions(buildOptions);
     m_executor->setProgressObserver(observer());
 
-    auto executorThread = new QThread(this);
+    const auto executorThread = new QThread(this);
     m_executor->moveToThread(executorThread);
     connect(m_executor, &Executor::reportCommandDescription,
             this, &BuildGraphTouchingJob::reportCommandDescription);

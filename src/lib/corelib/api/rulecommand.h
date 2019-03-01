@@ -83,7 +83,7 @@ private:
 };
 
 
-typedef QList<RuleCommand> RuleCommandList;
+using RuleCommandList = QList<RuleCommand>;
 
 } // namespace qbs
 

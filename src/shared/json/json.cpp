@@ -196,7 +196,7 @@ public:
     void operator-=(int i) { *this = (int(*this) - i); }
 };
 
-typedef uint32_t offset;
+using offset = uint32_t;
 
 // round the size up to the next 4 byte boundary
 int alignedSize(int size) { return (size + 3) & ~3; }
@@ -406,7 +406,7 @@ public:
 
     String shallowKey() const
     {
-        return String((const char *)this + sizeof(Entry));
+        return {(const char *)this + sizeof(Entry)};
     }
 
     std::string key() const
@@ -545,7 +545,7 @@ public:
         Header *h = (Header *)raw;
         h->tag = JsonDocument::BinaryFormatTag;
         h->version = 1;
-        auto d = new Data(raw, size);
+        const auto d = new Data(raw, size);
         d->compactionCounter = (b == header->root()) ? compactionCounter : 0;
         return d;
     }
@@ -1032,7 +1032,7 @@ JsonObject JsonValue::toObject(const JsonObject &defaultValue) const
 */
 JsonObject JsonValue::toObject() const
 {
-    return toObject(JsonObject());
+    return toObject({});
 }
 
 /*!
@@ -1384,9 +1384,9 @@ bool JsonArray::isEmpty() const
 JsonValue JsonArray::at(int i) const
 {
     if (!a || i < 0 || i >= (int)a->length)
-        return JsonValue(JsonValue::Undefined);
+        return {JsonValue::Undefined};
 
-    return JsonValue(d, a, a->at(i));
+    return {d, a, a->at(i)};
 }
 
 /*!
@@ -1484,7 +1484,7 @@ void JsonArray::removeAt(int i)
 JsonValue JsonArray::takeAt(int i)
 {
     if (!a || i < 0 || i >= (int)a->length)
-        return JsonValue(JsonValue::Undefined);
+        return {JsonValue::Undefined};
 
     JsonValue v(d, a, a->at(i));
     removeAt(i); // detaches
@@ -1606,7 +1606,7 @@ bool JsonArray::contains(const JsonValue &value) const
 JsonValueRef JsonArray::operator[](int i)
 {
     // assert(a && i >= 0 && i < (int)a->length);
-    return JsonValueRef(this, i);
+    return {this, i};
 }
 
 /*!
@@ -2415,13 +2415,13 @@ bool JsonObject::isEmpty() const
 JsonValue JsonObject::value(const std::string &key) const
 {
     if (!d)
-        return JsonValue(JsonValue::Undefined);
+        return {JsonValue::Undefined};
 
     bool keyExists;
     int i = o->indexOf(key, &keyExists);
     if (!keyExists)
-        return JsonValue(JsonValue::Undefined);
-    return JsonValue(d, o, o->entryAt(i)->value);
+        return {JsonValue::Undefined};
+    return {d, o, o->entryAt(i)->value};
 }
 
 /*!
@@ -2458,7 +2458,7 @@ JsonValueRef JsonObject::operator[](const std::string &key)
         iterator i = insert(key, JsonValue());
         index = i.i;
     }
-    return JsonValueRef(this, index);
+    return {this, index};
 }
 
 /*!
@@ -2514,7 +2514,7 @@ JsonObject::iterator JsonObject::insert(const std::string &key, const JsonValue 
     if (d->compactionCounter > 32u && d->compactionCounter >= unsigned(o->length) / 2u)
         compact();
 
-    return iterator(this, pos);
+    return {this, pos};
 }
 
 /*!
@@ -2551,12 +2551,12 @@ void JsonObject::remove(const std::string &key)
 JsonValue JsonObject::take(const std::string &key)
 {
     if (!o)
-        return JsonValue(JsonValue::Undefined);
+        return {JsonValue::Undefined};
 
     bool keyExists;
     int index = o->indexOf(key, &keyExists);
     if (!keyExists)
-        return JsonValue(JsonValue::Undefined);
+        return {JsonValue::Undefined};
 
     JsonValue v(d, o, o->entryAt(index)->value);
     detach();
@@ -2627,7 +2627,7 @@ JsonObject::iterator JsonObject::erase(JsonObject::iterator it)
 {
     // assert(d && d->ref.load() == 1);
     if (it.o != this || it.i < 0 || it.i >= (int)o->length)
-        return iterator(this, o->length);
+        return {this, int(o->length)};
 
     int index = it.i;
 
@@ -2654,7 +2654,7 @@ JsonObject::iterator JsonObject::find(const std::string &key)
     if (!keyExists)
         return end();
     detach();
-    return iterator(this, index);
+    return {this, index};
 }
 
 /*! \fn JsonObject::const_iterator JsonObject::find(const QString &key) const
@@ -2675,7 +2675,7 @@ JsonObject::const_iterator JsonObject::constFind(const std::string &key) const
     int index = o ? o->indexOf(key, &keyExists) : 0;
     if (!keyExists)
         return end();
-    return const_iterator(this, index);
+    return {this, index};
 }
 
 /*! \fn int JsonObject::count() const
@@ -3191,10 +3191,10 @@ std::string JsonObject::keyAt(int i) const
 JsonValue JsonObject::valueAt(int i) const
 {
     if (!o || i < 0 || i >= (int)o->length)
-        return JsonValue(JsonValue::Undefined);
+        return {JsonValue::Undefined};
 
     Internal::Entry *e = o->entryAt(i);
-    return JsonValue(d, o, e->value);
+    return {d, o, e->value};
 }
 
 /*!
@@ -3344,18 +3344,18 @@ JsonDocument JsonDocument::fromRawData(const char *data, int size, DataValidatio
 {
     if (std::uintptr_t(data) & 3) {
         std::cerr <<"JsonDocument::fromRawData: data has to have 4 byte alignment\n";
-        return JsonDocument();
+        return {};
     }
 
-    auto d = new Internal::Data((char *)data, size);
+    const auto d = new Internal::Data((char *)data, size);
     d->ownsData = false;
 
     if (validation != BypassValidation && !d->valid()) {
         delete d;
-        return JsonDocument();
+        return {};
     }
 
-    return JsonDocument(d);
+    return {d};
 }
 
 /*!
@@ -3387,7 +3387,7 @@ const char *JsonDocument::rawData(int *size) const
 JsonDocument JsonDocument::fromBinaryData(const std::string &data, DataValidation validation)
 {
     if (data.size() < (int)(sizeof(Internal::Header) + sizeof(Internal::Base)))
-        return JsonDocument();
+        return {};
 
     Internal::Header h;
     memcpy(&h, data.data(), sizeof(Internal::Header));
@@ -3397,22 +3397,22 @@ JsonDocument JsonDocument::fromBinaryData(const std::string &data, DataValidatio
     // do basic checks here, so we don't try to allocate more memory than we can.
     if (h.tag != JsonDocument::BinaryFormatTag || h.version != 1u ||
         sizeof(Internal::Header) + root.size > (uint32_t)data.size())
-        return JsonDocument();
+        return {};
 
     const uint32_t size = sizeof(Internal::Header) + root.size;
     char *raw = (char *)malloc(size);
     if (!raw)
-        return JsonDocument();
+        return {};
 
     memcpy(raw, data.data(), size);
-    auto d = new Internal::Data(raw, size);
+    const auto d = new Internal::Data(raw, size);
 
     if (validation != BypassValidation && !d->valid()) {
         delete d;
-        return JsonDocument();
+        return {};
     }
 
-    return JsonDocument(d);
+    return {d};
 }
 
 /*!
@@ -3554,7 +3554,7 @@ JsonObject JsonDocument::object() const
         if (b->isObject())
             return JsonObject(d, static_cast<Internal::Object *>(b));
     }
-    return JsonObject();
+    return {};
 }
 
 /*!
@@ -3572,7 +3572,7 @@ JsonArray JsonDocument::array() const
         if (b->isArray())
             return JsonArray(d, static_cast<Internal::Array *>(b));
     }
-    return JsonArray();
+    return {};
 }
 
 /*!
@@ -4046,8 +4046,8 @@ JsonDocument Parser::parse(JsonParseError *error)
             error->offset = 0;
             error->error = JsonParseError::NoError;
         }
-        auto d = new Data(data, current);
-        return JsonDocument(d);
+        const auto d = new Data(data, current);
+        return {d};
     }
 
 error:
@@ -4059,7 +4059,7 @@ error:
         error->error  = lastError;
     }
     free(data);
-    return JsonDocument();
+    return {};
 }
 
 

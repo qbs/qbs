@@ -359,7 +359,7 @@ bool InstallData::isInstallable() const
  */
 QString InstallData::installDir() const
 {
-    QBS_ASSERT(isValid(), return QString());
+    QBS_ASSERT(isValid(), return {});
     return Internal::FileInfo::path(installFilePath());
 }
 
@@ -368,7 +368,7 @@ QString InstallData::installDir() const
  */
 QString InstallData::installFilePath() const
 {
-    QBS_ASSERT(isValid(), return QString());
+    QBS_ASSERT(isValid(), return {});
     return d->installFilePath;
 }
 
@@ -377,7 +377,7 @@ QString InstallData::installFilePath() const
  */
 QString InstallData::installRoot() const
 {
-    QBS_ASSERT(isValid(), return QString());
+    QBS_ASSERT(isValid(), return {});
     return d->installRoot;
 }
 
@@ -557,9 +557,9 @@ QList<ArtifactData> ProductData::installableArtifacts() const
  */
 QString ProductData::targetExecutable() const
 {
-    QBS_ASSERT(isValid(), return QString());
-    if (d->moduleProperties.getModuleProperty(QLatin1String("bundle"),
-                                              QLatin1String("isBundle")).toBool()) {
+    QBS_ASSERT(isValid(), return {});
+    if (d->moduleProperties.getModuleProperty(QStringLiteral("bundle"),
+                                              QStringLiteral("isBundle")).toBool()) {
         for (const ArtifactData &ta : targetArtifacts()) {
             if (ta.fileTags().contains(QLatin1String("bundle.application-executable"))) {
                 if (ta.installData().isInstallable())
@@ -575,7 +575,7 @@ QString ProductData::targetExecutable() const
             return ta.filePath();
         }
     }
-    return QString();
+    return {};
 }
 
 /*!
@@ -886,7 +886,7 @@ static QString mapToString(const QVariantMap &map, const QString &prefix)
         if (val.type() == QVariant::Map) {
             stringRep += mapToString(val.value<QVariantMap>(), prefix + key + QLatin1Char('.'));
         } else {
-            stringRep += QString::fromLatin1("%1%2: %3\n")
+            stringRep += QStringLiteral("%1%2: %3\n")
                     .arg(prefix, key, toJSLiteral(val));
         }
     }

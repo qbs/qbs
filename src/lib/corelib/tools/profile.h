@@ -76,7 +76,7 @@ public:
 
     static QString cleanName(const QString &name);
 
-    static QString fallbackName() { return QLatin1String("none"); }
+    static QString fallbackName() { return QStringLiteral("none"); }
 
 private:
     static QString baseProfileKey();

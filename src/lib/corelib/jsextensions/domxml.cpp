@@ -131,7 +131,7 @@ QScriptValue XmlDomDocument::ctor(QScriptContext *context, QScriptEngine *engine
         xml = new XmlDomDocument(context, context->argument(0).toString());
         break;
     default:
-        return context->throwError(QLatin1String("DomXml(QString file = QLatin1String(\"\"))"));
+        return context->throwError(QStringLiteral("DomXml(QString file = QLatin1String(\"\"))"));
     }
     QScriptValue obj = engine->newQObject(xml, QScriptEngine::ScriptOwnership);
     static_cast<ScriptEngine *>(engine)->setUsesIo();
@@ -172,7 +172,7 @@ void XmlDomDocument::save(const QString &filePath, int indent)
 {
     QFile f(filePath);
     if (!f.open(QIODevice::WriteOnly)) {
-        context()->throwError(QString::fromLatin1("unable to open '%1'")
+        context()->throwError(QStringLiteral("unable to open '%1'")
                               .arg(filePath));
         return;
     }
@@ -194,7 +194,7 @@ void XmlDomDocument::load(const QString &filePath)
 {
     QFile f(filePath);
     if (!f.open(QIODevice::ReadOnly)) {
-        context()->throwError(QString::fromLatin1("unable to open '%1'")
+        context()->throwError(QStringLiteral("unable to open '%1'")
                               .arg(filePath));
         return;
     }
@@ -237,7 +237,7 @@ QString XmlDomNode::attribute(const QString &name, const QString &defValue)
 {
     QDomElement el = m_domNode.toElement();
     if (el.isNull()) {
-        context()->throwError(QString::fromLatin1("Node '%1' is not an element node").arg(m_domNode.nodeName()));
+        context()->throwError(QStringLiteral("Node '%1' is not an element node").arg(m_domNode.nodeName()));
         return defValue;
     }
     return el.attribute(name, defValue);
@@ -247,7 +247,7 @@ void XmlDomNode::setAttribute(const QString &name, const QString &value)
 {
     QDomElement el = m_domNode.toElement();
     if (el.isNull()) {
-        context()->throwError(QString::fromLatin1("Node '%1' is not an element node").arg(m_domNode.nodeName()));
+        context()->throwError(QStringLiteral("Node '%1' is not an element node").arg(m_domNode.nodeName()));
         return;
     }
     el.setAttribute(name, value);
@@ -257,7 +257,7 @@ bool XmlDomNode::hasAttribute(const QString &name) const
 {
     QDomElement el = m_domNode.toElement();
     if (el.isNull()) {
-        context()->throwError(QString::fromLatin1("Node '%1' is not an element node").arg(m_domNode.nodeName()));
+        context()->throwError(QStringLiteral("Node '%1' is not an element node").arg(m_domNode.nodeName()));
         return false;
     }
     return el.hasAttribute(name);
@@ -267,8 +267,8 @@ QString XmlDomNode::tagName() const
 {
     QDomElement el = m_domNode.toElement();
     if (el.isNull()) {
-        context()->throwError(QString::fromLatin1("Node '%1' is not an element node").arg(m_domNode.nodeName()));
-        return QString();
+        context()->throwError(QStringLiteral("Node '%1' is not an element node").arg(m_domNode.nodeName()));
+        return {};
     }
     return el.tagName();
 }
@@ -277,7 +277,7 @@ void XmlDomNode::setTagName(const QString &name)
 {
     QDomElement el = m_domNode.toElement();
     if (el.isNull()) {
-        context()->throwError(QString::fromLatin1("Node '%1' is not an element node").arg(m_domNode.nodeName()));
+        context()->throwError(QStringLiteral("Node '%1' is not an element node").arg(m_domNode.nodeName()));
         return;
     }
     el.setTagName(name);
@@ -287,8 +287,8 @@ QString XmlDomNode::text() const
 {
     QDomElement el = m_domNode.toElement();
     if (el.isNull()) {
-        context()->throwError(QString::fromLatin1("Node '%1' is not an element node").arg(m_domNode.nodeName()));
-        return QString();
+        context()->throwError(QStringLiteral("Node '%1' is not an element node").arg(m_domNode.nodeName()));
+        return {};
     }
     return el.text();
 }
@@ -301,8 +301,8 @@ QString XmlDomNode::data() const
         return m_domNode.toCDATASection().data();
     if (m_domNode.isCharacterData())
         return m_domNode.toCharacterData().data();
-    context()->throwError(QString::fromLatin1("Node '%1' is not a character data node").arg(m_domNode.nodeName()));
-    return QString();
+    context()->throwError(QStringLiteral("Node '%1' is not a character data node").arg(m_domNode.nodeName()));
+    return {};
 }
 
 void XmlDomNode::setData(const QString &v) const
@@ -313,7 +313,7 @@ void XmlDomNode::setData(const QString &v) const
         return m_domNode.toCDATASection().setData(v);
     if (m_domNode.isCharacterData())
         return m_domNode.toCharacterData().setData(v);
-    context()->throwError(QString::fromLatin1("Node '%1' is not a character data node").arg(m_domNode.nodeName()));
+    context()->throwError(QStringLiteral("Node '%1' is not a character data node").arg(m_domNode.nodeName()));
     return;
 }
 
@@ -369,8 +369,8 @@ QScriptValue XmlDomNode::appendChild(QScriptValue newChild)
 {
     auto newNode = qobject_cast<XmlDomNode*>(newChild.toQObject());
     if (!newNode) {
-        context()->throwError(QString::fromLatin1("First argument is not a XmlDomNode object"));
-        return QScriptValue();
+        context()->throwError(QStringLiteral("First argument is not a XmlDomNode object"));
+        return {};
     }
     return engine()->newQObject(new XmlDomNode(m_domNode.appendChild(newNode->m_domNode)), QScriptEngine::ScriptOwnership);
 }
@@ -379,14 +379,14 @@ QScriptValue XmlDomNode::insertBefore(const QScriptValue &newChild, const QScrip
 {
     auto newNode = qobject_cast<XmlDomNode*>(newChild.toQObject());
     if (!newNode) {
-        context()->throwError(QString::fromLatin1("First argument is not a XmlDomNode object"));
-        return QScriptValue();
+        context()->throwError(QStringLiteral("First argument is not a XmlDomNode object"));
+        return {};
     }
 
     auto refNode = qobject_cast<XmlDomNode*>(refChild.toQObject());
     if (!refNode) {
-        context()->throwError(QString::fromLatin1("Second argument is not a XmlDomNode object"));
-        return QScriptValue();
+        context()->throwError(QStringLiteral("Second argument is not a XmlDomNode object"));
+        return {};
     }
 
     return engine()->newQObject(new XmlDomNode(m_domNode.insertBefore(newNode->m_domNode, refNode->m_domNode)), QScriptEngine::ScriptOwnership);
@@ -396,14 +396,14 @@ QScriptValue XmlDomNode::insertAfter(const QScriptValue &newChild, const QScript
 {
     auto newNode = qobject_cast<XmlDomNode*>(newChild.toQObject());
     if (!newNode) {
-        context()->throwError(QString::fromLatin1("First argument is not a XmlDomNode object"));
-        return QScriptValue();
+        context()->throwError(QStringLiteral("First argument is not a XmlDomNode object"));
+        return {};
     }
 
     auto refNode = qobject_cast<XmlDomNode*>(refChild.toQObject());
     if (!refNode) {
-        context()->throwError(QString::fromLatin1("Second argument is not a XmlDomNode object"));
-        return QScriptValue();
+        context()->throwError(QStringLiteral("Second argument is not a XmlDomNode object"));
+        return {};
     }
 
     return engine()->newQObject(new XmlDomNode(m_domNode.insertAfter(newNode->m_domNode, refNode->m_domNode)), QScriptEngine::ScriptOwnership);
@@ -413,14 +413,14 @@ QScriptValue XmlDomNode::replaceChild(const QScriptValue &newChild, const QScrip
 {
     auto newNode = qobject_cast<XmlDomNode*>(newChild.toQObject());
     if (!newNode) {
-        context()->throwError(QString::fromLatin1("First argument is not a XmlDomNode object"));
-        return QScriptValue();
+        context()->throwError(QStringLiteral("First argument is not a XmlDomNode object"));
+        return {};
     }
 
     auto oldNode = qobject_cast<XmlDomNode*>(oldChild.toQObject());
     if (!oldNode) {
-        context()->throwError(QString::fromLatin1("Second argument is not a XmlDomNode object"));
-        return QScriptValue();
+        context()->throwError(QStringLiteral("Second argument is not a XmlDomNode object"));
+        return {};
     }
 
     return engine()->newQObject(new XmlDomNode(m_domNode.replaceChild(newNode->m_domNode, oldNode->m_domNode)), QScriptEngine::ScriptOwnership);
@@ -430,8 +430,8 @@ QScriptValue XmlDomNode::removeChild(const QScriptValue &oldChild)
 {
     auto oldNode = qobject_cast<XmlDomNode*>(oldChild.toQObject());
     if (!oldNode) {
-        context()->throwError(QString::fromLatin1("First argument is not a XmlDomNode object"));
-        return QScriptValue();
+        context()->throwError(QStringLiteral("First argument is not a XmlDomNode object"));
+        return {};
     }
 
     return engine()->newQObject(new XmlDomNode(m_domNode.removeChild(oldNode->m_domNode)), QScriptEngine::ScriptOwnership);
@@ -454,10 +454,10 @@ void initializeJsExtensionXml(QScriptValue extensionObject)
     QScriptValue nodeObj = engine->newQMetaObject(&XmlDomNode::staticMetaObject,
                                                   engine->newFunction(&XmlDomNode::ctor));
     QScriptValue contextObject = engine->newObject();
-    contextObject.setProperty(QLatin1String("DomDocument"), docObj);
-    contextObject.setProperty(QLatin1String("DomElement"), nodeObj);
+    contextObject.setProperty(QStringLiteral("DomDocument"), docObj);
+    contextObject.setProperty(QStringLiteral("DomElement"), nodeObj);
 
-    extensionObject.setProperty(QLatin1String("Xml"), contextObject);
+    extensionObject.setProperty(QStringLiteral("Xml"), contextObject);
 }
 
 Q_DECLARE_METATYPE(qbs::Internal::XmlDomDocument *)

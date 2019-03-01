@@ -278,7 +278,7 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
         for (const auto &binding : ra->bindings) {
             scriptValue = engine()->evaluate(binding.code);
             if (Q_UNLIKELY(engine()->hasErrorOrException(scriptValue))) {
-                QString msg = QLatin1String("evaluating rule binding '%1': %2");
+                QString msg = QStringLiteral("evaluating rule binding '%1': %2");
                 throw ErrorInfo(msg.arg(binding.name.join(QLatin1Char('.')),
                                         engine()->lastErrorString(scriptValue)),
                                 engine()->lastErrorLocation(scriptValue, binding.location));
@@ -443,13 +443,13 @@ RulesApplicator::OutputArtifactInfo RulesApplicator::createOutputArtifact(const 
                + QLatin1String("] -> [") + outputArtifact->fileTags().toStringList()
                     .join(QLatin1String(", ")) + QLatin1Char(']');
 
-            e += QString::fromLatin1("  while trying to apply:   %1:%2:%3  %4\n")
+            e += QStringLiteral("  while trying to apply:   %1:%2:%3  %4\n")
                 .arg(m_rule->prepareScript.location().filePath())
                 .arg(m_rule->prepareScript.location().line())
                 .arg(m_rule->prepareScript.location().column())
                 .arg(str);
 
-            e += QString::fromLatin1("  was already defined in:  %1:%2:%3  %4\n")
+            e += QStringLiteral("  was already defined in:  %1:%2:%3  %4\n")
                 .arg(transformer->rule->prepareScript.location().filePath())
                 .arg(transformer->rule->prepareScript.location().line())
                 .arg(transformer->rule->prepareScript.location().column())
@@ -518,7 +518,7 @@ QList<Artifact *> RulesApplicator::runOutputArtifactsScript(const ArtifactSet &i
                                           m_rule->outputArtifactsScript.location().filePath(),
                                           m_rule->outputArtifactsScript.location().line());
     if (!fun.isFunction())
-        throw ErrorInfo(QLatin1String("Function expected."),
+        throw ErrorInfo(QStringLiteral("Function expected."),
                         m_rule->outputArtifactsScript.location());
     QScriptValue res = fun.call(QScriptValue(), args);
     engine()->releaseResourcesOfScriptObjects();

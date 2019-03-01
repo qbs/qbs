@@ -109,5 +109,8 @@
     \group list-of-probes
     \title List of Probes
 
-    \QBS provides the following probes.
+    These are the probes shipped with \QBS.
+
+    Probes are used to retrieve information from the system prior to building. Typically, probes
+    call external processes to get the required information. For details, see \l{Probe}{Probe} page.
 */

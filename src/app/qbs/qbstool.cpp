@@ -47,7 +47,7 @@
 
 #include <iostream>
 
-static QString toolPrefix() { return QLatin1String("qbs-"); }
+static QString toolPrefix() { return QStringLiteral("qbs-"); }
 static QString qbsBinDir() { return QCoreApplication::applicationDirPath(); }
 
 static QString qbsToolFilePath(const QString &toolName)
@@ -93,7 +93,7 @@ QStringList QbsTool::allToolNames()
 {
     const QString suffix = QLatin1String(QBS_HOST_EXE_SUFFIX);
     const QStringList toolFileNames = QDir(qbsBinDir()).entryList(QStringList(toolPrefix()
-            + QString::fromLatin1("*%1").arg(suffix)), QDir::Files, QDir::Name);
+            + QStringLiteral("*%1").arg(suffix)), QDir::Files, QDir::Name);
     QStringList toolNames;
     const int prefixLength = toolPrefix().size();
     for (const QString &toolFileName : toolFileNames) {

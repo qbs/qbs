@@ -108,7 +108,7 @@ static QString probeGlobalId(Item *probe)
     }
 
     if (id.isEmpty())
-        return QString();
+        return {};
 
     QBS_CHECK(probe->file());
     return id + QLatin1Char('_') + probe->file()->filePath();
@@ -296,8 +296,8 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
 
     for (const QString &key : m_parameters.overriddenValues().keys()) {
         static const QStringList prefixes({ StringConstants::projectPrefix(),
-                                            QLatin1String("projects"),
-                                            QLatin1String("products"), QLatin1String("modules"),
+                                            QStringLiteral("projects"),
+                                            QStringLiteral("products"), QStringLiteral("modules"),
                                             StringConstants::moduleProviders(),
                                             StringConstants::qbsModule()});
         bool ok = false;
@@ -599,7 +599,7 @@ void ModuleLoader::handleTopLevelProject(ModuleLoaderResult *loadResult, Item *p
         for (Item * const exportItem : m_exportsWithDeferredDependsItems)
             normalizeDependencies(nullptr, DeferredDependsContext(nullptr, exportItem));
 
-        for (const auto deferredDependsData : m_productsWithDeferredDependsItems) {
+        for (const auto &deferredDependsData : m_productsWithDeferredDependsItems) {
             ProductContext * const productContext = deferredDependsData.first;
             m_reader->setExtraSearchPathsStack(productContext->project->searchPathsStack);
             try {
@@ -673,7 +673,7 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
 
     const QString minVersionStr
             = m_evaluator->stringValue(projectItem, StringConstants::minimumQbsVersionProperty(),
-                                       QLatin1String("1.3.0"));
+                                       QStringLiteral("1.3.0"));
     const Version minVersion = Version::fromString(minVersionStr);
     if (!minVersion.isValid()) {
         throw ErrorInfo(Tr::tr("The value '%1' of Project.minimumQbsVersion "
@@ -809,7 +809,7 @@ ModuleLoader::MultiplexTable ModuleLoader::combine(const MultiplexTable &table,
 ModuleLoader::MultiplexInfo ModuleLoader::extractMultiplexInfo(Item *productItem,
                                                                Item *qbsModuleItem)
 {
-    static const QString mpmKey = QLatin1String("multiplexMap");
+    static const QString mpmKey = QStringLiteral("multiplexMap");
 
     const QScriptValue multiplexMap = m_evaluator->value(qbsModuleItem, mpmKey);
     QStringList multiplexByQbsProperties = m_evaluator->stringListValue(
@@ -1214,15 +1214,15 @@ void ModuleLoader::prepareProduct(ProjectContext *projectContext, Item *productI
     // and nothing else, thus providing us with the pure environment that we need to
     // evaluate the product's exported properties in isolation in the project resolver.
     Item * const importer = Item::create(productItem->pool(), ItemType::Product);
-    importer->setProperty(QLatin1String("name"),
+    importer->setProperty(QStringLiteral("name"),
                           VariantValue::create(shadowProductPrefix() + productContext.name));
     importer->setFile(productItem->file());
     importer->setLocation(productItem->location());
     importer->setScope(projectContext->scope);
     importer->setupForBuiltinType(m_logger);
     Item * const dependsItem = Item::create(productItem->pool(), ItemType::Depends);
-    dependsItem->setProperty(QLatin1String("name"), VariantValue::create(productContext.name));
-    dependsItem->setProperty(QLatin1String("required"), VariantValue::create(false));
+    dependsItem->setProperty(QStringLiteral("name"), VariantValue::create(productContext.name));
+    dependsItem->setProperty(QStringLiteral("required"), VariantValue::create(false));
     dependsItem->setFile(importer->file());
     dependsItem->setLocation(importer->location());
     dependsItem->setupForBuiltinType(m_logger);
@@ -1418,7 +1418,7 @@ void ModuleLoader::handleProduct(ModuleLoader::ProductContext *productContext)
         for (auto it = exportsData.find(productContext->name);
              it != exportsData.end() && it.key() == productContext->name; ++it) {
             if (it.value().multiplexId == productContext->multiplexConfigurationId) {
-                createNonPresentModule(productContext->name, QLatin1String("disabled"),
+                createNonPresentModule(productContext->name, QStringLiteral("disabled"),
                                        it.value().exportItem);
                 break;
             }
@@ -1525,7 +1525,7 @@ void ModuleLoader::handleModuleSetupError(ModuleLoader::ProductContext *productC
         qCDebug(lcModuleLoader()) << "non-required module" << module.name.toString()
                                   << "found, but not usable in product" << productContext->name
                                   << error.toString();
-        createNonPresentModule(module.name.toString(), QLatin1String("failed validation"),
+        createNonPresentModule(module.name.toString(), QStringLiteral("failed validation"),
                                module.item);
     }
 }
@@ -1773,14 +1773,14 @@ ProbeConstPtr ModuleLoader::findOldProjectProbe(
         const QString &sourceCode) const
 {
     if (m_parameters.forceProbeExecution())
-        return ProbeConstPtr();
+        return {};
 
     for (const ProbeConstPtr &oldProbe : m_oldProjectProbes.value(globalId)) {
         if (probeMatches(oldProbe, condition, initialProperties, sourceCode, CompareScript::Yes))
             return oldProbe;
     }
 
-    return ProbeConstPtr();
+    return {};
 }
 
 ProbeConstPtr ModuleLoader::findOldProductProbe(
@@ -1790,14 +1790,14 @@ ProbeConstPtr ModuleLoader::findOldProductProbe(
         const QString &sourceCode) const
 {
     if (m_parameters.forceProbeExecution())
-        return ProbeConstPtr();
+        return {};
 
     for (const ProbeConstPtr &oldProbe : m_oldProductProbes.value(productName)) {
         if (probeMatches(oldProbe, condition, initialProperties, sourceCode, CompareScript::Yes))
             return oldProbe;
     }
 
-    return ProbeConstPtr();
+    return {};
 }
 
 ProbeConstPtr ModuleLoader::findCurrentProbe(
@@ -1810,7 +1810,7 @@ ProbeConstPtr ModuleLoader::findCurrentProbe(
         if (probeMatches(probe, condition, initialProperties, QString(), CompareScript::No))
             return probe;
     }
-    return ProbeConstPtr();
+    return {};
 }
 
 bool ModuleLoader::probeMatches(const ProbeConstPtr &probe, bool condition,
@@ -1877,7 +1877,7 @@ static void adjustParametersScopes(Item *item, Item *scope)
         return;
     }
 
-    for (auto value : item->properties()) {
+    for (const auto &value : item->properties()) {
         if (value->type() != Value::ItemValueType)
             continue;
         adjustParametersScopes(std::static_pointer_cast<ItemValue>(value)->item(), scope);
@@ -2337,7 +2337,7 @@ void ModuleLoader::adjustDefiningItemsInGroupModuleInstances(const Item::Module 
             QBS_CHECK(v->definingItem());
 
             Item *& replacement = definingItemReplacements[v->definingItem()];
-            static const QString caseA = QLatin1String("__group_case_a");
+            static const QString caseA = QStringLiteral("__group_case_a");
             if (v->definingItem() == instanceWithProperty
                     || v->definingItem()->variantProperty(caseA)) {
                 // Case a)
@@ -3085,7 +3085,7 @@ Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
             }
         }
         if (!isRequired)
-            return createNonPresentModule(fullName, QLatin1String("not found"), nullptr);
+            return createNonPresentModule(fullName, QStringLiteral("not found"), nullptr);
         if (Q_UNLIKELY(triedToLoadModule))
             throw ErrorInfo(Tr::tr("Module %1 could not be loaded.").arg(fullName),
                         dependsItemLocation);
@@ -3415,7 +3415,7 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
     }
 
     // For foo.bar in modulePrototype create an item foo in moduleInstance.
-    for (auto iip : instanceItemProperties(modulePrototype)) {
+    for (const auto &iip : instanceItemProperties(modulePrototype)) {
         if (iip.second->item()->properties().empty())
             continue;
         qCDebug(lcModuleLoader) << "The prototype of " << moduleName
@@ -3493,7 +3493,7 @@ void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, It
     QBS_CHECK(configureScript);
     if (Q_UNLIKELY(configureScript->sourceCode() == StringConstants::undefinedValue()))
         throw ErrorInfo(Tr::tr("Probe.configure must be set."), probe->location());
-    typedef std::pair<QString, QScriptValue> ProbeProperty;
+    using ProbeProperty = std::pair<QString, QScriptValue>;
     QList<ProbeProperty> probeBindings;
     QVariantMap initialProperties;
     for (Item *obj = probe; obj; obj = obj->prototype()) {
@@ -3679,7 +3679,7 @@ QString ModuleLoader::findExistingModulePath(const QString &searchPath,
     for (const QString &moduleNamePart : moduleName) {
         dirPath = FileInfo::resolvePath(dirPath, moduleNamePart);
         if (!FileInfo::exists(dirPath) || !FileInfo::isFileCaseCorrect(dirPath))
-            return QString();
+            return {};
     }
     return dirPath;
 }
@@ -3810,7 +3810,7 @@ ModuleLoader::ModuleProviderResult ModuleLoader::findModuleProvider(const Qualif
             qCDebug(lcModuleLoader) << "Module provider did run, but did not set up "
                                        "any modules.";
             addToGlobalInfo();
-            return ModuleProviderResult(true, false);
+            return {true, false};
         }
         qCDebug(lcModuleLoader) << "Module provider added" << searchPaths.size()
                                 << "new search path(s)";
@@ -3824,9 +3824,9 @@ ModuleLoader::ModuleProviderResult ModuleLoader::findModuleProvider(const Qualif
         product.searchPaths << searchPaths; // (2)
         product.newlyAddedModuleProviderSearchPaths.push_back(searchPaths); // (3)
         addToGlobalInfo(); // (4)
-        return ModuleProviderResult(true, true);
+        return {true, true};
     }
-    return ModuleProviderResult();
+    return {};
 }
 
 void ModuleLoader::setScopeForDescendants(Item *item, Item *scope)

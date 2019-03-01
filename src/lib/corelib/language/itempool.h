@@ -62,7 +62,7 @@ public:
 
 private:
     QbsQmlJS::MemoryPool m_pool;
-    typedef QList<Item *> ItemVector;
+    using ItemVector = QList<Item *>;
     ItemVector m_items;
 };
 

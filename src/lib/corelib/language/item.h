@@ -82,9 +82,9 @@ public:
         QVariantMap parameters;
         VersionRange versionRange;
     };
-    typedef std::vector<Module> Modules;
-    typedef QMap<QString, PropertyDeclaration> PropertyDeclarationMap;
-    typedef QMap<QString, ValuePtr> PropertyMap;
+    using Modules = std::vector<Module>;
+    using PropertyDeclarationMap = QMap<QString, PropertyDeclaration>;
+    using PropertyMap = QMap<QString, ValuePtr>;
 
     static Item *create(ItemPool *pool, ItemType type);
     Item *clone() const;

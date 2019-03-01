@@ -358,7 +358,7 @@ static QString currentImportScopeName(QScriptContext *context)
         if (v.isString())
             return v.toString();
     }
-    return QString();
+    return {};
 }
 
 static QScriptValue js_JavaScriptCommand(QScriptContext *context, QScriptEngine *engine)

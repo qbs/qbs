@@ -60,7 +60,7 @@ class RawScanResults;
 class PropertyMapInternal;
 
 class DependencyScanner;
-typedef std::shared_ptr<DependencyScanner> DependencyScannerPtr;
+using DependencyScannerPtr = std::shared_ptr<DependencyScanner>;
 
 class ResolvedDependency
 {
@@ -83,7 +83,7 @@ class InputArtifactScannerContext
         ResolvedDependency resolvedDependency;
     };
 
-    typedef QHash<QString, QHash<QString, ResolvedDependencyCacheItem> > ResolvedDependenciesCache;
+    using ResolvedDependenciesCache = QHash<QString, QHash<QString, ResolvedDependencyCacheItem>>;
 
     struct ScannerResolvedDependenciesCache
     {
@@ -105,11 +105,11 @@ class InputArtifactScannerContext
         QList<DependencyScannerPtr> scanners;
     };
 
-    typedef QHash<const void *, ScannerResolvedDependenciesCache> CacheItem;
+    using CacheItem = QHash<const void *, ScannerResolvedDependenciesCache>;
 
     QHash<PropertyMapConstPtr, CacheItem> cachePerProperties;
     QHash<Artifact *, CacheItem> cachePerFile;
-    QHash<ResolvedProduct*, QHash<FileTag, DependencyScannerCacheItem> > scannersCache;
+    QHash<ResolvedProduct*, QHash<FileTag, DependencyScannerCacheItem>> scannersCache;
 
     friend class InputArtifactScanner;
 };

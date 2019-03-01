@@ -51,7 +51,7 @@ ValgrindRunner::ValgrindRunner(Activities activities, const QString &testProject
     , m_baseOutputDir(baseOutputDir)
 {
     if (!QDir::root().mkpath(m_baseOutputDir))
-        throw Exception(QString::fromLatin1("Failed to create directory '%1'.").arg(baseOutputDir));
+        throw Exception(QStringLiteral("Failed to create directory '%1'.").arg(baseOutputDir));
 }
 
 void ValgrindRunner::run()
@@ -163,7 +163,7 @@ qint64 ValgrindRunner::runCallgrind(const QString &qbsCommand, const QString &bu
     runProcess(valgrindCommandLine(qbsCommand, buildDir, dryRun, "callgrind", outFile));
     QFile f(outFile);
     if (!f.open(QIODevice::ReadOnly)) {
-        throw Exception(QString::fromLatin1("Failed to open file '%1': %2")
+        throw Exception(QStringLiteral("Failed to open file '%1': %2")
                         .arg(outFile, f.errorString()));
     }
     while (!f.atEnd()) {
@@ -175,14 +175,14 @@ qint64 ValgrindRunner::runCallgrind(const QString &qbsCommand, const QString &bu
         bool ok;
         const qint64 iCount = icString.toLongLong(&ok);
         if (!ok) {
-            throw Exception(QString::fromLatin1("Unexpected line in callgrind output file "
+            throw Exception(QStringLiteral("Unexpected line in callgrind output file "
                                                 "'%1': '%2'.")
                             .arg(outFile, QString::fromLocal8Bit(line)));
         }
         return iCount;
     }
 
-    throw Exception(QString::fromLatin1("Failed to find summary line in callgrind "
+    throw Exception(QStringLiteral("Failed to find summary line in callgrind "
                                         "output file '%1'.").arg(outFile));
 }
 
@@ -195,7 +195,7 @@ qint64 ValgrindRunner::runMassif(const QString &qbsCommand, const QString &build
     QBuffer buffer(&ms_printOutput);
     buffer.open(QIODevice::ReadOnly);
     QByteArray peakSnapshot;
-    const QString exceptionStringPattern = QString::fromLatin1("Failed to extract peak memory "
+    const QString exceptionStringPattern = QStringLiteral("Failed to extract peak memory "
             "usage from file '%1': %2").arg(outFile);
     while (!buffer.atEnd()) {
         const QByteArray line = buffer.readLine();
@@ -207,7 +207,7 @@ qint64 ValgrindRunner::runMassif(const QString &qbsCommand, const QString &build
         if (delimiterOffset == -1)
             delimiterOffset = line.lastIndexOf('[', magicStringOffset);
         if (delimiterOffset == -1) {
-            const QString details = QString::fromLatin1("Failed to extract peak snapshot from "
+            const QString details = QStringLiteral("Failed to extract peak snapshot from "
                     "line '%1'.").arg(QString::fromLocal8Bit(line));
             throw Exception(exceptionStringPattern.arg(details));
         }
@@ -222,7 +222,7 @@ qint64 ValgrindRunner::runMassif(const QString &qbsCommand, const QString &build
             continue;
         const QList<QByteArray> entries = line.split(' ');
         if (entries.size() != 6) {
-            const QString details = QString::fromLatin1("Expected 6 entries in line '%1', but "
+            const QString details = QStringLiteral("Expected 6 entries in line '%1', but "
                     "there are %2.").arg(QString::fromLocal8Bit(line)).arg(entries.size());
             throw Exception(exceptionStringPattern.arg(details));
         }
@@ -231,14 +231,14 @@ qint64 ValgrindRunner::runMassif(const QString &qbsCommand, const QString &build
         bool ok;
         qint64 peakMemoryUsage = peakMemoryString.toLongLong(&ok);
         if (!ok) {
-            const QString details = QString::fromLatin1("Failed to parse peak memory value '%1' "
+            const QString details = QStringLiteral("Failed to parse peak memory value '%1' "
                     "as a number.").arg(QString::fromLocal8Bit(peakMemoryString));
             throw Exception(exceptionStringPattern.arg(details));
         }
         return peakMemoryUsage;
     }
 
-    const QString details = QString::fromLatin1("Failed to find snapshot '%1'.")
+    const QString details = QStringLiteral("Failed to find snapshot '%1'.")
             .arg(QString::fromLocal8Bit(peakSnapshot));
     throw Exception(exceptionStringPattern.arg(details));
 }

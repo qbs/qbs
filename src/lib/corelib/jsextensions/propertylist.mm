@@ -105,7 +105,7 @@ QScriptValue PropertyList::ctor(QScriptContext *context, QScriptEngine *engine)
     const DubiousContextList dubiousContexts({
             DubiousContext(EvalContext::PropertyEvaluation, DubiousContext::SuggestMoving)
     });
-    se->checkContext(QLatin1String("qbs.PropertyList"), dubiousContexts);
+    se->checkContext(QStringLiteral("qbs.PropertyList"), dubiousContexts);
 
     auto p = new PropertyList(context);
     QScriptValue obj = engine->newQObject(p, QScriptEngine::ScriptOwnership);
@@ -204,13 +204,13 @@ QScriptValue PropertyList::format() const
     switch (p->d->propertyListFormat)
     {
     case QPropertyListOpenStepFormat:
-        return QLatin1String("openstep");
+        return QStringLiteral("openstep");
     case QPropertyListXMLFormat_v1_0:
-        return QLatin1String("xml1");
+        return QStringLiteral("xml1");
     case QPropertyListBinaryFormat_v1_0:
-        return QLatin1String("binary1");
+        return QStringLiteral("binary1");
     case QPropertyListJSONFormat:
-        return QLatin1String("json");
+        return QStringLiteral("json");
     default:
         return p->engine()->undefinedValue();
     }
@@ -229,21 +229,21 @@ QString PropertyList::toString(const QString &plistFormat) const
     auto p = qscriptvalue_cast<PropertyList*>(thisObject());
 
     if (plistFormat == QLatin1String("binary1")) {
-        p->context()->throwError(QLatin1String("Property list object cannot be converted to a "
+        p->context()->throwError(QStringLiteral("Property list object cannot be converted to a "
                                                "string in the binary1 format; this format can only "
                                                "be written directly to a file"));
-        return QString();
+        return {};
     }
 
     if (!isEmpty())
         return QString::fromUtf8(p->d->writeToData(p->context(), plistFormat));
 
-    return QString();
+    return {};
 }
 
 QString PropertyList::toXMLString() const
 {
-    return toString(QLatin1String("xml1"));
+    return toString(QStringLiteral("xml1"));
 }
 
 QString PropertyList::toJSON(const QString &style) const
@@ -294,7 +294,7 @@ void PropertyListPrivate::readFromData(QScriptContext *context, QByteArray data)
                 propertyListObject = obj;
                 propertyListFormat = internalFormat;
             } else {
-                context->throwError(QLatin1String("error converting property list"));
+                context->throwError(QStringLiteral("error converting property list"));
             }
         }
     }
@@ -309,7 +309,7 @@ QByteArray PropertyListPrivate::writeToData(QScriptContext *context, const QStri
 
         id obj = QPropertyListUtils::toPropertyList(propertyListObject);
         if (!obj) {
-            context->throwError(QLatin1String("error converting property list"));
+            context->throwError(QStringLiteral("error converting property list"));
             return QByteArray();
         }
 
@@ -365,7 +365,7 @@ void initializeJsExtensionPropertyList(QScriptValue extensionObject)
     QScriptEngine *engine = extensionObject.engine();
     QScriptValue obj = engine->newQMetaObject(&PropertyList::staticMetaObject,
                                               engine->newFunction(&PropertyList::ctor));
-    extensionObject.setProperty(QLatin1String("PropertyList"), obj);
+    extensionObject.setProperty(QStringLiteral("PropertyList"), obj);
 }
 
 Q_DECLARE_METATYPE(qbs::Internal::PropertyList *)

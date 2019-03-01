@@ -51,7 +51,9 @@ class QBS_EXPORT CleanOptions
 public:
     CleanOptions();
     CleanOptions(const CleanOptions &other);
+    CleanOptions(CleanOptions &&other) Q_DECL_NOEXCEPT;
     CleanOptions &operator=(const CleanOptions &other);
+    CleanOptions &operator=(CleanOptions &&other) Q_DECL_NOEXCEPT;
     ~CleanOptions();
 
     bool dryRun() const;

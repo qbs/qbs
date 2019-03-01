@@ -73,8 +73,8 @@ static QString qbsCommandLine(const GeneratableProject &project,
 
     if (subCommand == QStringLiteral("generate")) {
         commandLine.appendArgument(QStringLiteral("-g"));
-        commandLine.appendArgument(
-                    QString(QStringLiteral("visualstudio%1")).arg(versionInfo.marketingVersion()));
+        commandLine.appendArgument(QStringLiteral("visualstudio%1")
+                                   .arg(versionInfo.marketingVersion()));
     } else {
         commandLine.appendArgument(QStringLiteral("-p"));
         addEnvironmentVariableArgument(commandLine, QStringLiteral("QbsProductName"));
@@ -108,7 +108,7 @@ MSBuildSharedSolutionPropertiesProject::MSBuildSharedSolutionPropertiesProject(
     setDefaultTargets(QStringLiteral("Build"));
     setToolsVersion(versionInfo.toolsVersion());
 
-    auto group = new MSBuildPropertyGroup(this);
+    const auto group = new MSBuildPropertyGroup(this);
     group->setLabel(QStringLiteral("UserMacros"));
 
     // Order's important here... a variable must be listed before one that uses it

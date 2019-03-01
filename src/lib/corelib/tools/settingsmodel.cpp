@@ -73,7 +73,7 @@ struct Node
 
 QString Node::uniqueChildName() const
 {
-    QString newName = QLatin1String("newkey");
+    QString newName = QStringLiteral("newkey");
     bool unique;
     do {
         unique = true;
@@ -166,7 +166,7 @@ void SettingsModel::addNewKey(const QModelIndex &parent)
     Node *parentNode = d->indexToNode(parent);
     if (!parentNode)
         return;
-    auto newNode = new Node;
+    const auto newNode = new Node;
     newNode->parent = parentNode;
     newNode->name = parentNode->uniqueChildName();
     beginInsertRows(parent, parentNode->children.size(), parentNode->children.size());
@@ -207,7 +207,7 @@ void SettingsModel::setAdditionalProperties(const QVariantMap &properties)
 Qt::ItemFlags SettingsModel::flags(const QModelIndex &index) const
 {
     if (!index.isValid())
-        return Qt::ItemFlags();
+        return Qt::NoItemFlags;
     const Qt::ItemFlags flags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
     if (index.column() == keyColumn()) {
         if (d->editable)
@@ -217,25 +217,25 @@ Qt::ItemFlags SettingsModel::flags(const QModelIndex &index) const
     if (index.column() == valueColumn()) {
         const Node * const node = d->indexToNode(index);
         if (!node)
-            return Qt::ItemFlags();
+            return Qt::NoItemFlags;
 
         // Only leaf nodes have values.
         return d->editable && node->children.empty() ? flags | Qt::ItemIsEditable : flags;
     }
-    return Qt::ItemFlags();
+    return {};
 }
 
 QVariant SettingsModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
     if (orientation != Qt::Horizontal)
-        return QVariant();
+        return {};
     if (role != Qt::DisplayRole)
-        return QVariant();
+        return {};
     if (section == keyColumn())
         return tr("Key");
     if (section == valueColumn())
         return tr("Value");
-    return QVariant();
+    return {};
 }
 
 int SettingsModel::columnCount(const QModelIndex &parent) const
@@ -256,22 +256,22 @@ int SettingsModel::rowCount(const QModelIndex &parent) const
 QVariant SettingsModel::data(const QModelIndex &index, int role) const
 {
     if (role != Qt::DisplayRole && role != Qt::EditRole && role != Qt::ForegroundRole)
-        return QVariant();
+        return {};
     const Node * const node = d->indexToNode(index);
     if (!node)
-        return QVariant();
+        return {};
     if (role == Qt::ForegroundRole) {
 #ifdef QT_GUI_LIB
         if (index.column() == valueColumn() && !node->isFromSettings)
             return QBrush(Qt::red);
 #endif
-        return QVariant();
+        return {};
     }
     if (index.column() == keyColumn())
         return node->name;
     if (index.column() == valueColumn() && node->children.empty())
         return node->value;
-    return QVariant();
+    return {};
 }
 
 bool SettingsModel::setData(const QModelIndex &index, const QVariant &value, int role)
@@ -306,7 +306,7 @@ QModelIndex SettingsModel::index(int row, int column, const QModelIndex &parent)
     const Node * const parentNode = d->indexToNode(parent);
     Q_ASSERT(parentNode);
     if (parentNode->children.size() <= row)
-        return QModelIndex();
+        return {};
     return createIndex(row, column, parentNode->children.at(row));
 }
 
@@ -316,7 +316,7 @@ QModelIndex SettingsModel::parent(const QModelIndex &child) const
     Q_ASSERT(childNode);
     Node * const parentNode = childNode->parent;
     if (parentNode == &d->rootNode)
-        return QModelIndex();
+        return {};
     const Node * const grandParentNode = parentNode->parent;
     Q_ASSERT(grandParentNode);
     return createIndex(grandParentNode->children.indexOf(parentNode), 0, parentNode);
@@ -339,7 +339,7 @@ void SettingsModel::SettingsModelPrivate::readSettings()
 
 static Node *createNode(Node *parentNode, const QString &name)
 {
-    auto node = new Node;
+    const auto node = new Node;
     node->name = name;
     node->parent = parentNode;
     parentNode->children.push_back(node);

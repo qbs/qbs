@@ -1301,6 +1301,8 @@
     \code
     qbs build config:debug modules.cpp.treatWarningsAsErrors:true config:release modules.cpp.optimization:small
     \endcode
+
+    Projects are built in the debug build configuration by default.
 */
 
 /*!

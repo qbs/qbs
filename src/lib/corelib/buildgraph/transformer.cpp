@@ -71,7 +71,7 @@ static QScriptValue js_baseName(QScriptContext *ctx, QScriptEngine *engine,
 {
     Q_UNUSED(ctx);
     Q_UNUSED(engine);
-    return QScriptValue(FileInfo::baseName(artifact->filePath()));
+    return {FileInfo::baseName(artifact->filePath())};
 }
 
 static QScriptValue js_completeBaseName(QScriptContext *ctx, QScriptEngine *engine,
@@ -79,7 +79,7 @@ static QScriptValue js_completeBaseName(QScriptContext *ctx, QScriptEngine *engi
 {
     Q_UNUSED(ctx);
     Q_UNUSED(engine);
-    return QScriptValue(FileInfo::completeBaseName(artifact->filePath()));
+    return {FileInfo::completeBaseName(artifact->filePath())};
 }
 
 static QScriptValue js_baseDir(QScriptContext *ctx, QScriptEngine *engine,
@@ -149,7 +149,7 @@ QScriptValue Transformer::translateInOutputs(ScriptEngine *scriptEngine,
                                              const ArtifactSet &artifacts,
                                              const QString &defaultModuleName)
 {
-    typedef QMap<QString, QList<Artifact*> > TagArtifactsMap;
+    using TagArtifactsMap = QMap<QString, QList<Artifact*>>;
     TagArtifactsMap tagArtifactsMap;
     for (Artifact *artifact : artifacts)
         for (const FileTag &fileTag : artifact->fileTags())
@@ -175,7 +175,7 @@ QScriptValue Transformer::translateInOutputs(ScriptEngine *scriptEngine,
 ResolvedProductPtr Transformer::product() const
 {
     if (outputs.empty())
-        return ResolvedProductPtr();
+        return {};
     return (*outputs.cbegin())->product.lock();
 }
 

@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    qbs::Internal::LauncherSocketHandler launcher(app.arguments().last());
+    qbs::Internal::LauncherSocketHandler launcher(app.arguments().constLast());
     QTimer::singleShot(0, &launcher, &qbs::Internal::LauncherSocketHandler::start);
     return app.exec();
 }

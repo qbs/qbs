@@ -91,7 +91,7 @@ template<typename T> static QVariantMap getParameterValue(
         if (it.key()->name == depName)
             return it.value();
     }
-    return QVariantMap();
+    return {};
 }
 
 QVariantMap TrafoChangeTracker::propertyMapByKind(const Property &property) const
@@ -111,14 +111,14 @@ QVariantMap TrafoChangeTracker::propertyMapByKind(const Property &property) cons
         const auto it = m_projectsByName.find(property.productName);
         if (it != m_projectsByName.cend())
             return it->second->projectProperties();
-        return QVariantMap();
+        return {};
     }
     case Property::PropertyInParameters: {
         const int sepIndex = property.moduleName.indexOf(QLatin1Char(':'));
         const QString depName = property.moduleName.left(sepIndex);
         const ResolvedProduct * const p = getProduct(property.productName);
         if (!p)
-            return QVariantMap();
+            return {};
         QVariantMap v = getParameterValue(p->dependencyParameters, depName);
         if (!v.empty())
             return v;
@@ -128,7 +128,7 @@ QVariantMap TrafoChangeTracker::propertyMapByKind(const Property &property) cons
     default:
         QBS_CHECK(false);
     }
-    return QVariantMap();
+    return {};
 }
 
 bool TrafoChangeTracker::checkForPropertyChange(const Property &restoredProperty,

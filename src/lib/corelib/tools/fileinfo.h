@@ -92,7 +92,7 @@ private:
         quint8 z[36];
     };
 #elif defined(Q_OS_UNIX)
-    typedef struct stat InternalStatType;
+    using InternalStatType = struct stat;
 #else
 #   error unknown platform
 #endif

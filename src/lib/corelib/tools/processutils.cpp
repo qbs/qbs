@@ -69,12 +69,12 @@ QString processNameByPid(qint64 pid)
 #if defined(Q_OS_WIN)
     HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, DWORD(pid));
     if (!hProcess)
-        return QString();
+        return {};
     wchar_t buf[UNICODE_STRING_MAX_CHARS];
     const DWORD length = GetModuleFileNameEx(hProcess, NULL, buf, sizeof(buf) / sizeof(wchar_t));
     CloseHandle(hProcess);
     if (!length)
-        return QString();
+        return {};
     QString name = QString::fromWCharArray(buf, length);
     int i = name.lastIndexOf(QLatin1Char('\\'));
     if (i >= 0)
@@ -109,22 +109,22 @@ QString processNameByPid(qint64 pid)
     u_int mib_len = sizeof(mib)/sizeof(u_int);
 
     if (sysctl(mib, mib_len, &kp, &len, NULL, 0) < 0)
-        return QString();
+        return {};
 
 # if defined(Q_OS_OPENBSD) || defined(Q_OS_NETBSD)
     if (kp.p_pid != pid)
-        return QString();
+        return {};
     QString name = QFile::decodeName(kp.p_comm);
 # else
     if (kp.ki_pid != pid)
-        return QString();
+        return {};
     QString name = QFile::decodeName(kp.ki_comm);
 # endif
     return name;
 
 #else
     Q_UNUSED(pid);
-    return QString();
+    return {};
 #endif
 }
 

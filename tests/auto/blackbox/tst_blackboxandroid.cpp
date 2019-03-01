@@ -53,9 +53,9 @@ QMap<QString, QString> TestBlackboxAndroid::findAndroid(int *status, const QStri
     QFile file(temp.path() + "/" + relativeProductBuildDir("find-android")
                + "/android.json");
     if (!file.open(QIODevice::ReadOnly))
-        return QMap<QString, QString> { };
+        return {};
     const auto tools = QJsonDocument::fromJson(file.readAll()).toVariant().toMap();
-    return QMap<QString, QString> {
+    return {
         {"sdk", QDir::fromNativeSeparators(tools["sdk"].toString())},
         {"sdk-build-tools-dx", QDir::fromNativeSeparators(tools["sdk-build-tools-dx"].toString())},
         {"ndk", QDir::fromNativeSeparators(tools["ndk"].toString())},
@@ -192,7 +192,7 @@ void TestBlackboxAndroid::android_data()
     const SettingsPtr s = settings();
     const Profile p(profileName(), s.get());
     const Profile pQt(theProfileName(true), s.get());
-    QStringList archsStringList = p.value(QLatin1String("qbs.architectures")).toStringList();
+    QStringList archsStringList = p.value(QStringLiteral("qbs.architectures")).toStringList();
     if (archsStringList.empty())
         archsStringList << QStringLiteral("armv7a"); // must match default in common.qbs
     QByteArrayList archs;
@@ -203,7 +203,7 @@ void TestBlackboxAndroid::android_data()
                 .replace("arm64", "arm64-v8a");
     });
     const auto cxxLibPath = [&p, &pQt](const QByteArray &oldcxxLib, bool forQt) {
-        const bool usesClang = (forQt ? pQt : p).value(QLatin1String("qbs.toolchainType"))
+        const bool usesClang = (forQt ? pQt : p).value(QStringLiteral("qbs.toolchainType"))
                 .toString() == "clang";
         return QByteArray("lib/${ARCH}/") + (usesClang ? "libc++_shared.so" : oldcxxLib);
     };

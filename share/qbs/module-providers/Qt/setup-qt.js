@@ -59,8 +59,13 @@ function getQmakeFilePaths(qmakeFilePaths, qbs) {
     var suffix = exeSuffix(qbs);
     var filePaths = [];
     for (var i = 0; i < dirs.length; ++i) {
-        var candidate = FileInfo.canonicalPath(FileInfo.joinPaths(dirs[i], "qmake" + suffix));
-        if (candidate && File.exists(candidate) && !filePaths.contains(candidate)) {
+        var candidate = FileInfo.joinPaths(dirs[i], "qmake" + suffix);
+        var canonicalCandidate = FileInfo.canonicalPath(candidate);
+        if (!canonicalCandidate || !File.exists(canonicalCandidate))
+            continue;
+        if (FileInfo.completeBaseName(canonicalCandidate) !== "qtchooser")
+            candidate = canonicalCandidate;
+        if (!filePaths.contains(candidate)) {
             console.info("Found Qt at '" + toNative(candidate) + "'.");
             filePaths.push(candidate);
         }
@@ -71,6 +76,10 @@ function getQmakeFilePaths(qmakeFilePaths, qbs) {
 function queryQmake(qmakeFilePath) {
     var qmakeProcess = new Process;
     qmakeProcess.exec(qmakeFilePath, ["-query"]);
+    if (qmakeProcess.exitCode() !== 0) {
+        throw "The qmake executable '" + toNative(qmakeFilePath) + "' failed with exit code "
+                + qmakeProcess.exitCode() + ".";
+    }
     var queryResult = {};
     while (!qmakeProcess.atEnd()) {
         var line = qmakeProcess.readLine();
@@ -515,7 +524,7 @@ function moduleNameWithoutPrefix(modInfo) {
 
 function libraryBaseName(modInfo, qtProps, debugBuild) {
     if (modInfo.isPlugin)
-        return libBaseName(modInfo, name, debugBuild, qtProps);
+        return libBaseName(modInfo, modInfo.name, debugBuild, qtProps);
 
     // Some modules use a different naming scheme, so it doesn't get boring.
     var libNameBroken = modInfo.name === "Enginio"
@@ -683,8 +692,7 @@ function doSetupLibraries(modInfo, qtProps, debugBuild, nonExistingPrlFiles) {
             if (!line.startsWith("QMAKE_PRL_LIBS"))
                 continue;
 
-            // Assuming lib names and directories without spaces here.
-            var parts = splitNonEmpty(line.slice(equalsOffset + 1).trim(), ' ');
+            var parts = extractPaths(line.slice(equalsOffset + 1).trim(), prlFilePath);
             for (i = 0; i < parts.length; ++i) {
                 var part = parts[i];
                 part = part.replace("$$[QT_INSTALL_LIBS]", qtProps.libraryPath);
@@ -910,7 +918,7 @@ function extractPaths(rhs, filePath) {
             if (endIndex === -1)
                 endIndex = rhs.length;
         }
-        paths.push(rhs.slice(startIndex, endIndex));
+        paths.push(FileInfo.cleanPath(rhs.slice(startIndex, endIndex)));
         startIndex = endIndex + 1;
     }
     return paths;
@@ -1077,7 +1085,7 @@ function allQt5Modules(qtProps) {
                 moduleInfo.pluginData["extends"] = splitNonEmpty(value, ' ');
                 for (k = 0; k < moduleInfo.pluginData["extends"].length; ++k) {
                     if (moduleInfo.pluginData["extends"][k] === "-") {
-                        moduleInfo.pluginData.splice(k, 1);
+                        moduleInfo.pluginData["extends"].splice(k, 1);
                         moduleInfo.pluginData.autoLoad = false;
                         break;
                     }
@@ -1217,7 +1225,7 @@ function defaultQpaPlugin(module, qtProps) {
                 match = line.match(includeRegexp);
                 if (match) {
                     var includedFile = match[1];
-                    if (!FileInfo.isAbsolute(includedFile)) {
+                    if (!FileInfo.isAbsolutePath(includedFile)) {
                         includedFile = FileInfo.cleanPath(
                                     FileInfo.joinPaths(FileInfo.path(filePath), includedFile));
                     }
@@ -1412,7 +1420,7 @@ function setupOneQt(qmakeFilePath, outputBaseDir, uniquify, location, qbs) {
         throw "The specified qmake file path '" + toNative(qmakeFilePath) + "' does not exist.";
     var qtProps = getQtProperties(qmakeFilePath, qbs);
     var modules = qtProps.qtMajorVersion < 5 ? allQt4Modules(qtProps) : allQt5Modules(qtProps);
-    var pluginsByType = [];
+    var pluginsByType = {};
     var nonEssentialPlugins = [];
     for (var i = 0; i < modules.length; ++i) {
         var m = modules[i];

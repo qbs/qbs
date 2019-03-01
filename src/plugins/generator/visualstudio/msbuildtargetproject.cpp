@@ -60,13 +60,13 @@ MSBuildTargetProject::MSBuildTargetProject(const GeneratableProject &project,
     setDefaultTargets(QStringLiteral("Build"));
     setToolsVersion(versionInfo.toolsVersion());
 
-    auto projectConfigurationsGroup = new MSBuildItemGroup(this);
+    const auto projectConfigurationsGroup = new MSBuildItemGroup(this);
     projectConfigurationsGroup->setLabel(QStringLiteral("ProjectConfigurations"));
 
     QMapIterator<QString, qbs::Project> it(project.projects);
     while (it.hasNext()) {
         it.next();
-        auto item = new MSBuildItem(QStringLiteral("ProjectConfiguration"),
+        const auto item = new MSBuildItem(QStringLiteral("ProjectConfiguration"),
                                     projectConfigurationsGroup);
         item->setInclude(MSBuildUtils::fullName(it.value()));
         item->appendProperty(QStringLiteral("Configuration"), it.key());
@@ -94,7 +94,7 @@ const Internal::VisualStudioVersionInfo &MSBuildTargetProject::versionInfo() con
 
 QUuid MSBuildTargetProject::guid() const
 {
-    return QUuid(d->projectGuidProperty->value().toString());
+    return {d->projectGuidProperty->value().toString()};
 }
 
 void MSBuildTargetProject::setGuid(const QUuid &guid)
@@ -129,7 +129,7 @@ MSBuildImportGroup *MSBuildTargetProject::propertySheetsImportGroup()
 
 void MSBuildTargetProject::appendPropertySheet(const QString &path, bool optional)
 {
-    auto import = new MSBuildImport(propertySheetsImportGroup());
+    const auto import = new MSBuildImport(propertySheetsImportGroup());
     import->setProject(path);
     if (optional)
         import->setCondition(QStringLiteral("Exists('%1')").arg(path));

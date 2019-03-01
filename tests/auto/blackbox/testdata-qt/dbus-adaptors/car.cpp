@@ -56,7 +56,7 @@ static const double Pi = 3.14159265358979323846264338327950288419717;
 
 QRectF Car::boundingRect() const
 {
-    return QRectF(-35, -81, 70, 115);
+    return {-35, -81, 70, 115};
 }
 
 Car::Car() : color(Qt::green), wheelsAngle(0), speed(0)

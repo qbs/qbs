@@ -112,13 +112,13 @@ QString elapsedTimeString(qint64 elapsedTimeInMs)
     s -= m*60;
     const qint64 h = m/60;
     m -= h*60;
-    QString timeString = QString::fromLatin1("%1ms").arg(ms);
+    QString timeString = QStringLiteral("%1ms").arg(ms);
     if (h || m || s)
-        timeString.prepend(QString::fromLatin1("%1s, ").arg(s));
+        timeString.prepend(QStringLiteral("%1s, ").arg(s));
     if (h || m)
-        timeString.prepend(QString::fromLatin1("%1m, ").arg(m));
+        timeString.prepend(QStringLiteral("%1m, ").arg(m));
     if (h)
-        timeString.prepend(QString::fromLatin1("%1h, ").arg(h));
+        timeString.prepend(QStringLiteral("%1h, ").arg(h));
     return timeString;
 }
 

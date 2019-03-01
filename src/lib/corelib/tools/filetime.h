@@ -75,12 +75,12 @@ class QBS_AUTOTEST_EXPORT FileTime
 public:
 #if defined(Q_OS_UNIX)
 #if HAS_CLOCK_GETTIME
-    typedef timespec InternalType;
+    using InternalType = timespec;
 #else
-    typedef time_t InternalType;
+    using InternalType = time_t;
 #endif // HAS_CLOCK_GETTIME
 #elif defined(Q_OS_WIN)
-    typedef quint64 InternalType;
+    using InternalType = quint64;
 #else
 #   error unknown platform
 #endif

@@ -107,7 +107,7 @@ QString FileInfo::completeSuffix(const QString &fp)
 QString FileInfo::path(const QString &fp, HostOsInfo::HostOs hostOs)
 {
     if (fp.isEmpty())
-        return QString();
+        return {};
     int last = fp.lastIndexOf(QLatin1Char('/'));
     if (last < 0)
         return StringConstants::dot();
@@ -207,7 +207,7 @@ QString FileInfo::resolvePath(const QString &base, const QString &rel, HostOsInf
 {
     QBS_ASSERT(isAbsolute(base, hostOs) && !isCurrentDrivePath(rel, hostOs),
                qDebug("base: %s, rel: %s", qPrintable(base), qPrintable(rel));
-            return QString());
+            return {});
     if (isAbsolute(rel, hostOs))
         return rel;
     if (rel.size() == 1 && rel.at(0) == QLatin1Char('.'))
@@ -258,8 +258,8 @@ static QString prependLongPathPrefix(const QString &absolutePath)
 {
     QString nativePath = QDir::toNativeSeparators(absolutePath);
     if (nativePath.startsWith(QStringLiteral("\\\\")))
-        nativePath.remove(0, 1).prepend(QStringLiteral("UNC"));
-    nativePath.prepend(QStringLiteral("\\\\?\\"));
+        nativePath.remove(0, 1).prepend(QLatin1String("UNC"));
+    nativePath.prepend(QLatin1String("\\\\?\\"));
     return nativePath;
 }
 #endif
@@ -324,7 +324,7 @@ FileTime FileInfo::lastModified() const
 {
     const FileTime::InternalType* ft_it;
     ft_it = reinterpret_cast<const FileTime::InternalType*>(&z(m_stat)->ftLastWriteTime);
-    return FileTime(*ft_it);
+    return {*ft_it};
 }
 
 FileTime FileInfo::lastStatusChange() const
@@ -453,7 +453,7 @@ static QByteArray storedLinkTarget(const QString &filePath)
         if (lstat(nativeFilePath.constData(), &sb)) {
             qWarning("storedLinkTarget: lstat for %s failed with error code %d",
                      nativeFilePath.constData(), errno);
-            return QByteArray();
+            return {};
         }
 
         result.resize(sb.st_size);
@@ -461,7 +461,7 @@ static QByteArray storedLinkTarget(const QString &filePath)
         if (len < 0) {
             qWarning("storedLinkTarget: readlink for %s failed with error code %d",
                      nativeFilePath.constData(), errno);
-            return QByteArray();
+            return {};
         }
 
         if (len < sb.st_size) {

@@ -53,12 +53,12 @@ QString shellInterpreter(const QString &filePath) {
         QTextStream ts(&file);
         const QString shebang = ts.readLine();
         if (shebang.startsWith(QLatin1String("#!"))) {
-            return (shebang.mid(2).split(QRegExp(QLatin1String("\\s")),
+            return (shebang.mid(2).split(QRegExp(QStringLiteral("\\s")),
                                          QString::SkipEmptyParts) << QString()).front();
         }
     }
 
-    return QString();
+    return {};
 }
 
 // isSpecialChar, hasSpecialChars, shellQuoteUnix, shellQuoteWin:
@@ -89,7 +89,7 @@ static QString shellQuoteUnix(const QString &arg)
     }; // 0-32 \'"$`<>|;&(){}*?#!~[]
 
     if (!arg.length())
-        return QString::fromLatin1("''");
+        return QStringLiteral("''");
 
     QString ret(arg);
     if (hasSpecialChars(ret, iqm)) {
@@ -117,7 +117,7 @@ static QString shellQuoteWin(const QString &arg)
     }; // &()<>^|
 
     if (!arg.length())
-        return QString::fromLatin1("\"\"");
+        return QStringLiteral("\"\"");
 
     QString ret(arg);
     if (hasSpecialChars(ret, iqm)) {

@@ -49,7 +49,7 @@ namespace qbs {
 QString logLevelTag(LoggerLevel level)
 {
     if (level == LoggerInfo)
-        return QString();
+        return {};
     QString str = logLevelName(level).toUpper();
     if (!str.isEmpty())
         str.append(QLatin1String(": "));
@@ -60,19 +60,19 @@ QString logLevelName(LoggerLevel level)
 {
     switch (level) {
     case qbs::LoggerError:
-        return QLatin1String("error");
+        return QStringLiteral("error");
     case qbs::LoggerWarning:
-        return QLatin1String("warning");
+        return QStringLiteral("warning");
     case qbs::LoggerInfo:
-        return QLatin1String("info");
+        return QStringLiteral("info");
     case qbs::LoggerDebug:
-        return QLatin1String("debug");
+        return QStringLiteral("debug");
     case qbs::LoggerTrace:
-        return QLatin1String("trace");
+        return QStringLiteral("trace");
     default:
         break;
     }
-    return QString();
+    return {};
 }
 
 class ILogSink::ILogSinkPrivate

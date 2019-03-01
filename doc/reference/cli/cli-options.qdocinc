@@ -494,6 +494,8 @@
         \li \c gcc
         \li \c mingw
         \li \c msvc
+        \li \c iar
+        \li \c keil
      \endlist
 
 //! [type]

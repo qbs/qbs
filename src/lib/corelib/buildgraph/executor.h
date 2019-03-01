@@ -109,8 +109,8 @@ private:
         bool operator() (const BuildGraphNode *x, const BuildGraphNode *y) const;
     };
 
-    typedef std::priority_queue<BuildGraphNode *, std::vector<BuildGraphNode *>,
-                                ComparePriority> Leaves;
+    using Leaves = std::priority_queue<BuildGraphNode *, std::vector<BuildGraphNode *>,
+                                       ComparePriority>;
 
     void doBuild();
     void prepareAllNodes();
@@ -158,7 +158,7 @@ private:
     void updateJobCounts(const Transformer *transformer, int diff);
     bool schedulingBlockedByJobLimit(const BuildGraphNode *node);
 
-    typedef QHash<ExecutorJob *, TransformerPtr> JobMap;
+    using JobMap = QHash<ExecutorJob *, TransformerPtr>;
     JobMap m_processingJobs;
 
     ProductInstaller *m_productInstaller;

@@ -120,7 +120,7 @@ AST::UiQualifiedId *Parser::reparseAsQualifiedId(AST::ExpressionNode *expr)
     }
 
     if (AST::IdentifierExpression *idExpr = AST::cast<AST::IdentifierExpression *>(it)) {
-        AST::UiQualifiedId *q = new (pool) AST::UiQualifiedId(idExpr->name);
+        const auto q = new (pool) AST::UiQualifiedId(idExpr->name);
         q->identifierToken = idExpr->identifierToken;
 
         AST::UiQualifiedId *currentId = q;
@@ -277,7 +277,7 @@ case 19: {
 case 20: {
     AST::UiImport *node = nullptr;
 
-    if (AST::StringLiteral *importIdLiteral = AST::cast<AST::StringLiteral *>(sym(2).Expression)) {
+    if (const auto importIdLiteral = AST::cast<AST::StringLiteral *>(sym(2).Expression)) {
         node = new (pool) AST::UiImport(importIdLiteral->value);
         node->fileNameToken = loc(2);
     } else if (AST::UiQualifiedId *qualifiedId = reparseAsQualifiedId(sym(2).Expression)) {
@@ -291,7 +291,7 @@ case 20: {
         node->importToken = loc(1);
     } else {
        diagnostic_messages.append(DiagnosticMessage(DiagnosticMessage::Error, loc(1),
-         QLatin1String("Expected a qualified name id or a string literal")));
+         QStringLiteral("Expected a qualified name id or a string literal")));
 
         return false; // ### remove me
     }
@@ -310,7 +310,7 @@ case 23: {
 } break;
 
 case 24: {
-    AST::UiObjectMemberList *node = new (pool) AST:: UiObjectMemberList(
+    const auto node = new (pool) AST:: UiObjectMemberList(
         sym(1).UiObjectMemberList, sym(2).UiObjectMember);
     sym(1).Node = node;
 } break;
@@ -320,34 +320,34 @@ case 25: {
 } break;
 
 case 26: {
-    AST::UiArrayMemberList *node = new (pool) AST::UiArrayMemberList(
+    const auto node = new (pool) AST::UiArrayMemberList(
         sym(1).UiArrayMemberList, sym(3).UiObjectMember);
     node->commaToken = loc(2);
     sym(1).Node = node;
 } break;
 
 case 27: {
-    AST::UiObjectInitializer *node = new (pool) AST::UiObjectInitializer((AST::UiObjectMemberList*)0);
+    const auto node = new (pool) AST::UiObjectInitializer((AST::UiObjectMemberList*)0);
     node->lbraceToken = loc(1);
     node->rbraceToken = loc(2);
     sym(1).Node = node;
 }   break;
 
 case 28: {
-    AST::UiObjectInitializer *node = new (pool) AST::UiObjectInitializer(sym(2).UiObjectMemberList->finish());
+    const auto node = new (pool) AST::UiObjectInitializer(sym(2).UiObjectMemberList->finish());
     node->lbraceToken = loc(1);
     node->rbraceToken = loc(3);
     sym(1).Node = node;
 }   break;
 
 case 29: {
-    AST::UiObjectDefinition *node = new (pool) AST::UiObjectDefinition(sym(1).UiQualifiedId,
+    const auto node = new (pool) AST::UiObjectDefinition(sym(1).UiQualifiedId,
         sym(2).UiObjectInitializer);
     sym(1).Node = node;
 }   break;
 
 case 31: {
-    AST::UiArrayBinding *node = new (pool) AST::UiArrayBinding(
+    const auto node = new (pool) AST::UiArrayBinding(
         sym(1).UiQualifiedId, sym(4).UiArrayMemberList->finish());
     node->colonToken = loc(2);
     node->lbracketToken = loc(3);
@@ -356,14 +356,14 @@ case 31: {
 }   break;
 
 case 32: {
-    AST::UiObjectBinding *node = new (pool) AST::UiObjectBinding(
+    const auto node = new (pool) AST::UiObjectBinding(
       sym(1).UiQualifiedId, sym(3).UiQualifiedId, sym(4).UiObjectInitializer);
     node->colonToken = loc(2);
     sym(1).Node = node;
 } break;
 
 case 33: {
-    AST::UiObjectBinding *node = new (pool) AST::UiObjectBinding(
+    const auto node = new (pool) AST::UiObjectBinding(
       sym(3).UiQualifiedId, sym(1).UiQualifiedId, sym(4).UiObjectInitializer);
     node->colonToken = loc(2);
     node->hasOnToken = true;
@@ -372,7 +372,7 @@ case 33: {
 
 case 41:
 {
-    AST::UiScriptBinding *node = new (pool) AST::UiScriptBinding(
+    const auto node = new (pool) AST::UiScriptBinding(
         sym(1).UiQualifiedId, sym(3).Statement);
     node->colonToken = loc(2);
     sym(1).Node = node;
@@ -387,21 +387,21 @@ case 46: {
 } break;
 
 case 47: {
-  AST::UiParameterList *node = new (pool) AST::UiParameterList(stringRef(1), stringRef(2));
+  const auto node = new (pool) AST::UiParameterList(stringRef(1), stringRef(2));
   node->propertyTypeToken = loc(1);
   node->identifierToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 48: {
-  AST::UiParameterList *node = new (pool) AST::UiParameterList(sym(1).UiParameterList, stringRef(3), stringRef(4));
+  const auto node = new (pool) AST::UiParameterList(sym(1).UiParameterList, stringRef(3), stringRef(4));
   node->commaToken = loc(2);
   node->identifierToken = loc(4);
   sym(1).Node = node;
 } break;
 
 case 50: {
-    AST::UiPublicMember *node = new (pool) AST::UiPublicMember(QStringRef(), stringRef(2));
+    const auto node = new (pool) AST::UiPublicMember(QStringRef(), stringRef(2));
     node->type = AST::UiPublicMember::Signal;
     node->propertyToken = loc(1);
     node->typeToken = loc(2);
@@ -412,7 +412,7 @@ case 50: {
 }   break;
 
 case 52: {
-    AST::UiPublicMember *node = new (pool) AST::UiPublicMember(QStringRef(), stringRef(2));
+    const auto node = new (pool) AST::UiPublicMember(QStringRef(), stringRef(2));
     node->type = AST::UiPublicMember::Signal;
     node->propertyToken = loc(1);
     node->typeToken = loc(2);
@@ -422,7 +422,7 @@ case 52: {
 }   break;
 
 case 54: {
-    AST::UiPublicMember *node = new (pool) AST::UiPublicMember(stringRef(4), stringRef(6));
+    const auto node = new (pool) AST::UiPublicMember(stringRef(4), stringRef(6));
     node->typeModifier = stringRef(2);
     node->propertyToken = loc(1);
     node->typeModifierToken = loc(2);
@@ -433,7 +433,7 @@ case 54: {
 }   break;
 
 case 56: {
-    AST::UiPublicMember *node = new (pool) AST::UiPublicMember(stringRef(2), stringRef(3));
+    const auto node = new (pool) AST::UiPublicMember(stringRef(2), stringRef(3));
     node->propertyToken = loc(1);
     node->typeToken = loc(2);
     node->identifierToken = loc(3);
@@ -442,7 +442,7 @@ case 56: {
 }   break;
 
 case 58: {
-    AST::UiPublicMember *node = new (pool) AST::UiPublicMember(stringRef(3), stringRef(4));
+    const auto node = new (pool) AST::UiPublicMember(stringRef(3), stringRef(4));
     node->isDefaultMember = true;
     node->defaultToken = loc(1);
     node->propertyToken = loc(2);
@@ -453,7 +453,7 @@ case 58: {
 }   break;
 
 case 59: {
-    AST::UiPublicMember *node = new (pool) AST::UiPublicMember(stringRef(2), stringRef(3),
+    const auto node = new (pool) AST::UiPublicMember(stringRef(2), stringRef(3),
         sym(5).Statement);
     node->propertyToken = loc(1);
     node->typeToken = loc(2);
@@ -463,7 +463,7 @@ case 59: {
 }   break;
 
 case 60: {
-    AST::UiPublicMember *node = new (pool) AST::UiPublicMember(stringRef(3), stringRef(4),
+    const auto node = new (pool) AST::UiPublicMember(stringRef(3), stringRef(4),
         sym(6).Statement);
     node->isReadonlyMember = true;
     node->readonlyToken = loc(1);
@@ -475,7 +475,7 @@ case 60: {
 }   break;
 
 case 61: {
-    AST::UiPublicMember *node = new (pool) AST::UiPublicMember(stringRef(3), stringRef(4),
+    const auto node = new (pool) AST::UiPublicMember(stringRef(3), stringRef(4),
         sym(6).Statement);
     node->isDefaultMember = true;
     node->defaultToken = loc(1);
@@ -487,7 +487,7 @@ case 61: {
 }   break;
 
 case 62: {
-    AST::UiPublicMember *node = new (pool) AST::UiPublicMember(stringRef(4), stringRef(6));
+    const auto node = new (pool) AST::UiPublicMember(stringRef(4), stringRef(6));
     node->typeModifier = stringRef(2);
     node->propertyToken = loc(1);
     node->typeModifierToken = loc(2);
@@ -495,11 +495,11 @@ case 62: {
     node->identifierToken = loc(6);
     node->semicolonToken = loc(7); // insert a fake ';' before ':'
 
-    AST::UiQualifiedId *propertyName = new (pool) AST::UiQualifiedId(stringRef(6));
+    const auto propertyName = new (pool) AST::UiQualifiedId(stringRef(6));
     propertyName->identifierToken = loc(6);
     propertyName->next = nullptr;
 
-    AST::UiArrayBinding *binding = new (pool) AST::UiArrayBinding(
+    const auto binding = new (pool) AST::UiArrayBinding(
         propertyName, sym(9).UiArrayMemberList->finish());
     binding->colonToken = loc(7);
     binding->lbracketToken = loc(8);
@@ -511,17 +511,17 @@ case 62: {
 }   break;
 
 case 63: {
-    AST::UiPublicMember *node = new (pool) AST::UiPublicMember(stringRef(2), stringRef(3));
+    const auto node = new (pool) AST::UiPublicMember(stringRef(2), stringRef(3));
     node->propertyToken = loc(1);
     node->typeToken = loc(2);
     node->identifierToken = loc(3);
     node->semicolonToken = loc(4); // insert a fake ';' before ':'
 
-    AST::UiQualifiedId *propertyName = new (pool) AST::UiQualifiedId(stringRef(3));
+    const auto propertyName = new (pool) AST::UiQualifiedId(stringRef(3));
     propertyName->identifierToken = loc(3);
     propertyName->next = nullptr;
 
-    AST::UiObjectBinding *binding = new (pool) AST::UiObjectBinding(
+    const auto binding = new (pool) AST::UiObjectBinding(
       propertyName, sym(5).UiQualifiedId, sym(6).UiObjectInitializer);
     binding->colonToken = loc(4);
 
@@ -539,43 +539,43 @@ case 65: {
 }   break;
 
 case 71: {
-  AST::ThisExpression *node = new (pool) AST::ThisExpression();
+  const auto node = new (pool) AST::ThisExpression();
   node->thisToken = loc(1);
   sym(1).Node = node;
 } break;
 
 case 72: {
-  AST::IdentifierExpression *node = new (pool) AST::IdentifierExpression(stringRef(1));
+  const auto node = new (pool) AST::IdentifierExpression(stringRef(1));
   node->identifierToken = loc(1);
   sym(1).Node = node;
 } break;
 
 case 73: {
-  AST::NullExpression *node = new (pool) AST::NullExpression();
+  const auto node = new (pool) AST::NullExpression();
   node->nullToken = loc(1);
   sym(1).Node = node;
 } break;
 
 case 74: {
-  AST::TrueLiteral *node = new (pool) AST::TrueLiteral();
+  const auto node = new (pool) AST::TrueLiteral();
   node->trueToken = loc(1);
   sym(1).Node = node;
 } break;
 
 case 75: {
-  AST::FalseLiteral *node = new (pool) AST::FalseLiteral();
+  const auto node = new (pool) AST::FalseLiteral();
   node->falseToken = loc(1);
   sym(1).Node = node;
 } break;
 
 case 76: {
-  AST::NumericLiteral *node = new (pool) AST::NumericLiteral(sym(1).dval);
+  const auto node = new (pool) AST::NumericLiteral(sym(1).dval);
   node->literalToken = loc(1);
   sym(1).Node = node;
 } break;
 case 77:
 case 78: {
-  AST::StringLiteral *node = new (pool) AST::StringLiteral(stringRef(1));
+  const auto node = new (pool) AST::StringLiteral(stringRef(1));
   node->literalToken = loc(1);
   sym(1).Node = node;
 } break;
@@ -590,7 +590,7 @@ case 79: {
   loc(1).length = lexer->tokenLength();
   yylloc = loc(1); // adjust the location of the current token
 
-  AST::RegExpLiteral *node = new (pool) AST::RegExpLiteral(
+  const auto node = new (pool) AST::RegExpLiteral(
     driver->newStringRef(lexer->regExpPattern()), lexer->regExpFlags());
   node->literalToken = loc(1);
   sym(1).Node = node;
@@ -606,35 +606,35 @@ case 80: {
   loc(1).length = lexer->tokenLength();
   yylloc = loc(1); // adjust the location of the current token
 
-  AST::RegExpLiteral *node = new (pool) AST::RegExpLiteral(
+  const auto node = new (pool) AST::RegExpLiteral(
     driver->newStringRef(lexer->regExpPattern()), lexer->regExpFlags());
   node->literalToken = loc(1);
   sym(1).Node = node;
 } break;
 
 case 81: {
-  AST::ArrayLiteral *node = new (pool) AST::ArrayLiteral((AST::Elision *) 0);
+  const auto node = new (pool) AST::ArrayLiteral((AST::Elision *) 0);
   node->lbracketToken = loc(1);
   node->rbracketToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 82: {
-  AST::ArrayLiteral *node = new (pool) AST::ArrayLiteral(sym(2).Elision->finish());
+  const auto node = new (pool) AST::ArrayLiteral(sym(2).Elision->finish());
   node->lbracketToken = loc(1);
   node->rbracketToken = loc(3);
   sym(1).Node = node;
 } break;
 
 case 83: {
-  AST::ArrayLiteral *node = new (pool) AST::ArrayLiteral(sym(2).ElementList->finish ());
+  const auto node = new (pool) AST::ArrayLiteral(sym(2).ElementList->finish ());
   node->lbracketToken = loc(1);
   node->rbracketToken = loc(3);
   sym(1).Node = node;
 } break;
 
 case 84: {
-  AST::ArrayLiteral *node = new (pool) AST::ArrayLiteral(sym(2).ElementList->finish (),
+  const auto node = new (pool) AST::ArrayLiteral(sym(2).ElementList->finish (),
     (AST::Elision *) 0);
   node->lbracketToken = loc(1);
   node->commaToken = loc(3);
@@ -643,7 +643,7 @@ case 84: {
 } break;
 
 case 85: {
-  AST::ArrayLiteral *node = new (pool) AST::ArrayLiteral(sym(2).ElementList->finish (),
+  const auto node = new (pool) AST::ArrayLiteral(sym(2).ElementList->finish (),
     sym(4).Elision->finish());
   node->lbracketToken = loc(1);
   node->commaToken = loc(3);
@@ -664,7 +664,7 @@ case 86: {
 } break;
 
 case 87: {
-  AST::ObjectLiteral *node = new (pool) AST::ObjectLiteral(
+  const auto node = new (pool) AST::ObjectLiteral(
     sym(2).PropertyNameAndValueList->finish ());
   node->lbraceToken = loc(1);
   node->rbraceToken = loc(4);
@@ -672,16 +672,16 @@ case 87: {
 } break;
 
 case 88: {
-  AST::NestedExpression *node = new (pool) AST::NestedExpression(sym(2).Expression);
+  const auto node = new (pool) AST::NestedExpression(sym(2).Expression);
   node->lparenToken = loc(1);
   node->rparenToken = loc(3);
   sym(1).Node = node;
 } break;
 
 case 89: {
-  if (AST::ArrayMemberExpression *mem = AST::cast<AST::ArrayMemberExpression *>(sym(1).Expression)) {
+  if (const auto *mem = AST::cast<AST::ArrayMemberExpression *>(sym(1).Expression)) {
     diagnostic_messages.append(DiagnosticMessage(DiagnosticMessage::Warning, mem->lbracketToken,
-      QLatin1String("Ignored annotation")));
+      QStringLiteral("Ignored annotation")));
 
     sym(1).Expression = mem->base;
   }
@@ -692,7 +692,7 @@ case 89: {
     sym(1).UiQualifiedId = nullptr;
 
     diagnostic_messages.append(DiagnosticMessage(DiagnosticMessage::Error, loc(1),
-      QLatin1String("Expected a qualified name id")));
+      QStringLiteral("Expected a qualified name id")));
 
     return false; // ### recover
   }
@@ -707,40 +707,40 @@ case 91: {
 } break;
 
 case 92: {
-  AST::ElementList *node = new (pool) AST::ElementList(sym(1).ElementList,
+ const auto node = new (pool) AST::ElementList(sym(1).ElementList,
     (AST::Elision *) 0, sym(3).Expression);
   node->commaToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 93: {
-  AST::ElementList *node = new (pool) AST::ElementList(sym(1).ElementList, sym(3).Elision->finish(),
+  const auto node = new (pool) AST::ElementList(sym(1).ElementList, sym(3).Elision->finish(),
     sym(4).Expression);
   node->commaToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 94: {
-  AST::Elision *node = new (pool) AST::Elision();
+  const auto node = new (pool) AST::Elision();
   node->commaToken = loc(1);
   sym(1).Node = node;
 } break;
 
 case 95: {
-  AST::Elision *node = new (pool) AST::Elision(sym(1).Elision);
+  const auto node = new (pool) AST::Elision(sym(1).Elision);
   node->commaToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 96: {
-  AST::PropertyNameAndValueList *node = new (pool) AST::PropertyNameAndValueList(
+  const auto node = new (pool) AST::PropertyNameAndValueList(
       sym(1).PropertyName, sym(3).Expression);
   node->colonToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 97: {
-  AST::PropertyNameAndValueList *node = new (pool) AST::PropertyNameAndValueList(
+  const auto node = new (pool) AST::PropertyNameAndValueList(
       sym(1).PropertyNameAndValueList, sym(3).PropertyName, sym(5).Expression);
   node->commaToken = loc(2);
   node->colonToken = loc(4);
@@ -748,51 +748,51 @@ case 97: {
 } break;
 
 case 98: {
-  AST::IdentifierPropertyName *node = new (pool) AST::IdentifierPropertyName(stringRef(1));
+  const auto node = new (pool) AST::IdentifierPropertyName(stringRef(1));
   node->propertyNameToken = loc(1);
   sym(1).Node = node;
 } break;
 case 99:
 case 100: {
-  AST::IdentifierPropertyName *node = new (pool) AST::IdentifierPropertyName(stringRef(1));
+  const auto node = new (pool) AST::IdentifierPropertyName(stringRef(1));
   node->propertyNameToken = loc(1);
   sym(1).Node = node;
 } break;
 
 case 101: {
-  AST::StringLiteralPropertyName *node = new (pool) AST::StringLiteralPropertyName(stringRef(1));
+  const auto node = new (pool) AST::StringLiteralPropertyName(stringRef(1));
   node->propertyNameToken = loc(1);
   sym(1).Node = node;
 } break;
 
 case 102: {
-  AST::NumericLiteralPropertyName *node = new (pool) AST::NumericLiteralPropertyName(sym(1).dval);
+  const auto node = new (pool) AST::NumericLiteralPropertyName(sym(1).dval);
   node->propertyNameToken = loc(1);
   sym(1).Node = node;
 } break;
 
 case 103: {
-  AST::IdentifierPropertyName *node = new (pool) AST::IdentifierPropertyName(stringRef(1));
+  const auto node = new (pool) AST::IdentifierPropertyName(stringRef(1));
   node->propertyNameToken = loc(1);
   sym(1).Node = node;
 } break;
 
 case 139: {
-  AST::ArrayMemberExpression *node = new (pool) AST::ArrayMemberExpression(sym(1).Expression, sym(3).Expression);
+  const auto node = new (pool) AST::ArrayMemberExpression(sym(1).Expression, sym(3).Expression);
   node->lbracketToken = loc(2);
   node->rbracketToken = loc(4);
   sym(1).Node = node;
 } break;
 
 case 140: {
-  AST::FieldMemberExpression *node = new (pool) AST::FieldMemberExpression(sym(1).Expression, stringRef(3));
+  const auto node = new (pool) AST::FieldMemberExpression(sym(1).Expression, stringRef(3));
   node->dotToken = loc(2);
   node->identifierToken = loc(3);
   sym(1).Node = node;
 } break;
 
 case 141: {
-  AST::NewMemberExpression *node = new (pool) AST::NewMemberExpression(sym(2).Expression, sym(4).ArgumentList);
+  const auto node = new (pool) AST::NewMemberExpression(sym(2).Expression, sym(4).ArgumentList);
   node->newToken = loc(1);
   node->lparenToken = loc(3);
   node->rparenToken = loc(5);
@@ -800,34 +800,34 @@ case 141: {
 } break;
 
 case 143: {
-  AST::NewExpression *node = new (pool) AST::NewExpression(sym(2).Expression);
+  const auto node = new (pool) AST::NewExpression(sym(2).Expression);
   node->newToken = loc(1);
   sym(1).Node = node;
 } break;
 
 case 144: {
-  AST::CallExpression *node = new (pool) AST::CallExpression(sym(1).Expression, sym(3).ArgumentList);
+  const auto node = new (pool) AST::CallExpression(sym(1).Expression, sym(3).ArgumentList);
   node->lparenToken = loc(2);
   node->rparenToken = loc(4);
   sym(1).Node = node;
 } break;
 
 case 145: {
-  AST::CallExpression *node = new (pool) AST::CallExpression(sym(1).Expression, sym(3).ArgumentList);
+  const auto node = new (pool) AST::CallExpression(sym(1).Expression, sym(3).ArgumentList);
   node->lparenToken = loc(2);
   node->rparenToken = loc(4);
   sym(1).Node = node;
 } break;
 
 case 146: {
-  AST::ArrayMemberExpression *node = new (pool) AST::ArrayMemberExpression(sym(1).Expression, sym(3).Expression);
+  const auto node = new (pool) AST::ArrayMemberExpression(sym(1).Expression, sym(3).Expression);
   node->lbracketToken = loc(2);
   node->rbracketToken = loc(4);
   sym(1).Node = node;
 } break;
 
 case 147: {
-  AST::FieldMemberExpression *node = new (pool) AST::FieldMemberExpression(sym(1).Expression, stringRef(3));
+  const auto node = new (pool) AST::FieldMemberExpression(sym(1).Expression, stringRef(3));
   node->dotToken = loc(2);
   node->identifierToken = loc(3);
   sym(1).Node = node;
@@ -846,303 +846,303 @@ case 150: {
 } break;
 
 case 151: {
-  AST::ArgumentList *node = new (pool) AST::ArgumentList(sym(1).ArgumentList, sym(3).Expression);
+  const auto node = new (pool) AST::ArgumentList(sym(1).ArgumentList, sym(3).Expression);
   node->commaToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 155: {
-  AST::PostIncrementExpression *node = new (pool) AST::PostIncrementExpression(sym(1).Expression);
+  const auto node = new (pool) AST::PostIncrementExpression(sym(1).Expression);
   node->incrementToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 156: {
-  AST::PostDecrementExpression *node = new (pool) AST::PostDecrementExpression(sym(1).Expression);
+  const auto node = new (pool) AST::PostDecrementExpression(sym(1).Expression);
   node->decrementToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 158: {
-  AST::DeleteExpression *node = new (pool) AST::DeleteExpression(sym(2).Expression);
+  const auto node = new (pool) AST::DeleteExpression(sym(2).Expression);
   node->deleteToken = loc(1);
   sym(1).Node = node;
 } break;
 
 case 159: {
-  AST::VoidExpression *node = new (pool) AST::VoidExpression(sym(2).Expression);
+  const auto node = new (pool) AST::VoidExpression(sym(2).Expression);
   node->voidToken = loc(1);
   sym(1).Node = node;
 } break;
 
 case 160: {
-  AST::TypeOfExpression *node = new (pool) AST::TypeOfExpression(sym(2).Expression);
+  const auto node = new (pool) AST::TypeOfExpression(sym(2).Expression);
   node->typeofToken = loc(1);
   sym(1).Node = node;
 } break;
 
 case 161: {
-  AST::PreIncrementExpression *node = new (pool) AST::PreIncrementExpression(sym(2).Expression);
+  const auto node = new (pool) AST::PreIncrementExpression(sym(2).Expression);
   node->incrementToken = loc(1);
   sym(1).Node = node;
 } break;
 
 case 162: {
-  AST::PreDecrementExpression *node = new (pool) AST::PreDecrementExpression(sym(2).Expression);
+  const auto node = new (pool) AST::PreDecrementExpression(sym(2).Expression);
   node->decrementToken = loc(1);
   sym(1).Node = node;
 } break;
 
 case 163: {
-  AST::UnaryPlusExpression *node = new (pool) AST::UnaryPlusExpression(sym(2).Expression);
+  const auto node = new (pool) AST::UnaryPlusExpression(sym(2).Expression);
   node->plusToken = loc(1);
   sym(1).Node = node;
 } break;
 
 case 164: {
-  AST::UnaryMinusExpression *node = new (pool) AST::UnaryMinusExpression(sym(2).Expression);
+  const auto node = new (pool) AST::UnaryMinusExpression(sym(2).Expression);
   node->minusToken = loc(1);
   sym(1).Node = node;
 } break;
 
 case 165: {
-  AST::TildeExpression *node = new (pool) AST::TildeExpression(sym(2).Expression);
+  const auto node = new (pool) AST::TildeExpression(sym(2).Expression);
   node->tildeToken = loc(1);
   sym(1).Node = node;
 } break;
 
 case 166: {
-  AST::NotExpression *node = new (pool) AST::NotExpression(sym(2).Expression);
+  const auto node = new (pool) AST::NotExpression(sym(2).Expression);
   node->notToken = loc(1);
   sym(1).Node = node;
 } break;
 
 case 168: {
-  AST::BinaryExpression *node = new (pool) AST::BinaryExpression(sym(1).Expression,
+  const auto node = new (pool) AST::BinaryExpression(sym(1).Expression,
     QSOperator::Mul, sym(3).Expression);
   node->operatorToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 169: {
-  AST::BinaryExpression *node = new (pool) AST::BinaryExpression(sym(1).Expression,
+  const auto node = new (pool) AST::BinaryExpression(sym(1).Expression,
     QSOperator::Div, sym(3).Expression);
   node->operatorToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 170: {
-  AST::BinaryExpression *node = new (pool) AST::BinaryExpression(sym(1).Expression,
+  const auto node = new (pool) AST::BinaryExpression(sym(1).Expression,
     QSOperator::Mod, sym(3).Expression);
   node->operatorToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 172: {
-  AST::BinaryExpression *node = new (pool) AST::BinaryExpression(sym(1).Expression,
+  const auto node = new (pool) AST::BinaryExpression(sym(1).Expression,
     QSOperator::Add, sym(3).Expression);
   node->operatorToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 173: {
-  AST::BinaryExpression *node = new (pool) AST::BinaryExpression(sym(1).Expression,
+  const auto node = new (pool) AST::BinaryExpression(sym(1).Expression,
     QSOperator::Sub, sym(3).Expression);
   node->operatorToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 175: {
-  AST::BinaryExpression *node = new (pool) AST::BinaryExpression(sym(1).Expression,
+  const auto node = new (pool) AST::BinaryExpression(sym(1).Expression,
     QSOperator::LShift, sym(3).Expression);
   node->operatorToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 176: {
-  AST::BinaryExpression *node = new (pool) AST::BinaryExpression(sym(1).Expression,
+  const auto node = new (pool) AST::BinaryExpression(sym(1).Expression,
     QSOperator::RShift, sym(3).Expression);
   node->operatorToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 177: {
-  AST::BinaryExpression *node = new (pool) AST::BinaryExpression(sym(1).Expression,
+  const auto node = new (pool) AST::BinaryExpression(sym(1).Expression,
     QSOperator::URShift, sym(3).Expression);
   node->operatorToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 179: {
-  AST::BinaryExpression *node = new (pool) AST::BinaryExpression(sym(1).Expression,
+  const auto node = new (pool) AST::BinaryExpression(sym(1).Expression,
     QSOperator::Lt, sym(3).Expression);
   node->operatorToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 180: {
-  AST::BinaryExpression *node = new (pool) AST::BinaryExpression(sym(1).Expression,
+  const auto node = new (pool) AST::BinaryExpression(sym(1).Expression,
     QSOperator::Gt, sym(3).Expression);
   node->operatorToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 181: {
-  AST::BinaryExpression *node = new (pool) AST::BinaryExpression(sym(1).Expression,
+  const auto node = new (pool) AST::BinaryExpression(sym(1).Expression,
     QSOperator::Le, sym(3).Expression);
   node->operatorToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 182: {
-  AST::BinaryExpression *node = new (pool) AST::BinaryExpression(sym(1).Expression,
+  const auto node = new (pool) AST::BinaryExpression(sym(1).Expression,
     QSOperator::Ge, sym(3).Expression);
   node->operatorToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 183: {
-  AST::BinaryExpression *node = new (pool) AST::BinaryExpression(sym(1).Expression,
+  const auto node = new (pool) AST::BinaryExpression(sym(1).Expression,
     QSOperator::InstanceOf, sym(3).Expression);
   node->operatorToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 184: {
-  AST::BinaryExpression *node = new (pool) AST::BinaryExpression(sym(1).Expression,
+  const auto node = new (pool) AST::BinaryExpression(sym(1).Expression,
     QSOperator::In, sym(3).Expression);
   node->operatorToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 186: {
-  AST::BinaryExpression *node = new (pool) AST::BinaryExpression(sym(1).Expression,
+  const auto node = new (pool) AST::BinaryExpression(sym(1).Expression,
     QSOperator::Lt, sym(3).Expression);
   node->operatorToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 187: {
-  AST::BinaryExpression *node = new (pool) AST::BinaryExpression(sym(1).Expression,
+  const auto node = new (pool) AST::BinaryExpression(sym(1).Expression,
     QSOperator::Gt, sym(3).Expression);
   node->operatorToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 188: {
-  AST::BinaryExpression *node = new (pool) AST::BinaryExpression(sym(1).Expression,
+  const auto node = new (pool) AST::BinaryExpression(sym(1).Expression,
     QSOperator::Le, sym(3).Expression);
   node->operatorToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 189: {
-  AST::BinaryExpression *node = new (pool) AST::BinaryExpression(sym(1).Expression,
+  const auto node = new (pool) AST::BinaryExpression(sym(1).Expression,
    QSOperator::Ge, sym(3).Expression);
   node->operatorToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 190: {
-  AST::BinaryExpression *node = new (pool) AST::BinaryExpression(sym(1).Expression,
+  const auto node = new (pool) AST::BinaryExpression(sym(1).Expression,
     QSOperator::InstanceOf, sym(3).Expression);
   node->operatorToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 192: {
-  AST::BinaryExpression *node = new (pool) AST::BinaryExpression(sym(1).Expression,
+  const auto node = new (pool) AST::BinaryExpression(sym(1).Expression,
     QSOperator::Equal, sym(3).Expression);
   node->operatorToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 193: {
-  AST::BinaryExpression *node = new (pool) AST::BinaryExpression(sym(1).Expression,
+  const auto node = new (pool) AST::BinaryExpression(sym(1).Expression,
     QSOperator::NotEqual, sym(3).Expression);
   node->operatorToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 194: {
-  AST::BinaryExpression *node = new (pool) AST::BinaryExpression(sym(1).Expression,
+  const auto node = new (pool) AST::BinaryExpression(sym(1).Expression,
     QSOperator::StrictEqual, sym(3).Expression);
   node->operatorToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 195: {
-  AST::BinaryExpression *node = new (pool) AST::BinaryExpression(sym(1).Expression,
+  const auto node = new (pool) AST::BinaryExpression(sym(1).Expression,
     QSOperator::StrictNotEqual, sym(3).Expression);
   node->operatorToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 197: {
-  AST::BinaryExpression *node = new (pool) AST::BinaryExpression(sym(1).Expression,
+  const auto node = new (pool) AST::BinaryExpression(sym(1).Expression,
     QSOperator::Equal, sym(3).Expression);
   node->operatorToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 198: {
-  AST::BinaryExpression *node = new (pool) AST::BinaryExpression(sym(1).Expression,
+  const auto node = new (pool) AST::BinaryExpression(sym(1).Expression,
     QSOperator::NotEqual, sym(3).Expression);
   node->operatorToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 199: {
-  AST::BinaryExpression *node = new (pool) AST::BinaryExpression(sym(1).Expression,
+  const auto node = new (pool) AST::BinaryExpression(sym(1).Expression,
     QSOperator::StrictEqual, sym(3).Expression);
   node->operatorToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 200: {
-  AST::BinaryExpression *node = new (pool) AST::BinaryExpression(sym(1).Expression,
+  const auto node = new (pool) AST::BinaryExpression(sym(1).Expression,
     QSOperator::StrictNotEqual, sym(3).Expression);
   node->operatorToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 202: {
-  AST::BinaryExpression *node = new (pool) AST::BinaryExpression(sym(1).Expression,
+  const auto node = new (pool) AST::BinaryExpression(sym(1).Expression,
     QSOperator::BitAnd, sym(3).Expression);
   node->operatorToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 204: {
-  AST::BinaryExpression *node = new (pool) AST::BinaryExpression(sym(1).Expression,
+  const auto node = new (pool) AST::BinaryExpression(sym(1).Expression,
     QSOperator::BitAnd, sym(3).Expression);
   node->operatorToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 206: {
-  AST::BinaryExpression *node = new (pool) AST::BinaryExpression(sym(1).Expression,
+  const auto node = new (pool) AST::BinaryExpression(sym(1).Expression,
     QSOperator::BitXor, sym(3).Expression);
   node->operatorToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 208: {
-  AST::BinaryExpression *node = new (pool) AST::BinaryExpression(sym(1).Expression,
+  const auto node = new (pool) AST::BinaryExpression(sym(1).Expression,
     QSOperator::BitXor, sym(3).Expression);
   node->operatorToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 210: {
-  AST::BinaryExpression *node = new (pool) AST::BinaryExpression(sym(1).Expression,
+  const auto node = new (pool) AST::BinaryExpression(sym(1).Expression,
     QSOperator::BitOr, sym(3).Expression);
   node->operatorToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 212: {
-  AST::BinaryExpression *node = new (pool) AST::BinaryExpression(sym(1).Expression,
+  const auto node = new (pool) AST::BinaryExpression(sym(1).Expression,
     QSOperator::BitOr, sym(3).Expression);
   node->operatorToken = loc(2);
   sym(1).Node = node;
@@ -1156,28 +1156,28 @@ case 214: {
 } break;
 
 case 216: {
-  AST::BinaryExpression *node = new (pool) AST::BinaryExpression(sym(1).Expression,
+  const auto node = new (pool) AST::BinaryExpression(sym(1).Expression,
     QSOperator::And, sym(3).Expression);
   node->operatorToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 218: {
-  AST::BinaryExpression *node = new (pool) AST::BinaryExpression(sym(1).Expression,
+  const auto node = new (pool) AST::BinaryExpression(sym(1).Expression,
     QSOperator::Or, sym(3).Expression);
   node->operatorToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 220: {
-  AST::BinaryExpression *node = new (pool) AST::BinaryExpression(sym(1).Expression,
+  const auto node = new (pool) AST::BinaryExpression(sym(1).Expression,
     QSOperator::Or, sym(3).Expression);
   node->operatorToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 222: {
-  AST::ConditionalExpression *node = new (pool) AST::ConditionalExpression(sym(1).Expression,
+  const auto node = new (pool) AST::ConditionalExpression(sym(1).Expression,
     sym(3).Expression, sym(5).Expression);
   node->questionToken = loc(2);
   node->colonToken = loc(4);
@@ -1185,7 +1185,7 @@ case 222: {
 } break;
 
 case 224: {
-  AST::ConditionalExpression *node = new (pool) AST::ConditionalExpression(sym(1).Expression,
+  const auto node = new (pool) AST::ConditionalExpression(sym(1).Expression,
     sym(3).Expression, sym(5).Expression);
   node->questionToken = loc(2);
   node->colonToken = loc(4);
@@ -1193,14 +1193,14 @@ case 224: {
 } break;
 
 case 226: {
-  AST::BinaryExpression *node = new (pool) AST::BinaryExpression(sym(1).Expression,
+  const auto node = new (pool) AST::BinaryExpression(sym(1).Expression,
     sym(2).ival, sym(3).Expression);
   node->operatorToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 228: {
-  AST::BinaryExpression *node = new (pool) AST::BinaryExpression(sym(1).Expression,
+  const auto node = new (pool) AST::BinaryExpression(sym(1).Expression,
     sym(2).ival, sym(3).Expression);
   node->operatorToken = loc(2);
   sym(1).Node = node;
@@ -1255,7 +1255,7 @@ case 240: {
 } break;
 
 case 242: {
-  AST::Expression *node = new (pool) AST::Expression(sym(1).Expression, sym(3).Expression);
+  const auto node = new (pool) AST::Expression(sym(1).Expression, sym(3).Expression);
   node->commaToken = loc(2);
   sym(1).Node = node;
 } break;
@@ -1265,7 +1265,7 @@ case 243: {
 } break;
 
 case 246: {
-  AST::Expression *node = new (pool) AST::Expression(sym(1).Expression, sym(3).Expression);
+  const auto node = new (pool) AST::Expression(sym(1).Expression, sym(3).Expression);
   node->commaToken = loc(2);
   sym(1).Node = node;
 } break;
@@ -1275,7 +1275,7 @@ case 247: {
 } break;
 
 case 264: {
-  AST::Block *node = new (pool) AST::Block(sym(2).StatementList);
+  const auto node = new (pool) AST::Block(sym(2).StatementList);
   node->lbraceToken = loc(1);
   node->rbraceToken = loc(3);
   sym(1).Node = node;
@@ -1298,7 +1298,7 @@ case 268: {
 } break;
 
 case 270: {
-  AST::VariableStatement *node = new (pool) AST::VariableStatement(
+  const auto node = new (pool) AST::VariableStatement(
      sym(2).VariableDeclarationList->finish (/*readOnly=*/sym(1).ival == T_CONST));
   node->declarationKindToken = loc(1);
   node->semicolonToken = loc(3);
@@ -1318,7 +1318,7 @@ case 273: {
 } break;
 
 case 274: {
-  AST::VariableDeclarationList *node = new (pool) AST::VariableDeclarationList(
+  const auto node = new (pool) AST::VariableDeclarationList(
     sym(1).VariableDeclarationList, sym(3).VariableDeclaration);
   node->commaToken = loc(2);
   sym(1).Node = node;
@@ -1333,13 +1333,13 @@ case 276: {
 } break;
 
 case 277: {
-  AST::VariableDeclaration *node = new (pool) AST::VariableDeclaration(stringRef(1), sym(2).Expression);
+  const auto node = new (pool) AST::VariableDeclaration(stringRef(1), sym(2).Expression);
   node->identifierToken = loc(1);
   sym(1).Node = node;
 } break;
 
 case 278: {
-  AST::VariableDeclaration *node = new (pool) AST::VariableDeclaration(stringRef(1), sym(2).Expression);
+  const auto node = new (pool) AST::VariableDeclaration(stringRef(1), sym(2).Expression);
   node->identifierToken = loc(1);
   sym(1).Node = node;
 } break;
@@ -1363,19 +1363,19 @@ case 283: {
 } break;
 
 case 285: {
-  AST::EmptyStatement *node = new (pool) AST::EmptyStatement();
+  const auto node = new (pool) AST::EmptyStatement();
   node->semicolonToken = loc(1);
   sym(1).Node = node;
 } break;
 
 case 287: {
-  AST::ExpressionStatement *node = new (pool) AST::ExpressionStatement(sym(1).Expression);
+  const auto node = new (pool) AST::ExpressionStatement(sym(1).Expression);
   node->semicolonToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 288: {
-  AST::IfStatement *node = new (pool) AST::IfStatement(sym(3).Expression, sym(5).Statement, sym(7).Statement);
+  const auto node = new (pool) AST::IfStatement(sym(3).Expression, sym(5).Statement, sym(7).Statement);
   node->ifToken = loc(1);
   node->lparenToken = loc(2);
   node->rparenToken = loc(4);
@@ -1384,7 +1384,7 @@ case 288: {
 } break;
 
 case 289: {
-  AST::IfStatement *node = new (pool) AST::IfStatement(sym(3).Expression, sym(5).Statement);
+  const auto node = new (pool) AST::IfStatement(sym(3).Expression, sym(5).Statement);
   node->ifToken = loc(1);
   node->lparenToken = loc(2);
   node->rparenToken = loc(4);
@@ -1392,7 +1392,7 @@ case 289: {
 } break;
 
 case 291: {
-  AST::DoWhileStatement *node = new (pool) AST::DoWhileStatement(sym(2).Statement, sym(5).Expression);
+  const auto node = new (pool) AST::DoWhileStatement(sym(2).Statement, sym(5).Expression);
   node->doToken = loc(1);
   node->whileToken = loc(3);
   node->lparenToken = loc(4);
@@ -1402,7 +1402,7 @@ case 291: {
 } break;
 
 case 292: {
-  AST::WhileStatement *node = new (pool) AST::WhileStatement(sym(3).Expression, sym(5).Statement);
+  const auto node = new (pool) AST::WhileStatement(sym(3).Expression, sym(5).Statement);
   node->whileToken = loc(1);
   node->lparenToken = loc(2);
   node->rparenToken = loc(4);
@@ -1410,7 +1410,7 @@ case 292: {
 } break;
 
 case 293: {
-  AST::ForStatement *node = new (pool) AST::ForStatement(sym(3).Expression,
+  const auto node = new (pool) AST::ForStatement(sym(3).Expression,
     sym(5).Expression, sym(7).Expression, sym(9).Statement);
   node->forToken = loc(1);
   node->lparenToken = loc(2);
@@ -1421,7 +1421,7 @@ case 293: {
 } break;
 
 case 294: {
-  AST::LocalForStatement *node = new (pool) AST::LocalForStatement(
+  const auto node = new (pool) AST::LocalForStatement(
      sym(4).VariableDeclarationList->finish (/*readOnly=*/false), sym(6).Expression,
      sym(8).Expression, sym(10).Statement);
   node->forToken = loc(1);
@@ -1434,7 +1434,7 @@ case 294: {
 } break;
 
 case 295: {
-  AST:: ForEachStatement *node = new (pool) AST::ForEachStatement(sym(3).Expression,
+  const auto node = new (pool) AST::ForEachStatement(sym(3).Expression,
     sym(5).Expression, sym(7).Statement);
   node->forToken = loc(1);
   node->lparenToken = loc(2);
@@ -1444,7 +1444,7 @@ case 295: {
 } break;
 
 case 296: {
-  AST::LocalForEachStatement *node = new (pool) AST::LocalForEachStatement(
+  const auto node = new (pool) AST::LocalForEachStatement(
     sym(4).VariableDeclaration, sym(6).Expression, sym(8).Statement);
   node->forToken = loc(1);
   node->lparenToken = loc(2);
@@ -1455,14 +1455,14 @@ case 296: {
 } break;
 
 case 298: {
-  AST::ContinueStatement *node = new (pool) AST::ContinueStatement();
+  const auto node = new (pool) AST::ContinueStatement();
   node->continueToken = loc(1);
   node->semicolonToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 300: {
-  AST::ContinueStatement *node = new (pool) AST::ContinueStatement(stringRef(2));
+  const auto node = new (pool) AST::ContinueStatement(stringRef(2));
   node->continueToken = loc(1);
   node->identifierToken = loc(2);
   node->semicolonToken = loc(3);
@@ -1470,14 +1470,14 @@ case 300: {
 } break;
 
 case 302: {
-  AST::BreakStatement *node = new (pool) AST::BreakStatement(QStringRef());
+  const auto node = new (pool) AST::BreakStatement(QStringRef());
   node->breakToken = loc(1);
   node->semicolonToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 304: {
-  AST::BreakStatement *node = new (pool) AST::BreakStatement(stringRef(2));
+  const auto node = new (pool) AST::BreakStatement(stringRef(2));
   node->breakToken = loc(1);
   node->identifierToken = loc(2);
   node->semicolonToken = loc(3);
@@ -1485,14 +1485,14 @@ case 304: {
 } break;
 
 case 306: {
-  AST::ReturnStatement *node = new (pool) AST::ReturnStatement(sym(2).Expression);
+  const auto node = new (pool) AST::ReturnStatement(sym(2).Expression);
   node->returnToken = loc(1);
   node->semicolonToken = loc(3);
   sym(1).Node = node;
 } break;
 
 case 307: {
-  AST::WithStatement *node = new (pool) AST::WithStatement(sym(3).Expression, sym(5).Statement);
+  const auto node = new (pool) AST::WithStatement(sym(3).Expression, sym(5).Statement);
   node->withToken = loc(1);
   node->lparenToken = loc(2);
   node->rparenToken = loc(4);
@@ -1500,7 +1500,7 @@ case 307: {
 } break;
 
 case 308: {
-  AST::SwitchStatement *node = new (pool) AST::SwitchStatement(sym(3).Expression, sym(5).CaseBlock);
+  const auto node = new (pool) AST::SwitchStatement(sym(3).Expression, sym(5).CaseBlock);
   node->switchToken = loc(1);
   node->lparenToken = loc(2);
   node->rparenToken = loc(4);
@@ -1508,14 +1508,14 @@ case 308: {
 } break;
 
 case 309: {
-  AST::CaseBlock *node = new (pool) AST::CaseBlock(sym(2).CaseClauses);
+  const auto node = new (pool) AST::CaseBlock(sym(2).CaseClauses);
   node->lbraceToken = loc(1);
   node->rbraceToken = loc(3);
   sym(1).Node = node;
 } break;
 
 case 310: {
-  AST::CaseBlock *node = new (pool) AST::CaseBlock(sym(2).CaseClauses, sym(3).DefaultClause, sym(4).CaseClauses);
+  const auto node = new (pool) AST::CaseBlock(sym(2).CaseClauses, sym(3).DefaultClause, sym(4).CaseClauses);
   node->lbraceToken = loc(1);
   node->rbraceToken = loc(5);
   sym(1).Node = node;
@@ -1538,60 +1538,60 @@ case 314: {
 } break;
 
 case 315: {
-  AST::CaseClause *node = new (pool) AST::CaseClause(sym(2).Expression, sym(4).StatementList);
+  const auto node = new (pool) AST::CaseClause(sym(2).Expression, sym(4).StatementList);
   node->caseToken = loc(1);
   node->colonToken = loc(3);
   sym(1).Node = node;
 } break;
 
 case 316: {
-  AST::DefaultClause *node = new (pool) AST::DefaultClause(sym(3).StatementList);
+  const auto node = new (pool) AST::DefaultClause(sym(3).StatementList);
   node->defaultToken = loc(1);
   node->colonToken = loc(2);
   sym(1).Node = node;
 } break;
 case 317:
 case 318: {
-  AST::LabelledStatement *node = new (pool) AST::LabelledStatement(stringRef(1), sym(3).Statement);
+  const auto node = new (pool) AST::LabelledStatement(stringRef(1), sym(3).Statement);
   node->identifierToken = loc(1);
   node->colonToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 319: {
-  AST::LabelledStatement *node = new (pool) AST::LabelledStatement(stringRef(1), sym(3).Statement);
+  const auto node = new (pool) AST::LabelledStatement(stringRef(1), sym(3).Statement);
   node->identifierToken = loc(1);
   node->colonToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 321: {
-  AST::ThrowStatement *node = new (pool) AST::ThrowStatement(sym(2).Expression);
+  const auto node = new (pool) AST::ThrowStatement(sym(2).Expression);
   node->throwToken = loc(1);
   node->semicolonToken = loc(3);
   sym(1).Node = node;
 } break;
 
 case 322: {
-  AST::TryStatement *node = new (pool) AST::TryStatement(sym(2).Statement, sym(3).Catch);
+  const auto node = new (pool) AST::TryStatement(sym(2).Statement, sym(3).Catch);
   node->tryToken = loc(1);
   sym(1).Node = node;
 } break;
 
 case 323: {
-  AST::TryStatement *node = new (pool) AST::TryStatement(sym(2).Statement, sym(3).Finally);
+  const auto node = new (pool) AST::TryStatement(sym(2).Statement, sym(3).Finally);
   node->tryToken = loc(1);
   sym(1).Node = node;
 } break;
 
 case 324: {
-  AST::TryStatement *node = new (pool) AST::TryStatement(sym(2).Statement, sym(3).Catch, sym(4).Finally);
+  const auto node = new (pool) AST::TryStatement(sym(2).Statement, sym(3).Catch, sym(4).Finally);
   node->tryToken = loc(1);
   sym(1).Node = node;
 } break;
 
 case 325: {
-  AST::Catch *node = new (pool) AST::Catch(stringRef(3), sym(5).Block);
+  const auto node = new (pool) AST::Catch(stringRef(3), sym(5).Block);
   node->catchToken = loc(1);
   node->lparenToken = loc(2);
   node->identifierToken = loc(3);
@@ -1600,20 +1600,20 @@ case 325: {
 } break;
 
 case 326: {
-  AST::Finally *node = new (pool) AST::Finally(sym(2).Block);
+  const auto node = new (pool) AST::Finally(sym(2).Block);
   node->finallyToken = loc(1);
   sym(1).Node = node;
 } break;
 
 case 328: {
-  AST::DebuggerStatement *node = new (pool) AST::DebuggerStatement();
+  const auto node = new (pool) AST::DebuggerStatement();
   node->debuggerToken = loc(1);
   node->semicolonToken = loc(2);
   sym(1).Node = node;
 } break;
 
 case 329: {
-  AST::FunctionDeclaration *node = new (pool) AST::FunctionDeclaration(stringRef(2), sym(4).FormalParameterList, sym(7).FunctionBody);
+  const auto node = new (pool) AST::FunctionDeclaration(stringRef(2), sym(4).FormalParameterList, sym(7).FunctionBody);
   node->functionToken = loc(1);
   node->identifierToken = loc(2);
   node->lparenToken = loc(3);
@@ -1624,7 +1624,7 @@ case 329: {
 } break;
 
 case 330: {
-  AST::FunctionExpression *node = new (pool) AST::FunctionExpression(stringRef(2), sym(4).FormalParameterList, sym(7).FunctionBody);
+  const auto node = new (pool) AST::FunctionExpression(stringRef(2), sym(4).FormalParameterList, sym(7).FunctionBody);
   node->functionToken = loc(1);
   if (! stringRef(2).isNull())
       node->identifierToken = loc(2);
@@ -1636,13 +1636,13 @@ case 330: {
 } break;
 
 case 331: {
-  AST::FormalParameterList *node = new (pool) AST::FormalParameterList(stringRef(1));
+  const auto node = new (pool) AST::FormalParameterList(stringRef(1));
   node->identifierToken = loc(1);
   sym(1).Node = node;
 } break;
 
 case 332: {
-  AST::FormalParameterList *node = new (pool) AST::FormalParameterList(sym(1).FormalParameterList, stringRef(3));
+  const auto node = new (pool) AST::FormalParameterList(sym(1).FormalParameterList, stringRef(3));
   node->commaToken = loc(2);
   node->identifierToken = loc(3);
   sym(1).Node = node;

@@ -274,7 +274,7 @@ QString ErrorInfo::toString() const
             if (e.codeLocation().isValid())
                 line.append(QStringLiteral(" in %1").arg(e.codeLocation().toString()));
             if (!line.isEmpty())
-                lines.push_back(QStringLiteral("\t") + line);
+                lines.push_back(QLatin1Char('\t') + line);
         } else {
             lines.push_back(e.toString());
         }

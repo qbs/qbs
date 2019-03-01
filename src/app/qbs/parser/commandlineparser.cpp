@@ -135,7 +135,7 @@ void CommandLineParser::printHelp() const
         if (commandToDescribe) {
             stream << commandToDescribe->longDescription();
         } else if (!QbsTool::tryToRunTool(helpCommand->commandToDescribe(),
-                                          QStringList(QLatin1String("--help")))) {
+                                          QStringList(QStringLiteral("--help")))) {
             throw ErrorInfo(Tr::tr("No such command '%1'.\n%2")
                         .arg(helpCommand->commandToDescribe(), d->generalHelp()));
         }
@@ -299,7 +299,7 @@ QString CommandLineParser::commandDescription() const
 
 static QString getBuildConfigurationName(const QVariantMap &buildConfig)
 {
-    return buildConfig.value(QLatin1String("qbs.configurationName")).toString();
+    return buildConfig.value(QStringLiteral("qbs.configurationName")).toString();
 }
 
 QList<QVariantMap> CommandLineParser::buildConfigurations() const
@@ -374,20 +374,19 @@ Command *CommandLineParser::CommandLineParserPrivate::commandFromString(const QS
 
 QList<Command *> CommandLineParser::CommandLineParserPrivate::allCommands() const
 {
-    return QList<Command *>()
-            << commandPool.getCommand(GenerateCommandType)
-            << commandPool.getCommand(ResolveCommandType)
-            << commandPool.getCommand(BuildCommandType)
-            << commandPool.getCommand(CleanCommandType)
-            << commandPool.getCommand(RunCommandType)
-            << commandPool.getCommand(ShellCommandType)
-            << commandPool.getCommand(StatusCommandType)
-            << commandPool.getCommand(UpdateTimestampsCommandType)
-            << commandPool.getCommand(InstallCommandType)
-            << commandPool.getCommand(DumpNodesTreeCommandType)
-            << commandPool.getCommand(ListProductsCommandType)
-            << commandPool.getCommand(VersionCommandType)
-            << commandPool.getCommand(HelpCommandType);
+    return {commandPool.getCommand(GenerateCommandType),
+            commandPool.getCommand(ResolveCommandType),
+            commandPool.getCommand(BuildCommandType),
+            commandPool.getCommand(CleanCommandType),
+            commandPool.getCommand(RunCommandType),
+            commandPool.getCommand(ShellCommandType),
+            commandPool.getCommand(StatusCommandType),
+            commandPool.getCommand(UpdateTimestampsCommandType),
+            commandPool.getCommand(InstallCommandType),
+            commandPool.getCommand(DumpNodesTreeCommandType),
+            commandPool.getCommand(ListProductsCommandType),
+            commandPool.getCommand(VersionCommandType),
+            commandPool.getCommand(HelpCommandType)};
 }
 
 static QString extractToolDescription(const QString &tool, const QString &output)
@@ -429,7 +428,7 @@ QString CommandLineParser::CommandLineParserPrivate::generalHelp() const
             const QString whitespace = QString(rhsIndentation - 2 - toolName.size(),
                                                QLatin1Char(' '));
             QbsTool tool;
-            tool.runTool(toolName, QStringList(QLatin1String("--help")));
+            tool.runTool(toolName, QStringList(QStringLiteral("--help")));
             if (tool.exitCode() != 0)
                 continue;
             const QString shortDescription = extractToolDescription(toolName, tool.stdOut());
@@ -477,10 +476,10 @@ void CommandLineParser::CommandLineParserPrivate::setupBuildConfigurations()
 {
     // first: configuration name, second: properties.
     // Empty configuration name used for global properties.
-    typedef std::pair<QString, QVariantMap> PropertyListItem;
+    using PropertyListItem = std::pair<QString, QVariantMap>;
     QList<PropertyListItem> propertiesPerConfiguration;
 
-    const QString configurationNameKey = QLatin1String("qbs.configurationName");
+    const QString configurationNameKey = QStringLiteral("qbs.configurationName");
     QString currentConfigurationName;
     QVariantMap currentProperties;
     const auto args = command->additionalArguments();

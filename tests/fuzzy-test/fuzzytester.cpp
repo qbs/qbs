@@ -100,10 +100,10 @@ void FuzzyTester::runTest(const QString &profile, const QString &startCommit,
             // for errors, as information from change tracking has to be serialized correctly.
             QString qbsError;
             m_currentActivity = resolveIncrementalActivity();
-            bool success = runQbs(defaultBuildDir(), QLatin1String("resolve"), &qbsError);
+            bool success = runQbs(defaultBuildDir(), QStringLiteral("resolve"), &qbsError);
             if (success) {
                 m_currentActivity = buildIncrementalActivity();
-                success = runQbs(defaultBuildDir(), QLatin1String("build"), &qbsError);
+                success = runQbs(defaultBuildDir(), QStringLiteral("build"), &qbsError);
             }
             m_currentActivity = buildFromScratchActivity();
             if (success) {
@@ -111,7 +111,7 @@ void FuzzyTester::runTest(const QString &profile, const QString &startCommit,
                     QString message = "An incremental build succeeded "
                                       "with a commit for which a clean build failed.";
                     if (!m_log) {
-                        message += QString::fromLatin1("\nThe qbs error message "
+                        message += QStringLiteral("\nThe qbs error message "
                                 "for the clean build was: '%1'").arg(qbsError);
                     }
                     throwIncrementalBuildError(message, buildSequence);
@@ -122,7 +122,7 @@ void FuzzyTester::runTest(const QString &profile, const QString &startCommit,
                     QString message = "An incremental build failed "
                                       "with a commit for which a clean build succeeded.";
                     if (!m_log) {
-                        message += QString::fromLatin1("\nThe qbs error message for "
+                        message += QStringLiteral("\nThe qbs error message for "
                                 "the incremental build was: '%1'").arg(qbsError);
                     }
                     throwIncrementalBuildError(message, buildSequence);
@@ -166,14 +166,14 @@ QString FuzzyTester::findWorkingStartCommit(const QString &startCommit)
         }
         checkoutCommit(m_currentCommit);
         removeDir(defaultBuildDir());
-        if (runQbs(defaultBuildDir(), QLatin1String("build"), &qbsError)) {
+        if (runQbs(defaultBuildDir(), QStringLiteral("build"), &qbsError)) {
             m_buildableCommits << m_currentCommit;
             return m_currentCommit;
         }
         qDebug("Commit %s is not buildable.", qPrintable(m_currentCommit));
         m_unbuildableCommits << m_currentCommit;
     }
-    throw TestError(QString::fromLatin1("Cannot run test: Failed to find a single commit that "
+    throw TestError(QStringLiteral("Cannot run test: Failed to find a single commit that "
             "builds successfully with qbs. The last qbs error was: '%1'").arg(qbsError));
 }
 
@@ -184,9 +184,9 @@ void FuzzyTester::runGit(const QStringList &arguments, QString *output)
     if (!git.waitForStarted())
         throw TestError("Failed to start git. It is expected to be in the PATH.");
     if (!git.waitForFinished(300000) || git.exitStatus() != QProcess::NormalExit) // 5 minutes ought to be enough for everyone
-        throw TestError(QString::fromLatin1("git failed: %1").arg(git.errorString()));
+        throw TestError(QStringLiteral("git failed: %1").arg(git.errorString()));
     if (git.exitCode() != 0) {
-        throw TestError(QString::fromLatin1("git failed: %1")
+        throw TestError(QStringLiteral("git failed: %1")
                         .arg(QString::fromLocal8Bit(git.readAllStandardError())));
     }
     if (output)
@@ -222,7 +222,7 @@ bool FuzzyTester::runQbs(const QString &buildDir, const QString &command, QStrin
     commandLine << ("profile:" + m_profile);
     qbs.start("qbs", commandLine);
     if (!qbs.waitForStarted()) {
-        throw TestError(QString::fromLatin1("Failed to start qbs. It is expected to be "
+        throw TestError(QStringLiteral("Failed to start qbs. It is expected to be "
                 "in the PATH. QProcess error string: '%1'").arg(qbs.errorString()));
     }
     if (!qbs.waitForFinished(-1) || qbs.exitCode() != 0) {
@@ -237,7 +237,7 @@ void FuzzyTester::removeDir(const QString &dirPath)
 {
     QDir dir(dirPath);
     if (!dir.removeRecursively()) {
-        throw TestError(QString::fromLatin1("Failed to remove temporary dir '%1'.")
+        throw TestError(QStringLiteral("Failed to remove temporary dir '%1'.")
                         .arg(dir.absolutePath()));
     }
 }
@@ -254,7 +254,7 @@ bool FuzzyTester::doCleanBuild(QString *errorMessage)
     }
     const QString cleanBuildDir = "fuzzytest-verification-build";
     removeDir(cleanBuildDir);
-    if (runQbs(cleanBuildDir, QLatin1String("build"), errorMessage)) {
+    if (runQbs(cleanBuildDir, QStringLiteral("build"), errorMessage)) {
         m_buildableCommits << m_currentCommit;
         return true;
     }
@@ -266,7 +266,7 @@ void FuzzyTester::throwIncrementalBuildError(const QString &message,
                                              const QStringList &commitSequence)
 {
     const QString commitSequenceString = commitSequence.join(QLatin1Char(','));
-    throw TestError(QString::fromLatin1("Found qbs bug with incremental build!\n"
+    throw TestError(QStringLiteral("Found qbs bug with incremental build!\n"
             "%1\n"
             "The sequence of commits was: %2.").arg(message, commitSequenceString));
 }

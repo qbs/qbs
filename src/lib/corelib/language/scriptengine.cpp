@@ -107,10 +107,10 @@ ScriptEngine::ScriptEngine(Logger &logger, EvalContext evalContext, QObject *par
 {
     setProcessEventsInterval(1000); // For the cancelation mechanism to work.
     m_cancelationError = currentContext()->throwValue(tr("Execution canceled"));
-    QScriptValue objectProto = globalObject().property(QLatin1String("Object"));
-    m_definePropertyFunction = objectProto.property(QLatin1String("defineProperty"));
+    QScriptValue objectProto = globalObject().property(QStringLiteral("Object"));
+    m_definePropertyFunction = objectProto.property(QStringLiteral("defineProperty"));
     QBS_ASSERT(m_definePropertyFunction.isFunction(), /* ignore */);
-    m_emptyFunction = evaluate(QLatin1String("(function(){})"));
+    m_emptyFunction = evaluate(QStringLiteral("(function(){})"));
     QBS_ASSERT(m_emptyFunction.isFunction(), /* ignore */);
     // Initially push a new context to turn off scope chain insanity mode.
     QScriptEngine::pushContext();
@@ -397,7 +397,7 @@ static QString findExtensionDir(const QStringList &searchPaths, const QString &e
         if (fi.exists() && fi.isDir())
             return dirPath;
     }
-    return QString();
+    return {};
 }
 
 static QScriptValue mergeExtensionObjects(const QScriptValueList &lst)
@@ -630,8 +630,8 @@ CodeLocation ScriptEngine::lastErrorLocation(const QScriptValue &v,
 {
     const QScriptValue &errorVal = lastErrorValue(v);
     const CodeLocation errorLoc(errorVal.property(StringConstants::fileNameProperty()).toString(),
-            errorVal.property(QLatin1String("lineNumber")).toInt32(),
-            errorVal.property(QLatin1String("expressionCaretOffset")).toInt32(),
+            errorVal.property(QStringLiteral("lineNumber")).toInt32(),
+            errorVal.property(QStringLiteral("expressionCaretOffset")).toInt32(),
             false);
     return errorLoc.isValid() ? errorLoc : fallbackLocation;
 }
@@ -674,7 +674,7 @@ public:
         : m_engine(engine)
     {
         m_proto = engine->globalObject().property(typeName)
-                .property(QLatin1String("prototype"));
+                .property(QStringLiteral("prototype"));
         QBS_ASSERT(m_proto.isObject(), return);
         m_descriptor = engine->newObject();
     }
@@ -683,7 +683,7 @@ public:
     {
         QScriptValue f = m_engine->evaluate(code);
         QBS_ASSERT(f.isFunction(), return);
-        m_descriptor.setProperty(QLatin1String("value"), f);
+        m_descriptor.setProperty(QStringLiteral("value"), f);
         m_engine->defineProperty(m_proto, name, m_descriptor);
     }
 
@@ -697,7 +697,7 @@ static QScriptValue js_consoleError(QScriptContext *context, QScriptEngine *engi
 {
     if (Q_UNLIKELY(context->argumentCount() != 1))
         return context->throwError(QScriptContext::SyntaxError,
-                                   QLatin1String("console.error() expects 1 argument"));
+                                   QStringLiteral("console.error() expects 1 argument"));
     logger->qbsLog(LoggerError) << context->argument(0).toString();
     return engine->undefinedValue();
 }
@@ -706,7 +706,7 @@ static QScriptValue js_consoleWarn(QScriptContext *context, QScriptEngine *engin
 {
     if (Q_UNLIKELY(context->argumentCount() != 1))
         return context->throwError(QScriptContext::SyntaxError,
-                                   QLatin1String("console.warn() expects 1 argument"));
+                                   QStringLiteral("console.warn() expects 1 argument"));
     logger->qbsWarning() << context->argument(0).toString();
     return engine->undefinedValue();
 }
@@ -715,7 +715,7 @@ static QScriptValue js_consoleInfo(QScriptContext *context, QScriptEngine *engin
 {
     if (Q_UNLIKELY(context->argumentCount() != 1))
         return context->throwError(QScriptContext::SyntaxError,
-                                   QLatin1String("console.info() expects 1 argument"));
+                                   QStringLiteral("console.info() expects 1 argument"));
     logger->qbsInfo() << context->argument(0).toString();
     return engine->undefinedValue();
 }
@@ -724,7 +724,7 @@ static QScriptValue js_consoleDebug(QScriptContext *context, QScriptEngine *engi
 {
     if (Q_UNLIKELY(context->argumentCount() != 1))
         return context->throwError(QScriptContext::SyntaxError,
-                                   QLatin1String("console.debug() expects 1 argument"));
+                                   QStringLiteral("console.debug() expects 1 argument"));
     logger->qbsDebug() << context->argument(0).toString();
     return engine->undefinedValue();
 }
@@ -738,27 +738,27 @@ void ScriptEngine::installQbsBuiltins()
 {
     globalObject().setProperty(StringConstants::qbsModule(), m_qbsObject = newObject());
 
-    globalObject().setProperty(QLatin1String("console"), m_consoleObject = newObject());
-    installConsoleFunction(QLatin1String("debug"), &js_consoleDebug);
-    installConsoleFunction(QLatin1String("error"), &js_consoleError);
-    installConsoleFunction(QLatin1String("info"), &js_consoleInfo);
-    installConsoleFunction(QLatin1String("log"), &js_consoleLog);
-    installConsoleFunction(QLatin1String("warn"), &js_consoleWarn);
+    globalObject().setProperty(QStringLiteral("console"), m_consoleObject = newObject());
+    installConsoleFunction(QStringLiteral("debug"), &js_consoleDebug);
+    installConsoleFunction(QStringLiteral("error"), &js_consoleError);
+    installConsoleFunction(QStringLiteral("info"), &js_consoleInfo);
+    installConsoleFunction(QStringLiteral("log"), &js_consoleLog);
+    installConsoleFunction(QStringLiteral("warn"), &js_consoleWarn);
 }
 
 void ScriptEngine::extendJavaScriptBuiltins()
 {
-    JSTypeExtender arrayExtender(this, QLatin1String("Array"));
-    arrayExtender.addFunction(QLatin1String("contains"),
-        QLatin1String("(function(e){return this.indexOf(e) !== -1;})"));
-    arrayExtender.addFunction(QLatin1String("containsAll"),
-        QLatin1String("(function(e){var $this = this;"
+    JSTypeExtender arrayExtender(this, QStringLiteral("Array"));
+    arrayExtender.addFunction(QStringLiteral("contains"),
+        QStringLiteral("(function(e){return this.indexOf(e) !== -1;})"));
+    arrayExtender.addFunction(QStringLiteral("containsAll"),
+        QStringLiteral("(function(e){var $this = this;"
                         "return e.every(function (v) { return $this.contains(v) });})"));
-    arrayExtender.addFunction(QLatin1String("containsAny"),
-        QLatin1String("(function(e){var $this = this;"
+    arrayExtender.addFunction(QStringLiteral("containsAny"),
+        QStringLiteral("(function(e){var $this = this;"
                         "return e.some(function (v) { return $this.contains(v) });})"));
-    arrayExtender.addFunction(QLatin1String("uniqueConcat"),
-        QLatin1String("(function(other){"
+    arrayExtender.addFunction(QStringLiteral("uniqueConcat"),
+        QStringLiteral("(function(other){"
                         "var r = this.concat();"
                         "var s = {};"
                         "r.forEach(function(x){ s[x] = true; });"
@@ -770,13 +770,13 @@ void ScriptEngine::extendJavaScriptBuiltins()
                         "});"
                         "return r;})"));
 
-    JSTypeExtender stringExtender(this, QLatin1String("String"));
-    stringExtender.addFunction(QLatin1String("contains"),
-        QLatin1String("(function(e){return this.indexOf(e) !== -1;})"));
-    stringExtender.addFunction(QLatin1String("startsWith"),
-        QLatin1String("(function(e){return this.slice(0, e.length) === e;})"));
-    stringExtender.addFunction(QLatin1String("endsWith"),
-                               QLatin1String("(function(e){return this.slice(-e.length) === e;})"));
+    JSTypeExtender stringExtender(this, QStringLiteral("String"));
+    stringExtender.addFunction(QStringLiteral("contains"),
+        QStringLiteral("(function(e){return this.indexOf(e) !== -1;})"));
+    stringExtender.addFunction(QStringLiteral("startsWith"),
+        QStringLiteral("(function(e){return this.slice(0, e.length) === e;})"));
+    stringExtender.addFunction(QStringLiteral("endsWith"),
+                               QStringLiteral("(function(e){return this.slice(-e.length) === e;})"));
 }
 
 void ScriptEngine::installFunction(const QString &name, int length, QScriptValue *functionValue,

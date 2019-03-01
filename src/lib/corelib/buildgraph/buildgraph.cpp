@@ -118,14 +118,14 @@ private:
         }
 
         getProduct(object);
-        QBS_ASSERT(m_product, return QueryFlags());
+        QBS_ASSERT(m_product, {});
 
         const auto it = m_product->productProperties.find(name);
 
         // It is important that we reject unknown property names. Otherwise QtScript will forward
         // *everything* to us, including built-in stuff like the hasOwnProperty function.
         if (it == m_product->productProperties.cend())
-            return QueryFlags();
+            return {};
 
         qbsEngine()->addPropertyRequestedInScript(Property(m_product->uniqueName(), QString(), name,
                 it.value(), Property::PropertyInProduct));
@@ -473,7 +473,7 @@ void connect(BuildGraphNode *p, BuildGraphNode *c)
             const bool filePathsMustBeDifferent = child->artifactType == Artifact::Generated
                     || child->product == ac->product || child->artifactType != ac->artifactType;
             if (filePathsMustBeDifferent && child->filePath() == ac->filePath()) {
-                throw ErrorInfo(QString::fromLatin1("%1 already has a child artifact %2 as "
+                throw ErrorInfo(QStringLiteral("%1 already has a child artifact %2 as "
                                                     "different object.").arg(p->toString(),
                                                                              ac->filePath()),
                                 CodeLocation(), true);
@@ -554,7 +554,7 @@ void removeGeneratedArtifactFromDisk(const QString &filePath, const Logger &logg
         return;
     logger.qbsDebug() << "removing " << filePath;
     if (!file.remove())
-        logger.qbsWarning() << QString::fromLatin1("Cannot remove '%1'.").arg(filePath);
+        logger.qbsWarning() << QStringLiteral("Cannot remove '%1'.").arg(filePath);
 }
 
 QString relativeArtifactFileName(const Artifact *artifact)
@@ -620,7 +620,7 @@ Artifact *lookupArtifact(const ResolvedProductConstPtr &product, const Artifact 
 Artifact *createArtifact(const ResolvedProductPtr &product,
                          const SourceArtifactConstPtr &sourceArtifact)
 {
-    auto artifact = new Artifact;
+    const auto artifact = new Artifact;
     artifact->artifactType = Artifact::SourceFile;
     setArtifactData(artifact, sourceArtifact);
     insertArtifact(product, artifact);
@@ -808,7 +808,7 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product,
                             && (other->artifactType != Artifact::SourceFile
                                 || a->artifactType != Artifact::SourceFile
                                 || other->product == a->product)) {
-                        throw ErrorInfo(QString::fromLatin1("There is more than one artifact for "
+                        throw ErrorInfo(QStringLiteral("There is more than one artifact for "
                                 "file '%1' in the child list for output '%2'.")
                                 .arg(a->filePath(), output->filePath()), CodeLocation(), true);
                     }

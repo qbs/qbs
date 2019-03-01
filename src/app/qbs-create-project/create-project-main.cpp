@@ -56,17 +56,17 @@ int main(int argc, char *argv[])
     using qbs::Internal::Tr;
 
     QCoreApplication app(argc, argv);
-    const QCommandLineOption flatOpt(QLatin1String("flat"),
+    const QCommandLineOption flatOpt(QStringLiteral("flat"),
             Tr::tr("Do not create nested project files, even if there are subdirectories and "
                    "the top-level directory does not contain any files."));
-    const QCommandLineOption whiteListOpt(QLatin1String("whitelist"),
+    const QCommandLineOption whiteListOpt(QStringLiteral("whitelist"),
             Tr::tr("Only consider files whose names match these patterns. The list entries "
                    "can contain wildcards and are separated by commas. By default, all files "
-                   "are considered."), QLatin1String("whitelist"));
-    const QCommandLineOption blackListOpt(QLatin1String("blacklist"),
+                   "are considered."), QStringLiteral("whitelist"));
+    const QCommandLineOption blackListOpt(QStringLiteral("blacklist"),
             Tr::tr("Ignore files whose names match these patterns. The list entries "
                    "can contain wildcards and are separated by commas. By default, no files "
-                   "are ignored."), QLatin1String("blacklist"));
+                   "are ignored."), QStringLiteral("blacklist"));
     QCommandLineParser parser;
     parser.setApplicationDescription(Tr::tr("This tool creates a qbs project from an existing "
                                             "source tree.\nNote: The resulting project file(s) "

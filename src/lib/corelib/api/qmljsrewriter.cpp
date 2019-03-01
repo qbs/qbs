@@ -132,15 +132,15 @@ Rewriter::Range Rewriter::addBinding(AST::UiObjectInitializer *ast,
     QString newPropertyTemplate;
     switch (bindingType) {
     case ArrayBinding:
-        newPropertyTemplate = QLatin1String("%1: [\n%2\n]");
+        newPropertyTemplate = QStringLiteral("%1: [\n%2\n]");
         break;
 
     case ObjectBinding:
-        newPropertyTemplate = QLatin1String("%1: %2");
+        newPropertyTemplate = QStringLiteral("%1: %2");
         break;
 
     case ScriptBinding:
-        newPropertyTemplate = QLatin1String("%1: %2");
+        newPropertyTemplate = QStringLiteral("%1: %2");
         break;
 
     default:
@@ -160,7 +160,7 @@ Rewriter::Range Rewriter::addBinding(AST::UiObjectInitializer *ast,
     m_changeSet->insert(endOfPreviousMember.end(),
                          newPropertyTemplate.arg(propertyName, propertyValue));
 
-    return Range(endOfPreviousMember.end(), endOfPreviousMember.end());
+    return {int(endOfPreviousMember.end()), int(endOfPreviousMember.end())};
 }
 
 UiObjectMemberList *Rewriter::searchMemberToInsertAfter(UiObjectMemberList *members,
@@ -246,11 +246,11 @@ UiObjectMemberList *Rewriter::searchMemberToInsertAfter(UiObjectMemberList *memb
         else if (auto objectBinding = cast<UiObjectBinding*>(member))
             orderedMembers[toString(objectBinding->qualifiedId)] = iter;
         else if (cast<UiObjectDefinition*>(member))
-            orderedMembers[QString::null] = iter;
+            orderedMembers[QString()] = iter;
         else if (auto scriptBinding = cast<UiScriptBinding*>(member))
             orderedMembers[toString(scriptBinding->qualifiedId)] = iter;
         else if (cast<UiPublicMember*>(member))
-            orderedMembers[QLatin1String("property")] = iter;
+            orderedMembers[QStringLiteral("property")] = iter;
     }
 
     int idx = propertyOrder.indexOf(propertyName);
@@ -342,7 +342,7 @@ void Rewriter::replaceMemberValue(UiObjectMember *propertyMember,
             endOffset = startOffset;
             if (publicMember->semicolonToken.isValid())
                 startOffset = publicMember->semicolonToken.offset;
-            replacement.prepend(QLatin1String(": "));
+            replacement.prepend(QStringLiteral(": "));
         }
     } else {
         return;
@@ -543,7 +543,7 @@ void Rewriter::includeEmptyGroupedProperty(UiObjectDefinition *groupedProperty, 
 #if 0
 UiObjectMemberList *QMLRewriter::searchMemberToInsertAfter(UiObjectMemberList *members, const QStringList &propertyOrder)
 {
-    const int objectDefinitionInsertionPoint = propertyOrder.indexOf(QString::null);
+    const int objectDefinitionInsertionPoint = propertyOrder.indexOf(QString());
 
     UiObjectMemberList *lastObjectDef = nullptr;
     UiObjectMemberList *lastNonObjectDef = nullptr;
@@ -588,11 +588,11 @@ UiObjectMemberList *QMLRewriter::searchMemberToInsertAfter(UiObjectMemberList *m
         else if (UiObjectBinding *objectBinding = cast<UiObjectBinding*>(member))
             orderedMembers[toString(objectBinding->qualifiedId)] = iter;
         else if (cast<UiObjectDefinition*>(member))
-            orderedMembers[QString::null] = iter;
+            orderedMembers[QString()] = iter;
         else if (UiScriptBinding *scriptBinding = cast<UiScriptBinding*>(member))
             orderedMembers[toString(scriptBinding->qualifiedId)] = iter;
         else if (cast<UiPublicMember*>(member))
-            orderedMembers[QLatin1String("property")] = iter;
+            orderedMembers[QStringLiteral("property")] = iter;
     }
 
     int idx = propertyOrder.indexOf(propertyName);

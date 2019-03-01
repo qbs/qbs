@@ -79,8 +79,8 @@ using namespace qbs;
 using namespace qbs::Internal;
 
 static QString testDataDir() {
-    return FileInfo::resolvePath(QLatin1String(SRCDIR),
-                                 QLatin1String("../../../tests/auto/language/testdata"));
+    return FileInfo::resolvePath(QStringLiteral(SRCDIR),
+                                 QStringLiteral("../../../tests/auto/language/testdata"));
 }
 static QString testProject(const char *fileName) {
     return testDataDir() + QLatin1Char('/') + QLatin1String(fileName);
@@ -180,7 +180,7 @@ void TestLanguage::initTestCase()
     m_engine = ScriptEngine::create(m_logger, EvalContext::PropertyEvaluation, this);
     loader = new Loader(m_engine, m_logger);
     loader->setSearchPaths(QStringList()
-                           << QLatin1String(SRCDIR "/../../../share/qbs"));
+                           << QStringLiteral(SRCDIR "/../../../share/qbs"));
     defaultParameters.setTopLevelProfile(profileName());
     defaultParameters.setConfigurationName("default");
     defaultParameters.expandBuildConfiguration();
@@ -343,7 +343,7 @@ void TestLanguage::canonicalArchitecture()
         project = loader->loadProject(defaultParameters);
         QVERIFY(!!project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
-        ResolvedProductPtr product = products.value(QLatin1String("x86"));
+        ResolvedProductPtr product = products.value(QStringLiteral("x86"));
         QVERIFY(!!product);
     } catch (const ErrorInfo &e) {
         exceptionCaught = true;
@@ -360,7 +360,7 @@ void TestLanguage::rfc1034Identifier()
         project = loader->loadProject(defaultParameters);
         QVERIFY(!!project);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
-        ResolvedProductPtr product = products.value(QLatin1String("this-has-special-characters-"
+        ResolvedProductPtr product = products.value(QStringLiteral("this-has-special-characters-"
                                                                   "uh-oh-Undersc0r3s-Are.Bad"));
         QVERIFY(!!product);
     } catch (const ErrorInfo &e) {
@@ -753,7 +753,7 @@ void TestLanguage::environmentVariable()
     bool exceptionCaught = false;
     try {
         // Create new environment:
-        const QString varName = QLatin1String("PRODUCT_NAME");
+        const QString varName = QStringLiteral("PRODUCT_NAME");
         const QString productName = QLatin1String("MyApp") + QString::number(qrand());
         QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
         env.insert(varName, productName);
@@ -1161,11 +1161,11 @@ void TestLanguage::getNativeSetting()
 
         QString expectedTargetName;
         if (HostOsInfo::isMacosHost())
-            expectedTargetName = QLatin1String("Mac OS X");
+            expectedTargetName = QStringLiteral("Mac OS X");
         else if (HostOsInfo::isWindowsHost())
-            expectedTargetName = QLatin1String("Windows");
+            expectedTargetName = QStringLiteral("Windows");
         else
-            expectedTargetName = QLatin1String("Unix");
+            expectedTargetName = QStringLiteral("Unix");
 
         QVERIFY(!!project);
         QHash<QString, ResolvedProductPtr> products;
@@ -1173,7 +1173,7 @@ void TestLanguage::getNativeSetting()
             products.insert(product->targetName, product);
         ResolvedProductPtr product = products.value(expectedTargetName);
         QVERIFY(!!product);
-        ResolvedProductPtr product2 = products.value(QLatin1String("fallback"));
+        ResolvedProductPtr product2 = products.value(QStringLiteral("fallback"));
         QVERIFY(!!product2);
     } catch (const ErrorInfo &e) {
         exceptionCaught = true;
@@ -1288,11 +1288,11 @@ void TestLanguage::homeDirectory()
                  dir.filePath("a"));
 
         QCOMPARE(product->productProperties.value("bogus1").toString(),
-                 FileInfo::resolvePath(product->sourceDirectory, QLatin1String("a~b")));
+                 FileInfo::resolvePath(product->sourceDirectory, QStringLiteral("a~b")));
         QCOMPARE(product->productProperties.value("bogus2").toString(),
-                 FileInfo::resolvePath(product->sourceDirectory, QLatin1String("a/~/bb")));
+                 FileInfo::resolvePath(product->sourceDirectory, QStringLiteral("a/~/bb")));
         QCOMPARE(product->productProperties.value("user").toString(),
-                 FileInfo::resolvePath(product->sourceDirectory, QLatin1String("~foo/bar")));
+                 FileInfo::resolvePath(product->sourceDirectory, QStringLiteral("~foo/bar")));
     }
     catch (const ErrorInfo &e) {
         qDebug() << e.toString();
@@ -1567,7 +1567,7 @@ public:
     {
         JSSourceValuePtr value = JSSourceValue::create();
         value->setFile(m_fileContext);
-        auto str = new QString(sourceCode);
+        const auto str = new QString(sourceCode);
         m_strings.push_back(str);
         value->setSourceCode(QStringRef(str));
         return value;
@@ -1650,7 +1650,7 @@ void TestLanguage::jsImportUsedInMultipleScopes()
     try {
         SetupProjectParameters params = defaultParameters;
         params.setProjectFilePath(testProject("jsimportsinmultiplescopes.qbs"));
-        params.setOverriddenValues({std::make_pair(QLatin1String("qbs.buildVariant"),
+        params.setOverriddenValues({std::make_pair(QStringLiteral("qbs.buildVariant"),
                                                    buildVariant)});
         params.expandBuildConfiguration();
         TopLevelProjectPtr project = loader->loadProject(params);
@@ -1703,7 +1703,7 @@ void TestLanguage::modulePrioritizationBySearchPath()
     try {
         SetupProjectParameters params = defaultParameters;
         params.setProjectFilePath(testProject("module-prioritization-by-search-path/project.qbs"));
-        params.setOverriddenValues({std::make_pair(QLatin1String("project.qbsSearchPaths"),
+        params.setOverriddenValues({std::make_pair(QStringLiteral("project.qbsSearchPaths"),
                                                    searchPaths)});
         params.expandBuildConfiguration();
         TopLevelProjectPtr project = loader->loadProject(params);
@@ -2398,9 +2398,9 @@ void TestLanguage::pathProperties()
                 QStringList() << "dummy" << "includePaths").toStringList();
         QCOMPARE(includePaths, QStringList() << projectFileDir);
         QCOMPARE(productProps.value("base_fileInProductDir").toString(),
-                 FileInfo::resolvePath(projectFileDir, QLatin1String("foo")));
+                 FileInfo::resolvePath(projectFileDir, QStringLiteral("foo")));
         QCOMPARE(productProps.value("base_fileInBaseProductDir").toString(),
-                 FileInfo::resolvePath(projectFileDir, QLatin1String("subdir/bar")));
+                 FileInfo::resolvePath(projectFileDir, QStringLiteral("subdir/bar")));
     } catch (const ErrorInfo &e) {
         exceptionCaught = true;
         qDebug() << e.toString();
@@ -2412,7 +2412,7 @@ void TestLanguage::profileValuesAndOverriddenValues()
 {
     bool exceptionCaught = false;
     try {
-        TemporaryProfile tp(QLatin1String("tst_lang_profile"), m_settings);
+        TemporaryProfile tp(QStringLiteral("tst_lang_profile"), m_settings);
         Profile profile = tp.p;
         profile.setValue("dummy.defines", "IN_PROFILE");
         profile.setValue("dummy.cFlags", "IN_PROFILE");
@@ -2435,7 +2435,7 @@ void TestLanguage::profileValuesAndOverriddenValues()
         QCOMPARE(values.length(), 1);
         QCOMPARE(values.front().toString(), QString("IN_PROFILE"));
         values = product->moduleProperties->moduleProperty("dummy", "defines").toList();
-        QCOMPARE(values, QVariantList() << QLatin1String("IN_FILE") << QLatin1String("IN_PROFILE"));
+        QCOMPARE(values, QVariantList() << QStringLiteral("IN_FILE") << QStringLiteral("IN_PROFILE"));
         values = product->moduleProperties->moduleProperty("dummy", "cFlags").toList();
         QCOMPARE(values.length(), 1);
         QCOMPARE(values.front().toString(), QString("OVERRIDDEN"));
@@ -2536,9 +2536,9 @@ void TestLanguage::productDirectories()
         product = products.value("MyApp");
         QVERIFY(!!product);
         const QVariantMap config = product->productProperties;
-        QCOMPARE(config.value(QLatin1String("buildDirectory")).toString(),
+        QCOMPARE(config.value(QStringLiteral("buildDirectory")).toString(),
                  product->buildDirectory());
-        QCOMPARE(config.value(QLatin1String("sourceDirectory")).toString(), testDataDir());
+        QCOMPARE(config.value(QStringLiteral("sourceDirectory")).toString(), testDataDir());
     }
     catch (const ErrorInfo &e) {
         exceptionCaught = true;
@@ -2911,7 +2911,7 @@ void TestLanguage::throwingProbe()
         SetupProjectParameters params = defaultParameters;
         params.setProjectFilePath(testProject("throwing-probe.qbs"));
         QVariantMap properties;
-        properties.insert(QLatin1String("products.theProduct.enableProbe"), enableProbe);
+        properties.insert(QStringLiteral("products.theProduct.enableProbe"), enableProbe);
         params.setOverriddenValues(properties);
         const TopLevelProjectPtr project = loader->loadProject(params);
         QVERIFY(!!project);

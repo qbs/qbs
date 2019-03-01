@@ -58,17 +58,17 @@ QByteArray smimeMessageContent(const QByteArray &data)
 {
     QCFType<CMSDecoderRef> decoder = NULL;
     if (CMSDecoderCreate(&decoder) != noErr)
-        return QByteArray();
+        return {};
 
     if (CMSDecoderUpdateMessage(decoder, data.constData(), data.size()) != noErr)
-        return QByteArray();
+        return {};
 
     if (CMSDecoderFinalizeMessage(decoder) != noErr)
-        return QByteArray();
+        return {};
 
     QCFType<CFDataRef> content = NULL;
     if (CMSDecoderCopyContent(decoder, &content) != noErr)
-        return QByteArray();
+        return {};
 
     return QByteArray::fromCFData(content);
 }
@@ -83,14 +83,14 @@ QVariantMap certificateInfo(const QByteArray &data)
     for (const auto &extension : cert.extensions()) {
         if (extension.name() == QStringLiteral("extendedKeyUsage")) {
              if (!extension.value().toStringList().contains(QStringLiteral("Code Signing")))
-                 return QVariantMap();
+                 return {};
         }
     }
 
     const auto subjectInfo = [](const QSslCertificate &cert) {
         QVariantMap map;
         for (const auto &attr : cert.subjectInfoAttributes())
-            map.insert(QString::fromLatin1(attr), cert.subjectInfo(attr).front());
+            map.insert(QString::fromUtf8(attr), cert.subjectInfo(attr).front());
         return map;
     };
 
@@ -120,7 +120,7 @@ QVariantMap identitiesProperties()
                                                         &kCFTypeDictionaryValueCallBacks);
     QCFType<CFTypeRef> result = NULL;
     if (SecItemCopyMatching(query, &result) != errSecSuccess)
-        return QVariantMap();
+        return {};
 
     QVariantMap items;
     const auto tryAppend = [&](SecIdentityRef identity) {

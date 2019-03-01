@@ -46,20 +46,20 @@ void runProcess(const QStringList &commandLine, const QString &workingDir, QByte
         p.setWorkingDirectory(workingDir);
     p.start(command, args);
     if (!p.waitForStarted())
-        throw Exception(QString::fromLatin1("Process '%1' failed to start.").arg(command));
+        throw Exception(QStringLiteral("Process '%1' failed to start.").arg(command));
     p.waitForFinished(-1);
     if (p.exitStatus() != QProcess::NormalExit) {
-        throw Exception(QString::fromLatin1("Error running '%1': %2")
+        throw Exception(QStringLiteral("Error running '%1': %2")
                         .arg(command, p.errorString()));
     }
     if (exitCode)
         *exitCode = p.exitCode();
     if (p.exitCode() != 0) {
-        QString errorString = QString::fromLatin1("Command '%1' finished with exit code %2.")
+        QString errorString = QStringLiteral("Command '%1' finished with exit code %2.")
                 .arg(command).arg(p.exitCode());
         const QByteArray stdErr = p.readAllStandardError();
         if (!stdErr.isEmpty()) {
-            errorString += QString::fromLatin1("\nStandard error output was: '%1'")
+            errorString += QStringLiteral("\nStandard error output was: '%1'")
                     .arg(QString::fromLocal8Bit(stdErr));
         }
         throw Exception(errorString);

@@ -130,7 +130,7 @@ private:
         }
 
         setup(object);
-        QBS_ASSERT(m_product || m_artifact, return QueryFlags());
+        QBS_ASSERT(m_product || m_artifact, return {});
         bool isPresent;
         m_result = getModuleProperty(m_product, m_artifact, static_cast<ScriptEngine *>(engine()),
                                      m_moduleName, name, &isPresent);
@@ -185,9 +185,9 @@ private:
     QScriptValue m_result;
 };
 
-static QString ptrKey() { return QLatin1String("__internalPtr"); }
-static QString typeKey() { return QLatin1String("__type"); }
-static QString artifactType() { return QLatin1String("artifact"); }
+static QString ptrKey() { return QStringLiteral("__internalPtr"); }
+static QString typeKey() { return QStringLiteral("__type"); }
+static QString artifactType() { return QStringLiteral("artifact"); }
 
 static QScriptValue js_moduleDependencies(QScriptContext *, ScriptEngine *engine,
                                           const ResolvedModule *module)
@@ -280,7 +280,7 @@ void ModuleProperties::init(QScriptValue objectWithProperties, const void *ptr,
                             const QString &type)
 {
     QScriptEngine * const engine = objectWithProperties.engine();
-    objectWithProperties.setProperty(QLatin1String("moduleProperty"),
+    objectWithProperties.setProperty(QStringLiteral("moduleProperty"),
                                      engine->newFunction(ModuleProperties::js_moduleProperty, 2));
     objectWithProperties.setProperty(ptrKey(), engine->toScriptValue(quintptr(ptr)));
     objectWithProperties.setProperty(typeKey(), type);
@@ -324,12 +324,12 @@ QScriptValue ModuleProperties::moduleProperty(QScriptContext *context, QScriptEn
     const QScriptValue typeScriptValue = objectWithProperties.property(typeKey());
     if (Q_UNLIKELY(!typeScriptValue.isString())) {
         return context->throwError(QScriptContext::TypeError,
-                QLatin1String("Internal error: __type not set up"));
+                QStringLiteral("Internal error: __type not set up"));
     }
     const QScriptValue ptrScriptValue = objectWithProperties.property(ptrKey());
     if (Q_UNLIKELY(!ptrScriptValue.isNumber())) {
         return context->throwError(QScriptContext::TypeError,
-                QLatin1String("Internal error: __internalPtr not set up"));
+                QStringLiteral("Internal error: __internalPtr not set up"));
     }
 
     const void *ptr = reinterpret_cast<const void *>(qscriptvalue_cast<quintptr>(ptrScriptValue));
@@ -342,7 +342,7 @@ QScriptValue ModuleProperties::moduleProperty(QScriptContext *context, QScriptEn
         product = artifact->product.get();
     } else {
         return context->throwError(QScriptContext::TypeError,
-                                   QLatin1String("Internal error: invalid type"));
+                                   QStringLiteral("Internal error: invalid type"));
     }
 
     const auto qbsEngine = static_cast<ScriptEngine *>(engine);

@@ -41,7 +41,7 @@ public:
 int main(int argc, char **argv)
 {
     QCoreApplication app(argc, argv);
-    auto obj = new MyObject(&app);
+    const auto obj = new MyObject(&app);
     return app.exec();
 }
 

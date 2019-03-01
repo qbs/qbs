@@ -257,7 +257,16 @@ Module {
                 var rootElem = manifestData.documentElement();
                 if (!rootElem || !rootElem.isElement() || rootElem.tagName() != "manifest")
                     throw "No manifest tag found in '" + input.filePath + "'.";
-                rootElem.setAttribute("package", product.Android.sdk.packageName);
+
+                // Quick sanity check. Don't try to be fancy; let's not risk rejecting valid names.
+                var packageName = product.Android.sdk.packageName;
+                if (!packageName.match(/^[^.]+(?:\.[^.]+)+$/)) {
+                    throw "Package name '" + packageName + "' is not valid. Please set "
+                            + "Android.sdk.packageName to a name following the "
+                            + "'com.mycompany.myproduct' pattern."
+                }
+                rootElem.setAttribute("package", packageName);
+
                 manifestData.save(output.filePath, 4);
             }
             return cmd;

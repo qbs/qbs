@@ -49,28 +49,16 @@ namespace {
 
 static QStringList sourceFileExtensions()
 {
-    return QStringList()
-            << QStringLiteral("c")
-            << QStringLiteral("C")
-            << QStringLiteral("cpp")
-            << QStringLiteral("cxx")
-            << QStringLiteral("c++")
-            << QStringLiteral("cc")
-            << QStringLiteral("cs")
-            << QStringLiteral("def")
-            << QStringLiteral("java")
-            << QStringLiteral("m")
-            << QStringLiteral("mm");
+    return {QStringLiteral("c"), QStringLiteral("C"), QStringLiteral("cpp"),
+            QStringLiteral("cxx"), QStringLiteral("c++"), QStringLiteral("cc"),
+            QStringLiteral("cs"), QStringLiteral("def"), QStringLiteral("java"),
+            QStringLiteral("m"), QStringLiteral("mm")};
 }
 
 static QStringList headerFileExtensions()
 {
-    return QStringList()
-            << QStringLiteral("h")
-            << QStringLiteral("H")
-            << QStringLiteral("hpp")
-            << QStringLiteral("hxx")
-            << QStringLiteral("h++");
+    return {QStringLiteral("h"), QStringLiteral("H"), QStringLiteral("hpp"),
+            QStringLiteral("hxx"),  QStringLiteral("h++")};
 }
 
 static std::vector<MSBuildFilter *> defaultItemGroupFilters(IMSBuildItemGroup *parent = nullptr)
@@ -113,10 +101,10 @@ MSBuildFiltersProject::MSBuildFiltersProject(const GeneratableProductData &produ
     // filters projects are always v4.0
     setToolsVersion(QStringLiteral("4.0"));
 
-    auto itemGroup = new MSBuildItemGroup(this);
+    const auto itemGroup = new MSBuildItemGroup(this);
     const auto filterOptions = defaultItemGroupFilters();
     for (const auto options : filterOptions) {
-        auto filter = new MSBuildFilter(options->include(), options->extensions(), itemGroup);
+        const auto filter = new MSBuildFilter(options->include(), options->extensions(), itemGroup);
         filter->appendProperty(QStringLiteral("ParseFiles"), options->parseFiles());
         filter->appendProperty(QStringLiteral("SourceControlFiles"), options->sourceControlFiles());
     }
