@@ -679,10 +679,10 @@ void TestTools::set_begin()
     Set<int> set2 = set1;
 
     {
-        Set<int>::const_iterator i = set1.constBegin();
-        Set<int>::const_iterator j = set1.cbegin();
-        Set<int>::const_iterator k = set2.constBegin();
-        Set<int>::const_iterator ell = set2.cbegin();
+        const auto i = set1.constBegin();
+        const auto j = set1.cbegin();
+        const auto k = set2.constBegin();
+        const auto ell = set2.cbegin();
 
         QVERIFY(i == j);
         QVERIFY(k == ell);
@@ -691,10 +691,10 @@ void TestTools::set_begin()
     set1.insert(44);
 
     {
-        Set<int>::const_iterator i = set1.constBegin();
-        Set<int>::const_iterator j = set1.cbegin();
-        Set<int>::const_iterator k = set2.constBegin();
-        Set<int>::const_iterator ell = set2.cbegin();
+        const auto i = set1.constBegin();
+        const auto j = set1.cbegin();
+        const auto k = set2.constBegin();
+        const auto ell = set2.cbegin();
 
         QVERIFY(i == j);
         QVERIFY(k == ell);
@@ -703,10 +703,10 @@ void TestTools::set_begin()
     set2 = set1;
 
     {
-        Set<int>::const_iterator i = set1.constBegin();
-        Set<int>::const_iterator j = set1.cbegin();
-        Set<int>::const_iterator k = set2.constBegin();
-        Set<int>::const_iterator ell = set2.cbegin();
+        const auto i = set1.constBegin();
+        const auto j = set1.cbegin();
+        const auto k = set2.constBegin();
+        const auto ell = set2.cbegin();
 
         QVERIFY(i == j);
         QVERIFY(k == ell);
@@ -719,10 +719,10 @@ void TestTools::set_end()
     Set<int> set2 = set1;
 
     {
-        Set<int>::const_iterator i = set1.constEnd();
-        Set<int>::const_iterator j = set1.cend();
-        Set<int>::const_iterator k = set2.constEnd();
-        Set<int>::const_iterator ell = set2.cend();
+        const auto i = set1.constEnd();
+        const auto j = set1.cend();
+        const auto k = set2.constEnd();
+        const auto ell = set2.cend();
 
         QVERIFY(i == j);
         QVERIFY(k == ell);
@@ -734,10 +734,10 @@ void TestTools::set_end()
     set1.insert(44);
 
     {
-        Set<int>::const_iterator i = set1.constEnd();
-        Set<int>::const_iterator j = set1.cend();
-        Set<int>::const_iterator k = set2.constEnd();
-        Set<int>::const_iterator ell = set2.cend();
+        const auto i = set1.constEnd();
+        const auto j = set1.cend();
+        const auto k = set2.constEnd();
+        const auto ell = set2.cend();
 
         QVERIFY(i == j);
         QVERIFY(k == ell);
@@ -749,10 +749,10 @@ void TestTools::set_end()
     set2 = set1;
 
     {
-        Set<int>::const_iterator i = set1.constEnd();
-        Set<int>::const_iterator j = set1.cend();
-        Set<int>::const_iterator k = set2.constEnd();
-        Set<int>::const_iterator ell = set2.cend();
+        const auto i = set1.constEnd();
+        const auto j = set1.cend();
+        const auto k = set2.constEnd();
+        const auto ell = set2.cend();
 
         QVERIFY(i == j);
         QVERIFY(k == ell);
