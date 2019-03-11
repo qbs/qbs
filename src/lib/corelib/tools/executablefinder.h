@@ -68,7 +68,7 @@ private:
     void cacheFilePath(const QString &filePaht, const QString &filePath) const;
 
     ResolvedProductPtr m_product;
-    const QProcessEnvironment &m_environment;
+    const QProcessEnvironment m_environment;
 };
 
 } // namespace Internal
