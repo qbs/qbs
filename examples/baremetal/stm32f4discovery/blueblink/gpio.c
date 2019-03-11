@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2017 The Qt Company Ltd.
+** Copyright (C) 2019 Denis Shienkov <denis.shienkov@gmail.com>
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the examples of Qbs.
@@ -48,22 +48,32 @@
 **
 ****************************************************************************/
 
-import qbs
+#include "gpio.h"
+#include "system.h"
 
-Project {
-    references: [
-        "app-and-lib/app_and_lib.qbs",
-        "cocoa-application/CocoaApplication.qbs",
-        "cocoa-touch-application/CocoaTouchApplication.qbs",
-        "code-generator/code-generator.qbs",
-        "collidingmice/collidingmice.qbs",
-        "compiled-qml/myapp.qbs",
-        "helloworld-complex/hello.qbs",
-        "helloworld-minimal/hello.qbs",
-        "helloworld-qt/hello.qbs",
-        "install-bundle/install-bundle.qbs",
-        "protobuf/cpp/addressbook.qbs",
-        "protobuf/objc/addressbook.qbs",
-        "baremetal/baremetal.qbs"
-    ]
+#define GPIO_BLUE_LED_PIN_POS   (15u)
+#define GPIO_BLUE_LED_PIN       (1u << GPIO_BLUE_LED_PIN_POS)
+
+// Output push pull mode.
+#define GPIO_MODE_OUTPUT_PP     (0x00000001u)
+
+// Bit definition for RCC_AHB1ENR register.
+#define RCC_AHB1ENR_GPIODEN     (0x00000008u)
+// Bits definition for GPIO_MODER register.
+#define GPIO_MODER_MODE0        (0x00000003u)
+
+void gpio_init_blue_led(void)
+{
+    // Enable RCC clock on GPIOD port.
+    RCC_REGS_MAP->AHB1ENR |= RCC_AHB1ENR_GPIODEN;
+    // Configure GPIO pin #15 as an output.
+    uint32_t value = GPIOD_REGS_MAP->MODER;
+    value &= ~(GPIO_MODER_MODE0 << (GPIO_BLUE_LED_PIN_POS * 2u));
+    value |= (GPIO_MODE_OUTPUT_PP << (GPIO_BLUE_LED_PIN_POS * 2u));
+    GPIOD_REGS_MAP->MODER = value;
+}
+
+void gpio_toggle_blue_led(void)
+{
+    GPIOD_REGS_MAP->ODR ^= GPIO_BLUE_LED_PIN;
 }

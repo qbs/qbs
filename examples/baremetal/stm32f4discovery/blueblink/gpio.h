@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2017 The Qt Company Ltd.
+** Copyright (C) 2019 Denis Shienkov <denis.shienkov@gmail.com>
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the examples of Qbs.
@@ -48,22 +48,18 @@
 **
 ****************************************************************************/
 
-import qbs
+#ifndef GPIO_H
+#define GPIO_H
 
-Project {
-    references: [
-        "app-and-lib/app_and_lib.qbs",
-        "cocoa-application/CocoaApplication.qbs",
-        "cocoa-touch-application/CocoaTouchApplication.qbs",
-        "code-generator/code-generator.qbs",
-        "collidingmice/collidingmice.qbs",
-        "compiled-qml/myapp.qbs",
-        "helloworld-complex/hello.qbs",
-        "helloworld-minimal/hello.qbs",
-        "helloworld-qt/hello.qbs",
-        "install-bundle/install-bundle.qbs",
-        "protobuf/cpp/addressbook.qbs",
-        "protobuf/objc/addressbook.qbs",
-        "baremetal/baremetal.qbs"
-    ]
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void gpio_init_blue_led(void);
+void gpio_toggle_blue_led(void);
+
+#ifdef __cplusplus
 }
+#endif
+
+#endif // GPIO_H
