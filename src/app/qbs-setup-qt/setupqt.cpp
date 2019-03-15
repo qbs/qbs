@@ -259,7 +259,7 @@ static Match compatibility(const QtEnvironment &env, const Profile &toolchainPro
         const Version compilerVersion = Version::fromString(
             toolchainProfile.value(QStringLiteral("cpp.compilerVersion")).toString());
 
-        static const Version vs2017Version{19, 10};
+        static const Version vs2017Version{19, 1};
         if (env.msvcVersion >= vs2017Version) {
             if (env.msvcVersion.majorVersion() != compilerVersion.majorVersion()
                     || compilerVersion < vs2017Version) {
