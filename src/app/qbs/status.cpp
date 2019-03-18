@@ -145,7 +145,7 @@ int printStatus(const ProjectData &project)
                       << " (" << group.location().filePath() << ":"
                       << group.location().line() << ")";
             QStringList sourceFiles = group.allFilePaths();
-            qSort(sourceFiles);
+            std::sort(sourceFiles.begin(), sourceFiles.end());
             for (const QString &sourceFile : qAsConst(sourceFiles)) {
                 if (!QFileInfo(sourceFile).exists())
                     missingFiles.push_back(sourceFile);

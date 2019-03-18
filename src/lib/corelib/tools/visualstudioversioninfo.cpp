@@ -53,7 +53,8 @@ VisualStudioVersionInfo::VisualStudioVersionInfo()
 VisualStudioVersionInfo::VisualStudioVersionInfo(const Version &version)
     : m_version(version)
 {
-    QBS_CHECK(version.minorVersion() == 0 || version == Version(7, 1));
+    QBS_CHECK(version.minorVersion() == 0 || version == Version(7, 1)
+              || version.majorVersion() >= 15);
 }
 
 std::set<VisualStudioVersionInfo> VisualStudioVersionInfo::knownVersions()

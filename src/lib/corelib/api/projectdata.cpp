@@ -883,7 +883,7 @@ QVariant PropertyMap::getModuleProperty(const QString &moduleName,
 static QString mapToString(const QVariantMap &map, const QString &prefix)
 {
     QStringList keys(map.keys());
-    qSort(keys);
+    std::sort(keys.begin(), keys.end());
     QString stringRep;
     for (const QString &key : qAsConst(keys)) {
         const QVariant &val = map.value(key);

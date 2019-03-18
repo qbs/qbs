@@ -313,11 +313,15 @@ function linkerFlags(project, product, input, outputs) {
             args.push("--entry", product.cpp.entryPoint);
         else if (product.qbs.architecture === "mcs51")
             args.push("-s", product.cpp.entryPoint);
+        else if (product.qbs.architecture === "avr")
+            args.push("-s", product.cpp.entryPoint);
     }
 
     if (product.qbs.architecture === "arm")
         args.push("--silent"); // Silent operation.
     else if (product.qbs.architecture === "mcs51")
+        args.push("-S"); // Silent operation.
+    else if (product.qbs.architecture === "avr")
         args.push("-S"); // Silent operation.
 
     args = args.concat(ModUtils.moduleProperty(product, "driverLinkerFlags"));

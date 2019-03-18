@@ -94,7 +94,7 @@ Version Version::fromString(const QString &versionString, bool buildNumberAllowe
     for (int i = 0; i < 2; ++i)
         pattern += QStringLiteral("(?:\\.(\\d+))?"); // Followed by a dot and a number up to two times.
     if (buildNumberAllowed)
-        pattern += QStringLiteral("(?:-(\\d+))?"); // And possibly a dash followed by the build number.
+        pattern += QStringLiteral("(?:[-.](\\d+))?"); // And possibly a dash or dot followed by the build number.
     QRegExp rex(pattern);
     if (!rex.exactMatch(versionString))
         return Version{};

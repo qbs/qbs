@@ -284,8 +284,10 @@ GroupData ProjectPrivate::createGroupDataFromGroup(const GroupPtr &resolvedGroup
             group.d->sourceArtifactsFromWildcards.push_back(artifact);
         }
     }
-    qSort(group.d->sourceArtifacts);
-    qSort(group.d->sourceArtifactsFromWildcards);
+    std::sort(group.d->sourceArtifacts.begin(),
+              group.d->sourceArtifacts.end());
+    std::sort(group.d->sourceArtifactsFromWildcards.begin(),
+              group.d->sourceArtifactsFromWildcards.end());
     group.d->properties.d->m_map = resolvedGroup->properties;
     group.d->isEnabled = resolvedGroup->enabled;
     group.d->isValid = true;
@@ -383,8 +385,9 @@ void ProjectPrivate::addGroup(const ProductData &product, const QString &groupNa
         resolvedGroup->properties = resolvedProducts[i]->moduleProperties;
         resolvedGroup->overrideTags = false;
         resolvedProducts.at(i)->groups << resolvedGroup;
-        products.at(i).d->groups << createGroupDataFromGroup(resolvedGroup, resolvedProducts.at(i));
-        qSort(products.at(i).d->groups);
+        QList<GroupData> &groupData = products.at(i).d->groups;
+        groupData << createGroupDataFromGroup(resolvedGroup, resolvedProducts.at(i));
+        std::sort(groupData.begin(), groupData.end());
     }
 }
 
@@ -559,9 +562,10 @@ void ProjectPrivate::addFiles(const ProductData &product, const GroupData &group
     }
     for (const GroupData &g : qAsConst(groupContext.groups)) {
         g.d->sourceArtifacts << sourceArtifacts;
-        qSort(g.d->sourceArtifacts);
+        std::sort(g.d->sourceArtifacts.begin(), g.d->sourceArtifacts.end());
         g.d->sourceArtifactsFromWildcards << sourceArtifactsFromWildcards;
-        qSort(g.d->sourceArtifactsFromWildcards);
+        std::sort(g.d->sourceArtifactsFromWildcards.begin(),
+                  g.d->sourceArtifactsFromWildcards.end());
     }
 }
 
@@ -894,9 +898,9 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
              : qAsConst(resolvedProduct->dependencies)) {
             product.d->dependencies << resolvedDependentProduct->name;
         }
-        qSort(product.d->type);
-        qSort(product.d->groups);
-        qSort(product.d->generatedArtifacts);
+        std::sort(product.d->type.begin(), product.d->type.end());
+        std::sort(product.d->groups.begin(), product.d->groups.end());
+        std::sort(product.d->generatedArtifacts.begin(), product.d->generatedArtifacts.end());
         product.d->isValid = true;
         projectData.d->products << product;
     }
@@ -909,8 +913,8 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
         projectData.d->subProjects << subProject;
     }
     projectData.d->isValid = true;
-    qSort(projectData.d->products);
-    qSort(projectData.d->subProjects);
+    std::sort(projectData.d->products.begin(), projectData.d->products.end());
+    std::sort(projectData.d->subProjects.begin(), projectData.d->subProjects.end());
 }
 
 } // namespace Internal
