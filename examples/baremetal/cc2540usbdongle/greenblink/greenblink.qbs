@@ -50,11 +50,73 @@
 
 import qbs
 
-Project {
-    name: "BareMetal"
-    references: [
-        "stm32f4discovery/stm32f4discovery.qbs",
-        "at90can128olimex/at90can128olimex.qbs",
-        "cc2540usbdongle/cc2540usbdongle.qbs"
-    ]
+CppApplication {
+    condition: {
+        if (!qbs.architecture.contains("mcs51"))
+            return false;
+        return qbs.toolchain.contains("iar")
+            || qbs.toolchain.contains("keil")
+    }
+    name: "greenblink"
+    cpp.positionIndependentCode: false
+
+    //
+    // IAR-specific properties and sources.
+    //
+
+    Properties {
+        condition: qbs.toolchain.contains("iar")
+        cpp.commonCompilerFlags: ["-e"]
+        cpp.driverLinkerFlags: [
+            "-D_IDATA_STACK_SIZE=0x40",
+            "-D_PDATA_STACK_SIZE=0x00",
+            "-D_XDATA_STACK_SIZE=0x00",
+            "-D_XDATA_HEAP_SIZE=0x00",
+            "-D_EXTENDED_STACK_SIZE=0",
+            "-D_EXTENDED_STACK_START=0"
+        ]
+        cpp.staticLibraries: [
+            cpp.toolchainInstallPath + "/../lib/clib/cl-pli-nsid-1e16x01"
+        ]
+    }
+
+    Group {
+        condition: qbs.toolchain.contains("iar")
+        name: "IAR"
+        prefix: "iar/"
+        Group {
+            name: "Linker Script"
+            prefix: cpp.toolchainInstallPath + "/../config/devices/_generic/"
+            fileTags: ["linkerscript"]
+            files: ["lnk51ew_8051.xcl"]
+        }
+    }
+
+    //
+    // KEIL-specific properties and sources.
+    //
+
+    Properties {
+        condition: qbs.toolchain.contains("keil")
+        cpp.driverLinkerFlags: [
+            "RAMSIZE(256)",
+            "CODE(0x0000-0xFFFF)"
+        ]
+    }
+
+    //
+    // Common code.
+    //
+
+    Group {
+        name: "Gpio"
+        files: ["gpio.c", "gpio.h"]
+    }
+
+    Group {
+        name: "System"
+        files: ["system.h"]
+    }
+
+    files: ["main.c"]
 }

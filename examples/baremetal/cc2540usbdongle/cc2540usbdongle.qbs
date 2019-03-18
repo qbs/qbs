@@ -51,10 +51,8 @@
 import qbs
 
 Project {
-    name: "BareMetal"
+    name: "Examples for cc2540usbdongle board"
     references: [
-        "stm32f4discovery/stm32f4discovery.qbs",
-        "at90can128olimex/at90can128olimex.qbs",
-        "cc2540usbdongle/cc2540usbdongle.qbs"
+        "greenblink/greenblink.qbs"
     ]
 }

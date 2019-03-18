@@ -48,13 +48,18 @@
 **
 ****************************************************************************/
 
-import qbs
+#include "gpio.h"
+#include "system.h"
 
-Project {
-    name: "BareMetal"
-    references: [
-        "stm32f4discovery/stm32f4discovery.qbs",
-        "at90can128olimex/at90can128olimex.qbs",
-        "cc2540usbdongle/cc2540usbdongle.qbs"
-    ]
+#define GPIO_GREEN_LED_PIN_POS   (1u)
+
+void gpio_init_green_led(void)
+{
+    P0SEL = 0; // Choose the port.
+    P0DIR = 0x01; // Set pin0 to output mode.
+}
+
+void gpio_toggle_green_led(void)
+{
+    P0 ^= GPIO_GREEN_LED_PIN_POS;
 }

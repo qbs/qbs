@@ -48,13 +48,31 @@
 **
 ****************************************************************************/
 
-import qbs
+#ifndef SYSTEM_H
+#define SYSTEM_H
 
-Project {
-    name: "BareMetal"
-    references: [
-        "stm32f4discovery/stm32f4discovery.qbs",
-        "at90can128olimex/at90can128olimex.qbs",
-        "cc2540usbdongle/cc2540usbdongle.qbs"
-    ]
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#if defined(__ICC8051__)
+#include <intrinsics.h>
+# define system_nop() __no_operation()
+# define SFR(name,addr) __sfr __no_init volatile unsigned char name @ addr;
+#elif defined (__C51__)
+#include <intrins.h>
+# define system_nop() _nop_()
+# define SFR(name, addr) sfr name = addr;
+#else
+#error "Unsupported toolchain"
+#endif
+
+SFR(P0   , 0x80u) // Port 0.
+SFR(P0SEL, 0xF3u) // Port 0 function select.
+SFR(P0DIR, 0xFDu) // Port 0 direction select.
+
+#ifdef __cplusplus
 }
+#endif
+
+#endif // SYSTEM_H
