@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2019 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -36,61 +36,50 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef QBS_INSTALLOPTIONS_H
-#define QBS_INSTALLOPTIONS_H
 
-#include "qbs_export.h"
+#include "sessionpacketreader.h"
 
-#include <QtCore/qshareddata.h>
-
-QT_BEGIN_NAMESPACE
-class QJsonObject;
-class QString;
-QT_END_NAMESPACE
+#include "sessionpacket.h"
+#include "stdinreader.h"
 
 namespace qbs {
-class InstallOptions;
 namespace Internal {
-class InstallOptionsPrivate;
-class TopLevelProject;
-QString effectiveInstallRoot(const InstallOptions &options, const TopLevelProject *project);
-}
 
-class QBS_EXPORT InstallOptions
+class SessionPacketReader::Private
 {
 public:
-    InstallOptions();
-    InstallOptions(const InstallOptions &other);
-    InstallOptions(InstallOptions &&other) Q_DECL_NOEXCEPT;
-    InstallOptions &operator=(const InstallOptions &other);
-    InstallOptions &operator=(InstallOptions &&other) Q_DECL_NOEXCEPT;
-    ~InstallOptions();
-
-    static InstallOptions fromJson(const QJsonObject &data);
-
-    static QString defaultInstallRoot();
-    QString installRoot() const;
-    void setInstallRoot(const QString &installRoot);
-
-    bool installIntoSysroot() const;
-    void setInstallIntoSysroot(bool useSysroot);
-
-    bool removeExistingInstallation() const;
-    void setRemoveExistingInstallation(bool removeExisting);
-
-    bool dryRun() const;
-    void setDryRun(bool dryRun);
-
-    bool keepGoing() const;
-    void setKeepGoing(bool keepGoing);
-
-    bool logElapsedTime() const;
-    void setLogElapsedTime(bool logElapsedTime);
-
-private:
-    QSharedDataPointer<Internal::InstallOptionsPrivate> d;
+    QByteArray incomingData;
+    SessionPacket currentPacket;
 };
 
-} // namespace qbs
+SessionPacketReader::SessionPacketReader(QObject *parent) : QObject(parent), d(new Private) { }
 
-#endif // QBS_INSTALLOPTIONS_H
+SessionPacketReader::~SessionPacketReader()
+{
+    delete d;
+}
+
+void SessionPacketReader::start()
+{
+    StdinReader * const stdinReader = StdinReader::create(this);
+    connect(stdinReader, &StdinReader::errorOccurred, this, &SessionPacketReader::errorOccurred);
+    connect(stdinReader, &StdinReader::dataAvailable, this, [this](const QByteArray &data) {
+        d->incomingData += data;
+        while (!d->incomingData.isEmpty()) {
+            switch (d->currentPacket.parseInput(d->incomingData)) {
+            case SessionPacket::Status::Invalid:
+                emit errorOccurred(tr("Received invalid input."));
+                return;
+            case SessionPacket::Status::Complete:
+                emit packetReceived(d->currentPacket.retrievePacket());
+                break;
+            case SessionPacket::Status::Incomplete:
+                return;
+            }
+        }
+    });
+    stdinReader->start();
+}
+
+} // namespace Internal
+} // namespace qbs

@@ -43,6 +43,10 @@
 
 #include <QtCore/qshareddata.h>
 
+QT_BEGIN_NAMESPACE
+class QJsonObject;
+QT_END_NAMESPACE
+
 namespace qbs {
 namespace Internal { class CleanOptionsPrivate; }
 
@@ -55,6 +59,8 @@ public:
     CleanOptions &operator=(const CleanOptions &other);
     CleanOptions &operator=(CleanOptions &&other) Q_DECL_NOEXCEPT;
     ~CleanOptions();
+
+    static CleanOptions fromJson(const QJsonObject &data);
 
     bool dryRun() const;
     void setDryRun(bool dryRun);

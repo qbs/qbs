@@ -40,6 +40,7 @@
 
 #include "application.h"
 #include "consoleprogressobserver.h"
+#include "session.h"
 #include "status.h"
 #include "parser/commandlineoption.h"
 #include "../shared/logging/consolelogger.h"
@@ -129,6 +130,10 @@ void CommandLineFrontend::start()
                 throw ErrorInfo(error);
             }
             break;
+        case SessionCommandType: {
+            startSession();
+            return;
+        }
         default:
             break;
         }
@@ -418,6 +423,7 @@ void CommandLineFrontend::handleProjectsResolved()
         break;
     case HelpCommandType:
     case VersionCommandType:
+    case SessionCommandType:
         Q_ASSERT_X(false, Q_FUNC_INFO, "Impossible.");
     }
 }

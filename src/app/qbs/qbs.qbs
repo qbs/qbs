@@ -23,8 +23,16 @@ QbsApp {
         "main.cpp",
         "qbstool.cpp",
         "qbstool.h",
+        "session.cpp",
+        "session.h",
+        "sessionpacket.cpp",
+        "sessionpacket.h",
+        "sessionpacketreader.cpp",
+        "sessionpacketreader.h",
         "status.cpp",
         "status.h",
+        "stdinreader.cpp",
+        "stdinreader.h",
     ]
     Group {
         name: "parser"

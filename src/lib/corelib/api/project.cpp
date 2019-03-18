@@ -726,7 +726,7 @@ void ProjectPrivate::updateExternalCodeLocations(const ProjectData &project,
 void ProjectPrivate::prepareChangeToProject()
 {
     if (internalProject->locked)
-        throw ErrorInfo(Tr::tr("A job is currently in process."));
+        throw ErrorInfo(Tr::tr("A job is currently in progress."));
     if (!m_projectData.isValid())
         retrieveProjectData(m_projectData, internalProject);
 }
@@ -766,7 +766,7 @@ RuleCommandList ProjectPrivate::ruleCommands(const ProductData &product,
         const QString &inputFilePath, const QString &outputFileTag)
 {
     if (internalProject->locked)
-        throw ErrorInfo(Tr::tr("A job is currently in process."));
+        throw ErrorInfo(Tr::tr("A job is currently in progress."));
     const ResolvedProductConstPtr resolvedProduct = internalProduct(product);
     if (!resolvedProduct)
         throw ErrorInfo(Tr::tr("No such product '%1'.").arg(product.name()));
@@ -896,7 +896,7 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
         }
         for (const ResolvedProductPtr &resolvedDependentProduct
              : qAsConst(resolvedProduct->dependencies)) {
-            product.d->dependencies << resolvedDependentProduct->name;
+            product.d->dependencies << resolvedDependentProduct->name; // FIXME: Shouldn't this be a unique name?
         }
         std::sort(product.d->type.begin(), product.d->type.end());
         std::sort(product.d->groups.begin(), product.d->groups.end());
@@ -1246,6 +1246,22 @@ Project::BuildGraphInfo Project::getBuildGraphInfo(const QString &bgFilePath,
                 }
             }
         }
+    } catch (const ErrorInfo &e) {
+        info.error = e;
+    }
+    return info;
+}
+
+Project::BuildGraphInfo Project::getBuildGraphInfo() const
+{
+    QBS_ASSERT(isValid(), return {});
+    BuildGraphInfo info;
+    try {
+        if (d->internalProject->locked)
+            throw ErrorInfo(Tr::tr("A job is currently in progress."));
+        info.bgFilePath = d->internalProject->buildGraphFilePath();
+        info.overriddenProperties = d->internalProject->overriddenValues;
+        info.profileData = d->internalProject->profileConfigs;
     } catch (const ErrorInfo &e) {
         info.error = e;
     }

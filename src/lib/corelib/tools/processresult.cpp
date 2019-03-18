@@ -39,6 +39,9 @@
 #include "processresult.h"
 #include "processresult_p.h"
 
+#include <QtCore/qjsonarray.h>
+#include <QtCore/qjsonobject.h>
+
 /*!
  * \class SetupProjectParameters
  * \brief The \c ProcessResult class describes a finished qbs process command.
@@ -127,6 +130,33 @@ QStringList ProcessResult::stdOut() const
 QStringList ProcessResult::stdErr() const
 {
     return d->stdErr;
+}
+
+static QJsonValue processErrorToJson(QProcess::ProcessError error)
+{
+    switch (error) {
+    case QProcess::FailedToStart: return QLatin1String("failed-to-start");
+    case QProcess::Crashed: return QLatin1String("crashed");
+    case QProcess::Timedout: return QLatin1String("timed-out");
+    case QProcess::WriteError: return QLatin1String("write-error");
+    case QProcess::ReadError: return QLatin1String("read-error");
+    case QProcess::UnknownError: return QStringLiteral("unknown-error");
+    }
+    return {}; // For dumb compilers.
+}
+
+QJsonObject qbs::ProcessResult::toJson() const
+{
+    return QJsonObject{
+        {QStringLiteral("success"), success()},
+        {QStringLiteral("executable-file-path"), executableFilePath()},
+        {QStringLiteral("arguments"), QJsonArray::fromStringList(arguments())},
+        {QStringLiteral("working-directory"), workingDirectory()},
+        {QStringLiteral("error"), processErrorToJson(error())},
+        {QStringLiteral("exit-code"), exitCode()},
+        {QStringLiteral("stdout"), QJsonArray::fromStringList(stdOut())},
+        {QStringLiteral("stderr"), QJsonArray::fromStringList(stdErr())}
+    };
 }
 
 } // namespace qbs

@@ -26,6 +26,7 @@ Project {
             "qbs-online.qdocconf",
             "config/*.qdocconf",
             "config/style/qt5-sidebar.html",
+            "appendix/**/*",
             "reference/**/*",
             "templates/**/*",
             "images/**",

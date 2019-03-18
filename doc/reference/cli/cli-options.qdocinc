@@ -442,6 +442,7 @@
 
 //! [setup-run-env-config]
 
+    \target --setup-run-env-config
     \section2 \c --setup-run-env-config
 
     A comma-separated list of strings. They will show up in the \c config

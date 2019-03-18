@@ -386,6 +386,7 @@ QList<Command *> CommandLineParser::CommandLineParserPrivate::allCommands() cons
             commandPool.getCommand(DumpNodesTreeCommandType),
             commandPool.getCommand(ListProductsCommandType),
             commandPool.getCommand(VersionCommandType),
+            commandPool.getCommand(SessionCommandType),
             commandPool.getCommand(HelpCommandType)};
 }
 

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2019 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -36,61 +36,54 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef QBS_INSTALLOPTIONS_H
-#define QBS_INSTALLOPTIONS_H
 
-#include "qbs_export.h"
+#ifndef QBS_JSON_HELPER_H
+#define QBS_JSON_HELPER_H
 
-#include <QtCore/qshareddata.h>
+#include <QtCore/qjsonarray.h>
+#include <QtCore/qjsonobject.h>
+#include <QtCore/qjsonvalue.h>
+#include <QtCore/qprocess.h>
+#include <QtCore/qstringlist.h>
+#include <QtCore/qvariant.h>
 
-QT_BEGIN_NAMESPACE
-class QJsonObject;
-class QString;
-QT_END_NAMESPACE
+#include <algorithm>
+#include <iterator>
 
 namespace qbs {
-class InstallOptions;
 namespace Internal {
-class InstallOptionsPrivate;
-class TopLevelProject;
-QString effectiveInstallRoot(const InstallOptions &options, const TopLevelProject *project);
+
+template<typename T> inline T fromJson(const QJsonValue &v);
+template<> inline bool fromJson(const QJsonValue &v) { return v.toBool(); }
+template<> inline int fromJson(const QJsonValue &v) { return v.toInt(); }
+template<> inline QString fromJson(const QJsonValue &v) { return v.toString(); }
+template<> inline QStringList fromJson(const QJsonValue &v)
+{
+    const QJsonArray &jsonList = v.toArray();
+    QStringList stringList;
+    std::transform(jsonList.begin(), jsonList.end(), std::back_inserter(stringList),
+                   [](const QVariant &v) { return v.toString(); });
+    return stringList;
+}
+template<> inline QVariantMap fromJson(const QJsonValue &v) { return v.toObject().toVariantMap(); }
+template<> inline QProcessEnvironment fromJson(const QJsonValue &v)
+{
+    const QJsonObject obj = v.toObject();
+    QProcessEnvironment env;
+    for (auto it = obj.begin(); it != obj.end(); ++it)
+        env.insert(it.key(), it.value().toString());
+    return env;
 }
 
-class QBS_EXPORT InstallOptions
+template<typename T> inline void setValueFromJson(T &targetValue, const QJsonObject &data,
+                                                  const char *jsonProperty)
 {
-public:
-    InstallOptions();
-    InstallOptions(const InstallOptions &other);
-    InstallOptions(InstallOptions &&other) Q_DECL_NOEXCEPT;
-    InstallOptions &operator=(const InstallOptions &other);
-    InstallOptions &operator=(InstallOptions &&other) Q_DECL_NOEXCEPT;
-    ~InstallOptions();
+    const QJsonValue v = data.value(QLatin1String(jsonProperty));
+    if (!v.isNull())
+        targetValue = fromJson<T>(v);
+}
 
-    static InstallOptions fromJson(const QJsonObject &data);
-
-    static QString defaultInstallRoot();
-    QString installRoot() const;
-    void setInstallRoot(const QString &installRoot);
-
-    bool installIntoSysroot() const;
-    void setInstallIntoSysroot(bool useSysroot);
-
-    bool removeExistingInstallation() const;
-    void setRemoveExistingInstallation(bool removeExisting);
-
-    bool dryRun() const;
-    void setDryRun(bool dryRun);
-
-    bool keepGoing() const;
-    void setKeepGoing(bool keepGoing);
-
-    bool logElapsedTime() const;
-    void setLogElapsedTime(bool logElapsedTime);
-
-private:
-    QSharedDataPointer<Internal::InstallOptionsPrivate> d;
-};
-
+} // namespace Internal
 } // namespace qbs
 
-#endif // QBS_INSTALLOPTIONS_H
+#endif // Include guard

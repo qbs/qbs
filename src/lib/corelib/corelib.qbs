@@ -418,6 +418,7 @@ QbsLibrary {
             "joblimits.cpp",
             "jsliterals.cpp",
             "jsliterals.h",
+            "jsonhelper.h",
             "installoptions.cpp",
             "launcherinterface.cpp",
             "launcherinterface.h",

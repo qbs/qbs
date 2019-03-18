@@ -101,8 +101,9 @@ inline QString relativeBuildDir(const QString &configurationName = QString())
     return !configurationName.isEmpty() ? configurationName : QLatin1String("default");
 }
 
-inline QString relativeBuildGraphFilePath() {
-    return relativeBuildDir() + QLatin1Char('/') + relativeBuildDir() + QLatin1String(".bg");
+inline QString relativeBuildGraphFilePath(const QString &configName = QString()) {
+    return relativeBuildDir(configName) + QLatin1Char('/') + relativeBuildDir(configName)
+            + QLatin1String(".bg");
 }
 
 inline bool regularFileExists(const QString &filePath)
@@ -215,9 +216,10 @@ inline QString relativeProductBuildDir(const QString &productName,
     return relativeBuildDir(configurationName) + '/' + dirName;
 }
 
-inline QString relativeExecutableFilePath(const QString &productName)
+inline QString relativeExecutableFilePath(const QString &productName,
+                                          const QString &configName = QString())
 {
-    return relativeProductBuildDir(productName) + '/'
+    return relativeProductBuildDir(productName, configName) + '/'
             + qbs::Internal::HostOsInfo::appendExecutableSuffix(productName);
 }
 

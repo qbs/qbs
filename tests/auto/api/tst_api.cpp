@@ -875,7 +875,7 @@ void TestApi::changeContent()
     buildJob.reset(project.buildAllProducts(buildOptions, defaultProducts(), this));
     errorInfo = project.addGroup(newProjectData.products().front(), "blubb");
     QVERIFY(errorInfo.hasError());
-    QVERIFY2(errorInfo.toString().contains("in process"), qPrintable(errorInfo.toString()));
+    QVERIFY2(errorInfo.toString().contains("in progress"), qPrintable(errorInfo.toString()));
     waitForFinished(buildJob.get());
     errorInfo = project.addGroup(newProjectData.products().front(), "blubb");
     VERIFY_NO_ERROR(errorInfo);

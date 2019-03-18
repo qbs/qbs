@@ -38,6 +38,8 @@
 ****************************************************************************/
 #include "cleanoptions.h"
 
+#include "jsonhelper.h"
+
 #include <QtCore/qshareddata.h>
 
 namespace qbs {
@@ -149,6 +151,16 @@ bool CleanOptions::logElapsedTime() const
 void CleanOptions::setLogElapsedTime(bool log)
 {
     d->logElapsedTime = log;
+}
+
+qbs::CleanOptions qbs::CleanOptions::fromJson(const QJsonObject &data)
+{
+    CleanOptions opt;
+    using namespace Internal;
+    setValueFromJson(opt.d->dryRun, data, "dry-run");
+    setValueFromJson(opt.d->keepGoing, data, "keep-going");
+    setValueFromJson(opt.d->logElapsedTime, data, "log-time");
+    return opt;
 }
 
 } // namespace qbs

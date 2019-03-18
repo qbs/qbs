@@ -110,6 +110,7 @@ public:
     ~ArtifactData();
 
     bool isValid() const;
+    QJsonObject toJson(const QStringList &moduleProperties = {}) const;
 
     QString filePath() const;
     QStringList fileTags() const;
@@ -135,6 +136,7 @@ public:
     ~InstallData();
 
     bool isValid() const;
+    QJsonObject toJson() const;
 
     bool isInstallable() const;
     QString installDir() const;
@@ -162,6 +164,7 @@ public:
     ~GroupData();
 
     bool isValid() const;
+    QJsonObject toJson(const QStringList &moduleProperties = {}) const;
 
     CodeLocation location() const;
     QString name() const;
@@ -193,6 +196,7 @@ public:
     ~ProductData();
 
     bool isValid() const;
+    QJsonObject toJson(const QStringList &propertyNames = {}) const;
 
     QStringList type() const;
     QStringList dependencies() const;
@@ -235,6 +239,7 @@ public:
     ~ProjectData();
 
     bool isValid() const;
+    QJsonObject toJson(const QStringList &moduleProperties = {}) const;
 
     QString name() const;
     CodeLocation location() const;

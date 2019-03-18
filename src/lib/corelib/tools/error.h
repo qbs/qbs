@@ -47,6 +47,7 @@
 #include <QtCore/qshareddata.h>
 
 QT_BEGIN_NAMESPACE
+class QJsonObject;
 template <class T> class QList;
 class QString;
 class QStringList;
@@ -68,6 +69,7 @@ public:
     QString description() const;
     CodeLocation codeLocation() const;
     QString toString() const;
+    QJsonObject toJson() const;
 
     bool isBacktraceItem() const;
 
@@ -97,10 +99,11 @@ public:
     void append(const ErrorItem &item);
     void append(const QString &description, const CodeLocation &location = CodeLocation());
     void prepend(const QString &description, const CodeLocation &location = CodeLocation());
-    QList<ErrorItem> items() const;
+    const QList<ErrorItem> items() const;
     bool hasError() const { return !items().empty(); }
     void clear();
     QString toString() const;
+    QJsonObject toJson() const;
     bool isInternalError() const;
     bool hasLocation() const;
 

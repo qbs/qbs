@@ -6,6 +6,10 @@ TARGET = qbs
 SOURCES += main.cpp \
     ctrlchandler.cpp \
     application.cpp \
+    session.cpp \
+    sessionpacket.cpp \
+    sessionpacketreader.cpp \
+    stdinreader.cpp \
     status.cpp \
     consoleprogressobserver.cpp \
     commandlinefrontend.cpp \
@@ -14,6 +18,10 @@ SOURCES += main.cpp \
 HEADERS += \
     ctrlchandler.h \
     application.h \
+    session.h \
+    sessionpacket.h \
+    sessionpacketreader.h \
+    stdinreader.h \
     status.h \
     consoleprogressobserver.h \
     commandlinefrontend.h \

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2019 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -36,61 +36,16 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef QBS_INSTALLOPTIONS_H
-#define QBS_INSTALLOPTIONS_H
 
-#include "qbs_export.h"
-
-#include <QtCore/qshareddata.h>
-
-QT_BEGIN_NAMESPACE
-class QJsonObject;
-class QString;
-QT_END_NAMESPACE
+#ifndef QBS_SESSION_H
+#define QBS_SESSION_H
 
 namespace qbs {
-class InstallOptions;
 namespace Internal {
-class InstallOptionsPrivate;
-class TopLevelProject;
-QString effectiveInstallRoot(const InstallOptions &options, const TopLevelProject *project);
-}
 
-class QBS_EXPORT InstallOptions
-{
-public:
-    InstallOptions();
-    InstallOptions(const InstallOptions &other);
-    InstallOptions(InstallOptions &&other) Q_DECL_NOEXCEPT;
-    InstallOptions &operator=(const InstallOptions &other);
-    InstallOptions &operator=(InstallOptions &&other) Q_DECL_NOEXCEPT;
-    ~InstallOptions();
+void startSession();
 
-    static InstallOptions fromJson(const QJsonObject &data);
-
-    static QString defaultInstallRoot();
-    QString installRoot() const;
-    void setInstallRoot(const QString &installRoot);
-
-    bool installIntoSysroot() const;
-    void setInstallIntoSysroot(bool useSysroot);
-
-    bool removeExistingInstallation() const;
-    void setRemoveExistingInstallation(bool removeExisting);
-
-    bool dryRun() const;
-    void setDryRun(bool dryRun);
-
-    bool keepGoing() const;
-    void setKeepGoing(bool keepGoing);
-
-    bool logElapsedTime() const;
-    void setLogElapsedTime(bool logElapsedTime);
-
-private:
-    QSharedDataPointer<Internal::InstallOptionsPrivate> d;
-};
-
+} // namespace Internal
 } // namespace qbs
 
-#endif // QBS_INSTALLOPTIONS_H
+#endif // Include guard

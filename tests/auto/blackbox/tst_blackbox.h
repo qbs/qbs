@@ -240,6 +240,7 @@ private slots:
     void protobuf();
     void pseudoMultiplexing();
     void qbsConfig();
+    void qbsSession();
     void qbsVersion();
     void qtBug51237();
     void radAfterIncompleteBuild();

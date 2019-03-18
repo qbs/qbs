@@ -95,6 +95,9 @@ qbs::Command *CommandPool::getCommand(CommandType type) const
         case VersionCommandType:
             command = new VersionCommand(m_optionPool);
             break;
+        case SessionCommandType:
+            command = new SessionCommand(m_optionPool);
+            break;
         }
     }
     return command;

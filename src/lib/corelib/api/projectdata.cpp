@@ -45,21 +45,57 @@
 #include <tools/fileinfo.h>
 #include <tools/jsliterals.h>
 #include <tools/qbsassert.h>
+#include <tools/stringconstants.h>
 #include <tools/qttools.h>
 #include <tools/stringconstants.h>
 
 #include <QtCore/qdir.h>
+#include <QtCore/qjsonarray.h>
+#include <QtCore/qjsonobject.h>
 
 #include <algorithm>
 
 namespace qbs {
+
+using namespace Internal;
+
+template<typename T> static QJsonArray toJsonArray(const QList<T> &list,
+                                                   const QStringList &moduleProperties)
+{
+    QJsonArray jsonArray;
+    std::transform(list.begin(), list.end(), std::back_inserter(jsonArray),
+                   [&moduleProperties](const T &v) { return v.toJson(moduleProperties);});
+    return jsonArray;
+}
+
+static QVariant getModuleProperty(const PropertyMap &properties, const QString &fullPropertyName)
+{
+    const int lastDotIndex = fullPropertyName.lastIndexOf(QLatin1Char('.'));
+    if (lastDotIndex == -1)
+        return QVariant();
+    return properties.getModuleProperty(fullPropertyName.left(lastDotIndex),
+                                        fullPropertyName.mid(lastDotIndex + 1));
+}
+
+static void addModuleProperties(QJsonObject &obj, const PropertyMap &properties,
+                                const QStringList &propertyNames)
+{
+    QJsonObject propertyValues;
+    for (const QString &prop : propertyNames) {
+        const QVariant v = getModuleProperty(properties, prop);
+        if (v.isValid())
+            propertyValues.insert(prop, QJsonValue::fromVariant(v));
+    }
+    if (!propertyValues.isEmpty())
+        obj.insert(StringConstants::modulePropertiesKey(), propertyValues);
+}
 
 /*!
  * \class GroupData
  * \brief The \c GroupData class corresponds to the Group item in a qbs source file.
  */
 
-GroupData::GroupData() : d(new Internal::GroupDataPrivate)
+GroupData::GroupData() : d(new GroupDataPrivate)
 {
 }
 
@@ -79,6 +115,22 @@ GroupData::~GroupData() = default;
 bool GroupData::isValid() const
 {
     return d->isValid;
+}
+
+QJsonObject GroupData::toJson(const QStringList &moduleProperties) const
+{
+    QJsonObject obj;
+    if (isValid()) {
+        obj.insert(StringConstants::locationKey(), location().toJson());
+        obj.insert(StringConstants::nameProperty(), name());
+        obj.insert(StringConstants::prefixProperty(), prefix());
+        obj.insert(StringConstants::isEnabledKey(), isEnabled());
+        obj.insert(QStringLiteral("source-artifacts"), toJsonArray(sourceArtifacts(), {}));
+        obj.insert(QStringLiteral("source-artifacts-from-wildcards"),
+                   toJsonArray(sourceArtifactsFromWildcards(), {}));
+        addModuleProperties(obj, properties(), moduleProperties);
+    }
+    return obj;
 }
 
 /*!
@@ -204,7 +256,7 @@ bool operator<(const GroupData &lhs, const GroupData &rhs)
  * or it gets generated during the build process.
  */
 
-ArtifactData::ArtifactData() : d(new Internal::ArtifactDataPrivate)
+ArtifactData::ArtifactData() : d(new ArtifactDataPrivate)
 {
 }
 
@@ -224,6 +276,21 @@ ArtifactData::~ArtifactData() = default;
 bool ArtifactData::isValid() const
 {
     return d->isValid;
+}
+
+QJsonObject ArtifactData::toJson(const QStringList &moduleProperties) const
+{
+    QJsonObject obj;
+    if (isValid()) {
+        obj.insert(StringConstants::filePathKey(), filePath());
+        obj.insert(QStringLiteral("file-tags"), QJsonArray::fromStringList(fileTags()));
+        obj.insert(QStringLiteral("is-generated"), isGenerated());
+        obj.insert(QStringLiteral("is-executable"), isExecutable());
+        obj.insert(QStringLiteral("is-target"), isTargetArtifact());
+        obj.insert(QStringLiteral("install-data"), installData().toJson());
+        addModuleProperties(obj, properties(), moduleProperties);
+    }
+    return obj;
 }
 
 /*!
@@ -256,8 +323,8 @@ bool ArtifactData::isExecutable() const
 {
     const bool isBundle = d->properties.getModuleProperty(
                 QStringLiteral("bundle"), QStringLiteral("isBundle")).toBool();
-    return Internal::isRunnableArtifact(
-                Internal::FileTags::fromStringList(d->fileTags), isBundle);
+    return isRunnableArtifact(
+                FileTags::fromStringList(d->fileTags), isBundle);
 }
 
 /*!
@@ -309,7 +376,7 @@ bool operator<(const ArtifactData &ta1, const ArtifactData &ta2)
  * \brief The \c InstallData class provides the installation-related data of an artifact.
  */
 
-InstallData::InstallData() : d(new Internal::InstallDataPrivate)
+InstallData::InstallData() : d(new InstallDataPrivate)
 {
 }
 
@@ -331,6 +398,19 @@ bool InstallData::isValid() const
     return d->isValid;
 }
 
+QJsonObject InstallData::toJson() const
+{
+    QJsonObject obj;
+    if (isValid()) {
+        obj.insert(QStringLiteral("is-installable"), isInstallable());
+        if (isInstallable()) {
+            obj.insert(QStringLiteral("install-file-path"), installFilePath());
+            obj.insert(QStringLiteral("install-root"), installRoot());
+        }
+    }
+    return obj;
+}
+
 /*!
   \brief Returns true if and only if \c{qbs.install} is \c true for the artifact.
  */
@@ -348,7 +428,7 @@ bool InstallData::isInstallable() const
 QString InstallData::installDir() const
 {
     QBS_ASSERT(isValid(), return {});
-    return Internal::FileInfo::path(installFilePath());
+    return FileInfo::path(installFilePath());
 }
 
 /*!
@@ -392,7 +472,7 @@ QString InstallData::localInstallFilePath() const
  * \brief The \c ProductData class corresponds to the Product item in a qbs source file.
  */
 
-ProductData::ProductData() : d(new Internal::ProductDataPrivate)
+ProductData::ProductData() : d(new ProductDataPrivate)
 {
 }
 
@@ -412,6 +492,39 @@ ProductData::~ProductData() = default;
 bool ProductData::isValid() const
 {
     return d->isValid;
+}
+
+QJsonObject ProductData::toJson(const QStringList &propertyNames) const
+{
+    QJsonObject obj;
+    if (!isValid())
+        return obj;
+    obj.insert(StringConstants::typeProperty(), QJsonArray::fromStringList(type()));
+    obj.insert(StringConstants::dependenciesProperty(),
+               QJsonArray::fromStringList(dependencies()));
+    obj.insert(StringConstants::nameProperty(), name());
+    obj.insert(StringConstants::fullDisplayNameKey(), fullDisplayName());
+    obj.insert(QStringLiteral("target-name"), targetName());
+    obj.insert(StringConstants::versionProperty(), version());
+    obj.insert(QStringLiteral("multiplex-configuration-id"), multiplexConfigurationId());
+    obj.insert(StringConstants::locationKey(), location().toJson());
+    obj.insert(StringConstants::buildDirectoryKey(), buildDirectory());
+    obj.insert(QStringLiteral("generated-artifacts"), toJsonArray(generatedArtifacts(),
+                                                                  propertyNames));
+    obj.insert(QStringLiteral("target-executable"), targetExecutable());
+    QJsonArray groupArray;
+    for (const GroupData &g : groups()) {
+        const QStringList groupPropNames = g.properties() == moduleProperties()
+                ? QStringList() : propertyNames;
+        groupArray << g.toJson(groupPropNames);
+    }
+    obj.insert(QStringLiteral("groups"), groupArray);
+    obj.insert(QStringLiteral("properties"), QJsonObject::fromVariantMap(properties()));
+    obj.insert(StringConstants::isEnabledKey(), isEnabled());
+    obj.insert(QStringLiteral("is-runnable"), isRunnable());
+    obj.insert(QStringLiteral("is-multiplexed"), isMultiplexed());
+    addModuleProperties(obj, moduleProperties(), propertyNames);
+    return obj;
 }
 
 /*!
@@ -445,7 +558,7 @@ QString ProductData::name() const
  */
 QString ProductData::fullDisplayName() const
 {
-    return Internal::ResolvedProduct::fullDisplayName(name(), multiplexConfigurationId());
+    return ResolvedProduct::fullDisplayName(name(), multiplexConfigurationId());
 }
 
 /*!
@@ -470,8 +583,8 @@ QString ProductData::version() const
 QString ProductData::profile() const
 {
     return d->moduleProperties.getModuleProperty(
-                Internal::StringConstants::qbsModule(),
-                Internal::StringConstants::profileProperty()).toString();
+                StringConstants::qbsModule(),
+                StringConstants::profileProperty()).toString();
 }
 
 QString ProductData::multiplexConfigurationId() const
@@ -661,7 +774,7 @@ bool operator<(const ProductData &lhs, const ProductData &rhs)
  * \brief The products in this project.
  */
 
-ProjectData::ProjectData() : d(new Internal::ProjectDataPrivate)
+ProjectData::ProjectData() : d(new ProjectDataPrivate)
 {
 }
 
@@ -681,6 +794,19 @@ ProjectData::~ProjectData() = default;
 bool ProjectData::isValid() const
 {
     return d->isValid;
+}
+
+QJsonObject ProjectData::toJson(const QStringList &moduleProperties) const
+{
+    QJsonObject obj;
+    if (!isValid())
+        return obj;
+    obj.insert(StringConstants::nameProperty(), name());
+    obj.insert(StringConstants::locationKey(), location().toJson());
+    obj.insert(StringConstants::isEnabledKey(), isEnabled());
+    obj.insert(StringConstants::productsKey(), toJsonArray(products(), moduleProperties));
+    obj.insert(QStringLiteral("sub-projects"), toJsonArray(subProjects(), moduleProperties));
+    return obj;
 }
 
 /*!
@@ -788,14 +914,14 @@ bool operator<(const ProjectData &lhs, const ProjectData &rhs)
  */
 
 PropertyMap::PropertyMap()
-    : d(std::make_unique<Internal::PropertyMapPrivate>())
+    : d(std::make_unique<PropertyMapPrivate>())
 {
-    static Internal::PropertyMapPtr defaultInternalMap = Internal::PropertyMapInternal::create();
+    static PropertyMapPtr defaultInternalMap = PropertyMapInternal::create();
     d->m_map = defaultInternalMap;
 }
 
 PropertyMap::PropertyMap(const PropertyMap &other)
-    : d(std::make_unique<Internal::PropertyMapPrivate>(*other.d))
+    : d(std::make_unique<PropertyMapPrivate>(*other.d))
 {
 }
 
@@ -806,7 +932,7 @@ PropertyMap::~PropertyMap() = default;
 PropertyMap &PropertyMap::operator =(const PropertyMap &other)
 {
     if (this != &other)
-        d = std::make_unique<Internal::PropertyMapPrivate>(*other.d);
+        d = std::make_unique<PropertyMapPrivate>(*other.d);
     return *this;
 }
 

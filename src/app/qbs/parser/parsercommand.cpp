@@ -593,4 +593,27 @@ void VersionCommand::parseNext(QStringList &input)
     throwError(Tr::tr("This command takes no arguments."));
 }
 
+QString SessionCommand::shortDescription() const
+{
+    return Tr::tr("Starts a session for an IDE.");
+}
+
+QString SessionCommand::longDescription() const
+{
+    QString description = Tr::tr("qbs %1\n").arg(representation());
+    return description += Tr::tr("Communicates on stdin and stdout via a JSON-based API.\n"
+                                 "Intended for use with other tools, such as IDEs.\n");
+}
+
+QString SessionCommand::representation() const
+{
+    return QLatin1String("session");
+}
+
+void SessionCommand::parseNext(QStringList &input)
+{
+    QBS_CHECK(!input.empty());
+    throwError(Tr::tr("This command takes no arguments."));
+}
+
 } // namespace qbs

@@ -42,6 +42,7 @@
 #include <logging/translator.h>
 #include <tools/buildgraphlocker.h>
 #include <tools/installoptions.h>
+#include <tools/jsonhelper.h>
 #include <tools/profile.h>
 #include <tools/qbsassert.h>
 #include <tools/scripttools.h>
@@ -50,6 +51,7 @@
 #include <QtCore/qdir.h>
 #include <QtCore/qfileinfo.h>
 #include <QtCore/qprocess.h>
+#include <QtCore/qjsonobject.h>
 
 namespace qbs {
 namespace Internal {
@@ -69,14 +71,14 @@ public:
         , forceProbeExecution(false)
         , waitLockBuildGraph(false)
         , restoreBehavior(SetupProjectParameters::RestoreAndTrackChanges)
-        , propertyCheckingMode(ErrorHandlingMode::Relaxed)
+        , propertyCheckingMode(ErrorHandlingMode::Strict)
         , productErrorMode(ErrorHandlingMode::Strict)
     {
     }
 
     QString projectFilePath;
     QString topLevelProfile;
-    QString configurationName;
+    QString configurationName = QLatin1String("default");
     QString buildRoot;
     QStringList searchPaths;
     QStringList pluginPaths;
@@ -119,6 +121,47 @@ SetupProjectParameters &SetupProjectParameters::operator=(const SetupProjectPara
 {
     d = other.d;
     return *this;
+}
+
+namespace Internal {
+template<> ErrorHandlingMode fromJson(const QJsonValue &v)
+{
+    if (v.toString() == QLatin1String("relaxed"))
+        return ErrorHandlingMode::Relaxed;
+    return ErrorHandlingMode::Strict;
+}
+
+template<> SetupProjectParameters::RestoreBehavior fromJson(const QJsonValue &v)
+{
+    const QString value = v.toString();
+    if (value == QLatin1String("restore-only"))
+        return SetupProjectParameters::RestoreOnly;
+    if (value == QLatin1String("resolve-only"))
+        return SetupProjectParameters::ResolveOnly;
+    return SetupProjectParameters::RestoreAndTrackChanges;
+}
+} // namespace Internal
+
+SetupProjectParameters SetupProjectParameters::fromJson(const QJsonObject &data)
+{
+    using namespace Internal;
+    SetupProjectParameters params;
+    setValueFromJson(params.d->topLevelProfile, data, "top-level-profile");
+    setValueFromJson(params.d->configurationName, data, "configuration-name");
+    setValueFromJson(params.d->projectFilePath, data, "project-file-path");
+    setValueFromJson(params.d->buildRoot, data, "build-root");
+    setValueFromJson(params.d->settingsBaseDir, data, "settings-directory");
+    setValueFromJson(params.d->overriddenValues, data, "overridden-properties");
+    setValueFromJson(params.d->dryRun, data, "dry-run");
+    setValueFromJson(params.d->logElapsedTime, data, "log-time");
+    setValueFromJson(params.d->forceProbeExecution, data, "force-probe-execution");
+    setValueFromJson(params.d->waitLockBuildGraph, data, "wait-lock-build-graph");
+    setValueFromJson(params.d->fallbackProviderEnabled, data, "fallback-provider-enabled");
+    setValueFromJson(params.d->environment, data, "environment");
+    setValueFromJson(params.d->restoreBehavior, data, "restore-behavior");
+    setValueFromJson(params.d->propertyCheckingMode, data, "error-handling-mode");
+    params.d->productErrorMode = params.d->propertyCheckingMode;
+    return params;
 }
 
 SetupProjectParameters &SetupProjectParameters::operator=(SetupProjectParameters &&other) Q_DECL_NOEXCEPT = default;

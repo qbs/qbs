@@ -69,6 +69,7 @@ public:
     QBS_STRING_CONSTANT(baseNameProperty, "baseName")
     QBS_STRING_CONSTANT(baseProfileProperty, "baseProfile")
     QBS_STRING_CONSTANT(buildDirectoryProperty, "buildDirectory")
+    QBS_STRING_CONSTANT(buildDirectoryKey, "build-directory")
     QBS_STRING_CONSTANT(builtByDefaultProperty, "builtByDefault")
     QBS_STRING_CONSTANT(classNameProperty, "className")
     QBS_STRING_CONSTANT(completeBaseNameProperty, "completeBaseName")
@@ -90,11 +91,13 @@ public:
     static const QString &fileNameProperty() { return fileName(); }
     static const QString &filePathProperty() { return filePath(); }
     static const QString &filePathVar() { return filePath(); }
+    QBS_STRING_CONSTANT(filePathKey, "file-path")
     QBS_STRING_CONSTANT(fileTagsFilterProperty, "fileTagsFilter")
     QBS_STRING_CONSTANT(fileTagsProperty, "fileTags")
     QBS_STRING_CONSTANT(filesProperty, "files")
     QBS_STRING_CONSTANT(filesAreTargetsProperty, "filesAreTargets")
     QBS_STRING_CONSTANT(foundProperty, "found")
+    QBS_STRING_CONSTANT(fullDisplayNameKey, "full-display-name")
     QBS_STRING_CONSTANT(imports, "imports")
     static const QString &importsDir() { return imports(); }
     static const QString &importsProperty() { return imports(); }
@@ -106,12 +109,16 @@ public:
     QBS_STRING_CONSTANT(installPrefixProperty, "installPrefix")
     QBS_STRING_CONSTANT(installDirProperty, "installDir")
     QBS_STRING_CONSTANT(installSourceBaseProperty, "installSourceBase")
+    QBS_STRING_CONSTANT(isEnabledKey, "is-enabled")
     QBS_STRING_CONSTANT(jobCountProperty, "jobCount")
     QBS_STRING_CONSTANT(jobPoolProperty, "jobPool")
     QBS_STRING_CONSTANT(lengthProperty, "length")
     QBS_STRING_CONSTANT(limitToSubProjectProperty, "limitToSubProject")
+    QBS_STRING_CONSTANT(locationKey, "location")
+    QBS_STRING_CONSTANT(messageKey, "message")
     QBS_STRING_CONSTANT(minimumQbsVersionProperty, "minimumQbsVersion")
     QBS_STRING_CONSTANT(moduleNameProperty, "moduleName")
+    QBS_STRING_CONSTANT(modulePropertiesKey, "module-properties")
     QBS_STRING_CONSTANT(moduleProviders, "moduleProviders")
     QBS_STRING_CONSTANT(multiplexByQbsPropertiesProperty, "multiplexByQbsProperties")
     QBS_STRING_CONSTANT(multiplexConfigurationIdProperty, "multiplexConfigurationId")
@@ -135,6 +142,7 @@ public:
     QBS_STRING_CONSTANT(profileProperty, "profile")
     static const QString &profilesProperty() { return profiles(); }
     QBS_STRING_CONSTANT(productTypesProperty, "productTypes")
+    QBS_STRING_CONSTANT(productsKey, "products")
     QBS_STRING_CONSTANT(qbsSearchPathsProperty, "qbsSearchPaths")
     QBS_STRING_CONSTANT(referencesProperty, "references")
     QBS_STRING_CONSTANT(recursiveProperty, "recursive")
@@ -149,7 +157,8 @@ public:
     QBS_STRING_CONSTANT(sourceDirectoryProperty, "sourceDirectory")
     QBS_STRING_CONSTANT(submodulesProperty, "submodules")
     QBS_STRING_CONSTANT(targetNameProperty, "targetName")
-    QBS_STRING_CONSTANT(typeProperty, "type")
+    static const QString &typeProperty() { return type(); }
+    QBS_STRING_CONSTANT(type, "type")
     QBS_STRING_CONSTANT(validateProperty, "validate")
     QBS_STRING_CONSTANT(versionProperty, "version")
     QBS_STRING_CONSTANT(versionAtLeastProperty, "versionAtLeast")

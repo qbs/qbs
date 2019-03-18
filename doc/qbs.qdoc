@@ -87,7 +87,8 @@
 
        \li  \l{Appendix A: Building Qbs}
        \li  \l{Appendix B: Migrating from Other Build Systems}
-       \li  \l{Appendix C: Licenses and Code Attributions}
+       \li  \l{Appendix C: The JSON API}
+       \li  \l{Appendix D: Licenses and Code Attributions}
     \endlist
 */
 
@@ -1966,10 +1967,10 @@
 
 /*!
     \contentspage index.html
-    \previouspage porting-to-qbs.html
+    \previouspage json-api.html
     \page attributions.html
 
-    \title Appendix C: Licenses and Code Attributions
+    \title Appendix D: Licenses and Code Attributions
 
     \section1 Licenses
 
