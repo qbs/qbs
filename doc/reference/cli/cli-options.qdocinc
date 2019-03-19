@@ -496,6 +496,7 @@
         \li \c msvc
         \li \c iar
         \li \c keil
+        \li \c sdcc
      \endlist
 
 //! [type]

@@ -132,6 +132,18 @@ static bool isKeilCompiler(const QString &compilerName)
     });
 }
 
+static QStringList knownSdccCompilerNames()
+{
+    return {QStringLiteral("sdcc")};
+}
+
+static bool isSdccCompiler(const QString &compilerName)
+{
+    return Internal::any_of(knownSdccCompilerNames(), [compilerName](const QString &knownName) {
+        return compilerName.contains(knownName);
+    });
+}
+
 static QStringList toolchainTypeFromCompilerName(const QString &compilerName)
 {
     if (compilerName == QLatin1String("cl.exe"))
@@ -150,6 +162,8 @@ static QStringList toolchainTypeFromCompilerName(const QString &compilerName)
         return canonicalToolchain(QStringLiteral("iar"));
     if (isKeilCompiler(compilerName))
         return canonicalToolchain(QStringLiteral("keil"));
+    if (isSdccCompiler(compilerName))
+        return canonicalToolchain(QStringLiteral("sdcc"));
     return {};
 }
 
@@ -331,6 +345,35 @@ static Profile createKeilProfile(const QFileInfo &compiler, Settings *settings,
     return profile;
 }
 
+static QString guessSdccArchitecture(const QFileInfo &compiler)
+{
+    const auto baseName = compiler.baseName();
+    if (baseName == QLatin1String("sdcc"))
+        return QStringLiteral("mcs51");
+    return {};
+}
+
+static Profile createSdccProfile(const QFileInfo &compiler, Settings *settings,
+                                 QString profileName = QString())
+{
+    const QString architecture = guessSdccArchitecture(compiler);
+
+    // In case the profile is auto-detected.
+    if (profileName.isEmpty())
+        profileName = QLatin1String("sdcc-") + architecture;
+
+    Profile profile(profileName, settings);
+    profile.setValue(QStringLiteral("cpp.toolchainInstallPath"), compiler.absolutePath());
+    profile.setValue(QStringLiteral("qbs.toolchainType"), QStringLiteral("sdcc"));
+    if (!architecture.isEmpty())
+        profile.setValue(QStringLiteral("qbs.architecture"), architecture);
+
+    qStdout << Tr::tr("Profile '%1' created for '%2'.").arg(
+                   profile.name(), compiler.absoluteFilePath())
+            << endl;
+    return profile;
+}
+
 static void gccProbe(Settings *settings, QList<Profile> &profiles, const QString &compilerName)
 {
     qStdout << Tr::tr("Trying to detect %1...").arg(compilerName) << endl;
@@ -407,6 +450,25 @@ static void keilProbe(Settings *settings, QList<Profile> &profiles)
         qStdout << Tr::tr("No KEIL toolchains found.") << endl;
 }
 
+static void sdccProbe(Settings *settings, QList<Profile> &profiles)
+{
+    qStdout << Tr::tr("Trying to detect SDCC toolchains...") << endl;
+
+    bool isFound = false;
+    const auto compilerNames = knownSdccCompilerNames();
+    for (const QString &compilerName : compilerNames) {
+        const QString sdccPath = findExecutable(HostOsInfo::appendExecutableSuffix(compilerName));
+        if (!sdccPath.isEmpty()) {
+            const auto profile = createSdccProfile(sdccPath, settings);
+            profiles.push_back(profile);
+            isFound = true;
+        }
+    }
+
+    if (!isFound)
+        qStdout << Tr::tr("No SDCC toolchains found.") << endl;
+}
+
 void probe(Settings *settings)
 {
     QList<Profile> profiles;
@@ -425,6 +487,7 @@ void probe(Settings *settings)
     mingwProbe(settings, profiles);
     iarProbe(settings, profiles);
     keilProbe(settings, profiles);
+    sdccProbe(settings, profiles);
 
     if (profiles.empty()) {
         qStderr << Tr::tr("Could not detect any toolchains. No profile created.") << endl;
@@ -463,6 +526,8 @@ void createProfile(const QString &profileName, const QString &toolchainType,
         createIarProfile(compiler, settings, profileName);
     else if (toolchainTypes.contains(QLatin1String("keil")))
         createKeilProfile(compiler, settings, profileName);
+    else if (toolchainTypes.contains(QLatin1String("sdcc")))
+        createSdccProfile(compiler, settings, profileName);
     else
         throw qbs::ErrorInfo(Tr::tr("Cannot create profile: Unknown toolchain type."));
 }
