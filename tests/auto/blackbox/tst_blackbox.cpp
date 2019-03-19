@@ -6414,6 +6414,8 @@ void TestBlackbox::minimumSystemVersion()
     QbsRunParameters params({ "-f", file + ".qbs" });
     params.command = "run";
     QCOMPARE(runQbs(params), 0);
+    if (m_qbsStdout.contains("Unsupported compiler"))
+        QSKIP("Unsupported compiler");
     if (!m_qbsStdout.contains(output.toUtf8())) {
         qDebug() << "expected output:" << qPrintable(output);
         qDebug() << "actual output:" << m_qbsStdout.constData();

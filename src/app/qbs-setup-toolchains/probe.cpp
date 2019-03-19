@@ -38,6 +38,7 @@
 ****************************************************************************/
 #include "probe.h"
 
+#include "clangclprobe.h"
 #include "msvcprobe.h"
 #include "xcodeprobe.h"
 
@@ -66,7 +67,7 @@ using Internal::Tr;
 static QTextStream qStdout(stdout);
 static QTextStream qStderr(stderr);
 
-static QString findExecutable(const QString &fileName)
+QString findExecutable(const QString &fileName)
 {
     QString fullFileName = fileName;
     if (HostOsInfo::isWindowsHost()
@@ -135,6 +136,8 @@ static QStringList toolchainTypeFromCompilerName(const QString &compilerName)
 {
     if (compilerName == QLatin1String("cl.exe"))
         return canonicalToolchain(QStringLiteral("msvc"));
+    if (compilerName == QLatin1String("clang-cl.exe"))
+        return canonicalToolchain(QLatin1String("clang-cl"));
     const auto types = { QStringLiteral("clang"), QStringLiteral("llvm"),
                          QStringLiteral("mingw"), QStringLiteral("gcc") };
     for (const auto &type : types) {
@@ -409,6 +412,7 @@ void probe(Settings *settings)
     QList<Profile> profiles;
     if (HostOsInfo::isWindowsHost()) {
         msvcProbe(settings, profiles);
+        clangClProbe(settings, profiles);
     } else {
         gccProbe(settings, profiles, QStringLiteral("gcc"));
         gccProbe(settings, profiles, QStringLiteral("clang"));
@@ -451,6 +455,8 @@ void createProfile(const QString &profileName, const QString &toolchainType,
 
     if (toolchainTypes.contains(QLatin1String("msvc")))
         createMsvcProfile(profileName, compiler.absoluteFilePath(), settings);
+    else if (toolchainTypes.contains(QLatin1String("clang-cl")))
+        createClangClProfile(profileName, compiler.absoluteFilePath(), settings);
     else if (toolchainTypes.contains(QLatin1String("gcc")))
         createGccProfile(compiler.absoluteFilePath(), settings, toolchainTypes, profileName);
     else if (toolchainTypes.contains(QLatin1String("iar")))

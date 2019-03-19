@@ -62,7 +62,8 @@ function hasCxx17Option(input)
 {
     // Probably this is not the earliest version to support the flag, but we have tested this one
     // and it's a pain to find out the exact minimum.
-    return Utilities.versionCompare(input.cpp.compilerVersion, "19.12.25831") >= 0;
+    return Utilities.versionCompare(input.cpp.compilerVersion, "19.12.25831") >= 0
+            || (input.qbs.toolchain.contains("clang-cl") && input.cpp.compilerVersionMajor >= 7);
 }
 
 function addLanguageVersionFlag(input, args) {
@@ -72,7 +73,9 @@ function addLanguageVersionFlag(input, args) {
         return;
 
     // Visual C++ 2013, Update 3
-    var hasStdOption = Utilities.versionCompare(input.cpp.compilerVersion, "18.00.30723") >= 0;
+    var hasStdOption = Utilities.versionCompare(input.cpp.compilerVersion, "18.00.30723") >= 0
+            // or clang-cl
+            || input.qbs.toolchain.contains("clang-cl");
     if (!hasStdOption)
         return;
 
@@ -210,10 +213,20 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
     var pchInputs = explicitlyDependsOn[tag + "_pch"];
     if (pchOutput) {
         // create PCH
-        args.push("/Yc");
-        args.push("/Fp" + FileInfo.toWindowsSeparators(pchOutput.filePath));
-        args.push("/Fo" + FileInfo.toWindowsSeparators(objOutput.filePath));
-        args.push(FileInfo.toWindowsSeparators(input.filePath));
+        if (input.qbs.toolchain.contains("clang-cl")) {
+            // clang-cl does not support /Yc flag without filename
+            args.push("/Yc" + FileInfo.toWindowsSeparators(input.filePath));
+            // clang-cl complains when pch file is not included
+            args.push("/FI" + FileInfo.toWindowsSeparators(input.filePath));
+            args.push("/Fp" + FileInfo.toWindowsSeparators(pchOutput.filePath));
+            args.push("/Fo" + FileInfo.toWindowsSeparators(objOutput.filePath));
+        } else { // real msvc
+            args.push("/Yc");
+            args.push("/Fp" + FileInfo.toWindowsSeparators(pchOutput.filePath));
+            args.push("/Fo" + FileInfo.toWindowsSeparators(objOutput.filePath));
+            args.push(FileInfo.toWindowsSeparators(input.filePath));
+        }
+
     } else if (pchInputs && pchInputs.length === 1
                && ModUtils.moduleProperty(input, "usePrecompiledHeader", tag)) {
         // use PCH
@@ -399,7 +412,8 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
                                                                       'subsystem');
         if (subsystemVersion) {
             subsystemSwitch += ',' + subsystemVersion;
-            args.push('/OSVERSION:' + subsystemVersion);
+            if (product.cpp.linkerName !== "lld-link.exe") // llvm linker does not support /OSVERSION
+                args.push('/OSVERSION:' + subsystemVersion);
         }
     }
 

@@ -32,6 +32,10 @@
 #error RTTI is disabled!
 #endif
 
+#if defined(_MSC_VER) && !defined (_CPPRTTI)
+#error RTTI is disabled!
+#endif
+
 class I {
 public:
     virtual ~I() { }

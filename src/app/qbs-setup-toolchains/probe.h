@@ -48,6 +48,8 @@ QT_END_NAMESPACE
 
 namespace qbs { class Settings; }
 
+QString findExecutable(const QString &fileName);
+
 void createProfile(const QString &profileName, const QString &toolchainType,
                    const QString &compilerFilePath, qbs::Settings *settings);
 

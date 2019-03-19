@@ -4,12 +4,14 @@ TARGET = qbs-setup-toolchains
 
 HEADERS += \
     commandlineparser.h \
+    clangclprobe.h \
     msvcprobe.h \
     probe.h \
     xcodeprobe.h
 
 SOURCES += \
     commandlineparser.cpp \
+    clangclprobe.cpp \
     main.cpp \
     msvcprobe.cpp \
     probe.cpp \

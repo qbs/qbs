@@ -42,6 +42,10 @@ int main(int argc, char *argv[])
         return 1;
 
 #ifdef _WIN32
+#if defined(__clang__)
+    std::cout << "Unsupported compiler" << std::endl;
+    return 0;
+#endif
 #if defined(WINVER) && defined(QBS_WINVER)
     std::cout << "WINVER=" << WINVER << std::endl;
     std::string command = TOOLCHAIN_INSTALL_PATH;

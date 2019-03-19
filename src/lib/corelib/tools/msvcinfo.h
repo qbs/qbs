@@ -77,20 +77,19 @@ public:
 
     MSVC() { }
 
-    MSVC(const QString &clPath)
+    MSVC(const QString &clPath, QString arch):
+        architecture(std::move(arch))
     {
         QDir parentDir = QFileInfo(clPath).dir();
         binPath = parentDir.absolutePath();
         QString parentDirName = parentDir.dirName().toLower();
-        if (parentDirName == QLatin1String("bin"))
-            parentDirName = QStringLiteral("x86");
-        else
+        if (parentDirName != QLatin1String("bin"))
             parentDir.cdUp();
-        architecture = parentDirName;
         vcInstallPath = parentDir.path();
     }
 
     QBS_EXPORT void init();
+    QBS_EXPORT static QString architectureFromClPath(const QString &clPath);
     QBS_EXPORT QString binPathForArchitecture(const QString &arch) const;
     QBS_EXPORT QString clPathForArchitecture(const QString &arch) const;
     QBS_EXPORT QVariantMap compilerDefines(const QString &compilerFilePath,

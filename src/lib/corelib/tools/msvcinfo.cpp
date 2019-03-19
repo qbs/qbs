@@ -198,9 +198,86 @@ static QVariantMap getMsvcDefines(const QString &compilerFilePath,
 #endif
 }
 
+/*!
+    \internal
+    clang-cl does not support gcc and msvc ways to dump a macros, so we have to use original
+    clang.exe directly
+*/
+static QVariantMap getClangClDefines(
+        const QString &compilerFilePath,
+        const QProcessEnvironment &compilerEnv,
+        MSVC::CompilerLanguage language)
+{
+#ifdef Q_OS_WIN
+    QFileInfo clInfo(compilerFilePath);
+    QFileInfo clangInfo(clInfo.absolutePath() + QLatin1String("/clang.exe"));
+    if (!clangInfo.exists())
+        throw ErrorInfo(QStringLiteral("%1 does not exist").arg(clangInfo.absoluteFilePath()));
+
+    QString languageSwitch;
+    switch (language) {
+    case MSVC::CLanguage:
+        languageSwitch = QStringLiteral("c");
+        break;
+    case MSVC::CPlusPlusLanguage:
+        languageSwitch = QStringLiteral("c++");
+        break;
+    }
+    QStringList args = {
+        QStringLiteral("-dM"),
+        QStringLiteral("-E"),
+        QStringLiteral("-x"),
+        languageSwitch,
+        QStringLiteral("NUL"),
+    };
+    const auto lines = QString::fromLocal8Bit(
+            runProcess(
+                    clangInfo.absoluteFilePath(),
+                    args,
+                    compilerEnv,
+                    true)).split(QLatin1Char('\n'));
+    QVariantMap result;
+    for (const auto &line: lines) {
+        static const auto defineString = QLatin1String("#define ");
+        if (!line.startsWith(defineString)) {
+            throw ErrorInfo(QStringLiteral("Unexpected compiler frontend output: ")
+                            + lines.join(QLatin1Char('\n')));
+        }
+        QStringView view(line.data() + defineString.size());
+        const auto it = std::find(view.begin(), view.end(), QLatin1Char(' '));
+        if (it == view.end()) {
+            throw ErrorInfo(QStringLiteral("Unexpected compiler frontend output: ")
+                            + lines.join(QLatin1Char('\n')));
+        }
+        QStringView key(view.begin(), it);
+        QStringView value(it + 1, view.end());
+        result.insert(key.toString(), value.isEmpty() ? QVariant() : QVariant(value.toString()));
+    }
+    return result;
+#else
+    Q_UNUSED(compilerFilePath);
+    Q_UNUSED(compilerEnv);
+    Q_UNUSED(language);
+    return {};
+#endif
+}
+
 void MSVC::init()
 {
     determineCompilerVersion();
+}
+
+/*!
+  \internal
+  Returns the architecture detected from the compiler path.
+*/
+QString MSVC::architectureFromClPath(const QString &clPath)
+{
+    const auto parentDir = QFileInfo(clPath).absolutePath();
+    const auto parentDirName = QFileInfo(parentDir).fileName().toLower();
+    if (parentDirName == QLatin1String("bin"))
+        return QStringLiteral("x86");
+    return parentDirName;
 }
 
 QString MSVC::binPathForArchitecture(const QString &arch) const
@@ -222,6 +299,9 @@ QString MSVC::clPathForArchitecture(const QString &arch) const
 QVariantMap MSVC::compilerDefines(const QString &compilerFilePath,
                                   MSVC::CompilerLanguage language) const
 {
+    const auto compilerName = QFileInfo(compilerFilePath).fileName().toLower();
+    if (compilerName == QLatin1String("clang-cl.exe"))
+        return getClangClDefines(compilerFilePath, environment, language);
     return getMsvcDefines(compilerFilePath, environment, language);
 }
 

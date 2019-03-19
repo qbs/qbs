@@ -57,7 +57,7 @@ class MSVC;
 class QBS_EXPORT VsEnvironmentDetector
 {
 public:
-    VsEnvironmentDetector();
+    explicit VsEnvironmentDetector(QString vcvarsallPath = QString());
 
     bool start(MSVC *msvc);
     bool start(std::vector<MSVC *> msvcs);
@@ -70,6 +70,7 @@ private:
     void parseBatOutput(const QByteArray &output, std::vector<MSVC *> msvcs);
 
     const QString m_windowsSystemDirPath;
+    const QString m_vcvarsallPath;
     QString m_errorString;
 };
 

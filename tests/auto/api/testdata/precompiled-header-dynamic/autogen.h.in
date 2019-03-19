@@ -1,1 +1,6 @@
+#ifndef AUTOGEN_IN_H
+#define AUTOGEN_IN_H
+
 inline void f() { }
+
+#endif // AUTOGEN_IN_H

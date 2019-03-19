@@ -160,12 +160,6 @@ static QString wow6432Key()
 #endif
 }
 
-struct MSVCInstallInfo
-{
-    QString version;
-    QString installDir;
-};
-
 static QString vswhereFilePath()
 {
     static const std::vector<const char *> envVarCandidates{"ProgramFiles", "ProgramFiles(x86)"};
@@ -288,7 +282,28 @@ static std::vector<MSVCInstallInfo> installedMSVCsFromRegistry()
     return result;
 }
 
-static std::vector<MSVC> installedMSVCs()
+QString MSVCInstallInfo::findVcvarsallBat() const
+{
+    static const auto vcvarsall2017 = QStringLiteral("VC/Auxiliary/Build/vcvarsall.bat");
+    // 2015, 2013 and 2012
+    static const auto vcvarsallOld = QStringLiteral("VC/vcvarsall.bat");
+    QDir dir(installDir);
+    if (dir.exists(vcvarsall2017))
+        return dir.absoluteFilePath(vcvarsall2017);
+    if (dir.exists(vcvarsallOld))
+        return dir.absoluteFilePath(vcvarsallOld);
+    return {};
+}
+
+std::vector<MSVCInstallInfo> installedMSVCs()
+{
+    const auto installInfos = installedMSVCsFromVsWhere();
+    if (installInfos.empty())
+        return installedMSVCsFromRegistry();
+    return installInfos;
+}
+
+static std::vector<MSVC> installedCompilers()
 {
     std::vector<MSVC> msvcs;
     std::vector<MSVCInstallInfo> installInfos = installedMSVCsFromVsWhere();
@@ -385,7 +400,7 @@ void msvcProbe(Settings *settings, QList<Profile> &profiles)
 
     // 2) Installed MSVCs
     std::vector<MSVC> msvcs;
-    const auto instMsvcs = installedMSVCs();
+    const auto instMsvcs = installedCompilers();
     for (const MSVC &msvc : instMsvcs) {
         if (msvc.internalVsVersion.majorVersion() < 15) {
             // Check existence of various install scripts
@@ -452,7 +467,7 @@ void msvcProbe(Settings *settings, QList<Profile> &profiles)
 void createMsvcProfile(const QString &profileName, const QString &compilerFilePath,
                        Settings *settings)
 {
-    MSVC msvc(compilerFilePath);
+    MSVC msvc(compilerFilePath, MSVC::architectureFromClPath(compilerFilePath));
     msvc.init();
     QList<Profile> dummy;
     addMSVCPlatform(settings, dummy, profileName, &msvc);

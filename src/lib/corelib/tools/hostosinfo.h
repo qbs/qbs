@@ -74,6 +74,7 @@ public:
     enum HostOs { HostOsWindows, HostOsLinux, HostOsMacos, HostOsOtherUnix, HostOsOther };
 
     static inline std::string hostOSIdentifier();
+    static inline std::string hostOSArchitecture();
     static inline std::vector<std::string> hostOSIdentifiers();
     static inline std::vector<std::string> canonicalOSIdentifiers(const std::string &os);
     static inline HostOs hostOs();
@@ -175,6 +176,14 @@ std::string HostOsInfo::hostOSIdentifier()
     #warning "Qbs has not been ported to this OS - see http://qbs.io/"
     return "";
 #endif
+}
+
+std::string HostOsInfo::hostOSArchitecture()
+{
+    const auto cpuArch = QSysInfo::currentCpuArchitecture();
+    if (cpuArch == QLatin1String("i386"))
+        return "x86";
+    return cpuArch.toStdString();
 }
 
 std::vector<std::string> HostOsInfo::hostOSIdentifiers()

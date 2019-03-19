@@ -28,6 +28,7 @@ Project {
         Properties {
             condition: qbs.toolchain.contains("msvc")
             cpp.entryPoint: "main"
+            cpp.dynamicLibraries: ["ucrt", "kernel32"]
         }
         cpp.entryPoint: undefined
 

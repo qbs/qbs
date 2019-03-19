@@ -1,7 +1,7 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
+** Copyright (C) 2019 Ivan Komissarov (abbapoh@gmail.com)
+** Contact: http://www.qt.io/licensing
 **
 ** This file is part of Qbs.
 **
@@ -37,31 +37,19 @@
 **
 ****************************************************************************/
 
-#ifndef MSVCPROBE_H
-#define MSVCPROBE_H
+#ifndef CLANGCLPROBE_H
+#define CLANGCLPROBE_H
 
 #include <QtCore/qlist.h>
-
-#include <vector>
 
 namespace qbs {
 class Profile;
 class Settings;
 }
 
-struct MSVCInstallInfo
-{
-    QString version;
-    QString installDir;
+void createClangClProfile(
+        const QString &profileName, const QString &compilerFilePath, qbs::Settings *settings);
 
-    QString findVcvarsallBat() const;
-};
+void clangClProbe(qbs::Settings *settings, QList<qbs::Profile> &profiles);
 
-std::vector<MSVCInstallInfo> installedMSVCs();
-
-void createMsvcProfile(const QString &profileName, const QString &compilerFilePath,
-                       qbs::Settings *settings);
-
-void msvcProbe(qbs::Settings *settings, QList<qbs::Profile> &profiles);
-
-#endif // MSVCPROBE_H
+#endif // CLANGCLPROBE_H

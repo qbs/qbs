@@ -69,8 +69,9 @@ static QString windowsSystem32Path()
     return {};
 }
 
-VsEnvironmentDetector::VsEnvironmentDetector()
+VsEnvironmentDetector::VsEnvironmentDetector(QString vcvarsallPath)
     : m_windowsSystemDirPath(windowsSystem32Path())
+    , m_vcvarsallPath(std::move(vcvarsallPath))
 {
 }
 
@@ -137,7 +138,15 @@ QString VsEnvironmentDetector::findVcVarsAllBat(const MSVC &msvc,
 bool VsEnvironmentDetector::startDetection(const std::vector<MSVC *> &compatibleMSVCs)
 {
     std::vector<QString> searchedPaths;
-    const QString vcvarsallbat = findVcVarsAllBat(**compatibleMSVCs.begin(), searchedPaths);
+
+    if (!m_vcvarsallPath.isEmpty() && !QFileInfo::exists(m_vcvarsallPath)) {
+        m_errorString = Tr::tr("%1 does not exist.").arg(m_vcvarsallPath);
+        return false;
+    }
+
+    const auto vcvarsallbat = !m_vcvarsallPath.isEmpty()
+            ? m_vcvarsallPath
+            : findVcVarsAllBat(**compatibleMSVCs.begin(), searchedPaths);
     if (vcvarsallbat.isEmpty()) {
         if (!searchedPaths.empty()) {
             m_errorString = Tr::tr(

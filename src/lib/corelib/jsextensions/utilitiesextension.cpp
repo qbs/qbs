@@ -109,6 +109,7 @@ public:
     static QScriptValue js_certificateInfo(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_signingIdentities(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_msvcCompilerInfo(QScriptContext *context, QScriptEngine *engine);
+    static QScriptValue js_clangClCompilerInfo(QScriptContext *context, QScriptEngine *engine);
 
     static QScriptValue js_versionCompare(QScriptContext *context, QScriptEngine *engine);
 
@@ -455,6 +456,37 @@ QScriptValue UtilitiesExtension::js_signingIdentities(QScriptContext *context,
 #endif
 }
 
+#ifdef Q_OS_WIN
+static std::pair<QVariantMap /*result*/, QString /*error*/> msvcCompilerInfoHelper(
+        const QString &compilerFilePath,
+        MSVC::CompilerLanguage language,
+        const QString &vcvarsallPath,
+        const QString &arch)
+{
+    MSVC msvc(compilerFilePath, arch);
+    VsEnvironmentDetector envdetector(vcvarsallPath);
+    if (!envdetector.start(&msvc))
+        return { {}, QStringLiteral("Detecting the MSVC build environment failed: ")
+                    + envdetector.errorString() };
+
+    try {
+        QVariantMap envMap;
+        for (const QString &key : msvc.environment.keys())
+            envMap.insert(key, msvc.environment.value(key));
+
+        return {
+            QVariantMap {
+                {QStringLiteral("buildEnvironment"), envMap},
+                {QStringLiteral("macros"), msvc.compilerDefines(compilerFilePath, language)},
+            },
+            {}
+        };
+    } catch (const qbs::ErrorInfo &info) {
+        return { {}, info.toString() };
+    }
+}
+#endif
+
 QScriptValue UtilitiesExtension::js_msvcCompilerInfo(QScriptContext *context, QScriptEngine *engine)
 {
 #ifndef Q_OS_WIN
@@ -462,14 +494,12 @@ QScriptValue UtilitiesExtension::js_msvcCompilerInfo(QScriptContext *context, QS
     return context->throwError(QScriptContext::UnknownError,
         QStringLiteral("msvcCompilerInfo is not available on this platform"));
 #else
-    if (Q_UNLIKELY(context->argumentCount() < 1))
+    if (Q_UNLIKELY(context->argumentCount() < 2))
         return context->throwError(QScriptContext::SyntaxError,
-                                   QStringLiteral("msvcCompilerInfo expects at least 1 argument"));
+                                   QStringLiteral("msvcCompilerInfo expects 2 arguments"));
 
     const QString compilerFilePath = context->argument(0).toString();
-    const QString compilerLanguage = context->argumentCount() > 1
-            ? context->argument(1).toString()
-            : QString();
+    const QString compilerLanguage = context->argument(1).toString();
     MSVC::CompilerLanguage language;
     if (compilerLanguage == QStringLiteral("c"))
         language = MSVC::CLanguage;
@@ -479,26 +509,45 @@ QScriptValue UtilitiesExtension::js_msvcCompilerInfo(QScriptContext *context, QS
         return context->throwError(QScriptContext::TypeError,
             QStringLiteral("msvcCompilerInfo expects \"c\" or \"cpp\" as its second argument"));
 
-    MSVC msvc(compilerFilePath);
-    VsEnvironmentDetector envdetector;
-    if (!envdetector.start(&msvc))
-        return context->throwError(QScriptContext::UnknownError,
-                                   QStringLiteral("Detecting the MSVC build environment failed: ")
-                                   + envdetector.errorString());
+    const auto result = msvcCompilerInfoHelper(
+            compilerFilePath, language, {}, MSVC::architectureFromClPath(compilerFilePath));
+    if (result.first.isEmpty())
+        return context->throwError(QScriptContext::UnknownError, result.second);
+    return engine->toScriptValue(result.first);
+#endif
+}
 
-    try {
-        QVariantMap envMap;
-        for (const QString &key : msvc.environment.keys())
-            envMap.insert(key, msvc.environment.value(key));
+QScriptValue UtilitiesExtension::js_clangClCompilerInfo(QScriptContext *context, QScriptEngine *engine)
+{
+#ifndef Q_OS_WIN
+    Q_UNUSED(engine);
+    return context->throwError(QScriptContext::UnknownError,
+        QStringLiteral("clangClCompilerInfo is not available on this platform"));
+#else
+    if (Q_UNLIKELY(context->argumentCount() < 4))
+        return context->throwError(QScriptContext::SyntaxError,
+                                   QStringLiteral("clangClCompilerInfo expects 4 arguments"));
 
-        return engine->toScriptValue(QVariantMap {
-            {QStringLiteral("buildEnvironment"), envMap},
-            {QStringLiteral("macros"), msvc.compilerDefines(compilerFilePath, language)},
-        });
-    } catch (const qbs::ErrorInfo &info) {
-        return context->throwError(QScriptContext::UnknownError,
-                                   info.toString());
-    }
+    const QString compilerFilePath = context->argument(0).toString();
+    QString arch = context->argument(1).toString();
+    QString vcvarsallPath = context->argument(2).toString();
+    const QString compilerLanguage = context->argumentCount() > 3
+            ? context->argument(3).toString()
+            : QString();
+    MSVC::CompilerLanguage language;
+    if (compilerLanguage == QStringLiteral("c"))
+        language = MSVC::CLanguage;
+    else if (compilerLanguage == StringConstants::cppLang())
+        language = MSVC::CPlusPlusLanguage;
+    else
+        return context->throwError(QScriptContext::TypeError,
+            QStringLiteral("clangClCompilerInfo expects \"c\" or \"cpp\" as its fourth argument"));
+
+    const auto result = msvcCompilerInfoHelper(
+            compilerFilePath, language, vcvarsallPath, arch);
+    if (result.first.isEmpty())
+        return context->throwError(QScriptContext::UnknownError, result.second);
+    return engine->toScriptValue(result.first);
 #endif
 }
 
@@ -800,6 +849,8 @@ void initializeJsExtensionUtilities(QScriptValue extensionObject)
                                engine->newFunction(UtilitiesExtension::js_signingIdentities, 0));
     environmentObj.setProperty(QStringLiteral("msvcCompilerInfo"),
                                engine->newFunction(UtilitiesExtension::js_msvcCompilerInfo, 1));
+    environmentObj.setProperty(QStringLiteral("clangClCompilerInfo"),
+                               engine->newFunction(UtilitiesExtension::js_clangClCompilerInfo, 1));
     environmentObj.setProperty(QStringLiteral("versionCompare"),
                                engine->newFunction(UtilitiesExtension::js_versionCompare, 2));
     environmentObj.setProperty(QStringLiteral("qmlTypeInfo"),

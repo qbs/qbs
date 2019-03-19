@@ -1,6 +1,5 @@
 /****************************************************************************
 **
-** Copyright (C) 2015 The Qt Company Ltd.
 ** Copyright (C) 2019 Ivan Komissarov (abbapoh@gmail.com)
 ** Contact: http://www.qt.io/licensing
 **
@@ -29,38 +28,57 @@
 **
 ****************************************************************************/
 
+import qbs
+import qbs.ModUtils
 import qbs.Probes
-import "windows-msvc-base.qbs" as MsvcBaseModule
+import qbs.FileInfo
+import 'windows-msvc-base.qbs' as MsvcBaseModule
 
 MsvcBaseModule {
     condition: qbs.hostOS.contains('windows') &&
                qbs.targetOS.contains('windows') &&
-               qbs.toolchain && qbs.toolchain.contains('msvc')
-    priority: 50
+               qbs.toolchain && qbs.toolchain.contains('clang-cl')
+    priority: 100
 
     Probes.BinaryProbe {
-        id: compilerPathProbe
+        id: clangPathProbe
         condition: !toolchainInstallPath && !_skipAllChecks
-        names: ["cl"]
+        names: ["clang-cl"]
     }
 
-    Probes.MsvcProbe {
-        id: msvcProbe
+    Probes.ClangClProbe {
+        id: clangClProbe
         condition: !_skipAllChecks
         compilerFilePath: compilerPath
+        vcvarsallFilePath: vcvarsallPath
         enableDefinesByLanguage: enableCompilerDefinesByLanguage
-        preferredArchitecture: qbs.architecture
+        architecture: qbs.architecture
     }
 
-    qbs.architecture: msvcProbe.found ? msvcProbe.architecture : original
+    compilerVersionMajor: clangClProbe.versionMajor
+    compilerVersionMinor: clangClProbe.versionMinor
+    compilerVersionPatch: clangClProbe.versionPatch
+    compilerIncludePaths: clangClProbe.includePaths
+    compilerDefinesByLanguage: clangClProbe.compilerDefinesByLanguage
 
-    compilerVersionMajor: msvcProbe.versionMajor
-    compilerVersionMinor: msvcProbe.versionMinor
-    compilerVersionPatch: msvcProbe.versionPatch
-    compilerIncludePaths: msvcProbe.includePaths
-    compilerDefinesByLanguage: msvcProbe.compilerDefinesByLanguage
+    toolchainInstallPath: clangPathProbe.found ? clangPathProbe.path
+                                               : undefined
+    buildEnv: clangClProbe.buildEnv
 
-    toolchainInstallPath: compilerPathProbe.found ? compilerPathProbe.path
-                                                  : undefined
-    buildEnv: msvcProbe.buildEnv
+    property string vcvarsallPath
+
+    compilerName: "clang-cl.exe"
+    linkerName: "lld-link.exe"
+    linkerPath: FileInfo.joinPaths(toolchainInstallPath, linkerName)
+
+    validateFunc: {
+        return function() {
+            if (_skipAllChecks)
+                return;
+            var validator = new ModUtils.PropertyValidator("cpp");
+            validator.setRequiredProperty("vcvarsallPath", vcvarsallPath);
+            validator.validate();
+            base();
+        }
+    }
 }

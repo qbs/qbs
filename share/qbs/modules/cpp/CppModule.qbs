@@ -454,40 +454,46 @@ Module {
         fileTags: ["hpp"]
     }
 
-    validate: {
-        var validator = new ModUtils.PropertyValidator("cpp");
-        validator.setRequiredProperty("architecture", architecture,
-                                      "you might want to re-run 'qbs-setup-toolchains'");
-        validator.addCustomValidator("architecture", architecture, function (value) {
-            return !architecture || architecture === Utilities.canonicalArchitecture(architecture);
-        }, "'" + architecture + "' is invalid. You must use the canonical name '" +
-        Utilities.canonicalArchitecture(architecture) + "'");
-        validator.setRequiredProperty("endianness", endianness);
-        validator.setRequiredProperty("compilerDefinesByLanguage", compilerDefinesByLanguage);
-        validator.setRequiredProperty("compilerVersion", compilerVersion);
-        validator.setRequiredProperty("compilerVersionMajor", compilerVersionMajor);
-        validator.setRequiredProperty("compilerVersionMinor", compilerVersionMinor);
-        validator.setRequiredProperty("compilerVersionPatch", compilerVersionPatch);
-        validator.addVersionValidator("compilerVersion", compilerVersion, 3, 3);
-        validator.addRangeValidator("compilerVersionMajor", compilerVersionMajor, 1);
-        validator.addRangeValidator("compilerVersionMinor", compilerVersionMinor, 0);
-        validator.addRangeValidator("compilerVersionPatch", compilerVersionPatch, 0);
-        if (minimumWindowsVersion) {
-            validator.addVersionValidator("minimumWindowsVersion", minimumWindowsVersion, 2, 2);
-            validator.addCustomValidator("minimumWindowsVersion", minimumWindowsVersion, function (v) {
-                return !v || v === WindowsUtils.canonicalizeVersion(v);
-            }, "'" + minimumWindowsVersion + "' is invalid. Did you mean '" +
-            WindowsUtils.canonicalizeVersion(minimumWindowsVersion) + "'?");
-        }
-        validator.validate();
+    property var validateFunc: {
+        return function() {
+            var validator = new ModUtils.PropertyValidator("cpp");
+            validator.setRequiredProperty("architecture", architecture,
+                                          "you might want to re-run 'qbs-setup-toolchains'");
+            validator.addCustomValidator("architecture", architecture, function (value) {
+                return !architecture || architecture === Utilities.canonicalArchitecture(architecture);
+            }, "'" + architecture + "' is invalid. You must use the canonical name '" +
+            Utilities.canonicalArchitecture(architecture) + "'");
+            validator.setRequiredProperty("endianness", endianness);
+            validator.setRequiredProperty("compilerDefinesByLanguage", compilerDefinesByLanguage);
+            validator.setRequiredProperty("compilerVersion", compilerVersion);
+            validator.setRequiredProperty("compilerVersionMajor", compilerVersionMajor);
+            validator.setRequiredProperty("compilerVersionMinor", compilerVersionMinor);
+            validator.setRequiredProperty("compilerVersionPatch", compilerVersionPatch);
+            validator.addVersionValidator("compilerVersion", compilerVersion, 3, 3);
+            validator.addRangeValidator("compilerVersionMajor", compilerVersionMajor, 1);
+            validator.addRangeValidator("compilerVersionMinor", compilerVersionMinor, 0);
+            validator.addRangeValidator("compilerVersionPatch", compilerVersionPatch, 0);
+            if (minimumWindowsVersion) {
+                validator.addVersionValidator("minimumWindowsVersion", minimumWindowsVersion, 2, 2);
+                validator.addCustomValidator("minimumWindowsVersion", minimumWindowsVersion, function (v) {
+                    return !v || v === WindowsUtils.canonicalizeVersion(v);
+                }, "'" + minimumWindowsVersion + "' is invalid. Did you mean '" +
+                WindowsUtils.canonicalizeVersion(minimumWindowsVersion) + "'?");
+            }
+            validator.validate();
 
-        if (minimumWindowsVersion && !WindowsUtils.isValidWindowsVersion(minimumWindowsVersion)) {
-            console.warn("Unknown Windows version '" + minimumWindowsVersion
-                + "'; expected one of: "
-                + WindowsUtils.knownWindowsVersions().map(function (a) {
-                    return '"' + a + '"'; }).join(", ")
-                + ". See https://docs.microsoft.com/en-us/windows/desktop/SysInfo/operating-system-version");
+            if (minimumWindowsVersion && !WindowsUtils.isValidWindowsVersion(minimumWindowsVersion)) {
+                console.warn("Unknown Windows version '" + minimumWindowsVersion
+                    + "'; expected one of: "
+                    + WindowsUtils.knownWindowsVersions().map(function (a) {
+                        return '"' + a + '"'; }).join(", ")
+                    + ". See https://docs.microsoft.com/en-us/windows/desktop/SysInfo/operating-system-version");
+            }
         }
+    }
+
+    validate: {
+        return validateFunc();
     }
 
     setupRunEnvironment: {
