@@ -32,6 +32,7 @@ import qbs.Environment
 import qbs.File
 import qbs.FileInfo
 import "../../../modules/Android/sdk/utils.js" as SdkUtils
+import "../../../modules/Android/android-utils.js" as AndroidUtils
 
 BinaryProbe {
     environmentPaths: Environment.getEnv("ANDROID_HOME")
@@ -62,7 +63,7 @@ BinaryProbe {
                     path = allPaths[i];
                     buildToolsVersions = SdkUtils.availableBuildToolsVersions(path)
                     buildToolsVersion = buildToolsVersions[buildToolsVersions.length - 1];
-                    platforms = SdkUtils.availableSdkPlatforms(path)
+                    platforms = AndroidUtils.availablePlatforms(path)
                     platform = platforms[platforms.length - 1];
                     found = true;
                     return;

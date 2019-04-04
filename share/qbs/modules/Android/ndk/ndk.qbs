@@ -71,9 +71,7 @@ Module {
     property string hostArch: ndkProbe.hostArch
     property string ndkDir: ndkProbe.path
     property string ndkSamplesDir: ndkProbe.samplesDir
-    property string platform: version && Utilities.versionCompare(version, "15") >= 0
-                              ? "android-14"
-                              : "android-9"
+    property string platform: ndkProbe.ndkPlatform
 
     property bool useUnifiedHeaders: version && Utilities.versionCompare(version, "15") >= 0
 
