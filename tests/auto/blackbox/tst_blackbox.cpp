@@ -6647,7 +6647,9 @@ void TestBlackbox::badInterpreter()
     params.arguments = QStringList() << "-p" << "script-interp-noexec";
     QCOMPARE(runQbs(params), 1);
     strerr = QString::fromLocal8Bit(m_qbsStderr);
-    QVERIFY(strerr.contains(reNoSuchFileOrDir) || strerr.contains(rePermissionDenied));
+    QVERIFY2(strerr.contains(reNoSuchFileOrDir) || strerr.contains(rePermissionDenied)
+             || strerr.contains("script-noexec: bad interpreter: execve: Exec format error"),
+             qPrintable(strerr));
 
     params.arguments = QStringList() << "-p" << "script-noexec";
     QCOMPARE(runQbs(params), 1);

@@ -205,14 +205,18 @@ function collectLibraryDependencies(product) {
 
 function filterStdOutput(cmd) {
     cmd.stdoutFilterFunction = function(output) {
-        // Allow only the error and warning messages
-        // with its sub-content.
         var sourceLines = output.split("\n");
         var filteredLines = [];
         for (var i in sourceLines) {
             if (sourceLines[i].startsWith("***")
                 || sourceLines[i].startsWith(">>")
-                || sourceLines[i].startsWith("    ")) {
+                || sourceLines[i].startsWith("    ")
+                || sourceLines[i].startsWith("Program Size:")
+                || sourceLines[i].startsWith("A51 FATAL")
+                || sourceLines[i].startsWith("C51 FATAL")
+                || sourceLines[i].startsWith("ASSEMBLER INVOKED BY")
+                || sourceLines[i].startsWith("LOC  OBJ            LINE     SOURCE")
+                ) {
                     filteredLines.push(sourceLines[i]);
             }
         }
@@ -548,5 +552,6 @@ function prepareArchiver(project, product, inputs, outputs, input, output) {
     var cmd = new Command(archiverPath, args)
     cmd.description = "linking " + output.fileName;
     cmd.highlight = "linker";
+    filterStdOutput(cmd);
     return [cmd];
 }

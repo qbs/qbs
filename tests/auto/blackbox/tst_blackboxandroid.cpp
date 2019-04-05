@@ -110,8 +110,7 @@ void TestBlackboxAndroid::android()
         auto currentExpectedFilesLists = expectedFilesLists;
         const QString configArgument = "config:" + configName;
         QbsRunParameters resolveParams("resolve");
-        resolveParams.arguments << "modules.Android.ndk.platform:android-21" << configArgument
-                                << customProperties;
+        resolveParams.arguments << configArgument << customProperties;
         resolveParams.profile = p.name();
         QCOMPARE(runQbs(resolveParams), 0);
         QbsRunParameters buildParams(QStringList{"--command-echo-mode", "command-line",

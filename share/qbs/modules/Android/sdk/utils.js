@@ -34,24 +34,6 @@ var Process = require("qbs.Process");
 var TextFile = require("qbs.TextFile");
 var Utilities = require("qbs.Utilities");
 
-function availableSdkPlatforms(sdkDir) {
-    var re = /^android-([0-9]+)$/;
-    var platforms = File.directoryEntries(FileInfo.joinPaths(sdkDir, "platforms"),
-                                          File.Dirs | File.NoDotAndDotDot);
-    var versions = [];
-    for (var i = 0; i < platforms.length; ++i) {
-        var match = platforms[i].match(re);
-        if (match !== null) {
-            versions.push(platforms[i]);
-        }
-    }
-
-    versions.sort(function (a, b) {
-        return parseInt(a.match(re)[1], 10) - parseInt(b.match(re)[1], 10);
-    });
-    return versions;
-}
-
 function availableBuildToolsVersions(sdkDir) {
     var re = /^([0-9]+)\.([0-9]+)\.([0-9]+)$/;
     var buildTools = File.directoryEntries(FileInfo.joinPaths(sdkDir, "build-tools"),
