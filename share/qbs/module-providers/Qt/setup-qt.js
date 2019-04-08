@@ -331,31 +331,24 @@ function getQtProperties(qmakeFilePath, qbs) {
             qtProps.entryPointLibsRelease = fillEntryPointLibs(qtProps, false);
     } else if (qtProps.mkspecPath.contains("macx")) {
         if (qtProps.qtMajorVersion >= 5) {
-            try {
-                var qmakeConf = new TextFile(FileInfo.joinPaths(qtProps.mkspecPath, "qmake.conf"),
-                                             TextFile.ReadOnly);
-                while (!qmakeConf.atEof()) {
-                    var line = qmakeConf.readLine().trim();
-                    match = line.match
-                            (/^QMAKE_(MACOSX|IOS|TVOS|WATCHOS)_DEPLOYMENT_TARGET\s*=\s*(.*)\s*$/);
-                    if (match) {
-                        var platform = match[1];
-                        var version = match[2];
-                        if (platform === "MACOSX")
-                            qtProps.macosVersion = version;
-                        else if (platform === "IOS")
-                            qtProps.iosVersion = version;
-                        else if (platform === "TVOS")
-                            qtProps.tvosVersion = version;
-                        else if (platform === "WATCHOS")
-                            qtProps.watchosVersion = version;
-                    }
+            var lines = getFileContentsRecursively(FileInfo.joinPaths(qtProps.mkspecPath,
+                                                                      "qmake.conf"));
+            for (var i = 0; i < lines.length; ++i) {
+                var line = lines[i].trim();
+                match = line.match
+                        (/^QMAKE_(MACOSX|IOS|TVOS|WATCHOS)_DEPLOYMENT_TARGET\s*=\s*(.*)\s*$/);
+                if (match) {
+                    var platform = match[1];
+                    var version = match[2];
+                    if (platform === "MACOSX")
+                        qtProps.macosVersion = version;
+                    else if (platform === "IOS")
+                        qtProps.iosVersion = version;
+                    else if (platform === "TVOS")
+                        qtProps.tvosVersion = version;
+                    else if (platform === "WATCHOS")
+                        qtProps.watchosVersion = version;
                 }
-            }
-            catch (e) {}
-            finally {
-                if (qmakeConf)
-                    qmakeConf.close();
             }
             var isMac = qtProps.mkspecName !== "macx-ios-clang"
                     && qtProps.mkspecName !== "macx-tvos-clang"
@@ -872,9 +865,9 @@ function allQt4Modules(qtProps) {
     return modules;
 }
 
-function getPriFileContentsRecursively(priFilePath) {
-    var priFile = new TextFile(priFilePath, TextFile.ReadOnly);
-    var lines = splitNonEmpty(priFile.readAll(), '\n');
+function getFileContentsRecursively(filePath) {
+    var file = new TextFile(filePath, TextFile.ReadOnly);
+    var lines = splitNonEmpty(file.readAll(), '\n');
     for (var i = 0; i < lines.length; ++i) {
         var includeString = "include(";
         var line = lines[i].trim();
@@ -883,17 +876,19 @@ function getPriFileContentsRecursively(priFilePath) {
         var offset = includeString.length;
         var closingParenPos = line.indexOf(')', offset);
         if (closingParenPos === -1) {
-            console.warn("Invalid include statement in '" + toNative(priFilePath) + "'");
+            console.warn("Invalid include statement in '" + toNative(filePath) + "'");
             continue;
         }
-        var includedFilePath = line.slice(offset, closingParenPos - offset);
-        var includedContents = getPriFileContentsRecursively(includedFilePath);
+        var includedFilePath = line.slice(offset, closingParenPos);
+        if (!FileInfo.isAbsolutePath(includedFilePath))
+            includedFilePath = FileInfo.joinPaths(FileInfo.path(filePath), includedFilePath);
+        var includedContents = getFileContentsRecursively(includedFilePath);
         var j = i;
         for (var k = 0; k < includedContents.length; ++k)
             lines.splice(++j, 0, includedContents[k]);
         lines.splice(i--, 1);
     }
-    priFile.close();
+    file.close();
     return lines;
 }
 
@@ -1033,7 +1028,7 @@ function allQt5Modules(qtProps) {
         moduleInfo.qbsName = moduleInfo.qbsName.replace("_private", "-private");
         var hasV2 = false;
         var hasModuleEntry = false;
-        var lines = getPriFileContentsRecursively(priFilePath);
+        var lines = getFileContentsRecursively(priFilePath);
         for (var j = 0; j < lines.length; ++j) {
             var line = lines[j].trim();
             var firstEqualsOffset = line.indexOf('=');
