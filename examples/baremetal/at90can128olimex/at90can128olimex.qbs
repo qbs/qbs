@@ -51,9 +51,8 @@
 import qbs
 
 Project {
-    name: "BareMetal"
+    name: "Examples for Olimex AVR-CAN board"
     references: [
-        "stm32f4discovery/stm32f4discovery.qbs",
-        "at90can128olimex/at90can128olimex.qbs"
+        "redblink/redblink.qbs"
     ]
 }

@@ -48,12 +48,18 @@
 **
 ****************************************************************************/
 
-import qbs
+#ifndef GPIO_H
+#define GPIO_H
 
-Project {
-    name: "BareMetal"
-    references: [
-        "stm32f4discovery/stm32f4discovery.qbs",
-        "at90can128olimex/at90can128olimex.qbs"
-    ]
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void gpio_init_red_led(void);
+void gpio_toggle_red_led(void);
+
+#ifdef __cplusplus
 }
+#endif
+
+#endif // GPIO_H

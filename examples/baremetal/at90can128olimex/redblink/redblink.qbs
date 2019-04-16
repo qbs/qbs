@@ -50,10 +50,81 @@
 
 import qbs
 
-Project {
-    name: "BareMetal"
-    references: [
-        "stm32f4discovery/stm32f4discovery.qbs",
-        "at90can128olimex/at90can128olimex.qbs"
-    ]
+CppApplication {
+    condition: {
+        if (!qbs.architecture.contains("avr"))
+            return false;
+        return qbs.toolchain.contains("gcc")
+            || qbs.toolchain.contains("iar")
+    }
+    name: "redblink"
+    cpp.cLanguageVersion: "c99"
+    cpp.positionIndependentCode: false
+
+    //
+    // GCC-specific properties and sources.
+    //
+
+    Properties {
+        condition: qbs.toolchain.contains("gcc")
+        cpp.driverFlags: ["-mmcu=at90can128"]
+    }
+
+    // Note: We implicitly use the startup file and the linker script
+    // which are already linked into the avr-gcc toolchain runtime.
+
+    //
+    // IAR-specific properties and sources.
+    //
+
+    Properties {
+        condition: qbs.toolchain.contains("iar")
+        cpp.driverFlags: ["--cpu=can128", "-ms"]
+        cpp.entryPoint: "__program_start"
+        cpp.driverLinkerFlags: [
+            "-D_..X_HEAP_SIZE=0",
+            "-D_..X_NEAR_HEAP_SIZE=20",
+            "-D_..X_CSTACK_SIZE=20",
+            "-D_..X_RSTACK_SIZE=20",
+            "-D_..X_FLASH_CODE_END=1FFFF",
+            "-D_..X_FLASH_BASE=_..X_INTVEC_SIZE",
+            "-D_..X_EXT_SRAM_BASE=_..X_SRAM_END",
+            "-D_..X_EXT_ROM_BASE=_..X_SRAM_END",
+            "-D_..X_EXT_NV_BASE=_..X_SRAM_END",
+            "-D_..X_CSTACK_BASE=_..X_SRAM_BASE",
+            "-D_..X_CSTACK_END=_..X_SRAM_END",
+            "-D_..X_RSTACK_BASE=_..X_SRAM_BASE",
+            "-D_..X_RSTACK_END=_..X_SRAM_END",
+            "-h'1895'(CODE)0-(_..X_INTVEC_SIZE-1)",
+        ]
+        cpp.staticLibraries: [
+            // Explicitly link with the runtime dlib library (which contains
+            // all required startup code and other stuff).
+            cpp.toolchainInstallPath + "/../lib/dlib/dlAVR-3s-ec_mul-n.r90"
+        ]
+    }
+
+    Group {
+        condition: qbs.toolchain.contains("iar")
+        name: "IAR"
+        prefix: "iar/"
+        Group {
+            name: "Linker Script"
+            prefix: cpp.toolchainInstallPath + "/../src/template/"
+            fileTags: ["linkerscript"]
+            // Explicitly use the default linker scripts for current target.
+            files: ["cfg3soim.xcl", "cfgcan128.xcl"]
+        }
+    }
+
+    //
+    // Common code.
+    //
+
+    Group {
+        name: "Gpio"
+        files: ["gpio.c", "gpio.h"]
+    }
+
+    files: ["main.c"]
 }

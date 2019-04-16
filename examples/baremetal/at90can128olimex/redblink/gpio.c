@@ -48,12 +48,29 @@
 **
 ****************************************************************************/
 
-import qbs
+#include "gpio.h"
 
-Project {
-    name: "BareMetal"
-    references: [
-        "stm32f4discovery/stm32f4discovery.qbs",
-        "at90can128olimex/at90can128olimex.qbs"
-    ]
+#if defined(__GNUC__)
+#include <avr/io.h>
+#elif defined (__ICCAVR__)
+#include <ioavr.h>
+#else
+#error "Unsupported toolchain"
+#endif
+
+// LED pin number.
+#define GPIO_RED_LED_PIN_POS    (4u)
+// LED port direction.
+#define GPIO_RED_LED_PORT_DIR   (DDRE)
+// LED output port.
+#define GPIO_RED_LED_PORT_OUT   (PORTE)
+
+void gpio_init_red_led(void)
+{
+    GPIO_RED_LED_PORT_DIR = 0xFF;
+}
+
+void gpio_toggle_red_led(void)
+{
+    GPIO_RED_LED_PORT_OUT ^= (1u << GPIO_RED_LED_PIN_POS);
 }
