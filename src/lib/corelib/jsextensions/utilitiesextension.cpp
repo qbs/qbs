@@ -236,7 +236,7 @@ static inline QString escapedString(const Char *begin, int length, bool isUnicod
             // Surrogate characters are category Cs (Other_Surrogate), so isPrintable = false for them
             int runLength = 0;
             while (p + runLength != end &&
-                   isPrintable(p[runLength]) && p[runLength] != '\\' && p[runLength] != '"')
+                   QChar::isPrint(p[runLength]) && p[runLength] != '\\' && p[runLength] != '"')
                 ++runLength;
             if (runLength) {
                 out += QString(reinterpret_cast<const QChar *>(p), runLength);
@@ -288,7 +288,7 @@ static inline QString escapedString(const Char *begin, int length, bool isUnicod
                 if ((p + 1) != end && QChar::isLowSurrogate(p[1])) {
                     // properly-paired surrogates
                     uint ucs4 = QChar::surrogateToUcs4(*p, p[1]);
-                    if (isPrintable(ucs4)) {
+                    if (QChar::isPrint(ucs4)) {
                         buf[0] = *p;
                         buf[1] = p[1];
                         buflen = 2;

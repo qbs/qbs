@@ -729,6 +729,9 @@ CppModule {
                 match = regexp.exec(linkerScript.readLine());
                 if(match) {
                     var additionalPath = match[1];
+                    // path can be quoted to use non-latin letters, remove quotes if present
+                    if (additionalPath.startsWith("\"") && additionalPath.endsWith("\""))
+                        additionalPath = additionalPath.slice(1, additionalPath.length - 1);
                     retval.push(additionalPath);
                 }
             }

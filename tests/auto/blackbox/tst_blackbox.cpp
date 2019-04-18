@@ -2537,6 +2537,9 @@ void TestBlackbox::smartRelinking_data()
 static QString soName(const QString &readElfPath, const QString &libFilePath)
 {
     QProcess readElf;
+    auto env = QProcessEnvironment::systemEnvironment();
+    env.insert(QStringLiteral("LC_ALL"), QStringLiteral("C")); // force readelf to use US encoding
+    readElf.setProcessEnvironment(env);
     readElf.start(readElfPath, QStringList() << "-a" << libFilePath);
     if (!readElf.waitForStarted() || !readElf.waitForFinished() || readElf.exitCode() != 0) {
         qDebug() << readElf.errorString() << readElf.readAllStandardError();
@@ -2936,7 +2939,7 @@ void TestBlackbox::probeChangeTracking()
 void TestBlackbox::probeProperties()
 {
     QDir::setCurrent(testDataDir + "/probeProperties");
-    const QByteArray dir = QDir::cleanPath(testDataDir).toLatin1() + "/probeProperties";
+    const QByteArray dir = QDir::cleanPath(testDataDir).toLocal8Bit() + "/probeProperties";
     QCOMPARE(runQbs(), 0);
     QVERIFY2(m_qbsStdout.contains("probe1.fileName=bin/tool"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("probe1.path=" + dir), m_qbsStdout.constData());

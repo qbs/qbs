@@ -44,7 +44,7 @@ DynamicLibrary {
             cmd.sourceCode = function() {
                 var file = new TextFile(buildPath + "/linkerscript_with_includes",
                                         TextFile.WriteOnly);
-                file.write("SEARCH_DIR(" + sourcePath + "/scripts)\n" +
+                file.write("SEARCH_DIR(\"" + sourcePath + "/scripts\")\n" +
                            "INCLUDE linkerscript_to_include\n" +
                            "INCLUDE linkerscript_in_directory\n");
                 file.close();
