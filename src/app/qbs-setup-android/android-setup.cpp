@@ -68,12 +68,6 @@ static QStringList expectedArchs()
             QStringLiteral("x86"), QStringLiteral("x86_64")};
 }
 
-
-static QString subProfileName(const QString &mainProfileName, const QString &arch)
-{
-    return mainProfileName + QLatin1Char('-') + arch;
-}
-
 void setupSdk(qbs::Settings *settings, const QString &profileName, const QString &sdkDirPath)
 {
     if (!QDir(sdkDirPath).exists()) {
@@ -227,25 +221,7 @@ static void setupNdk(qbs::Settings *settings, const QString &profileName, const 
         const QtAndroidInfo qtAndroidInfo = infoPerArch.value(arch);
         if (!qtAndroidInfo.isValid())
             continue;
-        const QString subProName = subProfileName(profileName, arch);
-        const QString setupQtPath = qApp->applicationDirPath() + qls("/qbs-setup-qt");
-        QProcess setupQt;
-        setupQt.start(setupQtPath, QStringList({ qtAndroidInfo.qmakePath, subProName }));
-        if (!setupQt.waitForStarted()) {
-            throw ErrorInfo(Tr::tr("Setting up Qt profile failed: '%1' "
-                                   "could not be started.").arg(setupQtPath));
-        }
-        if (!setupQt.waitForFinished()) {
-            throw ErrorInfo(Tr::tr("Setting up Qt profile failed: Error running '%1' (%2)")
-                            .arg(setupQtPath, setupQt.errorString()));
-        }
-        if (setupQt.exitCode() != 0) {
-            throw ErrorInfo(Tr::tr("Setting up Qt profile failed: '%1' returned with "
-                                   "exit code %2.").arg(setupQtPath).arg(setupQt.exitCode()));
-        }
-        settings->sync();
-        qbs::Internal::TemporaryProfile p(subProName, settings);
-        qmakeFilePaths << p.p.value(qls("moduleProviders.Qt.qmakeFilePaths")).toStringList();
+        qmakeFilePaths << qtAndroidInfo.qmakePath;
         platform = maximumPlatform(platform, qtAndroidInfo.platform);
     }
     if (!qmakeFilePaths.empty())
