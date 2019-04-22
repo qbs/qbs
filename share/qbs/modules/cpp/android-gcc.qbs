@@ -212,7 +212,7 @@ LinuxGCC {
                                      NdkUtils.getBinutilsPath(Android.ndk, toolchainTriple + "-"),
                                      "prebuilt", Android.ndk.hostArch, "bin");
     binutilsPathPrefix: Gcc.pathPrefix(binutilsPath, toolchainTriple + "-")
-    driverFlags: qbs.toolchain.contains("clang")
+    driverFlags: qbs.toolchain.contains("clang") && Utilities.versionCompare(Android.ndk.version, "19") < 0
                  ? ["-gcc-toolchain", FileInfo.path(binutilsPath)].concat(base || []) : base
     syslibroot: FileInfo.joinPaths(Android.ndk.ndkDir, "platforms",
                                    Android.ndk.platform, "arch-"
