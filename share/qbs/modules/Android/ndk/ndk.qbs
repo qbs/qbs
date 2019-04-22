@@ -51,21 +51,13 @@ Module {
         allowedValues: ["arm64-v8a", "armeabi", "armeabi-v7a", "mips", "mips64", "x86", "x86_64"]
     }
 
-    property string appStl: version && Utilities.versionCompare(version, "17") >= 0
-                            ? "c++_shared" : "system"
+    // See https://developer.android.com/ndk/guides/cpp-support.html
+    property string appStl: "c++_shared"
+
     PropertyOptions {
         name: "appStl"
-        description: "Corresponds to the 'APP_STL' variable in an Android.mk file."
-        allowedValues: [
-            "system", "gabi++_static", "gabi++_shared", "stlport_static", "stlport_shared",
-            "gnustl_static", "gnustl_shared", "c++_static", "c++_shared"
-        ]
-    }
-
-    property string toolchainVersion: latestToolchainVersion
-    PropertyOptions {
-        name: "toolchainVersion"
-        description: "Corresponds to the 'NDK_TOOLCHAIN_VERSION' variable in an Android.mk file."
+        description: "C++ Runtime Libraries."
+        allowedValues: ["c++_static", "c++_shared"]
     }
 
     property string hostArch: ndkProbe.hostArch
@@ -73,41 +65,6 @@ Module {
     property string ndkSamplesDir: ndkProbe.samplesDir
     property string platform: ndkProbe.ndkPlatform
 
-    property bool useUnifiedHeaders: version && Utilities.versionCompare(version, "15") >= 0
-
-    // Internal properties.
-    property stringList availableToolchains: ndkProbe.toolchains
-
-    property stringList availableToolchainVersions: {
-        var tcs = availableToolchains;
-        var versions = [];
-        for (var i = 0; i < tcs.length; ++i) {
-            if ((qbs.toolchain.contains("clang") && tcs[i].startsWith("llvm-"))
-                    || toolchainDirPrefixAbis.contains(tcs[i].split("-")[0])) {
-                var re = /\-((?:[0-9]+)\.(?:[0-9]+))$/;
-                var m = tcs[i].match(re);
-                if (m)
-                    versions.push(m[1]);
-            }
-        }
-
-        // Sort by version number
-        versions.sort(function (a, b) {
-            var re = /^([0-9]+)\.([0-9]+)$/;
-            a = a.match(re);
-            a = {major: a[1], minor: a[2]};
-            b = b.match(re);
-            b = {major: b[1], minor: b[2]};
-            if (a.major === b.major)
-                return a.minor - b.minor;
-            return a.major - b.major;
-        });
-
-        return versions;
-    }
-
-    property string latestToolchainVersion: availableToolchainVersions
-                                            [availableToolchainVersions.length - 1]
 
     property int platformVersion: {
         if (platform) {
@@ -127,22 +84,6 @@ Module {
         return list;
     }
 
-    property stringList toolchainDirPrefixAbis: {
-        var list = ["arm"];
-        if (platformVersion >= 9)
-            list.push("mipsel", "x86");
-        if (platformVersion >= 21)
-            list.push("aarch64", "mips64el", "x86_64");
-        return list;
-    }
-
-    property string toolchainVersionNumber: {
-        var prefix = "clang";
-        if (toolchainVersion && toolchainVersion.startsWith(prefix))
-            return toolchainVersion.substr(prefix.length);
-        return toolchainVersion;
-    }
-
     property string armMode: abi && abi.startsWith("armeabi")
             ? (qbs.buildVariant === "debug" ? "arm" : "thumb")
             : undefined;
@@ -151,8 +92,6 @@ Module {
         description: "Determines the instruction set for armeabi configurations."
         allowedValues: ["arm", "thumb"]
     }
-
-    property bool haveUnifiedStl: version && Utilities.versionCompare(version, "12") >= 0
 
     validate: {
         if (!ndkDir) {
@@ -163,15 +102,19 @@ Module {
                                        + "ANDROID_NDK_ROOT environment variable to a valid "
                                        + "Android NDK location.");
         }
+
+        if (Utilities.versionCompare(version, "19") < 0)
+            throw ModUtils.ModuleError("Unsupported NDK version "
+                                       + Android.ndk.version
+                                       + ", please upgrade your NDK to r19+");
+
         if (product.aggregate && !product.multiplexConfigurationId)
             return;
         var validator = new ModUtils.PropertyValidator("Android.ndk");
         validator.setRequiredProperty("abi", abi);
         validator.setRequiredProperty("appStl", appStl);
-        validator.setRequiredProperty("toolchainVersion", toolchainVersion);
         validator.setRequiredProperty("hostArch", hostArch);
         validator.setRequiredProperty("platform", platform);
-        validator.setRequiredProperty("toolchainVersionNumber", toolchainVersionNumber);
         return validator.validate();
     }
 }

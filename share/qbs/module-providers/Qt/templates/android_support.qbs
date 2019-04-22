@@ -24,6 +24,7 @@ Module {
     Depends { name: "Android.sdk"; condition: _enableSdkSupport }
     Depends { name: "Android.ndk"; condition: _enableNdkSupport }
     Depends { name: "java"; condition: _enableSdkSupport }
+    Depends { name: "cpp" }
 
     Properties {
         condition: _enableNdkSupport && qbs.toolchain.contains("clang")
@@ -37,6 +38,10 @@ Module {
         condition: _enableSdkSupport
         Android.sdk.customManifestProcessing: true
         java._tagJniHeaders: false // prevent rule cycle
+    }
+    Properties {
+        condition: _enableNdkSupport && Android.ndk.abi === "armeabi-v7a"
+        cpp.defines: "ANDROID_HAS_WSTRING"
     }
 
     Rule {
@@ -90,20 +95,9 @@ Module {
                 f.writeLine('"sdkBuildToolsRevision": "' + product.Android.sdk.buildToolsVersion
                             + '",');
                 f.writeLine('"ndk": "' + product.Android.sdk.ndkDir + '",');
-                // GCC was dropped in r19+
-                if (Utilities.versionCompare(product.Android.ndk.version, "19") >= 0) {
-                    f.writeLine('"toolchain-prefix": "llvm",');
-                    f.writeLine('"tool-prefix": "llvm",');
-                    f.writeLine('"useLLVM": true,');
-                } else {
-                    var toolPrefix = theBinary.cpp.toolchainTriple;
-                    var toolchainPrefix = toolPrefix.startsWith("i686-") ? "x86" : toolPrefix;
-                    f.writeLine('"toolchain-prefix": "' + toolchainPrefix + '",');
-                    f.writeLine('"tool-prefix": "' + toolPrefix + '",');
-                    f.writeLine('"toolchain-version": "' + theBinary.Android.ndk.toolchainVersion
-                                + '",');
-                }
-
+                f.writeLine('"toolchain-prefix": "llvm",');
+                f.writeLine('"tool-prefix": "llvm",');
+                f.writeLine('"useLLVM": true,');
                 f.writeLine('"ndk-host": "' + theBinary.Android.ndk.hostArch + '",');
                 f.writeLine('"target-architecture": "' + theBinary.Android.ndk.abi + '",');
                 f.writeLine('"qml-root-path": "' + product.Qt.android_support.qmlRootDir + '",');

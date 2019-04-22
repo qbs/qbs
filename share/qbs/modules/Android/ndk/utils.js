@@ -28,6 +28,8 @@
 **
 ****************************************************************************/
 
+var Utilities = require("qbs.Utilities")
+
 function abiNameToDirName(abiName) {
     switch (abiName) {
     case "armeabi":
@@ -61,10 +63,11 @@ function androidAbi(arch) {
     }
 }
 
-function commonCompilerFlags(toolchain, buildVariant, abi, armMode) {
-    var flags = ["-ffunction-sections", "-funwind-tables",
-                 "-Werror=format-security", "-fstack-protector-strong"];
+function commonCompilerFlags(toolchain, buildVariant, ndk) {
+    var flags = ["-Werror=format-security"];
 
+    var abi = ndk.abi;
+    var armMode = ndk.armMode;
     if (abi === "arm64-v8a")
         flags.push("-fpic");
 
@@ -86,11 +89,16 @@ function commonCompilerFlags(toolchain, buildVariant, abi, armMode) {
                    "-frerun-cse-after-loop", "-frename-registers");
     }
 
-    if ((abi === "x86" || abi === "x86_64") && toolchain.contains("clang"))
+    if (abi === "x86" || abi === "x86_64")
         flags.push("-fPIC");
+
+    flags.push("-fno-limit-debug-info");
 
     if (armMode)
         flags.push("-m" + armMode);
+
+    // TODO: Remove when https://github.com/android-ndk/ndk/issues/884 is fixed.
+    flags.push("-fno-addrsig");
 
     return flags;
 }
@@ -99,8 +107,6 @@ function commonLinkerFlags(abi) {
     return ["-z", "noexecstack", "-z", "relro", "-z", "now"];
 }
 
-function getBinutilsPath(ndk, toolchainPrefix) {
-    if (["x86", "x86_64"].contains(ndk.abi))
-        return ndk.abi + "-" + ndk.toolchainVersionNumber;
-    return toolchainPrefix + ndk.toolchainVersionNumber;
+function stlFilePath(path, ndk, suffix) {
+    return path + ndk.appStl.slice(0, ndk.appStl.indexOf('_')) + suffix + "." + ndk.platformVersion;
 }
