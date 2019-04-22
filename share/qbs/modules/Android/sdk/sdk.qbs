@@ -62,6 +62,8 @@ Module {
 
     // Product-specific properties and files
     property string packageName: product.name
+    property int versionCode
+    property string versionName
     property string apkBaseName: packageName
     property bool automaticSources: true
     property bool legacyLayout: false
@@ -266,7 +268,10 @@ Module {
                             + "'com.mycompany.myproduct' pattern."
                 }
                 rootElem.setAttribute("package", packageName);
-
+                if (product.Android.sdk.versionCode !== undefined)
+                    rootElem.setAttribute("android:versionCode", product.Android.sdk.versionCode);
+                if (product.Android.sdk.versionName !== undefined)
+                    rootElem.setAttribute("android:versionName", product.Android.sdk.versionName);
                 manifestData.save(output.filePath, 4);
             }
             return cmd;

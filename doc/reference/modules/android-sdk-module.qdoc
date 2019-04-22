@@ -161,6 +161,46 @@
 */
 
 /*!
+    \qmlproperty string Android.sdk::versionCode
+
+    The Android Manifest version code of the respective product. The \c android:versionCode
+    attribute in the manifest file will be set to this value if not undefined.
+
+    In the following example we provide an architecture-specific value
+    for \c android:versionCode:
+
+    \code
+    // ...
+    property int _version: 1
+    property int _patchVersion: 0
+    Android.sdk.versionCode: {
+        switch (Android.ndk.abi) {
+        case "armeabi-v7a":
+            return 132000000 | _version * 10 + _patchVersion;
+        case "arm64-v8a":
+            return 164000000 | _version * 10 + _patchVersion;
+        case "x86":
+            return 232000000 | _version * 10 + _patchVersion;
+        case "x86_64":
+            return 264000000 | _version * 10 + _patchVersion;
+        }
+        throw "Unknown architecture";
+    }
+    \endcode
+
+    \defaultvalue \c undefined
+*/
+
+/*!
+    \qmlproperty string Android.sdk::versionName
+
+    The Android Manifest version name of the respective product. The \c android:versionName
+    attribute in the manifest file will be set to this value if not undefined.
+
+    \defaultvalue \c undefined
+*/
+
+/*!
     \qmlproperty string Android.sdk::resourcesDir
 
     The base directory for Android resources in the respective product.
