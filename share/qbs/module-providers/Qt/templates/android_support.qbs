@@ -90,12 +90,20 @@ Module {
                 f.writeLine('"sdkBuildToolsRevision": "' + product.Android.sdk.buildToolsVersion
                             + '",');
                 f.writeLine('"ndk": "' + product.Android.sdk.ndkDir + '",');
-                var toolPrefix = theBinary.cpp.toolchainTriple;
-                var toolchainPrefix = toolPrefix.startsWith("i686-") ? "x86" : toolPrefix;
-                f.writeLine('"toolchain-prefix": "' + toolchainPrefix + '",');
-                f.writeLine('"tool-prefix": "' + toolPrefix + '",');
-                f.writeLine('"toolchain-version": "' + theBinary.Android.ndk.toolchainVersion
-                            + '",');
+                // GCC was dropped in r19+
+                if (Utilities.versionCompare(product.Android.ndk.version, "19") >= 0) {
+                    f.writeLine('"toolchain-prefix": "llvm",');
+                    f.writeLine('"tool-prefix": "llvm",');
+                    f.writeLine('"useLLVM": true,');
+                } else {
+                    var toolPrefix = theBinary.cpp.toolchainTriple;
+                    var toolchainPrefix = toolPrefix.startsWith("i686-") ? "x86" : toolPrefix;
+                    f.writeLine('"toolchain-prefix": "' + toolchainPrefix + '",');
+                    f.writeLine('"tool-prefix": "' + toolPrefix + '",');
+                    f.writeLine('"toolchain-version": "' + theBinary.Android.ndk.toolchainVersion
+                                + '",');
+                }
+
                 f.writeLine('"ndk-host": "' + theBinary.Android.ndk.hostArch + '",');
                 f.writeLine('"target-architecture": "' + theBinary.Android.ndk.abi + '",');
                 f.writeLine('"qml-root-path": "' + product.Qt.android_support.qmlRootDir + '",');
