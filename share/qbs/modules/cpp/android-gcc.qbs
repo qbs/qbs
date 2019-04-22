@@ -131,7 +131,15 @@ LinuxGCC {
     commonCompilerFlags: NdkUtils.commonCompilerFlags(qbs.toolchain, qbs.buildVariant,
                                                       Android.ndk.abi, Android.ndk.armMode)
 
-    linkerFlags: NdkUtils.commonLinkerFlags(Android.ndk.abi)
+    linkerFlags: {
+        var flags = NdkUtils.commonLinkerFlags(Android.ndk.abi);
+        if (qbs.toolchainType === "clang") {
+            flags = flags.concat(["--exclude-libs", "libgcc.a", "--exclude-libs", "libatomic.a"]);
+            if (Android.ndk.appStl.startsWith("c++") && Android.ndk.abi === "armeabi-v7a")
+                flags = flags.concat(["--exclude-libs", "libunwind.a"]);
+        }
+        return flags;
+    }
 
     platformDriverFlags: ["-no-canonical-prefixes"]
 
@@ -151,7 +159,10 @@ LinuxGCC {
         return libs;
     }
     staticLibraries: {
-        var libs = ["gcc"];
+        var libs = [];
+        if (qbs.toolchainType === "gcc")
+            libs.push("gcc");
+
         if (staticStlFilePath) {
             libs.push(staticStlFilePath);
             if (Android.ndk.appStl === "c++_static") {
