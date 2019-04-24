@@ -6470,10 +6470,13 @@ void TestBlackbox::minimumSystemVersion_data()
     const QString unspecified = []() -> QString {
         if (HostOsInfo::isMacosHost()) {
             const auto v = defaultClangMinimumDeploymentTarget();
-            return "__MAC_OS_X_VERSION_MIN_REQUIRED="
-                    + QString::number(toMinimumDeploymentTargetValue(v, true))
-                    + "\nversion "
+            auto result = "__MAC_OS_X_VERSION_MIN_REQUIRED="
+                    + QString::number(toMinimumDeploymentTargetValue(v, true));
+            if (v < qbs::Version(10, 14)) {
+                result += "\nversion "
                     + QString::number(v.majorVersion()) + "." + QString::number(v.minorVersion());
+            }
+            return result;
         }
 
         if (HostOsInfo::isWindowsHost())
