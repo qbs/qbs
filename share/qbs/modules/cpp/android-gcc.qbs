@@ -43,6 +43,7 @@ LinuxGCC {
     priority: 2
     rpaths: [rpathOrigin]
 
+    cxxLanguageVersion: "c++14"
     property string cxxStlBaseDir: FileInfo.joinPaths(Android.ndk.ndkDir, "sources", "cxx-stl")
     property string stlBaseDir: FileInfo.joinPaths(cxxStlBaseDir, "llvm-libc++")
 
