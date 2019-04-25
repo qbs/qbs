@@ -6472,10 +6472,11 @@ void TestBlackbox::minimumSystemVersion_data()
             const auto v = defaultClangMinimumDeploymentTarget();
             auto result = "__MAC_OS_X_VERSION_MIN_REQUIRED="
                     + QString::number(toMinimumDeploymentTargetValue(v, true));
-            if (v < qbs::Version(10, 14)) {
-                result += "\nversion "
-                    + QString::number(v.majorVersion()) + "." + QString::number(v.minorVersion());
-            }
+            if (v >= qbs::Version(10, 14))
+                result += "\nminos ";
+            else
+                result += "\nversion ";
+            result += QString::number(v.majorVersion()) + "." + QString::number(v.minorVersion());
             return result;
         }
 

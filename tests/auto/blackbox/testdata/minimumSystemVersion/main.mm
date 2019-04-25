@@ -54,7 +54,20 @@ int main()
         if (print && [line rangeOfString:@"version"].location != NSNotFound) {
             std::cout << [[line stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]] UTF8String] << std::endl;
             print = false;
+            continue;
         }
+
+#ifdef __clang__
+#if __clang_major__ >= 10 && __clang_minor__ >= 0
+        if ([line rangeOfString:@"LC_BUILD_VERSION"].location != NSNotFound)
+            print = true;
+
+        if (print && [line rangeOfString:@"minos"].location != NSNotFound) {
+            std::cout << [[line stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]] UTF8String] << std::endl;
+            print = false;
+        }
+#endif
+#endif // __clang__
     }
 
 }
