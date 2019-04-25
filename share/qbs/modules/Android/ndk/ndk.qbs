@@ -47,8 +47,8 @@ Module {
     readonly property string abi: NdkUtils.androidAbi(qbs.architecture)
     PropertyOptions {
         name: "abi"
-        description: "Corresponds to the 'APP_ABI' variable in an Android.mk file."
-        allowedValues: ["arm64-v8a", "armeabi", "armeabi-v7a", "mips", "mips64", "x86", "x86_64"]
+        description: "Supported Android ABIs"
+        allowedValues: ["arm64-v8a", "armeabi", "armeabi-v7a", "x86", "x86_64"]
     }
 
     // See https://developer.android.com/ndk/guides/cpp-support.html
@@ -85,10 +85,10 @@ Module {
 
     property stringList abis: {
         var list = ["armeabi", "armeabi-v7a"];
-        if (platformVersion >= 9)
-            list.push("mips", "x86");
+        if (platformVersion >= 16)
+            list.push("x86");
         if (platformVersion >= 21)
-            list.push("arm64-v8a", "mips64", "x86_64");
+            list.push("arm64-v8a", "x86_64");
         return list;
     }
 

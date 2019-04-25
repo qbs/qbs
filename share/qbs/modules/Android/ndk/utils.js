@@ -52,12 +52,6 @@ function androidAbi(arch) {
     case "armv7":
     case "armv7a":
         return "armeabi-v7a";
-    case "mips":
-    case "mipsel":
-        return "mips";
-    case "mips64":
-    case "mips64el":
-        return "mips64";
     default:
         return arch;
     }

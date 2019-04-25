@@ -113,7 +113,7 @@ LinuxGCC {
     libraryPaths: {
         var prefix = FileInfo.joinPaths(sysroot, "usr");
         var paths = [];
-        if (Android.ndk.abi === "mips64" || Android.ndk.abi === "x86_64") // no lib64 for arm64-v8a
+        if (Android.ndk.abi === "x86_64") // no lib64 for arm64-v8a
             paths.push(FileInfo.joinPaths(prefix, "lib64"));
         paths.push(FileInfo.joinPaths(prefix, "lib"));
         paths.push(stlLibsDir);
@@ -165,12 +165,6 @@ LinuxGCC {
             return qbs.architecture;
         case "x86":
             return "i686";
-        case "mips":
-        case "mipsel":
-            return "mipsel";
-        case "mips64":
-        case "mips64el":
-            return "mips64el";
         }
     }
 
