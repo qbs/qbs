@@ -104,5 +104,7 @@
 
     The versioned platform name.
 
-    \defaultvalue \c{"android-16"}
+    \defaultvalue \c{"android-16"} for 32 bit arm ABIs
+    and \c{"android-21"} for all 64 bit ABIs and x86.
+    x86 ABI has broken wstring support in android-16 to android-19.
 */

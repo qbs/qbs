@@ -40,7 +40,7 @@ Module {
         java._tagJniHeaders: false // prevent rule cycle
     }
     Properties {
-        condition: _enableNdkSupport && Android.ndk.abi === "armeabi-v7a"
+        condition: _enableNdkSupport && (Android.ndk.abi === "armeabi-v7a" || Android.ndk.abi === "x86")
         cpp.defines: "ANDROID_HAS_WSTRING"
     }
 

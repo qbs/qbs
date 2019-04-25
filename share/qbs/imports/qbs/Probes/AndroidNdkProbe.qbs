@@ -63,7 +63,6 @@ PathProbe {
     property var hostArch
     property stringList toolchains: []
     property string ndkVersion
-    property string ndkPlatform
 
     configure: {
         function readFileContent(filePath) {
@@ -93,9 +92,6 @@ PathProbe {
             for (j in platforms) {
                 if (File.exists(FileInfo.joinPaths(allPaths[i], "prebuilt", platforms[j]))) {
                     path = allPaths[i];
-                    var ndkPlatforms = AndroidUtils.availablePlatforms(path);
-                    if (ndkPlatforms.length > 0)
-                        ndkPlatform = ndkPlatforms[ndkPlatforms.length - 1];
                     if (File.exists(FileInfo.joinPaths(path, "samples")))
                         samplesDir = FileInfo.joinPaths(path, "samples"); // removed in r11
                     hostArch = platforms[j];

@@ -63,8 +63,16 @@ Module {
     property string hostArch: ndkProbe.hostArch
     property string ndkDir: ndkProbe.path
     property string ndkSamplesDir: ndkProbe.samplesDir
-    property string platform: ndkProbe.ndkPlatform
-
+    property string platform: {
+        switch (abi) {
+        case "armeabi":
+        case "armeabi-v7a":
+        // case "x86": // x86 has broken wstring support
+            return "android-19";
+        default:
+            return "android-21";
+        }
+    }
 
     property int platformVersion: {
         if (platform) {
