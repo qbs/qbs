@@ -61,7 +61,12 @@ Module {
     property string platform: sdkProbe.platform
 
     // Product-specific properties and files
-    property string packageName: product.name
+    property string packageName: {
+        var idx = product.name.indexOf(".")
+        if (idx > 0 && idx < product.name.length)
+            return product.name;
+        return "com.example." + product.name;
+    }
     property int versionCode
     property string versionName
     property string apkBaseName: packageName
