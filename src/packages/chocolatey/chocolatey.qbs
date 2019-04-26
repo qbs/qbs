@@ -95,7 +95,7 @@ Product {
                     tf.close();
                 }
 
-                var doc = new XmlDomDocument();
+                var doc = new Xml.DomDocument();
                 doc.load(nuspecFilePath);
                 var versionNode = doc.createElement("version");
                 versionNode.appendChild(doc.createTextNode(qbsVersion));

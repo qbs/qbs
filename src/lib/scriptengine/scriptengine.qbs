@@ -401,7 +401,7 @@ Project {
                     var p = new Process();
                     if (p.exec(qmake, ["-query", "QT_HOST_BINS/src"]) !== 0)
                         throw new Error("Error while querying qmake.");
-                    syncQtPath = FileInfo.joinPaths(p.readStdOut().replace(/[\r\n]/, ''),
+                    syncQtPath = FileInfo.joinPaths(p.readStdOut().replace(/\r?\n/, ''),
                                                     "syncqt.pl");
                 }
                 var qtScriptSrcPath = FileInfo.cleanPath(

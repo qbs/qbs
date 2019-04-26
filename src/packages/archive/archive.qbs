@@ -80,6 +80,13 @@ QbsProduct {
                 return artifact.fileTags.contains("application")
                         || artifact.fileTags.contains("dynamiclibrary");
             }).map(function(a) { return ModUtils.artifactInstalledFilePath(a); });
+            cmd.binaryFilePaths.sort(function(a1, a2) {
+                if (a1.contains("qbs.exe"))
+                    return -1;
+                if (a2.contains("qbs.exe"))
+                    return 1;
+                return 0;
+            });
             cmd.extendedDescription = FileInfo.joinPaths(
                         product.moduleProperty("Qt.core", "binPath"), "windeployqt") + ".exe " +
                     ["--json"].concat(cmd.windeployqtArgs).concat(cmd.binaryFilePaths).join(" ");
