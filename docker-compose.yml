@@ -1,0 +1,15 @@
+version: "3.3"
+
+services:
+  stretch:
+    image: qbsdev:stretch
+    build:
+      dockerfile: Dockerfile
+      context: docker/stretch/
+      args:
+        QT_VERSION: 5.11.3
+        QBS_VERSION: 1.13.0
+    working_dir: /qbs
+    volumes:
+      - .:/qbs
+    network_mode: bridge
