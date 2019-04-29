@@ -155,10 +155,10 @@ qbs::Version TestBlackbox::bisonVersion()
         return qbs::Version();
     if (!process.waitForFinished())
         return qbs::Version();
-    const auto stdout = process.readAllStandardOutput();
-    if (stdout.isEmpty())
+    const auto processStdOut = process.readAllStandardOutput();
+    if (processStdOut.isEmpty())
         return qbs::Version();
-    const auto line = stdout.split('\n')[0];
+    const auto line = processStdOut.split('\n')[0];
     const auto words = line.split(' ');
     if (words.empty())
         return qbs::Version();
