@@ -84,6 +84,8 @@ public:
     QString fileName() const;
     QString baseDirectory() const { return m_baseDir; } // As passed into the constructor.
 
+    static QString defaultSystemSettingsBaseDir();
+
 private:
     QString internalRepresentation(const QString &externalKey) const;
     QString externalRepresentation(const QString &internalKey) const;

@@ -36,6 +36,7 @@
 #include <tools/preferences.h>
 #include <tools/profile.h>
 #include <tools/qttools.h>
+#include <tools/settings.h>
 #include <tools/shellutils.h>
 #include <tools/stlutils.h>
 #include <tools/version.h>
@@ -5230,8 +5231,9 @@ void TestBlackbox::qbsConfig()
     bool canWriteToSystemSettings;
     QString testSettingsFilePath;
     {
-        QSettings testSettings(QSettings::IniFormat, QSettings::SystemScope,
-                               "dummyOrg", "dummyApp");
+        QSettings testSettings(
+                qbs::Settings::defaultSystemSettingsBaseDir() + "/dummyOrg" + "/dummyApp.conf",
+                QSettings::IniFormat);
         testSettings.setValue("dummyKey", "dummyValue");
         testSettings.sync();
         canWriteToSystemSettings = testSettings.status() == QSettings::NoError;
