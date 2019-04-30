@@ -470,7 +470,7 @@
 
     Regenerating the man page requires the \c help2man tool.
 
-    \section1 Building
+    \section1 Building \QBS with QMake
 
     To build \QBS, enter the following command:
 
@@ -488,7 +488,7 @@
         make install INSTALL_ROOT=$INSTALL_DIRECTORY
     \endcode
 
-    \section1 Configure Options
+    \section2 QMake Configure Options
 
     \QBS recognizes the following qmake CONFIG options to customize the build:
 
@@ -509,6 +509,46 @@
     In addition, you can set the \c QBS_SYSTEM_SETTINGS_DIR environment variable
     before running qmake to specify a custom location for \QBS to look for its
     system-level settings.
+
+    \section1 Building \QBS with \QBS
+
+    It is also possible to build \QBS with the previously installed \QBS version.
+    To build \QBS, enter the following command in the source directory:
+    \code
+        qbs
+    \endcode
+    This will use the \c defaultProfile or pick up the Qt version and the toolchain from the \c PATH
+    if the \c defaultProfile is not set. See \l {Configuring Profiles and Preferences} for details
+    about profiles.
+
+    To run automatic tests, the \c autotest-runner product should be built:
+    \code
+        qbs build -p autotest-runner
+    \endcode
+    \QBS will use an empty profile when running tests which means it will try to autodetect
+    toolchains, Qt versions and other things based on the system environment.
+    It is possible to specify which profile should be used during the test-run by passing the
+    \c QBS_AUTOTEST_PROFILE environment variable.
+    This variable should be set prior to building \QBS itself; otherwise the \c resolve command
+    should be used to update the environment stored in the buildgraph:
+    \code
+        export QBS_AUTOTEST_PROFILE=qt
+        qbs resolve
+        qbs build -p autotest-runner
+    \endcode
+
+    It is also possible to set up a separate profile for a particular testsuite.
+    A profile for the \c tst_blackbox_android suite can be set up as follows:
+    \code
+        qbs setup-android pie
+        export QBS_AUTOTEST_PROFILE_BLACKBOX_ANDROID=pie
+    \endcode
+
+    It might be useful to set up the directory with the \QBS settings to isolate the test
+    environment:
+    \code
+        export QBS_AUTOTEST_SETTINGS_DIR=~/path/to/qbs/settings
+    \endcode
 
     \section1 Using Docker
 
