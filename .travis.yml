@@ -1,0 +1,99 @@
+#
+# Required environment variables in the travis config
+#
+# DOCKER_USERNAME
+# DOCKER_PASSWORD
+# DOCKER_REPO: The docker repository on docker hub where images are stored
+#
+
+language: cpp
+
+git:
+  submodules: false
+
+stages:
+  - name: Prepare build environments
+  - name: Build Qbs
+
+jobs:
+  include:
+    - &prepare-stretch
+      stage: Prepare build environments
+      name: Debian stretch docker image (linux_amd64)
+      services:
+        - docker
+      # before_install:
+      #   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+      #   - docker pull ${DOCKER_USERNAME}/${DOCKER_REPO}:stretch-${QT_VERSION}-$TRAVIS_BRANCH || true
+      script:
+        - docker-compose build --force-rm stretch
+      after_success:
+      #  - docker tag stretch ${DOCKER_USERNAME}/${DOCKER_REPO}:stretch-${QT_VERSION}-$TRAVIS_BUILD_NUMBER
+      #  - docker tag stretch ${DOCKER_USERNAME}/${DOCKER_REPO}:stretch-${QT_VERSION}-$TRAVIS_BRANCH
+      #  - docker push ${DOCKER_USERNAME}/${DOCKER_REPO}:stretch-${QT_VERSION}-$TRAVIS_BUILD_NUMBER
+      #  - docker push ${DOCKER_USERNAME}/${DOCKER_REPO}:stretch-${QT_VERSION}-$TRAVIS_BRANCH
+
+    #- <<: *prepare-stretch
+    #  name: Debian stretch docker image (mingw32-w64)
+    #  env:
+    #    - PLATFORM=mingw32_w64
+
+#    - stage: Prepare build environments
+#      name: Build Windows docker image (Qt 5.9.3)
+#      os: windows
+#      services:
+#        - docker
+#      before_install:
+#        - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+#        - docker pull ${DOCKER_USERNAME}/${DOCKER_REPO}:stretch-${QT_VERSION}-$TRAVIS_BRANCH || true
+#      script:
+#        - docker build -f docker/windowsservercore/Dockerfile -t stretch --build-arg QT_VERSION=${QT_VERSION} --cache-from ${DOCKER_USERNAME}/${DOCKER_REPO}:windowsservercore-${QT_VERSION}-$TRAVIS_BRANCH docker/windowsservercore/
+#      after_success:
+#        - docker tag windowsservercore ${DOCKER_USERNAME}/${DOCKER_REPO}:windowsservercore-${QT_VERSION}-$TRAVIS_BUILD_NUMBER
+#        - docker tag windowsservercore ${DOCKER_USERNAME}/${DOCKER_REPO}:windowsservercore-${QT_VERSION}-$TRAVIS_BRANCH
+#        - docker push ${DOCKER_USERNAME}/${DOCKER_REPO}:windowsservercore-${QT_VERSION}-$TRAVIS_BUILD_NUMBER
+#        - docker push ${DOCKER_USERNAME}/${DOCKER_REPO}:windowsservercore-${QT_VERSION}-$TRAVIS_BRANCH
+
+#    - &build-stretch
+#      stage: Build and test Qbs
+#      name: Build with Qbs on Debian stretch (Qt 5.9)
+#      services:
+#        - docker
+#      env:
+#        - QT_VERSION=5.9.7
+#        - DOCKER_RUN="docker run --rm -t -v ${TRAVIS_BUILD_DIR}:/project -w /project ${DOCKER_USERNAME}/${DOCKER_REPO}:stretch-${QT_VERSION}-${TRAVIS_BUILD_NUMBER}"
+#        - SCRIPT=scripts/build-qbs-with-qbs.sh
+#      before_install:
+#        - echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
+#        - docker pull ${DOCKER_USERNAME}/${DOCKER_REPO}:stretch-${QT_VERSION}-${TRAVIS_BUILD_NUMBER}
+#      script:
+#        - $DOCKER_RUN $SCRIPT
+#
+#    - <<: *build-stretch
+#      name: Build with Qbs on Debian stretch (Qt 5.12)
+#      env:
+#        - QT_VERSION=5.12.1
+#        - DOCKER_RUN="docker run --rm -t -v ${TRAVIS_BUILD_DIR}:/project -w /project ${DOCKER_USERNAME}/${DOCKER_REPO}:stretch-${QT_VERSION}-${TRAVIS_BUILD_NUMBER}"
+#        - SCRIPT=scripts/build-qbs-with-qbs.sh
+#
+#    - <<: *build-stretch
+#      name: Build documentation with Qbs on Debian stretch (Qt 5.9)
+#      env:
+#        - QT_VERSION=5.9.7
+#        - DOCKER_RUN="docker run --rm -t -v ${TRAVIS_BUILD_DIR}:/project -w /project ${DOCKER_USERNAME}/${DOCKER_REPO}:stretch-${QT_VERSION}-${TRAVIS_BUILD_NUMBER}"
+#      script:
+#        - $DOCKER_RUN "qbs build -p 'qbs documentation' profile:qt"
+#
+#    - <<: *build-stretch
+#      name: Build with qmake/make on Debian stretch (Qt 5.9)
+#      env:
+#        - QT_VERSION=5.9.7
+#        - DOCKER_RUN="docker run --rm -t -v ${TRAVIS_BUILD_DIR}:/project -w /project ${DOCKER_USERNAME}/${DOCKER_REPO}:stretch-${QT_VERSION}-${TRAVIS_BUILD_NUMBER}"
+#        - SCRIPT=scripts/build-qbs-with-qmake.sh
+#
+#    - <<: *build-stretch
+#      name: Build with qmake/make on Debian stretch (Qt 5.12)
+#      env:
+#        - QT_VERSION=5.12.1
+#        - DOCKER_RUN="docker run --rm -t -v ${TRAVIS_BUILD_DIR}:/project -w /project ${DOCKER_USERNAME}/${DOCKER_REPO}:stretch-${QT_VERSION}-${TRAVIS_BUILD_NUMBER}"
+#        - SCRIPT=scripts/build-qbs-with-qmake.sh
