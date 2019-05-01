@@ -73,7 +73,7 @@ private:
 
     ConfigCommand m_command;
     qbs::Settings::Scopes m_scope = qbs::Settings::allScopes();
-    bool m_helpRequested;
+    bool m_helpRequested = false;
     QString m_settingsDir;
     QStringList m_commandLine;
 };

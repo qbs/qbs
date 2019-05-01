@@ -172,12 +172,12 @@ private:
     void setupExportedProperties(const Item *item, const QString &namePrefix,
                                  std::vector<ExportedProperty> &properties);
 
-    Evaluator *m_evaluator;
+    Evaluator *m_evaluator = nullptr;
     Logger &m_logger;
-    ScriptEngine *m_engine;
-    ProgressObserver *m_progressObserver;
-    ProductContext *m_productContext;
-    ModuleContext *m_moduleContext;
+    ScriptEngine *m_engine = nullptr;
+    ProgressObserver *m_progressObserver = nullptr;
+    ProductContext *m_productContext = nullptr;
+    ModuleContext *m_moduleContext = nullptr;
     QMap<QString, ResolvedProductPtr> m_productsByName;
     QHash<FileTag, QList<ResolvedProductPtr> > m_productsByType;
     QHash<ResolvedProductPtr, Item *> m_productItemMap;
@@ -190,9 +190,9 @@ private:
     Set<CodeLocation> m_groupLocationWarnings;
     std::vector<std::pair<ResolvedProductPtr, Item *>> m_productExportInfo;
     std::vector<ErrorInfo> m_queuedErrors;
-    qint64 m_elapsedTimeModPropEval;
-    qint64 m_elapsedTimeAllPropEval;
-    qint64 m_elapsedTimeGroups;
+    qint64 m_elapsedTimeModPropEval = 0;
+    qint64 m_elapsedTimeAllPropEval = 0;
+    qint64 m_elapsedTimeGroups = 0;
 
     typedef void (ProjectResolver::*ItemFuncPtr)(Item *item, ProjectContext *projectContext);
     using ItemFuncMap = QMap<ItemType, ItemFuncPtr>;

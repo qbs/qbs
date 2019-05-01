@@ -145,17 +145,17 @@ private:
         unsigned _objCEnabled: 1;
     };
 
-    const char *_firstChar;
-    const char *_currentChar;
-    const char *_lastChar;
-    const char *_tokenStart;
-    unsigned char _yychar;
-    int _state;
+    const char *_firstChar = nullptr;
+    const char *_currentChar = nullptr;
+    const char *_lastChar = nullptr;
+    const char *_tokenStart = nullptr;
+    unsigned char _yychar = 0;
+    int _state = 0;
     union {
         unsigned _flags;
         Flags f;
     };
-    unsigned _currentLine;
+    unsigned _currentLine = 0;
 };
 
 } // end of namespace CPlusPlus

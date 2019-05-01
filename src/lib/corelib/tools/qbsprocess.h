@@ -95,7 +95,7 @@ private:
     QString m_errorString;
     QProcess::ProcessError m_error = QProcess::UnknownError;
     QProcess::ProcessState m_state = QProcess::NotRunning;
-    int m_exitCode;
+    int m_exitCode = 0;
     int m_connectionAttempts = 0;
     bool m_socketError = false;
 };

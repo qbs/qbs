@@ -70,7 +70,7 @@ namespace Internal {
 class JobObserver : public ProgressObserver
 {
 public:
-    JobObserver(InternalJob *job) : m_canceled(false), m_job(job), m_timedLogger(nullptr) { }
+    JobObserver(InternalJob *job) : m_job(job) { }
     ~JobObserver() { delete m_timedLogger; }
 
     void cancel()
@@ -116,12 +116,12 @@ private:
         return m_canceled;
     }
 
-    int m_value;
-    int m_maximum;
+    int m_value = 0;
+    int m_maximum = 0;
     mutable std::mutex m_cancelMutex;
-    bool m_canceled;
-    InternalJob * const m_job;
-    TimedActivityLogger *m_timedLogger;
+    bool m_canceled = false;
+    InternalJob * const m_job = nullptr;
+    TimedActivityLogger *m_timedLogger = nullptr;
 };
 
 

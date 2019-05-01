@@ -109,8 +109,8 @@ private:
         m_suffix += name;
     }
 
-    bool m_first;
-    bool m_barrier;
+    bool m_first = false;
+    bool m_barrier = false;
     QString m_suffix;
 };
 

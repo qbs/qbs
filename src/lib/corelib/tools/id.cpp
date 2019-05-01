@@ -69,9 +69,7 @@ namespace Internal {
 class StringHolder
 {
 public:
-    StringHolder()
-        : n(0), str(nullptr)
-    {}
+    StringHolder() = default;
 
     StringHolder(const char *s, int length)
         : n(length), str(s)
@@ -85,9 +83,9 @@ public:
             h &= 0x0fffffff;
         }
     }
-    int n;
-    const char *str;
-    uint h;
+    int n = 0;
+    const char *str = nullptr;
+    uint h = 0;
 };
 
 static bool operator==(const StringHolder &sh1, const StringHolder &sh2)

@@ -55,8 +55,8 @@ class Item;
 class EvaluationData
 {
 public:
-    Evaluator *evaluator;
-    const Item *item;
+    Evaluator *evaluator = nullptr;
+    const Item *item = nullptr;
     mutable QHash<QScriptString, QScriptValue> valueCache;
 };
 

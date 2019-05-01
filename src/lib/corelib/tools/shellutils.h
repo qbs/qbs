@@ -83,7 +83,7 @@ private:
         bool shouldQuote = true;
     };
 
-    bool m_isRawProgram;
+    bool m_isRawProgram = false;
     QString m_program;
     std::vector<Argument> m_arguments;
 };

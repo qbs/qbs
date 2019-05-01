@@ -175,7 +175,7 @@ private:
     class ProductContext : public ContextBase
     {
     public:
-        ProjectContext *project;
+        ProjectContext *project = nullptr;
         ModuleLoaderResult::ProductInfo info;
         QString profileName;
         QString multiplexConfigurationId;
@@ -201,8 +201,8 @@ private:
     class ProjectContext : public ContextBase
     {
     public:
-        TopLevelProjectContext *topLevelProject;
-        ModuleLoaderResult *result;
+        TopLevelProjectContext *topLevelProject = nullptr;
+        ModuleLoaderResult *result = nullptr;
         std::vector<ProductContext> products;
         std::vector<QStringList> searchPathsStack;
     };
@@ -232,7 +232,7 @@ private:
     public:
         ProductContext *product = nullptr;
         Item *exportingProductItem = nullptr;
-        ProductDependencies *productDependencies;
+        ProductDependencies *productDependencies = nullptr;
     };
 
     void handleTopLevelProject(ModuleLoaderResult *loadResult, Item *projectItem,
@@ -457,16 +457,16 @@ private:
     Version m_qbsVersion;
     Item *m_tempScopeItem = nullptr;
 
-    qint64 m_elapsedTimeProbes;
-    qint64 m_elapsedTimePrepareProducts;
-    qint64 m_elapsedTimeProductDependencies;
-    qint64 m_elapsedTimeTransitiveDependencies;
-    qint64 m_elapsedTimeHandleProducts;
-    qint64 m_elapsedTimePropertyChecking;
-    quint64 m_probesEncountered;
-    quint64 m_probesRun;
-    quint64 m_probesCachedCurrent;
-    quint64 m_probesCachedOld;
+    qint64 m_elapsedTimeProbes = 0;
+    qint64 m_elapsedTimePrepareProducts = 0;
+    qint64 m_elapsedTimeProductDependencies = 0;
+    qint64 m_elapsedTimeTransitiveDependencies = 0;
+    qint64 m_elapsedTimeHandleProducts = 0;
+    qint64 m_elapsedTimePropertyChecking = 0;
+    quint64 m_probesEncountered = 0;
+    quint64 m_probesRun = 0;
+    quint64 m_probesCachedCurrent = 0;
+    quint64 m_probesCachedOld = 0;
     Set<QString> m_projectNamesUsedInOverrides;
     Set<QString> m_productNamesUsedInOverrides;
     Set<QString> m_disabledProjects;

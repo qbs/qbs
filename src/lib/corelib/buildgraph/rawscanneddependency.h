@@ -72,7 +72,7 @@ private:
 
     QString m_dirPath;
     QString m_fileName;
-    bool m_isClean;
+    bool m_isClean = 0;
 };
 
 bool operator==(const RawScannedDependency &d1, const RawScannedDependency &d2);

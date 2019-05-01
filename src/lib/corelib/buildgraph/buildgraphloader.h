@@ -141,8 +141,8 @@ private:
     QStringList m_artifactsRemovedFromDisk;
     std::unordered_map<QString, std::vector<SourceArtifactConstPtr>> m_changedSourcesByProduct;
     Set<QString> m_productsWhoseArtifactsNeedUpdate;
-    qint64 m_wildcardExpansionEffort;
-    qint64 m_propertyComparisonEffort;
+    qint64 m_wildcardExpansionEffort = 0;
+    qint64 m_propertyComparisonEffort = 0;
 
     // These must only be deleted at the end so we can still peek into the old look-up table.
     QList<FileResourceBase *> m_objectsToDelete;

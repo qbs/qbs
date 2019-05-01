@@ -180,17 +180,17 @@ private:
     Leaves m_leaves;
     InputArtifactScannerContext *m_inputArtifactScanContext;
     ErrorInfo m_error;
-    bool m_explicitlyCanceled;
+    bool m_explicitlyCanceled = false;
     FileTags m_activeFileTags;
     FileTags m_tagsOfFilesToConsider;
     FileTags m_tagsNeededForFilesToConsider;
     QList<ResolvedProductPtr> m_productsOfFilesToConsider;
-    QTimer * const m_cancelationTimer;
+    QTimer * const m_cancelationTimer = nullptr;
     QStringList m_artifactsRemovedFromDisk;
-    bool m_partialBuild;
-    qint64 m_elapsedTimeRules;
-    qint64 m_elapsedTimeScanners;
-    qint64 m_elapsedTimeInstalling;
+    bool m_partialBuild = false;
+    qint64 m_elapsedTimeRules = 0;
+    qint64 m_elapsedTimeScanners = 0;
+    qint64 m_elapsedTimeInstalling = 0;
 };
 
 } // namespace Internal

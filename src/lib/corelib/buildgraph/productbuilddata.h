@@ -106,7 +106,7 @@ private:
     AllRescuableArtifactData m_rescuableArtifactData;
 
     // Do not store, initialized in executor. Higher prioritized artifacts are built first.
-    unsigned int m_buildPriority;
+    unsigned int m_buildPriority = 0;
 
     ArtifactSetByFileTag m_artifactsByFileTag;
     mutable std::mutex m_artifactsMapMutex;

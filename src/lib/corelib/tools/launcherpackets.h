@@ -73,8 +73,8 @@ public:
 
 private:
     QDataStream m_stream;
-    LauncherPacketType m_type;
-    quintptr m_token;
+    LauncherPacketType m_type = LauncherPacketType::Shutdown;
+    quintptr m_token = 0;
     QByteArray m_packetData;
     int m_sizeOfNextPacket = -1;
 };
@@ -95,7 +95,7 @@ public:
     void deserialize(const QByteArray &data);
 
     const LauncherPacketType type;
-    const quintptr token;
+    const quintptr token = 0;
 
 protected:
     LauncherPacket(LauncherPacketType type, quintptr token) : type(type), token(token) { }
@@ -161,9 +161,9 @@ public:
     QString errorString;
     QByteArray stdOut;
     QByteArray stdErr;
-    QProcess::ExitStatus exitStatus;
-    QProcess::ProcessError error;
-    int exitCode;
+    QProcess::ExitStatus exitStatus = QProcess::ExitStatus::NormalExit;
+    QProcess::ProcessError error = QProcess::ProcessError::UnknownError;
+    int exitCode = 0;
 
 private:
     void doSerialize(QDataStream &stream) const override;

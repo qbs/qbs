@@ -74,7 +74,7 @@ private:
     QIODevice &m_outDevice;
     ResolvedProductPtr m_currentProduct;
     NodeSet m_visited;
-    unsigned int m_indentation;
+    unsigned int m_indentation = 0;
 };
 
 } // namespace Internal

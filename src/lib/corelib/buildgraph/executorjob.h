@@ -88,12 +88,12 @@ private:
     void setFinished();
     void reset();
 
-    AbstractCommandExecutor *m_currentCommandExecutor;
-    ProcessCommandExecutor *m_processCommandExecutor;
-    JsCommandExecutor *m_jsCommandExecutor;
-    Transformer *m_transformer;
+    AbstractCommandExecutor *m_currentCommandExecutor = nullptr;
+    ProcessCommandExecutor *m_processCommandExecutor = nullptr;
+    JsCommandExecutor *m_jsCommandExecutor = nullptr;
+    Transformer *m_transformer = nullptr;
     Set<QString> m_jobPools;
-    int m_currentCommandIdx;
+    int m_currentCommandIdx = 0;
     ErrorInfo m_error;
 };
 

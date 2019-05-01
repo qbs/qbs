@@ -78,13 +78,12 @@ QString logLevelName(LoggerLevel level)
 class ILogSink::ILogSinkPrivate
 {
 public:
-    LoggerLevel logLevel;
+    LoggerLevel logLevel = defaultLogLevel();
     std::mutex mutex;
 };
 
 ILogSink::ILogSink() : d(new ILogSinkPrivate)
 {
-    d->logLevel = defaultLogLevel();
 }
 
 ILogSink::~ILogSink()

@@ -144,8 +144,8 @@ public:
     }
 
 private:
-    VisualStudioGenerator *generator;
-    VisualStudioSolutionGlobalSection *nestedProjects;
+    VisualStudioGenerator *generator = nullptr;
+    VisualStudioSolutionGlobalSection *nestedProjects = nullptr;
 };
 
 VisualStudioGenerator::VisualStudioGenerator(const VisualStudioVersionInfo &versionInfo)

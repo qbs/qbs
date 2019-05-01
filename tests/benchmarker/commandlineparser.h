@@ -58,7 +58,7 @@ private:
     QString m_newCommit;
     QString m_testProjectFilePath;
     QString m_qbsRepoDirPath;
-    int m_regressionThreshold;
+    int m_regressionThreshold = 0;
 };
 
 } // namespace qbsBenchmarker

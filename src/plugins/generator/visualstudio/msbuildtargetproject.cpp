@@ -46,8 +46,8 @@ class MSBuildTargetProjectPrivate
 public:
     MSBuildTargetProjectPrivate(const Internal::VisualStudioVersionInfo &versionInfo)
         : versionInfo(versionInfo) {}
-    MSBuildPropertyGroup *globalsPropertyGroup;
-    MSBuildProperty *projectGuidProperty;
+    MSBuildPropertyGroup *globalsPropertyGroup = nullptr;
+    MSBuildProperty *projectGuidProperty = nullptr;
     const Internal::VisualStudioVersionInfo &versionInfo;
 };
 

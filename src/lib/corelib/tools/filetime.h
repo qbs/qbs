@@ -115,7 +115,7 @@ public:
     }
 
 private:
-    InternalType m_fileTime;
+    InternalType m_fileTime{};
 };
 
 } // namespace Internal

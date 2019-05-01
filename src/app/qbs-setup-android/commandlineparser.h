@@ -63,7 +63,7 @@ private:
     void assignOptionArgument(const QString &option, QString &argument);
     [[noreturn]] void complainAboutExtraArguments();
 
-    bool m_helpRequested;
+    bool m_helpRequested = false;
     QString m_sdkDir;
     QString m_ndkDir;
     QString m_qtSdkDir;

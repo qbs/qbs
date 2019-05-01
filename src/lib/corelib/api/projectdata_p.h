@@ -50,61 +50,49 @@ namespace Internal {
 class InstallDataPrivate : public QSharedData
 {
 public:
-    InstallDataPrivate() : isValid(false) {}
-
     QString installFilePath;
     QString installRoot;
-    bool isValid;
-    bool isInstallable;
+    bool isValid = false;
+    bool isInstallable = false;
 };
 
 class ArtifactDataPrivate : public QSharedData
 {
 public:
-    ArtifactDataPrivate() : isValid(false) {}
-
     QString filePath;
     QStringList fileTags;
     PropertyMap properties;
     InstallData installData;
-    bool isValid;
-    bool isGenerated;
-    bool isTargetArtifact;
+    bool isValid = false;
+    bool isGenerated = false;
+    bool isTargetArtifact = false;
 };
 
 class GroupDataPrivate : public QSharedData
 {
 public:
-    GroupDataPrivate() : isValid(false)
-    { }
-
     QString name;
     QString prefix;
     CodeLocation location;
     QList<ArtifactData> sourceArtifacts;
     QList<ArtifactData> sourceArtifactsFromWildcards;
     PropertyMap properties;
-    bool isEnabled;
-    bool isValid;
+    bool isEnabled = false;
+    bool isValid = false;
 };
 
 class InstallableFilePrivate: public QSharedData
 {
 public:
-    InstallableFilePrivate() : isValid(false) {}
-
     QString sourceFilePath;
     QString targetFilePath;
     QStringList fileTags;
-    bool isValid;
+    bool isValid = false;
 };
 
 class ProductDataPrivate : public QSharedData
 {
 public:
-    ProductDataPrivate() : isValid(false)
-    { }
-
     QStringList type;
     QStringList dependencies;
     QString name;
@@ -117,22 +105,19 @@ public:
     QVariantMap properties;
     PropertyMap moduleProperties;
     QList<ArtifactData> generatedArtifacts;
-    bool isEnabled;
-    bool isRunnable;
-    bool isMultiplexed;
-    bool isValid;
+    bool isEnabled = false;
+    bool isRunnable = false;
+    bool isMultiplexed = false;
+    bool isValid = false;
 };
 
 class ProjectDataPrivate : public QSharedData
 {
 public:
-    ProjectDataPrivate() : isValid(false)
-    { }
-
     QString name;
     CodeLocation location;
-    bool enabled;
-    bool isValid;
+    bool enabled = false;
+    bool isValid = false;
     QList<ProductData> products;
     QList<ProjectData> subProjects;
     QString buildDir;

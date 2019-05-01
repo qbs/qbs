@@ -82,7 +82,7 @@ private:
         std::vector<ProjectPtr> subProjects;
     };
     Project m_topLevelProject;
-    ProjectStructure m_projectStructure;
+    ProjectStructure m_projectStructure = ProjectStructure::Flat;
     QList<QRegExp> m_whiteList;
     QList<QRegExp> m_blackList;
 };

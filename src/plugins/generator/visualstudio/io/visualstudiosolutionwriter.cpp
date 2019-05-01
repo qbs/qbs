@@ -54,7 +54,7 @@ using namespace Internal;
 class VisualStudioSolutionWriterPrivate
 {
 public:
-    std::ostream *device;
+    std::ostream *device = nullptr;
     std::string baseDir;
 };
 

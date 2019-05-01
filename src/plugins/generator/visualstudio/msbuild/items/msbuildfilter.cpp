@@ -44,8 +44,8 @@ public:
     QList<QString> extensions;
     bool parseFiles = true;
     bool sourceControlFiles = true;
-    MSBuildItemMetadata *identifierMetadata;
-    MSBuildItemMetadata *extensionsMetadata;
+    MSBuildItemMetadata *identifierMetadata = nullptr;
+    MSBuildItemMetadata *extensionsMetadata = nullptr;
 };
 
 MSBuildFilter::MSBuildFilter(IMSBuildItemGroup *parent)

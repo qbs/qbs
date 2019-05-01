@@ -57,8 +57,8 @@ public:
                              int *exitCode = 0);
 
 private:
-    bool m_failedToStart;
-    int m_exitCode;
+    bool m_failedToStart = false;
+    int m_exitCode = 0;
     QString m_stdout;
     QString m_stderr;
 };

@@ -48,14 +48,14 @@ namespace Internal {
 class ProcessResultPrivate : public QSharedData
 {
 public:
-    bool success;
+    bool success = false;
 
     QString executableFilePath;
     QStringList arguments;
     QString workingDirectory;
 
-    QProcess::ProcessError error;
-    int exitCode;
+    QProcess::ProcessError error = QProcess::ProcessError::UnknownError;
+    int exitCode = 0;
     QStringList stdOut;
     QStringList stdErr;
 };

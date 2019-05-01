@@ -172,17 +172,17 @@ private:
     std::vector<void *> m_loadedRaw;
     std::vector<std::shared_ptr<void>> m_loaded;
     QHash<const void*, int> m_storageIndices;
-    PersistentObjectId m_lastStoredObjectId;
+    PersistentObjectId m_lastStoredObjectId = 0;
 
     std::vector<QString> m_stringStorage;
     QHash<QString, int> m_inverseStringStorage;
-    PersistentObjectId m_lastStoredStringId;
+    PersistentObjectId m_lastStoredStringId = 0;
     std::vector<QProcessEnvironment> m_envStorage;
     QHash<QProcessEnvironment, int> m_inverseEnvStorage;
-    PersistentObjectId m_lastStoredEnvId;
+    PersistentObjectId m_lastStoredEnvId = 0;
     std::vector<QStringList> m_stringListStorage;
     QHash<QStringList, int> m_inverseStringListStorage;
-    PersistentObjectId m_lastStoredStringListId;
+    PersistentObjectId m_lastStoredStringListId = 0;
     Logger &m_logger;
 
     template<typename T, typename Enable>

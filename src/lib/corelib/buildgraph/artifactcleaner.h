@@ -62,8 +62,8 @@ private:
                                 bool *isEmpty = nullptr);
 
     Logger m_logger;
-    bool m_hasError;
-    ProgressObserver *m_observer;
+    bool m_hasError = false;
+    ProgressObserver *m_observer = nullptr;
 };
 
 } // namespace Internal

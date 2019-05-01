@@ -98,7 +98,7 @@ struct ProjectResolver::ProductContext
 {
     ResolvedProductPtr product;
     QString buildDirectory;
-    Item *item;
+    Item *item = nullptr;
     using ArtifactPropertiesInfo = std::pair<ArtifactPropertiesPtr, std::vector<CodeLocation>>;
     QHash<QStringList, ArtifactPropertiesInfo> artifactPropertiesPerFilter;
     ProjectResolver::FileLocations sourceArtifactLocations;

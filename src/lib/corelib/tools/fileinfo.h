@@ -96,7 +96,7 @@ private:
 #else
 #   error unknown platform
 #endif
-    InternalStatType m_stat;
+    InternalStatType m_stat{};
 };
 
 bool removeFileRecursion(const QFileInfo &f, QString *errorMessage);

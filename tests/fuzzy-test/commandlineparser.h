@@ -68,9 +68,9 @@ private:
     QString m_command;
     QString m_profile;
     QString m_startCommit;
-    int m_maxDuration;
-    int m_jobCount;
-    bool m_log;
+    int m_maxDuration = 0;
+    int m_jobCount = 0;
+    bool m_log = false;
 };
 
 #endif // Include guard.

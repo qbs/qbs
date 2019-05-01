@@ -181,7 +181,7 @@ void Executor::setProducts(const std::vector<ResolvedProductPtr> &productsToBuil
 class ProductPrioritySetter
 {
     const std::vector<ResolvedProductPtr> &m_allProducts;
-    unsigned int m_priority;
+    unsigned int m_priority = 0;
     Set<ResolvedProductPtr> m_seenProducts;
 public:
     ProductPrioritySetter(const std::vector<ResolvedProductPtr> &allProducts) // TODO: Use only products to build?

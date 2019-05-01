@@ -106,21 +106,21 @@ private:
     QString buildDirectory(const QString &profileName) const;
 
     const CommandLineParser &m_parser;
-    Settings * const m_settings;
+    Settings * const m_settings = nullptr;
     QList<AbstractJob *> m_resolveJobs;
     QList<AbstractJob *> m_buildJobs;
     QList<Project> m_projects;
 
-    ConsoleProgressObserver *m_observer;
+    ConsoleProgressObserver *m_observer = nullptr;
 
     enum CancelStatus { CancelStatusNone, CancelStatusRequested, CancelStatusCanceling };
-    CancelStatus m_cancelStatus;
-    QTimer * const m_cancelTimer;
+    CancelStatus m_cancelStatus = CancelStatus::CancelStatusNone;
+    QTimer * const m_cancelTimer = nullptr;
 
-    int m_buildEffortsNeeded;
-    int m_buildEffortsRetrieved;
-    int m_totalBuildEffort;
-    int m_currentBuildEffort;
+    int m_buildEffortsNeeded = 0;
+    int m_buildEffortsRetrieved = 0;
+    int m_totalBuildEffort = 0;
+    int m_currentBuildEffort = 0;
     QHash<AbstractJob *, int> m_buildEfforts;
     std::shared_ptr<ProjectGenerator> m_generator;
 };

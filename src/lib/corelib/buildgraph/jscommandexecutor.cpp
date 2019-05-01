@@ -62,7 +62,7 @@ namespace Internal {
 
 struct JavaScriptCommandResult
 {
-    bool success;
+    bool success = false;
     QString errorMessage;
     CodeLocation errorLocation;
 };

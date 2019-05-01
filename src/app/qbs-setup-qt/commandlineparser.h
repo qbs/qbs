@@ -63,8 +63,8 @@ private:
     void assignOptionArgument(const QString &option, QString &argument);
     [[noreturn]] void complainAboutExtraArguments();
 
-    bool m_helpRequested;
-    bool m_autoDetectionMode;
+    bool m_helpRequested = false;
+    bool m_autoDetectionMode = false;
     qbs::Settings::Scope m_settingsScope = qbs::Settings::UserScope;
     QString m_qmakePath;
     QString m_profileName;

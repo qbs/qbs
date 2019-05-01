@@ -162,7 +162,7 @@ private:
     QVariantMap m_properties;
     QVariantMap m_initialProperties;
     std::vector<QString> m_importedFilesUsed;
-    bool m_condition;
+    bool m_condition = false;
 };
 
 class RuleArtifact
@@ -280,14 +280,14 @@ public:
     CodeLocation location;
 
     QString name;
-    bool enabled;
+    bool enabled = true;
     QString prefix;
     std::vector<SourceArtifactPtr> files;
     std::unique_ptr<SourceWildCards> wildcards;
     PropertyMapPtr properties;
     FileTags fileTags;
     QString targetOfModule;
-    bool overrideTags;
+    bool overrideTags = false;
 
     std::vector<SourceArtifactPtr> allFiles() const;
 
@@ -295,10 +295,6 @@ public:
     void store(PersistentPool &pool);
 
 private:
-    ResolvedGroup()
-        : enabled(true)
-    {}
-
     template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
     {
         pool.serializationOp<opType>(name, enabled, location, prefix, files, wildcards, properties,
@@ -370,7 +366,7 @@ public:
     PrivateScriptFunction setupBuildEnvironmentScript;
     PrivateScriptFunction setupRunEnvironmentScript;
     ResolvedProduct *product = nullptr;
-    bool isProduct;
+    bool isProduct = false;
 
     static QStringList argumentNamesForSetupBuildEnv();
     static QStringList argumentNamesForSetupRunEnv();
@@ -414,13 +410,13 @@ public:
     FileTags inputsFromDependencies;
     FileTags explicitlyDependsOn;
     FileTags explicitlyDependsOnFromDependencies;
-    bool multiplex;
-    bool requiresInputs;
+    bool multiplex = false;
+    bool requiresInputs = false;
     std::vector<RuleArtifactPtr> artifacts;     // unused, if outputFileTags/outputArtifactsScript is non-empty
-    bool alwaysRun;
+    bool alwaysRun = false;
 
     // members that we don't need to save
-    int ruleGraphId;
+    int ruleGraphId = -1;
 
     static QStringList argumentNamesForOutputArtifacts();
     static QStringList argumentNamesForPrepare();
@@ -440,7 +436,7 @@ public:
                                      requiresInputs, alwaysRun, artifacts);
     }
 private:
-    Rule() : multiplex(false), alwaysRun(false), ruleGraphId(-1) {}
+    Rule() = default;
 };
 bool operator==(const Rule &r1, const Rule &r2);
 inline bool operator!=(const Rule &r1, const Rule &r2) { return !(r1 == r2); }
@@ -477,7 +473,7 @@ public:
     }
 
     QString fullName;
-    PropertyDeclaration::Type type;
+    PropertyDeclaration::Type type = PropertyDeclaration::Type::UnknownType;
     QString sourceCode;
     bool isBuiltin = false;
 };

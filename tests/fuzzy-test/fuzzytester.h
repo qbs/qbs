@@ -71,8 +71,8 @@ private:
     static QString defaultBuildDir();
 
     QString m_profile;
-    int m_jobCount;
-    bool m_log;
+    int m_jobCount = 0;
+    bool m_log = false;
     QString m_headCommit;
     QString m_currentCommit;
     QString m_currentActivity;

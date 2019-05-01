@@ -102,7 +102,7 @@ private:
 class WinSDK : public MSVC
 {
 public:
-    bool isDefault;
+    bool isDefault = false;
 
     WinSDK()
     {

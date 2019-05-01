@@ -59,7 +59,7 @@ private:
     void assignOptionArgument(const QString &option, QString &argument);
     [[noreturn]] void complainAboutExtraArguments();
 
-    bool m_helpRequested;
+    bool m_helpRequested = false;
     qbs::Settings::Scope m_settingsScope = qbs::Settings::UserScope;
     QString m_settingsDir;
     QStringList m_commandLine;

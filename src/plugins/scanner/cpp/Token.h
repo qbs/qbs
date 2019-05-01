@@ -353,7 +353,7 @@ public:
         Flags f;
     };
 
-    unsigned offset;
+    unsigned offset = 0;
 
     union {
         void *ptr;

@@ -61,7 +61,7 @@ private:
     bool visit(QbsQmlJS::AST::IdentifierExpression *e) override;
 
     QMap<QString, bool *> m_requests;
-    int m_numberOfFoundIds;
+    int m_numberOfFoundIds = 0;
 };
 
 } // namespace Internal

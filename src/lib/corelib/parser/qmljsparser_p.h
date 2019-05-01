@@ -212,13 +212,13 @@ protected:
     enum { TOKEN_BUFFER_SIZE = 3 };
 
     struct SavedToken {
-       int token;
-       double dval;
+       int token = 0;
+       double dval = 0.0;
        AST::SourceLocation loc;
        QStringRef spell;
     };
 
-    double yylval;
+    double yylval = 0.0;
     QStringRef yytokenspell;
     AST::SourceLocation yylloc;
     AST::SourceLocation yyprevlloc;

@@ -69,7 +69,7 @@ private:
     const QProcessEnvironment m_env;
 
     QStringList m_runEnvConfig;
-    enum EnvType { BuildEnv, RunEnv } m_envType;
+    enum EnvType { BuildEnv, RunEnv } m_envType = EnvType::BuildEnv;
 };
 
 } // namespace Internal

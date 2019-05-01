@@ -68,24 +68,16 @@
 struct OpaqQrc
 {
 #ifdef Q_OS_UNIX
-    int fd;
-    int mapl;
+    int fd = 0;
+    int mapl = 0;
 #else
-    QFile *file;
+    QFile *file = nullptr;
 #endif
 
-    char *map;
-    QXmlStreamReader *xml;
+    char *map = nullptr;
+    QXmlStreamReader *xml = nullptr;
     QByteArray current;
-    OpaqQrc()
-#ifdef Q_OS_UNIX
-        : fd (0),
-#else
-        : file(nullptr),
-#endif
-          map(nullptr),
-          xml(nullptr)
-    {}
+    OpaqQrc() = default;
 
     ~OpaqQrc()
     {

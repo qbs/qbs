@@ -51,7 +51,7 @@ static const QString kMSBuildSchemaURI =
 class MSBuildProjectWriterPrivate : public IMSBuildNodeVisitor
 {
 public:
-    std::ostream *device;
+    std::ostream *device = nullptr;
     QByteArray buffer;
     std::unique_ptr<QXmlStreamWriter> writer;
 
