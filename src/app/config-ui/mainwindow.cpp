@@ -49,9 +49,52 @@
 #include <QtGui/qkeysequence.h>
 
 #include <QtWidgets/qaction.h>
+#include <QtWidgets/qlineedit.h>
 #include <QtWidgets/qmenu.h>
 #include <QtWidgets/qmenubar.h>
 #include <QtWidgets/qmessagebox.h>
+#include <QtWidgets/qstyleditemdelegate.h>
+
+namespace {
+
+class TrimValidator : public QValidator
+{
+public:
+    explicit TrimValidator(QObject *parent = nullptr) : QValidator(parent) {}
+
+public: // QValidator interface
+    State validate(QString &input, int &pos) const override
+    {
+        Q_UNUSED(pos);
+        if (input.startsWith(QLatin1Char(' ')) || input.endsWith(QLatin1Char(' ')))
+            return State::Intermediate;
+        return State::Acceptable;
+    }
+
+    void fixup(QString &input) const override
+    {
+        input = input.trimmed();
+    }
+};
+
+class SettingsItemDelegate: public QStyledItemDelegate
+{
+public:
+    explicit SettingsItemDelegate(QObject *parent = nullptr) : QStyledItemDelegate(parent) {}
+
+    QWidget *createEditor(QWidget *parent,
+                          const QStyleOptionViewItem &option,
+                          const QModelIndex &index) const override
+    {
+        const auto editor = QStyledItemDelegate::createEditor(parent, option, index);
+        const auto lineEdit = qobject_cast<QLineEdit *>(editor);
+        if (lineEdit)
+            lineEdit->setValidator(new TrimValidator(lineEdit));
+        return editor;
+    }
+};
+
+} // namespace
 
 MainWindow::MainWindow(const QString &settingsDir, qbs::Settings::Scope scope, QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow)
@@ -59,6 +102,7 @@ MainWindow::MainWindow(const QString &settingsDir, qbs::Settings::Scope scope, Q
     ui->setupUi(this);
     m_model = new qbs::SettingsModel(settingsDir, scope, this);
     ui->treeView->setModel(m_model);
+    ui->treeView->setItemDelegate(new SettingsItemDelegate(ui->treeView));
     ui->treeView->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->treeView, &QTreeView::expanded, this, &MainWindow::adjustColumns);
     connect(ui->treeView, &QWidget::customContextMenuRequested,
