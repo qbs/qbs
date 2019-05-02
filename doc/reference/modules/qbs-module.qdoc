@@ -209,32 +209,81 @@
     qbs.targetOS.contains("linux") && !qbs.targetOS.contains("android")
     \endcode
 
-    The possible values include one or more of the following:
+    \section2 Relation between targetPlatform and targetOS
 
-    \list
+    This table describes the possible values and matching between the \c targetPlatform
+    and the \l{qbs::}{targetOS} properties:
+    \table
+    \header
+        \li Target Platform
+        \li Target OS
+    \row
         \li \c{"aix"}
+        \li \c{["aix", "unix"]}
+    \row
         \li \c{"android"}
+        \li \c{["android", "linux", "unix"]}
+    \row
         \li \c{"freebsd"}
+        \li \c{["freebsd", "bsd", "unix"]}
+    \row
         \li \c{"haiku"}
+        \li \c{["haiku"]}
+    \row
         \li \c{"hpux"}
+        \li \c{["hpux", "unix"]}
+    \row
         \li \c{"hurd"}
+        \li \c{["hurd", "unix"]}
+    \row
         \li \c{"integrity"}
+        \li \c{["integrity", "unix"]}
+    \row
         \li \c{"ios"}
+        \li \c{["ios", "darwin", "bsd", "unix"]}
+    \row
         \li \c{"ios-simulator"}
+        \li \c{["ios-simulator", "ios", "darwin", "bsd", "unix"]}
+    \row
         \li \c{"linux"}
+        \li \c{["linux", "unix"]}
+    \row
         \li \c{"lynx"}
+        \li \c{["lynx"]}
+    \row
         \li \c{"macos"}
+        \li \c{["macos", "darwin", "bsd", "unix"]}
+    \row
         \li \c{"netbsd"}
+        \li \c{["netbsd", "bsd", "unix"]}
+    \row
         \li \c{"openbsd"}
+        \li \c{["openbsd", "bsd", "unix"]}
+    \row
         \li \c{"qnx"}
+        \li \c{["qnx", "unix"]}
+    \row
         \li \c{"solaris"}
+        \li \c{["solaris", "unix"]}
+    \row
         \li \c{"tvos"}
+        \li \c{["tvos", "darwin", "bsd", "unix"]}
+    \row
         \li \c{"tvos-simulator"}
+        \li \c{["tvos-simulator", "tvos", "darwin", "bsd", "unix"]}
+    \row
         \li \c{"vxworks"}
+        \li \c{["vxworks"]}
+    \row
         \li \c{"watchos"}
+        \li \c{["watchos", "darwin", "bsd", "unix"]}
+    \row
         \li \c{"watchos-simulator"}
+        \li \c{["watchos-simulator", "watchos", "darwin", "bsd", "unix"]}
+    \row
         \li \c{"windows"}
-    \endlist
+        \li \c{["windows"]}
+    \endtable
 
     \nodefaultvalue
 */
@@ -433,14 +482,34 @@
 
 /*!
     \qmlproperty stringList qbs::targetOS
+    \readonly
 
-    Specifies the OS you want to build the project for.
+    Contains the list of string values describing the OS and OS family that is
+    used to build a project.
 
-    Use this property to test for a particular OS or OS family in conditionals.
-    Do not use \l{qbs::}{targetPlatform} for this purpose.
+    This property is calculated based on the \l{qbs::}{targetPlatform} property and is typically
+    used to test for a particular OS or OS family in conditionals:
+    \code
+        Group {
+            // Includes all Unix-like platforms, such as: Linux, BSD, Apple platforms and others.
+            condition: qbs.targetOS.contains("unix")
+            files: ...
+        }
+        Group {
+            // Includes all Apple platforms, such as macOS, iOS, and iOS Simulator.
+            condition: qbs.targetOS.contains("darwin")
+            files: ...
+        }
+        Group {
+            // Includes only macOS
+            condition: qbs.targetOS.contains("macos")
+            files: ...
+        }
+    \endcode
+    Avoid using \l{qbs::}{targetPlatform} for this purpose.
 
-    Possible values include one or more of \c{"bsd"}, \c{"darwin"}, and
-    \c{"unix"}, in addition to the possible values of \l{qbs::}{targetPlatform}.
+    For the complete list of possible values, see
+    \l{Relation between targetPlatform and targetOS}.
 
     \nodefaultvalue
 */
