@@ -45,7 +45,7 @@ class VisualStudioSolutionGlobalSection : public QObject
     Q_DISABLE_COPY(VisualStudioSolutionGlobalSection)
 public:
     explicit VisualStudioSolutionGlobalSection(const QString &name, QObject *parent = nullptr);
-    ~VisualStudioSolutionGlobalSection();
+    ~VisualStudioSolutionGlobalSection() override;
 
     QString name() const;
     void setName(const QString &name);

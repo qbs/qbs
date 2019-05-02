@@ -51,7 +51,7 @@ public:
     MSBuildProperty(const QString &name, const QVariant &value = QVariant(),
                     MSBuildPropertyGroup *parent = nullptr);
 
-    void accept(IMSBuildNodeVisitor *visitor) const;
+    void accept(IMSBuildNodeVisitor *visitor) const override;
 };
 
 } // namespace qbs

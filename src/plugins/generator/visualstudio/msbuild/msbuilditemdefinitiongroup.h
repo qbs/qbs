@@ -49,9 +49,9 @@ class MSBuildItemDefinitionGroup : public IMSBuildItemGroup, public IMSBuildNode
     Q_OBJECT
 public:
     explicit MSBuildItemDefinitionGroup(MSBuildProject *parent = nullptr);
-    ~MSBuildItemDefinitionGroup();
+    ~MSBuildItemDefinitionGroup() override;
 
-    void accept(IMSBuildNodeVisitor *visitor) const;
+    void accept(IMSBuildNodeVisitor *visitor) const override;
 };
 
 } // namespace qbs

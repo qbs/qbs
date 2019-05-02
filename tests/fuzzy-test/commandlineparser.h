@@ -36,12 +36,12 @@ class ParseException : public std::exception
 {
 public:
     ParseException(const QString &error) : errorMessage(error) { }
-    ~ParseException() throw() {}
+    ~ParseException() throw() override {}
 
     QString errorMessage;
 
 private:
-    const char *what() const throw() { return qPrintable(errorMessage); }
+    const char *what() const throw() override { return qPrintable(errorMessage); }
 };
 
 class CommandLineParser

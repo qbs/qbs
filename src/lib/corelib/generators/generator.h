@@ -59,7 +59,7 @@ class QBS_EXPORT ProjectGenerator : public QObject
     Q_OBJECT
     Q_DISABLE_COPY(ProjectGenerator)
 public:
-    ~ProjectGenerator();
+    ~ProjectGenerator() override;
 
     /*!
      * Returns the name of the generator used to create the external build system files.

@@ -67,7 +67,7 @@ public:
     };
 
     static QScriptValue ctor(QScriptContext *context, QScriptEngine *engine);
-    ~BinaryFile();
+    ~BinaryFile() override;
 
     Q_INVOKABLE void close();
     Q_INVOKABLE QString filePath();

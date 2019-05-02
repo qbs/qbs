@@ -45,7 +45,7 @@ class IMSBuildGroup : public QObject
     Q_OBJECT
 public:
     explicit IMSBuildGroup(MSBuildProject *parent = nullptr);
-    virtual ~IMSBuildGroup();
+    ~IMSBuildGroup() override;
 
     QString condition() const;
     void setCondition(const QString &condition);

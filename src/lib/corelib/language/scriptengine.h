@@ -104,7 +104,7 @@ class QBS_AUTOTEST_EXPORT ScriptEngine : public QScriptEngine
     ScriptEngine(Logger &logger, EvalContext evalContext, QObject *parent = nullptr);
 public:
     static ScriptEngine *create(Logger &logger, EvalContext evalContext, QObject *parent = nullptr);
-    ~ScriptEngine();
+    ~ScriptEngine() override;
 
     Logger &logger() const { return m_logger; }
     void import(const FileContextBaseConstPtr &fileCtx, QScriptValue &targetObject,

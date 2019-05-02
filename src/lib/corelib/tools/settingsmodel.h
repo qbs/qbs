@@ -53,7 +53,7 @@ class QBS_EXPORT SettingsModel : public QAbstractItemModel
     Q_OBJECT
 public:
     SettingsModel(const QString &settingsDir, Settings::Scope scope, QObject *parent = nullptr);
-    ~SettingsModel();
+    ~SettingsModel() override;
 
     int keyColumn() const { return 0; }
     int valueColumn() const { return 1; }

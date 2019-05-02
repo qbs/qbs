@@ -67,7 +67,7 @@ class CommandLineFrontend : public QObject
 public:
     explicit CommandLineFrontend(const CommandLineParser &parser, Settings *settings,
                                  QObject *parent = nullptr);
-    ~CommandLineFrontend();
+    ~CommandLineFrontend() override;
 
     void cancel();
     void start();

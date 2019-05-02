@@ -50,12 +50,12 @@ class MSBuildImportGroup : public IMSBuildGroup, public IMSBuildNode
     Q_DISABLE_COPY(MSBuildImportGroup)
 public:
     explicit MSBuildImportGroup(MSBuildProject *parent = nullptr);
-    virtual ~MSBuildImportGroup();
+    ~MSBuildImportGroup() override;
 
     QString label() const;
     void setLabel(const QString &label);
 
-    void accept(IMSBuildNodeVisitor *visitor) const;
+    void accept(IMSBuildNodeVisitor *visitor) const override;
 
 private:
     std::unique_ptr<MSBuildImportGroupPrivate> d;

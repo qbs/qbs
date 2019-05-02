@@ -56,7 +56,7 @@ class JsCommandExecutor : public AbstractCommandExecutor
     Q_OBJECT
 public:
     explicit JsCommandExecutor(const Logger &logger, QObject *parent = nullptr);
-    ~JsCommandExecutor();
+    ~JsCommandExecutor() override;
 
 signals:
     void startRequested(const JavaScriptCommand *cmd, Transformer *transformer);

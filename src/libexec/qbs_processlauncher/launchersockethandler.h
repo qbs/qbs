@@ -59,7 +59,7 @@ class LauncherSocketHandler : public QObject
     Q_OBJECT
 public:
     explicit LauncherSocketHandler(QString socketPath, QObject *parent = nullptr);
-    ~LauncherSocketHandler();
+    ~LauncherSocketHandler() override;
 
     void start();
 

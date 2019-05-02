@@ -50,7 +50,7 @@ class TestApi : public QObject
 
 public:
     TestApi();
-    ~TestApi();
+    ~TestApi() override;
 
 private slots:
     void initTestCase();

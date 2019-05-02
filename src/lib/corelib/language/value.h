@@ -115,7 +115,7 @@ class JSSourceValue : public Value
 
 public:
     static JSSourceValuePtr QBS_AUTOTEST_EXPORT create(bool createdByPropertiesBlock = false);
-    ~JSSourceValue();
+    ~JSSourceValue() override;
 
     void apply(ValueHandler *handler) override { handler->handle(this); }
     ValuePtr clone() const override;

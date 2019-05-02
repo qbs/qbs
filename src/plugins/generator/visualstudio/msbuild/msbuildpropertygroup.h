@@ -50,14 +50,14 @@ class MSBuildPropertyGroup : public IMSBuildGroup, public IMSBuildNode
     Q_DISABLE_COPY(MSBuildPropertyGroup)
 public:
     explicit MSBuildPropertyGroup(MSBuildProject *parent = nullptr);
-    ~MSBuildPropertyGroup();
+    ~MSBuildPropertyGroup() override;
 
     QString label() const;
     void setLabel(const QString &label);
 
     void appendProperty(const QString &name, const QVariant &value);
 
-    void accept(IMSBuildNodeVisitor *visitor) const;
+    void accept(IMSBuildNodeVisitor *visitor) const override;
 
 private:
     std::unique_ptr<MSBuildPropertyGroupPrivate> d;

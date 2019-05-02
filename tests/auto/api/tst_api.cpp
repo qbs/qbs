@@ -66,11 +66,11 @@ class LogSink: public qbs::ILogSink
 public:
     QString output;
 
-    void doPrintWarning(const qbs::ErrorInfo &error) {
+    void doPrintWarning(const qbs::ErrorInfo &error) override {
         qDebug("%s", qPrintable(error.toString()));
         warnings.push_back(error);
     }
-    void doPrintMessage(qbs::LoggerLevel, const QString &message, const QString &) {
+    void doPrintMessage(qbs::LoggerLevel, const QString &message, const QString &) override {
         output += message;
     }
 

@@ -63,7 +63,7 @@ class Process : public QObject, public QScriptable, public ResourceAcquiringScri
 public:
     static QScriptValue ctor(QScriptContext *context, QScriptEngine *engine);
     Process(QScriptContext *context);
-    ~Process();
+    ~Process() override;
 
     Q_INVOKABLE QString getEnv(const QString &name);
     Q_INVOKABLE void setEnv(const QString &name, const QString &value);

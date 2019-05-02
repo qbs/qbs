@@ -72,7 +72,7 @@ class QBS_AUTOTEST_EXPORT Artifact : public FileResourceBase, public BuildGraphN
 {
 public:
     Artifact();
-    ~Artifact();
+    ~Artifact() override;
 
     Type type() const override { return ArtifactNodeType; }
     FileType fileType() const override { return FileTypeArtifact; }

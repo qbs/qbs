@@ -57,15 +57,15 @@ class VisualStudioGenerator : public ProjectGenerator, private IGeneratableProje
     friend class SolutionDependenciesVisitor;
 public:
     explicit VisualStudioGenerator(const Internal::VisualStudioVersionInfo &versionInfo);
-    ~VisualStudioGenerator();
+    ~VisualStudioGenerator() override;
     QString generatorName() const override;
     void generate() override;
 
 private:
-    virtual void visitProject(const GeneratableProject &project) override;
-    virtual void visitProjectData(const GeneratableProject &project,
+    void visitProject(const GeneratableProject &project) override;
+    void visitProjectData(const GeneratableProject &project,
                                   const GeneratableProjectData &projectData) override;
-    virtual void visitProduct(const GeneratableProject &project,
+    void visitProduct(const GeneratableProject &project,
                               const GeneratableProjectData &projectData,
                               const GeneratableProductData &productData) override;
 

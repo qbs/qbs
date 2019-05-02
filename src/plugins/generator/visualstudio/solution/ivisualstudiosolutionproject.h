@@ -48,7 +48,7 @@ protected:
     explicit IVisualStudioSolutionProject(QObject *parent = nullptr);
 
 public:
-    virtual ~IVisualStudioSolutionProject();
+    ~IVisualStudioSolutionProject() override;
 
     virtual QUuid projectTypeGuid() const = 0;
 

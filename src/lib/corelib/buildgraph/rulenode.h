@@ -58,7 +58,7 @@ class RuleNode : public BuildGraphNode
 {
 public:
     RuleNode();
-    ~RuleNode();
+    ~RuleNode() override;
 
     void setRule(const RuleConstPtr &rule) { m_rule = rule; }
     const RuleConstPtr &rule() const { return m_rule; }

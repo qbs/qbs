@@ -41,7 +41,7 @@ public:
     TestClangDb();
 
 private slots:
-    void initTestCase();
+    void initTestCase() override;
     void ensureBuildTreeCreated();
     void checkCanGenerateDb();
     void checkDbIsValidJson();

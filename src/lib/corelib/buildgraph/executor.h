@@ -78,7 +78,7 @@ public:
     void build();
 
     Executor(Logger logger, QObject *parent = nullptr);
-    ~Executor();
+    ~Executor() override;
 
     void setProject(const TopLevelProjectPtr &project);
     void setProducts(const std::vector<ResolvedProductPtr> &productsToBuild);

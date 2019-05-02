@@ -68,7 +68,7 @@ class InternalJob : public QObject
     Q_OBJECT
     friend class JobObserver;
 public:
-    ~InternalJob();
+    ~InternalJob() override;
 
     void cancel();
     virtual void start() {}
@@ -106,7 +106,7 @@ class InternalJobThreadWrapper : public InternalJob
     Q_OBJECT
 public:
     InternalJobThreadWrapper(InternalJob *synchronousJob, QObject *parent = nullptr);
-    ~InternalJobThreadWrapper();
+    ~InternalJobThreadWrapper() override;
 
     void start() override;
     InternalJob *synchronousJob() const { return m_job; }
@@ -127,7 +127,7 @@ class InternalSetupProjectJob : public InternalJob
     Q_OBJECT
 public:
     InternalSetupProjectJob(const Logger &logger);
-    ~InternalSetupProjectJob();
+    ~InternalSetupProjectJob() override;
 
     void init(const TopLevelProjectPtr &existingProject, const SetupProjectParameters &parameters);
     void reportError(const ErrorInfo &error);
@@ -160,7 +160,7 @@ signals:
 
 protected:
     BuildGraphTouchingJob(const Logger &logger, QObject *parent = nullptr);
-    ~BuildGraphTouchingJob();
+    ~BuildGraphTouchingJob() override;
 
     void setup(const TopLevelProjectPtr &project, const QList<ResolvedProductPtr> &products,
                bool dryRun);
@@ -211,7 +211,7 @@ class InternalInstallJob : public InternalJob
     Q_OBJECT
 public:
     InternalInstallJob(const Logger &logger);
-    ~InternalInstallJob();
+    ~InternalInstallJob() override;
 
     void init(const TopLevelProjectPtr &project, const std::vector<ResolvedProductPtr> &products,
             const InstallOptions &options);

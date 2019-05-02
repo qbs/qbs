@@ -40,7 +40,7 @@ class MSBuildFileItemPrivate;
 class MSBuildFileItem : public MSBuildItem
 {
 public:
-    virtual ~MSBuildFileItem();
+    ~MSBuildFileItem() override;
 
     QString filePath() const;
     void setFilePath(const QString &filePath);

@@ -66,7 +66,7 @@ class ExecutorJob : public QObject
     Q_OBJECT
 public:
     ExecutorJob(const Logger &logger, QObject *parent);
-    ~ExecutorJob();
+    ~ExecutorJob() override;
 
     void setMainThreadScriptEngine(ScriptEngine *engine);
     void setDryRun(bool enabled);

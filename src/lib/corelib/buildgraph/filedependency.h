@@ -85,7 +85,7 @@ class FileDependency : public FileResourceBase
 {
 public:
     FileDependency();
-    ~FileDependency();
+    ~FileDependency() override;
 
     FileType fileType() const override { return FileTypeDependency; }
 };

@@ -51,7 +51,7 @@ class MSBuildProject : public QObject, public IMSBuildNode
     Q_DISABLE_COPY(MSBuildProject)
 public:
     explicit MSBuildProject(QObject *parent = nullptr);
-    ~MSBuildProject();
+    ~MSBuildProject() override;
 
     QString defaultTargets() const;
     void setDefaultTargets(const QString &defaultTargets);
@@ -59,7 +59,7 @@ public:
     QString toolsVersion() const;
     void setToolsVersion(const QString &toolsVersion);
 
-    void accept(IMSBuildNodeVisitor *visitor) const;
+    void accept(IMSBuildNodeVisitor *visitor) const override;
 
 private:
     std::unique_ptr<MSBuildProjectPrivate> d;

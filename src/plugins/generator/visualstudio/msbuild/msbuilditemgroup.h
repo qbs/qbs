@@ -52,12 +52,12 @@ class MSBuildItemGroup : public IMSBuildItemGroup, public IMSBuildNode
     Q_DISABLE_COPY(MSBuildItemGroup)
 public:
     explicit MSBuildItemGroup(MSBuildProject *parent = nullptr);
-    ~MSBuildItemGroup();
+    ~MSBuildItemGroup() override;
 
     QString label() const;
     void setLabel(const QString &label);
 
-    void accept(IMSBuildNodeVisitor *visitor) const;
+    void accept(IMSBuildNodeVisitor *visitor) const override;
 
 private:
     std::unique_ptr<MSBuildItemGroupPrivate> d;

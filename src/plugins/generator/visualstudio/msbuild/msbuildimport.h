@@ -53,7 +53,7 @@ class MSBuildImport : public QObject, public IMSBuildNode
 public:
     explicit MSBuildImport(MSBuildProject *parent);
     explicit MSBuildImport(MSBuildImportGroup *parent);
-    virtual ~MSBuildImport();
+    ~MSBuildImport() override;
 
     QString project() const;
     void setProject(const QString &project);
@@ -61,7 +61,7 @@ public:
     QString condition() const;
     void setCondition(const QString &condition);
 
-    void accept(IMSBuildNodeVisitor *visitor) const;
+    void accept(IMSBuildNodeVisitor *visitor) const override;
 
 private:
     std::unique_ptr<MSBuildImportPrivate> d;

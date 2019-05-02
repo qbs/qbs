@@ -57,9 +57,9 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(const QString &settingsDir, qbs::Settings::Scope scope,
                         QWidget *parent = nullptr);
-    ~MainWindow();
+    ~MainWindow() override;
 
-    bool eventFilter(QObject *watched, QEvent *event);
+    bool eventFilter(QObject *watched, QEvent *event) override;
 
 private:
     void adjustColumns();

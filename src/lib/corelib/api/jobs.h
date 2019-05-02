@@ -66,7 +66,7 @@ class QBS_EXPORT AbstractJob : public QObject
 {
     Q_OBJECT
 public:
-    ~AbstractJob();
+    ~AbstractJob() override;
 
     enum State { StateRunning, StateCanceling, StateFinished };
     State state() const { return m_state; }

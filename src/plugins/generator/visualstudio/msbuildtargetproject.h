@@ -53,7 +53,7 @@ protected:
                          VisualStudioGenerator *parent = nullptr);
 
 public:
-    ~MSBuildTargetProject();
+    ~MSBuildTargetProject() override;
 
     const Internal::VisualStudioVersionInfo &versionInfo() const;
 

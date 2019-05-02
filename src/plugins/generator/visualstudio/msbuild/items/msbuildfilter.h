@@ -45,7 +45,7 @@ public:
     explicit MSBuildFilter(IMSBuildItemGroup *parent = nullptr);
     MSBuildFilter(const QString &name, const QList<QString> &extensions,
                   IMSBuildItemGroup *parent = nullptr);
-    ~MSBuildFilter();
+    ~MSBuildFilter() override;
 
     QUuid identifier() const;
     void setIdentifier(const QUuid &identifier);

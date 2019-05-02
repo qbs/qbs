@@ -68,7 +68,7 @@ public:
     };
 
     static QScriptValue ctor(QScriptContext *context, QScriptEngine *engine);
-    ~TextFile();
+    ~TextFile() override;
 
     Q_INVOKABLE void close();
     Q_INVOKABLE QString filePath();

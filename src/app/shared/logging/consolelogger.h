@@ -55,7 +55,7 @@ public:
     void setEnabled(bool enabled) { m_enabled = enabled; }
 
 private:
-    void doPrintMessage(qbs::LoggerLevel level, const QString &message, const QString &tag);
+    void doPrintMessage(qbs::LoggerLevel level, const QString &message, const QString &tag) override;
     void fprintfWrapper(TextColor color, FILE *file, const char *str, ...);
 
 private:

@@ -53,7 +53,7 @@ class MSBuildItem : public QObject, public IMSBuildNode
     Q_OBJECT
 public:
     explicit MSBuildItem(const QString &name, IMSBuildItemGroup *parent = nullptr);
-    virtual ~MSBuildItem();
+    ~MSBuildItem() override;
 
     QString name() const;
     void setName(const QString &name);
@@ -63,7 +63,7 @@ public:
 
     void appendProperty(const QString &name, const QVariant &value);
 
-    void accept(IMSBuildNodeVisitor *visitor) const;
+    void accept(IMSBuildNodeVisitor *visitor) const override;
 
 private:
     std::unique_ptr<MSBuildItemPrivate> d;

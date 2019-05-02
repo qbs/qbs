@@ -70,7 +70,7 @@ class PropertyList : public QObject, public QScriptable
 public:
     static QScriptValue ctor(QScriptContext *context, QScriptEngine *engine);
     PropertyList(QScriptContext *context);
-    ~PropertyList();
+    ~PropertyList() override;
     Q_INVOKABLE bool isEmpty() const;
     Q_INVOKABLE void clear();
     Q_INVOKABLE void readFromObject(const QScriptValue &value);

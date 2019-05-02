@@ -55,7 +55,7 @@ class VisualStudioSolution : public QObject
 public:
     explicit VisualStudioSolution(const Internal::VisualStudioVersionInfo &versionInfo,
                                   QObject *parent = nullptr);
-    ~VisualStudioSolution();
+    ~VisualStudioSolution() override;
 
     Internal::VisualStudioVersionInfo versionInfo() const;
 

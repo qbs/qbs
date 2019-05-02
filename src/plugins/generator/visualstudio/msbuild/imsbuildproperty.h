@@ -47,7 +47,7 @@ protected:
     explicit IMSBuildProperty(QObject *parent = nullptr);
 
 public:
-    virtual ~IMSBuildProperty();
+    ~IMSBuildProperty() override;
 
     QString condition() const;
     void setCondition(const QString &condition);

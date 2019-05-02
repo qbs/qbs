@@ -36,13 +36,13 @@ namespace qbsBenchmarker {
 class Exception : public QException {
 public:
     explicit Exception(const QString &description) : m_description(description) {}
-    ~Exception() throw() { }
+    ~Exception() throw() override { }
 
     QString description() const { return m_description; }
 
 private:
-    void raise() const { throw *this; }
-    Exception *clone() const { return new Exception(*this); }
+    void raise() const override { throw *this; }
+    Exception *clone() const override { return new Exception(*this); }
 
     QString m_description;
 };

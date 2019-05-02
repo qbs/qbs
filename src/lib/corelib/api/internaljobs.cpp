@@ -71,7 +71,7 @@ class JobObserver : public ProgressObserver
 {
 public:
     JobObserver(InternalJob *job) : m_job(job) { }
-    ~JobObserver() { delete m_timedLogger; }
+    ~JobObserver() override { delete m_timedLogger; }
 
     void cancel()
     {

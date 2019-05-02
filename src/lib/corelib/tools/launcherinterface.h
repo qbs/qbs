@@ -57,7 +57,7 @@ class LauncherInterface : public QObject
     Q_OBJECT
 public:
     static LauncherInterface &instance();
-    ~LauncherInterface();
+    ~LauncherInterface() override;
 
     static void startLauncher() { instance().doStart(); }
     static void stopLauncher() { instance().doStop(); }
