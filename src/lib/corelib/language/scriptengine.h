@@ -93,6 +93,7 @@ using DubiousContextList = std::vector<DubiousContext>;
 class ResourceAcquiringScriptObject
 {
 public:
+    virtual ~ResourceAcquiringScriptObject() = default;
     virtual void releaseResources() = 0;
 };
 

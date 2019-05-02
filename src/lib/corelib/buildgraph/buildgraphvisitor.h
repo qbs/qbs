@@ -55,6 +55,7 @@ class RuleNode;
 class BuildGraphVisitor
 {
 public:
+    virtual ~BuildGraphVisitor() = default;
     virtual bool visit(Artifact *) { return true; }
     virtual void endVisit(Artifact *) { }
     virtual bool visit(RuleNode *) { return true; }

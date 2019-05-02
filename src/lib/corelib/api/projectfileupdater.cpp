@@ -119,6 +119,8 @@ ProjectFileUpdater::ProjectFileUpdater(const QString &projectFile) : m_projectFi
 {
 }
 
+ProjectFileUpdater::~ProjectFileUpdater() = default;
+
 ProjectFileUpdater::LineEndingType ProjectFileUpdater::guessLineEndingType(const QByteArray &text)
 {
     char before = 0;

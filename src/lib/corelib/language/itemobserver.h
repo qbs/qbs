@@ -48,6 +48,7 @@ class Item;
 class ItemObserver
 {
 public:
+    virtual ~ItemObserver() = default;
     virtual void onItemPropertyChanged(Item *item) = 0;
 };
 

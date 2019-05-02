@@ -54,6 +54,7 @@ namespace Internal {
 class ProjectFileUpdater
 {
 public:
+    virtual ~ProjectFileUpdater();
     void apply();
 
     CodeLocation itemPosition() const { return m_itemPosition; }

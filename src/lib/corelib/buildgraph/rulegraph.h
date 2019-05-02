@@ -56,6 +56,7 @@ namespace Internal {
 class RuleGraphVisitor
 {
 public:
+    virtual ~RuleGraphVisitor() = default;
     virtual void visit(const RuleConstPtr &parentRule, const RuleConstPtr &rule) = 0;
     virtual void endVisit(const RuleConstPtr &rule) { Q_UNUSED(rule); }
 };
