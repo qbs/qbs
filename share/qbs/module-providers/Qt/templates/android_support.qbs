@@ -10,6 +10,7 @@ Module {
     property stringList extraPrefixDirs
     property stringList deploymentDependencies // qmake: ANDROID_DEPLOYMENT_DEPENDENCIES
     property stringList extraPlugins // qmake: ANDROID_EXTRA_PLUGINS
+    property stringList extraLibs // qmake: ANDROID_EXTRA_LIBS
     property bool verboseAndroidDeployQt: false
 
     property string _androidDeployQtFilePath: FileInfo.joinPaths(_qtInstallDir, "bin",
@@ -107,6 +108,15 @@ Module {
                 var extraPlugins = product.Qt.android_support.extraPlugins;
                 if (extraPlugins && extraPlugins.length > 0)
                     f.writeLine('"android-extra-plugins": "' + extraPlugins.join() + '",');
+                var extraLibs = product.Qt.android_support.extraLibs;
+                if (extraLibs && extraLibs.length > 0) {
+                    for (var i = 0; i < extraLibs.length; ++i) {
+                        if (!FileInfo.isAbsolutePath(extraLibs[i])) {
+                            extraLibs[i] = FileInfo.joinPaths(product.sourceDirectory, extraLibs[i]);
+                        }
+                    }
+                    f.writeLine('"android-extra-libs": "' + extraLibs.join() + '",');
+                }
                 var prefixDirs = product.Qt.android_support.extraPrefixDirs;
                 if (prefixDirs && prefixDirs.length > 0)
                     f.writeLine('"extraPrefixDirs": ' + JSON.stringify(prefixDirs) + ',');

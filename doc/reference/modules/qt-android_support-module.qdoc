@@ -77,6 +77,15 @@
 */
 
 /*!
+    \qmlproperty stringList Qt.android_support::extraLibs
+
+    Additional libs to be packaged and loaded on start-up (mind the order).
+    Corresponds to qmake's ANDROID_EXTRA_LIBS.
+
+    \defaultvalue \c undefined
+*/
+
+/*!
     \qmlproperty bool Qt.android_support::verboseAndroidDeployQt
 
     Enable this property if you want verbose output from the
