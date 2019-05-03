@@ -67,11 +67,15 @@ GroupData::GroupData(const GroupData &other) : d(other.d)
 {
 }
 
+GroupData::GroupData(GroupData &&) Q_DECL_NOEXCEPT = default;
+
 GroupData &GroupData::operator=(const GroupData &other)
 {
     d = other.d;
     return *this;
 }
+
+GroupData &GroupData::operator=(GroupData &&) Q_DECL_NOEXCEPT = default;
 
 GroupData::~GroupData()
 {
@@ -216,11 +220,15 @@ ArtifactData::ArtifactData(const ArtifactData &other) : d(other.d)
 {
 }
 
+ArtifactData::ArtifactData(ArtifactData &&) Q_DECL_NOEXCEPT = default;
+
 ArtifactData &ArtifactData::operator=(const ArtifactData &other)
 {
     d = other.d;
     return *this;
 }
+
+ArtifactData &ArtifactData::operator=(ArtifactData &&) Q_DECL_NOEXCEPT = default;
 
 ArtifactData::~ArtifactData()
 {
@@ -325,11 +333,15 @@ InstallData::InstallData(const InstallData &other) : d(other.d)
 {
 }
 
+InstallData::InstallData(InstallData &&) Q_DECL_NOEXCEPT = default;
+
 InstallData &InstallData::operator=(const InstallData &other)
 {
     d = other.d;
     return *this;
 }
+
+InstallData &InstallData::operator=(InstallData &&) Q_DECL_NOEXCEPT = default;
 
 InstallData::~InstallData()
 {
@@ -412,11 +424,15 @@ ProductData::ProductData(const ProductData &other) : d(other.d)
 {
 }
 
+ProductData::ProductData(ProductData &&) Q_DECL_NOEXCEPT = default;
+
 ProductData &ProductData::operator=(const ProductData &other)
 {
     d = other.d;
     return *this;
 }
+
+ProductData &ProductData::operator=(ProductData &&) Q_DECL_NOEXCEPT = default;
 
 ProductData::~ProductData()
 {
@@ -685,11 +701,15 @@ ProjectData::ProjectData(const ProjectData &other) : d(other.d)
 {
 }
 
+ProjectData::ProjectData(ProjectData &&) Q_DECL_NOEXCEPT = default;
+
 ProjectData &ProjectData::operator =(const ProjectData &other)
 {
     d = other.d;
     return *this;
 }
+
+ProjectData &ProjectData::operator=(ProjectData &&) Q_DECL_NOEXCEPT = default;
 
 ProjectData::~ProjectData()
 {
@@ -819,6 +839,11 @@ PropertyMap::PropertyMap(const PropertyMap &other)
 {
 }
 
+PropertyMap::PropertyMap(PropertyMap &&other) Q_DECL_NOEXCEPT
+{
+    std::swap(d, other.d);
+}
+
 PropertyMap::~PropertyMap()
 {
     delete d;
@@ -830,6 +855,12 @@ PropertyMap &PropertyMap::operator =(const PropertyMap &other)
         delete d;
         d = new Internal::PropertyMapPrivate(*other.d);
     }
+    return *this;
+}
+
+PropertyMap &PropertyMap::operator =(PropertyMap &&other) Q_DECL_NOEXCEPT
+{
+    std::swap(d, other.d);
     return *this;
 }
 

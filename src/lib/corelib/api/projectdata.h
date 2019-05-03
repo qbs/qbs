@@ -75,9 +75,11 @@ class QBS_EXPORT PropertyMap
 public:
     PropertyMap();
     PropertyMap(const PropertyMap &other);
+    PropertyMap(PropertyMap &&other) Q_DECL_NOEXCEPT;
     ~PropertyMap();
 
     PropertyMap &operator =(const PropertyMap &other);
+    PropertyMap &operator =(PropertyMap &&other) Q_DECL_NOEXCEPT;
 
     QStringList allProperties() const;
     QVariant getProperty(const QString &name) const;
@@ -90,7 +92,7 @@ public:
     QString toString() const;
 
 private:
-    Internal::PropertyMapPrivate *d;
+    Internal::PropertyMapPrivate *d = nullptr;
 };
 
 class InstallData;
@@ -101,7 +103,9 @@ class QBS_EXPORT ArtifactData
 public:
     ArtifactData();
     ArtifactData(const ArtifactData &other);
+    ArtifactData(ArtifactData &&) Q_DECL_NOEXCEPT;
     ArtifactData &operator=(const ArtifactData &other);
+    ArtifactData &operator=(ArtifactData &&) Q_DECL_NOEXCEPT;
     ~ArtifactData();
 
     bool isValid() const;
@@ -124,7 +128,9 @@ class QBS_EXPORT InstallData
 public:
     InstallData();
     InstallData(const InstallData &other);
+    InstallData(InstallData &&) Q_DECL_NOEXCEPT;
     InstallData &operator=(const InstallData &other);
+    InstallData &operator=(InstallData &&) Q_DECL_NOEXCEPT;
     ~InstallData();
 
     bool isValid() const;
@@ -149,7 +155,9 @@ class QBS_EXPORT GroupData
 public:
     GroupData();
     GroupData(const GroupData &other);
+    GroupData(GroupData &&) Q_DECL_NOEXCEPT;
     GroupData &operator=(const GroupData &other);
+    GroupData &operator=(GroupData &&) Q_DECL_NOEXCEPT;
     ~GroupData();
 
     bool isValid() const;
@@ -178,7 +186,9 @@ class QBS_EXPORT ProductData
 public:
     ProductData();
     ProductData(const ProductData &other);
+    ProductData(ProductData &&) Q_DECL_NOEXCEPT;
     ProductData &operator=(const ProductData &other);
+    ProductData &operator=(ProductData &&) Q_DECL_NOEXCEPT;
     ~ProductData();
 
     bool isValid() const;
@@ -218,7 +228,9 @@ class QBS_EXPORT ProjectData
 public:
     ProjectData();
     ProjectData(const ProjectData &other);
+    ProjectData(ProjectData &&) Q_DECL_NOEXCEPT;
     ProjectData &operator=(const ProjectData &other);
+    ProjectData &operator=(ProjectData &&) Q_DECL_NOEXCEPT;
     ~ProjectData();
 
     bool isValid() const;
