@@ -48,6 +48,7 @@
 #include <QtCore/qstringlist.h>
 #include <QtCore/qvariant.h>
 
+#include <memory>
 #include <utility>
 
 namespace qbs {
@@ -92,7 +93,7 @@ public:
     QString toString() const;
 
 private:
-    Internal::PropertyMapPrivate *d = nullptr;
+    std::unique_ptr<Internal::PropertyMapPrivate> d;
 };
 
 class InstallData;

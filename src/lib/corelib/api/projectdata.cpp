@@ -828,41 +828,29 @@ bool operator<(const ProjectData &lhs, const ProjectData &rhs)
  */
 
 PropertyMap::PropertyMap()
-    : d(new Internal::PropertyMapPrivate)
+    : d(std::make_unique<Internal::PropertyMapPrivate>())
 {
     static Internal::PropertyMapPtr defaultInternalMap = Internal::PropertyMapInternal::create();
     d->m_map = defaultInternalMap;
 }
 
 PropertyMap::PropertyMap(const PropertyMap &other)
-    : d(new Internal::PropertyMapPrivate(*other.d))
+    : d(std::make_unique<Internal::PropertyMapPrivate>(*other.d))
 {
 }
 
-PropertyMap::PropertyMap(PropertyMap &&other) Q_DECL_NOEXCEPT
-{
-    std::swap(d, other.d);
-}
+PropertyMap::PropertyMap(PropertyMap &&other) Q_DECL_NOEXCEPT = default;
 
-PropertyMap::~PropertyMap()
-{
-    delete d;
-}
+PropertyMap::~PropertyMap() = default;
 
 PropertyMap &PropertyMap::operator =(const PropertyMap &other)
 {
-    if (this != &other) {
-        delete d;
-        d = new Internal::PropertyMapPrivate(*other.d);
-    }
+    if (this != &other)
+        d = std::make_unique<Internal::PropertyMapPrivate>(*other.d);
     return *this;
 }
 
-PropertyMap &PropertyMap::operator =(PropertyMap &&other) Q_DECL_NOEXCEPT
-{
-    std::swap(d, other.d);
-    return *this;
-}
+PropertyMap &PropertyMap::operator =(PropertyMap &&other) Q_DECL_NOEXCEPT = default;
 
 /*!
  * \brief Returns the names of all properties.
