@@ -63,23 +63,15 @@ GroupData::GroupData() : d(new Internal::GroupDataPrivate)
 {
 }
 
-GroupData::GroupData(const GroupData &other) : d(other.d)
-{
-}
+GroupData::GroupData(const GroupData &other) = default;
 
 GroupData::GroupData(GroupData &&) Q_DECL_NOEXCEPT = default;
 
-GroupData &GroupData::operator=(const GroupData &other)
-{
-    d = other.d;
-    return *this;
-}
+GroupData &GroupData::operator=(const GroupData &other) = default;
 
 GroupData &GroupData::operator=(GroupData &&) Q_DECL_NOEXCEPT = default;
 
-GroupData::~GroupData()
-{
-}
+GroupData::~GroupData() = default;
 
 /*!
  * \brief Returns true if and only if the Group holds data that was initialized by Qbs.
@@ -216,23 +208,15 @@ ArtifactData::ArtifactData() : d(new Internal::ArtifactDataPrivate)
 {
 }
 
-ArtifactData::ArtifactData(const ArtifactData &other) : d(other.d)
-{
-}
+ArtifactData::ArtifactData(const ArtifactData &other) = default;
 
 ArtifactData::ArtifactData(ArtifactData &&) Q_DECL_NOEXCEPT = default;
 
-ArtifactData &ArtifactData::operator=(const ArtifactData &other)
-{
-    d = other.d;
-    return *this;
-}
+ArtifactData &ArtifactData::operator=(const ArtifactData &other) = default;
 
 ArtifactData &ArtifactData::operator=(ArtifactData &&) Q_DECL_NOEXCEPT = default;
 
-ArtifactData::~ArtifactData()
-{
-}
+ArtifactData::~ArtifactData() = default;
 
 /*!
  * \brief Returns true if and only if this object holds data that was initialized by Qbs.
@@ -329,23 +313,15 @@ InstallData::InstallData() : d(new Internal::InstallDataPrivate)
 {
 }
 
-InstallData::InstallData(const InstallData &other) : d(other.d)
-{
-}
+InstallData::InstallData(const InstallData &other) = default;
 
 InstallData::InstallData(InstallData &&) Q_DECL_NOEXCEPT = default;
 
-InstallData &InstallData::operator=(const InstallData &other)
-{
-    d = other.d;
-    return *this;
-}
+InstallData &InstallData::operator=(const InstallData &other) = default;
 
 InstallData &InstallData::operator=(InstallData &&) Q_DECL_NOEXCEPT = default;
 
-InstallData::~InstallData()
-{
-}
+InstallData::~InstallData() = default;
 
 /*!
  * \brief Returns true if and only if this object holds data that was initialized by Qbs.
@@ -420,23 +396,15 @@ ProductData::ProductData() : d(new Internal::ProductDataPrivate)
 {
 }
 
-ProductData::ProductData(const ProductData &other) : d(other.d)
-{
-}
+ProductData::ProductData(const ProductData &other) = default;
 
 ProductData::ProductData(ProductData &&) Q_DECL_NOEXCEPT = default;
 
-ProductData &ProductData::operator=(const ProductData &other)
-{
-    d = other.d;
-    return *this;
-}
+ProductData &ProductData::operator=(const ProductData &other) = default;
 
 ProductData &ProductData::operator=(ProductData &&) Q_DECL_NOEXCEPT = default;
 
-ProductData::~ProductData()
-{
-}
+ProductData::~ProductData() = default;
 
 /*!
  * \brief Returns true if and only if the Product holds data that was initialized by Qbs.
@@ -697,23 +665,15 @@ ProjectData::ProjectData() : d(new Internal::ProjectDataPrivate)
 {
 }
 
-ProjectData::ProjectData(const ProjectData &other) : d(other.d)
-{
-}
+ProjectData::ProjectData(const ProjectData &other) = default;
 
 ProjectData::ProjectData(ProjectData &&) Q_DECL_NOEXCEPT = default;
 
-ProjectData &ProjectData::operator =(const ProjectData &other)
-{
-    d = other.d;
-    return *this;
-}
+ProjectData &ProjectData::operator =(const ProjectData &other) = default;
 
 ProjectData &ProjectData::operator=(ProjectData &&) Q_DECL_NOEXCEPT = default;
 
-ProjectData::~ProjectData()
-{
-}
+ProjectData::~ProjectData() = default;
 
 /*!
  * \brief Returns true if and only if the Project holds data that was initialized by Qbs.
