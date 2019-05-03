@@ -36,6 +36,25 @@
     The \c protobuf.cpp module provides support for generating C++ headers
     and sources from proto definition files using the \l protoc tool.
 
+    A simple qbs file that uses protobuf can be written as follows:
+    \code
+    CppApplication {
+        Depends { name: "protobuf.cpp" }
+        files: ["foo.proto", "main.cpp"]
+    }
+    \endcode
+    A generated header now can be included in the C++ sources:
+    \code
+        #include <foo.pb.h>
+
+        int main(int argc, char* argv[]) {
+            Foo bar;
+            bar.set_answer(42);
+            google::protobuf::ShutdownProtobufLibrary();
+            return 0;
+        }
+    \endcode
+
     \section2 Relevant File Tags
 
     \table
