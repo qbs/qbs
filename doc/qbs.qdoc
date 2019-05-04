@@ -550,6 +550,145 @@
         export QBS_AUTOTEST_SETTINGS_DIR=~/path/to/qbs/settings
     \endcode
 
+    \section2 \QBS Build Options
+
+    The \c qbsbuildconfig module can be used to customize the build.
+    Properties of that module can be passed using command line as follows:
+    \code
+        qbs build modules.qbsbuildconfig.enableAddressSanitizer:true
+    \endcode
+
+    \QBS recognizes the following properties:
+    \table
+    \header
+        \li Property
+        \li Default value
+        \li Notes
+    \row
+        \li enableAddressSanitizer
+        \li \c false
+        \li Whether to use address sanitizer or not. Enabling this option will add the
+            -fsanitize=address flag.
+    \row
+        \li enableUnitTests
+        \li \c false
+        \li Enable additional autotests. Enabling this option will export some symbols that would
+            otherwise be private.
+    \row
+        \li enableProjectFileUpdates
+        \li \c false
+        \li Enable API for updating project files. This is required for an IDE and implies a
+            dependency to the Qt GUI module that would not be needed for the \QBS command-line tool.
+    \row
+        \li enableRPath
+        \li \c true
+        \li Use this property to disable the use of rpath. This can be used when packaging \QBS
+            for distributions which do not permit the use of rpath, such as Fedora.
+    \row
+        \li installApiHeaders
+        \li \c true
+        \li Holds whether to install the header files for the \QBS libraries or not. This option
+            is required to build against the \QBS libraries.
+    \row
+        \li enableBundledQt
+        \li \c true
+        \li Holds whether the Qt libraries that \QBS depends on will be bundled with \QBS during
+            the \c install step. This option is only implemented on macOS.
+    \row
+        \li useBundledQtScript
+        \li \c false
+        \li Use the bundled QtScript module instead of the one shipped with Qt. In that case,
+            QtScript should be checked out as a git submodule.
+    \row
+        \li libDirName
+        \li \c "lib"
+        \li Directory name used by \c libInstallDir and \c importLibInstallDir properties.
+    \row
+        \li appInstallDir
+        \li \c "bin"
+        \li Relative directory path under the install prefix path to put application binaries.
+    \row
+        \li libInstallDir
+        \li \c "bin" on Windows, \c libDirName otherwise
+        \li Relative directory path under the install prefix path where to put shared libraries
+            (excluding plugins, see the \c relativePluginsPath property).
+    \row
+        \li importLibInstallDir
+        \li \c libDirName
+        \li Relative directory path under the install prefix path where to put import libs.
+    \row
+        \li libexecInstallDir
+        \li \c appInstallDir on Windows, \c "libexec/qbs" otherwise
+        \li Relative directory path under the install prefix path where to put auxiliary binaries
+            executed by the \QBS libraries.
+    \row
+        \li systemSettingsDir
+        \li \c undefined
+        \li Directory that will be used by \QBS to store its settings. If not specified, a default
+            platform-dependent directory is used.
+    \row
+        \li installManPage
+        \li \c true on Unix, \c false otherwise
+        \li Whether to install man pages.
+    \row
+        \li installHtml
+        \li \c true
+        \li Whether to install HTML help pages.
+    \row
+        \li installQch
+        \li \c false
+        \li Whether to install qch files. See
+            \l{https://doc.qt.io/qt-5/qthelp-framework.html}{The Qt Help Framework} for details
+            about qch files.
+    \row
+        \li generatePkgConfigFiles
+        \li auto-detected
+        \li Whether to generate files for pkg-config.
+    \row
+        \li generateQbsModules
+        \li auto-detected
+        \li Whether to generate \QBS modules for the exported \QBS libraries. Use this when
+            building another product against \QBS libraries using \QBS as build system.
+    \row
+        \li docInstallDir
+        \li \c "share/doc/qbs/html"
+        \li Relative directory path under the install prefix path where to put documentation.
+    \row
+        \li pkgConfigInstallDir
+        \li \c libDirName + \c "/pkgconfig"
+        \li Relative directory path under the install prefix path where to put pkg-config files.
+    \row
+        \li qbsModulesBaseDir
+        \li \c libDirName + \c "/qbs/modules"
+        \li Relative directory path under the install prefix path where to put \QBS modules.
+            Applies only when \c generateQbsModules is \c true.
+    \row
+        \li relativeLibexecPath
+        \li \c "../" + \c libexecInstallDir
+        \li Path to the auxiliary binaries relative to the application binary.
+    \row
+        \li relativePluginsPath
+        \li \c "../" + \c libDirName
+        \li Path to plugin libraries relative to the application binary.
+    \row
+        \li relativeSearchPath
+        \li \c ".."
+        \li Relative path to the directory where to look for \QBS development modules and items.
+    \row
+        \li libRPaths
+        \li auto-detected
+        \li List of rpaths.
+    \row
+        \li resourcesInstallDir
+        \li \c ""
+        \li Relative directory path under the install prefix path where to put shared resources
+            like documentation, \QBS user modules and items.
+    \row
+        \li pluginsInstallDir
+        \li \c libDirName + \c "/qbs/plugins"
+        \li Relative path to the directory where to put plugins to.
+    \endtable
+
     \section1 Using Docker
 
     A set of Docker images for developing \QBS (which are maintained by the \QBS team) is available
