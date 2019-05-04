@@ -31,6 +31,7 @@ RUN apt-get update -qq && \
         build-essential \
         flex \
         intltool \
+        libclang-3.9-dev \
         libgdk-pixbuf2.0-dev \
         libffi-dev \
         libfontconfig1-dev \
@@ -49,7 +50,10 @@ RUN apt-get update -qq && \
         libx11-xcb-dev \
         libxcb-glx0-dev \
         libz-dev \
+        python \
         openssl
+
+ENV LLVM_INSTALL_DIR=/usr/lib/llvm-3.9
 
 # Build Qt
 RUN mkdir -p qt/build && \
@@ -60,18 +64,17 @@ RUN mkdir -p qt/build && \
         -shared \
         -opensource \
         -confirm-license \
-        -no-compile-examples \
+        -nomake examples \
         -nomake tests \
         -platform linux-g++ \
-        -qt-freetype -qt-harfbuzz -qt-pcre -qt-xcb -qt-zlib \
-        -no-sql-sqlite -no-cups -no-dbus -no-pch \
+        -qt-freetype -qt-harfbuzz -qt-pcre -qt-sqlite -qt-xcb -qt-zlib \
+        -no-cups -no-dbus -no-pch \
         -no-feature-accessibility -no-opengl \
         -skip qtactiveqt \
         -skip qt3d \
         -skip qtcanvas3d \
         -skip qtcharts \
         -skip qtconnectivity \
-        -skip qtdeclarative  \
         -skip qtdatavis3d \
         -skip qtdoc \
         -skip qtgamepad \
@@ -79,6 +82,7 @@ RUN mkdir -p qt/build && \
         -skip qtimageformats \
         -skip qtlocation \
         -skip qtmultimedia \
+        -skip qtnetworkauth \
         -skip qtquickcontrols \
         -skip qtquickcontrols2 \
         -skip qtpurchasing \
@@ -89,7 +93,6 @@ RUN mkdir -p qt/build && \
         -skip qtspeech \
         -skip qtsvg \
         -skip qttranslations \
-        -skip qttools \
         -skip qtwayland \
         -skip qtvirtualkeyboard \
         -skip qtwebchannel \
@@ -98,8 +101,10 @@ RUN mkdir -p qt/build && \
         -skip qtwebview \
         -skip qtwinextras \
         -skip qtxmlpatterns \
-        && \
-    make -j $(nproc --all) >/dev/null && \
+        -skip qtx11extras
+
+RUN cd qt/build && \
+    make -j $(nproc --all) | stdbuf -o0 tr -cd '\n' | stdbuf -o0 tr '\n' '.' && \
     make install
 
 # Build a stable Qbs release
@@ -123,9 +128,13 @@ ARG USER_UID=1000
 ARG USER_NAME=devel
 RUN apt-get update -qq && \
     apt-get install -qq -y \
-        gosu && \
+        gosu \
+        sudo && \
     groupadd -g ${USER_UID} ${USER_NAME} && \
-    useradd -s /bin/bash -u ${USER_UID} -g ${USER_NAME} -o -c "" -m ${USER_NAME}
+    useradd -s /bin/bash -u ${USER_UID} -g ${USER_NAME} -o -c "" -m ${USER_NAME} && \
+    usermod -a -G sudo ${USER_NAME} && \
+    echo "%devel         ALL = (ALL) NOPASSWD: ALL" >> /etc/sudoers
+
 COPY entrypoint.sh entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
 
@@ -135,6 +144,7 @@ RUN apt-get update -qq && \
         build-essential \
         ca-certificates \
         git \
+        libclang-3.9 \
         pkg-config \
         make \
         help2man \
@@ -145,6 +155,7 @@ RUN apt-get update -qq && \
 # Install Qt installation from build stage
 COPY --from=build-qt-linux-x86_64 /opt/qt5-linux-x86_64 /opt/qt5-linux-x86_64
 ENV PATH=/opt/qt5-linux-x86_64/bin:${PATH}
+RUN echo "export PATH=/opt/qt5-linux-x86_64/bin:\${PATH}" > /etc/profile.d/qt.sh
 
 # Download and build Qbs
 RUN mkdir -p /qbs && \

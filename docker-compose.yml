@@ -2,7 +2,7 @@ version: "3.3"
 
 services:
   stretch:
-    image: qbsdev:stretch
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:stretch
     build:
       dockerfile: Dockerfile
       context: docker/stretch/
