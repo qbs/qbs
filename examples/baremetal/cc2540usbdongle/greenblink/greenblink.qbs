@@ -56,6 +56,7 @@ CppApplication {
             return false;
         return qbs.toolchain.contains("iar")
             || qbs.toolchain.contains("keil")
+            || qbs.toolchain.contains("sdcc")
     }
     name: "greenblink"
     cpp.positionIndependentCode: false
@@ -102,6 +103,15 @@ CppApplication {
             "RAMSIZE(256)",
             "CODE(0x0000-0xFFFF)"
         ]
+    }
+
+    //
+    // SDCC-specific properties and sources.
+    //
+
+    Properties {
+        condition: qbs.toolchain.contains("sdcc")
+        cpp.commonCompilerFlags: ["-mmcs51"]
     }
 
     //

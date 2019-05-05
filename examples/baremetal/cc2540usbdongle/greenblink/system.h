@@ -58,18 +58,22 @@ extern "C" {
 #if defined(__ICC8051__)
 #include <intrinsics.h>
 # define system_nop() __no_operation()
-# define SFR(name,addr) __sfr __no_init volatile unsigned char name @ addr;
+# define DEFINE_SFR(name,addr) __sfr __no_init volatile unsigned char name @ addr;
 #elif defined (__C51__)
 #include <intrins.h>
 # define system_nop() _nop_()
-# define SFR(name, addr) sfr name = addr;
+# define DEFINE_SFR(name, addr) sfr name = addr;
+#elif defined (__SDCC_mcs51)
+#include <mcs51/compiler.h>
+# define DEFINE_SFR(name, addr) __sfr __at(addr) name;
+# define system_nop() NOP()
 #else
 #error "Unsupported toolchain"
 #endif
 
-SFR(P0   , 0x80u) // Port 0.
-SFR(P0SEL, 0xF3u) // Port 0 function select.
-SFR(P0DIR, 0xFDu) // Port 0 direction select.
+DEFINE_SFR(P0   , 0x80u) // Port 0.
+DEFINE_SFR(P0SEL, 0xF3u) // Port 0 function select.
+DEFINE_SFR(P0DIR, 0xFDu) // Port 0 direction select.
 
 #ifdef __cplusplus
 }
