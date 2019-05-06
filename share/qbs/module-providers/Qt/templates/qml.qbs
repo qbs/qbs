@@ -24,12 +24,13 @@ QtModule {
 
     readonly property string pluginListFilePathDebug: product.buildDirectory + "/plugins.list.d"
     readonly property string pluginListFilePathRelease: product.buildDirectory + "/plugins.list"
+    property bool linkPlugins: isStaticLibrary && Qt.plugin_support.linkPlugins
 
     hasLibrary: @has_library@
     architectures: @archs@
     targetPlatform: @targetPlatform@
-    staticLibsDebug: (isStaticLibrary ? ['@' + pluginListFilePathDebug] : []).concat(@staticLibsDebug@)
-    staticLibsRelease: (isStaticLibrary ? ['@' + pluginListFilePathRelease] : []).concat(@staticLibsRelease@)
+    staticLibsDebug: (linkPlugins ? ['@' + pluginListFilePathDebug] : []).concat(@staticLibsDebug@)
+    staticLibsRelease: (linkPlugins ? ['@' + pluginListFilePathRelease] : []).concat(@staticLibsRelease@)
     dynamicLibsDebug: @dynamicLibsDebug@
     dynamicLibsRelease: @dynamicLibsRelease@
     linkerFlagsDebug: @linkerFlagsDebug@
@@ -60,7 +61,7 @@ QtModule {
     }
 
     Rule {
-        condition: isStaticLibrary
+        condition: linkPlugins
         multiplex: true
         requiresInputs: false
         inputs: ["qt.qml.qml"]

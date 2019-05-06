@@ -12,6 +12,8 @@ QtModule {
             return false;
         if (!isStaticLibrary)
             return false;
+        if (!Qt.plugin_support.linkPlugins)
+            return false;
         if (!(Qt.plugin_support.enabledPlugins || []).contains(qtModuleName))
             return false;
         if (!extendsModules || extendsModules.length === 0)

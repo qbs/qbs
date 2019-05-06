@@ -1,6 +1,8 @@
 Module {
     // Set by user.
     property varList pluginsByType
+    property bool linkPlugins: product.type
+        && (product.type.contains("application") || product.type.contains("sharedlibrary"))
 
     // Set by Qt modules.
     property stringList pluginTypes
