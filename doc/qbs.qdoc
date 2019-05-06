@@ -563,12 +563,16 @@
 
     The easiest way to get started is to build \QBS using a Linux container. These types of
     containers are supported out of the box on all the supported host platforms: Windows, macOS,
-    and Linux. The images provide everything that is necessary to build and test \QBS:
+    and Linux.
 
-    - Qt SDK for building \QBS with \c qmake
-    - Latest stable release of \QBS for building \QBS with \QBS
+    The images provide everything that is necessary to build and test \QBS:
 
-    Run the following to download the \QBS development image based on Debian 9 \e Stretch:
+    \list
+        \li Qt SDK for building \QBS with \c qmake
+        \li Latest stable release of \QBS for building \QBS with \QBS
+    \endlist
+
+    Run the following command to download the \QBS development image based on Debian 9 \e Stretch:
 
     \code
         docker pull qbsbuild/qbsdev:stretch
