@@ -1,5 +1,5 @@
-StaticLibrary {
-    name: "somelib"
+Product {
+    name: "p"
     Probe {
         id: staticQtChecker
         property bool staticQt: Qt.core.staticBuild
@@ -8,6 +8,11 @@ StaticLibrary {
             if (found)
                 console.info("Qt is static");
         }
+    }
+
+    Group {
+        condition: type.contains("application")
+        files: "main.cpp"
     }
 
     Depends { name: "Qt.core" }
