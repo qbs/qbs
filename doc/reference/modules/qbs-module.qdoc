@@ -182,32 +182,15 @@
     where the target OS is always known (such as an Apple Watch app written in
     native code).
 
+    For example, a profile used for building for the iOS Simulator platform will have this
+    property set to the \c ios-simulator value:
+    \code
+        profiles.xcode-iphonesimulator.qbs.targetPlatform: "ios-simulator"
+    \endcode
+
     You should generally treat this property as \e{write-only} and avoid using
     it to test for the current target OS. Instead, use the \l{qbs::}{targetOS}
-    property for conditionals. For example, instead of:
-
-    \code
-    qbs.targetPlatform === "macos" || qbs.targetPlatform === "ios" || qbs.targetPlatform === "tvos" || qbs.targetPlatform === "watchos"
-    \endcode
-
-    use
-
-    \code
-    qbs.targetOS.contains("darwin")
-
-    \endcode
-
-    However, in some cases using \c targetPlatform would be acceptable, such as
-    when the resulting condition would be simpler while still being correct:
-
-    \code
-    qbs.targetPlatform === "linux"
-    \endcode
-
-    versus
-    \code
-    qbs.targetOS.contains("linux") && !qbs.targetOS.contains("android")
-    \endcode
+    property for conditionals.
 
     \section2 Relation between targetPlatform and targetOS
 
@@ -506,7 +489,30 @@
             files: ...
         }
     \endcode
-    Avoid using \l{qbs::}{targetPlatform} for this purpose.
+    Avoid using \l{qbs::}{targetPlatform} for this purpose. For example, instead of:
+
+    \code
+    qbs.targetPlatform === "macos" || qbs.targetPlatform === "ios" || qbs.targetPlatform === "tvos" || qbs.targetPlatform === "watchos"
+    \endcode
+
+    use
+
+    \code
+    qbs.targetOS.contains("darwin")
+
+    \endcode
+
+    However, in some cases using \l{qbs::}{targetPlatform} would be acceptable, such as
+    when the resulting condition would be simpler while still being correct:
+
+    \code
+    qbs.targetPlatform === "linux"
+    \endcode
+
+    versus
+    \code
+    qbs.targetOS.contains("linux") && !qbs.targetOS.contains("android")
+    \endcode
 
     For the complete list of possible values, see
     \l{Relation between targetPlatform and targetOS}.
