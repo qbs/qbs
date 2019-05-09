@@ -47,6 +47,11 @@ Module {
         names: "pkg-config"
     }
 
+    property path sysroot: {
+        if (qbs.targetOS.contains("macos"))
+            return "";
+        return qbs.sysroot;
+    }
     property string executableFilePath: pkgconfigProbe.filePath
     property stringList libDirs
     property bool staticMode: false

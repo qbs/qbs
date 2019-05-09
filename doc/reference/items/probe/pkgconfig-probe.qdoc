@@ -59,6 +59,20 @@
 */
 
 /*!
+    \qmlproperty string PkgConfigProbe::sysroot
+
+    This property sets the value of the \c PKG_CONFIG_SYSROOT_DIR environment variable passed to
+    the \c pkg-config binary. This variable modifies -I and -L flags to use the directories located
+    in target sysroot.
+
+    This property is useful when cross-compiling packages that use \c pkg-config to determine CFLAGS
+    and LDFLAGS. For example, if \c sysroot is set to \c /var/target, a \c -I/usr/include/libfoo
+    will become \c -I/var/target/usr/include/libfoo.
+
+    \defaultvalue \c qbs.sysroot
+*/
+
+/*!
     \qmlproperty string PkgConfigProbe::executable
 
     The name of or the path to the pkg-config executable.
@@ -125,6 +139,9 @@
     List of full, non-sysrooted paths where pkg-config should search for .pc files. This overrides
     the built-in path (which is usually /usr/lib/pkgconfig).
 
+    This property sets the value of the \c PKG_CONFIG_LIBDIR environment variable passed to
+    the \c pkg-config binary.
+
     \nodefaultvalue
 */
 
@@ -177,6 +194,9 @@
 
     This output property contains the list of library paths that should be passed to a linker when
     using requested package.
+
+    This property sets the value of the PKG_CONFIG_LIBDIR environment variable passed to
+    the \c pkg-config binary.
 
     \nodefaultvalue
 */

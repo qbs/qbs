@@ -50,6 +50,7 @@ Module {
     Probes.PkgConfigProbe {
         id: pkgConfigProbe
         condition: pkgconfig.present
+        sysroot: pkgconfig.sysroot
         name: theName
         executable: pkgconfig.executableFilePath
         libDirs: pkgconfig.libDirs

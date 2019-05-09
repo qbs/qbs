@@ -67,3 +67,26 @@
 
     \defaultvalue \c false
 */
+
+/*!
+    \qmlproperty path pkgconfig::sysroot
+
+    This property controls the value of the \l{PkgConfigProbe::sysroot}{PkgConfigProbe.sysroot}
+    property.
+
+    Set this property if you need to overwrite the default search sysroot path used by
+    \c pkg-config.
+
+    This can be useful if \c pkg-config files are located in the directory other than qbs.sysroot.
+    This is the case on macOS platform - all XCode profiles are sysrooted to the SDK
+    directory, but \c pkg-config is typically intalled using Brew and resides in the
+    \c /usr/local directory.
+
+    Setting this property to \c undefined or empty (\c "") value will use pkg-config's default
+    search paths:
+    \code
+        qbs build modules.pkgconfig.sysroot:undefined
+    \endcode
+
+    \defaultvalue \c "" on macOS, \c qbs.sysroot on other platforms
+*/
