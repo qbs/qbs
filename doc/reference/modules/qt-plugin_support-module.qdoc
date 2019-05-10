@@ -80,6 +80,6 @@
 
     Controls whether plugins of a statically built Qt should be linked into the product.
 
-    \default \true if the product is an application or shared library, \c false otherwise.
+    \defaultvalue \c true if the product is an application or shared library, \c false otherwise.
 
 */
