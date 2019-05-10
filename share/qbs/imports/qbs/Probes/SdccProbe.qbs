@@ -34,6 +34,7 @@ import "../../../modules/cpp/sdcc.js" as SDCC
 PathProbe {
     // Inputs
     property string compilerFilePath;
+    property string preferredArchitecture;
 
     // Outputs
     property string architecture;
@@ -48,7 +49,7 @@ PathProbe {
             return;
         }
 
-        var macros = SDCC.dumpMacros(compilerFilePath, qbs);
+        var macros = SDCC.dumpMacros(compilerFilePath, preferredArchitecture);
 
         architecture = SDCC.guessArchitecture(macros);
         endianness = SDCC.guessEndianness(macros);

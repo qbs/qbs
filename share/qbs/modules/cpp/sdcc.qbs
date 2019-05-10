@@ -50,6 +50,7 @@ CppModule {
         id: sdccProbe
         condition: !_skipAllChecks
         compilerFilePath: compilerPath
+        preferredArchitecture: qbs.architecture
     }
 
     qbs.architecture: sdccProbe.found ? sdccProbe.architecture : original

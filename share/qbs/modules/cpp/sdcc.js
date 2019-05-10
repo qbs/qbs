@@ -39,6 +39,11 @@ var TextFile = require("qbs.TextFile");
 var Utilities = require("qbs.Utilities");
 var WindowsUtils = require("qbs.WindowsUtils");
 
+function targetArchitectureFlag(architecture) {
+    if (architecture === "mcs51")
+        return "-mmcs51";
+}
+
 function guessArchitecture(macros)
 {
     if (macros["__SDCC_mcs51"] === "1")
@@ -51,13 +56,17 @@ function guessEndianness(macros)
     return "little";
 }
 
-function dumpMacros(compilerFilePath, qbs) {
+function dumpMacros(compilerFilePath, architecture) {
     var tempDir = new TemporaryDir();
     var fakeIn = new TextFile(tempDir.path() + "/empty-source.c", TextFile.WriteOnly);
+    var args = [ fakeIn.filePath(), "-dM", "-E" ];
+
+    var targetFlag = targetArchitectureFlag(architecture);
+    if (targetFlag)
+        args.push(targetFlag);
+
     var p = new Process();
-    p.exec(compilerFilePath,
-           [ fakeIn.filePath(), "-dM", "-E" ],
-           true);
+    p.exec(compilerFilePath, args, true);
     var map = {};
     p.readStdOut().trim().split(/\r?\n/g).map(function (line) {
         var parts = line.split(" ", 3);
