@@ -226,6 +226,7 @@ function getQtProperties(qmakeFilePath, qbs) {
     qtProps.documentationPath = pathQueryValue(queryResult, "QT_INSTALL_DOCS");
     qtProps.includePath = pathQueryValue(queryResult, "QT_INSTALL_HEADERS");
     qtProps.libraryPath = pathQueryValue(queryResult, "QT_INSTALL_LIBS");
+    qtProps.hostLibraryPath = pathQueryValue(queryResult, "QT_HOST_LIBS");
     qtProps.binaryPath = pathQueryValue(queryResult, "QT_HOST_BINS")
             || pathQueryValue(queryResult, "QT_INSTALL_BINS");
     qtProps.documentationPath = pathQueryValue(queryResult, "QT_INSTALL_DOCS");
@@ -443,6 +444,7 @@ function makeQtModuleInfo(name, qbsName, deps) {
     moduleInfo.frameworkPathsDebug = [];
     moduleInfo.frameworkPathsRelease = [];
     moduleInfo.libraryPaths = [];
+    moduleInfo.libDir = "";
     moduleInfo.config = [];
     moduleInfo.supportedPluginTypes = [];
     moduleInfo.pluginData = makePluginData();
@@ -628,7 +630,7 @@ function doSetupLibraries(modInfo, qtProps, debugBuild, nonExistingPrlFiles) {
     }
     var prlFilePath = modInfo.isPlugin
             ? FileInfo.joinPaths(qtProps.pluginPath, modInfo.pluginData.type)
-            : qtProps.libraryPath;
+            : (modInfo.libDir ? modInfo.libDir : qtProps.libraryPath);
     if (isFramework(modInfo, qtProps)) {
         prlFilePath = FileInfo.joinPaths(prlFilePath,
                                          libraryBaseName(modInfo, qtProps, false) + ".framework");
@@ -1068,7 +1070,17 @@ function allQt5Modules(qtProps) {
                 for (k = 0; k < moduleInfo.includePaths.length; ++k) {
                     moduleInfo.includePaths[k] = moduleInfo.includePaths[k]
                          .replace("$$QT_MODULE_INCLUDE_BASE", qtProps.includePath)
+                         .replace("$$QT_MODULE_HOST_LIB_BASE", qtProps.hostLibraryPath)
                          .replace("$$QT_MODULE_LIB_BASE", qtProps.libraryPath);
+                }
+            } else if (key.endsWith(".libs")) {
+                var libDirs = extractPaths(value, priFilePath);
+                if (libDirs.length === 1) {
+                    moduleInfo.libDir = libDirs[0]
+                        .replace("$$QT_MODULE_HOST_LIB_BASE", qtProps.hostLibraryPath)
+                        .replace("$$QT_MODULE_LIB_BASE", qtProps.libraryPath);
+                } else {
+                    moduleInfo.libDir = qtProps.libraryPath;
                 }
             } else if (key.endsWith(".DEFINES")) {
                 moduleInfo.compilerDefines = splitNonEmpty(value, ' ');
