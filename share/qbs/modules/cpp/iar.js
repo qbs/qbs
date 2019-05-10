@@ -77,6 +77,53 @@ function dumpMacros(compilerFilePath, tag) {
     return map;
 }
 
+function dumpDefaultPaths(compilerFilePath, tag) {
+    var tempDir = new TemporaryDir();
+    var inFilePath = FileInfo.fromNativeSeparators(tempDir.path() + "/empty-source.c");
+    var inFile = new TextFile(inFilePath, TextFile.WriteOnly);
+
+    var args = [ inFilePath, "--preinclude", "." ];
+    if (tag === "cpp")
+        args.push("--ec++");
+
+    var p = new Process();
+    // This process should return an error, don't throw
+    // an error in this case.
+    p.exec(compilerFilePath, args, false);
+    var output = p.readStdErr();
+
+    var includePaths = [];
+    var pass = 0;
+    for (var pos = 0; pos < output.length; ++pos) {
+        var searchIndex = output.indexOf("searched:", pos);
+        if (searchIndex === -1)
+            break;
+        var startQuoteIndex = output.indexOf('"', searchIndex + 1);
+        if (startQuoteIndex === -1)
+            break;
+        var endQuoteIndex = output.indexOf('"', startQuoteIndex + 1);
+        if (endQuoteIndex === -1)
+            break;
+        pos = endQuoteIndex + 1;
+
+        // Ignore the first path as it is not a compiler include path.
+        ++pass;
+        if (pass === 1)
+            continue;
+
+        var parts = output.substring(startQuoteIndex + 1, endQuoteIndex).split("\n");
+        var includePath = "";
+        for (var i in parts)
+            includePath += parts[i].trim();
+
+        includePaths.push(includePath);
+    }
+
+    return {
+        "includePaths": includePaths
+    };
+}
+
 function collectLibraryDependencies(product) {
     var seen = {};
     var result = [];

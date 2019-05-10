@@ -44,6 +44,7 @@ PathProbe {
     property int versionMajor;
     property int versionMinor;
     property int versionPatch;
+    property stringList includePaths;
     property var compilerDefinesByLanguage;
 
     configure: {
@@ -64,11 +65,17 @@ PathProbe {
                 compilerFilePath, tag);
         }
 
+        // FIXME: Do we need dump the default paths for both C
+        // and C++ languages?
+        var defaultPaths = IAR.dumpDefaultPaths(
+            compilerFilePath, languages[0]);
+
         var macros = compilerDefinesByLanguage["c"]
             || compilerDefinesByLanguage["cpp"];
 
         architecture = IAR.guessArchitecture(macros);
         endianness = IAR.guessEndianness(macros);
+        includePaths = defaultPaths.includePaths;
 
         var version = parseInt(macros["__VER__"], 10);
 

@@ -61,6 +61,7 @@ CppModule {
     endianness: iarProbe.endianness
 
     compilerDefinesByLanguage: iarProbe.compilerDefinesByLanguage
+    compilerIncludePaths: iarProbe.includePaths
 
     property string toolchainInstallPath: compilerPathProbe.found
         ? compilerPathProbe.path : undefined
