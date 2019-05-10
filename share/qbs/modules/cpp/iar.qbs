@@ -50,6 +50,7 @@ CppModule {
         id: iarProbe
         condition: !_skipAllChecks
         compilerFilePath: compilerPath
+        enableDefinesByLanguage: enableCompilerDefinesByLanguage
     }
 
     qbs.architecture: iarProbe.found ? iarProbe.architecture : original
@@ -59,7 +60,7 @@ CppModule {
     compilerVersionPatch: iarProbe.versionPatch
     endianness: iarProbe.endianness
 
-    compilerDefinesByLanguage: []
+    compilerDefinesByLanguage: iarProbe.compilerDefinesByLanguage
 
     property string toolchainInstallPath: compilerPathProbe.found
         ? compilerPathProbe.path : undefined

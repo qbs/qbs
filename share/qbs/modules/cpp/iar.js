@@ -56,16 +56,18 @@ function guessEndianness(macros)
     return "big"
 }
 
-function dumpMacros(compilerFilePath, qbs, nullDevice) {
+function dumpMacros(compilerFilePath, tag) {
     var tempDir = new TemporaryDir();
     var inFilePath = FileInfo.fromNativeSeparators(tempDir.path() + "/empty-source.c");
     var inFile = new TextFile(inFilePath, TextFile.WriteOnly);
     var outFilePath = FileInfo.fromNativeSeparators(tempDir.path() + "/iar-macros.predef");
-    var p = new Process();
 
-    p.exec(compilerFilePath,
-           [ inFilePath, "--predef_macros", outFilePath ],
-           true);
+    var args = [ inFilePath, "--predef_macros", outFilePath ];
+    if (tag && tag === "cpp")
+        args.push("--ec++");
+
+    var p = new Process();
+    p.exec(compilerFilePath, args, true);
     var outFile = new TextFile(outFilePath, TextFile.ReadOnly);
     var map = {};
     outFile.readAll().trim().split(/\r?\n/g).map(function (line) {
