@@ -36,6 +36,7 @@
 #include <tools/preferences.h>
 #include <tools/profile.h>
 #include <tools/qttools.h>
+#include <tools/settings.h>
 #include <tools/shellutils.h>
 #include <tools/stlutils.h>
 #include <tools/version.h>
@@ -144,6 +145,25 @@ bool TestBlackbox::lexYaccExist()
 {
     return !findExecutable(QStringList("lex")).isEmpty()
             && !findExecutable(QStringList("yacc")).isEmpty();
+}
+
+qbs::Version TestBlackbox::bisonVersion()
+{
+    const auto yaccBinary = findExecutable(QStringList("yacc"));
+    QProcess process;
+    process.start(yaccBinary, QStringList() << "--version");
+    if (!process.waitForStarted())
+        return qbs::Version();
+    if (!process.waitForFinished())
+        return qbs::Version();
+    const auto processStdOut = process.readAllStandardOutput();
+    if (processStdOut.isEmpty())
+        return qbs::Version();
+    const auto line = processStdOut.split('\n')[0];
+    const auto words = line.split(' ');
+    if (words.empty())
+        return qbs::Version();
+    return qbs::Version::fromString(words.last());
 }
 
 void TestBlackbox::sevenZip()
@@ -4346,20 +4366,27 @@ void TestBlackbox::lexyaccOutputs()
         } \
     }
 
-    QVERIFY(QDir::setCurrent(testDataDir + "/lexyacc/lex_prefix"));
-    rmDirR(relativeBuildDir());
-    QCOMPARE(runQbs(params), 0);
-    VERIFY_COMPILATION(yaccOutputFilePath);
+    const auto version = bisonVersion();
+    if (version >= qbs::Version(2, 6)) {
+        // prefix only supported starting from bison 2.6
+        QVERIFY(QDir::setCurrent(testDataDir + "/lexyacc/lex_prefix"));
+        rmDirR(relativeBuildDir());
+        QCOMPARE(runQbs(params), 0);
+        VERIFY_COMPILATION(yaccOutputFilePath);
+    }
 
     QVERIFY(QDir::setCurrent(testDataDir + "/lexyacc/lex_outfile"));
     rmDirR(relativeBuildDir());
     QCOMPARE(runQbs(params), 0);
     VERIFY_COMPILATION(yaccOutputFilePath);
 
-    QVERIFY(QDir::setCurrent(testDataDir + "/lexyacc/yacc_output"));
-    rmDirR(relativeBuildDir());
-    QCOMPARE(runQbs(params), 0);
-    VERIFY_COMPILATION(lexOutputFilePath);
+    if (version >= qbs::Version(2, 4)) {
+        // output syntax was changed in bison 2.4
+        QVERIFY(QDir::setCurrent(testDataDir + "/lexyacc/yacc_output"));
+        rmDirR(relativeBuildDir());
+        QCOMPARE(runQbs(params), 0);
+        VERIFY_COMPILATION(lexOutputFilePath);
+    }
 
 #undef VERIFY_COMPILATION
 }
@@ -5207,8 +5234,9 @@ void TestBlackbox::qbsConfig()
     bool canWriteToSystemSettings;
     QString testSettingsFilePath;
     {
-        QSettings testSettings(QSettings::IniFormat, QSettings::SystemScope,
-                               "dummyOrg", "dummyApp");
+        QSettings testSettings(
+                qbs::Settings::defaultSystemSettingsBaseDir() + "/dummyOrg" + "/dummyApp.conf",
+                QSettings::IniFormat);
         testSettings.setValue("dummyKey", "dummyValue");
         testSettings.sync();
         canWriteToSystemSettings = testSettings.status() == QSettings::NoError;
@@ -6477,10 +6505,11 @@ void TestBlackbox::minimumSystemVersion_data()
             const auto v = defaultClangMinimumDeploymentTarget();
             auto result = "__MAC_OS_X_VERSION_MIN_REQUIRED="
                     + QString::number(toMinimumDeploymentTargetValue(v, true));
-            if (v < qbs::Version(10, 14)) {
-                result += "\nversion "
-                    + QString::number(v.majorVersion()) + "." + QString::number(v.minorVersion());
-            }
+            if (v >= qbs::Version(10, 14))
+                result += "\nminos ";
+            else
+                result += "\nversion ";
+            result += QString::number(v.majorVersion()) + "." + QString::number(v.minorVersion());
             return result;
         }
 

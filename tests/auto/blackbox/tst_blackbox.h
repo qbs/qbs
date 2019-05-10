@@ -310,6 +310,7 @@ private:
     QMap<QString, QString> findTypeScript(int *status);
     QString findArchiver(const QString &fileName, int *status = nullptr);
     static bool lexYaccExist();
+    static qbs::Version bisonVersion();
 };
 
 #endif // TST_BLACKBOX_H

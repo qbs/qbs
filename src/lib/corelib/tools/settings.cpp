@@ -54,7 +54,7 @@
 namespace qbs {
 using namespace Internal;
 
-static QString defaultSystemSettingsBaseDir()
+QString Settings::defaultSystemSettingsBaseDir()
 {
     switch (HostOsInfo::hostOs()) {
     case HostOsInfo::HostOsWindows: {
@@ -83,7 +83,7 @@ static QString systemSettingsBaseDir()
 #ifdef QBS_SYSTEM_SETTINGS_DIR
     return QLatin1String(QBS_SYSTEM_SETTINGS_DIR);
 #else
-    return defaultSystemSettingsBaseDir() + QStringLiteral("/qbs");
+    return Settings::defaultSystemSettingsBaseDir() + QStringLiteral("/qbs");
 #endif
 }
 

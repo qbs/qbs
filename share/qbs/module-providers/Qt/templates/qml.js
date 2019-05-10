@@ -44,7 +44,10 @@ function getLibsForPlugin(pluginData, buildVariant, targetOS, toolchain, qtLibDi
         var pluginLib;
         var otherLibs = "";
         var line;
-        while (line = prlFile.readLine()) {
+        while (!prlFile.atEof()) {
+            line = prlFile.readLine().trim();
+            if (!line)
+                continue;
             if (line.startsWith("QMAKE_PRL_TARGET"))
                 pluginLib = FileInfo.joinPaths(pluginData.path, getPrlRhs(line));
             if (line.startsWith("QMAKE_PRL_LIBS")) {
