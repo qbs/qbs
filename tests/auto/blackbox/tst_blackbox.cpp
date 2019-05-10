@@ -2865,6 +2865,12 @@ void TestBlackbox::precompiledAndPrefixHeaders()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackbox::precompiledHeaderAndRedefine()
+{
+    QDir::setCurrent(testDataDir + "/precompiled-headers-and-redefine");
+    QCOMPARE(runQbs(), 0);
+}
+
 void TestBlackbox::preventFloatingPointValues()
 {
     QDir::setCurrent(testDataDir + "/prevent-floating-point-values");
