@@ -61,6 +61,7 @@ CppModule {
     endianness: sdccProbe.endianness
 
     compilerDefinesByLanguage: []
+    compilerIncludePaths: sdccProbe.includePaths
 
     property string toolchainInstallPath: compilerPathProbe.found
         ? compilerPathProbe.path : undefined

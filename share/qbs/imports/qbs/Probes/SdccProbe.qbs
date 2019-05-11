@@ -42,6 +42,7 @@ PathProbe {
     property int versionMajor;
     property int versionMinor;
     property int versionPatch;
+    property stringList includePaths;
 
     configure: {
         if (!File.exists(compilerFilePath)) {
@@ -53,6 +54,9 @@ PathProbe {
 
         architecture = SDCC.guessArchitecture(macros);
         endianness = SDCC.guessEndianness(macros);
+
+        var defaultPaths = SDCC.dumpDefaultPaths(compilerFilePath, architecture);
+        includePaths = defaultPaths.includePaths;
 
         versionMajor = parseInt(macros["__SDCC_VERSION_MAJOR"], 10);
         versionMinor = parseInt(macros["__SDCC_VERSION_MINOR"], 10);

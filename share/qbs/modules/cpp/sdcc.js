@@ -75,6 +75,37 @@ function dumpMacros(compilerFilePath, architecture) {
     return map;
 }
 
+function dumpDefaultPaths(compilerFilePath, architecture) {
+    var args = [ "--print-search-dirs" ];
+
+    var targetFlag = targetArchitectureFlag(architecture);
+    if (targetFlag)
+        args.push(targetFlag);
+
+    var p = new Process();
+    p.exec(compilerFilePath, args, true);
+    var includePaths = [];
+    var addIncludePaths = false;
+    var lines = p.readStdOut().trim().split(/\r?\n/g);
+    for (var i in lines) {
+        var line = lines[i];
+        if (line.startsWith("includedir:")) {
+            addIncludePaths = true;
+        } else if (line.startsWith("programs:")
+                    || line.startsWith("datadir:")
+                    || line.startsWith("libdir:")
+                    || line.startsWith("libpath:")) {
+            addIncludePaths = false;
+        } else if (addIncludePaths) {
+            includePaths.push(line);
+        }
+    }
+
+    return {
+        "includePaths": includePaths
+    }
+}
+
 function effectiveLinkerPath(product) {
     if (product.cpp.linkerMode === "automatic")
         return product.cpp.compilerPath;
