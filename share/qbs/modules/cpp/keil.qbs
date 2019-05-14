@@ -50,6 +50,7 @@ CppModule {
         id: keilProbe
         condition: !_skipAllChecks
         compilerFilePath: compilerPath
+        enableDefinesByLanguage: enableCompilerDefinesByLanguage
     }
 
     qbs.architecture: keilProbe.found ? keilProbe.architecture : original
@@ -59,7 +60,7 @@ CppModule {
     compilerVersionPatch: keilProbe.versionPatch
     endianness: keilProbe.endianness
 
-    compilerDefinesByLanguage: []
+    compilerDefinesByLanguage: keilProbe.compilerDefinesByLanguage
 
     property string toolchainInstallPath: compilerPathProbe.found
         ? compilerPathProbe.path : undefined

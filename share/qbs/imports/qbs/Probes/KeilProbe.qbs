@@ -34,6 +34,7 @@ import "../../../modules/cpp/keil.js" as KEIL
 PathProbe {
     // Inputs
     property string compilerFilePath;
+    property stringList enableDefinesByLanguage;
 
     property string _nullDevice: qbs.nullDevice
 
@@ -43,14 +44,28 @@ PathProbe {
     property int versionMajor;
     property int versionMinor;
     property int versionPatch;
+    property var compilerDefinesByLanguage;
 
     configure: {
+        compilerDefinesByLanguage = {};
+
         if (!File.exists(compilerFilePath)) {
             found = false;
             return;
         }
 
-        var macros = KEIL.dumpMacros(compilerFilePath, qbs, _nullDevice);
+        var languages = enableDefinesByLanguage;
+        if (!languages || languages.length === 0)
+            languages = ["c"];
+
+        for (var i = 0; i < languages.length; ++i) {
+            var tag = languages[i];
+            compilerDefinesByLanguage[tag] = KEIL.dumpMacros(
+                compilerFilePath, tag, _nullDevice);
+        }
+
+        var macros = compilerDefinesByLanguage["c"]
+            || compilerDefinesByLanguage["cpp"];
 
         architecture = KEIL.guessArchitecture(macros);
         endianness = KEIL.guessEndianness(macros);

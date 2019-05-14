@@ -81,7 +81,11 @@ function guessVersion(macros)
 // Note: The KEIL 8051 compiler does not support the predefined
 // macros dumping. So, we do it with following trick where we try
 // to compile a temporary file and to parse the console output.
-function dumpC51CompilerMacros(compilerFilePath, qbs) {
+function dumpC51CompilerMacros(compilerFilePath, tag) {
+    // C51 compiler support only C language.
+    if (tag === "cpp")
+        return {};
+
     function createDumpMacrosFile() {
         var td = new TemporaryDir();
         var fn = FileInfo.fromNativeSeparators(td.path() + "/dump-macros.c");
@@ -107,11 +111,13 @@ function dumpC51CompilerMacros(compilerFilePath, qbs) {
     return map;
 }
 
-function dumpArmCompilerMacros(compilerFilePath, qbs, nullDevice) {
+function dumpArmCompilerMacros(compilerFilePath, tag, nullDevice) {
+    var args = [ "-E", "--list-macros", nullDevice ];
+    if (tag === "cpp")
+        args.push("--cpp");
+
     var p = new Process();
-    p.exec(compilerFilePath,
-           [ "-E", "--list-macros", nullDevice ],
-           false);
+    p.exec(compilerFilePath, args, false);
     var map = {};
     p.readStdOut().trim().split(/\r?\n/g).map(function (line) {
         if (!line.startsWith("#define"))
@@ -122,9 +128,9 @@ function dumpArmCompilerMacros(compilerFilePath, qbs, nullDevice) {
     return map;
 }
 
-function dumpMacros(compilerFilePath, qbs, nullDevice) {
-    var map1 = dumpC51CompilerMacros(compilerFilePath, qbs);
-    var map2 = dumpArmCompilerMacros(compilerFilePath, qbs, nullDevice);
+function dumpMacros(compilerFilePath, tag, nullDevice) {
+    var map1 = dumpC51CompilerMacros(compilerFilePath, tag, nullDevice);
+    var map2 = dumpArmCompilerMacros(compilerFilePath, tag, nullDevice);
     var map = {};
     for (var attrname in map1)
         map[attrname] = map1[attrname];
