@@ -43,14 +43,20 @@ PathProbe {
     property int versionMinor;
     property int versionPatch;
     property stringList includePaths;
+    property var compilerDefinesByLanguage;
 
     configure: {
+        compilerDefinesByLanguage = {};
+
         if (!File.exists(compilerFilePath)) {
             found = false;
             return;
         }
 
         var macros = SDCC.dumpMacros(compilerFilePath, preferredArchitecture);
+
+        // SDCC it is only the C language compiler.
+        compilerDefinesByLanguage["c"] = macros;
 
         architecture = SDCC.guessArchitecture(macros);
         endianness = SDCC.guessEndianness(macros);

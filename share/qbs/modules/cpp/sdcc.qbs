@@ -60,7 +60,7 @@ CppModule {
     compilerVersionPatch: sdccProbe.versionPatch
     endianness: sdccProbe.endianness
 
-    compilerDefinesByLanguage: []
+    compilerDefinesByLanguage: sdccProbe.compilerDefinesByLanguage
     compilerIncludePaths: sdccProbe.includePaths
 
     property string toolchainInstallPath: compilerPathProbe.found
