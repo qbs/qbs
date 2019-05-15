@@ -61,6 +61,7 @@ CppModule {
     endianness: keilProbe.endianness
 
     compilerDefinesByLanguage: keilProbe.compilerDefinesByLanguage
+    compilerIncludePaths: keilProbe.includePaths
 
     property string toolchainInstallPath: compilerPathProbe.found
         ? compilerPathProbe.path : undefined

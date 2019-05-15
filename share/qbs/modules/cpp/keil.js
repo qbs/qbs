@@ -139,6 +139,22 @@ function dumpMacros(compilerFilePath, tag, nullDevice) {
     return map;
 }
 
+function dumpDefaultPaths(compilerFilePath, architecture) {
+    var includePaths = [];
+
+    if (architecture === "mcs51") {
+        var path = compilerFilePath.replace(/bin[\\\/](.*)$/i, "inc");
+        includePaths.push(path);
+    } else if (architecture === "arm") {
+        var path = compilerFilePath.replace(/bin[\\\/](.*)$/i, "include");
+        includePaths.push(path);
+    }
+
+    return {
+        "includePaths": includePaths
+    };
+}
+
 function adjustPathsToWindowsSeparators(sourcePaths) {
     var resulingPaths = [];
     sourcePaths.forEach(function(path) {

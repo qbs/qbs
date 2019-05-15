@@ -44,6 +44,7 @@ PathProbe {
     property int versionMajor;
     property int versionMinor;
     property int versionPatch;
+    property stringList includePaths;
     property var compilerDefinesByLanguage;
 
     configure: {
@@ -69,6 +70,11 @@ PathProbe {
 
         architecture = KEIL.guessArchitecture(macros);
         endianness = KEIL.guessEndianness(macros);
+
+        var defaultPaths = KEIL.dumpDefaultPaths(
+            compilerFilePath, architecture);
+
+        includePaths = defaultPaths.includePaths;
 
         var version = KEIL.guessVersion(macros);
         if (version) {
