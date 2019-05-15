@@ -1737,6 +1737,12 @@
     (which maps to \l{qbs::buildVariant}{qbs.buildVariant}), and \l{qbs::profiles}
     {qbs.profiles} (which maps to \l{Project::profile}{Project.profile}).
 
+    For example, to build a "fat" \c iOS binary containing two architectures, use the following
+    command:
+    \code
+        qbs build modules.qbs.targetPlatform:ios modules.qbs.architectures:arm64,armv7a
+    \endcode
+
     \note The implementation details around multiplexing are subject to change.
 
     Product multiplexing works by examining the
