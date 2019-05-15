@@ -43,7 +43,7 @@
 #include <parser/qmljsmemorypool_p.h>
 #include <tools/qbs_export.h>
 
-#include <QtCore/qlist.h>
+#include <vector>
 
 namespace qbs {
 namespace Internal {
@@ -62,8 +62,7 @@ public:
 
 private:
     QbsQmlJS::MemoryPool m_pool;
-    using ItemVector = QList<Item *>;
-    ItemVector m_items;
+    std::vector<Item *> m_items;
 };
 
 } // namespace Internal

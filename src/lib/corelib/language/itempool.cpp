@@ -49,8 +49,8 @@ ItemPool::ItemPool()
 
 ItemPool::~ItemPool()
 {
-    for (ItemVector::const_iterator it = m_items.cbegin(); it != m_items.cend(); ++it)
-        (*it)->~Item();
+    for (Item *item : m_items)
+        item->~Item();
 }
 
 Item *ItemPool::allocateItem(const ItemType &type)
