@@ -171,7 +171,7 @@ private:
     HeadData m_headData;
     std::vector<void *> m_loadedRaw;
     std::vector<std::shared_ptr<void>> m_loaded;
-    QHash<const void*, int> m_storageIndices;
+    std::unordered_map<const void*, int> m_storageIndices;
     PersistentObjectId m_lastStoredObjectId = 0;
 
     std::vector<QString> m_stringStorage;
@@ -198,14 +198,14 @@ template<typename T> inline void PersistentPool::storeSharedObject(const T *obje
         return;
     }
     const void * const addr = uniqueAddress(object);
-    PersistentObjectId id = m_storageIndices.value(addr, -1);
-    if (id < 0) {
-        id = m_lastStoredObjectId++;
-        m_storageIndices.insert(addr, id);
+    const auto found = m_storageIndices.find(addr);
+    if (found == m_storageIndices.end()) {
+        PersistentObjectId id = m_lastStoredObjectId++;
+        m_storageIndices[addr] = id;
         m_stream << id;
         store(*object);
     } else {
-        m_stream << id;
+        m_stream << found->second;
     }
 }
 
