@@ -3,19 +3,21 @@ include(../app.pri)
 TARGET = qbs-setup-toolchains
 
 HEADERS += \
-    commandlineparser.h \
     clangclprobe.h \
+    commandlineparser.h \
     msvcprobe.h \
     probe.h \
-    xcodeprobe.h
+    sdccprobe.h \
+    xcodeprobe.h \
 
 SOURCES += \
-    commandlineparser.cpp \
     clangclprobe.cpp \
+    commandlineparser.cpp \
     main.cpp \
     msvcprobe.cpp \
     probe.cpp \
-    xcodeprobe.cpp
+    sdccprobe.cpp \
+    xcodeprobe.cpp \
 
 mingw {
     RC_FILE = qbs-setup-toolchains.rc
