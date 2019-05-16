@@ -8,6 +8,8 @@ QbsApp {
         "clangclprobe.h",
         "commandlineparser.cpp",
         "commandlineparser.h",
+        "iarewprobe.cpp",
+        "iarewprobe.h",
         "main.cpp",
         "msvcprobe.cpp",
         "msvcprobe.h",

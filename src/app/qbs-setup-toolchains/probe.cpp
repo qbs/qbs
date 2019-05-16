@@ -39,6 +39,7 @@
 #include "probe.h"
 
 #include "clangclprobe.h"
+#include "iarewprobe.h"
 #include "msvcprobe.h"
 #include "sdccprobe.h"
 #include "xcodeprobe.h"
@@ -107,18 +108,6 @@ static QStringList validMinGWMachines()
             QStringLiteral("i686-w64-mingw32.shared"), QStringLiteral("x86_64-w64-mingw32.shared"),
             QStringLiteral("i686-w64-mingw32.static"), QStringLiteral("x86_64-w64-mingw32.static"),
             QStringLiteral("i586-mingw32msvc"), QStringLiteral("amd64-mingw32msvc")};
-}
-
-static QStringList knownIarCompilerNames()
-{
-    return {QStringLiteral("icc8051"), QStringLiteral("iccarm"), QStringLiteral("iccavr")};
-}
-
-static bool isIarCompiler(const QString &compilerName)
-{
-    return Internal::any_of(knownIarCompilerNames(), [compilerName](const QString &knownName) {
-        return compilerName.contains(knownName);
-    });
 }
 
 static QStringList knownKeilCompilerNames()
@@ -270,39 +259,6 @@ static Profile createGccProfile(const QString &compilerFilePath, Settings *setti
     return profile;
 }
 
-static QString guessIarArchitecture(const QFileInfo &compiler)
-{
-    const auto baseName = compiler.baseName();
-    if (baseName == QLatin1String("icc8051"))
-        return QStringLiteral("mcs51");
-    if (baseName == QLatin1String("iccarm"))
-        return QStringLiteral("arm");
-    if (baseName == QLatin1String("iccavr"))
-        return QStringLiteral("avr");
-    return {};
-}
-
-static Profile createIarProfile(const QFileInfo &compiler, Settings *settings,
-                                QString profileName = QString())
-{
-    const QString architecture = guessIarArchitecture(compiler);
-
-    // In case the profile is auto-detected.
-    if (profileName.isEmpty())
-        profileName = QLatin1String("iar-") + architecture;
-
-    Profile profile(profileName, settings);
-    profile.setValue(QLatin1String("cpp.toolchainInstallPath"), compiler.absolutePath());
-    profile.setValue(QLatin1String("qbs.toolchainType"), QLatin1String("iar"));
-    if (!architecture.isEmpty())
-        profile.setValue(QLatin1String("qbs.architecture"), architecture);
-
-    qStdout << Tr::tr("Profile '%1' created for '%2'.").arg(
-                   profile.name(), compiler.absoluteFilePath())
-            << endl;
-    return profile;
-}
-
 static QString guessKeilArchitecture(const QFileInfo &compiler)
 {
     const auto baseName = compiler.baseName();
@@ -370,25 +326,6 @@ static void mingwProbe(Settings *settings, QList<Profile> &profiles)
             profiles.push_back(createGccProfile(gccPath, settings,
                                                 canonicalToolchain(QStringLiteral("mingw"))));
     }
-}
-
-static void iarProbe(Settings *settings, QList<Profile> &profiles)
-{
-    qStdout << Tr::tr("Trying to detect IAR toolchains...") << endl;
-
-    bool isFound = false;
-    const auto compilerNames = knownIarCompilerNames();
-    for (const QString &compilerName : compilerNames) {
-        const QString iarPath = findExecutable(HostOsInfo::appendExecutableSuffix(compilerName));
-        if (!iarPath.isEmpty()) {
-            const auto profile = createIarProfile(iarPath, settings);
-            profiles.push_back(profile);
-            isFound = true;
-        }
-    }
-
-    if (!isFound)
-        qStdout << Tr::tr("No IAR toolchains found.") << endl;
 }
 
 static void keilProbe(Settings *settings, QList<Profile> &profiles)
