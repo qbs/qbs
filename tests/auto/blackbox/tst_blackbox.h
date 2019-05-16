@@ -119,6 +119,8 @@ private slots:
     void generator();
     void generator_data();
     void groupsInModules();
+    void grpc_data();
+    void grpc();
     void ico();
     void importAssignment();
     void importChangeTracking();

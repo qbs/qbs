@@ -6823,6 +6823,29 @@ void TestBlackbox::groupsInModules()
     QCOMPARE(output.readAll().trimmed(), QByteArray("diamond"));
 }
 
+void TestBlackbox::grpc_data()
+{
+    QTest::addColumn<QString>("projectFile");
+    QTest::newRow("cpp") << QString("grpc_cpp.qbs");
+}
+
+void TestBlackbox::grpc()
+{
+    QDir::setCurrent(testDataDir + "/grpc");
+    QFETCH(QString, projectFile);
+    rmDirR(relativeBuildDir());
+    QbsRunParameters resolveParams("resolve", QStringList{"-f", projectFile});
+    QCOMPARE(runQbs(resolveParams), 0);
+    const bool withGrpc = m_qbsStdout.contains("has grpc: true");
+    const bool withoutGrpc = m_qbsStdout.contains("has grpc: false");
+    QVERIFY2(withGrpc || withoutGrpc, m_qbsStdout.constData());
+    if (withoutGrpc)
+        QSKIP("grpc module not present");
+
+    QbsRunParameters runParams;
+    QCOMPARE(runQbs(runParams), 0);
+}
+
 void TestBlackbox::ico()
 {
     QDir::setCurrent(testDataDir + "/ico");

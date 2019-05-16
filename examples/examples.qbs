@@ -58,6 +58,7 @@ Project {
         "code-generator/code-generator.qbs",
         "collidingmice/collidingmice.qbs",
         "compiled-qml/myapp.qbs",
+        "grpc/ping-pong-grpc.qbs",
         "helloworld-complex/hello.qbs",
         "helloworld-minimal/hello.qbs",
         "helloworld-qt/hello.qbs",
