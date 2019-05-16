@@ -6,6 +6,7 @@ HEADERS += \
     clangclprobe.h \
     commandlineparser.h \
     iarewprobe.h \
+    keilprobe.h \
     msvcprobe.h \
     probe.h \
     sdccprobe.h \
@@ -15,6 +16,7 @@ SOURCES += \
     clangclprobe.cpp \
     commandlineparser.cpp \
     iarewprobe.cpp \
+    keilprobe.cpp \
     main.cpp \
     msvcprobe.cpp \
     probe.cpp \

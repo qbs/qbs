@@ -10,6 +10,8 @@ QbsApp {
         "commandlineparser.h",
         "iarewprobe.cpp",
         "iarewprobe.h",
+        "keilprobe.cpp",
+        "keilprobe.h",
         "main.cpp",
         "msvcprobe.cpp",
         "msvcprobe.h",

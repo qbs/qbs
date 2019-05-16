@@ -40,6 +40,7 @@
 
 #include "clangclprobe.h"
 #include "iarewprobe.h"
+#include "keilprobe.h"
 #include "msvcprobe.h"
 #include "sdccprobe.h"
 #include "xcodeprobe.h"
@@ -108,18 +109,6 @@ static QStringList validMinGWMachines()
             QStringLiteral("i686-w64-mingw32.shared"), QStringLiteral("x86_64-w64-mingw32.shared"),
             QStringLiteral("i686-w64-mingw32.static"), QStringLiteral("x86_64-w64-mingw32.static"),
             QStringLiteral("i586-mingw32msvc"), QStringLiteral("amd64-mingw32msvc")};
-}
-
-static QStringList knownKeilCompilerNames()
-{
-    return {QStringLiteral("c51"), QStringLiteral("armcc")};
-}
-
-static bool isKeilCompiler(const QString &compilerName)
-{
-    return Internal::any_of(knownKeilCompilerNames(), [compilerName](const QString &knownName) {
-        return compilerName.contains(knownName);
-    });
 }
 
 static QStringList toolchainTypeFromCompilerName(const QString &compilerName)
@@ -259,37 +248,6 @@ static Profile createGccProfile(const QString &compilerFilePath, Settings *setti
     return profile;
 }
 
-static QString guessKeilArchitecture(const QFileInfo &compiler)
-{
-    const auto baseName = compiler.baseName();
-    if (baseName == QLatin1String("c51"))
-        return QStringLiteral("mcs51");
-    if (baseName == QLatin1String("armcc"))
-        return QStringLiteral("arm");
-    return {};
-}
-
-static Profile createKeilProfile(const QFileInfo &compiler, Settings *settings,
-                                 QString profileName = QString())
-{
-    const QString architecture = guessKeilArchitecture(compiler);
-
-    // In case the profile is auto-detected.
-    if (profileName.isEmpty())
-        profileName = QLatin1String("keil-") + architecture;
-
-    Profile profile(profileName, settings);
-    profile.setValue(QStringLiteral("cpp.toolchainInstallPath"), compiler.absolutePath());
-    profile.setValue(QStringLiteral("qbs.toolchainType"), QStringLiteral("keil"));
-    if (!architecture.isEmpty())
-        profile.setValue(QStringLiteral("qbs.architecture"), architecture);
-
-    qStdout << Tr::tr("Profile '%1' created for '%2'.").arg(
-                   profile.name(), compiler.absoluteFilePath())
-            << endl;
-    return profile;
-}
-
 static void gccProbe(Settings *settings, QList<Profile> &profiles, const QString &compilerName)
 {
     qStdout << Tr::tr("Trying to detect %1...").arg(compilerName) << endl;
@@ -326,25 +284,6 @@ static void mingwProbe(Settings *settings, QList<Profile> &profiles)
             profiles.push_back(createGccProfile(gccPath, settings,
                                                 canonicalToolchain(QStringLiteral("mingw"))));
     }
-}
-
-static void keilProbe(Settings *settings, QList<Profile> &profiles)
-{
-    qStdout << Tr::tr("Trying to detect KEIL toolchains...") << endl;
-
-    bool isFound = false;
-    const auto compilerNames = knownKeilCompilerNames();
-    for (const QString &compilerName : compilerNames) {
-        const QString keilPath = findExecutable(HostOsInfo::appendExecutableSuffix(compilerName));
-        if (!keilPath.isEmpty()) {
-            const auto profile = createKeilProfile(keilPath, settings);
-            profiles.push_back(profile);
-            isFound = true;
-        }
-    }
-
-    if (!isFound)
-        qStdout << Tr::tr("No KEIL toolchains found.") << endl;
 }
 
 void probe(Settings *settings)
