@@ -1,0 +1,31 @@
+#
+# Required environment variables in the travis config
+#
+# DOCKER_USERNAME
+#
+language: cpp
+
+git:
+  submodules: false
+
+stages:
+  - name: Build Qbs and and run autotests
+
+jobs:
+  include:
+    - &build-on-stretch
+      stage: Build Qbs and and run autotests
+      name: With Qbs on Debian stretch (linux_amd64)
+      env:
+        SERVICE=stretch
+      services:
+        - docker
+      before_install:
+        - docker-compose pull ${SERVICE}
+      script:
+        - docker-compose run --rm ${SERVICE} scripts/build-qbs-with-qbs.sh
+
+    - <<: *build-on-stretch
+      name: With QMake on Debian stretch (linux_amd64)
+      script:
+        - docker-compose run --rm ${SERVICE} scripts/build-qbs-with-qmake.sh
