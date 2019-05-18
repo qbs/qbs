@@ -542,7 +542,7 @@ public:
         }
         char *raw = (char *)malloc(size);
         memcpy(raw + sizeof(Header), b, b->size);
-        Header *h = (Header *)raw;
+        const auto h = (Header *)raw;
         h->tag = JsonDocument::BinaryFormatTag;
         h->version = 1;
         const auto d = new Data(raw, size);
@@ -3521,7 +3521,7 @@ bool JsonDocument::isArray() const
     if (!d)
         return false;
 
-    Internal::Header *h = (Internal::Header *)d->rawData;
+    const auto h = (Internal::Header *)d->rawData;
     return h->root()->isArray();
 }
 
@@ -3535,7 +3535,7 @@ bool JsonDocument::isObject() const
     if (!d)
         return false;
 
-    Internal::Header *h = (Internal::Header *)d->rawData;
+    const auto h = (Internal::Header *)d->rawData;
     return h->root()->isObject();
 }
 
@@ -3731,7 +3731,7 @@ static std::string escapedString(const std::string &in)
 
 static void valueToJson(const Base *b, const Value &v, std::string &json, int indent, bool compact)
 {
-    JsonValue::Type type = (JsonValue::Type)(uint32_t)v.type;
+    const auto type = (JsonValue::Type)(uint32_t)v.type;
     switch (type) {
     case JsonValue::Bool:
         json += v.toBoolean() ? "true" : "false";
@@ -4013,7 +4013,7 @@ JsonDocument Parser::parse(JsonParseError *error)
     data = (char *)malloc(dataLength);
 
     // fill in Header data
-    Header *h = (Header *)data;
+    const auto h = (Header *)data;
     h->tag = JsonDocument::BinaryFormatTag;
     h->version = 1u;
 
@@ -4065,7 +4065,7 @@ error:
 
 void Parser::ParsedObject::insert(uint32_t offset)
 {
-    const Entry *newEntry = reinterpret_cast<const Entry *>(parser->data + objectPosition + offset);
+    const auto newEntry = reinterpret_cast<const Entry *>(parser->data + objectPosition + offset);
     size_t min = 0;
     size_t n = offsets.size();
     while (n > 0) {
@@ -4133,7 +4133,7 @@ bool Parser::parseObject()
         memcpy(data + table, &*parsedObject.offsets.begin(), tableSize);
     }
 
-    Object *o = (Object *)(data + objectOffset);
+    const auto o = (Object *)(data + objectOffset);
     o->tableOffset = table - objectOffset;
     o->size = current - objectOffset;
     o->is_object = true;
@@ -4166,7 +4166,7 @@ bool Parser::parseMember(int baseOffset)
         return false;
 
     // finalize the entry
-    Entry *e = (Entry *)(data + entryOffset);
+    const auto e = (Entry *)(data + entryOffset);
     e->value = val;
 
     END;
@@ -4224,7 +4224,7 @@ bool Parser::parseArray()
         memcpy(data + table, values.data(), tableSize);
     }
 
-    Array *a = (Array *)(data + arrayOffset);
+    const auto a = (Array *)(data + arrayOffset);
     a->tableOffset = table - arrayOffset;
     a->size = current - arrayOffset;
     a->is_object = false;
@@ -4632,7 +4632,7 @@ void Data::compact()
 
     int size = sizeof(Base) + reserve + base->length*sizeof(offset);
     int alloc = sizeof(Header) + size;
-    Header *h = (Header *) malloc(alloc);
+    const auto h = (Header *) malloc(alloc);
     h->tag = JsonDocument::BinaryFormatTag;
     h->version = 1;
     Base *b = h->root();

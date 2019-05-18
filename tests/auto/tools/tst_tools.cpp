@@ -847,7 +847,7 @@ void TestTools::set_stlIterator()
 
     {
         int sum = 0;
-        Set<QString>::const_iterator i = set1.cbegin();
+        auto i = set1.cbegin();
         while (i != set1.end()) {
             sum += toNumber(*i);
             ++i;
@@ -857,7 +857,7 @@ void TestTools::set_stlIterator()
 
     {
         int sum = 0;
-        Set<QString>::const_iterator i = set1.cend();
+        auto i = set1.cend();
         while (i != set1.begin()) {
             --i;
             sum += toNumber(*i);
@@ -874,7 +874,7 @@ void TestTools::set_stlMutableIterator()
 
     {
         int sum = 0;
-        Set<QString>::iterator i = set1.begin();
+        auto i = set1.begin();
         while (i != set1.end()) {
             sum += toNumber(*i);
             ++i;
@@ -884,7 +884,7 @@ void TestTools::set_stlMutableIterator()
 
     {
         int sum = 0;
-        Set<QString>::iterator i = set1.end();
+        auto i = set1.end();
         while (i != set1.begin()) {
             --i;
             sum += toNumber(*i);
@@ -896,8 +896,8 @@ void TestTools::set_stlMutableIterator()
         Set<QString> set2 = set1;
         Set<QString> set3 = set2;
 
-        Set<QString>::iterator i = set2.begin();
-        Set<QString>::iterator j = set3.begin();
+        auto i = set2.begin();
+        auto j = set3.begin();
 
         while (i != set2.end()) {
             i = set2.erase(i);

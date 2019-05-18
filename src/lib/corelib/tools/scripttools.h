@@ -76,7 +76,7 @@ void attachPointerTo(QScriptValue &scriptValue, T *ptr)
 template <class T>
 T *attachedPointer(const QScriptValue &scriptValue)
 {
-    const quintptr ptr = scriptValue.data().toVariant().value<quintptr>();
+    const auto ptr = scriptValue.data().toVariant().value<quintptr>();
     return reinterpret_cast<T *>(ptr);
 }
 

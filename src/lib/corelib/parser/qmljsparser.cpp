@@ -114,13 +114,13 @@ AST::UiQualifiedId *Parser::reparseAsQualifiedId(AST::ExpressionNode *expr)
     QVarLengthArray<AST::SourceLocation, 4> locations;
 
     AST::ExpressionNode *it = expr;
-    while (AST::FieldMemberExpression *m = AST::cast<AST::FieldMemberExpression *>(it)) {
+    while (const auto m = AST::cast<AST::FieldMemberExpression *>(it)) {
         nameIds.append(m->name);
         locations.append(m->identifierToken);
         it = m->base;
     }
 
-    if (AST::IdentifierExpression *idExpr = AST::cast<AST::IdentifierExpression *>(it)) {
+    if (const auto idExpr = AST::cast<AST::IdentifierExpression *>(it)) {
         const auto q = new (pool) AST::UiQualifiedId(idExpr->name);
         q->identifierToken = idExpr->identifierToken;
 
@@ -1150,7 +1150,7 @@ case 212: {
 } break;
 
 case 214: {
-  AST::BinaryExpression *node = new (pool) AST::BinaryExpression(sym(1).Expression,
+  const auto node = new (pool) AST::BinaryExpression(sym(1).Expression,
     QSOperator::And, sym(3).Expression);
   node->operatorToken = loc(2);
   sym(1).Node = node;

@@ -393,7 +393,7 @@ bool Executor::schedulingBlockedByJobLimit(const BuildGraphNode *node)
 {
     if (node->type() != BuildGraphNode::ArtifactNodeType)
         return false;
-    const Artifact * const artifact = static_cast<const Artifact *>(node);
+    const auto artifact = static_cast<const Artifact *>(node);
     if (artifact->artifactType == Artifact::SourceFile)
         return false;
 

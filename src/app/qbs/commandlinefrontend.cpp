@@ -230,7 +230,7 @@ void CommandLineFrontend::handleJobFinished(bool success, AbstractJob *job)
                 return;
             }
             cancel();
-        } else if (SetupProjectJob * const setupJob = qobject_cast<SetupProjectJob *>(job)) {
+        } else if (const auto setupJob = qobject_cast<SetupProjectJob * const>(job)) {
             m_resolveJobs.removeOne(job);
             m_projects.push_back(setupJob->project());
             if (m_observer && resolvingMultipleProjects())
@@ -611,7 +611,7 @@ void CommandLineFrontend::connectBuildJob(AbstractJob *job)
 {
     connectJob(job);
 
-    BuildJob *bjob = qobject_cast<BuildJob *>(job);
+    const auto bjob = qobject_cast<const BuildJob *>(job);
     if (!bjob)
         return;
 

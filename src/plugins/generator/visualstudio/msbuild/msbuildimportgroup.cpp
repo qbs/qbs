@@ -66,7 +66,7 @@ void MSBuildImportGroup::accept(IMSBuildNodeVisitor *visitor) const
     visitor->visitStart(this);
 
     for (const auto &child : children()) {
-        if (const MSBuildImport *import = qobject_cast<const MSBuildImport *>(child))
+        if (const auto import = qobject_cast<const MSBuildImport *>(child))
             import->accept(visitor);
     }
 

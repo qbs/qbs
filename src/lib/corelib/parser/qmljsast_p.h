@@ -2514,9 +2514,9 @@ public:
 
     SourceLocation firstSourceLocation() const override
     {
-      if (FunctionDeclaration *funDecl = cast<FunctionDeclaration *>(sourceElement))
+      if (const auto funDecl = cast<const FunctionDeclaration *>(sourceElement))
         return funDecl->firstSourceLocation();
-      else if (VariableStatement *varStmt = cast<VariableStatement *>(sourceElement))
+      else if (const auto varStmt = cast<const VariableStatement *>(sourceElement))
         return varStmt->firstSourceLocation();
 
       return SourceLocation();
@@ -2524,9 +2524,9 @@ public:
 
     SourceLocation lastSourceLocation() const override
     {
-      if (FunctionDeclaration *funDecl = cast<FunctionDeclaration *>(sourceElement))
+      if (const auto funDecl = cast<const FunctionDeclaration *>(sourceElement))
         return funDecl->lastSourceLocation();
-      else if (VariableStatement *varStmt = cast<VariableStatement *>(sourceElement))
+      else if (const auto varStmt = cast<const VariableStatement *>(sourceElement))
         return varStmt->lastSourceLocation();
 
       return SourceLocation();

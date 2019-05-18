@@ -67,7 +67,7 @@ private:
     void setupChildProcess() override
     {
 #ifdef Q_OS_UNIX
-        const pid_t pid = static_cast<pid_t>(processId());
+        const auto pid = static_cast<pid_t>(processId());
         setpgid(pid, pid);
 #endif
     }

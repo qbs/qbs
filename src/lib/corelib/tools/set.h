@@ -179,8 +179,8 @@ template<typename T> Set<T>::Set(const std::initializer_list<T> &list) : m_data(
 
 template<typename T> Set<T> &Set<T>::intersect(const Set<T> &other)
 {
-    iterator it = begin();
-    const_iterator otherIt = other.cbegin();
+    auto it = begin();
+    auto otherIt = other.cbegin();
     while (it != end()) {
         if (otherIt == other.cend()) {
             m_data.erase(it, end());
@@ -207,8 +207,8 @@ template<typename T> std::pair<typename Set<T>::iterator, bool> Set<T>::insert(c
 
 template<typename T> bool Set<T>::contains(const Set<T> &other) const
 {
-    const_iterator it = cbegin();
-    const_iterator otherIt = other.cbegin();
+    auto it = cbegin();
+    auto otherIt = other.cbegin();
     while (otherIt != other.cend()) {
         if (it == cend() || *otherIt < *it)
             return false;
