@@ -28,12 +28,14 @@ ProtobufBase {
         prepare: HelperFunctions.doPrepare(input.protobuf.cpp, product, input, outputs, "cpp")
     }
 
-    validate: {
-        baseValidate();
-        if (!HelperFunctions.checkPath(includePath))
-            throw "Can't find cpp protobuf include files. Please set the includePath property.";
-        if (!HelperFunctions.checkPath(libraryPath))
-            throw "Can't find cpp protobuf library. Please set the libraryPath property.";
+    validateFunc: {
+        return function() {
+            base();
+            if (!HelperFunctions.checkPath(includePath))
+                throw "Can't find cpp protobuf include files. Please set the includePath property.";
+            if (!HelperFunctions.checkPath(libraryPath))
+                throw "Can't find cpp protobuf library. Please set the libraryPath property.";
+        }
     }
 
     Probes.IncludeProbe {

@@ -10,7 +10,7 @@ Module {
 
     property string outputDir: product.buildDirectory + "/protobuf"
 
-    readonly property var baseValidate: {
+    property var validateFunc: {
         return function() {
             if (!File.exists(protocBinary))
                 throw "Can't find protoc binary. Please set the protocBinary property or make sure it is found in PATH";
@@ -25,5 +25,9 @@ Module {
     Probes.BinaryProbe {
         id: protocProbe
         names: ["protoc"]
+    }
+
+    validate: {
+        validateFunc();
     }
 }
