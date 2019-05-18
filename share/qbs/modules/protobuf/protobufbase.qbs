@@ -9,7 +9,6 @@ Module {
     property pathList importPaths: []
 
     property string outputDir: product.buildDirectory + "/protobuf"
-    readonly property string protobufRoot: FileInfo.path(FileInfo.path(protocBinary))
 
     readonly property var baseValidate: {
         return function() {
