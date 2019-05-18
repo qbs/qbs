@@ -572,13 +572,10 @@ Artifact *lookupArtifact(const ResolvedProductConstPtr &product,
         const ProjectBuildData *projectBuildData, const QString &dirPath, const QString &fileName,
         bool compareByName)
 {
-    const QList<FileResourceBase *> lookupResults
-            = projectBuildData->lookupFiles(dirPath, fileName);
-    for (QList<FileResourceBase *>::const_iterator it = lookupResults.constBegin();
-            it != lookupResults.constEnd(); ++it) {
-        if ((*it)->fileType() != FileResourceBase::FileTypeArtifact)
+    for (const auto &fileResource : projectBuildData->lookupFiles(dirPath, fileName)) {
+        if (fileResource->fileType() != FileResourceBase::FileTypeArtifact)
             continue;
-        auto artifact = static_cast<Artifact *>(*it);
+        const auto artifact = static_cast<Artifact *>(fileResource);
         if (compareByName
                 ? artifact->product->uniqueName() == product->uniqueName()
                 : artifact->product == product) {

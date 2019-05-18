@@ -45,12 +45,14 @@
 #include <logging/logger.h>
 #include <tools/persistence.h>
 #include <tools/set.h>
+#include <tools/qttools.h>
 
-#include <QtCore/qhash.h>
 #include <QtCore/qlist.h>
 #include <QtCore/qstring.h>
 
 #include <QtScript/qscriptvalue.h>
+
+#include <unordered_map>
 
 namespace qbs {
 namespace Internal {
@@ -70,9 +72,9 @@ public:
     void insertIntoLookupTable(FileResourceBase *fileres);
     void removeFromLookupTable(FileResourceBase *fileres);
 
-    QList<FileResourceBase *> lookupFiles(const QString &filePath) const;
-    QList<FileResourceBase *> lookupFiles(const QString &dirPath, const QString &fileName) const;
-    QList<FileResourceBase *> lookupFiles(const Artifact *artifact) const;
+    const std::vector<FileResourceBase *> &lookupFiles(const QString &filePath) const;
+    const std::vector<FileResourceBase *> &lookupFiles(const QString &dirPath, const QString &fileName) const;
+    const std::vector<FileResourceBase *> &lookupFiles(const Artifact *artifact) const;
     void insertFileDependency(FileDependency *dependency);
     void removeArtifactAndExclusiveDependents(Artifact *artifact, const Logger &logger,
             bool removeFromProduct = true, ArtifactSet *removedArtifacts = nullptr);
@@ -99,9 +101,10 @@ private:
         pool.serializationOp<opType>(fileDependencies, rawScanResults);
     }
 
-    using ResultsPerDirectory = QHash<QString, QList<FileResourceBase *>>;
-    using ArtifactLookupTable = QHash<QString, ResultsPerDirectory>;
+    using ArtifactKey = std::pair<QString /*fileName*/, QString /*dirName*/>;
+    using ArtifactLookupTable = std::unordered_map<ArtifactKey, std::vector<FileResourceBase *>>;
     ArtifactLookupTable m_artifactLookupTable;
+
     bool m_doCleanupInDestructor = true;
     bool m_isDirty = true;
 };

@@ -53,7 +53,15 @@ namespace std {
 template<> struct hash<QString> {
     std::size_t operator()(const QString &s) const { return qHash(s); }
 };
-}
+
+template<typename T1, typename T2> struct hash<std::pair<T1, T2>>
+{
+    size_t operator()(const pair<T1, T2> &x) const
+    {
+        return std::hash<T1>()(x.first) ^ std::hash<T2>()(x.second);
+    }
+};
+} // namespace std
 
 QT_BEGIN_NAMESPACE
 uint qHash(const QStringList &list);

@@ -96,8 +96,7 @@ QString ProjectBuildData::deriveBuildGraphFilePath(const QString &buildDir, cons
 
 void ProjectBuildData::insertIntoLookupTable(FileResourceBase *fileres)
 {
-    QList<FileResourceBase *> &lst
-            = m_artifactLookupTable[fileres->fileName()][fileres->dirPath()];
+    auto &lst = m_artifactLookupTable[{fileres->fileName(), fileres->dirPath()}];
     const auto * const artifact = fileres->fileType() == FileResourceBase::FileTypeArtifact
             ? static_cast<Artifact *>(fileres) : nullptr;
     if (artifact && artifact->artifactType == Artifact::Generated) {
@@ -117,30 +116,32 @@ void ProjectBuildData::insertIntoLookupTable(FileResourceBase *fileres)
             throw error;
         }
     }
-    QBS_CHECK(!lst.contains(fileres));
+    QBS_CHECK(!contains(lst, fileres));
     lst.push_back(fileres);
     m_isDirty = true;
 }
 
 void ProjectBuildData::removeFromLookupTable(FileResourceBase *fileres)
 {
-    m_artifactLookupTable[fileres->fileName()][fileres->dirPath()].removeOne(fileres);
+    removeOne(m_artifactLookupTable[{fileres->fileName(), fileres->dirPath()}], fileres);
 }
 
-QList<FileResourceBase *> ProjectBuildData::lookupFiles(const QString &filePath) const
+const std::vector<FileResourceBase *> &ProjectBuildData::lookupFiles(const QString &filePath) const
 {
     QString dirPath, fileName;
     FileInfo::splitIntoDirectoryAndFileName(filePath, &dirPath, &fileName);
     return lookupFiles(dirPath, fileName);
 }
 
-QList<FileResourceBase *> ProjectBuildData::lookupFiles(const QString &dirPath,
+const std::vector<FileResourceBase *> &ProjectBuildData::lookupFiles(const QString &dirPath,
         const QString &fileName) const
 {
-    return m_artifactLookupTable.value(fileName).value(dirPath);
+    static const std::vector<FileResourceBase *> emptyResult;
+    const auto it = m_artifactLookupTable.find({fileName, dirPath});
+    return it != m_artifactLookupTable.end() ? it->second : emptyResult;
 }
 
-QList<FileResourceBase *> ProjectBuildData::lookupFiles(const Artifact *artifact) const
+const std::vector<FileResourceBase *> &ProjectBuildData::lookupFiles(const Artifact *artifact) const
 {
     return lookupFiles(artifact->dirPath(), artifact->fileName());
 }

@@ -243,8 +243,7 @@ void Executor::doBuild()
     const QStringList &filesToConsider = m_buildOptions.filesToConsider();
     if (!filesToConsider.empty()) {
         for (const QString &fileToConsider : filesToConsider) {
-            const QList<FileResourceBase *> &files
-                    = m_project->buildData->lookupFiles(fileToConsider);
+            const auto &files = m_project->buildData->lookupFiles(fileToConsider);
             for (const FileResourceBase * const file : files) {
                 if (file->fileType() != FileResourceBase::FileTypeArtifact)
                     continue;
@@ -838,7 +837,7 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = null
                 childrenToConnect.push_back(child);
         }
         for (const QString &depPath : rad.fileDependencies) {
-            const QList<FileResourceBase *> depList = m_project->buildData->lookupFiles(depPath);
+            const auto &depList = m_project->buildData->lookupFiles(depPath);
             if (depList.empty()) {
                 canRescue = false;
                 qCDebug(lcBuildGraph) << "File dependency" << depPath

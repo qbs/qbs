@@ -226,8 +226,7 @@ const Artifact *TrafoChangeTracker::getArtifact(const QString &filePath,
     const ResolvedProduct * const product = getProduct(productName);
     if (!product)
         return nullptr;
-    const QList<FileResourceBase *> &candidates
-            = product->topLevelProject()->buildData->lookupFiles(filePath);
+    const auto &candidates = product->topLevelProject()->buildData->lookupFiles(filePath);
     const Artifact *artifact = nullptr;
     for (const FileResourceBase * const candidate : candidates) {
         if (candidate->fileType() == FileResourceBase::FileTypeArtifact) {
