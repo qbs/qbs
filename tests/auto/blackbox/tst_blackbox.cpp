@@ -882,8 +882,8 @@ void TestBlackbox::dependenciesProperty()
     QJsonArray cpp_dependencies = product2_cpp.value("dependencies").toArray();
     QVERIFY(!cpp_dependencies.isEmpty());
     int qbsCount = 0;
-    for (int i = 0; i < cpp_dependencies.size(); ++i) {
-        if (cpp_dependencies.at(i).toObject().value("name").toString() == "qbs")
+    for (const auto &dep : cpp_dependencies) {
+        if (dep.toObject().value("name").toString() == "qbs")
             ++qbsCount;
     }
     QCOMPARE(qbsCount, 1);

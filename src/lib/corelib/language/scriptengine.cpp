@@ -609,8 +609,8 @@ Set<QString> ScriptEngine::imports() const
         for (const QString &filePath : jsImport.filePaths)
             filePaths << filePath;
     }
-    for (auto it = m_filePathsPerImport.cbegin(); it != m_filePathsPerImport.cend(); ++it) {
-        for (const QString &fp : it->second)
+    for (const auto &kv : m_filePathsPerImport) {
+        for (const QString &fp : kv.second)
             filePaths << fp;
     }
     return filePaths;

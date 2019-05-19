@@ -55,9 +55,8 @@ bool RequestedArtifacts::isUpToDate(const TopLevelProject *project) const
     if (m_requestedArtifactsPerProduct.empty())
         return true;
     const std::vector<ResolvedProductPtr> &allProducts = project->allProducts();
-    for (auto it = m_requestedArtifactsPerProduct.cbegin();
-         it != m_requestedArtifactsPerProduct.cend(); ++it) {
-        const QString &productName = it->first;
+    for (const auto &kv : m_requestedArtifactsPerProduct) {
+        const QString &productName = kv.first;
         const auto findProduct = [productName](const ResolvedProductConstPtr &p) {
             return p->uniqueName() == productName;
         };
@@ -67,7 +66,7 @@ bool RequestedArtifacts::isUpToDate(const TopLevelProject *project) const
                                   << "does not exist anymore";
             return false;
         }
-        if (!it->second.isUpToDate(productIt->get()))
+        if (!kv.second.isUpToDate(productIt->get()))
             return false;
     }
     return true;
@@ -110,18 +109,14 @@ void RequestedArtifacts::setArtifactsEnumerated(const ResolvedProduct *product)
 
 void RequestedArtifacts::unite(const RequestedArtifacts &other)
 {
-    for (auto it = other.m_requestedArtifactsPerProduct.begin();
-         it != other.m_requestedArtifactsPerProduct.end(); ++it) {
-        m_requestedArtifactsPerProduct[it->first].unite(it->second);
-    }
+    for (const auto &kv : other.m_requestedArtifactsPerProduct)
+        m_requestedArtifactsPerProduct[kv.first].unite(kv.second);
 }
 
 void RequestedArtifacts::doSanityChecks() const
 {
-    for (auto it = m_requestedArtifactsPerProduct.cbegin();
-         it != m_requestedArtifactsPerProduct.cend(); ++it) {
-        it->second.doSanityChecks();
-    }
+    for (const auto &kv : m_requestedArtifactsPerProduct)
+        kv.second.doSanityChecks();
 }
 
 void RequestedArtifacts::load(PersistentPool &pool)
@@ -147,17 +142,17 @@ bool RequestedArtifacts::RequestedArtifactsPerProduct::isUpToDate(
         return true;
 
     const ArtifactSetByFileTag currentArtifacts = product->buildData->artifactsByFileTag();
-    for (auto reqIt = requestedTags.cbegin(); reqIt != requestedTags.cend(); ++reqIt) {
-        const FileTag tag = FileTag(reqIt->first.toUtf8());
+    for (const auto &kv : requestedTags) {
+        const FileTag tag = FileTag(kv.first.toUtf8());
         const auto currentIt = currentArtifacts.constFind(tag);
         Set<QString> currentFilePathsForTag;
         if (currentIt != currentArtifacts.constEnd()) {
             for (const Artifact * const a : currentIt.value())
                 currentFilePathsForTag.insert(a->filePath());
         }
-        if (currentFilePathsForTag != reqIt->second) {
+        if (currentFilePathsForTag != kv.second) {
             qCDebug(lcBuildGraph) << "artifacts map not up to date: requested artifact set for "
-                                     "file tag" << reqIt->first << "in product"
+                                     "file tag" << kv.first << "in product"
                                   << product->uniqueName() << "differs from the current one";
             return false;
         }
@@ -185,14 +180,14 @@ void RequestedArtifacts::RequestedArtifactsPerProduct::unite(
         return;
     }
     allTags = other.allTags;
-    for (auto it = other.requestedTags.begin(); it != other.requestedTags.end(); ++it)
-        requestedTags[it->first] = it->second;
+    for (const auto &kv : other.requestedTags)
+        requestedTags[kv.first] = kv.second;
 }
 
 void RequestedArtifacts::RequestedArtifactsPerProduct::doSanityChecks() const
 {
-    for (auto it = requestedTags.begin(); it != requestedTags.end(); ++it)
-        QBS_CHECK(allTags.contains(it->first) || it->second.empty());
+    for (const auto &kv : requestedTags)
+        QBS_CHECK(allTags.contains(kv.first) || kv.second.empty());
 }
 
 void RequestedArtifacts::RequestedArtifactsPerProduct::load(PersistentPool &pool)

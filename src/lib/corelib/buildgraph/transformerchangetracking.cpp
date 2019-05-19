@@ -209,8 +209,8 @@ bool TrafoChangeTracker::isExportedModuleUpToDate(const QString &productName,
 bool TrafoChangeTracker::areExportedModulesUpToDate(
         const std::unordered_map<QString, ExportedModule> exportedModules) const
 {
-    for (auto it = exportedModules.begin(); it != exportedModules.end(); ++it) {
-        if (!isExportedModuleUpToDate(it->first, it->second))
+    for (const auto &kv : exportedModules) {
+        if (!isExportedModuleUpToDate(kv.first, kv.second))
             return false;
     }
     return true;

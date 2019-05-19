@@ -1251,8 +1251,8 @@ JsonArray::JsonArray()
 JsonArray::JsonArray(std::initializer_list<JsonValue> args)
     : d(nullptr), a(nullptr)
 {
-    for (auto i = args.begin(); i != args.end(); ++i)
-        append(*i);
+    for (const auto &arg : args)
+        append(arg);
 }
 
 /*!
@@ -2284,8 +2284,8 @@ JsonObject::JsonObject()
 JsonObject::JsonObject(std::initializer_list<std::pair<std::string, JsonValue> > args)
     : d(nullptr), o(nullptr)
 {
-    for (auto i = args.begin(); i != args.end(); ++i)
-        insert(i->first, i->second);
+    for (const auto &arg : args)
+        insert(arg.first, arg.second);
 }
 
 /*!

@@ -438,11 +438,10 @@ void BuildGraphLoader::trackProjectChanges()
                                                       allNewlyResolvedProducts);
     }
 
-    for (auto it = m_changedSourcesByProduct.cbegin(); it != m_changedSourcesByProduct.cend();
-         ++it) {
-        const ResolvedProductPtr product = m_freshProductsByName.value(it->first);
+    for (const auto &kv : m_changedSourcesByProduct) {
+        const ResolvedProductPtr product = m_freshProductsByName.value(kv.first);
         QBS_CHECK(!!product);
-        for (const SourceArtifactConstPtr &sa : it->second)
+        for (const SourceArtifactConstPtr &sa : kv.second)
             updateArtifactFromSourceArtifact(product, sa);
     }
 

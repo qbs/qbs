@@ -139,8 +139,8 @@ static QtInfoPerArch getQtAndroidInfo(const QString &qtSdkDir)
     QDirIterator dit(qtSdkDir, QStringList() << QStringLiteral("android_*"), QDir::Dirs);
     while (dit.hasNext())
         qtDirs << dit.next();
-    for (auto it = qtDirs.cbegin(); it != qtDirs.cend(); ++it) {
-        const QtAndroidInfo info = getInfoForQtDir(*it);
+    for (const auto &qtDir : qtDirs) {
+        const QtAndroidInfo info = getInfoForQtDir(qtDir);
         if (info.isValid())
             archs.insert(info.arch, info);
     }

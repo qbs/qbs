@@ -118,8 +118,7 @@ JobLimits::~JobLimits() {}
 
 void JobLimits::setJobLimit(const JobLimit &limit)
 {
-    for (std::size_t i = 0; i < d->jobLimits.size(); ++i) {
-        JobLimit &currentLimit = d->jobLimits.at(i);
+    for (auto &currentLimit : d->jobLimits) {
         if (currentLimit.pool() == limit.pool()) {
             if (currentLimit.limit() != limit.limit())
                 currentLimit = limit;

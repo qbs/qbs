@@ -2122,12 +2122,12 @@ void ModuleLoader::checkProductNamesInOverrides()
         if (m_erroneousProducts.contains(productNameInOverride))
             continue;
         bool found = false;
-        for (auto it = m_productsByName.cbegin(); it != m_productsByName.cend(); ++it) {
+        for (const auto &kv : m_productsByName) {
             // In an override string such as "a.b.c:d, we cannot tell whether we have a product
             // "a" and a module "b.c" or a product "a.b" and a module "c", so we need to take
             // care not to emit false positives here.
-            if (it->first == productNameInOverride
-                    || it->first.startsWith(productNameInOverride + StringConstants::dot())) {
+            if (kv.first == productNameInOverride
+                    || kv.first.startsWith(productNameInOverride + StringConstants::dot())) {
                 found = true;
                 break;
             }
@@ -4031,9 +4031,8 @@ void ModuleLoader::handleProductError(const ErrorInfo &error,
                                       << "in product" << productContext->name;
             return;
         }
-        const auto &deps = productContext->productModuleDependencies;
-        for (auto it = deps.cbegin(); it != deps.cend(); ++it) {
-            const auto rangeForName = m_productsByName.equal_range(it->first);
+        for (const auto &kv : productContext->productModuleDependencies) {
+            const auto rangeForName = m_productsByName.equal_range(kv.first);
             for (auto rangeIt = rangeForName.first; rangeIt != rangeForName.second; ++rangeIt) {
                 const ProductContext * const dep = rangeIt->second;
                 if (dep->info.delayedError.hasError()) {
