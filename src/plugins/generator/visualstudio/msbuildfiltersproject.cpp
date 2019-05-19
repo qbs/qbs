@@ -45,8 +45,6 @@
 
 namespace qbs {
 
-namespace {
-
 static QStringList sourceFileExtensions()
 {
     return {QStringLiteral("c"), QStringLiteral("C"), QStringLiteral("cpp"),
@@ -89,8 +87,6 @@ static std::vector<MSBuildFilter *> defaultItemGroupFilters(IMSBuildItemGroup *p
 static bool matchesFilter(const MSBuildFilter *filter, const QString &filePath)
 {
     return filter->extensions().contains(QFileInfo(filePath).completeSuffix());
-}
-
 }
 
 MSBuildFiltersProject::MSBuildFiltersProject(const GeneratableProductData &product,

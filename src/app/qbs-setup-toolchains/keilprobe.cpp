@@ -55,8 +55,6 @@ using namespace qbs;
 using Internal::Tr;
 using Internal::HostOsInfo;
 
-namespace {
-
 static QStringList knownKeilCompilerNames()
 {
     return {QStringLiteral("c51"), QStringLiteral("armcc")};
@@ -160,8 +158,6 @@ static std::vector<KeilInstallInfo> installedKeilsFromRegistry()
 
     return infos;
 }
-
-} // end of anonymous namespace
 
 bool isKeilCompiler(const QString &compilerName)
 {

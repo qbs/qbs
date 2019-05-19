@@ -59,12 +59,54 @@
 using namespace qbs;
 using Internal::Tr;
 
-namespace {
 static const QString defaultDeveloperPath =
         QStringLiteral("/Applications/Xcode.app/Contents/Developer");
 static const std::regex defaultDeveloperPathRegex(
         "^/Applications/Xcode([a-zA-Z0-9 _-]+)\\.app/Contents/Developer$");
 
+static QString targetOS(const QString &applePlatformName)
+{
+    if (applePlatformName == QStringLiteral("macosx"))
+        return QStringLiteral("macos");
+    if (applePlatformName == QStringLiteral("iphoneos"))
+        return QStringLiteral("ios");
+    if (applePlatformName == QStringLiteral("iphonesimulator"))
+        return QStringLiteral("ios-simulator");
+    if (applePlatformName == QStringLiteral("appletvos"))
+        return QStringLiteral("tvos");
+    if (applePlatformName == QStringLiteral("appletvsimulator"))
+        return QStringLiteral("tvos-simulator");
+    if (applePlatformName == QStringLiteral("watchos"))
+        return QStringLiteral("watchos");
+    if (applePlatformName == QStringLiteral("watchsimulator"))
+        return QStringLiteral("watchos-simulator");
+    return {};
+}
+
+static QStringList archList(const QString &applePlatformName)
+{
+    QStringList archs;
+    if (applePlatformName == QStringLiteral("macosx")
+            || applePlatformName == QStringLiteral("iphonesimulator")
+            || applePlatformName == QStringLiteral("appletvsimulator")
+            || applePlatformName == QStringLiteral("watchsimulator")) {
+        if (applePlatformName != QStringLiteral("appletvsimulator"))
+            archs << QStringLiteral("x86");
+        if (applePlatformName != QStringLiteral("watchsimulator"))
+            archs << QStringLiteral("x86_64");
+    } else if (applePlatformName == QStringLiteral("iphoneos")
+               || applePlatformName == QStringLiteral("appletvos")) {
+        if (applePlatformName != QStringLiteral("appletvos"))
+            archs << QStringLiteral("armv7a");
+        archs << QStringLiteral("arm64");
+    } else if (applePlatformName == QStringLiteral("watchos")) {
+        archs << QStringLiteral("armv7k");
+    }
+
+    return archs;
+}
+
+namespace {
 class XcodeProbe
 {
 public:
@@ -122,48 +164,6 @@ void XcodeProbe::detectDeveloperPaths()
         for (const QString &path : paths)
             addDeveloperPath(path + QStringLiteral("/Contents/Developer"));
     }
-}
-
-static QString targetOS(const QString &applePlatformName)
-{
-    if (applePlatformName == QStringLiteral("macosx"))
-        return QStringLiteral("macos");
-    if (applePlatformName == QStringLiteral("iphoneos"))
-        return QStringLiteral("ios");
-    if (applePlatformName == QStringLiteral("iphonesimulator"))
-        return QStringLiteral("ios-simulator");
-    if (applePlatformName == QStringLiteral("appletvos"))
-        return QStringLiteral("tvos");
-    if (applePlatformName == QStringLiteral("appletvsimulator"))
-        return QStringLiteral("tvos-simulator");
-    if (applePlatformName == QStringLiteral("watchos"))
-        return QStringLiteral("watchos");
-    if (applePlatformName == QStringLiteral("watchsimulator"))
-        return QStringLiteral("watchos-simulator");
-    return {};
-}
-
-static QStringList archList(const QString &applePlatformName)
-{
-    QStringList archs;
-    if (applePlatformName == QStringLiteral("macosx")
-            || applePlatformName == QStringLiteral("iphonesimulator")
-            || applePlatformName == QStringLiteral("appletvsimulator")
-            || applePlatformName == QStringLiteral("watchsimulator")) {
-        if (applePlatformName != QStringLiteral("appletvsimulator"))
-            archs << QStringLiteral("x86");
-        if (applePlatformName != QStringLiteral("watchsimulator"))
-            archs << QStringLiteral("x86_64");
-    } else if (applePlatformName == QStringLiteral("iphoneos")
-               || applePlatformName == QStringLiteral("appletvos")) {
-        if (applePlatformName != QStringLiteral("appletvos"))
-            archs << QStringLiteral("armv7a");
-        archs << QStringLiteral("arm64");
-    } else if (applePlatformName == QStringLiteral("watchos")) {
-        archs << QStringLiteral("armv7k");
-    }
-
-    return archs;
 }
 
 void XcodeProbe::setupDefaultToolchains(const QString &devPath, const QString &xcodeName)

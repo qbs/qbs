@@ -55,8 +55,6 @@ using namespace qbs;
 using Internal::Tr;
 using Internal::HostOsInfo;
 
-namespace {
-
 static QStringList knownIarCompilerNames()
 {
     return {QStringLiteral("icc8051"), QStringLiteral("iccarm"), QStringLiteral("iccavr")};
@@ -165,8 +163,6 @@ static std::vector<IarInstallInfo> installedIarsFromRegistry()
 
     return infos;
 }
-
-} // end of anonymous namespace
 
 bool isIarCompiler(const QString &compilerName)
 {

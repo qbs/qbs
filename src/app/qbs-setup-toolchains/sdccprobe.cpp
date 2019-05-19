@@ -55,8 +55,6 @@ using namespace qbs;
 using Internal::Tr;
 using Internal::HostOsInfo;
 
-namespace {
-
 static QStringList knownSdccCompilerNames()
 {
     return {QStringLiteral("sdcc")};
@@ -135,8 +133,6 @@ static std::vector<SdccInstallInfo> installedSdccsFromRegistry()
 
     return infos;
 }
-
-} // end of anonymous namespace
 
 bool isSdccCompiler(const QString &compilerName)
 {
