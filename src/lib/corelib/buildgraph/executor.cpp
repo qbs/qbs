@@ -1084,7 +1084,7 @@ void Executor::checkForUnbuiltProducts()
 {
     if (m_buildOptions.executeRulesOnly())
         return;
-    QList<ResolvedProductPtr> unbuiltProducts;
+    std::vector<ResolvedProductPtr> unbuiltProducts;
     for (const ResolvedProductPtr &product : m_productsToBuild) {
         bool productBuilt = true;
         for (BuildGraphNode *rootNode : qAsConst(product->buildData->rootNodes())) {

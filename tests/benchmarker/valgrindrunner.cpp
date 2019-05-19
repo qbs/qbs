@@ -39,6 +39,7 @@
 
 #include <QtConcurrent/qtconcurrentrun.h>
 
+#include <deque>
 #include <mutex>
 
 namespace qbsBenchmarker {
@@ -56,15 +57,17 @@ ValgrindRunner::ValgrindRunner(Activities activities, const QString &testProject
 
 void ValgrindRunner::run()
 {
-    QList<QFuture<void>> futures;
+    std::deque<QFuture<void>> futures;
     if (m_activities & ActivityResolving)
         futures.push_back(QtConcurrent::run(this, &ValgrindRunner::traceResolving));
     if (m_activities & ActivityRuleExecution)
         futures.push_back(QtConcurrent::run(this, &ValgrindRunner::traceRuleExecution));
     if (m_activities & ActivityNullBuild)
         futures.push_back(QtConcurrent::run(this, &ValgrindRunner::traceNullBuild));
-    while (!futures.empty())
-        futures.takeFirst().waitForFinished();
+    while (!futures.empty()) {
+        futures.front().waitForFinished();
+        futures.pop_front();
+    }
 }
 
 void ValgrindRunner::traceResolving()

@@ -188,7 +188,7 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
     qCDebug(lcBuildGraph) << "apply rule" << m_rule->toString()
                           << toStringList(inputArtifacts).join(QLatin1String(",\n            "));
 
-    QList<std::pair<const RuleArtifact *, OutputArtifactInfo>> ruleArtifactArtifactMap;
+    std::vector<std::pair<const RuleArtifact *, OutputArtifactInfo>> ruleArtifactArtifactMap;
     QList<Artifact *> outputArtifacts;
 
     m_transformer = Transformer::create();
