@@ -268,8 +268,11 @@ void InternalSetupProjectJob::start()
             deleteLocker = true;
         }
         execute();
-        if (m_existingProject)
+        if (m_existingProject) {
+            if (m_existingProject != m_newProject)
+                m_existingProject->makeModuleProvidersNonTransient();
             m_existingProject->bgLocker = nullptr;
+        }
         m_newProject->bgLocker = bgLocker;
         deleteLocker = false;
     } catch (const ErrorInfo &error) {
