@@ -417,8 +417,10 @@ function makeQtModuleInfo(name, qbsName, deps) {
         moduleInfo.name = "";
     moduleInfo.qbsName = qbsName; // Lower-case version without "qt" prefix.
     moduleInfo.dependencies = deps || []; // qbs names.
-    if (moduleInfo.qbsName !== "core" && !moduleInfo.dependencies.contains("core"))
+    if (moduleInfo.qbsName && moduleInfo.qbsName !== "core"
+            && !moduleInfo.dependencies.contains("core")) {
         moduleInfo.dependencies.unshift("core");
+    }
     moduleInfo.isPrivate = qbsName && qbsName.endsWith("-private");
     moduleInfo.hasLibrary = !moduleInfo.isPrivate;
     moduleInfo.isStaticLibrary = false;
@@ -921,7 +923,7 @@ function extractPaths(rhs, filePath) {
 
 function removeDuplicatedDependencyLibs(modules) {
     var revDeps = {};
-    var currentPath;
+    var currentPath = [];
     var getLibraries;
     var getLibFilePath;
 
@@ -935,9 +937,9 @@ function removeDuplicatedDependencyLibs(modules) {
                 var depmod = moduleByName[module.dependencies[j]];
                 if (!depmod)
                     continue;
-                if (!revDeps[depmod])
-                    revDeps[depmod] = [];
-                revDeps[depmod].push(module);
+                if (!revDeps[depmod.qbsName])
+                    revDeps[depmod.qbsName] = [];
+                revDeps[depmod.qbsName].push(module);
             }
         }
     }
@@ -946,7 +948,7 @@ function removeDuplicatedDependencyLibs(modules) {
         var result = [];
         for (i = 0; i < modules.length; ++i) {
             var module = modules[i]
-            if (module.dependencies.lenegth === 0)
+            if (module.dependencies.length === 0)
                 result.push(module);
         }
         return result;
@@ -956,7 +958,6 @@ function removeDuplicatedDependencyLibs(modules) {
         if (currentPath.contains(module))
             return;
         currentPath.push(module);
-
         var moduleLibraryLists = getLibraries(module);
         for (var i = 0; i < moduleLibraryLists.length; ++i) {
             var modLibList = moduleLibraryLists[i];
@@ -973,10 +974,11 @@ function removeDuplicatedDependencyLibs(modules) {
             libs = libs.concat(moduleLibraryLists[i]);
         libs.sort();
 
-        for (i = 0; i < (revDeps[module] || []).length; ++i)
-            traverse(revDeps[module][i], libs);
+        var deps = revDeps[module.qbsName];
+        for (i = 0; i < (deps || []).length; ++i)
+            traverse(deps[i], libs);
 
-        m_currentPath.pop();
+        currentPath.pop();
     }
 
     setupReverseDependencies(modules);
