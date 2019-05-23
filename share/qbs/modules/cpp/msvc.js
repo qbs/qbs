@@ -449,10 +449,15 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     var wholeArchiveSupported = linkerSupportsWholeArchive(product);
     var wholeArchiveRequested = false;
     var libDeps = collectLibraryDependencies(product);
+    var prevLib;
     for (i = 0; i < libDeps.length; ++i) {
         var dep = libDeps[i];
+        var lib = dep.filePath;
+        if (lib === prevLib)
+            continue;
+        prevLib = lib;
         args.push((wholeArchiveSupported && dep.wholeArchive ? "/WHOLEARCHIVE:" : "")
-                  + FileInfo.toWindowsSeparators(dep.filePath));
+                  + FileInfo.toWindowsSeparators(lib));
         if (dep.wholeArchive)
             wholeArchiveRequested = true;
     }

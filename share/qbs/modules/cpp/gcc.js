@@ -440,9 +440,13 @@ function linkerFlags(project, product, inputs, outputs, primaryOutput, linkerPat
     }
 
     var wholeArchiveActive = false;
+    var prevLib;
     for (i = 0; i < libraryDependencies.libraries.length; ++i) {
         var dep = libraryDependencies.libraries[i];
         var lib = dep.filePath;
+        if (lib === prevLib)
+            continue;
+        prevLib = lib;
         if (dep.wholeArchive && !wholeArchiveActive) {
             var wholeArchiveFlag;
             if (isDarwin) {
