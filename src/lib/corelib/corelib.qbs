@@ -37,7 +37,7 @@ QbsLibrary {
 
     Properties {
         condition: qbs.targetOS.contains("windows")
-        cpp.dynamicLibraries: base.concat(["Psapi", "shell32"])
+        cpp.dynamicLibraries: base.concat(["psapi", "shell32"])
     }
     cpp.dynamicLibraries: base
 

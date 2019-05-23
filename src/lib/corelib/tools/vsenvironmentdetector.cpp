@@ -53,7 +53,7 @@
 
 #ifdef Q_OS_WIN
 #include <QtCore/qt_windows.h>
-#include <ShlObj.h>
+#include <shlobj.h>
 #endif
 
 namespace qbs {
