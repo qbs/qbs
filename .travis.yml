@@ -17,11 +17,11 @@ stages:
 
 jobs:
   include:
-    - &build-on-stretch
+    - &build-on-bionic
       stage: Build Qbs and and run autotests
-      name: With Qbs on Debian stretch (linux_amd64)
+      name: With Qbs on Ubuntu bionic (linux_gcc64)
       env:
-        SERVICE=stretch
+        SERVICE=bionic
       services:
         - docker
       before_install:
@@ -29,10 +29,15 @@ jobs:
       script:
         - docker-compose run --rm ${SERVICE} scripts/build-qbs-with-qbs.sh
 
-    - <<: *build-on-stretch
-      name: With QMake on Debian stretch (linux_amd64)
+    - <<: *build-on-bionic
+      name: With QMake on Ubuntu bionic (linux_gcc64)
       script:
         - docker-compose run --rm ${SERVICE} scripts/build-qbs-with-qmake.sh
+
+    - <<: *build-on-bionic
+      name: With Qbs on Ubuntu bionic (mingw32_w64)
+      script:
+        - docker-compose run --rm ${SERVICE} qbs build profile:qt-mingw32_w64
 
     - &build-on-macos
       stage: Build Qbs and and run autotests
