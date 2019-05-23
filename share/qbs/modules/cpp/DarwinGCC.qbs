@@ -118,8 +118,12 @@ UnixGCC {
             dict["LSRequiresIPhoneOS"] = true;
 
             if (xcode.platformType === "device") {
-                if (qbs.targetOS.contains("ios"))
-                    dict["UIRequiredDeviceCapabilities"] = ["armv7"];
+                if (qbs.targetOS.contains("ios")) {
+                    if (qbs.architecture === "arm64")
+                        dict["UIRequiredDeviceCapabilities"] = ["arm64"];
+                    else
+                        dict["UIRequiredDeviceCapabilities"] = ["armv7"];
+                }
 
                 if (qbs.targetOS.contains("tvos"))
                     dict["UIRequiredDeviceCapabilities"] = ["arm64"];
@@ -195,7 +199,8 @@ UnixGCC {
             env["TVOS_DEPLOYMENT_TARGET"] = minimumTvosVersion;
 
         if (xcode.present)
-            env["TARGETED_DEVICE_FAMILY"] = DarwinTools.targetedDeviceFamily(xcode.targetDevices);
+            env["TARGETED_DEVICE_FAMILY"] =
+                    DarwinTools.targetedDeviceFamily(xcode.targetDevices).join(",");
         return env;
     }
 

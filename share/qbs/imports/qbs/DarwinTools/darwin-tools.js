@@ -78,7 +78,7 @@ function targetDevices(targetOS) {
 function targetedDeviceFamily(deviceNames) {
     return deviceNames.map(function (deviceName) {
         return appleDeviceNumber(deviceName);
-    }).join(",");
+    });
 }
 
 /**

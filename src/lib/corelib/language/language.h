@@ -707,6 +707,8 @@ public:
     const QVariantMap &buildConfiguration() const { return m_buildConfiguration; }
     QString id() const { return m_id; }
     QString profile() const;
+    void makeModuleProvidersNonTransient();
+
     QVariantMap profileConfigs;
     QVariantMap overriddenValues;
 
