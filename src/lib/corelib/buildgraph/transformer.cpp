@@ -103,9 +103,9 @@ static QScriptValue js_children(QScriptContext *ctx, QScriptEngine *engine, cons
     Q_UNUSED(ctx);
     QScriptValue sv = engine->newArray();
     uint idx = 0;
-    for (const Artifact *parent : artifact->childArtifacts()) {
+    for (const Artifact *child : artifact->childArtifacts()) {
         sv.setProperty(idx++, Transformer::translateFileConfig(static_cast<ScriptEngine *>(engine),
-                                                               parent, QString()));
+                                                               child, QString()));
     }
     return sv;
 }

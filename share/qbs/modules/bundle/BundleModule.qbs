@@ -426,7 +426,8 @@ Module {
                                     inputs.partial_infoplist[j].filePath)
                                 || {};
                         for (key in partialInfoPlist) {
-                            if (partialInfoPlist.hasOwnProperty(key))
+                            if (partialInfoPlist.hasOwnProperty(key)
+                                    && !aggregatePlist.hasOwnProperty(key))
                                 aggregatePlist[key] = partialInfoPlist[key];
                         }
                     }

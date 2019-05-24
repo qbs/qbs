@@ -622,6 +622,12 @@ QString TopLevelProject::profile() const
     return projectProperties().value(StringConstants::profileProperty()).toString();
 }
 
+void TopLevelProject::makeModuleProvidersNonTransient()
+{
+    for (ModuleProviderInfo &m : moduleProviderInfo)
+        m.transientOutput = false;
+}
+
 QString TopLevelProject::buildGraphFilePath() const
 {
     return ProjectBuildData::deriveBuildGraphFilePath(buildDirectory, id());
@@ -637,8 +643,9 @@ void TopLevelProject::store(Logger logger)
         qCDebug(lcBuildGraph) << "build graph is unchanged in project" << id();
         return;
     }
-    for (ModuleProviderInfo &m : moduleProviderInfo)
-        m.transientOutput = false;
+
+    makeModuleProvidersNonTransient();
+
     const QString fileName = buildGraphFilePath();
     qCDebug(lcBuildGraph) << "storing:" << fileName;
     PersistentPool pool(logger);
