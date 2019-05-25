@@ -1,0 +1,1 @@
+leak:libQt5Script.so.5

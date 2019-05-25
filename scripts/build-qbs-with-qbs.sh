@@ -46,6 +46,12 @@ set -e
 export QBS_AUTOTEST_SETTINGS_DIR="${QBS_AUTOTEST_SETTINGS_DIR:-/tmp/qbs-settings}"
 
 #
+# Qbs is built with the address sanitizer enabled.
+# Suppress findings in some parts of Qbs / dependencies.
+#
+export LSAN_OPTIONS="suppressions=$( cd "$(dirname "$0")" ; pwd -P )/address-sanitizer-suppressions.txt:print_suppressions=0"
+
+#
 # Additional build options
 #
 BUILD_OPTIONS="\
@@ -69,6 +75,7 @@ qbs build -p "qbs documentation" ${BUILD_OPTIONS}
 if [ -z "${QBS_AUTOTEST_PROFILE}" ]; then
 
     export QBS_AUTOTEST_PROFILE=autotestprofile
+
     RUN_OPTIONS="\
         --settings-dir ${QBS_AUTOTEST_SETTINGS_DIR} \
     "

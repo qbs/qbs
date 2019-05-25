@@ -13,3 +13,5 @@ services:
     volumes:
       - .:/qbs
     network_mode: bridge
+    cap_add:
+        - SYS_PTRACE

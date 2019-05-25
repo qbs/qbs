@@ -37,6 +37,7 @@ RUN apt-get update -qq && \
         libfontconfig1-dev \
         libfreetype6-dev \
         libgmp-dev \
+        libicu-dev \
         libmpc-dev \
         libmpfr-dev \
         libtool \
@@ -67,8 +68,11 @@ RUN mkdir -p qt/build && \
         -nomake examples \
         -nomake tests \
         -platform linux-g++ \
+        -no-use-gold-linker \
+        -R . \
+        -sysconfdir /etc/xdg \
         -qt-freetype -qt-harfbuzz -qt-pcre -qt-sqlite -qt-xcb -qt-zlib \
-        -no-cups -no-dbus -no-pch \
+        -no-cups -no-dbus -no-pch -no-libudev \
         -no-feature-accessibility -no-opengl \
         -skip qtactiveqt \
         -skip qt3d \
@@ -145,6 +149,7 @@ RUN apt-get update -qq && \
         ca-certificates \
         git \
         libclang-3.9 \
+        libicu57 \
         pkg-config \
         make \
         help2man \
