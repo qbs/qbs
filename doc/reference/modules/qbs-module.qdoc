@@ -614,7 +614,7 @@
     The value of this property itself is relative to the \l{qbs::}{installRoot}
     in the context of installation.
 
-    \defaultvalue \c []
+    \defaultvalue \c "/usr/local" on Unix, \c "" otherwise
 */
 
 /*!
