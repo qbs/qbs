@@ -36,6 +36,7 @@ Probe {
     property stringList names
     property stringList nameSuffixes
     property var nameFilter
+    property varList selectors
     property pathList pathPrefixes
     property pathList searchPaths
     property stringList pathSuffixes
@@ -52,6 +53,8 @@ Probe {
     property string filePath
     property string fileName
 
+    property varList allResults
+
     configure: {
         if (pathPrefixes)
             console.warn("PathProbe.pathPrefixes is deprecated, use searchPaths instead");
@@ -59,11 +62,14 @@ Probe {
             console.warn("PathProbe.platformPaths is deprecated, use platformSearchPaths instead");
         var _searchPaths = ModUtils.concatAll(pathPrefixes, searchPaths);
         var _platformSearchPaths = ModUtils.concatAll(platformPaths, platformSearchPaths);
-        var result = PathProbeConfigure.configure(names, nameSuffixes, nameFilter, _searchPaths,
-                                                  pathSuffixes, _platformSearchPaths,
+        var results = PathProbeConfigure.configure(selectors, names, nameSuffixes, nameFilter,
+                                                  _searchPaths, pathSuffixes, _platformSearchPaths,
                                                   environmentPaths, platformEnvironmentPaths,
                                                   pathListSeparator);
-        found = result.found;
+        found = results.found;
+        allResults = results.files;
+
+        var result = allResults[0];
         candidatePaths = result.candidatePaths;
         path = result.path;
         filePath = result.filePath;

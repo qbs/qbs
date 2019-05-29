@@ -47,14 +47,17 @@ BinaryProbe {
     }
 
     configure: {
-        var result = PathProbeConfigure.configure(names, nameSuffixes, nameFilter, searchPaths,
-                                                  pathSuffixes, platformSearchPaths, environmentPaths,
-                                                  platformEnvironmentPaths, pathListSeparator);
-        found = result.found;
-        candidatePaths = result.candidatePaths;
-        path = result.path;
-        filePath = result.filePath;
-        fileName = result.fileName;
+        var selectors;
+        var _results = PathProbeConfigure.configure(
+                    selectors, names, nameSuffixes, nameFilter, searchPaths, pathSuffixes,
+                    platformSearchPaths, environmentPaths, platformEnvironmentPaths,
+                    pathListSeparator);
+        found = _results.found;
+        var resultFile = _results.files[0];
+        candidatePaths = resultFile.candidatePaths;
+        path = resultFile.path;
+        filePath = resultFile.filePath;
+        fileName = resultFile.fileName;
         (nameSuffixes || [""]).forEach(function(suffix) {
             var end = _compilerName + suffix;
             if (fileName.endsWith(end))

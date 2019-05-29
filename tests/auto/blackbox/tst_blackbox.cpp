@@ -2719,6 +2719,36 @@ void TestBlackbox::overrideProjectProperties()
     QCOMPARE(runQbs(params), 0);
 }
 
+void TestBlackbox::pathProbe_data()
+{
+    QTest::addColumn<QString>("projectFile");
+    QTest::addColumn<bool>("successExpected");
+    QTest::newRow("non-existent") << QString("non-existent.qbs") << false;
+    QTest::newRow("non-existent-selector.qbs") << QString("non-existent-selector.qbs") << false;
+    QTest::newRow("single-file") << QString("single-file.qbs") << true;
+    QTest::newRow("single-file-selector") << QString("single-file-selector.qbs") << true;
+    QTest::newRow("single-file-selector-array") << QString("single-file-selector-array.qbs") << true;
+    QTest::newRow("single-file-mult-variants") << QString("single-file-mult-variants.qbs") << true;
+    QTest::newRow("mult-files") << QString("mult-files.qbs") << true;
+    QTest::newRow("mult-files-mult-variants") << QString("mult-files-mult-variants.qbs") << true;
+    QTest::newRow("single-file-suffixes") << QString("single-file-suffixes.qbs") << true;
+    QTest::newRow("mult-files-suffixes") << QString("mult-files-suffixes.qbs") << true;
+    QTest::newRow("mult-files-mult-suffixes") << QString("mult-files-mult-suffixes.qbs") << true;
+    QTest::newRow("name-filter") << QString("name-filter.qbs") << true;
+}
+
+void TestBlackbox::pathProbe()
+{
+    QDir::setCurrent(testDataDir + "/path-probe");
+    QFETCH(QString, projectFile);
+    QFETCH(bool, successExpected);
+    rmDirR(relativeBuildDir());
+
+    QbsRunParameters buildParams("build", QStringList{"-f", projectFile});
+    buildParams.expectFailure = !successExpected;
+    QCOMPARE(runQbs(buildParams) == 0, successExpected);
+}
+
 void TestBlackbox::pchChangeTracking()
 {
     QDir::setCurrent(testDataDir + "/pch-change-tracking");

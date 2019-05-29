@@ -57,16 +57,18 @@ BinaryProbe {
         if (!packageManagerRootPath)
             throw '"packageManagerRootPath" must be specified';
 
-        var result = PathProbeConfigure.configure(names, nameSuffixes, nameFilter, searchPaths,
-                                                  pathSuffixes, platformSearchPaths,
-                                                  environmentPaths, platformEnvironmentPaths,
-                                                  pathListSeparator);
+        var selectors;
+        var results = PathProbeConfigure.configure(
+                    selectors, names, nameSuffixes, nameFilter, searchPaths, pathSuffixes,
+                    platformSearchPaths, environmentPaths, platformEnvironmentPaths,
+                    pathListSeparator);
 
         var v = new ModUtils.EnvironmentVariable("PATH", pathListSeparator,
                                                  hostOS.contains("windows"));
         v.prepend(interpreterPath);
 
-        result.version = result.found
+        var result = results.files[0];
+        result.version = results.found
                 ? TypeScript.findTscVersion(result.filePath, v.value)
                 : undefined;
         if (FileInfo.fromNativeSeparators(packageManagerBinPath) !== result.path ||
@@ -74,7 +76,7 @@ BinaryProbe {
             result = { found: false };
         }
 
-        found = result.found;
+        found = results.found;
         candidatePaths = result.candidatePaths;
         path = result.path;
         filePath = result.filePath;

@@ -33,17 +33,60 @@ var File = require("qbs.File");
 var FileInfo = require("qbs.FileInfo");
 var ModUtils = require("qbs.ModUtils");
 
-function configure(names, nameSuffixes, nameFilter, searchPaths, pathSuffixes, platformSearchPaths,
-                   environmentPaths, platformEnvironmentPaths, pathListSeparator) {
-    var result = { found: false, candidatePaths: [] };
-    if (!names)
-        throw '"names" must be specified';
-    var _names = ModUtils.concatAll(names);
-    if (nameFilter)
-        _names = _names.map(function(n) { return nameFilter(n); });
-    _names = ModUtils.concatAll.apply(undefined, _names.map(function(name) {
-        return (nameSuffixes || [""]).map(function(suffix) { return name + suffix; });
-    }));
+function asStringList(key, value) {
+    if (typeof(value) === "string")
+        return [value];
+    if (Array.isArray(value))
+        return value;
+    throw key + " must be a string or a stringList";
+}
+
+function canonicalSelectors(selectors) {
+    var mapper = function(selector) {
+        if (typeof(selector) === "string")
+            return {names : [selector]};
+        if (Array.isArray(selector))
+            return {names : selector};
+        // dict
+        if (!selector.names)
+            throw '"names" must be specified';
+        selector.names = asStringList("names", selector.names);
+        if (selector.nameSuffixes)
+            selector.nameSuffixes = asStringList("nameSuffixes", selector.nameSuffixes);
+        return selector;
+    };
+    return selectors.map(mapper);
+}
+
+function configure(selectors, names, nameSuffixes, nameFilter, searchPaths, pathSuffixes,
+                   platformSearchPaths, environmentPaths, platformEnvironmentPaths,
+                   pathListSeparator) {
+    var result = { found: false, files: [] };
+    if (!selectors && !names)
+        throw '"names" or "selectors" must be specified';
+
+    if (!selectors) {
+        selectors = [
+            {names: names, nameSuffixes: nameSuffixes}
+        ];
+    } else {
+        selectors = canonicalSelectors(selectors);
+    }
+
+    if (nameFilter) {
+        selectors.forEach(function(selector) {
+            selector.names = selector.names.map(nameFilter);
+        });
+    }
+
+    selectors.forEach(function(selector) {
+        selector.names = ModUtils.concatAll.apply(undefined, selector.names.map(function(name) {
+            return (selector.nameSuffixes || [""]).map(function(suffix) {
+                return name + suffix;
+            });
+        }));
+    });
+
     // FIXME: Suggest how to obtain paths from system
     var _paths = ModUtils.concatAll(searchPaths, platformSearchPaths);
     // FIXME: Add getenv support
@@ -56,28 +99,37 @@ function configure(names, nameSuffixes, nameFilter, searchPaths, pathSuffixes, p
     var _suffixes = ModUtils.concatAll('', pathSuffixes);
     _paths = _paths.map(function(p) { return FileInfo.fromNativeSeparators(p); });
     _suffixes = _suffixes.map(function(p) { return FileInfo.fromNativeSeparators(p); });
-    for (i = 0; i < _names.length; ++i) {
-        for (var j = 0; j < _paths.length; ++j) {
-            for (var k = 0; k < _suffixes.length; ++k) {
-                var _filePath = FileInfo.joinPaths(_paths[j], _suffixes[k], _names[i]);
-                result.candidatePaths.push(_filePath);
-                if (File.exists(_filePath)) {
-                    result.found = true;
-                    result.filePath = _filePath;
 
-                    // Manually specify the path components that constitute _filePath rather
-                    // than using the FileInfo.path and FileInfo.fileName functions because we
-                    // want to break _filePath into its constituent parts based on the input
-                    // originally given by the user. For example, the FileInfo functions would
-                    // produce a different result if any of the items in the names property
-                    // contained more than a single path component.
-                    result.fileName = _names[i];
-                    result.path = FileInfo.joinPaths(_paths[j], _suffixes[k]);
-                    return result;
+    var findFile = function(selector) {
+        var file = { found: false, candidatePaths: [] };
+        for (var i = 0; i < selector.names.length; ++i) {
+            for (var j = 0; j < _paths.length; ++j) {
+                for (var k = 0; k < _suffixes.length; ++k) {
+                    var _filePath = FileInfo.joinPaths(_paths[j], _suffixes[k], selector.names[i]);
+                    file.candidatePaths.push(_filePath);
+                    if (File.exists(_filePath)) {
+                        file.found = true;
+                        file.filePath = _filePath;
+
+                        // Manually specify the path components that constitute _filePath rather
+                        // than using the FileInfo.path and FileInfo.fileName functions because we
+                        // want to break _filePath into its constituent parts based on the input
+                        // originally given by the user. For example, the FileInfo functions would
+                        // produce a different result if any of the items in the names property
+                        // contained more than a single path component.
+                        file.fileName = selector.names[i];
+                        file.path = FileInfo.joinPaths(_paths[j], _suffixes[k]);
+                        return file;
+                    }
                 }
             }
         }
-    }
+
+        return file;
+    };
+
+    result.files = selectors.map(findFile);
+    result.found = result.files.reduce(function(acc, value) { return acc && value.found }, true);
 
     return result;
 }

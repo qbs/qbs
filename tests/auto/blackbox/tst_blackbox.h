@@ -205,6 +205,8 @@ private slots:
     void outOfDateMarking();
     void outputArtifactAutoTagging();
     void overrideProjectProperties();
+    void pathProbe_data();
+    void pathProbe();
     void pchChangeTracking();
     void perGroupDefineInExportItem();
     void pkgConfigProbe();

@@ -47,26 +47,28 @@ NodeJsProbe {
         if (!interpreterPath)
             throw '"interpreterPath" must be specified';
 
-        var result = PathProbeConfigure.configure(names, nameSuffixes, nameFilter, searchPaths,
-                                                  pathSuffixes, platformSearchPaths,
-                                                  environmentPaths, platformEnvironmentPaths,
-                                                  pathListSeparator);
+        var selectors;
+        var results = PathProbeConfigure.configure(
+                    selectors, names, nameSuffixes, nameFilter, searchPaths, pathSuffixes,
+                    platformSearchPaths, environmentPaths, platformEnvironmentPaths,
+                    pathListSeparator);
 
         var v = new ModUtils.EnvironmentVariable("PATH", pathListSeparator,
                                                  hostOS.contains("windows"));
         v.prepend(interpreterPath);
 
-        result.npmBin = result.found
+        var result = results.files[0];
+        result.npmBin = results.found
                 ? NodeJs.findLocation(result.filePath, "bin", v.value)
                 : undefined;
-        result.npmRoot = result.found
+        result.npmRoot = results.found
                 ? NodeJs.findLocation(result.filePath, "root", v.value)
                 : undefined;
-        result.npmPrefix = result.found
+        result.npmPrefix = results.found
                 ? NodeJs.findLocation(result.filePath, "prefix", v.value)
                 : undefined;
 
-        found = result.found;
+        found = results.found;
         candidatePaths = result.candidatePaths;
         path = result.path;
         filePath = result.filePath;
