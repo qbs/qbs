@@ -185,7 +185,7 @@ private:
     FileTags m_tagsOfFilesToConsider;
     FileTags m_tagsNeededForFilesToConsider;
     QList<ResolvedProductPtr> m_productsOfFilesToConsider;
-    QTimer * const m_cancelationTimer = nullptr;
+    QTimer * const m_cancelationTimer;
     QStringList m_artifactsRemovedFromDisk;
     bool m_partialBuild = false;
     qint64 m_elapsedTimeRules = 0;

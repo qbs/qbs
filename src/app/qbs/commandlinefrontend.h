@@ -106,7 +106,7 @@ private:
     QString buildDirectory(const QString &profileName) const;
 
     const CommandLineParser &m_parser;
-    Settings * const m_settings = nullptr;
+    Settings * const m_settings;
     QList<AbstractJob *> m_resolveJobs;
     QList<AbstractJob *> m_buildJobs;
     QList<Project> m_projects;
@@ -115,7 +115,7 @@ private:
 
     enum CancelStatus { CancelStatusNone, CancelStatusRequested, CancelStatusCanceling };
     CancelStatus m_cancelStatus = CancelStatus::CancelStatusNone;
-    QTimer * const m_cancelTimer = nullptr;
+    QTimer * const m_cancelTimer;
 
     int m_buildEffortsNeeded = 0;
     int m_buildEffortsRetrieved = 0;

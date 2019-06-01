@@ -130,7 +130,7 @@ private:
         }
 
         setup(object);
-        QBS_ASSERT(m_product || m_artifact, return {});
+        QBS_ASSERT(m_product, return {});
         bool isPresent;
         m_result = getModuleProperty(m_product, m_artifact, static_cast<ScriptEngine *>(engine()),
                                      m_moduleName, name, &isPresent);
@@ -336,8 +336,10 @@ QScriptValue ModuleProperties::moduleProperty(QScriptContext *context, QScriptEn
     const ResolvedProduct *product = nullptr;
     const Artifact *artifact = nullptr;
     if (typeScriptValue.toString() == StringConstants::productValue()) {
+        QBS_ASSERT(ptr, return {});
         product = static_cast<const ResolvedProduct *>(ptr);
     } else if (typeScriptValue.toString() == artifactType()) {
+        QBS_ASSERT(ptr, return {});
         artifact = static_cast<const Artifact *>(ptr);
         product = artifact->product.get();
     } else {

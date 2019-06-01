@@ -120,7 +120,7 @@ private:
     int m_maximum = 0;
     mutable std::mutex m_cancelMutex;
     bool m_canceled = false;
-    InternalJob * const m_job = nullptr;
+    InternalJob * const m_job;
     TimedActivityLogger *m_timedLogger = nullptr;
 };
 

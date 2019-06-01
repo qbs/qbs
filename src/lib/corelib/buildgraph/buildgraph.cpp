@@ -118,7 +118,7 @@ private:
         }
 
         getProduct(object);
-        QBS_ASSERT(m_product, {});
+        QBS_ASSERT(m_product, return {});
 
         const auto it = m_product->productProperties.find(name);
 
