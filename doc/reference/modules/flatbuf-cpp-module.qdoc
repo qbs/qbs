@@ -1,0 +1,144 @@
+/****************************************************************************
+**
+** Copyright (C) 2024 Ivan Komissarov (abbapoh@gmail.com)
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+/*!
+    \qmltype flatbuf.cpp
+    \inqmlmodule QbsModules
+    \since Qbs 2.4
+
+    \brief Provides support for \l{https://google.github.io/flatbuf/}{flatbuf} for the
+    C++ language.
+
+    The \c flatbuf.cpp module provides support for generating C++ headers
+    and sources from flatbuf definition files using the \c flatc tool.
+
+    A simple qbs file that uses flatbuf can be written as follows:
+    \code
+    CppApplication {
+        Depends { name: "flatbuf.cpp" }
+        files: ["foo.fbs", "main.cpp"]
+    }
+    \endcode
+    A generated header now can be included in the C++ sources:
+    \code
+        #include <foo_generated.h>
+
+        int main(int argc, char* argv[]) {
+            flatbuf::FlatBufferBuilder builder;
+
+            auto foo = QbsTest::CreateFoo(builder, 42);
+            return 0;
+        }
+    \endcode
+
+    \section2 Relevant File Tags
+
+    \table
+    \header
+        \li Tag
+        \li Auto-tagged File Names
+        \li Since
+        \li Description
+    \row
+        \li \c{"flatbuf.input"}
+        \li \c{*.fbs}
+        \li 2.4.0
+        \li Source files with this tag are considered inputs to the \c flatc compiler.
+    \endtable
+
+    \section2 Dependencies
+    This module depends on the \c flatbuffers module which can be created via the \l{conan}{Conan}
+    module provider.
+*/
+
+/*!
+    \qmlproperty string flatbuf.cpp::compilerName
+
+    The name of the \c flatc binary.
+
+    \defaultvalue \c "flatc"
+*/
+
+/*!
+    \qmlproperty string flatbuf.cpp::compilerPath
+
+    The path to the \c flatc binary.
+
+    Use this property to override the auto-detected location.
+
+    \defaultvalue \c auto-detected
+*/
+
+/*!
+    \qmlproperty string flatbuf.cpp::filenameExtension
+
+    The extension appended to the generated file names. If not specified, the default extension
+    (\c ".h") is used.
+
+    This property corresponds to the \c --filename-ext option of the \c flatc tool.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string flatbuf.cpp::filenameSuffix
+
+    The suffix appended to the generated file names. If not specified, the default suffix
+    (\c "_generated") is used.
+
+    This property corresponds to the \c --filename-suffix option of the \c flatc tool.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty pathList flatbuf.cpp::importPaths
+
+    The list of import paths that are passed to the \c flatc tool via the \c -I option.
+
+    \defaultvalue \c []
+*/
+
+/*!
+    \qmlproperty string flatbuf.cpp::includePrefix
+
+    Prefix path prepended to any generated include statements.
+
+    This property corresponds to the \c --include-prefix option of the \c flatc tool.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty bool flatbuf.cpp::keepPrefix
+
+    Whether to keep original prefix of schema include statement.
+
+    This property corresponds to the \c --keep-prefix option of the \c flatc tool.
+
+    \defaultvalue \c false
+*/

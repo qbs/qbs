@@ -1,0 +1,6 @@
+[requires]
+flatcc/0.6.1
+[tool_requires]
+flatcc/0.6.1
+[generators]
+QbsDeps

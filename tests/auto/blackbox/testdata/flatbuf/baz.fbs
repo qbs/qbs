@@ -1,0 +1,9 @@
+include "imported_foo/imported_foo.fbs";
+
+namespace QbsTest;
+
+table Baz {
+  foo:Foo;
+}
+
+root_type Baz;

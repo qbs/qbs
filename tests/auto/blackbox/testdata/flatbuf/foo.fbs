@@ -1,0 +1,8 @@
+namespace QbsTest;
+
+table Foo {
+  name:string;
+  count:int;
+}
+
+root_type Foo;

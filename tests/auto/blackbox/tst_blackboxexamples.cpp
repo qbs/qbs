@@ -82,6 +82,7 @@ void TestBlackboxExamples::examples_data()
 
     auto examples = collectExamples(testDataDir);
     examples.append(collectExamples(testDataDir + "/protobuf"));
+    examples.append(collectExamples(testDataDir + "/flatbuffers"));
     std::sort(examples.begin(), examples.end());
 
     for (const auto &example: examples) {

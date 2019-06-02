@@ -1,0 +1,6 @@
+[requires]
+flatbuffers/24.3.25
+[tool_requires]
+flatbuffers/24.3.25
+[generators]
+QbsDeps

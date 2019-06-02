@@ -135,6 +135,8 @@ private slots:
     void externalLibs();
     void fileDependencies();
     void fileTagsFilterMerging();
+    void flatbuf();
+    void flatbuf_data();
     void freedesktop();
     void generatedArtifactAsInputToDynamicRule();
     void generateLinkerMapFile();

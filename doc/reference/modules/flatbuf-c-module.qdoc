@@ -1,0 +1,83 @@
+/****************************************************************************
+**
+** Copyright (C) 2024 Ivan Komissarov (abbapoh@gmail.com)
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+/*!
+    \qmltype flatbuf.c
+    \inqmlmodule QbsModules
+    \since Qbs 2.4
+
+    \brief Provides support for \l{https://google.github.io/flatbuffers/}{FlatBuffers} for the
+    C language.
+
+    The \c flatbuf.c module provides support for generating C headers
+    and sources from flatbuffers definition files using the \c flatcc tool.
+
+    \section2 Relevant File Tags
+
+    \table
+    \header
+        \li Tag
+        \li Auto-tagged File Names
+        \li Since
+        \li Description
+    \row
+        \li \c{"flatbuffers.input"}
+        \li \c{*.fbs}
+        \li 2.4.0
+        \li Source files with this tag are considered inputs to the \c flatcc compiler.
+    \endtable
+
+    \section2 Dependencies
+    This module depends on the \c flatcc module which can be created via the \l{conan}{Conan}
+    module provider.
+*/
+
+/*!
+    \qmlproperty string flatbuf.c::compilerName
+
+    The name of the \c flatcc binary.
+
+    \defaultvalue \c "flatcc"
+*/
+
+/*!
+    \qmlproperty string flatbuf.c::compilerPath
+
+    The path to the \c flatcc binary.
+
+    Use this property to override the auto-detected location.
+
+    \defaultvalue \c auto-detected
+*/
+
+/*!
+    \qmlproperty pathList flatbuf.c::importPaths
+
+    The list of import paths that are passed to the \c flatcc tool via the \c -I option.
+
+    \defaultvalue \c []
+*/

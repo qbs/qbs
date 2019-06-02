@@ -4409,6 +4409,43 @@ void TestBlackbox::fileTagsFilterMerging()
     QVERIFY2(QFile::exists(otherOutput), qPrintable(otherOutput));
 }
 
+void TestBlackbox::flatbuf()
+{
+    QFETCH(QString, projectFile);
+
+    QDir::setCurrent(testDataDir + "/flatbuf");
+
+    rmDirR(relativeBuildDir());
+    if (!prepareAndRunConan())
+        QSKIP("conan is not prepared, check messages above");
+
+    QbsRunParameters resolveParams(
+        "resolve", QStringList{"-f", projectFile, "moduleProviders.conan.installDirectory:build"});
+    QCOMPARE(runQbs(resolveParams), 0);
+    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+        QSKIP("Cannot run binaries in cross-compiled build");
+    const bool withFlatbuffers = m_qbsStdout.contains("has flatbuffers: true");
+    const bool withoutFlatbuffers = m_qbsStdout.contains("has flatbuffers: false");
+    QVERIFY2(withFlatbuffers || withoutFlatbuffers, m_qbsStdout.constData());
+    if (withoutFlatbuffers)
+        QSKIP("flatbuf module not present");
+    QbsRunParameters runParams("run");
+    QCOMPARE(runQbs(runParams), 0);
+}
+
+void TestBlackbox::flatbuf_data()
+{
+    QTest::addColumn<QString>("projectFile");
+
+    // QTest::newRow("c") << QString("flat_c.qbs");
+    QTest::newRow("cpp") << QString("flat_cpp.qbs");
+    QTest::newRow("relative import") << QString("flat_relative_import.qbs");
+    QTest::newRow("absolute import") << QString("flat_absolute_import.qbs");
+    QTest::newRow("filename suffix") << QString("flat_filename_suffix.qbs");
+    QTest::newRow("filename extension") << QString("flat_filename_extension.qbs");
+    QTest::newRow("keep prefix") << QString("flat_keep_prefix.qbs");
+}
+
 void TestBlackbox::freedesktop()
 {
     if (!HostOsInfo::isAnyUnixHost())

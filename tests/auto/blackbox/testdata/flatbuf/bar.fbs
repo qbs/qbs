@@ -1,0 +1,9 @@
+include "foo.fbs";
+
+namespace QbsTest;
+
+table Bar {
+  foo:Foo;
+}
+
+root_type Bar;
