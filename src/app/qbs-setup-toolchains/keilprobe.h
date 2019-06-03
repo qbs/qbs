@@ -42,7 +42,9 @@
 
 #include <QtCore/qlist.h>
 
+QT_BEGIN_NAMESPACE
 class QFileInfo;
+QT_END_NAMESPACE
 
 namespace qbs {
 class Profile;
