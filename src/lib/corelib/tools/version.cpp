@@ -107,12 +107,11 @@ Version Version::fromString(const QString &versionString, bool buildNumberAllowe
 
 QString Version::toString() const
 {
-    QString s;
-    if (m_build)
-        s.sprintf("%d.%d.%d-%d", m_major, m_minor, m_patch, m_build);
-    else
-        s.sprintf("%d.%d.%d", m_major, m_minor, m_patch);
-    return s;
+    if (m_build) {
+        return QString(QStringLiteral("%1.%2.%3-%4"))
+                .arg(m_major).arg(m_minor).arg(m_patch).arg(m_build);
+    }
+    return QString(QStringLiteral("%1.%2.%3")).arg(m_major).arg(m_minor).arg(m_patch);
 }
 
 int compare(const Version &lhs, const Version &rhs)
