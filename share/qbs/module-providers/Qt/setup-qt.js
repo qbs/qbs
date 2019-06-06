@@ -126,7 +126,7 @@ function isMsvcQt(qtProps) { return qtProps.mkspecName.startsWith(msvcPrefix());
 function msvcCompilerVersionForYear(year) {
     var mapping = {
         "2005": "14", "2008": "15", "2010": "16", "2012": "17", "2013": "18", "2015": "19",
-        "2017": "19.1"
+        "2017": "19.1", "2019": "19.2"
     };
     return mapping[year];
 }
