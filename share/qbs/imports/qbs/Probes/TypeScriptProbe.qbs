@@ -59,8 +59,8 @@ BinaryProbe {
 
         var selectors;
         var results = PathProbeConfigure.configure(
-                    selectors, names, nameSuffixes, nameFilter, searchPaths, pathSuffixes,
-                    platformSearchPaths, environmentPaths, platformEnvironmentPaths,
+                    selectors, names, nameSuffixes, nameFilter, candidateFilter, searchPaths,
+                    pathSuffixes, platformSearchPaths, environmentPaths, platformEnvironmentPaths,
                     pathListSeparator);
 
         var v = new ModUtils.EnvironmentVariable("PATH", pathListSeparator,

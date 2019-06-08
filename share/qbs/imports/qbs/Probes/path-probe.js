@@ -58,9 +58,9 @@ function canonicalSelectors(selectors) {
     return selectors.map(mapper);
 }
 
-function configure(selectors, names, nameSuffixes, nameFilter, searchPaths, pathSuffixes,
-                   platformSearchPaths, environmentPaths, platformEnvironmentPaths,
-                   pathListSeparator) {
+function configure(selectors, names, nameSuffixes, nameFilter, candidateFilter,
+                   searchPaths, pathSuffixes, platformSearchPaths, environmentPaths,
+                   platformEnvironmentPaths, pathListSeparator) {
     var result = { found: false, files: [] };
     if (!selectors && !names)
         throw '"names" or "selectors" must be specified';
@@ -107,7 +107,8 @@ function configure(selectors, names, nameSuffixes, nameFilter, searchPaths, path
                 for (var k = 0; k < _suffixes.length; ++k) {
                     var _filePath = FileInfo.joinPaths(_paths[j], _suffixes[k], selector.names[i]);
                     file.candidatePaths.push(_filePath);
-                    if (File.exists(_filePath)) {
+                    if (File.exists(_filePath)
+                            && (!candidateFilter || candidateFilter(_filePath))) {
                         file.found = true;
                         file.filePath = _filePath;
 

@@ -75,6 +75,25 @@
 */
 
 /*!
+    \qmlproperty var PathProbe::candidateFilter
+
+    This property holds the function that can be used to filter out unsuitable candidates.
+    For example, when searching for a library, it might be necessary to check its architecture:
+    \code
+    PathProbe {
+        pathSuffixes: ["*.so", *.dll]
+        candidateFilter: {
+            function getLibraryArchitecture(file) { ... }
+            return function(file) {
+                return Utilities.isSharedLibrary(file)
+                        && getLibraryArchitecture(file) == qbs.architecture;
+            }
+        }
+    }
+    \endcode
+*/
+
+/*!
     \qmlproperty stringList PathProbe::names
 
     The list of file names to search for.

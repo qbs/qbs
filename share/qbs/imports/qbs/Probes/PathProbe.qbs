@@ -36,6 +36,7 @@ Probe {
     property stringList names
     property stringList nameSuffixes
     property var nameFilter
+    property var candidateFilter
     property varList selectors
     property pathList pathPrefixes
     property pathList searchPaths
@@ -63,9 +64,9 @@ Probe {
         var _searchPaths = ModUtils.concatAll(pathPrefixes, searchPaths);
         var _platformSearchPaths = ModUtils.concatAll(platformPaths, platformSearchPaths);
         var results = PathProbeConfigure.configure(selectors, names, nameSuffixes, nameFilter,
-                                                  _searchPaths, pathSuffixes, _platformSearchPaths,
-                                                  environmentPaths, platformEnvironmentPaths,
-                                                  pathListSeparator);
+                                                   candidateFilter, _searchPaths, pathSuffixes,
+                                                   _platformSearchPaths, environmentPaths,
+                                                   platformEnvironmentPaths, pathListSeparator);
         found = results.found;
         allResults = results.files;
 

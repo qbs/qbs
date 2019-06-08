@@ -49,8 +49,8 @@ BinaryProbe {
     configure: {
         var selectors;
         var _results = PathProbeConfigure.configure(
-                    selectors, names, nameSuffixes, nameFilter, searchPaths, pathSuffixes,
-                    platformSearchPaths, environmentPaths, platformEnvironmentPaths,
+                    selectors, names, nameSuffixes, nameFilter, candidateFilter, searchPaths,
+                    pathSuffixes, platformSearchPaths, environmentPaths, platformEnvironmentPaths,
                     pathListSeparator);
         found = _results.found;
         var resultFile = _results.files[0];

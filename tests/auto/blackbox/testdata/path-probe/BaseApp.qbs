@@ -37,6 +37,7 @@ CppApplication {
     property varList inputNameSuffixes
     property pathList inputSearchPaths
     property var inputNameFilter
+    property var inputCandidateFilter
 
     property stringList outputFilePaths
 
@@ -46,6 +47,7 @@ CppApplication {
         names: inputNames
         nameSuffixes: inputNameSuffixes
         nameFilter: inputNameFilter
+        candidateFilter: inputCandidateFilter
         searchPaths: inputSearchPaths
     }
 
