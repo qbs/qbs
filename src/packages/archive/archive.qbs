@@ -8,9 +8,12 @@ QbsProduct {
     Depends { name: "qbs_processlauncher" }
     Depends { name: "qbscore" }
     Depends { name: "bundledqt" }
-    Depends { name: "qbs documentation" }
+    Depends { name: "qbs documentation"; condition: project.withDocumentation }
     Depends { name: "qbs resources" }
-    Depends { name: "qbs man page"; condition: qbs.targetOS.contains("unix") }
+    Depends {
+        name: "qbs man page"
+        condition: qbs.targetOS.contains("unix") && project.withDocumentation
+    }
     Depends { productTypes: ["qbsapplication", "qbsplugin"] }
 
     Depends { name: "archiver" }
