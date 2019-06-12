@@ -71,7 +71,7 @@ Module {
     version: [compilerVersionMajor, compilerVersionMinor, compilerVersionPatch].join(".")
     property string compilerVersion: jdkVersionProbe.version
                                      ? jdkVersionProbe.version[1] : undefined
-    property var compilerVersionParts: compilerVersion ? compilerVersion.split(/[\._]/).map(function(item) { return parseInt(item, 10); }) : []
+    property var compilerVersionParts: JavaUtils.splitVersionString(compilerVersion)
     property int compilerVersionMajor: compilerVersionParts[0]
     property int compilerVersionMinor: compilerVersionParts[1]
     property int compilerVersionPatch: compilerVersionParts[2]
@@ -178,7 +178,7 @@ Module {
         if (Utilities.versionCompare(version, "9") < 0)
             validator.setRequiredProperty("compilerVersionUpdate", compilerVersionUpdate);
         validator.addVersionValidator("compilerVersion", compilerVersion
-                                      ? compilerVersion.replace("_", ".") : undefined, 3, 4);
+                                      ? compilerVersion.replace("_", ".") : undefined, 1, 4);
         validator.addRangeValidator("compilerVersionMajor", compilerVersionMajor, 1);
         validator.addRangeValidator("compilerVersionMinor", compilerVersionMinor, 0);
         validator.addRangeValidator("compilerVersionPatch", compilerVersionPatch, 0);

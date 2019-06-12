@@ -331,7 +331,8 @@ var PropertyValidator = (function () {
             if (max !== undefined && value > max)
                 return false;
             return true;
-        }, "must be " + (!allowFloats ? "an integer " : "") + message.join(" and "));
+        }, "must be " + (!allowFloats ? "an integer " : "") + message.join(" and ")
+                + ", actual value: " + propertyValue);
     };
 
     PropertyValidator.prototype.addVersionValidator = function (propertyName, propertyValue, minComponents, maxComponents, allowSuffixes) {
@@ -347,7 +348,7 @@ var PropertyValidator = (function () {
         }, "must be a version number with " + (minComponents === maxComponents
                 ? minComponents : (minComponents + " to " + maxComponents))
                   + (minComponents === maxComponents && minComponents === 1
-                     ? " component" : " components"));
+                     ? " component" : " components") + ", actual value: " + propertyValue);
     };
 
     PropertyValidator.prototype.addFileNameValidator = function (propertyName, propertyValue) {

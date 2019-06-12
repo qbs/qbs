@@ -136,7 +136,7 @@ function findJdkVersion(compilerFilePath) {
     var p = new Process();
     try {
         p.exec(compilerFilePath, ["-version"]);
-        var re = /^javac (([0-9]+(?:\.[0-9]+){2,2})(_([0-9]+))?)$/m;
+        var re = /^javac (([0-9]+(?:\.[0-9]+){0,2})(_([0-9]+))?)$/m;
         var match = p.readStdErr().trim().match(re);
         if (!match)
             match = p.readStdOut().trim().match(re);
@@ -145,6 +145,19 @@ function findJdkVersion(compilerFilePath) {
     } finally {
         p.close();
     }
+}
+
+function splitVersionString(compilerVersion) {
+    if (!compilerVersion)
+        return [];
+
+    var result = compilerVersion.split(/[\._]/).map(function(item) {
+        return parseInt(item, 10);
+    });
+    // special case, if javac -version returned "12" instead of "12.0.0"
+    if (result.length === 1)
+        result.push(0, 0);
+    return result;
 }
 
 function supportsGeneratedNativeHeaderFiles(product) {
