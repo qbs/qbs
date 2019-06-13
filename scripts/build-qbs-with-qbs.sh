@@ -56,17 +56,25 @@ export LSAN_OPTIONS="suppressions=$( cd "$(dirname "$0")" ; pwd -P )/address-san
 #
 BUILD_OPTIONS="\
     ${QBS_BUILD_PROFILE:+profile:${QBS_BUILD_PROFILE}} \
-    modules.qbsbuildconfig.enableAddressSanitizer:true \
     modules.qbsbuildconfig.enableProjectFileUpdates:true \
     modules.qbsbuildconfig.enableUnitTests:true \
 "
+
+WITH_ASAN=${WITH_ASAN:-1}
+if [ "$WITH_ASAN" -ne 0 ]; then
+    BUILD_OPTIONS="$BUILD_OPTIONS modules.qbsbuildconfig.enableAddressSanitizer:true"
+fi
 
 #
 # Build all default products of Qbs
 #
 qbs resolve ${BUILD_OPTIONS}
 qbs build ${BUILD_OPTIONS}
-qbs build -p "qbs documentation" ${BUILD_OPTIONS}
+
+WITH_DOCS=${BUILD_DOCS:-1}
+if [ "$BUILD_DOCS" -ne 0 ]; then
+    qbs build -p "qbs documentation" ${BUILD_OPTIONS}
+fi
 
 #
 # Set up profiles for the freshly built Qbs if not
