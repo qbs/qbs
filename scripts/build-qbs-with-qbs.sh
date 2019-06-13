@@ -40,12 +40,6 @@
 set -e
 
 #
-# It might be desired to keep settings for Qbs testing
-# in a separate folder.
-#
-export QBS_AUTOTEST_SETTINGS_DIR="${QBS_AUTOTEST_SETTINGS_DIR:-/tmp/qbs-settings}"
-
-#
 # Qbs is built with the address sanitizer enabled.
 # Suppress findings in some parts of Qbs / dependencies.
 #
@@ -83,6 +77,7 @@ fi
 if [ -z "${QBS_AUTOTEST_PROFILE}" ]; then
 
     export QBS_AUTOTEST_PROFILE=autotestprofile
+    export QBS_AUTOTEST_SETTINGS_DIR=`mktemp -d 2>/dev/null || mktemp -d -t 'qbs-settings'`
 
     RUN_OPTIONS="\
         --settings-dir ${QBS_AUTOTEST_SETTINGS_DIR} \
