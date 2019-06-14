@@ -151,6 +151,9 @@
         \li Provides the \c{Qt Quick} module (Qt Quick 2). For more information,
             see \l{Qt.quick}.
     \row
+        \li quickcontrols2
+        \li Qt Quick Controls 2
+    \row
         \li \l{Qt.qml}{qml}
         \li Qt QML
         \li For more information, see \l{Qt.qml}.
