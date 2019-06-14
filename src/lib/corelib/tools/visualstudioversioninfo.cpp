@@ -60,7 +60,7 @@ VisualStudioVersionInfo::VisualStudioVersionInfo(const Version &version)
 std::set<VisualStudioVersionInfo> VisualStudioVersionInfo::knownVersions()
 {
     static const std::set<VisualStudioVersionInfo> known = {
-        Version(15), Version(14), Version(12), Version(11), Version(10), Version(9),
+        Version(16), Version(15), Version(14), Version(12), Version(11), Version(10), Version(9),
         Version(8), Version(7, 1), Version(7), Version(6)
     };
     return known;
@@ -125,6 +125,8 @@ int VisualStudioVersionInfo::marketingVersion() const
         return 2015;
     case 15:
         return 2017;
+    case 16:
+        return 2019;
     default:
         qWarning() << QStringLiteral("unrecognized Visual Studio version: ")
                    << m_version.toString();

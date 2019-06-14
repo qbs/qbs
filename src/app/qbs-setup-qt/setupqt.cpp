@@ -142,7 +142,7 @@ static Version msvcVersionFromDirName(const QString &dir)
     QMap<std::string, std::string> mapping{
         std::make_pair("2005", "14"), std::make_pair("2008", "15"), std::make_pair("2010", "16"),
         std::make_pair("2012", "17"), std::make_pair("2013", "18"), std::make_pair("2015", "19"),
-        std::make_pair("2017", "19.1")
+        std::make_pair("2017", "19.1"), std::make_pair("2019", "19.2")
     };
     return Version::fromString(QString::fromStdString(mapping.value(match[1].str())));
 }
