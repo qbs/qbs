@@ -101,7 +101,7 @@ LinuxGCC {
 
     linkerFlags: NdkUtils.commonLinkerFlags(Android.ndk.abi);
     driverLinkerFlags: {
-        var flags = ["-fuse-ld=lld", "-Wl,--exclude-libs,libgcc.a", "-Wl,--exclude-libs,libatomic.a"];
+        var flags = ["-fuse-ld=lld", "-Wl,--exclude-libs,libgcc.a", "-Wl,--exclude-libs,libatomic.a", "-nostdlib++"];
         if (Android.ndk.appStl.startsWith("c++") && Android.ndk.abi === "armeabi-v7a")
             flags = flags.concat(["-Wl,--exclude-libs,libunwind.a"]);
         return flags;
