@@ -29,3 +29,45 @@ jobs:
       name: With QMake on Debian stretch (linux_amd64)
       script:
         - docker-compose run --rm ${SERVICE} scripts/build-qbs-with-qmake.sh
+
+    - &build-on-macos
+      stage: Build Qbs and and run autotests
+      name: With Qbs on macOS (xcode 10.2)
+      os: osx
+      osx_image: xcode10.2
+      addons:
+        homebrew:
+          packages:
+            - p7zip
+          update: true
+      env:
+        # Address sanitizer slows autotests down too much.
+        # We would hit the maximum build time on Travis.
+        BUILD_OPTIONS=modules.qbsbuildconfig.enableAddressSanitizer:false
+        QT_INSTALL_DIR=/Users/travis/Qt
+        QMAKE_PATH=${QT_INSTALL_DIR}/5.12.4/clang_64/bin/qmake
+        PATH="${QT_INSTALL_DIR}/Qt Creator.app/Contents/MacOS:${PATH}"
+      before_install:
+        - curl -L -o qtbase.7z        http://master.qt.io/online/qtsdkrepository/mac_x64/desktop/qt5_5124/qt.qt5.5124.clang_64/5.12.4-0-201906140148qtbase-MacOS-MacOS_10_13-Clang-MacOS-MacOS_10_13-X86_64.7z
+        - curl -L -o qtdeclarative.7z http://master.qt.io/online/qtsdkrepository/mac_x64/desktop/qt5_5124/qt.qt5.5124.clang_64/5.12.4-0-201906140148qtdeclarative-MacOS-MacOS_10_13-Clang-MacOS-MacOS_10_13-X86_64.7z
+        - curl -L -o qttools.7z       http://master.qt.io/online/qtsdkrepository/mac_x64/desktop/qt5_5124/qt.qt5.5124.clang_64/5.12.4-0-201906140148qttools-MacOS-MacOS_10_13-Clang-MacOS-MacOS_10_13-X86_64.7z
+        - curl -L -o qtscript.7z      http://master.qt.io/online/qtsdkrepository/mac_x64/desktop/qt5_5124/qt.qt5.5124.qtscript.clang_64/5.12.4-0-201906140148qtscript-MacOS-MacOS_10_13-Clang-MacOS-MacOS_10_13-X86_64.7z
+        - curl -L -o qtcreator.7z     http://master.qt.io/online/qtsdkrepository/mac_x64/desktop/tools_qtcreator/qt.tools.qtcreator/4.9.1-0qtcreator.7z
+        - 7z x -o${QT_INSTALL_DIR} qtbase.7z
+        - 7z x -o${QT_INSTALL_DIR} qtdeclarative.7z
+        - 7z x -o${QT_INSTALL_DIR} qttools.7z
+        - 7z x -o${QT_INSTALL_DIR} qtscript.7z
+        - 7z x -o${QT_INSTALL_DIR} qtcreator.7z
+        - printf "[Paths]\nPrefix = ${QT_INSTALL_DIR}/5.12.4/clang_64\n" > ${QT_INSTALL_DIR}/5.12.4/clang_64/bin/qt.conf
+        - pip2 install --user beautifulsoup4 lxml
+      script:
+        - qbs setup-toolchains --detect
+        - qbs setup-qt ${QMAKE_PATH} qt
+        - qbs config qt.baseProfile xcode-macosx-x86_64
+        - qbs config defaultProfile qt
+        - scripts/build-qbs-with-qbs.sh
+
+# Disabled because of https://bugreports.qt.io/browse/QBS-1456
+#    - <<: *build-on-macos
+#      name: With Qbs on macOS (xcode 9.4)
+#      osx_image: xcode9.4
