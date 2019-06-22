@@ -32,7 +32,7 @@ VERSION = $${QBS_VERSION}
 linux {
     # Turn off absurd qmake's soname "logic" and directly add the linker flag.
     QMAKE_LFLAGS_SONAME =
-    QMAKE_LFLAGS = -Wl,-soname=lib$${TARGET}.so.$${QBS_VERSION_MAJ}.$${QBS_VERSION_MIN}
+    QMAKE_LFLAGS += -Wl,-soname=lib$${TARGET}.so.$${QBS_VERSION_MAJ}.$${QBS_VERSION_MIN}
 }
 
 win32 {
