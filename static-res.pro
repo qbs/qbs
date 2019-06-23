@@ -5,8 +5,9 @@ else: qbsbindir = bin
 
 envSpec =
 unix:qbs_disable_rpath {
+    include(src/library_dirname.pri)
     !isEmpty(QBS_DESTDIR): qbslibdir = $$QBS_DESTDIR
-    else: qbslibdir = $$OUT_PWD/lib
+    else: qbslibdir = $$OUT_PWD/$$QBS_LIBRARY_DIRNAME
     macos: envVar = DYLD_LIBRARY_PATH
     else: envVar = LD_LIBRARY_PATH
     oldVal = $$getenv($$envVar)
