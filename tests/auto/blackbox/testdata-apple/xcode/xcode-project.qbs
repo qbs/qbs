@@ -1,5 +1,5 @@
 Project {
-    property stringList sdks: []
+    property var sdks: {}
 
     Product {
         Depends { name: "xcode" }
@@ -14,7 +14,27 @@ Project {
             console.info("Latest SDK version: " + xcode.latestSdkVersion);
             console.info("Available SDK names: " + xcode.availableSdkNames.join(", "));
             console.info("Available SDK versions: " + xcode.availableSdkVersions.join(", "));
-            console.info("Actual SDK list: " + project.sdks.join(", "));
+
+            var targetOsToKey = function(targetOS) {
+                if (targetOS.contains("ios"))
+                    return "iphoneos";
+                if (targetOS.contains("ios-simulator"))
+                    return "iphonesimulator";
+                if (targetOS.contains("macos"))
+                    return "macosx";
+                if (targetOS.contains("tvos"))
+                    return "appletvos";
+                if (targetOS.contains("tvos-simulator"))
+                    return "appletvsimulator";
+                if (targetOS.contains("watchos"))
+                    return "watchos";
+                if (targetOS.contains("watchos-simulator"))
+                    return "watchossimulator";
+                throw "Unsupported OS" + targetOS;
+            }
+
+            var actualList = project.sdks[targetOsToKey(qbs.targetOS)];
+            console.info("Actual SDK list: " + actualList.join(", "));
 
             var msg = "Unexpected SDK list [" + xcode.availableSdkVersions.join(", ") + "]";
             var testArraysEqual = function(a, b) {
@@ -29,7 +49,7 @@ Project {
                 }
             }
 
-            testArraysEqual(project.sdks, xcode.availableSdkVersions);
+            testArraysEqual(actualList, xcode.availableSdkVersions);
         }
     }
 }

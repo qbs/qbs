@@ -758,16 +758,28 @@ void TestBlackboxApple::xcode()
             sdks.insert({ match[1], match[2] });
     }
 
-    auto range = sdks.equal_range("macosx");
-    QStringList sdkValues;
-    for (auto i = range.first; i != range.second; ++i)
-        sdkValues.push_back(QString::fromStdString(i->second));
+    const auto getSdksByType = [&sdks]()
+    {
+        QStringList result;
+        std::string sdkType;
+        QStringList sdkValues;
+        for (const auto &sdk: sdks) {
+            if (!sdkType.empty() && sdkType != sdk.first) {
+                result.append(QStringLiteral("%1:['%2']")
+                        .arg(QString::fromStdString(sdkType), sdkValues.join("','")));
+                sdkValues.clear();
+            }
+            sdkType = sdk.first;
+            sdkValues.append(QString::fromStdString(sdk.second));
+        }
+        return result;
+    };
 
     QDir::setCurrent(testDataDir + "/xcode");
     QbsRunParameters params;
     params.arguments = (QStringList()
                         << (QStringLiteral("modules.xcode.developerPath:") + developerPath)
-                        << (QStringLiteral("project.sdks:['") + sdkValues.join("','") + "']"));
+                        << (QStringLiteral("project.sdks:{") + getSdksByType().join(",") + "}"));
     QCOMPARE(runQbs(params), 0);
 }
 
