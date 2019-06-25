@@ -65,8 +65,8 @@ fi
 qbs resolve ${BUILD_OPTIONS}
 qbs build ${BUILD_OPTIONS}
 
-WITH_DOCS=${BUILD_DOCS:-1}
-if [ "$BUILD_DOCS" -ne 0 ]; then
+WITH_DOCS=${WITH_DOCS:-1}
+if [ "$WITH_DOCS" -ne 0 ]; then
     qbs build -p "qbs documentation" ${BUILD_OPTIONS}
 fi
 
