@@ -50,8 +50,8 @@ DarwinGCC {
                                     : "-iphoneos_version_min"
 
     libcxxAvailable: base
-                     && minimumDarwinVersion
-                     && Utilities.versionCompare(minimumDarwinVersion, "5") >= 0
+                     && (!minimumDarwinVersion
+                         || Utilities.versionCompare(minimumDarwinVersion, "5") >= 0)
 
     platformObjcFlags: base.concat(simulatorObjcFlags)
     platformObjcxxFlags: base.concat(simulatorObjcFlags)
