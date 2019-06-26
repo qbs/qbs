@@ -222,6 +222,9 @@ void TestBlackboxApple::assetCatalog()
     QCOMPARE(runQbs(params), 0);
     QVERIFY(!directoryExists(relativeBuildDir()));
 
+    if (m_qbsStdout.contains("Skip this test"))
+        QSKIP("Skip this test");
+
     params.arguments = QStringList() << "-f" << "assetcatalogempty.qbs"
                                      << flattens << macosTarget;
     QCOMPARE(runQbs(params), 0);
