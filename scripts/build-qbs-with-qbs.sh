@@ -59,6 +59,7 @@ BUILD_OPTIONS="\
     modules.qbsbuildconfig.enableAddressSanitizer:true \
     modules.qbsbuildconfig.enableProjectFileUpdates:true \
     modules.qbsbuildconfig.enableUnitTests:true \
+    project.withExamples:true \
 "
 
 #
