@@ -78,76 +78,113 @@ void TestBlackboxApple::initTestCase()
 void TestBlackboxApple::appleMultiConfig()
 {
     const auto xcodeVersion = findXcodeVersion();
-    const bool supportsX86 = xcodeVersion < qbs::Version(10);
-
     QDir::setCurrent(testDataDir + "/apple-multiconfig");
     QCOMPARE(runQbs(QbsRunParameters(QStringList{
         "qbs.installPrefix:''",
-        QString("project.enableX86:") + (supportsX86 ? "true" : "false")})), 0);
+        QStringLiteral("project.xcodeVersion:") + xcodeVersion.toString()})), 0);
 
-    QVERIFY(QFileInfo2(defaultInstallRoot + "/singleapp.app/Contents/MacOS/singleapp").isExecutable());
-    QVERIFY(QFileInfo2(defaultInstallRoot + "/singleapp.app/Contents/Info.plist").isRegularFile());
-    QVERIFY(QFileInfo2(defaultInstallRoot + "/singleapp.app/Contents/PkgInfo").isRegularFile());
+    if (m_qbsStdout.contains("isShallow: false")) {
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/singleapp.app/Contents/MacOS/singleapp").isExecutable());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/singleapp.app/Contents/Info.plist").isRegularFile());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/singleapp.app/Contents/PkgInfo").isRegularFile());
 
-    QVERIFY(QFileInfo2(defaultInstallRoot + "/singleapp_agg.app/Contents/MacOS/singleapp_agg").isExecutable());
-    QVERIFY(QFileInfo2(defaultInstallRoot + "/singleapp_agg.app/Contents/Info.plist").isRegularFile());
-    QVERIFY(QFileInfo2(defaultInstallRoot + "/singleapp_agg.app/Contents/PkgInfo").isRegularFile());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/singleapp_agg.app/Contents/MacOS/singleapp_agg").isExecutable());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/singleapp_agg.app/Contents/Info.plist").isRegularFile());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/singleapp_agg.app/Contents/PkgInfo").isRegularFile());
 
-    QVERIFY(QFileInfo2(defaultInstallRoot + "/singlelib.framework/singlelib").isFileSymLink());
-    QVERIFY(QFileInfo2(defaultInstallRoot + "/singlelib.framework/Resources").isDirSymLink());
-    QVERIFY(QFileInfo2(defaultInstallRoot + "/singlelib.framework/Versions").isRegularDir());
-    QVERIFY(QFileInfo2(defaultInstallRoot + "/singlelib.framework/Versions/A").isRegularDir());
-    QVERIFY(QFileInfo2(defaultInstallRoot + "/singlelib.framework/Versions/A/singlelib").isRegularFile());
-    QVERIFY(QFileInfo2(defaultInstallRoot + "/singlelib.framework/Versions/A/Resources").isRegularDir());
-    QVERIFY(QFileInfo2(defaultInstallRoot + "/singlelib.framework/Versions/A/Resources/Info.plist").isRegularFile());
-    QVERIFY(QFileInfo2(defaultInstallRoot + "/singlelib.framework/Versions/Current").isDirSymLink());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/singlelib.framework/singlelib").isFileSymLink());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/singlelib.framework/Resources").isDirSymLink());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/singlelib.framework/Versions").isRegularDir());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/singlelib.framework/Versions/A").isRegularDir());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/singlelib.framework/Versions/A/singlelib").isRegularFile());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/singlelib.framework/Versions/A/Resources").isRegularDir());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/singlelib.framework/Versions/A/Resources/Info.plist").isRegularFile());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/singlelib.framework/Versions/Current").isDirSymLink());
 
-    QVERIFY(QFileInfo2(defaultInstallRoot + "/multiapp.app/Contents/MacOS/multiapp").isExecutable());
-    QVERIFY(QFileInfo2(defaultInstallRoot + "/multiapp.app/Contents/Info.plist").isRegularFile());
-    QVERIFY(QFileInfo2(defaultInstallRoot + "/multiapp.app/Contents/PkgInfo").isRegularFile());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/multiapp.app/Contents/MacOS/multiapp").isExecutable());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/multiapp.app/Contents/Info.plist").isRegularFile());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/multiapp.app/Contents/PkgInfo").isRegularFile());
 
-    QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiapp.app/Contents/MacOS/fatmultiapp").isExecutable());
-    QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiapp.app/Contents/Info.plist").isRegularFile());
-    QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiapp.app/Contents/PkgInfo").isRegularFile());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiapp.app/Contents/MacOS/fatmultiapp").isExecutable());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiapp.app/Contents/Info.plist").isRegularFile());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiapp.app/Contents/PkgInfo").isRegularFile());
 
-    QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiappmultivariant.app/Contents/MacOS/"
-                                            "fatmultiappmultivariant").isFileSymLink());
-    QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiappmultivariant.app/Contents/MacOS/"
-                                            "fatmultiappmultivariant_debug").isExecutable());
-    QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiappmultivariant.app/Contents/MacOS/"
-                                            "fatmultiappmultivariant_profile").isExecutable());
-    QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiappmultivariant.app/Contents/Info.plist")
-            .isRegularFile());
-    QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiappmultivariant.app/Contents/PkgInfo")
-            .isRegularFile());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiappmultivariant.app/Contents/MacOS/"
+                                                "fatmultiappmultivariant").isFileSymLink());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiappmultivariant.app/Contents/MacOS/"
+                                                "fatmultiappmultivariant_debug").isExecutable());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiappmultivariant.app/Contents/MacOS/"
+                                                "fatmultiappmultivariant_profile").isExecutable());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiappmultivariant.app/Contents/Info.plist")
+                .isRegularFile());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiappmultivariant.app/Contents/PkgInfo")
+                .isRegularFile());
 
-    QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/multilib").isFileSymLink());
-    QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/Resources").isDirSymLink());
-    QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/Versions").isRegularDir());
-    QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/Versions/A").isRegularDir());
-    QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/Versions/A/multilib").isRegularFile());
-    QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/Versions/A/multilib_debug").isRegularFile());
-    QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/Versions/A/multilib_profile").isRegularFile());
-    QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/Versions/A/Resources").isRegularDir());
-    QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/Versions/A/Resources/Info.plist").isRegularFile());
-    QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/Versions/Current").isDirSymLink());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/multilib").isFileSymLink());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/Resources").isDirSymLink());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/Versions").isRegularDir());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/Versions/A").isRegularDir());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/Versions/A/multilib").isRegularFile());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/Versions/A/multilib_debug").isRegularFile());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/Versions/A/multilib_profile").isRegularFile());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/Versions/A/Resources").isRegularDir());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/Versions/A/Resources/Info.plist").isRegularFile());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/Versions/Current").isDirSymLink());
 
-    for (const QString &variant : { "release", "debug", "profile" }) {
-        for (const QString &arch : { "x86_64" }) {
-            QProcess process;
-            process.setProgram("/usr/bin/arch");
-            process.setArguments({
-                "-arch", arch,
-                "-e", "DYLD_IMAGE_SUFFIX=_" + variant,
-                defaultInstallRoot + "/multiapp.app/Contents/MacOS/multiapp"
-            });
-            process.start();
-            process.waitForFinished();
-            QCOMPARE(process.exitCode(), 0);
-            const auto processStdout = process.readAllStandardOutput();
-            QVERIFY2(processStdout.contains("Hello from " + variant.toUtf8() + " " + arch.toUtf8()),
-                     processStdout.constData());
+        for (const QString &variant : { "release", "debug", "profile" }) {
+            for (const QString &arch : { "x86_64" }) {
+                QProcess process;
+                process.setProgram("/usr/bin/arch");
+                process.setArguments({
+                                         "-arch", arch,
+                                         "-e", "DYLD_IMAGE_SUFFIX=_" + variant,
+                                         defaultInstallRoot + "/multiapp.app/Contents/MacOS/multiapp"
+                                     });
+                process.start();
+                process.waitForFinished();
+                QCOMPARE(process.exitCode(), 0);
+                const auto processStdout = process.readAllStandardOutput();
+                QVERIFY2(processStdout.contains("Hello from " + variant.toUtf8() + " " + arch.toUtf8()),
+                         processStdout.constData());
+            }
         }
+    } else if (m_qbsStdout.contains("isShallow: true")) {
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/singleapp.app/singleapp").isExecutable());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/singleapp.app/Info.plist").isRegularFile());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/singleapp.app/PkgInfo").isRegularFile());
+
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/singleapp_agg.app/singleapp_agg").isExecutable());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/singleapp_agg.app/Info.plist").isRegularFile());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/singleapp_agg.app/PkgInfo").isRegularFile());
+
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/singlelib.framework/singlelib").isExecutable());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/singlelib.framework/Info.plist").isRegularFile());
+
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/multiapp.app/multiapp").isExecutable());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/multiapp.app/Info.plist").isRegularFile());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/multiapp.app/PkgInfo").isRegularFile());
+
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiapp.app/fatmultiapp").isExecutable());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiapp.app/Info.plist").isRegularFile());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiapp.app/PkgInfo").isRegularFile());
+
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiappmultivariant.app/"
+                                                "fatmultiappmultivariant").isFileSymLink());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiappmultivariant.app/"
+                                                "fatmultiappmultivariant_debug").isExecutable());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiappmultivariant.app/"
+                                                "fatmultiappmultivariant_profile").isExecutable());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiappmultivariant.app/Info.plist")
+                .isRegularFile());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiappmultivariant.app/PkgInfo")
+                .isRegularFile());
+
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/multilib").isRegularFile());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/multilib_debug").isRegularFile());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/multilib_profile").isRegularFile());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/Info.plist").isRegularFile());
+    } else {
+        QVERIFY2(false, qPrintable(m_qbsStdout));
     }
 }
 
