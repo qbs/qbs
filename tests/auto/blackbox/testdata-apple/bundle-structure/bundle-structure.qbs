@@ -3,6 +3,15 @@ Project {
 
     property stringList buildableProducts: ["A", "B", "C", "D", "E", "F", "G"]
 
+    Product {
+        Depends { name: "bundle" }
+        condition: {
+            console.info("bundle.isShallow: " + bundle.isShallow);
+            console.info("qbs.targetOS: " + qbs.targetOS);
+            return false;
+        }
+    }
+
     Application {
         Depends { name: "cpp" }
         Depends { name: "B" }

@@ -301,19 +301,10 @@ void TestBlackboxApple::bundleStructure()
 {
     QFETCH(QString, productName);
     QFETCH(QString, productTypeIdentifier);
-    QFETCH(bool, isShallow);
 
     QDir::setCurrent(testDataDir + "/bundle-structure");
     QbsRunParameters params(QStringList{"qbs.installPrefix:''"});
     params.arguments << "project.buildableProducts:" + productName;
-    if (isShallow) {
-        // Coerce shallow bundles - don't set bundle.isShallow directly because we want to test the
-        // automatic detection
-        const auto xcode5 = findXcodeVersion() >= qbs::Version(5);
-        params.arguments
-                << "modules.qbs.targetPlatform:ios"
-                << (xcode5 ? "qbs.architectures:arm64" : "qbs.architectures:armv7a");
-    }
 
     if (productName == "ABadApple" || productName == "ABadThirdParty")
         params.expectFailure = true;
@@ -330,7 +321,10 @@ void TestBlackboxApple::bundleStructure()
 
     QCOMPARE(status, 0);
 
-    if (!isShallow) {
+    if (m_qbsStdout.contains("bundle.isShallow: false")) {
+        // Test shallow bundles detection - bundles are not shallow only on macOS, so also check
+        // the qbs.targetOS property
+        QVERIFY2(m_qbsStdout.contains("qbs.targetOS: macos"), m_qbsStdout);
         if (productName == "A") {
             QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app").isRegularDir());
             QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app/Contents").isRegularDir());
@@ -424,7 +418,9 @@ void TestBlackboxApple::bundleStructure()
             QVERIFY(QFileInfo2(defaultInstallRoot + "/G/ContentInfo.plist").isRegularFile());
             QVERIFY(QFileInfo2(defaultInstallRoot + "/G/Contents/resource.txt").isRegularFile());
         }
-    } else {
+    } else if (m_qbsStdout.contains("bundle.isShallow: true")) {
+        QVERIFY2(m_qbsStdout.contains("qbs.targetOS:"), m_qbsStdout);
+        QVERIFY2(!m_qbsStdout.contains("qbs.targetOS: macos"), m_qbsStdout);
         if (productName == "A") {
             QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app").isRegularDir());
             QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app/A").isRegularFile());
@@ -502,6 +498,8 @@ void TestBlackboxApple::bundleStructure()
             QVERIFY(QFileInfo2(defaultInstallRoot + "/G/ContentInfo.plist").isRegularFile());
             QVERIFY(QFileInfo2(defaultInstallRoot + "/G/Contents/resource.txt").isRegularFile());
         }
+    } else {
+        QVERIFY2(false, qPrintable(m_qbsStdout));
     }
 }
 
@@ -511,21 +509,15 @@ void TestBlackboxApple::bundleStructure_data()
     QTest::addColumn<QString>("productTypeIdentifier");
     QTest::addColumn<bool>("isShallow");
 
-    const auto addRows = [](bool isShallow) {
-        const QString s = (isShallow ? " shallow" : "");
-        QTest::newRow(("A" + s).toLatin1()) << "A" << "com.apple.product-type.application" << isShallow;
-        QTest::newRow(("ABadApple" + s).toLatin1()) << "ABadApple" << "com.apple.product-type.will.never.exist.ever.guaranteed" << isShallow;
-        QTest::newRow(("ABadThirdParty" + s).toLatin1()) << "ABadThirdParty" << "org.special.third.party.non.existent.product.type" << isShallow;
-        QTest::newRow(("B" + s).toLatin1()) << "B" << "com.apple.product-type.framework" << isShallow;
-        QTest::newRow(("C" + s).toLatin1()) << "C" << "com.apple.product-type.framework.static" << isShallow;
-        QTest::newRow(("D" + s).toLatin1()) << "D" << "com.apple.product-type.bundle" << isShallow;
-        QTest::newRow(("E" + s).toLatin1()) << "E" << "com.apple.product-type.app-extension" << isShallow;
-        QTest::newRow(("F" + s).toLatin1()) << "F" << "com.apple.product-type.xpc-service" << isShallow;
-        QTest::newRow(("G" + s).toLatin1()) << "G" << "com.apple.product-type.in-app-purchase-content" << isShallow;
-    };
-
-    addRows(true);
-    addRows(false);
+    QTest::newRow("A") << "A" << "com.apple.product-type.application";
+    QTest::newRow("ABadApple") << "ABadApple" << "com.apple.product-type.will.never.exist.ever.guaranteed";
+    QTest::newRow("ABadThirdParty") << "ABadThirdParty" << "org.special.third.party.non.existent.product.type";
+    QTest::newRow("B") << "B" << "com.apple.product-type.framework";
+    QTest::newRow("C") << "C" << "com.apple.product-type.framework.static";
+    QTest::newRow("D") << "D" << "com.apple.product-type.bundle";
+    QTest::newRow("E") << "E" << "com.apple.product-type.app-extension";
+    QTest::newRow("F") << "F" << "com.apple.product-type.xpc-service";
+    QTest::newRow("G") << "G" << "com.apple.product-type.in-app-purchase-content";
 }
 
 void TestBlackboxApple::deploymentTarget()
