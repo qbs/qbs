@@ -39,7 +39,9 @@
 #ifndef QBS_PROBE_H
 #define QBS_PROBE_H
 
-#include <QtCore/qglobal.h>
+#include <tools/version.h>
+
+#include <QtCore/qfileinfo.h>
 
 QT_BEGIN_NAMESPACE
 class QString;
@@ -54,5 +56,11 @@ void createProfile(const QString &profileName, const QString &toolchainType,
                    const QString &compilerFilePath, qbs::Settings *settings);
 
 void probe(qbs::Settings *settings);
+
+struct ToolchainInstallInfo
+{
+    QFileInfo compilerPath;
+    qbs::Version compilerVersion;
+};
 
 #endif // Header guard

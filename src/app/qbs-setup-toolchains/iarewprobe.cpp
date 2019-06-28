@@ -47,7 +47,6 @@
 #include <tools/hostosinfo.h>
 #include <tools/profile.h>
 
-#include <QtCore/qfileinfo.h>
 #include <QtCore/qlist.h>
 #include <QtCore/qsettings.h>
 
@@ -72,14 +71,24 @@ static QString guessIarArchitecture(const QFileInfo &compiler)
     return {};
 }
 
-static Profile createIarProfileHelper(const QFileInfo &compiler, Settings *settings,
+static Profile createIarProfileHelper(const ToolchainInstallInfo &info,
+                                      Settings *settings,
                                       QString profileName = QString())
 {
+    const QFileInfo compiler = info.compilerPath;
     const QString architecture = guessIarArchitecture(compiler);
 
     // In case the profile is auto-detected.
-    if (profileName.isEmpty())
-        profileName = QLatin1String("iar-") + architecture;
+    if (profileName.isEmpty()) {
+        if (!info.compilerVersion.isValid()) {
+            profileName = QStringLiteral("iar-unknown-%1").arg(architecture);
+        } else {
+            const QString version = info.compilerVersion.toString(QLatin1Char('_'),
+                                                                  QLatin1Char('_'));
+            profileName = QStringLiteral("iar-%1-%2").arg(
+                        version, architecture);
+        }
+    }
 
     Profile profile(profileName, settings);
     profile.setValue(QLatin1String("cpp.toolchainInstallPath"), compiler.absolutePath());
@@ -92,9 +101,9 @@ static Profile createIarProfileHelper(const QFileInfo &compiler, Settings *setti
     return profile;
 }
 
-static std::vector<IarInstallInfo> installedIarsFromPath()
+static std::vector<ToolchainInstallInfo> installedIarsFromPath()
 {
-    std::vector<IarInstallInfo> infos;
+    std::vector<ToolchainInstallInfo> infos;
     const auto compilerNames = knownIarCompilerNames();
     for (const QString &compilerName : compilerNames) {
         const QFileInfo iarPath(
@@ -102,14 +111,14 @@ static std::vector<IarInstallInfo> installedIarsFromPath()
                         HostOsInfo::appendExecutableSuffix(compilerName)));
         if (!iarPath.exists())
             continue;
-        infos.push_back({iarPath.absoluteFilePath(), {}});
+        infos.push_back({iarPath, Version{}});
     }
     return infos;
 }
 
-static std::vector<IarInstallInfo> installedIarsFromRegistry()
+static std::vector<ToolchainInstallInfo> installedIarsFromRegistry()
 {
-    std::vector<IarInstallInfo> infos;
+    std::vector<ToolchainInstallInfo> infos;
 
     if (HostOsInfo::isWindowsHost()) {
 
@@ -148,7 +157,7 @@ static std::vector<IarInstallInfo> installedIarsFromRegistry()
                             if (iarPath.exists()) {
                                 // Note: threeLevelKey is a guessed toolchain version.
                                 const QString version = threeLevelKey;
-                                infos.push_back({iarPath.absoluteFilePath(), version});
+                                infos.push_back({iarPath, Version::fromString(version)});
                             }
                         }
                         registry.endGroup();
@@ -175,19 +184,20 @@ bool isIarCompiler(const QString &compilerName)
 void createIarProfile(const QFileInfo &compiler, Settings *settings,
                       QString profileName)
 {
-    createIarProfileHelper(compiler, settings, profileName);
+    const ToolchainInstallInfo info = {compiler, Version{}};
+    createIarProfileHelper(info, settings, profileName);
 }
 
 void iarProbe(Settings *settings, QList<Profile> &profiles)
 {
     qbsInfo() << Tr::tr("Trying to detect IAR toolchains...");
 
-    std::vector<IarInstallInfo> allInfos = installedIarsFromRegistry();
-    const std::vector<IarInstallInfo> pathInfos = installedIarsFromPath();
+    std::vector<ToolchainInstallInfo> allInfos = installedIarsFromRegistry();
+    const std::vector<ToolchainInstallInfo> pathInfos = installedIarsFromPath();
     allInfos.insert(std::end(allInfos), std::begin(pathInfos), std::end(pathInfos));
 
-    for (const IarInstallInfo &info : allInfos) {
-        const auto profile = createIarProfileHelper(info.compilerPath, settings);
+    for (const ToolchainInstallInfo &info : allInfos) {
+        const auto profile = createIarProfileHelper(info, settings);
         profiles.push_back(profile);
     }
 

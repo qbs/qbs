@@ -42,6 +42,7 @@
 
 #include "qbs_export.h"
 
+#include <QtCore/qchar.h>
 #include <QtCore/qglobal.h>
 
 QT_BEGIN_NAMESPACE
@@ -71,7 +72,8 @@ public:
     void setBuildNumber(int nr);
 
     static Version fromString(const QString &versionString, bool buildNumberAllowed = false);
-    QString toString() const;
+    QString toString(const QChar &separator = QLatin1Char('.'),
+                     const QChar &buildSeparator = QLatin1Char('-')) const;
 
 private:
     int m_major;

@@ -51,12 +51,6 @@ class Profile;
 class Settings;
 }
 
-struct IarInstallInfo
-{
-    QString compilerPath;
-    QString version;
-};
-
 bool isIarCompiler(const QString &compilerName);
 
 void createIarProfile(const QFileInfo &compiler, qbs::Settings *settings,
