@@ -1090,9 +1090,12 @@
 
     Passes \c{-miphoneos-version-min=<version>} to the compiler.
 
-    If left undefined, compiler defaults will be used.
+    If set to undefined, compiler defaults will be used.
 
-    \nodefaultvalue
+    \note \QBS sets minimum version to \c "6.0" for \c armv7a because earlier iOS versions are
+    broken in recent XCode installations.
+
+    \defaultvalue \c "6.0" for \c armv7a, \c undefined otherwise
 */
 
 /*!
