@@ -1721,7 +1721,7 @@
     integrate \QBS with popular IDEs, such as Microsoft Visual Studio, and to
     generate Clang compilation databases.
 
-    \section1 Generating Projects
+    \section1 Generating Microsoft Visual Studio Projects
 
     To generate a project for another build system, such as Microsoft Visual
     Studio, use the \l{generate}{qbs generate} command and specify a generator
@@ -1743,6 +1743,31 @@
     to be reflected in \QBS. You must edit your \QBS project files and re-run
     \l{generate}{qbs generate} in order for the changes to be reflected in your
     IDE.
+
+    \section1 Generating IAR Embedded Workbench Projects
+
+    To generate a project for an \l{https://www.iar.com/iar-embedded-workbench/}
+    {IAR Embedded Workbench}, use the \l{generate}{qbs generate} command and specify
+    a generator using the \l{generate-generator}{-g} option. For example:
+
+    \code
+    # For IAREW v8xxxx
+    qbs generate -g iarew8 profile:<your/qbs/profile>
+    qbs generate -g iarew8 -d <path/to/build/directory> -f <path/to/qbs/project> profile:<your/qbs/profile>
+    \endcode
+
+    \note You need to specify a specific QBS profile, which is required for a generator
+    to fetch a target architecture to generate the project.
+
+    \note An existing IAR EW generator creates a native target project for a specified
+    IAR Embedded Workbench.
+
+    Supported IAR EW generators are listed in a table below:
+
+    \table
+    \header \li Generator       \li IAR EW Version      \li Target Architecture
+    \row    \li iarew8          \li All 8.x.y versions  \li ARM
+    \endtable
 
     \section1 Generating Clang Compilation Databases
 

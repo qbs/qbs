@@ -1,2 +1,2 @@
 TEMPLATE = subdirs
-SUBDIRS = clangcompilationdb makefilegenerator visualstudio
+SUBDIRS = clangcompilationdb makefilegenerator visualstudio iarew
