@@ -47,6 +47,7 @@ jobs:
         QT_INSTALL_DIR=/Users/travis/Qt
         QMAKE_PATH=${QT_INSTALL_DIR}/5.12.4/clang_64/bin/qmake
         PATH="${QT_INSTALL_DIR}/Qt Creator.app/Contents/MacOS:${PATH}"
+        QBS_BUILD_PROFILE=qt
       before_install:
         - curl -L -o qtbase.7z        http://master.qt.io/online/qtsdkrepository/mac_x64/desktop/qt5_5124/qt.qt5.5124.clang_64/5.12.4-0-201906140148qtbase-MacOS-MacOS_10_13-Clang-MacOS-MacOS_10_13-X86_64.7z
         - curl -L -o qtdeclarative.7z http://master.qt.io/online/qtsdkrepository/mac_x64/desktop/qt5_5124/qt.qt5.5124.clang_64/5.12.4-0-201906140148qtdeclarative-MacOS-MacOS_10_13-Clang-MacOS-MacOS_10_13-X86_64.7z
@@ -71,3 +72,47 @@ jobs:
 #    - <<: *build-on-macos
 #      name: With Qbs on macOS (xcode 9.4)
 #      osx_image: xcode9.4
+
+    - &build-on-windows
+      stage: Build Qbs and and run autotests
+      name: With Qbs on Windows (Visual Studio 2017)
+      os: windows
+      env:
+        # Need to build in release mode. Otherwise autotests would be too slow.
+        BUILD_OPTIONS="config:release"
+        QT_INSTALL_DIR=C:/Qt
+        QMAKE_PATH=${QT_INSTALL_DIR}/5.12.4/msvc2017_64/bin/qmake.exe
+        PATH="/c/Qt/Tools/QtCreator/bin:${PATH}"
+        WITH_DOCS=0
+        QBS_BUILD_PROFILE=qt
+      before_install:
+        # Disable unnecessary background services which tend to consume
+        # a lot of resources
+        - powershell -Command 'Set-MpPreference -DisableRealtimeMonitoring $true'
+        - powershell -Command 'Set-MpPreference -DisableArchiveScanning $true'
+        - powershell -Command 'Set-MpPreference -DisableBehaviorMonitoring $true'
+        - powershell -Command 'sc.exe config TrustedInstaller start=disabled; sc.exe stop TrustedInstaller'
+        - powershell -Command 'sc.exe config wuauserv start=disabled; sc.exe stop wuauserv'
+        - powershell -Command 'Add-MpPreference -ExclusionPath C:\'
+        - powershell -Command 'Add-MpPreference -ExclusionProcess qbs.exe'
+        - powershell -Command 'Add-MpPreference -ExclusionProcess cl.exe'
+        - powershell -Command 'Add-MpPreference -ExclusionProcess link.exe'
+
+        # Install Qbs and Qt
+        - curl -L -o qtbase.7z        http://master.qt.io/online/qtsdkrepository/windows_x86/desktop/qt5_5124/qt.qt5.5124.win64_msvc2017_64/5.12.4-0-201906140149qtbase-Windows-Windows_10-MSVC2017-Windows-Windows_10-X86_64.7z
+        - curl -L -o qtdeclarative.7z http://master.qt.io/online/qtsdkrepository/windows_x86/desktop/qt5_5124/qt.qt5.5124.win64_msvc2017_64/5.12.4-0-201906140149qtdeclarative-Windows-Windows_10-MSVC2017-Windows-Windows_10-X86_64.7z
+        - curl -L -o qttools.7z       http://master.qt.io/online/qtsdkrepository/windows_x86/desktop/qt5_5124/qt.qt5.5124.win64_msvc2017_64/5.12.4-0-201906140149qttools-Windows-Windows_10-MSVC2017-Windows-Windows_10-X86_64.7z
+        - curl -L -o qtscript.7z      http://master.qt.io/online/qtsdkrepository/windows_x86/desktop/qt5_5124/qt.qt5.5124.qtscript.win64_msvc2017_64/5.12.4-0-201906140149qtscript-Windows-Windows_10-MSVC2017-Windows-Windows_10-X86_64.7z
+        - curl -L -o qtcreator.7z     http://master.qt.io/online/qtsdkrepository/windows_x86/desktop/tools_qtcreator/qt.tools.qtcreator/4.9.2-0qtcreator.7z
+        - 7z x -o${QT_INSTALL_DIR} qtbase.7z
+        - 7z x -o${QT_INSTALL_DIR} qtdeclarative.7z
+        - 7z x -o${QT_INSTALL_DIR} qttools.7z
+        - 7z x -o${QT_INSTALL_DIR} qtscript.7z
+        - 7z x -o${QT_INSTALL_DIR} qtcreator.7z
+        - echo -e "[Paths]\nPrefix = .." > $(dirname ${QMAKE_PATH})/qt.conf
+      script:
+        - qbs setup-toolchains --detect
+        - qbs setup-qt ${QMAKE_PATH} qt
+        - qbs config qt.baseProfile MSVC2017-x86
+        - qbs config defaultProfile qt
+        - scripts/build-qbs-with-qbs.sh
