@@ -1,5 +1,6 @@
 import qbs
 import qbs.FileInfo
+import qbs.Utilities
 
 Module {
     Depends {
@@ -47,8 +48,17 @@ Module {
                                                                   "share/qbs/qml-type-descriptions")
 
     Properties {
-        condition: project.withCode && enableAddressSanitizer && qbs.toolchain.contains("gcc")
-        cpp.cxxFlags: "-fno-omit-frame-pointer"
-        cpp.driverFlags: "-fsanitize=address"
+        condition: project.withCode && qbs.toolchain.contains("gcc")
+        cpp.cxxFlags: {
+            var flags = [];
+            if (enableAddressSanitizer)
+                flags.push("-fno-omit-frame-pointer");
+            if (!qbs.toolchain.contains("clang")
+                    && Utilities.versionCompare(cpp.compilerVersion, "9") >= 0) {
+                flags.push("-Wno-deprecated-copy", "-Wno-init-list-lifetime");
+            }
+            return flags;
+        }
+        cpp.driverFlags: enableAddressSanitizer ? ["-fsanitize=address"] : []
     }
 }
