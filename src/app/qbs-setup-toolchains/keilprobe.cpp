@@ -47,7 +47,6 @@
 #include <tools/hostosinfo.h>
 #include <tools/profile.h>
 
-#include <QtCore/qfileinfo.h>
 #include <QtCore/qlist.h>
 #include <QtCore/qsettings.h>
 
@@ -70,14 +69,24 @@ static QString guessKeilArchitecture(const QFileInfo &compiler)
     return {};
 }
 
-static Profile createKeilProfileHelper(const QFileInfo &compiler, Settings *settings,
+static Profile createKeilProfileHelper(const ToolchainInstallInfo &info,
+                                       Settings *settings,
                                        QString profileName = QString())
 {
+    const QFileInfo compiler = info.compilerPath;
     const QString architecture = guessKeilArchitecture(compiler);
 
     // In case the profile is auto-detected.
-    if (profileName.isEmpty())
-        profileName = QLatin1String("keil-") + architecture;
+    if (profileName.isEmpty()) {
+        if (!info.compilerVersion.isValid()) {
+            profileName = QStringLiteral("keil-unknown-%1").arg(architecture);
+        } else {
+            const QString version = info.compilerVersion.toString(QLatin1Char('_'),
+                                                                  QLatin1Char('_'));
+            profileName = QStringLiteral("keil-%1-%2").arg(
+                        version, architecture);
+        }
+    }
 
     Profile profile(profileName, settings);
     profile.setValue(QStringLiteral("cpp.toolchainInstallPath"), compiler.absolutePath());
@@ -90,9 +99,9 @@ static Profile createKeilProfileHelper(const QFileInfo &compiler, Settings *sett
     return profile;
 }
 
-static std::vector<KeilInstallInfo> installedKeilsFromPath()
+static std::vector<ToolchainInstallInfo> installedKeilsFromPath()
 {
-    std::vector<KeilInstallInfo> infos;
+    std::vector<ToolchainInstallInfo> infos;
     const auto compilerNames = knownKeilCompilerNames();
     for (const QString &compilerName : compilerNames) {
         const QFileInfo keilPath(
@@ -100,14 +109,14 @@ static std::vector<KeilInstallInfo> installedKeilsFromPath()
                         HostOsInfo::appendExecutableSuffix(compilerName)));
         if (!keilPath.exists())
             continue;
-        infos.push_back({keilPath.absoluteFilePath(), {}});
+        infos.push_back({keilPath, Version{}});
     }
     return infos;
 }
 
-static std::vector<KeilInstallInfo> installedKeilsFromRegistry()
+static std::vector<ToolchainInstallInfo> installedKeilsFromRegistry()
 {
-    std::vector<KeilInstallInfo> infos;
+    std::vector<ToolchainInstallInfo> infos;
 
     if (HostOsInfo::isWindowsHost()) {
 
@@ -148,7 +157,7 @@ static std::vector<KeilInstallInfo> installedKeilsFromRegistry()
                             .toString();
                     if (version.startsWith(QLatin1Char('V')))
                         version.remove(0, 1);
-                    infos.push_back({keilPath.absoluteFilePath(), version});
+                    infos.push_back({keilPath, Version::fromString(version)});
                 }
             }
             registry.endGroup();
@@ -170,19 +179,20 @@ bool isKeilCompiler(const QString &compilerName)
 void createKeilProfile(const QFileInfo &compiler, Settings *settings,
                        QString profileName)
 {
-    createKeilProfileHelper(compiler, settings, profileName);
+    const ToolchainInstallInfo info = {compiler, Version{}};
+    createKeilProfileHelper(info, settings, profileName);
 }
 
 void keilProbe(Settings *settings, QList<Profile> &profiles)
 {
     qbsInfo() << Tr::tr("Trying to detect KEIL toolchains...");
 
-    std::vector<KeilInstallInfo> allInfos = installedKeilsFromRegistry();
-    const std::vector<KeilInstallInfo> pathInfos = installedKeilsFromPath();
+    std::vector<ToolchainInstallInfo> allInfos = installedKeilsFromRegistry();
+    const std::vector<ToolchainInstallInfo> pathInfos = installedKeilsFromPath();
     allInfos.insert(std::end(allInfos), std::begin(pathInfos), std::end(pathInfos));
 
-    for (const KeilInstallInfo &info : allInfos) {
-        const auto profile = createKeilProfileHelper(info.compilerPath, settings);
+    for (const ToolchainInstallInfo &info : allInfos) {
+        const auto profile = createKeilProfileHelper(info, settings);
         profiles.push_back(profile);
     }
 

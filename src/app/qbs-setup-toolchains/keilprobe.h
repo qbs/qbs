@@ -51,12 +51,6 @@ class Profile;
 class Settings;
 }
 
-struct KeilInstallInfo
-{
-    QString compilerPath;
-    QString version;
-};
-
 bool isKeilCompiler(const QString &compilerName);
 
 void createKeilProfile(const QFileInfo &compiler, qbs::Settings *settings,
