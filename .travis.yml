@@ -114,6 +114,31 @@ jobs:
             lldb --core $f --batch --one-line "bt"
           done;
 
+    - <<: *build-on-macos
+      name: With Qbs on macOS (xcode 11.3) using iOS profile
+      if: branch = master
+      env:
+        # Address sanitizer slows autotests down too much.
+        # We would hit the maximum build time on Travis.
+        BUILD_OPTIONS=modules.qbsbuildconfig.enableAddressSanitizer:false
+        QT_INSTALL_DIR=/Users/travis/Qt
+        QMAKE_PATH=${QT_INSTALL_DIR}/${QT_VERSION}/clang_64/bin/qmake
+        TEST_QMAKE_PATH=${QT_INSTALL_DIR}/${QT_VERSION}/ios/bin/qmake
+        PATH="${QT_INSTALL_DIR}/Qt Creator.app/Contents/MacOS:${PATH}"
+        QBS_AUTOTEST_PROFILE=qt-ios
+        WITH_DOCS=0
+      before_install:
+        - ./scripts/install-qt.sh -d ${QT_INSTALL_DIR} --version ${QT_VERSION} qtbase qtdeclarative qttools qtscript
+        - ./scripts/install-qt.sh -d ${QT_INSTALL_DIR} --version ${QT_VERSION} --target ios --toolchain ios qtbase qtdeclarative qttools qtscript
+        - ./scripts/install-qt.sh -d ${QT_INSTALL_DIR} --version ${QTCREATOR_VERSION} qtcreator
+      script:
+        - qbs setup-toolchains --detect
+        - qbs setup-qt ${QMAKE_PATH} qt
+        - qbs config profiles.qt.baseProfile xcode-macosx-x86_64
+        - qbs setup-qt ${TEST_QMAKE_PATH} qt-ios
+        - qbs config profiles.qt-ios.baseProfile xcode-iphoneos-arm64
+        - qbs config defaultProfile qt
+        - scripts/build-qbs-with-qbs.sh
 
     - <<: *build-on-macos
       name: With Qbs on macOS (xcode 10.3)
