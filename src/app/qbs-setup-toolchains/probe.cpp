@@ -348,3 +348,18 @@ void createProfile(const QString &profileName, const QString &toolchainType,
     else
         throw qbs::ErrorInfo(Tr::tr("Cannot create profile: Unknown toolchain type."));
 }
+
+int extractVersion(const QByteArray &macroDump, const QByteArray &keyToken)
+{
+    const int startIndex = macroDump.indexOf(keyToken);
+    if (startIndex == -1)
+        return -1;
+    const int endIndex = macroDump.indexOf('\n', startIndex);
+    if (endIndex == -1)
+        return -1;
+    const auto keyLength = keyToken.length();
+    const int version = macroDump.mid(startIndex + keyLength,
+                                      endIndex - startIndex - keyLength)
+            .toInt();
+    return version;
+}

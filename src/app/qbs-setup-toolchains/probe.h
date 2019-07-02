@@ -63,4 +63,10 @@ struct ToolchainInstallInfo
     qbs::Version compilerVersion;
 };
 
+inline bool operator<(const ToolchainInstallInfo &lhs, const ToolchainInstallInfo &rhs)
+{ return lhs.compilerPath.absoluteFilePath() < rhs.compilerPath.absoluteFilePath()
+            || lhs.compilerVersion < rhs.compilerVersion; }
+
+int extractVersion(const QByteArray &macroDump, const QByteArray &keyToken);
+
 #endif // Header guard

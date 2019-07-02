@@ -47,8 +47,9 @@
 #include <tools/hostosinfo.h>
 #include <tools/profile.h>
 
-#include <QtCore/qlist.h>
+#include <QtCore/qprocess.h>
 #include <QtCore/qsettings.h>
+#include <QtCore/qstandardpaths.h>
 
 using namespace qbs;
 using Internal::Tr;
@@ -101,6 +102,48 @@ static Profile createIarProfileHelper(const ToolchainInstallInfo &info,
     return profile;
 }
 
+static Version dumpIarCompilerVersion(const QFileInfo &compiler)
+{
+    const QString outFilePath = QStandardPaths::writableLocation(QStandardPaths::TempLocation)
+            + QLatin1String("/macros.dump");
+    const QStringList args = {QStringLiteral("."),
+                              QStringLiteral("--predef_macros"),
+                              outFilePath};
+    QProcess p;
+    p.start(compiler.absoluteFilePath(), args);
+    p.waitForFinished(3000);
+    const auto es = p.exitStatus();
+    if (es != QProcess::NormalExit) {
+        const QByteArray out = p.readAll();
+        qbsWarning() << Tr::tr("Compiler dumping failed:\n%1")
+                        .arg(QString::fromUtf8(out));
+        return Version{};
+    }
+
+    QByteArray dump;
+    QFile out(outFilePath);
+    if (out.open(QIODevice::ReadOnly))
+        dump = out.readAll();
+    out.remove();
+
+    const int verCode = extractVersion(dump, "__VER__ ");
+    if (verCode < 0) {
+        qbsWarning() << Tr::tr("No '__VER__' token was found in a compiler dump:\n%1")
+                        .arg(QString::fromUtf8(dump));
+        return Version{};
+    }
+
+    const QString arch = guessIarArchitecture(compiler);
+    if (arch == QLatin1String("arm")) {
+        return Version{verCode / 1000000, (verCode / 1000) % 1000, verCode % 1000};
+    } else if (arch == QLatin1String("avr")
+               || arch == QLatin1String("mcs51")) {
+        return Version{verCode / 100, verCode % 100};
+    }
+
+    return Version{};
+}
+
 static std::vector<ToolchainInstallInfo> installedIarsFromPath()
 {
     std::vector<ToolchainInstallInfo> infos;
@@ -111,8 +154,10 @@ static std::vector<ToolchainInstallInfo> installedIarsFromPath()
                         HostOsInfo::appendExecutableSuffix(compilerName)));
         if (!iarPath.exists())
             continue;
-        infos.push_back({iarPath, Version{}});
+        const Version version = dumpIarCompilerVersion(iarPath);
+        infos.push_back({iarPath, version});
     }
+    std::sort(infos.begin(), infos.end());
     return infos;
 }
 
@@ -170,6 +215,7 @@ static std::vector<ToolchainInstallInfo> installedIarsFromRegistry()
 
     }
 
+    std::sort(infos.begin(), infos.end());
     return infos;
 }
 
@@ -192,9 +238,14 @@ void iarProbe(Settings *settings, QList<Profile> &profiles)
 {
     qbsInfo() << Tr::tr("Trying to detect IAR toolchains...");
 
-    std::vector<ToolchainInstallInfo> allInfos = installedIarsFromRegistry();
+    // Make sure that a returned infos are sorted before using the std::set_union!
+    const std::vector<ToolchainInstallInfo> regInfos = installedIarsFromRegistry();
     const std::vector<ToolchainInstallInfo> pathInfos = installedIarsFromPath();
-    allInfos.insert(std::end(allInfos), std::begin(pathInfos), std::end(pathInfos));
+    std::vector<ToolchainInstallInfo> allInfos;
+    allInfos.reserve(regInfos.size() + pathInfos.size());
+    std::set_union(regInfos.cbegin(), regInfos.cend(),
+                   pathInfos.cbegin(), pathInfos.cend(),
+                   std::back_inserter(allInfos));
 
     for (const ToolchainInstallInfo &info : allInfos) {
         const auto profile = createIarProfileHelper(info, settings);
