@@ -51,12 +51,6 @@ class Profile;
 class Settings;
 }
 
-struct SdccInstallInfo
-{
-    QString compilerPath;
-    QString version;
-};
-
 bool isSdccCompiler(const QString &compilerName);
 
 void createSdccProfile(const QFileInfo &compiler, qbs::Settings *settings,

@@ -47,7 +47,6 @@
 #include <tools/hostosinfo.h>
 #include <tools/profile.h>
 
-#include <QtCore/qfileinfo.h>
 #include <QtCore/qlist.h>
 #include <QtCore/qsettings.h>
 
@@ -68,14 +67,24 @@ static QString guessSdccArchitecture(const QFileInfo &compiler)
     return {};
 }
 
-static Profile createSdccProfileHelper(const QFileInfo &compiler, Settings *settings,
+static Profile createSdccProfileHelper(const ToolchainInstallInfo &info,
+                                       Settings *settings,
                                        QString profileName = QString())
 {
+    const QFileInfo compiler = info.compilerPath;
     const QString architecture = guessSdccArchitecture(compiler);
 
     // In case the profile is auto-detected.
-    if (profileName.isEmpty())
-        profileName = QLatin1String("sdcc-") + architecture;
+    if (profileName.isEmpty()) {
+        if (!info.compilerVersion.isValid()) {
+            profileName = QStringLiteral("sdcc-unknown-%1").arg(architecture);
+        } else {
+            const QString version = info.compilerVersion.toString(QLatin1Char('_'),
+                                                                  QLatin1Char('_'));
+            profileName = QStringLiteral("sdcc-%1-%2").arg(
+                        version, architecture);
+        }
+    }
 
     Profile profile(profileName, settings);
     profile.setValue(QStringLiteral("cpp.toolchainInstallPath"), compiler.absolutePath());
@@ -88,9 +97,9 @@ static Profile createSdccProfileHelper(const QFileInfo &compiler, Settings *sett
     return profile;
 }
 
-static std::vector<SdccInstallInfo> installedSdccsFromPath()
+static std::vector<ToolchainInstallInfo> installedSdccsFromPath()
 {
-    std::vector<SdccInstallInfo> infos;
+    std::vector<ToolchainInstallInfo> infos;
     const auto compilerNames = knownSdccCompilerNames();
     for (const QString &compilerName : compilerNames) {
         const QFileInfo sdccPath(
@@ -98,14 +107,14 @@ static std::vector<SdccInstallInfo> installedSdccsFromPath()
                         HostOsInfo::appendExecutableSuffix(compilerName)));
         if (!sdccPath.exists())
             continue;
-        infos.push_back({sdccPath.absoluteFilePath(), {}});
+        infos.push_back({sdccPath, Version{}});
     }
     return infos;
 }
 
-static std::vector<SdccInstallInfo> installedSdccsFromRegistry()
+static std::vector<ToolchainInstallInfo> installedSdccsFromRegistry()
 {
-    std::vector<SdccInstallInfo> infos;
+    std::vector<ToolchainInstallInfo> infos;
 
     if (HostOsInfo::isWindowsHost()) {
 
@@ -126,7 +135,7 @@ static std::vector<SdccInstallInfo> installedSdccsFromRegistry()
                             registry.value(QStringLiteral("VersionMajor")).toString(),
                             registry.value(QStringLiteral("VersionMinor")).toString(),
                             registry.value(QStringLiteral("VersionRevision")).toString());
-                infos.push_back({sdccPath.absoluteFilePath(), version});
+                infos.push_back({sdccPath, Version::fromString(version)});
             }
         }
     }
@@ -145,19 +154,20 @@ bool isSdccCompiler(const QString &compilerName)
 void createSdccProfile(const QFileInfo &compiler, Settings *settings,
                        QString profileName)
 {
-    createSdccProfileHelper(compiler, settings, profileName);
+    const ToolchainInstallInfo info = {compiler, Version{}};
+    createSdccProfileHelper(info, settings, profileName);
 }
 
 void sdccProbe(Settings *settings, QList<Profile> &profiles)
 {
     qbsInfo() << Tr::tr("Trying to detect SDCC toolchains...");
 
-    std::vector<SdccInstallInfo> allInfos = installedSdccsFromRegistry();
-    const std::vector<SdccInstallInfo> pathInfos = installedSdccsFromPath();
+    std::vector<ToolchainInstallInfo> allInfos = installedSdccsFromRegistry();
+    const std::vector<ToolchainInstallInfo> pathInfos = installedSdccsFromPath();
     allInfos.insert(std::end(allInfos), std::begin(pathInfos), std::end(pathInfos));
 
-    for (const SdccInstallInfo &info : allInfos) {
-        const auto profile = createSdccProfileHelper(info.compilerPath, settings);
+    for (const ToolchainInstallInfo &info : allInfos) {
+        const auto profile = createSdccProfileHelper(info, settings);
         profiles.push_back(profile);
     }
 
