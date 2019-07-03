@@ -47,8 +47,9 @@
 #include <tools/hostosinfo.h>
 #include <tools/profile.h>
 
-#include <QtCore/qlist.h>
+#include <QtCore/qprocess.h>
 #include <QtCore/qsettings.h>
+#include <QtCore/qtemporaryfile.h>
 
 using namespace qbs;
 using Internal::Tr;
@@ -97,6 +98,45 @@ static Profile createSdccProfileHelper(const ToolchainInstallInfo &info,
     return profile;
 }
 
+
+static Version dumpSdccCompilerVersion(const QFileInfo &compiler)
+{
+    QTemporaryFile fakeIn(QStringLiteral("XXXXXX.c"));
+    if (!fakeIn.open()) {
+        qbsWarning() << Tr::tr("Unable to open temporary file %1 for output: %2")
+                        .arg(fakeIn.fileName(), fakeIn.errorString());
+        return Version{};
+    }
+    fakeIn.close();
+
+    const QStringList args = {QStringLiteral("-dM"),
+                              QStringLiteral("-E"),
+                              fakeIn.fileName()};
+    QProcess p;
+    p.start(compiler.absoluteFilePath(), args);
+    p.waitForFinished(3000);
+    const auto es = p.exitStatus();
+    if (es != QProcess::NormalExit) {
+        const QByteArray out = p.readAll();
+        qbsWarning() << Tr::tr("Compiler dumping failed:\n%1")
+                        .arg(QString::fromUtf8(out));
+        return Version{};
+    }
+
+    const QByteArray dump = p.readAllStandardOutput();
+    const int major = extractVersion(dump, "__SDCC_VERSION_MAJOR ");
+    const int minor = extractVersion(dump, "__SDCC_VERSION_MINOR ");
+    const int patch = extractVersion(dump, "__SDCC_VERSION_PATCH ");
+    if (major < 0 || minor < 0 || patch < 0) {
+        qbsWarning() << Tr::tr("No '__SDCC_VERSION_xxx' token was found "
+                               "in the compiler dump:\n%1")
+                        .arg(QString::fromUtf8(dump));
+        return Version{};
+    }
+
+    return Version{major, minor, patch};
+}
+
 static std::vector<ToolchainInstallInfo> installedSdccsFromPath()
 {
     std::vector<ToolchainInstallInfo> infos;
@@ -107,8 +147,10 @@ static std::vector<ToolchainInstallInfo> installedSdccsFromPath()
                         HostOsInfo::appendExecutableSuffix(compilerName)));
         if (!sdccPath.exists())
             continue;
-        infos.push_back({sdccPath, Version{}});
+        const Version version = dumpSdccCompilerVersion(sdccPath);
+        infos.push_back({sdccPath, version});
     }
+    std::sort(infos.begin(), infos.end());
     return infos;
 }
 
@@ -140,6 +182,7 @@ static std::vector<ToolchainInstallInfo> installedSdccsFromRegistry()
         }
     }
 
+    std::sort(infos.begin(), infos.end());
     return infos;
 }
 
@@ -162,9 +205,14 @@ void sdccProbe(Settings *settings, QList<Profile> &profiles)
 {
     qbsInfo() << Tr::tr("Trying to detect SDCC toolchains...");
 
-    std::vector<ToolchainInstallInfo> allInfos = installedSdccsFromRegistry();
+    // Make sure that a returned infos are sorted before using the std::set_union!
+    const std::vector<ToolchainInstallInfo> regInfos = installedSdccsFromRegistry();
     const std::vector<ToolchainInstallInfo> pathInfos = installedSdccsFromPath();
-    allInfos.insert(std::end(allInfos), std::begin(pathInfos), std::end(pathInfos));
+    std::vector<ToolchainInstallInfo> allInfos;
+    allInfos.reserve(regInfos.size() + pathInfos.size());
+    std::set_union(regInfos.cbegin(), regInfos.cend(),
+                   pathInfos.cbegin(), pathInfos.cend(),
+                   std::back_inserter(allInfos));
 
     for (const ToolchainInstallInfo &info : allInfos) {
         const auto profile = createSdccProfileHelper(info, settings);
