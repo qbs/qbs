@@ -58,7 +58,7 @@ jobs:
         - 7z x -o${QT_INSTALL_DIR} qttools.7z
         - 7z x -o${QT_INSTALL_DIR} qtscript.7z
         - 7z x -o${QT_INSTALL_DIR} qtcreator.7z
-        - printf "[Paths]\nPrefix = ${QT_INSTALL_DIR}/5.12.4/clang_64\n" > ${QT_INSTALL_DIR}/5.12.4/clang_64/bin/qt.conf
+        - printf "[Paths]\nPrefix = ..\n" > ${QT_INSTALL_DIR}/5.12.4/clang_64/bin/qt.conf
         - pip2 install --user beautifulsoup4 lxml
       script:
         - qbs setup-toolchains --detect
