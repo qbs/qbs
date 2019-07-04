@@ -661,16 +661,29 @@ void TestBlackboxApple::frameworkStructure()
     QbsRunParameters params;
     QCOMPARE(runQbs(params), 0);
 
-    QVERIFY(regularFileExists(relativeProductBuildDir("Widget") + "/Widget.framework/Versions/A/Widget"));
-    QVERIFY(regularFileExists(relativeProductBuildDir("Widget") + "/Widget.framework/Versions/A/Headers/Widget.h"));
-    QVERIFY(regularFileExists(relativeProductBuildDir("Widget") + "/Widget.framework/Versions/A/PrivateHeaders/WidgetPrivate.h"));
-    QVERIFY(regularFileExists(relativeProductBuildDir("Widget") + "/Widget.framework/Versions/A/Resources/BaseResource"));
-    QVERIFY(regularFileExists(relativeProductBuildDir("Widget") + "/Widget.framework/Versions/A/Resources/en.lproj/EnglishResource"));
-    QVERIFY(directoryExists(relativeProductBuildDir("Widget") + "/Widget.framework/Versions/Current"));
-    QVERIFY(regularFileExists(relativeProductBuildDir("Widget") + "/Widget.framework/Widget"));
-    QVERIFY(directoryExists(relativeProductBuildDir("Widget") + "/Widget.framework/Headers"));
-    QVERIFY(directoryExists(relativeProductBuildDir("Widget") + "/Widget.framework/PrivateHeaders"));
-    QVERIFY(directoryExists(relativeProductBuildDir("Widget") + "/Widget.framework/Resources"));
+    if (m_qbsStdout.contains("isShallow: false")) {
+        QVERIFY(regularFileExists(relativeProductBuildDir("Widget") + "/Widget.framework/Versions/A/Widget"));
+        QVERIFY(regularFileExists(relativeProductBuildDir("Widget") + "/Widget.framework/Versions/A/Headers/Widget.h"));
+        QVERIFY(regularFileExists(relativeProductBuildDir("Widget") + "/Widget.framework/Versions/A/PrivateHeaders/WidgetPrivate.h"));
+        QVERIFY(regularFileExists(relativeProductBuildDir("Widget") + "/Widget.framework/Versions/A/Resources/BaseResource"));
+        QVERIFY(regularFileExists(relativeProductBuildDir("Widget") + "/Widget.framework/Versions/A/Resources/en.lproj/EnglishResource"));
+        QVERIFY(directoryExists(relativeProductBuildDir("Widget") + "/Widget.framework/Versions/Current"));
+        QVERIFY(regularFileExists(relativeProductBuildDir("Widget") + "/Widget.framework/Widget"));
+        QVERIFY(directoryExists(relativeProductBuildDir("Widget") + "/Widget.framework/Headers"));
+        QVERIFY(directoryExists(relativeProductBuildDir("Widget") + "/Widget.framework/PrivateHeaders"));
+        QVERIFY(directoryExists(relativeProductBuildDir("Widget") + "/Widget.framework/Resources"));
+    } else if (m_qbsStdout.contains("isShallow: true")) {
+        QVERIFY(directoryExists(relativeProductBuildDir("Widget") + "/Widget.framework/Headers"));
+        QVERIFY(directoryExists(relativeProductBuildDir("Widget") + "/Widget.framework/PrivateHeaders"));
+        QVERIFY(regularFileExists(relativeProductBuildDir("Widget") + "/Widget.framework/Widget"));
+        QVERIFY(regularFileExists(relativeProductBuildDir("Widget") + "/Widget.framework/Headers/Widget.h"));
+        QVERIFY(regularFileExists(relativeProductBuildDir("Widget") + "/Widget.framework/PrivateHeaders/WidgetPrivate.h"));
+        QVERIFY(regularFileExists(relativeProductBuildDir("Widget") + "/Widget.framework/BaseResource"));
+        QVERIFY(regularFileExists(relativeProductBuildDir("Widget") + "/Widget.framework/en.lproj/EnglishResource"));
+        QVERIFY(regularFileExists(relativeProductBuildDir("Widget") + "/Widget.framework/Widget"));
+    } else {
+        QVERIFY2(false, qPrintable(m_qbsStdout));
+    }
 
     params.command = "resolve";
     params.arguments = QStringList() << "project.includeHeaders:false";
