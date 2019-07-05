@@ -119,6 +119,8 @@ private slots:
     void generator();
     void generator_data();
     void groupsInModules();
+    void grpc_data();
+    void grpc();
     void ico();
     void importAssignment();
     void importChangeTracking();
@@ -205,6 +207,8 @@ private slots:
     void outOfDateMarking();
     void outputArtifactAutoTagging();
     void overrideProjectProperties();
+    void pathProbe_data();
+    void pathProbe();
     void pchChangeTracking();
     void perGroupDefineInExportItem();
     void pkgConfigProbe();

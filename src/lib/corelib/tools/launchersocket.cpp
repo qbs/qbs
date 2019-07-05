@@ -135,6 +135,7 @@ void LauncherSocket::handleError(const QString &error)
 
 void LauncherSocket::handleRequests()
 {
+    QBS_ASSERT(isReady(), return);
     std::lock_guard<std::mutex> locker(m_requestsMutex);
     for (const QByteArray &request : qAsConst(m_requests))
         m_socket->write(request);

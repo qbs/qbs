@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package PP;
+
+message Ping {
+    int32 count = 1;
+}
+
+message Pong {
+    int32 count = 1;
+}
+
+service MyApi {
+    rpc pingPong(Ping) returns (Pong) {}
+}

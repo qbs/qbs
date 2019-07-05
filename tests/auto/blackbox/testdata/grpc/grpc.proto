@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package Qbs;
+
+message Request {
+    string name = 1;
+}
+
+message Response {
+    string name = 1;
+}	
+
+service Grpc {
+    rpc doWork(Request) returns (Response) {}
+}

@@ -68,7 +68,30 @@
         \li \c{*.proto}
         \li 1.13.0
         \li Source files with this tag are considered inputs to the \c protoc compiler.
+    \row
+        \li \c{"protobuf.grpc"}
+        \li
+        \li 1.14.0
+        \li Source files with this tag are considered as gRPC files.
     \endtable
+*/
+
+/*!
+    \qmlproperty string protobuf.cpp::grpcIncludePath
+
+    The path where grpc++ headers are located. Set this property to override the
+    default location.
+
+    \defaultvalue \c auto-detected
+*/
+
+/*!
+    \qmlproperty string protobuf.cpp::grpcLibraryPath
+
+    The path where the grpc++ library is located. Set this property to override the
+    default location.
+
+    \defaultvalue \c auto-detected
 */
 
 /*!
@@ -107,4 +130,68 @@
     default location.
 
     \defaultvalue \c auto-detected
+*/
+
+/*!
+    \qmlproperty bool protobuf.cpp::useGrpc
+
+    Whether to use gRPC framework.
+
+    Use this property to enable support for the modern open source high performance RPC
+    framework by Google, gRPC (\l{https://www.grpc.io}).
+
+    A simple qbs file that uses grpc can be written as follows:
+    \code
+    CppApplication {
+        Depends { name: "protobuf.cpp" }
+        protobuf.cpp.useGrpc: true
+        files: ["main.cpp"]
+        Group {
+            files: "grpc.proto"
+            fileTags: "protobuf.grpc"
+        }
+    }
+    \endcode
+
+    \note that \c protobuf.grpc tag should be assigned manually because gRPC uses same \c *.proto
+    files and \QBS can't detect whether to generate gRPC or \c protobuf.
+
+    The following \c grpc.proto file...
+    \code
+        syntax = "proto3";
+
+        package Qbs;
+
+        message Request {
+            string name = 1;
+        }
+
+        message Response {
+            string name = 1;
+        }
+
+        service Grpc {
+            rpc doWork(Request) returns (Response) {}
+        }
+    \endcode
+
+    ...can be used in the C++ sources as follows:
+    \code
+        #include <grpc.grpc.pb.h>
+
+        class Service final : public Qbs::Grpc::Service
+        {
+            grpc::Status doWork(
+                    grpc::ServerContext* context,
+                    const Qbs::Request* request,
+                    Qbs::Response* reply) override
+            {
+                (void)context;
+                reply->set_name(request->name());
+                return grpc::Status::OK;
+            }
+        };
+    \endcode
+
+    \defaultvalue \c false
 */

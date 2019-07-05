@@ -58,6 +58,42 @@
 */
 
 /*!
+    \qmlproperty varList PathProbe::allResults
+
+    This property contains the list of objects, each object representing a single found file:
+    \code
+    {
+        found: true,
+        candidatePaths: ["path1/to/file", "path2/to/file", ...]
+        filePath: "path/to/file"
+        fileName: "file"
+        path: "path/to"
+    }
+    \endcode
+    \sa {PathProbe::filePath}{filePath}, {PathProbe::fileName}{fileName},
+    {PathProbe::path}{path}
+*/
+
+/*!
+    \qmlproperty var PathProbe::candidateFilter
+
+    This property holds the function that can be used to filter out unsuitable candidates.
+    For example, when searching for a library, it might be necessary to check its architecture:
+    \code
+    PathProbe {
+        pathSuffixes: ["*.so", *.dll]
+        candidateFilter: {
+            function getLibraryArchitecture(file) { ... }
+            return function(file) {
+                return Utilities.isSharedLibrary(file)
+                        && getLibraryArchitecture(file) == qbs.architecture;
+            }
+        }
+    }
+    \endcode
+*/
+
+/*!
     \qmlproperty stringList PathProbe::names
 
     The list of file names to search for.
@@ -69,8 +105,7 @@
     \qmlproperty stringList PathProbe::nameSuffixes
 
     The list of file suffixes to search for. These suffixes are appended to every file name passed
-    via the \l names property. If \l names is empty, the probe looks for any file that ends with the
-    given suffix.
+    via the \l names property.
 
     \nodefaultvalue
 */
@@ -160,4 +195,25 @@
     This property contains the found file's name (excluding the path).
 
     \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty varList PathProbe::selectors
+
+    This property should be used to search for multiple files. It contains the list of selectors
+    each of which describes a single file to search for. A selector can be either a string, a
+    stringList, or a dictionary.
+
+    The following example searches for three files and illustrates different ways to specify
+    selectors:
+    \code
+    selectors: [
+        // 1st file with a single name
+        "header.h",
+        // 2nd file with possible name variants
+        ["config.h", "foo-config.h", "bar-config.h"],
+        // 3rd file with possible name and suffix variants
+        {names: ["footk", "footk-version"], nameSuffixes: [".h", ".hpp"]}
+    ]
+    \endcode
 */

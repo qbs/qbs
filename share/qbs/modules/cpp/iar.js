@@ -64,7 +64,7 @@ function dumpMacros(compilerFilePath, tag) {
 
     var args = [ inFilePath, "--predef_macros", outFilePath ];
     if (tag && tag === "cpp")
-        args.push("--ec++");
+        args.push("--c++");
 
     var p = new Process();
     p.exec(compilerFilePath, args, true);
@@ -84,7 +84,7 @@ function dumpDefaultPaths(compilerFilePath, tag) {
 
     var args = [ inFilePath, "--preinclude", "." ];
     if (tag === "cpp")
-        args.push("--ec++");
+        args.push("--c++");
 
     var p = new Process();
     // This process should return an error, don't throw

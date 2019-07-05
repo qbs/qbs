@@ -50,9 +50,11 @@ class QProcessEnvironment;
 QT_END_NAMESPACE
 
 namespace std {
+#if (QT_VERSION < QT_VERSION_CHECK(5, 14, 0))
 template<> struct hash<QString> {
     std::size_t operator()(const QString &s) const { return qHash(s); }
 };
+#endif
 
 template<typename T1, typename T2> struct hash<std::pair<T1, T2>>
 {

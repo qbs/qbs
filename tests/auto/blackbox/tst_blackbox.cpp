@@ -2719,6 +2719,37 @@ void TestBlackbox::overrideProjectProperties()
     QCOMPARE(runQbs(params), 0);
 }
 
+void TestBlackbox::pathProbe_data()
+{
+    QTest::addColumn<QString>("projectFile");
+    QTest::addColumn<bool>("successExpected");
+    QTest::newRow("non-existent") << QString("non-existent.qbs") << false;
+    QTest::newRow("non-existent-selector.qbs") << QString("non-existent-selector.qbs") << false;
+    QTest::newRow("single-file") << QString("single-file.qbs") << true;
+    QTest::newRow("single-file-selector") << QString("single-file-selector.qbs") << true;
+    QTest::newRow("single-file-selector-array") << QString("single-file-selector-array.qbs") << true;
+    QTest::newRow("single-file-mult-variants") << QString("single-file-mult-variants.qbs") << true;
+    QTest::newRow("mult-files") << QString("mult-files.qbs") << true;
+    QTest::newRow("mult-files-mult-variants") << QString("mult-files-mult-variants.qbs") << true;
+    QTest::newRow("single-file-suffixes") << QString("single-file-suffixes.qbs") << true;
+    QTest::newRow("mult-files-suffixes") << QString("mult-files-suffixes.qbs") << true;
+    QTest::newRow("mult-files-mult-suffixes") << QString("mult-files-mult-suffixes.qbs") << true;
+    QTest::newRow("name-filter") << QString("name-filter.qbs") << true;
+    QTest::newRow("candidate-filter") << QString("candidate-filter.qbs") << true;
+}
+
+void TestBlackbox::pathProbe()
+{
+    QDir::setCurrent(testDataDir + "/path-probe");
+    QFETCH(QString, projectFile);
+    QFETCH(bool, successExpected);
+    rmDirR(relativeBuildDir());
+
+    QbsRunParameters buildParams("build", QStringList{"-f", projectFile});
+    buildParams.expectFailure = !successExpected;
+    QCOMPARE(runQbs(buildParams) == 0, successExpected);
+}
+
 void TestBlackbox::pchChangeTracking()
 {
     QDir::setCurrent(testDataDir + "/pch-change-tracking");
@@ -6790,6 +6821,29 @@ void TestBlackbox::groupsInModules()
     QFile output(relativeProductBuildDir("groups-in-modules") + "/rock.diamond");
     QVERIFY(output.open(QIODevice::ReadOnly));
     QCOMPARE(output.readAll().trimmed(), QByteArray("diamond"));
+}
+
+void TestBlackbox::grpc_data()
+{
+    QTest::addColumn<QString>("projectFile");
+    QTest::newRow("cpp") << QString("grpc_cpp.qbs");
+}
+
+void TestBlackbox::grpc()
+{
+    QDir::setCurrent(testDataDir + "/grpc");
+    QFETCH(QString, projectFile);
+    rmDirR(relativeBuildDir());
+    QbsRunParameters resolveParams("resolve", QStringList{"-f", projectFile});
+    QCOMPARE(runQbs(resolveParams), 0);
+    const bool withGrpc = m_qbsStdout.contains("has grpc: true");
+    const bool withoutGrpc = m_qbsStdout.contains("has grpc: false");
+    QVERIFY2(withGrpc || withoutGrpc, m_qbsStdout.constData());
+    if (withoutGrpc)
+        QSKIP("grpc module not present");
+
+    QbsRunParameters runParams;
+    QCOMPARE(runQbs(runParams), 0);
 }
 
 void TestBlackbox::ico()

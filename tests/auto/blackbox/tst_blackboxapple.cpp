@@ -33,6 +33,7 @@
 #include <tools/profile.h>
 
 #include <QtCore/qjsondocument.h>
+#include <QtCore/qjsonobject.h>
 #include <QtXml/qdom.h>
 
 #include <regex>
@@ -718,12 +719,38 @@ void TestBlackboxApple::infoPlist()
     params.arguments = QStringList() << "-f" << "infoplist.qbs";
     QCOMPARE(runQbs(params), 0);
 
-    QFile infoplist(relativeProductBuildDir("infoplist") + "/infoplist.app/Contents/Info.plist");
+    auto infoplistPath = relativeProductBuildDir("infoplist")
+            + "/infoplist.app/Contents/Info.plist";
+    if (!QFile::exists(infoplistPath))
+        infoplistPath = relativeProductBuildDir("infoplist") + "/infoplist.app/Info.plist";
+    QVERIFY(QFile::exists(infoplistPath));
+    QProcess plutil;
+    plutil.start("plutil", {
+                     QStringLiteral("-convert"),
+                     QStringLiteral("json"),
+                     infoplistPath
+                 });
+    QVERIFY2(plutil.waitForStarted(), qPrintable(plutil.errorString()));
+    QVERIFY2(plutil.waitForFinished(), qPrintable(plutil.errorString()));
+    QVERIFY2(plutil.exitCode() == 0, qPrintable(plutil.readAllStandardError().constData()));
+
+    QFile infoplist(infoplistPath);
     QVERIFY(infoplist.open(QIODevice::ReadOnly));
-    const QByteArray fileContents = infoplist.readAll();
-    QVERIFY2(fileContents.contains("<key>LSMinimumSystemVersion</key>"), fileContents.constData());
-    QVERIFY2(fileContents.contains("<string>10.7</string>"), fileContents.constData());
-    QVERIFY2(fileContents.contains("<key>NSPrincipalClass</key>"), fileContents.constData());
+    QJsonParseError error;
+    const auto json = QJsonDocument::fromJson(infoplist.readAll(), &error);
+    QCOMPARE(error.error, QJsonParseError::NoError);
+    QVERIFY(json.isObject());
+    // common values
+    QCOMPARE(json.object().value(QStringLiteral("CFBundleIdentifier")),
+             QStringLiteral("org.example.infoplist"));
+    QCOMPARE(json.object().value(QStringLiteral("CFBundleName")), QStringLiteral("infoplist"));
+    QCOMPARE(json.object().value(QStringLiteral("CFBundleExecutable")),
+             QStringLiteral("infoplist"));
+
+    if (!json.object().contains(QStringLiteral("SDKROOT"))) { // macOS-specific values
+        QCOMPARE(json.object().value("LSMinimumSystemVersion"), QStringLiteral("10.7"));
+        QVERIFY(json.object().contains("NSPrincipalClass"));
+    }
 }
 
 void TestBlackboxApple::objcArc()
@@ -758,16 +785,28 @@ void TestBlackboxApple::xcode()
             sdks.insert({ match[1], match[2] });
     }
 
-    auto range = sdks.equal_range("macosx");
-    QStringList sdkValues;
-    for (auto i = range.first; i != range.second; ++i)
-        sdkValues.push_back(QString::fromStdString(i->second));
+    const auto getSdksByType = [&sdks]()
+    {
+        QStringList result;
+        std::string sdkType;
+        QStringList sdkValues;
+        for (const auto &sdk: sdks) {
+            if (!sdkType.empty() && sdkType != sdk.first) {
+                result.append(QStringLiteral("%1:['%2']")
+                        .arg(QString::fromStdString(sdkType), sdkValues.join("','")));
+                sdkValues.clear();
+            }
+            sdkType = sdk.first;
+            sdkValues.append(QString::fromStdString(sdk.second));
+        }
+        return result;
+    };
 
     QDir::setCurrent(testDataDir + "/xcode");
     QbsRunParameters params;
     params.arguments = (QStringList()
                         << (QStringLiteral("modules.xcode.developerPath:") + developerPath)
-                        << (QStringLiteral("project.sdks:['") + sdkValues.join("','") + "']"));
+                        << (QStringLiteral("project.sdks:{") + getSdksByType().join(",") + "}"));
     QCOMPARE(runQbs(params), 0);
 }
 
