@@ -106,10 +106,6 @@ Module {
         cpp.linkerVariant: "gold"
     }
 
-    cpp.entryPoint: qbs.targetOS.containsAny(["ios", "tvos"])
-                        && Utilities.versionCompare(version, "5.6.0") >= 0
-                    ? "_qt_main_wrapper"
-                    : undefined
     cpp.cxxLanguageVersion: Utilities.versionCompare(version, "5.7.0") >= 0 ? "c++11" : original
     cpp.enableCompilerDefinesByLanguage: ["cpp"].concat(
         qbs.targetOS.contains("darwin") ? ["objcpp"] : [])

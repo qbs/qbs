@@ -1,5 +1,6 @@
 import qbs.FileInfo
 import qbs.ModUtils
+import qbs.Utilities
 import '../QtModule.qbs' as QtModule
 
 QtModule {
@@ -49,6 +50,11 @@ QtModule {
     libFilePathDebug: @libFilePathDebug@
     libFilePathRelease: @libFilePathRelease@
     pluginTypes: @pluginTypes@
+
+    cpp.entryPoint: qbs.targetOS.containsAny(["ios", "tvos"])
+                      && Utilities.versionCompare(version, "5.6.0") >= 0
+                  ? "_qt_main_wrapper"
+                  : undefined
 
     cpp.defines: @defines@
     cpp.includePaths: @includes@
