@@ -63,7 +63,7 @@ Project {
             outputFileTags: "tool_in"
             outputArtifacts: {
                 var artifacts = [];
-                for (var i = 0; i < 7; ++i)
+                for (var i = 0; i < 5; ++i)
                     artifacts.push({filePath: "file" + i + ".in", fileTags: "tool_in"});
                 return artifacts;
             }

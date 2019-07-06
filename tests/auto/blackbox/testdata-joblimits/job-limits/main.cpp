@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
             return 4;
         }
     }
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
     fclose(lockFile);
     std::FILE * const output = std::fopen(argv[1], "w");
     if (!output) {

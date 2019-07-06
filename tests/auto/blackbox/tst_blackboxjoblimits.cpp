@@ -165,7 +165,7 @@ void TestBlackboxJobLimits::jobLimits()
     else
         QVERIFY2(m_qbsStderr.contains("exclusive"), m_qbsStderr.constData());
     if (exitCode == 0)
-        QCOMPARE(m_qbsStdout.count("Running tool"), 7);
+        QCOMPARE(m_qbsStdout.count("Running tool"), 5);
 }
 
 QTEST_MAIN(TestBlackboxJobLimits)
