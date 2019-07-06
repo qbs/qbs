@@ -750,7 +750,15 @@ void TestBlackboxApple::iconsetApp()
     params.arguments = QStringList() << "-f" << "iconsetapp.qbs";
     QCOMPARE(runQbs(params), 0);
 
-    QVERIFY(regularFileExists(relativeProductBuildDir("iconsetapp") + "/iconsetapp.app/Contents/Resources/white.icns"));
+    if (m_qbsStdout.contains("isShallow: false")) {
+        QVERIFY(regularFileExists(relativeProductBuildDir("iconsetapp")
+                                  + "/iconsetapp.app/Contents/Resources/white.icns"));
+    } else if (m_qbsStdout.contains("isShallow: true")) {
+        QVERIFY(regularFileExists(relativeProductBuildDir("iconsetapp")
+                                  + "/iconsetapp.app/white.icns"));
+    } else {
+        QVERIFY2(false, qPrintable(m_qbsStdout));
+    }
 }
 
 void TestBlackboxApple::infoPlist()
