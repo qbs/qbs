@@ -79,7 +79,7 @@
 */
 
 /*!
-    \qmlproperty string JobLimit::jobCount
+    \qmlproperty int JobLimit::jobCount
 
     The maximum number of commands in the given \l{jobPool}{job pool} that can run
     concurrently.
