@@ -90,6 +90,7 @@ Module {
                                       ? libFilePathDebug : libFilePathRelease
 
     property stringList coreLibPaths: @libraryPaths@
+    property bool hasLibrary: true
 
     // These are deliberately not path types
     // We don't want to resolve them against the source directory
