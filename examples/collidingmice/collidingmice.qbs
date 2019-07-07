@@ -50,7 +50,7 @@
 
 import qbs 1.0
 
-Application {
+CppApplication {
     name : "CollidingMice"
     Depends { name: "Qt.widgets" }
     property bool isBundle: qbs.targetOS.contains("darwin") && bundle.isBundle
@@ -64,7 +64,7 @@ Application {
     Group {
         fileTagsFilter: isBundle ?  ["bundle.content"] : ["application"]
         qbs.install: true
-        qbs.installPrefix: isBundle ? "Applications" : "bin"
+        qbs.installDir: isBundle ? "Applications" : (qbs.targetOS.contains("windows") ? "" : "bin")
         qbs.installSourceBase: product.buildDirectory
     }
 }
