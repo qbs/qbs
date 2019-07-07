@@ -7,6 +7,7 @@ QtApplication {
     consoleApplication: true
     property string testName
     name: "tst_" + testName
+    property string targetInstallDir: qbsbuildconfig.appInstallDir
     Depends { name: "Qt.testlib" }
     Depends { name: "qbscore" }
     Depends { name: "qbsbuildconfig" }
@@ -28,13 +29,14 @@ QtApplication {
             "consolelogger.h"
         ]
     }
-    cpp.rpaths: [FileInfo.joinPaths(qbs.installRoot, qbs.installPrefix, qbsbuildconfig.libDirName)]
+    cpp.rpaths: qbsbuildconfig.libRPaths
+
     qbs.commonRunEnvironment: ({
         "QBS_INSTALL_DIR": FileInfo.joinPaths(qbs.installRoot, qbs.installPrefix)
     })
     Group {
         fileTagsFilter: product.type
         qbs.install: true
-        qbs.installDir: qbsbuildconfig.appInstallDir
+        qbs.installDir: targetInstallDir
     }
 }

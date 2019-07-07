@@ -12,7 +12,7 @@ Module {
     property bool enableProjectFileUpdates: false
     property bool enableRPath: true
     property bool installApiHeaders: true
-    property bool enableBundledQt: true
+    property bool enableBundledQt: false
     property bool useBundledQtScript: false
     property bool staticBuild: false
     property string libDirName: "lib"

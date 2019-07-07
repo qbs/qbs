@@ -3,7 +3,6 @@ import qbs.Utilities
 
 QbsLibrary {
     Depends { name: "cpp" }
-    Depends { name: "bundledqt" }
     Depends { name: "Qt"; submodules: ["core-private", "network", "xml"] }
     Depends {
         name: "Qt.script"
