@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2019 Jochen Ulrich <jochenulrich@t-online.de>
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -45,6 +46,7 @@
 #include <tools/error.h>
 
 #include <QtCore/qobject.h>
+#include <QtCore/qtimer.h>
 
 namespace qbs {
 class ErrorInfo;
@@ -64,7 +66,7 @@ public:
     void setDryRunEnabled(bool enabled) { m_dryRun = enabled; }
     void setEchoMode(CommandEchoMode echoMode) { m_echoMode = echoMode; }
 
-    virtual void cancel() = 0;
+    virtual void cancel(const qbs::ErrorInfo &reason = {}) = 0;
 
     void start(Transformer *transformer, AbstractCommand *cmd);
 
@@ -83,7 +85,9 @@ protected:
 
 private:
     virtual void doSetup() { };
-    virtual void doStart() = 0;
+    virtual bool doStart() = 0;
+
+    void startTimeout();
 
 private:
     AbstractCommand *m_command;
@@ -91,6 +95,7 @@ private:
     ScriptEngine *m_mainThreadScriptEngine;
     bool m_dryRun;
     Internal::Logger m_logger;
+    QTimer m_watchdog;
 };
 
 } // namespace Internal

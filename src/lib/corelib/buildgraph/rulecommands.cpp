@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2019 Jochen Ulrich <jochenulrich@t-online.de>
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -74,6 +75,7 @@ static QString stderrFilePathProperty() { return QStringLiteral("stderrFilePath"
 static QString stderrFilterFunctionProperty() { return QStringLiteral("stderrFilterFunction"); }
 static QString stdoutFilePathProperty() { return QStringLiteral("stdoutFilePath"); }
 static QString stdoutFilterFunctionProperty() { return QStringLiteral("stdoutFilterFunction"); }
+static QString timeoutProperty() { return QStringLiteral("timeout"); }
 static QString workingDirProperty() { return QStringLiteral("workingDirectory"); }
 
 static QString invokedSourceCode(const QScriptValue codeOrFunction)
@@ -87,7 +89,8 @@ AbstractCommand::AbstractCommand()
       m_extendedDescription(defaultExtendedDescription()),
       m_highlight(defaultHighLight()),
       m_ignoreDryRun(defaultIgnoreDryRun()),
-      m_silent(defaultIsSilent())
+      m_silent(defaultIsSilent()),
+      m_timeout(defaultTimeout())
 {
 }
 
@@ -104,6 +107,7 @@ bool AbstractCommand::equals(const AbstractCommand *other) const
             && m_ignoreDryRun == other->m_ignoreDryRun
             && m_silent == other->m_silent
             && m_jobPool == other->m_jobPool
+            && m_timeout == other->m_timeout
             && m_properties == other->m_properties;
 }
 
@@ -115,6 +119,9 @@ void AbstractCommand::fillFromScriptValue(const QScriptValue *scriptValue, const
     m_ignoreDryRun = scriptValue->property(ignoreDryRunProperty()).toBool();
     m_silent = scriptValue->property(silentProperty()).toBool();
     m_jobPool = scriptValue->property(StringConstants::jobPoolProperty()).toString();
+    const auto timeoutScriptValue = scriptValue->property(timeoutProperty());
+    if (!timeoutScriptValue.isUndefined() && !timeoutScriptValue.isNull())
+        m_timeout = timeoutScriptValue.toInt32();
     m_codeLocation = codeLocation;
 
     m_predefinedProperties
@@ -123,7 +130,8 @@ void AbstractCommand::fillFromScriptValue(const QScriptValue *scriptValue, const
             << highlightProperty()
             << ignoreDryRunProperty()
             << StringConstants::jobPoolProperty()
-            << silentProperty();
+            << silentProperty()
+            << timeoutProperty();
 }
 
 QString AbstractCommand::fullDescription(const QString &productName) const
@@ -173,6 +181,8 @@ static QScriptValue js_CommandBase(QScriptContext *context, QScriptEngine *engin
                     engine->toScriptValue(AbstractCommand::defaultIgnoreDryRun()));
     cmd.setProperty(silentProperty(),
                     engine->toScriptValue(AbstractCommand::defaultIsSilent()));
+    cmd.setProperty(timeoutProperty(),
+                    engine->toScriptValue(AbstractCommand::defaultTimeout()));
     return cmd;
 }
 

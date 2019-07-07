@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2017 The Qt Company Ltd.
+** Copyright (C) 2019 Jochen Ulrich <jochenulrich@t-online.de>
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -116,6 +117,14 @@
         \li A flag that controls whether the \c description is printed. Set it to \c true for commands that
             users need not know about. \note If this property is \c false, then \c description must
             not be empty.
+    \row
+        \li \c timeout
+        \li int
+        \li -1
+        \li Time limit for the command execution in seconds. If the command does not finish within
+            the timeout, it is cancelled. In case of a \c Command, the process is requested to
+            terminate. If it does not terminate within three seconds, it is killed. A value below
+            or equal to 0 means no timeout.
     \endtable
 
     \section2 Command Properties

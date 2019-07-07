@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2019 Jochen Ulrich <jochenulrich@t-online.de>
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -48,6 +49,8 @@ private slots:
     void artifactScanning();
     void assembly();
     void autotestWithDependencies();
+    void autotestTimeout();
+    void autotestTimeout_data();
     void autotests_data();
     void autotests();
     void auxiliaryInputsFromDependencies();

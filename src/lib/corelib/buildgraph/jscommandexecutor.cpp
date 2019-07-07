@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2019 Jochen Ulrich <jochenulrich@t-online.de>
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -82,9 +83,11 @@ public:
         return m_result;
     }
 
-    void cancel()
+    void cancel(const qbs::ErrorInfo &reason)
     {
         QBS_ASSERT(m_scriptEngine, return);
+        m_result.success = !reason.hasError();
+        m_result.errorMessage = reason.toString();
         m_scriptEngine->abortEvaluation();
     }
 
@@ -226,24 +229,25 @@ void JsCommandExecutor::waitForFinished()
     loop.exec();
 }
 
-void JsCommandExecutor::doStart()
+bool JsCommandExecutor::doStart()
 {
-    QBS_ASSERT(!m_running, return);
+    QBS_ASSERT(!m_running, return false);
     m_thread->start();
 
     if (dryRun() && !command()->ignoreDryRun()) {
         QTimer::singleShot(0, this, [this] { emit finished(); }); // Don't call back on the caller.
-        return;
+        return false;
     }
 
     m_running = true;
     emit startRequested(jsCommand(), transformer());
+    return true;
 }
 
-void JsCommandExecutor::cancel()
+void JsCommandExecutor::cancel(const qbs::ErrorInfo &reason)
 {
     if (m_running && !dryRun())
-        QTimer::singleShot(0, m_objectInThread, [this] { m_objectInThread->cancel(); });
+        QTimer::singleShot(0, m_objectInThread, [objectInThread = m_objectInThread, reason] { objectInThread->cancel(reason); });
 }
 
 void JsCommandExecutor::onJavaScriptCommandFinished()

@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2019 Jochen Ulrich <jochenulrich@t-online.de>
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -119,9 +120,9 @@ void ProcessCommandExecutor::doSetup()
     m_shellInvocation = shellQuote(QDir::toNativeSeparators(m_program), m_arguments);
 }
 
-void ProcessCommandExecutor::doStart()
+bool ProcessCommandExecutor::doStart()
 {
-    QBS_ASSERT(m_process.state() == QProcess::NotRunning, return);
+    QBS_ASSERT(m_process.state() == QProcess::NotRunning, return false);
 
     const ProcessCommand * const cmd = processCommand();
 
@@ -131,7 +132,7 @@ void ProcessCommandExecutor::doStart()
 
     if (dryRun() && !cmd->ignoreDryRun()) {
         QTimer::singleShot(0, this, [this] { emit finished(); }); // Don't call back on the caller.
-        return;
+        return false;
     }
 
     const QString workingDir = QDir::fromNativeSeparators(cmd->workingDir());
@@ -142,7 +143,7 @@ void ProcessCommandExecutor::doStart()
                     "is invalid.").arg(QDir::toNativeSeparators(workingDir),
                                        QDir::toNativeSeparators(m_program)),
                                     cmd->codeLocation()));
-            return;
+            return false;
         }
     }
 
@@ -163,7 +164,7 @@ void ProcessCommandExecutor::doStart()
             if (!responseFile.open()) {
                 emit finished(ErrorInfo(Tr::tr("Cannot create response file '%1'.")
                                  .arg(responseFile.fileName())));
-                return;
+                return false;
             }
             for (int i = cmd->responseFileArgumentIndex(); i < cmd->arguments().size(); ++i) {
                 const QString arg = cmd->arguments().at(i);
@@ -172,7 +173,7 @@ void ProcessCommandExecutor::doStart()
                     if (!f.open(QIODevice::ReadOnly)) {
                         emit finished(ErrorInfo(Tr::tr("Cannot open command file '%1'.")
                                                 .arg(QDir::toNativeSeparators(f.fileName()))));
-                        return;
+                        return false;
                     }
                     responseFile.write(f.readAll());
                 } else {
@@ -194,13 +195,15 @@ void ProcessCommandExecutor::doStart()
     qCDebug(lcExec) << "Additional environment:" << additionalVariables.toStringList();
     m_process.setWorkingDirectory(workingDir);
     m_process.start(m_program, arguments);
+    return true;
 }
 
-void ProcessCommandExecutor::cancel()
+void ProcessCommandExecutor::cancel(const qbs::ErrorInfo &reason)
 {
     // We don't want this command to be reported as failing, since we explicitly terminated it.
     disconnect(this, &ProcessCommandExecutor::reportProcessResult, nullptr, nullptr);
 
+    m_cancelReason = reason;
     m_process.cancel();
 }
 
@@ -302,10 +305,13 @@ void ProcessCommandExecutor::sendProcessOutput()
     const bool processError = result.error() != QProcess::UnknownError;
     const bool failureExit = quint32(m_process.exitCode())
             > quint32(processCommand()->maxExitCode());
-    result.d->success = !processError && !failureExit;
+    const bool cancelledWithError = m_cancelReason.hasError();
+    result.d->success = !processError && !failureExit && !cancelledWithError;
     emit reportProcessResult(result);
 
-    if (Q_UNLIKELY(processError)) {
+    if (Q_UNLIKELY(cancelledWithError)) {
+        emit finished(m_cancelReason);
+    } else if (Q_UNLIKELY(processError)) {
         emit finished(ErrorInfo(errorString));
     } else if (Q_UNLIKELY(failureExit)) {
         emit finished(ErrorInfo(Tr::tr("Process failed with exit code %1.")
@@ -323,6 +329,8 @@ void ProcessCommandExecutor::onProcessError()
         QTimer::singleShot(0, this, &ProcessCommandExecutor::onProcessError);
         return;
     }
+    if (m_cancelReason.hasError())
+        return; // Ignore. Cancel reasons will be handled by on ProcessFinished().
     switch (m_process.error()) {
     case QProcess::FailedToStart: {
         removeResponseFile();

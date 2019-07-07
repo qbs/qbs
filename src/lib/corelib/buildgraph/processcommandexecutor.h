@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2019 Jochen Ulrich <jochenulrich@t-online.de>
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -71,8 +72,8 @@ private:
 
     void doSetup() override;
     void doReportCommandDescription(const QString &productName) override;
-    void doStart() override;
-    void cancel() override;
+    bool doStart() override;
+    void cancel(const qbs::ErrorInfo &reason) override;
 
     void startProcessCommand();
     QString filterProcessOutput(const QByteArray &output, const QString &filterFunctionSource);
@@ -91,6 +92,7 @@ private:
     QProcessEnvironment m_buildEnvironment;
     QProcessEnvironment m_commandEnvironment;
     QString m_responseFileName;
+    qbs::ErrorInfo m_cancelReason;
 };
 
 } // namespace Internal

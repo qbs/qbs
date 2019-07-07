@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2019 Jochen Ulrich <jochenulrich@t-online.de>
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -2827,6 +2828,69 @@ void TestApi::targetArtifactStatus()
     QCOMPARE(products.size(), 1);
     const qbs::ProductData product = products.front();
     QCOMPARE(product.targetArtifacts().size(), enableTagging ? 2 : 1);
+}
+
+void TestApi::timeout()
+{
+    QFETCH(QString, projectDirName);
+    QFETCH(qint64, expectedMaxRunTime);
+    const auto setupParams = defaultSetupParameters(projectDirName + "/timeout.qbs");
+    std::unique_ptr<qbs::SetupProjectJob> setupJob{
+            qbs::Project().setupProject(setupParams, m_logSink, nullptr)};
+    waitForFinished(setupJob.get());
+    QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
+    auto project = setupJob->project();
+    const auto products = project.projectData().products();
+    QList<qbs::ProductData> helperProducts;
+    qbs::ProductData productUnderTest;
+    for (const auto &product : products) {
+        if (!product.type().contains(QLatin1String("product-under-test")))
+            helperProducts.append(product);
+        else
+            productUnderTest = product;
+    }
+    const std::unique_ptr<qbs::BuildJob> buildHelpersJob{
+            project.buildSomeProducts(helperProducts, qbs::BuildOptions())};
+    QVERIFY(waitForFinished(buildHelpersJob.get(), testTimeoutInMsecs()));
+    if (buildHelpersJob->error().hasError()) {
+        qDebug().noquote() << buildHelpersJob->error().toString();
+        QFAIL("Could not build helper products");
+    }
+
+    QElapsedTimer timer;
+    timer.start();
+    const std::unique_ptr<qbs::BuildJob> buildJob(project.buildOneProduct(productUnderTest,
+                                                                          qbs::BuildOptions()));
+    const auto testAbortTimeout = 20 * 1000ll;
+    /* We add an additional buffer to the expectedMaxRunTime because Qbs can take some
+     * time (>1 second) to finish after the command has been cancelled.
+     */
+    expectedMaxRunTime += 4 * 1000ll;
+    Q_ASSERT_X(testAbortTimeout > expectedMaxRunTime,
+               Q_FUNC_INFO,
+               "testAbortTimeout must be larger than the expectedMaxRunTime. Else the "
+               "test might be cancelled to early although the code is working correctly.");
+    QTimer::singleShot(testAbortTimeout, buildJob.get(), &qbs::AbstractJob::cancel);
+    QVERIFY(waitForFinished(buildJob.get(), testTimeoutInMsecs()));
+    const auto actualRunTime = timer.elapsed();
+    QVERIFY(buildJob->error().hasError());
+    const auto errorString = buildJob->error().toString();
+    QVERIFY(errorString.contains("cancel"));
+    QVERIFY(errorString.contains("timeout"));
+    if (actualRunTime > expectedMaxRunTime)
+        qDebug() << actualRunTime << "vs." << expectedMaxRunTime;
+    QVERIFY(actualRunTime < expectedMaxRunTime);
+}
+
+void TestApi::timeout_data()
+{
+    QTest::addColumn<QString>("projectDirName");
+    QTest::addColumn<qint64>("expectedMaxRunTime");
+    QTest::newRow("JS Command") << QString("timeout-js") << 3 * 1000ll;
+    /* The timeout is 3 seconds. Qbs will try to terminate the process for 3 seconds and then kill
+     * it.
+     */
+    QTest::newRow("Process Command") << QString("timeout-process") << (3 + 3) * 1000ll;
 }
 
 void TestApi::toolInModule()

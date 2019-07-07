@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2019 Jochen Ulrich <jochenulrich@t-online.de>
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -5622,6 +5623,34 @@ void TestBlackbox::autotestWithDependencies()
     QCOMPARE(runQbs(QStringList({"-p", "autotest-runner"})), 0);
     QVERIFY2(m_qbsStdout.contains("i am the test app")
              && m_qbsStdout.contains("i am the helper"), m_qbsStdout.constData());
+}
+
+void TestBlackbox::autotestTimeout()
+{
+    QFETCH(QStringList, resolveParams);
+    QFETCH(bool, expectFailure);
+    QDir::setCurrent(testDataDir + "/autotest-timeout");
+    QbsRunParameters resolveParameters("resolve", resolveParams);
+    QCOMPARE(runQbs(resolveParameters), 0);
+    QbsRunParameters buildParameters(QStringList({"-p", "autotest-runner"}));
+    buildParameters.expectFailure = expectFailure;
+    if (expectFailure) {
+        QVERIFY(runQbs(buildParameters) != 0);
+        QVERIFY(m_qbsStderr.contains("cancelled") && m_qbsStderr.contains("timeout"));
+    }
+    else
+        QVERIFY(runQbs(buildParameters) == 0);
+}
+
+void TestBlackbox::autotestTimeout_data()
+{
+    QTest::addColumn<QStringList>("resolveParams");
+    QTest::addColumn<bool>("expectFailure");
+    QTest::newRow("no timeout") << QStringList() << false;
+    QTest::newRow("timeout on test") << QStringList({"products.testApp.autotest.timeout:2"})
+            << true;
+    QTest::newRow("timeout on runner") << QStringList({"products.autotest-runner.timeout:2"})
+            << true;
 }
 
 void TestBlackbox::autotests_data()

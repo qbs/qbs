@@ -42,6 +42,7 @@ Product {
     property stringList wrapper: []
     property string workingDir
     property stringList auxiliaryInputs
+    property int timeout: -1
 
     Depends {
         productTypes: "autotest"
@@ -74,6 +75,7 @@ Product {
                                                 : FileInfo.path(commandFilePath);
             var arguments = product.arguments;
             var allowFailure = false;
+            var timeout = product.timeout;
             if (input.autotest) {
                 // FIXME: We'd like to let the user override with an empty list, but
                 //        qbscore turns undefined lists into empty ones at the moment.
@@ -83,6 +85,9 @@ Product {
                 if (input.autotest.workingDir)
                     workingDir = input.autotest.workingDir;
                 allowFailure = input.autotest.allowFailure;
+
+                if (input.autotest.timeout !== undefined)
+                    timeout = input.autotest.timeout;
             }
             var fullCommandLine = product.wrapper
                 .concat([commandFilePath])
@@ -91,6 +96,7 @@ Product {
             cmd.description = "Running test " + input.fileName;
             cmd.environment = product.environment;
             cmd.workingDirectory = workingDir;
+            cmd.timeout = timeout;
             if (allowFailure)
                 cmd.maxExitCode = 32767;
             return cmd;
