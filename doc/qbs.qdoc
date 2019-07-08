@@ -1767,6 +1767,7 @@
     \table
     \header \li Generator       \li IAR EW Version      \li Target Architecture
     \row    \li iarew8          \li All 8.x.y versions  \li ARM
+    \row    \li iarew7          \li All 7.x.y versions  \li AVR
     \endtable
 
     \section1 Generating Clang Compilation Databases

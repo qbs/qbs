@@ -36,6 +36,7 @@
 #include "iiarewnodevisitor.h"
 
 #include "archs/arm/armbuildconfigurationgroup_v8.h"
+#include "archs/avr/avrbuildconfigurationgroup_v7.h"
 
 #include <logging/translator.h>
 
@@ -50,6 +51,7 @@ IarewProject::IarewProject(const GeneratableProject &genProject,
 
     // Create available configuration group factories.
     m_factories.push_back(std::make_unique<v8::ArmBuildConfigurationGroupFactory>());
+    m_factories.push_back(std::make_unique<v7::AvrBuildConfigurationGroupFactory>());
 
     // Construct file version item.
     appendChild<IarewFileVersionProperty>(versionInfo);

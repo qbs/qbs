@@ -64,3 +64,21 @@ SOURCES += \
     $$PWD/archs/arm/armcompilersettingsgroup_v8.cpp \
     $$PWD/archs/arm/armgeneralsettingsgroup_v8.cpp \
     $$PWD/archs/arm/armlinkersettingsgroup_v8.cpp \
+
+# For AVR architecture.
+
+HEADERS += \
+    $$PWD/archs/avr/avrarchiversettingsgroup_v7.h \
+    $$PWD/archs/avr/avrassemblersettingsgroup_v7.h \
+    $$PWD/archs/avr/avrbuildconfigurationgroup_v7.h \
+    $$PWD/archs/avr/avrcompilersettingsgroup_v7.h \
+    $$PWD/archs/avr/avrgeneralsettingsgroup_v7.h \
+    $$PWD/archs/avr/avrlinkersettingsgroup_v7.h \
+
+SOURCES += \
+    $$PWD/archs/avr/avrarchiversettingsgroup_v7.cpp \
+    $$PWD/archs/avr/avrassemblersettingsgroup_v7.cpp \
+    $$PWD/archs/avr/avrbuildconfigurationgroup_v7.cpp \
+    $$PWD/archs/avr/avrcompilersettingsgroup_v7.cpp \
+    $$PWD/archs/avr/avrgeneralsettingsgroup_v7.cpp \
+    $$PWD/archs/avr/avrlinkersettingsgroup_v7.cpp \

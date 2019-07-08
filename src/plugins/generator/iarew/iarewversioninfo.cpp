@@ -56,6 +56,7 @@ std::set<IarewVersionInfo> IarewVersionInfo::knownVersions()
 {
     static const std::set<IarewVersionInfo> known = {
         {Version(8), {IarewUtils::Architecture::ArmArchitecture}},
+        {Version(7), {IarewUtils::Architecture::AvrArchitecture}},
     };
     return known;
 }

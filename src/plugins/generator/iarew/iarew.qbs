@@ -62,4 +62,22 @@ QbsPlugin {
             "armlinkersettingsgroup_v8.h",
         ]
     }
+    Group {
+        name: "IAR EW generator for AVR"
+        prefix: "archs/avr/"
+        files: [
+            "avrarchiversettingsgroup_v7.cpp",
+            "avrarchiversettingsgroup_v7.h",
+            "avrassemblersettingsgroup_v7.cpp",
+            "avrassemblersettingsgroup_v7.h",
+            "avrbuildconfigurationgroup_v7.cpp",
+            "avrbuildconfigurationgroup_v7.h",
+            "avrcompilersettingsgroup_v7.cpp",
+            "avrcompilersettingsgroup_v7.h",
+            "avrgeneralsettingsgroup_v7.cpp",
+            "avrgeneralsettingsgroup_v7.h",
+            "avrlinkersettingsgroup_v7.cpp",
+            "avrlinkersettingsgroup_v7.h",
+        ]
+    }
 }
