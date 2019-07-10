@@ -43,6 +43,8 @@
 
 #include <QtCore/qfileinfo.h>
 
+#include <tuple> // for std::tie
+
 QT_BEGIN_NAMESPACE
 class QString;
 class QStringList;
@@ -64,8 +66,11 @@ struct ToolchainInstallInfo
 };
 
 inline bool operator<(const ToolchainInstallInfo &lhs, const ToolchainInstallInfo &rhs)
-{ return lhs.compilerPath.absoluteFilePath() < rhs.compilerPath.absoluteFilePath()
-            || lhs.compilerVersion < rhs.compilerVersion; }
+{
+    const auto lp = lhs.compilerPath.absoluteFilePath();
+    const auto rp = rhs.compilerPath.absoluteFilePath();
+    return std::tie(lp, lhs.compilerVersion) < std::tie(rp, rhs.compilerVersion);
+}
 
 int extractVersion(const QByteArray &macroDump, const QByteArray &keyToken);
 
