@@ -1149,7 +1149,10 @@
 
     If left undefined, compiler defaults will be used.
 
-    \nodefaultvalue
+    \note \QBS sets the minimum version to \c "6.0", because earlier tvOS
+    versions are not supported by recent XCode installations by default.
+
+    \defaultvalue \c "6.0
 */
 
 /*!

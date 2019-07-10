@@ -120,7 +120,7 @@ Module {
                         defaults will be used."
     }
 
-    property string minimumTvosVersion
+    property string minimumTvosVersion: "6.0"
     PropertyOptions {
         name: "minimumTvosVersion"
         description: "a version number in the format [major].[minor] indicating the earliest \
