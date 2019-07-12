@@ -91,6 +91,11 @@ struct CpuCoreEntry final
                        CortexM23 = 58,
                        CortexM33 = 59 };
 
+    // Required to compile in MSVC2015.
+    CpuCoreEntry(CpuCoreCode cc, QByteArray tf)
+        : coreCode(cc), targetFlag(std::move(tf))
+    {}
+
     CpuCoreCode coreCode = Arm7tdmi;
     QByteArray targetFlag;
 };
@@ -161,6 +166,13 @@ struct FpuCoreEntry final
                        Vfp5sp = 6,
                        Vfp5d16 = 7,
                        Vfp9s = 8 };
+
+
+    // Required to compile in MSVC2015.
+    FpuCoreEntry(FpuCoreCode cc, FpuRegistersCount rc,
+                 QByteArray tf)
+        : coreCode(cc), regsCount(rc), targetFlag(std::move(tf))
+    {}
 
     FpuCoreCode coreCode = NoVfp;
     FpuRegistersCount regsCount = NoFpuRegisters;
