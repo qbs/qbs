@@ -82,3 +82,21 @@ SOURCES += \
     $$PWD/archs/avr/avrcompilersettingsgroup_v7.cpp \
     $$PWD/archs/avr/avrgeneralsettingsgroup_v7.cpp \
     $$PWD/archs/avr/avrlinkersettingsgroup_v7.cpp \
+
+# For MCS51 architecture.
+
+HEADERS += \
+    $$PWD/archs/mcs51/mcs51archiversettingsgroup_v10.h \
+    $$PWD/archs/mcs51/mcs51assemblersettingsgroup_v10.h \
+    $$PWD/archs/mcs51/mcs51buildconfigurationgroup_v10.h \
+    $$PWD/archs/mcs51/mcs51compilersettingsgroup_v10.h \
+    $$PWD/archs/mcs51/mcs51generalsettingsgroup_v10.h \
+    $$PWD/archs/mcs51/mcs51linkersettingsgroup_v10.h \
+
+SOURCES += \
+    $$PWD/archs/mcs51/mcs51archiversettingsgroup_v10.cpp \
+    $$PWD/archs/mcs51/mcs51assemblersettingsgroup_v10.cpp \
+    $$PWD/archs/mcs51/mcs51buildconfigurationgroup_v10.cpp \
+    $$PWD/archs/mcs51/mcs51compilersettingsgroup_v10.cpp \
+    $$PWD/archs/mcs51/mcs51generalsettingsgroup_v10.cpp \
+    $$PWD/archs/mcs51/mcs51linkersettingsgroup_v10.cpp \

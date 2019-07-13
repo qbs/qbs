@@ -80,4 +80,22 @@ QbsPlugin {
             "avrlinkersettingsgroup_v7.h",
         ]
     }
+    Group {
+        name: "IAR EW generator for MCS51"
+        prefix: "archs/mcs51/"
+        files: [
+            "mcs51archiversettingsgroup_v10.cpp",
+            "mcs51archiversettingsgroup_v10.h",
+            "mcs51assemblersettingsgroup_v10.cpp",
+            "mcs51assemblersettingsgroup_v10.h",
+            "mcs51buildconfigurationgroup_v10.cpp",
+            "mcs51buildconfigurationgroup_v10.h",
+            "mcs51compilersettingsgroup_v10.cpp",
+            "mcs51compilersettingsgroup_v10.h",
+            "mcs51generalsettingsgroup_v10.cpp",
+            "mcs51generalsettingsgroup_v10.h",
+            "mcs51linkersettingsgroup_v10.cpp",
+            "mcs51linkersettingsgroup_v10.h",
+        ]
+    }
 }
