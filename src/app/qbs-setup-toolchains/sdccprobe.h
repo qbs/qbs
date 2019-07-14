@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef SDCCPROBE_H
-#define SDCCPROBE_H
+#ifndef QBS_SETUPTOOLCHAINS_SDCCPROBE_H
+#define QBS_SETUPTOOLCHAINS_SDCCPROBE_H
 
 #include <QtCore/qlist.h>
 
@@ -58,4 +58,4 @@ void createSdccProfile(const QFileInfo &compiler, qbs::Settings *settings,
 
 void sdccProbe(qbs::Settings *settings, QList<qbs::Profile> &profiles);
 
-#endif // SDCCPROBE_H
+#endif // Header guard

@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef KEILPROBE_H
-#define KEILPROBE_H
+#ifndef QBS_SETUPTOOLCHAINS_KEILPROBE_H
+#define QBS_SETUPTOOLCHAINS_KEILPROBE_H
 
 #include <QtCore/qlist.h>
 
@@ -58,4 +58,4 @@ void createKeilProfile(const QFileInfo &compiler, qbs::Settings *settings,
 
 void keilProbe(qbs::Settings *settings, QList<qbs::Profile> &profiles);
 
-#endif // KEILPROBE_H
+#endif // Header guard

@@ -37,19 +37,23 @@
 **
 ****************************************************************************/
 
-#ifndef CLANGCLPROBE_H
-#define CLANGCLPROBE_H
+#ifndef QBS_SETUPTOOLCHAINS_CLANGCLPROBE_H
+#define QBS_SETUPTOOLCHAINS_CLANGCLPROBE_H
 
 #include <QtCore/qlist.h>
+
+QT_BEGIN_NAMESPACE
+class QFileInfo;
+QT_END_NAMESPACE
 
 namespace qbs {
 class Profile;
 class Settings;
 }
 
-void createClangClProfile(
-        const QString &profileName, const QString &compilerFilePath, qbs::Settings *settings);
+void createClangClProfile(const QFileInfo &compiler, qbs::Settings *settings,
+                          const QString &profileName);
 
 void clangClProbe(qbs::Settings *settings, QList<qbs::Profile> &profiles);
 
-#endif // CLANGCLPROBE_H
+#endif // Header guard

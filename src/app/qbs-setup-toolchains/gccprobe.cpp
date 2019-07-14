@@ -169,10 +169,11 @@ static bool doesProfileTargetOS(const Profile &profile, const QString &os)
     return Internal::contains(HostOsInfo::hostOSIdentifiers(), os.toStdString());
 }
 
-Profile createGccProfile(const QString &compilerFilePath, Settings *settings,
+Profile createGccProfile(const QFileInfo &compiler, Settings *settings,
                          const QStringList &toolchainTypes,
                          const QString &profileName)
 {
+    const auto compilerFilePath = compiler.absoluteFilePath();
     const QString machineName = gccMachineName(compilerFilePath);
 
     if (toolchainTypes.contains(QLatin1String("mingw"))) {
@@ -188,7 +189,7 @@ Profile createGccProfile(const QString &compilerFilePath, Settings *settings,
 
     // Check whether auxiliary tools reside within the toolchain's install path.
     // This might not be the case when using icecc or another compiler wrapper.
-    const QString compilerDirPath = QFileInfo(compilerFilePath).absolutePath();
+    const QString compilerDirPath = compiler.absolutePath();
     const ToolPathSetup toolPathSetup(
                 &profile, compilerDirPath,
                 profile.value(QStringLiteral("cpp.toolchainPrefix"))

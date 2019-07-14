@@ -37,12 +37,16 @@
 **
 ****************************************************************************/
 
-#ifndef MSVCPROBE_H
-#define MSVCPROBE_H
+#ifndef QBS_SETUPTOOLCHAINS_MSVCPROBE_H
+#define QBS_SETUPTOOLCHAINS_MSVCPROBE_H
 
 #include <QtCore/qlist.h>
 
 #include <vector>
+
+QT_BEGIN_NAMESPACE
+class QFileInfo;
+QT_END_NAMESPACE
 
 namespace qbs {
 class Profile;
@@ -59,9 +63,9 @@ struct MSVCInstallInfo
 
 std::vector<MSVCInstallInfo> installedMSVCs();
 
-void createMsvcProfile(const QString &profileName, const QString &compilerFilePath,
-                       qbs::Settings *settings);
+void createMsvcProfile(const QFileInfo &compiler, qbs::Settings *settings,
+                       const QString &profileName);
 
 void msvcProbe(qbs::Settings *settings, QList<qbs::Profile> &profiles);
 
-#endif // MSVCPROBE_H
+#endif // Header guard

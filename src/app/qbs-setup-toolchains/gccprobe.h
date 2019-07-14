@@ -36,8 +36,9 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef GCCPROBE_H
-#define GCCPROBE_H
+
+#ifndef QBS_SETUPTOOLCHAINS_GCCPROBE_H
+#define QBS_SETUPTOOLCHAINS_GCCPROBE_H
 
 #include <QtCore/qlist.h>
 
@@ -50,7 +51,7 @@ class Profile;
 class Settings;
 }
 
-qbs::Profile createGccProfile(const QString &compilerFilePath,
+qbs::Profile createGccProfile(const QFileInfo &compiler,
                               qbs::Settings *settings,
                               const QStringList &toolchainTypes,
                               const QString &profileName = QString());

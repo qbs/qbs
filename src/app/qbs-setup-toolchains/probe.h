@@ -36,8 +36,9 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef QBS_PROBE_H
-#define QBS_PROBE_H
+
+#ifndef QBS_SETUPTOOLCHAINS_PROBE_H
+#define QBS_SETUPTOOLCHAINS_PROBE_H
 
 #include <tools/version.h>
 

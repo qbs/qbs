@@ -60,9 +60,9 @@ using qbs::Internal::Tr;
 
 namespace {
 
-QString getToolchainInstallPath(const QString &compilerFilePath)
+QString getToolchainInstallPath(const QFileInfo &compiler)
 {
-    return QFileInfo(compilerFilePath).path(); // 1 level up
+    return compiler.path(); // 1 level up
 }
 
 Profile createProfileHelper(
@@ -119,19 +119,19 @@ QString findCompatibleVcsarsallBat()
 
 } // namespace
 
-void createClangClProfile(
-        const QString &profileName, const QString &compilerFilePath, Settings *settings)
+void createClangClProfile(const QFileInfo &compiler, Settings *settings,
+                          const QString &profileName)
 {
     const auto compilerName = QStringLiteral("clang-cl");
     const auto vcvarsallPath = findCompatibleVcsarsallBat();
     if (vcvarsallPath.isEmpty()) {
         qbsWarning()
                 << Tr::tr("%1 requires installed Visual Studio 2017 or newer, but none was found.")
-                        .arg(compilerName);
+                   .arg(compilerName);
         return;
     }
 
-    const auto toolchainInstallPath = getToolchainInstallPath(compilerFilePath);
+    const auto toolchainInstallPath = getToolchainInstallPath(compiler);
     const auto hostArch = QString::fromStdString(HostOsInfo::hostOSArchitecture());
     createProfileHelper(settings, profileName, toolchainInstallPath, vcvarsallPath, hostArch);
 }
@@ -144,8 +144,8 @@ void clangClProbe(Settings *settings, QList<Profile> &profiles)
 {
     const auto compilerName = QStringLiteral("clang-cl");
     qbsInfo() << Tr::tr("Trying to detect %1...").arg(compilerName);
-    const auto compilerFilePath = findExecutable(HostOsInfo::appendExecutableSuffix(compilerName));
-    if (compilerFilePath.isEmpty()) {
+    const QFileInfo compiler = findExecutable(HostOsInfo::appendExecutableSuffix(compilerName));
+    if (!compiler.exists()) {
         qbsInfo() << Tr::tr("%1 was not found.").arg(compilerName);
         return;
     }
@@ -162,7 +162,7 @@ void clangClProbe(Settings *settings, QList<Profile> &profiles)
         QStringLiteral("x86_64"),
         QStringLiteral("x86")
     };
-    const auto toolchainInstallPath = getToolchainInstallPath(compilerFilePath);
+    const auto toolchainInstallPath = getToolchainInstallPath(compiler);
     for (const auto &arch: architectures) {
         const auto profileName = QStringLiteral("clang-cl-%1").arg(arch);
         auto profile = createProfileHelper(

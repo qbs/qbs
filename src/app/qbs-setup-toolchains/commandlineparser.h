@@ -36,6 +36,7 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
+
 #ifndef QBS_SETUPTOOLCHAINS_COMMANDLINEPARSER_H
 #define QBS_SETUPTOOLCHAINS_COMMANDLINEPARSER_H
 
@@ -75,4 +76,4 @@ private:
     QString m_command;
 };
 
-#endif // Include guard
+#endif // Header guard

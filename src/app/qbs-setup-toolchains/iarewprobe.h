@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef IAREWPROBE_H
-#define IAREWPROBE_H
+#ifndef QBS_SETUPTOOLCHAINS_IAREWPROBE_H
+#define QBS_SETUPTOOLCHAINS_IAREWPROBE_H
 
 #include <QtCore/qlist.h>
 
@@ -58,4 +58,4 @@ void createIarProfile(const QFileInfo &compiler, qbs::Settings *settings,
 
 void iarProbe(qbs::Settings *settings, QList<qbs::Profile> &profiles);
 
-#endif // IAREWPROBE_H
+#endif // Header guard
