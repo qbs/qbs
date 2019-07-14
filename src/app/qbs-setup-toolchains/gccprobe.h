@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2019 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -36,44 +36,27 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef QBS_PROBE_H
-#define QBS_PROBE_H
+#ifndef GCCPROBE_H
+#define GCCPROBE_H
 
-#include <tools/version.h>
-
-#include <QtCore/qfileinfo.h>
-
-#include <tuple> // for std::tie
+#include <QtCore/qlist.h>
 
 QT_BEGIN_NAMESPACE
-class QString;
-class QStringList;
+class QFileInfo;
 QT_END_NAMESPACE
 
-namespace qbs { class Settings; }
-
-QString findExecutable(const QString &fileName);
-
-QStringList toolchainTypeFromCompilerName(const QString &compilerName);
-
-void createProfile(const QString &profileName, const QString &toolchainType,
-                   const QString &compilerFilePath, qbs::Settings *settings);
-
-void probe(qbs::Settings *settings);
-
-struct ToolchainInstallInfo
-{
-    QFileInfo compilerPath;
-    qbs::Version compilerVersion;
-};
-
-inline bool operator<(const ToolchainInstallInfo &lhs, const ToolchainInstallInfo &rhs)
-{
-    const auto lp = lhs.compilerPath.absoluteFilePath();
-    const auto rp = rhs.compilerPath.absoluteFilePath();
-    return std::tie(lp, lhs.compilerVersion) < std::tie(rp, rhs.compilerVersion);
+namespace qbs {
+class Profile;
+class Settings;
 }
 
-int extractVersion(const QByteArray &macroDump, const QByteArray &keyToken);
+qbs::Profile createGccProfile(const QString &compilerFilePath,
+                              qbs::Settings *settings,
+                              const QStringList &toolchainTypes,
+                              const QString &profileName = QString());
+
+void gccProbe(qbs::Settings *settings, QList<qbs::Profile> &profiles,
+              const QString &compilerName);
+void mingwProbe(qbs::Settings *settings, QList<qbs::Profile> &profiles);
 
 #endif // Header guard

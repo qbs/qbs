@@ -5,6 +5,7 @@ TARGET = qbs-setup-toolchains
 HEADERS += \
     clangclprobe.h \
     commandlineparser.h \
+    gccprobe.h \
     iarewprobe.h \
     keilprobe.h \
     msvcprobe.h \
@@ -15,6 +16,7 @@ HEADERS += \
 SOURCES += \
     clangclprobe.cpp \
     commandlineparser.cpp \
+    gccprobe.cpp \
     iarewprobe.cpp \
     keilprobe.cpp \
     main.cpp \
