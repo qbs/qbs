@@ -53,6 +53,8 @@ QT_END_NAMESPACE
 
 namespace qbs { class Settings; }
 
+QStringList systemSearchPaths();
+
 QString findExecutable(const QString &fileName);
 
 QStringList toolchainTypeFromCompilerName(const QString &compilerName);
@@ -76,5 +78,7 @@ inline bool operator<(const ToolchainInstallInfo &lhs, const ToolchainInstallInf
 }
 
 int extractVersion(const QByteArray &macroDump, const QByteArray &keyToken);
+
+bool isSameExecutable(const QString &exe1, const QString &exe2);
 
 #endif // Header guard

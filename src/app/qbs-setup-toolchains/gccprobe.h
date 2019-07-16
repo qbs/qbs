@@ -58,6 +58,5 @@ qbs::Profile createGccProfile(const QFileInfo &compiler,
 
 void gccProbe(qbs::Settings *settings, QList<qbs::Profile> &profiles,
               const QString &compilerName);
-void mingwProbe(qbs::Settings *settings, QList<qbs::Profile> &profiles);
 
 #endif // Header guard
