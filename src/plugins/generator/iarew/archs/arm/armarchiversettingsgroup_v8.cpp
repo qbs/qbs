@@ -34,12 +34,14 @@
 #include "../../iarewutils.h"
 
 namespace qbs {
+namespace iarew {
+namespace arm {
 namespace v8 {
 
 constexpr int kArchiverArchiveVersion = 0;
 constexpr int kArchiverDataVersion = 0;
 
-namespace ArmArchiver {
+namespace {
 
 // Output page options.
 
@@ -55,7 +57,7 @@ struct OutputPageOptions final
     QString outputFile;
 };
 
-} // namespace ArmArchiver
+} // namespace
 
 // ArmArchiverSettingsGroup
 
@@ -79,7 +81,7 @@ void ArmArchiverSettingsGroup::buildOutputPage(
         const QString &baseDirectory,
         const ProductData &qbsProduct)
 {
-    const ArmArchiver::OutputPageOptions opts(baseDirectory, qbsProduct);
+    const OutputPageOptions opts(baseDirectory, qbsProduct);
     // Add 'IarchiveOverride' item (Override default).
     addOptionsGroup(QByteArrayLiteral("IarchiveOverride"),
                     {}, {1});
@@ -89,4 +91,6 @@ void ArmArchiverSettingsGroup::buildOutputPage(
 }
 
 } // namespace v8
+} // namespace arm
+} // namespace iarew
 } // namespace qbs

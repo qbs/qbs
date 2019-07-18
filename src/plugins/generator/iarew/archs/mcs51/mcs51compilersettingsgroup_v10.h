@@ -28,12 +28,14 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_MCS51COMPILERSETTINGSGROUP_V10_H
-#define QBS_MCS51COMPILERSETTINGSGROUP_V10_H
+#ifndef QBS_IAREWMCS51COMPILERSETTINGSGROUP_V10_H
+#define QBS_IAREWMCS51COMPILERSETTINGSGROUP_V10_H
 
 #include "../../iarewsettingspropertygroup.h"
 
 namespace qbs {
+namespace iarew {
+namespace mcs51 {
 namespace v10 {
 
 class Mcs51CompilerSettingsGroup final : public IarewSettingsPropertyGroup
@@ -56,6 +58,8 @@ private:
 };
 
 } // namespace v10
+} // namespace mcs51
+} // namespace iarew
 } // namespace qbs
 
-#endif // QBS_MCS51COMPILERSETTINGSGROUP_V10_H
+#endif // QBS_IAREWMCS51COMPILERSETTINGSGROUP_V10_H

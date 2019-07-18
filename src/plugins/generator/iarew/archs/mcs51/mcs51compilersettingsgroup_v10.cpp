@@ -33,12 +33,14 @@
 #include "../../iarewutils.h"
 
 namespace qbs {
+namespace iarew {
+namespace mcs51 {
 namespace v10 {
 
 constexpr int kCompilerArchiveVersion = 7;
 constexpr int kCompilerDataVersion = 12;
 
-namespace Mcs51Compiler {
+namespace {
 
 // Output page options.
 
@@ -296,7 +298,7 @@ struct CodePageOptions final
     int excludeUbrofMessagesInOutput = 0;
 };
 
-} // namespace Mcs51Compiler
+} // namespace
 
 // Mcs51CompilerSettingsGroup
 
@@ -326,7 +328,7 @@ Mcs51CompilerSettingsGroup::Mcs51CompilerSettingsGroup(
 void Mcs51CompilerSettingsGroup::buildOutputPage(
         const ProductData &qbsProduct)
 {
-    const Mcs51Compiler::OutputPageOptions opts(qbsProduct);
+    const OutputPageOptions opts(qbsProduct);
     // Add 'CCDebugInfo' item (Generate debug info).
     addOptionsGroup(QByteArrayLiteral("CCDebugInfo"),
                     {}, {opts.debugInfo});
@@ -342,7 +344,7 @@ void Mcs51CompilerSettingsGroup::buildOutputPage(
 void Mcs51CompilerSettingsGroup::buildLanguageOnePage(
         const ProductData &qbsProduct)
 {
-    const Mcs51Compiler::LanguageOnePageOptions opts(qbsProduct);
+    const LanguageOnePageOptions opts(qbsProduct);
     // Add 'IccLang' item with 'auto-extension based'
     // value (Language: C/C++/Auto).
     addOptionsGroup(QByteArrayLiteral("IccLang"),
@@ -373,7 +375,7 @@ void Mcs51CompilerSettingsGroup::buildLanguageOnePage(
 void Mcs51CompilerSettingsGroup::buildLanguageTwoPage(
         const ProductData &qbsProduct)
 {
-    const Mcs51Compiler::LanguageTwoPageOptions opts(qbsProduct);
+    const LanguageTwoPageOptions opts(qbsProduct);
     // Add 'CharIs' item (Plain char is: signed/unsigned).
     addOptionsGroup(QByteArrayLiteral("CharIs"),
                     {}, {opts.plainCharacter});
@@ -389,7 +391,7 @@ void Mcs51CompilerSettingsGroup::buildLanguageTwoPage(
 void Mcs51CompilerSettingsGroup::buildOptimizationsPage(
         const ProductData &qbsProduct)
 {
-    const Mcs51Compiler::OptimizationsPageOptions opts(qbsProduct);
+    const OptimizationsPageOptions opts(qbsProduct);
     // Add 'CCOptStrategy', 'CCOptLevel' and
     // 'CCOptLevelSlave' items (Level).
     addOptionsGroup(QByteArrayLiteral("CCOptStrategy"),
@@ -418,8 +420,7 @@ void Mcs51CompilerSettingsGroup::buildPreprocessorPage(
         const QString &baseDirectory,
         const ProductData &qbsProduct)
 {
-    const Mcs51Compiler::PreprocessorPageOptions opts(baseDirectory,
-                                                      qbsProduct);
+    const PreprocessorPageOptions opts(baseDirectory, qbsProduct);
     // Add 'CCDefines' item (Defines symbols).
     addOptionsGroup(QByteArrayLiteral("CCDefines"),
                     {}, opts.defineSymbols);
@@ -431,7 +432,7 @@ void Mcs51CompilerSettingsGroup::buildPreprocessorPage(
 void Mcs51CompilerSettingsGroup::buildDiagnosticsPage(
         const ProductData &qbsProduct)
 {
-    const Mcs51Compiler::DiagnosticsPageOptions opts(qbsProduct);
+    const DiagnosticsPageOptions opts(qbsProduct);
     // Add 'CCDiagWarnAreErr' item (Treat all warnings as errors).
     addOptionsGroup(QByteArrayLiteral("CCDiagWarnAreErr"),
                     {}, {opts.warningsAsErrors});
@@ -440,7 +441,7 @@ void Mcs51CompilerSettingsGroup::buildDiagnosticsPage(
 void Mcs51CompilerSettingsGroup::buildCodePage(
         const ProductData &qbsProduct)
 {
-    const Mcs51Compiler::CodePageOptions opts(qbsProduct);
+    const CodePageOptions opts(qbsProduct);
     // Add 'RomMonBpPadding' item (Padding for ROM-monitor breakpoints).
     addOptionsGroup(QByteArrayLiteral("RomMonBpPadding"),
                     {}, {opts.paddingForRomMonitorBreakpoints});
@@ -450,4 +451,6 @@ void Mcs51CompilerSettingsGroup::buildCodePage(
 }
 
 } // namespace v10
+} // namespace mcs51
+} // namespace iarew
 } // namespace qbs

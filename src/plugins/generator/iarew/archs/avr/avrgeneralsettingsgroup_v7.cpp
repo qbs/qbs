@@ -33,12 +33,14 @@
 #include "../../iarewutils.h"
 
 namespace qbs {
+namespace iarew {
+namespace avr {
 namespace v7 {
 
 constexpr int kGeneralArchiveVersion = 12;
 constexpr int kGeneralDataVersion = 10;
 
-namespace AvrGeneral {
+namespace {
 
 struct TargetMcuEntry final
 {
@@ -651,7 +653,7 @@ struct OutputPageOptions final
     QString listingDirectory;
 };
 
-} // namespace AvrGeneral
+} // namespace
 
 // AvrGeneralSettingsGroup
 
@@ -679,7 +681,7 @@ AvrGeneralSettingsGroup::AvrGeneralSettingsGroup(
 void AvrGeneralSettingsGroup::buildTargetPage(
         const ProductData &qbsProduct)
 {
-    const AvrGeneral::TargetPageOptions opts(qbsProduct);
+    const TargetPageOptions opts(qbsProduct);
     // Add 'GenDeviceSelectMenu' item
     // (Processor configuration chooser).
     addOptionsGroup(QByteArrayLiteral("GenDeviceSelectMenu"),
@@ -697,7 +699,7 @@ void AvrGeneralSettingsGroup::buildTargetPage(
 void AvrGeneralSettingsGroup::buildSystemPage(
         const ProductData &qbsProduct)
 {
-    const AvrGeneral::SystemPageOptions opts (qbsProduct);
+    const SystemPageOptions opts (qbsProduct);
     // Add 'SCCStackSize' item (Data stack
     // - CSTACK size in bytes).
     addOptionsGroup(QByteArrayLiteral("SCCStackSize"),
@@ -711,7 +713,7 @@ void AvrGeneralSettingsGroup::buildSystemPage(
 void AvrGeneralSettingsGroup::buildLibraryOptionsPage(
         const ProductData &qbsProduct)
 {
-    const AvrGeneral::LibraryOptionsPageOptions opts(qbsProduct);
+    const LibraryOptionsPageOptions opts(qbsProduct);
     // Add 'Output variant' item (Printf formatter).
     addOptionsGroup(QByteArrayLiteral("Output variant"),
                     {}, {opts.printfFormatter});
@@ -724,8 +726,7 @@ void AvrGeneralSettingsGroup::buildLibraryConfigPage(
         const QString &baseDirectory,
         const ProductData &qbsProduct)
 {
-    const AvrGeneral::LibraryConfigPageOptions opts(baseDirectory,
-                                                    qbsProduct);
+    const LibraryConfigPageOptions opts(baseDirectory, qbsProduct);
     // Add 'GRuntimeLibSelect' and 'GRuntimeLibSelectSlave' items
     // (Link with runtime: none/dlib/clib/etc).
     addOptionsGroup(QByteArrayLiteral("GRuntimeLibSelect"),
@@ -744,8 +745,7 @@ void AvrGeneralSettingsGroup::buildOutputPage(
         const QString &baseDirectory,
         const ProductData &qbsProduct)
 {
-    const AvrGeneral::OutputPageOptions opts(baseDirectory,
-                                             qbsProduct);
+    const OutputPageOptions opts(baseDirectory, qbsProduct);
     // Add 'GOutputBinary' item (Output file: executable/library).
     addOptionsGroup(QByteArrayLiteral("GOutputBinary"),
                     {}, {opts.binaryType});
@@ -761,4 +761,6 @@ void AvrGeneralSettingsGroup::buildOutputPage(
 }
 
 } // namespace v7
+} // namespace avr
+} // namespace iarew
 } // namespace qbs

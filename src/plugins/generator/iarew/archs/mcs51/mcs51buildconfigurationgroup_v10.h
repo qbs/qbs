@@ -28,12 +28,14 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_MCS51BUILDCONFIGURATIONGROUP_V10_H
-#define QBS_MCS51BUILDCONFIGURATIONGROUP_V10_H
+#ifndef QBS_IAREWMCS51BUILDCONFIGURATIONGROUP_V10_H
+#define QBS_IAREWMCS51BUILDCONFIGURATIONGROUP_V10_H
 
 #include "../../iarewpropertygroup.h"
 
 namespace qbs {
+namespace iarew {
+namespace mcs51 {
 namespace v10 {
 
 class Mcs51BuildConfigurationGroup final : public IarewPropertyGroup
@@ -60,6 +62,8 @@ public:
 };
 
 } // namespace v10
+} // namespace mcs51
+} // namespace iarew
 } // namespace qbs
 
-#endif // QBS_MCS51BUILDCONFIGURATIONGROUP_V10_H
+#endif // QBS_IAREWMCS51BUILDCONFIGURATIONGROUP_V10_H

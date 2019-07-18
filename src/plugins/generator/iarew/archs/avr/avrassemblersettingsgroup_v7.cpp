@@ -34,12 +34,14 @@
 #include "../../iarewutils.h"
 
 namespace qbs {
+namespace iarew {
+namespace avr {
 namespace v7 {
 
 constexpr int kAssemblerArchiveVersion = 5;
 constexpr int kAssemblerDataVersion = 11;
 
-namespace AvrAssembler {
+namespace {
 
 // Language page options.
 
@@ -144,7 +146,7 @@ struct DiagnosticsPageOptions final
     int enableAllWarnings = 0;
 };
 
-} // namespace AvrAssembler
+} // namespace
 
 // AvrAssemblerSettingsGroup
 
@@ -171,7 +173,7 @@ AvrAssemblerSettingsGroup::AvrAssemblerSettingsGroup(
 void AvrAssemblerSettingsGroup::buildLanguagePage(
         const ProductData &qbsProduct)
 {
-    const AvrAssembler::LanguagePageOptions opts(qbsProduct);
+    const LanguagePageOptions opts(qbsProduct);
     // Add 'ACaseSensitivity' item (User symbols are case sensitive).
     addOptionsGroup(QByteArrayLiteral("ACaseSensitivity"),
                     {}, {opts.enableSymbolsCaseSensitive});
@@ -186,7 +188,7 @@ void AvrAssemblerSettingsGroup::buildLanguagePage(
 void AvrAssemblerSettingsGroup::buildOutputPage(
         const ProductData &qbsProduct)
 {
-    const AvrAssembler::OutputPageOptions opts(qbsProduct);
+    const OutputPageOptions opts(qbsProduct);
     // Add 'CDebug' item (Generate debug information).
     addOptionsGroup(QByteArrayLiteral("CDebug"),
                     {}, {opts.debugInfo});
@@ -196,8 +198,7 @@ void AvrAssemblerSettingsGroup::buildPreprocessorPage(
         const QString &baseDirectory,
         const ProductData &qbsProduct)
 {
-    const AvrAssembler::PreprocessorPageOptions opts(baseDirectory,
-                                                     qbsProduct);
+    const PreprocessorPageOptions opts(baseDirectory, qbsProduct);
     // Add 'ADefines' item (Defined symbols).
     addOptionsGroup(QByteArrayLiteral("ADefines"),
                     {}, opts.defineSymbols);
@@ -209,7 +210,7 @@ void AvrAssemblerSettingsGroup::buildPreprocessorPage(
 void AvrAssemblerSettingsGroup::buildDiagnosticsPage(
         const ProductData &qbsProduct)
 {
-    const AvrAssembler::DiagnosticsPageOptions opts(qbsProduct);
+    const DiagnosticsPageOptions opts(qbsProduct);
     // Add 'AWarnEnable' item (Enable/disable warnings).
     addOptionsGroup(QByteArrayLiteral("AWarnEnable"),
                     {}, {opts.enableWarnings});
@@ -219,4 +220,6 @@ void AvrAssemblerSettingsGroup::buildDiagnosticsPage(
 }
 
 } // namespace v7
+} // namespace avr
+} // namespace iarew
 } // namespace qbs

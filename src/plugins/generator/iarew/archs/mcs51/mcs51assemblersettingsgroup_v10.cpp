@@ -34,12 +34,14 @@
 #include "../../iarewutils.h"
 
 namespace qbs {
+namespace iarew {
+namespace mcs51 {
 namespace v10 {
 
 constexpr int kAssemblerArchiveVersion = 2;
 constexpr int kAssemblerDataVersion = 6;
 
-namespace Mcs51Assembler {
+namespace {
 
 // Language page options.
 
@@ -144,7 +146,7 @@ struct DiagnosticsPageOptions final
     int enableAllWarnings = 0;
 };
 
-} // namespace Mcs51Assembler
+} // namespace
 
 // Mcs51AssemblerSettingsGroup
 
@@ -172,7 +174,7 @@ Mcs51AssemblerSettingsGroup::Mcs51AssemblerSettingsGroup(
 void Mcs51AssemblerSettingsGroup::buildLanguagePage(
         const ProductData &qbsProduct)
 {
-    const Mcs51Assembler::LanguagePageOptions opts(qbsProduct);
+    const LanguagePageOptions opts(qbsProduct);
     // Add 'ACaseSensitivity' item (User symbols are case sensitive).
     addOptionsGroup(QByteArrayLiteral("ACaseSensitivity"),
                     {}, {opts.enableSymbolsCaseSensitive});
@@ -187,7 +189,7 @@ void Mcs51AssemblerSettingsGroup::buildLanguagePage(
 void Mcs51AssemblerSettingsGroup::buildOutputPage(
         const ProductData &qbsProduct)
 {
-    const Mcs51Assembler::OutputPageOptions opts(qbsProduct);
+    const OutputPageOptions opts(qbsProduct);
     // Add 'Debug' item (Generate debug information).
     addOptionsGroup(QByteArrayLiteral("Debug"),
                     {}, {opts.debugInfo});
@@ -197,8 +199,7 @@ void Mcs51AssemblerSettingsGroup::buildPreprocessorPage(
         const QString &baseDirectory,
         const ProductData &qbsProduct)
 {
-    const Mcs51Assembler::PreprocessorPageOptions opts(baseDirectory,
-                                                       qbsProduct);
+    const PreprocessorPageOptions opts(baseDirectory, qbsProduct);
     // Add 'ADefines' item (Defined symbols).
     addOptionsGroup(QByteArrayLiteral("ADefines"),
                     {}, opts.defineSymbols);
@@ -210,7 +211,7 @@ void Mcs51AssemblerSettingsGroup::buildPreprocessorPage(
 void Mcs51AssemblerSettingsGroup::buildDiagnosticsPage(
         const ProductData &qbsProduct)
 {
-    const Mcs51Assembler::DiagnosticsPageOptions opts(qbsProduct);
+    const DiagnosticsPageOptions opts(qbsProduct);
     // Add 'AWarnEnable' item (Enable/disable warnings).
     addOptionsGroup(QByteArrayLiteral("AWarnEnable"),
                     {}, {opts.enableWarnings});
@@ -220,4 +221,6 @@ void Mcs51AssemblerSettingsGroup::buildDiagnosticsPage(
 }
 
 } // namespace v10
+} // namespace mcs51
+} // namespace iarew
 } // namespace qbs

@@ -35,12 +35,14 @@
 #include <QtCore/qdir.h>
 
 namespace qbs {
+namespace iarew {
+namespace arm {
 namespace v8 {
 
 constexpr int kLinkerArchiveVersion = 0;
 constexpr int kLinkerDataVersion = 20;
 
-namespace ArmLinker {
+namespace {
 
 // Config page options.
 
@@ -291,7 +293,7 @@ struct DiagnosticsPageOptions final
     int treatWarningsAsErrors = 0;
 };
 
-} // namespace ArmLinker
+} // namespace
 
 // ArmLinkerSettingsGroup
 
@@ -324,7 +326,7 @@ void ArmLinkerSettingsGroup::buildConfigPage(
         const QString &baseDirectory,
         const ProductData &qbsProduct)
 {
-    ArmLinker::ConfigPageOptions opts(baseDirectory, qbsProduct);
+    ConfigPageOptions opts(baseDirectory, qbsProduct);
     // Add 'IlinkConfigDefines' item
     // (Configuration file symbol definitions).
     addOptionsGroup(QByteArrayLiteral("IlinkConfigDefines"),
@@ -359,8 +361,7 @@ void ArmLinkerSettingsGroup::buildLibraryPage(
         const ProductData &qbsProduct,
         const std::vector<ProductData> &qbsProductDeps)
 {
-    ArmLinker::LibraryPageOptions opts(baseDirectory, qbsProduct,
-                                       qbsProductDeps);
+    LibraryPageOptions opts(baseDirectory, qbsProduct, qbsProductDeps);
     // Add 'IlinkOverrideProgramEntryLabel' item
     // (Override default program entry).
     addOptionsGroup(QByteArrayLiteral("IlinkOverrideProgramEntryLabel"),
@@ -395,7 +396,7 @@ void ArmLinkerSettingsGroup::buildLibraryPage(
 void ArmLinkerSettingsGroup::buildOutputPage(
         const ProductData &qbsProduct)
 {
-    const ArmLinker::OutputPageOptions opts(qbsProduct);
+    const OutputPageOptions opts(qbsProduct);
     // Add 'IlinkDebugInfoEnable' item
     // (Include debug information in output).
     addOptionsGroup(QByteArrayLiteral("IlinkDebugInfoEnable"),
@@ -408,7 +409,7 @@ void ArmLinkerSettingsGroup::buildOutputPage(
 void ArmLinkerSettingsGroup::buildInputPage(
         const ProductData &qbsProduct)
 {
-    const ArmLinker::InputPageOptions opts(qbsProduct);
+    const InputPageOptions opts(qbsProduct);
     // Add 'IlinkKeepSymbols' item ().
     addOptionsGroup(QByteArrayLiteral("IlinkKeepSymbols"),
                     {}, opts.keepSymbols);
@@ -417,7 +418,7 @@ void ArmLinkerSettingsGroup::buildInputPage(
 void ArmLinkerSettingsGroup::buildListPage(
         const ProductData &qbsProduct)
 {
-    const ArmLinker::ListPageOptions opts(qbsProduct);
+    const ListPageOptions opts(qbsProduct);
     // Add 'IlinkMapFile' item (Generate linker map file).
     addOptionsGroup(QByteArrayLiteral("IlinkMapFile"),
                     {}, {opts.generateMap});
@@ -426,7 +427,7 @@ void ArmLinkerSettingsGroup::buildListPage(
 void ArmLinkerSettingsGroup::buildOptimizationsPage(
         const ProductData &qbsProduct)
 {
-    const ArmLinker::OptimizationsPageOptions opts(qbsProduct);
+    const OptimizationsPageOptions opts(qbsProduct);
     // Add 'IlinkOptInline' item (Inline small routines).
     addOptionsGroup(QByteArrayLiteral("IlinkOptInline"),
                     {}, {opts.inlineSmallRoutines});
@@ -443,7 +444,7 @@ void ArmLinkerSettingsGroup::buildOptimizationsPage(
 void ArmLinkerSettingsGroup::buildAdvancedPage(
         const ProductData &qbsProduct)
 {
-    const ArmLinker::AdvancedPageOptions opts(qbsProduct);
+    const AdvancedPageOptions opts(qbsProduct);
     // Add 'IlinkOptExceptionsAllow' item (Allow C++ exceptions).
     addOptionsGroup(QByteArrayLiteral("IlinkOptExceptionsAllow"),
                     {}, {opts.allowExceptions});
@@ -452,7 +453,7 @@ void ArmLinkerSettingsGroup::buildAdvancedPage(
 void ArmLinkerSettingsGroup::buildDefinesPage(
         const ProductData &qbsProduct)
 {
-    const ArmLinker::DefinesPageOptions opts(qbsProduct);
+    const DefinesPageOptions opts(qbsProduct);
     // Add 'IlinkDefines' item (Defined symbols).
     addOptionsGroup(QByteArrayLiteral("IlinkDefines"),
                     {}, {opts.defineSymbols});
@@ -461,7 +462,7 @@ void ArmLinkerSettingsGroup::buildDefinesPage(
 void ArmLinkerSettingsGroup::buildDiagnosticsPage(
         const ProductData &qbsProduct)
 {
-    const ArmLinker::DiagnosticsPageOptions opts(qbsProduct);
+    const DiagnosticsPageOptions opts(qbsProduct);
     // Add 'IlinkWarningsAreErrors' item
     // (Treat all warnings as errors).
     addOptionsGroup(QByteArrayLiteral("IlinkWarningsAreErrors"),
@@ -481,4 +482,6 @@ void ArmLinkerSettingsGroup::buildExtraOptionsPage(
 }
 
 } // namespace v8
+} // namespace arm
+} // namespace iarew
 } // namespace qbs

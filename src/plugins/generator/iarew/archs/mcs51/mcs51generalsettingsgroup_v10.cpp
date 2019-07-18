@@ -33,12 +33,14 @@
 #include "../../iarewutils.h"
 
 namespace qbs {
+namespace iarew {
+namespace mcs51 {
 namespace v10 {
 
 constexpr int kGeneralArchiveVersion = 4;
 constexpr int kGeneralDataVersion = 9;
 
-namespace Mcs51General {
+namespace {
 
 // Target page options.
 
@@ -759,7 +761,7 @@ struct OutputPageOptions final
     QString listingDirectory;
 };
 
-} // namespace Mcs51General
+} // namespace
 
 // Mcs51GeneralSettingsGroup
 
@@ -790,7 +792,7 @@ Mcs51GeneralSettingsGroup::Mcs51GeneralSettingsGroup(
 void Mcs51GeneralSettingsGroup::buildTargetPage(
         const ProductData &qbsProduct)
 {
-    const Mcs51General::TargetPageOptions opts(qbsProduct);
+    const TargetPageOptions opts(qbsProduct);
     // Add 'OGChipConfigPath' item (Device: <chip name>).
     addOptionsGroup(QByteArrayLiteral("OGChipConfigPath"),
                     {}, {opts.chipInfoPath});
@@ -834,7 +836,7 @@ void Mcs51GeneralSettingsGroup::buildTargetPage(
 void Mcs51GeneralSettingsGroup::buildStackHeapPage(
         const ProductData &qbsProduct)
 {
-    const Mcs51General::StackHeapPageOptions opts(qbsProduct);
+    const StackHeapPageOptions opts(qbsProduct);
     // Add 'General Idata Stack Size' item (Stack size: IDATA).
     addOptionsGroup(QByteArrayLiteral("General Idata Stack Size"),
                     {}, {opts.idataStack});
@@ -877,7 +879,7 @@ void Mcs51GeneralSettingsGroup::buildStackHeapPage(
 void Mcs51GeneralSettingsGroup::buildDataPointerPage(
         const ProductData &qbsProduct)
 {
-    const Mcs51General::DptrPageOptions opts(qbsProduct);
+    const DptrPageOptions opts(qbsProduct);
     // Add 'Nr of Datapointers' item (Number of DPTRs: 1...8).
     addOptionsGroup(QByteArrayLiteral("Nr of Datapointers"),
                     {}, {opts.dptrsCountIndex});
@@ -916,7 +918,7 @@ void Mcs51GeneralSettingsGroup::buildDataPointerPage(
 void Mcs51GeneralSettingsGroup::buildCodeBankPage(
         const ProductData &qbsProduct)
 {
-    const Mcs51General::CodeBankPageOptions opts(qbsProduct);
+    const CodeBankPageOptions opts(qbsProduct);
     // Add 'CodeBankReg' item (Register address).
     addOptionsGroup(QByteArrayLiteral("CodeBankReg"),
                     {}, {opts.registerAddress});
@@ -937,7 +939,7 @@ void Mcs51GeneralSettingsGroup::buildCodeBankPage(
 void Mcs51GeneralSettingsGroup::buildLibraryOptionsPage(
         const ProductData &qbsProduct)
 {
-    const Mcs51General::LibraryOptionsPageOptions opts(qbsProduct);
+    const LibraryOptionsPageOptions opts(qbsProduct);
     // Add 'Output variant' item (Printf formatter).
     addOptionsGroup(QByteArrayLiteral("Output variant"),
                     {}, {opts.printfFormatter});
@@ -950,8 +952,7 @@ void Mcs51GeneralSettingsGroup::buildLibraryConfigPage(
         const QString &baseDirectory,
         const ProductData &qbsProduct)
 {
-    const Mcs51General::LibraryConfigPageOptions opts(baseDirectory,
-                                                      qbsProduct);
+    const LibraryConfigPageOptions opts(baseDirectory, qbsProduct);
     // Add 'GRuntimeLibSelect2' and 'GRuntimeLibSelectSlave2' items
     // (Link with runtime: none/dlib/clib/etc).
     addOptionsGroup(QByteArrayLiteral("GRuntimeLibSelect2"),
@@ -970,8 +971,7 @@ void Mcs51GeneralSettingsGroup::buildOutputPage(
         const QString &baseDirectory,
         const ProductData &qbsProduct)
 {
-    const Mcs51General::OutputPageOptions opts(baseDirectory,
-                                               qbsProduct);
+    const OutputPageOptions opts(baseDirectory, qbsProduct);
     // Add 'GOutputBinary' item (Output file: executable/library).
     addOptionsGroup(QByteArrayLiteral("GOutputBinary"),
                     {}, {opts.binaryType});
@@ -987,4 +987,6 @@ void Mcs51GeneralSettingsGroup::buildOutputPage(
 }
 
 } // namespace v10
+} // namespace mcs51
+} // namespace iarew
 } // namespace qbs

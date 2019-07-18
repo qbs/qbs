@@ -28,12 +28,14 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_ARMLINKERSETTINGSGROUP_V8_H
-#define QBS_ARMLINKERSETTINGSGROUP_V8_H
+#ifndef QBS_IAREWARMLINKERSETTINGSGROUP_V8_H
+#define QBS_IAREWARMLINKERSETTINGSGROUP_V8_H
 
 #include "../../iarewsettingspropertygroup.h"
 
 namespace qbs {
+namespace iarew {
+namespace arm {
 namespace v8 {
 
 class ArmLinkerSettingsGroup final : public IarewSettingsPropertyGroup
@@ -62,6 +64,8 @@ private:
 };
 
 } // namespace v8
+} // namespace arm
+} // namespace iarew
 } // namespace qbs
 
-#endif // QBS_ARMLINKERSETTINGSGROUP_V8_H
+#endif // QBS_IAREWARMLINKERSETTINGSGROUP_V8_H

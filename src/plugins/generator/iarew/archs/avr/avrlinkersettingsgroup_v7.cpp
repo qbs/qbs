@@ -35,12 +35,14 @@
 #include <QtCore/qdir.h>
 
 namespace qbs {
+namespace iarew {
+namespace avr {
 namespace v7 {
 
 constexpr int kLinkerArchiveVersion = 3;
 constexpr int kLinkerDataVersion = 16;
 
-namespace AvrLinker {
+namespace {
 
 // Config page options.
 
@@ -249,7 +251,7 @@ struct DiagnosticsPageOptions final
     int suppressAllWarnings = 0;
 };
 
-} // namespace AvrLinker
+} // namespace
 
 // AvrLinkerSettingsGroup
 
@@ -280,8 +282,7 @@ void AvrLinkerSettingsGroup::buildConfigPage(
         const ProductData &qbsProduct,
         const std::vector<ProductData> &qbsProductDeps)
 {
-    AvrLinker::ConfigPageOptions opts(baseDirectory, qbsProduct,
-                                      qbsProductDeps);
+    ConfigPageOptions opts(baseDirectory, qbsProduct, qbsProductDeps);
 
     if (opts.configFilePaths.count() > 0) {
         // Note: IAR IDE does not allow to specify a multiple config files,
@@ -329,7 +330,7 @@ void AvrLinkerSettingsGroup::buildConfigPage(
 void AvrLinkerSettingsGroup::buildOutputPage(
         const ProductData &qbsProduct)
 {
-    const AvrLinker::OutputPageOptions opts(qbsProduct);
+    const OutputPageOptions opts(qbsProduct);
     // Add 'XOutOverride' item (Override default output file).
     addOptionsGroup(QByteArrayLiteral("XOutOverride"),
                     {}, {1});
@@ -341,7 +342,7 @@ void AvrLinkerSettingsGroup::buildOutputPage(
 void AvrLinkerSettingsGroup::buildListPage(
         const ProductData &qbsProduct)
 {
-    const AvrLinker::ListPageOptions opts(qbsProduct);
+    const ListPageOptions opts(qbsProduct);
     // Add 'XList' item (Generate linker listing).
     addOptionsGroup(QByteArrayLiteral("XList"),
                     {}, {opts.generateMap});
@@ -350,7 +351,7 @@ void AvrLinkerSettingsGroup::buildListPage(
 void AvrLinkerSettingsGroup::buildDefinePage(
         const ProductData &qbsProduct)
 {
-    const AvrLinker::DefinePageOptions opts(qbsProduct);
+    const DefinePageOptions opts(qbsProduct);
     // Add 'XDefines' item (Defined symbols).
     addOptionsGroup(QByteArrayLiteral("XDefines"),
                     {}, opts.defineSymbols);
@@ -359,7 +360,7 @@ void AvrLinkerSettingsGroup::buildDefinePage(
 void AvrLinkerSettingsGroup::buildDiagnosticsPage(
         const ProductData &qbsProduct)
 {
-    const AvrLinker::DiagnosticsPageOptions opts(qbsProduct);
+    const DiagnosticsPageOptions opts(qbsProduct);
     // Add 'SuppressAllWarn' item (Suppress all warnings).
     addOptionsGroup(QByteArrayLiteral("SuppressAllWarn"),
                     {}, {opts.suppressAllWarnings});
@@ -380,4 +381,6 @@ void AvrLinkerSettingsGroup::buildExtraOptionsPage(const ProductData &qbsProduct
 }
 
 } // namespace v7
+} // namespace avr
+} // namespace iarew
 } // namespace qbs

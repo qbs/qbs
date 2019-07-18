@@ -51,9 +51,12 @@ IarewProject::IarewProject(const GeneratableProject &genProject,
     Q_ASSERT(genProject.projects.size() == genProduct.data.size());
 
     // Create available configuration group factories.
-    m_factories.push_back(std::make_unique<v8::ArmBuildConfigurationGroupFactory>());
-    m_factories.push_back(std::make_unique<v7::AvrBuildConfigurationGroupFactory>());
-    m_factories.push_back(std::make_unique<v10::Mcs51BuildConfigurationGroupFactory>());
+    m_factories.push_back(std::make_unique<
+                          iarew::arm::v8::ArmBuildConfigurationGroupFactory>());
+    m_factories.push_back(std::make_unique<
+                          iarew::avr::v7::AvrBuildConfigurationGroupFactory>());
+    m_factories.push_back(std::make_unique<
+                          iarew::mcs51::v10::Mcs51BuildConfigurationGroupFactory>());
 
     // Construct file version item.
     appendChild<IarewFileVersionProperty>(versionInfo);

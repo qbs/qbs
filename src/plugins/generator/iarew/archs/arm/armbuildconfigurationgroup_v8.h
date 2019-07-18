@@ -28,12 +28,14 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_ARMBUILDCONFIGURATIONGROUP_V8_H
-#define QBS_ARMBUILDCONFIGURATIONGROUP_V8_H
+#ifndef QBS_IAREWARMBUILDCONFIGURATIONGROUP_V8_H
+#define QBS_IAREWARMBUILDCONFIGURATIONGROUP_V8_H
 
 #include "../../iarewpropertygroup.h"
 
 namespace qbs {
+namespace iarew {
+namespace arm {
 namespace v8 {
 
 class ArmBuildConfigurationGroup final : public IarewPropertyGroup
@@ -59,6 +61,8 @@ public:
 };
 
 } // namespace v8
+} // namespace arm
+} // namespace iarew
 } // namespace qbs
 
-#endif // QBS_ARMBUILDCONFIGURATIONGROUP_V8_H
+#endif // QBS_IAREWARMBUILDCONFIGURATIONGROUP_V8_H

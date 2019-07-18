@@ -35,12 +35,14 @@
 #include <QtCore/qdir.h>
 
 namespace qbs {
+namespace iarew {
+namespace arm {
 namespace v8 {
 
 constexpr int kGeneralArchiveVersion = 3;
 constexpr int kGeneralDataVersion = 30;
 
-namespace ArmGeneral {
+namespace {
 
 struct CpuCoreEntry final
 {
@@ -408,7 +410,7 @@ struct OutputPageOptions final
     QString listingDirectory;
 };
 
-} // namespace ArmGeneral
+} // namespace
 
 // ArmGeneralSettingsGroup
 
@@ -436,7 +438,7 @@ ArmGeneralSettingsGroup::ArmGeneralSettingsGroup(
 void ArmGeneralSettingsGroup::buildTargetPage(
         const ProductData &qbsProduct)
 {
-    const ArmGeneral::TargetPageOptions opts(qbsProduct);
+    const TargetPageOptions opts(qbsProduct);
     // Add 'GBECoreSlave', 'CoreVariant', 'GFPUCoreSlave2' items
     // (Processor variant chooser).
     addOptionsGroup(QByteArrayLiteral("GBECoreSlave"),
@@ -458,7 +460,7 @@ void ArmGeneralSettingsGroup::buildTargetPage(
 void ArmGeneralSettingsGroup::buildLibraryOptionsOnePage(
         const ProductData &qbsProduct)
 {
-    const ArmGeneral::LibraryOnePageOptions opts(qbsProduct);
+    const LibraryOnePageOptions opts(qbsProduct);
     // Add 'OGPrintfVariant' item (Printf formatter).
     addOptionsGroup(QByteArrayLiteral("OGPrintfVariant"),
                     {}, {opts.printfFormatter});
@@ -470,7 +472,7 @@ void ArmGeneralSettingsGroup::buildLibraryOptionsOnePage(
 void ArmGeneralSettingsGroup::buildLibraryOptionsTwoPage(
         const ProductData &qbsProduct)
 {
-    const ArmGeneral::LibraryTwoPageOptions opts(qbsProduct);
+    const LibraryTwoPageOptions opts(qbsProduct);
     // Add 'OgLibHeap' item (Heap selection:
     // auto/advanced/basic/nofree).
     addOptionsGroup(QByteArrayLiteral("OgLibHeap"),
@@ -481,8 +483,7 @@ void ArmGeneralSettingsGroup::buildLibraryConfigPage(
         const QString baseDirectory,
         const ProductData &qbsProduct)
 {
-    const ArmGeneral::LibraryConfigPageOptions opts(baseDirectory,
-                                                    qbsProduct);
+    const LibraryConfigPageOptions opts(baseDirectory, qbsProduct);
     // Add 'GRuntimeLibSelect', 'GRuntimeLibSelectSlave'
     // and 'RTConfigPath2' items
     // (Link with runtime: none/normal/full/custom).
@@ -506,8 +507,7 @@ void ArmGeneralSettingsGroup::buildOutputPage(
         const QString baseDirectory,
         const ProductData &qbsProduct)
 {
-    const ArmGeneral::OutputPageOptions opts(baseDirectory,
-                                             qbsProduct);
+    const OutputPageOptions opts(baseDirectory, qbsProduct);
     // Add 'GOutputBinary' item
     // (Output file: executable/library).
     addOptionsGroup(QByteArrayLiteral("GOutputBinary"),
@@ -527,4 +527,6 @@ void ArmGeneralSettingsGroup::buildOutputPage(
 }
 
 } // namespace v8
+} // namespace arm
+} // namespace iarew
 } // namespace qbs

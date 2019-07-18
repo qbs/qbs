@@ -35,12 +35,14 @@
 #include <QtCore/qdir.h>
 
 namespace qbs {
+namespace iarew {
+namespace mcs51 {
 namespace v10 {
 
 constexpr int kLinkerArchiveVersion = 4;
 constexpr int kLinkerDataVersion = 21;
 
-namespace Mcs51Linker {
+namespace {
 
 // Config page options.
 
@@ -194,7 +196,7 @@ struct DiagnosticsPageOptions final
     int suppressAllWarnings = 0;
 };
 
-} // namespace Mcs51Linker
+} // namespace
 
 // Mcs51LinkerSettingsGroup
 
@@ -227,7 +229,7 @@ void Mcs51LinkerSettingsGroup::buildConfigPage(
         const QString &baseDirectory,
         const ProductData &qbsProduct)
 {
-    Mcs51Linker::ConfigPageOptions opts(baseDirectory, qbsProduct);
+    ConfigPageOptions opts(baseDirectory, qbsProduct);
 
     if (opts.configFilePaths.count() > 0) {
         // Note: IAR IDE does not allow to specify a multiple config files,
@@ -270,7 +272,7 @@ void Mcs51LinkerSettingsGroup::buildConfigPage(
 void Mcs51LinkerSettingsGroup::buildOutputPage(
         const ProductData &qbsProduct)
 {
-    const Mcs51Linker::OutputPageOptions opts(qbsProduct);
+    const OutputPageOptions opts(qbsProduct);
     // Add 'XOutOverride' item (Override default output file).
     addOptionsGroup(QByteArrayLiteral("XOutOverride"),
                     {}, {1});
@@ -282,7 +284,7 @@ void Mcs51LinkerSettingsGroup::buildOutputPage(
 void Mcs51LinkerSettingsGroup::buildListPage(
         const ProductData &qbsProduct)
 {
-    const Mcs51Linker::ListPageOptions opts(qbsProduct);
+    const ListPageOptions opts(qbsProduct);
     // Add 'XList' item (Generate linker listing).
     addOptionsGroup(QByteArrayLiteral("XList"),
                     {}, {opts.generateMap});
@@ -291,7 +293,7 @@ void Mcs51LinkerSettingsGroup::buildListPage(
 void Mcs51LinkerSettingsGroup::buildDefinePage(
         const ProductData &qbsProduct)
 {
-    const Mcs51Linker::DefinePageOptions opts(qbsProduct);
+    const DefinePageOptions opts(qbsProduct);
     // Add 'XDefines' item (Defined symbols).
     addOptionsGroup(QByteArrayLiteral("XDefines"),
                     {}, opts.defineSymbols);
@@ -300,7 +302,7 @@ void Mcs51LinkerSettingsGroup::buildDefinePage(
 void Mcs51LinkerSettingsGroup::buildDiagnosticsPage(
         const ProductData &qbsProduct)
 {
-    const Mcs51Linker::DiagnosticsPageOptions opts(qbsProduct);
+    const DiagnosticsPageOptions opts(qbsProduct);
     // Add 'SuppressAllWarn' item (Suppress all warnings).
     addOptionsGroup(QByteArrayLiteral("SuppressAllWarn"),
                     {}, {opts.suppressAllWarnings});
@@ -327,4 +329,6 @@ void Mcs51LinkerSettingsGroup::buildExtraOptionsPage(
 }
 
 } // namespace v10
+} // namespace mcs51
+} // namespace iarew
 } // namespace qbs

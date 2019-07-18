@@ -28,12 +28,14 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_AVRLINKERSETTINGSGROUP_V7_H
-#define QBS_AVRLINKERSETTINGSGROUP_V7_H
+#ifndef QBS_IAREWAVRLINKERSETTINGSGROUP_V7_H
+#define QBS_IAREWAVRLINKERSETTINGSGROUP_V7_H
 
 #include "../../iarewsettingspropertygroup.h"
 
 namespace qbs {
+namespace iarew {
+namespace avr {
 namespace v7 {
 
 class AvrLinkerSettingsGroup final : public IarewSettingsPropertyGroup
@@ -57,6 +59,8 @@ private:
 };
 
 } // namespace v7
+} // namespace avr
+} // namespace iarew
 } // namespace qbs
 
-#endif // QBS_AVRLINKERSETTINGSGROUP_V7_H
+#endif // QBS_IAREWAVRLINKERSETTINGSGROUP_V7_H

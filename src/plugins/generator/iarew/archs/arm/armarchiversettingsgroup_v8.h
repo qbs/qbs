@@ -28,12 +28,14 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_ARMAARCHIVERSETTINGSGROUP_V8_H
-#define QBS_ARMAARCHIVERSETTINGSGROUP_V8_H
+#ifndef QBS_IAREWARMAARCHIVERSETTINGSGROUP_V8_H
+#define QBS_IAREWARMAARCHIVERSETTINGSGROUP_V8_H
 
 #include "../../iarewsettingspropertygroup.h"
 
 namespace qbs {
+namespace iarew {
+namespace arm {
 namespace v8 {
 
 class ArmArchiverSettingsGroup final : public IarewSettingsPropertyGroup
@@ -49,6 +51,8 @@ private:
 };
 
 } // namespace v8
+} // namespace arm
+} // namespace iarew
 } // namespace qbs
 
-#endif // QBS_ARMAARCHIVERSETTINGSGROUP_V8_H
+#endif // QBS_IAREWARMAARCHIVERSETTINGSGROUP_V8_H

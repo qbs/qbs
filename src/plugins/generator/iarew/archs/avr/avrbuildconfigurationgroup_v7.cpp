@@ -39,6 +39,8 @@
 #include "../../iarewutils.h"
 
 namespace qbs {
+namespace iarew {
+namespace avr {
 namespace v7 {
 
 AvrBuildConfigurationGroup::AvrBuildConfigurationGroup(
@@ -90,4 +92,6 @@ std::unique_ptr<IarewPropertyGroup> AvrBuildConfigurationGroupFactory::create(
 }
 
 } // namespace v7
+} // namespace avr
+} // namespace iarew
 } // namespace qbs

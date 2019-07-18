@@ -33,12 +33,14 @@
 #include "../../iarewutils.h"
 
 namespace qbs {
+namespace iarew {
+namespace arm {
 namespace v8 {
 
 constexpr int kCompilerArchiveVersion = 2;
 constexpr int kCompilerDataVersion = 34;
 
-namespace ArmCompiler {
+namespace {
 
 // Output page options.
 
@@ -295,7 +297,7 @@ struct CodePageOptions final
     int disableCodeMemoryDataReads = 0;
 };
 
-} // namespace ArmCompiler
+} // namespace
 
 // ArmCompilerSettingsGroup
 
@@ -326,7 +328,7 @@ ArmCompilerSettingsGroup::ArmCompilerSettingsGroup(
 void ArmCompilerSettingsGroup::buildOutputPage(
             const ProductData &qbsProduct)
 {
-    const ArmCompiler::OutputPageOptions opts(qbsProduct);
+    const OutputPageOptions opts(qbsProduct);
     // Add 'CCDebugInfo' item (Generate debug info).
     addOptionsGroup(QByteArrayLiteral("CCDebugInfo"),
                     {}, {opts.debugInfo});
@@ -335,8 +337,9 @@ void ArmCompilerSettingsGroup::buildOutputPage(
 void ArmCompilerSettingsGroup::buildLanguageOnePage(
         const ProductData &qbsProduct)
 {
-    const ArmCompiler::LanguageOnePageOptions opts(qbsProduct);
-    // Add 'IccLang' item with 'auto-extension based' value (Language: C/C++/Auto).
+    const LanguageOnePageOptions opts(qbsProduct);
+    // Add 'IccLang' item with 'auto-extension based'
+    // value (Language: C/C++/Auto).
     addOptionsGroup(QByteArrayLiteral("IccLang"),
                     {}, {opts.languageExtension});
     // Add 'IccCDialect' item (C dialect: c89/99/11).
@@ -368,11 +371,12 @@ void ArmCompilerSettingsGroup::buildLanguageOnePage(
 void ArmCompilerSettingsGroup::buildLanguageTwoPage(
         const ProductData &qbsProduct)
 {
-    const ArmCompiler::LanguageTwoPageOptions opts(qbsProduct);
+    const LanguageTwoPageOptions opts(qbsProduct);
     // Add 'CCSignedPlainChar' item (Plain char is: signed/unsigned).
     addOptionsGroup(QByteArrayLiteral("CCSignedPlainChar"),
                     {}, {opts.plainCharacter});
-    // Add 'IccFloatSemantics' item (Floating-point semantic: strict/relaxed).
+    // Add 'IccFloatSemantics' item
+    // (Floating-point semantic: strict/relaxed).
     addOptionsGroup(QByteArrayLiteral("IccFloatSemantics"),
                     {}, {opts.floatingPointSemantic});
 }
@@ -380,8 +384,9 @@ void ArmCompilerSettingsGroup::buildLanguageTwoPage(
 void ArmCompilerSettingsGroup::buildOptimizationsPage(
         const ProductData &qbsProduct)
 {
-    const ArmCompiler::OptimizationsPageOptions opts(qbsProduct);
-    // Add 'CCOptStrategy', 'CCOptLevel' and 'CCOptLevelSlave' items (Level).
+    const OptimizationsPageOptions opts(qbsProduct);
+    // Add 'CCOptStrategy', 'CCOptLevel'
+    // and 'CCOptLevelSlave' items (Level).
     addOptionsGroup(QByteArrayLiteral("CCOptStrategy"),
                     {}, {opts.optimizationStrategy});
     addOptionsGroup(QByteArrayLiteral("CCOptLevel"),
@@ -409,8 +414,7 @@ void ArmCompilerSettingsGroup::buildPreprocessorPage(
         const QString &baseDirectory,
         const ProductData &qbsProduct)
 {
-    const ArmCompiler::PreprocessorPageOptions opts(baseDirectory,
-                                                    qbsProduct);
+    const PreprocessorPageOptions opts(baseDirectory, qbsProduct);
     // Add 'CCDefines' item (Defined symbols).
     addOptionsGroup(QByteArrayLiteral("CCDefines"),
                     {}, opts.defineSymbols);
@@ -422,7 +426,7 @@ void ArmCompilerSettingsGroup::buildPreprocessorPage(
 void ArmCompilerSettingsGroup::buildDiagnosticsPage(
         const ProductData &qbsProduct)
 {
-    const ArmCompiler::DiagnosticsPageOptions opts(qbsProduct);
+    const DiagnosticsPageOptions opts(qbsProduct);
     // Add 'CCDiagWarnAreErr' item (Treat all warnings as errors).
     addOptionsGroup(QByteArrayLiteral("CCDiagWarnAreErr"),
                     {}, {opts.treatWarningsAsErrors});
@@ -431,7 +435,7 @@ void ArmCompilerSettingsGroup::buildDiagnosticsPage(
 void ArmCompilerSettingsGroup::buildCodePage(
         const ProductData &qbsProduct)
 {
-    const ArmCompiler::CodePageOptions opts(qbsProduct);
+    const CodePageOptions opts(qbsProduct);
     // Add 'IProcessorMode2' item (Processor mode: arm/thumb).
     addOptionsGroup(QByteArrayLiteral("IProcessorMode2"),
                     {}, {opts.cpuMode});
@@ -450,4 +454,6 @@ void ArmCompilerSettingsGroup::buildCodePage(
 }
 
 } // namespace v8
+} // namespace arm
+} // namespace iarew
 } // namespace qbs

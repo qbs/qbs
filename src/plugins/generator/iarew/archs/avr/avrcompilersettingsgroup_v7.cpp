@@ -33,12 +33,14 @@
 #include "../../iarewutils.h"
 
 namespace qbs {
+namespace iarew {
+namespace avr {
 namespace v7 {
 
 constexpr int kCompilerArchiveVersion = 6;
 constexpr int kCompilerDataVersion = 17;
 
-namespace AvrCompiler {
+namespace {
 
 // Output page options.
 
@@ -295,7 +297,7 @@ struct CodePageOptions final
     int lockRegistersCount = 0;
 };
 
-} // namespace AvrCompiler
+} // namespace
 
 // AvrCompilerSettingsGroup
 
@@ -324,7 +326,7 @@ AvrCompilerSettingsGroup::AvrCompilerSettingsGroup(
 void AvrCompilerSettingsGroup::buildOutputPage(
         const ProductData &qbsProduct)
 {
-    const AvrCompiler::OutputPageOptions opts(qbsProduct);
+    const OutputPageOptions opts(qbsProduct);
     // Add 'CCDebugInfo' item (Generate debug info).
     addOptionsGroup(QByteArrayLiteral("CCDebugInfo"),
                     {}, {opts.debugInfo});
@@ -343,7 +345,7 @@ void AvrCompilerSettingsGroup::buildOutputPage(
 void AvrCompilerSettingsGroup::buildLanguageOnePage(
         const ProductData &qbsProduct)
 {
-    const AvrCompiler::LanguageOnePageOptions opts(qbsProduct);
+    const LanguageOnePageOptions opts(qbsProduct);
     // Add 'IccLang' item with 'auto-extension based'
     // value (Language: C/C++/Auto).
     addOptionsGroup(QByteArrayLiteral("IccLang"),
@@ -374,7 +376,7 @@ void AvrCompilerSettingsGroup::buildLanguageOnePage(
 void AvrCompilerSettingsGroup::buildLanguageTwoPage(
         const ProductData &qbsProduct)
 {
-    const AvrCompiler::LanguageTwoPageOptions opts(qbsProduct);
+    const LanguageTwoPageOptions opts(qbsProduct);
     // Add 'CCCharIs' item (Plain char is: signed/unsigned).
     addOptionsGroup(QByteArrayLiteral("CCCharIs"),
                     {}, {opts.plainCharacter});
@@ -390,7 +392,7 @@ void AvrCompilerSettingsGroup::buildLanguageTwoPage(
 void AvrCompilerSettingsGroup::buildOptimizationsPage(
         const ProductData &qbsProduct)
 {
-    const AvrCompiler::OptimizationsPageOptions opts(qbsProduct);
+    const OptimizationsPageOptions opts(qbsProduct);
     // Add 'CCOptStrategy', 'CCOptLevel' and
     // 'CCOptLevelSlave' items (Level).
     addOptionsGroup(QByteArrayLiteral("CCOptStrategy"),
@@ -420,8 +422,7 @@ void AvrCompilerSettingsGroup::buildPreprocessorPage(
         const QString &baseDirectory,
         const ProductData &qbsProduct)
 {
-    const AvrCompiler::PreprocessorPageOptions opts(baseDirectory,
-                                                    qbsProduct);
+    const PreprocessorPageOptions opts(baseDirectory, qbsProduct);
     // Add 'CCDefines' item (Defines symbols).
     addOptionsGroup(QByteArrayLiteral("CCDefines"),
                     {}, opts.defineSymbols);
@@ -434,7 +435,7 @@ void AvrCompilerSettingsGroup::buildPreprocessorPage(
 void AvrCompilerSettingsGroup::buildDiagnosticsPage(
         const ProductData &qbsProduct)
 {
-    const AvrCompiler::DiagnosticsPageOptions opts(qbsProduct);
+    const DiagnosticsPageOptions opts(qbsProduct);
     // Add 'CCWarnAsError' item (Treat all warnings as errors).
     addOptionsGroup(QByteArrayLiteral("CCWarnAsError"),
                     {}, {opts.warningsAsErrors});
@@ -443,7 +444,7 @@ void AvrCompilerSettingsGroup::buildDiagnosticsPage(
 void AvrCompilerSettingsGroup::buildCodePage(
         const ProductData &qbsProduct)
 {
-    const AvrCompiler::CodePageOptions opts(qbsProduct);
+    const CodePageOptions opts(qbsProduct);
     // Add 'CCConstInRAM' item (Place string literals
     // and constants in initialized RAM).
     addOptionsGroup(QByteArrayLiteral("CCConstInRAM"),
@@ -467,4 +468,6 @@ void AvrCompilerSettingsGroup::buildCodePage(
 }
 
 } // namespace v7
+} // namespace avr
+} // namespace iarew
 } // namespace qbs

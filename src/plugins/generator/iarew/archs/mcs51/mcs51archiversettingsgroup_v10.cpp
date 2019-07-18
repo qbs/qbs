@@ -34,12 +34,14 @@
 #include "../../iarewutils.h"
 
 namespace qbs {
+namespace iarew {
+namespace mcs51 {
 namespace v10 {
 
 constexpr int kArchiverArchiveVersion = 2;
 constexpr int kArchiverDataVersion = 1;
 
-namespace ArmArchiver {
+namespace {
 
 // Output page options.
 
@@ -55,7 +57,7 @@ struct OutputPageOptions final
     QString outputFile;
 };
 
-} // namespace ArmArchiver
+} // namespace
 
 // Mcs51ArchiverSettingsGroup
 
@@ -79,8 +81,7 @@ void Mcs51ArchiverSettingsGroup::buildOutputPage(
         const QString &baseDirectory,
         const ProductData &qbsProduct)
 {
-    const ArmArchiver::OutputPageOptions opts(baseDirectory,
-                                              qbsProduct);
+    const OutputPageOptions opts(baseDirectory, qbsProduct);
     // Add 'XAROverride' item (Override default).
     addOptionsGroup(QByteArrayLiteral("XAROverride"),
                     {}, {1});
@@ -90,4 +91,6 @@ void Mcs51ArchiverSettingsGroup::buildOutputPage(
 }
 
 } // namespace v10
+} // namespace mcs51
+} // namespace iarew
 } // namespace qbs

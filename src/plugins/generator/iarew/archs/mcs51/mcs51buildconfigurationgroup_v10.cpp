@@ -39,6 +39,8 @@
 #include "../../iarewutils.h"
 
 namespace qbs {
+namespace iarew {
+namespace mcs51 {
 namespace v10 {
 
 Mcs51BuildConfigurationGroup::Mcs51BuildConfigurationGroup(
@@ -89,4 +91,6 @@ std::unique_ptr<IarewPropertyGroup> Mcs51BuildConfigurationGroupFactory::create(
 }
 
 } // namespace v10
+} // namespace mcs51
+} // namespace iarew
 } // namespace qbs
