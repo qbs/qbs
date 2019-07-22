@@ -78,7 +78,7 @@ function collectLibraryDependencies(product, isDarwin) {
     var publicDeps = {};
     var objects = [];
     var objectByFilePath = {};
-    var tagForLinkingAgainstSharedLib = product.qbs.toolchain.contains("mingw")
+    var tagForLinkingAgainstSharedLib = product.cpp.imageFormat === "pe"
             ? "dynamiclibrary_import" : "dynamiclibrary";
 
     function addObject(obj, addFunc) {
@@ -283,7 +283,7 @@ function linkerFlags(project, product, inputs, outputs, primaryOutput, linkerPat
                 args.push("-current_version", internalVersion);
             escapableLinkerFlags.push("-install_name", UnixUtils.soname(product,
                                                                         primaryOutput.fileName));
-        } else {
+        } else if (product.cpp.imageFormat === "elf") {
             escapableLinkerFlags.push("-soname=" + UnixUtils.soname(product,
                                                                     primaryOutput.fileName));
         }
@@ -295,7 +295,7 @@ function linkerFlags(project, product, inputs, outputs, primaryOutput, linkerPat
     if (primaryOutput.fileTags.containsAny(["dynamiclibrary", "loadablemodule"])) {
         if (isDarwin)
             escapableLinkerFlags.push("-headerpad_max_install_names");
-        else
+        else if (product.cpp.imageFormat === "elf")
             escapableLinkerFlags.push("--as-needed");
     }
 
@@ -344,13 +344,15 @@ function linkerFlags(project, product, inputs, outputs, primaryOutput, linkerPat
         return rpath;
     }
 
-    function isNotSystemRunPath(p) {
-        return !FileInfo.isAbsolutePath(p) || (!systemRunPaths.contains(p)
-                && !canonicalSystemRunPaths.contains(File.canonicalFilePath(p)));
-    };
-    for (i in rpaths) {
-        if (isNotSystemRunPath(rpaths[i]))
-            escapableLinkerFlags.push("-rpath", fixupRPath(rpaths[i]));
+    if (!product.qbs.targetOS.contains("windows")) {
+        function isNotSystemRunPath(p) {
+            return !FileInfo.isAbsolutePath(p) || (!systemRunPaths.contains(p)
+                    && !canonicalSystemRunPaths.contains(File.canonicalFilePath(p)));
+        };
+        for (i in rpaths) {
+            if (isNotSystemRunPath(rpaths[i]))
+                escapableLinkerFlags.push("-rpath", fixupRPath(rpaths[i]));
+        }
     }
 
     if (product.cpp.entryPoint)
@@ -854,7 +856,7 @@ function compilerFlags(project, product, input, output, explicitlyDependsOn) {
     }
 
     var positionIndependentCode = input.cpp.positionIndependentCode;
-    if (positionIndependentCode && !product.qbs.toolchain.contains("mingw"))
+    if (positionIndependentCode && !product.qbs.targetOS.contains("windows"))
         args.push('-fPIC');
 
     var cppFlags = input.cpp.cppFlags;
@@ -1035,7 +1037,7 @@ function linkerEnvVars(config, inputs)
 
 function setResponseFileThreshold(command, product)
 {
-    if (product.qbs.toolchain.contains("mingw") && product.qbs.hostOS.contains("windows"))
+    if (product.qbs.targetOS.contains("windows") && product.qbs.hostOS.contains("windows"))
         command.responseFileThreshold = 10000;
 }
 

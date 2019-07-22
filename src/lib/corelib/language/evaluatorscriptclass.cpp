@@ -205,7 +205,18 @@ private:
                     result.second = false;
                     return result;
                 }
-                SVConverter converter(scriptClass, object, item->property(*propertyName), item,
+                const ValuePtr v = item->property(*propertyName);
+
+                // This can happen when resolving shadow products. The error will be ignored
+                // in that case.
+                if (!v) {
+                    const QString errorMessage = Tr::tr("Error setting up 'original'.");
+                    extraScope = engine->currentContext()->throwError(errorMessage);
+                    result.second = false;
+                    return result;
+                }
+
+                SVConverter converter(scriptClass, object, v, item,
                                       propertyName, data, &originalValue);
                 converter.start();
             } else {

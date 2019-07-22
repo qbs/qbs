@@ -21,6 +21,10 @@ Project {
     }
 
     AutotestRunner {
+        Depends {
+            name: "cpp" // Make sure build environment is set up properly.
+            condition: qbs.hostOS.contains("windows") && qbs.toolchain.contains("gcc")
+        }
         arguments: FileInfo.joinPaths(qbs.installRoot, qbs.installPrefix, "bin")
         auxiliaryInputs: "test-helper"
     }

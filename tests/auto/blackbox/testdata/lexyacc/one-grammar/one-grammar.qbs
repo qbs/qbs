@@ -8,6 +8,23 @@ CppApplication {
     cpp.cxxLanguageVersion: "c++11"
     cpp.minimumMacosVersion: "10.7"
     consoleApplication: true
+    Probe {
+        id: pathCheck
+        property string theDir: {
+            if (qbs.targetOS.contains("windows")) {
+                if (qbs.toolchain.contains("mingw"))
+                    return cpp.toolchainInstallPath;
+                if (qbs.toolchain.contains("clang") && qbs.sysroot)
+                    return qbs.sysroot + "/bin";
+            }
+        }
+        configure: {
+            if (theDir)
+                console.info("add to PATH: " + theDir);
+            found = true;
+        }
+    }
+
     files: [
         "lexer.l",
         "parser.y",

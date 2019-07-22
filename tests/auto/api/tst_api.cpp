@@ -1556,9 +1556,13 @@ void TestApi::linkStaticAndDynamicLibs()
     BuildDescriptionReceiver bdr;
     qbs::BuildOptions options;
     options.setEchoMode(qbs::CommandEchoModeCommandLine);
+    m_logSink->output.clear();
     const qbs::ErrorInfo errorInfo = doBuildProject("link-staticlibs-dynamiclibs", &bdr, nullptr,
                                                     nullptr, options);
     VERIFY_NO_ERROR(errorInfo);
+    const bool isNormalUnix = m_logSink->output.contains("is normal unix: yes");
+    const bool isNotNormalUnix = m_logSink->output.contains("is normal unix: no");
+    QVERIFY2(isNormalUnix != isNotNormalUnix, qPrintable(m_logSink->output));
 
     // The dependencies libdynamic1.so and libstatic2.a must not appear in the link command for the
     // executable. The -rpath-link line for libdynamic1.so must be there.
@@ -1575,12 +1579,7 @@ void TestApi::linkStaticAndDynamicLibs()
             }
         }
         QVERIFY(!appLinkCmd.isEmpty());
-        std::string targetPlatform = buildProfile.value("qbs.targetPlatform")
-                .toString().toStdString();
-        std::vector<std::string> targetOS = qbs::Internal::HostOsInfo::canonicalOSIdentifiers(
-                    targetPlatform);
-        if (!qbs::Internal::contains(targetOS, "darwin")
-                && !qbs::Internal::contains(targetOS, "windows")) {
+        if (isNormalUnix) {
             const std::regex rpathLinkRex("-rpath-link=\\S*/"
                                           + relativeProductBuildDir("dynamic2").toStdString());
             const auto ln = appLinkCmd.toStdString();
@@ -2861,7 +2860,7 @@ void TestApi::timeout()
     QVERIFY(waitForFinished(buildJob.get(), testTimeoutInMsecs()));
     QVERIFY(buildJob->error().hasError());
     const auto errorString = buildJob->error().toString();
-    QVERIFY(errorString.contains("cancel"));
+    QVERIFY2(errorString.contains("cancel"), qPrintable(errorString));
     QVERIFY(errorString.contains("timeout"));
 }
 

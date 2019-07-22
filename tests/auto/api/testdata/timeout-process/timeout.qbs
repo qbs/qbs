@@ -5,12 +5,20 @@ Project {
         files: "main.cpp"
         name: "infinite-loop"
         cpp.cxxLanguageVersion: "c++11"
+        Properties {
+            condition: qbs.toolchain.contains("gcc")
+            cpp.driverFlags: "-pthread"
+        }
     }
 
     Product {
         type: "product-under-test"
         name: "caller"
         Depends { name: "infinite-loop" }
+        Depends {
+            name: "cpp" // Make sure build environment is set up properly.
+            condition: qbs.hostOS.contains("windows") && qbs.toolchain.contains("gcc")
+        }
         Rule {
             inputsFromDependencies: "application"
             outputFileTags: "product-under-test"

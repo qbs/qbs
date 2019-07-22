@@ -291,50 +291,10 @@ CppModule {
         }
 
         prepare: {
-            var platformDefines = input.cpp.platformDefines;
-            var defines = input.cpp.defines;
-            var includePaths = input.cpp.includePaths;
-            var systemIncludePaths = input.cpp.systemIncludePaths;
-            var args = [];
-            var i;
-            var hasNoLogo = product.cpp.compilerVersionMajor >= 16; // 2010
-            if (hasNoLogo)
-                args.push("/nologo");
-
-            for (i in platformDefines) {
-                args.push('/d');
-                args.push(platformDefines[i]);
-            }
-            for (i in defines) {
-                args.push('/d');
-                args.push(defines[i]);
-            }
-            for (i in includePaths) {
-                args.push('/i');
-                args.push(includePaths[i]);
-            }
-            for (i in systemIncludePaths) {
-                args.push('/i');
-                args.push(systemIncludePaths[i]);
-            }
-
-            args = args.concat(['/fo', output.filePath, input.filePath]);
-            var cmd = new Command('rc', args);
-            cmd.description = 'compiling ' + input.fileName;
-            cmd.highlight = 'compiler';
-            cmd.jobPool = "compiler";
-
-            if (!hasNoLogo) {
-                // Remove the first two lines of stdout. That's the logo.
-                cmd.stdoutFilterFunction = function(output) {
-                    var idx = 0;
-                    for (var i = 0; i < 3; ++i)
-                        idx = output.indexOf('\n', idx + 1);
-                    return output.substr(idx + 1);
-                }
-            }
-
-            return cmd;
+            // From MSVC 2010 on, the logo can be suppressed.
+            var logo = product.cpp.compilerVersionMajor >= 16
+                    ? "can-suppress-logo" : "always-shows-logo";
+            return MSVC.createRcCommand("rc", input, output, logo);
         }
     }
 

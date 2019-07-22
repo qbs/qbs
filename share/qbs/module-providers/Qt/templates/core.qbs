@@ -105,6 +105,10 @@ Module {
         condition: moduleConfig.contains("use_gold_linker")
         cpp.linkerVariant: "gold"
     }
+    Properties {
+        condition: !moduleConfig.contains("use_gold_linker") && qbs.toolchain.contains("gcc")
+        cpp.linkerVariant: original
+    }
 
     cpp.cxxLanguageVersion: Utilities.versionCompare(version, "5.7.0") >= 0 ? "c++11" : original
     cpp.enableCompilerDefinesByLanguage: ["cpp"].concat(

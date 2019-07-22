@@ -135,14 +135,14 @@ CppModule {
                                                                   : undefined
     property string binutilsPath: binutilsProbe.found ? binutilsProbe.path : toolchainInstallPath
 
-    assemblerName: 'as'
+    assemblerName: 'as' + compilerExtension
     compilerName: cxxCompilerName
-    linkerName: 'ld'
-    property string archiverName: 'ar'
-    property string nmName: 'nm'
-    property string objcopyName: "objcopy"
-    property string stripName: "strip"
-    property string dsymutilName: "dsymutil"
+    linkerName: 'ld' + compilerExtension
+    property string archiverName: 'ar' + compilerExtension
+    property string nmName: 'nm' + compilerExtension
+    property string objcopyName: "objcopy" + compilerExtension
+    property string stripName: "strip" + compilerExtension
+    property string dsymutilName: "dsymutil" + compilerExtension
     property string lipoName
     property string sysroot: qbs.sysroot
     property string syslibroot: sysroot
@@ -429,7 +429,7 @@ CppModule {
                                      + PathTools.bundleExecutableFilePath(product)
                 }
             }];
-            if (product.qbs.toolchain.contains("mingw")) {
+            if (product.cpp.imageFormat === "pe") {
                 artifacts.push({
                     fileTags: ["dynamiclibrary_import"],
                     filePath: FileInfo.joinPaths(product.destinationDirectory,

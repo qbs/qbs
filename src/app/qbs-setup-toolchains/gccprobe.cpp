@@ -46,10 +46,13 @@
 
 #include <tools/hostosinfo.h>
 #include <tools/profile.h>
+#include <tools/settings.h>
 #include <tools/toolchains.h>
 
 #include <QtCore/qdir.h>
 #include <QtCore/qprocess.h>
+
+#include <algorithm>
 
 using namespace qbs;
 using Internal::HostOsInfo;
@@ -395,6 +398,31 @@ Profile createGccProfile(const QFileInfo &compiler, Settings *settings,
 
     setCommonProperties(profile, compiler, toolchainTypes, details);
 
+    if (HostOsInfo::isWindowsHost() && toolchainTypes.contains(QLatin1String("clang"))) {
+        const QStringList profileNames = settings->profiles();
+        bool foundMingw = false;
+        for (const QString &profileName : profileNames) {
+            const Profile otherProfile(profileName, settings);
+            if (otherProfile.value(QLatin1String("qbs.toolchainType")).toString()
+                    == QLatin1String("mingw")
+                    || otherProfile.value(QLatin1String("qbs.toolchain"))
+                    .toStringList().contains(QLatin1String("mingw"))) {
+                const QFileInfo tcDir(otherProfile.value(QLatin1String("cpp.toolchainInstallPath"))
+                        .toString());
+                if (!tcDir.fileName().isEmpty() && tcDir.exists()) {
+                    profile.setValue(QLatin1String("qbs.sysroot"), tcDir.path());
+                    foundMingw = true;
+                    break;
+                }
+            }
+        }
+        if (!foundMingw) {
+            qbsWarning() << Tr::tr("Using clang on Windows requires a mingw installation. "
+                                   "Please set qbs.sysroot accordingly for profile '%1'.")
+                            .arg(profile.name());
+        }
+    }
+
     if (!toolchainTypes.contains(QLatin1String("clang"))) {
         // Check whether auxiliary tools reside within the toolchain's install path.
         // This might not be the case when using icecc or another compiler wrapper.
@@ -464,6 +492,16 @@ void gccProbe(Settings *settings, QList<Profile> &profiles, const QString &compi
     if (candidates.empty()) {
         qbsInfo() << Tr::tr("No %1 toolchains found.").arg(compilerName);
         return;
+    }
+
+    // Sort candidates so that mingw comes first. Information from mingw profiles is potentially
+    // used for setting up clang profiles.
+    if (HostOsInfo::isWindowsHost()) {
+        std::sort(candidates.begin(), candidates.end(),
+                  [](const QFileInfo &fi1, const QFileInfo &fi2) {
+            return fi1.absoluteFilePath().contains(QLatin1String("mingw"))
+                    && !fi2.absoluteFilePath().contains(QLatin1String("mingw"));
+        });
     }
 
     for (const auto &candidate : qAsConst(candidates)) {

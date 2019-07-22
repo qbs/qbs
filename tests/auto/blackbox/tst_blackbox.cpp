@@ -1806,14 +1806,17 @@ void TestBlackbox::separateDebugInfo()
 {
     QDir::setCurrent(testDataDir + "/separate-debug-info");
     QCOMPARE(runQbs(QbsRunParameters(QStringList("qbs.debugInformation:true"))), 0);
+    const bool isWindows = m_qbsStdout.contains("is windows: yes");
+    const bool isNotWindows = m_qbsStdout.contains("is windows: no");
+    QVERIFY(isWindows != isNotWindows);
+    const bool isDarwin = m_qbsStdout.contains("is darwin: yes");
+    const bool isNotDarwin = m_qbsStdout.contains("is darwin: no");
+    QVERIFY(isDarwin != isNotDarwin);
 
     const SettingsPtr s = settings();
     Profile buildProfile(profileName(), s.get());
     QStringList toolchain = buildProfile.value("qbs.toolchain").toStringList();
-    std::string targetPlatform = buildProfile.value("qbs.targetPlatform").toString().toStdString();
-    std::vector<std::string> targetOS = HostOsInfo::canonicalOSIdentifiers(targetPlatform);
-    if (qbs::Internal::contains(targetOS, "darwin")
-            || (targetPlatform.empty() && HostOsInfo::isMacosHost())) {
+    if (isDarwin) {
         QVERIFY(directoryExists(relativeProductBuildDir("app1") + "/app1.app.dSYM"));
         QVERIFY(regularFileExists(relativeProductBuildDir("app1")
             + "/app1.app.dSYM/Contents/Info.plist"));
@@ -1878,7 +1881,6 @@ void TestBlackbox::separateDebugInfo()
                 .entryInfoList(QDir::NoDotAndDotDot | QDir::AllEntries).size(), 1);
         QVERIFY(regularFileExists(relativeProductBuildDir("bar5") + "/bar5.bundle.dwarf"));
     } else if (toolchain.contains("gcc")) {
-        const bool isWindows = qbs::Internal::contains(targetOS, "windows");
         const QString exeSuffix = isWindows ? ".exe" : "";
         const QString dllPrefix = isWindows ? "" : "lib";
         const QString dllSuffix = isWindows ? ".dll" : ".so";
@@ -4354,6 +4356,18 @@ void TestBlackbox::lexyacc()
     QCOMPARE(runQbs(), 0);
     const QString parserBinary = relativeExecutableFilePath("one-grammar");
     QProcess p;
+    const QByteArray magicString = "add to PATH: ";
+    const int magicStringIndex = m_qbsStdout.indexOf(magicString);
+    if (magicStringIndex != -1) {
+        const int newLineIndex = m_qbsStdout.indexOf('\n', magicStringIndex);
+        QVERIFY(newLineIndex != -1);
+        const int dirIndex = magicStringIndex + magicString.length();
+        const QString dir = QString::fromLocal8Bit(m_qbsStdout.mid(dirIndex,
+                                                                   newLineIndex - dirIndex));
+        QProcessEnvironment env;
+        env.insert("PATH", dir);
+        p.setProcessEnvironment(env);
+    }
     p.start(parserBinary);
     QVERIFY2(p.waitForStarted(), qPrintable(p.errorString()));
     p.write("a && b || c && !d");
