@@ -117,6 +117,46 @@ QString findCompatibleVcsarsallBat()
     return {};
 }
 
+QString wow6432Key()
+{
+#ifdef Q_OS_WIN64
+    return QStringLiteral("\\Wow6432Node");
+#else
+    return {};
+#endif
+}
+
+QString findClangCl()
+{
+    const auto compilerName = HostOsInfo::appendExecutableSuffix(QStringLiteral("clang-cl"));
+    const auto compilerFromPath = findExecutable(compilerName);
+    if (!compilerFromPath.isEmpty())
+        return compilerFromPath;
+
+    const QSettings registry(
+            QStringLiteral("HKEY_LOCAL_MACHINE\\SOFTWARE%1\\LLVM\\LLVM").arg(wow6432Key()),
+            QSettings::NativeFormat);
+    const auto key = QStringLiteral(".");
+    if (registry.contains(key)) {
+        const auto compilerPath = QDir::fromNativeSeparators(registry.value(key).toString())
+                + QStringLiteral("/bin/") + compilerName;
+        if (QFileInfo(compilerPath).exists())
+            return compilerPath;
+    }
+
+    // this branch can be useful in case user had two LLVM installations (e.g. 32bit & 64bit)
+    // but uninstalled one - in that case, registry will be empty
+    static const char * const envVarCandidates[] = {"ProgramFiles", "ProgramFiles(x86)"};
+    for (const auto &envVar : envVarCandidates) {
+        const auto value
+                = QDir::fromNativeSeparators(QString::fromLocal8Bit(qgetenv(envVar)));
+        const auto compilerPath = value + QStringLiteral("/LLVM/bin/") + compilerName;
+        if (QFileInfo(compilerPath).exists())
+            return compilerPath;
+    }
+    return {};
+}
+
 } // namespace
 
 void createClangClProfile(
@@ -144,7 +184,7 @@ void clangClProbe(Settings *settings, QList<Profile> &profiles)
 {
     const auto compilerName = QStringLiteral("clang-cl");
     qbsInfo() << Tr::tr("Trying to detect %1...").arg(compilerName);
-    const auto compilerFilePath = findExecutable(HostOsInfo::appendExecutableSuffix(compilerName));
+    const auto compilerFilePath = findClangCl();
     if (compilerFilePath.isEmpty()) {
         qbsInfo() << Tr::tr("%1 was not found.").arg(compilerName);
         return;
