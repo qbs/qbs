@@ -28,70 +28,31 @@
 **
 ****************************************************************************/
 
-#include "keiluvproperty.h"
-#include "keiluvpropertygroup.h"
-#include "keiluvworkspace.h"
 #include "keiluvworkspacewriter.h"
-
-#include <ostream>
 
 namespace qbs {
 
 KeiluvWorkspaceWriter::KeiluvWorkspaceWriter(std::ostream *device)
-    : m_device(device)
+    : gen::xml::WorkspaceWriter(device)
 {
-    m_writer.reset(new QXmlStreamWriter(&m_buffer));
-    m_writer->setAutoFormatting(true);
 }
 
-bool KeiluvWorkspaceWriter::write(const KeiluvWorkspace *workspace)
-{
-    m_buffer.clear();
-    m_writer->writeStartDocument();
-    workspace->accept(this);
-    m_writer->writeEndDocument();
-    if (m_writer->hasError())
-        return false;
-    m_device->write(&*std::begin(m_buffer), m_buffer.size());
-    return m_device->good();
-}
-
-void KeiluvWorkspaceWriter::visitStart(const KeiluvWorkspace *workspace)
+void KeiluvWorkspaceWriter::visitStart(const gen::xml::Workspace *workspace)
 {
     Q_UNUSED(workspace)
-    m_writer->writeStartElement(QStringLiteral("ProjectWorkspace"));
-    m_writer->writeAttribute(QStringLiteral("xmlns:xsi"),
-                             QStringLiteral("http://www.w3.org/2001/XMLSchema-instance"));
-    m_writer->writeAttribute(QStringLiteral("xsi:noNamespaceSchemaLocation"),
-                             QStringLiteral("project_mpw.xsd"));
+    writer()->writeStartElement(QStringLiteral("ProjectWorkspace"));
+    writer()->writeAttribute(
+                QStringLiteral("xmlns:xsi"),
+                QStringLiteral("http://www.w3.org/2001/XMLSchema-instance"));
+    writer()->writeAttribute(
+                QStringLiteral("xsi:noNamespaceSchemaLocation"),
+                QStringLiteral("project_mpw.xsd"));
 }
 
-void KeiluvWorkspaceWriter::visitEnd(const KeiluvWorkspace *workspace)
+void KeiluvWorkspaceWriter::visitEnd(const gen::xml::Workspace *workspace)
 {
     Q_UNUSED(workspace)
-    m_writer->writeEndElement();
-}
-
-void KeiluvWorkspaceWriter::visitStart(const KeiluvProperty *property)
-{
-    const QString stringValue = property->value().toString();
-    m_writer->writeTextElement(QString::fromLatin1(property->name()), stringValue);
-}
-
-void KeiluvWorkspaceWriter::visitEnd(const KeiluvProperty *property)
-{
-    Q_UNUSED(property)
-}
-
-void KeiluvWorkspaceWriter::visitStart(const KeiluvPropertyGroup *propertyGroup)
-{
-    m_writer->writeStartElement(QString::fromLatin1(propertyGroup->name()));
-}
-
-void KeiluvWorkspaceWriter::visitEnd(const KeiluvPropertyGroup *propertyGroup)
-{
-    Q_UNUSED(propertyGroup)
-    m_writer->writeEndElement();
+    writer()->writeEndElement();
 }
 
 } // namespace qbs

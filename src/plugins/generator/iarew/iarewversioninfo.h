@@ -40,36 +40,21 @@
 #ifndef QBS_IAREWVERSIONINFO_H
 #define QBS_IAREWVERSIONINFO_H
 
-#include "iarewutils.h"
-
-#include <tools/version.h>
-
-#include <set>
+#include <generators/generatorutils.h>
+#include <generators/generatorversioninfo.h>
 
 namespace qbs {
 
-class IarewVersionInfo final
+class IarewVersionInfo final : public gen::VersionInfo
 {
 public:
     IarewVersionInfo(const Version &version,
-                     const std::set<IarewUtils::Architecture> &archs);
+                     const std::set<gen::utils::Architecture> &archs);
+
+    int marketingVersion() const final;
 
     static std::set<IarewVersionInfo> knownVersions();
-
-    bool operator<(const IarewVersionInfo &other) const;
-    bool operator==(const IarewVersionInfo &other) const;
-
-    Version version() const;
-    int marketingVersion() const;
-
-    bool containsArchitecture(IarewUtils::Architecture arch) const;
-
-private:
-    Version m_version;
-    std::set<IarewUtils::Architecture> m_archs;
 };
-
-quint32 qHash(const IarewVersionInfo &info);
 
 } // namespace qbs
 

@@ -29,6 +29,7 @@
 ****************************************************************************/
 
 #include "keiluvfilesgroupspropertygroup.h"
+#include "keiluvutils.h"
 
 #include <generators/generatordata.h>
 
@@ -36,26 +37,28 @@
 
 namespace qbs {
 
-class KeiluvFilePropertyGroup final : public KeiluvPropertyGroup
+class KeiluvFilePropertyGroup final : public gen::xml::PropertyGroup
 {
 public:
     explicit KeiluvFilePropertyGroup(
             const QString &fullFilePath,
             const QString &baseDirectory)
-        : KeiluvPropertyGroup("File")
+        : gen::xml::PropertyGroup("File")
     {
         const QFileInfo fileInfo(fullFilePath);
         const auto fileName = fileInfo.fileName();
         const auto fileType = encodeFileType(fileInfo.suffix());
-        const auto filePath = KeiluvUtils::relativeFilePath(
-                    baseDirectory, fileInfo.absoluteFilePath());
+        const auto filePath = QDir::toNativeSeparators(
+                    gen::utils::relativeFilePath(
+                        baseDirectory,
+                        fileInfo.absoluteFilePath()));
 
-        appendChild<KeiluvProperty>(QByteArrayLiteral("FileName"),
-                                    fileName);
-        appendChild<KeiluvProperty>(QByteArrayLiteral("FileType"),
-                                    fileType);
-        appendChild<KeiluvProperty>(QByteArrayLiteral("FilePath"),
-                                    filePath);
+        appendChild<gen::xml::Property>(QByteArrayLiteral("FileName"),
+                                        fileName);
+        appendChild<gen::xml::Property>(QByteArrayLiteral("FileType"),
+                                        fileType);
+        appendChild<gen::xml::Property>(QByteArrayLiteral("FilePath"),
+                                        filePath);
     }
 
 private:
@@ -92,13 +95,13 @@ private:
     }
 };
 
-class KeiluvFilesPropertyGroup final : public KeiluvPropertyGroup
+class KeiluvFilesPropertyGroup final : public gen::xml::PropertyGroup
 {
 public:
     explicit KeiluvFilesPropertyGroup(
             const QList<ArtifactData> &sourceArtifacts,
             const QString &baseDirectory)
-        : KeiluvPropertyGroup("Files")
+        : gen::xml::PropertyGroup("Files")
     {
         for (const auto &artifact : sourceArtifacts)
             appendChild<KeiluvFilePropertyGroup>(artifact.filePath(),
@@ -108,7 +111,7 @@ public:
     explicit KeiluvFilesPropertyGroup(
             const QStringList &filePaths,
             const QString &baseDirectory)
-        : KeiluvPropertyGroup("Files")
+        : gen::xml::PropertyGroup("Files")
     {
         for (const auto &filePath : filePaths)
             appendChild<KeiluvFilePropertyGroup>(filePath,
@@ -116,17 +119,17 @@ public:
     }
 };
 
-class KeiluvFileGroupPropertyGroup final : public KeiluvPropertyGroup
+class KeiluvFileGroupPropertyGroup final : public gen::xml::PropertyGroup
 {
 public:
     explicit KeiluvFileGroupPropertyGroup(
             const QString &groupName,
             const QList<ArtifactData> &sourceArtifacts,
             const QString &baseDirectory)
-        : KeiluvPropertyGroup("Group")
+        : gen::xml::PropertyGroup("Group")
     {
-        appendChild<KeiluvProperty>(QByteArrayLiteral("GroupName"),
-                                    groupName);
+        appendChild<gen::xml::Property>(QByteArrayLiteral("GroupName"),
+                                        groupName);
 
         appendChild<KeiluvFilesPropertyGroup>(sourceArtifacts,
                                               baseDirectory);
@@ -136,10 +139,10 @@ public:
             const QString &groupName,
             const QStringList &filePaths,
             const QString &baseDirectory)
-        : KeiluvPropertyGroup("Group")
+        : gen::xml::PropertyGroup("Group")
     {
-        appendChild<KeiluvProperty>(QByteArrayLiteral("GroupName"),
-                                    groupName);
+        appendChild<gen::xml::Property>(QByteArrayLiteral("GroupName"),
+                                        groupName);
 
         appendChild<KeiluvFilesPropertyGroup>(filePaths,
                                               baseDirectory);
@@ -150,9 +153,9 @@ KeiluvFilesGroupsPropertyGroup::KeiluvFilesGroupsPropertyGroup(
         const Project &qbsProject,
         const ProductData &qbsProduct,
         const std::vector<ProductData> &qbsProductDeps)
-    : KeiluvPropertyGroup(QByteArrayLiteral("Groups"))
+    : gen::xml::PropertyGroup(QByteArrayLiteral("Groups"))
 {
-    const auto baseDirectory = KeiluvUtils::buildRootPath(qbsProject);
+    const auto baseDirectory = gen::utils::buildRootPath(qbsProject);
 
     // Build source items.
     const auto groups = qbsProduct.groups();

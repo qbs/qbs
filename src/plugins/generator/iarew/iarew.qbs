@@ -21,10 +21,6 @@ QbsPlugin {
             "iarewproject.h",
             "iarewprojectwriter.cpp",
             "iarewprojectwriter.h",
-            "iarewproperty.cpp",
-            "iarewproperty.h",
-            "iarewpropertygroup.cpp",
-            "iarewpropertygroup.h",
             "iarewsettingspropertygroup.cpp",
             "iarewsettingspropertygroup.h",
             "iarewsourcefilepropertygroup.cpp",
@@ -41,7 +37,6 @@ QbsPlugin {
             "iarewworkspace.h",
             "iarewworkspacewriter.cpp",
             "iarewworkspacewriter.h",
-            "iiarewnodevisitor.h",
         ]
     }
     Group {

@@ -31,32 +31,35 @@
 #ifndef QBS_IAREWARMBUILDCONFIGURATIONGROUP_V8_H
 #define QBS_IAREWARMBUILDCONFIGURATIONGROUP_V8_H
 
-#include "../../iarewpropertygroup.h"
+#include <generators/xmlpropertygroup.h>
 
 namespace qbs {
 namespace iarew {
 namespace arm {
 namespace v8 {
 
-class ArmBuildConfigurationGroup final : public IarewPropertyGroup
+class ArmBuildConfigurationGroup final
+        : public gen::xml::PropertyGroup
 {
 private:
-    explicit ArmBuildConfigurationGroup(const Project &qbsProject,
-                                        const ProductData &qbsProduct,
-                                        const std::vector<ProductData> &qbsProductDeps);
+    explicit ArmBuildConfigurationGroup(
+            const qbs::Project &qbsProject,
+            const qbs::ProductData &qbsProduct,
+            const std::vector<ProductData> &qbsProductDeps);
 
     friend class ArmBuildConfigurationGroupFactory;
 };
 
-class ArmBuildConfigurationGroupFactory final : public IarewPropertyGroupFactory
+class ArmBuildConfigurationGroupFactory final
+        : public gen::xml::PropertyGroupFactory
 {
 public:
-    bool canCreate(IarewUtils::Architecture architecture,
+    bool canCreate(gen::utils::Architecture arch,
                    const Version &version) const final;
 
-    std::unique_ptr<IarewPropertyGroup> create(
-            const Project &qbsProject,
-            const ProductData &qbsProduct,
+    std::unique_ptr<gen::xml::PropertyGroup> create(
+            const qbs::Project &qbsProject,
+            const qbs::ProductData &qbsProduct,
             const std::vector<ProductData> &qbsProductDeps) const final;
 };
 

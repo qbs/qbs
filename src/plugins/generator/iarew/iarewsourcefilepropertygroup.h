@@ -31,18 +31,20 @@
 #ifndef QBS_IAREWSOURCEFILEPROPERTYGROUP_H
 #define QBS_IAREWSOURCEFILEPROPERTYGROUP_H
 
-#include "iarewpropertygroup.h"
+#include <generators/xmlpropertygroup.h>
 
 namespace qbs {
 
 class ArtifactData;
 class GeneratableProject;
 
-class IarewSourceFilePropertyGroup final : public IarewPropertyGroup
+class IarewSourceFilePropertyGroup final
+        : public gen::xml::PropertyGroup
 {
 public:
-    explicit IarewSourceFilePropertyGroup(const GeneratableProject &genProject,
-                                          const ArtifactData &sourceArtifact);
+    explicit IarewSourceFilePropertyGroup(
+            const GeneratableProject &genProject,
+            const ArtifactData &sourceArtifact);
 };
 
 } // namespace qbs

@@ -28,42 +28,65 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_IAREWPROPERTYGROUP_H
-#define QBS_IAREWPROPERTYGROUP_H
+#include "xmlproperty.h"
+#include "xmlpropertygroup.h"
+#include "xmlworkspace.h"
+#include "xmlworkspacewriter.h"
 
-#include "iarewproperty.h"
-#include "iarewversioninfo.h"
-
-#include <memory>
+#include <ostream>
 
 namespace qbs {
+namespace gen {
+namespace xml {
 
-class ProductData;
-class Project;
-
-class IarewPropertyGroup : public IarewProperty
+WorkspaceWriter::WorkspaceWriter(std::ostream *device)
+    : m_device(device)
 {
-public:
-    explicit IarewPropertyGroup(QByteArray name);
+    m_writer.reset(new QXmlStreamWriter(&m_buffer));
+    m_writer->setAutoFormatting(true);
+}
 
-    void appendProperty(QByteArray name, QVariant value);
-
-    void accept(IIarewNodeVisitor *visitor) const final;
-};
-
-class IarewPropertyGroupFactory
+bool WorkspaceWriter::write(const Workspace *workspace)
 {
-public:
-    virtual ~IarewPropertyGroupFactory() = default;
-    virtual bool canCreate(IarewUtils::Architecture architecture,
-                           const Version &version) const = 0;
+    m_buffer.clear();
+    m_writer->writeStartDocument();
+    workspace->accept(this);
+    m_writer->writeEndDocument();
+    if (m_writer->hasError())
+        return false;
+    m_device->write(&*std::begin(m_buffer), m_buffer.size());
+    return m_device->good();
+}
 
-    virtual std::unique_ptr<IarewPropertyGroup> create(
-            const Project &qbsProject,
-            const ProductData &qbsProduct,
-            const std::vector<ProductData> &qbsProductDeps) const = 0;
-};
+void WorkspaceWriter::visitStart(const Property *property)
+{
+    const auto value = property->value().toString();
+    const auto name = QString::fromUtf8(property->name());
+    m_writer->writeTextElement(name, value);
+}
 
+void WorkspaceWriter::visitEnd(const Property *property)
+{
+    Q_UNUSED(property)
+}
+
+void WorkspaceWriter::visitStart(const PropertyGroup *propertyGroup)
+{
+    const auto name = QString::fromUtf8(propertyGroup->name());
+    m_writer->writeStartElement(name);
+}
+
+void WorkspaceWriter::visitEnd(const PropertyGroup *propertyGroup)
+{
+    Q_UNUSED(propertyGroup)
+    m_writer->writeEndElement();
+}
+
+QXmlStreamWriter *WorkspaceWriter::writer() const
+{
+    return m_writer.get();
+}
+
+} // namespace xml
+} // namespace gen
 } // namespace qbs
-
-#endif // QBS_IAREWPROPERTYGROUP_H

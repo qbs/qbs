@@ -28,44 +28,29 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_KEILUVPROPERTYGROUP_H
-#define QBS_KEILUVPROPERTYGROUP_H
-
-#include "keiluvproperty.h"
-#include "keiluvversioninfo.h"
-
-#include <memory>
+#include "ixmlnodevisitor.h"
+#include "xmlproperty.h"
 
 namespace qbs {
+namespace gen {
+namespace xml {
 
-class ProductData;
-class Project;
-
-class KeiluvPropertyGroup : public KeiluvProperty
+Property::Property(QByteArray name, QVariant value)
 {
-public:
-    explicit KeiluvPropertyGroup(QByteArray name);
+    setName(std::move(name));
+    setValue(std::move(value));
+}
 
-    void appendProperty(QByteArray name, QVariant value);
-    void appendMultiLineProperty(QByteArray key, QStringList values,
-                                 QChar sep = QLatin1Char(','));
-
-    void accept(IKeiluvNodeVisitor *visitor) const final;
-};
-
-class KeiluvPropertyGroupFactory
+void Property::accept(INodeVisitor *visitor) const
 {
-public:
-    virtual ~KeiluvPropertyGroupFactory() = default;
-    virtual bool canCreate(KeiluvUtils::Architecture architecture,
-                           const Version &version) const = 0;
+    visitor->visitStart(this);
 
-    virtual std::unique_ptr<KeiluvPropertyGroup> create(
-            const Project &qbsProject,
-            const ProductData &qbsProduct,
-            const std::vector<ProductData> &qbsProductDeps) const = 0;
-};
+    for (const auto &child : children())
+        child->accept(visitor);
 
+    visitor->visitEnd(this);
+}
+
+} // namespace xml
+} // namespace gen
 } // namespace qbs
-
-#endif // QBS_KEILUVPROPERTYGROUP_H

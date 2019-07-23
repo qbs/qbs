@@ -28,30 +28,65 @@
 **
 ****************************************************************************/
 
-#include "iarewproperty.h"
-#include "iarewpropertygroup.h"
-#include "iiarewnodevisitor.h"
+#include "xmlproject.h"
+#include "xmlprojectwriter.h"
+#include "xmlproperty.h"
+#include "xmlpropertygroup.h"
+
+#include <ostream>
 
 namespace qbs {
+namespace gen {
+namespace xml {
 
-IarewPropertyGroup::IarewPropertyGroup(QByteArray name)
+ProjectWriter::ProjectWriter(std::ostream *device)
+    : m_device(device)
 {
-    setName(std::move(name));
+    m_writer.reset(new QXmlStreamWriter(&m_buffer));
+    m_writer->setAutoFormatting(true);
 }
 
-void IarewPropertyGroup::appendProperty(QByteArray name, QVariant value)
+bool ProjectWriter::write(const Project *project)
 {
-    appendChild<IarewProperty>(std::move(name), std::move(value));
+    m_buffer.clear();
+    m_writer->writeStartDocument();
+    project->accept(this);
+    m_writer->writeEndDocument();
+    if (m_writer->hasError())
+        return false;
+    m_device->write(&*std::begin(m_buffer), m_buffer.size());
+    return m_device->good();
 }
 
-void IarewPropertyGroup::accept(IIarewNodeVisitor *visitor) const
+void ProjectWriter::visitStart(const Property *property)
 {
-    visitor->visitStart(this);
-
-    for (const auto &child : children())
-        child->accept(visitor);
-
-    visitor->visitEnd(this);
+    const auto value = property->value().toString();
+    const auto name = QString::fromUtf8(property->name());
+    m_writer->writeTextElement(name, value);
 }
 
+void ProjectWriter::visitEnd(const Property *property)
+{
+    Q_UNUSED(property)
+}
+
+void ProjectWriter::visitStart(const PropertyGroup *propertyGroup)
+{
+    const auto name = QString::fromUtf8(propertyGroup->name());
+    m_writer->writeStartElement(name);
+}
+
+void ProjectWriter::visitEnd(const PropertyGroup *propertyGroup)
+{
+    Q_UNUSED(propertyGroup)
+    m_writer->writeEndElement();
+}
+
+QXmlStreamWriter *ProjectWriter::writer() const
+{
+    return m_writer.get();
+}
+
+} // namespace xml
+} // namespace gen
 } // namespace qbs

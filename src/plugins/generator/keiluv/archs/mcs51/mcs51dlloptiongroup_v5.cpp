@@ -30,17 +30,15 @@
 
 #include "mcs51dlloptiongroup_v5.h"
 
-#include "../../keiluvutils.h"
-
 namespace qbs {
 namespace keiluv {
 namespace mcs51 {
 namespace v5 {
 
 Mcs51DllOptionGroup::Mcs51DllOptionGroup(
-        const Project &qbsProject,
-        const ProductData &qbsProduct)
-    : KeiluvPropertyGroup("DllOption")
+        const qbs::Project &qbsProject,
+        const qbs::ProductData &qbsProduct)
+    : gen::xml::PropertyGroup("DllOption")
 {
     Q_UNUSED(qbsProject)
     Q_UNUSED(qbsProduct)

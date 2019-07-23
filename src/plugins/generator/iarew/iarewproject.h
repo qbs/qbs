@@ -31,10 +31,9 @@
 #ifndef QBS_IAREWPROJECT_H
 #define QBS_IAREWPROJECT_H
 
-#include "iarewproperty.h"
-#include "iarewpropertygroup.h"
-
 #include <generators/generatordata.h>
+#include <generators/xmlproject.h>
+#include <generators/xmlpropertygroup.h>
 
 #include <memory>
 
@@ -42,16 +41,14 @@ namespace qbs {
 
 class IarewVersionInfo;
 
-class IarewProject final : public IarewProperty
+class IarewProject final : public gen::xml::Project
 {
 public:
     explicit IarewProject(const GeneratableProject &genProject,
                           const GeneratableProductData &genProduct,
                           const IarewVersionInfo &versionInfo);
-    void accept(IIarewNodeVisitor *visitor) const final;
-
 private:
-    std::vector<std::unique_ptr<IarewPropertyGroupFactory>> m_factories;
+    std::vector<std::unique_ptr<gen::xml::PropertyGroupFactory>> m_factories;
 };
 
 } // namespace qbs

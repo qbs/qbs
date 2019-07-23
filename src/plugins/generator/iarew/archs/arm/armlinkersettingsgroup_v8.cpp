@@ -116,12 +116,12 @@ struct LibraryPageOptions final
     {
         const auto &qbsProps = qbsProduct.moduleProperties();
 
-        entryPoint = IarewUtils::cppStringModuleProperty(
+        entryPoint = gen::utils::cppStringModuleProperty(
                     qbsProps, QStringLiteral("entryPoint"));
 
         // Add libraries search paths.
         const QString toolkitPath = IarewUtils::toolkitRootPath(qbsProduct);
-        const QStringList libraryPaths = IarewUtils::cppStringModuleProperties(
+        const QStringList libraryPaths = gen::utils::cppStringModuleProperties(
                     qbsProps, {QStringLiteral("libraryPaths")});
         for (const QString &libraryPath : libraryPaths) {
             const QFileInfo libraryPathInfo(libraryPath);
@@ -141,7 +141,7 @@ struct LibraryPageOptions final
 
         // Add static libraries paths.
         const QStringList staticLibrariesProps =
-                IarewUtils::cppStringModuleProperties(
+                gen::utils::cppStringModuleProperties(
                     qbsProps, {QStringLiteral("staticLibraries")});
         for (const QString &staticLibrary : staticLibrariesProps) {
             const QFileInfo staticLibraryInfo(staticLibrary);
@@ -166,7 +166,7 @@ struct LibraryPageOptions final
         // Add static libraries from product dependencies.
         for (const ProductData &qbsProductDep : qbsProductDeps) {
             const QString depBinaryPath = QLatin1String("$PROJ_DIR$/")
-                    + IarewUtils::targetBinaryPath(baseDirectory,
+                    + gen::utils::targetBinaryPath(baseDirectory,
                                                    qbsProductDep);
             staticLibraries.push_back(depBinaryPath);
         }
@@ -191,7 +191,7 @@ struct OutputPageOptions final
         const auto &qbsProps = qbsProduct.moduleProperties();
         const QStringList flags = IarewUtils::cppModuleLinkerFlags(qbsProps);
         debugInfo = !flags.contains(QLatin1String("--strip"));
-        outputFile = IarewUtils::targetBinary(qbsProduct);
+        outputFile = gen::utils::targetBinary(qbsProduct);
     }
 
     int debugInfo = 0;
@@ -216,13 +216,15 @@ struct InputPageOptions final
 
 struct ListPageOptions final
 {
-    enum ListingAction { NoListing,
-                         GenerateListing };
+    enum ListingAction {
+        NoListing,
+        GenerateListing
+    };
 
     explicit ListPageOptions(const ProductData &qbsProduct)
     {
         const auto &qbsProps = qbsProduct.moduleProperties();
-        generateMap = IarewUtils::cppBooleanModuleProperty(
+        generateMap = gen::utils::cppBooleanModuleProperty(
                     qbsProps, QStringLiteral("generateMapFile"))
                 ? ListPageOptions::GenerateListing
                 : ListPageOptions::NoListing;
@@ -286,7 +288,7 @@ struct DiagnosticsPageOptions final
     explicit DiagnosticsPageOptions(const ProductData &qbsProduct)
     {
         const auto &qbsProps = qbsProduct.moduleProperties();
-        treatWarningsAsErrors = IarewUtils::cppIntegerModuleProperty(
+        treatWarningsAsErrors = gen::utils::cppIntegerModuleProperty(
                     qbsProps, QStringLiteral("treatWarningsAsErrors"));
     }
 
@@ -305,9 +307,9 @@ ArmLinkerSettingsGroup::ArmLinkerSettingsGroup(
     setName(QByteArrayLiteral("ILINK"));
     setArchiveVersion(kLinkerArchiveVersion);
     setDataVersion(kLinkerDataVersion);
-    setDataDebugInfo(IarewUtils::debugInformation(qbsProduct));
+    setDataDebugInfo(gen::utils::debugInformation(qbsProduct));
 
-    const QString buildRootDirectory = IarewUtils::buildRootPath(qbsProject);
+    const QString buildRootDirectory = gen::utils::buildRootPath(qbsProject);
 
     buildConfigPage(buildRootDirectory, qbsProduct);
     buildLibraryPage(buildRootDirectory, qbsProduct, qbsProductDeps);

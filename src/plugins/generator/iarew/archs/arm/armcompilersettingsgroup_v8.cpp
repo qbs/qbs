@@ -48,7 +48,7 @@ struct OutputPageOptions final
 {
     explicit OutputPageOptions(const ProductData &qbsProduct)
     {
-        debugInfo = IarewUtils::debugInformation(qbsProduct);
+        debugInfo = gen::utils::debugInformation(qbsProduct);
     }
 
     int debugInfo = 0;
@@ -58,16 +58,22 @@ struct OutputPageOptions final
 
 struct LanguageOnePageOptions final
 {
-    enum LanguageExtension { CLanguageExtension,
-                             CxxLanguageExtension,
-                             AutoLanguageExtension };
+    enum LanguageExtension {
+        CLanguageExtension,
+        CxxLanguageExtension,
+        AutoLanguageExtension
+    };
 
-    enum CLanguageDialect { C89LanguageDialect,
-                            C11LanguageDialect };
+    enum CLanguageDialect {
+        C89LanguageDialect,
+        C11LanguageDialect
+    };
 
-    enum LanguageConformance { AllowIarExtension,
-                               RelaxedStandard,
-                               StrictStandard };
+    enum LanguageConformance {
+        AllowIarExtension,
+        RelaxedStandard,
+        StrictStandard
+    };
 
     explicit LanguageOnePageOptions(const ProductData &qbsProduct)
     {
@@ -75,7 +81,7 @@ struct LanguageOnePageOptions final
         // File extension based by default.
         languageExtension = LanguageOnePageOptions::AutoLanguageExtension;
         // Language dialect.
-        const QStringList cLanguageVersion = IarewUtils::cppStringModuleProperties(
+        const QStringList cLanguageVersion = gen::utils::cppStringModuleProperties(
                     qbsProps, {QStringLiteral("cLanguageVersion")});
         cLanguageDialect = cLanguageVersion.contains(QLatin1String("c89"))
                 ? LanguageOnePageOptions::C89LanguageDialect
@@ -115,10 +121,15 @@ struct LanguageOnePageOptions final
 
 struct LanguageTwoPageOptions final
 {
-    enum PlainCharacter { SignedCharacter,
-                          UnsignedCharacter };
-    enum FloatingPointSemantic { StrictSemantic,
-                                 RelaxedSemantic };
+    enum PlainCharacter {
+        SignedCharacter,
+        UnsignedCharacter
+    };
+
+    enum FloatingPointSemantic {
+        StrictSemantic,
+        RelaxedSemantic
+    };
 
     explicit LanguageTwoPageOptions(const ProductData &qbsProduct)
     {
@@ -143,24 +154,30 @@ struct OptimizationsPageOptions final
     // Optimizations level radio-buttons with
     // combo-box on "level" widget.
 
-    enum Strategy { StrategyBalanced,
-                    StrategySize,
-                    StrategySpeed };
+    enum Strategy {
+        StrategyBalanced,
+        StrategySize,
+        StrategySpeed
+    };
 
-    enum Level { LevelNone,
-                 LevelLow,
-                 LevelMedium,
-                 LevelHigh };
+    enum Level {
+        LevelNone,
+        LevelLow,
+        LevelMedium,
+        LevelHigh
+    };
 
-    enum LevelSlave { LevelSlave0,
-                      LevelSlave1,
-                      LevelSlave2,
-                      LevelSlave3 };
+    enum LevelSlave {
+        LevelSlave0,
+        LevelSlave1,
+        LevelSlave2,
+        LevelSlave3
+    };
 
     explicit OptimizationsPageOptions(const ProductData &qbsProduct)
     {
         const auto &qbsProps = qbsProduct.moduleProperties();
-        const QString optimization = IarewUtils::cppStringModuleProperty(
+        const QString optimization = gen::utils::cppStringModuleProperty(
                     qbsProps, QStringLiteral("optimization"));
         if (optimization == QLatin1String("none")) {
             optimizationStrategy = OptimizationsPageOptions::StrategyBalanced;
@@ -222,11 +239,11 @@ struct PreprocessorPageOptions final
                                      const ProductData &qbsProduct)
     {
         const auto &qbsProps = qbsProduct.moduleProperties();
-        defineSymbols = IarewUtils::cppVariantModuleProperties(
+        defineSymbols = gen::utils::cppVariantModuleProperties(
                     qbsProps, {QStringLiteral("defines")});
 
         const QString toolkitPath = IarewUtils::toolkitRootPath(qbsProduct);
-        const QStringList fullIncludePaths = IarewUtils::cppStringModuleProperties(
+        const QStringList fullIncludePaths = gen::utils::cppStringModuleProperties(
                     qbsProps, {QStringLiteral("includePaths"),
                                QStringLiteral("systemIncludePaths")});
         for (const QString &fullIncludePath : fullIncludePaths) {
@@ -255,7 +272,7 @@ struct DiagnosticsPageOptions final
     explicit DiagnosticsPageOptions(const ProductData &qbsProduct)
     {
         const auto &qbsProps = qbsProduct.moduleProperties();
-        treatWarningsAsErrors = IarewUtils::cppIntegerModuleProperty(
+        treatWarningsAsErrors = gen::utils::cppIntegerModuleProperty(
                     qbsProps, QStringLiteral("treatWarningsAsErrors"));
     }
 
@@ -266,8 +283,10 @@ struct DiagnosticsPageOptions final
 
 struct CodePageOptions final
 {
-    enum ProcessorMode { CpuArmMode,
-                         CpuThumbMode };
+    enum ProcessorMode {
+        CpuArmMode,
+        CpuThumbMode
+    };
 
     explicit CodePageOptions(const ProductData &qbsProduct)
     {
@@ -312,9 +331,9 @@ ArmCompilerSettingsGroup::ArmCompilerSettingsGroup(
     setName(QByteArrayLiteral("ICCARM"));
     setArchiveVersion(kCompilerArchiveVersion);
     setDataVersion(kCompilerDataVersion);
-    setDataDebugInfo(IarewUtils::debugInformation(qbsProduct));
+    setDataDebugInfo(gen::utils::debugInformation(qbsProduct));
 
-    const QString buildRootDirectory = IarewUtils::buildRootPath(qbsProject);
+    const QString buildRootDirectory = gen::utils::buildRootPath(qbsProject);
 
     buildOutputPage(qbsProduct);
     buildLanguageOnePage(qbsProduct);

@@ -28,18 +28,31 @@
 **
 ****************************************************************************/
 
-#include "ikeiluvnodevisitor.h"
-#include "keiluvproperty.h"
+#include "ixmlnodevisitor.h"
+#include "xmlpropertygroup.h"
 
 namespace qbs {
+namespace gen {
+namespace xml {
 
-KeiluvProperty::KeiluvProperty(QByteArray name, QVariant value)
+PropertyGroup::PropertyGroup(QByteArray name)
 {
     setName(std::move(name));
-    setValue(std::move(value));
 }
 
-void KeiluvProperty::accept(IKeiluvNodeVisitor *visitor) const
+void PropertyGroup::appendProperty(QByteArray name, QVariant value)
+{
+    appendChild<Property>(std::move(name), std::move(value));
+}
+
+void PropertyGroup::appendMultiLineProperty(
+        QByteArray key, QStringList values, QChar sep)
+{
+    const auto line = values.join(std::move(sep));
+    appendProperty(std::move(key), QVariant::fromValue(line));
+}
+
+void PropertyGroup::accept(INodeVisitor *visitor) const
 {
     visitor->visitStart(this);
 
@@ -49,4 +62,6 @@ void KeiluvProperty::accept(IKeiluvNodeVisitor *visitor) const
     visitor->visitEnd(this);
 }
 
+} // namespace xml
+} // namespace gen
 } // namespace qbs

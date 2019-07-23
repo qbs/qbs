@@ -28,55 +28,27 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_KEILUVPROPERTY_H
-#define QBS_KEILUVPROPERTY_H
+#ifndef GENERATORS_XML_PROJECT_H
+#define GENERATORS_XML_PROJECT_H
 
-#include <QtCore/qvariant.h>
+#include "xmlproperty.h"
+
+#include <tools/qbs_export.h>
 
 #include <memory>
 
 namespace qbs {
+namespace gen {
+namespace xml {
 
-class IKeiluvNodeVisitor;
-
-class KeiluvProperty
+class QBS_EXPORT Project : public Property
 {
-    Q_DISABLE_COPY(KeiluvProperty)
 public:
-    KeiluvProperty() = default;
-    explicit KeiluvProperty(QByteArray name, QVariant value);
-    virtual ~KeiluvProperty() = default;
-
-    QByteArray name() const { return m_name; }
-    void setName(QByteArray name) { m_name = std::move(name); }
-
-    QVariant value() const { return m_value; }
-    void setValue(QVariant value) { m_value = std::move(value); }
-
-    template<class T>
-    T *appendChild(std::unique_ptr<T> child) {
-        const auto p = child.get();
-        m_children.push_back(std::move(child));
-        return p;
-    }
-
-    template<class T, class... Args>
-    T *appendChild(Args&&... args) {
-        return appendChild(std::make_unique<T>(std::forward<Args>(args)...));
-    }
-
-    virtual void accept(IKeiluvNodeVisitor *visitor) const;
-
-protected:
-    const std::vector<std::unique_ptr<KeiluvProperty>> &children() const
-    { return m_children; }
-
-private:
-    QByteArray m_name;
-    QVariant m_value;
-    std::vector<std::unique_ptr<KeiluvProperty>> m_children;
+    void accept(INodeVisitor *visitor) const final;
 };
 
+} // namespace xml
+} // namespace gen
 } // namespace qbs
 
-#endif // QBS_KEILUVPROPERTY_H
+#endif // GENERATORS_XML_PROJECT_H

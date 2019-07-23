@@ -28,66 +28,25 @@
 **
 ****************************************************************************/
 
-#include "iarewproject.h"
 #include "iarewprojectwriter.h"
-#include "iarewproperty.h"
-#include "iarewpropertygroup.h"
-
-#include <ostream>
 
 namespace qbs {
 
 IarewProjectWriter::IarewProjectWriter(std::ostream *device)
-    : m_device(device)
+    : gen::xml::ProjectWriter(device)
 {
-    m_writer.reset(new QXmlStreamWriter(&m_buffer));
-    m_writer->setAutoFormatting(true);
 }
 
-bool IarewProjectWriter::write(const IarewProject *project)
-{
-    m_buffer.clear();
-    m_writer->writeStartDocument();
-    project->accept(this);
-    m_writer->writeEndDocument();
-    if (m_writer->hasError())
-        return false;
-    m_device->write(&*std::begin(m_buffer), m_buffer.size());
-    return m_device->good();
-}
-
-void IarewProjectWriter::visitStart(const IarewProject *project)
+void IarewProjectWriter::visitStart(const gen::xml::Project *project)
 {
     Q_UNUSED(project)
-    m_writer->writeStartElement(QStringLiteral("project"));
+    writer()->writeStartElement(QStringLiteral("project"));
 }
 
-void IarewProjectWriter::visitEnd(const IarewProject *project)
+void IarewProjectWriter::visitEnd(const gen::xml::Project *project)
 {
     Q_UNUSED(project)
-    m_writer->writeEndElement();
-}
-
-void IarewProjectWriter::visitStart(const IarewProperty *property)
-{
-    const QString stringValue = property->value().toString();
-    m_writer->writeTextElement(QString::fromUtf8(property->name()), stringValue);
-}
-
-void IarewProjectWriter::visitEnd(const IarewProperty *property)
-{
-    Q_UNUSED(property)
-}
-
-void IarewProjectWriter::visitStart(const IarewPropertyGroup *propertyGroup)
-{
-    m_writer->writeStartElement(QString::fromUtf8(propertyGroup->name()));
-}
-
-void IarewProjectWriter::visitEnd(const IarewPropertyGroup *propertyGroup)
-{
-    Q_UNUSED(propertyGroup)
-    m_writer->writeEndElement();
+    writer()->writeEndElement();
 }
 
 } // namespace qbs

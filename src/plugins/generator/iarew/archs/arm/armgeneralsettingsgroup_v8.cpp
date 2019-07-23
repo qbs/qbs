@@ -46,52 +46,54 @@ namespace {
 
 struct CpuCoreEntry final
 {
-    enum CpuCoreCode { Arm7tdmi = 0,
-                       Arm7tdmis = 1,
-                       Arm710t = 2,
-                       Arm720t = 3,
-                       Arm740t = 4,
-                       Arm7ejs = 5,
-                       Arm9tdmi = 6,
-                       Arm920t = 7,
-                       Arm922t = 8,
-                       Arm940t = 9,
-                       Arm9e = 10,
-                       Arm9es = 11,
-                       Arm926ejs = 12,
-                       Arm946es = 13,
-                       Arm966es = 14,
-                       Arm968es = 15,
-                       Arm10e = 16,
-                       Arm1020e = 17,
-                       Arm1022e = 18,
-                       Arm1026ejs = 19,
-                       Arm1136j = 20,
-                       Arm1136js = 21,
-                       Arm1176j = 24,
-                       Arm1176js = 25,
-                       Xscale = 32,
-                       XscaleIr7 = 33,
-                       CortexM0 = 34,
-                       CortexM0Plus = 35,
-                       CortexM1 = 36,
-                       CortexMs1 = 37,
-                       CortexM3 = 38,
-                       CortexM4 = 39,
-                       CortexM7 = 41,
-                       CortexR4 = 42,
-                       CortexR5 = 44,
-                       CortexR7 = 46,
-                       CortexR8 = 48,
-                       CortexR52 = 49,
-                       CortexA5 = 50,
-                       CortexA7 = 52,
-                       CortexA8 = 53,
-                       CortexA9 = 54,
-                       CortexA15 = 55,
-                       CortexA17 = 56,
-                       CortexM23 = 58,
-                       CortexM33 = 59 };
+    enum CpuCoreCode {
+        Arm7tdmi = 0,
+        Arm7tdmis = 1,
+        Arm710t = 2,
+        Arm720t = 3,
+        Arm740t = 4,
+        Arm7ejs = 5,
+        Arm9tdmi = 6,
+        Arm920t = 7,
+        Arm922t = 8,
+        Arm940t = 9,
+        Arm9e = 10,
+        Arm9es = 11,
+        Arm926ejs = 12,
+        Arm946es = 13,
+        Arm966es = 14,
+        Arm968es = 15,
+        Arm10e = 16,
+        Arm1020e = 17,
+        Arm1022e = 18,
+        Arm1026ejs = 19,
+        Arm1136j = 20,
+        Arm1136js = 21,
+        Arm1176j = 24,
+        Arm1176js = 25,
+        Xscale = 32,
+        XscaleIr7 = 33,
+        CortexM0 = 34,
+        CortexM0Plus = 35,
+        CortexM1 = 36,
+        CortexMs1 = 37,
+        CortexM3 = 38,
+        CortexM4 = 39,
+        CortexM7 = 41,
+        CortexR4 = 42,
+        CortexR5 = 44,
+        CortexR7 = 46,
+        CortexR8 = 48,
+        CortexR52 = 49,
+        CortexA5 = 50,
+        CortexA7 = 52,
+        CortexA8 = 53,
+        CortexA9 = 54,
+        CortexA15 = 55,
+        CortexA17 = 56,
+        CortexM23 = 58,
+        CortexM33 = 59
+    };
 
     // Required to compile in MSVC2015.
     CpuCoreEntry(CpuCoreCode cc, QByteArray tf)
@@ -154,21 +156,24 @@ static const CpuCoreEntry cpusDict[] = {
 
 struct FpuCoreEntry final
 {
-    enum FpuRegistersCount { NoFpuRegisters,
-                             Fpu16Registers,
-                             Fpu32Registers };
+    enum FpuRegistersCount {
+        NoFpuRegisters,
+        Fpu16Registers,
+        Fpu32Registers
+    };
 
-    enum FpuCoreCode { NoVfp = 0,
-                       Vfp2 = 2,
-                       Vfp3d16 = 3,
-                       Vfp3 = 3,
-                       Vfp4sp = 4,
-                       Vfp4d16 = 5,
-                       Vfp4 = 5,
-                       Vfp5sp = 6,
-                       Vfp5d16 = 7,
-                       Vfp9s = 8 };
-
+    enum FpuCoreCode {
+        NoVfp = 0,
+        Vfp2 = 2,
+        Vfp3d16 = 3,
+        Vfp3 = 3,
+        Vfp4sp = 4,
+        Vfp4d16 = 5,
+        Vfp4 = 5,
+        Vfp5sp = 6,
+        Vfp5d16 = 7,
+        Vfp9s = 8
+    };
 
     // Required to compile in MSVC2015.
     FpuCoreEntry(FpuCoreCode cc, FpuRegistersCount rc,
@@ -198,13 +203,15 @@ static const FpuCoreEntry fpusDict[] = {
 
 struct TargetPageOptions final
 {
-    enum Endianness { LittleEndian,
-                      BigEndian };
+    enum Endianness {
+        LittleEndian,
+        BigEndian
+    };
 
     explicit TargetPageOptions(const ProductData &qbsProduct)
     {
         const auto &qbsProps = qbsProduct.moduleProperties();
-        const QStringList flags = IarewUtils::cppStringModuleProperties(
+        const QStringList flags = gen::utils::cppStringModuleProperties(
                     qbsProps, {QStringLiteral("driverFlags")});
         // Detect target CPU code.
         const QString cpuValue = IarewUtils::flagValue(
@@ -233,7 +240,7 @@ struct TargetPageOptions final
             targetFpuRegs = fpuIt->regsCount;
         }
         // Detect endian.
-        const QString prop = IarewUtils::cppStringModuleProperty(
+        const QString prop = gen::utils::cppStringModuleProperty(
                     qbsProps, QStringLiteral("endianness"));
         if (prop == QLatin1String("big"))
             endianness = TargetPageOptions::BigEndian;
@@ -251,16 +258,20 @@ struct TargetPageOptions final
 
 struct LibraryOnePageOptions final
 {
-    enum PrintfFormatter { PrintfAutoFormatter,
-                           PrintfFullFormatter,
-                           PrintfLargeFormatter,
-                           PrintfSmallFormatter,
-                           PrintfTinyFormatter };
+    enum PrintfFormatter {
+        PrintfAutoFormatter,
+        PrintfFullFormatter,
+        PrintfLargeFormatter,
+        PrintfSmallFormatter,
+        PrintfTinyFormatter
+    };
 
-    enum ScanfFormatter { ScanfAutoFormatter,
-                          ScanfFullFormatter,
-                          ScanfLargeFormatter,
-                          ScanfSmallFormatter };
+    enum ScanfFormatter {
+        ScanfAutoFormatter,
+        ScanfFullFormatter,
+        ScanfLargeFormatter,
+        ScanfSmallFormatter
+    };
 
     explicit LibraryOnePageOptions(const ProductData &qbsProduct)
     {
@@ -304,10 +315,12 @@ struct LibraryOnePageOptions final
 
 struct LibraryTwoPageOptions final
 {
-    enum HeapType { AutomaticHeap,
-                    AdvancedHeap,
-                    BasicHeap,
-                    NoFreeHeap };
+    enum HeapType {
+        AutomaticHeap,
+        AdvancedHeap,
+        BasicHeap,
+        NoFreeHeap
+    };
 
     explicit LibraryTwoPageOptions(const ProductData &qbsProduct)
     {
@@ -330,16 +343,22 @@ struct LibraryTwoPageOptions final
 
 struct LibraryConfigPageOptions final
 {
-    enum RuntimeLibrary { NoLibrary,
-                          NormalLibrary,
-                          FullLibrary,
-                          CustomLibrary };
+    enum RuntimeLibrary {
+        NoLibrary,
+        NormalLibrary,
+        FullLibrary,
+        CustomLibrary
+    };
 
-    enum ThreadSupport { NoThread,
-                         EnableThread };
+    enum ThreadSupport {
+        NoThread,
+        EnableThread
+    };
 
-    enum LowLevelInterface { NoInterface,
-                             SemihostedInterface };
+    enum LowLevelInterface {
+        NoInterface,
+        SemihostedInterface
+    };
 
     explicit LibraryConfigPageOptions(const QString &baseDirectory,
                                       const ProductData &qbsProduct)
@@ -396,11 +415,11 @@ struct OutputPageOptions final
                                const ProductData &qbsProduct)
     {
         binaryType = IarewUtils::outputBinaryType(qbsProduct);
-        binaryDirectory = IarewUtils::binaryOutputDirectory(
+        binaryDirectory = gen::utils::binaryOutputDirectory(
                     baseDirectory, qbsProduct);
-        objectDirectory = IarewUtils::objectsOutputDirectory(
+        objectDirectory = gen::utils::objectsOutputDirectory(
                     baseDirectory, qbsProduct);
-        listingDirectory = IarewUtils::listingOutputDirectory(
+        listingDirectory = gen::utils::listingOutputDirectory(
                     baseDirectory, qbsProduct);
     }
 
@@ -424,9 +443,9 @@ ArmGeneralSettingsGroup::ArmGeneralSettingsGroup(
     setName(QByteArrayLiteral("General"));
     setArchiveVersion(kGeneralArchiveVersion);
     setDataVersion(kGeneralDataVersion);
-    setDataDebugInfo(IarewUtils::debugInformation(qbsProduct));
+    setDataDebugInfo(gen::utils::debugInformation(qbsProduct));
 
-    const QString buildRootDirectory = IarewUtils::buildRootPath(qbsProject);
+    const QString buildRootDirectory = gen::utils::buildRootPath(qbsProject);
 
     buildTargetPage(qbsProduct);
     buildLibraryOptionsOnePage(qbsProduct);

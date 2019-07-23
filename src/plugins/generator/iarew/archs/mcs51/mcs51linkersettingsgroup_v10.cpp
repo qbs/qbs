@@ -54,7 +54,7 @@ struct ConfigPageOptions final
         const auto &qbsProps = qbsProduct.moduleProperties();
         const QString toolkitPath = IarewUtils::toolkitRootPath(qbsProduct);
 
-        entryPoint = IarewUtils::cppStringModuleProperty(
+        entryPoint = gen::utils::cppStringModuleProperty(
                     qbsProps, QStringLiteral("entryPoint"));
 
         // Enumerate all product linker config files
@@ -100,7 +100,7 @@ struct ConfigPageOptions final
         }
 
         // Add libraries search paths.
-        const QStringList libraryPaths = IarewUtils::cppStringModuleProperties(
+        const QStringList libraryPaths = gen::utils::cppStringModuleProperties(
                     qbsProps, {QStringLiteral("libraryPaths")});
         for (const QString &libraryPath : libraryPaths) {
             const QFileInfo libraryPathInfo(libraryPath);
@@ -129,7 +129,7 @@ struct OutputPageOptions final
 {
     explicit OutputPageOptions(const ProductData &qbsProduct)
     {
-        outputFile = IarewUtils::targetBinary(qbsProduct);
+        outputFile = gen::utils::targetBinary(qbsProduct);
     }
 
     QString outputFile;
@@ -139,13 +139,15 @@ struct OutputPageOptions final
 
 struct ListPageOptions final
 {
-    enum ListingAction { NoListing,
-                         GenerateListing };
+    enum ListingAction {
+        NoListing,
+        GenerateListing
+    };
 
     explicit ListPageOptions(const ProductData &qbsProduct)
     {
         const auto &qbsProps = qbsProduct.moduleProperties();
-        generateMap = IarewUtils::cppBooleanModuleProperty(
+        generateMap = gen::utils::cppBooleanModuleProperty(
                     qbsProps, QStringLiteral("generateMapFile"))
                 ? ListPageOptions::GenerateListing
                 : ListPageOptions::NoListing;
@@ -188,7 +190,7 @@ struct DiagnosticsPageOptions final
     explicit DiagnosticsPageOptions(const ProductData &qbsProduct)
     {
         const auto &qbsProps = qbsProduct.moduleProperties();
-        const QString warningLevel = IarewUtils::cppStringModuleProperty(
+        const QString warningLevel = gen::utils::cppStringModuleProperty(
                     qbsProps, QStringLiteral("warningLevel"));
         suppressAllWarnings = (warningLevel == QLatin1String("none"));
     }
@@ -211,9 +213,9 @@ Mcs51LinkerSettingsGroup::Mcs51LinkerSettingsGroup(
     setName(QByteArrayLiteral("XLINK"));
     setArchiveVersion(kLinkerArchiveVersion);
     setDataVersion(kLinkerDataVersion);
-    setDataDebugInfo(IarewUtils::debugInformation(qbsProduct));
+    setDataDebugInfo(gen::utils::debugInformation(qbsProduct));
 
-    const QString buildRootDirectory = IarewUtils::buildRootPath(qbsProject);
+    const QString buildRootDirectory = gen::utils::buildRootPath(qbsProject);
 
     buildConfigPage(buildRootDirectory, qbsProduct);
     buildOutputPage(qbsProduct);

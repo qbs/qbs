@@ -39,65 +39,37 @@
 
 #include "iarewversioninfo.h"
 
-#include <tools/qbsassert.h>
-
 #include <QtCore/qdebug.h>
-#include <QtCore/qglobal.h>
 
 namespace qbs {
 
-IarewVersionInfo::IarewVersionInfo(const Version &version,
-                                   const std::set<IarewUtils::Architecture> &archs)
-    : m_version(version), m_archs(archs)
+IarewVersionInfo::IarewVersionInfo(
+        const Version &version,
+        const std::set<gen::utils::Architecture> &archs)
+    : gen::VersionInfo(version, archs)
 {
 }
 
 std::set<IarewVersionInfo> IarewVersionInfo::knownVersions()
 {
     static const std::set<IarewVersionInfo> known = {
-        {Version(8), {IarewUtils::Architecture::ArmArchitecture}},
-        {Version(7), {IarewUtils::Architecture::AvrArchitecture}},
-        {Version(10), {IarewUtils::Architecture::Mcs51Architecture}},
+        {Version(8), {gen::utils::Architecture::Arm}},
+        {Version(7), {gen::utils::Architecture::Avr}},
+        {Version(10), {gen::utils::Architecture::Mcs51}},
     };
     return known;
 }
 
-bool IarewVersionInfo::operator<(const IarewVersionInfo &other) const
-{
-    return m_version < other.m_version;
-}
-
-bool IarewVersionInfo::operator==(const IarewVersionInfo &other) const
-{
-    return m_version == other.m_version
-            && m_archs == other.m_archs;
-}
-
-Version IarewVersionInfo::version() const
-{
-    return m_version;
-}
-
 int IarewVersionInfo::marketingVersion() const
 {
-    const auto mv = m_version.majorVersion();
+    const auto mv = gen::VersionInfo::marketingVersion();
     for (const IarewVersionInfo &known : knownVersions()) {
         if (known.version().majorVersion() == mv)
             return mv;
     }
     qWarning() << QStringLiteral("Unrecognized IAR EW version: ")
-               << m_version.toString();
+               << version().toString();
     return 0;
-}
-
-bool IarewVersionInfo::containsArchitecture(IarewUtils::Architecture arch) const
-{
-    return m_archs.find(arch) != m_archs.cend();
-}
-
-quint32 qHash(const IarewVersionInfo &info)
-{
-    return qHash(info.version().toString());
 }
 
 } // namespace qbs

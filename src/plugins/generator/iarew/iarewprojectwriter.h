@@ -31,32 +31,19 @@
 #ifndef QBS_IAREWPROJECTWRITER_H
 #define QBS_IAREWPROJECTWRITER_H
 
-#include "iiarewnodevisitor.h"
+#include <generators/xmlprojectwriter.h>
 
 namespace qbs {
 
-class IarewProject;
-
-class IarewProjectWriter final : public IIarewNodeVisitor
+class IarewProjectWriter final : public gen::xml::ProjectWriter
 {
     Q_DISABLE_COPY(IarewProjectWriter)
 public:
     explicit IarewProjectWriter(std::ostream *device);
-    bool write(const IarewProject *project);
 
 private:
-    void visitStart(const IarewProject *project) final;
-    void visitEnd(const IarewProject *project) final;
-
-    void visitStart(const IarewProperty *property) final;
-    void visitEnd(const IarewProperty *property) final;
-
-    void visitStart(const IarewPropertyGroup *propertyGroup) final;
-    void visitEnd(const IarewPropertyGroup *propertyGroup) final;
-
-    std::ostream *m_device = nullptr;
-    QByteArray m_buffer;
-    std::unique_ptr<QXmlStreamWriter> m_writer;
+    void visitStart(const gen::xml::Project *project) final;
+    void visitEnd(const gen::xml::Project *project) final;
 };
 
 } // namespace qbs

@@ -28,38 +28,42 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_IKEILUVNODEVISITOR_H
-#define QBS_IKEILUVNODEVISITOR_H
+#ifndef GENERATORS_XML_INODE_VISITOR_H
+#define GENERATORS_XML_INODE_VISITOR_H
+
+#include <tools/qbs_export.h>
 
 #include <QtCore/qxmlstream.h>
 
-#include <memory>
-
 namespace qbs {
+namespace gen {
+namespace xml {
 
-class KeiluvProject;
-class KeiluvProperty;
-class KeiluvPropertyGroup;
-class KeiluvWorkspace;
+class Project;
+class Property;
+class PropertyGroup;
+class Workspace;
 
-class IKeiluvNodeVisitor
+class QBS_EXPORT INodeVisitor
 {
 public:
-    virtual ~IKeiluvNodeVisitor() {}
+    virtual ~INodeVisitor() {}
 
-    virtual void visitStart(const KeiluvWorkspace *workspace) { Q_UNUSED(workspace) }
-    virtual void visitEnd(const KeiluvWorkspace *workspace) { Q_UNUSED(workspace) }
+    virtual void visitStart(const Workspace *workspace) { Q_UNUSED(workspace) }
+    virtual void visitEnd(const Workspace *workspace) { Q_UNUSED(workspace) }
 
-    virtual void visitStart(const KeiluvProject *project) { Q_UNUSED(project) }
-    virtual void visitEnd(const KeiluvProject *project) { Q_UNUSED(project) }
+    virtual void visitStart(const Project *project) { Q_UNUSED(project) }
+    virtual void visitEnd(const Project *project) { Q_UNUSED(project) }
 
-    virtual void visitStart(const KeiluvProperty *property) = 0;
-    virtual void visitEnd(const KeiluvProperty *property) = 0;
+    virtual void visitStart(const Property *property) = 0;
+    virtual void visitEnd(const Property *property) = 0;
 
-    virtual void visitStart(const KeiluvPropertyGroup *propertyGroup) = 0;
-    virtual void visitEnd(const KeiluvPropertyGroup *propertyGroup) = 0;
+    virtual void visitStart(const PropertyGroup *propertyGroup) = 0;
+    virtual void visitEnd(const PropertyGroup *propertyGroup) = 0;
 };
 
+} // namespace xml
+} // namespace gen
 } // namespace qbs
 
-#endif // QBS_IKEILUVNODEVISITOR_H
+#endif // GENERATORS_XML_INODE_VISITOR_H

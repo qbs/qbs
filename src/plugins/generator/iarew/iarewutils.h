@@ -38,20 +38,12 @@
 namespace qbs {
 namespace IarewUtils {
 
-enum class Architecture {
-    ArmArchitecture,
-    AvrArchitecture,
-    Mcs51Architecture,
-    UnknownArchitecture
+enum OutputBinaryType {
+    ApplicationOutputType,
+    LibraryOutputType
 };
 
-QString architectureName(Architecture arch);
-
-Architecture architecture(const Project &qbsProject);
-
-QString buildConfigurationName(const Project &qbsProject);
-
-int debugInformation(const ProductData &qbsProduct);
+OutputBinaryType outputBinaryType(const ProductData &qbsProduct);
 
 QString toolkitRootPath(const ProductData &qbsProduct);
 
@@ -59,53 +51,11 @@ QString dlibToolkitRootPath(const ProductData &qbsProduct);
 
 QString clibToolkitRootPath(const ProductData &qbsProduct);
 
-QString buildRootPath(const Project &qbsProject);
-
-QString relativeFilePath(const QString &baseDirectory,
-                         const QString &fullFilePath);
-
 QString toolkitRelativeFilePath(const QString &basePath,
                                 const QString &fullFilePath);
 
 QString projectRelativeFilePath(const QString &basePath,
                                 const QString &fullFilePath);
-
-QString binaryOutputDirectory(const QString &baseDirectory,
-                              const ProductData &qbsProduct);
-
-QString objectsOutputDirectory(const QString &baseDirectory,
-                               const ProductData &qbsProduct);
-
-QString listingOutputDirectory(const QString &baseDirectory,
-                               const ProductData &qbsProduct);
-
-std::vector<ProductData> dependenciesOf(const ProductData &qbsProduct,
-                                        const GeneratableProject &genProject,
-                                        const QString configurationName);
-
-QString targetBinary(const ProductData &qbsProduct);
-
-QString targetBinaryPath(const QString &baseDirectory,
-                         const ProductData &qbsProduct);
-
-enum OutputBinaryType { ApplicationOutputType, LibraryOutputType };
-
-OutputBinaryType outputBinaryType(const ProductData &qbsProduct);
-
-QString cppStringModuleProperty(const PropertyMap &qbsProps,
-                                const QString &propertyName);
-
-bool cppBooleanModuleProperty(const PropertyMap &qbsProps,
-                              const QString &propertyName);
-
-int cppIntegerModuleProperty(const PropertyMap &qbsProps,
-                             const QString &propertyName);
-
-QStringList cppStringModuleProperties(const PropertyMap &qbsProps,
-                                      const QStringList &propertyNames);
-
-QVariantList cppVariantModuleProperties(const PropertyMap &qbsProps,
-                                        const QStringList &propertyNames);
 
 QString flagValue(const QStringList &flags, const QString &flagKey);
 

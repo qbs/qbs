@@ -84,9 +84,9 @@ struct MiscPageOptions final
 } // namespace
 
 Mcs51TargetMiscGroup::Mcs51TargetMiscGroup(
-        const Project &qbsProject,
-        const ProductData &qbsProduct)
-    : KeiluvPropertyGroup("Target51Misc")
+        const qbs::Project &qbsProject,
+        const qbs::ProductData &qbsProduct)
+    : gen::xml::PropertyGroup("Target51Misc")
 {
     const MiscPageOptions opts(qbsProject, qbsProduct);
 

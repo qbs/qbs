@@ -29,27 +29,29 @@
 ****************************************************************************/
 
 #include "iarewoptionpropertygroup.h"
-#include "iarewproperty.h"
 
 namespace qbs {
 
 IarewOptionPropertyGroup::IarewOptionPropertyGroup(
         QByteArray name, QVariant version,
         const QVariantList &states)
-    : IarewPropertyGroup(QByteArrayLiteral("option"))
+    : gen::xml::PropertyGroup(QByteArrayLiteral("option"))
 {
     // Append name property item.
-    appendChild<IarewProperty>(QByteArrayLiteral("name"), std::move(name));
+    appendChild<gen::xml::Property>(QByteArrayLiteral("name"),
+                                    std::move(name));
 
     // Append version property item.
     if (!version.isNull())
-        appendChild<IarewProperty>(QByteArrayLiteral("version"), std::move(version));
+        appendChild<gen::xml::Property>(QByteArrayLiteral("version"),
+                                        std::move(version));
 
     // Append state property items.
     for (const auto &state : states) {
         if (state.isNull())
             continue;
-        appendChild<IarewProperty>(QByteArrayLiteral("state"), std::move(state));
+        appendChild<gen::xml::Property>(QByteArrayLiteral("state"),
+                                        std::move(state));
     }
 }
 

@@ -401,15 +401,17 @@ static const TargetMcuEntry mcusDict[] = {
 
 struct TargetPageOptions final
 {
-    enum MemoryModel { TinyModel,
-                       SmallModel,
-                       LargeModel,
-                       HugeModel };
+    enum MemoryModel {
+        TinyModel,
+        SmallModel,
+        LargeModel,
+        HugeModel
+    };
 
     explicit TargetPageOptions(const ProductData &qbsProduct)
     {
         const auto &qbsProps = qbsProduct.moduleProperties();
-        const QStringList flags = IarewUtils::cppStringModuleProperties(
+        const QStringList flags = gen::utils::cppStringModuleProperties(
                     qbsProps, {QStringLiteral("driverFlags")});
         // Detect target MCU record.
         const QString mcuValue = IarewUtils::flagValue(
@@ -460,7 +462,7 @@ struct SystemPageOptions final
     explicit SystemPageOptions(const ProductData &qbsProduct)
     {
         const auto &qbsProps = qbsProduct.moduleProperties();
-        const QStringList flags = IarewUtils::cppStringModuleProperties(
+        const QStringList flags = gen::utils::cppStringModuleProperties(
                     qbsProps, {QStringLiteral("driverLinkerFlags"),
                                QStringLiteral("defines")});
         cstackSize = IarewUtils::flagValue(
@@ -477,22 +479,26 @@ struct SystemPageOptions final
 
 struct LibraryOptionsPageOptions final
 {
-    enum PrintfFormatter { PrintfAutoFormatter = 0,
-                           PrintfFullFormatter = 1,
-                           PrintfFullNoMultibytesFormatter = 2,
-                           PrintfLargeFormatter = 3,
-                           PrintfLargeNoMultibytesFormatter = 4,
-                           PrintfSmallFormatter = 6,
-                           PrintfSmallNoMultibytesFormatter = 7,
-                           PrintfTinyFormatter = 8 };
+    enum PrintfFormatter {
+        PrintfAutoFormatter = 0,
+        PrintfFullFormatter = 1,
+        PrintfFullNoMultibytesFormatter = 2,
+        PrintfLargeFormatter = 3,
+        PrintfLargeNoMultibytesFormatter = 4,
+        PrintfSmallFormatter = 6,
+        PrintfSmallNoMultibytesFormatter = 7,
+        PrintfTinyFormatter = 8
+    };
 
-    enum ScanfFormatter { ScanfAutoFormatter = 0,
-                          ScanfFullFormatter = 1,
-                          ScanfFullNoMultibytesFormatter = 2,
-                          ScanfLargeFormatter = 3,
-                          ScanfLargeNoMultibytesFormatter = 4,
-                          ScanfSmallFormatter = 6,
-                          ScanfSmallNoMultibytesFormatter = 7 };
+    enum ScanfFormatter {
+        ScanfAutoFormatter = 0,
+        ScanfFullFormatter = 1,
+        ScanfFullNoMultibytesFormatter = 2,
+        ScanfLargeFormatter = 3,
+        ScanfLargeNoMultibytesFormatter = 4,
+        ScanfSmallFormatter = 6,
+        ScanfSmallNoMultibytesFormatter = 7
+    };
 
     explicit LibraryOptionsPageOptions(const ProductData &qbsProduct)
     {
@@ -541,13 +547,15 @@ struct LibraryOptionsPageOptions final
 
 struct LibraryConfigPageOptions final
 {
-    enum RuntimeLibrary { NoLibrary,
-                          NormalDlibLibrary,
-                          FullDlibLibrary,
-                          CustomDlibLibrary,
-                          ClibLibrary,
-                          CustomClibLibrary,
-                          ThirdPartyLibrary };
+    enum RuntimeLibrary {
+        NoLibrary,
+        NormalDlibLibrary,
+        FullDlibLibrary,
+        CustomDlibLibrary,
+        ClibLibrary,
+        CustomClibLibrary,
+        ThirdPartyLibrary
+    };
 
     explicit LibraryConfigPageOptions(const QString &baseDirectory,
                                       const ProductData &qbsProduct)
@@ -555,7 +563,7 @@ struct LibraryConfigPageOptions final
         const auto &qbsProps = qbsProduct.moduleProperties();
         const QStringList flags = IarewUtils::cppModuleCompilerFlags(qbsProps);
 
-        const QStringList libraryPaths = IarewUtils::cppStringModuleProperties(
+        const QStringList libraryPaths = gen::utils::cppStringModuleProperties(
                     qbsProps, {QStringLiteral("staticLibraries")});
         const auto libraryBegin = libraryPaths.cbegin();
         const auto libraryEnd = libraryPaths.cend();
@@ -639,11 +647,11 @@ struct OutputPageOptions final
                                const ProductData &qbsProduct)
     {
         binaryType = IarewUtils::outputBinaryType(qbsProduct);
-        binaryDirectory = IarewUtils::binaryOutputDirectory(
+        binaryDirectory = gen::utils::binaryOutputDirectory(
                     baseDirectory, qbsProduct);
-        objectDirectory = IarewUtils::objectsOutputDirectory(
+        objectDirectory = gen::utils::objectsOutputDirectory(
                     baseDirectory, qbsProduct);
-        listingDirectory = IarewUtils::listingOutputDirectory(
+        listingDirectory = gen::utils::listingOutputDirectory(
                     baseDirectory, qbsProduct);
     }
 
@@ -667,9 +675,9 @@ AvrGeneralSettingsGroup::AvrGeneralSettingsGroup(
     setName(QByteArrayLiteral("General"));
     setArchiveVersion(kGeneralArchiveVersion);
     setDataVersion(kGeneralDataVersion);
-    setDataDebugInfo(IarewUtils::debugInformation(qbsProduct));
+    setDataDebugInfo(gen::utils::debugInformation(qbsProduct));
 
-    const QString buildRootDirectory = IarewUtils::buildRootPath(qbsProject);
+    const QString buildRootDirectory = gen::utils::buildRootPath(qbsProject);
 
     buildTargetPage(qbsProduct);
     buildSystemPage(qbsProduct);

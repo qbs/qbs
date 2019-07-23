@@ -29,13 +29,12 @@
 ****************************************************************************/
 
 #include "iarewtoolchainpropertygroup.h"
-#include "iarewproperty.h"
 
 namespace qbs {
 
 IarewToolchainPropertyGroup::IarewToolchainPropertyGroup(
         const QByteArray &toolchainName)
-    : IarewPropertyGroup(QByteArrayLiteral("toolchain"))
+    : gen::xml::PropertyGroup(QByteArrayLiteral("toolchain"))
 {
     // Append toolchain name property item.
     appendProperty(QByteArrayLiteral("name"), toolchainName);

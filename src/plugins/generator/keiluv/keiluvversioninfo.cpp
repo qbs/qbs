@@ -41,17 +41,14 @@
 
 #include "archs/mcs51/mcs51utils.h"
 
-#include <tools/qbsassert.h>
-
 #include <QtCore/qdebug.h>
-#include <QtCore/qglobal.h>
 
 namespace qbs {
 
 KeiluvVersionInfo::KeiluvVersionInfo(
         const Version &version,
-        const std::set<KeiluvUtils::Architecture> &archs)
-    : m_version(version), m_archs(archs)
+        const std::set<gen::utils::Architecture> &archs)
+    : gen::VersionInfo(version, archs)
 {
 }
 
@@ -59,47 +56,21 @@ std::set<KeiluvVersionInfo> KeiluvVersionInfo::knownVersions()
 {
     static const std::set<KeiluvVersionInfo> known = {
         {Version(keiluv::mcs51::v5::KeiluvConstants::kUVisionVersion),
-         {KeiluvUtils::Architecture::Mcs51Architecture}},
+         {gen::utils::Architecture::Mcs51}},
     };
     return known;
 }
 
-bool KeiluvVersionInfo::operator<(const KeiluvVersionInfo &other) const
-{
-    return m_version < other.m_version;
-}
-
-bool KeiluvVersionInfo::operator==(const KeiluvVersionInfo &other) const
-{
-    return m_version == other.m_version
-            && m_archs == other.m_archs;
-}
-
-Version KeiluvVersionInfo::version() const
-{
-    return m_version;
-}
-
 int KeiluvVersionInfo::marketingVersion() const
 {
-    const auto mv = m_version.majorVersion();
+    const auto mv = gen::VersionInfo::marketingVersion();
     for (const KeiluvVersionInfo &known : knownVersions()) {
         if (known.version().majorVersion() == mv)
             return mv;
     }
     qWarning() << QStringLiteral("Unrecognized KEIL UV version: ")
-               << m_version.toString();
+               << version().toString();
     return 0;
-}
-
-bool KeiluvVersionInfo::containsArchitecture(KeiluvUtils::Architecture arch) const
-{
-    return m_archs.find(arch) != m_archs.cend();
-}
-
-quint32 qHash(const KeiluvVersionInfo &info)
-{
-    return qHash(info.version().toString());
 }
 
 } // namespace qbs

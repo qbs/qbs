@@ -28,8 +28,8 @@
 **
 ****************************************************************************/
 
-#include "iarewproperty.h"
 #include "iarewsourcefilepropertygroup.h"
+#include "iarewutils.h"
 
 #include <generators/generatordata.h>
 
@@ -40,13 +40,15 @@ namespace qbs {
 IarewSourceFilePropertyGroup::IarewSourceFilePropertyGroup(
         const GeneratableProject &genProject,
         const ArtifactData &sourceArtifact)
-    : IarewPropertyGroup(QByteArrayLiteral("file"))
+    : gen::xml::PropertyGroup(QByteArrayLiteral("file"))
 {
     // Create file path property item.
     const QString fullFilePath = sourceArtifact.filePath();
     const QString relativeFilePath = IarewUtils::projectRelativeFilePath(
-                genProject.baseBuildDirectory().absolutePath(), fullFilePath);
-    appendChild<IarewProperty>(QByteArrayLiteral("name"), relativeFilePath);
+                genProject.baseBuildDirectory().absolutePath(),
+                fullFilePath);
+    appendChild<gen::xml::Property>(QByteArrayLiteral("name"),
+                                    relativeFilePath);
 }
 
 } // namespace qbs

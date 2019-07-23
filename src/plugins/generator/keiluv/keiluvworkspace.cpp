@@ -37,44 +37,32 @@
 **
 ****************************************************************************/
 
-#include "ikeiluvnodevisitor.h"
-#include "keiluvproperty.h"
-#include "keiluvpropertygroup.h"
 #include "keiluvworkspace.h"
+
+#include <generators/xmlpropertygroup.h>
 
 namespace qbs {
 
 KeiluvWorkspace::KeiluvWorkspace(const QString &workspacePath)
+    : gen::xml::Workspace(workspacePath)
 {
-    m_baseDirectory = QFileInfo(workspacePath).absoluteDir();
-
     // Construct schema version item.
-    appendChild<KeiluvProperty>(QByteArrayLiteral("SchemaVersion"),
-                                QStringLiteral("1.0"));
+    appendChild<gen::xml::Property>(QByteArrayLiteral("SchemaVersion"),
+                                    QStringLiteral("1.0"));
 
     // Construct workspace name item.
-    appendChild<KeiluvProperty>(QByteArrayLiteral("WorkspaceName"),
-                                QStringLiteral("WorkSpace"));
+    appendChild<gen::xml::Property>(QByteArrayLiteral("WorkspaceName"),
+                                    QStringLiteral("WorkSpace"));
 }
 
-void KeiluvWorkspace::addProjectPath(const QString &projectFilePath)
+void KeiluvWorkspace::addProject(const QString &projectFilePath)
 {
-    const QString relativeProjectPath =
-            m_baseDirectory.relativeFilePath(projectFilePath);
+    const QString relativeProjectPath = QDir::toNativeSeparators(
+                m_baseDirectory.relativeFilePath(projectFilePath));
 
-    const auto projectGroup = appendChild<KeiluvPropertyGroup>(
+    const auto projectGroup = appendChild<gen::xml::PropertyGroup>(
                 QByteArrayLiteral("project"));
     projectGroup->appendProperty("PathAndName", relativeProjectPath);
-}
-
-void KeiluvWorkspace::accept(IKeiluvNodeVisitor *visitor) const
-{
-    visitor->visitStart(this);
-
-    for (const auto &child : children())
-        child->accept(visitor);
-
-    visitor->visitEnd(this);
 }
 
 } // namespace qbs

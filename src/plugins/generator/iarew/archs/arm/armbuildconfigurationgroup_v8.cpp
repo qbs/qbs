@@ -44,20 +44,20 @@ namespace arm {
 namespace v8 {
 
 ArmBuildConfigurationGroup::ArmBuildConfigurationGroup(
-        const Project &qbsProject,
-        const ProductData &qbsProduct,
+        const qbs::Project &qbsProject,
+        const qbs::ProductData &qbsProduct,
         const std::vector<ProductData> &qbsProductDeps)
-    : IarewPropertyGroup("configuration")
+    : gen::xml::PropertyGroup("configuration")
 {
     // Append configuration name item.
-    const QString cfgName = IarewUtils::buildConfigurationName(qbsProject);
+    const QString cfgName = gen::utils::buildConfigurationName(qbsProject);
     appendProperty("name", cfgName);
 
     // Apend toolchain name group item.
     appendChild<IarewToolchainPropertyGroup>("ARM");
 
     // Append debug info item.
-    const int debugBuild = IarewUtils::debugInformation(qbsProduct);
+    const int debugBuild = gen::utils::debugInformation(qbsProduct);
     appendProperty("debug", debugBuild);
 
     // Append settings group items.
@@ -74,16 +74,17 @@ ArmBuildConfigurationGroup::ArmBuildConfigurationGroup(
 }
 
 bool ArmBuildConfigurationGroupFactory::canCreate(
-        IarewUtils::Architecture architecture,
+        gen::utils::Architecture arch,
         const Version &version) const
 {
-    return architecture == IarewUtils::Architecture::ArmArchitecture
+    return arch == gen::utils::Architecture::Arm
             && version.majorVersion() == 8;
 }
 
-std::unique_ptr<IarewPropertyGroup> ArmBuildConfigurationGroupFactory::create(
-        const Project &qbsProject,
-        const ProductData &qbsProduct,
+std::unique_ptr<gen::xml::PropertyGroup>
+ArmBuildConfigurationGroupFactory::create(
+        const qbs::Project &qbsProject,
+        const qbs::ProductData &qbsProduct,
         const std::vector<ProductData> &qbsProductDeps) const
 {
     const auto group = new ArmBuildConfigurationGroup(

@@ -28,55 +28,43 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_IAREWPROPERTY_H
-#define QBS_IAREWPROPERTY_H
+#ifndef GENERATORS_XML_PROJECT_WRITER_H
+#define GENERATORS_XML_PROJECT_WRITER_H
 
-#include <QtCore/qvariant.h>
+#include "ixmlnodevisitor.h"
+
+#include <tools/qbs_export.h>
 
 #include <memory>
 
 namespace qbs {
+namespace gen {
+namespace xml {
 
-class IIarewNodeVisitor;
-
-class IarewProperty
+class QBS_EXPORT ProjectWriter : public INodeVisitor
 {
-    Q_DISABLE_COPY(IarewProperty)
+    Q_DISABLE_COPY(ProjectWriter)
 public:
-    IarewProperty() = default;
-    explicit IarewProperty(QByteArray name, QVariant value);
-    virtual ~IarewProperty() = default;
-
-    QByteArray name() const { return m_name; }
-    void setName(QByteArray name) { m_name = std::move(name); }
-
-    QVariant value() const { return m_value; }
-    void setValue(QVariant value) { m_value = std::move(value); }
-
-    template<class T>
-    T *appendChild(std::unique_ptr<T> child) {
-        const auto p = child.get();
-        m_children.push_back(std::move(child));
-        return p;
-    }
-
-    template<class T, class... Args>
-    T *appendChild(Args&&... args) {
-        return appendChild(std::make_unique<T>(std::forward<Args>(args)...));
-    }
-
-    virtual void accept(IIarewNodeVisitor *visitor) const;
+    explicit ProjectWriter(std::ostream *device);
+    bool write(const Project *project);
 
 protected:
-    const std::vector<std::unique_ptr<IarewProperty>> &children() const
-    { return m_children; }
+    QXmlStreamWriter *writer() const;
 
 private:
-    QByteArray m_name;
-    QVariant m_value;
-    std::vector<std::unique_ptr<IarewProperty>> m_children;
+    void visitStart(const Property *property) final;
+    void visitEnd(const Property *property) final;
+
+    void visitStart(const PropertyGroup *propertyGroup) final;
+    void visitEnd(const PropertyGroup *propertyGroup) final;
+
+    std::ostream *m_device = nullptr;
+    QByteArray m_buffer;
+    std::unique_ptr<QXmlStreamWriter> m_writer;
 };
 
+} // namespace xml
+} // namespace gen
 } // namespace qbs
 
-#endif // QBS_IAREWPROPERTY_H
+#endif // GENERATORS_XML_PROJECT_WRITER_H

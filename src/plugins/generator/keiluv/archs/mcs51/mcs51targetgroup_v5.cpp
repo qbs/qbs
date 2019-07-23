@@ -34,17 +34,15 @@
 #include "mcs51targetlinkergroup_v5.h"
 #include "mcs51targetmiscgroup_v5.h"
 
-#include "../../keiluvutils.h"
-
 namespace qbs {
 namespace keiluv {
 namespace mcs51 {
 namespace v5 {
 
 Mcs51TargetGroup::Mcs51TargetGroup(
-        const Project &qbsProject,
-        const ProductData &qbsProduct)
-    : KeiluvPropertyGroup("Target51")
+        const qbs::Project &qbsProject,
+        const qbs::ProductData &qbsProduct)
+    : gen::xml::PropertyGroup("Target51")
 {
     appendChild<Mcs51TargetMiscGroup>(qbsProject, qbsProduct);
     appendChild<Mcs51TargetCompilerGroup>(qbsProject, qbsProduct);

@@ -31,14 +31,16 @@
 #ifndef QBS_IAREWTOOLCHAINPROPERTYGROUP_H
 #define QBS_IAREWTOOLCHAINPROPERTYGROUP_H
 
-#include "iarewpropertygroup.h"
+#include <generators/xmlpropertygroup.h>
 
 namespace qbs {
 
-class IarewToolchainPropertyGroup final : public IarewPropertyGroup
+class IarewToolchainPropertyGroup final
+        : public gen::xml::PropertyGroup
 {
 public:
-    explicit IarewToolchainPropertyGroup(const QByteArray &toolchainName);
+    explicit IarewToolchainPropertyGroup(
+            const QByteArray &toolchainName);
 };
 
 } // namespace qbs

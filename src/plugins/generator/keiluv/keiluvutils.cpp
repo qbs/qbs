@@ -30,6 +30,8 @@
 
 #include "keiluvutils.h"
 
+#include <generators/generatorutils.h>
+
 namespace qbs {
 namespace KeiluvUtils {
 
@@ -43,100 +45,6 @@ OutputBinaryType outputBinaryType(const ProductData &qbsProduct)
     return ApplicationOutputType;
 }
 
-QString architectureName(Architecture arch)
-{
-    switch (arch) {
-    case Architecture::Mcs51Architecture:
-        return QStringLiteral("mcs51");
-    default:
-        return QStringLiteral("unknown");
-    }
-}
-
-Architecture architecture(const Project &qbsProject)
-{
-    const auto qbsArch = qbsProject.projectConfiguration()
-            .value(Internal::StringConstants::qbsModule()).toMap()
-            .value(QStringLiteral("architecture")).toString();
-
-    if (qbsArch == QLatin1String("mcs51"))
-        return Architecture::Mcs51Architecture;
-    return Architecture::UnknownArchitecture;
-}
-
-QString buildConfigurationName(const Project &qbsProject)
-{
-    return qbsProject.projectConfiguration()
-            .value(Internal::StringConstants::qbsModule()).toMap()
-            .value(QStringLiteral("configurationName")).toString();
-}
-
-int debugInformation(const ProductData &qbsProduct)
-{
-    return qbsProduct.moduleProperties().getModuleProperty(
-                Internal::StringConstants::qbsModule(),
-                QStringLiteral("debugInformation"))
-            .toInt();
-}
-
-QString binaryOutputDirectory(const QString &baseDirectory,
-                              const ProductData &qbsProduct)
-{
-    const auto path = QDir(baseDirectory).relativeFilePath(
-            qbsProduct.buildDirectory()) + QLatin1String("/bin");
-    return QDir::toNativeSeparators(path);
-}
-
-QString objectsOutputDirectory(const QString &baseDirectory,
-                               const ProductData &qbsProduct)
-{
-    const auto path = QDir(baseDirectory).relativeFilePath(
-                qbsProduct.buildDirectory()) + QLatin1String("/obj");
-    return QDir::toNativeSeparators(path);
-}
-
-QString listingOutputDirectory(const QString &baseDirectory,
-                               const ProductData &qbsProduct)
-{
-    const auto path = QDir(baseDirectory).relativeFilePath(
-                qbsProduct.buildDirectory()) + QLatin1String("/lst");
-    return QDir::toNativeSeparators(path);
-}
-
-QString targetBinary(const ProductData &qbsProduct)
-{
-    const auto type = qbsProduct.type();
-    if (type.contains(QLatin1String("application"))) {
-        return QFileInfo(qbsProduct.targetExecutable()).fileName();
-    } else if (type.contains(QLatin1String("staticlibrary"))) {
-        const auto artifacts = qbsProduct.targetArtifacts();
-        for (const auto &artifact : artifacts) {
-            if (artifact.fileTags().contains(QLatin1String("staticlibrary")))
-                return QFileInfo(artifact.filePath()).fileName();
-        }
-    }
-
-    return {};
-}
-
-std::vector<ProductData> dependenciesOf(const ProductData &qbsProduct,
-                                        const GeneratableProject &genProject,
-                                        const QString configurationName)
-{
-    std::vector<ProductData> result;
-    const auto depsNames = qbsProduct.dependencies();
-    for (const auto &product : qAsConst(genProject.products)) {
-        const auto pt = product.type();
-        if (!pt.contains(QLatin1String("staticlibrary")))
-            continue;
-        const auto pn = product.name();
-        if (!depsNames.contains(pn))
-            continue;
-        result.push_back(product.data.value(configurationName));
-    }
-    return result;
-}
-
 QString toolkitRootPath(const ProductData &qbsProduct)
 {
     QDir dir(qbsProduct.moduleProperties()
@@ -148,47 +56,9 @@ QString toolkitRootPath(const ProductData &qbsProduct)
     return QDir::toNativeSeparators(path);
 }
 
-QString buildRootPath(const Project &qbsProject)
-{
-    QDir dir(qbsProject.projectData().buildDirectory());
-    dir.cdUp();
-    const auto path = dir.absolutePath();
-    return QDir::toNativeSeparators(path);
-}
-
-QString relativeFilePath(const QString &baseDirectory,
-                         const QString &fullFilePath)
-{
-    const auto path = QDir(baseDirectory).relativeFilePath(fullFilePath);
-    return QDir::toNativeSeparators(path);
-}
-
-QString cppStringModuleProperty(const PropertyMap &qbsProps,
-                                const QString &propertyName)
-{
-    return qbsProps.getModuleProperty(Internal::StringConstants::cppModule(),
-                                      propertyName).toString().trimmed();
-}
-
-QStringList cppStringModuleProperties(const PropertyMap &qbsProps,
-                                      const QStringList &propertyNames)
-{
-    QStringList properties;
-    for (const auto &propertyName : propertyNames) {
-        properties << qbsProps.getModuleProperty(
-                          Internal::StringConstants::cppModule(),
-                          propertyName).toStringList();
-    }
-    std::transform(properties.begin(), properties.end(), properties.begin(),
-                   [](const auto &property) {
-        return property.trimmed();
-    });
-    return properties;
-}
-
 QStringList cppModuleCompilerFlags(const PropertyMap &qbsProps)
 {
-    return cppStringModuleProperties(
+    return gen::utils::cppStringModuleProperties(
                 qbsProps, {QStringLiteral("driverFlags"), QStringLiteral("cFlags"),
                            QStringLiteral("cppFlags"), QStringLiteral("cxxFlags"),
                            QStringLiteral("commonCompilerFlags")});
@@ -196,19 +66,19 @@ QStringList cppModuleCompilerFlags(const PropertyMap &qbsProps)
 
 QStringList cppModuleAssemblerFlags(const PropertyMap &qbsProps)
 {
-    return cppStringModuleProperties(
+    return gen::utils::cppStringModuleProperties(
                 qbsProps, {QStringLiteral("assemblerFlags")});
 }
 
 QStringList cppModuleLinkerFlags(const PropertyMap &qbsProps)
 {
-    return cppStringModuleProperties(
+    return gen::utils::cppStringModuleProperties(
                 qbsProps, {QStringLiteral("driverLinkerFlags")});
 }
 
 QStringList includes(const PropertyMap &qbsProps)
 {
-    auto paths = qbs::KeiluvUtils::cppStringModuleProperties(
+    auto paths = gen::utils::cppStringModuleProperties(
                 qbsProps, {QStringLiteral("includePaths"),
                            QStringLiteral("systemIncludePaths")});
     // Transform include path separators to native.
@@ -221,13 +91,13 @@ QStringList includes(const PropertyMap &qbsProps)
 
 QStringList defines(const PropertyMap &qbsProps)
 {
-    return qbs::KeiluvUtils::cppStringModuleProperties(
+    return gen::utils::cppStringModuleProperties(
                 qbsProps, {QStringLiteral("defines")});
 }
 
 QStringList staticLibraries(const PropertyMap &qbsProps)
 {
-    auto libs = qbs::KeiluvUtils::cppStringModuleProperties(
+    auto libs = gen::utils::cppStringModuleProperties(
                 qbsProps, {QStringLiteral("staticLibraries")});
     // Transform library path separators to native.
     std::transform(libs.begin(), libs.end(), libs.begin(),
@@ -243,7 +113,7 @@ QStringList dependencies(const std::vector<ProductData> &qbsProductDeps)
     for (const ProductData &qbsProductDep : qbsProductDeps) {
         const auto path = qbsProductDep.buildDirectory()
                 + QLatin1String("/obj/")
-                + qbs::KeiluvUtils::targetBinary(qbsProductDep);
+                + gen::utils::targetBinary(qbsProductDep);
         deps.push_back(QDir::toNativeSeparators(path));
     }
     return deps;

@@ -37,20 +37,33 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_KEILUVWORKSPACE_H
-#define QBS_KEILUVWORKSPACE_H
+#ifndef GENERATORS_XML_WWORKSPACE_H
+#define GENERATORS_XML_WWORKSPACE_H
 
-#include <generators/xmlworkspace.h>
+#include "xmlproperty.h"
+
+#include <tools/qbs_export.h>
+
+#include <QtCore/qdir.h>
 
 namespace qbs {
+namespace gen {
+namespace xml {
 
-class KeiluvWorkspace final : public gen::xml::Workspace
+class QBS_EXPORT Workspace : public Property
 {
 public:
-    explicit KeiluvWorkspace(const QString &workspacePath);
-    void addProject(const QString &projectPath) final;
+    explicit Workspace(const QString &workspacePath);
+    void accept(INodeVisitor *visitor) const final;
+
+    virtual void addProject(const QString &projectPath) = 0;
+
+protected:
+    const QDir m_baseDirectory;
 };
 
+} // namespace xml
+} // namespace gen
 } // namespace qbs
 
-#endif // QBS_KEILUVWORKSPACE_H
+#endif // GENERATORS_XML_WWORKSPACE_H

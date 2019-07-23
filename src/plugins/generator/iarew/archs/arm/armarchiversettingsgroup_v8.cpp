@@ -30,7 +30,6 @@
 
 #include "armarchiversettingsgroup_v8.h"
 
-#include "../../iarewproperty.h"
 #include "../../iarewutils.h"
 
 namespace qbs {
@@ -51,7 +50,7 @@ struct OutputPageOptions final
                                const ProductData &qbsProduct)
     {
         outputFile = QLatin1String("$PROJ_DIR$/")
-                + IarewUtils::targetBinaryPath(baseDirectory, qbsProduct);
+                + gen::utils::targetBinaryPath(baseDirectory, qbsProduct);
     }
 
     QString outputFile;
@@ -71,9 +70,9 @@ ArmArchiverSettingsGroup::ArmArchiverSettingsGroup(
     setName(QByteArrayLiteral("IARCHIVE"));
     setArchiveVersion(kArchiverArchiveVersion);
     setDataVersion(kArchiverDataVersion);
-    setDataDebugInfo(IarewUtils::debugInformation(qbsProduct));
+    setDataDebugInfo(gen::utils::debugInformation(qbsProduct));
 
-    const QString buildRootDirectory = IarewUtils::buildRootPath(qbsProject);
+    const QString buildRootDirectory = gen::utils::buildRootPath(qbsProject);
     buildOutputPage(buildRootDirectory, qbsProduct);
 }
 

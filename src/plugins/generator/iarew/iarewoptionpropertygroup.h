@@ -31,17 +31,19 @@
 #ifndef QBS_IAREWOPTIONPROPERTYGROUP_H
 #define QBS_IAREWOPTIONPROPERTYGROUP_H
 
-#include "iarewpropertygroup.h"
+#include <generators/xmlpropertygroup.h>
 
-#include <QtCore/qvariant.h>
+//#include <QtCore/qvariant.h>
 
 namespace qbs {
 
-class IarewOptionPropertyGroup final : public IarewPropertyGroup
+class IarewOptionPropertyGroup final
+        : public gen::xml::PropertyGroup
 {
 public:
-    explicit IarewOptionPropertyGroup(QByteArray name, QVariant version,
-                                      const QVariantList &states);
+    explicit IarewOptionPropertyGroup(
+            QByteArray name, QVariant version,
+            const QVariantList &states);
 };
 
 } // namespace qbs

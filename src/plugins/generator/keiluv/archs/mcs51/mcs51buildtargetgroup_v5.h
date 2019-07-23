@@ -31,34 +31,35 @@
 #ifndef QBS_KEILUVMCS51BUILDTARGETGROUP_V5_H
 #define QBS_KEILUVMCS51BUILDTARGETGROUP_V5_H
 
-#include "../../keiluvpropertygroup.h"
+#include <generators/xmlpropertygroup.h>
 
 namespace qbs {
 namespace keiluv {
 namespace mcs51 {
 namespace v5 {
 
-class Mcs51BuildTargetGroup final : public KeiluvPropertyGroup
+class Mcs51BuildTargetGroup final : public gen::xml::PropertyGroup
 {
 private:
     explicit Mcs51BuildTargetGroup(
-            const Project &qbsProject,
-            const ProductData &qbsProduct,
-            const std::vector<ProductData> &qbsProductDeps);
+            const qbs::Project &qbsProject,
+            const qbs::ProductData &qbsProduct,
+            const std::vector<qbs::ProductData> &qbsProductDeps);
 
     friend class Mcs51BuildTargetGroupFactory;
 };
 
-class Mcs51BuildTargetGroupFactory final : public KeiluvPropertyGroupFactory
+class Mcs51BuildTargetGroupFactory final
+        : public gen::xml::PropertyGroupFactory
 {
 public:
-    bool canCreate(KeiluvUtils::Architecture architecture,
+    bool canCreate(gen::utils::Architecture arch,
                    const Version &version) const final;
 
-    std::unique_ptr<KeiluvPropertyGroup> create(
-            const Project &qbsProject,
-            const ProductData &qbsProduct,
-            const std::vector<ProductData> &qbsProductDeps) const final;
+    std::unique_ptr<gen::xml::PropertyGroup> create(
+            const qbs::Project &qbsProject,
+            const qbs::ProductData &qbsProduct,
+            const std::vector<qbs::ProductData> &qbsProductDeps) const final;
 };
 
 } // namespace v5

@@ -37,38 +37,27 @@
 **
 ****************************************************************************/
 
-#include "iarewproperty.h"
-#include "iarewpropertygroup.h"
 #include "iarewworkspace.h"
-#include "iiarewnodevisitor.h"
+
+#include <generators/xmlpropertygroup.h>
 
 namespace qbs {
 
 IarewWorkspace::IarewWorkspace(const QString &workspacePath)
+    : gen::xml::Workspace(workspacePath)
 {
-    m_baseDirectory = QFileInfo(workspacePath).absoluteDir();
-
-    appendChild<IarewPropertyGroup>(QByteArrayLiteral("batchBuild"));
+    appendChild<gen::xml::PropertyGroup>(
+                QByteArrayLiteral("batchBuild"));
 }
 
-void IarewWorkspace::addProjectPath(const QString &projectFilePath)
+void IarewWorkspace::addProject(const QString &projectFilePath)
 {
     const QString relativeProjectPath = QLatin1String("$WS_DIR$/")
             + m_baseDirectory.relativeFilePath(projectFilePath);
 
-    const auto projectGroup = appendChild<IarewPropertyGroup>(
+    const auto projectGroup = appendChild<gen::xml::PropertyGroup>(
                 QByteArrayLiteral("project"));
     projectGroup->appendProperty("path", relativeProjectPath);
-}
-
-void IarewWorkspace::accept(IIarewNodeVisitor *visitor) const
-{
-    visitor->visitStart(this);
-
-    for (const auto &child : children())
-        child->accept(visitor);
-
-    visitor->visitEnd(this);
 }
 
 } // namespace qbs

@@ -100,9 +100,9 @@ struct AssemblerPageOptions final
 } // namespace
 
 Mcs51TargetAssemblerGroup::Mcs51TargetAssemblerGroup(
-        const Project &qbsProject,
-        const ProductData &qbsProduct)
-    : KeiluvPropertyGroup("Ax51")
+        const qbs::Project &qbsProject,
+        const qbs::ProductData &qbsProduct)
+    : gen::xml::PropertyGroup("Ax51")
 {
     const AssemblerPageOptions opts(qbsProject, qbsProduct);
 
@@ -118,7 +118,7 @@ Mcs51TargetAssemblerGroup::Mcs51TargetAssemblerGroup(
 
     // Add other various controls.
     // Note: A sub-items order makes sense!
-    const auto variousControlsGroup = appendChild<KeiluvPropertyGroup>(
+    const auto variousControlsGroup = appendChild<gen::xml::PropertyGroup>(
                 QByteArrayLiteral("VariousControls"));
     // Add 'Misc Controls' item.
     variousControlsGroup->appendMultiLineProperty(

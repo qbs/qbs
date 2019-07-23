@@ -47,17 +47,17 @@ Mcs51BuildConfigurationGroup::Mcs51BuildConfigurationGroup(
         const Project &qbsProject,
         const ProductData &qbsProduct,
         const std::vector<ProductData> &qbsProductDeps)
-    : IarewPropertyGroup("configuration")
+    : gen::xml::PropertyGroup("configuration")
 {
     // Append configuration name item.
-    const QString cfgName = IarewUtils::buildConfigurationName(qbsProject);
+    const QString cfgName = gen::utils::buildConfigurationName(qbsProject);
     appendProperty("name", cfgName);
 
     // Apend toolchain name group item.
     appendChild<IarewToolchainPropertyGroup>("8051");
 
     // Append debug info item.
-    const int debugBuild = IarewUtils::debugInformation(qbsProduct);
+    const int debugBuild = gen::utils::debugInformation(qbsProduct);
     appendProperty("debug", debugBuild);
 
     // Append settings group items.
@@ -74,13 +74,15 @@ Mcs51BuildConfigurationGroup::Mcs51BuildConfigurationGroup(
 }
 
 bool Mcs51BuildConfigurationGroupFactory::canCreate(
-        IarewUtils::Architecture architecture, const Version &version) const
+        gen::utils::Architecture arch,
+        const Version &version) const
 {
-    return architecture == IarewUtils::Architecture::Mcs51Architecture
+    return arch == gen::utils::Architecture::Mcs51
             && version.majorVersion() == 10;
 }
 
-std::unique_ptr<IarewPropertyGroup> Mcs51BuildConfigurationGroupFactory::create(
+std::unique_ptr<gen::xml::PropertyGroup>
+Mcs51BuildConfigurationGroupFactory::create(
         const Project &qbsProject,
         const ProductData &qbsProduct,
         const std::vector<ProductData> &qbsProductDeps) const

@@ -147,11 +147,12 @@ void IarewGenerator::visitProduct(const GeneratableProject &project,
     Q_UNUSED(projectData);
     const QString projectFilePath = targetFilePath(
                 productData, project.baseBuildDirectory().absolutePath());
-    const auto targetProject = std::make_shared<IarewProject>(project, productData,
-                                                              m_versionInfo);
+    const auto targetProject = std::make_shared<IarewProject>(
+                project, productData,
+                m_versionInfo);
 
     m_projects.insert({projectFilePath, targetProject});
-    m_workspace->addProjectPath(projectFilePath);
+    m_workspace->addProject(projectFilePath);
 }
 
 } // namespace qbs

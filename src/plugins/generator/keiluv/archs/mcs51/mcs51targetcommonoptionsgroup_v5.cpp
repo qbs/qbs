@@ -32,6 +32,8 @@
 
 #include "../../keiluvutils.h"
 
+#include <generators/generatorutils.h>
+
 namespace qbs {
 namespace keiluv {
 namespace mcs51 {
@@ -54,22 +56,23 @@ struct CommonPageOptions final
             browseInfo = true;
 
         // Debug information.
-        debugInfo = KeiluvUtils::debugInformation(qbsProduct);
+        debugInfo = gen::utils::debugInformation(qbsProduct);
 
         // Output parameters.
-        executableName = KeiluvUtils::targetBinary(qbsProduct);
+        executableName = gen::utils::targetBinary(qbsProduct);
         // Fix output binary name if it is a library. Because
         // the IDE appends an additional suffix (.LIB) to end
         // of an output library name.
         if (executableName.endsWith(QLatin1String(".lib")))
             executableName = qbsProduct.targetName();
 
-
-        const QString baseDirectory = KeiluvUtils::buildRootPath(qbsProject);
-        objectDirectory = KeiluvUtils::objectsOutputDirectory(
-                    baseDirectory, qbsProduct);
-        listingDirectory = KeiluvUtils::listingOutputDirectory(
-                    baseDirectory, qbsProduct);
+        const QString baseDirectory = gen::utils::buildRootPath(qbsProject);
+        objectDirectory = QDir::toNativeSeparators(
+                    gen::utils::objectsOutputDirectory(
+                        baseDirectory, qbsProduct));
+        listingDirectory = QDir::toNativeSeparators(
+                    gen::utils::listingOutputDirectory(
+                        baseDirectory, qbsProduct));
 
         // Target type.
         targetType = KeiluvUtils::outputBinaryType(qbsProduct);
@@ -87,9 +90,9 @@ struct CommonPageOptions final
 } // namespace
 
 Mcs51TargetCommonOptionsGroup::Mcs51TargetCommonOptionsGroup(
-        const Project &qbsProject,
-        const ProductData &qbsProduct)
-    : KeiluvPropertyGroup("TargetCommonOption")
+        const qbs::Project &qbsProject,
+        const qbs::ProductData &qbsProduct)
+    : gen::xml::PropertyGroup("TargetCommonOption")
 {
     const CommonPageOptions opts(qbsProject, qbsProduct);
 

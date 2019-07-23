@@ -28,25 +28,61 @@
 **
 ****************************************************************************/
 
-#include "iarewproperty.h"
-#include "iiarewnodevisitor.h"
+#ifndef GENERATORS_XML_PROPERTY_H
+#define GENERATORS_XML_PROPERTY_H
+
+#include <tools/qbs_export.h>
+
+#include <QtCore/qvariant.h>
+
+#include <memory>
 
 namespace qbs {
+namespace gen {
+namespace xml {
 
-IarewProperty::IarewProperty(QByteArray name, QVariant value)
+class INodeVisitor;
+
+class QBS_EXPORT Property
 {
-    setName(std::move(name));
-    setValue(std::move(value));
-}
+    Q_DISABLE_COPY(Property)
+public:
+    Property() = default;
+    explicit Property(QByteArray name, QVariant value);
+    virtual ~Property() = default;
 
-void IarewProperty::accept(IIarewNodeVisitor *visitor) const
-{
-    visitor->visitStart(this);
+    QByteArray name() const { return m_name; }
+    void setName(QByteArray name) { m_name = std::move(name); }
 
-    for (const auto &child : children())
-        child->accept(visitor);
+    QVariant value() const { return m_value; }
+    void setValue(QVariant value) { m_value = std::move(value); }
 
-    visitor->visitEnd(this);
-}
+    template<class T>
+    T *appendChild(std::unique_ptr<T> child) {
+        const auto p = child.get();
+        m_children.push_back(std::move(child));
+        return p;
+    }
 
+    template<class T, class... Args>
+    T *appendChild(Args&&... args) {
+        return appendChild(std::make_unique<T>(std::forward<Args>(args)...));
+    }
+
+    virtual void accept(INodeVisitor *visitor) const;
+
+protected:
+    const std::vector<std::unique_ptr<Property>> &children() const
+    { return m_children; }
+
+private:
+    QByteArray m_name;
+    QVariant m_value;
+    std::vector<std::unique_ptr<Property>> m_children;
+};
+
+} // namespace xml
+} // namespace gen
 } // namespace qbs
+
+#endif // GENERATORS_XML_PROPERTY_H

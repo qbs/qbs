@@ -40,22 +40,17 @@
 #ifndef QBS_IAREWWORKSPACE_H
 #define QBS_IAREWWORKSPACE_H
 
-#include "iarewproperty.h"
+#include <generators/xmlworkspace.h>
 
 #include <QtCore/qdir.h>
 
 namespace qbs {
 
-class IarewWorkspace final : public IarewProperty
+class IarewWorkspace final : public gen::xml::Workspace
 {
 public:
     explicit IarewWorkspace(const QString &workspacePath);
-    void addProjectPath(const QString &projectPath);
-
-    void accept(IIarewNodeVisitor *visitor) const final;
-
-private:
-    QDir m_baseDirectory;
+    void addProject(const QString &projectPath) final;
 };
 
 } // namespace qbs

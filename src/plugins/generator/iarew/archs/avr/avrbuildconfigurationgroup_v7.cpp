@@ -47,17 +47,17 @@ AvrBuildConfigurationGroup::AvrBuildConfigurationGroup(
         const Project &qbsProject,
         const ProductData &qbsProduct,
         const std::vector<ProductData> &qbsProductDeps)
-    : IarewPropertyGroup("configuration")
+    : gen::xml::PropertyGroup("configuration")
 {
     // Append configuration name item.
-    const QString cfgName = IarewUtils::buildConfigurationName(qbsProject);
+    const QString cfgName = gen::utils::buildConfigurationName(qbsProject);
     appendProperty("name", cfgName);
 
     // Apend toolchain name group item.
     appendChild<IarewToolchainPropertyGroup>("AVR");
 
     // Append debug info item.
-    const int debugBuild = IarewUtils::debugInformation(qbsProduct);
+    const int debugBuild = gen::utils::debugInformation(qbsProduct);
     appendProperty("debug", debugBuild);
 
     // Append settings group items.
@@ -74,14 +74,15 @@ AvrBuildConfigurationGroup::AvrBuildConfigurationGroup(
 }
 
 bool AvrBuildConfigurationGroupFactory::canCreate(
-        IarewUtils::Architecture architecture,
+        gen::utils::Architecture arch,
         const Version &version) const
 {
-    return architecture == IarewUtils::Architecture::AvrArchitecture
+    return arch == gen::utils::Architecture::Avr
             && version.majorVersion() == 7;
 }
 
-std::unique_ptr<IarewPropertyGroup> AvrBuildConfigurationGroupFactory::create(
+std::unique_ptr<gen::xml::PropertyGroup>
+AvrBuildConfigurationGroupFactory::create(
         const Project &qbsProject,
         const ProductData &qbsProduct,
         const std::vector<ProductData> &qbsProductDeps) const

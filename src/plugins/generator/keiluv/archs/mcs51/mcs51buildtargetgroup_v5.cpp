@@ -46,24 +46,24 @@ namespace mcs51 {
 namespace v5 {
 
 Mcs51BuildTargetGroup::Mcs51BuildTargetGroup(
-        const Project &qbsProject,
-        const ProductData &qbsProduct,
-        const std::vector<ProductData> &qbsProductDeps)
-    : KeiluvPropertyGroup("Target")
+        const qbs::Project &qbsProject,
+        const qbs::ProductData &qbsProduct,
+        const std::vector<qbs::ProductData> &qbsProductDeps)
+    : gen::xml::PropertyGroup("Target")
 {
     // Append target name item (it is a build configuration name).
-    const QString targetName = qbs::KeiluvUtils::buildConfigurationName(
+    const QString targetName = gen::utils::buildConfigurationName(
                 qbsProject);
     appendProperty(QByteArrayLiteral("TargetName"), targetName);
     // Append toolset number group item.
-    appendChild<KeiluvProperty>(QByteArrayLiteral("ToolsetNumber"),
-                                QByteArrayLiteral("0x0"));
+    appendChild<gen::xml::Property>(QByteArrayLiteral("ToolsetNumber"),
+                                    QByteArrayLiteral("0x0"));
     // Append toolset name group item.
-    appendChild<KeiluvProperty>(QByteArrayLiteral("ToolsetName"),
-                                QByteArrayLiteral("MCS-51"));
+    appendChild<gen::xml::Property>(QByteArrayLiteral("ToolsetName"),
+                                    QByteArrayLiteral("MCS-51"));
 
     // Append target option group item.
-    const auto targetOptionGroup = appendChild<KeiluvPropertyGroup>(
+    const auto targetOptionGroup = appendChild<gen::xml::PropertyGroup>(
                 QByteArrayLiteral("TargetOption"));
 
     targetOptionGroup->appendChild<Mcs51TargetCommonOptionsGroup>(
@@ -85,17 +85,18 @@ Mcs51BuildTargetGroup::Mcs51BuildTargetGroup(
 }
 
 bool Mcs51BuildTargetGroupFactory::canCreate(
-        qbs::KeiluvUtils::Architecture architecture,
+        gen::utils::Architecture arch,
         const Version &version) const
 {
-    return architecture == qbs::KeiluvUtils::Architecture::Mcs51Architecture
+    return arch == gen::utils::Architecture::Mcs51
             && version.majorVersion() == KeiluvConstants::kUVisionVersion;
 }
 
-std::unique_ptr<KeiluvPropertyGroup> Mcs51BuildTargetGroupFactory::create(
-        const Project &qbsProject,
-        const ProductData &qbsProduct,
-        const std::vector<ProductData> &qbsProductDeps) const
+std::unique_ptr<gen::xml::PropertyGroup>
+Mcs51BuildTargetGroupFactory::create(
+        const qbs::Project &qbsProject,
+        const qbs::ProductData &qbsProduct,
+        const std::vector<qbs::ProductData> &qbsProductDeps) const
 {
     const auto group = new Mcs51BuildTargetGroup(
                 qbsProject, qbsProduct, qbsProductDeps);

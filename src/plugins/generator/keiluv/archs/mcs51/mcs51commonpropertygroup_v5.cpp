@@ -30,17 +30,15 @@
 
 #include "mcs51commonpropertygroup_v5.h"
 
-#include "../../keiluvutils.h"
-
 namespace qbs {
 namespace keiluv {
 namespace mcs51 {
 namespace v5 {
 
 Mcs51CommonPropertyGroup::Mcs51CommonPropertyGroup(
-        const Project &qbsProject,
-        const ProductData &qbsProduct)
-    : KeiluvPropertyGroup("CommonProperty")
+        const qbs::Project &qbsProject,
+        const qbs::ProductData &qbsProduct)
+    : gen::xml::PropertyGroup("CommonProperty")
 {
     Q_UNUSED(qbsProject)
     Q_UNUSED(qbsProduct)

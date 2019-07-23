@@ -28,27 +28,51 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_KEILUVMCS51TARGETCOMPILERGROUP_V5_H
-#define QBS_KEILUVMCS51TARGETCOMPILERGROUP_V5_H
+#ifndef GENERATORS_XML_PROPERTY_GROUP_H
+#define GENERATORS_XML_PROPERTY_GROUP_H
 
-#include <generators/xmlpropertygroup.h>
+#include "generatorversioninfo.h"
+#include "xmlproperty.h"
+
+#include <tools/qbs_export.h>
+
+#include <memory>
 
 namespace qbs {
-namespace keiluv {
-namespace mcs51 {
-namespace v5 {
 
-class Mcs51TargetCompilerGroup final : public gen::xml::PropertyGroup
+class ProductData;
+class Project;
+
+namespace gen {
+namespace xml {
+
+class QBS_EXPORT PropertyGroup : public Property
 {
 public:
-    explicit Mcs51TargetCompilerGroup(
-            const qbs::Project &qbsProject,
-            const qbs::ProductData &qbsProduct);
+    explicit PropertyGroup(QByteArray name);
+
+    void appendProperty(QByteArray name, QVariant value);
+    void appendMultiLineProperty(QByteArray key, QStringList values,
+                                 QChar sep = QLatin1Char(','));
+
+    void accept(INodeVisitor *visitor) const final;
 };
 
-} // namespace v5
-} // namespace mcs51
-} // namespace keiluv
+class PropertyGroupFactory
+{
+public:
+    virtual ~PropertyGroupFactory() = default;
+    virtual bool canCreate(utils::Architecture arch,
+                           const Version &version) const = 0;
+
+    virtual std::unique_ptr<PropertyGroup> create(
+            const qbs::Project &qbsProject,
+            const qbs::ProductData &qbsProduct,
+            const std::vector<ProductData> &qbsProductDeps) const = 0;
+};
+
+} // namespace xml
+} // namespace gen
 } // namespace qbs
 
-#endif // QBS_KEILUVMCS51TARGETCOMPILERGROUP_V5_H
+#endif // GENERATORS_XML_PROPERTY_GROUP_H

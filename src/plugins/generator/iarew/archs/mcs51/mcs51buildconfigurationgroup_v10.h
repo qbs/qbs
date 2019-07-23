@@ -31,14 +31,15 @@
 #ifndef QBS_IAREWMCS51BUILDCONFIGURATIONGROUP_V10_H
 #define QBS_IAREWMCS51BUILDCONFIGURATIONGROUP_V10_H
 
-#include "../../iarewpropertygroup.h"
+#include <generators/xmlpropertygroup.h>
 
 namespace qbs {
 namespace iarew {
 namespace mcs51 {
 namespace v10 {
 
-class Mcs51BuildConfigurationGroup final : public IarewPropertyGroup
+class Mcs51BuildConfigurationGroup final
+        : public gen::xml::PropertyGroup
 {
 private:
     explicit Mcs51BuildConfigurationGroup(
@@ -49,13 +50,14 @@ private:
     friend class Mcs51BuildConfigurationGroupFactory;
 };
 
-class Mcs51BuildConfigurationGroupFactory final : public IarewPropertyGroupFactory
+class Mcs51BuildConfigurationGroupFactory final
+        : public gen::xml::PropertyGroupFactory
 {
 public:
-    bool canCreate(IarewUtils::Architecture architecture,
+    bool canCreate(gen::utils::Architecture arch,
                    const Version &version) const final;
 
-    std::unique_ptr<IarewPropertyGroup> create(
+    std::unique_ptr<gen::xml::PropertyGroup> create(
             const Project &qbsProject,
             const ProductData &qbsProduct,
             const std::vector<ProductData> &qbsProductDeps) const final;

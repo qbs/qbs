@@ -18,8 +18,6 @@ HEADERS += \
     $$PWD/iarewoptionpropertygroup.h \
     $$PWD/iarewproject.h \
     $$PWD/iarewprojectwriter.h \
-    $$PWD/iarewproperty.h \
-    $$PWD/iarewpropertygroup.h \
     $$PWD/iarewsettingspropertygroup.h \
     $$PWD/iarewsourcefilepropertygroup.h \
     $$PWD/iarewsourcefilespropertygroup.h \
@@ -27,8 +25,7 @@ HEADERS += \
     $$PWD/iarewutils.h \
     $$PWD/iarewversioninfo.h \
     $$PWD/iarewworkspace.h \
-    $$PWD/iarewworkspacewriter.h \
-    $$PWD/iiarewnodevisitor.h \
+    $$PWD/iarewworkspacewriter.h
 
 SOURCES += \
     $$PWD/iarewfileversionproperty.cpp \
@@ -36,8 +33,6 @@ SOURCES += \
     $$PWD/iarewoptionpropertygroup.cpp \
     $$PWD/iarewproject.cpp \
     $$PWD/iarewprojectwriter.cpp \
-    $$PWD/iarewproperty.cpp \
-    $$PWD/iarewpropertygroup.cpp \
     $$PWD/iarewsettingspropertygroup.cpp \
     $$PWD/iarewsourcefilepropertygroup.cpp \
     $$PWD/iarewsourcefilespropertygroup.cpp \
@@ -45,7 +40,7 @@ SOURCES += \
     $$PWD/iarewutils.cpp \
     $$PWD/iarewversioninfo.cpp \
     $$PWD/iarewworkspace.cpp \
-    $$PWD/iarewworkspacewriter.cpp \
+    $$PWD/iarewworkspacewriter.cpp
 
 # For ARM architecture.
 
@@ -55,7 +50,7 @@ HEADERS += \
     $$PWD/archs/arm/armbuildconfigurationgroup_v8.h \
     $$PWD/archs/arm/armcompilersettingsgroup_v8.h \
     $$PWD/archs/arm/armgeneralsettingsgroup_v8.h \
-    $$PWD/archs/arm/armlinkersettingsgroup_v8.h \
+    $$PWD/archs/arm/armlinkersettingsgroup_v8.h
 
 SOURCES += \
     $$PWD/archs/arm/armarchiversettingsgroup_v8.cpp \
@@ -63,7 +58,7 @@ SOURCES += \
     $$PWD/archs/arm/armbuildconfigurationgroup_v8.cpp \
     $$PWD/archs/arm/armcompilersettingsgroup_v8.cpp \
     $$PWD/archs/arm/armgeneralsettingsgroup_v8.cpp \
-    $$PWD/archs/arm/armlinkersettingsgroup_v8.cpp \
+    $$PWD/archs/arm/armlinkersettingsgroup_v8.cpp
 
 # For AVR architecture.
 
@@ -73,7 +68,7 @@ HEADERS += \
     $$PWD/archs/avr/avrbuildconfigurationgroup_v7.h \
     $$PWD/archs/avr/avrcompilersettingsgroup_v7.h \
     $$PWD/archs/avr/avrgeneralsettingsgroup_v7.h \
-    $$PWD/archs/avr/avrlinkersettingsgroup_v7.h \
+    $$PWD/archs/avr/avrlinkersettingsgroup_v7.h
 
 SOURCES += \
     $$PWD/archs/avr/avrarchiversettingsgroup_v7.cpp \
@@ -81,7 +76,7 @@ SOURCES += \
     $$PWD/archs/avr/avrbuildconfigurationgroup_v7.cpp \
     $$PWD/archs/avr/avrcompilersettingsgroup_v7.cpp \
     $$PWD/archs/avr/avrgeneralsettingsgroup_v7.cpp \
-    $$PWD/archs/avr/avrlinkersettingsgroup_v7.cpp \
+    $$PWD/archs/avr/avrlinkersettingsgroup_v7.cpp
 
 # For MCS51 architecture.
 
@@ -91,7 +86,7 @@ HEADERS += \
     $$PWD/archs/mcs51/mcs51buildconfigurationgroup_v10.h \
     $$PWD/archs/mcs51/mcs51compilersettingsgroup_v10.h \
     $$PWD/archs/mcs51/mcs51generalsettingsgroup_v10.h \
-    $$PWD/archs/mcs51/mcs51linkersettingsgroup_v10.h \
+    $$PWD/archs/mcs51/mcs51linkersettingsgroup_v10.h
 
 SOURCES += \
     $$PWD/archs/mcs51/mcs51archiversettingsgroup_v10.cpp \
@@ -99,4 +94,4 @@ SOURCES += \
     $$PWD/archs/mcs51/mcs51buildconfigurationgroup_v10.cpp \
     $$PWD/archs/mcs51/mcs51compilersettingsgroup_v10.cpp \
     $$PWD/archs/mcs51/mcs51generalsettingsgroup_v10.cpp \
-    $$PWD/archs/mcs51/mcs51linkersettingsgroup_v10.cpp \
+    $$PWD/archs/mcs51/mcs51linkersettingsgroup_v10.cpp

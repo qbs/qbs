@@ -31,10 +31,10 @@
 #ifndef QBS_KEILUVPROJECT_H
 #define QBS_KEILUVPROJECT_H
 
-#include "keiluvproperty.h"
-#include "keiluvpropertygroup.h"
-
 #include <generators/generatordata.h>
+
+#include <generators/xmlproject.h>
+#include <generators/xmlpropertygroup.h>
 
 #include <memory>
 
@@ -42,16 +42,15 @@ namespace qbs {
 
 class KeiluvVersionInfo;
 
-class KeiluvProject final : public KeiluvProperty
+class KeiluvProject final : public gen::xml::Project
 {
 public:
-    explicit KeiluvProject(const GeneratableProject &genProject,
-                           const GeneratableProductData &genProduct,
-                           const KeiluvVersionInfo &versionInfo);
-    void accept(IKeiluvNodeVisitor *visitor) const final;
-
+    explicit KeiluvProject(
+            const qbs::GeneratableProject &genProject,
+            const qbs::GeneratableProductData &genProduct,
+            const KeiluvVersionInfo &versionInfo);
 private:
-    std::vector<std::unique_ptr<KeiluvPropertyGroupFactory>> m_factories;
+    std::vector<std::unique_ptr<gen::xml::PropertyGroupFactory>> m_factories;
 };
 
 } // namespace qbs

@@ -31,32 +31,19 @@
 #ifndef QBS_KEILUVPROJECTWRITER_H
 #define QBS_KEILUVPROJECTWRITER_H
 
-#include "ikeiluvnodevisitor.h"
+#include <generators/xmlprojectwriter.h>
 
 namespace qbs {
 
-class KeiluvProject;
-
-class KeiluvProjectWriter final : public IKeiluvNodeVisitor
+class KeiluvProjectWriter final : public gen::xml::ProjectWriter
 {
     Q_DISABLE_COPY(KeiluvProjectWriter)
 public:
     explicit KeiluvProjectWriter(std::ostream *device);
-    bool write(const KeiluvProject *project);
 
 private:
-    void visitStart(const KeiluvProject *project) final;
-    void visitEnd(const KeiluvProject *project) final;
-
-    void visitStart(const KeiluvProperty *property) final;
-    void visitEnd(const KeiluvProperty *property) final;
-
-    void visitStart(const KeiluvPropertyGroup *propertyGroup) final;
-    void visitEnd(const KeiluvPropertyGroup *propertyGroup) final;
-
-    std::ostream *m_device = nullptr;
-    QByteArray m_buffer;
-    std::unique_ptr<QXmlStreamWriter> m_writer;
+    void visitStart(const gen::xml::Project *project) final;
+    void visitEnd(const gen::xml::Project *project) final;
 };
 
 } // namespace qbs

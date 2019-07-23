@@ -38,59 +38,14 @@
 namespace qbs {
 namespace KeiluvUtils {
 
-enum class Architecture {
-    Mcs51Architecture,
-    UnknownArchitecture
-};
-
 enum OutputBinaryType {
     ApplicationOutputType,
     LibraryOutputType
 };
 
-template <typename T>
-bool inBounds(const T &value, const T &low, const T &high)
-{
-    return !(value < low) && !(high < value);
-}
-
 OutputBinaryType outputBinaryType(const ProductData &qbsProduct);
 
-QString architectureName(Architecture arch);
-
-Architecture architecture(const Project &qbsProject);
-
-QString buildConfigurationName(const Project &qbsProject);
-
-int debugInformation(const ProductData &qbsProduct);
-
-QString binaryOutputDirectory(const QString &baseDirectory,
-                              const ProductData &qbsProduct);
-
-QString objectsOutputDirectory(const QString &baseDirectory,
-                               const ProductData &qbsProduct);
-
-QString listingOutputDirectory(const QString &baseDirectory,
-                               const ProductData &qbsProduct);
-
-QString targetBinary(const ProductData &qbsProduct);
-
-std::vector<ProductData> dependenciesOf(const ProductData &qbsProduct,
-                                        const GeneratableProject &genProject,
-                                        const QString configurationName);
-
 QString toolkitRootPath(const ProductData &qbsProduct);
-
-QString buildRootPath(const Project &qbsProject);
-
-QString relativeFilePath(const QString &baseDirectory,
-                         const QString &fullFilePath);
-
-QString cppStringModuleProperty(const PropertyMap &qbsProps,
-                                const QString &propertyName);
-
-QStringList cppStringModuleProperties(const PropertyMap &qbsProps,
-                                      const QStringList &propertyNames);
 
 QStringList cppModuleCompilerFlags(const PropertyMap &qbsProps);
 

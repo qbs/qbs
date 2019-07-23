@@ -28,38 +28,23 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_IIAREWNODEVISITOR_H
-#define QBS_IIAREWNODEVISITOR_H
-
-#include <QtCore/qxmlstream.h>
-
-#include <memory>
+#include "xmlproject.h"
+#include "ixmlnodevisitor.h"
 
 namespace qbs {
+namespace gen {
+namespace xml {
 
-class IarewProject;
-class IarewProperty;
-class IarewPropertyGroup;
-class IarewWorkspace;
-
-class IIarewNodeVisitor
+void Project::accept(INodeVisitor *visitor) const
 {
-public:
-    virtual ~IIarewNodeVisitor() {}
+    visitor->visitStart(this);
 
-    virtual void visitStart(const IarewWorkspace *workspace) { Q_UNUSED(workspace) }
-    virtual void visitEnd(const IarewWorkspace *workspace) { Q_UNUSED(workspace) }
+    for (const auto &child : children())
+        child->accept(visitor);
 
-    virtual void visitStart(const IarewProject *project) { Q_UNUSED(project) }
-    virtual void visitEnd(const IarewProject *project) { Q_UNUSED(project) }
+    visitor->visitEnd(this);
+}
 
-    virtual void visitStart(const IarewProperty *property) = 0;
-    virtual void visitEnd(const IarewProperty *property) = 0;
-
-    virtual void visitStart(const IarewPropertyGroup *propertyGroup) = 0;
-    virtual void visitEnd(const IarewPropertyGroup *propertyGroup) = 0;
-};
-
+} // namespace xml
+} // namespace gen
 } // namespace qbs
-
-#endif // QBS_IIAREWNODEVISITOR_H

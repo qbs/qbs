@@ -31,32 +31,19 @@
 #ifndef QBS_IAREWWORKSPACEWRITER_H
 #define QBS_IAREWWORKSPACEWRITER_H
 
-#include "iiarewnodevisitor.h"
+#include <generators/xmlworkspacewriter.h>
 
 namespace qbs {
 
-class IarewWorkspace;
-
-class IarewWorkspaceWriter final : public IIarewNodeVisitor
+class IarewWorkspaceWriter final : public gen::xml::WorkspaceWriter
 {
     Q_DISABLE_COPY(IarewWorkspaceWriter)
 public:
     explicit IarewWorkspaceWriter(std::ostream *device);
-    bool write(const IarewWorkspace *workspace);
 
 private:
-    void visitStart(const IarewWorkspace *workspace) final;
-    void visitEnd(const IarewWorkspace *workspace) final;
-
-    void visitStart(const IarewProperty *property) final;
-    void visitEnd(const IarewProperty *property) final;
-
-    void visitStart(const IarewPropertyGroup *propertyGroup) final;
-    void visitEnd(const IarewPropertyGroup *propertyGroup) final;
-
-    std::ostream *m_device = nullptr;
-    QByteArray m_buffer;
-    std::unique_ptr<QXmlStreamWriter> m_writer;
+    void visitStart(const gen::xml::Workspace *workspace) final;
+    void visitEnd(const gen::xml::Workspace *workspace) final;
 };
 
 } // namespace qbs

@@ -28,7 +28,6 @@
 **
 ****************************************************************************/
 
-#include "iarewproperty.h"
 #include "iarewsourcefilepropertygroup.h"
 #include "iarewsourcefilespropertygroup.h"
 
@@ -42,14 +41,16 @@ IarewSourceFilesPropertyGroup::IarewSourceFilesPropertyGroup(
         const GeneratableProject &genProject,
         const QString &filesGroupName,
         const QList<ArtifactData> &sourceFiles)
-    : IarewPropertyGroup(QByteArrayLiteral("group"))
+    : gen::xml::PropertyGroup(QByteArrayLiteral("group"))
 {
     // Create group name property item.
-    appendChild<IarewProperty>(QByteArrayLiteral("name"), filesGroupName);
+    appendChild<gen::xml::Property>(QByteArrayLiteral("name"),
+                                    filesGroupName);
 
     // Create file paths property items.
     for (const auto &sourceFile : sourceFiles)
-        appendChild<IarewSourceFilePropertyGroup>(genProject, sourceFile);
+        appendChild<IarewSourceFilePropertyGroup>(genProject,
+                                                  sourceFile);
 }
 
 } // namespace qbs

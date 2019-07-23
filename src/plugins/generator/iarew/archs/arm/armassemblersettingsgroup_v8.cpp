@@ -30,7 +30,6 @@
 
 #include "armassemblersettingsgroup_v8.h"
 
-#include "../../iarewproperty.h"
 #include "../../iarewutils.h"
 
 namespace qbs {
@@ -47,8 +46,12 @@ namespace {
 
 struct LanguagePageOptions final
 {
-    enum MacroQuoteCharacter { AngleBracketsQuote, RoundBracketsQuote,
-                               SquareBracketsQuote, FigureBracketsQuote };
+    enum MacroQuoteCharacter {
+        AngleBracketsQuote,
+        RoundBracketsQuote,
+        SquareBracketsQuote,
+        FigureBracketsQuote
+    };
 
     explicit LanguagePageOptions(const ProductData &qbsProduct)
     {
@@ -80,7 +83,7 @@ struct OutputPageOptions final
 {
     explicit OutputPageOptions(const ProductData &qbsProduct)
     {
-        debugInfo = IarewUtils::debugInformation(qbsProduct);
+        debugInfo = gen::utils::debugInformation(qbsProduct);
     }
 
     int debugInfo = 0;
@@ -94,11 +97,11 @@ struct PreprocessorPageOptions final
                                      const ProductData &qbsProduct)
     {
         const auto &qbsProps = qbsProduct.moduleProperties();
-        defineSymbols = IarewUtils::cppVariantModuleProperties(
+        defineSymbols = gen::utils::cppVariantModuleProperties(
                     qbsProps, {QStringLiteral("defines")});
 
         const QString toolkitPath = IarewUtils::toolkitRootPath(qbsProduct);
-        const QStringList fullIncludePaths = IarewUtils::cppStringModuleProperties(
+        const QStringList fullIncludePaths = gen::utils::cppStringModuleProperties(
                     qbsProps, {QStringLiteral("includePaths"),
                                QStringLiteral("systemIncludePaths")});
         for (const QString &fullIncludePath : fullIncludePaths) {
@@ -127,7 +130,7 @@ struct DiagnosticsPageOptions final
     explicit DiagnosticsPageOptions(const ProductData &qbsProduct)
     {
         const auto &qbsProps = qbsProduct.moduleProperties();
-        const QString warningLevel = IarewUtils::cppStringModuleProperty(
+        const QString warningLevel = gen::utils::cppStringModuleProperty(
                     qbsProps, QStringLiteral("warningLevel"));
         if (warningLevel == QLatin1String("all")) {
             enableWarnings = 0;
@@ -159,9 +162,9 @@ ArmAssemblerSettingsGroup::ArmAssemblerSettingsGroup(
     setName(QByteArrayLiteral("AARM"));
     setArchiveVersion(kAssemblerArchiveVersion);
     setDataVersion(kAssemblerDataVersion);
-    setDataDebugInfo(IarewUtils::debugInformation(qbsProduct));
+    setDataDebugInfo(gen::utils::debugInformation(qbsProduct));
 
-    const QString buildRootDirectory = IarewUtils::buildRootPath(qbsProject);
+    const QString buildRootDirectory = gen::utils::buildRootPath(qbsProject);
 
     buildLanguagePage(qbsProduct);
     buildOutputPage(qbsProduct);

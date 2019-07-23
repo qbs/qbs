@@ -40,36 +40,21 @@
 #ifndef QBS_KEILUVVERSIONINFO_H
 #define QBS_KEILUVVERSIONINFO_H
 
-#include "keiluvutils.h"
-
-#include <tools/version.h>
-
-#include <set>
+#include <generators/generatorutils.h>
+#include <generators/generatorversioninfo.h>
 
 namespace qbs {
 
-class KeiluvVersionInfo final
+class KeiluvVersionInfo final : public gen::VersionInfo
 {
 public:
     KeiluvVersionInfo(const Version &version,
-                      const std::set<KeiluvUtils::Architecture> &archs);
+                      const std::set<gen::utils::Architecture> &archs);
+
+    int marketingVersion() const final;
 
     static std::set<KeiluvVersionInfo> knownVersions();
-
-    bool operator<(const KeiluvVersionInfo &other) const;
-    bool operator==(const KeiluvVersionInfo &other) const;
-
-    Version version() const;
-    int marketingVersion() const;
-
-    bool containsArchitecture(KeiluvUtils::Architecture arch) const;
-
-private:
-    Version m_version;
-    std::set<KeiluvUtils::Architecture> m_archs;
 };
-
-quint32 qHash(const KeiluvVersionInfo &info);
 
 } // namespace qbs
 

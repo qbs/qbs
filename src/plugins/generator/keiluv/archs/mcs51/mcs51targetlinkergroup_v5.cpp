@@ -172,9 +172,9 @@ struct LinkerPageOptions final
 } // namespace
 
 Mcs51TargetLinkerGroup::Mcs51TargetLinkerGroup(
-        const Project &qbsProject,
-        const ProductData &qbsProduct)
-    : KeiluvPropertyGroup("Lx51")
+        const qbs::Project &qbsProject,
+        const qbs::ProductData &qbsProduct)
+    : gen::xml::PropertyGroup("Lx51")
 {
     const LinkerPageOptions opts(qbsProject, qbsProduct);
 

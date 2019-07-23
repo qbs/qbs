@@ -31,32 +31,19 @@
 #ifndef QBS_KEILUVWORKSPACEWRITER_H
 #define QBS_KEILUVWORKSPACEWRITER_H
 
-#include "ikeiluvnodevisitor.h"
+#include <generators/xmlworkspacewriter.h>
 
 namespace qbs {
 
-class KeiluvWorkspace;
-
-class KeiluvWorkspaceWriter final : public IKeiluvNodeVisitor
+class KeiluvWorkspaceWriter final : public gen::xml::WorkspaceWriter
 {
     Q_DISABLE_COPY(KeiluvWorkspaceWriter)
 public:
     explicit KeiluvWorkspaceWriter(std::ostream *device);
-    bool write(const KeiluvWorkspace *workspace);
 
 private:
-    void visitStart(const KeiluvWorkspace *workspace) final;
-    void visitEnd(const KeiluvWorkspace *workspace) final;
-
-    void visitStart(const KeiluvProperty *property) final;
-    void visitEnd(const KeiluvProperty *property) final;
-
-    void visitStart(const KeiluvPropertyGroup *propertyGroup) final;
-    void visitEnd(const KeiluvPropertyGroup *propertyGroup) final;
-
-    std::ostream *m_device = nullptr;
-    QByteArray m_buffer;
-    std::unique_ptr<QXmlStreamWriter> m_writer;
+    void visitStart(const gen::xml::Workspace *workspace) final;
+    void visitEnd(const gen::xml::Workspace *workspace) final;
 };
 
 } // namespace qbs

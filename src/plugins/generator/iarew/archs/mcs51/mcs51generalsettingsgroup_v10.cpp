@@ -46,32 +46,42 @@ namespace {
 
 struct TargetPageOptions final
 {
-    enum CpuCore { CorePlain = 1,
-                   CoreExtended1,
-                   CoreExtended2 };
+    enum CpuCore {
+        CorePlain = 1,
+        CoreExtended1,
+        CoreExtended2
+    };
 
-    enum CodeModel { CodeModelNear = 1,
-                     CodeModelBanked,
-                     CodeModelFar,
-                     CodeModelBankedExtended2 };
+    enum CodeModel {
+        CodeModelNear = 1,
+        CodeModelBanked,
+        CodeModelFar,
+        CodeModelBankedExtended2
+    };
 
-    enum DataModel { DataModelTiny = 0,
-                     DataModelSmall,
-                     DataModelLarge,
-                     DataModelGeneric,
-                     DataModelFarGeneric,
-                     DataModelFar };
+    enum DataModel {
+        DataModelTiny = 0,
+        DataModelSmall,
+        DataModelLarge,
+        DataModelGeneric,
+        DataModelFarGeneric,
+        DataModelFar
+    };
 
-    enum ConstantsMemoryPlacement { RamMemoryPlace = 0,
-                                    RomMemoryPlace,
-                                    CodeMemoryPlace };
+    enum ConstantsMemoryPlacement {
+        RamMemoryPlace = 0,
+        RomMemoryPlace,
+        CodeMemoryPlace
+    };
 
-    enum CallingConvention { DataOverlayConvention = 0,
-                             IDataOverlayConvention,
-                             IDataReentrantConvention,
-                             PDataReentrantConvention,
-                             XDataReentrantConvention,
-                             ExtendedStackReentrantConvention };
+    enum CallingConvention {
+        DataOverlayConvention = 0,
+        IDataOverlayConvention,
+        IDataReentrantConvention,
+        PDataReentrantConvention,
+        XDataReentrantConvention,
+        ExtendedStackReentrantConvention
+    };
 
     explicit TargetPageOptions(const ProductData &qbsProduct)
     {
@@ -273,9 +283,9 @@ struct StackHeapPageOptions final
     explicit StackHeapPageOptions(const ProductData &qbsProduct)
     {
         const auto &qbsProps = qbsProduct.moduleProperties();
-        const QStringList defineSymbols = IarewUtils::cppStringModuleProperties(
+        const QStringList defineSymbols = gen::utils::cppStringModuleProperties(
                     qbsProps, {QStringLiteral("defines")});
-        const QStringList linkerFlags = IarewUtils::cppStringModuleProperties(
+        const QStringList linkerFlags = gen::utils::cppStringModuleProperties(
                     qbsProps, {QStringLiteral("driverLinkerFlags")});
 
         idataStack = IarewUtils::flagValue(
@@ -373,14 +383,20 @@ struct StackHeapPageOptions final
 
 struct DptrPageOptions final
 {
-    enum DptrSize { Dptr16,
-                    Dptr24 };
+    enum DptrSize {
+        Dptr16,
+        Dptr24
+    };
 
-    enum DptrVisibility { DptrShadowed,
-                          DptrSeparate };
+    enum DptrVisibility {
+        DptrShadowed,
+        DptrSeparate
+    };
 
-    enum SwitchMethod { DptrIncludeMethod,
-                        DptrMaskMethod };
+    enum SwitchMethod {
+        DptrIncludeMethod,
+        DptrMaskMethod
+    };
 
     explicit DptrPageOptions(const ProductData &qbsProduct)
     {
@@ -464,9 +480,9 @@ struct DptrPageOptions final
             }
         }
 
-        const QStringList defineSymbols = IarewUtils::cppStringModuleProperties(
+        const QStringList defineSymbols = gen::utils::cppStringModuleProperties(
                     qbsProps, {QStringLiteral("defines")});
-        const QStringList linkerFlags = IarewUtils::cppStringModuleProperties(
+        const QStringList linkerFlags = gen::utils::cppStringModuleProperties(
                     qbsProps, {QStringLiteral("driverLinkerFlags")});
 
         dptrPbank = IarewUtils::flagValue(
@@ -557,9 +573,9 @@ struct CodeBankPageOptions final
     explicit CodeBankPageOptions(const ProductData &qbsProduct)
     {
         const auto &qbsProps = qbsProduct.moduleProperties();
-        const QStringList defineSymbols = IarewUtils::cppStringModuleProperties(
+        const QStringList defineSymbols = gen::utils::cppStringModuleProperties(
                     qbsProps, {QStringLiteral("defines")});
-        const QStringList linkerFlags = IarewUtils::cppStringModuleProperties(
+        const QStringList linkerFlags = gen::utils::cppStringModuleProperties(
                     qbsProps, {QStringLiteral("driverLinkerFlags")});
 
         banksCount = IarewUtils::flagValue(
@@ -610,14 +626,18 @@ struct CodeBankPageOptions final
 
 struct LibraryOptionsPageOptions final
 {
-    enum PrintfFormatter { PrintfAutoFormatter = 0,
-                           PrintfLargeFormatter = 3,
-                           PrintfMediumFormatter = 5,
-                           PrintfSmallFormatter = 6 };
+    enum PrintfFormatter {
+        PrintfAutoFormatter = 0,
+        PrintfLargeFormatter = 3,
+        PrintfMediumFormatter = 5,
+        PrintfSmallFormatter = 6
+    };
 
-    enum ScanfFormatter { ScanfAutoFormatter = 0,
-                          ScanfLargeFormatter = 3,
-                          ScanfMediumFormatter = 5 };
+    enum ScanfFormatter {
+        ScanfAutoFormatter = 0,
+        ScanfLargeFormatter = 3,
+        ScanfMediumFormatter = 5
+    };
 
     explicit LibraryOptionsPageOptions(const ProductData &qbsProduct)
     {
@@ -664,11 +684,13 @@ struct LibraryOptionsPageOptions final
 
 struct LibraryConfigPageOptions final
 {
-    enum RuntimeLibrary { NoLibrary,
-                          NormalDlibLibrary,
-                          CustomDlibLibrary,
-                          ClibLibrary,
-                          CustomClibLibrary };
+    enum RuntimeLibrary {
+        NoLibrary,
+        NormalDlibLibrary,
+        CustomDlibLibrary,
+        ClibLibrary,
+        CustomClibLibrary
+    };
 
     explicit LibraryConfigPageOptions(const QString &baseDirectory,
                                       const ProductData &qbsProduct)
@@ -676,7 +698,7 @@ struct LibraryConfigPageOptions final
         const auto &qbsProps = qbsProduct.moduleProperties();
         const QStringList flags = IarewUtils::cppModuleCompilerFlags(qbsProps);
 
-        const QStringList libraryPaths = IarewUtils::cppStringModuleProperties(
+        const QStringList libraryPaths = gen::utils::cppStringModuleProperties(
                     qbsProps, {QStringLiteral("staticLibraries")});
         const auto libraryBegin = libraryPaths.cbegin();
         const auto libraryEnd = libraryPaths.cend();
@@ -747,11 +769,11 @@ struct OutputPageOptions final
                                const ProductData &qbsProduct)
     {
         binaryType = IarewUtils::outputBinaryType(qbsProduct);
-        binaryDirectory = IarewUtils::binaryOutputDirectory(
+        binaryDirectory = gen::utils::binaryOutputDirectory(
                     baseDirectory, qbsProduct);
-        objectDirectory = IarewUtils::objectsOutputDirectory(
+        objectDirectory = gen::utils::objectsOutputDirectory(
                     baseDirectory, qbsProduct);
-        listingDirectory = IarewUtils::listingOutputDirectory(
+        listingDirectory = gen::utils::listingOutputDirectory(
                     baseDirectory, qbsProduct);
     }
 
@@ -776,9 +798,9 @@ Mcs51GeneralSettingsGroup::Mcs51GeneralSettingsGroup(
     setName(QByteArrayLiteral("General"));
     setArchiveVersion(kGeneralArchiveVersion);
     setDataVersion(kGeneralDataVersion);
-    setDataDebugInfo(IarewUtils::debugInformation(qbsProduct));
+    setDataDebugInfo(gen::utils::debugInformation(qbsProduct));
 
-    const QString buildRootDirectory = IarewUtils::buildRootPath(qbsProject);
+    const QString buildRootDirectory = gen::utils::buildRootPath(qbsProject);
 
     buildTargetPage(qbsProduct);
     buildStackHeapPage(qbsProduct);

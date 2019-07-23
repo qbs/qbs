@@ -37,20 +37,47 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_KEILUVWORKSPACE_H
-#define QBS_KEILUVWORKSPACE_H
-
-#include <generators/xmlworkspace.h>
+#include "generatorversioninfo.h"
 
 namespace qbs {
+namespace gen {
 
-class KeiluvWorkspace final : public gen::xml::Workspace
+VersionInfo::VersionInfo(const Version &version,
+                         const std::set<utils::Architecture> &archs)
+    : m_version(version), m_archs(archs)
 {
-public:
-    explicit KeiluvWorkspace(const QString &workspacePath);
-    void addProject(const QString &projectPath) final;
-};
+}
 
+bool VersionInfo::operator<(const VersionInfo &other) const
+{
+    return m_version < other.m_version;
+}
+
+bool VersionInfo::operator==(const VersionInfo &other) const
+{
+    return m_version == other.m_version
+            && m_archs == other.m_archs;
+}
+
+Version VersionInfo::version() const
+{
+    return m_version;
+}
+
+bool VersionInfo::containsArchitecture(utils::Architecture arch) const
+{
+    return m_archs.find(arch) != m_archs.cend();
+}
+
+int VersionInfo::marketingVersion() const
+{
+    return m_version.majorVersion();
+}
+
+quint32 qHash(const VersionInfo &info)
+{
+    return qHash(info.version().toString());
+}
+
+} // namespace gen
 } // namespace qbs
-
-#endif // QBS_KEILUVWORKSPACE_H

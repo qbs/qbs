@@ -38,12 +38,14 @@ namespace iarew {
 namespace arm {
 namespace v8 {
 
-class ArmAssemblerSettingsGroup final : public IarewSettingsPropertyGroup
+class ArmAssemblerSettingsGroup final
+        : public IarewSettingsPropertyGroup
 {
 public:
-    explicit ArmAssemblerSettingsGroup(const Project &qbsProject,
-                                       const ProductData &qbsProduct,
-                                       const std::vector<ProductData> &qbsProductDeps);
+    explicit ArmAssemblerSettingsGroup(
+            const Project &qbsProject,
+            const ProductData &qbsProduct,
+            const std::vector<ProductData> &qbsProductDeps);
 
 private:
     void buildLanguagePage(const ProductData &qbsProduct);

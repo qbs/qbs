@@ -133,25 +133,27 @@ void KeiluvGenerator::visitProject(const GeneratableProject &project)
     m_workspace = std::make_shared<KeiluvWorkspace>(m_workspaceFilePath);
 }
 
-void KeiluvGenerator::visitProjectData(const GeneratableProject &project,
-                                       const GeneratableProjectData &projectData)
+void KeiluvGenerator::visitProjectData(
+        const GeneratableProject &project,
+        const GeneratableProjectData &projectData)
 {
     Q_UNUSED(project)
     Q_UNUSED(projectData)
 }
 
-void KeiluvGenerator::visitProduct(const GeneratableProject &project,
-                                   const GeneratableProjectData &projectData,
-                                   const GeneratableProductData &productData)
+void KeiluvGenerator::visitProduct(
+        const GeneratableProject &project,
+        const GeneratableProjectData &projectData,
+        const GeneratableProductData &productData)
 {
     Q_UNUSED(projectData);
     const QString projectFilePath = targetFilePath(
                 productData, project.baseBuildDirectory().absolutePath());
-    const auto targetProject = std::make_shared<KeiluvProject>(project, productData,
-                                                               m_versionInfo);
+    const auto targetProject = std::make_shared<KeiluvProject>(
+                project, productData,  m_versionInfo);
 
     m_projects.insert({projectFilePath, targetProject});
-    m_workspace->addProjectPath(projectFilePath);
+    m_workspace->addProject(projectFilePath);
 }
 
 } // namespace qbs

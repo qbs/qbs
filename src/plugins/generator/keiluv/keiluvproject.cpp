@@ -28,7 +28,6 @@
 **
 ****************************************************************************/
 
-#include "ikeiluvnodevisitor.h"
 #include "keiluvproject.h"
 #include "keiluvutils.h"
 #include "keiluvversioninfo.h"
@@ -51,9 +50,10 @@ static QString keilProjectSchema(const KeiluvVersionInfo &info)
     }
 }
 
-KeiluvProject::KeiluvProject(const GeneratableProject &genProject,
-                             const GeneratableProductData &genProduct,
-                             const KeiluvVersionInfo &versionInfo)
+KeiluvProject::KeiluvProject(
+        const qbs::GeneratableProject &genProject,
+        const qbs::GeneratableProductData &genProduct,
+        const KeiluvVersionInfo &versionInfo)
 {
     Q_ASSERT(genProject.projects.size() == genProject.commandLines.size());
     Q_ASSERT(genProject.projects.size() == genProduct.data.size());
@@ -64,25 +64,27 @@ KeiluvProject::KeiluvProject(const GeneratableProject &genProject,
 
     // Construct schema version item (depends on a project version).
     const auto schema = keilProjectSchema(versionInfo);
-    appendChild<KeiluvProperty>(QByteArrayLiteral("SchemaVersion"),
-                                schema);
+    appendChild<gen::xml::Property>(QByteArrayLiteral("SchemaVersion"),
+                                    schema);
 
     // Construct targets group.
-    const auto targetsGroup = appendChild<KeiluvPropertyGroup>(
+    const auto targetsGroup = appendChild<gen::xml::PropertyGroup>(
                 QByteArrayLiteral("Targets"));
 
     // Construct all build target items.
     const int configsCount = std::max(genProject.projects.size(),
                                       genProduct.data.size());
     for (auto configIndex = 0; configIndex < configsCount; ++configIndex) {
-        const Project qbsProject = genProject.projects.values().at(configIndex);
-        const ProductData qbsProduct = genProduct.data.values().at(configIndex);
-        const QString confName = KeiluvUtils::buildConfigurationName(qbsProject);
-        const std::vector<ProductData> qbsProductDeps = KeiluvUtils::dependenciesOf
+        const qbs::Project qbsProject = genProject.projects
+                .values().at(configIndex);
+        const qbs::ProductData qbsProduct = genProduct.data
+                .values().at(configIndex);
+        const QString confName = gen::utils::buildConfigurationName(qbsProject);
+        const std::vector<ProductData> qbsProductDeps = gen::utils::dependenciesOf
                 (qbsProduct, genProject, confName);
 
-        const auto arch = KeiluvUtils::architecture(qbsProject);
-        if (arch == KeiluvUtils::Architecture::UnknownArchitecture)
+        const auto arch = gen::utils::architecture(qbsProject);
+        if (arch == gen::utils::Architecture::Unknown)
             throw ErrorInfo(Internal::Tr::tr("Target architecture is not set,"
                                              " please use the 'profile' option"));
 
@@ -96,7 +98,7 @@ KeiluvProject::KeiluvProject(const GeneratableProject &genProject,
         if (factoryIt == factoryEnd) {
             throw ErrorInfo(Internal::Tr::tr("Incompatible target architecture '%1'"
                                              " for KEIL UV version %2")
-                            .arg(KeiluvUtils::architectureName(arch))
+                            .arg(gen::utils::architectureName(arch))
                             .arg(versionInfo.marketingVersion()));
         }
 
@@ -104,16 +106,6 @@ KeiluvProject::KeiluvProject(const GeneratableProject &genProject,
                     qbsProject, qbsProduct, qbsProductDeps);
         targetsGroup->appendChild(std::move(targetGroup));
     }
-}
-
-void KeiluvProject::accept(IKeiluvNodeVisitor *visitor) const
-{
-    visitor->visitStart(this);
-
-    for (const auto &child : children())
-        child->accept(visitor);
-
-    visitor->visitEnd(this);
 }
 
 } // namespace qbs

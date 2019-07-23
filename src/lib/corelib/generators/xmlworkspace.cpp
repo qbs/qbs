@@ -37,20 +37,30 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_KEILUVWORKSPACE_H
-#define QBS_KEILUVWORKSPACE_H
-
-#include <generators/xmlworkspace.h>
+#include "ixmlnodevisitor.h"
+#include "xmlproperty.h"
+#include "xmlpropertygroup.h"
+#include "xmlworkspace.h"
 
 namespace qbs {
+namespace gen {
+namespace xml {
 
-class KeiluvWorkspace final : public gen::xml::Workspace
+Workspace::Workspace(const QString &workspacePath)
+    : m_baseDirectory(QFileInfo(workspacePath).absoluteDir())
 {
-public:
-    explicit KeiluvWorkspace(const QString &workspacePath);
-    void addProject(const QString &projectPath) final;
-};
+}
 
+void Workspace::accept(INodeVisitor *visitor) const
+{
+    visitor->visitStart(this);
+
+    for (const auto &child : children())
+        child->accept(visitor);
+
+    visitor->visitEnd(this);
+}
+
+} // namespace xml
+} // namespace gen
 } // namespace qbs
-
-#endif // QBS_KEILUVWORKSPACE_H

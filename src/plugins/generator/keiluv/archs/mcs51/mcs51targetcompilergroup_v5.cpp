@@ -88,7 +88,7 @@ struct CompilerPageOptions final
         const auto flags = qbs::KeiluvUtils::cppModuleCompilerFlags(qbsProps);
 
         // Warnings.
-        const QString level = qbs::KeiluvUtils::cppStringModuleProperty(
+        const QString level = gen::utils::cppStringModuleProperty(
                     qbsProps, QStringLiteral("warningLevel"));
         if (level == QLatin1String("none")) {
             warningLevel = WarningLevelNone;
@@ -101,14 +101,14 @@ struct CompilerPageOptions final
                         flags, QStringLiteral("WARNINGLEVEL"));
             bool ok = false;
             const auto level = warnValue.toInt(&ok);
-            if (ok && qbs::KeiluvUtils::inBounds(
+            if (ok && gen::utils::inBounds(
                         level, int(WarningLevelNone),int(WarningLevelTwo))) {
                 warningLevel = static_cast<WarningLevel>(level);
             }
         }
 
         // Optimizations.
-        const QString optimization = qbs::KeiluvUtils::cppStringModuleProperty(
+        const QString optimization = gen::utils::cppStringModuleProperty(
                     qbsProps, QStringLiteral("optimization"));
         if (optimization == QLatin1String("fast")) {
             optimizationEmphasis = FavorSpeedOptimizationEmphasis;
@@ -163,7 +163,7 @@ struct CompilerPageOptions final
                     flags, QStringLiteral("FLOATFUZZY"));
         bool ok = false;
         const auto bits = bitsValue.toInt(&ok);
-        if (ok && qbs::KeiluvUtils::inBounds(
+        if (ok && gen::utils::inBounds(
                     bits, int(NoFloatFuzzyBits), int(SevenFloatFuzzyBits))) {
             floatFuzzyBits = static_cast<FloatFuzzyBits>(bits);
         }
@@ -222,9 +222,9 @@ struct CompilerPageOptions final
 } // namespace
 
 Mcs51TargetCompilerGroup::Mcs51TargetCompilerGroup(
-        const Project &qbsProject,
-        const ProductData &qbsProduct)
-    : KeiluvPropertyGroup("C51")
+        const qbs::Project &qbsProject,
+        const qbs::ProductData &qbsProduct)
+    : gen::xml::PropertyGroup("C51")
 {
     const CompilerPageOptions opts(qbsProject, qbsProduct);
 
@@ -256,7 +256,7 @@ Mcs51TargetCompilerGroup::Mcs51TargetCompilerGroup(
 
     // Add other various controls.
     // Note: A sub-items order makes sense!
-    const auto variousControlsGroup = appendChild<KeiluvPropertyGroup>(
+    const auto variousControlsGroup = appendChild<gen::xml::PropertyGroup>(
                 QByteArrayLiteral("VariousControls"));
     // Add 'Misc Controls' item.
     variousControlsGroup->appendMultiLineProperty(

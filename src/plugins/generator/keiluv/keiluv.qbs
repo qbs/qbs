@@ -11,7 +11,6 @@ QbsPlugin {
     Group {
         name: "KEIL UV generator common"
         files: [
-            "ikeiluvnodevisitor.h",
             "keiluvfilesgroupspropertygroup.cpp",
             "keiluvfilesgroupspropertygroup.h",
             "keiluvgenerator.cpp",
@@ -20,10 +19,6 @@ QbsPlugin {
             "keiluvproject.h",
             "keiluvprojectwriter.cpp",
             "keiluvprojectwriter.h",
-            "keiluvproperty.cpp",
-            "keiluvproperty.h",
-            "keiluvpropertygroup.cpp",
-            "keiluvpropertygroup.h",
             "keiluvutils.cpp",
             "keiluvutils.h",
             "keiluvversioninfo.cpp",

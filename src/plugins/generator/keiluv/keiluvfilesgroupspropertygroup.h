@@ -31,19 +31,20 @@
 #ifndef QBS_KEILUVFILESGROUPSPROPERTYGROUP_H
 #define QBS_KEILUVFILESGROUPSPROPERTYGROUP_H
 
-#include "keiluvpropertygroup.h"
+#include <generators/xmlpropertygroup.h>
 
 #include <generators/generatordata.h>
 
 namespace qbs {
 
-class KeiluvFilesGroupsPropertyGroup final : public KeiluvPropertyGroup
+class KeiluvFilesGroupsPropertyGroup final
+        : public gen::xml::PropertyGroup
 {
 public:
     explicit KeiluvFilesGroupsPropertyGroup(
-            const Project &qbsProject,
-            const ProductData &qbsProduct,
-            const std::vector<ProductData> &qbsProductDeps);
+            const qbs::Project &qbsProject,
+            const qbs::ProductData &qbsProduct,
+            const std::vector<qbs::ProductData> &qbsProductDeps);
 };
 
 } // namespace qbs

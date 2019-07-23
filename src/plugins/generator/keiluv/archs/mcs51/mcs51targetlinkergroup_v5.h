@@ -31,19 +31,19 @@
 #ifndef QBS_KEILUVMCS51TARGETLINKERGROUP_V5_H
 #define QBS_KEILUVMCS51TARGETLINKERGROUP_V5_H
 
-#include "../../keiluvpropertygroup.h"
+#include <generators/xmlpropertygroup.h>
 
 namespace qbs {
 namespace keiluv {
 namespace mcs51 {
 namespace v5 {
 
-class Mcs51TargetLinkerGroup final : public KeiluvPropertyGroup
+class Mcs51TargetLinkerGroup final : public gen::xml::PropertyGroup
 {
 public:
     explicit Mcs51TargetLinkerGroup(
-            const Project &qbsProject,
-            const ProductData &qbsProduct);
+            const qbs::Project &qbsProject,
+            const qbs::ProductData &qbsProduct);
 };
 
 } // namespace v5

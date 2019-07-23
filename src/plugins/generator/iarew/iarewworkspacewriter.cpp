@@ -28,66 +28,25 @@
 **
 ****************************************************************************/
 
-#include "iarewproperty.h"
-#include "iarewpropertygroup.h"
-#include "iarewworkspace.h"
 #include "iarewworkspacewriter.h"
-
-#include <ostream>
 
 namespace qbs {
 
 IarewWorkspaceWriter::IarewWorkspaceWriter(std::ostream *device)
-    : m_device(device)
+    : gen::xml::WorkspaceWriter(device)
 {
-    m_writer.reset(new QXmlStreamWriter(&m_buffer));
-    m_writer->setAutoFormatting(true);
 }
 
-bool IarewWorkspaceWriter::write(const IarewWorkspace *workspace)
-{
-    m_buffer.clear();
-    m_writer->writeStartDocument();
-    workspace->accept(this);
-    m_writer->writeEndDocument();
-    if (m_writer->hasError())
-        return false;
-    m_device->write(&*std::begin(m_buffer), m_buffer.size());
-    return m_device->good();
-}
-
-void IarewWorkspaceWriter::visitStart(const IarewWorkspace *workspace)
+void IarewWorkspaceWriter::visitStart(const gen::xml::Workspace *workspace)
 {
     Q_UNUSED(workspace)
-    m_writer->writeStartElement(QStringLiteral("workspace"));
+    writer()->writeStartElement(QStringLiteral("workspace"));
 }
 
-void IarewWorkspaceWriter::visitEnd(const IarewWorkspace *workspace)
+void IarewWorkspaceWriter::visitEnd(const gen::xml::Workspace *workspace)
 {
     Q_UNUSED(workspace)
-    m_writer->writeEndElement();
-}
-
-void IarewWorkspaceWriter::visitStart(const IarewProperty *property)
-{
-    const QString stringValue = property->value().toString();
-    m_writer->writeTextElement(QString::fromLatin1(property->name()), stringValue);
-}
-
-void IarewWorkspaceWriter::visitEnd(const IarewProperty *property)
-{
-    Q_UNUSED(property)
-}
-
-void IarewWorkspaceWriter::visitStart(const IarewPropertyGroup *propertyGroup)
-{
-    m_writer->writeStartElement(QString::fromLatin1(propertyGroup->name()));
-}
-
-void IarewWorkspaceWriter::visitEnd(const IarewPropertyGroup *propertyGroup)
-{
-    Q_UNUSED(propertyGroup)
-    m_writer->writeEndElement();
+    writer()->writeEndElement();
 }
 
 } // namespace qbs

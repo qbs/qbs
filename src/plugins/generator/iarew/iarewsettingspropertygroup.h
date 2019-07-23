@@ -31,11 +31,11 @@
 #ifndef QBS_IAREWSETTINGSPROPERTYGROUP_H
 #define QBS_IAREWSETTINGSPROPERTYGROUP_H
 
-#include "iarewpropertygroup.h"
+#include <generators/xmlpropertygroup.h>
 
 namespace qbs {
 
-class IarewSettingsPropertyGroup : public IarewPropertyGroup
+class IarewSettingsPropertyGroup : public gen::xml::PropertyGroup
 {
 public:
     explicit IarewSettingsPropertyGroup();
@@ -55,12 +55,12 @@ protected:
 
 private:
     // Don't delete all this RAW pointers explicitly!
-    IarewProperty *m_nameProperty = nullptr;
-    IarewProperty *m_archiveVersionProperty = nullptr;
+    gen::xml::Property *m_nameProperty = nullptr;
+    gen::xml::Property *m_archiveVersionProperty = nullptr;
 
-    IarewProperty *m_dataPropertyGroup = nullptr;
-    IarewProperty *m_dataVersionProperty = nullptr;
-    IarewProperty *m_dataDebugProperty = nullptr;
+    gen::xml::Property *m_dataPropertyGroup = nullptr;
+    gen::xml::Property *m_dataVersionProperty = nullptr;
+    gen::xml::Property *m_dataDebugProperty = nullptr;
 };
 
 } // namespace qbs

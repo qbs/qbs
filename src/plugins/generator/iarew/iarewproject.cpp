@@ -33,7 +33,6 @@
 #include "iarewsourcefilespropertygroup.h"
 #include "iarewutils.h"
 #include "iarewversioninfo.h"
-#include "iiarewnodevisitor.h"
 
 #include "archs/arm/armbuildconfigurationgroup_v8.h"
 #include "archs/avr/avrbuildconfigurationgroup_v7.h"
@@ -65,28 +64,30 @@ IarewProject::IarewProject(const GeneratableProject &genProject,
     const int configsCount = std::max(genProject.projects.size(),
                                       genProduct.data.size());
     for (auto configIndex = 0; configIndex < configsCount; ++configIndex) {
-        const Project qbsProject = genProject.projects.values().at(configIndex);
+        const qbs::Project qbsProject = genProject.projects
+                .values().at(configIndex);
         const ProductData qbsProduct = genProduct.data.values().at(configIndex);
-        const QString confName = IarewUtils::buildConfigurationName(qbsProject);
-        const std::vector<ProductData> qbsProductDeps = IarewUtils::dependenciesOf
+        const QString confName = gen::utils::buildConfigurationName(qbsProject);
+        const std::vector<ProductData> qbsProductDeps = gen::utils::dependenciesOf
                 (qbsProduct, genProject, confName);
 
-        const auto arch = IarewUtils::architecture(qbsProject);
-        if (arch == IarewUtils::Architecture::UnknownArchitecture)
+        const auto arch = gen::utils::architecture(qbsProject);
+        if (arch == gen::utils::Architecture::Unknown)
             throw ErrorInfo(Internal::Tr::tr("Target architecture is not set,"
                                              " please use the 'profile' option"));
 
         // Construct the build configuration item, which are depend from
         // the architecture and the version.
         const auto factoryEnd = m_factories.cend();
-        const auto factoryIt = std::find_if(m_factories.cbegin(), factoryEnd,
-                                      [arch, versionInfo](const auto &factory) {
+        const auto factoryIt = std::find_if(
+                    m_factories.cbegin(), factoryEnd,
+                    [arch, versionInfo](const auto &factory) {
             return factory->canCreate(arch, versionInfo.version());
         });
         if (factoryIt == factoryEnd) {
             throw ErrorInfo(Internal::Tr::tr("Incompatible target architecture '%1'"
                                              " for IAR EW version %2xxx")
-                            .arg(IarewUtils::architectureName(arch))
+                            .arg(gen::utils::architectureName(arch))
                             .arg(versionInfo.marketingVersion()));
         }
         auto configGroup = (*factoryIt)->create(
@@ -118,16 +119,6 @@ IarewProject::IarewProject(const GeneratableProject &genProject,
                             genProject, group.name(), sourceArtifacts);
         }
     }
-}
-
-void IarewProject::accept(IIarewNodeVisitor *visitor) const
-{
-    visitor->visitStart(this);
-
-    for (const auto &child : children())
-        child->accept(visitor);
-
-    visitor->visitEnd(this);
 }
 
 } // namespace qbs

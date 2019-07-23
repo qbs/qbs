@@ -29,7 +29,6 @@
 ****************************************************************************/
 
 #include "iarewoptionpropertygroup.h"
-#include "iarewproperty.h"
 #include "iarewsettingspropertygroup.h"
 
 namespace qbs {
@@ -37,28 +36,30 @@ namespace qbs {
 constexpr int kDataWantNonLocalPropertyValue = 1;
 
 IarewSettingsPropertyGroup::IarewSettingsPropertyGroup()
-    : IarewPropertyGroup(QByteArrayLiteral("settings"))
+    : gen::xml::PropertyGroup(QByteArrayLiteral("settings"))
 {
     // Append name property item.
-    m_nameProperty = appendChild<IarewProperty>(
+    m_nameProperty = appendChild<gen::xml::Property>(
                 QByteArrayLiteral("name"), QVariant{});
 
     // Append archive version property item.
-    m_archiveVersionProperty = appendChild<IarewProperty>(
+    m_archiveVersionProperty = appendChild<gen::xml::Property>(
                 QByteArrayLiteral("archiveVersion"), QVariant{});
 
     // Append data property group item.
-    m_dataPropertyGroup = appendChild<IarewPropertyGroup>(
+    m_dataPropertyGroup = appendChild<gen::xml::PropertyGroup>(
                 QByteArrayLiteral("data"));
     // Append data version property item.
-    m_dataVersionProperty = m_dataPropertyGroup->appendChild<IarewProperty>(
+    m_dataVersionProperty = m_dataPropertyGroup->appendChild<
+            gen::xml::Property>(
                 QByteArrayLiteral("version"), QVariant{});
     // Append data want non-local property item.
-    m_dataPropertyGroup->appendChild<IarewProperty>(
+    m_dataPropertyGroup->appendChild<gen::xml::Property>(
                 QByteArrayLiteral("wantNonLocal"),
                 kDataWantNonLocalPropertyValue);
     // Append data debug property item.
-    m_dataDebugProperty = m_dataPropertyGroup->appendChild<IarewProperty>(
+    m_dataDebugProperty = m_dataPropertyGroup->appendChild<
+            gen::xml::Property>(
                 QByteArrayLiteral("debug"), QVariant{});
 }
 
@@ -72,7 +73,8 @@ QByteArray IarewSettingsPropertyGroup::name() const
     return m_nameProperty->value().toByteArray();
 }
 
-void IarewSettingsPropertyGroup::setArchiveVersion(int archiveVersion)
+void IarewSettingsPropertyGroup::setArchiveVersion(
+        int archiveVersion)
 {
     m_archiveVersionProperty->setValue(archiveVersion);
 }
@@ -92,9 +94,10 @@ void IarewSettingsPropertyGroup::setDataDebugInfo(int debugInfo)
     m_dataDebugProperty->setValue(debugInfo);
 }
 
-void IarewSettingsPropertyGroup::addOptionsGroup(QByteArray name,
-                                                 QVariant version,
-                                                 const QVariantList &states)
+void IarewSettingsPropertyGroup::addOptionsGroup(
+        QByteArray name,
+        QVariant version,
+        const QVariantList &states)
 {
     m_dataPropertyGroup->appendChild<IarewOptionPropertyGroup>(
                 std::move(name), std::move(version), states);

@@ -28,37 +28,43 @@
 **
 ****************************************************************************/
 
-#include "ikeiluvnodevisitor.h"
-#include "keiluvproperty.h"
-#include "keiluvpropertygroup.h"
+#ifndef GENERATORS_XML_WORKSPACE_WRITER_H
+#define GENERATORS_XML_WORKSPACE_WRITER_H
+
+#include "ixmlnodevisitor.h"
+
+#include <tools/qbs_export.h>
+
+#include <memory>
 
 namespace qbs {
+namespace gen {
+namespace xml {
 
-KeiluvPropertyGroup::KeiluvPropertyGroup(QByteArray name)
+class QBS_EXPORT WorkspaceWriter : public INodeVisitor
 {
-    setName(std::move(name));
-}
+    Q_DISABLE_COPY(WorkspaceWriter)
+public:
+    explicit WorkspaceWriter(std::ostream *device);
+    bool write(const Workspace *workspace);
 
-void KeiluvPropertyGroup::appendProperty(QByteArray name, QVariant value)
-{
-    appendChild<KeiluvProperty>(std::move(name), std::move(value));
-}
+protected:
+    QXmlStreamWriter *writer() const;
 
-void KeiluvPropertyGroup::appendMultiLineProperty(
-        QByteArray key, QStringList values, QChar sep)
-{
-    const auto line = values.join(std::move(sep));
-    appendProperty(std::move(key), QVariant::fromValue(line));
-}
+private:
+    void visitStart(const Property *property) final;
+    void visitEnd(const Property *property) final;
 
-void KeiluvPropertyGroup::accept(IKeiluvNodeVisitor *visitor) const
-{
-    visitor->visitStart(this);
+    void visitStart(const PropertyGroup *propertyGroup) final;
+    void visitEnd(const PropertyGroup *propertyGroup) final;
 
-    for (const auto &child : children())
-        child->accept(visitor);
+    std::ostream *m_device = nullptr;
+    QByteArray m_buffer;
+    std::unique_ptr<QXmlStreamWriter> m_writer;
+};
 
-    visitor->visitEnd(this);
-}
-
+} // namespace xml
+} // namespace gen
 } // namespace qbs
+
+#endif // GENERATORS_XML_WORKSPACE_WRITER_H
