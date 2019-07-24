@@ -53,7 +53,7 @@ ResolvedFileContext::ResolvedFileContext(const FileContextBase &ctx)
 bool operator==(const ResolvedFileContext &a, const ResolvedFileContext &b)
 {
     return a.filePath() == b.filePath()
-            && a.jsExtensions().toSet() == b.jsExtensions().toSet()
+            && toSet(a.jsExtensions()) == toSet(b.jsExtensions())
             && sorted(a.jsImports()) == sorted(b.jsImports());
 }
 

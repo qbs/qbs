@@ -2652,7 +2652,7 @@ void TestApi::restoredWarnings()
     waitForFinished(job.get());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     job.reset(nullptr);
-    QCOMPARE(m_logSink->warnings.toSet().size(), 2);
+    QCOMPARE(toSet(m_logSink->warnings).size(), 2);
     const auto beforeErrors = m_logSink->warnings;
     for (const qbs::ErrorInfo &e : beforeErrors) {
         const QString msg = e.toString();
@@ -2667,7 +2667,7 @@ void TestApi::restoredWarnings()
     waitForFinished(job.get());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     job.reset(nullptr);
-    QCOMPARE(m_logSink->warnings.toSet().size(), 2);
+    QCOMPARE(toSet(m_logSink->warnings).size(), 2);
     m_logSink->warnings.clear();
 
     // Re-resolving with changes: Errors come from the re-resolving, stored ones must be suppressed.
@@ -2678,7 +2678,7 @@ void TestApi::restoredWarnings()
     waitForFinished(job.get());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     job.reset(nullptr);
-    QCOMPARE(m_logSink->warnings.toSet().size(), 3); // One more for the additional group
+    QCOMPARE(toSet(m_logSink->warnings).size(), 3); // One more for the additional group
     const auto afterErrors = m_logSink->warnings;
     for (const qbs::ErrorInfo &e : afterErrors) {
         const QString msg = e.toString();

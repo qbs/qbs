@@ -241,7 +241,7 @@ bool operator==(const ResolvedModule &m1, const ResolvedModule &m2)
 {
     return m1.name == m2.name
             && m1.isProduct == m2.isProduct
-            && m1.moduleDependencies.toSet() == m2.moduleDependencies.toSet()
+            && toSet(m1.moduleDependencies) == toSet(m2.moduleDependencies)
             && m1.setupBuildEnvironmentScript == m2.setupBuildEnvironmentScript
             && m1.setupRunEnvironmentScript == m2.setupRunEnvironmentScript;
 }
