@@ -57,7 +57,8 @@ using Internal::HostOsInfo;
 
 static QStringList knownIarCompilerNames()
 {
-    return {QStringLiteral("icc8051"), QStringLiteral("iccarm"), QStringLiteral("iccavr")};
+    return {QStringLiteral("icc8051"), QStringLiteral("iccarm"),
+            QStringLiteral("iccavr"), QStringLiteral("iccstm8")};
 }
 
 static QString guessIarArchitecture(const QFileInfo &compiler)
@@ -69,6 +70,8 @@ static QString guessIarArchitecture(const QFileInfo &compiler)
         return QStringLiteral("arm");
     if (baseName == QLatin1String("iccavr"))
         return QStringLiteral("avr");
+    if (baseName == QLatin1String("iccstm8"))
+        return QStringLiteral("stm8");
     return {};
 }
 
@@ -137,7 +140,8 @@ static Version dumpIarCompilerVersion(const QFileInfo &compiler)
     if (arch == QLatin1String("arm")) {
         return Version{verCode / 1000000, (verCode / 1000) % 1000, verCode % 1000};
     } else if (arch == QLatin1String("avr")
-               || arch == QLatin1String("mcs51")) {
+               || arch == QLatin1String("mcs51")
+               || arch == QLatin1String("stm8")) {
         return Version{verCode / 100, verCode % 100};
     }
 
@@ -181,6 +185,7 @@ static std::vector<ToolchainInstallInfo> installedIarsFromRegistry()
             {QStringLiteral("EWARM"), QStringLiteral("\\arm\\bin\\iccarm.exe")},
             {QStringLiteral("EWAVR"), QStringLiteral("\\avr\\bin\\iccavr.exe")},
             {QStringLiteral("EW8051"), QStringLiteral("\\8051\\bin\\icc8051.exe")},
+            {QStringLiteral("EWSTM8"), QStringLiteral("\\stm8\\bin\\iccstm8.exe")},
         };
 
         QSettings registry(QLatin1String(kRegistryNode), QSettings::NativeFormat);

@@ -86,6 +86,8 @@ CppModule {
             return "icc8051" + compilerExtension;
         case "avr":
             return "iccavr" + compilerExtension;
+        case "stm8":
+            return "iccstm8" + compilerExtension;
         }
     }
     compilerPath: FileInfo.joinPaths(toolchainInstallPath, compilerName)
@@ -98,6 +100,8 @@ CppModule {
             return "a8051" + compilerExtension;
         case "avr":
             return "aavr" + compilerExtension;
+        case "stm8":
+            return "iasmstm8" + compilerExtension;
         }
     }
     assemblerPath: FileInfo.joinPaths(toolchainInstallPath, assemblerName)
@@ -110,6 +114,8 @@ CppModule {
             return "xlink" + compilerExtension;
         case "avr":
             return "xlink" + compilerExtension;
+        case "stm8":
+            return "ilinkstm8" + compilerExtension;
         }
     }
     linkerPath: FileInfo.joinPaths(toolchainInstallPath, linkerName)
@@ -122,6 +128,8 @@ CppModule {
             return "xlib" + compilerExtension;
         case "avr":
             return "xlib" + compilerExtension;
+        case "stm8":
+            return "iarchive" + compilerExtension;
         }
     }
     property string archiverPath: FileInfo.joinPaths(toolchainInstallPath, archiverName)
@@ -136,6 +144,8 @@ CppModule {
             return ".r51";
         case "avr":
             return ".r90";
+        case "stm8":
+            return ".a";
         }
     }
 
@@ -147,6 +157,8 @@ CppModule {
             return qbs.debugInformation ? ".d51" : ".a51";
         case "avr":
             return qbs.debugInformation ? ".d90" : ".a90";
+        case "stm8":
+            return ".out";
         }
     }
 
@@ -158,6 +170,8 @@ CppModule {
             return ".r51";
         case "avr":
             return ".r90";
+        case "stm8":
+            return ".o";
         }
     }
 
@@ -169,6 +183,8 @@ CppModule {
             return "ubrof";
         case "avr":
             return "ubrof";
+        case "stm8":
+            return "elf";
         }
     }
 
@@ -189,7 +205,7 @@ CppModule {
     }
 
     FileTagger {
-        condition: qbs.architecture === "arm";
+        condition: qbs.architecture === "arm" || qbs.architecture === "stm8";
         patterns: "*.s"
         fileTags: ["asm"]
     }

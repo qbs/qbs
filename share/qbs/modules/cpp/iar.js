@@ -47,6 +47,8 @@ function guessArchitecture(macros)
         return "mcs51";
     else if (macros["__ICCAVR__"] === "1")
         return "avr";
+    else if (macros["__ICCSTM8__"] === "1")
+        return "stm8";
 }
 
 function guessEndianness(macros)
@@ -237,6 +239,8 @@ function compilerFlags(project, product, input, output, explicitlyDependsOn) {
             args.push("--ec++");
         } else if (input.qbs.architecture === "avr") {
             args.push("--ec++");
+        } else if (input.qbs.architecture === "stm8") {
+            args.push("--ec++");
         }
     }
 
@@ -284,10 +288,20 @@ function assemblerFlags(project, product, input, output, explicitlyDependsOn) {
         args.push("-r");
 
     var warnings = input.cpp.warningLevel;
-    if (warnings === "none")
-        args.push("-w-");
-    else
-        args.push("-w+");
+    if (warnings === "none") {
+        if (input.qbs.architecture === "stm8")
+            args.push("--no_warnings");
+        else
+            args.push("-w-");
+    } else {
+        if (input.qbs.architecture !== "stm8")
+            args.push("-w+");
+    }
+
+    if (input.cpp.treatWarningsAsErrors) {
+        if (input.qbs.architecture === "stm8")
+            args.push("--warnings_are_errors");
+    }
 
     var allIncludePaths = [];
     var systemIncludePaths = input.cpp.systemIncludePaths;
@@ -300,7 +314,10 @@ function assemblerFlags(project, product, input, output, explicitlyDependsOn) {
 
     args.push("-o", output.filePath);
 
-    args.push("-S"); // Silent operation.
+    if (input.qbs.architecture === "stm8")
+        args.push("--silent"); // Silent operation.
+    else
+        args.push("-S"); // Silent operation.
 
     args = args.concat(ModUtils.moduleProperty(input, "platformFlags", tag),
                        ModUtils.moduleProperty(input, "flags", tag),
@@ -324,6 +341,8 @@ function linkerFlags(project, product, input, outputs) {
             args.push("-l", outputs.map_file[0].filePath);
         else if (product.qbs.architecture === "avr")
             args.push("-l", outputs.map_file[0].filePath);
+        else if (product.qbs.architecture === "stm8")
+            args.push("--map", outputs.map_file[0].filePath);
     }
 
     var allLibraryPaths = [];
@@ -355,6 +374,8 @@ function linkerFlags(project, product, input, outputs) {
             args.push("-f", linkerScripts[i]);
         else if (product.qbs.architecture === "avr")
             args.push("-f", linkerScripts[i]);
+        else if (product.qbs.architecture === "stm8")
+            args.push("--config", linkerScripts[i]);
     }
 
     if (product.cpp.entryPoint) {
@@ -364,6 +385,8 @@ function linkerFlags(project, product, input, outputs) {
             args.push("-s", product.cpp.entryPoint);
         else if (product.qbs.architecture === "avr")
             args.push("-s", product.cpp.entryPoint);
+        else if (product.qbs.architecture === "stm8")
+            args.push("--entry", product.cpp.entryPoint);
     }
 
     if (product.qbs.architecture === "arm")
@@ -372,6 +395,8 @@ function linkerFlags(project, product, input, outputs) {
         args.push("-S"); // Silent operation.
     else if (product.qbs.architecture === "avr")
         args.push("-S"); // Silent operation.
+    else if (product.qbs.architecture === "stm8")
+        args.push("--silent"); // Silent operation.
 
     args = args.concat(ModUtils.moduleProperty(product, "driverLinkerFlags"));
     return args;

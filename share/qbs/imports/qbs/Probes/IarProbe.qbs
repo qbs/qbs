@@ -91,6 +91,10 @@ PathProbe {
             versionMajor = parseInt(version / 100);
             versionMinor = parseInt(version % 100);
             versionPatch = 0;
+        } else if (architecture === "stm8") {
+            versionMajor = parseInt(version / 100);
+            versionMinor = parseInt(version % 100);
+            versionPatch = 0;
         }
 
         found = version && architecture && endianness;
