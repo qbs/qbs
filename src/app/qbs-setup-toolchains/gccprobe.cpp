@@ -173,9 +173,9 @@ public:
                          QStringLiteral("'%1' not found in '%2'. "
                                         "Qbs will try to find it in PATH at build time.")
                          .arg(toolName, m_compilerDirPath)));
+        } else {
+            m_profile->setValue(propertyName, filePath);
         }
-
-        m_profile->setValue(propertyName, filePath);
     }
 
 private:
