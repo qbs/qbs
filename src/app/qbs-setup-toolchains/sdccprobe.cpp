@@ -60,57 +60,20 @@ static QStringList knownSdccCompilerNames()
     return {QStringLiteral("sdcc")};
 }
 
-static QString guessSdccArchitecture(const QFileInfo &compiler)
-{
-    const auto baseName = compiler.baseName();
-    if (baseName == QLatin1String("sdcc"))
-        return QStringLiteral("mcs51");
-    return {};
-}
-
-static Profile createSdccProfileHelper(const ToolchainInstallInfo &info,
-                                       Settings *settings,
-                                       QString profileName = QString())
-{
-    const QFileInfo compiler = info.compilerPath;
-    const QString architecture = guessSdccArchitecture(compiler);
-
-    // In case the profile is auto-detected.
-    if (profileName.isEmpty()) {
-        if (!info.compilerVersion.isValid()) {
-            profileName = QStringLiteral("sdcc-unknown-%1").arg(architecture);
-        } else {
-            const QString version = info.compilerVersion.toString(QLatin1Char('_'),
-                                                                  QLatin1Char('_'));
-            profileName = QStringLiteral("sdcc-%1-%2").arg(
-                        version, architecture);
-        }
-    }
-
-    Profile profile(profileName, settings);
-    profile.setValue(QStringLiteral("cpp.toolchainInstallPath"), compiler.absolutePath());
-    profile.setValue(QStringLiteral("qbs.toolchainType"), QStringLiteral("sdcc"));
-    if (!architecture.isEmpty())
-        profile.setValue(QStringLiteral("qbs.architecture"), architecture);
-
-    qbsInfo() << Tr::tr("Profile '%1' created for '%2'.").arg(
-                     profile.name(), compiler.absoluteFilePath());
-    return profile;
-}
-
-
-static Version dumpSdccCompilerVersion(const QFileInfo &compiler)
+static QByteArray dumpSdccMacros(const QFileInfo &compiler,
+                                 const QString &targetFlag = QString())
 {
     QTemporaryFile fakeIn(QStringLiteral("XXXXXX.c"));
     if (!fakeIn.open()) {
         qbsWarning() << Tr::tr("Unable to open temporary file %1 for output: %2")
                         .arg(fakeIn.fileName(), fakeIn.errorString());
-        return Version{};
+        return {};
     }
     fakeIn.close();
 
     const QStringList args = {QStringLiteral("-dM"),
                               QStringLiteral("-E"),
+                              targetFlag,
                               fakeIn.fileName()};
     QProcess p;
     p.start(compiler.absoluteFilePath(), args);
@@ -120,10 +83,80 @@ static Version dumpSdccCompilerVersion(const QFileInfo &compiler)
         const QByteArray out = p.readAll();
         qbsWarning() << Tr::tr("Compiler dumping failed:\n%1")
                         .arg(QString::fromUtf8(out));
-        return Version{};
+        return {};
     }
 
-    const QByteArray dump = p.readAllStandardOutput();
+    return  p.readAllStandardOutput();
+}
+
+static QString dumpSdccArchitecture(const QFileInfo &compiler,
+                                    const QString &arch)
+{
+    const auto targetFlag = QStringLiteral("-m%1").arg(arch);
+    const auto token = QStringLiteral("__SDCC_%1").arg(arch);
+    const auto macros = dumpSdccMacros(compiler, targetFlag);
+    return macros.contains(token.toLatin1()) ? arch : QString();
+}
+
+static std::vector<Profile> createSdccProfileHelper(
+        const ToolchainInstallInfo &info,
+        Settings *settings,
+        const QString &profileName = QString())
+{
+    const QFileInfo compiler = info.compilerPath;
+
+    std::vector<Profile> profiles;
+
+    const char *knownArchs[] = {"mcs51", "stm8"};
+    for (const auto &knownArch : knownArchs) {
+        const auto actualArch = dumpSdccArchitecture(
+                    compiler, QString::fromLatin1(knownArch));
+        // Don't create a profile in case the compiler does
+        // not support the proposed architecture.
+        if (actualArch != QString::fromLatin1(knownArch))
+            continue;
+
+        QString fullProfileName = profileName;
+        if (fullProfileName.isEmpty()) {
+            // Create a full profile name in case we is
+            // in auto-detecting mode.
+            if (!info.compilerVersion.isValid()) {
+                fullProfileName = QStringLiteral("sdcc-unknown-%1")
+                        .arg(actualArch);
+            } else {
+                const QString version = info.compilerVersion.toString(
+                            QLatin1Char('_'), QLatin1Char('_'));
+                fullProfileName = QStringLiteral("sdcc-%1-%2").arg(
+                            version, actualArch);
+            }
+        } else {
+            // Append the detected actual architecture name
+            // to the proposed profile name.
+            fullProfileName = QStringLiteral("%1-%2").arg(
+                        fullProfileName, actualArch);
+        }
+
+        Profile profile(fullProfileName, settings);
+        profile.setValue(QStringLiteral("cpp.toolchainInstallPath"),
+                         compiler.absolutePath());
+        profile.setValue(QStringLiteral("qbs.toolchainType"),
+                         QStringLiteral("sdcc"));
+        if (!actualArch.isEmpty())
+            profile.setValue(QStringLiteral("qbs.architecture"), actualArch);
+
+        qbsInfo() << Tr::tr("Profile '%1' created for '%2'.").arg(
+                         profile.name(), compiler.absoluteFilePath());
+    }
+
+    return profiles;
+}
+
+static Version dumpSdccCompilerVersion(const QFileInfo &compiler)
+{
+    const QByteArray dump = dumpSdccMacros(compiler);
+    if (dump.isEmpty())
+        return Version{};
+
     const int major = extractVersion(dump, "__SDCC_VERSION_MAJOR ");
     const int minor = extractVersion(dump, "__SDCC_VERSION_MINOR ");
     const int patch = extractVersion(dump, "__SDCC_VERSION_PATCH ");
@@ -215,8 +248,10 @@ void sdccProbe(Settings *settings, QList<Profile> &profiles)
                    std::back_inserter(allInfos));
 
     for (const ToolchainInstallInfo &info : allInfos) {
-        const auto profile = createSdccProfileHelper(info, settings);
-        profiles.push_back(profile);
+        const auto newProfiles = createSdccProfileHelper(info, settings);
+        profiles.reserve(profiles.size() + int(newProfiles.size()));
+        std::copy(newProfiles.cbegin(), newProfiles.cend(),
+                  std::back_inserter(profiles));
     }
 
     if (allInfos.empty())
