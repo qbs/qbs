@@ -87,6 +87,8 @@ CppModule {
         switch (qbs.architecture) {
         case "mcs51":
             return "sdas8051" + compilerExtension;
+        case "stm8":
+            return "sdasstm8" + compilerExtension;
         }
     }
     assemblerPath: FileInfo.joinPaths(toolchainInstallPath, assemblerName)
@@ -95,6 +97,8 @@ CppModule {
         switch (qbs.architecture) {
         case "mcs51":
             return "sdld" + compilerExtension;
+        case "stm8":
+            return "sdldstm8" + compilerExtension;
         }
     }
     linkerPath: FileInfo.joinPaths(toolchainInstallPath, linkerName)
@@ -104,12 +108,33 @@ CppModule {
 
     runtimeLibrary: "static"
 
-    staticLibrarySuffix: ".lib"
+    staticLibrarySuffix: {
+        switch (qbs.architecture) {
+        case "mcs51":
+            return ".lib";
+        case "stm8":
+            return ".a";
+        }
+    }
     executableSuffix: ".ihx"
 
-    property string objectSuffix: ".rel"
+    property string objectSuffix: {
+        switch (qbs.architecture) {
+        case "mcs51":
+            return ".rel";
+        case "stm8":
+            return ".o";
+        }
+    }
 
-    imageFormat: "ihx"
+    imageFormat: {
+        switch (qbs.architecture) {
+        case "mcs51":
+            return "ihx";
+        case "stm8":
+            return "elf";
+        }
+    }
 
     enableExceptions: false
     enableRtti: false

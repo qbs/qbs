@@ -42,12 +42,16 @@ var WindowsUtils = require("qbs.WindowsUtils");
 function targetArchitectureFlag(architecture) {
     if (architecture === "mcs51")
         return "-mmcs51";
+    if (architecture === "stm8")
+        return "-mstm8";
 }
 
 function guessArchitecture(macros)
 {
     if (macros["__SDCC_mcs51"] === "1")
         return "mcs51";
+    if (macros["__SDCC_stm8"] === "1")
+        return "stm8";
 }
 
 function guessEndianness(macros)
