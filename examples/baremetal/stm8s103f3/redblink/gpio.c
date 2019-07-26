@@ -48,14 +48,21 @@
 **
 ****************************************************************************/
 
-import qbs
+#include "gpio.h"
+#include "system.h"
 
-Project {
-    name: "BareMetal"
-    references: [
-        "stm32f4discovery/stm32f4discovery.qbs",
-        "at90can128olimex/at90can128olimex.qbs",
-        "cc2540usbdongle/cc2540usbdongle.qbs",
-        "stm8s103f3/stm8s103f3.qbs",
-    ]
+// A LED is connected to the pin #5 of Port B.
+#define GPIO_RED_LED_PIN_POS   (0x20u)
+
+void gpio_init_red_led(void)
+{
+    PB_ODR = 0x00; // Turn off all pins.
+    PB_DDR = GPIO_RED_LED_PIN_POS; // Configure Pin as output.
+    PB_CR1 = GPIO_RED_LED_PIN_POS; // Set Pin to Push-Pull.
+    PB_CR2 = GPIO_RED_LED_PIN_POS; // Set Pin to Push-Pull.
+}
+
+void gpio_toggle_red_led(void)
+{
+    PB_ODR ^= GPIO_RED_LED_PIN_POS;
 }

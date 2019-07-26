@@ -50,12 +50,53 @@
 
 import qbs
 
-Project {
-    name: "BareMetal"
-    references: [
-        "stm32f4discovery/stm32f4discovery.qbs",
-        "at90can128olimex/at90can128olimex.qbs",
-        "cc2540usbdongle/cc2540usbdongle.qbs",
-        "stm8s103f3/stm8s103f3.qbs",
-    ]
+CppApplication {
+    condition: {
+        if (!qbs.architecture.contains("stm8"))
+            return false;
+        return qbs.toolchain.contains("iar")
+    }
+    name: "stm8s103f3-redblink"
+    cpp.positionIndependentCode: false
+
+    //
+    // IAR-specific properties and sources.
+    //
+
+    Properties {
+        condition: qbs.toolchain.contains("iar")
+        cpp.commonCompilerFlags: ["-e"]
+        cpp.driverLinkerFlags: [
+            "--config_def", "_CSTACK_SIZE=0x100",
+            "--config_def", "_HEAP_SIZE=0x100",
+        ]
+    }
+
+    Group {
+        condition: qbs.toolchain.contains("iar")
+        name: "IAR"
+        prefix: "iar/"
+        Group {
+            name: "Linker Script"
+            prefix: cpp.toolchainInstallPath + "/../config/"
+            fileTags: ["linkerscript"]
+            files: ["lnkstm8s103f3.icf"]
+        }
+    }
+
+    //
+    // Common code.
+    //
+
+    Group {
+        name: "Gpio"
+        files: ["gpio.c", "gpio.h"]
+    }
+
+    Group {
+        name: "System"
+        files: ["system.h"]
+    }
+
+    files: ["main.c"]
 }

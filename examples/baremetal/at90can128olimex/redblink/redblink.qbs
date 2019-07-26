@@ -57,7 +57,7 @@ CppApplication {
         return qbs.toolchain.contains("gcc")
             || qbs.toolchain.contains("iar")
     }
-    name: "redblink"
+    name: "at90can128olimex-redblink"
     cpp.cLanguageVersion: "c99"
     cpp.positionIndependentCode: false
 

@@ -58,7 +58,7 @@ CppApplication {
             || qbs.toolchain.contains("keil")
             || qbs.toolchain.contains("sdcc")
     }
-    name: "greenblink"
+    name: "cc2540usbdongle-greenblink"
     cpp.positionIndependentCode: false
 
     //
