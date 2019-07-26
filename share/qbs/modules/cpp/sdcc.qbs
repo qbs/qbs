@@ -108,33 +108,12 @@ CppModule {
 
     runtimeLibrary: "static"
 
-    staticLibrarySuffix: {
-        switch (qbs.architecture) {
-        case "mcs51":
-            return ".lib";
-        case "stm8":
-            return ".a";
-        }
-    }
+    staticLibrarySuffix: ".lib"
     executableSuffix: ".ihx"
 
-    property string objectSuffix: {
-        switch (qbs.architecture) {
-        case "mcs51":
-            return ".rel";
-        case "stm8":
-            return ".o";
-        }
-    }
+    property string objectSuffix: ".rel"
 
-    imageFormat: {
-        switch (qbs.architecture) {
-        case "mcs51":
-            return "ihx";
-        case "stm8":
-            return "elf";
-        }
-    }
+    imageFormat: "ihx"
 
     enableExceptions: false
     enableRtti: false

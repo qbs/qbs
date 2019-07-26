@@ -192,6 +192,10 @@ function compilerFlags(project, product, input, output, explicitlyDependsOn) {
     args.push("-c");
     args.push("-o", output.filePath);
 
+    var targetFlag = targetArchitectureFlag(input.cpp.architecture);
+    if (targetFlag)
+        args.push(targetFlag);
+
     switch (input.cpp.optimization) {
     case "small":
         args.push("--opt-code-size");
@@ -276,6 +280,10 @@ function assemblerFlags(project, product, input, output, explicitlyDependsOn) {
 
 function linkerFlags(project, product, input, outputs) {
     var args = [];
+
+    var targetFlag = targetArchitectureFlag(product.cpp.architecture);
+    if (targetFlag)
+        args.push(targetFlag);
 
     var allLibraryPaths = [];
     var libraryPaths = product.cpp.libraryPaths;
