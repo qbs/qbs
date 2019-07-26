@@ -104,7 +104,7 @@ Module {
                         to the compiler. if undefined, compiler defaults will be used."
     }
 
-    property string minimumIosVersion
+    property string minimumIosVersion: qbs.architecture == "armv7a" ? "6.0" : undefined
     PropertyOptions {
         name: "minimumIosVersion"
         description: "a version number in the format [major].[minor] indicating the earliest \
@@ -120,7 +120,7 @@ Module {
                         defaults will be used."
     }
 
-    property string minimumTvosVersion
+    property string minimumTvosVersion: "6.0"
     PropertyOptions {
         name: "minimumTvosVersion"
         description: "a version number in the format [major].[minor] indicating the earliest \

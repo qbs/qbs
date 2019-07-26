@@ -58,6 +58,17 @@ function guessEndianness(macros)
     return "big"
 }
 
+function cppLanguageOption(compilerFilePath)
+{
+    var baseName = FileInfo.baseName(compilerFilePath);
+    if (baseName === "iccarm")
+        return "--c++";
+    if (baseName === "icc8051" || baseName === "iccavr")
+        return "--ec++";
+    throw "Unable to deduce C++ language option for unsupported compiler: '"
+            + FileInfo.toNativeSeparators(compilerFilePath) + "'";
+}
+
 function dumpMacros(compilerFilePath, tag) {
     var tempDir = new TemporaryDir();
     var inFilePath = FileInfo.fromNativeSeparators(tempDir.path() + "/empty-source.c");
@@ -66,7 +77,7 @@ function dumpMacros(compilerFilePath, tag) {
 
     var args = [ inFilePath, "--predef_macros", outFilePath ];
     if (tag && tag === "cpp")
-        args.push("--c++");
+        args.push(cppLanguageOption(compilerFilePath));
 
     var p = new Process();
     p.exec(compilerFilePath, args, true);
@@ -86,7 +97,7 @@ function dumpDefaultPaths(compilerFilePath, tag) {
 
     var args = [ inFilePath, "--preinclude", "." ];
     if (tag === "cpp")
-        args.push("--c++");
+        args.push(cppLanguageOption(compilerFilePath));
 
     var p = new Process();
     // This process should return an error, don't throw

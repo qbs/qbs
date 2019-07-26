@@ -42,6 +42,7 @@
 
 #include <tools/codelocation.h>
 #include <tools/persistence.h>
+#include <tools/qttools.h>
 
 #include <QtCore/qhash.h>
 #include <QtCore/qstringlist.h>
@@ -79,7 +80,7 @@ inline bool operator<(const JsImport &lhs, const JsImport &rhs)
 
 inline bool operator==(const JsImport &jsi1, const JsImport &jsi2)
 {
-    return jsi1.scopeName == jsi2.scopeName && jsi1.filePaths.toSet() == jsi2.filePaths.toSet();
+    return jsi1.scopeName == jsi2.scopeName && toSet(jsi1.filePaths) == toSet(jsi2.filePaths);
 }
 
 using JsImports = std::vector<JsImport>;
