@@ -111,8 +111,7 @@ CppApplication {
 
     Properties {
         condition: qbs.toolchain.contains("sdcc")
-        cpp.commonCompilerFlags: ["-mmcs51"]
-    }
+     }
 
     //
     // Common code.
