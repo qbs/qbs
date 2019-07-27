@@ -55,6 +55,7 @@ CppApplication {
         if (!qbs.architecture.contains("stm8"))
             return false;
         return qbs.toolchain.contains("iar")
+            || qbs.toolchain.contains("sdcc")
     }
     name: "stm8s103f3-redblink"
     cpp.positionIndependentCode: false
@@ -82,6 +83,14 @@ CppApplication {
             fileTags: ["linkerscript"]
             files: ["lnkstm8s103f3.icf"]
         }
+    }
+
+    //
+    // SDCC-specific properties and sources.
+    //
+
+    Properties {
+        condition: qbs.toolchain.contains("sdcc")
     }
 
     //

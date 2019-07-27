@@ -55,17 +55,27 @@
 extern "C" {
 #endif
 
+// Define required registers of Port B (where the LED is connected):
+// * PB_ODR - Output Data Register.
+// * PB_DDR - Data Direction Register.
+// * PB_CR1 - Control Register #1.
+// * PB_CR2 - Control Register #2.
+
 #if defined(__ICCSTM8__)
 # define system_nop() __asm("nop")
-# define DEFINE_REG(name,addr) __near __no_init volatile unsigned char name @ addr;
+__near __no_init volatile unsigned char PB_ODR @ 0x5005;
+__near __no_init volatile unsigned char PB_DDR @ 0x5007;
+__near __no_init volatile unsigned char PB_CR1 @ 0x5008;
+__near __no_init volatile unsigned char PB_CR2 @ 0x5009;
+#elif defined (__SDCC_stm8)
+# define system_nop() __asm nop __endasm
+#define PB_ODR *(volatile unsigned char *)0x5005
+#define PB_DDR *(volatile unsigned char *)0x5007
+#define PB_CR1 *(volatile unsigned char *)0x5008
+#define PB_CR2 *(volatile unsigned char *)0x5009
 #else
 #error "Unsupported toolchain"
 #endif
-
-DEFINE_REG(PB_ODR, 0x5005) // Output Data Register of Port B.
-DEFINE_REG(PB_DDR, 0x5007) // Data Direction Register of Port B.
-DEFINE_REG(PB_CR1, 0x5008) // Control Register #1 of Port B.
-DEFINE_REG(PB_CR2, 0x5009) // Control Register #2 of Port B.
 
 #ifdef __cplusplus
 }
