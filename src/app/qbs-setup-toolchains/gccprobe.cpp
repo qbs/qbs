@@ -294,6 +294,85 @@ static QStringList gnuRegistrySearchPaths()
     return searchPaths;
 }
 
+static QStringList atmelRegistrySearchPaths()
+{
+    if (!HostOsInfo::isWindowsHost())
+        return {};
+
+    // Registry token for the "Atmel" toolchains, e.g. provided by installed
+    // "Atmel Studio" IDE.
+    static const char kRegistryToken[] = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Atmel\\";
+
+    QStringList searchPaths;
+    QSettings registry(QLatin1String(kRegistryToken), QSettings::NativeFormat);
+
+    // This code enumerate the installed toolchains provided
+    // by the Atmel Studio v6.x.
+    const auto toolchainGroups = registry.childGroups();
+    for (const QString &toolchainKey : toolchainGroups) {
+        if (!toolchainKey.endsWith(QLatin1String("GCC")))
+            continue;
+        registry.beginGroup(toolchainKey);
+        const auto entries = registry.childGroups();
+        for (const auto &entryKey : entries) {
+            registry.beginGroup(entryKey);
+            const QString installDir = registry.value(
+                        QStringLiteral("Native/InstallDir")).toString();
+            const QString version = registry.value(
+                        QStringLiteral("Native/Version")).toString();
+            registry.endGroup();
+
+            QString toolchainPath = installDir
+                    + QLatin1String("/Atmel Toolchain/")
+                    + toolchainKey + QLatin1String("/Native/")
+                    + version;
+            if (toolchainKey.startsWith(QLatin1String("ARM")))
+                toolchainPath += QLatin1String("/arm-gnu-toolchain");
+            else if (toolchainKey.startsWith(QLatin1String("AVR32")))
+                toolchainPath += QLatin1String("/avr32-gnu-toolchain");
+            else if (toolchainKey.startsWith(QLatin1String("AVR8)")))
+                toolchainPath += QLatin1String("/avr8-gnu-toolchain");
+            else
+                break;
+
+            toolchainPath += QLatin1String("/bin");
+
+            if (QFileInfo::exists(toolchainPath)) {
+                searchPaths.push_back(toolchainPath);
+                break;
+            }
+        }
+        registry.endGroup();
+    }
+
+    // This code enumerate the installed toolchains provided
+    // by the Atmel Studio v7.
+    registry.beginGroup(QStringLiteral("AtmelStudio"));
+    const auto productVersions = registry.childGroups();
+    for (const auto &productVersionKey : productVersions) {
+        registry.beginGroup(productVersionKey);
+        const QString installDir = registry.value(
+                    QStringLiteral("InstallDir")).toString();
+        registry.endGroup();
+
+        const QStringList knownToolchainSubdirs = {
+            QStringLiteral("/toolchain/arm/arm-gnu-toolchain/bin/"),
+            QStringLiteral("/toolchain/avr8/avr8-gnu-toolchain/bin/"),
+            QStringLiteral("/toolchain/avr32/avr32-gnu-toolchain/bin/"),
+        };
+
+        for (const auto &subdir : knownToolchainSubdirs) {
+            const QString toolchainPath = installDir + subdir;
+            if (!QFileInfo::exists(toolchainPath))
+                continue;
+            searchPaths.push_back(toolchainPath);
+        }
+    }
+    registry.endGroup();
+
+    return searchPaths;
+}
+
 Profile createGccProfile(const QFileInfo &compiler, Settings *settings,
                          const QStringList &toolchainTypes,
                          const QString &profileName)
@@ -342,7 +421,8 @@ void gccProbe(Settings *settings, QList<Profile> &profiles, const QString &compi
     qbsInfo() << Tr::tr("Trying to detect %1...").arg(compilerName);
 
     QStringList searchPaths;
-    searchPaths << systemSearchPaths() << gnuRegistrySearchPaths();
+    searchPaths << systemSearchPaths() << gnuRegistrySearchPaths()
+                << atmelRegistrySearchPaths();
 
     std::vector<QFileInfo> candidates;
     const auto filters = buildCompilerNameFilters(compilerName);
