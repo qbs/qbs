@@ -241,6 +241,8 @@ static QStringList buildCompilerNameFilters(const QString &compilerName)
         compilerName + QLatin1String("-[1-9]*"),
         // "avr-gcc"
         QLatin1String("*-") + compilerName,
+        // "avr-gcc-5.4.0"
+        QLatin1String("*-") + compilerName + QLatin1String("-[1-9]*"),
         // "arm-none-eabi-gcc"
         QLatin1String("*-*-*-") + compilerName,
         // "arm-none-eabi-gcc-9.1.0"
