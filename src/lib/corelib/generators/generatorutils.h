@@ -44,6 +44,7 @@ enum class Architecture {
     Arm,
     Avr,
     Mcs51,
+    Stm8,
     Unknown
 };
 

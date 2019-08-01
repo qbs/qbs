@@ -37,6 +37,7 @@
 #include "archs/arm/armbuildconfigurationgroup_v8.h"
 #include "archs/avr/avrbuildconfigurationgroup_v7.h"
 #include "archs/mcs51/mcs51buildconfigurationgroup_v10.h"
+#include "archs/stm8/stm8buildconfigurationgroup_v3.h"
 
 #include <logging/translator.h>
 
@@ -56,6 +57,8 @@ IarewProject::IarewProject(const GeneratableProject &genProject,
                           iarew::avr::v7::AvrBuildConfigurationGroupFactory>());
     m_factories.push_back(std::make_unique<
                           iarew::mcs51::v10::Mcs51BuildConfigurationGroupFactory>());
+    m_factories.push_back(std::make_unique<
+                          iarew::stm8::v3::Stm8BuildConfigurationGroupFactory>());
 
     // Construct file version item.
     appendChild<IarewFileVersionProperty>(versionInfo);

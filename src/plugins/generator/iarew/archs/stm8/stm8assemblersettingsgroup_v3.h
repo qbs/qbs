@@ -28,48 +28,35 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_IAREWUTILS_H
-#define QBS_IAREWUTILS_H
+#ifndef QBS_IAREWSTM8ASSEMBLERSETTINGSGROUP_V3_H
+#define QBS_IAREWSTM8ASSEMBLERSETTINGSGROUP_V3_H
 
-#include <qbs.h>
-
-#include <tools/stringconstants.h>
+#include "../../iarewsettingspropertygroup.h"
 
 namespace qbs {
-namespace IarewUtils {
+namespace iarew {
+namespace stm8 {
+namespace v3 {
 
-enum OutputBinaryType {
-    ApplicationOutputType,
-    LibraryOutputType
+class Stm8AssemblerSettingsGroup final : public IarewSettingsPropertyGroup
+{
+public:
+    explicit Stm8AssemblerSettingsGroup(
+            const Project &qbsProject,
+            const ProductData &qbsProduct,
+            const std::vector<ProductData> &qbsProductDeps);
+
+private:
+    void buildLanguagePage(const ProductData &qbsProduct);
+    void buildOutputPage(const ProductData &qbsProduct);
+    void buildPreprocessorPage(const QString &baseDirectory,
+                               const ProductData &qbsProduct);
+    void buildDiagnosticsPage(const ProductData &qbsProduct);
 };
 
-OutputBinaryType outputBinaryType(const ProductData &qbsProduct);
-
-QString toolkitRootPath(const ProductData &qbsProduct);
-
-QString dlibToolkitRootPath(const ProductData &qbsProduct);
-
-QString clibToolkitRootPath(const ProductData &qbsProduct);
-
-QString libToolkitRootPath(const ProductData &qbsProduct);
-
-QString toolkitRelativeFilePath(const QString &basePath,
-                                const QString &fullFilePath);
-
-QString projectRelativeFilePath(const QString &basePath,
-                                const QString &fullFilePath);
-
-QString flagValue(const QStringList &flags, const QString &flagKey);
-
-QVariantList flagValues(const QStringList &flags, const QString &flagKey);
-
-QStringList cppModuleCompilerFlags(const PropertyMap &qbsProps);
-
-QStringList cppModuleAssemblerFlags(const PropertyMap &qbsProps);
-
-QStringList cppModuleLinkerFlags(const PropertyMap &qbsProps);
-
-} // namespace IarewUtils
+} // namespace v3
+} // namespace stm8
+} // namespace iarew
 } // namespace qbs
 
-#endif // QBS_IAREWUTILS_H
+#endif // QBS_IAREWSTM8ASSEMBLERSETTINGSGROUP_V3_H

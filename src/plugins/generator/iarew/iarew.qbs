@@ -93,4 +93,22 @@ QbsPlugin {
             "mcs51linkersettingsgroup_v10.h",
         ]
     }
+    Group {
+        name: "IAR EW generator for STM8"
+        prefix: "archs/stm8/"
+        files: [
+            "stm8archiversettingsgroup_v3.cpp",
+            "stm8archiversettingsgroup_v3.h",
+            "stm8assemblersettingsgroup_v3.cpp",
+            "stm8assemblersettingsgroup_v3.h",
+            "stm8buildconfigurationgroup_v3.cpp",
+            "stm8buildconfigurationgroup_v3.h",
+            "stm8compilersettingsgroup_v3.cpp",
+            "stm8compilersettingsgroup_v3.h",
+            "stm8generalsettingsgroup_v3.cpp",
+            "stm8generalsettingsgroup_v3.h",
+            "stm8linkersettingsgroup_v3.cpp",
+            "stm8linkersettingsgroup_v3.h",
+        ]
+    }
 }

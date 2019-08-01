@@ -28,48 +28,45 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_IAREWUTILS_H
-#define QBS_IAREWUTILS_H
+#ifndef QBS_IAREWSTM8BUILDCONFIGURATIONGROUP_V3_H
+#define QBS_IAREWSTM8BUILDCONFIGURATIONGROUP_V3_H
 
-#include <qbs.h>
-
-#include <tools/stringconstants.h>
+#include <generators/generatorutils.h>
+#include <generators/xmlpropertygroup.h>
 
 namespace qbs {
-namespace IarewUtils {
+namespace iarew {
+namespace stm8 {
+namespace v3 {
 
-enum OutputBinaryType {
-    ApplicationOutputType,
-    LibraryOutputType
+class Stm8BuildConfigurationGroup final
+        : public gen::xml::PropertyGroup
+{
+private:
+    explicit Stm8BuildConfigurationGroup(
+            const Project &qbsProject,
+            const ProductData &qbsProduct,
+            const std::vector<ProductData> &qbsProductDeps);
+
+    friend class Stm8BuildConfigurationGroupFactory;
 };
 
-OutputBinaryType outputBinaryType(const ProductData &qbsProduct);
+class Stm8BuildConfigurationGroupFactory final
+        : public gen::xml::PropertyGroupFactory
+{
+public:
+    bool canCreate(gen::utils::Architecture arch,
+                   const Version &version) const final;
 
-QString toolkitRootPath(const ProductData &qbsProduct);
+    std::unique_ptr<gen::xml::PropertyGroup> create(
+            const Project &qbsProject,
+            const ProductData &qbsProduct,
+            const std::vector<ProductData> &qbsProductDeps) const final;
+};
 
-QString dlibToolkitRootPath(const ProductData &qbsProduct);
-
-QString clibToolkitRootPath(const ProductData &qbsProduct);
-
-QString libToolkitRootPath(const ProductData &qbsProduct);
-
-QString toolkitRelativeFilePath(const QString &basePath,
-                                const QString &fullFilePath);
-
-QString projectRelativeFilePath(const QString &basePath,
-                                const QString &fullFilePath);
-
-QString flagValue(const QStringList &flags, const QString &flagKey);
-
-QVariantList flagValues(const QStringList &flags, const QString &flagKey);
-
-QStringList cppModuleCompilerFlags(const PropertyMap &qbsProps);
-
-QStringList cppModuleAssemblerFlags(const PropertyMap &qbsProps);
-
-QStringList cppModuleLinkerFlags(const PropertyMap &qbsProps);
-
-} // namespace IarewUtils
+} // namespace v3
+} // namespace stm8
+} // namespace iarew
 } // namespace qbs
 
-#endif // QBS_IAREWUTILS_H
+#endif // QBS_IAREWSTM8BUILDCONFIGURATIONGROUP_V3_H

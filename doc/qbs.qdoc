@@ -1768,7 +1768,8 @@
     \header \li Generator       \li IAR EW Version      \li Target Architecture
     \row    \li iarew8          \li All 8.x.y versions  \li ARM
     \row    \li iarew7          \li All 7.x.y versions  \li AVR
-    \row    \li iarew10         \li All 10.x.y versions  \li 8051 (aka MCS51)
+    \row    \li iarew10         \li All 10.x.y versions \li 8051 (aka MCS51)
+    \row    \li iarew3          \li All 3.x.y versions  \li STM8
     \endtable
 
     \section1 Generating Clang Compilation Databases

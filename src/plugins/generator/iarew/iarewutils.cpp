@@ -55,6 +55,11 @@ QString clibToolkitRootPath(const ProductData &qbsProduct)
     return toolkitRootPath(qbsProduct) + QLatin1String("/lib/clib");
 }
 
+QString libToolkitRootPath(const ProductData &qbsProduct)
+{
+    return toolkitRootPath(qbsProduct) + QLatin1String("/lib");
+}
+
 QString toolkitRelativeFilePath(const QString &basePath,
                                 const QString &fullFilePath)
 {

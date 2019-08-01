@@ -95,3 +95,21 @@ SOURCES += \
     $$PWD/archs/mcs51/mcs51compilersettingsgroup_v10.cpp \
     $$PWD/archs/mcs51/mcs51generalsettingsgroup_v10.cpp \
     $$PWD/archs/mcs51/mcs51linkersettingsgroup_v10.cpp
+
+# For STM8 architecture.
+
+HEADERS += \
+    $$PWD/archs/stm8/stm8archiversettingsgroup_v3.h \
+    $$PWD/archs/stm8/stm8assemblersettingsgroup_v3.h \
+    $$PWD/archs/stm8/stm8buildconfigurationgroup_v3.h \
+    $$PWD/archs/stm8/stm8compilersettingsgroup_v3.h \
+    $$PWD/archs/stm8/stm8generalsettingsgroup_v3.h \
+    $$PWD/archs/stm8/stm8linkersettingsgroup_v3.h
+
+SOURCES += \
+    $$PWD/archs/stm8/stm8archiversettingsgroup_v3.cpp \
+    $$PWD/archs/stm8/stm8assemblersettingsgroup_v3.cpp \
+    $$PWD/archs/stm8/stm8buildconfigurationgroup_v3.cpp \
+    $$PWD/archs/stm8/stm8compilersettingsgroup_v3.cpp \
+    $$PWD/archs/stm8/stm8generalsettingsgroup_v3.cpp \
+    $$PWD/archs/stm8/stm8linkersettingsgroup_v3.cpp
