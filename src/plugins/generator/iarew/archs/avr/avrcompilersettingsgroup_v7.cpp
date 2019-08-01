@@ -339,6 +339,7 @@ AvrCompilerSettingsGroup::AvrCompilerSettingsGroup(
     buildOptimizationsPage(qbsProduct);
     buildPreprocessorPage(buildRootDirectory, qbsProduct);
     buildDiagnosticsPage(qbsProduct);
+    buildCodePage(qbsProduct);
 }
 
 void AvrCompilerSettingsGroup::buildOutputPage(
