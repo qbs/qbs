@@ -28,24 +28,23 @@
 **
 ****************************************************************************/
 
-#include "mcs51buildtargetgroup_v5.h"
-#include "mcs51commonpropertygroup_v5.h"
-#include "mcs51debugoptiongroup_v5.h"
-#include "mcs51dlloptiongroup_v5.h"
-#include "mcs51targetcommonoptionsgroup_v5.h"
-#include "mcs51targetgroup_v5.h"
-#include "mcs51utilitiesgroup_v5.h"
-#include "mcs51utils.h"
+#include "armbuildtargetgroup_v5.h"
+#include "armcommonpropertygroup_v5.h"
+#include "armdebugoptiongroup_v5.h"
+#include "armdlloptiongroup_v5.h"
+#include "armtargetcommonoptionsgroup_v5.h"
+#include "armtargetgroup_v5.h"
+#include "armutilitiesgroup_v5.h"
 
 #include "../../keiluvconstants.h"
 #include "../../keiluvfilesgroupspropertygroup.h"
 
 namespace qbs {
 namespace keiluv {
-namespace mcs51 {
+namespace arm {
 namespace v5 {
 
-Mcs51BuildTargetGroup::Mcs51BuildTargetGroup(
+ArmBuildTargetGroup::ArmBuildTargetGroup(
         const qbs::Project &qbsProject,
         const qbs::ProductData &qbsProduct,
         const std::vector<qbs::ProductData> &qbsProductDeps)
@@ -57,26 +56,26 @@ Mcs51BuildTargetGroup::Mcs51BuildTargetGroup(
     appendProperty(QByteArrayLiteral("TargetName"), targetName);
     // Append toolset number group item.
     appendChild<gen::xml::Property>(QByteArrayLiteral("ToolsetNumber"),
-                                    QByteArrayLiteral("0x0"));
+                                    QByteArrayLiteral("0x4"));
     // Append toolset name group item.
     appendChild<gen::xml::Property>(QByteArrayLiteral("ToolsetName"),
-                                    QByteArrayLiteral("MCS-51"));
+                                    QByteArrayLiteral("ARM-ADS"));
 
     // Append target option group item.
     const auto targetOptionGroup = appendChild<gen::xml::PropertyGroup>(
                 QByteArrayLiteral("TargetOption"));
 
-    targetOptionGroup->appendChild<Mcs51TargetCommonOptionsGroup>(
+    targetOptionGroup->appendChild<ArmTargetCommonOptionsGroup>(
                 qbsProject, qbsProduct);
-    targetOptionGroup->appendChild<Mcs51CommonPropertyGroup>(
+    targetOptionGroup->appendChild<ArmCommonPropertyGroup>(
                 qbsProject, qbsProduct);
-    targetOptionGroup->appendChild<Mcs51DllOptionGroup>(
+    targetOptionGroup->appendChild<ArmDllOptionGroup>(
                 qbsProject, qbsProduct);
-    targetOptionGroup->appendChild<Mcs51DebugOptionGroup>(
+    targetOptionGroup->appendChild<ArmDebugOptionGroup>(
                 qbsProject, qbsProduct);
-    targetOptionGroup->appendChild<Mcs51UtilitiesGroup>(
+    targetOptionGroup->appendChild<ArmUtilitiesGroup>(
                 qbsProject, qbsProduct);
-    targetOptionGroup->appendChild<Mcs51TargetGroup>(
+    targetOptionGroup->appendChild<ArmTargetGroup>(
                 qbsProject, qbsProduct);
 
     // Append files group.
@@ -84,26 +83,26 @@ Mcs51BuildTargetGroup::Mcs51BuildTargetGroup(
                                                 qbsProductDeps);
 }
 
-bool Mcs51BuildTargetGroupFactory::canCreate(
+bool ArmBuildTargetGroupFactory::canCreate(
         gen::utils::Architecture arch,
         const Version &version) const
 {
-    return arch == gen::utils::Architecture::Mcs51
+    return arch == gen::utils::Architecture::Arm
             && version.majorVersion() == qbs::KeiluvConstants::v5::kUVisionVersion;
 }
 
 std::unique_ptr<gen::xml::PropertyGroup>
-Mcs51BuildTargetGroupFactory::create(
+ArmBuildTargetGroupFactory::create(
         const qbs::Project &qbsProject,
         const qbs::ProductData &qbsProduct,
         const std::vector<qbs::ProductData> &qbsProductDeps) const
 {
-    const auto group = new Mcs51BuildTargetGroup(
+    const auto group = new ArmBuildTargetGroup(
                 qbsProject, qbsProduct, qbsProductDeps);
-    return std::unique_ptr<Mcs51BuildTargetGroup>(group);
+    return std::unique_ptr<ArmBuildTargetGroup>(group);
 }
 
 } // namespace v5
-} // namespace mcs51
+} // namespace arm
 } // namespace keiluv
 } // namespace qbs

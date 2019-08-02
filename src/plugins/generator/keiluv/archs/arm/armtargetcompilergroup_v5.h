@@ -28,29 +28,27 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_KEILUVMCS51UTILS_H
-#define QBS_KEILUVMCS51UTILS_H
+#ifndef QBS_KEILUVARMTARGETCOMPILERGROUP_V5_H
+#define QBS_KEILUVARMTARGETCOMPILERGROUP_V5_H
 
-#include <QtCore/qstringlist.h>
+#include <generators/xmlpropertygroup.h>
 
 namespace qbs {
-
 namespace keiluv {
-namespace mcs51 {
+namespace arm {
+namespace v5 {
 
-namespace KeiluvUtils {
+class ArmTargetCompilerGroup final : public gen::xml::PropertyGroup
+{
+public:
+    explicit ArmTargetCompilerGroup(
+            const qbs::Project &qbsProject,
+            const qbs::ProductData &qbsProduct);
+};
 
-QStringList flagValues(const QStringList &flags, const QString &flagKey);
-
-QString flagValue(const QStringList &flags, const QString &flagKey);
-
-QStringList flagValueParts(const QString &flagValue,
-                           const QLatin1Char &sep = QLatin1Char(','));
-
-} // namespace KeiluvUtils
-
-} // namespace mcs51
+} // namespace v5
+} // namespace arm
 } // namespace keiluv
 } // namespace qbs
 
-#endif // QBS_KEILUVMCS51UTILS_H
+#endif // QBS_KEILUVARMTARGETCOMPILERGROUP_V5_H

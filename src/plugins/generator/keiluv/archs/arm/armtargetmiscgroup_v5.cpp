@@ -28,29 +28,48 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_KEILUVMCS51UTILS_H
-#define QBS_KEILUVMCS51UTILS_H
+#include "armtargetmiscgroup_v5.h"
 
-#include <QtCore/qstringlist.h>
+#include "../../keiluvutils.h"
 
 namespace qbs {
-
 namespace keiluv {
-namespace mcs51 {
+namespace arm {
+namespace v5 {
 
-namespace KeiluvUtils {
+namespace {
 
-QStringList flagValues(const QStringList &flags, const QString &flagKey);
+struct MiscPageOptions final
+{
+    explicit MiscPageOptions(const Project &qbsProject,
+                             const ProductData &qbsProduct)
+    {
+        Q_UNUSED(qbsProject)
 
-QString flagValue(const QStringList &flags, const QString &flagKey);
+        const auto &qbsProps = qbsProduct.moduleProperties();
+        const auto flags = qbs::KeiluvUtils::cppModuleCompilerFlags(qbsProps);
 
-QStringList flagValueParts(const QString &flagValue,
-                           const QLatin1Char &sep = QLatin1Char(','));
+        generateLinkerMap = gen::utils::cppBooleanModuleProperty(
+                    qbsProps, QStringLiteral("generateMapFile"));
+    }
 
-} // namespace KeiluvUtils
+    int generateLinkerMap = 0;
+};
 
-} // namespace mcs51
+} // namespace
+
+ArmTargetMiscGroup::ArmTargetMiscGroup(
+        const qbs::Project &qbsProject,
+        const qbs::ProductData &qbsProduct)
+    : gen::xml::PropertyGroup("ArmAdsMisc")
+{
+    const MiscPageOptions opts(qbsProject, qbsProduct);
+
+    // Add 'Generate linker map file' item.
+    appendProperty(QByteArrayLiteral("AdsLLst"), opts.generateLinkerMap);
+}
+
+} // namespace v5
+} // namespace arm
 } // namespace keiluv
 } // namespace qbs
-
-#endif // QBS_KEILUVMCS51UTILS_H

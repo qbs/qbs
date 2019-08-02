@@ -59,4 +59,32 @@ QbsPlugin {
             "mcs51utils.h",
         ]
     }
+    Group {
+        name: "KEIL UV generator for ARM"
+        prefix: "archs/arm/"
+        files: [
+            "armbuildtargetgroup_v5.cpp",
+            "armbuildtargetgroup_v5.h",
+            "armcommonpropertygroup_v5.cpp",
+            "armcommonpropertygroup_v5.h",
+            "armdebugoptiongroup_v5.cpp",
+            "armdebugoptiongroup_v5.h",
+            "armdlloptiongroup_v5.cpp",
+            "armdlloptiongroup_v5.h",
+            "armtargetassemblergroup_v5.cpp",
+            "armtargetassemblergroup_v5.h",
+            "armtargetcommonoptionsgroup_v5.cpp",
+            "armtargetcommonoptionsgroup_v5.h",
+            "armtargetcompilergroup_v5.cpp",
+            "armtargetcompilergroup_v5.h",
+            "armtargetgroup_v5.cpp",
+            "armtargetgroup_v5.h",
+            "armtargetlinkergroup_v5.cpp",
+            "armtargetlinkergroup_v5.h",
+            "armtargetmiscgroup_v5.cpp",
+            "armtargetmiscgroup_v5.h",
+            "armutilitiesgroup_v5.cpp",
+            "armutilitiesgroup_v5.h",
+        ]
+    }
 }

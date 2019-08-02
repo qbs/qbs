@@ -28,12 +28,13 @@
 **
 ****************************************************************************/
 
+#include "keiluvconstants.h"
 #include "keiluvproject.h"
 #include "keiluvutils.h"
 #include "keiluvversioninfo.h"
 
 #include "archs/mcs51/mcs51buildtargetgroup_v5.h"
-#include "archs/mcs51/mcs51utils.h"
+#include "archs/arm/armbuildtargetgroup_v5.h"
 
 #include <logging/translator.h>
 
@@ -43,8 +44,8 @@ static QString keilProjectSchema(const KeiluvVersionInfo &info)
 {
     const auto v = info.marketingVersion();
     switch (v) {
-    case keiluv::mcs51::v5::KeiluvConstants::kUVisionVersion:
-        return QStringLiteral("1.1");
+    case KeiluvConstants::v5::kUVisionVersion:
+        return QStringLiteral("2.1");
     default:
         return {};
     }
@@ -61,8 +62,10 @@ KeiluvProject::KeiluvProject(
     // Create available configuration group factories.
     m_factories.push_back(std::make_unique<
                           keiluv::mcs51::v5::Mcs51BuildTargetGroupFactory>());
+    m_factories.push_back(std::make_unique<
+                          keiluv::arm::v5::ArmBuildTargetGroupFactory>());
 
-    // Construct schema version item (depends on a project version).
+    // Construct schema version item (is it depends on a project version?).
     const auto schema = keilProjectSchema(versionInfo);
     appendChild<gen::xml::Property>(QByteArrayLiteral("SchemaVersion"),
                                     schema);

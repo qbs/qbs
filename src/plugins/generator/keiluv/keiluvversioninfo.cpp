@@ -37,9 +37,8 @@
 **
 ****************************************************************************/
 
+#include "keiluvconstants.h"
 #include "keiluvversioninfo.h"
-
-#include "archs/mcs51/mcs51utils.h"
 
 #include <QtCore/qdebug.h>
 
@@ -55,8 +54,9 @@ KeiluvVersionInfo::KeiluvVersionInfo(
 std::set<KeiluvVersionInfo> KeiluvVersionInfo::knownVersions()
 {
     static const std::set<KeiluvVersionInfo> known = {
-        {Version(keiluv::mcs51::v5::KeiluvConstants::kUVisionVersion),
-         {gen::utils::Architecture::Mcs51}},
+        {Version(KeiluvConstants::v5::kUVisionVersion),
+         {gen::utils::Architecture::Mcs51,
+          gen::utils::Architecture::Arm}},
     };
     return known;
 }

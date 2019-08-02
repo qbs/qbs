@@ -77,6 +77,10 @@ QBS_EXPORT QStringList cppStringModuleProperties(const PropertyMap &qbsProps,
                                                  const QStringList &propertyNames);
 QBS_EXPORT QVariantList cppVariantModuleProperties(const PropertyMap &qbsProps,
                                                    const QStringList &propertyNames);
+QBS_EXPORT QString firstFlagValue(const QStringList &flags,
+                                  const QString &flagKey);
+QBS_EXPORT QStringList allFlagValues(const QStringList &flags,
+                                     const QString &flagKey);
 
 template <typename T>
 bool inBounds(const T &value, const T &low, const T &high)

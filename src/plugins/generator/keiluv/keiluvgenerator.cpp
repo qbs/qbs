@@ -35,6 +35,7 @@
 #include "keiluvworkspacewriter.h"
 
 #include <generators/generatableprojectiterator.h>
+#include <generators/generatorutils.h>
 
 #include <logging/logger.h>
 #include <logging/translator.h>
@@ -42,19 +43,6 @@
 #include <tools/filesaver.h>
 
 namespace qbs {
-
-static QString targetFilePath(const QString &baseName,
-                              const QString &baseBuildDirectory)
-{
-    return QDir(baseBuildDirectory).absoluteFilePath(
-                baseName + QStringLiteral(".uvproj"));
-}
-
-static QString targetFilePath(const GeneratableProductData &product,
-                              const QString &baseBuildDirectory)
-{
-    return targetFilePath(product.name(), baseBuildDirectory);
-}
 
 static void writeProjectFiles(const std::map<QString,
                               std::shared_ptr<KeiluvProject>> &projects,
@@ -147,8 +135,10 @@ void KeiluvGenerator::visitProduct(
         const GeneratableProductData &productData)
 {
     Q_UNUSED(projectData);
-    const QString projectFilePath = targetFilePath(
-                productData, project.baseBuildDirectory().absolutePath());
+
+    const QDir baseBuildDir(project.baseBuildDirectory().absolutePath());
+    const QString projFileName = productData.name() + QLatin1String(".uvprojx");
+    const QString projectFilePath = baseBuildDir.absoluteFilePath(projFileName);
     const auto targetProject = std::make_shared<KeiluvProject>(
                 project, productData,  m_versionInfo);
 

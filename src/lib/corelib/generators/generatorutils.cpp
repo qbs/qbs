@@ -208,6 +208,53 @@ QVariantList cppVariantModuleProperties(const PropertyMap &qbsProps,
     return properties;
 }
 
+static QString parseFlagValue(const QString &flagKey,
+                              QStringList::const_iterator &flagIt,
+                              const QStringList::const_iterator &flagEnd)
+{
+    if (flagIt->contains(QLatin1Char('='))) {
+        // In this case an option is in form of 'flagKey=<flagValue>'.
+        const auto parts = flagIt->split(QLatin1Char('='));
+        if (parts.count() == 2)
+            return parts.at(1).trimmed();
+    } else if (flagKey < *flagIt) {
+        // In this case an option is in form of 'flagKey<flagValue>'.
+        return flagIt->mid(flagKey.count()).trimmed();
+    } else {
+        // In this case an option is in form of 'flagKey <flagValue>'.
+        ++flagIt;
+        if (flagIt < flagEnd && !flagIt->startsWith(QLatin1Char('-')))
+            return (*flagIt).trimmed();
+    }
+    return {};
+}
+
+QString firstFlagValue(const QStringList &flags, const QString &flagKey)
+{
+    const auto flagBegin = flags.cbegin();
+    const auto flagEnd = flags.cend();
+    auto flagIt = std::find_if(flagBegin, flagEnd, [flagKey](const QString &flag) {
+        return flag == flagKey || flag.startsWith(flagKey);
+    });
+    if (flagIt == flagEnd)
+        return {};
+    return parseFlagValue(flagKey, flagIt, flagEnd);
+}
+
+QStringList allFlagValues(const QStringList &flags, const QString &flagKey)
+{
+    QStringList values;
+    const auto flagEnd = flags.cend();
+    for (auto flagIt = flags.cbegin(); flagIt < flagEnd; ++flagIt) {
+        if (*flagIt == flagKey || flagIt->startsWith(flagKey)) {
+            const QString value = parseFlagValue(flagKey, flagIt, flagEnd);
+            if (!value.isEmpty())
+                values.push_back(value);
+        }
+    }
+    return values;
+}
+
 } // namespace utils
 } // namespace gen
 } // namespace qbs

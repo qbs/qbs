@@ -13,6 +13,7 @@ SOURCES += \
 # Common files.
 
 HEADERS += \
+    $$PWD/keiluvconstants.h \
     $$PWD/keiluvfilesgroupspropertygroup.h \
     $$PWD/keiluvgenerator.h \
     $$PWD/keiluvproject.h \
@@ -61,3 +62,31 @@ SOURCES += \
     $$PWD/archs/mcs51/mcs51targetmiscgroup_v5.cpp \
     $$PWD/archs/mcs51/mcs51utilitiesgroup_v5.cpp \
     $$PWD/archs/mcs51/mcs51utils.cpp
+
+# For ARM architecture.
+
+HEADERS += \
+    $$PWD/archs/arm/armbuildtargetgroup_v5.h \
+    $$PWD/archs/arm/armcommonpropertygroup_v5.h \
+    $$PWD/archs/arm/armdebugoptiongroup_v5.h \
+    $$PWD/archs/arm/armdlloptiongroup_v5.h \
+    $$PWD/archs/arm/armtargetassemblergroup_v5.h \
+    $$PWD/archs/arm/armtargetcommonoptionsgroup_v5.h \
+    $$PWD/archs/arm/armtargetcompilergroup_v5.h \
+    $$PWD/archs/arm/armtargetgroup_v5.h \
+    $$PWD/archs/arm/armtargetlinkergroup_v5.h \
+    $$PWD/archs/arm/armtargetmiscgroup_v5.h \
+    $$PWD/archs/arm/armutilitiesgroup_v5.h
+
+SOURCES += \
+    $$PWD/archs/arm/armbuildtargetgroup_v5.cpp \
+    $$PWD/archs/arm/armcommonpropertygroup_v5.cpp \
+    $$PWD/archs/arm/armdebugoptiongroup_v5.cpp \
+    $$PWD/archs/arm/armdlloptiongroup_v5.cpp \
+    $$PWD/archs/arm/armtargetassemblergroup_v5.cpp \
+    $$PWD/archs/arm/armtargetcommonoptionsgroup_v5.cpp \
+    $$PWD/archs/arm/armtargetcompilergroup_v5.cpp \
+    $$PWD/archs/arm/armtargetgroup_v5.cpp \
+    $$PWD/archs/arm/armtargetlinkergroup_v5.cpp \
+    $$PWD/archs/arm/armtargetmiscgroup_v5.cpp \
+    $$PWD/archs/arm/armutilitiesgroup_v5.cpp

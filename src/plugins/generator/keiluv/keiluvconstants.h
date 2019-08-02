@@ -28,29 +28,17 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_KEILUVMCS51UTILS_H
-#define QBS_KEILUVMCS51UTILS_H
-
-#include <QtCore/qstringlist.h>
+#ifndef QBS_KEILUVCONSTANTS_H
+#define QBS_KEILUVCONSTANTS_H
 
 namespace qbs {
+namespace KeiluvConstants {
 
-namespace keiluv {
-namespace mcs51 {
+namespace v5 {
+constexpr int kUVisionVersion = 5;
+}
 
-namespace KeiluvUtils {
-
-QStringList flagValues(const QStringList &flags, const QString &flagKey);
-
-QString flagValue(const QStringList &flags, const QString &flagKey);
-
-QStringList flagValueParts(const QString &flagValue,
-                           const QLatin1Char &sep = QLatin1Char(','));
-
-} // namespace KeiluvUtils
-
-} // namespace mcs51
-} // namespace keiluv
+} // namespace KeiluvConstants
 } // namespace qbs
 
-#endif // QBS_KEILUVMCS51UTILS_H
+#endif // QBS_KEILUVCONSTANTS_H

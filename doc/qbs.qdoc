@@ -1792,7 +1792,7 @@
 
     \table
     \header \li Generator       \li KEIL UV Version     \li Target Architecture
-    \row    \li keiluv5         \li All 5.x.y versions  \li 8051 (aka MCS51)
+    \row    \li keiluv5         \li All 5.x.y versions  \li 8051 (aka MCS51), ARM
     \endtable
 
     \section1 Generating Clang Compilation Databases

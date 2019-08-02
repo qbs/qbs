@@ -28,29 +28,43 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_KEILUVMCS51UTILS_H
-#define QBS_KEILUVMCS51UTILS_H
+#ifndef QBS_KEILUVARMBUILDTARGETGROUP_V5_H
+#define QBS_KEILUVARMBUILDTARGETGROUP_V5_H
 
-#include <QtCore/qstringlist.h>
+#include <generators/xmlpropertygroup.h>
 
 namespace qbs {
-
 namespace keiluv {
-namespace mcs51 {
+namespace arm {
+namespace v5 {
 
-namespace KeiluvUtils {
+class ArmBuildTargetGroup final : public gen::xml::PropertyGroup
+{
+private:
+    explicit ArmBuildTargetGroup(
+            const qbs::Project &qbsProject,
+            const qbs::ProductData &qbsProduct,
+            const std::vector<qbs::ProductData> &qbsProductDeps);
 
-QStringList flagValues(const QStringList &flags, const QString &flagKey);
+    friend class ArmBuildTargetGroupFactory;
+};
 
-QString flagValue(const QStringList &flags, const QString &flagKey);
+class ArmBuildTargetGroupFactory final
+        : public gen::xml::PropertyGroupFactory
+{
+public:
+    bool canCreate(gen::utils::Architecture arch,
+                   const Version &version) const final;
 
-QStringList flagValueParts(const QString &flagValue,
-                           const QLatin1Char &sep = QLatin1Char(','));
+    std::unique_ptr<gen::xml::PropertyGroup> create(
+            const qbs::Project &qbsProject,
+            const qbs::ProductData &qbsProduct,
+            const std::vector<qbs::ProductData> &qbsProductDeps) const final;
+};
 
-} // namespace KeiluvUtils
-
-} // namespace mcs51
+} // namespace v5
+} // namespace arm
 } // namespace keiluv
 } // namespace qbs
 
-#endif // QBS_KEILUVMCS51UTILS_H
+#endif // QBS_KEILUVARMBUILDTARGETGROUP_V5_H
