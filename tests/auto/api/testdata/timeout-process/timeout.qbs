@@ -4,6 +4,7 @@ Project {
         consoleApplication: true // suppress bundle generation
         files: "main.cpp"
         name: "infinite-loop"
+        cpp.cxxLanguageVersion: "c++11"
     }
 
     Product {
