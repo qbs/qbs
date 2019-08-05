@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2015 The Qt Company Ltd.
+** Copyright (C) 2019 Jochen Ulrich <jochenulrich@t-online.de>
 ** Contact: http://www.qt.io/licensing
 **
 ** This file is part of Qbs.
@@ -97,6 +98,7 @@ Product {
             cmd.environment = product.environment;
             cmd.workingDirectory = workingDir;
             cmd.timeout = timeout;
+            cmd.jobPool = "autotest-runner";
             if (allowFailure)
                 cmd.maxExitCode = 32767;
             return cmd;
