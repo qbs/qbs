@@ -37,7 +37,7 @@ KeiluvWorkspaceWriter::KeiluvWorkspaceWriter(std::ostream *device)
 {
 }
 
-void KeiluvWorkspaceWriter::visitStart(const gen::xml::Workspace *workspace)
+void KeiluvWorkspaceWriter::visitWorkspaceStart(const gen::xml::Workspace *workspace)
 {
     Q_UNUSED(workspace)
     writer()->writeStartElement(QStringLiteral("ProjectWorkspace"));
@@ -49,7 +49,7 @@ void KeiluvWorkspaceWriter::visitStart(const gen::xml::Workspace *workspace)
                 QStringLiteral("project_mpw.xsd"));
 }
 
-void KeiluvWorkspaceWriter::visitEnd(const gen::xml::Workspace *workspace)
+void KeiluvWorkspaceWriter::visitWorkspaceEnd(const gen::xml::Workspace *workspace)
 {
     Q_UNUSED(workspace)
     writer()->writeEndElement();

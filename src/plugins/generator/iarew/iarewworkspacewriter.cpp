@@ -37,13 +37,13 @@ IarewWorkspaceWriter::IarewWorkspaceWriter(std::ostream *device)
 {
 }
 
-void IarewWorkspaceWriter::visitStart(const gen::xml::Workspace *workspace)
+void IarewWorkspaceWriter::visitWorkspaceStart(const gen::xml::Workspace *workspace)
 {
     Q_UNUSED(workspace)
     writer()->writeStartElement(QStringLiteral("workspace"));
 }
 
-void IarewWorkspaceWriter::visitEnd(const gen::xml::Workspace *workspace)
+void IarewWorkspaceWriter::visitWorkspaceEnd(const gen::xml::Workspace *workspace)
 {
     Q_UNUSED(workspace)
     writer()->writeEndElement();

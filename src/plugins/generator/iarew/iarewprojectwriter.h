@@ -42,8 +42,8 @@ public:
     explicit IarewProjectWriter(std::ostream *device);
 
 private:
-    void visitStart(const gen::xml::Project *project) final;
-    void visitEnd(const gen::xml::Project *project) final;
+    void visitProjectStart(const gen::xml::Project *project) final;
+    void visitProjectEnd(const gen::xml::Project *project) final;
 };
 
 } // namespace qbs

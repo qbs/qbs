@@ -37,13 +37,13 @@ IarewProjectWriter::IarewProjectWriter(std::ostream *device)
 {
 }
 
-void IarewProjectWriter::visitStart(const gen::xml::Project *project)
+void IarewProjectWriter::visitProjectStart(const gen::xml::Project *project)
 {
     Q_UNUSED(project)
     writer()->writeStartElement(QStringLiteral("project"));
 }
 
-void IarewProjectWriter::visitEnd(const gen::xml::Project *project)
+void IarewProjectWriter::visitProjectEnd(const gen::xml::Project *project)
 {
     Q_UNUSED(project)
     writer()->writeEndElement();

@@ -37,7 +37,7 @@ KeiluvProjectWriter::KeiluvProjectWriter(std::ostream *device)
 {
 }
 
-void KeiluvProjectWriter::visitStart(const gen::xml::Project *project)
+void KeiluvProjectWriter::visitProjectStart(const gen::xml::Project *project)
 {
     Q_UNUSED(project)
     writer()->writeStartElement(QStringLiteral("Project"));
@@ -49,7 +49,7 @@ void KeiluvProjectWriter::visitStart(const gen::xml::Project *project)
                 QStringLiteral("project_proj.xsd"));
 }
 
-void KeiluvProjectWriter::visitEnd(const gen::xml::Project *project)
+void KeiluvProjectWriter::visitProjectEnd(const gen::xml::Project *project)
 {
     Q_UNUSED(project)
     writer()->writeEndElement();

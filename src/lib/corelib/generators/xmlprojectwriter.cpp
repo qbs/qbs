@@ -58,25 +58,25 @@ bool ProjectWriter::write(const Project *project)
     return m_device->good();
 }
 
-void ProjectWriter::visitStart(const Property *property)
+void ProjectWriter::visitPropertyStart(const Property *property)
 {
     const auto value = property->value().toString();
     const auto name = QString::fromUtf8(property->name());
     m_writer->writeTextElement(name, value);
 }
 
-void ProjectWriter::visitEnd(const Property *property)
+void ProjectWriter::visitPropertyEnd(const Property *property)
 {
     Q_UNUSED(property)
 }
 
-void ProjectWriter::visitStart(const PropertyGroup *propertyGroup)
+void ProjectWriter::visitPropertyGroupStart(const PropertyGroup *propertyGroup)
 {
     const auto name = QString::fromUtf8(propertyGroup->name());
     m_writer->writeStartElement(name);
 }
 
-void ProjectWriter::visitEnd(const PropertyGroup *propertyGroup)
+void ProjectWriter::visitPropertyGroupEnd(const PropertyGroup *propertyGroup)
 {
     Q_UNUSED(propertyGroup)
     m_writer->writeEndElement();

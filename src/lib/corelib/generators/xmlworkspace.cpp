@@ -53,12 +53,12 @@ Workspace::Workspace(const QString &workspacePath)
 
 void Workspace::accept(INodeVisitor *visitor) const
 {
-    visitor->visitStart(this);
+    visitor->visitWorkspaceStart(this);
 
     for (const auto &child : children())
         child->accept(visitor);
 
-    visitor->visitEnd(this);
+    visitor->visitWorkspaceEnd(this);
 }
 
 } // namespace xml

@@ -54,12 +54,12 @@ void PropertyGroup::appendMultiLineProperty(
 
 void PropertyGroup::accept(INodeVisitor *visitor) const
 {
-    visitor->visitStart(this);
+    visitor->visitPropertyGroupStart(this);
 
     for (const auto &child : children())
         child->accept(visitor);
 
-    visitor->visitEnd(this);
+    visitor->visitPropertyGroupEnd(this);
 }
 
 } // namespace xml

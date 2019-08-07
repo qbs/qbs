@@ -43,12 +43,12 @@ Property::Property(QByteArray name, QVariant value)
 
 void Property::accept(INodeVisitor *visitor) const
 {
-    visitor->visitStart(this);
+    visitor->visitPropertyStart(this);
 
     for (const auto &child : children())
         child->accept(visitor);
 
-    visitor->visitEnd(this);
+    visitor->visitPropertyEnd(this);
 }
 
 } // namespace xml

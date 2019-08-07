@@ -37,12 +37,12 @@ namespace xml {
 
 void Project::accept(INodeVisitor *visitor) const
 {
-    visitor->visitStart(this);
+    visitor->visitProjectStart(this);
 
     for (const auto &child : children())
         child->accept(visitor);
 
-    visitor->visitEnd(this);
+    visitor->visitProjectEnd(this);
 }
 
 } // namespace xml

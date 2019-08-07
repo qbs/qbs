@@ -58,25 +58,25 @@ bool WorkspaceWriter::write(const Workspace *workspace)
     return m_device->good();
 }
 
-void WorkspaceWriter::visitStart(const Property *property)
+void WorkspaceWriter::visitPropertyStart(const Property *property)
 {
     const auto value = property->value().toString();
     const auto name = QString::fromUtf8(property->name());
     m_writer->writeTextElement(name, value);
 }
 
-void WorkspaceWriter::visitEnd(const Property *property)
+void WorkspaceWriter::visitPropertyEnd(const Property *property)
 {
     Q_UNUSED(property)
 }
 
-void WorkspaceWriter::visitStart(const PropertyGroup *propertyGroup)
+void WorkspaceWriter::visitPropertyGroupStart(const PropertyGroup *propertyGroup)
 {
     const auto name = QString::fromUtf8(propertyGroup->name());
     m_writer->writeStartElement(name);
 }
 
-void WorkspaceWriter::visitEnd(const PropertyGroup *propertyGroup)
+void WorkspaceWriter::visitPropertyGroupEnd(const PropertyGroup *propertyGroup)
 {
     Q_UNUSED(propertyGroup)
     m_writer->writeEndElement();

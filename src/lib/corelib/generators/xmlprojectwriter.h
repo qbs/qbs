@@ -52,11 +52,11 @@ protected:
     QXmlStreamWriter *writer() const;
 
 private:
-    void visitStart(const Property *property) final;
-    void visitEnd(const Property *property) final;
+    void visitPropertyStart(const Property *property) final;
+    void visitPropertyEnd(const Property *property) final;
 
-    void visitStart(const PropertyGroup *propertyGroup) final;
-    void visitEnd(const PropertyGroup *propertyGroup) final;
+    void visitPropertyGroupStart(const PropertyGroup *propertyGroup) final;
+    void visitPropertyGroupEnd(const PropertyGroup *propertyGroup) final;
 
     std::ostream *m_device = nullptr;
     QByteArray m_buffer;

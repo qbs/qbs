@@ -49,17 +49,17 @@ class QBS_EXPORT INodeVisitor
 public:
     virtual ~INodeVisitor() {}
 
-    virtual void visitStart(const Workspace *workspace) { Q_UNUSED(workspace) }
-    virtual void visitEnd(const Workspace *workspace) { Q_UNUSED(workspace) }
+    virtual void visitWorkspaceStart(const Workspace *workspace) { Q_UNUSED(workspace) }
+    virtual void visitWorkspaceEnd(const Workspace *workspace) { Q_UNUSED(workspace) }
 
-    virtual void visitStart(const Project *project) { Q_UNUSED(project) }
-    virtual void visitEnd(const Project *project) { Q_UNUSED(project) }
+    virtual void visitProjectStart(const Project *project) { Q_UNUSED(project) }
+    virtual void visitProjectEnd(const Project *project) { Q_UNUSED(project) }
 
-    virtual void visitStart(const Property *property) = 0;
-    virtual void visitEnd(const Property *property) = 0;
+    virtual void visitPropertyStart(const Property *property) = 0;
+    virtual void visitPropertyEnd(const Property *property) = 0;
 
-    virtual void visitStart(const PropertyGroup *propertyGroup) = 0;
-    virtual void visitEnd(const PropertyGroup *propertyGroup) = 0;
+    virtual void visitPropertyGroupStart(const PropertyGroup *propertyGroup) = 0;
+    virtual void visitPropertyGroupEnd(const PropertyGroup *propertyGroup) = 0;
 };
 
 } // namespace xml

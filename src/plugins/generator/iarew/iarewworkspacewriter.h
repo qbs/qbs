@@ -42,8 +42,8 @@ public:
     explicit IarewWorkspaceWriter(std::ostream *device);
 
 private:
-    void visitStart(const gen::xml::Workspace *workspace) final;
-    void visitEnd(const gen::xml::Workspace *workspace) final;
+    void visitWorkspaceStart(const gen::xml::Workspace *workspace) final;
+    void visitWorkspaceEnd(const gen::xml::Workspace *workspace) final;
 };
 
 } // namespace qbs
