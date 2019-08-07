@@ -106,6 +106,10 @@ if [ -z "${QBS_AUTOTEST_PROFILE}" ]; then
 fi
 
 #
-# Run all autotests with QBS_AUTOTEST_PROFILE
+# Run all autotests with QBS_AUTOTEST_PROFILE. Some test cases might run for
+# over 10 minutes. Output an empty line every 9:50 minutes to prevent a 10min
+# timeout on Travis CI.
 #
+(while true; do echo "" && sleep 590; done) &
+trap "kill $!" EXIT
 qbs build -p "autotest-runner" ${BUILD_OPTIONS}
