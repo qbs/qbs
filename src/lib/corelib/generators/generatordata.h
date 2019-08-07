@@ -72,21 +72,15 @@ template <typename U> struct IMultiplexableContainer {
     void forEach(const std::function<void(const QString &configurationName,
                                           const U &data)> &func) const
     {
-        QMapIterator<QString, U> it(data);
-        while (it.hasNext()) {
-            it.next();
+        for (auto it = data.cbegin(), end = data.cend(); it != end; ++it)
             func(it.key(), it.value());
-        }
     }
 
     void forEach(const std::function<void(const std::string &configurationName,
                                           const U &data)> &func) const
     {
-        QMapIterator<QString, U> it(data);
-        while (it.hasNext()) {
-            it.next();
+        for (auto it = data.cbegin(), end = data.cend(); it != end; ++it)
             func(it.key().toStdString(), it.value());
-        }
     }
 
     const U operator[](const QString &configurationName) const
@@ -147,21 +141,15 @@ struct QBS_EXPORT GeneratableProject : public GeneratableProjectData {
     void forEach(const std::function<void(const QString &configurationName,
                                           const Project &data)> &func) const
     {
-        QMapIterator<QString, Project> it(projects);
-        while (it.hasNext()) {
-            it.next();
+        for (auto it = projects.cbegin(), end = projects.cend(); it != end; ++it)
             func(it.key(), it.value());
-        }
     }
 
     void forEach(const std::function<void(const std::string &configurationName,
                                           const Project &data)> &func) const
     {
-        QMapIterator<QString, Project> it(projects);
-        while (it.hasNext()) {
-            it.next();
+        for (auto it = projects.cbegin(), end = projects.cend(); it != end; ++it)
             func(it.key().toStdString(), it.value());
-        }
     }
 
     const Project operator[](const QString &configurationName) const
