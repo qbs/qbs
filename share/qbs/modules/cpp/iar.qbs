@@ -88,6 +88,8 @@ CppModule {
             return "iccavr" + compilerExtension;
         case "stm8":
             return "iccstm8" + compilerExtension;
+        case "msp430":
+            return "icc430" + compilerExtension;
         }
     }
     compilerPath: FileInfo.joinPaths(toolchainInstallPath, compilerName)
@@ -102,6 +104,8 @@ CppModule {
             return "aavr" + compilerExtension;
         case "stm8":
             return "iasmstm8" + compilerExtension;
+        case "msp430":
+            return "a430" + compilerExtension;
         }
     }
     assemblerPath: FileInfo.joinPaths(toolchainInstallPath, assemblerName)
@@ -116,6 +120,8 @@ CppModule {
             return "xlink" + compilerExtension;
         case "stm8":
             return "ilinkstm8" + compilerExtension;
+        case "msp430":
+            return "xlink" + compilerExtension;
         }
     }
     linkerPath: FileInfo.joinPaths(toolchainInstallPath, linkerName)
@@ -130,6 +136,8 @@ CppModule {
             return "xlib" + compilerExtension;
         case "stm8":
             return "iarchive" + compilerExtension;
+        case "msp430":
+            return "xlib" + compilerExtension;
         }
     }
     property string archiverPath: FileInfo.joinPaths(toolchainInstallPath, archiverName)
@@ -146,6 +154,8 @@ CppModule {
             return ".r90";
         case "stm8":
             return ".a";
+        case "msp430":
+            return ".r43";
         }
     }
 
@@ -159,6 +169,8 @@ CppModule {
             return qbs.debugInformation ? ".d90" : ".a90";
         case "stm8":
             return ".out";
+        case "msp430":
+            return qbs.debugInformation ? ".d43" : ".a43";
         }
     }
 
@@ -172,6 +184,8 @@ CppModule {
             return ".r90";
         case "stm8":
             return ".o";
+        case "msp430":
+            return ".r43";
         }
     }
 
@@ -185,6 +199,8 @@ CppModule {
             return "ubrof";
         case "stm8":
             return "elf";
+        case "msp430":
+            return "ubrof";
         }
     }
 

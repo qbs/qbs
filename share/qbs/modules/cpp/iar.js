@@ -49,6 +49,8 @@ function guessArchitecture(macros)
         return "avr";
     else if (macros["__ICCSTM8__"] === "1")
         return "stm8";
+    else if (macros["__ICC430__"] === "1")
+        return "msp430";
 }
 
 function guessEndianness(macros)
@@ -63,8 +65,10 @@ function cppLanguageOption(compilerFilePath)
     var baseName = FileInfo.baseName(compilerFilePath);
     if (baseName === "iccarm")
         return "--c++";
-    if (baseName === "icc8051" || baseName === "iccavr" || baseName === "iccstm8")
+    if (baseName === "icc8051" || baseName === "iccavr"
+        || baseName === "iccstm8" || baseName === "icc430") {
         return "--ec++";
+    }
     throw "Unable to deduce C++ language option for unsupported compiler: '"
             + FileInfo.toNativeSeparators(compilerFilePath) + "'";
 }
@@ -252,6 +256,8 @@ function compilerFlags(project, product, input, output, explicitlyDependsOn) {
             args.push("--ec++");
         } else if (input.qbs.architecture === "stm8") {
             args.push("--ec++");
+        } else if (input.qbs.architecture === "msp430") {
+            args.push("--ec++");
         }
     }
 
@@ -354,6 +360,8 @@ function linkerFlags(project, product, input, outputs) {
             args.push("-l", outputs.map_file[0].filePath);
         else if (product.qbs.architecture === "stm8")
             args.push("--map", outputs.map_file[0].filePath);
+        else if (product.qbs.architecture === "msp430")
+            args.push("-l", outputs.map_file[0].filePath);
     }
 
     var allLibraryPaths = [];
@@ -374,6 +382,8 @@ function linkerFlags(project, product, input, outputs) {
             args.push("-rt");
         else if (product.qbs.architecture === "avr")
             args.push("-rt");
+        else if (product.qbs.architecture === "msp430")
+            args.push("-rt");
     }
 
     var linkerScripts = inputs.linkerscript
@@ -387,6 +397,8 @@ function linkerFlags(project, product, input, outputs) {
             args.push("-f", linkerScripts[i]);
         else if (product.qbs.architecture === "stm8")
             args.push("--config", linkerScripts[i]);
+        else if (product.qbs.architecture === "msp430")
+            args.push("-f", linkerScripts[i]);
     }
 
     if (product.cpp.entryPoint) {
@@ -398,16 +410,21 @@ function linkerFlags(project, product, input, outputs) {
             args.push("-s", product.cpp.entryPoint);
         else if (product.qbs.architecture === "stm8")
             args.push("--entry", product.cpp.entryPoint);
+        else if (product.qbs.architecture === "msp430")
+            args.push("-s", product.cpp.entryPoint);
     }
 
+    // Silent operation.
     if (product.qbs.architecture === "arm")
-        args.push("--silent"); // Silent operation.
+        args.push("--silent");
     else if (product.qbs.architecture === "mcs51")
-        args.push("-S"); // Silent operation.
+        args.push("-S");
     else if (product.qbs.architecture === "avr")
-        args.push("-S"); // Silent operation.
+        args.push("-S");
     else if (product.qbs.architecture === "stm8")
-        args.push("--silent"); // Silent operation.
+        args.push("--silent");
+    else if (product.qbs.architecture === "msp430")
+        args.push("-S");
 
     args = args.concat(ModUtils.moduleProperty(product, "driverLinkerFlags"));
     return args;
