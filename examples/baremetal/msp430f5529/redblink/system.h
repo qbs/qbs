@@ -48,15 +48,17 @@
 **
 ****************************************************************************/
 
-import qbs
+#ifndef SYSTEM_H
+#define SYSTEM_H
 
-Project {
-    name: "BareMetal"
-    references: [
-        "stm32f4discovery/stm32f4discovery.qbs",
-        "at90can128olimex/at90can128olimex.qbs",
-        "cc2540usbdongle/cc2540usbdongle.qbs",
-        "stm8s103f3/stm8s103f3.qbs",
-        "msp430f5529/msp430f5529.qbs",
-    ]
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void system_init(void);
+
+#ifdef __cplusplus
 }
+#endif
+
+#endif // SYSTEM_H

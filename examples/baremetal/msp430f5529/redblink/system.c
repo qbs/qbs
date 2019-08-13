@@ -48,15 +48,16 @@
 **
 ****************************************************************************/
 
-import qbs
+#include "system.h"
 
-Project {
-    name: "BareMetal"
-    references: [
-        "stm32f4discovery/stm32f4discovery.qbs",
-        "at90can128olimex/at90can128olimex.qbs",
-        "cc2540usbdongle/cc2540usbdongle.qbs",
-        "stm8s103f3/stm8s103f3.qbs",
-        "msp430f5529/msp430f5529.qbs",
-    ]
+#if defined(__ICC430__)
+#include <msp430f5529.h>
+#else
+#error "Unsupported toolchain"
+#endif
+
+void system_init(void)
+{
+    // Stop watchdog timer.
+    WDTCTL = WDTPW + WDTHOLD;
 }

@@ -51,12 +51,8 @@
 import qbs
 
 Project {
-    name: "BareMetal"
+    name: "Examples for msp430f5529 board"
     references: [
-        "stm32f4discovery/stm32f4discovery.qbs",
-        "at90can128olimex/at90can128olimex.qbs",
-        "cc2540usbdongle/cc2540usbdongle.qbs",
-        "stm8s103f3/stm8s103f3.qbs",
-        "msp430f5529/msp430f5529.qbs",
+        "redblink/redblink.qbs"
     ]
 }

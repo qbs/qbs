@@ -48,15 +48,25 @@
 **
 ****************************************************************************/
 
-import qbs
+#include "gpio.h"
+#include "system.h"
 
-Project {
-    name: "BareMetal"
-    references: [
-        "stm32f4discovery/stm32f4discovery.qbs",
-        "at90can128olimex/at90can128olimex.qbs",
-        "cc2540usbdongle/cc2540usbdongle.qbs",
-        "stm8s103f3/stm8s103f3.qbs",
-        "msp430f5529/msp430f5529.qbs",
-    ]
+#include <stdint.h>
+
+static void some_delay(uint32_t counts)
+{
+    for (uint32_t index = 0u; index < counts; ++index)
+        __asm("nop");
+}
+
+int main(void)
+{
+    system_init();
+
+    gpio_init_red_led();
+
+    while (1) {
+        gpio_toggle_red_led();
+        some_delay(10000u);
+    }
 }

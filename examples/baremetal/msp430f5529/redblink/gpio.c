@@ -48,15 +48,27 @@
 **
 ****************************************************************************/
 
-import qbs
+#include "gpio.h"
 
-Project {
-    name: "BareMetal"
-    references: [
-        "stm32f4discovery/stm32f4discovery.qbs",
-        "at90can128olimex/at90can128olimex.qbs",
-        "cc2540usbdongle/cc2540usbdongle.qbs",
-        "stm8s103f3/stm8s103f3.qbs",
-        "msp430f5529/msp430f5529.qbs",
-    ]
+#if defined(__ICC430__)
+#include <msp430f5529.h>
+#else
+#error "Unsupported toolchain"
+#endif
+
+// LED pin number.
+#define GPIO_RED_LED_PIN_POS    (0u)
+// LED port direction.
+#define GPIO_RED_LED_PORT_DIR   (P1DIR)
+// LED output port.
+#define GPIO_RED_LED_PORT_OUT   (P1OUT)
+
+void gpio_init_red_led(void)
+{
+    GPIO_RED_LED_PORT_DIR |= (1u << GPIO_RED_LED_PIN_POS);
+}
+
+void gpio_toggle_red_led(void)
+{
+    GPIO_RED_LED_PORT_OUT ^= (1u << GPIO_RED_LED_PIN_POS);
 }

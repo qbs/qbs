@@ -50,13 +50,64 @@
 
 import qbs
 
-Project {
-    name: "BareMetal"
-    references: [
-        "stm32f4discovery/stm32f4discovery.qbs",
-        "at90can128olimex/at90can128olimex.qbs",
-        "cc2540usbdongle/cc2540usbdongle.qbs",
-        "stm8s103f3/stm8s103f3.qbs",
-        "msp430f5529/msp430f5529.qbs",
+CppApplication {
+    condition: {
+        if (!qbs.architecture.contains("msp430"))
+            return false;
+        return qbs.toolchain.contains("iar")
+    }
+    name: "msp430f5529-redblink"
+    cpp.cLanguageVersion: "c99"
+    cpp.positionIndependentCode: false
+
+    //
+    // IAR-specific properties and sources.
+    //
+
+    Properties {
+        condition: qbs.toolchain.contains("iar")
+        cpp.driverFlags: ["--core=430X"]
+        cpp.entryPoint: "__program_start"
+        cpp.driverLinkerFlags: [
+            "-D_STACK_SIZE=A0",
+            "-D_DATA16_HEAP_SIZE=A0",
+            "-D_DATA20_HEAP_SIZE=50",
+        ]
+        cpp.staticLibraries: [
+            // Explicitly link with the runtime dlib library (which contains
+            // all required startup code and other stuff).
+            cpp.toolchainInstallPath + "/../lib/dlib/dl430xlsfn.r43"
+        ]
+    }
+
+    Group {
+        condition: qbs.toolchain.contains("iar")
+        name: "IAR"
+        prefix: "iar/"
+        Group {
+            name: "Linker Script"
+            prefix: cpp.toolchainInstallPath + "/../config/linker/"
+            fileTags: ["linkerscript"]
+            // Explicitly use the default linker scripts for current target.
+            files: ["lnk430f5529.xcl", "multiplier32.xcl"]
+        }
+    }
+
+    //
+    // Common code.
+    //
+
+    Group {
+        name: "Gpio"
+        files: ["gpio.c", "gpio.h"]
+    }
+
+    Group {
+        name: "System"
+        files: ["system.c", "system.h"]
+    }
+
+    files: [
+        "main.c",
     ]
 }
