@@ -63,7 +63,7 @@ function cppLanguageOption(compilerFilePath)
     var baseName = FileInfo.baseName(compilerFilePath);
     if (baseName === "iccarm")
         return "--c++";
-    if (baseName === "icc8051" || baseName === "iccavr")
+    if (baseName === "icc8051" || baseName === "iccavr" || baseName === "iccstm8")
         return "--ec++";
     throw "Unable to deduce C++ language option for unsupported compiler: '"
             + FileInfo.toNativeSeparators(compilerFilePath) + "'";
