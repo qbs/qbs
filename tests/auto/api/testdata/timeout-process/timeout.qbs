@@ -5,6 +5,7 @@ Project {
         files: "main.cpp"
         name: "infinite-loop"
         cpp.cxxLanguageVersion: "c++11"
+        cpp.minimumOsxVersion: "10.8" // For <chrono>
         Properties {
             condition: qbs.toolchain.contains("gcc")
             cpp.driverFlags: "-pthread"

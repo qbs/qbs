@@ -4,6 +4,7 @@ Project {
         type: ["application", "autotest"]
         Depends { name: "autotest" }
         cpp.cxxLanguageVersion: "c++11"
+        cpp.minimumOsxVersion: "10.8" // For <chrono>
         Properties {
             condition: qbs.toolchain.contains("gcc")
             cpp.driverFlags: "-pthread"
