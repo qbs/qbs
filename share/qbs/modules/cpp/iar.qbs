@@ -78,131 +78,26 @@ CppModule {
     property string cCompilerName: compilerName
     property string cxxCompilerName: compilerName
 
-    compilerName: {
-        switch (qbs.architecture) {
-        case "arm":
-            return "iccarm" + compilerExtension;
-        case "mcs51":
-            return "icc8051" + compilerExtension;
-        case "avr":
-            return "iccavr" + compilerExtension;
-        case "stm8":
-            return "iccstm8" + compilerExtension;
-        case "msp430":
-            return "icc430" + compilerExtension;
-        }
-    }
+    compilerName: IAR.compilerName(qbs) + compilerExtension
     compilerPath: FileInfo.joinPaths(toolchainInstallPath, compilerName)
 
-    assemblerName: {
-        switch (qbs.architecture) {
-        case "arm":
-            return "iasmarm" + compilerExtension;
-        case "mcs51":
-            return "a8051" + compilerExtension;
-        case "avr":
-            return "aavr" + compilerExtension;
-        case "stm8":
-            return "iasmstm8" + compilerExtension;
-        case "msp430":
-            return "a430" + compilerExtension;
-        }
-    }
+    assemblerName: IAR.assemblerName(qbs) + compilerExtension
     assemblerPath: FileInfo.joinPaths(toolchainInstallPath, assemblerName)
 
-    linkerName: {
-        switch (qbs.architecture) {
-        case "arm":
-            return "ilinkarm" + compilerExtension;
-        case "mcs51":
-            return "xlink" + compilerExtension;
-        case "avr":
-            return "xlink" + compilerExtension;
-        case "stm8":
-            return "ilinkstm8" + compilerExtension;
-        case "msp430":
-            return "xlink" + compilerExtension;
-        }
-    }
+    linkerName: IAR.linkerName(qbs) + compilerExtension
     linkerPath: FileInfo.joinPaths(toolchainInstallPath, linkerName)
 
-    property string archiverName: {
-        switch (qbs.architecture) {
-        case "arm":
-            return "iarchive" + compilerExtension;
-        case "mcs51":
-            return "xlib" + compilerExtension;
-        case "avr":
-            return "xlib" + compilerExtension;
-        case "stm8":
-            return "iarchive" + compilerExtension;
-        case "msp430":
-            return "xlib" + compilerExtension;
-        }
-    }
+    property string archiverName: IAR.archiverName(qbs) + compilerExtension
     property string archiverPath: FileInfo.joinPaths(toolchainInstallPath, archiverName)
 
     runtimeLibrary: "static"
 
-    staticLibrarySuffix: {
-        switch (qbs.architecture) {
-        case "arm":
-            return ".a";
-        case "mcs51":
-            return ".r51";
-        case "avr":
-            return ".r90";
-        case "stm8":
-            return ".a";
-        case "msp430":
-            return ".r43";
-        }
-    }
+    staticLibrarySuffix: IAR.staticLibrarySuffix(qbs)
+    executableSuffix: IAR.executableSuffix(qbs)
 
-    executableSuffix: {
-        switch (qbs.architecture) {
-        case "arm":
-            return ".out";
-        case "mcs51":
-            return qbs.debugInformation ? ".d51" : ".a51";
-        case "avr":
-            return qbs.debugInformation ? ".d90" : ".a90";
-        case "stm8":
-            return ".out";
-        case "msp430":
-            return qbs.debugInformation ? ".d43" : ".a43";
-        }
-    }
+    property string objectSuffix: IAR.objectSuffix(qbs)
 
-    property string objectSuffix: {
-        switch (qbs.architecture) {
-        case "arm":
-            return ".o";
-        case "mcs51":
-            return ".r51";
-        case "avr":
-            return ".r90";
-        case "stm8":
-            return ".o";
-        case "msp430":
-            return ".r43";
-        }
-    }
-
-    imageFormat: {
-        switch (qbs.architecture) {
-        case "arm":
-            return "elf";
-        case "mcs51":
-            return "ubrof";
-        case "avr":
-            return "ubrof";
-        case "stm8":
-            return "elf";
-        case "msp430":
-            return "ubrof";
-        }
-    }
+    imageFormat: IAR.imageFormat(qbs)
 
     enableExceptions: false
     enableRtti: false
@@ -217,7 +112,7 @@ CppModule {
                       + input.fileName + input.cpp.objectSuffix
         }
 
-        prepare: IAR.prepareAssembler.apply(IAR, arguments);
+        prepare: IAR.prepareAssembler.apply(IAR, arguments)
     }
 
     FileTagger {
@@ -243,7 +138,7 @@ CppModule {
                       + input.fileName + input.cpp.objectSuffix
         }
 
-        prepare: IAR.prepareCompiler.apply(IAR, arguments);
+        prepare: IAR.prepareCompiler.apply(IAR, arguments)
     }
 
     Rule {
@@ -277,7 +172,7 @@ CppModule {
             return artifacts;
         }
 
-        prepare:IAR.prepareLinker.apply(IAR, arguments);
+        prepare: IAR.prepareLinker.apply(IAR, arguments)
     }
 
     Rule {
@@ -293,6 +188,6 @@ CppModule {
                             PathTools.staticLibraryFilePath(product))
         }
 
-        prepare: IAR.prepareArchiver.apply(IAR, arguments);
+        prepare: IAR.prepareArchiver.apply(IAR, arguments)
     }
 }

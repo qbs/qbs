@@ -36,11 +36,133 @@ var ModUtils = require("qbs.ModUtils");
 var Process = require("qbs.Process");
 var TemporaryDir = require("qbs.TemporaryDir");
 var TextFile = require("qbs.TextFile");
-var Utilities = require("qbs.Utilities");
-var WindowsUtils = require("qbs.WindowsUtils");
 
-function guessArchitecture(macros)
-{
+function compilerName(qbs) {
+    switch (qbs.architecture) {
+    case "arm":
+        return "iccarm";
+    case "mcs51":
+        return "icc8051";
+    case "avr":
+        return "iccavr";
+    case "stm8":
+        return "iccstm8";
+    case "msp430":
+        return "icc430";
+    }
+    throw "Unable to deduce compiler name for unsupported architecture: '"
+            + qbs.architecture + "'";
+}
+
+function assemblerName(qbs) {
+    switch (qbs.architecture) {
+    case "arm":
+        return "iasmarm";
+    case "mcs51":
+        return "a8051";
+    case "avr":
+        return "aavr";
+    case "stm8":
+        return "iasmstm8";
+    case "msp430":
+        return "a430";
+    }
+    throw "Unable to deduce assembler name for unsupported architecture: '"
+            + qbs.architecture + "'";
+}
+
+function linkerName(qbs) {
+    switch (qbs.architecture) {
+    case "arm":
+        return "ilinkarm";
+    case "stm8":
+        return "ilinkstm8";
+    case "mcs51":
+    case "avr":
+    case "msp430":
+        return "xlink";
+    }
+    throw "Unable to deduce linker name for unsupported architecture: '"
+            + qbs.architecture + "'";
+}
+
+function archiverName(qbs) {
+    switch (qbs.architecture) {
+    case "arm":
+    case "stm8":
+        return "iarchive";
+    case "mcs51":
+    case "avr":
+    case "msp430":
+        return "xlib";
+    }
+    throw "Unable to deduce archiver name for unsupported architecture: '"
+            + qbs.architecture + "'";
+}
+
+function staticLibrarySuffix(qbs) {
+    switch (qbs.architecture) {
+    case "arm":
+    case "stm8":
+        return ".a";
+    case "mcs51":
+        return ".r51";
+    case "avr":
+        return ".r90";
+    case "msp430":
+        return ".r43";
+    }
+    throw "Unable to deduce static library suffix for unsupported architecture: '"
+            + qbs.architecture + "'";
+}
+
+function executableSuffix(qbs) {
+    switch (qbs.architecture) {
+    case "arm":
+    case "stm8":
+        return ".out";
+    case "mcs51":
+        return qbs.debugInformation ? ".d51" : ".a51";
+    case "avr":
+        return qbs.debugInformation ? ".d90" : ".a90";
+    case "msp430":
+        return qbs.debugInformation ? ".d43" : ".a43";
+    }
+    throw "Unable to deduce executable suffix for unsupported architecture: '"
+            + qbs.architecture + "'";
+}
+
+function objectSuffix(qbs) {
+    switch (qbs.architecture) {
+    case "arm":
+    case "stm8":
+        return ".o";
+    case "mcs51":
+        return ".r51";
+    case "avr":
+        return ".r90";
+    case "msp430":
+        return ".r43";
+    }
+    throw "Unable to deduce object file suffix for unsupported architecture: '"
+            + qbs.architecture + "'";
+}
+
+function imageFormat(qbs) {
+    switch (qbs.architecture) {
+    case "arm":
+    case "stm8":
+        return "elf";
+    case "mcs51":
+    case "avr":
+    case "msp430":
+        return "ubrof";
+    }
+    throw "Unable to deduce image format for unsupported architecture: '"
+            + qbs.architecture + "'";
+}
+
+function guessArchitecture(macros) {
     if (macros["__ICCARM__"] === "1")
         return "arm";
     else if (macros["__ICC8051__"] === "1")
@@ -53,20 +175,41 @@ function guessArchitecture(macros)
         return "msp430";
 }
 
-function guessEndianness(macros)
-{
+function guessEndianness(macros) {
     if (macros["__LITTLE_ENDIAN__"] === "1")
         return "little";
     return "big"
 }
 
-function cppLanguageOption(compilerFilePath)
+function guessVersion(macros, architecture)
 {
+    var version = parseInt(macros["__VER__"], 10);
+    switch (architecture) {
+    case "arm":
+        return { major: parseInt(version / 1000000),
+            minor: parseInt(version / 1000) % 1000,
+            patch: parseInt(version) % 1000,
+            found: true }
+    case "mcs51":
+    case "avr":
+    case "stm8":
+    case "msp430":
+        return { major: parseInt(version / 100),
+            minor: parseInt(version % 100),
+            patch: 0,
+            found: true }
+    }
+}
+
+function cppLanguageOption(compilerFilePath) {
     var baseName = FileInfo.baseName(compilerFilePath);
-    if (baseName === "iccarm")
+    switch (baseName) {
+    case "iccarm":
         return "--c++";
-    if (baseName === "icc8051" || baseName === "iccavr"
-        || baseName === "iccstm8" || baseName === "icc430") {
+    case "icc8051":
+    case "iccavr":
+    case "iccstm8":
+    case "icc430":
         return "--ec++";
     }
     throw "Unable to deduce C++ language option for unsupported compiler: '"
@@ -197,70 +340,18 @@ function collectLibraryDependencies(product) {
 }
 
 function compilerFlags(project, product, input, output, explicitlyDependsOn) {
-    // Determine which C-language we"re compiling.
+    // Determine which C-language we're compiling.
     var tag = ModUtils.fileTagForTargetLanguage(input.fileTags.concat(output.fileTags));
 
     var args = [];
+
+    // Input.
     args.push(input.filePath);
 
-    switch (input.cpp.optimization) {
-    case "small":
-        args.push("-Ohs");
-        break;
-    case "fast":
-        args.push("-Ohz");
-        break;
-    case "none":
-        args.push("-On");
-        break;
-    }
+    // Output.
+    args.push("-o", output.filePath);
 
-    if (input.cpp.debugInformation)
-        args.push("--debug");
-
-    var warnings = input.cpp.warningLevel;
-    if (warnings === "none") {
-        args.push("--no_warnings");
-    } else if (warnings === "all") {
-        args.push("--deprecated_feature_warnings="
-            +"+attribute_syntax,"
-            +"+preprocessor_extensions,"
-            +"+segment_pragmas");
-        if (tag === "cpp")
-            args.push("--warn_about_c_style_casts");
-    }
-    if (input.cpp.treatWarningsAsErrors)
-        args.push("--warnings_are_errors");
-
-    // Choose byte order.
-    var endianness = input.cpp.endianness;
-    if (endianness) {
-        if (input.qbs.architecture === "arm")
-            args.push("--endian=" + endianness);
-    }
-
-    if (tag === "c") {
-        // Language version.
-        if (input.cpp.cLanguageVersion === "c89")
-            args.push("--c89");
-    } else if (tag === "cpp") {
-        if (input.qbs.architecture === "arm") {
-            args.push("--c++");
-            if (!input.cpp.enableExceptions)
-                args.push("--no_exceptions");
-            if (!input.cpp.enableRtti)
-                args.push("--no_rtti");
-        } else if (input.qbs.architecture === "mcs51") {
-            args.push("--ec++");
-        } else if (input.qbs.architecture === "avr") {
-            args.push("--ec++");
-        } else if (input.qbs.architecture === "stm8") {
-            args.push("--ec++");
-        } else if (input.qbs.architecture === "msp430") {
-            args.push("--ec++");
-        }
-    }
-
+    // Defines.
     var allDefines = [];
     var platformDefines = input.cpp.platformDefines;
     if (platformDefines)
@@ -270,6 +361,7 @@ function compilerFlags(project, product, input, output, explicitlyDependsOn) {
         allDefines = allDefines.uniqueConcat(defines);
     args = args.concat(allDefines.map(function(define) { return "-D" + define }));
 
+    // Includes.
     var allIncludePaths = [];
     var includePaths = input.cpp.includePaths;
     if (includePaths)
@@ -282,10 +374,88 @@ function compilerFlags(project, product, input, output, explicitlyDependsOn) {
         allIncludePaths = allIncludePaths.uniqueConcat(compilerIncludePaths);
     args = args.concat(allIncludePaths.map(function(include) { return "-I" + include }));
 
-    args.push("-o", output.filePath);
+    // Silent output generation flag.
+    args.push("--silent");
 
-    args.push("--silent"); // Silent operation.
+    // Debug information flags.
+    if (input.cpp.debugInformation)
+        args.push("--debug");
 
+    // Optimization flags.
+    switch (input.cpp.optimization) {
+    case "small":
+        args.push("-Ohs");
+        break;
+    case "fast":
+        args.push("-Ohz");
+        break;
+    case "none":
+        args.push("-On");
+        break;
+    }
+
+    // Warning level flags.
+    switch (input.cpp.warningLevel) {
+    case "none":
+        args.push("--no_warnings");
+        break;
+    case "all":
+        args.push("--deprecated_feature_warnings="
+            +"+attribute_syntax,"
+            +"+preprocessor_extensions,"
+            +"+segment_pragmas");
+        if (tag === "cpp")
+            args.push("--warn_about_c_style_casts");
+        break;
+    }
+    if (input.cpp.treatWarningsAsErrors)
+        args.push("--warnings_are_errors");
+
+    // C language version flags.
+    if (tag === "c") {
+        var knownValues = ["c89"];
+        var cLanguageVersion = Cpp.languageVersion(
+                    input.cpp.cLanguageVersion, knownValues, "C");
+        switch (cLanguageVersion) {
+        case "c89":
+            args.push("--c89");
+            break;
+        default:
+            // Default C language version is C11/C99 that
+            // depends on the IAR version.
+            break;
+        }
+    }
+
+    // Architecture specific flags.
+    switch (input.qbs.architecture) {
+    case "arm":
+        // Byte order flags.
+        var endianness = input.cpp.endianness;
+        if (endianness)
+            args.push("--endian=" + endianness);
+        if (tag === "cpp") {
+            // Enable C++ language flags.
+            args.push("--c++");
+            // Exceptions flags.
+            if (!input.cpp.enableExceptions)
+                args.push("--no_exceptions");
+            // RTTI flags.
+            if (!input.cpp.enableRtti)
+                args.push("--no_rtti");
+        }
+        break;
+    case "stm8":
+    case "mcs51":
+    case "avr":
+    case "msp430":
+        // Enable C++ language flags.
+        if (tag === "cpp")
+            args.push("--ec++");
+        break;
+    }
+
+    // Misc flags.
     args = args.concat(ModUtils.moduleProperty(input, "platformFlags"),
                        ModUtils.moduleProperty(input, "flags"),
                        ModUtils.moduleProperty(input, "platformFlags", tag),
@@ -299,27 +469,14 @@ function assemblerFlags(project, product, input, output, explicitlyDependsOn) {
     var tag = ModUtils.fileTagForTargetLanguage(input.fileTags.concat(output.fileTags));
 
     var args = [];
+
+    // Input.
     args.push(input.filePath);
 
-    if (input.cpp.debugInformation)
-        args.push("-r");
+    // Output.
+    args.push("-o", output.filePath);
 
-    var warnings = input.cpp.warningLevel;
-    if (warnings === "none") {
-        if (input.qbs.architecture === "stm8")
-            args.push("--no_warnings");
-        else
-            args.push("-w-");
-    } else {
-        if (input.qbs.architecture !== "stm8")
-            args.push("-w+");
-    }
-
-    if (input.cpp.treatWarningsAsErrors) {
-        if (input.qbs.architecture === "stm8")
-            args.push("--warnings_are_errors");
-    }
-
+    // Includes.
     var allIncludePaths = [];
     var systemIncludePaths = input.cpp.systemIncludePaths;
     if (systemIncludePaths)
@@ -329,13 +486,29 @@ function assemblerFlags(project, product, input, output, explicitlyDependsOn) {
         allIncludePaths = allIncludePaths.uniqueConcat(compilerIncludePaths);
     args = args.concat(allIncludePaths.map(function(include) { return "-I" + include }));
 
-    args.push("-o", output.filePath);
+    // Silent output generation flag.
+    args.push(input.qbs.architecture === "stm8" ? "--silent" : "-S");
 
-    if (input.qbs.architecture === "stm8")
-        args.push("--silent"); // Silent operation.
-    else
-        args.push("-S"); // Silent operation.
+    // Debug information flags.
+    if (input.cpp.debugInformation)
+        args.push("-r");
 
+    // Architecture specific flags.
+    switch (input.qbs.architecture) {
+    case "stm8":
+        // Warning level flags.
+        if (input.cpp.warningLevel === "none")
+            args.push("--no_warnings");
+        if (input.cpp.treatWarningsAsErrors)
+            args.push("--warnings_are_errors");
+        break;
+    default:
+        // Warning level flags.
+        args.push("-w" + (input.cpp.warningLevel === "none" ? "-" : "+"));
+        break;
+    }
+
+    // Misc flags.
     args = args.concat(ModUtils.moduleProperty(input, "platformFlags", tag),
                        ModUtils.moduleProperty(input, "flags", tag),
                        ModUtils.moduleProperty(input, "driverFlags", tag));
@@ -343,27 +516,16 @@ function assemblerFlags(project, product, input, output, explicitlyDependsOn) {
 }
 
 function linkerFlags(project, product, input, outputs) {
-    var i;
     var args = [];
 
+    // Inputs.
     if (inputs.obj)
         args = args.concat(inputs.obj.map(function(obj) { return obj.filePath }));
 
+    // Output.
     args.push("-o", outputs.application[0].filePath);
 
-    if (product.cpp.generateMapFile) {
-        if (product.qbs.architecture === "arm")
-            args.push("--map", outputs.map_file[0].filePath);
-        else if (product.qbs.architecture === "mcs51")
-            args.push("-l", outputs.map_file[0].filePath);
-        else if (product.qbs.architecture === "avr")
-            args.push("-l", outputs.map_file[0].filePath);
-        else if (product.qbs.architecture === "stm8")
-            args.push("--map", outputs.map_file[0].filePath);
-        else if (product.qbs.architecture === "msp430")
-            args.push("-l", outputs.map_file[0].filePath);
-    }
-
+    // Library paths.
     var allLibraryPaths = [];
     var libraryPaths = product.cpp.libraryPaths;
     if (libraryPaths)
@@ -373,59 +535,50 @@ function linkerFlags(project, product, input, outputs) {
         allLibraryPaths = allLibraryPaths.uniqueConcat(distributionLibraryPaths);
     args = args.concat(allLibraryPaths.map(function(path) { return '-L' + path }));
 
+    // Library dependencies.
     var libraryDependencies = collectLibraryDependencies(product);
     if (libraryDependencies)
         args = args.concat(libraryDependencies.map(function(dep) { return dep.filePath }));
 
-    if (product.cpp.debugInformation) {
-        if (product.qbs.architecture === "mcs51")
-            args.push("-rt");
-        else if (product.qbs.architecture === "avr")
-            args.push("-rt");
-        else if (product.qbs.architecture === "msp430")
-            args.push("-rt");
-    }
-
+    // Linker scripts.
     var linkerScripts = inputs.linkerscript
-            ? inputs.linkerscript.map(function(a) { return a.filePath; }) : [];
-    for (i in linkerScripts) {
-        if (product.qbs.architecture === "arm")
-            args.push("--config", linkerScripts[i]);
-        else if (product.qbs.architecture === "mcs51")
-            args.push("-f", linkerScripts[i]);
-        else if (product.qbs.architecture === "avr")
-            args.push("-f", linkerScripts[i]);
-        else if (product.qbs.architecture === "stm8")
-            args.push("--config", linkerScripts[i]);
-        else if (product.qbs.architecture === "msp430")
-            args.push("-f", linkerScripts[i]);
+        ? inputs.linkerscript.map(function(a) { return a.filePath; }) : [];
+
+    // Architecture specific flags.
+    switch (product.qbs.architecture) {
+    case "arm":
+    case "stm8":
+        // Silent output generation flag.
+        args.push("--silent");
+        // Map file generation flag.
+        if (product.cpp.generateMapFile)
+            args.push("--map", outputs.map_file[0].filePath);
+        // Entry point flag.
+        if (product.cpp.entryPoint)
+            args.push("--entry", product.cpp.entryPoint);
+        // Linker scripts flags.
+        linkerScripts.forEach(function(script) { args.push("--config", script); });
+        break;
+    case "mcs51":
+    case "avr":
+    case "msp430":
+        // Silent output generation flag.
+        args.push("-S");
+        // Debug information flag.
+        if (product.cpp.debugInformation)
+            args.push("-rt");
+         // Map file generation flag.
+        if (product.cpp.generateMapFile)
+            args.push("-l", outputs.map_file[0].filePath);
+        // Entry point flag.
+        if (product.cpp.entryPoint)
+            args.push("-s", product.cpp.entryPoint);
+        // Linker scripts flags.
+        linkerScripts.forEach(function(script) { args.push("-f", script); });
+        break;
     }
 
-    if (product.cpp.entryPoint) {
-        if (product.qbs.architecture === "arm")
-            args.push("--entry", product.cpp.entryPoint);
-        else if (product.qbs.architecture === "mcs51")
-            args.push("-s", product.cpp.entryPoint);
-        else if (product.qbs.architecture === "avr")
-            args.push("-s", product.cpp.entryPoint);
-        else if (product.qbs.architecture === "stm8")
-            args.push("--entry", product.cpp.entryPoint);
-        else if (product.qbs.architecture === "msp430")
-            args.push("-s", product.cpp.entryPoint);
-    }
-
-    // Silent operation.
-    if (product.qbs.architecture === "arm")
-        args.push("--silent");
-    else if (product.qbs.architecture === "mcs51")
-        args.push("-S");
-    else if (product.qbs.architecture === "avr")
-        args.push("-S");
-    else if (product.qbs.architecture === "stm8")
-        args.push("--silent");
-    else if (product.qbs.architecture === "msp430")
-        args.push("-S");
-
+    // Misc flags.
     args = args.concat(ModUtils.moduleProperty(product, "driverLinkerFlags"));
     return args;
 }
@@ -433,9 +586,11 @@ function linkerFlags(project, product, input, outputs) {
 function archiverFlags(project, product, input, outputs) {
     var args = [];
 
+    // Inputs.
     if (inputs.obj)
         args = args.concat(inputs.obj.map(function(obj) { return obj.filePath }));
 
+    // Output.
     args.push("--create");
     args.push("-o", outputs.staticlibrary[0].filePath);
 
@@ -445,7 +600,7 @@ function archiverFlags(project, product, input, outputs) {
 function prepareCompiler(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
     var args = compilerFlags(project, product, input, output, explicitlyDependsOn);
     var compilerPath = input.cpp.compilerPath;
-    var cmd = new Command(compilerPath, args)
+    var cmd = new Command(compilerPath, args);
     cmd.description = "compiling " + input.fileName;
     cmd.highlight = "compiler";
     return [cmd];
@@ -454,7 +609,7 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
 function prepareAssembler(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
     var args = assemblerFlags(project, product, input, output, explicitlyDependsOn);
     var assemblerPath = input.cpp.assemblerPath;
-    var cmd = new Command(assemblerPath, args)
+    var cmd = new Command(assemblerPath, args);
     cmd.description = "assembling " + input.fileName;
     cmd.highlight = "compiler";
     return [cmd];
@@ -464,7 +619,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     var primaryOutput = outputs.application[0];
     var args = linkerFlags(project, product, input, outputs);
     var linkerPath = product.cpp.linkerPath;
-    var cmd = new Command(linkerPath, args)
+    var cmd = new Command(linkerPath, args);
     cmd.description = "linking " + primaryOutput.fileName;
     cmd.highlight = "linker";
     return [cmd];
@@ -473,7 +628,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
 function prepareArchiver(project, product, inputs, outputs, input, output) {
     var args = archiverFlags(project, product, input, outputs);
     var archiverPath = product.cpp.archiverPath;
-    var cmd = new Command(archiverPath, args)
+    var cmd = new Command(archiverPath, args);
     cmd.description = "linking " + output.fileName;
     cmd.highlight = "linker";
     cmd.stdoutFilterFunction = function(output) {
