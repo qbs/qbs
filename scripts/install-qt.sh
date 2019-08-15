@@ -288,6 +288,13 @@ for COMPONENT in ${COMPONENTS}; do
         echo "[Paths]" > ${CONF_FILE}
         echo "Prefix = .." >> ${CONF_FILE}
 
+        # Adjust the license to be able to run qmake
+        # sed with -i requires intermediate file on Mac OS
+        PRI_FILE="${INSTALL_DIR}/${VERSION}/${SUBDIR}/mkspecs/qconfig.pri"
+        sed -i.bak 's/Enterprise/OpenSource/g' "${PRI_FILE}"
+        sed -i.bak 's/licheck.*//g' "${PRI_FILE}"
+        rm "${PRI_FILE}.bak"
+
         # Print the directory so that the caller can
         # adjust the PATH variable.
         echo $(dirname "${CONF_FILE}")

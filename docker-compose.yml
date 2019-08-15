@@ -4,11 +4,11 @@ services:
   stretch:
     image: ${DOCKER_USER:-qbsbuild}/qbsdev:stretch
     build:
-      dockerfile: Dockerfile
-      context: docker/stretch/
+      dockerfile: docker/stretch/Dockerfile
+      context: .
       args:
-        QT_VERSION: 5.11.3
-        QBS_VERSION: 1.13.0
+        QT_VERSION: 5.12.4
+        QTCREATOR_VERSION: 4.9.2
     working_dir: /qbs
     volumes:
       - .:/qbs
