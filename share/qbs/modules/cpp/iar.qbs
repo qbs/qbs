@@ -116,14 +116,7 @@ CppModule {
     }
 
     FileTagger {
-        condition: qbs.architecture === "arm" || qbs.architecture === "stm8";
-        patterns: "*.s"
-        fileTags: ["asm"]
-    }
-
-    FileTagger {
-        condition: qbs.architecture === "mcs51";
-        patterns: ["*.s51", "*.asm"]
+        patterns: ["*.s", "*.s43", "*.s51", "*.s90", "*.msa", "*.asm"]
         fileTags: ["asm"]
     }
 
