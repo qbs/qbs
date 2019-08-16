@@ -80,30 +80,16 @@ CppModule {
 
     property string linkerMode: "automatic"
 
-    compilerName: "sdcc" + compilerExtension
+    compilerName: SDCC.compilerName(qbs) + compilerExtension
     compilerPath: FileInfo.joinPaths(toolchainInstallPath, compilerName)
 
-    assemblerName: {
-        switch (qbs.architecture) {
-        case "mcs51":
-            return "sdas8051" + compilerExtension;
-        case "stm8":
-            return "sdasstm8" + compilerExtension;
-        }
-    }
+    assemblerName: SDCC.assemblerName(qbs) + compilerExtension
     assemblerPath: FileInfo.joinPaths(toolchainInstallPath, assemblerName)
 
-    linkerName: {
-        switch (qbs.architecture) {
-        case "mcs51":
-            return "sdld" + compilerExtension;
-        case "stm8":
-            return "sdldstm8" + compilerExtension;
-        }
-    }
+    linkerName: SDCC.linkerName(qbs) + compilerExtension
     linkerPath: FileInfo.joinPaths(toolchainInstallPath, linkerName)
 
-    property string archiverName: "sdcclib" + compilerExtension
+    property string archiverName: SDCC.archiverName(qbs) + compilerExtension
     property string archiverPath: FileInfo.joinPaths(toolchainInstallPath, archiverName)
 
     runtimeLibrary: "static"
@@ -128,7 +114,7 @@ CppModule {
                       + input.fileName + input.cpp.objectSuffix
         }
 
-        prepare: SDCC.prepareAssembler.apply(SDCC, arguments);
+        prepare: SDCC.prepareAssembler.apply(SDCC, arguments)
     }
 
     FileTagger {
@@ -154,7 +140,7 @@ CppModule {
                       + input.fileName + input.cpp.objectSuffix
         }
 
-        prepare: SDCC.prepareCompiler.apply(SDCC, arguments);
+        prepare: SDCC.prepareCompiler.apply(SDCC, arguments)
     }
 
     Rule {
@@ -188,7 +174,7 @@ CppModule {
             return artifacts;
         }
 
-        prepare:SDCC.prepareLinker.apply(SDCC, arguments);
+        prepare: SDCC.prepareLinker.apply(SDCC, arguments)
     }
 
     Rule {
@@ -204,6 +190,6 @@ CppModule {
                             PathTools.staticLibraryFilePath(product))
         }
 
-        prepare: SDCC.prepareArchiver.apply(SDCC, arguments);
+        prepare: SDCC.prepareArchiver.apply(SDCC, arguments)
     }
 }

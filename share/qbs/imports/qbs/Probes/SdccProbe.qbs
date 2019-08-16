@@ -64,10 +64,10 @@ PathProbe {
         var defaultPaths = SDCC.dumpDefaultPaths(compilerFilePath, architecture);
         includePaths = defaultPaths.includePaths;
 
-        versionMajor = parseInt(macros["__SDCC_VERSION_MAJOR"], 10);
-        versionMinor = parseInt(macros["__SDCC_VERSION_MINOR"], 10);
-        versionPatch = parseInt(macros["__SDCC_VERSION_PATCH"], 10);
-
-        found = macros["SDCC"];
+        var version = SDCC.guessVersion(macros);
+        versionMajor = version.major;
+        versionMinor = version.minor;
+        versionPatch = version.patch;
+        found = version.found;
    }
 }
