@@ -78,85 +78,26 @@ CppModule {
     property string cCompilerName: compilerName
     property string cxxCompilerName: compilerName
 
-    compilerName: {
-        switch (qbs.architecture) {
-        case "mcs51":
-            return "c51" + compilerExtension;
-        case "arm":
-            return "armcc" + compilerExtension;
-        }
-    }
+    compilerName: KEIL.compilerName(qbs) + compilerExtension
     compilerPath: FileInfo.joinPaths(toolchainInstallPath, compilerName)
 
-    assemblerName: {
-        switch (qbs.architecture) {
-        case "mcs51":
-            return "a51" + compilerExtension;
-        case "arm":
-            return "armasm" + compilerExtension;
-        }
-    }
+    assemblerName: KEIL.assemblerName(qbs) + compilerExtension
     assemblerPath: FileInfo.joinPaths(toolchainInstallPath, assemblerName)
 
-    linkerName: {
-        switch (qbs.architecture) {
-        case "mcs51":
-            return "bl51" + compilerExtension;
-        case "arm":
-            return "armlink" + compilerExtension;
-        }
-    }
+    linkerName: KEIL.linkerName(qbs) + compilerExtension
     linkerPath: FileInfo.joinPaths(toolchainInstallPath, linkerName)
 
-    property string archiverName: {
-        switch (qbs.architecture) {
-        case "mcs51":
-            return "lib51" + compilerExtension;
-        case "arm":
-            return "armar" + compilerExtension;
-        }
-    }
+    property string archiverName: KEIL.archiverName(qbs) + compilerExtension
     property string archiverPath: FileInfo.joinPaths(toolchainInstallPath, archiverName)
 
     runtimeLibrary: "static"
 
-    staticLibrarySuffix: {
-        switch (qbs.architecture) {
-        case "mcs51":
-            return ".lib";
-        case "arm":
-            return ".lib";
-        }
-    }
+    staticLibrarySuffix: KEIL.staticLibrarySuffix(qbs)
+    executableSuffix: KEIL.executableSuffix(qbs)
 
-    executableSuffix: {
-        switch (qbs.architecture) {
-        case "mcs51":
-            return ".abs";
-        case "arm":
-            return ".axf";
-        }
-    }
+    property string objectSuffix: KEIL.objectSuffix(qbs)
 
-    property string objectSuffix: {
-        switch (qbs.architecture) {
-        case "mcs51":
-            return ".obj";
-        case "arm":
-            return ".o";
-        }
-    }
-
-    imageFormat: {
-        switch (qbs.architecture) {
-        case "mcs51":
-            // Keil OMF51 or OMF2 Object Module Format (which is an
-            // extension of the original Intel OMF51).
-            return "omf";
-        case "arm":
-            return "elf";
-        }
-    }
+    imageFormat: KEIL.imageFormat(qbs)
 
     enableExceptions: false
     enableRtti: false
@@ -171,7 +112,7 @@ CppModule {
                       + input.fileName + input.cpp.objectSuffix
         }
 
-        prepare: KEIL.prepareAssembler.apply(KEIL, arguments);
+        prepare: KEIL.prepareAssembler.apply(KEIL, arguments)
     }
 
     FileTagger {
@@ -190,7 +131,7 @@ CppModule {
                       + input.fileName + input.cpp.objectSuffix
         }
 
-        prepare: KEIL.prepareCompiler.apply(KEIL, arguments);
+        prepare: KEIL.prepareCompiler.apply(KEIL, arguments)
     }
 
     Rule {
@@ -223,7 +164,7 @@ CppModule {
             return artifacts;
         }
 
-        prepare:KEIL.prepareLinker.apply(KEIL, arguments);
+        prepare: KEIL.prepareLinker.apply(KEIL, arguments)
     }
 
     Rule {
@@ -239,6 +180,6 @@ CppModule {
                             PathTools.staticLibraryFilePath(product))
         }
 
-        prepare: KEIL.prepareArchiver.apply(KEIL, arguments);
+        prepare: KEIL.prepareArchiver.apply(KEIL, arguments)
     }
 }
