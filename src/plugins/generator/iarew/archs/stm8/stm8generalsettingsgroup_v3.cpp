@@ -74,7 +74,7 @@ struct TargetPageOptions final
             codeModel = TargetPageOptions::LargeCodeModel;
         // Detect target data model.
         const QString dataModelValue = IarewUtils::flagValue(
-                    flags, QStringLiteral("--code_model"));
+                    flags, QStringLiteral("--data_model"));
         if (dataModelValue == QLatin1String("small"))
             dataModel = TargetPageOptions::SmallDataModel;
         else if (dataModelValue == QLatin1String("medium"))
