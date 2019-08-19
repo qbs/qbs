@@ -28,30 +28,45 @@
 **
 ****************************************************************************/
 
-#include "iarewfileversionproperty.h"
-#include "iarewversioninfo.h"
+#ifndef QBS_IAREWMSP430BUILDCONFIGURATIONGROUP_V7_H
+#define QBS_IAREWMSP430BUILDCONFIGURATIONGROUP_V7_H
+
+#include <generators/generatorutils.h>
+#include <generators/xmlpropertygroup.h>
 
 namespace qbs {
+namespace iarew {
+namespace msp430 {
+namespace v7 {
 
-static QByteArray buildFileVersion(const IarewVersionInfo &versionInfo)
+class Msp430BuildConfigurationGroup final
+        : public gen::xml::PropertyGroup
 {
-    switch (versionInfo.marketingVersion()) {
-    case 3:
-    case 7:
-    case 8:
-    case 10:
-        return QByteArrayLiteral('3');
-    default:
-        return {};
-    }
-}
+private:
+    explicit Msp430BuildConfigurationGroup(
+            const Project &qbsProject,
+            const ProductData &qbsProduct,
+            const std::vector<ProductData> &qbsProductDeps);
 
-IarewFileVersionProperty::IarewFileVersionProperty(
-        const IarewVersionInfo &versionInfo)
+    friend class Msp430BuildConfigurationGroupFactory;
+};
+
+class Msp430BuildConfigurationGroupFactory final
+        : public gen::xml::PropertyGroupFactory
 {
-    setName(QByteArrayLiteral("fileVersion"));
-    const QByteArray fileVersion = buildFileVersion(versionInfo);
-    setValue(fileVersion);
-}
+public:
+    bool canCreate(gen::utils::Architecture arch,
+                   const Version &version) const final;
 
+    std::unique_ptr<gen::xml::PropertyGroup> create(
+            const Project &qbsProject,
+            const ProductData &qbsProduct,
+            const std::vector<ProductData> &qbsProductDeps) const final;
+};
+
+} // namespace v7
+} // namespace msp430
+} // namespace iarew
 } // namespace qbs
+
+#endif // QBS_IAREWMSP430BUILDCONFIGURATIONGROUP_V7_H

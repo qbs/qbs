@@ -111,4 +111,22 @@ QbsPlugin {
             "stm8linkersettingsgroup_v3.h",
         ]
     }
+    Group {
+        name: "IAR EW generator for MSP430"
+        prefix: "archs/msp430/"
+        files: [
+            "msp430archiversettingsgroup_v7.cpp",
+            "msp430archiversettingsgroup_v7.h",
+            "msp430assemblersettingsgroup_v7.cpp",
+            "msp430assemblersettingsgroup_v7.h",
+            "msp430buildconfigurationgroup_v7.cpp",
+            "msp430buildconfigurationgroup_v7.h",
+            "msp430compilersettingsgroup_v7.cpp",
+            "msp430compilersettingsgroup_v7.h",
+            "msp430generalsettingsgroup_v7.cpp",
+            "msp430generalsettingsgroup_v7.h",
+            "msp430linkersettingsgroup_v7.cpp",
+            "msp430linkersettingsgroup_v7.h",
+        ]
+    }
 }

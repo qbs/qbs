@@ -62,6 +62,8 @@ Architecture architecture(const Project &qbsProject)
         return Architecture::Mcs51;
     if (qbsArch == QLatin1String("stm8"))
         return Architecture::Stm8;
+    if (qbsArch == QLatin1String("msp430"))
+        return Architecture::Msp430;
     return Architecture::Unknown;
 }
 

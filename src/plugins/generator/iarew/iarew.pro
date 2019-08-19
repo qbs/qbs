@@ -113,3 +113,21 @@ SOURCES += \
     $$PWD/archs/stm8/stm8compilersettingsgroup_v3.cpp \
     $$PWD/archs/stm8/stm8generalsettingsgroup_v3.cpp \
     $$PWD/archs/stm8/stm8linkersettingsgroup_v3.cpp
+
+# For MSP430 architecture.
+
+HEADERS += \
+    $$PWD/archs/msp430/msp430archiversettingsgroup_v7.h \
+    $$PWD/archs/msp430/msp430assemblersettingsgroup_v7.h \
+    $$PWD/archs/msp430/msp430buildconfigurationgroup_v7.h \
+    $$PWD/archs/msp430/msp430compilersettingsgroup_v7.h \
+    $$PWD/archs/msp430/msp430generalsettingsgroup_v7.h \
+    $$PWD/archs/msp430/msp430linkersettingsgroup_v7.h
+
+SOURCES += \
+    $$PWD/archs/msp430/msp430archiversettingsgroup_v7.cpp \
+    $$PWD/archs/msp430/msp430assemblersettingsgroup_v7.cpp \
+    $$PWD/archs/msp430/msp430buildconfigurationgroup_v7.cpp \
+    $$PWD/archs/msp430/msp430compilersettingsgroup_v7.cpp \
+    $$PWD/archs/msp430/msp430generalsettingsgroup_v7.cpp \
+    $$PWD/archs/msp430/msp430linkersettingsgroup_v7.cpp

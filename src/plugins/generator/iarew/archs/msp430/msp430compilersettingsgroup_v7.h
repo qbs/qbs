@@ -28,30 +28,38 @@
 **
 ****************************************************************************/
 
-#include "iarewfileversionproperty.h"
-#include "iarewversioninfo.h"
+#ifndef QBS_IAREWMSP430COMPILERSETTINGSGROUP_V7_H
+#define QBS_IAREWMSP430COMPILERSETTINGSGROUP_V7_H
+
+#include "../../iarewsettingspropertygroup.h"
 
 namespace qbs {
+namespace iarew {
+namespace msp430 {
+namespace v7 {
 
-static QByteArray buildFileVersion(const IarewVersionInfo &versionInfo)
+class Msp430CompilerSettingsGroup final : public IarewSettingsPropertyGroup
 {
-    switch (versionInfo.marketingVersion()) {
-    case 3:
-    case 7:
-    case 8:
-    case 10:
-        return QByteArrayLiteral('3');
-    default:
-        return {};
-    }
-}
+public:
+    explicit Msp430CompilerSettingsGroup(
+            const Project &qbsProject,
+            const ProductData &qbsProduct,
+            const std::vector<ProductData> &qbsProductDeps);
 
-IarewFileVersionProperty::IarewFileVersionProperty(
-        const IarewVersionInfo &versionInfo)
-{
-    setName(QByteArrayLiteral("fileVersion"));
-    const QByteArray fileVersion = buildFileVersion(versionInfo);
-    setValue(fileVersion);
-}
+private:
+    void buildOutputPage(const ProductData &qbsProduct);
+    void buildLanguageOnePage(const ProductData &qbsProduct);
+    void buildLanguageTwoPage(const ProductData &qbsProduct);
+    void buildCodePage(const ProductData &qbsProduct);
+    void buildOptimizationsPage(const ProductData &qbsProduct);
+    void buildPreprocessorPage(const QString &baseDirectory,
+                               const ProductData &qbsProduct);
+    void buildDiagnosticsPage(const ProductData &qbsProduct);
+};
 
+} // namespace v7
+} // namespace msp430
+} // namespace iarew
 } // namespace qbs
+
+#endif // QBS_IAREWMSP430COMPILERSETTINGSGROUP_V7_H

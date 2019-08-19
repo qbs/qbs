@@ -45,6 +45,7 @@ enum class Architecture {
     Avr,
     Mcs51,
     Stm8,
+    Msp430,
     Unknown
 };
 

@@ -28,30 +28,38 @@
 **
 ****************************************************************************/
 
-#include "iarewfileversionproperty.h"
-#include "iarewversioninfo.h"
+#ifndef QBS_IAREWMSP430LINKERSETTINGSGROUP_V7_H
+#define QBS_IAREWMSP430LINKERSETTINGSGROUP_V7_H
+
+#include "../../iarewsettingspropertygroup.h"
 
 namespace qbs {
+namespace iarew {
+namespace msp430 {
+namespace v7 {
 
-static QByteArray buildFileVersion(const IarewVersionInfo &versionInfo)
+class Msp430LinkerSettingsGroup final : public IarewSettingsPropertyGroup
 {
-    switch (versionInfo.marketingVersion()) {
-    case 3:
-    case 7:
-    case 8:
-    case 10:
-        return QByteArrayLiteral('3');
-    default:
-        return {};
-    }
-}
+public:
+    explicit Msp430LinkerSettingsGroup(
+            const Project &qbsProject,
+            const ProductData &qbsProduct,
+            const std::vector<ProductData> &qbsProductDeps);
 
-IarewFileVersionProperty::IarewFileVersionProperty(
-        const IarewVersionInfo &versionInfo)
-{
-    setName(QByteArrayLiteral("fileVersion"));
-    const QByteArray fileVersion = buildFileVersion(versionInfo);
-    setValue(fileVersion);
-}
+private:
+    void buildConfigPage(const QString &baseDirectory,
+                         const ProductData &qbsProduct);
+    void buildOutputPage(const ProductData &qbsProduct);
+    void buildListPage(const ProductData &qbsProduct);
+    void buildDefinePage(const ProductData &qbsProduct);
+    void buildExtraOptionsPage(const ProductData &qbsProduct);
 
+    QVariantList m_extraOptions;
+};
+
+} // namespace v7
+} // namespace msp430
+} // namespace iarew
 } // namespace qbs
+
+#endif // QBS_IAREWMSP430LINKERSETTINGSGROUP_V7_H
