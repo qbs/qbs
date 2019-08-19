@@ -54,7 +54,6 @@ private:
     void buildPreprocessorPage(const QString &baseDirectory,
                                const ProductData &qbsProduct);
     void buildDiagnosticsPage(const ProductData &qbsProduct);
-    void buildCodePage(const ProductData &qbsProduct);
 };
 
 } // namespace v3
