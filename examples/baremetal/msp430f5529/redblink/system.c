@@ -52,6 +52,8 @@
 
 #if defined(__ICC430__)
 #include <msp430f5529.h>
+#elif defined(__GNUC__)
+#include <msp430f5529.h>
 #else
 #error "Unsupported toolchain"
 #endif

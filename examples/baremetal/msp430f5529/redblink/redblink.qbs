@@ -55,6 +55,7 @@ CppApplication {
         if (!qbs.architecture.contains("msp430"))
             return false;
         return qbs.toolchain.contains("iar")
+            || qbs.toolchain.contains("gcc")
     }
     name: "msp430f5529-redblink"
     cpp.cLanguageVersion: "c99"
@@ -91,6 +92,21 @@ CppApplication {
             // Explicitly use the default linker scripts for current target.
             files: ["lnk430f5529.xcl", "multiplier32.xcl"]
         }
+    }
+
+    //
+    // GCC-specific properties and soucres.
+    //
+
+    Properties {
+        condition: qbs.toolchain.contains("gcc")
+        property path supportFilesPath
+        // A path to the MSP430 support files, which are
+        // provided by the Texas Instruments separately:
+        // e.g. 'c:/msp430-gcc-support-files/include/'
+        cpp.includePaths: supportFilesPath
+        cpp.libraryPaths: supportFilesPath
+        cpp.driverFlags: ["-mmcu=msp430f5529"]
     }
 
     //

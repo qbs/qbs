@@ -6,3 +6,4 @@ LED on the board.
 The following toolchains are supported:
 
   * IAR Embedded Workbench
+  * GCC
