@@ -227,18 +227,12 @@ CppModule {
         if (product.version === undefined)
             return undefined;
 
-        if (!Gcc.isNumericProductVersion(product.version)) {
-            // Dynamic library version numbers like "A" or "B" are common on Apple platforms, so
-            // don't restrict the product version to a componentized version number here.
-            if (cpp.imageFormat === "macho")
-                return product.version;
-
-            throw("product.version must be a string in the format x[.y[.z[.w]] "
-                  + "where each component is an integer");
-        }
+        var coreVersion = product.version.match("^([0-9]+\.){0,3}[0-9]+");
+        if (!coreVersion)
+            return undefined;
 
         var maxVersionParts = 3;
-        var versionParts = product.version.split('.').slice(0, maxVersionParts);
+        var versionParts = coreVersion[0].split('.').slice(0, maxVersionParts);
 
         // pad if necessary
         for (var i = versionParts.length; i < maxVersionParts; ++i)
@@ -246,11 +240,12 @@ CppModule {
 
         return versionParts.join('.');
     }
+
     property string soVersion: {
-        var v = internalVersion;
-        if (!Gcc.isNumericProductVersion(v))
+        if (!internalVersion)
             return "";
-        return v.split('.')[0];
+
+        return internalVersion.split('.')[0];
     }
 
     property var buildEnv: {
@@ -447,7 +442,7 @@ CppModule {
             }
 
             if (product.cpp.shouldCreateSymlinks && (!product.bundle || !product.bundle.isBundle)) {
-                var maxVersionParts = Gcc.isNumericProductVersion(product.version) ? 3 : 1;
+                var maxVersionParts = product.cpp.internalVersion ? 3 : 1;
                 for (var i = 0; i < maxVersionParts; ++i) {
                     var symlink = {
                         filePath: product.destinationDirectory + "/"

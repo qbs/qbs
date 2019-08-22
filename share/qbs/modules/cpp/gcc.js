@@ -278,9 +278,8 @@ function linkerFlags(project, product, inputs, outputs, primaryOutput, linkerPat
         }
 
         if (isDarwin) {
-            var internalVersion = product.cpp.internalVersion;
-            if (internalVersion && isNumericProductVersion(internalVersion))
-                args.push("-current_version", internalVersion);
+            if (product.cpp.internalVersion)
+                args.push("-current_version", product.cpp.internalVersion);
             escapableLinkerFlags.push("-install_name", UnixUtils.soname(product,
                                                                         primaryOutput.fileName));
         } else if (product.cpp.imageFormat === "elf") {
@@ -1432,10 +1431,6 @@ function debugInfoArtifacts(product, variants, debugInfoTagSuffix) {
         }
     }
     return artifacts;
-}
-
-function isNumericProductVersion(version) {
-    return version && version.match(/^([0-9]+\.){0,3}[0-9]+$/);
 }
 
 function dumpMacros(env, compilerFilePath, args, nullDevice, tag) {
