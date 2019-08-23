@@ -63,7 +63,7 @@
 #define _WIN32_WINNT _WIN32_WINNT_WIN8
 
 #include <qt_windows.h>
-#include <ShlObj.h>
+#include <shlobj.h>
 #else
 #include <qplatformdefs.h>
 #endif // Q_OS_WIN
