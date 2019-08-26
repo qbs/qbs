@@ -277,7 +277,9 @@ void ProcessCommandExecutor::getProcessOutput(bool stdOut, ProcessResult &result
     }
     QString contentString = filterProcessOutput(content, filterFunction);
     if (!redirectPath.isEmpty()) {
-        const QProcess::ProcessError error = saveToFile(redirectPath, contentString.toLocal8Bit());
+        const QByteArray dataToWrite = filterFunction.isEmpty() ? content
+                                                                : contentString.toLocal8Bit();
+        const QProcess::ProcessError error = saveToFile(redirectPath, dataToWrite);
         if (result.error() == QProcess::UnknownError && error != QProcess::UnknownError)
             result.d->error = error;
     } else {

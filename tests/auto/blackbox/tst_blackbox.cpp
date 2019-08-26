@@ -6306,6 +6306,14 @@ void TestBlackbox::outputArtifactAutoTagging()
     QVERIFY(regularFileExists(relativeExecutableFilePath("output-artifact-auto-tagging")));
 }
 
+void TestBlackbox::outputRedirection()
+{
+    QDir::setCurrent(testDataDir + "/output-redirection");
+    QCOMPARE(runQbs(), 0);
+    TEXT_FILE_COMPARE("output.txt", relativeProductBuildDir("the-product") + "/output.txt");
+    TEXT_FILE_COMPARE("output.bin", relativeProductBuildDir("the-product") + "/output.bin");
+}
+
 void TestBlackbox::wildCardsAndRules()
 {
     QDir::setCurrent(testDataDir + "/wildcards-and-rules");
