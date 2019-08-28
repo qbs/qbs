@@ -693,15 +693,15 @@ void AvrGeneralSettingsGroup::buildTargetPage(
     // Add 'GenDeviceSelectMenu' item
     // (Processor configuration chooser).
     addOptionsGroup(QByteArrayLiteral("GenDeviceSelectMenu"),
-                    {}, {opts.targetMcu});
+                    {opts.targetMcu});
     // Add 'Variant Memory' item
     // (Memory model: tiny/small/large/huge).
     addOptionsGroup(QByteArrayLiteral("Variant Memory"),
-                    {}, {opts.memoryModel});
+                    {opts.memoryModel});
     // Add 'GGEepromUtilSize' item
     // (Utilize inbuilt EEPROM size, in bytes).
     addOptionsGroup(QByteArrayLiteral("GGEepromUtilSize"),
-                    {}, {opts.eepromUtilSize});
+                    {opts.eepromUtilSize});
 }
 
 void AvrGeneralSettingsGroup::buildSystemPage(
@@ -711,11 +711,11 @@ void AvrGeneralSettingsGroup::buildSystemPage(
     // Add 'SCCStackSize' item (Data stack
     // - CSTACK size in bytes).
     addOptionsGroup(QByteArrayLiteral("SCCStackSize"),
-                    {}, {opts.cstackSize});
+                    {opts.cstackSize});
     // Add 'SCRStackSize' item (Return address stack
     // - RSTACK depth in bytes).
     addOptionsGroup(QByteArrayLiteral("SCRStackSize"),
-                    {}, {opts.rstackSize});
+                    {opts.rstackSize});
 }
 
 void AvrGeneralSettingsGroup::buildLibraryOptionsPage(
@@ -724,10 +724,10 @@ void AvrGeneralSettingsGroup::buildLibraryOptionsPage(
     const LibraryOptionsPageOptions opts(qbsProduct);
     // Add 'Output variant' item (Printf formatter).
     addOptionsGroup(QByteArrayLiteral("Output variant"),
-                    {}, {opts.printfFormatter});
+                    {opts.printfFormatter});
     // Add 'Input variant' item (Printf formatter).
     addOptionsGroup(QByteArrayLiteral("Input variant"),
-                    {}, {opts.scanfFormatter});
+                    {opts.scanfFormatter});
 }
 
 void AvrGeneralSettingsGroup::buildLibraryConfigPage(
@@ -738,15 +738,15 @@ void AvrGeneralSettingsGroup::buildLibraryConfigPage(
     // Add 'GRuntimeLibSelect' and 'GRuntimeLibSelectSlave' items
     // (Link with runtime: none/dlib/clib/etc).
     addOptionsGroup(QByteArrayLiteral("GRuntimeLibSelect"),
-                    {}, {opts.libraryType});
+                    {opts.libraryType});
     addOptionsGroup(QByteArrayLiteral("GRuntimeLibSelectSlave"),
-                    {}, {opts.libraryType});
+                    {opts.libraryType});
     // Add 'RTConfigPath' item (Runtime configuration file).
     addOptionsGroup(QByteArrayLiteral("RTConfigPath"),
-                    {}, {opts.configPath});
+                    {opts.configPath});
     // Add 'RTLibraryPath' item (Runtime library file).
     addOptionsGroup(QByteArrayLiteral("RTLibraryPath"),
-                    {}, {opts.libraryPath});
+                    {opts.libraryPath});
 }
 
 void AvrGeneralSettingsGroup::buildOutputPage(
@@ -756,16 +756,16 @@ void AvrGeneralSettingsGroup::buildOutputPage(
     const OutputPageOptions opts(baseDirectory, qbsProduct);
     // Add 'GOutputBinary' item (Output file: executable/library).
     addOptionsGroup(QByteArrayLiteral("GOutputBinary"),
-                    {}, {opts.binaryType});
+                    {opts.binaryType});
     // Add 'ExePath' item (Executable/binaries output directory).
     addOptionsGroup(QByteArrayLiteral("ExePath"),
-                    {}, {opts.binaryDirectory});
+                    {opts.binaryDirectory});
     // Add 'ObjPath' item (Object files output directory).
     addOptionsGroup(QByteArrayLiteral("ObjPath"),
-                    {}, {opts.objectDirectory});
+                    {opts.objectDirectory});
     // Add 'ListPath' item (List files output directory).
     addOptionsGroup(QByteArrayLiteral("ListPath"),
-                    {}, {opts.listingDirectory});
+                    {opts.listingDirectory});
 }
 
 } // namespace v7

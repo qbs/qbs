@@ -180,13 +180,13 @@ void Msp430AssemblerSettingsGroup::buildLanguagePage(
     const LanguagePageOptions opts(qbsProduct);
     // Add 'ACaseSensitivity' item (User symbols are case sensitive).
     addOptionsGroup(QByteArrayLiteral("ACaseSensitivity"),
-                    {}, {opts.enableSymbolsCaseSensitive});
+                    {opts.enableSymbolsCaseSensitive});
     // Add 'AMultibyteSupport' item (Enable multibyte support).
     addOptionsGroup(QByteArrayLiteral("AMultibyteSupport"),
-                    {}, {opts.enableMultibyteSupport});
+                    {opts.enableMultibyteSupport});
     // Add 'MacroChars' item (Macro quote characters: ()/[]/{}/<>).
     addOptionsGroup(QByteArrayLiteral("MacroChars"),
-                    {0}, {opts.macroQuoteCharacter});
+                    {opts.macroQuoteCharacter});
 }
 
 void Msp430AssemblerSettingsGroup::buildOutputPage(
@@ -195,7 +195,7 @@ void Msp430AssemblerSettingsGroup::buildOutputPage(
     const OutputPageOptions opts(qbsProduct);
     // Add 'ADebug' item (Generate debug information).
     addOptionsGroup(QByteArrayLiteral("ADebug"),
-                    {}, {opts.debugInfo});
+                    {opts.debugInfo});
 }
 
 void Msp430AssemblerSettingsGroup::buildPreprocessorPage(
@@ -205,10 +205,10 @@ void Msp430AssemblerSettingsGroup::buildPreprocessorPage(
     const PreprocessorPageOptions opts(baseDirectory, qbsProduct);
     // Add 'ADefines' item (Defined symbols).
     addOptionsGroup(QByteArrayLiteral("ADefines"),
-                    {}, opts.defineSymbols);
+                    opts.defineSymbols);
     // Add 'AUserIncludes' item (Additional include directories).
     addOptionsGroup(QByteArrayLiteral("AUserIncludes"),
-                    {}, opts.includePaths);
+                    opts.includePaths);
 }
 
 void Msp430AssemblerSettingsGroup::buildDiagnosticsPage(
@@ -217,10 +217,10 @@ void Msp430AssemblerSettingsGroup::buildDiagnosticsPage(
     const DiagnosticsPageOptions opts(qbsProduct);
     // Add 'AWarnEnable' item (Enable/disable warnings).
     addOptionsGroup(QByteArrayLiteral("AWarnEnable"),
-                    {}, {opts.enableWarnings});
+                    {opts.enableWarnings});
     // Add 'AWarnWhat' item (Enable/disable all warnings).
     addOptionsGroup(QByteArrayLiteral("AWarnWhat"),
-                    {}, {opts.enableAllWarnings});
+                    {opts.enableAllWarnings});
 }
 
 } // namespace v7

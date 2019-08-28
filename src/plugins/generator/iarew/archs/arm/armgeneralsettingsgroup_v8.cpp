@@ -461,19 +461,19 @@ void ArmGeneralSettingsGroup::buildTargetPage(
     // Add 'GBECoreSlave', 'CoreVariant', 'GFPUCoreSlave2' items
     // (Processor variant chooser).
     addOptionsGroup(QByteArrayLiteral("GBECoreSlave"),
-                    {26}, {opts.targetCpu});
+                    {opts.targetCpu}, 26);
     addOptionsGroup(QByteArrayLiteral("CoreVariant"),
-                    {26}, {opts.targetCpu});
+                    {opts.targetCpu}, 26);
     addOptionsGroup(QByteArrayLiteral("GFPUCoreSlave2"),
-                    {26}, {opts.targetCpu});
+                    {opts.targetCpu}, 26);
     // Add 'FPU2', 'NrRegs' item (Floating point settings chooser).
     addOptionsGroup(QByteArrayLiteral("FPU2"),
-                    {0}, {opts.targetFpu});
+                    {opts.targetFpu}, 0);
     addOptionsGroup(QByteArrayLiteral("NrRegs"),
-                    {0}, {opts.targetFpuRegs});
+                    {opts.targetFpuRegs}, 0);
     // Add 'GEndianMode' item (Endian mode chooser).
     addOptionsGroup(QByteArrayLiteral("GEndianMode"),
-                    {}, {opts.endianness});
+                    {opts.endianness});
 }
 
 void ArmGeneralSettingsGroup::buildLibraryOptionsOnePage(
@@ -482,10 +482,10 @@ void ArmGeneralSettingsGroup::buildLibraryOptionsOnePage(
     const LibraryOnePageOptions opts(qbsProduct);
     // Add 'OGPrintfVariant' item (Printf formatter).
     addOptionsGroup(QByteArrayLiteral("OGPrintfVariant"),
-                    {}, {opts.printfFormatter});
+                    {opts.printfFormatter});
     // Add 'OGScanfVariant' item (Printf formatter).
     addOptionsGroup(QByteArrayLiteral("OGScanfVariant"),
-                    {}, {opts.scanfFormatter});
+                    {opts.scanfFormatter});
 }
 
 void ArmGeneralSettingsGroup::buildLibraryOptionsTwoPage(
@@ -495,7 +495,7 @@ void ArmGeneralSettingsGroup::buildLibraryOptionsTwoPage(
     // Add 'OgLibHeap' item (Heap selection:
     // auto/advanced/basic/nofree).
     addOptionsGroup(QByteArrayLiteral("OgLibHeap"),
-                    {}, {opts.heapType});
+                    {opts.heapType});
 }
 
 void ArmGeneralSettingsGroup::buildLibraryConfigPage(
@@ -507,19 +507,19 @@ void ArmGeneralSettingsGroup::buildLibraryConfigPage(
     // and 'RTConfigPath2' items
     // (Link with runtime: none/normal/full/custom).
     addOptionsGroup(QByteArrayLiteral("GRuntimeLibSelect"),
-                    {}, {opts.dlibType});
+                    {opts.dlibType});
     addOptionsGroup(QByteArrayLiteral("GRuntimeLibSelectSlave"),
-                    {}, {opts.dlibType});
+                    {opts.dlibType});
     addOptionsGroup(QByteArrayLiteral("RTConfigPath2"),
-                    {}, {opts.dlibConfigPath});
+                    {opts.dlibConfigPath});
     // Add 'GRuntimeLibThreads'item
     // (Enable thread support in library).
     addOptionsGroup(QByteArrayLiteral("GRuntimeLibThreads"),
-                    {}, {opts.threadSupport});
+                    {opts.threadSupport});
     // Add 'GenLowLevelInterface' item (Library low-level
     // interface: none/semihosted/breakpoint).
     addOptionsGroup(QByteArrayLiteral("GenLowLevelInterface"),
-                    {}, {opts.lowLevelInterface});
+                    {opts.lowLevelInterface});
 }
 
 void ArmGeneralSettingsGroup::buildOutputPage(
@@ -530,19 +530,19 @@ void ArmGeneralSettingsGroup::buildOutputPage(
     // Add 'GOutputBinary' item
     // (Output file: executable/library).
     addOptionsGroup(QByteArrayLiteral("GOutputBinary"),
-                    {}, {opts.binaryType});
+                    {opts.binaryType});
     // Add 'ExePath' item
     // (Executable/binaries output directory).
     addOptionsGroup(QByteArrayLiteral("ExePath"),
-                    {}, {opts.binaryDirectory});
+                    {opts.binaryDirectory});
     // Add 'ObjPath' item
     // (Object files output directory).
     addOptionsGroup(QByteArrayLiteral("ObjPath"),
-                    {}, {opts.objectDirectory});
+                    {opts.objectDirectory});
     // Add 'ListPath' item
     // (List files output directory).
     addOptionsGroup(QByteArrayLiteral("ListPath"),
-                    {}, {opts.listingDirectory});
+                    {opts.listingDirectory});
 }
 
 } // namespace v8

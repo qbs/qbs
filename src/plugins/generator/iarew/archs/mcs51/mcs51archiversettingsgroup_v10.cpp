@@ -83,10 +83,10 @@ void Mcs51ArchiverSettingsGroup::buildOutputPage(
     const OutputPageOptions opts(baseDirectory, qbsProduct);
     // Add 'XAROverride' item (Override default).
     addOptionsGroup(QByteArrayLiteral("XAROverride"),
-                    {}, {1});
+                    {1});
     // Add 'XAROutput2' item (Output filename).
     addOptionsGroup(QByteArrayLiteral("XAROutput2"),
-                    {}, {opts.outputFile});
+                    {opts.outputFile});
 }
 
 } // namespace v10

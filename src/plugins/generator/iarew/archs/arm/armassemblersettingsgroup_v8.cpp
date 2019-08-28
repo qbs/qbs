@@ -178,17 +178,17 @@ void ArmAssemblerSettingsGroup::buildLanguagePage(
     const LanguagePageOptions opts(qbsProduct);
     // Add 'ACaseSensitivity' item (User symbols are case sensitive).
     addOptionsGroup(QByteArrayLiteral("ACaseSensitivity"),
-                    {}, {opts.enableSymbolsCaseSensitive});
+                    {opts.enableSymbolsCaseSensitive});
     // Add 'AltRegisterNames' item (Allow alternative register names,
     // mnemonics and operands).
     addOptionsGroup(QByteArrayLiteral("AltRegisterNames"),
-                    {}, {opts.allowAlternativeRegister});
+                    {opts.allowAlternativeRegister});
     // Add 'AsmNoLiteralPool' item (No data reads in code memory).
     addOptionsGroup(QByteArrayLiteral("AsmNoLiteralPool"),
-                    {}, {opts.disableCodeMemoryDataReads});
+                    {opts.disableCodeMemoryDataReads});
     // Add 'MacroChars' item (Macro quote characters: ()/[]/{}/<>).
     addOptionsGroup(QByteArrayLiteral("MacroChars"),
-                    {0}, {opts.macroQuoteCharacter});
+                    {opts.macroQuoteCharacter}, 0);
 }
 void ArmAssemblerSettingsGroup::buildOutputPage(
         const ProductData &qbsProduct)
@@ -196,7 +196,7 @@ void ArmAssemblerSettingsGroup::buildOutputPage(
     const OutputPageOptions opts(qbsProduct);
     // Add 'ADebug' item (Generate debug information).
     addOptionsGroup(QByteArrayLiteral("ADebug"),
-                    {}, {opts.debugInfo});
+                    {opts.debugInfo});
 }
 
 void ArmAssemblerSettingsGroup::buildPreprocessorPage(
@@ -206,10 +206,10 @@ void ArmAssemblerSettingsGroup::buildPreprocessorPage(
     const PreprocessorPageOptions opts(baseDirectory, qbsProduct);
     // Add 'ADefines' item (Defined symbols).
     addOptionsGroup(QByteArrayLiteral("ADefines"),
-                    {}, opts.defineSymbols);
+                    opts.defineSymbols);
     // Add 'AUserIncludes' item (Additional include directories).
     addOptionsGroup(QByteArrayLiteral("AUserIncludes"),
-                    {}, opts.includePaths);
+                    opts.includePaths);
 }
 
 void ArmAssemblerSettingsGroup::buildDiagnosticsPage(
@@ -218,10 +218,10 @@ void ArmAssemblerSettingsGroup::buildDiagnosticsPage(
     const DiagnosticsPageOptions opts(qbsProduct);
     // Add 'AWarnEnable' item (Enable/disable warnings).
     addOptionsGroup(QByteArrayLiteral("AWarnEnable"),
-                    {}, {opts.enableWarnings});
+                    {opts.enableWarnings});
     // Add 'AWarnWhat' item (Enable/disable all warnings).
     addOptionsGroup(QByteArrayLiteral("AWarnWhat"),
-                    {}, {opts.enableAllWarnings});
+                    {opts.enableAllWarnings});
 }
 
 } // namespace v8

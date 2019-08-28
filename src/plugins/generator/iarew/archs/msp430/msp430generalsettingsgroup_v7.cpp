@@ -376,37 +376,37 @@ void Msp430GeneralSettingsGroup::buildTargetPage(
     // Add 'OGChipSelectMenu' item
     // (Device: xxx).
     addOptionsGroup(QByteArrayLiteral("OGChipSelectMenu"),
-                    {}, {opts.deviceMenu});
+                    {opts.deviceMenu});
 
     // Add 'RadioCodeModelType' item
     // (Code model: small/large).
     addOptionsGroup(QByteArrayLiteral("RadioCodeModelType"),
-                    {}, {opts.codeModel});
+                    {opts.codeModel});
     // Add 'RadioDataModelType' item
     // (Data model: small/medium/large).
     addOptionsGroup(QByteArrayLiteral("RadioDataModelType"),
-                    {}, {opts.dataModel});
+                    {opts.dataModel});
     // Add 'OGDouble' item
     // (Floating point double size: 32/64 bits).
     addOptionsGroup(QByteArrayLiteral("OGDouble"),
-                    {}, {opts.floatingPointDoubleSize});
+                    {opts.floatingPointDoubleSize});
     // Add 'Hardware Multiplier' item
     // (Hardware multiplier).
     addOptionsGroup(QByteArrayLiteral("Hardware Multiplier"),
-                    {}, {opts.enableHardwareMultiplier});
+                    {opts.enableHardwareMultiplier});
     if (opts.enableHardwareMultiplier) {
         // Add 'RadioHardwareMultiplierType' item.
         addOptionsGroup(QByteArrayLiteral("Hardware RadioHardwareMultiplierType"),
-                        {}, {opts.hardwareMultiplierType});
+                        {opts.hardwareMultiplierType});
     }
     // Add 'Ropi' item.
     // (Position independence: Code and read-only data).
     addOptionsGroup(QByteArrayLiteral("Ropi"),
-                    {}, {opts.enableRopi});
+                    {opts.enableRopi});
     // Add 'NoRwDynamicInit' item.
     // (Position independence: No dynamic read/write initialization).
     addOptionsGroup(QByteArrayLiteral("NoRwDynamicInit"),
-                    {}, {opts.disableDynamicReadWriteInitialization});
+                    {opts.disableDynamicReadWriteInitialization});
 }
 
 void Msp430GeneralSettingsGroup::buildOutputPage(
@@ -416,16 +416,16 @@ void Msp430GeneralSettingsGroup::buildOutputPage(
     const OutputPageOptions opts(baseDirectory, qbsProduct);
     // Add 'GOutputBinary' item (Output file: executable/library).
     addOptionsGroup(QByteArrayLiteral("GOutputBinary"),
-                    {}, {opts.binaryType});
+                    {opts.binaryType});
     // Add 'ExePath' item (Executable/binaries output directory).
     addOptionsGroup(QByteArrayLiteral("ExePath"),
-                    {}, {opts.binaryDirectory});
+                    {opts.binaryDirectory});
     // Add 'ObjPath' item (Object files output directory).
     addOptionsGroup(QByteArrayLiteral("ObjPath"),
-                    {}, {opts.objectDirectory});
+                    {opts.objectDirectory});
     // Add 'ListPath' item (List files output directory).
     addOptionsGroup(QByteArrayLiteral("ListPath"),
-                    {}, {opts.listingDirectory});
+                    {opts.listingDirectory});
 }
 
 void Msp430GeneralSettingsGroup::buildLibraryConfigPage(
@@ -436,15 +436,15 @@ void Msp430GeneralSettingsGroup::buildLibraryConfigPage(
     // Add 'GRuntimeLibSelect' and 'GRuntimeLibSelectSlave' items
     // (Link with runtime: none/normal/full/custom).
     addOptionsGroup(QByteArrayLiteral("GRuntimeLibSelect"),
-                    {}, {opts.libraryType});
+                    {opts.libraryType});
     addOptionsGroup(QByteArrayLiteral("GRuntimeLibSelectSlave"),
-                    {}, {opts.libraryType});
+                    {opts.libraryType});
     // Add 'RTConfigPath' item (Runtime configuration file).
     addOptionsGroup(QByteArrayLiteral("RTConfigPath"),
-                    {}, {opts.configPath});
+                    {opts.configPath});
     // Add 'RTLibraryPath' item (Runtime library file).
     addOptionsGroup(QByteArrayLiteral("RTLibraryPath"),
-                    {}, {opts.libraryPath});
+                    {opts.libraryPath});
 }
 
 void Msp430GeneralSettingsGroup::buildLibraryOptionsPage(
@@ -453,10 +453,10 @@ void Msp430GeneralSettingsGroup::buildLibraryOptionsPage(
     const LibraryOptionsPageOptions opts(qbsProduct);
     // Add 'Output variant' item (Printf formatter).
     addOptionsGroup(QByteArrayLiteral("Output variant"),
-                    {}, {opts.printfFormatter});
+                    {opts.printfFormatter});
     // Add 'Input variant' item (Scanf formatter).
     addOptionsGroup(QByteArrayLiteral("Input variant"),
-                    {}, {opts.scanfFormatter});
+                    {opts.scanfFormatter});
 }
 
 void Msp430GeneralSettingsGroup::buildStackHeapPage(
@@ -465,16 +465,16 @@ void Msp430GeneralSettingsGroup::buildStackHeapPage(
     const StackHeapPageOptions opts(qbsProduct);
     // Add 'GStackHeapOverride' item (Override default).
     addOptionsGroup(QByteArrayLiteral("GStackHeapOverride"),
-                    {}, {1});
+                    {1});
     // Add 'GStackSize2' item (Stack size).
     addOptionsGroup(QByteArrayLiteral("GStackSize2"),
-                    {}, {opts.stackSize});
+                    {opts.stackSize});
     // Add 'GHeapSize2' item (Heap16 size).
     addOptionsGroup(QByteArrayLiteral("GHeapSize2"),
-                    {}, {opts.data16HeapSize});
+                    {opts.data16HeapSize});
     // Add 'GHeap20Size' item (Heap16 size).
     addOptionsGroup(QByteArrayLiteral("GHeap20Size"),
-                    {}, {opts.data20HeapSize});
+                    {opts.data20HeapSize});
 }
 
 } // namespace v7

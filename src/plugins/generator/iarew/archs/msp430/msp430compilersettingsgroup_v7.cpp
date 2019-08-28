@@ -352,7 +352,7 @@ void Msp430CompilerSettingsGroup::buildOutputPage(
     const OutputPageOptions opts(qbsProduct);
     // Add 'CCDebugInfo' item (Generate debug info).
     addOptionsGroup(QByteArrayLiteral("CCDebugInfo"),
-                    {}, {opts.debugInfo});
+                    {opts.debugInfo});
 }
 
 void Msp430CompilerSettingsGroup::buildLanguageOnePage(
@@ -362,29 +362,29 @@ void Msp430CompilerSettingsGroup::buildLanguageOnePage(
     // Add 'IccLang' item with 'auto-extension based'
     // value (Language: C/C++/Auto).
     addOptionsGroup(QByteArrayLiteral("IccLang"),
-                    {}, {opts.languageExtension});
+                    {opts.languageExtension});
     // Add 'IccCDialect' item (C dialect: c89/99/11).
     addOptionsGroup(QByteArrayLiteral("IccCDialect"),
-                    {}, {opts.cLanguageDialect});
+                    {opts.cLanguageDialect});
     // Add 'IccCppDialect' item (C++ dialect: embedded/extended).
     addOptionsGroup(QByteArrayLiteral("IccCppDialect"),
-                    {}, {opts.cxxLanguageDialect});
+                    {opts.cxxLanguageDialect});
     // Add 'CCExt' item
     // (Language conformance: IAR/relaxed/strict).
     addOptionsGroup(QByteArrayLiteral("CCExt"),
-                    {}, {opts.languageConformance});
+                    {opts.languageConformance});
     // Add 'IccAllowVLA' item (Allow VLA).
     addOptionsGroup(QByteArrayLiteral("IccAllowVLA"),
-                    {}, {opts.allowVla});
+                    {opts.allowVla});
     // Add 'IccCppInlineSemantics' item (C++ inline semantics).
     addOptionsGroup(QByteArrayLiteral("IccCppInlineSemantics"),
-                    {}, {opts.useCppInlineSemantics});
+                    {opts.useCppInlineSemantics});
     // Add 'IccRequirePrototypes' item (Require prototypes).
     addOptionsGroup(QByteArrayLiteral("CCRequirePrototypes"),
-                    {}, {opts.requirePrototypes});
+                    {opts.requirePrototypes});
     // Add 'IccStaticDestr' item (Destroy static objects).
     addOptionsGroup(QByteArrayLiteral("IccStaticDestr"),
-                    {}, {opts.destroyStaticObjects});
+                    {opts.destroyStaticObjects});
 }
 
 void Msp430CompilerSettingsGroup::buildLanguageTwoPage(
@@ -393,17 +393,17 @@ void Msp430CompilerSettingsGroup::buildLanguageTwoPage(
     const LanguageTwoPageOptions opts(qbsProduct);
     // Add 'IccCharIs' item (Plain char is: signed/unsigned).
     addOptionsGroup(QByteArrayLiteral("CCCharIs"),
-                    {}, {opts.plainCharacter});
+                    {opts.plainCharacter});
     // Add 'IccFloatSemantics' item (Floatic-point
     // semantics: strict/relaxed conformance).
     addOptionsGroup(QByteArrayLiteral("IccFloatSemantics"),
-                    {}, {opts.floatingPointSemantic});
+                    {opts.floatingPointSemantic});
     // Add 'IccMultibyteSupport' item (Enable multibyte support).
     addOptionsGroup(QByteArrayLiteral("CCMultibyteSupport"),
-                    {}, {opts.enableMultibyteSupport});
+                    {opts.enableMultibyteSupport});
     // Add 'CCGuardCalls' and 'OCGuardCallsSlave' item (Guard calls).
     addOptionsGroup(QByteArrayLiteral("CCGuardCalls"),
-                    {}, {opts.guardCalls});
+                    {opts.guardCalls});
 }
 
 void Msp430CompilerSettingsGroup::buildCodePage(
@@ -413,19 +413,19 @@ void Msp430CompilerSettingsGroup::buildCodePage(
     // Add 'OCCR4Utilize' item
     // (R4 utilization: normal/regvar/disabled).
     addOptionsGroup(QByteArrayLiteral("OCCR4Utilize"),
-                    {}, {opts.r4utilization});
+                    {opts.r4utilization});
     // Add 'OCCR5Utilize' item
     // (R5 utilization: normal/regvar/disabled).
     addOptionsGroup(QByteArrayLiteral("OCCR5Utilize"),
-                    {}, {opts.r5utilization});
+                    {opts.r5utilization});
     // Add 'ReduceStack' item
     // (Reduce stack usage).
     addOptionsGroup(QByteArrayLiteral("ReduceStack"),
-                    {}, {opts.reduceStackUsage});
+                    {opts.reduceStackUsage});
     // Add 'Save20bit' item
     // (20-bit context save on interrupt).
     addOptionsGroup(QByteArrayLiteral("Save20bit"),
-                    {}, {opts.save20BitContextOnInterrupt});
+                    {opts.save20BitContextOnInterrupt});
 }
 
 void Msp430CompilerSettingsGroup::buildOptimizationsPage(
@@ -435,15 +435,15 @@ void Msp430CompilerSettingsGroup::buildOptimizationsPage(
     // Add 'CCOptStrategy', 'CCOptLevel' and
     // 'CCOptLevelSlave' items (Level).
     addOptionsGroup(QByteArrayLiteral("CCOptStrategy"),
-                    {}, {opts.optimizationStrategy});
+                    {opts.optimizationStrategy});
     addOptionsGroup(QByteArrayLiteral("CCOptLevel"),
-                    {}, {opts.optimizationLevel});
+                    {opts.optimizationLevel});
     addOptionsGroup(QByteArrayLiteral("CCOptLevelSlave"),
-                    {}, {opts.optimizationLevelSlave});
+                    {opts.optimizationLevelSlave});
 
     // Add 'CCOptimizationNoSizeConstraints' item (no size constraints).
     addOptionsGroup(QByteArrayLiteral("CCOptimizationNoSizeConstraints"),
-                    {}, {opts.disableSizeConstraints});
+                    {opts.disableSizeConstraints});
 
     // Add 'CCAllowList' item
     // (Enabled transformations: 5 check boxes).
@@ -454,7 +454,7 @@ void Msp430CompilerSettingsGroup::buildOptimizationsPage(
             .arg(opts.enableCodeMotion)
             .arg(opts.enableTypeBasedAliasAnalysis);
     addOptionsGroup(QByteArrayLiteral("CCAllowList"),
-                    {}, {bitflags});
+                    {bitflags});
 }
 
 void Msp430CompilerSettingsGroup::buildPreprocessorPage(
@@ -464,11 +464,11 @@ void Msp430CompilerSettingsGroup::buildPreprocessorPage(
     const PreprocessorPageOptions opts(baseDirectory, qbsProduct);
     // Add 'CCDefines' item (Defines symbols).
     addOptionsGroup(QByteArrayLiteral("CCDefines"),
-                    {}, opts.defineSymbols);
+                    opts.defineSymbols);
     // Add 'newCCIncludePaths' item
     // (Additional include directories).
     addOptionsGroup(QByteArrayLiteral("newCCIncludePaths"),
-                    {}, opts.includePaths);
+                    opts.includePaths);
 }
 
 void Msp430CompilerSettingsGroup::buildDiagnosticsPage(
@@ -477,7 +477,7 @@ void Msp430CompilerSettingsGroup::buildDiagnosticsPage(
     const DiagnosticsPageOptions opts(qbsProduct);
     // Add 'CCDiagWarnAreErr' item (Treat all warnings as errors).
     addOptionsGroup(QByteArrayLiteral("CCDiagWarnAreErr"),
-                    {}, {opts.warningsAsErrors});
+                    {opts.warningsAsErrors});
 }
 
 } // namespace v7

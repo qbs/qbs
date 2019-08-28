@@ -210,10 +210,10 @@ void Msp430LinkerSettingsGroup::buildConfigPage(
         const QVariant configPath = opts.configFilePaths.takeFirst();
         // Add 'XclOverride' item (Override default).
         addOptionsGroup(QByteArrayLiteral("XclOverride"),
-                        {}, {1});
+                        {1});
         // Add 'XclFile' item (Linke configuration file).
         addOptionsGroup(QByteArrayLiteral("XclFile"),
-                        {}, {configPath});
+                        {configPath});
 
         // Add remainder configuration files to the "Extra options page".
         if (!opts.configFilePaths.isEmpty()) {
@@ -227,14 +227,14 @@ void Msp430LinkerSettingsGroup::buildConfigPage(
     // Add 'xcOverrideProgramEntryLabel' item
     // (Override default program entry).
     addOptionsGroup(QByteArrayLiteral("xcOverrideProgramEntryLabel"),
-                    {}, {1});
+                    {1});
     // Add 'xcProgramEntryLabel' item (Entry point name).
     addOptionsGroup(QByteArrayLiteral("xcProgramEntryLabel"),
-                    {}, {opts.entryPoint});
+                    {opts.entryPoint});
 
     // Add 'XIncludes' item (Entry point name).
     addOptionsGroup(QByteArrayLiteral("XIncludes"),
-                    {}, {opts.librarySearchPaths});
+                    {opts.librarySearchPaths});
 }
 
 void Msp430LinkerSettingsGroup::buildOutputPage(
@@ -244,10 +244,10 @@ void Msp430LinkerSettingsGroup::buildOutputPage(
 
     // Add 'XOutOverride' item (Output file name).
     addOptionsGroup(QByteArrayLiteral("XOutOverride"),
-                    {}, {1});
+                    {1});
     // Add 'OutputFile' item (Output file name).
     addOptionsGroup(QByteArrayLiteral("OutputFile"),
-                    {}, {opts.outputFile});
+                    {opts.outputFile});
 }
 
 void Msp430LinkerSettingsGroup::buildListPage(
@@ -256,7 +256,7 @@ void Msp430LinkerSettingsGroup::buildListPage(
     const ListPageOptions opts(qbsProduct);
     // Add 'XList' item (Generate linker map file).
     addOptionsGroup(QByteArrayLiteral("XList"),
-                    {}, {opts.generateMap});
+                    {opts.generateMap});
 }
 
 void Msp430LinkerSettingsGroup::buildDefinePage(
@@ -265,7 +265,7 @@ void Msp430LinkerSettingsGroup::buildDefinePage(
     const DefinePageOptions opts(qbsProduct);
     // Add 'XDefines' item (Defined symbols).
     addOptionsGroup(QByteArrayLiteral("XDefines"),
-                    {}, opts.defineSymbols);
+                    opts.defineSymbols);
 }
 
 void Msp430LinkerSettingsGroup::buildExtraOptionsPage(
@@ -278,10 +278,10 @@ void Msp430LinkerSettingsGroup::buildExtraOptionsPage(
 
     // Add 'XExtraOptionsCheck' (Use command line options).
     addOptionsGroup(QByteArrayLiteral("XExtraOptionsCheck"),
-                    {}, {1});
+                    {1});
     // Add 'XExtraOptions' item (Command line options).
     addOptionsGroup(QByteArrayLiteral("XExtraOptions"),
-                    {}, m_extraOptions);
+                    m_extraOptions);
 }
 
 } // namespace v7

@@ -332,7 +332,7 @@ void ArmLinkerSettingsGroup::buildConfigPage(
     // Add 'IlinkConfigDefines' item
     // (Configuration file symbol definitions).
     addOptionsGroup(QByteArrayLiteral("IlinkConfigDefines"),
-                    {}, opts.configDefines);
+                    opts.configDefines);
 
     if (opts.configFilePaths.count() > 0) {
         // Note: IAR IDE does not allow to specify a multiple config files,
@@ -342,10 +342,10 @@ void ArmLinkerSettingsGroup::buildConfigPage(
         const QVariant configPath = opts.configFilePaths.takeFirst();
         // Add 'IlinkIcfOverride' item (Override default).
         addOptionsGroup(QByteArrayLiteral("IlinkIcfOverride"),
-                        {}, {1});
+                        {1});
         // Add 'IlinkIcfFile' item (Linker configuration file).
         addOptionsGroup(QByteArrayLiteral("IlinkIcfFile"),
-                        {}, {configPath});
+                        {configPath});
 
         // Add remainder configuration files to the "Extra options page".
         if (!opts.configFilePaths.isEmpty()) {
@@ -367,24 +367,24 @@ void ArmLinkerSettingsGroup::buildLibraryPage(
     // Add 'IlinkOverrideProgramEntryLabel' item
     // (Override default program entry).
     addOptionsGroup(QByteArrayLiteral("IlinkOverrideProgramEntryLabel"),
-                    {}, {1});
+                    {1});
     const int select = opts.entryPoint.isEmpty() ? 1 : 0;
     addOptionsGroup(QByteArrayLiteral("IlinkProgramEntryLabelSelect"),
-                    {}, {select});
+                    {select});
     // Add 'IlinkProgramEntryLabel' item (Entry point name).
     addOptionsGroup(QByteArrayLiteral("IlinkProgramEntryLabel"),
-                    {}, {opts.entryPoint});
+                    {opts.entryPoint});
 
     if (!opts.staticLibraries.isEmpty()) {
         // Add 'IlinkAdditionalLibs' item (Additional libraries).
         addOptionsGroup(QByteArrayLiteral("IlinkAdditionalLibs"),
-                        {}, opts.staticLibraries);
+                        opts.staticLibraries);
     }
 
     // Add 'IlinkAutoLibEnable' item
     // (Automatic runtime library selection).
     addOptionsGroup(QByteArrayLiteral("IlinkAutoLibEnable"),
-                    {}, {opts.enableRuntimeLibsSearch});
+                    {opts.enableRuntimeLibsSearch});
 
     // Add library searh directories to the
     // "Extra options page", because IAR IDE
@@ -402,10 +402,10 @@ void ArmLinkerSettingsGroup::buildOutputPage(
     // Add 'IlinkDebugInfoEnable' item
     // (Include debug information in output).
     addOptionsGroup(QByteArrayLiteral("IlinkDebugInfoEnable"),
-                    {}, {opts.debugInfo});
+                    {opts.debugInfo});
     // Add 'IlinkOutputFile' item (Output filename).
     addOptionsGroup(QByteArrayLiteral("IlinkOutputFile"),
-                    {}, {opts.outputFile});
+                    {opts.outputFile});
 }
 
 void ArmLinkerSettingsGroup::buildInputPage(
@@ -414,7 +414,7 @@ void ArmLinkerSettingsGroup::buildInputPage(
     const InputPageOptions opts(qbsProduct);
     // Add 'IlinkKeepSymbols' item ().
     addOptionsGroup(QByteArrayLiteral("IlinkKeepSymbols"),
-                    {}, opts.keepSymbols);
+                    opts.keepSymbols);
 }
 
 void ArmLinkerSettingsGroup::buildListPage(
@@ -423,7 +423,7 @@ void ArmLinkerSettingsGroup::buildListPage(
     const ListPageOptions opts(qbsProduct);
     // Add 'IlinkMapFile' item (Generate linker map file).
     addOptionsGroup(QByteArrayLiteral("IlinkMapFile"),
-                    {}, {opts.generateMap});
+                    {opts.generateMap});
 }
 
 void ArmLinkerSettingsGroup::buildOptimizationsPage(
@@ -432,15 +432,15 @@ void ArmLinkerSettingsGroup::buildOptimizationsPage(
     const OptimizationsPageOptions opts(qbsProduct);
     // Add 'IlinkOptInline' item (Inline small routines).
     addOptionsGroup(QByteArrayLiteral("IlinkOptInline"),
-                    {}, {opts.inlineSmallRoutines});
+                    {opts.inlineSmallRoutines});
     // Add 'IlinkOptMergeDuplSections'item
     // (Merge duplicate sections).
     addOptionsGroup(QByteArrayLiteral("IlinkOptMergeDuplSections"),
-                    {}, {opts.mergeDuplicateSections});
+                    {opts.mergeDuplicateSections});
     // Add 'IlinkOptUseVfe' item
     // (Perform C++ virtual functions elimination).
     addOptionsGroup(QByteArrayLiteral("IlinkOptUseVfe"),
-                    {}, {opts.virtualFuncElimination});
+                    {opts.virtualFuncElimination});
 }
 
 void ArmLinkerSettingsGroup::buildAdvancedPage(
@@ -449,7 +449,7 @@ void ArmLinkerSettingsGroup::buildAdvancedPage(
     const AdvancedPageOptions opts(qbsProduct);
     // Add 'IlinkOptExceptionsAllow' item (Allow C++ exceptions).
     addOptionsGroup(QByteArrayLiteral("IlinkOptExceptionsAllow"),
-                    {}, {opts.allowExceptions});
+                    {opts.allowExceptions});
 }
 
 void ArmLinkerSettingsGroup::buildDefinesPage(
@@ -458,7 +458,7 @@ void ArmLinkerSettingsGroup::buildDefinesPage(
     const DefinesPageOptions opts(qbsProduct);
     // Add 'IlinkDefines' item (Defined symbols).
     addOptionsGroup(QByteArrayLiteral("IlinkDefines"),
-                    {}, {opts.defineSymbols});
+                    {opts.defineSymbols});
 }
 
 void ArmLinkerSettingsGroup::buildDiagnosticsPage(
@@ -468,7 +468,7 @@ void ArmLinkerSettingsGroup::buildDiagnosticsPage(
     // Add 'IlinkWarningsAreErrors' item
     // (Treat all warnings as errors).
     addOptionsGroup(QByteArrayLiteral("IlinkWarningsAreErrors"),
-                    {}, {opts.treatWarningsAsErrors});
+                    {opts.treatWarningsAsErrors});
 }
 
 void ArmLinkerSettingsGroup::buildExtraOptionsPage(
@@ -478,9 +478,9 @@ void ArmLinkerSettingsGroup::buildExtraOptionsPage(
 
     // Add 'IlinkUseExtraOptions' and 'IlinkExtraOptions' items.
     addOptionsGroup(QByteArrayLiteral("IlinkUseExtraOptions"),
-                    {}, {1});
+                    {1});
     addOptionsGroup(QByteArrayLiteral("IlinkExtraOptions"),
-                    {}, m_extraOptions);
+                    m_extraOptions);
 }
 
 } // namespace v8

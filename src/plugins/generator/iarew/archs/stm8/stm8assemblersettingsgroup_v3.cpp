@@ -175,20 +175,20 @@ void Stm8AssemblerSettingsGroup::buildLanguagePage(
     const LanguagePageOptions opts(qbsProduct);
     // Add 'AsmCaseSensitivity' item (User symbols are case sensitive).
     addOptionsGroup(QByteArrayLiteral("AsmCaseSensitivity"),
-                    {}, {opts.enableSymbolsCaseSensitive});
+                    {opts.enableSymbolsCaseSensitive});
     // Add 'AsmMultibyteSupport' item (Enable multibyte support).
     addOptionsGroup(QByteArrayLiteral("AsmMultibyteSupport"),
-                    {}, {opts.enableMultibyteSupport});
+                    {opts.enableMultibyteSupport});
     // Add 'AsmAllowMnemonics' item (Allow mnemonics in first column).
     addOptionsGroup(QByteArrayLiteral("AsmAllowMnemonics"),
-                    {}, {opts.allowFirstColumnMnemonics});
+                    {opts.allowFirstColumnMnemonics});
     // Add 'AsmAllowDirectives' item (Allow directives in first column).
     addOptionsGroup(QByteArrayLiteral("AsmAllowDirectives"),
-                    {}, {opts.allowFirstColumnDirectives});
+                    {opts.allowFirstColumnDirectives});
 
     // Add 'AsmMacroChars' item (Macro quote characters: ()/[]/{}/<>).
     addOptionsGroup(QByteArrayLiteral("AsmMacroChars"),
-                    {0}, {opts.macroQuoteCharacter});
+                    {opts.macroQuoteCharacter});
 }
 
 void Stm8AssemblerSettingsGroup::buildOutputPage(
@@ -197,7 +197,7 @@ void Stm8AssemblerSettingsGroup::buildOutputPage(
     const OutputPageOptions opts(qbsProduct);
     // Add 'AsmDebugInfo' item (Generate debug information).
     addOptionsGroup(QByteArrayLiteral("AsmDebugInfo"),
-                    {}, {opts.debugInfo});
+                    {opts.debugInfo});
 }
 
 void Stm8AssemblerSettingsGroup::buildPreprocessorPage(
@@ -207,10 +207,10 @@ void Stm8AssemblerSettingsGroup::buildPreprocessorPage(
     const PreprocessorPageOptions opts(baseDirectory, qbsProduct);
     // Add 'AsmDefines' item (Defined symbols).
     addOptionsGroup(QByteArrayLiteral("AsmDefines"),
-                    {}, opts.defineSymbols);
+                    opts.defineSymbols);
     // Add 'AsmIncludePath' item (Additional include directories).
     addOptionsGroup(QByteArrayLiteral("AsmIncludePath"),
-                    {}, opts.includePaths);
+                    opts.includePaths);
 }
 
 void Stm8AssemblerSettingsGroup::buildDiagnosticsPage(
@@ -220,7 +220,7 @@ void Stm8AssemblerSettingsGroup::buildDiagnosticsPage(
     // Add 'AsmDiagnosticsWarningsAreErrors' item.
     // (Treat all warnings as errors).
     addOptionsGroup(QByteArrayLiteral("AsmDiagnosticsWarningsAreErrors"),
-                    {}, {opts.warningsAsErrors});
+                    {opts.warningsAsErrors});
 }
 
 } // namespace v3

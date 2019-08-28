@@ -42,8 +42,8 @@ class IarewOptionPropertyGroup final
 {
 public:
     explicit IarewOptionPropertyGroup(
-            QByteArray name, QVariant version,
-            const QVariantList &states);
+            QByteArray name, const QVariantList &states,
+            int version = -1);
 };
 
 } // namespace qbs

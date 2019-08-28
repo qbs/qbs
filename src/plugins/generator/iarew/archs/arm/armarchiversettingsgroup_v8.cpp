@@ -83,10 +83,10 @@ void ArmArchiverSettingsGroup::buildOutputPage(
     const OutputPageOptions opts(baseDirectory, qbsProduct);
     // Add 'IarchiveOverride' item (Override default).
     addOptionsGroup(QByteArrayLiteral("IarchiveOverride"),
-                    {}, {1});
+                    {1});
     // Add 'IarchiveOutput' item (Output filename).
     addOptionsGroup(QByteArrayLiteral("IarchiveOutput"),
-                    {}, {opts.outputFile});
+                    {opts.outputFile});
 }
 
 } // namespace v8

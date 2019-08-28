@@ -294,11 +294,11 @@ void Stm8GeneralSettingsGroup::buildTargetPage(
     // Add 'GenCodeModel' item
     // (Code model: small/medium/large).
     addOptionsGroup(QByteArrayLiteral("GenCodeModel"),
-                    {}, {opts.codeModel});
+                    {opts.codeModel});
     // Add 'GenDataModel' item
     // (Data model: small/medium/large).
     addOptionsGroup(QByteArrayLiteral("GenDataModel"),
-                    {}, {opts.dataModel});
+                    {opts.dataModel});
 }
 
 void Stm8GeneralSettingsGroup::buildOutputPage(
@@ -308,16 +308,16 @@ void Stm8GeneralSettingsGroup::buildOutputPage(
     const OutputPageOptions opts(baseDirectory, qbsProduct);
     // Add 'GOutputBinary' item (Output file: executable/library).
     addOptionsGroup(QByteArrayLiteral("GOutputBinary"),
-                    {}, {opts.binaryType});
+                    {opts.binaryType});
     // Add 'ExePath' item (Executable/binaries output directory).
     addOptionsGroup(QByteArrayLiteral("ExePath"),
-                    {}, {opts.binaryDirectory});
+                    {opts.binaryDirectory});
     // Add 'ObjPath' item (Object files output directory).
     addOptionsGroup(QByteArrayLiteral("ObjPath"),
-                    {}, {opts.objectDirectory});
+                    {opts.objectDirectory});
     // Add 'ListPath' item (List files output directory).
     addOptionsGroup(QByteArrayLiteral("ListPath"),
-                    {}, {opts.listingDirectory});
+                    {opts.listingDirectory});
 }
 
 void Stm8GeneralSettingsGroup::buildLibraryConfigPage(
@@ -328,12 +328,12 @@ void Stm8GeneralSettingsGroup::buildLibraryConfigPage(
     // Add 'GenRuntimeLibSelect' and 'GenRuntimeLibSelectSlave' items
     // (Link with runtime: none/normal/full/custom).
     addOptionsGroup(QByteArrayLiteral("GenRuntimeLibSelect"),
-                    {}, {opts.libraryType});
+                    {opts.libraryType});
     addOptionsGroup(QByteArrayLiteral("GenRuntimeLibSelectSlave"),
-                    {}, {opts.libraryType});
+                    {opts.libraryType});
     // Add 'GenRTConfigPath' item (Runtime configuration file).
     addOptionsGroup(QByteArrayLiteral("GenRTConfigPath"),
-                    {}, {opts.configPath});
+                    {opts.configPath});
 }
 
 void Stm8GeneralSettingsGroup::buildLibraryOptionsPage(
@@ -342,10 +342,10 @@ void Stm8GeneralSettingsGroup::buildLibraryOptionsPage(
     const LibraryOptionsPageOptions opts(qbsProduct);
     // Add 'GenLibOutFormatter' item (Printf formatter).
     addOptionsGroup(QByteArrayLiteral("GenLibOutFormatter"),
-                    {}, {opts.printfFormatter});
+                    {opts.printfFormatter});
     // Add 'GenLibInFormatter' item (Scanf formatter).
     addOptionsGroup(QByteArrayLiteral("GenLibInFormatter"),
-                    {}, {opts.scanfFormatter});
+                    {opts.scanfFormatter});
 }
 
 void Stm8GeneralSettingsGroup::buildStackHeapPage(
@@ -354,10 +354,10 @@ void Stm8GeneralSettingsGroup::buildStackHeapPage(
     const StackHeapPageOptions opts(qbsProduct);
     // Add 'GenStackSize' item (Stack size).
     addOptionsGroup(QByteArrayLiteral("GenStackSize"),
-                    {}, {opts.stackSize});
+                    {opts.stackSize});
     // Add 'GenHeapSize' item (Heap size).
     addOptionsGroup(QByteArrayLiteral("GenHeapSize"),
-                    {}, {opts.heapSize});
+                    {opts.heapSize});
 }
 
 } // namespace v3

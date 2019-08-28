@@ -82,10 +82,10 @@ void Msp430ArchiverSettingsGroup::buildOutputPage(const QString &baseDirectory,
     const OutputPageOptions opts(baseDirectory, qbsProduct);
     // Add 'XAROutOverride' item (Override default).
     addOptionsGroup(QByteArrayLiteral("XAROutOverride"),
-                    {}, {1});
+                    {1});
     // Add 'OutputFile' item (Output filename).
     addOptionsGroup(QByteArrayLiteral("OutputFile"),
-                    {}, {opts.outputFile});
+                    {opts.outputFile});
 }
 
 } // namespace v7

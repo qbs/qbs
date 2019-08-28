@@ -351,14 +351,14 @@ void Mcs51CompilerSettingsGroup::buildOutputPage(
     const OutputPageOptions opts(qbsProduct);
     // Add 'CCDebugInfo' item (Generate debug info).
     addOptionsGroup(QByteArrayLiteral("CCDebugInfo"),
-                    {}, {opts.debugInfo});
+                    {opts.debugInfo});
     // Add 'CCOverrideModuleTypeDefault' item
     // (Override default module type).
     addOptionsGroup(QByteArrayLiteral("CCOverrideModuleTypeDefault"),
-                    {}, {1});
+                    {1});
     // Add 'CCRadioModuleType' item (Module type: program/library).
     addOptionsGroup(QByteArrayLiteral("CCRadioModuleType"),
-                    {}, {opts.moduleType});
+                    {opts.moduleType});
 }
 
 void Mcs51CompilerSettingsGroup::buildLanguageOnePage(
@@ -368,28 +368,28 @@ void Mcs51CompilerSettingsGroup::buildLanguageOnePage(
     // Add 'IccLang' item with 'auto-extension based'
     // value (Language: C/C++/Auto).
     addOptionsGroup(QByteArrayLiteral("IccLang"),
-                    {}, {opts.languageExtension});
+                    {opts.languageExtension});
     // Add 'IccCDialect' item (C dialect: c89/99/11).
     addOptionsGroup(QByteArrayLiteral("IccCDialect"),
-                    {}, {opts.cLanguageDialect});
+                    {opts.cLanguageDialect});
     // Add 'IccCppDialect' item (C++ dialect: embedded/extended).
     addOptionsGroup(QByteArrayLiteral("IccCppDialect"),
-                    {}, {opts.cxxLanguageDialect});
+                    {opts.cxxLanguageDialect});
     // Add 'CCExt' item (Language conformance: IAR/relaxed/strict).
     addOptionsGroup(QByteArrayLiteral("LangConform"),
-                    {}, {opts.languageConformance});
+                    {opts.languageConformance});
     // Add 'IccAllowVLA' item (Allow VLA).
     addOptionsGroup(QByteArrayLiteral("IccAllowVLA"),
-                    {}, {opts.allowVla});
+                    {opts.allowVla});
     // Add 'IccCppInlineSemantics' item (C++ inline semantics).
     addOptionsGroup(QByteArrayLiteral("IccCppInlineSemantics"),
-                    {}, {opts.useCppInlineSemantics});
+                    {opts.useCppInlineSemantics});
     // Add 'CCRequirePrototypes' item (Require prototypes).
     addOptionsGroup(QByteArrayLiteral("CCRequirePrototypes"),
-                    {}, {opts.requirePrototypes});
+                    {opts.requirePrototypes});
     // Add 'IccStaticDestr' item (Destroy static objects).
     addOptionsGroup(QByteArrayLiteral("IccStaticDestr"),
-                    {}, {opts.destroyStaticObjects});
+                    {opts.destroyStaticObjects});
 }
 
 void Mcs51CompilerSettingsGroup::buildLanguageTwoPage(
@@ -398,14 +398,14 @@ void Mcs51CompilerSettingsGroup::buildLanguageTwoPage(
     const LanguageTwoPageOptions opts(qbsProduct);
     // Add 'CharIs' item (Plain char is: signed/unsigned).
     addOptionsGroup(QByteArrayLiteral("CharIs"),
-                    {}, {opts.plainCharacter});
+                    {opts.plainCharacter});
     // Add 'IccFloatSemantics' item
     // (Floatic-point semantics: strict/relaxed conformance).
     addOptionsGroup(QByteArrayLiteral("IccFloatSemantics"),
-                    {}, {opts.floatingPointSemantic});
+                    {opts.floatingPointSemantic});
     // Add 'CCMultibyteSupport' item (Enable multibyte support).
     addOptionsGroup(QByteArrayLiteral("CCMultibyteSupport"),
-                    {}, {opts.enableMultibyteSupport});
+                    {opts.enableMultibyteSupport});
 }
 
 void Mcs51CompilerSettingsGroup::buildOptimizationsPage(
@@ -415,11 +415,11 @@ void Mcs51CompilerSettingsGroup::buildOptimizationsPage(
     // Add 'CCOptStrategy', 'CCOptLevel' and
     // 'CCOptLevelSlave' items (Level).
     addOptionsGroup(QByteArrayLiteral("CCOptStrategy"),
-                    {}, {opts.optimizationStrategy});
+                    {opts.optimizationStrategy});
     addOptionsGroup(QByteArrayLiteral("CCOptLevel"),
-                    {}, {opts.optimizationLevel});
+                    {opts.optimizationLevel});
     addOptionsGroup(QByteArrayLiteral("CCOptLevelSlave"),
-                    {}, {opts.optimizationLevelSlave});
+                    {opts.optimizationLevelSlave});
     // Add 'CCAllowList2' item (Enabled transformations: 7 check boxes).
     const QString transformations = QStringLiteral("%1%2%3%4%5%6%7")
             .arg(opts.enableCommonSubexpressionElimination)
@@ -430,10 +430,10 @@ void Mcs51CompilerSettingsGroup::buildOptimizationsPage(
             .arg(opts.enableCrossCall)
             .arg(opts.disableRegisterBanks);
     addOptionsGroup(QByteArrayLiteral("CCAllowList2"),
-                    {}, {transformations});
+                    {transformations});
     // Add 'NoSizeConstraints' item (No size constraints).
     addOptionsGroup(QByteArrayLiteral("NoSizeConstraints"),
-                    {}, {opts.disableSizeConstrains});
+                    {opts.disableSizeConstrains});
 }
 
 void Mcs51CompilerSettingsGroup::buildPreprocessorPage(
@@ -443,10 +443,10 @@ void Mcs51CompilerSettingsGroup::buildPreprocessorPage(
     const PreprocessorPageOptions opts(baseDirectory, qbsProduct);
     // Add 'CCDefines' item (Defines symbols).
     addOptionsGroup(QByteArrayLiteral("CCDefines"),
-                    {}, opts.defineSymbols);
+                    opts.defineSymbols);
     // Add 'CCIncludePath2' item (Additional include directories).
     addOptionsGroup(QByteArrayLiteral("CCIncludePath2"),
-                    {}, opts.includePaths);
+                    opts.includePaths);
 }
 
 void Mcs51CompilerSettingsGroup::buildDiagnosticsPage(
@@ -455,7 +455,7 @@ void Mcs51CompilerSettingsGroup::buildDiagnosticsPage(
     const DiagnosticsPageOptions opts(qbsProduct);
     // Add 'CCDiagWarnAreErr' item (Treat all warnings as errors).
     addOptionsGroup(QByteArrayLiteral("CCDiagWarnAreErr"),
-                    {}, {opts.warningsAsErrors});
+                    {opts.warningsAsErrors});
 }
 
 void Mcs51CompilerSettingsGroup::buildCodePage(
@@ -464,10 +464,10 @@ void Mcs51CompilerSettingsGroup::buildCodePage(
     const CodePageOptions opts(qbsProduct);
     // Add 'RomMonBpPadding' item (Padding for ROM-monitor breakpoints).
     addOptionsGroup(QByteArrayLiteral("RomMonBpPadding"),
-                    {}, {opts.paddingForRomMonitorBreakpoints});
+                    {opts.paddingForRomMonitorBreakpoints});
     // Add 'NoUBROFMessages' item (No UBROF messages in output files).
     addOptionsGroup(QByteArrayLiteral("NoUBROFMessages"),
-                    {}, {opts.excludeUbrofMessagesInOutput});
+                    {opts.excludeUbrofMessagesInOutput});
 }
 
 } // namespace v10

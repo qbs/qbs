@@ -348,17 +348,17 @@ void AvrCompilerSettingsGroup::buildOutputPage(
     const OutputPageOptions opts(qbsProduct);
     // Add 'CCDebugInfo' item (Generate debug info).
     addOptionsGroup(QByteArrayLiteral("CCDebugInfo"),
-                    {}, {opts.debugInfo});
+                    {opts.debugInfo});
     // Add 'CCNoErrorMsg' item (No error messages in output files).
     addOptionsGroup(QByteArrayLiteral("CCNoErrorMsg"),
-                    {}, {opts.disableErrorMessages});
+                    {opts.disableErrorMessages});
     // Add 'CCOverrideModuleTypeDefault' item
     // (Override default module type).
     addOptionsGroup(QByteArrayLiteral("CCOverrideModuleTypeDefault"),
-                    {}, {1});
+                    {1});
     // Add 'CCRadioModuleType' item (Module type: program/library).
     addOptionsGroup(QByteArrayLiteral("CCRadioModuleType"),
-                    {}, {opts.moduleType});
+                    {opts.moduleType});
 }
 
 void AvrCompilerSettingsGroup::buildLanguageOnePage(
@@ -368,28 +368,28 @@ void AvrCompilerSettingsGroup::buildLanguageOnePage(
     // Add 'IccLang' item with 'auto-extension based'
     // value (Language: C/C++/Auto).
     addOptionsGroup(QByteArrayLiteral("IccLang"),
-                    {}, {opts.languageExtension});
+                    {opts.languageExtension});
     // Add 'IccCDialect' item (C dialect: c89/99/11).
     addOptionsGroup(QByteArrayLiteral("IccCDialect"),
-                    {}, {opts.cLanguageDialect});
+                    {opts.cLanguageDialect});
     // Add 'IccCppDialect' item (C++ dialect: embedded/extended).
     addOptionsGroup(QByteArrayLiteral("IccCppDialect"),
-                    {}, {opts.cxxLanguageDialect});
+                    {opts.cxxLanguageDialect});
     // Add 'CCExt' item (Language conformance: IAR/relaxed/strict).
     addOptionsGroup(QByteArrayLiteral("CCExt"),
-                    {}, {opts.languageConformance});
+                    {opts.languageConformance});
     // Add 'IccAllowVLA' item (Allow VLA).
     addOptionsGroup(QByteArrayLiteral("IccAllowVLA"),
-                    {}, {opts.allowVla});
+                    {opts.allowVla});
     // Add 'IccCppInlineSemantics' item (C++ inline semantics).
     addOptionsGroup(QByteArrayLiteral("IccCppInlineSemantics"),
-                    {}, {opts.useCppInlineSemantics});
+                    {opts.useCppInlineSemantics});
     // Add 'CCRequirePrototypes' item (Require prototypes).
     addOptionsGroup(QByteArrayLiteral("CCRequirePrototypes"),
-                    {}, {opts.requirePrototypes});
+                    {opts.requirePrototypes});
     // Add 'IccStaticDestr' item (Destroy static objects).
     addOptionsGroup(QByteArrayLiteral("IccStaticDestr"),
-                    {}, {opts.destroyStaticObjects});
+                    {opts.destroyStaticObjects});
 }
 
 void AvrCompilerSettingsGroup::buildLanguageTwoPage(
@@ -398,14 +398,14 @@ void AvrCompilerSettingsGroup::buildLanguageTwoPage(
     const LanguageTwoPageOptions opts(qbsProduct);
     // Add 'CCCharIs' item (Plain char is: signed/unsigned).
     addOptionsGroup(QByteArrayLiteral("CCCharIs"),
-                    {}, {opts.plainCharacter});
+                    {opts.plainCharacter});
     // Add 'IccFloatSemantics' item (Floatic-point
     // semantics: strict/relaxed conformance).
     addOptionsGroup(QByteArrayLiteral("IccFloatSemantics"),
-                    {}, {opts.floatingPointSemantic});
+                    {opts.floatingPointSemantic});
     // Add 'CCMultibyteSupport' item (Enable multibyte support).
     addOptionsGroup(QByteArrayLiteral("CCMultibyteSupport"),
-                    {}, {opts.enableMultibyteSupport});
+                    {opts.enableMultibyteSupport});
 }
 
 void AvrCompilerSettingsGroup::buildOptimizationsPage(
@@ -415,11 +415,11 @@ void AvrCompilerSettingsGroup::buildOptimizationsPage(
     // Add 'CCOptStrategy', 'CCOptLevel' and
     // 'CCOptLevelSlave' items (Level).
     addOptionsGroup(QByteArrayLiteral("CCOptStrategy"),
-                    {}, {opts.optimizationStrategy});
+                    {opts.optimizationStrategy});
     addOptionsGroup(QByteArrayLiteral("CCOptLevel"),
-                    {}, {opts.optimizationLevel});
+                    {opts.optimizationLevel});
     addOptionsGroup(QByteArrayLiteral("CCOptLevelSlave"),
-                    {}, {opts.optimizationLevelSlave});
+                    {opts.optimizationLevelSlave});
     // Add 'CCAllowList' item
     // (Enabled optimizations: 6 check boxes).
     const QString bitflags = QStringLiteral("%1%2%3%4%5%6")
@@ -430,11 +430,11 @@ void AvrCompilerSettingsGroup::buildOptimizationsPage(
             .arg(opts.enableVariableClustering)
             .arg(opts.enableTypeBasedAliasAnalysis);
     addOptionsGroup(QByteArrayLiteral("CCAllowList"),
-                    {}, {bitflags});
+                    {bitflags});
     // Add 'CCOptForceCrossCall' item
     // (Always do cross call optimization).
     addOptionsGroup(QByteArrayLiteral("CCOptForceCrossCall"),
-                    {}, {opts.enableForceCrossCall});
+                    {opts.enableForceCrossCall});
 }
 
 void AvrCompilerSettingsGroup::buildPreprocessorPage(
@@ -444,11 +444,11 @@ void AvrCompilerSettingsGroup::buildPreprocessorPage(
     const PreprocessorPageOptions opts(baseDirectory, qbsProduct);
     // Add 'CCDefines' item (Defines symbols).
     addOptionsGroup(QByteArrayLiteral("CCDefines"),
-                    {}, opts.defineSymbols);
+                    opts.defineSymbols);
     // Add 'newCCIncludePaths' item
     // (Additional include directories).
     addOptionsGroup(QByteArrayLiteral("newCCIncludePaths"),
-                    {}, opts.includePaths);
+                    opts.includePaths);
 }
 
 void AvrCompilerSettingsGroup::buildDiagnosticsPage(
@@ -457,7 +457,7 @@ void AvrCompilerSettingsGroup::buildDiagnosticsPage(
     const DiagnosticsPageOptions opts(qbsProduct);
     // Add 'CCWarnAsError' item (Treat all warnings as errors).
     addOptionsGroup(QByteArrayLiteral("CCWarnAsError"),
-                    {}, {opts.warningsAsErrors});
+                    {opts.warningsAsErrors});
 }
 
 void AvrCompilerSettingsGroup::buildCodePage(
@@ -467,23 +467,23 @@ void AvrCompilerSettingsGroup::buildCodePage(
     // Add 'CCConstInRAM' item (Place string literals
     // and constants in initialized RAM).
     addOptionsGroup(QByteArrayLiteral("CCConstInRAM"),
-                    {}, {opts.placeConstantsInRam});
+                    {opts.placeConstantsInRam});
     // Add 'CCInitInFlash' item (Place aggregate
     // initializiers in flash memory).
     addOptionsGroup(QByteArrayLiteral("CCInitInFlash"),
-                    {}, {opts.placeInitializiersInFlash});
+                    {opts.placeInitializiersInFlash});
     // Add 'CCForceVariables' item (Force generation of
     // all global and static variables).
     addOptionsGroup(QByteArrayLiteral("CCForceVariables"),
-                    {}, {opts.forceVariablesGeneration});
+                    {opts.forceVariablesGeneration});
     // Add 'CCOldCallConv' item (Use ICCA90 1.x
     // calling convention).
     addOptionsGroup(QByteArrayLiteral("CCOldCallConv"),
-                    {}, {opts.useIccA90CallingConvention});
+                    {opts.useIccA90CallingConvention});
     // Add 'CCLockRegs' item (Number of registers to
     // lock for global variables).
     addOptionsGroup(QByteArrayLiteral("CCLockRegs"),
-                    {}, {opts.lockRegistersCount});
+                    {opts.lockRegistersCount});
 }
 
 } // namespace v7

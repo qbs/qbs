@@ -294,10 +294,10 @@ void AvrLinkerSettingsGroup::buildConfigPage(
         const QVariant configPath = opts.configFilePaths.takeFirst();
         // Add 'XclOverride' item (Override default).
         addOptionsGroup(QByteArrayLiteral("XclOverride"),
-                        {}, {1});
+                        {1});
         // Add 'XclFile' item (Linke configuration file).
         addOptionsGroup(QByteArrayLiteral("XclFile"),
-                        {}, {configPath});
+                        {configPath});
 
         // Add remainder configuration files to the "Extra options page".
         if (!opts.configFilePaths.isEmpty()) {
@@ -314,19 +314,19 @@ void AvrLinkerSettingsGroup::buildConfigPage(
     if (!opts.entryPoint.isEmpty()) {
         // Add 'xcProgramEntryLabel' item (Entry symbol).
         addOptionsGroup(QByteArrayLiteral("xcProgramEntryLabel"),
-                        {}, {opts.entryPoint});
+                        {opts.entryPoint});
         // Add 'xcOverrideProgramEntryLabel' item
         // (Override default program entry).
         addOptionsGroup(QByteArrayLiteral("xcOverrideProgramEntryLabel"),
-                        {}, {1});
+                        {1});
         // Add 'xcProgramEntryLabelSelect' item.
         addOptionsGroup(QByteArrayLiteral("xcProgramEntryLabelSelect"),
-                        {}, {0});
+                        {0});
     }
 
     // Add 'XIncludes' item (Libraries search paths).
     addOptionsGroup(QByteArrayLiteral("XIncludes"),
-                    {}, opts.librarySearchPaths);
+                    opts.librarySearchPaths);
 }
 
 void AvrLinkerSettingsGroup::buildOutputPage(
@@ -335,10 +335,10 @@ void AvrLinkerSettingsGroup::buildOutputPage(
     const OutputPageOptions opts(qbsProduct);
     // Add 'XOutOverride' item (Override default output file).
     addOptionsGroup(QByteArrayLiteral("XOutOverride"),
-                    {}, {1});
+                    {1});
     // Add 'OutputFile' item (Output file name).
     addOptionsGroup(QByteArrayLiteral("OutputFile"),
-                    {}, {opts.outputFile});
+                    {opts.outputFile});
 }
 
 void AvrLinkerSettingsGroup::buildListPage(
@@ -347,7 +347,7 @@ void AvrLinkerSettingsGroup::buildListPage(
     const ListPageOptions opts(qbsProduct);
     // Add 'XList' item (Generate linker listing).
     addOptionsGroup(QByteArrayLiteral("XList"),
-                    {}, {opts.generateMap});
+                    {opts.generateMap});
 }
 
 void AvrLinkerSettingsGroup::buildDefinePage(
@@ -356,7 +356,7 @@ void AvrLinkerSettingsGroup::buildDefinePage(
     const DefinePageOptions opts(qbsProduct);
     // Add 'XDefines' item (Defined symbols).
     addOptionsGroup(QByteArrayLiteral("XDefines"),
-                    {}, opts.defineSymbols);
+                    opts.defineSymbols);
 }
 
 void AvrLinkerSettingsGroup::buildDiagnosticsPage(
@@ -365,7 +365,7 @@ void AvrLinkerSettingsGroup::buildDiagnosticsPage(
     const DiagnosticsPageOptions opts(qbsProduct);
     // Add 'SuppressAllWarn' item (Suppress all warnings).
     addOptionsGroup(QByteArrayLiteral("SuppressAllWarn"),
-                    {}, {opts.suppressAllWarnings});
+                    {opts.suppressAllWarnings});
 }
 
 void AvrLinkerSettingsGroup::buildExtraOptionsPage(const ProductData &qbsProduct)
@@ -375,10 +375,10 @@ void AvrLinkerSettingsGroup::buildExtraOptionsPage(const ProductData &qbsProduct
     if (!m_extraOptions.isEmpty()) {
         // Add 'XExtraOptionsCheck' (Use command line options).
         addOptionsGroup(QByteArrayLiteral("XExtraOptionsCheck"),
-                        {}, {1});
+                        {1});
         // Add 'XExtraOptions' item (Command line options).
         addOptionsGroup(QByteArrayLiteral("XExtraOptions"),
-                        {}, m_extraOptions);
+                        m_extraOptions);
     }
 }
 

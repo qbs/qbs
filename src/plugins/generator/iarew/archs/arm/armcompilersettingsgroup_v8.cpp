@@ -350,7 +350,7 @@ void ArmCompilerSettingsGroup::buildOutputPage(
     const OutputPageOptions opts(qbsProduct);
     // Add 'CCDebugInfo' item (Generate debug info).
     addOptionsGroup(QByteArrayLiteral("CCDebugInfo"),
-                    {}, {opts.debugInfo});
+                    {opts.debugInfo});
 }
 
 void ArmCompilerSettingsGroup::buildLanguageOnePage(
@@ -360,31 +360,31 @@ void ArmCompilerSettingsGroup::buildLanguageOnePage(
     // Add 'IccLang' item with 'auto-extension based'
     // value (Language: C/C++/Auto).
     addOptionsGroup(QByteArrayLiteral("IccLang"),
-                    {}, {opts.languageExtension});
+                    {opts.languageExtension});
     // Add 'IccCDialect' item (C dialect: c89/99/11).
     addOptionsGroup(QByteArrayLiteral("IccCDialect"),
-                    {}, {opts.cLanguageDialect});
+                    {opts.cLanguageDialect});
     // Add 'CCExt' item (Language conformance: IAR/relaxed/strict).
     addOptionsGroup(QByteArrayLiteral("CCLangConformance"),
-                    {}, {opts.languageConformance});
+                    {opts.languageConformance});
     // Add 'IccExceptions2' item (Enable exceptions).
     addOptionsGroup(QByteArrayLiteral("IccExceptions2"),
-                    {}, {opts.enableExceptions});
+                    {opts.enableExceptions});
     // Add 'IccRTTI2' item (Enable RTTI).
     addOptionsGroup(QByteArrayLiteral("IccRTTI2"),
-                    {}, {opts.enableRtti});
+                    {opts.enableRtti});
     // Add 'IccStaticDestr' item (Destroy static objects).
     addOptionsGroup(QByteArrayLiteral("IccStaticDestr"),
-                    {}, {opts.destroyStaticObjects});
+                    {opts.destroyStaticObjects});
     // Add 'IccAllowVLA' item (Allow VLA).
     addOptionsGroup(QByteArrayLiteral("IccAllowVLA"),
-                    {}, {opts.allowVla});
+                    {opts.allowVla});
     // Add 'IccCppInlineSemantics' item (C++ inline semantics).
     addOptionsGroup(QByteArrayLiteral("IccCppInlineSemantics"),
-                    {}, {opts.enableInlineSemantics});
+                    {opts.enableInlineSemantics});
     // Add 'CCRequirePrototypes' item (Require prototypes).
     addOptionsGroup(QByteArrayLiteral("CCRequirePrototypes"),
-                    {}, {opts.requirePrototypes});
+                    {opts.requirePrototypes});
 }
 
 void ArmCompilerSettingsGroup::buildLanguageTwoPage(
@@ -393,11 +393,11 @@ void ArmCompilerSettingsGroup::buildLanguageTwoPage(
     const LanguageTwoPageOptions opts(qbsProduct);
     // Add 'CCSignedPlainChar' item (Plain char is: signed/unsigned).
     addOptionsGroup(QByteArrayLiteral("CCSignedPlainChar"),
-                    {}, {opts.plainCharacter});
+                    {opts.plainCharacter});
     // Add 'IccFloatSemantics' item
     // (Floating-point semantic: strict/relaxed).
     addOptionsGroup(QByteArrayLiteral("IccFloatSemantics"),
-                    {}, {opts.floatingPointSemantic});
+                    {opts.floatingPointSemantic});
 }
 
 void ArmCompilerSettingsGroup::buildOptimizationsPage(
@@ -407,11 +407,11 @@ void ArmCompilerSettingsGroup::buildOptimizationsPage(
     // Add 'CCOptStrategy', 'CCOptLevel'
     // and 'CCOptLevelSlave' items (Level).
     addOptionsGroup(QByteArrayLiteral("CCOptStrategy"),
-                    {}, {opts.optimizationStrategy});
+                    {opts.optimizationStrategy});
     addOptionsGroup(QByteArrayLiteral("CCOptLevel"),
-                    {}, {opts.optimizationLevel});
+                    {opts.optimizationLevel});
     addOptionsGroup(QByteArrayLiteral("CCOptLevelSlave"),
-                    {}, {opts.optimizationLevelSlave});
+                    {opts.optimizationLevelSlave});
     // Add 'CCAllowList' item (Enabled optimizations: 6 check boxes).
     const QString transformations = QStringLiteral("%1%2%3%4%5%6%7%8")
             .arg(opts.enableCommonSubexpressionElimination)
@@ -423,10 +423,10 @@ void ArmCompilerSettingsGroup::buildOptimizationsPage(
             .arg(opts.enableInstructionScheduling)
             .arg(opts.enableVectorization);
     addOptionsGroup(QByteArrayLiteral("CCAllowList"),
-                    {}, {transformations});
+                    {transformations});
     // Add 'CCOptimizationNoSizeConstraints' item (No size constraints).
     addOptionsGroup(QByteArrayLiteral("CCOptimizationNoSizeConstraints"),
-                    {}, {opts.disableSizeConstraints});
+                    {opts.disableSizeConstraints});
 }
 
 void ArmCompilerSettingsGroup::buildPreprocessorPage(
@@ -436,10 +436,10 @@ void ArmCompilerSettingsGroup::buildPreprocessorPage(
     const PreprocessorPageOptions opts(baseDirectory, qbsProduct);
     // Add 'CCDefines' item (Defined symbols).
     addOptionsGroup(QByteArrayLiteral("CCDefines"),
-                    {}, opts.defineSymbols);
+                    opts.defineSymbols);
     // Add 'CCIncludePath2' item (Additional include directories).
     addOptionsGroup(QByteArrayLiteral("CCIncludePath2"),
-                    {}, opts.includePaths);
+                    opts.includePaths);
 }
 
 void ArmCompilerSettingsGroup::buildDiagnosticsPage(
@@ -448,7 +448,7 @@ void ArmCompilerSettingsGroup::buildDiagnosticsPage(
     const DiagnosticsPageOptions opts(qbsProduct);
     // Add 'CCDiagWarnAreErr' item (Treat all warnings as errors).
     addOptionsGroup(QByteArrayLiteral("CCDiagWarnAreErr"),
-                    {}, {opts.treatWarningsAsErrors});
+                    {opts.treatWarningsAsErrors});
 }
 
 void ArmCompilerSettingsGroup::buildCodePage(
@@ -457,19 +457,19 @@ void ArmCompilerSettingsGroup::buildCodePage(
     const CodePageOptions opts(qbsProduct);
     // Add 'IProcessorMode2' item (Processor mode: arm/thumb).
     addOptionsGroup(QByteArrayLiteral("IProcessorMode2"),
-                    {}, {opts.cpuMode});
+                    {opts.cpuMode});
     // Add 'CCPosIndRopi' item (Code and read-only data "ropi").
     addOptionsGroup(QByteArrayLiteral("CCPosIndRopi"),
-                    {}, {opts.generateReadOnlyPosIndependentCode});
+                    {opts.generateReadOnlyPosIndependentCode});
     // Add 'CCPosIndRwpi' item (Read/write data "rwpi").
-    addOptionsGroup(QByteArrayLiteral("CCPosIndRwpi"), {},
+    addOptionsGroup(QByteArrayLiteral("CCPosIndRwpi"),
                     {opts.generateReadWritePosIndependentCode});
     // Add 'CCPosIndNoDynInit' item (No dynamic read/write initialization).
     addOptionsGroup(QByteArrayLiteral("CCPosIndNoDynInit"),
-                    {}, {opts.disableDynamicReadWriteInitialization});
+                    {opts.disableDynamicReadWriteInitialization});
     // Add 'CCNoLiteralPool' item (No data reads in code memory).
     addOptionsGroup(QByteArrayLiteral("CCNoLiteralPool"),
-                    {}, {opts.disableCodeMemoryDataReads});
+                    {opts.disableCodeMemoryDataReads});
 }
 
 } // namespace v8

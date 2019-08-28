@@ -817,42 +817,42 @@ void Mcs51GeneralSettingsGroup::buildTargetPage(
     const TargetPageOptions opts(qbsProduct);
     // Add 'OGChipConfigPath' item (Device: <chip name>).
     addOptionsGroup(QByteArrayLiteral("OGChipConfigPath"),
-                    {}, {opts.chipInfoPath});
+                    {opts.chipInfoPath});
 
     // Add 'CPU Core' and 'CPU Core Slave' items
     // (CPU core: plain/extended{1|2}).
     addOptionsGroup(QByteArrayLiteral("CPU Core"),
-                    {}, {opts.cpuCore});
+                    {opts.cpuCore});
     addOptionsGroup(QByteArrayLiteral("CPU Core Slave"),
-                    {}, {opts.cpuCore});
+                    {opts.cpuCore});
     // Add 'Code Memory Model' and 'Code Memory Model slave' items
     // (Code model: near/banked/far/banked extended).
     addOptionsGroup(QByteArrayLiteral("Code Memory Model"),
-                    {}, {opts.codeModel});
+                    {opts.codeModel});
     addOptionsGroup(QByteArrayLiteral("Code Memory Model slave"),
-                    {}, {opts.codeModel});
+                    {opts.codeModel});
     // Add 'Data Memory Model' and 'Data Memory Model slave' items
     // (Data model: tiny/small/large/generic/far).
     addOptionsGroup(QByteArrayLiteral("Data Memory Model"),
-                    {}, {opts.dataModel});
+                    {opts.dataModel});
     addOptionsGroup(QByteArrayLiteral("Data Memory Model slave"),
-                    {}, {opts.dataModel});
+                    {opts.dataModel});
     // Add 'Use extended stack' and 'Use extended stack slave' items
     // (Use extended stack).
     addOptionsGroup(QByteArrayLiteral("Use extended stack"),
-                    {}, {opts.useExtendedStack});
+                    {opts.useExtendedStack});
     addOptionsGroup(QByteArrayLiteral("Use extended stack slave"),
-                    {}, {opts.useExtendedStack});
+                    {opts.useExtendedStack});
     // Add 'Workseg Size' item (Number of virtual registers: 8...32).
     addOptionsGroup(QByteArrayLiteral("Workseg Size"),
-                    {}, {opts.virtualRegisters});
+                    {opts.virtualRegisters});
     // Add 'Constant Placement' item
     // (Location of constants and strings: ram/rom/code memories).
     addOptionsGroup(QByteArrayLiteral("Constant Placement"),
-                    {}, {opts.constPlacement});
+                    {opts.constPlacement});
     // Add 'Calling convention' item (Calling convention).
     addOptionsGroup(QByteArrayLiteral("Calling convention"),
-                    {}, {opts.callingConvention});
+                    {opts.callingConvention});
 }
 
 void Mcs51GeneralSettingsGroup::buildStackHeapPage(
@@ -861,41 +861,41 @@ void Mcs51GeneralSettingsGroup::buildStackHeapPage(
     const StackHeapPageOptions opts(qbsProduct);
     // Add 'General Idata Stack Size' item (Stack size: IDATA).
     addOptionsGroup(QByteArrayLiteral("General Idata Stack Size"),
-                    {}, {opts.idataStack});
+                    {opts.idataStack});
     // Add 'General Pdata Stack Size' item (Stack size: PDATA).
     addOptionsGroup(QByteArrayLiteral("General Pdata Stack Size"),
-                    {}, {opts.pdataStack});
+                    {opts.pdataStack});
     // Add 'General Xdata Stack Size' item (Stack size: XDATA).
     addOptionsGroup(QByteArrayLiteral("General Xdata Stack Size"),
-                    {}, {opts.xdataStack});
+                    {opts.xdataStack});
     // Add 'General Ext Stack Size' item (Stack size: Extended).
     addOptionsGroup(QByteArrayLiteral("General Ext Stack Size"),
-                    {}, {opts.extendedStack});
+                    {opts.extendedStack});
 
     // Add 'General Xdata Heap Size' item (Heap size: XDATA).
     addOptionsGroup(QByteArrayLiteral("General Xdata Heap Size"),
-                    {}, {opts.xdataHeap});
+                    {opts.xdataHeap});
     // Add 'General Far Heap Size' item (Heap size: Far).
     addOptionsGroup(QByteArrayLiteral("General Far Heap Size"),
-                    {}, {opts.farHeap});
+                    {opts.farHeap});
     // Add 'General Far22 Heap Size' item (Heap size: Far22).
     addOptionsGroup(QByteArrayLiteral("General Far22 Heap Size"),
-                    {}, {opts.far22Heap});
+                    {opts.far22Heap});
     // Add 'General Huge Heap Size' item (Heap size: Huge).
     addOptionsGroup(QByteArrayLiteral("General Huge Heap Size"),
-                    {}, {opts.hugeHeap});
+                    {opts.hugeHeap});
 
     // Add 'Extended stack address' item
     // (Extended stack pointer address).
     addOptionsGroup(QByteArrayLiteral("Extended stack address"),
-                    {}, {opts.extStackAddress});
+                    {opts.extStackAddress});
     // Add 'Extended stack mask' item (Extended stack pointer mask).
     addOptionsGroup(QByteArrayLiteral("Extended stack mask"),
-                    {}, {opts.extStackMask});
+                    {opts.extStackMask});
     // Add 'Extended stack is offset' item
     // (Extended stack pointer is an offset).
     addOptionsGroup(QByteArrayLiteral("Extended stack is offset"),
-                    {}, {opts.extStackOffset});
+                    {opts.extStackOffset});
 }
 
 void Mcs51GeneralSettingsGroup::buildDataPointerPage(
@@ -904,37 +904,37 @@ void Mcs51GeneralSettingsGroup::buildDataPointerPage(
     const DptrPageOptions opts(qbsProduct);
     // Add 'Nr of Datapointers' item (Number of DPTRs: 1...8).
     addOptionsGroup(QByteArrayLiteral("Nr of Datapointers"),
-                    {}, {opts.dptrsCountIndex});
+                    {opts.dptrsCountIndex});
     // Add 'Datapointer Size' item (DPTR size: 16/24).
     addOptionsGroup(QByteArrayLiteral("Datapointer Size"),
-                    {}, {opts.dptrSize});
+                    {opts.dptrSize});
     // Add 'Sfr Visibility' item (DPTR address: shadowed/separate).
     addOptionsGroup(QByteArrayLiteral("Sfr Visibility"),
-                    {}, {opts.dptrVisibility});
+                    {opts.dptrVisibility});
     // Add 'Switch Method' item (Switch method: inc/mask).
     addOptionsGroup(QByteArrayLiteral("Switch Method"),
-                    {}, {opts.dptrSwitchMethod});
+                    {opts.dptrSwitchMethod});
     // Add 'Mask Value' item (Switch method mask).
     addOptionsGroup(QByteArrayLiteral("Mask Value"),
-                    {}, {opts.dptrMask});
+                    {opts.dptrMask});
     // Add 'PDATA 8-15 register address' item (Page register
     // address (for bits 8-15).
     addOptionsGroup(QByteArrayLiteral("PDATA 8-15 register address"),
-                    {}, {opts.dptrPbank});
+                    {opts.dptrPbank});
     // Add 'PDATA 16-31 register address' item (Page register
     // address (for bits 16-31).
     addOptionsGroup(QByteArrayLiteral("PDATA 16-31 register address"),
-                    {}, {opts.dptrPbankExt});
+                    {opts.dptrPbankExt});
     // Add 'DPS Address' item (Selected DPTR register).
     addOptionsGroup(QByteArrayLiteral("DPS Address"),
-                    {}, {opts.dpsAddress});
+                    {opts.dpsAddress});
     // Add 'DPC Address' item (Separate DPTR control register).
     addOptionsGroup(QByteArrayLiteral("DPC Address"),
-                    {}, {opts.dpcAddress});
+                    {opts.dpcAddress});
     // Add 'DPTR Addresses' item (DPTR addresses: Low/High/Ext).
     const QString dptrAddresses = opts.dptrAddresses.join(QLatin1Char(' '));
     addOptionsGroup(QByteArrayLiteral("DPTR Addresses"),
-                    {}, {dptrAddresses});
+                    {dptrAddresses});
 }
 
 void Mcs51GeneralSettingsGroup::buildCodeBankPage(
@@ -943,19 +943,19 @@ void Mcs51GeneralSettingsGroup::buildCodeBankPage(
     const CodeBankPageOptions opts(qbsProduct);
     // Add 'CodeBankReg' item (Register address).
     addOptionsGroup(QByteArrayLiteral("CodeBankReg"),
-                    {}, {opts.registerAddress});
+                    {opts.registerAddress});
     // Add 'CodeBankRegMask' item (Register mask).
     addOptionsGroup(QByteArrayLiteral("CodeBankRegMask"),
-                    {}, {opts.registerMask});
+                    {opts.registerMask});
     // Add 'CodeBankNrOfs' item (Number of banks).
     addOptionsGroup(QByteArrayLiteral("CodeBankNrOfs"),
-                    {}, {opts.banksCount});
+                    {opts.banksCount});
     // Add 'CodeBankStart' item (Bank start).
     addOptionsGroup(QByteArrayLiteral("CodeBankStart"),
-                    {}, {opts.bankStart});
+                    {opts.bankStart});
     // Add 'CodeBankSize' item (Bank end).
     addOptionsGroup(QByteArrayLiteral("CodeBankSize"),
-                    {}, {opts.bankEnd});
+                    {opts.bankEnd});
 }
 
 void Mcs51GeneralSettingsGroup::buildLibraryOptionsPage(
@@ -964,10 +964,10 @@ void Mcs51GeneralSettingsGroup::buildLibraryOptionsPage(
     const LibraryOptionsPageOptions opts(qbsProduct);
     // Add 'Output variant' item (Printf formatter).
     addOptionsGroup(QByteArrayLiteral("Output variant"),
-                    {}, {opts.printfFormatter});
+                    {opts.printfFormatter});
     // Add 'Input variant' item (Printf formatter).
     addOptionsGroup(QByteArrayLiteral("Input variant"),
-                    {}, {opts.scanfFormatter});
+                    {opts.scanfFormatter});
 }
 
 void Mcs51GeneralSettingsGroup::buildLibraryConfigPage(
@@ -978,15 +978,15 @@ void Mcs51GeneralSettingsGroup::buildLibraryConfigPage(
     // Add 'GRuntimeLibSelect2' and 'GRuntimeLibSelectSlave2' items
     // (Link with runtime: none/dlib/clib/etc).
     addOptionsGroup(QByteArrayLiteral("GRuntimeLibSelect2"),
-                    {}, {opts.libraryType});
+                    {opts.libraryType});
     addOptionsGroup(QByteArrayLiteral("GRuntimeLibSelectSlave2"),
-                    {}, {opts.libraryType});
+                    {opts.libraryType});
     // Add 'RTConfigPath' item (Runtime configuration file).
     addOptionsGroup(QByteArrayLiteral("RTConfigPath"),
-                    {}, {opts.configPath});
+                    {opts.configPath});
     // Add 'RTLibraryPath' item (Runtime library file).
     addOptionsGroup(QByteArrayLiteral("RTLibraryPath"),
-                    {}, {opts.libraryPath});
+                    {opts.libraryPath});
 }
 
 void Mcs51GeneralSettingsGroup::buildOutputPage(
@@ -996,16 +996,16 @@ void Mcs51GeneralSettingsGroup::buildOutputPage(
     const OutputPageOptions opts(baseDirectory, qbsProduct);
     // Add 'GOutputBinary' item (Output file: executable/library).
     addOptionsGroup(QByteArrayLiteral("GOutputBinary"),
-                    {}, {opts.binaryType});
+                    {opts.binaryType});
     // Add 'ExePath' item (Executable/binaries output directory).
     addOptionsGroup(QByteArrayLiteral("ExePath"),
-                    {}, {opts.binaryDirectory});
+                    {opts.binaryDirectory});
     // Add 'ObjPath' item (Object files output directory).
     addOptionsGroup(QByteArrayLiteral("ObjPath"),
-                    {}, {opts.objectDirectory});
+                    {opts.objectDirectory});
     // Add 'ListPath' item (List files output directory).
     addOptionsGroup(QByteArrayLiteral("ListPath"),
-                    {}, {opts.listingDirectory});
+                    {opts.listingDirectory});
 }
 
 } // namespace v10

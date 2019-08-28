@@ -288,10 +288,10 @@ void Stm8LinkerSettingsGroup::buildConfigPage(
         const QVariant configPath = opts.configFilePaths.takeFirst();
         // Add 'IlinkIcfOverride' item (Override default).
         addOptionsGroup(QByteArrayLiteral("IlinkIcfOverride"),
-                        {}, {1});
+                        {1});
         // Add 'IlinkIcfFile' item (Linke configuration file).
         addOptionsGroup(QByteArrayLiteral("IlinkIcfFile"),
-                        {}, {configPath});
+                        {configPath});
 
         // Add remainder configuration files to the "Extra options page".
         if (!opts.configFilePaths.isEmpty()) {
@@ -305,7 +305,7 @@ void Stm8LinkerSettingsGroup::buildConfigPage(
     // Add 'IlinkConfigDefines' item (Configuration file
     // symbol definitions).
     addOptionsGroup(QByteArrayLiteral("IlinkConfigDefines"),
-                    {}, opts.configDefinitions);
+                    opts.configDefinitions);
 }
 
 void Stm8LinkerSettingsGroup::buildLibraryPage(
@@ -318,23 +318,23 @@ void Stm8LinkerSettingsGroup::buildLibraryPage(
     // Add 'IlinkOverrideProgramEntryLabel' item
     // (Override default program entry).
     addOptionsGroup(QByteArrayLiteral("IlinkOverrideProgramEntryLabel"),
-                    {}, {1});
+                    {1});
 
     if (opts.entryPoint.isEmpty()) {
         // Add 'IlinkProgramEntryLabelSelect' item
         // (Defined by application).
         addOptionsGroup(QByteArrayLiteral("IlinkProgramEntryLabelSelect"),
-                        {}, {1});
+                        {1});
     } else {
         // Add 'IlinkProgramEntryLabel' item
         // (Entry symbol).
         addOptionsGroup(QByteArrayLiteral("IlinkProgramEntryLabel"),
-                        {}, {opts.entryPoint});
+                        {opts.entryPoint});
     }
 
     // Add 'IlinkAdditionalLibs' item (Additional libraries).
     addOptionsGroup(QByteArrayLiteral("IlinkAdditionalLibs"),
-                    {}, {opts.staticLibraries});
+                    {opts.staticLibraries});
 }
 
 void Stm8LinkerSettingsGroup::buildOptimizationsPage(
@@ -345,7 +345,7 @@ void Stm8LinkerSettingsGroup::buildOptimizationsPage(
     // Add 'IlinkOptMergeDuplSections' item
     // (Merge duplicate sections).
     addOptionsGroup(QByteArrayLiteral("IlinkOptMergeDuplSections"),
-                    {}, {opts.mergeDuplicateSections});
+                    {opts.mergeDuplicateSections});
 }
 
 void Stm8LinkerSettingsGroup::buildOutputPage(
@@ -355,11 +355,11 @@ void Stm8LinkerSettingsGroup::buildOutputPage(
 
     // Add 'IlinkOutputFile' item (Output file name).
     addOptionsGroup(QByteArrayLiteral("IlinkOutputFile"),
-                    {}, {opts.outputFile});
+                    {opts.outputFile});
     // Add 'IlinkDebugInfoEnable' item
     // (Include debug information in output).
     addOptionsGroup(QByteArrayLiteral("IlinkDebugInfoEnable"),
-                    {}, {opts.enableDebugInfo});
+                    {opts.enableDebugInfo});
 }
 
 void Stm8LinkerSettingsGroup::buildListPage(
@@ -368,7 +368,7 @@ void Stm8LinkerSettingsGroup::buildListPage(
     const ListPageOptions opts(qbsProduct);
     // Add 'IlinkMapFile' item (Generate linker map file).
     addOptionsGroup(QByteArrayLiteral("IlinkMapFile"),
-                    {}, {opts.generateMap});
+                    {opts.generateMap});
 }
 
 void Stm8LinkerSettingsGroup::buildDefinePage(
@@ -377,7 +377,7 @@ void Stm8LinkerSettingsGroup::buildDefinePage(
     const DefinePageOptions opts(qbsProduct);
     // Add 'IlinkDefines' item (Defined symbols).
     addOptionsGroup(QByteArrayLiteral("IlinkDefines"),
-                    {}, opts.defineSymbols);
+                    opts.defineSymbols);
 }
 
 void Stm8LinkerSettingsGroup::buildDiagnosticsPage(
@@ -386,7 +386,7 @@ void Stm8LinkerSettingsGroup::buildDiagnosticsPage(
     const DiagnosticsPageOptions opts(qbsProduct);
     // Add 'IlinkWarningsAreErrors' item (Treat all warnings as errors).
     addOptionsGroup(QByteArrayLiteral("IlinkWarningsAreErrors"),
-                    {}, {opts.warningsAsErrors});
+                    {opts.warningsAsErrors});
 }
 
 void Stm8LinkerSettingsGroup::buildExtraOptionsPage(
@@ -399,10 +399,10 @@ void Stm8LinkerSettingsGroup::buildExtraOptionsPage(
 
     // Add 'IlinkUseExtraOptions' (Use command line options).
     addOptionsGroup(QByteArrayLiteral("IlinkUseExtraOptions"),
-                    {}, {1});
+                    {1});
     // Add 'IlinkExtraOptions' item (Command line options).
     addOptionsGroup(QByteArrayLiteral("IlinkExtraOptions"),
-                    {}, m_extraOptions);
+                    m_extraOptions);
 }
 
 } // namespace v3

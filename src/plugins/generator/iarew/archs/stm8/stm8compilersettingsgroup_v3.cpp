@@ -327,7 +327,7 @@ void Stm8CompilerSettingsGroup::buildOutputPage(
     const OutputPageOptions opts(qbsProduct);
     // Add 'IccGenerateDebugInfo' item (Generate debug info).
     addOptionsGroup(QByteArrayLiteral("IccGenerateDebugInfo"),
-                    {}, {opts.debugInfo});
+                    {opts.debugInfo});
 }
 
 void Stm8CompilerSettingsGroup::buildLanguageOnePage(
@@ -337,29 +337,29 @@ void Stm8CompilerSettingsGroup::buildLanguageOnePage(
     // Add 'IccLang' item with 'auto-extension based'
     // value (Language: C/C++/Auto).
     addOptionsGroup(QByteArrayLiteral("IccLang"),
-                    {}, {opts.languageExtension});
+                    {opts.languageExtension});
     // Add 'IccCDialect' item (C dialect: c89/99/11).
     addOptionsGroup(QByteArrayLiteral("IccCDialect"),
-                    {}, {opts.cLanguageDialect});
+                    {opts.cLanguageDialect});
     // Add 'IccCppDialect' item (C++ dialect: embedded/extended).
     addOptionsGroup(QByteArrayLiteral("IccCppDialect"),
-                    {}, {opts.cxxLanguageDialect});
+                    {opts.cxxLanguageDialect});
     // Add 'IccLanguageConformance' item
     // (Language conformance: IAR/relaxed/strict).
     addOptionsGroup(QByteArrayLiteral("IccLanguageConformance"),
-                    {}, {opts.languageConformance});
+                    {opts.languageConformance});
     // Add 'IccAllowVLA' item (Allow VLA).
     addOptionsGroup(QByteArrayLiteral("IccAllowVLA"),
-                    {}, {opts.allowVla});
+                    {opts.allowVla});
     // Add 'IccCppInlineSemantics' item (C++ inline semantics).
     addOptionsGroup(QByteArrayLiteral("IccCppInlineSemantics"),
-                    {}, {opts.useCppInlineSemantics});
+                    {opts.useCppInlineSemantics});
     // Add 'IccRequirePrototypes' item (Require prototypes).
     addOptionsGroup(QByteArrayLiteral("IccRequirePrototypes"),
-                    {}, {opts.requirePrototypes});
+                    {opts.requirePrototypes});
     // Add 'IccStaticDestr' item (Destroy static objects).
     addOptionsGroup(QByteArrayLiteral("IccStaticDestr"),
-                    {}, {opts.destroyStaticObjects});
+                    {opts.destroyStaticObjects});
 }
 
 void Stm8CompilerSettingsGroup::buildLanguageTwoPage(
@@ -368,14 +368,14 @@ void Stm8CompilerSettingsGroup::buildLanguageTwoPage(
     const LanguageTwoPageOptions opts(qbsProduct);
     // Add 'IccCharIs' item (Plain char is: signed/unsigned).
     addOptionsGroup(QByteArrayLiteral("IccCharIs"),
-                    {}, {opts.plainCharacter});
+                    {opts.plainCharacter});
     // Add 'IccFloatSemantics' item (Floatic-point
     // semantics: strict/relaxed conformance).
     addOptionsGroup(QByteArrayLiteral("IccFloatSemantics"),
-                    {}, {opts.floatingPointSemantic});
+                    {opts.floatingPointSemantic});
     // Add 'IccMultibyteSupport' item (Enable multibyte support).
     addOptionsGroup(QByteArrayLiteral("IccMultibyteSupport"),
-                    {}, {opts.enableMultibyteSupport});
+                    {opts.enableMultibyteSupport});
 }
 
 void Stm8CompilerSettingsGroup::buildOptimizationsPage(
@@ -385,15 +385,15 @@ void Stm8CompilerSettingsGroup::buildOptimizationsPage(
     // Add 'IccOptStrategy', 'IccOptLevel' and
     // 'CCOptLevelSlave' items (Level).
     addOptionsGroup(QByteArrayLiteral("IccOptStrategy"),
-                    {}, {opts.optimizationStrategy});
+                    {opts.optimizationStrategy});
     addOptionsGroup(QByteArrayLiteral("IccOptLevel"),
-                    {}, {opts.optimizationLevel});
+                    {opts.optimizationLevel});
     addOptionsGroup(QByteArrayLiteral("IccOptLevelSlave"),
-                    {}, {opts.optimizationLevelSlave});
+                    {opts.optimizationLevelSlave});
 
     // Add 'IccOptNoSizeConstraints' iten (no size constraints).
     addOptionsGroup(QByteArrayLiteral("IccOptNoSizeConstraints"),
-                    {}, {opts.disableSizeConstraints});
+                    {opts.disableSizeConstraints});
 
     // Add 'IccOptAllowList' item
     // (Enabled optimizations: 6 check boxes).
@@ -405,12 +405,12 @@ void Stm8CompilerSettingsGroup::buildOptimizationsPage(
             .arg(opts.enableTypeBasedAliasAnalysis)
             .arg(opts.enableCrossCall);
     addOptionsGroup(QByteArrayLiteral("IccOptAllowList"),
-                    {}, {bitflags});
+                    {bitflags});
 
     // Add 'IccNoVregs' item
     // (Number of virtual registers (12/16).
     addOptionsGroup(QByteArrayLiteral("IccNoVregs"),
-                    {}, {opts.vregsNumber});
+                    {opts.vregsNumber});
 }
 
 void Stm8CompilerSettingsGroup::buildPreprocessorPage(
@@ -420,11 +420,11 @@ void Stm8CompilerSettingsGroup::buildPreprocessorPage(
     const PreprocessorPageOptions opts(baseDirectory, qbsProduct);
     // Add 'CCDefines' item (Defines symbols).
     addOptionsGroup(QByteArrayLiteral("CCDefines"),
-                    {}, opts.defineSymbols);
+                    opts.defineSymbols);
     // Add 'CCIncludePath2' item
     // (Additional include directories).
     addOptionsGroup(QByteArrayLiteral("CCIncludePath2"),
-                    {}, opts.includePaths);
+                    opts.includePaths);
 }
 
 void Stm8CompilerSettingsGroup::buildDiagnosticsPage(
@@ -433,7 +433,7 @@ void Stm8CompilerSettingsGroup::buildDiagnosticsPage(
     const DiagnosticsPageOptions opts(qbsProduct);
     // Add 'CCDiagWarnAreErr' item (Treat all warnings as errors).
     addOptionsGroup(QByteArrayLiteral("CCDiagWarnAreErr"),
-                    {}, {opts.warningsAsErrors});
+                    {opts.warningsAsErrors});
 }
 
 } // namespace v3

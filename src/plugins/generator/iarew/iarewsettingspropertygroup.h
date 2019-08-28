@@ -50,8 +50,8 @@ protected:
     void setDataVersion(int dataVersion);
     void setDataDebugInfo(int debugInfo);
 
-    void addOptionsGroup(QByteArray name, QVariant version,
-                         const QVariantList &states);
+    void addOptionsGroup(QByteArray name, const QVariantList &states,
+                         int version = -1);
 
 private:
     // Don't delete all this RAW pointers explicitly!
