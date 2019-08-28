@@ -209,6 +209,7 @@ private slots:
     void nsisDependencies();
     void outOfDateMarking();
     void outputArtifactAutoTagging();
+    void outputRedirection();
     void overrideProjectProperties();
     void pathProbe_data();
     void pathProbe();
