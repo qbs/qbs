@@ -1,5 +1,6 @@
 import qbs.Environment
 import qbs.FileInfo
+import qbs.Utilities
 
 Project {
     QtApplication {
@@ -7,7 +8,7 @@ Project {
         Depends { name: "Qt.scxml"; required: false }
 
         Properties {
-            condition: Qt.scxml.present
+            condition: Qt.scxml.present && Utilities.versionCompare(Qt.core.version, "5.13.0") != 0
             cpp.defines: ["HAS_QTSCXML"]
         }
 
