@@ -41,9 +41,9 @@ jobs:
 
     - &build-on-macos
       stage: Build Qbs and and run autotests
-      name: With Qbs on macOS (xcode 10.2)
+      name: With Qbs on macOS (xcode 10.3)
       os: osx
-      osx_image: xcode10.2
+      osx_image: xcode10.3
       addons:
         homebrew:
           packages:
@@ -66,11 +66,6 @@ jobs:
         - qbs config qt.baseProfile xcode-macosx-x86_64
         - qbs config defaultProfile qt
         - scripts/build-qbs-with-qbs.sh
-
-# Disabled because of https://bugreports.qt.io/browse/QBS-1456
-#    - <<: *build-on-macos
-#      name: With Qbs on macOS (xcode 9.4)
-#      osx_image: xcode9.4
 
     - &build-on-windows
       stage: Build Qbs and and run autotests
