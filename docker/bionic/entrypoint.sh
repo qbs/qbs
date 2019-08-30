@@ -75,13 +75,13 @@ export HOME=/home/${USER_NAME}
 #
 if [ "${USER_UID}" != "0" ]; then
     if [ "$(id -u ${USER_NAME})" != "${USER_UID}" ]; then
-        usermod -u ${USER_UID} ${USER_NAME}
+        usermod -o -u ${USER_UID} ${USER_NAME}
         # After changing the user's uid, all files in user's home directory
         # automatically get the new uid.
     fi
     current_gid=$(id -g ${USER_NAME})
     if [ "$(id -g ${USER_NAME})" != "${USER_GID}" ]; then
-        groupmod -g ${USER_GID} ${USER_GROUP}
+        groupmod -o -g ${USER_GID} ${USER_GROUP}
         # Set the new gid on all files in the home directory that still have the
         # old gid.
         find /home/${USER_NAME} -gid "${current_gid}" ! -type l -exec chgrp ${USER_GID} {} \;
