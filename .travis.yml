@@ -11,6 +11,8 @@ git:
 env:
   global:
     - QT_INSTALL_DIR=~/Qt
+    - QT_VERSION=5.12.5
+    - QTCREATOR_VERSION=4.9.2
 
 stages:
   - name: Build Qbs and and run autotests
@@ -53,12 +55,12 @@ jobs:
         # Address sanitizer slows autotests down too much.
         # We would hit the maximum build time on Travis.
         BUILD_OPTIONS=modules.qbsbuildconfig.enableAddressSanitizer:false
-        QMAKE_PATH=${QT_INSTALL_DIR}/5.12.4/clang_64/bin/qmake
+        QMAKE_PATH=${QT_INSTALL_DIR}/${QT_VERSION}/clang_64/bin/qmake
         PATH="${QT_INSTALL_DIR}/Qt Creator.app/Contents/MacOS:${PATH}"
         QBS_BUILD_PROFILE=qt
       before_install:
-        - ./scripts/install-qt.sh -d ${QT_INSTALL_DIR} --version 5.12.4 qtbase qtdeclarative qttools qtscript
-        - ./scripts/install-qt.sh -d ${QT_INSTALL_DIR} --version 4.9.2 qtcreator
+        - ./scripts/install-qt.sh -d ${QT_INSTALL_DIR} --version ${QT_VERSION} qtbase qtdeclarative qttools qtscript
+        - ./scripts/install-qt.sh -d ${QT_INSTALL_DIR} --version ${QTCREATOR_VERSION} qtcreator
         - pip2 install --user beautifulsoup4 lxml
       script:
         - qbs setup-toolchains --detect
@@ -75,7 +77,7 @@ jobs:
         # Need to build in release mode. Otherwise autotests would be too slow.
         BUILD_OPTIONS="config:release"
         QT_INSTALL_DIR=C:/Qt
-        QMAKE_PATH=${QT_INSTALL_DIR}/5.12.4/msvc2017_64/bin/qmake.exe
+        QMAKE_PATH=${QT_INSTALL_DIR}/${QT_VERSION}/msvc2017_64/bin/qmake.exe
         PATH="/c/Qt/Tools/QtCreator/bin:${PATH}"
         WITH_DOCS=0
         QBS_BUILD_PROFILE=qt
@@ -93,8 +95,8 @@ jobs:
         - powershell -Command 'Add-MpPreference -ExclusionProcess link.exe'
 
         # Install Qbs and Qt
-        - ./scripts/install-qt.sh -d ${QT_INSTALL_DIR} --version 5.12.4 --toolchain win64_msvc2017_64 qtbase qtdeclarative qttools qtscript
-        - ./scripts/install-qt.sh -d ${QT_INSTALL_DIR} --version 4.9.2 qtcreator
+        - ./scripts/install-qt.sh -d ${QT_INSTALL_DIR} --version ${QT_VERSION} --toolchain win64_msvc2017_64 qtbase qtdeclarative qttools qtscript
+        - ./scripts/install-qt.sh -d ${QT_INSTALL_DIR} --version ${QTCREATOR_VERSION} qtcreator
       script:
         - qbs setup-toolchains --detect
         - qbs setup-qt ${QMAKE_PATH} qt
