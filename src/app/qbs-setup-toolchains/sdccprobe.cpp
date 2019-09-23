@@ -108,26 +108,49 @@ static std::vector<SdccInstallInfo> installedSdccsFromRegistry()
     std::vector<SdccInstallInfo> infos;
 
     if (HostOsInfo::isWindowsHost()) {
-
-#ifdef Q_OS_WIN64
-        static const char kRegistryNode[] = "HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\SDCC";
-#else
-        static const char kRegistryNode[] = "HKEY_LOCAL_MACHINE\\SOFTWARE\\SDCC";
-#endif
-
-        QSettings registry(QLatin1String(kRegistryNode), QSettings::NativeFormat);
-        QString rootPath = registry.value(QStringLiteral("Default")).toString();
-        if (!rootPath.isEmpty()) {
+        // Tries to detect the candidate from the 32-bit
+        // or 64-bit system registry format.
+        auto probeSdccToolchainInfo = [](QSettings::Format format) {
+            SdccInstallInfo info;
+            QSettings registry(QStringLiteral("HKEY_LOCAL_MACHINE\\SOFTWARE\\SDCC"),
+                               format);
+            const QString rootPath = registry.value(QStringLiteral("Default"))
+                    .toString();
+            if (rootPath.isEmpty())
+                return info;
             // Build full compiler path.
             const QFileInfo sdccPath(rootPath + QLatin1String("\\bin\\sdcc.exe"));
-            if (sdccPath.exists()) {
-                // Build compiler version.
-                const QString version = QStringLiteral("%1.%2.%3").arg(
-                            registry.value(QStringLiteral("VersionMajor")).toString(),
-                            registry.value(QStringLiteral("VersionMinor")).toString(),
-                            registry.value(QStringLiteral("VersionRevision")).toString());
-                infos.push_back({sdccPath.absoluteFilePath(), version});
-            }
+            if (!sdccPath.exists())
+                return info;
+            info.compilerPath = sdccPath.filePath();
+            // Build compiler version.
+            const QString version = QStringLiteral("%1.%2.%3").arg(
+                        registry.value(QStringLiteral("VersionMajor")).toString(),
+                        registry.value(QStringLiteral("VersionMinor")).toString(),
+                        registry.value(QStringLiteral("VersionRevision")).toString());
+            info.version = version;
+            return info;
+        };
+
+        static constexpr QSettings::Format allowedFormats[] = {
+            QSettings::NativeFormat,
+#ifdef Q_OS_WIN
+            QSettings::Registry32Format,
+            QSettings::Registry64Format,
+#endif
+        };
+
+        for (const QSettings::Format format : allowedFormats) {
+            const SdccInstallInfo candidate = probeSdccToolchainInfo(format);
+            if (candidate.compilerPath.isEmpty())
+                continue;
+            const auto infosEnd = infos.cend();
+            const auto infosIt = std::find_if(infos.cbegin(), infosEnd,
+                                              [candidate](const SdccInstallInfo &info) {
+                return candidate == info;
+            });
+            if (infosIt == infosEnd)
+                infos.push_back(candidate);
         }
     }
 
