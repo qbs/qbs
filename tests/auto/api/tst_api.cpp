@@ -2374,6 +2374,12 @@ void TestApi::projectWithPropertiesItem()
     VERIFY_NO_ERROR(errorInfo);
 }
 
+void TestApi::projectWithProbeAndProfileItem()
+{
+    const qbs::ErrorInfo errorInfo = doBuildProject("project-with-probe-and-profile-item");
+    VERIFY_NO_ERROR(errorInfo);
+}
+
 void TestApi::propertiesBlocks()
 {
     const qbs::ErrorInfo errorInfo = doBuildProject("properties-blocks");

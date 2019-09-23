@@ -122,6 +122,7 @@ private slots:
     void projectLocking();
     void projectPropertiesByName();
     void projectWithPropertiesItem();
+    void projectWithProbeAndProfileItem();
     void propertiesBlocks();
     void rc();
     void referencedFileErrors();
