@@ -1,7 +1,6 @@
+include(keiluv.pri)
 include(../../plugins.pri)
 include(../../../shared/json/json.pri)
-
-TARGET = keiluvgenerator
 
 QT = core
 

@@ -1,6 +1,5 @@
+include(makefilegenerator.pri)
 include(../../plugins.pri)
-
-TARGET = makefilegenerator
 
 QT = core
 

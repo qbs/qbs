@@ -1,7 +1,6 @@
+include(visualstudio.pri)
 include(../../plugins.pri)
 include(../../../shared/json/json.pri)
-
-TARGET = visualstudiogenerator
 
 QT = core
 

@@ -330,6 +330,6 @@ static void QbsCppScannerPluginUnload()
 {
 }
 
-QBS_REGISTER_STATIC_PLUGIN(extern "C" CPPSCANNER_EXPORT, QbsCppScannerPlugin,
+QBS_REGISTER_STATIC_PLUGIN(extern "C" CPPSCANNER_EXPORT, qbs_cpp_scanner,
                            QbsCppScannerPluginLoad, QbsCppScannerPluginUnload)
 

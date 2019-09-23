@@ -5,6 +5,10 @@ QbsApp {
     name: "qbs_app"
     Depends { name: "qbs resources" }
     targetName: "qbs"
+    Depends {
+        condition: Qt.core.staticBuild || qbsbuildconfig.staticBuild
+        productTypes: ["qbsplugin"]
+    }
     cpp.defines: base.concat([
         "QBS_VERSION=" + Utilities.cStringQuote(qbsversion.version),
         "QBS_RELATIVE_LIBEXEC_PATH=" + Utilities.cStringQuote(qbsbuildconfig.relativeLibexecPath),

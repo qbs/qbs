@@ -1,6 +1,5 @@
+include(qt.pri)
 include(../../plugins.pri)
-
-TARGET = qbs_qt_scanner
 
 QT = core
 

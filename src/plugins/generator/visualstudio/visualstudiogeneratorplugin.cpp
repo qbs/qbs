@@ -63,5 +63,5 @@ static void QbsVisualStudioGeneratorPluginUnload()
 #endif
 #endif
 
-QBS_REGISTER_STATIC_PLUGIN(extern "C" GENERATOR_EXPORT, QbsVisualStudioGeneratorPlugin,
+QBS_REGISTER_STATIC_PLUGIN(extern "C" GENERATOR_EXPORT, visualstudiogenerator,
                            QbsVisualStudioGeneratorPluginLoad, QbsVisualStudioGeneratorPluginUnload)

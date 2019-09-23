@@ -1,0 +1,1 @@
+qbsPluginTarget = makefilegenerator

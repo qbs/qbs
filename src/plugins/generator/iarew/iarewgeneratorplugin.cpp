@@ -63,5 +63,5 @@ static void QbsIarewGeneratorPluginUnload()
 #endif
 #endif
 
-QBS_REGISTER_STATIC_PLUGIN(extern "C" GENERATOR_EXPORT, QbsIarewGeneratorPlugin,
+QBS_REGISTER_STATIC_PLUGIN(extern "C" GENERATOR_EXPORT, iarewgenerator,
                            QbsIarewGeneratorPluginLoad, QbsIarewGeneratorPluginUnload)

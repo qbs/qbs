@@ -1,7 +1,6 @@
+include(iarew.pri)
 include(../../plugins.pri)
 include(../../../shared/json/json.pri)
-
-TARGET = iarewgenerator
 
 QT = core
 

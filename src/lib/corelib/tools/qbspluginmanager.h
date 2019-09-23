@@ -77,7 +77,7 @@ private:
 
 #ifdef QBS_STATIC_LIB
 #define QBS_REGISTER_STATIC_PLUGIN(exportmacro, name, load, unload) \
-    static auto qbs_static_plugin_register##name = [] { \
+    extern "C" bool qbs_static_plugin_register_##name = [] { \
         qbs::Internal::QbsPluginManager::instance()->registerStaticPlugin(load, unload); \
         return true; \
     }();
