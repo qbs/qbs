@@ -148,7 +148,7 @@ struct ListPageOptions final
     {
         const auto &qbsProps = qbsProduct.moduleProperties();
         generateMap = gen::utils::cppBooleanModuleProperty(
-                    qbsProps, QStringLiteral("generateMapFile"))
+                    qbsProps, QStringLiteral("generateLinkerMapFile"))
                 ? ListPageOptions::GenerateListing
                 : ListPageOptions::NoListing;
     }

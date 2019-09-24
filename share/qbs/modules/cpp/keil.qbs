@@ -68,12 +68,6 @@ CppModule {
 
     property string compilerExtension: qbs.hostOS.contains("windows") ? ".exe" : ""
 
-    property bool generateMapFile: true
-    PropertyOptions {
-        name: "generateMapFile"
-        description: "produce a linker list file (enabled by default)"
-    }
-
     /* Work-around for QtCreator which expects these properties to exist. */
     property string cCompilerName: compilerName
     property string cxxCompilerName: compilerName
@@ -141,7 +135,7 @@ CppModule {
 
         outputFileTags: {
             var tags = ["application"];
-            if (product.moduleProperty("cpp", "generateMapFile"))
+            if (product.moduleProperty("cpp", "generateLinkerMapFile"))
                 tags.push("map_file");
             return tags;
         }
@@ -153,7 +147,7 @@ CppModule {
                               PathTools.applicationFilePath(product))
             };
             var artifacts = [app];
-            if (product.cpp.generateMapFile) {
+            if (product.cpp.generateLinkerMapFile) {
                 artifacts.push({
                     fileTags: ["map_file"],
                 filePath: FileInfo.joinPaths(

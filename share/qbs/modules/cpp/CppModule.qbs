@@ -251,6 +251,12 @@ Module {
         description: "additional compiler driver flags used for linking only"
     }
 
+    property bool generateLinkerMapFile: false
+    PropertyOptions {
+        name: "generateLinkerMapFile"
+        description: "generate linker map file"
+    }
+
     property bool positionIndependentCode: true
     PropertyOptions {
         name: "positionIndependentCode"

@@ -551,7 +551,7 @@ function linkerFlags(project, product, input, outputs) {
         // Silent output generation flag.
         args.push("--silent");
         // Map file generation flag.
-        if (product.cpp.generateMapFile)
+        if (product.cpp.generateLinkerMapFile)
             args.push("--map", outputs.map_file[0].filePath);
         // Entry point flag.
         if (product.cpp.entryPoint)
@@ -568,7 +568,7 @@ function linkerFlags(project, product, input, outputs) {
         if (product.cpp.debugInformation)
             args.push("-rt");
          // Map file generation flag.
-        if (product.cpp.generateMapFile)
+        if (product.cpp.generateLinkerMapFile)
             args.push("-l", outputs.map_file[0].filePath);
         // Entry point flag.
         if (product.cpp.entryPoint)

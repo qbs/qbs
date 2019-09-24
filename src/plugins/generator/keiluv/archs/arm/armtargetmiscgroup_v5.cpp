@@ -50,7 +50,7 @@ struct MiscPageOptions final
         const auto flags = qbs::KeiluvUtils::cppModuleCompilerFlags(qbsProps);
 
         generateLinkerMap = gen::utils::cppBooleanModuleProperty(
-                    qbsProps, QStringLiteral("generateMapFile"));
+                    qbsProps, QStringLiteral("generateLinkerMapFile"));
     }
 
     int generateLinkerMap = 0;

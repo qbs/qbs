@@ -355,7 +355,7 @@ function linkerFlags(project, product, input, outputs) {
     var escapableLinkerFlags = [];
 
     // Map file generation flag.
-    if (product.cpp.generateMapFile)
+    if (product.cpp.generateLinkerMapFile)
         escapableLinkerFlags.push("-m");
 
     if (product.cpp.platformLinkerFlags)

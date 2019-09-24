@@ -604,7 +604,7 @@ function linkerFlags(project, product, input, outputs) {
         args.push("TO", '"' + FileInfo.toWindowsSeparators(outputs.application[0].filePath) + '"');
 
         // Map file generation flag.
-        if (!product.cpp.generateMapFile)
+        if (!product.cpp.generateLinkerMapFile)
             args.push("NOMAP");
     } else if (architecture === "arm") {
         // Inputs.
@@ -629,7 +629,7 @@ function linkerFlags(project, product, input, outputs) {
             args.push(debugInformation ? "--debug" : "--no_debug");
 
         // Map file generation flag.
-        if (product.cpp.generateMapFile)
+        if (product.cpp.generateLinkerMapFile)
             args.push("--list", outputs.map_file[0].filePath);
 
         // Entry point flag.
