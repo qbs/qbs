@@ -11,8 +11,8 @@ git:
 env:
   global:
     - QT_INSTALL_DIR=~/Qt
-    - QT_VERSION=5.12.5
-    - QTCREATOR_VERSION=4.10.1
+    - QT_VERSION=5.12.6
+    - QTCREATOR_VERSION=4.10.2
 
 stages:
   - name: Build Qbs and and run autotests
@@ -68,6 +68,10 @@ jobs:
         - qbs config qt.baseProfile xcode-macosx-x86_64
         - qbs config defaultProfile qt
         - scripts/build-qbs-with-qbs.sh
+
+    - <<: *build-on-macos
+      name: With Qbs on macOS (xcode 11)
+      osx_image: xcode11
 
     - &build-on-windows
       stage: Build Qbs and and run autotests

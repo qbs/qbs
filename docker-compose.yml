@@ -12,13 +12,13 @@ services:
   bionic:
     << : *linux
     hostname: bionic
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:bionic-5.12.5_1.14.0-1
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:bionic-5.12.6_1.14.1-0
     build:
       dockerfile: docker/bionic/Dockerfile
       context: .
       args:
-        QT_VERSION: 5.12.5
-        QTCREATOR_VERSION: 4.10.1
+        QT_VERSION: 5.12.6
+        QTCREATOR_VERSION: 4.10.2
 
   stretch:
     << : *linux
