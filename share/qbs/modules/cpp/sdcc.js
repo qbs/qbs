@@ -332,7 +332,9 @@ function linkerFlags(project, product, input, outputs) {
     var escapedLinkerFlags = escapeLinkerFlags(product, escapableLinkerFlags);
     if (escapedLinkerFlags)
         Array.prototype.push.apply(args, escapedLinkerFlags);
-
+    var driverLinkerFlags = useCompilerDriver ? product.cpp.driverLinkerFlags : undefined;
+    if (driverLinkerFlags)
+        Array.prototype.push.apply(args, driverLinkerFlags);
     return args;
 }
 
