@@ -42,6 +42,8 @@
 
 #include <QtCore/qlist.h>
 
+#include <tuple>
+
 QT_BEGIN_NAMESPACE
 class QFileInfo;
 QT_END_NAMESPACE
@@ -49,6 +51,18 @@ QT_END_NAMESPACE
 namespace qbs {
 class Profile;
 class Settings;
+}
+
+struct SdccInstallInfo
+{
+    QString compilerPath;
+    QString version;
+};
+
+inline bool operator==(const SdccInstallInfo &lhs, const SdccInstallInfo &rhs)
+{
+    return std::tie(lhs.compilerPath, lhs.version)
+            == std::tie(rhs.compilerPath, rhs.version);
 }
 
 bool isSdccCompiler(const QString &compilerName);

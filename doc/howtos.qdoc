@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2017 The Qt Company Ltd.
+** Copyright (C) 2018 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -40,6 +40,7 @@
     \li \l{How do I use precompiled headers?}
     \li \l{How do I make sure my generated sources are getting compiled?}
     \li \l{How do I run my autotests?}
+    \li \l{How do I use ccache?}
     \li \l{How do I create a module for a third-party library?}
     \li \l{How do I build against libraries that provide pkg-config files?}
     \li \l{How do I create application bundles and frameworks on iOS, macOS, tvOS, and watchOS?}
@@ -214,6 +215,27 @@
     ...
     \endcode
     See the \l{AutotestRunner}{AutotestRunner documentation} for how to fine-tune the behavior.
+
+    \section1 How do I use ccache?
+
+    \l ccache is a popular C/C++ compiler cache on Unix to speed up compiling the
+    same content multiple times.
+
+    \QBS excels at tracking dependencies and avoiding needless recompilations, so
+    for linear development of one project and configuration using ccache
+    has little benefit. But if you switch between revisions of a project,
+    or build the same project with different configurations, a global cache like
+    ccache can speed up compilations significantly.
+
+    ccache can be used by setting up symbolic links to compiler executables
+    (such as \c g++, \c gcc) in the file system. In this setup, the use of ccache is
+    transparent to \QBS. If you prefer to call ccache explicitly, you should
+    set \l{cpp::compilerWrapper}{cpp.compilerWrapper} to \c ccache.
+
+    \note Using precompiled headers might prevent ccache from actually
+    using cached results. To work around this, you can set
+    \c{sloppiness=pch_defines,time_macros} in your local ccache options.
+    See the \l{ccache documentation about precompiled headers} for further details.
 
     \section1 How do I create a module for a third-party library?
 
