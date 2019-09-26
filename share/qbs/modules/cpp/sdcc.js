@@ -252,8 +252,6 @@ function assemblerFlags(project, product, input, output, explicitlyDependsOn) {
     var tag = ModUtils.fileTagForTargetLanguage(input.fileTags.concat(output.fileTags));
 
     var args = [];
-    args.push(input.filePath);
-    args.push("-o", output.filePath);
 
     var allIncludePaths = [];
     var systemIncludePaths = input.cpp.systemIncludePaths;
@@ -267,6 +265,10 @@ function assemblerFlags(project, product, input, output, explicitlyDependsOn) {
     args = args.concat(ModUtils.moduleProperty(input, "platformFlags", tag),
                        ModUtils.moduleProperty(input, "flags", tag),
                        ModUtils.moduleProperty(input, "driverFlags", tag));
+
+    args.push("-ol");
+    args.push(output.filePath);
+    args.push(input.filePath);
     return args;
 }
 
