@@ -339,6 +339,41 @@ function collectLibraryDependencies(product) {
     return result;
 }
 
+function compilerOutputArtifacts(input) {
+    var obj = {
+        fileTags: ["obj"],
+        filePath: Utilities.getHash(input.baseDir) + "/"
+              + input.fileName + input.cpp.objectSuffix
+    };
+    return [obj];
+}
+
+function applicationLinkerOutputArtifacts(product) {
+    var app = {
+        fileTags: ["application"],
+        filePath: FileInfo.joinPaths(
+                      product.destinationDirectory,
+                      PathTools.applicationFilePath(product))
+    };
+    var mem_map = {
+        fileTags: ["mem_map"],
+        filePath: FileInfo.joinPaths(
+                      product.destinationDirectory,
+                      product.targetName + ".map")
+    };
+    return [app, mem_map]
+}
+
+function staticLibraryLinkerOutputArtifacts(product) {
+    var staticLib = {
+        fileTags: ["staticlibrary"],
+        filePath: FileInfo.joinPaths(
+                      product.destinationDirectory,
+                      PathTools.staticLibraryFilePath(product))
+    };
+    return [staticLib]
+}
+
 function compilerFlags(project, product, input, output, explicitlyDependsOn) {
     // Determine which C-language we're compiling.
     var tag = ModUtils.fileTagForTargetLanguage(input.fileTags.concat(output.fileTags));
@@ -552,7 +587,7 @@ function linkerFlags(project, product, input, outputs) {
         args.push("--silent");
         // Map file generation flag.
         if (product.cpp.generateLinkerMapFile)
-            args.push("--map", outputs.map_file[0].filePath);
+            args.push("--map", outputs.mem_map[0].filePath);
         // Entry point flag.
         if (product.cpp.entryPoint)
             args.push("--entry", product.cpp.entryPoint);
@@ -569,7 +604,7 @@ function linkerFlags(project, product, input, outputs) {
             args.push("-rt");
          // Map file generation flag.
         if (product.cpp.generateLinkerMapFile)
-            args.push("-l", outputs.map_file[0].filePath);
+            args.push("-l", outputs.mem_map[0].filePath);
         // Entry point flag.
         if (product.cpp.entryPoint)
             args.push("-s", product.cpp.entryPoint);

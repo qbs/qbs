@@ -99,13 +99,8 @@ CppModule {
     Rule {
         id: assembler
         inputs: ["asm"]
-
-        Artifact {
-            fileTags: ["obj"]
-            filePath: Utilities.getHash(input.baseDir) + "/"
-                      + input.fileName + input.cpp.objectSuffix
-        }
-
+        outputFileTags: ["obj"]
+        outputArtifacts: IAR.compilerOutputArtifacts(input)
         prepare: IAR.prepareAssembler.apply(IAR, arguments)
     }
 
@@ -118,13 +113,8 @@ CppModule {
         id: compiler
         inputs: ["cpp", "c"]
         auxiliaryInputs: ["hpp"]
-
-        Artifact {
-            fileTags: ["obj"]
-            filePath: Utilities.getHash(input.baseDir) + "/"
-                      + input.fileName + input.cpp.objectSuffix
-        }
-
+        outputFileTags: ["obj"]
+        outputArtifacts: IAR.compilerOutputArtifacts(input)
         prepare: IAR.prepareCompiler.apply(IAR, arguments)
     }
 
@@ -133,32 +123,8 @@ CppModule {
         multiplex: true
         inputs: ["obj", "linkerscript"]
         inputsFromDependencies: ["staticlibrary"]
-
-        outputFileTags: {
-            var tags = ["application"];
-            if (product.moduleProperty("cpp", "generateLinkerMapFile"))
-                tags.push("map_file");
-            return tags;
-        }
-        outputArtifacts: {
-            var app = {
-                fileTags: ["application"],
-                filePath: FileInfo.joinPaths(
-                              product.destinationDirectory,
-                              PathTools.applicationFilePath(product))
-            };
-            var artifacts = [app];
-            if (product.cpp.generateLinkerMapFile) {
-                artifacts.push({
-                    fileTags: ["map_file"],
-                filePath: FileInfo.joinPaths(
-                              product.destinationDirectory,
-                              product.targetName + ".map")
-                });
-            }
-            return artifacts;
-        }
-
+        outputFileTags: ["application", "mem_map"]
+        outputArtifacts: IAR.applicationLinkerOutputArtifacts(product)
         prepare: IAR.prepareLinker.apply(IAR, arguments)
     }
 
@@ -167,14 +133,8 @@ CppModule {
         multiplex: true
         inputs: ["obj"]
         inputsFromDependencies: ["staticlibrary"]
-
-        Artifact {
-            fileTags: ["staticlibrary"]
-            filePath: FileInfo.joinPaths(
-                            product.destinationDirectory,
-                            PathTools.staticLibraryFilePath(product))
-        }
-
+        outputFileTags: ["staticlibrary"]
+        outputArtifacts: IAR.staticLibraryLinkerOutputArtifacts(product)
         prepare: IAR.prepareArchiver.apply(IAR, arguments)
     }
 }
