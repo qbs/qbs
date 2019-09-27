@@ -71,6 +71,14 @@
 #include <iostream>
 #include <memory>
 
+#ifdef Q_OS_WIN32
+#include <cerrno>
+#include <cstdio>
+#include <cstring>
+#include <fcntl.h>
+#include <io.h>
+#endif
+
 namespace qbs {
 namespace Internal {
 
@@ -175,6 +183,13 @@ void startSession()
 
 Session::Session()
 {
+#ifdef Q_OS_WIN32
+    // Make sure the line feed character appears as itself.
+    if (_setmode(_fileno(stdout), _O_BINARY) == -1) {
+        std::cerr << "Failed to set stdout to binary mode: " << std::strerror(errno) << std::endl;
+        qApp->exit(EXIT_FAILURE);
+    }
+#endif
     sendPacket(SessionPacket::helloMessage());
     connect(&m_logSink, &SessionLogSink::newMessage, this, &Session::sendPacket);
     connect(&m_packetReader, &SessionPacketReader::errorOccurred,
