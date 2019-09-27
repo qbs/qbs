@@ -32,9 +32,7 @@ import qbs 1.0
 import qbs.File
 import qbs.FileInfo
 import qbs.ModUtils
-import qbs.PathTools
 import qbs.Probes
-import qbs.Utilities
 import "keil.js" as KEIL
 
 CppModule {
@@ -164,14 +162,9 @@ CppModule {
     Rule {
         id: assembler
         inputs: ["asm"]
-
-        Artifact {
-            fileTags: ["obj"]
-            filePath: Utilities.getHash(input.baseDir) + "/"
-                      + input.fileName + input.cpp.objectSuffix
-        }
-
-        prepare: KEIL.prepareAssembler.apply(KEIL, arguments);
+        outputFileTags: ["obj"]
+        outputArtifacts: KEIL.compilerOutputArtifacts(input)
+        prepare: KEIL.prepareAssembler.apply(KEIL, arguments)
     }
 
     FileTagger {
@@ -190,47 +183,18 @@ CppModule {
         id: compiler
         inputs: ["cpp", "c"]
         auxiliaryInputs: ["hpp"]
-
-        Artifact {
-            fileTags: ["obj"]
-            filePath: Utilities.getHash(input.baseDir) + "/"
-                      + input.fileName + input.cpp.objectSuffix
-        }
-
-        prepare: KEIL.prepareCompiler.apply(KEIL, arguments);
+        outputFileTags: ["obj"]
+        outputArtifacts: KEIL.compilerOutputArtifacts(input)
+        prepare: KEIL.prepareCompiler.apply(KEIL, arguments)
     }
 
     Rule {
         id: applicationLinker
         multiplex: true
         inputs: ["obj", "linkerscript"]
-
-        outputFileTags: {
-            var tags = ["application"];
-            if (product.moduleProperty("cpp", "generateMapFile"))
-                tags.push("map_file");
-            return tags;
-        }
-        outputArtifacts: {
-            var app = {
-                fileTags: ["application"],
-                filePath: FileInfo.joinPaths(
-                              product.destinationDirectory,
-                              PathTools.applicationFilePath(product))
-            };
-            var artifacts = [app];
-            if (product.cpp.generateMapFile) {
-                artifacts.push({
-                    fileTags: ["map_file"],
-                filePath: FileInfo.joinPaths(
-                              product.destinationDirectory,
-                              product.targetName + ".map")
-                });
-            }
-            return artifacts;
-        }
-
-        prepare:KEIL.prepareLinker.apply(KEIL, arguments);
+        outputFileTags: ["application", "mem_map"]
+        outputArtifacts: KEIL.applicationLinkerOutputArtifacts(product)
+        prepare: KEIL.prepareLinker.apply(KEIL, arguments)
     }
 
     Rule {
@@ -238,14 +202,8 @@ CppModule {
         multiplex: true
         inputs: ["obj"]
         inputsFromDependencies: ["staticlibrary"]
-
-        Artifact {
-            fileTags: ["staticlibrary"]
-            filePath: FileInfo.joinPaths(
-                            product.destinationDirectory,
-                            PathTools.staticLibraryFilePath(product))
-        }
-
-        prepare: KEIL.prepareArchiver.apply(KEIL, arguments);
+        outputFileTags: ["staticlibrary"]
+        outputArtifacts: KEIL.staticLibraryLinkerOutputArtifacts(product)
+        prepare: KEIL.prepareArchiver.apply(KEIL, arguments)
     }
 }
