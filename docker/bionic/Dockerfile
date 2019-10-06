@@ -178,3 +178,6 @@ RUN qbs-setup-toolchains /usr/bin/g++ gcc && \
 
 # Switch back to root user for the entrypoint script.
 USER root
+
+# Work-around for QTBUG-79020
+RUN echo "QT_NO_GLIB=1" >> /etc/profile.d/qt.sh
