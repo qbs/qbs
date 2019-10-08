@@ -162,17 +162,17 @@ var PropertyListVariableExpander = (function () {
           * Finds the first index of a replacement starting with one of the supported syntaxes
           * This is needed so we don't do recursive substitutions
           */
-        function indexOfReplacementStart(syntaxes, str, offset) {
+        function indexOfReplacementStart(syntaxes, str) {
             var syntax;
-            var idx = str.length;
+            var idx = -1;
             for (var i in syntaxes) {
-                var j = str.indexOf(syntaxes[i].open, offset);
-                if (j !== -1 && j < idx) {
+                var j = str.lastIndexOf(syntaxes[i].open);
+                if (j > idx) {
                     syntax = syntaxes[i];
                     idx = j;
                 }
             }
-            return { "syntax": syntax, "index": idx === str.length ? -1 : idx };
+            return { "syntax": syntax, "index": idx };
         }
 
         function expandRecursive(obj, env, checked) {
@@ -202,19 +202,16 @@ var PropertyListVariableExpander = (function () {
                         // skip replacement
                         if ($this.undefinedVariableFunction)
                             $this.undefinedVariableFunction(key, varName);
-                        i = j + repl.syntax.close.length;
-                    } else {
-                        changes = true;
-                        varValue = String(varValue);
-                        if (varFormatter !== undefined)
-                            varFormatter = varFormatter.toLowerCase();
-                        if (varFormatter === "rfc1034identifier")
-                            varValue = Utilities.rfc1034Identifier(varValue);
-                        value = value.slice(0, i) + varValue + value.slice(j + repl.syntax.close.length);
-                        // avoid recursive substitutions to avoid potentially infinite loops
-                        i += varValue.length;
+                        varValue = "";
                     }
-                    repl = indexOfReplacementStart(syntaxes, value, i);
+                    varValue = String(varValue);
+                    if (varFormatter !== undefined)
+                        varFormatter = varFormatter.toLowerCase();
+                    if (varFormatter === "rfc1034identifier")
+                        varValue = Utilities.rfc1034Identifier(varValue);
+                    value = value.slice(0, i) + varValue + value.slice(j + repl.syntax.close.length);
+                    changes = true;
+                    repl = indexOfReplacementStart(syntaxes, value);
                     i = repl.index;
                 }
                 if (changes)

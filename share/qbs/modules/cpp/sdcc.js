@@ -33,6 +33,7 @@ var Environment = require("qbs.Environment");
 var File = require("qbs.File");
 var FileInfo = require("qbs.FileInfo");
 var ModUtils = require("qbs.ModUtils");
+var PathTools = require("qbs.PathTools");
 var Process = require("qbs.Process");
 var TemporaryDir = require("qbs.TemporaryDir");
 var TextFile = require("qbs.TextFile");
@@ -217,9 +218,90 @@ function collectLibraryDependencies(product) {
     return result;
 }
 
-function compilerFlags(project, product, input, output, explicitlyDependsOn) {
+function compilerOutputArtifacts(input) {
+    var obj = {
+        fileTags: ["obj"],
+        filePath: Utilities.getHash(input.baseDir) + "/"
+              + input.fileName + input.cpp.objectSuffix
+    };
+    var asm_adb = {
+        fileTags: ["asm_adb"],
+        filePath: Utilities.getHash(input.baseDir) + "/"
+              + input.fileName + ".adb"
+    };
+    var asm_lst = {
+        fileTags: ["asm_lst"],
+        filePath: Utilities.getHash(input.baseDir) + "/"
+              + input.fileName + ".lst"
+    };
+    var asm_src = {
+        fileTags: ["asm_src"],
+        filePath: Utilities.getHash(input.baseDir) + "/"
+              + input.fileName + ".asm"
+    };
+    var asm_sym = {
+        fileTags: ["asm_sym"],
+        filePath: Utilities.getHash(input.baseDir) + "/"
+              + input.fileName + ".sym"
+    };
+    var rst_data = {
+        fileTags: ["rst_data"],
+        filePath: Utilities.getHash(input.baseDir) + "/"
+              + input.fileName + ".rst"
+    };
+    return [obj, asm_adb, asm_lst, asm_src, asm_sym, rst_data];
+}
+
+function applicationLinkerOutputArtifacts(product) {
+    var app = {
+        fileTags: ["application"],
+        filePath: FileInfo.joinPaths(
+                      product.destinationDirectory,
+                      PathTools.applicationFilePath(product))
+    };
+    var lk_cmd = {
+        fileTags: ["lk_cmd"],
+        filePath: FileInfo.joinPaths(
+                      product.destinationDirectory,
+                      product.targetName + ".lk")
+    };
+    var mem_summary = {
+        fileTags: ["mem_summary"],
+        filePath: FileInfo.joinPaths(
+                      product.destinationDirectory,
+                      product.targetName + ".mem")
+    };
+    var mem_map = {
+        fileTags: ["mem_map"],
+        filePath: FileInfo.joinPaths(
+                      product.destinationDirectory,
+                      product.targetName + ".map")
+    };
+    var artifacts = [app, lk_cmd, mem_summary, mem_map];
+    if (product.cpp.generateLinkerMapFile) {
+        artifacts.push({
+            fileTags: ["map_file"],
+            filePath: FileInfo.joinPaths(
+                      product.destinationDirectory,
+                      product.targetName + ".map")
+        });
+    }
+    return artifacts;
+}
+
+function staticLibraryLinkerOutputArtifacts(product) {
+    var staticLib = {
+        fileTags: ["staticlibrary"],
+        filePath: FileInfo.joinPaths(
+                      product.destinationDirectory,
+                      PathTools.staticLibraryFilePath(product))
+    };
+    return [staticLib]
+}
+
+function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
     // Determine which C-language we"re compiling.
-    var tag = ModUtils.fileTagForTargetLanguage(input.fileTags.concat(output.fileTags));
+    var tag = ModUtils.fileTagForTargetLanguage(input.fileTags.concat(outputs.obj[0].fileTags));
 
     var args = [];
 
@@ -228,7 +310,7 @@ function compilerFlags(project, product, input, output, explicitlyDependsOn) {
 
     // Output.
     args.push("-c");
-    args.push("-o", output.filePath);
+    args.push("-o", outputs.obj[0].filePath);
 
     // Defines.
     var allDefines = [];
@@ -305,17 +387,11 @@ function compilerFlags(project, product, input, output, explicitlyDependsOn) {
     return args;
 }
 
-function assemblerFlags(project, product, input, output, explicitlyDependsOn) {
+function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
     // Determine which C-language we"re compiling
-    var tag = ModUtils.fileTagForTargetLanguage(input.fileTags.concat(output.fileTags));
+    var tag = ModUtils.fileTagForTargetLanguage(input.fileTags.concat(outputs.obj[0].fileTags));
 
     var args = [];
-
-    // Input.
-    args.push(input.filePath);
-
-    // Output.
-    args.push("-o", output.filePath);
 
     // Includes.
     var allIncludePaths = [];
@@ -331,6 +407,10 @@ function assemblerFlags(project, product, input, output, explicitlyDependsOn) {
     args = args.concat(ModUtils.moduleProperty(input, "platformFlags", tag),
                        ModUtils.moduleProperty(input, "flags", tag),
                        ModUtils.moduleProperty(input, "driverFlags", tag));
+
+    args.push("-ol");
+    args.push(outputs.obj[0].filePath);
+    args.push(input.filePath);
     return args;
 }
 
@@ -407,7 +487,9 @@ function linkerFlags(project, product, input, outputs) {
     var escapedLinkerFlags = escapeLinkerFlags(product, escapableLinkerFlags);
     if (escapedLinkerFlags)
         Array.prototype.push.apply(args, escapedLinkerFlags);
-
+    var driverLinkerFlags = useCompilerDriver ? product.cpp.driverLinkerFlags : undefined;
+    if (driverLinkerFlags)
+        Array.prototype.push.apply(args, driverLinkerFlags);
     return args;
 }
 
@@ -420,7 +502,7 @@ function archiverFlags(project, product, input, outputs) {
 }
 
 function prepareCompiler(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
-    var args = compilerFlags(project, product, input, output, explicitlyDependsOn);
+    var args = compilerFlags(project, product, input, outputs, explicitlyDependsOn);
     var compilerPath = input.cpp.compilerPath;
     var cmd = new Command(compilerPath, args);
     cmd.description = "compiling " + input.fileName;
@@ -429,7 +511,7 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
 }
 
 function prepareAssembler(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
-    var args = assemblerFlags(project, product, input, output, explicitlyDependsOn);
+    var args = assemblerFlags(project, product, input, outputs, explicitlyDependsOn);
     var assemblerPath = input.cpp.assemblerPath;
     var cmd = new Command(assemblerPath, args);
     cmd.description = "assembling " + input.fileName;

@@ -33,6 +33,7 @@ var Environment = require("qbs.Environment");
 var File = require("qbs.File");
 var FileInfo = require("qbs.FileInfo");
 var ModUtils = require("qbs.ModUtils");
+var PathTools = require("qbs.PathTools");
 var Process = require("qbs.Process");
 var TemporaryDir = require("qbs.TemporaryDir");
 var TextFile = require("qbs.TextFile");
@@ -320,6 +321,51 @@ function filterStdOutput(cmd) {
         }
         return filteredLines.join("\n");
     };
+}
+
+function compilerOutputArtifacts(input) {
+    var obj = {
+        fileTags: ["obj"],
+        filePath: Utilities.getHash(input.baseDir) + "/"
+              + input.fileName + input.cpp.objectSuffix
+    };
+    return [obj];
+}
+
+function applicationLinkerOutputArtifacts(product) {
+    var app = {
+        fileTags: ["application"],
+        filePath: FileInfo.joinPaths(
+                      product.destinationDirectory,
+                      PathTools.applicationFilePath(product))
+    };
+    var mem_map = {
+        fileTags: ["mem_map"],
+        filePath: FileInfo.joinPaths(
+                      product.destinationDirectory,
+                      product.targetName
+                      + (product.cpp.architecture === "mcs51" ? ".m51" : ".map"))
+    };
+    var artifacts = [app, mem_map];
+    if (product.cpp.generateLinkerMapFile) {
+        artifacts.push({
+            fileTags: ["map_file"],
+        filePath: FileInfo.joinPaths(
+                      product.destinationDirectory,
+                      product.targetName + ".map")
+        });
+    }
+    return artifacts;
+}
+
+function staticLibraryLinkerOutputArtifacts(product) {
+    var staticLib = {
+        fileTags: ["staticlibrary"],
+        filePath: FileInfo.joinPaths(
+                      product.destinationDirectory,
+                      PathTools.staticLibraryFilePath(product))
+    };
+    return [staticLib]
 }
 
 function compilerFlags(project, product, input, output, explicitlyDependsOn) {
@@ -613,6 +659,9 @@ function linkerFlags(project, product, input, outputs) {
 
         // Output.
         args.push("--output", outputs.application[0].filePath);
+
+        if (product.cpp.generateMapFile)
+            args.push("--list", outputs.mem_map[0].filePath);
 
         // Library paths.
         var libraryPaths = product.cpp.libraryPaths;

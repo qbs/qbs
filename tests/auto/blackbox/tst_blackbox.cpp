@@ -4267,7 +4267,8 @@ void TestBlackbox::symbolLinkMode()
         rmDirR(relativeBuildDir());
         params.arguments = QStringList() << commonArgs << "project.lazy:true";
         QCOMPARE(runQbs(params), 0);
-        QVERIFY2(m_qbsStdout.contains("meow\nLib was loaded!\n"), m_qbsStdout.constData());
+        QVERIFY2(m_qbsStdout.contains("meow\n") && m_qbsStdout.contains("Lib was loaded!\n"),
+                 m_qbsStdout.constData());
     }
 }
 
