@@ -756,9 +756,11 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     var primaryOutput = outputs.application[0];
     var args = linkerFlags(project, product, input, outputs);
     var linkerPath = product.cpp.linkerPath;
+    var architecture = product.cpp.architecture;
     var cmd = new Command(linkerPath, args);
     cmd.description = "linking " + primaryOutput.fileName;
     cmd.highlight = "linker";
+    cmd.maxExitCode = getMaxExitCode(architecture);
     filterStdOutput(cmd);
     return [cmd];
 }
