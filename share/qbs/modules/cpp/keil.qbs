@@ -103,14 +103,7 @@ CppModule {
     }
 
     FileTagger {
-        condition: qbs.architecture === "mcs51";
-        patterns: ["*.a51", "*.A51"]
-        fileTags: ["asm"]
-    }
-
-    FileTagger {
-        condition: qbs.architecture === "arm";
-        patterns: ["*.s", ".asm"]
+        patterns: ["*.s", "*.a51", ".asm"]
         fileTags: ["asm"]
     }
 
@@ -127,12 +120,7 @@ CppModule {
         id: applicationLinker
         multiplex: true
         inputs: ["obj", "linkerscript"]
-        outputFileTags: {
-            var tags = ["application", "mem_map"];
-            if (product.moduleProperty("cpp", "generateLinkerMapFile"))
-                tags.push("map_file");
-            return tags;
-        }
+        outputFileTags: ["application", "mem_map"]
         outputArtifacts: KEIL.applicationLinkerOutputArtifacts(product)
         prepare: KEIL.prepareLinker.apply(KEIL, arguments)
     }

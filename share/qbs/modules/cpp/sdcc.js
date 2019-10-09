@@ -277,16 +277,7 @@ function applicationLinkerOutputArtifacts(product) {
                       product.destinationDirectory,
                       product.targetName + ".map")
     };
-    var artifacts = [app, lk_cmd, mem_summary, mem_map];
-    if (product.cpp.generateLinkerMapFile) {
-        artifacts.push({
-            fileTags: ["map_file"],
-            filePath: FileInfo.joinPaths(
-                      product.destinationDirectory,
-                      product.targetName + ".map")
-        });
-    }
-    return artifacts;
+    return [app, lk_cmd, mem_summary, mem_map]
 }
 
 function staticLibraryLinkerOutputArtifacts(product) {

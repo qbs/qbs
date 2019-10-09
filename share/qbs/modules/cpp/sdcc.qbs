@@ -101,7 +101,7 @@ CppModule {
         inputs: ["asm"]
         outputFileTags: ["obj", "asm_adb", "asm_lst", "asm_src", "asm_sym", "rst_data"]
         outputArtifacts: SDCC.compilerOutputArtifacts(input)
-        prepare: SDCC.prepareAssembler.apply(SDCC, arguments);
+        prepare: SDCC.prepareAssembler.apply(SDCC, arguments)
     }
 
     FileTagger {
@@ -130,14 +130,9 @@ CppModule {
         multiplex: true
         inputs: ["obj", "linkerscript"]
         inputsFromDependencies: ["staticlibrary"]
-        outputFileTags: {
-            var tags = ["application", "lk_cmd", "mem_summary", "mem_map"];
-            if (product.moduleProperty("cpp", "generateLinkerMapFile"))
-                tags.push("map_file");
-            return tags;
-        }
+        outputFileTags: ["application", "lk_cmd", "mem_summary", "mem_map"]
         outputArtifacts: SDCC.applicationLinkerOutputArtifacts(product)
-        prepare:SDCC.prepareLinker.apply(SDCC, arguments)
+        prepare: SDCC.prepareLinker.apply(SDCC, arguments)
     }
 
     Rule {

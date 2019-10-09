@@ -37,6 +37,7 @@ var PathTools = require("qbs.PathTools");
 var Process = require("qbs.Process");
 var TemporaryDir = require("qbs.TemporaryDir");
 var TextFile = require("qbs.TextFile");
+var Utilities = require("qbs.Utilities");
 
 function compilerName(qbs) {
     switch (qbs.architecture) {
@@ -346,16 +347,7 @@ function applicationLinkerOutputArtifacts(product) {
                       product.targetName
                       + (product.cpp.architecture === "mcs51" ? ".m51" : ".map"))
     };
-    var artifacts = [app, mem_map];
-    if (product.cpp.generateLinkerMapFile) {
-        artifacts.push({
-            fileTags: ["map_file"],
-        filePath: FileInfo.joinPaths(
-                      product.destinationDirectory,
-                      product.targetName + ".map")
-        });
-    }
-    return artifacts;
+    return [app, mem_map];
 }
 
 function staticLibraryLinkerOutputArtifacts(product) {
@@ -660,9 +652,6 @@ function linkerFlags(project, product, input, outputs) {
         // Output.
         args.push("--output", outputs.application[0].filePath);
 
-        if (product.cpp.generateMapFile)
-            args.push("--list", outputs.mem_map[0].filePath);
-
         // Library paths.
         var libraryPaths = product.cpp.libraryPaths;
         if (libraryPaths)
@@ -679,7 +668,7 @@ function linkerFlags(project, product, input, outputs) {
 
         // Map file generation flag.
         if (product.cpp.generateLinkerMapFile)
-            args.push("--list", outputs.map_file[0].filePath);
+            args.push("--list", outputs.mem_map[0].filePath);
 
         // Entry point flag.
         if (product.cpp.entryPoint)
