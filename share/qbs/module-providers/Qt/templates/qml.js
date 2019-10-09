@@ -57,7 +57,7 @@ function getLibsForPlugin(pluginData, buildVariant, targetOS, toolchain, qtLibDi
                     otherLibsLine = otherLibsLine.replace(/-l([^ ]+)/g, "$1" + ".lib");
                 }
                 otherLibsLine = otherLibsLine.replace(/\$\$\[QT_INSTALL_LIBS\]/g, qtLibDir);
-                otherLibs += otherLibsLine;
+                otherLibs += otherLibsLine + '\n';
             }
         }
         if (!pluginLib)
