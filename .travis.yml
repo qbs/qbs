@@ -82,18 +82,6 @@ jobs:
         WITH_DOCS=0
         QBS_BUILD_PROFILE=qt
       before_install:
-        # Disable unnecessary background services which tend to consume
-        # a lot of resources
-        - powershell -Command 'Set-MpPreference -DisableRealtimeMonitoring $true'
-        - powershell -Command 'Set-MpPreference -DisableArchiveScanning $true'
-        - powershell -Command 'Set-MpPreference -DisableBehaviorMonitoring $true'
-        - powershell -Command 'sc.exe config TrustedInstaller start=disabled; sc.exe stop TrustedInstaller'
-        - powershell -Command 'sc.exe config wuauserv start=disabled; sc.exe stop wuauserv'
-        - powershell -Command 'Add-MpPreference -ExclusionPath C:\'
-        - powershell -Command 'Add-MpPreference -ExclusionProcess qbs.exe'
-        - powershell -Command 'Add-MpPreference -ExclusionProcess cl.exe'
-        - powershell -Command 'Add-MpPreference -ExclusionProcess link.exe'
-
         # Install Qbs and Qt
         - ./scripts/install-qt.sh -d ${QT_INSTALL_DIR} --version ${QT_VERSION} --toolchain win64_msvc2017_64 qtbase qtdeclarative qttools qtscript
         - ./scripts/install-qt.sh -d ${QT_INSTALL_DIR} --version ${QTCREATOR_VERSION} qtcreator
