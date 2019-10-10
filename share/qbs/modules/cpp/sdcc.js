@@ -67,7 +67,7 @@ function linkerName(qbs) {
 }
 
 function archiverName(qbs) {
-    return "sdcclib";
+    return "sdar";
 }
 
 function targetArchitectureFlag(architecture) {
@@ -485,7 +485,7 @@ function linkerFlags(project, product, input, outputs) {
 }
 
 function archiverFlags(project, product, input, outputs) {
-    var args = [];
+    var args = ["-rc"];
     args.push(outputs.staticlibrary[0].filePath);
     if (inputs.obj)
         args = args.concat(inputs.obj.map(function(obj) { return obj.filePath }));
