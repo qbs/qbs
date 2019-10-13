@@ -318,6 +318,10 @@ function filterStdOutput(cmd) {
                 || sourceLines[i].startsWith("LOC  OBJ            LINE     SOURCE")
                 ) {
                     filteredLines.push(sourceLines[i]);
+            } else {
+                var regexp = /^([0-9A-F]{4})/;
+                if (regexp.exec(sourceLines[i]))
+                    filteredLines.push(sourceLines[i]);
             }
         }
         return filteredLines.join("\n");
