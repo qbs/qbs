@@ -565,6 +565,9 @@ function assemblerFlags(project, product, input, output, explicitlyDependsOn) {
         // Debug information flags.
         if (input.cpp.debugInformation)
             args.push("DEBUG");
+
+        // Enable errors printing.
+        args.push("EP");
     } else if (architecture === "arm") {
         // Input.
         args.push(input.filePath);
