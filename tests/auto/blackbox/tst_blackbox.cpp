@@ -5320,7 +5320,7 @@ static QJsonObject getNextSessionPacket(QProcess &session, QByteArray &data)
     while (totalSize == -1 || msg.size() < totalSize) {
         if (data.isEmpty())
             session.waitForReadyRead(1000);
-        if (timer.elapsed() >= 10000)
+        if (timer.elapsed() >= testTimeoutInMsecs())
             return QJsonObject();
         data += session.readAllStandardOutput();
         if (totalSize == -1) {
