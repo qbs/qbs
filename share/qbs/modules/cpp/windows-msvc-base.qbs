@@ -176,7 +176,7 @@ CppModule {
         inputs: ['obj', 'native.pe.manifest']
         inputsFromDependencies: ['staticlibrary', 'dynamiclibrary_import', "debuginfo_app"]
 
-        outputFileTags: ["application", "debuginfo_app"]
+        outputFileTags: ["application", "debuginfo_app", "mem_map"]
         outputArtifacts: {
             var app = {
                 fileTags: ["application"],
@@ -190,6 +190,14 @@ CppModule {
                     fileTags: ["debuginfo_app"],
                     filePath: app.filePath.substr(0, app.filePath.length - 4)
                               + product.cpp.debugInfoSuffix
+                });
+            }
+            if (product.cpp.generateLinkerMapFile) {
+                artifacts.push({
+                    fileTags: ["mem_map"],
+                    filePath: FileInfo.joinPaths(
+                                  product.destinationDirectory,
+                                  product.targetName + ".map")
                 });
             }
             return artifacts;

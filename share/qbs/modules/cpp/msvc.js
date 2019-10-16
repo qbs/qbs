@@ -470,6 +470,9 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     if (product.cpp.entryPoint)
         args.push("/ENTRY:" + product.cpp.entryPoint);
 
+    if (outputs.application && product.cpp.generateLinkerMapFile)
+        args.push("/MAP:" + outputs.mem_map[0].filePath);
+
     args.push('/OUT:' + linkerOutputNativeFilePath)
     var libraryPaths = product.cpp.libraryPaths;
     if (libraryPaths)
