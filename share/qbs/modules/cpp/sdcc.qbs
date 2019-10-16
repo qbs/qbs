@@ -99,7 +99,7 @@ CppModule {
     Rule {
         id: assembler
         inputs: ["asm"]
-        outputFileTags: ["obj", "asm_adb", "asm_lst", "asm_src", "asm_sym", "rst_data"]
+        outputFileTags: ["obj", "asm_adb", "lst", "asm_src", "asm_sym", "rst_data"]
         outputArtifacts: SDCC.compilerOutputArtifacts(input)
         prepare: SDCC.prepareAssembler.apply(SDCC, arguments)
     }
@@ -120,7 +120,7 @@ CppModule {
         id: compiler
         inputs: ["cpp", "c"]
         auxiliaryInputs: ["hpp"]
-        outputFileTags: ["obj", "asm_adb", "asm_lst", "asm_src", "asm_sym", "rst_data"]
+        outputFileTags: ["obj", "asm_adb", "lst", "asm_src", "asm_sym", "rst_data"]
         outputArtifacts: SDCC.compilerOutputArtifacts(input)
         prepare: SDCC.prepareCompiler.apply(SDCC, arguments)
     }

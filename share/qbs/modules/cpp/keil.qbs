@@ -97,8 +97,9 @@ CppModule {
     Rule {
         id: assembler
         inputs: ["asm"]
-        outputFileTags: ["obj"]
-        outputArtifacts: KEIL.compilerOutputArtifacts(input)
+        outputFileTags: ["obj", "lst"]
+        outputArtifacts: KEIL.compilerOutputArtifacts(
+            input, input.cpp.generateAssemblerListingFiles)
         prepare: KEIL.prepareAssembler.apply(KEIL, arguments)
     }
 
@@ -111,8 +112,9 @@ CppModule {
         id: compiler
         inputs: ["cpp", "c"]
         auxiliaryInputs: ["hpp"]
-        outputFileTags: ["obj"]
-        outputArtifacts: KEIL.compilerOutputArtifacts(input)
+        outputFileTags: ["obj", "lst"]
+        outputArtifacts: KEIL.compilerOutputArtifacts(
+            input, input.cpp.generateCompilerListingFiles)
         prepare: KEIL.prepareCompiler.apply(KEIL, arguments)
     }
 

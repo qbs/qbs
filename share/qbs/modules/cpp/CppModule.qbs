@@ -257,6 +257,18 @@ Module {
         description: "generate linker map file"
     }
 
+    property bool generateCompilerListingFiles: false
+    PropertyOptions {
+        name: "generateCompilerListingFiles"
+        description: "generate compiler listing files"
+    }
+
+    property bool generateAssemblerListingFiles: false
+    PropertyOptions {
+        name: "generateAssemblerListingFiles"
+        description: "generate assembler listing files"
+    }
+
     property bool positionIndependentCode: true
     PropertyOptions {
         name: "positionIndependentCode"

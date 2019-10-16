@@ -1679,3 +1679,25 @@
 
     \defaultvalue \c{false}
 */
+
+/*!
+    \qmlproperty bool cpp::generateCompilerListingFiles
+    \since Qbs 1.15
+
+    \baremetalproperty
+
+    Whether to auto-generate a compiler listing files.
+
+    \defaultvalue \c{false}
+*/
+
+/*!
+    \qmlproperty bool cpp::generateAssemblerListingFiles
+    \since Qbs 1.15
+
+    \baremetalproperty
+
+    Whether to auto-generate an assembler listing files.
+
+    \defaultvalue \c{false}
+*/

@@ -224,13 +224,17 @@ function compilerOutputArtifacts(input) {
         filePath: Utilities.getHash(input.baseDir) + "/"
               + input.fileName + input.cpp.objectSuffix
     };
+
+    // We need to use the asm_adb, lst, asm_src, asm_sym and rst_data
+    // artifacts without of any conditions. Because SDCC always generates
+    // it (and seems, this behavior can not be disabled for SDCC).
     var asm_adb = {
         fileTags: ["asm_adb"],
         filePath: Utilities.getHash(input.baseDir) + "/"
               + input.fileName + ".adb"
     };
-    var asm_lst = {
-        fileTags: ["asm_lst"],
+    var lst = {
+        fileTags: ["lst"],
         filePath: Utilities.getHash(input.baseDir) + "/"
               + input.fileName + ".lst"
     };
@@ -249,7 +253,7 @@ function compilerOutputArtifacts(input) {
         filePath: Utilities.getHash(input.baseDir) + "/"
               + input.fileName + ".rst"
     };
-    return [obj, asm_adb, asm_lst, asm_src, asm_sym, rst_data];
+    return [obj, asm_adb, lst, asm_src, asm_sym, rst_data];
 }
 
 function applicationLinkerOutputArtifacts(product) {
