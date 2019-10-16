@@ -50,14 +50,14 @@ function getLibsForPlugin(pluginData, buildVariant, targetOS, toolchain, qtLibDi
                 continue;
             if (line.startsWith("QMAKE_PRL_TARGET"))
                 pluginLib = FileInfo.joinPaths(pluginData.path, getPrlRhs(line));
-            if (line.startsWith("QMAKE_PRL_LIBS")) {
+            if (line.startsWith("QMAKE_PRL_LIBS = ")) {
                 var otherLibsLine = ' ' + getPrlRhs(line);
                 if (toolchain.contains("msvc")) {
                     otherLibsLine = otherLibsLine.replace(/ -L/g, " /LIBPATH:");
                     otherLibsLine = otherLibsLine.replace(/-l([^ ]+)/g, "$1" + ".lib");
                 }
                 otherLibsLine = otherLibsLine.replace(/\$\$\[QT_INSTALL_LIBS\]/g, qtLibDir);
-                otherLibs += otherLibsLine;
+                otherLibs += otherLibsLine + '\n';
             }
         }
         if (!pluginLib)
