@@ -1673,8 +1673,6 @@
     \qmlproperty bool cpp::generateLinkerMapFile
     \since Qbs 1.13
 
-    \baremetalproperty
-
     Whether to auto-generate a linker map file.
 
     \defaultvalue \c{false}
