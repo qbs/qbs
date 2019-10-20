@@ -51,6 +51,7 @@
 
 #include <QtCore/qdir.h>
 #include <QtCore/qprocess.h>
+#include <QtCore/qregularexpression.h>
 
 #include <algorithm>
 
@@ -108,12 +109,21 @@ public:
     explicit ToolchainDetails(const QFileInfo &compiler)
     {
         auto baseName = compiler.completeBaseName();
-        if (baseName.contains(QRegExp(QLatin1String("\\d$")))) {
-            const auto dashIndex = baseName.lastIndexOf(QLatin1Char('-'));
-            version = baseName.mid(dashIndex + 1);
-            baseName = baseName.left(dashIndex);
+        // Extract the version sub-string if it exists. We assume that a version
+        // sub-string located after the compiler prefix && suffix. E.g. this code
+        // parses a version from the compiler names, like this:
+        // - avr-gcc-4.9.2.exe
+        // - arm-none-eabi-gcc-8.2.1
+        // - rl78-elf-gcc-4.9.2.201902-GNURL78
+        const QRegularExpression re(QLatin1String("-(\\d+|\\d+\\.\\d+|" \
+                                                  "\\d+\\.\\d+\\.\\d+|" \
+                                                  "\\d+\\.\\d+\\.\\d+\\.\\d+)" \
+                                                  "[-[0-9a-zA-Z]*]?$"));
+        const QRegularExpressionMatch match = re.match(baseName);
+        if (match.hasMatch()) {
+            version = match.captured(1);
+            baseName = baseName.left(match.capturedStart());
         }
-
         const auto dashIndex = baseName.lastIndexOf(QLatin1Char('-'));
         suffix = baseName.mid(dashIndex + 1);
         prefix = baseName.left(dashIndex + 1);
@@ -378,6 +388,41 @@ static QStringList atmelRegistrySearchPaths()
     return searchPaths;
 }
 
+static QStringList renesasRl78RegistrySearchPaths()
+{
+    if (!HostOsInfo::isWindowsHost())
+        return {};
+
+    // Registry token for the "Renesas RL78" toolchain.
+    static const char kRegistryToken[] = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\" \
+                                         "Windows\\CurrentVersion\\Uninstall";
+
+    QStringList searchPaths;
+
+    QSettings registry(QLatin1String(kRegistryToken), QSettings::NativeFormat);
+    const auto productGroups = registry.childGroups();
+    for (const QString &productKey : productGroups) {
+        if (!productKey.startsWith(
+                    QLatin1String("GCC for Renesas RL78"))) {
+            continue;
+        }
+        registry.beginGroup(productKey);
+        const QString installLocation = registry.value(
+                    QLatin1String("InstallLocation")).toString();
+        registry.endGroup();
+        if (installLocation.isEmpty())
+            continue;
+
+        const QFileInfo toolchainPath = QDir(installLocation).absolutePath()
+                + QLatin1String("/rl78-elf/rl78-elf/bin");
+        if (!toolchainPath.exists())
+            continue;
+        searchPaths.push_back(toolchainPath.absoluteFilePath());
+    }
+
+    return searchPaths;
+}
+
 Profile createGccProfile(const QFileInfo &compiler, Settings *settings,
                          const QStringList &toolchainTypes,
                          const QString &profileName)
@@ -451,8 +496,10 @@ void gccProbe(Settings *settings, QList<Profile> &profiles, const QString &compi
     qbsInfo() << Tr::tr("Trying to detect %1...").arg(compilerName);
 
     QStringList searchPaths;
-    searchPaths << systemSearchPaths() << gnuRegistrySearchPaths()
-                << atmelRegistrySearchPaths();
+    searchPaths << systemSearchPaths()
+                << gnuRegistrySearchPaths()
+                << atmelRegistrySearchPaths()
+                << renesasRl78RegistrySearchPaths();
 
     std::vector<QFileInfo> candidates;
     const auto filters = buildCompilerNameFilters(compilerName);
