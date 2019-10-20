@@ -568,6 +568,8 @@ function guessArchitecture(m) {
             architecture = "avr32";
         } else if (hasAnyOf(m, ["__MSP430__"])) {
             architecture = "msp430";
+        } else if (hasAnyOf(m, ["__RL78__"])) {
+            architecture = "rl78";
         }
     }
 
