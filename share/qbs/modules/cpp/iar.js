@@ -49,6 +49,8 @@ function compilerName(qbs) {
         return "iccstm8";
     case "msp430":
         return "icc430";
+    case "rl78":
+        return "iccrl78";
     }
     throw "Unable to deduce compiler name for unsupported architecture: '"
             + qbs.architecture + "'";
@@ -58,6 +60,8 @@ function assemblerName(qbs) {
     switch (qbs.architecture) {
     case "arm":
         return "iasmarm";
+    case "rl78":
+        return "iasmrl78";
     case "mcs51":
         return "a8051";
     case "avr":
@@ -77,6 +81,8 @@ function linkerName(qbs) {
         return "ilinkarm";
     case "stm8":
         return "ilinkstm8";
+    case "rl78":
+        return "ilinkrl78";
     case "mcs51":
     case "avr":
     case "msp430":
@@ -90,6 +96,7 @@ function archiverName(qbs) {
     switch (qbs.architecture) {
     case "arm":
     case "stm8":
+    case "rl78":
         return "iarchive";
     case "mcs51":
     case "avr":
@@ -104,6 +111,7 @@ function staticLibrarySuffix(qbs) {
     switch (qbs.architecture) {
     case "arm":
     case "stm8":
+    case "rl78":
         return ".a";
     case "mcs51":
         return ".r51";
@@ -120,6 +128,7 @@ function executableSuffix(qbs) {
     switch (qbs.architecture) {
     case "arm":
     case "stm8":
+    case "rl78":
         return ".out";
     case "mcs51":
         return qbs.debugInformation ? ".d51" : ".a51";
@@ -136,6 +145,7 @@ function objectSuffix(qbs) {
     switch (qbs.architecture) {
     case "arm":
     case "stm8":
+    case "rl78":
         return ".o";
     case "mcs51":
         return ".r51";
@@ -152,6 +162,7 @@ function imageFormat(qbs) {
     switch (qbs.architecture) {
     case "arm":
     case "stm8":
+    case "rl78":
         return "elf";
     case "mcs51":
     case "avr":
@@ -173,6 +184,8 @@ function guessArchitecture(macros) {
         return "stm8";
     else if (macros["__ICC430__"] === "1")
         return "msp430";
+    else if (macros["__ICCRL78__"] === "1")
+        return "rl78";
 }
 
 function guessEndianness(macros) {
@@ -194,6 +207,7 @@ function guessVersion(macros, architecture)
     case "avr":
     case "stm8":
     case "msp430":
+    case "rl78":
         return { major: parseInt(version / 100),
             minor: parseInt(version % 100),
             patch: 0,
@@ -205,6 +219,7 @@ function cppLanguageOption(compilerFilePath) {
     var baseName = FileInfo.baseName(compilerFilePath);
     switch (baseName) {
     case "iccarm":
+    case "rl78":
         return "--c++";
     case "icc8051":
     case "iccavr":
@@ -473,9 +488,10 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
     // Architecture specific flags.
     switch (input.qbs.architecture) {
     case "arm":
+    case "rl78":
         // Byte order flags.
         var endianness = input.cpp.endianness;
-        if (endianness)
+        if (endianness && input.qbs.architecture === "arm")
             args.push("--endian=" + endianness);
         if (tag === "cpp") {
             // Enable C++ language flags.
@@ -533,9 +549,6 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
         allIncludePaths = allIncludePaths.uniqueConcat(compilerIncludePaths);
     args = args.concat(allIncludePaths.map(function(include) { return "-I" + include }));
 
-    // Silent output generation flag.
-    args.push(input.qbs.architecture === "stm8" ? "--silent" : "-S");
-
     // Debug information flags.
     if (input.cpp.debugInformation)
         args.push("-r");
@@ -543,6 +556,9 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
     // Architecture specific flags.
     switch (input.qbs.architecture) {
     case "stm8":
+    case "rl78":
+        // Silent output generation flag.
+        args.push("--silent");
         // Warning level flags.
         if (input.cpp.warningLevel === "none")
             args.push("--no_warnings");
@@ -550,6 +566,8 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
             args.push("--warnings_are_errors");
         break;
     default:
+        // Silent output generation flag.
+        args.push("-S");
         // Warning level flags.
         args.push("-w" + (input.cpp.warningLevel === "none" ? "-" : "+"));
         break;
@@ -599,6 +617,7 @@ function linkerFlags(project, product, input, outputs) {
     switch (product.qbs.architecture) {
     case "arm":
     case "stm8":
+    case "rl78":
         // Silent output generation flag.
         args.push("--silent");
         // Map file generation flag.
