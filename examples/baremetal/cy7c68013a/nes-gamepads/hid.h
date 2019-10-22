@@ -48,16 +48,45 @@
 **
 ****************************************************************************/
 
-import qbs
+#ifndef FX2_HID_H
+#define FX2_HID_H
 
-Project {
-    name: "BareMetal"
-    references: [
-        "stm32f4discovery/stm32f4discovery.qbs",
-        "at90can128olimex/at90can128olimex.qbs",
-        "cc2540usbdongle/cc2540usbdongle.qbs",
-        "stm8s103f3/stm8s103f3.qbs",
-        "msp430f5529/msp430f5529.qbs",
-        "cy7c68013a/cy7c68013a.qbs"
-    ]
+#include "usb.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+enum hid_constants {
+    HID_CONFIG_NUMBER = 1, // Number of valid configuration.
+    HID_IFACE_NUMBER = 0, // Number of valid interface.
+    HID_ALT_IFACE_NUMBER = 0, // Number of valid alternate interface.
+    HID_EP_IN = 0x81 // Active end point address.
+};
+
+enum hid_gamepad_id {
+    HID_REPORT_ID_GAMEPAD1 = 1,
+    HID_REPORT_ID_GAMEPAD2 = 2
+};
+
+enum {
+    HID_REPORTS_COUNT = 2,
+    HID_REPORT_BITS_COUNT = 8
+};
+
+void hid_init(void);
+
+void hid_ep0_init(void);
+void hid_ep0_setup_task(void);
+
+const BYTE CODE *hid_ep0_std_desc_get(void);
+const BYTE CODE *hid_ep0_report_desc_get(WORD *length);
+
+void hid_ep1_task(void);
+void hid_ep1_report_update(BYTE index, BYTE buttons);
+
+#ifdef __cplusplus
 }
+#endif
+
+#endif // FX2_HID_H
