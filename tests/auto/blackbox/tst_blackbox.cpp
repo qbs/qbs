@@ -5621,8 +5621,8 @@ void TestBlackbox::qbsSession()
         } else if (msgType == "task-progress") {
             receivedProgressData = true;
         } else if (msgType == "command-description") {
-            if (receivedMessage.value("message").toString().contains(
-                        QDir::separator() + QString("main.cpp"))) {
+            if (QDir::fromNativeSeparators(receivedMessage.value("message").toString())
+                    .contains("/main.cpp")) {
                 receivedCommandDescription = true;
             }
         } else if (msgType == "process-result") {
