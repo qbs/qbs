@@ -712,17 +712,17 @@
         \li Latest stable release of \QBS for building \QBS with \QBS
     \endlist
 
-    Run the following command to download the \QBS development image based on Debian 9 \e Stretch:
+    Run the following command to download the \QBS development image based on Ubuntu 18.04 \e Bionic:
 
     \code
-        docker pull qbsbuild/qbsdev:stretch
+        docker pull qbsbuild/qbsdev:bionic
     \endcode
 
     You can then create a new container with the \QBS source directory mounted from your host
     machine's file system, by running:
 
     \code
-        docker run -it -v ${PWD}:/qbs -w /qbs qbsbuild/qbsdev:stretch
+        docker run -it -v ${PWD}:/qbs -w /qbs qbsbuild/qbsdev:bionic
     \endcode
 
     You will now be in an interactive Linux shell where you can develop and build \QBS.
@@ -730,7 +730,7 @@
     For convenience, you can also run \c docker-compose from the project root directory:
 
     \code
-        docker-compose run --rm stretch
+        docker-compose run --rm bionic
     \endcode
 
     This will download and run the container in one go and mount the project root directory

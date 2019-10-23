@@ -12,7 +12,7 @@ env:
   global:
     - QT_INSTALL_DIR=~/Qt
     - QT_VERSION=5.12.5
-    - QTCREATOR_VERSION=4.9.2
+    - QTCREATOR_VERSION=4.10.1
 
 stages:
   - name: Build Qbs and and run autotests
