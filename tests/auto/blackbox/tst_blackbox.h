@@ -85,7 +85,6 @@ private slots:
     void cxxLanguageVersion_data();
     void cpuFeatures();
     void dependenciesProperty();
-    void dependencyProfileMismatch();
     void deprecatedProperty();
     void disappearedProfile();
     void discardUnusedData();

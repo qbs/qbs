@@ -942,22 +942,6 @@ void TestBlackbox::dependenciesProperty()
     QCOMPARE(product2_cpp_defines.first().toString(), QLatin1String("DIGEDAG"));
 }
 
-void TestBlackbox::dependencyProfileMismatch()
-{
-    QDir::setCurrent(testDataDir + "/dependency-profile-mismatch");
-    const SettingsPtr s = settings();
-    qbs::Internal::TemporaryProfile depProfile("qbs_autotests_profileMismatch", s.get());
-    depProfile.p.setValue("qbs.architecture", "x86"); // Profiles must not be empty...
-    s->sync();
-    QbsRunParameters params(QStringList() << ("project.mainProfile:" + profileName())
-                            << ("project.depProfile:" + depProfile.p.name()));
-    params.expectFailure = true;
-    QVERIFY2(runQbs(params) != 0, m_qbsStderr.constData());
-    QVERIFY2(m_qbsStderr.contains(profileName().toLocal8Bit())
-             && m_qbsStderr.contains("', which does not exist"),
-             m_qbsStderr.constData());
-}
-
 void TestBlackbox::deprecatedProperty()
 {
     QDir::setCurrent(testDataDir + "/deprecated-property");

@@ -1086,57 +1086,69 @@ void ModuleLoader::adjustDependenciesForMultiplexing(const ProductContext &produ
             StringConstants::profilesProperty(), &profilesPropertyIsSet);
 
     const auto productRange = m_productsByName.equal_range(name);
-    std::vector<const ProductContext *> dependencies;
+    if (productRange.first == productRange.second) {
+        // Dependency is a module. Nothing to adjust.
+        return;
+    }
+
+    std::vector<const ProductContext *> multiplexedDependencies;
     bool hasNonMultiplexedDependency = false;
     for (auto it = productRange.first; it != productRange.second; ++it) {
-        if (!it->second->multiplexConfigurationId.isEmpty()) {
-            dependencies.push_back(it->second);
-            if (productIsMultiplexed && !profilesPropertyIsSet)
-                break;
-        } else {
+        if (!it->second->multiplexConfigurationId.isEmpty())
+            multiplexedDependencies.push_back(it->second);
+        else
             hasNonMultiplexedDependency = true;
-            break;
-        }
     }
+    bool hasMultiplexedDependencies = !multiplexedDependencies.empty();
 
     // These are the allowed cases:
     // (1) Normal dependency with no multiplexing whatsoever.
     // (2) Both product and dependency are multiplexed.
+    //     (2a) The profiles property is not set, we want to depend on the
+    //          matching variant.
+    //     (2b) The profiles property is set, we want to depend on all variants
+    //          with a matching profile.
     // (3) The product is not multiplexed, but the dependency is.
-    //     (3a) The dependency has an aggregator. We want to depend on the aggregator.
-    //     (3b) The dependency does not have an aggregator. We want to depend on all the
-    //          multiplexed variants.
-    // (4) The product is multiplexed, but the dependency is not. This case is implicitly
-    //     handled, because we don't have to adapt any Depends items.
+    //     (3a) The profiles property is not set, the dependency has an aggregator.
+    //          We want to depend on the aggregator.
+    //     (3b) The profiles property is not set, the dependency does not have an
+    //          aggregator. We want to depend on all the multiplexed variants.
+    //     (3c) The profiles property is set, we want to depend on all variants
+    //          with a matching profile regardless of whether an aggregator exists or not.
+    // (4) The product is multiplexed, but the dependency is not. We don't have to adapt
+    //     any Depends items.
     // (5) The product is a "shadow product". In that case, we know which product
     //     it should have a dependency on, and we make sure we depend on that.
 
-    // (1) and (3a)
-    if (!productIsMultiplexed && hasNonMultiplexedDependency)
+    // (1) and (4)
+    if (!hasMultiplexedDependencies)
+        return;
+
+    // (3a)
+    if (!productIsMultiplexed && hasNonMultiplexedDependency && !profilesPropertyIsSet)
         return;
 
     QStringList multiplexIds;
     const ShadowProductInfo shadowProductInfo = getShadowProductInfo(product);
     const bool isShadowProduct = shadowProductInfo.first && shadowProductInfo.second == name;
-    for (const ProductContext *dependency : dependencies) {
+    for (const ProductContext *dependency : multiplexedDependencies) {
         const bool depMatchesShadowProduct = isShadowProduct
                 && dependency->item == product.item->parent();
         const QString depMultiplexId = dependency->multiplexConfigurationId;
         if (depMatchesShadowProduct) { // (5)
             dependsItem->setProperty(StringConstants::multiplexConfigurationIdsProperty(),
                                      VariantValue::create(depMultiplexId));
-            multiplexIds.clear();
-            break;
+            return;
         }
-        if (productIsMultiplexed && !profilesPropertyIsSet) { // (2)
+        if (productIsMultiplexed && !profilesPropertyIsSet) { // 2a
             const ValuePtr &multiplexId = product.item->property(
                         StringConstants::multiplexConfigurationIdProperty());
             dependsItem->setProperty(StringConstants::multiplexConfigurationIdsProperty(),
                                      multiplexId);
-            break;
+            return;
         }
 
-        // (3b) (or (2) if Depends.profiles is set).
+        // (2b), (3b) or (3c)
         const bool profileMatch = !profilesPropertyIsSet || profiles.empty()
                 || profiles.contains(dependency->profileName);
         if (profileMatch)
@@ -1145,6 +1157,13 @@ void ModuleLoader::adjustDependenciesForMultiplexing(const ProductContext &produ
     if (!multiplexIds.empty()) {
         dependsItem->setProperty(StringConstants::multiplexConfigurationIdsProperty(),
                                  VariantValue::create(multiplexIds));
+    } else {
+        const QString productName = ResolvedProduct::fullDisplayName(
+                    product.name, product.multiplexConfigurationId);
+        throw ErrorInfo(Tr::tr("Dependency from product '%1' to product '%2' not fulfilled. "
+                               "There are no eligible multiplex candidates.").arg(productName,
+                                                                                  name),
+                        dependsItem->location());
     }
 }
 

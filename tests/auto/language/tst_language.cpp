@@ -928,6 +928,12 @@ void TestLanguage::erroneousFiles_data()
             << "mismatching-multiplex-dependency.qbs:7:5.*Dependency from product "
                "'b \\{\"architecture\":\"mips\"\\}' to product 'a \\{\"architecture\":\"mips\"\\}'"
                " not fulfilled.";
+    QTest::newRow("dependency-profile-mismatch")
+            << "dependency-profile-mismatch.qbs:10:5.*Product 'main' depends on 'dep', "
+               "which does not exist for the requested profile 'profile47'.";
+    QTest::newRow("dependency-profile-mismatch-2")
+            << "dependency-profile-mismatch-2.qbs:15:9 Dependency from product 'main' to "
+               "product 'dep' not fulfilled. There are no eligible multiplex candidates.";
     QTest::newRow("duplicate-multiplex-value")
             << "duplicate-multiplex-value.qbs:3:1.*Duplicate entry 'x86' in qbs.architectures.";
     QTest::newRow("duplicate-multiplex-value2")
