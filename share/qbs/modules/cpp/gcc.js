@@ -514,6 +514,13 @@ function linkerFlags(project, product, inputs, outputs, primaryOutput, linkerPat
     if (importLibs)
         escapableLinkerFlags.push("--out-implib", importLibs[0].filePath);
 
+    if (outputs.application && product.cpp.generateLinkerMapFile) {
+        if (isDarwin)
+            escapableLinkerFlags.push("-map", outputs.mem_map[0].filePath);
+        else
+            escapableLinkerFlags.push("-Map=" + outputs.mem_map[0].filePath);
+    }
+
     var escapedLinkerFlags = escapeLinkerFlags(product, inputs, escapableLinkerFlags);
     Array.prototype.push.apply(escapedLinkerFlags, args);
     var driverLinkerFlags = useCompilerDriver ? product.cpp.driverLinkerFlags : undefined;

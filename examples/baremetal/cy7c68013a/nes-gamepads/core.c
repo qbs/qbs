@@ -48,16 +48,39 @@
 **
 ****************************************************************************/
 
-import qbs
+#include "core.h"
+#include "regs.h"
 
-Project {
-    name: "BareMetal"
-    references: [
-        "stm32f4discovery/stm32f4discovery.qbs",
-        "at90can128olimex/at90can128olimex.qbs",
-        "cc2540usbdongle/cc2540usbdongle.qbs",
-        "stm8s103f3/stm8s103f3.qbs",
-        "msp430f5529/msp430f5529.qbs",
-        "cy7c68013a/cy7c68013a.qbs"
-    ]
+enum cpu_freq_clk {
+    CPU_CLK_12M = 0,
+    CPU_CLK_24M,
+    CPU_CLK_48M
+};
+
+#define cpu_freq_clk_get() \
+    ((CPUCS & bmCLKSPD) >> 3)
+
+#define cpu_freq_clk_set(freq_clk) \
+    CPUCS = (CPUCS & ~bmCLKSPD) | (freq_clk << 3)
+
+void core_init(void)
+{
+    // Set CPU clock to 48MHz.
+    cpu_freq_clk_set(CPU_CLK_48M);
+    sync_delay();
+    // Set stretch to 0.
+    CKCON = ((CKCON & (~bmSTRETCH)) | bmFW_STRETCH1);
+    sync_delay();
+    // Clear breakpoint register.
+    BREAKPT = 0;
+    sync_delay();
+    // Set all 8051 interrupts to low priority
+    IP = 0;
+    sync_delay();
+    // Clear interrupt enable bits.
+    EIE = 0;
+    sync_delay();
+    // Clear all external interrupt flags.
+    EXIF = 0;
+    sync_delay();
 }

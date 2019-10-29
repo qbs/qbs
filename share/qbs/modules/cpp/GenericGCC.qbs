@@ -561,7 +561,7 @@ CppModule {
         inputsFromDependencies: ["dynamiclibrary_symbols", "dynamiclibrary_import", "staticlibrary"]
 
         outputFileTags: ["bundle.input", "application", "debuginfo_app","debuginfo_bundle",
-                         "debuginfo_plist"]
+                         "debuginfo_plist", "mem_map"]
         outputArtifacts: {
             var app = {
                 filePath: FileInfo.joinPaths(product.destinationDirectory,
@@ -575,6 +575,13 @@ CppModule {
             var artifacts = [app];
             if (!product.aggregate)
                 artifacts = artifacts.concat(Gcc.debugInfoArtifacts(product, undefined, "app"));
+            if (product.cpp.generateLinkerMapFile) {
+                artifacts.push({
+                    filePath: FileInfo.joinPaths(product.destinationDirectory,
+                                                 product.targetName + ".map"),
+                    fileTags: ["mem_map"]
+                });
+            }
             return artifacts;
         }
 

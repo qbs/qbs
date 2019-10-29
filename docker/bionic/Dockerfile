@@ -180,4 +180,4 @@ RUN qbs-setup-toolchains /usr/bin/g++ gcc && \
 USER root
 
 # Work-around for QTBUG-79020
-RUN echo "QT_NO_GLIB=1" >> /etc/profile.d/qt.sh
+RUN echo "export QT_NO_GLIB=1" >> /etc/profile.d/qt.sh

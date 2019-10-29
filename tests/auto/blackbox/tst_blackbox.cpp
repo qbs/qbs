@@ -5621,8 +5621,8 @@ void TestBlackbox::qbsSession()
         } else if (msgType == "task-progress") {
             receivedProgressData = true;
         } else if (msgType == "command-description") {
-            if (receivedMessage.value("message").toString().contains(
-                        QDir::separator() + QString("main.cpp"))) {
+            if (QDir::fromNativeSeparators(receivedMessage.value("message").toString())
+                    .contains("/main.cpp")) {
                 receivedCommandDescription = true;
             }
         } else if (msgType == "process-result") {
@@ -6613,6 +6613,25 @@ void TestBlackbox::generatedArtifactAsInputToDynamicRule()
     QVERIFY2(m_qbsStdout.contains("generating"), m_qbsStdout.constData());
     QCOMPARE(runQbs(), 0);
     QVERIFY2(!m_qbsStdout.contains("generating"), m_qbsStdout.constData());
+}
+
+void TestBlackbox::generateLinkerMapFile()
+{
+    QDir::setCurrent(testDataDir + "/generate-linker-map-file");
+    QCOMPARE(runQbs(), 0);
+    const bool isUsed = m_qbsStdout.contains("use test: true");
+    const bool isNotUsed = m_qbsStdout.contains("use test: false");
+    QVERIFY(isUsed != isNotUsed);
+    if (isUsed) {
+        QVERIFY(QFile::exists(relativeProductBuildDir("app-map")
+            + "/app-map.map"));
+        QVERIFY(!QFile::exists(relativeProductBuildDir("app-nomap")
+            + "/app-nomap.map"));
+        QVERIFY(!QFile::exists(relativeProductBuildDir("app-nomap-default")
+            + "/app-nomap-default.map"));
+    } else {
+        QSKIP("Unsupported toolchain. Skipping.");
+    }
 }
 
 void TestBlackbox::generator()

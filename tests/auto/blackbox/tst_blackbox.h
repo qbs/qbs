@@ -119,6 +119,7 @@ private slots:
     void fileDependencies();
     void fileTagsFilterMerging();
     void generatedArtifactAsInputToDynamicRule();
+    void generateLinkerMapFile();
     void generator();
     void generator_data();
     void groupsInModules();

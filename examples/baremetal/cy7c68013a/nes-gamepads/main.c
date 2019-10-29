@@ -48,16 +48,38 @@
 **
 ****************************************************************************/
 
-import qbs
+// Allocate all registers once here (only for C51 compiler).
+#define DEFINE_REGS
+#include "regs.h"
 
-Project {
-    name: "BareMetal"
-    references: [
-        "stm32f4discovery/stm32f4discovery.qbs",
-        "at90can128olimex/at90can128olimex.qbs",
-        "cc2540usbdongle/cc2540usbdongle.qbs",
-        "stm8s103f3/stm8s103f3.qbs",
-        "msp430f5529/msp430f5529.qbs",
-        "cy7c68013a/cy7c68013a.qbs"
-    ]
+#include "core.h"
+#include "gpio.h"
+#include "usb.h"
+
+static void hw_init(void)
+{
+    usb_disconnect();
+    code_all_irq_disable();
+
+    core_init();
+    gpio_init();
+    usb_init();
+
+    usb_connect();
+    code_all_irq_enable();
+}
+
+static void hw_loop_exec(void)
+{
+    while (TRUE) {
+        gpio_task();
+        usb_task();
+    }
+}
+
+int main(void)
+{
+    hw_init();
+    hw_loop_exec();
+    return 0;
 }
