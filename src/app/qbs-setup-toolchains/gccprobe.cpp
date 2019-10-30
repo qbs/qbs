@@ -423,6 +423,41 @@ static QStringList renesasRl78RegistrySearchPaths()
     return searchPaths;
 }
 
+static QStringList mplabX32RegistrySearchPaths()
+{
+    if (!HostOsInfo::isWindowsHost())
+        return {};
+
+    // Registry token for the "MPLAB X32" toolchain.
+    static const char kRegistryToken[] = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\" \
+                                         "Windows\\CurrentVersion\\Uninstall";
+
+    QStringList searchPaths;
+
+    QSettings registry(QLatin1String(kRegistryToken), QSettings::NativeFormat);
+    const auto productGroups = registry.childGroups();
+    for (const QString &productKey : productGroups) {
+        if (!productKey.startsWith(
+                    QLatin1String("MPLAB XC32 Compiler"))) {
+            continue;
+        }
+        registry.beginGroup(productKey);
+        const QString installLocation = registry.value(
+                    QLatin1String("InstallLocation")).toString();
+        registry.endGroup();
+        if (installLocation.isEmpty())
+            continue;
+
+        const QFileInfo toolchainPath = QDir(installLocation).absolutePath()
+                + QLatin1String("/bin");
+        if (!toolchainPath.exists())
+            continue;
+        searchPaths.push_back(toolchainPath.absoluteFilePath());
+    }
+
+    return searchPaths;
+}
+
 Profile createGccProfile(const QFileInfo &compiler, Settings *settings,
                          const QStringList &toolchainTypes,
                          const QString &profileName)
@@ -499,7 +534,8 @@ void gccProbe(Settings *settings, QList<Profile> &profiles, const QString &compi
     searchPaths << systemSearchPaths()
                 << gnuRegistrySearchPaths()
                 << atmelRegistrySearchPaths()
-                << renesasRl78RegistrySearchPaths();
+                << renesasRl78RegistrySearchPaths()
+                << mplabX32RegistrySearchPaths();
 
     std::vector<QFileInfo> candidates;
     const auto filters = buildCompilerNameFilters(compilerName);
