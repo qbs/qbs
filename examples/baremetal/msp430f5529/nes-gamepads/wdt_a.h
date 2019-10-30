@@ -48,12 +48,17 @@
 **
 ****************************************************************************/
 
-import qbs
+#ifndef MSP430_WDT_A_H
+#define MSP430_WDT_A_H
 
-Project {
-    name: "Examples for msp430f5529 board"
-    references: [
-        "redblink/redblink.qbs",
-        "nes-gamepads/nes-gamepads.qbs"
-    ]
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void wdt_a_stop(void);
+
+#ifdef __cplusplus
 }
+#endif
+
+#endif // MSP430_WDT_A_H
