@@ -371,6 +371,16 @@ void TestBlackboxQt::quickCompiler()
     QCOMPARE(m_qbsStdout.contains("compiling qml_subdir_test_qml.cpp"), hasCompiler);
     if (doesNotHaveCompiler)
         QSKIP("qtquickcompiler not available");
+    QVERIFY2(m_qbsStdout.contains("generating loader source"), m_qbsStdout.constData());
+
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(!m_qbsStdout.contains("generating loader source"), m_qbsStdout.constData());
+
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("qml/subdir/test.qml");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("generating loader source"), m_qbsStdout.constData());
+
     QCOMPARE(runQbs(QbsRunParameters(QStringList{"config:off",
                                                  "modules.Qt.quick.useCompiler:false"})), 0);
     QVERIFY2(m_qbsStdout.contains("compiling"), m_qbsStdout.constData());
