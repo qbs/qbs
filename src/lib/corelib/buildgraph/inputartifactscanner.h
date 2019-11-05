@@ -133,8 +133,8 @@ private:
             const RawScanResult &scanResult, QList<FileResourceBase *> *artifactsToScan,
             InputArtifactScannerContext::ScannerResolvedDependenciesCache &cache);
     void handleDependency(ResolvedDependency &dependency);
-    void scanWithScannerPlugin(DependencyScanner *scanner, FileResourceBase *fileToBeScanned,
-                               RawScanResult *scanResult);
+    void scanWithScannerPlugin(DependencyScanner *scanner, Artifact *inputArtifact,
+                               FileResourceBase *fileToBeScanned, RawScanResult *scanResult);
 
     Artifact * const m_artifact;
     RawScanResults &m_rawScanResults;
