@@ -44,8 +44,8 @@ function help() {
 usage: install-qt [options] [components]
 
 Examples
-  ./install-qt.sh --version 5.12.4 qtbase
-  ./install-qt.sh --version 5.12.4 --target android --toolchain android_arm64_v8a qtbase
+  ./install-qt.sh --version 5.13.1 qtbase
+  ./install-qt.sh --version 5.14.0 --target android --toolchain any qtbase qtscript
 
 Positional arguments
   components
@@ -78,13 +78,13 @@ Options
 
             linux_x64
                 android
-                    android_armv7, android_arm64_v8a
+                    any, android_armv7, android_arm64_v8a
                 desktop
                     gcc_64 (default)
 
             mac_x64
                 android
-                    android_armv7, android_arm64_v8a
+                    any, android_armv7, android_arm64_v8a
                 desktop
                     clang_64 (default),
                 ios
@@ -92,7 +92,7 @@ Options
 
             windows_x86
                 android
-                    android_armv7, android_arm64_v8a
+                    any, android_armv7, android_arm64_v8a
                 desktop
                     win64_mingw73, win64_msvc2017_64 (default)
 
@@ -144,7 +144,7 @@ while [ $# -gt 0 ]; do
             shift
             ;;
         --toolchain)
-            TOOLCHAIN="$2"
+            TOOLCHAIN=$(echo $2 | tr '[A-Z]' '[a-z]')
             shift
             ;;
         --version)
@@ -216,41 +216,25 @@ function compute_url(){
         fi
 
     else
-        # New repository format (>=5.9.6)
-        REMOTE_BASE="qt5_${VERSION//./}/qt.qt5.${VERSION//./}.${TOOLCHAIN}"
-        REMOTE_PATH="$(${CURL} ${BASE_URL}/${REMOTE_BASE}/ | grep -o -E "[[:alnum:]_.\-]*7z" | grep "${COMPONENT}" | tail -1)"
-        echo "$BASE_URL/$REMOTE_BASE/$REMOTE_PATH" >&2
+        REMOTE_BASES=(
+            # New repository format (>=5.9.6)
+            "qt5_${VERSION//./}/qt.qt5.${VERSION//./}.${TOOLCHAIN}"
+            "qt5_${VERSION//./}/qt.qt5.${VERSION//./}.${COMPONENT}.${TOOLCHAIN}"
+            # Multi-abi Android since 5.14
+            "qt5_${VERSION//./}/qt.qt5.${VERSION//./}.${TARGET_PLATFORM}"
+            "qt5_${VERSION//./}/qt.qt5.${VERSION//./}.${COMPONENT}.${TARGET_PLATFORM}"
+            # Older repository format (<5.9.0)
+            "qt5_${VERSION//./}/qt.${VERSION//./}.${TOOLCHAIN}"
+            "qt5_${VERSION//./}/qt.${VERSION//./}.${COMPONENT}.${TOOLCHAIN}"
+        )
 
-        if [ ! -z "${REMOTE_PATH}" ]; then
-            echo "${BASE_URL}/${REMOTE_BASE}/${REMOTE_PATH}"
-            return 0
-        fi
-
-        REMOTE_BASE="qt5_${VERSION//./}/qt.qt5.${VERSION//./}.${COMPONENT}.${TOOLCHAIN}"
-        REMOTE_PATH="$(${CURL} ${BASE_URL}/${REMOTE_BASE}/ | grep -o -E "[[:alnum:]_.\-]*7z" | grep "${COMPONENT}" | tail -1)"
-
-        if [ ! -z "${REMOTE_PATH}" ]; then
-            echo "${BASE_URL}/${REMOTE_BASE}/${REMOTE_PATH}"
-            return 0
-        fi
-
-        # Older repository format (>=5.9.0)
-        REMOTE_BASE="qt5_${VERSION//./}/qt.${VERSION//./}.${TOOLCHAIN}"
-        REMOTE_PATH="$(${CURL} ${BASE_URL}/${REMOTE_BASE}/ | grep -o -E "[[:alnum:]_.\-]*7z" | grep "${COMPONENT}" | tail -1)"
-
-        if [ ! -z "${REMOTE_PATH}" ]; then
-            echo "${BASE_URL}/${REMOTE_BASE}/${REMOTE_PATH}"
-            return 0
-        fi
-
-        REMOTE_BASE="qt5_${VERSION//./}/qt.${VERSION//./}.${COMPONENT}.${TOOLCHAIN}"
-        REMOTE_PATH="$(${CURL} ${BASE_URL}/${REMOTE_BASE}/ | grep -o -E "[[:alnum:]_.\-]*7z" | grep "${COMPONENT}" | tail -1)"
-
-        if [ ! -z "${REMOTE_PATH}" ]; then
-            echo "${BASE_URL}/${REMOTE_BASE}/${REMOTE_PATH}"
-            return 0
-        fi
-
+        for REMOTE_BASE in ${REMOTE_BASES[*]}; do
+            REMOTE_PATH="$(${CURL} ${BASE_URL}/${REMOTE_BASE}/ | grep -o -E "[[:alnum:]_.\-]*7z" | grep "${COMPONENT}" | tail -1)"
+            if [ ! -z "${REMOTE_PATH}" ]; then
+                echo "${BASE_URL}/${REMOTE_BASE}/${REMOTE_PATH}"
+                return 0
+            fi
+        done
     fi
 
     echo "Could not determine a remote URL for ${COMPONENT} with version ${VERSION}">&2
@@ -262,7 +246,6 @@ mkdir -p ${INSTALL_DIR}
 for COMPONENT in ${COMPONENTS}; do
 
     URL="$(compute_url ${COMPONENT})"
-
     echo "Downloading ${COMPONENT}..." >&2
     curl --progress-bar -L -o ${DOWNLOAD_DIR}/package.7z ${URL} >&2
     7z x -y -o${INSTALL_DIR} ${DOWNLOAD_DIR}/package.7z >/dev/null 2>&1
@@ -280,6 +263,8 @@ for COMPONENT in ${COMPONENTS}; do
             SUBDIR="${TOOLCHAIN/win64_/}"
         elif [[ "${TOOLCHAIN}" =~ "win32_msvc" ]]; then
             SUBDIR="${TOOLCHAIN/win32_/}"
+        elif [[ "${TOOLCHAIN}" =~ "any" ]] && [[ "${TARGET_PLATFORM}" == "android" ]]; then
+            SUBDIR="android"
         else
             SUBDIR="${TOOLCHAIN}"
         fi
