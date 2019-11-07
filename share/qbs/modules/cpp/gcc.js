@@ -80,8 +80,20 @@ function collectLibraryDependencies(product, isDarwin) {
     var objectByFilePath = {};
     var tagForLinkingAgainstSharedLib = product.cpp.imageFormat === "pe"
             ? "dynamiclibrary_import" : "dynamiclibrary";
+    var removeDuplicateLibraries = product.cpp.removeDuplicateLibraries
 
     function addObject(obj, addFunc) {
+        /* If the object is already known, remove its previous usage and insert
+         * it again in the new desired position. This preserves the order of
+         * the other objects, and is analogous to what qmake does (see the
+         * mergeLflags parameter in UnixMakefileGenerator::findLibraries()).
+         */
+        if (removeDuplicateLibraries && (obj.filePath in objectByFilePath)) {
+            var oldObj = objectByFilePath[obj.filePath];
+            var i = objects.indexOf(oldObj);
+            if (i >= 0)
+                objects.splice(i, 1);
+        }
         addFunc.call(objects, obj);
         objectByFilePath[obj.filePath] = obj;
     }

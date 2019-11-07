@@ -2264,6 +2264,28 @@ void TestBlackbox::referenceErrorInExport()
         "referenceErrorInExport.qbs:15:12 ReferenceError: Can't find variable: includePaths"));
 }
 
+void TestBlackbox::removeDuplicateLibraries_data()
+{
+    QTest::addColumn<bool>("removeDuplicates");
+    QTest::newRow("remove duplicates") << true;
+    QTest::newRow("don't remove duplicates") << false;
+}
+
+void TestBlackbox::removeDuplicateLibraries()
+{
+    QDir::setCurrent(testDataDir + "/remove-duplicate-libs");
+    QFETCH(bool, removeDuplicates);
+    const QbsRunParameters resolveParams("resolve", {"-f", "remove-duplicate-libs.qbs",
+            "project.removeDuplicates:" + QString(removeDuplicates? "true" : "false")});
+    QCOMPARE(runQbs(resolveParams), 0);
+    const bool isBfd = m_qbsStdout.contains("is bfd linker: true");
+    const bool isNotBfd = m_qbsStdout.contains("is bfd linker: false");
+    QVERIFY2(isBfd != isNotBfd, m_qbsStdout.constData());
+    QbsRunParameters buildParams("build");
+    buildParams.expectFailure = removeDuplicates && isBfd;
+    QCOMPARE(runQbs(buildParams) == 0, !buildParams.expectFailure);
+}
+
 void TestBlackbox::reproducibleBuild()
 {
     const SettingsPtr s = settings();
@@ -4455,6 +4477,86 @@ void TestBlackbox::lexyaccOutputs_data()
             << QString{"lex_luthor.cpp"} << QString();
     QTest::newRow("yaccOutputFilePath")
             << QString() << QString{"shaven_yak.cpp"};
+}
+
+void TestBlackbox::linkerLibraryDuplicates()
+{
+    const SettingsPtr s = settings();
+    Profile buildProfile(profileName(), s.get());
+    QStringList toolchain = buildProfile.value("qbs.toolchain").toStringList();
+    if (!toolchain.contains("gcc"))
+        QSKIP("linkerLibraryDuplicates test only applies to GCC toolchain");
+
+    QDir::setCurrent(testDataDir + "/linker-library-duplicates");
+    rmDirR(relativeBuildDir());
+
+    QFETCH(QString, removeDuplicateLibraries);
+    QStringList runParams;
+    if (!removeDuplicateLibraries.isEmpty()) {
+        runParams.append(removeDuplicateLibraries);
+    }
+
+    QCOMPARE(runQbs(QbsRunParameters("resolve", runParams)), 0);
+    QCOMPARE(runQbs(QStringList { "--command-echo-mode", "command-line" }), 0);
+    const QByteArrayList output = m_qbsStdout.split('\n');
+    QByteArray linkLine;
+    for (const QByteArray &line : output) {
+        if (line.contains("main.cpp.o"))
+            linkLine = line;
+    }
+    QVERIFY(!linkLine.isEmpty());
+
+    /* Now check the the libraries appear just once. In order to avoid dealing
+     * with the different file extensions used in different platforms, we check
+     * only for the library base name. But we must also take into account that
+     * the build directories of each library will contain the library base name,
+     * so we now exclude them. */
+    QByteArrayList elementsWithoutPath;
+    for (const QByteArray &element: linkLine.split(' ')) {
+        if (element.indexOf('/') < 0)
+            elementsWithoutPath.append(element);
+    }
+    QByteArray pathLessLinkLine = elementsWithoutPath.join(' ');
+
+    typedef QMap<QByteArray,int> ObjectCount;
+    QFETCH(ObjectCount, expectedObjectCount);
+    for (auto i = expectedObjectCount.begin();
+         i != expectedObjectCount.end();
+         i++) {
+        QCOMPARE(pathLessLinkLine.count(i.key()), i.value());
+    }
+}
+
+void TestBlackbox::linkerLibraryDuplicates_data()
+{
+    typedef QMap<QByteArray,int> ObjectCount;
+
+    QTest::addColumn<QString>("removeDuplicateLibraries");
+    QTest::addColumn<ObjectCount>("expectedObjectCount");
+
+    QTest::newRow("default") <<
+        QString() <<
+        ObjectCount {
+            { "lib1", 1 },
+            { "lib2", 1 },
+            { "lib3", 1 },
+        };
+
+    QTest::newRow("enabled") <<
+        "modules.cpp.removeDuplicateLibraries:true" <<
+        ObjectCount {
+            { "lib1", 1 },
+            { "lib2", 1 },
+            { "lib3", 1 },
+        };
+
+    QTest::newRow("disabled") <<
+        "modules.cpp.removeDuplicateLibraries:false" <<
+        ObjectCount {
+            { "lib1", 3 },
+            { "lib2", 2 },
+            { "lib3", 1 },
+        };
 }
 
 void TestBlackbox::linkerScripts()

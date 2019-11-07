@@ -1699,3 +1699,13 @@
 
     \defaultvalue \c{false}
 */
+
+/*!
+    \qmlproperty bool cpp::removeDuplicateLibraries
+    \since Qbs 1.16
+
+    Whether the list of the objects and libraries is reduced to a
+    list of unique values before being passed to the linker.
+
+    \defaultvalue \c{true}
+*/

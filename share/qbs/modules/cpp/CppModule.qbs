@@ -191,6 +191,7 @@ Module {
     property bool useRPathLink
     property string rpathLinkFlag
     property bool discardUnusedData
+    property bool removeDuplicateLibraries: true
 
     property stringList assemblerFlags
     PropertyOptions {

@@ -171,6 +171,8 @@ private slots:
     void lexyacc();
     void lexyaccOutputs();
     void lexyaccOutputs_data();
+    void linkerLibraryDuplicates();
+    void linkerLibraryDuplicates_data();
     void linkerScripts();
     void listProducts();
     void listPropertiesWithOuter();
@@ -249,6 +251,8 @@ private slots:
     void recursiveRenaming();
     void recursiveWildcards();
     void referenceErrorInExport();
+    void removeDuplicateLibraries_data();
+    void removeDuplicateLibraries();
     void reproducibleBuild();
     void reproducibleBuild_data();
     void require();
