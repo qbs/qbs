@@ -35,7 +35,10 @@ src_app.subdir = src/app
 src_app.depends = corelib
 src_libexec.subdir = src/libexec
 src_plugins.subdir = src/plugins
-CONFIG(shared, static|shared): src_plugins.depends = corelib
+CONFIG(shared, static|shared) {
+    src_plugins.depends = corelib
+    src_app.depends += src_plugins
+}
 tests.depends = static_res
 static_res.file = static-res.pro
 static_res.depends = src_app src_libexec src_plugins static.pro
