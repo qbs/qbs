@@ -5813,8 +5813,14 @@ void TestBlackbox::qbsSession()
     receivedMessage = getNextSessionPacket(sessionProc, incomingData);
     QCOMPARE(receivedMessage.value("type").toString(), QString("files-added"));
     error = receivedMessage.value("error").toObject();
-    if (!error.isEmpty())
+    if (!error.isEmpty()) {
+        for (const auto &item: error[QStringLiteral("items")].toArray()) {
+            const auto description = QStringLiteral("Project file updates are not enabled");
+            if (item.toObject()[QStringLiteral("description")].toString().contains(description))
+                QSKIP("File updates are disabled");
+        }
         qDebug() << error;
+    }
     QVERIFY(error.isEmpty());
     QJsonObject projectData = receivedMessage.value("project-data").toObject();
     QJsonArray products = projectData.value("products").toArray();
