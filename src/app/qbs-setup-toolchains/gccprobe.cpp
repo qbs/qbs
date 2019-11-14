@@ -59,6 +59,9 @@ using namespace qbs;
 using Internal::HostOsInfo;
 using Internal::Tr;
 
+constexpr char kUninstallRegistryKey[] = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\" \
+                                         "Windows\\CurrentVersion\\Uninstall\\";
+
 static QString qsystem(const QString &exe, const QStringList &args = QStringList())
 {
     QProcess p;
@@ -279,15 +282,12 @@ static QStringList gnuRegistrySearchPaths()
     if (!HostOsInfo::isWindowsHost())
         return {};
 
-    // Registry token for the "GNU Tools for ARM Embedded Processors".
-    static const char kRegistryToken[] = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\" \
-                                         "Windows\\CurrentVersion\\Uninstall\\";
-
     QStringList searchPaths;
 
-    QSettings registry(QLatin1String(kRegistryToken), QSettings::NativeFormat);
+    QSettings registry(QLatin1String(kUninstallRegistryKey), QSettings::NativeFormat);
     const auto productGroups = registry.childGroups();
     for (const QString &productKey : productGroups) {
+        // Registry token for the "GNU Tools for ARM Embedded Processors".
         if (!productKey.startsWith(
                     QLatin1String("GNU Tools for ARM Embedded Processors"))) {
             continue;
@@ -393,15 +393,12 @@ static QStringList renesasRl78RegistrySearchPaths()
     if (!HostOsInfo::isWindowsHost())
         return {};
 
-    // Registry token for the "Renesas RL78" toolchain.
-    static const char kRegistryToken[] = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\" \
-                                         "Windows\\CurrentVersion\\Uninstall";
-
     QStringList searchPaths;
 
-    QSettings registry(QLatin1String(kRegistryToken), QSettings::NativeFormat);
+    QSettings registry(QLatin1String(kUninstallRegistryKey), QSettings::NativeFormat);
     const auto productGroups = registry.childGroups();
     for (const QString &productKey : productGroups) {
+        // Registry token for the "Renesas RL78" toolchain.
         if (!productKey.startsWith(
                     QLatin1String("GCC for Renesas RL78"))) {
             continue;
@@ -428,15 +425,12 @@ static QStringList mplabX32RegistrySearchPaths()
     if (!HostOsInfo::isWindowsHost())
         return {};
 
-    // Registry token for the "MPLAB X32" toolchain.
-    static const char kRegistryToken[] = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\" \
-                                         "Windows\\CurrentVersion\\Uninstall";
-
     QStringList searchPaths;
 
-    QSettings registry(QLatin1String(kRegistryToken), QSettings::NativeFormat);
+    QSettings registry(QLatin1String(kUninstallRegistryKey), QSettings::NativeFormat);
     const auto productGroups = registry.childGroups();
     for (const QString &productKey : productGroups) {
+        // Registry token for the "MPLAB X32" toolchain.
         if (!productKey.startsWith(
                     QLatin1String("MPLAB XC32 Compiler"))) {
             continue;
