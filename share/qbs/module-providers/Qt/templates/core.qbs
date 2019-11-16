@@ -90,6 +90,7 @@ Module {
                                       ? libFilePathDebug : libFilePathRelease
 
     property stringList coreLibPaths: @libraryPaths@
+    property bool hasLibrary: true
 
     // These are deliberately not path types
     // We don't want to resolve them against the source directory
@@ -104,11 +105,11 @@ Module {
         condition: moduleConfig.contains("use_gold_linker")
         cpp.linkerVariant: "gold"
     }
+    Properties {
+        condition: !moduleConfig.contains("use_gold_linker") && qbs.toolchain.contains("gcc")
+        cpp.linkerVariant: original
+    }
 
-    cpp.entryPoint: qbs.targetOS.containsAny(["ios", "tvos"])
-                        && Utilities.versionCompare(version, "5.6.0") >= 0
-                    ? "_qt_main_wrapper"
-                    : undefined
     cpp.cxxLanguageVersion: Utilities.versionCompare(version, "5.7.0") >= 0 ? "c++11" : original
     cpp.enableCompilerDefinesByLanguage: ["cpp"].concat(
         qbs.targetOS.contains("darwin") ? ["objcpp"] : [])

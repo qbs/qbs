@@ -28,15 +28,6 @@ include(logging/logging.pri)
 include(parser/parser.pri)
 include(tools/tools.pri)
 
-CONFIG(static, static|shared) {
-    !isEmpty(QBS_PLUGINS_BUILD_DIR) {
-        destdirPrefix = $${QBS_PLUGINS_BUILD_DIR}
-    } else {
-        destdirPrefix = $$shadowed($$PWD)/../../../$${QBS_LIBRARY_DIRNAME}
-    }
-    LIBS += -L$${destdirPrefix}/qbs/plugins -lqbs_cpp_scanner -lqbs_qt_scanner
-}
-
 win32:LIBS += -lpsapi -lshell32
 
 HEADERS += \

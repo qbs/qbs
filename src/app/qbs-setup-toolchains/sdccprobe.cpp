@@ -47,8 +47,9 @@
 #include <tools/hostosinfo.h>
 #include <tools/profile.h>
 
-#include <QtCore/qlist.h>
+#include <QtCore/qprocess.h>
 #include <QtCore/qsettings.h>
+#include <QtCore/qtemporaryfile.h>
 
 using namespace qbs;
 using Internal::Tr;
@@ -59,42 +60,114 @@ static QStringList knownSdccCompilerNames()
     return {QStringLiteral("sdcc")};
 }
 
-static QString guessSdccArchitecture(const QFileInfo &compiler)
+static QByteArray dumpSdccMacros(const QFileInfo &compiler,
+                                 const QString &targetFlag = QString())
 {
-    const auto baseName = compiler.baseName();
-    if (baseName == QLatin1String("sdcc"))
-        return QStringLiteral("mcs51");
-    return {};
-}
+    QTemporaryFile fakeIn(QStringLiteral("XXXXXX.c"));
+    if (!fakeIn.open()) {
+        qbsWarning() << Tr::tr("Unable to open temporary file %1 for output: %2")
+                        .arg(fakeIn.fileName(), fakeIn.errorString());
+        return {};
+    }
+    fakeIn.close();
 
-static Profile createSdccProfileHelper(const ToolchainInstallInfo &info,
-                                       Settings *settings,
-                                       QString profileName = QString())
-{
-    const QFileInfo compiler = info.compilerPath;
-    const QString architecture = guessSdccArchitecture(compiler);
-
-    // In case the profile is auto-detected.
-    if (profileName.isEmpty()) {
-        if (!info.compilerVersion.isValid()) {
-            profileName = QStringLiteral("sdcc-unknown-%1").arg(architecture);
-        } else {
-            const QString version = info.compilerVersion.toString(QLatin1Char('_'),
-                                                                  QLatin1Char('_'));
-            profileName = QStringLiteral("sdcc-%1-%2").arg(
-                        version, architecture);
-        }
+    const QStringList args = {QStringLiteral("-dM"),
+                              QStringLiteral("-E"),
+                              targetFlag,
+                              fakeIn.fileName()};
+    QProcess p;
+    p.start(compiler.absoluteFilePath(), args);
+    p.waitForFinished(3000);
+    const auto es = p.exitStatus();
+    if (es != QProcess::NormalExit) {
+        const QByteArray out = p.readAll();
+        qbsWarning() << Tr::tr("Compiler dumping failed:\n%1")
+                        .arg(QString::fromUtf8(out));
+        return {};
     }
 
-    Profile profile(profileName, settings);
-    profile.setValue(QStringLiteral("cpp.toolchainInstallPath"), compiler.absolutePath());
-    profile.setValue(QStringLiteral("qbs.toolchainType"), QStringLiteral("sdcc"));
-    if (!architecture.isEmpty())
-        profile.setValue(QStringLiteral("qbs.architecture"), architecture);
+    return  p.readAllStandardOutput();
+}
 
-    qbsInfo() << Tr::tr("Profile '%1' created for '%2'.").arg(
-                     profile.name(), compiler.absoluteFilePath());
-    return profile;
+static QString dumpSdccArchitecture(const QFileInfo &compiler,
+                                    const QString &arch)
+{
+    const auto targetFlag = QStringLiteral("-m%1").arg(arch);
+    const auto token = QStringLiteral("__SDCC_%1").arg(arch);
+    const auto macros = dumpSdccMacros(compiler, targetFlag);
+    return macros.contains(token.toLatin1()) ? arch : QString();
+}
+
+static std::vector<Profile> createSdccProfileHelper(
+        const ToolchainInstallInfo &info,
+        Settings *settings,
+        const QString &profileName = QString())
+{
+    const QFileInfo compiler = info.compilerPath;
+
+    std::vector<Profile> profiles;
+
+    const char *knownArchs[] = {"mcs51", "stm8"};
+    for (const auto &knownArch : knownArchs) {
+        const auto actualArch = dumpSdccArchitecture(
+                    compiler, QString::fromLatin1(knownArch));
+        // Don't create a profile in case the compiler does
+        // not support the proposed architecture.
+        if (actualArch != QString::fromLatin1(knownArch))
+            continue;
+
+        QString fullProfileName = profileName;
+        if (fullProfileName.isEmpty()) {
+            // Create a full profile name in case we is
+            // in auto-detecting mode.
+            if (!info.compilerVersion.isValid()) {
+                fullProfileName = QStringLiteral("sdcc-unknown-%1")
+                        .arg(actualArch);
+            } else {
+                const QString version = info.compilerVersion.toString(
+                            QLatin1Char('_'), QLatin1Char('_'));
+                fullProfileName = QStringLiteral("sdcc-%1-%2").arg(
+                            version, actualArch);
+            }
+        } else {
+            // Append the detected actual architecture name
+            // to the proposed profile name.
+            fullProfileName = QStringLiteral("%1-%2").arg(
+                        fullProfileName, actualArch);
+        }
+
+        Profile profile(fullProfileName, settings);
+        profile.setValue(QStringLiteral("cpp.toolchainInstallPath"),
+                         compiler.absolutePath());
+        profile.setValue(QStringLiteral("qbs.toolchainType"),
+                         QStringLiteral("sdcc"));
+        if (!actualArch.isEmpty())
+            profile.setValue(QStringLiteral("qbs.architecture"), actualArch);
+
+        qbsInfo() << Tr::tr("Profile '%1' created for '%2'.").arg(
+                         profile.name(), compiler.absoluteFilePath());
+    }
+
+    return profiles;
+}
+
+static Version dumpSdccCompilerVersion(const QFileInfo &compiler)
+{
+    const QByteArray dump = dumpSdccMacros(compiler);
+    if (dump.isEmpty())
+        return Version{};
+
+    const int major = extractVersion(dump, "__SDCC_VERSION_MAJOR ");
+    const int minor = extractVersion(dump, "__SDCC_VERSION_MINOR ");
+    const int patch = extractVersion(dump, "__SDCC_VERSION_PATCH ");
+    if (major < 0 || minor < 0 || patch < 0) {
+        qbsWarning() << Tr::tr("No '__SDCC_VERSION_xxx' token was found "
+                               "in the compiler dump:\n%1")
+                        .arg(QString::fromUtf8(dump));
+        return Version{};
+    }
+
+    return Version{major, minor, patch};
 }
 
 static std::vector<ToolchainInstallInfo> installedSdccsFromPath()
@@ -107,8 +180,10 @@ static std::vector<ToolchainInstallInfo> installedSdccsFromPath()
                         HostOsInfo::appendExecutableSuffix(compilerName)));
         if (!sdccPath.exists())
             continue;
-        infos.push_back({sdccPath, Version{}});
+        const Version version = dumpSdccCompilerVersion(sdccPath);
+        infos.push_back({sdccPath, version});
     }
+    std::sort(infos.begin(), infos.end());
     return infos;
 }
 
@@ -117,29 +192,54 @@ static std::vector<ToolchainInstallInfo> installedSdccsFromRegistry()
     std::vector<ToolchainInstallInfo> infos;
 
     if (HostOsInfo::isWindowsHost()) {
-
-#ifdef Q_OS_WIN64
-        static const char kRegistryNode[] = "HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\SDCC";
-#else
-        static const char kRegistryNode[] = "HKEY_LOCAL_MACHINE\\SOFTWARE\\SDCC";
-#endif
-
-        QSettings registry(QLatin1String(kRegistryNode), QSettings::NativeFormat);
-        QString rootPath = registry.value(QStringLiteral("Default")).toString();
-        if (!rootPath.isEmpty()) {
+        // Tries to detect the candidate from the 32-bit
+        // or 64-bit system registry format.
+        auto probeSdccToolchainInfo = [](QSettings::Format format) {
+            SdccInstallInfo info;
+            QSettings registry(QStringLiteral("HKEY_LOCAL_MACHINE\\SOFTWARE\\SDCC"),
+                               format);
+            const QString rootPath = registry.value(QStringLiteral("Default"))
+                    .toString();
+            if (rootPath.isEmpty())
+                return info;
             // Build full compiler path.
             const QFileInfo sdccPath(rootPath + QLatin1String("\\bin\\sdcc.exe"));
-            if (sdccPath.exists()) {
-                // Build compiler version.
-                const QString version = QStringLiteral("%1.%2.%3").arg(
-                            registry.value(QStringLiteral("VersionMajor")).toString(),
-                            registry.value(QStringLiteral("VersionMinor")).toString(),
-                            registry.value(QStringLiteral("VersionRevision")).toString());
-                infos.push_back({sdccPath, Version::fromString(version)});
-            }
+            if (!sdccPath.exists())
+                return info;
+            info.compilerPath = sdccPath.filePath();
+            // Build compiler version.
+            const QString version = QStringLiteral("%1.%2.%3").arg(
+                        registry.value(QStringLiteral("VersionMajor")).toString(),
+                        registry.value(QStringLiteral("VersionMinor")).toString(),
+                        registry.value(QStringLiteral("VersionRevision")).toString());
+            info.version = version;
+            return info;
+        };
+
+        static constexpr QSettings::Format allowedFormats[] = {
+            QSettings::NativeFormat,
+#ifdef Q_OS_WIN
+            QSettings::Registry32Format,
+            QSettings::Registry64Format,
+#endif
+        };
+
+        for (const QSettings::Format format : allowedFormats) {
+            const SdccInstallInfo candidate = probeSdccToolchainInfo(format);
+            if (candidate.compilerPath.isEmpty())
+                continue;
+            const auto infosEnd = infos.cend();
+            const auto infosIt = std::find_if(infos.cbegin(), infosEnd,
+                                              [candidate](const ToolchainInstallInfo &info) {
+                return candidate == SdccInstallInfo{
+                    info.compilerPath.filePath(), info.compilerVersion.toString()};
+            });
+            if (infosIt == infosEnd)
+                infos.push_back({candidate.compilerPath, Version::fromString(candidate.version)});
         }
     }
 
+    std::sort(infos.begin(), infos.end());
     return infos;
 }
 
@@ -162,13 +262,20 @@ void sdccProbe(Settings *settings, QList<Profile> &profiles)
 {
     qbsInfo() << Tr::tr("Trying to detect SDCC toolchains...");
 
-    std::vector<ToolchainInstallInfo> allInfos = installedSdccsFromRegistry();
+    // Make sure that a returned infos are sorted before using the std::set_union!
+    const std::vector<ToolchainInstallInfo> regInfos = installedSdccsFromRegistry();
     const std::vector<ToolchainInstallInfo> pathInfos = installedSdccsFromPath();
-    allInfos.insert(std::end(allInfos), std::begin(pathInfos), std::end(pathInfos));
+    std::vector<ToolchainInstallInfo> allInfos;
+    allInfos.reserve(regInfos.size() + pathInfos.size());
+    std::set_union(regInfos.cbegin(), regInfos.cend(),
+                   pathInfos.cbegin(), pathInfos.cend(),
+                   std::back_inserter(allInfos));
 
     for (const ToolchainInstallInfo &info : allInfos) {
-        const auto profile = createSdccProfileHelper(info, settings);
-        profiles.push_back(profile);
+        const auto newProfiles = createSdccProfileHelper(info, settings);
+        profiles.reserve(profiles.size() + int(newProfiles.size()));
+        std::copy(newProfiles.cbegin(), newProfiles.cend(),
+                  std::back_inserter(profiles));
     }
 
     if (allInfos.empty())

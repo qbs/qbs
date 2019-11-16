@@ -36,9 +36,13 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
+
 #include "installoptions.h"
-#include "language/language.h"
-#include <tools/stringconstants.h>
+
+#include "jsonhelper.h"
+#include "stringconstants.h"
+
+#include <language/language.h>
 
 #include <QtCore/qdir.h>
 #include <QtCore/qshareddata.h>
@@ -228,6 +232,19 @@ bool InstallOptions::logElapsedTime() const
 void InstallOptions::setLogElapsedTime(bool logElapsedTime)
 {
     d->logElapsedTime = logElapsedTime;
+}
+
+qbs::InstallOptions qbs::InstallOptions::fromJson(const QJsonObject &data)
+{
+    using namespace Internal;
+    InstallOptions opt;
+    setValueFromJson(opt.d->installRoot, data, "install-root");
+    setValueFromJson(opt.d->useSysroot, data, "use-sysroot");
+    setValueFromJson(opt.d->removeExisting, data, "clean-install-root");
+    setValueFromJson(opt.d->dryRun, data, "dry-run");
+    setValueFromJson(opt.d->keepGoing, data, "keep-going");
+    setValueFromJson(opt.d->logElapsedTime, data, "log-time");
+    return opt;
 }
 
 } // namespace qbs

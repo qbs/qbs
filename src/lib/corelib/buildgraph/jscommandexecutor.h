@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2019 Jochen Ulrich <jochenulrich@t-online.de>
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -65,8 +66,8 @@ private:
     void onJavaScriptCommandFinished();
 
     void doReportCommandDescription(const QString &productName) override;
-    void doStart() override;
-    void cancel() override;
+    bool doStart() override;
+    void cancel(const qbs::ErrorInfo &reason) override;
 
     void waitForFinished();
 

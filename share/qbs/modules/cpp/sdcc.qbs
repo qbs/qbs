@@ -32,9 +32,7 @@ import qbs 1.0
 import qbs.File
 import qbs.FileInfo
 import qbs.ModUtils
-import qbs.PathTools
 import qbs.Probes
-import qbs.Utilities
 import "sdcc.js" as SDCC
 
 CppModule {
@@ -68,38 +66,22 @@ CppModule {
 
     property string compilerExtension: qbs.hostOS.contains("windows") ? ".exe" : ""
 
-    property bool generateMapFile: true
-    PropertyOptions {
-        name: "generateMapFile"
-        description: "produce a linker list file (enabled by default)"
-    }
-
     /* Work-around for QtCreator which expects these properties to exist. */
     property string cCompilerName: compilerName
     property string cxxCompilerName: compilerName
 
     property string linkerMode: "automatic"
 
-    compilerName: "sdcc" + compilerExtension
+    compilerName: SDCC.compilerName(qbs) + compilerExtension
     compilerPath: FileInfo.joinPaths(toolchainInstallPath, compilerName)
 
-    assemblerName: {
-        switch (qbs.architecture) {
-        case "mcs51":
-            return "sdas8051" + compilerExtension;
-        }
-    }
+    assemblerName: SDCC.assemblerName(qbs) + compilerExtension
     assemblerPath: FileInfo.joinPaths(toolchainInstallPath, assemblerName)
 
-    linkerName: {
-        switch (qbs.architecture) {
-        case "mcs51":
-            return "sdld" + compilerExtension;
-        }
-    }
+    linkerName: SDCC.linkerName(qbs) + compilerExtension
     linkerPath: FileInfo.joinPaths(toolchainInstallPath, linkerName)
 
-    property string archiverName: "sdcclib" + compilerExtension
+    property string archiverName: SDCC.archiverName(qbs) + compilerExtension
     property string archiverPath: FileInfo.joinPaths(toolchainInstallPath, archiverName)
 
     runtimeLibrary: "static"
@@ -117,14 +99,9 @@ CppModule {
     Rule {
         id: assembler
         inputs: ["asm"]
-
-        Artifact {
-            fileTags: ["obj"]
-            filePath: Utilities.getHash(input.baseDir) + "/"
-                      + input.fileName + input.cpp.objectSuffix
-        }
-
-        prepare: SDCC.prepareAssembler.apply(SDCC, arguments);
+        outputFileTags: ["obj", "asm_adb", "lst", "asm_src", "asm_sym", "rst_data"]
+        outputArtifacts: SDCC.compilerOutputArtifacts(input)
+        prepare: SDCC.prepareAssembler.apply(SDCC, arguments)
     }
 
     FileTagger {
@@ -143,14 +120,9 @@ CppModule {
         id: compiler
         inputs: ["cpp", "c"]
         auxiliaryInputs: ["hpp"]
-
-        Artifact {
-            fileTags: ["obj"]
-            filePath: Utilities.getHash(input.baseDir) + "/"
-                      + input.fileName + input.cpp.objectSuffix
-        }
-
-        prepare: SDCC.prepareCompiler.apply(SDCC, arguments);
+        outputFileTags: ["obj", "asm_adb", "lst", "asm_src", "asm_sym", "rst_data"]
+        outputArtifacts: SDCC.compilerOutputArtifacts(input)
+        prepare: SDCC.prepareCompiler.apply(SDCC, arguments)
     }
 
     Rule {
@@ -158,33 +130,9 @@ CppModule {
         multiplex: true
         inputs: ["obj", "linkerscript"]
         inputsFromDependencies: ["staticlibrary"]
-
-        outputFileTags: {
-            var tags = ["application"];
-            if (product.moduleProperty("cpp", "generateMapFile"))
-                tags.push("map_file");
-            return tags;
-        }
-        outputArtifacts: {
-            var app = {
-                fileTags: ["application"],
-                filePath: FileInfo.joinPaths(
-                              product.destinationDirectory,
-                              PathTools.applicationFilePath(product))
-            };
-            var artifacts = [app];
-            if (product.cpp.generateMapFile) {
-                artifacts.push({
-                    fileTags: ["map_file"],
-                filePath: FileInfo.joinPaths(
-                              product.destinationDirectory,
-                              product.targetName + ".map")
-                });
-            }
-            return artifacts;
-        }
-
-        prepare:SDCC.prepareLinker.apply(SDCC, arguments);
+        outputFileTags: ["application", "lk_cmd", "mem_summary", "mem_map"]
+        outputArtifacts: SDCC.applicationLinkerOutputArtifacts(product)
+        prepare: SDCC.prepareLinker.apply(SDCC, arguments)
     }
 
     Rule {
@@ -192,14 +140,8 @@ CppModule {
         multiplex: true
         inputs: ["obj"]
         inputsFromDependencies: ["staticlibrary"]
-
-        Artifact {
-            fileTags: ["staticlibrary"]
-            filePath: FileInfo.joinPaths(
-                            product.destinationDirectory,
-                            PathTools.staticLibraryFilePath(product))
-        }
-
-        prepare: SDCC.prepareArchiver.apply(SDCC, arguments);
+        outputFileTags: ["staticlibrary"]
+        outputArtifacts: SDCC.staticLibraryLinkerOutputArtifacts(product)
+        prepare: SDCC.prepareArchiver.apply(SDCC, arguments)
     }
 }

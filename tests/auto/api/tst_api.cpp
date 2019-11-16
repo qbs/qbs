@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2019 Jochen Ulrich <jochenulrich@t-online.de>
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -874,7 +875,7 @@ void TestApi::changeContent()
     buildJob.reset(project.buildAllProducts(buildOptions, defaultProducts(), this));
     errorInfo = project.addGroup(newProjectData.products().front(), "blubb");
     QVERIFY(errorInfo.hasError());
-    QVERIFY2(errorInfo.toString().contains("in process"), qPrintable(errorInfo.toString()));
+    QVERIFY2(errorInfo.toString().contains("in progress"), qPrintable(errorInfo.toString()));
     waitForFinished(buildJob.get());
     errorInfo = project.addGroup(newProjectData.products().front(), "blubb");
     VERIFY_NO_ERROR(errorInfo);
@@ -1555,9 +1556,13 @@ void TestApi::linkStaticAndDynamicLibs()
     BuildDescriptionReceiver bdr;
     qbs::BuildOptions options;
     options.setEchoMode(qbs::CommandEchoModeCommandLine);
+    m_logSink->output.clear();
     const qbs::ErrorInfo errorInfo = doBuildProject("link-staticlibs-dynamiclibs", &bdr, nullptr,
                                                     nullptr, options);
     VERIFY_NO_ERROR(errorInfo);
+    const bool isNormalUnix = m_logSink->output.contains("is normal unix: yes");
+    const bool isNotNormalUnix = m_logSink->output.contains("is normal unix: no");
+    QVERIFY2(isNormalUnix != isNotNormalUnix, qPrintable(m_logSink->output));
 
     // The dependencies libdynamic1.so and libstatic2.a must not appear in the link command for the
     // executable. The -rpath-link line for libdynamic1.so must be there.
@@ -1574,12 +1579,7 @@ void TestApi::linkStaticAndDynamicLibs()
             }
         }
         QVERIFY(!appLinkCmd.isEmpty());
-        std::string targetPlatform = buildProfile.value("qbs.targetPlatform")
-                .toString().toStdString();
-        std::vector<std::string> targetOS = qbs::Internal::HostOsInfo::canonicalOSIdentifiers(
-                    targetPlatform);
-        if (!qbs::Internal::contains(targetOS, "darwin")
-                && !qbs::Internal::contains(targetOS, "windows")) {
+        if (isNormalUnix) {
             const std::regex rpathLinkRex("-rpath-link=\\S*/"
                                           + relativeProductBuildDir("dynamic2").toStdString());
             const auto ln = appLinkCmd.toStdString();
@@ -2374,6 +2374,12 @@ void TestApi::projectWithPropertiesItem()
     VERIFY_NO_ERROR(errorInfo);
 }
 
+void TestApi::projectWithProbeAndProfileItem()
+{
+    const qbs::ErrorInfo errorInfo = doBuildProject("project-with-probe-and-profile-item");
+    VERIFY_NO_ERROR(errorInfo);
+}
+
 void TestApi::propertiesBlocks()
 {
     const qbs::ErrorInfo errorInfo = doBuildProject("properties-blocks");
@@ -2652,7 +2658,7 @@ void TestApi::restoredWarnings()
     waitForFinished(job.get());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     job.reset(nullptr);
-    QCOMPARE(m_logSink->warnings.toSet().size(), 2);
+    QCOMPARE(toSet(m_logSink->warnings).size(), 2);
     const auto beforeErrors = m_logSink->warnings;
     for (const qbs::ErrorInfo &e : beforeErrors) {
         const QString msg = e.toString();
@@ -2667,7 +2673,7 @@ void TestApi::restoredWarnings()
     waitForFinished(job.get());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     job.reset(nullptr);
-    QCOMPARE(m_logSink->warnings.toSet().size(), 2);
+    QCOMPARE(toSet(m_logSink->warnings).size(), 2);
     m_logSink->warnings.clear();
 
     // Re-resolving with changes: Errors come from the re-resolving, stored ones must be suppressed.
@@ -2678,7 +2684,7 @@ void TestApi::restoredWarnings()
     waitForFinished(job.get());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     job.reset(nullptr);
-    QCOMPARE(m_logSink->warnings.toSet().size(), 3); // One more for the additional group
+    QCOMPARE(toSet(m_logSink->warnings).size(), 3); // One more for the additional group
     const auto afterErrors = m_logSink->warnings;
     for (const qbs::ErrorInfo &e : afterErrors) {
         const QString msg = e.toString();
@@ -2827,6 +2833,48 @@ void TestApi::targetArtifactStatus()
     QCOMPARE(products.size(), 1);
     const qbs::ProductData product = products.front();
     QCOMPARE(product.targetArtifacts().size(), enableTagging ? 2 : 1);
+}
+
+void TestApi::timeout()
+{
+    QFETCH(QString, projectDirName);
+    const auto setupParams = defaultSetupParameters(projectDirName + "/timeout.qbs");
+    std::unique_ptr<qbs::SetupProjectJob> setupJob{
+            qbs::Project().setupProject(setupParams, m_logSink, nullptr)};
+    waitForFinished(setupJob.get());
+    QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
+    auto project = setupJob->project();
+    const auto products = project.projectData().products();
+    QList<qbs::ProductData> helperProducts;
+    qbs::ProductData productUnderTest;
+    for (const auto &product : products) {
+        if (!product.type().contains(QLatin1String("product-under-test")))
+            helperProducts.append(product);
+        else
+            productUnderTest = product;
+    }
+    const std::unique_ptr<qbs::BuildJob> buildHelpersJob{
+            project.buildSomeProducts(helperProducts, qbs::BuildOptions())};
+    QVERIFY(waitForFinished(buildHelpersJob.get(), testTimeoutInMsecs()));
+    if (buildHelpersJob->error().hasError()) {
+        qDebug().noquote() << buildHelpersJob->error().toString();
+        QFAIL("Could not build helper products");
+    }
+
+    const std::unique_ptr<qbs::BuildJob> buildJob(project.buildOneProduct(productUnderTest,
+                                                                          qbs::BuildOptions()));
+    QVERIFY(waitForFinished(buildJob.get(), testTimeoutInMsecs()));
+    QVERIFY(buildJob->error().hasError());
+    const auto errorString = buildJob->error().toString();
+    QVERIFY2(errorString.contains("cancel"), qPrintable(errorString));
+    QVERIFY(errorString.contains("timeout"));
+}
+
+void TestApi::timeout_data()
+{
+    QTest::addColumn<QString>("projectDirName");
+    QTest::newRow("JS Command") << QString("timeout-js");
+    QTest::newRow("Process Command") << QString("timeout-process");
 }
 
 void TestApi::toolInModule()

@@ -191,5 +191,5 @@ static void QbsQtScannerPluginUnload()
 {
 }
 
-QBS_REGISTER_STATIC_PLUGIN(extern "C" SCANNER_EXPORT, QbsQtScannerPlugin,
+QBS_REGISTER_STATIC_PLUGIN(extern "C" SCANNER_EXPORT, qbs_qt_scanner,
                            QbsQtScannerPluginLoad, QbsQtScannerPluginUnload)

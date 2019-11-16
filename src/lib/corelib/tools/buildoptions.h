@@ -47,6 +47,7 @@
 #include <QtCore/qshareddata.h>
 
 QT_BEGIN_NAMESPACE
+class QJsonObject;
 class QStringList;
 QT_END_NAMESPACE
 
@@ -60,6 +61,8 @@ public:
     BuildOptions(const BuildOptions &other);
     BuildOptions &operator=(const BuildOptions &other);
     ~BuildOptions();
+
+    static BuildOptions fromJson(const QJsonObject &data);
 
     QStringList filesToConsider() const;
     void setFilesToConsider(const QStringList &files);

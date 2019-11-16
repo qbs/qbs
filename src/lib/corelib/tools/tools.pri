@@ -23,6 +23,7 @@ HEADERS += \
     $$PWD/iosutils.h \
     $$PWD/joblimits.h \
     $$PWD/jsliterals.h \
+    $$PWD/jsonhelper.h \
     $$PWD/launcherinterface.h \
     $$PWD/launcherpackets.h \
     $$PWD/launchersocket.h \

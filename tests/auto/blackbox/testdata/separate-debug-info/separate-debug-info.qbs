@@ -4,6 +4,15 @@ Project {
         type: ["application"]
         files: ["main.cpp"]
         cpp.separateDebugInformation: true
+
+        Probe {
+            id: osProbe
+            property stringList targetOS: qbs.targetOS
+            configure: {
+                console.info("is windows: " + (targetOS.contains("windows") ? "yes" : "no"));
+                console.info("is darwin: " + (targetOS.contains("darwin") ? "yes" : "no"));
+            }
+        }
     }
     DynamicLibrary {
         Depends { name: "cpp" }

@@ -44,6 +44,7 @@
 #include <QtCore/qshareddata.h>
 
 QT_BEGIN_NAMESPACE
+class QJsonObject;
 class QString;
 QT_END_NAMESPACE
 
@@ -64,6 +65,8 @@ public:
     InstallOptions &operator=(const InstallOptions &other);
     InstallOptions &operator=(InstallOptions &&other) Q_DECL_NOEXCEPT;
     ~InstallOptions();
+
+    static InstallOptions fromJson(const QJsonObject &data);
 
     static QString defaultInstallRoot();
     QString installRoot() const;

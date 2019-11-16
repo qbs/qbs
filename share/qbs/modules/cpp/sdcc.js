@@ -33,27 +33,67 @@ var Environment = require("qbs.Environment");
 var File = require("qbs.File");
 var FileInfo = require("qbs.FileInfo");
 var ModUtils = require("qbs.ModUtils");
+var PathTools = require("qbs.PathTools");
 var Process = require("qbs.Process");
 var TemporaryDir = require("qbs.TemporaryDir");
 var TextFile = require("qbs.TextFile");
 var Utilities = require("qbs.Utilities");
 var WindowsUtils = require("qbs.WindowsUtils");
 
+function compilerName(qbs) {
+    return "sdcc";
+}
+
+function assemblerName(qbs) {
+    switch (qbs.architecture) {
+    case "mcs51":
+        return "sdas8051";
+    case "stm8":
+        return "sdasstm8";
+    }
+    throw "Unable to deduce assembler name for unsupported architecture: '"
+            + qbs.architecture + "'";
+}
+
+function linkerName(qbs) {
+    switch (qbs.architecture) {
+    case "mcs51":
+        return "sdld";
+    case "stm8":
+        return "sdldstm8";
+    }
+    throw "Unable to deduce linker name for unsupported architecture: '"
+            + qbs.architecture + "'";
+}
+
+function archiverName(qbs) {
+    return "sdar";
+}
+
 function targetArchitectureFlag(architecture) {
     if (architecture === "mcs51")
         return "-mmcs51";
+    if (architecture === "stm8")
+        return "-mstm8";
 }
 
-function guessArchitecture(macros)
-{
+function guessArchitecture(macros) {
     if (macros["__SDCC_mcs51"] === "1")
         return "mcs51";
+    if (macros["__SDCC_stm8"] === "1")
+        return "stm8";
 }
 
-function guessEndianness(macros)
-{
+function guessEndianness(macros) {
     // SDCC stores numbers in little-endian format.
     return "little";
+}
+
+function guessVersion(macros) {
+    return { major: parseInt(macros["__SDCC_VERSION_MAJOR"], 10),
+        minor: parseInt(macros["__SDCC_VERSION_MINOR"], 10),
+        patch: parseInt(macros["__SDCC_VERSION_PATCH"], 10),
+        found: macros["SDCC"] }
 }
 
 function dumpMacros(compilerFilePath, architecture) {
@@ -178,45 +218,96 @@ function collectLibraryDependencies(product) {
     return result;
 }
 
-function compilerFlags(project, product, input, output, explicitlyDependsOn) {
+function compilerOutputArtifacts(input) {
+    var obj = {
+        fileTags: ["obj"],
+        filePath: Utilities.getHash(input.baseDir) + "/"
+              + input.fileName + input.cpp.objectSuffix
+    };
+
+    // We need to use the asm_adb, lst, asm_src, asm_sym and rst_data
+    // artifacts without of any conditions. Because SDCC always generates
+    // it (and seems, this behavior can not be disabled for SDCC).
+    var asm_adb = {
+        fileTags: ["asm_adb"],
+        filePath: Utilities.getHash(input.baseDir) + "/"
+              + input.fileName + ".adb"
+    };
+    var lst = {
+        fileTags: ["lst"],
+        filePath: Utilities.getHash(input.baseDir) + "/"
+              + input.fileName + ".lst"
+    };
+    var asm_src = {
+        fileTags: ["asm_src"],
+        filePath: Utilities.getHash(input.baseDir) + "/"
+              + input.fileName + ".asm"
+    };
+    var asm_sym = {
+        fileTags: ["asm_sym"],
+        filePath: Utilities.getHash(input.baseDir) + "/"
+              + input.fileName + ".sym"
+    };
+    var rst_data = {
+        fileTags: ["rst_data"],
+        filePath: Utilities.getHash(input.baseDir) + "/"
+              + input.fileName + ".rst"
+    };
+    return [obj, asm_adb, lst, asm_src, asm_sym, rst_data];
+}
+
+function applicationLinkerOutputArtifacts(product) {
+    var app = {
+        fileTags: ["application"],
+        filePath: FileInfo.joinPaths(
+                      product.destinationDirectory,
+                      PathTools.applicationFilePath(product))
+    };
+    var lk_cmd = {
+        fileTags: ["lk_cmd"],
+        filePath: FileInfo.joinPaths(
+                      product.destinationDirectory,
+                      product.targetName + ".lk")
+    };
+    var mem_summary = {
+        fileTags: ["mem_summary"],
+        filePath: FileInfo.joinPaths(
+                      product.destinationDirectory,
+                      product.targetName + ".mem")
+    };
+    var mem_map = {
+        fileTags: ["mem_map"],
+        filePath: FileInfo.joinPaths(
+                      product.destinationDirectory,
+                      product.targetName + ".map")
+    };
+    return [app, lk_cmd, mem_summary, mem_map]
+}
+
+function staticLibraryLinkerOutputArtifacts(product) {
+    var staticLib = {
+        fileTags: ["staticlibrary"],
+        filePath: FileInfo.joinPaths(
+                      product.destinationDirectory,
+                      PathTools.staticLibraryFilePath(product))
+    };
+    return [staticLib]
+}
+
+function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
     // Determine which C-language we"re compiling.
-    var tag = ModUtils.fileTagForTargetLanguage(input.fileTags.concat(output.fileTags));
+    var tag = ModUtils.fileTagForTargetLanguage(input.fileTags.concat(outputs.obj[0].fileTags));
 
     var args = [];
 
+    // Input.
     args.push(input.filePath);
+
+    // Output.
     args.push("-c");
-    args.push("-o", output.filePath);
+    args.push("-o", outputs.obj[0].filePath);
 
-    switch (input.cpp.optimization) {
-    case "small":
-        args.push("--opt-code-size");
-        break;
-    case "fast":
-        args.push("--opt-code-speed");
-        break;
-    case "none":
-        // SDCC has not option to disable the optimization.
-        break;
-    }
-
-    if (input.cpp.debugInformation)
-        args.push("--debug");
-
-    var warnings = input.cpp.warningLevel;
-    if (warnings === "none")
-        args.push("--less-pedantic");
-
-    if (input.cpp.treatWarningsAsErrors)
-        args.push("--Werror");
-
-    if (tag === "c") {
-        if (input.cpp.cLanguageVersion === "c89")
-            args.push("--std-c89");
-        else if (input.cpp.cLanguageVersion === "c11")
-            args.push("--std-c11");
-    }
-
+    // Defines.
     var allDefines = [];
     var platformDefines = input.cpp.platformDefines;
     if (platformDefines)
@@ -226,6 +317,7 @@ function compilerFlags(project, product, input, output, explicitlyDependsOn) {
         allDefines = allDefines.uniqueConcat(defines);
     args = args.concat(allDefines.map(function(define) { return "-D" + define }));
 
+    // Includes.
     var allIncludePaths = [];
     var includePaths = input.cpp.includePaths;
     if (includePaths)
@@ -238,6 +330,49 @@ function compilerFlags(project, product, input, output, explicitlyDependsOn) {
         allIncludePaths = allIncludePaths.uniqueConcat(compilerIncludePaths);
     args = args.concat(allIncludePaths.map(function(include) { return "-I" + include }));
 
+    var targetFlag = targetArchitectureFlag(input.cpp.architecture);
+    if (targetFlag)
+        args.push(targetFlag);
+
+    // Debug information flags.
+    if (input.cpp.debugInformation)
+        args.push("--debug");
+
+    // Optimization level flags.
+    switch (input.cpp.optimization) {
+    case "small":
+        args.push("--opt-code-size");
+        break;
+    case "fast":
+        args.push("--opt-code-speed");
+        break;
+    case "none":
+        // SDCC has not option to disable the optimization.
+        break;
+    }
+
+    // Warning level flags.
+    if (input.cpp.warningLevel === "none")
+        args.push("--less-pedantic");
+    if (input.cpp.treatWarningsAsErrors)
+        args.push("--Werror");
+
+    // C language version flags.
+    if (tag === "c") {
+        var knownValues = ["c11", "c89"];
+        var cLanguageVersion = Cpp.languageVersion(
+                    input.cpp.cLanguageVersion, knownValues, "C");
+        switch (cLanguageVersion) {
+        case "c89":
+            args.push("--std-c89");
+            break;
+        case "c11":
+            args.push("--std-c11");
+            break;
+        }
+    }
+
+    // Misc flags.
     args = args.concat(ModUtils.moduleProperty(input, "platformFlags"),
                        ModUtils.moduleProperty(input, "flags"),
                        ModUtils.moduleProperty(input, "platformFlags", tag),
@@ -247,14 +382,13 @@ function compilerFlags(project, product, input, output, explicitlyDependsOn) {
     return args;
 }
 
-function assemblerFlags(project, product, input, output, explicitlyDependsOn) {
+function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
     // Determine which C-language we"re compiling
-    var tag = ModUtils.fileTagForTargetLanguage(input.fileTags.concat(output.fileTags));
+    var tag = ModUtils.fileTagForTargetLanguage(input.fileTags.concat(outputs.obj[0].fileTags));
 
     var args = [];
-    args.push(input.filePath);
-    args.push("-o", output.filePath);
 
+    // Includes.
     var allIncludePaths = [];
     var systemIncludePaths = input.cpp.systemIncludePaths;
     if (systemIncludePaths)
@@ -264,14 +398,24 @@ function assemblerFlags(project, product, input, output, explicitlyDependsOn) {
         allIncludePaths = allIncludePaths.uniqueConcat(compilerIncludePaths);
     args = args.concat(allIncludePaths.map(function(include) { return "-I" + include }));
 
+    // Misc flags.
     args = args.concat(ModUtils.moduleProperty(input, "platformFlags", tag),
                        ModUtils.moduleProperty(input, "flags", tag),
                        ModUtils.moduleProperty(input, "driverFlags", tag));
+
+    args.push("-ol");
+    args.push(outputs.obj[0].filePath);
+    args.push(input.filePath);
     return args;
 }
 
 function linkerFlags(project, product, input, outputs) {
     var args = [];
+
+    // Target MCU flag.
+    var targetFlag = targetArchitectureFlag(product.cpp.architecture);
+    if (targetFlag)
+        args.push(targetFlag);
 
     var allLibraryPaths = [];
     var libraryPaths = product.cpp.libraryPaths;
@@ -285,7 +429,8 @@ function linkerFlags(project, product, input, outputs) {
 
     var escapableLinkerFlags = [];
 
-    if (product.cpp.generateMapFile)
+    // Map file generation flag.
+    if (product.cpp.generateLinkerMapFile)
         escapableLinkerFlags.push("-m");
 
     if (product.cpp.platformLinkerFlags)
@@ -295,47 +440,56 @@ function linkerFlags(project, product, input, outputs) {
 
     var useCompilerDriver = useCompilerDriverLinker(product);
     if (useCompilerDriver) {
+        // Output.
         args.push("-o", outputs.application[0].filePath);
 
+        // Inputs.
         if (inputs.obj)
             args = args.concat(inputs.obj.map(function(obj) { return obj.filePath }));
 
+        // Library paths.
         args = args.concat(allLibraryPaths.map(function(path) { return "-L" + path }));
 
+        // Linker scripts.
         var scripts = inputs.linkerscript
             ? inputs.linkerscript.map(function(scr) { return "-f" + scr.filePath; }) : [];
         if (scripts)
             Array.prototype.push.apply(escapableLinkerFlags, scripts);
     } else {
+        // Output.
         args.push(outputs.application[0].filePath);
 
+        // Inputs.
         if (inputs.obj)
             args = args.concat(inputs.obj.map(function(obj) { return obj.filePath }));
 
+        // Library paths.
         args = args.concat(allLibraryPaths.map(function(path) { return "-k" + path }));
 
-        var scripts = inputs.linkerscript;
-        if (scripts) {
-            // Note: We need to split the '-f' and the file path to separate
-            // lines; otherwise the linking fails.
-            scripts.forEach(function(scr) {
-                escapableLinkerFlags.push("-f", scr.filePath);
-            });
-        }
+        // Linker scripts.
+        // Note: We need to split the '-f' and the file path to separate
+        // lines; otherwise the linking fails.
+        inputs.linkerscript.forEach(function(scr) {
+            escapableLinkerFlags.push("-f", scr.filePath);
+        });
     }
 
+    // Library dependencies.
     if (libraryDependencies)
         args = args.concat(libraryDependencies.map(function(dep) { return "-l" + dep.filePath }));
 
+    // Misc flags.
     var escapedLinkerFlags = escapeLinkerFlags(product, escapableLinkerFlags);
     if (escapedLinkerFlags)
         Array.prototype.push.apply(args, escapedLinkerFlags);
-
+    var driverLinkerFlags = useCompilerDriver ? product.cpp.driverLinkerFlags : undefined;
+    if (driverLinkerFlags)
+        Array.prototype.push.apply(args, driverLinkerFlags);
     return args;
 }
 
 function archiverFlags(project, product, input, outputs) {
-    var args = [];
+    var args = ["-rc"];
     args.push(outputs.staticlibrary[0].filePath);
     if (inputs.obj)
         args = args.concat(inputs.obj.map(function(obj) { return obj.filePath }));
@@ -343,18 +497,18 @@ function archiverFlags(project, product, input, outputs) {
 }
 
 function prepareCompiler(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
-    var args = compilerFlags(project, product, input, output, explicitlyDependsOn);
+    var args = compilerFlags(project, product, input, outputs, explicitlyDependsOn);
     var compilerPath = input.cpp.compilerPath;
-    var cmd = new Command(compilerPath, args)
+    var cmd = new Command(compilerPath, args);
     cmd.description = "compiling " + input.fileName;
     cmd.highlight = "compiler";
     return [cmd];
 }
 
 function prepareAssembler(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
-    var args = assemblerFlags(project, product, input, output, explicitlyDependsOn);
+    var args = assemblerFlags(project, product, input, outputs, explicitlyDependsOn);
     var assemblerPath = input.cpp.assemblerPath;
-    var cmd = new Command(assemblerPath, args)
+    var cmd = new Command(assemblerPath, args);
     cmd.description = "assembling " + input.fileName;
     cmd.highlight = "compiler";
     return [cmd];
@@ -364,7 +518,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     var primaryOutput = outputs.application[0];
     var args = linkerFlags(project, product, input, outputs);
     var linkerPath = effectiveLinkerPath(product);
-    var cmd = new Command(linkerPath, args)
+    var cmd = new Command(linkerPath, args);
     cmd.description = "linking " + primaryOutput.fileName;
     cmd.highlight = "linker";
     return [cmd];
@@ -373,7 +527,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
 function prepareArchiver(project, product, inputs, outputs, input, output) {
     var args = archiverFlags(project, product, input, outputs);
     var archiverPath = product.cpp.archiverPath;
-    var cmd = new Command(archiverPath, args)
+    var cmd = new Command(archiverPath, args);
     cmd.description = "linking " + output.fileName;
     cmd.highlight = "linker";
     return [cmd];

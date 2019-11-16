@@ -464,9 +464,10 @@ void msvcProbe(Settings *settings, QList<Profile> &profiles)
     }
 }
 
-void createMsvcProfile(const QString &profileName, const QString &compilerFilePath,
-                       Settings *settings)
+void createMsvcProfile(const QFileInfo &compiler, Settings *settings,
+                       const QString &profileName)
 {
+    const auto compilerFilePath = compiler.absoluteFilePath();
     MSVC msvc(compilerFilePath, MSVC::architectureFromClPath(compilerFilePath));
     msvc.init();
     QList<Profile> dummy;

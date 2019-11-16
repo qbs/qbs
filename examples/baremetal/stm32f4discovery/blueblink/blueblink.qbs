@@ -58,7 +58,7 @@ CppApplication {
             || qbs.toolchain.contains("iar")
             || qbs.toolchain.contains("keil")
     }
-    name: "blueblink"
+    name: "stm32f4discovery-blueblink"
     cpp.cLanguageVersion: "c99"
     cpp.positionIndependentCode: false
 

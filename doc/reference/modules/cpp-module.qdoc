@@ -1090,9 +1090,12 @@
 
     Passes \c{-miphoneos-version-min=<version>} to the compiler.
 
-    If left undefined, compiler defaults will be used.
+    If set to undefined, compiler defaults will be used.
 
-    \nodefaultvalue
+    \note \QBS sets minimum version to \c "6.0" for \c armv7a because earlier iOS versions are
+    broken in recent XCode installations.
+
+    \defaultvalue \c "6.0" for \c armv7a, \c undefined otherwise
 */
 
 /*!
@@ -1146,7 +1149,10 @@
 
     If left undefined, compiler defaults will be used.
 
-    \nodefaultvalue
+    \note \QBS sets the minimum version to \c "6.0", because earlier tvOS
+    versions are not supported by recent XCode installations by default.
+
+    \defaultvalue \c "6.0
 */
 
 /*!
@@ -1664,12 +1670,42 @@
 */
 
 /*!
-    \qmlproperty bool cpp::generateMapFile
+    \qmlproperty bool cpp::generateLinkerMapFile
     \since Qbs 1.13
+
+    Whether to auto-generate a linker map file.
+
+    \defaultvalue \c{false}
+*/
+
+/*!
+    \qmlproperty bool cpp::generateCompilerListingFiles
+    \since Qbs 1.15
 
     \baremetalproperty
 
-    Whether to auto-generate a linker map file.
+    Whether to auto-generate a compiler listing files.
+
+    \defaultvalue \c{false}
+*/
+
+/*!
+    \qmlproperty bool cpp::generateAssemblerListingFiles
+    \since Qbs 1.15
+
+    \baremetalproperty
+
+    Whether to auto-generate an assembler listing files.
+
+    \defaultvalue \c{false}
+*/
+
+/*!
+    \qmlproperty bool cpp::removeDuplicateLibraries
+    \since Qbs 1.16
+
+    Whether the list of the objects and libraries is reduced to a
+    list of unique values before being passed to the linker.
 
     \defaultvalue \c{true}
 */

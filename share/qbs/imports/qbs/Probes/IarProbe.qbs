@@ -65,34 +65,25 @@ PathProbe {
                 compilerFilePath, tag);
         }
 
-        // FIXME: Do we need dump the default paths for both C
-        // and C++ languages?
-        var defaultPaths = IAR.dumpDefaultPaths(
-            compilerFilePath, languages[0]);
-
         var macros = compilerDefinesByLanguage["c"]
             || compilerDefinesByLanguage["cpp"];
 
         architecture = IAR.guessArchitecture(macros);
         endianness = IAR.guessEndianness(macros);
+
+        // FIXME: Do we need dump the default paths for both C
+        // and C++ languages?
+        var defaultPaths = IAR.dumpDefaultPaths(
+            compilerFilePath, languages[0]);
+
         includePaths = defaultPaths.includePaths;
 
-        var version = parseInt(macros["__VER__"], 10);
-
-        if (architecture === "arm") {
-            versionMajor = parseInt(version / 1000000);
-            versionMinor = parseInt(version / 1000) % 1000;
-            versionPatch = parseInt(version) % 1000;
-        } else if (architecture === "mcs51") {
-            versionMajor = parseInt(version / 100);
-            versionMinor = parseInt(version % 100);
-            versionPatch = 0;
-        } else if (architecture === "avr") {
-            versionMajor = parseInt(version / 100);
-            versionMinor = parseInt(version % 100);
-            versionPatch = 0;
+        var version = IAR.guessVersion(macros, architecture);
+        if (version) {
+            versionMajor = version.major;
+            versionMinor = version.minor;
+            versionPatch = version.patch;
+            found = version && architecture && endianness;
         }
-
-        found = version && architecture && endianness;
    }
 }

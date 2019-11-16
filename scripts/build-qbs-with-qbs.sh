@@ -89,9 +89,16 @@ if [ -z "${QBS_AUTOTEST_PROFILE}" ]; then
             ${RUN_OPTIONS} \
             "${QMAKE_PATH:-$(which qmake)}" ${QBS_AUTOTEST_PROFILE}
 
-    qbs run -p qbs_app ${BUILD_OPTIONS} -- config \
-            ${RUN_OPTIONS} \
-            ${QBS_AUTOTEST_PROFILE}.baseProfile gcc
+    # Make sure that the Qt profile uses the same toolchain profile
+    # that was used for building in case a custom QBS_BUILD_PROFILE
+    # was set. Otherwise setup-qt automatically uses the default
+    # toolchain profile.
+    if [ ! -z "${QBS_BUILD_PROFILE}" ]; then
+        QBS_BUILD_BASE_PROFILE=$(qbs config ${QBS_BUILD_PROFILE}.baseProfile | cut -d: -f2)
+        qbs run -p qbs_app ${BUILD_OPTIONS} -- config \
+                ${RUN_OPTIONS} \
+                ${QBS_AUTOTEST_PROFILE}.baseProfile ${QBS_BUILD_BASE_PROFILE}
+    fi
 
     # QBS_AUTOTEST_PROFILE has been added to the environment
     # which requires a resolve step
@@ -99,6 +106,10 @@ if [ -z "${QBS_AUTOTEST_PROFILE}" ]; then
 fi
 
 #
-# Run all autotests with QBS_AUTOTEST_PROFILE
+# Run all autotests with QBS_AUTOTEST_PROFILE. Some test cases might run for
+# over 10 minutes. Output an empty line every 9:50 minutes to prevent a 10min
+# timeout on Travis CI.
 #
+(while true; do echo "" && sleep 590; done) &
+trap "kill $!" EXIT
 qbs build -p "autotest-runner" ${BUILD_OPTIONS}

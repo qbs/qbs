@@ -11,6 +11,13 @@ Project {
         files: [ "static1.cpp" ]
         Depends { name: "cpp" }
         Depends { name: "dynamic1" }
+
+        Probe {
+            id: osCheck
+            property bool isNormalUnix: qbs.targetOS.contains("unix")
+                                        && !qbs.targetOS.contains("darwin")
+            configure: { console.info("is normal unix: " + (isNormalUnix ? "yes" : "no")); }
+        }
     }
 
     DynamicLibrary {

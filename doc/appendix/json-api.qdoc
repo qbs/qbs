@@ -1,0 +1,817 @@
+/****************************************************************************
+**
+** Copyright (C) 2019 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+/*!
+    \contentspage index.html
+    \previouspage porting-to-qbs.html
+    \nextpage attributions.html
+    \page json-api.html
+
+    \title Appendix C: The JSON API
+
+    This API is the recommended way to provide \QBS support to an IDE.
+    It is accessible via the \l{session} command.
+
+    \section1 Packet Format
+
+    All information is exchanged via \e packets, which have the following
+    structure:
+    \code
+    packet = "qbsmsg:" <payload length> [<meta data>] <line feed> <payload>
+    \endcode
+    First comes a fixed string indentifying the start of a packet, followed
+    by the size of the actual data in bytes. After that, further meta data
+    might follow. There is none currently, but future extensions might add
+    some. A line feed character marks the end of the meta data section
+    and is followed immediately by the payload, which is a single JSON object
+    encoded in Base64 format. We call this object a \e message.
+
+    \section1 Messages
+
+    The message data is UTF8-encoded.
+
+    Most messages are either \e requests or \e replies. Requests are messages
+    sent to \QBS via the session's standard input channel. Replies are messages
+    sent by \QBS via the session's standard output channel. A reply always
+    corresponds to one specific request. Every request (with the exception
+    of the \l{quit-message}{quit request}) expects exactly one reply. A reply implies
+    that the requested operation has finished. At the very least, it carries
+    information about whether the operation succeeded, and often contains
+    additional data specific to the respective request.
+
+    Every message object has a \c type property, which is a string that uniquely
+    identifies the message type.
+
+    All requests block the session for other requests, including those of the
+    same type. For instance, if client code wishes to restart building the
+    project with different parameters, it first has to send a
+    \l{cancel-message}{cancel} request, wait for the current build job's reply,
+    and only then can it request another build. The only other message beside
+    \l{cancel-message}{cancel} that can legally be sent while a request
+    is currently being handled is the \l{quit-message}{quit} message.
+
+    A reply object may carry an \c error property, indicating that the respective
+    operation has failed. If this property is not present, the request was successful.
+    The format of the \c error property is described \l{ErrorInfo}{here}.
+
+    In the remainder of this page, we describe the structure of all messages
+    that can be sent to and received from \QBS, respectively. The property
+    tables may have a column titled \e Mandatory, whose values indicate whether
+    the respective message property is always present. If this column is missing,
+    all properties of the respective message are mandatory, unless otherwise
+    noted.
+
+    \section1 The \c hello Message
+
+    This message is sent by \QBS exactly once, right after the session was started.
+    It is the only message from \QBS that is not a response to a request.
+    The value of the \c type property is \c "hello", the other properties are
+    as follows:
+    \table
+    \header \li Property          \li Type
+    \row    \li api-level         \li int
+    \row    \li api-compat-level  \li int
+    \endtable
+
+    The value of \c api-level is increased whenever the API is extended, for instance
+    by adding new messages or properties.
+
+    The value of \c api-compat-level is increased whenever incompatible changes
+    are being done to this API. A tool written for API level \c n should refuse
+    to work with a \QBS version with an API compatibility level greater than \c n,
+    because it cannot guarantee proper behavior. This value will not change unless
+    it is absolutely necessary.
+
+    The value of \c api-compat-level is always less than or equal to the
+    value of \c api-level.
+
+    \section1 Resolving a Project
+
+    To instruct \QBS to load a project from disk, a request of type
+    \c resolve-project is sent. The other properties are:
+    \table
+    \header \li Property                     \li Type                \li Mandatory
+    \row    \li build-root                   \li \l FilePath         \li yes
+    \row    \li configuration-name           \li string              \li no
+    \row    \li data-mode                    \li \l DataMode         \li no
+    \row    \li dry-run                      \li bool                \li no
+    \row    \li environment                  \li \l Environment      \li no
+    \row    \li error-handling-mode          \li string              \li no
+    \row    \li fallback-provider-enabled    \li bool                \li no
+    \row    \li force-probe-execution        \li bool                \li no
+    \row    \li log-time                     \li bool                \li no
+    \row    \li log-level                    \li \l LogLevel         \li no
+    \row    \li module-properties            \li list of strings     \li no
+    \row    \li overridden-properties        \li object              \li no
+    \row    \li project-file-path            \li FilePath            \li if resolving from scratch
+    \row    \li restore-behavior             \li string              \li no
+    \row    \li settings-directory           \li string              \li no
+    \row    \li top-level-profile            \li string              \li no
+    \row    \li wait-lock-build-graph        \li bool                \li no
+    \endtable
+
+    The \c environment property defines the environment to be used for resolving
+    the project, as well as for all subsequent \QBS operations on this project.
+
+    The \c error-handling-mode specifies how \QBS should deal with issues
+    in project files, such as assigning to an unknown property. The possible
+    values are \c "strict" and \c "relaxed". In strict mode, \QBS will
+    immediately abort and set the reply's \c error property accordingly.
+    In relaxed mode, \QBS will continue to resolve the project if possible.
+    A \l{warning-message}{warning message} will be emitted for every error that
+    was encountered, and the reply's \c error property will \e not be set.
+    The default error handling mode is \c "strict".
+
+    If the \c log-time property is \c true, then \QBS will emit \l log-data messages
+    containing information about which part of the operation took how much time.
+
+    The \c module-properties property lists the names of the module properties
+    which should be contained in the \l{ProductData}{product data} that
+    will be sent in the reply message. For instance, if the project to be resolved
+    is C++-based and the client code is interested in which C++ version the
+    code uses, then \c module-properties would contain \c{"cpp.cxxLanguageVersion"}.
+
+    The \c overridden-properties property is used to override the values of
+    module, product or project properties. The possible ways to specify
+    keys are described \l{Overriding Property Values from the Command Line}{here}.
+
+    The \c restore-behavior property specifies if and how to make use of
+    an existing build graph. The value \c "restore-only" indicates that
+    a build graph should be loaded from disk and used as-is. In this mode,
+    it is an error if the build graph file does not exist.
+    The value \c "resolve-only" indicates that the project should be resolved
+    from scratch and that an existing build graph should be ignored. In this mode,
+    it is an error if the \c "project-file-path" property is not present.
+    The default value is \c "restore-and-track-changes", which uses an
+    existing build graph if possible and re-resolves the project if no
+    build graph was found or if the parameters are different from the ones
+    used when the project was last resolved.
+
+    The \c top-level-profile property specifies which \QBS profile to use
+    for resolving the project. It corresponds to the \c profile key when
+    using the \l resolve command.
+
+    All other properties correspond to command line options of the \l resolve
+    command, and their semantics are described there.
+
+    When the project has been resolved, \QBS will reply with a \c project-resolved
+    message. The possible properties are:
+    \table
+    \header \li Property      \li Type                    \li Mandatory
+    \row    \li error         \li \l ErrorInfo            \li no
+    \row    \li project-data  \li \l TopLevelProjectData  \li no
+    \endtable
+
+    The \c error-info property is present if and only if the operation
+    failed. The \c project-data property is present if and only if
+    the conditions stated by the request's \c data-mode property
+    are fulfilled.
+
+    All other project-related requests need a resolved project to operate on.
+    If there is none, they will fail.
+
+    There is at most one resolved project per session. If client code wants to
+    open several projects or one project in different configurations, it needs
+    to start additional sessions.
+
+    \section1 Building a Project
+
+    To build a project, a request of type \c build-project is sent. The other properties,
+    none of which are mandatory, are listed below:
+    \table
+    \header \li Property                     \li Type
+    \row    \li active-file-tags             \li string list
+    \row    \li changed-files                \li \l FilePath list
+    \row    \li check-outputs                \li bool
+    \row    \li check-timestamps             \li bool
+    \row    \li clean-install-root           \li bool
+    \row    \li data-mode                    \li \l DataMode
+    \row    \li dry-run                      \li bool
+    \row    \li command-echo-mode            \li string
+    \row    \li enforce-project-job-limits   \li bool
+    \row    \li files-to-consider            \li \l FilePath list
+    \row    \li install                      \li bool
+    \row    \li job-limits                   \li list of objects
+    \row    \li keep-going                   \li bool
+    \row    \li log-level                    \li \l LogLevel
+    \row    \li log-time                     \li bool
+    \row    \li max-job-count                \li int
+    \row    \li module-properties            \li list of strings
+    \row    \li products                     \li list of strings or \c "all"
+    \endtable
+
+    All boolean properties except \c install default to \c false.
+
+    The \c active-file-tags and \c files-to-consider are used to limit the
+    build to certain output tags and/or source files.
+    For instance, if only C/C++ object files should get built, then
+    \c active-file-tags would be set to \c "obj".
+
+    The objects in a \c job-limits array consist of a string property \c pool
+    and an int property \c limit.
+
+    If the \c log-time property is \c true, then \QBS will emit \l log-data messages
+    containing information about which part of the operation took how much time.
+
+    If \c products is an array, the elements must correspond to the
+    \c full-display-name property of previously retrieved \l ProductData,
+    and only these products will get built.
+    If \c products is the string \c "all", then all products in the project will
+    get built.
+    If \c products is not present, then products whose
+    \l{Product::builtByDefault}{builtByDefault} property is \c false will
+    be skipped.
+
+    The \c module-properties property has the same meaning as in the
+    \l{Resolving a Project}{resolve-project} request.
+
+    All other properties correspond to options of the \l build command.
+
+    When the build has finished, \QBS will reply with a \c project-built
+    message. The possible properties are:
+    \table
+    \header \li Property      \li Type                    \li Mandatory
+    \row    \li error         \li \l ErrorInfo            \li no
+    \row    \li project-data  \li \l TopLevelProjectData  \li no
+    \endtable
+
+    The \c error-info property is present if and only if the operation
+    failed. The \c project-data property is present if and only if
+    the conditions stated by the request's \c data-mode property
+    are fulfilled.
+
+    Unless the \c command-echo-mode value is \c "silent", a message of type
+    \c command-description is emitted for every command to be executed.
+    It consists of two string properties \c highlight and \c message,
+    where \c message is the message to present to the user and \c highlight
+    is a hint on how to display the message. It corresponds to the
+    \l{Command and JavaScriptCommand}{Command} property of the same name.
+
+    For finished process commands, a message of type \c process-result
+    might be emitted. The other properties are:
+    \table
+    \header \li Property               \li Type
+    \row    \li arguments              \li list of strings
+    \row    \li error                  \li string
+    \row    \li executable-file-path   \li \l FilePath
+    \row    \li exit-code              \li int
+    \row    \li stderr                 \li list of strings
+    \row    \li stdout                 \li list of strings
+    \row    \li success                \li bool
+    \row    \li working-directory      \li \l FilePath
+    \endtable
+
+    The \c error string is one of \c "failed-to-start", \c "crashed", \c "timed-out",
+    \c "write-error", \c "read-error" and \c "unknown-error".
+    Its value is not meaningful unless \c success is \c false.
+
+    The \c stdout and \c stderr properties describe the process's standard
+    output and standard error output, respectively, split into lines.
+
+    The \c success property is \c true if the process finished without errors
+    and an exit code of zero.
+
+    The other properties describe the exact command that was executed.
+
+    This message is only emitted if the process failed or it has printed data
+    to one of the output channels.
+
+    \section1 Cleaning a Project
+
+    To remove a project's build artifacts, a request of type \c clean-project
+    is sent. The other properties are:
+    \table
+    \header \li Property     \li Type
+    \row    \li dry-run      \li bool
+    \row    \li keep-going   \li bool
+    \row    \li log-level    \li \l LogLevel
+    \row    \li log-time     \li bool
+    \row    \li products     \li list of strings
+    \endtable
+
+    The elements of the \c products array correspond to a \c full-display-name
+    of a \l ProductData. If this property is present, only the respective
+    products' artifacts are removed.
+
+    If the \c log-time property is \c true, then \QBS will emit \l log-data messages
+    containing information about which part of the operation took how much time.
+
+    All other properties correspond to options of the \l clean command.
+
+    None of these properties are mandatory.
+
+    After all artifacts have been removed, \QBS replies with a
+    \c project-cleaned message. If the operation was successful, this message
+    has no properties. Otherwise, a property \c error of type \l ErrorInfo
+    indicates what went wrong.
+
+    \section1 Installing a Project
+
+    Installing is normally part of the \l{Building a Project}{build}
+    process. To do it in a separate step, the \c install property
+    is set to \c false when building and a dedicated \c install-project
+    message is sent. The other properties are:
+    \table
+    \header \li Property             \li Type
+    \row    \li clean-install-root   \li bool
+    \row    \li dry-run              \li bool
+    \row    \li install-root         \li \l FilePath
+    \row    \li keep-going           \li bool
+    \row    \li log-level            \li \l LogLevel
+    \row    \li log-time             \li bool
+    \row    \li products             \li list of strings
+    \row    \li use-sysroot          \li bool
+    \endtable
+
+    The elements of the \c products array correspond to a \c full-display-name
+    of a \l ProductData. If this property is present, only the respective
+    products' artifacts are installed.
+
+    If the \c log-time property is \c true, then \QBS will emit \l log-data messages
+    containing information about which part of the operation took how much time.
+
+    If the \c use-sysroot property is \c true and \c install-root is not present,
+    then the install root will be \l{qbs::sysroot}{qbs.sysroot}.
+
+    All other properties correspond to options of the \l install command.
+
+    None of these properties are mandatory.
+
+    \target cancel-message
+    \section1 Canceling an Operation
+
+    Potentially long-running operations can be aborted using the \c cancel-job
+    request. This message does not have any properties. There is no dedicated
+    reply message; instead, the usual reply for the request associated with
+    the currently running operation will be sent, with the \c error property
+    set to indicate that it was canceled.
+
+    If there is no operation in progress, this request will have no effect.
+    In particular, if it arrives after the operation that it was supposed to
+    cancel has already finished (i.e. there is a race condition), the reply
+    received by client code will not contain a cancellation-related error.
+
+    \section1 Adding and Removing Source Files
+
+    Source files can be added to and removed from \QBS project files with
+    the \c add-files and \c remove-files messages, respectively. These two
+    requests have the same set of properties:
+    \table
+    \header \li Property  \li Type
+    \row    \li files     \li \l FilePath list
+    \row    \li group     \li string
+    \row    \li product   \li string
+    \endtable
+
+    The \c files property specifies which files should be added or removed.
+
+    The \c product property corresponds to the \c full-display-name of
+    a \l ProductData and specifies to which product to apply the operation.
+
+    The \c group property corresponds to the \c name of a \l GroupData
+    and specifies to which group in the product to apply the operation.
+
+    After the operation has finished, \QBS replies with a \c files-added
+    and \c files-removed message, respectively. Again, the properties are
+    the same:
+    \table
+    \header \li Property       \li Type                     \li Mandatory
+    \row    \li error          \li \l ErrorInfo             \li no
+    \row    \li failed-files   \li \l FilePath list         \li no
+    \row    \li project-data   \li \l TopLevelProjectData   \li no
+    \endtable
+
+    If the \c error property is present, the operation has at least
+    partially failed and \c failed-files will list the files
+    that could not be added or removed.
+
+    If the project data has changed as a result of the operation
+    (which it should unless the operation failed completely), then
+    the \c project-data property will contain the updated project data.
+
+    \section1 The \c get-run-environment Message
+
+    This request retrieves the full run environment for a specific
+    executable product, taking into account the
+    \l{Module::setupRunEnvironment}{setupRunEnvironment} scripts
+    of all modules pulled in by the product. The properties are as follows:
+    \table
+    \header \li Property           \li Type              \li Mandatory
+    \row    \li base-environment   \li \l Environment    \li no
+    \row    \li config             \li list of strings   \li no
+    \row    \li product            \li string            \li yes
+    \endtable
+
+    The \c base-environment property defines the environment into which
+    the \QBS-specific values should be merged.
+
+    The \c config property corresponds to the \l{--setup-run-env-config}
+    option of the \l run command.
+
+    The \c product property specifies the product whose environment to
+    retrieve. The value must correspond to the \c full-display-name
+    of some \l ProductData in the project.
+
+    \QBS will reply with a \c run-environment message. In case of failure,
+    it will contain a property \c error of type \l ErrorInfo, otherwise
+    it will contain a property \c full-environment of type \l Environment.
+
+    \section1 The \c get-generated-files-for-sources Message
+
+    This request allows client code to retrieve information about
+    which artifacts are generated from a given source file.
+    Its sole property is a list \c products, whose elements are objects
+    with the two properties \c full-display-name and \c requests.
+    The first identifies the product to which the requests apply, and
+    it must match the property of the same name in a \l ProductData
+    in the project.
+    The latter is a list of objects with the following properties:
+    \table
+    \header \li Property      \li Type              \li Mandatory
+    \row    \li source-file   \li \l FilePath       \li yes
+    \row    \li tags          \li list of strings   \li no
+    \row    \li recursive     \li bool              \li no
+    \endtable
+
+    The \c source-file property specifies a source file in the respective
+    product.
+
+    The \c tags property constrains the possible file tags of the generated
+    files to be matched. This is relevant if a source files serves as input
+    to more than one rule or the rule generates more than one type of output.
+
+    If the \c recursive property is \c true, files indirectly generated
+    from the source file will also be returned. The default is \c false.
+    For instance, íf this property is enabled for a C++ source file,
+    the final link target (e.g. a library or an application executable)
+    will be returned in addition to the object file.
+
+    \QBS will reply with a \c generated-files-for-sources message, whose
+    structure is similar to the request. It also has a single object list
+    property \c products, whose elements consist of a string property
+    \c full-display-name and an object list property \c results.
+    The properties of these objects are:
+    \table
+    \header \li Property          \li Type
+    \row    \li source-file       \li \l FilePath
+    \row    \li generated-files   \li \l FilePath list
+    \endtable
+
+    The \c source-file property corresponds to an entry of the same name
+    in the request, and the \c generated-files are the files which are
+    generated by \QBS rules that take the source file as an input,
+    taking the constraints specified in the request into account.
+
+    Source files for which the list would be empty are not listed.
+    Similarly, products for which the \c results list would be empty
+    are also omitted.
+
+    \note The results may be incomplete if the project has not been fully built.
+
+    \section1 Closing a Project
+
+    A project is closed with a \c release-project message. This request has
+    no properties.
+
+    \QBS will reply with a \c project-released message. If no project was open,
+    the reply will contain an \c error property of type \l ErrorInfo.
+
+    \target quit-message
+    \section1 Closing the Session
+
+    To close the session, a \c quit message is sent. This request has no
+    properties.
+
+    \QBS will cancel all currently running operations and then close itself.
+    No reply will be sent.
+
+    \section1 Progress Messages
+
+    While a request is being handled, \QBS may emit progress information in order
+    to enable client code to display a progress bar.
+
+    \target task-started
+    \section2 The \c task-started Message
+
+    This is always the first progress-related message for a specific request.
+    It appears at most once per request.
+    It consists of a string property \c description, whose value can be displayed
+    to users, and an integer property \c max-progress that indicates which
+    progress value corresponds to 100 per cent.
+
+    \target task-progress
+    \section2 The \c task-progress Message
+
+    This message updates the progress via an integer property \c progress.
+
+    \target new-max-progress
+    \section2 The \c new-max-progress Message
+
+    This message is emitted if the original estimated maximum progress has
+    to be corrected. Its integer property \c max-progress updates the
+    value from a preceding \l task-started message.
+
+    \section1 Messages for Users
+
+    There are two types of messages that purely contain information to be
+    presented to users.
+
+    \target log-data
+    \section2 The \c log-data Message
+
+    This object has a string property \c message, which is the text to be
+    shown to the user.
+
+    \target warning-message
+    \section2 The \c warning Message
+
+    This message has a single property \c warning of type \l ErrorInfo.
+
+    \section1 The \c protocol-error Message
+
+    \QBS sends this message as a reply to a request with an unknown \c type.
+    It contains an \c error property of type \l ErrorInfo.
+
+    \section1 Project Data
+
+    If a request can alter the build graph data, the associated reply may contain
+    a \c project-data property whose value is of type \l TopLevelProjectData.
+
+    \section2 TopLevelProjectData
+
+    This data type represents the entire project. It has the same properties
+    as \l PlainProjectData. If it is part of a \c project-resolved message,
+    these additional properties are also present:
+    \table
+    \header \li Property                \li Type
+    \row    \li build-directory         \li \l FilePath
+    \row    \li build-graph-file-path   \li \l FilePath
+    \row    \li build-system-files      \li \l FilePath list
+    \row    \li overridden-properties   \li object
+    \row    \li profile-data            \li object
+    \endtable
+
+    The value of \c build-directory is the top-level build directory.
+
+    The \c build-graph-file-path value is the path to the build graph file.
+
+    The \c build-system-files value contains all \QBS project files, including
+    modules and JavaScript helper files.
+
+    The value of \c overridden-properties is the one that was passed in when
+    the project was last \l{Resolving a Project}{resolved}.
+
+    The \c profile-data property maps the names of the profiles used in the project
+    to the respective property maps. Unless profile multiplexing is used, this
+    object will contain exactly one property.
+
+    \section2 PlainProjectData
+
+    This data type describes a \l Project item. The properties are as follows:
+    \table
+    \header \li Property         \li Type
+    \row    \li is-enabled       \li bool
+    \row    \li location         \li \l FilePath
+    \row    \li name             \li string
+    \row    \li products         \li \l ProductData list
+    \row    \li sub-projects     \li \l PlainProjectData list
+    \endtable
+
+    The \c is-enabled property corresponds to the project's
+    \l{Project::condition}{condition}.
+
+    The \c location property is the exact position in a \QBS project file
+    where the corresponding \l Project item was defined.
+
+    The \c products and \c sub-projects are what the project has pulled in via
+    its \l{Project::references}{references} property.
+
+    \section2 ProductData
+
+    This data type describes a \l Product item. The properties are as follows:
+    \table
+    \header \li Property                     \li Type
+    \row    \li build-directory              \li \l FilePath
+    \row    \li dependencies                 \li list of strings
+    \row    \li full-display-name            \li string
+    \row    \li generated-artifacts          \li \l ArtifactData list
+    \row    \li groups                       \li \l GroupData list
+    \row    \li is-enabled                   \li bool
+    \row    \li is-multiplexed               \li bool
+    \row    \li is-runnable                  \li bool
+    \row    \li location                     \li \l Location
+    \row    \li module-properties            \li \l ModulePropertiesData
+    \row    \li multiplex-configuration-id   \li string
+    \row    \li name                         \li string
+    \row    \li properties                   \li object
+    \row    \li target-executable            \li \l FilePath
+    \row    \li target-name                  \li string
+    \row    \li type                         \li list of strings
+    \row    \li version                      \li string
+    \endtable
+
+    The \c dependencies are the names of products that occur in the (enabled)
+    \l Depends items of this product.
+
+    The \c generated-artifacts are files that are created by the \l{Rule}{rules}
+    in this product.
+
+    The \c groups list corresponds to the \l Group items in this product.
+    In addition, a "pseudo-group" is created for the \l{Product::files}{files}
+    property of the product itself. Its name is the same as the product's.
+
+    The \c is-enabled property corresponds to the product's
+    \l{Product::condition}{condition}. A product may also get disabled
+    if it contains errors and \QBS was was instructed to operate in relaxed mode
+    when the project was \l{Resolving a Project}{resolved}.
+
+    The \c is-multiplexed property is true if and only if the product is
+    \l{Multiplexing}{multiplexed} over one ore more properties.
+
+    The \c is-runnable property indicates whether one of the product's
+    target artifacts is an executable file.
+    In that case, the file is available via the \c target-executable property.
+
+    The \c location property is the exact position in a \QBS project file
+    where the corresponding \l Product item was defined.
+
+    The \c module-properties object provides the values of the module properties
+    that were requested when the project was \l{Resolving a Project}{resolved}.
+
+    The \c name property is the value given in the \l{Product::name}{Product item},
+    whereas \c full-display-name is a name that uniquely identifies the
+    product in the entire project, even in the presence of multiplexing.
+    In the absence of multiplexing, it is the same as \c name. In either case,
+    it is suitable for being presented to users.
+
+    See the \l Product item documentation for a description of the other
+    properties.
+
+    \section2 GroupData
+
+    This data type describes a \l Group item. The properties are:
+    \table
+    \header \li Property                          \li Type
+    \row    \li is-enabled                        \li bool
+    \row    \li location                          \li \l Location
+    \row    \li module-properties                 \li \l ModulePropertiesData
+    \row    \li name                              \li string
+    \row    \li prefix                            \li string
+    \row    \li source-artifacts                  \li \l ArtifactData list
+    \row    \li source-artifacts-from-wildcards   \li \l ArtifactData list
+    \endtable
+
+    The \c is-enabled property corresponds to the groups's
+    \l{Group::condition}{condition}. However, if the group's product
+    is disabled, this property will always be \c false.
+
+    The \c location property is the exact position in a \QBS project file
+    where the corresponding \l Group item occurs.
+
+    The \c module-properties object provides the values of the module properties
+    that were requested when the project was \l{Resolving a Project}{resolved}.
+    If no module properties are set on the Group level and the value would therefore
+    be the same as in the group's product, then this property is omitted.
+
+    The \c source-artifacts list corresponds the the files listed verbatim
+    in the group's \l{Group::files}{files} property.
+
+    The \c source-artifacts-from-wildcards list represents the the files
+    expanded from wildcard entries in the group's \l{Group::files}{files} property.
+
+    See the \l Group item documentation for a description of the other
+    properties.
+
+    \section2 ArtifactData
+
+    This data type represents files that occur in the project, either as sources
+    or as outputs of a rules. \QBS project files, on the other hand, are not
+    artifacts. The properties are:
+    \table
+    \header \li Property            \li Type
+    \row    \li file-path           \li \l FilePath
+    \row    \li file-tags           \li list of strings
+    \row    \li install-data        \li object
+    \row    \li is-executable       \li bool
+    \row    \li is-generated        \li bool
+    \row    \li is-target           \li bool
+    \row    \li module-properties   \li \l ModulePropertiesData
+    \endtable
+
+    The \c install-data property is an object whose \c is-installable property
+    indicates whether the artifact gets installed. If so, then the \l FilePath
+    properties \c install-file-path and \c install-root provide further
+    information.
+
+    The \c is-target property is true if the artifact is a target artifact
+    of its product, that is, \c is-generated is true and \c file-tags
+    intersects with the \l{Product::type}{product type}.
+
+    The \c module-properties object provides the values of the module properties
+    that were requested when the project was \l{Resolving a Project}{resolved}.
+    This property is only present for generated artifacts. For source artifacts,
+    the value can be retrieved from their \l{GroupData}{group}.
+
+    The other properties should be self-explanatory.
+
+    \section2 ModulePropertiesData
+
+    This data type maps fully qualified module property names to their
+    respective values.
+
+    \section1 Other Custom Data Types
+
+    There are a number of custom data types that serve as building blocks in
+    various messages. They are described below.
+
+    \section2 FilePath
+
+    A \e FilePath is a string that describes a file or directory. FilePaths are
+    always absolute and use forward slashes for separators, regardless of
+    the host operating system.
+
+    \section2 Location
+
+    A \e Location is an object representing a file path and possibly also a position
+    within the respective file. It consists of the following properties:
+    \table
+    \header \li Property      \li Type           \li Mandatory
+    \row    \li file-path     \li \l FilePath    \li yes
+    \row    \li line          \li int            \li no
+    \row    \li column        \li int            \li no
+    \endtable
+
+    \section2 ErrorInfo
+
+    An \e ErrorInfo is an object representing error information. Its sole property
+    \c items is an array of objects with the following structure:
+    \table
+    \header \li Property      \li Type           \li Mandatory
+    \row    \li \c message    \li string         \li yes
+    \row    \li location      \li \l Location    \li no
+    \endtable
+
+    \section2 DataMode
+
+    This is the type of the \c data-mode property in a
+    \l{Resolving a project}{resolve} or \l{Building a project}{build}
+    request. It is used to indicate under which circumstances
+    the reply message should include the project data. The possible
+    values have string type and are as follows:
+    \list
+        \li \c "never": Do not attach project data to the reply.
+        \li \c "always": Do attach project data to the reply.
+        \li \c "only-if-changed": Attach project data to the reply only
+                                  if it is different from the current
+                                  project data.
+    \endlist
+    The default value is \c "never".
+
+    \section2 LogLevel
+
+    This is the type of the \c log-level property that can occur
+    in various requests. It is used to indicate whether the client would like
+    to receive \l log-data and/or \l{warning-message}{warning} messages.
+    The possible values have string type and are as follows:
+    \list
+        \li "error": Do not log anything.
+        \li "warning": \QBS may emit \l{warning-message}{warnings}, but no
+                       \l log-data messages.
+        \li "info": In addition to warnings, \QBS may emit informational
+                    \l log-data messages.
+        \li "debug": \QBS may emit debug output. No messages will be generated;
+                     instead, the standard error output channel will be used.
+    \endlist
+    The default value is \c "info".
+
+    \section2 Environment
+
+    This data type describes a set of environment variables. It is an object
+    whose keys are names of environment variables and whose values are
+    the values of these environment variables.
+
+*/

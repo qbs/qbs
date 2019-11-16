@@ -640,8 +640,7 @@
 
     The architectures the product will be built for.
 
-    \defaultvalue \c{["armv5te"]} on Android, same as Xcode on Apple platforms,
-    otherwise equivalent to \l{qbs::architecture}{[qbs.architecture]}.
+    \nodefaultvalue
 */
 
 /*!
@@ -650,7 +649,7 @@
 
     The build variants the product will be built for.
 
-    \defaultvalue Equivalent to \l{qbs::buildVariant}{[qbs.buildVariant]}.
+    \nodefaultvalue
 */
 
 /*!

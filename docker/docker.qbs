@@ -29,7 +29,7 @@ Project {
 
         files: [
             "windowsservercore/Dockerfile",
-            "windowsservercore/qtifwsilent.qs",
+            "windowsservercore/build-qt.bat",
         ]
     }
 }

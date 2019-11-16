@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2019 Jochen Ulrich <jochenulrich@t-online.de>
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -70,6 +71,7 @@ public:
     static QString defaultHighLight() { return {}; }
     static bool defaultIgnoreDryRun() { return false; }
     static bool defaultIsSilent() { return false; }
+    static int defaultTimeout() { return -1; }
 
     virtual CommandType type() const = 0;
     virtual bool equals(const AbstractCommand *other) const;
@@ -83,6 +85,7 @@ public:
     bool isSilent() const { return m_silent; }
     QString jobPool() const { return m_jobPool; }
     CodeLocation codeLocation() const { return m_codeLocation; }
+    int timeout() const { return m_timeout; }
 
     const QVariantMap &properties() const { return m_properties; }
 
@@ -100,7 +103,7 @@ private:
     {
         pool.serializationOp<opType>(m_description, m_extendedDescription, m_highlight,
                                      m_ignoreDryRun, m_silent, m_codeLocation, m_jobPool,
-                                     m_properties);
+                                     m_timeout, m_properties);
     }
 
     QString m_description;
@@ -110,6 +113,7 @@ private:
     bool m_silent;
     CodeLocation m_codeLocation;
     QString m_jobPool;
+    int m_timeout;
     QVariantMap m_properties;
 };
 

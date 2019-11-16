@@ -686,7 +686,7 @@ function doSetupLibraries(modInfo, qtProps, debugBuild, nonExistingPrlFiles) {
                 modInfo.config = splitNonEmpty(line.slice(equalsOffset + 1).trim(), ' ');
                 continue;
             }
-            if (!line.startsWith("QMAKE_PRL_LIBS"))
+            if (!line.startsWith("QMAKE_PRL_LIBS ="))
                 continue;
 
             var parts = extractPaths(line.slice(equalsOffset + 1).trim(), prlFilePath);

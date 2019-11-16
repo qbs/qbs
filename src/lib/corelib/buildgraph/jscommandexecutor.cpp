@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2019 Jochen Ulrich <jochenulrich@t-online.de>
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -54,6 +55,7 @@
 #include <tools/qbsassert.h>
 
 #include <QtCore/qeventloop.h>
+#include <QtCore/qpointer.h>
 #include <QtCore/qthread.h>
 #include <QtCore/qtimer.h>
 
@@ -82,10 +84,13 @@ public:
         return m_result;
     }
 
-    void cancel()
+    void cancel(const qbs::ErrorInfo &reason)
     {
-        QBS_ASSERT(m_scriptEngine, return);
-        m_scriptEngine->abortEvaluation();
+        m_result.success = !reason.hasError();
+        m_result.errorMessage = reason.toString();
+        if (m_scriptEngine)
+            m_scriptEngine->abortEvaluation();
+        m_cancelled = true;
     }
 
 signals:
@@ -94,6 +99,11 @@ signals:
 public:
     void start(const JavaScriptCommand *cmd, Transformer *transformer)
     {
+        if (m_cancelled) {
+            emit finished();
+            return;
+        }
+
         m_running = true;
         try {
             doStart(cmd, transformer);
@@ -181,6 +191,7 @@ private:
     ScriptEngine *m_scriptEngine;
     JavaScriptCommandResult m_result;
     bool m_running = false;
+    bool m_cancelled = false;
 };
 
 
@@ -200,9 +211,9 @@ JsCommandExecutor::JsCommandExecutor(const Logger &logger, QObject *parent)
 JsCommandExecutor::~JsCommandExecutor()
 {
     waitForFinished();
-    delete m_objectInThread;
     m_thread->quit();
     m_thread->wait();
+    delete m_objectInThread;
 }
 
 void JsCommandExecutor::doReportCommandDescription(const QString &productName)
@@ -222,28 +233,32 @@ void JsCommandExecutor::waitForFinished()
     if (!m_running)
         return;
     QEventLoop loop;
-    connect(m_objectInThread, &JsCommandExecutorThreadObject::finished, &loop, &QEventLoop::quit);
+    connect(this, &AbstractCommandExecutor::finished, &loop, &QEventLoop::quit);
     loop.exec();
 }
 
-void JsCommandExecutor::doStart()
+bool JsCommandExecutor::doStart()
 {
-    QBS_ASSERT(!m_running, return);
-    m_thread->start();
+    QBS_ASSERT(!m_running, return false);
 
     if (dryRun() && !command()->ignoreDryRun()) {
         QTimer::singleShot(0, this, [this] { emit finished(); }); // Don't call back on the caller.
-        return;
+        return false;
     }
 
+    m_thread->start();
     m_running = true;
     emit startRequested(jsCommand(), transformer());
+    return true;
 }
 
-void JsCommandExecutor::cancel()
+void JsCommandExecutor::cancel(const qbs::ErrorInfo &reason)
 {
-    if (m_running && !dryRun())
-        QTimer::singleShot(0, m_objectInThread, [this] { m_objectInThread->cancel(); });
+    if (m_running && (!dryRun() || command()->ignoreDryRun()))
+        QTimer::singleShot(0, m_objectInThread, [objectInThread = QPointer<JsCommandExecutorThreadObject>{m_objectInThread}, reason] {
+            if (objectInThread)
+                objectInThread->cancel(reason);
+        });
 }
 
 void JsCommandExecutor::onJavaScriptCommandFinished()

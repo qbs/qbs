@@ -37,10 +37,12 @@
 **
 ****************************************************************************/
 
-#ifndef SDCCPROBE_H
-#define SDCCPROBE_H
+#ifndef QBS_SETUPTOOLCHAINS_SDCCPROBE_H
+#define QBS_SETUPTOOLCHAINS_SDCCPROBE_H
 
 #include <QtCore/qlist.h>
+
+#include <tuple>
 
 QT_BEGIN_NAMESPACE
 class QFileInfo;
@@ -51,6 +53,18 @@ class Profile;
 class Settings;
 }
 
+struct SdccInstallInfo
+{
+    QString compilerPath;
+    QString version;
+};
+
+inline bool operator==(const SdccInstallInfo &lhs, const SdccInstallInfo &rhs)
+{
+    return std::tie(lhs.compilerPath, lhs.version)
+            == std::tie(rhs.compilerPath, rhs.version);
+}
+
 bool isSdccCompiler(const QString &compilerName);
 
 void createSdccProfile(const QFileInfo &compiler, qbs::Settings *settings,
@@ -58,4 +72,4 @@ void createSdccProfile(const QFileInfo &compiler, qbs::Settings *settings,
 
 void sdccProbe(qbs::Settings *settings, QList<qbs::Profile> &profiles);
 
-#endif // SDCCPROBE_H
+#endif // Header guard

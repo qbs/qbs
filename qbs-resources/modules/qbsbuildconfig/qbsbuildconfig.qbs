@@ -8,11 +8,13 @@ Module {
         name: "cpp"
     }
     property bool enableAddressSanitizer: false
+    property bool enableUbSanitizer: false
+    property bool enableThreadSanitizer: false
     property bool enableUnitTests: false
     property bool enableProjectFileUpdates: false
     property bool enableRPath: true
     property bool installApiHeaders: true
-    property bool enableBundledQt: true
+    property bool enableBundledQt: false
     property bool useBundledQtScript: false
     property bool staticBuild: false
     property string libDirName: "lib"
@@ -59,6 +61,15 @@ Module {
             }
             return flags;
         }
-        cpp.driverFlags: enableAddressSanitizer ? ["-fsanitize=address"] : []
+        cpp.driverFlags: {
+            var flags = [];
+            if (enableAddressSanitizer)
+                flags.push("-fsanitize=address");
+            if (enableUbSanitizer)
+                flags.push("-fsanitize=undefined");
+            if (enableThreadSanitizer)
+                flags.push("-fsanitize=thread");
+            return flags;
+        }
     }
 }

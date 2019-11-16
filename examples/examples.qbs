@@ -65,6 +65,7 @@ Project {
         "install-bundle/install-bundle.qbs",
         "protobuf/cpp/addressbook.qbs",
         "protobuf/objc/addressbook.qbs",
-        "baremetal/baremetal.qbs"
+        "baremetal/baremetal.qbs",
+        "rule/rule.qbs",
     ]
 }

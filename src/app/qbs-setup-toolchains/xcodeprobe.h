@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef XCODEPROBE_H
-#define XCODEPROBE_H
+#ifndef QBS_SETUPTOOLCHAINS_XCODEPROBE_H
+#define QBS_SETUPTOOLCHAINS_XCODEPROBE_H
 
 #include <QtCore/qlist.h>
 
@@ -49,4 +49,4 @@ class Settings;
 
 void xcodeProbe(qbs::Settings *settings, QList<qbs::Profile> &profiles);
 
-#endif // XCODEPROBE_H
+#endif // Header guard

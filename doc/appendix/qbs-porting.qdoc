@@ -29,7 +29,7 @@
     \contentspage index.html
     \previouspage building-qbs.html
     \page porting-to-qbs.html
-    \nextpage attributions.html
+    \nextpage json-api.html
 
     \title Appendix B: Migrating from Other Build Systems
 

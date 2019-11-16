@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2019 Jochen Ulrich <jochenulrich@t-online.de>
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -42,6 +43,7 @@
 #include <tools/version.h>
 
 #include <QtCore/qdebug.h>
+#include <QtCore/qelapsedtimer.h>
 #include <QtCore/qjsonarray.h>
 #include <QtCore/qjsondocument.h>
 #include <QtCore/qjsonobject.h>
@@ -52,6 +54,7 @@
 #include <QtCore/qtemporarydir.h>
 #include <QtCore/qtemporaryfile.h>
 
+#include <algorithm>
 #include <functional>
 #include <regex>
 #include <utility>
@@ -1805,14 +1808,17 @@ void TestBlackbox::separateDebugInfo()
 {
     QDir::setCurrent(testDataDir + "/separate-debug-info");
     QCOMPARE(runQbs(QbsRunParameters(QStringList("qbs.debugInformation:true"))), 0);
+    const bool isWindows = m_qbsStdout.contains("is windows: yes");
+    const bool isNotWindows = m_qbsStdout.contains("is windows: no");
+    QVERIFY(isWindows != isNotWindows);
+    const bool isDarwin = m_qbsStdout.contains("is darwin: yes");
+    const bool isNotDarwin = m_qbsStdout.contains("is darwin: no");
+    QVERIFY(isDarwin != isNotDarwin);
 
     const SettingsPtr s = settings();
     Profile buildProfile(profileName(), s.get());
     QStringList toolchain = buildProfile.value("qbs.toolchain").toStringList();
-    std::string targetPlatform = buildProfile.value("qbs.targetPlatform").toString().toStdString();
-    std::vector<std::string> targetOS = HostOsInfo::canonicalOSIdentifiers(targetPlatform);
-    if (qbs::Internal::contains(targetOS, "darwin")
-            || (targetPlatform.empty() && HostOsInfo::isMacosHost())) {
+    if (isDarwin) {
         QVERIFY(directoryExists(relativeProductBuildDir("app1") + "/app1.app.dSYM"));
         QVERIFY(regularFileExists(relativeProductBuildDir("app1")
             + "/app1.app.dSYM/Contents/Info.plist"));
@@ -1877,7 +1883,6 @@ void TestBlackbox::separateDebugInfo()
                 .entryInfoList(QDir::NoDotAndDotDot | QDir::AllEntries).size(), 1);
         QVERIFY(regularFileExists(relativeProductBuildDir("bar5") + "/bar5.bundle.dwarf"));
     } else if (toolchain.contains("gcc")) {
-        const bool isWindows = qbs::Internal::contains(targetOS, "windows");
         const QString exeSuffix = isWindows ? ".exe" : "";
         const QString dllPrefix = isWindows ? "" : "lib";
         const QString dllSuffix = isWindows ? ".dll" : ".so";
@@ -2257,6 +2262,28 @@ void TestBlackbox::referenceErrorInExport()
     QVERIFY(runQbs(params) != 0);
     QVERIFY(m_qbsStderr.contains(
         "referenceErrorInExport.qbs:15:12 ReferenceError: Can't find variable: includePaths"));
+}
+
+void TestBlackbox::removeDuplicateLibraries_data()
+{
+    QTest::addColumn<bool>("removeDuplicates");
+    QTest::newRow("remove duplicates") << true;
+    QTest::newRow("don't remove duplicates") << false;
+}
+
+void TestBlackbox::removeDuplicateLibraries()
+{
+    QDir::setCurrent(testDataDir + "/remove-duplicate-libs");
+    QFETCH(bool, removeDuplicates);
+    const QbsRunParameters resolveParams("resolve", {"-f", "remove-duplicate-libs.qbs",
+            "project.removeDuplicates:" + QString(removeDuplicates? "true" : "false")});
+    QCOMPARE(runQbs(resolveParams), 0);
+    const bool isBfd = m_qbsStdout.contains("is bfd linker: true");
+    const bool isNotBfd = m_qbsStdout.contains("is bfd linker: false");
+    QVERIFY2(isBfd != isNotBfd, m_qbsStdout.constData());
+    QbsRunParameters buildParams("build");
+    buildParams.expectFailure = removeDuplicates && isBfd;
+    QCOMPARE(runQbs(buildParams) == 0, !buildParams.expectFailure);
 }
 
 void TestBlackbox::reproducibleBuild()
@@ -4262,7 +4289,8 @@ void TestBlackbox::symbolLinkMode()
         rmDirR(relativeBuildDir());
         params.arguments = QStringList() << commonArgs << "project.lazy:true";
         QCOMPARE(runQbs(params), 0);
-        QVERIFY2(m_qbsStdout.contains("meow\nLib was loaded!\n"), m_qbsStdout.constData());
+        QVERIFY2(m_qbsStdout.contains("meow\n") && m_qbsStdout.contains("Lib was loaded!\n"),
+                 m_qbsStdout.constData());
     }
 }
 
@@ -4353,6 +4381,18 @@ void TestBlackbox::lexyacc()
     QCOMPARE(runQbs(), 0);
     const QString parserBinary = relativeExecutableFilePath("one-grammar");
     QProcess p;
+    const QByteArray magicString = "add to PATH: ";
+    const int magicStringIndex = m_qbsStdout.indexOf(magicString);
+    if (magicStringIndex != -1) {
+        const int newLineIndex = m_qbsStdout.indexOf('\n', magicStringIndex);
+        QVERIFY(newLineIndex != -1);
+        const int dirIndex = magicStringIndex + magicString.length();
+        const QString dir = QString::fromLocal8Bit(m_qbsStdout.mid(dirIndex,
+                                                                   newLineIndex - dirIndex));
+        QProcessEnvironment env;
+        env.insert("PATH", dir);
+        p.setProcessEnvironment(env);
+    }
     p.start(parserBinary);
     QVERIFY2(p.waitForStarted(), qPrintable(p.errorString()));
     p.write("a && b || c && !d");
@@ -4437,6 +4477,86 @@ void TestBlackbox::lexyaccOutputs_data()
             << QString{"lex_luthor.cpp"} << QString();
     QTest::newRow("yaccOutputFilePath")
             << QString() << QString{"shaven_yak.cpp"};
+}
+
+void TestBlackbox::linkerLibraryDuplicates()
+{
+    const SettingsPtr s = settings();
+    Profile buildProfile(profileName(), s.get());
+    QStringList toolchain = buildProfile.value("qbs.toolchain").toStringList();
+    if (!toolchain.contains("gcc"))
+        QSKIP("linkerLibraryDuplicates test only applies to GCC toolchain");
+
+    QDir::setCurrent(testDataDir + "/linker-library-duplicates");
+    rmDirR(relativeBuildDir());
+
+    QFETCH(QString, removeDuplicateLibraries);
+    QStringList runParams;
+    if (!removeDuplicateLibraries.isEmpty()) {
+        runParams.append(removeDuplicateLibraries);
+    }
+
+    QCOMPARE(runQbs(QbsRunParameters("resolve", runParams)), 0);
+    QCOMPARE(runQbs(QStringList { "--command-echo-mode", "command-line" }), 0);
+    const QByteArrayList output = m_qbsStdout.split('\n');
+    QByteArray linkLine;
+    for (const QByteArray &line : output) {
+        if (line.contains("main.cpp.o"))
+            linkLine = line;
+    }
+    QVERIFY(!linkLine.isEmpty());
+
+    /* Now check the the libraries appear just once. In order to avoid dealing
+     * with the different file extensions used in different platforms, we check
+     * only for the library base name. But we must also take into account that
+     * the build directories of each library will contain the library base name,
+     * so we now exclude them. */
+    QByteArrayList elementsWithoutPath;
+    for (const QByteArray &element: linkLine.split(' ')) {
+        if (element.indexOf('/') < 0)
+            elementsWithoutPath.append(element);
+    }
+    QByteArray pathLessLinkLine = elementsWithoutPath.join(' ');
+
+    typedef QMap<QByteArray,int> ObjectCount;
+    QFETCH(ObjectCount, expectedObjectCount);
+    for (auto i = expectedObjectCount.begin();
+         i != expectedObjectCount.end();
+         i++) {
+        QCOMPARE(pathLessLinkLine.count(i.key()), i.value());
+    }
+}
+
+void TestBlackbox::linkerLibraryDuplicates_data()
+{
+    typedef QMap<QByteArray,int> ObjectCount;
+
+    QTest::addColumn<QString>("removeDuplicateLibraries");
+    QTest::addColumn<ObjectCount>("expectedObjectCount");
+
+    QTest::newRow("default") <<
+        QString() <<
+        ObjectCount {
+            { "lib1", 1 },
+            { "lib2", 1 },
+            { "lib3", 1 },
+        };
+
+    QTest::newRow("enabled") <<
+        "modules.cpp.removeDuplicateLibraries:true" <<
+        ObjectCount {
+            { "lib1", 1 },
+            { "lib2", 1 },
+            { "lib3", 1 },
+        };
+
+    QTest::newRow("disabled") <<
+        "modules.cpp.removeDuplicateLibraries:false" <<
+        ObjectCount {
+            { "lib1", 3 },
+            { "lib2", 2 },
+            { "lib3", 1 },
+        };
 }
 
 void TestBlackbox::linkerScripts()
@@ -5293,6 +5413,654 @@ void TestBlackbox::qbsConfig()
     }
 }
 
+static QJsonObject getNextSessionPacket(QProcess &session, QByteArray &data)
+{
+    int totalSize = -1;
+    QElapsedTimer timer;
+    timer.start();
+    QByteArray msg;
+    while (totalSize == -1 || msg.size() < totalSize) {
+        if (data.isEmpty())
+            session.waitForReadyRead(1000);
+        if (timer.elapsed() >= testTimeoutInMsecs())
+            return QJsonObject();
+        data += session.readAllStandardOutput();
+        if (totalSize == -1) {
+            static const QByteArray magicString = "qbsmsg:";
+            const int magicStringOffset = data.indexOf(magicString);
+            if (magicStringOffset == -1)
+                continue;
+            const int sizeOffset = magicStringOffset + magicString.length();
+            const int newlineOffset = data.indexOf('\n', sizeOffset);
+            if (newlineOffset == -1)
+                continue;
+            const QByteArray sizeString = data.mid(sizeOffset, newlineOffset - sizeOffset);
+            bool isNumber;
+            const int size = sizeString.toInt(&isNumber);
+            if (!isNumber || size <= 0)
+                return QJsonObject();
+            data = data.mid(newlineOffset + 1);
+            totalSize = size;
+        }
+        const int bytesToTake = std::min(totalSize - msg.size(), data.size());
+        msg += data.left(bytesToTake);
+        data = data.mid(bytesToTake);
+    }
+    return QJsonDocument::fromJson(QByteArray::fromBase64(msg)).object();
+}
+
+void TestBlackbox::qbsSession()
+{
+    QDir::setCurrent(testDataDir + "/qbs-session");
+    QProcess sessionProc;
+    sessionProc.start(qbsExecutableFilePath, QStringList("session"));
+
+    // Uncomment for debugging.
+    /*
+    connect(&sessionProc, &QProcess::readyReadStandardError, [&sessionProc] {
+        qDebug() << "stderr:" << sessionProc.readAllStandardError();
+    });
+    */
+
+    QVERIFY(sessionProc.waitForStarted());
+
+    const auto sendPacket = [&sessionProc](const QJsonObject &message) {
+        const QByteArray data = QJsonDocument(message).toJson().toBase64();
+        sessionProc.write("qbsmsg:");
+        sessionProc.write(QByteArray::number(data.length()));
+        sessionProc.write("\n");
+        sessionProc.write(data);
+    };
+
+    static const auto envToJson = [](const QProcessEnvironment &env) {
+        QJsonObject envObj;
+        const QStringList keys = env.keys();
+        for (const QString &key : keys)
+            envObj.insert(key, env.value(key));
+        return envObj;
+    };
+
+    static const auto envFromJson = [](const QJsonValue &v) {
+        const QJsonObject obj = v.toObject();
+        QProcessEnvironment env;
+        for (auto it = obj.begin(); it != obj.end(); ++it)
+            env.insert(it.key(), it.value().toString());
+        return env;
+    };
+
+    QByteArray incomingData;
+
+    // Wait for and verify hello packet.
+    QJsonObject receivedMessage = getNextSessionPacket(sessionProc, incomingData);
+    QCOMPARE(receivedMessage.value("type"), "hello");
+    QCOMPARE(receivedMessage.value("api-level").toInt(), 1);
+    QCOMPARE(receivedMessage.value("api-compat-level").toInt(), 1);
+
+    // Resolve & verify structure
+    QJsonObject resolveMessage;
+    resolveMessage.insert("type", "resolve-project");
+    resolveMessage.insert("top-level-profile", profileName());
+    resolveMessage.insert("configuration-name", "my-config");
+    resolveMessage.insert("project-file-path", QDir::currentPath() + "/qbs-session.qbs");
+    resolveMessage.insert("build-root", QDir::currentPath());
+    resolveMessage.insert("settings-directory", settings()->baseDirectory());
+    QJsonObject overriddenValues;
+    overriddenValues.insert("products.theLib.cpp.cxxLanguageVersion", "c++17");
+    resolveMessage.insert("overridden-properties", overriddenValues);
+    resolveMessage.insert("environment", envToJson(QProcessEnvironment::systemEnvironment()));
+    resolveMessage.insert("data-mode", "only-if-changed");
+    resolveMessage.insert("log-time", true);
+    resolveMessage.insert("module-properties",
+                          QJsonArray::fromStringList({"cpp.cxxLanguageVersion"}));
+    sendPacket(resolveMessage);
+    bool receivedLogData = false;
+    bool receivedStartedSignal = false;
+    bool receivedProgressData = false;
+    bool receivedReply = false;
+    while (!receivedReply) {
+        receivedMessage = getNextSessionPacket(sessionProc, incomingData);
+        QVERIFY(!receivedMessage.isEmpty());
+        const QString msgType = receivedMessage.value("type").toString();
+        if (msgType == "project-resolved") {
+            receivedReply = true;
+            const QJsonObject error = receivedMessage.value("error").toObject();
+            if (!error.isEmpty())
+                qDebug() << error;
+            QVERIFY(error.isEmpty());
+            const QJsonObject projectData = receivedMessage.value("project-data").toObject();
+            QCOMPARE(projectData.value("name").toString(), "qbs-session");
+            const QJsonArray products = projectData.value("products").toArray();
+            QCOMPARE(products.size(), 2);
+            for (const QJsonValue &v : products) {
+                const QJsonObject product = v.toObject();
+                const QString productName = product.value("name").toString();
+                QVERIFY(!productName.isEmpty());
+                QVERIFY2(product.value("is-enabled").toBool(), qPrintable(productName));
+                bool theLib = false;
+                bool theApp = false;
+                if (productName == "theLib")
+                    theLib = true;
+                else if (productName == "theApp")
+                    theApp = true;
+                QVERIFY2(theLib || theApp, qPrintable(productName));
+                const QJsonArray groups = product.value("groups").toArray();
+                if (theLib)
+                    QVERIFY(groups.size() >= 3);
+                else
+                    QVERIFY(!groups.isEmpty());
+                for (const QJsonValue &v : groups) {
+                    const QJsonObject group = v.toObject();
+                    const QJsonArray sourceArtifacts
+                            = group.value("source-artifacts").toArray();
+                    const auto findArtifact = [&sourceArtifacts](const QString fileName) {
+                        for (const QJsonValue &v : sourceArtifacts) {
+                            const QJsonObject artifact = v.toObject();
+                            if (QFileInfo(artifact.value("file-path").toString()).fileName()
+                                    == fileName) {
+                                return artifact;
+                            }
+                        }
+                        return QJsonObject();
+                    };
+                    const QString groupName = group.value("name").toString();
+                    const auto getCxxLanguageVersion = [&group, &product] {
+                        QJsonObject moduleProperties = group.value("module-properties").toObject();
+                        if (moduleProperties.isEmpty())
+                            moduleProperties = product.value("module-properties").toObject();
+                        return moduleProperties.toVariantMap().value("cpp.cxxLanguageVersion")
+                                .toStringList();
+                    };
+                    if (groupName == "sources") {
+                        const QJsonObject artifact = findArtifact("lib.cpp");
+                        QVERIFY2(!artifact.isEmpty(), "lib.cpp");
+                        QCOMPARE(getCxxLanguageVersion(), {"c++17"});
+                    } else if (groupName == "headers") {
+                        const QJsonObject artifact = findArtifact("lib.h");
+                        QVERIFY2(!artifact.isEmpty(), "lib.h");
+                    } else if (groupName == "theApp") {
+                        const QJsonObject artifact = findArtifact("main.cpp");
+                        QVERIFY2(!artifact.isEmpty(), "main.cpp");
+                        QCOMPARE(getCxxLanguageVersion(), {"c++14"});
+                    }
+                }
+            }
+            break;
+        } else if (msgType == "log-data") {
+            if (receivedMessage.value("message").toString().contains("activity"))
+                receivedLogData = true;
+        } else if (msgType == "task-started") {
+            receivedStartedSignal = true;
+        } else if (msgType == "task-progress") {
+            receivedProgressData = true;
+        } else if (msgType != "new-max-progress") {
+            QVERIFY2(false, qPrintable(QString("Unexpected message type '%1'").arg(msgType)));
+        }
+    }
+    QVERIFY(receivedReply);
+    QVERIFY(receivedLogData);
+    QVERIFY(receivedStartedSignal);
+    QVERIFY(receivedProgressData);
+
+    // First build: No install, log time, default command description.
+    QJsonObject buildRequest;
+    buildRequest.insert("type", "build-project");
+    buildRequest.insert("log-time", true);
+    buildRequest.insert("install", false);
+    buildRequest.insert("data-mode", "only-if-changed");
+    sendPacket(buildRequest);
+    receivedReply = false;
+    receivedLogData = false;
+    receivedStartedSignal = false;
+    receivedProgressData = false;
+    bool receivedCommandDescription = false;
+    bool receivedProcessResult = false;
+    while (!receivedReply) {
+        receivedMessage = getNextSessionPacket(sessionProc, incomingData);
+        QVERIFY(!receivedMessage.isEmpty());
+        const QString msgType = receivedMessage.value("type").toString();
+        if (msgType == "project-built") {
+            receivedReply = true;
+            const QJsonObject error = receivedMessage.value("error").toObject();
+            if (!error.isEmpty())
+                qDebug() << error;
+            QVERIFY(error.isEmpty());
+            const QJsonObject projectData = receivedMessage.value("project-data").toObject();
+            QCOMPARE(projectData.value("name").toString(), "qbs-session");
+        } else if (msgType == "log-data") {
+            if (receivedMessage.value("message").toString().contains("activity"))
+                receivedLogData = true;
+        } else if (msgType == "task-started") {
+            receivedStartedSignal = true;
+        } else if (msgType == "task-progress") {
+            receivedProgressData = true;
+        } else if (msgType == "command-description") {
+            if (receivedMessage.value("message").toString().contains("compiling main.cpp"))
+                receivedCommandDescription = true;
+        } else if (msgType == "process-result") {
+            QCOMPARE(receivedMessage.value("exit-code").toInt(), 0);
+            receivedProcessResult = true;
+        } else if (msgType != "new-max-progress") {
+            QVERIFY2(false, qPrintable(QString("Unexpected message type '%1'").arg(msgType)));
+        }
+    }
+    QVERIFY(receivedReply);
+    QVERIFY(receivedLogData);
+    QVERIFY(receivedStartedSignal);
+    QVERIFY(receivedProgressData);
+    QVERIFY(receivedCommandDescription);
+    QVERIFY(receivedProcessResult);
+    const QString &exeFilePath = QDir::currentPath() + '/'
+            + relativeExecutableFilePath("theApp", "my-config");
+    QVERIFY2(regularFileExists(exeFilePath), qPrintable(exeFilePath));
+    const QString defaultInstallRoot = QDir::currentPath() + '/'
+            + relativeBuildDir("my-config") + "/install-root";
+    QVERIFY2(!directoryExists(defaultInstallRoot), qPrintable(defaultInstallRoot));
+
+    // Clean.
+    QJsonObject cleanRequest;
+    cleanRequest.insert("type", "clean-project");
+    cleanRequest.insert("settings-dir", settings()->baseDirectory());
+    cleanRequest.insert("log-time", true);
+    sendPacket(cleanRequest);
+    receivedReply = false;
+    receivedLogData = false;
+    receivedStartedSignal = false;
+    receivedProgressData = false;
+    while (!receivedReply) {
+        receivedMessage = getNextSessionPacket(sessionProc, incomingData);
+        QVERIFY(!receivedMessage.isEmpty());
+        const QString msgType = receivedMessage.value("type").toString();
+        if (msgType == "project-cleaned") {
+            receivedReply = true;
+            const QJsonObject error = receivedMessage.value("error").toObject();
+            if (!error.isEmpty())
+                qDebug() << error;
+            QVERIFY(error.isEmpty());
+        } else if (msgType == "log-data") {
+            if (receivedMessage.value("message").toString().contains("activity"))
+                receivedLogData = true;
+        } else if (msgType == "task-started") {
+            receivedStartedSignal = true;
+        } else if (msgType == "task-progress") {
+            receivedProgressData = true;
+        } else if (msgType != "new-max-progress") {
+            QVERIFY2(false, qPrintable(QString("Unexpected message type '%1'").arg(msgType)));
+        }
+    }
+    QVERIFY(receivedReply);
+    QVERIFY(receivedLogData);
+    QVERIFY(receivedStartedSignal);
+    QVERIFY(receivedProgressData);
+    QVERIFY2(!regularFileExists(exeFilePath), qPrintable(exeFilePath));
+
+    // Second build: Do not log the time, show command lines.
+    buildRequest.insert("log-time", false);
+    buildRequest.insert("command-echo-mode", "command-line");
+    sendPacket(buildRequest);
+    receivedReply = false;
+    receivedLogData = false;
+    receivedStartedSignal = false;
+    receivedProgressData = false;
+    receivedCommandDescription = false;
+    receivedProcessResult = false;
+    while (!receivedReply) {
+        receivedMessage = getNextSessionPacket(sessionProc, incomingData);
+        QVERIFY(!receivedMessage.isEmpty());
+        const QString msgType = receivedMessage.value("type").toString();
+        if (msgType == "project-built") {
+            receivedReply = true;
+            const QJsonObject error = receivedMessage.value("error").toObject();
+            if (!error.isEmpty())
+                qDebug() << error;
+            QVERIFY(error.isEmpty());
+            const QJsonObject projectData = receivedMessage.value("project-data").toObject();
+            QVERIFY(projectData.isEmpty());
+        } else if (msgType == "log-data") {
+            if (receivedMessage.value("message").toString().contains("activity"))
+                receivedLogData = true;
+        } else if (msgType == "task-started") {
+            receivedStartedSignal = true;
+        } else if (msgType == "task-progress") {
+            receivedProgressData = true;
+        } else if (msgType == "command-description") {
+            if (QDir::fromNativeSeparators(receivedMessage.value("message").toString())
+                    .contains("/main.cpp")) {
+                receivedCommandDescription = true;
+            }
+        } else if (msgType == "process-result") {
+            QCOMPARE(receivedMessage.value("exit-code").toInt(), 0);
+            receivedProcessResult = true;
+        } else if (msgType != "new-max-progress") {
+            QVERIFY2(false, qPrintable(QString("Unexpected message type '%1'").arg(msgType)));
+        }
+    }
+    QVERIFY(receivedReply);
+    QVERIFY(!receivedLogData);
+    QVERIFY(receivedStartedSignal);
+    QVERIFY(receivedProgressData);
+    QVERIFY(receivedCommandDescription);
+    QVERIFY(receivedProcessResult);
+    QVERIFY2(regularFileExists(exeFilePath), qPrintable(exeFilePath));
+    QVERIFY2(!directoryExists(defaultInstallRoot), qPrintable(defaultInstallRoot));
+
+    // Install.
+    QJsonObject installRequest;
+    installRequest.insert("type", "install-project");
+    installRequest.insert("log-time", true);
+    const QString customInstallRoot = QDir::currentPath() + "/my-install-root";
+    QVERIFY2(!QFile::exists(customInstallRoot), qPrintable(customInstallRoot));
+    installRequest.insert("install-root", customInstallRoot);
+    sendPacket(installRequest);
+    receivedReply = false;
+    receivedLogData = false;
+    receivedStartedSignal = false;
+    receivedProgressData = false;
+    while (!receivedReply) {
+        receivedMessage = getNextSessionPacket(sessionProc, incomingData);
+        QVERIFY(!receivedMessage.isEmpty());
+        const QString msgType = receivedMessage.value("type").toString();
+        if (msgType == "install-done") {
+            receivedReply = true;
+            const QJsonObject error = receivedMessage.value("error").toObject();
+            if (!error.isEmpty())
+                qDebug() << error;
+            QVERIFY(error.isEmpty());
+        } else if (msgType == "log-data") {
+            if (receivedMessage.value("message").toString().contains("activity"))
+                receivedLogData = true;
+        } else if (msgType == "task-started") {
+            receivedStartedSignal = true;
+        } else if (msgType == "task-progress") {
+            receivedProgressData = true;
+        } else if (msgType != "new-max-progress") {
+            QVERIFY2(false, qPrintable(QString("Unexpected message type '%1'").arg(msgType)));
+        }
+    }
+    QVERIFY(receivedReply);
+    QVERIFY(receivedLogData);
+    QVERIFY(receivedStartedSignal);
+    QVERIFY(receivedProgressData);
+    QVERIFY2(!directoryExists(defaultInstallRoot), qPrintable(defaultInstallRoot));
+    QVERIFY2(directoryExists(customInstallRoot), qPrintable(customInstallRoot));
+
+    // Retrieve modified environment.
+    QJsonObject getRunEnvRequest;
+    getRunEnvRequest.insert("type", "get-run-environment");
+    getRunEnvRequest.insert("product", "theApp");
+    const QProcessEnvironment inEnv = QProcessEnvironment::systemEnvironment();
+    QVERIFY(!inEnv.contains("MY_MODULE"));
+    getRunEnvRequest.insert("base-environment", envToJson(inEnv));
+    sendPacket(getRunEnvRequest);
+    receivedMessage = getNextSessionPacket(sessionProc, incomingData);
+    QCOMPARE(receivedMessage.value("type").toString(), QString("run-environment"));
+    QJsonObject error = receivedMessage.value("error").toObject();
+    if (!error.isEmpty())
+        qDebug() << error;
+    QVERIFY(error.isEmpty());
+    const QProcessEnvironment outEnv = envFromJson(receivedMessage.value("full-environment"));
+    QVERIFY(outEnv.keys().size() > inEnv.keys().size());
+    QCOMPARE(outEnv.value("MY_MODULE"), QString("1"));
+
+    // Add two files to library and re-build.
+    QJsonObject addFilesRequest;
+    addFilesRequest.insert("type", "add-files");
+    addFilesRequest.insert("product", "theLib");
+    addFilesRequest.insert("group", "sources");
+    addFilesRequest.insert("files",
+                           QJsonArray::fromStringList({QDir::currentPath() + "/file1.cpp",
+                                                       QDir::currentPath() + "/file2.cpp"}));
+    sendPacket(addFilesRequest);
+    receivedMessage = getNextSessionPacket(sessionProc, incomingData);
+    QCOMPARE(receivedMessage.value("type").toString(), QString("files-added"));
+    error = receivedMessage.value("error").toObject();
+    if (!error.isEmpty()) {
+        for (const auto &item: error[QStringLiteral("items")].toArray()) {
+            const auto description = QStringLiteral("Project file updates are not enabled");
+            if (item.toObject()[QStringLiteral("description")].toString().contains(description))
+                QSKIP("File updates are disabled");
+        }
+        qDebug() << error;
+    }
+    QVERIFY(error.isEmpty());
+    QJsonObject projectData = receivedMessage.value("project-data").toObject();
+    QJsonArray products = projectData.value("products").toArray();
+    bool file1 = false;
+    bool file2 = false;
+    for (const QJsonValue &v : products) {
+        const QJsonObject product = v.toObject();
+        const QString productName = product.value("full-display-name").toString();
+        const QJsonArray groups = product.value("groups").toArray();
+        for (const QJsonValue &v : groups) {
+            const QJsonObject group = v.toObject();
+            const QString groupName = group.value("name").toString();
+            const QJsonArray sourceArtifacts = group.value("source-artifacts").toArray();
+            for (const QJsonValue &v : sourceArtifacts) {
+                const QString filePath = v.toObject().value("file-path").toString();
+                if (filePath.endsWith("file1.cpp")) {
+                    QCOMPARE(productName, QString("theLib"));
+                    QCOMPARE(groupName, QString("sources"));
+                    file1 = true;
+                } else if (filePath.endsWith("file2.cpp")) {
+                    QCOMPARE(productName, QString("theLib"));
+                    QCOMPARE(groupName, QString("sources"));
+                    file2 = true;
+                }
+            }
+        }
+    }
+    QVERIFY(file1);
+    QVERIFY(file2);
+    receivedReply = false;
+    receivedProcessResult = false;
+    bool compiledFile1 = false;
+    bool compiledFile2 = false;
+    bool compiledMain = false;
+    bool compiledLib = false;
+    buildRequest.remove("command-echo-mode");
+    sendPacket(buildRequest);
+    while (!receivedReply) {
+        receivedMessage = getNextSessionPacket(sessionProc, incomingData);
+        QVERIFY(!receivedMessage.isEmpty());
+        const QString msgType = receivedMessage.value("type").toString();
+        if (msgType == "project-built") {
+            receivedReply = true;
+            const QJsonObject error = receivedMessage.value("error").toObject();
+            if (!error.isEmpty())
+                qDebug() << error;
+            QVERIFY(error.isEmpty());
+        } else if (msgType == "command-description") {
+            const QString msg = receivedMessage.value("message").toString();
+            if (msg.contains("compiling file1.cpp"))
+                compiledFile1 = true;
+            else if (msg.contains("compiling file2.cpp"))
+                compiledFile2 = true;
+            else if (msg.contains("compiling main.cpp"))
+                compiledMain = true;
+            else if (msg.contains("compiling lib.cpp"))
+                compiledLib = true;
+        } else if (msgType == "process-result") {
+            QCOMPARE(receivedMessage.value("exit-code").toInt(), 0);
+            receivedProcessResult = true;
+        }
+    }
+    QVERIFY(receivedReply);
+    QVERIFY(!receivedProcessResult);
+    QVERIFY(compiledFile1);
+    QVERIFY(compiledFile2);
+    QVERIFY(!compiledLib);
+    QVERIFY(!compiledMain);
+
+    // Remove one of the newly added files again and re-build.
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("file1.cpp");
+    touch("file2.cpp");
+    touch("main.cpp");
+    QJsonObject removeFilesRequest;
+    removeFilesRequest.insert("type", "remove-files");
+    removeFilesRequest.insert("product", "theLib");
+    removeFilesRequest.insert("group", "sources");
+    removeFilesRequest.insert("files",
+                              QJsonArray::fromStringList({QDir::currentPath() + "/file1.cpp"}));
+    sendPacket(removeFilesRequest);
+    receivedMessage = getNextSessionPacket(sessionProc, incomingData);
+    QCOMPARE(receivedMessage.value("type").toString(), QString("files-removed"));
+    error = receivedMessage.value("error").toObject();
+    if (!error.isEmpty())
+        qDebug() << error;
+    QVERIFY(error.isEmpty());
+    projectData = receivedMessage.value("project-data").toObject();
+    products = projectData.value("products").toArray();
+    file1 = false;
+    file2 = false;
+    for (const QJsonValue &v : products) {
+        const QJsonObject product = v.toObject();
+        const QString productName = product.value("full-display-name").toString();
+        const QJsonArray groups = product.value("groups").toArray();
+        for (const QJsonValue &v : groups) {
+            const QJsonObject group = v.toObject();
+            const QString groupName = group.value("name").toString();
+            const QJsonArray sourceArtifacts = group.value("source-artifacts").toArray();
+            for (const QJsonValue &v : sourceArtifacts) {
+                const QString filePath = v.toObject().value("file-path").toString();
+                if (filePath.endsWith("file1.cpp")) {
+                    file1 = true;
+                } else if (filePath.endsWith("file2.cpp")) {
+                    QCOMPARE(productName, QString("theLib"));
+                    QCOMPARE(groupName, QString("sources"));
+                    file2 = true;
+                }
+            }
+        }
+    }
+    QVERIFY(!file1);
+    QVERIFY(file2);
+    receivedReply = false;
+    receivedProcessResult = false;
+    compiledFile1 = false;
+    compiledFile2 = false;
+    compiledMain = false;
+    compiledLib = false;
+    sendPacket(buildRequest);
+    while (!receivedReply) {
+        receivedMessage = getNextSessionPacket(sessionProc, incomingData);
+        QVERIFY(!receivedMessage.isEmpty());
+        const QString msgType = receivedMessage.value("type").toString();
+        if (msgType == "project-built") {
+            receivedReply = true;
+            const QJsonObject error = receivedMessage.value("error").toObject();
+            if (!error.isEmpty())
+                qDebug() << error;
+            QVERIFY(error.isEmpty());
+        } else if (msgType == "command-description") {
+            const QString msg = receivedMessage.value("message").toString();
+            if (msg.contains("compiling file1.cpp"))
+                compiledFile1 = true;
+            else if (msg.contains("compiling file2.cpp"))
+                compiledFile2 = true;
+            else if (msg.contains("compiling main.cpp"))
+                compiledMain = true;
+            else if (msg.contains("compiling lib.cpp"))
+                compiledLib = true;
+        } else if (msgType == "process-result") {
+            QCOMPARE(receivedMessage.value("exit-code").toInt(), 0);
+            receivedProcessResult = true;
+        }
+    }
+    QVERIFY(receivedReply);
+    QVERIFY(receivedProcessResult);
+    QVERIFY(!compiledFile1);
+    QVERIFY(compiledFile2);
+    QVERIFY(!compiledLib);
+    QVERIFY(compiledMain);
+
+    // Get generated files.
+    QJsonObject genFilesRequestPerFile;
+    genFilesRequestPerFile.insert("source-file", QDir::currentPath() + "/main.cpp");
+    genFilesRequestPerFile.insert("tags", QJsonArray{QJsonValue("obj")});
+    QJsonObject genFilesRequestPerProduct;
+    genFilesRequestPerProduct.insert("full-display-name", "theApp");
+    genFilesRequestPerProduct.insert("requests", QJsonArray({genFilesRequestPerFile}));
+    QJsonObject genFilesRequest;
+    genFilesRequest.insert("type", "get-generated-files-for-sources");
+    genFilesRequest.insert("products", QJsonArray({genFilesRequestPerProduct}));
+    sendPacket(genFilesRequest);
+    receivedReply = false;
+    while (!receivedReply) {
+        receivedMessage = getNextSessionPacket(sessionProc, incomingData);
+        QCOMPARE(receivedMessage.value("type").toString(), QString("generated-files-for-sources"));
+        const QJsonArray products = receivedMessage.value("products").toArray();
+        QCOMPARE(products.size(), 1);
+        const QJsonArray results = products.first().toObject().value("results").toArray();
+        QCOMPARE(results.size(), 1);
+        const QJsonObject result = results.first().toObject();
+        QCOMPARE(result.value("source-file"), QDir::currentPath() + "/main.cpp");
+        const QJsonArray generatedFiles = result.value("generated-files").toArray();
+        QCOMPARE(generatedFiles.count(), 1);
+        QCOMPARE(QFileInfo(generatedFiles.first().toString()).fileName(),
+                 objectFileName("main.cpp", profileName()));
+        receivedReply = true;
+    }
+    QVERIFY(receivedReply);
+
+    // Release project.
+    const QJsonObject releaseRequest{qMakePair(QString("type"), QJsonValue("release-project"))};
+    sendPacket(releaseRequest);
+    receivedReply = false;
+    while (!receivedReply) {
+        receivedMessage = getNextSessionPacket(sessionProc, incomingData);
+        QCOMPARE(receivedMessage.value("type").toString(), QString("project-released"));
+        const QJsonObject error = receivedMessage.value("error").toObject();
+        if (!error.isEmpty())
+            qDebug() << error;
+        QVERIFY(error.isEmpty());
+        receivedReply = true;
+    }
+    QVERIFY(receivedReply);
+
+    // Get build graph info.
+    QJsonObject loadProjectMessage;
+    loadProjectMessage.insert("type", "resolve-project");
+    loadProjectMessage.insert("configuration-name", "my-config");
+    loadProjectMessage.insert("build-root", QDir::currentPath());
+    loadProjectMessage.insert("settings-dir", settings()->baseDirectory());
+    loadProjectMessage.insert("restore-behavior", "restore-only");
+    loadProjectMessage.insert("data-mode", "only-if-changed");
+    sendPacket(loadProjectMessage);
+    receivedReply = false;
+    while (!receivedReply) {
+        receivedMessage = getNextSessionPacket(sessionProc, incomingData);
+        if (receivedMessage.value("type") != "project-resolved")
+            continue;
+        receivedReply = true;
+        const QJsonObject error = receivedMessage.value("error").toObject();
+        if (!error.isEmpty())
+            qDebug() << error;
+        QVERIFY(error.isEmpty());
+        const QString bgFilePath = QDir::currentPath() + '/'
+                + relativeBuildGraphFilePath("my-config");
+        const QJsonObject projectData = receivedMessage.value("project-data").toObject();
+        QCOMPARE(projectData.value("build-graph-file-path").toString(), bgFilePath);
+        QCOMPARE(projectData.value("overridden-properties"), overriddenValues);
+    }
+    QVERIFY(receivedReply);
+
+    // Send unknown request.
+    const QJsonObject unknownRequest({qMakePair(QString("type"), QJsonValue("blubb"))});
+    sendPacket(unknownRequest);
+    receivedReply = false;
+    while (!receivedReply) {
+        receivedMessage = getNextSessionPacket(sessionProc, incomingData);
+        QCOMPARE(receivedMessage.value("type").toString(), QString("protocol-error"));
+        receivedReply = true;
+    }
+    QVERIFY(receivedReply);
+
+    QJsonObject quitRequest;
+    quitRequest.insert("type", "quit");
+    sendPacket(quitRequest);
+    QVERIFY(sessionProc.waitForFinished(3000));
+}
+
 void TestBlackbox::radAfterIncompleteBuild_data()
 {
     QTest::addColumn<QString>("projectFileName");
@@ -5624,6 +6392,34 @@ void TestBlackbox::autotestWithDependencies()
              && m_qbsStdout.contains("i am the helper"), m_qbsStdout.constData());
 }
 
+void TestBlackbox::autotestTimeout()
+{
+    QFETCH(QStringList, resolveParams);
+    QFETCH(bool, expectFailure);
+    QDir::setCurrent(testDataDir + "/autotest-timeout");
+    QbsRunParameters resolveParameters("resolve", resolveParams);
+    QCOMPARE(runQbs(resolveParameters), 0);
+    QbsRunParameters buildParameters(QStringList({"-p", "autotest-runner"}));
+    buildParameters.expectFailure = expectFailure;
+    if (expectFailure) {
+        QVERIFY(runQbs(buildParameters) != 0);
+        QVERIFY(m_qbsStderr.contains("cancelled") && m_qbsStderr.contains("timeout"));
+    }
+    else
+        QVERIFY(runQbs(buildParameters) == 0);
+}
+
+void TestBlackbox::autotestTimeout_data()
+{
+    QTest::addColumn<QStringList>("resolveParams");
+    QTest::addColumn<bool>("expectFailure");
+    QTest::newRow("no timeout") << QStringList() << false;
+    QTest::newRow("timeout on test") << QStringList({"products.testApp.autotest.timeout:2"})
+            << true;
+    QTest::newRow("timeout on runner") << QStringList({"products.autotest-runner.timeout:2"})
+            << true;
+}
+
 void TestBlackbox::autotests_data()
 {
     QTest::addColumn<QString>("evilPropertySpec");
@@ -5925,6 +6721,25 @@ void TestBlackbox::generatedArtifactAsInputToDynamicRule()
     QVERIFY2(m_qbsStdout.contains("generating"), m_qbsStdout.constData());
     QCOMPARE(runQbs(), 0);
     QVERIFY2(!m_qbsStdout.contains("generating"), m_qbsStdout.constData());
+}
+
+void TestBlackbox::generateLinkerMapFile()
+{
+    QDir::setCurrent(testDataDir + "/generate-linker-map-file");
+    QCOMPARE(runQbs(), 0);
+    const bool isUsed = m_qbsStdout.contains("use test: true");
+    const bool isNotUsed = m_qbsStdout.contains("use test: false");
+    QVERIFY(isUsed != isNotUsed);
+    if (isUsed) {
+        QVERIFY(QFile::exists(relativeProductBuildDir("app-map")
+            + "/app-map.map"));
+        QVERIFY(!QFile::exists(relativeProductBuildDir("app-nomap")
+            + "/app-nomap.map"));
+        QVERIFY(!QFile::exists(relativeProductBuildDir("app-nomap-default")
+            + "/app-nomap-default.map"));
+    } else {
+        QSKIP("Unsupported toolchain. Skipping.");
+    }
 }
 
 void TestBlackbox::generator()
@@ -6261,6 +7076,14 @@ void TestBlackbox::outputArtifactAutoTagging()
 
     QCOMPARE(runQbs(), 0);
     QVERIFY(regularFileExists(relativeExecutableFilePath("output-artifact-auto-tagging")));
+}
+
+void TestBlackbox::outputRedirection()
+{
+    QDir::setCurrent(testDataDir + "/output-redirection");
+    QCOMPARE(runQbs(), 0);
+    TEXT_FILE_COMPARE("output.txt", relativeProductBuildDir("the-product") + "/output.txt");
+    TEXT_FILE_COMPARE("output.bin", relativeProductBuildDir("the-product") + "/output.bin");
 }
 
 void TestBlackbox::wildCardsAndRules()

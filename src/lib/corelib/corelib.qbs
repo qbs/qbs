@@ -3,7 +3,6 @@ import qbs.Utilities
 
 QbsLibrary {
     Depends { name: "cpp" }
-    Depends { name: "bundledqt" }
     Depends { name: "Qt"; submodules: ["core-private", "network", "xml"] }
     Depends {
         name: "Qt.script"
@@ -15,7 +14,6 @@ QbsLibrary {
         condition: qbsbuildconfig.useBundledQtScript || !Qt.script.present
     }
     Depends { condition: qbsbuildconfig.enableProjectFileUpdates; name: "Qt.gui" }
-    Depends { condition: staticBuild; productTypes: ["qbsplugin"] }
     name: "qbscore"
     property stringList bundledQtScriptIncludes: qbsbuildconfig.useBundledQtScript
             || !Qt.script.present ? qbsscriptengine.includePaths : []
@@ -198,7 +196,24 @@ QbsLibrary {
             "generatableprojectiterator.h",
             "generator.cpp",
             "generatordata.cpp",
+            "generatorutils.cpp",
+            "generatorutils.h",
+            "generatorversioninfo.cpp",
+            "generatorversioninfo.h",
             "igeneratableprojectvisitor.h",
+            "ixmlnodevisitor.h",
+            "xmlproject.cpp",
+            "xmlproject.h",
+            "xmlprojectwriter.cpp",
+            "xmlprojectwriter.h",
+            "xmlproperty.cpp",
+            "xmlproperty.h",
+            "xmlpropertygroup.cpp",
+            "xmlpropertygroup.h",
+            "xmlworkspace.cpp",
+            "xmlworkspace.h",
+            "xmlworkspacewriter.cpp",
+            "xmlworkspacewriter.h",
         ]
     }
     Group {
@@ -401,6 +416,7 @@ QbsLibrary {
             "joblimits.cpp",
             "jsliterals.cpp",
             "jsliterals.h",
+            "jsonhelper.h",
             "installoptions.cpp",
             "launcherinterface.cpp",
             "launcherinterface.h",

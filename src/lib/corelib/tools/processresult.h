@@ -46,6 +46,7 @@
 #include <QtCore/qprocess.h>
 
 QT_BEGIN_NAMESPACE
+class QJsonObject;
 class QString;
 class QStringList;
 QT_END_NAMESPACE
@@ -64,6 +65,8 @@ public:
     ProcessResult(const ProcessResult &other);
     ProcessResult &operator=(const ProcessResult &other);
     ~ProcessResult();
+
+    QJsonObject toJson() const;
 
     bool success() const;
     QString executableFilePath() const;

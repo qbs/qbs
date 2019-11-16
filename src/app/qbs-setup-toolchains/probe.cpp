@@ -39,6 +39,7 @@
 #include "probe.h"
 
 #include "clangclprobe.h"
+#include "gccprobe.h"
 #include "iarewprobe.h"
 #include "keilprobe.h"
 #include "msvcprobe.h"
@@ -46,22 +47,26 @@
 #include "xcodeprobe.h"
 
 #include <logging/translator.h>
-#include <tools/architectures.h>
 #include <tools/error.h>
 #include <tools/hostosinfo.h>
 #include <tools/profile.h>
-#include <tools/qttools.h>
 #include <tools/settings.h>
 #include <tools/toolchains.h>
-#include <tools/stlutils.h>
 
 #include <QtCore/qdir.h>
-#include <QtCore/qfileinfo.h>
-#include <QtCore/qprocess.h>
-#include <QtCore/qstringlist.h>
+#include <QtCore/qoperatingsystemversion.h>
 #include <QtCore/qtextstream.h>
 
-#include <cstdio>
+#ifdef Q_OS_WIN
+// We need defines for Windows 8.
+#undef _WIN32_WINNT
+#define _WIN32_WINNT _WIN32_WINNT_WIN8
+
+#include <qt_windows.h>
+#include <shlobj.h>
+#else
+#include <qplatformdefs.h>
+#endif // Q_OS_WIN
 
 using namespace qbs;
 using Internal::HostOsInfo;
@@ -70,6 +75,11 @@ using Internal::Tr;
 static QTextStream qStdout(stdout);
 static QTextStream qStderr(stderr);
 
+QStringList systemSearchPaths()
+{
+    return QString::fromLocal8Bit(qgetenv("PATH")).split(HostOsInfo::pathListSeparator());
+}
+
 QString findExecutable(const QString &fileName)
 {
     QString fullFileName = fileName;
@@ -77,8 +87,7 @@ QString findExecutable(const QString &fileName)
             && !fileName.endsWith(QLatin1String(".exe"), Qt::CaseInsensitive)) {
         fullFileName += QLatin1String(".exe");
     }
-    const QString path = QString::fromLocal8Bit(qgetenv("PATH"));
-    const auto ppaths = path.split(HostOsInfo::pathListSeparator());
+    const auto ppaths = systemSearchPaths();
     for (const QString &ppath : ppaths) {
         const QString fullPath = ppath + QLatin1Char('/') + fullFileName;
         if (QFileInfo::exists(fullPath))
@@ -87,31 +96,7 @@ QString findExecutable(const QString &fileName)
     return {};
 }
 
-static QString qsystem(const QString &exe, const QStringList &args = QStringList())
-{
-    QProcess p;
-    p.setProcessChannelMode(QProcess::MergedChannels);
-    p.start(exe, args);
-    if (!p.waitForStarted()) {
-        throw qbs::ErrorInfo(Tr::tr("Failed to start compiler '%1': %2")
-                             .arg(exe, p.errorString()));
-    }
-    if (!p.waitForFinished(-1) || p.exitCode() != 0)
-        throw qbs::ErrorInfo(Tr::tr("Failed to run compiler '%1': %2").arg(exe, p.errorString()));
-    return QString::fromLocal8Bit(p.readAll());
-}
-
-static QStringList validMinGWMachines()
-{
-    // List of MinGW machine names (gcc -dumpmachine) recognized by Qbs
-    return {QStringLiteral("mingw32"), QStringLiteral("mingw64"),
-            QStringLiteral("i686-w64-mingw32"), QStringLiteral("x86_64-w64-mingw32"),
-            QStringLiteral("i686-w64-mingw32.shared"), QStringLiteral("x86_64-w64-mingw32.shared"),
-            QStringLiteral("i686-w64-mingw32.static"), QStringLiteral("x86_64-w64-mingw32.static"),
-            QStringLiteral("i586-mingw32msvc"), QStringLiteral("amd64-mingw32msvc")};
-}
-
-static QStringList toolchainTypeFromCompilerName(const QString &compilerName)
+QStringList toolchainTypeFromCompilerName(const QString &compilerName)
 {
     if (compilerName == QLatin1String("cl.exe"))
         return canonicalToolchain(QStringLiteral("msvc"));
@@ -134,174 +119,19 @@ static QStringList toolchainTypeFromCompilerName(const QString &compilerName)
     return {};
 }
 
-static QString gccMachineName(const QString &compilerFilePath)
-{
-    return qsystem(compilerFilePath, QStringList() << QStringLiteral("-dumpmachine")).trimmed();
-}
-
-static QStringList standardCompilerFileNames()
-{
-    return {HostOsInfo::appendExecutableSuffix(QStringLiteral("gcc")),
-            HostOsInfo::appendExecutableSuffix(QStringLiteral("g++")),
-            HostOsInfo::appendExecutableSuffix(QStringLiteral("clang")),
-            HostOsInfo::appendExecutableSuffix(QStringLiteral("clang++"))};
-}
-
-static void setCommonProperties(Profile &profile, const QString &compilerFilePath,
-        const QStringList &toolchainTypes)
-{
-    const QFileInfo cfi(compilerFilePath);
-    const QString compilerName = cfi.fileName();
-
-    if (toolchainTypes.contains(QStringLiteral("mingw")))
-        profile.setValue(QStringLiteral("qbs.targetPlatform"), QStringLiteral("windows"));
-
-    const QString prefix = compilerName.left(compilerName.lastIndexOf(QLatin1Char('-')) + 1);
-    if (!prefix.isEmpty())
-        profile.setValue(QStringLiteral("cpp.toolchainPrefix"), prefix);
-
-    profile.setValue(QStringLiteral("cpp.toolchainInstallPath"), cfi.absolutePath());
-    profile.setValue(QStringLiteral("qbs.toolchain"), toolchainTypes);
-
-    const QString suffix = compilerName.right(compilerName.size() - prefix.size());
-    if (!standardCompilerFileNames().contains(suffix))
-        qWarning("%s", qPrintable(
-                     QStringLiteral("'%1' is not a standard compiler file name; "
-                                            "you must set the cpp.cCompilerName and "
-                                            "cpp.cxxCompilerName properties of this profile "
-                                            "manually").arg(compilerName)));
-}
-
-class ToolPathSetup
-{
-public:
-    ToolPathSetup(Profile *profile, QString path, QString toolchainPrefix)
-        : m_profile(profile),
-          m_compilerDirPath(std::move(path)),
-          m_toolchainPrefix(std::move(toolchainPrefix))
-    {
-    }
-
-    void apply(const QString &toolName, const QString &propertyName) const
-    {
-        QString toolFileName = m_toolchainPrefix + HostOsInfo::appendExecutableSuffix(toolName);
-        if (QFile::exists(m_compilerDirPath + QLatin1Char('/') + toolFileName))
-            return;
-        const QString toolFilePath = findExecutable(toolFileName);
-        if (toolFilePath.isEmpty()) {
-            qWarning("%s", qPrintable(QStringLiteral("'%1' exists neither in '%2' nor in PATH.")
-                     .arg(toolFileName, m_compilerDirPath)));
-        }
-        m_profile->setValue(propertyName, toolFilePath);
-    }
-
-private:
-    Profile * const m_profile;
-    QString m_compilerDirPath;
-    QString m_toolchainPrefix;
-};
-
-static bool doesProfileTargetOS(const Profile &profile, const QString &os)
-{
-    const auto target = profile.value(QStringLiteral("qbs.targetPlatform"));
-    if (target.isValid()) {
-        return Internal::contains(HostOsInfo::canonicalOSIdentifiers(
-                                      target.toString().toStdString()), os.toStdString());
-    }
-    return Internal::contains(HostOsInfo::hostOSIdentifiers(), os.toStdString());
-}
-
-static Profile createGccProfile(const QString &compilerFilePath, Settings *settings,
-                                const QStringList &toolchainTypes,
-                                const QString &profileName = QString())
-{
-    const QString machineName = gccMachineName(compilerFilePath);
-
-    if (toolchainTypes.contains(QLatin1String("mingw"))) {
-        if (!validMinGWMachines().contains(machineName)) {
-            throw ErrorInfo(Tr::tr("Detected gcc platform '%1' is not supported.")
-                    .arg(machineName));
-        }
-    }
-
-    Profile profile(!profileName.isEmpty() ? profileName : machineName, settings);
-    profile.removeProfile();
-    setCommonProperties(profile, compilerFilePath, toolchainTypes);
-
-    // Check whether auxiliary tools reside within the toolchain's install path.
-    // This might not be the case when using icecc or another compiler wrapper.
-    const QString compilerDirPath = QFileInfo(compilerFilePath).absolutePath();
-    const ToolPathSetup toolPathSetup(&profile, compilerDirPath,
-                                      profile.value(QStringLiteral("cpp.toolchainPrefix"))
-                                      .toString());
-    toolPathSetup.apply(QStringLiteral("ar"), QStringLiteral("cpp.archiverPath"));
-    toolPathSetup.apply(QStringLiteral("as"), QStringLiteral("cpp.assemblerPath"));
-    toolPathSetup.apply(QStringLiteral("nm"), QStringLiteral("cpp.nmPath"));
-    if (doesProfileTargetOS(profile, QStringLiteral("darwin")))
-        toolPathSetup.apply(QStringLiteral("dsymutil"), QStringLiteral("cpp.dsymutilPath"));
-    else
-        toolPathSetup.apply(QStringLiteral("objcopy"), QStringLiteral("cpp.objcopyPath"));
-    toolPathSetup.apply(QStringLiteral("strip"), QStringLiteral("cpp.stripPath"));
-
-    qStdout << Tr::tr("Profile '%1' created for '%2'.").arg(profile.name(), compilerFilePath)
-            << endl;
-    return profile;
-}
-
-static void gccProbe(Settings *settings, QList<Profile> &profiles, const QString &compilerName)
-{
-    qStdout << Tr::tr("Trying to detect %1...").arg(compilerName) << endl;
-
-    const QString crossCompilePrefix = QString::fromLocal8Bit(qgetenv("CROSS_COMPILE"));
-    const QString compilerFilePath = findExecutable(crossCompilePrefix + compilerName);
-    QFileInfo cfi(compilerFilePath);
-    if (!cfi.exists()) {
-        qStderr << Tr::tr("%1 not found.").arg(compilerName) << endl;
-        return;
-    }
-    const QString profileName = cfi.completeBaseName();
-    const QStringList toolchainTypes = toolchainTypeFromCompilerName(compilerName);
-    profiles.push_back(createGccProfile(compilerFilePath, settings, toolchainTypes, profileName));
-}
-
-static void mingwProbe(Settings *settings, QList<Profile> &profiles)
-{
-    // List of possible compiler binary names for this platform
-    QStringList compilerNames;
-    if (HostOsInfo::isWindowsHost()) {
-        compilerNames << QStringLiteral("gcc");
-    } else {
-        const auto machineNames = validMinGWMachines();
-        for (const QString &machineName : machineNames) {
-            compilerNames << machineName + QLatin1String("-gcc");
-        }
-    }
-
-    for (const QString &compilerName : qAsConst(compilerNames)) {
-        const QString gccPath
-                = findExecutable(HostOsInfo::appendExecutableSuffix(compilerName));
-        if (!gccPath.isEmpty())
-            profiles.push_back(createGccProfile(gccPath, settings,
-                                                canonicalToolchain(QStringLiteral("mingw"))));
-    }
-}
-
 void probe(Settings *settings)
 {
     QList<Profile> profiles;
     if (HostOsInfo::isWindowsHost()) {
         msvcProbe(settings, profiles);
         clangClProbe(settings, profiles);
-    } else {
-        gccProbe(settings, profiles, QStringLiteral("gcc"));
-        gccProbe(settings, profiles, QStringLiteral("clang"));
-
-        if (HostOsInfo::isMacosHost()) {
-            xcodeProbe(settings, profiles);
-        }
+    } else if (HostOsInfo::isMacosHost()) {
+        xcodeProbe(settings, profiles);
     }
 
-    mingwProbe(settings, profiles);
+    gccProbe(settings, profiles, QStringLiteral("gcc"));
+    gccProbe(settings, profiles, QStringLiteral("clang"));
+
     iarProbe(settings, profiles);
     keilProbe(settings, profiles);
     sdccProbe(settings, profiles);
@@ -334,11 +164,11 @@ void createProfile(const QString &profileName, const QString &toolchainType,
         toolchainTypes = canonicalToolchain(toolchainType);
 
     if (toolchainTypes.contains(QLatin1String("msvc")))
-        createMsvcProfile(profileName, compiler.absoluteFilePath(), settings);
+        createMsvcProfile(compiler, settings, profileName);
     else if (toolchainTypes.contains(QLatin1String("clang-cl")))
-        createClangClProfile(profileName, compiler.absoluteFilePath(), settings);
+        createClangClProfile(compiler, settings, profileName);
     else if (toolchainTypes.contains(QLatin1String("gcc")))
-        createGccProfile(compiler.absoluteFilePath(), settings, toolchainTypes, profileName);
+        createGccProfile(compiler, settings, toolchainTypes, profileName);
     else if (toolchainTypes.contains(QLatin1String("iar")))
         createIarProfile(compiler, settings, profileName);
     else if (toolchainTypes.contains(QLatin1String("keil")))
@@ -362,4 +192,112 @@ int extractVersion(const QByteArray &macroDump, const QByteArray &keyToken)
                                       endIndex - startIndex - keyLength)
             .toInt();
     return version;
+}
+
+static QString resolveSymlinks(const QString &filePath)
+{
+    QFileInfo fi(filePath);
+    int links = 16;
+    while (links-- && fi.isSymLink())
+        fi.setFile(fi.dir(), fi.symLinkTarget());
+    if (links <= 0)
+        return {};
+    return fi.filePath();
+}
+
+// Copied from qfilesystemengine_win.cpp.
+#ifdef Q_OS_WIN
+
+// File ID for Windows up to version 7.
+static inline QByteArray fileIdWin7(HANDLE handle)
+{
+    BY_HANDLE_FILE_INFORMATION info;
+    if (GetFileInformationByHandle(handle, &info)) {
+        char buffer[sizeof "01234567:0123456701234567\0"];
+        qsnprintf(buffer, sizeof(buffer), "%lx:%08lx%08lx",
+                  info.dwVolumeSerialNumber,
+                  info.nFileIndexHigh,
+                  info.nFileIndexLow);
+        return QByteArray(buffer);
+    }
+    return {};
+}
+
+// File ID for Windows starting from version 8.
+static QByteArray fileIdWin8(HANDLE handle)
+{
+    QByteArray result;
+    FILE_ID_INFO infoEx = {};
+    if (::GetFileInformationByHandleEx(
+                handle,
+                static_cast<FILE_INFO_BY_HANDLE_CLASS>(18), // FileIdInfo in Windows 8
+                &infoEx, sizeof(FILE_ID_INFO))) {
+        result = QByteArray::number(infoEx.VolumeSerialNumber, 16);
+        result += ':';
+        // Note: MinGW-64's definition of FILE_ID_128 differs from the MSVC one.
+        result += QByteArray(reinterpret_cast<const char *>(&infoEx.FileId),
+                             int(sizeof(infoEx.FileId))).toHex();
+    }
+    return result;
+}
+
+static QByteArray fileIdWin(HANDLE fHandle)
+{
+    return QOperatingSystemVersion::current() >= QOperatingSystemVersion::Windows8
+            ? fileIdWin8(HANDLE(fHandle))
+            : fileIdWin7(HANDLE(fHandle));
+}
+
+static QByteArray fileId(const QString &filePath)
+{
+    QByteArray result;
+    const HANDLE handle = ::CreateFile(
+                reinterpret_cast<const wchar_t*>(filePath.utf16()), 0,
+                FILE_SHARE_READ, nullptr, OPEN_EXISTING,
+                FILE_FLAG_BACKUP_SEMANTICS, nullptr);
+    if (handle != INVALID_HANDLE_VALUE) {
+        result = fileIdWin(handle);
+        ::CloseHandle(handle);
+    }
+    return result;
+}
+
+static qint64 fileSize(const QString &filePath)
+{
+    return QFileInfo(filePath).size();
+}
+
+#else
+
+static QByteArray fileId(const QString &filePath)
+{
+    QByteArray result;
+    if (Q_UNLIKELY(filePath.isEmpty()))
+        return {};
+    QT_STATBUF statResult = {};
+    if (QT_STAT(filePath.toLocal8Bit().constData(), &statResult))
+        return {};
+    result = QByteArray::number(quint64(statResult.st_dev), 16);
+    result += ':';
+    result += QByteArray::number(quint64(statResult.st_ino));
+    return result;
+}
+
+#endif // Q_OS_WIN
+
+bool isSameExecutable(const QString &filePath1, const QString &filePath2)
+{
+    if (filePath1 == filePath2)
+        return true;
+    if (resolveSymlinks(filePath1) == resolveSymlinks(filePath2))
+        return true;
+    if (fileId(filePath1) == fileId(filePath2))
+        return true;
+
+#ifdef Q_OS_WIN
+    if (fileSize(filePath1) == fileSize(filePath2))
+        return true;
+#endif
+
+    return false;
 }

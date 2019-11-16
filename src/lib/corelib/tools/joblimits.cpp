@@ -149,7 +149,7 @@ bool JobLimits::isEmpty() const
 
 int JobLimits::count() const
 {
-    return d->jobLimits.size();
+    return int(d->jobLimits.size());
 }
 
 JobLimit JobLimits::jobLimitAt(int i) const

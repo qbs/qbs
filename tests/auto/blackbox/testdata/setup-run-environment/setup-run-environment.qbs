@@ -61,6 +61,16 @@ Project {
             bundle.isBundle: false
         }
 
+        // Testing shows that clang (8.0) does not find dynamic libraries via
+        // the -L<dir> and -l<libname> mechanism unless the name is "lib<libname>.a".
+        Properties {
+            condition: qbs.hostOS.contains("windows") && qbs.toolchain.contains("clang")
+            cpp.dynamicLibraryPrefix: "lib"
+            cpp.dynamicLibraryImportSuffix: ".a"
+        }
+        cpp.dynamicLibraryPrefix: original
+        cpp.dynamicLibraryImportSuffix: original
+
         install: true
         installImportLib: true
         installDir: "lib4"
@@ -91,8 +101,9 @@ Project {
 
         property string fullInstallPrefix: FileInfo.joinPaths(qbs.installRoot, qbs.installPrefix)
         property string lib3FilePath: FileInfo.joinPaths(fullInstallPrefix, "lib3",
-                cpp.dynamicLibraryPrefix + "lib3" + (qbs.toolchain.contains("msvc")
-                                                     ? ".lib" : cpp.dynamicLibrarySuffix))
+                cpp.dynamicLibraryPrefix + "lib3" + (qbs.targetOS.contains("windows")
+                                                     ? cpp.dynamicLibraryImportSuffix
+                                                     : cpp.dynamicLibrarySuffix))
         cpp.dynamicLibraries: [lib3FilePath, "lib4"]
         cpp.libraryPaths: FileInfo.joinPaths(fullInstallPrefix, "lib4")
     }

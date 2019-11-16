@@ -227,7 +227,7 @@ int RuleNode::transformerCount() const
     Set<const Transformer *> transformers;
     for (const Artifact * const output : filterByType<Artifact>(parents))
         transformers.insert(output->transformer.get());
-    return transformers.size();
+    return int(transformers.size());
 }
 
 ArtifactSet RuleNode::currentInputArtifacts() const

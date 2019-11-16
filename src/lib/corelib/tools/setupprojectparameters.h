@@ -71,6 +71,8 @@ public:
     SetupProjectParameters &operator=(const SetupProjectParameters &other);
     SetupProjectParameters &operator=(SetupProjectParameters &&other) Q_DECL_NOEXCEPT;
 
+    static SetupProjectParameters fromJson(const QJsonObject &data);
+
     QString topLevelProfile() const;
     void setTopLevelProfile(const QString &profile);
 

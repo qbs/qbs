@@ -1,6 +1,5 @@
+include(clangcompilationdb.pri)
 include(../../plugins.pri)
-
-TARGET = clangcompilationdbgenerator
 
 QT = core
 

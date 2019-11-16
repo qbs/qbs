@@ -135,14 +135,14 @@ CppModule {
                                                                   : undefined
     property string binutilsPath: binutilsProbe.found ? binutilsProbe.path : toolchainInstallPath
 
-    assemblerName: 'as'
+    assemblerName: 'as' + compilerExtension
     compilerName: cxxCompilerName
-    linkerName: 'ld'
-    property string archiverName: 'ar'
-    property string nmName: 'nm'
-    property string objcopyName: "objcopy"
-    property string stripName: "strip"
-    property string dsymutilName: "dsymutil"
+    linkerName: 'ld' + compilerExtension
+    property string archiverName: 'ar' + compilerExtension
+    property string nmName: 'nm' + compilerExtension
+    property string objcopyName: "objcopy" + compilerExtension
+    property string stripName: "strip" + compilerExtension
+    property string dsymutilName: "dsymutil" + compilerExtension
     property string lipoName
     property string sysroot: qbs.sysroot
     property string syslibroot: sysroot
@@ -227,18 +227,12 @@ CppModule {
         if (product.version === undefined)
             return undefined;
 
-        if (!Gcc.isNumericProductVersion(product.version)) {
-            // Dynamic library version numbers like "A" or "B" are common on Apple platforms, so
-            // don't restrict the product version to a componentized version number here.
-            if (cpp.imageFormat === "macho")
-                return product.version;
-
-            throw("product.version must be a string in the format x[.y[.z[.w]] "
-                  + "where each component is an integer");
-        }
+        var coreVersion = product.version.match("^([0-9]+\.){0,3}[0-9]+");
+        if (!coreVersion)
+            return undefined;
 
         var maxVersionParts = 3;
-        var versionParts = product.version.split('.').slice(0, maxVersionParts);
+        var versionParts = coreVersion[0].split('.').slice(0, maxVersionParts);
 
         // pad if necessary
         for (var i = versionParts.length; i < maxVersionParts; ++i)
@@ -246,11 +240,12 @@ CppModule {
 
         return versionParts.join('.');
     }
+
     property string soVersion: {
-        var v = internalVersion;
-        if (!Gcc.isNumericProductVersion(v))
+        if (!internalVersion)
             return "";
-        return v.split('.')[0];
+
+        return internalVersion.split('.')[0];
     }
 
     property var buildEnv: {
@@ -429,7 +424,7 @@ CppModule {
                                      + PathTools.bundleExecutableFilePath(product)
                 }
             }];
-            if (product.qbs.toolchain.contains("mingw")) {
+            if (product.cpp.imageFormat === "pe") {
                 artifacts.push({
                     fileTags: ["dynamiclibrary_import"],
                     filePath: FileInfo.joinPaths(product.destinationDirectory,
@@ -447,7 +442,7 @@ CppModule {
             }
 
             if (product.cpp.shouldCreateSymlinks && (!product.bundle || !product.bundle.isBundle)) {
-                var maxVersionParts = Gcc.isNumericProductVersion(product.version) ? 3 : 1;
+                var maxVersionParts = product.cpp.internalVersion ? 3 : 1;
                 for (var i = 0; i < maxVersionParts; ++i) {
                     var symlink = {
                         filePath: product.destinationDirectory + "/"
@@ -566,7 +561,7 @@ CppModule {
         inputsFromDependencies: ["dynamiclibrary_symbols", "dynamiclibrary_import", "staticlibrary"]
 
         outputFileTags: ["bundle.input", "application", "debuginfo_app","debuginfo_bundle",
-                         "debuginfo_plist"]
+                         "debuginfo_plist", "mem_map"]
         outputArtifacts: {
             var app = {
                 filePath: FileInfo.joinPaths(product.destinationDirectory,
@@ -580,6 +575,13 @@ CppModule {
             var artifacts = [app];
             if (!product.aggregate)
                 artifacts = artifacts.concat(Gcc.debugInfoArtifacts(product, undefined, "app"));
+            if (product.cpp.generateLinkerMapFile) {
+                artifacts.push({
+                    filePath: FileInfo.joinPaths(product.destinationDirectory,
+                                                 product.targetName + ".map"),
+                    fileTags: ["mem_map"]
+                });
+            }
             return artifacts;
         }
 

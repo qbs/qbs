@@ -147,7 +147,7 @@ LinuxGCC {
 
     binutilsPath: FileInfo.joinPaths(Android.ndk.ndkDir, "toolchains", "llvm", "prebuilt",
                                      Android.ndk.hostArch, "bin");
-    binutilsPathPrefix: "llvm-"
+    binutilsPathPrefix: FileInfo.joinPaths(binutilsPath, "llvm-")
     syslibroot: FileInfo.joinPaths(Android.ndk.ndkDir, "platforms",
                                    Android.ndk.platform, "arch-"
                                    + NdkUtils.abiNameToDirName(Android.ndk.abi))

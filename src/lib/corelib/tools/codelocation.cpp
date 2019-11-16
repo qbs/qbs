@@ -41,9 +41,12 @@
 #include <tools/fileinfo.h>
 #include <tools/persistence.h>
 #include <tools/qbsassert.h>
+#include <tools/stringconstants.h>
 
 #include <QtCore/qdatastream.h>
 #include <QtCore/qdir.h>
+#include <QtCore/qjsonobject.h>
+#include <QtCore/qjsonvalue.h>
 #include <QtCore/qregexp.h>
 #include <QtCore/qshareddata.h>
 #include <QtCore/qstring.h>
@@ -132,6 +135,18 @@ QString CodeLocation::toString() const
         str += lineAndColumn;
     }
     return str;
+}
+
+QJsonObject CodeLocation::toJson() const
+{
+    QJsonObject obj;
+    if (!filePath().isEmpty())
+        obj.insert(Internal::StringConstants::filePathKey(), filePath());
+    if (line() != -1)
+        obj.insert(QStringLiteral("line"), line());
+    if (column() != -1)
+        obj.insert(QStringLiteral("column"), column());
+    return obj;
 }
 
 void CodeLocation::load(Internal::PersistentPool &pool)

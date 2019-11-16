@@ -41,7 +41,10 @@
 
 #include "persistence.h"
 #include "qttools.h"
+#include "stringconstants.h"
 
+#include <QtCore/qjsonarray.h>
+#include <QtCore/qjsonobject.h>
 #include <QtCore/qshareddata.h>
 #include <QtCore/qstringlist.h>
 
@@ -156,6 +159,14 @@ QString ErrorItem::toString() const
     return str += description();
 }
 
+QJsonObject ErrorItem::toJson() const
+{
+    QJsonObject data;
+    data.insert(Internal::StringConstants::descriptionProperty(), description());
+    data.insert(Internal::StringConstants::locationKey(), codeLocation().toJson());
+    return data;
+}
+
 
 class ErrorInfo::ErrorInfoPrivate : public QSharedData
 {
@@ -248,7 +259,7 @@ void ErrorInfo::prepend(const QString &description, const CodeLocation &location
  * Most often, there will be one element in this list, but there can be more e.g. to illustrate
  * how an error condition propagates through several source files.
  */
-QList<ErrorItem> ErrorInfo::items() const
+const QList<ErrorItem> ErrorInfo::items() const
 {
     return d->items;
 }
@@ -280,6 +291,17 @@ QString ErrorInfo::toString() const
         }
     }
     return lines.join(QLatin1Char('\n'));
+}
+
+QJsonObject ErrorInfo::toJson() const
+{
+    QJsonObject data;
+    data.insert(QLatin1String("is-internal"), isInternalError());
+    QJsonArray itemsArray;
+    for (const ErrorItem &item : items())
+        itemsArray.append(item.toJson());
+    data.insert(QLatin1String("items"), itemsArray);
+    return data;
 }
 
 /*!

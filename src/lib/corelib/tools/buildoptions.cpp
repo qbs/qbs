@@ -38,6 +38,9 @@
 ****************************************************************************/
 #include "buildoptions.h"
 
+#include "jsonhelper.h"
+
+#include <QtCore/qjsonobject.h>
 #include <QtCore/qshareddata.h>
 #include <QtCore/qthread.h>
 
@@ -411,6 +414,58 @@ bool operator==(const BuildOptions &bo1, const BuildOptions &bo2)
             && bo1.maxJobCount() == bo2.maxJobCount()
             && bo1.install() == bo2.install()
             && bo1.removeExistingInstallation() == bo2.removeExistingInstallation();
+}
+
+namespace Internal {
+template<> JobLimits fromJson(const QJsonValue &limitsData)
+{
+    JobLimits limits;
+    const QJsonArray &limitsArray = limitsData.toArray();
+    for (const QJsonValue &v : limitsArray) {
+        const QJsonObject limitData = v.toObject();
+        QString pool;
+        int limit = 0;
+        setValueFromJson(pool, limitData, "pool");
+        setValueFromJson(limit, limitData, "limit");
+        if (!pool.isEmpty() && limit > 0)
+            limits.setJobLimit(pool, limit);
+    }
+    return limits;
+}
+
+template<> CommandEchoMode fromJson(const QJsonValue &modeData)
+{
+    const QString modeString = modeData.toString();
+    if (modeString == QLatin1String("silent"))
+        return CommandEchoModeSilent;
+    if (modeString == QLatin1String("command-line"))
+        return CommandEchoModeCommandLine;
+    if (modeString == QLatin1String("command-line-with-environment"))
+        return CommandEchoModeCommandLineWithEnvironment;
+    return CommandEchoModeSummary;
+}
+} // namespace Internal
+
+qbs::BuildOptions qbs::BuildOptions::fromJson(const QJsonObject &data)
+{
+    using namespace Internal;
+    BuildOptions opt;
+    setValueFromJson(opt.d->changedFiles, data, "changed-files");
+    setValueFromJson(opt.d->filesToConsider, data, "files-to-consider");
+    setValueFromJson(opt.d->activeFileTags, data, "active-file-tags");
+    setValueFromJson(opt.d->jobLimits, data, "job-limits");
+    setValueFromJson(opt.d->maxJobCount, data, "max-job-count");
+    setValueFromJson(opt.d->dryRun, data, "dry-run");
+    setValueFromJson(opt.d->keepGoing, data, "keep-going");
+    setValueFromJson(opt.d->forceTimestampCheck, data, "check-timestamps");
+    setValueFromJson(opt.d->forceOutputCheck, data, "check-outputs");
+    setValueFromJson(opt.d->logElapsedTime, data, "log-time");
+    setValueFromJson(opt.d->echoMode, data, "command-echo-mode");
+    setValueFromJson(opt.d->install, data, "install");
+    setValueFromJson(opt.d->removeExistingInstallation, data, "clean-install-root");
+    setValueFromJson(opt.d->onlyExecuteRules, data, "only-execute-rules");
+    setValueFromJson(opt.d->jobLimitsFromProjectTakePrecedence, data, "enforce-project-job-limits");
+    return opt;
 }
 
 } // namespace qbs

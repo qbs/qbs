@@ -470,6 +470,9 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     if (product.cpp.entryPoint)
         args.push("/ENTRY:" + product.cpp.entryPoint);
 
+    if (outputs.application && product.cpp.generateLinkerMapFile)
+        args.push("/MAP:" + outputs.mem_map[0].filePath);
+
     args.push('/OUT:' + linkerOutputNativeFilePath)
     var libraryPaths = product.cpp.libraryPaths;
     if (libraryPaths)
@@ -542,3 +545,46 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     return commands;
 }
 
+function createRcCommand(binary, input, output, logo) {
+    var platformDefines = input.cpp.platformDefines;
+    var defines = input.cpp.defines;
+    var includePaths = input.cpp.includePaths;
+    var systemIncludePaths = input.cpp.systemIncludePaths;
+
+    var args = [];
+    if (logo === "can-suppress-logo")
+        args.push("/nologo");
+    for (i in platformDefines) {
+        args.push("/d");
+        args.push(platformDefines[i]);
+    }
+    for (i in defines) {
+        args.push("/d");
+        args.push(defines[i]);
+    }
+    for (i in includePaths) {
+        args.push("/I");
+        args.push(includePaths[i]);
+    }
+    for (i in systemIncludePaths) {
+        args.push("/I");
+        args.push(systemIncludePaths[i]);
+    }
+    args = args.concat(["/FO", output.filePath, input.filePath]);
+    var cmd = new Command(binary, args);
+    cmd.description = 'compiling ' + input.fileName;
+    cmd.highlight = 'compiler';
+    cmd.jobPool = "compiler";
+
+    if (logo === "always-shows-logo") {
+        // Remove the first two lines of stdout. That's the logo.
+        cmd.stdoutFilterFunction = function(output) {
+            var idx = 0;
+            for (var i = 0; i < 3; ++i)
+                idx = output.indexOf('\n', idx + 1);
+            return output.substr(idx + 1);
+        }
+    }
+
+    return cmd;
+}

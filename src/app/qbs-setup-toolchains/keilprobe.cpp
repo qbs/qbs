@@ -47,8 +47,9 @@
 #include <tools/hostosinfo.h>
 #include <tools/profile.h>
 
-#include <QtCore/qlist.h>
+#include <QtCore/qprocess.h>
 #include <QtCore/qsettings.h>
+#include <QtCore/qtemporaryfile.h>
 
 using namespace qbs;
 using Internal::Tr;
@@ -99,6 +100,77 @@ static Profile createKeilProfileHelper(const ToolchainInstallInfo &info,
     return profile;
 }
 
+static Version dumpKeilCompilerVersion(const QFileInfo &compiler)
+{
+    const QString arch = guessKeilArchitecture(compiler);
+    if (arch == QLatin1String("mcs51")) {
+        QTemporaryFile fakeIn;
+        if (!fakeIn.open()) {
+            qbsWarning() << Tr::tr("Unable to open temporary file %1 for output: %2")
+                            .arg(fakeIn.fileName(), fakeIn.errorString());
+            return Version{};
+        }
+        fakeIn.write("#define VALUE_TO_STRING(x) #x\n");
+        fakeIn.write("#define VALUE(x) VALUE_TO_STRING(x)\n");
+        fakeIn.write("#define VAR_NAME_VALUE(var) \"\"\"|\"#var\"|\"VALUE(var)\n");
+        fakeIn.write("#ifdef __C51__\n");
+        fakeIn.write("#pragma message(VAR_NAME_VALUE(__C51__))\n");
+        fakeIn.write("#endif\n");
+        fakeIn.write("#ifdef __CX51__\n");
+        fakeIn.write("#pragma message(VAR_NAME_VALUE(__CX51__))\n");
+        fakeIn.write("#endif\n");
+        fakeIn.close();
+
+        const QStringList args = {fakeIn.fileName()};
+        QProcess p;
+        p.start(compiler.absoluteFilePath(), args);
+        p.waitForFinished(3000);
+        const auto es = p.exitStatus();
+        if (es != QProcess::NormalExit) {
+            const QByteArray out = p.readAll();
+            qbsWarning() << Tr::tr("Compiler dumping failed:\n%1")
+                            .arg(QString::fromUtf8(out));
+            return Version{};
+        }
+
+        const QByteArray dump = p.readAllStandardOutput();
+        const int verCode = extractVersion(dump, "\"__C51__\"|\"");
+        if (verCode < 0) {
+            qbsWarning() << Tr::tr("No '__C51__' token was found"
+                                   " in the compiler dump:\n%1")
+                            .arg(QString::fromUtf8(dump));
+            return Version{};
+        }
+        return Version{verCode / 100, verCode % 100};
+    } else if (arch == QLatin1String("arm")) {
+        const QStringList args = {QStringLiteral("-E"),
+                                  QStringLiteral("--list-macros"),
+                                  QStringLiteral("nul")};
+        QProcess p;
+        p.start(compiler.absoluteFilePath(), args);
+        p.waitForFinished(3000);
+        const auto es = p.exitStatus();
+        if (es != QProcess::NormalExit) {
+            const QByteArray out = p.readAll();
+            qbsWarning() << Tr::tr("Compiler dumping failed:\n%1")
+                            .arg(QString::fromUtf8(out));
+            return Version{};
+        }
+
+        const QByteArray dump = p.readAll();
+        const int verCode = extractVersion(dump, "__ARMCC_VERSION ");
+        if (verCode < 0) {
+            qbsWarning() << Tr::tr("No '__ARMCC_VERSION' token was found "
+                                   "in the compiler dump:\n%1")
+                            .arg(QString::fromUtf8(dump));
+            return Version{};
+        }
+        return Version{verCode / 1000000, (verCode / 10000) % 100, verCode % 10000};
+    }
+
+    return Version{};
+}
+
 static std::vector<ToolchainInstallInfo> installedKeilsFromPath()
 {
     std::vector<ToolchainInstallInfo> infos;
@@ -109,8 +181,10 @@ static std::vector<ToolchainInstallInfo> installedKeilsFromPath()
                         HostOsInfo::appendExecutableSuffix(compilerName)));
         if (!keilPath.exists())
             continue;
-        infos.push_back({keilPath, Version{}});
+        const Version version = dumpKeilCompilerVersion(keilPath);
+        infos.push_back({keilPath, version});
     }
+    std::sort(infos.begin(), infos.end());
     return infos;
 }
 
@@ -165,6 +239,7 @@ static std::vector<ToolchainInstallInfo> installedKeilsFromRegistry()
 
     }
 
+    std::sort(infos.begin(), infos.end());
     return infos;
 }
 
@@ -187,9 +262,14 @@ void keilProbe(Settings *settings, QList<Profile> &profiles)
 {
     qbsInfo() << Tr::tr("Trying to detect KEIL toolchains...");
 
-    std::vector<ToolchainInstallInfo> allInfos = installedKeilsFromRegistry();
+    // Make sure that a returned infos are sorted before using the std::set_union!
+    const std::vector<ToolchainInstallInfo> regInfos = installedKeilsFromRegistry();
     const std::vector<ToolchainInstallInfo> pathInfos = installedKeilsFromPath();
-    allInfos.insert(std::end(allInfos), std::begin(pathInfos), std::end(pathInfos));
+    std::vector<ToolchainInstallInfo> allInfos;
+    allInfos.reserve(regInfos.size() + pathInfos.size());
+    std::set_union(regInfos.cbegin(), regInfos.cend(),
+                   pathInfos.cbegin(), pathInfos.cend(),
+                   std::back_inserter(allInfos));
 
     for (const ToolchainInstallInfo &info : allInfos) {
         const auto profile = createKeilProfileHelper(info, settings);

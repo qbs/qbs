@@ -60,5 +60,5 @@ static void QbsClangDbGeneratorPluginUnload()
 #endif
 #endif
 
-QBS_REGISTER_STATIC_PLUGIN(extern "C" GENERATOR_EXPORT, QbsClangDbGeneratorPlugin,
+QBS_REGISTER_STATIC_PLUGIN(extern "C" GENERATOR_EXPORT, clangcompilationdbgenerator,
                            QbsClangDbGeneratorPluginLoad, QbsClangDbGeneratorPluginUnload)

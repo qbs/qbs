@@ -78,10 +78,22 @@ function collectLibraryDependencies(product, isDarwin) {
     var publicDeps = {};
     var objects = [];
     var objectByFilePath = {};
-    var tagForLinkingAgainstSharedLib = product.qbs.toolchain.contains("mingw")
+    var tagForLinkingAgainstSharedLib = product.cpp.imageFormat === "pe"
             ? "dynamiclibrary_import" : "dynamiclibrary";
+    var removeDuplicateLibraries = product.cpp.removeDuplicateLibraries
 
     function addObject(obj, addFunc) {
+        /* If the object is already known, remove its previous usage and insert
+         * it again in the new desired position. This preserves the order of
+         * the other objects, and is analogous to what qmake does (see the
+         * mergeLflags parameter in UnixMakefileGenerator::findLibraries()).
+         */
+        if (removeDuplicateLibraries && (obj.filePath in objectByFilePath)) {
+            var oldObj = objectByFilePath[obj.filePath];
+            var i = objects.indexOf(oldObj);
+            if (i >= 0)
+                objects.splice(i, 1);
+        }
         addFunc.call(objects, obj);
         objectByFilePath[obj.filePath] = obj;
     }
@@ -278,12 +290,11 @@ function linkerFlags(project, product, inputs, outputs, primaryOutput, linkerPat
         }
 
         if (isDarwin) {
-            var internalVersion = product.cpp.internalVersion;
-            if (internalVersion && isNumericProductVersion(internalVersion))
-                args.push("-current_version", internalVersion);
+            if (product.cpp.internalVersion)
+                args.push("-current_version", product.cpp.internalVersion);
             escapableLinkerFlags.push("-install_name", UnixUtils.soname(product,
                                                                         primaryOutput.fileName));
-        } else {
+        } else if (product.cpp.imageFormat === "elf") {
             escapableLinkerFlags.push("-soname=" + UnixUtils.soname(product,
                                                                     primaryOutput.fileName));
         }
@@ -295,7 +306,7 @@ function linkerFlags(project, product, inputs, outputs, primaryOutput, linkerPat
     if (primaryOutput.fileTags.containsAny(["dynamiclibrary", "loadablemodule"])) {
         if (isDarwin)
             escapableLinkerFlags.push("-headerpad_max_install_names");
-        else
+        else if (product.cpp.imageFormat === "elf")
             escapableLinkerFlags.push("--as-needed");
     }
 
@@ -344,13 +355,15 @@ function linkerFlags(project, product, inputs, outputs, primaryOutput, linkerPat
         return rpath;
     }
 
-    function isNotSystemRunPath(p) {
-        return !FileInfo.isAbsolutePath(p) || (!systemRunPaths.contains(p)
-                && !canonicalSystemRunPaths.contains(File.canonicalFilePath(p)));
-    };
-    for (i in rpaths) {
-        if (isNotSystemRunPath(rpaths[i]))
-            escapableLinkerFlags.push("-rpath", fixupRPath(rpaths[i]));
+    if (!product.qbs.targetOS.contains("windows")) {
+        function isNotSystemRunPath(p) {
+            return !FileInfo.isAbsolutePath(p) || (!systemRunPaths.contains(p)
+                    && !canonicalSystemRunPaths.contains(File.canonicalFilePath(p)));
+        };
+        for (i in rpaths) {
+            if (isNotSystemRunPath(rpaths[i]))
+                escapableLinkerFlags.push("-rpath", fixupRPath(rpaths[i]));
+        }
     }
 
     if (product.cpp.entryPoint)
@@ -512,6 +525,13 @@ function linkerFlags(project, product, inputs, outputs, primaryOutput, linkerPat
     var importLibs = outputs.dynamiclibrary_import;
     if (importLibs)
         escapableLinkerFlags.push("--out-implib", importLibs[0].filePath);
+
+    if (outputs.application && product.cpp.generateLinkerMapFile) {
+        if (isDarwin)
+            escapableLinkerFlags.push("-map", outputs.mem_map[0].filePath);
+        else
+            escapableLinkerFlags.push("-Map=" + outputs.mem_map[0].filePath);
+    }
 
     var escapedLinkerFlags = escapeLinkerFlags(product, inputs, escapableLinkerFlags);
     Array.prototype.push.apply(escapedLinkerFlags, args);
@@ -854,7 +874,7 @@ function compilerFlags(project, product, input, output, explicitlyDependsOn) {
     }
 
     var positionIndependentCode = input.cpp.positionIndependentCode;
-    if (positionIndependentCode && !product.qbs.toolchain.contains("mingw"))
+    if (positionIndependentCode && !product.qbs.targetOS.contains("windows"))
         args.push('-fPIC');
 
     var cppFlags = input.cpp.cppFlags;
@@ -1035,7 +1055,7 @@ function linkerEnvVars(config, inputs)
 
 function setResponseFileThreshold(command, product)
 {
-    if (product.qbs.toolchain.contains("mingw") && product.qbs.hostOS.contains("windows"))
+    if (product.qbs.targetOS.contains("windows") && product.qbs.hostOS.contains("windows"))
         command.responseFileThreshold = 10000;
 }
 
@@ -1430,10 +1450,6 @@ function debugInfoArtifacts(product, variants, debugInfoTagSuffix) {
         }
     }
     return artifacts;
-}
-
-function isNumericProductVersion(version) {
-    return version && version.match(/^([0-9]+\.){0,3}[0-9]+$/);
 }
 
 function dumpMacros(env, compilerFilePath, args, nullDevice, tag) {

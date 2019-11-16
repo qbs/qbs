@@ -261,6 +261,20 @@ private:
     void parseNext(QStringList &input) override;
 };
 
+class SessionCommand : public Command
+{
+public:
+    SessionCommand(CommandLineOptionPool &optionPool) : Command(optionPool) {}
+
+private:
+    CommandType type() const override { return SessionCommandType; }
+    QString shortDescription() const override;
+    QString longDescription() const override;
+    QString representation() const override;
+    QList<CommandLineOption::Type> supportedOptions() const override { return {}; }
+    void parseNext(QStringList &input) override;
+};
+
 } // namespace qbs
 
 #endif // QBS_PARSER_COMMAND_H

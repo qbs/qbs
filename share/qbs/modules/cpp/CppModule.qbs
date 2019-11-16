@@ -104,7 +104,7 @@ Module {
                         to the compiler. if undefined, compiler defaults will be used."
     }
 
-    property string minimumIosVersion
+    property string minimumIosVersion: qbs.architecture == "armv7a" ? "6.0" : undefined
     PropertyOptions {
         name: "minimumIosVersion"
         description: "a version number in the format [major].[minor] indicating the earliest \
@@ -120,7 +120,7 @@ Module {
                         defaults will be used."
     }
 
-    property string minimumTvosVersion
+    property string minimumTvosVersion: "6.0"
     PropertyOptions {
         name: "minimumTvosVersion"
         description: "a version number in the format [major].[minor] indicating the earliest \
@@ -191,6 +191,7 @@ Module {
     property bool useRPathLink
     property string rpathLinkFlag
     property bool discardUnusedData
+    property bool removeDuplicateLibraries: true
 
     property stringList assemblerFlags
     PropertyOptions {
@@ -249,6 +250,24 @@ Module {
     PropertyOptions {
         name: "driverLinkerFlags"
         description: "additional compiler driver flags used for linking only"
+    }
+
+    property bool generateLinkerMapFile: false
+    PropertyOptions {
+        name: "generateLinkerMapFile"
+        description: "generate linker map file"
+    }
+
+    property bool generateCompilerListingFiles: false
+    PropertyOptions {
+        name: "generateCompilerListingFiles"
+        description: "generate compiler listing files"
+    }
+
+    property bool generateAssemblerListingFiles: false
+    PropertyOptions {
+        name: "generateAssemblerListingFiles"
+        description: "generate assembler listing files"
     }
 
     property bool positionIndependentCode: true

@@ -5,6 +5,10 @@ QbsApp {
     name: "qbs_app"
     Depends { name: "qbs resources" }
     targetName: "qbs"
+    Depends {
+        condition: Qt.core.staticBuild || qbsbuildconfig.staticBuild
+        productTypes: ["qbsplugin"]
+    }
     cpp.defines: base.concat([
         "QBS_VERSION=" + Utilities.cStringQuote(qbsversion.version),
         "QBS_RELATIVE_LIBEXEC_PATH=" + Utilities.cStringQuote(qbsbuildconfig.relativeLibexecPath),
@@ -23,8 +27,16 @@ QbsApp {
         "main.cpp",
         "qbstool.cpp",
         "qbstool.h",
+        "session.cpp",
+        "session.h",
+        "sessionpacket.cpp",
+        "sessionpacket.h",
+        "sessionpacketreader.cpp",
+        "sessionpacketreader.h",
         "status.cpp",
         "status.h",
+        "stdinreader.cpp",
+        "stdinreader.h",
     ]
     Group {
         name: "parser"

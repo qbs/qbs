@@ -60,5 +60,5 @@ static void MakefileGeneratorPluginUnload()
 #endif
 #endif
 
-QBS_REGISTER_STATIC_PLUGIN(extern "C" GENERATOR_EXPORT, MakefileGeneratorPlugin,
+QBS_REGISTER_STATIC_PLUGIN(extern "C" GENERATOR_EXPORT, makefilegenerator,
                            MakefileGeneratorPluginLoad, MakefileGeneratorPluginUnload)

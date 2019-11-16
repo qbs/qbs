@@ -1,17 +1,32 @@
-version: "3.3"
+version: "3.7"
+
+x-default-service: &linux
+  working_dir: /qbs
+  volumes:
+    - .:/qbs
+  network_mode: bridge
+  cap_add:
+      - SYS_PTRACE
 
 services:
+  bionic:
+    << : *linux
+    hostname: bionic
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:bionic-5.12.5_1.14.0-1
+    build:
+      dockerfile: docker/bionic/Dockerfile
+      context: .
+      args:
+        QT_VERSION: 5.12.5
+        QTCREATOR_VERSION: 4.10.1
+
   stretch:
+    << : *linux
+    hostname: stretch
     image: ${DOCKER_USER:-qbsbuild}/qbsdev:stretch
     build:
-      dockerfile: Dockerfile
-      context: docker/stretch/
+      dockerfile: docker/stretch/Dockerfile
+      context: .
       args:
-        QT_VERSION: 5.11.3
-        QBS_VERSION: 1.13.0
-    working_dir: /qbs
-    volumes:
-      - .:/qbs
-    network_mode: bridge
-    cap_add:
-        - SYS_PTRACE
+        QT_VERSION: 5.12.4
+        QTCREATOR_VERSION: 4.9.2

@@ -63,9 +63,13 @@ Module {
             "GENERATE_PKGINFO_FILE": generatePackageInfo !== undefined
                                      ? (generatePackageInfo ? "YES" : "NO")
                                      : undefined,
+            "IS_MACCATALYST": "NO",
+            "LD_RUNPATH_SEARCH_PATHS_NO": [],
             "PRODUCT_NAME": product.targetName,
             "LOCAL_APPS_DIR": Environment.getEnv("HOME") + "/Applications",
             "LOCAL_LIBRARY_DIR": Environment.getEnv("HOME") + "/Library",
+            "SWIFT_PLATFORM_TARGET_PREFIX": isMacOs ? "macos"
+                                                    : qbs.targetOS.contains("ios") ? "ios" : "",
             "TARGET_BUILD_DIR": product.buildDirectory,
             "WRAPPER_NAME": bundleName,
             "WRAPPER_EXTENSION": extension
@@ -427,7 +431,7 @@ Module {
                                 || {};
                         for (key in partialInfoPlist) {
                             if (partialInfoPlist.hasOwnProperty(key)
-                                    && !aggregatePlist.hasOwnProperty(key))
+                                    && aggregatePlist[key] === undefined)
                                 aggregatePlist[key] = partialInfoPlist[key];
                         }
                     }

@@ -60,9 +60,9 @@ using qbs::Internal::Tr;
 
 namespace {
 
-QString getToolchainInstallPath(const QString &compilerFilePath)
+QString getToolchainInstallPath(const QFileInfo &compiler)
 {
-    return QFileInfo(compilerFilePath).path(); // 1 level up
+    return compiler.path(); // 1 level up
 }
 
 Profile createProfileHelper(
@@ -117,21 +117,61 @@ QString findCompatibleVcsarsallBat()
     return {};
 }
 
+QString wow6432Key()
+{
+#ifdef Q_OS_WIN64
+    return QStringLiteral("\\Wow6432Node");
+#else
+    return {};
+#endif
+}
+
+QString findClangCl()
+{
+    const auto compilerName = HostOsInfo::appendExecutableSuffix(QStringLiteral("clang-cl"));
+    const auto compilerFromPath = findExecutable(compilerName);
+    if (!compilerFromPath.isEmpty())
+        return compilerFromPath;
+
+    const QSettings registry(
+            QStringLiteral("HKEY_LOCAL_MACHINE\\SOFTWARE%1\\LLVM\\LLVM").arg(wow6432Key()),
+            QSettings::NativeFormat);
+    const auto key = QStringLiteral(".");
+    if (registry.contains(key)) {
+        const auto compilerPath = QDir::fromNativeSeparators(registry.value(key).toString())
+                + QStringLiteral("/bin/") + compilerName;
+        if (QFileInfo(compilerPath).exists())
+            return compilerPath;
+    }
+
+    // this branch can be useful in case user had two LLVM installations (e.g. 32bit & 64bit)
+    // but uninstalled one - in that case, registry will be empty
+    static const char * const envVarCandidates[] = {"ProgramFiles", "ProgramFiles(x86)"};
+    for (const auto &envVar : envVarCandidates) {
+        const auto value
+                = QDir::fromNativeSeparators(QString::fromLocal8Bit(qgetenv(envVar)));
+        const auto compilerPath = value + QStringLiteral("/LLVM/bin/") + compilerName;
+        if (QFileInfo(compilerPath).exists())
+            return compilerPath;
+    }
+    return {};
+}
+
 } // namespace
 
-void createClangClProfile(
-        const QString &profileName, const QString &compilerFilePath, Settings *settings)
+void createClangClProfile(const QFileInfo &compiler, Settings *settings,
+                          const QString &profileName)
 {
     const auto compilerName = QStringLiteral("clang-cl");
     const auto vcvarsallPath = findCompatibleVcsarsallBat();
     if (vcvarsallPath.isEmpty()) {
         qbsWarning()
                 << Tr::tr("%1 requires installed Visual Studio 2017 or newer, but none was found.")
-                        .arg(compilerName);
+                   .arg(compilerName);
         return;
     }
 
-    const auto toolchainInstallPath = getToolchainInstallPath(compilerFilePath);
+    const auto toolchainInstallPath = getToolchainInstallPath(compiler);
     const auto hostArch = QString::fromStdString(HostOsInfo::hostOSArchitecture());
     createProfileHelper(settings, profileName, toolchainInstallPath, vcvarsallPath, hostArch);
 }
@@ -144,12 +184,12 @@ void clangClProbe(Settings *settings, QList<Profile> &profiles)
 {
     const auto compilerName = QStringLiteral("clang-cl");
     qbsInfo() << Tr::tr("Trying to detect %1...").arg(compilerName);
-    const auto compilerFilePath = findExecutable(HostOsInfo::appendExecutableSuffix(compilerName));
+    const QString compilerFilePath = findClangCl();
     if (compilerFilePath.isEmpty()) {
         qbsInfo() << Tr::tr("%1 was not found.").arg(compilerName);
         return;
     }
-
+    const QFileInfo compiler(compilerFilePath);
     const auto vcvarsallPath = findCompatibleVcsarsallBat();
     if (vcvarsallPath.isEmpty()) {
         qbsWarning()
@@ -162,7 +202,7 @@ void clangClProbe(Settings *settings, QList<Profile> &profiles)
         QStringLiteral("x86_64"),
         QStringLiteral("x86")
     };
-    const auto toolchainInstallPath = getToolchainInstallPath(compilerFilePath);
+    const auto toolchainInstallPath = getToolchainInstallPath(compiler);
     for (const auto &arch: architectures) {
         const auto profileName = QStringLiteral("clang-cl-%1").arg(arch);
         auto profile = createProfileHelper(

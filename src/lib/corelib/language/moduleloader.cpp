@@ -688,6 +688,9 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
                                                               m_qbsVersion.toString()));
     }
 
+    resolveProbes(&dummyProductContext, projectItem);
+    projectContext.topLevelProject->probes << dummyProductContext.info.probes;
+
     handleProfileItems(projectItem, &projectContext);
 
     QList<Item *> multiplexedProducts;
@@ -698,9 +701,6 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
     }
     for (Item * const additionalProductItem : qAsConst(multiplexedProducts))
         Item::addChild(projectItem, additionalProductItem);
-
-    resolveProbes(&dummyProductContext, projectItem);
-    projectContext.topLevelProject->probes << dummyProductContext.info.probes;
 
     const QList<Item *> originalChildren = projectItem->children();
     for (Item * const child : originalChildren) {

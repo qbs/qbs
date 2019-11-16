@@ -70,4 +70,19 @@ uint qHash(const QStringList &list);
 uint qHash(const QProcessEnvironment &env);
 QT_END_NAMESPACE
 
+namespace qbs {
+
+template <class T>
+QSet<T> toSet(const QList<T> &list)
+{
+#if (QT_VERSION < QT_VERSION_CHECK(5, 14, 0))
+    return list.toSet();
+#else
+    return QSet<T>(list.begin(), list.end());
+#endif
+}
+
+} // namespace qbs
+
+
 #endif // QBSQTTOOLS_H

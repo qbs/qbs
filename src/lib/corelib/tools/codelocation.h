@@ -47,6 +47,7 @@
 
 QT_BEGIN_NAMESPACE
 class QDataStream;
+class QJsonObject;
 class QString;
 QT_END_NAMESPACE
 
@@ -70,6 +71,7 @@ public:
 
     bool isValid() const;
     QString toString() const;
+    QJsonObject toJson() const;
 
     void load(Internal::PersistentPool &pool);
     void store(Internal::PersistentPool &pool) const;

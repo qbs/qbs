@@ -36,12 +36,15 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef QBS_PROBE_H
-#define QBS_PROBE_H
+
+#ifndef QBS_SETUPTOOLCHAINS_PROBE_H
+#define QBS_SETUPTOOLCHAINS_PROBE_H
 
 #include <tools/version.h>
 
 #include <QtCore/qfileinfo.h>
+
+#include <tuple> // for std::tie
 
 QT_BEGIN_NAMESPACE
 class QString;
@@ -50,7 +53,11 @@ QT_END_NAMESPACE
 
 namespace qbs { class Settings; }
 
+QStringList systemSearchPaths();
+
 QString findExecutable(const QString &fileName);
+
+QStringList toolchainTypeFromCompilerName(const QString &compilerName);
 
 void createProfile(const QString &profileName, const QString &toolchainType,
                    const QString &compilerFilePath, qbs::Settings *settings);
@@ -64,9 +71,14 @@ struct ToolchainInstallInfo
 };
 
 inline bool operator<(const ToolchainInstallInfo &lhs, const ToolchainInstallInfo &rhs)
-{ return lhs.compilerPath.absoluteFilePath() < rhs.compilerPath.absoluteFilePath()
-            || lhs.compilerVersion < rhs.compilerVersion; }
+{
+    const auto lp = lhs.compilerPath.absoluteFilePath();
+    const auto rp = rhs.compilerPath.absoluteFilePath();
+    return std::tie(lp, lhs.compilerVersion) < std::tie(rp, rhs.compilerVersion);
+}
 
 int extractVersion(const QByteArray &macroDump, const QByteArray &keyToken);
+
+bool isSameExecutable(const QString &exe1, const QString &exe2);
 
 #endif // Header guard

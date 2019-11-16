@@ -155,6 +155,9 @@ public:
     static BuildGraphInfo getBuildGraphInfo(const QString &bgFilePath,
                                             const QStringList &requestedProperties);
 
+    // Use with loaded project. Does not set requestedProperties.
+    BuildGraphInfo getBuildGraphInfo() const;
+
 
 #ifdef QBS_ENABLE_PROJECT_FILE_UPDATES
     ErrorInfo addGroup(const ProductData &product, const QString &groupName);

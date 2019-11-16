@@ -68,109 +68,30 @@ CppModule {
 
     property string compilerExtension: qbs.hostOS.contains("windows") ? ".exe" : ""
 
-    property bool generateMapFile: true
-    PropertyOptions {
-        name: "generateMapFile"
-        description: "produce a linker list file (enabled by default)"
-    }
-
     /* Work-around for QtCreator which expects these properties to exist. */
     property string cCompilerName: compilerName
     property string cxxCompilerName: compilerName
 
-    compilerName: {
-        switch (qbs.architecture) {
-        case "arm":
-            return "iccarm" + compilerExtension;
-        case "mcs51":
-            return "icc8051" + compilerExtension;
-        case "avr":
-            return "iccavr" + compilerExtension;
-        }
-    }
+    compilerName: IAR.compilerName(qbs) + compilerExtension
     compilerPath: FileInfo.joinPaths(toolchainInstallPath, compilerName)
 
-    assemblerName: {
-        switch (qbs.architecture) {
-        case "arm":
-            return "iasmarm" + compilerExtension;
-        case "mcs51":
-            return "a8051" + compilerExtension;
-        case "avr":
-            return "aavr" + compilerExtension;
-        }
-    }
+    assemblerName: IAR.assemblerName(qbs) + compilerExtension
     assemblerPath: FileInfo.joinPaths(toolchainInstallPath, assemblerName)
 
-    linkerName: {
-        switch (qbs.architecture) {
-        case "arm":
-            return "ilinkarm" + compilerExtension;
-        case "mcs51":
-            return "xlink" + compilerExtension;
-        case "avr":
-            return "xlink" + compilerExtension;
-        }
-    }
+    linkerName: IAR.linkerName(qbs) + compilerExtension
     linkerPath: FileInfo.joinPaths(toolchainInstallPath, linkerName)
 
-    property string archiverName: {
-        switch (qbs.architecture) {
-        case "arm":
-            return "iarchive" + compilerExtension;
-        case "mcs51":
-            return "xlib" + compilerExtension;
-        case "avr":
-            return "xlib" + compilerExtension;
-        }
-    }
+    property string archiverName: IAR.archiverName(qbs) + compilerExtension
     property string archiverPath: FileInfo.joinPaths(toolchainInstallPath, archiverName)
 
     runtimeLibrary: "static"
 
-    staticLibrarySuffix: {
-        switch (qbs.architecture) {
-        case "arm":
-            return ".a";
-        case "mcs51":
-            return ".r51";
-        case "avr":
-            return ".r90";
-        }
-    }
+    staticLibrarySuffix: IAR.staticLibrarySuffix(qbs)
+    executableSuffix: IAR.executableSuffix(qbs)
 
-    executableSuffix: {
-        switch (qbs.architecture) {
-        case "arm":
-            return ".out";
-        case "mcs51":
-            return qbs.debugInformation ? ".d51" : ".a51";
-        case "avr":
-            return qbs.debugInformation ? ".d90" : ".a90";
-        }
-    }
+    property string objectSuffix: IAR.objectSuffix(qbs)
 
-    property string objectSuffix: {
-        switch (qbs.architecture) {
-        case "arm":
-            return ".o";
-        case "mcs51":
-            return ".r51";
-        case "avr":
-            return ".r90";
-        }
-    }
-
-    imageFormat: {
-        switch (qbs.architecture) {
-        case "arm":
-            return "elf";
-        case "mcs51":
-            return "ubrof";
-        case "avr":
-            return "ubrof";
-        }
-    }
+    imageFormat: IAR.imageFormat(qbs)
 
     enableExceptions: false
     enableRtti: false
@@ -178,25 +99,14 @@ CppModule {
     Rule {
         id: assembler
         inputs: ["asm"]
-
-        Artifact {
-            fileTags: ["obj"]
-            filePath: Utilities.getHash(input.baseDir) + "/"
-                      + input.fileName + input.cpp.objectSuffix
-        }
-
-        prepare: IAR.prepareAssembler.apply(IAR, arguments);
+        outputFileTags: ["obj", "lst"]
+        outputArtifacts: IAR.compilerOutputArtifacts(
+            input, input.cpp.generateAssemblerListingFiles)
+        prepare: IAR.prepareAssembler.apply(IAR, arguments)
     }
 
     FileTagger {
-        condition: qbs.architecture === "arm";
-        patterns: "*.s"
-        fileTags: ["asm"]
-    }
-
-    FileTagger {
-        condition: qbs.architecture === "mcs51";
-        patterns: ["*.s51", "*.asm"]
+        patterns: ["*.s", "*.s43", "*.s51", "*.s90", "*.msa", "*.asm"]
         fileTags: ["asm"]
     }
 
@@ -204,14 +114,10 @@ CppModule {
         id: compiler
         inputs: ["cpp", "c"]
         auxiliaryInputs: ["hpp"]
-
-        Artifact {
-            fileTags: ["obj"]
-            filePath: Utilities.getHash(input.baseDir) + "/"
-                      + input.fileName + input.cpp.objectSuffix
-        }
-
-        prepare: IAR.prepareCompiler.apply(IAR, arguments);
+        outputFileTags: ["obj", "lst"]
+        outputArtifacts: IAR.compilerOutputArtifacts(
+            input, input.cpp.generateCompilerListingFiles)
+        prepare: IAR.prepareCompiler.apply(IAR, arguments)
     }
 
     Rule {
@@ -219,33 +125,9 @@ CppModule {
         multiplex: true
         inputs: ["obj", "linkerscript"]
         inputsFromDependencies: ["staticlibrary"]
-
-        outputFileTags: {
-            var tags = ["application"];
-            if (product.moduleProperty("cpp", "generateMapFile"))
-                tags.push("map_file");
-            return tags;
-        }
-        outputArtifacts: {
-            var app = {
-                fileTags: ["application"],
-                filePath: FileInfo.joinPaths(
-                              product.destinationDirectory,
-                              PathTools.applicationFilePath(product))
-            };
-            var artifacts = [app];
-            if (product.cpp.generateMapFile) {
-                artifacts.push({
-                    fileTags: ["map_file"],
-                filePath: FileInfo.joinPaths(
-                              product.destinationDirectory,
-                              product.targetName + ".map")
-                });
-            }
-            return artifacts;
-        }
-
-        prepare:IAR.prepareLinker.apply(IAR, arguments);
+        outputFileTags: ["application", "mem_map"]
+        outputArtifacts: IAR.applicationLinkerOutputArtifacts(product)
+        prepare: IAR.prepareLinker.apply(IAR, arguments)
     }
 
     Rule {
@@ -253,14 +135,8 @@ CppModule {
         multiplex: true
         inputs: ["obj"]
         inputsFromDependencies: ["staticlibrary"]
-
-        Artifact {
-            fileTags: ["staticlibrary"]
-            filePath: FileInfo.joinPaths(
-                            product.destinationDirectory,
-                            PathTools.staticLibraryFilePath(product))
-        }
-
-        prepare: IAR.prepareArchiver.apply(IAR, arguments);
+        outputFileTags: ["staticlibrary"]
+        outputArtifacts: IAR.staticLibraryLinkerOutputArtifacts(product)
+        prepare: IAR.prepareArchiver.apply(IAR, arguments)
     }
 }

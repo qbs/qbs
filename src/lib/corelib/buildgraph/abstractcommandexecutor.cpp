@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2019 Jochen Ulrich <jochenulrich@t-online.de>
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -58,6 +59,14 @@ AbstractCommandExecutor::AbstractCommandExecutor(Logger logger, QObject *parent)
     , m_dryRun(false)
     , m_logger(std::move(logger))
 {
+    m_watchdog.setSingleShot(true);
+    connect(&m_watchdog, &QTimer::timeout,
+            this, [this]() {
+        cancel(ErrorInfo{Tr::tr("Command cancelled because it exceeded the timeout.")});
+    });
+    connect(this, &AbstractCommandExecutor::finished,
+            &m_watchdog, &QTimer::stop);
+
 }
 
 void AbstractCommandExecutor::start(Transformer *transformer, AbstractCommand *cmd)
@@ -66,7 +75,8 @@ void AbstractCommandExecutor::start(Transformer *transformer, AbstractCommand *c
     m_command = cmd;
     doSetup();
     doReportCommandDescription(transformer->product()->fullDisplayName());
-    doStart();
+    if (doStart())
+        startTimeout();
 }
 
 void AbstractCommandExecutor::doReportCommandDescription(const QString &productName)
@@ -81,6 +91,15 @@ void AbstractCommandExecutor::doReportCommandDescription(const QString &productN
     } else {
         emit reportCommandDescription(m_command->highlight(),
                                       m_command->fullDescription(productName));
+    }
+}
+
+void AbstractCommandExecutor::startTimeout()
+{
+    if (!m_dryRun || m_command->ignoreDryRun()) {
+        const auto timeout = m_command->timeout();
+        if (timeout > 0)
+            m_watchdog.start(timeout * 1000);
     }
 }
 

@@ -30,4 +30,20 @@ QbsProduct {
         condition: isForDarwin
         bundle.isBundle: false
     }
+
+    Export {
+        Depends { name: "cpp" }
+        Properties {
+            condition: qbs.targetOS.contains("darwin")
+            cpp.linkerFlags: ["-u", "_qbs_static_plugin_register_" + name]
+        }
+        Properties {
+            condition: qbs.toolchain.contains("gcc")
+            cpp.linkerFlags: "--require-defined=qbs_static_plugin_register_" + name
+        }
+        Properties {
+            condition: qbs.toolchain.contains("msvc")
+            cpp.linkerFlags: "/INCLUDE:qbs_static_plugin_register_" + name
+        }
+    }
 }

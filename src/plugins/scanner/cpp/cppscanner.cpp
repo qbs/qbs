@@ -126,7 +126,7 @@ public:
     {
     }
 
-    bool equals(const Token &tk, const QLatin1Literal &literal) const
+    bool equals(const Token &tk, const QLatin1String &literal) const
     {
         return static_cast<int>(tk.length()) == literal.size()
                 && memcmp(m_fileContent + tk.begin(), literal.data(), literal.size()) == 0;
@@ -136,13 +136,13 @@ public:
 static void scanCppFile(void *opaq, CPlusPlus::Lexer &yylex, bool scanForFileTags,
                         bool scanForDependencies)
 {
-    const QLatin1Literal includeLiteral("include");
-    const QLatin1Literal importLiteral("import");
-    const QLatin1Literal defineLiteral("define");
-    const QLatin1Literal qobjectLiteral("Q_OBJECT");
-    const QLatin1Literal qgadgetLiteral("Q_GADGET");
-    const QLatin1Literal qnamespaceLiteral("Q_NAMESPACE");
-    const QLatin1Literal pluginMetaDataLiteral("Q_PLUGIN_METADATA");
+    const QLatin1String includeLiteral("include");
+    const QLatin1String importLiteral("import");
+    const QLatin1String defineLiteral("define");
+    const QLatin1String qobjectLiteral("Q_OBJECT");
+    const QLatin1String qgadgetLiteral("Q_GADGET");
+    const QLatin1String qnamespaceLiteral("Q_NAMESPACE");
+    const QLatin1String pluginMetaDataLiteral("Q_PLUGIN_METADATA");
     const auto opaque = static_cast<Opaq *>(opaq);
     const TokenComparator tc(opaque->fileContent);
     Token tk;
@@ -330,6 +330,6 @@ static void QbsCppScannerPluginUnload()
 {
 }
 
-QBS_REGISTER_STATIC_PLUGIN(extern "C" CPPSCANNER_EXPORT, QbsCppScannerPlugin,
+QBS_REGISTER_STATIC_PLUGIN(extern "C" CPPSCANNER_EXPORT, qbs_cpp_scanner,
                            QbsCppScannerPluginLoad, QbsCppScannerPluginUnload)
 

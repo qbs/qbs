@@ -8,7 +8,9 @@ Project {
     Product {
         name: "qbs documentation"
         builtByDefault: false
-        type: ["qch", "qbsdoc.qdoc-html-fixed"]
+        type: Qt.core.config.contains("cross_compile") ?
+                  ["qbsdoc.qdoc-html-fixed"] : [ "qbsdoc.qdoc-html-fixed", "qch"]
+
         property string fixedHtmlDir: FileInfo.joinPaths(buildDirectory, "qdoc-html-fixed")
         Depends { name: "Qt.core" }
         Depends { name: "qbsbuildconfig" }
@@ -24,6 +26,7 @@ Project {
             "qbs-online.qdocconf",
             "config/*.qdocconf",
             "config/style/qt5-sidebar.html",
+            "appendix/**/*",
             "reference/**/*",
             "templates/**/*",
             "images/**",

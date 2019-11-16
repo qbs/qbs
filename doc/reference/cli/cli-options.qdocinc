@@ -201,6 +201,7 @@
     \list
         \li \c clangdb
         \li \c visualstudio2015
+        \li \c iarew8
     \endlist
 
     The available generators are listed if you run the \c {qbs generate} command
@@ -441,6 +442,7 @@
 
 //! [setup-run-env-config]
 
+    \target --setup-run-env-config
     \section2 \c --setup-run-env-config
 
     A comma-separated list of strings. They will show up in the \c config

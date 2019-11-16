@@ -58,7 +58,7 @@ CppApplication {
             || qbs.toolchain.contains("keil")
             || qbs.toolchain.contains("sdcc")
     }
-    name: "greenblink"
+    name: "cc2540usbdongle-greenblink"
     cpp.positionIndependentCode: false
 
     //
@@ -111,8 +111,7 @@ CppApplication {
 
     Properties {
         condition: qbs.toolchain.contains("sdcc")
-        cpp.commonCompilerFlags: ["-mmcs51"]
-    }
+     }
 
     //
     // Common code.

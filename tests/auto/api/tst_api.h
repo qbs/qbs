@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2019 Jochen Ulrich <jochenulrich@t-online.de>
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -121,6 +122,7 @@ private slots:
     void projectLocking();
     void projectPropertiesByName();
     void projectWithPropertiesItem();
+    void projectWithProbeAndProfileItem();
     void propertiesBlocks();
     void rc();
     void referencedFileErrors();
@@ -142,6 +144,8 @@ private slots:
     void subProjects();
     void targetArtifactStatus_data();
     void targetArtifactStatus();
+    void timeout();
+    void timeout_data();
     void toolInModule();
     void trackAddQObjectHeader();
     void trackRemoveQObjectHeader();

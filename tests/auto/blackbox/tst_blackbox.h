@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2019 Jochen Ulrich <jochenulrich@t-online.de>
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -48,6 +49,8 @@ private slots:
     void artifactScanning();
     void assembly();
     void autotestWithDependencies();
+    void autotestTimeout();
+    void autotestTimeout_data();
     void autotests_data();
     void autotests();
     void auxiliaryInputsFromDependencies();
@@ -116,6 +119,7 @@ private slots:
     void fileDependencies();
     void fileTagsFilterMerging();
     void generatedArtifactAsInputToDynamicRule();
+    void generateLinkerMapFile();
     void generator();
     void generator_data();
     void groupsInModules();
@@ -167,6 +171,8 @@ private slots:
     void lexyacc();
     void lexyaccOutputs();
     void lexyaccOutputs_data();
+    void linkerLibraryDuplicates();
+    void linkerLibraryDuplicates_data();
     void linkerScripts();
     void listProducts();
     void listPropertiesWithOuter();
@@ -206,6 +212,7 @@ private slots:
     void nsisDependencies();
     void outOfDateMarking();
     void outputArtifactAutoTagging();
+    void outputRedirection();
     void overrideProjectProperties();
     void pathProbe_data();
     void pathProbe();
@@ -236,6 +243,7 @@ private slots:
     void protobuf();
     void pseudoMultiplexing();
     void qbsConfig();
+    void qbsSession();
     void qbsVersion();
     void qtBug51237();
     void radAfterIncompleteBuild();
@@ -243,6 +251,8 @@ private slots:
     void recursiveRenaming();
     void recursiveWildcards();
     void referenceErrorInExport();
+    void removeDuplicateLibraries_data();
+    void removeDuplicateLibraries();
     void reproducibleBuild();
     void reproducibleBuild_data();
     void require();

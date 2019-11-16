@@ -33,22 +33,109 @@ var Environment = require("qbs.Environment");
 var File = require("qbs.File");
 var FileInfo = require("qbs.FileInfo");
 var ModUtils = require("qbs.ModUtils");
+var PathTools = require("qbs.PathTools");
 var Process = require("qbs.Process");
 var TemporaryDir = require("qbs.TemporaryDir");
 var TextFile = require("qbs.TextFile");
 var Utilities = require("qbs.Utilities");
-var WindowsUtils = require("qbs.WindowsUtils");
 
-function guessArchitecture(macros)
-{
+function compilerName(qbs) {
+    switch (qbs.architecture) {
+    case "mcs51":
+        return "c51";
+    case "arm":
+        return "armcc";
+    }
+    throw "Unable to deduce compiler name for unsupported architecture: '"
+            + qbs.architecture + "'";
+}
+
+function assemblerName(qbs) {
+    switch (qbs.architecture) {
+    case "mcs51":
+        return "a51";
+    case "arm":
+        return "armasm";
+    }
+    throw "Unable to deduce assembler name for unsupported architecture: '"
+            + qbs.architecture + "'";
+}
+
+function linkerName(qbs) {
+    switch (qbs.architecture) {
+    case "mcs51":
+        return "bl51";
+    case "arm":
+        return "armlink";
+    }
+    throw "Unable to deduce linker name for unsupported architecture: '"
+            + qbs.architecture + "'";
+}
+
+function archiverName(qbs) {
+    switch (qbs.architecture) {
+    case "mcs51":
+        return "lib51";
+    case "arm":
+        return "armar";
+    }
+    throw "Unable to deduce archiver name for unsupported architecture: '"
+            + qbs.architecture + "'";
+}
+
+function staticLibrarySuffix(qbs) {
+    switch (qbs.architecture) {
+    case "mcs51":
+    case "arm":
+        return ".lib";
+    }
+    throw "Unable to deduce static library suffix for unsupported architecture: '"
+            + qbs.architecture + "'";
+}
+
+function executableSuffix(qbs) {
+    switch (qbs.architecture) {
+    case "mcs51":
+        return ".abs";
+    case "arm":
+        return ".axf";
+    }
+    throw "Unable to deduce executable suffix for unsupported architecture: '"
+            + qbs.architecture + "'";
+}
+
+function objectSuffix(qbs) {
+    switch (qbs.architecture) {
+    case "mcs51":
+        return ".obj";
+    case "arm":
+        return ".o";
+    }
+    throw "Unable to deduce object file suffix for unsupported architecture: '"
+            + qbs.architecture + "'";
+}
+
+function imageFormat(qbs) {
+    switch (qbs.architecture) {
+    case "mcs51":
+        // Keil OMF51 or OMF2 Object Module Format (which is an
+        // extension of the original Intel OMF51).
+        return "omf";
+    case "arm":
+        return "elf";
+    }
+    throw "Unable to deduce image format for unsupported architecture: '"
+            + qbs.architecture + "'";
+}
+
+function guessArchitecture(macros) {
     if (macros["__C51__"])
         return "mcs51";
     else if (macros["__CC_ARM"] === 1)
         return "arm";
 }
 
-function guessEndianness(macros)
-{
+function guessEndianness(macros) {
     if (macros["__C51__"]) {
         // The 8051 processors are 8-bit. So, the data with an integer type
         // represented by more than one byte is stored as big endian in the
@@ -61,19 +148,18 @@ function guessEndianness(macros)
     }
 }
 
-function guessVersion(macros)
-{
+function guessVersion(macros) {
     if (macros["__C51__"]) {
-        var version = macros["__C51__"];
-        return { major: parseInt(version / 100),
-            minor: parseInt(version % 100),
+        var mcsVersion = macros["__C51__"];
+        return { major: parseInt(mcsVersion / 100),
+            minor: parseInt(mcsVersion % 100),
             patch: 0,
             found: true }
     } else if (macros["__CC_ARM"]) {
-        var version = macros["__ARMCC_VERSION"];
-        return { major: parseInt(version / 1000000),
-            minor: parseInt(version / 10000) % 100,
-            patch: parseInt(version) % 10000,
+        var armVersion = macros["__ARMCC_VERSION"];
+        return { major: parseInt(armVersion / 1000000),
+            minor: parseInt(armVersion / 10000) % 100,
+            patch: parseInt(armVersion) % 10000,
             found: true }
     }
 }
@@ -132,26 +218,18 @@ function dumpMacros(compilerFilePath, tag, nullDevice) {
     var map1 = dumpC51CompilerMacros(compilerFilePath, tag, nullDevice);
     var map2 = dumpArmCompilerMacros(compilerFilePath, tag, nullDevice);
     var map = {};
-    for (var attrname in map1)
-        map[attrname] = map1[attrname];
-    for (var attrname in map2)
-        map[attrname] = map2[attrname];
+    for (var key1 in map1)
+        map[key1] = map1[key1];
+    for (var key2 in map2)
+        map[key2] = map2[key2];
     return map;
 }
 
 function dumpDefaultPaths(compilerFilePath, architecture) {
-    var includePaths = [];
-
-    if (architecture === "mcs51") {
-        var path = compilerFilePath.replace(/bin[\\\/](.*)$/i, "inc");
-        includePaths.push(path);
-    } else if (architecture === "arm") {
-        var path = compilerFilePath.replace(/bin[\\\/](.*)$/i, "include");
-        includePaths.push(path);
-    }
-
+    var incDir = (architecture === "arm") ? "include" :  "inc";
+    var includePath = compilerFilePath.replace(/bin[\\\/](.*)$/i, incDir);
     return {
-        "includePaths": includePaths
+        "includePaths": [includePath]
     };
 }
 
@@ -240,16 +318,65 @@ function filterStdOutput(cmd) {
                 || sourceLines[i].startsWith("LOC  OBJ            LINE     SOURCE")
                 ) {
                     filteredLines.push(sourceLines[i]);
+            } else {
+                var regexp = /^([0-9A-F]{4})/;
+                if (regexp.exec(sourceLines[i]))
+                    filteredLines.push(sourceLines[i]);
             }
         }
         return filteredLines.join("\n");
     };
 }
 
-function compilerFlags(project, product, input, output, explicitlyDependsOn) {
-    // Determine which C-language we"re compiling.
-    var tag = ModUtils.fileTagForTargetLanguage(input.fileTags.concat(output.fileTags));
-    var architecture = input.qbs.architecture;
+function compilerOutputArtifacts(input, useListing) {
+    var artifacts = [];
+    artifacts.push({
+        fileTags: ["obj"],
+        filePath: Utilities.getHash(input.baseDir) + "/"
+              + input.fileName + input.cpp.objectSuffix
+    });
+    if (useListing) {
+        artifacts.push({
+            fileTags: ["lst"],
+            filePath: Utilities.getHash(input.baseDir) + "/"
+                  + (input.cpp.architecture === "mcs51"
+                    ? input.fileName : input.baseName)
+                  + ".lst"
+        });
+    }
+    return artifacts;
+}
+
+function applicationLinkerOutputArtifacts(product) {
+    var app = {
+        fileTags: ["application"],
+        filePath: FileInfo.joinPaths(
+                      product.destinationDirectory,
+                      PathTools.applicationFilePath(product))
+    };
+    var mem_map = {
+        fileTags: ["mem_map"],
+        filePath: FileInfo.joinPaths(
+                      product.destinationDirectory,
+                      product.targetName
+                      + (product.cpp.architecture === "mcs51" ? ".m51" : ".map"))
+    };
+    return [app, mem_map];
+}
+
+function staticLibraryLinkerOutputArtifacts(product) {
+    var staticLib = {
+        fileTags: ["staticlibrary"],
+        filePath: FileInfo.joinPaths(
+                      product.destinationDirectory,
+                      PathTools.staticLibraryFilePath(product))
+    };
+    return [staticLib]
+}
+
+function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
+    // Determine which C-language we're compiling.
+    var tag = ModUtils.fileTagForTargetLanguage(input.fileTags.concat(outputs.obj[0].fileTags));
     var args = [];
 
     var allDefines = [];
@@ -271,10 +398,29 @@ function compilerFlags(project, product, input, output, explicitlyDependsOn) {
     if (compilerIncludePaths)
         allIncludePaths = allIncludePaths.uniqueConcat(compilerIncludePaths);
 
+    var architecture = input.qbs.architecture;
     if (architecture === "mcs51") {
+        // Input.
         args.push(FileInfo.toWindowsSeparators(input.filePath));
-        args.push("OBJECT (" + FileInfo.toWindowsSeparators(output.filePath) + ")");
 
+        // Output.
+        args.push("OBJECT (" + FileInfo.toWindowsSeparators(outputs.obj[0].filePath) + ")");
+
+        // Defines.
+        if (allDefines.length > 0)
+            args = args.concat("DEFINE (" + allDefines.join(",") + ")");
+
+        // Includes.
+        if (allIncludePaths.length > 0) {
+            var adjusted = adjustPathsToWindowsSeparators(allIncludePaths);
+            args = args.concat("INCDIR (" + adjusted.join(";") + ")");
+        }
+
+        // Debug information flags.
+        if (input.cpp.debugInformation)
+            args.push("DEBUG");
+
+        // Optimization level flags.
         switch (input.cpp.optimization) {
         case "small":
             args.push("OPTIMIZE (SIZE)");
@@ -287,28 +433,42 @@ function compilerFlags(project, product, input, output, explicitlyDependsOn) {
             break;
         }
 
-        if (input.cpp.debugInformation)
-            args.push("DEBUG");
-
-        var warnings = input.cpp.warningLevel;
-        if (warnings === "none") {
+        // Warning level flags.
+        switch (input.cpp.warningLevel) {
+        case "none":
             args.push("WARNINGLEVEL (0)");
-        } else if (warnings === "all") {
+            break;
+        case "all":
             args.push("WARNINGLEVEL (2)");
             args.push("FARWARNING");
+            break;
         }
 
-        if (allDefines.length > 0)
-            args = args.concat("DEFINE (" + allDefines.join(",") + ")");
-
-        if (allIncludePaths.length > 0) {
-            var adjusted = adjustPathsToWindowsSeparators(allIncludePaths);
-            args = args.concat("INCDIR (" + adjusted.join(";") + ")");
-        }
+        // Listing files generation flag.
+        if (!product.cpp.generateCompilerListingFiles)
+            args.push("NOPRINT");
+        else
+            args.push("PRINT(" + FileInfo.toWindowsSeparators(outputs.lst[0].filePath) + ")");
     } else if (architecture === "arm") {
+        // Input.
         args.push("-c", input.filePath);
-        args.push("-o", output.filePath);
 
+        // Output.
+        args.push("-o", outputs.obj[0].filePath);
+
+        // Defines.
+        args = args.concat(allDefines.map(function(define) { return '-D' + define }));
+
+        // Includes.
+        args = args.concat(allIncludePaths.map(function(include) { return '-I' + include }));
+
+        // Debug information flags.
+        if (input.cpp.debugInformation) {
+            args.push("--debug");
+            args.push("-g");
+        }
+
+        // Optimization level flags.
         switch (input.cpp.optimization) {
         case "small":
             args.push("-Ospace")
@@ -321,43 +481,63 @@ function compilerFlags(project, product, input, output, explicitlyDependsOn) {
             break;
         }
 
-        if (input.cpp.debugInformation) {
-            args.push("--debug");
-            args.push("-g");
-        }
-
-        var warnings = input.cpp.warningLevel;
-        if (warnings === "none") {
+        // Warning level flags.
+        switch (input.cpp.warningLevel) {
+        case "none":
             args.push("-W");
-        } else if (warnings === "all") {
+            break;
+        default:
             // By default all warnings are enabled.
+            break;
         }
 
         if (tag === "c") {
-            // Note: Here we use the '==' operator because the '==='
-            // operator does not work!
-            if (input.cpp.cLanguageVersion == "c99")
+            // C language version flags.
+            var knownCLanguageValues = ["c99", "c90"];
+            var cLanguageVersion = Cpp.languageVersion(
+                        input.cpp.cLanguageVersion, knownCLanguageValues, "C");
+            switch (cLanguageVersion) {
+            case "c99":
                 args.push("--c99");
+                break;
+            case "c90":
+                args.push("--c90");
+                break;
+            }
         } else if (tag === "cpp") {
-            args.push("--cpp");
-            // Note: Here we use the '==' operator because the '==='
-            // operator does not work!
-            if (input.cpp.cxxLanguageVersion == "c++11")
+            // C++ language version flags.
+            var knownCppLanguageValues = ["c++11", "c++03"];
+            var cppLanguageVersion = Cpp.languageVersion(
+                        input.cpp.cxxLanguageVersion, knownCppLanguageValues, "C++");
+            switch (cppLanguageVersion) {
+            case "c++11":
                 args.push("--cpp11");
+                break;
+            default:
+                // Default C++ language is C++03.
+                args.push("--cpp");
+                break;
+            }
 
+            // Exceptions flags.
             var enableExceptions = input.cpp.enableExceptions;
             if (enableExceptions !== undefined)
                 args.push(enableExceptions ? "--exceptions" : "--no_exceptions");
 
+            // RTTI flags.
             var enableRtti = input.cpp.enableRtti;
             if (enableRtti !== undefined)
                 args.push(enableRtti ? "--rtti" : "--no_rtti");
         }
 
-        args = args.concat(allDefines.map(function(define) { return '-D' + define }));
-        args = args.concat(allIncludePaths.map(function(include) { return '-I' + include }));
+        // Listing files generation flag.
+        if (product.cpp.generateCompilerListingFiles) {
+            args.push("--list");
+            args.push("--list_dir", FileInfo.path(outputs.lst[0].filePath));
+        }
     }
 
+    // Misc flags.
     args = args.concat(ModUtils.moduleProperty(input, "platformFlags"),
                        ModUtils.moduleProperty(input, "flags"),
                        ModUtils.moduleProperty(input, "platformFlags", tag),
@@ -366,10 +546,9 @@ function compilerFlags(project, product, input, output, explicitlyDependsOn) {
     return args;
 }
 
-function assemblerFlags(project, product, input, output, explicitlyDependsOn) {
-    // Determine which C-language we"re compiling
-    var tag = ModUtils.fileTagForTargetLanguage(input.fileTags.concat(output.fileTags));
-    var architecture = input.qbs.architecture;
+function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
+    // Determine which C-language we're compiling
+    var tag = ModUtils.fileTagForTargetLanguage(input.fileTags.concat(outputs.obj[0].fileTags));
     var args = [];
 
     var allDefines = [];
@@ -391,37 +570,44 @@ function assemblerFlags(project, product, input, output, explicitlyDependsOn) {
     if (compilerIncludePaths)
         allIncludePaths = allIncludePaths.uniqueConcat(compilerIncludePaths);
 
+    var architecture = input.qbs.architecture;
     if (architecture === "mcs51") {
+        // Input.
         args.push(FileInfo.toWindowsSeparators(input.filePath));
-        args.push("OBJECT (" + FileInfo.toWindowsSeparators(output.filePath) + ")");
 
-        if (input.cpp.debugInformation)
-            args.push("DEBUG");
+        // Output.
+        args.push("OBJECT (" + FileInfo.toWindowsSeparators(outputs.obj[0].filePath) + ")");
 
+        // Defines.
         if (allDefines.length > 0)
             args = args.concat("DEFINE (" + allDefines.join(",") + ")");
 
+        // Includes.
         if (allIncludePaths.length > 0) {
             var adjusted = adjustPathsToWindowsSeparators(allIncludePaths);
             args = args.concat("INCDIR (" + adjusted.join(";") + ")");
         }
+
+        // Debug information flags.
+        if (input.cpp.debugInformation)
+            args.push("DEBUG");
+
+        // Enable errors printing.
+        args.push("EP");
+
+        // Listing files generation flag.
+        if (!product.cpp.generateAssemblerListingFiles)
+            args.push("NOPRINT");
+        else
+            args.push("PRINT(" + FileInfo.toWindowsSeparators(outputs.lst[0].filePath) + ")");
     } else if (architecture === "arm") {
+        // Input.
         args.push(input.filePath);
-        args.push("-o", output.filePath);
 
-        if (input.cpp.debugInformation) {
-            args.push("--debug");
-            args.push("-g");
-        }
+        // Output.
+        args.push("-o", outputs.obj[0].filePath);
 
-        var warnings = input.cpp.warningLevel;
-        if (warnings === "none")
-            args.push("--no_warn");
-
-        var endianness = input.cpp.endianness;
-        if (endianness)
-            args.push((endianness === "little") ? "--littleend" : "--bigend");
-
+        // Defines.
         allDefines.forEach(function(define) {
             var parts = define.split("=");
             args.push("--pd");
@@ -433,9 +619,30 @@ function assemblerFlags(project, product, input, output, explicitlyDependsOn) {
                 args.push(parts[0] + " SETA " + parts[1]);
         });
 
+        // Includes.
         args = args.concat(allIncludePaths.map(function(include) { return '-I' + include }));
+
+        // Debug information flags.
+        if (input.cpp.debugInformation) {
+            args.push("--debug");
+            args.push("-g");
+        }
+
+        // Warning level flags.
+        if (input.cpp.warningLevel === "none")
+            args.push("--no_warn");
+
+        // Byte order flags.
+        var endianness = input.cpp.endianness;
+        if (endianness)
+            args.push((endianness === "little") ? "--littleend" : "--bigend");
+
+        // Listing files generation flag.
+        if (product.cpp.generateAssemblerListingFiles)
+            args.push("--list", outputs.lst[0].filePath);
     }
 
+    // Misc flags.
     args = args.concat(ModUtils.moduleProperty(input, "platformFlags", tag),
                        ModUtils.moduleProperty(input, "flags", tag),
                        ModUtils.moduleProperty(input, "driverFlags", tag));
@@ -444,89 +651,116 @@ function assemblerFlags(project, product, input, output, explicitlyDependsOn) {
 
 function linkerFlags(project, product, input, outputs) {
     var args = [];
-    var architecture = product.qbs.architecture;
 
+    var architecture = product.qbs.architecture;
     if (architecture === "mcs51") {
+        // Note: The C51 linker does not distinguish an object files and
+        // a libraries, it interpret all this stuff as an input objects,
+        // so, we need to pass it together in one string.
+
         var allObjectPaths = [];
         function addObjectPath(obj) {
             allObjectPaths.push(obj.filePath);
         }
 
+        // Inputs.
         if (inputs.obj)
             inputs.obj.map(function(obj) { addObjectPath(obj) });
 
-        var libraryDependencies = collectLibraryDependencies(product);
-        libraryDependencies.forEach(function(dep) { addObjectPath(dep); })
+        // Library dependencies.
+        var libraryObjects = collectLibraryDependencies(product);
+        libraryObjects.forEach(function(dep) { addObjectPath(dep); })
 
+        // Add all input objects as arguments (application and library object files).
         var adjusted = adjustPathsToWindowsSeparators(allObjectPaths);
         args = args.concat(adjusted.join(","));
 
-        // We need to wrap an output file name with quotes. Otherwise
+        // Output.
+        // Note: We need to wrap an output file name with quotes. Otherwise
         // the linker will ignore a specified file name.
         args.push("TO", '"' + FileInfo.toWindowsSeparators(outputs.application[0].filePath) + '"');
 
-        if (!product.cpp.generateMapFile)
+        // Map file generation flag.
+        if (!product.cpp.generateLinkerMapFile)
             args.push("NOMAP");
     } else if (architecture === "arm") {
+        // Inputs.
         if (inputs.obj)
             args = args.concat(inputs.obj.map(function(obj) { return obj.filePath }));
 
+        // Output.
         args.push("--output", outputs.application[0].filePath);
 
-        if (product.cpp.generateMapFile)
-            args.push("--list", outputs.map_file[0].filePath);
-
+        // Library paths.
         var libraryPaths = product.cpp.libraryPaths;
         if (libraryPaths)
             args.push("--userlibpath=" + libraryPaths.join(","));
 
+        // Library dependencies.
         var libraryDependencies = collectLibraryDependencies(product);
         args = args.concat(libraryDependencies.map(function(dep) { return dep.filePath; }));
 
-        var linkerScripts = inputs.linkerscript
-                ? inputs.linkerscript.map(function(a) { return a.filePath; }) : [];
-        for (i in linkerScripts)
-            args.push("--scatter", linkerScripts[i]);
-
-        if (product.cpp.entryPoint)
-            args.push("--entry", product.cpp.entryPoint);
-
+        // Debug information flag.
         var debugInformation = product.cpp.debugInformation;
         if (debugInformation !== undefined)
             args.push(debugInformation ? "--debug" : "--no_debug");
+
+        // Map file generation flag.
+        if (product.cpp.generateLinkerMapFile)
+            args.push("--list", outputs.mem_map[0].filePath);
+
+        // Entry point flag.
+        if (product.cpp.entryPoint)
+            args.push("--entry", product.cpp.entryPoint);
+
+        // Linker scripts flags.
+        var linkerScripts = inputs.linkerscript
+                ? inputs.linkerscript.map(function(a) { return a.filePath; }) : [];
+        linkerScripts.forEach(function(script) { args.push("--scatter", script); });
     }
 
+    // Misc flags.
     args = args.concat(ModUtils.moduleProperty(product, "driverLinkerFlags"));
     return args;
 }
 
 function archiverFlags(project, product, input, outputs) {
     var args = [];
+
     var architecture = product.qbs.architecture;
-
     if (architecture === "mcs51") {
+        // Library creation command.
         args.push("TRANSFER");
-        var allObjectPaths = [];
 
+        var allObjectPaths = [];
         function addObjectPath(obj) {
             allObjectPaths.push(obj.filePath);
         }
 
+        // Inputs.
         if (inputs.obj)
             inputs.obj.map(function(obj) { addObjectPath(obj) });
 
+        // Add all input objects as arguments.
         var adjusted = adjustPathsToWindowsSeparators(allObjectPaths);
         args = args.concat(adjusted.join(","));
 
-        // We need to wrap a output file name with quotes. Otherwise
+        // Output.
+        // Note: We need to wrap a output file name with quotes. Otherwise
         // the linker will ignore a specified file name.
         args.push("TO", '"' + FileInfo.toWindowsSeparators(outputs.staticlibrary[0].filePath) + '"');
     } else if (architecture === "arm") {
+        // Note: The ARM archiver command line expect the output file
+        // first, and then a set of input objects.
+
+        // Output.
         args.push("--create", outputs.staticlibrary[0].filePath);
 
+        // Inputs.
         if (inputs.obj)
             args = args.concat(inputs.obj.map(function(obj) { return obj.filePath }));
 
+        // Debug information flag.
         if (product.cpp.debugInformation)
             args.push("--debug_symbols");
     }
@@ -535,10 +769,10 @@ function archiverFlags(project, product, input, outputs) {
 }
 
 function prepareCompiler(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
-    var args = compilerFlags(project, product, input, output, explicitlyDependsOn);
+    var args = compilerFlags(project, product, input, outputs, explicitlyDependsOn);
     var compilerPath = input.cpp.compilerPath;
     var architecture = input.cpp.architecture;
-    var cmd = new Command(compilerPath, args)
+    var cmd = new Command(compilerPath, args);
     cmd.description = "compiling " + input.fileName;
     cmd.highlight = "compiler";
     cmd.maxExitCode = getMaxExitCode(architecture);
@@ -548,9 +782,9 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
 
 
 function prepareAssembler(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
-    var args = assemblerFlags(project, product, input, output, explicitlyDependsOn);
+    var args = assemblerFlags(project, product, input, outputs, explicitlyDependsOn);
     var assemblerPath = input.cpp.assemblerPath;
-    var cmd = new Command(assemblerPath, args)
+    var cmd = new Command(assemblerPath, args);
     cmd.description = "assembling " + input.fileName;
     cmd.highlight = "compiler";
     filterStdOutput(cmd);
@@ -561,9 +795,11 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     var primaryOutput = outputs.application[0];
     var args = linkerFlags(project, product, input, outputs);
     var linkerPath = product.cpp.linkerPath;
-    var cmd = new Command(linkerPath, args)
+    var architecture = product.cpp.architecture;
+    var cmd = new Command(linkerPath, args);
     cmd.description = "linking " + primaryOutput.fileName;
     cmd.highlight = "linker";
+    cmd.maxExitCode = getMaxExitCode(architecture);
     filterStdOutput(cmd);
     return [cmd];
 }
@@ -571,7 +807,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
 function prepareArchiver(project, product, inputs, outputs, input, output) {
     var args = archiverFlags(project, product, input, outputs);
     var archiverPath = product.cpp.archiverPath;
-    var cmd = new Command(archiverPath, args)
+    var cmd = new Command(archiverPath, args);
     cmd.description = "linking " + output.fileName;
     cmd.highlight = "linker";
     filterStdOutput(cmd);
