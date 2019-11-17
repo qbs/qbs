@@ -7,6 +7,7 @@ CppApplication {
 
     Depends { name: "cpp" }
     cpp.cxxLanguageVersion: "c++11"
+    cpp.warningLevel: "none"
 
     Depends { id: protobuf; name: "protobuf.cpp"; required: false }
 
