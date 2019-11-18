@@ -135,6 +135,13 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
         break;
     }
 
+    if (input.qbs.toolchain.contains("clang-cl")) {
+        if (input.cpp.architecture === "x86")
+            args.push("-m32");
+        else if (input.cpp.architecture === "x86_64")
+            args.push("-m64");
+    }
+
     if (debugInformation) {
         if (product.cpp.separateDebugInformation)
             args.push('/Zi');
