@@ -77,14 +77,14 @@ static inline std::string trimmed(const std::string &s)
     // trim from start
     static const auto ltrim = [](std::string &s) -> std::string & {
         s.erase(s.begin(), std::find_if(s.begin(), s.end(),
-                std::not1(std::ptr_fun<int, int>(std::isspace))));
+                [](char c){ return !std::isspace(c); }));
         return s;
     };
 
     // trim from end
     static const auto rtrim = [](std::string &s) -> std::string & {
         s.erase(std::find_if(s.rbegin(), s.rend(),
-                std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+                [](char c){ return !std::isspace(c); }).base(), s.end());
         return s;
     };
 

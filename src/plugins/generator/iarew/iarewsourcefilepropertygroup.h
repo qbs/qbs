@@ -36,7 +36,7 @@
 namespace qbs {
 
 class ArtifactData;
-class GeneratableProject;
+struct GeneratableProject;
 
 class IarewSourceFilePropertyGroup final
         : public gen::xml::PropertyGroup

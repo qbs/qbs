@@ -36,6 +36,7 @@
 #include <algorithm>
 #include <cstdlib>
 #include <ctime>
+#include <random>
 
 static QString resolveIncrementalActivity() { return "resolve-incremental"; }
 static QString buildIncrementalActivity() { return "build-incremental"; }
@@ -71,7 +72,7 @@ void FuzzyTester::runTest(const QString &profile, const QString &startCommit,
     // Shuffle the initial sequence. Otherwise all invocations of the tool with the same start
     // commit would try the same sequence of commits.
     std::srand(std::time(nullptr));
-    std::random_shuffle(allCommits.begin(), allCommits.end());
+    std::shuffle(allCommits.begin(), allCommits.end(), std::mt19937(std::random_device()()));
 
     quint64 run = 0;
     QStringList buildSequence(workingStartCommit);

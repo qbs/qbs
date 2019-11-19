@@ -40,7 +40,7 @@ static QByteArray buildFileVersion(const IarewVersionInfo &versionInfo)
     case 7:
     case 8:
     case 10:
-        return QByteArrayLiteral('3');
+        return QByteArrayLiteral("3");
     default:
         return {};
     }
