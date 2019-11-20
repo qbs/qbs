@@ -3771,6 +3771,39 @@ void TestBlackbox::fileTagsFilterMerging()
     QVERIFY2(QFile::exists(otherOutput), qPrintable(otherOutput));
 }
 
+void TestBlackbox::freedesktop()
+{
+    if (!HostOsInfo::isAnyUnixHost() || HostOsInfo::isMacosHost())
+        QSKIP("only applies on Unix");
+
+    QDir::setCurrent(testDataDir + "/freedesktop");
+    QCOMPARE(runQbs(), 0);
+
+    // Check desktop file
+    QString desktopFilePath =
+        defaultInstallRoot + "/usr/local/share/applications/myapp.desktop";
+    QVERIFY(QFile::exists(desktopFilePath));
+    QFile desktopFile(desktopFilePath);
+    QVERIFY2(desktopFile.open(QIODevice::ReadOnly), qPrintable(desktopFile.errorString()));
+    QByteArrayList lines = desktopFile.readAll().split('\n');
+    // Automatically filled line:
+    QVERIFY(lines.contains("Exec=main"));
+    // Name specified in `freedesktop.name` property
+    QVERIFY(lines.contains("Name=My App"));
+    // Overridden line:
+    QVERIFY(lines.contains("Icon=myapp.png"));
+    // Untouched line:
+    QVERIFY(lines.contains("Terminal=false"));
+
+    // Check AppStream file
+    QVERIFY(QFile::exists(defaultInstallRoot +
+                          "/usr/local/share/metainfo/myapp.appdata.xml"));
+
+    // Check icon file
+    QVERIFY(QFile::exists(defaultInstallRoot +
+                          "/usr/local/share/icons/hicolor/scalable/apps/myapp.png"));
+}
+
 void TestBlackbox::installedTransformerOutput()
 {
     QDir::setCurrent(testDataDir + "/installed-transformer-output");

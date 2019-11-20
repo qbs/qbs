@@ -117,6 +117,7 @@ private slots:
     void externalLibs();
     void fileDependencies();
     void fileTagsFilterMerging();
+    void freedesktop();
     void generatedArtifactAsInputToDynamicRule();
     void generateLinkerMapFile();
     void generator();
