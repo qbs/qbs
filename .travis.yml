@@ -39,7 +39,7 @@ jobs:
     - <<: *build-on-bionic
       name: With Qbs on Ubuntu bionic (mingw32_w64)
       script:
-        - docker-compose run --rm ${SERVICE} qbs build profile:qt-mingw32_w64
+        - docker-compose run --rm ${SERVICE} qbs build profile:qt-mingw32_w64 modules.cpp.treatWarningsAsErrors:true
 
     - &build-on-macos
       stage: Build Qbs and and run autotests

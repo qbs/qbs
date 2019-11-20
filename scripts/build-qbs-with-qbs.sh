@@ -53,6 +53,7 @@ BUILD_OPTIONS="\
     modules.qbsbuildconfig.enableAddressSanitizer:true \
     modules.qbsbuildconfig.enableProjectFileUpdates:true \
     modules.qbsbuildconfig.enableUnitTests:true \
+    modules.cpp.treatWarningsAsErrors:true \
     project.withExamples:true \
     ${BUILD_OPTIONS}
 "
