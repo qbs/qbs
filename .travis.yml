@@ -4,6 +4,7 @@
 # DOCKER_USERNAME
 #
 language: cpp
+cache: ccache
 
 git:
   submodules: false
@@ -50,11 +51,12 @@ jobs:
         homebrew:
           packages:
             - p7zip
+            - ccache
           update: true
       env:
         # Address sanitizer slows autotests down too much.
         # We would hit the maximum build time on Travis.
-        BUILD_OPTIONS=modules.qbsbuildconfig.enableAddressSanitizer:false
+        BUILD_OPTIONS="modules.qbsbuildconfig.enableAddressSanitizer:false modules.cpp.compilerWrapper:ccache"
         QMAKE_PATH=${QT_INSTALL_DIR}/${QT_VERSION}/clang_64/bin/qmake
         PATH="${QT_INSTALL_DIR}/Qt Creator.app/Contents/MacOS:${PATH}"
         QBS_BUILD_PROFILE=qt
@@ -63,11 +65,13 @@ jobs:
         - ./scripts/install-qt.sh -d ${QT_INSTALL_DIR} --version ${QTCREATOR_VERSION} qtcreator
         - pip2 install --user beautifulsoup4 lxml
       script:
+        - ccache -s
         - qbs setup-toolchains --detect
         - qbs setup-qt ${QMAKE_PATH} qt
         - qbs config qt.baseProfile xcode-macosx-x86_64
         - qbs config defaultProfile qt
         - scripts/build-qbs-with-qbs.sh
+        - ccache -s
 
     - <<: *build-on-macos
       name: With Qbs on macOS (xcode 11)
