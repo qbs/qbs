@@ -69,11 +69,11 @@ private:
             emit errorOccurred(tr("Cannot read from standard input."));
             return;
         }
+#ifdef Q_OS_UNIX
         const auto emitError = [this] {
             emit errorOccurred(tr("Failed to make standard input non-blocking: %1")
                                .arg(QLatin1String(std::strerror(errno))));
         };
-#ifdef Q_OS_UNIX
         const int flags = fcntl(0, F_GETFL, 0);
         if (flags == -1) {
             emitError();
