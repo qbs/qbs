@@ -49,6 +49,7 @@
     \li \l{How do I limit the number of concurrent jobs for the linker only?}
     \li \l{How do I add QML files to a project?}
     \li \l{How do I define a reusable Group of files that can be included in other \QBS files?}
+    \li \l{How do I print the value of a property?}
     \endlist
 
     \section1 How do I build a Qt-based project?
@@ -563,6 +564,25 @@
         files: "tst_app.cpp"
 
         QmlUiFiles {}
+    }
+    \endcode
+
+    \section1 How do I print the value of a property?
+
+    Use the \l {Console API}{console API}. For example, suppose your project
+    is not built the way you expect it to be, and you suspect that
+    \c qbs.targetOS has the wrong value:
+
+    \code
+    readonly property bool unix: qbs.targetOS.contains("unix")
+    \endcode
+
+    To find out the value of \c qbs.targetOS, use \c {console.info()}:
+
+    \code
+    readonly property bool unix: {
+        console.info("qbs.targetOS: " + qbs.targetOS)
+        return qbs.targetOS.contains("unix")
     }
     \endcode
 */
