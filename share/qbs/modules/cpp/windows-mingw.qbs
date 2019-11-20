@@ -44,7 +44,7 @@ MingwBaseModule {
 
     property string windresName: "windres" + compilerExtension
     property path windresPath: {
-        var filePath = toolchainPrefix + windresName;
+        var filePath = toolchainPathPrefix + windresName;
         if (!File.exists(filePath))
             filePath = FileInfo.joinPaths(toolchainInstallPath, windresName);
         return filePath;
