@@ -4677,9 +4677,10 @@ void TestBlackbox::listPropertiesWithOuter()
 void TestBlackbox::listPropertyOrder()
 {
     QDir::setCurrent(testDataDir + "/list-property-order");
-    const QbsRunParameters params(QStringList() << "-qq");
+    const QbsRunParameters params(QStringList() << "-q");
     QCOMPARE(runQbs(params), 0);
     const QByteArray firstOutput = m_qbsStderr;
+    QVERIFY(firstOutput.contains("listProp = [\"higher1\",\"higher2\",\"higher3\"]"));
     for (int i = 0; i < 25; ++i) {
         rmDirR(relativeBuildDir());
         QCOMPARE(runQbs(params), 0);
