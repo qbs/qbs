@@ -51,7 +51,7 @@ class SessionPacketReader : public QObject
     Q_OBJECT
 public:
     explicit SessionPacketReader(QObject *parent = nullptr);
-    ~SessionPacketReader();
+    ~SessionPacketReader() override;
 
     void start();
 
