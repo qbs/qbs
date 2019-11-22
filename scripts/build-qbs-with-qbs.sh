@@ -55,7 +55,8 @@ BUILD_OPTIONS="\
     modules.qbsbuildconfig.enableUnitTests:true \
     modules.cpp.treatWarningsAsErrors:true \
     project.withExamples:true \
-    ${BUILD_OPTIONS}
+    ${BUILD_OPTIONS} \
+    config:release \
 "
 
 #

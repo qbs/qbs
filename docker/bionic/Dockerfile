@@ -121,6 +121,7 @@ RUN apt-get update -qq && \
     apt-get install -qq -y --no-install-recommends \
         build-essential \
         ca-certificates \
+        ccache \
         curl \
         git \
         libclang-3.9 \

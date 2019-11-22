@@ -24,23 +24,31 @@ jobs:
       stage: Build Qbs and and run autotests
       name: With Qbs on Ubuntu bionic (linux_gcc64)
       env:
-        SERVICE=bionic
+        BUILD_OPTIONS=modules.cpp.compilerWrapper:ccache
       services:
         - docker
-      before_install:
-        - docker-compose pull ${SERVICE}
+      before_script:
+        - docker-compose pull bionic
+        - ccache -M 5G
+        - ccache -s
+      after_script:
+        - ccache -s
       script:
-        - docker-compose run --rm ${SERVICE} scripts/build-qbs-with-qbs.sh
+        - docker-compose run bionic scripts/build-qbs-with-qbs.sh
 
     - <<: *build-on-bionic
       name: With QMake on Ubuntu bionic (linux_gcc64)
+      env:
+        BUILD_OPTIONS="CONFIG+=ccache"
       script:
-        - docker-compose run --rm ${SERVICE} scripts/build-qbs-with-qmake.sh
+        - docker-compose run bionic scripts/build-qbs-with-qmake.sh
 
     - <<: *build-on-bionic
       name: With Qbs on Ubuntu bionic (mingw32_w64)
+      env:
+        BUILD_OPTIONS="profile:qt-mingw32_w64 modules.cpp.compilerWrapper:ccache modules.cpp.treatWarningsAsErrors:true config:release"
       script:
-        - docker-compose run --rm ${SERVICE} qbs build profile:qt-mingw32_w64 modules.cpp.treatWarningsAsErrors:true
+        - docker-compose run bionic qbs build ${BUILD_OPTIONS}
 
     - &build-on-macos
       stage: Build Qbs and and run autotests

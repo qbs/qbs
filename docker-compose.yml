@@ -2,8 +2,11 @@ version: "3.7"
 
 x-default-service: &linux
   working_dir: /qbs
+  environment:
+    - BUILD_OPTIONS
   volumes:
     - .:/qbs
+    - ~/.ccache:/home/devel/.ccache
   network_mode: bridge
   cap_add:
       - SYS_PTRACE
@@ -12,7 +15,7 @@ services:
   bionic:
     << : *linux
     hostname: bionic
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:bionic-5.12.6_1.14.1-0
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:bionic-5.12.6_1.14.1-1
     build:
       dockerfile: docker/bionic/Dockerfile
       context: .
