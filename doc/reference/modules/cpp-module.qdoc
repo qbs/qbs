@@ -457,10 +457,16 @@
 
     A list of library search paths.
 
+    The paths will be passed to the linker in the appropriate way. For
+    example, the \c {-L} argument will be used when using \c {ld}-like
+    linkers.
+
     Relative paths are considered to be relative to the \c .qbs product file
     they are used in.
 
     \nodefaultvalue
+
+    \sa dynamicLibraries, {How do I create a module for a third-party library?}
 */
 
 /*!
@@ -471,7 +477,21 @@
     If the library is part of your project, consider using a \l{Depends} item
     instead.
 
+    Each library can be specified in one of two ways:
+
+    \list
+    \li An absolute file path (for example, \c "/foo/bar.lib"), in which case
+        it is passed directly to the linker, ignoring \l libraryPaths.
+    \li A library basename (for example, \c "bar"), in which case
+        the directory that contains the library must be provided via
+        \l libraryPaths.
+    \endlist
+
+    Relative paths (\c "foo/bar.lib") are not allowed.
+
     \nodefaultvalue
+
+    \sa libraryPaths, {How do I create a module for a third-party library?}
 */
 
 /*!
