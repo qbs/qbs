@@ -96,7 +96,7 @@ void listPeople(const tutorial::AddressBook& address_book)
 
         std::cout << "Person ID: " << person.id() << std::endl;
         std::cout << "  Name: " << person.name() << std::endl;
-        if (person.email() != "") {
+        if (!person.email().empty()) {
             std::cout << "  E-mail address: " << person.email() << std::endl;
         }
 

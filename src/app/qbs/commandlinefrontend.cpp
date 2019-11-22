@@ -653,7 +653,7 @@ ProductData CommandLineFrontend::getTheOneRunnableProduct()
         }
         QBS_CHECK(false);
     }
-    QBS_CHECK(m_parser.products().size() == 0);
+    QBS_CHECK(m_parser.products().isEmpty());
 
     QList<ProductData> runnableProducts;
     const auto products = m_projects.front().projectData().allProducts();

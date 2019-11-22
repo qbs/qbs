@@ -1964,7 +1964,7 @@ bool ModuleLoader::mergeExportItems(const ProductContext &productContext)
     productContext.project->topLevelProject->productModules.insert(productContext.name, pmi);
     if (hasDependenciesOnProductType)
         m_exportsWithDeferredDependsItems.insert(merged);
-    return exportItems.size() > 0;
+    return !exportItems.empty();
 }
 
 Item *ModuleLoader::loadItemFromFile(const QString &filePath,
