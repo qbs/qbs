@@ -40,7 +40,7 @@
 #include <QtCore/qdebug.h>
 #include <QtCore/qcoreapplication.h>
 
-#include <string.h>
+#include <cstring>
 
 #include "qmljsengine_p.h"
 #include "qmljslexer_p.h"

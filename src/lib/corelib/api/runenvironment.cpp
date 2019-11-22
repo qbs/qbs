@@ -62,8 +62,8 @@
 #include <QtCore/qtemporaryfile.h>
 #include <QtCore/qvariant.h>
 
+#include <cstdlib>
 #include <regex>
-#include <stdlib.h>
 
 namespace qbs {
 using namespace Internal;

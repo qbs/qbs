@@ -46,8 +46,8 @@
 #include <utility>
 #include <vector>
 
-#include <limits.h>
-#include <string.h>
+#include <climits>
+#include <cstring>
 
 #include "json.h"
 

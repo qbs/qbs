@@ -50,9 +50,9 @@
 #include <QtCore/qvariant.h>
 
 #include <cstdarg>
+#include <cstdio>
 #include <mutex>
 #include <set>
-#include <stdio.h>
 
 namespace qbs {
 namespace Internal {

@@ -50,7 +50,7 @@
 #include <QtCore/qregexp.h>
 
 #if defined(Q_OS_UNIX)
-#include <errno.h>
+#include <cerrno>
 #include <sys/stat.h>
 #include <unistd.h>
 #elif defined(Q_OS_WIN)
