@@ -92,7 +92,8 @@ QString processNameByPid(qint64 pid)
     char buf[PATH_MAX];
     memset(buf, 0, sizeof(buf));
     sprintf(exePath, "/proc/%lld/exe", pid);
-    readlink(exePath, buf, sizeof(buf));
+    if (readlink(exePath, buf, sizeof(buf)) < 0)
+        return {};
     return FileInfo::fileName(QString::fromUtf8(buf));
 #elif defined(Q_OS_BSD4)
 # if defined(Q_OS_NETBSD)
