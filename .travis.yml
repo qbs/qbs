@@ -91,19 +91,24 @@ jobs:
       os: windows
       env:
         # Need to build in release mode. Otherwise autotests would be too slow.
-        BUILD_OPTIONS="config:release"
+        BUILD_OPTIONS="config:release modules.cpp.compilerWrapper:clcache"
         QT_INSTALL_DIR=C:/Qt
         QMAKE_PATH=${QT_INSTALL_DIR}/${QT_VERSION}/msvc2017_64/bin/qmake.exe
-        PATH="/c/Qt/Tools/QtCreator/bin:${PATH}"
+        PATH="/c/Qt/Tools/QtCreator/bin:/c/Python36:/c/Python36/Scripts:${PATH}"
         WITH_DOCS=0
         QBS_BUILD_PROFILE=qt
+        CLCACHE_DIR="${HOME}/.ccache"
       before_install:
         # Install Qbs and Qt
         - ./scripts/install-qt.sh -d ${QT_INSTALL_DIR} --version ${QT_VERSION} --toolchain win64_msvc2017_64 qtbase qtdeclarative qttools qtscript
         - ./scripts/install-qt.sh -d ${QT_INSTALL_DIR} --version ${QTCREATOR_VERSION} qtcreator
+        - choco install python --version 3.6.8
+        - pip install git+https://github.com/frerich/clcache.git@cae73d8255d78db8ba11e23c51fd2c9a89e7475b
       script:
+        - clcache -s
         - qbs setup-toolchains --detect
         - qbs setup-qt ${QMAKE_PATH} qt
         - qbs config qt.baseProfile MSVC2017-x86
         - qbs config defaultProfile qt
         - scripts/build-qbs-with-qbs.sh
+        - clcache -s
