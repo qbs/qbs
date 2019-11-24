@@ -79,12 +79,13 @@ namespace Internal {
 
 RulesApplicator::RulesApplicator(
         ResolvedProductPtr product,
-        std::unordered_map<QString, const ResolvedProduct *> productsByName,
-        std::unordered_map<QString, const ResolvedProject *> projectsByName,
+        const std::unordered_map<QString, const ResolvedProduct *> &productsByName,
+        const std::unordered_map<QString, const ResolvedProject *> &projectsByName,
         Logger logger)
     : m_product(std::move(product))
-    , m_productsByName(std::move(productsByName))
-    , m_projectsByName(std::move(projectsByName))
+    // m_productsByName and m_projectsByName are references, cannot move-construct
+    , m_productsByName(productsByName)
+    , m_projectsByName(projectsByName)
     , m_mocScanner(nullptr)
     , m_logger(std::move(logger))
 {
