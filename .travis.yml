@@ -50,6 +50,15 @@ jobs:
       script:
         - docker-compose run bionic qbs build ${BUILD_OPTIONS}
 
+    - <<: *build-on-bionic
+      name: With Qbs on Ubuntu bionic (linux_clang64 & clang_tidy)
+      env:
+        BUILD_OPTIONS="profile:qt-clang_64 modules.cpp.compilerWrapper:ccache"
+      services:
+        - docker
+      script:
+        - docker-compose run --rm bionic scripts/run-analyzer.sh
+
     - &build-on-macos
       stage: Build Qbs and and run autotests
       name: With Qbs on macOS (xcode 10.3)
