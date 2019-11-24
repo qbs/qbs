@@ -248,7 +248,7 @@ void Session::setupProject(const QJsonObject &request)
     if (m_currentJob) {
         if (qobject_cast<SetupProjectJob *>(m_currentJob)
                 && m_currentJob->state() == AbstractJob::StateCanceling) {
-            m_resolveRequest = std::move(request);
+            m_resolveRequest = request;
             return;
         }
         sendErrorReply("project-resolved",

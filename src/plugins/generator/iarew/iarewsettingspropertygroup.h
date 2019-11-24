@@ -50,7 +50,7 @@ protected:
     void setDataVersion(int dataVersion);
     void setDataDebugInfo(int debugInfo);
 
-    void addOptionsGroup(QByteArray name, const QVariantList &states,
+    void addOptionsGroup(QByteArray name, QVariantList states,
                          int version = -1);
 
 private:
