@@ -2303,7 +2303,7 @@ public:
             return imports->firstSourceLocation();
         else if (members)
             return members->firstSourceLocation();
-        return SourceLocation();
+        return {};
     }
 
     SourceLocation lastSourceLocation() const override
@@ -2312,7 +2312,7 @@ public:
             return members->lastSourceLocation();
         else if (imports)
             return imports->lastSourceLocation();
-        return SourceLocation();
+        return {};
     }
 
 // attributes
@@ -2519,7 +2519,7 @@ public:
       else if (const auto varStmt = cast<const VariableStatement *>(sourceElement))
         return varStmt->firstSourceLocation();
 
-      return SourceLocation();
+      return {};
     }
 
     SourceLocation lastSourceLocation() const override
@@ -2529,7 +2529,7 @@ public:
       else if (const auto varStmt = cast<const VariableStatement *>(sourceElement))
         return varStmt->lastSourceLocation();
 
-      return SourceLocation();
+      return {};
     }
 
     void accept0(Visitor *visitor) override;
