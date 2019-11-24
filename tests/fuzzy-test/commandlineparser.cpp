@@ -37,9 +37,7 @@ static QString maxDurationoption() { return "--max-duration"; }
 static QString jobCountOption() { return "--jobs"; }
 static QString logOption() { return "--log"; }
 
-CommandLineParser::CommandLineParser()
-{
-}
+CommandLineParser::CommandLineParser() = default;
 
 void CommandLineParser::parse(const QStringList &commandLine)
 {

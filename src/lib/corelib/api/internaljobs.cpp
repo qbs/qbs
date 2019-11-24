@@ -225,9 +225,7 @@ InternalSetupProjectJob::InternalSetupProjectJob(const Logger &logger)
 {
 }
 
-InternalSetupProjectJob::~InternalSetupProjectJob()
-{
-}
+InternalSetupProjectJob::~InternalSetupProjectJob() = default;
 
 void InternalSetupProjectJob::init(const TopLevelProjectPtr &existingProject,
                                    const SetupProjectParameters &parameters)
@@ -350,9 +348,7 @@ BuildGraphTouchingJob::BuildGraphTouchingJob(const Logger &logger, QObject *pare
 {
 }
 
-BuildGraphTouchingJob::~BuildGraphTouchingJob()
-{
-}
+BuildGraphTouchingJob::~BuildGraphTouchingJob() = default;
 
 void BuildGraphTouchingJob::setup(const TopLevelProjectPtr &project,
                                   const QList<ResolvedProductPtr> &products, bool dryRun)
@@ -443,9 +439,7 @@ InternalInstallJob::InternalInstallJob(const Logger &logger)
 {
 }
 
-InternalInstallJob::~InternalInstallJob()
-{
-}
+InternalInstallJob::~InternalInstallJob() = default;
 
 void InternalInstallJob::init(const TopLevelProjectPtr &project,
         const std::vector<ResolvedProductPtr> &products, const InstallOptions &options)

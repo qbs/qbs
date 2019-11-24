@@ -54,7 +54,7 @@ public:
         : m_removalVersion(removalVersion)
         , m_additionalUserInfo(additionalUserInfo)
     {}
-    DeprecationInfo() {}
+    DeprecationInfo() = default;
 
     bool isValid() const { return m_removalVersion.isValid(); }
     Version removalVersion() const { return m_removalVersion; }

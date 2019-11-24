@@ -41,9 +41,7 @@ static QString ruleExecutionActivity() { return "rule-execution"; }
 static QString nullBuildActivity() { return "null-build"; }
 static QString allActivities() { return "all"; }
 
-CommandLineParser::CommandLineParser()
-{
-}
+CommandLineParser::CommandLineParser() = default;
 
 void CommandLineParser::parse()
 {

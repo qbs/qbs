@@ -379,9 +379,7 @@ InputArtifactScannerContext::DependencyScannerCacheItem::DependencyScannerCacheI
 {
 }
 
-InputArtifactScannerContext::DependencyScannerCacheItem::~DependencyScannerCacheItem()
-{
-}
+InputArtifactScannerContext::DependencyScannerCacheItem::~DependencyScannerCacheItem() = default;
 
 } // namespace Internal
 } // namespace qbs

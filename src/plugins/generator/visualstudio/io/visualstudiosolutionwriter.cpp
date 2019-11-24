@@ -64,9 +64,7 @@ VisualStudioSolutionWriter::VisualStudioSolutionWriter(std::ostream *device)
     d->device = device;
 }
 
-VisualStudioSolutionWriter::~VisualStudioSolutionWriter()
-{
-}
+VisualStudioSolutionWriter::~VisualStudioSolutionWriter() = default;
 
 std::string VisualStudioSolutionWriter::projectBaseDirectory() const
 {

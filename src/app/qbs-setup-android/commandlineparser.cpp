@@ -43,10 +43,7 @@
 
 #include <QtCore/qfileinfo.h>
 
-CommandLineParser::CommandLineParser()
-{
-
-}
+CommandLineParser::CommandLineParser() = default;
 
 using qbs::Internal::Tr;
 

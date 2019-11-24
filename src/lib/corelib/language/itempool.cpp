@@ -43,9 +43,7 @@
 namespace qbs {
 namespace Internal {
 
-ItemPool::ItemPool()
-{
-}
+ItemPool::ItemPool() = default;
 
 ItemPool::~ItemPool()
 {

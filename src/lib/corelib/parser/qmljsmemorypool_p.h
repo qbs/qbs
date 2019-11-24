@@ -154,8 +154,8 @@ class QML_PARSER_EXPORT Managed
     void operator = (const Managed &other);
 
 public:
-    Managed() {}
-    ~Managed() {}
+    Managed() = default;
+    ~Managed() = default;
 
     void *operator new(size_t size, MemoryPool *pool) { return pool->allocate(size); }
     void operator delete(void *) {}

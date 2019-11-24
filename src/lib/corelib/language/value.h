@@ -156,7 +156,7 @@ public:
             CodeLocation location;
         };
 
-        Alternative() { }
+        Alternative() = default;
         Alternative(const PropertyData &c, const PropertyData &o, const JSSourceValuePtr &v)
             : condition(c), overrideListProperties(o), value(v) {}
         Alternative clone() const

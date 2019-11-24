@@ -57,9 +57,7 @@ VisualStudioSolution::VisualStudioSolution(const Internal::VisualStudioVersionIn
 {
 }
 
-VisualStudioSolution::~VisualStudioSolution()
-{
-}
+VisualStudioSolution::~VisualStudioSolution() = default;
 
 Internal::VisualStudioVersionInfo VisualStudioSolution::versionInfo() const
 {

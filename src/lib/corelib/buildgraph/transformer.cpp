@@ -62,9 +62,7 @@ Transformer::Transformer() : alwaysRun(false)
 {
 }
 
-Transformer::~Transformer()
-{
-}
+Transformer::~Transformer() = default;
 
 static QScriptValue js_baseName(QScriptContext *ctx, QScriptEngine *engine,
                                 const Artifact *artifact)

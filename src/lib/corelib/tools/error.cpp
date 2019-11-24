@@ -98,19 +98,11 @@ ErrorItem::ErrorItem(const QString &description, const CodeLocation &codeLocatio
     d->isBacktraceItem = isBacktraceItem;
 }
 
-ErrorItem::ErrorItem(const ErrorItem &rhs) : d(rhs.d)
-{
-}
+ErrorItem::ErrorItem(const ErrorItem &rhs) = default;
 
-ErrorItem &ErrorItem::operator=(const ErrorItem &other)
-{
-    d = other.d;
-    return *this;
-}
+ErrorItem &ErrorItem::operator=(const ErrorItem &other) = default;
 
-ErrorItem::~ErrorItem()
-{
-}
+ErrorItem::~ErrorItem() = default;
 
 QString ErrorItem::description() const
 {
@@ -194,9 +186,7 @@ ErrorInfo::ErrorInfo() : d(new ErrorInfoPrivate)
 {
 }
 
-ErrorInfo::ErrorInfo(const ErrorInfo &rhs) : d(rhs.d)
-{
-}
+ErrorInfo::ErrorInfo(const ErrorInfo &rhs) = default;
 
 ErrorInfo::ErrorInfo(const QString &description, const CodeLocation &location, bool internalError)
     : d(new ErrorInfoPrivate)
@@ -224,15 +214,9 @@ ErrorInfo::ErrorInfo(const QString &description, const QStringList &backtrace)
 }
 
 
-ErrorInfo &ErrorInfo::operator =(const ErrorInfo &other)
-{
-    d = other.d;
-    return *this;
-}
+ErrorInfo &ErrorInfo::operator =(const ErrorInfo &other) = default;
 
-ErrorInfo::~ErrorInfo()
-{
-}
+ErrorInfo::~ErrorInfo() = default;
 
 void ErrorInfo::appendBacktrace(const QString &description, const CodeLocation &location)
 {

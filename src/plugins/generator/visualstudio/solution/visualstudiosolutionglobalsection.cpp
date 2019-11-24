@@ -51,9 +51,7 @@ VisualStudioSolutionGlobalSection::VisualStudioSolutionGlobalSection(const QStri
     setName(name);
 }
 
-VisualStudioSolutionGlobalSection::~VisualStudioSolutionGlobalSection()
-{
-}
+VisualStudioSolutionGlobalSection::~VisualStudioSolutionGlobalSection() = default;
 
 QString VisualStudioSolutionGlobalSection::name() const
 {

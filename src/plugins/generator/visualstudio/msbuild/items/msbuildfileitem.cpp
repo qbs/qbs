@@ -46,9 +46,7 @@ MSBuildFileItem::MSBuildFileItem(const QString &name, IMSBuildItemGroup *parent)
     d->filter.reset(new MSBuildItemMetadata(QStringLiteral("Filter"), QVariant()));
 }
 
-MSBuildFileItem::~MSBuildFileItem()
-{
-}
+MSBuildFileItem::~MSBuildFileItem() = default;
 
 QString MSBuildFileItem::filePath() const
 {

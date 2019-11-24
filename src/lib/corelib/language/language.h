@@ -99,7 +99,7 @@ public:
 
 private:
     FileTagger(const QStringList &patterns, FileTags fileTags, int priority);
-    FileTagger() {}
+    FileTagger() = default;
 
     void setPatterns(const QStringList &patterns);
 
@@ -139,7 +139,7 @@ public:
     }
 
 private:
-    Probe() {}
+    Probe() = default;
     Probe(const QString &globalId,
           const CodeLocation &location,
           bool condition,
@@ -378,7 +378,7 @@ public:
     }
 
 private:
-    ResolvedModule() {}
+    ResolvedModule() = default;
 };
 bool operator==(const ResolvedModule &m1, const ResolvedModule &m2);
 inline bool operator!=(const ResolvedModule &m1, const ResolvedModule &m2) { return !(m1 == m2); }

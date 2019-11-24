@@ -45,7 +45,7 @@
 namespace qbs {
 namespace Internal {
 
-LauncherPacket::~LauncherPacket() { }
+LauncherPacket::~LauncherPacket() = default;
 
 QByteArray LauncherPacket::serialize() const
 {

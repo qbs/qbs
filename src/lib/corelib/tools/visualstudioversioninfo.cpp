@@ -46,9 +46,7 @@
 namespace qbs {
 namespace Internal {
 
-VisualStudioVersionInfo::VisualStudioVersionInfo()
-{
-}
+VisualStudioVersionInfo::VisualStudioVersionInfo() = default;
 
 VisualStudioVersionInfo::VisualStudioVersionInfo(const Version &version)
     : m_version(version)

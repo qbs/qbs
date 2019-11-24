@@ -44,14 +44,10 @@
 namespace qbs {
 
 TransformerData::TransformerData() : d(new Internal::TransformerDataPrivate) { }
-TransformerData::TransformerData(const TransformerData &other) : d(other.d) {}
-TransformerData::~TransformerData() { }
+TransformerData::TransformerData(const TransformerData &other) = default;
+TransformerData::~TransformerData() = default;
 
-TransformerData& TransformerData::operator=(const TransformerData &other)
-{
-    d = other.d;
-    return *this;
-}
+TransformerData& TransformerData::operator=(const TransformerData &other) = default;
 
 QList<ArtifactData> TransformerData::inputs() const { return d->inputs; }
 QList<ArtifactData> TransformerData::outputs() const { return d->outputs; }

@@ -44,9 +44,7 @@
 namespace qbs {
 namespace Internal {
 
-QualifiedId::QualifiedId()
-{
-}
+QualifiedId::QualifiedId() = default;
 
 QualifiedId::QualifiedId(const QString &singlePartName)
     : QStringList(singlePartName)

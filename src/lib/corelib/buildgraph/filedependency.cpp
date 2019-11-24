@@ -44,13 +44,9 @@
 namespace qbs {
 namespace Internal {
 
-FileResourceBase::FileResourceBase()
-{
-}
+FileResourceBase::FileResourceBase() = default;
 
-FileResourceBase::~FileResourceBase()
-{
-}
+FileResourceBase::~FileResourceBase() = default;
 
 void FileResourceBase::setTimestamp(const FileTime &t)
 
@@ -86,13 +82,9 @@ void FileResourceBase::store(PersistentPool &pool)
 }
 
 
-FileDependency::FileDependency()
-{
-}
+FileDependency::FileDependency() = default;
 
-FileDependency::~FileDependency()
-{
-}
+FileDependency::~FileDependency() = default;
 
 } // namespace Internal
 } // namespace qbs

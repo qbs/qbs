@@ -75,7 +75,7 @@ public:
     QString architecture;
     QProcessEnvironment environment;
 
-    MSVC() { }
+    MSVC() = default;
 
     MSVC(const QString &clPath, QString arch):
         architecture(std::move(arch))

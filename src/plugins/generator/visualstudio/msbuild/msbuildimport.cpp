@@ -55,9 +55,7 @@ MSBuildImport::MSBuildImport(MSBuildImportGroup *parent)
 {
 }
 
-MSBuildImport::~MSBuildImport()
-{
-}
+MSBuildImport::~MSBuildImport() = default;
 
 QString MSBuildImport::project() const
 {

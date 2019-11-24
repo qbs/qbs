@@ -126,9 +126,7 @@ ProjectResolver::ProjectResolver(Evaluator *evaluator, ModuleLoaderResult loadRe
     QBS_CHECK(FileInfo::isAbsolute(m_setupParams.buildRoot()));
 }
 
-ProjectResolver::~ProjectResolver()
-{
-}
+ProjectResolver::~ProjectResolver() = default;
 
 void ProjectResolver::setProgressObserver(ProgressObserver *observer)
 {

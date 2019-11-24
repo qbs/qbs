@@ -188,15 +188,9 @@ void ResolvedGroup::store(PersistentPool &pool)
  * \sa Rule
  */
 
-ScriptFunction::ScriptFunction()
-{
+ScriptFunction::ScriptFunction() = default;
 
-}
-
-ScriptFunction::~ScriptFunction()
-{
-
-}
+ScriptFunction::~ScriptFunction() = default;
 
  /*!
   * \variable ScriptFunction::script
@@ -312,9 +306,7 @@ ResolvedProduct::ResolvedProduct()
 {
 }
 
-ResolvedProduct::~ResolvedProduct()
-{
-}
+ResolvedProduct::~ResolvedProduct() = default;
 
 void ResolvedProduct::accept(BuildGraphVisitor *visitor) const
 {
@@ -524,9 +516,7 @@ ResolvedProject::ResolvedProject() : enabled(true), m_topLevelProject(nullptr)
 {
 }
 
-ResolvedProject::~ResolvedProject()
-{
-}
+ResolvedProject::~ResolvedProject() = default;
 
 void ResolvedProject::accept(BuildGraphVisitor *visitor) const
 {

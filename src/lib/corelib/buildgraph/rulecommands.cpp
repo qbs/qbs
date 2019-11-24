@@ -94,9 +94,7 @@ AbstractCommand::AbstractCommand()
 {
 }
 
-AbstractCommand::~AbstractCommand()
-{
-}
+AbstractCommand::~AbstractCommand() = default;
 
 bool AbstractCommand::equals(const AbstractCommand *other) const
 {
@@ -399,9 +397,7 @@ void JavaScriptCommand::setupForJavaScript(QScriptValue targetObject)
     targetObject.setProperty(StringConstants::javaScriptCommandType(), ctor);
 }
 
-JavaScriptCommand::JavaScriptCommand()
-{
-}
+JavaScriptCommand::JavaScriptCommand() = default;
 
 bool JavaScriptCommand::equals(const AbstractCommand *otherAbstractCommand) const
 {

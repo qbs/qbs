@@ -83,9 +83,7 @@ MSBuildTargetProject::MSBuildTargetProject(const GeneratableProject &project,
     propertySheetsImportGroup();
 }
 
-MSBuildTargetProject::~MSBuildTargetProject()
-{
-}
+MSBuildTargetProject::~MSBuildTargetProject() = default;
 
 const Internal::VisualStudioVersionInfo &MSBuildTargetProject::versionInfo() const
 {

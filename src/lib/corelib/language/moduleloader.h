@@ -218,7 +218,7 @@ private:
     {
         Q_DISABLE_COPY(TopLevelProjectContext)
     public:
-        TopLevelProjectContext() {}
+        TopLevelProjectContext() = default;
         ~TopLevelProjectContext() { qDeleteAll(projects); }
 
         std::vector<ProjectContext *> projects;

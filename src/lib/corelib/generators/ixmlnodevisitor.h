@@ -47,7 +47,7 @@ class Workspace;
 class QBS_EXPORT INodeVisitor
 {
 public:
-    virtual ~INodeVisitor() {}
+    virtual ~INodeVisitor() = default;
 
     virtual void visitWorkspaceStart(const Workspace *workspace) { Q_UNUSED(workspace) }
     virtual void visitWorkspaceEnd(const Workspace *workspace) { Q_UNUSED(workspace) }

@@ -56,13 +56,9 @@
 namespace qbs {
 namespace Internal {
 
-RuleNode::RuleNode()
-{
-}
+RuleNode::RuleNode() = default;
 
-RuleNode::~RuleNode()
-{
-}
+RuleNode::~RuleNode() = default;
 
 void RuleNode::accept(BuildGraphVisitor *visitor)
 {

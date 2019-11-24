@@ -121,8 +121,7 @@ Engine::Engine()
     : _lexer(nullptr), _directives(nullptr)
 { }
 
-Engine::~Engine()
-{ }
+Engine::~Engine() = default;
 
 void Engine::setCode(const QString &code)
 { _code = code; }

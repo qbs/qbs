@@ -75,9 +75,7 @@ public:
     int column = 0;
 };
 
-CodeLocation::CodeLocation()
-{
-}
+CodeLocation::CodeLocation() = default;
 
 CodeLocation::CodeLocation(const QString &aFilePath, int aLine, int aColumn, bool checkPath)
     : d(new CodeLocationPrivate)
@@ -88,19 +86,11 @@ CodeLocation::CodeLocation(const QString &aFilePath, int aLine, int aColumn, boo
     d->column = aColumn;
 }
 
-CodeLocation::CodeLocation(const CodeLocation &other) : d(other.d)
-{
-}
+CodeLocation::CodeLocation(const CodeLocation &other) = default;
 
-CodeLocation &CodeLocation::operator=(const CodeLocation &other)
-{
-    d = other.d;
-    return *this;
-}
+CodeLocation &CodeLocation::operator=(const CodeLocation &other) = default;
 
-CodeLocation::~CodeLocation()
-{
-}
+CodeLocation::~CodeLocation() = default;
 
 QString CodeLocation::filePath() const
 {

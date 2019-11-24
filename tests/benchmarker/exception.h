@@ -36,7 +36,7 @@ namespace qbsBenchmarker {
 class Exception : public QException {
 public:
     explicit Exception(const QString &description) : m_description(description) {}
-    ~Exception() throw() override { }
+    ~Exception() throw() override = default;
 
     QString description() const { return m_description; }
 

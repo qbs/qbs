@@ -931,13 +931,9 @@ Project::Project(const TopLevelProjectPtr &internalProject, const Logger &logger
 {
 }
 
-Project::Project(const Project &other) : d(other.d)
-{
-}
+Project::Project(const Project &other) = default;
 
-Project::~Project()
-{
-}
+Project::~Project() = default;
 
 /*!
  * \brief Returns true if and only if this object was retrieved from a successful \c SetupProjectJob.
@@ -957,11 +953,7 @@ QString Project::profile() const
     return d->internalProject->profile();
 }
 
-Project &Project::operator=(const Project &other)
-{
-    d = other.d;
-    return *this;
-}
+Project &Project::operator=(const Project &other) = default;
 
 /*!
  * \brief Sets up a \c Project from a source file, possibly re-using previously stored information.
@@ -996,10 +988,7 @@ SetupProjectJob *Project::setupProject(const SetupProjectParameters &parameters,
     return job;
 }
 
-Project::Project()
-{
-}
-
+Project::Project() = default;
 
 /*!
  * \brief Retrieves information for this project.

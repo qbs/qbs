@@ -46,7 +46,7 @@ class MSBuildPropertyGroup;
 class IMSBuildNodeVisitor
 {
 public:
-    virtual ~IMSBuildNodeVisitor() {}
+    virtual ~IMSBuildNodeVisitor() = default;
 
     virtual void visitStart(const MSBuildImport *import) = 0;
     virtual void visitEnd(const MSBuildImport *import) = 0;

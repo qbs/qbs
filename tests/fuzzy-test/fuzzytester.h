@@ -36,7 +36,7 @@
 class TestError {
 public:
     TestError(const QString &errorMessage) : errorMessage(errorMessage) {}
-    ~TestError() throw() {}
+    ~TestError() throw() = default;
 
     QString errorMessage;
 

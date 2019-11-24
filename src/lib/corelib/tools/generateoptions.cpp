@@ -68,19 +68,11 @@ GenerateOptions::GenerateOptions() : d(new Internal::GenerateOptionsPrivate)
 {
 }
 
-GenerateOptions::GenerateOptions(const GenerateOptions &other) : d(other.d)
-{
-}
+GenerateOptions::GenerateOptions(const GenerateOptions &other) = default;
 
-GenerateOptions &GenerateOptions::operator=(const GenerateOptions &other)
-{
-    d = other.d;
-    return *this;
-}
+GenerateOptions &GenerateOptions::operator=(const GenerateOptions &other) = default;
 
-GenerateOptions::~GenerateOptions()
-{
-}
+GenerateOptions::~GenerateOptions() = default;
 
 /*!
  * Returns the name of the generator used to create the external build system files.

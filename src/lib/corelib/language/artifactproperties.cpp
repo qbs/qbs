@@ -48,9 +48,7 @@ ArtifactPropertiesPtr ArtifactProperties::create()
     return ArtifactPropertiesPtr(new ArtifactProperties);
 }
 
-ArtifactProperties::ArtifactProperties()
-{
-}
+ArtifactProperties::ArtifactProperties() = default;
 
 FileTags ArtifactProperties::extraFileTags() const
 {

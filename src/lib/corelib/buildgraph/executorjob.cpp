@@ -71,9 +71,7 @@ ExecutorJob::ExecutorJob(const Logger &logger, QObject *parent)
     reset();
 }
 
-ExecutorJob::~ExecutorJob()
-{
-}
+ExecutorJob::~ExecutorJob() = default;
 
 void ExecutorJob::setMainThreadScriptEngine(ScriptEngine *engine)
 {

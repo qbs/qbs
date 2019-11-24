@@ -65,7 +65,7 @@ public:
         pool.serializationOp<opType>(m_filePath, m_jsExtensions, m_searchPaths, m_jsImports);
     }
 private:
-    ResolvedFileContext() {}
+    ResolvedFileContext() = default;
     ResolvedFileContext(const FileContextBase &ctx);
 };
 

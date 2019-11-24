@@ -79,23 +79,15 @@ CleanOptions::CleanOptions() : d(new Internal::CleanOptionsPrivate)
 {
 }
 
-CleanOptions::CleanOptions(const CleanOptions &other) : d(other.d)
-{
-}
+CleanOptions::CleanOptions(const CleanOptions &other) = default;
 
 CleanOptions::CleanOptions(CleanOptions &&other) Q_DECL_NOEXCEPT = default;
 
-CleanOptions &CleanOptions::operator=(const CleanOptions &other)
-{
-    d = other.d;
-    return *this;
-}
+CleanOptions &CleanOptions::operator=(const CleanOptions &other) = default;
 
 CleanOptions &CleanOptions::operator=(CleanOptions &&other) Q_DECL_NOEXCEPT = default;
 
-CleanOptions::~CleanOptions()
-{
-}
+CleanOptions::~CleanOptions() = default;
 
 /*!
  * \brief Returns true iff qbs will not actually remove any files, but just show what would happen.

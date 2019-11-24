@@ -107,21 +107,15 @@ SetupProjectParameters::SetupProjectParameters() : d(new Internal::SetupProjectP
 {
 }
 
-SetupProjectParameters::SetupProjectParameters(const SetupProjectParameters &other) : d(other.d)
-{
-}
+SetupProjectParameters::SetupProjectParameters(const SetupProjectParameters &other) = default;
 
-SetupProjectParameters::SetupProjectParameters(SetupProjectParameters &&other) Q_DECL_NOEXCEPT = default;
+SetupProjectParameters::SetupProjectParameters(
+        SetupProjectParameters &&other) Q_DECL_NOEXCEPT = default;
 
-SetupProjectParameters::~SetupProjectParameters()
-{
-}
+SetupProjectParameters::~SetupProjectParameters() = default;
 
-SetupProjectParameters &SetupProjectParameters::operator=(const SetupProjectParameters &other)
-{
-    d = other.d;
-    return *this;
-}
+SetupProjectParameters &SetupProjectParameters::operator=(
+        const SetupProjectParameters &other) = default;
 
 namespace Internal {
 template<> ErrorHandlingMode fromJson(const QJsonValue &v)

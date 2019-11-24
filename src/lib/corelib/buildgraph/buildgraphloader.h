@@ -121,7 +121,7 @@ private:
     bool checkConfigCompatibility();
 
     struct ChildrenInfo {
-        ChildrenInfo() {}
+        ChildrenInfo() = default;
         ChildrenInfo(const ArtifactSet &c1, const ArtifactSet &c2)
             : children(c1), childrenAddedByScanner(c2) {}
         ArtifactSet children;

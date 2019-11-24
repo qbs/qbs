@@ -46,7 +46,7 @@ namespace qbs {
 
 class IGeneratableProjectVisitor {
 public:
-    virtual ~IGeneratableProjectVisitor() { }
+    virtual ~IGeneratableProjectVisitor() = default;
 
     // Collapsed configurations
     virtual void visitProject(const GeneratableProject &project) {

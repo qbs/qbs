@@ -46,9 +46,7 @@
 namespace qbs {
 namespace Internal {
 
-RuleGraph::RuleGraph()
-{
-}
+RuleGraph::RuleGraph() = default;
 
 void RuleGraph::build(const std::vector<RulePtr> &rules, const FileTags &productFileTags)
 {

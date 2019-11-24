@@ -36,7 +36,7 @@ class ParseException : public std::exception
 {
 public:
     ParseException(const QString &error) : errorMessage(error) { }
-    ~ParseException() throw() override {}
+    ~ParseException() throw() override = default;
 
     QString errorMessage;
 

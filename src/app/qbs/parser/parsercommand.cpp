@@ -53,9 +53,7 @@
 namespace qbs {
 using namespace Internal;
 
-Command::~Command()
-{
-}
+Command::~Command() = default;
 
 void Command::parse(QStringList &input)
 {

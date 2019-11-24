@@ -98,7 +98,7 @@ public:
     const_iterator constBegin() const { return m_data.cbegin(); }
     const_iterator constEnd() const { return m_data.cend(); }
 
-    Set() { }
+    Set() = default;
     Set(const std::initializer_list<T> &list);
 
     Set &unite(const Set &other);

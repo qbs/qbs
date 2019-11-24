@@ -46,9 +46,7 @@ IMSBuildProperty::IMSBuildProperty(QObject *parent)
 {
 }
 
-IMSBuildProperty::~IMSBuildProperty()
-{
-}
+IMSBuildProperty::~IMSBuildProperty() = default;
 
 QString IMSBuildProperty::condition() const
 {
