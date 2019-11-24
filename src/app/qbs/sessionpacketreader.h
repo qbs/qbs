@@ -43,6 +43,8 @@
 #include <QtCore/qjsonobject.h>
 #include <QtCore/qobject.h>
 
+#include <memory>
+
 namespace qbs {
 namespace Internal {
 
@@ -61,7 +63,7 @@ signals:
 
 private:
     class Private;
-    Private * const d;
+    const std::unique_ptr<Private> d;
 };
 
 } // namespace Internal

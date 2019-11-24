@@ -52,12 +52,12 @@ public:
     SessionPacket currentPacket;
 };
 
-SessionPacketReader::SessionPacketReader(QObject *parent) : QObject(parent), d(new Private) { }
+SessionPacketReader::SessionPacketReader(QObject *parent)
+    : QObject(parent)
+    , d(std::make_unique<Private>())
+{ }
 
-SessionPacketReader::~SessionPacketReader()
-{
-    delete d;
-}
+SessionPacketReader::~SessionPacketReader() = default;
 
 void SessionPacketReader::start()
 {
