@@ -117,9 +117,7 @@ double integerFromString(const QString &str, int radix)
 }
 
 
-Engine::Engine()
-    : _lexer(nullptr), _directives(nullptr)
-{ }
+Engine::Engine() = default;
 
 Engine::~Engine() = default;
 

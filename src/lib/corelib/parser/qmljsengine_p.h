@@ -90,8 +90,8 @@ public:
 
 class QBS_AUTOTEST_EXPORT Engine
 {
-    Lexer *_lexer;
-    Directives *_directives;
+    Lexer *_lexer{nullptr};
+    Directives *_directives{nullptr};
     MemoryPool _pool;
     QList<AST::SourceLocation> _comments;
     QString _extraCode;
