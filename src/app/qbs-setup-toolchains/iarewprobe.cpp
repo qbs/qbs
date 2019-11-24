@@ -245,7 +245,7 @@ void createIarProfile(const QFileInfo &compiler, Settings *settings,
                       QString profileName)
 {
     const ToolchainInstallInfo info = {compiler, Version{}};
-    createIarProfileHelper(info, settings, profileName);
+    createIarProfileHelper(info, settings, std::move(profileName));
 }
 
 void iarProbe(Settings *settings, std::vector<Profile> &profiles)

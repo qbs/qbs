@@ -90,7 +90,7 @@ static void setQtHelperProperties(Profile &p, const MSVC *msvc)
 static void addMSVCPlatform(Settings *settings, std::vector<Profile> &profiles, QString name, MSVC *msvc)
 {
     qbsInfo() << Tr::tr("Setting up profile '%1'.").arg(name);
-    Profile p(name, settings);
+    Profile p(std::move(name), settings);
     p.removeProfile();
     p.setValue(QStringLiteral("qbs.targetPlatform"), QStringLiteral("windows"));
     p.setValue(QStringLiteral("qbs.toolchain"), QStringList(QStringLiteral("msvc")));

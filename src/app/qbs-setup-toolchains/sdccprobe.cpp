@@ -255,7 +255,7 @@ void createSdccProfile(const QFileInfo &compiler, Settings *settings,
                        QString profileName)
 {
     const ToolchainInstallInfo info = {compiler, Version{}};
-    createSdccProfileHelper(info, settings, profileName);
+    createSdccProfileHelper(info, settings, std::move(profileName));
 }
 
 void sdccProbe(Settings *settings, std::vector<Profile> &profiles)

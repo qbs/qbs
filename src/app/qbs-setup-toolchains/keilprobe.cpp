@@ -255,7 +255,7 @@ void createKeilProfile(const QFileInfo &compiler, Settings *settings,
                        QString profileName)
 {
     const ToolchainInstallInfo info = {compiler, Version{}};
-    createKeilProfileHelper(info, settings, profileName);
+    createKeilProfileHelper(info, settings, std::move(profileName));
 }
 
 void keilProbe(Settings *settings, std::vector<Profile> &profiles)
