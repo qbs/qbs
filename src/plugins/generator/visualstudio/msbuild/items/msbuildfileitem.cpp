@@ -29,6 +29,8 @@
 ****************************************************************************/
 
 #include "msbuildfileitem.h"
+
+#include <memory>
 #include "../msbuilditemmetadata.h"
 
 namespace qbs {
@@ -43,7 +45,7 @@ MSBuildFileItem::MSBuildFileItem(const QString &name, IMSBuildItemGroup *parent)
     : MSBuildItem(name, parent)
     , d(new MSBuildFileItemPrivate)
 {
-    d->filter.reset(new MSBuildItemMetadata(QStringLiteral("Filter"), QVariant()));
+    d->filter = std::make_unique<MSBuildItemMetadata>(QStringLiteral("Filter"), QVariant());
 }
 
 MSBuildFileItem::~MSBuildFileItem() = default;

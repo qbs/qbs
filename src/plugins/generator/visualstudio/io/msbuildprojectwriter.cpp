@@ -43,6 +43,8 @@
 
 #include <QtCore/qxmlstream.h>
 
+#include <memory>
+
 namespace qbs {
 
 static const QString kMSBuildSchemaURI =
@@ -87,7 +89,7 @@ MSBuildProjectWriter::MSBuildProjectWriter(std::ostream *device)
     : d(new MSBuildProjectWriterPrivate)
 {
     d->device = device;
-    d->writer.reset(new QXmlStreamWriter(&d->buffer));
+    d->writer = std::make_unique<QXmlStreamWriter>(&d->buffer);
     d->writer->setAutoFormatting(true);
 }
 

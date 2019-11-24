@@ -33,6 +33,7 @@
 #include "xmlworkspace.h"
 #include "xmlworkspacewriter.h"
 
+#include <memory>
 #include <ostream>
 
 namespace qbs {
@@ -42,7 +43,7 @@ namespace xml {
 WorkspaceWriter::WorkspaceWriter(std::ostream *device)
     : m_device(device)
 {
-    m_writer.reset(new QXmlStreamWriter(&m_buffer));
+    m_writer = std::make_unique<QXmlStreamWriter>(&m_buffer);
     m_writer->setAutoFormatting(true);
 }
 

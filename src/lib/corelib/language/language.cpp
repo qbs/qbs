@@ -356,7 +356,7 @@ FileTags ResolvedProduct::fileTagsForFileName(const QString &fileName) const
                         return result;
                     }
                 } else {
-                    priority.reset(new int(tagger->priority()));
+                    priority = std::make_unique<int>(tagger->priority());
                 }
                 result.unite(tagger->fileTags());
                 break;

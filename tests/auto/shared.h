@@ -83,7 +83,7 @@ using SettingsPtr = std::unique_ptr<qbs::Settings>;
 inline SettingsPtr settings()
 {
     const QString settingsDir = QLatin1String(qgetenv("QBS_AUTOTEST_SETTINGS_DIR"));
-    return SettingsPtr(new qbs::Settings(settingsDir));
+    return std::make_unique<qbs::Settings>(settingsDir);
 }
 
 inline QString profileName()

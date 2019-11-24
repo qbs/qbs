@@ -79,6 +79,7 @@
 #include <QtScript/qscriptvalueiterator.h>
 
 #include <algorithm>
+#include <memory>
 #include <utility>
 
 namespace qbs {
@@ -292,7 +293,7 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
             = m_elapsedTimePropertyChecking = 0;
     m_elapsedTimeProbes = 0;
     m_probesEncountered = m_probesRun = m_probesCachedCurrent = m_probesCachedOld = 0;
-    m_settings.reset(new Settings(parameters.settingsDirectory()));
+    m_settings = std::make_unique<Settings>(parameters.settingsDirectory());
 
     const auto keys = m_parameters.overriddenValues().keys();
     for (const QString &key : keys) {

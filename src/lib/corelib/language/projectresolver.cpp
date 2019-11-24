@@ -71,6 +71,7 @@
 #include <QtCore/qregexp.h>
 
 #include <algorithm>
+#include <memory>
 #include <queue>
 
 namespace qbs {
@@ -810,7 +811,7 @@ void ProjectResolver::resolveGroupFully(Item *item, ProjectResolver::ProjectCont
         group->targetOfModule = moduleProp->value().toString();
     ErrorInfo fileError;
     if (!patterns.empty()) {
-        group->wildcards = std::unique_ptr<SourceWildCards>(new SourceWildCards);
+        group->wildcards = std::make_unique<SourceWildCards>();
         SourceWildCards *wildcards = group->wildcards.get();
         wildcards->group = group.get();
         wildcards->excludePatterns = m_evaluator->stringListValue(

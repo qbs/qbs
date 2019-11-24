@@ -258,7 +258,7 @@ void Session::setupProject(const QJsonObject &request)
     m_moduleProperties = modulePropertiesFromRequest(request);
     auto params = SetupProjectParameters::fromJson(request);
     const ProjectDataMode dataMode = dataModeFromRequest(request);
-    m_settings.reset(new Settings(params.settingsDirectory()));
+    m_settings = std::make_unique<Settings>(params.settingsDirectory());
     const Preferences prefs(m_settings.get());
     const QString appDir = QDir::cleanPath(QCoreApplication::applicationDirPath());
     params.setSearchPaths(prefs.searchPaths(appDir + QLatin1String(

@@ -71,6 +71,7 @@
 
 #include <algorithm>
 #include <functional>
+#include <memory>
 #include <unordered_map>
 
 namespace qbs {
@@ -909,7 +910,7 @@ void BuildGraphLoader::rescueOldBuildData(const ResolvedProductConstPtr &restore
     if (!restoredProduct->buildData)
         return;
     if (!newlyResolvedProduct->buildData)
-        newlyResolvedProduct->buildData.reset(new ProductBuildData);
+        newlyResolvedProduct->buildData = std::make_unique<ProductBuildData>();
 
     qCDebug(lcBuildGraph) << "rescue data of product" << restoredProduct->uniqueName();
     QBS_CHECK(newlyResolvedProduct->buildData);

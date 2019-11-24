@@ -125,7 +125,7 @@ public:
 SettingsModel::SettingsModel(const QString &settingsDir, Settings::Scope scope, QObject *parent)
     : QAbstractItemModel(parent), d(new SettingsModelPrivate)
 {
-    d->settings.reset(new qbs::Settings(settingsDir));
+    d->settings = std::make_unique<qbs::Settings>(settingsDir);
     d->settings->setScopeForWriting(scope);
     d->readSettings();
 }
@@ -155,7 +155,7 @@ void SettingsModel::updateSettingsDir(const QString &settingsDir)
 {
     const Settings::Scope scope = d->scope();
     beginResetModel();
-    d->settings.reset(new qbs::Settings(settingsDir));
+    d->settings = std::make_unique<qbs::Settings>(settingsDir);
     d->settings->setScopeForWriting(scope);
     d->readSettings();
     endResetModel();
