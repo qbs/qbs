@@ -372,7 +372,7 @@ void InputArtifactScanner::scanWithScannerPlugin(DependencyScanner *scanner,
     const QStringList &dependencies = scanner->collectDependencies(
                 inputArtifact, fileToBeScanned, m_fileTagsForScanner.constData());
     for (const QString &s : dependencies)
-        scanResult->deps.push_back(RawScannedDependency(s));
+        scanResult->deps.emplace_back(s);
 }
 
 InputArtifactScannerContext::DependencyScannerCacheItem::DependencyScannerCacheItem() : valid(false)

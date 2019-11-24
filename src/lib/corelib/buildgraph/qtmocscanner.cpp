@@ -167,7 +167,7 @@ static RawScanResult runScanner(ScannerPlugin *scanner, const Artifact *artifact
                 if (FileInfo::exists(localFilePath))
                     includedFilePath = localFilePath;
             }
-            scanData.rawScanResult.deps.push_back(RawScannedDependency(includedFilePath));
+            scanData.rawScanResult.deps.emplace_back(includedFilePath);
         }
 
         scanner->close(opaq);

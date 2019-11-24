@@ -80,7 +80,7 @@ std::vector<std::pair<QString, QString> > VisualStudioSolutionGlobalSection::pro
 
 void VisualStudioSolutionGlobalSection::appendProperty(const QString &key, const QString &value)
 {
-    d->properties.push_back({ key, value });
+    d->properties.emplace_back(key, value);
 }
 
 } // namespace qbs

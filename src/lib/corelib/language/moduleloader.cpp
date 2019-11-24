@@ -3228,7 +3228,7 @@ Item *ModuleLoader::getModulePrototype(ProductContext *productContext,
         }
     }
     Item * const module = loadItemFromFile(filePath, CodeLocation());
-    prototypeList.push_back(std::make_pair(module, productContext->profileName));
+    prototypeList.emplace_back(module, productContext->profileName);
     if (module->type() != ItemType::Module) {
         qCDebug(lcModuleLoader).nospace()
                             << "Alleged module " << fullModuleName << " has type '"
@@ -3328,7 +3328,7 @@ static std::vector<std::pair<QualifiedId, ItemValuePtr>> instanceItemProperties(
             if (itemValue->item()->type() == ItemType::ModulePrefix)
                 f(itemValue->item());
             else
-                result.push_back(std::make_pair(name, itemValue));
+                result.emplace_back(name, itemValue);
             name.removeLast();
         }
     };

@@ -987,7 +987,7 @@ void ProjectResolver::resolveShadowProduct(Item *item, ProjectResolver::ProjectC
     try {
         adaptExportedPropertyValues(item);
     } catch (const ErrorInfo &) {}
-    m_productExportInfo.push_back(std::make_pair(m_productContext->product, item));
+    m_productExportInfo.emplace_back(m_productContext->product, item);
 }
 
 void ProjectResolver::setupExportedProperties(const Item *item, const QString &namePrefix,

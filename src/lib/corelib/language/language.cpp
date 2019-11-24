@@ -755,7 +755,7 @@ void SourceWildCards::expandPatterns(Set<QString> &result, const GroupConstPtr &
     if (baseDir.startsWith(buildDir))
         return;
 
-    dirTimeStamps.push_back({ baseDir, FileInfo(baseDir).lastModified() });
+    dirTimeStamps.emplace_back(baseDir, FileInfo(baseDir).lastModified());
 
     QStringList changed_parts = parts;
     bool recursive = false;
@@ -800,7 +800,7 @@ void SourceWildCards::expandPatterns(Set<QString> &result, const GroupConstPtr &
             expandPatterns(result, group, changed_parts, filePath, buildDir);
         } else {
             if (parentDir != baseDir)
-                dirTimeStamps.push_back({parentDir, FileInfo(baseDir).lastModified()});
+                dirTimeStamps.emplace_back(parentDir, FileInfo(baseDir).lastModified());
             result += QDir::cleanPath(filePath);
         }
     }

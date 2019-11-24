@@ -219,7 +219,7 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
             if (!outputInfo.artifact)
                 continue;
             outputArtifacts.push_back(outputInfo.artifact);
-            ruleArtifactArtifactMap.push_back({ ruleArtifact.get(), outputInfo });
+            ruleArtifactArtifactMap.emplace_back(ruleArtifact.get(), outputInfo);
         }
         if (m_rule->artifacts.empty()) {
             outputArtifacts.push_back(createOutputArtifactFromRuleArtifact(
@@ -287,7 +287,7 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
             }
             const QVariant value = scriptValue.toVariant();
             setConfigProperty(artifactModulesCfg, binding.name, value);
-            outputArtifact->pureProperties.push_back(std::make_pair(binding.name, value));
+            outputArtifact->pureProperties.emplace_back(binding.name, value);
         }
         outputArtifact->properties->setValue(artifactModulesCfg);
         if (!outputInfo.newlyCreated && (outputArtifact->fileTags() != outputInfo.oldFileTags
@@ -607,7 +607,7 @@ public:
         for (const auto &e : m_propertyValues) {
             const QStringList key{e.module, e.name};
             setConfigProperty(artifactCfg, key, e.value);
-            outputArtifact->pureProperties.push_back(std::make_pair(key, e.value));
+            outputArtifact->pureProperties.emplace_back(key, e.value);
         }
         outputArtifact->properties->setValue(artifactCfg);
     }

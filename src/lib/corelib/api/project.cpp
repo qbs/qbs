@@ -1216,7 +1216,7 @@ Project::BuildGraphInfo Project::getBuildGraphInfo(const QString &bgFilePath,
         for (const QString &prop : requestedProperties) {
             QStringList components = prop.split(QLatin1Char('.'));
             const QString propName = components.takeLast();
-            props.push_back(std::make_pair(components.join(QLatin1Char('.')), propName));
+            props.emplace_back(components.join(QLatin1Char('.')), propName);
         }
         for (const ResolvedProductConstPtr &product : project->allProducts()) {
             if (props.empty())

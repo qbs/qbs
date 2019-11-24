@@ -178,7 +178,7 @@ void RuleNode::apply(const Logger &logger,
             if (removedInputForcesOutputRemoval)
                 outputArtifactsToRemove += parent;
             else
-                connectionsToBreak.push_back(std::make_pair(parent, artifact));
+                connectionsToBreak.emplace_back(parent, artifact);
         }
         disconnect(this, artifact);
     }

@@ -205,12 +205,12 @@ void CommandLine::setProgram(const std::string &program, bool raw)
 
 void CommandLine::appendArgument(const QString &value)
 {
-    m_arguments.push_back(value);
+    m_arguments.emplace_back(value);
 }
 
 void CommandLine::appendArgument(const std::string &value)
 {
-    m_arguments.push_back(QString::fromStdString(value));
+    m_arguments.emplace_back(QString::fromStdString(value));
 }
 
 void CommandLine::appendArguments(const QList<QString> &args)
