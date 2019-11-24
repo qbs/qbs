@@ -50,9 +50,9 @@ class DeprecationInfo
 {
 public:
     explicit DeprecationInfo(const Version &removalVersion,
-                             const QString &additionalUserInfo = QString())
+                             QString additionalUserInfo = QString())
         : m_removalVersion(removalVersion)
-        , m_additionalUserInfo(additionalUserInfo)
+        , m_additionalUserInfo(std::move(additionalUserInfo))
     {}
     DeprecationInfo() = default;
 

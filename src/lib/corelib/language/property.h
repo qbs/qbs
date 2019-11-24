@@ -65,9 +65,13 @@ public:
     {
     }
 
-    Property(const QString &product, const QString &module, const QString &property,
-             const QVariant &v, Kind k)
-        : productName(product), moduleName(module), propertyName(property), value(v), kind(k)
+    Property(QString product, QString module, QString property,
+             QVariant v, Kind k)
+        : productName(std::move(product))
+        , moduleName(std::move(module))
+        , propertyName(std::move(property))
+        , value(std::move(v))
+        , kind(k)
     {
     }
 

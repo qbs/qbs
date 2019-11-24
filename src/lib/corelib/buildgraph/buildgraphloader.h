@@ -122,8 +122,8 @@ private:
 
     struct ChildrenInfo {
         ChildrenInfo() = default;
-        ChildrenInfo(const ArtifactSet &c1, const ArtifactSet &c2)
-            : children(c1), childrenAddedByScanner(c2) {}
+        ChildrenInfo(ArtifactSet c1, ArtifactSet c2)
+            : children(std::move(c1)), childrenAddedByScanner(std::move(c2)) {}
         ArtifactSet children;
         ArtifactSet childrenAddedByScanner;
     };

@@ -148,7 +148,7 @@ private:
 
     struct ProductSelection {
         ProductSelection(Project::ProductSelection s) : selection(s) {}
-        ProductSelection(const QList<ProductData> &p) : products(p) {}
+        ProductSelection(QList<ProductData> p) : products(std::move(p)) {}
 
         Project::ProductSelection selection = Project::ProductSelectionDefaultOnly;
         QList<ProductData> products;

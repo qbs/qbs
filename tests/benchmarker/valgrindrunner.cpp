@@ -44,10 +44,10 @@
 
 namespace qbsBenchmarker {
 
-ValgrindRunner::ValgrindRunner(Activities activities, const QString &testProject,
+ValgrindRunner::ValgrindRunner(Activities activities, QString testProject,
                                const QString &qbsBuildDir, const QString &baseOutputDir)
     : m_activities(activities)
-    , m_testProject(testProject)
+    , m_testProject(std::move(testProject))
     , m_qbsBinary(qbsBuildDir + "/bin/qbs")
     , m_baseOutputDir(baseOutputDir)
 {

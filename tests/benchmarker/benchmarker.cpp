@@ -34,16 +34,17 @@
 #include <QtConcurrent/qtconcurrentrun.h>
 
 #include <iostream>
+#include <utility>
 
 namespace qbsBenchmarker {
 
-Benchmarker::Benchmarker(Activities activities, const QString &oldCommit, const QString &newCommit,
-                         const QString &testProject, const QString &qbsRepo)
+Benchmarker::Benchmarker(Activities activities, QString oldCommit, QString newCommit,
+                         QString testProject, QString qbsRepo)
     : m_activities(activities)
-    , m_oldCommit(oldCommit)
-    , m_newCommit(newCommit)
-    , m_testProject(testProject)
-    , m_qbsRepo(qbsRepo)
+    , m_oldCommit(std::move(oldCommit))
+    , m_newCommit(std::move(newCommit))
+    , m_testProject(std::move(testProject))
+    , m_qbsRepo(std::move(qbsRepo))
 {
 }
 

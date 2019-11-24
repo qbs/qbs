@@ -90,7 +90,7 @@ private:
 class QBS_EXPORT MessageTag
 {
 public:
-    explicit MessageTag(const QString &tag) : m_tag(tag) {}
+    explicit MessageTag(QString tag) : m_tag(std::move(tag)) {}
 
     const QString &tag() const { return m_tag; }
 

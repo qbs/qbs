@@ -84,9 +84,12 @@ public:
 
     struct ChildData
     {
-        ChildData(const QString &n = QString(), const QString &m = QString(),
-                  const QString &c = QString(), bool byScanner = false)
-            : productName(n), productMultiplexId(m), childFilePath(c), addedByScanner(byScanner)
+        ChildData(QString n = QString(), QString m = QString(),
+                  QString c = QString(), bool byScanner = false)
+            : productName(std::move(n))
+            , productMultiplexId(std::move(m))
+            , childFilePath(std::move(c))
+            , addedByScanner(byScanner)
         {}
 
         template<PersistentPool::OpType opType> void completeSerializationOp(PersistentPool &pool)

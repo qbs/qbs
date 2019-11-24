@@ -55,7 +55,7 @@ public:
 class ValgrindRunner
 {
 public:
-    ValgrindRunner(Activities activities, const QString &testProject, const QString &qbsBuildDir,
+    ValgrindRunner(Activities activities, QString testProject, const QString &qbsBuildDir,
                     const QString &baseOutputDir);
 
     void run();

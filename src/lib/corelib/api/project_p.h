@@ -62,8 +62,8 @@ namespace Internal {
 class ProjectPrivate : public QSharedData
 {
 public:
-    ProjectPrivate(const TopLevelProjectPtr &internalProject, const Logger &logger)
-        : internalProject(internalProject), logger(logger)
+    ProjectPrivate(TopLevelProjectPtr internalProject, Logger logger)
+        : internalProject(std::move(internalProject)), logger(std::move(logger))
     {
     }
 

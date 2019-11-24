@@ -77,7 +77,7 @@ public:
 private:
     struct Argument
     {
-        Argument(const QString &value = QString()) : value(value) { }
+        Argument(QString value = QString()) : value(std::move(value)) { }
         QString value;
         bool isFilePath = false;
         bool shouldQuote = true;

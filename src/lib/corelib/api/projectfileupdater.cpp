@@ -115,7 +115,7 @@ private:
 };
 
 
-ProjectFileUpdater::ProjectFileUpdater(const QString &projectFile) : m_projectFile(projectFile)
+ProjectFileUpdater::ProjectFileUpdater(QString projectFile) : m_projectFile(std::move(projectFile))
 {
 }
 
@@ -201,11 +201,10 @@ void ProjectFileUpdater::apply()
 }
 
 
-ProjectFileGroupInserter::ProjectFileGroupInserter(const ProductData &product,
-                                                   const QString &groupName)
+ProjectFileGroupInserter::ProjectFileGroupInserter(ProductData product, QString groupName)
     : ProjectFileUpdater(product.location().filePath())
-    , m_product(product)
-    , m_groupName(groupName)
+    , m_product(std::move(product))
+    , m_groupName(std::move(groupName))
 {
 }
 
@@ -273,12 +272,12 @@ static int getBindingLine(const ChangeSet &changeSet, const QString &fileContent
 }
 
 
-ProjectFileFilesAdder::ProjectFileFilesAdder(const ProductData &product, const GroupData &group,
-                                             const QStringList &files)
+ProjectFileFilesAdder::ProjectFileFilesAdder(ProductData product, GroupData group,
+                                             QStringList files)
     : ProjectFileUpdater(product.location().filePath())
-    , m_product(product)
-    , m_group(group)
-    , m_files(files)
+    , m_product(std::move(product))
+    , m_group(std::move(group))
+    , m_files(std::move(files))
 {
 }
 
@@ -405,12 +404,12 @@ void ProjectFileFilesAdder::doApply(QString &fileContent, UiProgram *ast)
     changeSet.apply(&fileContent);
 }
 
-ProjectFileFilesRemover::ProjectFileFilesRemover(const ProductData &product, const GroupData &group,
-                                                 const QStringList &files)
+ProjectFileFilesRemover::ProjectFileFilesRemover(ProductData product, GroupData group,
+                                                 QStringList files)
     : ProjectFileUpdater(product.location().filePath())
-    , m_product(product)
-    , m_group(group)
-    , m_files(files)
+    , m_product(std::move(product))
+    , m_group(std::move(group))
+    , m_files(std::move(files))
 {
 }
 
@@ -512,10 +511,10 @@ void ProjectFileFilesRemover::doApply(QString &fileContent, UiProgram *ast)
 }
 
 
-ProjectFileGroupRemover::ProjectFileGroupRemover(const ProductData &product, const GroupData &group)
+ProjectFileGroupRemover::ProjectFileGroupRemover(ProductData product, GroupData group)
     : ProjectFileUpdater(product.location().filePath())
-    , m_product(product)
-    , m_group(group)
+    , m_product(std::move(product))
+    , m_group(std::move(group))
 {
 }
 

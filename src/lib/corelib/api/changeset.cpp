@@ -48,8 +48,8 @@ ChangeSet::ChangeSet()
 {
 }
 
-ChangeSet::ChangeSet(const QList<EditOp> &operations)
-    : m_string(nullptr), m_cursor(nullptr), m_operationList(operations), m_error(false)
+ChangeSet::ChangeSet(QList<EditOp> operations)
+    : m_string(nullptr), m_cursor(nullptr), m_operationList(std::move(operations)), m_error(false)
 {
 }
 

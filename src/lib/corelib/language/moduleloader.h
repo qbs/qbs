@@ -425,8 +425,8 @@ private:
 
     struct DependsChainEntry
     {
-        DependsChainEntry(const QualifiedId &name, const CodeLocation &location)
-            : name(name), location(location)
+        DependsChainEntry(QualifiedId name, const CodeLocation &location)
+            : name(std::move(name)), location(location)
         {
         }
 

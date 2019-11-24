@@ -35,7 +35,7 @@
 
 class TestError {
 public:
-    TestError(const QString &errorMessage) : errorMessage(errorMessage) {}
+    TestError(QString errorMessage) : errorMessage(std::move(errorMessage)) {}
     ~TestError() throw() = default;
 
     QString errorMessage;

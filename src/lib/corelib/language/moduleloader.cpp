@@ -380,9 +380,9 @@ class PropertyDeclarationCheck : public ValueHandler
     Logger &m_logger;
 public:
     PropertyDeclarationCheck(const Set<Item *> &disabledItems,
-                             const SetupProjectParameters &params, Logger &logger)
+                             SetupProjectParameters params, Logger &logger)
         : m_disabledItems(disabledItems)
-        , m_params(params)
+        , m_params(std::move(params))
         , m_logger(logger)
     {
     }

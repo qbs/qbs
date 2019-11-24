@@ -139,9 +139,9 @@ private:
 
     struct ProductDependencyInfo
     {
-        ProductDependencyInfo(const ResolvedProductPtr &product,
-                              const QVariantMap &parameters = QVariantMap())
-            : product(product), parameters(parameters)
+        ProductDependencyInfo(ResolvedProductPtr product,
+                              QVariantMap parameters = QVariantMap())
+            : product(std::move(product)), parameters(std::move(parameters))
         {
         }
 

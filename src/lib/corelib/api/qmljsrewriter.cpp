@@ -63,12 +63,12 @@ static QString toString(UiQualifiedId *qualifiedId, QChar delimiter = QLatin1Cha
 }
 
 
-Rewriter::Rewriter(const QString &originalText,
+Rewriter::Rewriter(QString originalText,
                    ChangeSet *changeSet,
-                   const QStringList &propertyOrder)
-    : m_originalText(originalText)
+                   QStringList propertyOrder)
+    : m_originalText(std::move(originalText))
     , m_changeSet(changeSet)
-    , m_propertyOrder(propertyOrder)
+    , m_propertyOrder(std::move(propertyOrder))
 {
     Q_ASSERT(changeSet);
 }

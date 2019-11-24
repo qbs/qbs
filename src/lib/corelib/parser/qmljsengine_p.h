@@ -59,6 +59,7 @@
 #include <QtCore/qstring.h>
 
 #include <set>
+#include <utility>
 
 namespace QbsQmlJS {
 
@@ -74,8 +75,8 @@ public:
     DiagnosticMessage()
         : kind(Error) {}
 
-    DiagnosticMessage(Kind kind, const AST::SourceLocation &loc, const QString &message)
-        : kind(kind), loc(loc), message(message) {}
+    DiagnosticMessage(Kind kind, const AST::SourceLocation &loc, QString message)
+        : kind(kind), loc(loc), message(std::move(message)) {}
 
     bool isWarning() const
     { return kind == Warning; }

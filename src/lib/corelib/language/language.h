@@ -140,19 +140,19 @@ public:
 
 private:
     Probe() = default;
-    Probe(const QString &globalId,
+    Probe(QString globalId,
           const CodeLocation &location,
           bool condition,
-          const QString &configureScript,
-          const QVariantMap &properties,
-          const QVariantMap &initialProperties,
-          const std::vector<QString> &importedFilesUsed)
-        : m_globalId(globalId)
+          QString configureScript,
+          QVariantMap properties,
+          QVariantMap initialProperties,
+          std::vector<QString> importedFilesUsed)
+        : m_globalId(std::move(globalId))
         , m_location(location)
-        , m_configureScript(configureScript)
-        , m_properties(properties)
-        , m_initialProperties(initialProperties)
-        , m_importedFilesUsed(importedFilesUsed)
+        , m_configureScript(std::move(configureScript))
+        , m_properties(std::move(properties))
+        , m_initialProperties(std::move(initialProperties))
+        , m_importedFilesUsed(std::move(importedFilesUsed))
         , m_condition(condition)
     {}
 
