@@ -520,7 +520,7 @@ Profile createGccProfile(const QFileInfo &compiler, Settings *settings,
     return profile;
 }
 
-void gccProbe(Settings *settings, QList<Profile> &profiles, const QString &compilerName)
+void gccProbe(Settings *settings, std::vector<Profile> &profiles, const QString &compilerName)
 {
     qbsInfo() << Tr::tr("Trying to detect %1...").arg(compilerName);
 

@@ -56,7 +56,7 @@ qbs::Profile createGccProfile(const QFileInfo &compiler,
                               const QStringList &toolchainTypes,
                               const QString &profileName = QString());
 
-void gccProbe(qbs::Settings *settings, QList<qbs::Profile> &profiles,
+void gccProbe(qbs::Settings *settings, std::vector<qbs::Profile> &profiles,
               const QString &compilerName);
 
 #endif // Header guard

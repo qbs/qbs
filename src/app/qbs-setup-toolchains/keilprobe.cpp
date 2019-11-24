@@ -258,7 +258,7 @@ void createKeilProfile(const QFileInfo &compiler, Settings *settings,
     createKeilProfileHelper(info, settings, profileName);
 }
 
-void keilProbe(Settings *settings, QList<Profile> &profiles)
+void keilProbe(Settings *settings, std::vector<Profile> &profiles)
 {
     qbsInfo() << Tr::tr("Trying to detect KEIL toolchains...");
 

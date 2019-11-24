@@ -110,7 +110,7 @@ namespace {
 class XcodeProbe
 {
 public:
-    XcodeProbe(qbs::Settings *settings, QList<qbs::Profile> &profiles)
+    XcodeProbe(qbs::Settings *settings, std::vector<qbs::Profile> &profiles)
         : settings(settings), profiles(profiles)
     { }
 
@@ -120,7 +120,7 @@ public:
     void detectAll();
 private:
     qbs::Settings *settings;
-    QList<qbs::Profile> &profiles;
+    std::vector<qbs::Profile> &profiles;
     QStringList developerPaths;
 };
 
@@ -229,7 +229,7 @@ void XcodeProbe::detectAll()
 }
 } // end anonymous namespace
 
-void xcodeProbe(qbs::Settings *settings, QList<qbs::Profile> &profiles)
+void xcodeProbe(qbs::Settings *settings, std::vector<qbs::Profile> &profiles)
 {
     XcodeProbe probe(settings, profiles);
     probe.detectAll();

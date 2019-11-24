@@ -180,7 +180,7 @@ void createClangClProfile(const QFileInfo &compiler, Settings *settings,
   \brief Creates a clang-cl profile based on auto-detected vsversion.
   \internal
 */
-void clangClProbe(Settings *settings, QList<Profile> &profiles)
+void clangClProbe(Settings *settings, std::vector<Profile> &profiles)
 {
     const auto compilerName = QStringLiteral("clang-cl");
     qbsInfo() << Tr::tr("Trying to detect %1...").arg(compilerName);

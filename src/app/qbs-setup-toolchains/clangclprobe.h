@@ -40,7 +40,9 @@
 #ifndef QBS_SETUPTOOLCHAINS_CLANGCLPROBE_H
 #define QBS_SETUPTOOLCHAINS_CLANGCLPROBE_H
 
-#include <QtCore/qlist.h>
+#include <QString>
+
+#include <vector>
 
 QT_BEGIN_NAMESPACE
 class QFileInfo;
@@ -54,6 +56,6 @@ class Settings;
 void createClangClProfile(const QFileInfo &compiler, qbs::Settings *settings,
                           const QString &profileName);
 
-void clangClProbe(qbs::Settings *settings, QList<qbs::Profile> &profiles);
+void clangClProbe(qbs::Settings *settings, std::vector<qbs::Profile> &profiles);
 
 #endif // Header guard

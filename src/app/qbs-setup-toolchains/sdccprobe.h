@@ -70,6 +70,6 @@ bool isSdccCompiler(const QString &compilerName);
 void createSdccProfile(const QFileInfo &compiler, qbs::Settings *settings,
                        QString profileName);
 
-void sdccProbe(qbs::Settings *settings, QList<qbs::Profile> &profiles);
+void sdccProbe(qbs::Settings *settings, std::vector<qbs::Profile> &profiles);
 
 #endif // Header guard

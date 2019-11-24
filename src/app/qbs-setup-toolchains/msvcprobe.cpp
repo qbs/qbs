@@ -87,7 +87,7 @@ static void setQtHelperProperties(Profile &p, const MSVC *msvc)
     p.setValue(QStringLiteral("cpp.compilerVersion"), msvc->compilerVersion.toString());
 }
 
-static void addMSVCPlatform(Settings *settings, QList<Profile> &profiles, QString name, MSVC *msvc)
+static void addMSVCPlatform(Settings *settings, std::vector<Profile> &profiles, QString name, MSVC *msvc)
 {
     qbsInfo() << Tr::tr("Setting up profile '%1'.").arg(name);
     Profile p(name, settings);
@@ -356,7 +356,7 @@ static std::vector<MSVC> installedCompilers()
     return msvcs;
 }
 
-void msvcProbe(Settings *settings, QList<Profile> &profiles)
+void msvcProbe(Settings *settings, std::vector<Profile> &profiles)
 {
     qbsInfo() << Tr::tr("Detecting MSVC toolchains...");
 
@@ -470,7 +470,7 @@ void createMsvcProfile(const QFileInfo &compiler, Settings *settings,
     const auto compilerFilePath = compiler.absoluteFilePath();
     MSVC msvc(compilerFilePath, MSVC::architectureFromClPath(compilerFilePath));
     msvc.init();
-    QList<Profile> dummy;
+    std::vector<Profile> dummy;
     addMSVCPlatform(settings, dummy, profileName, &msvc);
     qbsInfo() << Tr::tr("Profile '%1' created for '%2'.")
                  .arg(profileName, QDir::toNativeSeparators(compilerFilePath));

@@ -248,7 +248,7 @@ void createIarProfile(const QFileInfo &compiler, Settings *settings,
     createIarProfileHelper(info, settings, profileName);
 }
 
-void iarProbe(Settings *settings, QList<Profile> &profiles)
+void iarProbe(Settings *settings, std::vector<Profile> &profiles)
 {
     qbsInfo() << Tr::tr("Trying to detect IAR toolchains...");
 

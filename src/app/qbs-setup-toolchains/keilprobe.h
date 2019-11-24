@@ -56,6 +56,6 @@ bool isKeilCompiler(const QString &compilerName);
 void createKeilProfile(const QFileInfo &compiler, qbs::Settings *settings,
                        QString profileName);
 
-void keilProbe(qbs::Settings *settings, QList<qbs::Profile> &profiles);
+void keilProbe(qbs::Settings *settings, std::vector<qbs::Profile> &profiles);
 
 #endif // Header guard

@@ -258,7 +258,7 @@ void createSdccProfile(const QFileInfo &compiler, Settings *settings,
     createSdccProfileHelper(info, settings, profileName);
 }
 
-void sdccProbe(Settings *settings, QList<Profile> &profiles)
+void sdccProbe(Settings *settings, std::vector<Profile> &profiles)
 {
     qbsInfo() << Tr::tr("Trying to detect SDCC toolchains...");
 

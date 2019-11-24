@@ -121,7 +121,7 @@ QStringList toolchainTypeFromCompilerName(const QString &compilerName)
 
 void probe(Settings *settings)
 {
-    QList<Profile> profiles;
+    std::vector<Profile> profiles;
     if (HostOsInfo::isWindowsHost()) {
         msvcProbe(settings, profiles);
         clangClProbe(settings, profiles);
