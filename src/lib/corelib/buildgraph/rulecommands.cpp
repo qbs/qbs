@@ -78,7 +78,7 @@ static QString stdoutFilterFunctionProperty() { return QStringLiteral("stdoutFil
 static QString timeoutProperty() { return QStringLiteral("timeout"); }
 static QString workingDirProperty() { return QStringLiteral("workingDirectory"); }
 
-static QString invokedSourceCode(const QScriptValue codeOrFunction)
+static QString invokedSourceCode(const QScriptValue &codeOrFunction)
 {
     const QString &code = codeOrFunction.toString();
     return codeOrFunction.isFunction() ? QStringLiteral("(") + code + QStringLiteral(")()") : code;

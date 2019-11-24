@@ -63,7 +63,7 @@ IarewSettingsPropertyGroup::IarewSettingsPropertyGroup()
                 QByteArrayLiteral("debug"), QVariant{});
 }
 
-void IarewSettingsPropertyGroup::setName(QByteArray name)
+void IarewSettingsPropertyGroup::setName(const QByteArray &name)
 {
     // There is no way to move-construct a QVariant from T, thus name is shallow-copied
     m_nameProperty->setValue(QVariant(name));

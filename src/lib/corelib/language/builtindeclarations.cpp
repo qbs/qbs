@@ -125,7 +125,7 @@ ItemDeclaration BuiltinDeclarations::declarationsForType(ItemType type) const
 }
 
 ItemType BuiltinDeclarations::typeForName(const QString &typeName,
-                                          const CodeLocation location) const
+                                          const CodeLocation &location) const
 {
     const auto it = m_typeMap.constFind(typeName);
     if (it == m_typeMap.constEnd())

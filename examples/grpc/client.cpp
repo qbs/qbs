@@ -51,7 +51,7 @@
 class Client
 {
 public:
-    Client(std::shared_ptr<grpc::Channel> channel)
+    Client(const std::shared_ptr<grpc::Channel> &channel)
         : m_stub(PP::MyApi::NewStub(channel)) {}
 
     int ping(int count) {

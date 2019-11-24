@@ -194,7 +194,7 @@ void Transformer::setupInputs(QScriptValue targetScriptValue, const ArtifactSet 
     targetScriptValue.setProperty(StringConstants::inputVar(), inputScriptValue);
 }
 
-void Transformer::setupInputs(QScriptValue targetScriptValue)
+void Transformer::setupInputs(const QScriptValue &targetScriptValue)
 {
     setupInputs(targetScriptValue, inputs, rule->module->name);
 }

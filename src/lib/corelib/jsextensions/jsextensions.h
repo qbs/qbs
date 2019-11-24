@@ -54,7 +54,7 @@ namespace Internal {
 class JsExtensions
 {
 public:
-    static void setupExtensions(const QStringList &names, QScriptValue scope);
+    static void setupExtensions(const QStringList &names, const QScriptValue &scope);
     static QScriptValue loadExtension(QScriptEngine *engine, const QString &name);
     static bool hasExtension(const QString &name);
     static QStringList extensionNames();

@@ -95,7 +95,7 @@ public:
     QVariant propertyListObject;
     int propertyListFormat;
 
-    void readFromData(QScriptContext *context, QByteArray data);
+    void readFromData(QScriptContext *context, const QByteArray &data);
     QByteArray writeToData(QScriptContext *context, const QString &format);
 };
 
@@ -263,7 +263,7 @@ QString PropertyList::toJSON(const QString &style) const
 namespace qbs {
 namespace Internal {
 
-void PropertyListPrivate::readFromData(QScriptContext *context, QByteArray data)
+void PropertyListPrivate::readFromData(QScriptContext *context, const QByteArray &data)
 {
     @autoreleasepool {
         NSPropertyListFormat format;

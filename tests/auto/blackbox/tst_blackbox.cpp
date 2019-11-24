@@ -5570,7 +5570,7 @@ void TestBlackbox::qbsSession()
                     const QJsonObject group = v.toObject();
                     const QJsonArray sourceArtifacts
                             = group.value("source-artifacts").toArray();
-                    const auto findArtifact = [&sourceArtifacts](const QString fileName) {
+                    const auto findArtifact = [&sourceArtifacts](const QString &fileName) {
                         for (const QJsonValue &v : sourceArtifacts) {
                             const QJsonObject artifact = v.toObject();
                             if (QFileInfo(artifact.value("file-path").toString()).fileName()

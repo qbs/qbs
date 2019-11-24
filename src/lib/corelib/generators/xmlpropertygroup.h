@@ -52,7 +52,7 @@ public:
     explicit PropertyGroup(QByteArray name);
 
     void appendProperty(QByteArray name, QVariant value);
-    void appendMultiLineProperty(QByteArray key, QStringList values,
+    void appendMultiLineProperty(QByteArray key, const QStringList &values,
                                  QChar sep = QLatin1Char(','));
 
     void accept(INodeVisitor *visitor) const final;

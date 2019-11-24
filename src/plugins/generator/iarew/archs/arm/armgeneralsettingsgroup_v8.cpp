@@ -499,7 +499,7 @@ void ArmGeneralSettingsGroup::buildLibraryOptionsTwoPage(
 }
 
 void ArmGeneralSettingsGroup::buildLibraryConfigPage(
-        const QString baseDirectory,
+        const QString &baseDirectory,
         const ProductData &qbsProduct)
 {
     const LibraryConfigPageOptions opts(baseDirectory, qbsProduct);
@@ -523,7 +523,7 @@ void ArmGeneralSettingsGroup::buildLibraryConfigPage(
 }
 
 void ArmGeneralSettingsGroup::buildOutputPage(
-        const QString baseDirectory,
+        const QString &baseDirectory,
         const ProductData &qbsProduct)
 {
     const OutputPageOptions opts(baseDirectory, qbsProduct);

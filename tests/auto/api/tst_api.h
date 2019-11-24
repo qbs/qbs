@@ -161,7 +161,7 @@ private:
                                   ProcessResultReceiver *procResultReceiver = 0,
                                   TaskReceiver *taskReceiver = 0,
                                   const qbs::BuildOptions &options = qbs::BuildOptions(),
-                                  const QVariantMap overriddenValues = QVariantMap());
+                                  const QVariantMap &overriddenValues = QVariantMap());
 
     LogSink * const m_logSink;
     const QString m_sourceDataDir;

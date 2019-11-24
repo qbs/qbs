@@ -49,9 +49,9 @@ private:
     void buildTargetPage(const ProductData &qbsProduct);
     void buildLibraryOptionsOnePage(const ProductData &qbsProduct);
     void buildLibraryOptionsTwoPage(const ProductData &qbsProduct);
-    void buildLibraryConfigPage(const QString baseDirectory,
+    void buildLibraryConfigPage(const QString &baseDirectory,
                                 const ProductData &qbsProduct);
-    void buildOutputPage(const QString baseDirectory,
+    void buildOutputPage(const QString &baseDirectory,
                          const ProductData &qbsProduct);
 };
 

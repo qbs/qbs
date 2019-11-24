@@ -85,7 +85,7 @@ public:
     Q_INVOKABLE QScriptValue previousSibling(const QString & tagName = QString()) const;
     Q_INVOKABLE QScriptValue nextSibling(const QString & tagName = QString()) const;
 
-    Q_INVOKABLE QScriptValue appendChild(QScriptValue newChild);
+    Q_INVOKABLE QScriptValue appendChild(const QScriptValue &newChild);
     Q_INVOKABLE QScriptValue insertBefore(const QScriptValue& newChild, const QScriptValue& refChild);
     Q_INVOKABLE QScriptValue insertAfter(const QScriptValue& newChild, const QScriptValue& refChild);
     Q_INVOKABLE QScriptValue replaceChild(const QScriptValue& newChild, const QScriptValue& oldChild);
@@ -365,7 +365,7 @@ QScriptValue XmlDomNode::nextSibling(const QString &tagName) const
     return engine()->newQObject(new XmlDomNode(m_domNode.nextSiblingElement(tagName)), QScriptEngine::ScriptOwnership);
 }
 
-QScriptValue XmlDomNode::appendChild(QScriptValue newChild)
+QScriptValue XmlDomNode::appendChild(const QScriptValue &newChild)
 {
     auto newNode = qobject_cast<XmlDomNode*>(newChild.toQObject());
     if (!newNode) {

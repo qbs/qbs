@@ -41,7 +41,7 @@ class IarewOptionPropertyGroup final
         : public gen::xml::PropertyGroup
 {
 public:
-    explicit IarewOptionPropertyGroup(QByteArray name, QVariantList states,
+    explicit IarewOptionPropertyGroup(const QByteArray &name, QVariantList states,
             int version = -1);
 };
 

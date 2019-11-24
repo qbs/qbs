@@ -33,12 +33,12 @@
 namespace qbs {
 
 IarewOptionPropertyGroup::IarewOptionPropertyGroup(
-        QByteArray name, QVariantList states, int version)
+        const QByteArray &name, QVariantList states, int version)
     : gen::xml::PropertyGroup(QByteArrayLiteral("option"))
 {
     // Append name property item.
     appendChild<gen::xml::Property>(QByteArrayLiteral("name"),
-                                    std::move(name));
+                                    name);
 
     // Append version property item.
     if (version >= 0)

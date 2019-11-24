@@ -95,7 +95,7 @@ public:
                                             const Artifact *artifact,
                                             const QString &defaultModuleName);
     ResolvedProductPtr product() const;
-    void setupInputs(QScriptValue targetScriptValue);
+    void setupInputs(const QScriptValue &targetScriptValue);
     void setupOutputs(QScriptValue targetScriptValue);
     void setupExplicitlyDependsOn(QScriptValue targetScriptValue);
     void createCommands(ScriptEngine *engine, const PrivateScriptFunction &script,
