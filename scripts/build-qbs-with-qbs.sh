@@ -113,5 +113,5 @@ fi
 # timeout on Travis CI.
 #
 (while true; do echo "" && sleep 590; done) &
-trap "kill $!" EXIT
+trap "kill $!; wait $! 2>/dev/null || true; killall sleep || true" EXIT
 qbs build -p "autotest-runner" ${BUILD_OPTIONS}
