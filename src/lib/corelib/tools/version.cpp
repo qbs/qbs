@@ -44,50 +44,6 @@
 
 namespace qbs {
 
-Version::Version(int major, int minor, int patch, int buildNr)
-    : m_major(major), m_minor(minor), m_patch(patch), m_build(buildNr)
-{
-}
-
-int Version::majorVersion() const
-{
-    return m_major;
-}
-
-void Version::setMajorVersion(int major)
-{
-    m_major = major;
-}
-
-int Version::minorVersion() const
-{
-    return m_minor;
-}
-
-void Version::setMinorVersion(int minor)
-{
-    m_minor = minor;
-}
-int Version::patchLevel() const
-{
-    return m_patch;
-}
-
-void Version::setPatchLevel(int patch)
-{
-    m_patch = patch;
-}
-
-int Version::buildNumber() const
-{
-    return m_build;
-}
-
-void Version::setBuildNumber(int nr)
-{
-    m_build = nr;
-}
-
 Version Version::fromString(const QString &versionString, bool buildNumberAllowed)
 {
     QString pattern = QStringLiteral("(\\d+)"); // At least one number.
@@ -116,32 +72,6 @@ QString Version::toString(const QChar &separator, const QChar &buildSeparator) c
     return QStringLiteral("%1%4%2%4%3")
             .arg(QString::number(m_major), QString::number(m_minor),
                  QString::number(m_patch), separator);
-}
-
-int compare(const Version &lhs, const Version &rhs)
-{
-    if (lhs.majorVersion() < rhs.majorVersion())
-        return -1;
-    if (lhs.majorVersion() > rhs.majorVersion())
-        return 1;
-    if (lhs.minorVersion() < rhs.minorVersion())
-        return -1;
-    if (lhs.minorVersion() > rhs.minorVersion())
-        return 1;
-    if (lhs.patchLevel() < rhs.patchLevel())
-        return -1;
-    if (lhs.patchLevel() > rhs.patchLevel())
-        return 1;
-    if (lhs.buildNumber() < rhs.buildNumber())
-        return -1;
-    if (lhs.buildNumber() > rhs.buildNumber())
-        return 1;
-    return 0;
-}
-
-VersionRange::VersionRange(const Version &minVersion, const Version &maxVersion)
-    : minimum(minVersion), maximum(maxVersion)
-{
 }
 
 VersionRange &VersionRange::narrowDown(const VersionRange &other)
