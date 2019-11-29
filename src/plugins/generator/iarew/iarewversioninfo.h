@@ -49,7 +49,7 @@ class IarewVersionInfo final : public gen::VersionInfo
 {
 public:
     IarewVersionInfo(const Version &version,
-                     const std::set<gen::utils::Architecture> &archs);
+                     gen::utils::ArchitectureFlags archs);
 
     static std::set<IarewVersionInfo> knownVersions();
 };

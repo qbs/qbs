@@ -43,7 +43,7 @@ namespace qbs {
 namespace gen {
 
 VersionInfo::VersionInfo(const Version &version,
-                         const std::set<utils::Architecture> &archs)
+                         utils::ArchitectureFlags archs)
     : m_version(version), m_archs(archs)
 {
 }
@@ -66,7 +66,7 @@ Version VersionInfo::version() const
 
 bool VersionInfo::containsArchitecture(utils::Architecture arch) const
 {
-    return m_archs.find(arch) != m_archs.cend();
+    return m_archs & arch;
 }
 
 int VersionInfo::marketingVersion() const

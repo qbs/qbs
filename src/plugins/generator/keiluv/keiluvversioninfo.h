@@ -49,7 +49,7 @@ class KeiluvVersionInfo final : public gen::VersionInfo
 {
 public:
     KeiluvVersionInfo(const Version &version,
-                      const std::set<gen::utils::Architecture> &archs);
+                      gen::utils::ArchitectureFlags archs);
 
     static std::set<KeiluvVersionInfo> knownVersions();
 };

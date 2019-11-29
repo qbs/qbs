@@ -46,7 +46,7 @@ namespace qbs {
 
 KeiluvVersionInfo::KeiluvVersionInfo(
         const Version &version,
-        const std::set<gen::utils::Architecture> &archs)
+        gen::utils::ArchitectureFlags archs)
     : gen::VersionInfo(version, archs)
 {
 }
