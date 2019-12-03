@@ -50,15 +50,18 @@
 namespace qbs {
 namespace Internal {
 
-ModuleMerger::ModuleMerger(Logger &logger, Item *root, Item::Module &moduleToMerge)
+ModuleMerger::ModuleMerger(Logger &logger, Item *productItem, const QString &productName,
+                           const Item::Modules::iterator &modulesBegin,
+                           const Item::Modules::iterator &modulesEnd)
     : m_logger(logger)
-    , m_rootItem(root)
-    , m_mergedModule(moduleToMerge)
-    , m_required(moduleToMerge.required)
-    , m_isBaseModule(moduleToMerge.name.first() == StringConstants::qbsModule())
-    , m_versionRange(moduleToMerge.versionRange)
+    , m_productItem(productItem)
+    , m_mergedModule(*modulesBegin)
+    , m_isBaseModule(m_mergedModule.name.first() == StringConstants::qbsModule())
+    , m_isShadowProduct(productName.startsWith(StringConstants::shadowProductPrefix()))
+    , m_modulesBegin(std::next(modulesBegin))
+    , m_modulesEnd(modulesEnd)
 {
-    QBS_CHECK(moduleToMerge.item->type() == ItemType::ModuleInstance);
+    QBS_CHECK(modulesBegin->item->type() == ItemType::ModuleInstance);
 }
 
 void ModuleMerger::replaceItemInValues(QualifiedId moduleName, Item *containerItem, Item *toReplace)
@@ -83,48 +86,39 @@ void ModuleMerger::replaceItemInValues(QualifiedId moduleName, Item *containerIt
     }
 }
 
-void ModuleMerger::replaceItemInScopes(Item *toReplace)
-{
-    // In insertProperties(), we potentially call setDefiningItem() with the "wrong"
-    // (to-be-replaced) module instance as an argument. If such module instances
-    // are dependencies of other modules, they have the depending module's instance
-    // as their "instance scope", which is the scope of their scope. This function takes
-    // care that the "wrong" definingItem of values in sub-modules still has the "right"
-    // instance scope, namely our merged module instead of some other instance.
-    for (const Item::Module &module : toReplace->modules()) {
-        for (const ValuePtr &property : module.item->properties()) {
-            ValuePtr v = property;
-            do {
-                if (v->definingItem() && v->definingItem()->scope()
-                        && v->definingItem()->scope()->scope() == toReplace) {
-                    v->definingItem()->scope()->setScope(m_mergedModule.item);
-                }
-                v = v->next();
-            } while (v);
-        }
-    }
-}
-
 void ModuleMerger::start()
 {
-    Item::Module m;
-    m.item = m_rootItem;
-    const Item::PropertyMap props = dfs(m, Item::PropertyMap());
-    if (m_required)
-        m_mergedModule.required = true;
-    m_mergedModule.versionRange.narrowDown(m_versionRange);
-    Item::PropertyMap mergedProps = m_mergedModule.item->properties();
+    // Iterate over any module that our product depends on. These modules
+    // may depend on m_mergedModule and contribute property assignments.
+    Item::PropertyMap props;
+    for (auto module = m_modulesBegin; module != m_modulesEnd; module++)
+        mergeModule(&props, *module);
 
+    // Module property assignments in the product have the highest priority
+    // and are thus prepended.
+    Item::Module m;
+    m.item = m_productItem;
+    mergeModule(&props, m);
+
+    // The module's prototype is the essential unmodified module as loaded
+    // from the cache.
     Item *moduleProto = m_mergedModule.item->prototype();
     while (moduleProto->prototype())
         moduleProto = moduleProto->prototype();
 
+    // The prototype item might contain default values which get appended in
+    // case of list properties. Scalar properties will only be set if not
+    // already specified above.
+    Item::PropertyMap mergedProps = m_mergedModule.item->properties();
     for (auto it = props.constBegin(); it != props.constEnd(); ++it) {
         appendPrototypeValueToNextChain(moduleProto, it.key(), it.value());
         mergedProps[it.key()] = it.value();
     }
+
     m_mergedModule.item->setProperties(mergedProps);
 
+    // Update all sibling instances of the to-be-merged module to behave identical
+    // to the merged module.
     for (Item *moduleInstanceContainer : qAsConst(m_moduleInstanceContainers)) {
         Item::Modules modules;
         for (const Item::Module &dep : moduleInstanceContainer->modules()) {
@@ -133,11 +127,9 @@ void ModuleMerger::start()
             if (isTheModule && m.item != m_mergedModule.item) {
                 QBS_CHECK(m.item->type() == ItemType::ModuleInstance);
                 replaceItemInValues(m.name, moduleInstanceContainer, m.item);
-                replaceItemInScopes(m.item);
                 m.item = m_mergedModule.item;
-                if (m_required)
-                    m.required = true;
-                m.versionRange.narrowDown(m_versionRange);
+                m.required = m_mergedModule.required;
+                m.versionRange = m_mergedModule.versionRange;
             }
             modules << m;
         }
@@ -145,94 +137,26 @@ void ModuleMerger::start()
     }
 }
 
-Item::PropertyMap ModuleMerger::dfs(const Item::Module &m, Item::PropertyMap props)
+void ModuleMerger::mergeModule(Item::PropertyMap *dstProps, const Item::Module &module)
 {
-    Item *moduleInstance = nullptr;
-    size_t numberOfOutprops = m.item->modules().size();
-    for (const Item::Module &dep : m.item->modules()) {
-        if (dep.name == m_mergedModule.name) {
-            --numberOfOutprops;
-            moduleInstance = dep.item;
-            insertProperties(&props, moduleInstance, ScalarProperties);
-            m_moduleInstanceContainers << m.item;
-            if (dep.required)
-                m_required = true;
-            m_versionRange.narrowDown(dep.versionRange);
-            break;
-        }
-    }
+    const Item::Module *dep = findModule(module.item, m_mergedModule.name);
+    if (!dep)
+        return;
 
-    std::vector<Item::PropertyMap> outprops;
-    outprops.reserve(numberOfOutprops);
-    for (const Item::Module &dep : m.item->modules()) {
-        if (dep.item != moduleInstance)
-            outprops.push_back(dfs(dep, props));
-    }
-
-    if (!outprops.empty()) {
-        props = outprops.front();
-        for (size_t i = 1; i < outprops.size(); ++i)
-            mergeOutProps(&props, outprops.at(i));
-    }
-
-    if (moduleInstance)
-        insertProperties(&props, moduleInstance, ListProperties);
-
-    const bool isNonPresentModule = m.item->type() != ItemType::Product
-            && !m.item->isPresentModule();
-    return isNonPresentModule ? Item::PropertyMap() : props;
-}
-
-void ModuleMerger::mergeOutProps(Item::PropertyMap *dst, const Item::PropertyMap &src)
-{
-    for (auto it = src.constBegin(); it != src.constEnd(); ++it) {
-        ValuePtr &v = (*dst)[it.key()];
-        if (!v) {
-            v = it.value();
-            QBS_ASSERT(it.value(), continue);
-            continue;
-        }
-        if (v->type() != Value::JSSourceValueType)
-            continue;
-        if (it.value()->type() != Value::JSSourceValueType)
-            continue;
-        // possible conflict
-        const JSSourceValuePtr dstVal = std::static_pointer_cast<JSSourceValue>(v);
-        JSSourceValuePtr srcVal = std::static_pointer_cast<JSSourceValue>(it.value());
-
-        const PropertyDeclaration pd = m_decls.value(srcVal);
-        QBS_CHECK(pd.isValid());
-
-        if (pd.isScalar()) {
-            if (dstVal->sourceCode() != srcVal->sourceCode()) {
-                m_logger.qbsWarning() << Tr::tr("Conflicting scalar values at %1 and %2.").arg(
-                                             dstVal->location().toString(),
-                                             srcVal->location().toString());
-                // TODO: yield error with a hint how to solve the conflict.
-            }
-            v = it.value();
-        } else {
-            lastInNextChain(dstVal)->setNext(srcVal);
-        }
-    }
-}
-
-void ModuleMerger::insertProperties(Item::PropertyMap *dst, Item *srcItem, PropertiesType type)
-{
-    Set<const Item *> &seenInstances = type == ScalarProperties
-            ? m_seenInstancesTopDown : m_seenInstancesBottomUp;
+    const bool mergingProductItem = (module.item == m_productItem);
+    Item *srcItem = dep->item;
     Item *origSrcItem = srcItem;
     do {
-        if (seenInstances.insert(srcItem).second) {
-            for (Item::PropertyMap::const_iterator it = srcItem->properties().constBegin();
-                 it != srcItem->properties().constEnd(); ++it) {
+        if (m_seenInstances.insert(srcItem).second) {
+            for (auto it = srcItem->properties().constBegin();
+                    it != srcItem->properties().constEnd(); ++it) {
                 const ValuePtr &srcVal = it.value();
                 if (srcVal->type() == Value::ItemValueType)
                     continue;
                 if (it.key() == StringConstants::qbsSourceDirPropertyInternal())
                     continue;
                 const PropertyDeclaration srcDecl = srcItem->propertyDeclaration(it.key());
-                if (!srcDecl.isValid() || srcDecl.isScalar() != (type == ScalarProperties))
+                if (!srcDecl.isValid())
                     continue;
 
                 // Scalar variant values could stem from product multiplexing, in which case
@@ -242,21 +166,49 @@ void ModuleMerger::insertProperties(Item::PropertyMap *dst, Item *srcItem, Prope
                     continue;
                 }
 
-                ValuePtr &v = (*dst)[it.key()];
-                if (v && type == ScalarProperties)
-                    continue;
-                ValuePtr clonedVal = srcVal->clone();
-                m_decls[clonedVal] = srcDecl;
-                clonedVal->setDefiningItem(origSrcItem);
-                if (v) {
-                    QBS_CHECK(!clonedVal->next());
-                    clonedVal->setNext(v);
+                ValuePtr clonedSrcVal = srcVal->clone();
+                clonedSrcVal->setDefiningItem(origSrcItem);
+
+                ValuePtr &dstVal = (*dstProps)[it.key()];
+                if (dstVal) {
+                    if (srcDecl.isScalar()) {
+                        // Scalar properties get replaced.
+                        if (dstVal->type() == Value::JSSourceValueType) {
+                            const JSSourceValuePtr dstJsVal =
+                                    std::static_pointer_cast<JSSourceValue>(dstVal);
+                            const JSSourceValuePtr srcJsVal =
+                                    std::static_pointer_cast<JSSourceValue>(srcVal);
+                            const bool overriddenInProduct =
+                                    m_mergedModule.item->properties().contains(it.key());
+
+                            if (dstJsVal->sourceCode() != srcJsVal->sourceCode()
+                                    && !mergingProductItem && !overriddenInProduct
+                                    && !m_isShadowProduct) {
+                                m_logger.qbsWarning()
+                                        << Tr::tr("Conflicting scalar values at %1 and %2.").arg(
+                                           dstJsVal->location().toString(),
+                                           srcJsVal->location().toString());
+                            }
+                        }
+                    } else {
+                        // List properties get prepended
+                        QBS_CHECK(!clonedSrcVal->next());
+                        clonedSrcVal->setNext(dstVal);
+                    }
                 }
-                v = clonedVal;
+                dstVal = clonedSrcVal;
             }
         }
         srcItem = srcItem->prototype();
     } while (srcItem && srcItem->type() == ItemType::ModuleInstance);
+
+    // Update dependency constraints
+    if (dep->required)
+        m_mergedModule.required = true;
+    m_mergedModule.versionRange.narrowDown(dep->versionRange);
+
+    // We need to touch the unmerged module instances later once more
+    m_moduleInstanceContainers << module.item;
 }
 
 void ModuleMerger::appendPrototypeValueToNextChain(Item *moduleProto, const QString &propertyName,
@@ -287,6 +239,24 @@ ValuePtr ModuleMerger::lastInNextChain(const ValuePtr &v)
         n = n->next();
     return n;
 }
+
+const Item::Module *ModuleMerger::findModule(const Item *item, const QualifiedId &name)
+{
+    for (const auto &module : item->modules()) {
+        if (module.name == name)
+            return &module;
+    }
+    return nullptr;
+}
+
+void ModuleMerger::merge(Logger &logger, Item *product, const QString &productName,
+                         Item::Modules *topSortedModules)
+{
+    for (auto it = topSortedModules->begin(); it != topSortedModules->end(); ++it)
+        ModuleMerger(logger, product, productName, it, topSortedModules->end()).start();
+}
+
+
 
 } // namespace Internal
 } // namespace qbs

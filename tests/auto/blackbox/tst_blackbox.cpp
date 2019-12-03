@@ -3037,7 +3037,7 @@ void TestBlackbox::probeInExportedModule()
                                      << QStringLiteral("probe-in-exported-module.qbs"))), 0);
     QVERIFY2(m_qbsStdout.contains("found: true"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("prop: yes"), m_qbsStdout.constData());
-    QVERIFY2(m_qbsStdout.contains("listProp: my,myother"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("listProp: myother,my"), m_qbsStdout.constData());
 }
 
 void TestBlackbox::probesAndArrayProperties()
@@ -3304,6 +3304,17 @@ void TestBlackbox::propertyChanges()
     QVERIFY(!m_qbsStdout.contains("generated.txt"));
     QVERIFY(m_qbsStdout.contains("Making output from input"));
     QVERIFY(m_qbsStdout.contains("Making output from other output"));
+}
+
+void TestBlackbox::propertyEvaluationContext()
+{
+    const QString testDir = testDataDir + "/property-evaluation-context";
+    QDir::setCurrent(testDir);
+    QCOMPARE(runQbs(), 0);
+    QCOMPARE(m_qbsStdout.count("base.productInBase evaluated in: myapp"), 1);
+    QCOMPARE(m_qbsStdout.count("base.productInTop evaluated in: myapp"), 1);
+    QCOMPARE(m_qbsStdout.count("top.productInExport evaluated in: mylib"), 1);
+    QCOMPARE(m_qbsStdout.count("top.productInTop evaluated in: myapp"), 1);
 }
 
 void TestBlackbox::qtBug51237()
@@ -4697,7 +4708,7 @@ void TestBlackbox::listPropertyOrder()
     const QbsRunParameters params(QStringList() << "-q");
     QCOMPARE(runQbs(params), 0);
     const QByteArray firstOutput = m_qbsStderr;
-    QVERIFY(firstOutput.contains("listProp = [\"higher1\",\"higher2\",\"higher3\"]"));
+    QVERIFY(firstOutput.contains("listProp = [\"product\",\"higher3\",\"higher2\",\"higher1\",\"lower\"]"));
     for (int i = 0; i < 25; ++i) {
         rmDirR(relativeBuildDir());
         QCOMPARE(runQbs(params), 0);
@@ -4939,6 +4950,8 @@ void TestBlackbox::propertyPrecedence()
 
     // Case 1: [cmdline=0,prod=0,export=0,nonleaf=0,profile=0]
     QCOMPARE(runQbs(params), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
+
     QVERIFY2(m_qbsStdout.contains("scalar prop: leaf\n")
              && m_qbsStdout.contains("list prop: [\"leaf\"]\n"),
              m_qbsStdout.constData());
@@ -4947,6 +4960,8 @@ void TestBlackbox::propertyPrecedence()
     // Case 2: [cmdline=0,prod=0,export=0,nonleaf=0,profile=1]
     switchProfileContents(profile.p, s.get(), true);
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
+
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: profile\n")
              && m_qbsStdout.contains("list prop: [\"profile\"]\n"),
@@ -4958,6 +4973,7 @@ void TestBlackbox::propertyPrecedence()
     switchProfileContents(profile.p, s.get(), false);
     switchFileContents(nonleafFile, true);
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: nonleaf\n")
              && m_qbsStdout.contains("list prop: [\"nonleaf\",\"leaf\"]\n"),
@@ -4966,6 +4982,7 @@ void TestBlackbox::propertyPrecedence()
     // Case 4: [cmdline=0,prod=0,export=0,nonleaf=1,profile=1]
     switchProfileContents(profile.p, s.get(), true);
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: nonleaf\n")
              && m_qbsStdout.contains("list prop: [\"nonleaf\",\"profile\"]\n"),
@@ -4978,6 +4995,7 @@ void TestBlackbox::propertyPrecedence()
     switchFileContents(nonleafFile, false);
     switchFileContents(depFile, true);
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: export\n")
              && m_qbsStdout.contains("list prop: [\"export\",\"leaf\"]\n"),
@@ -4986,15 +5004,21 @@ void TestBlackbox::propertyPrecedence()
     // Case 6: [cmdline=0,prod=0,export=1,nonleaf=0,profile=1]
     switchProfileContents(profile.p, s.get(), true);
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: export\n")
              && m_qbsStdout.contains("list prop: [\"export\",\"profile\"]\n"),
              m_qbsStdout.constData());
 
+
     // Case 7: [cmdline=0,prod=0,export=1,nonleaf=1,profile=0]
     switchProfileContents(profile.p, s.get(), false);
     switchFileContents(nonleafFile, true);
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.contains("WARNING: Conflicting scalar values at")
+             && m_qbsStderr.contains("nonleaf.qbs:4:22")
+             && m_qbsStderr.contains("dep.qbs:6:26"),
+             m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: export\n")
              && m_qbsStdout.contains("list prop: [\"export\",\"nonleaf\",\"leaf\"]\n"),
@@ -5003,6 +5027,10 @@ void TestBlackbox::propertyPrecedence()
     // Case 8: [cmdline=0,prod=0,export=1,nonleaf=1,profile=1]
     switchProfileContents(profile.p, s.get(), true);
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.contains("WARNING: Conflicting scalar values at")
+             && m_qbsStderr.contains("nonleaf.qbs:4:22")
+             && m_qbsStderr.contains("dep.qbs:6:26"),
+             m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: export\n")
              && m_qbsStdout.contains("list prop: [\"export\",\"nonleaf\",\"profile\"]\n"),
@@ -5016,6 +5044,7 @@ void TestBlackbox::propertyPrecedence()
     switchFileContents(depFile, false);
     switchFileContents(productFile, true);
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: product\n")
              && m_qbsStdout.contains("list prop: [\"product\",\"leaf\"]\n"),
@@ -5024,6 +5053,7 @@ void TestBlackbox::propertyPrecedence()
     // Case 10: [cmdline=0,prod=1,export=0,nonleaf=0,profile=1]
     switchProfileContents(profile.p, s.get(), true);
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: product\n")
              && m_qbsStdout.contains("list prop: [\"product\",\"profile\"]\n"),
@@ -5033,6 +5063,7 @@ void TestBlackbox::propertyPrecedence()
     switchProfileContents(profile.p, s.get(), false);
     switchFileContents(nonleafFile, true);
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: product\n")
              && m_qbsStdout.contains("list prop: [\"product\",\"nonleaf\",\"leaf\"]\n"),
@@ -5041,6 +5072,7 @@ void TestBlackbox::propertyPrecedence()
     // Case 12: [cmdline=0,prod=1,export=0,nonleaf=1,profile=1]
     switchProfileContents(profile.p, s.get(), true);
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: product\n")
              && m_qbsStdout.contains("list prop: [\"product\",\"nonleaf\",\"profile\"]\n"),
@@ -5051,6 +5083,7 @@ void TestBlackbox::propertyPrecedence()
     switchFileContents(nonleafFile, false);
     switchFileContents(depFile, true);
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: product\n")
              && m_qbsStdout.contains("list prop: [\"product\",\"export\",\"leaf\"]\n"),
@@ -5059,6 +5092,7 @@ void TestBlackbox::propertyPrecedence()
     // Case 14: [cmdline=0,prod=1,export=1,nonleaf=0,profile=1]
     switchProfileContents(profile.p, s.get(), true);
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: product\n")
              && m_qbsStdout.contains("list prop: [\"product\",\"export\",\"profile\"]\n"),
@@ -5068,6 +5102,7 @@ void TestBlackbox::propertyPrecedence()
     switchProfileContents(profile.p, s.get(), false);
     switchFileContents(nonleafFile, true);
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: product\n")
              && m_qbsStdout.contains("list prop: [\"product\",\"export\",\"nonleaf\",\"leaf\"]\n"),
@@ -5076,6 +5111,7 @@ void TestBlackbox::propertyPrecedence()
     // Case 16: [cmdline=0,prod=1,export=1,nonleaf=1,profile=1]
     switchProfileContents(profile.p, s.get(), true);
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: product\n")
              && m_qbsStdout.contains("list prop: [\"product\",\"export\",\"nonleaf\",\"profile\"]\n"),
@@ -5089,6 +5125,7 @@ void TestBlackbox::propertyPrecedence()
     switchFileContents(productFile, false);
     resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: cmdline\n")
              && m_qbsStdout.contains("list prop: [\"cmdline\"]\n"),
@@ -5098,6 +5135,7 @@ void TestBlackbox::propertyPrecedence()
     switchProfileContents(profile.p, s.get(), true);
     resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: cmdline\n")
              && m_qbsStdout.contains("list prop: [\"cmdline\"]\n"),
@@ -5108,6 +5146,7 @@ void TestBlackbox::propertyPrecedence()
     switchFileContents(nonleafFile, true);
     resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: cmdline\n")
              && m_qbsStdout.contains("list prop: [\"cmdline\"]\n"),
@@ -5117,6 +5156,7 @@ void TestBlackbox::propertyPrecedence()
     switchProfileContents(profile.p, s.get(), true);
     resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: cmdline\n")
              && m_qbsStdout.contains("list prop: [\"cmdline\"]\n"),
@@ -5128,6 +5168,7 @@ void TestBlackbox::propertyPrecedence()
     switchFileContents(depFile, true);
     resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: cmdline\n")
              && m_qbsStdout.contains("list prop: [\"cmdline\"]\n"),
@@ -5137,6 +5178,7 @@ void TestBlackbox::propertyPrecedence()
     switchProfileContents(profile.p, s.get(), true);
     resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: cmdline\n")
              && m_qbsStdout.contains("list prop: [\"cmdline\"]\n"),
@@ -5147,6 +5189,7 @@ void TestBlackbox::propertyPrecedence()
     switchFileContents(nonleafFile, true);
     resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: cmdline\n")
              && m_qbsStdout.contains("list prop: [\"cmdline\"]\n"),
@@ -5156,6 +5199,7 @@ void TestBlackbox::propertyPrecedence()
     switchProfileContents(profile.p, s.get(), true);
     resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: cmdline\n")
              && m_qbsStdout.contains("list prop: [\"cmdline\"]\n"),
@@ -5168,6 +5212,7 @@ void TestBlackbox::propertyPrecedence()
     switchFileContents(productFile, true);
     resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: cmdline\n")
              && m_qbsStdout.contains("list prop: [\"cmdline\"]\n"),
@@ -5177,6 +5222,7 @@ void TestBlackbox::propertyPrecedence()
     switchProfileContents(profile.p, s.get(), true);
     resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: cmdline\n")
              && m_qbsStdout.contains("list prop: [\"cmdline\"]\n"),
@@ -5187,6 +5233,7 @@ void TestBlackbox::propertyPrecedence()
     switchFileContents(nonleafFile, true);
     resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: cmdline\n")
              && m_qbsStdout.contains("list prop: [\"cmdline\"]\n"),
@@ -5196,6 +5243,7 @@ void TestBlackbox::propertyPrecedence()
     switchProfileContents(profile.p, s.get(), true);
     resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: cmdline\n")
              && m_qbsStdout.contains("list prop: [\"cmdline\"]\n"),
@@ -5207,6 +5255,7 @@ void TestBlackbox::propertyPrecedence()
     switchFileContents(depFile, true);
     resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: cmdline\n")
              && m_qbsStdout.contains("list prop: [\"cmdline\"]\n"),
@@ -5216,6 +5265,7 @@ void TestBlackbox::propertyPrecedence()
     switchProfileContents(profile.p, s.get(), true);
     resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: cmdline\n")
              && m_qbsStdout.contains("list prop: [\"cmdline\"]\n"),
@@ -5226,6 +5276,7 @@ void TestBlackbox::propertyPrecedence()
     switchFileContents(nonleafFile, true);
     resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: cmdline\n")
              && m_qbsStdout.contains("list prop: [\"cmdline\"]\n"),
@@ -5235,6 +5286,7 @@ void TestBlackbox::propertyPrecedence()
     switchProfileContents(profile.p, s.get(), true);
     resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: cmdline\n")
              && m_qbsStdout.contains("list prop: [\"cmdline\"]\n"),

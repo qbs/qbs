@@ -119,7 +119,7 @@ void TestBlackboxJava::java()
     if (process.waitForStarted()) {
         QVERIFY2(process.waitForFinished(), qPrintable(process.errorString()));
         const QByteArray stdOut = process.readAllStandardOutput();
-        QVERIFY2(stdOut.contains("Class-Path: car_jar.jar random_stuff.jar"), stdOut.constData());
+        QVERIFY2(stdOut.contains("Class-Path: random_stuff.jar car_jar.jar"), stdOut.constData());
         QVERIFY2(stdOut.contains("Main-Class: Vehicles"), stdOut.constData());
         QVERIFY2(stdOut.contains("Some-Property: Some-Value"), stdOut.constData());
         QVERIFY2(stdOut.contains("Additional-Property: Additional-Value"), stdOut.constData());

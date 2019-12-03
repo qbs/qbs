@@ -236,6 +236,7 @@ private slots:
     void propertyAssignmentOnNonPresentModule();
     void propertyAssignmentInFailedModule();
     void propertyChanges();
+    void propertyEvaluationContext();
     void propertyPrecedence();
     void properQuoting();
     void propertiesInExportItems();

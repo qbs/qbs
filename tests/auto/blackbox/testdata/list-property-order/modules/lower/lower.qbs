@@ -1,5 +1,5 @@
 Module {
-    property stringList listProp
+    property stringList listProp: [ "lower" ]
 
     Rule {
         inputs: ["intype"]

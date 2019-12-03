@@ -1057,7 +1057,7 @@ void TestLanguage::exports()
         propertyName = QStringList() << "dummy" << "defines";
         propertyValue = product->moduleProperties->property(propertyName);
         QCOMPARE(propertyValue.toStringList(),
-                 QStringList() << "LIBA" << "LIBB" << "LIBC" << "LIBD");
+                 QStringList() << "LIBD" << "LIBC" << "LIBA" << "LIBB");
         propertyName = QStringList() << "dummy" << "productName";
         propertyValue = product->moduleProperties->property(propertyName);
         QCOMPARE(propertyValue.toString(), QString("libE"));
@@ -1736,10 +1736,10 @@ void TestLanguage::moduleProperties_data()
     QTest::newRow("init") << QString() << QVariant();
     QTest::newRow("merge_lists")
             << "defines"
-            << QVariant(QStringList() << "THE_PRODUCT" << "QT_CORE" << "QT_GUI" << "QT_NETWORK");
+            << QVariant(QStringList() << "THE_PRODUCT" << "QT_NETWORK" << "QT_GUI" << "QT_CORE");
     QTest::newRow("merge_lists_and_values")
             << "defines"
-            << QVariant(QStringList() << "THE_PRODUCT" << "QT_CORE" << "QT_GUI" << "QT_NETWORK");
+            << QVariant(QStringList() << "THE_PRODUCT" << "QT_NETWORK" << "QT_GUI" << "QT_CORE");
     QTest::newRow("merge_lists_with_duplicates")
             << "cxxFlags"
             << QVariant(QStringList() << "-foo" << "BAR" << "-foo" << "BAZ");

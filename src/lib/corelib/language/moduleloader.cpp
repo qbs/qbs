@@ -85,8 +85,6 @@
 namespace qbs {
 namespace Internal {
 
-static QString shadowProductPrefix() { return QStringLiteral("__shadow__"); }
-
 static void handlePropertyError(const ErrorInfo &error, const SetupProjectParameters &params,
                                 Logger &logger)
 {
@@ -617,7 +615,7 @@ void ModuleLoader::handleTopLevelProject(ModuleLoaderResult *loadResult, Item *p
     for (ProductContext * const p : productSorter.sortedProducts()) {
         try {
             handleProduct(p);
-            if (p->name.startsWith(shadowProductPrefix()))
+            if (p->name.startsWith(StringConstants::shadowProductPrefix()))
                 tlp.probes << p->info.probes;
         } catch (const ErrorInfo &err) {
             handleProductError(err, p);
@@ -1236,7 +1234,8 @@ void ModuleLoader::prepareProduct(ProjectContext *projectContext, Item *productI
     // evaluate the product's exported properties in isolation in the project resolver.
     Item * const importer = Item::create(productItem->pool(), ItemType::Product);
     importer->setProperty(QStringLiteral("name"),
-                          VariantValue::create(shadowProductPrefix() + productContext.name));
+                          VariantValue::create(StringConstants::shadowProductPrefix()
+                                               + productContext.name));
     importer->setFile(productItem->file());
     importer->setLocation(productItem->location());
     importer->setScope(projectContext->scope);
@@ -1370,8 +1369,7 @@ void ModuleLoader::handleProduct(ModuleLoader::ProductContext *productContext)
     // set by the dependency module's merger (namely, scopes of defining items; see
     // ModuleMerger::replaceItemInScopes()).
     Item::Modules topSortedModules = modulesSortedByDependency(item);
-    for (Item::Module &module : topSortedModules)
-        ModuleMerger(m_logger, item, module).start();
+    ModuleMerger::merge(m_logger, item, productContext->name, &topSortedModules);
 
     // Re-sort the modules by name. This is more stable; see QBS-818.
     // The list of modules in the product now has the same order as before,
@@ -2191,9 +2189,10 @@ void ModuleLoader::setSearchPathsForProduct(ModuleLoader::ProductContext *produc
 ModuleLoader::ShadowProductInfo ModuleLoader::getShadowProductInfo(
         const ModuleLoader::ProductContext &product) const
 {
-    const bool isShadowProduct = product.name.startsWith(shadowProductPrefix());
+    const bool isShadowProduct = product.name.startsWith(StringConstants::shadowProductPrefix());
     return std::make_pair(isShadowProduct, isShadowProduct
-                          ? product.name.mid(shadowProductPrefix().size()) : QString());
+                          ? product.name.mid(StringConstants::shadowProductPrefix().size())
+                          : QString());
 }
 
 void ModuleLoader::collectProductsByName(const TopLevelProjectContext &topLevelProject)
@@ -3537,7 +3536,7 @@ void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, It
     const QString &sourceCode = configureScript->sourceCode().toString();
     ProbeConstPtr resolvedProbe;
     if (parent->type() == ItemType::Project
-            || productContext->name.startsWith(shadowProductPrefix())) {
+            || productContext->name.startsWith(StringConstants::shadowProductPrefix())) {
         resolvedProbe = findOldProjectProbe(probeId, condition, initialProperties, sourceCode);
     } else {
         const QString &uniqueProductName = productContext->uniqueName();

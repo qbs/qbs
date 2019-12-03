@@ -54,32 +54,33 @@ namespace Internal {
 
 class ModuleMerger {
 public:
-    ModuleMerger(Logger &logger, Item *root, Item::Module &moduleToMerge);
-    void start();
+    static void merge(Logger &logger, Item *productItem, const QString &productName,
+                      Item::Modules *topSortedModules);
 
 private:
-    Item::PropertyMap dfs(const Item::Module &m, Item::PropertyMap props);
-    void mergeOutProps(Item::PropertyMap *dst, const Item::PropertyMap &src);
+    ModuleMerger(Logger &logger, Item *productItem, const QString &productName,
+                 const Item::Modules::iterator &modulesBegin,
+                 const Item::Modules::iterator &modulesEnd);
+
     void appendPrototypeValueToNextChain(Item *moduleProto, const QString &propertyName,
             const ValuePtr &sv);
-    static ValuePtr lastInNextChain(const ValuePtr &v);
-
-    enum PropertiesType { ScalarProperties, ListProperties };
-    void insertProperties(Item::PropertyMap *dst, Item *srcItem, PropertiesType type);
+    void mergeModule(Item::PropertyMap *props, const Item::Module &m);
     void replaceItemInValues(QualifiedId moduleName, Item *containerItem, Item *toReplace);
-    void replaceItemInScopes(Item *toReplace);
+    void start();
+
+    static ValuePtr lastInNextChain(const ValuePtr &v);
+    static const Item::Module *findModule(const Item *item, const QualifiedId &name);
 
     Logger &m_logger;
-    Item * const m_rootItem;
+    Item * const m_productItem;
     Item::Module &m_mergedModule;
     Item *m_clonedModulePrototype = nullptr;
-    QHash<ValuePtr, PropertyDeclaration> m_decls;
-    Set<const Item *> m_seenInstancesTopDown;
-    Set<const Item *> m_seenInstancesBottomUp;
+    Set<const Item *> m_seenInstances;
     Set<Item *> m_moduleInstanceContainers;
-    bool m_required;
     const bool m_isBaseModule;
-    VersionRange m_versionRange;
+    const bool m_isShadowProduct;
+    const Item::Modules::iterator m_modulesBegin;
+    const Item::Modules::iterator m_modulesEnd;
 };
 
 } // namespace Internal
