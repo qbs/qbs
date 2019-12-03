@@ -322,7 +322,6 @@ function collectLibraryDependencies(product) {
     function traverse(dep) {
         if (seen.hasOwnProperty(dep.name))
             return;
-        seen[dep.name] = true;
 
         if (dep.parameters.cpp && dep.parameters.cpp.link === false)
             return;
@@ -331,10 +330,12 @@ function collectLibraryDependencies(product) {
         var dynamicLibraryArtifacts = staticLibraryArtifacts
                 ? null : dep.artifacts["dynamiclibrary_import"];
         if (staticLibraryArtifacts) {
+            seen[dep.name] = true;
             dep.dependencies.forEach(traverse);
             addArtifactFilePaths(dep, staticLibraryArtifacts);
             addExternalLibs(dep);
         } else if (dynamicLibraryArtifacts) {
+            seen[dep.name] = true;
             addArtifactFilePaths(dep, dynamicLibraryArtifacts);
         }
     }
