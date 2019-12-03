@@ -2757,7 +2757,8 @@ QVariantMap ModuleLoader::extractParameters(Item *dependsItem) const
     QScriptValue sv = m_evaluator->scriptValue(dependsItem);
     try {
         result = safeToVariant(sv);
-    } catch (ErrorInfo ei) {
+    } catch (const ErrorInfo &exception) {
+        auto ei = exception;
         ei.prepend(Tr::tr("Error in dependency parameter."), dependsItem->location());
         throw ei;
     }

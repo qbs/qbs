@@ -1275,7 +1275,8 @@ ErrorInfo Project::addGroup(const ProductData &product, const QString &groupName
         d->internalProject->lastStartResolveTime = FileTime::currentTime();
         d->internalProject->store(d->logger);
         return {};
-    } catch (ErrorInfo errorInfo) {
+    } catch (const ErrorInfo &exception) {
+        auto errorInfo = exception;
         errorInfo.prepend(Tr::tr("Failure adding group '%1' to product '%2'.")
                           .arg(groupName, product.name()));
         return errorInfo;
@@ -1302,7 +1303,8 @@ ErrorInfo Project::addFiles(const ProductData &product, const GroupData &group,
         d->internalProject->lastStartResolveTime = FileTime::currentTime();
         d->internalProject->store(d->logger);
         return {};
-    } catch (ErrorInfo errorInfo) {
+    } catch (const ErrorInfo &exception) {
+        auto errorInfo = exception;
         errorInfo.prepend(Tr::tr("Failure adding files to product."));
         return errorInfo;
     }
@@ -1328,7 +1330,8 @@ ErrorInfo Project::removeFiles(const ProductData &product, const GroupData &grou
         d->internalProject->lastStartResolveTime = FileTime::currentTime();
         d->internalProject->store(d->logger);
         return {};
-    } catch (ErrorInfo errorInfo) {
+    } catch (const ErrorInfo &exception) {
+        auto errorInfo = exception;
         errorInfo.prepend(Tr::tr("Failure removing files from product '%1'.").arg(product.name()));
         return errorInfo;
     }
@@ -1349,7 +1352,8 @@ ErrorInfo Project::removeGroup(const ProductData &product, const GroupData &grou
         d->internalProject->lastStartResolveTime = FileTime::currentTime();
         d->internalProject->store(d->logger);
         return {};
-    } catch (ErrorInfo errorInfo) {
+    } catch (const ErrorInfo &exception) {
+        auto errorInfo = exception;
         errorInfo.prepend(Tr::tr("Failure removing group '%1' from product '%2'.")
                           .arg(group.name(), product.name()));
         return errorInfo;
