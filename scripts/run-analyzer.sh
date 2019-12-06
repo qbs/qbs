@@ -108,4 +108,4 @@ with open(file, 'w') as f:
 "
 python -c "${SCRIPT}" analyzer/compile_commands.json
 
-"$RUN_CLANG_TIDY" -p analyzer -clang-tidy-binary "$CLANG_TIDY" -j $CPU_COUNT -header-filter=".*qbs.*\.h" -quiet
+"$RUN_CLANG_TIDY" -p analyzer -clang-tidy-binary "$CLANG_TIDY" -j $CPU_COUNT -header-filter=".*qbs/.*\.h$" -quiet
