@@ -92,18 +92,22 @@ qbs generate -g clangdb -f "$QBS_SRC_DIR/qbs.qbs" $BUILD_OPTIONS
 SCRIPT="
 import json
 import os
+import sets
 import sys
 
-file = sys.argv[1]
+dbFile = sys.argv[1]
 blacklist = ['json.cpp']
+seenFiles = sets.Set()
 patched_db = []
-with open(file, 'r') as f:
+with open(dbFile, 'r') as f:
    db = json.load(f)
    for item in db:
-       if os.path.basename(item['file']) not in blacklist:
+       file = item['file']
+       if (os.path.basename(file) not in blacklist) and (file not in seenFiles):
+            seenFiles.add(file)
             patched_db.append(item)
 
-with open(file, 'w') as f:
+with open(dbFile, 'w') as f:
     f.write(json.dumps(patched_db, indent=2))
 "
 python -c "${SCRIPT}" analyzer/compile_commands.json
