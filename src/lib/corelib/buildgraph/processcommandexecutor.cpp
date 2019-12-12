@@ -166,6 +166,7 @@ bool ProcessCommandExecutor::doStart()
                                  .arg(responseFile.fileName())));
                 return false;
             }
+            const auto separator = cmd->responseFileSeparator().toUtf8();
             for (int i = cmd->responseFileArgumentIndex(); i < cmd->arguments().size(); ++i) {
                 const QString arg = cmd->arguments().at(i);
                 if (arg.startsWith(cmd->responseFileUsagePrefix())) {
@@ -179,7 +180,7 @@ bool ProcessCommandExecutor::doStart()
                 } else {
                     responseFile.write(qbs::Internal::shellQuote(arg).toLocal8Bit());
                 }
-                responseFile.write("\n");
+                responseFile.write(separator);
             }
             responseFile.close();
             m_responseFileName = responseFile.fileName();

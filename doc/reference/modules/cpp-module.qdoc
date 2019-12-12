@@ -1217,8 +1217,6 @@
     \qmlproperty string cpp::linkerMode
     \since Qbs 1.6
 
-    \unixproperty
-
     Controls whether to automatically use an appropriate compiler frontend
     instead of the system linker when linking binaries.
 
@@ -1237,12 +1235,12 @@
     \qmlproperty string cpp::linkerVariant
     \since Qbs 1.13
 
-    \unixproperty
+    Set this property to force the use of a specific linker. A non-empty value
+    will result in the \c {-fuse-ld} option being emitted when linking with \c gcc,
+    \c clang or \c clang-cl.
 
-    Set this property to force the use of a specific \c ld implementation. A non-empty value
-    will result in the \c {-fuse-ld} option being emitted when linking with \c gcc or \c clang.
-
-    The possible values are \c "bfd", \c "gold" and \c "lld".
+    The possible values for \c clang and \c gcc are \c "bfd", \c "gold" and \c "lld",
+    the possible values for \c clang-cl are \c "link" and \c "lld".
 
     \nodefaultvalue
 */

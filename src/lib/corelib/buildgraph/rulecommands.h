@@ -136,6 +136,7 @@ public:
     int responseFileThreshold() const { return m_responseFileThreshold; }
     int responseFileArgumentIndex() const { return m_responseFileArgumentIndex; }
     QString responseFileUsagePrefix() const { return m_responseFileUsagePrefix; }
+    QString responseFileSeparator() const { return m_responseFileSeparator; }
     QProcessEnvironment environment() const { return m_environment; }
     QStringList relevantEnvVars() const;
     void clearRelevantEnvValues() { m_relevantEnvValues.clear(); }
@@ -158,10 +159,10 @@ private:
     {
         pool.serializationOp<opType>(m_program, m_arguments, m_environment, m_workingDir,
                                      m_stdoutFilterFunction, m_stderrFilterFunction,
-                                     m_responseFileUsagePrefix, m_maxExitCode,
-                                     m_responseFileThreshold, m_responseFileArgumentIndex,
-                                     m_relevantEnvVars, m_relevantEnvValues, m_stdoutFilePath,
-                                     m_stderrFilePath);
+                                     m_responseFileUsagePrefix, m_responseFileSeparator,
+                                     m_maxExitCode, m_responseFileThreshold,
+                                     m_responseFileArgumentIndex, m_relevantEnvVars,
+                                     m_relevantEnvValues, m_stdoutFilePath, m_stderrFilePath);
     }
 
     QString m_program;
@@ -173,6 +174,7 @@ private:
     int m_responseFileThreshold; // When to use response files? In bytes of (program name + arguments).
     int m_responseFileArgumentIndex;
     QString m_responseFileUsagePrefix;
+    QString m_responseFileSeparator;
     QProcessEnvironment m_environment;
     QStringList m_relevantEnvVars;
     QProcessEnvironment m_relevantEnvValues;

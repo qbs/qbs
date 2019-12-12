@@ -65,6 +65,17 @@ MsvcBaseModule {
                                                : undefined
     buildEnv: clangClProbe.buildEnv
 
+    property string linkerVariant
+    PropertyOptions {
+        name: "linkerVariant"
+        allowedValues: ["lld", "link"]
+        description: "Allows to specify the linker variant. Maps to clang-cl's -fuse-ld option."
+    }
+    Properties {
+        condition: linkerVariant
+        driverLinkerFlags: "-fuse-ld=" + linkerVariant
+    }
+
     property string vcvarsallPath
 
     compilerName: "clang-cl.exe"

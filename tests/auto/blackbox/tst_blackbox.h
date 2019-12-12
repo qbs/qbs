@@ -266,6 +266,8 @@ private slots:
     void ruleCycle();
     void ruleWithNoInputs();
     void ruleWithNonRequiredInputs();
+    void sanitizer_data();
+    void sanitizer();
     void scannerItem();
     void setupBuildEnvironment();
     void setupRunEnvironment();

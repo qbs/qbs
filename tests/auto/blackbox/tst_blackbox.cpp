@@ -2435,6 +2435,36 @@ void TestBlackbox::ruleWithNonRequiredInputs()
     QVERIFY2(m_qbsStdout.contains("Generating"), m_qbsStdout.constData());
 }
 
+void TestBlackbox::sanitizer_data()
+{
+    QTest::addColumn<QString>("sanitizer");
+    QTest::newRow("none") << QString();
+    QTest::newRow("address") << QStringLiteral("address");
+    QTest::newRow("undefined") << QStringLiteral("undefined");
+    QTest::newRow("thread") << QStringLiteral("thread");
+}
+
+void TestBlackbox::sanitizer()
+{
+    QFETCH(QString, sanitizer);
+    QDir::setCurrent(testDataDir + "/sanitizer");
+    rmDirR(relativeBuildDir());
+    QbsRunParameters params("build", {"--command-echo-mode", "command-line"});
+    if (!sanitizer.isEmpty()) {
+        params.arguments.append(
+                {QStringLiteral("products.sanitizer.sanitizer:\"") + sanitizer + "\""});
+    }
+    QCOMPARE(runQbs(params), 0);
+    if (m_qbsStdout.contains(QByteArrayLiteral("Compiler does not support sanitizer")))
+        QSKIP("Compiler does not support the specified sanitizer");
+    if (!sanitizer.isEmpty()) {
+        QVERIFY2(m_qbsStdout.contains(QByteArrayLiteral("-fsanitize=") + sanitizer.toLatin1()),
+                 qPrintable(m_qbsStdout));
+    } else {
+        QVERIFY2(!m_qbsStdout.contains(QByteArrayLiteral("-fsanitize=")), qPrintable(m_qbsStdout));
+    }
+}
+
 void TestBlackbox::scannerItem()
 {
     QDir::setCurrent(testDataDir + "/scanner-item");
