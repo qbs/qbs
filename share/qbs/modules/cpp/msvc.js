@@ -415,12 +415,13 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
         subsystemSwitch = product.consoleApplication === false ? '/SUBSYSTEM:WINDOWS' : '/SUBSYSTEM:CONSOLE';
     }
 
+    var useLldLink = product.cpp.linkerName === "lld-link.exe";
     if (minimumWindowsVersion) {
         var subsystemVersion = WindowsUtils.getWindowsVersionInFormat(minimumWindowsVersion,
                                                                       'subsystem');
         if (subsystemVersion) {
             subsystemSwitch += ',' + subsystemVersion;
-            if (product.cpp.linkerName !== "lld-link.exe") // llvm linker does not support /OSVERSION
+            if (!useLldLink) // llvm linker does not support /OSVERSION
                 args.push('/OSVERSION:' + subsystemVersion);
         }
     }
@@ -478,8 +479,12 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     if (product.cpp.entryPoint)
         args.push("/ENTRY:" + product.cpp.entryPoint);
 
-    if (outputs.application && product.cpp.generateLinkerMapFile)
-        args.push("/MAP:" + outputs.mem_map[0].filePath);
+    if (outputs.application && product.cpp.generateLinkerMapFile) {
+        if (useLldLink)
+            args.push("/lldmap:" + outputs.mem_map[0].filePath);
+        else
+            args.push("/MAP:" + outputs.mem_map[0].filePath);
+    }
 
     args.push('/OUT:' + linkerOutputNativeFilePath)
     var libraryPaths = product.cpp.libraryPaths;
