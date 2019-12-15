@@ -107,9 +107,9 @@ std::vector<MSVCInstallInfo> compatibleMsvcs()
     return msvcs;
 }
 
-QString findCompatibleVcsarsallBat()
+QString findCompatibleVcsarsallBat(const std::vector<MSVCInstallInfo> &msvcs)
 {
-    for (const auto &msvc: compatibleMsvcs()) {
+    for (const auto &msvc: msvcs) {
         const auto vcvarsallPath = msvc.findVcvarsallBat();
         if (!vcvarsallPath.isEmpty())
             return vcvarsallPath;
@@ -126,8 +126,12 @@ QString wow6432Key()
 #endif
 }
 
-QString findClangCl()
+// Function can modify passed list in case it has found clang in one of the VS installation -
+// in that case, there's no point in looking for vcvarsall.bat among all installed VSs, we just
+// use .bat file corresponding to that particular VS installation
+QString findClangCl(std::vector<MSVCInstallInfo> *msvcs)
 {
+    Q_ASSERT(msvcs);
     const auto compilerName = HostOsInfo::appendExecutableSuffix(QStringLiteral("clang-cl"));
     const auto compilerFromPath = findExecutable(compilerName);
     if (!compilerFromPath.isEmpty())
@@ -154,6 +158,17 @@ QString findClangCl()
         if (QFileInfo(compilerPath).exists())
             return compilerPath;
     }
+
+    // If we didn't find custom LLVM installation, try to find if it's installed with Visual Studio
+    for (const auto &msvc : *msvcs) {
+        const auto compilerPath = QStringLiteral("%1/VC/Tools/Llvm/bin/%2")
+                .arg(msvc.installDir, compilerName);
+        if (QFileInfo(compilerPath).exists()) {
+            *msvcs = {msvc}; // reduce list to one installation
+            return compilerPath;
+        }
+    }
+
     return {};
 }
 
@@ -163,7 +178,7 @@ void createClangClProfile(const QFileInfo &compiler, Settings *settings,
                           const QString &profileName)
 {
     const auto compilerName = QStringLiteral("clang-cl");
-    const auto vcvarsallPath = findCompatibleVcsarsallBat();
+    const auto vcvarsallPath = findCompatibleVcsarsallBat(compatibleMsvcs());
     if (vcvarsallPath.isEmpty()) {
         qbsWarning()
                 << Tr::tr("%1 requires installed Visual Studio 2017 or newer, but none was found.")
@@ -182,15 +197,17 @@ void createClangClProfile(const QFileInfo &compiler, Settings *settings,
 */
 void clangClProbe(Settings *settings, std::vector<Profile> &profiles)
 {
+    auto msvcs = compatibleMsvcs();
+
     const auto compilerName = QStringLiteral("clang-cl");
     qbsInfo() << Tr::tr("Trying to detect %1...").arg(compilerName);
-    const QString compilerFilePath = findClangCl();
+    const QString compilerFilePath = findClangCl(&msvcs);
     if (compilerFilePath.isEmpty()) {
         qbsInfo() << Tr::tr("%1 was not found.").arg(compilerName);
         return;
     }
     const QFileInfo compiler(compilerFilePath);
-    const auto vcvarsallPath = findCompatibleVcsarsallBat();
+    const auto vcvarsallPath = findCompatibleVcsarsallBat(msvcs);
     if (vcvarsallPath.isEmpty()) {
         qbsWarning()
                 << Tr::tr("%1 requires installed Visual Studio 2017 or newer, but none was found.")
