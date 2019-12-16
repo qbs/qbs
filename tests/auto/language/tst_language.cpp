@@ -3182,6 +3182,7 @@ void TestLanguage::wildcards()
         QFile projectFile(projectFilePath);
         QVERIFY(projectFile.open(QIODevice::WriteOnly));
         QTextStream s(&projectFile);
+        using Qt::endl;
         s << "import qbs.base 1.0" << endl << endl
           << "Application {" << endl
           << "  name: \"MyProduct\"" << endl;

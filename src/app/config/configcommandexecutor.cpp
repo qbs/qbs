@@ -41,8 +41,9 @@
 #include "configcommand.h"
 #include "../shared/logging/consolelogger.h"
 
-#include <tools/settingsrepresentation.h>
 #include <tools/error.h>
+#include <tools/qttools.h>
+#include <tools/settingsrepresentation.h>
 
 #include <QtCore/qdir.h>
 #include <QtCore/qfile.h>
@@ -131,7 +132,7 @@ void ConfigCommandExecutor::exportSettings(const QString &filename)
     const auto keys = m_settings->allKeys(m_scope);
     for (const QString &key : keys)
         stream << key << ": " << qbs::settingsValueToRepresentation(m_settings->value(key, m_scope))
-               << endl;
+               << Qt::endl;
 }
 
 void ConfigCommandExecutor::importSettings(const QString &filename)

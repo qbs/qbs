@@ -50,6 +50,7 @@
 #include <tools/error.h>
 #include <tools/hostosinfo.h>
 #include <tools/profile.h>
+#include <tools/qttools.h>
 #include <tools/settings.h>
 #include <tools/toolchains.h>
 
@@ -137,10 +138,10 @@ void probe(Settings *settings)
     sdccProbe(settings, profiles);
 
     if (profiles.empty()) {
-        qStderr << Tr::tr("Could not detect any toolchains. No profile created.") << endl;
+        qStderr << Tr::tr("Could not detect any toolchains. No profile created.") << Qt::endl;
     } else if (profiles.size() == 1 && settings->defaultProfile().isEmpty()) {
         const QString profileName = profiles.front().name();
-        qStdout << Tr::tr("Making profile '%1' the default.").arg(profileName) << endl;
+        qStdout << Tr::tr("Making profile '%1' the default.").arg(profileName) << Qt::endl;
         settings->setValue(QStringLiteral("defaultProfile"), profileName);
     }
 }

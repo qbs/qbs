@@ -390,7 +390,7 @@ void TestBlackboxAndroid::android_data()
                        "lib/${ARCH}/liblib2.so",
                        cxxLibPath("libstlport_shared.so", false)}))
             << QStringList();
-    QByteArrayList expectedFiles1 = (commonFiles
+    QByteArrayList expectedFiles1 = qbs::toList(qbs::toSet(commonFiles
             + expandArchs(QByteArrayList{"armeabi-v7a", "x86"}, {
                               "resources.arsc",
                               "lib/${ARCH}/libgdbserver.so",
@@ -400,7 +400,7 @@ void TestBlackboxAndroid::android_data()
                               "resources.arsc",
                               "lib/${ARCH}/libgdbserver.so",
                               "lib/${ARCH}/libp1lib2.so",
-                              cxxLibPath("libstlport_shared.so", false)})).toSet().toList();
+                              cxxLibPath("libstlport_shared.so", false)})));
     QByteArrayList expectedFiles2 = commonFiles + expandArchs(archs, {
                        "lib/${ARCH}/libgdbserver.so",
                        "lib/${ARCH}/libp2lib1.so",

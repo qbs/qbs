@@ -3771,6 +3771,7 @@ ModuleLoader::ModuleProviderResult ModuleLoader::findModuleProvider(const Qualif
         const QString searchPathBaseDir = ModuleProviderInfo::outputDirPath(projectBuildDir, name);
         const QVariant moduleConfig = moduleProviderConfig(product).value(name.toString());
         QTextStream stream(&dummyItemFile);
+        using Qt::endl;
         stream.setCodec("UTF-8");
         stream << "import qbs.FileInfo" << endl;
         stream << "import qbs.Utilities" << endl;
