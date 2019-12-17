@@ -69,7 +69,7 @@ QbsProduct {
                 inputFilePaths.sort();
                 var tf;
                 try {
-                    tf = new TextFile(outputFilePath, TextFile.ReadWrite);
+                    tf = new TextFile(outputFilePath, TextFile.WriteOnly);
                     for (var i = 0; i < inputFilePaths.length; ++i) {
                         var relativePath = FileInfo.relativePath(baseDirectory, inputFilePaths[i]);
                         tf.writeLine(relativePath);
