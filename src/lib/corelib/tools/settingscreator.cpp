@@ -65,11 +65,11 @@ SettingsCreator::SettingsCreator(QString baseDir)
 {
 }
 
-QSettings *SettingsCreator::getQSettings()
+std::unique_ptr<QSettings> SettingsCreator::getQSettings()
 {
     createQSettings();
     migrate();
-    return m_settings.release();
+    return std::move(m_settings);
 }
 
 void SettingsCreator::migrate()

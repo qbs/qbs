@@ -91,8 +91,8 @@ Settings::Settings(const QString &baseDir) : Settings(baseDir, systemSettingsBas
 
 Settings::Settings(const QString &baseDir, const QString &systemBaseDir)
     : m_settings(SettingsCreator(baseDir).getQSettings()),
-      m_systemSettings(new QSettings(systemBaseDir + QStringLiteral("/qbs.conf"),
-                                     QSettings::IniFormat)),
+      m_systemSettings(std::make_unique<QSettings>(systemBaseDir + QStringLiteral("/qbs.conf"),
+                                                   QSettings::IniFormat)),
       m_baseDir(baseDir)
 {
     // Actual qbs settings are stored transparently within a group, because QSettings
@@ -100,11 +100,7 @@ Settings::Settings(const QString &baseDir, const QString &systemBaseDir)
     m_settings->beginGroup(QStringLiteral("org/qt-project/qbs"));
 }
 
-Settings::~Settings()
-{
-    delete m_settings;
-    delete m_systemSettings;
-}
+Settings::~Settings() = default;
 
 QVariant Settings::value(const QString &key, Scopes scopes, const QVariant &defaultValue) const
 {
@@ -241,7 +237,7 @@ void Settings::fixupKeys(QStringList &keys) const
 
 QSettings *Settings::settingsForScope(Settings::Scope scope) const
 {
-    return scope == UserScope ? m_settings : m_systemSettings;
+    return scope == UserScope ? m_settings.get() : m_systemSettings.get();
 }
 
 QSettings *Settings::targetForWriting() const
