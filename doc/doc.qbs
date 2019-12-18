@@ -17,7 +17,7 @@ Project {
         Depends { name: "qbsversion" }
 
         files: [
-            "../README",
+            "../README.md",
             "classic.css",
             "external-resources.qdoc",
             "fixnavi.pl",
