@@ -623,30 +623,24 @@ static qbs::Project::ProductSelection defaultProducts()
     return qbs::Project::ProductSelectionDefaultOnly;
 }
 
-static void printProjectData(const qbs::ProjectData &project)
-{
-    const auto products = project.products();
-    for (const qbs::ProductData &p : products) {
-        qDebug("    Product '%s' at %s", qPrintable(p.name()), qPrintable(p.location().toString()));
-        const auto groups = p.groups();
-        for (const qbs::GroupData &g : groups) {
-            qDebug("        Group '%s' at %s", qPrintable(g.name()), qPrintable(g.location().toString()));
-            qDebug("            Files: %s", qPrintable(g.allFilePaths().join(QLatin1String(", "))));
-        }
-    }
-}
-
 void TestApi::changeContent()
 {
     qbs::SetupProjectParameters setupParams = defaultSetupParameters("project-editing");
-    std::unique_ptr<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
-                                                                        m_logSink, 0));
-    waitForFinished(job.get());
-    QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
-    qbs::Project project = job->project();
-    qbs::ProjectData projectData = project.projectData();
-    QCOMPARE(projectData.allProducts().size(), 1);
-    qbs::ProductData product = projectData.allProducts().front();
+    std::unique_ptr<qbs::SetupProjectJob> job;
+    qbs::Project project;
+    qbs::ProjectData projectData;
+    qbs::ProductData product;
+
+    const auto resolve = [&] {
+        job.reset(project.setupProject(setupParams, m_logSink, 0));
+        waitForFinished(job.get());
+        QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
+        project = job->project();
+        projectData = project.projectData();
+        QCOMPARE(projectData.allProducts().size(), 1);
+        product = projectData.allProducts().front();
+    };
+    resolve();
     QVERIFY(product.groups().size() >= 8);
 
     // Error handling: Invalid product.
@@ -659,11 +653,15 @@ void TestApi::changeContent()
     QVERIFY(errorInfo.hasError());
     QVERIFY(errorInfo.toString().contains("empty"));
 
+    WAIT_FOR_NEW_TIMESTAMP();
     errorInfo = project.addGroup(product, "New Group 1");
     VERIFY_NO_ERROR(errorInfo);
 
     errorInfo = project.addGroup(product, "New Group 2");
     VERIFY_NO_ERROR(errorInfo);
+
+    resolve();
+    QVERIFY(product.groups().size() >= 10);
 
     // Error handling: Group already inserted.
     errorInfo = project.addGroup(product, "New Group 1");
@@ -677,20 +675,14 @@ void TestApi::changeContent()
     QVERIFY2(errorInfo.toString().contains("more than once"), qPrintable(errorInfo.toString()));
 
     // Add files to empty array literal.
-    projectData = project.projectData();
-    QVERIFY(projectData.products().size() == 1);
-    product = projectData.products().front();
-    QVERIFY(product.groups().size() >= 10);
+    WAIT_FOR_NEW_TIMESTAMP();
     qbs::GroupData group = findGroup(product, "New Group 1");
     QVERIFY(group.isValid());
     errorInfo = project.addFiles(product, group, QStringList() << "file.h" << "file.cpp");
     VERIFY_NO_ERROR(errorInfo);
 
     // Error handling: Add the same file again.
-    projectData = project.projectData();
-    QVERIFY(projectData.products().size() == 1);
-    product = projectData.products().front();
-    QVERIFY(product.groups().size() >= 10);
+    resolve();
     group = findGroup(product, "New Group 1");
     QVERIFY(group.isValid());
     errorInfo = project.addFiles(product, group, QStringList() << "file.cpp");
@@ -698,14 +690,12 @@ void TestApi::changeContent()
     QVERIFY2(errorInfo.toString().contains("already"), qPrintable(errorInfo.toString()));
 
     // Remove one of the newly added files again.
+    WAIT_FOR_NEW_TIMESTAMP();
     errorInfo = project.removeFiles(product, group, QStringList("file.h"));
     VERIFY_NO_ERROR(errorInfo);
 
     // Error handling: Try to remove the same file again.
-    projectData = project.projectData();
-    QVERIFY(projectData.products().size() == 1);
-    product = projectData.products().front();
-    QVERIFY(product.groups().size() >= 10);
+    resolve();
     group = findGroup(product, "New Group 1");
     QVERIFY(group.isValid());
     errorInfo = project.removeFiles(product, group, QStringList() << "file.h");
@@ -720,38 +710,34 @@ void TestApi::changeContent()
     QVERIFY2(errorInfo.toString().contains("complex"), qPrintable(errorInfo.toString()));
 
     // Remove file from product's 'files' binding.
+    WAIT_FOR_NEW_TIMESTAMP();
     errorInfo = project.removeFiles(product, qbs::GroupData(), QStringList("main.cpp"));
     VERIFY_NO_ERROR(errorInfo);
+    resolve();
 
     // Add file to non-empty array literal.
-    projectData = project.projectData();
-    QVERIFY(projectData.products().size() == 1);
-    product = projectData.products().front();
+    WAIT_FOR_NEW_TIMESTAMP();
     group = findGroup(product, "Existing Group 1");
     QVERIFY(group.isValid());
     errorInfo = project.addFiles(product, group, QStringList() << "newfile1.txt");
     VERIFY_NO_ERROR(errorInfo);
+    resolve();
 
     // Add files to list represented as a single string.
-    projectData = project.projectData();
-    QVERIFY(projectData.products().size() == 1);
-    product = projectData.products().front();
+    WAIT_FOR_NEW_TIMESTAMP();
     errorInfo = project.addFiles(product, qbs::GroupData(), QStringList() << "newfile2.txt");
     VERIFY_NO_ERROR(errorInfo);
+    resolve();
 
     // Add files to list represented as an identifier.
-    projectData = project.projectData();
-    QVERIFY(projectData.products().size() == 1);
-    product = projectData.products().front();
+    WAIT_FOR_NEW_TIMESTAMP();
     group = findGroup(product, "Existing Group 2");
     QVERIFY(group.isValid());
     errorInfo = project.addFiles(product, group, QStringList() << "newfile3.txt");
     VERIFY_NO_ERROR(errorInfo);
+    resolve();
 
     // Add files to list represented as a block of code (not yet implemented).
-    projectData = project.projectData();
-    QVERIFY(projectData.products().size() == 1);
-    product = projectData.products().front();
     group = findGroup(product, "Existing Group 3");
     QVERIFY(group.isValid());
     errorInfo = project.addFiles(product, group, QStringList() << "newfile4.txt");
@@ -759,18 +745,14 @@ void TestApi::changeContent()
     QVERIFY2(errorInfo.toString().contains("complex"), qPrintable(errorInfo.toString()));
 
     // Add file to group with directory prefix.
-    projectData = project.projectData();
-    QVERIFY(projectData.products().size() == 1);
-    product = projectData.products().front();
+    WAIT_FOR_NEW_TIMESTAMP();
     group = findGroup(product, "Existing Group 4");
     QVERIFY(group.isValid());
     errorInfo = project.addFiles(product, group, QStringList() << "file.txt");
     VERIFY_NO_ERROR(errorInfo);
+    resolve();
 
     // Error handling: Add file to group with non-directory prefix.
-    projectData = project.projectData();
-    QVERIFY(projectData.products().size() == 1);
-    product = projectData.products().front();
     group = findGroup(product, "Existing Group 5");
     QVERIFY(group.isValid());
     errorInfo = project.addFiles(product, group, QStringList() << "newfile1.txt");
@@ -778,16 +760,12 @@ void TestApi::changeContent()
     QVERIFY2(errorInfo.toString().contains("prefix"), qPrintable(errorInfo.toString()));
 
     // Remove group.
-    projectData = project.projectData();
-    QVERIFY(projectData.products().size() == 1);
-    product = projectData.products().front();
+    WAIT_FOR_NEW_TIMESTAMP();
     group = findGroup(product, "Existing Group 5");
     QVERIFY(group.isValid());
     errorInfo = project.removeGroup(product, group);
     VERIFY_NO_ERROR(errorInfo);
-    projectData = project.projectData();
-    QVERIFY(projectData.products().size() == 1);
-    QVERIFY(projectData.products().front().groups().size() >= 9);
+    resolve();
 
     // Error handling: Try to remove the same group again.
     errorInfo = project.removeGroup(product, group);
@@ -805,9 +783,7 @@ void TestApi::changeContent()
     newFile.close();
     errorInfo = project.addFiles(product, group, QStringList() << newFile.fileName());
     VERIFY_NO_ERROR(errorInfo);
-    projectData = project.projectData();
-    QVERIFY(projectData.products().size() == 1);
-    product = projectData.products().front();
+    resolve();
     group = findGroup(product, "Group with wildcards");
     QVERIFY(group.isValid());
     QCOMPARE(group.sourceArtifactsFromWildcards().size(), 1);
@@ -838,46 +814,13 @@ void TestApi::changeContent()
     QVERIFY(rcvr.descriptions.contains("compiling file.cpp"));
     QVERIFY(!rcvr.descriptions.contains("compiling main.cpp"));
 
-    // Now check whether the data updates were done correctly.
-    projectData = project.projectData();
-    job.reset(project.setupProject(setupParams, m_logSink, 0));
-    waitForFinished(job.get());
-    QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
-    project = job->project();
-    qbs::ProjectData newProjectData = project.projectData();
-
-    // Can't use Project::operator== here, as the target artifacts will differ due to the build
-    // not having run yet.
-    bool projectDataMatches = newProjectData.products().size() == 1
-            && projectData.products().size() == 1
-            && newProjectData.products().front().groups() == projectData.products().front().groups();
-    if (!projectDataMatches) {
-        qDebug("This is the assumed project:");
-        printProjectData(projectData);
-        qDebug("This is the actual project:");
-        printProjectData(newProjectData);
-    }
-    QVERIFY(projectDataMatches); // Will fail if e.g. code locations don't match.
-
-    // Now try building again and check if the newly resolved product behaves the same way.
-    buildJob.reset(project.buildAllProducts(buildOptions, defaultProducts(), this));
-    connect(buildJob.get(), &qbs::BuildJob::reportCommandDescription,
-            &rcvr, &BuildDescriptionReceiver::handleDescription);
-    waitForFinished(buildJob.get());
-    QVERIFY2(!buildJob->error().hasError(), qPrintable(buildJob->error().toString()));
-    QVERIFY(rcvr.descriptions.contains("compiling file.cpp"));
-    QVERIFY(!rcvr.descriptions.contains("compiling main.cpp"));
-
-    // Now, after the build, the project data must be entirely identical.
-    QVERIFY(projectData == project.projectData());
-
     // Error handling: Try to change the project during a build.
     buildJob.reset(project.buildAllProducts(buildOptions, defaultProducts(), this));
-    errorInfo = project.addGroup(newProjectData.products().front(), "blubb");
+    errorInfo = project.addGroup(projectData.products().front(), "blubb");
     QVERIFY(errorInfo.hasError());
     QVERIFY2(errorInfo.toString().contains("in progress"), qPrintable(errorInfo.toString()));
     waitForFinished(buildJob.get());
-    errorInfo = project.addGroup(newProjectData.products().front(), "blubb");
+    errorInfo = project.addGroup(projectData.products().front(), "blubb");
     VERIFY_NO_ERROR(errorInfo);
 
     project = qbs::Project();
@@ -888,16 +831,10 @@ void TestApi::changeContent()
     setupParams.setProjectFilePath(QDir::cleanPath(m_workingDataDir +
         "/project-editing/project-with-no-files.qbs"));
 
-    job.reset(project.setupProject(setupParams, m_logSink, 0));
-    waitForFinished(job.get());
-    QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
-    project = job->project();
-    projectData = project.projectData();
-    QCOMPARE(projectData.allProducts().size(), 1);
-    product = projectData.allProducts().front();
+    resolve();
     errorInfo = project.addFiles(product, qbs::GroupData(), QStringList("main.cpp"));
     VERIFY_NO_ERROR(errorInfo);
-    projectData = project.projectData();
+    resolve();
     rcvr.descriptions.clear();
     buildJob.reset(project.buildAllProducts(buildOptions, defaultProducts(), this));
     connect(buildJob.get(), &qbs::BuildJob::reportCommandDescription,
@@ -908,18 +845,6 @@ void TestApi::changeContent()
     job.reset(project.setupProject(setupParams, m_logSink, 0));
     waitForFinished(job.get());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
-    // Can't use Project::operator== here, as the target artifacts will differ due to the build
-    // not having run yet.
-    newProjectData = job->project().projectData();
-    projectDataMatches = newProjectData.products().size() == 1
-            && projectData.products().size() == 1
-            && newProjectData.products().front().groups() == projectData.products().front().groups();
-    if (!projectDataMatches) {
-        printProjectData(projectData);
-        qDebug("\n====\n");
-        printProjectData(newProjectData);
-    }
-    QVERIFY(projectDataMatches);
 }
 
 #endif // QBS_ENABLE_PROJECT_FILE_UPDATES

@@ -367,28 +367,6 @@ void ProjectPrivate::addGroup(const ProductData &product, const QString &groupNa
 
     ProjectFileGroupInserter groupInserter(products.front(), groupName);
     groupInserter.apply();
-
-    m_projectData.d.detach(); // The data we already gave out must stay as it is.
-
-    updateInternalCodeLocations(internalProject, groupInserter.itemPosition(),
-                                groupInserter.lineOffset());
-    updateExternalCodeLocations(m_projectData, groupInserter.itemPosition(),
-                                groupInserter.lineOffset());
-
-    products = findProductsByName(products.front().name()); // These are new objects.
-    QBS_CHECK(products.size() == resolvedProducts.size());
-    for (int i = 0; i < products.size(); ++i) {
-        const GroupPtr resolvedGroup = ResolvedGroup::create();
-        resolvedGroup->location = groupInserter.itemPosition();
-        resolvedGroup->enabled = true;
-        resolvedGroup->name = groupName;
-        resolvedGroup->properties = resolvedProducts[i]->moduleProperties;
-        resolvedGroup->overrideTags = false;
-        resolvedProducts.at(i)->groups << resolvedGroup;
-        QList<GroupData> &groupData = products.at(i).d->groups;
-        groupData << createGroupDataFromGroup(resolvedGroup, resolvedProducts.at(i));
-        std::sort(groupData.begin(), groupData.end());
-    }
 }
 
 ProjectPrivate::GroupUpdateContext ProjectPrivate::getGroupContext(const ProductData &product,
@@ -484,15 +462,6 @@ ProjectPrivate::FileListUpdateContext ProjectPrivate::getFileListContext(const P
     return filesContext;
 }
 
-static SourceArtifactPtr createSourceArtifact(const QString &filePath,
-        const ResolvedProductPtr &product, const GroupPtr &group, bool wildcard)
-{
-    const SourceArtifactPtr artifact
-            = ProjectResolver::createSourceArtifact(product, filePath, group, wildcard);
-    ProjectResolver::applyFileTaggers(artifact, product);
-    return artifact;
-}
-
 void ProjectPrivate::addFiles(const ProductData &product, const GroupData &group,
                               const QStringList &filePaths)
 {
@@ -516,57 +485,6 @@ void ProjectPrivate::addFiles(const ProductData &product, const GroupData &group
             group.isValid() ? groupContext.groups.front() : GroupData(),
             filesContext.relativeFilePaths);
     adder.apply();
-
-    m_projectData.d.detach();
-    updateInternalCodeLocations(internalProject, adder.itemPosition(), adder.lineOffset());
-    updateExternalCodeLocations(m_projectData, adder.itemPosition(), adder.lineOffset());
-
-    QHash<QString, std::pair<SourceArtifactPtr, ResolvedProductPtr>> addedSourceArtifacts;
-    for (int i = 0; i < groupContext.resolvedGroups.size(); ++i) {
-        const ResolvedProductPtr &resolvedProduct = groupContext.resolvedProducts.at(i);
-        const GroupPtr &resolvedGroup = groupContext.resolvedGroups.at(i);
-        for (const QString &file : qAsConst(filesContext.absoluteFilePaths)) {
-            const SourceArtifactPtr sa = createSourceArtifact(file, resolvedProduct, resolvedGroup,
-                                                              false);
-            addedSourceArtifacts.insert(file, std::make_pair(sa, resolvedProduct));
-        }
-        for (const QString &file : qAsConst(filesContext.absoluteFilePathsFromWildcards)) {
-            QBS_CHECK(resolvedGroup->wildcards);
-            const SourceArtifactPtr sa = createSourceArtifact(file, resolvedProduct, resolvedGroup,
-                    true);
-            addedSourceArtifacts.insert(file, std::make_pair(sa, resolvedProduct));
-        }
-        if (resolvedProduct->enabled) {
-            for (const auto &pair : qAsConst(addedSourceArtifacts))
-                createArtifact(resolvedProduct, pair.first);
-        }
-    }
-    doSanityChecks(internalProject, logger);
-    QList<ArtifactData> sourceArtifacts;
-    QList<ArtifactData> sourceArtifactsFromWildcards;
-    for (const QString &fp : qAsConst(filesContext.absoluteFilePaths)) {
-        const auto pair = addedSourceArtifacts.value(fp);
-        const SourceArtifactConstPtr sa = pair.first;
-        QBS_CHECK(sa);
-        ArtifactData artifactData = createApiSourceArtifact(sa);
-        setupInstallData(artifactData, pair.second);
-        sourceArtifacts << artifactData;
-    }
-    for (const QString &fp : qAsConst(filesContext.absoluteFilePathsFromWildcards)) {
-        const auto pair = addedSourceArtifacts.value(fp);
-        const SourceArtifactConstPtr sa = pair.first;
-        QBS_CHECK(sa);
-        ArtifactData artifactData = createApiSourceArtifact(sa);
-        setupInstallData(artifactData, pair.second);
-        sourceArtifactsFromWildcards << artifactData;
-    }
-    for (const GroupData &g : qAsConst(groupContext.groups)) {
-        g.d->sourceArtifacts << sourceArtifacts;
-        std::sort(g.d->sourceArtifacts.begin(), g.d->sourceArtifacts.end());
-        g.d->sourceArtifactsFromWildcards << sourceArtifactsFromWildcards;
-        std::sort(g.d->sourceArtifactsFromWildcards.begin(),
-                  g.d->sourceArtifactsFromWildcards.end());
-    }
 }
 
 void ProjectPrivate::removeFiles(const ProductData &product, const GroupData &group,
@@ -595,133 +513,16 @@ void ProjectPrivate::removeFiles(const ProductData &product, const GroupData &gr
             group.isValid() ? groupContext.groups.front() : GroupData(),
             filesContext.relativeFilePaths);
     remover.apply();
-
-    for (int i = 0; i < groupContext.resolvedProducts.size(); ++i) {
-        removeFilesFromBuildGraph(groupContext.resolvedProducts.at(i), sourceArtifacts);
-        for (const SourceArtifactPtr &sa : sourceArtifacts)
-            removeOne(groupContext.resolvedGroups.at(i)->files, sa);
-    }
-    doSanityChecks(internalProject, logger);
-
-    m_projectData.d.detach();
-    updateInternalCodeLocations(internalProject, remover.itemPosition(), remover.lineOffset());
-    updateExternalCodeLocations(m_projectData, remover.itemPosition(), remover.lineOffset());
-    for (const GroupData &g : qAsConst(groupContext.groups)) {
-        for (int i = g.d->sourceArtifacts.size() - 1; i >= 0; --i) {
-            if (filesContext.absoluteFilePaths.contains(g.d->sourceArtifacts.at(i).filePath()))
-                g.d->sourceArtifacts.removeAt(i);
-        }
-    }
 }
 
 void ProjectPrivate::removeGroup(const ProductData &product, const GroupData &group)
 {
     GroupUpdateContext context = getGroupContext(product, group);
-
     ProjectFileGroupRemover remover(context.products.front(), context.groups.front());
     remover.apply();
 
-    for (int i = 0; i < context.resolvedProducts.size(); ++i) {
-        const ResolvedProductPtr &product = context.resolvedProducts.at(i);
-        const GroupPtr &group = context.resolvedGroups.at(i);
-        removeFilesFromBuildGraph(product, group->allFiles());
-        const bool removed = removeOne(product->groups, group);
-        QBS_CHECK(removed);
-    }
-    doSanityChecks(internalProject, logger);
-
-    m_projectData.d.detach();
-    updateInternalCodeLocations(internalProject, remover.itemPosition(), remover.lineOffset());
-    updateExternalCodeLocations(m_projectData, remover.itemPosition(), remover.lineOffset());
-    for (int i = 0; i < context.products.size(); ++i) {
-        const bool removed = context.products.at(i).d->groups.removeOne(context.groups.at(i));
-        QBS_CHECK(removed);
-    }
 }
 #endif // QBS_ENABLE_PROJECT_FILE_UPDATES
-
-void ProjectPrivate::removeFilesFromBuildGraph(const ResolvedProductConstPtr &product,
-                                               const std::vector<SourceArtifactPtr> &files)
-{
-    if (!product->enabled)
-        return;
-    QBS_CHECK(internalProject->buildData);
-    ArtifactSet allRemovedArtifacts;
-    for (const SourceArtifactPtr &sa : files) {
-        ArtifactSet removedArtifacts;
-        Artifact * const artifact = lookupArtifact(product, sa->absoluteFilePath);
-        if (artifact) { // Can be null if the executor has not yet applied the respective rule.
-            internalProject->buildData->removeArtifactAndExclusiveDependents(artifact, logger,
-                    true, &removedArtifacts);
-        }
-        allRemovedArtifacts.unite(removedArtifacts);
-    }
-    EmptyDirectoriesRemover(product->topLevelProject(), logger)
-            .removeEmptyParentDirectories(allRemovedArtifacts);
-    qDeleteAll(allRemovedArtifacts);
-}
-
-static void updateLocationIfNecessary(CodeLocation &location, const CodeLocation &changeLocation,
-                                      int lineOffset)
-{
-    if (location.filePath() == changeLocation.filePath()
-            && location.line() >= changeLocation.line()) {
-        location = CodeLocation(location.filePath(), location.line() + lineOffset,
-                                location.column());
-    }
-}
-
-void ProjectPrivate::updateInternalCodeLocations(const ResolvedProjectPtr &project,
-        const CodeLocation &changeLocation, int lineOffset)
-{
-    if (lineOffset == 0)
-        return;
-    updateLocationIfNecessary(project->location, changeLocation, lineOffset);
-    for (const ResolvedProjectPtr &subProject : qAsConst(project->subProjects))
-        updateInternalCodeLocations(subProject, changeLocation, lineOffset);
-    for (const ResolvedProductPtr &product : project->products) {
-        updateLocationIfNecessary(product->location, changeLocation, lineOffset);
-        for (const GroupPtr &group : product->groups)
-            updateLocationIfNecessary(group->location, changeLocation, lineOffset);
-        for (const RulePtr &rule : qAsConst(product->rules)) {
-            updateLocationIfNecessary(rule->prepareScript.location(), changeLocation, lineOffset);
-            for (const RuleArtifactPtr &artifact : rule->artifacts) {
-                for (auto &binding : artifact->bindings) {
-                    updateLocationIfNecessary(binding.location, changeLocation, lineOffset);
-                }
-            }
-        }
-        for (const ResolvedScannerConstPtr &scanner : product->scanners) {
-            updateLocationIfNecessary(scanner->searchPathsScript.location(), changeLocation,
-                                      lineOffset);
-            updateLocationIfNecessary(scanner->scanScript.location(), changeLocation, lineOffset);
-        }
-        for (const auto &module : product->modules) {
-            updateLocationIfNecessary(module->setupBuildEnvironmentScript.location(),
-                                      changeLocation, lineOffset);
-            updateLocationIfNecessary(module->setupRunEnvironmentScript.location(),
-                                      changeLocation, lineOffset);
-        }
-    }
-}
-
-void ProjectPrivate::updateExternalCodeLocations(const ProjectData &project,
-        const CodeLocation &changeLocation, int lineOffset)
-{
-    if (lineOffset == 0)
-        return;
-    updateLocationIfNecessary(project.d->location, changeLocation, lineOffset);
-    const auto subProjects = project.subProjects();
-    for (const ProjectData &subProject : subProjects)
-        updateExternalCodeLocations(subProject, changeLocation, lineOffset);
-    const auto products = project.products();
-    for (const ProductData &product : products) {
-        updateLocationIfNecessary(product.d->location, changeLocation, lineOffset);
-        const auto groups = product.groups();
-        for (const GroupData &group : groups)
-            updateLocationIfNecessary(group.d->location, changeLocation, lineOffset);
-    }
-}
 
 void ProjectPrivate::prepareChangeToProject()
 {
@@ -1271,7 +1072,6 @@ ErrorInfo Project::addGroup(const ProductData &product, const QString &groupName
         QBS_CHECK(isValid());
         d->prepareChangeToProject();
         d->addGroup(product, groupName);
-        d->internalProject->lastStartResolveTime = FileTime::currentTime();
         d->internalProject->store(d->logger);
         return {};
     } catch (const ErrorInfo &exception) {
@@ -1299,7 +1099,6 @@ ErrorInfo Project::addFiles(const ProductData &product, const GroupData &group,
         QBS_CHECK(isValid());
         d->prepareChangeToProject();
         d->addFiles(product, group, filePaths);
-        d->internalProject->lastStartResolveTime = FileTime::currentTime();
         d->internalProject->store(d->logger);
         return {};
     } catch (const ErrorInfo &exception) {
@@ -1326,7 +1125,6 @@ ErrorInfo Project::removeFiles(const ProductData &product, const GroupData &grou
         QBS_CHECK(isValid());
         d->prepareChangeToProject();
         d->removeFiles(product, group, filePaths);
-        d->internalProject->lastStartResolveTime = FileTime::currentTime();
         d->internalProject->store(d->logger);
         return {};
     } catch (const ErrorInfo &exception) {
@@ -1348,7 +1146,6 @@ ErrorInfo Project::removeGroup(const ProductData &product, const GroupData &grou
         QBS_CHECK(isValid());
         d->prepareChangeToProject();
         d->removeGroup(product, group);
-        d->internalProject->lastStartResolveTime = FileTime::currentTime();
         d->internalProject->store(d->logger);
         return {};
     } catch (const ErrorInfo &exception) {

@@ -114,12 +114,7 @@ public:
     void removeFiles(const ProductData &product, const GroupData &group,
                      const QStringList &filePaths);
     void removeGroup(const ProductData &product, const GroupData &group);
-    void removeFilesFromBuildGraph(const ResolvedProductConstPtr &product,
-                                   const std::vector<SourceArtifactPtr> &files);
-    void updateInternalCodeLocations(const ResolvedProjectPtr &project,
-                                     const CodeLocation &changeLocation, int lineOffset);
-    void updateExternalCodeLocations(const ProjectData &project,
-                                     const CodeLocation &changeLocation, int lineOffset);
+
     void prepareChangeToProject();
 
     RuleCommandList ruleCommandListForTransformer(const Transformer *transformer);

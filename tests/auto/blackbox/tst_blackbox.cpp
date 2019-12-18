@@ -5511,8 +5511,8 @@ void TestBlackbox::qbsSession()
     // Wait for and verify hello packet.
     QJsonObject receivedMessage = getNextSessionPacket(sessionProc, incomingData);
     QCOMPARE(receivedMessage.value("type"), "hello");
-    QCOMPARE(receivedMessage.value("api-level").toInt(), 1);
-    QCOMPARE(receivedMessage.value("api-compat-level").toInt(), 1);
+    QCOMPARE(receivedMessage.value("api-level").toInt(), 2);
+    QCOMPARE(receivedMessage.value("api-compat-level").toInt(), 2);
 
     // Resolve & verify structure
     QJsonObject resolveMessage;
@@ -5840,34 +5840,51 @@ void TestBlackbox::qbsSession()
         qDebug() << error;
     }
     QVERIFY(error.isEmpty());
-    QJsonObject projectData = receivedMessage.value("project-data").toObject();
-    QJsonArray products = projectData.value("products").toArray();
-    bool file1 = false;
-    bool file2 = false;
-    for (const QJsonValue &v : products) {
-        const QJsonObject product = v.toObject();
-        const QString productName = product.value("full-display-name").toString();
-        const QJsonArray groups = product.value("groups").toArray();
-        for (const QJsonValue &v : groups) {
-            const QJsonObject group = v.toObject();
-            const QString groupName = group.value("name").toString();
-            const QJsonArray sourceArtifacts = group.value("source-artifacts").toArray();
-            for (const QJsonValue &v : sourceArtifacts) {
-                const QString filePath = v.toObject().value("file-path").toString();
-                if (filePath.endsWith("file1.cpp")) {
-                    QCOMPARE(productName, QString("theLib"));
-                    QCOMPARE(groupName, QString("sources"));
-                    file1 = true;
-                } else if (filePath.endsWith("file2.cpp")) {
-                    QCOMPARE(productName, QString("theLib"));
-                    QCOMPARE(groupName, QString("sources"));
-                    file2 = true;
+
+    receivedReply = false;
+    sendPacket(resolveMessage);
+    while (!receivedReply) {
+        receivedMessage = getNextSessionPacket(sessionProc, incomingData);
+        QVERIFY(!receivedMessage.isEmpty());
+        const QString msgType = receivedMessage.value("type").toString();
+        if (msgType == "project-resolved") {
+            receivedReply = true;
+            const QJsonObject error = receivedMessage.value("error").toObject();
+            if (!error.isEmpty())
+                qDebug() << error;
+            QVERIFY(error.isEmpty());
+            const QJsonObject projectData = receivedMessage.value("project-data").toObject();
+            QJsonArray products = projectData.value("products").toArray();
+            bool file1 = false;
+            bool file2 = false;
+            for (const QJsonValue &v : products) {
+                const QJsonObject product = v.toObject();
+                const QString productName = product.value("full-display-name").toString();
+                const QJsonArray groups = product.value("groups").toArray();
+                for (const QJsonValue &v : groups) {
+                    const QJsonObject group = v.toObject();
+                    const QString groupName = group.value("name").toString();
+                    const QJsonArray sourceArtifacts = group.value("source-artifacts").toArray();
+                    for (const QJsonValue &v : sourceArtifacts) {
+                        const QString filePath = v.toObject().value("file-path").toString();
+                        if (filePath.endsWith("file1.cpp")) {
+                            QCOMPARE(productName, QString("theLib"));
+                            QCOMPARE(groupName, QString("sources"));
+                            file1 = true;
+                        } else if (filePath.endsWith("file2.cpp")) {
+                            QCOMPARE(productName, QString("theLib"));
+                            QCOMPARE(groupName, QString("sources"));
+                            file2 = true;
+                        }
+                    }
                 }
             }
+            QVERIFY(file1);
+            QVERIFY(file2);
         }
     }
-    QVERIFY(file1);
-    QVERIFY(file2);
+    QVERIFY(receivedReply);
+
     receivedReply = false;
     receivedProcessResult = false;
     bool compiledFile1 = false;
@@ -5926,32 +5943,48 @@ void TestBlackbox::qbsSession()
     if (!error.isEmpty())
         qDebug() << error;
     QVERIFY(error.isEmpty());
-    projectData = receivedMessage.value("project-data").toObject();
-    products = projectData.value("products").toArray();
-    file1 = false;
-    file2 = false;
-    for (const QJsonValue &v : products) {
-        const QJsonObject product = v.toObject();
-        const QString productName = product.value("full-display-name").toString();
-        const QJsonArray groups = product.value("groups").toArray();
-        for (const QJsonValue &v : groups) {
-            const QJsonObject group = v.toObject();
-            const QString groupName = group.value("name").toString();
-            const QJsonArray sourceArtifacts = group.value("source-artifacts").toArray();
-            for (const QJsonValue &v : sourceArtifacts) {
-                const QString filePath = v.toObject().value("file-path").toString();
-                if (filePath.endsWith("file1.cpp")) {
-                    file1 = true;
-                } else if (filePath.endsWith("file2.cpp")) {
-                    QCOMPARE(productName, QString("theLib"));
-                    QCOMPARE(groupName, QString("sources"));
-                    file2 = true;
+    receivedReply = false;
+    sendPacket(resolveMessage);
+    while (!receivedReply) {
+        receivedMessage = getNextSessionPacket(sessionProc, incomingData);
+        QVERIFY(!receivedMessage.isEmpty());
+        const QString msgType = receivedMessage.value("type").toString();
+        if (msgType == "project-resolved") {
+            receivedReply = true;
+            const QJsonObject error = receivedMessage.value("error").toObject();
+            if (!error.isEmpty())
+                qDebug() << error;
+            QVERIFY(error.isEmpty());
+            const QJsonObject projectData = receivedMessage.value("project-data").toObject();
+            QJsonArray products = projectData.value("products").toArray();
+            bool file1 = false;
+            bool file2 = false;
+            for (const QJsonValue &v : products) {
+                const QJsonObject product = v.toObject();
+                const QString productName = product.value("full-display-name").toString();
+                const QJsonArray groups = product.value("groups").toArray();
+                for (const QJsonValue &v : groups) {
+                    const QJsonObject group = v.toObject();
+                    const QString groupName = group.value("name").toString();
+                    const QJsonArray sourceArtifacts = group.value("source-artifacts").toArray();
+                    for (const QJsonValue &v : sourceArtifacts) {
+                        const QString filePath = v.toObject().value("file-path").toString();
+                        if (filePath.endsWith("file1.cpp")) {
+                            file1 = true;
+                        } else if (filePath.endsWith("file2.cpp")) {
+                            QCOMPARE(productName, QString("theLib"));
+                            QCOMPARE(groupName, QString("sources"));
+                            file2 = true;
+                        }
+                    }
                 }
             }
+            QVERIFY(!file1);
+            QVERIFY(file2);
         }
     }
-    QVERIFY(!file1);
-    QVERIFY(file2);
+    QVERIFY(receivedReply);
+
     receivedReply = false;
     receivedProcessResult = false;
     compiledFile1 = false;
