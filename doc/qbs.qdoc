@@ -592,7 +592,7 @@
             is required to build against the \QBS libraries.
     \row
         \li enableBundledQt
-        \li \c true
+        \li \c false
         \li Holds whether the Qt libraries that \QBS depends on will be bundled with \QBS during
             the \c install step. This option is only implemented on macOS.
     \row
