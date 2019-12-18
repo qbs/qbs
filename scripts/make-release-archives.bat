@@ -68,6 +68,7 @@ subst Q: "%CD%" && Q:
 qbs build --settings-dir "%builddir%\.settings"^
  -f qbs.qbs -d "%builddir%\build"^
  -p dist qbs.buildVariant:release project.withDocumentation:false "products.qbs archive.includeTopLevelDir:true"^
+ modules.qbsbuildconfig.enableBundledQt:true^
  config:release "qbs.installRoot:%builddir%\qbs-windows-x86-%version%" profile:qt^
  config:release-64 "qbs.installRoot:%builddir%\qbs-windows-x86_64-%version%" profile:qt64 || exit /b
 
