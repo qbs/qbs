@@ -1459,7 +1459,7 @@ void ProjectResolver::matchArtifactProperties(const ResolvedProductPtr &product,
         const std::vector<SourceArtifactPtr> &artifacts)
 {
     for (const SourceArtifactPtr &artifact : artifacts) {
-        for (const ArtifactPropertiesConstPtr &artifactProperties : product->artifactProperties) {
+        for (const auto &artifactProperties : product->artifactProperties) {
             if (!artifact->isTargetOfModule()
                     && artifact->fileTags.intersects(artifactProperties->fileTagsFilter())) {
                 artifact->properties = artifactProperties->propertyMap();

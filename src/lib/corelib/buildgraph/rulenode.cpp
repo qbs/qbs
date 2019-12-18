@@ -258,7 +258,7 @@ ArtifactSet RuleNode::currentInputArtifacts() const
         }
     }
 
-    for (const ResolvedProductConstPtr &dep : qAsConst(product->dependencies)) {
+    for (const auto &dep : qAsConst(product->dependencies)) {
         if (!dep->buildData)
             continue;
         for (Artifact * const a : filterByType<Artifact>(dep->buildData->allNodes())) {

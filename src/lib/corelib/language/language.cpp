@@ -276,7 +276,7 @@ QString Rule::toString() const
 FileTags Rule::staticOutputFileTags() const
 {
     FileTags result;
-    for (const RuleArtifactConstPtr &artifact : artifacts)
+    for (const auto &artifact : artifacts)
         result.unite(artifact->fileTags);
     return result;
 }
@@ -323,7 +323,7 @@ void ResolvedProduct::accept(BuildGraphVisitor *visitor) const
 std::vector<SourceArtifactPtr> ResolvedProduct::allFiles() const
 {
     std::vector<SourceArtifactPtr> lst;
-    for (const GroupConstPtr &group : groups)
+    for (const auto &group : groups)
         lst << group->allFiles();
     return lst;
 }
@@ -335,7 +335,7 @@ std::vector<SourceArtifactPtr> ResolvedProduct::allFiles() const
 std::vector<SourceArtifactPtr> ResolvedProduct::allEnabledFiles() const
 {
     std::vector<SourceArtifactPtr> lst;
-    for (const GroupConstPtr &group : groups) {
+    for (const auto &group : groups) {
         if (group->enabled)
             lst << group->allFiles();
     }
@@ -541,7 +541,7 @@ TopLevelProject *ResolvedProject::topLevelProject()
 std::vector<ResolvedProjectPtr> ResolvedProject::allSubProjects() const
 {
     std::vector<ResolvedProjectPtr> projectList = subProjects;
-    for (const ResolvedProjectConstPtr &subProject : subProjects)
+    for (const auto &subProject : subProjects)
         projectList << subProject->allSubProjects();
     return projectList;
 }
@@ -549,7 +549,7 @@ std::vector<ResolvedProjectPtr> ResolvedProject::allSubProjects() const
 std::vector<ResolvedProductPtr> ResolvedProject::allProducts() const
 {
     std::vector<ResolvedProductPtr> productList = products;
-    for (const ResolvedProjectConstPtr &subProject : qAsConst(subProjects))
+    for (const auto &subProject : qAsConst(subProjects))
         productList << subProject->allProducts();
     return productList;
 }

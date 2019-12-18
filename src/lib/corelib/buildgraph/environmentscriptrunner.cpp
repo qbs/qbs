@@ -129,12 +129,12 @@ void EnvironmentScriptRunner::setupEnvironment()
         return;
 
     QMap<QString, const ResolvedModule *> moduleMap;
-    for (const ResolvedModuleConstPtr &module : m_product->modules)
+    for (const auto &module : m_product->modules)
         moduleMap.insert(module->name, module.get());
 
     QHash<const ResolvedModule*, QList<const ResolvedModule*> > moduleParents;
     QHash<const ResolvedModule*, QList<const ResolvedModule*> > moduleChildren;
-    for (const ResolvedModuleConstPtr &module : m_product->modules) {
+    for (const auto &module : m_product->modules) {
         for (const QString &moduleName : qAsConst(module->moduleDependencies)) {
             const ResolvedModule * const depmod = moduleMap.value(moduleName);
             QBS_ASSERT(depmod, return);
@@ -144,7 +144,7 @@ void EnvironmentScriptRunner::setupEnvironment()
     }
 
     QList<const ResolvedModule *> rootModules;
-    for (const ResolvedModuleConstPtr &module : m_product->modules) {
+    for (const auto &module : m_product->modules) {
         if (moduleParents.value(module.get()).isEmpty()) {
             QBS_ASSERT(module, return);
             rootModules.push_back(module.get());

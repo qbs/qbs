@@ -278,7 +278,7 @@ private:
             }
             return result;
         }
-        for (const ResolvedModuleConstPtr &dependency : product->modules) {
+        for (const auto &dependency : product->modules) {
             if (dependency->isProduct)
                 continue;
             QScriptValue obj = engine->newObject(engine->modulePropertyScriptClass());
@@ -661,7 +661,7 @@ void provideFullFileTagsAndProperties(Artifact *artifact)
     artifact->properties = artifact->product->moduleProperties;
     FileTags allTags = artifact->pureFileTags.empty()
             ? artifact->product->fileTagsForFileName(artifact->fileName()) : artifact->pureFileTags;
-    for (const ArtifactPropertiesConstPtr &props : artifact->product->artifactProperties) {
+    for (const auto &props : artifact->product->artifactProperties) {
         if (allTags.intersects(props->fileTagsFilter())) {
             artifact->properties = props->propertyMap();
             allTags += props->extraFileTags();
@@ -733,7 +733,7 @@ static void doSanityChecksForProduct(const ResolvedProductConstPtr &product,
     CycleDetector cycleDetector(logger);
     cycleDetector.visitProduct(product);
     const ProductBuildData * const buildData = product->buildData.get();
-    for (const ResolvedModuleConstPtr &m : product->modules)
+    for (const auto &m : product->modules)
         QBS_CHECK(m->product == product.get());
     qCDebug(lcBuildGraph) << "enabled:" << product->enabled << "build data:" << buildData;
     if (product->enabled)
@@ -836,7 +836,7 @@ static void doSanityChecks(const ResolvedProjectPtr &project,
     for (const ResolvedProjectPtr &subProject : qAsConst(project->subProjects))
         doSanityChecks(subProject, allProducts, productNames, logger);
 
-    for (const ResolvedProductConstPtr &product : project->products) {
+    for (const auto &product : project->products) {
         QBS_CHECK(product->project == project);
         QBS_CHECK(product->topLevelProject() == project->topLevelProject());
         doSanityChecksForProduct(product, allProducts, logger);

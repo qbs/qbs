@@ -61,7 +61,7 @@ void ArtifactVisitor::visitProduct(const ResolvedProductConstPtr &product)
 
 void ArtifactVisitor::visitProject(const ResolvedProjectConstPtr &project)
 {
-    for (const ResolvedProductConstPtr &product : project->allProducts())
+    for (const auto &product : project->allProducts())
         visitProduct(product);
 }
 

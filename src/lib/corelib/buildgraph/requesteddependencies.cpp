@@ -48,9 +48,9 @@ namespace Internal {
 static Set<QString> depNamesForProduct(const ResolvedProduct *p)
 {
     Set<QString> names;
-    for (const ResolvedProductConstPtr &dep : p->dependencies)
+    for (const auto &dep : p->dependencies)
         names.insert(dep->uniqueName());
-    for (const ResolvedModuleConstPtr &m : p->modules) {
+    for (const auto &m : p->modules) {
         if (!m->isProduct)
             names.insert(m->name);
     }
@@ -73,7 +73,7 @@ bool RequestedDependencies::isUpToDate(const TopLevelProject *project) const
 {
     if (m_depsPerProduct.empty())
         return true;
-    for (const ResolvedProductConstPtr &product : project->allProducts()) {
+    for (const auto &product : project->allProducts()) {
         const auto it = m_depsPerProduct.find(product->uniqueName());
         if (it == m_depsPerProduct.cend())
             continue;

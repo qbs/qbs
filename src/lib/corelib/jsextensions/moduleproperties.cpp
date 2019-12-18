@@ -195,7 +195,7 @@ static QScriptValue js_moduleDependencies(QScriptContext *, ScriptEngine *engine
     QScriptValue result = engine->newArray();
     quint32 idx = 0;
     for (const QString &depName : qAsConst(module->moduleDependencies)) {
-        for (const ResolvedModuleConstPtr &dep : module->product->modules) {
+        for (const auto &dep : module->product->modules) {
             if (dep->name != depName)
                 continue;
             QScriptValue obj = engine->newObject(engine->modulePropertyScriptClass());

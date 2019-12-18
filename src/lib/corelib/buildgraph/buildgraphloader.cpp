@@ -274,7 +274,7 @@ static void updateProductAndRulePointers(const ResolvedProductPtr &newProduct)
             const auto it = ruleMap.find(oldRule);
             if (it != ruleMap.cend())
                 return it->second;
-            for (const RuleConstPtr &r : qAsConst(newProduct->rules)) {
+            for (const auto &r : qAsConst(newProduct->rules)) {
                 if (*r == *oldRule) {
                     ruleMap.insert(std::make_pair(oldRule, r));
                     return r;
@@ -363,7 +363,7 @@ void BuildGraphLoader::trackProjectChanges()
     ChildListHash childLists;
     if (!changedProducts.empty()) {
         oldBuildData = std::make_shared<ProjectBuildData>(restoredProject->buildData.get());
-        for (const ResolvedProductConstPtr &product : qAsConst(allRestoredProducts)) {
+        for (const auto &product : qAsConst(allRestoredProducts)) {
             if (!product->buildData)
                 continue;
 
@@ -452,7 +452,7 @@ void BuildGraphLoader::trackProjectChanges()
         updateGeneratedArtifacts(product.get());
     }
 
-    for (const ResolvedProductConstPtr &changedProduct : qAsConst(changedProducts)) {
+    for (const auto &changedProduct : qAsConst(changedProducts)) {
         rescueOldBuildData(changedProduct,
                            m_freshProductsByName.value(changedProduct->uniqueName()),
                            childLists, rescuableArtifactData.value(changedProduct->uniqueName()));
@@ -615,7 +615,7 @@ bool BuildGraphLoader::hasProductFileChanged(const std::vector<ResolvedProductPt
                         FileInfo::path(group->location.filePath()),
                         product->topLevelProject()->buildDirectory);
                 Set<QString> wcFiles;
-                for (const SourceArtifactConstPtr &sourceArtifact : group->wildcards->files)
+                for (const auto &sourceArtifact : group->wildcards->files)
                     wcFiles += sourceArtifact->absoluteFilePath;
                 if (files == wcFiles)
                     continue;
@@ -742,9 +742,9 @@ static bool dependenciesAreEqual(const ResolvedProductConstPtr &p1,
         return false;
     Set<QString> names1;
     Set<QString> names2;
-    for (const ResolvedProductConstPtr &dep : qAsConst(p1->dependencies))
+    for (const auto &dep : qAsConst(p1->dependencies))
         names1 << dep->uniqueName();
-    for (const ResolvedProductConstPtr &dep : qAsConst(p2->dependencies))
+    for (const auto &dep : qAsConst(p2->dependencies))
         names2 << dep->uniqueName();
     return names1 == names2;
 }

@@ -214,7 +214,7 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
                     ScriptEngine::argumentList(Rule::argumentNamesForOutputArtifacts(), scope()));
     } else {
         Set<QString> outputFilePaths;
-        for (const RuleArtifactConstPtr &ruleArtifact : m_rule->artifacts) {
+        for (const auto &ruleArtifact : m_rule->artifacts) {
             const OutputArtifactInfo outputInfo = createOutputArtifactFromRuleArtifact(
                         ruleArtifact, inputArtifacts, &outputFilePaths);
             if (!outputInfo.artifact)
@@ -355,7 +355,7 @@ ArtifactSet RulesApplicator::collectAdditionalInputs(const FileTags &tags, const
         }
 
         if (inputsSources.testFlag(Dependencies)) {
-            for (const ResolvedProductConstPtr &depProduct : product->dependencies) {
+            for (const auto &depProduct : product->dependencies) {
                 for (Artifact * const ta : depProduct->targetArtifacts()) {
                     if (ta->fileTags().contains(fileTag)
                             && !ta->fileTags().intersects(rule->excludedInputs)) {

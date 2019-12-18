@@ -413,7 +413,7 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
     artifactsPerFileTag["qbs"].insert(qbsFileArtifact);
 
     // read sources
-    for (const SourceArtifactConstPtr &sourceArtifact : product->allEnabledFiles()) {
+    for (const auto &sourceArtifact : product->allEnabledFiles()) {
         QString filePath = sourceArtifact->absoluteFilePath;
         if (lookupArtifact(product, filePath))
             continue; // ignore duplicate artifacts
@@ -445,7 +445,7 @@ void BuildDataResolver::connectRulesToDependencies(const ResolvedProductPtr &pro
     std::vector<RuleNode *> ruleNodes;
     for (RuleNode *ruleNode : filterByType<RuleNode>(product->buildData->allNodes()))
         ruleNodes.push_back(ruleNode);
-    for (const ResolvedProductConstPtr &dep : dependencies) {
+    for (const auto &dep : dependencies) {
         if (!dep->buildData)
             continue;
         for (RuleNode *depRuleNode : filterByType<RuleNode>(dep->buildData->allNodes())) {

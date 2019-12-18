@@ -96,7 +96,7 @@ void ProductInstaller::install()
         removeInstallRoot();
 
     QList<const Artifact *> artifactsToInstall;
-    for (const ResolvedProductConstPtr &product : qAsConst(m_products)) {
+    for (const auto &product : qAsConst(m_products)) {
         QBS_CHECK(product->buildData);
         for (const Artifact *artifact : filterByType<Artifact>(product->buildData->allNodes())) {
             if (artifact->properties->qbsPropertyValue(StringConstants::installProperty()).toBool())

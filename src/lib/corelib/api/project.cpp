@@ -195,7 +195,7 @@ static QList<ResolvedProductPtr> enabledInternalProducts(const ResolvedProjectCo
         if (p->enabled && (includingNonDefault || p->builtByDefault()))
             products.push_back(p);
     }
-    for (const ResolvedProjectConstPtr &subProject : qAsConst(project->subProjects))
+    for (const auto &subProject : qAsConst(project->subProjects))
         products << enabledInternalProducts(subProject, includingNonDefault);
     return products;
 }
@@ -218,7 +218,7 @@ static ResolvedProductPtr internalProductForProject(const ResolvedProjectConstPt
         if (matches(product, resolvedProduct))
             return resolvedProduct;
     }
-    for (const ResolvedProjectConstPtr &subProject : qAsConst(project->subProjects)) {
+    for (const auto &subProject : qAsConst(project->subProjects)) {
         const ResolvedProductPtr &p = internalProductForProject(subProject, product);
         if (p)
             return p;
@@ -272,13 +272,13 @@ GroupData ProjectPrivate::createGroupDataFromGroup(const GroupPtr &resolvedGroup
     group.d->name = resolvedGroup->name;
     group.d->prefix = resolvedGroup->prefix;
     group.d->location = resolvedGroup->location;
-    for (const SourceArtifactConstPtr &sa : resolvedGroup->files) {
+    for (const auto &sa : resolvedGroup->files) {
         ArtifactData artifact = createApiSourceArtifact(sa);
         setupInstallData(artifact, product);
         group.d->sourceArtifacts.push_back(artifact);
     }
     if (resolvedGroup->wildcards) {
-        for (const SourceArtifactConstPtr &sa : resolvedGroup->wildcards->files) {
+        for (const auto &sa : resolvedGroup->wildcards->files) {
             ArtifactData artifact = createApiSourceArtifact(sa);
             setupInstallData(artifact, product);
             group.d->sourceArtifactsFromWildcards.push_back(artifact);
@@ -503,7 +503,7 @@ void ProjectPrivate::addFiles(const ProductData &product, const GroupData &group
     // due to conditions.
     for (const GroupPtr &group : qAsConst(groupContext.resolvedGroups)) {
         for (const QString &filePath : qAsConst(filesContext.absoluteFilePaths)) {
-            for (const SourceArtifactConstPtr &sa : group->files) {
+            for (const auto &sa : group->files) {
                 if (sa->absoluteFilePath == filePath) {
                     throw ErrorInfo(Tr::tr("File '%1' already exists in group '%2'.")
                                     .arg(filePath, group->name));
@@ -696,7 +696,7 @@ void ProjectPrivate::updateInternalCodeLocations(const ResolvedProjectPtr &proje
                                       lineOffset);
             updateLocationIfNecessary(scanner->scanScript.location(), changeLocation, lineOffset);
         }
-        for (const ResolvedModuleConstPtr &module : product->modules) {
+        for (const auto &module : product->modules) {
             updateLocationIfNecessary(module->setupBuildEnvironmentScript.location(),
                                       changeLocation, lineOffset);
             updateLocationIfNecessary(module->setupRunEnvironmentScript.location(),
@@ -851,7 +851,7 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
     projectData.d->name = internalProject->name;
     projectData.d->location = internalProject->location;
     projectData.d->enabled = internalProject->enabled;
-    for (const ResolvedProductConstPtr &resolvedProduct : internalProject->products) {
+    for (const auto &resolvedProduct : internalProject->products) {
         ProductData product;
         product.d->type = resolvedProduct->fileTags.toStringList();
         product.d->name = resolvedProduct->name;
@@ -904,8 +904,7 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
         product.d->isValid = true;
         projectData.d->products << product;
     }
-    for (const ResolvedProjectConstPtr &internalSubProject
-         : qAsConst(internalProject->subProjects)) {
+    for (const auto &internalSubProject : qAsConst(internalProject->subProjects)) {
         if (!internalSubProject->enabled)
             continue;
         ProjectData subProject;
@@ -1218,7 +1217,7 @@ Project::BuildGraphInfo Project::getBuildGraphInfo(const QString &bgFilePath,
             const QString propName = components.takeLast();
             props.emplace_back(components.join(QLatin1Char('.')), propName);
         }
-        for (const ResolvedProductConstPtr &product : project->allProducts()) {
+        for (const auto &product : project->allProducts()) {
             if (props.empty())
                 break;
             if (product->profile() != project->profile())

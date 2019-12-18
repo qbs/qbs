@@ -700,7 +700,7 @@ bool Executor::transformerHasMatchingInputFiles(const TransformerConstPtr &trans
 void Executor::setupJobLimits()
 {
     Settings settings(m_buildOptions.settingsDirectory());
-    for (const ResolvedProductConstPtr &p : m_productsToBuild) {
+    for (const auto &p : m_productsToBuild) {
         const Preferences prefs(&settings, p->profile());
         const JobLimits &jobLimitsFromSettings = prefs.jobLimits();
         JobLimits effectiveJobLimits;
@@ -737,7 +737,7 @@ void Executor::setupProgressObserver()
     if (!m_progressObserver)
         return;
     int totalEffort = 1; // For the effort after the last rule application;
-    for (const ResolvedProductConstPtr &product : qAsConst(m_productsToBuild)) {
+    for (const auto &product : qAsConst(m_productsToBuild)) {
         QBS_CHECK(product->buildData);
         const auto filtered = filterByType<RuleNode>(product->buildData->allNodes());
         totalEffort += std::distance(filtered.begin(), filtered.end());
@@ -749,7 +749,7 @@ void Executor::doSanityChecks()
 {
     QBS_CHECK(m_project);
     QBS_CHECK(!m_productsToBuild.empty());
-    for (const ResolvedProductConstPtr &product : qAsConst(m_productsToBuild)) {
+    for (const auto &product : qAsConst(m_productsToBuild)) {
         QBS_CHECK(product->buildData);
         QBS_CHECK(product->topLevelProject() == m_project.get());
     }
@@ -1228,7 +1228,7 @@ void Executor::syncFileDependencies()
                                    "removing from lookup table";
         m_project->buildData->removeFromLookupTable(dep);
         bool isReferencedByArtifact = false;
-        for (const ResolvedProductConstPtr &product : m_allProducts) {
+        for (const auto &product : m_allProducts) {
             if (!product->buildData)
                 continue;
             const auto artifactList = filterByType<Artifact>(product->buildData->allNodes());
