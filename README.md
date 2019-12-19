@@ -29,3 +29,8 @@ For information about building Qbs from sources, see
 ## Reporting Bugs
 
 Please report any bugs in our [bug tracker](https://bugreports.qt.io/browse/QBS).
+
+## Contributing
+
+See [Contributing to Qbs](CONTRIBUTING.md)
+

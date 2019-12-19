@@ -18,6 +18,7 @@ Project {
 
         files: [
             "../README.md",
+            "../CONTRIBUTING.md",
             "classic.css",
             "external-resources.qdoc",
             "fixnavi.pl",
