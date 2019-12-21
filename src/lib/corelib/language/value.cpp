@@ -196,7 +196,7 @@ VariantValuePtr VariantValue::create(const QVariant &v)
 
 ValuePtr VariantValue::clone() const
 {
-    return VariantValuePtr(new VariantValue(*this));
+    return std::make_shared<VariantValue>(*this);
 }
 
 const VariantValuePtr &VariantValue::falseValue()

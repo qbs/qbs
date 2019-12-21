@@ -266,8 +266,7 @@ void Executor::doBuild()
 
     doSanityChecks();
     QBS_CHECK(!m_project->buildData->evaluationContext);
-    m_project->buildData->evaluationContext
-            = RulesEvaluationContextPtr(new RulesEvaluationContext(m_logger));
+    m_project->buildData->evaluationContext = std::make_shared<RulesEvaluationContext>(m_logger);
     m_evalContext = m_project->buildData->evaluationContext;
 
     m_elapsedTimeRules = m_elapsedTimeScanners = m_elapsedTimeInstalling = 0;
