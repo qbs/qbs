@@ -53,13 +53,19 @@ namespace gen {
 class QBS_EXPORT VersionInfo
 {
 public:
-    VersionInfo(const Version &version, utils::ArchitectureFlags archs);
+    VersionInfo(const Version &version, utils::ArchitectureFlags archs)
+        : m_version(version), m_archs(archs)
+    {
+    }
 
-    bool operator<(const VersionInfo &other) const;
-    bool operator==(const VersionInfo &other) const;
+    bool operator<(const VersionInfo &other) const { return m_version < other.m_version; }
+    bool operator==(const VersionInfo &other) const
+    {
+        return m_version == other.m_version && m_archs == other.m_archs;
+    }
 
-    Version version() const;
-    bool containsArchitecture(utils::Architecture arch) const;
+    Version version() const { return m_version; }
+    bool containsArchitecture(utils::Architecture arch) const { return m_archs & arch; }
 
     int marketingVersion() const;
 
@@ -68,7 +74,10 @@ private:
     utils::ArchitectureFlags m_archs;
 };
 
-quint32 qHash(const VersionInfo &info);
+inline quint32 qHash(const VersionInfo &info)
+{
+    return qHash(info.version().toString());
+}
 
 } // namespace gen
 } // namespace qbs
