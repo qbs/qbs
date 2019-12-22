@@ -767,9 +767,10 @@ void Executor::handleError(const ErrorInfo &error)
 
 void Executor::addExecutorJobs()
 {
-    qCDebug(lcExec) << "preparing executor for" << m_buildOptions.maxJobCount()
-                    << "jobs in parallel";
-    for (int i = 1; i <= m_buildOptions.maxJobCount(); i++) {
+    const int count = m_buildOptions.maxJobCount();
+    qCDebug(lcExec) << "preparing executor for" << count << "jobs in parallel";
+    m_availableJobs.reserve(count);
+    for (int i = 1; i <= count; i++) {
         const auto job = new ExecutorJob(m_logger, this);
         job->setMainThreadScriptEngine(m_evalContext->engine());
         job->setObjectName(QStringLiteral("J%1").arg(i));
