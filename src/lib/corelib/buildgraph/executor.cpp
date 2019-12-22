@@ -153,7 +153,7 @@ void Executor::retrieveSourceFileTimestamp(Artifact *artifact) const
 void Executor::build()
 {
     try {
-        m_partialBuild = m_productsToBuild.size() != m_allProducts.size();
+        m_partialBuild = size_t(m_productsToBuild.size()) != m_allProducts.size();
         doBuild();
     } catch (const ErrorInfo &e) {
         handleError(e);
@@ -170,7 +170,7 @@ void Executor::setProject(const TopLevelProjectPtr &project)
         m_projectsByName.insert(std::make_pair(p->name, p.get()));
 }
 
-void Executor::setProducts(const std::vector<ResolvedProductPtr> &productsToBuild)
+void Executor::setProducts(const QVector<ResolvedProductPtr> &productsToBuild)
 {
     m_productsToBuild = productsToBuild;
     m_productsByName.clear();
@@ -699,7 +699,7 @@ bool Executor::transformerHasMatchingInputFiles(const TransformerConstPtr &trans
 void Executor::setupJobLimits()
 {
     Settings settings(m_buildOptions.settingsDirectory());
-    for (const auto &p : m_productsToBuild) {
+    for (const auto &p : qAsConst(m_productsToBuild)) {
         const Preferences prefs(&settings, p->profile());
         const JobLimits &jobLimitsFromSettings = prefs.jobLimits();
         JobLimits effectiveJobLimits;
@@ -1084,7 +1084,7 @@ void Executor::checkForUnbuiltProducts()
     if (m_buildOptions.executeRulesOnly())
         return;
     std::vector<ResolvedProductPtr> unbuiltProducts;
-    for (const ResolvedProductPtr &product : m_productsToBuild) {
+    for (const ResolvedProductPtr &product : qAsConst(m_productsToBuild)) {
         bool productBuilt = true;
         for (BuildGraphNode *rootNode : qAsConst(product->buildData->rootNodes())) {
             if (rootNode->buildState != BuildGraphNode::Built) {
@@ -1206,7 +1206,7 @@ void Executor::prepareAllNodes()
                 node->buildState = BuildGraphNode::Untouched;
         }
     }
-    for (const ResolvedProductPtr &product : m_productsToBuild) {
+    for (const ResolvedProductPtr &product : qAsConst(m_productsToBuild)) {
         QBS_CHECK(product->buildData);
         for (Artifact * const artifact : filterByType<Artifact>(product->buildData->allNodes()))
             prepareArtifact(artifact);
@@ -1310,7 +1310,7 @@ void Executor::prepareProducts()
 {
     ProductPrioritySetter prioritySetter(m_allProducts);
     prioritySetter.apply();
-    for (const ResolvedProductPtr &product : m_productsToBuild) {
+    for (const ResolvedProductPtr &product : qAsConst(m_productsToBuild)) {
         EnvironmentScriptRunner(product.get(), m_evalContext.get(), m_project->environment)
                 .setupForBuild();
     }
@@ -1319,7 +1319,7 @@ void Executor::prepareProducts()
 void Executor::setupRootNodes()
 {
     m_roots.clear();
-    for (const ResolvedProductPtr &product : m_productsToBuild)
+    for (const ResolvedProductPtr &product : qAsConst(m_productsToBuild))
         m_roots += product->buildData->rootNodes();
 }
 

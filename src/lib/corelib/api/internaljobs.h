@@ -213,14 +213,14 @@ public:
     InternalInstallJob(const Logger &logger);
     ~InternalInstallJob() override;
 
-    void init(const TopLevelProjectPtr &project, const std::vector<ResolvedProductPtr> &products,
+    void init(const TopLevelProjectPtr &project, const QVector<ResolvedProductPtr> &products,
             const InstallOptions &options);
 
 private:
     void start() override;
 
     TopLevelProjectPtr m_project;
-    std::vector<ResolvedProductPtr> m_products;
+    QVector<ResolvedProductPtr> m_products;
     InstallOptions m_options;
 };
 
