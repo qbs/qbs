@@ -57,7 +57,7 @@ class NodeTreeDumper : public BuildGraphVisitor
 public:
     NodeTreeDumper(QIODevice &outDevice);
 
-    void start(const QList<ResolvedProductPtr> &products);
+    void start(const QVector<ResolvedProductPtr> &products);
 
 private:
     bool visit(Artifact *artifact) override;

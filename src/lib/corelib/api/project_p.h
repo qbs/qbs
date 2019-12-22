@@ -68,16 +68,16 @@ public:
     }
 
     ProjectData projectData();
-    BuildJob *buildProducts(const QList<ResolvedProductPtr> &products, const BuildOptions &options,
+    BuildJob *buildProducts(const QVector<ResolvedProductPtr> &products, const BuildOptions &options,
                             bool needsDepencencyResolving,
                             QObject *jobOwner);
-    CleanJob *cleanProducts(const QList<ResolvedProductPtr> &products, const CleanOptions &options,
+    CleanJob *cleanProducts(const QVector<ResolvedProductPtr> &products, const CleanOptions &options,
                             QObject *jobOwner);
-    InstallJob *installProducts(const QList<ResolvedProductPtr> &products,
+    InstallJob *installProducts(const QVector<ResolvedProductPtr> &products,
                                 const InstallOptions &options, bool needsDepencencyResolving,
                                 QObject *jobOwner);
-    QList<ResolvedProductPtr> internalProducts(const QList<ProductData> &products) const;
-    QList<ResolvedProductPtr> allEnabledInternalProducts(bool includingNonDefault) const;
+    QVector<ResolvedProductPtr> internalProducts(const QList<ProductData> &products) const;
+    QVector<ResolvedProductPtr> allEnabledInternalProducts(bool includingNonDefault) const;
     ResolvedProductPtr internalProduct(const ProductData &product) const;
     ProductData findProductData(const ProductData &product) const;
     QList<ProductData> findProductsByName(const QString &name) const;
@@ -92,7 +92,7 @@ public:
     void setupInstallData(ArtifactData &artifact, const ResolvedProductConstPtr &product);
 
     struct GroupUpdateContext {
-        QList<ResolvedProductPtr> resolvedProducts;
+        QVector<ResolvedProductPtr> resolvedProducts;
         QList<GroupPtr> resolvedGroups;
         QList<ProductData> products;
         QList<GroupData> groups;

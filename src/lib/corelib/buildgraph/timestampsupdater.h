@@ -51,7 +51,7 @@ class TimestampsUpdater
 {
 public:
     void updateTimestamps(const TopLevelProjectPtr &project,
-                          const QList<ResolvedProductPtr> &products, const Logger &logger);
+                          const QVector<ResolvedProductPtr> &products, const Logger &logger);
 };
 
 } // namespace Internal

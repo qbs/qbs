@@ -309,7 +309,7 @@ BuildJob::BuildJob(const Logger &logger, QObject *parent)
             this, &BuildJob::reportProcessResult);
 }
 
-void BuildJob::build(const TopLevelProjectPtr &project, const QList<ResolvedProductPtr> &products,
+void BuildJob::build(const TopLevelProjectPtr &project, const QVector<ResolvedProductPtr> &products,
                      const BuildOptions &options)
 {
     if (!lockProject(project))
@@ -340,7 +340,7 @@ CleanJob::CleanJob(const Logger &logger, QObject *parent)
 {
 }
 
-void CleanJob::clean(const TopLevelProjectPtr &project, const QList<ResolvedProductPtr> &products,
+void CleanJob::clean(const TopLevelProjectPtr &project, const QVector<ResolvedProductPtr> &products,
                      const qbs::CleanOptions &options)
 {
     if (!lockProject(project))
@@ -361,7 +361,8 @@ InstallJob::InstallJob(const Logger &logger, QObject *parent)
 }
 
 void InstallJob::install(const TopLevelProjectPtr &project,
-                         const QList<ResolvedProductPtr> &products, const InstallOptions &options)
+                         const QVector<ResolvedProductPtr> &products,
+                         const InstallOptions &options)
 {
     if (!lockProject(project))
         return;

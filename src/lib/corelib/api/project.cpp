@@ -131,7 +131,7 @@ ProjectData ProjectPrivate::projectData()
     return m_projectData;
 }
 
-static void addDependencies(QList<ResolvedProductPtr> &products)
+static void addDependencies(QVector<ResolvedProductPtr> &products)
 {
     for (int i = 0; i < products.size(); ++i) {
         const ResolvedProductPtr &product = products.at(i);
@@ -142,11 +142,11 @@ static void addDependencies(QList<ResolvedProductPtr> &products)
     }
 }
 
-BuildJob *ProjectPrivate::buildProducts(const QList<ResolvedProductPtr> &products,
+BuildJob *ProjectPrivate::buildProducts(const QVector<ResolvedProductPtr> &products,
                                         const BuildOptions &options, bool needsDepencencyResolving,
                                         QObject *jobOwner)
 {
-    QList<ResolvedProductPtr> productsToBuild = products;
+    QVector<ResolvedProductPtr> productsToBuild = products;
     if (needsDepencencyResolving)
         addDependencies(productsToBuild);
 
@@ -156,7 +156,7 @@ BuildJob *ProjectPrivate::buildProducts(const QList<ResolvedProductPtr> &product
     return job;
 }
 
-CleanJob *ProjectPrivate::cleanProducts(const QList<ResolvedProductPtr> &products,
+CleanJob *ProjectPrivate::cleanProducts(const QVector<ResolvedProductPtr> &products,
         const CleanOptions &options, QObject *jobOwner)
 {
     const auto job = new CleanJob(logger, jobOwner);
@@ -165,10 +165,10 @@ CleanJob *ProjectPrivate::cleanProducts(const QList<ResolvedProductPtr> &product
     return job;
 }
 
-InstallJob *ProjectPrivate::installProducts(const QList<ResolvedProductPtr> &products,
+InstallJob *ProjectPrivate::installProducts(const QVector<ResolvedProductPtr> &products,
         const InstallOptions &options, bool needsDepencencyResolving, QObject *jobOwner)
 {
-    QList<ResolvedProductPtr> productsToInstall = products;
+    QVector<ResolvedProductPtr> productsToInstall = products;
     if (needsDepencencyResolving)
         addDependencies(productsToInstall);
     const auto job = new InstallJob(logger, jobOwner);
@@ -177,9 +177,9 @@ InstallJob *ProjectPrivate::installProducts(const QList<ResolvedProductPtr> &pro
     return job;
 }
 
-QList<ResolvedProductPtr> ProjectPrivate::internalProducts(const QList<ProductData> &products) const
+QVector<ResolvedProductPtr> ProjectPrivate::internalProducts(const QList<ProductData> &products) const
 {
-    QList<ResolvedProductPtr> internalProducts;
+    QVector<ResolvedProductPtr> internalProducts;
     for (const ProductData &product : products) {
         if (product.isEnabled())
             internalProducts.push_back(internalProduct(product));
@@ -187,10 +187,10 @@ QList<ResolvedProductPtr> ProjectPrivate::internalProducts(const QList<ProductDa
     return internalProducts;
 }
 
-static QList<ResolvedProductPtr> enabledInternalProducts(const ResolvedProjectConstPtr &project,
+static QVector<ResolvedProductPtr> enabledInternalProducts(const ResolvedProjectConstPtr &project,
                                                          bool includingNonDefault)
 {
-    QList<ResolvedProductPtr> products;
+    QVector<ResolvedProductPtr> products;
     for (const ResolvedProductPtr &p : project->products) {
         if (p->enabled && (includingNonDefault || p->builtByDefault()))
             products.push_back(p);
@@ -200,7 +200,8 @@ static QList<ResolvedProductPtr> enabledInternalProducts(const ResolvedProjectCo
     return products;
 }
 
-QList<ResolvedProductPtr> ProjectPrivate::allEnabledInternalProducts(bool includingNonDefault) const
+QVector<ResolvedProductPtr> ProjectPrivate::allEnabledInternalProducts(
+        bool includingNonDefault) const
 {
     return enabledInternalProducts(internalProject, includingNonDefault);
 }
@@ -355,7 +356,7 @@ void ProjectPrivate::addGroup(const ProductData &product, const QString &groupNa
     QList<ProductData> products = findProductsByName(product.name());
     if (products.empty())
         throw ErrorInfo(Tr::tr("Product '%1' does not exist.").arg(product.name()));
-    const QList<ResolvedProductPtr> resolvedProducts = internalProducts(products);
+    const auto resolvedProducts = internalProducts(products);
     QBS_CHECK(products.size() == resolvedProducts.size());
 
     for (const GroupPtr &resolvedGroup : resolvedProducts.front()->groups) {
