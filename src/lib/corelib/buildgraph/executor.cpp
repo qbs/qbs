@@ -102,12 +102,8 @@ Executor::Executor(Logger logger, QObject *parent)
 
 Executor::~Executor()
 {
-    // jobs must be destroyed before deleting the shared scan result cache
-    for (ExecutorJob *job : qAsConst(m_availableJobs))
-        delete job;
-    const auto processingJobs = m_processingJobs.keys();
-    for (ExecutorJob *job : processingJobs)
-        delete job;
+    // jobs must be destroyed before deleting the m_inputArtifactScanContext
+    m_allJobs.clear();
     delete m_inputArtifactScanContext;
     delete m_productInstaller;
 }
@@ -769,9 +765,11 @@ void Executor::addExecutorJobs()
 {
     const int count = m_buildOptions.maxJobCount();
     qCDebug(lcExec) << "preparing executor for" << count << "jobs in parallel";
+    m_allJobs.reserve(count);
     m_availableJobs.reserve(count);
     for (int i = 1; i <= count; i++) {
-        const auto job = new ExecutorJob(m_logger, this);
+        m_allJobs.push_back(std::make_unique<ExecutorJob>(m_logger));
+        const auto job = m_allJobs.back().get();
         job->setMainThreadScriptEngine(m_evalContext->engine());
         job->setObjectName(QStringLiteral("J%1").arg(i));
         job->setDryRun(m_buildOptions.dryRun());

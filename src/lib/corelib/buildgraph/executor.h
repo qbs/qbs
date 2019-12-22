@@ -166,6 +166,7 @@ private:
     BuildOptions m_buildOptions;
     Logger m_logger;
     ProgressObserver *m_progressObserver;
+    std::vector<std::unique_ptr<ExecutorJob>> m_allJobs;
     QList<ExecutorJob*> m_availableJobs;
     ExecutorState m_state;
     TopLevelProjectPtr m_project;
