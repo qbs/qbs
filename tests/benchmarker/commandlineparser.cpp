@@ -82,6 +82,10 @@ void CommandLineParser::parse()
     }
     m_oldCommit = parser.value(oldCommitOption);
     m_newCommit = parser.value(newCommitOption);
+    if (m_oldCommit == m_newCommit) {
+        throw Exception(QStringLiteral("Error parsing command line: "
+                "'new commit' and 'old commit' must be different commits.\n%1").arg(parser.helpText()));
+    }
     m_testProjectFilePath = parser.value(testProjectOption);
     m_qbsRepoDirPath = parser.value(qbsRepoOption);
     const QStringList activitiesList = parser.value(activitiesOption).split(',');
