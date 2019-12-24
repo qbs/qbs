@@ -352,12 +352,12 @@
     Module {
         // ...
         Rule {
-            inputs {"cpp"]
-            Artifact [
+            inputs: ["cpp"]
+            Artifact {
                 filePath: input.fileName + ".o"
-                fileTags: {"obj"]
+                fileTags: ["obj"]
             }
-            prepare: [
+            prepare: {
                 // g++ -c main.cpp -o main.o ...
             }
         }
