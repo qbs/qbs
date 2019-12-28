@@ -252,6 +252,7 @@ private:
         VariantValuePtr multiplexedType;
 
         QString toIdString(size_t row) const;
+        static QVariantMap multiplexIdToVariantMap(const QString &multiplexId);
     };
 
     void dump(const MultiplexInfo &mpi);

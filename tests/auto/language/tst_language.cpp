@@ -925,9 +925,14 @@ void TestLanguage::erroneousFiles_data()
             << "original-in-export-item3.qbs:6:9.*Item 'x.y' is not declared. Did you forget "
                "to add a Depends item";
     QTest::newRow("mismatching-multiplex-dependency")
-            << "mismatching-multiplex-dependency.qbs:7:5.*Dependency from product "
-               "'b \\{\"architecture\":\"mips\"\\}' to product 'a \\{\"architecture\":\"mips\"\\}'"
-               " not fulfilled.";
+            << "mismatching-multiplex-dependency.qbs:9:9.*Dependency from product "
+               "'b \\{\"architecture\":\"mips\"\\}' to product 'a'"
+               " not fulfilled. There are no eligible multiplex candidates.";
+    QTest::newRow("ambiguous-multiplex-dependency")
+            << "ambiguous-multiplex-dependency.qbs:10:9.*Dependency from product 'b "
+               "\\{\"architecture\":\"x86\"\\}' to product 'a' is ambiguous. Eligible multiplex "
+               "candidates: a \\{\"architecture\":\"x86\",\"buildVariant\":\"debug\"\\}, "
+               "a \\{\"architecture\":\"x86\",\"buildVariant\":\"release\"\\}.";
     QTest::newRow("dependency-profile-mismatch")
             << "dependency-profile-mismatch.qbs:10:5.*Product 'main' depends on 'dep', "
                "which does not exist for the requested profile 'profile47'.";

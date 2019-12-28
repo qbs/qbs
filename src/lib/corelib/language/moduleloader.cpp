@@ -71,11 +71,13 @@
 
 #include <QtCore/qdebug.h>
 #include <QtCore/qdir.h>
+#include <QtCore/qglobalstatic.h>
 #include <QtCore/qdiriterator.h>
 #include <QtCore/qjsondocument.h>
 #include <QtCore/qjsonobject.h>
 #include <QtCore/qtemporaryfile.h>
 #include <QtCore/qtextstream.h>
+#include <QtCore/qthreadstorage.h>
 #include <QtScript/qscriptvalueiterator.h>
 
 #include <algorithm>
@@ -85,12 +87,29 @@
 namespace qbs {
 namespace Internal {
 
+using MultiplexConfigurationByIdTable = QThreadStorage<QHash<QString, QVariantMap> >;
+Q_GLOBAL_STATIC(MultiplexConfigurationByIdTable, multiplexConfigurationsById);
+
 static void handlePropertyError(const ErrorInfo &error, const SetupProjectParameters &params,
                                 Logger &logger)
 {
     if (params.propertyCheckingMode() == ErrorHandlingMode::Strict)
         throw error;
     logger.printWarning(error);
+}
+
+static bool multiplexConfigurationIntersects(const QVariantMap &lhs, const QVariantMap &rhs)
+{
+    QBS_CHECK(!lhs.isEmpty() && !rhs.isEmpty());
+
+    for (auto lhsProperty = lhs.constBegin(); lhsProperty != lhs.constEnd(); lhsProperty++) {
+        const auto rhsProperty = rhs.find(lhsProperty.key());
+        const bool isCommonProperty = rhsProperty != rhs.constEnd();
+        if (isCommonProperty && lhsProperty.value() != rhsProperty.value())
+            return false;
+    }
+
+    return true;
 }
 
 class ModuleLoader::ItemModuleList : public QList<Item::Module> {};
@@ -761,9 +780,24 @@ QString ModuleLoader::MultiplexInfo::toIdString(size_t row) const
         const VariantValuePtr &mpvalue = mprow.at(column);
         multiplexConfiguration.insert(propertyName, mpvalue->value());
     }
-    return QString::fromUtf8(QJsonDocument::fromVariant(multiplexConfiguration)
-                             .toJson(QJsonDocument::Compact)
-                             .toBase64());
+    QString id = QString::fromUtf8(QJsonDocument::fromVariant(multiplexConfiguration)
+                                   .toJson(QJsonDocument::Compact)
+                                   .toBase64());
+    // Cache for later use in:multiplexIdToVariantMap()
+    multiplexConfigurationsById->localData().insert(id, multiplexConfiguration);
+    return id;
+}
+
+QVariantMap ModuleLoader::MultiplexInfo::multiplexIdToVariantMap(const QString &multiplexId)
+{
+    if (multiplexId.isEmpty())
+        return QVariantMap();
+
+    QVariantMap result = multiplexConfigurationsById->localData().value(multiplexId);
+    // We assume that MultiplexInfo::toIdString() has been called for this
+    // particular multiplex configuration.
+    QBS_CHECK(!result.isEmpty());
+    return result;
 }
 
 void qbs::Internal::ModuleLoader::ModuleLoader::dump(const ModuleLoader::MultiplexInfo &mpi)
@@ -1102,7 +1136,7 @@ void ModuleLoader::adjustDependenciesForMultiplexing(const ProductContext &produ
     // These are the allowed cases:
     // (1) Normal dependency with no multiplexing whatsoever.
     // (2) Both product and dependency are multiplexed.
-    //     (2a) The profiles property is not set, we want to depend on the
+    //     (2a) The profiles property is not set, we want to depend on the best
     //          matching variant.
     //     (2b) The profiles property is set, we want to depend on all variants
     //          with a matching profile.
@@ -1129,6 +1163,9 @@ void ModuleLoader::adjustDependenciesForMultiplexing(const ProductContext &produ
     QStringList multiplexIds;
     const ShadowProductInfo shadowProductInfo = getShadowProductInfo(product);
     const bool isShadowProduct = shadowProductInfo.first && shadowProductInfo.second == name;
+    const auto productMultiplexConfig =
+            MultiplexInfo::multiplexIdToVariantMap(product.multiplexConfigurationId);
+
     for (const ProductContext *dependency : multiplexedDependencies) {
         const bool depMatchesShadowProduct = isShadowProduct
                 && dependency->item == product.item->parent();
@@ -1139,23 +1176,30 @@ void ModuleLoader::adjustDependenciesForMultiplexing(const ProductContext &produ
             return;
         }
         if (productIsMultiplexed && !profilesPropertyIsSet) { // 2a
-            const ValuePtr &multiplexId = product.item->property(
-                        StringConstants::multiplexConfigurationIdProperty());
-            dependsItem->setProperty(StringConstants::multiplexConfigurationIdsProperty(),
-                                     multiplexId);
-            return;
-        }
+            if (dependency->multiplexConfigurationId == product.multiplexConfigurationId) {
+                const ValuePtr &multiplexId = product.item->property(
+                            StringConstants::multiplexConfigurationIdProperty());
+                dependsItem->setProperty(StringConstants::multiplexConfigurationIdsProperty(),
+                                         multiplexId);
+                return;
 
-        // (2b), (3b) or (3c)
-        const bool profileMatch = !profilesPropertyIsSet || profiles.empty()
-                || profiles.contains(dependency->profileName);
-        if (profileMatch)
-            multiplexIds << depMultiplexId;
+            } else {
+                // Otherwise collect partial matches and decide later
+                const auto dependencyMultiplexConfig =
+                        MultiplexInfo::multiplexIdToVariantMap(dependency->multiplexConfigurationId);
+
+                if (multiplexConfigurationIntersects(dependencyMultiplexConfig, productMultiplexConfig))
+                    multiplexIds << dependency->multiplexConfigurationId;
+            }
+        } else {
+            // (2b), (3b) or (3c)
+            const bool profileMatch = !profilesPropertyIsSet || profiles.empty()
+                    || profiles.contains(dependency->profileName);
+            if (profileMatch)
+                multiplexIds << depMultiplexId;
+        }
     }
-    if (!multiplexIds.empty()) {
-        dependsItem->setProperty(StringConstants::multiplexConfigurationIdsProperty(),
-                                 VariantValue::create(multiplexIds));
-    } else {
+    if (multiplexIds.empty()) {
         const QString productName = ResolvedProduct::fullDisplayName(
                     product.name, product.multiplexConfigurationId);
         throw ErrorInfo(Tr::tr("Dependency from product '%1' to product '%2' not fulfilled. "
@@ -1163,6 +1207,22 @@ void ModuleLoader::adjustDependenciesForMultiplexing(const ProductContext &produ
                                                                                   name),
                         dependsItem->location());
     }
+
+    // In case of (2a), at most 1 match is allowed
+    if (productIsMultiplexed && !profilesPropertyIsSet && multiplexIds.size() > 1) {
+        const QString productName = ResolvedProduct::fullDisplayName(
+                    product.name, product.multiplexConfigurationId);
+        QStringList candidateNames;
+        for (const auto &id : qAsConst(multiplexIds))
+            candidateNames << ResolvedProduct::fullDisplayName(name, id);
+        throw ErrorInfo(Tr::tr("Dependency from product '%1' to product '%2' is ambiguous. "
+                               "Eligible multiplex candidates: %3.").arg(
+                            productName, name, candidateNames.join(QLatin1String(", "))),
+                        dependsItem->location());
+    }
+
+    dependsItem->setProperty(StringConstants::multiplexConfigurationIdsProperty(),
+                             VariantValue::create(multiplexIds));
 }
 
 void ModuleLoader::prepareProduct(ProjectContext *projectContext, Item *productItem)

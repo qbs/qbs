@@ -1961,6 +1961,31 @@ void TestApi::multiplexing()
     QVERIFY(product.dependencies().empty());
 
     selector.clear();
+    selector.name = "multiplex-without-aggregator-4-depends-2";
+    selector.qbsProperties["architecture"] = "C64";
+    selector.qbsProperties["buildVariant"] = "debug";
+    product = takeMatchingProduct(products, selector);
+    QVERIFY(product.isValid());
+    QVERIFY(product.isMultiplexed());
+    QCOMPARE(product.dependencies().size(), 1);
+    selector.qbsProperties["buildVariant"] = "release";
+    product = takeMatchingProduct(products, selector);
+    QVERIFY(product.isValid());
+    QVERIFY(product.isMultiplexed());
+    QCOMPARE(product.dependencies().size(), 1);
+    selector.qbsProperties["architecture"] = "TRS-80";
+    selector.qbsProperties["buildVariant"] = "debug";
+    product = takeMatchingProduct(products, selector);
+    QVERIFY(product.isValid());
+    QVERIFY(product.isMultiplexed());
+    QCOMPARE(product.dependencies().size(), 1);
+    selector.qbsProperties["buildVariant"] = "release";
+    product = takeMatchingProduct(products, selector);
+    QVERIFY(product.isValid());
+    QVERIFY(product.isMultiplexed());
+    QCOMPARE(product.dependencies().size(), 1);
+
+    selector.clear();
     selector.name = "multiplex-with-aggregator-2";
     selector.qbsProperties["architecture"] = "C64";
     product = takeMatchingProduct(products, selector);

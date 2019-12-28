@@ -74,6 +74,13 @@ Project {
             qbs.architectures: ["TRS-80", "C64"]
             qbs.buildVariants: ["debug", "release"]
         }
+        Product {
+            name: "multiplex-without-aggregator-4-depends-2"
+            multiplexByQbsProperties: ["architectures", "buildVariants"]
+            qbs.architectures: ["TRS-80", "C64"]
+            qbs.buildVariants: ["debug", "release"]
+            Depends { name: "multiplex-without-aggregator-2" }
+        }
     }
 
     Product {
