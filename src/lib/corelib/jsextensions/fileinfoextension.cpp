@@ -53,6 +53,16 @@
 namespace qbs {
 namespace Internal {
 
+// removes duplicate separators from the path
+static QString uniqueSeparators(QString path)
+{
+    const auto it = std::unique(path.begin(), path.end(), [](QChar c1, QChar c2) {
+        return c1 == c2 && c1 == QLatin1Char('/');
+    });
+    path.resize(it - path.begin());
+    return path;
+}
+
 class FileInfoExtension : public QObject, QScriptable
 {
     Q_OBJECT
@@ -268,9 +278,7 @@ QScriptValue FileInfoExtension::js_joinPaths(QScriptContext *context, QScriptEng
                 paths.push_back(arg);
         }
     }
-    return engine->toScriptValue(QString::fromStdString(
-                                     std::regex_replace(paths.join(QLatin1Char('/')).toStdString(),
-                                                        std::regex("/{2,}"), std::string("/"))));
+    return engine->toScriptValue(uniqueSeparators(paths.join(QLatin1Char('/'))));
 }
 
 } // namespace Internal
