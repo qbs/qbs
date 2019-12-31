@@ -4,6 +4,12 @@ Project {
         files: ["main.cpp"]
     }
     Product {
+        condition: {
+            var result = qbs.targetPlatform === qbs.hostPlatform;
+            if (!result)
+                console.info("targetPlatform differs from hostPlatform");
+            return result;
+        }
         name: "app-caller"
         type: "mytype"
         Depends { name: "app" }

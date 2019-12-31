@@ -11,6 +11,12 @@ Project {
         }
     }
     Product {
+        condition: {
+            var result = qbs.targetPlatform === qbs.hostPlatform;
+            if (!result)
+                console.info("targetPlatform differs from hostPlatform");
+            return result;
+        }
         name: "p"
         type: ["mytype"]
 

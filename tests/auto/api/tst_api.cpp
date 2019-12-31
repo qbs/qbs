@@ -1210,6 +1210,8 @@ void TestApi::explicitlyDependsOn()
     BuildDescriptionReceiver receiver;
     qbs::ErrorInfo errorInfo = doBuildProject("explicitly-depends-on", &receiver);
     VERIFY_NO_ERROR(errorInfo);
+    if (m_logSink->output.contains("targetPlatform differs from hostPlatform"))
+        QSKIP("Cannot run binaries in cross-compiled build");
     QVERIFY2(receiver.descriptions.contains("compiling compiler.cpp"),
              qPrintable(receiver.descriptions));
     QVERIFY2(receiver.descriptions.contains("compiling a.in"), qPrintable(receiver.descriptions));
@@ -2260,6 +2262,8 @@ void TestApi::processResult()
     ProcessResultReceiver resultReceiver;
     const qbs::ErrorInfo errorInfo = doBuildProject("process-result",
             nullptr, &resultReceiver, nullptr, qbs::BuildOptions(), overridden);
+    if (m_logSink->output.contains("targetPlatform differs from hostPlatform"))
+        QSKIP("Cannot run binaries in cross-compiled build");
     QCOMPARE(expectedExitCode != 0, errorInfo.hasError());
     QVERIFY(resultReceiver.results.size() > 1);
     const qbs::ProcessResult &result = resultReceiver.results.back();
@@ -2842,6 +2846,8 @@ void TestApi::timeout()
     std::unique_ptr<qbs::SetupProjectJob> setupJob{
             qbs::Project().setupProject(setupParams, m_logSink, nullptr)};
     waitForFinished(setupJob.get());
+    if (m_logSink->output.contains("targetPlatform differs from hostPlatform"))
+        QSKIP("Cannot run binaries in cross-compiled build");
     QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
     auto project = setupJob->project();
     const auto products = project.projectData().products();
