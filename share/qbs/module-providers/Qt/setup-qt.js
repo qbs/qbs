@@ -631,11 +631,14 @@ function doSetupLibraries(modInfo, qtProps, debugBuild, nonExistingPrlFiles) {
     var prlFilePath = modInfo.isPlugin
             ? FileInfo.joinPaths(qtProps.pluginPath, modInfo.pluginData.type)
             : (modInfo.libDir ? modInfo.libDir : qtProps.libraryPath);
+    var libDir = prlFilePath;
     if (isFramework(modInfo, qtProps)) {
         prlFilePath = FileInfo.joinPaths(prlFilePath,
                                          libraryBaseName(modInfo, qtProps, false) + ".framework");
+        libDir = prlFilePath;
+        if (Utilities.versionCompare(qtProps.qtVersion, "5.14") >= 0)
+            prlFilePath = FileInfo.joinPaths(prlFilePath, "Resources");
     }
-    var libDir = prlFilePath;
     var baseName = libraryBaseName(modInfo, qtProps, debugBuild);
     if (!qtProps.mkspecName.startsWith("win") && !isFramework(modInfo, qtProps))
         baseName = "lib" + baseName;
