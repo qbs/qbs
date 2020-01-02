@@ -173,7 +173,7 @@
 */
 
 /*!
-    \qmlproperty stringList qbs::targetPlatform
+    \qmlproperty string qbs::targetPlatform
     \since 1.11
 
     The OS you want to build the project for.
