@@ -302,6 +302,7 @@ private slots:
     void trackRemoveProduct();
     void transitiveOptionalDependencies();
     void typescript();
+    void undefinedTargetPlatform();
     void usingsAsSoleInputsNonMultiplexed();
     void variantSuffix();
     void variantSuffix_data();

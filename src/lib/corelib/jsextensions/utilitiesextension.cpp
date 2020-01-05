@@ -132,7 +132,7 @@ QScriptValue UtilitiesExtension::js_canonicalPlatform(QScriptContext *context,
 {
     const QScriptValue value = context->argument(0);
     if (value.isUndefined() || value.isNull())
-        return value;
+        return engine->toScriptValue(QStringList());
 
     if (context->argumentCount() == 1 && value.isString()) {
         return engine->toScriptValue([&value] {

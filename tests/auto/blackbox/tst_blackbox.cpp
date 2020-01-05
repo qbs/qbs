@@ -7032,6 +7032,12 @@ void TestBlackbox::typescript()
     QVERIFY(regularFileExists(relativeProductBuildDir("animals") + "/main.js"));
 }
 
+void TestBlackbox::undefinedTargetPlatform()
+{
+    QDir::setCurrent(testDataDir + "/undefined-target-platform");
+    QCOMPARE(runQbs(), 0);
+}
+
 void TestBlackbox::importInPropertiesCondition()
 {
     QDir::setCurrent(testDataDir + "/import-in-properties-condition");

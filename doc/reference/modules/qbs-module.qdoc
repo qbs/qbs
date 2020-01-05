@@ -255,6 +255,9 @@
         \li \c{"tvos-simulator"}
         \li \c{["tvos-simulator", "tvos", "darwin", "bsd", "unix"]}
     \row
+        \li \c{"unix"}
+        \li \c{["unix"]}
+    \row
         \li \c{"vxworks"}
         \li \c{["vxworks"]}
     \row
@@ -266,6 +269,9 @@
     \row
         \li \c{"windows"}
         \li \c{["windows"]}
+    \row
+        \li \c{undefined}
+        \li \c{[]}
     \endtable
 
     \sa {Target Platforms}
