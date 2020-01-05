@@ -40,7 +40,7 @@
 
 namespace qbs {
 
-static QString keilProjectSchema(const KeiluvVersionInfo &info)
+static QString keilProjectSchema(const gen::VersionInfo &info)
 {
     const auto v = info.marketingVersion();
     switch (v) {
@@ -51,10 +51,9 @@ static QString keilProjectSchema(const KeiluvVersionInfo &info)
     }
 }
 
-KeiluvProject::KeiluvProject(
-        const qbs::GeneratableProject &genProject,
+KeiluvProject::KeiluvProject(const qbs::GeneratableProject &genProject,
         const qbs::GeneratableProductData &genProduct,
-        const KeiluvVersionInfo &versionInfo)
+        const gen::VersionInfo &versionInfo)
 {
     Q_ASSERT(genProject.projects.size() == genProject.commandLines.size());
     Q_ASSERT(genProject.projects.size() == genProduct.data.size());

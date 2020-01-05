@@ -45,7 +45,7 @@
 
 static void QbsIarewGeneratorPluginLoad()
 {
-    for (const auto &info : qbs::IarewVersionInfo::knownVersions()) {
+    for (const auto &info : qbs::IarewVersionInfo::knownVersions) {
         qbs::ProjectGeneratorManager::registerGenerator(
                     std::make_shared<qbs::IarewGenerator>(info));
     }

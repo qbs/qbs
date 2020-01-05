@@ -31,7 +31,6 @@ QbsPlugin {
             "iarewtoolchainpropertygroup.h",
             "iarewutils.cpp",
             "iarewutils.h",
-            "iarewversioninfo.cpp",
             "iarewversioninfo.h",
             "iarewworkspace.cpp",
             "iarewworkspace.h",

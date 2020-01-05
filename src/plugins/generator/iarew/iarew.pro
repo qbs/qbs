@@ -37,7 +37,6 @@ SOURCES += \
     $$PWD/iarewsourcefilespropertygroup.cpp \
     $$PWD/iarewtoolchainpropertygroup.cpp \
     $$PWD/iarewutils.cpp \
-    $$PWD/iarewversioninfo.cpp \
     $$PWD/iarewworkspace.cpp \
     $$PWD/iarewworkspacewriter.cpp
 

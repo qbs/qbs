@@ -46,7 +46,7 @@ namespace qbs {
 
 IarewProject::IarewProject(const GeneratableProject &genProject,
                            const GeneratableProductData &genProduct,
-                           const IarewVersionInfo &versionInfo)
+                           const gen::VersionInfo &versionInfo)
 {
     Q_ASSERT(genProject.projects.size() == genProject.commandLines.size());
     Q_ASSERT(genProject.projects.size() == genProduct.data.size());

@@ -40,20 +40,21 @@
 #ifndef QBS_KEILUVVERSIONINFO_H
 #define QBS_KEILUVVERSIONINFO_H
 
+#include "keiluvconstants.h"
+
 #include <generators/generatorutils.h>
 #include <generators/generatorversioninfo.h>
 
 namespace qbs {
+namespace KeiluvVersionInfo {
 
-class KeiluvVersionInfo final : public gen::VersionInfo
-{
-public:
-    KeiluvVersionInfo(const Version &version,
-                      gen::utils::ArchitectureFlags archs);
-
-    static std::set<KeiluvVersionInfo> knownVersions();
+constexpr gen::VersionInfo knownVersions[] = {
+    {Version(KeiluvConstants::v5::kUVisionVersion),
+     {gen::utils::Architecture::Mcs51,
+      gen::utils::Architecture::Arm}},
 };
 
+} // namespace KeiluvVersionInfo
 } // namespace qbs
 
 #endif // QBS_KEILUVVERSIONINFO_H

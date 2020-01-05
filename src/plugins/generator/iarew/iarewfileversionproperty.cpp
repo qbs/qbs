@@ -33,7 +33,7 @@
 
 namespace qbs {
 
-static QByteArray buildFileVersion(const IarewVersionInfo &versionInfo)
+static QByteArray buildFileVersion(const gen::VersionInfo &versionInfo)
 {
     switch (versionInfo.marketingVersion()) {
     case 3:
@@ -47,7 +47,7 @@ static QByteArray buildFileVersion(const IarewVersionInfo &versionInfo)
 }
 
 IarewFileVersionProperty::IarewFileVersionProperty(
-        const IarewVersionInfo &versionInfo)
+        const gen::VersionInfo &versionInfo)
 {
     setName(QByteArrayLiteral("fileVersion"));
     const QByteArray fileVersion = buildFileVersion(versionInfo);
