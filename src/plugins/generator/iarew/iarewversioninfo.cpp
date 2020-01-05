@@ -62,16 +62,4 @@ std::set<IarewVersionInfo> IarewVersionInfo::knownVersions()
     return known;
 }
 
-int IarewVersionInfo::marketingVersion() const
-{
-    const auto mv = gen::VersionInfo::marketingVersion();
-    for (const IarewVersionInfo &known : knownVersions()) {
-        if (known.version().majorVersion() == mv)
-            return mv;
-    }
-    qWarning() << QStringLiteral("Unrecognized IAR EW version: ")
-               << version().toString();
-    return 0;
-}
-
 } // namespace qbs

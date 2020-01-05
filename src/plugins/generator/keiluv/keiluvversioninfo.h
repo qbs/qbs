@@ -51,8 +51,6 @@ public:
     KeiluvVersionInfo(const Version &version,
                       const std::set<gen::utils::Architecture> &archs);
 
-    int marketingVersion() const final;
-
     static std::set<KeiluvVersionInfo> knownVersions();
 };
 

@@ -55,7 +55,6 @@ class QBS_EXPORT VersionInfo
 public:
     VersionInfo(const Version &version,
                 const std::set<utils::Architecture> &archs);
-    virtual ~VersionInfo() = default;
 
     bool operator<(const VersionInfo &other) const;
     bool operator==(const VersionInfo &other) const;
@@ -63,7 +62,7 @@ public:
     Version version() const;
     bool containsArchitecture(utils::Architecture arch) const;
 
-    virtual int marketingVersion() const;
+    int marketingVersion() const;
 
 private:
     Version m_version;

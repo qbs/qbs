@@ -61,16 +61,4 @@ std::set<KeiluvVersionInfo> KeiluvVersionInfo::knownVersions()
     return known;
 }
 
-int KeiluvVersionInfo::marketingVersion() const
-{
-    const auto mv = gen::VersionInfo::marketingVersion();
-    for (const KeiluvVersionInfo &known : knownVersions()) {
-        if (known.version().majorVersion() == mv)
-            return mv;
-    }
-    qWarning() << QStringLiteral("Unrecognized KEIL UV version: ")
-               << version().toString();
-    return 0;
-}
-
 } // namespace qbs
