@@ -108,9 +108,7 @@ void LauncherInterface::doStart()
         return;
     }
     m_process = new LauncherProcess(this);
-    connect(m_process,
-            static_cast<void (QProcess::*)(QProcess::ProcessError)>(&QProcess::error),
-            this, &LauncherInterface::handleProcessError);
+    connect(m_process, &QProcess::errorOccurred, this, &LauncherInterface::handleProcessError);
     connect(m_process,
             static_cast<void (QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished),
             this, &LauncherInterface::handleProcessFinished);
