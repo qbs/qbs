@@ -2725,7 +2725,7 @@ void ModuleLoader::resolveParameterDeclarations(const Item *module)
     for (Item *param : moduleChildren) {
         if (param->type() != ItemType::Parameter)
             continue;
-        const auto paramDecls = param->propertyDeclarations();
+        const auto &paramDecls = param->propertyDeclarations();
         for (auto it = paramDecls.begin(); it != paramDecls.end(); ++it)
             decls.insert(it.key(), it.value());
     }

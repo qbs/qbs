@@ -215,8 +215,7 @@ static std::vector<ToolchainInstallInfo> installedIarsFromRegistry()
                             const QFileInfo iarPath(rootPath + entry.subExePath);
                             if (iarPath.exists()) {
                                 // Note: threeLevelKey is a guessed toolchain version.
-                                const QString version = threeLevelKey;
-                                infos.push_back({iarPath, Version::fromString(version)});
+                                infos.push_back({iarPath, Version::fromString(threeLevelKey)});
                             }
                         }
                         registry.endGroup();

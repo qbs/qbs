@@ -349,7 +349,7 @@ static void provideValuesTree(const QVariantMap &values, QVariantMap *valueTree)
 
     valueTree->clear();
     for (QVariantMap::const_iterator it = values.constBegin(); it != values.constEnd(); ++it) {
-        const QString name = it.key();
+        const QString &name = it.key();
         int idx = name.lastIndexOf(QLatin1Char('.'));
         const QStringList nameElements = (idx == -1)
                 ? QStringList() << name

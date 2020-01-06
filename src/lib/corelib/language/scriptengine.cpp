@@ -478,19 +478,18 @@ QScriptValue ScriptEngine::js_require(QScriptContext *context, QScriptEngine *qt
             return context->throwError(
                         ScriptEngine::tr("require: internal error. No search paths."));
 
-        const QString uri = moduleName;
         if (engine->m_logger.debugEnabled()) {
             engine->m_logger.qbsDebug()
-                    << "[require] loading extension " << uri;
+                    << "[require] loading extension " << moduleName;
         }
 
-        QString uriAsPath = uri;
-        uriAsPath.replace(QLatin1Char('.'), QLatin1Char('/'));
+        QString moduleNameAsPath = moduleName;
+        moduleNameAsPath.replace(QLatin1Char('.'), QLatin1Char('/'));
         const QStringList searchPaths = engine->m_extensionSearchPathsStack.top();
-        const QString dirPath = findExtensionDir(searchPaths, uriAsPath);
+        const QString dirPath = findExtensionDir(searchPaths, moduleNameAsPath);
         if (dirPath.isEmpty()) {
-            if (uri.startsWith(QStringLiteral("qbs.")))
-                return loadInternalExtension(context, engine, uri);
+            if (moduleName.startsWith(QStringLiteral("qbs.")))
+                return loadInternalExtension(context, engine, moduleName);
         } else {
             QDirIterator dit(dirPath, StringConstants::jsFileWildcards(),
                              QDir::Files | QDir::Readable);
