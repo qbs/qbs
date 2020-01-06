@@ -99,6 +99,22 @@ static void addMSVCPlatform(Settings *settings, std::vector<Profile> &profiles, 
     profiles.push_back(p);
 }
 
+static QString formatVswhereOutput(const QString &out, const QString &err)
+{
+    QString ret;
+    if (!out.isEmpty()) {
+        ret.append(Tr::tr("stdout")).append(QLatin1String(":\n"));
+        for (const QString &line : out.split(QLatin1Char('\n')))
+            ret.append(QLatin1Char('\t')).append(line).append(QLatin1Char('\n'));
+    }
+    if (!err.isEmpty()) {
+        ret.append(Tr::tr("stderr")).append(QLatin1String(":\n"));
+        for (const QString &line : err.split(QLatin1Char('\n')))
+            ret.append(QLatin1Char('\t')).append(line).append(QLatin1Char('\n'));
+    }
+    return ret;
+}
+
 struct MSVCArchInfo
 {
     QString arch;
@@ -191,12 +207,15 @@ static std::vector<MSVCInstallInfo> retrieveInstancesFromVSWhere(ProductType pro
     if (!vsWhere.waitForStarted(-1))
         return result;
     if (!vsWhere.waitForFinished(-1)) {
-        qbsWarning() << Tr::tr("The vswhere tool failed to run: %1").arg(vsWhere.errorString());
+        qbsWarning() << Tr::tr("The vswhere tool failed to run").append(QLatin1String(": "))
+                        .append(vsWhere.errorString());
         return result;
     }
     if (vsWhere.exitCode() != 0) {
-        qbsWarning() << Tr::tr("The vswhere tool failed to run: %1")
-                        .arg(QString::fromLocal8Bit(vsWhere.readAllStandardError()));
+        const QString stdOut = QString::fromLocal8Bit(vsWhere.readAllStandardOutput());
+        const QString stdErr = QString::fromLocal8Bit(vsWhere.readAllStandardError());
+        qbsWarning() << Tr::tr("The vswhere tool failed to run").append(QLatin1String(".\n"))
+                     .append(formatVswhereOutput(stdOut, stdErr));
         return result;
     }
     QJsonParseError parseError;
