@@ -1,4 +1,10 @@
 CppApplication {
+    condition: {
+        var result = qbs.targetPlatform === qbs.hostPlatform;
+        if (!result)
+            console.info("targetPlatform differs from hostPlatform");
+        return result;
+    }
     name: "consumer"
     qbsSearchPaths: "default/install-root/usr/qbs"
     property string outTag: "cpp"

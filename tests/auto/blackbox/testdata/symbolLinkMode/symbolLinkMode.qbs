@@ -5,6 +5,12 @@ Project {
     property bool lazy: false
 
     Application {
+        condition: {
+            var result = qbs.targetPlatform === qbs.hostPlatform;
+            if (!result)
+                console.info("targetPlatform differs from hostPlatform");
+            return result;
+        }
         Depends { name: "cpp" }
         Depends {
             name: "functions";

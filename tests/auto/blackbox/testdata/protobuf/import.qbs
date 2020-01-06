@@ -1,9 +1,14 @@
 import qbs
 
 CppApplication {
+    condition: {
+        var result = qbs.targetPlatform === qbs.hostPlatform;
+        if (!result)
+            console.info("targetPlatform differs from hostPlatform");
+        return result && hasProtobuf;
+    }
     name: "app"
     consoleApplication: true
-    condition: hasProtobuf
 
     protobuf.cpp.importPaths: [sourceDirectory]
 

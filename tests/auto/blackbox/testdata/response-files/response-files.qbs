@@ -8,6 +8,12 @@ Project {
         cpp.enableExceptions: true
     }
     Product {
+        condition: {
+            var result = qbs.targetPlatform === qbs.hostPlatform;
+            if (!result)
+                console.info("targetPlatform differs from hostPlatform");
+            return result;
+        }
         name: "response-file-text"
         type: ["text"]
         Depends { name: "cpp" }

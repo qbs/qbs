@@ -5,6 +5,12 @@ import qbs.TextFile
 
 Project {
     Product {
+        condition: {
+            var result = qbs.targetPlatform === qbs.hostPlatform;
+            if (!result)
+                console.info("targetPlatform differs from hostPlatform");
+            return result;
+        }
         Depends { name: "cpp" }
         type: ["dummy"]
         name: "dummy"

@@ -2,6 +2,12 @@ import qbs.Utilities
 
 // no minimum versions are specified so the profile defaults will be used
 CppApplication {
+    condition: {
+        var result = qbs.targetPlatform === qbs.hostPlatform;
+        if (!result)
+            console.info("targetPlatform differs from hostPlatform");
+        return result;
+    }
     files: [qbs.targetOS.contains("darwin") ? "main.mm" : "main.cpp"]
     consoleApplication: true
 

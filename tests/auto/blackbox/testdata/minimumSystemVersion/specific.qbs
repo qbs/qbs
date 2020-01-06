@@ -4,7 +4,12 @@ import qbs.Utilities
 // when the application is run its output should confirm
 // that the given values took effect
 CppApplication {
-    condition: qbs.targetOS.contains("windows") || qbs.targetOS.contains("macos")
+    condition: {
+        var result = qbs.targetPlatform === qbs.hostPlatform;
+        if (!result)
+            console.info("targetPlatform differs from hostPlatform");
+        return result && qbs.targetOS.contains("windows") || qbs.targetOS.contains("macos");
+    }
     files: [qbs.targetOS.contains("darwin") ? "main.mm" : "main.cpp"]
     consoleApplication: true
 
