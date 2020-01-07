@@ -78,6 +78,7 @@ CommandLineFrontend::CommandLineFrontend(const CommandLineParser &parser, Settin
 CommandLineFrontend::~CommandLineFrontend()
 {
     m_cancelTimer->stop();
+    delete m_observer;
 }
 
 // Called from interrupt handler. Don't do anything non-trivial here.
