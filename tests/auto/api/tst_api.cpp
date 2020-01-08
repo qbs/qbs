@@ -832,6 +832,7 @@ void TestApi::changeContent()
         "/project-editing/project-with-no-files.qbs"));
 
     resolve();
+    WAIT_FOR_NEW_TIMESTAMP();
     errorInfo = project.addFiles(product, qbs::GroupData(), QStringList("main.cpp"));
     VERIFY_NO_ERROR(errorInfo);
     resolve();
