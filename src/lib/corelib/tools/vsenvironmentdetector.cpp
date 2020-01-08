@@ -233,6 +233,8 @@ void VsEnvironmentDetector::writeBatchFile(QIODevice *device, const QString &vcv
             << QStringLiteral("WindowsSDKVersion") << QStringLiteral("VSINSTALLDIR");
     QTextStream s(device);
     s << "@echo off" << endl;
+    // Avoid execution of powershell (in vsdevcmd.bat), which is not in the cleared PATH
+    s << "set VSCMD_SKIP_SENDTELEMETRY=1" << endl;
     for (const MSVC *msvc : msvcs) {
         s << "echo --" << msvc->architecture << "--" << endl
           << "setlocal" << endl;
