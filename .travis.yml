@@ -59,6 +59,15 @@ jobs:
       script:
         - docker-compose run --rm bionic scripts/run-analyzer.sh
 
+    - <<: *build-on-bionic
+      name: With Qbs and with Qt for Android (Qt 5.13)
+      before_install:
+        - docker-compose pull bionic
+        - docker-compose pull bionic-android-513
+      script:
+        - docker-compose run bionic qbs build modules.cpp.compilerWrapper:ccache modules.qbsbuildconfig.enableBundledQt:true config:release
+        - docker-compose run bionic-android-513 scripts/test-qt-for-android.sh release/install-root/usr/local/bin
+
     - &build-on-macos
       stage: Build Qbs and and run autotests
       name: With Qbs on macOS (xcode 10.3)

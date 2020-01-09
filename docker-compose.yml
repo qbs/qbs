@@ -23,6 +23,26 @@ services:
         QT_VERSION: 5.12.6
         QTCREATOR_VERSION: 4.10.2
 
+  bionic-android-513:
+    << : *linux
+    hostname: bionic-android
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:bionic-android-5.13.2-0
+    build:
+      dockerfile: docker/bionic/test-android.Dockerfile
+      context: .
+      args:
+        QT_VERSION: 5.13.2
+
+  bionic-android-514:
+    << : *linux
+    hostname: bionic-android
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:bionic-android-5.14.0-0
+    build:
+      dockerfile: docker/bionic/test-android.Dockerfile
+      context: .
+      args:
+        QT_VERSION: 5.14.0
+
   stretch:
     << : *linux
     hostname: stretch
