@@ -108,6 +108,17 @@ static QString getInfoPlistPath(const QString &bundlePath)
     return bundlePath + "/Info.plist";
 }
 
+static bool testVariantListType(const QVariant &variant, QMetaType::Type type)
+{
+    if (variant.userType() != QMetaType::QVariantList)
+        return false;
+    for (const auto &value : variant.toList()) {
+        if (value.userType() != type)
+            return false;
+    }
+    return true;
+}
+
 TestBlackboxApple::TestBlackboxApple()
     : TestBlackboxBase (SRCDIR "/testdata-apple", "blackbox-apple")
 {
@@ -783,6 +794,19 @@ void TestBlackboxApple::infoPlist()
     if (!content.contains(QStringLiteral("SDKROOT"))) { // macOS-specific values
         QCOMPARE(content.value("LSMinimumSystemVersion"), QStringLiteral("10.7"));
         QVERIFY(content.contains("NSPrincipalClass"));
+    } else {
+        // QBS-1447: UIDeviceFamily was set to a string instead of an array
+        const auto family = content.value(QStringLiteral("UIDeviceFamily"));
+        if (family.isValid()) {
+            // int gets converted to a double when exporting plist as JSON
+            QVERIFY(testVariantListType(family, QMetaType::Double));
+        }
+        const auto caps = content.value(QStringLiteral("UIRequiredDeviceCapabilities"));
+        if (caps.isValid())
+            QVERIFY(testVariantListType(caps, QMetaType::QString));
+        const auto orientations = content.value(QStringLiteral("UIRequiredDeviceCapabilities"));
+        if (orientations.isValid())
+            QVERIFY(testVariantListType(orientations, QMetaType::QString));
     }
 }
 
