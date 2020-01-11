@@ -3837,20 +3837,25 @@ void TestBlackbox::installLocations()
         params.arguments.push_back("products.thelib.importLibInstallDir:" + libDir);
     QCOMPARE(runQbs(params), 0);
     const bool isWindows = m_qbsStdout.contains("is windows");
+    const bool isDarwin = m_qbsStdout.contains("is darwin");
     const bool isMac = m_qbsStdout.contains("is mac");
     const bool isUnix = m_qbsStdout.contains("is unix");
-    QVERIFY(isWindows || isMac || isUnix);
+    QVERIFY(isWindows || isDarwin || isUnix);
     QCOMPARE(runQbs(QbsRunParameters(QStringList("--clean-install-root"))), 0);
-    const QString dllFileName = isWindows ? "thelib.dll" : isMac ? "thelib" : "libthelib.so";
+    const QString dllFileName =
+            isWindows ? "thelib.dll" : isDarwin ? "thelib" : "libthelib.so";
     const QString appFileName = isWindows ? "theapp.exe" : "theapp";
     if (binDir.isEmpty())
-        binDir = isMac ? "/Applications" : "/bin";
+        binDir = isDarwin ? "/Applications" : "/bin";
     if (dllDir.isEmpty())
-        dllDir = isMac ? "/Library/Frameworks" : isWindows ? "/bin" : "/lib";
+        dllDir = isDarwin ? "/Library/Frameworks" : isWindows ? "/bin" : "/lib";
     if (libDir.isEmpty())
         libDir = "/lib";
-    if (isMac) {
-        binDir += "/theapp.app/Contents/MacOS";
+    if (isDarwin) {
+        if (isMac)
+            binDir += "/theapp.app/Contents/MacOS";
+        else
+            binDir += "/theapp.app/";
         dllDir += "/thelib.framework";
     }
     const QString installRoot = QDir::currentPath() + "/default/install-root";
