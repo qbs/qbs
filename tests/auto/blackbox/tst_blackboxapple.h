@@ -63,6 +63,7 @@ private slots:
     void iconsetApp();
     void infoPlist();
     void objcArc();
+    void overrideInfoPlist();
     void xcode();
 
 private:

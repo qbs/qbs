@@ -60,6 +60,54 @@ static QString getEmbeddedBinaryPlist(const QString &file)
     return QString::fromUtf8(p.readAllStandardOutput()).trimmed();
 }
 
+static QVariantMap readInfoPlistFile(const QString &infoPlistPath)
+{
+    if (!QFile::exists(infoPlistPath)) {
+        qWarning() << infoPlistPath << "doesn't exist";
+        return {};
+    }
+
+    QProcess plutil;
+    plutil.start("plutil", {
+                     QStringLiteral("-convert"),
+                     QStringLiteral("json"),
+                     infoPlistPath
+                 });
+    if (!plutil.waitForStarted()) {
+        qWarning() << plutil.errorString();
+        return {};
+    }
+    if (!plutil.waitForFinished()) {
+        qWarning() << plutil.errorString();
+        return {};
+    }
+    if (plutil.exitCode() != 0) {
+        qWarning() << plutil.readAllStandardError().constData();
+        return {};
+    }
+
+    QFile infoPlist(infoPlistPath);
+    if (!infoPlist.open(QIODevice::ReadOnly)) {
+        qWarning() << infoPlist.errorString();
+        return {};
+    }
+    QJsonParseError error;
+    const auto json = QJsonDocument::fromJson(infoPlist.readAll(), &error);
+    if (error.error != QJsonParseError::NoError) {
+        qWarning() << error.errorString();
+        return {};
+    }
+    return json.object().toVariantMap();
+}
+
+static QString getInfoPlistPath(const QString &bundlePath)
+{
+    QFileInfo contents(bundlePath + "/Contents");
+    if (contents.exists() && contents.isDir())
+        return contents.filePath() + "/Info.plist"; // macOS bundle
+    return bundlePath + "/Info.plist";
+}
+
 TestBlackboxApple::TestBlackboxApple()
     : TestBlackboxBase (SRCDIR "/testdata-apple", "blackbox-apple")
 {
@@ -719,37 +767,22 @@ void TestBlackboxApple::infoPlist()
     params.arguments = QStringList() << "-f" << "infoplist.qbs";
     QCOMPARE(runQbs(params), 0);
 
-    auto infoplistPath = relativeProductBuildDir("infoplist")
-            + "/infoplist.app/Contents/Info.plist";
-    if (!QFile::exists(infoplistPath))
-        infoplistPath = relativeProductBuildDir("infoplist") + "/infoplist.app/Info.plist";
-    QVERIFY(QFile::exists(infoplistPath));
-    QProcess plutil;
-    plutil.start("plutil", {
-                     QStringLiteral("-convert"),
-                     QStringLiteral("json"),
-                     infoplistPath
-                 });
-    QVERIFY2(plutil.waitForStarted(), qPrintable(plutil.errorString()));
-    QVERIFY2(plutil.waitForFinished(), qPrintable(plutil.errorString()));
-    QVERIFY2(plutil.exitCode() == 0, qPrintable(plutil.readAllStandardError().constData()));
+    const auto infoPlistPath = getInfoPlistPath(
+            relativeProductBuildDir("infoplist") + "/infoplist.app");
+    QVERIFY(QFile::exists(infoPlistPath));
+    const auto content = readInfoPlistFile(infoPlistPath);
+    QVERIFY(!content.isEmpty());
 
-    QFile infoplist(infoplistPath);
-    QVERIFY(infoplist.open(QIODevice::ReadOnly));
-    QJsonParseError error;
-    const auto json = QJsonDocument::fromJson(infoplist.readAll(), &error);
-    QCOMPARE(error.error, QJsonParseError::NoError);
-    QVERIFY(json.isObject());
     // common values
-    QCOMPARE(json.object().value(QStringLiteral("CFBundleIdentifier")),
+    QCOMPARE(content.value(QStringLiteral("CFBundleIdentifier")),
              QStringLiteral("org.example.infoplist"));
-    QCOMPARE(json.object().value(QStringLiteral("CFBundleName")), QStringLiteral("infoplist"));
-    QCOMPARE(json.object().value(QStringLiteral("CFBundleExecutable")),
+    QCOMPARE(content.value(QStringLiteral("CFBundleName")), QStringLiteral("infoplist"));
+    QCOMPARE(content.value(QStringLiteral("CFBundleExecutable")),
              QStringLiteral("infoplist"));
 
-    if (!json.object().contains(QStringLiteral("SDKROOT"))) { // macOS-specific values
-        QCOMPARE(json.object().value("LSMinimumSystemVersion"), QStringLiteral("10.7"));
-        QVERIFY(json.object().contains("NSPrincipalClass"));
+    if (!content.contains(QStringLiteral("SDKROOT"))) { // macOS-specific values
+        QCOMPARE(content.value("LSMinimumSystemVersion"), QStringLiteral("10.7"));
+        QVERIFY(content.contains("NSPrincipalClass"));
     }
 }
 
@@ -758,6 +791,31 @@ void TestBlackboxApple::objcArc()
     QDir::setCurrent(testDataDir + QLatin1String("/objc-arc"));
 
     QCOMPARE(runQbs(), 0);
+}
+
+void TestBlackboxApple::overrideInfoPlist()
+{
+    QDir::setCurrent(testDataDir + "/overrideInfoPlist");
+
+    QCOMPARE(runQbs(), 0);
+
+    const auto infoPlistPath = getInfoPlistPath(
+            relativeProductBuildDir("overrideInfoPlist") + "/overrideInfoPlist.app");
+    QVERIFY(QFile::exists(infoPlistPath));
+    const auto content = readInfoPlistFile(infoPlistPath);
+    QVERIFY(!content.isEmpty());
+
+    // test we do not override custom values by default
+    QCOMPARE(content.value(QStringLiteral("DefaultValue")),
+             QStringLiteral("The default value"));
+    // test we can override custom values
+    QCOMPARE(content.value(QStringLiteral("OverriddenValue")),
+             QStringLiteral("The overridden value"));
+    // test we do not override special values set by Qbs by default
+    QCOMPARE(content.value(QStringLiteral("CFBundleExecutable")),
+             QStringLiteral("overrideInfoPlist"));
+    // test we can override special values set by Qbs
+    QCOMPARE(content.value(QStringLiteral("CFBundleName")), QStringLiteral("My Bundle"));
 }
 
 void TestBlackboxApple::xcode()
