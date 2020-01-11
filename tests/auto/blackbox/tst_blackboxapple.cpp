@@ -793,7 +793,7 @@ void TestBlackboxApple::infoPlist()
 
     if (!content.contains(QStringLiteral("SDKROOT"))) { // macOS-specific values
         QCOMPARE(content.value("LSMinimumSystemVersion"), QStringLiteral("10.7"));
-        QVERIFY(content.contains("NSPrincipalClass"));
+        QCOMPARE(content.value("NSPrincipalClass"), QStringLiteral("NSApplication"));
     } else {
         // QBS-1447: UIDeviceFamily was set to a string instead of an array
         const auto family = content.value(QStringLiteral("UIDeviceFamily"));
