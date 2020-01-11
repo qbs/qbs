@@ -131,7 +131,7 @@ jobs:
         - clcache -s
         - qbs setup-toolchains --detect
         - qbs setup-qt ${QMAKE_PATH} qt
-        - qbs config qt.baseProfile MSVC2017-x86
+        - qbs config qt.baseProfile MSVC2017-x64
         - qbs config defaultProfile qt
         - scripts/build-qbs-with-qbs.sh
         - clcache -s
