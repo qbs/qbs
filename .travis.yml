@@ -70,9 +70,9 @@ jobs:
 
     - &build-on-macos
       stage: Build Qbs and and run autotests
-      name: With Qbs on macOS (xcode 10.3)
+      name: With Qbs on macOS (xcode 11.3)
       os: osx
-      osx_image: xcode10.3
+      osx_image: xcode11.3
       addons:
         homebrew:
           packages:
@@ -100,8 +100,13 @@ jobs:
         - ccache -s
 
     - <<: *build-on-macos
-      name: With Qbs on macOS (xcode 11.3)
-      osx_image: xcode11.3
+      name: With Qbs on macOS (xcode 10.3)
+      osx_image: xcode10.3
+      if: branch = master
+
+    - <<: *build-on-macos
+      name: With Qbs on macOS (xcode 9.4)
+      osx_image: xcode9.4
 
     - &build-on-windows
       stage: Build Qbs and and run autotests
