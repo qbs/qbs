@@ -100,8 +100,8 @@ jobs:
         - ccache -s
 
     - <<: *build-on-macos
-      name: With Qbs on macOS (xcode 11)
-      osx_image: xcode11
+      name: With Qbs on macOS (xcode 11.3)
+      osx_image: xcode11.3
 
     - &build-on-windows
       stage: Build Qbs and and run autotests
