@@ -1811,6 +1811,9 @@ void TestBlackbox::separateDebugInfo()
     const bool isWindows = m_qbsStdout.contains("is windows: yes");
     const bool isNotWindows = m_qbsStdout.contains("is windows: no");
     QVERIFY(isWindows != isNotWindows);
+    const bool isMacos = m_qbsStdout.contains("is macos: yes");
+    const bool isNotMacos = m_qbsStdout.contains("is macos: no");
+    QVERIFY(isMacos != isNotMacos);
     const bool isDarwin = m_qbsStdout.contains("is darwin: yes");
     const bool isNotDarwin = m_qbsStdout.contains("is darwin: no");
     QVERIFY(isDarwin != isNotDarwin);
@@ -1829,8 +1832,13 @@ void TestBlackbox::separateDebugInfo()
                 .entryInfoList(QDir::NoDotAndDotDot | QDir::AllEntries).size(), 1);
         QVERIFY(!QFile::exists(relativeProductBuildDir("app2") + "/app2.app.dSYM"));
         QVERIFY(!QFile::exists(relativeProductBuildDir("app3") + "/app3.app.dSYM"));
-        QVERIFY(regularFileExists(relativeProductBuildDir("app3")
-            + "/app3.app/Contents/MacOS/app3.dwarf"));
+        if (isMacos) {
+            QVERIFY(regularFileExists(relativeProductBuildDir("app3")
+                + "/app3.app/Contents/MacOS/app3.dwarf"));
+        } else {
+            QVERIFY(regularFileExists(relativeProductBuildDir("app3")
+                + "/app3.app/app3.dwarf"));
+        }
         QVERIFY(directoryExists(relativeProductBuildDir("app4") + "/app4.dSYM"));
         QVERIFY(regularFileExists(relativeProductBuildDir("app4")
             + "/app4.dSYM/Contents/Info.plist"));
@@ -1850,8 +1858,13 @@ void TestBlackbox::separateDebugInfo()
                 .entryInfoList(QDir::NoDotAndDotDot | QDir::AllEntries).size(), 1);
         QVERIFY(!QFile::exists(relativeProductBuildDir("foo2") + "/foo2.framework.dSYM"));
         QVERIFY(!QFile::exists(relativeProductBuildDir("foo3") + "/foo3.framework.dSYM"));
-        QVERIFY(regularFileExists(relativeProductBuildDir("foo3")
-            + "/foo3.framework/Versions/A/foo3.dwarf"));
+        if (isMacos) {
+            QVERIFY(regularFileExists(relativeProductBuildDir("foo3")
+                + "/foo3.framework/Versions/A/foo3.dwarf"));
+        } else {
+            QVERIFY(regularFileExists(relativeProductBuildDir("foo3")
+                + "/foo3.framework/foo3.dwarf"));
+        }
         QVERIFY(directoryExists(relativeProductBuildDir("foo4") + "/libfoo4.dylib.dSYM"));
         QVERIFY(regularFileExists(relativeProductBuildDir("foo4")
             + "/libfoo4.dylib.dSYM/Contents/Info.plist"));
@@ -1871,8 +1884,13 @@ void TestBlackbox::separateDebugInfo()
                 .entryInfoList(QDir::NoDotAndDotDot | QDir::AllEntries).size(), 1);
         QVERIFY(!QFile::exists(relativeProductBuildDir("bar2") + "/bar2.bundle.dSYM"));
         QVERIFY(!QFile::exists(relativeProductBuildDir("bar3") + "/bar3.bundle.dSYM"));
-        QVERIFY(regularFileExists(relativeProductBuildDir("bar3")
-            + "/bar3.bundle/Contents/MacOS/bar3.dwarf"));
+        if (isMacos) {
+            QVERIFY(regularFileExists(relativeProductBuildDir("bar3")
+                + "/bar3.bundle/Contents/MacOS/bar3.dwarf"));
+        } else {
+            QVERIFY(regularFileExists(relativeProductBuildDir("bar3")
+                + "/bar3.bundle/bar3.dwarf"));
+        }
         QVERIFY(directoryExists(relativeProductBuildDir("bar4") + "/bar4.bundle.dSYM"));
         QVERIFY(regularFileExists(relativeProductBuildDir("bar4")
             + "/bar4.bundle.dSYM/Contents/Info.plist"));
