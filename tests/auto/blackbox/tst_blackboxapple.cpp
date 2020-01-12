@@ -33,6 +33,7 @@
 #include <tools/profile.h>
 #include <tools/qttools.h>
 
+#include <QtCore/qdiriterator.h>
 #include <QtCore/qjsondocument.h>
 #include <QtCore/qjsonobject.h>
 #include <QtXml/qdom.h>
@@ -118,6 +119,25 @@ static bool testVariantListType(const QVariant &variant, QMetaType::Type type)
             return false;
     }
     return true;
+}
+
+static QString findFatLibrary(const QString &dir, const QString &libraryName)
+{
+    QDirIterator it(dir, {}, QDir::AllEntries, QDirIterator::Subdirectories);
+    while (it.hasNext()) {
+        it.next();
+        if (it.fileInfo().fileName() == libraryName) {
+            QProcess lipo;
+            lipo.start("lipo", { QStringLiteral("-info"), it.filePath() });
+            if (!lipo.waitForStarted() || !lipo.waitForFinished() || lipo.exitCode() != 0)
+                return {};
+            auto output = lipo.readAllStandardOutput();
+            if (output.contains(QByteArrayLiteral("Architectures in the fat file")))
+                return QDir::cleanPath(it.filePath());
+        }
+    }
+
+    return {};
 }
 
 TestBlackboxApple::TestBlackboxApple()
@@ -250,19 +270,26 @@ void TestBlackboxApple::appleMultiConfig()
 
 void TestBlackboxApple::aggregateDependencyLinking()
 {
-    // XCode 11 produces warning about deprecation of 32-bit apps, so skip the test
-    // for future XCode versions as well
     const auto xcodeVersion = findXcodeVersion();
-    if (xcodeVersion >= qbs::Version(11))
-        QSKIP("32-bit arch build is no longer supported on macOS higher than 10.13.4.");
+    // XCode 11 produces warning about deprecation of 32-bit apps, but still works
+    const bool hasX86Mac = xcodeVersion < qbs::Version(12);
+    const bool hasArmMac = xcodeVersion >= qbs::Version(12);
 
     QDir::setCurrent(testDataDir + "/aggregateDependencyLinking");
-    QCOMPARE(runQbs(QStringList{"-p", "multi_arch_lib"}), 0);
+    QbsRunParameters params{QStringList{"-p", "multi_arch_lib"}};
+    params.arguments << QStringLiteral("products.multi_arch_lib.hasX86Mac:%1").arg(hasX86Mac);
+    params.arguments << QStringLiteral("products.multi_arch_lib.hasArmMac:%1").arg(hasArmMac);
+    QCOMPARE(runQbs(params), 0);
+    if (m_qbsStdout.contains("Cannot build fat binaries"))
+        QSKIP("Building fat binaries is not supported for this profile");
 
     QCOMPARE(runQbs(QStringList{"-p", "just_app", "--command-echo-mode", "command-line"}), 0);
     int linkedInLibrariesCount =
-            QString::fromUtf8(m_qbsStdout).count(QStringLiteral("multi_arch_lib.a"));
+            QString::fromUtf8(m_qbsStdout).count(QStringLiteral("libmulti_arch_lib.a"));
     QCOMPARE(linkedInLibrariesCount, 1);
+    const auto fatLibPath = findFatLibrary(testDataDir, QStringLiteral("libmulti_arch_lib.a"));
+    QVERIFY(!fatLibPath.isEmpty());
+    QVERIFY2(QString::fromUtf8(m_qbsStdout).contains(fatLibPath), m_qbsStdout);
 }
 
 void TestBlackboxApple::assetCatalog()
