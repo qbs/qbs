@@ -219,6 +219,19 @@ function fillEntryPointLibs(qtProps, debug) {
     return result;
 }
 
+function abiToArchitecture(abi) {
+    switch (abi) {
+    case "armeabi-v7a":
+        return "armv7a";
+    case "arm64-v8a":
+        return "arm64";
+    case "x86":
+    case "x86_64":
+    default:
+        return abi;
+    }
+}
+
 function getQtProperties(qmakeFilePath, qbs) {
     var queryResult = queryQmake(qmakeFilePath);
     var qtProps = {};
@@ -296,6 +309,14 @@ function getQtProperties(qmakeFilePath, qbs) {
     }
     if (!File.exists(qtProps.mkspecPath))
         throw "mkspec '" + toNative(qtProps.mkspecPath) + "' does not exist";
+
+    // Starting with qt 5.14, android sdk provides multi-abi
+    if (Utilities.versionCompare(qtProps.qtVersion, "5.14.0") >= 0
+            && qtProps.mkspecPath.contains("android")) {
+        var qdeviceContent = readFileContent(FileInfo.joinPaths(qtProps.mkspecBasePath,
+                                                                "qdevice.pri"));
+        qtProps.androidAbis = configVariable(qdeviceContent, "DEFAULT_ANDROID_ABIS").split(' ');
+    }
 
     // determine MSVC version
     if (isMsvcQt(qtProps)) {
@@ -591,7 +612,7 @@ function replaceQtLibNamesWithFilePath(modules, qtProps) {
     }
 }
 
-function doSetupLibraries(modInfo, qtProps, debugBuild, nonExistingPrlFiles) {
+function doSetupLibraries(modInfo, qtProps, debugBuild, nonExistingPrlFiles, androidAbi) {
     if (!modInfo.hasLibrary)
         return; // Can happen for Qt4 convenience modules, like "widgets".
 
@@ -644,7 +665,15 @@ function doSetupLibraries(modInfo, qtProps, debugBuild, nonExistingPrlFiles) {
             && !modInfo.isStaticLibrary && qtProps.qtMajorVersion < 5;
     if (isNonStaticQt4OnWindows)
         prlFilePath = prlFilePath.slice(0, prlFilePath.length - 1); // The prl file base name does *not* contain the version number...
+    if (androidAbi.length > 0
+            && modInfo.name !== "QtBootstrap"
+            && modInfo.name !== "QtQmlDevTools") {
+        prlFilePath += "_";
+        prlFilePath += androidAbi;
+    }
+
     prlFilePath += ".prl";
+
     try {
         var prlFile = new TextFile(prlFilePath, TextFile.ReadOnly);
         while (!prlFile.atEof()) {
@@ -738,9 +767,9 @@ function doSetupLibraries(modInfo, qtProps, debugBuild, nonExistingPrlFiles) {
         modInfo.libFilePathRelease = libFilePath;
 }
 
-function setupLibraries(qtModuleInfo, qtProps, nonExistingPrlFiles) {
-    doSetupLibraries(qtModuleInfo, qtProps, true, nonExistingPrlFiles);
-    doSetupLibraries(qtModuleInfo, qtProps, false, nonExistingPrlFiles);
+function setupLibraries(qtModuleInfo, qtProps, nonExistingPrlFiles, androidAbi) {
+    doSetupLibraries(qtModuleInfo, qtProps, true, nonExistingPrlFiles, androidAbi);
+    doSetupLibraries(qtModuleInfo, qtProps, false, nonExistingPrlFiles, androidAbi);
 }
 
 function allQt4Modules(qtProps) {
@@ -862,7 +891,7 @@ function allQt4Modules(qtProps) {
             module.mustExist = false;
         if (qtProps.staticBuild)
             module.isStaticLibrary = true;
-        setupLibraries(module, qtProps, nonExistingPrlFiles);
+        setupLibraries(module, qtProps, nonExistingPrlFiles, "");
     }
     replaceQtLibNamesWithFilePath(modules, qtProps);
 
@@ -1003,7 +1032,7 @@ function removeDuplicatedDependencyLibs(modules) {
         traverse(rootModules[i], []);
 }
 
-function allQt5Modules(qtProps) {
+function allQt5Modules(qtProps, androidAbi) {
     var nonExistingPrlFiles = [];
     var modules = [];
     var modulesDir = FileInfo.joinPaths(qtProps.mkspecBasePath, "modules");
@@ -1120,7 +1149,7 @@ function allQt5Modules(qtProps) {
             }
         }
 
-        setupLibraries(moduleInfo, qtProps, nonExistingPrlFiles);
+        setupLibraries(moduleInfo, qtProps, nonExistingPrlFiles, androidAbi);
 
         modules.push(moduleInfo);
         if (moduleInfo.qbsName === "testlib")
@@ -1144,7 +1173,6 @@ function extractQbsArchs(module, qtProps) {
     var qbsArch = Utilities.canonicalArchitecture(qtProps.architecture);
     if (qbsArch === "arm" && qtProps.mkspecPath.contains("android"))
         qbsArch = "armv7a";
-
     // Qt4 has "QT_ARCH = windows" in qconfig.pri for both MSVC and mingw.
     if (qbsArch === "windows")
         return []
@@ -1286,9 +1314,14 @@ function minVersionJsString(minVersion) {
     return !minVersion ? "original" : toJSLiteral(minVersion);
 }
 
-function replaceSpecialValues(content, module, qtProps) {
+function replaceSpecialValues(content, module, qtProps, abi) {
+    var architectures = [];
+    if (abi.length > 0)
+        architectures.push(abiToArchitecture(abi));
+    else
+        architectures = extractQbsArchs(module, qtProps);
     var dict = {
-        archs: toJSLiteral(extractQbsArchs(module, qtProps)),
+        archs: toJSLiteral(architectures),
         targetPlatform: toJSLiteral(qbsTargetPlatformFromQtMkspec(qtProps)),
         config: toJSLiteral(qtProps.configItems),
         qtConfig: toJSLiteral(qtProps.qtConfigItems),
@@ -1399,8 +1432,8 @@ function replaceSpecialValues(content, module, qtProps) {
     return content;
 }
 
-function copyTemplateFile(fileName, targetDirectory, qtProps, location, allFiles, module, pluginMap,
-                          nonEssentialPlugins)
+function copyTemplateFile(fileName, targetDirectory, qtProps, abi, location, allFiles, module,
+                          pluginMap, nonEssentialPlugins)
 {
     if (!File.makePath(targetDirectory)) {
         throw "Cannot create directory '" + toNative(targetDirectory) + "'.";
@@ -1409,12 +1442,13 @@ function copyTemplateFile(fileName, targetDirectory, qtProps, location, allFiles
                                   TextFile.ReadOnly);
     var newContent = sourceFile.readAll();
     if (module) {
-        newContent = replaceSpecialValues(newContent, module, qtProps);
+        newContent = replaceSpecialValues(newContent, module, qtProps, abi);
     } else {
         newContent = newContent.replace("@allPluginsByType@",
                                         '(' + toJSLiteral(pluginMap) + ')');
         newContent = newContent.replace("@nonEssentialPlugins@",
                                         toJSLiteral(nonEssentialPlugins));
+        newContent = newContent.replace("@version@", toJSLiteral(qtProps.qtVersion));
     }
     sourceFile.close();
     var targetPath = FileInfo.joinPaths(targetDirectory, fileName);
@@ -1428,74 +1462,102 @@ function setupOneQt(qmakeFilePath, outputBaseDir, uniquify, location, qbs) {
     if (!File.exists(qmakeFilePath))
         throw "The specified qmake file path '" + toNative(qmakeFilePath) + "' does not exist.";
     var qtProps = getQtProperties(qmakeFilePath, qbs);
-    var modules = qtProps.qtMajorVersion < 5 ? allQt4Modules(qtProps) : allQt5Modules(qtProps);
-    var pluginsByType = {};
-    var nonEssentialPlugins = [];
-    for (var i = 0; i < modules.length; ++i) {
-        var m = modules[i];
-        if (m.isPlugin) {
-            if (!pluginsByType[m.pluginData.type])
-                pluginsByType[m.pluginData.type] = [];
-            pluginsByType[m.pluginData.type].push(m.name);
-            if (!m.pluginData.autoLoad)
-                nonEssentialPlugins.push(m.name);
-        }
-    }
+    var androidAbis = [];
+    if (qtProps.androidAbis !== undefined)
+        // Multiple androidAbis detected: Qt >= 5.14
+        androidAbis = qtProps.androidAbis;
+    else
+        // Single abi detected: Qt < 5.14
+        androidAbis.push('');
+    if (androidAbis.length > 1)
+        console.info("Qt with multiple abi detected: '" + androidAbis + "'");
 
-    var relativeSearchPath = uniquify ? Utilities.getHash(qmakeFilePath) : "";
-    var qbsQtModuleBaseDir = FileInfo.joinPaths(outputBaseDir, relativeSearchPath, "modules", "Qt");
-    if (File.exists(qbsQtModuleBaseDir))
-        File.remove(qbsQtModuleBaseDir);
-
-    var allFiles = [];
-    copyTemplateFile("QtModule.qbs", qbsQtModuleBaseDir, qtProps, location, allFiles);
-    copyTemplateFile("QtPlugin.qbs", qbsQtModuleBaseDir, qtProps, location, allFiles);
-    copyTemplateFile("plugin_support.qbs", FileInfo.joinPaths(qbsQtModuleBaseDir, "plugin_support"),
-                     qtProps, location, allFiles, undefined, pluginsByType, nonEssentialPlugins);
-
-    for (i = 0; i < modules.length; ++i) {
-        var module = modules[i];
-        var qbsQtModuleDir = FileInfo.joinPaths(qbsQtModuleBaseDir, module.qbsName);
-        var moduleTemplateFileName;
-        if (module.qbsName === "core") {
-            moduleTemplateFileName = "core.qbs";
-            copyTemplateFile("moc.js", qbsQtModuleDir, qtProps, location, allFiles);
-            copyTemplateFile("qdoc.js", qbsQtModuleDir, qtProps, location, allFiles);
-        } else if (module.qbsName === "gui") {
-            moduleTemplateFileName = "gui.qbs";
-        } else if (module.qbsName === "scxml") {
-            moduleTemplateFileName = "scxml.qbs";
-        } else if (module.qbsName === "dbus") {
-            moduleTemplateFileName = "dbus.qbs";
-            copyTemplateFile("dbus.js", qbsQtModuleDir, qtProps, location, allFiles);
-        } else if (module.qbsName === "qml") {
-            moduleTemplateFileName = "qml.qbs";
-            copyTemplateFile("qml.js", qbsQtModuleDir, qtProps, location, allFiles);
-            var qmlcacheStr = "qmlcache";
-            if (File.exists(FileInfo.joinPaths(qtProps.binaryPath,
-                                               "qmlcachegen" + exeSuffix(qbs)))) {
-                copyTemplateFile(qmlcacheStr + ".qbs",
-                                 FileInfo.joinPaths(qbsQtModuleBaseDir, qmlcacheStr), qtProps,
-                                 location, allFiles);
+    var relativeSearchPaths = [];
+    for (a = 0; a < androidAbis.length; ++a) {
+        if (androidAbis.length > 1)
+            console.info("Configuring abi '" + androidAbis[a] + "'...");
+        var modules = qtProps.qtMajorVersion < 5 ? allQt4Modules(qtProps) :
+                                                   allQt5Modules(qtProps,androidAbis[a]);
+        var pluginsByType = {};
+        var nonEssentialPlugins = [];
+        for (var i = 0; i < modules.length; ++i) {
+            var m = modules[i];
+            if (m.isPlugin) {
+                if (!pluginsByType[m.pluginData.type])
+                    pluginsByType[m.pluginData.type] = [];
+                pluginsByType[m.pluginData.type].push(m.name);
+                if (!m.pluginData.autoLoad)
+                    nonEssentialPlugins.push(m.name);
             }
-        } else if (module.qbsName === "quick") {
-            moduleTemplateFileName = "quick.qbs";
-            copyTemplateFile("quick.js", qbsQtModuleDir, qtProps, location, allFiles);
-        } else if (module.isPlugin) {
-            moduleTemplateFileName = "plugin.qbs";
-        } else {
-            moduleTemplateFileName = "module.qbs";
         }
-        copyTemplateFile(moduleTemplateFileName, qbsQtModuleDir, qtProps, location, allFiles,
-                         module);
-    }
 
-    // Note that it's not strictly necessary to copy this one, as it has no variable content.
-    // But we do it anyway for consistency.
-    copyTemplateFile("android_support.qbs",
-                     FileInfo.joinPaths(qbsQtModuleBaseDir, "android_support"),
-                     qtProps, location, allFiles);
-    return relativeSearchPath;
+        var relativeSearchPath = uniquify ? Utilities.getHash(qmakeFilePath) : "";
+        relativeSearchPath = FileInfo.joinPaths(relativeSearchPath, androidAbis[a]);
+        var qbsQtModuleBaseDir = FileInfo.joinPaths(outputBaseDir, relativeSearchPath,
+                                                    "modules", "Qt");
+        if (File.exists(qbsQtModuleBaseDir))
+            File.remove(qbsQtModuleBaseDir);
+
+        var allFiles = [];
+        copyTemplateFile("QtModule.qbs", qbsQtModuleBaseDir, qtProps, androidAbis[a], location,
+                         allFiles);
+        copyTemplateFile("QtPlugin.qbs", qbsQtModuleBaseDir, qtProps, androidAbis[a], location,
+                         allFiles);
+        copyTemplateFile("plugin_support.qbs",
+                         FileInfo.joinPaths(qbsQtModuleBaseDir, "plugin_support"), qtProps,
+                         androidAbis[a], location, allFiles, undefined, pluginsByType,
+                         nonEssentialPlugins);
+
+        for (i = 0; i < modules.length; ++i) {
+            var module = modules[i];
+            var qbsQtModuleDir = FileInfo.joinPaths(qbsQtModuleBaseDir, module.qbsName);
+            var moduleTemplateFileName;
+            if (module.qbsName === "core") {
+                moduleTemplateFileName = "core.qbs";
+                copyTemplateFile("moc.js", qbsQtModuleDir, qtProps, androidAbis[a], location,
+                                 allFiles);
+                copyTemplateFile("qdoc.js", qbsQtModuleDir, qtProps, androidAbis[a], location,
+                                 allFiles);
+            } else if (module.qbsName === "gui") {
+                moduleTemplateFileName = "gui.qbs";
+            } else if (module.qbsName === "scxml") {
+                moduleTemplateFileName = "scxml.qbs";
+            } else if (module.qbsName === "dbus") {
+                moduleTemplateFileName = "dbus.qbs";
+                copyTemplateFile("dbus.js", qbsQtModuleDir, qtProps, androidAbis[a], location,
+                                 allFiles);
+            } else if (module.qbsName === "qml") {
+                moduleTemplateFileName = "qml.qbs";
+                copyTemplateFile("qml.js", qbsQtModuleDir, qtProps, androidAbis[a], location,
+                                 allFiles);
+                var qmlcacheStr = "qmlcache";
+                if (File.exists(FileInfo.joinPaths(qtProps.binaryPath,
+                                                   "qmlcachegen" + exeSuffix(qbs)))) {
+                    copyTemplateFile(qmlcacheStr + ".qbs",
+                                     FileInfo.joinPaths(qbsQtModuleBaseDir, qmlcacheStr), qtProps,
+                                     androidAbis[a], location, allFiles);
+                }
+            } else if (module.qbsName === "quick") {
+                moduleTemplateFileName = "quick.qbs";
+                copyTemplateFile("quick.js", qbsQtModuleDir, qtProps, androidAbis[a], location,
+                                 allFiles);
+            } else if (module.isPlugin) {
+                moduleTemplateFileName = "plugin.qbs";
+            } else {
+                moduleTemplateFileName = "module.qbs";
+            }
+            copyTemplateFile(moduleTemplateFileName, qbsQtModuleDir, qtProps, androidAbis[a],
+                             location, allFiles, module);
+        }
+
+        // Note that it's not strictly necessary to copy this one, as it has no variable content.
+        // But we do it anyway for consistency.
+        copyTemplateFile("android_support.qbs",
+                         FileInfo.joinPaths(qbsQtModuleBaseDir, "android_support"),
+                         qtProps, androidAbis[a], location, allFiles);
+        relativeSearchPaths.push(relativeSearchPath)
+    }
+    return relativeSearchPaths;
 }
 
 function doSetup(qmakeFilePaths, outputBaseDir, location, qbs) {
@@ -1503,19 +1565,20 @@ function doSetup(qmakeFilePaths, outputBaseDir, location, qbs) {
     if (!qmakeFilePaths || qmakeFilePaths.length === 0)
         return [];
     var uniquifySearchPath = qmakeFilePaths.length > 1;
-    var searchPaths = [];
+    var allSearchPaths = [];
     for (var i = 0; i < qmakeFilePaths.length; ++i) {
         try {
             console.info("Setting up Qt at '" + toNative(qmakeFilePaths[i]) + "'...");
-            var searchPath = setupOneQt(qmakeFilePaths[i], outputBaseDir, uniquifySearchPath,
-                                        location, qbs);
-            if (searchPath !== undefined) {
-                searchPaths.push(searchPath);
+            var searchPaths = setupOneQt(qmakeFilePaths[i], outputBaseDir, uniquifySearchPath,
+                                         location, qbs);
+            if (searchPaths.length > 0) {
+                for (var j = 0; j < searchPaths.length; ++j )
+                    allSearchPaths.push(searchPaths[j]);
                 console.info("Qt was set up successfully.");
             }
         } catch (e) {
             console.warn("Error setting up Qt for '" + toNative(qmakeFilePaths[i]) + "': " + e);
         }
     }
-    return searchPaths;
+    return allSearchPaths;
 }

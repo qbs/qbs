@@ -222,3 +222,10 @@ function gdbserverOrStlDeploymentData(product, inputs, type)
     }
     return data;
 }
+
+function elementHasBundledAttributes(element)
+{
+    return element.hasAttribute("android:name") &&
+            (element.attribute("android:name") === "android.app.bundled_in_assets_resource_id") ||
+            (element.attribute("android:name") === "android.app.bundled_in_lib_resource_id");
+}

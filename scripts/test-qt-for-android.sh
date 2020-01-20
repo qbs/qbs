@@ -50,16 +50,33 @@ echo "Android SDK installed at ${ANDROID_SDK_ROOT}"
 echo "Android NDK installed at ${ANDROID_NDK_ROOT}"
 echo "Qt installed at ${QT_INSTALL_DIR}"
 
+# Cleaning profiles
+qbs config --unset profiles.qbs_autotests-android
+qbs config --unset profiles.qbs_autotests-android-qt
+
+# Setting auto test profiles
 qbs setup-android --ndk-dir ${ANDROID_HOME}/ndk-bundle --sdk-dir ${ANDROID_HOME} qbs_autotests-android
 qbs setup-android --ndk-dir ${ANDROID_HOME}/ndk-bundle --sdk-dir ${ANDROID_HOME} --qt-dir ${QT_INSTALL_DIR} qbs_autotests-android-qt
 
+export QBS_AUTOTEST_PROFILE=qbs_autotests-android
+export QBS_AUTOTEST_ALWAYS_LOG_STDERR=true
+
+if [ ! "${QT_VERSION}" \< "5.14.0" ]; then
+    echo "Using multi-arch data sets for qml tests (only for qt version >= 5.14) with all architectures"
+    qbs config --list
+    tst_blackbox-android
+
+    echo "Using multi-arch data sets for qml tests (only for qt version >= 5.14) with only armv7a and x86_64"
+    qbs config profiles.qbs_autotests-android-qt.qbs.architectures '["armv7a","x86_64"]'
+    qbs config --list
+    tst_blackbox-android
+fi;
+
+echo "Using single-arch (armv7a) data sets for qml tests"
 qbs config --unset profiles.qbs_autotests-android-qt.qbs.architectures
 qbs config profiles.qbs_autotests-android-qt.qbs.architecture armv7a
 
 qbs config --list
-
-export QBS_AUTOTEST_PROFILE=qbs_autotests-android
-export QBS_AUTOTEST_ALWAYS_LOG_STDERR=true
 
 tst_blackbox-android
 

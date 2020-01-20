@@ -3,8 +3,10 @@ import qbs.FileInfo
 import qbs.ModUtils
 import qbs.TextFile
 import qbs.Utilities
+import qbs.Process
 
 Module {
+    version: @version@
     property bool useMinistro: false
     property string qmlRootDir: product.sourceDirectory
     property stringList extraPrefixDirs
@@ -21,6 +23,8 @@ Module {
     property bool _enableNdkSupport: !product.aggregate || product.multiplexConfigurationId
     property string _templatesBaseDir: FileInfo.joinPaths(_qtInstallDir, "src", "android")
     property string _deployQtOutDir: FileInfo.joinPaths(product.buildDirectory, "deployqt_out")
+
+    property bool _multiAbi: Utilities.versionCompare(version, "5.14") >= 0
 
     Depends { name: "Android.sdk"; condition: _enableSdkSupport }
     Depends { name: "Android.ndk"; condition: _enableNdkSupport }
@@ -44,6 +48,11 @@ Module {
         condition: _enableNdkSupport && (Android.ndk.abi === "armeabi-v7a" || Android.ndk.abi === "x86")
         cpp.defines: "ANDROID_HAS_WSTRING"
     }
+    Properties {
+        condition: _enableSdkSupport
+        Android.sdk._archInName: _multiAbi
+        Android.sdk._bundledInAssets: _multiAbi
+    }
 
     Rule {
         condition: _enableSdkSupport
@@ -61,30 +70,55 @@ Module {
             cmd.sourceCode = function() {
                 var theBinary;
                 var nativeLibs = inputs["android.nativelibrary"];
+                var architectures = [];
+                var triples = [];
+                var hostArch;
+                var targetArchitecture;
                 if (nativeLibs.length === 1) {
                     theBinary = nativeLibs[0];
+                    hostArch = theBinary.Android.ndk.hostArch;
+                    targetArchitecture = theBinary.Android.ndk.abi;
+                    if (product.Qt.android_support._multiAbi) {
+                        architectures.push(theBinary.Android.ndk.abi);
+                        triples.push(theBinary.cpp.toolchainTriple);
+                    }
                 } else {
                     for (i = 0; i < nativeLibs.length; ++i) {
                         var candidate = nativeLibs[i];
-                        if (!candidate.fileName.contains(candidate.product.targetName))
-                            continue;
-                        if (!theBinary) {
-                            theBinary = candidate;
-                            continue;
+                        if (product.Qt.android_support._multiAbi) {
+                           if (candidate.product.name === product.name) {
+                               architectures.push(candidate.Android.ndk.abi);
+                               triples.push(candidate.cpp.toolchainTriple);
+                               hostArch = candidate.Android.ndk.hostArch;
+                               targetArchitecture = candidate.Android.ndk.abi;
+                               theBinary = candidate;
+                           }
+                        } else {
+                            if (!candidate.fileName.contains(candidate.product.targetName))
+                                continue;
+                            if (!theBinary) {
+                                theBinary = candidate;
+                                hostArch = theBinary.Android.ndk.hostArch;
+                                targetArchitecture = theBinary.Android.ndk.abi;
+                                continue;
+                            }
+                            if (theBinary.product.name === product.name
+                                    && candidate.product.name !== product.name) {
+                                continue; // We already have a better match.
+                            }
+                            if (candidate.product.name === product.name
+                                    && theBinary.product.name !== product.name) {
+                                theBinary = candidate; // The new candidate is a better match.
+                                hostArch = theBinary.Android.ndk.hostArch;
+                                targetArchitecture = theBinary.Android.ndk.abi;
+                                continue;
+                            }
+
+                            throw "Qt applications for Android support only one native binary "
+                                    + "per package.\n"
+                                    + "In particular, you cannot build a Qt app for more than "
+                                    + "one architecture at the same time.";
                         }
-                        if (theBinary.product.name === product.name
-                                && candidate.product.name !== product.name) {
-                            continue; // We already have a better match.
-                        }
-                        if (candidate.product.name === product.name
-                                && theBinary.product.name !== product.name) {
-                            theBinary = candidate; // The new candidate is a better match.
-                            continue;
-                        }
-                        throw "Qt applications for Android support only one native binary "
-                                + "per package.\n"
-                                + "In particular, you cannot build a Qt app for more than "
-                                + "one architecture at the same time.";
                     }
                 }
                 var f = new TextFile(output.filePath, TextFile.WriteOnly);
@@ -99,8 +133,20 @@ Module {
                 f.writeLine('"toolchain-prefix": "llvm",');
                 f.writeLine('"tool-prefix": "llvm",');
                 f.writeLine('"useLLVM": true,');
-                f.writeLine('"ndk-host": "' + theBinary.Android.ndk.hostArch + '",');
-                f.writeLine('"target-architecture": "' + theBinary.Android.ndk.abi + '",');
+                f.writeLine('"ndk-host": "' + hostArch + '",');
+                if (!product.Qt.android_support._multiAbi) {
+                    f.writeLine('"target-architecture": "' + targetArchitecture + '",');
+                }
+                else {
+                    var line = '"architectures": {';
+                    for (var i in architectures) {
+                        line = line + '"' + architectures[i] + '":"' + triples[i] + '"';
+                        if (i < architectures.length-1)
+                            line = line + ',';
+                    }
+                    line = line + "},";
+                    f.writeLine(line);
+                }
                 f.writeLine('"qml-root-path": "' + product.Qt.android_support.qmlRootDir + '",');
                 var deploymentDeps = product.Qt.android_support.deploymentDependencies;
                 if (deploymentDeps && deploymentDeps.length > 0)
@@ -124,11 +170,16 @@ Module {
                     f.writeLine('"qml-import-paths": "' + product.qmlImportPaths.join(',') + '",');
 
                 // QBS-1429
-                f.writeLine('"stdcpp-path": "' + (product.cpp.sharedStlFilePath
+                if (!product.Qt.android_support._multiAbi) {
+                    f.writeLine('"stdcpp-path": "' + (product.cpp.sharedStlFilePath
                             ? product.cpp.sharedStlFilePath : product.cpp.staticStlFilePath)
                             + '",');
-
-                f.writeLine('"application-binary": "' + theBinary.filePath + '"');
+                    f.writeLine('"application-binary": "' + theBinary.filePath + '"');
+                } else {
+                    f.writeLine('"stdcpp-path": "' + product.Android.sdk.ndkDir +
+                                '/toolchains/llvm/prebuilt/' + hostArch + '/sysroot/usr/lib/",');
+                    f.writeLine('"application-binary": "' + theBinary.product.name + '"');
+                }
                 f.writeLine("}");
                 f.close();
             };
@@ -167,7 +218,12 @@ Module {
     Rule {
         condition: _enableSdkSupport
         multiplex: true
-        inputs: ["qt_androiddeployqt_input", "android.manifest_processed"]
+        property stringList defaultInputs: ["qt_androiddeployqt_input",
+                                            "android.manifest_processed"]
+        property stringList allInputs: ["qt_androiddeployqt_input", "android.manifest_processed",
+                                        "android.nativelibrary"]
+        inputsFromDependencies: "android.nativelibrary"
+        inputs: product.aggregate ? defaultInputs : allInputs
         outputFileTags: [
             "android.manifest_final", "android.resources", "android.assets", "bundled_jar",
             "android.deployqt_list",
@@ -216,9 +272,21 @@ Module {
                 File.copy(product.Qt.android_support._templatesBaseDir
                           + "/templates/res/values/libs.xml",
                           product.Qt.android_support._deployQtOutDir + "/res/values/libs.xml");
-                try {
-                    File.remove(FileInfo.path(outputs["android.assets"][0].filePath));
-                } catch (e) {
+                if (!product.Qt.android_support._multiAbi) {
+                    try {
+                        File.remove(FileInfo.path(outputs["android.assets"][0].filePath));
+                    } catch (e) {
+                    }
+                }
+                else {
+                    for (var i in inputs["android.nativelibrary"]) {
+                        var input = inputs["android.nativelibrary"][i];
+                        File.copy(input.filePath,
+                                  FileInfo.joinPaths(product.Qt.android_support._deployQtOutDir,
+                                                     "libs",
+                                                     input.Android.ndk.abi,
+                                                     input.fileName));
+                    }
                 }
             };
             var androidDeployQtArgs = [
@@ -228,7 +296,7 @@ Module {
                 "--android-platform", product.Android.sdk.platform,
             ];
             if (product.Qt.android_support.verboseAndroidDeployQt)
-                args.push("--verbose");
+                androidDeployQtArgs.push("--verbose");
             var androidDeployQtCmd = new Command(
                         product.Qt.android_support._androidDeployQtFilePath, androidDeployQtArgs);
             androidDeployQtCmd.description = "running androiddeployqt";
@@ -286,7 +354,31 @@ Module {
                         File.remove(oldLibs[i]);
                 }
             };
-            return [copyCmd, androidDeployQtCmd, moveCmd];
+
+            // androiddeployqt doesn't strip the deployed libraries anymore so it has to done here
+            var stripLibsCmd = new JavaScriptCommand();
+            stripLibsCmd.description = "Stripping unneeded symbols from deployed qt libraries";
+            stripLibsCmd.sourceCode = function() {
+                var stripArgs = ["--strip-all"];
+                var architectures = [];
+                for (var i in inputs["android.nativelibrary"])
+                    architectures.push(inputs["android.nativelibrary"][i].Android.ndk.abi);
+                for (var i in architectures) {
+                    var abiDirPath = FileInfo.joinPaths(product.Android.sdk.apkContentsDir,
+                                                        "lib", architectures[i]);
+                    var files = File.directoryEntries(abiDirPath, File.Files);
+                    for (var i = 0; i < files.length; ++i) {
+                        var filePath = FileInfo.joinPaths(abiDirPath, files[i]);
+                        if (FileInfo.suffix(filePath) == "so") {
+                            stripArgs.push(filePath);
+                        }
+                    }
+                }
+                var process = new Process();
+                process.exec(product.cpp.stripPath, stripArgs, false);
+            }
+
+            return [copyCmd, androidDeployQtCmd, moveCmd, stripLibsCmd];
         }
     }
 

@@ -232,3 +232,21 @@ QMap<QString, QString> TestBlackboxBase::findJdkTools(int *status)
         {"jar", QDir::fromNativeSeparators(tools["jar"].toString())}
     };
 }
+
+qbs::Version TestBlackboxBase::qmakeVersion(const QString &qmakeFilePath)
+{
+    QStringList arguments;
+    arguments << "-query" << "QT_VERSION";
+    QProcess qmakeProcess;
+    qmakeProcess.start(qmakeFilePath, arguments);
+    if (!qmakeProcess.waitForStarted() || !qmakeProcess.waitForFinished()
+        || qmakeProcess.exitStatus() != QProcess::NormalExit) {
+        qDebug() << "qmake '" << qmakeFilePath << "' could not be run.";
+        return qbs::Version();
+    }
+    QByteArray result = qmakeProcess.readAll().simplified();
+    qbs::Version version = qbs::Version::fromString(result);
+    if (!version.isValid())
+        qDebug() << "qmake '" << qmakeFilePath << "' version is not valid.";
+    return version;
+}
