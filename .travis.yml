@@ -115,9 +115,8 @@ jobs:
       env:
         # Need to build in release mode. Otherwise autotests would be too slow.
         BUILD_OPTIONS="config:release modules.cpp.compilerWrapper:clcache"
-        QT_INSTALL_DIR=C:/Qt
         QMAKE_PATH=${QT_INSTALL_DIR}/${QT_VERSION}/msvc2017_64/bin/qmake.exe
-        PATH="/c/Qt/Tools/QtCreator/bin:/c/Python38:/c/Python39:/c/Python38/Scripts:/c/Python39/Scripts:${PATH}"
+        PATH="${QT_INSTALL_DIR}/Tools/QtCreator/bin:/c/Python38:/c/Python39:/c/Python38/Scripts:/c/Python39/Scripts:${PATH}"
         WITH_DOCS=0
         QBS_BUILD_PROFILE=qt
         CLCACHE_DIR="${HOME}/.ccache"
