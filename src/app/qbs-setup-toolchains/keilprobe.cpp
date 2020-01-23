@@ -47,6 +47,7 @@
 #include <tools/hostosinfo.h>
 #include <tools/profile.h>
 
+#include <QtCore/qdir.h>
 #include <QtCore/qprocess.h>
 #include <QtCore/qsettings.h>
 #include <QtCore/qtemporaryfile.h>
@@ -188,6 +189,51 @@ static std::vector<ToolchainInstallInfo> installedKeilsFromPath()
     return infos;
 }
 
+// Parse the 'tools.ini' file to fetch a toolchain version.
+// Note: We can't use QSettings here!
+static QString extractVersion(const QString &toolsIniFile, const QString &section)
+{
+    QFile f(toolsIniFile);
+    if (!f.open(QIODevice::ReadOnly))
+        return {};
+    QTextStream in(&f);
+    enum State { Enter, Lookup, Exit } state = Enter;
+    while (!in.atEnd()) {
+        const QString line = in.readLine().trimmed();
+        // Search for section.
+        const int firstBracket = line.indexOf(QLatin1Char('['));
+        const int lastBracket = line.lastIndexOf(QLatin1Char(']'));
+        const bool hasSection = (firstBracket == 0 && lastBracket != -1
+                && (lastBracket + 1) == line.size());
+        switch (state) {
+        case Enter: {
+            if (hasSection) {
+                const auto content = line.midRef(firstBracket + 1,
+                                                 lastBracket - firstBracket - 1);
+                if (content == section)
+                    state = Lookup;
+            }
+        }
+            break;
+        case Lookup: {
+            if (hasSection)
+                return {}; // Next section found.
+            const int versionIndex = line.indexOf(QLatin1String("VERSION="));
+            if (versionIndex < 0)
+                continue;
+            QString version = line.mid(8);
+            if (version.startsWith(QLatin1Char('V')))
+                version.remove(0, 1);
+            return version;
+        }
+            break;
+        default:
+            return {};
+        }
+    }
+    return {};
+}
+
 static std::vector<ToolchainInstallInfo> installedKeilsFromRegistry()
 {
     std::vector<ToolchainInstallInfo> infos;
@@ -195,48 +241,45 @@ static std::vector<ToolchainInstallInfo> installedKeilsFromRegistry()
     if (HostOsInfo::isWindowsHost()) {
 
 #ifdef Q_OS_WIN64
-        static const char kRegistryNode[] = "HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Keil\\Products";
+        static const char kRegistryNode[] = "HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\" \
+                                            "Windows\\CurrentVersion\\Uninstall\\Keil \u00B5Vision4";
 #else
-        static const char kRegistryNode[] = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Keil\\Products";
+        static const char kRegistryNode[] = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\" \
+                                            "Windows\\CurrentVersion\\Uninstall\\Keil \u00B5Vision4";
 #endif
-
-        // Dictionary for know toolchains.
-        static const struct Entry {
-            QString productKey;
-            QString subExePath;
-        } knowToolchains[] = {
-            {QStringLiteral("MDK"), QStringLiteral("\\ARMCC\\bin\\armcc.exe")},
-            {QStringLiteral("C51"), QStringLiteral("\\BIN\\c51.exe")},
-        };
 
         QSettings registry(QLatin1String(kRegistryNode), QSettings::NativeFormat);
         const auto productGroups = registry.childGroups();
         for (const QString &productKey : productGroups) {
-            const auto entryEnd = std::end(knowToolchains);
-            const auto entryIt = std::find_if(std::begin(knowToolchains), entryEnd,
-                                              [productKey](const Entry &entry) {
-                return entry.productKey == productKey;
-            });
-            if (entryIt == entryEnd)
+            if (!productKey.startsWith(QStringLiteral("App")))
                 continue;
-
             registry.beginGroup(productKey);
-            const QString rootPath = registry.value(QStringLiteral("Path"))
+            const QString productPath = registry.value(QStringLiteral("ProductDir"))
                     .toString();
-            if (!rootPath.isEmpty()) {
-                // Build full compiler path.
-                const QFileInfo keilPath(rootPath + entryIt->subExePath);
-                if (keilPath.exists()) {
-                    QString version = registry.value(QStringLiteral("Version"))
-                            .toString();
-                    if (version.startsWith(QLatin1Char('V')))
-                        version.remove(0, 1);
-                    infos.push_back({keilPath, Version::fromString(version)});
+            // Fetch the toolchain executable path.
+            QFileInfo keilPath;
+            if (productPath.endsWith(QStringLiteral("ARM")))
+                keilPath.setFile(productPath + QStringLiteral("\\ARMCC\\bin\\armcc.exe"));
+            else if (productPath.endsWith(QStringLiteral("C51")))
+                keilPath.setFile(productPath + QStringLiteral("\\BIN\\c51.exe"));
+
+            if (keilPath.exists()) {
+                // Fetch the toolchain version.
+                const QDir rootPath(registry.value(QStringLiteral("Directory")).toString());
+                const QString toolsIniFilePath = rootPath.absoluteFilePath(
+                            QStringLiteral("tools.ini"));
+                for (auto index = 1; index <= 2; ++index) {
+                    const QString section = registry.value(
+                                QStringLiteral("Section %1").arg(index)).toString();
+                    const QString version = extractVersion(toolsIniFilePath, section);
+                    if (!version.isEmpty()) {
+                        infos.push_back({keilPath, Version::fromString(version)});
+                        break;
+                    }
                 }
             }
             registry.endGroup();
         }
-
     }
 
     std::sort(infos.begin(), infos.end());
