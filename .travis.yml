@@ -126,11 +126,23 @@ jobs:
         - ./scripts/install-qt.sh -d ${QT_INSTALL_DIR} --version ${QTCREATOR_VERSION} qtcreator
         - choco install python
         - pip install git+https://github.com/frerich/clcache.git@cae73d8255d78db8ba11e23c51fd2c9a89e7475b
-      script:
+      before_script:
         - clcache -s
+      after_script:
+        - clcache -s
+      script:
         - qbs setup-toolchains --detect
         - qbs setup-qt ${QMAKE_PATH} qt
         - qbs config qt.baseProfile MSVC2017-x64
         - qbs config defaultProfile qt
         - scripts/build-qbs-with-qbs.sh
-        - clcache -s
+
+    - <<: *build-on-windows
+      name: With Qbs on Windows (clang-cl)
+      if: branch = master
+      script:
+        - qbs setup-toolchains --detect
+        - qbs setup-qt ${QMAKE_PATH} qt
+        - qbs config profiles.qt.baseProfile clang-cl-x86_64
+        - qbs config defaultProfile qt
+        - scripts/build-qbs-with-qbs.sh
