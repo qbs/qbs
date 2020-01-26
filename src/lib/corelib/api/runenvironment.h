@@ -52,6 +52,8 @@ class QString;
 class QStringList;
 QT_END_NAMESPACE
 
+class TestApi;
+
 namespace qbs {
 class ErrorInfo;
 class InstallOptions;
@@ -66,7 +68,7 @@ class QBS_EXPORT RunEnvironment
 {
     friend class CommandLineFrontend;
     friend class Project;
-    friend class TestApi;
+    friend class ::TestApi;
 public:
     ~RunEnvironment();
 

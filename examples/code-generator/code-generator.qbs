@@ -55,6 +55,10 @@ Project {
         name: "hwgen"
         consoleApplication: true
         files: ["hwgen.cpp"]
+        Properties {
+            condition: qbs.toolchain.contains("gcc") || qbs.toolchain.contains("clang-cl")
+            cpp.cxxFlags: ["-Wno-deprecated-declarations"]
+        }
     }
 
     // Generate and build a hello-world application.

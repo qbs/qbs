@@ -163,7 +163,7 @@ static QVariantMap getMsvcDefines(const QString &compilerFilePath,
     QStringList out = QString::fromLocal8Bit(runProcess(compilerFilePath, QStringList()
                << QStringLiteral("/nologo")
                << backendSwitch
-               << QString::fromWCharArray(_wgetenv(L"COMSPEC"))
+               << qEnvironmentVariable("COMSPEC")
                << QStringLiteral("/c")
                << languageSwitch
                << QStringLiteral("NUL"),

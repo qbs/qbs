@@ -186,7 +186,10 @@ Session::Session()
 #ifdef Q_OS_WIN32
     // Make sure the line feed character appears as itself.
     if (_setmode(_fileno(stdout), _O_BINARY) == -1) {
-        std::cerr << "Failed to set stdout to binary mode: " << std::strerror(errno) << std::endl;
+        constexpr size_t errmsglen = FILENAME_MAX;
+        char errmsg[errmsglen];
+        strerror_s(errmsg, errmsglen, errno);
+        std::cerr << "Failed to set stdout to binary mode: " << errmsg << std::endl;
         qApp->exit(EXIT_FAILURE);
     }
 #endif
