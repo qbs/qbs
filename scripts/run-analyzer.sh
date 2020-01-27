@@ -84,6 +84,7 @@ if [ ! -f "$QBS_SRC_DIR/qbs.qbs" ]; then
 fi
 
 set -e
+set -o pipefail
 
 qbs resolve -f "$QBS_SRC_DIR/qbs.qbs" $BUILD_OPTIONS
 qbs build -f "$QBS_SRC_DIR/qbs.qbs" $BUILD_OPTIONS
