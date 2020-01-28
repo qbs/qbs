@@ -116,8 +116,8 @@ static std::vector<Profile> createSdccProfileHelper(
         if (actualArch != QString::fromLatin1(knownArch))
             continue;
 
-        QString fullProfileName = profileName;
-        if (fullProfileName.isEmpty()) {
+        QString fullProfileName;
+        if (profileName.isEmpty()) {
             // Create a full profile name in case we is
             // in auto-detecting mode.
             if (!info.compilerVersion.isValid()) {
@@ -133,7 +133,7 @@ static std::vector<Profile> createSdccProfileHelper(
             // Append the detected actual architecture name
             // to the proposed profile name.
             fullProfileName = QStringLiteral("%1-%2").arg(
-                        fullProfileName, actualArch);
+                        profileName, actualArch);
         }
 
         Profile profile(fullProfileName, settings);
@@ -252,10 +252,10 @@ bool isSdccCompiler(const QString &compilerName)
 }
 
 void createSdccProfile(const QFileInfo &compiler, Settings *settings,
-                       QString profileName)
+                       const QString &profileName)
 {
     const ToolchainInstallInfo info = {compiler, Version{}};
-    createSdccProfileHelper(info, settings, std::move(profileName));
+    createSdccProfileHelper(info, settings, profileName);
 }
 
 void sdccProbe(Settings *settings, std::vector<Profile> &profiles)

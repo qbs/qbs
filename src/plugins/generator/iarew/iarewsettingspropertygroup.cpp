@@ -96,12 +96,11 @@ void IarewSettingsPropertyGroup::setDataDebugInfo(int debugInfo)
 }
 
 void IarewSettingsPropertyGroup::addOptionsGroup(
-        QByteArray name,
+        const QByteArray &name,
         QVariantList states,
         int version)
 {
-    m_dataPropertyGroup->appendChild<IarewOptionPropertyGroup>(
-                std::move(name), std::move(states), version);
+    m_dataPropertyGroup->appendChild<IarewOptionPropertyGroup>(name, std::move(states), version);
 }
 
 } // namespace qbs

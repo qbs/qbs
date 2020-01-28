@@ -174,7 +174,7 @@ QString VisualStudioVersionInfo::platformToolsetVersion() const
         {16, QStringLiteral("v142")},             // VS 2019
         {15, QStringLiteral("v141")}              // VS 2017
     };
-    for (auto p : table) {
+    for (const auto &p : table) {
         if (p.first == m_version.majorVersion())
             return p.second;
     }
