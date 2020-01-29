@@ -7,6 +7,8 @@ CppApplication {
             return sanitizer === "address" || sanitizer === "undefined";
         if (!qbs.toolchain.contains("gcc"))
             return false;
+        if (qbs.toolchain.contains("mingw"))
+            return false;
         return true;
     }
 
