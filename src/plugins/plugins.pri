@@ -11,7 +11,7 @@ TEMPLATE = lib
 
 CONFIG += c++14
 CONFIG(static, static|shared): CONFIG += create_prl
-unix: CONFIG += plugin
+CONFIG += plugin
 
 !isEmpty(QBS_PLUGINS_INSTALL_DIR): \
     installPrefix = $${QBS_PLUGINS_INSTALL_DIR}
