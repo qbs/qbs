@@ -184,6 +184,7 @@ void TestBlackboxJava::javaDependencyTracking_data()
                 "/usr/lib/jvm/java-" + minorVersion + "-openjdk" + dpkgArch("-"), // Debian
                 "/usr/lib/jvm/java-" + minorVersion + "-openjdk", // Arch
                 "/usr/lib/jvm/jre-1." + minorVersion + ".0-openjdk", // Fedora
+                "/usr/lib64/jvm/java-1." + minorVersion + ".0-openjdk", // OpenSuSE
             };
             for (const QString &searchPath : searchPaths) {
                 if (QFile::exists(searchPath + "/bin/javac"))
