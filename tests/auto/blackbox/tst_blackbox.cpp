@@ -1737,6 +1737,40 @@ void TestBlackbox::cxxLanguageVersion_data()
                             std::make_pair(QString("msvc-new"), QString("/std:"))});
 }
 
+void TestBlackbox::conanfileProbe()
+{
+    QString executable = findExecutable({"conan"});
+    if (executable.isEmpty())
+        QSKIP("conan is not installed or not available in PATH.");
+
+    // We first build a dummy package testlib and use that as dependency
+    // in the testapp package.
+    QDir::setCurrent(testDataDir + "/conanfile-probe/testlib");
+    QStringList arguments { "create", "-o", "opt=True", "-s", "os=AIX", ".",
+                            "testlib/1.2.3@qbs/testing" };
+    QProcess conan;
+    conan.start(executable, arguments);
+    QVERIFY(waitForProcessSuccess(conan));
+
+    QDir::setCurrent(testDataDir + "/conanfile-probe/testapp");
+    QCOMPARE(runQbs(QbsRunParameters("resolve", {"--force-probe-execution"})), 0);
+
+    QFile file(relativeBuildDir() + "/results.json");
+    QVERIFY(file.open(QIODevice::ReadOnly));
+    QVariantMap actualResults = QJsonDocument::fromJson(file.readAll()).toVariant().toMap();
+    const auto generatedFilesPath = actualResults.take("generatedFilesPath").toString();
+    // We want to make sure that generatedFilesPath is under the project directory,
+    // but we don't care about the actual name.
+    QVERIFY(directoryExists(relativeBuildDir() + "/genconan/"
+                            + QFileInfo(generatedFilesPath).baseName()));
+
+    const QVariantMap expectedResults = {
+        { "json", "TESTLIB_ENV_VAL" },
+        { "dependencies", QVariantList{"testlib1", "testlib2"} },
+    };
+    QCOMPARE(actualResults, expectedResults);
+}
+
 void TestBlackbox::cpuFeatures()
 {
     QDir::setCurrent(testDataDir + "/cpu-features");

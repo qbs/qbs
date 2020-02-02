@@ -83,6 +83,7 @@ private slots:
     void conflictingArtifacts();
     void cxxLanguageVersion();
     void cxxLanguageVersion_data();
+    void conanfileProbe();
     void cpuFeatures();
     void dependenciesProperty();
     void deprecatedProperty();
