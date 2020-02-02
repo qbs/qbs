@@ -585,8 +585,12 @@ void gccProbe(Settings *settings, std::vector<Profile> &profiles, const QString 
         const QStringList toolchainTypes = toolchainTypeFromCompilerName(
                     candidate.baseName());
         const QString profileName = buildProfileName(candidate);
-        auto profile = createGccProfile(candidate, settings,
-                                        toolchainTypes, profileName);
-        profiles.push_back(std::move(profile));
+        try {
+            auto profile = createGccProfile(candidate, settings,
+                                            toolchainTypes, profileName);
+            profiles.push_back(std::move(profile));
+        } catch (const qbs::ErrorInfo &info) {
+            qbsWarning() << Tr::tr("Skipping %1: %2").arg(profileName, info.toString());
+        }
     }
 }
