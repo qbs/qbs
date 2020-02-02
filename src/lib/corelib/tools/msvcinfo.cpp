@@ -54,6 +54,7 @@
 #endif
 
 #include <algorithm>
+#include <memory>
 #include <mutex>
 
 using namespace qbs;
@@ -129,16 +130,18 @@ public:
 #ifdef Q_OS_WIN
 static QStringList parseCommandLine(const QString &commandLine)
 {
-    QStringList list;
-    const auto buf = new wchar_t[commandLine.size() + 1];
-    buf[commandLine.toWCharArray(buf)] = 0;
+    const auto buf = std::make_unique<wchar_t[]>(size_t(commandLine.size()) + 1);
+    buf[size_t(commandLine.toWCharArray(buf.get()))] = 0;
     int argCount = 0;
-    LPWSTR *args = CommandLineToArgvW(buf, &argCount);
+    const auto argsDeleter = [](LPWSTR *p){ LocalFree(p); };
+    const auto args = std::unique_ptr<LPWSTR[], decltype(argsDeleter)>(
+            CommandLineToArgvW(buf.get(), &argCount), argsDeleter);
     if (!args)
         throw ErrorInfo(mkStr("Could not parse command line arguments: ") + commandLine);
+    QStringList list;
+    list.reserve(argCount);
     for (int i = 0; i < argCount; ++i)
-        list.push_back(QString::fromWCharArray(args[i]));
-    delete[] buf;
+        list.push_back(QString::fromWCharArray(args[size_t(i)]));
     return list;
 }
 #endif
