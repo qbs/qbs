@@ -53,16 +53,6 @@ class Profile;
 class Settings;
 }
 
-struct MSVCInstallInfo
-{
-    QString version;
-    QString installDir;
-
-    QString findVcvarsallBat() const;
-};
-
-std::vector<MSVCInstallInfo> installedMSVCs();
-
 void createMsvcProfile(const QFileInfo &compiler, qbs::Settings *settings,
                        const QString &profileName);
 

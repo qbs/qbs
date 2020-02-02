@@ -1,7 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2015 The Qt Company Ltd.
-** Copyright (C) 2019 Ivan Komissarov (abbapoh@gmail.com)
+** Copyright (C) 2020 Ivan Komissarov (abbapoh@gmail.com)
 ** Contact: http://www.qt.io/licensing
 **
 ** This file is part of Qbs.
@@ -29,39 +28,44 @@
 **
 ****************************************************************************/
 
-import qbs.Probes
-import "windows-msvc-base.qbs" as MsvcBaseModule
+import qbs.FileInfo
+import qbs.ModUtils
+import qbs.Utilities
+import "path-probe.js" as PathProbeConfigure
 
-MsvcBaseModule {
-    condition: qbs.hostOS.contains('windows') &&
-               qbs.targetOS.contains('windows') &&
-               qbs.toolchain && qbs.toolchain.contains('msvc')
-    priority: 50
+BinaryProbe {
+    // input
+    property string preferredArchitecture;
 
-    Probes.ClBinaryProbe {
-        id: compilerPathProbe
-        preferredArchitecture: qbs.architecture
-        condition: !toolchainInstallPath && !_skipAllChecks
-        names: ["cl"]
+    configure: {
+        var _selectors;
+        var results = PathProbeConfigure.configure(_selectors, names, nameSuffixes, nameFilter,
+                                                   candidateFilter, searchPaths, pathSuffixes,
+                                                   platformSearchPaths, environmentPaths,
+                                                   platformEnvironmentPaths, pathListSeparator);
+        if (!results.found) {
+            var msvcs = Utilities.installedMSVCs(preferredArchitecture);
+            if (msvcs.length >= 1) {
+                var result = {};
+                result.fileName = "cl.exe";
+                result.path = msvcs[0].binPath;
+                result.filePath = FileInfo.joinPaths(path, fileName);
+                result.candidatePaths = result.filePath;
+                results.found = true;
+                results.files = [result];
+            }
+        }
+
+        found = results.found;
+        allResults = results.files;
+
+        if (allResults.length === 1) {
+            var result = allResults[0];
+            candidatePaths = result.candidatePaths;
+            path = result.path;
+            filePath = result.filePath;
+            fileName = result.fileName;
+        }
+
     }
-
-    Probes.MsvcProbe {
-        id: msvcProbe
-        condition: !_skipAllChecks
-        compilerFilePath: compilerPath
-        enableDefinesByLanguage: enableCompilerDefinesByLanguage
-        preferredArchitecture: qbs.architecture
-    }
-
-    qbs.architecture: msvcProbe.found ? msvcProbe.architecture : original
-
-    compilerVersionMajor: msvcProbe.versionMajor
-    compilerVersionMinor: msvcProbe.versionMinor
-    compilerVersionPatch: msvcProbe.versionPatch
-    compilerIncludePaths: msvcProbe.includePaths
-    compilerDefinesByLanguage: msvcProbe.compilerDefinesByLanguage
-
-    toolchainInstallPath: compilerPathProbe.found ? compilerPathProbe.path
-                                                  : undefined
-    buildEnv: msvcProbe.buildEnv
 }

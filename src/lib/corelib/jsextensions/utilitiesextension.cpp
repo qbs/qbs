@@ -110,6 +110,7 @@ public:
     static QScriptValue js_signingIdentities(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_msvcCompilerInfo(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_clangClCompilerInfo(QScriptContext *context, QScriptEngine *engine);
+    static QScriptValue js_installedMSVCs(QScriptContext *context, QScriptEngine *engine);
 
     static QScriptValue js_versionCompare(QScriptContext *context, QScriptEngine *engine);
 
@@ -551,6 +552,43 @@ QScriptValue UtilitiesExtension::js_clangClCompilerInfo(QScriptContext *context,
 #endif
 }
 
+QScriptValue UtilitiesExtension::js_installedMSVCs(QScriptContext *context, QScriptEngine *engine)
+{
+#ifndef Q_OS_WIN
+    Q_UNUSED(engine);
+    return context->throwError(QScriptContext::UnknownError,
+        QStringLiteral("installedMSVCs is not available on this platform"));
+#else
+    if (Q_UNLIKELY(context->argumentCount() != 1)) {
+        return context->throwError(QScriptContext::SyntaxError,
+                                   QStringLiteral("installedMSVCs expects 1 arguments"));
+    }
+
+    const auto value0 = context->argument(0);
+    const auto hostArch = QString::fromStdString(HostOsInfo::hostOSArchitecture());
+    const auto preferredArch = !value0.isNull() && !value0.isUndefined()
+            ? value0.toString()
+            : hostArch;
+
+    class LogSink : public ILogSink {
+        void doPrintMessage(LoggerLevel, const QString &, const QString &) override { }
+    } dummySink;
+    Logger dummyLogger(&dummySink);
+    auto msvcs = MSVC::installedCompilers(dummyLogger);
+
+    const auto predicate = [&preferredArch, &hostArch](const MSVC &msvc)
+    {
+        auto archPair = MSVC::getHostTargetArchPair(msvc.architecture);
+        return archPair.first != hostArch || preferredArch != archPair.second;
+    };
+    msvcs.erase(std::remove_if(msvcs.begin(), msvcs.end(), predicate), msvcs.end());
+    QVariantList result;
+    for (const auto &msvc: msvcs)
+        result.append(msvc.toVariantMap());
+    return engine->toScriptValue(result);
+#endif
+}
+
 QScriptValue UtilitiesExtension::js_versionCompare(QScriptContext *context, QScriptEngine *engine)
 {
     if (context->argumentCount() == 2) {
@@ -851,6 +889,8 @@ void initializeJsExtensionUtilities(QScriptValue extensionObject)
                                engine->newFunction(UtilitiesExtension::js_msvcCompilerInfo, 1));
     environmentObj.setProperty(QStringLiteral("clangClCompilerInfo"),
                                engine->newFunction(UtilitiesExtension::js_clangClCompilerInfo, 1));
+    environmentObj.setProperty(QStringLiteral("installedMSVCs"),
+                               engine->newFunction(UtilitiesExtension::js_installedMSVCs, 1));
     environmentObj.setProperty(QStringLiteral("versionCompare"),
                                engine->newFunction(UtilitiesExtension::js_versionCompare, 2));
     environmentObj.setProperty(QStringLiteral("qmlTypeInfo"),

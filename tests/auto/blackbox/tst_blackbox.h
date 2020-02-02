@@ -95,6 +95,7 @@ private slots:
     void dynamicMultiplexRule();
     void dynamicProject();
     void dynamicRuleOutputs();
+    void emptyProfile();
     void enableExceptions();
     void enableExceptions_data();
     void enableRtti();

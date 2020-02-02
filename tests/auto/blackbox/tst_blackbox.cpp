@@ -3438,6 +3438,17 @@ void TestBlackbox::dynamicRuleOutputs()
     QVERIFY(!QFile::exists(sourceFile2));
 }
 
+void TestBlackbox::emptyProfile()
+{
+    QDir::setCurrent(testDataDir + "/empty-profile");
+
+    QTemporaryDir tempDir;
+    QbsRunParameters params;
+    params.profile.clear();
+    params.settingsDir = tempDir.path(); // should be no settings here
+    QCOMPARE(runQbs(params), 0);
+}
+
 void TestBlackbox::erroneousFiles_data()
 {
     QTest::addColumn<QString>("errorMessage");

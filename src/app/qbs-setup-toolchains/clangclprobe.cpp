@@ -45,6 +45,7 @@
 
 #include <logging/translator.h>
 #include <tools/hostosinfo.h>
+#include <tools/msvcinfo.h>
 #include <tools/profile.h>
 #include <tools/qttools.h>
 #include <tools/settings.h>
@@ -55,6 +56,8 @@
 using qbs::Settings;
 using qbs::Profile;
 using qbs::Internal::HostOsInfo;
+using qbs::Internal::MSVC;
+using qbs::Internal::MSVCInstallInfo;
 
 using qbs::Internal::Tr;
 
@@ -87,7 +90,7 @@ Profile createProfileHelper(
 
 std::vector<MSVCInstallInfo> compatibleMsvcs()
 {
-    auto msvcs = installedMSVCs();
+    auto msvcs = MSVCInstallInfo::installedMSVCs(ConsoleLogger::instance());
     auto filter = [](const MSVCInstallInfo &info)
     {
         const auto versions = info.version.split(QLatin1Char('.'));
