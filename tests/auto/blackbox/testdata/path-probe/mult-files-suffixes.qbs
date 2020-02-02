@@ -5,4 +5,5 @@ BaseApp {
     ]
     inputSearchPaths: "bin"
     outputFilePaths: ["bin/tool.2", "bin/super-tool.1"]
+    outputCandidatePaths: [["bin/tool.2"], ["bin/super-tool.1"]]
 }

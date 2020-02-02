@@ -28,6 +28,7 @@
 **
 ****************************************************************************/
 
+import qbs.FileInfo
 import qbs.Probes
 
 CppApplication {
@@ -40,6 +41,7 @@ CppApplication {
     property var inputCandidateFilter
 
     property stringList outputFilePaths
+    property var outputCandidatePaths
 
     Probes.PathProbe {
         id: probe
@@ -49,6 +51,7 @@ CppApplication {
         nameFilter: inputNameFilter
         candidateFilter: inputCandidateFilter
         searchPaths: inputSearchPaths
+        platformSearchPaths: []
     }
 
     property bool validate: {
@@ -56,19 +59,72 @@ CppApplication {
             if (lhs.length !== rhs.length)
                 return false;
             for (var i = 0; i < lhs.length; ++i) {
-                if (lhs[i] !== rhs[i])
+                if (Array.isArray(lhs[i]) && Array.isArray(rhs[i])) {
+                    if (!compareArrays(lhs[i], rhs[i]))
+                        return false;
+                } else if (lhs[i] !== rhs[i]) {
                     return false;
+                }
             }
             return true;
         };
 
-        if (!probe.found)
+        if (outputCandidatePaths) {
+            var actual = probe.allResults.map(function(file) { return file.candidatePaths; });
+            if (!compareArrays(actual, outputCandidatePaths)) {
+                throw "Invalid canndidatePaths: actual = " + JSON.stringify(actual)
+                        + ", expected = " + JSON.stringify(outputCandidatePaths);
+            }
+        }
+
+        if (!probe.found) {
+            if (probe.filePath) {
+                throw "Invalid filePath: actual = " + JSON.stringify(probe.filePath)
+                        + ", expected = 'undefined'";
+            }
+            if (probe.fileName) {
+                throw "Invalid fileName: actual = " + JSON.stringify(probe.fileName)
+                        + ", expected = 'undefined'";
+            }
+            if (probe.path) {
+                throw "Invalid path: actual = " + JSON.stringify(probe.path)
+                        + ", expected = 'undefined'";
+            }
+
             throw "Probe failed to find files";
+        }
 
         if (outputFilePaths) {
             var actual = probe.allResults.map(function(file) { return file.filePath; });
-            if (!compareArrays(actual, outputFilePaths))
-                throw "Invalid filePaths: actual = " + actual + ", expected = " + outputFilePaths;
+            if (!compareArrays(actual, outputFilePaths)) {
+                throw "Invalid filePaths: actual = " + JSON.stringify(actual)
+                        + ", expected = " + JSON.stringify(outputFilePaths);
+            }
+        }
+
+        if (probe.allResults.length !== 1)
+            return;
+
+        // check that single-file interface matches the first value in allResults
+        var expectedFilePath = probe.allResults[0].filePath;
+        if (probe.filePath !== expectedFilePath) {
+            throw "Invalid filePath: actual = " + probe.filePath
+                    + ", expected = " + expectedFilePath;
+        }
+        var expectedFileName = probe.allResults[0].fileName;
+        if (probe.fileName !== expectedFileName) {
+            throw "Invalid fileName: actual = " + probe.fileName
+                    + ", expected = " + expectedFileName;
+        }
+        var expectedPath = probe.allResults[0].path;
+        if (probe.path !== expectedPath) {
+            throw "Invalid path: actual = " + probe.path
+                    + ", expected = " + expectedPath;
+        }
+        var expectedCandidatePaths = probe.allResults[0].candidatePaths;
+        if (!compareArrays(probe.candidatePaths, expectedCandidatePaths)) {
+            throw "Invalid candidatePaths: actual = " + JSON.stringify(probe.candidatePaths)
+                    + ", expected = " + JSON.stringify(expectedCandidatePaths);
         }
     }
 

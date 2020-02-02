@@ -2789,6 +2789,8 @@ void TestBlackbox::pathProbe()
     QbsRunParameters buildParams("build", QStringList{"-f", projectFile});
     buildParams.expectFailure = !successExpected;
     QCOMPARE(runQbs(buildParams) == 0, successExpected);
+    if (!successExpected)
+        QVERIFY2(m_qbsStderr.contains("Probe failed to find files"), m_qbsStderr);
 }
 
 void TestBlackbox::pchChangeTracking()
