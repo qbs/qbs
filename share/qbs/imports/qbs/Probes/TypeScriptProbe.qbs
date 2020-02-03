@@ -67,16 +67,23 @@ BinaryProbe {
                                                  hostOS.contains("windows"));
         v.prepend(interpreterPath);
 
-        var result = results.files[0];
-        result.version = results.found
-                ? TypeScript.findTscVersion(result.filePath, v.value)
-                : undefined;
-        if (FileInfo.fromNativeSeparators(packageManagerBinPath) !== result.path ||
-                !File.exists(FileInfo.fromNativeSeparators(packageManagerRootPath, "typescript"))) {
-            result = { found: false };
-        }
+        var resultsMapper = function(result) {
+            result.version = result.found
+                    ? TypeScript.findTscVersion(result.filePath, v.value)
+                    : undefined;
+            if (FileInfo.fromNativeSeparators(packageManagerBinPath) !== result.path ||
+                    !File.exists(
+                        FileInfo.fromNativeSeparators(packageManagerRootPath, "typescript"))) {
+                result = { found: false };
+            }
+            return result;
+        };
+        results.files = results.files.map(resultsMapper);
 
         found = results.found;
+        allResults = results.files;
+
+        var result = results.files[0];
         candidatePaths = result.candidatePaths;
         path = result.path;
         filePath = result.filePath;

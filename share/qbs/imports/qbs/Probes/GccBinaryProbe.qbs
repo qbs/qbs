@@ -52,16 +52,25 @@ BinaryProbe {
                     selectors, names, nameSuffixes, nameFilter, candidateFilter, searchPaths,
                     pathSuffixes, platformSearchPaths, environmentPaths, platformEnvironmentPaths,
                     pathListSeparator);
+
+        var resultsMapper = function(result) {
+            (nameSuffixes || [""]).forEach(function(suffix) {
+                var end = _compilerName + suffix;
+                if (result.fileName.endsWith(end))
+                    result.tcPrefix = result.fileName.slice(0, -end.length);
+            });
+            return result;
+        };
+        _results.files = _results.files.map(resultsMapper);
+
         found = _results.found;
+        allResults = _results.files;
+
         var resultFile = _results.files[0];
         candidatePaths = resultFile.candidatePaths;
         path = resultFile.path;
         filePath = resultFile.filePath;
         fileName = resultFile.fileName;
-        (nameSuffixes || [""]).forEach(function(suffix) {
-            var end = _compilerName + suffix;
-            if (fileName.endsWith(end))
-                tcPrefix = fileName.slice(0, -end.length);
-        });
+        tcPrefix = resultFile.tcPrefix;
     }
 }
