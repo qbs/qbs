@@ -72,12 +72,12 @@ Module {
     property string apkBaseName: packageName
     property bool automaticSources: true
     property bool legacyLayout: false
-    property string sourceSetDir: legacyLayout
+    property path sourceSetDir: legacyLayout
                                 ? product.sourceDirectory
                                 : FileInfo.joinPaths(product.sourceDirectory, "src/main")
-    property string resourcesDir: FileInfo.joinPaths(sourceSetDir, "res")
-    property string assetsDir: FileInfo.joinPaths(sourceSetDir, "assets")
-    property string sourcesDir: FileInfo.joinPaths(sourceSetDir, legacyLayout ? "src" : "java")
+    property path resourcesDir: FileInfo.joinPaths(sourceSetDir, "res")
+    property path assetsDir: FileInfo.joinPaths(sourceSetDir, "assets")
+    property path sourcesDir: FileInfo.joinPaths(sourceSetDir, legacyLayout ? "src" : "java")
     property string manifestFile: defaultManifestFile
     readonly property string defaultManifestFile: FileInfo.joinPaths(sourceSetDir,
                                                                    "AndroidManifest.xml")
@@ -90,7 +90,7 @@ Module {
     Group {
         name: "java sources"
         condition: Android.sdk.automaticSources
-        prefix: Android.sdk.sourcesDir + '/'
+        prefix: FileInfo.resolvePath(product.sourceDirectory, Android.sdk.sourcesDir + '/')
         files: "**/*.java"
     }
 
@@ -98,7 +98,7 @@ Module {
         name: "android resources"
         condition: Android.sdk.automaticSources
         fileTags: ["android.resources"]
-        prefix: Android.sdk.resourcesDir + '/'
+        prefix: FileInfo.resolvePath(product.sourceDirectory, Android.sdk.resourcesDir + '/')
         files: "**/*"
     }
 
@@ -106,7 +106,7 @@ Module {
         name: "android assets"
         condition: Android.sdk.automaticSources
         fileTags: ["android.assets"]
-        prefix: Android.sdk.assetsDir + '/'
+        prefix: FileInfo.resolvePath(product.sourceDirectory, Android.sdk.assetsDir + '/')
         files: "**/*"
     }
 

@@ -119,7 +119,7 @@
 */
 
 /*!
-    \qmlproperty string Android.sdk::assetsDir
+    \qmlproperty path Android.sdk::assetsDir
 
     The base directory for Android assets in the respective product.
 
@@ -201,7 +201,7 @@
 */
 
 /*!
-    \qmlproperty string Android.sdk::resourcesDir
+    \qmlproperty path Android.sdk::resourcesDir
 
     The base directory for Android resources in the respective product.
 
