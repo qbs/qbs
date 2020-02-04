@@ -688,6 +688,9 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
                                                               m_qbsVersion.toString()));
     }
 
+    for (Item * const child : projectItem->children())
+        child->setScope(projectContext.scope);
+
     resolveProbes(&dummyProductContext, projectItem);
     projectContext.topLevelProject->probes << dummyProductContext.info.probes;
 
@@ -695,7 +698,6 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
 
     QList<Item *> multiplexedProducts;
     for (Item * const child : projectItem->children()) {
-        child->setScope(projectContext.scope);
         if (child->type() == ItemType::Product)
             multiplexedProducts << multiplexProductItem(&dummyProductContext, child);
     }
