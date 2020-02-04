@@ -48,7 +48,7 @@ BinaryProbe {
 
     configure: {
         var selectors;
-        var _results = PathProbeConfigure.configure(
+        var results = PathProbeConfigure.configure(
                     selectors, names, nameSuffixes, nameFilter, candidateFilter, searchPaths,
                     pathSuffixes, platformSearchPaths, environmentPaths, platformEnvironmentPaths,
                     pathListSeparator);
@@ -61,16 +61,16 @@ BinaryProbe {
             });
             return result;
         };
-        _results.files = _results.files.map(resultsMapper);
+        results.files = results.files.map(resultsMapper);
 
-        found = _results.found;
-        allResults = _results.files;
+        found = results.found;
+        allResults = results.files;
 
-        var resultFile = _results.files[0];
-        candidatePaths = resultFile.candidatePaths;
-        path = resultFile.path;
-        filePath = resultFile.filePath;
-        fileName = resultFile.fileName;
-        tcPrefix = resultFile.tcPrefix;
+        var result = results.files[0];
+        candidatePaths = result.candidatePaths;
+        path = result.path;
+        filePath = result.filePath;
+        fileName = result.fileName;
+        tcPrefix = result.tcPrefix;
     }
 }
