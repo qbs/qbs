@@ -78,8 +78,12 @@ jobs:
       addons:
         homebrew:
           packages:
-            - p7zip
             - ccache
+            - grpc
+            - icoutils
+            - makensis
+            - protobuf
+            - p7zip
           update: true
       env:
         # Address sanitizer slows autotests down too much.
@@ -89,7 +93,7 @@ jobs:
         PATH="${QT_INSTALL_DIR}/Qt Creator.app/Contents/MacOS:${PATH}"
         QBS_BUILD_PROFILE=qt
       before_install:
-        - ./scripts/install-qt.sh -d ${QT_INSTALL_DIR} --version ${QT_VERSION} qtbase qtdeclarative qttools qtscript
+        - ./scripts/install-qt.sh -d ${QT_INSTALL_DIR} --version ${QT_VERSION} qtbase qtdeclarative qttools qtscript qtscxml
         - ./scripts/install-qt.sh -d ${QT_INSTALL_DIR} --version ${QTCREATOR_VERSION} qtcreator
         - pip2 install --user beautifulsoup4 lxml
       script:
