@@ -3047,6 +3047,9 @@ void TestBlackbox::probeProperties()
     QVERIFY2(m_qbsStdout.contains("probe2.fileName=tool"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("probe2.path=" + dir + "/bin"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("probe2.filePath=" + dir + "/bin/tool"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("probe3.fileName=tool"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("probe3.path=" + dir + "/bin"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("probe3.filePath=" + dir + "/bin/tool"), m_qbsStdout.constData());
 }
 
 void TestBlackbox::probesAndShadowProducts()
