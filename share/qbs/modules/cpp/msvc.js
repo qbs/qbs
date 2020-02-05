@@ -593,7 +593,10 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     cmd.responseFileSeparator = useCompilerDriver ? ' ' : '\n';
     cmd.stdoutFilterFunction = function(output) {
         res = output.replace(/^.*performing full link.*\s*/, "");
-        return res.replace(/^ *Creating library.*\r\n$/, "");
+        res = res.replace(/^ *Creating library.*\s*/, "");
+        res = res.replace(/^\s*Generating code\s*/, "");
+        res = res.replace(/^\s*Finished generating code\s*/, "");
+        return res;
     };
     commands.push(cmd);
 

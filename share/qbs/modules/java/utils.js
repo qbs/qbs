@@ -136,7 +136,7 @@ function findJdkVersion(compilerFilePath) {
     var p = new Process();
     try {
         p.exec(compilerFilePath, ["-version"]);
-        var re = /^javac (([0-9]+(?:\.[0-9]+){0,2})(_([0-9]+))?)$/m;
+        var re = /^javac (([0-9]+(?:\.[0-9]+){0,2})(_([0-9]+))?)(.*)?$/m;
         var match = p.readStdErr().trim().match(re);
         if (!match)
             match = p.readStdOut().trim().match(re);
