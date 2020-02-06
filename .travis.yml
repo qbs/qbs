@@ -96,7 +96,7 @@ jobs:
         - ccache -s
         - qbs setup-toolchains --detect
         - qbs setup-qt ${QMAKE_PATH} qt
-        - qbs config qt.baseProfile xcode-macosx-x86_64
+        - qbs config profiles.qt.baseProfile xcode-macosx-x86_64
         - qbs config defaultProfile qt
         - qbs config --list profiles
         - scripts/build-qbs-with-qbs.sh
