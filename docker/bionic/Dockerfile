@@ -119,25 +119,37 @@ ENTRYPOINT ["/sbin/entrypoint.sh"]
 # Qbs build dependencies
 RUN apt-get update -qq && \
     apt-get install -qq -y --no-install-recommends \
+        bison \
         build-essential \
         ca-certificates \
         ccache \
-        curl \
-        git \
-        libclang-3.9-dev \
         clang-8 \
         clang-tidy-8 \
+        curl \
+        flex \
+        git \
+        help2man \
+        icoutils \
+        libclang-3.9-dev \
         libdbus-1-3 \
         libfreetype6 \
         libfontconfig1 \
         libgl1-mesa-dev \
         libgl1-mesa-glx \
+        libprotobuf-dev \
+        nsis \
         pkg-config \
-        help2man \
+        protobuf-compiler \
+        protobuf-compiler-grpc \
+        psmisc \
         python-pip \
-        p7zip-full && \
+        p7zip-full \
+        subversion \
+        unzip \
+        zip && \
     update-alternatives --install /usr/bin/clang clang /usr/bin/clang-8 100 && \
     update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-8 100 && \
+    update-alternatives --install /usr/bin/clang-check clang-check /usr/bin/clang-check-8 100 && \
     pip install beautifulsoup4 lxml # for building the documentation
 
 ENV LLVM_INSTALL_DIR=/usr/lib/llvm-8
@@ -148,7 +160,7 @@ ENV LLVM_INSTALL_DIR=/usr/lib/llvm-8
 #
 COPY scripts/install-qt.sh install-qt.sh
 
-RUN ./install-qt.sh --version ${QT_VERSION} qtbase qtdeclarative qtscript qttools qtx11extras icu && \
+RUN ./install-qt.sh --version ${QT_VERSION} qtbase qtdeclarative qtscript qttools qtx11extras qtscxml icu && \
     ./install-qt.sh --version ${QTCREATOR_VERSION} qtcreator && \
     echo "export PATH=/opt/Qt/${QT_VERSION}/gcc_64/bin:/opt/Qt/Tools/QtCreator/bin:\${PATH}" > /etc/profile.d/qt.sh
 
