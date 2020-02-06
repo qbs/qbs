@@ -29,7 +29,6 @@ Project {
 
         files: [
             "windowsservercore/Dockerfile",
-            "windowsservercore/build-qt.bat",
         ]
     }
 }

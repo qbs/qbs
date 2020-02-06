@@ -53,3 +53,20 @@ services:
       args:
         QT_VERSION: 5.12.4
         QTCREATOR_VERSION: 4.9.2
+
+  windows:
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:windowsservercore-5.12.7_1.15.0-0
+    build:
+      dockerfile: docker/windowsservercore/Dockerfile
+      context: .
+      args:
+        QT_VERSION: 5.12.7
+        QBS_VERSION: 1.15.0
+    working_dir: 'C:/qbs'
+    environment:
+      - BUILD_OPTIONS
+      - WITH_DOCS
+    volumes:
+      - .:C:\qbs
+      - ~/.ccache:C:\.ccache
+    network_mode: nat
