@@ -2275,8 +2275,10 @@ void TestBlackbox::reproducibleBuild()
     const SettingsPtr s = settings();
     const Profile profile(profileName(), s.get());
     const QStringList toolchains = profile.value("qbs.toolchain").toStringList();
-    if (!toolchains.contains("gcc") || toolchains.contains("clang"))
+    if (!toolchains.contains("gcc"))
         QSKIP("reproducible builds only supported for gcc");
+    if (toolchains.contains("clang"))
+        QSKIP("reproducible builds are not supported for clang");
 
     QFETCH(bool, reproducible);
 
@@ -3529,8 +3531,10 @@ void TestBlackbox::escapedLinkerFlags()
     const SettingsPtr s = settings();
     const Profile buildProfile(profileName(), s.get());
     const QStringList toolchain = buildProfile.value("qbs.toolchain").toStringList();
-    if (!toolchain.contains("gcc") || targetOs() == HostOsInfo::HostOsMacos)
+    if (!toolchain.contains("gcc"))
         QSKIP("escaped linker flags test only applies with gcc and GNU ld");
+    if (targetOs() == HostOsInfo::HostOsMacos)
+        QSKIP("Does not apply on macOS");
     QDir::setCurrent(testDataDir + "/escaped-linker-flags");
     QbsRunParameters params(QStringList("products.app.escapeLinkerFlags:false"));
     QCOMPARE(runQbs(params), 0);
@@ -3819,9 +3823,10 @@ void TestBlackbox::fileTagsFilterMerging()
 
 void TestBlackbox::freedesktop()
 {
-    if (!HostOsInfo::isAnyUnixHost() || HostOsInfo::isMacosHost())
+    if (!HostOsInfo::isAnyUnixHost())
         QSKIP("only applies on Unix");
-
+    if (HostOsInfo::isMacosHost())
+        QSKIP("Does not apply on macOS");
     QDir::setCurrent(testDataDir + "/freedesktop");
     QCOMPARE(runQbs(), 0);
 
