@@ -114,6 +114,7 @@ jobs:
     - <<: *build-on-macos
       name: With Qbs on macOS (xcode 9.4)
       osx_image: xcode9.4
+      if: branch = master
 
     - &build-on-windows
       stage: Build Qbs and and run autotests
