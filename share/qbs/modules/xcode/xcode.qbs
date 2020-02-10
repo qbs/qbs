@@ -6,6 +6,7 @@ import qbs.DarwinTools
 import qbs.ModUtils
 import qbs.Probes
 import qbs.PropertyList
+import qbs.Utilities
 import 'xcode.js' as Xcode
 
 Module {
@@ -75,13 +76,13 @@ Module {
 
     property string signingIdentity
     readonly property string actualSigningIdentity: {
-        if (_actualSigningIdentity && _actualSigningIdentity.length === 1)
-            return _actualSigningIdentity[0][0];
+        if (_actualSigningIdentity && _actualSigningIdentity.length === 2)
+            return _actualSigningIdentity[0];
     }
 
     readonly property string actualSigningIdentityDisplayName: {
-        if (_actualSigningIdentity && _actualSigningIdentity.length === 1)
-            return _actualSigningIdentity[0][1];
+        if (_actualSigningIdentity && _actualSigningIdentity.length === 2)
+            return _actualSigningIdentity[1];
     }
 
     property string signingTimestamp: "none"
@@ -131,15 +132,29 @@ Module {
 
     readonly property stringList _actualSigningIdentity: {
         if (/^[A-Fa-f0-9]{40}$/.test(signingIdentity)) {
-            return signingIdentity;
+            return [signingIdentity, signingIdentity];
         }
 
-        var identities = Xcode.findSigningIdentities(securityPath, signingIdentity);
-        if (identities && identities.length > 1) {
-            throw "Signing identity '" + signingIdentity + "' is ambiguous";
+        var result = [];
+
+        if (signingIdentity) {
+            var identities = Utilities.signingIdentities();
+            for (var key in identities) {
+                if (identities[key].subjectInfo.CN === signingIdentity) {
+                    result.push([key, signingIdentity]);
+                }
+            }
+
+            if (result.length == 0) {
+                throw "Unable to find signingIdentity '" + signingIdentity + "'";
+            }
+
+            if (result.length > 1) {
+                throw "Signing identity '" + signingIdentity + "' is ambiguous";
+            }
         }
 
-        return identities;
+        return result[0];
     }
 
     property path provisioningProfilesPath: {

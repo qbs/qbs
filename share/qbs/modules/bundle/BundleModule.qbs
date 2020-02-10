@@ -523,7 +523,8 @@ Module {
             "bundle.symlink.headers", "bundle.symlink.private-headers",
             "bundle.symlink.resources", "bundle.symlink.executable",
             "bundle.symlink.version", "bundle.hpp", "bundle.resource",
-            "bundle.provisioningprofile", "bundle.content.copied", "bundle.application-executable"]
+            "bundle.provisioningprofile", "bundle.content.copied", "bundle.application-executable",
+            "bundle.code-signature"]
         outputArtifacts: {
             var i, artifacts = [];
             if (ModUtils.moduleProperty(product, "isBundle")) {
@@ -611,6 +612,13 @@ Module {
                             ModUtils.moduleProperty(product, "bundleName"));
                 for (var i = 0; i < artifacts.length; ++i)
                     artifacts[i].bundle = { wrapperPath: wrapperPath };
+
+                if (product.qbs.hostOS.contains("darwin") && product.xcode.signingIdentity) {
+                    artifacts.push({
+                        filePath: FileInfo.joinPaths(product.bundle.contentsFolderPath, "_CodeSignature/CodeResources"),
+                        fileTags: ["bundle.code-signature", "bundle.content"]
+                    });
+                }
             }
             return artifacts;
         }
@@ -625,19 +633,8 @@ Module {
             if (packageType === "FMWK")
                 bundleType = "framework";
 
-            var bundles = outputs.bundle;
-            for (i in bundles) {
-                cmd = new Command("mkdir", ["-p", bundles[i].filePath]);
-                cmd.description = "creating " + bundleType + " " + product.targetName;
-                commands.push(cmd);
-
-                cmd = new Command("touch", ["-c", bundles[i].filePath]);
-                cmd.silent = true;
-                commands.push(cmd);
-            }
-
             // Product is unbundled
-            if (commands.length === 0) {
+            if (!product.bundle.isBundle) {
                 cmd = new JavaScriptCommand();
                 cmd.silent = true;
                 cmd.sourceCode = function () { };
@@ -764,44 +761,41 @@ Module {
                 commands.push(cmd);
 
             if (product.moduleProperty("qbs", "hostOS").contains("darwin")) {
-                for (i in bundles) {
-                    var actualSigningIdentity = product.moduleProperty("xcode", "actualSigningIdentity");
-                    var codesignDisplayName = product.moduleProperty("xcode", "actualSigningIdentityDisplayName");
-                    if (actualSigningIdentity) {
-                        // If this is a framework, we need to sign its versioned directory
-                        var subpath = "";
-                        var frameworkVersion = ModUtils.moduleProperty(product, "frameworkVersion");
-                        if (frameworkVersion) {
-                            subpath = ModUtils.moduleProperty(product, "contentsFolderPath");
-                            subpath = subpath.substring(subpath.indexOf(ModUtils.moduleProperty("qbs", "pathSeparator")));
-                        }
+                var actualSigningIdentity = product.moduleProperty("xcode", "actualSigningIdentity");
+                var codesignDisplayName = product.moduleProperty("xcode", "actualSigningIdentityDisplayName");
+                if (actualSigningIdentity) {
+                    var args = product.moduleProperty("xcode", "codesignFlags") || [];
+                    args.push("--force");
+                    args.push("--sign", actualSigningIdentity);
+                    args = args.concat(DarwinTools._codeSignTimestampFlags(product));
 
-                        var args = product.moduleProperty("xcode", "codesignFlags") || [];
-                        args.push("--force");
-                        args.push("--sign", actualSigningIdentity);
-                        args = args.concat(DarwinTools._codeSignTimestampFlags(product));
-
-                        for (var j in inputs.xcent) {
-                            args.push("--entitlements", inputs.xcent[j].filePath);
-                            break; // there should only be one
-                        }
-                        args.push(bundles[i].filePath + subpath);
-
-                        cmd = new Command(product.moduleProperty("xcode", "codesignPath"), args);
-                        cmd.description = "codesign "
-                                + ModUtils.moduleProperty(product, "bundleName")
-                                + " using " + codesignDisplayName
-                                + " (" + actualSigningIdentity + ")";
-                        commands.push(cmd);
+                    for (var j in inputs.xcent) {
+                        args.push("--entitlements", inputs.xcent[j].filePath);
+                        break; // there should only be one
                     }
 
-                    if (bundleType === "application"
-                            && product.moduleProperty("qbs", "targetOS").contains("macos")) {
-                        cmd = new Command(ModUtils.moduleProperty(product, "lsregisterPath"),
-                                          ["-f", bundles[i].filePath]);
-                        cmd.description = "register " + ModUtils.moduleProperty(product, "bundleName");
-                        commands.push(cmd);
+                    // If this is a framework, we need to sign its versioned directory
+                    if (bundleType === "framework") {
+                        args.push(product.bundle.contentsFolderPath);
+                    } else {
+                        args.push(product.bundle.bundleName);
                     }
+
+                    cmd = new Command(product.moduleProperty("xcode", "codesignPath"), args);
+                    cmd.workingDirectory = product.destinationDirectory;
+                    cmd.description = "codesign "
+                            + ModUtils.moduleProperty(product, "bundleName")
+                            + " using " + codesignDisplayName
+                            + " (" + actualSigningIdentity + ")";
+                    commands.push(cmd);
+                }
+
+                if (bundleType === "application"
+                        && product.moduleProperty("qbs", "targetOS").contains("macos")) {
+                    cmd = new Command(ModUtils.moduleProperty(product, "lsregisterPath"),
+                                      ["-f", product.bundle.bundleName]);
+                    cmd.description = "register " + ModUtils.moduleProperty(product, "bundleName");
+                    commands.push(cmd);
                 }
             }
 
