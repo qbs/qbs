@@ -3476,10 +3476,25 @@ void TestBlackbox::emptyProfile()
 {
     QDir::setCurrent(testDataDir + "/empty-profile");
 
+    const SettingsPtr s = settings();
+    const Profile buildProfile(profileName(), s.get());
+    const QStringList toolchain = buildProfile.value("qbs.toolchain").toStringList();
+
     QTemporaryDir tempDir;
     QbsRunParameters params;
     params.profile.clear();
     params.settingsDir = tempDir.path(); // should be no settings here
+    if (toolchain.contains(QLatin1String("clang-cl")))
+        params.arguments = QStringList{QStringLiteral("qbs.toolchainType:clang-cl")};
+    else if (toolchain.contains(QLatin1String("msvc")))
+        params.arguments = QStringList{QStringLiteral("qbs.toolchainType:msvc")};
+    else if (toolchain.contains(QLatin1String("xcode")))
+        params.arguments = QStringList{QStringLiteral("qbs.toolchainType:xcode")};
+    else if (toolchain.contains(QLatin1String("clang")))
+        params.arguments = QStringList{QStringLiteral("qbs.toolchainType:clang")};
+    else if (toolchain.contains(QLatin1String("gcc")))
+        params.arguments = QStringList{QStringLiteral("qbs.toolchainType:gcc")};
+
     QCOMPARE(runQbs(params), 0);
 }
 

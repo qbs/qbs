@@ -40,7 +40,7 @@ MsvcBaseModule {
                qbs.toolchain && qbs.toolchain.contains('clang-cl')
     priority: 100
 
-    Probes.BinaryProbe {
+    Probes.ClangClBinaryProbe {
         id: clangPathProbe
         condition: !toolchainInstallPath && !_skipAllChecks
         names: ["clang-cl"]
@@ -78,7 +78,7 @@ MsvcBaseModule {
         driverLinkerFlags: "-fuse-ld=" + linkerVariant
     }
 
-    property string vcvarsallPath
+    property string vcvarsallPath : clangPathProbe.found ? clangPathProbe.vcvarsallPath : undefined
 
     compilerName: "clang-cl.exe"
     linkerName: "lld-link.exe"

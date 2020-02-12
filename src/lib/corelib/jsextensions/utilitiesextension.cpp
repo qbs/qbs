@@ -72,6 +72,7 @@ struct fat_arch_64 {
 
 
 #ifdef Q_OS_WIN
+#include <tools/clangclinfo.h>
 #include <tools/msvcinfo.h>
 #include <tools/vsenvironmentdetector.h>
 #endif
@@ -87,6 +88,10 @@ struct fat_arch_64 {
 
 namespace qbs {
 namespace Internal {
+
+class DummyLogSink : public ILogSink {
+    void doPrintMessage(LoggerLevel, const QString &, const QString &) override { }
+};
 
 class UtilitiesExtension : public QObject, QScriptable
 {
@@ -111,6 +116,7 @@ public:
     static QScriptValue js_msvcCompilerInfo(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_clangClCompilerInfo(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_installedMSVCs(QScriptContext *context, QScriptEngine *engine);
+    static QScriptValue js_installedClangCls(QScriptContext *context, QScriptEngine *engine);
 
     static QScriptValue js_versionCompare(QScriptContext *context, QScriptEngine *engine);
 
@@ -530,7 +536,11 @@ QScriptValue UtilitiesExtension::js_clangClCompilerInfo(QScriptContext *context,
                                    QStringLiteral("clangClCompilerInfo expects 4 arguments"));
 
     const QString compilerFilePath = context->argument(0).toString();
-    QString arch = context->argument(1).toString();
+    // architecture cannot be empty as vcvarsall.bat requires at least 1 arg, so fallback
+    // to host architecture if none is present
+    QString arch = !context->argument(1).isNull() && !context->argument(1).isUndefined()
+            ? context->argument(1).toString()
+            : QString::fromStdString(HostOsInfo::hostOSArchitecture());
     QString vcvarsallPath = context->argument(2).toString();
     const QString compilerLanguage = context->argumentCount() > 3
             ? context->argument(3).toString()
@@ -570,9 +580,7 @@ QScriptValue UtilitiesExtension::js_installedMSVCs(QScriptContext *context, QScr
             ? value0.toString()
             : hostArch;
 
-    class LogSink : public ILogSink {
-        void doPrintMessage(LoggerLevel, const QString &, const QString &) override { }
-    } dummySink;
+    DummyLogSink dummySink;
     Logger dummyLogger(&dummySink);
     auto msvcs = MSVC::installedCompilers(dummyLogger);
 
@@ -585,6 +593,32 @@ QScriptValue UtilitiesExtension::js_installedMSVCs(QScriptContext *context, QScr
     QVariantList result;
     for (const auto &msvc: msvcs)
         result.append(msvc.toVariantMap());
+    return engine->toScriptValue(result);
+#endif
+}
+
+QScriptValue UtilitiesExtension::js_installedClangCls(
+        QScriptContext *context, QScriptEngine *engine)
+{
+#ifndef Q_OS_WIN
+    Q_UNUSED(engine);
+    return context->throwError(QScriptContext::UnknownError,
+        QStringLiteral("installedClangCls is not available on this platform"));
+#else
+    if (Q_UNLIKELY(context->argumentCount() != 1)) {
+        return context->throwError(QScriptContext::SyntaxError,
+                                   QStringLiteral("installedClangCls expects 1 arguments"));
+    }
+
+    const auto value0 = context->argument(0);
+    const auto path = !value0.isNull() && !value0.isUndefined() ? value0.toString() : QString();
+
+    DummyLogSink dummySink;
+    Logger dummyLogger(&dummySink);
+    auto compilers = ClangClInfo::installedCompilers({path}, dummyLogger);
+    QVariantList result;
+    for (const auto &compiler: compilers)
+        result.append(compiler.toVariantMap());
     return engine->toScriptValue(result);
 #endif
 }
@@ -891,6 +925,8 @@ void initializeJsExtensionUtilities(QScriptValue extensionObject)
                                engine->newFunction(UtilitiesExtension::js_clangClCompilerInfo, 1));
     environmentObj.setProperty(QStringLiteral("installedMSVCs"),
                                engine->newFunction(UtilitiesExtension::js_installedMSVCs, 1));
+    environmentObj.setProperty(QStringLiteral("installedClangCls"),
+                               engine->newFunction(UtilitiesExtension::js_installedClangCls, 1));
     environmentObj.setProperty(QStringLiteral("versionCompare"),
                                engine->newFunction(UtilitiesExtension::js_versionCompare, 2));
     environmentObj.setProperty(QStringLiteral("qmlTypeInfo"),

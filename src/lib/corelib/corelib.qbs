@@ -395,6 +395,8 @@ QbsLibrary {
             "buildgraphlocker.cpp",
             "buildgraphlocker.h",
             "buildoptions.cpp",
+            "clangclinfo.cpp",
+            "clangclinfo.h",
             "cleanoptions.cpp",
             "codelocation.cpp",
             "commandechomode.cpp",
