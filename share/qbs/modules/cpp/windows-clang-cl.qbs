@@ -52,8 +52,10 @@ MsvcBaseModule {
         compilerFilePath: compilerPath
         vcvarsallFilePath: vcvarsallPath
         enableDefinesByLanguage: enableCompilerDefinesByLanguage
-        architecture: qbs.architecture
+        preferredArchitecture: qbs.architecture
     }
+
+    qbs.architecture: clangClProbe.found ? clangClProbe.architecture : original
 
     compilerVersionMajor: clangClProbe.versionMajor
     compilerVersionMinor: clangClProbe.versionMinor
