@@ -502,6 +502,8 @@ void TestApi::canonicalToolchainList()
              QStringList({"xcode", "clang", "llvm", "gcc"}));
     QCOMPARE(qbs::canonicalToolchain(QStringList({"clang", "llvm", "gcc"})),
              QStringList({"clang", "llvm", "gcc"}));
+    QCOMPARE(qbs::canonicalToolchain(QStringList({"clang-cl", "msvc"})),
+             QStringList({"clang-cl", "msvc"}));
     QCOMPARE(qbs::canonicalToolchain(QStringList({"llvm", "gcc"})),
              QStringList({"llvm", "gcc"}));
     QCOMPARE(qbs::canonicalToolchain(QStringList({"mingw", "gcc"})),
@@ -516,6 +518,8 @@ void TestApi::canonicalToolchainList()
              QStringList({"xcode", "clang", "llvm", "gcc"}));
     QCOMPARE(qbs::canonicalToolchain(QStringList({"clang"})),
              QStringList({"clang", "llvm", "gcc"}));
+    QCOMPARE(qbs::canonicalToolchain(QStringList({"clang-cl"})),
+             QStringList({"clang-cl", "msvc"}));
     QCOMPARE(qbs::canonicalToolchain(QStringList({"llvm"})),
              QStringList({"llvm", "gcc"}));
     QCOMPARE(qbs::canonicalToolchain(QStringList({"mingw"})),
