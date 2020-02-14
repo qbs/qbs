@@ -1665,7 +1665,7 @@ void ModuleLoader::handleSubProject(ModuleLoader::ProjectContext *projectContext
         const Item::PropertyMap &overriddenProperties = propertiesItem->properties();
         for (Item::PropertyMap::ConstIterator it = overriddenProperties.constBegin();
              it != overriddenProperties.constEnd(); ++it) {
-            loadedItem->setProperty(it.key(), overriddenProperties.value(it.key()));
+            loadedItem->setProperty(it.key(), it.value());
         }
     }
 
