@@ -46,6 +46,8 @@
 
 #include <memory>
 
+
+
 #define REPLACE_IN_FILE(filePath, oldContent, newContent)                           \
     do {                                                                            \
         QFile f((filePath));                                                        \
@@ -283,6 +285,30 @@ inline QString objectFileName(const QString &baseName, const QString &profileNam
 inline QString inputDirHash(const QString &dir)
 {
     return QCryptographicHash::hash(dir.toLatin1(), QCryptographicHash::Sha1).toHex().left(16);
+}
+
+inline QString testDataSourceDir(const QString &dir)
+{
+    QDir result;
+    QString testSourceRootDirFromEnv = QDir::fromNativeSeparators(qEnvironmentVariable("QBS_TEST_SOURCE_ROOT"));
+    if (testSourceRootDirFromEnv.isEmpty()) {
+        result.setPath(dir);
+    } else {
+        QDir testSourceRootDir(dir);
+        while (testSourceRootDir.dirName() != "tests")
+            testSourceRootDir = QFileInfo(testSourceRootDir, "").dir();
+
+        QString relativeDataPath = testSourceRootDir.relativeFilePath(dir);
+        QString absoluteDataPath = QDir(testSourceRootDirFromEnv).absoluteFilePath(relativeDataPath);
+        result.setPath(absoluteDataPath);
+    }
+
+    if (!result.exists())
+        qFatal("Expected data folder '%s' to be present, but it does not exist. You may set "
+               "QBS_TEST_SOURCE_ROOT to the 'tests' folder in your qbs repository to configure "
+               "a custom location.", qPrintable(result.absolutePath()));
+
+    return result.absolutePath();
 }
 
 inline QString testWorkDir(const QString &testName)

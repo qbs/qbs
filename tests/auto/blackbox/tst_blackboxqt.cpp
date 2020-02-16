@@ -118,7 +118,7 @@ void TestBlackboxQt::combinedMoc()
 void TestBlackboxQt::createProject()
 {
     QDir::setCurrent(testDataDir + "/create-project");
-    QVERIFY(QFile::copy(SRCDIR "/../../../examples/helloworld-qt/main.cpp",
+    QVERIFY(QFile::copy(testSourceDir + "/../../../../examples/helloworld-qt/main.cpp",
                         QDir::currentPath() + "/main.cpp"));
     QbsRunParameters createParams("create-project");
     createParams.profile.clear();

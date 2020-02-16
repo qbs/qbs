@@ -64,7 +64,7 @@ static bool supportsSettingsDirOption(const QString &command) {
 
 TestBlackboxBase::TestBlackboxBase(const QString &testDataSrcDir, const QString &testName)
     : testDataDir(testWorkDir(testName)),
-      testSourceDir(QDir::cleanPath(testDataSrcDir)),
+      testSourceDir(testDataSourceDir(testDataSrcDir)),
       qbsExecutableFilePath(initQbsExecutableFilePath()),
       defaultInstallRoot(relativeBuildDir() + QLatin1Char('/') + InstallOptions::defaultInstallRoot())
 {

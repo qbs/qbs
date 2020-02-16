@@ -144,7 +144,7 @@ static bool waitForFinished(qbs::AbstractJob *job, int timeout = 0)
 
 TestApi::TestApi()
     : m_logSink(new LogSink)
-    , m_sourceDataDir(QDir::cleanPath(SRCDIR "/testdata"))
+    , m_sourceDataDir(testDataSourceDir(SRCDIR "/testdata"))
     , m_workingDataDir(testWorkDir(QStringLiteral("api")))
 {
 }

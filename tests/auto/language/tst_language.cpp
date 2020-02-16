@@ -79,8 +79,7 @@ using namespace qbs;
 using namespace qbs::Internal;
 
 static QString testDataDir() {
-    return FileInfo::resolvePath(QStringLiteral(SRCDIR),
-                                 QStringLiteral("../../../tests/auto/language/testdata"));
+    return testDataSourceDir(SRCDIR "/testdata");
 }
 static QString testProject(const char *fileName) {
     return testDataDir() + QLatin1Char('/') + QLatin1String(fileName);
@@ -180,7 +179,7 @@ void TestLanguage::initTestCase()
     m_engine = ScriptEngine::create(m_logger, EvalContext::PropertyEvaluation, this);
     loader = new Loader(m_engine, m_logger);
     loader->setSearchPaths(QStringList()
-                           << QStringLiteral(SRCDIR "/../../../share/qbs"));
+                           << (testDataDir() + "/../../../../share/qbs"));
     defaultParameters.setTopLevelProfile(profileName());
     defaultParameters.setConfigurationName("default");
     defaultParameters.expandBuildConfiguration();
@@ -2480,7 +2479,7 @@ void TestLanguage::projectFileLookup_data()
     QTest::addColumn<QString>("projectFileOutput");
     QTest::addColumn<bool>("failureExpected");
 
-    const QString baseDir = QLatin1String(SRCDIR) + "/testdata";
+    const QString baseDir = testDataDir();
     const QString multiProjectsDir = baseDir + "/dirwithmultipleprojects";
     const QString noProjectsDir = baseDir + "/dirwithnoprojects";
     const QString oneProjectDir = baseDir + "/dirwithoneproject";
