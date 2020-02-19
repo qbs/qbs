@@ -142,7 +142,8 @@ RUN apt-get update -qq && \
         protobuf-compiler \
         protobuf-compiler-grpc \
         psmisc \
-        python-pip \
+        python3-pip \
+        python3-setuptools \
         p7zip-full \
         subversion \
         unzip \
@@ -150,7 +151,9 @@ RUN apt-get update -qq && \
     update-alternatives --install /usr/bin/clang clang /usr/bin/clang-8 100 && \
     update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-8 100 && \
     update-alternatives --install /usr/bin/clang-check clang-check /usr/bin/clang-check-8 100 && \
-    pip install beautifulsoup4 lxml # for building the documentation
+    update-alternatives --install /usr/bin/python python /usr/bin/python3 100 && \
+    update-alternatives --install /usr/bin/pip pip /usr/bin/pip3 100 && \
+    pip install beautifulsoup4 lxml pyyaml
 
 ENV LLVM_INSTALL_DIR=/usr/lib/llvm-8
 

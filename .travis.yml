@@ -95,7 +95,7 @@ jobs:
       before_install:
         - ./scripts/install-qt.sh -d ${QT_INSTALL_DIR} --version ${QT_VERSION} qtbase qtdeclarative qttools qtscript qtscxml
         - ./scripts/install-qt.sh -d ${QT_INSTALL_DIR} --version ${QTCREATOR_VERSION} qtcreator
-        - pip2 install --user beautifulsoup4 lxml
+        - pip3 install --user beautifulsoup4 lxml
       script:
         - ccache -s
         - qbs setup-toolchains --detect
@@ -125,16 +125,15 @@ jobs:
         BUILD_OPTIONS="config:release modules.cpp.compilerWrapper:clcache"
         QMAKE_PATH=${QT_INSTALL_DIR}/${QT_VERSION}/msvc2017_64/bin/qmake.exe
         PATH="${QT_INSTALL_DIR}/Tools/QtCreator/bin:/c/Python38:/c/Python39:/c/Python38/Scripts:/c/Python39/Scripts:${PATH}"
-        WITH_DOCS=0
         QBS_BUILD_PROFILE=qt
         CLCACHE_DIR="${HOME}/.ccache"
       before_install:
         # Install Qbs and Qt
         - ./scripts/install-qt.sh -d ${QT_INSTALL_DIR} --version ${QT_VERSION} --toolchain win64_msvc2017_64 qtbase qtdeclarative qttools qtscript
         - ./scripts/install-qt.sh -d ${QT_INSTALL_DIR} --version ${QTCREATOR_VERSION} qtcreator
-        - choco install python
-        - pip install git+https://github.com/frerich/clcache.git@cae73d8255d78db8ba11e23c51fd2c9a89e7475b
-        - pip install conan
+        - choco install python3
+        - pip3 install git+https://github.com/frerich/clcache.git@cae73d8255d78db8ba11e23c51fd2c9a89e7475b
+        - pip3 install conan beautifulsoup4 lxml
       before_script:
         - clcache -s
       after_script:

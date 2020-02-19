@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #############################################################################
 ##
 ## Copyright (C) 2017 The Qt Company Ltd.
@@ -121,7 +121,7 @@ if __name__ == '__main__':
         if not (fileCount % progStep):
             print('.', end='')
             sys.stdout.flush()
-        with open(html, 'r+') as file_:
+        with open(html, 'r+', encoding='utf8') as file_:
             try:
                 soup = BeautifulSoup(file_, 'lxml')
                 actions = []
@@ -145,7 +145,7 @@ if __name__ == '__main__':
                 if 'lxml' in str(e):
                     print('(If using pip, try \"pip install lxml\")', file=sys.stderr)
                     quit(1)
-    for k, v in modified.iteritems():
+    for k, v in modified.items():
         print ('\n\t', k, 'in %d files' % v, end='')
         pb = pre_blocks.get(k, 0)
         if pb:

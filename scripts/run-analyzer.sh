@@ -93,12 +93,11 @@ qbs generate -g clangdb -f "$QBS_SRC_DIR/qbs.qbs" $BUILD_OPTIONS
 SCRIPT="
 import json
 import os
-import sets
 import sys
 
 dbFile = sys.argv[1]
 blacklist = ['json.cpp']
-seenFiles = sets.Set()
+seenFiles = set()
 patched_db = []
 with open(dbFile, 'r') as f:
    db = json.load(f)
@@ -111,7 +110,7 @@ with open(dbFile, 'r') as f:
 with open(dbFile, 'w') as f:
     f.write(json.dumps(patched_db, indent=2))
 "
-python -c "${SCRIPT}" analyzer/compile_commands.json
+python3 -c "${SCRIPT}" analyzer/compile_commands.json
 
 RUN_CLANG_TIDY+=" -p analyzer -clang-tidy-binary ${CLANG_TIDY} -j ${CPU_COUNT} -header-filter=\".*qbs.*\.h$\" -quiet"
 ${RUN_CLANG_TIDY} 2>/dev/null | tee results.txt
