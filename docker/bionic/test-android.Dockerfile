@@ -36,6 +36,7 @@ RUN apt-get update -qq && \
         ca-certificates \
         curl \
         libglib2.0-0 \
+        libgl1-mesa-glx \
         openjdk-8-jdk-headless \
         p7zip-full \
         unzip
@@ -104,4 +105,3 @@ RUN if [ "${QT_VERSION}" \< "5.14" ]; then \
         ./install-qt.sh --version ${QT_VERSION} --target android --toolchain ${abi} qtbase qtdeclarative qttools qtimageformats; \
     done && \
     echo "export QT_VERSION=${QT_VERSION}" >> /etc/profile.d/qt.sh
-
