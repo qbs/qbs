@@ -2519,6 +2519,25 @@ void TestBlackbox::scannerItem()
     QVERIFY2(m_qbsStdout.contains("handling file2.in"), m_qbsStdout.constData());
 }
 
+void TestBlackbox::scanResultInOtherProduct()
+{
+    QDir::setCurrent(testDataDir + "/scan-result-in-other-product");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("generating text file"), m_qbsStdout.constData());
+    WAIT_FOR_NEW_TIMESTAMP();
+    REPLACE_IN_FILE("other/other.qbs", "blubb", "blubb2");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(!m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("generating text file"), m_qbsStdout.constData());
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("lib/lib.h");
+    QCOMPARE(runQbs(), 0);
+    QEXPECT_FAIL("", "QBS-1532", Continue);
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("generating text file"), m_qbsStdout.constData());
+}
+
 void TestBlackbox::setupBuildEnvironment()
 {
     QDir::setCurrent(testDataDir + "/setup-build-environment");

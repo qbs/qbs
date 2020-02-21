@@ -271,6 +271,7 @@ private slots:
     void sanitizer_data();
     void sanitizer();
     void scannerItem();
+    void scanResultInOtherProduct();
     void setupBuildEnvironment();
     void setupRunEnvironment();
     void smartRelinking();
