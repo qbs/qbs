@@ -53,6 +53,10 @@ BinaryProbe {
                     pathSuffixes, platformSearchPaths, environmentPaths, platformEnvironmentPaths,
                     pathListSeparator);
 
+        found = results.found;
+        if (!found)
+            return;
+
         var resultsMapper = function(result) {
             (nameSuffixes || [""]).forEach(function(suffix) {
                 var end = _compilerName + suffix;
@@ -62,10 +66,7 @@ BinaryProbe {
             return result;
         };
         results.files = results.files.map(resultsMapper);
-
-        found = results.found;
         allResults = results.files;
-
         var result = results.files[0];
         candidatePaths = result.candidatePaths;
         path = result.path;
