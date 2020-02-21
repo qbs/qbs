@@ -273,6 +273,7 @@ private slots:
     void sanitizer();
     void scannerItem();
     void scanResultInOtherProduct();
+    void scanResultInNonDependency();
     void setupBuildEnvironment();
     void setupRunEnvironment();
     void smartRelinking();

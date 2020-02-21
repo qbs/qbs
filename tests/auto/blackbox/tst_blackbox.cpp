@@ -2522,9 +2522,31 @@ void TestBlackbox::scannerItem()
 void TestBlackbox::scanResultInOtherProduct()
 {
     QDir::setCurrent(testDataDir + "/scan-result-in-other-product");
-    QCOMPARE(runQbs(), 0);
+    QCOMPARE(runQbs(QStringList("-vv")), 0);
     QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("generating text file"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStderr.contains("The file dependency might get lost during change tracking"),
+             m_qbsStderr.constData());
+    WAIT_FOR_NEW_TIMESTAMP();
+    REPLACE_IN_FILE("other/other.qbs", "blubb", "blubb2");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(!m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("generating text file"), m_qbsStdout.constData());
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("lib/lib.h");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("generating text file"), m_qbsStdout.constData());
+}
+
+void TestBlackbox::scanResultInNonDependency()
+{
+    QDir::setCurrent(testDataDir + "/scan-result-in-non-dependency");
+    QCOMPARE(runQbs(QStringList("-vv")), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("generating text file"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStderr.contains("The file dependency might get lost during change tracking"),
+             m_qbsStderr.constData());
     WAIT_FOR_NEW_TIMESTAMP();
     REPLACE_IN_FILE("other/other.qbs", "blubb", "blubb2");
     QCOMPARE(runQbs(), 0);
