@@ -87,7 +87,7 @@ function artifactInstalledFilePath(artifact) {
             throw "installSourceBase is not an absolute path";
         if (!artifact.filePath.startsWith(installSourceBase))
             throw "artifact file path doesn't start with the value of qbs.installSourceBase";
-        return FileInfo.joinPaths(targetDir, artifact.filePath.substr(installSourceBase.length + 1));
+        return FileInfo.joinPaths(targetDir, artifact.filePath.substr(installSourceBase.length));
     }
     return FileInfo.joinPaths(targetDir, artifact.fileName);
 }
