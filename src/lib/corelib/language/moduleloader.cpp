@@ -3760,12 +3760,23 @@ QString ModuleLoader::findExistingModulePath(const QString &searchPath,
         const QualifiedId &moduleName)
 {
     QString dirPath = searchPath + QStringLiteral("/modules");
+
+    // isFileCaseCorrect is a very expensive call on macOS, so we cache the value for the
+    // modules and search paths we've already processed
+    auto &moduleInfo = m_existingModulePathCache[{searchPath, moduleName}];
+    if (moduleInfo.first) // poor man's std::optional<QString>
+        return moduleInfo.second;
+
     for (const QString &moduleNamePart : moduleName) {
         dirPath = FileInfo::resolvePath(dirPath, moduleNamePart);
-        if (!FileInfo::exists(dirPath) || !FileInfo::isFileCaseCorrect(dirPath))
-            return {};
+        if (!FileInfo::exists(dirPath) || !FileInfo::isFileCaseCorrect(dirPath)) {
+            moduleInfo.first = true;
+            return moduleInfo.second = QString();
+        }
     }
-    return dirPath;
+
+    moduleInfo.first = true;
+    return moduleInfo.second = dirPath;
 }
 
 QVariantMap ModuleLoader::moduleProviderConfig(ModuleLoader::ProductContext &product)
