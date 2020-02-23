@@ -1443,7 +1443,7 @@ void TestBlackbox::versionScript()
 {
     const SettingsPtr s = settings();
     Profile buildProfile(profileName(), s.get());
-    QStringList toolchain = buildProfile.value("qbs.toolchain").toStringList();
+    QStringList toolchain = profileToolchain(buildProfile);
     if (!toolchain.contains("gcc") || targetOs() != HostOsInfo::HostOsLinux)
         QSKIP("version script test only applies to Linux");
     QDir::setCurrent(testDataDir + "/versionscript");
@@ -1861,7 +1861,7 @@ void TestBlackbox::separateDebugInfo()
 
     const SettingsPtr s = settings();
     Profile buildProfile(profileName(), s.get());
-    QStringList toolchain = buildProfile.value("qbs.toolchain").toStringList();
+    QStringList toolchain = profileToolchain(buildProfile);
     if (isDarwin) {
         QVERIFY(directoryExists(relativeProductBuildDir("app1") + "/app1.app.dSYM"));
         QVERIFY(regularFileExists(relativeProductBuildDir("app1")
@@ -2046,7 +2046,7 @@ void TestBlackbox::trackExternalProductChanges()
     rmDirR(relativeBuildDir());
     const SettingsPtr s = settings();
     const Profile profile(profileName(), s.get());
-    const QStringList toolchainTypes = profile.value("qbs.toolchain").toStringList();
+    const QStringList toolchainTypes = profileToolchain(profile);
     if (!toolchainTypes.contains("gcc"))
         QSKIP("Need GCC-like compiler to run this test");
     params.environment = QProcessEnvironment::systemEnvironment();
@@ -2334,7 +2334,7 @@ void TestBlackbox::reproducibleBuild()
 {
     const SettingsPtr s = settings();
     const Profile profile(profileName(), s.get());
-    const QStringList toolchains = profile.value("qbs.toolchain").toStringList();
+    const QStringList toolchains = profileToolchain(profile);
     if (!toolchains.contains("gcc"))
         QSKIP("reproducible builds only supported for gcc");
     if (toolchains.contains("clang"))
@@ -3545,7 +3545,7 @@ void TestBlackbox::emptyProfile()
 
     const SettingsPtr s = settings();
     const Profile buildProfile(profileName(), s.get());
-    const QStringList toolchain = buildProfile.value("qbs.toolchain").toStringList();
+    const QStringList toolchain = profileToolchain(buildProfile);
 
     QTemporaryDir tempDir;
     QbsRunParameters params;
@@ -3657,7 +3657,7 @@ void TestBlackbox::escapedLinkerFlags()
 {
     const SettingsPtr s = settings();
     const Profile buildProfile(profileName(), s.get());
-    const QStringList toolchain = buildProfile.value("qbs.toolchain").toStringList();
+    const QStringList toolchain = profileToolchain(buildProfile);
     if (!toolchain.contains("gcc"))
         QSKIP("escaped linker flags test only applies with gcc and GNU ld");
     if (targetOs() == HostOsInfo::HostOsMacos)
@@ -4218,7 +4218,7 @@ void TestBlackbox::cli()
 
     const SettingsPtr s = settings();
     Profile p("qbs_autotests-cli", s.get());
-    const QStringList toolchain = p.value("qbs.toolchain").toStringList();
+    const QStringList toolchain = profileToolchain(p);
     if (!p.exists() || !(toolchain.contains("dotnet") || toolchain.contains("mono")))
         QSKIP("No suitable Common Language Infrastructure test profile");
 
@@ -4687,7 +4687,7 @@ void TestBlackbox::linkerLibraryDuplicates()
 {
     const SettingsPtr s = settings();
     Profile buildProfile(profileName(), s.get());
-    QStringList toolchain = buildProfile.value("qbs.toolchain").toStringList();
+    QStringList toolchain = profileToolchain(buildProfile);
     if (!toolchain.contains("gcc"))
         QSKIP("linkerLibraryDuplicates test only applies to GCC toolchain");
 
@@ -4767,7 +4767,7 @@ void TestBlackbox::linkerScripts()
 {
     const SettingsPtr s = settings();
     Profile buildProfile(profileName(), s.get());
-    QStringList toolchain = buildProfile.value("qbs.toolchain").toStringList();
+    QStringList toolchain = profileToolchain(buildProfile);
     if (!toolchain.contains("gcc") || targetOs() != HostOsInfo::HostOsLinux)
         QSKIP("linker script test only applies to Linux ");
 

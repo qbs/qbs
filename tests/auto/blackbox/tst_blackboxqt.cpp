@@ -245,7 +245,7 @@ void TestBlackboxQt::mixedBuildVariants()
     QDir::setCurrent(testDataDir + "/mixed-build-variants");
     const SettingsPtr s = settings();
     Profile profile(profileName(), s.get());
-    if (profile.value("qbs.toolchain").toStringList().contains("msvc")) {
+    if (profileToolchain(profile).contains("msvc")) {
         QbsRunParameters params;
         params.arguments << "qbs.buildVariant:debug";
         params.expectFailure = true;
@@ -362,7 +362,7 @@ void TestBlackboxQt::qmlDebugging()
     QCOMPARE(runQbs(), 0);
     const SettingsPtr s = settings();
     Profile profile(profileName(), s.get());
-    if (!profile.value("qbs.toolchain").toStringList().contains("gcc"))
+    if (!profileToolchain(profile).contains("gcc"))
         return;
     QProcess nm;
     nm.start("nm", QStringList(relativeExecutableFilePath("debuggable-app")));

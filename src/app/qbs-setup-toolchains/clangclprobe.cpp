@@ -75,9 +75,7 @@ Profile createProfileHelper(
     Profile profile(profileName, settings);
     profile.removeProfile();
     profile.setValue(QStringLiteral("qbs.architecture"), architecture);
-    profile.setValue(
-            QStringLiteral("qbs.toolchain"),
-            QStringList{QStringLiteral("clang-cl"), QStringLiteral("msvc")});
+    profile.setValue(QStringLiteral("qbs.toolchainType"), QStringLiteral("clang-cl"));
     profile.setValue(QStringLiteral("cpp.toolchainInstallPath"), toolchainInstallPath);
     profile.setValue(QStringLiteral("cpp.vcvarsallPath"), vcvarsallPath);
     qbsInfo() << Tr::tr("Profile '%1' created for '%2'.")

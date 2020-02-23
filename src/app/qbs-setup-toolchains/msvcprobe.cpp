@@ -88,7 +88,7 @@ static void addMSVCPlatform(Settings *settings, std::vector<Profile> &profiles, 
     Profile p(std::move(name), settings);
     p.removeProfile();
     p.setValue(QStringLiteral("qbs.targetPlatform"), QStringLiteral("windows"));
-    p.setValue(QStringLiteral("qbs.toolchain"), QStringList(QStringLiteral("msvc")));
+    p.setValue(QStringLiteral("qbs.toolchainType"), QStringLiteral("msvc"));
     p.setValue(QStringLiteral("cpp.toolchainInstallPath"), msvc->binPath);
     setQtHelperProperties(p, msvc);
     profiles.push_back(p);

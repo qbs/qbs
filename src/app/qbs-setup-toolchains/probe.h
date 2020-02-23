@@ -57,7 +57,7 @@ QStringList systemSearchPaths();
 
 QString findExecutable(const QString &fileName);
 
-QStringList toolchainTypeFromCompilerName(const QString &compilerName);
+QString toolchainTypeFromCompilerName(const QString &compilerName);
 
 void createProfile(const QString &profileName, const QString &toolchainType,
                    const QString &compilerFilePath, qbs::Settings *settings);

@@ -202,9 +202,9 @@ void TestClangDb::checkClangDetectsSourceCodeProblems()
     // clang-check.exe does not understand MSVC command-line syntax
     const SettingsPtr s = settings();
     qbs::Profile profile(profileName(), s.get());
-    if (profile.value("qbs.toolchain").toStringList().contains("msvc")) {
+    if (profileToolchain(profile).contains("msvc")) {
         arguments << "-extra-arg-before=--driver-mode=cl";
-    } else if (profile.value("qbs.toolchain").toStringList().contains("mingw")) {
+    } else if (profileToolchain(profile).contains("mingw")) {
         arguments << "-extra-arg-before=--driver-mode=g++";
     }
 

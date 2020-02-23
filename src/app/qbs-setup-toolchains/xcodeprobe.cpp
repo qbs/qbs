@@ -172,11 +172,7 @@ void XcodeProbe::setupDefaultToolchains(const QString &devPath, const QString &x
 
     Profile installationProfile(xcodeName, settings);
     installationProfile.removeProfile();
-    installationProfile.setValue(QStringLiteral("qbs.toolchain"), QStringList()
-                                 << QStringLiteral("xcode")
-                                 << QStringLiteral("clang")
-                                 << QStringLiteral("llvm")
-                                 << QStringLiteral("gcc"));
+    installationProfile.setValue(QStringLiteral("qbs.toolchainType"), QStringLiteral("xcode"));
     if (devPath != defaultDeveloperPath)
         installationProfile.setValue(QStringLiteral("xcode.developerPath"), devPath);
     profiles.push_back(installationProfile);

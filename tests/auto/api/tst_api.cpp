@@ -1465,7 +1465,7 @@ void TestApi::linkDynamicAndStaticLibs()
     // The dependent static libs should not appear in the link command for the executable.
     const SettingsPtr s = settings();
     const qbs::Profile buildProfile(profileName(), s.get());
-    if (buildProfile.value("qbs.toolchain").toStringList().contains("gcc")) {
+    if (profileToolchain(buildProfile).contains("gcc")) {
         static const std::regex appLinkCmdRex(" -o [^ ]*/HelloWorld" QBS_HOST_EXE_SUFFIX " ");
         QString appLinkCmd;
         for (const QString &line : qAsConst(bdr.descriptionLines)) {
@@ -1498,7 +1498,7 @@ void TestApi::linkStaticAndDynamicLibs()
     // executable. The -rpath-link line for libdynamic1.so must be there.
     const SettingsPtr s = settings();
     const qbs::Profile buildProfile(profileName(), s.get());
-    if (buildProfile.value("qbs.toolchain").toStringList().contains("gcc")) {
+    if (profileToolchain(buildProfile).contains("gcc")) {
         static const std::regex appLinkCmdRex(" -o [^ ]*/HelloWorld" QBS_HOST_EXE_SUFFIX " ");
         QString appLinkCmd;
         for (const QString &line : qAsConst(bdr.descriptionLines)) {

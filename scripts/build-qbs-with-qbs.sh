@@ -105,6 +105,10 @@ if [ -z "${QBS_AUTOTEST_PROFILE}" ]; then
         fi
     fi
 
+    qbs run -p qbs_app ${BUILD_OPTIONS} -- config \
+            ${RUN_OPTIONS} \
+            --list
+
     # QBS_AUTOTEST_PROFILE has been added to the environment
     # which requires a resolve step
     qbs resolve ${BUILD_OPTIONS}

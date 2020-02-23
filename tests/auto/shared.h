@@ -31,6 +31,7 @@
 #include <tools/hostosinfo.h>
 #include <tools/profile.h>
 #include <tools/settings.h>
+#include <tools/toolchains.h>
 
 #include <QtCore/qbytearray.h>
 #include <QtCore/qcryptographichash.h>
@@ -270,14 +271,22 @@ inline void copyFileAndUpdateTimestamp(const QString &source, const QString &tar
     touch(target);
 }
 
+inline QStringList profileToolchain(const qbs::Profile &profile)
+{
+    const auto toolchainType = profile.value(QStringLiteral("qbs.toolchainType")).toString();
+    if (!toolchainType.isEmpty())
+        return qbs::canonicalToolchain(toolchainType);
+    return profile.value(QStringLiteral("qbs.toolchain")).toStringList();
+}
+
 inline QString objectFileName(const QString &baseName, const QString &profileName)
 {
     const SettingsPtr s = settings();
     qbs::Profile profile(profileName, s.get());
-    const auto tc = profile.value("qbs.toolchainType").toString();
-    const auto tcList = profile.value("qbs.toolchain").toStringList();
-    const bool isMsvc = tc == "msvc" || tcList.contains("msvc")
-            || (tc.isEmpty() && tcList.isEmpty() && qbs::Internal::HostOsInfo::isWindowsHost());
+
+    const auto tcList = profileToolchain(profile);
+    const bool isMsvc = tcList.contains("msvc")
+            || (tcList.isEmpty() && qbs::Internal::HostOsInfo::isWindowsHost());
     const QString suffix = isMsvc ? "obj" : "o";
     return baseName + '.' + suffix;
 }
