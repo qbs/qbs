@@ -3106,11 +3106,42 @@ Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
         const CodeLocation &dependsItemLocation, const QualifiedId &moduleName,
         FallbackMode fallbackMode, bool isRequired, Item *moduleInstance)
 {
-    bool triedToLoadModule = false;
+    auto existingPaths = findExistingModulePaths(m_reader->allSearchPaths(), moduleName);
+
+    if (existingPaths.isEmpty()) { // no suitable names found, try to use providers
+        bool moduleAlreadyKnown = false;
+        ModuleProviderResult result;
+        for (QualifiedId providerName = moduleName; !providerName.empty();
+             providerName.pop_back()) {
+            if (!productContext->knownModuleProviders.insert(providerName).second) {
+                moduleAlreadyKnown = true;
+                break;
+            }
+            qCDebug(lcModuleLoader) << "Module" << moduleName.toString()
+                                    << "not found, checking for module providers";
+            result = findModuleProvider(providerName, *productContext,
+                                        ModuleProviderLookup::Regular, dependsItemLocation);
+            if (result.providerFound)
+                break;
+        }
+        if (fallbackMode == FallbackMode::Enabled && !result.providerFound
+                && !moduleAlreadyKnown) {
+            qCDebug(lcModuleLoader) << "Specific module provider not found for"
+                                    << moduleName.toString()  << ", setting up fallback.";
+            result = findModuleProvider(moduleName, *productContext,
+                                        ModuleProviderLookup::Fallback, dependsItemLocation);
+        }
+        if (result.providerAddedSearchPaths) {
+            qCDebug(lcModuleLoader) << "Re-checking for module" << moduleName.toString()
+                                    << "with newly added search paths from module provider";
+            existingPaths = findExistingModulePaths(m_reader->allSearchPaths(), moduleName);
+        }
+    }
+
     const QString fullName = moduleName.toString();
+    bool triedToLoadModule = false;
     std::vector<PrioritizedItem> candidates;
-    const QStringList &searchPaths = m_reader->allSearchPaths();
-    const auto existingPaths = findExistingModulePaths(searchPaths, moduleName);
+    candidates.reserve(size_t(existingPaths.size()));
     for (int i = 0; i < existingPaths.size(); ++i) {
         const QString &dirPath = existingPaths.at(i);
         QStringList &moduleFileNames = getModuleFileNames(dirPath);
@@ -3130,41 +3161,12 @@ Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
     }
 
     if (candidates.empty()) {
-        if (existingPaths.isEmpty()) { // no suitable names found, try to use providers
-            bool moduleAlreadyKnown = false;
-            ModuleProviderResult result;
-            for (QualifiedId providerName = moduleName; !providerName.empty();
-                 providerName.pop_back()) {
-                if (!productContext->knownModuleProviders.insert(providerName).second) {
-                    moduleAlreadyKnown = true;
-                    break;
-                }
-                qCDebug(lcModuleLoader) << "Module" << moduleName.toString()
-                                        << "not found, checking for module providers";
-                result = findModuleProvider(providerName, *productContext,
-                                            ModuleProviderLookup::Regular, dependsItemLocation);
-                if (result.providerFound)
-                    break;
-            }
-            if (fallbackMode == FallbackMode::Enabled && !result.providerFound
-                    && !moduleAlreadyKnown) {
-                qCDebug(lcModuleLoader) << "Specific module provider not found for"
-                                        << moduleName.toString()  << ", setting up fallback.";
-                result = findModuleProvider(moduleName, *productContext,
-                                            ModuleProviderLookup::Fallback, dependsItemLocation);
-            }
-            if (result.providerAddedSearchPaths) {
-                qCDebug(lcModuleLoader) << "Re-checking for module" << moduleName.toString()
-                                        << "with newly added search paths from module provider";
-                return searchAndLoadModuleFile(productContext, dependsItemLocation, moduleName,
-                                               fallbackMode, isRequired, moduleInstance);
-            }
-        }
         if (!isRequired)
             return createNonPresentModule(fullName, QStringLiteral("not found"), nullptr);
-        if (Q_UNLIKELY(triedToLoadModule))
+        if (Q_UNLIKELY(triedToLoadModule)) {
             throw ErrorInfo(Tr::tr("Module %1 could not be loaded.").arg(fullName),
                         dependsItemLocation);
+        }
         return nullptr;
     }
 
