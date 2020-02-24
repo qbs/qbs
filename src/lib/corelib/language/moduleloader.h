@@ -318,6 +318,7 @@ private:
     Item *searchAndLoadModuleFile(ProductContext *productContext,
             const CodeLocation &dependsItemLocation, const QualifiedId &moduleName,
             FallbackMode fallbackMode, bool isRequired, Item *moduleInstance);
+    QStringList &getModuleFileNames(const QString &dirPath);
     Item *loadModuleFile(ProductContext *productContext, const QString &fullModuleName,
             bool isBaseModule, const QString &filePath, bool *triedToLoad, Item *moduleInstance);
     Item *getModulePrototype(ProductContext *productContext, const QString &fullModuleName,

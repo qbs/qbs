@@ -3117,22 +3117,18 @@ Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
         if (dirPath.isEmpty())
             continue;
         matchingDirectoryFound = true;
-        QStringList moduleFileNames = m_moduleDirListCache.value(dirPath);
-        if (moduleFileNames.empty()) {
-            QDirIterator dirIter(dirPath, StringConstants::qbsFileWildcards());
-            while (dirIter.hasNext())
-                moduleFileNames += dirIter.next();
-
-            m_moduleDirListCache.insert(dirPath, moduleFileNames);
-        }
-        for (const QString &filePath : qAsConst(moduleFileNames)) {
+        QStringList &moduleFileNames = getModuleFileNames(dirPath);
+        for (auto it = moduleFileNames.begin(), end = moduleFileNames.end(); it != end; ) {
+            const QString &filePath = *it;
             triedToLoadModule = true;
             Item *module = loadModuleFile(productContext, fullName, isBaseModule(moduleName),
                                           filePath, &triedToLoadModule, moduleInstance);
             if (module)
                 candidates.emplace_back(module, 0, i);
             if (!triedToLoadModule)
-                m_moduleDirListCache[dirPath].removeOne(filePath);
+                it = moduleFileNames.erase(it);
+            else
+                ++it;
         }
     }
 
@@ -3199,6 +3195,17 @@ Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
         handlePropertyError(error, m_parameters, m_logger);
     }
     return moduleItem;
+}
+
+QStringList &ModuleLoader::getModuleFileNames(const QString &dirPath)
+{
+    QStringList &moduleFileNames = m_moduleDirListCache[dirPath];
+    if (moduleFileNames.empty()) {
+        QDirIterator dirIter(dirPath, StringConstants::qbsFileWildcards());
+        while (dirIter.hasNext())
+            moduleFileNames += dirIter.next();
+    }
+    return moduleFileNames;
 }
 
 // returns QVariant::Invalid for types that do not need conversion
