@@ -3110,13 +3110,9 @@ Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
     const QString fullName = moduleName.toString();
     std::vector<PrioritizedItem> candidates;
     const QStringList &searchPaths = m_reader->allSearchPaths();
-    bool matchingDirectoryFound = false;
-    for (int i = 0; i < searchPaths.size(); ++i) {
-        const QString &path = searchPaths.at(i);
-        const QString dirPath = findExistingModulePath(path, moduleName);
-        if (dirPath.isEmpty())
-            continue;
-        matchingDirectoryFound = true;
+    const auto existingPaths = findExistingModulePaths(searchPaths, moduleName);
+    for (int i = 0; i < existingPaths.size(); ++i) {
+        const QString &dirPath = existingPaths.at(i);
         QStringList &moduleFileNames = getModuleFileNames(dirPath);
         for (auto it = moduleFileNames.begin(); it != moduleFileNames.end(); ) {
             const QString &filePath = *it;
@@ -3134,7 +3130,7 @@ Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
     }
 
     if (candidates.empty()) {
-        if (!matchingDirectoryFound) {
+        if (existingPaths.isEmpty()) { // no suitable names found, try to use providers
             bool moduleAlreadyKnown = false;
             ModuleProviderResult result;
             for (QualifiedId providerName = moduleName; !providerName.empty();
@@ -3785,6 +3781,19 @@ QString ModuleLoader::findExistingModulePath(const QString &searchPath,
 
     moduleInfo.first = true;
     return moduleInfo.second = dirPath;
+}
+
+QStringList ModuleLoader::findExistingModulePaths(
+        const QStringList &searchPaths, const QualifiedId &moduleName)
+{
+    QStringList result;
+    result.reserve(searchPaths.size());
+    for (const auto &path: searchPaths) {
+        const QString dirPath = findExistingModulePath(path, moduleName);
+        if (!dirPath.isEmpty())
+            result.append(dirPath);
+    }
+    return result;
 }
 
 QVariantMap ModuleLoader::moduleProviderConfig(ModuleLoader::ProductContext &product)

@@ -340,6 +340,8 @@ private:
     void copyProperties(const Item *sourceProject, Item *targetProject);
     Item *wrapInProjectIfNecessary(Item *item);
     QString findExistingModulePath(const QString &searchPath, const QualifiedId &moduleName);
+    QStringList findExistingModulePaths(
+            const QStringList &searchPaths, const QualifiedId &moduleName);
 
     enum class ModuleProviderLookup { Regular, Fallback };
     struct ModuleProviderResult
