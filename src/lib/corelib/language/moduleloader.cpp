@@ -3120,15 +3120,16 @@ Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
         QStringList &moduleFileNames = getModuleFileNames(dirPath);
         for (auto it = moduleFileNames.begin(); it != moduleFileNames.end(); ) {
             const QString &filePath = *it;
-            triedToLoadModule = true;
+            bool triedToLoad = true;
             Item *module = loadModuleFile(productContext, fullName, isBaseModule(moduleName),
-                                          filePath, &triedToLoadModule, moduleInstance);
+                                          filePath, &triedToLoad, moduleInstance);
             if (module)
                 candidates.emplace_back(module, 0, i);
-            if (!triedToLoadModule)
+            if (!triedToLoad)
                 it = moduleFileNames.erase(it);
             else
                 ++it;
+            triedToLoadModule = triedToLoadModule || triedToLoad;
         }
     }
 

@@ -4398,6 +4398,15 @@ void TestBlackbox::jsExtensionsBinaryFile()
     QCOMPARE(data.at(7), char(0xFF));
 }
 
+void TestBlackbox::lastModuleCandidateBroken()
+{
+    QDir::setCurrent(testDataDir + "/last-module-candidate-broken");
+    QbsRunParameters params;
+    params.expectFailure = true;
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY2(m_qbsStderr.contains("Module Foo could not be loaded"), m_qbsStderr);
+}
+
 void TestBlackbox::ld()
 {
     QDir::setCurrent(testDataDir + "/ld");

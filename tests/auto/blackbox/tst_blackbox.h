@@ -166,6 +166,7 @@ private slots:
     void jsExtensionsTemporaryDir();
     void jsExtensionsTextFile();
     void jsExtensionsBinaryFile();
+    void lastModuleCandidateBroken();
     void ld();
     void linkerMode();
     void linkerVariant_data();
