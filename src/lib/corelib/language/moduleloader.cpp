@@ -3118,7 +3118,7 @@ Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
             continue;
         matchingDirectoryFound = true;
         QStringList &moduleFileNames = getModuleFileNames(dirPath);
-        for (auto it = moduleFileNames.begin(), end = moduleFileNames.end(); it != end; ) {
+        for (auto it = moduleFileNames.begin(); it != moduleFileNames.end(); ) {
             const QString &filePath = *it;
             triedToLoadModule = true;
             Item *module = loadModuleFile(productContext, fullName, isBaseModule(moduleName),
