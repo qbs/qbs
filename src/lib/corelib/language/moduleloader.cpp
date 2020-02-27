@@ -3584,7 +3584,7 @@ void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, It
     if (Q_UNLIKELY(configureScript->sourceCode() == StringConstants::undefinedValue()))
         throw ErrorInfo(Tr::tr("Probe.configure must be set."), probe->location());
     using ProbeProperty = std::pair<QString, QScriptValue>;
-    QList<ProbeProperty> probeBindings;
+    std::vector<ProbeProperty> probeBindings;
     QVariantMap initialProperties;
     for (Item *obj = probe; obj; obj = obj->prototype()) {
         const Item::PropertyMap &props = obj->properties();
@@ -3593,7 +3593,7 @@ void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, It
             if (name == StringConstants::configureProperty())
                 continue;
             const QScriptValue value = m_evaluator->value(probe, name);
-            probeBindings += ProbeProperty(name, value);
+            probeBindings << ProbeProperty(name, value);
             if (name != StringConstants::conditionProperty())
                 initialProperties.insert(name, value.toVariant());
         }
@@ -3632,7 +3632,7 @@ void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, It
         engine->currentContext()->pushScope(fileCtxScopes.fileScope);
         engine->currentContext()->pushScope(fileCtxScopes.importScope);
         configureScope = engine->newObject();
-        for (const ProbeProperty &b : qAsConst(probeBindings))
+        for (const ProbeProperty &b : probeBindings)
             configureScope.setProperty(b.first, b.second);
         engine->currentContext()->pushScope(configureScope);
         engine->clearRequestedProperties();
@@ -3648,7 +3648,7 @@ void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, It
         importedFilesUsedInConfigure = resolvedProbe->importedFilesUsed();
     }
     QVariantMap properties;
-    for (const ProbeProperty &b : qAsConst(probeBindings)) {
+    for (const ProbeProperty &b : probeBindings) {
         QVariant newValue;
         if (resolvedProbe) {
             newValue = resolvedProbe->properties().value(b.first);
