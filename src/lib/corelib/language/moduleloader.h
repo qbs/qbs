@@ -444,7 +444,7 @@ private:
     QHash<QString, std::vector<ProbeConstPtr>> m_oldProjectProbes;
     QHash<QString, std::vector<ProbeConstPtr>> m_oldProductProbes;
     FileTime m_lastResolveTime;
-    QHash<CodeLocation, QList<ProbeConstPtr>> m_currentProbes;
+    QHash<CodeLocation, std::vector<ProbeConstPtr>> m_currentProbes;
     QVariantMap m_storedProfiles;
     QVariantMap m_localProfiles;
     std::multimap<QString, const ProductContext *> m_productsByName;

@@ -1886,7 +1886,7 @@ ProbeConstPtr ModuleLoader::findCurrentProbe(
         bool condition,
         const QVariantMap &initialProperties) const
 {
-    const QList<ProbeConstPtr> &cachedProbes = m_currentProbes.value(location);
+    const std::vector<ProbeConstPtr> &cachedProbes = m_currentProbes.value(location);
     for (const ProbeConstPtr &probe : cachedProbes) {
         if (probeMatches(probe, condition, initialProperties, QString(), CompareScript::No))
             return probe;
