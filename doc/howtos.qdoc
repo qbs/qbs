@@ -37,6 +37,7 @@
     \list
     \li \l{How do I build a Qt-based project?}
     \li \l{How do I make my app build against my library?}
+    \li \l{How do I separate and install debugging symbols?}
     \li \l{How do I use precompiled headers?}
     \li \l{How do I make sure my generated sources are getting compiled?}
     \li \l{How do I run my autotests?}
@@ -126,6 +127,64 @@
 
         Depends { name: "Qt.core" }
         // ...
+    }
+    \endcode
+
+    \section1 How do I separate and install debugging symbols?
+
+    First, you need to set the \l{cpp::debugInformation}{cpp.debugInformation} and
+    \l{cpp::separateDebugInformation}{cpp.separateDebugInformation}
+    properties to \c true or use some conditional expression in your product:
+    \code
+    CppApplication {
+        // ...
+        cpp.debugInformation: qbs.buildVariant !== "release"
+        cpp.separateDebugInformation: true
+    }
+    \endcode
+
+    If the \l{cpp::separateDebugInformation}{cpp.separateDebugInformation} property is set to
+    \c true, \QBS will create debugging symbols with the corresponding file tags
+    \c "debuginfo_app" (for an application), \c "debuginfo_dll" (for a dynamic library),
+    or \c "debuginfo_loadablemodule" (for a macOS plugin).
+
+    Now, you can install your application and its debugging symbols as follows:
+    \code
+    CppApplication {
+        // ...
+        Group {
+            fileTagsFilter: cpp.separateDebugInformation ? ["debuginfo_app"] : []
+            qbs.install: true
+            qbs.installDir: "bin"
+            qbs.installSourceBase: buildDirectory
+        }
+    }
+    \endcode
+
+    If you're building a shared library, you need to use the \c "debuginfo_dll" tag instead:
+    \code
+    DynamicLibrary {
+        // ...
+        Group {
+            fileTagsFilter: cpp.separateDebugInformation ? ["debuginfo_dll"] : []
+            qbs.install: true
+            qbs.installDir: "lib"
+            qbs.installSourceBase: buildDirectory
+        }
+    }
+    \endcode
+
+    If you're building a macOS plugin, you need to use the \c "debuginfo_loadablemodule"
+    tag instead:
+    \code
+    LoadableModule {
+        // ...
+        Group {
+            fileTagsFilter: cpp.separateDebugInformation ? ["debuginfo_loadablemodule"] : []
+            qbs.install: true
+            qbs.installDir: "PlugIns"
+            qbs.installSourceBase: buildDirectory
+        }
     }
     \endcode
 

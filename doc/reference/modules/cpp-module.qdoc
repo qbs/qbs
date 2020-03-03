@@ -390,6 +390,8 @@
 
     \defaultvalue \c{true} for MSVC and with GCC or Clang on Apple platforms,
     otherwise \c{false}.
+
+    \sa debugInformation, {How do I separate and install debugging symbols?}
 */
 
 /*!
