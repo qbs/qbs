@@ -60,6 +60,8 @@ private slots:
     void buildDirectories();
     void buildEnvChange();
     void buildGraphVersions();
+    void buildVariantDefaults_data();
+    void buildVariantDefaults();
     void changedFiles_data();
     void changedFiles();
     void changedInputsFromDependencies();

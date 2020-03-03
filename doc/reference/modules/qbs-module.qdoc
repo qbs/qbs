@@ -113,11 +113,13 @@
 
     The name of the build variant for the current build.
 
-    Possible values are \c{"debug"} and \c{"release"}. A debug build usually
-    contains additional debug symbols that are needed for debugging the
-    application but that can be left out from the release version. Debug builds
-    are used for testing and release builds for creating the final installation
-    file.
+    Possible values are \c{"debug"}, \c{"release"} and \c{"profiling"}.
+    A debug build usually contains additional debug symbols that are needed for
+    debugging the application and has optimizations turned off. A profiling
+    build usually contains debug symbols and has optimizations turned on. This
+    is useful for profiling tools or when you need to retain debug symbols
+    in a release build. A release build is a build without debug information and
+    with optimizations enabled.
 
     \defaultvalue \c{"release"} if
     \l{qbs::configurationName}{qbs.configurationName} is \c{"release"}. Otherwise
@@ -129,7 +131,8 @@
 
     Whether to generate debug information.
 
-    \defaultvalue \c{true} for debug builds, \c{false} otherwise.
+    \defaultvalue \c{true} if \l{qbs::buildVariant}{qbs.buildVariant} is \c{"debug"} or
+    \c{"profiling"}. Otherwise \c{false}.
 */
 
 /*!
@@ -151,7 +154,7 @@
     \endlist
 
     Typically, this property is enabled for debug builds and disabled for
-    release builds.
+    release or profiling builds.
 
     \defaultvalue \c{true} for debug builds, \c{false} otherwise.
 */
@@ -169,7 +172,8 @@
         \li \c{"small"}
     \endlist
 
-    \defaultvalue \c{"none"} for debug builds, \c{"fast"} for release builds.
+    \defaultvalue \c{"none"} if \l{qbs::buildVariant}{qbs.buildVariant} is \c{"debug"}.
+    Otherwise \c{"fast"}.
 */
 
 /*!

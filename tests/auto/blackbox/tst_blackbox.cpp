@@ -713,6 +713,25 @@ void TestBlackbox::buildGraphVersions()
     QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
 }
 
+void TestBlackbox::buildVariantDefaults_data()
+{
+    QTest::addColumn<QString>("buildVariant");
+    QTest::newRow("default") << QString();
+    QTest::newRow("debug") << QStringLiteral("debug");
+    QTest::newRow("release") << QStringLiteral("release");
+    QTest::newRow("profiling") << QStringLiteral("profiling");
+}
+
+void TestBlackbox::buildVariantDefaults()
+{
+    QFETCH(QString, buildVariant);
+    QDir::setCurrent(testDataDir + "/build-variant-defaults");
+    QbsRunParameters params{QStringLiteral("resolve")};
+    if (!buildVariant.isEmpty())
+        params.arguments << ("modules.qbs.buildVariant:" + buildVariant);
+    QCOMPARE(runQbs(params), 0);
+}
+
 void TestBlackbox::changedFiles_data()
 {
     QTest::addColumn<bool>("useChangedFilesForInitialBuild");
