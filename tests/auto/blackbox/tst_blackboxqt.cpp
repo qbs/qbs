@@ -204,6 +204,42 @@ void TestBlackboxQt::lrelease()
     QVERIFY(!regularFileExists(relativeProductBuildDir("lrelease-test") + "/hu.qm"));
 }
 
+void TestBlackboxQt::metaTypes_data()
+{
+    QTest::addColumn<bool>("generate");
+    QTest::addColumn<QString>("installDir");
+    QTest::newRow("don't generate") << false << QString();
+    QTest::newRow("don't generate with install info") << false << QString("blubb");
+    QTest::newRow("generate only") << true << QString();
+    QTest::newRow("generate and install") << true << QString("blubb");
+}
+
+void TestBlackboxQt::metaTypes()
+{
+    QDir::setCurrent(testDataDir + "/metatypes");
+    QFETCH(bool, generate);
+    QFETCH(QString, installDir);
+    const QStringList args{"modules.Qt.core.generateMetaTypesFile:"
+                               + QString(generate ? "true" : "false"),
+                           "modules.Qt.core.metaTypesInstallDir:" + installDir,
+                           "-v", "--force-probe-execution"};
+    QCOMPARE(runQbs(QbsRunParameters("resolve", args)), 0);
+    const bool canGenerate = m_qbsStdout.contains("can generate");
+    const bool cannotGenerate = m_qbsStdout.contains("cannot generate");
+    QVERIFY(canGenerate != cannotGenerate);
+    const bool expectFiles = generate && canGenerate;
+    const bool expectInstalledFiles = expectFiles && !installDir.isEmpty();
+    QCOMPARE(runQbs(QStringList("--clean-install-root")), 0);
+    const QString productDir = relativeProductBuildDir("mylib");
+    const QString outputDir =  productDir + "/qt.headers";
+    QVERIFY(!regularFileExists(outputDir + "/moc_unmocableclass.cpp.json"));
+    QCOMPARE(regularFileExists(outputDir + "/moc_mocableclass1.cpp.json"), expectFiles);
+    QCOMPARE(regularFileExists(outputDir + "/mocableclass2.moc.json"), expectFiles);
+    QCOMPARE(regularFileExists(productDir + "/mylib_metatypes.json"), expectFiles);
+    QCOMPARE(regularFileExists(relativeBuildDir() + "/install-root/some-prefix/" + installDir
+                               + "/mylib_metatypes.json"), expectInstalledFiles);
+}
+
 void TestBlackboxQt::mixedBuildVariants()
 {
     QDir::setCurrent(testDataDir + "/mixed-build-variants");

@@ -52,6 +52,10 @@ Module {
     property bool staticBuild: @staticBuild@
     property stringList pluginMetaData: []
     property bool enableKeywords: true
+    property bool generateMetaTypesFile
+    readonly property bool _generateMetaTypesFile: generateMetaTypesFile
+        && Utilities.versionCompare(version, "5.15") >= 0
+    property string metaTypesInstallDir
 
     property stringList availableBuildVariants: @availableBuildVariants@
     property string qtBuildVariant: {
@@ -209,7 +213,7 @@ Module {
     cpp.windowsApiAdditionalPartitions: mkspecPath.startsWith("winrt-") ? ["phone"] : undefined
     cpp.requireAppContainer: mkspecName.startsWith("winrt-")
 
-    additionalProductTypes: ["qm"]
+    additionalProductTypes: ["qm", "qt.core.metatypes"]
 
     validate: {
         var validator = new ModUtils.PropertyValidator("Qt.core");
@@ -287,7 +291,7 @@ Module {
         inputs: [objcppInput, cppInput]
         auxiliaryInputs: "qt_plugin_metadata"
         excludedInputs: "unmocable"
-        outputFileTags: ["hpp", "unmocable"]
+        outputFileTags: ["hpp", "unmocable", "qt.core.metatypes.in"]
         outputArtifacts: Moc.outputArtifacts.apply(Moc, arguments)
         prepare: Moc.commands.apply(Moc, arguments)
     }
@@ -296,7 +300,7 @@ Module {
         inputs: "hpp"
         auxiliaryInputs: ["qt_plugin_metadata", "cpp", "objcpp"];
         excludedInputs: "unmocable"
-        outputFileTags: ["hpp", "cpp", "moc_cpp", "unmocable"]
+        outputFileTags: ["hpp", "cpp", "moc_cpp", "unmocable", "qt.core.metatypes.in"]
         outputArtifacts: Moc.outputArtifacts.apply(Moc, arguments)
         prepare: Moc.commands.apply(Moc, arguments)
     }
@@ -316,6 +320,27 @@ Module {
                 ModUtils.mergeCFiles(inputs["moc_cpp"], output.filePath);
             };
             return [cmd];
+        }
+    }
+
+    Rule {
+        multiplex: true
+        inputs: "qt.core.metatypes.in"
+        Artifact {
+            filePath: product.targetName.toLowerCase() + "_metatypes.json"
+            fileTags: "qt.core.metatypes"
+            qbs.install: product.Qt.core.metaTypesInstallDir
+            qbs.installDir: product.Qt.core.metaTypesInstallDir
+        }
+        prepare: {
+            var inputFilePaths = inputs["qt.core.metatypes.in"].map(function(a) {
+                return a.filePath;
+            });
+            var cmd = new Command(Moc.fullPath(product),
+                ["--collect-json", "-o", output.filePath].concat(inputFilePaths));
+            cmd.description = "generating " + output.fileName;
+            cmd.highlight = "codegen";
+            return cmd;
         }
     }
 
