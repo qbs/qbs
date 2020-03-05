@@ -942,6 +942,13 @@ void TestBlackbox::dependenciesProperty()
     QCOMPARE(product2_cpp_defines.first().toString(), QLatin1String("DIGEDAG"));
 }
 
+void TestBlackbox::dependencyScanningLoop()
+{
+    QDir::setCurrent(testDataDir + "/dependency-scanning-loop");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+}
+
 void TestBlackbox::deprecatedProperty()
 {
     QDir::setCurrent(testDataDir + "/deprecated-property");

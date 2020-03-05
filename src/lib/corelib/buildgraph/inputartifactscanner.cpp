@@ -361,6 +361,8 @@ void InputArtifactScanner::handleDependency(ResolvedDependency &dependency)
 
     if (m_artifact == dependency.file)
         return;
+    if (artifactDependency && artifactDependency->transformer == m_artifact->transformer)
+        return;
 
     if (fileDependency) {
         m_artifact->fileDependencies << fileDependency;

@@ -86,6 +86,7 @@ private slots:
     void conanfileProbe();
     void cpuFeatures();
     void dependenciesProperty();
+    void dependencyScanningLoop();
     void deprecatedProperty();
     void disappearedProfile();
     void discardUnusedData();
