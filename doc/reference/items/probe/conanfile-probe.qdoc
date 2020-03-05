@@ -35,7 +35,7 @@
 
     \brief Extracts information about dependencies from a Conan recipe file.
 
-    The \c ConanfileProbe interfaces \Qbs to the \l{https://conan.io/}{Conan
+    The \c ConanfileProbe interfaces \QBS to the \l{https://conan.io/}{Conan
     package manager}. It runs
     \l{https://docs.conan.io/en/latest/reference/commands/consumer/install.html}{conan
     install} on a Conan recipe file such as \c conanfile.py or \c conanfile.txt
@@ -107,7 +107,7 @@
 
     When multiple products depend on one or more Conan packages, the dependency
     information may be combined in a \l{Profile}. This is especially useful when
-    \Qbs modules are available for some of the packages, but some of their
+    \QBS modules are available for some of the packages, but some of their
     properties need to be initialized. Otherwise, it would have to be done
     manually in global profiles.
 
