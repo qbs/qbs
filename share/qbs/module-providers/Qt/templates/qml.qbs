@@ -60,6 +60,60 @@ QtModule {
         fileTags: ["qt.qml.js"]
     }
 
+    // Type registration
+    property string importName
+    property string importVersion: product.version
+    readonly property stringList _importVersionParts: (importVersion || "").split(".")
+    property string typesFileName: {
+        if (product.type && product.type.contains("application"))
+            return "app.qmltypes";
+        return "plugins.qmltypes";
+    }
+    property string typesInstallDir
+    property stringList extraMetaTypesFiles
+    Properties  {
+        condition: importName
+        Qt.core.generateMetaTypesFile: true
+    }
+    Qt.core.generateMetaTypesFile: original
+    Rule {
+        condition: importName
+        inputs: "qt.core.metatypes"
+        multiplex: true
+        explicitlyDependsOnFromDependencies: "qt.core.metatypes"
+        Artifact {
+            filePath: product.targetName.toLowerCase() + "_qmltyperegistrations.cpp"
+            fileTags: ["cpp", "unmocable"]
+        }
+        Artifact {
+            filePath: product.Qt.qml.typesFileName
+            fileTags: "qt.qml.types"
+            qbs.install: product.Qt.qml.typesInstallDir
+            qbs.installDir: product.Qt.qml.typesInstallDir
+        }
+        prepare: {
+            var versionParts = product.Qt.qml._importVersionParts;
+            var args = [
+                "--generate-qmltypes=" + outputs["qt.qml.types"][0].filePath,
+                "--import-name=" + product.Qt.qml.importName,
+                "--major-version=" + versionParts[0],
+                "--minor-version=" + (versionParts.length > 1 ? versionParts[1] : "0")
+            ];
+            var foreignTypes = product.Qt.qml.extraMetaTypesFiles || [];
+            var metaTypeArtifactsFromDeps = explicitlyDependsOn["qt.core.metatypes"] || [];
+            var filePathFromArtifact = function(a) { return a.filePath; };
+            foreignTypes = foreignTypes.concat(metaTypeArtifactsFromDeps.map(filePathFromArtifact));
+            if (foreignTypes.length > 0)
+                args.push("--foreign-types=" + foreignTypes.join(","));
+            args.push("-o", outputs.cpp[0].filePath);
+            args = args.concat(inputs["qt.core.metatypes"].map(filePathFromArtifact));
+            var cmd = new Command(product.Qt.core.binPath + "/qmltyperegistrar", args);
+            cmd.description = "running qmltyperegistrar";
+            cmd.highlight = "codegen";
+            return cmd;
+        }
+    }
+
     Rule {
         condition: linkPlugins
         multiplex: true
@@ -128,6 +182,22 @@ QtModule {
                 };
             };
             return [cmd];
+        }
+    }
+
+    validate: {
+        if (importName) {
+            if (!importVersion)
+                throw "Qt.qml.importVersion must be set if Qt.qml.importName is set.";
+            var isInt = function(value) {
+                return !isNaN(value) && parseInt(Number(value)) == value
+                        && !isNaN(parseInt(value, 10));
+            }
+            if (!isInt(_importVersionParts[0])
+                    || (_importVersionParts.length > 1 && !isInt(_importVersionParts[1]))) {
+                throw "Qt.qml.importVersion must be of the form x.y, where x and y are integers.";
+            }
+
         }
     }
 }

@@ -1413,10 +1413,21 @@ function replaceSpecialValues(content, module, qtProps, abi) {
         dict.className = toJSLiteral(module.pluginData.className);
         dict["extends"] = toJSLiteral(module.pluginData["extends"]);
     }
+    indent = "    ";
+    var metaTypesFile = qtProps.libraryPath + "/metatypes/qt"
+            + qtProps.qtMajorVersion + module.qbsName + "_metatypes.json";
+    if (File.exists(metaTypesFile)) {
+        if (additionalContent)
+            additionalContent += "\n" + indent;
+        additionalContent += "Group {\n";
+        additionalContent += indent + indent + "files: " + JSON.stringify(metaTypesFile) + "\n"
+            + indent + indent + "filesAreTargets: true\n"
+            + indent + indent + "fileTags: [\"qt.core.metatypes\"]\n"
+            + indent + "}";
+    }
     if (module.hasLibrary && !isFramework(module, qtProps)) {
         if (additionalContent)
-            additionalContent += "\n";
-        indent = "    ";
+            additionalContent += "\n" + indent;
         additionalContent += "Group {\n";
         if (module.isPlugin) {
             additionalContent += indent + indent

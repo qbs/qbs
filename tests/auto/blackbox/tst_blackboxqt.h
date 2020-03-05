@@ -65,6 +65,8 @@ private slots:
     void pluginSupport();
     void qmlDebugging();
     void qobjectInObjectiveCpp();
+    void qmlTypeRegistrar_data();
+    void qmlTypeRegistrar();
     void qtKeywords();
     void quickCompiler();
     void qtScxml();

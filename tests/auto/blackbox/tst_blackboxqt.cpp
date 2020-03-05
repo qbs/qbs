@@ -383,6 +383,40 @@ void TestBlackboxQt::qobjectInObjectiveCpp()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackboxQt::qmlTypeRegistrar_data()
+{
+    QTest::addColumn<QString>("importName");
+    QTest::addColumn<QString>("installDir");
+    QTest::newRow("don't generate") << QString() << QString();
+    QTest::newRow("don't generate with install info") << QString() << QString("blubb");
+    QTest::newRow("generate only") << QString("People") << QString();
+    QTest::newRow("generate and install") << QString("People") << QString("blubb");
+}
+
+void TestBlackboxQt::qmlTypeRegistrar()
+{
+    QDir::setCurrent(testDataDir + "/qmltyperegistrar");
+    QFETCH(QString, importName);
+    QFETCH(QString, installDir);
+    rmDirR(relativeBuildDir());
+    const QStringList args{"modules.Qt.qml.importName:" + importName,
+                           "modules.Qt.qml.typesInstallDir:" + installDir};
+    QCOMPARE(runQbs(QbsRunParameters("resolve", args)), 0);
+    const bool hasRegistrar = m_qbsStdout.contains("has registrar");
+    const bool doesNotHaveRegistrar = m_qbsStdout.contains("does not have registrar");
+    QVERIFY(hasRegistrar != doesNotHaveRegistrar);
+    if (doesNotHaveRegistrar)
+        QSKIP("Qt version too old");
+    QCOMPARE(runQbs(), 0);
+    const bool enabled = !importName.isEmpty();
+    QCOMPARE(m_qbsStdout.contains("running qmltyperegistrar"), enabled);
+    QCOMPARE(m_qbsStdout.contains("compiling myapp_qmltyperegistrations.cpp"), enabled);
+    const QString buildDir = relativeProductBuildDir("myapp");
+    QCOMPARE(regularFileExists(buildDir + "/app.qmltypes"), enabled);
+    QCOMPARE(regularFileExists(relativeBuildDir() + "/install-root/" + installDir
+                               + "/app.qmltypes"), enabled && !installDir.isEmpty());
+}
+
 void TestBlackboxQt::qtKeywords()
 {
     QDir::setCurrent(testDataDir + "/qt-keywords");

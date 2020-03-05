@@ -60,7 +60,77 @@
         \li 1.8
         \li Source files with this tag serve as inputs to the QML plugin
             scanner.
+    \row
+        \li \c{"qt.qml.types"}
+        \li n/a
+        \li 1.16
+        \li This tag is attached to the files created by the \c qmltyperegistrar
+            tool if the \l importName property is set.
     \endtable
+*/
+
+/*!
+    \qmlproperty string Qt.qml::importName
+
+    Setting this value triggers QML type registration via the \c qmltyperegistrar tool,
+    which results in the creation of a file with the tag \c{"qt.qml.types"}.
+    The given string is the name under which the registered types can be imported
+    by QML code that wants to use them.
+
+    \note This functionality is only available with Qt 5.15 or later.
+
+    \since Qbs 1.16
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string Qt.qml::importVersion
+
+    Specifies the version of the types to be registered.
+    Values consist of a major and an optional minor number, separated by dots.
+    This property has no effect if \l importName is not set.
+
+    \since Qbs 1.16
+    \defaultvalue \l {Product::version}{The product version}
+*/
+
+/*!
+    \qmlproperty string Qt.qml::typesFileName
+
+    Specifies the name of the file that declares the types registered for this product.
+    Per default, it is called "app.qmltypes" for applications and "plugins.qmltypes"
+    otherwise.
+    \note The naming conventions are still in flux.
+          When in doubt, consult the Qt documentation.
+
+    This property has no effect if \l importName is not set.
+
+    \since Qbs 1.16
+*/
+
+/*!
+    \qmlproperty string Qt.qml::typesInstallDir
+
+    The directory to install the qmltypes file into. If this property is empty or undefined,
+    the file will not be installed.
+    This property has no effect if \l importName is not set.
+
+    \since Qbs 1.16
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty stringList Qt.qml::extraMetaTypesFiles
+
+    Specifies extra metatypes files to pass to the \c qmltyperegistrar tool
+    via the \c{--foreign-types} option when registering QML types.
+    \note This property is only needed for external libraries, not products or modules
+          pulled via \c Depends items. In particular, you don't need to (and should not)
+          use it to collect the metatypes files of Qt modules. These are found automatically.
+    This property has no effect if \l importName is not set.
+
+    \since Qbs 1.16
+    \nodefaultvalue
 */
 
 /*!
