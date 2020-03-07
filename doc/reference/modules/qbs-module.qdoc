@@ -473,6 +473,15 @@
 */
 
 /*!
+    \qmlproperty string qbs::hostArchitecture
+    \since Qbs 1.16
+
+    Contains the host OS architecture.
+
+    \defaultvalue Determined automatically.
+*/
+
+/*!
     \qmlproperty stringList qbs::hostOS
 
     This property is set by \QBS internally and specifies the OS \QBS is running
@@ -559,7 +568,9 @@
     \qmlproperty string qbs::hostPlatform
     \since Qbs 1.11
 
-    Do not use this property.
+    Contains the host OS platform.
+
+    \sa {qbs::hostArchitecture}{hostArchitecture}
 
     \defaultvalue Determined automatically.
 */

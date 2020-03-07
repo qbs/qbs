@@ -7960,6 +7960,17 @@ void TestBlackbox::grpc()
     QCOMPARE(runQbs(runParams), 0);
 }
 
+void TestBlackbox::hostOsProperties()
+{
+    QDir::setCurrent(testDataDir + "/host-os-properties");
+    QCOMPARE(runQbs(QStringLiteral("run")), 0);
+    QVERIFY2(m_qbsStdout.contains(
+                 ("HOST_ARCHITECTURE = " + HostOsInfo::hostOSArchitecture()).data()),
+             m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains(("HOST_PLATFORM = " + HostOsInfo::hostOSIdentifier()).data()),
+             m_qbsStdout.constData());
+}
+
 void TestBlackbox::ico()
 {
     QDir::setCurrent(testDataDir + "/ico");

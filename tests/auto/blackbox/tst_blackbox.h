@@ -130,6 +130,7 @@ private slots:
     void groupsInModules();
     void grpc_data();
     void grpc();
+    void hostOsProperties();
     void ico();
     void importAssignment();
     void importChangeTracking();

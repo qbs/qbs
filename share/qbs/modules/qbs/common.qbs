@@ -61,6 +61,7 @@ Module {
             return version + "." + hostOSBuildVersion;
         }
     }
+    readonly property string hostArchitecture: undefined // set internally
 
     property string hostOSBuildVersion: {
         if (hostOS.contains("macos")) {
