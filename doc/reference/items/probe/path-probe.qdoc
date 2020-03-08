@@ -81,7 +81,7 @@
     For example, when searching for a library, it might be necessary to check its architecture:
     \code
     PathProbe {
-        pathSuffixes: ["*.so", *.dll]
+        pathSuffixes: [".so", ".dll", ".dylib"]
         candidateFilter: {
             function getLibraryArchitecture(file) { ... }
             return function(file) {
