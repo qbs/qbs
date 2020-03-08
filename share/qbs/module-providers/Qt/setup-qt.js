@@ -183,6 +183,11 @@ function guessMinimumWindowsVersion(qtProps) {
     return qtProps.qtMajorVersion < 5 ? "5.0" : "5.1";
 }
 
+function needsDSuffix(qtProps) {
+    return !isForMinGw(qtProps) || Utilities.versionCompare(qtProps.qtVersion, "5.14.0") < 0
+            || qtProps.configItems.contains("debug_and_release");
+}
+
 function fillEntryPointLibs(qtProps, debug) {
     result = [];
     var isMinGW = isForMinGw(qtProps);
@@ -198,7 +203,7 @@ function fillEntryPointLibs(qtProps, debug) {
         if (isMinGW)
             qtmain += "lib";
         qtmain += baseNameCandidate + qtProps.qtLibInfix;
-        if (debug)
+        if (debug && needsDSuffix(qtProps))
             qtmain += 'd';
         if (isMinGW) {
             qtmain += ".a";
@@ -513,7 +518,7 @@ function isFramework(modInfo, qtProps) {
 function libBaseName(modInfo, libName, debugBuild, qtProps) {
     var name = libName;
     if (qtProps.mkspecName.startsWith("win")) {
-        if (debugBuild)
+        if (debugBuild && needsDSuffix(qtProps))
             name += 'd';
         if (!modInfo.isStaticLibrary && qtProps.qtMajorVersion < 5)
             name += qtProps.qtMajorVersion;
