@@ -3547,10 +3547,8 @@ void TestBlackbox::emptyProfile()
     const Profile buildProfile(profileName(), s.get());
     const QStringList toolchain = profileToolchain(buildProfile);
 
-    QTemporaryDir tempDir;
     QbsRunParameters params;
-    params.profile.clear();
-    params.settingsDir = tempDir.path(); // should be no settings here
+    params.profile = "none";
     if (toolchain.contains(QLatin1String("clang-cl")))
         params.arguments = QStringList{QStringLiteral("qbs.toolchainType:clang-cl")};
     else if (toolchain.contains(QLatin1String("msvc")))
