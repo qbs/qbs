@@ -3545,21 +3545,29 @@ void TestBlackbox::emptyProfile()
 
     const SettingsPtr s = settings();
     const Profile buildProfile(profileName(), s.get());
-    const QStringList toolchain = profileToolchain(buildProfile);
-
+    bool isMsvc = false;
+    const auto toolchainType = buildProfile.value(QStringLiteral("qbs.toolchainType")).toString();
     QbsRunParameters params;
     params.profile = "none";
-    if (toolchain.contains(QLatin1String("clang-cl")))
-        params.arguments = QStringList{QStringLiteral("qbs.toolchainType:clang-cl")};
-    else if (toolchain.contains(QLatin1String("msvc")))
-        params.arguments = QStringList{QStringLiteral("qbs.toolchainType:msvc")};
-    else if (toolchain.contains(QLatin1String("xcode")))
-        params.arguments = QStringList{QStringLiteral("qbs.toolchainType:xcode")};
-    else if (toolchain.contains(QLatin1String("clang")))
-        params.arguments = QStringList{QStringLiteral("qbs.toolchainType:clang")};
-    else if (toolchain.contains(QLatin1String("gcc")))
-        params.arguments = QStringList{QStringLiteral("qbs.toolchainType:gcc")};
-
+    if (!toolchainType.isEmpty()) {
+        params.arguments = QStringList{QStringLiteral("qbs.toolchainType:") + toolchainType};
+        isMsvc = toolchainType == "msvc" || toolchainType == "clang-cl";
+    } else {
+        const auto toolchain = buildProfile.value(QStringLiteral("qbs.toolchain")).toStringList();
+        if (!toolchain.isEmpty()) {
+            params.arguments = QStringList{QStringLiteral("qbs.toolchain:")
+                    + toolchain.join(QLatin1Char(','))};
+            isMsvc = toolchainType.contains("msvc");
+        }
+    }
+    if (!isMsvc) {
+        const auto tcPath
+                = buildProfile.value(QStringLiteral("cpp.toolchainInstallPath")).toString();
+        if (!tcPath.isEmpty() && !qEnvironmentVariable("PATH")
+                .split(HostOsInfo::pathListSeparator(), QString::SkipEmptyParts).contains(tcPath)) {
+            params.arguments << QStringLiteral("modules.cpp.toolchainInstallPath:") + tcPath;
+        }
+    }
     QCOMPARE(runQbs(params), 0);
 }
 
