@@ -51,6 +51,8 @@ function compilerName(qbs) {
         return "icc430";
     case "v850":
         return "iccv850";
+    case "78k":
+        return "icc78k";
     case "rl78":
         return "iccrl78";
     case "rx":
@@ -82,6 +84,8 @@ function assemblerName(qbs) {
         return "a430";
     case "v850":
         return "av850";
+    case "78k":
+        return "a78k";
     }
     throw "Unable to deduce assembler name for unsupported architecture: '"
             + qbs.architecture + "'";
@@ -103,6 +107,7 @@ function linkerName(qbs) {
     case "avr":
     case "msp430":
     case "v850":
+    case "78k":
         return "xlink";
     }
     throw "Unable to deduce linker name for unsupported architecture: '"
@@ -121,6 +126,7 @@ function archiverName(qbs) {
     case "avr":
     case "msp430":
     case "v850":
+    case "78k":
         return "xlib";
     }
     throw "Unable to deduce archiver name for unsupported architecture: '"
@@ -143,6 +149,8 @@ function staticLibrarySuffix(qbs) {
         return ".r43";
     case "v850":
         return ".r85";
+    case "78k":
+        return ".r26";
     }
     throw "Unable to deduce static library suffix for unsupported architecture: '"
             + qbs.architecture + "'";
@@ -164,6 +172,8 @@ function executableSuffix(qbs) {
         return qbs.debugInformation ? ".d43" : ".a43";
     case "v850":
         return qbs.debugInformation ? ".d85" : ".a85";
+    case "78k":
+        return qbs.debugInformation ? ".d26" : ".a26";
     }
     throw "Unable to deduce executable suffix for unsupported architecture: '"
             + qbs.architecture + "'";
@@ -185,6 +195,8 @@ function objectSuffix(qbs) {
         return ".r43";
     case "v850":
         return ".r85";
+    case "78k":
+        return ".r26";
     }
     throw "Unable to deduce object file suffix for unsupported architecture: '"
             + qbs.architecture + "'";
@@ -202,6 +214,7 @@ function imageFormat(qbs) {
     case "avr":
     case "msp430":
     case "v850":
+    case "78k":
         return "ubrof";
     }
     throw "Unable to deduce image format for unsupported architecture: '"
@@ -227,6 +240,8 @@ function guessArchitecture(macros) {
         return "rh850";
     else if (macros["__ICCV850__"] === "1")
         return "v850";
+    else if (macros["__ICC78K__"] === "1")
+        return "78k";
 }
 
 function guessEndianness(macros) {
@@ -252,6 +267,7 @@ function guessVersion(macros, architecture)
     case "rx":
     case "rh850":
     case "v850":
+    case "78k":
         return { major: parseInt(version / 100),
             minor: parseInt(version % 100),
             patch: 0,
@@ -272,6 +288,7 @@ function cppLanguageOption(compilerFilePath) {
     case "iccstm8":
     case "icc430":
     case "iccv850":
+    case "icc78k":
         return "--ec++";
     }
     throw "Unable to deduce C++ language option for unsupported compiler: '"
@@ -505,19 +522,21 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
         args.push("--no_warnings");
         break;
     case "all":
-        args.push("--deprecated_feature_warnings="
-            +"+attribute_syntax,"
-            +"+preprocessor_extensions,"
-            +"+segment_pragmas");
-        if (tag === "cpp")
-            args.push("--warn_about_c_style_casts");
+        if (input.qbs.architecture !== "78k") {
+            args.push("--deprecated_feature_warnings="
+                +"+attribute_syntax,"
+                +"+preprocessor_extensions,"
+                +"+segment_pragmas");
+            if (tag === "cpp")
+                args.push("--warn_about_c_style_casts");
+        }
         break;
     }
     if (input.cpp.treatWarningsAsErrors)
         args.push("--warnings_are_errors");
 
     // C language version flags.
-    if (tag === "c") {
+    if (tag === "c" && (input.qbs.architecture !== "78k")) {
         var knownValues = ["c89"];
         var cLanguageVersion = Cpp.languageVersion(
                     input.cpp.cLanguageVersion, knownValues, "C");
@@ -560,6 +579,7 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
     case "avr":
     case "msp430":
     case "v850":
+    case "78k":
         // Enable C++ language flags.
         if (tag === "cpp")
             args.push("--ec++");
@@ -689,6 +709,7 @@ function linkerFlags(project, product, input, outputs) {
     case "avr":
     case "msp430":
     case "v850":
+    case "78k":
         // Silent output generation flag.
         args.push("-S");
         // Debug information flag.
