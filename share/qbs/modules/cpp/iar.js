@@ -53,6 +53,8 @@ function compilerName(qbs) {
         return "iccrl78";
     case "rx":
         return "iccrx";
+    case "rh850":
+        return "iccrh850";
     }
     throw "Unable to deduce compiler name for unsupported architecture: '"
             + qbs.architecture + "'";
@@ -66,6 +68,8 @@ function assemblerName(qbs) {
         return "iasmrl78";
     case "rx":
         return "iasmrx";
+    case "rh850":
+        return "iasmrh850";
     case "mcs51":
         return "a8051";
     case "avr":
@@ -89,6 +93,8 @@ function linkerName(qbs) {
         return "ilinkrl78";
     case "rx":
         return "ilinkrx";
+    case "rh850":
+        return "ilinkrh850";
     case "mcs51":
     case "avr":
     case "msp430":
@@ -104,6 +110,7 @@ function archiverName(qbs) {
     case "stm8":
     case "rl78":
     case "rx":
+    case "rh850":
         return "iarchive";
     case "mcs51":
     case "avr":
@@ -120,6 +127,7 @@ function staticLibrarySuffix(qbs) {
     case "stm8":
     case "rl78":
     case "rx":
+    case "rh850":
         return ".a";
     case "mcs51":
         return ".r51";
@@ -138,6 +146,7 @@ function executableSuffix(qbs) {
     case "stm8":
     case "rl78":
     case "rx":
+    case "rh850":
         return ".out";
     case "mcs51":
         return qbs.debugInformation ? ".d51" : ".a51";
@@ -156,6 +165,7 @@ function objectSuffix(qbs) {
     case "stm8":
     case "rl78":
     case "rx":
+    case "rh850":
         return ".o";
     case "mcs51":
         return ".r51";
@@ -174,6 +184,7 @@ function imageFormat(qbs) {
     case "stm8":
     case "rl78":
     case "rx":
+    case "rh850":
         return "elf";
     case "mcs51":
     case "avr":
@@ -199,6 +210,8 @@ function guessArchitecture(macros) {
         return "rl78";
     else if (macros["__ICCRX__"] === "1")
         return "rx";
+    else if (macros["__ICCRH850__"] === "1")
+        return "rh850";
 }
 
 function guessEndianness(macros) {
@@ -222,6 +235,7 @@ function guessVersion(macros, architecture)
     case "msp430":
     case "rl78":
     case "rx":
+    case "rh850":
         return { major: parseInt(version / 100),
             minor: parseInt(version % 100),
             patch: 0,
@@ -235,6 +249,7 @@ function cppLanguageOption(compilerFilePath) {
     case "iccarm":
     case "iccrl78":
     case "iccrx":
+    case "iccrh850":
         return "--c++";
     case "icc8051":
     case "iccavr":
@@ -505,6 +520,7 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
     case "arm":
     case "rl78":
     case "rx":
+    case "rh850":
         // Byte order flags.
         var endianness = input.cpp.endianness;
         if (endianness && (input.qbs.architecture === "arm"
@@ -576,6 +592,7 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
     case "stm8":
     case "rl78":
     case "rx":
+    case "rh850":
         // Silent output generation flag.
         args.push("--silent");
         // Warning level flags.
@@ -638,6 +655,7 @@ function linkerFlags(project, product, input, outputs) {
     case "stm8":
     case "rl78":
     case "rx":
+    case "rh850":
         // Silent output generation flag.
         args.push("--silent");
         // Map file generation flag.
