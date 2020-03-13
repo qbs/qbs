@@ -233,8 +233,8 @@ function cppLanguageOption(compilerFilePath) {
     var baseName = FileInfo.baseName(compilerFilePath);
     switch (baseName) {
     case "iccarm":
-    case "rl78":
-    case "rx":
+    case "iccrl78":
+    case "iccrx":
         return "--c++";
     case "icc8051":
     case "iccavr":
