@@ -49,6 +49,8 @@ function compilerName(qbs) {
         return "iccstm8";
     case "msp430":
         return "icc430";
+    case "v850":
+        return "iccv850";
     case "rl78":
         return "iccrl78";
     case "rx":
@@ -78,6 +80,8 @@ function assemblerName(qbs) {
         return "iasmstm8";
     case "msp430":
         return "a430";
+    case "v850":
+        return "av850";
     }
     throw "Unable to deduce assembler name for unsupported architecture: '"
             + qbs.architecture + "'";
@@ -98,6 +102,7 @@ function linkerName(qbs) {
     case "mcs51":
     case "avr":
     case "msp430":
+    case "v850":
         return "xlink";
     }
     throw "Unable to deduce linker name for unsupported architecture: '"
@@ -115,6 +120,7 @@ function archiverName(qbs) {
     case "mcs51":
     case "avr":
     case "msp430":
+    case "v850":
         return "xlib";
     }
     throw "Unable to deduce archiver name for unsupported architecture: '"
@@ -135,6 +141,8 @@ function staticLibrarySuffix(qbs) {
         return ".r90";
     case "msp430":
         return ".r43";
+    case "v850":
+        return ".r85";
     }
     throw "Unable to deduce static library suffix for unsupported architecture: '"
             + qbs.architecture + "'";
@@ -154,6 +162,8 @@ function executableSuffix(qbs) {
         return qbs.debugInformation ? ".d90" : ".a90";
     case "msp430":
         return qbs.debugInformation ? ".d43" : ".a43";
+    case "v850":
+        return qbs.debugInformation ? ".d85" : ".a85";
     }
     throw "Unable to deduce executable suffix for unsupported architecture: '"
             + qbs.architecture + "'";
@@ -173,6 +183,8 @@ function objectSuffix(qbs) {
         return ".r90";
     case "msp430":
         return ".r43";
+    case "v850":
+        return ".r85";
     }
     throw "Unable to deduce object file suffix for unsupported architecture: '"
             + qbs.architecture + "'";
@@ -189,6 +201,7 @@ function imageFormat(qbs) {
     case "mcs51":
     case "avr":
     case "msp430":
+    case "v850":
         return "ubrof";
     }
     throw "Unable to deduce image format for unsupported architecture: '"
@@ -212,6 +225,8 @@ function guessArchitecture(macros) {
         return "rx";
     else if (macros["__ICCRH850__"] === "1")
         return "rh850";
+    else if (macros["__ICCV850__"] === "1")
+        return "v850";
 }
 
 function guessEndianness(macros) {
@@ -236,6 +251,7 @@ function guessVersion(macros, architecture)
     case "rl78":
     case "rx":
     case "rh850":
+    case "v850":
         return { major: parseInt(version / 100),
             minor: parseInt(version % 100),
             patch: 0,
@@ -255,6 +271,7 @@ function cppLanguageOption(compilerFilePath) {
     case "iccavr":
     case "iccstm8":
     case "icc430":
+    case "iccv850":
         return "--ec++";
     }
     throw "Unable to deduce C++ language option for unsupported compiler: '"
@@ -542,6 +559,7 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
     case "mcs51":
     case "avr":
     case "msp430":
+    case "v850":
         // Enable C++ language flags.
         if (tag === "cpp")
             args.push("--ec++");
@@ -670,6 +688,7 @@ function linkerFlags(project, product, input, outputs) {
     case "mcs51":
     case "avr":
     case "msp430":
+    case "v850":
         // Silent output generation flag.
         args.push("-S");
         // Debug information flag.
