@@ -507,8 +507,10 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
     case "rx":
         // Byte order flags.
         var endianness = input.cpp.endianness;
-        if (endianness)
+        if (endianness && (input.qbs.architecture === "arm"
+                || input.qbs.architecture === "rx")) {
             args.push("--endian=" + endianness);
+        }
         if (tag === "cpp") {
             // Enable C++ language flags.
             args.push("--c++");
