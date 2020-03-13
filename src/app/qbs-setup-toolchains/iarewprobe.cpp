@@ -60,7 +60,8 @@ static QStringList knownIarCompilerNames()
     return {QStringLiteral("icc8051"), QStringLiteral("iccarm"),
             QStringLiteral("iccavr"), QStringLiteral("iccstm8"),
             QStringLiteral("icc430"), QStringLiteral("iccrl78"),
-            QStringLiteral("iccrx"), QStringLiteral("iccrh850")};
+            QStringLiteral("iccrx"), QStringLiteral("iccrh850"),
+            QStringLiteral("iccv850")};
 }
 
 static QString guessIarArchitecture(const QFileInfo &compiler)
@@ -82,6 +83,8 @@ static QString guessIarArchitecture(const QFileInfo &compiler)
         return QStringLiteral("rx");
     if (baseName == QLatin1String("iccrh850"))
         return QStringLiteral("rh850");
+    if (baseName == QLatin1String("iccv850"))
+        return QStringLiteral("v850");
     return {};
 }
 
@@ -155,7 +158,8 @@ static Version dumpIarCompilerVersion(const QFileInfo &compiler)
                || arch == QLatin1String("msp430")
                || arch == QLatin1String("rl78")
                || arch == QLatin1String("rx")
-               || arch == QLatin1String("rh850")) {
+               || arch == QLatin1String("rh850")
+               || arch == QLatin1String("v850")) {
         return Version{verCode / 100, verCode % 100};
     }
 
@@ -204,6 +208,7 @@ static std::vector<ToolchainInstallInfo> installedIarsFromRegistry()
             {QStringLiteral("EWRL78"), QStringLiteral("\\rl78\\bin\\iccrl78.exe")},
             {QStringLiteral("EWRX"), QStringLiteral("\\rx\\bin\\iccrx.exe")},
             {QStringLiteral("EWRH850"), QStringLiteral("\\rh850\\bin\\iccrh850.exe")},
+            {QStringLiteral("EWV850"), QStringLiteral("\\v850\\bin\\iccv850.exe")},
         };
 
         QSettings registry(QLatin1String(kRegistryNode), QSettings::NativeFormat);
