@@ -23,4 +23,10 @@ Project {
         Depends { name: "cpp" }
         files: "thelib.cpp"
     }
+    LoadableModule {
+        name: "theplugin"
+        install: true
+        Depends { name: "cpp" }
+        files: "theplugin.cpp"
+    }
 }

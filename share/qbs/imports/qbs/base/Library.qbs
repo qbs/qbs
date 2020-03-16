@@ -34,4 +34,43 @@ NativeBinary {
             return ["staticlibrary"];
         return ["dynamiclibrary"].concat(isForAndroid ? ["android.nativelibrary"] : []);
     }
+
+    readonly property bool isDynamicLibrary: type.contains("dynamiclibrary")
+    readonly property bool isStaticLibrary: type.contains("staticlibrary")
+    readonly property bool isLoadableModule: type.contains("loadablemodule")
+
+    installDir: {
+        if (isBundle)
+            return "Library/Frameworks";
+        if (isDynamicLibrary)
+            return qbs.targetOS.contains("windows") ? "bin" : "lib";
+        if (isStaticLibrary)
+            return "lib";
+    }
+
+    property bool installImportLib: false
+    property string importLibInstallDir: "lib"
+
+    Group {
+        condition: install
+        fileTagsFilter: {
+            if (isBundle)
+                return ["bundle.content"];
+            if (isDynamicLibrary)
+                return ["dynamiclibrary", "dynamiclibrary_symlink"];
+            if (isStaticLibrary)
+                return ["staticlibrary"];
+            return [];
+        }
+        qbs.install: true
+        qbs.installDir: installDir
+        qbs.installSourceBase: isBundle ? destinationDirectory : outer
+    }
+
+    Group {
+        condition: installImportLib && type.contains("dynamiclibrary")
+        fileTagsFilter: "dynamiclibrary_import"
+        qbs.install: true
+        qbs.installDir: importLibInstallDir
+    }
 }

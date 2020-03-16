@@ -4001,8 +4001,11 @@ void TestBlackbox::installLocations_data()
     QTest::addColumn<QString>("binDir");
     QTest::addColumn<QString>("dllDir");
     QTest::addColumn<QString>("libDir");
-    QTest::newRow("explicit values") << QString("bindir") << QString("dlldir") << QString("libdir");
-    QTest::newRow("default values") << QString() << QString() << QString();
+    QTest::addColumn<QString>("pluginDir");
+    QTest::newRow("explicit values")
+            << QString("bindir") << QString("dlldir") << QString("libdir") << QString("pluginDir");
+    QTest::newRow("default values")
+            << QString() << QString() << QString() << QString();
 }
 
 void TestBlackbox::installLocations()
@@ -4011,6 +4014,7 @@ void TestBlackbox::installLocations()
     QFETCH(QString, binDir);
     QFETCH(QString, dllDir);
     QFETCH(QString, libDir);
+    QFETCH(QString, pluginDir);
     QbsRunParameters params("resolve");
     if (!binDir.isEmpty())
         params.arguments.push_back("products.theapp.installDir:" + binDir);
@@ -4018,6 +4022,8 @@ void TestBlackbox::installLocations()
         params.arguments.push_back("products.thelib.installDir:" + dllDir);
     if (!libDir.isEmpty())
         params.arguments.push_back("products.thelib.importLibInstallDir:" + libDir);
+    if (!pluginDir.isEmpty())
+        params.arguments.push_back("products.theplugin.installDir:" + pluginDir);
     QCOMPARE(runQbs(params), 0);
     const bool isWindows = m_qbsStdout.contains("is windows");
     const bool isMac = m_qbsStdout.contains("is mac");
@@ -4025,6 +4031,8 @@ void TestBlackbox::installLocations()
     QVERIFY(isWindows || isMac || isUnix);
     QCOMPARE(runQbs(QbsRunParameters(QStringList("--clean-install-root"))), 0);
     const QString dllFileName = isWindows ? "thelib.dll" : isMac ? "thelib" : "libthelib.so";
+    const QString pluginFileName =
+            isWindows ? "theplugin.dll" : isMac ? "theplugin" : "libtheplugin.so";
     const QString appFileName = isWindows ? "theapp.exe" : "theapp";
     if (binDir.isEmpty())
         binDir = isMac ? "/Applications" : "/bin";
@@ -4032,9 +4040,12 @@ void TestBlackbox::installLocations()
         dllDir = isMac ? "/Library/Frameworks" : isWindows ? "/bin" : "/lib";
     if (libDir.isEmpty())
         libDir = "/lib";
+    if (pluginDir.isEmpty())
+        pluginDir = dllDir;
     if (isMac) {
         binDir += "/theapp.app/Contents/MacOS";
         dllDir += "/thelib.framework";
+        pluginDir += "/theplugin.bundle/Contents/MacOS";
     }
     const QString installRoot = QDir::currentPath() + "/default/install-root";
     const QString installPrefix = isWindows ? QString() : "/usr/local";
@@ -4047,6 +4058,8 @@ void TestBlackbox::installLocations()
         const QString libFilePath = fullInstallPrefix + libDir + "/thelib.lib";
         QVERIFY2(QFile::exists(libFilePath), qPrintable(libFilePath));
     }
+    const QString pluginFilePath = fullInstallPrefix + pluginDir + '/' + pluginFileName;
+    QVERIFY2(QFile::exists(pluginFilePath), qPrintable(pluginFilePath));
 }
 
 void TestBlackbox::inputsFromDependencies()
