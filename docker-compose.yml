@@ -43,17 +43,6 @@ services:
       args:
         QT_VERSION: 5.14.0
 
-  stretch:
-    << : *linux
-    hostname: stretch
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:stretch
-    build:
-      dockerfile: docker/stretch/Dockerfile
-      context: .
-      args:
-        QT_VERSION: 5.12.4
-        QTCREATOR_VERSION: 4.9.2
-
   windows:
     image: ${DOCKER_USER:-qbsbuild}/qbsdev:windowsservercore-5.12.7_1.15.0-0
     build:
