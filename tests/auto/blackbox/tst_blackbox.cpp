@@ -4030,35 +4030,52 @@ void TestBlackbox::installLocations()
     const bool isUnix = m_qbsStdout.contains("is unix");
     QVERIFY(isWindows || isMac || isUnix);
     QCOMPARE(runQbs(QbsRunParameters(QStringList("--clean-install-root"))), 0);
-    const QString dllFileName = isWindows ? "thelib.dll" : isMac ? "thelib" : "libthelib.so";
-    const QString pluginFileName =
-            isWindows ? "theplugin.dll" : isMac ? "theplugin" : "libtheplugin.so";
-    const QString appFileName = isWindows ? "theapp.exe" : "theapp";
-    if (binDir.isEmpty())
-        binDir = isMac ? "/Applications" : "/bin";
-    if (dllDir.isEmpty())
-        dllDir = isMac ? "/Library/Frameworks" : isWindows ? "/bin" : "/lib";
-    if (libDir.isEmpty())
-        libDir = "/lib";
-    if (pluginDir.isEmpty())
-        pluginDir = dllDir;
-    if (isMac) {
-        binDir += "/theapp.app/Contents/MacOS";
-        dllDir += "/thelib.framework";
-        pluginDir += "/theplugin.bundle/Contents/MacOS";
-    }
+
+    struct BinaryInfo
+    {
+        QString fileName;
+        QString installDir;
+        QString subDir;
+
+        QString absolutePath(const QString &prefix) const
+        {
+            return QDir::cleanPath(prefix + '/' + installDir + '/' + subDir + '/' + fileName);
+        }
+    };
+
+    const BinaryInfo dll = {
+        isWindows ? "thelib.dll" : isMac ? "thelib" : "libthelib.so",
+        dllDir.isEmpty() ? (isMac ? "/Library/Frameworks" : isWindows ? "/bin" : "/lib") : dllDir,
+        isMac ? "thelib.framework" : ""
+    };
+    const BinaryInfo plugin = {
+        isWindows ? "theplugin.dll" : isMac ? "theplugin" : "libtheplugin.so",
+        pluginDir.isEmpty() ? dll.installDir : pluginDir,
+        isMac ? "theplugin.bundle/Contents/MacOS" : ""
+    };
+    const BinaryInfo app = {
+        isWindows ? "theapp.exe" : "theapp",
+        binDir.isEmpty() ? (isMac ? "/Applications" : "/bin") : binDir,
+        isMac ? "theapp.app/Contents/MacOS" : ""
+    };
+
     const QString installRoot = QDir::currentPath() + "/default/install-root";
     const QString installPrefix = isWindows ? QString() : "/usr/local";
     const QString fullInstallPrefix = installRoot + '/' + installPrefix + '/';
-    const QString appFilePath = fullInstallPrefix + binDir + '/' + appFileName;
+    const QString appFilePath = app.absolutePath(fullInstallPrefix);
     QVERIFY2(QFile::exists(appFilePath), qPrintable(appFilePath));
-    const QString dllFilePath = fullInstallPrefix + dllDir + '/' + dllFileName;
+    const QString dllFilePath = dll.absolutePath(fullInstallPrefix);
     QVERIFY2(QFile::exists(dllFilePath), qPrintable(dllFilePath));
     if (isWindows) {
-        const QString libFilePath = fullInstallPrefix + libDir + "/thelib.lib";
+        const BinaryInfo lib = {
+            "thelib.lib",
+            libDir.isEmpty() ? "/lib" : libDir,
+            ""
+        };
+        const QString libFilePath = lib.absolutePath(fullInstallPrefix);
         QVERIFY2(QFile::exists(libFilePath), qPrintable(libFilePath));
     }
-    const QString pluginFilePath = fullInstallPrefix + pluginDir + '/' + pluginFileName;
+    const QString pluginFilePath = plugin.absolutePath(fullInstallPrefix);
     QVERIFY2(QFile::exists(pluginFilePath), qPrintable(pluginFilePath));
 }
 
