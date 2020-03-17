@@ -38,192 +38,198 @@ var TemporaryDir = require("qbs.TemporaryDir");
 var TextFile = require("qbs.TextFile");
 
 function compilerName(qbs) {
-    switch (qbs.architecture) {
-    case "arm":
-        return "iccarm";
-    case "mcs51":
+    var architecture = qbs.architecture;
+    if (architecture.startsWith("arm"))
+        return  "iccarm";
+    else if (architecture === "mcs51")
         return "icc8051";
-    case "avr":
+    else if (architecture === "avr")
         return "iccavr";
-    case "stm8":
+    else if (architecture === "stm8")
         return "iccstm8";
-    case "msp430":
+    else if (architecture === "msp430")
         return "icc430";
-    case "v850":
+    else if (architecture === "v850")
         return "iccv850";
-    case "78k":
+    else if (architecture === "78k")
         return "icc78k";
-    case "rl78":
+    else if (architecture === "rl78")
         return "iccrl78";
-    case "rx":
+    else if (architecture === "rx")
         return "iccrx";
-    case "rh850":
+    else if (architecture === "rh850")
         return "iccrh850";
-    }
     throw "Unable to deduce compiler name for unsupported architecture: '"
-            + qbs.architecture + "'";
+            + architecture + "'";
 }
 
 function assemblerName(qbs) {
-    switch (qbs.architecture) {
-    case "arm":
+    var architecture = qbs.architecture;
+    if (architecture.startsWith("arm"))
         return "iasmarm";
-    case "rl78":
+    else if (architecture === "rl78")
         return "iasmrl78";
-    case "rx":
+    else if (architecture === "rx")
         return "iasmrx";
-    case "rh850":
+    else if (architecture === "rh850")
         return "iasmrh850";
-    case "mcs51":
+    else if (architecture === "mcs51")
         return "a8051";
-    case "avr":
+    else if (architecture === "avr")
         return "aavr";
-    case "stm8":
+    else if (architecture === "stm8")
         return "iasmstm8";
-    case "msp430":
+    else if (architecture === "msp430")
         return "a430";
-    case "v850":
+    else if (architecture === "v850")
         return "av850";
-    case "78k":
+    else if (architecture === "78k")
         return "a78k";
-    }
     throw "Unable to deduce assembler name for unsupported architecture: '"
-            + qbs.architecture + "'";
+            + architecture + "'";
 }
 
 function linkerName(qbs) {
-    switch (qbs.architecture) {
-    case "arm":
+    var architecture = qbs.architecture;
+    if (architecture.startsWith("arm")) {
         return "ilinkarm";
-    case "stm8":
+    } else if (architecture === "stm8") {
         return "ilinkstm8";
-    case "rl78":
+    } else if (architecture === "rl78") {
         return "ilinkrl78";
-    case "rx":
+    } else if (architecture === "rx") {
         return "ilinkrx";
-    case "rh850":
+    } else if (architecture === "rh850") {
         return "ilinkrh850";
-    case "mcs51":
-    case "avr":
-    case "msp430":
-    case "v850":
-    case "78k":
+    } else if (architecture === "mcs51" || architecture === "avr"
+               || architecture === "msp430" || architecture === "v850"
+               || architecture === "78k") {
         return "xlink";
     }
     throw "Unable to deduce linker name for unsupported architecture: '"
-            + qbs.architecture + "'";
+            + architecture + "'";
 }
 
 function archiverName(qbs) {
-    switch (qbs.architecture) {
-    case "arm":
-    case "stm8":
-    case "rl78":
-    case "rx":
-    case "rh850":
+    var architecture = qbs.architecture;
+    if (architecture.startsWith("arm")
+            || architecture === "stm8" || architecture === "rl78"
+            || architecture === "rx" || architecture === "rh850") {
         return "iarchive";
-    case "mcs51":
-    case "avr":
-    case "msp430":
-    case "v850":
-    case "78k":
+    } else if (architecture === "mcs51" || architecture === "avr"
+               || architecture === "msp430" || architecture === "v850"
+               || architecture === "78k") {
         return "xlib";
     }
     throw "Unable to deduce archiver name for unsupported architecture: '"
-            + qbs.architecture + "'";
+            + architecture + "'";
 }
 
 function staticLibrarySuffix(qbs) {
-    switch (qbs.architecture) {
-    case "arm":
-    case "stm8":
-    case "rl78":
-    case "rx":
-    case "rh850":
+    var architecture = qbs.architecture;
+    if (architecture.startsWith("arm")
+            || architecture === "stm8" || architecture === "rl78"
+            || architecture === "rx" || architecture === "rh850") {
         return ".a";
-    case "mcs51":
+    } else if (architecture === "mcs51") {
         return ".r51";
-    case "avr":
+    } else if (architecture === "avr") {
         return ".r90";
-    case "msp430":
+    } else if (architecture === "msp430") {
         return ".r43";
-    case "v850":
+    } else if (architecture === "v850") {
         return ".r85";
-    case "78k":
+    } else if (architecture === "78k") {
         return ".r26";
     }
     throw "Unable to deduce static library suffix for unsupported architecture: '"
-            + qbs.architecture + "'";
+            + architecture + "'";
 }
 
 function executableSuffix(qbs) {
-    switch (qbs.architecture) {
-    case "arm":
-    case "stm8":
-    case "rl78":
-    case "rx":
-    case "rh850":
+    var architecture = qbs.architecture;
+    var isDebug = qbs.debugInformation;
+    if (architecture.startsWith("arm")
+            || architecture === "stm8" || architecture === "rl78"
+            || architecture === "rx" || architecture === "rh850") {
         return ".out";
-    case "mcs51":
-        return qbs.debugInformation ? ".d51" : ".a51";
-    case "avr":
-        return qbs.debugInformation ? ".d90" : ".a90";
-    case "msp430":
-        return qbs.debugInformation ? ".d43" : ".a43";
-    case "v850":
-        return qbs.debugInformation ? ".d85" : ".a85";
-    case "78k":
-        return qbs.debugInformation ? ".d26" : ".a26";
+    } else if (architecture === "mcs51") {
+        return isDebug ? ".d51" : ".a51";
+    } else if (architecture === "avr") {
+        return isDebug ? ".d90" : ".a90";
+    } else if (architecture === "msp430") {
+        return isDebug ? ".d43" : ".a43";
+    } else if (architecture === "v850") {
+        return isDebug ? ".d85" : ".a85";
+    } else if (architecture === "78k") {
+        return isDebug ? ".d26" : ".a26";
     }
     throw "Unable to deduce executable suffix for unsupported architecture: '"
-            + qbs.architecture + "'";
+            + architecture + "'";
 }
 
 function objectSuffix(qbs) {
-    switch (qbs.architecture) {
-    case "arm":
-    case "stm8":
-    case "rl78":
-    case "rx":
-    case "rh850":
+    var architecture = qbs.architecture;
+    if (architecture.startsWith("arm")
+            || architecture === "stm8" || architecture === "rl78"
+            || architecture === "rx" || architecture === "rh850") {
         return ".o";
-    case "mcs51":
+    } else if (architecture === "mcs51") {
         return ".r51";
-    case "avr":
+    } else if (architecture === "avr") {
         return ".r90";
-    case "msp430":
+    } else if (architecture === "msp430") {
         return ".r43";
-    case "v850":
+    } else if (architecture === "v850") {
         return ".r85";
-    case "78k":
+    } else if (architecture === "78k") {
         return ".r26";
     }
     throw "Unable to deduce object file suffix for unsupported architecture: '"
-            + qbs.architecture + "'";
+            + architecture + "'";
 }
 
 function imageFormat(qbs) {
-    switch (qbs.architecture) {
-    case "arm":
-    case "stm8":
-    case "rl78":
-    case "rx":
-    case "rh850":
+    var architecture = qbs.architecture;
+    if (architecture.startsWith("arm")
+            || architecture === "stm8" || architecture === "rl78"
+            || architecture === "rx" || architecture === "rh850") {
         return "elf";
-    case "mcs51":
-    case "avr":
-    case "msp430":
-    case "v850":
-    case "78k":
+    } else if (architecture=== "mcs51" || architecture === "avr"
+               || architecture === "msp430" || architecture === "v850"
+               || architecture === "78k") {
         return "ubrof";
     }
     throw "Unable to deduce image format for unsupported architecture: '"
-            + qbs.architecture + "'";
+            + architecture + "'";
+}
+
+function guessArmArchitecture(core) {
+    var arch = "arm";
+    if (core === "__ARM4M__")
+        arch += "v4m";
+    else if (core === "__ARM4TM__")
+        arch += "v4tm";
+    else if (core === "__ARM5__")
+        arch += "v5";
+    else if (core === "__ARM5E__")
+        arch += "v5e";
+    else if (core === "__ARM6__")
+        arch += "v6";
+    else if (core === "__ARM6M__")
+        arch += "v6m";
+    else if (core === "__ARM6SM__")
+        arch += "v6sm";
+    else if (core === "__ARM7M__")
+        arch += "v7m";
+    else if (core === "__ARM7R__")
+        arch += "v7r";
+    return arch;
 }
 
 function guessArchitecture(macros) {
     if (macros["__ICCARM__"] === "1")
-        return "arm";
+        return guessArmArchitecture(macros["__CORE__"]);
     else if (macros["__ICC8051__"] === "1")
         return "mcs51";
     else if (macros["__ICCAVR__"] === "1")
@@ -253,21 +259,14 @@ function guessEndianness(macros) {
 function guessVersion(macros, architecture)
 {
     var version = parseInt(macros["__VER__"], 10);
-    switch (architecture) {
-    case "arm":
+    if (architecture.startsWith("arm")) {
         return { major: parseInt(version / 1000000),
             minor: parseInt(version / 1000) % 1000,
             patch: parseInt(version) % 1000,
             found: true }
-    case "mcs51":
-    case "avr":
-    case "stm8":
-    case "msp430":
-    case "rl78":
-    case "rx":
-    case "rh850":
-    case "v850":
-    case "78k":
+    } else if (architecture === "mcs51" || architecture === "avr" || architecture === "stm8"
+               || architecture === "msp430" || architecture === "rl78" || architecture === "rx"
+               || architecture === "rh850" || architecture === "v850" || architecture === "78k") {
         return { major: parseInt(version / 100),
             minor: parseInt(version % 100),
             patch: 0,
@@ -516,13 +515,15 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
         break;
     }
 
+    var architecture = input.qbs.architecture;
+
     // Warning level flags.
     switch (input.cpp.warningLevel) {
     case "none":
         args.push("--no_warnings");
         break;
     case "all":
-        if (input.qbs.architecture !== "78k") {
+        if (architecture !== "78k") {
             args.push("--deprecated_feature_warnings="
                 +"+attribute_syntax,"
                 +"+preprocessor_extensions,"
@@ -536,7 +537,7 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
         args.push("--warnings_are_errors");
 
     // C language version flags.
-    if (tag === "c" && (input.qbs.architecture !== "78k")) {
+    if (tag === "c" && (architecture !== "78k")) {
         var knownValues = ["c89"];
         var cLanguageVersion = Cpp.languageVersion(
                     input.cpp.cLanguageVersion, knownValues, "C");
@@ -551,19 +552,11 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
         }
     }
 
-    // Architecture specific flags.
-    switch (input.qbs.architecture) {
-    case "arm":
-    case "rl78":
-    case "rx":
-    case "rh850":
-        // Byte order flags.
-        var endianness = input.cpp.endianness;
-        if (endianness && (input.qbs.architecture === "arm"
-                || input.qbs.architecture === "rx")) {
-            args.push("--endian=" + endianness);
-        }
-        if (tag === "cpp") {
+    // C++ language version flags.
+    if (tag === "cpp") {
+        if (architecture.startsWith("arm")
+                || architecture === "rl78" || architecture === "rx"
+                || architecture ===  "rh850") {
             // Enable C++ language flags.
             args.push("--c++");
             // Exceptions flags.
@@ -572,18 +565,18 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
             // RTTI flags.
             if (!input.cpp.enableRtti)
                 args.push("--no_rtti");
-        }
-        break;
-    case "stm8":
-    case "mcs51":
-    case "avr":
-    case "msp430":
-    case "v850":
-    case "78k":
-        // Enable C++ language flags.
-        if (tag === "cpp")
+        } else if (architecture === "stm8" || architecture === "mcs51"
+                   || architecture === "avr" || architecture === "msp430"
+                   || architecture === "v850" || architecture === "78k") {
             args.push("--ec++");
-        break;
+        }
+    }
+
+    // Byte order flags.
+    if (architecture.startsWith("arm") || architecture === "rx") {
+        var endianness = input.cpp.endianness;
+        if (endianness)
+            args.push("--endian=" + endianness);
     }
 
     // Listing files generation flag.
@@ -626,11 +619,9 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
         args.push("-r");
 
     // Architecture specific flags.
-    switch (input.qbs.architecture) {
-    case "stm8":
-    case "rl78":
-    case "rx":
-    case "rh850":
+    var architecture = input.qbs.architecture;
+    if (architecture === "stm8" || architecture === "rl78"
+            || architecture === "rx" || architecture === "rh850") {
         // Silent output generation flag.
         args.push("--silent");
         // Warning level flags.
@@ -638,13 +629,11 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
             args.push("--no_warnings");
         if (input.cpp.treatWarningsAsErrors)
             args.push("--warnings_are_errors");
-        break;
-    default:
+    } else {
         // Silent output generation flag.
         args.push("-S");
         // Warning level flags.
         args.push("-w" + (input.cpp.warningLevel === "none" ? "-" : "+"));
-        break;
     }
 
     // Listing files generation flag.
@@ -688,12 +677,10 @@ function linkerFlags(project, product, input, outputs) {
         ? inputs.linkerscript.map(function(a) { return a.filePath; }) : [];
 
     // Architecture specific flags.
-    switch (product.qbs.architecture) {
-    case "arm":
-    case "stm8":
-    case "rl78":
-    case "rx":
-    case "rh850":
+    var architecture = product.qbs.architecture;
+    if (architecture.startsWith("arm")
+            || architecture === "stm8" || architecture === "rl78"
+            || architecture === "rx" || architecture === "rh850") {
         // Silent output generation flag.
         args.push("--silent");
         // Map file generation flag.
@@ -704,18 +691,15 @@ function linkerFlags(project, product, input, outputs) {
             args.push("--entry", product.cpp.entryPoint);
         // Linker scripts flags.
         linkerScripts.forEach(function(script) { args.push("--config", script); });
-        break;
-    case "mcs51":
-    case "avr":
-    case "msp430":
-    case "v850":
-    case "78k":
+    } else if (architecture === "mcs51" || architecture === "avr"
+               || architecture === "msp430" || architecture === "v850"
+               || architecture === "78k") {
         // Silent output generation flag.
         args.push("-S");
         // Debug information flag.
         if (product.cpp.debugInformation)
             args.push("-rt");
-         // Map file generation flag.
+        // Map file generation flag.
         if (product.cpp.generateLinkerMapFile)
             args.push("-l", outputs.mem_map[0].filePath);
         // Entry point flag.
@@ -723,7 +707,6 @@ function linkerFlags(project, product, input, outputs) {
             args.push("-s", product.cpp.entryPoint);
         // Linker scripts flags.
         linkerScripts.forEach(function(script) { args.push("-f", script); });
-        break;
     }
 
     // Misc flags.
