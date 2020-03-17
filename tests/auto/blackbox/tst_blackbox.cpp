@@ -4002,10 +4002,15 @@ void TestBlackbox::installLocations_data()
     QTest::addColumn<QString>("dllDir");
     QTest::addColumn<QString>("libDir");
     QTest::addColumn<QString>("pluginDir");
+    QTest::addColumn<QString>("dsymDir");
     QTest::newRow("explicit values")
-            << QString("bindir") << QString("dlldir") << QString("libdir") << QString("pluginDir");
+            << QString("bindir")
+            << QString("dlldir")
+            << QString("libdir")
+            << QString("pluginDir")
+            << QString("dsymDir");
     QTest::newRow("default values")
-            << QString() << QString() << QString() << QString();
+            << QString() << QString() << QString() << QString() << QString();
 }
 
 void TestBlackbox::installLocations()
@@ -4015,6 +4020,7 @@ void TestBlackbox::installLocations()
     QFETCH(QString, dllDir);
     QFETCH(QString, libDir);
     QFETCH(QString, pluginDir);
+    QFETCH(QString, dsymDir);
     QbsRunParameters params("resolve");
     if (!binDir.isEmpty())
         params.arguments.push_back("products.theapp.installDir:" + binDir);
@@ -4024,6 +4030,11 @@ void TestBlackbox::installLocations()
         params.arguments.push_back("products.thelib.importLibInstallDir:" + libDir);
     if (!pluginDir.isEmpty())
         params.arguments.push_back("products.theplugin.installDir:" + pluginDir);
+    if (!dsymDir.isEmpty()) {
+        params.arguments.push_back("products.theapp.debugInformationInstallDir:" + dsymDir);
+        params.arguments.push_back("products.thelib.debugInformationInstallDir:" + dsymDir);
+        params.arguments.push_back("products.theplugin.debugInformationInstallDir:" + dsymDir);
+    }
     QCOMPARE(runQbs(params), 0);
     const bool isWindows = m_qbsStdout.contains("is windows");
     const bool isMac = m_qbsStdout.contains("is mac");
@@ -4048,15 +4059,30 @@ void TestBlackbox::installLocations()
         dllDir.isEmpty() ? (isMac ? "/Library/Frameworks" : isWindows ? "/bin" : "/lib") : dllDir,
         isMac ? "thelib.framework" : ""
     };
+    const BinaryInfo dllDsym = {
+        isWindows ? "thelib.pdb" : isMac ? "thelib.framework.dSYM" : "libthelib.so.debug",
+        dsymDir.isEmpty() ? dll.installDir : dsymDir,
+        {}
+    };
     const BinaryInfo plugin = {
         isWindows ? "theplugin.dll" : isMac ? "theplugin" : "libtheplugin.so",
         pluginDir.isEmpty() ? dll.installDir : pluginDir,
         isMac ? "theplugin.bundle/Contents/MacOS" : ""
     };
+    const BinaryInfo pluginDsym = {
+        isWindows ? "theplugin.pdb" : isMac ? "theplugin.bundle.dSYM" : "libtheplugin.so.debug",
+        dsymDir.isEmpty() ? plugin.installDir : dsymDir,
+        {}
+    };
     const BinaryInfo app = {
         isWindows ? "theapp.exe" : "theapp",
         binDir.isEmpty() ? (isMac ? "/Applications" : "/bin") : binDir,
         isMac ? "theapp.app/Contents/MacOS" : ""
+    };
+    const BinaryInfo appDsym = {
+        isWindows ? "theapp.pdb" : isMac ? "theapp.app.dSYM" : "theapp.debug",
+        dsymDir.isEmpty() ? app.installDir : dsymDir,
+        {}
     };
 
     const QString installRoot = QDir::currentPath() + "/default/install-root";
@@ -4077,6 +4103,13 @@ void TestBlackbox::installLocations()
     }
     const QString pluginFilePath = plugin.absolutePath(fullInstallPrefix);
     QVERIFY2(QFile::exists(pluginFilePath), qPrintable(pluginFilePath));
+
+    const QString appDsymFilePath = appDsym.absolutePath(fullInstallPrefix);
+    QVERIFY2(QFileInfo(appDsymFilePath).exists(), qPrintable(appDsymFilePath));
+    const QString dllDsymFilePath = dllDsym.absolutePath(fullInstallPrefix);
+    QVERIFY2(QFileInfo(dllDsymFilePath).exists(), qPrintable(dllDsymFilePath));
+    const QString pluginDsymFilePath = pluginDsym.absolutePath(fullInstallPrefix);
+    QVERIFY2(QFile::exists(pluginDsymFilePath), qPrintable(pluginDsymFilePath));
 }
 
 void TestBlackbox::inputsFromDependencies()

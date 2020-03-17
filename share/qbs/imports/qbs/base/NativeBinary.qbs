@@ -36,6 +36,9 @@ Product {
     property bool install: false
     property string installDir
 
+    property bool installDebugInformation: false
+    property string debugInformationInstallDir: installDir
+
     Depends { name: "bundle"; condition: isForDarwin }
 
     aggregate: {

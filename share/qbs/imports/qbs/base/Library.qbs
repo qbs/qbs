@@ -73,4 +73,18 @@ NativeBinary {
         qbs.install: true
         qbs.installDir: importLibInstallDir
     }
+
+    Group {
+        condition: installDebugInformation
+        fileTagsFilter: {
+            if (isDynamicLibrary)
+                return ["debuginfo_dll"];
+            else if (isLoadableModule)
+                return ["debuginfo_loadablemodule"];
+            return [];
+        }
+        qbs.install: true
+        qbs.installDir: debugInformationInstallDir
+        qbs.installSourceBase: destinationDirectory
+    }
 }
