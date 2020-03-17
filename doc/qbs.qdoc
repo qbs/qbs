@@ -694,7 +694,7 @@
 
     A set of Docker images for developing \QBS (which are maintained by the \QBS team) is available
     \l{https://hub.docker.com/u/qbsbuild/}{on Docker Hub}.
-    Both Windows Server Core and Debian Linux container types are available.
+    Both Windows 10 and Debian Linux container types are available.
 
     \note The source code for the \QBS development Docker images is located in the \c{docker/}
     directory of the \QBS source tree, if you wish to build them yourself.
@@ -712,45 +712,46 @@
         \li Latest stable release of \QBS for building \QBS with \QBS
     \endlist
 
-    Run the following command to download the \QBS development image based on Ubuntu 18.04 \e Bionic:
+    We are using docker-compose for building and running the Docker images because it simplifies
+    the Docker command line and ensures that the correct image tag is used. All available images
+    are listed in the \c docker-compose.yml file in the project root directory.
+
+    Run the following command to download the \QBS development image based on Ubuntu 18.04
+    \e Bionic:
 
     \code
-        docker pull qbsbuild/qbsdev:bionic
+        docker-compose pull bionic
     \endcode
 
     You can then create a new container with the \QBS source directory mounted from your host
     machine's file system, by running:
-
-    \code
-        docker run -it -v ${PWD}:/qbs -w /qbs qbsbuild/qbsdev:bionic
-    \endcode
-
-    You will now be in an interactive Linux shell where you can develop and build \QBS.
-
-    For convenience, you can also run \c docker-compose from the project root directory:
 
     \code
         docker-compose run --rm bionic
     \endcode
 
-    This will download and run the container in one go and mount the project root directory
-    to \c /qbs in the container.
+    You will now be in an interactive Linux shell where you can develop and build \QBS.
 
     \section2 Windows Containers
 
     To build \QBS for Windows using Windows containers, your host OS must be running Windows 10 Pro
-    and have Hyper-V enabled. \l{https://docs.docker.com/docker-for-windows/#switch-between-windows-and-linux-containers}{Switch your Docker environment to use Windows containers}, then run the
-    following command to download the Windows 10 \QBS development image:
+    and have Hyper-V enabled. \l{https://docs.docker.com/docker-for-windows/#switch-between-windows-and-linux-containers}{Switch your Docker environment to use Windows containers}.
+
+    We are using docker-compose for building and running the Docker images because it simplifies
+    the Docker command line and ensures that the correct image tag is used. All available images
+    are listed in the \c docker-compose.yml file in the project root directory.
+
+    Run the following command to download the \QBS development image based on Windows 10:
 
     \code
-        docker pull qbsbuild/qbsdev:windowsservercore
+        docker-compose pull windows
     \endcode
 
     You can then create a new container with the \QBS source directory mounted from your host
     machine's file system, by running:
 
     \code
-        docker run -it -v %CD%:C:\qbs -w C:\qbs qbsbuild/qbsdev:windowsservercore
+        docker-compose run --rm windows
     \endcode
 
     If you want to use Windows containers on a macOS or Linux host, you will have to create a
@@ -764,7 +765,7 @@
 
     \code
         eval $(docker-machine env windows)
-        docker run -it -v C:$PWD:C:\\qbs -w C:\\qbs qbsbuild/qbsdev:windowsservercore
+        docker-compose run --rm windows
     \endcode
 
     \section2 Building Release Packages
@@ -772,14 +773,14 @@
     Release packages for \QBS for Windows can be built using the following command on Windows:
 
     \code
-        docker run --rm -v %CD%:C:\qbs -w C:\qbs qbsbuild/qbsdev:windowsservercore cmd /c scripts\make-release-archives
+        docker-compose run --rm windows cmd /c scripts\make-release-archives
     \endcode
 
     For building release packages for Windows on macOS or Linux:
 
     \code
         eval $(docker-machine env windows)
-        docker run --rm -v C:$PWD:C:\\qbs -w C:\\qbs qbsbuild/qbsdev:windowsservercore cmd /c scripts\\make-release-archives
+        docker-compose run --rm windows cmd /c scripts\\make-release-archives
     \endcode
 */
 
