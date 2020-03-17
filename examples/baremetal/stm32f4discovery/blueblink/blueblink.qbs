@@ -52,7 +52,7 @@ import qbs
 
 CppApplication {
     condition: {
-        if (!qbs.architecture.contains("arm"))
+        if (!qbs.architecture.startsWith("arm"))
             return false;
         return qbs.toolchain.contains("gcc")
             || qbs.toolchain.contains("iar")
