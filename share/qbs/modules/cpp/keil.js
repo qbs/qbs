@@ -39,81 +39,103 @@ var TemporaryDir = require("qbs.TemporaryDir");
 var TextFile = require("qbs.TextFile");
 var Utilities = require("qbs.Utilities");
 
+function isMcsArchitecture(architecture) {
+    return architecture === "mcs51" || architecture === "mcs251";
+}
+
 function compilerName(qbs) {
-    if (qbs.architecture === "mcs51")
+    var architecture = qbs.architecture;
+    if (architecture === "mcs51")
         return "c51";
-    if (qbs.architecture.startsWith("arm"))
+    if (architecture === "mcs251")
+        return "c251";
+    if (architecture.startsWith("arm"))
         return "armcc";
     throw "Unable to deduce compiler name for unsupported architecture: '"
-            + qbs.architecture + "'";
+            + architecture + "'";
 }
 
 function assemblerName(qbs) {
-    if (qbs.architecture === "mcs51")
+    var architecture = qbs.architecture;
+    if (architecture === "mcs51")
         return "a51";
-    if (qbs.architecture.startsWith("arm"))
+    if (architecture === "mcs251")
+        return "a251";
+    if (architecture.startsWith("arm"))
         return "armasm";
     throw "Unable to deduce assembler name for unsupported architecture: '"
-            + qbs.architecture + "'";
+            + architecture + "'";
 }
 
 function linkerName(qbs) {
-    if (qbs.architecture === "mcs51")
+    var architecture = qbs.architecture;
+    if (architecture === "mcs51")
         return "bl51";
-    if (qbs.architecture.startsWith("arm"))
+    if (architecture === "mcs251")
+        return "l251";
+    if (architecture.startsWith("arm"))
         return "armlink";
     throw "Unable to deduce linker name for unsupported architecture: '"
-            + qbs.architecture + "'";
+            + architecture + "'";
 }
 
 function archiverName(qbs) {
-    if (qbs.architecture === "mcs51")
+    var architecture = qbs.architecture;
+    if (architecture === "mcs51")
         return "lib51";
-    if (qbs.architecture.startsWith("arm"))
+    if (architecture === "mcs251")
+        return "lib251";
+    if (architecture.startsWith("arm"))
         return "armar";
     throw "Unable to deduce archiver name for unsupported architecture: '"
-            + qbs.architecture + "'";
+            + architecture + "'";
 }
 
 function staticLibrarySuffix(qbs) {
-    if (qbs.architecture === "mcs51" || qbs.architecture.startsWith("arm"))
+    var architecture = qbs.architecture;
+    if (isMcsArchitecture(architecture) || architecture.startsWith("arm"))
         return ".lib";
     throw "Unable to deduce static library suffix for unsupported architecture: '"
-            + qbs.architecture + "'";
+            + architecture + "'";
 }
 
 function executableSuffix(qbs) {
-    if (qbs.architecture === "mcs51")
+    var architecture = qbs.architecture;
+    if (isMcsArchitecture(architecture))
         return ".abs";
-    if (qbs.architecture.startsWith("arm"))
+    if (architecture.startsWith("arm"))
         return ".axf";
     throw "Unable to deduce executable suffix for unsupported architecture: '"
-            + qbs.architecture + "'";
+            + architecture + "'";
 }
 
 function objectSuffix(qbs) {
-    if (qbs.architecture === "mcs51")
+    var architecture = qbs.architecture;
+    if (isMcsArchitecture(architecture))
         return ".obj";
-    if (qbs.architecture.startsWith("arm"))
+    if (architecture.startsWith("arm"))
         return ".o";
     throw "Unable to deduce object file suffix for unsupported architecture: '"
-            + qbs.architecture + "'";
+            + architecture + "'";
 }
 
 function imageFormat(qbs) {
-    if (qbs.architecture === "mcs51")
+    var architecture = qbs.architecture;
+    if (isMcsArchitecture(architecture))
         // Keil OMF51 or OMF2 Object Module Format (which is an
         // extension of the original Intel OMF51).
         return "omf";
-    if (qbs.architecture.startsWith("arm"))
+    if (architecture.startsWith("arm"))
         return "elf";
     throw "Unable to deduce image format for unsupported architecture: '"
-            + qbs.architecture + "'";
+            + architecture + "'";
 }
 
 function guessArchitecture(macros) {
     if (macros["__C51__"]) {
         return "mcs51";
+    } else if (macros["__C251__"]) {
+        return "mcs251";
     } else if (macros["__CC_ARM"] === "1") {
         var arch = "arm";
         var targetArchArm = macros["__TARGET_ARCH_ARM"];
@@ -139,12 +161,14 @@ function guessArchitecture(macros) {
 }
 
 function guessEndianness(macros) {
-    if (macros["__C51__"]) {
+    if (macros["__C51__"] || macros["__C251__"]) {
         // The 8051 processors are 8-bit. So, the data with an integer type
         // represented by more than one byte is stored as big endian in the
         // Keil toolchain. See for more info:
         // * http://www.keil.com/support/man/docs/c51/c51_ap_2bytescalar.htm
         // * http://www.keil.com/support/man/docs/c51/c51_ap_4bytescalar.htm
+        // * http://www.keil.com/support/man/docs/c251/c251_ap_2bytescalar.htm
+        // * http://www.keil.com/support/man/docs/c251/c251_ap_4bytescalar.htm
         return "big";
     } else if (macros["__ARMCC_VERSION"]) {
         return macros["__BIG_ENDIAN"] ? "big" : "little";
@@ -152,8 +176,8 @@ function guessEndianness(macros) {
 }
 
 function guessVersion(macros) {
-    if (macros["__C51__"]) {
-        var mcsVersion = macros["__C51__"];
+    if (macros["__C51__"] || macros["__C251__"]) {
+        var mcsVersion = macros["__C51__"] || macros["__C251__"];
         return { major: parseInt(mcsVersion / 100),
             minor: parseInt(mcsVersion % 100),
             patch: 0,
@@ -167,7 +191,7 @@ function guessVersion(macros) {
     }
 }
 
-// Note: The KEIL 8051 compiler does not support the predefined
+// Note: The KEIL C51 compiler does not support the predefined
 // macros dumping. So, we do it with following trick where we try
 // to compile a temporary file and to parse the console output.
 function dumpC51CompilerMacros(compilerFilePath, tag) {
@@ -200,6 +224,41 @@ function dumpC51CompilerMacros(compilerFilePath, tag) {
     return map;
 }
 
+// Note: The KEIL C251 compiler does not support the predefined
+// macros dumping. So, we do it with following trick where we try
+// to compile a temporary file and to parse the console output.
+function dumpC251CompilerMacros(compilerFilePath, tag) {
+    // C251 compiler support only C language.
+    if (tag === "cpp")
+        return {};
+
+    function createDumpMacrosFile() {
+        var td = new TemporaryDir();
+        var fn = FileInfo.fromNativeSeparators(td.path() + "/dump-macros.c");
+        var tf = new TextFile(fn, TextFile.WriteOnly);
+        tf.writeLine("#define VALUE_TO_STRING(x) #x");
+        tf.writeLine("#define VALUE(x) VALUE_TO_STRING(x)");
+        tf.writeLine("#define VAR_NAME_VALUE(var) \"\"|#var|VALUE(var)|\"\"");
+        tf.writeLine("#ifdef __C251__");
+        tf.writeLine("#warning(VAR_NAME_VALUE(__C251__))");
+        tf.writeLine("#endif");
+        tf.writeLine("void main(void) {}");
+        tf.close();
+        return fn;
+    }
+
+    var fn = createDumpMacrosFile();
+    var p = new Process();
+    p.exec(compilerFilePath, [ fn ], false);
+    var map = {};
+    p.readStdOut().trim().split(/\r?\n/g).map(function(line) {
+        var parts = line.split("\"|\"", 4);
+        if (parts.length === 4)
+            map[parts[1]] = parts[2];
+    });
+    return map;
+}
+
 function dumpArmCompilerMacros(compilerFilePath, tag, nullDevice) {
     var args = [ "-E", "--list-macros", nullDevice ];
     if (tag === "cpp")
@@ -219,12 +278,15 @@ function dumpArmCompilerMacros(compilerFilePath, tag, nullDevice) {
 
 function dumpMacros(compilerFilePath, tag, nullDevice) {
     var map1 = dumpC51CompilerMacros(compilerFilePath, tag, nullDevice);
-    var map2 = dumpArmCompilerMacros(compilerFilePath, tag, nullDevice);
+    var map2 = dumpC251CompilerMacros(compilerFilePath, tag, nullDevice);
+    var map3 = dumpArmCompilerMacros(compilerFilePath, tag, nullDevice);
     var map = {};
     for (var key1 in map1)
         map[key1] = map1[key1];
     for (var key2 in map2)
         map[key2] = map2[key2];
+    for (var key3 in map3)
+        map[key3] = map3[key3];
     return map;
 }
 
@@ -245,7 +307,7 @@ function adjustPathsToWindowsSeparators(sourcePaths) {
 }
 
 function getMaxExitCode(architecture) {
-    if (architecture === "mcs51")
+    if (isMcsArchitecture(architecture))
         return 1;
     else if (architecture.startsWith("arm"))
         return 0;
@@ -311,20 +373,28 @@ function filterStdOutput(cmd) {
         var sourceLines = output.split("\n");
         var filteredLines = [];
         for (var i in sourceLines) {
-            if (sourceLines[i].startsWith("***")
-                || sourceLines[i].startsWith(">>")
-                || sourceLines[i].startsWith("    ")
-                || sourceLines[i].startsWith("Program Size:")
-                || sourceLines[i].startsWith("A51 FATAL")
-                || sourceLines[i].startsWith("C51 FATAL")
-                || sourceLines[i].startsWith("ASSEMBLER INVOKED BY")
-                || sourceLines[i].startsWith("LOC  OBJ            LINE     SOURCE")
-                ) {
+            var line = sourceLines[i];
+            if (line.startsWith("***")
+                || line.startsWith(">>")
+                || line.startsWith("    ")
+                || line.startsWith("  ACTION:")
+                || line.startsWith("  LINE:")
+                || line.startsWith("  ERROR:")
+                || line.startsWith("Program Size:")
+                || line.startsWith("A51 FATAL")
+                || line.startsWith("C51 FATAL")
+                || line.startsWith("C251 FATAL")
+                || line.startsWith("ASSEMBLER INVOKED BY")
+                || line.startsWith("LOC  OBJ            LINE     SOURCE")) {
                     filteredLines.push(sourceLines[i]);
+            } else if (line.startsWith("C251 COMPILER")
+                        || line.startsWith("C251 COMPILATION COMPLETE")
+                        || line.startsWith("C251 TERMINATED")) {
+                continue;
             } else {
                 var regexp = /^([0-9A-F]{4})/;
-                if (regexp.exec(sourceLines[i]))
-                    filteredLines.push(sourceLines[i]);
+                if (regexp.exec(line))
+                    filteredLines.push(line);
             }
         }
         return filteredLines.join("\n");
@@ -342,7 +412,7 @@ function compilerOutputArtifacts(input, useListing) {
         artifacts.push({
             fileTags: ["lst"],
             filePath: Utilities.getHash(input.baseDir) + "/"
-                  + (input.cpp.architecture === "mcs51"
+                  + (isMcsArchitecture(input.cpp.architecture)
                     ? input.fileName : input.baseName)
                   + ".lst"
         });
@@ -402,7 +472,7 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
         allIncludePaths = allIncludePaths.uniqueConcat(compilerIncludePaths);
 
     var architecture = input.qbs.architecture;
-    if (architecture === "mcs51") {
+    if (isMcsArchitecture(architecture)) {
         // Input.
         args.push(FileInfo.toWindowsSeparators(input.filePath));
 
@@ -443,7 +513,8 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
             break;
         case "all":
             args.push("WARNINGLEVEL (2)");
-            args.push("FARWARNING");
+            if (architecture === "mcs51")
+                args.push("FARWARNING");
             break;
         }
 
@@ -574,7 +645,7 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
         allIncludePaths = allIncludePaths.uniqueConcat(compilerIncludePaths);
 
     var architecture = input.qbs.architecture;
-    if (architecture === "mcs51") {
+    if (isMcsArchitecture(architecture)) {
         // Input.
         args.push(FileInfo.toWindowsSeparators(input.filePath));
 
@@ -656,7 +727,7 @@ function linkerFlags(project, product, input, outputs) {
     var args = [];
 
     var architecture = product.qbs.architecture;
-    if (architecture === "mcs51") {
+    if (isMcsArchitecture(architecture)) {
         // Note: The C51 linker does not distinguish an object files and
         // a libraries, it interpret all this stuff as an input objects,
         // so, we need to pass it together in one string.
@@ -731,7 +802,7 @@ function archiverFlags(project, product, input, outputs) {
     var args = [];
 
     var architecture = product.qbs.architecture;
-    if (architecture === "mcs51") {
+    if (isMcsArchitecture(architecture)) {
         // Library creation command.
         args.push("TRANSFER");
 
@@ -782,7 +853,6 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
     filterStdOutput(cmd);
     return [cmd];
 }
-
 
 function prepareAssembler(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
     var args = assemblerFlags(project, product, input, outputs, explicitlyDependsOn);
