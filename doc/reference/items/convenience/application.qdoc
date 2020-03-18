@@ -26,7 +26,7 @@
 ****************************************************************************/
 /*!
     \contentspage list-of-convenience-items.html
-    \previouspage AppleApplicationDiskImage
+    \previouspage AppleDiskImage
     \nextpage ApplicationExtension
     \qmltype Application
     \inherits Product
