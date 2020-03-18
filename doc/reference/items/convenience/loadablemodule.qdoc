@@ -27,10 +27,10 @@
 ****************************************************************************/
 /*!
     \contentspage list-of-convenience-items.html
-    \previouspage JavaJarFile
+    \previouspage Library
     \nextpage QtApplication
     \qmltype LoadableModule
-    \inherits Product
+    \inherits Library
     \inqmlmodule QbsConvenienceItems
     \ingroup list-of-items
     \keyword QML.LoadableModule
