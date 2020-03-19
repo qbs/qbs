@@ -857,6 +857,7 @@ bool operator==(const SourceArtifactInternal &sa1, const SourceArtifactInternal 
             && sa1.fileTags == sa2.fileTags
             && sa1.overrideFileTags == sa2.overrideFileTags
             && sa1.targetOfModule == sa2.targetOfModule
+            && !sa1.properties == !sa2.properties
             && *sa1.properties == *sa2.properties;
 }
 
