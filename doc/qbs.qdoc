@@ -1614,6 +1614,8 @@
 
     To introduce a custom item \c MyItem, create the file \c{search-path/imports/MyItem.qbs}.
 
+    \note Item file names must start with a capital letter due to the fact that type names can
+    only start with a capital letter. Otherwise, the file will be silently ignored.
 
     \section1 Making \QBS Aware of Custom Modules and Items
 
