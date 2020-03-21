@@ -151,6 +151,21 @@ static std::vector<Profile> createSdccProfileHelper(
     return profiles;
 }
 
+static Version dumpOldSddcCompilerVersion(const QByteArray &macroDump)
+{
+    const auto keyToken = QByteArrayLiteral("__SDCC ");
+    const int startIndex = macroDump.indexOf(keyToken);
+    if (startIndex == -1)
+        return Version{};
+    const int endIndex = macroDump.indexOf('\n', startIndex);
+    if (endIndex == -1)
+        return Version{};
+    const auto keyLength = keyToken.length();
+    return Version::fromString(QString::fromLatin1(
+            macroDump.mid(startIndex + keyLength,
+                          endIndex - startIndex - keyLength).replace('_', '.')));
+}
+
 static Version dumpSdccCompilerVersion(const QFileInfo &compiler)
 {
     const QByteArray dump = dumpSdccMacros(compiler);
@@ -161,10 +176,14 @@ static Version dumpSdccCompilerVersion(const QFileInfo &compiler)
     const int minor = extractVersion(dump, "__SDCC_VERSION_MINOR ");
     const int patch = extractVersion(dump, "__SDCC_VERSION_PATCH ");
     if (major < 0 || minor < 0 || patch < 0) {
-        qbsWarning() << Tr::tr("No '__SDCC_VERSION_xxx' token was found "
-                               "in the compiler dump:\n%1")
-                        .arg(QString::fromUtf8(dump));
-        return Version{};
+        const auto version = dumpOldSddcCompilerVersion(dump);
+        if (!version.isValid()) {
+            qbsWarning() << Tr::tr("No '__SDCC_VERSION_xxx' or '__SDCC' token was found "
+                                   "in the compiler dump:\n%1")
+                            .arg(QString::fromUtf8(dump));
+            return Version{};
+        }
+        return version;
     }
 
     return Version{major, minor, patch};
