@@ -196,13 +196,15 @@ function guessVersion(macros) {
     }
 }
 
-// Note: The KEIL C51 compiler does not support the predefined
-// macros dumping. So, we do it with following trick where we try
-// to compile a temporary file and to parse the console output.
-function dumpC51CompilerMacros(compilerFilePath, tag) {
-    // C51 compiler support only C language.
+function dumpMcsCompilerMacros(compilerFilePath, tag) {
+    // C51 or C251 compiler support only C language.
     if (tag === "cpp")
         return {};
+
+    // Note: The C51 or C251 compiler does not support the predefined
+    // macros dumping. So, we do it with the following trick, where we try
+    // to create and compile a special temporary file and to parse the console
+    // output with the own magic pattern: (""|"key"|"value"|"").
 
     function createDumpMacrosFile() {
         var td = new TemporaryDir();
@@ -210,44 +212,23 @@ function dumpC51CompilerMacros(compilerFilePath, tag) {
         var tf = new TextFile(fn, TextFile.WriteOnly);
         tf.writeLine("#define VALUE_TO_STRING(x) #x");
         tf.writeLine("#define VALUE(x) VALUE_TO_STRING(x)");
-        tf.writeLine("#define VAR_NAME_VALUE(var) \"\"\"|\"#var\"|\"VALUE(var)");
-        tf.writeLine("#ifdef __C51__");
-        tf.writeLine("#pragma message(VAR_NAME_VALUE(__C51__))");
-        tf.writeLine("#endif");
-        tf.close();
-        return fn;
-    }
 
-    var fn = createDumpMacrosFile();
-    var p = new Process();
-    p.exec(compilerFilePath, [ fn ], false);
-    var map = {};
-    p.readStdOut().trim().split(/\r?\n/g).map(function(line) {
-        var parts = line.split("\"|\"", 3);
-        map[parts[1]] = parts[2];
-    });
-    return map;
-}
+        // Prepare for C51 compiler.
+        tf.writeLine("#if defined(__C51__) || defined(__CX51__)\n");
+        tf.writeLine("#  define VAR_NAME_VALUE(var) \"(\"\"\"\"|\"#var\"|\"VALUE(var)\"|\"\"\"\")\"\n");
+        tf.writeLine("#  if defined (__C51__)\n");
+        tf.writeLine("#    pragma message (VAR_NAME_VALUE(__C51__))\n");
+        tf.writeLine("#  endif\n");
+        tf.writeLine("#  if defined(__CX51__)\n");
+        tf.writeLine("#    pragma message (VAR_NAME_VALUE(__CX51__))\n");
+        tf.writeLine("#  endif\n");
+        tf.writeLine("#endif\n");
 
-// Note: The KEIL C251 compiler does not support the predefined
-// macros dumping. So, we do it with following trick where we try
-// to compile a temporary file and to parse the console output.
-function dumpC251CompilerMacros(compilerFilePath, tag) {
-    // C251 compiler support only C language.
-    if (tag === "cpp")
-        return {};
-
-    function createDumpMacrosFile() {
-        var td = new TemporaryDir();
-        var fn = FileInfo.fromNativeSeparators(td.path() + "/dump-macros.c");
-        var tf = new TextFile(fn, TextFile.WriteOnly);
-        tf.writeLine("#define VALUE_TO_STRING(x) #x");
-        tf.writeLine("#define VALUE(x) VALUE_TO_STRING(x)");
-        tf.writeLine("#define VAR_NAME_VALUE(var) \"\"|#var|VALUE(var)|\"\"");
-        tf.writeLine("#ifdef __C251__");
-        tf.writeLine("#warning(VAR_NAME_VALUE(__C251__))");
-        tf.writeLine("#endif");
-        tf.writeLine("void main(void) {}");
+        // Prepare for C251 compiler.
+        tf.writeLine("#if defined(__C251__)\n");
+        tf.writeLine("#  define VAR_NAME_VALUE(var) \"\"|#var|VALUE(var)|\"\"\n");
+        tf.writeLine("#  warning (VAR_NAME_VALUE(__C251__))\n");
+        tf.writeLine("#endif\n");
         tf.close();
         return fn;
     }
@@ -282,16 +263,13 @@ function dumpArmCompilerMacros(compilerFilePath, tag, nullDevice) {
 }
 
 function dumpMacros(compilerFilePath, tag, nullDevice) {
-    var map1 = dumpC51CompilerMacros(compilerFilePath, tag, nullDevice);
-    var map2 = dumpC251CompilerMacros(compilerFilePath, tag, nullDevice);
-    var map3 = dumpArmCompilerMacros(compilerFilePath, tag, nullDevice);
+    var map1 = dumpMcsCompilerMacros(compilerFilePath, tag, nullDevice);
+    var map2 = dumpArmCompilerMacros(compilerFilePath, tag, nullDevice);
     var map = {};
     for (var key1 in map1)
         map[key1] = map1[key1];
     for (var key2 in map2)
         map[key2] = map2[key2];
-    for (var key3 in map3)
-        map[key3] = map3[key3];
     return map;
 }
 
