@@ -66,6 +66,9 @@ extern "C" {
 #elif defined (__SDCC_mcs51)
 #include <mcs51/compiler.h>
 # define DEFINE_SFR(name, addr) __sfr __at(addr) name;
+# ifndef NOP
+#  define NOP() __asm NOP __endasm
+# endif
 # define system_nop() NOP()
 #else
 #error "Unsupported toolchain"
