@@ -135,33 +135,34 @@ function imageFormat(qbs) {
             + architecture + "'";
 }
 
+function guessArmArchitecture(targetArchArm, targetArchThumb) {
+    var arch = "arm";
+    if (targetArchArm === "4" && targetArchThumb === "0")
+        arch += "v4";
+    else if (targetArchArm === "4" && targetArchThumb === "1")
+        arch += "v4t";
+    else if (targetArchArm === "5" && targetArchThumb === "2")
+        arch += "v5t";
+    else if (targetArchArm === "6" && targetArchThumb === "3")
+        arch += "v6";
+    else if (targetArchArm === "6" && targetArchThumb === "4")
+        arch += "v6t2";
+    else if (targetArchArm === "0" && targetArchThumb === "3")
+        arch += "v6m";
+    else if (targetArchArm === "7" && targetArchThumb === "4")
+        arch += "v7r";
+    else if (targetArchArm === "0" && targetArchThumb === "4")
+        arch += "v7m";
+    return arch;
+}
+
 function guessArchitecture(macros) {
-    if (macros["__C51__"]) {
+    if (macros["__C51__"])
         return "mcs51";
-    } else if (macros["__C251__"]) {
+    else if (macros["__C251__"])
         return "mcs251";
-    } else if (macros["__CC_ARM"] === "1") {
-        var arch = "arm";
-        var targetArchArm = macros["__TARGET_ARCH_ARM"];
-        var targetArchThumb = macros["__TARGET_ARCH_THUMB"];
-        if (targetArchArm === "4" && targetArchThumb === "0")
-            arch += "v4";
-        else if (targetArchArm === "4" && targetArchThumb === "1")
-            arch += "v4t";
-        else if (targetArchArm === "5" && targetArchThumb === "2")
-            arch += "v5t";
-        else if (targetArchArm === "6" && targetArchThumb === "3")
-            arch += "v6";
-        else if (targetArchArm === "6" && targetArchThumb === "4")
-            arch += "v6t2";
-        else if (targetArchArm === "0" && targetArchThumb === "3")
-            arch += "v6m";
-        else if (targetArchArm === "7" && targetArchThumb === "4")
-            arch += "v7r";
-        else if (targetArchArm === "0" && targetArchThumb === "4")
-            arch += "v7m";
-        return arch;
-    }
+    else if (macros["__CC_ARM"] === "1")
+        return guessArmArchitecture(macros["__TARGET_ARCH_ARM"], macros["__TARGET_ARCH_THUMB"]);
 }
 
 function guessEndianness(macros) {
