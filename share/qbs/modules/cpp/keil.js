@@ -43,13 +43,17 @@ function isMcsArchitecture(architecture) {
     return architecture === "mcs51" || architecture === "mcs251";
 }
 
+function isArmArchitecture(architecture) {
+    return architecture.startsWith("arm");
+}
+
 function compilerName(qbs) {
     var architecture = qbs.architecture;
     if (architecture === "mcs51")
         return "c51";
     if (architecture === "mcs251")
         return "c251";
-    if (architecture.startsWith("arm"))
+    if (isArmArchitecture(architecture))
         return "armcc";
     throw "Unable to deduce compiler name for unsupported architecture: '"
             + architecture + "'";
@@ -61,7 +65,7 @@ function assemblerName(qbs) {
         return "a51";
     if (architecture === "mcs251")
         return "a251";
-    if (architecture.startsWith("arm"))
+    if (isArmArchitecture(architecture))
         return "armasm";
     throw "Unable to deduce assembler name for unsupported architecture: '"
             + architecture + "'";
@@ -73,7 +77,7 @@ function linkerName(qbs) {
         return "bl51";
     if (architecture === "mcs251")
         return "l251";
-    if (architecture.startsWith("arm"))
+    if (isArmArchitecture(architecture))
         return "armlink";
     throw "Unable to deduce linker name for unsupported architecture: '"
             + architecture + "'";
@@ -85,7 +89,7 @@ function archiverName(qbs) {
         return "lib51";
     if (architecture === "mcs251")
         return "lib251";
-    if (architecture.startsWith("arm"))
+    if (isArmArchitecture(architecture))
         return "armar";
     throw "Unable to deduce archiver name for unsupported architecture: '"
             + architecture + "'";
@@ -93,7 +97,7 @@ function archiverName(qbs) {
 
 function staticLibrarySuffix(qbs) {
     var architecture = qbs.architecture;
-    if (isMcsArchitecture(architecture) || architecture.startsWith("arm"))
+    if (isMcsArchitecture(architecture) || isArmArchitecture(architecture))
         return ".lib";
     throw "Unable to deduce static library suffix for unsupported architecture: '"
             + architecture + "'";
@@ -103,7 +107,7 @@ function executableSuffix(qbs) {
     var architecture = qbs.architecture;
     if (isMcsArchitecture(architecture))
         return ".abs";
-    if (architecture.startsWith("arm"))
+    if (isArmArchitecture(architecture))
         return ".axf";
     throw "Unable to deduce executable suffix for unsupported architecture: '"
             + architecture + "'";
@@ -113,7 +117,7 @@ function objectSuffix(qbs) {
     var architecture = qbs.architecture;
     if (isMcsArchitecture(architecture))
         return ".obj";
-    if (architecture.startsWith("arm"))
+    if (isArmArchitecture(architecture))
         return ".o";
     throw "Unable to deduce object file suffix for unsupported architecture: '"
             + architecture + "'";
@@ -125,7 +129,7 @@ function imageFormat(qbs) {
         // Keil OMF51 or OMF2 Object Module Format (which is an
         // extension of the original Intel OMF51).
         return "omf";
-    if (architecture.startsWith("arm"))
+    if (isArmArchitecture(architecture))
         return "elf";
     throw "Unable to deduce image format for unsupported architecture: '"
             + architecture + "'";
@@ -291,7 +295,7 @@ function dumpMacros(compilerFilePath, tag, nullDevice) {
 }
 
 function dumpDefaultPaths(compilerFilePath, architecture) {
-    var incDir = (architecture.startsWith("arm")) ? "include" :  "inc";
+    var incDir = (isArmArchitecture(architecture)) ? "include" :  "inc";
     var includePath = compilerFilePath.replace(/bin[\\\/](.*)$/i, incDir);
     return {
         "includePaths": [includePath]
@@ -309,7 +313,7 @@ function adjustPathsToWindowsSeparators(sourcePaths) {
 function getMaxExitCode(architecture) {
     if (isMcsArchitecture(architecture))
         return 1;
-    else if (architecture.startsWith("arm"))
+    else if (isArmArchitecture(architecture))
         return 0;
 }
 
@@ -523,7 +527,7 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
             args.push("NOPRINT");
         else
             args.push("PRINT(" + FileInfo.toWindowsSeparators(outputs.lst[0].filePath) + ")");
-    } else if (architecture.startsWith("arm")) {
+    } else if (isArmArchitecture(architecture)) {
         // Input.
         args.push("-c", input.filePath);
 
@@ -674,7 +678,7 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
             args.push("NOPRINT");
         else
             args.push("PRINT(" + FileInfo.toWindowsSeparators(outputs.lst[0].filePath) + ")");
-    } else if (architecture.startsWith("arm")) {
+    } else if (isArmArchitecture(architecture)) {
         // Input.
         args.push(input.filePath);
 
@@ -757,7 +761,7 @@ function linkerFlags(project, product, input, outputs) {
         // Map file generation flag.
         if (!product.cpp.generateLinkerMapFile)
             args.push("NOMAP");
-    } else if (architecture.startsWith("arm")) {
+    } else if (isArmArchitecture(architecture)) {
         // Inputs.
         if (inputs.obj)
             args = args.concat(inputs.obj.map(function(obj) { return obj.filePath }));
@@ -823,7 +827,7 @@ function archiverFlags(project, product, input, outputs) {
         // Note: We need to wrap a output file name with quotes. Otherwise
         // the linker will ignore a specified file name.
         args.push("TO", '"' + FileInfo.toWindowsSeparators(outputs.staticlibrary[0].filePath) + '"');
-    } else if (architecture.startsWith("arm")) {
+    } else if (isArmArchitecture(architecture)) {
         // Note: The ARM archiver command line expect the output file
         // first, and then a set of input objects.
 
