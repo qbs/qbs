@@ -412,9 +412,9 @@ void TestBlackboxQt::qmlTypeRegistrar()
     QCOMPARE(m_qbsStdout.contains("running qmltyperegistrar"), enabled);
     QCOMPARE(m_qbsStdout.contains("compiling myapp_qmltyperegistrations.cpp"), enabled);
     const QString buildDir = relativeProductBuildDir("myapp");
-    QCOMPARE(regularFileExists(buildDir + "/app.qmltypes"), enabled);
+    QCOMPARE(regularFileExists(buildDir + "/myapp.qmltypes"), enabled);
     QCOMPARE(regularFileExists(relativeBuildDir() + "/install-root/" + installDir
-                               + "/app.qmltypes"), enabled && !installDir.isEmpty());
+                               + "/myapp.qmltypes"), enabled && !installDir.isEmpty());
 }
 
 void TestBlackboxQt::qtKeywords()
