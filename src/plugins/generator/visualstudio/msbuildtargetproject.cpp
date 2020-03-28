@@ -51,31 +51,28 @@ public:
     const Internal::VisualStudioVersionInfo &versionInfo;
 };
 
-MSBuildTargetProject::MSBuildTargetProject(const GeneratableProject &project,
-                                           const Internal::VisualStudioVersionInfo &versionInfo,
-                                           VisualStudioGenerator *parent)
-    : MSBuildProject(parent)
-    , d(new MSBuildTargetProjectPrivate(versionInfo))
+MSBuildTargetProject::MSBuildTargetProject(
+    const GeneratableProject &project, const Internal::VisualStudioVersionInfo &versionInfo)
+    : d(new MSBuildTargetProjectPrivate(versionInfo))
 {
     setDefaultTargets(QStringLiteral("Build"));
     setToolsVersion(versionInfo.toolsVersion());
 
-    const auto projectConfigurationsGroup = new MSBuildItemGroup(this);
+    const auto projectConfigurationsGroup = makeChild<MSBuildItemGroup>();
     projectConfigurationsGroup->setLabel(QStringLiteral("ProjectConfigurations"));
 
     for (auto it = project.projects.cbegin(), end = project.projects.cend(); it != end; ++it) {
-        const auto item = new MSBuildItem(QStringLiteral("ProjectConfiguration"),
-                                    projectConfigurationsGroup);
+        const auto item = projectConfigurationsGroup->makeChild<MSBuildItem>(
+            QStringLiteral("ProjectConfiguration"));
         item->setInclude(MSBuildUtils::fullName(it.value()));
         item->appendProperty(QStringLiteral("Configuration"), it.key());
         item->appendProperty(QStringLiteral("Platform"), MSBuildUtils::platform(it.value()));
     }
 
-    d->globalsPropertyGroup = new MSBuildPropertyGroup(this);
+    d->globalsPropertyGroup = makeChild<MSBuildPropertyGroup>();
     d->globalsPropertyGroup->setLabel(QStringLiteral("Globals"));
-    d->projectGuidProperty = new MSBuildProperty(QStringLiteral("ProjectGuid"),
-                                                 QUuid::createUuid().toString(),
-                                                 d->globalsPropertyGroup);
+    d->projectGuidProperty = d->globalsPropertyGroup->makeChild<MSBuildProperty>(
+        QStringLiteral("ProjectGuid"), QUuid::createUuid().toString());
 
     // Trigger creation of the property sheets ImportGroup
     propertySheetsImportGroup();
@@ -107,7 +104,7 @@ MSBuildImportGroup *MSBuildTargetProject::propertySheetsImportGroup()
 {
     MSBuildImportGroup *importGroup = nullptr;
     for (const auto &child : children()) {
-        if (auto group = qobject_cast<MSBuildImportGroup *>(child)) {
+        if (auto group = dynamic_cast<MSBuildImportGroup *>(child.get())) {
             if (group->label() == QStringLiteral("PropertySheets")) {
                 importGroup = group;
                 break;
@@ -116,7 +113,7 @@ MSBuildImportGroup *MSBuildTargetProject::propertySheetsImportGroup()
     }
 
     if (!importGroup) {
-        importGroup = new MSBuildImportGroup(this);
+        importGroup = makeChild<MSBuildImportGroup>();
         importGroup->setLabel(QStringLiteral("PropertySheets"));
     }
 
@@ -125,7 +122,7 @@ MSBuildImportGroup *MSBuildTargetProject::propertySheetsImportGroup()
 
 void MSBuildTargetProject::appendPropertySheet(const QString &path, bool optional)
 {
-    const auto import = new MSBuildImport(propertySheetsImportGroup());
+    const auto import = propertySheetsImportGroup()->makeChild<MSBuildImport>();
     import->setProject(path);
     if (optional)
         import->setCondition(QStringLiteral("Exists('%1')").arg(path));

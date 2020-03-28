@@ -43,9 +43,8 @@ public:
     QString label;
 };
 
-MSBuildItemGroup::MSBuildItemGroup(MSBuildProject *parent)
-    : IMSBuildItemGroup(parent)
-    , d(new MSBuildItemGroupPrivate)
+MSBuildItemGroup::MSBuildItemGroup()
+    : d(new MSBuildItemGroupPrivate)
 {
 }
 
@@ -65,10 +64,7 @@ void MSBuildItemGroup::accept(IMSBuildNodeVisitor *visitor) const
 {
     visitor->visitStart(this);
 
-    for (const auto &child : children()) {
-        if (const MSBuildItem *item = qobject_cast<MSBuildItem *>(child))
-            item->accept(visitor);
-    }
+    acceptChildren(visitor);
 
     visitor->visitEnd(this);
 }

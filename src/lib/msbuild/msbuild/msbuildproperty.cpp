@@ -35,14 +35,9 @@
 
 namespace qbs {
 
-MSBuildProperty::MSBuildProperty(MSBuildPropertyGroup *parent)
-    : MSBuildPropertyBase(parent)
-{
-}
+MSBuildProperty::MSBuildProperty() = default;
 
-MSBuildProperty::MSBuildProperty(const QString &name, const QVariant &value,
-                                 MSBuildPropertyGroup *parent)
-    : MSBuildProperty(parent)
+MSBuildProperty::MSBuildProperty(const QString &name, const QVariant &value)
 {
     setName(name);
     setValue(value);

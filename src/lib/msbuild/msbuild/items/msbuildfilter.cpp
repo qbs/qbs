@@ -48,21 +48,19 @@ public:
     MSBuildItemMetadata *extensionsMetadata = nullptr;
 };
 
-MSBuildFilter::MSBuildFilter(IMSBuildItemGroup *parent)
-    : MSBuildItem(MSBuildFilterItemName, parent)
+MSBuildFilter::MSBuildFilter()
+    : MSBuildItem(MSBuildFilterItemName)
     , d(new MSBuildFilterPrivate)
 {
-    d->identifierMetadata = new MSBuildItemMetadata(QStringLiteral("UniqueIdentifier"),
-                                                    QVariant(), this);
-    d->extensionsMetadata = new MSBuildItemMetadata(QStringLiteral("Extensions"),
-                                                    QVariant(), this);
+    d->identifierMetadata = makeChild<MSBuildItemMetadata>(
+        QStringLiteral("UniqueIdentifier"), QVariant());
+    d->extensionsMetadata = makeChild<MSBuildItemMetadata>(
+        QStringLiteral("Extensions"), QVariant());
     setIdentifier(QUuid::createUuid());
 }
 
-MSBuildFilter::MSBuildFilter(const QString &name,
-                             const QList<QString> &extensions,
-                             IMSBuildItemGroup *parent)
-    : MSBuildFilter(parent)
+MSBuildFilter::MSBuildFilter(const QString &name, const QList<QString> &extensions)
+    : MSBuildFilter()
 {
     setInclude(name);
     setExtensions(extensions);

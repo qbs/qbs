@@ -13,8 +13,6 @@ set(SOLUTION_SOURCES
 list_transform_prepend(SOLUTION_SOURCES solution/)
 
 set(MSBUILD_SOURCES
-    imsbuildgroup.cpp
-    imsbuildgroup.h
     imsbuildnode.cpp
     imsbuildnode.h
     imsbuildnodevisitor.h
@@ -24,6 +22,8 @@ set(MSBUILD_SOURCES
     msbuildimportgroup.h
     msbuilditem.cpp
     msbuilditem.h
+    msbuilditemgroupbase.cpp
+    msbuilditemgroupbase.h
     msbuilditemdefinitiongroup.cpp
     msbuilditemdefinitiongroup.h
     msbuilditemgroup.cpp

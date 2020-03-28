@@ -35,14 +35,9 @@
 
 namespace qbs {
 
-MSBuildItemMetadata::MSBuildItemMetadata(MSBuildItem *parent)
-    : MSBuildPropertyBase(parent)
-{
-}
+MSBuildItemMetadata::MSBuildItemMetadata() = default;
 
-MSBuildItemMetadata::MSBuildItemMetadata(const QString &name, const QVariant &value,
-                                         MSBuildItem *parent)
-    : MSBuildItemMetadata(parent)
+MSBuildItemMetadata::MSBuildItemMetadata(const QString &name, const QVariant &value)
 {
     setName(name);
     setValue(value);

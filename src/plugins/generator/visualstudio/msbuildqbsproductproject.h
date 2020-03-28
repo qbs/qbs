@@ -48,13 +48,11 @@ class VisualStudioGenerator;
 
 class MSBuildQbsProductProject : public MSBuildTargetProject
 {
-    Q_OBJECT
-    Q_DISABLE_COPY(MSBuildQbsProductProject)
 public:
-    MSBuildQbsProductProject(const GeneratableProject &project,
-                             const GeneratableProductData &product,
-                             const Internal::VisualStudioVersionInfo &versionInfo,
-                             VisualStudioGenerator *parent = nullptr);
+    MSBuildQbsProductProject(
+        const GeneratableProject &project,
+        const GeneratableProductData &product,
+        const Internal::VisualStudioVersionInfo &versionInfo);
 
 private:
     using ProjectConfigurations = QHash<QString, std::set<Project>>;

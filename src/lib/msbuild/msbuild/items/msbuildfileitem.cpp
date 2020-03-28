@@ -38,15 +38,13 @@ namespace qbs {
 class MSBuildFileItemPrivate
 {
 public:
-    std::unique_ptr<MSBuildItemMetadata> filter;
+    MSBuildItemMetadata *filter{nullptr};
 };
 
-MSBuildFileItem::MSBuildFileItem(const QString &name, IMSBuildItemGroup *parent)
-    : MSBuildItem(name, parent)
+MSBuildFileItem::MSBuildFileItem(const QString &name)
+    : MSBuildItem(name)
     , d(new MSBuildFileItemPrivate)
-{
-    d->filter = std::make_unique<MSBuildItemMetadata>(QStringLiteral("Filter"), QVariant());
-}
+{}
 
 MSBuildFileItem::~MSBuildFileItem() = default;
 
@@ -62,13 +60,17 @@ void MSBuildFileItem::setFilePath(const QString &filePath)
 
 QString MSBuildFileItem::filterName() const
 {
-    return d->filter->value().toString();
+    return d->filter ? d->filter->value().toString() : QString();
 }
 
 void MSBuildFileItem::setFilterName(const QString &filterName)
 {
-    d->filter->setValue(filterName);
-    d->filter->setParent(!filterName.isEmpty() ? this : nullptr);
+    if (d->filter) {
+        (void) takeChild(d->filter);
+        d->filter = nullptr;
+    }
+    if (!filterName.isEmpty())
+        d->filter = makeChild<MSBuildItemMetadata>(QStringLiteral("Filter"), filterName);
 }
 
 } // namespace qbs

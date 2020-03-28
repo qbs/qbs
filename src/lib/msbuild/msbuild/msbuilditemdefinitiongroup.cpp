@@ -35,21 +35,14 @@
 
 namespace qbs {
 
-MSBuildItemDefinitionGroup::MSBuildItemDefinitionGroup(MSBuildProject *parent)
-    : IMSBuildItemGroup(parent)
-{
-}
-
+MSBuildItemDefinitionGroup::MSBuildItemDefinitionGroup() = default;
 MSBuildItemDefinitionGroup::~MSBuildItemDefinitionGroup() = default;
 
 void MSBuildItemDefinitionGroup::accept(IMSBuildNodeVisitor *visitor) const
 {
     visitor->visitStart(this);
 
-    for (const auto &child : children()) {
-        if (const auto item = qobject_cast<MSBuildItem *>(child))
-            item->accept(visitor);
-    }
+    acceptChildren(visitor);
 
     visitor->visitEnd(this);
 }

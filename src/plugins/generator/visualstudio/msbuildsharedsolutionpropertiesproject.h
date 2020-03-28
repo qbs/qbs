@@ -40,8 +40,6 @@ namespace qbs {
 
 class MSBuildSharedSolutionPropertiesProject : public MSBuildProject
 {
-    Q_OBJECT
-    Q_DISABLE_COPY(MSBuildSharedSolutionPropertiesProject)
 public:
     MSBuildSharedSolutionPropertiesProject(const Internal::VisualStudioVersionInfo &versionInfo,
                                            const GeneratableProject &project,

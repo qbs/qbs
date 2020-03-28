@@ -46,13 +46,10 @@ class MSBuildProject;
  *
  * https://msdn.microsoft.com/en-us/library/92x05xfs.aspx
  */
-class MSBuildImport : public QObject, public IMSBuildNode
+class MSBuildImport : public IMSBuildNode
 {
-    Q_OBJECT
-    Q_DISABLE_COPY(MSBuildImport)
 public:
-    explicit MSBuildImport(MSBuildProject *parent);
-    explicit MSBuildImport(MSBuildImportGroup *parent);
+    MSBuildImport();
     ~MSBuildImport() override;
 
     QString project() const;

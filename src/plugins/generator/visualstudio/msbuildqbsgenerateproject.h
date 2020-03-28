@@ -40,12 +40,9 @@ namespace qbs {
 
 class MSBuildQbsGenerateProject : public MSBuildTargetProject
 {
-    Q_OBJECT
-    Q_DISABLE_COPY(MSBuildQbsGenerateProject)
 public:
-    MSBuildQbsGenerateProject(const GeneratableProject &project,
-                              const Internal::VisualStudioVersionInfo &versionInfo,
-                              VisualStudioGenerator *parent = nullptr);
+    MSBuildQbsGenerateProject(
+        const GeneratableProject &project, const Internal::VisualStudioVersionInfo &versionInfo);
 };
 
 } // namespace qbs

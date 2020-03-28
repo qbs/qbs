@@ -37,10 +37,8 @@ namespace qbs {
 
 class MSBuildClCompile : public MSBuildFileItem
 {
-    Q_OBJECT
-    Q_DISABLE_COPY(MSBuildClCompile)
 public:
-    explicit MSBuildClCompile(IMSBuildItemGroup *parent = nullptr);
+    explicit MSBuildClCompile();
 };
 
 } // namespace qbs

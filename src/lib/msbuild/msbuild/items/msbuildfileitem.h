@@ -49,7 +49,7 @@ public:
     void setFilterName(const QString &filterName);
 
 protected:
-    explicit MSBuildFileItem(const QString &name, IMSBuildItemGroup *parent = nullptr);
+    explicit MSBuildFileItem(const QString &name);
 
 private:
     std::unique_ptr<MSBuildFileItemPrivate> d;

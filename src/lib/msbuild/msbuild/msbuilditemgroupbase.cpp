@@ -28,38 +28,32 @@
 **
 ****************************************************************************/
 
-#include "imsbuildgroup.h"
+#include "msbuilditemgroupbase.h"
 #include "msbuildproject.h"
 
 namespace qbs {
 
-class IMSBuildGroupPrivate
+class IMSBuildItemGroupPrivate
 {
 public:
     QString condition;
 };
 
-IMSBuildGroup::IMSBuildGroup(MSBuildProject *parent)
-    : QObject(parent)
-    , d(new IMSBuildGroupPrivate)
+MSBuildItemGroupBase::MSBuildItemGroupBase()
+    : d(new IMSBuildItemGroupPrivate)
 {
 }
 
-IMSBuildGroup::~IMSBuildGroup() = default;
+MSBuildItemGroupBase::~MSBuildItemGroupBase() = default;
 
-QString IMSBuildGroup::condition() const
+QString MSBuildItemGroupBase::condition() const
 {
     return d->condition;
 }
 
-void IMSBuildGroup::setCondition(const QString &condition)
+void MSBuildItemGroupBase::setCondition(const QString &condition)
 {
     d->condition = condition;
-}
-
-IMSBuildItemGroup::IMSBuildItemGroup(MSBuildProject *parent)
-    : IMSBuildGroup(parent)
-{
 }
 
 } // namespace qbs

@@ -31,6 +31,11 @@
 #ifndef IMSBUILDNODE_H
 #define IMSBUILDNODE_H
 
+#include <tools/stlutils.h>
+
+#include <memory>
+#include <vector>
+
 namespace qbs {
 
 class IMSBuildNodeVisitor;
@@ -40,6 +45,51 @@ class IMSBuildNode
 public:
     virtual ~IMSBuildNode();
     virtual void accept(IMSBuildNodeVisitor *visitor) const = 0;
+};
+
+template<typename... Types>
+class MSBuildNode : public IMSBuildNode
+{
+public:
+    template<class T>
+    T *appendChild(std::unique_ptr<T> child)
+    {
+        static_assert(Internal::is_any_of_types<T, Types...>, "Type is not in the allowed list");
+        const auto p = child.get();
+        m_children.push_back(std::move(child));
+        return p;
+    }
+
+    template<class T, class... Args>
+    T *makeChild(Args &&...args)
+    {
+        static_assert(Internal::is_any_of_types<T, Types...>, "Type is not in the allowed list");
+        return appendChild(std::make_unique<T>(std::forward<Args>(args)...));
+    }
+
+    template<class T>
+    std::unique_ptr<T> takeChild(T *ptr)
+    {
+        static_assert(Internal::is_any_of_types<T, Types...>, "Type is not in the allowed list");
+        const auto pred = [ptr](const auto &node) { return node.get() == ptr; };
+        const auto it = std::find_if(m_children.begin(), m_children.end(), pred);
+        if (it == m_children.end())
+            return {};
+        std::unique_ptr<T> result(static_cast<T *>(it->release()));
+        m_children.erase(it);
+        return result;
+    }
+
+protected:
+    const std::vector<std::unique_ptr<IMSBuildNode>> &children() const { return m_children; }
+    void acceptChildren(IMSBuildNodeVisitor *visitor) const
+    {
+        for (const auto &child : m_children)
+            child->accept(visitor);
+    }
+
+private:
+    std::vector<std::unique_ptr<IMSBuildNode>> m_children;
 };
 
 } // namespace qbs

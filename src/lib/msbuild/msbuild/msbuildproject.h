@@ -38,6 +38,11 @@
 
 namespace qbs {
 
+class MSBuildImport;
+class MSBuildImportGroup;
+class MSBuildItemGroup;
+class MSBuildItemDefinitionGroup;
+class MSBuildPropertyGroup;
 class MSBuildProjectPrivate;
 
 /*!
@@ -45,12 +50,15 @@ class MSBuildProjectPrivate;
  *
  * https://msdn.microsoft.com/en-us/library/bcxfsh87.aspx
  */
-class MSBuildProject : public QObject, public IMSBuildNode
+class MSBuildProject : public MSBuildNode<
+                           MSBuildImport,
+                           MSBuildImportGroup,
+                           MSBuildItemGroup,
+                           MSBuildItemDefinitionGroup,
+                           MSBuildPropertyGroup>
 {
-    Q_OBJECT
-    Q_DISABLE_COPY(MSBuildProject)
 public:
-    explicit MSBuildProject(QObject *parent = nullptr);
+    MSBuildProject();
     ~MSBuildProject() override;
 
     QString defaultTargets() const;

@@ -31,6 +31,8 @@
 #ifndef MSBUILDPROPERTYBASE_H
 #define MSBUILDPROPERTYBASE_H
 
+#include "imsbuildnode.h"
+
 #include <QtCore/qobject.h>
 #include <QtCore/qvariant.h>
 
@@ -40,11 +42,10 @@ namespace qbs {
 
 class MSBuildPropertyBasePrivate;
 
-class MSBuildPropertyBase : public QObject
+class MSBuildPropertyBase : public IMSBuildNode
 {
-    Q_OBJECT
 protected:
-    explicit MSBuildPropertyBase(QObject *parent = nullptr);
+    MSBuildPropertyBase();
 
 public:
     ~MSBuildPropertyBase() override;

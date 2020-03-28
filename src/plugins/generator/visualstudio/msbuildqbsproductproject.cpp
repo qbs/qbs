@@ -59,11 +59,10 @@ namespace qbs {
 using namespace Internal;
 
 MSBuildQbsProductProject::MSBuildQbsProductProject(
-        const GeneratableProject &project,
-        const GeneratableProductData &product,
-        const Internal::VisualStudioVersionInfo &versionInfo,
-        VisualStudioGenerator *parent)
-    : MSBuildTargetProject(project, versionInfo, parent)
+    const GeneratableProject &project,
+    const GeneratableProductData &product,
+    const Internal::VisualStudioVersionInfo &versionInfo)
+    : MSBuildTargetProject(project, versionInfo)
 {
     Q_ASSERT(project.projects.size() == project.commandLines.size());
     Q_ASSERT(project.projects.size() == product.data.size());
@@ -72,7 +71,7 @@ MSBuildQbsProductProject::MSBuildQbsProductProject(
 
     globalsPropertyGroup()->appendProperty(QStringLiteral("QbsProductName"), product.name());
 
-    const auto cppDefaultProps = new MSBuildImport(this);
+    const auto cppDefaultProps = makeChild<MSBuildImport>();
     cppDefaultProps->setProject(QStringLiteral("$(VCTargetsPath)\\Microsoft.Cpp.Default.props"));
 
     for (int i = 0; i < count; ++i) {
@@ -83,7 +82,7 @@ MSBuildQbsProductProject::MSBuildQbsProductProject(
                     project.commandLines.values().at(i));
     }
 
-    const auto cppProps = new MSBuildImport(this);
+    const auto cppProps = makeChild<MSBuildImport>();
     cppProps->setProject(QStringLiteral("$(VCTargetsPath)\\Microsoft.Cpp.props"));
 
     for (int i = 0; i < count; ++i)
@@ -142,7 +141,7 @@ void MSBuildQbsProductProject::addConfiguration(const GeneratableProject &projec
 
     const auto sep = Internal::HostOsInfo::pathListSeparator(Internal::HostOsInfo::HostOsWindows);
 
-    const auto propertyGroup1 = new MSBuildPropertyGroup(this);
+    const auto propertyGroup1 = makeChild<MSBuildPropertyGroup>();
     propertyGroup1->setCondition(MSBuildUtils::buildTaskCondition(buildTask));
     propertyGroup1->setLabel(QStringLiteral("Configuration"));
     propertyGroup1->appendProperty(QStringLiteral("UseDebugLibraries"),
@@ -276,10 +275,10 @@ void MSBuildQbsProductProject::addItemDefGroup(const Project &project,
 
     const auto sep = Internal::HostOsInfo::pathListSeparator(Internal::HostOsInfo::HostOsWindows);
 
-    const auto itemDefGroup = new MSBuildItemDefinitionGroup(this);
+    const auto itemDefGroup = makeChild<MSBuildItemDefinitionGroup>();
     itemDefGroup->setCondition(MSBuildUtils::buildTaskCondition(project));
 
-    const auto compile = new MSBuildClCompile(itemDefGroup);
+    const auto compile = itemDefGroup->makeChild<MSBuildClCompile>();
 
     // C++ - General
     compile->appendProperty(
@@ -311,7 +310,7 @@ void MSBuildQbsProductProject::addItemDefGroup(const Project &project,
                             ? QStringLiteral("MultiThreadedDebugDLL")
                             : QStringLiteral("MultiThreadedDLL"));
 
-    const auto link = new MSBuildLink(itemDefGroup);
+    const auto link = itemDefGroup->makeChild<MSBuildLink>();
 
     // Linker - General
     link->appendProperty(QStringLiteral("AdditionalLibraryDirectories"),
@@ -346,20 +345,20 @@ void MSBuildQbsProductProject::addItemDefGroup(const Project &project,
                          debugBuild ? QStringLiteral("false") : QStringLiteral("true"));
 }
 
-static MSBuildFileItem *fileItemForFileTags(const QList<QString> &fileTags,
-                                            IMSBuildItemGroup *parent = nullptr)
+static MSBuildFileItem *fileItemForFileTags(
+    const QList<QString> &fileTags, MSBuildItemGroup *parent)
 {
     if (fileTags.contains(QStringLiteral("hpp")))
-        return new MSBuildClInclude(parent);
+        return parent->makeChild<MSBuildClInclude>();
     if (fileTags.contains(QStringLiteral("c")) || fileTags.contains(QStringLiteral("cpp")))
-        return new MSBuildClCompile(parent);
-    return new MSBuildNone(parent);
+        return parent->makeChild<MSBuildClCompile>();
+    return parent->makeChild<MSBuildNone>();
 }
 
 void MSBuildQbsProductProject::addFiles(const GeneratableProject &project,
                                         const GeneratableProductData &product)
 {
-    const auto itemGroup = new MSBuildItemGroup(this);
+    const auto itemGroup = makeChild<MSBuildItemGroup>();
 
     addQbsFile(project, product, itemGroup);
 
@@ -400,10 +399,8 @@ void MSBuildQbsProductProject::addFiles(const GeneratableProject &project,
     for (const auto &sourceFileNode : sourceFileNodes) {
         for (auto it = project.projects.cbegin(), end = project.projects.cend(); it != end; ++it) {
             if (!sourceFileEnabledConfigurations[sourceFileNode.first].contains(it.key())) {
-                const auto metadata = new MSBuildItemMetadata(
-                    QStringLiteral("ExcludedFromBuild"),
-                    QStringLiteral("true"),
-                    sourceFileNode.second);
+                const auto metadata = sourceFileNode.second->makeChild<MSBuildItemMetadata>(
+                    QStringLiteral("ExcludedFromBuild"), QStringLiteral("true"));
                 metadata->setCondition(
                     QStringLiteral("'$(Configuration)|$(Platform)'=='")
                     + MSBuildUtils::fullName(it.value()) + QStringLiteral("'"));
@@ -411,7 +408,7 @@ void MSBuildQbsProductProject::addFiles(const GeneratableProject &project,
         }
     }
 
-    const auto import = new MSBuildImport(this);
+    const auto import = makeChild<MSBuildImport>();
     import->setProject(QStringLiteral("$(VCTargetsPath)\\Microsoft.Cpp.targets"));
 }
 
@@ -419,7 +416,7 @@ void MSBuildQbsProductProject::addQbsFile(const GeneratableProject &project,
                                           const GeneratableProductData &product,
                                           MSBuildItemGroup *itemGroup)
 {
-    const auto fileItem = new MSBuildNone(itemGroup);
+    const auto fileItem = itemGroup->makeChild<MSBuildNone>();
     QString path = project.baseBuildDirectory().relativeFilePath(product.location().filePath());
     // The path still might not be relative (for example if the file item is
     // located on a different drive)

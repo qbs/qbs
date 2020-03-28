@@ -35,13 +35,10 @@
 
 namespace qbs {
 
-class IMSBuildItemGroup;
-
 class MSBuildLink : public MSBuildItem
 {
-    Q_OBJECT
 public:
-    explicit MSBuildLink(IMSBuildItemGroup *parent = nullptr);
+    explicit MSBuildLink();
 };
 
 } // namespace qbs

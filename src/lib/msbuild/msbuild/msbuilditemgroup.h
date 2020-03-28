@@ -31,8 +31,8 @@
 #ifndef MSBUILDITEMGROUP_H
 #define MSBUILDITEMGROUP_H
 
-#include "imsbuildgroup.h"
 #include "imsbuildnode.h"
+#include "msbuilditemgroupbase.h"
 
 #include <memory>
 
@@ -46,12 +46,10 @@ class MSBuildItemGroupPrivate;
  *
  * https://msdn.microsoft.com/en-us/library/646dk05y.aspx
  */
-class MSBuildItemGroup : public IMSBuildItemGroup, public IMSBuildNode
+class MSBuildItemGroup : public MSBuildItemGroupBase
 {
-    Q_OBJECT
-    Q_DISABLE_COPY(MSBuildItemGroup)
 public:
-    explicit MSBuildItemGroup(MSBuildProject *parent = nullptr);
+    MSBuildItemGroup();
     ~MSBuildItemGroup() override;
 
     QString label() const;

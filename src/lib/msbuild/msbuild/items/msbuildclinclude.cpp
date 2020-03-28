@@ -34,8 +34,8 @@ namespace qbs {
 
 static const QString MSBuildClIncludeItemName = QStringLiteral("ClInclude");
 
-MSBuildClInclude::MSBuildClInclude(IMSBuildItemGroup *parent)
-    : MSBuildFileItem(MSBuildClIncludeItemName, parent)
+MSBuildClInclude::MSBuildClInclude()
+    : MSBuildFileItem(MSBuildClIncludeItemName)
 {
 }
 

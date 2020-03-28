@@ -44,9 +44,8 @@ public:
     QString include;
 };
 
-MSBuildItem::MSBuildItem(const QString &name, IMSBuildItemGroup *parent)
-    : QObject(parent)
-    , d(new MSBuildItemPrivate)
+MSBuildItem::MSBuildItem(const QString &name)
+    : d(new MSBuildItemPrivate)
 {
     setName(name);
 }
@@ -75,17 +74,14 @@ void MSBuildItem::setInclude(const QString &include)
 
 void MSBuildItem::appendProperty(const QString &name, const QVariant &value)
 {
-    new MSBuildItemMetadata(name, value, this);
+    makeChild<MSBuildItemMetadata>(name, value);
 }
 
 void MSBuildItem::accept(IMSBuildNodeVisitor *visitor) const
 {
     visitor->visitStart(this);
 
-    for (const auto &child : children()) {
-        if (const auto itemMetadata = qobject_cast<const MSBuildItemMetadata *>(child))
-            itemMetadata->accept(visitor);
-    }
+    acceptChildren(visitor);
 
     visitor->visitEnd(this);
 }

@@ -31,11 +31,13 @@
 #ifndef MSBUILDPROPERTYGROUP_H
 #define MSBUILDPROPERTYGROUP_H
 
-#include "imsbuildgroup.h"
 #include "imsbuildnode.h"
+
+#include <QtCore/qvariant.h>
 
 namespace qbs {
 
+class MSBuildProperty;
 class MSBuildProject;
 class MSBuildPropertyGroupPrivate;
 
@@ -44,13 +46,14 @@ class MSBuildPropertyGroupPrivate;
  *
  * https://msdn.microsoft.com/en-us/library/t4w159bs.aspx
  */
-class MSBuildPropertyGroup : public IMSBuildGroup, public IMSBuildNode
+class MSBuildPropertyGroup : public MSBuildNode<MSBuildProperty>
 {
-    Q_OBJECT
-    Q_DISABLE_COPY(MSBuildPropertyGroup)
 public:
-    explicit MSBuildPropertyGroup(MSBuildProject *parent = nullptr);
+    MSBuildPropertyGroup();
     ~MSBuildPropertyGroup() override;
+
+    QString condition() const;
+    void setCondition(const QString &condition);
 
     QString label() const;
     void setLabel(const QString &label);

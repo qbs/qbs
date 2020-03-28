@@ -46,9 +46,8 @@ public:
     QString toolsVersion;
 };
 
-MSBuildProject::MSBuildProject(QObject *parent)
-    : QObject(parent)
-    , d(new MSBuildProjectPrivate)
+MSBuildProject::MSBuildProject()
+    : d(new MSBuildProjectPrivate)
 {
 }
 
@@ -78,18 +77,7 @@ void MSBuildProject::accept(IMSBuildNodeVisitor *visitor) const
 {
     visitor->visitStart(this);
 
-    for (const auto &child : children()) {
-        if (const auto node = qobject_cast<MSBuildImport *>(child))
-            node->accept(visitor);
-        else if (const auto node = qobject_cast<MSBuildImportGroup *>(child))
-            node->accept(visitor);
-        else if (const auto node = qobject_cast<MSBuildItemDefinitionGroup *>(child))
-            node->accept(visitor);
-        else if (const auto node = qobject_cast<MSBuildItemGroup *>(child))
-            node->accept(visitor);
-        else if (const auto node = qobject_cast<MSBuildPropertyGroup *>(child))
-            node->accept(visitor);
-    }
+    acceptChildren(visitor);
 
     visitor->visitEnd(this);
 }

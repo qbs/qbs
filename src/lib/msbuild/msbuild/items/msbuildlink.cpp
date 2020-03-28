@@ -30,14 +30,12 @@
 
 #include "msbuildlink.h"
 
-#include "../imsbuildgroup.h"
-
 namespace qbs {
 
 static const QString MSBuildLinkItemName = QStringLiteral("Link");
 
-MSBuildLink::MSBuildLink(IMSBuildItemGroup *parent)
-    : MSBuildItem(MSBuildLinkItemName, parent)
+MSBuildLink::MSBuildLink()
+    : MSBuildItem(MSBuildLinkItemName)
 {
 }
 

@@ -42,10 +42,19 @@ public:
     QString label;
 };
 
-MSBuildPropertyGroup::MSBuildPropertyGroup(MSBuildProject *parent)
-    : IMSBuildGroup(parent)
-    , d(new MSBuildPropertyGroupPrivate)
+MSBuildPropertyGroup::MSBuildPropertyGroup()
+    : d(new MSBuildPropertyGroupPrivate)
 {
+}
+
+QString MSBuildPropertyGroup::condition() const
+{
+    return d->condition;
+}
+
+void MSBuildPropertyGroup::setCondition(const QString &condition)
+{
+    d->condition = condition;
 }
 
 MSBuildPropertyGroup::~MSBuildPropertyGroup() = default;
@@ -62,17 +71,14 @@ void MSBuildPropertyGroup::setLabel(const QString &label)
 
 void MSBuildPropertyGroup::appendProperty(const QString &name, const QVariant &value)
 {
-    new MSBuildProperty(name, value, this);
+    makeChild<MSBuildProperty>(name, value);
 }
 
 void MSBuildPropertyGroup::accept(IMSBuildNodeVisitor *visitor) const
 {
     visitor->visitStart(this);
 
-    for (const auto &child : children()) {
-        if (const MSBuildProperty *property = qobject_cast<MSBuildProperty *>(child))
-            property->accept(visitor);
-    }
+    acceptChildren(visitor);
 
     visitor->visitEnd(this);
 }

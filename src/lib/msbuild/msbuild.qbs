@@ -28,8 +28,6 @@ QbsStaticLibrary {
         name: "MSBuild Object Model"
         prefix: "msbuild/"
         files: [
-            "imsbuildgroup.cpp",
-            "imsbuildgroup.h",
             "imsbuildnode.cpp",
             "imsbuildnode.h",
             "imsbuildnodevisitor.h",
@@ -39,6 +37,8 @@ QbsStaticLibrary {
             "msbuildimportgroup.h",
             "msbuilditem.cpp",
             "msbuilditem.h",
+            "msbuilditemgroupbase.cpp",
+            "msbuilditemgroupbase.h",
             "msbuilditemdefinitiongroup.cpp",
             "msbuilditemdefinitiongroup.h",
             "msbuilditemgroup.cpp",

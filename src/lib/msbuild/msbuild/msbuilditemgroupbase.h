@@ -31,34 +31,43 @@
 #ifndef IMSBUILDGROUP_H
 #define IMSBUILDGROUP_H
 
-#include <QtCore/qobject.h>
+#include "imsbuildnode.h"
+
+#include <QtCore/qstring.h>
 
 #include <memory>
 
 namespace qbs {
 
+class MSBuildClInclude;
+class MSBuildClCompile;
+class MSBuildItem;
+class MSBuildFileItem;
+class MSBuildFilter;
+class MSBuildLink;
+class MSBuildNone;
 class MSBuildProject;
-class IMSBuildGroupPrivate;
+class MSBuildProperty;
+class IMSBuildItemGroupPrivate;
 
-class IMSBuildGroup : public QObject
+class MSBuildItemGroupBase : public MSBuildNode<
+                                 MSBuildClInclude,
+                                 MSBuildClCompile,
+                                 MSBuildItem,
+                                 MSBuildFileItem,
+                                 MSBuildFilter,
+                                 MSBuildLink,
+                                 MSBuildNone>
 {
-    Q_OBJECT
 public:
-    explicit IMSBuildGroup(MSBuildProject *parent = nullptr);
-    ~IMSBuildGroup() override;
+    MSBuildItemGroupBase();
+    ~MSBuildItemGroupBase() override;
 
     QString condition() const;
     void setCondition(const QString &condition);
 
 private:
-    std::unique_ptr<IMSBuildGroupPrivate> d;
-};
-
-class IMSBuildItemGroup : public IMSBuildGroup
-{
-    Q_OBJECT
-public:
-    explicit IMSBuildItemGroup(MSBuildProject *parent = nullptr);
+    std::unique_ptr<IMSBuildItemGroupPrivate> d;
 };
 
 } // namespace qbs

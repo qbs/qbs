@@ -31,11 +31,13 @@
 #ifndef MSBUILDIMPORTGROUP_H
 #define MSBUILDIMPORTGROUP_H
 
-#include "imsbuildgroup.h"
 #include "imsbuildnode.h"
+
+#include <QtCore/qstring.h>
 
 namespace qbs {
 
+class MSBuildImport;
 class MSBuildProject;
 class MSBuildImportGroupPrivate;
 
@@ -44,13 +46,14 @@ class MSBuildImportGroupPrivate;
  *
  * https://msdn.microsoft.com/en-us/library/ff606262.aspx
  */
-class MSBuildImportGroup : public IMSBuildGroup, public IMSBuildNode
+class MSBuildImportGroup : public MSBuildNode<MSBuildImport>
 {
-    Q_OBJECT
-    Q_DISABLE_COPY(MSBuildImportGroup)
 public:
-    explicit MSBuildImportGroup(MSBuildProject *parent = nullptr);
+    MSBuildImportGroup();
     ~MSBuildImportGroup() override;
+
+    QString condition() const;
+    void setCondition(const QString &condition);
 
     QString label() const;
     void setLabel(const QString &label);

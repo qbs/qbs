@@ -40,9 +40,8 @@ public:
     QVariant value;
 };
 
-MSBuildPropertyBase::MSBuildPropertyBase(QObject *parent)
-    : QObject(parent)
-    , d(new MSBuildPropertyBasePrivate)
+MSBuildPropertyBase::MSBuildPropertyBase()
+    : d(new MSBuildPropertyBasePrivate)
 {
 }
 

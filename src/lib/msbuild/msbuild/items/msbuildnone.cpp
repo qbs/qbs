@@ -32,8 +32,8 @@
 
 namespace qbs {
 
-MSBuildNone::MSBuildNone(IMSBuildItemGroup *parent)
-    : MSBuildFileItem(QStringLiteral("None"), parent)
+MSBuildNone::MSBuildNone()
+    : MSBuildFileItem(QStringLiteral("None"))
 {
 }
 

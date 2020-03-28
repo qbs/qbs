@@ -38,7 +38,8 @@
 
 namespace qbs {
 
-class IMSBuildItemGroup;
+class MSBuildItemMetadata;
+class MSBuildItemGroupBase;
 class MSBuildItemDefinitionGroup;
 class MSBuildItemGroup;
 class MSBuildItemPrivate;
@@ -48,11 +49,10 @@ class MSBuildItemPrivate;
  *
  * https://msdn.microsoft.com/en-us/library/ms164283.aspx
  */
-class MSBuildItem : public QObject, public IMSBuildNode
+class MSBuildItem : public MSBuildNode<MSBuildItemMetadata>
 {
-    Q_OBJECT
 public:
-    explicit MSBuildItem(const QString &name, IMSBuildItemGroup *parent = nullptr);
+    explicit MSBuildItem(const QString &name);
     ~MSBuildItem() override;
 
     QString name() const;

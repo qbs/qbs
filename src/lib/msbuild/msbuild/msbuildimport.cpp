@@ -43,15 +43,8 @@ public:
     QString condition;
 };
 
-MSBuildImport::MSBuildImport(MSBuildProject *parent)
-    : QObject(parent)
-    , d(new MSBuildImportPrivate)
-{
-}
-
-MSBuildImport::MSBuildImport(MSBuildImportGroup *parent)
-    : QObject(parent)
-    , d(new MSBuildImportPrivate)
+MSBuildImport::MSBuildImport()
+    : d(new MSBuildImportPrivate)
 {
 }
 

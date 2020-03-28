@@ -263,6 +263,9 @@ constexpr std::underlying_type_t<Enum> toUnderlying(Enum e) noexcept
     return static_cast<std::underlying_type_t<Enum>>(e);
 }
 
+template<typename T, typename... Types>
+constexpr bool is_any_of_types = std::disjunction_v<std::is_same<T, Types>...>;
+
 } // namespace Internal
 } // namespace qbs
 

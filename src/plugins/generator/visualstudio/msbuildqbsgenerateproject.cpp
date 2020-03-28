@@ -41,15 +41,13 @@
 namespace qbs {
 
 MSBuildQbsGenerateProject::MSBuildQbsGenerateProject(
-        const GeneratableProject &project,
-        const Internal::VisualStudioVersionInfo &versionInfo,
-        VisualStudioGenerator *parent)
-    : MSBuildTargetProject(project, versionInfo, parent)
+    const GeneratableProject &project, const Internal::VisualStudioVersionInfo &versionInfo)
+    : MSBuildTargetProject(project, versionInfo)
 {
-    const auto cppDefaultProps = new MSBuildImport(this);
+    const auto cppDefaultProps = makeChild<MSBuildImport>();
     cppDefaultProps->setProject(QStringLiteral("$(VCTargetsPath)\\Microsoft.Cpp.Default.props"));
 
-    const auto group = new MSBuildPropertyGroup(this);
+    const auto group = makeChild<MSBuildPropertyGroup>();
     group->setLabel(QStringLiteral("Configuration"));
     group->appendProperty(QStringLiteral("PlatformToolset"),
                           versionInfo.platformToolsetVersion());
@@ -61,10 +59,10 @@ MSBuildQbsGenerateProject::MSBuildQbsGenerateProject(
         QStringLiteral("NMakeBuildCommandLine"),
         QString(QStringLiteral("$(QbsGenerateCommandLine) ") + params));
 
-    const auto cppProps = new MSBuildImport(this);
+    const auto cppProps = makeChild<MSBuildImport>();
     cppProps->setProject(QStringLiteral("$(VCTargetsPath)\\Microsoft.Cpp.props"));
 
-    const auto import = new MSBuildImport(this);
+    const auto import = makeChild<MSBuildImport>();
     import->setProject(QStringLiteral("$(VCTargetsPath)\\Microsoft.Cpp.targets"));
 }
 

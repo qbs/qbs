@@ -31,8 +31,8 @@
 #ifndef MSBUILDITEMDEFINITIONGROUP_H
 #define MSBUILDITEMDEFINITIONGROUP_H
 
-#include "imsbuildgroup.h"
 #include "imsbuildnode.h"
+#include "msbuilditemgroupbase.h"
 
 namespace qbs {
 
@@ -44,11 +44,10 @@ class MSBuildItemDefinitionGroupPrivate;
  *
  * https://msdn.microsoft.com/en-us/library/bb629392.aspx
  */
-class MSBuildItemDefinitionGroup : public IMSBuildItemGroup, public IMSBuildNode
+class MSBuildItemDefinitionGroup : public MSBuildItemGroupBase
 {
-    Q_OBJECT
 public:
-    explicit MSBuildItemDefinitionGroup(MSBuildProject *parent = nullptr);
+    MSBuildItemDefinitionGroup();
     ~MSBuildItemDefinitionGroup() override;
 
     void accept(IMSBuildNodeVisitor *visitor) const override;

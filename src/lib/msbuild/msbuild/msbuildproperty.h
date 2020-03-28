@@ -31,7 +31,6 @@
 #ifndef MSBUILDPROPERTY_H
 #define MSBUILDPROPERTY_H
 
-#include "imsbuildnode.h"
 #include "msbuildpropertybase.h"
 
 namespace qbs {
@@ -43,13 +42,11 @@ class MSBuildPropertyGroup;
  *
  * https://msdn.microsoft.com/en-us/library/ms164288.aspx
  */
-class MSBuildProperty : public MSBuildPropertyBase, public IMSBuildNode
+class MSBuildProperty : public MSBuildPropertyBase
 {
-    Q_OBJECT
 public:
-    explicit MSBuildProperty(MSBuildPropertyGroup *parent = nullptr);
-    MSBuildProperty(const QString &name, const QVariant &value = QVariant(),
-                    MSBuildPropertyGroup *parent = nullptr);
+    MSBuildProperty();
+    MSBuildProperty(const QString &name, const QVariant &value = QVariant());
 
     void accept(IMSBuildNodeVisitor *visitor) const override;
 };

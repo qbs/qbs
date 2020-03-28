@@ -35,16 +35,13 @@
 
 namespace qbs {
 
-class IMSBuildItemGroup;
 class MSBuildFilterPrivate;
 
 class MSBuildFilter : public MSBuildItem
 {
-    Q_OBJECT
 public:
-    explicit MSBuildFilter(IMSBuildItemGroup *parent = nullptr);
-    MSBuildFilter(const QString &name, const QList<QString> &extensions,
-                  IMSBuildItemGroup *parent = nullptr);
+    explicit MSBuildFilter();
+    MSBuildFilter(const QString &name, const QList<QString> &extensions);
     ~MSBuildFilter() override;
 
     QUuid identifier() const;

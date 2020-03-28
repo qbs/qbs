@@ -102,7 +102,8 @@ const std::vector<FilterInfo> & getDefaultFilterInfo()
 MSBuildFilter * makeBuildFilter(const FilterInfo &filterInfo,
                                MSBuildItemGroup *itemFiltersGroup)
 {
-    const auto filter = new MSBuildFilter(filterInfo.name, filterInfo.extensions, itemFiltersGroup);
+    const auto filter = itemFiltersGroup->makeChild<MSBuildFilter>(
+        filterInfo.name, filterInfo.extensions);
     filter->appendProperty(QStringLiteral("ParseFiles"), filterInfo.parseFiles);
     filter->appendProperty(QStringLiteral("SourceControlFiles"), filterInfo.sourceControlFiles);
     return filter;
@@ -128,12 +129,12 @@ MSBuildFileItem * makeFileItem(const QString& filePath,
                               MSBuildItemGroup *itemGroup)
 {
     if (isHeaderFile(filePath))
-        return new MSBuildClInclude(itemGroup);
+        return itemGroup->makeChild<MSBuildClInclude>();
 
     if (isSourceFile(filePath))
-        return new MSBuildClCompile(itemGroup);
+        return itemGroup->makeChild<MSBuildClCompile>();
 
-    return new MSBuildNone(itemGroup);
+    return itemGroup->makeChild<MSBuildNone>();
 }
 
 
@@ -144,7 +145,7 @@ public:
 
     ProductProcessor(MSBuildProject *parent)
         : m_parent(parent)
-        , m_itemFiltersGroup(new MSBuildItemGroup(m_parent))
+        , m_itemFiltersGroup(m_parent->makeChild<MSBuildItemGroup>())
     {
     }
 
@@ -174,12 +175,12 @@ public:
 
                     if (filterInfo.name == QStringLiteral("Header Files")) {
                         if (!m_headerFilesGroup)
-                            m_headerFilesGroup = new MSBuildItemGroup(m_parent);
-                        fileItem = new MSBuildClInclude(m_headerFilesGroup);
+                            m_headerFilesGroup = m_parent->makeChild<MSBuildItemGroup>();
+                        fileItem = m_headerFilesGroup->makeChild<MSBuildClInclude>();
                     } else if (filterInfo.name == QStringLiteral("Source Files")) {
                         if (!m_sourceFilesGroup)
-                            m_sourceFilesGroup = new MSBuildItemGroup(m_parent);
-                        fileItem = new MSBuildClCompile(m_sourceFilesGroup);
+                            m_sourceFilesGroup = m_parent->makeChild<MSBuildItemGroup>();
+                        fileItem = m_sourceFilesGroup->makeChild<MSBuildClCompile>();
                     }
 
                     if (fileItem) {
@@ -191,10 +192,10 @@ public:
 
             if (!fileItem) {
                 if (!m_filesGroup) {
-                    m_filesGroup = new MSBuildItemGroup(m_parent);
+                    m_filesGroup = m_parent->makeChild<MSBuildItemGroup>();
                 }
 
-                fileItem = new MSBuildNone(m_filesGroup);
+                fileItem = m_filesGroup->makeChild<MSBuildNone>();
             }
 
             fileItem->setFilePath(filePath);
@@ -205,7 +206,7 @@ public:
     {
         makeFilter({groupData.name(), QStringList() << QStringLiteral("*")});
 
-        auto *itemGroup = new MSBuildItemGroup(m_parent);
+        auto *itemGroup = m_parent->makeChild<MSBuildItemGroup>();
         const auto &files = groupData.allFilePaths();
         for (const auto &filePath : files) {
             auto *fileItem = makeFileItem(filePath, itemGroup);
@@ -233,9 +234,7 @@ private:
 
 } // namespace
 
-MSBuildFiltersProject::MSBuildFiltersProject(const GeneratableProductData &product,
-                                             QObject *parent)
-    : MSBuildProject(parent)
+MSBuildFiltersProject::MSBuildFiltersProject(const GeneratableProductData &product)
 {
     // Normally this would be versionInfo.toolsVersion() but for some reason it seems
     // filters projects are always v4.0

@@ -34,8 +34,8 @@ namespace qbs {
 
 static const QString MSBuildClCompileItemName = QStringLiteral("ClCompile");
 
-MSBuildClCompile::MSBuildClCompile(IMSBuildItemGroup *parent)
-    : MSBuildFileItem(MSBuildClCompileItemName, parent)
+MSBuildClCompile::MSBuildClCompile()
+    : MSBuildFileItem(MSBuildClCompileItemName)
 {
 }
 

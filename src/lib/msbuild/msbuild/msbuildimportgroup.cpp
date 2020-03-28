@@ -38,13 +38,23 @@ namespace qbs {
 class MSBuildImportGroupPrivate
 {
 public:
+    QString condition;
     QString label;
 };
 
-MSBuildImportGroup::MSBuildImportGroup(MSBuildProject *parent)
-    : IMSBuildGroup(parent)
-    , d(new MSBuildImportGroupPrivate)
+MSBuildImportGroup::MSBuildImportGroup()
+    : d(new MSBuildImportGroupPrivate)
 {
+}
+
+QString MSBuildImportGroup::condition() const
+{
+    return d->condition;
+}
+
+void MSBuildImportGroup::setCondition(const QString &condition)
+{
+    d->condition = condition;
 }
 
 MSBuildImportGroup::~MSBuildImportGroup() = default;
@@ -63,10 +73,7 @@ void MSBuildImportGroup::accept(IMSBuildNodeVisitor *visitor) const
 {
     visitor->visitStart(this);
 
-    for (const auto &child : children()) {
-        if (const auto import = qobject_cast<const MSBuildImport *>(child))
-            import->accept(visitor);
-    }
+    acceptChildren(visitor);
 
     visitor->visitEnd(this);
 }
