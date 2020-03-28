@@ -31,8 +31,8 @@
 #ifndef MSBUILDPROPERTY_H
 #define MSBUILDPROPERTY_H
 
-#include "imsbuildproperty.h"
 #include "imsbuildnode.h"
+#include "msbuildpropertybase.h"
 
 namespace qbs {
 
@@ -43,7 +43,7 @@ class MSBuildPropertyGroup;
  *
  * https://msdn.microsoft.com/en-us/library/ms164288.aspx
  */
-class MSBuildProperty : public IMSBuildProperty, public IMSBuildNode
+class MSBuildProperty : public MSBuildPropertyBase, public IMSBuildNode
 {
     Q_OBJECT
 public:

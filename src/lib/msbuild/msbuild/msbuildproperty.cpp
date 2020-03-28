@@ -36,7 +36,7 @@
 namespace qbs {
 
 MSBuildProperty::MSBuildProperty(MSBuildPropertyGroup *parent)
-    : IMSBuildProperty(parent)
+    : MSBuildPropertyBase(parent)
 {
 }
 

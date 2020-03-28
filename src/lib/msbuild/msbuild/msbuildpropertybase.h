@@ -28,54 +28,40 @@
 **
 ****************************************************************************/
 
-#include "imsbuildproperty.h"
+#ifndef MSBUILDPROPERTYBASE_H
+#define MSBUILDPROPERTYBASE_H
+
+#include <QtCore/qobject.h>
+#include <QtCore/qvariant.h>
+
+#include <memory>
 
 namespace qbs {
 
-class IMSBuildPropertyPrivate
+class MSBuildPropertyBasePrivate;
+
+class MSBuildPropertyBase : public QObject
 {
+    Q_OBJECT
+protected:
+    explicit MSBuildPropertyBase(QObject *parent = nullptr);
+
 public:
-    QString condition;
-    QString name;
-    QVariant value;
+    ~MSBuildPropertyBase() override;
+
+    QString condition() const;
+    void setCondition(const QString &condition);
+
+    QString name() const;
+    void setName(const QString &name);
+
+    QVariant value() const;
+    void setValue(const QVariant &value);
+
+private:
+    std::unique_ptr<MSBuildPropertyBasePrivate> d;
 };
 
-IMSBuildProperty::IMSBuildProperty(QObject *parent)
-    : QObject(parent)
-    , d(new IMSBuildPropertyPrivate)
-{
-}
-
-IMSBuildProperty::~IMSBuildProperty() = default;
-
-QString IMSBuildProperty::condition() const
-{
-    return d->condition;
-}
-
-void IMSBuildProperty::setCondition(const QString &condition)
-{
-    d->condition = condition;
-}
-
-QString IMSBuildProperty::name() const
-{
-    return d->name;
-}
-
-void IMSBuildProperty::setName(const QString &name)
-{
-    d->name = name;
-}
-
-QVariant IMSBuildProperty::value() const
-{
-    return d->value;
-}
-
-void IMSBuildProperty::setValue(const QVariant &value)
-{
-    d->value = value;
-}
-
 } // namespace qbs
+
+#endif // MSBUILDPROPERTYBASE_H

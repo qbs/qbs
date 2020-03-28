@@ -8,7 +8,6 @@ HEADERS += \
     msbuild/imsbuildgroup.h \
     msbuild/imsbuildnode.h \
     msbuild/imsbuildnodevisitor.h \
-    msbuild/imsbuildproperty.h \
     msbuild/items/msbuildclcompile.h \
     msbuild/items/msbuildclinclude.h \
     msbuild/items/msbuildfileitem.h \
@@ -23,6 +22,7 @@ HEADERS += \
     msbuild/msbuilditemmetadata.h \
     msbuild/msbuildproject.h \
     msbuild/msbuildproperty.h \
+    msbuild/msbuildpropertybase.h \
     msbuild/msbuildpropertygroup.h \
     solution/ivisualstudiosolutionproject.h \
     solution/visualstudiosolution.h \
@@ -35,7 +35,6 @@ SOURCES += \
     io/visualstudiosolutionwriter.cpp \
     msbuild/imsbuildgroup.cpp \
     msbuild/imsbuildnode.cpp \
-    msbuild/imsbuildproperty.cpp \
     msbuild/items/msbuildclcompile.cpp \
     msbuild/items/msbuildclinclude.cpp \
     msbuild/items/msbuildfileitem.cpp \
@@ -50,6 +49,7 @@ SOURCES += \
     msbuild/msbuilditemmetadata.cpp \
     msbuild/msbuildproject.cpp \
     msbuild/msbuildproperty.cpp \
+    msbuild/msbuildpropertybase.cpp \
     msbuild/msbuildpropertygroup.cpp \
     solution/ivisualstudiosolutionproject.cpp \
     solution/visualstudiosolution.cpp \

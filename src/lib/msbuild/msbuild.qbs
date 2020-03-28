@@ -35,8 +35,6 @@ QbsStaticLibrary {
             "imsbuildnode.cpp",
             "imsbuildnode.h",
             "imsbuildnodevisitor.h",
-            "imsbuildproperty.cpp",
-            "imsbuildproperty.h",
             "msbuildimport.cpp",
             "msbuildimport.h",
             "msbuildimportgroup.cpp",
@@ -53,6 +51,8 @@ QbsStaticLibrary {
             "msbuildproject.h",
             "msbuildproperty.cpp",
             "msbuildproperty.h",
+            "msbuildpropertybase.cpp",
+            "msbuildpropertybase.h",
             "msbuildpropertygroup.cpp",
             "msbuildpropertygroup.h",
         ]

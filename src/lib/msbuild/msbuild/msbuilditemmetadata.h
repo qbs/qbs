@@ -31,8 +31,8 @@
 #ifndef MSBUILDITEMMETADATA_H
 #define MSBUILDITEMMETADATA_H
 
-#include "imsbuildproperty.h"
 #include "imsbuildnode.h"
+#include "msbuildpropertybase.h"
 
 namespace qbs {
 
@@ -43,7 +43,7 @@ class MSBuildItem;
  *
  * https://msdn.microsoft.com/en-us/library/ms164284.aspx
  */
-class MSBuildItemMetadata : public IMSBuildProperty, public IMSBuildNode
+class MSBuildItemMetadata : public MSBuildPropertyBase, public IMSBuildNode
 {
     Q_OBJECT
     Q_DISABLE_COPY(MSBuildItemMetadata)
