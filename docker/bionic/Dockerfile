@@ -137,6 +137,7 @@ RUN apt-get update -qq && \
         libgl1-mesa-dev \
         libgl1-mesa-glx \
         libprotobuf-dev \
+        libgrpc++-dev \
         nsis \
         pkg-config \
         protobuf-compiler \
