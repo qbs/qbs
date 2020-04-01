@@ -8127,6 +8127,8 @@ void TestBlackbox::grpc()
     QVERIFY2(withGrpc || withoutGrpc, m_qbsStdout.constData());
     if (withoutGrpc)
         QSKIP("grpc module not present");
+    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+        QSKIP("Cannot run binaries in cross-compiled build");
 
     QbsRunParameters runParams;
     QCOMPARE(runQbs(runParams), 0);
@@ -8135,6 +8137,9 @@ void TestBlackbox::grpc()
 void TestBlackbox::hostOsProperties()
 {
     QDir::setCurrent(testDataDir + "/host-os-properties");
+    QCOMPARE(runQbs(QStringLiteral("resolve")), 0);
+    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+        QSKIP("Cannot run binaries in cross-compiled build");
     QCOMPARE(runQbs(QStringLiteral("run")), 0);
     QVERIFY2(m_qbsStdout.contains(
                  ("HOST_ARCHITECTURE = " + HostOsInfo::hostOSArchitecture()).data()),
