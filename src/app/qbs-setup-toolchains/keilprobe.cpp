@@ -111,34 +111,63 @@ static Version dumpMcsCompilerVersion(const QFileInfo &compiler)
                         .arg(fakeIn.fileName(), fakeIn.errorString());
         return Version{};
     }
+
     fakeIn.write("#define VALUE_TO_STRING(x) #x\n");
     fakeIn.write("#define VALUE(x) VALUE_TO_STRING(x)\n");
-    fakeIn.write("#define VAR_NAME_VALUE(var) \"\"\"|\"#var\"|\"VALUE(var)\n");
-    fakeIn.write("#ifdef __C51__\n");
-    fakeIn.write("#pragma message(VAR_NAME_VALUE(__C51__))\n");
+
+    // Prepare for C51 compiler.
+    fakeIn.write("#if defined(__C51__) || defined(__CX51__)\n");
+    fakeIn.write("#  define VAR_NAME_VALUE(var) \"(\"\"\"\"|\"#var\"|\"VALUE(var)\"|\"\"\"\")\"\n");
+    fakeIn.write("#  if defined (__C51__)\n");
+    fakeIn.write("#    pragma message (VAR_NAME_VALUE(__C51__))\n");
+    fakeIn.write("#  endif\n");
+    fakeIn.write("#  if defined(__CX51__)\n");
+    fakeIn.write("#    pragma message (VAR_NAME_VALUE(__CX51__))\n");
+    fakeIn.write("#  endif\n");
     fakeIn.write("#endif\n");
-    fakeIn.write("#ifdef __CX51__\n");
-    fakeIn.write("#pragma message(VAR_NAME_VALUE(__CX51__))\n");
+
+    // Prepare for C251 compiler.
+    fakeIn.write("#if defined(__C251__)\n");
+    fakeIn.write("#  define VAR_NAME_VALUE(var) \"\"|#var|VALUE(var)|\"\"\n");
+    fakeIn.write("#  if defined(__C251__)\n");
+    fakeIn.write("#    warning (VAR_NAME_VALUE(__C251__))\n");
+    fakeIn.write("#  endif\n");
     fakeIn.write("#endif\n");
+
     fakeIn.close();
 
     const QStringList args = {fakeIn.fileName()};
     QProcess p;
     p.start(compiler.absoluteFilePath(), args);
     p.waitForFinished(3000);
-    const auto es = p.exitStatus();
-    if (es != QProcess::NormalExit) {
-        const QByteArray out = p.readAll();
-        qbsWarning() << Tr::tr("Compiler dumping failed:\n%1")
-                        .arg(QString::fromUtf8(out));
-        return Version{};
-    }
+
+    const QStringList knownKeys = {QStringLiteral("__C51__"),
+                                   QStringLiteral("__CX51__"),
+                                   QStringLiteral("__C251__")};
+
+    auto extractVersion = [&knownKeys](const QByteArray &output) {
+        QTextStream stream(output);
+        QString line;
+        while (stream.readLineInto(&line)) {
+            if (!line.startsWith(QLatin1String("***")))
+                continue;
+            enum { KEY_INDEX = 1, VALUE_INDEX = 2, ALL_PARTS = 4 };
+            const QStringList parts = line.split(QLatin1String("\"|\""));
+            if (parts.count() != ALL_PARTS)
+                continue;
+            if (!knownKeys.contains(parts.at(KEY_INDEX)))
+                continue;
+            return parts.at(VALUE_INDEX).toInt();
+        }
+        return 0;
+    };
 
     const QByteArray dump = p.readAllStandardOutput();
-    const int verCode = extractVersion(dump, "\"__C51__\"|\"");
+    const int verCode = extractVersion(dump);
     if (verCode < 0) {
-        qbsWarning() << Tr::tr("No '__C51__' token was found"
-                               " in the compiler dump:\n%1")
+        qbsWarning() << Tr::tr("No %1 tokens was found"
+                               " in the compiler dump:\n%2")
+                        .arg(knownKeys.join(QLatin1Char(',')))
                         .arg(QString::fromUtf8(dump));
         return Version{};
     }
@@ -175,7 +204,7 @@ static Version dumpArmCompilerVersion(const QFileInfo &compiler)
 static Version dumpKeilCompilerVersion(const QFileInfo &compiler)
 {
     const QString arch = guessKeilArchitecture(compiler);
-    if (arch == QLatin1String("mcs51")) {
+    if (arch == QLatin1String("mcs51") || arch == QLatin1String("mcs251")) {
         return dumpMcsCompilerVersion(compiler);
     } else if (arch == QLatin1String("arm")) {
         return dumpArmCompilerVersion(compiler);
