@@ -214,21 +214,41 @@ function dumpMcsCompilerMacros(compilerFilePath, tag) {
         tf.writeLine("#define VALUE(x) VALUE_TO_STRING(x)");
 
         // Prepare for C51 compiler.
-        tf.writeLine("#if defined(__C51__) || defined(__CX51__)\n");
-        tf.writeLine("#  define VAR_NAME_VALUE(var) \"(\"\"\"\"|\"#var\"|\"VALUE(var)\"|\"\"\"\")\"\n");
-        tf.writeLine("#  if defined (__C51__)\n");
-        tf.writeLine("#    pragma message (VAR_NAME_VALUE(__C51__))\n");
-        tf.writeLine("#  endif\n");
-        tf.writeLine("#  if defined(__CX51__)\n");
-        tf.writeLine("#    pragma message (VAR_NAME_VALUE(__CX51__))\n");
-        tf.writeLine("#  endif\n");
-        tf.writeLine("#endif\n");
+        tf.writeLine("#if defined(__C51__) || defined(__CX51__)");
+        tf.writeLine("#  define VAR_NAME_VALUE(var) \"(\"\"\"\"|\"#var\"|\"VALUE(var)\"|\"\"\"\")\"");
+        tf.writeLine("#  if defined (__C51__)");
+        tf.writeLine("#    pragma message (VAR_NAME_VALUE(__C51__))");
+        tf.writeLine("#  endif");
+        tf.writeLine("#  if defined(__CX51__)");
+        tf.writeLine("#    pragma message (VAR_NAME_VALUE(__CX51__))");
+        tf.writeLine("#  endif");
+        tf.writeLine("#  if defined(__MODEL__)");
+        tf.writeLine("#    pragma message (VAR_NAME_VALUE(__MODEL__))");
+        tf.writeLine("#  endif");
+        tf.writeLine("#  if defined(__STDC__)");
+        tf.writeLine("#    pragma message (VAR_NAME_VALUE(__STDC__))");
+        tf.writeLine("#  endif");
+        tf.writeLine("#endif");
 
         // Prepare for C251 compiler.
-        tf.writeLine("#if defined(__C251__)\n");
-        tf.writeLine("#  define VAR_NAME_VALUE(var) \"\"|#var|VALUE(var)|\"\"\n");
-        tf.writeLine("#  warning (VAR_NAME_VALUE(__C251__))\n");
-        tf.writeLine("#endif\n");
+        tf.writeLine("#if defined(__C251__)");
+        tf.writeLine("#  define VAR_NAME_VALUE(var) \"\"|#var|VALUE(var)|\"\"");
+        tf.writeLine("#  if defined (__C251__)");
+        tf.writeLine("#    warning (VAR_NAME_VALUE(__C251__))");
+        tf.writeLine("#  endif");
+        tf.writeLine("#  if defined (__MODEL__)");
+        tf.writeLine("#    warning (VAR_NAME_VALUE(__MODEL__))");
+        tf.writeLine("#  endif");
+        tf.writeLine("#  if defined (__STDC__)");
+        tf.writeLine("#    warning (VAR_NAME_VALUE(__STDC__))");
+        tf.writeLine("#  endif");
+        tf.writeLine("#  if defined (__FLOAT64__)");
+        tf.writeLine("#    warning (VAR_NAME_VALUE(__FLOAT64__))");
+        tf.writeLine("#  endif");
+        tf.writeLine("#  if defined (__MODSRC__)");
+        tf.writeLine("#    warning (VAR_NAME_VALUE(__MODSRC__))");
+        tf.writeLine("#  endif");
+        tf.writeLine("#endif");
         tf.close();
         return fn;
     }
