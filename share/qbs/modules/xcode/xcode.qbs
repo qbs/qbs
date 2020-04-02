@@ -49,6 +49,12 @@ Module {
             return _sdkSettings["Version"];
         }
     }
+    readonly property string shortSdkVersion: {
+        var v = sdkVersion;
+        if (v && v.split('.').length > 2)
+            v = v.slice(0, v.lastIndexOf('.'));
+        return v;
+    }
 
     readonly property string latestSdkName: {
         if (_latestSdk) {
@@ -117,8 +123,8 @@ Module {
                                                       + ".platform")
     readonly property path sdkPath: FileInfo.joinPaths(sdksPath,
                                                        DarwinTools.applePlatformDirectoryName(
-                                                           qbs.targetOS, platformType, sdkVersion)
-                                                       + ".sdk")
+                                                           qbs.targetOS, platformType,
+                                                           shortSdkVersion) + ".sdk")
 
     // private properties
     readonly property path toolchainsPath: FileInfo.joinPaths(developerPath, "Toolchains")
@@ -206,14 +212,14 @@ Module {
         validator.setRequiredProperty("platformPath", platformPath);
         validator.setRequiredProperty("sdksPath", sdkPath);
         validator.setRequiredProperty("sdkPath", sdkPath);
-        validator.addVersionValidator("sdkVersion", sdkVersion, 2, 2);
+        validator.addVersionValidator("sdkVersion", sdkVersion, 2, 3);
         validator.addCustomValidator("sdkName", sdkName, function (value) {
             return value === DarwinTools.applePlatformDirectoryName(
-                        qbs.targetOS, platformType, sdkVersion, false).toLowerCase();
+                        qbs.targetOS, platformType, shortSdkVersion, false).toLowerCase();
         }, "is '" + sdkName + "', but target OS is [" + qbs.targetOS.join(",")
         + "] and Xcode SDK version is '" + sdkVersion + "'");
         validator.addCustomValidator("sdk", sdk, function (value) {
-            return value === sdkName || (value + sdkVersion) === sdkName;
+            return value === sdkName || (value + shortSdkVersion) === sdkName;
         }, "is '" + sdk + "', but canonical SDK name is '" + sdkName + "'");
         validator.validate();
     }
