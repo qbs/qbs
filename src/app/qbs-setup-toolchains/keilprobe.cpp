@@ -58,7 +58,7 @@ using Internal::HostOsInfo;
 
 static QStringList knownKeilCompilerNames()
 {
-    return {QStringLiteral("c51"), QStringLiteral("armcc")};
+    return {QStringLiteral("c51"), QStringLiteral("c251"), QStringLiteral("armcc")};
 }
 
 static QString guessKeilArchitecture(const QFileInfo &compiler)
@@ -66,6 +66,8 @@ static QString guessKeilArchitecture(const QFileInfo &compiler)
     const auto baseName = compiler.baseName();
     if (baseName == QLatin1String("c51"))
         return QStringLiteral("mcs51");
+    if (baseName == QLatin1String("c251"))
+        return QStringLiteral("mcs251");
     if (baseName == QLatin1String("armcc"))
         return QStringLiteral("arm");
     return {};
@@ -262,6 +264,8 @@ static std::vector<ToolchainInstallInfo> installedKeilsFromRegistry()
                 keilPath.setFile(productPath + QStringLiteral("\\ARMCC\\bin\\armcc.exe"));
             else if (productPath.endsWith(QStringLiteral("C51")))
                 keilPath.setFile(productPath + QStringLiteral("\\BIN\\c51.exe"));
+            else if (productPath.endsWith(QStringLiteral("C251")))
+                keilPath.setFile(productPath + QStringLiteral("\\BIN\\c251.exe"));
 
             if (keilPath.exists()) {
                 // Fetch the toolchain version.
