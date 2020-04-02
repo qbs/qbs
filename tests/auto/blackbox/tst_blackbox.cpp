@@ -3546,26 +3546,30 @@ void TestBlackbox::emptyProfile()
     const SettingsPtr s = settings();
     const Profile buildProfile(profileName(), s.get());
     bool isMsvc = false;
-    const auto toolchainType = buildProfile.value(QStringLiteral("qbs.toolchainType")).toString();
+    auto toolchainType = buildProfile.value(QStringLiteral("qbs.toolchainType")).toString();
     QbsRunParameters params;
     params.profile = "none";
+
+    if (toolchainType.isEmpty()) {
+        const auto toolchain = buildProfile.value(QStringLiteral("qbs.toolchain")).toStringList();
+        if (!toolchain.isEmpty())
+            toolchainType = toolchain.first();
+    }
     if (!toolchainType.isEmpty()) {
         params.arguments = QStringList{QStringLiteral("qbs.toolchainType:") + toolchainType};
         isMsvc = toolchainType == "msvc" || toolchainType == "clang-cl";
-    } else {
-        const auto toolchain = buildProfile.value(QStringLiteral("qbs.toolchain")).toStringList();
-        if (!toolchain.isEmpty()) {
-            params.arguments = QStringList{QStringLiteral("qbs.toolchain:")
-                    + toolchain.join(QLatin1Char(','))};
-            isMsvc = toolchainType.contains("msvc");
-        }
     }
+
     if (!isMsvc) {
-        const auto tcPath
-                = buildProfile.value(QStringLiteral("cpp.toolchainInstallPath")).toString();
-        if (!tcPath.isEmpty() && !qEnvironmentVariable("PATH")
-                .split(HostOsInfo::pathListSeparator(), QString::SkipEmptyParts).contains(tcPath)) {
-            params.arguments << QStringLiteral("modules.cpp.toolchainInstallPath:") + tcPath;
+        const auto tcPath =
+                QDir::toNativeSeparators(
+                        buildProfile.value(QStringLiteral("cpp.toolchainInstallPath")).toString());
+        auto paths = params.environment.value(QStringLiteral("PATH"))
+                .split(HostOsInfo::pathListSeparator(), QString::SkipEmptyParts);
+        if (!tcPath.isEmpty() && !paths.contains(tcPath)) {
+            paths.prepend(tcPath);
+            params.environment.insert(
+                    QStringLiteral("PATH"), paths.join(HostOsInfo::pathListSeparator()));
         }
     }
     QCOMPARE(runQbs(params), 0);
