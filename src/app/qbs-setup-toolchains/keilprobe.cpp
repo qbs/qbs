@@ -162,7 +162,7 @@ static Version dumpMcsCompilerVersion(const QFileInfo &compiler)
                 continue;
             return parts.at(VALUE_INDEX).toInt();
         }
-        return 0;
+        return -1;
     };
 
     const QByteArray dump = p.readAllStandardOutput();
@@ -171,6 +171,65 @@ static Version dumpMcsCompilerVersion(const QFileInfo &compiler)
         qbsWarning() << Tr::tr("No %1 tokens was found"
                                " in the compiler dump:\n%2")
                         .arg(knownKeys.join(QLatin1Char(',')))
+                        .arg(QString::fromUtf8(dump));
+        return Version{};
+    }
+    return Version{verCode / 100, verCode % 100};
+}
+
+static Version dumpC166CompilerVersion(const QFileInfo &compiler)
+{
+    QTemporaryFile fakeIn;
+    if (!fakeIn.open()) {
+        qbsWarning() << Tr::tr("Unable to open temporary file %1 for output: %2")
+                        .arg(fakeIn.fileName(), fakeIn.errorString());
+        return Version{};
+    }
+
+    fakeIn.write("#if defined(__C166__)\n");
+    fakeIn.write("# warning __C166__\n");
+    fakeIn.write("# pragma __C166__\n");
+    fakeIn.write("#endif\n");
+
+    fakeIn.close();
+
+    const QStringList args = {fakeIn.fileName()};
+    QProcess p;
+    p.start(compiler.absoluteFilePath(), args);
+    p.waitForFinished(3000);
+
+    // Extract the compiler version pattern in the form, like:
+    //
+    // *** WARNING C320 IN LINE 41 OF c51.c: __C166__
+    // *** WARNING C2 IN LINE 42 OF c51.c: '757': unknown #pragma/control, line ignored
+    //
+    // where the '__C166__' is a key, and the '757' is a value (aka version).
+    auto extractVersion = [](const QString &output) {
+        const QStringList lines = output.split(QStringLiteral("\r\n"));
+        for (auto it = lines.cbegin(); it != lines.cend();) {
+            if (it->startsWith(QLatin1String("***")) && it->endsWith(QLatin1String("__C166__"))) {
+                ++it;
+                if (it == lines.cend() || !it->startsWith(QLatin1String("***")))
+                    break;
+                const int startIndex = it->indexOf(QLatin1Char('\''));
+                if (startIndex == -1)
+                    break;
+                const int stopIndex = it->indexOf(QLatin1Char('\''), startIndex + 1);
+                if (stopIndex == -1)
+                    break;
+                const QString v = it->mid(startIndex + 1, stopIndex - startIndex - 1);
+                return v.toInt();
+            }
+            ++it;
+        }
+        return -1;
+    };
+
+    const QByteArray dump = p.readAllStandardOutput();
+    const int verCode = extractVersion(QString::fromUtf8(dump));
+    if (verCode < 0) {
+        qbsWarning() << Tr::tr("No __C166__ token was found"
+                               " in the compiler dump:\n%1")
                         .arg(QString::fromUtf8(dump));
         return Version{};
     }
@@ -209,6 +268,8 @@ static Version dumpKeilCompilerVersion(const QFileInfo &compiler)
     const QString arch = guessKeilArchitecture(compiler);
     if (arch == QLatin1String("mcs51") || arch == QLatin1String("mcs251")) {
         return dumpMcsCompilerVersion(compiler);
+    } else if (arch == QLatin1String("c166")) {
+        return dumpC166CompilerVersion(compiler);
     } else if (arch == QLatin1String("arm")) {
         return dumpArmCompilerVersion(compiler);
     }
