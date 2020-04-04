@@ -96,6 +96,8 @@ jobs:
         - ./scripts/install-qt.sh -d ${QT_INSTALL_DIR} --version ${QT_VERSION} qtbase qtdeclarative qttools qtscript qtscxml
         - ./scripts/install-qt.sh -d ${QT_INSTALL_DIR} --version ${QTCREATOR_VERSION} qtcreator
         - pip3 install --user beautifulsoup4 lxml
+      before_script:
+        - ulimit -c unlimited -S       # enable core dumps
       script:
         - ccache -s
         - qbs setup-toolchains --detect
@@ -105,6 +107,13 @@ jobs:
         - qbs config --list profiles
         - scripts/build-qbs-with-qbs.sh
         - ccache -s
+      # Find core dump and print traceback on failure
+      after_failure:
+        - |
+          for f in $(find /cores -maxdepth 1 -name 'core.*' -print); do
+            lldb --core $f --batch --one-line "bt"
+          done;
+
 
     - <<: *build-on-macos
       name: With Qbs on macOS (xcode 10.3)

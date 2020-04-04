@@ -54,6 +54,8 @@ BUILD_OPTIONS="\
     modules.qbsbuildconfig.enableProjectFileUpdates:true \
     modules.qbsbuildconfig.enableUnitTests:true \
     modules.cpp.treatWarningsAsErrors:true \
+    modules.cpp.separateDebugInformation:true \
+    modules.qbs.debugInformation:true \
     project.withExamples:true \
     ${BUILD_OPTIONS} \
     config:release \
