@@ -62,15 +62,15 @@ std::string LanguageInfo::qmlTypeInfo()
     auto typeNames = builtins.allTypeNames();
     typeNames.sort();
     for (const QString &typeName : qAsConst(typeNames)) {
-        QByteArray utf8TypeName = typeName.toUtf8();
+        const auto typeNameString = typeName.toStdString();
         result.append("    Component {\n");
-        result.append(QByteArray("        name: \"") + utf8TypeName + QByteArray("\"\n"));
+        result.append("        name: \"" + typeNameString + "\"\n");
         result.append("        exports: [ \"qbs/");
-        result.append(utf8TypeName);
+        result.append(typeNameString);
         result.append(" ");
         const auto v = builtins.languageVersion();
         result.append(QStringLiteral("%1.%2")
-                      .arg(v.majorVersion()).arg(v.minorVersion()).toUtf8());
+                      .arg(v.majorVersion()).arg(v.minorVersion()).toUtf8().data());
         result.append("\" ]\n");
         result.append("        prototype: \"QQuickItem\"\n");
 
@@ -83,7 +83,7 @@ std::string LanguageInfo::qmlTypeInfo()
         });
         for (const Internal::PropertyDeclaration &property : qAsConst(properties)) {
             result.append("        Property { name: \"");
-            result.append(property.name().toUtf8());
+            result.append(property.name().toUtf8().data());
             result.append("\"; ");
             switch (property.type()) {
             case qbs::Internal::PropertyDeclaration::UnknownType:
