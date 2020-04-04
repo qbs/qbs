@@ -119,10 +119,10 @@ MainWindow::MainWindow(const QString &settingsDir, qbs::Settings::Scope scope, Q
     saveAction->setShortcut(QKeySequence::Save);
     connect(saveAction, &QAction::triggered, this, &MainWindow::saveSettings);
     const auto expandAllAction = new QAction(tr("&Expand All"), this);
-    expandAllAction->setShortcut(Qt::CTRL | Qt::Key_E);
+    expandAllAction->setShortcut(int(Qt::CTRL) | int(Qt::Key_E));
     connect(expandAllAction, &QAction::triggered, this, &MainWindow::expandAll);
     const auto collapseAllAction = new QAction(tr("C&ollapse All"), this);
-    collapseAllAction->setShortcut(Qt::CTRL | Qt::Key_O);
+    collapseAllAction->setShortcut(int(Qt::CTRL) | int(Qt::Key_O));
     connect(collapseAllAction, &QAction::triggered, this, &MainWindow::collapseAll);
     const auto exitAction = new QAction(tr("E&xit"), this);
     exitAction->setShortcut(QKeySequence::Quit);
