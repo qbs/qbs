@@ -67,9 +67,9 @@
 int main()
 {
     someUsefulFunction();
-#ifdef _DEBUG
+#if defined(HAS_DEBUG)
     puts("Hello World! (debug version)");
-#else
+#elif defined(HAS_RELEASE)
     puts("Hello World! (release version)");
 #endif
 #ifdef HAS_SPECIAL_FEATURE
