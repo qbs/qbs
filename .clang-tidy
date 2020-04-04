@@ -61,12 +61,7 @@ WarningsAsErrors: >
     -bugprone-narrowing-conversions,
     google-*,
     misc-unused-*,
-    modernize-make-*,
-    modernize-pass-by-value,
-    modernize-return-braced-init-list,
-    modernize-use-emplace,
-    modernize-use-equals-default,
-    modernize-use-override,
+    modernize-*,
     performance-*,
     readability-redundant-control-flow
 

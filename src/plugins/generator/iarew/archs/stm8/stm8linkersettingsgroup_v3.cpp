@@ -175,7 +175,7 @@ struct OptimizationsPageOptions final
                     QLatin1String("--merge_duplicate_sections"));
     }
 
-    bool mergeDuplicateSections = 0;
+    bool mergeDuplicateSections = true;
 };
 
 // Output page options.
@@ -192,7 +192,7 @@ struct OutputPageOptions final
     }
 
     QString outputFile;
-    bool enableDebugInfo = 1;
+    bool enableDebugInfo = true;
 };
 
 // List page options.
