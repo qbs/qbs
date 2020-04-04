@@ -59,7 +59,7 @@ static QString uniqueSeparators(QString path)
     const auto it = std::unique(path.begin(), path.end(), [](QChar c1, QChar c2) {
         return c1 == c2 && c1 == QLatin1Char('/');
     });
-    path.resize(it - path.begin());
+    path.resize(int(it - path.begin()));
     return path;
 }
 

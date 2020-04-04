@@ -57,8 +57,6 @@ Checks: >
 
 WarningsAsErrors: >
     bugprone-*,
-    -bugprone-macro-parentheses,
-    -bugprone-narrowing-conversions,
     google-*,
     misc-unused-*,
     modernize-*,

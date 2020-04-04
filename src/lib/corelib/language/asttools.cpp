@@ -61,13 +61,13 @@ QString textOf(const QString &source, QbsQmlJS::AST::Node *node)
     if (!node)
         return {};
     return source.mid(node->firstSourceLocation().begin(),
-                      node->lastSourceLocation().end() - node->firstSourceLocation().begin());
+                      int(node->lastSourceLocation().end() - node->firstSourceLocation().begin()));
 }
 
 QStringRef textRefOf(const QString &source, QbsQmlJS::AST::Node *node)
 {
     const quint32 firstBegin = node->firstSourceLocation().begin();
-    return source.midRef(firstBegin, node->lastSourceLocation().end() - firstBegin);
+    return source.midRef(firstBegin, int(node->lastSourceLocation().end() - firstBegin));
 }
 
 } // namespace Internal

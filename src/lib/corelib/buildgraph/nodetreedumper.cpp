@@ -51,7 +51,7 @@
 namespace qbs {
 namespace Internal {
 
-static unsigned int indentWidth() { return 4; }
+static int indentWidth() { return 4; }
 
 NodeTreeDumper::NodeTreeDumper(QIODevice &outDevice) : m_outDevice(outDevice)
 {

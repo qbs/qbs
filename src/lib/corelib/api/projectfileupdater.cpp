@@ -221,7 +221,7 @@ void ProjectFileGroupInserter::doApply(QString &fileContent, UiProgram *ast)
     Rewriter rewriter(fileContent, &changeSet, QStringList());
     QString groupItemString;
     const int productItemIndentation
-            = itemFinder.item()->qualifiedTypeNameId->firstSourceLocation().startColumn - 1;
+            = int(itemFinder.item()->qualifiedTypeNameId->firstSourceLocation().startColumn - 1);
     const int groupItemIndentation = productItemIndentation + 4;
     const QString groupItemIndentationString = QString(groupItemIndentation, QLatin1Char(' '));
     groupItemString += groupItemIndentationString + QLatin1String("Group {\n");
@@ -251,7 +251,7 @@ static QString getNodeRepresentation(const QString &fileContent, const QbsQmlJS:
 {
     const quint32 start = node->firstSourceLocation().offset;
     const quint32 end = node->lastSourceLocation().end();
-    return fileContent.mid(start, end - start);
+    return fileContent.mid(start, int(end - start));
 }
 
 static const ChangeSet::EditOp &getEditOp(const ChangeSet &changeSet)
@@ -318,7 +318,7 @@ void ProjectFileFilesAdder::doApply(QString &fileContent, UiProgram *ast)
     }
 
     const int itemIndentation
-            = itemFinder.item()->qualifiedTypeNameId->firstSourceLocation().startColumn - 1;
+            = int(itemFinder.item()->qualifiedTypeNameId->firstSourceLocation().startColumn - 1);
     const int bindingIndentation = itemIndentation + 4;
     const int arrayElemIndentation = bindingIndentation + 4;
 
@@ -443,7 +443,7 @@ void ProjectFileFilesRemover::doApply(QString &fileContent, UiProgram *ast)
     Rewriter rewriter(fileContent, &changeSet, QStringList());
 
     const int itemIndentation
-            = itemFinder.item()->qualifiedTypeNameId->firstSourceLocation().startColumn - 1;
+            = int(itemFinder.item()->qualifiedTypeNameId->firstSourceLocation().startColumn - 1);
     const int bindingIndentation = itemIndentation + 4;
     const int arrayElemIndentation = bindingIndentation + 4;
 
