@@ -1362,7 +1362,6 @@ void ModuleLoader::createSortedModuleList(const Item::Module &parentModule, Item
     for (const Item::Module &dep : parentModule.item->modules())
         createSortedModuleList(dep, modules);
     modules.push_back(parentModule);
-    return;
 }
 
 Item::Modules ModuleLoader::modulesSortedByDependency(const Item *productItem)

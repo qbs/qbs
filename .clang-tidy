@@ -67,7 +67,8 @@ WarningsAsErrors: >
     modernize-use-emplace,
     modernize-use-equals-default,
     modernize-use-override,
-    performance-*
+    performance-*,
+    readability-redundant-control-flow
 
 HeaderFilterRegex: ''
 AnalyzeTemporaryDtors: false

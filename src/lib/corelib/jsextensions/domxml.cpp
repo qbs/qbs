@@ -314,7 +314,6 @@ void XmlDomNode::setData(const QString &v) const
     if (m_domNode.isCharacterData())
         return m_domNode.toCharacterData().setData(v);
     context()->throwError(QStringLiteral("Node '%1' is not a character data node").arg(m_domNode.nodeName()));
-    return;
 }
 
 void XmlDomNode::clear()
