@@ -49,7 +49,7 @@ struct TargetMcuEntry final
 };
 
 // Dictionary of known AVR MCU's and its compiler options.
-static const TargetMcuEntry mcusDict[] = {
+const TargetMcuEntry mcusDict[] = {
     {"AT43USB320A", "at43usb320a"},
     {"AT43USB325", "at43usb325"},
     {"AT43USB326", "at43usb326"},

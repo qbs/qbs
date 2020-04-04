@@ -237,10 +237,10 @@ int Lexer::lex()
 
 bool Lexer::isUnicodeEscapeSequence(const QChar *chars)
 {
-    if (isHexDigit(chars[0]) && isHexDigit(chars[1]) && isHexDigit(chars[2]) && isHexDigit(chars[3]))
-        return true;
-
-    return false;
+    return isHexDigit(chars[0])
+            && isHexDigit(chars[1])
+            && isHexDigit(chars[2])
+            && isHexDigit(chars[3]);
 }
 
 QChar Lexer::decodeUnicodeEscapeCharacter(bool *ok)

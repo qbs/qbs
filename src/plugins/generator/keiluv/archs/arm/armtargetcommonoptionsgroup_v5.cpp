@@ -41,7 +41,7 @@ namespace v5 {
 
 namespace {
 
-static const struct DeviceEntry {
+const struct DeviceEntry {
     QByteArray cpu; // CPU option.
     std::set<QByteArray> fpus; // FPU's options.
     QByteArray device; // Project file entry.

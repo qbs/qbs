@@ -66,9 +66,7 @@ QString shellInterpreter(const QString &filePath) {
 
 inline static bool isSpecialChar(ushort c, const uchar (&iqm)[16])
 {
-    if ((c < sizeof(iqm) * 8) && (iqm[c / 8] & (1 << (c & 7))))
-        return true;
-    return false;
+    return (c < sizeof(iqm) * 8) && (iqm[c / 8] & (1 << (c & 7)));
 }
 
 inline static bool hasSpecialChars(const QString &arg, const uchar (&iqm)[16])

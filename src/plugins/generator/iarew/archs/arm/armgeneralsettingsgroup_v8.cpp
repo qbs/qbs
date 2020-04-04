@@ -105,7 +105,7 @@ struct CpuCoreEntry final
 };
 
 // Dictionary of known ARM CPU cores and its compiler options.
-static const CpuCoreEntry cpusDict[] = {
+const CpuCoreEntry cpusDict[] = {
     {CpuCoreEntry::Arm7tdmi, "arm7tdmi"}, // same as 'sc100'
     {CpuCoreEntry::Arm7tdmis, "arm7tdmi-s"},
     {CpuCoreEntry::Arm710t, "arm710t"},
@@ -187,7 +187,7 @@ struct FpuCoreEntry final
 };
 
 // Dictionary of known ARM FPU cores and its compiler options.
-static const FpuCoreEntry fpusDict[] = {
+const FpuCoreEntry fpusDict[] = {
     {FpuCoreEntry::Vfp2, FpuCoreEntry::NoFpuRegisters, "vfpv2"},
     {FpuCoreEntry::Vfp3d16, FpuCoreEntry::Fpu16Registers, "vfpv3_d16"},
     {FpuCoreEntry::Vfp3, FpuCoreEntry::Fpu32Registers, "vfpv3"},

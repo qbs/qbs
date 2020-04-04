@@ -62,7 +62,8 @@ WarningsAsErrors: >
     misc-unused-*,
     modernize-*,
     performance-*,
-    readability-redundant-control-flow
+    readability-*,
+    -readability-container-size-empty
 
 HeaderFilterRegex: ''
 AnalyzeTemporaryDtors: false
