@@ -51,9 +51,13 @@
 namespace qbs {
 namespace Internal {
 
-Artifact::Artifact()
+Artifact::Artifact() :
+    artifactType(ArtifactType::Unknown),
+    inputsScanned(false),
+    timestampRetrieved(false),
+    alwaysUpdated(false),
+    oldDataPossiblyPresent(true)
 {
-    initialize();
 }
 
 Artifact::~Artifact()
@@ -118,15 +122,6 @@ RuleNode *Artifact::producer() const
     const auto ruleNodes = filterByType<RuleNode>(children);
     QBS_CHECK(ruleNodes.begin() != ruleNodes.end());
     return *ruleNodes.begin();
-}
-
-void Artifact::initialize()
-{
-    artifactType = Unknown;
-    inputsScanned = false;
-    timestampRetrieved = false;
-    alwaysUpdated = true;
-    oldDataPossiblyPresent = true;
 }
 
 const TypeFilter<Artifact> Artifact::parentArtifacts() const

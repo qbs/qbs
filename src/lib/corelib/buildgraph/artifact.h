@@ -114,7 +114,6 @@ public:
     bool alwaysUpdated : 1;
     bool oldDataPossiblyPresent : 1;
 
-    void initialize();
     const TypeFilter<Artifact> parentArtifacts() const;
     const TypeFilter<Artifact> childArtifacts() const;
     void onChildDisconnected(BuildGraphNode *child) override;

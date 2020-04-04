@@ -107,7 +107,7 @@ static void *openScannerQrc(const unsigned short *filePath, const char *fileTags
         return nullptr;
     }
 
-    struct stat s;
+    struct stat s{};
     int r = fstat(opaque->fd, &s);
     if (r != 0)
         return nullptr;

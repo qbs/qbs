@@ -450,7 +450,7 @@ static QByteArray storedLinkTarget(const QString &filePath)
     const QByteArray nativeFilePath = QFile::encodeName(filePath);
     ssize_t len;
     while (true) {
-        struct stat sb;
+        struct stat sb{};
         if (lstat(nativeFilePath.constData(), &sb)) {
             qWarning("storedLinkTarget: lstat for %s failed with error code %d",
                      nativeFilePath.constData(), errno);

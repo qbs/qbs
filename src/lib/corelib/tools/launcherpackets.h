@@ -145,7 +145,7 @@ class ProcessErrorPacket : public LauncherPacket
 public:
     ProcessErrorPacket(quintptr token);
 
-    QProcess::ProcessError error;
+    QProcess::ProcessError error = QProcess::UnknownError;
     QString errorString;
 
 private:

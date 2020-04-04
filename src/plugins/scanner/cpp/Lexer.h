@@ -151,10 +151,7 @@ private:
     const char *_tokenStart = nullptr;
     unsigned char _yychar = 0;
     int _state = 0;
-    union {
-        unsigned _flags;
-        Flags f;
-    };
+    Flags f{};
     unsigned _currentLine = 0;
 };
 

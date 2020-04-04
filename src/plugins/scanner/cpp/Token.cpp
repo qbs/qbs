@@ -113,16 +113,9 @@ static const char *token_names[] = {
 
 };
 
-Token::Token() :
-    flags(0), offset(0), ptr(nullptr)
-{
-}
-
-Token::~Token() = default;
-
 void Token::reset()
 {
-    flags = 0;
+    f = {};
     offset = 0;
     ptr = nullptr;
 }

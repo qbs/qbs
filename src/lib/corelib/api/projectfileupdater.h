@@ -85,7 +85,7 @@ private:
 
     const QString m_projectFile;
     CodeLocation m_itemPosition;
-    int m_lineOffset;
+    int m_lineOffset = 0;
 };
 
 

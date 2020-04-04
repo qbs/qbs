@@ -295,9 +295,6 @@ enum Kind {
 class CPLUSPLUS_EXPORT Token
 {
 public:
-    Token();
-    ~Token();
-
     inline bool is(unsigned k) const    { return f.kind == k; }
     inline bool isNot(unsigned k) const { return f.kind != k; }
 #ifndef CPLUSPLUS_NO_PARSER
@@ -348,15 +345,12 @@ public:
         unsigned pad        : 3;
         unsigned length     : 16;
     };
-    union {
-        unsigned flags;
-        Flags f;
-    };
+    Flags f{};
 
     unsigned offset = 0;
 
     union {
-        void *ptr;
+        void *ptr = nullptr;
 #ifndef CPLUSPLUS_NO_PARSER
         const Literal *literal;
         const NumericLiteral *number;

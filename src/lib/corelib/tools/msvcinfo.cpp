@@ -344,7 +344,7 @@ static std::vector<MSVCInstallInfo> retrieveInstancesFromVSWhere(
                      .append(formatVswhereOutput(stdOut, stdErr));
         return result;
     }
-    QJsonParseError parseError;
+    QJsonParseError parseError{};
     QJsonDocument jsonOutput = QJsonDocument::fromJson(vsWhere.readAllStandardOutput(),
                                                        &parseError);
     if (parseError.error != QJsonParseError::NoError) {

@@ -65,9 +65,9 @@ using namespace CPlusPlus;
 
 struct ScanResult
 {
-    char *fileName;
-    int size;
-    int flags;
+    char *fileName = nullptr;
+    int size = 0;
+    int flags = 0;
 };
 
 struct Opaq
@@ -226,7 +226,7 @@ static void *openScanner(const unsigned short *filePath, const char *fileTags, i
         return nullptr;
     }
 
-    struct stat s;
+    struct stat s{};
     int r = fstat(opaque->fd, &s);
     if (r != 0)
         return nullptr;

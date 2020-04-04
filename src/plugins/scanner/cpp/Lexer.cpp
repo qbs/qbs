@@ -64,7 +64,6 @@ namespace CPlusPlus {
 
 Lexer::Lexer(const char *firstChar, const char *lastChar)
     : _state(State_Default),
-      _flags(0),
       _currentLine(1)
 {
     setSource(firstChar, lastChar);
