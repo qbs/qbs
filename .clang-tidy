@@ -57,6 +57,7 @@ Checks: >
 
 WarningsAsErrors: >
     bugprone-*,
+    cppcoreguidelines-pro-type-cstyle-cast,
     google-*,
     misc-unused-*,
     modernize-*,

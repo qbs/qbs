@@ -234,7 +234,7 @@ static void *openScanner(const unsigned short *filePath, const char *fileTags, i
     opaque->mapl = mapl;
 
     void *vmap = mmap(0, s.st_size, PROT_READ, MAP_PRIVATE, opaque->fd, 0);
-    if (vmap == MAP_FAILED)
+    if (vmap == MAP_FAILED) // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
         return nullptr;
 #else
     opaque->file.setFileName(opaque->fileName);
