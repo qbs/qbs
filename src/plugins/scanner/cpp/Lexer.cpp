@@ -667,4 +667,4 @@ void Lexer::scan_helper(Token *tok)
     } // switch
 }
 
-}
+} // namespace CPlusPlus

@@ -393,5 +393,5 @@ void ChangeSet::apply_helper()
         m_cursor->endEditBlock();
 }
 
-} // namespace Internal {
+} // namespace QbsQmlJS
 

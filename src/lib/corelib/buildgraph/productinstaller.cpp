@@ -250,5 +250,5 @@ void ProductInstaller::handleError(const QString &message)
     m_logger.qbsWarning() << message;
 }
 
-} // namespace Intern
+} // namespace Internal
 } // namespace qbs

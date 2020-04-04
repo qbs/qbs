@@ -58,7 +58,7 @@ public:
     bool logElapsedTime;
 };
 
-}
+} // namespace Internal
 
 /*!
  * \class CleanOptions
