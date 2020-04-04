@@ -649,7 +649,7 @@ Rewriter::Range Rewriter::addObject(UiObjectInitializer *ast, const QString &con
     textToInsert += content;
     m_changeSet->insert(insertionPoint, QLatin1String("\n") + textToInsert);
 
-    return Range(insertionPoint, insertionPoint);
+    return {insertionPoint, insertionPoint};
 }
 
 Rewriter::Range Rewriter::addObject(UiArrayBinding *ast, const QString &content)
@@ -672,7 +672,7 @@ Rewriter::Range Rewriter::addObject(UiArrayBinding *ast, const QString &content,
 
     m_changeSet->insert(insertionPoint, textToInsert);
 
-    return Range(insertionPoint, insertionPoint);
+    return {insertionPoint, insertionPoint};
 }
 
 void Rewriter::removeObjectMember(UiObjectMember *member, UiObjectMember *parent)
