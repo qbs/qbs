@@ -58,8 +58,6 @@ using qbs::Settings;
 using qbs::Profile;
 using qbs::Internal::ClangClInfo;
 using qbs::Internal::HostOsInfo;
-using qbs::Internal::MSVC;
-using qbs::Internal::MSVCInstallInfo;
 
 using qbs::Internal::Tr;
 

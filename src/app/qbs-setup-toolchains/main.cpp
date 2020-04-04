@@ -49,7 +49,6 @@
 #include <cstdlib>
 #include <iostream>
 
-using qbs::Internal::Tr;
 using qbs::Settings;
 
 static void printUsage(const QString &usageString)
