@@ -212,8 +212,11 @@ void TestBlackboxApple::appleMultiConfig()
 
 void TestBlackboxApple::aggregateDependencyLinking()
 {
-    if (HostOsInfo::hostOsVersion() > qbs::Version(10, 13, 4))
-        QSKIP("32-bit arch build is no longer supported on macOS versions higher than 10.13.4.");
+    // XCode 11 produces warning about deprecation of 32-bit apps, so skip the test
+    // for future XCode versions as well
+    const auto xcodeVersion = findXcodeVersion();
+    if (xcodeVersion >= qbs::Version(11))
+        QSKIP("32-bit arch build is no longer supported on macOS higher than 10.13.4.");
 
     QDir::setCurrent(testDataDir + "/aggregateDependencyLinking");
     QCOMPARE(runQbs(QStringList{"-p", "multi_arch_lib"}), 0);
