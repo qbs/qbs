@@ -43,13 +43,13 @@
 
 #include <QtCore/qfile.h>
 #include <QtCore/qsocketnotifier.h>
+#include <QtCore/qtimer.h>
 
 #include <cerrno>
 #include <cstring>
 
 #ifdef Q_OS_WIN32
 #include <qt_windows.h>
-#include <QtCore/qtimer.h>
 #else
 #include <fcntl.h>
 #endif
@@ -87,6 +87,18 @@ private:
         connect(&m_notifier, &QSocketNotifier::activated, this, [this] {
             emit dataAvailable(m_stdIn.readAll());
         });
+
+        // Neither the aboutToClose() nor the readChannelFinished() signals
+        // are triggering, so we need a timer to check whether the controlling
+        // process disappeared.
+        const auto stdinClosedChecker = new QTimer(this);
+        connect(stdinClosedChecker, &QTimer::timeout, this, [this, stdinClosedChecker] {
+            if (m_stdIn.atEnd()) {
+                stdinClosedChecker->stop();
+                emit errorOccurred(tr("Input channel closed unexpectedly."));
+            }
+        });
+        stdinClosedChecker->start(1000);
     }
 
     QFile m_stdIn;
