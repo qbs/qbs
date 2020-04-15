@@ -124,14 +124,22 @@ private:
         // (how would we abort that one?), but ideally we'd like
         // to have a signal-based approach like in the Unix variant.
         const auto timer = new QTimer(this);
-        connect(timer, &QTimer::timeout, this, [this] {
+        connect(timer, &QTimer::timeout, this, [this, timer] {
             char buf[1024];
             DWORD bytesAvail;
-            PeekNamedPipe(m_stdinHandle, nullptr, 0, nullptr, &bytesAvail, nullptr);
+            if (!PeekNamedPipe(m_stdinHandle, nullptr, 0, nullptr, &bytesAvail, nullptr)) {
+                timer->stop();
+                emit errorOccurred(tr("Failed to read from input channel."));
+                return;
+            }
             while (bytesAvail > 0) {
                 DWORD bytesRead;
-                ReadFile(m_stdinHandle, buf, std::min<DWORD>(bytesAvail, sizeof buf), &bytesRead,
-                         nullptr);
+                if (!ReadFile(m_stdinHandle, buf, std::min<DWORD>(bytesAvail, sizeof buf),
+                              &bytesRead, nullptr)) {
+                    timer->stop();
+                    emit errorOccurred(tr("Failed to read from input channel."));
+                    return;
+                }
                 emit dataAvailable(QByteArray(buf, bytesRead));
                 bytesAvail -= bytesRead;
             }
