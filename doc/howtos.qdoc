@@ -151,15 +151,31 @@
     }
     \endcode
 
-    If the \l{cpp::separateDebugInformation}{cpp.separateDebugInformation} property is set to
-    \c true, \QBS will create debugging symbols with the corresponding file tags
-    \c "debuginfo_app" (for an application), \c "debuginfo_dll" (for a dynamic library),
-    or \c "debuginfo_loadablemodule" (for a macOS plugin).
-
-    Now, you can install your application and its debugging symbols as follows:
+    Now, you can install your \l{Application}{application}, \l{DynamicLibrary}{dynamic library}
+    or \l{LoadableModule}{loadable module} among with its debugging symbols as follows:
     \code
     CppApplication {
         // ...
+        install: true
+        installDir: "bin"
+        installDebugInformation: true
+        debugInformationInstallDir: "bin"
+    }
+    \endcode
+
+    If you are not using \l{List of Convenience Items}{convenience items},
+    you can install debug symbols manually using the \l{Group} item. If the
+    \l{cpp::separateDebugInformation}{cpp.separateDebugInformation} property is set to \c true,
+    \QBS will create debugging symbols with the corresponding file tags
+    \c "debuginfo_app" (for an application), \c "debuginfo_dll" (for a dynamic library),
+    or \c "debuginfo_loadablemodule" (for a macOS plugin).
+
+    \code
+    Product {
+        type: "application"
+        Depends { name: "cpp" }
+        cpp.debugInformation: qbs.buildVariant !== "release"
+        cpp.separateDebugInformation: true
         Group {
             fileTagsFilter: cpp.separateDebugInformation ? ["debuginfo_app"] : []
             qbs.install: true
@@ -171,7 +187,8 @@
 
     If you're building a shared library, you need to use the \c "debuginfo_dll" tag instead:
     \code
-    DynamicLibrary {
+    Product {
+        type: "dynamic_library"
         // ...
         Group {
             fileTagsFilter: cpp.separateDebugInformation ? ["debuginfo_dll"] : []
@@ -185,7 +202,8 @@
     If you're building a macOS plugin, you need to use the \c "debuginfo_loadablemodule"
     tag instead:
     \code
-    LoadableModule {
+    Product {
+        type: "loadablemodule"
         // ...
         Group {
             fileTagsFilter: cpp.separateDebugInformation ? ["debuginfo_loadablemodule"] : []

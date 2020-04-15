@@ -295,6 +295,102 @@
 
     Commonly used values are: \c{"x86"}, \c{"x86_64"}, and \c{"arm"}.
 
+    \section2 Supported Processor Architectures
+
+    This table describes the possible values of the \l{qbs::}{architecture} property:
+    \table
+    \header
+        \li Architecture
+        \li Description
+    \row
+        \li \c{"78k"}
+        \li 16- and 8-bit accumulator-based register-bank CISC architecture
+            microcontroller family manufactured by Renesas Electronics
+    \row
+        \li \c{"arm"}
+        \li 32-bit RISC architecture for computer processors
+            developed by Acorn RISC Machine
+            \note There are a lot of sub-variants of the ARM architecture.
+                  Some specialized \QBS modules differentiate between them,
+                  making use of values such as \c "armv7a". Please consult the
+                  respective module-specific documentation for information
+                  on what kind of value to use.
+    \row
+        \li \c{"arm64"}
+        \li 64-bit RISC architecture for computer processors
+            developed by Acorn RISC Machine
+    \row
+        \li \c{"avr"}
+        \li 8-bit modified Harvard RISC architecture microcontroller
+            family manufactured by Microchip Technology
+    \row
+        \li \c{"avr32"}
+        \li 32-bit RISC architecture microcontroller family developed by Atmel
+    \row
+        \li \c{"ia64"}
+        \li 64-bit ISA architecture of the Itanium family processors
+            developed by Intel
+    \row
+        \li "mcs51"}
+        \li 8-bit Harvard architecture microcontroller family developed by Intel
+    \row
+        \li \c{"mips"}
+        \li 32-bit RISC microprocessor without interlocked pipelined stages
+            architecture developed by MIPS Computer Systems
+    \row
+        \li \c{"mips64"}
+        \li 64-bit RISC microprocessor without interlocked pipelined stages
+            architecture developed by MIPS Computer Systems
+    \row
+        \li \c{"msp430"}
+        \li 16-bit mixed-signal microcontroller family manufactured
+            by Texas Instruments
+    \row
+        \li \c{"ppc"}
+        \li 32-bit RISC architecture processor family developed by
+            Apple–IBM–Motorola alliance
+    \row
+        \li \c{"ppc64"}
+        \li 64-bit RISC architecture processor family developed by
+            Apple–IBM–Motorola alliance
+    \row
+        \li \c{"rh850"}
+        \li 32-bit automotive microcontroller family manufactured
+            by Renesas Electronics
+    \row
+        \li \c{"rl78"}
+        \li 16- and 8-bit accumulator-based register-bank CISC architecture
+            with 3-stage instruction pipelining microcontroller family manufactured
+            by Renesas Electronics
+    \row
+        \li \c{"rx"}
+        \li High performance 32-bit CISC microcontroller family manufactured
+            by Renesas Electronics
+    \row
+        \li \c{"s390x"}
+        \li 64- and 32-bit System/390 processor architecture developed by IBM
+    \row
+        \li \c{"sparc"}
+        \li 32-bit RISC architecture processor family developed by
+            Sun Microsystems and Fujitsu
+    \row
+        \li \c{"sparc64"}
+        \li 64-bit RISC architecture processor family developed by
+            Sun Microsystems and Fujitsu
+    \row
+        \li \c{"stm8"}
+        \li 8-bit microcontroller family manufactured by STMicroelectronics
+    \row
+        \li \c{"v850"}
+        \li 32-bit RISC microcontroller family manufactured by Renesas Electronics
+    \row
+        \li \c{"x86"}
+        \li 32-bit ISA architecture processor family developed by Intel
+    \row
+        \li \c{"x86_64"}
+        \li 64-bit ISA architecture processor family developed by AMD
+    \endtable
+
     \nodefaultvalue
 */
 

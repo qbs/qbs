@@ -70,7 +70,7 @@
             generators: "qbs"
         }
 
-        references: conan.generatorOutputPath + "/conanbuildinfo.qbs"
+        references: conan.generatedFilesPath + "/conanbuildinfo.qbs"
 
         CppApplication {
             type: "application"

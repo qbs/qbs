@@ -78,9 +78,9 @@ template<> inline QProcessEnvironment fromJson(const QJsonValue &v)
 template<typename T> inline void setValueFromJson(T &targetValue, const QJsonObject &data,
                                                   const char *jsonProperty)
 {
-    const QJsonValue v = data.value(QLatin1String(jsonProperty));
-    if (!v.isNull())
-        targetValue = fromJson<T>(v);
+    const auto it = data.find(QLatin1String(jsonProperty));
+    if (it != data.end())
+        targetValue = fromJson<T>(*it);
 }
 
 } // namespace Internal

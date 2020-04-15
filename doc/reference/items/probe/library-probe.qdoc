@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2017 The Qt Company Ltd.
+** Copyright (C) 2020 Ivan Komissarov (abbapoh@gmail.com)
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -24,26 +24,39 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
+
 /*!
-    \contentspage list-of-convenience-items.html
-    \previouspage CppApplication
-    \nextpage InnoSetup
-    \qmltype DynamicLibrary
-    \inherits Library
-    \inqmlmodule QbsConvenienceItems
+    \contentspage list-of-probes.html
+    \qmltype LibraryProbe
+    \ingroup list-of-probes
     \ingroup list-of-items
-    \keyword QML.DynamicLibrary
+    \keyword QML.IncludeProbe
+    \inherits PathProbe
 
+    \brief Locates library files outside the project.
 
-    \brief Dynamic library.
+    On Windows, searches for library files within directories specified by the \c PATH environment
+    variable.
 
-    A DynamicLibrary item is a \l{Library}{library} of the \l{Product::}{type}
-    \c "dynamiclibrary".
+    On Unix, searches for library files within directories specified by the \c LIBRARY_PATH
+    environment variable, as well as in \c "/usr/lib" and \c "/usr/local/lib".
 
-    For Android targets, the following applies:
-    \list
-        \li The \l{Product::type}{Product.type} property value contains
-            \c "android.nativelibrary" in addition to \c "dynamiclibrary".
-        \li There is a dependency on the \l{cpp} and \l{Android.ndk} modules.
-    \endlist
+    On Linux, also searches in platform-specific directories, such as \c "/usr/lib64" and
+    \c "/usr/lib/x86_64-linux-gnu".
+
+    For example, LibraryProbe can be used to search for a \c zlib library as follows:
+
+    \code
+    import qbs.Probes
+
+    CppApplication {
+        Probes.LibraryProbe {
+            id: zlibProbe
+            names: "z"
+        }
+        cpp.libraryPaths: zlibProbe.found ? [zlibProbe.path] : []
+        cpp.dynamicLibraries: zlibProbe.found ? [zlibProbe.names] : []
+        files: 'main.cpp'
+    }
+    \endcode
 */

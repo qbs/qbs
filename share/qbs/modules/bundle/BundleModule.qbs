@@ -613,7 +613,8 @@ Module {
                 for (var i = 0; i < artifacts.length; ++i)
                     artifacts[i].bundle = { wrapperPath: wrapperPath };
 
-                if (product.qbs.hostOS.contains("darwin") && product.xcode.signingIdentity) {
+                if (product.qbs.hostOS.contains("darwin") && product.xcode
+                        && product.xcode.signingIdentity) {
                     artifacts.push({
                         filePath: FileInfo.joinPaths(product.bundle.contentsFolderPath, "_CodeSignature/CodeResources"),
                         fileTags: ["bundle.code-signature", "bundle.content"]

@@ -111,7 +111,7 @@ class ToolchainDetails
 public:
     explicit ToolchainDetails(const QFileInfo &compiler)
     {
-        auto baseName = compiler.completeBaseName();
+        auto baseName = HostOsInfo::stripExecutableSuffix(compiler.fileName());
         // Extract the version sub-string if it exists. We assume that a version
         // sub-string located after the compiler prefix && suffix. E.g. this code
         // parses a version from the compiler names, like this:

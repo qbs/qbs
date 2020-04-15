@@ -3546,26 +3546,30 @@ void TestBlackbox::emptyProfile()
     const SettingsPtr s = settings();
     const Profile buildProfile(profileName(), s.get());
     bool isMsvc = false;
-    const auto toolchainType = buildProfile.value(QStringLiteral("qbs.toolchainType")).toString();
+    auto toolchainType = buildProfile.value(QStringLiteral("qbs.toolchainType")).toString();
     QbsRunParameters params;
     params.profile = "none";
+
+    if (toolchainType.isEmpty()) {
+        const auto toolchain = buildProfile.value(QStringLiteral("qbs.toolchain")).toStringList();
+        if (!toolchain.isEmpty())
+            toolchainType = toolchain.first();
+    }
     if (!toolchainType.isEmpty()) {
         params.arguments = QStringList{QStringLiteral("qbs.toolchainType:") + toolchainType};
         isMsvc = toolchainType == "msvc" || toolchainType == "clang-cl";
-    } else {
-        const auto toolchain = buildProfile.value(QStringLiteral("qbs.toolchain")).toStringList();
-        if (!toolchain.isEmpty()) {
-            params.arguments = QStringList{QStringLiteral("qbs.toolchain:")
-                    + toolchain.join(QLatin1Char(','))};
-            isMsvc = toolchainType.contains("msvc");
-        }
     }
+
     if (!isMsvc) {
-        const auto tcPath
-                = buildProfile.value(QStringLiteral("cpp.toolchainInstallPath")).toString();
-        if (!tcPath.isEmpty() && !qEnvironmentVariable("PATH")
-                .split(HostOsInfo::pathListSeparator(), QString::SkipEmptyParts).contains(tcPath)) {
-            params.arguments << QStringLiteral("modules.cpp.toolchainInstallPath:") + tcPath;
+        const auto tcPath =
+                QDir::toNativeSeparators(
+                        buildProfile.value(QStringLiteral("cpp.toolchainInstallPath")).toString());
+        auto paths = params.environment.value(QStringLiteral("PATH"))
+                .split(HostOsInfo::pathListSeparator(), QString::SkipEmptyParts);
+        if (!tcPath.isEmpty() && !paths.contains(tcPath)) {
+            paths.prepend(tcPath);
+            params.environment.insert(
+                    QStringLiteral("PATH"), paths.join(HostOsInfo::pathListSeparator()));
         }
     }
     QCOMPARE(runQbs(params), 0);
@@ -4001,8 +4005,16 @@ void TestBlackbox::installLocations_data()
     QTest::addColumn<QString>("binDir");
     QTest::addColumn<QString>("dllDir");
     QTest::addColumn<QString>("libDir");
-    QTest::newRow("explicit values") << QString("bindir") << QString("dlldir") << QString("libdir");
-    QTest::newRow("default values") << QString() << QString() << QString();
+    QTest::addColumn<QString>("pluginDir");
+    QTest::addColumn<QString>("dsymDir");
+    QTest::newRow("explicit values")
+            << QString("bindir")
+            << QString("dlldir")
+            << QString("libdir")
+            << QString("pluginDir")
+            << QString("dsymDir");
+    QTest::newRow("default values")
+            << QString() << QString() << QString() << QString() << QString();
 }
 
 void TestBlackbox::installLocations()
@@ -4011,6 +4023,8 @@ void TestBlackbox::installLocations()
     QFETCH(QString, binDir);
     QFETCH(QString, dllDir);
     QFETCH(QString, libDir);
+    QFETCH(QString, pluginDir);
+    QFETCH(QString, dsymDir);
     QbsRunParameters params("resolve");
     if (!binDir.isEmpty())
         params.arguments.push_back("products.theapp.installDir:" + binDir);
@@ -4018,35 +4032,88 @@ void TestBlackbox::installLocations()
         params.arguments.push_back("products.thelib.installDir:" + dllDir);
     if (!libDir.isEmpty())
         params.arguments.push_back("products.thelib.importLibInstallDir:" + libDir);
+    if (!pluginDir.isEmpty())
+        params.arguments.push_back("products.theplugin.installDir:" + pluginDir);
+    if (!dsymDir.isEmpty()) {
+        params.arguments.push_back("products.theapp.debugInformationInstallDir:" + dsymDir);
+        params.arguments.push_back("products.thelib.debugInformationInstallDir:" + dsymDir);
+        params.arguments.push_back("products.theplugin.debugInformationInstallDir:" + dsymDir);
+    }
     QCOMPARE(runQbs(params), 0);
     const bool isWindows = m_qbsStdout.contains("is windows");
     const bool isMac = m_qbsStdout.contains("is mac");
     const bool isUnix = m_qbsStdout.contains("is unix");
     QVERIFY(isWindows || isMac || isUnix);
     QCOMPARE(runQbs(QbsRunParameters(QStringList("--clean-install-root"))), 0);
-    const QString dllFileName = isWindows ? "thelib.dll" : isMac ? "thelib" : "libthelib.so";
-    const QString appFileName = isWindows ? "theapp.exe" : "theapp";
-    if (binDir.isEmpty())
-        binDir = isMac ? "/Applications" : "/bin";
-    if (dllDir.isEmpty())
-        dllDir = isMac ? "/Library/Frameworks" : isWindows ? "/bin" : "/lib";
-    if (libDir.isEmpty())
-        libDir = "/lib";
-    if (isMac) {
-        binDir += "/theapp.app/Contents/MacOS";
-        dllDir += "/thelib.framework";
-    }
+
+    struct BinaryInfo
+    {
+        QString fileName;
+        QString installDir;
+        QString subDir;
+
+        QString absolutePath(const QString &prefix) const
+        {
+            return QDir::cleanPath(prefix + '/' + installDir + '/' + subDir + '/' + fileName);
+        }
+    };
+
+    const BinaryInfo dll = {
+        isWindows ? "thelib.dll" : isMac ? "thelib" : "libthelib.so",
+        dllDir.isEmpty() ? (isMac ? "/Library/Frameworks" : isWindows ? "/bin" : "/lib") : dllDir,
+        isMac ? "thelib.framework" : ""
+    };
+    const BinaryInfo dllDsym = {
+        isWindows ? "thelib.pdb" : isMac ? "thelib.framework.dSYM" : "libthelib.so.debug",
+        dsymDir.isEmpty() ? dll.installDir : dsymDir,
+        {}
+    };
+    const BinaryInfo plugin = {
+        isWindows ? "theplugin.dll" : isMac ? "theplugin" : "libtheplugin.so",
+        pluginDir.isEmpty() ? dll.installDir : pluginDir,
+        isMac ? "theplugin.bundle/Contents/MacOS" : ""
+    };
+    const BinaryInfo pluginDsym = {
+        isWindows ? "theplugin.pdb" : isMac ? "theplugin.bundle.dSYM" : "libtheplugin.so.debug",
+        dsymDir.isEmpty() ? plugin.installDir : dsymDir,
+        {}
+    };
+    const BinaryInfo app = {
+        isWindows ? "theapp.exe" : "theapp",
+        binDir.isEmpty() ? (isMac ? "/Applications" : "/bin") : binDir,
+        isMac ? "theapp.app/Contents/MacOS" : ""
+    };
+    const BinaryInfo appDsym = {
+        isWindows ? "theapp.pdb" : isMac ? "theapp.app.dSYM" : "theapp.debug",
+        dsymDir.isEmpty() ? app.installDir : dsymDir,
+        {}
+    };
+
     const QString installRoot = QDir::currentPath() + "/default/install-root";
     const QString installPrefix = isWindows ? QString() : "/usr/local";
     const QString fullInstallPrefix = installRoot + '/' + installPrefix + '/';
-    const QString appFilePath = fullInstallPrefix + binDir + '/' + appFileName;
+    const QString appFilePath = app.absolutePath(fullInstallPrefix);
     QVERIFY2(QFile::exists(appFilePath), qPrintable(appFilePath));
-    const QString dllFilePath = fullInstallPrefix + dllDir + '/' + dllFileName;
+    const QString dllFilePath = dll.absolutePath(fullInstallPrefix);
     QVERIFY2(QFile::exists(dllFilePath), qPrintable(dllFilePath));
     if (isWindows) {
-        const QString libFilePath = fullInstallPrefix + libDir + "/thelib.lib";
+        const BinaryInfo lib = {
+            "thelib.lib",
+            libDir.isEmpty() ? "/lib" : libDir,
+            ""
+        };
+        const QString libFilePath = lib.absolutePath(fullInstallPrefix);
         QVERIFY2(QFile::exists(libFilePath), qPrintable(libFilePath));
     }
+    const QString pluginFilePath = plugin.absolutePath(fullInstallPrefix);
+    QVERIFY2(QFile::exists(pluginFilePath), qPrintable(pluginFilePath));
+
+    const QString appDsymFilePath = appDsym.absolutePath(fullInstallPrefix);
+    QVERIFY2(QFileInfo(appDsymFilePath).exists(), qPrintable(appDsymFilePath));
+    const QString dllDsymFilePath = dllDsym.absolutePath(fullInstallPrefix);
+    QVERIFY2(QFileInfo(dllDsymFilePath).exists(), qPrintable(dllDsymFilePath));
+    const QString pluginDsymFilePath = pluginDsym.absolutePath(fullInstallPrefix);
+    QVERIFY2(QFile::exists(pluginDsymFilePath), qPrintable(pluginDsymFilePath));
 }
 
 void TestBlackbox::inputsFromDependencies()

@@ -112,6 +112,13 @@ public:
         return finalName;
     }
 
+    static QString stripExecutableSuffix(const QString &executable)
+    {
+        constexpr QLatin1String suffix(QBS_HOST_EXE_SUFFIX, sizeof(QBS_HOST_EXE_SUFFIX) - 1);
+        return !suffix.isEmpty() && executable.endsWith(suffix)
+            ? executable.chopped(suffix.size()) : executable;
+    }
+
     static QString dynamicLibraryName(const QString &libraryBaseName)
     {
         return QLatin1String(QBS_HOST_DYNAMICLIB_PREFIX) + libraryBaseName

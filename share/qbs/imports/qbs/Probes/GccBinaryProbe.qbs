@@ -3,6 +3,7 @@ import qbs.FileInfo
 import "path-probe.js" as PathProbeConfigure
 
 BinaryProbe {
+    nameSuffixes: undefined // _compilerName already contains ".exe" suffix on Windows
     // Inputs
     property string _compilerName
     property string _toolchainPrefix

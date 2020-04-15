@@ -615,6 +615,15 @@
 */
 
 /*!
+    \qmlproperty string cpp::compilerVersion
+
+    Compiler version string consisting of major, minor and patch numbers,
+    separated by a dot.
+
+    \nodefaultvalue
+*/
+
+/*!
     \qmlproperty int cpp::compilerVersionMajor
     \since Qbs 1.4
 

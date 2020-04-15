@@ -269,9 +269,9 @@ Id Id::withPrefix(const char *prefix) const
 
 bool Id::operator==(const char *name) const
 {
-    const char *string = getStringFromId(m_id);
-    if (string && name)
-        return strcmp(string, name) == 0;
+    const auto string = getStringFromId(m_id);
+    if (!string.isNull() && name)
+        return strcmp(string.data(), name) == 0;
     else
         return false;
 }

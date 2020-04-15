@@ -26,7 +26,7 @@
 ****************************************************************************/
 /*!
     \contentspage list-of-convenience-items.html
-    \previouspage AppleApplicationDiskImage
+    \previouspage AppleDiskImage
     \nextpage ApplicationExtension
     \qmltype Application
     \inherits Product
@@ -49,7 +49,7 @@
     \qmlproperty bool Application::install
 
     If \c{true}, the executable that is produced when building the application will be installed
-    to \l installDir.
+    to \l{Application::installDir}{installDir}.
 
     \defaultvalue \c false
     \since Qbs 1.13
@@ -58,12 +58,37 @@
 /*!
     \qmlproperty string Application::installDir
 
-    Where to install the executable that is produced when building the application, if \l install
-    is enabled.
+    Where to install the executable that is produced when building the application, if
+    \l{Application::install}{install} is enabled.
 
     The value is appended to \l{qbs::installPrefix}{qbs.installPrefix}
     when constructing the actual installation directory.
 
     \defaultvalue \c Applications if the app is a \l{bundle::isBundle}{bundle}, \c bin otherwise.
     \since Qbs 1.13
+*/
+
+/*!
+    \qmlproperty string Application::installDebugInformation
+
+    If \c{true}, the debug information will be installed to
+    \l{Application::debugInformationInstallDir}{debugInformationInstallDir}.
+
+    \defaultvalue \c false
+    \since Qbs 1.16
+    \sa{How do I separate and install debugging symbols?}
+*/
+
+/*!
+    \qmlproperty string Application::debugInformationInstallDir
+
+    Where to install the debug information if \l installDebugInformation is enabled.
+
+    The value is appended to \l{qbs::installPrefix}{qbs.installPrefix}
+    when constructing the actual installation directory.
+
+    \defaultvalue \l installDir.
+    \since Qbs 1.16
+
+    \sa{How do I separate and install debugging symbols?}
 */

@@ -66,7 +66,7 @@ QtModule {
     readonly property stringList _importVersionParts: (importVersion || "").split(".")
     property string typesFileName: {
         if (product.type && product.type.contains("application"))
-            return "app.qmltypes";
+            return product.targetName + ".qmltypes";
         return "plugins.qmltypes";
     }
     property string typesInstallDir

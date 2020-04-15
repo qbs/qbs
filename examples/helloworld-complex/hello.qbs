@@ -74,7 +74,7 @@ Project {
             cpp.defines: {
                 var defines = outer.concat([
                     'HAVE_MAIN_CPP',
-                    cpp.debugInformation ? '_DEBUG' : '_RELEASE'
+                    cpp.debugInformation ? 'HAS_DEBUG' : 'HAS_RELEASE'
                     ]);
                 if (project.hasSpecialFeature)
                     defines.push("HAS_SPECIAL_FEATURE");

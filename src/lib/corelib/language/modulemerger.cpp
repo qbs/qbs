@@ -173,7 +173,9 @@ void ModuleMerger::mergeModule(Item::PropertyMap *dstProps, const Item::Module &
                 if (dstVal) {
                     if (srcDecl.isScalar()) {
                         // Scalar properties get replaced.
-                        if (dstVal->type() == Value::JSSourceValueType) {
+                        if ((dstVal->type() == Value::JSSourceValueType)
+                                && (srcVal->type() == Value::JSSourceValueType)) {
+                            // Warn only about conflicting source code values
                             const JSSourceValuePtr dstJsVal =
                                     std::static_pointer_cast<JSSourceValue>(dstVal);
                             const JSSourceValuePtr srcJsVal =

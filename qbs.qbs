@@ -4,7 +4,6 @@ Project {
     minimumQbsVersion: "1.6"
     qbsSearchPaths: ["qbs-resources"]
     property bool withCode: true
-    property bool withDocker: true
     property bool withDocumentation: true
     property bool withExamples: false
     property bool withTests: withCode
@@ -12,16 +11,10 @@ Project {
     property stringList autotestWrapper: []
 
     references: [
+        "docker/docker.qbs",
         "share/share.qbs",
         "scripts/scripts.qbs",
     ]
-
-    SubProject {
-        filePath: "docker/docker.qbs"
-        Properties {
-            condition: parent.withDocker
-        }
-    }
 
     SubProject {
         filePath: "doc/doc.qbs"

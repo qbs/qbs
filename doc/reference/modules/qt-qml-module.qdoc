@@ -98,8 +98,9 @@
     \qmlproperty string Qt.qml::typesFileName
 
     Specifies the name of the file that declares the types registered for this product.
-    Per default, it is called "app.qmltypes" for applications and "plugins.qmltypes"
-    otherwise.
+    For applications, the default value is \c{<name>.qmltypes},
+    where \c{<name>} is the product's \l{Product::targetName}{target name}.
+    Otherwise, the default value is "plugins.qmltypes".
     \note The naming conventions are still in flux.
           When in doubt, consult the Qt documentation.
 

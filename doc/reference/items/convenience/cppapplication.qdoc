@@ -29,14 +29,14 @@
     \previouspage AutotestRunner
     \nextpage DynamicLibrary
     \qmltype CppApplication
-    \inherits Product
+    \inherits Application
     \inqmlmodule QbsConvenienceItems
     \ingroup list-of-items
     \keyword QML.CppApplication
 
     \brief C++ application.
 
-    A CppApplication is a \l{Product}{product} that has a dependency on the
+    A CppApplication is an \l{Application}{application} that has a dependency on the
     \l{cpp} module. It is entirely equivalent to the following:
 
     \code

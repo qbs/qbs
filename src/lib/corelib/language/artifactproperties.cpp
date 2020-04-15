@@ -64,6 +64,7 @@ bool operator==(const ArtifactProperties &ap1, const ArtifactProperties &ap2)
 {
     return ap1.fileTagsFilter() == ap2.fileTagsFilter()
             && ap1.extraFileTags() == ap2.extraFileTags()
+            && !ap1.propertyMap() == !ap2.propertyMap()
             && *ap1.propertyMap() == *ap2.propertyMap();
 }
 
