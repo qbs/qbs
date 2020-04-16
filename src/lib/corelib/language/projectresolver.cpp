@@ -71,6 +71,7 @@
 #include <QtCore/qregexp.h>
 
 #include <algorithm>
+#include <memory>
 #include <queue>
 
 namespace qbs {
@@ -126,9 +127,7 @@ ProjectResolver::ProjectResolver(Evaluator *evaluator, ModuleLoaderResult loadRe
     QBS_CHECK(FileInfo::isAbsolute(m_setupParams.buildRoot()));
 }
 
-ProjectResolver::~ProjectResolver()
-{
-}
+ProjectResolver::~ProjectResolver() = default;
 
 void ProjectResolver::setProgressObserver(ProgressObserver *observer)
 {
@@ -812,7 +811,7 @@ void ProjectResolver::resolveGroupFully(Item *item, ProjectResolver::ProjectCont
         group->targetOfModule = moduleProp->value().toString();
     ErrorInfo fileError;
     if (!patterns.empty()) {
-        group->wildcards = std::unique_ptr<SourceWildCards>(new SourceWildCards);
+        group->wildcards = std::make_unique<SourceWildCards>();
         SourceWildCards *wildcards = group->wildcards.get();
         wildcards->group = group.get();
         wildcards->excludePatterns = m_evaluator->stringListValue(
@@ -988,7 +987,7 @@ void ProjectResolver::resolveShadowProduct(Item *item, ProjectResolver::ProjectC
     try {
         adaptExportedPropertyValues(item);
     } catch (const ErrorInfo &) {}
-    m_productExportInfo.push_back(std::make_pair(m_productContext->product, item));
+    m_productExportInfo.emplace_back(m_productContext->product, item);
 }
 
 void ProjectResolver::setupExportedProperties(const Item *item, const QString &namePrefix,
@@ -1460,7 +1459,7 @@ void ProjectResolver::matchArtifactProperties(const ResolvedProductPtr &product,
         const std::vector<SourceArtifactPtr> &artifacts)
 {
     for (const SourceArtifactPtr &artifact : artifacts) {
-        for (const ArtifactPropertiesConstPtr &artifactProperties : product->artifactProperties) {
+        for (const auto &artifactProperties : product->artifactProperties) {
             if (!artifact->isTargetOfModule()
                     && artifact->fileTags.intersects(artifactProperties->fileTagsFilter())) {
                 artifact->properties = artifactProperties->propertyMap();

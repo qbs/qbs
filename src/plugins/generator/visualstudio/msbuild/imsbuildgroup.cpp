@@ -45,9 +45,7 @@ IMSBuildGroup::IMSBuildGroup(MSBuildProject *parent)
 {
 }
 
-IMSBuildGroup::~IMSBuildGroup()
-{
-}
+IMSBuildGroup::~IMSBuildGroup() = default;
 
 QString IMSBuildGroup::condition() const
 {

@@ -72,22 +72,25 @@ Module {
     property string apkBaseName: packageName
     property bool automaticSources: true
     property bool legacyLayout: false
-    property string sourceSetDir: legacyLayout
+    property path sourceSetDir: legacyLayout
                                 ? product.sourceDirectory
                                 : FileInfo.joinPaths(product.sourceDirectory, "src/main")
-    property string resourcesDir: FileInfo.joinPaths(sourceSetDir, "res")
-    property string assetsDir: FileInfo.joinPaths(sourceSetDir, "assets")
-    property string sourcesDir: FileInfo.joinPaths(sourceSetDir, legacyLayout ? "src" : "java")
+    property path resourcesDir: FileInfo.joinPaths(sourceSetDir, "res")
+    property path assetsDir: FileInfo.joinPaths(sourceSetDir, "assets")
+    property path sourcesDir: FileInfo.joinPaths(sourceSetDir, legacyLayout ? "src" : "java")
     property string manifestFile: defaultManifestFile
     readonly property string defaultManifestFile: FileInfo.joinPaths(sourceSetDir,
                                                                    "AndroidManifest.xml")
 
     property bool _enableRules: !product.multiplexConfigurationId && !!packageName
 
+    property bool _archInName: false
+    property bool _bundledInAssets: true
+
     Group {
         name: "java sources"
         condition: Android.sdk.automaticSources
-        prefix: Android.sdk.sourcesDir + '/'
+        prefix: FileInfo.resolvePath(product.sourceDirectory, Android.sdk.sourcesDir + '/')
         files: "**/*.java"
     }
 
@@ -95,7 +98,7 @@ Module {
         name: "android resources"
         condition: Android.sdk.automaticSources
         fileTags: ["android.resources"]
-        prefix: Android.sdk.resourcesDir + '/'
+        prefix: FileInfo.resolvePath(product.sourceDirectory, Android.sdk.resourcesDir + '/')
         files: "**/*"
     }
 
@@ -103,7 +106,7 @@ Module {
         name: "android assets"
         condition: Android.sdk.automaticSources
         fileTags: ["android.assets"]
-        prefix: Android.sdk.assetsDir + '/'
+        prefix: FileInfo.resolvePath(product.sourceDirectory, Android.sdk.assetsDir + '/')
         files: "**/*"
     }
 
@@ -277,6 +280,30 @@ Module {
                     rootElem.setAttribute("android:versionCode", product.Android.sdk.versionCode);
                 if (product.Android.sdk.versionName !== undefined)
                     rootElem.setAttribute("android:versionName", product.Android.sdk.versionName);
+
+                if (product.Android.sdk._bundledInAssets) {
+                    // Remove <meta-data android:name="android.app.bundled_in_assets_resource_id"
+                    // android:resource="@array/bundled_in_assets"/>
+                    // custom AndroidManifest.xml because assets are in rcc files for qt >= 5.14
+                    var appElem = rootElem.firstChild("application");
+                    if (!appElem || !appElem.isElement() || appElem.tagName() != "application")
+                         throw "No application tag found in '" + input.filePath + "'.";
+                    var activityElem = appElem.firstChild("activity");
+                    if (!activityElem || !activityElem.isElement() ||
+                        activityElem.tagName() != "activity")
+                         throw "No activity tag found in '" + input.filePath + "'.";
+                    var metaDataElem = activityElem.firstChild("meta-data");
+                    while (metaDataElem && metaDataElem.isElement()) {
+                        if (SdkUtils.elementHasBundledAttributes(metaDataElem)) {
+                            var elemToRemove = metaDataElem;
+                            metaDataElem = metaDataElem.nextSibling("meta-data");
+                            activityElem.removeChild(elemToRemove);
+                        } else {
+                            metaDataElem = metaDataElem.nextSibling("meta-data");
+                        }
+                    }
+                }
+
                 manifestData.save(output.filePath, 4);
             }
             return cmd;
@@ -415,7 +442,7 @@ Module {
             var deploymentData = SdkUtils.gdbserverOrStlDeploymentData(product, inputs);
             for (var i = 0; i < deploymentData.uniqueInputs.length; ++i) {
                 var input = deploymentData.uniqueInputs[i];
-                var stripArgs = ["--strip-unneeded", "-o", deploymentData.outputFilePaths[i],
+                var stripArgs = ["--strip-all", "-o", deploymentData.outputFilePaths[i],
                                  input.filePath];
                 var cmd = new Command(input.cpp.stripPath, stripArgs);
                 cmd.description = "deploying " + input.fileName;

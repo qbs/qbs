@@ -54,22 +54,24 @@ namespace qbs {
 class QBS_EXPORT Version
 {
 public:
-    explicit Version(int majorVersion = 0, int minorVersion = 0, int patchLevel = 0,
-            int buildNr = 0);
+    constexpr explicit Version(int majorVersion = 0, int minorVersion = 0, int patchLevel = 0,
+                     int buildNr = 0)
+        : m_major(majorVersion), m_minor(minorVersion), m_patch(patchLevel), m_build(buildNr)
+    { }
 
-    bool isValid() const { return m_major || m_minor || m_patch || m_build; }
+    constexpr bool isValid() const { return m_major || m_minor || m_patch || m_build; }
 
-    int majorVersion() const;
-    void setMajorVersion(int majorVersion);
+    constexpr int majorVersion() const { return m_major; }
+    constexpr void setMajorVersion(int majorVersion) { m_major = majorVersion; }
 
-    int minorVersion() const;
-    void setMinorVersion(int minorVersion);
+    constexpr int minorVersion() const { return m_minor; }
+    constexpr void setMinorVersion(int minorVersion) { m_minor = minorVersion;}
 
-    int patchLevel() const;
-    void setPatchLevel(int patchLevel);
+    constexpr int patchLevel() const { return m_patch; }
+    constexpr void setPatchLevel(int patchLevel) { m_patch = patchLevel; }
 
-    int buildNumber() const;
-    void setBuildNumber(int nr);
+    constexpr int buildNumber() const { return m_build; }
+    constexpr void setBuildNumber(int nr) { m_build = nr; }
 
     static Version fromString(const QString &versionString, bool buildNumberAllowed = false);
     QString toString(const QChar &separator = QLatin1Char('.'),
@@ -85,8 +87,10 @@ private:
 class VersionRange
 {
 public:
-    VersionRange() = default;
-    VersionRange(const Version &minVersion, const Version &maxVersion);
+    constexpr VersionRange() = default;
+    constexpr VersionRange(const Version &minVersion, const Version &maxVersion)
+        : minimum(minVersion), maximum(maxVersion)
+    { }
 
     Version minimum;
     Version maximum; // exclusive
@@ -94,13 +98,39 @@ public:
     VersionRange &narrowDown(const VersionRange &other);
 };
 
-QBS_EXPORT int compare(const Version &lhs, const Version &rhs);
-inline bool operator==(const Version &lhs, const Version &rhs) { return compare(lhs, rhs) == 0; }
-inline bool operator!=(const Version &lhs, const Version &rhs) { return !operator==(lhs, rhs); }
-inline bool operator<(const Version &lhs, const Version &rhs) { return compare(lhs, rhs) < 0; }
-inline bool operator>(const Version &lhs, const Version &rhs) { return compare(lhs, rhs) > 0; }
-inline bool operator<=(const Version &lhs, const Version &rhs) { return !operator>(lhs, rhs); }
-inline bool operator>=(const Version &lhs, const Version &rhs) { return !operator<(lhs, rhs); }
+constexpr inline int compare(const Version &lhs, const Version &rhs)
+{
+    if (lhs.majorVersion() < rhs.majorVersion())
+        return -1;
+    if (lhs.majorVersion() > rhs.majorVersion())
+        return 1;
+    if (lhs.minorVersion() < rhs.minorVersion())
+        return -1;
+    if (lhs.minorVersion() > rhs.minorVersion())
+        return 1;
+    if (lhs.patchLevel() < rhs.patchLevel())
+        return -1;
+    if (lhs.patchLevel() > rhs.patchLevel())
+        return 1;
+    if (lhs.buildNumber() < rhs.buildNumber())
+        return -1;
+    if (lhs.buildNumber() > rhs.buildNumber())
+        return 1;
+    return 0;
+}
+
+constexpr inline bool operator==(const Version &lhs, const Version &rhs)
+{ return compare(lhs, rhs) == 0; }
+constexpr inline bool operator!=(const Version &lhs, const Version &rhs)
+{ return !operator==(lhs, rhs); }
+constexpr inline bool operator<(const Version &lhs, const Version &rhs)
+{ return compare(lhs, rhs) < 0; }
+constexpr inline bool operator>(const Version &lhs, const Version &rhs)
+{ return compare(lhs, rhs) > 0; }
+constexpr inline bool operator<=(const Version &lhs, const Version &rhs)
+{ return !operator>(lhs, rhs); }
+constexpr inline bool operator>=(const Version &lhs, const Version &rhs)
+{ return !operator<(lhs, rhs); }
 
 } // namespace qbs
 

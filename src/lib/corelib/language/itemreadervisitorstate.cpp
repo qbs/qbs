@@ -81,10 +81,7 @@ public:
     {
     }
 
-    ASTCacheValue(const ASTCacheValue &other)
-        : d(other.d)
-    {
-    }
+    ASTCacheValue(const ASTCacheValue &other) = default;
 
     void setProcessingFlag(bool b) { d->processing = b; }
     bool isProcessing() const { return d->processing; }

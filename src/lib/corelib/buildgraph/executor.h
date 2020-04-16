@@ -81,7 +81,7 @@ public:
     ~Executor() override;
 
     void setProject(const TopLevelProjectPtr &project);
-    void setProducts(const std::vector<ResolvedProductPtr> &productsToBuild);
+    void setProducts(const QVector<ResolvedProductPtr> &productsToBuild);
     void setBuildOptions(const BuildOptions &buildOptions);
     void setProgressObserver(ProgressObserver *observer) { m_progressObserver = observer; }
 
@@ -166,10 +166,11 @@ private:
     BuildOptions m_buildOptions;
     Logger m_logger;
     ProgressObserver *m_progressObserver;
+    std::vector<std::unique_ptr<ExecutorJob>> m_allJobs;
     QList<ExecutorJob*> m_availableJobs;
     ExecutorState m_state;
     TopLevelProjectPtr m_project;
-    std::vector<ResolvedProductPtr> m_productsToBuild;
+    QVector<ResolvedProductPtr> m_productsToBuild;
     std::vector<ResolvedProductPtr> m_allProducts;
     std::unordered_map<QString, const ResolvedProduct *> m_productsByName;
     std::unordered_map<QString, const ResolvedProject *> m_projectsByName;

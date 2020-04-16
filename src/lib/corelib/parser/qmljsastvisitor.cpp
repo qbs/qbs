@@ -42,13 +42,9 @@
 namespace QbsQmlJS {
 namespace AST {
 
-Visitor::Visitor()
-{
-}
+Visitor::Visitor() = default;
 
-Visitor::~Visitor()
-{
-}
+Visitor::~Visitor() = default;
 
 } // namespace AST
 } // namespace QbsQmlJS

@@ -29,6 +29,7 @@
 ****************************************************************************/
 
 PathProbe {
+    property string endianness
     nameSuffixes: {
         if (qbs.targetOS.contains("windows"))
             return [".lib"];
@@ -36,10 +37,34 @@ PathProbe {
             return [".dylib", ".a"];
         return [".so", ".a"];
     }
-    platformSearchPaths: qbs.targetOS.contains("unix") ? [
-        "/usr/lib",
-        "/usr/local/lib",
-    ] : []
+    platformSearchPaths: {
+        var result = [];
+        if (qbs.targetOS.contains("unix")) {
+            if (qbs.targetOS.contains("linux") && qbs.architecture) {
+                if (qbs.architecture === "armv7")
+                    result = ["/usr/lib/arm-linux-gnueabihf"]
+                else if (qbs.architecture === "arm64")
+                    result = ["/usr/lib/aarch64-linux-gnu"]
+                else if (qbs.architecture === "mips" && endianness === "big")
+                    result = ["/usr/lib/mips-linux-gnu"]
+                else if (qbs.architecture === "mips" && endianness === "little")
+                    result = ["/usr/lib/mipsel-linux-gnu"]
+                else if (qbs.architecture === "mips64")
+                    result = ["/usr/lib/mips64el-linux-gnuabi64"]
+                else if (qbs.architecture === "ppc")
+                    result = ["/usr/lib/powerpc-linux-gnu"]
+                else if (qbs.architecture === "ppc64")
+                    result = ["/usr/lib/powerpc64le-linux-gnu"]
+                else if (qbs.architecture === "x86_64")
+                    result = ["/usr/lib64", "/usr/lib/x86_64-linux-gnu"]
+                else if (qbs.architecture === "x86")
+                    result = ["/usr/lib32", "/usr/lib/i386-linux-gnu"]
+            }
+            result = result.concat(["/usr/lib", "/usr/local/lib"]);
+        }
+
+        return result;
+    }
     nameFilter: {
         if (qbs.targetOS.contains("unix")) {
             return function(name) {

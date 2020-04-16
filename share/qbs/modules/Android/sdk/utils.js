@@ -98,7 +98,7 @@ function findParentDir(filePath, parentDirName)
 function commonAaptPackageArgs(project, product, inputs, outputs, input, output,
                                explicitlyDependsOn) {
     var manifestFilePath = inputs["android.manifest_final"][0].filePath;
-    var args = ["package", "-f",
+    var args = ["package", "--auto-add-overlay", "-f",
                 "-M", manifestFilePath,
                 "-I", product.Android.sdk.androidJarFilePath];
     var resources = inputs["android.resources"];
@@ -221,4 +221,11 @@ function gdbserverOrStlDeploymentData(product, inputs, type)
                                                      outputFileName));
     }
     return data;
+}
+
+function elementHasBundledAttributes(element)
+{
+    return element.hasAttribute("android:name") &&
+            (element.attribute("android:name") === "android.app.bundled_in_assets_resource_id") ||
+            (element.attribute("android:name") === "android.app.bundled_in_lib_resource_id");
 }

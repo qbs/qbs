@@ -40,7 +40,7 @@
 #include <QtCore/qdebug.h>
 #include <QtCore/qcoreapplication.h>
 
-#include <string.h>
+#include <cstring>
 
 #include "qmljsengine_p.h"
 #include "qmljslexer_p.h"
@@ -328,7 +328,7 @@ case 26: {
 } break;
 
 case 27: {
-    const auto node = new (pool) AST::UiObjectInitializer((AST::UiObjectMemberList*)0);
+    const auto node = new (pool) AST::UiObjectInitializer(nullptr);
     node->lbraceToken = loc(1);
     node->rbraceToken = loc(2);
     sym(1).Node = node;
@@ -614,7 +614,7 @@ case 80: {
 } break;
 
 case 81: {
-  const auto node = new (pool) AST::ArrayLiteral((AST::Elision *) 0);
+  const auto node = new (pool) AST::ArrayLiteral(static_cast<AST::Elision *>(nullptr));
   node->lbracketToken = loc(1);
   node->rbracketToken = loc(2);
   sym(1).Node = node;
@@ -635,8 +635,7 @@ case 83: {
 } break;
 
 case 84: {
-  const auto node = new (pool) AST::ArrayLiteral(sym(2).ElementList->finish (),
-    (AST::Elision *) 0);
+  const auto node = new (pool) AST::ArrayLiteral(sym(2).ElementList->finish (), nullptr);
   node->lbracketToken = loc(1);
   node->commaToken = loc(3);
   node->rbracketToken = loc(4);
@@ -700,7 +699,7 @@ case 89: {
 } break;
 
 case 90: {
-  sym(1).Node = new (pool) AST::ElementList((AST::Elision *) 0, sym(1).Expression);
+  sym(1).Node = new (pool) AST::ElementList(nullptr, sym(1).Expression);
 } break;
 
 case 91: {
@@ -708,8 +707,7 @@ case 91: {
 } break;
 
 case 92: {
- const auto node = new (pool) AST::ElementList(sym(1).ElementList,
-    (AST::Elision *) 0, sym(3).Expression);
+ const auto node = new (pool) AST::ElementList(sym(1).ElementList, nullptr, sym(3).Expression);
   node->commaToken = loc(2);
   sym(1).Node = node;
 } break;

@@ -1,6 +1,7 @@
 import qbs 1.0
 import qbs.File
 import qbs.FileInfo
+import qbs.Probes
 
 Project {
     references: ["man/man.qbs"]
@@ -16,8 +17,15 @@ Project {
         Depends { name: "qbsbuildconfig" }
         Depends { name: "qbsversion" }
 
+        Probes.BinaryProbe {
+            id: pythonProbe
+            names: ["python3", "python"] // on Windows, there's no python3
+        }
+        property string _pythonExe: pythonProbe.found ? pythonProbe.filePath : undefined
+
         files: [
-            "../README",
+            "../README.md",
+            "../CONTRIBUTING.md",
             "classic.css",
             "external-resources.qdoc",
             "fixnavi.pl",
@@ -58,9 +66,11 @@ Project {
             outputFileTags: ["qdoc-html", "qbsdoc.dummy"] // TODO: Hack. Rule injection to the rescue?
             outputArtifacts: [{filePath: "dummy", fileTags: ["qbsdoc.dummy"]}]
             prepare: {
+                if (!product._pythonExe)
+                    throw "Python executable was not found";
                 var scriptPath = explicitlyDependsOn["qbsdoc.fiximports"][0].filePath;
                 var htmlDir = FileInfo.path(FileInfo.path(inputs["qdoc-png"][0].filePath));
-                var fixCmd = new Command("python", [scriptPath, htmlDir]);
+                var fixCmd = new Command(product._pythonExe, [scriptPath, htmlDir]);
                 fixCmd.description = "fixing bogus QML import statements";
                 return [fixCmd];
             }

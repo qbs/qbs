@@ -66,7 +66,7 @@ using namespace CPlusPlus;
 struct ScanResult
 {
     char *fileName;
-    unsigned int size;
+    int size;
     int flags;
 };
 
@@ -163,7 +163,7 @@ static void scanCppFile(void *opaq, CPlusPlus::Lexer &yylex, bool scanForFileTag
                     yylex.setScanAngleStringLiteralTokens(false);
 
                     if (!tk.newline() && (tk.is(T_STRING_LITERAL) || tk.is(T_ANGLE_STRING_LITERAL))) {
-                        scanResult.size = tk.length() - 2;
+                        scanResult.size = int(tk.length() - 2);
                         if (tk.is(T_STRING_LITERAL))
                             scanResult.flags = SC_LOCAL_INCLUDE_FLAG;
                         else

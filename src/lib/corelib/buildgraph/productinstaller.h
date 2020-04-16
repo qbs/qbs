@@ -56,7 +56,7 @@ class ProductInstaller
 {
 public:
     ProductInstaller(TopLevelProjectPtr project,
-            std::vector<ResolvedProductPtr> products,
+            QVector<ResolvedProductPtr> products,
             InstallOptions options, ProgressObserver *observer, Logger logger);
     void install();
 
@@ -72,7 +72,7 @@ private:
     void handleError(const QString &message);
 
     const TopLevelProjectConstPtr m_project;
-    const std::vector<ResolvedProductPtr> m_products;
+    const QVector<ResolvedProductPtr> m_products;
     InstallOptions m_options;
     ProgressObserver * const m_observer;
     Logger m_logger;

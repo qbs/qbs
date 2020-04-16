@@ -14,6 +14,7 @@ Project {
         // This will generate 2 multiplex configs and an aggregate.
         qbs.architectures: ["x86", "x86_64"]
         qbs.buildVariant: "debug"
+        cpp.minimumMacosVersion: "10.8"
     }
 
     CppApplication {
@@ -30,6 +31,7 @@ Project {
 
         qbs.architecture: "x86_64"
         qbs.buildVariant: "debug"
+        cpp.minimumMacosVersion: "10.8"
         multiplexByQbsProperties: []
     }
 }

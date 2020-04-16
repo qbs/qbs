@@ -30,7 +30,7 @@
 
 var ModUtils = require("qbs.ModUtils");
 
-function args(product, input, outputFileName)
+function args(product, input, outputs)
 {
     var defines = product.cpp.compilerDefinesByLanguage;
     if (input.fileTags.contains("objcpp"))
@@ -56,6 +56,15 @@ function args(product, input, outputFileName)
     }
     var pluginMetaData = product.Qt.core.pluginMetaData;
     var args = [];
+    if (product.Qt.core._generateMetaTypesFile)
+        args.push("--output-json");
+    var outputFileName;
+    for (tag in outputs) {
+        if (tag !== "qt.core.metatypes.in") {
+            outputFileName = outputs[tag][0].filePath;
+            break;
+        }
+    }
     args = args.concat(
                 defines.map(function(item) { return '-D' + item; }),
                 includePaths.map(function(item) { return '-I' + item; }),
@@ -90,12 +99,15 @@ function outputArtifacts(project, product, inputs, input)
                 + input.completeBaseName + ".moc";
         artifact.fileTags.push("hpp");
     }
-    return [artifact];
+    var artifacts = [artifact];
+    if (product.Qt.core._generateMetaTypesFile)
+        artifacts.push({filePath: artifact.filePath + ".json", fileTags: "qt.core.metatypes.in"});
+    return artifacts;
 }
 
 function commands(project, product, inputs, outputs, input, output)
 {
-    var cmd = new Command(fullPath(product), args(product, input, output.filePath));
+    var cmd = new Command(fullPath(product), args(product, input, outputs));
     cmd.description = 'moc ' + input.fileName;
     cmd.highlight = 'codegen';
     return cmd;

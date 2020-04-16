@@ -61,7 +61,7 @@ public:
     int lineOffset() const { return m_lineOffset; }
 
 protected:
-    ProjectFileUpdater(const QString &projectFile);
+    ProjectFileUpdater(QString projectFile);
 
     QString projectFile() const { return m_projectFile; }
 
@@ -92,7 +92,7 @@ private:
 class ProjectFileGroupInserter : public ProjectFileUpdater
 {
 public:
-    ProjectFileGroupInserter(const ProductData &product, const QString &groupName);
+    ProjectFileGroupInserter(ProductData product, QString groupName);
 
 private:
     void doApply(QString &fileContent, QbsQmlJS::AST::UiProgram *ast) override;
@@ -105,8 +105,7 @@ private:
 class ProjectFileFilesAdder : public ProjectFileUpdater
 {
 public:
-    ProjectFileFilesAdder(const ProductData &product, const GroupData &group,
-                          const QStringList &files);
+    ProjectFileFilesAdder(ProductData product, GroupData group, QStringList files);
 
 private:
     void doApply(QString &fileContent, QbsQmlJS::AST::UiProgram *ast) override;
@@ -119,8 +118,8 @@ private:
 class ProjectFileFilesRemover : public ProjectFileUpdater
 {
 public:
-    ProjectFileFilesRemover(const ProductData &product, const GroupData &group,
-                            const QStringList &files);
+    ProjectFileFilesRemover(ProductData product, GroupData group,
+                            QStringList files);
 
 private:
     void doApply(QString &fileContent, QbsQmlJS::AST::UiProgram *ast) override;
@@ -133,7 +132,7 @@ private:
 class ProjectFileGroupRemover : public ProjectFileUpdater
 {
 public:
-    ProjectFileGroupRemover(const ProductData &product, const GroupData &group);
+    ProjectFileGroupRemover(ProductData product, GroupData group);
 
 private:
     void doApply(QString &fileContent, QbsQmlJS::AST::UiProgram *ast) override;

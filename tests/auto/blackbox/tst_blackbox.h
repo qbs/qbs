@@ -60,6 +60,8 @@ private slots:
     void buildDirectories();
     void buildEnvChange();
     void buildGraphVersions();
+    void buildVariantDefaults_data();
+    void buildVariantDefaults();
     void changedFiles_data();
     void changedFiles();
     void changedInputsFromDependencies();
@@ -83,9 +85,10 @@ private slots:
     void conflictingArtifacts();
     void cxxLanguageVersion();
     void cxxLanguageVersion_data();
+    void conanfileProbe();
     void cpuFeatures();
     void dependenciesProperty();
-    void dependencyProfileMismatch();
+    void dependencyScanningLoop();
     void deprecatedProperty();
     void disappearedProfile();
     void discardUnusedData();
@@ -96,6 +99,7 @@ private slots:
     void dynamicMultiplexRule();
     void dynamicProject();
     void dynamicRuleOutputs();
+    void emptyProfile();
     void enableExceptions();
     void enableExceptions_data();
     void enableRtti();
@@ -118,6 +122,7 @@ private slots:
     void externalLibs();
     void fileDependencies();
     void fileTagsFilterMerging();
+    void freedesktop();
     void generatedArtifactAsInputToDynamicRule();
     void generateLinkerMapFile();
     void generator();
@@ -125,6 +130,7 @@ private slots:
     void groupsInModules();
     void grpc_data();
     void grpc();
+    void hostOsProperties();
     void ico();
     void importAssignment();
     void importChangeTracking();
@@ -164,6 +170,7 @@ private slots:
     void jsExtensionsTemporaryDir();
     void jsExtensionsTextFile();
     void jsExtensionsBinaryFile();
+    void lastModuleCandidateBroken();
     void ld();
     void linkerMode();
     void linkerVariant_data();
@@ -236,6 +243,7 @@ private slots:
     void propertyAssignmentOnNonPresentModule();
     void propertyAssignmentInFailedModule();
     void propertyChanges();
+    void propertyEvaluationContext();
     void propertyPrecedence();
     void properQuoting();
     void propertiesInExportItems();
@@ -265,7 +273,11 @@ private slots:
     void ruleCycle();
     void ruleWithNoInputs();
     void ruleWithNonRequiredInputs();
+    void sanitizer_data();
+    void sanitizer();
     void scannerItem();
+    void scanResultInOtherProduct();
+    void scanResultInNonDependency();
     void setupBuildEnvironment();
     void setupRunEnvironment();
     void smartRelinking();
@@ -301,6 +313,7 @@ private slots:
     void trackRemoveProduct();
     void transitiveOptionalDependencies();
     void typescript();
+    void undefinedTargetPlatform();
     void usingsAsSoleInputsNonMultiplexed();
     void variantSuffix();
     void variantSuffix_data();

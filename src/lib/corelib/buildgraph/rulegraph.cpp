@@ -46,9 +46,7 @@
 namespace qbs {
 namespace Internal {
 
-RuleGraph::RuleGraph()
-{
-}
+RuleGraph::RuleGraph() = default;
 
 void RuleGraph::build(const std::vector<RulePtr> &rules, const FileTags &productFileTags)
 {
@@ -63,7 +61,7 @@ void RuleGraph::build(const std::vector<RulePtr> &rules, const FileTags &product
     m_parents.resize(rules.size());
     m_children.resize(rules.size());
 
-    for (const RuleConstPtr &rule : qAsConst(m_rules)) {
+    for (const auto &rule : qAsConst(m_rules)) {
         FileTags inFileTags = rule->inputs;
         inFileTags += rule->auxiliaryInputs;
         inFileTags += rule->explicitlyDependsOn;
@@ -100,7 +98,7 @@ void RuleGraph::dump() const
     QByteArray indent;
     printf("---rule graph dump:\n");
     Set<int> rootRules;
-    for (const RuleConstPtr &rule : qAsConst(m_rules))
+    for (const auto &rule : qAsConst(m_rules))
         if (m_parents[rule->ruleGraphId].empty())
             rootRules += rule->ruleGraphId;
     for (int idx : qAsConst(rootRules))

@@ -64,7 +64,7 @@ class QBS_AUTOTEST_EXPORT Evaluator : private ItemObserver
 
 public:
     Evaluator(ScriptEngine *scriptEngine);
-    virtual ~Evaluator();
+    ~Evaluator() override;
 
     ScriptEngine *engine() const { return m_scriptEngine; }
     QScriptValue property(const Item *item, const QString &name);

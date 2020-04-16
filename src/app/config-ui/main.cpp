@@ -47,8 +47,6 @@
 #include <cstdlib>
 #include <iostream>
 
-using qbs::Internal::Tr;
-
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);

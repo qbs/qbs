@@ -50,6 +50,7 @@
 #include <tools/error.h>
 #include <tools/hostosinfo.h>
 #include <tools/profile.h>
+#include <tools/qttools.h>
 #include <tools/settings.h>
 #include <tools/toolchains.h>
 
@@ -96,32 +97,32 @@ QString findExecutable(const QString &fileName)
     return {};
 }
 
-QStringList toolchainTypeFromCompilerName(const QString &compilerName)
+QString toolchainTypeFromCompilerName(const QString &compilerName)
 {
     if (compilerName == QLatin1String("cl.exe"))
-        return canonicalToolchain(QStringLiteral("msvc"));
+        return QStringLiteral("msvc");
     if (compilerName == QLatin1String("clang-cl.exe"))
-        return canonicalToolchain(QLatin1String("clang-cl"));
+        return QStringLiteral("clang-cl");
     const auto types = { QStringLiteral("clang"), QStringLiteral("llvm"),
                          QStringLiteral("mingw"), QStringLiteral("gcc") };
     for (const auto &type : types) {
         if (compilerName.contains(type))
-            return canonicalToolchain(type);
+            return type;
     }
     if (compilerName == QLatin1String("g++"))
-        return canonicalToolchain(QStringLiteral("gcc"));
+        return QStringLiteral("gcc");
     if (isIarCompiler(compilerName))
-        return canonicalToolchain(QStringLiteral("iar"));
+        return QStringLiteral("iar");
     if (isKeilCompiler(compilerName))
-        return canonicalToolchain(QStringLiteral("keil"));
+        return QStringLiteral("keil");
     if (isSdccCompiler(compilerName))
-        return canonicalToolchain(QStringLiteral("sdcc"));
+        return QStringLiteral("sdcc");
     return {};
 }
 
 void probe(Settings *settings)
 {
-    QList<Profile> profiles;
+    std::vector<Profile> profiles;
     if (HostOsInfo::isWindowsHost()) {
         msvcProbe(settings, profiles);
         clangClProbe(settings, profiles);
@@ -137,10 +138,10 @@ void probe(Settings *settings)
     sdccProbe(settings, profiles);
 
     if (profiles.empty()) {
-        qStderr << Tr::tr("Could not detect any toolchains. No profile created.") << endl;
+        qStderr << Tr::tr("Could not detect any toolchains. No profile created.") << Qt::endl;
     } else if (profiles.size() == 1 && settings->defaultProfile().isEmpty()) {
         const QString profileName = profiles.front().name();
-        qStdout << Tr::tr("Making profile '%1' the default.").arg(profileName) << endl;
+        qStdout << Tr::tr("Making profile '%1' the default.").arg(profileName) << Qt::endl;
         settings->setValue(QStringLiteral("defaultProfile"), profileName);
     }
 }
@@ -157,23 +158,22 @@ void createProfile(const QString &profileName, const QString &toolchainType,
                              .arg(compilerFilePath));
     }
 
-    QStringList toolchainTypes;
-    if (toolchainType.isEmpty())
-        toolchainTypes = toolchainTypeFromCompilerName(compiler.fileName());
-    else
-        toolchainTypes = canonicalToolchain(toolchainType);
+    const QString realToolchainType = !toolchainType.isEmpty()
+            ? toolchainType
+            : toolchainTypeFromCompilerName(compiler.fileName());
+    const QStringList toolchain = canonicalToolchain(realToolchainType);
 
-    if (toolchainTypes.contains(QLatin1String("msvc")))
+    if (toolchain.contains(QLatin1String("msvc")))
         createMsvcProfile(compiler, settings, profileName);
-    else if (toolchainTypes.contains(QLatin1String("clang-cl")))
+    else if (toolchain.contains(QLatin1String("clang-cl")))
         createClangClProfile(compiler, settings, profileName);
-    else if (toolchainTypes.contains(QLatin1String("gcc")))
-        createGccProfile(compiler, settings, toolchainTypes, profileName);
-    else if (toolchainTypes.contains(QLatin1String("iar")))
+    else if (toolchain.contains(QLatin1String("gcc")))
+        createGccProfile(compiler, settings, realToolchainType, profileName);
+    else if (toolchain.contains(QLatin1String("iar")))
         createIarProfile(compiler, settings, profileName);
-    else if (toolchainTypes.contains(QLatin1String("keil")))
+    else if (toolchain.contains(QLatin1String("keil")))
         createKeilProfile(compiler, settings, profileName);
-    else if (toolchainTypes.contains(QLatin1String("sdcc")))
+    else if (toolchain.contains(QLatin1String("sdcc")))
         createSdccProfile(compiler, settings, profileName);
     else
         throw qbs::ErrorInfo(Tr::tr("Cannot create profile: Unknown toolchain type."));

@@ -60,7 +60,7 @@ namespace qbs {
 namespace Internal {
 
 ProductInstaller::ProductInstaller(TopLevelProjectPtr project,
-        std::vector<ResolvedProductPtr> products, InstallOptions options,
+        QVector<ResolvedProductPtr> products, InstallOptions options,
         ProgressObserver *observer, Logger logger)
     : m_project(std::move(project)),
       m_products(std::move(products)),
@@ -96,7 +96,7 @@ void ProductInstaller::install()
         removeInstallRoot();
 
     QList<const Artifact *> artifactsToInstall;
-    for (const ResolvedProductConstPtr &product : qAsConst(m_products)) {
+    for (const auto &product : qAsConst(m_products)) {
         QBS_CHECK(product->buildData);
         for (const Artifact *artifact : filterByType<Artifact>(product->buildData->allNodes())) {
             if (artifact->properties->qbsPropertyValue(StringConstants::installProperty()).toBool())
@@ -250,5 +250,5 @@ void ProductInstaller::handleError(const QString &message)
     m_logger.qbsWarning() << message;
 }
 
-} // namespace Intern
+} // namespace Internal
 } // namespace qbs

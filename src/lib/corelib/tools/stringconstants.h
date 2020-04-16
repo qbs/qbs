@@ -153,6 +153,7 @@ public:
     QBS_STRING_CONSTANT(searchPathsProperty, "searchPaths")
     QBS_STRING_CONSTANT(setupBuildEnvironmentProperty, "setupBuildEnvironment")
     QBS_STRING_CONSTANT(setupRunEnvironmentProperty, "setupRunEnvironment")
+    QBS_STRING_CONSTANT(shadowProductPrefix, "__shadow__")
     QBS_STRING_CONSTANT(sourceCodeProperty, "sourceCode")
     QBS_STRING_CONSTANT(sourceDirectoryProperty, "sourceDirectory")
     QBS_STRING_CONSTANT(submodulesProperty, "submodules")

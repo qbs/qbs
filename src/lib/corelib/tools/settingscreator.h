@@ -58,7 +58,7 @@ class SettingsCreator
 public:
     SettingsCreator(QString baseDir);
 
-    QSettings *getQSettings();
+    std::unique_ptr<QSettings> getQSettings();
 
 private:
     void migrate();

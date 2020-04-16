@@ -56,6 +56,6 @@ bool isIarCompiler(const QString &compilerName);
 void createIarProfile(const QFileInfo &compiler, qbs::Settings *settings,
                       QString profileName);
 
-void iarProbe(qbs::Settings *settings, QList<qbs::Profile> &profiles);
+void iarProbe(qbs::Settings *settings, std::vector<qbs::Profile> &profiles);
 
 #endif // Header guard

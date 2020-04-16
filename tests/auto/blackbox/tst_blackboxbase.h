@@ -42,14 +42,14 @@ public:
         init();
     }
 
-    QbsRunParameters(const QString &cmd, const QStringList &args = QStringList())
-        : command(cmd), arguments(args)
+    QbsRunParameters(QString cmd, QStringList args = QStringList())
+        : command(std::move(cmd)), arguments(std::move(args))
     {
         init();
     }
 
-    QbsRunParameters(const QStringList &args)
-        : arguments(args)
+    QbsRunParameters(QStringList args)
+        : arguments(std::move(args))
     {
         init();
     }
@@ -92,6 +92,7 @@ protected:
     static void ccp(const QString &sourceDirPath, const QString &targetDirPath);
     static QString findExecutable(const QStringList &fileNames);
     QMap<QString, QString> findJdkTools(int *status);
+    static qbs::Version qmakeVersion(const QString &qmakeFilePath);
 
     const QString testDataDir;
     const QString testSourceDir;

@@ -52,9 +52,7 @@ namespace qbs {
 
 using namespace Internal;
 
-ProjectGeneratorManager::~ProjectGeneratorManager()
-{
-}
+ProjectGeneratorManager::~ProjectGeneratorManager() = default;
 
 ProjectGeneratorManager *ProjectGeneratorManager::instance()
 {
@@ -62,9 +60,7 @@ ProjectGeneratorManager *ProjectGeneratorManager::instance()
     return &generatorPlugin;
 }
 
-ProjectGeneratorManager::ProjectGeneratorManager()
-{
-}
+ProjectGeneratorManager::ProjectGeneratorManager() = default;
 
 QStringList ProjectGeneratorManager::loadedGeneratorNames()
 {

@@ -31,6 +31,7 @@
 #include <tools/hostosinfo.h>
 #include <tools/profile.h>
 #include <tools/settings.h>
+#include <tools/toolchains.h>
 
 #include <QtCore/qbytearray.h>
 #include <QtCore/qcryptographichash.h>
@@ -45,6 +46,8 @@
 #include <QtTest/qtest.h>
 
 #include <memory>
+
+
 
 #define REPLACE_IN_FILE(filePath, oldContent, newContent)                           \
     do {                                                                            \
@@ -83,7 +86,7 @@ using SettingsPtr = std::unique_ptr<qbs::Settings>;
 inline SettingsPtr settings()
 {
     const QString settingsDir = QLatin1String(qgetenv("QBS_AUTOTEST_SETTINGS_DIR"));
-    return SettingsPtr(new qbs::Settings(settingsDir));
+    return std::make_unique<qbs::Settings>(settingsDir);
 }
 
 inline QString profileName()
@@ -268,14 +271,22 @@ inline void copyFileAndUpdateTimestamp(const QString &source, const QString &tar
     touch(target);
 }
 
+inline QStringList profileToolchain(const qbs::Profile &profile)
+{
+    const auto toolchainType = profile.value(QStringLiteral("qbs.toolchainType")).toString();
+    if (!toolchainType.isEmpty())
+        return qbs::canonicalToolchain(toolchainType);
+    return profile.value(QStringLiteral("qbs.toolchain")).toStringList();
+}
+
 inline QString objectFileName(const QString &baseName, const QString &profileName)
 {
     const SettingsPtr s = settings();
     qbs::Profile profile(profileName, s.get());
-    const auto tc = profile.value("qbs.toolchainType").toString();
-    const auto tcList = profile.value("qbs.toolchain").toStringList();
-    const bool isMsvc = tc == "msvc" || tcList.contains("msvc")
-            || (tc.isEmpty() && tcList.isEmpty() && qbs::Internal::HostOsInfo::isWindowsHost());
+
+    const auto tcList = profileToolchain(profile);
+    const bool isMsvc = tcList.contains("msvc")
+            || (tcList.isEmpty() && qbs::Internal::HostOsInfo::isWindowsHost());
     const QString suffix = isMsvc ? "obj" : "o";
     return baseName + '.' + suffix;
 }
@@ -283,6 +294,30 @@ inline QString objectFileName(const QString &baseName, const QString &profileNam
 inline QString inputDirHash(const QString &dir)
 {
     return QCryptographicHash::hash(dir.toLatin1(), QCryptographicHash::Sha1).toHex().left(16);
+}
+
+inline QString testDataSourceDir(const QString &dir)
+{
+    QDir result;
+    QString testSourceRootDirFromEnv = QDir::fromNativeSeparators(qEnvironmentVariable("QBS_TEST_SOURCE_ROOT"));
+    if (testSourceRootDirFromEnv.isEmpty()) {
+        result.setPath(dir);
+    } else {
+        QDir testSourceRootDir(dir);
+        while (testSourceRootDir.dirName() != "tests")
+            testSourceRootDir = QFileInfo(testSourceRootDir, "").dir();
+
+        QString relativeDataPath = testSourceRootDir.relativeFilePath(dir);
+        QString absoluteDataPath = QDir(testSourceRootDirFromEnv).absoluteFilePath(relativeDataPath);
+        result.setPath(absoluteDataPath);
+    }
+
+    if (!result.exists())
+        qFatal("Expected data folder '%s' to be present, but it does not exist. You may set "
+               "QBS_TEST_SOURCE_ROOT to the 'tests' folder in your qbs repository to configure "
+               "a custom location.", qPrintable(result.absolutePath()));
+
+    return result.absolutePath();
 }
 
 inline QString testWorkDir(const QString &testName)

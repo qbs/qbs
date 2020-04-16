@@ -35,6 +35,22 @@ var ModUtils = require("qbs.ModUtils");
 var Utilities = require("qbs.Utilities");
 var WindowsUtils = require("qbs.WindowsUtils");
 
+function effectiveLinkerPath(product, inputs) {
+    if (product.cpp.linkerMode === "automatic") {
+        var compiler = product.cpp.compilerPath;
+        if (compiler) {
+            if (inputs.obj || inputs.staticlibrary) {
+                console.log("Found C/C++ objects, using compiler as a linker for " + product.name);
+                return compiler;
+            }
+        }
+
+        console.log("Found no C-language objects, choosing system linker for " + product.name);
+    }
+
+    return product.cpp.linkerPath;
+}
+
 function handleCpuFeatures(input, flags) {
     if (!input.qbs.architecture)
         return;
@@ -90,6 +106,15 @@ function addLanguageVersionFlag(input, args) {
         args.push(flag);
 }
 
+function handleClangClArchitectureFlags(product, architecture, flags) {
+    if (product.qbs.toolchain.contains("clang-cl")) {
+        if (architecture === "x86")
+            flags.push("-m32");
+        else if (architecture === "x86_64")
+            flags.push("-m64");
+    }
+}
+
 function prepareCompiler(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
     var i;
     var debugInformation = input.cpp.debugInformation;
@@ -135,6 +160,8 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
         break;
     }
 
+    handleClangClArchitectureFlags(product, input.cpp.architecture, args);
+
     if (debugInformation) {
         if (product.cpp.separateDebugInformation)
             args.push('/Zi');
@@ -149,6 +176,10 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
             rtl += "d";
         args.push(rtl);
     }
+
+    var driverFlags = product.cpp.driverFlags;
+    if (driverFlags)
+        args = args.concat(driverFlags);
 
     // warnings:
     var warningLevel = input.cpp.warningLevel;
@@ -315,7 +346,6 @@ function collectLibraryDependencies(product) {
     function traverse(dep) {
         if (seen.hasOwnProperty(dep.name))
             return;
-        seen[dep.name] = true;
 
         if (dep.parameters.cpp && dep.parameters.cpp.link === false)
             return;
@@ -324,10 +354,12 @@ function collectLibraryDependencies(product) {
         var dynamicLibraryArtifacts = staticLibraryArtifacts
                 ? null : dep.artifacts["dynamiclibrary_import"];
         if (staticLibraryArtifacts) {
+            seen[dep.name] = true;
             dep.dependencies.forEach(traverse);
             addArtifactFilePaths(dep, staticLibraryArtifacts);
             addExternalLibs(dep);
         } else if (dynamicLibraryArtifacts) {
+            seen[dep.name] = true;
             addArtifactFilePaths(dep, dynamicLibraryArtifacts);
         }
     }
@@ -360,44 +392,71 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
             return a.filePath;
         });
     var generateManifestFiles = !linkDLL && product.cpp.generateManifestFile;
-    var canEmbedManifest = (product.cpp.compilerVersionMajor >= 17);    // VS 2012
+    var useClangCl = product.qbs.toolchain.contains("clang-cl");
+    var canEmbedManifest = useClangCl || product.cpp.compilerVersionMajor >= 17 // VS 2012
 
-    var args = ['/nologo']
+    var linkerPath = effectiveLinkerPath(product, inputs);
+    var useCompilerDriver = linkerPath === product.cpp.compilerPath;
+    // args variable is built as follows:
+    // [linkerWrapper] linkerPath /nologo [driverFlags driverLinkerFlags]
+    //      allInputs libDeps [/link] linkerArgs
+    var args = []
+
+    if (useCompilerDriver) {
+        args.push('/nologo');
+        var driverFlags = product.cpp.driverFlags;
+        if (driverFlags)
+            args = args.concat(driverFlags);
+        var driverLinkerFlags = product.cpp.driverLinkerFlags;
+        if (driverLinkerFlags)
+            args = args.concat(driverLinkerFlags);
+    }
+
+    var allInputs = inputs.obj || [];
+    for (i in allInputs) {
+        var fileName = FileInfo.toWindowsSeparators(allInputs[i].filePath)
+        args.push(fileName)
+    }
+
+    var linkerArgs = ['/nologo']
     if (linkDLL) {
-        args.push('/DLL');
-        args.push('/IMPLIB:' + FileInfo.toWindowsSeparators(outputs.dynamiclibrary_import[0].filePath));
+        linkerArgs.push('/DLL');
+        linkerArgs.push('/IMPLIB:' + FileInfo.toWindowsSeparators(outputs.dynamiclibrary_import[0].filePath));
     }
 
     if (debugInformation) {
-        args.push("/DEBUG");
+        linkerArgs.push("/DEBUG");
         var debugInfo = outputs.debuginfo_app || outputs.debuginfo_dll;
         if (debugInfo)
-            args.push("/PDB:" + debugInfo[0].fileName);
+            linkerArgs.push("/PDB:" + debugInfo[0].fileName);
     } else {
-        args.push('/INCREMENTAL:NO')
+        linkerArgs.push('/INCREMENTAL:NO')
     }
 
     switch (product.qbs.architecture) {
     case "x86":
-        args.push("/MACHINE:X86");
+        linkerArgs.push("/MACHINE:X86");
         break;
     case "x86_64":
-        args.push("/MACHINE:X64");
+        linkerArgs.push("/MACHINE:X64");
         break;
     case "ia64":
-        args.push("/MACHINE:IA64");
+        linkerArgs.push("/MACHINE:IA64");
         break;
     case "armv7":
-        args.push("/MACHINE:ARM");
+        linkerArgs.push("/MACHINE:ARM");
         break;
     case "arm64":
-        args.push("/MACHINE:ARM64");
+        linkerArgs.push("/MACHINE:ARM64");
         break;
     }
 
+    if (useCompilerDriver)
+        handleClangClArchitectureFlags(product, product.qbs.architecture, args);
+
     var requireAppContainer = product.cpp.requireAppContainer;
     if (requireAppContainer !== undefined)
-        args.push("/APPCONTAINER" + (requireAppContainer ? "" : ":NO"));
+        linkerArgs.push("/APPCONTAINER" + (requireAppContainer ? "" : ":NO"));
 
     var minimumWindowsVersion = product.cpp.minimumWindowsVersion;
     var subsystemSwitch = undefined;
@@ -407,26 +466,29 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
         subsystemSwitch = product.consoleApplication === false ? '/SUBSYSTEM:WINDOWS' : '/SUBSYSTEM:CONSOLE';
     }
 
+    var useLldLink = useCompilerDriver && product.cpp.linkerVariant === "lld"
+            || !useCompilerDriver && product.cpp.linkerName === "lld-link.exe";
     if (minimumWindowsVersion) {
         var subsystemVersion = WindowsUtils.getWindowsVersionInFormat(minimumWindowsVersion,
                                                                       'subsystem');
         if (subsystemVersion) {
             subsystemSwitch += ',' + subsystemVersion;
-            if (product.cpp.linkerName !== "lld-link.exe") // llvm linker does not support /OSVERSION
-                args.push('/OSVERSION:' + subsystemVersion);
+            // llvm linker does not support /OSVERSION
+            if (!useLldLink)
+                linkerArgs.push('/OSVERSION:' + subsystemVersion);
         }
     }
 
     if (subsystemSwitch)
-        args.push(subsystemSwitch);
+        linkerArgs.push(subsystemSwitch);
 
     var linkerOutputNativeFilePath = FileInfo.toWindowsSeparators(primaryOutput.filePath);
     var manifestFileNames = [];
     if (generateManifestFiles) {
         if (canEmbedManifest) {
-            args.push("/MANIFEST:embed");
+            linkerArgs.push("/MANIFEST:embed");
             additionalManifestInputs.forEach(function (manifestFileName) {
-                args.push("/MANIFESTINPUT:" + manifestFileName);
+                linkerArgs.push("/MANIFESTINPUT:" + manifestFileName);
             });
         } else {
             linkerOutputNativeFilePath
@@ -435,15 +497,9 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
                             + primaryOutput.fileName);
 
             var manifestFileName = linkerOutputNativeFilePath + ".manifest";
-            args.push('/MANIFEST', '/MANIFESTFILE:' + manifestFileName);
+            linkerArgs.push('/MANIFEST', '/MANIFESTFILE:' + manifestFileName);
             manifestFileNames = [manifestFileName].concat(additionalManifestInputs);
         }
-    }
-
-    var allInputs = inputs.obj || [];
-    for (i in allInputs) {
-        var fileName = FileInfo.toWindowsSeparators(allInputs[i].filePath)
-        args.push(fileName)
     }
 
     var wholeArchiveSupported = linkerSupportsWholeArchive(product);
@@ -456,8 +512,16 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
         if (lib === prevLib)
             continue;
         prevLib = lib;
-        args.push((wholeArchiveSupported && dep.wholeArchive ? "/WHOLEARCHIVE:" : "")
-                  + FileInfo.toWindowsSeparators(lib));
+
+        if (wholeArchiveSupported && dep.wholeArchive) {
+            // need to pass libraries to the driver to avoid "no input files" error if no object
+            // files are specified; thus libraries are duplicated when using "WHOLEARCHIVE"
+            if (useCompilerDriver && allInputs.length === 0)
+                args.push(FileInfo.toWindowsSeparators(lib));
+            linkerArgs.push("/WHOLEARCHIVE:" + FileInfo.toWindowsSeparators(lib));
+        } else {
+            args.push(FileInfo.toWindowsSeparators(lib));
+        }
         if (dep.wholeArchive)
             wholeArchiveRequested = true;
     }
@@ -468,30 +532,36 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     }
 
     if (product.cpp.entryPoint)
-        args.push("/ENTRY:" + product.cpp.entryPoint);
+        linkerArgs.push("/ENTRY:" + product.cpp.entryPoint);
 
-    if (outputs.application && product.cpp.generateLinkerMapFile)
-        args.push("/MAP:" + outputs.mem_map[0].filePath);
+    if (outputs.application && product.cpp.generateLinkerMapFile) {
+        if (useLldLink)
+            linkerArgs.push("/lldmap:" + outputs.mem_map[0].filePath);
+        else
+            linkerArgs.push("/MAP:" + outputs.mem_map[0].filePath);
+    }
 
-    args.push('/OUT:' + linkerOutputNativeFilePath)
+    if (useCompilerDriver)
+        args.push('/Fe' + linkerOutputNativeFilePath);
+    else
+        linkerArgs.push('/OUT:' + linkerOutputNativeFilePath);
     var libraryPaths = product.cpp.libraryPaths;
     if (libraryPaths)
         libraryPaths = [].uniqueConcat(libraryPaths);
     for (i in libraryPaths) {
-        args.push('/LIBPATH:' + FileInfo.toWindowsSeparators(libraryPaths[i]))
+        linkerArgs.push('/LIBPATH:' + FileInfo.toWindowsSeparators(libraryPaths[i]))
     }
-    handleDiscardProperty(product, args);
+    handleDiscardProperty(product, linkerArgs);
     var linkerFlags = product.cpp.platformLinkerFlags.concat(product.cpp.linkerFlags);
-    args = args.concat(linkerFlags);
+    linkerArgs = linkerArgs.concat(linkerFlags);
     if (product.cpp.allowUnresolvedSymbols)
-        args.push("/FORCE:UNRESOLVED");
+        linkerArgs.push("/FORCE:UNRESOLVED");
 
-    var linkerPath = product.cpp.linkerPath;
     var wrapperArgs = product.cpp.linkerWrapper;
     if (wrapperArgs && wrapperArgs.length > 0) {
-        args.unshift(linkerPath);
+        linkerArgs.unshift(linkerPath);
         linkerPath = wrapperArgs.shift();
-        args = wrapperArgs.concat(args);
+        linkerArgs = wrapperArgs.concat(linkerArgs);
     }
     var commands = [];
     var warningCmd = new JavaScriptCommand();
@@ -509,6 +579,10 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
         }
     };
     commands.push(warningCmd);
+
+    if (linkerArgs.length !== 0)
+        args = args.concat(useCompilerDriver ? ['/link'] : []).concat(linkerArgs);
+
     var cmd = new Command(linkerPath, args)
     cmd.description = 'linking ' + primaryOutput.fileName;
     cmd.highlight = 'linker';
@@ -516,9 +590,13 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     cmd.relevantEnvironmentVariables = ["LINK", "_LINK_", "LIB", "TMP"];
     cmd.workingDirectory = FileInfo.path(primaryOutput.filePath)
     cmd.responseFileUsagePrefix = '@';
+    cmd.responseFileSeparator = useCompilerDriver ? ' ' : '\n';
     cmd.stdoutFilterFunction = function(output) {
         res = output.replace(/^.*performing full link.*\s*/, "");
-        return res.replace(/^ *Creating library.*\r\n$/, "");
+        res = res.replace(/^ *Creating library.*\s*/, "");
+        res = res.replace(/^\s*Generating code\s*/, "");
+        res = res.replace(/^\s*Finished generating code\s*/, "");
+        return res;
     };
     commands.push(cmd);
 

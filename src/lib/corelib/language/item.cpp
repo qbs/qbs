@@ -203,15 +203,15 @@ bool Item::isOfTypeOrhasParentOfType(ItemType type) const
 
 PropertyDeclaration Item::propertyDeclaration(const QString &name, bool allowExpired) const
 {
-    PropertyDeclaration decl = m_propertyDeclarations.value(name);
-    if (decl.isValid())
-        return decl;
+    auto it = m_propertyDeclarations.find(name);
+    if (it != m_propertyDeclarations.end())
+        return it.value();
     if (allowExpired) {
-        decl = m_expiredPropertyDeclarations.value(name);
-        if (decl.isValid())
-            return decl;
+        it = m_expiredPropertyDeclarations.find(name);
+        if (it != m_expiredPropertyDeclarations.end())
+            return it.value();
     }
-    return m_prototype ? m_prototype->propertyDeclaration(name) : decl;
+    return m_prototype ? m_prototype->propertyDeclaration(name) : PropertyDeclaration();
 }
 
 void Item::addModule(const Item::Module &module)

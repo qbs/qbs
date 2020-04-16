@@ -42,6 +42,7 @@
 
 #include <QtCore/qhash.h>
 #include <QtCore/qstringlist.h>
+#include <QtCore/qtextstream.h>
 
 #include <functional>
 
@@ -66,8 +67,16 @@ template<typename T1, typename T2> struct hash<std::pair<T1, T2>>
 } // namespace std
 
 QT_BEGIN_NAMESPACE
+
 uint qHash(const QStringList &list);
 uint qHash(const QProcessEnvironment &env);
+
+#if (QT_VERSION < QT_VERSION_CHECK(5, 14, 0))
+namespace Qt {
+inline QTextStream &endl(QTextStream &stream) { return stream << QT_PREPEND_NAMESPACE(endl); }
+} // namespace Qt
+#endif
+
 QT_END_NAMESPACE
 
 namespace qbs {
@@ -79,6 +88,16 @@ QSet<T> toSet(const QList<T> &list)
     return list.toSet();
 #else
     return QSet<T>(list.begin(), list.end());
+#endif
+}
+
+template<class T>
+QList<T> toList(const QSet<T> &set)
+{
+#if (QT_VERSION < QT_VERSION_CHECK(5, 14, 0))
+    return set.toList();
+#else
+    return QList<T>(set.begin(), set.end());
 #endif
 }
 

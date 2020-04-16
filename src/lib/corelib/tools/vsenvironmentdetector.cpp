@@ -193,13 +193,13 @@ bool VsEnvironmentDetector::startDetection(const std::vector<MSVC *> &compatible
 static void batClearVars(QTextStream &s, const QStringList &varnames)
 {
     for (const QString &varname : varnames)
-        s << "set " << varname << '=' << endl;
+        s << "set " << varname << '=' << Qt::endl;
 }
 
 static void batPrintVars(QTextStream &s, const QStringList &varnames)
 {
     for (const QString &varname : varnames)
-        s << "echo " << varname << "=%" << varname << '%' << endl;
+        s << "echo " << varname << "=%" << varname << '%' << Qt::endl;
 }
 
 static QString vcArchitecture(const MSVC *msvc)
@@ -232,7 +232,10 @@ void VsEnvironmentDetector::writeBatchFile(QIODevice *device, const QString &vcv
             << QStringLiteral("INCLUDE") << QStringLiteral("LIB") << QStringLiteral("WindowsSdkDir")
             << QStringLiteral("WindowsSDKVersion") << QStringLiteral("VSINSTALLDIR");
     QTextStream s(device);
+    using Qt::endl;
     s << "@echo off" << endl;
+    // Avoid execution of powershell (in vsdevcmd.bat), which is not in the cleared PATH
+    s << "set VSCMD_SKIP_SENDTELEMETRY=1" << endl;
     for (const MSVC *msvc : msvcs) {
         s << "echo --" << msvc->architecture << "--" << endl
           << "setlocal" << endl;

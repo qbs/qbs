@@ -41,13 +41,16 @@ namespace gen {
 namespace utils {
 
 enum class Architecture {
-    Arm,
-    Avr,
-    Mcs51,
-    Stm8,
-    Msp430,
-    Unknown
+    Unknown = 0,
+    Arm = 1 << 1,
+    Avr = 1 << 2,
+    Mcs51 = 1 << 3,
+    Stm8 = 1 << 4,
+    Msp430 = 1 << 5
 };
+
+Q_DECLARE_FLAGS(ArchitectureFlags, Architecture)
+Q_DECLARE_OPERATORS_FOR_FLAGS(ArchitectureFlags)
 
 QBS_EXPORT QString architectureName(Architecture arch);
 QBS_EXPORT Architecture architecture(const Project &qbsProject);

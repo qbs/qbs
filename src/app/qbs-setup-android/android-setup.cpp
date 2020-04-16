@@ -45,6 +45,7 @@
 #include <tools/profile.h>
 #include <tools/settings.h>
 #include <tools/version.h>
+#include <tools/qttools.h>
 
 #include <QtCore/qbytearraylist.h>
 #include <QtCore/qcoreapplication.h>
@@ -94,10 +95,10 @@ static QString mapArch(const QString &androidName)
 }
 
 struct QtAndroidInfo {
-    bool isValid() const { return !arch.isEmpty(); }
+    bool isValid() const { return !archs.isEmpty(); }
 
     QString qmakePath;
-    QString arch;
+    QStringList archs;
     QString platform;
 };
 
@@ -111,19 +112,30 @@ static QtAndroidInfo getInfoForQtDir(const QString &qtDir)
     if (!qdevicepri.open(QIODevice::ReadOnly))
         return info;
     while (!qdevicepri.atEnd()) {
+        // For Qt < 5.14 use DEFAULT_ANDROID_TARGET_ARCH (which is the abi) to compute
+        // the architecture
+        // DEFAULT_ANDROID_ABIS doesn't exit
+        // For Qt >= 5.14:
+        // DEFAULT_ANDROID_TARGET_ARCH doesn't exist, use DEFAULT_ANDROID_ABIS to compute
+        // the architectures
         const QByteArray line = qdevicepri.readLine().simplified();
         const bool isArchLine = line.startsWith("DEFAULT_ANDROID_TARGET_ARCH");
+        const bool isAbisLine = line.startsWith("DEFAULT_ANDROID_ABIS");
         const bool isPlatformLine = line.startsWith("DEFAULT_ANDROID_PLATFORM");
-        if (!isArchLine && !isPlatformLine)
+        if (!isArchLine && !isPlatformLine && !isAbisLine)
             continue;
         const QList<QByteArray> elems = line.split('=');
         if (elems.size() != 2)
             continue;
         const QString rhs = QString::fromLatin1(elems.at(1).trimmed());
-        if (isArchLine)
-            info.arch = mapArch(rhs);
-        else
+        if (isArchLine) {
+            info.archs << mapArch(rhs);
+        } else if (isAbisLine) {
+            for (const QString &abi: rhs.split(QLatin1Char(' ')))
+                info.archs << mapArch(abi);
+        } else {
             info.platform = rhs;
+        }
     }
     return info;
 }
@@ -136,13 +148,16 @@ static QtInfoPerArch getQtAndroidInfo(const QString &qtSdkDir)
         return archs;
 
     QStringList qtDirs(qtSdkDir);
-    QDirIterator dit(qtSdkDir, QStringList() << QStringLiteral("android_*"), QDir::Dirs);
+    const QStringList nameFilters{QStringLiteral("android_*"), QStringLiteral("android")};
+    QDirIterator dit(qtSdkDir, nameFilters, QDir::Dirs);
     while (dit.hasNext())
         qtDirs << dit.next();
     for (const auto &qtDir : qtDirs) {
         const QtAndroidInfo info = getInfoForQtDir(qtDir);
-        if (info.isValid())
-            archs.insert(info.arch, info);
+        if (info.isValid()) {
+            for (const QString &arch: info.archs)
+                archs.insert(arch, info);
+        }
     }
     return archs;
 }
@@ -224,8 +239,10 @@ static void setupNdk(qbs::Settings *settings, const QString &profileName, const 
         qmakeFilePaths << qtAndroidInfo.qmakePath;
         platform = maximumPlatform(platform, qtAndroidInfo.platform);
     }
-    if (!qmakeFilePaths.empty())
+    if (!qmakeFilePaths.empty()) {
+        qmakeFilePaths.removeDuplicates();
         mainProfile.setValue(qls("moduleProviders.Qt.qmakeFilePaths"), qmakeFilePaths);
+    }
     if (!platform.isEmpty())
         mainProfile.setValue(qls("Android.ndk.platform"), platform);
 }

@@ -77,6 +77,7 @@ static void resolveDepencency(const RawScannedDependency &dependency,
     FileDependency *fileDependencyArtifact = nullptr;
     Artifact *dependencyInProduct = nullptr;
     Artifact *dependencyInOtherProduct = nullptr;
+    bool productOfDependencyIsDependency = false;
     const auto files = project->topLevelProject()
             ->buildData->lookupFiles(absDirPath, dependency.fileName());
     for (FileResourceBase *lookupResult : files) {
@@ -86,10 +87,13 @@ static void resolveDepencency(const RawScannedDependency &dependency,
             break;
         case FileResourceBase::FileTypeArtifact: {
             auto const foundArtifact = static_cast<Artifact *>(lookupResult);
-            if (foundArtifact->product == product)
+            if (foundArtifact->product == product) {
                 dependencyInProduct = foundArtifact;
-            else
+            } else if (!productOfDependencyIsDependency) {
                 dependencyInOtherProduct = foundArtifact;
+                productOfDependencyIsDependency
+                        = contains(product->dependencies, dependencyInOtherProduct->product.lock());
+            }
             break;
         }
         }
@@ -102,6 +106,14 @@ static void resolveDepencency(const RawScannedDependency &dependency,
         || (result->file = dependencyInOtherProduct)
         || (result->file = fileDependencyArtifact)) {
         result->filePath = result->file->filePath();
+
+        if (result->file == dependencyInOtherProduct && !productOfDependencyIsDependency) {
+            qCDebug(lcDepScan) << "product" << dependencyInOtherProduct->product->fullDisplayName()
+                                 << "of scanned dependency" << result->filePath
+                                 << "is not a dependency of product" << product->fullDisplayName()
+                                 << ". The file dependency might get lost during change tracking.";
+        }
+
         return;
     }
 
@@ -349,6 +361,8 @@ void InputArtifactScanner::handleDependency(ResolvedDependency &dependency)
 
     if (m_artifact == dependency.file)
         return;
+    if (artifactDependency && artifactDependency->transformer == m_artifact->transformer)
+        return;
 
     if (fileDependency) {
         m_artifact->fileDependencies << fileDependency;
@@ -372,16 +386,14 @@ void InputArtifactScanner::scanWithScannerPlugin(DependencyScanner *scanner,
     const QStringList &dependencies = scanner->collectDependencies(
                 inputArtifact, fileToBeScanned, m_fileTagsForScanner.constData());
     for (const QString &s : dependencies)
-        scanResult->deps.push_back(RawScannedDependency(s));
+        scanResult->deps.emplace_back(s);
 }
 
 InputArtifactScannerContext::DependencyScannerCacheItem::DependencyScannerCacheItem() : valid(false)
 {
 }
 
-InputArtifactScannerContext::DependencyScannerCacheItem::~DependencyScannerCacheItem()
-{
-}
+InputArtifactScannerContext::DependencyScannerCacheItem::~DependencyScannerCacheItem() = default;
 
 } // namespace Internal
 } // namespace qbs

@@ -1,3 +1,4 @@
+#include <memory>
 #include <utility>
 
 /****************************************************************************
@@ -64,11 +65,11 @@ SettingsCreator::SettingsCreator(QString baseDir)
 {
 }
 
-QSettings *SettingsCreator::getQSettings()
+std::unique_ptr<QSettings> SettingsCreator::getQSettings()
 {
     createQSettings();
     migrate();
-    return m_settings.release();
+    return std::move(m_settings);
 }
 
 void SettingsCreator::migrate()
@@ -104,7 +105,7 @@ void SettingsCreator::migrate()
     // Adapt all paths in settings that point to the old location. At the time of this writing,
     // that's only preferences.qbsSearchPaths as written by libqtprofilesetup, but we don't want
     // to hardcode that here.
-    m_settings.reset(new QSettings(m_newSettingsFilePath, format()));
+    m_settings = std::make_unique<QSettings>(m_newSettingsFilePath, format());
     const auto allKeys = m_settings->allKeys();
     for (const QString &key : allKeys) {
         QVariant v = m_settings->value(key);
@@ -136,7 +137,7 @@ void SettingsCreator::createQSettings()
     m_newSettingsDir = m_settingsBaseDir + QLatin1String("/qbs/") + m_qbsVersion.toString();
     m_settingsFileName = fi.fileName();
     m_newSettingsFilePath = m_newSettingsDir + QLatin1Char('/') + m_settingsFileName;
-    m_settings.reset(new QSettings(m_newSettingsFilePath, tmp->format()));
+    m_settings = std::make_unique<QSettings>(m_newSettingsFilePath, tmp->format());
 }
 
 Version SettingsCreator::predecessor() const

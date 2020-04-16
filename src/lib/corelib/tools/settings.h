@@ -45,6 +45,8 @@
 #include <QtCore/qstring.h>
 #include <QtCore/qvariant.h>
 
+#include <memory>
+
 QT_BEGIN_NAMESPACE
 class QSettings;
 class QStringList;
@@ -94,8 +96,8 @@ private:
     QSettings *targetForWriting() const;
     void checkForWriteError();
 
-    QSettings * const m_settings;
-    QSettings * const m_systemSettings;
+    const std::unique_ptr<QSettings> m_settings;
+    const std::unique_ptr<QSettings> m_systemSettings;
     const QString m_baseDir;
     Scope m_scopeForWriting = UserScope;
 };

@@ -48,9 +48,7 @@ MSBuildPropertyGroup::MSBuildPropertyGroup(MSBuildProject *parent)
 {
 }
 
-MSBuildPropertyGroup::~MSBuildPropertyGroup()
-{
-}
+MSBuildPropertyGroup::~MSBuildPropertyGroup() = default;
 
 QString MSBuildPropertyGroup::label() const
 {

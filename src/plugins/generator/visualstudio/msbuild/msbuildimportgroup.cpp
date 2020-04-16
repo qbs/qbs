@@ -47,9 +47,7 @@ MSBuildImportGroup::MSBuildImportGroup(MSBuildProject *parent)
 {
 }
 
-MSBuildImportGroup::~MSBuildImportGroup()
-{
-}
+MSBuildImportGroup::~MSBuildImportGroup() = default;
 
 QString MSBuildImportGroup::label() const
 {

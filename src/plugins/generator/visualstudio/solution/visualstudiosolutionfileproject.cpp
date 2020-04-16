@@ -48,9 +48,7 @@ VisualStudioSolutionFileProject::VisualStudioSolutionFileProject(const QString &
     setFilePath(filePath);
 }
 
-VisualStudioSolutionFileProject::~VisualStudioSolutionFileProject()
-{
-}
+VisualStudioSolutionFileProject::~VisualStudioSolutionFileProject() = default;
 
 QString VisualStudioSolutionFileProject::name() const
 {

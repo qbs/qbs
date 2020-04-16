@@ -44,7 +44,9 @@
 #include "../shared/logging/consolelogger.h"
 
 #include <logging/translator.h>
+#include <tools/clangclinfo.h>
 #include <tools/hostosinfo.h>
+#include <tools/msvcinfo.h>
 #include <tools/profile.h>
 #include <tools/qttools.h>
 #include <tools/settings.h>
@@ -54,16 +56,12 @@
 
 using qbs::Settings;
 using qbs::Profile;
+using qbs::Internal::ClangClInfo;
 using qbs::Internal::HostOsInfo;
 
 using qbs::Internal::Tr;
 
 namespace {
-
-QString getToolchainInstallPath(const QFileInfo &compiler)
-{
-    return compiler.path(); // 1 level up
-}
 
 Profile createProfileHelper(
         Settings *settings,
@@ -75,55 +73,12 @@ Profile createProfileHelper(
     Profile profile(profileName, settings);
     profile.removeProfile();
     profile.setValue(QStringLiteral("qbs.architecture"), architecture);
-    profile.setValue(
-            QStringLiteral("qbs.toolchain"),
-            QStringList{QStringLiteral("clang-cl"), QStringLiteral("msvc")});
+    profile.setValue(QStringLiteral("qbs.toolchainType"), QStringLiteral("clang-cl"));
     profile.setValue(QStringLiteral("cpp.toolchainInstallPath"), toolchainInstallPath);
     profile.setValue(QStringLiteral("cpp.vcvarsallPath"), vcvarsallPath);
     qbsInfo() << Tr::tr("Profile '%1' created for '%2'.")
             .arg(profile.name(), QDir::toNativeSeparators(toolchainInstallPath));
     return profile;
-}
-
-std::vector<MSVCInstallInfo> compatibleMsvcs()
-{
-    auto msvcs = installedMSVCs();
-    auto filter = [](const MSVCInstallInfo &info)
-    {
-        const auto versions = info.version.split(QLatin1Char('.'));
-        if (versions.empty())
-            return true;
-        bool ok = false;
-        const int major = versions.at(0).toInt(&ok);
-        return !(ok && major >= 15); // support MSVC2017 and above
-    };
-    const auto it = std::remove_if(msvcs.begin(), msvcs.end(), filter);
-    msvcs.erase(it, msvcs.end());
-    for (const auto &msvc: msvcs) {
-        auto vcvarsallPath = msvc.findVcvarsallBat();
-        if (vcvarsallPath.isEmpty())
-            continue;
-    }
-    return msvcs;
-}
-
-QString findCompatibleVcsarsallBat()
-{
-    for (const auto &msvc: compatibleMsvcs()) {
-        const auto vcvarsallPath = msvc.findVcvarsallBat();
-        if (!vcvarsallPath.isEmpty())
-            return vcvarsallPath;
-    }
-    return {};
-}
-
-QString wow6432Key()
-{
-#ifdef Q_OS_WIN64
-    return QStringLiteral("\\Wow6432Node");
-#else
-    return {};
-#endif
 }
 
 QString findClangCl()
@@ -133,27 +88,6 @@ QString findClangCl()
     if (!compilerFromPath.isEmpty())
         return compilerFromPath;
 
-    const QSettings registry(
-            QStringLiteral("HKEY_LOCAL_MACHINE\\SOFTWARE%1\\LLVM\\LLVM").arg(wow6432Key()),
-            QSettings::NativeFormat);
-    const auto key = QStringLiteral(".");
-    if (registry.contains(key)) {
-        const auto compilerPath = QDir::fromNativeSeparators(registry.value(key).toString())
-                + QStringLiteral("/bin/") + compilerName;
-        if (QFileInfo(compilerPath).exists())
-            return compilerPath;
-    }
-
-    // this branch can be useful in case user had two LLVM installations (e.g. 32bit & 64bit)
-    // but uninstalled one - in that case, registry will be empty
-    static const char * const envVarCandidates[] = {"ProgramFiles", "ProgramFiles(x86)"};
-    for (const auto &envVar : envVarCandidates) {
-        const auto value
-                = QDir::fromNativeSeparators(QString::fromLocal8Bit(qgetenv(envVar)));
-        const auto compilerPath = value + QStringLiteral("/LLVM/bin/") + compilerName;
-        if (QFileInfo(compilerPath).exists())
-            return compilerPath;
-    }
     return {};
 }
 
@@ -162,51 +96,39 @@ QString findClangCl()
 void createClangClProfile(const QFileInfo &compiler, Settings *settings,
                           const QString &profileName)
 {
-    const auto compilerName = QStringLiteral("clang-cl");
-    const auto vcvarsallPath = findCompatibleVcsarsallBat();
-    if (vcvarsallPath.isEmpty()) {
-        qbsWarning()
-                << Tr::tr("%1 requires installed Visual Studio 2017 or newer, but none was found.")
-                   .arg(compilerName);
+    const auto clangCl = ClangClInfo::fromCompilerFilePath(
+            compiler.filePath(), ConsoleLogger::instance());
+    if (clangCl.isEmpty())
         return;
-    }
-
-    const auto toolchainInstallPath = getToolchainInstallPath(compiler);
     const auto hostArch = QString::fromStdString(HostOsInfo::hostOSArchitecture());
-    createProfileHelper(settings, profileName, toolchainInstallPath, vcvarsallPath, hostArch);
+    createProfileHelper(
+            settings, profileName, clangCl.toolchainInstallPath, clangCl.vcvarsallPath, hostArch);
 }
 
 /*!
   \brief Creates a clang-cl profile based on auto-detected vsversion.
   \internal
 */
-void clangClProbe(Settings *settings, QList<Profile> &profiles)
+void clangClProbe(Settings *settings, std::vector<Profile> &profiles)
 {
     const auto compilerName = QStringLiteral("clang-cl");
     qbsInfo() << Tr::tr("Trying to detect %1...").arg(compilerName);
-    const QString compilerFilePath = findClangCl();
-    if (compilerFilePath.isEmpty()) {
+    const auto clangCls = ClangClInfo::installedCompilers(
+            {findClangCl()}, ConsoleLogger::instance());
+    if (clangCls.empty()) {
         qbsInfo() << Tr::tr("%1 was not found.").arg(compilerName);
         return;
     }
-    const QFileInfo compiler(compilerFilePath);
-    const auto vcvarsallPath = findCompatibleVcsarsallBat();
-    if (vcvarsallPath.isEmpty()) {
-        qbsWarning()
-                << Tr::tr("%1 requires installed Visual Studio 2017 or newer, but none was found.")
-                        .arg(compilerName);
-        return;
-    }
 
+    const auto clangCl = clangCls.front();
     const QString architectures[] = {
         QStringLiteral("x86_64"),
         QStringLiteral("x86")
     };
-    const auto toolchainInstallPath = getToolchainInstallPath(compiler);
     for (const auto &arch: architectures) {
         const auto profileName = QStringLiteral("clang-cl-%1").arg(arch);
         auto profile = createProfileHelper(
-                settings, profileName, toolchainInstallPath, vcvarsallPath, arch);
+                settings, profileName, clangCl.toolchainInstallPath, clangCl.vcvarsallPath, arch);
         profiles.push_back(std::move(profile));
     }
 }

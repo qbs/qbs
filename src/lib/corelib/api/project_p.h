@@ -62,22 +62,22 @@ namespace Internal {
 class ProjectPrivate : public QSharedData
 {
 public:
-    ProjectPrivate(const TopLevelProjectPtr &internalProject, const Logger &logger)
-        : internalProject(internalProject), logger(logger)
+    ProjectPrivate(TopLevelProjectPtr internalProject, Logger logger)
+        : internalProject(std::move(internalProject)), logger(std::move(logger))
     {
     }
 
     ProjectData projectData();
-    BuildJob *buildProducts(const QList<ResolvedProductPtr> &products, const BuildOptions &options,
+    BuildJob *buildProducts(const QVector<ResolvedProductPtr> &products, const BuildOptions &options,
                             bool needsDepencencyResolving,
                             QObject *jobOwner);
-    CleanJob *cleanProducts(const QList<ResolvedProductPtr> &products, const CleanOptions &options,
+    CleanJob *cleanProducts(const QVector<ResolvedProductPtr> &products, const CleanOptions &options,
                             QObject *jobOwner);
-    InstallJob *installProducts(const QList<ResolvedProductPtr> &products,
+    InstallJob *installProducts(const QVector<ResolvedProductPtr> &products,
                                 const InstallOptions &options, bool needsDepencencyResolving,
                                 QObject *jobOwner);
-    QList<ResolvedProductPtr> internalProducts(const QList<ProductData> &products) const;
-    QList<ResolvedProductPtr> allEnabledInternalProducts(bool includingNonDefault) const;
+    QVector<ResolvedProductPtr> internalProducts(const QList<ProductData> &products) const;
+    QVector<ResolvedProductPtr> allEnabledInternalProducts(bool includingNonDefault) const;
     ResolvedProductPtr internalProduct(const ProductData &product) const;
     ProductData findProductData(const ProductData &product) const;
     QList<ProductData> findProductsByName(const QString &name) const;
@@ -92,7 +92,7 @@ public:
     void setupInstallData(ArtifactData &artifact, const ResolvedProductConstPtr &product);
 
     struct GroupUpdateContext {
-        QList<ResolvedProductPtr> resolvedProducts;
+        QVector<ResolvedProductPtr> resolvedProducts;
         QList<GroupPtr> resolvedGroups;
         QList<ProductData> products;
         QList<GroupData> groups;
@@ -114,12 +114,7 @@ public:
     void removeFiles(const ProductData &product, const GroupData &group,
                      const QStringList &filePaths);
     void removeGroup(const ProductData &product, const GroupData &group);
-    void removeFilesFromBuildGraph(const ResolvedProductConstPtr &product,
-                                   const std::vector<SourceArtifactPtr> &files);
-    void updateInternalCodeLocations(const ResolvedProjectPtr &project,
-                                     const CodeLocation &changeLocation, int lineOffset);
-    void updateExternalCodeLocations(const ProjectData &project,
-                                     const CodeLocation &changeLocation, int lineOffset);
+
     void prepareChangeToProject();
 
     RuleCommandList ruleCommandListForTransformer(const Transformer *transformer);

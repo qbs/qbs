@@ -176,7 +176,7 @@ UnixGCC {
         ? [minimumDarwinVersionCompilerFlag + "=" + minimumDarwinVersion] : []
 
     readonly property stringList minimumDarwinVersionLinkerFlags:
-        (minimumDarwinVersionLinkerFlag && minimumDarwinVersion)
+        (minimumDarwinVersionLinkerFlag && minimumDarwinVersion && compilerVersionMajor < 11)
         ? [minimumDarwinVersionLinkerFlag, minimumDarwinVersion] : []
 
     readonly property var buildEnv: {

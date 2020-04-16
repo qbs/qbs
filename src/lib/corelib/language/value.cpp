@@ -61,9 +61,7 @@ Value::Value(const Value &other)
 {
 }
 
-Value::~Value()
-{
-}
+Value::~Value() = default;
 
 Item *Value::definingItem() const
 {
@@ -115,9 +113,7 @@ JSSourceValuePtr JSSourceValue::create(bool createdByPropertiesBlock)
     return JSSourceValuePtr(new JSSourceValue(createdByPropertiesBlock));
 }
 
-JSSourceValue::~JSSourceValue()
-{
-}
+JSSourceValue::~JSSourceValue() = default;
 
 ValuePtr JSSourceValue::clone() const
 {
@@ -200,7 +196,7 @@ VariantValuePtr VariantValue::create(const QVariant &v)
 
 ValuePtr VariantValue::clone() const
 {
-    return VariantValuePtr(new VariantValue(*this));
+    return std::make_shared<VariantValue>(*this);
 }
 
 const VariantValuePtr &VariantValue::falseValue()

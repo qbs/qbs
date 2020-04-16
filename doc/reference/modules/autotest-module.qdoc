@@ -67,3 +67,14 @@
     \nodefaultvalue
 */
 
+/*!
+    \qmlproperty int autotest::timeout
+
+    The time limit for the execution of the autotest. If not specified, the
+    \l{AutotestRunner::timeout}{timeout} property of the \l AutotestRunner
+    that invokes the autotest is used.
+
+    \nodefaultvalue
+    \since Qbs 1.15
+*/
+

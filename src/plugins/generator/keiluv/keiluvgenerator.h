@@ -45,7 +45,7 @@ class KeiluvGenerator final : public ProjectGenerator,
         private IGeneratableProjectVisitor
 {
 public:
-    explicit KeiluvGenerator(const KeiluvVersionInfo &versionInfo);
+    explicit KeiluvGenerator(const gen::VersionInfo &versionInfo);
 
     QString generatorName() const final;
     void generate() final;
@@ -60,7 +60,7 @@ private:
                       const GeneratableProjectData &projectData,
                       const GeneratableProductData &productData) final;
 
-    const KeiluvVersionInfo m_versionInfo;
+    const gen::VersionInfo m_versionInfo;
     std::shared_ptr<KeiluvWorkspace> m_workspace;
     QString m_workspaceFilePath;
     std::map<QString, std::shared_ptr<KeiluvProject>> m_projects;

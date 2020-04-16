@@ -40,9 +40,7 @@ MSBuildItemDefinitionGroup::MSBuildItemDefinitionGroup(MSBuildProject *parent)
 {
 }
 
-MSBuildItemDefinitionGroup::~MSBuildItemDefinitionGroup()
-{
-}
+MSBuildItemDefinitionGroup::~MSBuildItemDefinitionGroup() = default;
 
 void MSBuildItemDefinitionGroup::accept(IMSBuildNodeVisitor *visitor) const
 {

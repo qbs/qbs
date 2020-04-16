@@ -111,7 +111,7 @@ class ToolchainDetails
 public:
     explicit ToolchainDetails(const QFileInfo &compiler)
     {
-        auto baseName = compiler.completeBaseName();
+        auto baseName = HostOsInfo::stripExecutableSuffix(compiler.fileName());
         // Extract the version sub-string if it exists. We assume that a version
         // sub-string located after the compiler prefix && suffix. E.g. this code
         // parses a version from the compiler names, like this:
@@ -138,9 +138,9 @@ public:
 };
 
 static void setCommonProperties(Profile &profile, const QFileInfo &compiler,
-        const QStringList &toolchainTypes, const ToolchainDetails &details)
+        const QString &toolchainType, const ToolchainDetails &details)
 {
-    if (toolchainTypes.contains(QStringLiteral("mingw")))
+    if (toolchainType == QStringLiteral("mingw"))
         profile.setValue(QStringLiteral("qbs.targetPlatform"),
                          QStringLiteral("windows"));
 
@@ -149,7 +149,7 @@ static void setCommonProperties(Profile &profile, const QFileInfo &compiler,
 
     profile.setValue(QStringLiteral("cpp.toolchainInstallPath"),
                      compiler.absolutePath());
-    profile.setValue(QStringLiteral("qbs.toolchain"), toolchainTypes);
+    profile.setValue(QStringLiteral("qbs.toolchainType"), toolchainType);
 
     if (!standardCompilerFileNames().contains(
                 HostOsInfo::appendExecutableSuffix(details.suffix))) {
@@ -453,12 +453,12 @@ static QStringList mplabX32RegistrySearchPaths()
 }
 
 Profile createGccProfile(const QFileInfo &compiler, Settings *settings,
-                         const QStringList &toolchainTypes,
+                         const QString &toolchainType,
                          const QString &profileName)
 {
     const QString machineName = gccMachineName(compiler);
 
-    if (toolchainTypes.contains(QLatin1String("mingw"))) {
+    if (toolchainType == QLatin1String("mingw")) {
         if (!validMinGWMachines().contains(machineName)) {
             throw ErrorInfo(Tr::tr("Detected gcc platform '%1' is not supported.")
                             .arg(machineName));
@@ -470,9 +470,9 @@ Profile createGccProfile(const QFileInfo &compiler, Settings *settings,
 
     const ToolchainDetails details(compiler);
 
-    setCommonProperties(profile, compiler, toolchainTypes, details);
+    setCommonProperties(profile, compiler, toolchainType, details);
 
-    if (HostOsInfo::isWindowsHost() && toolchainTypes.contains(QLatin1String("clang"))) {
+    if (HostOsInfo::isWindowsHost() && toolchainType == QLatin1String("clang")) {
         const QStringList profileNames = settings->profiles();
         bool foundMingw = false;
         for (const QString &profileName : profileNames) {
@@ -497,7 +497,7 @@ Profile createGccProfile(const QFileInfo &compiler, Settings *settings,
         }
     }
 
-    if (!toolchainTypes.contains(QLatin1String("clang"))) {
+    if (toolchainType != QLatin1String("clang")) {
         // Check whether auxiliary tools reside within the toolchain's install path.
         // This might not be the case when using icecc or another compiler wrapper.
         const QString compilerDirPath = compiler.absolutePath();
@@ -520,7 +520,7 @@ Profile createGccProfile(const QFileInfo &compiler, Settings *settings,
     return profile;
 }
 
-void gccProbe(Settings *settings, QList<Profile> &profiles, const QString &compilerName)
+void gccProbe(Settings *settings, std::vector<Profile> &profiles, const QString &compilerName)
 {
     qbsInfo() << Tr::tr("Trying to detect %1...").arg(compilerName);
 
@@ -582,11 +582,15 @@ void gccProbe(Settings *settings, QList<Profile> &profiles, const QString &compi
     }
 
     for (const auto &candidate : qAsConst(candidates)) {
-        const QStringList toolchainTypes = toolchainTypeFromCompilerName(
+        const QString toolchainType = toolchainTypeFromCompilerName(
                     candidate.baseName());
         const QString profileName = buildProfileName(candidate);
-        auto profile = createGccProfile(candidate, settings,
-                                        toolchainTypes, profileName);
-        profiles.push_back(std::move(profile));
+        try {
+            auto profile = createGccProfile(candidate, settings,
+                                            toolchainType, profileName);
+            profiles.push_back(std::move(profile));
+        } catch (const qbs::ErrorInfo &info) {
+            qbsWarning() << Tr::tr("Skipping %1: %2").arg(profileName, info.toString());
+        }
     }
 }

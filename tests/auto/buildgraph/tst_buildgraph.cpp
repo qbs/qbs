@@ -51,6 +51,8 @@
 
 #include <QtTest/qtest.h>
 
+#include <memory>
+
 using namespace qbs;
 using namespace qbs::Internal;
 
@@ -58,7 +60,7 @@ const TopLevelProjectPtr project = TopLevelProject::create();
 
 TestBuildGraph::TestBuildGraph(ILogSink *logSink) : m_logSink(logSink)
 {
-    project->buildData.reset(new ProjectBuildData);
+    project->buildData = std::make_unique<ProjectBuildData>();
 }
 
 void TestBuildGraph::initTestCase()
@@ -84,7 +86,7 @@ ResolvedProductConstPtr TestBuildGraph::productWithDirectCycle()
 {
     const ResolvedProductPtr product = ResolvedProduct::create();
     product->project = project;
-    product->buildData.reset(new ProductBuildData);
+    product->buildData = std::make_unique<ProductBuildData>();
     const auto root = new Artifact;
     root->product = product;
     const auto child = new Artifact;
@@ -101,7 +103,7 @@ ResolvedProductConstPtr TestBuildGraph::productWithLessDirectCycle()
 {
     const ResolvedProductPtr product = ResolvedProduct::create();
     product->project = project;
-    product->buildData.reset(new ProductBuildData);
+    product->buildData = std::make_unique<ProductBuildData>();
     const auto root = new Artifact;
     const auto child = new Artifact;
     const auto grandchild = new Artifact;
@@ -123,7 +125,7 @@ ResolvedProductConstPtr TestBuildGraph::productWithNoCycle()
 {
     const ResolvedProductPtr product = ResolvedProduct::create();
     product->project = project;
-    product->buildData.reset(new ProductBuildData);
+    product->buildData = std::make_unique<ProductBuildData>();
     const auto root = new Artifact;
     const auto root2 = new Artifact;
     root->product = product;

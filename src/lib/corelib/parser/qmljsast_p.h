@@ -221,7 +221,7 @@ public:
     // NOTE: node destructors are never called,
     //       instead we block free the memory
     //       (see the NodePool class)
-    virtual ~Node() {}
+    virtual ~Node() = default;
 
     virtual ExpressionNode *expressionCast();
     virtual BinaryExpression *binaryExpressionCast();
@@ -245,7 +245,7 @@ public:
 class QML_PARSER_EXPORT ExpressionNode: public Node
 {
 public:
-    ExpressionNode() {}
+    ExpressionNode() = default;
 
     ExpressionNode *expressionCast() override;
 };
@@ -253,7 +253,7 @@ public:
 class QML_PARSER_EXPORT Statement: public Node
 {
 public:
-    Statement() {}
+    Statement() = default;
 
     Statement *statementCast() override;
 };
@@ -2303,7 +2303,7 @@ public:
             return imports->firstSourceLocation();
         else if (members)
             return members->firstSourceLocation();
-        return SourceLocation();
+        return {};
     }
 
     SourceLocation lastSourceLocation() const override
@@ -2312,7 +2312,7 @@ public:
             return members->lastSourceLocation();
         else if (imports)
             return imports->lastSourceLocation();
-        return SourceLocation();
+        return {};
     }
 
 // attributes
@@ -2519,7 +2519,7 @@ public:
       else if (const auto varStmt = cast<const VariableStatement *>(sourceElement))
         return varStmt->firstSourceLocation();
 
-      return SourceLocation();
+      return {};
     }
 
     SourceLocation lastSourceLocation() const override
@@ -2529,7 +2529,7 @@ public:
       else if (const auto varStmt = cast<const VariableStatement *>(sourceElement))
         return varStmt->lastSourceLocation();
 
-      return SourceLocation();
+      return {};
     }
 
     void accept0(Visitor *visitor) override;

@@ -4,6 +4,7 @@
 # DOCKER_USERNAME
 #
 language: cpp
+cache: ccache
 
 git:
   submodules: false
@@ -11,8 +12,8 @@ git:
 env:
   global:
     - QT_INSTALL_DIR=~/Qt
-    - QT_VERSION=5.12.5
-    - QTCREATOR_VERSION=4.10.1
+    - QT_VERSION=5.12.6
+    - QTCREATOR_VERSION=4.10.2
 
 stages:
   - name: Build Qbs and and run autotests
@@ -23,51 +24,136 @@ jobs:
       stage: Build Qbs and and run autotests
       name: With Qbs on Ubuntu bionic (linux_gcc64)
       env:
-        SERVICE=bionic
+        BUILD_OPTIONS=modules.cpp.compilerWrapper:ccache
       services:
         - docker
-      before_install:
-        - docker-compose pull ${SERVICE}
+      before_script:
+        - docker-compose pull bionic
+        - ccache -M 5G
+        - ccache -s
+      after_script:
+        - ccache -s
       script:
-        - docker-compose run --rm ${SERVICE} scripts/build-qbs-with-qbs.sh
+        - docker-compose run bionic scripts/build-qbs-with-qbs.sh
 
     - <<: *build-on-bionic
       name: With QMake on Ubuntu bionic (linux_gcc64)
+      env:
+        BUILD_OPTIONS="CONFIG+=ccache"
       script:
-        - docker-compose run --rm ${SERVICE} scripts/build-qbs-with-qmake.sh
+        - docker-compose run bionic scripts/build-qbs-with-qmake.sh
 
     - <<: *build-on-bionic
       name: With Qbs on Ubuntu bionic (mingw32_w64)
+      env:
+        BUILD_OPTIONS="profile:qt-mingw32_w64 modules.cpp.compilerWrapper:ccache modules.cpp.treatWarningsAsErrors:true config:release"
       script:
-        - docker-compose run --rm ${SERVICE} qbs build profile:qt-mingw32_w64
+        - docker-compose run bionic qbs build ${BUILD_OPTIONS}
+
+    - <<: *build-on-bionic
+      name: With Qbs on Ubuntu bionic (linux_clang64 & clang_tidy)
+      env:
+        BUILD_OPTIONS="profile:qt-clang_64 modules.cpp.compilerWrapper:ccache"
+      services:
+        - docker
+      script:
+        - docker-compose run --rm bionic scripts/run-analyzer.sh
+
+    - <<: *build-on-bionic
+      name: With Qbs and with Qt for Android
+      before_install:
+        - docker-compose pull bionic
+        - docker-compose pull bionic-android-513
+        - docker-compose pull bionic-android-514
+      script:
+        - docker-compose run bionic qbs build modules.cpp.compilerWrapper:ccache modules.qbsbuildconfig.enableBundledQt:true config:release
+        - docker-compose run bionic-android-513 scripts/test-qt-for-android.sh release/install-root/usr/local/bin
+        - docker-compose run bionic-android-514 scripts/test-qt-for-android.sh release/install-root/usr/local/bin
 
     - &build-on-macos
       stage: Build Qbs and and run autotests
-      name: With Qbs on macOS (xcode 10.3)
+      name: With Qbs on macOS (xcode 11.3)
       os: osx
-      osx_image: xcode10.3
+      osx_image: xcode11.3
       addons:
         homebrew:
           packages:
+            - ccache
+            - grpc
+            - icoutils
+            - makensis
+            - protobuf
             - p7zip
           update: true
       env:
         # Address sanitizer slows autotests down too much.
         # We would hit the maximum build time on Travis.
-        BUILD_OPTIONS=modules.qbsbuildconfig.enableAddressSanitizer:false
+        BUILD_OPTIONS="modules.qbsbuildconfig.enableAddressSanitizer:false modules.cpp.compilerWrapper:ccache"
         QMAKE_PATH=${QT_INSTALL_DIR}/${QT_VERSION}/clang_64/bin/qmake
         PATH="${QT_INSTALL_DIR}/Qt Creator.app/Contents/MacOS:${PATH}"
         QBS_BUILD_PROFILE=qt
       before_install:
-        - ./scripts/install-qt.sh -d ${QT_INSTALL_DIR} --version ${QT_VERSION} qtbase qtdeclarative qttools qtscript
+        - ./scripts/install-qt.sh -d ${QT_INSTALL_DIR} --version ${QT_VERSION} qtbase qtdeclarative qttools qtscript qtscxml
         - ./scripts/install-qt.sh -d ${QT_INSTALL_DIR} --version ${QTCREATOR_VERSION} qtcreator
-        - pip2 install --user beautifulsoup4 lxml
+        - pip3 install --user beautifulsoup4 lxml
+      before_script:
+        - ulimit -c unlimited -S       # enable core dumps
       script:
+        - ccache -s
         - qbs setup-toolchains --detect
         - qbs setup-qt ${QMAKE_PATH} qt
-        - qbs config qt.baseProfile xcode-macosx-x86_64
+        - qbs config profiles.qt.baseProfile xcode-macosx-x86_64
         - qbs config defaultProfile qt
+        - qbs config --list profiles
         - scripts/build-qbs-with-qbs.sh
+        - ccache -s
+      # Find core dump and print traceback on failure
+      after_failure:
+        - |
+          for f in $(find /cores -maxdepth 1 -name 'core.*' -print); do
+            lldb --core $f --batch --one-line "bt"
+          done;
+
+
+    - <<: *build-on-macos
+      name: With Qbs on macOS (xcode 10.3)
+      osx_image: xcode10.3
+      if: branch = master
+
+    - <<: *build-on-macos
+      name: With Qbs on macOS (xcode 9.4)
+      osx_image: xcode9.4
+      if: branch = master
+
+    - &build-on-windows-with-docker
+      stage: Build Qbs and and run autotests
+      name: With Qbs on Windows with Docker (Visual Studio 2017)
+      if: branch = master
+      os: windows
+      services: docker
+      env:
+        CLCACHE_DIR="${HOME}/.ccache"
+      before-install:
+        - curl -sLo "/c/Program Files/Docker/docker-compose.exe" https://github.com/docker/compose/releases/download/1.25.3/docker-compose-Windows-x86_64.exe
+        - docker-compose pull windows
+      before_script:
+        - docker-compose run --rm windows clcache -s
+      script:
+        - >
+          docker-compose run --rm windows qbs build
+          -p dist
+          qbs.buildVariant:release
+          modules.cpp.compilerWrapper:clcache
+          modules.qbsbuildconfig.enableBundledQt:true
+          modules.qbsbuildconfig.enableProjectFileUpdates:true
+          modules.qbsbuildconfig.enableUnitTests:true
+          modules.cpp.treatWarningsAsErrors:true
+          project.withDocumentation:true
+          project.withExamples:true
+          config:release-64 profile:qt64
+          config:release profile:qt
+      after_script:
+        - docker-compose run --rm windows clcache -s
 
     - &build-on-windows
       stage: Build Qbs and and run autotests
@@ -75,19 +161,35 @@ jobs:
       os: windows
       env:
         # Need to build in release mode. Otherwise autotests would be too slow.
-        BUILD_OPTIONS="config:release"
-        QT_INSTALL_DIR=C:/Qt
+        BUILD_OPTIONS="config:release modules.cpp.compilerWrapper:clcache"
         QMAKE_PATH=${QT_INSTALL_DIR}/${QT_VERSION}/msvc2017_64/bin/qmake.exe
-        PATH="/c/Qt/Tools/QtCreator/bin:${PATH}"
-        WITH_DOCS=0
+        PATH="${QT_INSTALL_DIR}/Tools/QtCreator/bin:/c/Python38:/c/Python39:/c/Python38/Scripts:/c/Python39/Scripts:${PATH}"
         QBS_BUILD_PROFILE=qt
+        CLCACHE_DIR="${HOME}/.ccache"
       before_install:
         # Install Qbs and Qt
         - ./scripts/install-qt.sh -d ${QT_INSTALL_DIR} --version ${QT_VERSION} --toolchain win64_msvc2017_64 qtbase qtdeclarative qttools qtscript
         - ./scripts/install-qt.sh -d ${QT_INSTALL_DIR} --version ${QTCREATOR_VERSION} qtcreator
+        - choco install python3
+        - pip3 install git+https://github.com/frerich/clcache.git@cae73d8255d78db8ba11e23c51fd2c9a89e7475b
+        - pip3 install conan beautifulsoup4 lxml
+      before_script:
+        - clcache -s
+      after_script:
+        - clcache -s
       script:
         - qbs setup-toolchains --detect
         - qbs setup-qt ${QMAKE_PATH} qt
-        - qbs config qt.baseProfile MSVC2017-x86
+        - qbs config qt.baseProfile MSVC2017-x64
+        - qbs config defaultProfile qt
+        - scripts/build-qbs-with-qbs.sh
+
+    - <<: *build-on-windows
+      name: With Qbs on Windows (clang-cl)
+      if: branch = master
+      script:
+        - qbs setup-toolchains --detect
+        - qbs setup-qt ${QMAKE_PATH} qt
+        - qbs config profiles.qt.baseProfile clang-cl-x86_64
         - qbs config defaultProfile qt
         - scripts/build-qbs-with-qbs.sh

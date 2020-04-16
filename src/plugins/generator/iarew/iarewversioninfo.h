@@ -44,18 +44,17 @@
 #include <generators/generatorversioninfo.h>
 
 namespace qbs {
+namespace IarewVersionInfo {
 
-class IarewVersionInfo final : public gen::VersionInfo
-{
-public:
-    IarewVersionInfo(const Version &version,
-                     const std::set<gen::utils::Architecture> &archs);
-
-    int marketingVersion() const final;
-
-    static std::set<IarewVersionInfo> knownVersions();
+constexpr gen::VersionInfo knownVersions[] = {
+    {Version(8), {gen::utils::Architecture::Arm}},
+    {Version(7), {gen::utils::Architecture::Avr,
+                  gen::utils::Architecture::Msp430}},
+    {Version(10), {gen::utils::Architecture::Mcs51}},
+    {Version(3), {gen::utils::Architecture::Stm8}},
 };
 
+} // namespace IarewVersionInfo
 } // namespace qbs
 
 #endif // QBS_IAREWVERSIONINFO_H

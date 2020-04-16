@@ -47,6 +47,7 @@
 #include <tools/set.h>
 #include <tools/settings.h>
 #include <tools/stlutils.h>
+#include <tools/toolchains.h>
 #include <tools/version.h>
 
 #include <QtCore/qbytearraymatcher.h>
@@ -196,7 +197,7 @@ static bool isToolchainProfile(const Profile &profile)
 {
     const auto actual = Internal::Set<QString>::fromList(
                 profile.allKeys(Profile::KeySelectionRecursive));
-    Internal::Set<QString> expected = Internal::Set<QString> { QStringLiteral("qbs.toolchain") };
+    Internal::Set<QString> expected{ QStringLiteral("qbs.toolchainType") };
     if (HostOsInfo::isMacosHost())
         expected.insert(QStringLiteral("qbs.targetPlatform")); // match only Xcode profiles
     return Internal::Set<QString>(actual).unite(expected) == actual;
@@ -230,8 +231,13 @@ static Match compatibility(const QtEnvironment &env, const Profile &toolchainPro
 {
     Match match = MatchFull;
 
-    const auto toolchainNames = Internal::Set<QString>::fromList(
-                toolchainProfile.value(QStringLiteral("qbs.toolchain")).toStringList());
+    const auto toolchainType =
+            toolchainProfile.value(QStringLiteral("qbs.toolchainType")).toString();
+    const auto toolchain = !toolchainType.isEmpty()
+            ? canonicalToolchain(toolchainType)
+            : toolchainProfile.value(QStringLiteral("qbs.toolchain")).toStringList();
+
+    const auto toolchainNames = Internal::Set<QString>::fromList(toolchain);
     const auto qtToolchainNames = Internal::Set<QString>::fromList(env.qbsToolchain);
     if (areProfilePropertiesIncompatible(toolchainNames, qtToolchainNames)) {
         auto intersection = toolchainNames;

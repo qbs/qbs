@@ -47,6 +47,6 @@ class Profile;
 class Settings;
 }
 
-void xcodeProbe(qbs::Settings *settings, QList<qbs::Profile> &profiles);
+void xcodeProbe(qbs::Settings *settings, std::vector<qbs::Profile> &profiles);
 
 #endif // Header guard

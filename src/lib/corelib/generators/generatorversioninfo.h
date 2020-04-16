@@ -45,7 +45,7 @@
 #include <tools/qbs_export.h>
 #include <tools/version.h>
 
-#include <set>
+#include <QFlags>
 
 namespace qbs {
 namespace gen {
@@ -53,24 +53,31 @@ namespace gen {
 class QBS_EXPORT VersionInfo
 {
 public:
-    VersionInfo(const Version &version,
-                const std::set<utils::Architecture> &archs);
-    virtual ~VersionInfo() = default;
+    constexpr VersionInfo(const Version &version, utils::ArchitectureFlags archs)
+        : m_version(version), m_archs(archs)
+    {
+    }
 
-    bool operator<(const VersionInfo &other) const;
-    bool operator==(const VersionInfo &other) const;
+    constexpr bool operator<(const VersionInfo &other) const { return m_version < other.m_version; }
+    constexpr bool operator==(const VersionInfo &other) const
+    {
+        return m_version == other.m_version && m_archs == other.m_archs;
+    }
 
-    Version version() const;
-    bool containsArchitecture(utils::Architecture arch) const;
+    constexpr Version version() const { return m_version; }
+    constexpr bool containsArchitecture(utils::Architecture arch) const { return m_archs & arch; }
 
-    virtual int marketingVersion() const;
+    int marketingVersion() const;
 
 private:
     Version m_version;
-    std::set<utils::Architecture> m_archs;
+    utils::ArchitectureFlags m_archs;
 };
 
-quint32 qHash(const VersionInfo &info);
+inline quint32 qHash(const VersionInfo &info)
+{
+    return qHash(info.version().toString());
+}
 
 } // namespace gen
 } // namespace qbs

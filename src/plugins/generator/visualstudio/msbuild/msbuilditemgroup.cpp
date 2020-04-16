@@ -49,9 +49,7 @@ MSBuildItemGroup::MSBuildItemGroup(MSBuildProject *parent)
 {
 }
 
-MSBuildItemGroup::~MSBuildItemGroup()
-{
-}
+MSBuildItemGroup::~MSBuildItemGroup() = default;
 
 QString MSBuildItemGroup::label() const
 {

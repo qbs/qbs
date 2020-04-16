@@ -218,7 +218,7 @@ private:
     {
         Q_DISABLE_COPY(TopLevelProjectContext)
     public:
-        TopLevelProjectContext() {}
+        TopLevelProjectContext() = default;
         ~TopLevelProjectContext() { qDeleteAll(projects); }
 
         std::vector<ProjectContext *> projects;
@@ -252,6 +252,7 @@ private:
         VariantValuePtr multiplexedType;
 
         QString toIdString(size_t row) const;
+        static QVariantMap multiplexIdToVariantMap(const QString &multiplexId);
     };
 
     void dump(const MultiplexInfo &mpi);
@@ -317,6 +318,7 @@ private:
     Item *searchAndLoadModuleFile(ProductContext *productContext,
             const CodeLocation &dependsItemLocation, const QualifiedId &moduleName,
             FallbackMode fallbackMode, bool isRequired, Item *moduleInstance);
+    QStringList &getModuleFileNames(const QString &dirPath);
     Item *loadModuleFile(ProductContext *productContext, const QString &fullModuleName,
             bool isBaseModule, const QString &filePath, bool *triedToLoad, Item *moduleInstance);
     Item *getModulePrototype(ProductContext *productContext, const QString &fullModuleName,
@@ -337,8 +339,9 @@ private:
     QStringList readExtraSearchPaths(Item *item, bool *wasSet = nullptr);
     void copyProperties(const Item *sourceProject, Item *targetProject);
     Item *wrapInProjectIfNecessary(Item *item);
-    static QString findExistingModulePath(const QString &searchPath,
-            const QualifiedId &moduleName);
+    QString findExistingModulePath(const QString &searchPath, const QualifiedId &moduleName);
+    QStringList findExistingModulePaths(
+            const QStringList &searchPaths, const QualifiedId &moduleName);
 
     enum class ModuleProviderLookup { Regular, Fallback };
     struct ModuleProviderResult
@@ -411,6 +414,7 @@ private:
     ItemReader *m_reader;
     Evaluator *m_evaluator;
     QMap<QString, QStringList> m_moduleDirListCache;
+    QHash<std::pair<QString, QualifiedId>, std::pair<bool, QString>> m_existingModulePathCache;
 
     // The keys are file paths, the values are module prototype items accompanied by a profile.
     std::unordered_map<QString, std::vector<std::pair<Item *, QString>>> m_modulePrototypes;
@@ -425,8 +429,8 @@ private:
 
     struct DependsChainEntry
     {
-        DependsChainEntry(const QualifiedId &name, const CodeLocation &location)
-            : name(name), location(location)
+        DependsChainEntry(QualifiedId name, const CodeLocation &location)
+            : name(std::move(name)), location(location)
         {
         }
 
@@ -437,10 +441,10 @@ private:
     class DependsChainManager;
     std::vector<DependsChainEntry> m_dependsChain;
 
-    QHash<QString, QList<ProbeConstPtr>> m_oldProjectProbes;
+    QHash<QString, std::vector<ProbeConstPtr>> m_oldProjectProbes;
     QHash<QString, std::vector<ProbeConstPtr>> m_oldProductProbes;
     FileTime m_lastResolveTime;
-    QHash<CodeLocation, QList<ProbeConstPtr>> m_currentProbes;
+    QHash<CodeLocation, std::vector<ProbeConstPtr>> m_currentProbes;
     QVariantMap m_storedProfiles;
     QVariantMap m_localProfiles;
     std::multimap<QString, const ProductContext *> m_productsByName;

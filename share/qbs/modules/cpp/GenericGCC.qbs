@@ -148,21 +148,6 @@ CppModule {
     property string syslibroot: sysroot
     property stringList sysrootFlags: sysroot ? ["--sysroot=" + sysroot] : []
 
-    property string linkerMode: "automatic"
-    PropertyOptions {
-        name: "linkerMode"
-        allowedValues: ["automatic", "manual"]
-        description: "Controls whether to automatically use an appropriate compiler frontend "
-            + "in place of the system linker when linking binaries. The default is \"automatic\", "
-            + "which chooses either the C++ compiler, C compiler, or system linker specified by "
-            + "the linkerName/linkerPath properties, depending on the type of object files "
-            + "present on the linker command line. \"manual\" allows you to explicitly specify "
-            + "the linker using the linkerName/linkerPath properties, and allows linker flags "
-            + "passed to the linkerFlags and platformLinkerFlags properties to be escaped "
-            + "manually (using -Wl or -Xlinker) instead of automatically based on the selected "
-            + "linker."
-    }
-
     property string exportedSymbolsCheckMode: "ignore-undefined"
     PropertyOptions {
         name: "exportedSymbolsCheckMode"

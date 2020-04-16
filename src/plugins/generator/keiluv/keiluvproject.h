@@ -40,15 +40,13 @@
 
 namespace qbs {
 
-class KeiluvVersionInfo;
-
 class KeiluvProject final : public gen::xml::Project
 {
 public:
     explicit KeiluvProject(
             const qbs::GeneratableProject &genProject,
             const qbs::GeneratableProductData &genProduct,
-            const KeiluvVersionInfo &versionInfo);
+            const gen::VersionInfo &versionInfo);
 private:
     std::vector<std::unique_ptr<gen::xml::PropertyGroupFactory>> m_factories;
 };

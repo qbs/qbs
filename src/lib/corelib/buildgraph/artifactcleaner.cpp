@@ -162,7 +162,7 @@ ArtifactCleaner::ArtifactCleaner(Logger logger, ProgressObserver *observer)
 }
 
 void ArtifactCleaner::cleanup(const TopLevelProjectPtr &project,
-        const QList<ResolvedProductPtr> &products, const CleanOptions &options)
+        const QVector<ResolvedProductPtr> &products, const CleanOptions &options)
 {
     m_hasError = false;
 

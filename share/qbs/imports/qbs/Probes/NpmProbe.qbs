@@ -57,18 +57,24 @@ NodeJsProbe {
                                                  hostOS.contains("windows"));
         v.prepend(interpreterPath);
 
-        var result = results.files[0];
-        result.npmBin = results.found
-                ? NodeJs.findLocation(result.filePath, "bin", v.value)
-                : undefined;
-        result.npmRoot = results.found
-                ? NodeJs.findLocation(result.filePath, "root", v.value)
-                : undefined;
-        result.npmPrefix = results.found
-                ? NodeJs.findLocation(result.filePath, "prefix", v.value)
-                : undefined;
+        var resultsMapper = function(result) {
+            result.npmBin = result.found
+                    ? NodeJs.findLocation(result.filePath, "bin", v.value)
+                    : undefined;
+            result.npmRoot = result.found
+                    ? NodeJs.findLocation(result.filePath, "root", v.value)
+                    : undefined;
+            result.npmPrefix = result.found
+                    ? NodeJs.findLocation(result.filePath, "prefix", v.value)
+                    : undefined;
+            return result;
+        };
+        results.files = results.files.map(resultsMapper);
 
         found = results.found;
+        allResults = results.files;
+
+        var result = results.files[0];
         candidatePaths = result.candidatePaths;
         path = result.path;
         filePath = result.filePath;

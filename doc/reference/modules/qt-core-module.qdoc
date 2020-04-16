@@ -100,6 +100,12 @@
         \li Source files with this tag trigger a re-execution of the rule running the \c moc
             tool when their timestamp changes.
     \row
+        \li \c{"qt.core.metatypes"}
+        \li n/a
+        \li 1.16
+        \li This tag is attached to the JSON files that are potentially created if
+            \l{Qt.core::generateMetaTypesFile}{generateMetaTypesFile} is enabled.
+    \row
         \li \c{"qt.core.resource_data"}
         \li -
         \li 1.7
@@ -193,6 +199,28 @@
     systems.
 
     \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty bool Qt.core::generateMetaTypesFile
+
+    If this property is enabled, a JSON file tagged as \c "qt.core.metatypes" will potentially
+    be generated from metatype information collected by \c moc.
+
+    \nodefaultvalue
+    \since Qbs 1.16
+*/
+
+/*!
+    \qmlproperty bool Qt.core::metaTypesInstallDir
+
+    The directory to install the metatypes file into. If this property is empty or undefined,
+    the metatypes file will not be installed. If the
+    \l{Qt.core::generateMetaTypesFile}{generateMetaTypesFile} property is not \c true, then
+    this property has no effect.
+
+    \nodefaultvalue
+    \since Qbs 1.16
 */
 
 /*!

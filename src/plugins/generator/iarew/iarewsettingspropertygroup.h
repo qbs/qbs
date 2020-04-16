@@ -40,7 +40,7 @@ class IarewSettingsPropertyGroup : public gen::xml::PropertyGroup
 public:
     explicit IarewSettingsPropertyGroup();
 
-    void setName(QByteArray name);
+    void setName(const QByteArray &name);
     QByteArray name() const;
 
     void setArchiveVersion(int archiveVersion);
@@ -50,7 +50,7 @@ protected:
     void setDataVersion(int dataVersion);
     void setDataDebugInfo(int debugInfo);
 
-    void addOptionsGroup(QByteArray name, const QVariantList &states,
+    void addOptionsGroup(const QByteArray &name, QVariantList states,
                          int version = -1);
 
 private:

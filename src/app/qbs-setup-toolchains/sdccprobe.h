@@ -68,8 +68,8 @@ inline bool operator==(const SdccInstallInfo &lhs, const SdccInstallInfo &rhs)
 bool isSdccCompiler(const QString &compilerName);
 
 void createSdccProfile(const QFileInfo &compiler, qbs::Settings *settings,
-                       QString profileName);
+                       const QString &profileName);
 
-void sdccProbe(qbs::Settings *settings, QList<qbs::Profile> &profiles);
+void sdccProbe(qbs::Settings *settings, std::vector<qbs::Profile> &profiles);
 
 #endif // Header guard

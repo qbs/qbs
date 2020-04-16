@@ -124,8 +124,10 @@
         \li Time limit for the command execution in seconds. If the command does not finish within
             the timeout, it is cancelled. In case of a \c Command, the process is requested to
             terminate. If it does not terminate within three seconds, it is killed. A value below
-            or equal to 0 means no timeout.
+            or equal to 0 means no timeout. \br
+            This property was introduced in Qbs 1.15.
     \endtable
+
 
     \section2 Command Properties
 

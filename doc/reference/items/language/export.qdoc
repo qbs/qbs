@@ -56,16 +56,45 @@
     }
     \endcode
 
-    The sources in product B will be able to use headers from product A without specifiying
+    The sources in product B will be able to use headers from product A without specifying
     the full path to them, because the include path has been made known to the compiler via
     A's Export item. Additionally, product B will be compiled with the define \c{USING_A}.
 
-    \note This relationship is transitive, so a product C depending on product B will also
-    get the include paths and preprocessor macros via A's Export item.
+    The dependent \l{Product}'s modules are not exported unless explicitly specified within the
+    \l{Export} item:
+    \code
+    Product {
+        name: "B-Exporting-A"
+        Depends { name: "A" }
+        Export {
+            Depends { name: "A" }
+        }
+    }
+    \endcode
+
+    The relationship of the exported dependencies is transitive. A product C depending on a
+    product B-Exporting-A will also get a direct dependency on A and thus inherit include
+    paths and preprocessor macros exported by A.
+
+    \code
+    Product {
+        name: "C"
+        Depends { name: "B-Exporting-A" }
+    }
+    \endcode
 
     In contrast to Module items, \c{product} within Export items refers to the product which defines
     the Export item. Use the \c{importingProduct} variable to refer to the product that
-    pulls in the resulting module.
+    pulls in the resulting module:
+    \code
+    Product {
+        name: "D"
+        Export {
+            Depends { name: "cpp" }
+            cpp.includePaths: [product.sourceDirectory, importingProduct.buildDirectory]
+        }
+    }
+    \endcode
 */
 
 /*!

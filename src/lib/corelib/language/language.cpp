@@ -188,15 +188,9 @@ void ResolvedGroup::store(PersistentPool &pool)
  * \sa Rule
  */
 
-ScriptFunction::ScriptFunction()
-{
+ScriptFunction::ScriptFunction() = default;
 
-}
-
-ScriptFunction::~ScriptFunction()
-{
-
-}
+ScriptFunction::~ScriptFunction() = default;
 
  /*!
   * \variable ScriptFunction::script
@@ -282,7 +276,7 @@ QString Rule::toString() const
 FileTags Rule::staticOutputFileTags() const
 {
     FileTags result;
-    for (const RuleArtifactConstPtr &artifact : artifacts)
+    for (const auto &artifact : artifacts)
         result.unite(artifact->fileTags);
     return result;
 }
@@ -312,9 +306,7 @@ ResolvedProduct::ResolvedProduct()
 {
 }
 
-ResolvedProduct::~ResolvedProduct()
-{
-}
+ResolvedProduct::~ResolvedProduct() = default;
 
 void ResolvedProduct::accept(BuildGraphVisitor *visitor) const
 {
@@ -331,7 +323,7 @@ void ResolvedProduct::accept(BuildGraphVisitor *visitor) const
 std::vector<SourceArtifactPtr> ResolvedProduct::allFiles() const
 {
     std::vector<SourceArtifactPtr> lst;
-    for (const GroupConstPtr &group : groups)
+    for (const auto &group : groups)
         lst << group->allFiles();
     return lst;
 }
@@ -343,7 +335,7 @@ std::vector<SourceArtifactPtr> ResolvedProduct::allFiles() const
 std::vector<SourceArtifactPtr> ResolvedProduct::allEnabledFiles() const
 {
     std::vector<SourceArtifactPtr> lst;
-    for (const GroupConstPtr &group : groups) {
+    for (const auto &group : groups) {
         if (group->enabled)
             lst << group->allFiles();
     }
@@ -364,7 +356,7 @@ FileTags ResolvedProduct::fileTagsForFileName(const QString &fileName) const
                         return result;
                     }
                 } else {
-                    priority.reset(new int(tagger->priority()));
+                    priority = std::make_unique<int>(tagger->priority());
                 }
                 result.unite(tagger->fileTags());
                 break;
@@ -524,9 +516,7 @@ ResolvedProject::ResolvedProject() : enabled(true), m_topLevelProject(nullptr)
 {
 }
 
-ResolvedProject::~ResolvedProject()
-{
-}
+ResolvedProject::~ResolvedProject() = default;
 
 void ResolvedProject::accept(BuildGraphVisitor *visitor) const
 {
@@ -551,7 +541,7 @@ TopLevelProject *ResolvedProject::topLevelProject()
 std::vector<ResolvedProjectPtr> ResolvedProject::allSubProjects() const
 {
     std::vector<ResolvedProjectPtr> projectList = subProjects;
-    for (const ResolvedProjectConstPtr &subProject : subProjects)
+    for (const auto &subProject : subProjects)
         projectList << subProject->allSubProjects();
     return projectList;
 }
@@ -559,7 +549,7 @@ std::vector<ResolvedProjectPtr> ResolvedProject::allSubProjects() const
 std::vector<ResolvedProductPtr> ResolvedProject::allProducts() const
 {
     std::vector<ResolvedProductPtr> productList = products;
-    for (const ResolvedProjectConstPtr &subProject : qAsConst(subProjects))
+    for (const auto &subProject : qAsConst(subProjects))
         productList << subProject->allProducts();
     return productList;
 }
@@ -765,7 +755,7 @@ void SourceWildCards::expandPatterns(Set<QString> &result, const GroupConstPtr &
     if (baseDir.startsWith(buildDir))
         return;
 
-    dirTimeStamps.push_back({ baseDir, FileInfo(baseDir).lastModified() });
+    dirTimeStamps.emplace_back(baseDir, FileInfo(baseDir).lastModified());
 
     QStringList changed_parts = parts;
     bool recursive = false;
@@ -810,7 +800,7 @@ void SourceWildCards::expandPatterns(Set<QString> &result, const GroupConstPtr &
             expandPatterns(result, group, changed_parts, filePath, buildDir);
         } else {
             if (parentDir != baseDir)
-                dirTimeStamps.push_back({parentDir, FileInfo(baseDir).lastModified()});
+                dirTimeStamps.emplace_back(parentDir, FileInfo(baseDir).lastModified());
             result += QDir::cleanPath(filePath);
         }
     }
@@ -867,6 +857,7 @@ bool operator==(const SourceArtifactInternal &sa1, const SourceArtifactInternal 
             && sa1.fileTags == sa2.fileTags
             && sa1.overrideFileTags == sa2.overrideFileTags
             && sa1.targetOfModule == sa2.targetOfModule
+            && !sa1.properties == !sa2.properties
             && *sa1.properties == *sa2.properties;
 }
 

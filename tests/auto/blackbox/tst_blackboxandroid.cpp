@@ -79,7 +79,7 @@ void TestBlackboxAndroid::android()
     QFETCH(QString, projectDir);
     QFETCH(QStringList, productNames);
     QFETCH(QList<QByteArrayList>, expectedFilesLists);
-    QFETCH(QStringList, customProperties);
+    QFETCH(QStringList, qmlAppCustomProperties);
 
     const SettingsPtr s = settings();
     Profile p(theProfileName(projectDir == "qml-app"), s.get());
@@ -110,7 +110,7 @@ void TestBlackboxAndroid::android()
         auto currentExpectedFilesLists = expectedFilesLists;
         const QString configArgument = "config:" + configName;
         QbsRunParameters resolveParams("resolve");
-        resolveParams.arguments << configArgument << customProperties;
+        resolveParams.arguments << configArgument << qmlAppCustomProperties;
         resolveParams.profile = p.name();
         QCOMPARE(runQbs(resolveParams), 0);
         QbsRunParameters buildParams(QStringList{"--command-echo-mode", "command-line",
@@ -206,14 +206,41 @@ void TestBlackboxAndroid::android_data()
                 .toString() == "clang";
         return QByteArray("lib/${ARCH}/") + (usesClang ? "libc++_shared.so" : oldcxxLib);
     };
-    const QByteArrayList archsForQt = { pQt.value("qbs.architecture").toString().toUtf8() };
-    QByteArrayList ndkArchsForQt = archsForQt;
-    if (ndkArchsForQt.first() == "armv7a")
-        ndkArchsForQt.first() = "armeabi-v7a";
-    else if (ndkArchsForQt.first() == "armv5te")
-        ndkArchsForQt.first() = "armeabi";
-    else if (ndkArchsForQt.first() == "arm64")
-        ndkArchsForQt.first() = "arm64-v8a";
+
+    bool usingOldQt = true;
+    QStringList qmakeFilePaths = pQt.value(QStringLiteral("moduleProviders.Qt.qmakeFilePaths")).
+            toStringList();
+    if (qmakeFilePaths.size() == 1) {
+        qbs::Version version = TestBlackboxBase::qmakeVersion(qmakeFilePaths[0]);
+        if (version.isValid() && version >= qbs::Version(5, 14))
+            usingOldQt = false;
+    }
+
+    QByteArrayList archsForQt;
+    if (usingOldQt) {
+        archsForQt = { pQt.value("qbs.architecture").toString().toUtf8() };
+        if (archsStringList.empty())
+            archsStringList << QStringLiteral("armv7a"); // must match default in common.qbs
+    } else {
+        QStringList archsForQtStringList = pQt.value(QStringLiteral("qbs.architectures"))
+                .toStringList();
+        if (archsForQtStringList.empty())
+            archsForQtStringList << pQt.value("qbs.architecture").toString();
+        std::transform(archsForQtStringList.begin(),
+                       archsForQtStringList.end(),
+                       std::back_inserter(archsForQt),
+                       [] (const QString &s) {
+            return s.toUtf8();
+        });
+    }
+
+    QByteArrayList ndkArchsForQt;
+    std::transform(archsForQt.begin(), archsForQt.end(), std::back_inserter(ndkArchsForQt),
+                   [] (const QString &s) {
+        return s.toUtf8().replace("armv7a", "armeabi-v7a")
+                .replace("armv5te", "armeabi")
+                .replace("arm64", "arm64-v8a");
+    });
 
     auto expandArchs = [] (const QByteArrayList &archs, const QByteArrayList &lst) {
         const QByteArray &archPlaceHolder = "${ARCH}";
@@ -237,7 +264,7 @@ void TestBlackboxAndroid::android_data()
     QTest::addColumn<QString>("projectDir");
     QTest::addColumn<QStringList>("productNames");
     QTest::addColumn<QList<QByteArrayList>>("expectedFilesLists");
-    QTest::addColumn<QStringList>("customProperties");
+    QTest::addColumn<QStringList>("qmlAppCustomProperties");
     QTest::newRow("teapot")
             << "teapot" << QStringList("TeapotNativeActivity")
             << (QList<QByteArrayList>() << commonFiles + expandArchs(archs, {
@@ -257,9 +284,12 @@ void TestBlackboxAndroid::android_data()
                        "lib/${ARCH}/libdependency.so"}))
             << QStringList{"products.minimalnative.multiplexByQbsProperties:[]",
                            "modules.qbs.architecture:" + archsStringList.first()};
-    QTest::newRow("qml app")
-            << "qml-app" << QStringList("qmlapp")
-            << (QList<QByteArrayList>() << commonFiles + expandArchs(ndkArchsForQt, {
+    QByteArrayList qmlAppExpectedFiles;
+    QByteArrayList qmlAppMinistroExpectedFiles;
+    QByteArrayList qmlAppCustomMetaDataExpectedFiles;
+    QStringList qmlAppCustomProperties;
+    if (usingOldQt) {
+        qmlAppExpectedFiles << commonFiles + expandArchs(ndkArchsForQt, {
                        "resources.arsc",
                        "assets/--Added-by-androiddeployqt--/qml/QtQuick.2/plugins.qmltypes",
                        "assets/--Added-by-androiddeployqt--/qml/QtQuick.2/qmldir",
@@ -298,64 +328,157 @@ void TestBlackboxAndroid::android_data()
                        "lib/${ARCH}/libQt5QuickParticles.so",
                        "lib/${ARCH}/libQt5Quick.so",
                        "lib/${ARCH}/libqmlapp.so",
-                       "res/layout/splash.xml"}))
-                << QStringList{"modules.Android.sdk.automaticSources:false",
-                               "modules.qbs.architecture:" + archsForQt.first()};
-    QTest::newRow("qml app using Ministro")
-            << "qml-app" << QStringList("qmlapp")
-            << (QList<QByteArrayList>() << commonFiles + expandArchs(ndkArchsForQt, {
+                       "res/layout/splash.xml"});
+        qmlAppMinistroExpectedFiles << commonFiles + expandArchs(ndkArchsForQt, {
+                        "resources.arsc",
+                        "assets/--Added-by-androiddeployqt--/qt_cache_pregenerated_file_list",
+                        "lib/${ARCH}/libgdbserver.so",
+                        cxxLibPath("libgnustl_shared.so", true),
+                        "lib/${ARCH}/libqmlapp.so",
+                        "res/layout/splash.xml"});
+        qmlAppCustomMetaDataExpectedFiles << commonFiles + expandArchs(ndkArchsForQt, {
+                        "resources.arsc",
+                        "assets/--Added-by-androiddeployqt--/qml/QtQuick.2/plugins.qmltypes",
+                        "assets/--Added-by-androiddeployqt--/qml/QtQuick.2/qmldir",
+                        "assets/--Added-by-androiddeployqt--/qml/QtQuick/Window.2/plugins.qmltypes",
+                        "assets/--Added-by-androiddeployqt--/qml/QtQuick/Window.2/qmldir",
+                        "assets/--Added-by-androiddeployqt--/qt_cache_pregenerated_file_list",
+                        "assets/dummyasset.txt",
+                        "lib/${ARCH}/libgdbserver.so",
+                        cxxLibPath("libgnustl_shared.so", true),
+                        "lib/${ARCH}/libplugins_bearer_libqandroidbearer.so",
+                        "lib/${ARCH}/libplugins_imageformats_libqgif.so",
+                        "lib/${ARCH}/libplugins_imageformats_libqicns.so",
+                        "lib/${ARCH}/libplugins_imageformats_libqico.so",
+                        "lib/${ARCH}/libplugins_imageformats_libqjpeg.so",
+                        "lib/${ARCH}/libplugins_imageformats_libqtga.so",
+                        "lib/${ARCH}/libplugins_imageformats_libqtiff.so",
+                        "lib/${ARCH}/libplugins_imageformats_libqwbmp.so",
+                        "lib/${ARCH}/libplugins_imageformats_libqwebp.so",
+                        "lib/${ARCH}/libplugins_platforms_android_libqtforandroid.so",
+                        "lib/${ARCH}/libplugins_qmltooling_libqmldbg_debugger.so",
+                        "lib/${ARCH}/libplugins_qmltooling_libqmldbg_inspector.so",
+                        "lib/${ARCH}/libplugins_qmltooling_libqmldbg_local.so",
+                        "lib/${ARCH}/libplugins_qmltooling_libqmldbg_messages.so",
+                        "lib/${ARCH}/libplugins_qmltooling_libqmldbg_native.so",
+                        "lib/${ARCH}/libplugins_qmltooling_libqmldbg_nativedebugger.so",
+                        "lib/${ARCH}/libplugins_qmltooling_libqmldbg_profiler.so",
+                        "lib/${ARCH}/libplugins_qmltooling_libqmldbg_preview.so",
+                        "lib/${ARCH}/libplugins_qmltooling_libqmldbg_quickprofiler.so",
+                        "lib/${ARCH}/libplugins_qmltooling_libqmldbg_server.so",
+                        "lib/${ARCH}/libplugins_qmltooling_libqmldbg_tcp.so",
+                        "lib/${ARCH}/libqml_QtQuick.2_libqtquick2plugin.so",
+                        "lib/${ARCH}/libqml_QtQuick_Window.2_libwindowplugin.so",
+                        "lib/${ARCH}/libQt5Core.so",
+                        "lib/${ARCH}/libQt5Gui.so",
+                        "lib/${ARCH}/libQt5Network.so",
+                        "lib/${ARCH}/libQt5Qml.so",
+                        "lib/${ARCH}/libQt5QuickParticles.so",
+                        "lib/${ARCH}/libQt5Quick.so",
+                        "lib/${ARCH}/libqmlapp.so",
+                        "res/layout/splash.xml"});
+        qmlAppCustomProperties = QStringList{"modules.Android.sdk.automaticSources:false",
+                            "modules.qbs.architecture:" + archsForQt.first()};
+    } else {
+        qmlAppExpectedFiles << commonFiles + expandArchs(ndkArchsForQt, {
                        "resources.arsc",
-                       "assets/--Added-by-androiddeployqt--/qt_cache_pregenerated_file_list",
+                       "assets/android_rcc_bundle.rcc",
                        "lib/${ARCH}/libgdbserver.so",
                        cxxLibPath("libgnustl_shared.so", true),
-                       "lib/${ARCH}/libqmlapp.so",
-                       "res/layout/splash.xml"}))
+                       "lib/${ARCH}/libplugins_bearer_qandroidbearer_${ARCH}.so",
+                       "lib/${ARCH}/libplugins_imageformats_qgif_${ARCH}.so",
+                       "lib/${ARCH}/libplugins_imageformats_qicns_${ARCH}.so",
+                       "lib/${ARCH}/libplugins_imageformats_qico_${ARCH}.so",
+                       "lib/${ARCH}/libplugins_imageformats_qjpeg_${ARCH}.so",
+                       "lib/${ARCH}/libplugins_imageformats_qtga_${ARCH}.so",
+                       "lib/${ARCH}/libplugins_imageformats_qtiff_${ARCH}.so",
+                       "lib/${ARCH}/libplugins_imageformats_qwbmp_${ARCH}.so",
+                       "lib/${ARCH}/libplugins_imageformats_qwebp_${ARCH}.so",
+                       "lib/${ARCH}/libplugins_platforms_qtforandroid_${ARCH}.so",
+                       "lib/${ARCH}/libplugins_qmltooling_qmldbg_debugger_${ARCH}.so",
+                       "lib/${ARCH}/libplugins_qmltooling_qmldbg_inspector_${ARCH}.so",
+                       "lib/${ARCH}/libplugins_qmltooling_qmldbg_local_${ARCH}.so",
+                       "lib/${ARCH}/libplugins_qmltooling_qmldbg_messages_${ARCH}.so",
+                       "lib/${ARCH}/libplugins_qmltooling_qmldbg_native_${ARCH}.so",
+                       "lib/${ARCH}/libplugins_qmltooling_qmldbg_nativedebugger_${ARCH}.so",
+                       "lib/${ARCH}/libplugins_qmltooling_qmldbg_profiler_${ARCH}.so",
+                       "lib/${ARCH}/libplugins_qmltooling_qmldbg_preview_${ARCH}.so",
+                       "lib/${ARCH}/libplugins_qmltooling_qmldbg_quickprofiler_${ARCH}.so",
+                       "lib/${ARCH}/libplugins_qmltooling_qmldbg_server_${ARCH}.so",
+                       "lib/${ARCH}/libplugins_qmltooling_qmldbg_tcp_${ARCH}.so",
+                       "lib/${ARCH}/libqml_QtQuick.2_qtquick2plugin_${ARCH}.so",
+                       "lib/${ARCH}/libqml_QtQuick_Window.2_windowplugin_${ARCH}.so",
+                       "lib/${ARCH}/libQt5Core_${ARCH}.so",
+                       "lib/${ARCH}/libQt5Gui_${ARCH}.so",
+                       "lib/${ARCH}/libQt5Network_${ARCH}.so",
+                       "lib/${ARCH}/libQt5Qml_${ARCH}.so",
+                       "lib/${ARCH}/libQt5QuickParticles_${ARCH}.so",
+                       "lib/${ARCH}/libQt5Quick_${ARCH}.so",
+                       "lib/${ARCH}/libQt5QmlModels_${ARCH}.so",
+                       "lib/${ARCH}/libQt5QmlWorkerScript_${ARCH}.so",
+                       "lib/${ARCH}/libqmlapp_${ARCH}.so",
+                       "res/layout/splash.xml"});
+        qmlAppMinistroExpectedFiles << commonFiles + expandArchs(ndkArchsForQt, {
+                        "resources.arsc",
+                        "assets/android_rcc_bundle.rcc",
+                        "lib/${ARCH}/libgdbserver.so",
+                        cxxLibPath("libgnustl_shared.so", true),
+                        "lib/${ARCH}/libqmlapp_${ARCH}.so",
+                        "res/layout/splash.xml"});
+        qmlAppCustomMetaDataExpectedFiles << commonFiles + expandArchs(ndkArchsForQt, {
+                        "resources.arsc",
+                        "assets/android_rcc_bundle.rcc",
+                        "assets/dummyasset.txt",
+                        "lib/${ARCH}/libgdbserver.so",
+                        cxxLibPath("libgnustl_shared.so", true),
+                        "lib/${ARCH}/libplugins_bearer_qandroidbearer_${ARCH}.so",
+                        "lib/${ARCH}/libplugins_imageformats_qgif_${ARCH}.so",
+                        "lib/${ARCH}/libplugins_imageformats_qicns_${ARCH}.so",
+                        "lib/${ARCH}/libplugins_imageformats_qico_${ARCH}.so",
+                        "lib/${ARCH}/libplugins_imageformats_qjpeg_${ARCH}.so",
+                        "lib/${ARCH}/libplugins_imageformats_qtga_${ARCH}.so",
+                        "lib/${ARCH}/libplugins_imageformats_qtiff_${ARCH}.so",
+                        "lib/${ARCH}/libplugins_imageformats_qwbmp_${ARCH}.so",
+                        "lib/${ARCH}/libplugins_imageformats_qwebp_${ARCH}.so",
+                        "lib/${ARCH}/libplugins_platforms_qtforandroid_${ARCH}.so",
+                        "lib/${ARCH}/libplugins_qmltooling_qmldbg_debugger_${ARCH}.so",
+                        "lib/${ARCH}/libplugins_qmltooling_qmldbg_inspector_${ARCH}.so",
+                        "lib/${ARCH}/libplugins_qmltooling_qmldbg_local_${ARCH}.so",
+                        "lib/${ARCH}/libplugins_qmltooling_qmldbg_messages_${ARCH}.so",
+                        "lib/${ARCH}/libplugins_qmltooling_qmldbg_native_${ARCH}.so",
+                        "lib/${ARCH}/libplugins_qmltooling_qmldbg_nativedebugger_${ARCH}.so",
+                        "lib/${ARCH}/libplugins_qmltooling_qmldbg_profiler_${ARCH}.so",
+                        "lib/${ARCH}/libplugins_qmltooling_qmldbg_preview_${ARCH}.so",
+                        "lib/${ARCH}/libplugins_qmltooling_qmldbg_quickprofiler_${ARCH}.so",
+                        "lib/${ARCH}/libplugins_qmltooling_qmldbg_server_${ARCH}.so",
+                        "lib/${ARCH}/libplugins_qmltooling_qmldbg_tcp_${ARCH}.so",
+                        "lib/${ARCH}/libqml_QtQuick.2_qtquick2plugin_${ARCH}.so",
+                        "lib/${ARCH}/libqml_QtQuick_Window.2_windowplugin_${ARCH}.so",
+                        "lib/${ARCH}/libQt5Core_${ARCH}.so",
+                        "lib/${ARCH}/libQt5Gui_${ARCH}.so",
+                        "lib/${ARCH}/libQt5Network_${ARCH}.so",
+                        "lib/${ARCH}/libQt5Qml_${ARCH}.so",
+                        "lib/${ARCH}/libQt5QuickParticles_${ARCH}.so",
+                        "lib/${ARCH}/libQt5Quick_${ARCH}.so",
+                        "lib/${ARCH}/libQt5QmlModels_${ARCH}.so",
+                        "lib/${ARCH}/libQt5QmlWorkerScript_${ARCH}.so",
+                        "lib/${ARCH}/libqmlapp_${ARCH}.so",
+                        "res/layout/splash.xml"});
+        qmlAppCustomProperties = QStringList{"modules.Android.sdk.automaticSources:false"};
+    }
+    QTest::newRow("qml app")
+            << "qml-app" << QStringList("qmlapp")
+            << (QList<QByteArrayList>() << qmlAppExpectedFiles)
+            << qmlAppCustomProperties;
+    QTest::newRow("qml app using Ministro")
+            << "qml-app" << QStringList("qmlapp")
+            << (QList<QByteArrayList>() << qmlAppMinistroExpectedFiles)
             << QStringList{"modules.Qt.android_support.useMinistro:true",
                            "modules.Android.sdk.automaticSources:false"};
     QTest::newRow("qml app with custom metadata")
             << "qml-app" << QStringList("qmlapp")
-            << (QList<QByteArrayList>() << commonFiles + expandArchs(ndkArchsForQt, {
-                       "resources.arsc",
-                       "assets/--Added-by-androiddeployqt--/qml/QtQuick.2/plugins.qmltypes",
-                       "assets/--Added-by-androiddeployqt--/qml/QtQuick.2/qmldir",
-                       "assets/--Added-by-androiddeployqt--/qml/QtQuick/Window.2/plugins.qmltypes",
-                       "assets/--Added-by-androiddeployqt--/qml/QtQuick/Window.2/qmldir",
-                       "assets/--Added-by-androiddeployqt--/qt_cache_pregenerated_file_list",
-                       "assets/dummyasset.txt",
-                       "lib/${ARCH}/libgdbserver.so",
-                       cxxLibPath("libgnustl_shared.so", true),
-                       "lib/${ARCH}/libplugins_bearer_libqandroidbearer.so",
-                       "lib/${ARCH}/libplugins_imageformats_libqgif.so",
-                       "lib/${ARCH}/libplugins_imageformats_libqicns.so",
-                       "lib/${ARCH}/libplugins_imageformats_libqico.so",
-                       "lib/${ARCH}/libplugins_imageformats_libqjpeg.so",
-                       "lib/${ARCH}/libplugins_imageformats_libqtga.so",
-                       "lib/${ARCH}/libplugins_imageformats_libqtiff.so",
-                       "lib/${ARCH}/libplugins_imageformats_libqwbmp.so",
-                       "lib/${ARCH}/libplugins_imageformats_libqwebp.so",
-                       "lib/${ARCH}/libplugins_platforms_android_libqtforandroid.so",
-                       "lib/${ARCH}/libplugins_qmltooling_libqmldbg_debugger.so",
-                       "lib/${ARCH}/libplugins_qmltooling_libqmldbg_inspector.so",
-                       "lib/${ARCH}/libplugins_qmltooling_libqmldbg_local.so",
-                       "lib/${ARCH}/libplugins_qmltooling_libqmldbg_messages.so",
-                       "lib/${ARCH}/libplugins_qmltooling_libqmldbg_native.so",
-                       "lib/${ARCH}/libplugins_qmltooling_libqmldbg_nativedebugger.so",
-                       "lib/${ARCH}/libplugins_qmltooling_libqmldbg_profiler.so",
-                       "lib/${ARCH}/libplugins_qmltooling_libqmldbg_preview.so",
-                       "lib/${ARCH}/libplugins_qmltooling_libqmldbg_quickprofiler.so",
-                       "lib/${ARCH}/libplugins_qmltooling_libqmldbg_server.so",
-                       "lib/${ARCH}/libplugins_qmltooling_libqmldbg_tcp.so",
-                       "lib/${ARCH}/libqml_QtQuick.2_libqtquick2plugin.so",
-                       "lib/${ARCH}/libqml_QtQuick_Window.2_libwindowplugin.so",
-                       "lib/${ARCH}/libQt5Core.so",
-                       "lib/${ARCH}/libQt5Gui.so",
-                       "lib/${ARCH}/libQt5Network.so",
-                       "lib/${ARCH}/libQt5Qml.so",
-                       "lib/${ARCH}/libQt5QuickParticles.so",
-                       "lib/${ARCH}/libQt5Quick.so",
-                       "lib/${ARCH}/libqmlapp.so",
-                       "res/layout/splash.xml"}))
-                << QStringList("modules.Android.sdk.automaticSources:true");
+            << (QList<QByteArrayList>() << qmlAppCustomMetaDataExpectedFiles)
+            << QStringList("modules.Android.sdk.automaticSources:true");
     QTest::newRow("no native")
             << "no-native"
             << QStringList("com.example.android.basicmediadecoder")
@@ -390,7 +513,7 @@ void TestBlackboxAndroid::android_data()
                        "lib/${ARCH}/liblib2.so",
                        cxxLibPath("libstlport_shared.so", false)}))
             << QStringList();
-    QByteArrayList expectedFiles1 = (commonFiles
+    QByteArrayList expectedFiles1 = qbs::toList(qbs::toSet(commonFiles
             + expandArchs(QByteArrayList{"armeabi-v7a", "x86"}, {
                               "resources.arsc",
                               "lib/${ARCH}/libgdbserver.so",
@@ -400,7 +523,7 @@ void TestBlackboxAndroid::android_data()
                               "resources.arsc",
                               "lib/${ARCH}/libgdbserver.so",
                               "lib/${ARCH}/libp1lib2.so",
-                              cxxLibPath("libstlport_shared.so", false)})).toSet().toList();
+                              cxxLibPath("libstlport_shared.so", false)})));
     QByteArrayList expectedFiles2 = commonFiles + expandArchs(archs, {
                        "lib/${ARCH}/libgdbserver.so",
                        "lib/${ARCH}/libp2lib1.so",

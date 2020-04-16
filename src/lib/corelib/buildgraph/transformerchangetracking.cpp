@@ -71,7 +71,7 @@ private:
                                   const char *context) const;
     bool isExportedModuleUpToDate(const QString &productName, const ExportedModule &module) const;
     bool areExportedModulesUpToDate(
-            const std::unordered_map<QString, ExportedModule> exportedModules) const;
+            const std::unordered_map<QString, ExportedModule> &exportedModules) const;
     const Artifact *getArtifact(const QString &filePath, const QString &productName) const;
     const ResolvedProduct *getProduct(const QString &name) const;
 
@@ -207,7 +207,7 @@ bool TrafoChangeTracker::isExportedModuleUpToDate(const QString &productName,
 }
 
 bool TrafoChangeTracker::areExportedModulesUpToDate(
-        const std::unordered_map<QString, ExportedModule> exportedModules) const
+        const std::unordered_map<QString, ExportedModule> &exportedModules) const
 {
     for (const auto &kv : exportedModules) {
         if (!isExportedModuleUpToDate(kv.first, kv.second))

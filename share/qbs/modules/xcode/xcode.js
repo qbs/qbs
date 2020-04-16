@@ -114,7 +114,7 @@ function sdkInfoList(sdksPath) {
                 if (!plist || !plist["CanonicalName"] || !plist["Version"])
                     return false;
 
-                var re = /^([0-9]+)\.([0-9]+)$/;
+                var re = /^[0-9]+\.[0-9]+(\.[0-9]+)?$/;
                 return plist["Version"].match(re);
             }
 
@@ -132,19 +132,7 @@ function sdkInfoList(sdksPath) {
     }
 
     // Sort by SDK version number
-    sdkInfo.sort(function (a, b) {
-        var re = /^([0-9]+)\.([0-9]+)$/;
-        a = a["Version"].match(re);
-        if (a)
-            a = {major: a[1], minor: a[2]};
-        b = b["Version"].match(re);
-        if (b)
-            b = {major: b[1], minor: b[2]};
-
-        if (a.major === b.major)
-            return a.minor - b.minor;
-        return a.major - b.major;
-    });
+    sdkInfo.sort(function (a, b) { return Utilities.versionCompare(a["Version"], b["Version"]); });
 
     return sdkInfo;
 }

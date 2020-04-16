@@ -39,18 +39,22 @@ Project {
             prepare: {
                 var cmd = new Command(input.filePath);
                 cmd.description = "running " + input.filePath;
-                var pathVar;
-                var pathValue;
+
+                var envVars = {};
                 if (product.qbs.hostOS.contains("windows")) {
-                    pathVar = "PATH";
-                    pathValue = FileInfo.toWindowsSeparators(input["Qt.core"].binPath);
+                    envVars["PATH"] = FileInfo.toWindowsSeparators(input["Qt.core"].binPath);
+                } else if (product.qbs.hostOS.contains("macos")) {
+                    envVars["DYLD_LIBRARY_PATH"] = input["Qt.core"].libPath;
+                    envVars["DYLD_FRAMEWORK_PATH"] = input["Qt.core"].libPath;
                 } else {
-                    pathVar = "LD_LIBRARY_PATH";
-                    pathValue = input["Qt.core"].libPath;
+                    envVars["LD_LIBRARY_PATH"] = input["Qt.core"].libPath;
                 }
-                var oldValue = Environment.getEnv(pathVar) || "";
-                var newValue = pathValue + product.qbs.pathListSeparator + oldValue;
-                cmd.environment = [pathVar + '=' + newValue];
+                for (var varName in envVars) {
+                    var oldValue = Environment.getEnv(varName) || "";
+                    var newValue = envVars[varName] + product.qbs.pathListSeparator + oldValue;
+                    cmd.environment.push(varName + '=' + newValue);
+                }
+
                 return [cmd];
             }
         }

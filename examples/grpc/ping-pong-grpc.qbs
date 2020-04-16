@@ -40,8 +40,13 @@ Project {
         protobuf.cpp.useGrpc: true
         consoleApplication: true
         cpp.cxxLanguageVersion: "c++17"
+        cpp.minimumMacosVersion: "10.8"
         name: "client"
         files: "client.cpp"
+        Properties {
+            condition: qbs.toolchain.contains("gcc")
+            cpp.cxxFlags: "-Wno-deprecated-declarations"
+        }
         Group {
             files: "ping-pong-grpc.proto"
             fileTags: "protobuf.grpc"
@@ -55,8 +60,13 @@ Project {
         protobuf.cpp.useGrpc: true
         consoleApplication: true
         cpp.cxxLanguageVersion: "c++17"
+        cpp.minimumMacosVersion: "10.8"
         name: "server"
-        files: "client.cpp"
+        files: "server.cpp"
+        Properties {
+            condition: qbs.toolchain.contains("gcc")
+            cpp.cxxFlags: "-Wno-deprecated-declarations"
+        }
         Group {
             files: "ping-pong-grpc.proto"
             fileTags: "protobuf.grpc"

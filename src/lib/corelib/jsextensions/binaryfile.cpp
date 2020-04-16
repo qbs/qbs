@@ -235,7 +235,7 @@ void BinaryFile::write(const QVariantList &data)
 
     QByteArray bytes;
     std::for_each(data.constBegin(), data.constEnd(), [&bytes](const QVariant &v) {
-        bytes.append(v.toUInt() & 0xFF); });
+        bytes.append(char(v.toUInt() & 0xFF)); });
 
     const qint64 size = m_file->write(bytes);
     if (Q_UNLIKELY(size == -1)) {

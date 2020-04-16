@@ -53,19 +53,11 @@ ProcessResult::ProcessResult() : d(new Internal::ProcessResultPrivate)
 {
 }
 
-ProcessResult::ProcessResult(const ProcessResult &other) : d(other.d)
-{
-}
+ProcessResult::ProcessResult(const ProcessResult &other) = default;
 
-ProcessResult &ProcessResult::operator=(const ProcessResult &other)
-{
-    d = other.d;
-    return *this;
-}
+ProcessResult &ProcessResult::operator=(const ProcessResult &other) = default;
 
-ProcessResult::~ProcessResult()
-{
-}
+ProcessResult::~ProcessResult() = default;
 
 /*!
  * \brief Returns true iff the command finished successfully.

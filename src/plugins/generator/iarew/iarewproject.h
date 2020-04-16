@@ -39,14 +39,12 @@
 
 namespace qbs {
 
-class IarewVersionInfo;
-
 class IarewProject final : public gen::xml::Project
 {
 public:
     explicit IarewProject(const GeneratableProject &genProject,
                           const GeneratableProductData &genProduct,
-                          const IarewVersionInfo &versionInfo);
+                          const gen::VersionInfo &versionInfo);
 private:
     std::vector<std::unique_ptr<gen::xml::PropertyGroupFactory>> m_factories;
 };

@@ -53,8 +53,12 @@ BUILD_OPTIONS="\
     modules.qbsbuildconfig.enableAddressSanitizer:true \
     modules.qbsbuildconfig.enableProjectFileUpdates:true \
     modules.qbsbuildconfig.enableUnitTests:true \
+    modules.cpp.treatWarningsAsErrors:true \
+    modules.cpp.separateDebugInformation:true \
+    modules.qbs.debugInformation:true \
     project.withExamples:true \
-    ${BUILD_OPTIONS}
+    ${BUILD_OPTIONS} \
+    config:release \
 "
 
 #
@@ -94,11 +98,18 @@ if [ -z "${QBS_AUTOTEST_PROFILE}" ]; then
     # was set. Otherwise setup-qt automatically uses the default
     # toolchain profile.
     if [ ! -z "${QBS_BUILD_PROFILE}" ]; then
-        QBS_BUILD_BASE_PROFILE=$(qbs config ${QBS_BUILD_PROFILE}.baseProfile | cut -d: -f2)
-        qbs run -p qbs_app ${BUILD_OPTIONS} -- config \
-                ${RUN_OPTIONS} \
-                ${QBS_AUTOTEST_PROFILE}.baseProfile ${QBS_BUILD_BASE_PROFILE}
+        QBS_BUILD_BASE_PROFILE=$(qbs config profiles.${QBS_BUILD_PROFILE}.baseProfile | cut -d: -f2)
+        if [ ! -z "${QBS_BUILD_BASE_PROFILE}" ]; then
+            echo "Setting base profile for ${QBS_AUTOTEST_PROFILE} to ${QBS_BUILD_BASE_PROFILE}"
+            qbs run -p qbs_app ${BUILD_OPTIONS} -- config \
+                    ${RUN_OPTIONS} \
+                    profiles.${QBS_AUTOTEST_PROFILE}.baseProfile ${QBS_BUILD_BASE_PROFILE}
+        fi
     fi
+
+    qbs run -p qbs_app ${BUILD_OPTIONS} -- config \
+            ${RUN_OPTIONS} \
+            --list
 
     # QBS_AUTOTEST_PROFILE has been added to the environment
     # which requires a resolve step
@@ -111,5 +122,5 @@ fi
 # timeout on Travis CI.
 #
 (while true; do echo "" && sleep 590; done) &
-trap "kill $!" EXIT
+trap "kill $!; wait $! 2>/dev/null || true; killall sleep || true" EXIT
 qbs build -p "autotest-runner" ${BUILD_OPTIONS}

@@ -112,6 +112,13 @@ public:
         return finalName;
     }
 
+    static QString stripExecutableSuffix(const QString &executable)
+    {
+        constexpr QLatin1String suffix(QBS_HOST_EXE_SUFFIX, sizeof(QBS_HOST_EXE_SUFFIX) - 1);
+        return !suffix.isEmpty() && executable.endsWith(suffix)
+            ? executable.chopped(suffix.size()) : executable;
+    }
+
     static QString dynamicLibraryName(const QString &libraryBaseName)
     {
         return QLatin1String(QBS_HOST_DYNAMICLIB_PREFIX) + libraryBaseName
@@ -194,22 +201,21 @@ std::vector<std::string> HostOsInfo::hostOSIdentifiers()
 std::vector<std::string> HostOsInfo::canonicalOSIdentifiers(const std::string &name)
 {
     std::vector<std::string> list { name };
-    if (contains(std::vector<std::string> {"ios-simulator"}, name))
+    if (contains({"ios-simulator"}, name))
         list << canonicalOSIdentifiers("ios");
-    if (contains(std::vector<std::string> {"tvos-simulator"}, name))
+    if (contains({"tvos-simulator"}, name))
         list << canonicalOSIdentifiers("tvos");
-    if (contains(std::vector<std::string> {"watchos-simulator"}, name))
+    if (contains({"watchos-simulator"}, name))
         list << canonicalOSIdentifiers("watchos");
-    if (contains(std::vector<std::string> {"macos", "ios", "tvos", "watchos"}, name))
+    if (contains({"macos", "ios", "tvos", "watchos"}, name))
         list << canonicalOSIdentifiers("darwin");
-    if (contains(std::vector<std::string> {"darwin", "freebsd", "netbsd", "openbsd"}, name))
+    if (contains({"darwin", "freebsd", "netbsd", "openbsd"}, name))
         list << canonicalOSIdentifiers("bsd");
-    if (contains(std::vector<std::string> {"android"}, name))
+    if (contains({"android"}, name))
         list << canonicalOSIdentifiers("linux");
 
     // Note: recognized non-Unix platforms include: windows, haiku, vxworks
-    if (contains(std::vector<std::string> {
-                 "bsd", "aix", "hpux", "solaris", "linux", "hurd", "qnx", "integrity"}, name))
+    if (contains({"bsd", "aix", "hpux", "solaris", "linux", "hurd", "qnx", "integrity"}, name))
         list << canonicalOSIdentifiers("unix");
 
     return list;

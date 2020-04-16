@@ -128,7 +128,6 @@ public:
     void load(const QString &filePath);
     void setupWriteStream(const QString &filePath);
     void finalizeWriteStream();
-    void closeStream();
     void clear();
 
     const HeadData &headData() const { return m_headData; }
@@ -167,6 +166,7 @@ private:
     static const PersistentObjectId ValueNotFoundId = -1;
     static const PersistentObjectId EmptyValueId = -2;
 
+    std::unique_ptr<QIODevice> m_file;
     QDataStream m_stream;
     HeadData m_headData;
     std::vector<void *> m_loadedRaw;

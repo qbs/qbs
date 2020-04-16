@@ -51,13 +51,13 @@
 namespace qbs {
 namespace Internal {
 
-static unsigned int indentWidth() { return 4; }
+static int indentWidth() { return 4; }
 
 NodeTreeDumper::NodeTreeDumper(QIODevice &outDevice) : m_outDevice(outDevice)
 {
 }
 
-void NodeTreeDumper::start(const QList<ResolvedProductPtr> &products)
+void NodeTreeDumper::start(const QVector<ResolvedProductPtr> &products)
 {
     m_indentation = 0;
     for (const ResolvedProductPtr &p : products) {

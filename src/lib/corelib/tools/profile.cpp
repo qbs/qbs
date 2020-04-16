@@ -63,13 +63,13 @@ namespace qbs {
 /*!
  * \brief Creates an object giving access to the settings for profile \c name.
  */
-Profile::Profile(const QString &name, Settings *settings, const QVariantMap &profiles)
-    : m_name(name),
+Profile::Profile(QString name, Settings *settings, QVariantMap profiles)
+    : m_name(std::move(name)),
       m_settings(settings),
-      m_values(profiles.value(name).toMap()),
-      m_profiles(profiles)
+      m_values(profiles.value(m_name).toMap()),
+      m_profiles(std::move(profiles))
 {
-    QBS_ASSERT(name == cleanName(name), return);
+    QBS_ASSERT(m_name == cleanName(m_name), return);
 }
 
 bool Profile::exists() const

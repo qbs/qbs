@@ -38,14 +38,20 @@
 ****************************************************************************/
 
 #include "msvcinfo.h"
+#include "visualstudioversioninfo.h"
 
+#include <logging/logger.h>
 #include <tools/error.h>
 #include <tools/profile.h>
 #include <tools/stringconstants.h>
 
 #include <QtCore/qbytearray.h>
 #include <QtCore/qdir.h>
+#include <QtCore/qjsonarray.h>
+#include <QtCore/qjsondocument.h>
+#include <QtCore/qjsonobject.h>
 #include <QtCore/qprocess.h>
+#include <QtCore/qsettings.h>
 #include <QtCore/qstringlist.h>
 #include <QtCore/qtemporaryfile.h>
 
@@ -54,6 +60,7 @@
 #endif
 
 #include <algorithm>
+#include <memory>
 #include <mutex>
 
 using namespace qbs;
@@ -129,16 +136,18 @@ public:
 #ifdef Q_OS_WIN
 static QStringList parseCommandLine(const QString &commandLine)
 {
-    QStringList list;
-    const auto buf = new wchar_t[commandLine.size() + 1];
-    buf[commandLine.toWCharArray(buf)] = 0;
+    const auto buf = std::make_unique<wchar_t[]>(size_t(commandLine.size()) + 1);
+    buf[size_t(commandLine.toWCharArray(buf.get()))] = 0;
     int argCount = 0;
-    LPWSTR *args = CommandLineToArgvW(buf, &argCount);
+    const auto argsDeleter = [](LPWSTR *p){ LocalFree(p); };
+    const auto args = std::unique_ptr<LPWSTR[], decltype(argsDeleter)>(
+            CommandLineToArgvW(buf.get(), &argCount), argsDeleter);
     if (!args)
         throw ErrorInfo(mkStr("Could not parse command line arguments: ") + commandLine);
+    QStringList list;
+    list.reserve(argCount);
     for (int i = 0; i < argCount; ++i)
-        list.push_back(QString::fromWCharArray(args[i]));
-    delete[] buf;
+        list.push_back(QString::fromWCharArray(args[size_t(i)]));
     return list;
 }
 #endif
@@ -163,7 +172,7 @@ static QVariantMap getMsvcDefines(const QString &compilerFilePath,
     QStringList out = QString::fromLocal8Bit(runProcess(compilerFilePath, QStringList()
                << QStringLiteral("/nologo")
                << backendSwitch
-               << QString::fromWCharArray(_wgetenv(L"COMSPEC"))
+               << qEnvironmentVariable("COMSPEC")
                << QStringLiteral("/c")
                << languageSwitch
                << QStringLiteral("NUL"),
@@ -206,30 +215,32 @@ static QVariantMap getMsvcDefines(const QString &compilerFilePath,
 static QVariantMap getClangClDefines(
         const QString &compilerFilePath,
         const QProcessEnvironment &compilerEnv,
-        MSVC::CompilerLanguage language)
+        MSVC::CompilerLanguage language,
+        const QString &arch)
 {
 #ifdef Q_OS_WIN
     QFileInfo clInfo(compilerFilePath);
-    QFileInfo clangInfo(clInfo.absolutePath() + QLatin1String("/clang.exe"));
+    QFileInfo clangInfo(clInfo.absolutePath() + QLatin1String("/clang-cl.exe"));
     if (!clangInfo.exists())
         throw ErrorInfo(QStringLiteral("%1 does not exist").arg(clangInfo.absoluteFilePath()));
 
-    QString languageSwitch;
-    switch (language) {
-    case MSVC::CLanguage:
-        languageSwitch = QStringLiteral("c");
-        break;
-    case MSVC::CPlusPlusLanguage:
-        languageSwitch = QStringLiteral("c++");
-        break;
-    }
     QStringList args = {
-        QStringLiteral("-dM"),
-        QStringLiteral("-E"),
-        QStringLiteral("-x"),
-        languageSwitch,
-        QStringLiteral("NUL"),
+        QStringLiteral("/d1PP"), // dump macros
+        QStringLiteral("/E") // preprocess to stdout
     };
+
+    if (language == MSVC::CLanguage)
+        args.append(QStringLiteral("/TC"));
+    else if (language == MSVC::CPlusPlusLanguage)
+        args.append(QStringLiteral("/TP"));
+
+    if (arch == QLatin1String("x86"))
+        args.append(QStringLiteral("-m32"));
+    else if (arch == QLatin1String("x86_64"))
+        args.append(QStringLiteral("-m64"));
+
+    args.append(QStringLiteral("NUL")); // filename
+
     const auto lines = QString::fromLocal8Bit(
             runProcess(
                     clangInfo.absoluteFilePath(),
@@ -239,10 +250,8 @@ static QVariantMap getClangClDefines(
     QVariantMap result;
     for (const auto &line: lines) {
         static const auto defineString = QLatin1String("#define ");
-        if (!line.startsWith(defineString)) {
-            throw ErrorInfo(QStringLiteral("Unexpected compiler frontend output: ")
-                            + lines.join(QLatin1Char('\n')));
-        }
+        if (!line.startsWith(defineString))
+            continue;
         QStringView view(line.data() + defineString.size());
         const auto it = std::find(view.begin(), view.end(), QLatin1Char(' '));
         if (it == view.end()) {
@@ -253,13 +262,228 @@ static QVariantMap getClangClDefines(
         QStringView value(it + 1, view.end());
         result.insert(key.toString(), value.isEmpty() ? QVariant() : QVariant(value.toString()));
     }
+    if (result.isEmpty()) {
+        throw ErrorInfo(QStringLiteral("Cannot determine macroses from compiler frontend output: ")
+                        + lines.join(QLatin1Char('\n')));
+    }
     return result;
 #else
     Q_UNUSED(compilerFilePath);
     Q_UNUSED(compilerEnv);
     Q_UNUSED(language);
+    Q_UNUSED(arch);
     return {};
 #endif
+}
+
+static QString formatVswhereOutput(const QString &out, const QString &err)
+{
+    QString ret;
+    if (!out.isEmpty()) {
+        ret.append(Tr::tr("stdout")).append(QLatin1String(":\n"));
+        for (const QString &line : out.split(QLatin1Char('\n')))
+            ret.append(QLatin1Char('\t')).append(line).append(QLatin1Char('\n'));
+    }
+    if (!err.isEmpty()) {
+        ret.append(Tr::tr("stderr")).append(QLatin1String(":\n"));
+        for (const QString &line : err.split(QLatin1Char('\n')))
+            ret.append(QLatin1Char('\t')).append(line).append(QLatin1Char('\n'));
+    }
+    return ret;
+}
+
+static QString wow6432Key()
+{
+#ifdef Q_OS_WIN64
+    return QStringLiteral("\\Wow6432Node");
+#else
+    return {};
+#endif
+}
+
+static QString vswhereFilePath()
+{
+    static const std::vector<const char *> envVarCandidates{"ProgramFiles", "ProgramFiles(x86)"};
+    for (const char * const envVar : envVarCandidates) {
+        const QString value = QDir::fromNativeSeparators(QString::fromLocal8Bit(qgetenv(envVar)));
+        const QString cmd = value
+                + QStringLiteral("/Microsoft Visual Studio/Installer/vswhere.exe");
+        if (QFileInfo(cmd).exists())
+            return cmd;
+    }
+    return {};
+}
+
+enum class ProductType { VisualStudio, BuildTools };
+static std::vector<MSVCInstallInfo> retrieveInstancesFromVSWhere(
+        ProductType productType, Logger &logger)
+{
+    std::vector<MSVCInstallInfo> result;
+    const QString cmd = vswhereFilePath();
+    if (cmd.isEmpty())
+        return result;
+    QProcess vsWhere;
+    QStringList args = productType == ProductType::VisualStudio
+            ? QStringList({QStringLiteral("-all"), QStringLiteral("-legacy"),
+                           QStringLiteral("-prerelease")})
+            : QStringList({QStringLiteral("-products"),
+                           QStringLiteral("Microsoft.VisualStudio.Product.BuildTools")});
+    args << QStringLiteral("-format") << QStringLiteral("json") << QStringLiteral("-utf8");
+    vsWhere.start(cmd, args);
+    if (!vsWhere.waitForStarted(-1))
+        return result;
+    if (!vsWhere.waitForFinished(-1)) {
+        logger.qbsWarning() << Tr::tr("The vswhere tool failed to run").append(QLatin1String(": "))
+                        .append(vsWhere.errorString());
+        return result;
+    }
+    if (vsWhere.exitCode() != 0) {
+        const QString stdOut = QString::fromLocal8Bit(vsWhere.readAllStandardOutput());
+        const QString stdErr = QString::fromLocal8Bit(vsWhere.readAllStandardError());
+        logger.qbsWarning() << Tr::tr("The vswhere tool failed to run").append(QLatin1String(".\n"))
+                     .append(formatVswhereOutput(stdOut, stdErr));
+        return result;
+    }
+    QJsonParseError parseError;
+    QJsonDocument jsonOutput = QJsonDocument::fromJson(vsWhere.readAllStandardOutput(),
+                                                       &parseError);
+    if (parseError.error != QJsonParseError::NoError) {
+        logger.qbsWarning() << Tr::tr("The vswhere tool produced invalid JSON output: %1")
+                        .arg(parseError.errorString());
+        return result;
+    }
+    const auto jsonArray = jsonOutput.array();
+    for (const QJsonValue &v : jsonArray) {
+        const QJsonObject o = v.toObject();
+        MSVCInstallInfo info;
+        info.version = o.value(QStringLiteral("installationVersion")).toString();
+        if (productType == ProductType::BuildTools) {
+            // For build tools, the version is e.g. "15.8.28010.2036", rather than "15.0".
+            const int dotIndex = info.version.indexOf(QLatin1Char('.'));
+            if (dotIndex != -1)
+                info.version = info.version.left(dotIndex);
+        }
+        info.installDir = o.value(QStringLiteral("installationPath")).toString();
+        if (!info.version.isEmpty() && !info.installDir.isEmpty())
+            result.push_back(info);
+    }
+    return result;
+}
+
+static std::vector<MSVCInstallInfo> installedMSVCsFromVsWhere(Logger &logger)
+{
+    const std::vector<MSVCInstallInfo> vsInstallations
+            = retrieveInstancesFromVSWhere(ProductType::VisualStudio, logger);
+    const std::vector<MSVCInstallInfo> buildToolInstallations
+            = retrieveInstancesFromVSWhere(ProductType::BuildTools, logger);
+    std::vector<MSVCInstallInfo> all;
+    std::copy(vsInstallations.begin(), vsInstallations.end(), std::back_inserter(all));
+    std::copy(buildToolInstallations.begin(), buildToolInstallations.end(),
+              std::back_inserter(all));
+    return all;
+}
+
+static std::vector<MSVCInstallInfo> installedMSVCsFromRegistry()
+{
+    std::vector<MSVCInstallInfo> result;
+
+    // Detect Visual Studio
+    const QSettings vsRegistry(
+                QStringLiteral("HKEY_LOCAL_MACHINE\\SOFTWARE") + wow6432Key()
+                + QStringLiteral("\\Microsoft\\VisualStudio\\SxS\\VS7"),
+                QSettings::NativeFormat);
+    const auto vsNames = vsRegistry.childKeys();
+    for (const QString &vsName : vsNames) {
+        MSVCInstallInfo entry;
+        entry.version = vsName;
+        entry.installDir = vsRegistry.value(vsName).toString();
+        result.push_back(entry);
+    }
+
+    // Detect Visual C++ Build Tools
+    QSettings vcbtRegistry(
+                QStringLiteral("HKEY_LOCAL_MACHINE\\SOFTWARE") + wow6432Key()
+                + QStringLiteral("\\Microsoft\\VisualCppBuildTools"),
+                QSettings::NativeFormat);
+    const QStringList &vcbtRegistryChildGroups = vcbtRegistry.childGroups();
+    for (const QString &childGroup : vcbtRegistryChildGroups) {
+        vcbtRegistry.beginGroup(childGroup);
+        bool ok;
+        int installed = vcbtRegistry.value(QStringLiteral("Installed")).toInt(&ok);
+        if (ok && installed) {
+            MSVCInstallInfo entry;
+            entry.version = childGroup;
+            const QSettings vsRegistry(
+                        QStringLiteral("HKEY_LOCAL_MACHINE\\SOFTWARE") + wow6432Key()
+                        + QStringLiteral("\\Microsoft\\VisualStudio\\") + childGroup
+                        + QStringLiteral("\\Setup\\VC"),
+                        QSettings::NativeFormat);
+            entry.installDir = vsRegistry.value(QStringLiteral("ProductDir")).toString();
+            result.push_back(entry);
+        }
+        vcbtRegistry.endGroup();
+    }
+
+    return result;
+}
+
+/*
+    Returns the list of compilers present in all MSVC installations
+    (Visual Studios or Build Tools) without the architecture, e.g.
+    [VC\Tools\MSVC\14.16.27023, VC\Tools\MSVC\14.14.26428, ...]
+*/
+static std::vector<MSVC> installedCompilersHelper(Logger &logger)
+{
+    std::vector<MSVC> msvcs;
+    std::vector<MSVCInstallInfo> installInfos = installedMSVCsFromVsWhere(logger);
+    if (installInfos.empty())
+        installInfos = installedMSVCsFromRegistry();
+    for (const MSVCInstallInfo &installInfo : installInfos) {
+        MSVC msvc;
+        msvc.internalVsVersion = Version::fromString(installInfo.version, true);
+        if (!msvc.internalVsVersion.isValid())
+            continue;
+
+        QDir vsInstallDir(installInfo.installDir);
+        msvc.vsInstallPath = vsInstallDir.absolutePath();
+        if (vsInstallDir.dirName() != QStringLiteral("VC")
+                && !vsInstallDir.cd(QStringLiteral("VC"))) {
+            continue;
+        }
+
+        msvc.version = QString::number(Internal::VisualStudioVersionInfo(
+            msvc.internalVsVersion).marketingVersion());
+        if (msvc.version.isEmpty()) {
+            logger.qbsWarning()
+                    << Tr::tr("Unknown MSVC version %1 found.").arg(installInfo.version);
+            continue;
+        }
+
+        if (msvc.internalVsVersion.majorVersion() < 15) {
+            QDir vcInstallDir = vsInstallDir;
+            if (!vcInstallDir.cd(QStringLiteral("bin")))
+                continue;
+            msvc.vcInstallPath = vcInstallDir.absolutePath();
+            msvcs.push_back(msvc);
+        } else {
+            QDir vcInstallDir = vsInstallDir;
+            vcInstallDir.cd(QStringLiteral("Tools/MSVC"));
+            const auto vcVersionStrs = vcInstallDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+            for (const QString &vcVersionStr : vcVersionStrs) {
+                const Version vcVersion = Version::fromString(vcVersionStr);
+                if (!vcVersion.isValid())
+                    continue;
+                QDir specificVcInstallDir = vcInstallDir;
+                if (!specificVcInstallDir.cd(vcVersionStr)
+                    || !specificVcInstallDir.cd(QStringLiteral("bin"))) {
+                    continue;
+                }
+                msvc.vcInstallPath = specificVcInstallDir.absolutePath();
+                msvcs.push_back(msvc);
+            }
+        }
+    }
+    return msvcs;
 }
 
 void MSVC::init()
@@ -278,6 +502,28 @@ QString MSVC::architectureFromClPath(const QString &clPath)
     if (parentDirName == QLatin1String("bin"))
         return QStringLiteral("x86");
     return parentDirName;
+}
+
+QString MSVC::canonicalArchitecture(const QString &arch)
+{
+    if (arch == QLatin1String("x64") || arch == QLatin1String("amd64"))
+        return QStringLiteral("x86_64");
+    return arch;
+}
+
+std::pair<QString, QString> MSVC::getHostTargetArchPair(const QString &arch)
+{
+    QString hostArch;
+    QString targetArch;
+    const int index = arch.indexOf(QLatin1Char('_'));
+    if (index != -1) {
+        hostArch = arch.mid(0, index);
+        targetArch = arch.mid(index);
+    } else {
+        hostArch = arch;
+        targetArch = arch;
+    }
+    return {canonicalArchitecture(hostArch), canonicalArchitecture(targetArch)};
 }
 
 QString MSVC::binPathForArchitecture(const QString &arch) const
@@ -301,8 +547,104 @@ QVariantMap MSVC::compilerDefines(const QString &compilerFilePath,
 {
     const auto compilerName = QFileInfo(compilerFilePath).fileName().toLower();
     if (compilerName == QLatin1String("clang-cl.exe"))
-        return getClangClDefines(compilerFilePath, environment, language);
+        return getClangClDefines(compilerFilePath, environment, language, architecture);
     return getMsvcDefines(compilerFilePath, environment, language);
+}
+
+std::vector<MSVCArchInfo> MSVC::findSupportedArchitectures(const MSVC &msvc)
+{
+    std::vector<MSVCArchInfo> result;
+    auto addResult = [&result](const MSVCArchInfo &ai) {
+        if (QFile::exists(ai.binPath + QLatin1String("/cl.exe")))
+            result.push_back(ai);
+    };
+    if (msvc.internalVsVersion.majorVersion() < 15) {
+        static const QStringList knownArchitectures = QStringList()
+            << QStringLiteral("x86")
+            << QStringLiteral("amd64_x86")
+            << QStringLiteral("amd64")
+            << QStringLiteral("x86_amd64")
+            << QStringLiteral("ia64")
+            << QStringLiteral("x86_ia64")
+            << QStringLiteral("x86_arm")
+            << QStringLiteral("amd64_arm");
+        for (const QString &knownArchitecture : knownArchitectures) {
+            MSVCArchInfo ai;
+            ai.arch = knownArchitecture;
+            ai.binPath = msvc.binPathForArchitecture(knownArchitecture);
+            addResult(ai);
+        }
+    } else {
+        QDir vcInstallDir(msvc.vcInstallPath);
+        const auto hostArchs = vcInstallDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+        for (const QString &hostArch : hostArchs) {
+            QDir subdir = vcInstallDir;
+            if (!subdir.cd(hostArch))
+                continue;
+            const QString shortHostArch = hostArch.mid(4).toLower();
+            const auto archs = subdir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+            for (const QString &arch : archs) {
+                MSVCArchInfo ai;
+                ai.binPath = subdir.absoluteFilePath(arch);
+                if (shortHostArch == arch)
+                    ai.arch = arch;
+                else
+                    ai.arch = shortHostArch + QLatin1Char('_') + arch;
+                addResult(ai);
+            }
+        }
+    }
+    return result;
+}
+
+QVariantMap MSVC::toVariantMap() const
+{
+    return {
+        {QStringLiteral("version"), version},
+        {QStringLiteral("internalVsVersion"), internalVsVersion.toString()},
+        {QStringLiteral("vsInstallPath"), vsInstallPath},
+        {QStringLiteral("vcInstallPath"), vcInstallPath},
+        {QStringLiteral("binPath"), binPath},
+        {QStringLiteral("architecture"), architecture},
+    };
+}
+
+/*!
+    \internal
+    Returns the list of all compilers present in all MSVC installations
+    separated by host/target arch, e.g.
+    [
+        VC\Tools\MSVC\14.16.27023\bin\Hostx64\x64,
+        VC\Tools\MSVC\14.16.27023\bin\Hostx64\x86,
+        VC\Tools\MSVC\14.16.27023\bin\Hostx64\arm,
+        VC\Tools\MSVC\14.16.27023\bin\Hostx64\arm64,
+        VC\Tools\MSVC\14.16.27023\bin\Hostx86\x64,
+        ...
+    ]
+    \note that MSVC.architecture can be either "x64" or "amd64" (depending on the MSVC version)
+    in case of 64-bit platform (but we use the "x86_64" name...)
+*/
+std::vector<MSVC> MSVC::installedCompilers(Logger &logger)
+{
+    std::vector<MSVC> msvcs;
+    const auto instMsvcs = installedCompilersHelper(logger);
+    for (const MSVC &msvc : instMsvcs) {
+        if (msvc.internalVsVersion.majorVersion() < 15) {
+            // Check existence of various install scripts
+            const QString vcvars32bat = msvc.vcInstallPath + QLatin1String("/vcvars32.bat");
+            if (!QFileInfo(vcvars32bat).isFile())
+                continue;
+        }
+
+        const auto ais = findSupportedArchitectures(msvc);
+        for (const MSVCArchInfo &ai : ais) {
+            MSVC specificMSVC = msvc;
+            specificMSVC.architecture = ai.arch;
+            specificMSVC.binPath = ai.binPath;
+            msvcs.push_back(specificMSVC);
+        }
+    }
+    return msvcs;
 }
 
 void MSVC::determineCompilerVersion()
@@ -331,4 +673,25 @@ void MSVC::determineCompilerVersion()
     qputenv("PATH", origPath);
     compilerVersion = Version(versionStr.mid(0, 2).toInt(), versionStr.mid(2, 2).toInt(),
                               versionStr.mid(4).toInt());
+}
+
+QString MSVCInstallInfo::findVcvarsallBat() const
+{
+    static const auto vcvarsall2017 = QStringLiteral("VC/Auxiliary/Build/vcvarsall.bat");
+    // 2015, 2013 and 2012
+    static const auto vcvarsallOld = QStringLiteral("VC/vcvarsall.bat");
+    QDir dir(installDir);
+    if (dir.exists(vcvarsall2017))
+        return dir.absoluteFilePath(vcvarsall2017);
+    if (dir.exists(vcvarsallOld))
+        return dir.absoluteFilePath(vcvarsallOld);
+    return {};
+}
+
+std::vector<MSVCInstallInfo> MSVCInstallInfo::installedMSVCs(Logger &logger)
+{
+    const auto installInfos = installedMSVCsFromVsWhere(logger);
+    if (installInfos.empty())
+        return installedMSVCsFromRegistry();
+    return installInfos;
 }

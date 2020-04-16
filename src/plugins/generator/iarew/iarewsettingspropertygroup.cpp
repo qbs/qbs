@@ -63,9 +63,10 @@ IarewSettingsPropertyGroup::IarewSettingsPropertyGroup()
                 QByteArrayLiteral("debug"), QVariant{});
 }
 
-void IarewSettingsPropertyGroup::setName(QByteArray name)
+void IarewSettingsPropertyGroup::setName(const QByteArray &name)
 {
-    m_nameProperty->setValue(std::move(name));
+    // There is no way to move-construct a QVariant from T, thus name is shallow-copied
+    m_nameProperty->setValue(QVariant(name));
 }
 
 QByteArray IarewSettingsPropertyGroup::name() const
@@ -95,12 +96,11 @@ void IarewSettingsPropertyGroup::setDataDebugInfo(int debugInfo)
 }
 
 void IarewSettingsPropertyGroup::addOptionsGroup(
-        QByteArray name,
-        const QVariantList &states,
+        const QByteArray &name,
+        QVariantList states,
         int version)
 {
-    m_dataPropertyGroup->appendChild<IarewOptionPropertyGroup>(
-                std::move(name), states, std::move(version));
+    m_dataPropertyGroup->appendChild<IarewOptionPropertyGroup>(name, std::move(states), version);
 }
 
 } // namespace qbs

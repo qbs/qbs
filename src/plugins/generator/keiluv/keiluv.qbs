@@ -21,7 +21,6 @@ QbsPlugin {
             "keiluvprojectwriter.h",
             "keiluvutils.cpp",
             "keiluvutils.h",
-            "keiluvversioninfo.cpp",
             "keiluvversioninfo.h",
             "keiluvworkspace.cpp",
             "keiluvworkspace.h",

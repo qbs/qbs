@@ -56,13 +56,9 @@
 namespace qbs {
 namespace Internal {
 
-RuleNode::RuleNode()
-{
-}
+RuleNode::RuleNode() = default;
 
-RuleNode::~RuleNode()
-{
-}
+RuleNode::~RuleNode() = default;
 
 void RuleNode::accept(BuildGraphVisitor *visitor)
 {
@@ -182,7 +178,7 @@ void RuleNode::apply(const Logger &logger,
             if (removedInputForcesOutputRemoval)
                 outputArtifactsToRemove += parent;
             else
-                connectionsToBreak.push_back(std::make_pair(parent, artifact));
+                connectionsToBreak.emplace_back(parent, artifact);
         }
         disconnect(this, artifact);
     }
@@ -262,7 +258,7 @@ ArtifactSet RuleNode::currentInputArtifacts() const
         }
     }
 
-    for (const ResolvedProductConstPtr &dep : qAsConst(product->dependencies)) {
+    for (const auto &dep : qAsConst(product->dependencies)) {
         if (!dep->buildData)
             continue;
         for (Artifact * const a : filterByType<Artifact>(dep->buildData->allNodes())) {

@@ -48,8 +48,8 @@ Module {
     property string buildVariant: defaultBuildVariant
 
     property bool enableDebugCode: buildVariant == "debug"
-    property bool debugInformation: (buildVariant == "debug")
-    property string optimization: (buildVariant == "debug" ? "none" : "fast")
+    property bool debugInformation: (buildVariant !== "release")
+    property string optimization: (buildVariant === "debug" ? "none" : "fast")
     readonly property string hostPlatform: undefined // set internally
     readonly property stringList hostOS: Utilities.canonicalPlatform(hostPlatform)
     property string hostOSVersion: {
@@ -61,6 +61,7 @@ Module {
             return version + "." + hostOSBuildVersion;
         }
     }
+    readonly property string hostArchitecture: undefined // set internally
 
     property string hostOSBuildVersion: {
         if (hostOS.contains("macos")) {
@@ -106,7 +107,7 @@ Module {
 
     PropertyOptions {
         name: "buildVariant"
-        allowedValues: ['debug', 'release']
+        allowedValues: ['debug', 'release', 'profiling']
         description: "name of the build variant"
     }
 

@@ -65,17 +65,11 @@ RuleCommand::RuleCommand() : d(new Internal::RuleCommandPrivate)
 {
 }
 
-RuleCommand::RuleCommand(const RuleCommand &other) : d(other.d) {}
+RuleCommand::RuleCommand(const RuleCommand &other)  = default;
 
-RuleCommand::~RuleCommand()
-{
-}
+RuleCommand::~RuleCommand() = default;
 
-RuleCommand& RuleCommand::operator=(const RuleCommand &other)
-{
-    d = other.d;
-    return *this;
-}
+RuleCommand& RuleCommand::operator=(const RuleCommand &other) = default;
 
 /*!
  * Returns the type of this object. If the value is \c InvalidType, the object is invalid.

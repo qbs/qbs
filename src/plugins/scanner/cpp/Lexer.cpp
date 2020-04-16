@@ -70,8 +70,7 @@ Lexer::Lexer(const char *firstChar, const char *lastChar)
     setSource(firstChar, lastChar);
 }
 
-Lexer::~Lexer()
-{ }
+Lexer::~Lexer() = default;
 
 void Lexer::setSource(const char *firstChar, const char *lastChar)
 {
@@ -225,7 +224,7 @@ void Lexer::scan_helper(Token *tok)
         goto _Lagain;
 
     case '"': case '\'': {
-        const char quote = ch;
+        const unsigned char quote = ch;
 
         tok->f.kind = quote == '"'
             ? T_STRING_LITERAL
@@ -403,7 +402,7 @@ void Lexer::scan_helper(Token *tok)
             bool doxy = false;
 
             if (_yychar == '*' || _yychar == '!') {
-                const char ch = _yychar;
+                const unsigned char ch = _yychar;
 
                 yyinp();
 
@@ -609,7 +608,7 @@ void Lexer::scan_helper(Token *tok)
             ch = _yychar;
             yyinp();
 
-            const char quote = ch;
+            const unsigned char quote = ch;
 
             tok->f.kind = quote == '"'
                 ? T_WIDE_STRING_LITERAL
@@ -668,4 +667,4 @@ void Lexer::scan_helper(Token *tok)
     } // switch
 }
 
-}
+} // namespace CPlusPlus

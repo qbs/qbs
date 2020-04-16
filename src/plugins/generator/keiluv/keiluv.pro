@@ -28,7 +28,6 @@ SOURCES += \
     $$PWD/keiluvproject.cpp \
     $$PWD/keiluvprojectwriter.cpp \
     $$PWD/keiluvutils.cpp \
-    $$PWD/keiluvversioninfo.cpp \
     $$PWD/keiluvworkspace.cpp \
     $$PWD/keiluvworkspacewriter.cpp
 

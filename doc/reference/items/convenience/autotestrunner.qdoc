@@ -69,6 +69,27 @@
             \endcode
     \endlist
 
+
+    \section2 Setting Properties for individual Tests
+    \target autotestrunner-autotest-module
+
+    To control the behavior of individual tests, some properties of the \c AutotestRunner
+    can be overridden by depending on the \l autotest module and setting its properties:
+
+    \code
+    CppApplication {
+        name: "tst_mytest"
+        type: ["application", "autotest"]
+
+        Depends { name: "autotest" }
+
+        autotest.timeout: 60
+
+        // ...
+    }
+    \endcode
+
+
     \section2 Relevant Job Pools
     \target autotestrunner-job-pools
 
@@ -146,4 +167,17 @@
     This is useful for tools like Valgrind and alike.
 
     \defaultvalue empty
+*/
+
+/*!
+    \qmlproperty int AutotestRunner::timeout
+
+    Time limit for the execution of the individual tests. If a test does not finish within
+    the time limit, the test is cancelled and considered failed. A value below or equal to 0
+    means no timeout.
+    A test can override this by setting the \l{autotest::timeout}{timeout} property
+    of the \l autotest module.
+
+    \defaultvalue -1
+    \since Qbs 1.15
 */

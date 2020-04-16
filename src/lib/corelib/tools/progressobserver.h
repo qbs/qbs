@@ -51,7 +51,7 @@ namespace Internal {
 class ProgressObserver
 {
 public:
-    virtual ~ProgressObserver() { }
+    virtual ~ProgressObserver() = default;
 
     virtual void initialize(const QString &task, int maximum) = 0;
     virtual void setProgressValue(int value) = 0;

@@ -46,8 +46,8 @@
 #include <utility>
 #include <vector>
 
-#include <limits.h>
-#include <string.h>
+#include <climits>
+#include <cstring>
 
 #include "json.h"
 
@@ -4127,7 +4127,7 @@ bool Parser::parseObject()
     DEBUG << "numEntries" << parsedObject.offsets.size();
     int table = objectOffset;
     // finalize the object
-    if (parsedObject.offsets.size()) {
+    if (!parsedObject.offsets.empty()) {
         int tableSize = static_cast<int>(parsedObject.offsets.size()) * sizeof(uint32_t);
         table = reserveSpace(tableSize);
         memcpy(data + table, &*parsedObject.offsets.begin(), tableSize);
@@ -4218,7 +4218,7 @@ bool Parser::parseArray()
     DEBUG << "size =" << values.size();
     int table = arrayOffset;
     // finalize the object
-    if (values.size()) {
+    if (!values.empty()) {
         int tableSize = static_cast<int>(values.size() * sizeof(Value));
         table = reserveSpace(tableSize);
         memcpy(data + table, values.data(), tableSize);

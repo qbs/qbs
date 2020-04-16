@@ -148,7 +148,7 @@ private:
 
     struct ProductSelection {
         ProductSelection(Project::ProductSelection s) : selection(s) {}
-        ProductSelection(const QList<ProductData> &p) : products(p) {}
+        ProductSelection(QList<ProductData> p) : products(std::move(p)) {}
 
         Project::ProductSelection selection = Project::ProductSelectionDefaultOnly;
         QList<ProductData> products;
@@ -186,7 +186,10 @@ Session::Session()
 #ifdef Q_OS_WIN32
     // Make sure the line feed character appears as itself.
     if (_setmode(_fileno(stdout), _O_BINARY) == -1) {
-        std::cerr << "Failed to set stdout to binary mode: " << std::strerror(errno) << std::endl;
+        constexpr size_t errmsglen = FILENAME_MAX;
+        char errmsg[errmsglen];
+        strerror_s(errmsg, errmsglen, errno);
+        std::cerr << "Failed to set stdout to binary mode: " << errmsg << std::endl;
         qApp->exit(EXIT_FAILURE);
     }
 #endif
@@ -248,7 +251,7 @@ void Session::setupProject(const QJsonObject &request)
     if (m_currentJob) {
         if (qobject_cast<SetupProjectJob *>(m_currentJob)
                 && m_currentJob->state() == AbstractJob::StateCanceling) {
-            m_resolveRequest = std::move(request);
+            m_resolveRequest = request;
             return;
         }
         sendErrorReply("project-resolved",
@@ -258,7 +261,7 @@ void Session::setupProject(const QJsonObject &request)
     m_moduleProperties = modulePropertiesFromRequest(request);
     auto params = SetupProjectParameters::fromJson(request);
     const ProjectDataMode dataMode = dataModeFromRequest(request);
-    m_settings.reset(new Settings(params.settingsDirectory()));
+    m_settings = std::make_unique<Settings>(params.settingsDirectory());
     const Preferences prefs(m_settings.get());
     const QString appDir = QDir::cleanPath(QCoreApplication::applicationDirPath());
     params.setSearchPaths(prefs.searchPaths(appDir + QLatin1String(

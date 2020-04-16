@@ -32,8 +32,6 @@
 
 namespace qbs {
 
-IMSBuildNode::~IMSBuildNode()
-{
-}
+IMSBuildNode::~IMSBuildNode() = default;
 
 } // namespace qbs

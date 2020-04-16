@@ -47,6 +47,7 @@
 #include <tools/hostosinfo.h>
 #include <tools/profile.h>
 
+#include <QtCore/qdir.h>
 #include <QtCore/qprocess.h>
 #include <QtCore/qsettings.h>
 #include <QtCore/qtemporaryfile.h>
@@ -57,7 +58,8 @@ using Internal::HostOsInfo;
 
 static QStringList knownKeilCompilerNames()
 {
-    return {QStringLiteral("c51"), QStringLiteral("armcc")};
+    return {QStringLiteral("c51"), QStringLiteral("c251"),
+                QStringLiteral("c166"), QStringLiteral("armcc")};
 }
 
 static QString guessKeilArchitecture(const QFileInfo &compiler)
@@ -65,6 +67,10 @@ static QString guessKeilArchitecture(const QFileInfo &compiler)
     const auto baseName = compiler.baseName();
     if (baseName == QLatin1String("c51"))
         return QStringLiteral("mcs51");
+    if (baseName == QLatin1String("c251"))
+        return QStringLiteral("mcs251");
+    if (baseName == QLatin1String("c166"))
+        return QStringLiteral("c166");
     if (baseName == QLatin1String("armcc"))
         return QStringLiteral("arm");
     return {};
@@ -100,74 +106,173 @@ static Profile createKeilProfileHelper(const ToolchainInstallInfo &info,
     return profile;
 }
 
+static Version dumpMcsCompilerVersion(const QFileInfo &compiler)
+{
+    QTemporaryFile fakeIn;
+    if (!fakeIn.open()) {
+        qbsWarning() << Tr::tr("Unable to open temporary file %1 for output: %2")
+                        .arg(fakeIn.fileName(), fakeIn.errorString());
+        return Version{};
+    }
+
+    fakeIn.write("#define VALUE_TO_STRING(x) #x\n");
+    fakeIn.write("#define VALUE(x) VALUE_TO_STRING(x)\n");
+
+    // Prepare for C51 compiler.
+    fakeIn.write("#if defined(__C51__) || defined(__CX51__)\n");
+    fakeIn.write("#  define VAR_NAME_VALUE(var) \"(\"\"\"\"|\"#var\"|\"VALUE(var)\"|\"\"\"\")\"\n");
+    fakeIn.write("#  if defined (__C51__)\n");
+    fakeIn.write("#    pragma message (VAR_NAME_VALUE(__C51__))\n");
+    fakeIn.write("#  endif\n");
+    fakeIn.write("#  if defined(__CX51__)\n");
+    fakeIn.write("#    pragma message (VAR_NAME_VALUE(__CX51__))\n");
+    fakeIn.write("#  endif\n");
+    fakeIn.write("#endif\n");
+
+    // Prepare for C251 compiler.
+    fakeIn.write("#if defined(__C251__)\n");
+    fakeIn.write("#  define VAR_NAME_VALUE(var) \"\"|#var|VALUE(var)|\"\"\n");
+    fakeIn.write("#  if defined(__C251__)\n");
+    fakeIn.write("#    warning (VAR_NAME_VALUE(__C251__))\n");
+    fakeIn.write("#  endif\n");
+    fakeIn.write("#endif\n");
+
+    fakeIn.close();
+
+    const QStringList args = {fakeIn.fileName()};
+    QProcess p;
+    p.start(compiler.absoluteFilePath(), args);
+    p.waitForFinished(3000);
+
+    const QStringList knownKeys = {QStringLiteral("__C51__"),
+                                   QStringLiteral("__CX51__"),
+                                   QStringLiteral("__C251__")};
+
+    auto extractVersion = [&knownKeys](const QByteArray &output) {
+        QTextStream stream(output);
+        QString line;
+        while (stream.readLineInto(&line)) {
+            if (!line.startsWith(QLatin1String("***")))
+                continue;
+            enum { KEY_INDEX = 1, VALUE_INDEX = 2, ALL_PARTS = 4 };
+            const QStringList parts = line.split(QLatin1String("\"|\""));
+            if (parts.count() != ALL_PARTS)
+                continue;
+            if (!knownKeys.contains(parts.at(KEY_INDEX)))
+                continue;
+            return parts.at(VALUE_INDEX).toInt();
+        }
+        return -1;
+    };
+
+    const QByteArray dump = p.readAllStandardOutput();
+    const int verCode = extractVersion(dump);
+    if (verCode < 0) {
+        qbsWarning() << Tr::tr("No %1 tokens was found"
+                               " in the compiler dump:\n%2")
+                        .arg(knownKeys.join(QLatin1Char(',')))
+                        .arg(QString::fromUtf8(dump));
+        return Version{};
+    }
+    return Version{verCode / 100, verCode % 100};
+}
+
+static Version dumpC166CompilerVersion(const QFileInfo &compiler)
+{
+    QTemporaryFile fakeIn;
+    if (!fakeIn.open()) {
+        qbsWarning() << Tr::tr("Unable to open temporary file %1 for output: %2")
+                        .arg(fakeIn.fileName(), fakeIn.errorString());
+        return Version{};
+    }
+
+    fakeIn.write("#if defined(__C166__)\n");
+    fakeIn.write("# warning __C166__\n");
+    fakeIn.write("# pragma __C166__\n");
+    fakeIn.write("#endif\n");
+
+    fakeIn.close();
+
+    const QStringList args = {fakeIn.fileName()};
+    QProcess p;
+    p.start(compiler.absoluteFilePath(), args);
+    p.waitForFinished(3000);
+
+    // Extract the compiler version pattern in the form, like:
+    //
+    // *** WARNING C320 IN LINE 41 OF c51.c: __C166__
+    // *** WARNING C2 IN LINE 42 OF c51.c: '757': unknown #pragma/control, line ignored
+    //
+    // where the '__C166__' is a key, and the '757' is a value (aka version).
+    auto extractVersion = [](const QString &output) {
+        const QStringList lines = output.split(QStringLiteral("\r\n"));
+        for (auto it = lines.cbegin(); it != lines.cend();) {
+            if (it->startsWith(QLatin1String("***")) && it->endsWith(QLatin1String("__C166__"))) {
+                ++it;
+                if (it == lines.cend() || !it->startsWith(QLatin1String("***")))
+                    break;
+                const int startIndex = it->indexOf(QLatin1Char('\''));
+                if (startIndex == -1)
+                    break;
+                const int stopIndex = it->indexOf(QLatin1Char('\''), startIndex + 1);
+                if (stopIndex == -1)
+                    break;
+                const QString v = it->mid(startIndex + 1, stopIndex - startIndex - 1);
+                return v.toInt();
+            }
+            ++it;
+        }
+        return -1;
+    };
+
+    const QByteArray dump = p.readAllStandardOutput();
+    const int verCode = extractVersion(QString::fromUtf8(dump));
+    if (verCode < 0) {
+        qbsWarning() << Tr::tr("No __C166__ token was found"
+                               " in the compiler dump:\n%1")
+                        .arg(QString::fromUtf8(dump));
+        return Version{};
+    }
+    return Version{verCode / 100, verCode % 100};
+}
+
+static Version dumpArmCompilerVersion(const QFileInfo &compiler)
+{
+    const QStringList args = {QStringLiteral("-E"),
+                              QStringLiteral("--list-macros"),
+                              QStringLiteral("nul")};
+    QProcess p;
+    p.start(compiler.absoluteFilePath(), args);
+    p.waitForFinished(3000);
+    const auto es = p.exitStatus();
+    if (es != QProcess::NormalExit) {
+        const QByteArray out = p.readAll();
+        qbsWarning() << Tr::tr("Compiler dumping failed:\n%1")
+                        .arg(QString::fromUtf8(out));
+        return Version{};
+    }
+
+    const QByteArray dump = p.readAll();
+    const int verCode = extractVersion(dump, "__ARMCC_VERSION ");
+    if (verCode < 0) {
+        qbsWarning() << Tr::tr("No '__ARMCC_VERSION' token was found "
+                               "in the compiler dump:\n%1")
+                        .arg(QString::fromUtf8(dump));
+        return Version{};
+    }
+    return Version{verCode / 1000000, (verCode / 10000) % 100, verCode % 10000};
+}
+
 static Version dumpKeilCompilerVersion(const QFileInfo &compiler)
 {
     const QString arch = guessKeilArchitecture(compiler);
-    if (arch == QLatin1String("mcs51")) {
-        QTemporaryFile fakeIn;
-        if (!fakeIn.open()) {
-            qbsWarning() << Tr::tr("Unable to open temporary file %1 for output: %2")
-                            .arg(fakeIn.fileName(), fakeIn.errorString());
-            return Version{};
-        }
-        fakeIn.write("#define VALUE_TO_STRING(x) #x\n");
-        fakeIn.write("#define VALUE(x) VALUE_TO_STRING(x)\n");
-        fakeIn.write("#define VAR_NAME_VALUE(var) \"\"\"|\"#var\"|\"VALUE(var)\n");
-        fakeIn.write("#ifdef __C51__\n");
-        fakeIn.write("#pragma message(VAR_NAME_VALUE(__C51__))\n");
-        fakeIn.write("#endif\n");
-        fakeIn.write("#ifdef __CX51__\n");
-        fakeIn.write("#pragma message(VAR_NAME_VALUE(__CX51__))\n");
-        fakeIn.write("#endif\n");
-        fakeIn.close();
-
-        const QStringList args = {fakeIn.fileName()};
-        QProcess p;
-        p.start(compiler.absoluteFilePath(), args);
-        p.waitForFinished(3000);
-        const auto es = p.exitStatus();
-        if (es != QProcess::NormalExit) {
-            const QByteArray out = p.readAll();
-            qbsWarning() << Tr::tr("Compiler dumping failed:\n%1")
-                            .arg(QString::fromUtf8(out));
-            return Version{};
-        }
-
-        const QByteArray dump = p.readAllStandardOutput();
-        const int verCode = extractVersion(dump, "\"__C51__\"|\"");
-        if (verCode < 0) {
-            qbsWarning() << Tr::tr("No '__C51__' token was found"
-                                   " in the compiler dump:\n%1")
-                            .arg(QString::fromUtf8(dump));
-            return Version{};
-        }
-        return Version{verCode / 100, verCode % 100};
+    if (arch == QLatin1String("mcs51") || arch == QLatin1String("mcs251")) {
+        return dumpMcsCompilerVersion(compiler);
+    } else if (arch == QLatin1String("c166")) {
+        return dumpC166CompilerVersion(compiler);
     } else if (arch == QLatin1String("arm")) {
-        const QStringList args = {QStringLiteral("-E"),
-                                  QStringLiteral("--list-macros"),
-                                  QStringLiteral("nul")};
-        QProcess p;
-        p.start(compiler.absoluteFilePath(), args);
-        p.waitForFinished(3000);
-        const auto es = p.exitStatus();
-        if (es != QProcess::NormalExit) {
-            const QByteArray out = p.readAll();
-            qbsWarning() << Tr::tr("Compiler dumping failed:\n%1")
-                            .arg(QString::fromUtf8(out));
-            return Version{};
-        }
-
-        const QByteArray dump = p.readAll();
-        const int verCode = extractVersion(dump, "__ARMCC_VERSION ");
-        if (verCode < 0) {
-            qbsWarning() << Tr::tr("No '__ARMCC_VERSION' token was found "
-                                   "in the compiler dump:\n%1")
-                            .arg(QString::fromUtf8(dump));
-            return Version{};
-        }
-        return Version{verCode / 1000000, (verCode / 10000) % 100, verCode % 10000};
+        return dumpArmCompilerVersion(compiler);
     }
-
     return Version{};
 }
 
@@ -188,6 +293,51 @@ static std::vector<ToolchainInstallInfo> installedKeilsFromPath()
     return infos;
 }
 
+// Parse the 'tools.ini' file to fetch a toolchain version.
+// Note: We can't use QSettings here!
+static QString extractVersion(const QString &toolsIniFile, const QString &section)
+{
+    QFile f(toolsIniFile);
+    if (!f.open(QIODevice::ReadOnly))
+        return {};
+    QTextStream in(&f);
+    enum State { Enter, Lookup, Exit } state = Enter;
+    while (!in.atEnd()) {
+        const QString line = in.readLine().trimmed();
+        // Search for section.
+        const int firstBracket = line.indexOf(QLatin1Char('['));
+        const int lastBracket = line.lastIndexOf(QLatin1Char(']'));
+        const bool hasSection = (firstBracket == 0 && lastBracket != -1
+                && (lastBracket + 1) == line.size());
+        switch (state) {
+        case Enter: {
+            if (hasSection) {
+                const auto content = line.midRef(firstBracket + 1,
+                                                 lastBracket - firstBracket - 1);
+                if (content == section)
+                    state = Lookup;
+            }
+        }
+            break;
+        case Lookup: {
+            if (hasSection)
+                return {}; // Next section found.
+            const int versionIndex = line.indexOf(QLatin1String("VERSION="));
+            if (versionIndex < 0)
+                continue;
+            QString version = line.mid(8);
+            if (version.startsWith(QLatin1Char('V')))
+                version.remove(0, 1);
+            return version;
+        }
+            break;
+        default:
+            return {};
+        }
+    }
+    return {};
+}
+
 static std::vector<ToolchainInstallInfo> installedKeilsFromRegistry()
 {
     std::vector<ToolchainInstallInfo> infos;
@@ -195,48 +345,49 @@ static std::vector<ToolchainInstallInfo> installedKeilsFromRegistry()
     if (HostOsInfo::isWindowsHost()) {
 
 #ifdef Q_OS_WIN64
-        static const char kRegistryNode[] = "HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Keil\\Products";
+        static const char kRegistryNode[] = "HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\" \
+                                            "Windows\\CurrentVersion\\Uninstall\\Keil \u00B5Vision4";
 #else
-        static const char kRegistryNode[] = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Keil\\Products";
+        static const char kRegistryNode[] = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\" \
+                                            "Windows\\CurrentVersion\\Uninstall\\Keil \u00B5Vision4";
 #endif
-
-        // Dictionary for know toolchains.
-        static const struct Entry {
-            QString productKey;
-            QString subExePath;
-        } knowToolchains[] = {
-            {QStringLiteral("MDK"), QStringLiteral("\\ARMCC\\bin\\armcc.exe")},
-            {QStringLiteral("C51"), QStringLiteral("\\BIN\\c51.exe")},
-        };
 
         QSettings registry(QLatin1String(kRegistryNode), QSettings::NativeFormat);
         const auto productGroups = registry.childGroups();
         for (const QString &productKey : productGroups) {
-            const auto entryEnd = std::end(knowToolchains);
-            const auto entryIt = std::find_if(std::begin(knowToolchains), entryEnd,
-                                              [productKey](const Entry &entry) {
-                return entry.productKey == productKey;
-            });
-            if (entryIt == entryEnd)
+            if (!productKey.startsWith(QStringLiteral("App")))
                 continue;
-
             registry.beginGroup(productKey);
-            const QString rootPath = registry.value(QStringLiteral("Path"))
+            const QString productPath = registry.value(QStringLiteral("ProductDir"))
                     .toString();
-            if (!rootPath.isEmpty()) {
-                // Build full compiler path.
-                const QFileInfo keilPath(rootPath + entryIt->subExePath);
-                if (keilPath.exists()) {
-                    QString version = registry.value(QStringLiteral("Version"))
-                            .toString();
-                    if (version.startsWith(QLatin1Char('V')))
-                        version.remove(0, 1);
-                    infos.push_back({keilPath, Version::fromString(version)});
+            // Fetch the toolchain executable path.
+            QFileInfo keilPath;
+            if (productPath.endsWith(QStringLiteral("ARM")))
+                keilPath.setFile(productPath + QStringLiteral("\\ARMCC\\bin\\armcc.exe"));
+            else if (productPath.endsWith(QStringLiteral("C51")))
+                keilPath.setFile(productPath + QStringLiteral("\\BIN\\c51.exe"));
+            else if (productPath.endsWith(QStringLiteral("C251")))
+                keilPath.setFile(productPath + QStringLiteral("\\BIN\\c251.exe"));
+            else if (productPath.endsWith(QStringLiteral("C166")))
+                keilPath.setFile(productPath + QStringLiteral("\\BIN\\c166.exe"));
+
+            if (keilPath.exists()) {
+                // Fetch the toolchain version.
+                const QDir rootPath(registry.value(QStringLiteral("Directory")).toString());
+                const QString toolsIniFilePath = rootPath.absoluteFilePath(
+                            QStringLiteral("tools.ini"));
+                for (auto index = 1; index <= 2; ++index) {
+                    const QString section = registry.value(
+                                QStringLiteral("Section %1").arg(index)).toString();
+                    const QString version = extractVersion(toolsIniFilePath, section);
+                    if (!version.isEmpty()) {
+                        infos.push_back({keilPath, Version::fromString(version)});
+                        break;
+                    }
                 }
             }
             registry.endGroup();
         }
-
     }
 
     std::sort(infos.begin(), infos.end());
@@ -255,10 +406,10 @@ void createKeilProfile(const QFileInfo &compiler, Settings *settings,
                        QString profileName)
 {
     const ToolchainInstallInfo info = {compiler, Version{}};
-    createKeilProfileHelper(info, settings, profileName);
+    createKeilProfileHelper(info, settings, std::move(profileName));
 }
 
-void keilProbe(Settings *settings, QList<Profile> &profiles)
+void keilProbe(Settings *settings, std::vector<Profile> &profiles)
 {
     qbsInfo() << Tr::tr("Trying to detect KEIL toolchains...");
 

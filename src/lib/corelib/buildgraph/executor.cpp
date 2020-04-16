@@ -102,12 +102,8 @@ Executor::Executor(Logger logger, QObject *parent)
 
 Executor::~Executor()
 {
-    // jobs must be destroyed before deleting the shared scan result cache
-    for (ExecutorJob *job : qAsConst(m_availableJobs))
-        delete job;
-    const auto processingJobs = m_processingJobs.keys();
-    for (ExecutorJob *job : processingJobs)
-        delete job;
+    // jobs must be destroyed before deleting the m_inputArtifactScanContext
+    m_allJobs.clear();
     delete m_inputArtifactScanContext;
     delete m_productInstaller;
 }
@@ -153,7 +149,7 @@ void Executor::retrieveSourceFileTimestamp(Artifact *artifact) const
 void Executor::build()
 {
     try {
-        m_partialBuild = m_productsToBuild.size() != m_allProducts.size();
+        m_partialBuild = size_t(m_productsToBuild.size()) != m_allProducts.size();
         doBuild();
     } catch (const ErrorInfo &e) {
         handleError(e);
@@ -170,7 +166,7 @@ void Executor::setProject(const TopLevelProjectPtr &project)
         m_projectsByName.insert(std::make_pair(p->name, p.get()));
 }
 
-void Executor::setProducts(const std::vector<ResolvedProductPtr> &productsToBuild)
+void Executor::setProducts(const QVector<ResolvedProductPtr> &productsToBuild)
 {
     m_productsToBuild = productsToBuild;
     m_productsByName.clear();
@@ -266,8 +262,7 @@ void Executor::doBuild()
 
     doSanityChecks();
     QBS_CHECK(!m_project->buildData->evaluationContext);
-    m_project->buildData->evaluationContext
-            = RulesEvaluationContextPtr(new RulesEvaluationContext(m_logger));
+    m_project->buildData->evaluationContext = std::make_shared<RulesEvaluationContext>(m_logger);
     m_evalContext = m_project->buildData->evaluationContext;
 
     m_elapsedTimeRules = m_elapsedTimeScanners = m_elapsedTimeInstalling = 0;
@@ -700,7 +695,7 @@ bool Executor::transformerHasMatchingInputFiles(const TransformerConstPtr &trans
 void Executor::setupJobLimits()
 {
     Settings settings(m_buildOptions.settingsDirectory());
-    for (const ResolvedProductConstPtr &p : m_productsToBuild) {
+    for (const auto &p : qAsConst(m_productsToBuild)) {
         const Preferences prefs(&settings, p->profile());
         const JobLimits &jobLimitsFromSettings = prefs.jobLimits();
         JobLimits effectiveJobLimits;
@@ -737,7 +732,7 @@ void Executor::setupProgressObserver()
     if (!m_progressObserver)
         return;
     int totalEffort = 1; // For the effort after the last rule application;
-    for (const ResolvedProductConstPtr &product : qAsConst(m_productsToBuild)) {
+    for (const auto &product : qAsConst(m_productsToBuild)) {
         QBS_CHECK(product->buildData);
         const auto filtered = filterByType<RuleNode>(product->buildData->allNodes());
         totalEffort += std::distance(filtered.begin(), filtered.end());
@@ -749,7 +744,7 @@ void Executor::doSanityChecks()
 {
     QBS_CHECK(m_project);
     QBS_CHECK(!m_productsToBuild.empty());
-    for (const ResolvedProductConstPtr &product : qAsConst(m_productsToBuild)) {
+    for (const auto &product : qAsConst(m_productsToBuild)) {
         QBS_CHECK(product->buildData);
         QBS_CHECK(product->topLevelProject() == m_project.get());
     }
@@ -768,10 +763,13 @@ void Executor::handleError(const ErrorInfo &error)
 
 void Executor::addExecutorJobs()
 {
-    qCDebug(lcExec) << "preparing executor for" << m_buildOptions.maxJobCount()
-                    << "jobs in parallel";
-    for (int i = 1; i <= m_buildOptions.maxJobCount(); i++) {
-        const auto job = new ExecutorJob(m_logger, this);
+    const int count = m_buildOptions.maxJobCount();
+    qCDebug(lcExec) << "preparing executor for" << count << "jobs in parallel";
+    m_allJobs.reserve(count);
+    m_availableJobs.reserve(count);
+    for (int i = 1; i <= count; i++) {
+        m_allJobs.push_back(std::make_unique<ExecutorJob>(m_logger));
+        const auto job = m_allJobs.back().get();
         job->setMainThreadScriptEngine(m_evalContext->engine());
         job->setObjectName(QStringLiteral("J%1").arg(i));
         job->setDryRun(m_buildOptions.dryRun());
@@ -1084,7 +1082,7 @@ void Executor::checkForUnbuiltProducts()
     if (m_buildOptions.executeRulesOnly())
         return;
     std::vector<ResolvedProductPtr> unbuiltProducts;
-    for (const ResolvedProductPtr &product : m_productsToBuild) {
+    for (const ResolvedProductPtr &product : qAsConst(m_productsToBuild)) {
         bool productBuilt = true;
         for (BuildGraphNode *rootNode : qAsConst(product->buildData->rootNodes())) {
             if (rootNode->buildState != BuildGraphNode::Built) {
@@ -1206,7 +1204,7 @@ void Executor::prepareAllNodes()
                 node->buildState = BuildGraphNode::Untouched;
         }
     }
-    for (const ResolvedProductPtr &product : m_productsToBuild) {
+    for (const ResolvedProductPtr &product : qAsConst(m_productsToBuild)) {
         QBS_CHECK(product->buildData);
         for (Artifact * const artifact : filterByType<Artifact>(product->buildData->allNodes()))
             prepareArtifact(artifact);
@@ -1228,7 +1226,7 @@ void Executor::syncFileDependencies()
                                    "removing from lookup table";
         m_project->buildData->removeFromLookupTable(dep);
         bool isReferencedByArtifact = false;
-        for (const ResolvedProductConstPtr &product : m_allProducts) {
+        for (const auto &product : m_allProducts) {
             if (!product->buildData)
                 continue;
             const auto artifactList = filterByType<Artifact>(product->buildData->allNodes());
@@ -1310,7 +1308,7 @@ void Executor::prepareProducts()
 {
     ProductPrioritySetter prioritySetter(m_allProducts);
     prioritySetter.apply();
-    for (const ResolvedProductPtr &product : m_productsToBuild) {
+    for (const ResolvedProductPtr &product : qAsConst(m_productsToBuild)) {
         EnvironmentScriptRunner(product.get(), m_evalContext.get(), m_project->environment)
                 .setupForBuild();
     }
@@ -1319,7 +1317,7 @@ void Executor::prepareProducts()
 void Executor::setupRootNodes()
 {
     m_roots.clear();
-    for (const ResolvedProductPtr &product : m_productsToBuild)
+    for (const ResolvedProductPtr &product : qAsConst(m_productsToBuild))
         m_roots += product->buildData->rootNodes();
 }
 

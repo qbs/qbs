@@ -116,8 +116,8 @@ static std::vector<Profile> createSdccProfileHelper(
         if (actualArch != QString::fromLatin1(knownArch))
             continue;
 
-        QString fullProfileName = profileName;
-        if (fullProfileName.isEmpty()) {
+        QString fullProfileName;
+        if (profileName.isEmpty()) {
             // Create a full profile name in case we is
             // in auto-detecting mode.
             if (!info.compilerVersion.isValid()) {
@@ -133,7 +133,7 @@ static std::vector<Profile> createSdccProfileHelper(
             // Append the detected actual architecture name
             // to the proposed profile name.
             fullProfileName = QStringLiteral("%1-%2").arg(
-                        fullProfileName, actualArch);
+                        profileName, actualArch);
         }
 
         Profile profile(fullProfileName, settings);
@@ -151,6 +151,21 @@ static std::vector<Profile> createSdccProfileHelper(
     return profiles;
 }
 
+static Version dumpOldSddcCompilerVersion(const QByteArray &macroDump)
+{
+    const auto keyToken = QByteArrayLiteral("__SDCC ");
+    const int startIndex = macroDump.indexOf(keyToken);
+    if (startIndex == -1)
+        return Version{};
+    const int endIndex = macroDump.indexOf('\n', startIndex);
+    if (endIndex == -1)
+        return Version{};
+    const auto keyLength = keyToken.length();
+    return Version::fromString(QString::fromLatin1(
+            macroDump.mid(startIndex + keyLength,
+                          endIndex - startIndex - keyLength).replace('_', '.')));
+}
+
 static Version dumpSdccCompilerVersion(const QFileInfo &compiler)
 {
     const QByteArray dump = dumpSdccMacros(compiler);
@@ -161,10 +176,14 @@ static Version dumpSdccCompilerVersion(const QFileInfo &compiler)
     const int minor = extractVersion(dump, "__SDCC_VERSION_MINOR ");
     const int patch = extractVersion(dump, "__SDCC_VERSION_PATCH ");
     if (major < 0 || minor < 0 || patch < 0) {
-        qbsWarning() << Tr::tr("No '__SDCC_VERSION_xxx' token was found "
-                               "in the compiler dump:\n%1")
-                        .arg(QString::fromUtf8(dump));
-        return Version{};
+        const auto version = dumpOldSddcCompilerVersion(dump);
+        if (!version.isValid()) {
+            qbsWarning() << Tr::tr("No '__SDCC_VERSION_xxx' or '__SDCC' token was found "
+                                   "in the compiler dump:\n%1")
+                            .arg(QString::fromUtf8(dump));
+            return Version{};
+        }
+        return version;
     }
 
     return Version{major, minor, patch};
@@ -252,13 +271,13 @@ bool isSdccCompiler(const QString &compilerName)
 }
 
 void createSdccProfile(const QFileInfo &compiler, Settings *settings,
-                       QString profileName)
+                       const QString &profileName)
 {
     const ToolchainInstallInfo info = {compiler, Version{}};
     createSdccProfileHelper(info, settings, profileName);
 }
 
-void sdccProbe(Settings *settings, QList<Profile> &profiles)
+void sdccProbe(Settings *settings, std::vector<Profile> &profiles)
 {
     qbsInfo() << Tr::tr("Trying to detect SDCC toolchains...");
 

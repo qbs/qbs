@@ -84,7 +84,7 @@ static void writeWorkspace(const std::shared_ptr<KeiluvWorkspace> &wokspace,
                             QFileInfo(workspaceFilePath).fileName());
 }
 
-KeiluvGenerator::KeiluvGenerator(const KeiluvVersionInfo &versionInfo)
+KeiluvGenerator::KeiluvGenerator(const gen::VersionInfo &versionInfo)
     : m_versionInfo(versionInfo)
 {
 }

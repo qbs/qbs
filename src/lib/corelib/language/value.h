@@ -151,14 +151,14 @@ public:
         struct PropertyData
         {
             PropertyData() = default;
-            PropertyData(const QString &v, const CodeLocation &l) : value(v), location(l) {}
+            PropertyData(QString v, const CodeLocation &l) : value(std::move(v)), location(l) {}
             QString value;
             CodeLocation location;
         };
 
-        Alternative() { }
-        Alternative(const PropertyData &c, const PropertyData &o, const JSSourceValuePtr &v)
-            : condition(c), overrideListProperties(o), value(v) {}
+        Alternative() = default;
+        Alternative(PropertyData c, PropertyData o, JSSourceValuePtr v)
+            : condition(std::move(c)), overrideListProperties(std::move(o)), value(std::move(v)) {}
         Alternative clone() const
         {
             return Alternative(condition, overrideListProperties,

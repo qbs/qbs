@@ -53,8 +53,8 @@ using BenchmarkResults = QHash<Activity, BenchmarkResult>;
 class Benchmarker
 {
 public:
-    Benchmarker(Activities activities, const QString &oldCommit, const QString &newCommit,
-                const QString &testProject, const QString &qbsRepo);
+    Benchmarker(Activities activities, QString oldCommit, QString newCommit,
+                QString testProject, QString qbsRepo);
     ~Benchmarker();
 
     void benchmark();

@@ -64,7 +64,7 @@ static bool supportsSettingsDirOption(const QString &command) {
 
 TestBlackboxBase::TestBlackboxBase(const QString &testDataSrcDir, const QString &testName)
     : testDataDir(testWorkDir(testName)),
-      testSourceDir(QDir::cleanPath(testDataSrcDir)),
+      testSourceDir(testDataSourceDir(testDataSrcDir)),
       qbsExecutableFilePath(initQbsExecutableFilePath()),
       defaultInstallRoot(relativeBuildDir() + QLatin1Char('/') + InstallOptions::defaultInstallRoot())
 {
@@ -231,4 +231,22 @@ QMap<QString, QString> TestBlackboxBase::findJdkTools(int *status)
         {"javac", QDir::fromNativeSeparators(tools["javac"].toString())},
         {"jar", QDir::fromNativeSeparators(tools["jar"].toString())}
     };
+}
+
+qbs::Version TestBlackboxBase::qmakeVersion(const QString &qmakeFilePath)
+{
+    QStringList arguments;
+    arguments << "-query" << "QT_VERSION";
+    QProcess qmakeProcess;
+    qmakeProcess.start(qmakeFilePath, arguments);
+    if (!qmakeProcess.waitForStarted() || !qmakeProcess.waitForFinished()
+        || qmakeProcess.exitStatus() != QProcess::NormalExit) {
+        qDebug() << "qmake '" << qmakeFilePath << "' could not be run.";
+        return qbs::Version();
+    }
+    QByteArray result = qmakeProcess.readAll().simplified();
+    qbs::Version version = qbs::Version::fromString(result);
+    if (!version.isValid())
+        qDebug() << "qmake '" << qmakeFilePath << "' version is not valid.";
+    return version;
 }

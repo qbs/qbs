@@ -39,7 +39,7 @@ PathProbe {
     property string compilerFilePath
     property string vcvarsallFilePath
     property stringList enableDefinesByLanguage
-    property string architecture
+    property string preferredArchitecture
     property string _nullDevice: qbs.nullDevice
     property string _pathListSeparator: qbs.pathListSeparator
 
@@ -48,6 +48,7 @@ PathProbe {
     property int versionMinor
     property int versionPatch
     property stringList includePaths
+    property string architecture
     property var buildEnv
     property var compilerDefinesByLanguage
 
@@ -57,9 +58,9 @@ PathProbe {
             languages = ["c"];
 
         var info = languages.contains("c")
-                ? Utilities.clangClCompilerInfo(compilerFilePath, architecture, vcvarsallFilePath, "c") : {};
+                ? Utilities.clangClCompilerInfo(compilerFilePath, preferredArchitecture, vcvarsallFilePath, "c") : {};
         var infoCpp = languages.contains("cpp")
-                ? Utilities.clangClCompilerInfo(compilerFilePath, architecture, vcvarsallFilePath, "cpp") : {};
+                ? Utilities.clangClCompilerInfo(compilerFilePath, preferredArchitecture, vcvarsallFilePath, "cpp") : {};
         found = (!languages.contains("c") ||
                  (!!info && !!info.macros && !!info.buildEnvironment))
              && (!languages.contains("cpp") ||
@@ -84,5 +85,6 @@ PathProbe {
                                                 [], _nullDevice,
                                                 _pathListSeparator, "", "");
         includePaths = defaultPaths.includePaths;
+        architecture = ModUtils.guessArchitecture(macros);
     }
 }

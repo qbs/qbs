@@ -32,7 +32,7 @@ import qbs.File
 
 GenericGCC {
     condition: qbs.toolchain && qbs.toolchain.contains("gcc")
-               && qbs.targetOS && qbs.targetOS.contains("unix")
+               && qbs.targetOS.contains("unix")
     priority: -50
 
     staticLibraryPrefix: "lib"

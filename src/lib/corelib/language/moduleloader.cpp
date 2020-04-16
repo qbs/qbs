@@ -71,20 +71,24 @@
 
 #include <QtCore/qdebug.h>
 #include <QtCore/qdir.h>
+#include <QtCore/qglobalstatic.h>
 #include <QtCore/qdiriterator.h>
 #include <QtCore/qjsondocument.h>
 #include <QtCore/qjsonobject.h>
 #include <QtCore/qtemporaryfile.h>
 #include <QtCore/qtextstream.h>
+#include <QtCore/qthreadstorage.h>
 #include <QtScript/qscriptvalueiterator.h>
 
 #include <algorithm>
+#include <memory>
 #include <utility>
 
 namespace qbs {
 namespace Internal {
 
-static QString shadowProductPrefix() { return QStringLiteral("__shadow__"); }
+using MultiplexConfigurationByIdTable = QThreadStorage<QHash<QString, QVariantMap> >;
+Q_GLOBAL_STATIC(MultiplexConfigurationByIdTable, multiplexConfigurationsById);
 
 static void handlePropertyError(const ErrorInfo &error, const SetupProjectParameters &params,
                                 Logger &logger)
@@ -92,6 +96,20 @@ static void handlePropertyError(const ErrorInfo &error, const SetupProjectParame
     if (params.propertyCheckingMode() == ErrorHandlingMode::Strict)
         throw error;
     logger.printWarning(error);
+}
+
+static bool multiplexConfigurationIntersects(const QVariantMap &lhs, const QVariantMap &rhs)
+{
+    QBS_CHECK(!lhs.isEmpty() && !rhs.isEmpty());
+
+    for (auto lhsProperty = lhs.constBegin(); lhsProperty != lhs.constEnd(); lhsProperty++) {
+        const auto rhsProperty = rhs.find(lhsProperty.key());
+        const bool isCommonProperty = rhsProperty != rhs.constEnd();
+        if (isCommonProperty && lhsProperty.value() != rhsProperty.value())
+            return false;
+    }
+
+    return true;
 }
 
 class ModuleLoader::ItemModuleList : public QList<Item::Module> {};
@@ -292,7 +310,7 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
             = m_elapsedTimePropertyChecking = 0;
     m_elapsedTimeProbes = 0;
     m_probesEncountered = m_probesRun = m_probesCachedCurrent = m_probesCachedOld = 0;
-    m_settings.reset(new Settings(parameters.settingsDirectory()));
+    m_settings = std::make_unique<Settings>(parameters.settingsDirectory());
 
     const auto keys = m_parameters.overriddenValues().keys();
     for (const QString &key : keys) {
@@ -381,9 +399,9 @@ class PropertyDeclarationCheck : public ValueHandler
     Logger &m_logger;
 public:
     PropertyDeclarationCheck(const Set<Item *> &disabledItems,
-                             const SetupProjectParameters &params, Logger &logger)
+                             SetupProjectParameters params, Logger &logger)
         : m_disabledItems(disabledItems)
-        , m_params(params)
+        , m_params(std::move(params))
         , m_logger(logger)
     {
     }
@@ -616,7 +634,7 @@ void ModuleLoader::handleTopLevelProject(ModuleLoaderResult *loadResult, Item *p
     for (ProductContext * const p : productSorter.sortedProducts()) {
         try {
             handleProduct(p);
-            if (p->name.startsWith(shadowProductPrefix()))
+            if (p->name.startsWith(StringConstants::shadowProductPrefix()))
                 tlp.probes << p->info.probes;
         } catch (const ErrorInfo &err) {
             handleProductError(err, p);
@@ -688,6 +706,9 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
                                                               m_qbsVersion.toString()));
     }
 
+    for (Item * const child : projectItem->children())
+        child->setScope(projectContext.scope);
+
     resolveProbes(&dummyProductContext, projectItem);
     projectContext.topLevelProject->probes << dummyProductContext.info.probes;
 
@@ -695,7 +716,6 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
 
     QList<Item *> multiplexedProducts;
     for (Item * const child : projectItem->children()) {
-        child->setScope(projectContext.scope);
         if (child->type() == ItemType::Product)
             multiplexedProducts << multiplexProductItem(&dummyProductContext, child);
     }
@@ -762,9 +782,24 @@ QString ModuleLoader::MultiplexInfo::toIdString(size_t row) const
         const VariantValuePtr &mpvalue = mprow.at(column);
         multiplexConfiguration.insert(propertyName, mpvalue->value());
     }
-    return QString::fromUtf8(QJsonDocument::fromVariant(multiplexConfiguration)
-                             .toJson(QJsonDocument::Compact)
-                             .toBase64());
+    QString id = QString::fromUtf8(QJsonDocument::fromVariant(multiplexConfiguration)
+                                   .toJson(QJsonDocument::Compact)
+                                   .toBase64());
+    // Cache for later use in:multiplexIdToVariantMap()
+    multiplexConfigurationsById->localData().insert(id, multiplexConfiguration);
+    return id;
+}
+
+QVariantMap ModuleLoader::MultiplexInfo::multiplexIdToVariantMap(const QString &multiplexId)
+{
+    if (multiplexId.isEmpty())
+        return QVariantMap();
+
+    QVariantMap result = multiplexConfigurationsById->localData().value(multiplexId);
+    // We assume that MultiplexInfo::toIdString() has been called for this
+    // particular multiplex configuration.
+    QBS_CHECK(!result.isEmpty());
+    return result;
 }
 
 void qbs::Internal::ModuleLoader::ModuleLoader::dump(const ModuleLoader::MultiplexInfo &mpi)
@@ -1085,66 +1120,111 @@ void ModuleLoader::adjustDependenciesForMultiplexing(const ProductContext &produ
             StringConstants::profilesProperty(), &profilesPropertyIsSet);
 
     const auto productRange = m_productsByName.equal_range(name);
-    std::vector<const ProductContext *> dependencies;
+    if (productRange.first == productRange.second) {
+        // Dependency is a module. Nothing to adjust.
+        return;
+    }
+
+    std::vector<const ProductContext *> multiplexedDependencies;
     bool hasNonMultiplexedDependency = false;
     for (auto it = productRange.first; it != productRange.second; ++it) {
-        if (!it->second->multiplexConfigurationId.isEmpty()) {
-            dependencies.push_back(it->second);
-            if (productIsMultiplexed && !profilesPropertyIsSet)
-                break;
-        } else {
+        if (!it->second->multiplexConfigurationId.isEmpty())
+            multiplexedDependencies.push_back(it->second);
+        else
             hasNonMultiplexedDependency = true;
-            break;
-        }
     }
+    bool hasMultiplexedDependencies = !multiplexedDependencies.empty();
 
     // These are the allowed cases:
     // (1) Normal dependency with no multiplexing whatsoever.
     // (2) Both product and dependency are multiplexed.
+    //     (2a) The profiles property is not set, we want to depend on the best
+    //          matching variant.
+    //     (2b) The profiles property is set, we want to depend on all variants
+    //          with a matching profile.
     // (3) The product is not multiplexed, but the dependency is.
-    //     (3a) The dependency has an aggregator. We want to depend on the aggregator.
-    //     (3b) The dependency does not have an aggregator. We want to depend on all the
-    //          multiplexed variants.
-    // (4) The product is multiplexed, but the dependency is not. This case is implicitly
-    //     handled, because we don't have to adapt any Depends items.
+    //     (3a) The profiles property is not set, the dependency has an aggregator.
+    //          We want to depend on the aggregator.
+    //     (3b) The profiles property is not set, the dependency does not have an
+    //          aggregator. We want to depend on all the multiplexed variants.
+    //     (3c) The profiles property is set, we want to depend on all variants
+    //          with a matching profile regardless of whether an aggregator exists or not.
+    // (4) The product is multiplexed, but the dependency is not. We don't have to adapt
+    //     any Depends items.
     // (5) The product is a "shadow product". In that case, we know which product
     //     it should have a dependency on, and we make sure we depend on that.
 
-    // (1) and (3a)
-    if (!productIsMultiplexed && hasNonMultiplexedDependency)
+    // (1) and (4)
+    if (!hasMultiplexedDependencies)
+        return;
+
+    // (3a)
+    if (!productIsMultiplexed && hasNonMultiplexedDependency && !profilesPropertyIsSet)
         return;
 
     QStringList multiplexIds;
     const ShadowProductInfo shadowProductInfo = getShadowProductInfo(product);
     const bool isShadowProduct = shadowProductInfo.first && shadowProductInfo.second == name;
-    for (const ProductContext *dependency : dependencies) {
+    const auto productMultiplexConfig =
+            MultiplexInfo::multiplexIdToVariantMap(product.multiplexConfigurationId);
+
+    for (const ProductContext *dependency : multiplexedDependencies) {
         const bool depMatchesShadowProduct = isShadowProduct
                 && dependency->item == product.item->parent();
         const QString depMultiplexId = dependency->multiplexConfigurationId;
         if (depMatchesShadowProduct) { // (5)
             dependsItem->setProperty(StringConstants::multiplexConfigurationIdsProperty(),
                                      VariantValue::create(depMultiplexId));
-            multiplexIds.clear();
-            break;
+            return;
         }
-        if (productIsMultiplexed && !profilesPropertyIsSet) { // (2)
-            const ValuePtr &multiplexId = product.item->property(
-                        StringConstants::multiplexConfigurationIdProperty());
-            dependsItem->setProperty(StringConstants::multiplexConfigurationIdsProperty(),
-                                     multiplexId);
-            break;
-        }
+        if (productIsMultiplexed && !profilesPropertyIsSet) { // 2a
+            if (dependency->multiplexConfigurationId == product.multiplexConfigurationId) {
+                const ValuePtr &multiplexId = product.item->property(
+                            StringConstants::multiplexConfigurationIdProperty());
+                dependsItem->setProperty(StringConstants::multiplexConfigurationIdsProperty(),
+                                         multiplexId);
+                return;
 
-        // (3b) (or (2) if Depends.profiles is set).
-        const bool profileMatch = !profilesPropertyIsSet || profiles.empty()
-                || profiles.contains(dependency->profileName);
-        if (profileMatch)
-            multiplexIds << depMultiplexId;
+            } else {
+                // Otherwise collect partial matches and decide later
+                const auto dependencyMultiplexConfig =
+                        MultiplexInfo::multiplexIdToVariantMap(dependency->multiplexConfigurationId);
+
+                if (multiplexConfigurationIntersects(dependencyMultiplexConfig, productMultiplexConfig))
+                    multiplexIds << dependency->multiplexConfigurationId;
+            }
+        } else {
+            // (2b), (3b) or (3c)
+            const bool profileMatch = !profilesPropertyIsSet || profiles.empty()
+                    || profiles.contains(dependency->profileName);
+            if (profileMatch)
+                multiplexIds << depMultiplexId;
+        }
     }
-    if (!multiplexIds.empty()) {
-        dependsItem->setProperty(StringConstants::multiplexConfigurationIdsProperty(),
-                                 VariantValue::create(multiplexIds));
+    if (multiplexIds.empty()) {
+        const QString productName = ResolvedProduct::fullDisplayName(
+                    product.name, product.multiplexConfigurationId);
+        throw ErrorInfo(Tr::tr("Dependency from product '%1' to product '%2' not fulfilled. "
+                               "There are no eligible multiplex candidates.").arg(productName,
+                                                                                  name),
+                        dependsItem->location());
     }
+
+    // In case of (2a), at most 1 match is allowed
+    if (productIsMultiplexed && !profilesPropertyIsSet && multiplexIds.size() > 1) {
+        const QString productName = ResolvedProduct::fullDisplayName(
+                    product.name, product.multiplexConfigurationId);
+        QStringList candidateNames;
+        for (const auto &id : qAsConst(multiplexIds))
+            candidateNames << ResolvedProduct::fullDisplayName(name, id);
+        throw ErrorInfo(Tr::tr("Dependency from product '%1' to product '%2' is ambiguous. "
+                               "Eligible multiplex candidates: %3.").arg(
+                            productName, name, candidateNames.join(QLatin1String(", "))),
+                        dependsItem->location());
+    }
+
+    dependsItem->setProperty(StringConstants::multiplexConfigurationIdsProperty(),
+                             VariantValue::create(multiplexIds));
 }
 
 void ModuleLoader::prepareProduct(ProjectContext *projectContext, Item *productItem)
@@ -1216,7 +1296,8 @@ void ModuleLoader::prepareProduct(ProjectContext *projectContext, Item *productI
     // evaluate the product's exported properties in isolation in the project resolver.
     Item * const importer = Item::create(productItem->pool(), ItemType::Product);
     importer->setProperty(QStringLiteral("name"),
-                          VariantValue::create(shadowProductPrefix() + productContext.name));
+                          VariantValue::create(StringConstants::shadowProductPrefix()
+                                               + productContext.name));
     importer->setFile(productItem->file());
     importer->setLocation(productItem->location());
     importer->setScope(projectContext->scope);
@@ -1281,7 +1362,6 @@ void ModuleLoader::createSortedModuleList(const Item::Module &parentModule, Item
     for (const Item::Module &dep : parentModule.item->modules())
         createSortedModuleList(dep, modules);
     modules.push_back(parentModule);
-    return;
 }
 
 Item::Modules ModuleLoader::modulesSortedByDependency(const Item *productItem)
@@ -1350,8 +1430,7 @@ void ModuleLoader::handleProduct(ModuleLoader::ProductContext *productContext)
     // set by the dependency module's merger (namely, scopes of defining items; see
     // ModuleMerger::replaceItemInScopes()).
     Item::Modules topSortedModules = modulesSortedByDependency(item);
-    for (Item::Module &module : topSortedModules)
-        ModuleMerger(m_logger, item, module).start();
+    ModuleMerger::merge(m_logger, item, productContext->name, &topSortedModules);
 
     // Re-sort the modules by name. This is more stable; see QBS-818.
     // The list of modules in the product now has the same order as before,
@@ -1585,7 +1664,7 @@ void ModuleLoader::handleSubProject(ModuleLoader::ProjectContext *projectContext
         const Item::PropertyMap &overriddenProperties = propertiesItem->properties();
         for (Item::PropertyMap::ConstIterator it = overriddenProperties.constBegin();
              it != overriddenProperties.constEnd(); ++it) {
-            loadedItem->setProperty(it.key(), overriddenProperties.value(it.key()));
+            loadedItem->setProperty(it.key(), it.value());
         }
     }
 
@@ -1806,7 +1885,7 @@ ProbeConstPtr ModuleLoader::findCurrentProbe(
         bool condition,
         const QVariantMap &initialProperties) const
 {
-    const QList<ProbeConstPtr> &cachedProbes = m_currentProbes.value(location);
+    const std::vector<ProbeConstPtr> &cachedProbes = m_currentProbes.value(location);
     for (const ProbeConstPtr &probe : cachedProbes) {
         if (probeMatches(probe, condition, initialProperties, QString(), CompareScript::No))
             return probe;
@@ -1964,7 +2043,7 @@ bool ModuleLoader::mergeExportItems(const ProductContext &productContext)
     productContext.project->topLevelProject->productModules.insert(productContext.name, pmi);
     if (hasDependenciesOnProductType)
         m_exportsWithDeferredDependsItems.insert(merged);
-    return exportItems.size() > 0;
+    return !exportItems.empty();
 }
 
 Item *ModuleLoader::loadItemFromFile(const QString &filePath,
@@ -2171,9 +2250,10 @@ void ModuleLoader::setSearchPathsForProduct(ModuleLoader::ProductContext *produc
 ModuleLoader::ShadowProductInfo ModuleLoader::getShadowProductInfo(
         const ModuleLoader::ProductContext &product) const
 {
-    const bool isShadowProduct = product.name.startsWith(shadowProductPrefix());
+    const bool isShadowProduct = product.name.startsWith(StringConstants::shadowProductPrefix());
     return std::make_pair(isShadowProduct, isShadowProduct
-                          ? product.name.mid(shadowProductPrefix().size()) : QString());
+                          ? product.name.mid(StringConstants::shadowProductPrefix().size())
+                          : QString());
 }
 
 void ModuleLoader::collectProductsByName(const TopLevelProjectContext &topLevelProject)
@@ -2705,7 +2785,7 @@ void ModuleLoader::resolveParameterDeclarations(const Item *module)
     for (Item *param : moduleChildren) {
         if (param->type() != ItemType::Parameter)
             continue;
-        const auto paramDecls = param->propertyDeclarations();
+        const auto &paramDecls = param->propertyDeclarations();
         for (auto it = paramDecls.begin(); it != paramDecls.end(); ++it)
             decls.insert(it.key(), it.value());
     }
@@ -2756,7 +2836,8 @@ QVariantMap ModuleLoader::extractParameters(Item *dependsItem) const
     QScriptValue sv = m_evaluator->scriptValue(dependsItem);
     try {
         result = safeToVariant(sv);
-    } catch (ErrorInfo ei) {
+    } catch (const ErrorInfo &exception) {
+        auto ei = exception;
         ei.prepend(Tr::tr("Error in dependency parameter."), dependsItem->location());
         throw ei;
     }
@@ -3024,72 +3105,67 @@ Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
         const CodeLocation &dependsItemLocation, const QualifiedId &moduleName,
         FallbackMode fallbackMode, bool isRequired, Item *moduleInstance)
 {
-    bool triedToLoadModule = false;
-    const QString fullName = moduleName.toString();
-    std::vector<PrioritizedItem> candidates;
-    const QStringList &searchPaths = m_reader->allSearchPaths();
-    bool matchingDirectoryFound = false;
-    for (int i = 0; i < searchPaths.size(); ++i) {
-        const QString &path = searchPaths.at(i);
-        const QString dirPath = findExistingModulePath(path, moduleName);
-        if (dirPath.isEmpty())
-            continue;
-        matchingDirectoryFound = true;
-        QStringList moduleFileNames = m_moduleDirListCache.value(dirPath);
-        if (moduleFileNames.empty()) {
-            QDirIterator dirIter(dirPath, StringConstants::qbsFileWildcards());
-            while (dirIter.hasNext())
-                moduleFileNames += dirIter.next();
+    auto existingPaths = findExistingModulePaths(m_reader->allSearchPaths(), moduleName);
 
-            m_moduleDirListCache.insert(dirPath, moduleFileNames);
+    if (existingPaths.isEmpty()) { // no suitable names found, try to use providers
+        bool moduleAlreadyKnown = false;
+        ModuleProviderResult result;
+        for (QualifiedId providerName = moduleName; !providerName.empty();
+             providerName.pop_back()) {
+            if (!productContext->knownModuleProviders.insert(providerName).second) {
+                moduleAlreadyKnown = true;
+                break;
+            }
+            qCDebug(lcModuleLoader) << "Module" << moduleName.toString()
+                                    << "not found, checking for module providers";
+            result = findModuleProvider(providerName, *productContext,
+                                        ModuleProviderLookup::Regular, dependsItemLocation);
+            if (result.providerFound)
+                break;
         }
-        for (const QString &filePath : qAsConst(moduleFileNames)) {
-            triedToLoadModule = true;
+        if (fallbackMode == FallbackMode::Enabled && !result.providerFound
+                && !moduleAlreadyKnown) {
+            qCDebug(lcModuleLoader) << "Specific module provider not found for"
+                                    << moduleName.toString()  << ", setting up fallback.";
+            result = findModuleProvider(moduleName, *productContext,
+                                        ModuleProviderLookup::Fallback, dependsItemLocation);
+        }
+        if (result.providerAddedSearchPaths) {
+            qCDebug(lcModuleLoader) << "Re-checking for module" << moduleName.toString()
+                                    << "with newly added search paths from module provider";
+            existingPaths = findExistingModulePaths(m_reader->allSearchPaths(), moduleName);
+        }
+    }
+
+    const QString fullName = moduleName.toString();
+    bool triedToLoadModule = false;
+    std::vector<PrioritizedItem> candidates;
+    candidates.reserve(size_t(existingPaths.size()));
+    for (int i = 0; i < existingPaths.size(); ++i) {
+        const QString &dirPath = existingPaths.at(i);
+        QStringList &moduleFileNames = getModuleFileNames(dirPath);
+        for (auto it = moduleFileNames.begin(); it != moduleFileNames.end(); ) {
+            const QString &filePath = *it;
+            bool triedToLoad = true;
             Item *module = loadModuleFile(productContext, fullName, isBaseModule(moduleName),
-                                          filePath, &triedToLoadModule, moduleInstance);
+                                          filePath, &triedToLoad, moduleInstance);
             if (module)
                 candidates.emplace_back(module, 0, i);
-            if (!triedToLoadModule)
-                m_moduleDirListCache[dirPath].removeOne(filePath);
+            if (!triedToLoad)
+                it = moduleFileNames.erase(it);
+            else
+                ++it;
+            triedToLoadModule = triedToLoadModule || triedToLoad;
         }
     }
 
     if (candidates.empty()) {
-        if (!matchingDirectoryFound) {
-            bool moduleAlreadyKnown = false;
-            ModuleProviderResult result;
-            for (QualifiedId providerName = moduleName; !providerName.empty();
-                 providerName.pop_back()) {
-                if (!productContext->knownModuleProviders.insert(providerName).second) {
-                    moduleAlreadyKnown = true;
-                    break;
-                }
-                qCDebug(lcModuleLoader) << "Module" << moduleName.toString()
-                                        << "not found, checking for module providers";
-                result = findModuleProvider(providerName, *productContext,
-                                            ModuleProviderLookup::Regular, dependsItemLocation);
-                if (result.providerFound)
-                    break;
-            }
-            if (fallbackMode == FallbackMode::Enabled && !result.providerFound
-                    && !moduleAlreadyKnown) {
-                qCDebug(lcModuleLoader) << "Specific module provider not found for"
-                                        << moduleName.toString()  << ", setting up fallback.";
-                result = findModuleProvider(moduleName, *productContext,
-                                            ModuleProviderLookup::Fallback, dependsItemLocation);
-            }
-            if (result.providerAddedSearchPaths) {
-                qCDebug(lcModuleLoader) << "Re-checking for module" << moduleName.toString()
-                                        << "with newly added search paths from module provider";
-                return searchAndLoadModuleFile(productContext, dependsItemLocation, moduleName,
-                                               fallbackMode, isRequired, moduleInstance);
-            }
-        }
         if (!isRequired)
             return createNonPresentModule(fullName, QStringLiteral("not found"), nullptr);
-        if (Q_UNLIKELY(triedToLoadModule))
+        if (Q_UNLIKELY(triedToLoadModule)) {
             throw ErrorInfo(Tr::tr("Module %1 could not be loaded.").arg(fullName),
                         dependsItemLocation);
+        }
         return nullptr;
     }
 
@@ -3117,6 +3193,17 @@ Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
         handlePropertyError(error, m_parameters, m_logger);
     }
     return moduleItem;
+}
+
+QStringList &ModuleLoader::getModuleFileNames(const QString &dirPath)
+{
+    QStringList &moduleFileNames = m_moduleDirListCache[dirPath];
+    if (moduleFileNames.empty()) {
+        QDirIterator dirIter(dirPath, StringConstants::qbsFileWildcards());
+        while (dirIter.hasNext())
+            moduleFileNames += dirIter.next();
+    }
+    return moduleFileNames;
 }
 
 // returns QVariant::Invalid for types that do not need conversion
@@ -3227,7 +3314,7 @@ Item *ModuleLoader::getModulePrototype(ProductContext *productContext,
         }
     }
     Item * const module = loadItemFromFile(filePath, CodeLocation());
-    prototypeList.push_back(std::make_pair(module, productContext->profileName));
+    prototypeList.emplace_back(module, productContext->profileName);
     if (module->type() != ItemType::Module) {
         qCDebug(lcModuleLoader).nospace()
                             << "Alleged module " << fullModuleName << " has type '"
@@ -3285,6 +3372,9 @@ void ModuleLoader::setupBaseModulePrototype(Item *prototype)
     prototype->setProperty(QStringLiteral("hostPlatform"),
                            VariantValue::create(QString::fromStdString(
                                                     HostOsInfo::hostOSIdentifier())));
+    prototype->setProperty(QStringLiteral("hostArchitecture"),
+                           VariantValue::create(QString::fromStdString(
+                                                    HostOsInfo::hostOSArchitecture())));
     prototype->setProperty(QStringLiteral("libexecPath"),
                            VariantValue::create(m_parameters.libexecPath()));
 
@@ -3327,7 +3417,7 @@ static std::vector<std::pair<QualifiedId, ItemValuePtr>> instanceItemProperties(
             if (itemValue->item()->type() == ItemType::ModulePrefix)
                 f(itemValue->item());
             else
-                result.push_back(std::make_pair(name, itemValue));
+                result.emplace_back(name, itemValue);
             name.removeLast();
         }
     };
@@ -3496,7 +3586,7 @@ void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, It
     if (Q_UNLIKELY(configureScript->sourceCode() == StringConstants::undefinedValue()))
         throw ErrorInfo(Tr::tr("Probe.configure must be set."), probe->location());
     using ProbeProperty = std::pair<QString, QScriptValue>;
-    QList<ProbeProperty> probeBindings;
+    std::vector<ProbeProperty> probeBindings;
     QVariantMap initialProperties;
     for (Item *obj = probe; obj; obj = obj->prototype()) {
         const Item::PropertyMap &props = obj->properties();
@@ -3505,7 +3595,7 @@ void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, It
             if (name == StringConstants::configureProperty())
                 continue;
             const QScriptValue value = m_evaluator->value(probe, name);
-            probeBindings += ProbeProperty(name, value);
+            probeBindings << ProbeProperty(name, value);
             if (name != StringConstants::conditionProperty())
                 initialProperties.insert(name, value.toVariant());
         }
@@ -3516,7 +3606,7 @@ void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, It
     const QString &sourceCode = configureScript->sourceCode().toString();
     ProbeConstPtr resolvedProbe;
     if (parent->type() == ItemType::Project
-            || productContext->name.startsWith(shadowProductPrefix())) {
+            || productContext->name.startsWith(StringConstants::shadowProductPrefix())) {
         resolvedProbe = findOldProjectProbe(probeId, condition, initialProperties, sourceCode);
     } else {
         const QString &uniqueProductName = productContext->uniqueName();
@@ -3544,7 +3634,7 @@ void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, It
         engine->currentContext()->pushScope(fileCtxScopes.fileScope);
         engine->currentContext()->pushScope(fileCtxScopes.importScope);
         configureScope = engine->newObject();
-        for (const ProbeProperty &b : qAsConst(probeBindings))
+        for (const ProbeProperty &b : probeBindings)
             configureScope.setProperty(b.first, b.second);
         engine->currentContext()->pushScope(configureScope);
         engine->clearRequestedProperties();
@@ -3560,7 +3650,7 @@ void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, It
         importedFilesUsedInConfigure = resolvedProbe->importedFilesUsed();
     }
     QVariantMap properties;
-    for (const ProbeProperty &b : qAsConst(probeBindings)) {
+    for (const ProbeProperty &b : probeBindings) {
         QVariant newValue;
         if (resolvedProbe) {
             newValue = resolvedProbe->properties().value(b.first);
@@ -3678,12 +3768,36 @@ QString ModuleLoader::findExistingModulePath(const QString &searchPath,
         const QualifiedId &moduleName)
 {
     QString dirPath = searchPath + QStringLiteral("/modules");
+
+    // isFileCaseCorrect is a very expensive call on macOS, so we cache the value for the
+    // modules and search paths we've already processed
+    auto &moduleInfo = m_existingModulePathCache[{searchPath, moduleName}];
+    if (moduleInfo.first) // poor man's std::optional<QString>
+        return moduleInfo.second;
+
     for (const QString &moduleNamePart : moduleName) {
         dirPath = FileInfo::resolvePath(dirPath, moduleNamePart);
-        if (!FileInfo::exists(dirPath) || !FileInfo::isFileCaseCorrect(dirPath))
-            return {};
+        if (!FileInfo::exists(dirPath) || !FileInfo::isFileCaseCorrect(dirPath)) {
+            moduleInfo.first = true;
+            return moduleInfo.second = QString();
+        }
     }
-    return dirPath;
+
+    moduleInfo.first = true;
+    return moduleInfo.second = dirPath;
+}
+
+QStringList ModuleLoader::findExistingModulePaths(
+        const QStringList &searchPaths, const QualifiedId &moduleName)
+{
+    QStringList result;
+    result.reserve(searchPaths.size());
+    for (const auto &path: searchPaths) {
+        const QString dirPath = findExistingModulePath(path, moduleName);
+        if (!dirPath.isEmpty())
+            result.append(dirPath);
+    }
+    return result;
 }
 
 QVariantMap ModuleLoader::moduleProviderConfig(ModuleLoader::ProductContext &product)
@@ -3769,6 +3883,7 @@ ModuleLoader::ModuleProviderResult ModuleLoader::findModuleProvider(const Qualif
         const QString searchPathBaseDir = ModuleProviderInfo::outputDirPath(projectBuildDir, name);
         const QVariant moduleConfig = moduleProviderConfig(product).value(name.toString());
         QTextStream stream(&dummyItemFile);
+        using Qt::endl;
         stream.setCodec("UTF-8");
         stream << "import qbs.FileInfo" << endl;
         stream << "import qbs.Utilities" << endl;

@@ -1,0 +1,141 @@
+/****************************************************************************
+**
+** Copyright (C) 2019 Alberto Mardegan
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+/*!
+    \contentspage index.html
+    \qmltype freedesktop
+    \inqmlmodule QbsModules
+    \since Qbs 1.16
+
+    \brief Provides support for some freedesktop.org specifications.
+
+    The \c freedesktop module contains properties and rules for building and working with
+    applications compliant to freedesktop.org specifications on UNIX platforms.
+    The areas in which this module can be of use include:
+
+    \list
+        \li Creation or post-processing of
+            \l{https://specifications.freedesktop.org/desktop-entry-spec/latest/}{\c{.desktop}
+            files}
+        \li Installation of \l{https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html}{AppStream} metadata
+        \li Defining the location for
+            \l{https://specifications.freedesktop.org/icon-theme-spec/icon-theme-spec-latest.html#directory_layout}
+            {application icons}
+    \endlist
+
+    This module is available on all platforms but is currently only useful on UNIX platforms.
+
+    \section2 Example usage
+    \target example-freedesktop
+
+    \code
+    Application {
+        ...
+        Depends { name: "freedesktop" }
+
+        Group {
+            files: [
+                ...
+
+                // Declare the desktop and appstream files
+                "data/my-app.desktop",
+                "data/my-app.metainfo.xml",
+            ]
+        }
+
+        // Add/change some fields in the desktop file
+        freedesktop.desktopKeys: ({
+            'Exec': FileInfo.joinPaths(qbs.installPrefix,
+                                       product.installDir,
+                                       product.targetName) + ' --argument',
+            'X-Application-Version': product.version,
+        })
+
+        // Declare the application icon
+        Group {
+            files: "icons/my-application.svg"
+            fileTags: "freedesktop.appIcon"
+        }
+    }
+    \endcode
+
+    \section2 Relevant File Tags
+    \target filetags-freedesktop
+
+    \table
+    \header
+        \li Tag
+        \li Auto-tagged File Names
+        \li Since
+        \li Description
+    \row
+        \li \c{"freedesktop.desktopfile_source"}
+        \li \c{*.desktop}
+        \li 1.16
+        \li A source file with this tag is a \c{.desktop} file or fragment that
+            will be merged into the application's final \c{.desktop} file.
+    \row
+        \li \c{"freedesktop.desktopfile"}
+        \li -
+        \li 1.16
+        \li Attached to the output artifacts of the rule that produces the
+            merged \c{.desktop} file.
+    \row
+        \li \c{"freedesktop.appstream"}
+        \li \c{*.metainfo.xml}, \c{*.appdata.xml}
+        \li 1.16
+        \li Source files with this tag are AppStream metadata files which will
+            be installed under \l{qbs::}{installPrefix}\c{/share/metainfo}
+    \row
+        \li \c{"freedesktop.appIcon"}
+        \li -
+        \li 1.16
+        \li Source files with this tag are application icons and will be
+            installed under \l{qbs::}{installPrefix}\c{/share/icons/hicolor/scalable/apps}
+    \endtable
+*/
+
+/*!
+    \qmlproperty string freedesktop::name
+
+    The display name of the application which will be stored in the \c{.desktop} file.
+
+    \defaultvalue \l{Product::name}{product.name}
+*/
+
+/*!
+    \qmlproperty var freedesktop::desktopKeys
+
+    A dictionary of key-value pairs to add to the application's \c{.desktop}
+    file.
+
+    The contents of this property will be aggregated with the values from any
+    \c{.desktop} file. If this property and any \c{.desktop} files contain the
+    same key, this property will take precedence.
+
+    \nodefaultvalue
+*/

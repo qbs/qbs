@@ -60,7 +60,7 @@ public:
     class Error
     {
     public:
-        Error(const QString &message) : m_message(message) { }
+        Error(QString message) : m_message(std::move(message)) { }
         QString message() const { return m_message; }
     private:
         QString m_message;

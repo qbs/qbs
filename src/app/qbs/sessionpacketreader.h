@@ -43,6 +43,8 @@
 #include <QtCore/qjsonobject.h>
 #include <QtCore/qobject.h>
 
+#include <memory>
+
 namespace qbs {
 namespace Internal {
 
@@ -51,7 +53,7 @@ class SessionPacketReader : public QObject
     Q_OBJECT
 public:
     explicit SessionPacketReader(QObject *parent = nullptr);
-    ~SessionPacketReader();
+    ~SessionPacketReader() override;
 
     void start();
 
@@ -61,7 +63,7 @@ signals:
 
 private:
     class Private;
-    Private * const d;
+    const std::unique_ptr<Private> d;
 };
 
 } // namespace Internal

@@ -57,10 +57,10 @@ class ScriptClassPropertyIterator : public QScriptClassPropertyIterator
 {
 public:
     ScriptClassPropertyIterator(const QScriptValue &object, const QVariantMap &properties,
-                                const std::vector<QString> &additionalProperties)
+                                std::vector<QString> additionalProperties)
         : QScriptClassPropertyIterator(object),
           m_it(properties),
-          m_additionalProperties(additionalProperties)
+          m_additionalProperties(std::move(additionalProperties))
     {
     }
 

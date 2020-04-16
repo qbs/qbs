@@ -54,7 +54,7 @@
 #include "specialfeature.h"
 #endif
 
-#include <stdio.h>
+#include <cstdio>
 
 #ifndef HAVE_MAIN_CPP
 #   error missing define HAVE_MAIN_CPP
@@ -67,9 +67,9 @@
 int main()
 {
     someUsefulFunction();
-#ifdef _DEBUG
+#if defined(HAS_DEBUG)
     puts("Hello World! (debug version)");
-#else
+#elif defined(HAS_RELEASE)
     puts("Hello World! (release version)");
 #endif
 #ifdef HAS_SPECIAL_FEATURE

@@ -41,9 +41,7 @@ static QString ruleExecutionActivity() { return "rule-execution"; }
 static QString nullBuildActivity() { return "null-build"; }
 static QString allActivities() { return "all"; }
 
-CommandLineParser::CommandLineParser()
-{
-}
+CommandLineParser::CommandLineParser() = default;
 
 void CommandLineParser::parse()
 {
@@ -84,6 +82,10 @@ void CommandLineParser::parse()
     }
     m_oldCommit = parser.value(oldCommitOption);
     m_newCommit = parser.value(newCommitOption);
+    if (m_oldCommit == m_newCommit) {
+        throw Exception(QStringLiteral("Error parsing command line: "
+                "'new commit' and 'old commit' must be different commits.\n%1").arg(parser.helpText()));
+    }
     m_testProjectFilePath = parser.value(testProjectOption);
     m_qbsRepoDirPath = parser.value(qbsRepoOption);
     const QStringList activitiesList = parser.value(activitiesOption).split(',');

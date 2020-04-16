@@ -38,8 +38,6 @@
 ##
 #############################################################################
 
-set -e
-
 LLVM_INSTALL_DIR=${LLVM_INSTALL_DIR:-""}
 
 # on Debian, it might be necessary to setup which version of clang-tidy and run-clang-tidy.py
@@ -59,10 +57,22 @@ if [ -z "$RUN_CLANG_TIDY" ] || [ -z "$CLANG_TIDY" ]; then
     fi
 fi
 
+NPROC=`which nproc`
+SYSCTL=`which sysctl`
+CPU_COUNT=2
+if [ ! -z "$NPROC" ]; then # Linux
+    CPU_COUNT=`$NPROC --all`
+elif [ ! -z "$SYSCTL" ]; then  # macOS
+    CPU_COUNT=`$SYSCTL -n hw.ncpu`
+fi
+
 BUILD_OPTIONS="\
     ${QBS_BUILD_PROFILE:+profile:${QBS_BUILD_PROFILE}} \
     modules.qbsbuildconfig.enableProjectFileUpdates:true \
-    modules.qbsbuildconfig.enableUnitTests:true \
+    modules.cpp.treatWarningsAsErrors:true \
+    modules.qbs.buildVariant:release \
+    project.withTests:false \
+    ${BUILD_OPTIONS} \
     config:analyzer
 "
 
@@ -73,8 +83,35 @@ if [ ! -f "$QBS_SRC_DIR/qbs.qbs" ]; then
     exit 1
 fi
 
+set -e
+set -o pipefail
+
 qbs resolve -f "$QBS_SRC_DIR/qbs.qbs" $BUILD_OPTIONS
 qbs build -f "$QBS_SRC_DIR/qbs.qbs" $BUILD_OPTIONS
 qbs generate -g clangdb -f "$QBS_SRC_DIR/qbs.qbs" $BUILD_OPTIONS
 
-"$RUN_CLANG_TIDY" -p analyzer -clang-tidy-binary "$CLANG_TIDY" -header-filter=".*qbs.*\.h"
+SCRIPT="
+import json
+import os
+import sys
+
+dbFile = sys.argv[1]
+blacklist = ['json.cpp']
+seenFiles = set()
+patched_db = []
+with open(dbFile, 'r') as f:
+   db = json.load(f)
+   for item in db:
+       file = item['file']
+       if (os.path.basename(file) not in blacklist) and (file not in seenFiles):
+            seenFiles.add(file)
+            patched_db.append(item)
+
+with open(dbFile, 'w') as f:
+    f.write(json.dumps(patched_db, indent=2))
+"
+python3 -c "${SCRIPT}" analyzer/compile_commands.json
+
+RUN_CLANG_TIDY+=" -p analyzer -clang-tidy-binary ${CLANG_TIDY} -j ${CPU_COUNT} -header-filter=\".*qbs.*\.h$\" -quiet"
+${RUN_CLANG_TIDY} 2>/dev/null | tee results.txt
+echo "$(grep -c 'warning:' results.txt) warnings in total"

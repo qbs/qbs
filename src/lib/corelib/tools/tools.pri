@@ -10,6 +10,7 @@ QBS_SYSTEM_SETTINGS_DIR = $$(QBS_SYSTEM_SETTINGS_DIR)
 HEADERS += \
     $$PWD/architectures.h \
     $$PWD/buildgraphlocker.h \
+    $$PWD/clangclinfo.h \
     $$PWD/codelocation.h \
     $$PWD/commandechomode.h \
     $$PWD/dynamictypecheck.h \
@@ -68,6 +69,7 @@ HEADERS += \
 SOURCES += \
     $$PWD/architectures.cpp \
     $$PWD/buildgraphlocker.cpp \
+    $$PWD/clangclinfo.cpp \
     $$PWD/codelocation.cpp \
     $$PWD/commandechomode.cpp \
     $$PWD/error.cpp \

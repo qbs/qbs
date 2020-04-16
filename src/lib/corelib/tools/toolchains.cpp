@@ -49,9 +49,11 @@ namespace qbs {
 
 namespace Internal {
 static const QString clangToolchain() { return QStringLiteral("clang"); }
+static const QString clangClToolchain() { return QStringLiteral("clang-cl"); }
 static const QString gccToolchain() { return QStringLiteral("gcc"); }
 static const QString llvmToolchain() { return QStringLiteral("llvm"); }
 static const QString mingwToolchain() { return QStringLiteral("mingw"); }
+static const QString msvcToolchain() { return QStringLiteral("msvc"); }
 }
 
 using namespace Internal;
@@ -64,7 +66,8 @@ QStringList canonicalToolchain(const QStringList &toolchain)
         llvmToolchain(),
         mingwToolchain(),
         gccToolchain(),
-        QStringLiteral("msvc")
+        clangClToolchain(),
+        msvcToolchain()
     };
 
     // Canonicalize each toolchain in the toolchain list,
@@ -110,6 +113,8 @@ QStringList canonicalToolchain(const QString &name)
     else if (toolchainName == llvmToolchain() ||
              toolchainName == mingwToolchain()) {
         toolchains << canonicalToolchain(QStringLiteral("gcc"));
+    } else if (toolchainName == clangClToolchain()) {
+        toolchains << canonicalToolchain(msvcToolchain());
     }
     return toolchains;
 }

@@ -58,9 +58,7 @@ using namespace Internal;
 const QString ClangCompilationDatabaseGenerator::DefaultDatabaseFileName =
         QStringLiteral("compile_commands.json");
 
-ClangCompilationDatabaseGenerator::ClangCompilationDatabaseGenerator()
-{
-}
+ClangCompilationDatabaseGenerator::ClangCompilationDatabaseGenerator() = default;
 
 QString ClangCompilationDatabaseGenerator::generatorName() const
 {

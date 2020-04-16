@@ -119,23 +119,44 @@ ENTRYPOINT ["/sbin/entrypoint.sh"]
 # Qbs build dependencies
 RUN apt-get update -qq && \
     apt-get install -qq -y --no-install-recommends \
+        bison \
         build-essential \
         ca-certificates \
+        ccache \
+        clang-8 \
+        clang-tidy-8 \
         curl \
+        flex \
         git \
-        libclang-3.9 \
+        help2man \
+        icoutils \
+        libclang-3.9-dev \
         libdbus-1-3 \
         libfreetype6 \
         libfontconfig1 \
         libgl1-mesa-dev \
         libgl1-mesa-glx \
+        libprotobuf-dev \
+        libgrpc++-dev \
+        nsis \
         pkg-config \
-        help2man \
-        python-pip \
-        p7zip-full && \
-    pip install beautifulsoup4 lxml # for building the documentation
+        protobuf-compiler \
+        protobuf-compiler-grpc \
+        psmisc \
+        python3-pip \
+        python3-setuptools \
+        p7zip-full \
+        subversion \
+        unzip \
+        zip && \
+    update-alternatives --install /usr/bin/clang clang /usr/bin/clang-8 100 && \
+    update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-8 100 && \
+    update-alternatives --install /usr/bin/clang-check clang-check /usr/bin/clang-check-8 100 && \
+    update-alternatives --install /usr/bin/python python /usr/bin/python3 100 && \
+    update-alternatives --install /usr/bin/pip pip /usr/bin/pip3 100 && \
+    pip install beautifulsoup4 lxml pyyaml
 
-ENV LLVM_INSTALL_DIR=/usr/lib/llvm-3.9
+ENV LLVM_INSTALL_DIR=/usr/lib/llvm-8
 
 
 #
@@ -143,7 +164,7 @@ ENV LLVM_INSTALL_DIR=/usr/lib/llvm-3.9
 #
 COPY scripts/install-qt.sh install-qt.sh
 
-RUN ./install-qt.sh --version ${QT_VERSION} qtbase qtdeclarative qtscript qttools qtx11extras icu && \
+RUN ./install-qt.sh --version ${QT_VERSION} qtbase qtdeclarative qtscript qttools qtx11extras qtscxml icu && \
     ./install-qt.sh --version ${QTCREATOR_VERSION} qtcreator && \
     echo "export PATH=/opt/Qt/${QT_VERSION}/gcc_64/bin:/opt/Qt/Tools/QtCreator/bin:\${PATH}" > /etc/profile.d/qt.sh
 
@@ -168,8 +189,11 @@ RUN apt-get install -qq -y --no-install-recommends \
 # Configure Qbs
 USER $USER_NAME
 RUN qbs-setup-toolchains /usr/bin/g++ gcc && \
+    qbs-setup-toolchains /usr/bin/clang clang && \
     qbs-setup-qt /opt/Qt/${QT_VERSION}/gcc_64/bin/qmake qt-gcc_64 && \
     qbs config profiles.qt-gcc_64.baseProfile gcc && \
+    qbs-setup-qt /opt/Qt/${QT_VERSION}/gcc_64/bin/qmake qt-clang_64 && \
+    qbs config profiles.qt-clang_64.baseProfile clang && \
     qbs config defaultProfile qt-gcc_64 && \
     \
     qbs-setup-toolchains /usr/bin/x86_64-w64-mingw32-g++ mingw && \

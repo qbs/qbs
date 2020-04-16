@@ -31,7 +31,7 @@
 import "freebsd.js" as FreeBSD
 
 UnixGCC {
-    condition: qbs.targetOS && qbs.targetOS.contains("freebsd") &&
+    condition: qbs.targetOS.contains("freebsd") &&
                qbs.toolchain && qbs.toolchain.contains("gcc")
     priority: 1
 

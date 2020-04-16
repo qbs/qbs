@@ -96,7 +96,7 @@ static void writeWorkspace(const std::shared_ptr<IarewWorkspace> &wokspace,
                             QFileInfo(workspaceFilePath).fileName());
 }
 
-IarewGenerator::IarewGenerator(const IarewVersionInfo &versionInfo)
+IarewGenerator::IarewGenerator(const gen::VersionInfo &versionInfo)
     : m_versionInfo(versionInfo)
 {
 }

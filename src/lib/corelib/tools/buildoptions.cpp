@@ -91,19 +91,11 @@ BuildOptions::BuildOptions() : d(new Internal::BuildOptionsPrivate)
 {
 }
 
-BuildOptions::BuildOptions(const BuildOptions &other) : d(other.d)
-{
-}
+BuildOptions::BuildOptions(const BuildOptions &other) = default;
 
-BuildOptions &BuildOptions::operator=(const BuildOptions &other)
-{
-    d = other.d;
-    return *this;
-}
+BuildOptions &BuildOptions::operator=(const BuildOptions &other) = default;
 
-BuildOptions::~BuildOptions()
-{
-}
+BuildOptions::~BuildOptions() = default;
 
 /*!
  * \brief If non-empty, qbs pretends that only these files have changed.

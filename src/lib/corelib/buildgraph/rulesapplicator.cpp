@@ -79,12 +79,13 @@ namespace Internal {
 
 RulesApplicator::RulesApplicator(
         ResolvedProductPtr product,
-        std::unordered_map<QString, const ResolvedProduct *> productsByName,
-        std::unordered_map<QString, const ResolvedProject *> projectsByName,
+        const std::unordered_map<QString, const ResolvedProduct *> &productsByName,
+        const std::unordered_map<QString, const ResolvedProject *> &projectsByName,
         Logger logger)
     : m_product(std::move(product))
-    , m_productsByName(std::move(productsByName))
-    , m_projectsByName(std::move(projectsByName))
+    // m_productsByName and m_projectsByName are references, cannot move-construct
+    , m_productsByName(productsByName)
+    , m_projectsByName(projectsByName)
     , m_mocScanner(nullptr)
     , m_logger(std::move(logger))
 {
@@ -213,13 +214,13 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
                     ScriptEngine::argumentList(Rule::argumentNamesForOutputArtifacts(), scope()));
     } else {
         Set<QString> outputFilePaths;
-        for (const RuleArtifactConstPtr &ruleArtifact : m_rule->artifacts) {
+        for (const auto &ruleArtifact : m_rule->artifacts) {
             const OutputArtifactInfo outputInfo = createOutputArtifactFromRuleArtifact(
                         ruleArtifact, inputArtifacts, &outputFilePaths);
             if (!outputInfo.artifact)
                 continue;
             outputArtifacts.push_back(outputInfo.artifact);
-            ruleArtifactArtifactMap.push_back({ ruleArtifact.get(), outputInfo });
+            ruleArtifactArtifactMap.emplace_back(ruleArtifact.get(), outputInfo);
         }
         if (m_rule->artifacts.empty()) {
             outputArtifacts.push_back(createOutputArtifactFromRuleArtifact(
@@ -287,7 +288,7 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
             }
             const QVariant value = scriptValue.toVariant();
             setConfigProperty(artifactModulesCfg, binding.name, value);
-            outputArtifact->pureProperties.push_back(std::make_pair(binding.name, value));
+            outputArtifact->pureProperties.emplace_back(binding.name, value);
         }
         outputArtifact->properties->setValue(artifactModulesCfg);
         if (!outputInfo.newlyCreated && (outputArtifact->fileTags() != outputInfo.oldFileTags
@@ -354,7 +355,7 @@ ArtifactSet RulesApplicator::collectAdditionalInputs(const FileTags &tags, const
         }
 
         if (inputsSources.testFlag(Dependencies)) {
-            for (const ResolvedProductConstPtr &depProduct : product->dependencies) {
+            for (const auto &depProduct : product->dependencies) {
                 for (Artifact * const ta : depProduct->targetArtifacts()) {
                     if (ta->fileTags().contains(fileTag)
                             && !ta->fileTags().intersects(rule->excludedInputs)) {
@@ -607,7 +608,7 @@ public:
         for (const auto &e : m_propertyValues) {
             const QStringList key{e.module, e.name};
             setConfigProperty(artifactCfg, key, e.value);
-            outputArtifact->pureProperties.push_back(std::make_pair(key, e.value));
+            outputArtifact->pureProperties.emplace_back(key, e.value);
         }
         outputArtifact->properties->setValue(artifactCfg);
     }

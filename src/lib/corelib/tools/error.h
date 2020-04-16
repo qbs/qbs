@@ -63,7 +63,9 @@ class QBS_EXPORT ErrorItem
 public:
     ErrorItem();
     ErrorItem(const ErrorItem &rhs);
+    ErrorItem(ErrorItem &&rhs) noexcept;
     ErrorItem &operator=(const ErrorItem &other);
+    ErrorItem &operator=(ErrorItem &&other) noexcept;
     ~ErrorItem();
 
     QString description() const;
@@ -89,10 +91,12 @@ class QBS_EXPORT ErrorInfo
 public:
     ErrorInfo();
     ErrorInfo(const ErrorInfo &rhs);
+    ErrorInfo(ErrorInfo &&rhs) noexcept;
     ErrorInfo(const QString &description, const CodeLocation &location = CodeLocation(),
               bool internalError = false);
     ErrorInfo(const QString &description, const QStringList &backtrace);
     ErrorInfo &operator=(const ErrorInfo &other);
+    ErrorInfo &operator=(ErrorInfo &&other) noexcept;
     ~ErrorInfo();
 
     void appendBacktrace(const QString &description, const CodeLocation &location = CodeLocation());

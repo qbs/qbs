@@ -48,7 +48,7 @@
 **
 ****************************************************************************/
 
-#include <stdio.h>
+#include <cstdio>
 
 #ifndef CRUCIAL_DEFINE
 #   error CRUCIAL_DEFINE not defined

@@ -158,9 +158,7 @@ VisualStudioGenerator::VisualStudioGenerator(const VisualStudioVersionInfo &vers
     Q_ASSERT(d->versionInfo.usesSolutions());
 }
 
-VisualStudioGenerator::~VisualStudioGenerator()
-{
-}
+VisualStudioGenerator::~VisualStudioGenerator() = default;
 
 QString VisualStudioGenerator::generatorName() const
 {

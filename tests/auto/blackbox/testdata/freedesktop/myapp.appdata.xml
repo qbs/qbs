@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop">
+  <id>myapp.desktop</id>
+  <metadata_license>CC0</metadata_license>
+  <name>MyApp</name>
+  <summary>The coolest app ever</summary>
+
+  <description>
+    <p>This is a cool application.</p>
+  </description>
+
+  <url type="homepage">https://software.house/myapp</url>
+  <project_license>GPL-2.0+</project_license>
+  <developer_name>Coding Wizard</developer_name>
+</component>

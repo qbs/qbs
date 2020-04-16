@@ -713,6 +713,25 @@ void TestBlackbox::buildGraphVersions()
     QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
 }
 
+void TestBlackbox::buildVariantDefaults_data()
+{
+    QTest::addColumn<QString>("buildVariant");
+    QTest::newRow("default") << QString();
+    QTest::newRow("debug") << QStringLiteral("debug");
+    QTest::newRow("release") << QStringLiteral("release");
+    QTest::newRow("profiling") << QStringLiteral("profiling");
+}
+
+void TestBlackbox::buildVariantDefaults()
+{
+    QFETCH(QString, buildVariant);
+    QDir::setCurrent(testDataDir + "/build-variant-defaults");
+    QbsRunParameters params{QStringLiteral("resolve")};
+    if (!buildVariant.isEmpty())
+        params.arguments << ("modules.qbs.buildVariant:" + buildVariant);
+    QCOMPARE(runQbs(params), 0);
+}
+
 void TestBlackbox::changedFiles_data()
 {
     QTest::addColumn<bool>("useChangedFilesForInitialBuild");
@@ -942,20 +961,11 @@ void TestBlackbox::dependenciesProperty()
     QCOMPARE(product2_cpp_defines.first().toString(), QLatin1String("DIGEDAG"));
 }
 
-void TestBlackbox::dependencyProfileMismatch()
+void TestBlackbox::dependencyScanningLoop()
 {
-    QDir::setCurrent(testDataDir + "/dependency-profile-mismatch");
-    const SettingsPtr s = settings();
-    qbs::Internal::TemporaryProfile depProfile("qbs_autotests_profileMismatch", s.get());
-    depProfile.p.setValue("qbs.architecture", "x86"); // Profiles must not be empty...
-    s->sync();
-    QbsRunParameters params(QStringList() << ("project.mainProfile:" + profileName())
-                            << ("project.depProfile:" + depProfile.p.name()));
-    params.expectFailure = true;
-    QVERIFY2(runQbs(params) != 0, m_qbsStderr.constData());
-    QVERIFY2(m_qbsStderr.contains(profileName().toLocal8Bit())
-             && m_qbsStderr.contains("', which does not exist"),
-             m_qbsStderr.constData());
+    QDir::setCurrent(testDataDir + "/dependency-scanning-loop");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
 }
 
 void TestBlackbox::deprecatedProperty()
@@ -1442,7 +1452,7 @@ void TestBlackbox::versionScript()
 {
     const SettingsPtr s = settings();
     Profile buildProfile(profileName(), s.get());
-    QStringList toolchain = buildProfile.value("qbs.toolchain").toStringList();
+    QStringList toolchain = profileToolchain(buildProfile);
     if (!toolchain.contains("gcc") || targetOs() != HostOsInfo::HostOsLinux)
         QSKIP("version script test only applies to Linux");
     QDir::setCurrent(testDataDir + "/versionscript");
@@ -1765,6 +1775,40 @@ void TestBlackbox::cxxLanguageVersion_data()
                             std::make_pair(QString("msvc-new"), QString("/std:"))});
 }
 
+void TestBlackbox::conanfileProbe()
+{
+    QString executable = findExecutable({"conan"});
+    if (executable.isEmpty())
+        QSKIP("conan is not installed or not available in PATH.");
+
+    // We first build a dummy package testlib and use that as dependency
+    // in the testapp package.
+    QDir::setCurrent(testDataDir + "/conanfile-probe/testlib");
+    QStringList arguments { "create", "-o", "opt=True", "-s", "os=AIX", ".",
+                            "testlib/1.2.3@qbs/testing" };
+    QProcess conan;
+    conan.start(executable, arguments);
+    QVERIFY(waitForProcessSuccess(conan));
+
+    QDir::setCurrent(testDataDir + "/conanfile-probe/testapp");
+    QCOMPARE(runQbs(QbsRunParameters("resolve", {"--force-probe-execution"})), 0);
+
+    QFile file(relativeBuildDir() + "/results.json");
+    QVERIFY(file.open(QIODevice::ReadOnly));
+    QVariantMap actualResults = QJsonDocument::fromJson(file.readAll()).toVariant().toMap();
+    const auto generatedFilesPath = actualResults.take("generatedFilesPath").toString();
+    // We want to make sure that generatedFilesPath is under the project directory,
+    // but we don't care about the actual name.
+    QVERIFY(directoryExists(relativeBuildDir() + "/genconan/"
+                            + QFileInfo(generatedFilesPath).baseName()));
+
+    const QVariantMap expectedResults = {
+        { "json", "TESTLIB_ENV_VAL" },
+        { "dependencies", QVariantList{"testlib1", "testlib2"} },
+    };
+    QCOMPARE(actualResults, expectedResults);
+}
+
 void TestBlackbox::cpuFeatures()
 {
     QDir::setCurrent(testDataDir + "/cpu-features");
@@ -1832,7 +1876,7 @@ void TestBlackbox::separateDebugInfo()
 
     const SettingsPtr s = settings();
     Profile buildProfile(profileName(), s.get());
-    QStringList toolchain = buildProfile.value("qbs.toolchain").toStringList();
+    QStringList toolchain = profileToolchain(buildProfile);
     if (isDarwin) {
         QVERIFY(directoryExists(relativeProductBuildDir("app1") + "/app1.app.dSYM"));
         QVERIFY(regularFileExists(relativeProductBuildDir("app1")
@@ -2035,7 +2079,7 @@ void TestBlackbox::trackExternalProductChanges()
     rmDirR(relativeBuildDir());
     const SettingsPtr s = settings();
     const Profile profile(profileName(), s.get());
-    const QStringList toolchainTypes = profile.value("qbs.toolchain").toStringList();
+    const QStringList toolchainTypes = profileToolchain(profile);
     if (!toolchainTypes.contains("gcc"))
         QSKIP("Need GCC-like compiler to run this test");
     params.environment = QProcessEnvironment::systemEnvironment();
@@ -2332,9 +2376,11 @@ void TestBlackbox::reproducibleBuild()
 {
     const SettingsPtr s = settings();
     const Profile profile(profileName(), s.get());
-    const QStringList toolchains = profile.value("qbs.toolchain").toStringList();
-    if (!toolchains.contains("gcc") || toolchains.contains("clang"))
+    const QStringList toolchains = profileToolchain(profile);
+    if (!toolchains.contains("gcc"))
         QSKIP("reproducible builds only supported for gcc");
+    if (toolchains.contains("clang"))
+        QSKIP("reproducible builds are not supported for clang");
 
     QFETCH(bool, reproducible);
 
@@ -2495,6 +2541,36 @@ void TestBlackbox::ruleWithNonRequiredInputs()
     QVERIFY2(m_qbsStdout.contains("Generating"), m_qbsStdout.constData());
 }
 
+void TestBlackbox::sanitizer_data()
+{
+    QTest::addColumn<QString>("sanitizer");
+    QTest::newRow("none") << QString();
+    QTest::newRow("address") << QStringLiteral("address");
+    QTest::newRow("undefined") << QStringLiteral("undefined");
+    QTest::newRow("thread") << QStringLiteral("thread");
+}
+
+void TestBlackbox::sanitizer()
+{
+    QFETCH(QString, sanitizer);
+    QDir::setCurrent(testDataDir + "/sanitizer");
+    rmDirR(relativeBuildDir());
+    QbsRunParameters params("build", {"--command-echo-mode", "command-line"});
+    if (!sanitizer.isEmpty()) {
+        params.arguments.append(
+                {QStringLiteral("products.sanitizer.sanitizer:\"") + sanitizer + "\""});
+    }
+    QCOMPARE(runQbs(params), 0);
+    if (m_qbsStdout.contains(QByteArrayLiteral("Compiler does not support sanitizer")))
+        QSKIP("Compiler does not support the specified sanitizer");
+    if (!sanitizer.isEmpty()) {
+        QVERIFY2(m_qbsStdout.contains(QByteArrayLiteral("-fsanitize=") + sanitizer.toLatin1()),
+                 qPrintable(m_qbsStdout));
+    } else {
+        QVERIFY2(!m_qbsStdout.contains(QByteArrayLiteral("-fsanitize=")), qPrintable(m_qbsStdout));
+    }
+}
+
 void TestBlackbox::scannerItem()
 {
     QDir::setCurrent(testDataDir + "/scanner-item");
@@ -2511,6 +2587,47 @@ void TestBlackbox::scannerItem()
     QCOMPARE(runQbs(), 0);
     QVERIFY2(!m_qbsStdout.contains("handling file1.in"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("handling file2.in"), m_qbsStdout.constData());
+}
+
+void TestBlackbox::scanResultInOtherProduct()
+{
+    QDir::setCurrent(testDataDir + "/scan-result-in-other-product");
+    QCOMPARE(runQbs(QStringList("-vv")), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("generating text file"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStderr.contains("The file dependency might get lost during change tracking"),
+             m_qbsStderr.constData());
+    WAIT_FOR_NEW_TIMESTAMP();
+    REPLACE_IN_FILE("other/other.qbs", "blubb", "blubb2");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(!m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("generating text file"), m_qbsStdout.constData());
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("lib/lib.h");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("generating text file"), m_qbsStdout.constData());
+}
+
+void TestBlackbox::scanResultInNonDependency()
+{
+    QDir::setCurrent(testDataDir + "/scan-result-in-non-dependency");
+    QCOMPARE(runQbs(QStringList("-vv")), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("generating text file"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStderr.contains("The file dependency might get lost during change tracking"),
+             m_qbsStderr.constData());
+    WAIT_FOR_NEW_TIMESTAMP();
+    REPLACE_IN_FILE("other/other.qbs", "blubb", "blubb2");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(!m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("generating text file"), m_qbsStdout.constData());
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("lib/lib.h");
+    QCOMPARE(runQbs(), 0);
+    QEXPECT_FAIL("", "QBS-1532", Continue);
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("generating text file"), m_qbsStdout.constData());
 }
 
 void TestBlackbox::setupBuildEnvironment()
@@ -2821,6 +2938,8 @@ void TestBlackbox::pathProbe()
     QbsRunParameters buildParams("build", QStringList{"-f", projectFile});
     buildParams.expectFailure = !successExpected;
     QCOMPARE(runQbs(buildParams) == 0, successExpected);
+    if (!successExpected)
+        QVERIFY2(m_qbsStderr.contains("Probe failed to find files"), m_qbsStderr);
 }
 
 void TestBlackbox::pchChangeTracking()
@@ -3077,6 +3196,9 @@ void TestBlackbox::probeProperties()
     QVERIFY2(m_qbsStdout.contains("probe2.fileName=tool"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("probe2.path=" + dir + "/bin"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("probe2.filePath=" + dir + "/bin/tool"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("probe3.fileName=tool"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("probe3.path=" + dir + "/bin"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("probe3.filePath=" + dir + "/bin/tool"), m_qbsStdout.constData());
 }
 
 void TestBlackbox::probesAndShadowProducts()
@@ -3099,7 +3221,7 @@ void TestBlackbox::probeInExportedModule()
                                      << QStringLiteral("probe-in-exported-module.qbs"))), 0);
     QVERIFY2(m_qbsStdout.contains("found: true"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("prop: yes"), m_qbsStdout.constData());
-    QVERIFY2(m_qbsStdout.contains("listProp: my,myother"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("listProp: myother,my"), m_qbsStdout.constData());
 }
 
 void TestBlackbox::probesAndArrayProperties()
@@ -3368,6 +3490,17 @@ void TestBlackbox::propertyChanges()
     QVERIFY(m_qbsStdout.contains("Making output from other output"));
 }
 
+void TestBlackbox::propertyEvaluationContext()
+{
+    const QString testDir = testDataDir + "/property-evaluation-context";
+    QDir::setCurrent(testDir);
+    QCOMPARE(runQbs(), 0);
+    QCOMPARE(m_qbsStdout.count("base.productInBase evaluated in: myapp"), 1);
+    QCOMPARE(m_qbsStdout.count("base.productInTop evaluated in: myapp"), 1);
+    QCOMPARE(m_qbsStdout.count("top.productInExport evaluated in: mylib"), 1);
+    QCOMPARE(m_qbsStdout.count("top.productInTop evaluated in: myapp"), 1);
+}
+
 void TestBlackbox::qtBug51237()
 {
     const QString profileName = "profile-qtBug51237";
@@ -3450,6 +3583,42 @@ void TestBlackbox::dynamicRuleOutputs()
     QVERIFY(regularFileExists(headerFile1));
     QVERIFY(regularFileExists(sourceFile1));
     QVERIFY(!QFile::exists(sourceFile2));
+}
+
+void TestBlackbox::emptyProfile()
+{
+    QDir::setCurrent(testDataDir + "/empty-profile");
+
+    const SettingsPtr s = settings();
+    const Profile buildProfile(profileName(), s.get());
+    bool isMsvc = false;
+    auto toolchainType = buildProfile.value(QStringLiteral("qbs.toolchainType")).toString();
+    QbsRunParameters params;
+    params.profile = "none";
+
+    if (toolchainType.isEmpty()) {
+        const auto toolchain = buildProfile.value(QStringLiteral("qbs.toolchain")).toStringList();
+        if (!toolchain.isEmpty())
+            toolchainType = toolchain.first();
+    }
+    if (!toolchainType.isEmpty()) {
+        params.arguments = QStringList{QStringLiteral("qbs.toolchainType:") + toolchainType};
+        isMsvc = toolchainType == "msvc" || toolchainType == "clang-cl";
+    }
+
+    if (!isMsvc) {
+        const auto tcPath =
+                QDir::toNativeSeparators(
+                        buildProfile.value(QStringLiteral("cpp.toolchainInstallPath")).toString());
+        auto paths = params.environment.value(QStringLiteral("PATH"))
+                .split(HostOsInfo::pathListSeparator(), QString::SkipEmptyParts);
+        if (!tcPath.isEmpty() && !paths.contains(tcPath)) {
+            paths.prepend(tcPath);
+            params.environment.insert(
+                    QStringLiteral("PATH"), paths.join(HostOsInfo::pathListSeparator()));
+        }
+    }
+    QCOMPARE(runQbs(params), 0);
 }
 
 void TestBlackbox::erroneousFiles_data()
@@ -3544,9 +3713,11 @@ void TestBlackbox::escapedLinkerFlags()
 {
     const SettingsPtr s = settings();
     const Profile buildProfile(profileName(), s.get());
-    const QStringList toolchain = buildProfile.value("qbs.toolchain").toStringList();
-    if (!toolchain.contains("gcc") || targetOs() == HostOsInfo::HostOsMacos)
+    const QStringList toolchain = profileToolchain(buildProfile);
+    if (!toolchain.contains("gcc"))
         QSKIP("escaped linker flags test only applies with gcc and GNU ld");
+    if (targetOs() == HostOsInfo::HostOsMacos)
+        QSKIP("Does not apply on macOS");
     QDir::setCurrent(testDataDir + "/escaped-linker-flags");
     QbsRunParameters params(QStringList("products.app.escapeLinkerFlags:false"));
     QCOMPARE(runQbs(params), 0);
@@ -3836,6 +4007,40 @@ void TestBlackbox::fileTagsFilterMerging()
     QVERIFY2(QFile::exists(otherOutput), qPrintable(otherOutput));
 }
 
+void TestBlackbox::freedesktop()
+{
+    if (!HostOsInfo::isAnyUnixHost())
+        QSKIP("only applies on Unix");
+    if (HostOsInfo::isMacosHost())
+        QSKIP("Does not apply on macOS");
+    QDir::setCurrent(testDataDir + "/freedesktop");
+    QCOMPARE(runQbs(), 0);
+
+    // Check desktop file
+    QString desktopFilePath =
+        defaultInstallRoot + "/usr/local/share/applications/myapp.desktop";
+    QVERIFY(QFile::exists(desktopFilePath));
+    QFile desktopFile(desktopFilePath);
+    QVERIFY2(desktopFile.open(QIODevice::ReadOnly), qPrintable(desktopFile.errorString()));
+    QByteArrayList lines = desktopFile.readAll().split('\n');
+    // Automatically filled line:
+    QVERIFY(lines.contains("Exec=main"));
+    // Name specified in `freedesktop.name` property
+    QVERIFY(lines.contains("Name=My App"));
+    // Overridden line:
+    QVERIFY(lines.contains("Icon=myapp.png"));
+    // Untouched line:
+    QVERIFY(lines.contains("Terminal=false"));
+
+    // Check AppStream file
+    QVERIFY(QFile::exists(defaultInstallRoot +
+                          "/usr/local/share/metainfo/myapp.appdata.xml"));
+
+    // Check icon file
+    QVERIFY(QFile::exists(defaultInstallRoot +
+                          "/usr/local/share/icons/hicolor/scalable/apps/myapp.png"));
+}
+
 void TestBlackbox::installedTransformerOutput()
 {
     QDir::setCurrent(testDataDir + "/installed-transformer-output");
@@ -3849,8 +4054,16 @@ void TestBlackbox::installLocations_data()
     QTest::addColumn<QString>("binDir");
     QTest::addColumn<QString>("dllDir");
     QTest::addColumn<QString>("libDir");
-    QTest::newRow("explicit values") << QString("bindir") << QString("dlldir") << QString("libdir");
-    QTest::newRow("default values") << QString() << QString() << QString();
+    QTest::addColumn<QString>("pluginDir");
+    QTest::addColumn<QString>("dsymDir");
+    QTest::newRow("explicit values")
+            << QString("bindir")
+            << QString("dlldir")
+            << QString("libdir")
+            << QString("pluginDir")
+            << QString("dsymDir");
+    QTest::newRow("default values")
+            << QString() << QString() << QString() << QString() << QString();
 }
 
 void TestBlackbox::installLocations()
@@ -3859,6 +4072,8 @@ void TestBlackbox::installLocations()
     QFETCH(QString, binDir);
     QFETCH(QString, dllDir);
     QFETCH(QString, libDir);
+    QFETCH(QString, pluginDir);
+    QFETCH(QString, dsymDir);
     QbsRunParameters params("resolve");
     if (!binDir.isEmpty())
         params.arguments.push_back("products.theapp.installDir:" + binDir);
@@ -3866,6 +4081,13 @@ void TestBlackbox::installLocations()
         params.arguments.push_back("products.thelib.installDir:" + dllDir);
     if (!libDir.isEmpty())
         params.arguments.push_back("products.thelib.importLibInstallDir:" + libDir);
+    if (!pluginDir.isEmpty())
+        params.arguments.push_back("products.theplugin.installDir:" + pluginDir);
+    if (!dsymDir.isEmpty()) {
+        params.arguments.push_back("products.theapp.debugInformationInstallDir:" + dsymDir);
+        params.arguments.push_back("products.thelib.debugInformationInstallDir:" + dsymDir);
+        params.arguments.push_back("products.theplugin.debugInformationInstallDir:" + dsymDir);
+    }
     QCOMPARE(runQbs(params), 0);
     const bool isWindows = m_qbsStdout.contains("is windows");
     const bool isDarwin = m_qbsStdout.contains("is darwin");
@@ -3873,33 +4095,77 @@ void TestBlackbox::installLocations()
     const bool isUnix = m_qbsStdout.contains("is unix");
     QVERIFY(isWindows || isDarwin || isUnix);
     QCOMPARE(runQbs(QbsRunParameters(QStringList("--clean-install-root"))), 0);
-    const QString dllFileName =
-            isWindows ? "thelib.dll" : isDarwin ? "thelib" : "libthelib.so";
-    const QString appFileName = isWindows ? "theapp.exe" : "theapp";
-    if (binDir.isEmpty())
-        binDir = isDarwin ? "/Applications" : "/bin";
-    if (dllDir.isEmpty())
-        dllDir = isDarwin ? "/Library/Frameworks" : isWindows ? "/bin" : "/lib";
-    if (libDir.isEmpty())
-        libDir = "/lib";
-    if (isDarwin) {
-        if (isMac)
-            binDir += "/theapp.app/Contents/MacOS";
-        else
-            binDir += "/theapp.app/";
-        dllDir += "/thelib.framework";
-    }
+
+    struct BinaryInfo
+    {
+        QString fileName;
+        QString installDir;
+        QString subDir;
+
+        QString absolutePath(const QString &prefix) const
+        {
+            return QDir::cleanPath(prefix + '/' + installDir + '/' + subDir + '/' + fileName);
+        }
+    };
+
+    const BinaryInfo dll = {
+        isWindows ? "thelib.dll" : isDarwin ? "thelib" : "libthelib.so",
+        dllDir.isEmpty()
+            ? (isDarwin ? "/Library/Frameworks" : (isWindows ? "/bin" : "/lib"))
+            : dllDir,
+        isDarwin ? "thelib.framework" : ""
+    };
+    const BinaryInfo dllDsym = {
+        isWindows ? "thelib.pdb" : isDarwin ? "thelib.framework.dSYM" : "libthelib.so.debug",
+        dsymDir.isEmpty() ? dll.installDir : dsymDir,
+        {}
+    };
+    const BinaryInfo plugin = {
+        isWindows ? "theplugin.dll" : isDarwin ? "theplugin" : "libtheplugin.so",
+        pluginDir.isEmpty() ? dll.installDir : pluginDir,
+        isDarwin ? (isMac ? "theplugin.bundle/Contents/MacOS" : "theplugin.bundle") : ""
+    };
+    const BinaryInfo pluginDsym = {
+        isWindows ? "theplugin.pdb" : isDarwin ? "theplugin.bundle.dSYM" : "libtheplugin.so.debug",
+        dsymDir.isEmpty() ? plugin.installDir : dsymDir,
+        {}
+    };
+    const BinaryInfo app = {
+        isWindows ? "theapp.exe" : "theapp",
+        binDir.isEmpty() ? (isDarwin ? "/Applications" : "/bin") : binDir,
+        isDarwin ? (isMac ? "theapp.app/Contents/MacOS" : "theapp.app") : ""
+    };
+    const BinaryInfo appDsym = {
+        isWindows ? "theapp.pdb" : isDarwin ? "theapp.app.dSYM" : "theapp.debug",
+        dsymDir.isEmpty() ? app.installDir : dsymDir,
+        {}
+    };
+
     const QString installRoot = QDir::currentPath() + "/default/install-root";
     const QString installPrefix = isWindows ? QString() : "/usr/local";
     const QString fullInstallPrefix = installRoot + '/' + installPrefix + '/';
-    const QString appFilePath = fullInstallPrefix + binDir + '/' + appFileName;
+    const QString appFilePath = app.absolutePath(fullInstallPrefix);
     QVERIFY2(QFile::exists(appFilePath), qPrintable(appFilePath));
-    const QString dllFilePath = fullInstallPrefix + dllDir + '/' + dllFileName;
+    const QString dllFilePath = dll.absolutePath(fullInstallPrefix);
     QVERIFY2(QFile::exists(dllFilePath), qPrintable(dllFilePath));
     if (isWindows) {
-        const QString libFilePath = fullInstallPrefix + libDir + "/thelib.lib";
+        const BinaryInfo lib = {
+            "thelib.lib",
+            libDir.isEmpty() ? "/lib" : libDir,
+            ""
+        };
+        const QString libFilePath = lib.absolutePath(fullInstallPrefix);
         QVERIFY2(QFile::exists(libFilePath), qPrintable(libFilePath));
     }
+    const QString pluginFilePath = plugin.absolutePath(fullInstallPrefix);
+    QVERIFY2(QFile::exists(pluginFilePath), qPrintable(pluginFilePath));
+
+    const QString appDsymFilePath = appDsym.absolutePath(fullInstallPrefix);
+    QVERIFY2(QFileInfo(appDsymFilePath).exists(), qPrintable(appDsymFilePath));
+    const QString dllDsymFilePath = dllDsym.absolutePath(fullInstallPrefix);
+    QVERIFY2(QFileInfo(dllDsymFilePath).exists(), qPrintable(dllDsymFilePath));
+    const QString pluginDsymFilePath = pluginDsym.absolutePath(fullInstallPrefix);
+    QVERIFY2(QFile::exists(pluginDsymFilePath), qPrintable(pluginDsymFilePath));
 }
 
 void TestBlackbox::inputsFromDependencies()
@@ -4080,7 +4346,7 @@ void TestBlackbox::cli()
 
     const SettingsPtr s = settings();
     Profile p("qbs_autotests-cli", s.get());
-    const QStringList toolchain = p.value("qbs.toolchain").toStringList();
+    const QStringList toolchain = profileToolchain(p);
     if (!p.exists() || !(toolchain.contains("dotnet") || toolchain.contains("mono")))
         QSKIP("No suitable Common Language Infrastructure test profile");
 
@@ -4309,6 +4575,15 @@ void TestBlackbox::jsExtensionsBinaryFile()
     QCOMPARE(data.at(5), char(0x05));
     QCOMPARE(data.at(6), char(0x06));
     QCOMPARE(data.at(7), char(0xFF));
+}
+
+void TestBlackbox::lastModuleCandidateBroken()
+{
+    QDir::setCurrent(testDataDir + "/last-module-candidate-broken");
+    QbsRunParameters params;
+    params.expectFailure = true;
+    QVERIFY(runQbs(params) != 0);
+    QVERIFY2(m_qbsStderr.contains("Module Foo could not be loaded"), m_qbsStderr);
 }
 
 void TestBlackbox::ld()
@@ -4549,7 +4824,7 @@ void TestBlackbox::linkerLibraryDuplicates()
 {
     const SettingsPtr s = settings();
     Profile buildProfile(profileName(), s.get());
-    QStringList toolchain = buildProfile.value("qbs.toolchain").toStringList();
+    QStringList toolchain = profileToolchain(buildProfile);
     if (!toolchain.contains("gcc"))
         QSKIP("linkerLibraryDuplicates test only applies to GCC toolchain");
 
@@ -4629,7 +4904,7 @@ void TestBlackbox::linkerScripts()
 {
     const SettingsPtr s = settings();
     Profile buildProfile(profileName(), s.get());
-    QStringList toolchain = buildProfile.value("qbs.toolchain").toStringList();
+    QStringList toolchain = profileToolchain(buildProfile);
     if (!toolchain.contains("gcc") || targetOs() != HostOsInfo::HostOsLinux)
         QSKIP("linker script test only applies to Linux ");
 
@@ -4743,9 +5018,10 @@ void TestBlackbox::listPropertiesWithOuter()
 void TestBlackbox::listPropertyOrder()
 {
     QDir::setCurrent(testDataDir + "/list-property-order");
-    const QbsRunParameters params(QStringList() << "-qq");
+    const QbsRunParameters params(QStringList() << "-q");
     QCOMPARE(runQbs(params), 0);
     const QByteArray firstOutput = m_qbsStderr;
+    QVERIFY(firstOutput.contains("listProp = [\"product\",\"higher3\",\"higher2\",\"higher1\",\"lower\"]"));
     for (int i = 0; i < 25; ++i) {
         rmDirR(relativeBuildDir());
         QCOMPARE(runQbs(params), 0);
@@ -4987,6 +5263,8 @@ void TestBlackbox::propertyPrecedence()
 
     // Case 1: [cmdline=0,prod=0,export=0,nonleaf=0,profile=0]
     QCOMPARE(runQbs(params), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
+
     QVERIFY2(m_qbsStdout.contains("scalar prop: leaf\n")
              && m_qbsStdout.contains("list prop: [\"leaf\"]\n"),
              m_qbsStdout.constData());
@@ -4995,6 +5273,8 @@ void TestBlackbox::propertyPrecedence()
     // Case 2: [cmdline=0,prod=0,export=0,nonleaf=0,profile=1]
     switchProfileContents(profile.p, s.get(), true);
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
+
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: profile\n")
              && m_qbsStdout.contains("list prop: [\"profile\"]\n"),
@@ -5006,6 +5286,7 @@ void TestBlackbox::propertyPrecedence()
     switchProfileContents(profile.p, s.get(), false);
     switchFileContents(nonleafFile, true);
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: nonleaf\n")
              && m_qbsStdout.contains("list prop: [\"nonleaf\",\"leaf\"]\n"),
@@ -5014,6 +5295,7 @@ void TestBlackbox::propertyPrecedence()
     // Case 4: [cmdline=0,prod=0,export=0,nonleaf=1,profile=1]
     switchProfileContents(profile.p, s.get(), true);
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: nonleaf\n")
              && m_qbsStdout.contains("list prop: [\"nonleaf\",\"profile\"]\n"),
@@ -5026,6 +5308,7 @@ void TestBlackbox::propertyPrecedence()
     switchFileContents(nonleafFile, false);
     switchFileContents(depFile, true);
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: export\n")
              && m_qbsStdout.contains("list prop: [\"export\",\"leaf\"]\n"),
@@ -5034,15 +5317,21 @@ void TestBlackbox::propertyPrecedence()
     // Case 6: [cmdline=0,prod=0,export=1,nonleaf=0,profile=1]
     switchProfileContents(profile.p, s.get(), true);
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: export\n")
              && m_qbsStdout.contains("list prop: [\"export\",\"profile\"]\n"),
              m_qbsStdout.constData());
 
+
     // Case 7: [cmdline=0,prod=0,export=1,nonleaf=1,profile=0]
     switchProfileContents(profile.p, s.get(), false);
     switchFileContents(nonleafFile, true);
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.contains("WARNING: Conflicting scalar values at")
+             && m_qbsStderr.contains("nonleaf.qbs:4:22")
+             && m_qbsStderr.contains("dep.qbs:6:26"),
+             m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: export\n")
              && m_qbsStdout.contains("list prop: [\"export\",\"nonleaf\",\"leaf\"]\n"),
@@ -5051,6 +5340,10 @@ void TestBlackbox::propertyPrecedence()
     // Case 8: [cmdline=0,prod=0,export=1,nonleaf=1,profile=1]
     switchProfileContents(profile.p, s.get(), true);
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.contains("WARNING: Conflicting scalar values at")
+             && m_qbsStderr.contains("nonleaf.qbs:4:22")
+             && m_qbsStderr.contains("dep.qbs:6:26"),
+             m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: export\n")
              && m_qbsStdout.contains("list prop: [\"export\",\"nonleaf\",\"profile\"]\n"),
@@ -5064,6 +5357,7 @@ void TestBlackbox::propertyPrecedence()
     switchFileContents(depFile, false);
     switchFileContents(productFile, true);
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: product\n")
              && m_qbsStdout.contains("list prop: [\"product\",\"leaf\"]\n"),
@@ -5072,6 +5366,7 @@ void TestBlackbox::propertyPrecedence()
     // Case 10: [cmdline=0,prod=1,export=0,nonleaf=0,profile=1]
     switchProfileContents(profile.p, s.get(), true);
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: product\n")
              && m_qbsStdout.contains("list prop: [\"product\",\"profile\"]\n"),
@@ -5081,6 +5376,7 @@ void TestBlackbox::propertyPrecedence()
     switchProfileContents(profile.p, s.get(), false);
     switchFileContents(nonleafFile, true);
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: product\n")
              && m_qbsStdout.contains("list prop: [\"product\",\"nonleaf\",\"leaf\"]\n"),
@@ -5089,6 +5385,7 @@ void TestBlackbox::propertyPrecedence()
     // Case 12: [cmdline=0,prod=1,export=0,nonleaf=1,profile=1]
     switchProfileContents(profile.p, s.get(), true);
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: product\n")
              && m_qbsStdout.contains("list prop: [\"product\",\"nonleaf\",\"profile\"]\n"),
@@ -5099,6 +5396,7 @@ void TestBlackbox::propertyPrecedence()
     switchFileContents(nonleafFile, false);
     switchFileContents(depFile, true);
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: product\n")
              && m_qbsStdout.contains("list prop: [\"product\",\"export\",\"leaf\"]\n"),
@@ -5107,6 +5405,7 @@ void TestBlackbox::propertyPrecedence()
     // Case 14: [cmdline=0,prod=1,export=1,nonleaf=0,profile=1]
     switchProfileContents(profile.p, s.get(), true);
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: product\n")
              && m_qbsStdout.contains("list prop: [\"product\",\"export\",\"profile\"]\n"),
@@ -5116,6 +5415,7 @@ void TestBlackbox::propertyPrecedence()
     switchProfileContents(profile.p, s.get(), false);
     switchFileContents(nonleafFile, true);
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: product\n")
              && m_qbsStdout.contains("list prop: [\"product\",\"export\",\"nonleaf\",\"leaf\"]\n"),
@@ -5124,6 +5424,7 @@ void TestBlackbox::propertyPrecedence()
     // Case 16: [cmdline=0,prod=1,export=1,nonleaf=1,profile=1]
     switchProfileContents(profile.p, s.get(), true);
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: product\n")
              && m_qbsStdout.contains("list prop: [\"product\",\"export\",\"nonleaf\",\"profile\"]\n"),
@@ -5137,6 +5438,7 @@ void TestBlackbox::propertyPrecedence()
     switchFileContents(productFile, false);
     resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: cmdline\n")
              && m_qbsStdout.contains("list prop: [\"cmdline\"]\n"),
@@ -5146,6 +5448,7 @@ void TestBlackbox::propertyPrecedence()
     switchProfileContents(profile.p, s.get(), true);
     resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: cmdline\n")
              && m_qbsStdout.contains("list prop: [\"cmdline\"]\n"),
@@ -5156,6 +5459,7 @@ void TestBlackbox::propertyPrecedence()
     switchFileContents(nonleafFile, true);
     resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: cmdline\n")
              && m_qbsStdout.contains("list prop: [\"cmdline\"]\n"),
@@ -5165,6 +5469,7 @@ void TestBlackbox::propertyPrecedence()
     switchProfileContents(profile.p, s.get(), true);
     resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: cmdline\n")
              && m_qbsStdout.contains("list prop: [\"cmdline\"]\n"),
@@ -5176,6 +5481,7 @@ void TestBlackbox::propertyPrecedence()
     switchFileContents(depFile, true);
     resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: cmdline\n")
              && m_qbsStdout.contains("list prop: [\"cmdline\"]\n"),
@@ -5185,6 +5491,7 @@ void TestBlackbox::propertyPrecedence()
     switchProfileContents(profile.p, s.get(), true);
     resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: cmdline\n")
              && m_qbsStdout.contains("list prop: [\"cmdline\"]\n"),
@@ -5195,6 +5502,7 @@ void TestBlackbox::propertyPrecedence()
     switchFileContents(nonleafFile, true);
     resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: cmdline\n")
              && m_qbsStdout.contains("list prop: [\"cmdline\"]\n"),
@@ -5204,6 +5512,7 @@ void TestBlackbox::propertyPrecedence()
     switchProfileContents(profile.p, s.get(), true);
     resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: cmdline\n")
              && m_qbsStdout.contains("list prop: [\"cmdline\"]\n"),
@@ -5216,6 +5525,7 @@ void TestBlackbox::propertyPrecedence()
     switchFileContents(productFile, true);
     resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: cmdline\n")
              && m_qbsStdout.contains("list prop: [\"cmdline\"]\n"),
@@ -5225,6 +5535,7 @@ void TestBlackbox::propertyPrecedence()
     switchProfileContents(profile.p, s.get(), true);
     resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: cmdline\n")
              && m_qbsStdout.contains("list prop: [\"cmdline\"]\n"),
@@ -5235,6 +5546,7 @@ void TestBlackbox::propertyPrecedence()
     switchFileContents(nonleafFile, true);
     resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: cmdline\n")
              && m_qbsStdout.contains("list prop: [\"cmdline\"]\n"),
@@ -5244,6 +5556,7 @@ void TestBlackbox::propertyPrecedence()
     switchProfileContents(profile.p, s.get(), true);
     resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: cmdline\n")
              && m_qbsStdout.contains("list prop: [\"cmdline\"]\n"),
@@ -5255,6 +5568,7 @@ void TestBlackbox::propertyPrecedence()
     switchFileContents(depFile, true);
     resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: cmdline\n")
              && m_qbsStdout.contains("list prop: [\"cmdline\"]\n"),
@@ -5264,6 +5578,7 @@ void TestBlackbox::propertyPrecedence()
     switchProfileContents(profile.p, s.get(), true);
     resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: cmdline\n")
              && m_qbsStdout.contains("list prop: [\"cmdline\"]\n"),
@@ -5274,6 +5589,7 @@ void TestBlackbox::propertyPrecedence()
     switchFileContents(nonleafFile, true);
     resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: cmdline\n")
              && m_qbsStdout.contains("list prop: [\"cmdline\"]\n"),
@@ -5283,6 +5599,7 @@ void TestBlackbox::propertyPrecedence()
     switchProfileContents(profile.p, s.get(), true);
     resolveParams.arguments << "modules.leaf.scalarProp:cmdline" << "modules.leaf.listProp:cmdline";
     QCOMPARE(runQbs(resolveParams), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: cmdline\n")
              && m_qbsStdout.contains("list prop: [\"cmdline\"]\n"),
@@ -5563,8 +5880,8 @@ void TestBlackbox::qbsSession()
     // Wait for and verify hello packet.
     QJsonObject receivedMessage = getNextSessionPacket(sessionProc, incomingData);
     QCOMPARE(receivedMessage.value("type"), "hello");
-    QCOMPARE(receivedMessage.value("api-level").toInt(), 1);
-    QCOMPARE(receivedMessage.value("api-compat-level").toInt(), 1);
+    QCOMPARE(receivedMessage.value("api-level").toInt(), 2);
+    QCOMPARE(receivedMessage.value("api-compat-level").toInt(), 2);
 
     // Resolve & verify structure
     QJsonObject resolveMessage;
@@ -5622,7 +5939,7 @@ void TestBlackbox::qbsSession()
                     const QJsonObject group = v.toObject();
                     const QJsonArray sourceArtifacts
                             = group.value("source-artifacts").toArray();
-                    const auto findArtifact = [&sourceArtifacts](const QString fileName) {
+                    const auto findArtifact = [&sourceArtifacts](const QString &fileName) {
                         for (const QJsonValue &v : sourceArtifacts) {
                             const QJsonObject artifact = v.toObject();
                             if (QFileInfo(artifact.value("file-path").toString()).fileName()
@@ -5892,34 +6209,51 @@ void TestBlackbox::qbsSession()
         qDebug() << error;
     }
     QVERIFY(error.isEmpty());
-    QJsonObject projectData = receivedMessage.value("project-data").toObject();
-    QJsonArray products = projectData.value("products").toArray();
-    bool file1 = false;
-    bool file2 = false;
-    for (const QJsonValue &v : products) {
-        const QJsonObject product = v.toObject();
-        const QString productName = product.value("full-display-name").toString();
-        const QJsonArray groups = product.value("groups").toArray();
-        for (const QJsonValue &v : groups) {
-            const QJsonObject group = v.toObject();
-            const QString groupName = group.value("name").toString();
-            const QJsonArray sourceArtifacts = group.value("source-artifacts").toArray();
-            for (const QJsonValue &v : sourceArtifacts) {
-                const QString filePath = v.toObject().value("file-path").toString();
-                if (filePath.endsWith("file1.cpp")) {
-                    QCOMPARE(productName, QString("theLib"));
-                    QCOMPARE(groupName, QString("sources"));
-                    file1 = true;
-                } else if (filePath.endsWith("file2.cpp")) {
-                    QCOMPARE(productName, QString("theLib"));
-                    QCOMPARE(groupName, QString("sources"));
-                    file2 = true;
+
+    receivedReply = false;
+    sendPacket(resolveMessage);
+    while (!receivedReply) {
+        receivedMessage = getNextSessionPacket(sessionProc, incomingData);
+        QVERIFY(!receivedMessage.isEmpty());
+        const QString msgType = receivedMessage.value("type").toString();
+        if (msgType == "project-resolved") {
+            receivedReply = true;
+            const QJsonObject error = receivedMessage.value("error").toObject();
+            if (!error.isEmpty())
+                qDebug() << error;
+            QVERIFY(error.isEmpty());
+            const QJsonObject projectData = receivedMessage.value("project-data").toObject();
+            QJsonArray products = projectData.value("products").toArray();
+            bool file1 = false;
+            bool file2 = false;
+            for (const QJsonValue &v : products) {
+                const QJsonObject product = v.toObject();
+                const QString productName = product.value("full-display-name").toString();
+                const QJsonArray groups = product.value("groups").toArray();
+                for (const QJsonValue &v : groups) {
+                    const QJsonObject group = v.toObject();
+                    const QString groupName = group.value("name").toString();
+                    const QJsonArray sourceArtifacts = group.value("source-artifacts").toArray();
+                    for (const QJsonValue &v : sourceArtifacts) {
+                        const QString filePath = v.toObject().value("file-path").toString();
+                        if (filePath.endsWith("file1.cpp")) {
+                            QCOMPARE(productName, QString("theLib"));
+                            QCOMPARE(groupName, QString("sources"));
+                            file1 = true;
+                        } else if (filePath.endsWith("file2.cpp")) {
+                            QCOMPARE(productName, QString("theLib"));
+                            QCOMPARE(groupName, QString("sources"));
+                            file2 = true;
+                        }
+                    }
                 }
             }
+            QVERIFY(file1);
+            QVERIFY(file2);
         }
     }
-    QVERIFY(file1);
-    QVERIFY(file2);
+    QVERIFY(receivedReply);
+
     receivedReply = false;
     receivedProcessResult = false;
     bool compiledFile1 = false;
@@ -5978,32 +6312,48 @@ void TestBlackbox::qbsSession()
     if (!error.isEmpty())
         qDebug() << error;
     QVERIFY(error.isEmpty());
-    projectData = receivedMessage.value("project-data").toObject();
-    products = projectData.value("products").toArray();
-    file1 = false;
-    file2 = false;
-    for (const QJsonValue &v : products) {
-        const QJsonObject product = v.toObject();
-        const QString productName = product.value("full-display-name").toString();
-        const QJsonArray groups = product.value("groups").toArray();
-        for (const QJsonValue &v : groups) {
-            const QJsonObject group = v.toObject();
-            const QString groupName = group.value("name").toString();
-            const QJsonArray sourceArtifacts = group.value("source-artifacts").toArray();
-            for (const QJsonValue &v : sourceArtifacts) {
-                const QString filePath = v.toObject().value("file-path").toString();
-                if (filePath.endsWith("file1.cpp")) {
-                    file1 = true;
-                } else if (filePath.endsWith("file2.cpp")) {
-                    QCOMPARE(productName, QString("theLib"));
-                    QCOMPARE(groupName, QString("sources"));
-                    file2 = true;
+    receivedReply = false;
+    sendPacket(resolveMessage);
+    while (!receivedReply) {
+        receivedMessage = getNextSessionPacket(sessionProc, incomingData);
+        QVERIFY(!receivedMessage.isEmpty());
+        const QString msgType = receivedMessage.value("type").toString();
+        if (msgType == "project-resolved") {
+            receivedReply = true;
+            const QJsonObject error = receivedMessage.value("error").toObject();
+            if (!error.isEmpty())
+                qDebug() << error;
+            QVERIFY(error.isEmpty());
+            const QJsonObject projectData = receivedMessage.value("project-data").toObject();
+            QJsonArray products = projectData.value("products").toArray();
+            bool file1 = false;
+            bool file2 = false;
+            for (const QJsonValue &v : products) {
+                const QJsonObject product = v.toObject();
+                const QString productName = product.value("full-display-name").toString();
+                const QJsonArray groups = product.value("groups").toArray();
+                for (const QJsonValue &v : groups) {
+                    const QJsonObject group = v.toObject();
+                    const QString groupName = group.value("name").toString();
+                    const QJsonArray sourceArtifacts = group.value("source-artifacts").toArray();
+                    for (const QJsonValue &v : sourceArtifacts) {
+                        const QString filePath = v.toObject().value("file-path").toString();
+                        if (filePath.endsWith("file1.cpp")) {
+                            file1 = true;
+                        } else if (filePath.endsWith("file2.cpp")) {
+                            QCOMPARE(productName, QString("theLib"));
+                            QCOMPARE(groupName, QString("sources"));
+                            file2 = true;
+                        }
+                    }
                 }
             }
+            QVERIFY(!file1);
+            QVERIFY(file2);
         }
     }
-    QVERIFY(!file1);
-    QVERIFY(file2);
+    QVERIFY(receivedReply);
+
     receivedReply = false;
     receivedProcessResult = false;
     compiledFile1 = false;
@@ -7012,6 +7362,12 @@ void TestBlackbox::typescript()
     QVERIFY(regularFileExists(relativeProductBuildDir("animals") + "/main.js"));
 }
 
+void TestBlackbox::undefinedTargetPlatform()
+{
+    QDir::setCurrent(testDataDir + "/undefined-target-platform");
+    QCOMPARE(runQbs(), 0);
+}
+
 void TestBlackbox::importInPropertiesCondition()
 {
     QDir::setCurrent(testDataDir + "/import-in-properties-condition");
@@ -7774,6 +8130,17 @@ void TestBlackbox::grpc()
 
     QbsRunParameters runParams;
     QCOMPARE(runQbs(runParams), 0);
+}
+
+void TestBlackbox::hostOsProperties()
+{
+    QDir::setCurrent(testDataDir + "/host-os-properties");
+    QCOMPARE(runQbs(QStringLiteral("run")), 0);
+    QVERIFY2(m_qbsStdout.contains(
+                 ("HOST_ARCHITECTURE = " + HostOsInfo::hostOSArchitecture()).data()),
+             m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains(("HOST_PLATFORM = " + HostOsInfo::hostOSIdentifier()).data()),
+             m_qbsStdout.constData());
 }
 
 void TestBlackbox::ico()

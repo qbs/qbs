@@ -115,7 +115,7 @@ private:
 };
 
 
-ProjectFileUpdater::ProjectFileUpdater(const QString &projectFile) : m_projectFile(projectFile)
+ProjectFileUpdater::ProjectFileUpdater(QString projectFile) : m_projectFile(std::move(projectFile))
 {
 }
 
@@ -201,11 +201,10 @@ void ProjectFileUpdater::apply()
 }
 
 
-ProjectFileGroupInserter::ProjectFileGroupInserter(const ProductData &product,
-                                                   const QString &groupName)
+ProjectFileGroupInserter::ProjectFileGroupInserter(ProductData product, QString groupName)
     : ProjectFileUpdater(product.location().filePath())
-    , m_product(product)
-    , m_groupName(groupName)
+    , m_product(std::move(product))
+    , m_groupName(std::move(groupName))
 {
 }
 
@@ -222,7 +221,7 @@ void ProjectFileGroupInserter::doApply(QString &fileContent, UiProgram *ast)
     Rewriter rewriter(fileContent, &changeSet, QStringList());
     QString groupItemString;
     const int productItemIndentation
-            = itemFinder.item()->qualifiedTypeNameId->firstSourceLocation().startColumn - 1;
+            = int(itemFinder.item()->qualifiedTypeNameId->firstSourceLocation().startColumn - 1);
     const int groupItemIndentation = productItemIndentation + 4;
     const QString groupItemIndentationString = QString(groupItemIndentation, QLatin1Char(' '));
     groupItemString += groupItemIndentationString + QLatin1String("Group {\n");
@@ -252,7 +251,7 @@ static QString getNodeRepresentation(const QString &fileContent, const QbsQmlJS:
 {
     const quint32 start = node->firstSourceLocation().offset;
     const quint32 end = node->lastSourceLocation().end();
-    return fileContent.mid(start, end - start);
+    return fileContent.mid(start, int(end - start));
 }
 
 static const ChangeSet::EditOp &getEditOp(const ChangeSet &changeSet)
@@ -273,12 +272,12 @@ static int getBindingLine(const ChangeSet &changeSet, const QString &fileContent
 }
 
 
-ProjectFileFilesAdder::ProjectFileFilesAdder(const ProductData &product, const GroupData &group,
-                                             const QStringList &files)
+ProjectFileFilesAdder::ProjectFileFilesAdder(ProductData product, GroupData group,
+                                             QStringList files)
     : ProjectFileUpdater(product.location().filePath())
-    , m_product(product)
-    , m_group(group)
-    , m_files(files)
+    , m_product(std::move(product))
+    , m_group(std::move(group))
+    , m_files(std::move(files))
 {
 }
 
@@ -319,7 +318,7 @@ void ProjectFileFilesAdder::doApply(QString &fileContent, UiProgram *ast)
     }
 
     const int itemIndentation
-            = itemFinder.item()->qualifiedTypeNameId->firstSourceLocation().startColumn - 1;
+            = int(itemFinder.item()->qualifiedTypeNameId->firstSourceLocation().startColumn - 1);
     const int bindingIndentation = itemIndentation + 4;
     const int arrayElemIndentation = bindingIndentation + 4;
 
@@ -405,12 +404,12 @@ void ProjectFileFilesAdder::doApply(QString &fileContent, UiProgram *ast)
     changeSet.apply(&fileContent);
 }
 
-ProjectFileFilesRemover::ProjectFileFilesRemover(const ProductData &product, const GroupData &group,
-                                                 const QStringList &files)
+ProjectFileFilesRemover::ProjectFileFilesRemover(ProductData product, GroupData group,
+                                                 QStringList files)
     : ProjectFileUpdater(product.location().filePath())
-    , m_product(product)
-    , m_group(group)
-    , m_files(files)
+    , m_product(std::move(product))
+    , m_group(std::move(group))
+    , m_files(std::move(files))
 {
 }
 
@@ -444,7 +443,7 @@ void ProjectFileFilesRemover::doApply(QString &fileContent, UiProgram *ast)
     Rewriter rewriter(fileContent, &changeSet, QStringList());
 
     const int itemIndentation
-            = itemFinder.item()->qualifiedTypeNameId->firstSourceLocation().startColumn - 1;
+            = int(itemFinder.item()->qualifiedTypeNameId->firstSourceLocation().startColumn - 1);
     const int bindingIndentation = itemIndentation + 4;
     const int arrayElemIndentation = bindingIndentation + 4;
 
@@ -512,10 +511,10 @@ void ProjectFileFilesRemover::doApply(QString &fileContent, UiProgram *ast)
 }
 
 
-ProjectFileGroupRemover::ProjectFileGroupRemover(const ProductData &product, const GroupData &group)
+ProjectFileGroupRemover::ProjectFileGroupRemover(ProductData product, GroupData group)
     : ProjectFileUpdater(product.location().filePath())
-    , m_product(product)
-    , m_group(group)
+    , m_product(std::move(product))
+    , m_group(std::move(group))
 {
 }
 

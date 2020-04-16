@@ -61,7 +61,7 @@ class ScriptEngine;
 class DependencyScanner
 {
 public:
-    virtual ~DependencyScanner() {}
+    virtual ~DependencyScanner() = default;
 
     QString id() const;
 

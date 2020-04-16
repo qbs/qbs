@@ -113,11 +113,13 @@
 
     The name of the build variant for the current build.
 
-    Possible values are \c{"debug"} and \c{"release"}. A debug build usually
-    contains additional debug symbols that are needed for debugging the
-    application but that can be left out from the release version. Debug builds
-    are used for testing and release builds for creating the final installation
-    file.
+    Possible values are \c{"debug"}, \c{"release"} and \c{"profiling"}.
+    A debug build usually contains additional debug symbols that are needed for
+    debugging the application and has optimizations turned off. A profiling
+    build usually contains debug symbols and has optimizations turned on. This
+    is useful for profiling tools or when you need to retain debug symbols
+    in a release build. A release build is a build without debug information and
+    with optimizations enabled.
 
     \defaultvalue \c{"release"} if
     \l{qbs::configurationName}{qbs.configurationName} is \c{"release"}. Otherwise
@@ -129,7 +131,8 @@
 
     Whether to generate debug information.
 
-    \defaultvalue \c{true} for debug builds, \c{false} otherwise.
+    \defaultvalue \c{true} if \l{qbs::buildVariant}{qbs.buildVariant} is \c{"debug"} or
+    \c{"profiling"}. Otherwise \c{false}.
 */
 
 /*!
@@ -151,7 +154,7 @@
     \endlist
 
     Typically, this property is enabled for debug builds and disabled for
-    release builds.
+    release or profiling builds.
 
     \defaultvalue \c{true} for debug builds, \c{false} otherwise.
 */
@@ -169,11 +172,12 @@
         \li \c{"small"}
     \endlist
 
-    \defaultvalue \c{"none"} for debug builds, \c{"fast"} for release builds.
+    \defaultvalue \c{"none"} if \l{qbs::buildVariant}{qbs.buildVariant} is \c{"debug"}.
+    Otherwise \c{"fast"}.
 */
 
 /*!
-    \qmlproperty stringList qbs::targetPlatform
+    \qmlproperty string qbs::targetPlatform
     \since 1.11
 
     The OS you want to build the project for.
@@ -255,6 +259,9 @@
         \li \c{"tvos-simulator"}
         \li \c{["tvos-simulator", "tvos", "darwin", "bsd", "unix"]}
     \row
+        \li \c{"unix"}
+        \li \c{["unix"]}
+    \row
         \li \c{"vxworks"}
         \li \c{["vxworks"]}
     \row
@@ -266,6 +273,9 @@
     \row
         \li \c{"windows"}
         \li \c{["windows"]}
+    \row
+        \li \c{undefined}
+        \li \c{[]}
     \endtable
 
     \sa {Target Platforms}
@@ -285,20 +295,130 @@
 
     Commonly used values are: \c{"x86"}, \c{"x86_64"}, and \c{"arm"}.
 
+    \section2 Supported Processor Architectures
+
+    This table describes the possible values of the \l{qbs::}{architecture} property:
+    \table
+    \header
+        \li Architecture
+        \li Description
+    \row
+        \li \c{"78k"}
+        \li 16- and 8-bit accumulator-based register-bank CISC architecture
+            microcontroller family manufactured by Renesas Electronics
+    \row
+        \li \c{"arm"}
+        \li 32-bit RISC architecture for computer processors
+            developed by Acorn RISC Machine
+            \note There are a lot of sub-variants of the ARM architecture.
+                  Some specialized \QBS modules differentiate between them,
+                  making use of values such as \c "armv7a". Please consult the
+                  respective module-specific documentation for information
+                  on what kind of value to use.
+    \row
+        \li \c{"arm64"}
+        \li 64-bit RISC architecture for computer processors
+            developed by Acorn RISC Machine
+    \row
+        \li \c{"avr"}
+        \li 8-bit modified Harvard RISC architecture microcontroller
+            family manufactured by Microchip Technology
+    \row
+        \li \c{"avr32"}
+        \li 32-bit RISC architecture microcontroller family developed by Atmel
+    \row
+        \li \c{"ia64"}
+        \li 64-bit ISA architecture of the Itanium family processors
+            developed by Intel
+    \row
+        \li "mcs51"}
+        \li 8-bit Harvard architecture microcontroller family developed by Intel
+    \row
+        \li \c{"mips"}
+        \li 32-bit RISC microprocessor without interlocked pipelined stages
+            architecture developed by MIPS Computer Systems
+    \row
+        \li \c{"mips64"}
+        \li 64-bit RISC microprocessor without interlocked pipelined stages
+            architecture developed by MIPS Computer Systems
+    \row
+        \li \c{"msp430"}
+        \li 16-bit mixed-signal microcontroller family manufactured
+            by Texas Instruments
+    \row
+        \li \c{"ppc"}
+        \li 32-bit RISC architecture processor family developed by
+            Apple–IBM–Motorola alliance
+    \row
+        \li \c{"ppc64"}
+        \li 64-bit RISC architecture processor family developed by
+            Apple–IBM–Motorola alliance
+    \row
+        \li \c{"rh850"}
+        \li 32-bit automotive microcontroller family manufactured
+            by Renesas Electronics
+    \row
+        \li \c{"rl78"}
+        \li 16- and 8-bit accumulator-based register-bank CISC architecture
+            with 3-stage instruction pipelining microcontroller family manufactured
+            by Renesas Electronics
+    \row
+        \li \c{"rx"}
+        \li High performance 32-bit CISC microcontroller family manufactured
+            by Renesas Electronics
+    \row
+        \li \c{"s390x"}
+        \li 64- and 32-bit System/390 processor architecture developed by IBM
+    \row
+        \li \c{"sparc"}
+        \li 32-bit RISC architecture processor family developed by
+            Sun Microsystems and Fujitsu
+    \row
+        \li \c{"sparc64"}
+        \li 64-bit RISC architecture processor family developed by
+            Sun Microsystems and Fujitsu
+    \row
+        \li \c{"stm8"}
+        \li 8-bit microcontroller family manufactured by STMicroelectronics
+    \row
+        \li \c{"v850"}
+        \li 32-bit RISC microcontroller family manufactured by Renesas Electronics
+    \row
+        \li \c{"x86"}
+        \li 32-bit ISA architecture processor family developed by Intel
+    \row
+        \li \c{"x86_64"}
+        \li 64-bit ISA architecture processor family developed by AMD
+    \endtable
+
     \nodefaultvalue
 */
 
 /*!
-    \qmlproperty string qbs::toolchainType
-    \since Qbs 1.11
+    \qmlproperty stringList qbs::toolchain
 
-    The toolchain that is going to be used for this build.
+    Contains the list of string values describing the toolchain and toolchain
+    family that is used to build a project.
 
-    You should generally treat this property as \e{write-only} and avoid using
-    it to test for the current toolchain. Instead, use the \l{qbs::}{toolchain}
-    property for conditionals.
+    This property is deduced from the \l{qbs::}{toolchainType} property and is typically
+    used to test for a particular toolchain or toolchain family in conditionals:
 
-    For example, instead of:
+    \code
+        Properties {
+            // flags for GCC
+            condition: qbs.toolchain.contains("gcc")
+            cpp.commonCompilerFlags: ...
+        }
+        Properties {
+            // flags for MSVC
+            condition: qbs.toolchain.contains("msvc")
+            cpp.commonCompilerFlags: ...
+        }
+    \endcode
+
+    Unlike \l{qbs::}{toolchainType}, which contains a single value, \c qbs.toolchain
+    is a string list which also contains the toolchain family. This allows to make
+    conditions and checks simpler. For example, instead of:
 
     \code
     (qbs.toolchainType === "xcode" || qbs.toolchainType === "clang" || qbs.toolchainType === "gcc")
@@ -310,22 +430,97 @@
     qbs.toolchain.contains("gcc")
     \endcode
 
-    However, there are some cases when using \c toolchainType would be
-    acceptable, such as when the resulting condition would be simpler while
-    still being correct:
+    since XCode, GCC and Clang belong to the \c "gcc" family.
 
+    \section2 Relation between toolchainType and toolchain
+
+    This table describes the possible values and matching between the \l{qbs::}{toolchainType}
+    and the \c toolchain properties:
+    \table
+    \header
+        \li Toolchain Type
+        \li Toolchain
+    \row
+        \li \c{"clang"}
+        \li \c{["clang", "llvm", "gcc"]}
+    \row
+        \li \c{"clang-cl"}
+        \li \c{["clang-cl", "msvc"]}
+    \row
+        \li \c{"gcc"}
+        \li \c{["gcc"]}
+    \row
+        \li \c{"iar"}
+        \li \c{["iar"]}
+    \row
+        \li \c{"keil"}
+        \li \c{["keil"]}
+    \row
+        \li \c{"llvm"}
+        \li \c{["llvm", "gcc"]}
+    \row
+        \li \c{"mingw"}
+        \li \c{["mingw", "gcc"]}
+    \row
+        \li \c{"msvc"}
+        \li \c{["msvc"]}
+    \row
+        \li \c{"sdcc"}
+        \li \c{["sdcc"]}
+    \row
+        \li \c{"xcode"}
+        \li \c{["xcode", "clang", "llvm", "gcc"]}
+    \endtable
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string qbs::toolchainType
+    \since Qbs 1.11
+
+    The toolchain that is going to be used for this build.
+
+    For example, to build a project using the \c "clang" toolchain, simply do
     \code
-    (qbs.toolchainType === "gcc")
+    qbs build qbs.toolchainType:clang
     \endcode
 
-    versus:
+    You should generally treat this property as \e{write-only} and avoid using
+    it to test for the current toolchain. Instead, use the \l{qbs::}{toolchain}
+    property for conditionals.
 
-    \code
-    (qbs.toolchain.contains("gcc") && !qbs.toolchain.contains("clang"))
-    \endcode
+    Typical values include: \c{"gcc"}, \c{"clang"}, \c{"clang-cl"}, \c{"mingw"},
+    \c{"msvc"}, and \c{"xcode"}. Also see \l{Relation between toolchainType and toolchain}.
 
-    Typical values include: \c{"gcc"}, \c{"clang"}, \c{"mingw"}, \c{"msvc"}, and
-    \c{"xcode"}.
+    By default, \c qbs.toolchainType is automatically detected based on the
+    \l{qbs::}{targetOS} property:
+    \table
+    \header
+        \li Target OS
+        \li Toolchain
+    \row
+        \li \c{"darwin"}
+        \li \c{"xcode"}
+    \row
+        \li \c{"freebsd"}
+        \li \c{"clang"}
+    \row
+        \li \c{"haiku"}
+        \li \c{"gcc"}
+    \row
+        \li \c{"qnx"}
+        \li \c{"qcc"}
+    \row
+        \li \c{"unix"}
+        \li \c{"gcc"}
+    \row
+        \li \c{"vxworks"}
+        \li \c{"gcc"}
+    \row
+        \li \c{"windows"}
+        \li \c{"msvc"}
+    \endtable
 
     \defaultvalue Determined automatically.
 */
@@ -371,6 +566,15 @@
     On Unix-like platforms, this is \c{/bin/sh}.
 
     \defaultvalue \c{"%COMSPEC%"} on Windows, \c{"/bin/sh"} on Unix
+*/
+
+/*!
+    \qmlproperty string qbs::hostArchitecture
+    \since Qbs 1.16
+
+    Contains the host OS architecture.
+
+    \defaultvalue Determined automatically.
 */
 
 /*!
@@ -460,7 +664,9 @@
     \qmlproperty string qbs::hostPlatform
     \since Qbs 1.11
 
-    Do not use this property.
+    Contains the host OS platform.
+
+    \sa {qbs::hostArchitecture}{hostArchitecture}
 
     \defaultvalue Determined automatically.
 */
@@ -518,17 +724,6 @@
 
     For the complete list of possible values, see
     \l{Relation between targetPlatform and targetOS}.
-
-    \nodefaultvalue
-*/
-
-/*!
-    \qmlproperty stringList qbs::toolchain
-
-    The attributes of the toolchain that is going to be used for this build.
-
-    Typical values include \c{"llvm"}, in addition to the possible values of
-    \l{qbs::}{toolchainType}.
 
     \nodefaultvalue
 */

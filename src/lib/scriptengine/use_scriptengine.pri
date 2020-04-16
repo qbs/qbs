@@ -3,7 +3,15 @@
     isEmpty(QBSLIBDIR) {
         QBSLIBDIR = $$shadowed($$PWD/../../../$${QBS_LIBRARY_DIRNAME})
     }
-    LIBS += -L$$QBSLIBDIR -lqbsscriptengine$$qtPlatformTargetSuffix()
+
+    LIBS += -L$$QBSLIBDIR
+    macos {
+        LIBS += -lqbsscriptengine
+    }
+    else {
+        LIBS += -lqbsscriptengine$$qtPlatformTargetSuffix()
+    }
+
 }
 
 INCLUDEPATH += \

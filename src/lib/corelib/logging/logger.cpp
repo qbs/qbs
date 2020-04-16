@@ -50,9 +50,9 @@
 #include <QtCore/qvariant.h>
 
 #include <cstdarg>
+#include <cstdio>
 #include <mutex>
 #include <set>
-#include <stdio.h>
 
 namespace qbs {
 namespace Internal {
@@ -183,17 +183,20 @@ LogWriter operator<<(LogWriter w, const QVariant &variant)
 
 LogWriter operator<<(LogWriter w, int n)
 {
-    return w << QString::number(n);
+    w.write(QString::number(n));
+    return w;
 }
 
 LogWriter operator<<(LogWriter w, qint64 n)
 {
-    return w << QString::number(n);
+    w.write(QString::number(n));
+    return w;
 }
 
 LogWriter operator<<(LogWriter w, bool b)
 {
-    return w << QString::fromLatin1(b ? "true" : "false");
+    w.write(QString::fromLatin1(b ? "true" : "false"));
+    return w;
 }
 
 LogWriter operator<<(LogWriter w, const MessageTag &tag)

@@ -51,9 +51,7 @@ public:
     std::map<FileTag, std::vector<ScannerPlugin* >> scannerPlugins;
 };
 
-ScannerPluginManager::~ScannerPluginManager()
-{
-}
+ScannerPluginManager::~ScannerPluginManager() = default;
 
 ScannerPluginManager *ScannerPluginManager::instance()
 {

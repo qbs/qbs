@@ -43,13 +43,13 @@
 
 #include <QtCore/qfile.h>
 #include <QtCore/qsocketnotifier.h>
+#include <QtCore/qtimer.h>
 
 #include <cerrno>
 #include <cstring>
 
 #ifdef Q_OS_WIN32
 #include <qt_windows.h>
-#include <QtCore/qtimer.h>
 #else
 #include <fcntl.h>
 #endif
@@ -69,11 +69,11 @@ private:
             emit errorOccurred(tr("Cannot read from standard input."));
             return;
         }
+#ifdef Q_OS_UNIX
         const auto emitError = [this] {
             emit errorOccurred(tr("Failed to make standard input non-blocking: %1")
                                .arg(QLatin1String(std::strerror(errno))));
         };
-#ifdef Q_OS_UNIX
         const int flags = fcntl(0, F_GETFL, 0);
         if (flags == -1) {
             emitError();
@@ -87,6 +87,18 @@ private:
         connect(&m_notifier, &QSocketNotifier::activated, this, [this] {
             emit dataAvailable(m_stdIn.readAll());
         });
+
+        // Neither the aboutToClose() nor the readChannelFinished() signals
+        // are triggering, so we need a timer to check whether the controlling
+        // process disappeared.
+        const auto stdinClosedChecker = new QTimer(this);
+        connect(stdinClosedChecker, &QTimer::timeout, this, [this, stdinClosedChecker] {
+            if (m_stdIn.atEnd()) {
+                stdinClosedChecker->stop();
+                emit errorOccurred(tr("Input channel closed unexpectedly."));
+            }
+        });
+        stdinClosedChecker->start(1000);
     }
 
     QFile m_stdIn;
@@ -112,14 +124,22 @@ private:
         // (how would we abort that one?), but ideally we'd like
         // to have a signal-based approach like in the Unix variant.
         const auto timer = new QTimer(this);
-        connect(timer, &QTimer::timeout, this, [this] {
+        connect(timer, &QTimer::timeout, this, [this, timer] {
             char buf[1024];
             DWORD bytesAvail;
-            PeekNamedPipe(m_stdinHandle, nullptr, 0, nullptr, &bytesAvail, nullptr);
+            if (!PeekNamedPipe(m_stdinHandle, nullptr, 0, nullptr, &bytesAvail, nullptr)) {
+                timer->stop();
+                emit errorOccurred(tr("Failed to read from input channel."));
+                return;
+            }
             while (bytesAvail > 0) {
                 DWORD bytesRead;
-                ReadFile(m_stdinHandle, buf, std::min<DWORD>(bytesAvail, sizeof buf), &bytesRead,
-                         nullptr);
+                if (!ReadFile(m_stdinHandle, buf, std::min<DWORD>(bytesAvail, sizeof buf),
+                              &bytesRead, nullptr)) {
+                    timer->stop();
+                    emit errorOccurred(tr("Failed to read from input channel."));
+                    return;
+                }
                 emit dataAvailable(QByteArray(buf, bytesRead));
                 bytesAvail -= bytesRead;
             }

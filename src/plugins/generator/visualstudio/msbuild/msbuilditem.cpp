@@ -51,9 +51,7 @@ MSBuildItem::MSBuildItem(const QString &name, IMSBuildItemGroup *parent)
     setName(name);
 }
 
-MSBuildItem::~MSBuildItem()
-{
-}
+MSBuildItem::~MSBuildItem() = default;
 
 QString MSBuildItem::name() const
 {

@@ -50,7 +50,8 @@ export QBS_AUTOTEST_SETTINGS_DIR="${QBS_AUTOTEST_SETTINGS_DIR:-/tmp/qbs-settings
 #
 qmake -r qbs.pro \
         CONFIG+=qbs_enable_unit_tests \
-        CONFIG+=qbs_enable_project_file_updates
+        CONFIG+=qbs_enable_project_file_updates \
+        ${BUILD_OPTIONS}
 make -j $(nproc --all)
 make docs
 

@@ -45,10 +45,9 @@ void PropertyGroup::appendProperty(QByteArray name, QVariant value)
     appendChild<Property>(std::move(name), std::move(value));
 }
 
-void PropertyGroup::appendMultiLineProperty(
-        QByteArray key, QStringList values, QChar sep)
+void PropertyGroup::appendMultiLineProperty(QByteArray key, const QStringList &values, QChar sep)
 {
-    const auto line = values.join(std::move(sep));
+    const auto line = values.join(sep);
     appendProperty(std::move(key), QVariant::fromValue(line));
 }
 

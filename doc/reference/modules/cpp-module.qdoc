@@ -390,6 +390,8 @@
 
     \defaultvalue \c{true} for MSVC and with GCC or Clang on Apple platforms,
     otherwise \c{false}.
+
+    \sa debugInformation, {How do I separate and install debugging symbols?}
 */
 
 /*!
@@ -457,10 +459,16 @@
 
     A list of library search paths.
 
+    The paths will be passed to the linker in the appropriate way. For
+    example, the \c {-L} argument will be used when using \c {ld}-like
+    linkers.
+
     Relative paths are considered to be relative to the \c .qbs product file
     they are used in.
 
     \nodefaultvalue
+
+    \sa dynamicLibraries, {How do I create a module for a third-party library?}
 */
 
 /*!
@@ -471,7 +479,21 @@
     If the library is part of your project, consider using a \l{Depends} item
     instead.
 
+    Each library can be specified in one of two ways:
+
+    \list
+    \li An absolute file path (for example, \c "/foo/bar.lib"), in which case
+        it is passed directly to the linker, ignoring \l libraryPaths.
+    \li A library basename (for example, \c "bar"), in which case
+        the directory that contains the library must be provided via
+        \l libraryPaths.
+    \endlist
+
+    Relative paths (\c "foo/bar.lib") are not allowed.
+
     \nodefaultvalue
+
+    \sa libraryPaths, {How do I create a module for a third-party library?}
 */
 
 /*!
@@ -588,6 +610,15 @@
 
     A list of flags that are added to all compilation commands independently of
     the language.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string cpp::compilerVersion
+
+    Compiler version string consisting of major, minor and patch numbers,
+    separated by a dot.
 
     \nodefaultvalue
 */
@@ -1197,8 +1228,6 @@
     \qmlproperty string cpp::linkerMode
     \since Qbs 1.6
 
-    \unixproperty
-
     Controls whether to automatically use an appropriate compiler frontend
     instead of the system linker when linking binaries.
 
@@ -1217,12 +1246,12 @@
     \qmlproperty string cpp::linkerVariant
     \since Qbs 1.13
 
-    \unixproperty
+    Set this property to force the use of a specific linker. A non-empty value
+    will result in the \c {-fuse-ld} option being emitted when linking with \c gcc,
+    \c clang or \c clang-cl.
 
-    Set this property to force the use of a specific \c ld implementation. A non-empty value
-    will result in the \c {-fuse-ld} option being emitted when linking with \c gcc or \c clang.
-
-    The possible values are \c "bfd", \c "gold" and \c "lld".
+    The possible values for \c clang and \c gcc are \c "bfd", \c "gold" and \c "lld",
+    the possible values for \c clang-cl are \c "link" and \c "lld".
 
     \nodefaultvalue
 */

@@ -79,8 +79,7 @@ using namespace qbs;
 using namespace qbs::Internal;
 
 static QString testDataDir() {
-    return FileInfo::resolvePath(QStringLiteral(SRCDIR),
-                                 QStringLiteral("../../../tests/auto/language/testdata"));
+    return testDataSourceDir(SRCDIR "/testdata");
 }
 static QString testProject(const char *fileName) {
     return testDataDir() + QLatin1Char('/') + QLatin1String(fileName);
@@ -180,7 +179,7 @@ void TestLanguage::initTestCase()
     m_engine = ScriptEngine::create(m_logger, EvalContext::PropertyEvaluation, this);
     loader = new Loader(m_engine, m_logger);
     loader->setSearchPaths(QStringList()
-                           << QStringLiteral(SRCDIR "/../../../share/qbs"));
+                           << (testDataDir() + "/../../../../share/qbs"));
     defaultParameters.setTopLevelProfile(profileName());
     defaultParameters.setConfigurationName("default");
     defaultParameters.expandBuildConfiguration();
@@ -925,9 +924,20 @@ void TestLanguage::erroneousFiles_data()
             << "original-in-export-item3.qbs:6:9.*Item 'x.y' is not declared. Did you forget "
                "to add a Depends item";
     QTest::newRow("mismatching-multiplex-dependency")
-            << "mismatching-multiplex-dependency.qbs:7:5.*Dependency from product "
-               "'b \\{\"architecture\":\"mips\"\\}' to product 'a \\{\"architecture\":\"mips\"\\}'"
-               " not fulfilled.";
+            << "mismatching-multiplex-dependency.qbs:9:9.*Dependency from product "
+               "'b \\{\"architecture\":\"mips\"\\}' to product 'a'"
+               " not fulfilled. There are no eligible multiplex candidates.";
+    QTest::newRow("ambiguous-multiplex-dependency")
+            << "ambiguous-multiplex-dependency.qbs:10:9.*Dependency from product 'b "
+               "\\{\"architecture\":\"x86\"\\}' to product 'a' is ambiguous. Eligible multiplex "
+               "candidates: a \\{\"architecture\":\"x86\",\"buildVariant\":\"debug\"\\}, "
+               "a \\{\"architecture\":\"x86\",\"buildVariant\":\"release\"\\}.";
+    QTest::newRow("dependency-profile-mismatch")
+            << "dependency-profile-mismatch.qbs:10:5.*Product 'main' depends on 'dep', "
+               "which does not exist for the requested profile 'profile47'.";
+    QTest::newRow("dependency-profile-mismatch-2")
+            << "dependency-profile-mismatch-2.qbs:15:9 Dependency from product 'main' to "
+               "product 'dep' not fulfilled. There are no eligible multiplex candidates.";
     QTest::newRow("duplicate-multiplex-value")
             << "duplicate-multiplex-value.qbs:3:1.*Duplicate entry 'x86' in qbs.architectures.";
     QTest::newRow("duplicate-multiplex-value2")
@@ -1051,7 +1061,7 @@ void TestLanguage::exports()
         propertyName = QStringList() << "dummy" << "defines";
         propertyValue = product->moduleProperties->property(propertyName);
         QCOMPARE(propertyValue.toStringList(),
-                 QStringList() << "LIBA" << "LIBB" << "LIBC" << "LIBD");
+                 QStringList() << "LIBD" << "LIBC" << "LIBA" << "LIBB");
         propertyName = QStringList() << "dummy" << "productName";
         propertyValue = product->moduleProperties->property(propertyName);
         QCOMPARE(propertyValue.toString(), QString("libE"));
@@ -1730,10 +1740,10 @@ void TestLanguage::moduleProperties_data()
     QTest::newRow("init") << QString() << QVariant();
     QTest::newRow("merge_lists")
             << "defines"
-            << QVariant(QStringList() << "THE_PRODUCT" << "QT_CORE" << "QT_GUI" << "QT_NETWORK");
+            << QVariant(QStringList() << "THE_PRODUCT" << "QT_NETWORK" << "QT_GUI" << "QT_CORE");
     QTest::newRow("merge_lists_and_values")
             << "defines"
-            << QVariant(QStringList() << "THE_PRODUCT" << "QT_CORE" << "QT_GUI" << "QT_NETWORK");
+            << QVariant(QStringList() << "THE_PRODUCT" << "QT_NETWORK" << "QT_GUI" << "QT_CORE");
     QTest::newRow("merge_lists_with_duplicates")
             << "cxxFlags"
             << QVariant(QStringList() << "-foo" << "BAR" << "-foo" << "BAZ");
@@ -2469,7 +2479,7 @@ void TestLanguage::projectFileLookup_data()
     QTest::addColumn<QString>("projectFileOutput");
     QTest::addColumn<bool>("failureExpected");
 
-    const QString baseDir = QLatin1String(SRCDIR) + "/testdata";
+    const QString baseDir = testDataDir();
     const QString multiProjectsDir = baseDir + "/dirwithmultipleprojects";
     const QString noProjectsDir = baseDir + "/dirwithnoprojects";
     const QString oneProjectDir = baseDir + "/dirwithoneproject";
@@ -3182,6 +3192,7 @@ void TestLanguage::wildcards()
         QFile projectFile(projectFilePath);
         QVERIFY(projectFile.open(QIODevice::WriteOnly));
         QTextStream s(&projectFile);
+        using Qt::endl;
         s << "import qbs.base 1.0" << endl << endl
           << "Application {" << endl
           << "  name: \"MyProduct\"" << endl;

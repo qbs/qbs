@@ -75,7 +75,7 @@ static InitializerMap &initializers()
     return theMap;
 }
 
-void JsExtensions::setupExtensions(const QStringList &names, QScriptValue scope)
+void JsExtensions::setupExtensions(const QStringList &names, const QScriptValue &scope)
 {
     for (const QString &name : names)
         initializers().value(name)(scope);

@@ -62,9 +62,7 @@ Transformer::Transformer() : alwaysRun(false)
 {
 }
 
-Transformer::~Transformer()
-{
-}
+Transformer::~Transformer() = default;
 
 static QScriptValue js_baseName(QScriptContext *ctx, QScriptEngine *engine,
                                 const Artifact *artifact)
@@ -196,7 +194,7 @@ void Transformer::setupInputs(QScriptValue targetScriptValue, const ArtifactSet 
     targetScriptValue.setProperty(StringConstants::inputVar(), inputScriptValue);
 }
 
-void Transformer::setupInputs(QScriptValue targetScriptValue)
+void Transformer::setupInputs(const QScriptValue &targetScriptValue)
 {
     setupInputs(targetScriptValue, inputs, rule->module->name);
 }

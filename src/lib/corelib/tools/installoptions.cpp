@@ -92,23 +92,15 @@ InstallOptions::InstallOptions() : d(new Internal::InstallOptionsPrivate)
 {
 }
 
-InstallOptions::InstallOptions(const InstallOptions &other) : d(other.d)
-{
-}
+InstallOptions::InstallOptions(const InstallOptions &other) = default;
 
 InstallOptions::InstallOptions(InstallOptions &&other) Q_DECL_NOEXCEPT = default;
 
-InstallOptions &InstallOptions::operator=(const InstallOptions &other)
-{
-    d = other.d;
-    return *this;
-}
+InstallOptions &InstallOptions::operator=(const InstallOptions &other) = default;
 
 InstallOptions &InstallOptions::operator=(InstallOptions &&other) Q_DECL_NOEXCEPT = default;
 
-InstallOptions::~InstallOptions()
-{
-}
+InstallOptions::~InstallOptions() = default;
 
 /*!
  * \brief The default install root, relative to the build directory.

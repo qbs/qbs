@@ -40,7 +40,7 @@ MsvcBaseModule {
                qbs.toolchain && qbs.toolchain.contains('clang-cl')
     priority: 100
 
-    Probes.BinaryProbe {
+    Probes.ClangClBinaryProbe {
         id: clangPathProbe
         condition: !toolchainInstallPath && !_skipAllChecks
         names: ["clang-cl"]
@@ -52,8 +52,10 @@ MsvcBaseModule {
         compilerFilePath: compilerPath
         vcvarsallFilePath: vcvarsallPath
         enableDefinesByLanguage: enableCompilerDefinesByLanguage
-        architecture: qbs.architecture
+        preferredArchitecture: qbs.architecture
     }
+
+    qbs.architecture: clangClProbe.found ? clangClProbe.architecture : original
 
     compilerVersionMajor: clangClProbe.versionMajor
     compilerVersionMinor: clangClProbe.versionMinor
@@ -65,7 +67,18 @@ MsvcBaseModule {
                                                : undefined
     buildEnv: clangClProbe.buildEnv
 
-    property string vcvarsallPath
+    property string linkerVariant
+    PropertyOptions {
+        name: "linkerVariant"
+        allowedValues: ["lld", "link"]
+        description: "Allows to specify the linker variant. Maps to clang-cl's -fuse-ld option."
+    }
+    Properties {
+        condition: linkerVariant
+        driverLinkerFlags: "-fuse-ld=" + linkerVariant
+    }
+
+    property string vcvarsallPath : clangPathProbe.found ? clangPathProbe.vcvarsallPath : undefined
 
     compilerName: "clang-cl.exe"
     linkerName: "lld-link.exe"

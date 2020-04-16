@@ -43,9 +43,7 @@
 namespace qbs {
 namespace Internal {
 
-IdentifierSearch::IdentifierSearch()
-{
-}
+IdentifierSearch::IdentifierSearch() = default;
 
 void IdentifierSearch::start(QbsQmlJS::AST::Node *node)
 {

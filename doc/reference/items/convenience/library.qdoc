@@ -1,0 +1,130 @@
+/****************************************************************************
+**
+** Copyright (C) 2020 Ivan Komissarov (abbapoh@gmail.com)
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+/*!
+    \contentspage list-of-convenience-items.html
+    \previouspage JavaJarFile
+    \nextpage LoadableModule
+    \qmltype Library
+    \since Qbs 1.4
+    \inherits Product
+    \inqmlmodule QbsConvenienceItems
+    \ingroup list-of-items
+    \keyword QML.NativeBinary
+
+    \brief Generic library.
+
+    A Library item is a base item for native libraries and can have \l{Product::}{type} set to
+    one of the following values: \c "dynamiclibrary", \c "staticlibrary", \c "loadablemodule".
+
+    The default \l{Product::}{type} value is \c "dynamiclibrary" except for iOS prior to
+    version 8, in which case the default value is \c "staticlibrary".
+
+    This item can automatically install the library target (and library symlinks on Unix) and
+    separated debug information.
+
+    For Android targets, the following applies:
+    \list
+        \li The \l{Product::type}{Product.type} property value contains
+            \c "android.nativelibrary" in addition to \c "dynamiclibrary".
+        \li There is a dependency on the \l{cpp} and \l{Android.ndk} modules.
+    \endlist
+*/
+
+/*!
+    \qmlproperty bool Library::install
+
+    If \c{true}, the library will be installed to \l{Library::installDir}{installDir}.
+
+    \defaultvalue \c false
+    \since Qbs 1.13
+*/
+
+/*!
+    \qmlproperty string Library::installDir
+
+    Where to install the library, if \l{Library::install}{install} is enabled. On Unix,
+    the symbolic links are also installed to this location.
+
+    The value is appended to \l{qbs::installPrefix}{qbs.installPrefix}
+    when constructing the actual installation directory.
+
+    \defaultvalue \c Library/Frameworks if the library is a \l{bundle::isBundle}{bundle},
+                  otherwise \c bin for Windows and \c lib for Unix-like targets.
+    \since Qbs 1.13
+*/
+
+/*!
+    \qmlproperty string Library::installDebugInformation
+
+    If \c{true}, the debug information will be installed to
+    \l{Library::debugInformationInstallDir}{debugInformationInstallDir}.
+
+    \defaultvalue \c false
+    \since Qbs 1.16
+    \sa{How do I separate and install debugging symbols?}
+*/
+
+/*!
+    \qmlproperty string Library::debugInformationInstallDir
+
+    Where to install the debug information if \l installDebugInformation is enabled.
+
+    The value is appended to \l{qbs::installPrefix}{qbs.installPrefix}
+    when constructing the actual installation directory.
+
+    \defaultvalue \l installDir.
+    \since Qbs 1.16
+
+    \sa{How do I separate and install debugging symbols?}
+*/
+
+/*!
+    \qmlproperty bool Library::installImportLib
+
+    If \c{true}, the import library will be installed to \l importLibInstallDir.
+    This property is only relevant for Windows targets.
+    Enable it if you want to create a development package.
+
+    \defaultvalue \c false
+    \since Qbs 1.13
+*/
+
+/*!
+    \qmlproperty string Library::importLibInstallDir
+
+    Where to install the import library, if \l installImportLib is enabled.
+
+    The value is appended to \l{qbs::installPrefix}{qbs.installPrefix}
+    when constructing the actual installation directory.
+
+    This property is only relevant for Windows targets.
+
+    \defaultvalue \c lib
+    \since Qbs 1.13
+*/
+

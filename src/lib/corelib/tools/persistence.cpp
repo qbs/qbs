@@ -48,7 +48,7 @@
 namespace qbs {
 namespace Internal {
 
-static const char QBS_PERSISTENCE_MAGIC[] = "QBSPERSISTENCE-127";
+static const char QBS_PERSISTENCE_MAGIC[] = "QBSPERSISTENCE-128";
 
 NoBuildGraphError::NoBuildGraphError(const QString &filePath)
     : ErrorInfo(Tr::tr("Build graph not found for configuration '%1'. Expected location was '%2'.")
@@ -62,10 +62,7 @@ PersistentPool::PersistentPool(Logger &logger) : m_logger(logger)
     m_stream.setVersion(QDataStream::Qt_4_8);
 }
 
-PersistentPool::~PersistentPool()
-{
-    closeStream();
-}
+PersistentPool::~PersistentPool() = default;
 
 void PersistentPool::load(const QString &filePath)
 {
@@ -89,7 +86,7 @@ void PersistentPool::load(const QString &filePath)
     }
 
     m_stream >> m_headData.projectConfig;
-    file.release();
+    m_file = std::move(file);
     m_loadedRaw.clear();
     m_loaded.clear();
     m_storageIndices.clear();
@@ -116,7 +113,8 @@ void PersistentPool::setupWriteStream(const QString &filePath)
                 "Cannot open file '%1' for writing: %2").arg(filePath, file->errorString()));
     }
 
-    m_stream.setDevice(file.release());
+    m_stream.setDevice(file.get());
+    m_file = std::move(file);
     m_stream << QByteArray(qstrlen(QBS_PERSISTENCE_MAGIC), 0) << m_headData.projectConfig;
     m_lastStoredObjectId = 0;
     m_lastStoredStringId = 0;
@@ -139,14 +137,6 @@ void PersistentPool::finalizeWriteStream()
         throw ErrorInfo(Tr::tr("Failure serializing build graph: %1").arg(file->errorString()));
     }
 }
-
-void PersistentPool::closeStream()
-{
-    delete m_stream.device();
-    m_stream.setDevice(nullptr);
-}
-
-
 
 void PersistentPool::storeVariant(const QVariant &variant)
 {

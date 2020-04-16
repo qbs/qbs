@@ -45,7 +45,7 @@
 
 static void QbsKeiluvGeneratorPluginLoad()
 {
-    for (const auto &info : qbs::KeiluvVersionInfo::knownVersions()) {
+    for (const auto &info : qbs::KeiluvVersionInfo::knownVersions) {
         qbs::ProjectGeneratorManager::registerGenerator(
                     std::make_shared<qbs::KeiluvGenerator>(info));
     }

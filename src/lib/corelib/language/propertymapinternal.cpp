@@ -58,13 +58,9 @@ namespace Internal {
  * \sa ResolvedProduct
  * \sa SourceArtifact
  */
-PropertyMapInternal::PropertyMapInternal()
-{
-}
+PropertyMapInternal::PropertyMapInternal() = default;
 
-PropertyMapInternal::PropertyMapInternal(const PropertyMapInternal &other) : m_value(other.m_value)
-{
-}
+PropertyMapInternal::PropertyMapInternal(const PropertyMapInternal &other) = default;
 
 QVariant PropertyMapInternal::moduleProperty(const QString &moduleName, const QString &key,
                                              bool *isPresent) const

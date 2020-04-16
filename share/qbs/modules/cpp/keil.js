@@ -39,120 +39,190 @@ var TemporaryDir = require("qbs.TemporaryDir");
 var TextFile = require("qbs.TextFile");
 var Utilities = require("qbs.Utilities");
 
+function isMcsArchitecture(architecture) {
+    return architecture === "mcs51" || architecture === "mcs251";
+}
+
+function isC166Architecture(architecture) {
+    return architecture === "c166";
+}
+
+function isArmArchitecture(architecture) {
+    return architecture.startsWith("arm");
+}
+
 function compilerName(qbs) {
-    switch (qbs.architecture) {
-    case "mcs51":
+    var architecture = qbs.architecture;
+    if (architecture === "mcs51")
         return "c51";
-    case "arm":
+    if (architecture === "mcs251")
+        return "c251";
+    if (isC166Architecture(architecture))
+        return "c166";
+    if (isArmArchitecture(architecture))
         return "armcc";
-    }
     throw "Unable to deduce compiler name for unsupported architecture: '"
-            + qbs.architecture + "'";
+            + architecture + "'";
 }
 
 function assemblerName(qbs) {
-    switch (qbs.architecture) {
-    case "mcs51":
+    var architecture = qbs.architecture;
+    if (architecture === "mcs51")
         return "a51";
-    case "arm":
+    if (architecture === "mcs251")
+        return "a251";
+    if (isC166Architecture(architecture))
+        return "a166";
+    if (isArmArchitecture(architecture))
         return "armasm";
-    }
     throw "Unable to deduce assembler name for unsupported architecture: '"
-            + qbs.architecture + "'";
+            + architecture + "'";
 }
 
 function linkerName(qbs) {
-    switch (qbs.architecture) {
-    case "mcs51":
+    var architecture = qbs.architecture;
+    if (architecture === "mcs51")
         return "bl51";
-    case "arm":
+    if (architecture === "mcs251")
+        return "l251";
+    if (isC166Architecture(architecture))
+        return "l166";
+    if (isArmArchitecture(architecture))
         return "armlink";
-    }
     throw "Unable to deduce linker name for unsupported architecture: '"
-            + qbs.architecture + "'";
+            + architecture + "'";
 }
 
 function archiverName(qbs) {
-    switch (qbs.architecture) {
-    case "mcs51":
+    var architecture = qbs.architecture;
+    if (architecture === "mcs51")
         return "lib51";
-    case "arm":
+    if (architecture === "mcs251")
+        return "lib251";
+    if (isC166Architecture(architecture))
+        return "lib166";
+    if (isArmArchitecture(architecture))
         return "armar";
-    }
     throw "Unable to deduce archiver name for unsupported architecture: '"
-            + qbs.architecture + "'";
+            + architecture + "'";
 }
 
 function staticLibrarySuffix(qbs) {
-    switch (qbs.architecture) {
-    case "mcs51":
-    case "arm":
+    var architecture = qbs.architecture;
+    if (isMcsArchitecture(architecture) || isC166Architecture(architecture)
+            || isArmArchitecture(architecture)) {
         return ".lib";
     }
     throw "Unable to deduce static library suffix for unsupported architecture: '"
-            + qbs.architecture + "'";
+            + architecture + "'";
 }
 
 function executableSuffix(qbs) {
-    switch (qbs.architecture) {
-    case "mcs51":
+    var architecture = qbs.architecture;
+    if (isMcsArchitecture(architecture) || isC166Architecture(architecture))
         return ".abs";
-    case "arm":
+    if (isArmArchitecture(architecture))
         return ".axf";
-    }
     throw "Unable to deduce executable suffix for unsupported architecture: '"
-            + qbs.architecture + "'";
+            + architecture + "'";
 }
 
 function objectSuffix(qbs) {
-    switch (qbs.architecture) {
-    case "mcs51":
+    var architecture = qbs.architecture;
+    if (isMcsArchitecture(architecture) || isC166Architecture(architecture))
         return ".obj";
-    case "arm":
+    if (isArmArchitecture(architecture))
         return ".o";
-    }
     throw "Unable to deduce object file suffix for unsupported architecture: '"
-            + qbs.architecture + "'";
+            + architecture + "'";
+}
+
+function mapFileSuffix(qbs) {
+    var architecture = qbs.architecture;
+    if (isMcsArchitecture(architecture))
+        return ".m51";
+    if (isC166Architecture(architecture))
+        return ".m66";
+    return ".map";
 }
 
 function imageFormat(qbs) {
-    switch (qbs.architecture) {
-    case "mcs51":
+    var architecture = qbs.architecture;
+    if (isMcsArchitecture(architecture) || isC166Architecture(architecture))
         // Keil OMF51 or OMF2 Object Module Format (which is an
         // extension of the original Intel OMF51).
         return "omf";
-    case "arm":
+    if (isArmArchitecture(architecture))
         return "elf";
-    }
     throw "Unable to deduce image format for unsupported architecture: '"
-            + qbs.architecture + "'";
+            + architecture + "'";
+}
+
+function guessArmArchitecture(targetArchArm, targetArchThumb) {
+    var arch = "arm";
+    if (targetArchArm === "4" && targetArchThumb === "0")
+        arch += "v4";
+    else if (targetArchArm === "4" && targetArchThumb === "1")
+        arch += "v4t";
+    else if (targetArchArm === "5" && targetArchThumb === "2")
+        arch += "v5t";
+    else if (targetArchArm === "6" && targetArchThumb === "3")
+        arch += "v6";
+    else if (targetArchArm === "6" && targetArchThumb === "4")
+        arch += "v6t2";
+    else if (targetArchArm === "0" && targetArchThumb === "3")
+        arch += "v6m";
+    else if (targetArchArm === "7" && targetArchThumb === "4")
+        arch += "v7r";
+    else if (targetArchArm === "0" && targetArchThumb === "4")
+        arch += "v7m";
+    return arch;
 }
 
 function guessArchitecture(macros) {
     if (macros["__C51__"])
         return "mcs51";
-    else if (macros["__CC_ARM"] === 1)
-        return "arm";
+    else if (macros["__C251__"])
+        return "mcs251";
+    else if (macros["__C166__"])
+        return "c166";
+    else if (macros["__CC_ARM"] === "1")
+        return guessArmArchitecture(macros["__TARGET_ARCH_ARM"], macros["__TARGET_ARCH_THUMB"]);
 }
 
 function guessEndianness(macros) {
-    if (macros["__C51__"]) {
+    if (macros["__C51__"] || macros["__C251__"]) {
         // The 8051 processors are 8-bit. So, the data with an integer type
         // represented by more than one byte is stored as big endian in the
         // Keil toolchain. See for more info:
         // * http://www.keil.com/support/man/docs/c51/c51_ap_2bytescalar.htm
         // * http://www.keil.com/support/man/docs/c51/c51_ap_4bytescalar.htm
+        // * http://www.keil.com/support/man/docs/c251/c251_ap_2bytescalar.htm
+        // * http://www.keil.com/support/man/docs/c251/c251_ap_4bytescalar.htm
         return "big";
+    } else if (macros["__C166__"]) {
+        // The C166 processors are 16-bit. So, the data with an integer type
+        // represented by more than one byte is stored as little endian in the
+        // Keil toolchain. See for more info:
+        // * http://www.keil.com/support/man/docs/c166/c166_ap_ints.htm
+        // * http://www.keil.com/support/man/docs/c166/c166_ap_longs.htm
+        return "little";
     } else if (macros["__ARMCC_VERSION"]) {
         return macros["__BIG_ENDIAN"] ? "big" : "little";
     }
 }
 
 function guessVersion(macros) {
-    if (macros["__C51__"]) {
-        var mcsVersion = macros["__C51__"];
+    if (macros["__C51__"] || macros["__C251__"]) {
+        var mcsVersion = macros["__C51__"] || macros["__C251__"];
         return { major: parseInt(mcsVersion / 100),
             minor: parseInt(mcsVersion % 100),
+            patch: 0,
+            found: true }
+    } else if (macros["__C166__"]) {
+        var xcVersion = macros["__C166__"];
+        return { major: parseInt(xcVersion / 100),
+            minor: parseInt(xcVersion % 100),
             patch: 0,
             found: true }
     } else if (macros["__CC_ARM"]) {
@@ -164,13 +234,15 @@ function guessVersion(macros) {
     }
 }
 
-// Note: The KEIL 8051 compiler does not support the predefined
-// macros dumping. So, we do it with following trick where we try
-// to compile a temporary file and to parse the console output.
-function dumpC51CompilerMacros(compilerFilePath, tag) {
-    // C51 compiler support only C language.
+function dumpMcsCompilerMacros(compilerFilePath, tag) {
+    // C51 or C251 compiler support only C language.
     if (tag === "cpp")
         return {};
+
+    // Note: The C51 or C251 compiler does not support the predefined
+    // macros dumping. So, we do it with the following trick, where we try
+    // to create and compile a special temporary file and to parse the console
+    // output with the own magic pattern: (""|"key"|"value"|"").
 
     function createDumpMacrosFile() {
         var td = new TemporaryDir();
@@ -178,9 +250,42 @@ function dumpC51CompilerMacros(compilerFilePath, tag) {
         var tf = new TextFile(fn, TextFile.WriteOnly);
         tf.writeLine("#define VALUE_TO_STRING(x) #x");
         tf.writeLine("#define VALUE(x) VALUE_TO_STRING(x)");
-        tf.writeLine("#define VAR_NAME_VALUE(var) \"\"\"|\"#var\"|\"VALUE(var)");
-        tf.writeLine("#ifdef __C51__");
-        tf.writeLine("#pragma message(VAR_NAME_VALUE(__C51__))");
+
+        // Prepare for C51 compiler.
+        tf.writeLine("#if defined(__C51__) || defined(__CX51__)");
+        tf.writeLine("#  define VAR_NAME_VALUE(var) \"(\"\"\"\"|\"#var\"|\"VALUE(var)\"|\"\"\"\")\"");
+        tf.writeLine("#  if defined (__C51__)");
+        tf.writeLine("#    pragma message (VAR_NAME_VALUE(__C51__))");
+        tf.writeLine("#  endif");
+        tf.writeLine("#  if defined(__CX51__)");
+        tf.writeLine("#    pragma message (VAR_NAME_VALUE(__CX51__))");
+        tf.writeLine("#  endif");
+        tf.writeLine("#  if defined(__MODEL__)");
+        tf.writeLine("#    pragma message (VAR_NAME_VALUE(__MODEL__))");
+        tf.writeLine("#  endif");
+        tf.writeLine("#  if defined(__STDC__)");
+        tf.writeLine("#    pragma message (VAR_NAME_VALUE(__STDC__))");
+        tf.writeLine("#  endif");
+        tf.writeLine("#endif");
+
+        // Prepare for C251 compiler.
+        tf.writeLine("#if defined(__C251__)");
+        tf.writeLine("#  define VAR_NAME_VALUE(var) \"\"|#var|VALUE(var)|\"\"");
+        tf.writeLine("#  if defined (__C251__)");
+        tf.writeLine("#    warning (VAR_NAME_VALUE(__C251__))");
+        tf.writeLine("#  endif");
+        tf.writeLine("#  if defined (__MODEL__)");
+        tf.writeLine("#    warning (VAR_NAME_VALUE(__MODEL__))");
+        tf.writeLine("#  endif");
+        tf.writeLine("#  if defined (__STDC__)");
+        tf.writeLine("#    warning (VAR_NAME_VALUE(__STDC__))");
+        tf.writeLine("#  endif");
+        tf.writeLine("#  if defined (__FLOAT64__)");
+        tf.writeLine("#    warning (VAR_NAME_VALUE(__FLOAT64__))");
+        tf.writeLine("#  endif");
+        tf.writeLine("#  if defined (__MODSRC__)");
+        tf.writeLine("#    warning (VAR_NAME_VALUE(__MODSRC__))");
+        tf.writeLine("#  endif");
         tf.writeLine("#endif");
         tf.close();
         return fn;
@@ -191,9 +296,126 @@ function dumpC51CompilerMacros(compilerFilePath, tag) {
     p.exec(compilerFilePath, [ fn ], false);
     var map = {};
     p.readStdOut().trim().split(/\r?\n/g).map(function(line) {
-        var parts = line.split("\"|\"", 3);
-        map[parts[1]] = parts[2];
+        var parts = line.split("\"|\"", 4);
+        if (parts.length === 4)
+            map[parts[1]] = parts[2];
     });
+    return map;
+}
+
+function dumpC166CompilerMacros(compilerFilePath, tag) {
+    // C166 compiler support only C language.
+    if (tag === "cpp")
+        return {};
+
+    // Note: The C166 compiler does not support the predefined
+    // macros dumping. Also, it does not support the '#pragma' and
+    // '#message|warning|error' directives properly (it is impossible
+    // to print to console the value of macro).
+    // So, we do it with the following trick, where we try
+    // to create and compile a special temporary file and to parse the console
+    // output with the own magic pattern, e.g:
+    //
+    // *** WARNING C320 IN LINE 41 OF c51.c: __C166__
+    // *** WARNING C2 IN LINE 42 OF c51.c: '757': unknown #pragma/control, line ignored
+    //
+    // where the '__C166__' is a key, and the '757' is a value.
+
+    function createDumpMacrosFile() {
+        var td = new TemporaryDir();
+        var fn = FileInfo.fromNativeSeparators(td.path() + "/dump-macros.c");
+        var tf = new TextFile(fn, TextFile.WriteOnly);
+
+        // Prepare for C166 compiler.
+        tf.writeLine("#if defined(__C166__)");
+        tf.writeLine("#  if defined(__C166__)");
+        tf.writeLine("#   warning __C166__");
+        tf.writeLine("#   pragma __C166__");
+        tf.writeLine("#  endif");
+        tf.writeLine("#  if defined(__DUS__)");
+        tf.writeLine("#   warning __DUS__");
+        tf.writeLine("#   pragma __DUS__");
+        tf.writeLine("#  endif");
+        tf.writeLine("#  if defined(__MAC__)");
+        tf.writeLine("#   warning __MAC__");
+        tf.writeLine("#   pragma __MAC__");
+        tf.writeLine("#  endif");
+        tf.writeLine("#  if defined(__MOD167__)");
+        tf.writeLine("#   warning __MOD167__");
+        tf.writeLine("#   pragma __MOD167__");
+        tf.writeLine("#  endif");
+        tf.writeLine("#  if defined(__MODEL__)");
+        tf.writeLine("#   warning __MODEL__");
+        tf.writeLine("#   pragma __MODEL__");
+        tf.writeLine("#  endif");
+        tf.writeLine("#  if defined(__MODV2__)");
+        tf.writeLine("#   warning __MODV2__");
+        tf.writeLine("#   pragma __MODV2__");
+        tf.writeLine("#  endif");
+        tf.writeLine("#  if defined(__SAVEMAC__)");
+        tf.writeLine("#   warning __SAVEMAC__");
+        tf.writeLine("#   pragma __SAVEMAC__");
+        tf.writeLine("#  endif");
+        tf.writeLine("#  if defined(__STDC__)");
+        tf.writeLine("#   warning __STDC__");
+        tf.writeLine("#   pragma __STDC__");
+        tf.writeLine("#  endif");
+        tf.writeLine("#endif");
+
+        tf.close();
+        return fn;
+    }
+
+    var fn = createDumpMacrosFile();
+    var p = new Process();
+    p.exec(compilerFilePath, [ fn ], false);
+    var lines = p.readStdOut().trim().split(/\r?\n/g);
+
+    var map = {};
+    for (var i = 0; i < lines.length; ++i) {
+        // First line should contains the macro key.
+        var keyLine = lines[i];
+        if (!keyLine.startsWith("***"))
+            continue;
+        var key;
+        if (keyLine.endsWith("__C166__"))
+            key = "__C166__";
+        else if (keyLine.endsWith("__DUS__"))
+            key = "__DUS__";
+        else if (keyLine.endsWith("__MAC__"))
+            key = "__MAC__";
+        else if (keyLine.endsWith("__MOD167__"))
+            key = "__MOD167__";
+        else if (keyLine.endsWith("__MODEL__"))
+            key = "__MODEL__";
+        else if (keyLine.endsWith("__MODV2__"))
+            key = "__MODV2__";
+        else if (keyLine.endsWith("__SAVEMAC__"))
+            key = "__SAVEMAC__";
+        else if (keyLine.endsWith("__STDC__"))
+            key = "__STDC__";
+        else
+            continue;
+
+        i += 1;
+        if (i >= lines.length)
+            break;
+
+        // Second line should contains the macro value.
+        var valueLine = lines[i];
+        if (!valueLine.startsWith("***"))
+            continue;
+
+        var startQuoteIndex = valueLine.indexOf("'");
+        if (startQuoteIndex === -1)
+            continue;
+        var stopQuoteIndex = valueLine.indexOf("'", startQuoteIndex + 1);
+        if (stopQuoteIndex === -1)
+            continue;
+
+        var value = valueLine.substring(startQuoteIndex + 1, stopQuoteIndex);
+        map[key] = value;
+    }
     return map;
 }
 
@@ -215,18 +437,21 @@ function dumpArmCompilerMacros(compilerFilePath, tag, nullDevice) {
 }
 
 function dumpMacros(compilerFilePath, tag, nullDevice) {
-    var map1 = dumpC51CompilerMacros(compilerFilePath, tag, nullDevice);
-    var map2 = dumpArmCompilerMacros(compilerFilePath, tag, nullDevice);
+    var map1 = dumpMcsCompilerMacros(compilerFilePath, tag, nullDevice);
+    var map2 = dumpC166CompilerMacros(compilerFilePath, tag, nullDevice);
+    var map3 = dumpArmCompilerMacros(compilerFilePath, tag, nullDevice);
     var map = {};
     for (var key1 in map1)
         map[key1] = map1[key1];
     for (var key2 in map2)
         map[key2] = map2[key2];
+    for (var key3 in map3)
+        map[key3] = map3[key3];
     return map;
 }
 
 function dumpDefaultPaths(compilerFilePath, architecture) {
-    var incDir = (architecture === "arm") ? "include" :  "inc";
+    var incDir = (isArmArchitecture(architecture)) ? "include" :  "inc";
     var includePath = compilerFilePath.replace(/bin[\\\/](.*)$/i, incDir);
     return {
         "includePaths": [includePath]
@@ -242,9 +467,9 @@ function adjustPathsToWindowsSeparators(sourcePaths) {
 }
 
 function getMaxExitCode(architecture) {
-    if (architecture === "mcs51")
+    if (isMcsArchitecture(architecture))
         return 1;
-    else if (architecture === "arm")
+    else if (isArmArchitecture(architecture))
         return 0;
 }
 
@@ -308,20 +533,28 @@ function filterStdOutput(cmd) {
         var sourceLines = output.split("\n");
         var filteredLines = [];
         for (var i in sourceLines) {
-            if (sourceLines[i].startsWith("***")
-                || sourceLines[i].startsWith(">>")
-                || sourceLines[i].startsWith("    ")
-                || sourceLines[i].startsWith("Program Size:")
-                || sourceLines[i].startsWith("A51 FATAL")
-                || sourceLines[i].startsWith("C51 FATAL")
-                || sourceLines[i].startsWith("ASSEMBLER INVOKED BY")
-                || sourceLines[i].startsWith("LOC  OBJ            LINE     SOURCE")
-                ) {
+            var line = sourceLines[i];
+            if (line.startsWith("***")
+                || line.startsWith(">>")
+                || line.startsWith("    ")
+                || line.startsWith("  ACTION:")
+                || line.startsWith("  LINE:")
+                || line.startsWith("  ERROR:")
+                || line.startsWith("Program Size:")
+                || line.startsWith("A51 FATAL")
+                || line.startsWith("C51 FATAL")
+                || line.startsWith("C251 FATAL")
+                || line.startsWith("ASSEMBLER INVOKED BY")
+                || line.startsWith("LOC  OBJ            LINE     SOURCE")) {
                     filteredLines.push(sourceLines[i]);
+            } else if (line.startsWith("C251 COMPILER")
+                        || line.startsWith("C251 COMPILATION COMPLETE")
+                        || line.startsWith("C251 TERMINATED")) {
+                continue;
             } else {
                 var regexp = /^([0-9A-F]{4})/;
-                if (regexp.exec(sourceLines[i]))
-                    filteredLines.push(sourceLines[i]);
+                if (regexp.exec(line))
+                    filteredLines.push(line);
             }
         }
         return filteredLines.join("\n");
@@ -339,7 +572,7 @@ function compilerOutputArtifacts(input, useListing) {
         artifacts.push({
             fileTags: ["lst"],
             filePath: Utilities.getHash(input.baseDir) + "/"
-                  + (input.cpp.architecture === "mcs51"
+                  + (isMcsArchitecture(input.cpp.architecture)
                     ? input.fileName : input.baseName)
                   + ".lst"
         });
@@ -358,8 +591,7 @@ function applicationLinkerOutputArtifacts(product) {
         fileTags: ["mem_map"],
         filePath: FileInfo.joinPaths(
                       product.destinationDirectory,
-                      product.targetName
-                      + (product.cpp.architecture === "mcs51" ? ".m51" : ".map"))
+                      product.targetName + product.cpp.mapFileSuffix)
     };
     return [app, mem_map];
 }
@@ -399,7 +631,7 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
         allIncludePaths = allIncludePaths.uniqueConcat(compilerIncludePaths);
 
     var architecture = input.qbs.architecture;
-    if (architecture === "mcs51") {
+    if (isMcsArchitecture(architecture) || isC166Architecture(architecture)) {
         // Input.
         args.push(FileInfo.toWindowsSeparators(input.filePath));
 
@@ -440,7 +672,8 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
             break;
         case "all":
             args.push("WARNINGLEVEL (2)");
-            args.push("FARWARNING");
+            if (architecture === "mcs51")
+                args.push("FARWARNING");
             break;
         }
 
@@ -449,7 +682,7 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
             args.push("NOPRINT");
         else
             args.push("PRINT(" + FileInfo.toWindowsSeparators(outputs.lst[0].filePath) + ")");
-    } else if (architecture === "arm") {
+    } else if (isArmArchitecture(architecture)) {
         // Input.
         args.push("-c", input.filePath);
 
@@ -571,7 +804,7 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
         allIncludePaths = allIncludePaths.uniqueConcat(compilerIncludePaths);
 
     var architecture = input.qbs.architecture;
-    if (architecture === "mcs51") {
+    if (isMcsArchitecture(architecture) || isC166Architecture(architecture)) {
         // Input.
         args.push(FileInfo.toWindowsSeparators(input.filePath));
 
@@ -600,7 +833,7 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
             args.push("NOPRINT");
         else
             args.push("PRINT(" + FileInfo.toWindowsSeparators(outputs.lst[0].filePath) + ")");
-    } else if (architecture === "arm") {
+    } else if (isArmArchitecture(architecture)) {
         // Input.
         args.push(input.filePath);
 
@@ -653,8 +886,8 @@ function linkerFlags(project, product, input, outputs) {
     var args = [];
 
     var architecture = product.qbs.architecture;
-    if (architecture === "mcs51") {
-        // Note: The C51 linker does not distinguish an object files and
+    if (isMcsArchitecture(architecture) || isC166Architecture(architecture)) {
+        // Note: The C51/256/166 linker does not distinguish an object files and
         // a libraries, it interpret all this stuff as an input objects,
         // so, we need to pass it together in one string.
 
@@ -683,7 +916,7 @@ function linkerFlags(project, product, input, outputs) {
         // Map file generation flag.
         if (!product.cpp.generateLinkerMapFile)
             args.push("NOMAP");
-    } else if (architecture === "arm") {
+    } else if (isArmArchitecture(architecture)) {
         // Inputs.
         if (inputs.obj)
             args = args.concat(inputs.obj.map(function(obj) { return obj.filePath }));
@@ -728,7 +961,7 @@ function archiverFlags(project, product, input, outputs) {
     var args = [];
 
     var architecture = product.qbs.architecture;
-    if (architecture === "mcs51") {
+    if (isMcsArchitecture(architecture) || isC166Architecture(architecture)) {
         // Library creation command.
         args.push("TRANSFER");
 
@@ -749,7 +982,7 @@ function archiverFlags(project, product, input, outputs) {
         // Note: We need to wrap a output file name with quotes. Otherwise
         // the linker will ignore a specified file name.
         args.push("TO", '"' + FileInfo.toWindowsSeparators(outputs.staticlibrary[0].filePath) + '"');
-    } else if (architecture === "arm") {
+    } else if (isArmArchitecture(architecture)) {
         // Note: The ARM archiver command line expect the output file
         // first, and then a set of input objects.
 
@@ -779,7 +1012,6 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
     filterStdOutput(cmd);
     return [cmd];
 }
-
 
 function prepareAssembler(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
     var args = assemblerFlags(project, product, input, outputs, explicitlyDependsOn);

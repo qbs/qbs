@@ -54,11 +54,18 @@ C sorted(const C &container)
     return result;
 }
 
-template <class C>
-bool contains(const C &container, const typename C::value_type &v)
+template <class C, class T>
+bool contains(const C &container, const T &v)
 {
-    const auto &end = container.cend();
-    return std::find(container.cbegin(), end, v) != end;
+    const auto &end = std::cend(container);
+    return std::find(std::cbegin(container), end, v) != end;
+}
+
+template <class T, size_t N, class U>
+bool contains(const T (&container)[N], const U &v)
+{
+    const auto &end = std::cend(container);
+    return std::find(std::cbegin(container), end, v) != end;
 }
 
 template <class C>

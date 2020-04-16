@@ -70,6 +70,7 @@ static QString responseFileUsagePrefixProperty()
 {
     return QStringLiteral("responseFileUsagePrefix");
 }
+static QString responseFileSeparatorProperty() { return QStringLiteral("responseFileSeparator"); }
 static QString silentProperty() { return QStringLiteral("silent"); }
 static QString stderrFilePathProperty() { return QStringLiteral("stderrFilePath"); }
 static QString stderrFilterFunctionProperty() { return QStringLiteral("stderrFilterFunction"); }
@@ -78,7 +79,7 @@ static QString stdoutFilterFunctionProperty() { return QStringLiteral("stdoutFil
 static QString timeoutProperty() { return QStringLiteral("timeout"); }
 static QString workingDirProperty() { return QStringLiteral("workingDirectory"); }
 
-static QString invokedSourceCode(const QScriptValue codeOrFunction)
+static QString invokedSourceCode(const QScriptValue &codeOrFunction)
 {
     const QString &code = codeOrFunction.toString();
     return codeOrFunction.isFunction() ? QStringLiteral("(") + code + QStringLiteral(")()") : code;
@@ -94,9 +95,7 @@ AbstractCommand::AbstractCommand()
 {
 }
 
-AbstractCommand::~AbstractCommand()
-{
-}
+AbstractCommand::~AbstractCommand() = default;
 
 bool AbstractCommand::equals(const AbstractCommand *other) const
 {
@@ -218,6 +217,8 @@ static QScriptValue js_Command(QScriptContext *context, QScriptEngine *engine)
                     engine->toScriptValue(commandPrototype->responseFileArgumentIndex()));
     cmd.setProperty(responseFileUsagePrefixProperty(),
                     engine->toScriptValue(commandPrototype->responseFileUsagePrefix()));
+    cmd.setProperty(responseFileSeparatorProperty(),
+                    engine->toScriptValue(commandPrototype->responseFileSeparator()));
     cmd.setProperty(stdoutFilePathProperty(),
                     engine->toScriptValue(commandPrototype->stdoutFilePath()));
     cmd.setProperty(stderrFilePathProperty(),
@@ -241,6 +242,7 @@ ProcessCommand::ProcessCommand()
     : m_maxExitCode(0)
     , m_responseFileThreshold(defaultResponseFileThreshold())
     , m_responseFileArgumentIndex(0)
+    , m_responseFileSeparator(QStringLiteral("\n"))
 {
 }
 
@@ -279,6 +281,7 @@ bool ProcessCommand::equals(const AbstractCommand *otherAbstractCommand) const
             && m_responseFileThreshold == other->m_responseFileThreshold
             && m_responseFileArgumentIndex == other->m_responseFileArgumentIndex
             && m_responseFileUsagePrefix == other->m_responseFileUsagePrefix
+            && m_responseFileSeparator == other->m_responseFileSeparator
             && m_stdoutFilePath == other->m_stdoutFilePath
             && m_stderrFilePath == other->m_stderrFilePath
             && m_relevantEnvVars == other->m_relevantEnvVars
@@ -312,6 +315,8 @@ void ProcessCommand::fillFromScriptValue(const QScriptValue *scriptValue, const 
     m_responseFileArgumentIndex = scriptValue->property(responseFileArgumentIndexProperty())
             .toInt32();
     m_responseFileUsagePrefix = scriptValue->property(responseFileUsagePrefixProperty())
+            .toString();
+    m_responseFileSeparator = scriptValue->property(responseFileSeparatorProperty())
             .toString();
     QStringList envList = scriptValue->property(environmentProperty()).toVariant()
             .toStringList();
@@ -399,9 +404,7 @@ void JavaScriptCommand::setupForJavaScript(QScriptValue targetObject)
     targetObject.setProperty(StringConstants::javaScriptCommandType(), ctor);
 }
 
-JavaScriptCommand::JavaScriptCommand()
-{
-}
+JavaScriptCommand::JavaScriptCommand() = default;
 
 bool JavaScriptCommand::equals(const AbstractCommand *otherAbstractCommand) const
 {

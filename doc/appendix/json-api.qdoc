@@ -402,16 +402,11 @@
     \header \li Property       \li Type                     \li Mandatory
     \row    \li error          \li \l ErrorInfo             \li no
     \row    \li failed-files   \li \l FilePath list         \li no
-    \row    \li project-data   \li \l TopLevelProjectData   \li no
     \endtable
 
     If the \c error property is present, the operation has at least
     partially failed and \c failed-files will list the files
     that could not be added or removed.
-
-    If the project data has changed as a result of the operation
-    (which it should unless the operation failed completely), then
-    the \c project-data property will contain the updated project data.
 
     \section1 The \c get-run-environment Message
 

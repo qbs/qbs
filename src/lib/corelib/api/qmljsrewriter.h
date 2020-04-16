@@ -60,9 +60,9 @@ public:
     using Range = ChangeSet::Range;
 
 public:
-    Rewriter(const QString &originalText,
+    Rewriter(QString originalText,
              ChangeSet *changeSet,
-             const QStringList &propertyOrder);
+             QStringList propertyOrder);
 
     Range addBinding(AST::UiObjectInitializer *ast,
                      const QString &propertyName,

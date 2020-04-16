@@ -3,6 +3,7 @@ import qbs.FileInfo
 import "path-probe.js" as PathProbeConfigure
 
 BinaryProbe {
+    nameSuffixes: undefined // _compilerName already contains ".exe" suffix on Windows
     // Inputs
     property string _compilerName
     property string _toolchainPrefix
@@ -48,20 +49,30 @@ BinaryProbe {
 
     configure: {
         var selectors;
-        var _results = PathProbeConfigure.configure(
+        var results = PathProbeConfigure.configure(
                     selectors, names, nameSuffixes, nameFilter, candidateFilter, searchPaths,
                     pathSuffixes, platformSearchPaths, environmentPaths, platformEnvironmentPaths,
                     pathListSeparator);
-        found = _results.found;
-        var resultFile = _results.files[0];
-        candidatePaths = resultFile.candidatePaths;
-        path = resultFile.path;
-        filePath = resultFile.filePath;
-        fileName = resultFile.fileName;
-        (nameSuffixes || [""]).forEach(function(suffix) {
-            var end = _compilerName + suffix;
-            if (fileName.endsWith(end))
-                tcPrefix = fileName.slice(0, -end.length);
-        });
+
+        found = results.found;
+        if (!found)
+            return;
+
+        var resultsMapper = function(result) {
+            (nameSuffixes || [""]).forEach(function(suffix) {
+                var end = _compilerName + suffix;
+                if (result.fileName.endsWith(end))
+                    result.tcPrefix = result.fileName.slice(0, -end.length);
+            });
+            return result;
+        };
+        results.files = results.files.map(resultsMapper);
+        allResults = results.files;
+        var result = results.files[0];
+        candidatePaths = result.candidatePaths;
+        path = result.path;
+        filePath = result.filePath;
+        fileName = result.fileName;
+        tcPrefix = result.tcPrefix;
     }
 }

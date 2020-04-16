@@ -2,8 +2,11 @@ version: "3.7"
 
 x-default-service: &linux
   working_dir: /qbs
+  environment:
+    - BUILD_OPTIONS
   volumes:
     - .:/qbs
+    - ~/.ccache:/home/devel/.ccache
   network_mode: bridge
   cap_add:
       - SYS_PTRACE
@@ -12,21 +15,47 @@ services:
   bionic:
     << : *linux
     hostname: bionic
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:bionic-5.12.5_1.14.0-1
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:bionic-5.12.6_1.14.1-5
     build:
       dockerfile: docker/bionic/Dockerfile
       context: .
       args:
-        QT_VERSION: 5.12.5
-        QTCREATOR_VERSION: 4.10.1
+        QT_VERSION: 5.12.6
+        QTCREATOR_VERSION: 4.10.2
 
-  stretch:
+  bionic-android-513:
     << : *linux
-    hostname: stretch
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:stretch
+    hostname: bionic-android
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:bionic-android-5.13.2-1
     build:
-      dockerfile: docker/stretch/Dockerfile
+      dockerfile: docker/bionic/test-android.Dockerfile
       context: .
       args:
-        QT_VERSION: 5.12.4
-        QTCREATOR_VERSION: 4.9.2
+        QT_VERSION: 5.13.2
+
+  bionic-android-514:
+    << : *linux
+    hostname: bionic-android
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:bionic-android-5.14.0-1
+    build:
+      dockerfile: docker/bionic/test-android.Dockerfile
+      context: .
+      args:
+        QT_VERSION: 5.14.0
+
+  windows:
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:windowsservercore-5.12.7_1.15.0-0
+    build:
+      dockerfile: docker/windowsservercore/Dockerfile
+      context: .
+      args:
+        QT_VERSION: 5.12.7
+        QBS_VERSION: 1.15.0
+    working_dir: 'C:/qbs'
+    environment:
+      - BUILD_OPTIONS
+      - WITH_DOCS
+    volumes:
+      - .:C:\qbs
+      - ~/.ccache:C:\.ccache
+    network_mode: nat

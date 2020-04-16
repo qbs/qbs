@@ -99,7 +99,7 @@ template <typename U> struct IMultiplexableContainer {
     }
 
 protected:
-    IMultiplexableContainer() { }
+    IMultiplexableContainer() = default;
 };
 
 struct QBS_EXPORT GeneratableProductData : public IMultiplexableContainer<ProductData> {
@@ -114,7 +114,7 @@ struct QBS_EXPORT GeneratableProjectData : public IMultiplexableContainer<Projec
     struct Id {
     private:
         friend struct GeneratableProjectData;
-        Id() { }
+        Id() = default;
         QString value;
 
     public:

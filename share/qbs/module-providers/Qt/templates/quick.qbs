@@ -38,7 +38,7 @@ import 'quick.js' as QC
 
 QtModule {
     qtModuleName: @name@
-    Depends { name: "Qt"; submodules: @dependencies@.concat("qml-private") }
+    Depends { name: "Qt"; submodules: @dependencies@ }
 
     hasLibrary: @has_library@
     architectures: @archs@

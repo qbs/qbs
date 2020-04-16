@@ -38,8 +38,9 @@ MsvcBaseModule {
                qbs.toolchain && qbs.toolchain.contains('msvc')
     priority: 50
 
-    Probes.BinaryProbe {
+    Probes.ClBinaryProbe {
         id: compilerPathProbe
+        preferredArchitecture: qbs.architecture
         condition: !toolchainInstallPath && !_skipAllChecks
         names: ["cl"]
     }

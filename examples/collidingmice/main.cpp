@@ -56,7 +56,7 @@
 #include <QTime>
 #include <QTimer>
 
-#include <math.h>
+#include <cmath>
 
 static const int MouseCount = 7;
 

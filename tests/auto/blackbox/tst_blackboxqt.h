@@ -53,6 +53,8 @@ private slots:
     void includedMocCpp();
     void linkerVariant();
     void lrelease();
+    void metaTypes_data();
+    void metaTypes();
     void mixedBuildVariants();
     void mocAndCppCombining();
     void mocFlags();
@@ -63,6 +65,8 @@ private slots:
     void pluginSupport();
     void qmlDebugging();
     void qobjectInObjectiveCpp();
+    void qmlTypeRegistrar_data();
+    void qmlTypeRegistrar();
     void qtKeywords();
     void quickCompiler();
     void qtScxml();

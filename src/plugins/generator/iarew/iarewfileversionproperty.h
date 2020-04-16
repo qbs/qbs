@@ -31,17 +31,16 @@
 #ifndef QBS_IAREWFILEVERSIONPROPERTY_H
 #define QBS_IAREWFILEVERSIONPROPERTY_H
 
+#include <generators/generatorversioninfo.h>
 #include <generators/xmlproperty.h>
 
 namespace qbs {
-
-class IarewVersionInfo;
 
 class IarewFileVersionProperty final : public gen::xml::Property
 {
 public:
     explicit IarewFileVersionProperty(
-            const IarewVersionInfo &versionInfo);
+            const gen::VersionInfo &versionInfo);
 };
 
 } // namespace qbs

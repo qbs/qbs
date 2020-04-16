@@ -33,21 +33,21 @@
 
 namespace qbs {
 
-static QByteArray buildFileVersion(const IarewVersionInfo &versionInfo)
+static QByteArray buildFileVersion(const gen::VersionInfo &versionInfo)
 {
     switch (versionInfo.marketingVersion()) {
     case 3:
     case 7:
     case 8:
     case 10:
-        return QByteArrayLiteral('3');
+        return QByteArrayLiteral("3");
     default:
         return {};
     }
 }
 
 IarewFileVersionProperty::IarewFileVersionProperty(
-        const IarewVersionInfo &versionInfo)
+        const gen::VersionInfo &versionInfo)
 {
     setName(QByteArrayLiteral("fileVersion"));
     const QByteArray fileVersion = buildFileVersion(versionInfo);

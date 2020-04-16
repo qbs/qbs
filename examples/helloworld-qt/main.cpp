@@ -55,5 +55,7 @@
 
 int main()
 {
-    QTextStream(stdout) << QCoreApplication::translate("hello", "Hello, World!") << endl;
+    QTextStream ts(stdout);
+    ts << QCoreApplication::translate("hello", "Hello, World!\n");
+    ts.flush();
 }

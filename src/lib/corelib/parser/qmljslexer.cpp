@@ -78,8 +78,8 @@ static QChar convertHex(QChar c1, QChar c2)
 
 static QChar convertUnicode(QChar c1, QChar c2, QChar c3, QChar c4)
 {
-    return QChar((convertHex(c3.unicode()) << 4) + convertHex(c4.unicode()),
-                 (convertHex(c1.unicode()) << 4) + convertHex(c2.unicode()));
+    return {uchar((convertHex(c3.unicode()) << 4) + convertHex(c4.unicode())),
+                 uchar((convertHex(c1.unicode()) << 4) + convertHex(c2.unicode()))};
 }
 
 Lexer::Lexer(Engine *engine)
@@ -178,7 +178,7 @@ int Lexer::lex()
 
     _tokenSpell = QStringRef();
     _tokenKind = scanToken();
-    _tokenLength = _codePtr - _tokenStartPtr - 1;
+    _tokenLength = int(_codePtr - _tokenStartPtr - 1);
 
     _delimited = false;
     _restrictedKeyword = false;
@@ -397,7 +397,8 @@ again:
                         scanChar();
 
                         if (_engine) {
-                            _engine->addComment(tokenOffset() + 2, _codePtr - _tokenStartPtr - 1 - 4,
+                            _engine->addComment(tokenOffset() + 2,
+                                                int(_codePtr - _tokenStartPtr - 1 - 4),
                                                 tokenStartLine(), tokenStartColumn() + 2);
                         }
 
@@ -412,7 +413,7 @@ again:
                 scanChar();
             }
             if (_engine) {
-                _engine->addComment(tokenOffset() + 2, _codePtr - _tokenStartPtr - 1 - 2,
+                _engine->addComment(tokenOffset() + 2, int(_codePtr - _tokenStartPtr - 1 - 2),
                                     tokenStartLine(), tokenStartColumn() + 2);
             }
             goto again;
@@ -554,7 +555,8 @@ again:
                 if (_char == QLatin1Char('\n') || _char == QLatin1Char('\\')) {
                     break;
                 } else if (_char == quote) {
-                    _tokenSpell = _engine->midRef(startCode - _code.unicode() - 1, _codePtr - startCode);
+                    _tokenSpell = _engine->midRef(
+                                int(startCode - _code.unicode() - 1), int(_codePtr - startCode));
                     scanChar();
 
                     return T_STRING_LITERAL;
@@ -706,7 +708,7 @@ again:
                     if (! identifierWithEscapeChars) {
                         identifierWithEscapeChars = true;
                         _tokenText.resize(0);
-                        _tokenText.insert(0, _tokenStartPtr, _codePtr - _tokenStartPtr - 1);
+                        _tokenText.insert(0, _tokenStartPtr, int(_codePtr - _tokenStartPtr - 1));
                         _validTokenText = true;
                     }
 
@@ -719,7 +721,7 @@ again:
                         return T_ERROR;
                     }
                 } else {
-                    _tokenLength = _codePtr - _tokenStartPtr - 1;
+                    _tokenLength = int(_codePtr - _tokenStartPtr - 1);
 
                     int kind = T_IDENTIFIER;
 
@@ -727,10 +729,12 @@ again:
                         kind = classify(_tokenStartPtr, _tokenLength, _qmlMode);
 
                     if (_engine) {
-                        if (kind == T_IDENTIFIER && identifierWithEscapeChars)
+                        if (kind == T_IDENTIFIER && identifierWithEscapeChars) {
                             _tokenSpell = _engine->newStringRef(_tokenText);
-                        else
-                            _tokenSpell = _engine->midRef(_tokenStartPtr - _code.unicode(), _tokenLength);
+                        } else {
+                            _tokenSpell = _engine->midRef(
+                                    int(_tokenStartPtr - _code.unicode()), _tokenLength);
+                        }
                     }
 
                     return kind;
@@ -891,7 +895,7 @@ bool Lexer::scanRegExp(RegExpBodyPrefix prefix)
                 scanChar();
             }
 
-            _tokenLength = _codePtr - _tokenStartPtr - 1;
+            _tokenLength = int(_codePtr - _tokenStartPtr - 1);
             return true;
 
         case '\\':
@@ -995,7 +999,7 @@ int Lexer::tokenEndLine() const
 
 int Lexer::tokenEndColumn() const
 {
-    return _codePtr - _lastLinePtr;
+    return int(_codePtr - _lastLinePtr);
 }
 
 QString Lexer::tokenText() const

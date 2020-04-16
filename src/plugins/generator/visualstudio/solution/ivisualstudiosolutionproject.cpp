@@ -46,9 +46,7 @@ IVisualStudioSolutionProject::IVisualStudioSolutionProject(QObject *parent)
 {
 }
 
-IVisualStudioSolutionProject::~IVisualStudioSolutionProject()
-{
-}
+IVisualStudioSolutionProject::~IVisualStudioSolutionProject() = default;
 
 QUuid IVisualStudioSolutionProject::guid() const
 {

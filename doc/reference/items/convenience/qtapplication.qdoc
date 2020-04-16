@@ -42,7 +42,7 @@
 
     \code
     CppApplication {
-        Depends { name: "Qt.core" } }
+        Depends { name: "Qt.core" }
     }
     \endcode
 

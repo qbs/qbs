@@ -55,7 +55,7 @@ class Settings;
 class QBS_EXPORT Profile
 {
 public:
-    Profile(const QString &name, Settings *settings, const QVariantMap &profiles = QVariantMap());
+    Profile(QString name, Settings *settings, QVariantMap profiles = QVariantMap());
 
     bool exists() const;
     QVariant value(const QString &key, const QVariant &defaultValue = QVariant(),

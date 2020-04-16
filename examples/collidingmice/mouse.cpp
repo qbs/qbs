@@ -54,7 +54,7 @@
 #include <QPainter>
 #include <QStyleOption>
 
-#include <math.h>
+#include <cmath>
 
 static const double Pi = 3.14159265358979323846264338327950288419717;
 static double TwoPi = 2.0 * Pi;
@@ -81,8 +81,7 @@ Mouse::Mouse()
 QRectF Mouse::boundingRect() const
 {
     qreal adjust = 0.5;
-    return QRectF(-18 - adjust, -22 - adjust,
-                  36 + adjust, 60 + adjust);
+    return {-18 - adjust, -22 - adjust, 36 + adjust, 60 + adjust};
 }
 //! [1]
 

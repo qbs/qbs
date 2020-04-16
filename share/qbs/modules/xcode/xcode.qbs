@@ -6,6 +6,7 @@ import qbs.DarwinTools
 import qbs.ModUtils
 import qbs.Probes
 import qbs.PropertyList
+import qbs.Utilities
 import 'xcode.js' as Xcode
 
 Module {
@@ -48,6 +49,12 @@ Module {
             return _sdkSettings["Version"];
         }
     }
+    readonly property string shortSdkVersion: {
+        var v = sdkVersion;
+        if (v && v.split('.').length > 2)
+            v = v.slice(0, v.lastIndexOf('.'));
+        return v;
+    }
 
     readonly property string latestSdkName: {
         if (_latestSdk) {
@@ -75,13 +82,13 @@ Module {
 
     property string signingIdentity
     readonly property string actualSigningIdentity: {
-        if (_actualSigningIdentity && _actualSigningIdentity.length === 1)
-            return _actualSigningIdentity[0][0];
+        if (_actualSigningIdentity && _actualSigningIdentity.length === 2)
+            return _actualSigningIdentity[0];
     }
 
     readonly property string actualSigningIdentityDisplayName: {
-        if (_actualSigningIdentity && _actualSigningIdentity.length === 1)
-            return _actualSigningIdentity[0][1];
+        if (_actualSigningIdentity && _actualSigningIdentity.length === 2)
+            return _actualSigningIdentity[1];
     }
 
     property string signingTimestamp: "none"
@@ -116,8 +123,8 @@ Module {
                                                       + ".platform")
     readonly property path sdkPath: FileInfo.joinPaths(sdksPath,
                                                        DarwinTools.applePlatformDirectoryName(
-                                                           qbs.targetOS, platformType, sdkVersion)
-                                                       + ".sdk")
+                                                           qbs.targetOS, platformType,
+                                                           shortSdkVersion) + ".sdk")
 
     // private properties
     readonly property path toolchainsPath: FileInfo.joinPaths(developerPath, "Toolchains")
@@ -131,15 +138,29 @@ Module {
 
     readonly property stringList _actualSigningIdentity: {
         if (/^[A-Fa-f0-9]{40}$/.test(signingIdentity)) {
-            return signingIdentity;
+            return [signingIdentity, signingIdentity];
         }
 
-        var identities = Xcode.findSigningIdentities(securityPath, signingIdentity);
-        if (identities && identities.length > 1) {
-            throw "Signing identity '" + signingIdentity + "' is ambiguous";
+        var result = [];
+
+        if (signingIdentity) {
+            var identities = Utilities.signingIdentities();
+            for (var key in identities) {
+                if (identities[key].subjectInfo.CN === signingIdentity) {
+                    result.push([key, signingIdentity]);
+                }
+            }
+
+            if (result.length == 0) {
+                throw "Unable to find signingIdentity '" + signingIdentity + "'";
+            }
+
+            if (result.length > 1) {
+                throw "Signing identity '" + signingIdentity + "' is ambiguous";
+            }
         }
 
-        return identities;
+        return result[0];
     }
 
     property path provisioningProfilesPath: {
@@ -191,14 +212,14 @@ Module {
         validator.setRequiredProperty("platformPath", platformPath);
         validator.setRequiredProperty("sdksPath", sdkPath);
         validator.setRequiredProperty("sdkPath", sdkPath);
-        validator.addVersionValidator("sdkVersion", sdkVersion, 2, 2);
+        validator.addVersionValidator("sdkVersion", sdkVersion, 2, 3);
         validator.addCustomValidator("sdkName", sdkName, function (value) {
             return value === DarwinTools.applePlatformDirectoryName(
-                        qbs.targetOS, platformType, sdkVersion, false).toLowerCase();
+                        qbs.targetOS, platformType, shortSdkVersion, false).toLowerCase();
         }, "is '" + sdkName + "', but target OS is [" + qbs.targetOS.join(",")
         + "] and Xcode SDK version is '" + sdkVersion + "'");
         validator.addCustomValidator("sdk", sdk, function (value) {
-            return value === sdkName || (value + sdkVersion) === sdkName;
+            return value === sdkName || (value + shortSdkVersion) === sdkName;
         }, "is '" + sdk + "', but canonical SDK name is '" + sdkName + "'");
         validator.validate();
     }

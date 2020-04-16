@@ -68,9 +68,7 @@ MSBuildFilter::MSBuildFilter(const QString &name,
     setExtensions(extensions);
 }
 
-MSBuildFilter::~MSBuildFilter()
-{
-}
+MSBuildFilter::~MSBuildFilter() = default;
 
 QUuid MSBuildFilter::identifier() const
 {

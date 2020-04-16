@@ -84,20 +84,11 @@ PropertyDeclaration::PropertyDeclaration(const QString &name, Type type,
     d->flags = flags;
 }
 
-PropertyDeclaration::PropertyDeclaration(const PropertyDeclaration &other)
-    : d(other.d)
-{
-}
+PropertyDeclaration::PropertyDeclaration(const PropertyDeclaration &other) = default;
 
-PropertyDeclaration::~PropertyDeclaration()
-{
-}
+PropertyDeclaration::~PropertyDeclaration() = default;
 
-PropertyDeclaration &PropertyDeclaration::operator=(const PropertyDeclaration &other)
-{
-    d = other.d;
-    return *this;
-}
+PropertyDeclaration &PropertyDeclaration::operator=(const PropertyDeclaration &other) = default;
 
 bool PropertyDeclaration::isValid() const
 {

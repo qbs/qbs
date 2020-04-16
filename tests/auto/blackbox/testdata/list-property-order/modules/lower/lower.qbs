@@ -1,5 +1,5 @@
 Module {
-    property stringList listProp
+    property stringList listProp: [ "lower" ]
 
     Rule {
         inputs: ["intype"]
@@ -10,7 +10,7 @@ Module {
         prepare: {
             var cmd = new JavaScriptCommand();
             cmd.sourceCode = function() {
-                console.info("listProp = " + JSON.stringify(product.lower.listProp));
+                console.warn("listProp = " + JSON.stringify(product.lower.listProp));
             };
             cmd.silent = true;
             return [cmd];

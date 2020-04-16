@@ -47,9 +47,7 @@
 namespace qbs {
 using namespace Internal;
 
-CommandLineOption::~CommandLineOption()
-{
-}
+CommandLineOption::~CommandLineOption() = default;
 
 void CommandLineOption::parse(CommandType command, const QString &representation, QStringList &input)
 {
@@ -546,9 +544,7 @@ QString LogTimeOption::longRepresentation() const
 }
 
 
-SettingsDirOption::SettingsDirOption()
-{
-}
+SettingsDirOption::SettingsDirOption() = default;
 
 QString SettingsDirOption::description(CommandType command) const
 {
@@ -627,9 +623,7 @@ QString RespectProjectJobLimitsOption::longRepresentation() const
     return QStringLiteral("--enforce-project-job-limits");
 }
 
-CommandEchoModeOption::CommandEchoModeOption()
-{
-}
+CommandEchoModeOption::CommandEchoModeOption() = default;
 
 QString CommandEchoModeOption::description(CommandType command) const
 {

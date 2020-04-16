@@ -43,8 +43,11 @@ Project {
                 }
 
                 for (var i = 0; i < a.length; ++i) {
-                    if (a[i] !== b[i]) {
-                        throw msg;
+                    var version1 = a[i].split('.');
+                    var version2 = b[i].split('.');
+                    for (var j = 0; j < version1.length; ++j) {
+                        if (version1[j] !== version2[j])
+                            throw msg;
                     }
                 }
             }

@@ -70,7 +70,7 @@ public:
     // a << chain prints the accumulated data
     LogWriter(const LogWriter &other);
     ~LogWriter();
-    const LogWriter &operator=(const LogWriter &other);
+    const LogWriter &operator=(const LogWriter &other); // NOLINT
 
     void write(char c);
     void write(const char *str);
@@ -90,7 +90,7 @@ private:
 class QBS_EXPORT MessageTag
 {
 public:
-    explicit MessageTag(const QString &tag) : m_tag(tag) {}
+    explicit MessageTag(QString tag) : m_tag(std::move(tag)) {}
 
     const QString &tag() const { return m_tag; }
 

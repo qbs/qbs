@@ -53,10 +53,10 @@ class Settings;
 
 qbs::Profile createGccProfile(const QFileInfo &compiler,
                               qbs::Settings *settings,
-                              const QStringList &toolchainTypes,
+                              const QString &toolchainType,
                               const QString &profileName = QString());
 
-void gccProbe(qbs::Settings *settings, QList<qbs::Profile> &profiles,
+void gccProbe(qbs::Settings *settings, std::vector<qbs::Profile> &profiles,
               const QString &compilerName);
 
 #endif // Header guard

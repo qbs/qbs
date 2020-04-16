@@ -121,7 +121,7 @@ void TestBlackboxQt::combinedMoc()
 void TestBlackboxQt::createProject()
 {
     QDir::setCurrent(testDataDir + "/create-project");
-    QVERIFY(QFile::copy(SRCDIR "/../../../examples/helloworld-qt/main.cpp",
+    QVERIFY(QFile::copy(testSourceDir + "/../../../../examples/helloworld-qt/main.cpp",
                         QDir::currentPath() + "/main.cpp"));
     QbsRunParameters createParams("create-project");
     createParams.profile.clear();
@@ -210,12 +210,48 @@ void TestBlackboxQt::lrelease()
     QVERIFY(!regularFileExists(relativeProductBuildDir("lrelease-test") + "/hu.qm"));
 }
 
+void TestBlackboxQt::metaTypes_data()
+{
+    QTest::addColumn<bool>("generate");
+    QTest::addColumn<QString>("installDir");
+    QTest::newRow("don't generate") << false << QString();
+    QTest::newRow("don't generate with install info") << false << QString("blubb");
+    QTest::newRow("generate only") << true << QString();
+    QTest::newRow("generate and install") << true << QString("blubb");
+}
+
+void TestBlackboxQt::metaTypes()
+{
+    QDir::setCurrent(testDataDir + "/metatypes");
+    QFETCH(bool, generate);
+    QFETCH(QString, installDir);
+    const QStringList args{"modules.Qt.core.generateMetaTypesFile:"
+                               + QString(generate ? "true" : "false"),
+                           "modules.Qt.core.metaTypesInstallDir:" + installDir,
+                           "-v", "--force-probe-execution"};
+    QCOMPARE(runQbs(QbsRunParameters("resolve", args)), 0);
+    const bool canGenerate = m_qbsStdout.contains("can generate");
+    const bool cannotGenerate = m_qbsStdout.contains("cannot generate");
+    QVERIFY(canGenerate != cannotGenerate);
+    const bool expectFiles = generate && canGenerate;
+    const bool expectInstalledFiles = expectFiles && !installDir.isEmpty();
+    QCOMPARE(runQbs(QStringList("--clean-install-root")), 0);
+    const QString productDir = relativeProductBuildDir("mylib");
+    const QString outputDir =  productDir + "/qt.headers";
+    QVERIFY(!regularFileExists(outputDir + "/moc_unmocableclass.cpp.json"));
+    QCOMPARE(regularFileExists(outputDir + "/moc_mocableclass1.cpp.json"), expectFiles);
+    QCOMPARE(regularFileExists(outputDir + "/mocableclass2.moc.json"), expectFiles);
+    QCOMPARE(regularFileExists(productDir + "/mylib_metatypes.json"), expectFiles);
+    QCOMPARE(regularFileExists(relativeBuildDir() + "/install-root/some-prefix/" + installDir
+                               + "/mylib_metatypes.json"), expectInstalledFiles);
+}
+
 void TestBlackboxQt::mixedBuildVariants()
 {
     QDir::setCurrent(testDataDir + "/mixed-build-variants");
     const SettingsPtr s = settings();
     Profile profile(profileName(), s.get());
-    if (profile.value("qbs.toolchain").toStringList().contains("msvc")) {
+    if (profileToolchain(profile).contains("msvc")) {
         QbsRunParameters params;
         params.arguments << "qbs.buildVariant:debug";
         params.expectFailure = true;
@@ -339,7 +375,7 @@ void TestBlackboxQt::qmlDebugging()
     QCOMPARE(runQbs(), 0);
     const SettingsPtr s = settings();
     Profile profile(profileName(), s.get());
-    if (!profile.value("qbs.toolchain").toStringList().contains("gcc"))
+    if (!profileToolchain(profile).contains("gcc"))
         return;
     QProcess nm;
     nm.start("nm", QStringList(relativeExecutableFilePath("debuggable-app")));
@@ -358,6 +394,40 @@ void TestBlackboxQt::qobjectInObjectiveCpp()
     const QString testDir = testDataDir + "/qobject-in-mm";
     QDir::setCurrent(testDir);
     QCOMPARE(runQbs(), 0);
+}
+
+void TestBlackboxQt::qmlTypeRegistrar_data()
+{
+    QTest::addColumn<QString>("importName");
+    QTest::addColumn<QString>("installDir");
+    QTest::newRow("don't generate") << QString() << QString();
+    QTest::newRow("don't generate with install info") << QString() << QString("blubb");
+    QTest::newRow("generate only") << QString("People") << QString();
+    QTest::newRow("generate and install") << QString("People") << QString("blubb");
+}
+
+void TestBlackboxQt::qmlTypeRegistrar()
+{
+    QDir::setCurrent(testDataDir + "/qmltyperegistrar");
+    QFETCH(QString, importName);
+    QFETCH(QString, installDir);
+    rmDirR(relativeBuildDir());
+    const QStringList args{"modules.Qt.qml.importName:" + importName,
+                           "modules.Qt.qml.typesInstallDir:" + installDir};
+    QCOMPARE(runQbs(QbsRunParameters("resolve", args)), 0);
+    const bool hasRegistrar = m_qbsStdout.contains("has registrar");
+    const bool doesNotHaveRegistrar = m_qbsStdout.contains("does not have registrar");
+    QVERIFY(hasRegistrar != doesNotHaveRegistrar);
+    if (doesNotHaveRegistrar)
+        QSKIP("Qt version too old");
+    QCOMPARE(runQbs(), 0);
+    const bool enabled = !importName.isEmpty();
+    QCOMPARE(m_qbsStdout.contains("running qmltyperegistrar"), enabled);
+    QCOMPARE(m_qbsStdout.contains("compiling myapp_qmltyperegistrations.cpp"), enabled);
+    const QString buildDir = relativeProductBuildDir("myapp");
+    QCOMPARE(regularFileExists(buildDir + "/myapp.qmltypes"), enabled);
+    QCOMPARE(regularFileExists(relativeBuildDir() + "/install-root/" + installDir
+                               + "/myapp.qmltypes"), enabled && !installDir.isEmpty());
 }
 
 void TestBlackboxQt::qtKeywords()

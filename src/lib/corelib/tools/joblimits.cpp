@@ -87,13 +87,9 @@ JobLimit::JobLimit() : JobLimit(QString(), -1)
 JobLimit::JobLimit(const QString &pool, int limit) : d(new Internal::JobLimitPrivate(pool, limit))
 {
 }
-JobLimit::JobLimit(const JobLimit &other) : d(other.d) { }
-JobLimit &JobLimit::operator=(const JobLimit &other)
-{
-    d = other.d;
-    return *this;
-}
-JobLimit::~JobLimit() {}
+JobLimit::JobLimit(const JobLimit &other) = default;
+JobLimit &JobLimit::operator=(const JobLimit &other) = default;
+JobLimit::~JobLimit() = default;
 QString JobLimit::pool() const { return d->jobLimit.first; }
 int JobLimit::limit() const { return d->jobLimit.second; }
 
@@ -108,13 +104,9 @@ void JobLimit::store(Internal::PersistentPool &pool)
 }
 
 JobLimits::JobLimits() : d(new Internal::JobLimitsPrivate) { }
-JobLimits::JobLimits(const JobLimits &other) : d(other.d) { }
-JobLimits &JobLimits::operator=(const JobLimits &other)
-{
-    d = other.d;
-    return *this;
-}
-JobLimits::~JobLimits() {}
+JobLimits::JobLimits(const JobLimits &other) = default;
+JobLimits &JobLimits::operator=(const JobLimits &other) = default;
+JobLimits::~JobLimits() = default;
 
 void JobLimits::setJobLimit(const JobLimit &limit)
 {

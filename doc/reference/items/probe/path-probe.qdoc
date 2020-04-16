@@ -81,7 +81,7 @@
     For example, when searching for a library, it might be necessary to check its architecture:
     \code
     PathProbe {
-        pathSuffixes: ["*.so", *.dll]
+        pathSuffixes: [".so", ".dll", ".dylib"]
         candidateFilter: {
             function getLibraryArchitecture(file) { ... }
             return function(file) {
@@ -168,6 +168,24 @@
 
     This property contains the result list of all paths that were checked before a file was found
     (including the file names).
+
+    This property is set even if the Probe didn't find anything and can be used to give the user
+    a hint what went wrong:
+    \code
+    Module {
+        Probes.BinaryProbe {
+            id: pythonProbe
+            names: "python"
+        }
+        validate: {
+            if (!pythonProbe.found) {
+                throw ModUtils.ModuleError(
+                        "Could not find python binary at any of the following locations:\n\t" +
+                        pythonProbe.candidatePaths.join("\n\t"));
+            }
+        }
+    }
+    \endcode
 
     \nodefaultvalue
 */

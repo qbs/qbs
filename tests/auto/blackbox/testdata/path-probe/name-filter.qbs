@@ -7,4 +7,5 @@ BaseApp {
         };
     }
     outputFilePaths: ["bin/tool.2"]
+    outputCandidatePaths: [["bin/tool.2"]]
 }

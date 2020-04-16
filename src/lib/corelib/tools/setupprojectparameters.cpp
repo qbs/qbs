@@ -107,21 +107,15 @@ SetupProjectParameters::SetupProjectParameters() : d(new Internal::SetupProjectP
 {
 }
 
-SetupProjectParameters::SetupProjectParameters(const SetupProjectParameters &other) : d(other.d)
-{
-}
+SetupProjectParameters::SetupProjectParameters(const SetupProjectParameters &other) = default;
 
-SetupProjectParameters::SetupProjectParameters(SetupProjectParameters &&other) Q_DECL_NOEXCEPT = default;
+SetupProjectParameters::SetupProjectParameters(
+        SetupProjectParameters &&other) Q_DECL_NOEXCEPT = default;
 
-SetupProjectParameters::~SetupProjectParameters()
-{
-}
+SetupProjectParameters::~SetupProjectParameters() = default;
 
-SetupProjectParameters &SetupProjectParameters::operator=(const SetupProjectParameters &other)
-{
-    d = other.d;
-    return *this;
-}
+SetupProjectParameters &SetupProjectParameters::operator=(
+        const SetupProjectParameters &other) = default;
 
 namespace Internal {
 template<> ErrorHandlingMode fromJson(const QJsonValue &v)
@@ -355,7 +349,7 @@ static void provideValuesTree(const QVariantMap &values, QVariantMap *valueTree)
 
     valueTree->clear();
     for (QVariantMap::const_iterator it = values.constBegin(); it != values.constEnd(); ++it) {
-        const QString name = it.key();
+        const QString &name = it.key();
         int idx = name.lastIndexOf(QLatin1Char('.'));
         const QStringList nameElements = (idx == -1)
                 ? QStringList() << name

@@ -52,9 +52,7 @@ MSBuildProject::MSBuildProject(QObject *parent)
 {
 }
 
-MSBuildProject::~MSBuildProject()
-{
-}
+MSBuildProject::~MSBuildProject() = default;
 
 QString MSBuildProject::defaultTargets() const
 {

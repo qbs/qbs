@@ -55,9 +55,12 @@ class ModuleProviderInfo
 {
 public:
     ModuleProviderInfo() = default;
-    ModuleProviderInfo(const QualifiedId &name, const QVariantMap &config,
-                   const QStringList &searchPaths, bool transientOutput)
-        : name(name), config(config), searchPaths(searchPaths), transientOutput(transientOutput)
+    ModuleProviderInfo(QualifiedId name, QVariantMap config,
+                   QStringList searchPaths, bool transientOutput)
+        : name(std::move(name))
+        , config(std::move(config))
+        , searchPaths(std::move(searchPaths))
+        , transientOutput(transientOutput)
     {}
 
     static QString outputBaseDirName() { return QStringLiteral("genmodules"); }

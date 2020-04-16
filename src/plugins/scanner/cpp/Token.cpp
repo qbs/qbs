@@ -118,9 +118,7 @@ Token::Token() :
 {
 }
 
-Token::~Token()
-{
-}
+Token::~Token() = default;
 
 void Token::reset()
 {

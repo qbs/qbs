@@ -53,6 +53,14 @@
 namespace qbs {
 namespace Internal {
 
+class Logger;
+
+struct MSVCArchInfo
+{
+    QString arch;
+    QString binPath;
+};
+
 /**
  * Represents one MSVC installation for one specific target architecture.
  * There are potentially multiple MSVCs in one Visual Studio installation.
@@ -75,7 +83,7 @@ public:
     QString architecture;
     QProcessEnvironment environment;
 
-    MSVC() { }
+    MSVC() = default;
 
     MSVC(const QString &clPath, QString arch):
         architecture(std::move(arch))
@@ -90,10 +98,18 @@ public:
 
     QBS_EXPORT void init();
     QBS_EXPORT static QString architectureFromClPath(const QString &clPath);
+    QBS_EXPORT static QString canonicalArchitecture(const QString &arch);
+    QBS_EXPORT static std::pair<QString, QString> getHostTargetArchPair(const QString &arch);
     QBS_EXPORT QString binPathForArchitecture(const QString &arch) const;
     QBS_EXPORT QString clPathForArchitecture(const QString &arch) const;
     QBS_EXPORT QVariantMap compilerDefines(const QString &compilerFilePath,
                                            CompilerLanguage language) const;
+
+    QBS_EXPORT static std::vector<MSVCArchInfo> findSupportedArchitectures(const MSVC &msvc);
+
+    QBS_EXPORT QVariantMap toVariantMap() const;
+
+    QBS_EXPORT static std::vector<MSVC> installedCompilers(Logger &logger);
 
 private:
     void determineCompilerVersion();
@@ -108,6 +124,16 @@ public:
     {
         pathPrefix = QStringLiteral("bin");
     }
+};
+
+struct QBS_EXPORT MSVCInstallInfo
+{
+    QString version;
+    QString installDir;
+
+    QString findVcvarsallBat() const;
+
+    static std::vector<MSVCInstallInfo> installedMSVCs(Logger &logger);
 };
 
 } // namespace Internal

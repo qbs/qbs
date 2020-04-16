@@ -70,10 +70,12 @@ Probe {
         found = results.found;
         allResults = results.files;
 
-        var result = allResults[0];
-        candidatePaths = result.candidatePaths;
-        path = result.path;
-        filePath = result.filePath;
-        fileName = result.fileName;
+        if (allResults.length === 1) {
+            var result = allResults[0];
+            candidatePaths = result.candidatePaths;
+            path = result.path;
+            filePath = result.filePath;
+            fileName = result.fileName;
+        }
     }
 }

@@ -66,4 +66,12 @@ NativeBinary {
         qbs.installDir: installDir
         qbs.installSourceBase: isBundle ? destinationDirectory : outer
     }
+
+    Group {
+        condition: installDebugInformation
+        fileTagsFilter: ["debuginfo_app"]
+        qbs.install: true
+        qbs.installDir: debugInformationInstallDir
+        qbs.installSourceBase: destinationDirectory
+    }
 }

@@ -78,6 +78,7 @@ CommandLineFrontend::CommandLineFrontend(const CommandLineParser &parser, Settin
 CommandLineFrontend::~CommandLineFrontend()
 {
     m_cancelTimer->stop();
+    delete m_observer;
 }
 
 // Called from interrupt handler. Don't do anything non-trivial here.
@@ -653,7 +654,7 @@ ProductData CommandLineFrontend::getTheOneRunnableProduct()
         }
         QBS_CHECK(false);
     }
-    QBS_CHECK(m_parser.products().size() == 0);
+    QBS_CHECK(m_parser.products().isEmpty());
 
     QList<ProductData> runnableProducts;
     const auto products = m_projects.front().projectData().allProducts();

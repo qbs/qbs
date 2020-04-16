@@ -151,7 +151,7 @@ class BuildGraphTouchingJob : public InternalJob
 {
     Q_OBJECT
 public:
-    const QList<ResolvedProductPtr> &products() const { return m_products; }
+    const QVector<ResolvedProductPtr> &products() const { return m_products; }
     const TopLevelProjectPtr &project() const { return m_project; }
 
 signals:
@@ -162,13 +162,13 @@ protected:
     BuildGraphTouchingJob(const Logger &logger, QObject *parent = nullptr);
     ~BuildGraphTouchingJob() override;
 
-    void setup(const TopLevelProjectPtr &project, const QList<ResolvedProductPtr> &products,
+    void setup(const TopLevelProjectPtr &project, const QVector<ResolvedProductPtr> &products,
                bool dryRun);
     void storeBuildGraph();
 
 private:
     TopLevelProjectPtr m_project;
-    QList<ResolvedProductPtr> m_products;
+    QVector<ResolvedProductPtr> m_products;
     bool m_dryRun;
 };
 
@@ -179,7 +179,7 @@ class InternalBuildJob : public BuildGraphTouchingJob
 public:
     InternalBuildJob(const Logger &logger, QObject *parent = nullptr);
 
-    void build(const TopLevelProjectPtr &project, const QList<ResolvedProductPtr> &products,
+    void build(const TopLevelProjectPtr &project, const QVector<ResolvedProductPtr> &products,
                const BuildOptions &buildOptions);
 
 private:
@@ -196,8 +196,8 @@ class InternalCleanJob : public BuildGraphTouchingJob
 public:
     InternalCleanJob(const Logger &logger, QObject *parent = nullptr);
 
-    void init(const TopLevelProjectPtr &project, const QList<ResolvedProductPtr> &products,
-            const CleanOptions &options);
+    void init(const TopLevelProjectPtr &project, const QVector<ResolvedProductPtr> &products,
+              const CleanOptions &options);
 
 private:
     void start() override;
@@ -213,14 +213,14 @@ public:
     InternalInstallJob(const Logger &logger);
     ~InternalInstallJob() override;
 
-    void init(const TopLevelProjectPtr &project, const std::vector<ResolvedProductPtr> &products,
+    void init(const TopLevelProjectPtr &project, const QVector<ResolvedProductPtr> &products,
             const InstallOptions &options);
 
 private:
     void start() override;
 
     TopLevelProjectPtr m_project;
-    std::vector<ResolvedProductPtr> m_products;
+    QVector<ResolvedProductPtr> m_products;
     InstallOptions m_options;
 };
 

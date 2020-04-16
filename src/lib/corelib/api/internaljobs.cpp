@@ -225,9 +225,7 @@ InternalSetupProjectJob::InternalSetupProjectJob(const Logger &logger)
 {
 }
 
-InternalSetupProjectJob::~InternalSetupProjectJob()
-{
-}
+InternalSetupProjectJob::~InternalSetupProjectJob() = default;
 
 void InternalSetupProjectJob::init(const TopLevelProjectPtr &existingProject,
                                    const SetupProjectParameters &parameters)
@@ -350,12 +348,10 @@ BuildGraphTouchingJob::BuildGraphTouchingJob(const Logger &logger, QObject *pare
 {
 }
 
-BuildGraphTouchingJob::~BuildGraphTouchingJob()
-{
-}
+BuildGraphTouchingJob::~BuildGraphTouchingJob() = default;
 
 void BuildGraphTouchingJob::setup(const TopLevelProjectPtr &project,
-                                  const QList<ResolvedProductPtr> &products, bool dryRun)
+                                  const QVector<ResolvedProductPtr> &products, bool dryRun)
 {
     m_project = project;
     m_products = products;
@@ -374,14 +370,14 @@ InternalBuildJob::InternalBuildJob(const Logger &logger, QObject *parent)
 }
 
 void InternalBuildJob::build(const TopLevelProjectPtr &project,
-        const QList<ResolvedProductPtr> &products, const BuildOptions &buildOptions)
+        const QVector<ResolvedProductPtr> &products, const BuildOptions &buildOptions)
 {
     setup(project, products, buildOptions.dryRun());
     setTimed(buildOptions.logElapsedTime());
 
     m_executor = new Executor(logger());
     m_executor->setProject(project);
-    m_executor->setProducts(std::vector<ResolvedProductPtr>(products.cbegin(), products.cend()));
+    m_executor->setProducts(products);
     m_executor->setBuildOptions(buildOptions);
     m_executor->setProgressObserver(observer());
 
@@ -418,7 +414,8 @@ InternalCleanJob::InternalCleanJob(const Logger &logger, QObject *parent)
 }
 
 void InternalCleanJob::init(const TopLevelProjectPtr &project,
-                             const QList<ResolvedProductPtr> &products, const CleanOptions &options)
+                            const QVector<ResolvedProductPtr> &products,
+                            const CleanOptions &options)
 {
     setup(project, products, options.dryRun());
     setTimed(options.logElapsedTime());
@@ -443,12 +440,10 @@ InternalInstallJob::InternalInstallJob(const Logger &logger)
 {
 }
 
-InternalInstallJob::~InternalInstallJob()
-{
-}
+InternalInstallJob::~InternalInstallJob() = default;
 
 void InternalInstallJob::init(const TopLevelProjectPtr &project,
-        const std::vector<ResolvedProductPtr> &products, const InstallOptions &options)
+        const QVector<ResolvedProductPtr> &products, const InstallOptions &options)
 {
     m_project = project;
     m_products = products;

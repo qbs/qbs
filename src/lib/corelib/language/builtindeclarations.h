@@ -62,7 +62,7 @@ public:
     QStringList allTypeNames() const;
     ItemDeclaration declarationsForType(ItemType type) const;
     ItemType typeForName(const QString &typeName,
-                         const CodeLocation location = CodeLocation()) const;
+                         const CodeLocation &location = CodeLocation()) const;
     QString nameForType(ItemType itemType) const;
     QStringList argumentNamesForScriptFunction(ItemType itemType, const QString &scriptName) const;
 

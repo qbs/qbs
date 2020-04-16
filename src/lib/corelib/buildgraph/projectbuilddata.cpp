@@ -60,6 +60,8 @@
 #include <tools/qttools.h>
 #include <tools/stlutils.h>
 
+#include <memory>
+
 namespace qbs {
 namespace Internal {
 
@@ -276,7 +278,7 @@ void BuildDataResolver::resolveBuildData(const TopLevelProjectPtr &resolvedProje
 {
     QBS_CHECK(!resolvedProject->buildData);
     m_project = resolvedProject;
-    resolvedProject->buildData.reset(new ProjectBuildData);
+    resolvedProject->buildData = std::make_unique<ProjectBuildData>();
     resolvedProject->buildData->evaluationContext = evalContext;
     const std::vector<ResolvedProductPtr> &allProducts = resolvedProject->allProducts();
     evalContext->initializeObserver(Tr::tr("Setting up build graph for configuration %1")
@@ -390,7 +392,7 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
 
     evalContext()->checkForCancelation();
 
-    product->buildData.reset(new ProductBuildData);
+    product->buildData = std::make_unique<ProductBuildData>();
     ArtifactSetByFileTag artifactsPerFileTag;
 
     for (const auto &dependency : qAsConst(product->dependencies)) {
@@ -411,7 +413,7 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
     artifactsPerFileTag["qbs"].insert(qbsFileArtifact);
 
     // read sources
-    for (const SourceArtifactConstPtr &sourceArtifact : product->allEnabledFiles()) {
+    for (const auto &sourceArtifact : product->allEnabledFiles()) {
         QString filePath = sourceArtifact->absoluteFilePath;
         if (lookupArtifact(product, filePath))
             continue; // ignore duplicate artifacts
@@ -443,7 +445,7 @@ void BuildDataResolver::connectRulesToDependencies(const ResolvedProductPtr &pro
     std::vector<RuleNode *> ruleNodes;
     for (RuleNode *ruleNode : filterByType<RuleNode>(product->buildData->allNodes()))
         ruleNodes.push_back(ruleNode);
-    for (const ResolvedProductConstPtr &dep : dependencies) {
+    for (const auto &dep : dependencies) {
         if (!dep->buildData)
             continue;
         for (RuleNode *depRuleNode : filterByType<RuleNode>(dep->buildData->allNodes())) {

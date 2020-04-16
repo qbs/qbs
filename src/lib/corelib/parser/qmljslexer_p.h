@@ -62,7 +62,7 @@ class Engine;
 
 class QML_PARSER_EXPORT Directives {
 public:
-    virtual ~Directives() {}
+    virtual ~Directives() = default;
 
     virtual void pragmaLibrary()
     {
