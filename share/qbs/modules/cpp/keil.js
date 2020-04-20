@@ -466,13 +466,6 @@ function adjustPathsToWindowsSeparators(sourcePaths) {
     return resulingPaths;
 }
 
-function getMaxExitCode(architecture) {
-    if (isMcsArchitecture(architecture))
-        return 1;
-    else if (isArmArchitecture(architecture))
-        return 0;
-}
-
 function collectLibraryDependencies(product) {
     var seen = {};
     var result = [];
@@ -528,38 +521,25 @@ function collectLibraryDependencies(product) {
     return result;
 }
 
-function filterStdOutput(cmd) {
-    cmd.stdoutFilterFunction = function(output) {
-        var sourceLines = output.split("\n");
-        var filteredLines = [];
-        for (var i in sourceLines) {
-            var line = sourceLines[i];
-            if (line.startsWith("***")
-                || line.startsWith(">>")
-                || line.startsWith("    ")
-                || line.startsWith("  ACTION:")
-                || line.startsWith("  LINE:")
-                || line.startsWith("  ERROR:")
-                || line.startsWith("Program Size:")
-                || line.startsWith("A51 FATAL")
-                || line.startsWith("C51 FATAL")
-                || line.startsWith("C251 FATAL")
-                || line.startsWith("ASSEMBLER INVOKED BY")
-                || line.startsWith("LOC  OBJ            LINE     SOURCE")) {
-                    filteredLines.push(sourceLines[i]);
-            } else if (line.startsWith("C251 COMPILER")
-                        || line.startsWith("C251 COMPILATION COMPLETE")
-                        || line.startsWith("C251 TERMINATED")) {
-                continue;
-            } else {
-                var regexp = /^([0-9A-F]{4})/;
-                if (regexp.exec(line))
-                    filteredLines.push(line);
-            }
-        }
-        return filteredLines.join("\n");
-    };
-}
+function filterMcsOutput(output) {
+    var filteredLines = [];
+    output.split(/\r\n|\r|\n/).forEach(function(line) {
+        var regexp = /^\s*\*{3}\s|^\s{29}|^\s{4}\S|^\s{2}[0-9A-F]{4}|^\s{21,25}\d+|^[0-9A-F]{4}\s\d+/;
+        if (regexp.exec(line))
+            filteredLines.push(line);
+    });
+    return filteredLines.join('\n');
+};
+
+function filterC166Output(output) {
+    var filteredLines = [];
+    output.split(/\r\n|\r|\n/).forEach(function(line) {
+        var regexp = /^\s*\*{3}\s|^\s{29}|^\s{27,28}\d+|^\s{21}\d+|^\s{4}\S|^\s{2}[0-9A-F]{4}|^[0-9A-F]{4}\s\d+/;
+        if (regexp.exec(line))
+            filteredLines.push(line);
+    });
+    return filteredLines.join('\n');
+};
 
 function compilerOutputArtifacts(input, useListing) {
     var artifacts = [];
@@ -1008,18 +988,30 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
     var cmd = new Command(compilerPath, args);
     cmd.description = "compiling " + input.fileName;
     cmd.highlight = "compiler";
-    cmd.maxExitCode = getMaxExitCode(architecture);
-    filterStdOutput(cmd);
+    if (isMcsArchitecture(architecture)) {
+        cmd.maxExitCode = 1;
+        cmd.stdoutFilterFunction = filterMcsOutput;
+    } else if (isC166Architecture(architecture)) {
+        cmd.maxExitCode = 1;
+        cmd.stdoutFilterFunction = filterC166Output;
+    }
     return [cmd];
 }
 
 function prepareAssembler(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
     var args = assemblerFlags(project, product, input, outputs, explicitlyDependsOn);
     var assemblerPath = input.cpp.assemblerPath;
+    var architecture = input.cpp.architecture;
     var cmd = new Command(assemblerPath, args);
     cmd.description = "assembling " + input.fileName;
     cmd.highlight = "compiler";
-    filterStdOutput(cmd);
+    if (isMcsArchitecture(architecture)) {
+        cmd.maxExitCode = 1;
+        cmd.stdoutFilterFunction = filterMcsOutput;
+    } else if (isC166Architecture(architecture)) {
+        cmd.maxExitCode = 1;
+        cmd.stdoutFilterFunction = filterC166Output;
+    }
     return [cmd];
 }
 
@@ -1031,17 +1023,27 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     var cmd = new Command(linkerPath, args);
     cmd.description = "linking " + primaryOutput.fileName;
     cmd.highlight = "linker";
-    cmd.maxExitCode = getMaxExitCode(architecture);
-    filterStdOutput(cmd);
+    if (isMcsArchitecture(architecture)) {
+        cmd.maxExitCode = 1;
+        cmd.stdoutFilterFunction = filterMcsOutput;
+    } else if (isC166Architecture(architecture)) {
+        cmd.maxExitCode = 1;
+        cmd.stdoutFilterFunction = filterC166Output;
+    }
     return [cmd];
 }
 
 function prepareArchiver(project, product, inputs, outputs, input, output) {
     var args = archiverFlags(project, product, input, outputs);
     var archiverPath = product.cpp.archiverPath;
+    var architecture = input.cpp.architecture;
     var cmd = new Command(archiverPath, args);
     cmd.description = "linking " + output.fileName;
     cmd.highlight = "linker";
-    filterStdOutput(cmd);
+    if (isMcsArchitecture(architecture)) {
+        cmd.stdoutFilterFunction = filterMcsOutput;
+    } else if (isC166Architecture(architecture)) {
+        cmd.stdoutFilterFunction = filterC166Output;
+    }
     return [cmd];
 }
