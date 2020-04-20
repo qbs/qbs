@@ -1,6 +1,12 @@
 import qbs.Utilities
 
 Project {
+    condition: {
+        var result = qbs.targetOS.contains("macos");
+        if (!result)
+            console.info("Skip this test");
+        return result;
+    }
     property bool includeIconset
 
     CppApplication {

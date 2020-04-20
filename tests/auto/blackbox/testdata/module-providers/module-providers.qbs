@@ -1,4 +1,10 @@
 Project {
+    property bool enabled: {
+        var result = qbs.targetPlatform === qbs.hostPlatform;
+        if (!result)
+            console.info("targetPlatform differs from hostPlatform");
+        return result;
+    }
     readonly property string beginning: "beginning"
     CppApplication {
         name: "app1"

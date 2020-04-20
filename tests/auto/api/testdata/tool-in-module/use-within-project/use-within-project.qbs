@@ -4,6 +4,13 @@ Project {
         consoleApplication: true
         files: "main.cpp"
 
+        property bool skip: {
+            var result = qbs.targetPlatform !== qbs.hostPlatform;
+            if (result)
+                console.info("Skip this test");
+            return result;
+        }
+
         install: true
         installDir: ""
         qbs.installPrefix: ""

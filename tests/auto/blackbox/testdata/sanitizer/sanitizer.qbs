@@ -9,6 +9,10 @@ CppApplication {
             return false;
         if (qbs.toolchain.contains("mingw"))
             return false;
+        if (qbs.targetOS.contains("ios")) {
+            // thread sanitizer is not supported
+            return sanitizer !== "thread";
+        }
         return true;
     }
 

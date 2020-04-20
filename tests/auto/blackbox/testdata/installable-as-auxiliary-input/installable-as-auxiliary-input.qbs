@@ -5,6 +5,12 @@ import qbs.TextFile
 Project {
     name: "p"
     CppApplication {
+        condition: {
+            var result = qbs.targetPlatform === qbs.hostPlatform;
+            if (!result)
+                console.info("targetPlatform differs from hostPlatform");
+            return result;
+        }
         name: "app"
         Depends { name: "installed-header" }
         Rule {

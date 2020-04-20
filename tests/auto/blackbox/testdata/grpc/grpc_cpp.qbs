@@ -3,7 +3,12 @@ import qbs
 CppApplication {
     name: "grpc_cpp"
     consoleApplication: true
-    condition: hasDependencies
+    condition: {
+        var result = qbs.targetPlatform === qbs.hostPlatform;
+        if (!result)
+            console.info("targetPlatform differs from hostPlatform");
+        return result && hasDependencies;
+    }
 
     Depends { name: "cpp" }
     cpp.cxxLanguageVersion: "c++11"

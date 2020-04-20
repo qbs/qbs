@@ -15,6 +15,11 @@ Product {
         files: "main.cpp"
     }
 
+    Group {
+        condition: type.contains("staticlibrary")
+        files: "lib.cpp"
+    }
+
     Depends { name: "Qt.core" }
     Depends { name: "Qt.gui" }
     Depends { name: "Qt.qminimal"; condition: Qt.core.staticBuild; }

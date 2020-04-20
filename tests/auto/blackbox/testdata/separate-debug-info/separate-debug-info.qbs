@@ -10,6 +10,7 @@ Project {
             property stringList targetOS: qbs.targetOS
             configure: {
                 console.info("is windows: " + (targetOS.contains("windows") ? "yes" : "no"));
+                console.info("is macos: " + (targetOS.contains("macos") ? "yes" : "no"));
                 console.info("is darwin: " + (targetOS.contains("darwin") ? "yes" : "no"));
             }
         }

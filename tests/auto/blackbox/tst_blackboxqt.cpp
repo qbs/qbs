@@ -75,6 +75,9 @@ void TestBlackboxQt::addQObjectMacroToGeneratedCppFile()
 void TestBlackboxQt::autoQrc()
 {
     QDir::setCurrent(testDataDir + "/auto-qrc");
+    QCOMPARE(runQbs(QbsRunParameters("resolve")), 0);
+    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+        QSKIP("Cannot run binaries in cross-compiled build");
     QCOMPARE(runQbs(QbsRunParameters("run", QStringList{"-p", "app"})), 0);
     QVERIFY2(m_qbsStdout.simplified().contains("resource data: resource1 resource2"),
              m_qbsStdout.constData());
@@ -145,6 +148,9 @@ void TestBlackboxQt::dbusInterfaces()
 void TestBlackboxQt::forcedMoc()
 {
     QDir::setCurrent(testDataDir + "/forced-moc");
+    QCOMPARE(runQbs(QbsRunParameters("resolve")), 0);
+    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+        QSKIP("Cannot run binaries in cross-compiled build");
     QCOMPARE(runQbs(QbsRunParameters("run")), 0);
     QVERIFY2(m_qbsStderr.contains("Hello from slot"), m_qbsStderr.constData());
 }
@@ -286,16 +292,23 @@ void TestBlackboxQt::mocSameFileName()
 void TestBlackboxQt::pkgconfig()
 {
     QDir::setCurrent(testDataDir + "/pkgconfig");
+    QCOMPARE(runQbs(QbsRunParameters("resolve")), 0);
+    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+        QSKIP("Cannot run binaries in cross-compiled build");
     QbsRunParameters params;
     params.command = "run";
     QCOMPARE(runQbs(params), 0);
-    if (m_qbsStdout.contains("Skip this test"))
+    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
         QSKIP("pkgconfig or Qt not found");
 }
 
 void TestBlackboxQt::pluginMetaData()
 {
     QDir::setCurrent(testDataDir + "/plugin-meta-data");
+    QCOMPARE(runQbs(QbsRunParameters("resolve")), 0);
+    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+        QSKIP("Cannot run binaries in cross-compiled build");
+
     QVERIFY2(runQbs(QbsRunParameters("run", QStringList{"-p", "app"})) == 0,
              m_qbsStderr.constData());
     QVERIFY2(m_qbsStderr.contains("all ok!"), m_qbsStderr.constData());
@@ -460,6 +473,9 @@ void TestBlackboxQt::quickCompiler()
 void TestBlackboxQt::qtScxml()
 {
     QDir::setCurrent(testDataDir + "/qtscxml");
+    QCOMPARE(runQbs(QbsRunParameters("resolve")), 0);
+    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+        QSKIP("Cannot run binaries in cross-compiled build");
     QCOMPARE(runQbs(), 0);
     if (m_qbsStdout.contains("QtScxml not present"))
         QSKIP("QtScxml module not present");
@@ -539,6 +555,9 @@ void TestBlackboxQt::track_qobject_change()
 void TestBlackboxQt::track_qrc()
 {
     QDir::setCurrent(testDataDir + "/qrc");
+    QCOMPARE(runQbs(QbsRunParameters("resolve")), 0);
+    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+        QSKIP("Cannot run binaries in cross-compiled build");
     QCOMPARE(runQbs(QbsRunParameters("run")), 0);
     QVERIFY2(m_qbsStdout.contains("rcc"), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("compiling test.cpp"), m_qbsStdout.constData());

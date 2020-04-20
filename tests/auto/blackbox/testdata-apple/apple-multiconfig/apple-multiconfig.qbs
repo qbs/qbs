@@ -1,17 +1,25 @@
 import qbs.Utilities
 
+import "helpers.js" as Helpers
+
 Project {
     minimumQbsVersion: "1.8"
-    property bool enableX86
+    condition: xcodeVersion
+    property string xcodeVersion
 
     CppApplication {
         Depends { name: "singlelib" }
         Depends { name: "bundle" }
+        property bool isShallow: {
+            console.info("isShallow: " + bundle.isShallow);
+            return bundle.isShallow;
+        }
         name: "singleapp"
         targetName: "singleapp"
         files: ["app.c"]
         cpp.rpaths: [cpp.rpathOrigin + "/../../../"]
         cpp.minimumMacosVersion: "10.6"
+        cpp.minimumIosVersion: "8.0"
 
         // Turn off multiplexing
         aggregate: false
@@ -29,10 +37,11 @@ Project {
         files: ["app.c"]
         cpp.rpaths: [cpp.rpathOrigin + "/../../../"]
         cpp.minimumMacosVersion: "10.6"
+        cpp.minimumIosVersion: "8.0"
 
         // Force aggregation when not needed
         aggregate: true
-        qbs.architectures: ["x86_64"]
+        qbs.architectures: [Helpers.getNewArch(qbs)]
         qbs.buildVariants: ["release"]
 
         install: true
@@ -64,6 +73,7 @@ Project {
         files: ["app.c"]
         cpp.rpaths: [cpp.rpathOrigin + "/../../../"]
         cpp.minimumMacosVersion: "10.6"
+        cpp.minimumIosVersion: "8.0"
 
         install: true
         installDir: ""
@@ -77,10 +87,12 @@ Project {
         files: ["app.c"]
         cpp.rpaths: [cpp.rpathOrigin + "/../../../"]
         cpp.minimumMacosVersion: "10.6"
-        qbs.architectures: project.enableX86 ? ["x86", "x86_64"] : ["x86_64"]
-        qbs.architecture: "x86_64"
-        multiplexByQbsProperties: project.enableX86 ? ["architectures", "buildVariants"]
-                                                    : ["buildVariants"]
+        cpp.minimumIosVersion: "8.0"
+        qbs.architectures: Helpers.getArchitectures(qbs, project.xcodeVersion)
+        qbs.architecture: Helpers.getNewArch(qbs)
+        multiplexByQbsProperties: Helpers.enableOldArch(qbs, project.xcodeVersion)
+                                  ? ["architectures", "buildVariants"]
+                                  : ["buildVariants"]
         qbs.buildVariants: "debug"
 
         install: true
@@ -95,7 +107,8 @@ Project {
         files: ["app.c"]
         cpp.rpaths: [cpp.rpathOrigin + "/../../../"]
         cpp.minimumMacosVersion: "10.6"
-        qbs.architectures: project.enableX86 ? ["x86", "x86_64"] : ["x86_64"]
+        cpp.minimumIosVersion: "8.0"
+        qbs.architectures: Helpers.getArchitectures(qbs, project.xcodeVersion)
         qbs.buildVariants: ["debug", "profile"]
 
         install: true
@@ -108,9 +121,10 @@ Project {
         name: "multilib"
         targetName: "multilib"
         files: ["lib.c"]
+        cpp.minimumIosVersion: "8.0"
         cpp.sonamePrefix: qbs.targetOS.contains("darwin") ? "@rpath" : undefined
         cpp.defines: ["VARIANT=" + Utilities.cStringQuote(qbs.buildVariant)]
-        qbs.architectures: project.enableX86 ? ["x86", "x86_64"] : ["x86_64"]
+        qbs.architectures: Helpers.getArchitectures(qbs, project.xcodeVersion)
         qbs.buildVariants: ["release", "debug", "profile"]
 
         install: true
@@ -123,9 +137,10 @@ Project {
         name: "multilib-no-release"
         targetName: "multilib-no-release"
         files: ["lib.c"]
+        cpp.minimumIosVersion: "8.0"
         cpp.sonamePrefix: qbs.targetOS.contains("darwin") ? "@rpath" : undefined
         cpp.defines: ["VARIANT=" + Utilities.cStringQuote(qbs.buildVariant)]
-        qbs.architectures: project.enableX86 ? ["x86", "x86_64"] : ["x86_64"]
+        qbs.architectures: Helpers.getArchitectures(qbs, project.xcodeVersion)
         qbs.buildVariants: ["debug", "profile"]
 
         install: true
@@ -138,9 +153,10 @@ Project {
         Depends { name: "multilibB" }
         name: "multilibA"
         files: ["lib.c"]
+        cpp.minimumIosVersion: "8.0"
         cpp.sonamePrefix: "@rpath"
         cpp.defines: ["VARIANT=" + Utilities.cStringQuote(qbs.buildVariant)]
-        qbs.architectures: project.enableX86 ? ["x86", "x86_64"] : ["x86_64"]
+        qbs.architectures: Helpers.getArchitectures(qbs, project.xcodeVersion)
         qbs.buildVariants: ["debug", "profile"]
         install: true
         installDir: ""
@@ -150,9 +166,10 @@ Project {
         Depends { name: "bundle" }
         name: "multilibB"
         files: ["lib.c"]
+        cpp.minimumIosVersion: "8.0"
         cpp.sonamePrefix: "@rpath"
         cpp.defines: ["VARIANT=" + Utilities.cStringQuote(qbs.buildVariant)]
-        qbs.architectures: project.enableX86 ? ["x86", "x86_64"] : ["x86_64"]
+        qbs.architectures: Helpers.getArchitectures(qbs, project.xcodeVersion)
         qbs.buildVariants: ["debug", "profile"]
         install: true
         installDir: ""
