@@ -94,6 +94,20 @@
 */
 
 /*!
+    \qmlproperty bool SubProject::condition
+
+    Whether the sub-project is added. If \c false, the sub-project is not
+    included.
+
+    Setting this property has the same effect as setting the \c{condition}
+    property within a \l{Properties} item. If both this property and the
+    \c{condition} property within a \l{Properties} item are defined, the
+    sub-project is included only if both properties evaluate to \c{true}.
+
+    \defaultvalue \c true
+*/
+
+/*!
     \qmlproperty path SubProject::filePath
 
     The file path of the project to add as a sub-project. If the top-level item
