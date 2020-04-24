@@ -6,6 +6,9 @@ Project {
             console.info("is mac");
         else
             console.info("is unix");
+
+        if (qbs.toolchain.contains("mingw"))
+            console.info("is mingw");
     }
     CppApplication {
         name: "theapp"

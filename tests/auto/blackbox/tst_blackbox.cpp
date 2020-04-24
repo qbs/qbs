@@ -4043,6 +4043,7 @@ void TestBlackbox::installLocations()
     const bool isWindows = m_qbsStdout.contains("is windows");
     const bool isMac = m_qbsStdout.contains("is mac");
     const bool isUnix = m_qbsStdout.contains("is unix");
+    const bool isMingw = m_qbsStdout.contains("is mingw");
     QVERIFY(isWindows || isMac || isUnix);
     QCOMPARE(runQbs(QbsRunParameters(QStringList("--clean-install-root"))), 0);
 
@@ -4064,7 +4065,9 @@ void TestBlackbox::installLocations()
         isMac ? "thelib.framework" : ""
     };
     const BinaryInfo dllDsym = {
-        isWindows ? "thelib.pdb" : isMac ? "thelib.framework.dSYM" : "libthelib.so.debug",
+        isWindows
+            ? (!isMingw ? "thelib.pdb" : "thelib.dll.debug")
+            : isMac ? "thelib.framework.dSYM" : "libthelib.so.debug",
         dsymDir.isEmpty() ? dll.installDir : dsymDir,
         {}
     };
@@ -4074,7 +4077,9 @@ void TestBlackbox::installLocations()
         isMac ? "theplugin.bundle/Contents/MacOS" : ""
     };
     const BinaryInfo pluginDsym = {
-        isWindows ? "theplugin.pdb" : isMac ? "theplugin.bundle.dSYM" : "libtheplugin.so.debug",
+        isWindows
+            ? (!isMingw ? "theplugin.pdb" : "theplugin.dll.debug")
+            : isMac ? "theplugin.bundle.dSYM" : "libtheplugin.so.debug",
         dsymDir.isEmpty() ? plugin.installDir : dsymDir,
         {}
     };
@@ -4084,7 +4089,9 @@ void TestBlackbox::installLocations()
         isMac ? "theapp.app/Contents/MacOS" : ""
     };
     const BinaryInfo appDsym = {
-        isWindows ? "theapp.pdb" : isMac ? "theapp.app.dSYM" : "theapp.debug",
+        isWindows
+            ? (!isMingw ? "theapp.pdb" : "theapp.exe.debug")
+            : isMac ? "theapp.app.dSYM" : "theapp.debug",
         dsymDir.isEmpty() ? app.installDir : dsymDir,
         {}
     };
