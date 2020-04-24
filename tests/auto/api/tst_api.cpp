@@ -1596,7 +1596,7 @@ void TestApi::localProfiles()
              QStringList({"mingw", "gcc"}));
     if (moduleProps.getModuleProperty("cpp", "present").toBool()) {
         QCOMPARE(moduleProps.getModuleProperty("cpp", "cxxCompilerName").toString(),
-                 QString("g++"));
+                 qbs::Internal::HostOsInfo::appendExecutableSuffix(QString("g++")));
     }
     moduleProps = libClang.moduleProperties();
     QCOMPARE(moduleProps.getModuleProperty("qbs", "targetOS").toStringList(),
@@ -1605,7 +1605,7 @@ void TestApi::localProfiles()
              QStringList({"clang", "llvm", "gcc"}));
     if (moduleProps.getModuleProperty("cpp", "present").toBool()) {
         QCOMPARE(moduleProps.getModuleProperty("cpp", "cxxCompilerName").toString(),
-                 QString("clang++"));
+                 qbs::Internal::HostOsInfo::appendExecutableSuffix(QString("clang++")));
     }
     moduleProps = appDebug.moduleProperties();
     if (moduleProps.getModuleProperty("cpp", "present").toBool())
@@ -1642,7 +1642,7 @@ void TestApi::localProfiles()
             moduleProps = p.moduleProperties();
             if (moduleProps.getModuleProperty("cpp", "present").toBool()) {
                 QCOMPARE(moduleProps.getModuleProperty("cpp", "cxxCompilerName").toString(),
-                         QString("g++"));
+                         qbs::Internal::HostOsInfo::appendExecutableSuffix(QString("g++")));
             }
         }
     }
