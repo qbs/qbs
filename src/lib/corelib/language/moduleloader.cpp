@@ -3813,10 +3813,12 @@ QVariantMap ModuleLoader::moduleProviderConfig(ModuleLoader::ProductContext &pro
             for (auto it = props.begin(); it != props.end(); ++it) {
                 QVariant value;
                 switch (it.value()->type()) {
-                case Value::ItemValueType:
-                    collectMap(static_cast<ItemValue *>(it.value().get())->item(),
-                               QualifiedId(name += it.key()));
+                case Value::ItemValueType: {
+                    const auto childItem = static_cast<ItemValue *>(it.value().get())->item();
+                    childItem->setScope(item->scope());
+                    collectMap(childItem, QualifiedId(name += it.key()));
                     return;
+                }
                 case Value::JSSourceValueType:
                     value = m_evaluator->value(item, it.key()).toVariant();
                     break;
@@ -3829,6 +3831,7 @@ QVariantMap ModuleLoader::moduleProviderConfig(ModuleLoader::ProductContext &pro
                 product.theModuleProviderConfig.insert(name.toString(), m);
             }
         };
+        configItemValue->item()->setScope(product.scope);
         collectMap(configItemValue->item(), QualifiedId());
     }
     for (auto it = product.moduleProperties.begin(); it != product.moduleProperties.end(); ++it) {
