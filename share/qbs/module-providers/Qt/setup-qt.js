@@ -40,6 +40,7 @@
 var Environment = require("qbs.Environment");
 var File = require("qbs.File");
 var FileInfo = require("qbs.FileInfo");
+var ModUtils = require("qbs.ModUtils");
 var Process = require("qbs.Process");
 var TextFile = require("qbs.TextFile");
 var Utilities = require("qbs.Utilities");
@@ -1312,14 +1313,8 @@ function findVariable(content, start) {
     return result;
 }
 
-function toJSLiteral(v) {
-    if (v === undefined)
-        return "undefined";
-    return JSON.stringify(v);
-}
-
 function minVersionJsString(minVersion) {
-    return !minVersion ? "original" : toJSLiteral(minVersion);
+    return !minVersion ? "original" : ModUtils.toJSLiteral(minVersion);
 }
 
 function replaceSpecialValues(content, module, qtProps, abi) {
@@ -1329,45 +1324,45 @@ function replaceSpecialValues(content, module, qtProps, abi) {
     else
         architectures = extractQbsArchs(module, qtProps);
     var dict = {
-        archs: toJSLiteral(architectures),
-        targetPlatform: toJSLiteral(qbsTargetPlatformFromQtMkspec(qtProps)),
-        config: toJSLiteral(qtProps.configItems),
-        qtConfig: toJSLiteral(qtProps.qtConfigItems),
-        binPath: toJSLiteral(qtProps.binaryPath),
-        libPath: toJSLiteral(qtProps.libraryPath),
-        pluginPath: toJSLiteral(qtProps.pluginPath),
-        incPath: toJSLiteral(qtProps.includePath),
-        docPath: toJSLiteral(qtProps.documentationPath),
-        mkspecName: toJSLiteral(qtProps.mkspecName),
-        mkspecPath: toJSLiteral(qtProps.mkspecPath),
-        version: toJSLiteral(qtProps.qtVersion),
-        libInfix: toJSLiteral(qtProps.qtLibInfix),
-        availableBuildVariants: toJSLiteral(qtProps.buildVariant),
-        staticBuild: toJSLiteral(qtProps.staticBuild),
-        frameworkBuild: toJSLiteral(qtProps.frameworkBuild),
-        name: toJSLiteral(moduleNameWithoutPrefix(module)),
-        has_library: toJSLiteral(module.hasLibrary),
-        dependencies: toJSLiteral(module.dependencies),
-        includes: toJSLiteral(module.includePaths),
-        staticLibsDebug: toJSLiteral(module.staticLibrariesDebug),
-        staticLibsRelease: toJSLiteral(module.staticLibrariesRelease),
-        dynamicLibsDebug: toJSLiteral(module.dynamicLibrariesDebug),
-        dynamicLibsRelease: toJSLiteral(module.dynamicLibrariesRelease),
-        linkerFlagsDebug: toJSLiteral(module.linkerFlagsDebug),
-        linkerFlagsRelease: toJSLiteral(module.linkerFlagsRelease),
-        libraryPaths: toJSLiteral(module.libraryPaths),
-        frameworkPathsDebug: toJSLiteral(module.frameworkPathsDebug),
-        frameworkPathsRelease: toJSLiteral(module.frameworkPathsRelease),
-        frameworksDebug: toJSLiteral(module.frameworksDebug),
-        frameworksRelease: toJSLiteral(module.frameworksRelease),
-        libFilePathDebug: toJSLiteral(module.libFilePathDebug),
-        libFilePathRelease: toJSLiteral(module.libFilePathRelease),
-        libNameForLinkerDebug: toJSLiteral(libNameForLinker(module, qtProps, true)),
-        pluginTypes: toJSLiteral(module.supportedPluginTypes),
-        moduleConfig: toJSLiteral(module.config),
-        libNameForLinkerRelease: toJSLiteral(libNameForLinker(module, qtProps, false)),
-        entryPointLibsDebug: toJSLiteral(qtProps.entryPointLibsDebug),
-        entryPointLibsRelease: toJSLiteral(qtProps.entryPointLibsRelease),
+        archs: ModUtils.toJSLiteral(architectures),
+        targetPlatform: ModUtils.toJSLiteral(qbsTargetPlatformFromQtMkspec(qtProps)),
+        config: ModUtils.toJSLiteral(qtProps.configItems),
+        qtConfig: ModUtils.toJSLiteral(qtProps.qtConfigItems),
+        binPath: ModUtils.toJSLiteral(qtProps.binaryPath),
+        libPath: ModUtils.toJSLiteral(qtProps.libraryPath),
+        pluginPath: ModUtils.toJSLiteral(qtProps.pluginPath),
+        incPath: ModUtils.toJSLiteral(qtProps.includePath),
+        docPath: ModUtils.toJSLiteral(qtProps.documentationPath),
+        mkspecName: ModUtils.toJSLiteral(qtProps.mkspecName),
+        mkspecPath: ModUtils.toJSLiteral(qtProps.mkspecPath),
+        version: ModUtils.toJSLiteral(qtProps.qtVersion),
+        libInfix: ModUtils.toJSLiteral(qtProps.qtLibInfix),
+        availableBuildVariants: ModUtils.toJSLiteral(qtProps.buildVariant),
+        staticBuild: ModUtils.toJSLiteral(qtProps.staticBuild),
+        frameworkBuild: ModUtils.toJSLiteral(qtProps.frameworkBuild),
+        name: ModUtils.toJSLiteral(moduleNameWithoutPrefix(module)),
+        has_library: ModUtils.toJSLiteral(module.hasLibrary),
+        dependencies: ModUtils.toJSLiteral(module.dependencies),
+        includes: ModUtils.toJSLiteral(module.includePaths),
+        staticLibsDebug: ModUtils.toJSLiteral(module.staticLibrariesDebug),
+        staticLibsRelease: ModUtils.toJSLiteral(module.staticLibrariesRelease),
+        dynamicLibsDebug: ModUtils.toJSLiteral(module.dynamicLibrariesDebug),
+        dynamicLibsRelease: ModUtils.toJSLiteral(module.dynamicLibrariesRelease),
+        linkerFlagsDebug: ModUtils.toJSLiteral(module.linkerFlagsDebug),
+        linkerFlagsRelease: ModUtils.toJSLiteral(module.linkerFlagsRelease),
+        libraryPaths: ModUtils.toJSLiteral(module.libraryPaths),
+        frameworkPathsDebug: ModUtils.toJSLiteral(module.frameworkPathsDebug),
+        frameworkPathsRelease: ModUtils.toJSLiteral(module.frameworkPathsRelease),
+        frameworksDebug: ModUtils.toJSLiteral(module.frameworksDebug),
+        frameworksRelease: ModUtils.toJSLiteral(module.frameworksRelease),
+        libFilePathDebug: ModUtils.toJSLiteral(module.libFilePathDebug),
+        libFilePathRelease: ModUtils.toJSLiteral(module.libFilePathRelease),
+        libNameForLinkerDebug: ModUtils.toJSLiteral(libNameForLinker(module, qtProps, true)),
+        pluginTypes: ModUtils.toJSLiteral(module.supportedPluginTypes),
+        moduleConfig: ModUtils.toJSLiteral(module.config),
+        libNameForLinkerRelease: ModUtils.toJSLiteral(libNameForLinker(module, qtProps, false)),
+        entryPointLibsDebug: ModUtils.toJSLiteral(qtProps.entryPointLibsDebug),
+        entryPointLibsRelease: ModUtils.toJSLiteral(qtProps.entryPointLibsRelease),
         minWinVersion: minVersionJsString(qtProps.windowsVersion),
         minMacVersion: minVersionJsString(qtProps.macosVersion),
         minIosVersion: minVersionJsString(qtProps.iosVersion),
@@ -1377,7 +1372,7 @@ function replaceSpecialValues(content, module, qtProps, abi) {
     };
 
     var additionalContent = "";
-    var compilerDefines = toJSLiteral(module.compilerDefines);
+    var compilerDefines = ModUtils.toJSLiteral(module.compilerDefines);
     if (module.qbsName === "declarative" || module.qbsName === "quick") {
         var debugMacro = module.qbsName === "declarative" || qtProps.qtMajorVersion < 5
                 ? "QT_DECLARATIVE_DEBUG" : "QT_QML_DEBUG";
@@ -1401,7 +1396,7 @@ function replaceSpecialValues(content, module, qtProps, abi) {
     }
     dict.defines = compilerDefines;
     if (module.qbsName === "gui")
-        dict.defaultQpaPlugin = toJSLiteral(defaultQpaPlugin(module, qtProps));
+        dict.defaultQpaPlugin = ModUtils.toJSLiteral(defaultQpaPlugin(module, qtProps));
     if (module.qbsName === "qml")
         dict.qmlPath = pathToJSLiteral(qtProps.qmlPath);
     if (module.isStaticLibrary && module.qbsName !== "core") {
@@ -1410,8 +1405,8 @@ function replaceSpecialValues(content, module, qtProps, abi) {
         additionalContent += "isStaticLibrary: true";
     }
     if (module.isPlugin) {
-        dict.className = toJSLiteral(module.pluginData.className);
-        dict["extends"] = toJSLiteral(module.pluginData["extends"]);
+        dict.className = ModUtils.toJSLiteral(module.pluginData.className);
+        dict["extends"] = ModUtils.toJSLiteral(module.pluginData["extends"]);
     }
     indent = "    ";
     var metaTypesFile = qtProps.libraryPath + "/metatypes/qt"
@@ -1464,10 +1459,10 @@ function copyTemplateFile(fileName, targetDirectory, qtProps, abi, location, all
         newContent = replaceSpecialValues(newContent, module, qtProps, abi);
     } else {
         newContent = newContent.replace("@allPluginsByType@",
-                                        '(' + toJSLiteral(pluginMap) + ')');
+                                        '(' + ModUtils.toJSLiteral(pluginMap) + ')');
         newContent = newContent.replace("@nonEssentialPlugins@",
-                                        toJSLiteral(nonEssentialPlugins));
-        newContent = newContent.replace("@version@", toJSLiteral(qtProps.qtVersion));
+                                        ModUtils.toJSLiteral(nonEssentialPlugins));
+        newContent = newContent.replace("@version@", ModUtils.toJSLiteral(qtProps.qtVersion));
     }
     sourceFile.close();
     var targetPath = FileInfo.joinPaths(targetDirectory, fileName);

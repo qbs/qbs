@@ -610,3 +610,9 @@ function guessTargetPlatform(m) {
             return "haiku";
     }
 }
+
+function toJSLiteral(v) {
+    if (v === undefined)
+        return "undefined";
+    return JSON.stringify(v);
+}
