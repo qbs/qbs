@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2019 Denis Shienkov <denis.shienkov@gmail.com>
+** Copyright (C) 2020 Denis Shienkov <denis.shienkov@gmail.com>
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the examples of Qbs.
@@ -48,18 +48,18 @@
 **
 ****************************************************************************/
 
-import qbs
+;; Load region size_region.
+LR_IROM1 0x00000000 0x00080000 {
+    ;; Load address = execution address.
+    ER_IROM1 0x00000000 0x00080000 {
+        *.o (RESET, +First)
+        *(InRoot$$Sections)
+        .ANY (+RO)
+        .ANY (+XO)
+    }
 
-Project {
-    name: "BareMetal"
-    references: [
-        "stm32f4discovery/stm32f4discovery.qbs",
-        "at90can128olimex/at90can128olimex.qbs",
-        "cc2540usbdongle/cc2540usbdongle.qbs",
-        "stm8s103f3/stm8s103f3.qbs",
-        "msp430f5529/msp430f5529.qbs",
-        "cy7c68013a/cy7c68013a.qbs",
-        "stm32f103/stm32f103.qbs",
-        "pca10040/pca10040.qbs",
-    ]
+    ; RW data.
+    RW_IRAM1 0x20000000 0x00008000 {
+        .ANY (+RW +ZI)
+    }
 }

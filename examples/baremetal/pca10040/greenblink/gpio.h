@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2019 Denis Shienkov <denis.shienkov@gmail.com>
+** Copyright (C) 2020 Denis Shienkov <denis.shienkov@gmail.com>
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the examples of Qbs.
@@ -48,18 +48,18 @@
 **
 ****************************************************************************/
 
-import qbs
+#ifndef GPIO_H
+#define GPIO_H
 
-Project {
-    name: "BareMetal"
-    references: [
-        "stm32f4discovery/stm32f4discovery.qbs",
-        "at90can128olimex/at90can128olimex.qbs",
-        "cc2540usbdongle/cc2540usbdongle.qbs",
-        "stm8s103f3/stm8s103f3.qbs",
-        "msp430f5529/msp430f5529.qbs",
-        "cy7c68013a/cy7c68013a.qbs",
-        "stm32f103/stm32f103.qbs",
-        "pca10040/pca10040.qbs",
-    ]
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void gpio_init_green_led(void);
+void gpio_toggle_green_led(void);
+
+#ifdef __cplusplus
 }
+#endif
+
+#endif // GPIO_H
