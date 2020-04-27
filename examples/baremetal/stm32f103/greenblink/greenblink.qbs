@@ -54,11 +54,40 @@ CppApplication {
     condition: {
         if (!qbs.architecture.startsWith("arm"))
             return false;
-        return qbs.toolchain.contains("keil")
+        return qbs.toolchain.contains("gcc")
+            || qbs.toolchain.contains("keil")
     }
     name: "stm32f103-greenblink"
     cpp.cLanguageVersion: "c99"
     cpp.positionIndependentCode: false
+
+    //
+    // GCC-specific properties and sources.
+    //
+
+    Properties {
+        condition: qbs.toolchain.contains("gcc")
+        cpp.driverFlags: [
+            "-mcpu=cortex-m3",
+            "-specs=nosys.specs"
+        ]
+    }
+
+    Group {
+        condition: qbs.toolchain.contains("gcc")
+        name: "GCC"
+        prefix: "gcc/"
+        Group {
+            name: "Startup"
+            fileTags: ["asm"]
+            files: ["startup.s"]
+        }
+        Group {
+            name: "Linker Script"
+            fileTags: ["linkerscript"]
+            files: ["flash.ld"]
+        }
+    }
 
     //
     // KEIL-specific properties and sources.
