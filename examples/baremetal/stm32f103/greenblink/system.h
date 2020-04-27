@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2019 Denis Shienkov <denis.shienkov@gmail.com>
+** Copyright (C) 2020 Denis Shienkov <denis.shienkov@gmail.com>
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the examples of Qbs.
@@ -48,17 +48,55 @@
 **
 ****************************************************************************/
 
-import qbs
+#ifndef SYSTEM_H
+#define SYSTEM_H
 
-Project {
-    name: "BareMetal"
-    references: [
-        "stm32f4discovery/stm32f4discovery.qbs",
-        "at90can128olimex/at90can128olimex.qbs",
-        "cc2540usbdongle/cc2540usbdongle.qbs",
-        "stm8s103f3/stm8s103f3.qbs",
-        "msp430f5529/msp430f5529.qbs",
-        "cy7c68013a/cy7c68013a.qbs",
-        "stm32f103/stm32f103.qbs",
-    ]
+#include <stdint.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#define __IO  volatile
+
+// General purpose input/output registers map.
+struct gpio_regs_map {
+    __IO uint32_t CRL;
+    __IO uint32_t CRH;
+    __IO uint32_t IDR;
+    __IO uint32_t ODR;
+    __IO uint32_t BSRR;
+    __IO uint32_t BRR;
+    __IO uint32_t LCKR;
+};
+
+// Reset and clock control registers map.
+struct rcc_regs_map {
+    __IO uint32_t CR;
+    __IO uint32_t CFGR;
+    __IO uint32_t CIR;
+    __IO uint32_t APB2RSTR;
+    __IO uint32_t APB1RSTR;
+    __IO uint32_t AHBENR;
+    __IO uint32_t APB2ENR;
+    __IO uint32_t APB1ENR;
+    __IO uint32_t BDCR;
+    __IO uint32_t CSR;
+};
+
+#define PERIPH_ADDRESS      (0x40000000u)
+
+#define APB2PERIPH_ADDRESS  (PERIPH_ADDRESS + 0x00010000u)
+#define AHBPERIPH_ADDRESS   (PERIPH_ADDRESS + 0x00020000u)
+
+#define GPIOC_REGS_ADDRESS  (APB2PERIPH_ADDRESS + 0x00001000u)
+#define RCC_REGS_ADDRESS    (AHBPERIPH_ADDRESS + 0x00001000u)
+
+#define GPIOC_REGS_MAP      ((struct gpio_regs_map *)GPIOC_REGS_ADDRESS)
+#define RCC_REGS_MAP        ((struct rcc_regs_map *)RCC_REGS_ADDRESS)
+
+#ifdef __cplusplus
 }
+#endif
+
+#endif // SYSTEM_H
