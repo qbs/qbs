@@ -331,7 +331,7 @@
         \li 64-bit ISA architecture of the Itanium family processors
             developed by Intel
     \row
-        \li "mcs51"}
+        \li \c{"mcs51"}
         \li 8-bit Harvard architecture microcontroller family developed by Intel
     \row
         \li \c{"mips"}
