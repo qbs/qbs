@@ -4,7 +4,6 @@
 # DOCKER_USERNAME
 #
 language: cpp
-cache: ccache
 
 git:
   submodules: false
@@ -14,6 +13,11 @@ env:
     - QT_INSTALL_DIR=~/Qt
     - QT_VERSION=5.12.6
     - QTCREATOR_VERSION=4.10.2
+
+cache:
+  directories:
+    - ${QT_INSTALL_DIR}
+    - ~/.ccache
 
 stages:
   - name: Build Qbs and and run autotests

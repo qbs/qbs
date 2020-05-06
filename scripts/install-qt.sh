@@ -59,10 +59,13 @@ Positional arguments
         target and toolchain.
 
 Options
-  --directory <directory>
+  -d, --directory <directory>
         Root directory where to install the components.
         Maps to C:/Qt on Windows, /opt/Qt on Linux, /usr/local/Qt on Mac
         by default.
+
+  -f, --force
+        Force download and do not attempt to re-use an existing installation.
 
   --host <host-os>
         The host operating system. Can be one of linux_x64, mac_x64,
@@ -106,6 +109,7 @@ EOF
 TARGET_PLATFORM=desktop
 COMPONENTS=
 VERSION=
+FORCE_DOWNLOAD=false
 
 case "$OSTYPE" in
     *linux*)
@@ -134,6 +138,9 @@ while [ $# -gt 0 ]; do
         --directory|-d)
             INSTALL_DIR="$2"
             shift
+            ;;
+        --force|-f)
+            FORCE_DOWNLOAD=true
             ;;
         --host)
             HOST_OS="$2"
@@ -195,6 +202,25 @@ case "$TARGET_PLATFORM" in
         ;;
 esac
 
+
+HASH=$(echo "${OSTYPE} ${TARGET_PLATFORM} ${TOOLCHAIN} ${VERSION} ${INSTALL_DIR}" | md5sum | head -c 16)
+HASH_FILEPATH="${INSTALL_DIR}/${HASH}.manifest"
+INSTALLATION_IS_VALID=false
+if ! ${FORCE_DOWNLOAD} && [ -f "${HASH_FILEPATH}" ]; then
+    INSTALLATION_IS_VALID=true
+    while read filepath; do
+        if [ ! -e "${filepath}" ]; then
+            INSTALLATION_IS_VALID=false
+            break
+        fi
+    done <"${HASH_FILEPATH}"
+fi
+
+if ${INSTALLATION_IS_VALID}; then
+    echo "Already installed. Skipping download."
+    exit 0
+fi
+
 DOWNLOAD_DIR=`mktemp -d 2>/dev/null || mktemp -d -t 'install-qt'`
 
 #
@@ -242,6 +268,7 @@ function compute_url(){
 }
 
 mkdir -p ${INSTALL_DIR}
+rm -f "${HASH_FILEPATH}"
 
 for COMPONENT in ${COMPONENTS}; do
 
@@ -249,6 +276,7 @@ for COMPONENT in ${COMPONENTS}; do
     echo "Downloading ${COMPONENT}..." >&2
     curl --progress-bar -L -o ${DOWNLOAD_DIR}/package.7z ${URL} >&2
     7z x -y -o${INSTALL_DIR} ${DOWNLOAD_DIR}/package.7z >/dev/null 2>&1
+    7z l -ba -slt -y ${DOWNLOAD_DIR}/package.7z | tr '\\' '/' | sed -n -e "s|^Path\ =\ |${INSTALL_DIR}/|p" >> "${HASH_FILEPATH}" 2>/dev/null
     rm -f ${DOWNLOAD_DIR}/package.7z
 
     #
