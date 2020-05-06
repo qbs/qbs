@@ -49,6 +49,26 @@ function supportILinker(architecture) {
         || architecture === "rx" || architecture === "stm8";
 }
 
+// It is a 'magic' IAR-specific target architecture code.
+function architectureCode(architecture) {
+    switch (architecture) {
+    case "78k":
+        return "26";
+    case "avr":
+        return "90";
+    case "avr32":
+        return "82";
+    case "mcs51":
+        return "51";
+    case "msp430":
+        return "43";
+    case "v850":
+        return "85";
+    case "arm": case "rh850": case "rl78": case "rx": case "stm8":
+        return "";
+    }
+}
+
 function compilerName(qbs) {
     var architecture = qbs.architecture;
     if (architecture.startsWith("arm"))
@@ -132,87 +152,42 @@ function archiverName(qbs) {
 
 function staticLibrarySuffix(qbs) {
     var architecture = qbs.architecture;
-    if (architecture.startsWith("arm")
-            || architecture === "stm8" || architecture === "rl78"
-            || architecture === "rx" || architecture === "rh850") {
-        return ".a";
-    } else if (architecture === "mcs51") {
-        return ".r51";
-    } else if (architecture === "avr") {
-        return ".r90";
-    } else if (architecture === "msp430") {
-        return ".r43";
-    } else if (architecture === "v850") {
-        return ".r85";
-    } else if (architecture === "78k") {
-        return ".r26";
-    } else if (architecture === "avr32") {
-        return ".r82";
+    var code = architectureCode(architecture);
+    if (code === undefined) {
+        throw "Unable to deduce static library suffix for unsupported architecture: '"
+                + architecture + "'";
     }
-    throw "Unable to deduce static library suffix for unsupported architecture: '"
-            + architecture + "'";
+    return (code !== "") ? (".r" + code) : ".a";
 }
 
 function executableSuffix(qbs) {
     var architecture = qbs.architecture;
-    var isDebug = qbs.debugInformation;
-    if (architecture.startsWith("arm")
-            || architecture === "stm8" || architecture === "rl78"
-            || architecture === "rx" || architecture === "rh850") {
-        return ".out";
-    } else if (architecture === "mcs51") {
-        return isDebug ? ".d51" : ".a51";
-    } else if (architecture === "avr") {
-        return isDebug ? ".d90" : ".a90";
-    } else if (architecture === "msp430") {
-        return isDebug ? ".d43" : ".a43";
-    } else if (architecture === "v850") {
-        return isDebug ? ".d85" : ".a85";
-    } else if (architecture === "78k") {
-        return isDebug ? ".d26" : ".a26";
-    } else if (architecture === "avr32") {
-        return isDebug ? ".d82" : ".a82";
+    var code = architectureCode(architecture);
+    if (code === undefined) {
+        throw "Unable to deduce executable suffix for unsupported architecture: '"
+                + architecture + "'";
     }
-    throw "Unable to deduce executable suffix for unsupported architecture: '"
-            + architecture + "'";
+    return (code !== "") ? ((qbs.debugInformation) ? (".d" + code) : (".a" + code)) : ".out";
 }
 
 function objectSuffix(qbs) {
     var architecture = qbs.architecture;
-    if (architecture.startsWith("arm")
-            || architecture === "stm8" || architecture === "rl78"
-            || architecture === "rx" || architecture === "rh850") {
-        return ".o";
-    } else if (architecture === "mcs51") {
-        return ".r51";
-    } else if (architecture === "avr") {
-        return ".r90";
-    } else if (architecture === "msp430") {
-        return ".r43";
-    } else if (architecture === "v850") {
-        return ".r85";
-    } else if (architecture === "78k") {
-        return ".r26";
-    } else if (architecture === "avr32") {
-        return ".r82";
+    var code = architectureCode(architecture);
+    if (code === undefined) {
+        throw "Unable to deduce object file suffix for unsupported architecture: '"
+                + architecture + "'";
     }
-    throw "Unable to deduce object file suffix for unsupported architecture: '"
-            + architecture + "'";
+    return (code !== "") ? (".r" + code) : ".o";
 }
 
 function imageFormat(qbs) {
     var architecture = qbs.architecture;
-    if (architecture.startsWith("arm")
-            || architecture === "stm8" || architecture === "rl78"
-            || architecture === "rx" || architecture === "rh850") {
-        return "elf";
-    } else if (architecture=== "mcs51" || architecture === "avr"
-               || architecture === "msp430" || architecture === "v850"
-               || architecture === "78k" || architecture === "avr32") {
-        return "ubrof";
+    var code = architectureCode(architecture);
+    if (code === undefined) {
+        throw "Unable to deduce image format for unsupported architecture: '"
+                + architecture + "'";
     }
-    throw "Unable to deduce image format for unsupported architecture: '"
-            + architecture + "'";
+    return (code !== "") ? "ubrof" : "elf";
 }
 
 function guessArmArchitecture(core) {
