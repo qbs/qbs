@@ -59,6 +59,8 @@ function compilerName(qbs) {
         return "iccrx";
     else if (architecture === "rh850")
         return "iccrh850";
+    else if (architecture === "avr32")
+        return "iccavr32";
     throw "Unable to deduce compiler name for unsupported architecture: '"
             + architecture + "'";
 }
@@ -85,6 +87,8 @@ function assemblerName(qbs) {
         return "av850";
     else if (architecture === "78k")
         return "a78k";
+    else if (architecture === "avr32")
+        return "aavr32";
     throw "Unable to deduce assembler name for unsupported architecture: '"
             + architecture + "'";
 }
@@ -103,7 +107,7 @@ function linkerName(qbs) {
         return "ilinkrh850";
     } else if (architecture === "mcs51" || architecture === "avr"
                || architecture === "msp430" || architecture === "v850"
-               || architecture === "78k") {
+               || architecture === "78k" || architecture === "avr32") {
         return "xlink";
     }
     throw "Unable to deduce linker name for unsupported architecture: '"
@@ -118,7 +122,7 @@ function archiverName(qbs) {
         return "iarchive";
     } else if (architecture === "mcs51" || architecture === "avr"
                || architecture === "msp430" || architecture === "v850"
-               || architecture === "78k") {
+               || architecture === "78k" || architecture === "avr32") {
         return "xlib";
     }
     throw "Unable to deduce archiver name for unsupported architecture: '"
@@ -141,6 +145,8 @@ function staticLibrarySuffix(qbs) {
         return ".r85";
     } else if (architecture === "78k") {
         return ".r26";
+    } else if (architecture === "avr32") {
+        return ".r82";
     }
     throw "Unable to deduce static library suffix for unsupported architecture: '"
             + architecture + "'";
@@ -163,6 +169,8 @@ function executableSuffix(qbs) {
         return isDebug ? ".d85" : ".a85";
     } else if (architecture === "78k") {
         return isDebug ? ".d26" : ".a26";
+    } else if (architecture === "avr32") {
+        return isDebug ? ".d82" : ".a82";
     }
     throw "Unable to deduce executable suffix for unsupported architecture: '"
             + architecture + "'";
@@ -184,6 +192,8 @@ function objectSuffix(qbs) {
         return ".r85";
     } else if (architecture === "78k") {
         return ".r26";
+    } else if (architecture === "avr32") {
+        return ".r82";
     }
     throw "Unable to deduce object file suffix for unsupported architecture: '"
             + architecture + "'";
@@ -197,7 +207,7 @@ function imageFormat(qbs) {
         return "elf";
     } else if (architecture=== "mcs51" || architecture === "avr"
                || architecture === "msp430" || architecture === "v850"
-               || architecture === "78k") {
+               || architecture === "78k" || architecture === "avr32") {
         return "ubrof";
     }
     throw "Unable to deduce image format for unsupported architecture: '"
@@ -248,6 +258,8 @@ function guessArchitecture(macros) {
         return "v850";
     else if (macros["__ICC78K__"] === "1")
         return "78k";
+    else if (macros["__ICCAVR32__"] === "1")
+        return "avr32";
 }
 
 function guessEndianness(macros) {
@@ -266,7 +278,8 @@ function guessVersion(macros, architecture)
             found: true }
     } else if (architecture === "mcs51" || architecture === "avr" || architecture === "stm8"
                || architecture === "msp430" || architecture === "rl78" || architecture === "rx"
-               || architecture === "rh850" || architecture === "v850" || architecture === "78k") {
+               || architecture === "rh850" || architecture === "v850" || architecture === "78k"
+               || architecture === "avr32") {
         return { major: parseInt(version / 100),
             minor: parseInt(version % 100),
             patch: 0,
@@ -288,6 +301,7 @@ function cppLanguageOption(compilerFilePath) {
     case "icc430":
     case "iccv850":
     case "icc78k":
+    case "iccavr32":
         return "--ec++";
     }
     throw "Unable to deduce C++ language option for unsupported compiler: '"
@@ -567,7 +581,8 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
                 args.push("--no_rtti");
         } else if (architecture === "stm8" || architecture === "mcs51"
                    || architecture === "avr" || architecture === "msp430"
-                   || architecture === "v850" || architecture === "78k") {
+                   || architecture === "v850" || architecture === "78k"
+                   || architecture === "avr32") {
             args.push("--ec++");
         }
     }
@@ -621,7 +636,8 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
     // Architecture specific flags.
     var architecture = input.qbs.architecture;
     if (architecture === "stm8" || architecture === "rl78"
-            || architecture === "rx" || architecture === "rh850") {
+            || architecture === "rx" || architecture === "rh850"
+            || architecture === "avr32") {
         // Silent output generation flag.
         args.push("--silent");
         // Warning level flags.
@@ -693,7 +709,7 @@ function linkerFlags(project, product, input, outputs) {
         linkerScripts.forEach(function(script) { args.push("--config", script); });
     } else if (architecture === "mcs51" || architecture === "avr"
                || architecture === "msp430" || architecture === "v850"
-               || architecture === "78k") {
+               || architecture === "78k" || architecture === "avr32") {
         // Silent output generation flag.
         args.push("-S");
         // Debug information flag.
