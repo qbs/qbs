@@ -37,6 +37,18 @@ var Process = require("qbs.Process");
 var TemporaryDir = require("qbs.TemporaryDir");
 var TextFile = require("qbs.TextFile");
 
+function supportXLinker(architecture) {
+    return architecture === "78k" || architecture === "avr"
+        || architecture === "avr32" || architecture === "mcs51"
+        || architecture === "msp430" || architecture === "v850";
+}
+
+function supportILinker(architecture) {
+    return architecture.startsWith("arm")
+        || architecture === "rh850" || architecture === "rl78"
+        || architecture === "rx" || architecture === "stm8";
+}
+
 function compilerName(qbs) {
     var architecture = qbs.architecture;
     if (architecture.startsWith("arm"))
@@ -95,21 +107,10 @@ function assemblerName(qbs) {
 
 function linkerName(qbs) {
     var architecture = qbs.architecture;
-    if (architecture.startsWith("arm")) {
-        return "ilinkarm";
-    } else if (architecture === "stm8") {
-        return "ilinkstm8";
-    } else if (architecture === "rl78") {
-        return "ilinkrl78";
-    } else if (architecture === "rx") {
-        return "ilinkrx";
-    } else if (architecture === "rh850") {
-        return "ilinkrh850";
-    } else if (architecture === "mcs51" || architecture === "avr"
-               || architecture === "msp430" || architecture === "v850"
-               || architecture === "78k" || architecture === "avr32") {
+    if (supportXLinker(architecture))
         return "xlink";
-    }
+    else if (supportILinker(architecture))
+        return "ilink" + architecture;
     throw "Unable to deduce linker name for unsupported architecture: '"
             + architecture + "'";
 }
@@ -681,7 +682,6 @@ function linkerFlags(project, product, input, outputs) {
     var distributionLibraryPaths = product.cpp.distributionLibraryPaths;
     if (distributionLibraryPaths)
         allLibraryPaths = allLibraryPaths.uniqueConcat(distributionLibraryPaths);
-    args = args.concat(allLibraryPaths.map(function(path) { return '-L' + path }));
 
     // Library dependencies.
     var libraryDependencies = collectLibraryDependencies(product);
@@ -694,9 +694,8 @@ function linkerFlags(project, product, input, outputs) {
 
     // Architecture specific flags.
     var architecture = product.qbs.architecture;
-    if (architecture.startsWith("arm")
-            || architecture === "stm8" || architecture === "rl78"
-            || architecture === "rx" || architecture === "rh850") {
+    if (supportXLinker(architecture)) {
+        args = args.concat(allLibraryPaths.map(function(path) { return '-L' + path }));
         // Silent output generation flag.
         args.push("--silent");
         // Map file generation flag.
@@ -707,9 +706,8 @@ function linkerFlags(project, product, input, outputs) {
             args.push("--entry", product.cpp.entryPoint);
         // Linker scripts flags.
         linkerScripts.forEach(function(script) { args.push("--config", script); });
-    } else if (architecture === "mcs51" || architecture === "avr"
-               || architecture === "msp430" || architecture === "v850"
-               || architecture === "78k" || architecture === "avr32") {
+    } else if (supportILinker(architecture)) {
+        args = args.concat(allLibraryPaths.map(function(path) { return '-I' + path }));
         // Silent output generation flag.
         args.push("-S");
         // Debug information flag.
