@@ -59,7 +59,8 @@ using Internal::HostOsInfo;
 static QStringList knownKeilCompilerNames()
 {
     return {QStringLiteral("c51"), QStringLiteral("c251"),
-                QStringLiteral("c166"), QStringLiteral("armcc")};
+            QStringLiteral("c166"), QStringLiteral("armcc"),
+            QStringLiteral("armclang")};
 }
 
 static QString guessKeilArchitecture(const QFileInfo &compiler)
@@ -73,7 +74,14 @@ static QString guessKeilArchitecture(const QFileInfo &compiler)
         return QStringLiteral("c166");
     if (baseName == QLatin1String("armcc"))
         return QStringLiteral("arm");
+    if (baseName == QLatin1String("armclang"))
+        return QStringLiteral("arm");
     return {};
+}
+
+static bool isArmClangCompiler(const QFileInfo &compiler)
+{
+    return compiler.baseName() == QLatin1String("armclang");
 }
 
 static Profile createKeilProfileHelper(const ToolchainInstallInfo &info,
@@ -90,13 +98,19 @@ static Profile createKeilProfileHelper(const ToolchainInstallInfo &info,
         } else {
             const QString version = info.compilerVersion.toString(QLatin1Char('_'),
                                                                   QLatin1Char('_'));
-            profileName = QStringLiteral("keil-%1-%2").arg(
-                        version, architecture);
+            if (architecture == QLatin1String("arm") && isArmClangCompiler(compiler)) {
+                profileName = QStringLiteral("keil-llvm-%1-%2").arg(
+                            version, architecture);
+            } else {
+                profileName = QStringLiteral("keil-%1-%2").arg(
+                            version, architecture);
+            }
         }
     }
 
     Profile profile(profileName, settings);
     profile.setValue(QStringLiteral("cpp.toolchainInstallPath"), compiler.absolutePath());
+    profile.setValue(QStringLiteral("cpp.compilerName"), compiler.fileName());
     profile.setValue(QStringLiteral("qbs.toolchainType"), QStringLiteral("keil"));
     if (!architecture.isEmpty())
         profile.setValue(QStringLiteral("qbs.architecture"), architecture);
@@ -236,7 +250,7 @@ static Version dumpC166CompilerVersion(const QFileInfo &compiler)
     return Version{verCode / 100, verCode % 100};
 }
 
-static Version dumpArmCompilerVersion(const QFileInfo &compiler)
+static Version dumpArmCCCompilerVersion(const QFileInfo &compiler)
 {
     const QStringList args = {QStringLiteral("-E"),
                               QStringLiteral("--list-macros"),
@@ -263,6 +277,34 @@ static Version dumpArmCompilerVersion(const QFileInfo &compiler)
     return Version{verCode / 1000000, (verCode / 10000) % 100, verCode % 10000};
 }
 
+static Version dumpArmClangCompilerVersion(const QFileInfo &compiler)
+{
+    const QStringList args = {QStringLiteral("-dM"), QStringLiteral("-E"),
+                              QStringLiteral("-xc"),
+                              QStringLiteral("--target=arm-arm-none-eabi"),
+                              QStringLiteral("-mcpu=cortex-m0"),
+                              QStringLiteral("nul")};
+    QProcess p;
+    p.start(compiler.absoluteFilePath(), args);
+    p.waitForFinished(3000);
+    const auto es = p.exitStatus();
+    if (es != QProcess::NormalExit) {
+        const QByteArray out = p.readAll();
+        qbsWarning() << Tr::tr("Compiler dumping failed:\n%1")
+                        .arg(QString::fromUtf8(out));
+        return Version{};
+    }
+    const QByteArray dump = p.readAll();
+    const int verCode = extractVersion(dump, "__ARMCC_VERSION ");
+    if (verCode < 0) {
+        qbsWarning() << Tr::tr("No '__ARMCC_VERSION' token was found "
+                               "in the compiler dump:\n%1")
+                        .arg(QString::fromUtf8(dump));
+        return Version{};
+    }
+    return Version{verCode / 1000000, (verCode / 10000) % 100, verCode % 10000};
+}
+
 static Version dumpKeilCompilerVersion(const QFileInfo &compiler)
 {
     const QString arch = guessKeilArchitecture(compiler);
@@ -271,7 +313,9 @@ static Version dumpKeilCompilerVersion(const QFileInfo &compiler)
     } else if (arch == QLatin1String("c166")) {
         return dumpC166CompilerVersion(compiler);
     } else if (arch == QLatin1String("arm")) {
-        return dumpArmCompilerVersion(compiler);
+        if (isArmClangCompiler(compiler))
+            return dumpArmClangCompilerVersion(compiler);
+        return dumpArmCCCompilerVersion(compiler);
     }
     return Version{};
 }
@@ -361,28 +405,33 @@ static std::vector<ToolchainInstallInfo> installedKeilsFromRegistry()
             const QString productPath = registry.value(QStringLiteral("ProductDir"))
                     .toString();
             // Fetch the toolchain executable path.
-            QFileInfo keilPath;
-            if (productPath.endsWith(QStringLiteral("ARM")))
-                keilPath.setFile(productPath + QStringLiteral("\\ARMCC\\bin\\armcc.exe"));
-            else if (productPath.endsWith(QStringLiteral("C51")))
-                keilPath.setFile(productPath + QStringLiteral("\\BIN\\c51.exe"));
-            else if (productPath.endsWith(QStringLiteral("C251")))
-                keilPath.setFile(productPath + QStringLiteral("\\BIN\\c251.exe"));
-            else if (productPath.endsWith(QStringLiteral("C166")))
-                keilPath.setFile(productPath + QStringLiteral("\\BIN\\c166.exe"));
+            QVector<QFileInfo> keilPaths;
+            if (productPath.endsWith(QStringLiteral("ARM"))) {
+                keilPaths << QFileInfo(productPath + QStringLiteral("/ARMCC/bin/armcc.exe"));
+                keilPaths << QFileInfo(productPath + QStringLiteral("/ARMCLANG/bin/armclang.exe"));
+            } else if (productPath.endsWith(QStringLiteral("C51"))) {
+                keilPaths << QFileInfo(productPath + QStringLiteral("/BIN/c51.exe"));
+            } else if (productPath.endsWith(QStringLiteral("C251"))) {
+                keilPaths << QFileInfo(productPath + QStringLiteral("/BIN/c251.exe"));
+            } else if (productPath.endsWith(QStringLiteral("C166"))) {
+                keilPaths << QFileInfo(productPath + QStringLiteral("/BIN/c166.exe"));
+            }
 
-            if (keilPath.exists()) {
-                // Fetch the toolchain version.
-                const QDir rootPath(registry.value(QStringLiteral("Directory")).toString());
-                const QString toolsIniFilePath = rootPath.absoluteFilePath(
-                            QStringLiteral("tools.ini"));
-                for (auto index = 1; index <= 2; ++index) {
-                    const QString section = registry.value(
-                                QStringLiteral("Section %1").arg(index)).toString();
-                    const QString version = extractVersion(toolsIniFilePath, section);
-                    if (!version.isEmpty()) {
-                        infos.push_back({keilPath, Version::fromString(version)});
-                        break;
+            // Fetch the toolchain version.
+            const QDir rootPath(registry.value(QStringLiteral("Directory")).toString());
+            const QString toolsIniFilePath = rootPath.absoluteFilePath(
+                        QStringLiteral("tools.ini"));
+
+            for (const QFileInfo &keilPath : qAsConst(keilPaths)) {
+                if (keilPath.exists()) {
+                    for (auto index = 1; index <= 2; ++index) {
+                        const QString section = registry.value(
+                                    QStringLiteral("Section %1").arg(index)).toString();
+                        const QString version = extractVersion(toolsIniFilePath, section);
+                        if (!version.isEmpty()) {
+                            infos.push_back({keilPath, Version::fromString(version)});
+                            break;
+                        }
                     }
                 }
             }
