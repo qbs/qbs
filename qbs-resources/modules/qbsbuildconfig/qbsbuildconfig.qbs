@@ -55,9 +55,13 @@ Module {
             var flags = [];
             if (enableAddressSanitizer)
                 flags.push("-fno-omit-frame-pointer");
-            if (!qbs.toolchain.contains("clang")
-                    && Utilities.versionCompare(cpp.compilerVersion, "9") >= 0) {
-                flags.push("-Wno-deprecated-copy", "-Wno-init-list-lifetime");
+            function isClang() { return qbs.toolchain.contains("clang"); }
+            function versionAtLeast(v) {
+                return Utilities.versionCompare(cpp.compilerVersion, v) >= 0;
+            };
+            if ((!isClang() && versionAtLeast("9"))
+                    || (isClang() && !qbs.hostOS.contains("darwin") && versionAtLeast("10"))) {
+                flags.push("-Wno-deprecated-copy", "-Wno-constant-logical-operand");
             }
             return flags;
         }
