@@ -51,6 +51,23 @@ function isArmArchitecture(architecture) {
     return architecture.startsWith("arm");
 }
 
+function isMcsCompiler(compilerPath) {
+    var base = FileInfo.baseName(compilerPath).toLowerCase();
+    return base === "c51" || base === "cx51" || base === "c251";
+}
+
+function isC166Compiler(compilerPath) {
+    return FileInfo.baseName(compilerPath).toLowerCase() === "c166";
+}
+
+function isArmCCCompiler(compilerPath) {
+    return FileInfo.baseName(compilerPath).toLowerCase() === "armcc";
+}
+
+function isArmClangCompiler(compilerPath) {
+    return FileInfo.baseName(compilerPath).toLowerCase() === "armclang";
+}
+
 function compilerName(qbs) {
     var architecture = qbs.architecture;
     if (architecture === "mcs51")
@@ -158,7 +175,7 @@ function imageFormat(qbs) {
             + architecture + "'";
 }
 
-function guessArmArchitecture(targetArchArm, targetArchThumb) {
+function guessArmCCArchitecture(targetArchArm, targetArchThumb) {
     var arch = "arm";
     if (targetArchArm === "4" && targetArchThumb === "0")
         arch += "v4";
@@ -179,6 +196,13 @@ function guessArmArchitecture(targetArchArm, targetArchThumb) {
     return arch;
 }
 
+function guessArmClangArchitecture(targetArchArm, targetArchProfile) {
+    var arch = "arm";
+    if (targetArchArm !== "" && targetArchProfile !== "")
+        arch += "v" + targetArchArm + targetArchProfile.toLowerCase();
+    return arch;
+}
+
 function guessArchitecture(macros) {
     if (macros["__C51__"])
         return "mcs51";
@@ -187,7 +211,9 @@ function guessArchitecture(macros) {
     else if (macros["__C166__"])
         return "c166";
     else if (macros["__CC_ARM"] === "1")
-        return guessArmArchitecture(macros["__TARGET_ARCH_ARM"], macros["__TARGET_ARCH_THUMB"]);
+        return guessArmCCArchitecture(macros["__TARGET_ARCH_ARM"], macros["__TARGET_ARCH_THUMB"]);
+    else if (macros["__clang__"] === "1" && macros["__arm__"] === "1")
+        return guessArmClangArchitecture(macros["__ARM_ARCH"], macros["__ARM_ARCH_PROFILE"]);
 }
 
 function guessEndianness(macros) {
@@ -207,8 +233,15 @@ function guessEndianness(macros) {
         // * http://www.keil.com/support/man/docs/c166/c166_ap_ints.htm
         // * http://www.keil.com/support/man/docs/c166/c166_ap_longs.htm
         return "little";
-    } else if (macros["__ARMCC_VERSION"]) {
+    } else if (macros["__CC_ARM"]) {
         return macros["__BIG_ENDIAN"] ? "big" : "little";
+    } else if (macros["__clang__"] && macros["__arm__"]) {
+        switch (macros["__BYTE_ORDER__"]) {
+        case "__ORDER_BIG_ENDIAN__":
+            return "big";
+        case "__ORDER_LITTLE_ENDIAN__":
+            return "little";
+        }
     }
 }
 
@@ -225,7 +258,7 @@ function guessVersion(macros) {
             minor: parseInt(xcVersion % 100),
             patch: 0,
             found: true }
-    } else if (macros["__CC_ARM"]) {
+    } else if (macros["__CC_ARM"] || macros["__clang__"]) {
         var armVersion = macros["__ARMCC_VERSION"];
         return { major: parseInt(armVersion / 1000000),
             minor: parseInt(armVersion / 10000) % 100,
@@ -419,7 +452,7 @@ function dumpC166CompilerMacros(compilerFilePath, tag) {
     return map;
 }
 
-function dumpArmCompilerMacros(compilerFilePath, tag, nullDevice) {
+function dumpArmCCCompilerMacros(compilerFilePath, tag, nullDevice) {
     var args = [ "-E", "--list-macros", nullDevice ];
     if (tag === "cpp")
         args.push("--cpp");
@@ -436,26 +469,77 @@ function dumpArmCompilerMacros(compilerFilePath, tag, nullDevice) {
     return map;
 }
 
-function dumpMacros(compilerFilePath, tag, nullDevice) {
-    var map1 = dumpMcsCompilerMacros(compilerFilePath, tag, nullDevice);
-    var map2 = dumpC166CompilerMacros(compilerFilePath, tag, nullDevice);
-    var map3 = dumpArmCompilerMacros(compilerFilePath, tag, nullDevice);
+function dumpArmClangCompilerMacros(compilerFilePath, tag, nullDevice) {
+    var args = [ "--target=arm-arm-none-eabi", "-mcpu=cortex-m0", "-dM", "-E",
+                "-x", ((tag === "cpp") ? "c++" : "c"), nullDevice ];
+    var p = new Process();
+    p.exec(compilerFilePath, args, false);
     var map = {};
-    for (var key1 in map1)
-        map[key1] = map1[key1];
-    for (var key2 in map2)
-        map[key2] = map2[key2];
-    for (var key3 in map3)
-        map[key3] = map3[key3];
+    p.readStdOut().trim().split(/\r?\n/g).map(function (line) {
+        var parts = line.split(" ", 3);
+        map[parts[1]] = parts[2];
+    });
     return map;
 }
 
-function dumpDefaultPaths(compilerFilePath, architecture) {
-    var incDir = (isArmArchitecture(architecture)) ? "include" :  "inc";
-    var includePath = compilerFilePath.replace(/bin[\\\/](.*)$/i, incDir);
-    return {
-        "includePaths": [includePath]
-    };
+function dumpMacros(compilerFilePath, tag, nullDevice) {
+    if (isMcsCompiler(compilerFilePath))
+        return dumpMcsCompilerMacros(compilerFilePath, tag, nullDevice);
+    else if (isC166Compiler(compilerFilePath))
+        return dumpC166CompilerMacros(compilerFilePath, tag, nullDevice);
+    else if (isArmCCCompiler(compilerFilePath))
+        return dumpArmCCCompilerMacros(compilerFilePath, tag, nullDevice);
+    else if (isArmClangCompiler(compilerFilePath))
+        return dumpArmClangCompilerMacros(compilerFilePath, tag, nullDevice);
+    return {};
+}
+
+function dumpMcsCompilerIncludePaths(compilerFilePath) {
+    var includePath = compilerFilePath.replace(/bin[\\\/](.*)$/i, "inc");
+    return [includePath];
+}
+
+function dumpC166CompilerIncludePaths(compilerFilePath) {
+    // Same as for MCS compiler.
+    return dumpMcsCompilerIncludePaths(compilerFilePath);
+}
+
+function dumpArmCCCompilerIncludePaths(compilerFilePath) {
+    var includePath = compilerFilePath.replace(/bin[\\\/](.*)$/i, "include");
+    return [includePath];
+}
+
+function dumpArmClangCompilerIncludePaths(compilerFilePath, nullDevice) {
+    var args = [ "--target=arm-arm-none-eabi", "-mcpu=cortex-m0", "-v", "-E",
+                "-x", "c++", nullDevice ];
+    var p = new Process();
+    p.exec(compilerFilePath, args, false);
+    var lines = p.readStdErr().trim().split(/\r?\n/g).map(function (line) { return line.trim(); });
+    var addIncludes = false;
+    var includePaths = [];
+    for (var i = 0; i < lines.length; ++i) {
+        var line = lines[i];
+        if (line === "#include <...> search starts here:")
+            addIncludes = true;
+        else if (line === "End of search list.")
+            addIncludes = false;
+        else if (addIncludes)
+            includePaths.push(line);
+    }
+    return includePaths;
+}
+
+function dumpDefaultPaths(compilerFilePath, nullDevice) {
+    var includePaths = [];
+    if (isMcsCompiler(compilerFilePath))
+        includePaths = dumpMcsCompilerIncludePaths(compilerFilePath);
+    else if (isC166Compiler(compilerFilePath))
+        includePaths = dumpC166CompilerIncludePaths(compilerFilePath);
+    else if (isArmCCCompiler(compilerFilePath))
+        includePaths = dumpArmCCCompilerIncludePaths(compilerFilePath);
+    else if (isArmClangCompiler(compilerFilePath))
+        includePaths = dumpArmClangCompilerIncludePaths(compilerFilePath, nullDevice);
+    return { "includePaths": includePaths };
 }
 
 function adjustPathsToWindowsSeparators(sourcePaths) {
@@ -665,88 +749,146 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
     } else if (isArmArchitecture(architecture)) {
         // Input.
         args.push("-c", input.filePath);
-
         // Output.
         args.push("-o", outputs.obj[0].filePath);
-
         // Defines.
         args = args.concat(allDefines.map(function(define) { return '-D' + define }));
-
         // Includes.
         args = args.concat(allIncludePaths.map(function(include) { return '-I' + include }));
 
-        // Debug information flags.
-        if (input.cpp.debugInformation) {
-            args.push("--debug");
-            args.push("-g");
-        }
+        var compilerPath = input.cpp.compilerPath;
+        if (isArmCCCompiler(compilerPath)) {
+            // Debug information flags.
+            if (input.cpp.debugInformation) {
+                args.push("--debug");
+                args.push("-g");
+            }
 
-        // Optimization level flags.
-        switch (input.cpp.optimization) {
-        case "small":
-            args.push("-Ospace")
-            break;
-        case "fast":
-            args.push("-Otime")
-            break;
-        case "none":
-            args.push("-O0")
-            break;
-        }
-
-        // Warning level flags.
-        switch (input.cpp.warningLevel) {
-        case "none":
-            args.push("-W");
-            break;
-        default:
-            // By default all warnings are enabled.
-            break;
-        }
-
-        if (tag === "c") {
-            // C language version flags.
-            var knownCLanguageValues = ["c99", "c90"];
-            var cLanguageVersion = Cpp.languageVersion(
-                        input.cpp.cLanguageVersion, knownCLanguageValues, "C");
-            switch (cLanguageVersion) {
-            case "c99":
-                args.push("--c99");
+            // Optimization level flags.
+            switch (input.cpp.optimization) {
+            case "small":
+                args.push("-Ospace")
                 break;
-            case "c90":
-                args.push("--c90");
+            case "fast":
+                args.push("-Otime")
+                break;
+            case "none":
+                args.push("-O0")
                 break;
             }
-        } else if (tag === "cpp") {
-            // C++ language version flags.
-            var knownCppLanguageValues = ["c++11", "c++03"];
-            var cppLanguageVersion = Cpp.languageVersion(
-                        input.cpp.cxxLanguageVersion, knownCppLanguageValues, "C++");
-            switch (cppLanguageVersion) {
-            case "c++11":
-                args.push("--cpp11");
+
+            // Warning level flags.
+            switch (input.cpp.warningLevel) {
+            case "none":
+                args.push("-W");
                 break;
             default:
-                // Default C++ language is C++03.
-                args.push("--cpp");
+                // By default all warnings are enabled.
                 break;
             }
 
-            // Exceptions flags.
-            var enableExceptions = input.cpp.enableExceptions;
-            if (enableExceptions !== undefined)
-                args.push(enableExceptions ? "--exceptions" : "--no_exceptions");
+            if (tag === "c") {
+                // C language version flags.
+                var knownCLanguageValues = ["c99", "c90"];
+                var cLanguageVersion = Cpp.languageVersion(
+                            input.cpp.cLanguageVersion, knownCLanguageValues, "C");
+                switch (cLanguageVersion) {
+                case "c99":
+                    args.push("--c99");
+                    break;
+                case "c90":
+                    args.push("--c90");
+                    break;
+                }
+            } else if (tag === "cpp") {
+                // C++ language version flags.
+                var knownCppLanguageValues = ["c++11", "c++03"];
+                var cppLanguageVersion = Cpp.languageVersion(
+                            input.cpp.cxxLanguageVersion, knownCppLanguageValues, "C++");
+                switch (cppLanguageVersion) {
+                case "c++11":
+                    args.push("--cpp11");
+                    break;
+                default:
+                    // Default C++ language is C++03.
+                    args.push("--cpp");
+                    break;
+                }
 
-            // RTTI flags.
-            var enableRtti = input.cpp.enableRtti;
-            if (enableRtti !== undefined)
-                args.push(enableRtti ? "--rtti" : "--no_rtti");
-        }
+                // Exceptions flags.
+                var enableExceptions = input.cpp.enableExceptions;
+                if (enableExceptions !== undefined)
+                    args.push(enableExceptions ? "--exceptions" : "--no_exceptions");
 
-        // Listing files generation flag.
-        if (product.cpp.generateCompilerListingFiles) {
-            args.push("--list");
-            args.push("--list_dir", FileInfo.path(outputs.lst[0].filePath));
+                // RTTI flags.
+                var enableRtti = input.cpp.enableRtti;
+                if (enableRtti !== undefined)
+                    args.push(enableRtti ? "--rtti" : "--no_rtti");
+            }
+
+            // Listing files generation flag.
+            if (product.cpp.generateCompilerListingFiles) {
+                args.push("--list");
+                args.push("--list_dir", FileInfo.path(outputs.lst[0].filePath));
+            }
+        } else if (isArmClangCompiler(compilerPath)) {
+            // Debug information flags.
+            if (input.cpp.debugInformation)
+                args.push("-g");
+
+            // Optimization level flags.
+            switch (input.cpp.optimization) {
+            case "small":
+                args.push("-Oz")
+                break;
+            case "fast":
+                args.push("-Ofast")
+                break;
+            case "none":
+                args.push("-O0")
+                break;
+            }
+
+            // Warning level flags.
+            switch (input.cpp.warningLevel) {
+            case "all":
+                args.push("-Wall");
+                break;
+            default:
+                break;
+            }
+
+            if (input.cpp.treatWarningsAsErrors)
+                args.push("-Werror");
+
+            if (tag === "c") {
+                // C language version flags.
+                var knownCLanguageValues = ["c89", "c90", "c99", "c11",
+                                            "gnu90", "gnu99", "gnu11"];
+                var cLanguageVersion = Cpp.languageVersion(
+                            input.cpp.cLanguageVersion, knownCLanguageValues, "C");
+                args.push("-std=" + cLanguageVersion);
+            } else if (tag === "cpp") {
+                // C++ language version flags.
+                var knownCppLanguageValues = ["c++98", "c++03", "c++11", "c++14", "c++17",
+                                              "gnu++98", "gnu++11", "gnu++14", "gnu++17"];
+                var cppLanguageVersion = Cpp.languageVersion(
+                            input.cpp.cxxLanguageVersion, knownCppLanguageValues, "C++");
+                args.push("-std=" + cppLanguageVersion);
+
+                // Exceptions flags.
+                var enableExceptions = input.cpp.enableExceptions;
+                if (enableExceptions !== undefined)
+                    args.push(enableExceptions ? "-fexceptions" : "-fno-exceptions");
+
+                // RTTI flags.
+                var enableRtti = input.cpp.enableRtti;
+                if (enableRtti !== undefined)
+                    args.push(enableRtti ? "-frtti" : "-fno-rtti");
+            }
+
+            // Listing files generation does not supported!
+            // There are only a workaround: http://www.keil.com/support/docs/4152.htm
         }
     }
 

@@ -72,7 +72,7 @@ PathProbe {
         endianness = KEIL.guessEndianness(macros);
 
         var defaultPaths = KEIL.dumpDefaultPaths(
-            compilerFilePath, architecture);
+            compilerFilePath, _nullDevice);
 
         includePaths = defaultPaths.includePaths;
 
