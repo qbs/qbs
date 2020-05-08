@@ -28,7 +28,7 @@ jobs:
       stage: Build Qbs and and run autotests
       name: With Qbs on Ubuntu bionic (linux_gcc64)
       env:
-        BUILD_OPTIONS=modules.cpp.compilerWrapper:ccache
+        BUILD_OPTIONS="modules.cpp.compilerWrapper:ccache modules.qbs.debugInformation:true"
       services:
         - docker
       before_script:
@@ -92,7 +92,7 @@ jobs:
       env:
         # Address sanitizer slows autotests down too much.
         # We would hit the maximum build time on Travis.
-        BUILD_OPTIONS="modules.qbsbuildconfig.enableAddressSanitizer:false modules.cpp.compilerWrapper:ccache"
+        BUILD_OPTIONS="modules.qbsbuildconfig.enableAddressSanitizer:false modules.cpp.compilerWrapper:ccache modules.qbs.debugInformation:true"
         QMAKE_PATH=${QT_INSTALL_DIR}/${QT_VERSION}/clang_64/bin/qmake
         PATH="${QT_INSTALL_DIR}/Qt Creator.app/Contents/MacOS:${PATH}"
         QBS_BUILD_PROFILE=qt
