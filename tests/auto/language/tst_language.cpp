@@ -3024,6 +3024,21 @@ void TestLanguage::fileTags()
     QCOMPARE(fileTags, expectedFileTags);
 }
 
+void TestLanguage::useInternalProfile()
+{
+    const QString profile(QStringLiteral("theprofile"));
+    SetupProjectParameters params = defaultParameters;
+    params.setProjectFilePath(testProject("use-internal-profile.qbs"));
+    params.setTopLevelProfile(profile);
+    TopLevelProjectConstPtr project = loader->loadProject(params);
+    QVERIFY(!!project);
+    QCOMPARE(project->profile(), profile);
+    QCOMPARE(project->products.size(), size_t(1));
+    const ResolvedProductConstPtr product = project->products[0];
+    QCOMPARE(product->profile(), profile);
+    QCOMPARE(product->moduleProperties->moduleProperty("dummy", "defines").toString(), profile);
+}
+
 void TestLanguage::wildcards_data()
 {
     QTest::addColumn<bool>("useGroup");
