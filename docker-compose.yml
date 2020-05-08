@@ -15,13 +15,13 @@ services:
   bionic:
     << : *linux
     hostname: bionic
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:bionic-5.12.6_1.14.1-5
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:bionic-5.12.8_1.15.1-0
     build:
       dockerfile: docker/bionic/Dockerfile
       context: .
       args:
-        QT_VERSION: 5.12.6
-        QTCREATOR_VERSION: 4.10.2
+        QT_VERSION: 5.12.8
+        QTCREATOR_VERSION: 4.11.2
 
   bionic-android-513:
     << : *linux

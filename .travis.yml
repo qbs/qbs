@@ -11,8 +11,8 @@ git:
 env:
   global:
     - QT_INSTALL_DIR=~/Qt
-    - QT_VERSION=5.12.6
-    - QTCREATOR_VERSION=4.10.2
+    - QT_VERSION=5.12.8
+    - QTCREATOR_VERSION=4.11.2
 
 cache:
   directories:
