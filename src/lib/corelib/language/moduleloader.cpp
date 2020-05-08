@@ -3808,7 +3808,7 @@ QVariantMap ModuleLoader::moduleProviderConfig(ModuleLoader::ProductContext &pro
             = product.item->itemProperty(StringConstants::moduleProviders());
     if (configItemValue) {
         const std::function<void(const Item *, QualifiedId)> collectMap
-                = [this, &product, &collectMap](const Item *item, QualifiedId name) {
+                = [this, &product, &collectMap](const Item *item, const QualifiedId &name) {
             const Item::PropertyMap &props = item->properties();
             for (auto it = props.begin(); it != props.end(); ++it) {
                 QVariant value;
@@ -3816,8 +3816,8 @@ QVariantMap ModuleLoader::moduleProviderConfig(ModuleLoader::ProductContext &pro
                 case Value::ItemValueType: {
                     const auto childItem = static_cast<ItemValue *>(it.value().get())->item();
                     childItem->setScope(item->scope());
-                    collectMap(childItem, QualifiedId(name += it.key()));
-                    return;
+                    collectMap(childItem, QualifiedId(name) << it.key());
+                    continue;
                 }
                 case Value::JSSourceValueType:
                     value = m_evaluator->value(item, it.key()).toVariant();

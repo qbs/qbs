@@ -7574,8 +7574,10 @@ void TestBlackbox::moduleProviders()
     QVERIFY(QFile::exists(relativeBuildDir()));
     QCOMPARE(m_qbsStdout.count("Running setup script for mygenerator"), 2);
     QVERIFY2(m_qbsStdout.contains("The letters are A and B"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("The MY_DEFINE is app1"), m_qbsStdout.constData());
     QCOMPARE(runQbs(QbsRunParameters("run", QStringList{"-p", "app2"})), 0);
     QVERIFY2(m_qbsStdout.contains("The letters are Z and Y"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("The MY_DEFINE is app2"), m_qbsStdout.constData());
 
     // Rebuild with overridden module provider config. The output for product 2 must change,
     // but no setup script must be re-run, because both config values have already been
