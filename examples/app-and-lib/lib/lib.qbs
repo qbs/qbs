@@ -50,8 +50,7 @@
 
 import qbs 1.0
 
-Product {
-    type: "staticlibrary"
+StaticLibrary {
     name: "mylib"
     files: [
         "lib.cpp",
