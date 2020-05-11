@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 #############################################################################
 ##
-## Copyright (C) 2019 Ivan Komissarov
-## Contact: abbapoh@gmail.com
+## Copyright (C) 2019 Ivan Komissarov (abbapoh@gmail.com)
+## Contact: https://www.qt.io/licensing/
 ##
 ## This file is part of Qbs.
 ##

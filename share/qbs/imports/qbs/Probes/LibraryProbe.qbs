@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2018 Ivan Komissarov.
+** Copyright (C) 2018 Ivan Komissarov (abbapoh@gmail.com)
 ** Contact: http://www.qt.io/licensing
 **
 ** This file is part of Qbs.
