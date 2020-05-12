@@ -70,7 +70,7 @@ static QList<QRegExp> createIgnoreList(const QString &projectRootPath)
         const QList<QByteArray> ignoreTokenList = ignoreFile.readAll().split('\n');
         for (const QByteArray &btoken : ignoreTokenList) {
             const QString token = QString::fromLatin1(btoken);
-            if (token.left(1) == QLatin1String("/"))
+            if (token.startsWith(QLatin1String("/")))
                 ignoreRegularExpressionList.push_back(QRegExp(projectRootPath
                                                            + token + QLatin1String(".*"),
                                                            Qt::CaseSensitive, QRegExp::RegExp2));
