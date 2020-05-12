@@ -53,4 +53,13 @@ Project {
         name: "qmake project files for qbs"
         files: ["**/*.pr[io]"]
     }
+
+    Product {
+        name: "continuous integration files"
+        files: [
+            ".travis.yml",
+            ".clang-tidy",
+            "docker-compose.yml",
+        ]
+    }
 }
