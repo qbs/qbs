@@ -67,15 +67,6 @@ LinuxGCC {
         fileTags: "android.stl"
     }
 
-    Group {
-        name: "gdbserver"
-        condition: qbs.buildVariant !== "release" && product.cpp.shouldLink
-        files: FileInfo.joinPaths(Android.ndk.ndkDir, "prebuilt",
-                                  "android-" + NdkUtils.abiNameToDirName(Android.ndk.abi),
-                                  "gdbserver", "gdbserver")
-        fileTags: "android.gdbserver"
-    }
-
     toolchainInstallPath: FileInfo.joinPaths(Android.ndk.ndkDir, "toolchains",
                                              "llvm", "prebuilt",
                                              Android.ndk.hostArch, "bin")
@@ -86,8 +77,6 @@ LinuxGCC {
     toolchainPrefix: undefined
 
     machineType: {
-        if (Android.ndk.abi === "armeabi")
-            return "armv5te";
         if (Android.ndk.abi === "armeabi-v7a")
             return "armv7-a";
     }

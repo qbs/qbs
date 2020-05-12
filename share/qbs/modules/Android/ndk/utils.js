@@ -77,12 +77,6 @@ function commonCompilerFlags(toolchain, buildVariant, ndk) {
         }
     }
 
-    if (abi === "mips" || abi === "mips64") {
-        flags.push("-fpic", "-finline-functions", "-fmessage-length=0",
-                   "-fno-inline-functions-called-once", "-fgcse-after-reload",
-                   "-frerun-cse-after-loop", "-frename-registers");
-    }
-
     if (abi === "x86" || abi === "x86_64")
         flags.push("-fPIC");
 
@@ -91,14 +85,19 @@ function commonCompilerFlags(toolchain, buildVariant, ndk) {
     if (armMode)
         flags.push("-m" + armMode);
 
-    // TODO: Remove when https://github.com/android-ndk/ndk/issues/884 is fixed.
-    flags.push("-fno-addrsig");
+    // https://github.com/android-ndk/ndk/issues/884 is fixed in r21
+    if (ndk.version < 21)
+        flags.push("-fno-addrsig");
+
+    // https://github.com/android/ndk/issues/635 is fixed in api 24
+    if (abi === "x86" && ndk.platformVersion < 24)
+        flags.push("-mstackrealign");
 
     return flags;
 }
 
 function commonLinkerFlags(abi) {
-    return ["-z", "noexecstack", "-z", "relro", "-z", "now"];
+    return ["-z", "noexecstack", "-z", "relro", "-z", "now", "--build-id=sha1", "--gc-sections" ];
 }
 
 function stlFilePath(path, ndk, suffix) {

@@ -392,44 +392,12 @@ Module {
     Rule {
         condition: _enableRules
         multiplex: true
-        property stringList inputTags: "android.gdbserver"
-        inputsFromDependencies: inputTags
-        inputs: product.aggregate ? [] : inputTags
-        outputFileTags: "android.gdbserver_deployed"
-        outputArtifacts: {
-            var deploymentData = SdkUtils.gdbserverOrStlDeploymentData(product, inputs,
-                                                                       "gdbserver");
-            var outputs = [];
-            for (i = 0; i < deploymentData.outputFilePaths.length; ++i) {
-                outputs.push({filePath: deploymentData.outputFilePaths[i],
-                              fileTags: "android.gdbserver_deployed"});
-            }
-            return outputs;
-        }
-        prepare: {
-            var cmd = new JavaScriptCommand;
-            cmd.description = "deploying gdbserver binaries";
-            cmd.sourceCode = function() {
-                var deploymentData = SdkUtils.gdbserverOrStlDeploymentData(product, inputs,
-                                                                           "gdbserver");
-                for (var i = 0; i < deploymentData.uniqueInputs.length; ++i) {
-                    File.copy(deploymentData.uniqueInputs[i].filePath,
-                              deploymentData.outputFilePaths[i]);
-                }
-            };
-            return cmd;
-        }
-    }
-
-    Rule {
-        condition: _enableRules
-        multiplex: true
         property stringList inputTags: "android.stl"
         inputsFromDependencies: inputTags
         inputs: product.aggregate ? [] : inputTags
         outputFileTags: "android.stl_deployed"
         outputArtifacts: {
-            var deploymentData = SdkUtils.gdbserverOrStlDeploymentData(product, inputs, "stl");
+            var deploymentData = SdkUtils.stlDeploymentData(product, inputs, "stl");
             var outputs = [];
             for (i = 0; i < deploymentData.outputFilePaths.length; ++i) {
                 outputs.push({filePath: deploymentData.outputFilePaths[i],
@@ -439,7 +407,7 @@ Module {
         }
         prepare: {
             var cmds = [];
-            var deploymentData = SdkUtils.gdbserverOrStlDeploymentData(product, inputs);
+            var deploymentData = SdkUtils.stlDeploymentData(product, inputs);
             for (var i = 0; i < deploymentData.uniqueInputs.length; ++i) {
                 var input = deploymentData.uniqueInputs[i];
                 var stripArgs = ["--strip-all", "-o", deploymentData.outputFilePaths[i],
@@ -457,7 +425,7 @@ Module {
         multiplex: true
         inputs: [
             "android.resources", "android.assets", "android.manifest_final",
-            "android.dex", "android.gdbserver_deployed", "android.stl_deployed",
+            "android.dex", "android.stl_deployed",
             "android.nativelibrary_deployed", "android.keystore"
         ]
         Artifact {

@@ -271,7 +271,6 @@ void TestBlackboxAndroid::android_data()
                        "resources.arsc",
                        "assets/Shaders/ShaderPlain.fsh",
                        "assets/Shaders/VS_ShaderPlain.vsh",
-                       "lib/${ARCH}/libgdbserver.so",
                        cxxLibPath("libgnustl_shared.so", false),
                        "lib/${ARCH}/libTeapotNativeActivity.so",
                        "res/layout/widgets.xml"}))
@@ -296,7 +295,6 @@ void TestBlackboxAndroid::android_data()
                        "assets/--Added-by-androiddeployqt--/qml/QtQuick/Window.2/plugins.qmltypes",
                        "assets/--Added-by-androiddeployqt--/qml/QtQuick/Window.2/qmldir",
                        "assets/--Added-by-androiddeployqt--/qt_cache_pregenerated_file_list",
-                       "lib/${ARCH}/libgdbserver.so",
                        cxxLibPath("libgnustl_shared.so", true),
                        "lib/${ARCH}/libplugins_bearer_libqandroidbearer.so",
                        "lib/${ARCH}/libplugins_imageformats_libqgif.so",
@@ -332,7 +330,6 @@ void TestBlackboxAndroid::android_data()
         qmlAppMinistroExpectedFiles << commonFiles + expandArchs(ndkArchsForQt, {
                         "resources.arsc",
                         "assets/--Added-by-androiddeployqt--/qt_cache_pregenerated_file_list",
-                        "lib/${ARCH}/libgdbserver.so",
                         cxxLibPath("libgnustl_shared.so", true),
                         "lib/${ARCH}/libqmlapp.so",
                         "res/layout/splash.xml"});
@@ -344,7 +341,6 @@ void TestBlackboxAndroid::android_data()
                         "assets/--Added-by-androiddeployqt--/qml/QtQuick/Window.2/qmldir",
                         "assets/--Added-by-androiddeployqt--/qt_cache_pregenerated_file_list",
                         "assets/dummyasset.txt",
-                        "lib/${ARCH}/libgdbserver.so",
                         cxxLibPath("libgnustl_shared.so", true),
                         "lib/${ARCH}/libplugins_bearer_libqandroidbearer.so",
                         "lib/${ARCH}/libplugins_imageformats_libqgif.so",
@@ -383,7 +379,6 @@ void TestBlackboxAndroid::android_data()
         qmlAppExpectedFiles << commonFiles + expandArchs(ndkArchsForQt, {
                        "resources.arsc",
                        "assets/android_rcc_bundle.rcc",
-                       "lib/${ARCH}/libgdbserver.so",
                        cxxLibPath("libgnustl_shared.so", true),
                        "lib/${ARCH}/libplugins_bearer_qandroidbearer_${ARCH}.so",
                        "lib/${ARCH}/libplugins_imageformats_qgif_${ARCH}.so",
@@ -421,7 +416,6 @@ void TestBlackboxAndroid::android_data()
         qmlAppMinistroExpectedFiles << commonFiles + expandArchs(ndkArchsForQt, {
                         "resources.arsc",
                         "assets/android_rcc_bundle.rcc",
-                        "lib/${ARCH}/libgdbserver.so",
                         cxxLibPath("libgnustl_shared.so", true),
                         "lib/${ARCH}/libqmlapp_${ARCH}.so",
                         "res/layout/splash.xml"});
@@ -429,7 +423,6 @@ void TestBlackboxAndroid::android_data()
                         "resources.arsc",
                         "assets/android_rcc_bundle.rcc",
                         "assets/dummyasset.txt",
-                        "lib/${ARCH}/libgdbserver.so",
                         cxxLibPath("libgnustl_shared.so", true),
                         "lib/${ARCH}/libplugins_bearer_qandroidbearer_${ARCH}.so",
                         "lib/${ARCH}/libplugins_imageformats_qgif_${ARCH}.so",
@@ -508,7 +501,6 @@ void TestBlackboxAndroid::android_data()
             << QStringList("twolibs")
             << (QList<QByteArrayList>() << commonFiles + expandArchs(archs, {
                        "resources.arsc",
-                       "lib/${ARCH}/libgdbserver.so",
                        "lib/${ARCH}/liblib1.so",
                        "lib/${ARCH}/liblib2.so",
                        cxxLibPath("libstlport_shared.so", false)}))
@@ -516,16 +508,13 @@ void TestBlackboxAndroid::android_data()
     QByteArrayList expectedFiles1 = qbs::toList(qbs::toSet(commonFiles
             + expandArchs(QByteArrayList{"armeabi-v7a", "x86"}, {
                               "resources.arsc",
-                              "lib/${ARCH}/libgdbserver.so",
                               "lib/${ARCH}/libp1lib1.so",
                               cxxLibPath("libstlport_shared.so", false)})
             + expandArchs(QByteArrayList{archs}, {
                               "resources.arsc",
-                              "lib/${ARCH}/libgdbserver.so",
                               "lib/${ARCH}/libp1lib2.so",
                               cxxLibPath("libstlport_shared.so", false)})));
     QByteArrayList expectedFiles2 = commonFiles + expandArchs(archs, {
-                       "lib/${ARCH}/libgdbserver.so",
                        "lib/${ARCH}/libp2lib1.so",
                        "lib/${ARCH}/libp2lib2.so",
                        cxxLibPath("libstlport_shared.so", false)});

@@ -48,7 +48,7 @@ Module {
     PropertyOptions {
         name: "abi"
         description: "Supported Android ABIs"
-        allowedValues: ["arm64-v8a", "armeabi", "armeabi-v7a", "x86", "x86_64"]
+        allowedValues: ["arm64-v8a", "armeabi-v7a", "x86", "x86_64"]
     }
 
     // See https://developer.android.com/ndk/guides/cpp-support.html
@@ -65,7 +65,6 @@ Module {
     property string ndkSamplesDir: ndkProbe.samplesDir
     property string platform: {
         switch (abi) {
-        case "armeabi":
         case "armeabi-v7a":
         // case "x86": // x86 has broken wstring support
             return "android-19";
@@ -84,7 +83,7 @@ Module {
     }
 
     property stringList abis: {
-        var list = ["armeabi", "armeabi-v7a"];
+        var list = ["armeabi-v7a"];
         if (platformVersion >= 16)
             list.push("x86");
         if (platformVersion >= 21)

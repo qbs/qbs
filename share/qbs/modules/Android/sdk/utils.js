@@ -202,11 +202,11 @@ function createDebugKeyStoreCommandString(keytoolFilePath, keystoreFilePath) {
     return Process.shellQuote(keytoolFilePath, args);
 }
 
-function gdbserverOrStlDeploymentData(product, inputs, type)
+function stlDeploymentData(product, inputs, type)
 {
     var data = { uniqueInputs: [], outputFilePaths: []};
     var uniqueFilePaths = [];
-    var theInputs = inputs[type === "gdbserver" ? "android.gdbserver" : "android.stl"];
+    var theInputs = inputs["android.stl"];
     if (!theInputs)
         return data;
     for (var i = 0; i < theInputs.length; ++i) {
@@ -215,7 +215,7 @@ function gdbserverOrStlDeploymentData(product, inputs, type)
             continue;
         uniqueFilePaths.push(currentInput.filePath);
         data.uniqueInputs.push(currentInput);
-        var outputFileName = type === "gdbserver" ? "libgdbserver.so" : currentInput.fileName;
+        var outputFileName = currentInput.fileName;
         data.outputFilePaths.push(FileInfo.joinPaths(product.Android.sdk.apkContentsDir, "lib",
                                                      currentInput.Android.ndk.abi,
                                                      outputFileName));
