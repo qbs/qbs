@@ -533,7 +533,7 @@ void gccProbe(Settings *settings, std::vector<Profile> &profiles, const QString 
 
     std::vector<QFileInfo> candidates;
     const auto filters = buildCompilerNameFilters(compilerName);
-    for (const auto &searchPath : searchPaths) {
+    for (const auto &searchPath : qAsConst(searchPaths)) {
         const QDir dir(searchPath);
         const QStringList fileNames = dir.entryList(
                     filters, QDir::Files | QDir::Executable);

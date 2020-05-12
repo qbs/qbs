@@ -281,12 +281,14 @@ static QString formatVswhereOutput(const QString &out, const QString &err)
     QString ret;
     if (!out.isEmpty()) {
         ret.append(Tr::tr("stdout")).append(QLatin1String(":\n"));
-        for (const QString &line : out.split(QLatin1Char('\n')))
+        const auto lines = out.split(QLatin1Char('\n'));
+        for (const QString &line : lines)
             ret.append(QLatin1Char('\t')).append(line).append(QLatin1Char('\n'));
     }
     if (!err.isEmpty()) {
         ret.append(Tr::tr("stderr")).append(QLatin1String(":\n"));
-        for (const QString &line : err.split(QLatin1Char('\n')))
+        const auto lines = err.split(QLatin1Char('\n'));
+        for (const QString &line : lines)
             ret.append(QLatin1Char('\t')).append(line).append(QLatin1Char('\n'));
     }
     return ret;

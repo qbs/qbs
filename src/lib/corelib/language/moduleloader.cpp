@@ -848,7 +848,7 @@ ModuleLoader::MultiplexInfo ModuleLoader::extractMultiplexInfo(Item *productItem
     static const QString mpmKey = QStringLiteral("multiplexMap");
 
     const QScriptValue multiplexMap = m_evaluator->value(qbsModuleItem, mpmKey);
-    QStringList multiplexByQbsProperties = m_evaluator->stringListValue(
+    const QStringList multiplexByQbsProperties = m_evaluator->stringListValue(
                 productItem, StringConstants::multiplexByQbsPropertiesProperty());
 
     MultiplexInfo multiplexInfo;

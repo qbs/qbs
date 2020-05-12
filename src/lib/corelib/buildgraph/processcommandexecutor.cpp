@@ -393,7 +393,7 @@ void ProcessCommandExecutor::doReportCommandDescription(const QString &productNa
         if (m_echoMode == CommandEchoModeCommandLineWithEnvironment) {
             QStringList keys = m_commandEnvironment.keys();
             keys.sort();
-            for (const QString &key : keys)
+            for (const QString &key : qAsConst(keys))
                 fullInvocation += environmentVariableString(key, m_commandEnvironment.value(key));
         }
         fullInvocation += m_shellInvocation;

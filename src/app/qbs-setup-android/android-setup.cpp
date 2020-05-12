@@ -131,7 +131,8 @@ static QtAndroidInfo getInfoForQtDir(const QString &qtDir)
         if (isArchLine) {
             info.archs << mapArch(rhs);
         } else if (isAbisLine) {
-            for (const QString &abi: rhs.split(QLatin1Char(' ')))
+            const auto abis = rhs.split(QLatin1Char(' '));
+            for (const QString &abi: abis)
                 info.archs << mapArch(abi);
         } else {
             info.platform = rhs;
@@ -152,7 +153,7 @@ static QtInfoPerArch getQtAndroidInfo(const QString &qtSdkDir)
     QDirIterator dit(qtSdkDir, nameFilters, QDir::Dirs);
     while (dit.hasNext())
         qtDirs << dit.next();
-    for (const auto &qtDir : qtDirs) {
+    for (const auto &qtDir : qAsConst(qtDirs)) {
         const QtAndroidInfo info = getInfoForQtDir(qtDir);
         if (info.isValid()) {
             for (const QString &arch: info.archs)
