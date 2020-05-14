@@ -46,7 +46,8 @@ function supportXLinker(architecture) {
 function supportILinker(architecture) {
     return architecture.startsWith("arm")
         || architecture === "rh850" || architecture === "rl78"
-        || architecture === "rx" || architecture === "stm8";
+        || architecture === "rx" || architecture === "stm8"
+        || architecture === "sh";
 }
 
 // It is a 'magic' IAR-specific target architecture code.
@@ -64,7 +65,7 @@ function architectureCode(architecture) {
         return "43";
     case "v850":
         return "85";
-    case "arm": case "rh850": case "rl78": case "rx": case "stm8":
+    case "arm": case "rh850": case "rl78": case "rx": case "stm8": case "sh":
         return "";
     }
 }
@@ -93,6 +94,8 @@ function compilerName(qbs) {
         return "iccrh850";
     else if (architecture === "avr32")
         return "iccavr32";
+    else if (architecture === "sh")
+        return "iccsh";
     throw "Unable to deduce compiler name for unsupported architecture: '"
             + architecture + "'";
 }
@@ -121,6 +124,8 @@ function assemblerName(qbs) {
         return "a78k";
     else if (architecture === "avr32")
         return "aavr32";
+    else if (architecture === "sh")
+        return "iasmsh";
     throw "Unable to deduce assembler name for unsupported architecture: '"
             + architecture + "'";
 }
@@ -139,7 +144,8 @@ function archiverName(qbs) {
     var architecture = qbs.architecture;
     if (architecture.startsWith("arm")
             || architecture === "stm8" || architecture === "rl78"
-            || architecture === "rx" || architecture === "rh850") {
+            || architecture === "rx" || architecture === "rh850"
+            || architecture === "sh") {
         return "iarchive";
     } else if (architecture === "mcs51" || architecture === "avr"
                || architecture === "msp430" || architecture === "v850"
@@ -236,6 +242,8 @@ function guessArchitecture(macros) {
         return "78k";
     else if (macros["__ICCAVR32__"] === "1")
         return "avr32";
+    else if (macros["__ICCSH__"] === "1")
+        return "sh";
 }
 
 function guessEndianness(macros) {
@@ -255,7 +263,7 @@ function guessVersion(macros, architecture)
     } else if (architecture === "mcs51" || architecture === "avr" || architecture === "stm8"
                || architecture === "msp430" || architecture === "rl78" || architecture === "rx"
                || architecture === "rh850" || architecture === "v850" || architecture === "78k"
-               || architecture === "avr32") {
+               || architecture === "avr32" || architecture === "sh") {
         return { major: parseInt(version / 100),
             minor: parseInt(version % 100),
             patch: 0,
@@ -278,6 +286,7 @@ function cppLanguageOption(compilerFilePath) {
     case "iccv850":
     case "icc78k":
     case "iccavr32":
+    case "iccsh":
         return "--ec++";
     }
     throw "Unable to deduce C++ language option for unsupported compiler: '"
@@ -558,7 +567,7 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
         } else if (architecture === "stm8" || architecture === "mcs51"
                    || architecture === "avr" || architecture === "msp430"
                    || architecture === "v850" || architecture === "78k"
-                   || architecture === "avr32") {
+                   || architecture === "avr32" || architecture === "sh") {
             args.push("--ec++");
         }
     }
@@ -613,7 +622,7 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
     var architecture = input.qbs.architecture;
     if (architecture === "stm8" || architecture === "rl78"
             || architecture === "rx" || architecture === "rh850"
-            || architecture === "avr32") {
+            || architecture === "avr32" || architecture === "sh") {
         // Silent output generation flag.
         args.push("--silent");
         // Warning level flags.
