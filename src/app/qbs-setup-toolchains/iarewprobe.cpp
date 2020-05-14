@@ -210,18 +210,18 @@ static std::vector<ToolchainInstallInfo> installedIarsFromRegistry()
             QString registryKey;
             QString subExePath;
         } knowToolchains[] = {
-            {QStringLiteral("EWARM"), QStringLiteral("\\arm\\bin\\iccarm.exe")},
-            {QStringLiteral("EWAVR"), QStringLiteral("\\avr\\bin\\iccavr.exe")},
-            {QStringLiteral("EW8051"), QStringLiteral("\\8051\\bin\\icc8051.exe")},
-            {QStringLiteral("EWSTM8"), QStringLiteral("\\stm8\\bin\\iccstm8.exe")},
-            {QStringLiteral("EW430"), QStringLiteral("\\430\\bin\\icc430.exe")},
-            {QStringLiteral("EWRL78"), QStringLiteral("\\rl78\\bin\\iccrl78.exe")},
-            {QStringLiteral("EWRX"), QStringLiteral("\\rx\\bin\\iccrx.exe")},
-            {QStringLiteral("EWRH850"), QStringLiteral("\\rh850\\bin\\iccrh850.exe")},
-            {QStringLiteral("EWV850"), QStringLiteral("\\v850\\bin\\iccv850.exe")},
-            {QStringLiteral("EW78K"), QStringLiteral("\\78k\\bin\\icc78k.exe")},
-            {QStringLiteral("EWAVR32"), QStringLiteral("\\avr32\\bin\\iccavr32.exe")},
-            {QStringLiteral("EWSH"), QStringLiteral("\\sh\\bin\\iccsh.exe")},
+            {QStringLiteral("EWARM"), QStringLiteral("/arm/bin/iccarm.exe")},
+            {QStringLiteral("EWAVR"), QStringLiteral("/avr/bin/iccavr.exe")},
+            {QStringLiteral("EW8051"), QStringLiteral("/8051/bin/icc8051.exe")},
+            {QStringLiteral("EWSTM8"), QStringLiteral("/stm8/bin/iccstm8.exe")},
+            {QStringLiteral("EW430"), QStringLiteral("/430/bin/icc430.exe")},
+            {QStringLiteral("EWRL78"), QStringLiteral("/rl78/bin/iccrl78.exe")},
+            {QStringLiteral("EWRX"), QStringLiteral("/rx/bin/iccrx.exe")},
+            {QStringLiteral("EWRH850"), QStringLiteral("/rh850/bin/iccrh850.exe")},
+            {QStringLiteral("EWV850"), QStringLiteral("/v850/bin/iccv850.exe")},
+            {QStringLiteral("EW78K"), QStringLiteral("/78k/bin/icc78k.exe")},
+            {QStringLiteral("EWAVR32"), QStringLiteral("/avr32/bin/iccavr32.exe")},
+            {QStringLiteral("EWSH"), QStringLiteral("/sh/bin/iccsh.exe")},
         };
 
         QSettings registry(QLatin1String(kRegistryNode), QSettings::NativeFormat);
