@@ -45,11 +45,19 @@ set -e
 #
 export LSAN_OPTIONS="suppressions=$( cd "$(dirname "$0")" ; pwd -P )/address-sanitizer-suppressions.txt:print_suppressions=0"
 
+if [ -z "${QBS_BUILD_PROFILE}" ]; then
+    QBS_BUILD_PROFILE=$(qbs config defaultProfile | cut -d: -f2 | tr -d '[:space:]')
+fi
+if [ -z "${QBS_BUILD_PROFILE}" ]; then
+    echo "Either QBS_BUILD_PROFILE or a defaultProfile must be set."
+    exit 1
+fi
+
 #
 # Additional build options
 #
 BUILD_OPTIONS="\
-    ${QBS_BUILD_PROFILE:+profile:${QBS_BUILD_PROFILE}} \
+    profile:${QBS_BUILD_PROFILE} \
     modules.qbsbuildconfig.enableAddressSanitizer:true \
     modules.qbsbuildconfig.enableProjectFileUpdates:true \
     modules.qbsbuildconfig.enableUnitTests:true \
@@ -72,6 +80,8 @@ if [ "$WITH_DOCS" -ne 0 ]; then
     qbs build -p "qbs documentation" ${BUILD_OPTIONS}
 fi
 
+QMAKE_PATH=${QMAKE_PATH:-$(which qmake)}
+
 #
 # Set up profiles for the freshly built Qbs if not
 # explicitly specified otherwise
@@ -80,6 +90,8 @@ if [ -z "${QBS_AUTOTEST_PROFILE}" ]; then
 
     export QBS_AUTOTEST_PROFILE=autotestprofile
     export QBS_AUTOTEST_SETTINGS_DIR=`mktemp -d 2>/dev/null || mktemp -d -t 'qbs-settings'`
+
+    QBS_AUTOTEST_QMAKE_PATH=${QBS_AUTOTEST_QMAKE_PATH:-${QMAKE_PATH}}
 
     RUN_OPTIONS="\
         --settings-dir ${QBS_AUTOTEST_SETTINGS_DIR} \
@@ -91,20 +103,20 @@ if [ -z "${QBS_AUTOTEST_PROFILE}" ]; then
 
     qbs run -p qbs_app ${BUILD_OPTIONS} -- setup-qt \
             ${RUN_OPTIONS} \
-            "${QMAKE_PATH:-$(which qmake)}" ${QBS_AUTOTEST_PROFILE}
+            "${QBS_AUTOTEST_QMAKE_PATH}" ${QBS_AUTOTEST_PROFILE}
 
     # Make sure that the Qt profile uses the same toolchain profile
     # that was used for building in case a custom QBS_BUILD_PROFILE
     # was set. Otherwise setup-qt automatically uses the default
     # toolchain profile.
-    if [ ! -z "${QBS_BUILD_PROFILE}" ]; then
-        QBS_BUILD_BASE_PROFILE=$(qbs config profiles.${QBS_BUILD_PROFILE}.baseProfile | cut -d: -f2)
-        if [ ! -z "${QBS_BUILD_BASE_PROFILE}" ]; then
-            echo "Setting base profile for ${QBS_AUTOTEST_PROFILE} to ${QBS_BUILD_BASE_PROFILE}"
-            qbs run -p qbs_app ${BUILD_OPTIONS} -- config \
-                    ${RUN_OPTIONS} \
-                    profiles.${QBS_AUTOTEST_PROFILE}.baseProfile ${QBS_BUILD_BASE_PROFILE}
-        fi
+    if [ -z "${QBS_AUTOTEST_BASE_PROFILE}" ]; then
+        QBS_AUTOTEST_BASE_PROFILE=$(qbs config profiles.${QBS_BUILD_PROFILE}.baseProfile | cut -d: -f2)
+    fi
+    if [ ! -z "${QBS_AUTOTEST_BASE_PROFILE}" ]; then
+        echo "Setting base profile for ${QBS_AUTOTEST_PROFILE} to ${QBS_AUTOTEST_BASE_PROFILE}"
+        qbs run -p qbs_app ${BUILD_OPTIONS} -- config \
+                ${RUN_OPTIONS} \
+                profiles.${QBS_AUTOTEST_PROFILE}.baseProfile ${QBS_AUTOTEST_BASE_PROFILE}
     fi
 
     qbs run -p qbs_app ${BUILD_OPTIONS} -- config \
