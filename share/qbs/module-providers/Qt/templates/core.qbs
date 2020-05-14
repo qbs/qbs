@@ -119,9 +119,9 @@ Module {
         qbs.targetOS.contains("darwin") ? ["objcpp"] : [])
     cpp.defines: {
         var defines = @defines@;
-        // ### QT_NO_DEBUG must be added if the current build variant is derived
-        //     from the build variant "release"
-        if (!qbs.debugInformation)
+        // ### QT_NO_DEBUG must be added if the current build variant is not derived
+        //     from the build variant "debug"
+        if (!qbs.enableDebugCode)
             defines.push("QT_NO_DEBUG");
         if (!enableKeywords)
             defines.push("QT_NO_KEYWORDS");
