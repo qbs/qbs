@@ -64,8 +64,7 @@ struct LinkerPageOptions final
 
         // Enumerate all product linker config files
         // (which are set trough 'linkerscript' tag).
-        const auto qbsGroups = qbsProduct.groups();
-        for (const auto &qbsGroup : qbsGroups) {
+        for (const auto &qbsGroup : qbsProduct.groups()) {
             if (!qbsGroup.isEnabled())
                 continue;
             const auto qbsArtifacts = qbsGroup.sourceArtifacts();

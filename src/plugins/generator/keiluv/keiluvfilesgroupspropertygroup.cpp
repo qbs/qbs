@@ -158,8 +158,7 @@ KeiluvFilesGroupsPropertyGroup::KeiluvFilesGroupsPropertyGroup(
     const auto baseDirectory = gen::utils::buildRootPath(qbsProject);
 
     // Build source items.
-    const auto groups = qbsProduct.groups();
-    for (const auto &group : groups) {
+    for (const auto &group : qbsProduct.groups()) {
         // Ignore disabled groups (e.g. when its condition property is false).
         if (!group.isEnabled())
             continue;

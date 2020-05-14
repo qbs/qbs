@@ -256,8 +256,7 @@ QList<ProductData> ProjectPrivate::findProductsByName(const QString &name) const
 
 GroupData ProjectPrivate::findGroupData(const ProductData &product, const QString &groupName) const
 {
-    const auto groups = product.groups();
-    for (const GroupData &g : groups) {
+    for (const GroupData &g : product.groups()) {
         if (g.name() == groupName)
             return g;
     }

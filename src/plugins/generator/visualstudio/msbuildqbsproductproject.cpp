@@ -126,7 +126,7 @@ void MSBuildQbsProductProject::addConfiguration(const GeneratableProject &projec
         relativeTargetDir = QStringLiteral("$(SolutionDir)$(Configuration)")
                 + relativeTargetDir.mid(configurationDir.size());
 
-    const auto properties = productData.moduleProperties();
+    const auto &properties = productData.moduleProperties();
 
     const bool debugBuild = properties.getModuleProperty(StringConstants::qbsModule(),
                                                          QStringLiteral("debugInformation"))
@@ -248,7 +248,7 @@ static QString subsystemVersion(const QString &version)
 void MSBuildQbsProductProject::addItemDefGroup(const Project &project,
                                                const ProductData &productData)
 {
-    const auto properties = productData.moduleProperties();
+    const auto &properties = productData.moduleProperties();
 
     const bool consoleApp = productData.properties().value(QStringLiteral("consoleApplication"))
             .toBool();

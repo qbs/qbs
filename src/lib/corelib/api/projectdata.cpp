@@ -530,7 +530,7 @@ QJsonObject ProductData::toJson(const QStringList &propertyNames) const
 /*!
  * \brief The product type, which is the list of file tags matching the product's target artifacts.
  */
-QStringList ProductData::type() const
+const QStringList &ProductData::type() const
 {
     return d->type;
 }
@@ -538,7 +538,7 @@ QStringList ProductData::type() const
 /*!
  * \brief The names of dependent products.
  */
-QStringList ProductData::dependencies() const
+const QStringList &ProductData::dependencies() const
 {
     return d->dependencies;
 }
@@ -546,7 +546,7 @@ QStringList ProductData::dependencies() const
 /*!
  * \brief The name of the product as given in the qbs source file.
  */
-QString ProductData::name() const
+const QString &ProductData::name() const
 {
     return d->name;
 }
@@ -564,7 +564,7 @@ QString ProductData::fullDisplayName() const
 /*!
  * \brief The base name of the product's target file as given in the qbs source file.
  */
-QString ProductData::targetName() const
+const QString &ProductData::targetName() const
 {
     return d->targetName;
 }
@@ -572,7 +572,7 @@ QString ProductData::targetName() const
 /*!
  * \brief The version number of the product.
  */
-QString ProductData::version() const
+const QString &ProductData::version() const
 {
     return d->version;
 }
@@ -587,7 +587,7 @@ QString ProductData::profile() const
                 StringConstants::profileProperty()).toString();
 }
 
-QString ProductData::multiplexConfigurationId() const
+const QString &ProductData::multiplexConfigurationId() const
 {
    return d->multiplexConfigurationId;
 }
@@ -595,7 +595,7 @@ QString ProductData::multiplexConfigurationId() const
 /*!
  * \brief The location at which the product is defined in the source file.
  */
-CodeLocation ProductData::location() const
+const CodeLocation &ProductData::location() const
 {
     return d->location;
 }
@@ -603,7 +603,7 @@ CodeLocation ProductData::location() const
 /*!
  * \brief The directory under which the product's generated artifacts are located.
  */
-QString ProductData::buildDirectory() const
+const QString &ProductData::buildDirectory() const
 {
     return d->buildDirectory;
 }
@@ -611,7 +611,7 @@ QString ProductData::buildDirectory() const
 /*!
  * \brief All artifacts that are generated when building this product.
  */
-QList<ArtifactData> ProductData::generatedArtifacts() const
+const QList<ArtifactData> &ProductData::generatedArtifacts() const
 {
     return d->generatedArtifacts;
 }
@@ -620,7 +620,7 @@ QList<ArtifactData> ProductData::generatedArtifacts() const
   \brief This product's target artifacts.
   This is a subset of \c generatedArtifacts()
  */
-QList<ArtifactData> ProductData::targetArtifacts() const
+const QList<ArtifactData> ProductData::targetArtifacts() const
 {
     QList<ArtifactData> list;
     std::copy_if(d->generatedArtifacts.cbegin(), d->generatedArtifacts.cend(),
@@ -632,7 +632,7 @@ QList<ArtifactData> ProductData::targetArtifacts() const
 /*!
  * \brief The list of artifacts in this product that are to be installed.
  */
-QList<ArtifactData> ProductData::installableArtifacts() const
+const QList<ArtifactData> ProductData::installableArtifacts() const
 {
     QList<ArtifactData> artifacts;
     for (const GroupData &g : qAsConst(d->groups)) {
@@ -681,7 +681,7 @@ QString ProductData::targetExecutable() const
 /*!
  * \brief The list of \c GroupData in this product.
  */
-QList<GroupData> ProductData::groups() const
+const QList<GroupData> &ProductData::groups() const
 {
     return d->groups;
 }
@@ -689,7 +689,7 @@ QList<GroupData> ProductData::groups() const
 /*!
  * \brief The product properties.
  */
-QVariantMap ProductData::properties() const
+const QVariantMap &ProductData::properties() const
 {
     return d->properties;
 }
@@ -697,7 +697,7 @@ QVariantMap ProductData::properties() const
 /*!
  * \brief The set of properties inherited from dependent products and modules.
  */
-PropertyMap ProductData::moduleProperties() const
+const PropertyMap &ProductData::moduleProperties() const
 {
     return d->moduleProperties;
 }

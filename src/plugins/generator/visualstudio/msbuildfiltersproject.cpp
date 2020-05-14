@@ -108,8 +108,7 @@ MSBuildFiltersProject::MSBuildFiltersProject(const GeneratableProductData &produ
     Internal::Set<QString> allFiles;
     const auto productDatas = product.data.values();
     for (const auto &productData : productDatas) {
-        const auto groups = productData.groups();
-        for (const auto &groupData : groups)
+        for (const auto &groupData : productData.groups())
             if (groupData.isEnabled())
                 allFiles.unite(Internal::Set<QString>::fromList(groupData.allFilePaths()));
     }

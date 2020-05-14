@@ -76,7 +76,7 @@ QString projectRelativeFilePath(const QString &basePath,
 
 OutputBinaryType outputBinaryType(const ProductData &qbsProduct)
 {
-    const auto qbsProductType = qbsProduct.type();
+    const auto &qbsProductType = qbsProduct.type();
     if (qbsProductType.contains(QLatin1String("application")))
         return ApplicationOutputType;
     if (qbsProductType.contains(QLatin1String("staticlibrary")))

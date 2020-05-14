@@ -124,7 +124,7 @@ std::vector<ProductData> dependenciesOf(const ProductData &qbsProduct,
                                         const QString &configurationName)
 {
     std::vector<ProductData> result;
-    const auto depsNames = qbsProduct.dependencies();
+    const auto &depsNames = qbsProduct.dependencies();
     for (const auto &product : qAsConst(genProject.products)) {
         const auto pt = product.type();
         if (!pt.contains(QLatin1String("staticlibrary")))
@@ -139,12 +139,11 @@ std::vector<ProductData> dependenciesOf(const ProductData &qbsProduct,
 
 QString targetBinary(const ProductData &qbsProduct)
 {
-    const auto type = qbsProduct.type();
+    const auto &type = qbsProduct.type();
     if (type.contains(QLatin1String("application"))) {
         return QFileInfo(qbsProduct.targetExecutable()).fileName();
     } else if (type.contains(QLatin1String("staticlibrary"))) {
-        const auto artifacts = qbsProduct.targetArtifacts();
-        for (const auto &artifact : artifacts) {
+        for (const auto &artifact : qbsProduct.targetArtifacts()) {
             if (artifact.fileTags().contains(QLatin1String("staticlibrary")))
                 return QFileInfo(artifact.filePath()).fileName();
         }

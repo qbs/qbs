@@ -319,8 +319,7 @@ void qbs::MakefileGenerator::generate()
                        << transformedInputFilePath << ' ' << transformedOutputDir << '\n';
             }
             stream << "clean-" << productTarget << ":\n";
-            const auto generatedArtifacts = productData.generatedArtifacts();
-            for (const ArtifactData &artifact : generatedArtifacts) {
+            for (const ArtifactData &artifact : productData.generatedArtifacts()) {
                 const QFileInfo fileInfo(artifact.filePath());
                 const QString transformedFilePath = QDir::toNativeSeparators(
                             prefixifiedBuildDirPath(fileInfo.path())

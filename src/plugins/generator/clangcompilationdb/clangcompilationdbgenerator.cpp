@@ -74,8 +74,7 @@ void ClangCompilationDatabaseGenerator::generate()
         const QString &buildDir = projectData.buildDirectory();
 
         for (const ProductData &productData : projectData.allProducts()) {
-            const auto groups = productData.groups();
-            for (const GroupData &groupData : groups) {
+            for (const GroupData &groupData : productData.groups()) {
                 const auto sourceArtifacts = groupData.allSourceArtifacts();
                 for (const ArtifactData &sourceArtifact : sourceArtifacts) {
                     if (!hasValidInputFileTag(sourceArtifact.fileTags()))

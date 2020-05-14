@@ -120,8 +120,7 @@ static QStringList allFilesInProject(const QString &projectRootPath)
 QStringList allFiles(const ProductData &product)
 {
     QStringList files;
-    const auto groups = product.groups();
-    for (const GroupData &group : groups)
+    for (const GroupData &group : product.groups())
         files += group.allFilePaths();
     return files;
 }
@@ -138,8 +137,7 @@ int printStatus(const ProjectData &project)
         qbsInfo() << "\nProduct: " << product.name()
                   << " (" << product.location().filePath() << ":"
                   << product.location().line() << ")";
-        const auto groups = product.groups();
-        for (const GroupData &group : groups) {
+        for (const GroupData &group : product.groups()) {
             qbsInfo() << "  Group: " << group.name()
                       << " (" << group.location().filePath() << ":"
                       << group.location().line() << ")";
