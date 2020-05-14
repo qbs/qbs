@@ -234,8 +234,7 @@ ResolvedProductPtr ProjectPrivate::internalProduct(const ProductData &product) c
 
 ProductData ProjectPrivate::findProductData(const ProductData &product) const
 {
-    const auto products = m_projectData.allProducts();
-    for (const ProductData &p : products) {
+    for (const ProductData &p : m_projectData.allProducts()) {
         if (p.name() == product.name()
                 && p.profile() == product.profile()
                 && p.multiplexConfigurationId() == product.multiplexConfigurationId()) {
@@ -248,8 +247,7 @@ ProductData ProjectPrivate::findProductData(const ProductData &product) const
 QList<ProductData> ProjectPrivate::findProductsByName(const QString &name) const
 {
     QList<ProductData> list;
-    const auto products = m_projectData.allProducts();
-    for (const ProductData &p : products) {
+    for (const ProductData &p : m_projectData.allProducts()) {
         if (p.name() == name)
             list.push_back(p);
     }
@@ -596,8 +594,7 @@ ProjectTransformerData ProjectPrivate::transformerData()
     if (!m_projectData.isValid())
         retrieveProjectData(m_projectData, internalProject);
     ProjectTransformerData projectTransformerData;
-    const auto allProducts = m_projectData.allProducts();
-    for (const ProductData &productData : allProducts) {
+    for (const ProductData &productData : m_projectData.allProducts()) {
         if (!productData.isEnabled())
             continue;
         const ResolvedProductConstPtr product = internalProduct(productData);

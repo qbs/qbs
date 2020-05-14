@@ -182,7 +182,7 @@ void qbs::MakefileGenerator::generate()
                                    "is not supported by this generator.").arg(srcDir));
         }
         stream << "SRCDIR = " << QDir::toNativeSeparators(srcDir) << '\n';
-        const QString buildDir = projectData.buildDirectory();
+        const QString &buildDir = projectData.buildDirectory();
         if (buildDir.contains(QLatin1Char(' '))) {
             throw ErrorInfo(Tr::tr("The build directory '%1' contains space characters, which"
                                    "is not supported by this generator.").arg(buildDir));
@@ -293,7 +293,7 @@ void qbs::MakefileGenerator::generate()
             stream << "install-" << productTarget << ": " << productTarget << '\n';
             Set<QString> createdDirs;
             const auto installableArtifacts = productData.installableArtifacts();
-            for (const ArtifactData &artifact : installableArtifacts) {
+            for (const ArtifactData &artifact : productData.installableArtifacts()) {
                 const QString &outputDir = artifact.installData().localInstallDir();
                 if (outputDir.contains(QLatin1Char(' '))) {
                     logger().qbsWarning() << Tr::tr("Skipping installation of '%1', because "

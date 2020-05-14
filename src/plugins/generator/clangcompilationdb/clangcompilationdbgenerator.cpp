@@ -71,10 +71,9 @@ void ClangCompilationDatabaseGenerator::generate()
     for (const Project &theProject : projects) {
         QJsonArray database;
         const ProjectData projectData = theProject.projectData();
-        const QString buildDir = projectData.buildDirectory();
+        const QString &buildDir = projectData.buildDirectory();
 
-        const auto products = projectData.allProducts();
-        for (const ProductData &productData : products) {
+        for (const ProductData &productData : projectData.allProducts()) {
             const auto groups = productData.groups();
             for (const GroupData &groupData : groups) {
                 const auto sourceArtifacts = groupData.allSourceArtifacts();

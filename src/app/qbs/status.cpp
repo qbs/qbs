@@ -134,8 +134,7 @@ int printStatus(const ProjectData &project)
 
     QStringList untrackedFilesInProject = allFilesInProject(projectDirectory);
     QStringList missingFiles;
-    const auto products = project.allProducts();
-    for (const ProductData &product : products) {
+    for (const ProductData &product : project.allProducts()) {
         qbsInfo() << "\nProduct: " << product.name()
                   << " (" << product.location().filePath() << ":"
                   << product.location().line() << ")";

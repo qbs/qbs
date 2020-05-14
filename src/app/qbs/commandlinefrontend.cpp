@@ -351,8 +351,7 @@ CommandLineFrontend::ProductMap CommandLineFrontend::productsToUse() const
     for (const Project &project : qAsConst(m_projects)) {
         QList<ProductData> &productList = products[project];
         const ProjectData projectData = project.projectData();
-        const auto products = projectData.allProducts();
-        for (const ProductData &product : products) {
+        for (const ProductData &product : projectData.allProducts()) {
             productNames << product.name();
             if (useAll || m_parser.products().contains(product.name())) {
                 productList.push_back(product);
@@ -647,8 +646,7 @@ ProductData CommandLineFrontend::getTheOneRunnableProduct()
     QBS_CHECK(m_projects.size() == 1); // Has been checked earlier.
 
     if (m_parser.products().size() == 1) {
-        const auto products = m_projects.front().projectData().allProducts();
-        for (const ProductData &p : products) {
+        for (const ProductData &p : m_projects.front().projectData().allProducts()) {
             if (p.name() == m_parser.products().constFirst())
                 return p;
         }
@@ -657,8 +655,7 @@ ProductData CommandLineFrontend::getTheOneRunnableProduct()
     QBS_CHECK(m_parser.products().isEmpty());
 
     QList<ProductData> runnableProducts;
-    const auto products = m_projects.front().projectData().allProducts();
-    for (const ProductData &p : products) {
+    for (const ProductData &p : m_projects.front().projectData().allProducts()) {
         if (p.isRunnable())
             runnableProducts.push_back(p);
     }

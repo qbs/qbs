@@ -1028,7 +1028,7 @@ void TestApi::excludedInputs()
     QCOMPARE(project.projectData().products().size(), 2);
     qbs::ProductData depProduct;
     qbs::ProductData pProduct;
-    for (qbs::ProductData &p : project.projectData().products()) {
+    for (const qbs::ProductData &p : project.projectData().products()) {
         if (p.name() == "dep")
             depProduct = p;
         else if (p.name() == "p")

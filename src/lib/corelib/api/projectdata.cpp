@@ -812,7 +812,7 @@ QJsonObject ProjectData::toJson(const QStringList &moduleProperties) const
 /*!
  * \brief The name of this project.
  */
-QString ProjectData::name() const
+const QString &ProjectData::name() const
 {
     return d->name;
 }
@@ -820,7 +820,7 @@ QString ProjectData::name() const
 /*!
  * \brief The location at which the project is defined in a qbs source file.
  */
-CodeLocation ProjectData::location() const
+const CodeLocation &ProjectData::location() const
 {
     return d->location;
 }
@@ -839,7 +839,7 @@ bool ProjectData::isEnabled() const
  * \brief The base directory under which the build artifacts of this project will be created.
  * This is only valid for the top-level project.
  */
-QString ProjectData::buildDirectory() const
+const QString &ProjectData::buildDirectory() const
 {
     return d->buildDir;
 }
@@ -848,7 +848,7 @@ QString ProjectData::buildDirectory() const
  * The products in this project.
  * \note This also includes disabled products.
  */
-QList<ProductData> ProjectData::products() const
+const QList<ProductData> &ProjectData::products() const
 {
     return d->products;
 }
@@ -856,7 +856,7 @@ QList<ProductData> ProjectData::products() const
 /*!
  * The sub-projects of this project.
  */
-QList<ProjectData> ProjectData::subProjects() const
+const QList<ProjectData> &ProjectData::subProjects() const
 {
     return d->subProjects;
 }
@@ -864,7 +864,7 @@ QList<ProjectData> ProjectData::subProjects() const
 /*!
  * All products in this projects and its direct and indirect sub-projects.
  */
-QList<ProductData> ProjectData::allProducts() const
+const QList<ProductData> ProjectData::allProducts() const
 {
     QList<ProductData> productList = products();
     for (const ProjectData &pd : qAsConst(d->subProjects))
@@ -875,7 +875,7 @@ QList<ProductData> ProjectData::allProducts() const
 /*!
  * The artifacts of all products in this project that are to be installed.
  */
-QList<ArtifactData> ProjectData::installableArtifacts() const
+const QList<ArtifactData> ProjectData::installableArtifacts() const
 {
     QList<ArtifactData> artifacts;
     const auto products = allProducts();

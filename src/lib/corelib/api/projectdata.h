@@ -241,14 +241,14 @@ public:
     bool isValid() const;
     QJsonObject toJson(const QStringList &moduleProperties = {}) const;
 
-    QString name() const;
-    CodeLocation location() const;
+    const QString &name() const;
+    const CodeLocation &location() const;
     bool isEnabled() const;
-    QString buildDirectory() const;
-    QList<ProductData> products() const;
-    QList<ProjectData> subProjects() const;
-    QList<ProductData> allProducts() const;
-    QList<ArtifactData> installableArtifacts() const;
+    const QString &buildDirectory() const;
+    const QList<ProductData> &products() const;
+    const QList<ProjectData> &subProjects() const;
+    const QList<ProductData> allProducts() const;
+    const QList<ArtifactData> installableArtifacts() const;
 
 private:
     QExplicitlySharedDataPointer<Internal::ProjectDataPrivate> d;
