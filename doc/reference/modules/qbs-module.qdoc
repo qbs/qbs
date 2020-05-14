@@ -370,6 +370,10 @@
         \li \c{"s390x"}
         \li 64- and 32-bit System/390 processor architecture developed by IBM
     \row
+        \li \c{"sh"}
+        \li 32-bit RISC architecture processor family developed by Hitachi and
+            currently manufactured by Renesas Electronics
+    \row
         \li \c{"sparc"}
         \li 32-bit RISC architecture processor family developed by
             Sun Microsystems and Fujitsu
