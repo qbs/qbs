@@ -572,6 +572,8 @@ function guessArchitecture(m) {
             architecture = "rl78";
         } else if (hasAnyOf(m, ["__v850__"])) {
             architecture = "v850";
+        } else if (hasAnyOf(m, ["__riscv"])) {
+            architecture = "riscv";
         }
     }
 
