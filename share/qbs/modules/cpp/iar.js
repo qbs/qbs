@@ -669,7 +669,7 @@ function linkerFlags(project, product, input, outputs) {
 
     // Architecture specific flags.
     var architecture = product.qbs.architecture;
-    if (supportXLinker(architecture)) {
+    if (supportILinker(architecture)) {
         args = args.concat(allLibraryPaths.map(function(path) { return '-L' + path }));
         // Silent output generation flag.
         args.push("--silent");
@@ -681,7 +681,7 @@ function linkerFlags(project, product, input, outputs) {
             args.push("--entry", product.cpp.entryPoint);
         // Linker scripts flags.
         linkerScripts.forEach(function(script) { args.push("--config", script); });
-    } else if (supportILinker(architecture)) {
+    } else if (supportXLinker(architecture)) {
         args = args.concat(allLibraryPaths.map(function(path) { return '-I' + path }));
         // Silent output generation flag.
         args.push("-S");
