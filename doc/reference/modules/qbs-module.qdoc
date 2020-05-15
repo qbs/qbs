@@ -333,7 +333,8 @@
     \row
         \li \c{"m68k"}
         \li 16- and 32-bit CISC microprocessor, developed by Motorola
-            Semiconductor Products Sector
+            Semiconductor Products Sector, and further improved as ColdFire
+            architecture developed by NXP
     \row
         \li \c{"mcs51"}
         \li 8-bit Harvard architecture microcontroller family developed by Intel
