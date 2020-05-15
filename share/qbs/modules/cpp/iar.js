@@ -40,7 +40,8 @@ var TextFile = require("qbs.TextFile");
 function supportXLinker(architecture) {
     return architecture === "78k" || architecture === "avr"
         || architecture === "avr32" || architecture === "mcs51"
-        || architecture === "msp430" || architecture === "v850";
+        || architecture === "msp430" || architecture === "v850"
+        || architecture === "m68k";
 }
 
 function supportILinker(architecture) {
@@ -65,6 +66,8 @@ function architectureCode(architecture) {
         return "43";
     case "v850":
         return "85";
+    case "m68k":
+        return "68";
     case "arm": case "rh850": case "rl78": case "rx": case "stm8": case "sh": case "riscv":
         return "";
     }
@@ -98,6 +101,8 @@ function compilerName(qbs) {
         return "iccsh";
     else if (architecture === "riscv")
         return "iccriscv";
+    else if (architecture === "m68k")
+        return "icccf";
     throw "Unable to deduce compiler name for unsupported architecture: '"
             + architecture + "'";
 }
@@ -130,6 +135,8 @@ function assemblerName(qbs) {
         return "iasmsh";
     else if (architecture === "riscv")
         return "iasmriscv";
+    else if (architecture === "m68k")
+        return "acf";
     throw "Unable to deduce assembler name for unsupported architecture: '"
             + architecture + "'";
 }
@@ -153,7 +160,8 @@ function archiverName(qbs) {
         return "iarchive";
     } else if (architecture === "mcs51" || architecture === "avr"
                || architecture === "msp430" || architecture === "v850"
-               || architecture === "78k" || architecture === "avr32") {
+               || architecture === "78k" || architecture === "avr32"
+               || architecture === "m68k") {
         return "xlib";
     }
     throw "Unable to deduce archiver name for unsupported architecture: '"
@@ -250,6 +258,8 @@ function guessArchitecture(macros) {
         return "sh";
     else if (macros["__ICCRISCV__"] === "1")
         return "riscv";
+    else if (macros["__ICCCF__"] === "1")
+        return "m68k";
 }
 
 function guessEndianness(macros) {
@@ -269,7 +279,8 @@ function guessVersion(macros, architecture)
     } else if (architecture === "mcs51" || architecture === "avr" || architecture === "stm8"
                || architecture === "msp430" || architecture === "rl78" || architecture === "rx"
                || architecture === "rh850" || architecture === "v850" || architecture === "78k"
-               || architecture === "avr32" || architecture === "sh" || architecture === "riscv") {
+               || architecture === "avr32" || architecture === "sh" || architecture === "riscv"
+               || architecture === "m68k") {
         return { major: parseInt(version / 100),
             minor: parseInt(version % 100),
             patch: 0,
@@ -294,6 +305,7 @@ function cppLanguageOption(compilerFilePath) {
     case "icc78k":
     case "iccavr32":
     case "iccsh":
+    case "icccf":
         return "--ec++";
     }
     throw "Unable to deduce C++ language option for unsupported compiler: '"
@@ -574,7 +586,8 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
         } else if (architecture === "stm8" || architecture === "mcs51"
                    || architecture === "avr" || architecture === "msp430"
                    || architecture === "v850" || architecture === "78k"
-                   || architecture === "avr32" || architecture === "sh") {
+                   || architecture === "avr32" || architecture === "sh"
+                   || architecture === "m68k") {
             args.push("--ec++");
         }
     }
@@ -630,7 +643,7 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
     if (architecture === "stm8" || architecture === "rl78"
             || architecture === "rx" || architecture === "rh850"
             || architecture === "avr32" || architecture === "sh"
-            || architecture === "riscv") {
+            || architecture === "riscv" || architecture === "m68k") {
         // Silent output generation flag.
         args.push("--silent");
         // Warning level flags.
