@@ -176,7 +176,6 @@ jobs:
           modules.qbsbuildconfig.enableUnitTests:true
           modules.cpp.treatWarningsAsErrors:true
           project.withDocumentation:true
-          project.withExamples:true
           config:release-64 profile:qt64
           config:release profile:qt
       after_script:

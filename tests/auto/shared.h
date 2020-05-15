@@ -335,6 +335,8 @@ inline QString testWorkDir(const QString &testName)
 inline bool copyDllExportHeader(const QString &srcDataDir, const QString &targetDataDir)
 {
     QFile sourceFile(srcDataDir + "/../../dllexport.h");
+    if (!sourceFile.exists())
+        return true;
     const QString targetPath = targetDataDir + "/dllexport.h";
     QFile::remove(targetPath);
     return sourceFile.copy(targetPath);

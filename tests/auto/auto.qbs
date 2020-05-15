@@ -8,6 +8,7 @@ Project {
         "blackbox/blackbox-android.qbs",
         "blackbox/blackbox-apple.qbs",
         "blackbox/blackbox-clangdb.qbs",
+        "blackbox/blackbox-examples.qbs",
         "blackbox/blackbox-java.qbs",
         "blackbox/blackbox-joblimits.qbs",
         "blackbox/blackbox-qt.qbs",
