@@ -576,6 +576,8 @@ function guessArchitecture(m) {
             architecture = "riscv";
         } else if (hasAnyOf(m, ["__xtensa__", "__XTENSA__"])) {
             architecture = "xtensa";
+        } else if (hasAnyOf(m, ["__m68k__"])) {
+            architecture = "m68k";
         }
     }
 
