@@ -60,6 +60,7 @@ int main(int argc, char *argv[])
             return EXIT_SUCCESS;
         }
         qbs::Settings settings(clParser.settingsDir());
+        settings.setScopeForWriting(clParser.settingsScope());
         setupAndroid(&settings, clParser.profileName(), clParser.sdkDir(), clParser.ndkDir(),
                      clParser.qtSdkDir());
     } catch (const qbs::ErrorInfo &e) {

@@ -53,6 +53,7 @@ static QString settingsDirOption() { return QStringLiteral("--settings-dir"); }
 static QString sdkDirOption() { return QStringLiteral("--sdk-dir"); }
 static QString ndkDirOption() { return QStringLiteral("--ndk-dir"); }
 static QString qtSdkDirOption() { return QStringLiteral("--qt-dir"); }
+static QString systemOption() { return QStringLiteral("--system"); }
 
 void CommandLineParser::parse(const QStringList &commandLine)
 {
@@ -77,6 +78,8 @@ void CommandLineParser::parse(const QStringList &commandLine)
             m_helpRequested = true;
         else if (arg == settingsDirOption())
             assignOptionArgument(settingsDirOption(), m_settingsDir);
+        else if (arg == systemOption())
+            m_settingsScope = qbs::Settings::SystemScope;
         else if (arg == sdkDirOption())
             assignOptionArgument(sdkDirOption(), m_sdkDir);
         else if (arg == ndkDirOption())
@@ -116,9 +119,9 @@ QString CommandLineParser::usageString() const
 {
     QString s = Tr::tr("This tool creates qbs profiles from Android SDK and NDK installations.\n");
     s += Tr::tr("Usage:\n");
-    s += Tr::tr("    %1 [%2 <settings dir>] [%3 <NDK dir>] [%4 <SDK dir>] [%5 <Qt dir>] "
+    s += Tr::tr("    %1 [%2 <settings dir>] [%6] [%3 <NDK dir>] [%4 <SDK dir>] [%5 <Qt dir>] "
                 "<profile name>\n")
-            .arg(m_command, settingsDirOption(), ndkDirOption(), sdkDirOption(), qtSdkDirOption());
+            .arg(m_command, settingsDirOption(), ndkDirOption(), sdkDirOption(), qtSdkDirOption(), systemOption());
     s += Tr::tr("    %1 %2|%3\n").arg(m_command, helpOptionShort(), helpOptionLong());
     s += Tr::tr("If an NDK path is given, the profile will be suitable for use with Android "
                 "projects that contain native C/C++ code.\n");

@@ -39,6 +39,8 @@
 #ifndef QBS_SETUP_ANDROID_COMMANDLINEPARSER_H
 #define QBS_SETUP_ANDROID_COMMANDLINEPARSER_H
 
+#include <tools/settings.h>
+
 #include <QtCore/qstringlist.h>
 
 class CommandLineParser
@@ -55,6 +57,7 @@ public:
     QString qtSdkDir() const { return m_qtSdkDir; }
     QString profileName() const { return m_profileName; }
     QString settingsDir() const { return m_settingsDir; }
+    qbs::Settings::Scope settingsScope() const { return m_settingsScope; }
 
     QString usageString() const;
 
@@ -64,6 +67,7 @@ private:
     [[noreturn]] void complainAboutExtraArguments();
 
     bool m_helpRequested = false;
+    qbs::Settings::Scope m_settingsScope = qbs::Settings::UserScope;
     QString m_sdkDir;
     QString m_ndkDir;
     QString m_qtSdkDir;
