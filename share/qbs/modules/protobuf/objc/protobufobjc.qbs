@@ -12,23 +12,12 @@ ProtobufBase {
 
     Depends { name: "cpp" }
 
-    // library build
-    Properties {
-        condition: !frameworkPath
-        cpp.includePaths: [outputDir, includePath]
-        cpp.libraryPaths: [libraryPath]
-        cpp.frameworks: ["Foundation"]
-        cpp.dynamicLibraries: ["ProtocolBuffers"]
-    }
-
-    // framework build
-    Properties {
-        condition: frameworkPath
-        cpp.includePaths: [outputDir]
-        cpp.frameworkPaths: [frameworkPath]
-        cpp.frameworks: ["Foundation", "Protobuf"]
-        cpp.defines: ["GPB_USE_PROTOBUF_FRAMEWORK_IMPORTS"]
-    }
+    cpp.includePaths: [outputDir].concat(!frameworkPath && includePath ? [includePath] : [])
+    cpp.libraryPaths: !frameworkPath && libraryPath ? [libraryPath] : []
+    cpp.dynamicLibraries: !frameworkPath && libraryPath ? ["ProtocolBuffers"] : []
+    cpp.frameworkPaths: frameworkPath ? [frameworkPath] : []
+    cpp.frameworks: ["Foundation"].concat(frameworkPath ? ["Protobuf"] : [])
+    cpp.defines: frameworkPath ? ["GPB_USE_PROTOBUF_FRAMEWORK_IMPORTS"] : []
 
     Rule {
         inputs: ["protobuf.input"]
