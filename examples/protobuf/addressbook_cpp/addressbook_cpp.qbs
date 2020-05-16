@@ -1,7 +1,6 @@
 import qbs
 
 CppApplication {
-    name: "addressbook_cpp"
     consoleApplication: true
     condition: protobuf.present
 

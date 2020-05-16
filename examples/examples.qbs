@@ -52,19 +52,20 @@ import qbs
 
 Project {
     references: [
-        "app-and-lib/app_and_lib.qbs",
-        "cocoa-application/CocoaApplication.qbs",
-        "cocoa-touch-application/CocoaTouchApplication.qbs",
+        "app-and-lib/app-and-lib.qbs",
+        "cocoa-application/cocoa-application.qbs",
+        "cocoa-touch-application/cocoa-touch-application.qbs",
         "code-generator/code-generator.qbs",
         "collidingmice/collidingmice.qbs",
-        "compiled-qml/myapp.qbs",
-        "grpc/ping-pong-grpc.qbs",
-        "helloworld-complex/hello.qbs",
-        "helloworld-minimal/hello.qbs",
-        "helloworld-qt/hello.qbs",
+        "compiled-qml/compiled-qml.qbs",
+        "grpc/grpc.qbs",
+        "helloworld-complex/helloworld-complex.qbs",
+        "helloworld-minimal/helloworld-minimal.qbs",
+        "helloworld-qt/helloworld-qt.qbs",
         "install-bundle/install-bundle.qbs",
-        "protobuf/cpp/addressbook.qbs",
-        "protobuf/objc/addressbook.qbs",
+        // these examples are broken because of the bug in the protobuf modules
+        // "protobuf/addressbook_cpp/addressbook_cpp.qbs",
+        // "protobuf/addressbook_objc/addressbook_objc.qbs",
         "baremetal/baremetal.qbs",
         "rule/rule.qbs",
     ]
