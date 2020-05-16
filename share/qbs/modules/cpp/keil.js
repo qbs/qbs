@@ -453,7 +453,7 @@ function dumpC166CompilerMacros(compilerFilePath, tag) {
 }
 
 function dumpArmCCCompilerMacros(compilerFilePath, tag, nullDevice) {
-    var args = [ "-E", "--list-macros", nullDevice ];
+    var args = [ "-E", "--list-macros", "--cpu=cortex-m0", nullDevice ];
     if (tag === "cpp")
         args.push("--cpp");
 
