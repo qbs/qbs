@@ -26,8 +26,10 @@ ProtobufBase {
     }
 
     cpp.libraryPaths: {
-        var result = [libraryPath];
-        if (useGrpc)
+        var result = [];
+        if (libraryPath)
+            result.push(libraryPath);
+        if (useGrpc && grpcLibraryPath)
             result.push(grpcLibraryPath);
         return result;
     }
@@ -40,8 +42,10 @@ ProtobufBase {
         return result;
     }
     cpp.includePaths: {
-        var result = [outputDir, includePath];
-        if (useGrpc)
+        var result = [outputDir];
+        if (includePath)
+            result.push(includePath);
+        if (useGrpc && grpcIncludePath)
             result.push(grpcIncludePath);
         return result;
     }
