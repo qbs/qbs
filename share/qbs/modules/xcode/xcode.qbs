@@ -259,7 +259,7 @@ Module {
         name: "Provisioning Profiles"
         prefix: xcode.provisioningProfilesPath + "/"
         files: ["*.mobileprovision", "*.provisionprofile"]
-        fileTags: [] // HACK: provisioning profile handling is not yet ready and can break autotests
+        fileTags: ["xcode.provisioningprofile"]
     }
 
     FileTagger {
@@ -333,12 +333,14 @@ Module {
 
                     artifacts.push({
                         filePath: FileInfo.joinPaths(product.destinationDirectory, obj.fileName),
-                        fileTags: ["xcode.provisioningprofile.main", obj.filePath]
+                        fileTags: ["xcode.provisioningprofile.main"],
+                        qbs: { _inputFilePath: obj.filePath }
                     });
 
                     artifacts.push({
                         filePath: FileInfo.joinPaths(product.destinationDirectory, obj.fileName + ".xml"),
-                        fileTags: ["xcode.provisioningprofile.data.main", dataFile]
+                        fileTags: ["xcode.provisioningprofile.data.main"],
+                        qbs: { _inputFilePath: dataFile }
                     });
                 }
             }
@@ -352,7 +354,7 @@ Module {
                     var output = outputs[tag][i];
                     var cmd = new JavaScriptCommand();
                     cmd.silent = true;
-                    cmd.inputFilePath = output.fileTags.filter(function(f) { return f.startsWith('/'); })[0] // QBS-754
+                    cmd.inputFilePath = output.qbs._inputFilePath; // there's no such prop in qbs, see QBS-754
                     cmd.outputFilePath = output.filePath;
                     cmd.sourceCode = function() {
                         File.copy(inputFilePath, outputFilePath);
@@ -370,7 +372,7 @@ Module {
         Artifact {
             filePath: FileInfo.joinPaths(product.destinationDirectory,
                                          product.targetName + ".xcent")
-            fileTags: ["xcent", "bundle.input"]
+            fileTags: ["xcent"]
         }
 
         prepare: {
@@ -378,7 +380,9 @@ Module {
             cmd.description = "generating entitlements";
             cmd.highlight = "codegen";
             cmd.bundleIdentifier = product.moduleProperty("bundle", "identifier");
-            cmd.signingEntitlements = inputs["xcode.entitlements"].map(function (a) { return a.filePath; });
+            cmd.signingEntitlements = inputs["xcode.entitlements"]
+                ? inputs["xcode.entitlements"].map(function (a) { return a.filePath; })
+                : [];
             cmd.platformPath = ModUtils.moduleProperty(product, "platformPath");
             cmd.sdkPath = ModUtils.moduleProperty(product, "sdkPath");
             cmd.sourceCode = function() {
