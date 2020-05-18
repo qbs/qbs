@@ -331,6 +331,10 @@
         \li 64-bit ISA architecture of the Itanium family processors
             developed by Intel
     \row
+        \li \c{"m32c"}
+        \li 32- and 16-bit CISC microcontrollers featuring high ROM code
+            efficiency manufactured by Renesas Electronics
+    \row
         \li \c{"m68k"}
         \li 16- and 32-bit CISC microprocessor, developed by Motorola
             Semiconductor Products Sector, and further improved as ColdFire
