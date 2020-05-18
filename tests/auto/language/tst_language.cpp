@@ -536,7 +536,7 @@ void TestLanguage::dependencyOnAllProfiles()
         const ResolvedProductConstPtr mainProduct = productsFromProject(project).value("main");
         QVERIFY(!!mainProduct);
         QCOMPARE(mainProduct->dependencies.size(), size_t { 2 });
-        for (const ResolvedProductConstPtr &p : mainProduct->dependencies) {
+        for (const ResolvedProductPtr &p : mainProduct->dependencies) {
             QCOMPARE(p->name, QLatin1String("dep"));
             QVERIFY(p->profile() == "p1" || p->profile() == "p2");
         }
@@ -1069,7 +1069,7 @@ void TestLanguage::exports()
         product = products.value("depender");
         QVERIFY(!!product);
         QCOMPARE(product->modules.size(), size_t(2));
-        for (const ResolvedModuleConstPtr &m : product->modules) {
+        for (const ResolvedModulePtr &m : product->modules) {
             QVERIFY2(m->name == QString("qbs") || m->name == QString("dependency"),
                      qPrintable(m->name));
         }
@@ -1080,7 +1080,7 @@ void TestLanguage::exports()
         product = products.value("broken_cycle3");
         QVERIFY(!!product);
         QCOMPARE(product->modules.size(), size_t(3));
-        for (const ResolvedModuleConstPtr &m : product->modules) {
+        for (const ResolvedModulePtr &m : product->modules) {
             QVERIFY2(m->name == QString("qbs") || m->name == QString("broken_cycle1")
                      || m->name == QString("broken_cycle2"),
                      qPrintable(m->name));
@@ -1803,7 +1803,7 @@ void TestLanguage::modulePropertiesInGroups()
         GroupConstPtr g2;
         GroupConstPtr g21;
         GroupConstPtr g211;
-        for (const GroupConstPtr &g : product->groups) {
+        for (const GroupPtr &g : product->groups) {
             if (g->name == "g1")
                 g1= g;
             else if (g->name == "g2")
@@ -1977,7 +1977,7 @@ void TestLanguage::modulePropertiesInGroups()
         QVERIFY(!!product);
         g1.reset();
         g11.reset();
-        for (const GroupConstPtr &g : product->groups) {
+        for (const GroupPtr &g : product->groups) {
             if (g->name == "g1")
                 g1= g;
             else if (g->name == "g1.1")
@@ -2727,7 +2727,7 @@ void TestLanguage::propertiesItemInModule()
         QVERIFY(!!project);
         const QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
         QCOMPARE(products.size(), 2);
-        for (const ResolvedProductConstPtr &p : products) {
+        for (const ResolvedProductPtr &p : products) {
             QCOMPARE(p->moduleProperties->moduleProperty("dummy", "productName").toString(),
                      p->name);
         }
@@ -2748,10 +2748,10 @@ void TestLanguage::propertyAssignmentInExportedGroup()
         QVERIFY(!!project);
         const QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
         QCOMPARE(products.size(), 2);
-        for (const ResolvedProductConstPtr &p : products) {
+        for (const ResolvedProductPtr &p : products) {
             QCOMPARE(p->moduleProperties->moduleProperty("dummy", "someString").toString(),
                      QString());
-            for (const GroupConstPtr &g : p->groups) {
+            for (const GroupPtr &g : p->groups) {
                 const QString propValue
                         = g->properties->moduleProperty("dummy", "someString").toString();
                 if (g->name == "exported_group")
@@ -3263,7 +3263,7 @@ void TestLanguage::wildcards()
         QCOMPARE(group->files.size(), size_t(0));
         QVERIFY(!!group->wildcards);
         QStringList actualFilePaths;
-        for (const SourceArtifactConstPtr &artifact : group->wildcards->files) {
+        for (const SourceArtifactPtr &artifact : group->wildcards->files) {
             QString str = artifact->absoluteFilePath;
             int idx = str.indexOf(m_wildcardsTestDirPath);
             if (idx != -1)
