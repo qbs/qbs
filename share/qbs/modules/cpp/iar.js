@@ -41,7 +41,7 @@ function supportXLinker(architecture) {
     return architecture === "78k" || architecture === "avr"
         || architecture === "avr32" || architecture === "mcs51"
         || architecture === "msp430" || architecture === "v850"
-        || architecture === "m68k";
+        || architecture === "m68k" || architecture === "m32c";
 }
 
 function supportILinker(architecture) {
@@ -68,6 +68,8 @@ function architectureCode(architecture) {
         return "85";
     case "m68k":
         return "68";
+    case "m32c":
+        return "48";
     case "arm": case "rh850": case "rl78": case "rx": case "stm8": case "sh": case "riscv":
         return "";
     }
@@ -103,6 +105,8 @@ function compilerName(qbs) {
         return "iccriscv";
     else if (architecture === "m68k")
         return "icccf";
+    else if (architecture === "m32c")
+        return "iccm32c";
     throw "Unable to deduce compiler name for unsupported architecture: '"
             + architecture + "'";
 }
@@ -137,6 +141,8 @@ function assemblerName(qbs) {
         return "iasmriscv";
     else if (architecture === "m68k")
         return "acf";
+    else if (architecture === "m32c")
+        return "am32c";
     throw "Unable to deduce assembler name for unsupported architecture: '"
             + architecture + "'";
 }
@@ -161,7 +167,7 @@ function archiverName(qbs) {
     } else if (architecture === "mcs51" || architecture === "avr"
                || architecture === "msp430" || architecture === "v850"
                || architecture === "78k" || architecture === "avr32"
-               || architecture === "m68k") {
+               || architecture === "m68k" || architecture === "m32c") {
         return "xlib";
     }
     throw "Unable to deduce archiver name for unsupported architecture: '"
@@ -260,6 +266,8 @@ function guessArchitecture(macros) {
         return "riscv";
     else if (macros["__ICCCF__"] === "1")
         return "m68k";
+    else if (macros["__ICCM32C__"] === "1")
+        return "m32c";
 }
 
 function guessEndianness(macros) {
@@ -280,7 +288,7 @@ function guessVersion(macros, architecture)
                || architecture === "msp430" || architecture === "rl78" || architecture === "rx"
                || architecture === "rh850" || architecture === "v850" || architecture === "78k"
                || architecture === "avr32" || architecture === "sh" || architecture === "riscv"
-               || architecture === "m68k") {
+               || architecture === "m68k" || architecture === "m32c") {
         return { major: parseInt(version / 100),
             minor: parseInt(version % 100),
             patch: 0,
@@ -306,6 +314,7 @@ function cppLanguageOption(compilerFilePath) {
     case "iccavr32":
     case "iccsh":
     case "icccf":
+    case "iccm32c":
         return "--ec++";
     }
     throw "Unable to deduce C++ language option for unsupported compiler: '"
@@ -587,7 +596,7 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
                    || architecture === "avr" || architecture === "msp430"
                    || architecture === "v850" || architecture === "78k"
                    || architecture === "avr32" || architecture === "sh"
-                   || architecture === "m68k") {
+                   || architecture === "m68k" || architecture === "m32c") {
             args.push("--ec++");
         }
     }
