@@ -391,6 +391,10 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
         function (a) {
             return a.filePath;
         });
+    var moduleDefinitionInputs = Array.prototype.map.call(inputs["def"],
+        function (a) {
+            return a.filePath;
+        });
     var generateManifestFiles = !linkDLL && product.cpp.generateManifestFile;
     var useClangCl = product.qbs.toolchain.contains("clang-cl");
     var canEmbedManifest = useClangCl || product.cpp.compilerVersionMajor >= 17 // VS 2012
@@ -501,6 +505,11 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
             manifestFileNames = [manifestFileName].concat(additionalManifestInputs);
         }
     }
+
+    if (moduleDefinitionInputs.length === 1)
+        linkerArgs.push("/DEF:" + moduleDefinitionInputs[0]);
+    else if (moduleDefinitionInputs.length > 1)
+        throw new Error("Only one '.def' file can be specified for linking");
 
     var wholeArchiveSupported = linkerSupportsWholeArchive(product);
     var wholeArchiveRequested = false;

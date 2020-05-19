@@ -5000,6 +5000,26 @@ void TestBlackbox::linkerScripts()
                            "TEST_SYMBOL_FROM_RECURSIVE_MODIFIED"}));
 }
 
+void TestBlackbox::linkerModuleDefinition()
+{
+    QDir::setCurrent(testDataDir + "/linker-module-definition");
+    QCOMPARE(runQbs({"build"}), 0);
+    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+        QSKIP("Cannot run binaries in cross-compiled build");
+    QCOMPARE(runQbs({"run"}), 0);
+    const auto verifyOutput = [this](const QByteArrayList &symbols) {
+        for (const QByteArray &symbol : symbols) {
+            if (!m_qbsStdout.contains(symbol)) {
+                qDebug() << "Expected symbol" << symbol
+                         << "not found in" << m_qbsStdout;
+                return false;
+            }
+        }
+        return true;
+    };
+    QVERIFY(verifyOutput({"foo", "bar"}));
+}
+
 void TestBlackbox::listProducts()
 {
     QDir::setCurrent(testDataDir + "/list-products");

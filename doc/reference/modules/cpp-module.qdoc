@@ -144,6 +144,14 @@
             and Objective-C++, respectively. There can be only one such file per product and
             language.
     \row
+        \li \c{"def"}
+        \li -
+        \li 1.17.0
+        \li This tag is used for a module-definition file (.def) to be passed to the linker.
+            Such a file provides the linker with information about exports, attributes,
+            and other information about the program to be linked. This file tag only has
+            an effect with the MSVC toolchain.
+    \row
         \li \c{"dynamiclibrary"}
         \li n/a
         \li 1.0.1

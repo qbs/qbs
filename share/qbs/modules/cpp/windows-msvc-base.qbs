@@ -170,10 +170,15 @@ CppModule {
         fileTags: ["native.pe.manifest"]
     }
 
+    FileTagger {
+        patterns: ["*.def"]
+        fileTags: ["def"]
+    }
+
     Rule {
         name: "applicationLinker"
         multiplex: true
-        inputs: ['obj', 'native.pe.manifest']
+        inputs: ['obj', 'native.pe.manifest', 'def']
         inputsFromDependencies: ['staticlibrary', 'dynamiclibrary_import', "debuginfo_app"]
 
         outputFileTags: ["application", "debuginfo_app", "mem_map"]
@@ -211,7 +216,7 @@ CppModule {
     Rule {
         name: "dynamicLibraryLinker"
         multiplex: true
-        inputs: ['obj', 'native.pe.manifest']
+        inputs: ['obj', 'native.pe.manifest', 'def']
         inputsFromDependencies: ['staticlibrary', 'dynamiclibrary_import', "debuginfo_dll"]
 
         outputFileTags: ["dynamiclibrary", "dynamiclibrary_import", "debuginfo_dll"]
