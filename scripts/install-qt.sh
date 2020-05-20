@@ -110,6 +110,7 @@ TARGET_PLATFORM=desktop
 COMPONENTS=
 VERSION=
 FORCE_DOWNLOAD=false
+MD5_TOOL=md5sum
 
 case "$OSTYPE" in
     *linux*)
@@ -121,6 +122,7 @@ case "$OSTYPE" in
         HOST_OS=mac_x64
         INSTALL_DIR=/usr/local/Qt
         TOOLCHAIN=clang_64
+        MD5_TOOL="md5 -r"
         ;;
     msys)
         HOST_OS=windows_x86
@@ -202,8 +204,7 @@ case "$TARGET_PLATFORM" in
         ;;
 esac
 
-
-HASH=$(echo "${OSTYPE} ${TARGET_PLATFORM} ${TOOLCHAIN} ${VERSION} ${INSTALL_DIR}" | md5sum | head -c 16)
+HASH=$(echo "${OSTYPE} ${TARGET_PLATFORM} ${TOOLCHAIN} ${VERSION} ${INSTALL_DIR}" | ${MD5_TOOL} | head -c 16)
 HASH_FILEPATH="${INSTALL_DIR}/${HASH}.manifest"
 INSTALLATION_IS_VALID=false
 if ! ${FORCE_DOWNLOAD} && [ -f "${HASH_FILEPATH}" ]; then
