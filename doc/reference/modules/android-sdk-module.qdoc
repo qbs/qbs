@@ -233,3 +233,11 @@
   \qmlproperty stringList Android.sdk::aidlSearchPaths
   Search paths for import statements to pass to the \c aidl tool via the \c{-I} option.
 */
+
+/*!
+    \qmlproperty string Android.sdk::aaptName
+
+    Name of the aapt binary. Allowed options: "aapt" and "aapt2".
+
+    \defaultvalue \c "aapt"
+*/

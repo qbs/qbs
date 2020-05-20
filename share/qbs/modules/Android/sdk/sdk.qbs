@@ -139,7 +139,14 @@ Module {
     }
 
     property path buildToolsDir: FileInfo.joinPaths(sdkDir, "build-tools", buildToolsVersion)
-    property path aaptFilePath: FileInfo.joinPaths(buildToolsDir, "aapt")
+    property string aaptName: "aapt"
+    PropertyOptions {
+        name: "aaptName"
+        allowedValues: ["aapt", "aapt2"]
+    }
+    property path aaptFilePath: FileInfo.joinPaths(buildToolsDir, aaptName)
+    readonly property bool _enableAapt2: aaptName === "aapt2"
+
     property path apksignerFilePath: FileInfo.joinPaths(buildToolsDir, "apksigner")
     property path aidlFilePath: FileInfo.joinPaths(buildToolsDir, "aidl")
     property path dxFilePath: FileInfo.joinPaths(buildToolsDir, "dx")
@@ -151,6 +158,8 @@ Module {
     property path generatedJavaFilesBaseDir: FileInfo.joinPaths(product.buildDirectory, "gen")
     property path generatedJavaFilesDir: FileInfo.joinPaths(generatedJavaFilesBaseDir,
                                          (packageName || "").split('.').join('/'))
+    property path compiledResourcesDir: FileInfo.joinPaths(product.buildDirectory,
+                                                           "compiled_resources")
     property string apkContentsDir: FileInfo.joinPaths(product.buildDirectory, "bin")
     property string debugKeyStorePath: FileInfo.joinPaths(
                                            Environment.getEnv(qbs.hostOS.contains("windows")
@@ -311,7 +320,7 @@ Module {
     }
 
     Rule {
-        condition: _enableRules
+        condition: _enableRules && !_enableAapt2
         multiplex: true
         inputs: ["android.resources", "android.assets", "android.manifest_final"]
 
@@ -331,6 +340,51 @@ Module {
         }
 
         prepare: SdkUtils.prepareAaptGenerate.apply(SdkUtils, arguments)
+    }
+
+    Rule {
+        condition: _enableRules && _enableAapt2
+        inputs: ["android.resources"]
+        outputArtifacts: {
+            var outputs = [];
+            var resources = inputs["android.resources"];
+            for (var i = 0; i < resources.length; ++i) {
+                var filePath = resources[i].filePath;
+                var resourceFileName = SdkUtils.generateAapt2ResourceFileName(filePath);
+                var compiledName = FileInfo.joinPaths(product.Android.sdk.compiledResourcesDir,
+                                                      resourceFileName);
+                outputs.push({filePath: compiledName, fileTags: "android.resources_compiled"});
+            }
+            return outputs;
+        }
+        outputFileTags: ["android.resources_compiled"]
+
+        prepare: SdkUtils.prepareAapt2CompileResource.apply(SdkUtils, arguments)
+    }
+
+    Rule {
+        condition: _enableRules && _enableAapt2
+        multiplex: true
+        inputs: ["android.resources_compiled", "android.assets", "android.manifest_final"]
+        outputFileTags: ["java.java", "android.apk_base"]
+        outputArtifacts: {
+            var artifacts = [];
+            artifacts.push({
+                filePath: product.Android.sdk.apkBaseName + ".apk_base",
+                fileTags: ["android.apk_base"]
+            });
+            var resources = inputs["android.resources_compiled"];
+            if (resources && resources.length) {
+                artifacts.push({
+                    filePath: FileInfo.joinPaths(product.Android.sdk.generatedJavaFilesDir,
+                                                 "R.java"),
+                    fileTags: ["java.java"]
+                });
+            }
+
+            return artifacts;
+        }
+        prepare: SdkUtils.prepareAapt2Link.apply(SdkUtils, arguments)
     }
 
     Rule {
@@ -421,7 +475,7 @@ Module {
     }
 
     Rule {
-        condition: _enableRules
+        condition: _enableRules && !_enableAapt2
         multiplex: true
         inputs: [
             "android.resources", "android.assets", "android.manifest_final",
@@ -433,5 +487,20 @@ Module {
             fileTags: "android.apk"
         }
         prepare: SdkUtils.prepareAaptPackage.apply(SdkUtils, arguments)
+    }
+
+    Rule {
+        condition: _enableRules && _enableAapt2
+        multiplex: true
+        inputs: [
+            "android.apk_base", "android.manifest_final",
+            "android.dex", "android.stl_deployed",
+            "android.nativelibrary_deployed", "android.keystore"
+        ]
+        Artifact {
+            filePath: product.Android.sdk.apkBaseName + ".apk"
+            fileTags: "android.apk"
+        }
+        prepare: SdkUtils.prepareApkPackage.apply(SdkUtils, arguments)
     }
 }

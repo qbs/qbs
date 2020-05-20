@@ -136,6 +136,96 @@ function commonAaptPackageArgs(project, product, inputs, outputs, input, output,
     return args;
 }
 
+// Rules: from https://developer.android.com/studio/command-line/aapt2
+// Input                            Output
+// XML resource files, such as      Resource table with *.arsc.flat as its extension.
+// String and Style, which are
+// located in the res/values/
+// directory.
+
+// All other resource files.        All files other than the files under res/values/ directory are
+//                                  converted to binary XML files with *.flat extensions.
+//                                  Additionally all PNG files are crunched by default and adopt
+//                                  *.png.flat extensions.
+function generateAapt2ResourceFileName(filePath) {
+    var suffix = FileInfo.suffix(filePath);
+    if (suffix === "xml") {
+        var data = new Xml.DomDocument();
+        data.load(filePath);
+        var rootElem = data.documentElement();
+        if (rootElem && rootElem.isElement() && rootElem.tagName() === "resources")
+            // This is a valid XML resource file
+            suffix = "arsc";
+        // If the xml file is not a "resources" one then it's treated like any other resource file.
+    }
+    var dir = FileInfo.path(filePath);
+    var baseName = FileInfo.completeBaseName(filePath)
+    return FileInfo.fileName(dir) + "_" + baseName + "." + suffix + ".flat";
+}
+
+function prepareAapt2CompileResource(project, product, inputs, outputs, input, output,
+                                     explicitlyDependsOn) {
+    var cmds = [];
+    var resources = inputs["android.resources"];
+    var compilesResourcesDir = product.Android.sdk.compiledResourcesDir;
+    if (!File.makePath(compilesResourcesDir)) {
+        throw "Cannot create directory '" + FileInfo.toNativeSeparators(compilesResourcesDir) +
+              "'.";
+    }
+    var args = ["compile", input.filePath, "-o", compilesResourcesDir];
+    var cmd = new Command(product.Android.sdk.aaptFilePath, args);
+    var outputFileName = generateAapt2ResourceFileName(input.filePath);
+    cmd.description = "compiling resource " + input.fileName + " into " + outputFileName;
+    cmds.push(cmd);
+
+    return cmds;
+}
+
+function prepareAapt2Link(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
+    var cmds = [];
+    var manifestFilePath = inputs["android.manifest_final"][0].filePath;
+    var compilesResourcesDir = product.Android.sdk.compiledResourcesDir;
+    var apkOutputFilePath = outputs["android.apk_base"][0].filePath;
+    var compiledResources = inputs["android.resources_compiled"];
+
+    var args = ["link", "-o", apkOutputFilePath, "-I", product.Android.sdk.androidJarFilePath];
+    //For aab: args.push("link", "--proto-format");
+    var i = 0;
+    if (compiledResources) {
+        for (i = 0; i < compiledResources.length; ++i)
+            args.push(compiledResources[i].filePath);
+    }
+    args.push("--no-auto-version");
+    args.push("--auto-add-overlay");
+    args.push("--manifest", manifestFilePath);
+    args.push("--java", product.Android.sdk.generatedJavaFilesBaseDir);
+
+    var assets = inputs["android.assets"];
+    var assetDirs = [];
+    if (assets) {
+        for (i = 0; i < assets.length; ++i) {
+            var assetDir = findParentDir(assets[i].filePath, "assets");
+            if (!assetDir) {
+                throw "File '" + assets[i].filePath + "' is tagged as an Android asset, "
+                        + "but is not located under a directory called 'assets'.";
+            }
+            if (!assetDirs.contains(assetDir))
+                assetDirs.push(assetDir);
+        }
+    }
+    for (i = 0; i < assetDirs.length; ++i)
+        args.push("-A", assetDirs[i]);
+    if (product.qbs.buildVariant === "debug")
+        args.push("-v");
+
+    var cmd = new Command(product.Android.sdk.aaptFilePath, args);
+    cmd.description = "Linking resources";
+    cmd.workingDirectory = product.buildDirectory;
+    cmds.push(cmd);
+
+    return cmds;
+}
+
 function prepareAaptGenerate(project, product, inputs, outputs, input, output,
                              explicitlyDependsOn) {
     var args = commonAaptPackageArgs.apply(this, arguments);
@@ -177,6 +267,65 @@ function prepareAaptPackage(project, product, inputs, outputs, input, output, ex
     cmd = new JavaScriptCommand();
     cmd.silent = true;
     cmd.unalignedApk = apkOutput.filePath + ".unaligned";
+    cmd.sourceCode = function() { File.remove(unalignedApk); };
+    cmds.push(cmd);
+
+    if (product.Android.sdk.useApksigner) {
+        // TODO: Implement full signing support, not just using the debug keystore
+        args = ["sign",
+                "--ks", inputs["android.keystore"][0].filePath,
+                "--ks-pass", "pass:android",
+                apkOutput.filePath];
+        cmd = new Command(product.Android.sdk.apksignerFilePath, args);
+        cmd.description = "Signing " + apkOutput.fileName;
+        cmds.push(cmd);
+    }
+
+    return cmds;
+}
+
+function prepareApkPackage(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
+    var cmds = [];
+    var apkInputFilePath = inputs["android.apk_base"][0].filePath;
+    var apkOutput = outputs["android.apk"][0];
+    var apkOutputFilePathUnaligned = outputs["android.apk"][0].filePath + ".unaligned";
+    var dexFilePath = inputs["android.dex"][0].filePath;
+
+    var copyCmd = new JavaScriptCommand();
+    copyCmd.description = "copying apk";
+    copyCmd.source = apkInputFilePath;
+    copyCmd.target = apkOutputFilePathUnaligned;
+    copyCmd.sourceCode = function() {
+            File.copy(source, target);
+    }
+    cmds.push(copyCmd);
+
+    var jarArgs = ["-uvf", apkOutputFilePathUnaligned, "."];
+    var libPath = FileInfo.joinPaths(product.Android.sdk.apkContentsDir);
+    var jarCmd = new Command(product.java.jarFilePath, jarArgs);
+    jarCmd.description = "packaging files";
+    jarCmd.workingDirectory = libPath;
+    cmds.push(jarCmd);
+
+    if (!product.Android.sdk.useApksigner) {
+        args = ["-sigalg", "SHA1withRSA", "-digestalg", "SHA1",
+                "-keystore", inputs["android.keystore"][0].filePath,
+                "-storepass", "android",
+                apkOutputFilePathUnaligned,
+                "androiddebugkey"];
+        cmd = new Command(product.java.jarsignerFilePath, args);
+        cmd.description = "Signing " + apkOutput.fileName;
+        cmds.push(cmd);
+    }
+
+    cmd = new Command(product.Android.sdk.zipalignFilePath,
+                      ["-f", "4", apkOutputFilePathUnaligned, apkOutput.filePath]);
+    cmd.silent = true;
+    cmds.push(cmd);
+
+    cmd = new JavaScriptCommand();
+    cmd.silent = true;
+    cmd.unalignedApk = apkOutputFilePathUnaligned;
     cmd.sourceCode = function() { File.remove(unalignedApk); };
     cmds.push(cmd);
 
