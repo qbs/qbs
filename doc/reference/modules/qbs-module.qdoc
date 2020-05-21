@@ -368,6 +368,10 @@
         \li 64-bit RISC architecture processor family developed by
             Apple–IBM–Motorola alliance
     \row
+        \li \c{"r32c"}
+        \li 32-bit CISC microcontrollers with improved code efficiency
+            and processing performance manufactured by Renesas Electronics
+    \row
         \li \c{"rh850"}
         \li 32-bit automotive microcontroller family manufactured
             by Renesas Electronics
