@@ -41,7 +41,8 @@ function supportXLinker(architecture) {
     return architecture === "78k" || architecture === "avr"
         || architecture === "avr32" || architecture === "mcs51"
         || architecture === "msp430" || architecture === "v850"
-        || architecture === "m68k" || architecture === "m32c";
+        || architecture === "m68k" || architecture === "m32c"
+        || architecture === "r32c";
 }
 
 function supportILinker(architecture) {
@@ -70,6 +71,8 @@ function architectureCode(architecture) {
         return "68";
     case "m32c":
         return "48";
+    case "r32c":
+        return "53";
     case "arm": case "rh850": case "rl78": case "rx": case "stm8": case "sh": case "riscv":
         return "";
     }
@@ -107,6 +110,8 @@ function compilerName(qbs) {
         return "icccf";
     else if (architecture === "m32c")
         return "iccm32c";
+    else if (architecture === "r32c")
+        return "iccr32c";
     throw "Unable to deduce compiler name for unsupported architecture: '"
             + architecture + "'";
 }
@@ -143,6 +148,8 @@ function assemblerName(qbs) {
         return "acf";
     else if (architecture === "m32c")
         return "am32c";
+    else if (architecture === "r32c")
+        return "ar32c";
     throw "Unable to deduce assembler name for unsupported architecture: '"
             + architecture + "'";
 }
@@ -167,7 +174,8 @@ function archiverName(qbs) {
     } else if (architecture === "mcs51" || architecture === "avr"
                || architecture === "msp430" || architecture === "v850"
                || architecture === "78k" || architecture === "avr32"
-               || architecture === "m68k" || architecture === "m32c") {
+               || architecture === "m68k" || architecture === "m32c"
+               || architecture === "r32c") {
         return "xlib";
     }
     throw "Unable to deduce archiver name for unsupported architecture: '"
@@ -268,6 +276,8 @@ function guessArchitecture(macros) {
         return "m68k";
     else if (macros["__ICCM32C__"] === "1")
         return "m32c";
+    else if (macros["__ICCR32C__"] === "1")
+        return "r32c";
 }
 
 function guessEndianness(macros) {
@@ -288,7 +298,7 @@ function guessVersion(macros, architecture)
                || architecture === "msp430" || architecture === "rl78" || architecture === "rx"
                || architecture === "rh850" || architecture === "v850" || architecture === "78k"
                || architecture === "avr32" || architecture === "sh" || architecture === "riscv"
-               || architecture === "m68k" || architecture === "m32c") {
+               || architecture === "m68k" || architecture === "m32c" || architecture === "r32c") {
         return { major: parseInt(version / 100),
             minor: parseInt(version % 100),
             patch: 0,
@@ -315,6 +325,7 @@ function cppLanguageOption(compilerFilePath) {
     case "iccsh":
     case "icccf":
     case "iccm32c":
+    case "iccr32c":
         return "--ec++";
     }
     throw "Unable to deduce C++ language option for unsupported compiler: '"
@@ -596,7 +607,8 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
                    || architecture === "avr" || architecture === "msp430"
                    || architecture === "v850" || architecture === "78k"
                    || architecture === "avr32" || architecture === "sh"
-                   || architecture === "m68k" || architecture === "m32c") {
+                   || architecture === "m68k" || architecture === "m32c"
+                   || architecture === "r32c") {
             args.push("--ec++");
         }
     }
@@ -652,7 +664,8 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
     if (architecture === "stm8" || architecture === "rl78"
             || architecture === "rx" || architecture === "rh850"
             || architecture === "avr32" || architecture === "sh"
-            || architecture === "riscv" || architecture === "m68k") {
+            || architecture === "riscv" || architecture === "m68k"
+            || architecture === "r32c") {
         // Silent output generation flag.
         args.push("--silent");
         // Warning level flags.
