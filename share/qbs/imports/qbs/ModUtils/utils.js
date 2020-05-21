@@ -580,6 +580,8 @@ function guessArchitecture(m) {
             architecture = "m68k";
         } else if (hasAnyOf(m, ["__m32c__"])) {
             architecture = "m32c";
+        } else if (hasAnyOf(m, ["__m32r__", "__M32R__"])) {
+            architecture = "m32r";
         }
     }
 

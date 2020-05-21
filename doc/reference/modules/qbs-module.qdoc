@@ -335,6 +335,11 @@
         \li 32- and 16-bit CISC microcontrollers featuring high ROM code
             efficiency manufactured by Renesas Electronics
     \row
+        \li \c{"m32r"}
+        \li 32-bit RISC microcontrollers for general industrial and
+            car-mounted systems, digital AV equipment, digital imaging
+            equipment manufactured by Renesas Electronics
+    \row
         \li \c{"m68k"}
         \li 16- and 32-bit CISC microprocessor, developed by Motorola
             Semiconductor Products Sector, and further improved as ColdFire
