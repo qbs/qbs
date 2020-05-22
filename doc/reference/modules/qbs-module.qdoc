@@ -327,6 +327,10 @@
         \li \c{"avr32"}
         \li 32-bit RISC architecture microcontroller family developed by Atmel
     \row
+        \li \c{"cr16"}
+        \li 16-bit compact RISC architecture microcontroller family
+            developed by National Semiconductor
+    \row
         \li \c{"ia64"}
         \li 64-bit ISA architecture of the Itanium family processors
             developed by Intel
