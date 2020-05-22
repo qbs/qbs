@@ -275,8 +275,6 @@ void VsEnvironmentDetector::parseBatOutput(const QByteArray &output, std::vector
                 value.remove(m_windowsSystemDirPath);
             if (value.endsWith(QLatin1Char(';')))
                 value.chop(1);
-            if (value.endsWith(QLatin1Char('\\')))
-                value.chop(1);
             targetEnv->insert(name, value);
         }
     }
