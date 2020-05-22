@@ -42,7 +42,8 @@ function supportXLinker(architecture) {
         || architecture === "avr32" || architecture === "mcs51"
         || architecture === "msp430" || architecture === "v850"
         || architecture === "m68k" || architecture === "m32c"
-        || architecture === "r32c" || architecture === "m16c";
+        || architecture === "r32c" || architecture === "m16c"
+        || architecture === "cr16";
 }
 
 function supportILinker(architecture) {
@@ -75,6 +76,8 @@ function architectureCode(architecture) {
         return "53";
     case "m16c":
         return "34";
+    case "cr16":
+        return "45";
     case "arm": case "rh850": case "rl78": case "rx": case "stm8": case "sh": case "riscv":
         return "";
     }
@@ -116,6 +119,8 @@ function compilerName(qbs) {
         return "iccr32c";
     else if (architecture === "m16c")
         return "iccm16c";
+    else if (architecture === "cr16")
+        return "icccr16c";
     throw "Unable to deduce compiler name for unsupported architecture: '"
             + architecture + "'";
 }
@@ -156,6 +161,8 @@ function assemblerName(qbs) {
         return "ar32c";
     else if (architecture === "m16c")
         return "am16c";
+    else if (architecture === "cr16")
+        return "acr16c";
     throw "Unable to deduce assembler name for unsupported architecture: '"
             + architecture + "'";
 }
@@ -181,7 +188,8 @@ function archiverName(qbs) {
                || architecture === "msp430" || architecture === "v850"
                || architecture === "78k" || architecture === "avr32"
                || architecture === "m68k" || architecture === "m32c"
-               || architecture === "r32c" || architecture === "m16c") {
+               || architecture === "r32c" || architecture === "m16c"
+               || architecture === "cr16") {
         return "xlib";
     }
     throw "Unable to deduce archiver name for unsupported architecture: '"
@@ -286,6 +294,8 @@ function guessArchitecture(macros) {
         return "r32c";
     else if (macros["__ICCM16C__"] === "1")
         return "m16c";
+    else if (macros["__ICCRC16C__"] === "1")
+        return "cr16";
 }
 
 function guessEndianness(macros) {
@@ -307,7 +317,7 @@ function guessVersion(macros, architecture)
                || architecture === "rh850" || architecture === "v850" || architecture === "78k"
                || architecture === "avr32" || architecture === "sh" || architecture === "riscv"
                || architecture === "m68k" || architecture === "m32c" || architecture === "r32c"
-               || architecture === "m16c") {
+               || architecture === "m16c" || architecture === "cr16") {
         return { major: parseInt(version / 100),
             minor: parseInt(version % 100),
             patch: 0,
@@ -336,6 +346,7 @@ function cppLanguageOption(compilerFilePath) {
     case "iccm32c":
     case "iccr32c":
     case "iccm16c":
+    case "icccr16c":
         return "--ec++";
     }
     throw "Unable to deduce C++ language option for unsupported compiler: '"
@@ -618,7 +629,8 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
                    || architecture === "v850" || architecture === "78k"
                    || architecture === "avr32" || architecture === "sh"
                    || architecture === "m68k" || architecture === "m32c"
-                   || architecture === "r32c" || architecture === "m16c") {
+                   || architecture === "r32c" || architecture === "m16c"
+                   || architecture === "cr16") {
             args.push("--ec++");
         }
     }
@@ -675,7 +687,7 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
             || architecture === "rx" || architecture === "rh850"
             || architecture === "avr32" || architecture === "sh"
             || architecture === "riscv" || architecture === "m68k"
-            || architecture === "r32c") {
+            || architecture === "r32c" || architecture === "cr16") {
         // Silent output generation flag.
         args.push("--silent");
         // Warning level flags.
