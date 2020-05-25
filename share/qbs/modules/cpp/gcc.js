@@ -553,7 +553,7 @@ function configFlags(config, isDriver) {
 
     var frameworkPaths = config.cpp.frameworkPaths;
     if (frameworkPaths)
-        args = args.concat(frameworkPaths.map(function(path) { return '-F' + path }));
+        args = args.uniqueConcat(frameworkPaths.map(function(path) { return '-F' + path }));
 
     var allSystemFrameworkPaths = [];
 
