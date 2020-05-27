@@ -4,6 +4,7 @@ x-default-service: &linux
   working_dir: /qbs
   environment:
     - BUILD_OPTIONS
+    - QTEST_FUNCTION_TIMEOUT
   volumes:
     - .:/qbs
     - ~/.ccache:/home/devel/.ccache
@@ -15,12 +16,12 @@ services:
   bionic:
     << : *linux
     hostname: bionic
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:bionic-5.12.8_1.15.1-0
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:bionic-5.15.0_1.15.1-0
     build:
       dockerfile: docker/bionic/Dockerfile
       context: .
       args:
-        QT_VERSION: 5.12.8
+        QT_VERSION: 5.15.0
         QTCREATOR_VERSION: 4.11.2
 
   bionic-android-513:
@@ -44,13 +45,13 @@ services:
         QT_VERSION: 5.14.0
 
   windows:
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:windowsservercore-5.12.7_1.15.0-0
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:windowsservercore-5.15.0_1.16.0-0
     build:
       dockerfile: docker/windowsservercore/Dockerfile
       context: .
       args:
-        QT_VERSION: 5.12.7
-        QBS_VERSION: 1.15.0
+        QT_VERSION: 5.15.0
+        QBS_VERSION: 1.16.0
     working_dir: 'C:/qbs'
     environment:
       - BUILD_OPTIONS

@@ -1,89 +1,5 @@
 #
-# Downloads and builds Qt from source. We do it in a
-# separate stage to keep the number of dependencies low in
-# the final Docker image.
-#
-FROM ubuntu:bionic as build-qt-mingw32_w64
-ARG QT_VERSION
-
-RUN apt-get update -qq && \
-    apt-get install -qq -y --no-install-recommends \
-        build-essential \
-        ca-certificates \
-        libclang-3.9-dev \
-        libgl1-mesa-dev \
-        mingw-w64 \
-        python \
-        xz-utils \
-        wget
-
-ENV LLVM_INSTALL_DIR=/usr/lib/llvm-3.9
-
-RUN mkdir -p /qt/source && \
-    wget -nv --continue --tries=20 --waitretry=10 --retry-connrefused \
-        --no-dns-cache --timeout 300 -qO- \
-        https://download.qt.io/official_releases/qt/${QT_VERSION%??}/${QT_VERSION}/single/qt-everywhere-src-${QT_VERSION}.tar.xz \
-        | tar --strip-components=1 -C /qt/source -xJf-
-
-RUN mkdir -p qt/build && \
-    cd qt/build && \
-    ../source/configure \
-        -prefix /opt/Qt/${QT_VERSION}/mingw32_w64 \
-        -release \
-        -shared \
-        -opensource \
-        -confirm-license \
-        -nomake examples \
-        -nomake tests \
-        -xplatform win32-g++ \
-        -opengl desktop \
-        -device-option CROSS_COMPILE=/usr/bin/x86_64-w64-mingw32- \
-        -qt-sqlite -qt-libpng \
-        -no-cups -no-dbus -no-pch \
-        -no-feature-accessibility \
-        -skip qtactiveqt \
-        -skip qt3d \
-        -skip qtcanvas3d \
-        -skip qtcharts \
-        -skip qtconnectivity \
-        -skip qtdatavis3d \
-        -skip qtdeclarative \
-        -skip qtdoc \
-        -skip qtgamepad \
-        -skip qtgraphicaleffects \
-        -skip qtimageformats \
-        -skip qtlocation \
-        -skip qtmultimedia \
-        -skip qtnetworkauth \
-        -skip qtquickcontrols \
-        -skip qtquickcontrols2 \
-        -skip qtpurchasing \
-        -skip qtremoteobjects \
-        -skip qtscxml \
-        -skip qtsensors \
-        -skip qtserialbus \
-        -skip qtserialport \
-        -skip qtspeech \
-        -skip qtsvg \
-        -skip qttranslations \
-        -skip qtwayland \
-        -skip qtvirtualkeyboard \
-        -skip qtwebchannel \
-        -skip qtwebengine \
-        -skip qtwebsockets \
-        -skip qtwebview \
-        -skip qtwinextras \
-        -skip qtxmlpatterns \
-        -skip qtx11extras
-
-# Build and transform stdout into . to reduce the noise
-RUN cd qt/build && \
-    make -j $(nproc --all) | stdbuf -o0 tr -cd '\n' | stdbuf -o0 tr '\n' '.' && \
-    make install
-
-#
-# Install Qt and Qbs for Linux and combine that with Qt for Windows from the
-# previous stage
+# Install Qt and Qbs for Linux
 #
 FROM ubuntu:bionic
 LABEL Description="Ubuntu development environment for Qbs with Qt and various dependencies for testing Qbs modules and functionality"
@@ -130,7 +46,6 @@ RUN apt-get update -qq && \
         git \
         help2man \
         icoutils \
-        libclang-3.9-dev \
         libdbus-1-3 \
         libfreetype6 \
         libfontconfig1 \
@@ -171,21 +86,6 @@ RUN ./install-qt.sh --version ${QT_VERSION} qtbase qtdeclarative qtscript qttool
 ENV PATH=/opt/Qt/${QT_VERSION}/gcc_64/bin:/opt/Qt/Tools/QtCreator/bin:${PATH}
 
 
-#
-# Install Qt installation from build stage
-#
-COPY --from=build-qt-mingw32_w64 /opt/Qt/${QT_VERSION}/mingw32_w64 /opt/Qt/${QT_VERSION}/mingw32_w64
-
-#
-# Install mingw toolchain to cross build for Windows and select
-# POSIX API to make use of threading support in the stl. That
-# is required by Qbs.
-#
-RUN apt-get install -qq -y --no-install-recommends \
-        mingw-w64 && \
-    printf "1\n" | update-alternatives --config x86_64-w64-mingw32-g++
-
-
 # Configure Qbs
 USER $USER_NAME
 RUN qbs-setup-toolchains /usr/bin/g++ gcc && \
@@ -194,11 +94,7 @@ RUN qbs-setup-toolchains /usr/bin/g++ gcc && \
     qbs config profiles.qt-gcc_64.baseProfile gcc && \
     qbs-setup-qt /opt/Qt/${QT_VERSION}/gcc_64/bin/qmake qt-clang_64 && \
     qbs config profiles.qt-clang_64.baseProfile clang && \
-    qbs config defaultProfile qt-gcc_64 && \
-    \
-    qbs-setup-toolchains /usr/bin/x86_64-w64-mingw32-g++ mingw && \
-    qbs-setup-qt /opt/Qt/${QT_VERSION}/mingw32_w64/bin/qmake qt-mingw32_w64 && \
-    qbs config profiles.qt-mingw32_w64.baseProfile mingw
+    qbs config defaultProfile qt-gcc_64
 
 # Switch back to root user for the entrypoint script.
 USER root

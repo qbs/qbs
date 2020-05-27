@@ -11,8 +11,9 @@ git:
 env:
   global:
     - QT_INSTALL_DIR=~/Qt
-    - QT_VERSION=5.12.8
+    - QT_VERSION=5.15.0
     - QTCREATOR_VERSION=4.11.2
+    - QTEST_FUNCTION_TIMEOUT=9000000
 
 cache:
   directories:
@@ -46,13 +47,6 @@ jobs:
         BUILD_OPTIONS="CONFIG+=ccache"
       script:
         - docker-compose run bionic scripts/build-qbs-with-qmake.sh
-
-    - <<: *build-on-bionic
-      name: With Qbs on Ubuntu bionic (mingw32_w64)
-      env:
-        BUILD_OPTIONS="profile:qt-mingw32_w64 modules.cpp.compilerWrapper:ccache modules.cpp.treatWarningsAsErrors:true config:release"
-      script:
-        - docker-compose run bionic qbs build ${BUILD_OPTIONS}
 
     - <<: *build-on-bionic
       name: With Qbs on Ubuntu bionic (linux_clang64 & clang_tidy)
@@ -190,20 +184,21 @@ jobs:
 
     - &build-on-windows
       stage: Build Qbs and and run autotests
-      name: With Qbs on Windows (Visual Studio 2017)
+      name: With Qbs on Windows (Visual Studio 2019)
       os: windows
       env:
         # Need to build in release mode. Otherwise autotests would be too slow.
         BUILD_OPTIONS="config:release modules.cpp.compilerWrapper:clcache"
-        QMAKE_PATH=${QT_INSTALL_DIR}/${QT_VERSION}/msvc2017_64/bin/qmake.exe
+        QMAKE_PATH=${QT_INSTALL_DIR}/${QT_VERSION}/msvc2019_64/bin/qmake.exe
         PATH="${QT_INSTALL_DIR}/Tools/QtCreator/bin:/c/Python38:/c/Python39:/c/Python38/Scripts:/c/Python39/Scripts:${PATH}"
         QBS_BUILD_PROFILE=qt
         CLCACHE_DIR="${HOME}/.ccache"
       before_install:
         # Install Qbs and Qt
-        - ./scripts/install-qt.sh -d ${QT_INSTALL_DIR} --version ${QT_VERSION} --toolchain win64_msvc2017_64 qtbase qtdeclarative qttools qtscript
+        - ./scripts/install-qt.sh -d ${QT_INSTALL_DIR} --version ${QT_VERSION} --toolchain win64_msvc2019_64 qtbase qtdeclarative qttools qtscript
         - ./scripts/install-qt.sh -d ${QT_INSTALL_DIR} --version ${QTCREATOR_VERSION} qtcreator
         - choco install python3
+        - choco install -y visualstudio2019buildtools --package-parameters "--add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --norestart"
         - pip3 install conan beautifulsoup4 lxml
         - pip3 install git+https://github.com/frerich/clcache.git@cae73d8255d78db8ba11e23c51fd2c9a89e7475b
       before_script:
@@ -211,9 +206,11 @@ jobs:
       after_script:
         - clcache -s
       script:
+        - find "C:/Program Files (x86)/Microsoft Visual Studio/2017" -name vcvarsall.bat
+        - find "C:/Program Files (x86)/Microsoft Visual Studio/2019" -name vcvarsall.bat
         - qbs setup-toolchains --detect
         - qbs setup-qt ${QMAKE_PATH} qt
-        - qbs config qt.baseProfile MSVC2017-x64
+        - qbs config profiles.qt.baseProfile MSVC2019-x64
         - qbs config defaultProfile qt
         - scripts/build-qbs-with-qbs.sh
 

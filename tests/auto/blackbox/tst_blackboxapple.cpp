@@ -855,8 +855,9 @@ void TestBlackboxApple::infoPlist()
         // QBS-1447: UIDeviceFamily was set to a string instead of an array
         const auto family = content.value(QStringLiteral("UIDeviceFamily"));
         if (family.isValid()) {
-            // int gets converted to a double when exporting plist as JSON
-            QVERIFY(testVariantListType(family, QMetaType::Double));
+            // Prior to Qt 5.15, int gets converted to a double when exporting plist as JSON
+            QVERIFY(testVariantListType(family, QMetaType::LongLong)
+                    || testVariantListType(family, QMetaType::Double));
         }
         const auto caps = content.value(QStringLiteral("UIRequiredDeviceCapabilities"));
         if (caps.isValid())
