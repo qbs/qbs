@@ -42,23 +42,7 @@ using qbs::Profile;
 
 TestBlackboxQt::TestBlackboxQt() : TestBlackboxBase (SRCDIR "/testdata-qt", "blackbox-qt")
 {
-}
-
-void TestBlackboxQt::validateTestProfile()
-{
-    const SettingsPtr s = settings();
-    if (profileName() != "none" && !s->profiles().contains(profileName()))
-        QFAIL(QByteArray("The build profile '" + profileName().toLocal8Bit() +
-                         "' could not be found. Please set it up on your machine."));
-    const QStringList qmakeFilePaths = Profile(profileName(), s.get())
-            .value("moduleProviders.Qt.qmakeFilePaths").toStringList();
-    if (!qmakeFilePaths.empty())
-        return;
-    if (!findExecutable(QStringList{"qmake"}).isEmpty())
-        return;
-    QSKIP(QByteArray("The build profile '" + profileName().toLocal8Bit() +
-                     "' is not a valid Qt profile and Qt was not found "
-                     "in the global search paths."));
+    setNeedsQt();
 }
 
 void TestBlackboxQt::addQObjectMacroToGeneratedCppFile()

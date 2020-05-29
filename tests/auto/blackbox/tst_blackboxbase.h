@@ -84,7 +84,9 @@ public slots:
     virtual void initTestCase();
 
 protected:
-    virtual void validateTestProfile() { }
+    virtual void validateTestProfile();
+
+    void setNeedsQt() { m_needsQt = true; }
     int runQbs(const QbsRunParameters &params = QbsRunParameters());
     void rmDirR(const QString &dir);
     static QByteArray unifiedLineEndings(const QByteArray &ba);
@@ -101,6 +103,7 @@ protected:
 
     QByteArray m_qbsStderr;
     QByteArray m_qbsStdout;
+    int m_needsQt = false;
 };
 
 #endif // TST_BLACKBOXBASE_H

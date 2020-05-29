@@ -38,9 +38,6 @@ class TestBlackboxQt : public TestBlackboxBase
 public:
     TestBlackboxQt();
 
-protected:
-    void validateTestProfile() override;
-
 private slots:
     void addQObjectMacroToGeneratedCppFile();
     void autoQrc();

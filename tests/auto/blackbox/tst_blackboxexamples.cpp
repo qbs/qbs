@@ -50,6 +50,7 @@ QStringList TestBlackboxExamples::collectExamples(const QString &dirPath)
 TestBlackboxExamples::TestBlackboxExamples()
     : TestBlackboxBase(SRCDIR "/../../../examples/", "blackbox-examples")
 {
+    setNeedsQt();
 }
 
 void TestBlackboxExamples::baremetal_data()
