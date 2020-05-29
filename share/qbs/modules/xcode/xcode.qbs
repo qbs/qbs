@@ -328,7 +328,7 @@ Module {
                 var dataFile = inputs["xcode.provisioningprofile.data"][i].filePath;
                 var query = product.moduleProperty("xcode", "provisioningProfile");
                 var obj = Xcode.provisioningProfilePlistContents(dataFile);
-                if (obj.data && (obj.data.UUID === query || obj.data.Name === query)) {
+                if (obj && obj.data && (obj.data.UUID === query || obj.data.Name === query)) {
                     console.log("Using provisioning profile: " + obj.filePath);
 
                     artifacts.push({

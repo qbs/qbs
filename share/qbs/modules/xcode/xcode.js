@@ -169,7 +169,7 @@ function findSigningIdentities(security, searchString) {
 }
 
 function provisioningProfilePlistContents(filePath) {
-    if (filePath === undefined)
+    if (filePath === undefined || !File.exists(filePath))
         return undefined;
 
     var plist = new PropertyList();
