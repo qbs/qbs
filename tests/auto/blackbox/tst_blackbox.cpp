@@ -2419,7 +2419,8 @@ void TestBlackbox::responseFiles()
     QDir::setCurrent(testDataDir + "/response-files");
     QCOMPARE(runQbs({"resolve"}), 0);
     if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
-        QSKIP("Cannot run binaries in cross-compiled build");    QbsRunParameters params;
+        QSKIP("Cannot run binaries in cross-compiled build");
+    QbsRunParameters params;
     params.command = "install";
     params.arguments << "--install-root" << "installed";
     QCOMPARE(runQbs(params), 0);
