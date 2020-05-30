@@ -106,7 +106,7 @@
 
 /*!
     \contentspage reference.html
-    \group list-of-probes
+    \qmlmodule QbsProbes
     \title List of Probes
 
     These are the probes shipped with \QBS.

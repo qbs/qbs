@@ -27,7 +27,7 @@
 /*!
     \contentspage list-of-probes.html
     \qmltype SdccProbe
-    \ingroup list-of-probes
+    \inqmlmodule QbsProbes
     \ingroup list-of-items
     \keyword QML.SdccProbe
     \inherits PathProbe

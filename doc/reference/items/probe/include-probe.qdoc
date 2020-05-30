@@ -28,7 +28,7 @@
 /*!
     \contentspage list-of-probes.html
     \qmltype IncludeProbe
-    \ingroup list-of-probes
+    \inqmlmodule QbsProbes
     \ingroup list-of-items
     \keyword QML.IncludeProbe
     \inherits PathProbe

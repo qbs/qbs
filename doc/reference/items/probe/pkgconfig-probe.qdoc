@@ -28,7 +28,7 @@
 /*!
     \contentspage list-of-probes.html
     \qmltype PkgConfigProbe
-    \ingroup list-of-probes
+    \inqmlmodule QbsProbes
     \ingroup list-of-items
     \keyword QML.PkgConfigProbe
 

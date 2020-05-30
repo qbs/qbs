@@ -28,9 +28,8 @@
 /*!
     \contentspage list-of-probes.html
     \qmltype ConanfileProbe
-    \ingroup list-of-probes
+    \inqmlmodule QbsProbes
     \ingroup list-of-items
-    \inqmlmodule QbsLanguageItems
     \keyword QML.ConanfileProbe
 
     \brief Extracts information about dependencies from a Conan recipe file.

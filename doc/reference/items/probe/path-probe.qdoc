@@ -27,7 +27,7 @@
 /*!
     \contentspage list-of-probes.html
     \qmltype PathProbe
-    \ingroup list-of-probes
+    \inqmlmodule QbsProbes
     \ingroup list-of-items
     \keyword QML.PathProbe
 

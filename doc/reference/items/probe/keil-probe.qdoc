@@ -27,7 +27,7 @@
 /*!
     \contentspage list-of-probes.html
     \qmltype KeilProbe
-    \ingroup list-of-probes
+    \inqmlmodule QbsProbes
     \ingroup list-of-items
     \keyword QML.KeilProbe
     \inherits PathProbe

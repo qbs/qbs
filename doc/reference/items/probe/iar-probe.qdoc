@@ -27,7 +27,7 @@
 /*!
     \contentspage list-of-probes.html
     \qmltype IarProbe
-    \ingroup list-of-probes
+    \inqmlmodule QbsProbes
     \ingroup list-of-items
     \keyword QML.IarProbe
     \inherits PathProbe
