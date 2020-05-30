@@ -52,7 +52,7 @@ import qbs
 
 CppApplication {
     Depends { condition: product.condition; name: "ib" }
-    condition: qbs.hostOS.contains("macos")
+    condition: qbs.targetOS.contains("macos")
     name: "Cocoa Application"
 
     cpp.useObjcPrecompiledHeader: true

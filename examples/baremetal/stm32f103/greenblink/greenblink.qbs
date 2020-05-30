@@ -54,8 +54,9 @@ CppApplication {
     condition: {
         if (!qbs.architecture.startsWith("arm"))
             return false;
-        return qbs.toolchain.contains("gcc")
-            || qbs.toolchain.contains("keil")
+        return (qbs.toolchain.contains("gcc")
+                || qbs.toolchain.contains("keil"))
+                && !qbs.toolchain.contains("xcode")
     }
     name: "stm32f103-greenblink"
     cpp.cLanguageVersion: "c99"

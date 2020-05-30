@@ -3,12 +3,16 @@ import qbs.FileInfo
 
 Project {
     CppApplication {
+        Depends { name: "bundle" }
         Depends { name: "windowutils" }
         Depends { name: "ib"; condition: qbs.targetOS.contains("darwin") }
         Depends { name: "Qt"; submodules: ["core", "gui", "widgets"] }
+        condition: qbs.targetOS.contains("macos")
+                   || qbs.targetOS.contains("linux")
+                   || qbs.targetOS.contains("windows")
 
         name: "window"
-        property bool isBundle: qbs.targetOS.contains("darwin") && bundle.isBundle
+        property bool isBundle: bundle.isBundle
         targetName: isBundle ? "Window" : "window"
         files: [
             "main.cpp",
@@ -22,7 +26,7 @@ Project {
         cpp.minimumMacosVersion: "10.10"
 
         Group {
-            fileTagsFilter: isBundle ? ["bundle.content"] : ["application"]
+            fileTagsFilter: qbs.targetOS.contains("darwin") && isBundle ? ["bundle.content"] : ["application"]
             qbs.install: true
             qbs.installDir: isBundle ? "Applications" : (qbs.targetOS.contains("windows") ? "" : "bin")
             qbs.installSourceBase: product.buildDirectory
@@ -30,6 +34,7 @@ Project {
     }
 
     DynamicLibrary {
+        Depends { name: "bundle" }
         Depends { name: "cpp" }
 
         name: "windowutils"

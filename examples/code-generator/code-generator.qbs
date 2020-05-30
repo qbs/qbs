@@ -63,6 +63,7 @@ Project {
 
     // Generate and build a hello-world application.
     CppApplication {
+        condition: qbs.targetOS === qbs.hostOS
         name: "hello-world"
         Depends { name: "hwgen" }
         Rule {

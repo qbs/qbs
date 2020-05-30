@@ -2,7 +2,7 @@ import qbs
 
 CppApplication {
     consoleApplication: true
-    condition: protobuf.present
+    condition: protobuf.present && qbs.targetOS == qbs.hostOS
 
     Depends { name: "cpp" }
     cpp.cxxLanguageVersion: "c++11"
