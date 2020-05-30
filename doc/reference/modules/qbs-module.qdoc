@@ -423,7 +423,6 @@
     \row
         \li \c{"x86_64"}
         \li 64-bit ISA architecture processor family developed by AMD
-    \endtable
     \row
         \li \c{"xtensa"}
         \li 32-bit architecture with a compact 16- and 24-bit instruction set
