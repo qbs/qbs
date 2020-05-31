@@ -68,18 +68,19 @@ void LauncherSocket::sendData(const QByteArray &data)
 
 void LauncherSocket::shutdown()
 {
-    QBS_ASSERT(m_socket, return);
-    m_socket->disconnect();
-    m_socket->write(ShutdownPacket().serialize());
-    m_socket->waitForBytesWritten(1000);
-    m_socket->deleteLater();
-    m_socket = nullptr;
+    const auto socket = m_socket.exchange(nullptr);
+    if (!socket)
+        return;
+    socket->disconnect();
+    socket->write(ShutdownPacket().serialize());
+    socket->waitForBytesWritten(1000);
+    socket->deleteLater();
 }
 
 void LauncherSocket::setSocket(QLocalSocket *socket)
 {
     QBS_ASSERT(!m_socket, return);
-    m_socket = socket;
+    m_socket.store(socket);
     m_packetParser.setDevice(m_socket);
     connect(m_socket,
 #if (QT_VERSION < QT_VERSION_CHECK(5, 15, 0))
@@ -97,8 +98,9 @@ void LauncherSocket::setSocket(QLocalSocket *socket)
 
 void LauncherSocket::handleSocketError()
 {
-    if (m_socket->error() != QLocalSocket::PeerClosedError)
-        handleError(Tr::tr("Socket error: %1").arg(m_socket->errorString()));
+    auto socket = m_socket.load();
+    if (socket->error() != QLocalSocket::PeerClosedError)
+        handleError(Tr::tr("Socket error: %1").arg(socket->errorString()));
 }
 
 void LauncherSocket::handleSocketDataAvailable()
@@ -131,18 +133,19 @@ void LauncherSocket::handleSocketDisconnected()
 
 void LauncherSocket::handleError(const QString &error)
 {
-    m_socket->disconnect();
-    m_socket->deleteLater();
-    m_socket = nullptr;
+    const auto socket = m_socket.exchange(nullptr);
+    socket->disconnect();
+    socket->deleteLater();
     emit errorOccurred(error);
 }
 
 void LauncherSocket::handleRequests()
 {
-    QBS_ASSERT(isReady(), return);
+    const auto socket = m_socket.load();
+    QBS_ASSERT(socket, return);
     std::lock_guard<std::mutex> locker(m_requestsMutex);
     for (const QByteArray &request : qAsConst(m_requests))
-        m_socket->write(request);
+        socket->write(request);
     m_requests.clear();
 }
 

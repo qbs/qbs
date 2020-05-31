@@ -60,7 +60,7 @@ class LauncherSocket : public QObject
     Q_OBJECT
     friend class LauncherInterface;
 public:
-    bool isReady() const { return m_socket; }
+    bool isReady() const { return m_socket.load(); }
     void sendData(const QByteArray &data);
 
 signals:
@@ -81,7 +81,7 @@ private:
     void handleError(const QString &error);
     void handleRequests();
 
-    QLocalSocket *m_socket = nullptr;
+    std::atomic<QLocalSocket *> m_socket{nullptr};
     PacketParser m_packetParser;
     std::vector<QByteArray> m_requests;
     std::mutex m_requestsMutex;

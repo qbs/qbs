@@ -128,8 +128,7 @@ void LauncherInterface::doStop()
     if (!m_process)
         return;
     m_process->disconnect();
-    if (m_socket->isReady())
-        m_socket->shutdown();
+    m_socket->shutdown();
     m_process->waitForFinished(3000);
     m_process->deleteLater();
     m_process = nullptr;
