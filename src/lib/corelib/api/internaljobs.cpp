@@ -59,7 +59,6 @@
 #include <tools/preferences.h>
 #include <tools/qbsassert.h>
 
-#include <QtCore/qeventloop.h>
 #include <QtCore/qtimer.h>
 
 #include <mutex>
@@ -194,14 +193,14 @@ InternalJobThreadWrapper::InternalJobThreadWrapper(InternalJob *synchronousJob, 
 InternalJobThreadWrapper::~InternalJobThreadWrapper()
 {
     if (m_running) {
-        QEventLoop loop;
-        connect(m_job, &InternalJob::finished, &loop, &QEventLoop::quit);
         cancel();
-        loop.exec();
+        while (m_running)
+            QCoreApplication::processEvents();
     }
     m_thread.quit();
     m_thread.wait();
     delete m_job;
+    m_job = nullptr;
 }
 
 void InternalJobThreadWrapper::start()
