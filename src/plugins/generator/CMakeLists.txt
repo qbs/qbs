@@ -1,4 +1,5 @@
 add_subdirectory(clangcompilationdb)
+add_subdirectory(graphviz)
 add_subdirectory(iarew)
 add_subdirectory(keiluv)
 add_subdirectory(makefilegenerator)
