@@ -26,7 +26,7 @@ services:
   bionic-android-513:
     << : *linux
     hostname: bionic-android
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:bionic-android-5.13.2-1
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:bionic-android-5.13.2-2
     build:
       dockerfile: docker/bionic/test-android.Dockerfile
       context: .
@@ -36,7 +36,7 @@ services:
   bionic-android-514:
     << : *linux
     hostname: bionic-android
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:bionic-android-5.14.0-1
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:bionic-android-5.14.0-2
     build:
       dockerfile: docker/bionic/test-android.Dockerfile
       context: .

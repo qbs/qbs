@@ -43,7 +43,7 @@ RUN apt-get update -qq && \
 
 ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
 RUN echo "export JAVA_HOME=${JAVA_HOME}" > /etc/profile.d/android.sh && \
-    echo "export PATH=${JAVA_HOME}:\${PATH}" >> /etc/profile.d/android.sh
+    echo "export PATH=${JAVA_HOME}/bin:\${PATH}" >> /etc/profile.d/android.sh
 
 ENV ANDROID_HOME="/home/${USER_NAME}/android"
 ENV ANDROID_SDK_ROOT=${ANDROID_HOME}
