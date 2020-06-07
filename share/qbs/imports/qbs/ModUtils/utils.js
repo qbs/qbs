@@ -570,6 +570,8 @@ function guessArchitecture(m) {
             architecture = "msp430";
         } else if (hasAnyOf(m, ["__RL78__"])) {
             architecture = "rl78";
+        } else if (hasAnyOf(m, ["__RX__"])) {
+            architecture = "rx";
         } else if (hasAnyOf(m, ["__v850__"])) {
             architecture = "v850";
         } else if (hasAnyOf(m, ["__riscv"])) {
