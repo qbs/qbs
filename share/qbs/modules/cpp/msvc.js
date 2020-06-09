@@ -82,6 +82,16 @@ function hasCxx17Option(input)
             || (input.qbs.toolchain.contains("clang-cl") && input.cpp.compilerVersionMajor >= 7);
 }
 
+function supportsExternalIncludesOption(input) {
+    if (input.qbs.toolchain.contains("clang-cl"))
+        return false; // Exclude clang-cl.
+    // This option was introcuded since MSVC 2017 v15.6 (aka _MSC_VER 19.13).
+    // But due to some MSVC bugs:
+    // * https://developercommunity.visualstudio.com/content/problem/181006/externali-include-paths-not-working.html
+    // this option has been fixed since MSVC 2017 update 9, v15.9 (aka _MSC_VER 19.16).
+    return Utilities.versionCompare(input.cpp.compilerVersion, "19.16") >= 0;
+}
+
 function addLanguageVersionFlag(input, args) {
     var cxxVersion = Cpp.languageVersion(input.cpp.cxxLanguageVersion,
                                          ["c++17", "c++14", "c++11", "c++98"], "C++");
@@ -189,15 +199,25 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
         args.push('/Wall')
     if (input.cpp.treatWarningsAsErrors)
         args.push('/WX')
-    var allIncludePaths = [];
     var includePaths = input.cpp.includePaths;
-    if (includePaths)
-        allIncludePaths = allIncludePaths.uniqueConcat(includePaths);
+    if (includePaths) {
+        args = args.concat([].uniqueConcat(includePaths).map(function(path) {
+            return '/I' + FileInfo.toWindowsSeparators(path);
+        }));
+    }
+
+    var allSystemIncludePaths = [];
     var systemIncludePaths = input.cpp.systemIncludePaths;
     if (systemIncludePaths)
-        allIncludePaths = allIncludePaths.uniqueConcat(systemIncludePaths);
-    for (i in allIncludePaths)
-        args.push('/I' + FileInfo.toWindowsSeparators(allIncludePaths[i]))
+        allSystemIncludePaths = allSystemIncludePaths.uniqueConcat(systemIncludePaths);
+    var includeFlag = "/I";
+    if (supportsExternalIncludesOption(input)) {
+        args.push("/experimental:external");
+        includeFlag = "/external:I"
+    }
+    allSystemIncludePaths.forEach(function(path) {
+        args.push(includeFlag, FileInfo.toWindowsSeparators(path)); });
+
     var allDefines = [];
     var platformDefines = input.cpp.platformDefines;
     if (platformDefines)
