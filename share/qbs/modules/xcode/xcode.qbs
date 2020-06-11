@@ -276,9 +276,7 @@ Module {
         inputs: ["xcode.provisioningprofile"]
 
         Artifact {
-            filePath: FileInfo.joinPaths(product.destinationDirectory,
-                                         "provisioning-profiles",
-                                         input.fileName + ".xml")
+            filePath: FileInfo.joinPaths("provisioning-profiles", input.fileName + ".xml")
             fileTags: ["xcode.provisioningprofile.data"]
         }
 
@@ -330,15 +328,14 @@ Module {
                 var obj = Xcode.provisioningProfilePlistContents(dataFile);
                 if (obj && obj.data && (obj.data.UUID === query || obj.data.Name === query)) {
                     console.log("Using provisioning profile: " + obj.filePath);
-
                     artifacts.push({
-                        filePath: FileInfo.joinPaths(product.destinationDirectory, obj.fileName),
+                        filePath: obj.fileName,
                         fileTags: ["xcode.provisioningprofile.main"],
                         qbs: { _inputFilePath: obj.filePath }
                     });
 
                     artifacts.push({
-                        filePath: FileInfo.joinPaths(product.destinationDirectory, obj.fileName + ".xml"),
+                        filePath: obj.fileName + ".xml",
                         fileTags: ["xcode.provisioningprofile.data.main"],
                         qbs: { _inputFilePath: dataFile }
                     });
