@@ -210,6 +210,9 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
     var systemIncludePaths = input.cpp.systemIncludePaths;
     if (systemIncludePaths)
         allSystemIncludePaths = allSystemIncludePaths.uniqueConcat(systemIncludePaths);
+    var distributionIncludePaths = input.cpp.distributionIncludePaths;
+    if (distributionIncludePaths)
+        allSystemIncludePaths = allSystemIncludePaths.uniqueConcat(distributionIncludePaths);
     var includeFlag = "/I";
     if (supportsExternalIncludesOption(input)) {
         args.push("/experimental:external");

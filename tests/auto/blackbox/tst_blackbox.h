@@ -298,6 +298,7 @@ private slots:
     void suspiciousCalls();
     void suspiciousCalls_data();
     void systemIncludePaths();
+    void distributionIncludePaths();
     void systemRunPaths();
     void systemRunPaths_data();
     void tar();

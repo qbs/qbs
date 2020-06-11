@@ -253,6 +253,13 @@ void TestBlackbox::systemIncludePaths()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackbox::distributionIncludePaths()
+{
+    const QString projectDir = testDataDir + "/distribution-include-paths";
+    QDir::setCurrent(projectDir);
+    QCOMPARE(runQbs(), 0);
+}
+
 void TestBlackbox::tar()
 {
     if (HostOsInfo::hostOs() == HostOsInfo::HostOsWindows)
