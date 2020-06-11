@@ -220,7 +220,7 @@ static void addDefaultGlobalSections(const GeneratableProject &topLevelProject,
                 QStringLiteral("ProjectConfigurationPlatforms"), solution);
     solution->appendGlobalSection(projectConfigurationPlatformsSection);
     projectConfigurationPlatformsSection->setPost(true);
-    const auto projects = solution->projects();
+    const auto projects = solution->fileProjects();
     for (const auto project : projects) {
         for (const auto &qbsProject : topLevelProject.projects) {
             projectConfigurationPlatformsSection->appendProperty(
