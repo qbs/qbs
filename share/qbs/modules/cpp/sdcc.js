@@ -406,6 +406,12 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
     var args = [];
 
     // Includes.
+    var includePaths = input.cpp.includePaths;
+    if (includePaths) {
+        args = args.concat([].uniqueConcat(includePaths).map(function(path) {
+            return "-I" + path; }));
+    }
+
     var allSystemIncludePaths = [];
     var systemIncludePaths = input.cpp.systemIncludePaths;
     if (systemIncludePaths)
