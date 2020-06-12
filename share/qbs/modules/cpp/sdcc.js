@@ -332,17 +332,20 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
     args = args.concat(allDefines.map(function(define) { return "-D" + define }));
 
     // Includes.
-    var allIncludePaths = [];
     var includePaths = input.cpp.includePaths;
-    if (includePaths)
-        allIncludePaths = allIncludePaths.uniqueConcat(includePaths);
+    if (includePaths) {
+        args = args.concat([].uniqueConcat(includePaths).map(function(path) {
+            return "-I" + path; }));
+    }
+
+    var allSystemIncludePaths = [];
     var systemIncludePaths = input.cpp.systemIncludePaths;
     if (systemIncludePaths)
-        allIncludePaths = allIncludePaths.uniqueConcat(systemIncludePaths);
-    var compilerIncludePaths = input.cpp.compilerIncludePaths;
-    if (compilerIncludePaths)
-        allIncludePaths = allIncludePaths.uniqueConcat(compilerIncludePaths);
-    args = args.concat(allIncludePaths.map(function(include) { return "-I" + include }));
+        allSystemIncludePaths = allSystemIncludePaths.uniqueConcat(systemIncludePaths);
+    var distributionIncludePaths = input.cpp.distributionIncludePaths;
+    if (distributionIncludePaths)
+        allSystemIncludePaths = allSystemIncludePaths.uniqueConcat(distributionIncludePaths);
+    args = args.concat(allSystemIncludePaths.map(function(include) { return "-I" + include }));
 
     var targetFlag = targetArchitectureFlag(input.cpp.architecture);
     if (targetFlag)
@@ -403,14 +406,14 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
     var args = [];
 
     // Includes.
-    var allIncludePaths = [];
+    var allSystemIncludePaths = [];
     var systemIncludePaths = input.cpp.systemIncludePaths;
     if (systemIncludePaths)
-        allIncludePaths = allIncludePaths.uniqueConcat(systemIncludePaths);
-    var compilerIncludePaths = input.cpp.compilerIncludePaths;
-    if (compilerIncludePaths)
-        allIncludePaths = allIncludePaths.uniqueConcat(compilerIncludePaths);
-    args = args.concat(allIncludePaths.map(function(include) { return "-I" + include }));
+        allSystemIncludePaths = allSystemIncludePaths.uniqueConcat(systemIncludePaths);
+    var distributionIncludePaths = input.cpp.distributionIncludePaths;
+    if (distributionIncludePaths)
+        allSystemIncludePaths = allSystemIncludePaths.uniqueConcat(distributionIncludePaths);
+    args = args.concat(allSystemIncludePaths.map(function(include) { return "-I" + include }));
 
     // Misc flags.
     args = args.concat(ModUtils.moduleProperty(input, "platformFlags", tag),
