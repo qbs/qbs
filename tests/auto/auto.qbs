@@ -7,6 +7,7 @@ Project {
         "blackbox/blackbox.qbs",
         "blackbox/blackbox-android.qbs",
         "blackbox/blackbox-apple.qbs",
+        "blackbox/blackbox-baremetal.qbs",
         "blackbox/blackbox-clangdb.qbs",
         "blackbox/blackbox-examples.qbs",
         "blackbox/blackbox-java.qbs",
