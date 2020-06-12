@@ -690,9 +690,9 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
     var systemIncludePaths = input.cpp.systemIncludePaths;
     if (systemIncludePaths)
         allIncludePaths = allIncludePaths.uniqueConcat(systemIncludePaths);
-    var compilerIncludePaths = input.cpp.compilerIncludePaths;
-    if (compilerIncludePaths)
-        allIncludePaths = allIncludePaths.uniqueConcat(compilerIncludePaths);
+    var distributionIncludePaths = input.cpp.distributionIncludePaths;
+    if (distributionIncludePaths)
+        allIncludePaths = allIncludePaths.uniqueConcat(distributionIncludePaths);
 
     var architecture = input.qbs.architecture;
     if (isMcsArchitecture(architecture) || isC166Architecture(architecture)) {
@@ -921,9 +921,9 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
     var systemIncludePaths = input.cpp.systemIncludePaths;
     if (systemIncludePaths)
         allIncludePaths = allIncludePaths.uniqueConcat(systemIncludePaths);
-    var compilerIncludePaths = input.cpp.compilerIncludePaths;
-    if (compilerIncludePaths)
-        allIncludePaths = allIncludePaths.uniqueConcat(compilerIncludePaths);
+    var distributionIncludePaths = input.cpp.distributionIncludePaths;
+    if (distributionIncludePaths)
+        allIncludePaths = allIncludePaths.uniqueConcat(distributionIncludePaths);
 
     var architecture = input.qbs.architecture;
     if (isMcsArchitecture(architecture) || isC166Architecture(architecture)) {
