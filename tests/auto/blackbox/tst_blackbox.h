@@ -313,6 +313,7 @@ private slots:
     void trackRemoveFile();
     void trackRemoveFileTag();
     void trackRemoveProduct();
+    void transitiveInvalidDependencies();
     void transitiveOptionalDependencies();
     void typescript();
     void undefinedTargetPlatform();

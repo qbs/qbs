@@ -8106,6 +8106,16 @@ void TestBlackbox::qbsVersion()
     QVERIFY(runQbs(params) != 0);
 }
 
+void TestBlackbox::transitiveInvalidDependencies()
+{
+    QDir::setCurrent(testDataDir + "/transitive-invalid-dependencies");
+    QbsRunParameters params;
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(m_qbsStdout.contains("b.present = false"), m_qbsStdout);
+    QVERIFY2(m_qbsStdout.contains("c.present = true"), m_qbsStdout);
+    QVERIFY2(m_qbsStdout.contains("d.present = false"), m_qbsStdout);
+}
+
 void TestBlackbox::transitiveOptionalDependencies()
 {
     QDir::setCurrent(testDataDir + "/transitive-optional-dependencies");
