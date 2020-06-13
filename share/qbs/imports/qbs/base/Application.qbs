@@ -29,7 +29,7 @@
 ****************************************************************************/
 
 NativeBinary {
-    type: isForAndroid && !consoleApplication ? ["android.apk"] : ["application"]
+    type: isForAndroid && !consoleApplication ? ["android.package"] : ["application"]
 
     property bool usesNativeCode
 

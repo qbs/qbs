@@ -635,7 +635,10 @@ static bool productIsRunnable(const ResolvedProductConstPtr &product)
 {
     const bool isBundle = product->moduleProperties->moduleProperty(
                 QStringLiteral("bundle"), QStringLiteral("isBundle")).toBool();
-    return isRunnableArtifact(product->fileTags, isBundle);
+    const QString androidSdkPackageType = product->moduleProperties->moduleProperty(
+                QStringLiteral("Android.sdk"), QStringLiteral("packageType")).toString();
+    const bool isAndroidApk = androidSdkPackageType == QStringLiteral("apk");
+    return isRunnableArtifact(product->fileTags, isBundle, isAndroidApk);
 }
 
 static bool productIsMultiplexed(const ResolvedProductConstPtr &product)

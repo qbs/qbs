@@ -89,6 +89,10 @@ RUN mkdir ${ANDROID_SDK_ROOT}/samples && \
     rm -v master.zip && \
     mv android-BasicMediaDecoder-master android-BasicMediaDecoder
 
+# Download buildtool to generate aab packages in ${ANDROID_SDK_ROOT}
+RUN cd ${ANDROID_SDK_ROOT} && \
+    curl -sLO https://github.com/google/bundletool/releases/download/0.15.0/bundletool-all-0.15.0.jar
+
 USER root
 
 #

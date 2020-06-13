@@ -50,6 +50,14 @@ Module {
         environmentPaths: (ndkDir ? [ndkDir] : []).concat(base)
     }
 
+    Probes.PathProbe {
+        id: bundletoolProbe
+        platformSearchPaths: [Android.sdk.sdkDir]
+        names: ["bundletool-all"]
+        nameSuffixes: ["-0.11.0.jar", "-0.12.0.jar", "-0.13.0.jar", "-0.13.3.jar", "-0.13.4.jar",
+            "-0.14.0.jar", "-0.15.0.jar"]
+    }
+
     property path sdkDir: sdkProbe.path
     property path ndkDir: ndkProbe.path
     property path ndkSamplesDir: ndkProbe.samplesDir
@@ -59,6 +67,8 @@ Module {
     property int buildToolsVersionMinor: buildToolsVersionParts[1]
     property int buildToolsVersionPatch: buildToolsVersionParts[2]
     property string platform: sdkProbe.platform
+
+    property path bundletoolFilePath: bundletoolProbe.filePath
 
     // Product-specific properties and files
     property string packageName: {
@@ -146,6 +156,12 @@ Module {
     }
     property path aaptFilePath: FileInfo.joinPaths(buildToolsDir, aaptName)
     readonly property bool _enableAapt2: aaptName === "aapt2"
+    property string packageType: "apk"
+    PropertyOptions {
+        name: "packageType"
+        allowedValues: ["apk", "aab"]
+    }
+    readonly property bool _generateAab: packageType == "aab"
 
     property path apksignerFilePath: FileInfo.joinPaths(buildToolsDir, "apksigner")
     property path aidlFilePath: FileInfo.joinPaths(buildToolsDir, "aidl")
@@ -160,7 +176,7 @@ Module {
                                          (packageName || "").split('.').join('/'))
     property path compiledResourcesDir: FileInfo.joinPaths(product.buildDirectory,
                                                            "compiled_resources")
-    property string apkContentsDir: FileInfo.joinPaths(product.buildDirectory, "bin")
+    property string packageContentsDir: FileInfo.joinPaths(product.buildDirectory, packageType)
     property string debugKeyStorePath: FileInfo.joinPaths(
                                            Environment.getEnv(qbs.hostOS.contains("windows")
                                                               ? "USERPROFILE" : "HOME"),
@@ -185,6 +201,14 @@ Module {
                                        + "or set the Android.sdk.sdkDir property or "
                                        + "ANDROID_HOME environment variable to a valid "
                                        + "Android SDK location.");
+        }
+        if (!bundletoolFilePath && _generateAab) {
+            throw ModUtils.ModuleError("Could not find Android bundletool at the following "
+                                       + "location:\n\t" + Android.sdk.sdkDir
+                                       + "\nInstall the Android bundletool to the above location, "
+                                       + "or set the Android.sdk.bundletoolFilePath property.\n"
+                                       + "Android bundletool can be downloaded from "
+                                       + "https://github.com/google/bundletool");
         }
     }
 
@@ -366,12 +390,13 @@ Module {
         condition: _enableRules && _enableAapt2
         multiplex: true
         inputs: ["android.resources_compiled", "android.assets", "android.manifest_final"]
-        outputFileTags: ["java.java", "android.apk_base"]
+        outputFileTags: ["java.java", "android.apk_resources"]
         outputArtifacts: {
             var artifacts = [];
             artifacts.push({
-                filePath: product.Android.sdk.apkBaseName + ".apk_base",
-                fileTags: ["android.apk_base"]
+                filePath: product.Android.sdk.apkBaseName + (product.Android.sdk._generateAab ?
+                              ".apk_aab" : ".apk_apk"),
+                fileTags: ["android.apk_resources"]
             });
             var resources = inputs["android.resources_compiled"];
             if (resources && resources.length) {
@@ -419,7 +444,10 @@ Module {
         inputs: ["java.class"]
         inputsFromDependencies: ["java.jar"]
         Artifact {
-            filePath: FileInfo.joinPaths(product.Android.sdk.apkContentsDir, "classes.dex")
+            filePath: product.Android.sdk._generateAab ?
+                          FileInfo.joinPaths(product.Android.sdk.packageContentsDir, "dex",
+                                             "classes.dex") :
+                          FileInfo.joinPaths(product.Android.sdk.packageContentsDir, "classes.dex")
             fileTags: ["android.dex"]
         }
         prepare: SdkUtils.prepareDex.apply(SdkUtils, arguments)
@@ -431,7 +459,7 @@ Module {
         inputsFromDependencies: inputTags
         inputs: product.aggregate ? [] : inputTags
         Artifact {
-            filePath: FileInfo.joinPaths(product.Android.sdk.apkContentsDir, "lib",
+            filePath: FileInfo.joinPaths(product.Android.sdk.packageContentsDir, "lib",
                                          input.Android.ndk.abi, input.fileName)
             fileTags: "android.nativelibrary_deployed"
         }
@@ -475,7 +503,7 @@ Module {
     }
 
     Rule {
-        condition: _enableRules && !_enableAapt2
+        condition: _enableRules && !_enableAapt2 && !_generateAab
         multiplex: true
         inputs: [
             "android.resources", "android.assets", "android.manifest_final",
@@ -484,23 +512,38 @@ Module {
         ]
         Artifact {
             filePath: product.Android.sdk.apkBaseName + ".apk"
-            fileTags: "android.apk"
+            fileTags: "android.package"
         }
         prepare: SdkUtils.prepareAaptPackage.apply(SdkUtils, arguments)
     }
 
     Rule {
-        condition: _enableRules && _enableAapt2
+        condition: _enableRules && _enableAapt2 && !_generateAab
         multiplex: true
         inputs: [
-            "android.apk_base", "android.manifest_final",
+            "android.apk_resources", "android.manifest_final",
             "android.dex", "android.stl_deployed",
             "android.nativelibrary_deployed", "android.keystore"
         ]
         Artifact {
             filePath: product.Android.sdk.apkBaseName + ".apk"
-            fileTags: "android.apk"
+            fileTags: "android.package"
         }
         prepare: SdkUtils.prepareApkPackage.apply(SdkUtils, arguments)
+    }
+
+    Rule {
+        condition: _enableRules && _enableAapt2 && _generateAab
+        multiplex: true
+        inputs: [
+            "android.apk_resources", "android.manifest_final",
+            "android.dex", "android.stl_deployed",
+            "android.nativelibrary_deployed"
+        ]
+        Artifact {
+            filePath: product.Android.sdk.apkBaseName + ".aab"
+            fileTags: "android.package"
+        }
+        prepare: SdkUtils.prepareBundletoolPackage.apply(SdkUtils, arguments)
     }
 }

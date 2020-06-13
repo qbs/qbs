@@ -18,7 +18,7 @@ Module {
     property string _androidDeployQtFilePath: FileInfo.joinPaths(_qtInstallDir, "bin",
                                                                  "androiddeployqt")
     property string _qtInstallDir
-    property bool _enableSdkSupport: product.type && product.type.contains("android.apk")
+    property bool _enableSdkSupport: product.type && product.type.contains("android.package")
                                      && !consoleApplication
     property bool _enableNdkSupport: !product.aggregate || product.multiplexConfigurationId
     property string _templatesBaseDir: FileInfo.joinPaths(_qtInstallDir, "src", "android")
@@ -312,7 +312,7 @@ Module {
                 File.move(product.Qt.android_support._deployQtOutDir + "/AndroidManifest.xml",
                           outputs["android.manifest_final"][0].filePath);
                 var libsDir = product.Qt.android_support._deployQtOutDir + "/libs";
-                var libDir = product.Android.sdk.apkContentsDir + "/lib";
+                var libDir = product.Android.sdk.packageContentsDir + "/lib";
                 var listFilePath = outputs["android.deployqt_list"][0].filePath;
                 var oldLibs = [];
                 try {
@@ -364,7 +364,7 @@ Module {
                 for (var i in inputs["android.nativelibrary"])
                     architectures.push(inputs["android.nativelibrary"][i].Android.ndk.abi);
                 for (var i in architectures) {
-                    var abiDirPath = FileInfo.joinPaths(product.Android.sdk.apkContentsDir,
+                    var abiDirPath = FileInfo.joinPaths(product.Android.sdk.packageContentsDir,
                                                         "lib", architectures[i]);
                     var files = File.directoryEntries(abiDirPath, File.Files);
                     for (var i = 0; i < files.length; ++i) {

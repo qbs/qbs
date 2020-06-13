@@ -241,3 +241,12 @@
 
     \defaultvalue \c "aapt"
 */
+
+/*!
+    \qmlproperty string Android.sdk::packageType
+
+    Type of the package. Allowed options: "apk" and "aab".
+    Type "apk" generates a runnable package whereas "aab" generates a package for Google Play.
+
+    \defaultvalue \c "apk"
+*/

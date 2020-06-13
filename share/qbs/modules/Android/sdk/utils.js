@@ -79,7 +79,7 @@ function prepareDex(project, product, inputs, outputs, input, output, explicitly
     args = args.concat(jarFiles);
 
     var cmd = new Command(dxFilePath, args);
-    cmd.description = "Creating " + output.fileName;
+    cmd.description = "creating " + output.fileName;
     return [cmd];
 }
 
@@ -183,13 +183,12 @@ function prepareAapt2CompileResource(project, product, inputs, outputs, input, o
 
 function prepareAapt2Link(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
     var cmds = [];
+    var baseOutputFilePath = outputs["android.apk_resources"][0].filePath;
     var manifestFilePath = inputs["android.manifest_final"][0].filePath;
     var compilesResourcesDir = product.Android.sdk.compiledResourcesDir;
-    var apkOutputFilePath = outputs["android.apk_base"][0].filePath;
     var compiledResources = inputs["android.resources_compiled"];
 
-    var args = ["link", "-o", apkOutputFilePath, "-I", product.Android.sdk.androidJarFilePath];
-    //For aab: args.push("link", "--proto-format");
+    var args = ["link", "-o", baseOutputFilePath, "-I", product.Android.sdk.androidJarFilePath];
     var i = 0;
     if (compiledResources) {
         for (i = 0; i < compiledResources.length; ++i)
@@ -217,9 +216,10 @@ function prepareAapt2Link(project, product, inputs, outputs, input, output, expl
         args.push("-A", assetDirs[i]);
     if (product.qbs.buildVariant === "debug")
         args.push("-v");
-
+    if (product.Android.sdk._generateAab)
+        args.push("--proto-format");
     var cmd = new Command(product.Android.sdk.aaptFilePath, args);
-    cmd.description = "Linking resources";
+    cmd.description = "linking resources";
     cmd.workingDirectory = product.buildDirectory;
     cmds.push(cmd);
 
@@ -234,18 +234,18 @@ function prepareAaptGenerate(project, product, inputs, outputs, input, output,
     if (resources && resources.length)
         args.push("-J", ModUtils.moduleProperty(product, "generatedJavaFilesBaseDir"));
     var cmd = new Command(product.Android.sdk.aaptFilePath, args);
-    cmd.description = "Processing resources";
+    cmd.description = "processing resources";
     return [cmd];
 }
 
 function prepareAaptPackage(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
     var cmds = [];
-    var apkOutput = outputs["android.apk"][0];
+    var apkOutput = outputs["android.package"][0];
     var args = commonAaptPackageArgs.apply(this, arguments);
     args.push("-F", apkOutput.filePath + ".unaligned");
-    args.push(product.Android.sdk.apkContentsDir);
+    args.push(product.Android.sdk.packageContentsDir);
     var cmd = new Command(product.Android.sdk.aaptFilePath, args);
-    cmd.description = "Generating " + apkOutput.filePath;
+    cmd.description = "generating " + apkOutput.fileName;
     cmds.push(cmd);
 
     if (!product.Android.sdk.useApksigner) {
@@ -255,7 +255,7 @@ function prepareAaptPackage(project, product, inputs, outputs, input, output, ex
                 apkOutput.filePath + ".unaligned",
                 "androiddebugkey"];
         cmd = new Command(product.java.jarsignerFilePath, args);
-        cmd.description = "Signing " + apkOutput.fileName;
+        cmd.description = "signing " + apkOutput.fileName;
         cmds.push(cmd);
     }
 
@@ -277,7 +277,7 @@ function prepareAaptPackage(project, product, inputs, outputs, input, output, ex
                 "--ks-pass", "pass:android",
                 apkOutput.filePath];
         cmd = new Command(product.Android.sdk.apksignerFilePath, args);
-        cmd.description = "Signing " + apkOutput.fileName;
+        cmd.description = "signing " + apkOutput.fileName;
         cmds.push(cmd);
     }
 
@@ -286,9 +286,9 @@ function prepareAaptPackage(project, product, inputs, outputs, input, output, ex
 
 function prepareApkPackage(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
     var cmds = [];
-    var apkInputFilePath = inputs["android.apk_base"][0].filePath;
-    var apkOutput = outputs["android.apk"][0];
-    var apkOutputFilePathUnaligned = outputs["android.apk"][0].filePath + ".unaligned";
+    var apkInputFilePath = inputs["android.apk_resources"][0].filePath;
+    var apkOutput = outputs["android.package"][0];
+    var apkOutputFilePathUnaligned = outputs["android.package"][0].filePath + ".unaligned";
     var dexFilePath = inputs["android.dex"][0].filePath;
 
     var copyCmd = new JavaScriptCommand();
@@ -301,7 +301,7 @@ function prepareApkPackage(project, product, inputs, outputs, input, output, exp
     cmds.push(copyCmd);
 
     var jarArgs = ["-uvf", apkOutputFilePathUnaligned, "."];
-    var libPath = FileInfo.joinPaths(product.Android.sdk.apkContentsDir);
+    var libPath = FileInfo.joinPaths(product.Android.sdk.packageContentsDir);
     var jarCmd = new Command(product.java.jarFilePath, jarArgs);
     jarCmd.description = "packaging files";
     jarCmd.workingDirectory = libPath;
@@ -314,7 +314,7 @@ function prepareApkPackage(project, product, inputs, outputs, input, output, exp
                 apkOutputFilePathUnaligned,
                 "androiddebugkey"];
         cmd = new Command(product.java.jarsignerFilePath, args);
-        cmd.description = "Signing " + apkOutput.fileName;
+        cmd.description = "signing " + apkOutput.fileName;
         cmds.push(cmd);
     }
 
@@ -336,9 +336,61 @@ function prepareApkPackage(project, product, inputs, outputs, input, output, exp
                 "--ks-pass", "pass:android",
                 apkOutput.filePath];
         cmd = new Command(product.Android.sdk.apksignerFilePath, args);
-        cmd.description = "Signing " + apkOutput.fileName;
+        cmd.description = "signing " + apkOutput.fileName;
         cmds.push(cmd);
     }
+
+    return cmds;
+}
+
+function prepareBundletoolPackage(project, product, inputs, outputs, input, output,
+                                  explicitlyDependsOn) {
+    var cmds = [];
+    var baseModuleDir = product.Android.sdk.packageContentsDir;
+    var manifestDirName = FileInfo.joinPaths(baseModuleDir, "manifest");
+    var pkgBaseFileName = inputs["android.apk_resources"][0].filePath;
+
+    var jarResourcesArgs = ["xf", pkgBaseFileName];
+    var jarResourcesCmd = new Command(product.java.jarFilePath, jarResourcesArgs);
+    jarResourcesCmd.description = "extracting resources apk";
+    jarResourcesCmd.workingDirectory = baseModuleDir;
+    cmds.push(jarResourcesCmd);
+
+    var moveManifestCmd = new JavaScriptCommand();
+    moveManifestCmd.description = "moving manifest in manifest directory";
+    moveManifestCmd.path = manifestDirName;
+    moveManifestCmd.manifestFilePath = baseModuleDir + "/AndroidManifest.xml";
+    moveManifestCmd.sourceCode = function() {
+        if (!File.exists(path))
+            File.makePath(path);
+        if (File.exists(manifestFilePath))
+            File.move(manifestFilePath, path + "/AndroidManifest.xml");
+    }
+    cmds.push(moveManifestCmd);
+
+    var baseFilePath = FileInfo.joinPaths(product.buildDirectory, "base.zip");
+    var jarBaseArgs = ["cfM", baseFilePath, "."];
+    var jarBaseCmd = new Command(product.java.jarFilePath, jarBaseArgs);
+    jarBaseCmd.description = "compressing base module";
+    jarBaseCmd.workingDirectory = baseModuleDir;
+    cmds.push(jarBaseCmd);
+
+    var aabFilePath = outputs["android.package"][0].filePath;
+    var removeCmd = new JavaScriptCommand();
+    removeCmd.description = "removing previous aab";
+    removeCmd.filePath = aabFilePath;
+    removeCmd.sourceCode = function() {
+        if (File.exists(filePath))
+            File.remove(filePath);
+    }
+    cmds.push(removeCmd);
+
+    var args = ["-jar", product.Android.sdk.bundletoolFilePath, "build-bundle"];
+    args.push("--modules=" + baseFilePath);
+    args.push("--output=" + aabFilePath);
+    var cmd = new Command(product.java.interpreterFilePath, args);
+    cmd.description = "generating " + outputs["android.package"][0].fileName;
+    cmds.push(cmd);
 
     return cmds;
 }
@@ -365,7 +417,7 @@ function stlDeploymentData(product, inputs, type)
         uniqueFilePaths.push(currentInput.filePath);
         data.uniqueInputs.push(currentInput);
         var outputFileName = currentInput.fileName;
-        data.outputFilePaths.push(FileInfo.joinPaths(product.Android.sdk.apkContentsDir, "lib",
+        data.outputFilePaths.push(FileInfo.joinPaths(product.Android.sdk.packageContentsDir, "lib",
                                                      currentInput.Android.ndk.abi,
                                                      outputFileName));
     }

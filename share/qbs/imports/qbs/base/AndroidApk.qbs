@@ -32,7 +32,7 @@ import qbs.File
 import qbs.FileInfo
 
 Product {
-    type: ["android.apk"]
+    type: ["android.package"]
     qbs.targetPlatform: "android"
     Depends { name: "Android.sdk" }
 }

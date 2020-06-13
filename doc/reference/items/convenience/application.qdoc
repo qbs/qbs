@@ -41,8 +41,9 @@
     The target artifact of this type of product is usually an executable binary
     tagged \c "application".
     However, on Android, unless you set \l{Product::}{consoleApplication} to \c true,
-    the application target will be an APK package tagged \c "android.apk", and a
-    dependency to the \l{Android.sdk} module is automatically added to the product.
+    the application target will be an APK or an AAB package tagged \c "android.package"
+    according to the \l{Android.sdk}{packageType} property. A dependency to the \l{Android.sdk}
+    module is automatically added to the product.
 */
 
 /*!

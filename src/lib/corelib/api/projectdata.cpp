@@ -323,8 +323,10 @@ bool ArtifactData::isExecutable() const
 {
     const bool isBundle = d->properties.getModuleProperty(
                 QStringLiteral("bundle"), QStringLiteral("isBundle")).toBool();
-    return isRunnableArtifact(
-                FileTags::fromStringList(d->fileTags), isBundle);
+    const QString androidSdkPackageType = d->properties.getModuleProperty(
+                QStringLiteral("Android.sdk"), QStringLiteral("packageType")).toString();
+    const bool isAndroidApk = androidSdkPackageType == QStringLiteral("apk");
+    return isRunnableArtifact(FileTags::fromStringList(d->fileTags), isBundle, isAndroidApk);
 }
 
 /*!
