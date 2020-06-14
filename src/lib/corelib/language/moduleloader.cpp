@@ -90,14 +90,6 @@ namespace Internal {
 using MultiplexConfigurationByIdTable = QThreadStorage<QHash<QString, QVariantMap> >;
 Q_GLOBAL_STATIC(MultiplexConfigurationByIdTable, multiplexConfigurationsById);
 
-static void handlePropertyError(const ErrorInfo &error, const SetupProjectParameters &params,
-                                Logger &logger)
-{
-    if (params.propertyCheckingMode() == ErrorHandlingMode::Strict)
-        throw error;
-    logger.printWarning(error);
-}
-
 static bool multiplexConfigurationIntersects(const QVariantMap &lhs, const QVariantMap &rhs)
 {
     QBS_CHECK(!lhs.isEmpty() && !rhs.isEmpty());
@@ -1767,6 +1759,9 @@ void ModuleLoader::handlePropertyOptions(Item *optionsItem)
                 optionsItem, StringConstants::descriptionProperty());
     const auto removalVersion = Version::fromString(m_evaluator->stringValue(optionsItem,
             StringConstants::removalVersionProperty()));
+    const auto allowedValues = m_evaluator->stringListValue(
+                optionsItem, StringConstants::allowedValuesProperty());
+
     PropertyDeclaration decl = optionsItem->parent()->propertyDeclaration(name);
     if (!decl.isValid()) {
         decl.setName(name);
@@ -1777,6 +1772,7 @@ void ModuleLoader::handlePropertyOptions(Item *optionsItem)
         DeprecationInfo di(removalVersion, description);
         decl.setDeprecationInfo(di);
     }
+    decl.setAllowedValues(allowedValues);
     const ValuePtr property = optionsItem->parent()->property(name);
     if (!property && !decl.isExpired()) {
         throw ErrorInfo(Tr::tr("PropertyOptions item refers to non-existing property '%1'")

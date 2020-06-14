@@ -1778,6 +1778,7 @@ void ProjectResolver::evaluateProperty(const Item *item, const QString &propName
         } else if (pd.type() == PropertyDeclaration::VariantList) {
             v = v.toList();
         }
+        checkAllowedValues(v, propValue->location(), pd, propName);
         result[propName] = v;
         break;
     }
@@ -1788,12 +1789,49 @@ void ProjectResolver::evaluateProperty(const Item *item, const QString &propName
         VariantValuePtr vvp = std::static_pointer_cast<VariantValue>(propValue);
         QVariant v = vvp->value();
 
-        if (v.isNull() && !item->propertyDeclaration(propName).isScalar()) // QTBUG-51237
+        const PropertyDeclaration pd = item->propertyDeclaration(propName);
+        if (v.isNull() && !pd.isScalar()) // QTBUG-51237
             v = QStringList();
 
+        checkAllowedValues(v, propValue->location(), pd, propName);
         result[propName] = v;
         break;
     }
+    }
+}
+
+void ProjectResolver::checkAllowedValues(
+        const QVariant &value, const CodeLocation &loc, const PropertyDeclaration &decl,
+        const QString &key) const
+{
+    const auto type = decl.type();
+    if (type != PropertyDeclaration::String && type != PropertyDeclaration::StringList)
+        return;
+
+    if (value.isNull())
+        return;
+
+    const auto &allowedValues = decl.allowedValues();
+    if (allowedValues.isEmpty())
+        return;
+
+    const auto checkValue = [this, &loc, &allowedValues, &key](const QString &value)
+    {
+        if (!allowedValues.contains(value)) {
+            const auto message = Tr::tr("Value '%1' is not allowed for property '%2'.")
+                    .arg(value, key);
+            ErrorInfo error(message, loc);
+            handlePropertyError(error, m_setupParams, m_logger);
+        }
+    };
+
+    if (type == PropertyDeclaration::StringList) {
+        const auto strings = value.toStringList();
+        for (const auto &string: strings) {
+            checkValue(string);
+        }
+    } else if (type == PropertyDeclaration::String) {
+        checkValue(value.toString());
     }
 }
 

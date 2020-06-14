@@ -132,6 +132,9 @@ private:
                                    bool checkErrors);
     void evaluateProperty(const Item *item, const QString &propName, const ValuePtr &propValue,
                           QVariantMap &result, bool checkErrors);
+    void checkAllowedValues(
+            const QVariant &v, const CodeLocation &loc, const PropertyDeclaration &decl,
+            const QString &key) const;
     void createProductConfig(ResolvedProduct *product);
     ProjectContext createProjectContext(ProjectContext *parentProjectContext) const;
     void adaptExportedPropertyValues(const Item *shadowProductItem);

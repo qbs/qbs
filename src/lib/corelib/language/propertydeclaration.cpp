@@ -62,6 +62,7 @@ public:
     QString name;
     PropertyDeclaration::Type type;
     PropertyDeclaration::Flags flags;
+    QStringList allowedValues;
     QString description;
     QString initialValueSource;
     QStringList functionArgumentNames;
@@ -180,6 +181,16 @@ PropertyDeclaration::Flags PropertyDeclaration::flags() const
 void PropertyDeclaration::setFlags(Flags f)
 {
     d->flags = f;
+}
+
+const QStringList &PropertyDeclaration::allowedValues() const
+{
+    return d->allowedValues;
+}
+
+void PropertyDeclaration::setAllowedValues(const QStringList &v)
+{
+    d->allowedValues = v;
 }
 
 const QString &PropertyDeclaration::description() const

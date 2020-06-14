@@ -40,6 +40,8 @@ public:
     TestBlackbox();
 
 private slots:
+    void allowedValues();
+    void allowedValues_data();
     void addFileTagToGeneratedArtifact();
     void alwaysRun();
     void alwaysRun_data();

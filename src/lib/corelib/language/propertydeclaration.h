@@ -100,6 +100,9 @@ public:
     Flags flags() const;
     void setFlags(Flags f);
 
+    const QStringList &allowedValues() const;
+    void setAllowedValues(const QStringList &v);
+
     const QString &description() const;
     void setDescription(const QString &str);
 

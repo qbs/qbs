@@ -314,14 +314,12 @@ Module {
     property stringList cLanguageVersion
     PropertyOptions {
         name: "cLanguageVersion"
-        allowedValues: ["c89", "c99", "c11"]
         description: "The version of the C standard with which the code must comply."
     }
 
     property stringList cxxLanguageVersion
     PropertyOptions {
         name: "cxxLanguageVersion"
-        allowedValues: ["c++98", "c++11", "c++14", "c++17"]
         description: "The version of the C++ standard with which the code must comply."
     }
 

@@ -42,6 +42,8 @@
 #include "persistence.h"
 #include "qttools.h"
 #include "stringconstants.h"
+#include "setupprojectparameters.h"
+#include "logging/logger.h"
 
 #include <QtCore/qjsonarray.h>
 #include <QtCore/qjsonobject.h>
@@ -323,6 +325,14 @@ void appendError(ErrorInfo &dst, const ErrorInfo &src)
     const QList<ErrorItem> &sourceItems = src.items();
     for (const ErrorItem &item : sourceItems)
         dst.append(item);
+}
+
+void handlePropertyError(
+        const ErrorInfo &error, const SetupProjectParameters &params, Internal::Logger &logger)
+{
+    if (params.propertyCheckingMode() == ErrorHandlingMode::Strict)
+        throw error;
+    logger.printWarning(error);
 }
 
 } // namespace qbs

@@ -363,6 +363,57 @@ TestBlackbox::TestBlackbox() : TestBlackboxBase (SRCDIR "/testdata", "blackbox")
 {
 }
 
+void TestBlackbox::allowedValues()
+{
+    QFETCH(QString, property);
+    QFETCH(QString, value);
+    QFETCH(QString, invalidValue);
+
+    QDir::setCurrent(testDataDir + "/allowed-values");
+    rmDirR(relativeBuildDir());
+
+    QbsRunParameters params;
+    if (!property.isEmpty() && !value.isEmpty()) {
+        params.arguments << QStringLiteral("%1:%2").arg(property, value);
+    }
+
+    params.expectFailure = !invalidValue.isEmpty();
+    QCOMPARE(runQbs(params) == 0, !params.expectFailure);
+    if (params.expectFailure) {
+        const auto errorString =
+                QStringLiteral("Value '%1' is not allowed for property").arg(invalidValue);
+        QVERIFY2(m_qbsStderr.contains(errorString.toUtf8()), m_qbsStderr.constData());
+    }
+}
+
+void TestBlackbox::allowedValues_data()
+{
+    QTest::addColumn<QString>("property");
+    QTest::addColumn<QString>("value");
+    QTest::addColumn<QString>("invalidValue");
+
+    QTest::newRow("default") << QString() << QString() << QString();
+
+    QTest::newRow("allowed (product, CLI)") << "products.p.prop" << "foo" << QString();
+    QTest::newRow("not allowed (product, CLI)") << "products.p.prop" << "bar" << "bar";
+    QTest::newRow("allowed (product, JS)") << "products.p.prop2" << "foo" << QString();
+    QTest::newRow("not allowed (product, JS)") << "products.p.prop2" << "bar" << "bar";
+
+    QTest::newRow("allowed single (module, CLI)") << "modules.a.prop" << "foo" << QString();
+    QTest::newRow("not allowed single (module, CLI)") << "modules.a.prop" << "baz" << "baz";
+    QTest::newRow("allowed mult (module, CLI)") << "modules.a.prop" << "foo,bar" << QString();
+    QTest::newRow("not allowed mult (module, CLI)") << "modules.a.prop" << "foo,baz" << "baz";
+
+    QTest::newRow("allowed single (module, JS)") << "modules.a.prop2" << "foo" << QString();
+    QTest::newRow("not allowed single (module, JS)") << "modules.a.prop2" << "baz" << "baz";
+    QTest::newRow("allowed mult (module, JS)") << "modules.a.prop2" << "foo,bar" << QString();
+    QTest::newRow("not allowed mult (module, JS)") << "modules.a.prop2" << "foo,baz" << "baz";
+
+    // undefined should always be allowed
+    QTest::newRow("undefined (product)") << "products.p.prop" << "undefined" << QString();
+    QTest::newRow("undefined (module)") << "modules.a.prop" << "undefined" << QString();
+}
+
 void TestBlackbox::addFileTagToGeneratedArtifact()
 {
     QDir::setCurrent(testDataDir + "/add-filetag-to-generated-artifact");
@@ -3943,7 +3994,7 @@ void TestBlackbox::exportsQbs()
 
     // Trying to build with an unsupported build variant must fail.
     paramsExternalBuild.arguments = QStringList{"-f", "consumer.qbs",
-            "modules.qbs.buildVariant:unknown"};
+            "modules.qbs.buildVariant:profiling"};
     paramsExternalBuild.buildDirectory = QDir::currentPath() + "/external-consumer-profile";
     paramsExternalBuild.expectFailure = true;
     QVERIFY(runQbs(paramsExternalBuild) != 0);
