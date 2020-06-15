@@ -41,6 +41,7 @@
 #include "commandlineparser.h"
 
 #include <logging/translator.h>
+#include <tools/qttools.h>
 #include <tools/settings.h>
 
 #include <QtCore/qcoreapplication.h>
@@ -81,7 +82,7 @@ int main(int argc, char *argv[])
                 QString profileName = QLatin1String("qt-") + qtEnvironment.qtVersion.toString();
                 if (SetupQt::checkIfMoreThanOneQtWithTheSameVersion(qtEnvironment.qtVersion, qtEnvironments)) {
                     QStringList prefixPathParts = QFileInfo(qtEnvironment.qmakeFilePath).path()
-                            .split(QLatin1Char('/'), QString::SkipEmptyParts);
+                            .split(QLatin1Char('/'), QBS_SKIP_EMPTY_PARTS);
                     if (!prefixPathParts.empty())
                         profileName += QLatin1String("-") + prefixPathParts.last();
                 }

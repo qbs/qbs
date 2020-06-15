@@ -884,13 +884,14 @@ ModuleLoader::MultiplexInfo ModuleLoader::extractMultiplexInfo(Item *productItem
 
         MultiplexRow mprow;
         mprow.resize(arrlen);
-        Set<QVariant> entriesForKey;
+        QVariantList entriesForKey;
         for (quint32 i = 0; i < arrlen; ++i) {
             const QVariant value = arr.property(i).toVariant();
-            if (!entriesForKey.insert(value).second) {
+            if (entriesForKey.contains(value)) {
                 throw ErrorInfo(Tr::tr("Duplicate entry '%1' in qbs.%2.")
                                 .arg(value.toString(), key), productItem->location());
             }
+            entriesForKey << value;
             mprow[i] = VariantValue::create(value);
         }
         multiplexInfo.table = combine(multiplexInfo.table, mprow);

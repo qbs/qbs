@@ -298,7 +298,7 @@ void TestBlackbox::textTemplate()
 
 static QStringList sortedFileList(const QByteArray &ba)
 {
-    auto list = QString::fromUtf8(ba).split(QRegExp("[\r\n]"), QString::SkipEmptyParts);
+    auto list = QString::fromUtf8(ba).split(QRegExp("[\r\n]"), QBS_SKIP_EMPTY_PARTS);
     std::sort(list.begin(), list.end());
     return list;
 }
@@ -647,7 +647,7 @@ void TestBlackbox::buildDirectories()
     QDir::setCurrent(projectDir);
     QCOMPARE(runQbs(), 0);
     const QStringList outputLines
-            = QString::fromLocal8Bit(m_qbsStdout.trimmed()).split('\n', QString::SkipEmptyParts);
+            = QString::fromLocal8Bit(m_qbsStdout.trimmed()).split('\n', QBS_SKIP_EMPTY_PARTS);
     QVERIFY2(outputLines.contains(projectDir + '/' + relativeProductBuildDir("p1")),
              m_qbsStdout.constData());
     QVERIFY2(outputLines.contains(projectDir + '/' + relativeProductBuildDir("p2")),
@@ -3619,7 +3619,7 @@ void TestBlackbox::emptyProfile()
                 QDir::toNativeSeparators(
                         buildProfile.value(QStringLiteral("cpp.toolchainInstallPath")).toString());
         auto paths = params.environment.value(QStringLiteral("PATH"))
-                .split(HostOsInfo::pathListSeparator(), QString::SkipEmptyParts);
+                .split(HostOsInfo::pathListSeparator(), QBS_SKIP_EMPTY_PARTS);
         if (!tcPath.isEmpty() && !paths.contains(tcPath)) {
             paths.prepend(tcPath);
             params.environment.insert(
@@ -4749,7 +4749,7 @@ void TestBlackbox::lexyacc()
         env.insert("PATH", dir);
         p.setProcessEnvironment(env);
     }
-    p.start(parserBinary);
+    p.start(parserBinary, QStringList());
     QVERIFY2(p.waitForStarted(), qPrintable(p.errorString()));
     p.write("a && b || c && !d");
     p.closeWriteChannel();
@@ -7004,7 +7004,7 @@ static bool haveMakeNsis()
             << QStringLiteral("HKEY_LOCAL_MACHINE\\SOFTWARE\\NSIS");
 
     QStringList paths = QProcessEnvironment::systemEnvironment().value("PATH")
-            .split(HostOsInfo::pathListSeparator(), QString::SkipEmptyParts);
+            .split(HostOsInfo::pathListSeparator(), QBS_SKIP_EMPTY_PARTS);
 
     for (const QString &key : qAsConst(regKeys)) {
         QSettings settings(key, QSettings::NativeFormat);
@@ -7251,7 +7251,7 @@ static bool haveWiX(const Profile &profile)
             << QStringLiteral("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows Installer XML\\");
 
     QStringList paths = QProcessEnvironment::systemEnvironment().value("PATH")
-            .split(HostOsInfo::pathListSeparator(), QString::SkipEmptyParts);
+            .split(HostOsInfo::pathListSeparator(), QBS_SKIP_EMPTY_PARTS);
 
     for (const QString &key : qAsConst(regKeys)) {
         const QStringList versions = QSettings(key, QSettings::NativeFormat).childGroups();
@@ -7451,7 +7451,7 @@ static bool haveInnoSetup(const Profile &profile)
             << QStringLiteral("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Inno Setup 5_is1");
 
     QStringList paths = QProcessEnvironment::systemEnvironment().value("PATH")
-            .split(HostOsInfo::pathListSeparator(), QString::SkipEmptyParts);
+            .split(HostOsInfo::pathListSeparator(), QBS_SKIP_EMPTY_PARTS);
 
     for (const QString &key : qAsConst(regKeys)) {
         QSettings settings(key, QSettings::NativeFormat);
@@ -7642,7 +7642,7 @@ void TestBlackbox::makefileGenerator()
     QVERIFY(QFile::exists(relativeExecutableFilePath("the app")));
     QVERIFY(!QFile::exists(relativeBuildGraphFilePath()));
     QProcess app;
-    app.start('"' + customInstallRoot + "/usr/local/bin/the app\"");
+    app.start(customInstallRoot + "/usr/local/bin/the app", QStringList());
     QVERIFY(waitForProcessSuccess(app));
     const QByteArray appStdout = app.readAllStandardOutput();
     QVERIFY2(appStdout.contains("Hello, World!"), appStdout.constData());

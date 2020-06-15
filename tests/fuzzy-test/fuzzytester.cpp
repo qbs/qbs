@@ -151,7 +151,12 @@ QStringList FuzzyTester::findAllCommits(const QString &startCommit)
     QString allCommitsString;
     runGit(QStringList() << "log" << (startCommit + "~1.." + m_headCommit) << "--format=format:%h",
            &allCommitsString);
-    return allCommitsString.simplified().split(QLatin1Char(' '), QString::SkipEmptyParts);
+    return allCommitsString.simplified().split(QLatin1Char(' '),
+#if (QT_VERSION < QT_VERSION_CHECK(5, 14, 0))
+                                               QString::SkipEmptyParts);
+#else
+                                               Qt::SkipEmptyParts);
+#endif
 }
 
 QString FuzzyTester::findWorkingStartCommit(const QString &startCommit)

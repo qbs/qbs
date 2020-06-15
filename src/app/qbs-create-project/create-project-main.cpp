@@ -41,6 +41,7 @@
 
 #include <logging/translator.h>
 #include <tools/error.h>
+#include <tools/qttools.h>
 
 #include <QtCore/qcommandlineoption.h>
 #include <QtCore/qcommandlineparser.h>
@@ -79,9 +80,9 @@ int main(int argc, char *argv[])
     const ProjectStructure projectStructure = parser.isSet(flatOpt)
             ? ProjectStructure::Flat : ProjectStructure::Composite;
     const QStringList whiteList = parser.value(whiteListOpt).split(QLatin1Char(','),
-                                                                   QString::SkipEmptyParts);
+                                                                   QBS_SKIP_EMPTY_PARTS);
     const QStringList blackList = parser.value(blackListOpt).split(QLatin1Char(','),
-                                                                   QString::SkipEmptyParts);
+                                                                   QBS_SKIP_EMPTY_PARTS);
     try {
         ProjectCreator().run(QDir::currentPath(), projectStructure, whiteList, blackList);
     } catch (const ErrorInfo &e) {

@@ -89,7 +89,7 @@ void CommandLineParser::parse()
     m_testProjectFilePath = parser.value(testProjectOption);
     m_qbsRepoDirPath = parser.value(qbsRepoOption);
     const QStringList activitiesList = parser.value(activitiesOption).split(',');
-    m_activities = 0;
+    m_activities = Activities();
     for (const QString &activityString : activitiesList) {
         if (activityString == allActivities()) {
             m_activities = ActivityResolving | ActivityRuleExecution | ActivityNullBuild;

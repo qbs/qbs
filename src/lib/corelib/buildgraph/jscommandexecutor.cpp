@@ -53,6 +53,7 @@
 #include <tools/codelocation.h>
 #include <tools/error.h>
 #include <tools/qbsassert.h>
+#include <tools/qttools.h>
 
 #include <QtCore/qeventloop.h>
 #include <QtCore/qpointer.h>
@@ -153,8 +154,8 @@ private:
         scriptEngine->setGlobalObject(scope.prototype());
         transformer->propertiesRequestedInCommands
                 += scriptEngine->propertiesRequestedInScript();
-        transformer->propertiesRequestedFromArtifactInCommands
-                .unite(scriptEngine->propertiesRequestedFromArtifact());
+        unite(transformer->propertiesRequestedFromArtifactInCommands,
+              scriptEngine->propertiesRequestedFromArtifact());
         const std::vector<QString> &importFilesUsedInCommand
                 = scriptEngine->importedFilesUsedInScript();
         transformer->importedFilesUsedInCommands.insert(

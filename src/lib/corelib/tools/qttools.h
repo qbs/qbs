@@ -50,6 +50,12 @@ QT_BEGIN_NAMESPACE
 class QProcessEnvironment;
 QT_END_NAMESPACE
 
+#if (QT_VERSION < QT_VERSION_CHECK(5, 14, 0))
+#define QBS_SKIP_EMPTY_PARTS QString::SkipEmptyParts
+#else
+#define QBS_SKIP_EMPTY_PARTS Qt::SkipEmptyParts
+#endif
+
 namespace std {
 #if (QT_VERSION < QT_VERSION_CHECK(5, 14, 0))
 template<> struct hash<QString> {
@@ -101,7 +107,17 @@ QList<T> toList(const QSet<T> &set)
 #endif
 }
 
-} // namespace qbs
+template<typename K, typename V>
+QHash<K, V> &unite(QHash<K, V> &h, const QHash<K, V> &other)
+{
+#if (QT_VERSION < QT_VERSION_CHECK(5, 15, 0))
+    return h.unite(other);
+#else
+    h.insert(other);
+    return h;
+#endif
+}
 
+} // namespace qbs
 
 #endif // QBSQTTOOLS_H

@@ -71,9 +71,9 @@ static qreal normalizeAngle(qreal angle)
 //! [0]
 Mouse::Mouse()
     : angle(0), speed(0), mouseEyeDirection(0),
-      color(qrand() % 256, qrand() % 256, qrand() % 256)
+      color(m_rand.generate() % 256, m_rand.generate() % 256, m_rand.generate() % 256)
 {
-    setRotation(qrand() % (360 * 16));
+    setRotation(m_rand.generate() % (360 * 16));
 }
 //! [0]
 
@@ -189,16 +189,16 @@ void Mouse::advance(int step)
 
     // Add some random movement
 //! [10]
-    if (dangerMice.size() > 1 && (qrand() % 10) == 0) {
-        if (qrand() % 1)
-            angle += (qrand() % 100) / 500.0;
+    if (dangerMice.size() > 1 && (m_rand.generate() % 10) == 0) {
+        if (m_rand.generate() % 1)
+            angle += (m_rand.generate() % 100) / 500.0;
         else
-            angle -= (qrand() % 100) / 500.0;
+            angle -= (m_rand.generate() % 100) / 500.0;
     }
 //! [10]
 
 //! [11]
-    speed += (-50 + qrand() % 100) / 100.0;
+    speed += (-50 + m_rand.generate() % 100) / 100.0;
 
     qreal dx = ::sin(angle) * 10;
     mouseEyeDirection = (qAbs(dx / 5) < 1) ? 0 : dx / 5;

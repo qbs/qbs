@@ -39,7 +39,10 @@
 ****************************************************************************/
 
 #include "shellutils.h"
+
 #include "pathutils.h"
+#include "qttools.h"
+
 #include <QtCore/qfile.h>
 #include <QtCore/qregexp.h>
 #include <QtCore/qtextstream.h>
@@ -54,7 +57,7 @@ QString shellInterpreter(const QString &filePath) {
         const QString shebang = ts.readLine();
         if (shebang.startsWith(QLatin1String("#!"))) {
             return (shebang.mid(2).split(QRegExp(QStringLiteral("\\s")),
-                                         QString::SkipEmptyParts) << QString()).front();
+                                         QBS_SKIP_EMPTY_PARTS) << QString()).front();
         }
     }
 

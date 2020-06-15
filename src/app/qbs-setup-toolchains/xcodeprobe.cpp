@@ -45,6 +45,7 @@
 #include <logging/translator.h>
 #include <tools/architectures.h>
 #include <tools/profile.h>
+#include <tools/qttools.h>
 #include <tools/settings.h>
 
 #include <QtCore/qstringlist.h>
@@ -160,7 +161,7 @@ void XcodeProbe::detectDeveloperPaths()
         qbsInfo() << Tr::tr("Could not detect additional Xcode installations with /usr/bin/mdfind");
     } else {
         const auto paths = QString::fromLocal8Bit(launchServices.readAllStandardOutput())
-                .split(QLatin1Char('\n'), QString::SkipEmptyParts);
+                .split(QLatin1Char('\n'), QBS_SKIP_EMPTY_PARTS);
         for (const QString &path : paths)
             addDeveloperPath(path + QStringLiteral("/Contents/Developer"));
     }

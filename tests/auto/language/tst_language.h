@@ -45,6 +45,7 @@
 #include <logging/ilogsink.h>
 #include <tools/setupprojectparameters.h>
 
+#include <QtCore/qrandom.h>
 #include <QtCore/qtemporarydir.h>
 #include <QtTest/qtest.h>
 
@@ -183,6 +184,7 @@ private slots:
 
 private:
     QTemporaryDir m_tempDir;
+    QRandomGenerator m_rand;
 };
 
 #endif // TST_LANGUAGE_H

@@ -52,6 +52,7 @@
 #define MOUSE_H
 
 #include <QGraphicsItem>
+#include <QRandomGenerator>
 
 //! [0]
 class Mouse : public QGraphicsItem
@@ -68,6 +69,7 @@ protected:
     void advance(int step) override;
 
 private:
+    QRandomGenerator m_rand = QRandomGenerator::securelySeeded();
     qreal angle;
     qreal speed;
     qreal mouseEyeDirection;

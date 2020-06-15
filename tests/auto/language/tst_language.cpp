@@ -90,7 +90,7 @@ TestLanguage::TestLanguage(ILogSink *logSink, Settings *settings)
     , m_settings(settings)
     , m_wildcardsTestDirPath(QDir::tempPath() + QLatin1String("/_wildcards_test_dir_"))
 {
-    qsrand(QTime::currentTime().msec());
+    m_rand.seed(QTime::currentTime().msec());
     qRegisterMetaType<QList<bool> >("QList<bool>");
     defaultParameters.setBuildRoot(m_tempDir.path() + "/buildroot");
     defaultParameters.setPropertyCheckingMode(ErrorHandlingMode::Strict);
@@ -753,7 +753,7 @@ void TestLanguage::environmentVariable()
     try {
         // Create new environment:
         const QString varName = QStringLiteral("PRODUCT_NAME");
-        const QString productName = QLatin1String("MyApp") + QString::number(qrand());
+        const QString productName = QLatin1String("MyApp") + QString::number(m_rand.generate());
         QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
         env.insert(varName, productName);
 

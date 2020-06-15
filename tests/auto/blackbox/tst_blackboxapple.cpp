@@ -31,6 +31,7 @@
 #include "../shared.h"
 #include <tools/hostosinfo.h>
 #include <tools/profile.h>
+#include <tools/qttools.h>
 
 #include <QtCore/qjsondocument.h>
 #include <QtCore/qjsonobject.h>
@@ -913,8 +914,10 @@ void TestBlackboxApple::xcode()
     xcodebuildShowSdks.start("xcrun", QStringList() << "xcodebuild" << "-showsdks");
     QVERIFY2(xcodebuildShowSdks.waitForStarted(), qPrintable(xcodebuildShowSdks.errorString()));
     QVERIFY2(xcodebuildShowSdks.waitForFinished(), qPrintable(xcodebuildShowSdks.errorString()));
-    QVERIFY2(xcodebuildShowSdks.exitCode() == 0, qPrintable(xcodebuildShowSdks.readAllStandardError().constData()));
-    const auto lines = QString::fromLocal8Bit(xcodebuildShowSdks.readAllStandardOutput().trimmed()).split('\n', QString::SkipEmptyParts);
+    QVERIFY2(xcodebuildShowSdks.exitCode() == 0,
+             qPrintable(xcodebuildShowSdks.readAllStandardError().constData()));
+    const auto lines = QString::fromLocal8Bit(xcodebuildShowSdks.readAllStandardOutput().trimmed())
+            .split('\n', QBS_SKIP_EMPTY_PARTS);
     for (const QString &line : lines) {
         static const std::regex regexp("^.+\\s+\\-sdk\\s+([a-z]+)([0-9]+\\.[0-9]+)$");
         const auto ln = line.toStdString();
