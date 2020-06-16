@@ -46,6 +46,7 @@ private slots:
 
     void userIncludePaths();
     void systemIncludePaths();
+    void distributionIncludePaths();
 
 private:
 

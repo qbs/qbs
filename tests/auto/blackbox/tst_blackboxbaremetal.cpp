@@ -63,4 +63,10 @@ void TestBlackboxBareMetal::systemIncludePaths()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackboxBareMetal::distributionIncludePaths()
+{
+    QDir::setCurrent(testDataDir + "/distribution-include-paths");
+    QCOMPARE(runQbs(), 0);
+}
+
 QTEST_MAIN(TestBlackboxBareMetal)
