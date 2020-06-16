@@ -1178,7 +1178,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
 function prepareArchiver(project, product, inputs, outputs, input, output) {
     var args = archiverFlags(project, product, input, outputs);
     var archiverPath = product.cpp.archiverPath;
-    var architecture = input.cpp.architecture;
+    var architecture = product.cpp.architecture;
     var cmd = new Command(archiverPath, args);
     cmd.description = "linking " + output.fileName;
     cmd.highlight = "linker";
