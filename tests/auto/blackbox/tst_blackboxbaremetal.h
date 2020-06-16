@@ -45,6 +45,7 @@ private slots:
     void application();
 
     void userIncludePaths();
+    void systemIncludePaths();
 
 private:
 

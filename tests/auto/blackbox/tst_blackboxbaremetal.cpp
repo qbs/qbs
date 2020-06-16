@@ -57,4 +57,10 @@ void TestBlackboxBareMetal::userIncludePaths()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackboxBareMetal::systemIncludePaths()
+{
+    QDir::setCurrent(testDataDir + "/system-include-paths");
+    QCOMPARE(runQbs(), 0);
+}
+
 QTEST_MAIN(TestBlackboxBareMetal)
