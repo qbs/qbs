@@ -53,6 +53,22 @@ function supportILinker(architecture) {
         || architecture === "sh" || architecture === "riscv";
 }
 
+function supportXArchiver(architecture) {
+    return architecture === "mcs51" || architecture === "avr"
+        || architecture === "msp430" || architecture === "v850"
+        || architecture === "78k" || architecture === "avr32"
+        || architecture === "m68k" || architecture === "m32c"
+        || architecture === "r32c" || architecture === "m16c"
+        || architecture === "cr16";
+}
+
+function supportIArchiver(architecture) {
+    return architecture.startsWith("arm")
+        || architecture === "stm8" || architecture === "rl78"
+        || architecture === "rx" || architecture === "rh850"
+        || architecture === "sh" || architecture === "riscv";
+}
+
 // It is a 'magic' IAR-specific target architecture code.
 function architectureCode(architecture) {
     switch (architecture) {
@@ -179,19 +195,10 @@ function linkerName(qbs) {
 
 function archiverName(qbs) {
     var architecture = qbs.architecture;
-    if (architecture.startsWith("arm")
-            || architecture === "stm8" || architecture === "rl78"
-            || architecture === "rx" || architecture === "rh850"
-            || architecture === "sh" || architecture === "riscv") {
+    if (supportXArchiver(architecture))
+        return "xar";
+    else if (supportIArchiver(architecture))
         return "iarchive";
-    } else if (architecture === "mcs51" || architecture === "avr"
-               || architecture === "msp430" || architecture === "v850"
-               || architecture === "78k" || architecture === "avr32"
-               || architecture === "m68k" || architecture === "m32c"
-               || architecture === "r32c" || architecture === "m16c"
-               || architecture === "cr16") {
-        return "xlib";
-    }
     throw "Unable to deduce archiver name for unsupported architecture: '"
             + architecture + "'";
 }
@@ -785,7 +792,9 @@ function archiverFlags(project, product, input, outputs) {
         args = args.concat(inputs.obj.map(function(obj) { return obj.filePath }));
 
     // Output.
-    args.push("--create");
+    var architecture = product.qbs.architecture;
+    if (supportIArchiver(architecture))
+        args.push("--create");
     args.push("-o", outputs.staticlibrary[0].filePath);
 
     return args;
