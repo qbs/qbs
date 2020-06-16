@@ -44,6 +44,8 @@ private slots:
     void application_data();
     void application();
 
+    void userIncludePaths();
+
 private:
 
 };
