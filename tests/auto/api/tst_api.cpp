@@ -1105,6 +1105,53 @@ void TestApi::disabledProject()
     VERIFY_NO_ERROR(errorInfo);
 }
 
+void TestApi::disappearedWildcardFile()
+{
+    const qbs::SetupProjectParameters setupParams
+            = defaultSetupParameters("disappeared-wildcard-file/disappeared-wildcard-file.qbs");
+    std::unique_ptr<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
+                                                                               m_logSink, nullptr));
+    QVERIFY(waitForFinished(setupJob.get()));
+    VERIFY_NO_ERROR(setupJob->error());
+
+    qbs::Project project = setupJob->project();
+    qbs::ProjectData projectData = project.projectData();
+    QVERIFY(projectData.isValid());
+    QList<qbs::ProductData> products = projectData.allProducts();
+    QCOMPARE(products.size(), 1);
+    QCOMPARE(products.first().groups().size(), 1);
+    QCOMPARE(products.first().groups().first().allFilePaths().size(), 2);
+
+    std::unique_ptr<qbs::BuildJob> buildJob(project.buildAllProducts({}));
+    QVERIFY(waitForFinished(buildJob.get()));
+    VERIFY_NO_ERROR(buildJob->error());
+
+    const QString fileToRemove = QFileInfo(setupParams.projectFilePath()).path() + "/file2.txt";
+    QVERIFY(QFile::remove(fileToRemove));
+    buildJob.reset(project.buildAllProducts({}));
+    QVERIFY(waitForFinished(buildJob.get()));
+    QVERIFY(buildJob->error().hasError());
+    QVERIFY2(buildJob->error().toString().contains(
+                 tr("Source file '%1' has disappeared.")
+                 .arg(fileToRemove)), qPrintable(buildJob->error().toString()));
+
+    setupJob.reset(project.setupProject(setupParams, m_logSink, nullptr));
+    QVERIFY(waitForFinished(setupJob.get()));
+    VERIFY_NO_ERROR(setupJob->error());
+
+    project = setupJob->project();
+    projectData = project.projectData();
+    QVERIFY(projectData.isValid());
+    products = projectData.allProducts();
+    QCOMPARE(products.size(), 1);
+    QCOMPARE(products.first().groups().size(), 1);
+    QCOMPARE(products.first().groups().first().allFilePaths().size(), 1);
+
+    buildJob.reset(project.buildAllProducts({}));
+    QVERIFY(waitForFinished(buildJob.get()));
+    VERIFY_NO_ERROR(buildJob->error());
+}
+
 void TestApi::duplicateProductNames()
 {
     QFETCH(QString, projectFileName);

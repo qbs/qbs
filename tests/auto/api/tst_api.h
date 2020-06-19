@@ -80,6 +80,7 @@ private slots:
     void disabledInstallGroup();
     void disabledProduct();
     void disabledProject();
+    void disappearedWildcardFile();
     void duplicateProductNames();
     void duplicateProductNames_data();
     void emptyFileTagList();
