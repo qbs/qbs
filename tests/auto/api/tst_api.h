@@ -133,6 +133,7 @@ private slots:
     void removeFileDependency();
     void renameProduct();
     void renameTargetArtifact();
+    void renamedQbsSource();
     void resolveProject();
     void resolveProject_data();
     void resolveProjectDryRun();

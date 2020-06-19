@@ -1152,6 +1152,47 @@ void TestApi::disappearedWildcardFile()
     VERIFY_NO_ERROR(buildJob->error());
 }
 
+void TestApi::renamedQbsSource()
+{
+    const qbs::SetupProjectParameters setupParams
+            = defaultSetupParameters("renamed-qbs-source-file/renamed-qbs-source-file.qbs");
+    std::unique_ptr<qbs::SetupProjectJob> setupJob(qbs::Project().setupProject(setupParams,
+                                                                               m_logSink, nullptr));
+    QVERIFY(waitForFinished(setupJob.get()));
+    VERIFY_NO_ERROR(setupJob->error());
+    qbs::Project project = setupJob->project();
+    QCOMPARE(project.projectData().allProducts().size(), 2);
+
+    std::unique_ptr<qbs::BuildJob> buildJob(project.buildAllProducts({}));
+    QVERIFY(waitForFinished(buildJob.get()));
+    VERIFY_NO_ERROR(buildJob->error());
+
+    WAIT_FOR_NEW_TIMESTAMP();
+    const QString oldFilePath = QFileInfo(setupParams.projectFilePath()).path()
+            + "/the-product/the-prodduct.qbs";
+    const QString newFilePath = QFileInfo(setupParams.projectFilePath()).path()
+            + "/the-product/the-product.qbs";
+    QVERIFY(QFile::rename(oldFilePath, newFilePath));
+    REPLACE_IN_FILE(setupParams.projectFilePath(), "prodduct", "product");
+    buildJob.reset(project.buildAllProducts({}));
+    QVERIFY(waitForFinished(buildJob.get()));
+    QVERIFY(buildJob->error().hasError());
+    QVERIFY2(buildJob->error().toString().contains(
+                 tr("Source file '%1' has disappeared.")
+                 .arg(oldFilePath)), qPrintable(buildJob->error().toString()));
+
+    setupJob.reset(project.setupProject(setupParams, m_logSink, nullptr));
+    QVERIFY(waitForFinished(setupJob.get()));
+    VERIFY_NO_ERROR(setupJob->error());
+
+    project = setupJob->project();
+    QCOMPARE(project.projectData().allProducts().size(), 2);
+
+    buildJob.reset(project.buildAllProducts({}));
+    QVERIFY(waitForFinished(buildJob.get()));
+    VERIFY_NO_ERROR(buildJob->error());
+}
+
 void TestApi::duplicateProductNames()
 {
     QFETCH(QString, projectFileName);
