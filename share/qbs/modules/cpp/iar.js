@@ -188,7 +188,7 @@ function linkerName(qbs) {
     if (supportXLinker(architecture))
         return "xlink";
     else if (supportILinker(architecture))
-        return "ilink" + architecture;
+        return architecture.startsWith("arm") ? "ilinkarm" : ("ilink" + architecture);
     throw "Unable to deduce linker name for unsupported architecture: '"
             + architecture + "'";
 }
