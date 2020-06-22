@@ -51,6 +51,19 @@ void TestBlackboxBareMetal::application()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackboxBareMetal::staticLibraryDependencies()
+{
+    QDir::setCurrent(testDataDir + "/static-library-dependencies");
+    QCOMPARE(runQbs(QStringList{"-p", "lib-a,lib-b,lib-c,lib-d,lib-e"}), 0);
+    QCOMPARE(runQbs(QStringList{"--command-echo-mode", "command-line"}), 0);
+    const QByteArray output = m_qbsStdout + '\n' + m_qbsStderr;
+    QVERIFY(output.contains("lib-a"));
+    QVERIFY(output.contains("lib-b"));
+    QVERIFY(output.contains("lib-c"));
+    QVERIFY(output.contains("lib-d"));
+    QVERIFY(output.contains("lib-e"));
+}
+
 void TestBlackboxBareMetal::userIncludePaths()
 {
     QDir::setCurrent(testDataDir + "/user-include-paths");
