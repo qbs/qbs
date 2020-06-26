@@ -11,4 +11,9 @@ CppApplication {
             && cpp.compilerName.startsWith("armclang")
         cpp.driverFlags: ["-mcpu=cortex-m0", "--target=arm-arm-none-eabi"]
     }
+    Properties {
+        condition: qbs.toolchain.contains("gcc")
+            && qbs.architecture.startsWith("arm")
+        cpp.driverFlags: ["-specs=nosys.specs"]
+    }
 }
