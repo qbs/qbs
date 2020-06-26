@@ -16,4 +16,9 @@ StaticLibrary {
             && qbs.architecture.startsWith("arm")
         cpp.driverFlags: ["-specs=nosys.specs"]
     }
+    Properties {
+        condition: qbs.toolchain.contains("gcc")
+            && qbs.architecture.startsWith("xtensa")
+        cpp.driverFlags: ["-nostdlib"]
+    }
 }
