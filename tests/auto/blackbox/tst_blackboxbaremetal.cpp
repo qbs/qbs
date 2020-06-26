@@ -82,4 +82,10 @@ void TestBlackboxBareMetal::distributionIncludePaths()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackboxBareMetal::preincludeHeaders()
+{
+    QDir::setCurrent(testDataDir + "/preinclude-headers");
+    QCOMPARE(runQbs(), 0);
+}
+
 QTEST_MAIN(TestBlackboxBareMetal)

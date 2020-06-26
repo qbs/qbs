@@ -50,6 +50,8 @@ private slots:
     void systemIncludePaths();
     void distributionIncludePaths();
 
+    void preincludeHeaders();
+
 private:
 
 };

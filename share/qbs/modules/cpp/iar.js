@@ -542,6 +542,10 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
     // Output.
     args.push("-o", outputs.obj[0].filePath);
 
+    var prefixHeaders = input.cpp.prefixHeaders;
+    for (var i in prefixHeaders)
+        args.push("--preinclude", prefixHeaders[i]);
+
     // Defines.
     var allDefines = [];
     var platformDefines = input.cpp.platformDefines;
