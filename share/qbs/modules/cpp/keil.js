@@ -867,14 +867,16 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
                                             "gnu90", "gnu99", "gnu11"];
                 var cLanguageVersion = Cpp.languageVersion(
                             input.cpp.cLanguageVersion, knownCLanguageValues, "C");
-                args.push("-std=" + cLanguageVersion);
+                if (cLanguageVersion)
+                    args.push("-std=" + cLanguageVersion);
             } else if (tag === "cpp") {
                 // C++ language version flags.
                 var knownCppLanguageValues = ["c++98", "c++03", "c++11", "c++14", "c++17",
                                               "gnu++98", "gnu++11", "gnu++14", "gnu++17"];
                 var cppLanguageVersion = Cpp.languageVersion(
                             input.cpp.cxxLanguageVersion, knownCppLanguageValues, "C++");
-                args.push("-std=" + cppLanguageVersion);
+                if (cppLanguageVersion)
+                    args.push("-std=" + cppLanguageVersion);
 
                 // Exceptions flags.
                 var enableExceptions = input.cpp.enableExceptions;
