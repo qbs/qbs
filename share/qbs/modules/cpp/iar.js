@@ -94,8 +94,12 @@ function architectureCode(architecture) {
         return "34";
     case "cr16":
         return "45";
-    case "arm": case "rh850": case "rl78": case "rx": case "stm8": case "sh": case "riscv":
+    case "rh850": case "rl78": case "rx": case "stm8": case "sh": case "riscv":
         return "";
+    default:
+        if (architecture.startsWith("arm"))
+            return "";
+        break;
     }
 }
 
