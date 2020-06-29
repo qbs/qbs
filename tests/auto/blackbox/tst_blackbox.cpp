@@ -739,6 +739,32 @@ void TestBlackbox::buildVariantDefaults()
     QCOMPARE(runQbs(params), 0);
 }
 
+void TestBlackbox::capnproto()
+{
+    QFETCH(QString, projectFile);
+    QDir::setCurrent(testDataDir + "/capnproto");
+    rmDirR(relativeBuildDir());
+
+    QbsRunParameters params{QStringLiteral("resolve"), {QStringLiteral("-f"), projectFile}};
+    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+        QSKIP("Cannot run binaries in cross-compiled build");
+    if (m_qbsStdout.contains("capnproto is not present"))
+        QSKIP("capnproto is not present");
+
+    params.command.clear();
+    QCOMPARE(runQbs(params), 0);
+}
+
+void TestBlackbox::capnproto_data()
+{
+    QTest::addColumn<QString>("projectFile");
+
+    QTest::newRow("cpp") << QStringLiteral("capnproto_cpp.qbs");
+    QTest::newRow("greeter cpp (grpc)") << QStringLiteral("greeter_cpp.qbs");
+    QTest::newRow("relative import") << QStringLiteral("capnproto_relative_import.qbs");
+    QTest::newRow("absolute import") << QStringLiteral("capnproto_absolute_import.qbs");
+}
+
 void TestBlackbox::changedFiles_data()
 {
     QTest::addColumn<bool>("useChangedFilesForInitialBuild");

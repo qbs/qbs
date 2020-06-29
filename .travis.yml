@@ -89,6 +89,7 @@ jobs:
       addons:
         homebrew:
           packages:
+            - capnp
             - ccache
             - grpc
             - icoutils
