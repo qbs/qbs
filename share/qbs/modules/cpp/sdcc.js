@@ -356,7 +356,8 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
     var distributionIncludePaths = input.cpp.distributionIncludePaths;
     if (distributionIncludePaths)
         allSystemIncludePaths = allSystemIncludePaths.uniqueConcat(distributionIncludePaths);
-    args = args.concat(allSystemIncludePaths.map(function(include) { return "-I" + include }));
+    escapablePreprocessorFlags = escapablePreprocessorFlags.concat(
+        allSystemIncludePaths.map(function(include) { return "-isystem " + include }));
 
     var targetFlag = targetArchitectureFlag(input.cpp.architecture);
     if (targetFlag)
