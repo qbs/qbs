@@ -177,6 +177,12 @@ function escapeLinkerFlags(product, linkerFlags) {
     return ["-Wl " + linkerFlags.join(",")];
 }
 
+function escapePreprocessorFlags(preprocessorFlags) {
+    if (!preprocessorFlags || preprocessorFlags.length === 0)
+        return preprocessorFlags;
+    return ["-Wp " + preprocessorFlags.join(",")];
+}
+
 function collectLibraryDependencies(product) {
     var seen = {};
     var result = [];
@@ -313,6 +319,7 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
     var tag = ModUtils.fileTagForTargetLanguage(input.fileTags.concat(outputs.obj[0].fileTags));
 
     var args = [];
+    var escapablePreprocessorFlags = [];
 
     // Input.
     args.push(input.filePath);
@@ -320,6 +327,10 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
     // Output.
     args.push("-c");
     args.push("-o", outputs.obj[0].filePath);
+
+    var prefixHeaders = input.cpp.prefixHeaders;
+    for (var i in prefixHeaders)
+        escapablePreprocessorFlags.push("-include " + prefixHeaders[i]);
 
     // Defines.
     var allDefines = [];
@@ -390,6 +401,10 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
     }
 
     // Misc flags.
+    var escapedPreprocessorFlags = escapePreprocessorFlags(escapablePreprocessorFlags);
+    if (escapedPreprocessorFlags)
+        Array.prototype.push.apply(args, escapedPreprocessorFlags);
+
     args = args.concat(ModUtils.moduleProperty(input, "platformFlags"),
                        ModUtils.moduleProperty(input, "flags"),
                        ModUtils.moduleProperty(input, "platformFlags", tag),
