@@ -381,8 +381,13 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
     }
 
     // Warning level flags.
-    if (input.cpp.warningLevel === "none")
+    var warnings = input.cpp.warningLevel
+    if (warnings === "none") {
         args.push("--less-pedantic");
+        escapablePreprocessorFlags.push("-w");
+    } else if (warnings === "all") {
+        escapablePreprocessorFlags.push("-Wall");
+    }
     if (input.cpp.treatWarningsAsErrors)
         args.push("--Werror");
 
