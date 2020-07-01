@@ -53,10 +53,22 @@
 */
 
 /*!
-    \qmlproperty string protobuf.objc::protocBinary
+    \qmlproperty string protobuf.objc::compilerName
 
-    The command to invoke when compiling proto definition files.
+    The name of the protoc binary.
 
+    \since Qbs 1.17
+    \defaultvalue \c "protoc"
+*/
+
+/*!
+    \qmlproperty string protobuf.objc::compilerPath
+
+    The path to the protoc binary.
+
+    Use this property to override the auto-detected location.
+
+    \since Qbs 1.17
     \defaultvalue \c auto-detected
 */
 

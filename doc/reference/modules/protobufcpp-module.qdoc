@@ -77,6 +77,26 @@
 */
 
 /*!
+    \qmlproperty string protobuf.cpp::compilerName
+
+    The name of the protoc binary.
+
+    \since Qbs 1.17
+    \defaultvalue \c "protoc"
+*/
+
+/*!
+    \qmlproperty string protobuf.cpp::compilerPath
+
+    The path to the protoc binary.
+
+    Use this property to override the auto-detected location.
+
+    \since Qbs 1.17
+    \defaultvalue \c auto-detected
+*/
+
+/*!
     \qmlproperty string protobuf.cpp::grpcIncludePath
 
     The path where grpc++ headers are located. Set this property to override the
@@ -90,14 +110,6 @@
 
     The path where the grpc++ library is located. Set this property to override the
     default location.
-
-    \defaultvalue \c auto-detected
-*/
-
-/*!
-    \qmlproperty string protobuf.cpp::protocBinary
-
-    The command to invoke when compiling proto definition files.
 
     \defaultvalue \c auto-detected
 */

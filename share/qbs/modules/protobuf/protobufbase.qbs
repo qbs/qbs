@@ -5,15 +5,25 @@ import qbs.Probes
 import "protobuf.js" as HelperFunctions
 
 Module {
-    property string protocBinary: protocProbe.filePath
+    property string compilerName: "protoc"
+    property string compilerPath: compilerProbe.filePath
+
+    property string protocBinary
+    PropertyOptions {
+        name: "protocBinary"
+        description: "The path to the protoc binary. Deprecated, use compilerPath instead."
+        removalVersion: "1.18"
+    }
+    readonly property string _compilerPath: protocBinary ? protocBinary : compilerPath
     property pathList importPaths: []
 
     property string outputDir: product.buildDirectory + "/protobuf"
 
     property var validateFunc: {
         return function() {
-            if (!File.exists(protocBinary))
-                throw "Can't find protoc binary. Please set the protocBinary property or make sure it is found in PATH";
+            if (!File.exists(_compilerPath))
+                throw "Can't find protoc binary. Please set the compilerPath property or make "
+                        +  "sure the compiler is found in PATH";
         }
     }
 
@@ -23,8 +33,8 @@ Module {
     }
 
     Probes.BinaryProbe {
-        id: protocProbe
-        names: ["protoc"]
+        id: compilerProbe
+        names: [compilerName]
     }
 
     validate: {
