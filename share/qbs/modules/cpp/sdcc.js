@@ -541,12 +541,35 @@ function archiverFlags(project, product, input, outputs) {
 }
 
 function prepareCompiler(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
+    var cmds = [];
     var args = compilerFlags(project, product, input, outputs, explicitlyDependsOn);
     var compilerPath = input.cpp.compilerPath;
     var cmd = new Command(compilerPath, args);
     cmd.description = "compiling " + input.fileName;
     cmd.highlight = "compiler";
-    return [cmd];
+    cmds.push(cmd);
+
+    // This is the workaround for the SDCC bug on a Windows host:
+    // * https://sourceforge.net/p/sdcc/bugs/2970/
+    // We need to replace the '\r\n\' line endings with the'\n' line
+    // endings for each generated object file.
+    var isWindows = input.qbs.targetOS.contains("windows");
+    if (isWindows) {
+        cmd = new JavaScriptCommand();
+        cmd.objectPath = outputs.obj[0].filePath;
+        cmd.sourceCode = function() {
+            var lines = [];
+            var file = new TextFile(objectPath, TextFile.ReadWrite);
+            while (!file.atEof())
+                lines.push(file.readLine() + "\n");
+            file.truncate();
+            for (var l in lines)
+                file.write(lines[l]);
+        };
+        cmds.push(cmd);
+    }
+
+    return cmds;
 }
 
 function prepareAssembler(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
