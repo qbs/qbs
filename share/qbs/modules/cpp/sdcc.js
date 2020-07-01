@@ -393,12 +393,15 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
 
     // C language version flags.
     if (tag === "c") {
-        var knownValues = ["c11", "c89"];
+        var knownValues = ["c11", "c99", "c89"];
         var cLanguageVersion = Cpp.languageVersion(
                     input.cpp.cLanguageVersion, knownValues, "C");
         switch (cLanguageVersion) {
         case "c89":
             args.push("--std-c89");
+            break;
+        case "c99":
+            args.push("--std-c99");
             break;
         case "c11":
             args.push("--std-c11");
