@@ -95,6 +95,8 @@ CppModule {
     enableExceptions: false
     enableRtti: false
 
+    property string preincludeFlag: KEIL.preincludeFlag(compilerPath)
+
     Rule {
         id: assembler
         inputs: ["asm"]

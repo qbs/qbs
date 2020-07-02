@@ -175,6 +175,13 @@ function imageFormat(qbs) {
             + architecture + "'";
 }
 
+function preincludeFlag(compilerPath) {
+    if (isArmCCCompiler(compilerPath))
+        return "--preinclude";
+    else if (isArmClangCompiler(compilerPath))
+        return "-include";
+}
+
 function guessArmCCArchitecture(targetArchArm, targetArchThumb) {
     var arch = "arm";
     if (targetArchArm === "4" && targetArchThumb === "0")
@@ -675,8 +682,6 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
     var tag = ModUtils.fileTagForTargetLanguage(input.fileTags.concat(outputs.obj[0].fileTags));
     var args = [];
 
-    var prefixHeaders = input.cpp.prefixHeaders;
-
     var allDefines = [];
     var platformDefines = input.cpp.platformDefines;
     if (platformDefines)
@@ -754,16 +759,17 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
         // Output.
         args.push("-o", outputs.obj[0].filePath);
 
+        // Defines.
+        args = args.concat(allDefines.map(function(define) { return '-D' + define }));
+        // Includes.
+        args = args.concat(allIncludePaths.map(function(include) { return '-I' + include }));
+
+        var prefixHeaders = input.cpp.prefixHeaders;
+        for (var i in prefixHeaders)
+            args.push(input.cpp.preincludeFlag, prefixHeaders[i]);
+
         var compilerPath = input.cpp.compilerPath;
         if (isArmCCCompiler(compilerPath)) {
-            for (var i in prefixHeaders)
-                args.push("--preinclude", prefixHeaders[i]);
-
-            // Defines.
-            args = args.concat(allDefines.map(function(define) { return '-D' + define }));
-            // Includes.
-            args = args.concat(allIncludePaths.map(function(include) { return '-I' + include }));
-
             // Debug information flags.
             if (input.cpp.debugInformation) {
                 args.push("--debug");
@@ -838,14 +844,6 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
                 args.push("--list_dir", FileInfo.path(outputs.lst[0].filePath));
             }
         } else if (isArmClangCompiler(compilerPath)) {
-            for (var i in prefixHeaders)
-                args.push("-include", prefixHeaders[i]);
-
-            // Defines.
-            args = args.concat(allDefines.map(function(define) { return '-D' + define }));
-            // Includes.
-            args = args.concat(allIncludePaths.map(function(include) { return '-I' + include }));
-
             // Debug information flags.
             if (input.cpp.debugInformation)
                 args.push("-g");
