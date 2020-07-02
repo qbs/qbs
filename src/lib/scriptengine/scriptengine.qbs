@@ -90,6 +90,12 @@ Project {
             result.push("WTF_USE_ACCELERATED_COMPOSITING");
             if (useSystemMalloc)
                 result.push("USE_SYSTEM_MALLOC");
+
+            result = result.filter(function(value) {
+                return value !== "QT_RESTRICTED_CAST_FROM_ASCII"
+                        && value !== "QT_NO_CAST_FROM_BYTEARRAY"
+                        && value !== "QT_NO_CAST_FROM_ASCII";
+            })
             return result;
         }
         cpp.cxxFlags: {
