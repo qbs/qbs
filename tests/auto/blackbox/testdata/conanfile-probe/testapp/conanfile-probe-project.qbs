@@ -11,7 +11,7 @@ Project {
     }
 
     property var check: {
-        tf = new TextFile(buildDirectory + "/results.json", TextFile.WriteOnly);
+        var tf = new TextFile(buildDirectory + "/results.json", TextFile.WriteOnly);
         var o = {
             json: conan.json.deps_env_info["ENV_VAR"],
             dependencies: conan.dependencies["testlib"].libs,
