@@ -18,7 +18,7 @@ CppApplication {
     }
     Properties {
         condition: qbs.toolchain.contains("gcc")
-            && qbs.architecture.startsWith("xtensa")
+            && qbs.architecture === "xtensa"
         cpp.driverFlags: ["-nostdlib"]
     }
     Properties {
