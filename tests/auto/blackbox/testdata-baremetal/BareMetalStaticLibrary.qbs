@@ -21,4 +21,9 @@ StaticLibrary {
             && qbs.architecture.startsWith("xtensa")
         cpp.driverFlags: ["-nostdlib"]
     }
+    Properties {
+        condition: qbs.toolchain.contains("gcc")
+            && qbs.architecture === "msp430"
+        cpp.driverFlags: ["-mmcu=msp430f5529"]
+    }
 }
