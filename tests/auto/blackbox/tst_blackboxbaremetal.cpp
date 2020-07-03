@@ -32,6 +32,21 @@
 
 #include "../shared.h"
 
+#include <QtCore/qregularexpression.h>
+
+static bool extractUnsupportedToolset(const QByteArray &output,
+                                      QByteArray &toolchain, QByteArray &architecture)
+{
+    const QRegularExpression re("%%(\\w+)%%, %%(\\w+)%%");
+    QRegularExpressionMatchIterator it = re.globalMatch(output);
+    if (!it.hasNext())
+        return false;
+    const QRegularExpressionMatch match = it.next();
+    toolchain = match.captured(1).toLocal8Bit();
+    architecture = match.captured(2).toLocal8Bit();
+    return true;
+}
+
 TestBlackboxBareMetal::TestBlackboxBareMetal()
     : TestBlackboxBase (SRCDIR "/testdata-baremetal", "blackbox-baremetal")
 {
@@ -42,13 +57,23 @@ void TestBlackboxBareMetal::application_data()
     QTest::addColumn<QString>("testPath");
     QTest::newRow("one-object-application") << "/one-object-application";
     QTest::newRow("two-object-application") << "/two-object-application";
+    QTest::newRow("one-object-asm-application") << "/one-object-asm-application";
 }
 
 void TestBlackboxBareMetal::application()
 {
     QFETCH(QString, testPath);
     QDir::setCurrent(testDataDir + testPath);
-    QCOMPARE(runQbs(), 0);
+    QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList("-n"))), 0);
+    if (!m_qbsStdout.contains("unsupported toolset:")) {
+        QCOMPARE(runQbs(), 0);
+    } else {
+        QByteArray toolchain;
+        QByteArray architecture;
+        extractUnsupportedToolset(m_qbsStdout, toolchain, architecture);
+        QSKIP("Unsupported toolchain '" + toolchain
+              + "' for architecture '" + architecture + "'");
+    }
 }
 
 void TestBlackboxBareMetal::staticLibraryDependencies()
