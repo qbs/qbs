@@ -32,18 +32,6 @@ ProtobufBase {
         prepare: HelperFunctions.doPrepare(input.protobuf.objc, product, input, outputs, "objc")
     }
 
-    validateFunc: {
-        return function() {
-            base();
-            if (!HelperFunctions.checkPath(frameworkPath)) {
-                if (!HelperFunctions.checkPath(includePath))
-                    throw "Can't find objective-c protobuf include files. Please set the includePath or frameworkPath property.";
-                if (!HelperFunctions.checkPath(libraryPath))
-                    throw "Can't find objective-c protobuf library. Please set the libraryPath or frameworkPath property.";
-            }
-        }
-    }
-
     Probes.IncludeProbe {
         id: includeProbe
         names: "GPBMessage.h"
@@ -57,5 +45,19 @@ ProtobufBase {
     Probes.FrameworkProbe {
         id: frameworkProbe
         names: ["Protobuf"]
+    }
+
+    validate: {
+        HelperFunctions.validateCompiler(compilerName, compilerPath);
+        if (!HelperFunctions.checkPath(frameworkPath)) {
+            if (!HelperFunctions.checkPath(includePath)) {
+                throw "Can't find objective-c protobuf include files. Please set the includePath "
+                        + "or frameworkPath property.";
+            }
+            if (!HelperFunctions.checkPath(libraryPath)) {
+                throw "Can't find objective-c protobuf library. Please set the libraryPath or "
+                        + "frameworkPath property.";
+            }
+        }
     }
 }

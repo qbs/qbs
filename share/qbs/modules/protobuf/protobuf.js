@@ -31,8 +31,15 @@
 var File = require("qbs.File");
 var FileInfo = require("qbs.FileInfo");
 
-var checkPath = function(path) {
-    return path && File.exists(path)
+function validateCompiler(compilerName, compilerPath) {
+    if (!File.exists(compilerPath)) {
+        throw "Can't find '" + compilerName + "' binary. Please set the compilerPath property or "
+                +  "make sure the compiler is found in PATH";
+    }
+}
+
+function checkPath(path) {
+    return path && File.exists(path);
 };
 
 function toCamelCase(str){

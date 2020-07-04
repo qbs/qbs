@@ -19,14 +19,6 @@ Module {
 
     property string outputDir: product.buildDirectory + "/protobuf"
 
-    property var validateFunc: {
-        return function() {
-            if (!File.exists(_compilerPath))
-                throw "Can't find protoc binary. Please set the compilerPath property or make "
-                        +  "sure the compiler is found in PATH";
-        }
-    }
-
     FileTagger {
         patterns: ["*.proto"]
         fileTags: ["protobuf.input"];
@@ -35,9 +27,5 @@ Module {
     Probes.BinaryProbe {
         id: compilerProbe
         names: [compilerName]
-    }
-
-    validate: {
-        validateFunc();
     }
 }
