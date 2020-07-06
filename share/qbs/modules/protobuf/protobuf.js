@@ -59,7 +59,7 @@ function getOutputDir(module, input)  {
     if (importPaths.length !== 0) {
         var canonicalInput = File.canonicalFilePath(FileInfo.path(input.filePath));
         for (var i = 0; i < importPaths.length; ++i) {
-            path = File.canonicalFilePath(importPaths[i]);
+            var path = File.canonicalFilePath(importPaths[i]);
 
             if (canonicalInput.startsWith(path)) {
                 return outputDir + "/" + FileInfo.relativePath(path, canonicalInput);
