@@ -992,6 +992,8 @@ QList<Item *> ModuleLoader::multiplexProductItem(ProductContext *dummyContext, I
             dependsItem->setProperty(StringConstants::multiplexConfigurationIdProperty(), v);
             dependsItem->setProperty(StringConstants::profilesProperty(),
                                      VariantValue::create(QStringList()));
+            dependsItem->setFile(aggregator->file());
+            dependsItem->setupForBuiltinType(m_logger);
             Item::addChild(aggregator, dependsItem);
         }
     }
