@@ -55,13 +55,13 @@ ProtobufBase {
         outputFileTags: ["hpp", "cpp"]
         outputArtifacts: {
             var result = [
-                        HelperFunctions.cppArtifact(input.protobuf.cpp, product, input, "hpp", ".pb.h"),
-                        HelperFunctions.cppArtifact(input.protobuf.cpp, product, input, "cpp", ".pb.cc")
+                        HelperFunctions.cppArtifact(input.protobuf.cpp, input, "hpp", ".pb.h"),
+                        HelperFunctions.cppArtifact(input.protobuf.cpp, input, "cpp", ".pb.cc")
                     ];
             if (input.fileTags.contains("protobuf.grpc")) {
                 result.push(
-                        HelperFunctions.cppArtifact(input.protobuf.cpp, product, input, "hpp", ".grpc.pb.h"),
-                        HelperFunctions.cppArtifact(input.protobuf.cpp, product, input, "cpp", ".grpc.pb.cc"));
+                        HelperFunctions.cppArtifact(input.protobuf.cpp, input, "hpp", ".grpc.pb.h"),
+                        HelperFunctions.cppArtifact(input.protobuf.cpp, input, "cpp", ".grpc.pb.cc"));
             }
 
             return result;

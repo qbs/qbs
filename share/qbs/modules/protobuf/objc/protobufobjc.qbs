@@ -24,8 +24,8 @@ ProtobufBase {
         outputFileTags: ["hpp", "objc"]
         outputArtifacts: {
             return [
-                HelperFunctions.objcArtifact(input.protobuf.objc, product, input, "hpp", ".pbobjc.h"),
-                HelperFunctions.objcArtifact(input.protobuf.objc, product, input, "objc", ".pbobjc.m")
+                HelperFunctions.objcArtifact(input.protobuf.objc, input, "hpp", ".pbobjc.h"),
+                HelperFunctions.objcArtifact(input.protobuf.objc, input, "objc", ".pbobjc.m")
             ];
         }
 

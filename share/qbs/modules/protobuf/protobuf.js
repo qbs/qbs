@@ -53,7 +53,7 @@ function toCamelCase(str){
     }).join('');
 }
 
-function getOutputDir(module, product, input)  {
+function getOutputDir(module, input)  {
     var outputDir = module.outputDir;
     var importPaths = module.importPaths;
     if (importPaths.length !== 0) {
@@ -69,8 +69,8 @@ function getOutputDir(module, product, input)  {
     return outputDir;
 }
 
-function cppArtifact(module, product, input, tag, suffix) {
-    var outputDir = getOutputDir(module, product, input);
+function cppArtifact(module, input, tag, suffix) {
+    var outputDir = getOutputDir(module, input);
     return {
         fileTags: [tag],
         filePath: outputDir + "/" + FileInfo.baseName(input.fileName) + suffix,
@@ -81,8 +81,8 @@ function cppArtifact(module, product, input, tag, suffix) {
     };
 }
 
-function objcArtifact(module, product, input, tag, suffix) {
-    var outputDir = getOutputDir(module, product, input);
+function objcArtifact(module, input, tag, suffix) {
+    var outputDir = getOutputDir(module, input);
     return {
         fileTags: [tag],
         filePath: outputDir + "/" + toCamelCase(FileInfo.baseName(input.fileName)) + suffix,
