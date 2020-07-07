@@ -3,6 +3,8 @@ import "../BareMetalApplication.qbs" as BareMetalApplication
 BareMetalApplication {
     condition: {
         if (qbs.toolchainType === "keil") {
+            if (qbs.architecture.startsWith("arm"))
+                return true;
             if (qbs.architecture === "mcs51")
                 return true;
         } else if (qbs.toolchainType === "iar") {
@@ -16,5 +18,6 @@ BareMetalApplication {
             + qbs.toolchainType + "%%, %%" + qbs.architecture + "%%");
         return false;
     }
-    files: [qbs.architecture + "-" + qbs.toolchainType + ".s"]
+    files: [(qbs.architecture.startsWith("arm") ? "arm" : qbs.architecture)
+                + "-" + qbs.toolchainType + ".s"]
 }

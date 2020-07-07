@@ -9,7 +9,8 @@ StaticLibrary {
         condition: qbs.toolchain.contains("keil")
             && qbs.architecture.startsWith("arm")
             && cpp.compilerName.startsWith("armclang")
-        cpp.driverFlags: ["-mcpu=cortex-m0", "--target=arm-arm-none-eabi"]
+        cpp.assemblerFlags: ["--cpu", "cortex-m0"]
+        cpp.commonCompilerFlags: ["-mcpu=cortex-m0", "--target=arm-arm-none-eabi"]
     }
     Properties {
         condition: qbs.toolchain.contains("gcc")
