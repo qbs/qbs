@@ -13,6 +13,9 @@ BareMetalApplication {
         } else if (qbs.toolchainType === "sdcc") {
             if (qbs.architecture === "mcs51")
                 return true;
+        } else if (qbs.toolchainType === "gcc") {
+            if (qbs.architecture.startsWith("arm"))
+                return true;
         }
         console.info("unsupported toolset: %%"
             + qbs.toolchainType + "%%, %%" + qbs.architecture + "%%");
