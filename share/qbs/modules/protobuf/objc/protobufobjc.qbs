@@ -12,7 +12,7 @@ ProtobufBase {
 
     Depends { name: "cpp" }
 
-    cpp.includePaths: [outputDir].concat(!frameworkPath && includePath ? [includePath] : [])
+    cpp.includePaths: [_outputDir].concat(!frameworkPath && includePath ? [includePath] : [])
     cpp.libraryPaths: !frameworkPath && libraryPath ? [libraryPath] : []
     cpp.dynamicLibraries: !frameworkPath && libraryPath ? ["ProtocolBuffers"] : []
     cpp.frameworkPaths: frameworkPath ? [frameworkPath] : []

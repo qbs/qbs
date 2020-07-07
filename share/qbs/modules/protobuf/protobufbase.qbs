@@ -17,7 +17,7 @@ Module {
     readonly property string _compilerPath: protocBinary ? protocBinary : compilerPath
     property pathList importPaths: []
 
-    property string outputDir: product.buildDirectory + "/protobuf"
+    property string _outputDir: product.buildDirectory + "/protobuf"
 
     FileTagger {
         patterns: ["*.proto"]

@@ -42,7 +42,7 @@ ProtobufBase {
         return result;
     }
     cpp.includePaths: {
-        var result = [outputDir];
+        var result = [_outputDir];
         if (includePath)
             result.push(includePath);
         if (useGrpc && grpcIncludePath)

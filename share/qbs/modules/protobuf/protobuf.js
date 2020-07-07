@@ -54,7 +54,7 @@ function toCamelCase(str){
 }
 
 function getOutputDir(module, input)  {
-    var outputDir = module.outputDir;
+    var outputDir = module._outputDir;
     var importPaths = module.importPaths;
     if (importPaths.length !== 0) {
         var canonicalInput = File.canonicalFilePath(FileInfo.path(input.filePath));
@@ -95,7 +95,7 @@ function objcArtifact(module, input, tag, suffix) {
 
 function doPrepare(module, product, input, outputs, lang)
 {
-    var outputDir = module.outputDir;
+    var outputDir = module._outputDir;
     var args = [];
 
     args.push("--" + lang + "_out", outputDir);
@@ -119,7 +119,7 @@ function doPrepare(module, product, input, outputs, lang)
 
 function doPrepareGrpc(module, product, input, outputs, lang)
 {
-    var outputDir = module.outputDir;
+    var outputDir = module._outputDir;
     var args = [];
 
     args.push("--grpc_out", outputDir);
