@@ -5,6 +5,9 @@ BareMetalApplication {
         if (qbs.toolchainType === "keil") {
             if (qbs.architecture === "mcs51")
                 return true;
+        } else if (qbs.toolchainType === "iar") {
+            if (qbs.architecture === "mcs51")
+                return true;
         }
         console.info("unsupported toolset: %%"
             + qbs.toolchainType + "%%, %%" + qbs.architecture + "%%");
