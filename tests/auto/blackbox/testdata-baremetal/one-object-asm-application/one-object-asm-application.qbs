@@ -10,5 +10,5 @@ BareMetalApplication {
             + qbs.toolchainType + "%%, %%" + qbs.architecture + "%%");
         return false;
     }
-    files: [qbs.architecture + "-" + qbs.toolchainType + ".asm"]
+    files: [qbs.architecture + "-" + qbs.toolchainType + ".s"]
 }
