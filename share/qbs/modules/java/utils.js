@@ -74,10 +74,9 @@ function jdkRootRegistryKey(wow64) {
 
 function findJdkPath(hostOS, arch, environmentPaths, searchPaths) {
     var i;
-    for (var key in environmentPaths) {
-        if (environmentPaths[key]) {
-            return environmentPaths[key];
-        }
+    for (i = 0; i < environmentPaths.length; ++i) {
+        if (environmentPaths[i])
+            return environmentPaths[i];
     }
 
     if (hostOS.contains("windows")) {
@@ -347,7 +346,7 @@ function manifestContents(filePath) {
     if (contents) {
         var dict = {};
         var lines = contents.split(/\r?\n/g).filter(function (line) { return line.length > 0; });
-        for (var i in lines) {
+        for (var i = 0; i < lines.length; ++i) {
             var kv = lines[i].split(":");
             if (kv.length !== 2)
                 throw new Error("Syntax error in manifest file '"

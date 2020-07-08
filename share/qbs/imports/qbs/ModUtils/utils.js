@@ -408,7 +408,7 @@ var PropertyValidator = (function () {
             errorMessage += "The following properties have invalid values:\n";
             lines = [];
             for (i in invalidProperties) {
-                for (j in invalidProperties[i]) {
+                for (j = 0; j < invalidProperties[i].length; ++j) {
                     lines.push(this.moduleName + "." + i + ": " + invalidProperties[i][j]);
                 }
             }

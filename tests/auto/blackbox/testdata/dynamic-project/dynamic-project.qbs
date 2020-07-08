@@ -17,7 +17,7 @@ Project
             var srcDir = FileInfo.joinPaths(sourceDir, "src");
             var projectDirs = File.directoryEntries(srcDir, File.Dirs | File.NoDotAndDotDot);
             var list = [];
-            for (it in projectDirs) {
+            for (var it = 0; it < projectDirs.length; ++it) {
                 var name = projectDirs[it];
                 var productSrcDir = FileInfo.joinPaths(srcDir, name);
                 var productFilePath = FileInfo.joinPaths(tempDir, name + ".qbs");
