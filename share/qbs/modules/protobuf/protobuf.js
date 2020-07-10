@@ -73,7 +73,7 @@ function cppArtifact(module, input, tag, suffix) {
     var outputDir = getOutputDir(module, input);
     return {
         fileTags: [tag],
-        filePath: outputDir + "/" + FileInfo.baseName(input.fileName) + suffix,
+        filePath: FileInfo.joinPaths(outputDir, FileInfo.baseName(input.fileName) + suffix),
         cpp: {
             includePaths: [].concat(input.cpp.includePaths, outputDir),
             warningLevel: "none",
@@ -85,7 +85,8 @@ function objcArtifact(module, input, tag, suffix) {
     var outputDir = getOutputDir(module, input);
     return {
         fileTags: [tag],
-        filePath: outputDir + "/" + toCamelCase(FileInfo.baseName(input.fileName)) + suffix,
+        filePath: FileInfo.joinPaths(
+                      outputDir, toCamelCase(FileInfo.baseName(input.fileName)) + suffix),
         cpp: {
             includePaths: [].concat(input.cpp.includePaths, outputDir),
             warningLevel: "none",
