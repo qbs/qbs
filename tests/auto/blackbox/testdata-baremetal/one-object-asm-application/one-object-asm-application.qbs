@@ -16,6 +16,8 @@ BareMetalApplication {
         } else if (qbs.toolchainType === "gcc") {
             if (qbs.architecture.startsWith("arm"))
                 return true;
+            if (qbs.architecture === "avr")
+                return true;
         }
         console.info("unsupported toolset: %%"
             + qbs.toolchainType + "%%, %%" + qbs.architecture + "%%");
