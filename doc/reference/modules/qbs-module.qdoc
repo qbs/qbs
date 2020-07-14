@@ -280,7 +280,7 @@
 
     \sa {Target Platforms}
 
-    \nodefaultvalue
+    \defaultvalue \l{qbs::hostPlatform}{hostPlatform}
 */
 
 /*!
