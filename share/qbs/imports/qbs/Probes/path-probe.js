@@ -41,7 +41,7 @@ function asStringList(key, value) {
     throw key + " must be a string or a stringList";
 }
 
-function canonicalSelectors(selectors) {
+function canonicalSelectors(selectors, nameSuffixes) {
     var mapper = function(selector) {
         if (typeof(selector) === "string")
             return {names : [selector]};
@@ -53,6 +53,8 @@ function canonicalSelectors(selectors) {
         selector.names = asStringList("names", selector.names);
         if (selector.nameSuffixes)
             selector.nameSuffixes = asStringList("nameSuffixes", selector.nameSuffixes);
+        else
+            selector.nameSuffixes = nameSuffixes;
         return selector;
     };
     return selectors.map(mapper);
@@ -70,7 +72,7 @@ function configure(selectors, names, nameSuffixes, nameFilter, candidateFilter,
             {names: names, nameSuffixes: nameSuffixes}
         ];
     } else {
-        selectors = canonicalSelectors(selectors);
+        selectors = canonicalSelectors(selectors, nameSuffixes);
     }
 
     if (nameFilter) {

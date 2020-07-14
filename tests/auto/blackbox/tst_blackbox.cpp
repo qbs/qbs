@@ -2931,6 +2931,7 @@ void TestBlackbox::pathProbe_data()
     QTest::newRow("mult-files-mult-variants") << QString("mult-files-mult-variants.qbs") << true;
     QTest::newRow("single-file-suffixes") << QString("single-file-suffixes.qbs") << true;
     QTest::newRow("mult-files-suffixes") << QString("mult-files-suffixes.qbs") << true;
+    QTest::newRow("mult-files-common-suffixes") << QString("mult-files-common-suffixes.qbs") << true;
     QTest::newRow("mult-files-mult-suffixes") << QString("mult-files-mult-suffixes.qbs") << true;
     QTest::newRow("name-filter") << QString("name-filter.qbs") << true;
     QTest::newRow("candidate-filter") << QString("candidate-filter.qbs") << true;
