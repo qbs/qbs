@@ -62,7 +62,7 @@ CppApplication {
                 if (Array.isArray(lhs[i]) && Array.isArray(rhs[i])) {
                     if (!compareArrays(lhs[i], rhs[i]))
                         return false;
-                } else if (lhs[i] !== rhs[i]) {
+                } else if (FileInfo.resolvePath(path, lhs[i]) !== FileInfo.resolvePath(path, rhs[i])) {
                     return false;
                 }
             }
@@ -117,7 +117,7 @@ CppApplication {
                     + ", expected = " + expectedFileName;
         }
         var expectedPath = probe.allResults[0].path;
-        if (probe.path !== expectedPath) {
+        if (FileInfo.resolvePath(path, probe.path) !== FileInfo.resolvePath(path, expectedPath)) {
             throw "Invalid path: actual = " + probe.path
                     + ", expected = " + expectedPath;
         }
