@@ -110,7 +110,16 @@ void TestBlackboxBareMetal::distributionIncludePaths()
 void TestBlackboxBareMetal::preincludeHeaders()
 {
     QDir::setCurrent(testDataDir + "/preinclude-headers");
-    QCOMPARE(runQbs(), 0);
+    QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList("-n"))), 0);
+    if (!m_qbsStdout.contains("unsupported toolset:")) {
+        QCOMPARE(runQbs(), 0);
+    } else {
+        QByteArray toolchain;
+        QByteArray architecture;
+        extractUnsupportedToolset(m_qbsStdout, toolchain, architecture);
+        QSKIP("Unsupported toolchain '" + toolchain
+              + "' for architecture '" + architecture + "'");
+    }
 }
 
 QTEST_MAIN(TestBlackboxBareMetal)
