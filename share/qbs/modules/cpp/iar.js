@@ -723,8 +723,7 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
 
     // Misc flags.
     args = args.concat(ModUtils.moduleProperty(input, "platformFlags", tag),
-                       ModUtils.moduleProperty(input, "flags", tag),
-                       ModUtils.moduleProperty(input, "driverFlags", tag));
+                       ModUtils.moduleProperty(input, "flags", tag));
     return args;
 }
 
