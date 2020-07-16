@@ -20,6 +20,5 @@ for(data_dir, DATA_DIRS) {
 OTHER_FILES += $$FILES
 
 qbs_use_bundled_qtscript {
-    CONFIG += qbs_do_not_link_bundled_qtscript
     include(../../../src/lib/scriptengine/use_scriptengine.pri)
 }
