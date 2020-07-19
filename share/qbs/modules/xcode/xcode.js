@@ -183,6 +183,10 @@ function provisioningProfilePlistContents(filePath) {
 
 function archsSpecsPath(version, targetOS, platformType, platformPath, devicePlatformPath) {
     var _specsPluginBaseName;
+    if (Utilities.versionCompare(version, "12") >= 0) {
+        if (targetOS.contains("macos"))
+            _specsPluginBaseName = "OSX";
+    }
     if (Utilities.versionCompare(version, "7") >= 0) {
         if (targetOS.contains("ios"))
             _specsPluginBaseName = "iOSPlatform";
