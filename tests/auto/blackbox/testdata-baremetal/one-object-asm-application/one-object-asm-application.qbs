@@ -8,6 +8,8 @@ BareMetalApplication {
             if (qbs.architecture === "mcs51")
                 return true;
         } else if (qbs.toolchainType === "iar") {
+            if (qbs.architecture.startsWith("arm"))
+                return true;
             if (qbs.architecture === "mcs51")
                 return true;
         } else if (qbs.toolchainType === "sdcc") {
@@ -35,6 +37,14 @@ BareMetalApplication {
         // the cpp.driverFlags property.
         cpp.linkerPath: cpp.compilerPathByLanguage["c"]
     }
+
+    Properties {
+        condition: qbs.toolchainType === "iar"
+            && qbs.architecture.startsWith("arm")
+        cpp.entryPoint: "main"
+    }
+
+    cpp.linkerPath: original
 
     files: [(qbs.architecture.startsWith("arm") ? "arm" : qbs.architecture)
                 + "-" + qbs.toolchainType + ".s"]
