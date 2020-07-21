@@ -107,7 +107,7 @@ function readFileContent(filePath) {
 // TODO: Don't do the split every time...
 function configVariable(configContent, key) {
     var configContentLines = configContent.split('\n');
-    var regexp = new RegExp("\\s*" + key + "\\s*\\+{0,1}=(.*)");
+    var regexp = new RegExp("^\\s*" + key + "\\s*\\+{0,1}=(.*)");
     for (var i = 0; i < configContentLines.length; ++i) {
         var line = configContentLines[i];
         var match = regexp.exec(line);
