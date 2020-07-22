@@ -42,7 +42,7 @@
 
 #include <QtCore/qflags.h>
 #include <QtCore/qhash.h>
-#include <QtCore/qregexp.h>
+#include <QtCore/qregularexpression.h>
 #include <QtCore/qstringlist.h>
 
 #include <memory>
@@ -83,8 +83,8 @@ private:
     };
     Project m_topLevelProject;
     ProjectStructure m_projectStructure = ProjectStructure::Flat;
-    QList<QRegExp> m_whiteList;
-    QList<QRegExp> m_blackList;
+    QList<QRegularExpression> m_whiteList;
+    QList<QRegularExpression> m_blackList;
 };
 
 #endif // QBS_CREATEPROJECT_H

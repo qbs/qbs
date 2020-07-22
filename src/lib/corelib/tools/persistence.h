@@ -48,7 +48,7 @@
 #include <QtCore/qdatastream.h>
 #include <QtCore/qflags.h>
 #include <QtCore/qprocess.h>
-#include <QtCore/qregexp.h>
+#include <QtCore/qregularexpression.h>
 #include <QtCore/qstring.h>
 #include <QtCore/qvariant.h>
 
@@ -426,10 +426,16 @@ template<> struct PPHelper<QVariant>
     static void load(QVariant &v, PersistentPool *pool) { v = pool->loadVariant(); }
 };
 
-template<> struct PPHelper<QRegExp>
+template<> struct PPHelper<QRegularExpression>
 {
-    static void store(const QRegExp &re, PersistentPool *pool) { pool->store(re.pattern()); }
-    static void load(QRegExp &re, PersistentPool *pool) { re.setPattern(pool->load<QString>()); }
+    static void store(const QRegularExpression &re, PersistentPool *pool)
+    {
+        pool->store(re.pattern());
+    }
+    static void load(QRegularExpression &re, PersistentPool *pool)
+    {
+        re.setPattern(pool->load<QString>());
+    }
 };
 
 template<typename T, typename U> struct PPHelper<std::pair<T, U>>

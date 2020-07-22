@@ -33,7 +33,6 @@
 #include <tools/hostosinfo.h>
 
 #include <QtCore/qdir.h>
-#include <QtCore/qregexp.h>
 #include <QtCore/qtemporaryfile.h>
 
 #include <QtTest/qtest.h>

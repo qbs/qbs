@@ -79,7 +79,6 @@ public:
     static bool isPattern(const QString &str);
     static QString resolvePath(const QString &base, const QString &rel,
                                HostOsInfo::HostOs hostOs = HostOsInfo::hostOs());
-    static bool globMatches(const QRegExp &pattern, const QString &subject);
     static bool isFileCaseCorrect(const QString &filePath);
 
     // Symlink-correct check.

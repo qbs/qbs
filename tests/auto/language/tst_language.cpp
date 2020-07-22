@@ -955,7 +955,8 @@ void TestLanguage::erroneousFiles()
         defaultParameters.setProjectFilePath(testProject("/erroneous/") + fileName);
         loader->loadProject(defaultParameters);
     } catch (const ErrorInfo &e) {
-        if (!e.toString().contains(QRegExp(errorMessage))) {
+        const QRegularExpression reg(errorMessage, QRegularExpression::DotMatchesEverythingOption);
+        if (!e.toString().contains(reg)) {
             qDebug() << "Message:  " << e.toString();
             qDebug() << "Expected: " << errorMessage;
             QFAIL("Unexpected error message.");

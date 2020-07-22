@@ -47,7 +47,7 @@
 #include <QtCore/qdatetime.h>
 #include <QtCore/qdir.h>
 #include <QtCore/qfileinfo.h>
-#include <QtCore/qregexp.h>
+#include <QtCore/qregularexpression.h>
 
 #if defined(Q_OS_UNIX)
 #include <cerrno>
@@ -240,17 +240,6 @@ QString FileInfo::resolvePath(const QString &base, const QString &rel, HostOsInf
         r += s;
     }
     return r;
-}
-
-bool FileInfo::globMatches(const QRegExp &regexp, const QString &fileName)
-{
-    const QString pattern = regexp.pattern();
-    // May be it's simple wildcard, i.e. "*.cpp"?
-    if (pattern.startsWith(QLatin1Char('*')) && !isPattern(pattern.midRef(1))) {
-        // Yes, it's rather simple to just check the extension
-        return fileName.endsWith(pattern.midRef(1));
-    }
-    return regexp.exactMatch(fileName);
 }
 
 #ifdef Q_OS_WIN

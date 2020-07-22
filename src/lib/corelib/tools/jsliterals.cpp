@@ -41,7 +41,7 @@
 
 #include <tools/stringconstants.h>
 
-#include <QtCore/qregexp.h>
+#include <QtCore/qregularexpression.h>
 
 namespace qbs {
 
@@ -53,7 +53,7 @@ QString toJSLiteral(const bool b)
 QString toJSLiteral(const QString &str)
 {
     QString js = str;
-    js.replace(QRegExp(QLatin1String("([\\\\\"])")), QLatin1String("\\\\1"));
+    js.replace(QRegularExpression(QLatin1String("([\\\\\"])")), QLatin1String("\\\\1"));
     js.prepend(QLatin1Char('"'));
     js.append(QLatin1Char('"'));
     return js;

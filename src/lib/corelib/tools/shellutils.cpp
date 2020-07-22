@@ -44,7 +44,7 @@
 #include "qttools.h"
 
 #include <QtCore/qfile.h>
-#include <QtCore/qregexp.h>
+#include <QtCore/qregularexpression.h>
 #include <QtCore/qtextstream.h>
 
 namespace qbs {
@@ -56,7 +56,7 @@ QString shellInterpreter(const QString &filePath) {
         QTextStream ts(&file);
         const QString shebang = ts.readLine();
         if (shebang.startsWith(QLatin1String("#!"))) {
-            return (shebang.mid(2).split(QRegExp(QStringLiteral("\\s")),
+            return (shebang.mid(2).split(QRegularExpression(QStringLiteral("\\s")),
                                          QBS_SKIP_EMPTY_PARTS) << QString()).front();
         }
     }
@@ -125,9 +125,9 @@ static QString shellQuoteWin(const QString &arg)
         // The process-level standard quoting allows escaping quotes with backslashes (note
         // that backslashes don't escape themselves, unless they are followed by a quote).
         // Consequently, quotes are escaped and their preceding backslashes are doubled.
-        ret.replace(QRegExp(QLatin1String("(\\\\*)\"")), QLatin1String("\\1\\1\\\""));
+        ret.replace(QRegularExpression(QLatin1String("(\\\\*)\"")), QLatin1String("\\1\\1\\\""));
         // Trailing backslashes must be doubled as well, as they are followed by a quote.
-        ret.replace(QRegExp(QLatin1String("(\\\\+)$")), QLatin1String("\\1\\1"));
+        ret.replace(QRegularExpression(QLatin1String("(\\\\+)$")), QLatin1String("\\1\\1"));
         // However, the shell also interprets the command, and no backslash-escaping exists
         // there - a quote always toggles the quoting state, but is nonetheless passed down
         // to the called process verbatim. In the unquoted state, the circumflex escapes

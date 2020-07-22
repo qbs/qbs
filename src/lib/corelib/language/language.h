@@ -58,7 +58,7 @@
 #include <QtCore/qdatastream.h>
 #include <QtCore/qhash.h>
 #include <QtCore/qprocess.h>
-#include <QtCore/qregexp.h>
+#include <QtCore/qregularexpression.h>
 #include <QtCore/qstring.h>
 #include <QtCore/qstringlist.h>
 #include <QtCore/qvariant.h>
@@ -88,7 +88,7 @@ public:
         return FileTaggerPtr(new FileTagger(patterns, fileTags, priority));
     }
 
-    const QList<QRegExp> &patterns() const { return m_patterns; }
+    const QList<QRegularExpression> &patterns() const { return m_patterns; }
     const FileTags &fileTags() const { return m_fileTags; }
     int priority() const { return m_priority; }
 
@@ -103,7 +103,7 @@ private:
 
     void setPatterns(const QStringList &patterns);
 
-    QList<QRegExp> m_patterns;
+    QList<QRegularExpression> m_patterns;
     FileTags m_fileTags;
     int m_priority = 0;
 };

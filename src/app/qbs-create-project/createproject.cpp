@@ -62,9 +62,9 @@ void ProjectCreator::run(const QString &topLevelDir, ProjectStructure projectStr
 {
     m_projectStructure = projectStructure;
     for (const QString &s : whiteList)
-        m_whiteList.push_back(QRegExp(s, Qt::CaseSensitive, QRegExp::Wildcard));
+        m_whiteList.push_back(QRegularExpression(QRegularExpression::wildcardToRegularExpression(s)));
     for (const QString &s : blackList)
-        m_blackList.push_back(QRegExp(s, Qt::CaseSensitive, QRegExp::Wildcard));
+        m_blackList.push_back(QRegularExpression(QRegularExpression::wildcardToRegularExpression(s)));
     m_topLevelProject.dirPath = topLevelDir;
     setupProject(&m_topLevelProject);
     serializeProject(m_topLevelProject);
@@ -162,7 +162,9 @@ void ProjectCreator::addGroups(QTextStream &stream, const QDir &baseDir,
 
 bool ProjectCreator::isSourceFile(const QString &fileName)
 {
-    const auto isMatch = [fileName](const QRegExp &rex) { return rex.exactMatch(fileName); };
+    const auto isMatch = [fileName](const QRegularExpression &rex) {
+        return rex.match(fileName).hasMatch();
+    };
     return !std::any_of(m_blackList.cbegin(), m_blackList.cend(), isMatch)
             && (m_whiteList.empty()
                 || std::any_of(m_whiteList.cbegin(), m_whiteList.cend(), isMatch));

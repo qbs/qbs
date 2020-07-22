@@ -49,7 +49,7 @@
 #include <QtCore/qjsonobject.h>
 #include <QtCore/qjsonvalue.h>
 #include <QtCore/qlocale.h>
-#include <QtCore/qregexp.h>
+#include <QtCore/qregularexpression.h>
 #include <QtCore/qsettings.h>
 #include <QtCore/qtemporarydir.h>
 #include <QtCore/qtemporaryfile.h>
@@ -298,7 +298,7 @@ void TestBlackbox::textTemplate()
 
 static QStringList sortedFileList(const QByteArray &ba)
 {
-    auto list = QString::fromUtf8(ba).split(QRegExp("[\r\n]"), QBS_SKIP_EMPTY_PARTS);
+    auto list = QString::fromUtf8(ba).split(QRegularExpression("[\r\n]"), QBS_SKIP_EMPTY_PARTS);
     std::sort(list.begin(), list.end());
     return list;
 }
@@ -1072,10 +1072,12 @@ void TestBlackbox::discardUnusedData()
     QVERIFY2(m_qbsStdout.contains("is Darwin"), m_qbsStdout.constData());
     const bool isDarwin = m_qbsStdout.contains("is Darwin: true");
     const QString output = QString::fromLocal8Bit(m_qbsStdout);
-    QRegExp pattern(".*---(.*)---.*");
-    QVERIFY2(pattern.exactMatch(output), qPrintable(output));
-    QCOMPARE(pattern.captureCount(), 1);
-    const QString nmPath = pattern.capturedTexts().at(1);
+    const QRegularExpression pattern(QRegularExpression::anchoredPattern(".*---(.*)---.*"),
+                                     QRegularExpression::DotMatchesEverythingOption);
+    const QRegularExpressionMatch match = pattern.match(output);
+    QVERIFY2(match.hasMatch(), qPrintable(output));
+    QCOMPARE(match.lastCapturedIndex(), 1);
+    const QString nmPath = match.captured(1);
     if (!QFile::exists(nmPath))
         QSKIP("Cannot check for symbol presence: No nm found.");
     QProcess nm;
@@ -1466,10 +1468,12 @@ void TestBlackbox::versionScript()
     QCOMPARE(runQbs(QbsRunParameters(QStringList("-q")
                                      << ("qbs.installRoot:" + QDir::currentPath()))), 0);
     const QString output = QString::fromLocal8Bit(m_qbsStderr);
-    QRegExp pattern(".*---(.*)---.*");
-    QVERIFY2(pattern.exactMatch(output), qPrintable(output));
+    const QRegularExpression pattern(QRegularExpression::anchoredPattern(".*---(.*)---.*"),
+                                     QRegularExpression::DotMatchesEverythingOption);
+    const QRegularExpressionMatch match = pattern.match(output);
+    QVERIFY2(match.hasMatch(), qPrintable(output));
     QCOMPARE(pattern.captureCount(), 1);
-    const QString nmPath = pattern.capturedTexts().at(1);
+    const QString nmPath = match.captured(1);
     if (!QFile::exists(nmPath))
         QSKIP("Cannot check for symbol presence: No nm found.");
     QProcess nm;
@@ -3656,7 +3660,7 @@ void TestBlackbox::erroneousFiles()
     params.expectFailure = true;
     QVERIFY(runQbs(params) != 0);
     QString err = QString::fromLocal8Bit(m_qbsStderr);
-    if (!err.contains(QRegExp(errorMessage))) {
+    if (!err.contains(QRegularExpression(errorMessage))) {
         qDebug().noquote() << "Output:  " << err;
         qDebug().noquote() << "Expected: " << errorMessage;
         QFAIL("Unexpected error message.");
@@ -4932,10 +4936,12 @@ void TestBlackbox::linkerScripts()
 
     QCOMPARE(runQbs(runParams), 0);
     const QString output = QString::fromLocal8Bit(m_qbsStderr);
-    QRegExp pattern(".*---(.*)---.*");
-    QVERIFY2(pattern.exactMatch(output), qPrintable(output));
+    const QRegularExpression pattern(QRegularExpression::anchoredPattern(".*---(.*)---.*"),
+                                     QRegularExpression::DotMatchesEverythingOption);
+    const QRegularExpressionMatch match = pattern.match(output);
+    QVERIFY2(match.hasMatch(), qPrintable(output));
     QCOMPARE(pattern.captureCount(), 1);
-    const QString nmPath = pattern.capturedTexts().at(1);
+    const QString nmPath = match.captured(1);
     if (!QFile::exists(nmPath))
         QSKIP("Cannot check for symbol presence: No nm found.");
 
@@ -8030,8 +8036,8 @@ void TestBlackbox::badInterpreter()
     QbsRunParameters params("run");
     params.expectFailure = true;
 
-    const QRegExp reNoSuchFileOrDir("bad interpreter:.* No such file or directory");
-    const QRegExp rePermissionDenied("bad interpreter:.* Permission denied");
+    const QRegularExpression reNoSuchFileOrDir("bad interpreter:.* No such file or directory");
+    const QRegularExpression rePermissionDenied("bad interpreter:.* Permission denied");
 
     params.arguments = QStringList() << "-p" << "script-interp-missing";
     QCOMPARE(runQbs(params), 1);

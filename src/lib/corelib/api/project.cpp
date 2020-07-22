@@ -82,7 +82,7 @@
 #include <tools/qttools.h>
 
 #include <QtCore/qdir.h>
-#include <QtCore/qregexp.h>
+#include <QtCore/qregularexpression.h>
 #include <QtCore/qshareddata.h>
 
 #include <mutex>
@@ -414,7 +414,7 @@ static bool matchesWildcard(const QString &filePath, const GroupConstPtr &group)
         }
         fullPattern.append(QLatin1Char('/')).append(pattern);
         fullPattern = QDir::cleanPath(fullPattern);
-        if (QRegExp(fullPattern, Qt::CaseSensitive, QRegExp::Wildcard).exactMatch(filePath))
+        if (QRegularExpression(QRegularExpression::wildcardToRegularExpression(fullPattern)).match(filePath).hasMatch())
             return true;
     }
     return false;

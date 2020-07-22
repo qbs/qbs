@@ -102,7 +102,7 @@ void FileTagger::setPatterns(const QStringList &patterns)
     m_patterns.clear();
     for (const QString &pattern : patterns) {
         QBS_CHECK(!pattern.isEmpty());
-        m_patterns << QRegExp(pattern, Qt::CaseSensitive, QRegExp::Wildcard);
+        m_patterns << QRegularExpression(QRegularExpression::wildcardToRegularExpression(pattern));
     }
 }
 
@@ -347,8 +347,8 @@ FileTags ResolvedProduct::fileTagsForFileName(const QString &fileName) const
     FileTags result;
     std::unique_ptr<int> priority;
     for (const FileTaggerConstPtr &tagger : qAsConst(fileTaggers)) {
-        for (const QRegExp &pattern : tagger->patterns()) {
-            if (FileInfo::globMatches(pattern, fileName)) {
+        for (const QRegularExpression &pattern : tagger->patterns()) {
+            if (pattern.match(fileName).hasMatch()) {
                 if (priority) {
                     if (*priority != tagger->priority()) {
                         // The taggers are expected to be sorted by priority.

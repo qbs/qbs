@@ -36,7 +36,7 @@
 
 #include <QtCore/qdir.h>
 #include <QtCore/qfile.h>
-#include <QtCore/qregexp.h>
+#include <QtCore/qregularexpression.h>
 
 #include <QtCore/qjsonarray.h>
 #include <QtCore/qjsondocument.h>
@@ -211,8 +211,10 @@ void TestClangDb::checkClangDetectsSourceCodeProblems()
     arguments << "-analyze" << "-p" << relativeBuildDir() << sourceFilePath;
     QVERIFY(runProcess(executable, arguments, stdErr, stdOut) == 0);
     const QString output = QString::fromLocal8Bit(stdErr);
-    QVERIFY(output.contains(QRegExp(QStringLiteral("warning.*undefined"), Qt::CaseInsensitive)));
-    QVERIFY(output.contains(QRegExp(QStringLiteral("warning.*never read"), Qt::CaseInsensitive)));
+    QVERIFY(output.contains(QRegularExpression(QStringLiteral("warning.*undefined"),
+                                               QRegularExpression::CaseInsensitiveOption)));
+    QVERIFY(output.contains(QRegularExpression(QStringLiteral("warning.*never read"),
+                                               QRegularExpression::CaseInsensitiveOption)));
 }
 
 QTEST_MAIN(TestClangDb)

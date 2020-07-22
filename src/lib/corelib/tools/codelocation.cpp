@@ -47,7 +47,7 @@
 #include <QtCore/qdir.h>
 #include <QtCore/qjsonobject.h>
 #include <QtCore/qjsonvalue.h>
-#include <QtCore/qregexp.h>
+#include <QtCore/qregularexpression.h>
 #include <QtCore/qshareddata.h>
 #include <QtCore/qstring.h>
 
@@ -118,9 +118,9 @@ QString CodeLocation::toString() const
     if (isValid()) {
         str = QDir::toNativeSeparators(filePath());
         QString lineAndColumn;
-        if (line() > 0 && !str.contains(QRegExp(QStringLiteral(":[0-9]+$"))))
+        if (line() > 0 && !str.contains(QRegularExpression(QStringLiteral(":[0-9]+$"))))
             lineAndColumn += QLatin1Char(':') + QString::number(line());
-        if (column() > 0 && !str.contains(QRegExp(QStringLiteral(":[0-9]+:[0-9]+$"))))
+        if (column() > 0 && !str.contains(QRegularExpression(QStringLiteral(":[0-9]+:[0-9]+$"))))
             lineAndColumn += QLatin1Char(':') + QString::number(column());
         str += lineAndColumn;
     }

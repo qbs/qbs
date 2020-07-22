@@ -47,20 +47,20 @@
 #include <QtCore/qdir.h>
 #include <QtCore/qfile.h>
 #include <QtCore/qfileinfo.h>
+#include <QtCore/qregularexpression.h>
 #include <QtCore/qstring.h>
-#include <QtCore/qregexp.h>
 
 namespace qbs {
 
-static QList<QRegExp> createIgnoreList(const QString &projectRootPath)
+static QList<QRegularExpression> createIgnoreList(const QString &projectRootPath)
 {
-    QList<QRegExp> ignoreRegularExpressionList {
-        QRegExp(projectRootPath + QLatin1String("/build.*")),
-        QRegExp(QStringLiteral("*.qbs"), Qt::CaseSensitive, QRegExp::Wildcard),
-        QRegExp(QStringLiteral("*.pro"), Qt::CaseSensitive, QRegExp::Wildcard),
-        QRegExp(QStringLiteral("*Makefile"), Qt::CaseSensitive, QRegExp::Wildcard),
-        QRegExp(QStringLiteral("*.so*"), Qt::CaseSensitive, QRegExp::Wildcard),
-        QRegExp(QStringLiteral("*.o"), Qt::CaseSensitive, QRegExp::Wildcard)
+    QList<QRegularExpression> ignoreRegularExpressionList {
+        QRegularExpression(QRegularExpression::anchoredPattern(projectRootPath + QLatin1String("/build.*"))),
+        QRegularExpression(QRegularExpression::wildcardToRegularExpression(QStringLiteral("*.qbs"))),
+        QRegularExpression(QRegularExpression::wildcardToRegularExpression(QStringLiteral("*.pro"))),
+        QRegularExpression(QRegularExpression::wildcardToRegularExpression(QStringLiteral("*Makefile"))),
+        QRegularExpression(QRegularExpression::wildcardToRegularExpression(QStringLiteral("*.so*"))),
+        QRegularExpression(QRegularExpression::wildcardToRegularExpression(QStringLiteral("*.o")))
     };
     QString ignoreFilePath = projectRootPath + QLatin1String("/.qbsignore");
 
@@ -71,11 +71,12 @@ static QList<QRegExp> createIgnoreList(const QString &projectRootPath)
         for (const QByteArray &btoken : ignoreTokenList) {
             const QString token = QString::fromLatin1(btoken);
             if (token.startsWith(QLatin1String("/")))
-                ignoreRegularExpressionList.push_back(QRegExp(projectRootPath
-                                                           + token + QLatin1String(".*"),
-                                                           Qt::CaseSensitive, QRegExp::RegExp2));
+                ignoreRegularExpressionList.push_back(
+                            QRegularExpression(QRegularExpression::anchoredPattern(
+                                                   projectRootPath + token + QLatin1String(".*"))));
             else if (!token.isEmpty())
-                ignoreRegularExpressionList.push_back(QRegExp(token, Qt::CaseSensitive, QRegExp::RegExp2));
+                ignoreRegularExpressionList.push_back(
+                            QRegularExpression(QRegularExpression::anchoredPattern(token)));
 
         }
     }
@@ -83,7 +84,8 @@ static QList<QRegExp> createIgnoreList(const QString &projectRootPath)
     return ignoreRegularExpressionList;
 }
 
-static QStringList allFilesInDirectoryRecursive(const QDir &rootDirecory, const QList<QRegExp> &ignoreRegularExpressionList)
+static QStringList allFilesInDirectoryRecursive(
+        const QDir &rootDirecory, const QList<QRegularExpression> &ignoreRegularExpressionList)
 {
     QStringList fileList;
 
@@ -91,8 +93,8 @@ static QStringList allFilesInDirectoryRecursive(const QDir &rootDirecory, const 
     for (const QFileInfo &fileInfo : fileInfos) {
         QString absoluteFilePath = fileInfo.absoluteFilePath();
         bool inIgnoreList = false;
-        for (const QRegExp &ignoreRegularExpression : ignoreRegularExpressionList) {
-            if (ignoreRegularExpression.exactMatch(absoluteFilePath)) {
+        for (const QRegularExpression &ignoreRegularExpression : ignoreRegularExpressionList) {
+            if (ignoreRegularExpression.match(absoluteFilePath).hasMatch()) {
                 inIgnoreList = true;
                 break;
             }
@@ -112,7 +114,7 @@ static QStringList allFilesInDirectoryRecursive(const QDir &rootDirecory, const 
 
 static QStringList allFilesInProject(const QString &projectRootPath)
 {
-    QList<QRegExp> ignoreRegularExpressionList = createIgnoreList(projectRootPath);
+    QList<QRegularExpression> ignoreRegularExpressionList = createIgnoreList(projectRootPath);
 
     return allFilesInDirectoryRecursive(QDir(projectRootPath), ignoreRegularExpressionList);
 }

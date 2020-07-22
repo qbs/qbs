@@ -39,7 +39,7 @@
 
 #include "version.h"
 
-#include <QtCore/qregexp.h>
+#include <QtCore/qregularexpression.h>
 #include <QtCore/qstring.h>
 
 namespace qbs {
@@ -51,13 +51,14 @@ Version Version::fromString(const QString &versionString, bool buildNumberAllowe
         pattern += QStringLiteral("(?:\\.(\\d+))?"); // Followed by a dot and a number up to two times.
     if (buildNumberAllowed)
         pattern += QStringLiteral("(?:[-.](\\d+))?"); // And possibly a dash or dot followed by the build number.
-    QRegExp rex(pattern);
-    if (!rex.exactMatch(versionString))
+    const QRegularExpression rex(QRegularExpression::anchoredPattern(pattern));
+    const QRegularExpressionMatch match = rex.match(versionString);
+    if (!match.hasMatch())
         return Version{};
-    const int majorNr = rex.cap(1).toInt();
-    const int minorNr = rex.captureCount() >= 2 ? rex.cap(2).toInt() : 0;
-    const int patchNr = rex.captureCount() >= 3 ? rex.cap(3).toInt() : 0;
-    const int buildNr = rex.captureCount() >= 4 ? rex.cap(4).toInt() : 0;
+    const int majorNr = match.captured(1).toInt();
+    const int minorNr = match.lastCapturedIndex() >= 2 ? match.captured(2).toInt() : 0;
+    const int patchNr = match.lastCapturedIndex() >= 3 ? match.captured(3).toInt() : 0;
+    const int buildNr = match.lastCapturedIndex() >= 4 ? match.captured(4).toInt() : 0;
     return Version{majorNr, minorNr, patchNr, buildNr};
 }
 
