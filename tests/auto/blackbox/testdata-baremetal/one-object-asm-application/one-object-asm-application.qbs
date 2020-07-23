@@ -14,6 +14,8 @@ BareMetalApplication {
                 return true;
             if (qbs.architecture === "stm8")
                 return true;
+            if (qbs.architecture === "avr")
+                return true;
             if (qbs.architecture === "msp430")
                 return true;
         } else if (qbs.toolchainType === "sdcc") {
