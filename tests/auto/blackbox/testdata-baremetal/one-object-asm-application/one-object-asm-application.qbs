@@ -7,6 +7,8 @@ BareMetalApplication {
                 return true;
             if (qbs.architecture === "mcs51")
                 return true;
+            if (qbs.architecture === "mcs251")
+                return true;
         } else if (qbs.toolchainType === "iar") {
             if (qbs.architecture.startsWith("arm"))
                 return true;
