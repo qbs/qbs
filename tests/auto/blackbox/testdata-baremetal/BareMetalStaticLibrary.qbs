@@ -40,6 +40,23 @@ StaticLibrary {
         ]
     }
     Properties {
+        condition: qbs.toolchain.contains("iar")
+            && qbs.architecture === "78k"
+        cpp.cFlags: [
+            "--core", "78k0",
+            "--code_model", "standard"
+        ]
+        cpp.driverLinkerFlags: [
+            "-D_CSTACK_SIZE=80",
+            "-D_HEAP_SIZE=200",
+            "-D_CODEBANK_START=0",
+            "-D_CODEBANK_END=0",
+            "-D_CODEBANK_BANKS=0",
+            "-f", cpp.toolchainInstallPath + "/../config/lnk.xcl",
+            cpp.toolchainInstallPath + "/../lib/clib/cl78ks1.r26"
+        ]
+    }
+    Properties {
         condition: qbs.toolchain.contains("keil")
             && qbs.architecture.startsWith("arm")
             && cpp.compilerName.startsWith("armcc")
