@@ -1530,7 +1530,7 @@
     \c{<build root>/install-root}. The \l{qbs::installPrefix}{qbs.installPrefix} and
     \l{qbs::installDir}{qbs.installDir} properties are appended to the root folder.
     \code
-    $ qbs build qbs.installPrefix:/usr
+    qbs build qbs.installPrefix:/usr
     \endcode
     In this example, the executable will be installed into the \c{<build root>/install-root/usr/bin}
     folder and the QML files will be installed into the
@@ -1541,12 +1541,12 @@
     To override the default location, use the \c --install-root option of the \c{qbs install}
     command:
     \code
-    $ qbs build --no-install qbs.installPrefix:/usr
-    # qbs install --no-build --install-root /
+    qbs build --no-install qbs.installPrefix:/usr
+    sudo qbs install --no-build --install-root /
     \endcode
     In this example, artifacts will be installed directly into the \c /usr folder. Since the
     \c{qbs install} command implies \c build, we use the \c --no-build parameter to ensure that
-    we do not accidentally rebuild the project, thereby changing the artifacts owner to \c root.
+    we do not accidentally rebuild the project, thereby changing the artifacts' owner to \c root.
 
     Sometimes, it makes sense to install the application into a temporary root folder, keeping the
     same folder structure within that root folder as in the examples above; for instance,
@@ -1564,7 +1564,7 @@
     parameter:
 
     \code
-    $ qbs install --clean-install-root --install-root /tmp/myProjectRoot
+    qbs install --clean-install-root --install-root /tmp/myProjectRoot
     \endcode
 
     For more information about how the installation path is constructed, see
