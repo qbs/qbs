@@ -26,6 +26,8 @@ BareMetalApplication {
                 return true;
             if (qbs.architecture === "rh850")
                 return true;
+            if (qbs.architecture === "v850")
+                return true;
         } else if (qbs.toolchainType === "sdcc") {
             if (qbs.architecture === "mcs51")
                 return true;

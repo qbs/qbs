@@ -31,6 +31,15 @@ CppApplication {
         ]
     }
     Properties {
+        condition: qbs.toolchain.contains("iar")
+            && qbs.architecture === "v850"
+        cpp.driverLinkerFlags: [
+            "-D_CSTACK_SIZE=1000",
+            "-D_HEAP_SIZE=1000",
+            "-f", cpp.toolchainInstallPath + "/../config/lnk85.xcl"
+        ]
+    }
+    Properties {
         condition: qbs.toolchain.contains("keil")
             && qbs.architecture.startsWith("arm")
             && cpp.compilerName.startsWith("armcc")
