@@ -36,6 +36,8 @@ BareMetalApplication {
                 return true;
             if (qbs.architecture === "xtensa")
                 return true;
+            if (qbs.architecture === "rl78")
+                return true;
         }
         console.info("unsupported toolset: %%"
             + qbs.toolchainType + "%%, %%" + qbs.architecture + "%%");
