@@ -8,6 +8,20 @@ StaticLibrary {
         ]
     }
     Properties {
+        condition: qbs.toolchain.contains("iar")
+            && qbs.architecture === "rl78"
+        cpp.driverLinkerFlags: [
+            "--config_def", "_NEAR_HEAP_SIZE=256",
+            "--config_def", "_FAR_HEAP_SIZE=4096",
+            "--config_def", "_HUGE_HEAP_SIZE=0",
+            "--config_def", "_STACK_SIZE=128",
+            "--config_def", "_NEAR_CONST_LOCATION_SIZE=0x6F00",
+            "--config_def", "_NEAR_CONST_LOCATION_START=0x3000",
+            "--define_symbol", "_NEAR_CONST_LOCATION=0",
+            "--config", cpp.toolchainInstallPath + "/../config/lnkrl78_s3.icf"
+        ]
+    }
+    Properties {
         condition: qbs.toolchain.contains("keil")
             && qbs.architecture.startsWith("arm")
             && cpp.compilerName.startsWith("armcc")
