@@ -22,6 +22,15 @@ StaticLibrary {
         ]
     }
     Properties {
+        condition: qbs.toolchain.contains("iar")
+            && qbs.architecture === "rh850"
+        cpp.driverLinkerFlags: [
+            "--config_def", "CSTACK_SIZE=0x1000",
+            "--config_def", "HEAP_SIZE=0x1000",
+            "--config", cpp.toolchainInstallPath + "/../config/lnkrh850_g3m.icf"
+        ]
+    }
+    Properties {
         condition: qbs.toolchain.contains("keil")
             && qbs.architecture.startsWith("arm")
             && cpp.compilerName.startsWith("armcc")
