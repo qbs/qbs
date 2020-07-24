@@ -739,6 +739,32 @@ void TestBlackbox::buildVariantDefaults()
     QCOMPARE(runQbs(params), 0);
 }
 
+void TestBlackbox::capnproto()
+{
+    QFETCH(QString, projectFile);
+    QDir::setCurrent(testDataDir + "/capnproto");
+    rmDirR(relativeBuildDir());
+
+    QbsRunParameters params{QStringLiteral("resolve"), {QStringLiteral("-f"), projectFile}};
+    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+        QSKIP("Cannot run binaries in cross-compiled build");
+    if (m_qbsStdout.contains("capnproto is not present"))
+        QSKIP("capnproto is not present");
+
+    params.command.clear();
+    QCOMPARE(runQbs(params), 0);
+}
+
+void TestBlackbox::capnproto_data()
+{
+    QTest::addColumn<QString>("projectFile");
+
+    QTest::newRow("cpp") << QStringLiteral("capnproto_cpp.qbs");
+    QTest::newRow("greeter cpp (grpc)") << QStringLiteral("greeter_cpp.qbs");
+    QTest::newRow("relative import") << QStringLiteral("capnproto_relative_import.qbs");
+    QTest::newRow("absolute import") << QStringLiteral("capnproto_absolute_import.qbs");
+}
+
 void TestBlackbox::changedFiles_data()
 {
     QTest::addColumn<bool>("useChangedFilesForInitialBuild");
@@ -2935,6 +2961,7 @@ void TestBlackbox::pathProbe_data()
     QTest::newRow("mult-files-mult-variants") << QString("mult-files-mult-variants.qbs") << true;
     QTest::newRow("single-file-suffixes") << QString("single-file-suffixes.qbs") << true;
     QTest::newRow("mult-files-suffixes") << QString("mult-files-suffixes.qbs") << true;
+    QTest::newRow("mult-files-common-suffixes") << QString("mult-files-common-suffixes.qbs") << true;
     QTest::newRow("mult-files-mult-suffixes") << QString("mult-files-mult-suffixes.qbs") << true;
     QTest::newRow("name-filter") << QString("name-filter.qbs") << true;
     QTest::newRow("candidate-filter") << QString("candidate-filter.qbs") << true;
@@ -8109,6 +8136,16 @@ void TestBlackbox::qbsVersion()
     params.arguments.push_back("project.qbsVersionPatch:" + QString::number(v.patchLevel() + 1));
     params.expectFailure = true;
     QVERIFY(runQbs(params) != 0);
+}
+
+void TestBlackbox::transitiveInvalidDependencies()
+{
+    QDir::setCurrent(testDataDir + "/transitive-invalid-dependencies");
+    QbsRunParameters params;
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(m_qbsStdout.contains("b.present = false"), m_qbsStdout);
+    QVERIFY2(m_qbsStdout.contains("c.present = true"), m_qbsStdout);
+    QVERIFY2(m_qbsStdout.contains("d.present = false"), m_qbsStdout);
 }
 
 void TestBlackbox::transitiveOptionalDependencies()

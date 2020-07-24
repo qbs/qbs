@@ -83,11 +83,13 @@ jobs:
       addons:
         homebrew:
           packages:
+            - capnp
             - ccache
             - grpc
             - icoutils
             - makensis
             - protobuf
+            - python3
             - p7zip
           update: true
       env:
@@ -100,7 +102,7 @@ jobs:
       before_install:
         - ./scripts/install-qt.sh -d ${QT_INSTALL_DIR} --version ${QT_VERSION} qtbase qtdeclarative qttools qtscript qtscxml
         - ./scripts/install-qt.sh -d ${QT_INSTALL_DIR} --version ${QTCREATOR_VERSION} qtcreator
-        - pip3 install --user beautifulsoup4 lxml
+        - python3 -m pip install --user beautifulsoup4 lxml
       before_script:
         - ulimit -c unlimited -S       # enable core dumps
       script:

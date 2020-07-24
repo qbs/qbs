@@ -1489,6 +1489,13 @@ void ModuleLoader::handleProduct(ModuleLoader::ProductContext *productContext)
             continue;
         try {
             m_evaluator->boolValue(module.item, StringConstants::validateProperty());
+            for (const auto &dep : module.item->modules()) {
+                if (dep.requiredValue && !dep.item->isPresentModule()) {
+                    throw ErrorInfo(Tr::tr("Module '%1' depends on module '%2', which was not "
+                                           "loaded successfully")
+                                    .arg(module.name.toString(), dep.name.toString()));
+                }
+            }
         } catch (const ErrorInfo &error) {
             handleModuleSetupError(productContext, module, error);
             if (productContext->info.delayedError.hasError())
@@ -2665,8 +2672,10 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
         return;
     }
 
+    const bool isRequiredValue =
+            m_evaluator->boolValue(dependsItem, StringConstants::requiredProperty());
     const bool isRequired = !productTypesIsSet
-            && m_evaluator->boolValue(dependsItem, StringConstants::requiredProperty())
+            && isRequiredValue
             && !contains(m_requiredChain, false);
     const Version minVersion = Version::fromString(
                 m_evaluator->stringValue(dependsItem,
@@ -2686,8 +2695,8 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
         const auto it = std::find_if(moduleResults->begin(), moduleResults->end(),
                 [moduleName](const Item::Module &m) { return m.name == moduleName; });
         if (it != moduleResults->end()) {
-            if (isRequired)
-                it->required = true;
+            it->required = it->required || isRequired;
+            it->requiredValue = it->requiredValue || isRequiredValue;
             it->versionRange.narrowDown(versionRange);
             continue;
         }
@@ -2720,6 +2729,7 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
         qCDebug(lcModuleLoader) << "module loaded:" << moduleName.toString();
         result.name = moduleName;
         result.item = moduleItem;
+        result.requiredValue = isRequiredValue;
         result.required = isRequired;
         result.parameters = defaultParameters;
         result.versionRange = versionRange;

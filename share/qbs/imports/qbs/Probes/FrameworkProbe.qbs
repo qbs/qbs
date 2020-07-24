@@ -35,10 +35,5 @@ PathProbe {
             "/Library/Frameworks",
             "/System/Library/Frameworks"
         ])
-
-    nameFilter: {
-        return function(name) {
-            return name + ".framework";
-        }
-    }
+    nameSuffixes: ".framework"
 }

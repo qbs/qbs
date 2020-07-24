@@ -23,9 +23,10 @@ ProtobufBase {
         inputs: ["protobuf.input"]
         outputFileTags: ["hpp", "objc"]
         outputArtifacts: {
+            var outputDir = HelperFunctions.getOutputDir(input.protobuf.objc, input);
             return [
-                HelperFunctions.objcArtifact(input.protobuf.objc, input, "hpp", ".pbobjc.h"),
-                HelperFunctions.objcArtifact(input.protobuf.objc, input, "objc", ".pbobjc.m")
+                HelperFunctions.objcArtifact(outputDir, input, "hpp", ".pbobjc.h"),
+                HelperFunctions.objcArtifact(outputDir, input, "objc", ".pbobjc.m")
             ];
         }
 

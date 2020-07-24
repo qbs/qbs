@@ -24,6 +24,7 @@ QbsApp {
     Properties {
         condition: qbs.targetOS.contains("macos")
         cpp.frameworks: ["ApplicationServices", "Cocoa"]
+        bundle.isBundle: false
     }
 
     Properties {

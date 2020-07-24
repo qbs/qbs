@@ -28,9 +28,11 @@
 **
 ****************************************************************************/
 
+var FileInfo = require("qbs.FileInfo");
 var DarwinTools = require("qbs.DarwinTools");
 var ModUtils = require("qbs.ModUtils");
 var Process = require("qbs.Process");
+var Utilities = require("qbs.Utilities");
 
 // HACK: Workaround until the PropertyList extension is supported cross-platform
 var TextFile = require("qbs.TextFile");
@@ -145,6 +147,17 @@ function _assign(target, source) {
         }
         return target;
     }
+}
+
+function macOSSpecsPath(version, developerPath) {
+    if (Utilities.versionCompare(version, "12") >= 0) {
+        return FileInfo.joinPaths(
+                    developerPath, "Platforms", "MacOSX.platform", "Developer", "Library", "Xcode",
+                    "PrivatePlugIns", "IDEOSXSupportCore.ideplugin", "Contents", "Resources");
+    }
+    return FileInfo.joinPaths(
+                developerPath, "Platforms", "MacOSX.platform", "Developer", "Library", "Xcode",
+                "Specifications");
 }
 
 var XcodeBuildSpecsReader = (function () {

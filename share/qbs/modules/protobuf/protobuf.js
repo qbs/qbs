@@ -69,11 +69,10 @@ function getOutputDir(module, input)  {
     return outputDir;
 }
 
-function cppArtifact(module, input, tag, suffix) {
-    var outputDir = getOutputDir(module, input);
+function cppArtifact(outputDir, input, tag, suffix) {
     return {
         fileTags: [tag],
-        filePath: outputDir + "/" + FileInfo.baseName(input.fileName) + suffix,
+        filePath: FileInfo.joinPaths(outputDir, FileInfo.baseName(input.fileName) + suffix),
         cpp: {
             includePaths: [].concat(input.cpp.includePaths, outputDir),
             warningLevel: "none",
@@ -81,11 +80,11 @@ function cppArtifact(module, input, tag, suffix) {
     };
 }
 
-function objcArtifact(module, input, tag, suffix) {
-    var outputDir = getOutputDir(module, input);
+function objcArtifact(outputDir, input, tag, suffix) {
     return {
         fileTags: [tag],
-        filePath: outputDir + "/" + toCamelCase(FileInfo.baseName(input.fileName)) + suffix,
+        filePath: FileInfo.joinPaths(
+                      outputDir, toCamelCase(FileInfo.baseName(input.fileName)) + suffix),
         cpp: {
             includePaths: [].concat(input.cpp.includePaths, outputDir),
             warningLevel: "none",

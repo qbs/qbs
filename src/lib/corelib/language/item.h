@@ -78,6 +78,7 @@ public:
         QualifiedId name;
         Item *item;
         bool isProduct;
+        bool requiredValue = true; // base value of the required prop
         bool required;
         QVariantMap parameters;
         VersionRange versionRange;

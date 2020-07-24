@@ -1,0 +1,116 @@
+/****************************************************************************
+**
+** Copyright (C) 2020 Ivan Komissarov (abbapoh@gmail.com)
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+/*!
+    \contentspage index.html
+    \qmltype capnproto.cpp
+    \inqmlmodule QbsModules
+    \since Qbs 1.17
+
+    \brief Provides support for Cap'n Proto for the C++ language.
+
+    The \c capnproto.cpp module provides support for generating C++ headers
+    and sources from proto definition files using the \c capnpc tool.
+
+    A simple qbs file that uses Cap'n Proto can be written as follows:
+    \code
+    CppApplication {
+        Depends { name: "capnproto.cpp" }
+        files: ["foo.capnp", "main.cpp"]
+    }
+    \endcode
+    A generated header now can be included in the C++ sources:
+    \code
+        #include <foo.capnp.h>
+
+        int main(int argc, char* argv[]) {
+            ::capnp::MallocMessageBuilder message;
+
+            auto foo = message.initRoot<Foo>();
+            foo.setAnswer(42);
+            return 0;
+        }
+    \endcode
+
+    \section2 Relevant File Tags
+
+    \table
+    \header
+        \li Tag
+        \li Auto-tagged File Names
+        \li Since
+        \li Description
+    \row
+        \li \c{"capnproto.input"}
+        \li \c{*.capnp}
+        \li 1.17.0
+        \li Source files with this tag are considered inputs to the \c capnpc compiler.
+    \endtable
+
+    \section2 Dependencies
+    This module depends on the \c capnp module and on the \c capnp-rpc module if
+    \l{capnproto.cpp::useRpc}{useRpc} property is \c true. These modules are created by the
+    \l{Module Providers} via the \c pkg-config tool.
+*/
+
+/*!
+    \qmlproperty string capnproto.cpp::compilerName
+
+    The name of the capnp binary.
+
+    \defaultvalue \c "capnpc"
+*/
+
+/*!
+    \qmlproperty string capnproto.cpp::compilerPath
+
+    The path to the protoc binary.
+
+    Use this property to override the auto-detected location.
+
+    \defaultvalue \c auto-detected
+*/
+
+/*!
+    \qmlproperty pathList capnproto.cpp::importPaths
+
+    The list of import paths that are passed to the \c capnpc tool via the \c --import-path option.
+
+    \defaultvalue \c []
+*/
+
+/*!
+    \qmlproperty bool capnproto.cpp::useRpc
+
+    Use this property to enable support for the RPC framework.
+
+    A simple qbs file that uses rpc can be written as follows:
+
+    \quotefile ../examples/capnproto/calculator_cpp/calculator_cpp.qbs
+
+    \defaultvalue \c false
+*/

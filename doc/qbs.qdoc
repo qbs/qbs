@@ -1525,18 +1525,47 @@
     \endcode
 
     In this example, we want to install a couple of QML files and an executable.
-    The actual installation is then done like this (using the default profile):
+
+    When building, \QBS installs artifacts into the default root folder, namely
+    \c{<build root>/install-root}. The \l{qbs::installPrefix}{qbs.installPrefix} and
+    \l{qbs::installDir}{qbs.installDir} properties are appended to the root folder.
+    \code
+    $ qbs build qbs.installPrefix:/usr
+    \endcode
+    In this example, the executable will be installed into the \c{<build root>/install-root/usr/bin}
+    folder and the QML files will be installed into the
+    \c{<build root>/install-root/usr/share/myproject} folder.
+
+    To skip installation during the build, use the \c --no-install option.
+
+    To override the default location, use the \c --install-root option of the \c{qbs install}
+    command:
+    \code
+    $ qbs build --no-install qbs.installPrefix:/usr
+    # qbs install --no-build --install-root /
+    \endcode
+    In this example, artifacts will be installed directly into the \c /usr folder. Since the
+    \c{qbs install} command implies \c build, we use the \c --no-build parameter to ensure that
+    we do not accidentally rebuild the project, thereby changing the artifacts owner to \c root.
+
+    Sometimes, it makes sense to install the application into a temporary root folder, keeping the
+    same folder structure within that root folder as in the examples above; for instance,
+    when building a Linux package such as \c deb or \c rmp. To install the application into the
+    \c /tmp/myProjectRoot folder, use the following command:
 
     \code
-    qbs --clean-install-root qbs.installRoot:/tmp/myProjectRoot
+    $ qbs install --install-root /tmp/myProjectRoot
     \endcode
 
-    Here, we want the \c installDir properties from the project file to be
-    interpreted relative to the directory \c{/tmp/myProjectRoot}, and we want
-    that directory to be removed first.
+    In this example, the executable will be installed into the \c{/tmp/myProjectRoot/usr/bin} folder
+    and QML files will be installed into the \c{/tmp/myProjectRoot/usr/share/myproject} folder.
 
-    If the \l{qbs::installRoot}{qbs.installRoot} property is not given, a
-    default is used, namely \c{<build root>/install-root}.
+    To remove all files from the install root prior to installing, use the \c --clean-install-root
+    parameter:
+
+    \code
+    $ qbs install --clean-install-root --install-root /tmp/myProjectRoot
+    \endcode
 
     For more information about how the installation path is constructed, see
     \l {Installation Properties}.
