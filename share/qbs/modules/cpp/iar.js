@@ -305,7 +305,7 @@ function guessArchitecture(macros) {
         return "r32c";
     else if (macros["__ICCM16C__"] === "1")
         return "m16c";
-    else if (macros["__ICCRC16C__"] === "1")
+    else if (macros["__ICCCR16C__"] === "1")
         return "cr16";
 }
 
