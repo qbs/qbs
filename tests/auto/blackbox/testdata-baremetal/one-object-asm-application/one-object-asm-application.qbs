@@ -34,6 +34,8 @@ BareMetalApplication {
                 return true;
             if (qbs.architecture === "r32c")
                 return true;
+            if (qbs.architecture === "sh")
+                return true;
         } else if (qbs.toolchainType === "sdcc") {
             if (qbs.architecture === "mcs51")
                 return true;
