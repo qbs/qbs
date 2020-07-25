@@ -598,7 +598,7 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
         break;
     case "all":
         if (architecture !== "78k") {
-            if (architecture !== "avr32") {
+            if (architecture !== "avr32" && architecture !== "r32c") {
                 args.push("--deprecated_feature_warnings="
                     +"+attribute_syntax,"
                     +"+preprocessor_extensions,"
