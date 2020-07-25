@@ -598,10 +598,12 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
         break;
     case "all":
         if (architecture !== "78k") {
-            args.push("--deprecated_feature_warnings="
-                +"+attribute_syntax,"
-                +"+preprocessor_extensions,"
-                +"+segment_pragmas");
+            if (architecture !== "avr32") {
+                args.push("--deprecated_feature_warnings="
+                    +"+attribute_syntax,"
+                    +"+preprocessor_extensions,"
+                    +"+segment_pragmas");
+            }
             if (tag === "cpp")
                 args.push("--warn_about_c_style_casts");
         }
