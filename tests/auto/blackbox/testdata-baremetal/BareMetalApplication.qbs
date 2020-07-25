@@ -57,6 +57,16 @@ CppApplication {
         ]
     }
     Properties {
+        condition: qbs.toolchain.contains("iar")
+            && qbs.architecture === "sh"
+        cpp.driverLinkerFlags: [
+            "--config_def", "_CSTACK_SIZE=0x800",
+            "--config_def", "_HEAP_SIZE=0x800",
+            "--config_def", "_INT_TABLE=0x10",
+            "--config", cpp.toolchainInstallPath + "/../config/generic.icf"
+        ]
+    }
+    Properties {
         condition: qbs.toolchain.contains("keil")
             && qbs.architecture.startsWith("arm")
             && cpp.compilerName.startsWith("armcc")
