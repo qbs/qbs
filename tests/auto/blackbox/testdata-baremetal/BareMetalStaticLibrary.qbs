@@ -95,4 +95,9 @@ StaticLibrary {
             && qbs.architecture === "msp430"
         cpp.driverFlags: ["-mmcu=msp430f5529"]
     }
+    Properties {
+        condition: qbs.toolchain.contains("gcc")
+            && qbs.architecture === "m32r"
+        cpp.driverFlags: ["-nostdlib"]
+    }
 }
