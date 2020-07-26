@@ -58,6 +58,8 @@ BareMetalApplication {
                 return true;
             if (qbs.architecture === "m32c")
                 return true;
+            if (qbs.architecture === "m32r")
+                return true;
             if (qbs.architecture === "m68k")
                 return true;
             if (qbs.architecture === "v850")
