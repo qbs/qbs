@@ -58,6 +58,8 @@ BareMetalApplication {
                 return true;
             if (qbs.architecture === "m32c")
                 return true;
+            if (qbs.architecture === "m68k")
+                return true;
         }
         console.info("unsupported toolset: %%"
             + qbs.toolchainType + "%%, %%" + qbs.architecture + "%%");
