@@ -38,6 +38,7 @@ RUN apt-get update -qq && \
         bison \
         build-essential \
         ca-certificates \
+        capnproto \
         ccache \
         clang-8 \
         clang-tidy-8 \
@@ -46,6 +47,7 @@ RUN apt-get update -qq && \
         git \
         help2man \
         icoutils \
+        libcapnp-dev \
         libdbus-1-3 \
         libfreetype6 \
         libfontconfig1 \

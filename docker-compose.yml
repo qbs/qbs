@@ -16,7 +16,7 @@ services:
   bionic:
     << : *linux
     hostname: bionic
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:bionic-5.15.0_1.15.1-0
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:bionic-5.15.0_1.15.1-1
     build:
       dockerfile: docker/bionic/Dockerfile
       context: .
