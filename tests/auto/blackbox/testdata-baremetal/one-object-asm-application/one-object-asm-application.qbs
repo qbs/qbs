@@ -60,6 +60,8 @@ BareMetalApplication {
                 return true;
             if (qbs.architecture === "m68k")
                 return true;
+            if (qbs.architecture === "v850")
+                return true;
         }
         console.info("unsupported toolset: %%"
             + qbs.toolchainType + "%%, %%" + qbs.architecture + "%%");
