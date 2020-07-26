@@ -110,7 +110,7 @@ function doPrepare(module, product, input, outputs, lang)
 
     args.push(input.filePath);
 
-    var cmd = new Command(module._compilerPath, args);
+    var cmd = new Command(module.compilerPath, args);
     cmd.highlight = "codegen";
     cmd.description = "generating " + lang + " files for " + input.fileName;
     return [cmd];
@@ -135,7 +135,7 @@ function doPrepareGrpc(module, product, input, outputs, lang)
 
     args.push(input.filePath);
 
-    var cmd = new Command(module._compilerPath, args);
+    var cmd = new Command(module.compilerPath, args);
     cmd.highlight = "codegen";
     cmd.description = "generating " + lang + " files for " + input.fileName;
     return [cmd];
