@@ -40,6 +40,7 @@
     \li \l{How do I build release with debug information?}
     \li \l{How do I separate and install debugging symbols?}
     \li \l{How do I use precompiled headers?}
+    \li \l{How do I make use of rpaths?}
     \li \l{How do I make sure my generated sources are getting compiled?}
     \li \l{How do I run my autotests?}
     \li \l{How do I use ccache?}
@@ -236,6 +237,42 @@
         }
     }
     \endcode
+
+    \section1 How do I make use of rpaths?
+
+    rpath designates the run-time search path used by the dynamic linker when loading
+    libraries on UNIX platforms. This concept does not apply to Windows.
+
+    Suppose you have a project with two dynamic library products \c LibraryA and \c LibraryB
+    and one dependent application product. Also, \c LibraryB depends on \c LibraryA. The
+    application is installed to the \c bin folder and the libraries are installed to the
+    \c lib folder next to the \c bin folder. You want the application to be able to find the
+    dependent libraries relative to its own location. This can be achieved by usage of the
+    \l{cpp::rpaths}{cpp.rpaths} property.
+
+    First, you need to set \l{cpp::rpaths}{cpp.rpaths} in your libraries so they can
+    find dependent libraries in the same folder where they are located. This can be
+    done as follows:
+
+    \snippet ../examples/rpaths/rpaths.qbs 0
+
+    We are setting \l{cpp::rpaths}{cpp.rpaths} to \l{cpp::rpathOrigin}{cpp.rpathOrigin} which
+    expands to \c "$ORIGIN" on Linux and to \c "@loader_path" on macOS.
+
+    On macOS you also need to set \l{cpp::sonamePrefix}{cpp.sonamePrefix} to \c "@rpath" to
+    tell the dynamic linker to use RPATHs when loading this library.
+
+    \c LibraryB looks exactly the same:
+
+    \snippet ../examples/rpaths/rpaths.qbs 1
+
+    In a real project, it might be a good idea to move common properties to some base item
+    and inherit it in library items.
+
+    The application item is a bit different. It sets \l{cpp::rpaths}{cpp.rpaths} to the
+    \c "lib" folder which is located one level up from the \c bin folder:
+
+    \snippet ../examples/rpaths/rpaths.qbs 2
 
     \section1 How do I make sure my generated sources are getting compiled?
 

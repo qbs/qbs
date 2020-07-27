@@ -38,11 +38,9 @@ Probe {
     property var nameFilter
     property var candidateFilter
     property varList selectors
-    property pathList pathPrefixes
     property pathList searchPaths
     property stringList pathSuffixes
     property pathList platformSearchPaths: hostOS.contains("unix") ? ['/usr', '/usr/local'] : []
-    property pathList platformPaths
     property stringList environmentPaths
     property stringList platformEnvironmentPaths
     property stringList hostOS: qbs.hostOS
@@ -57,15 +55,9 @@ Probe {
     property varList allResults
 
     configure: {
-        if (pathPrefixes)
-            console.warn("PathProbe.pathPrefixes is deprecated, use searchPaths instead");
-        if (platformPaths)
-            console.warn("PathProbe.platformPaths is deprecated, use platformSearchPaths instead");
-        var _searchPaths = ModUtils.concatAll(pathPrefixes, searchPaths);
-        var _platformSearchPaths = ModUtils.concatAll(platformPaths, platformSearchPaths);
         var results = PathProbeConfigure.configure(selectors, names, nameSuffixes, nameFilter,
-                                                   candidateFilter, _searchPaths, pathSuffixes,
-                                                   _platformSearchPaths, environmentPaths,
+                                                   candidateFilter, searchPaths, pathSuffixes,
+                                                   platformSearchPaths, environmentPaths,
                                                    platformEnvironmentPaths, pathListSeparator);
         found = results.found;
         allResults = results.files;

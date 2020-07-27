@@ -68,5 +68,6 @@ Project {
         // "protobuf/addressbook_objc/addressbook_objc.qbs",
         "baremetal/baremetal.qbs",
         "rule/rule.qbs",
+        "rpaths/rpaths.qbs",
     ]
 }

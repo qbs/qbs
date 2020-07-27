@@ -1370,6 +1370,8 @@
     \l{cpp::}{systemRunPaths} are ignored.
 
     \nodefaultvalue
+
+    \sa{How do I make use of rpaths?}
 */
 
 /*!
@@ -1406,6 +1408,8 @@
     install names.
 
     \nodefaultvalue
+
+    \sa{How do I make use of rpaths?}
 */
 
 /*!

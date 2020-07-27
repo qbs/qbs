@@ -102,9 +102,8 @@ Module {
                                 targetArchitecture = theBinary.Android.ndk.abi;
                                 continue;
                             }
-                            if (theBinary.product.name === product.name
-                                    && candidate.product.name !== product.name) {
-                                continue; // We already have a better match.
+                            if (candidate.product.name !== product.name) {
+                                continue; // This is not going to be a match
                             }
                             if (candidate.product.name === product.name
                                     && theBinary.product.name !== product.name) {

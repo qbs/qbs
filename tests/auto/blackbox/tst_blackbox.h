@@ -62,6 +62,8 @@ private slots:
     void buildGraphVersions();
     void buildVariantDefaults_data();
     void buildVariantDefaults();
+    void capnproto();
+    void capnproto_data();
     void changedFiles_data();
     void changedFiles();
     void changedInputsFromDependencies();
@@ -313,6 +315,7 @@ private slots:
     void trackRemoveFile();
     void trackRemoveFileTag();
     void trackRemoveProduct();
+    void transitiveInvalidDependencies();
     void transitiveOptionalDependencies();
     void typescript();
     void undefinedTargetPlatform();

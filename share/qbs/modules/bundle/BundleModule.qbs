@@ -52,6 +52,7 @@ Module {
         property bool useXcodeBuildSpecs: _useXcodeBuildSpecs
         property bool isMacOs: qbs.targetOS.contains("macos")
         property bool xcodePresent: xcode.present
+        property string xcodeVersion: xcode.version
 
         // Note that we include several settings pointing to properties which reference the output
         // of this probe (WRAPPER_NAME, WRAPPER_EXTENSION, etc.). This is to ensure that derived
@@ -83,8 +84,7 @@ Module {
             var specsPath = path;
             var specsSeparator = "-";
             if (xcodeDeveloperPath && useXcodeBuildSpecs) {
-                specsPath = xcodeDeveloperPath
-                        + "/Platforms/MacOSX.platform/Developer/Library/Xcode/Specifications";
+                specsPath = Bundle.macOSSpecsPath(xcodeVersion, xcodeDeveloperPath);
                 specsSeparator = " ";
             }
 
