@@ -114,7 +114,9 @@ Module {
         cpp.linkerVariant: original
     }
 
-    cpp.cxxLanguageVersion: Utilities.versionCompare(version, "5.7.0") >= 0 ? "c++11" : original
+    cpp.cxxLanguageVersion: Utilities.versionCompare(version, "6.0.0") >= 0
+                            ? "c++17"
+                            : Utilities.versionCompare(version, "5.7.0") >= 0 ? "c++11" : original
     cpp.enableCompilerDefinesByLanguage: ["cpp"].concat(
         qbs.targetOS.contains("darwin") ? ["objcpp"] : [])
     cpp.defines: {
