@@ -68,6 +68,8 @@ BareMetalApplication {
                 return true;
             if (qbs.architecture === "riscv")
                 return true;
+            if (qbs.architecture === "rx")
+                return true;
         }
         console.info("unsupported toolset: %%"
             + qbs.toolchainType + "%%, %%" + qbs.architecture + "%%");
