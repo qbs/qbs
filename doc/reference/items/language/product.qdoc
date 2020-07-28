@@ -207,8 +207,12 @@
 /*!
     \qmlproperty stringList Product::qbsSearchPaths
 
+    A list of paths that are searched for imports, modules and module providers.
+
     The value set here will be merged with the value of
     \l{Project::qbsSearchPaths}{project.qbsSearchPaths}.
+
+    For the details about how to add custom items, see the \l{Custom Modules and Items} page.
 
     \defaultvalue \l{Project::qbsSearchPaths}{project.qbsSearchPaths}
 */
