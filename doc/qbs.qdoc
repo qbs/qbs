@@ -1445,6 +1445,9 @@
 
     \title Building Applications
 
+    This section assumes that \QBS is present in \c PATH. For the details how to install \QBS, see
+    the \l{Installing} page.
+
     To build applications from the command line, enter the following commands:
 
     \code
