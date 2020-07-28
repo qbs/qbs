@@ -50,6 +50,8 @@ BareMetalApplication {
                 return true;
             if (qbs.architecture === "avr")
                 return true;
+            if (qbs.architecture === "avr32")
+                return true;
             if (qbs.architecture === "msp430")
                 return true;
             if (qbs.architecture === "xtensa")
