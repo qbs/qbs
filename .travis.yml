@@ -12,7 +12,7 @@ env:
   global:
     - QT_INSTALL_DIR=~/Qt
     - QT_VERSION=5.15.0
-    - QTCREATOR_VERSION=4.11.2
+    - QTCREATOR_VERSION=4.12.4
     - QTEST_FUNCTION_TIMEOUT=9000000
 
 cache:
@@ -90,9 +90,9 @@ jobs:
 
     - &build-on-macos
       stage: Build Qbs and and run autotests
-      name: With Qbs on macOS (xcode 11.3)
+      name: With Qbs on macOS (xcode 11.5)
       os: osx
-      osx_image: xcode11.3
+      osx_image: xcode11.5
       addons:
         homebrew:
           packages:
@@ -115,7 +115,9 @@ jobs:
       before_install:
         - ./scripts/install-qt.sh -d ${QT_INSTALL_DIR} --version ${QT_VERSION} qtbase qtdeclarative qttools qtscript qtscxml
         - ./scripts/install-qt.sh -d ${QT_INSTALL_DIR} --version ${QTCREATOR_VERSION} qtcreator
-        - python3 -m pip install --user beautifulsoup4 lxml
+        # Hack to workaround the BinaryProbe bug - it prefers /usr/bin/python3 to the one found in PATH
+        # Older macs, however, do not have python3 in /usr/bin
+        - /usr/bin/python3 -m pip install --user beautifulsoup4 lxml || python3 -m pip install --user beautifulsoup4 lxml
       before_script:
         - ulimit -c unlimited -S       # enable core dumps
       script:
@@ -135,7 +137,7 @@ jobs:
           done;
 
     - <<: *build-on-macos
-      name: With Qbs on macOS (xcode 11.3) using iOS profile
+      name: With Qbs on macOS (xcode 11.5) using iOS profile
       if: branch = master
       env:
         # Address sanitizer slows autotests down too much.
