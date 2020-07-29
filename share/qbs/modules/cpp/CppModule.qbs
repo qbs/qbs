@@ -128,7 +128,7 @@ Module {
                         defaults will be used."
     }
 
-    property string minimumAndroidVersion
+    property string minimumAndroidVersion // not used, undocumented
     PropertyOptions {
         name: "minimumAndroidVersion"
         description: "a version number in the format [major].[minor] indicating the earliest \
@@ -136,7 +136,7 @@ Module {
                         version which is then written to AndroidManifest.xml."
     }
 
-    property string maximumAndroidVersion
+    property string maximumAndroidVersion // not used, undocumented
     PropertyOptions {
         name: "maximumAndroidVersion"
         description: "a version number in the format [major].[minor] indicating the latest \
@@ -384,13 +384,14 @@ Module {
     property bool combineObjcSources: false
     property bool combineObjcxxSources: false
 
+    // Those are set internally by different cpp module implementations
     property stringList targetAssemblerFlags
     property stringList targetDriverFlags
     property stringList targetLinkerFlags
 
     property bool _skipAllChecks: false // Internal
 
-    property bool validateTargetTriple: true
+    property bool validateTargetTriple: true // undocumented
 
     // TODO: The following four rules could use a convenience base item if rule properties
     //       were available in Artifact items and prepare scripts.

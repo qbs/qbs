@@ -365,6 +365,15 @@
 */
 
 /*!
+    \qmlproperty bool cpp::createSymlinks
+    \unixproperty
+
+    Whether to create version alias symlinks when building a dynamic library.
+
+    \defaultvalue \c true
+*/
+
+/*!
     \qmlproperty bool cpp::discardUnusedData
     \since Qbs 1.10
 
@@ -513,6 +522,100 @@
     instead.
 
     \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string cpp::executablePrefix
+
+    A string to prepend to the executable file \l{Product::targetName}{name}.
+
+    \defaultvalue \c ""
+*/
+
+/*!
+    \qmlproperty string cpp::dynamicLibraryPrefix
+
+    A string to prepend to the dynamic library file \l{Product::targetName}{name}.
+
+    \defaultvalue \l{qbs::toolchain}{toolchain}-dependent, typical values are \c "" or \c "lib"
+*/
+
+/*!
+    \qmlproperty string cpp::loadableModulePrefix
+    \appleproperty
+
+    A string to prepend to the Darwin loadable module file \l{Product::targetName}{name}.
+
+    \defaultvalue \c ""
+*/
+
+/*!
+    \qmlproperty string cpp::staticLibraryPrefix
+
+    A string to prepend to the static library file \l{Product::targetName}{name}.
+
+    \defaultvalue \l{qbs::toolchain}{toolchain}-dependent, typical values are \c "" or \c "lib"
+*/
+
+/*!
+    \qmlproperty string cpp::executableSuffix
+
+    A string to append to the executable file \l{Product::targetName}{name}.
+
+    \defaultvalue \l{qbs::toolchain}{toolchain}-dependent, typical values are \c "" or \c ".exe"
+*/
+
+/*!
+    \qmlproperty string cpp::dynamicLibrarySuffix
+
+    A string to append to the dynamic library file \l{Product::targetName}{name}.
+
+    \defaultvalue \l{qbs::toolchain}{toolchain}-dependent, typical values are \c ".so", \c ".dll"
+    or \c "dylib"
+*/
+
+/*!
+    \qmlproperty string cpp::dynamicLibraryImportSuffix
+    \windowsproperty
+
+    A string to append to the dynamic library import file \l{Product::targetName}{name}.
+
+    \defaultvalue \c ".lib"
+*/
+
+/*!
+    \qmlproperty string cpp::loadableModuleSuffix
+    \appleproperty
+
+    A string to append to the Darwin loadable module file \l{Product::targetName}{name}.
+
+    \defaultvalue \c ".bundle"
+*/
+
+/*!
+    \qmlproperty string cpp::staticLibrarySuffix
+
+    A string to append to the executable file \l{Product::targetName}{name}.
+
+    \defaultvalue \l{qbs::toolchain}{toolchain}-dependent, typical values are \c ".a" or \c ".lib"
+*/
+
+/*!
+    \qmlproperty string cpp::debugInfoSuffix
+
+    A string to append to the debug information file name.
+
+    \defaultvalue \l{qbs::toolchain}{toolchain}-dependent, typical values are \c ".debug",
+    \c ".pdb" or \c ".dwarf"
+*/
+
+/*!
+    \qmlproperty string cpp::debugInfoBundleSuffix
+    \appleproperty
+
+    A string to append to the debug information bundle name.
+
+    \defaultvalue \c ".dSYM"
 */
 
 /*!
@@ -944,6 +1047,15 @@
     \since Qbs 1.5
 
     Whether to enable exceptions in C++ code.
+
+    \defaultvalue \c{true}
+*/
+
+/*!
+    \qmlproperty bool cpp::enableSuspiciousLinkerFlagWarnings
+    \since Qbs 1.8
+
+    Whether to print warnings about escaped linker flags (such as \c -Xlinker and \c -Wl).
 
     \defaultvalue \c{true}
 */
@@ -1446,6 +1558,16 @@
 
     \defaultvalue \c{true} on non-Darwin Unix platforms or when targeting
     macOS 10.4.x and older.
+*/
+
+/*!
+    \qmlproperty string cpp::rpathLinkFlag
+    \since Qbs 1.9
+
+    The rpath link flag used by the linker.
+
+    \defaultvalue \l{qbs::toolchain}{toolchain}-dependent, typical values are \c "-rpath-link="
+    or \c "-L"
 */
 
 /*!
