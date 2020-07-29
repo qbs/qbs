@@ -53,6 +53,7 @@
     \li \l{How do I add QML files to a project?}
     \li \l{How do I define a reusable Group of files that can be included in other \QBS files?}
     \li \l{How do I print the value of a property?}
+    \li \l{How do I debug \QBS scripts?}
     \endlist
 
     \section1 How do I build a Qt-based project?
@@ -706,5 +707,42 @@
         console.info("qbs.targetOS: " + qbs.targetOS)
         return qbs.targetOS.contains("unix")
     }
+    \endcode
+
+    It is also possible to throw an exception with the text saying what is wrong - this might
+    be useful if the property contains invalid or unsupported value:
+    \code
+    readonly property bool unix: {
+        if (qbs.targetOS.contains("darwin"))
+            throw "Apple platforms are not supported";
+        return qbs.targetOS.contains("unix")
+    }
+    \endcode
+
+    \section1 How do I debug \QBS scripts?
+
+    To debug the value of a specific property, see the \l{How do I print the value of a property}
+    section.
+
+    Similar debugging techniques could be used within \l{Rule}{Rules} or \c .js files.
+
+    It is also possible to increase \QBS' logging level using the \c --more-verbose (\c -v) option
+    of the \c{qbs build} command:
+
+    \code
+    qbs build -v config:release
+    \endcode
+
+    \QBS uses the Qt Categorized Logging system which allows to configure logging categories
+    in \l{https://doc.qt.io/qt-5/qloggingcategory.html#configuring-categories}{multiple ways}. For
+    example, to enable debug logging for the \c moduleloader category, use the following command:
+    \code
+    QT_LOGGING_RULES="qbs.moduleloader.debug=true" qbs resolve
+    \endcode
+
+    To list all the files in the project directory and show whether they are known to qbs in the
+    respective configuration, use the \c{qbs status} command:
+    \code
+    qbs status config:release
     \endcode
 */
