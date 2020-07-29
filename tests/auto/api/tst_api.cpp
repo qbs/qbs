@@ -1126,6 +1126,7 @@ void TestApi::disappearedWildcardFile()
     QVERIFY(waitForFinished(buildJob.get()));
     VERIFY_NO_ERROR(buildJob->error());
 
+    WAIT_FOR_NEW_TIMESTAMP();
     const QString fileToRemove = QFileInfo(setupParams.projectFilePath()).path() + "/file2.txt";
     QVERIFY(QFile::remove(fileToRemove));
     buildJob.reset(project.buildAllProducts({}));
