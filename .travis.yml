@@ -75,6 +75,19 @@ jobs:
         - docker-compose run bionic qbs build modules.cpp.compilerWrapper:ccache modules.qbsbuildconfig.enableBundledQt:true config:release
         - docker-compose run bionic-android-514 scripts/test-qt-for-android.sh release/install-root/usr/local/bin
 
+    - <<: *build-on-bionic
+      name: With Qbs and with baremetal
+      before_install:
+        - docker-compose pull bionic
+        - docker-compose pull focal-baremetal
+      script:
+        - docker-compose run bionic qbs build modules.cpp.compilerWrapper:ccache modules.qbsbuildconfig.enableBundledQt:true config:release
+        - QBS_AUTOTEST_PROFILE=arm-none-eabi-gcc-9_2 docker-compose run focal-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+        - QBS_AUTOTEST_PROFILE=avr-gcc-5_4 docker-compose run focal-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+        - QBS_AUTOTEST_PROFILE=msp430-gcc-4_6 docker-compose run focal-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+        - QBS_AUTOTEST_PROFILE=sdcc-3_8_0-mcs51 docker-compose run focal-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+        - QBS_AUTOTEST_PROFILE=sdcc-3_8_0-stm8 docker-compose run focal-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+
     - &build-on-macos
       stage: Build Qbs and and run autotests
       name: With Qbs on macOS (xcode 11.3)

@@ -5,6 +5,7 @@ x-default-service: &linux
   environment:
     - BUILD_OPTIONS
     - QTEST_FUNCTION_TIMEOUT
+    - QBS_AUTOTEST_PROFILE
   volumes:
     - .:/qbs
     - ~/.ccache:/home/devel/.ccache
@@ -43,6 +44,14 @@ services:
       context: .
       args:
         QT_VERSION: 5.14.0
+
+  focal-baremetal:
+    << : *linux
+    hostname: focal-baremetal
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:focal-baremetal-0
+    build:
+      dockerfile: docker/focal/test-baremetal.Dockerfile
+      context: .
 
   windows:
     image: ${DOCKER_USER:-qbsbuild}/qbsdev:windowsservercore-5.15.0_1.16.0-0
