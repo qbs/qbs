@@ -1,4 +1,5 @@
 CppApplication {
+    cpp.positionIndependentCode: false
     Properties {
         condition: qbs.toolchain.contains("iar")
             && qbs.architecture === "stm8"
