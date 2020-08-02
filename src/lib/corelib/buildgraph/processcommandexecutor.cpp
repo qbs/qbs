@@ -184,8 +184,8 @@ bool ProcessCommandExecutor::doStart()
             }
             responseFile.close();
             m_responseFileName = responseFile.fileName();
-            arguments = arguments.mid(0,
-                                      std::min(cmd->responseFileArgumentIndex(), arguments.size()));
+            arguments = arguments.mid(0, std::min<int>(cmd->responseFileArgumentIndex(),
+                                                       arguments.size()));
             arguments += QDir::toNativeSeparators(cmd->responseFileUsagePrefix()
                     + responseFile.fileName());
         }

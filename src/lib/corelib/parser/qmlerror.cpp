@@ -271,7 +271,7 @@ QDebug operator<<(QDebug debug, const QmlError &error)
 
                 if (error.column() > 0) {
                     int column = std::max(0, error.column() - 1);
-                    column = std::min(column, line.length());
+                    column = std::min<int>(column, line.length());
 
                     QByteArray ind;
                     ind.reserve(column);
