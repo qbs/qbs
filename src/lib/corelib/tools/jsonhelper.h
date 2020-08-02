@@ -62,7 +62,7 @@ template<> inline QStringList fromJson(const QJsonValue &v)
     const QJsonArray &jsonList = v.toArray();
     QStringList stringList;
     std::transform(jsonList.begin(), jsonList.end(), std::back_inserter(stringList),
-                   [](const QVariant &v) { return v.toString(); });
+                   [](const auto &v) { return v.toString(); });
     return stringList;
 }
 template<> inline QVariantMap fromJson(const QJsonValue &v) { return v.toObject().toVariantMap(); }
