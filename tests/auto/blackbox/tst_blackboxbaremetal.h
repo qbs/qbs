@@ -41,6 +41,8 @@ public:
     TestBlackboxBareMetal();
 
 private slots:
+    void targetPlatform();
+
     void application_data();
     void application();
 

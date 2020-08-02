@@ -52,6 +52,7 @@ CppModule {
     }
 
     qbs.architecture: keilProbe.found ? keilProbe.architecture : original
+    qbs.targetPlatform: "none"
 
     compilerVersionMajor: keilProbe.versionMajor
     compilerVersionMinor: keilProbe.versionMinor

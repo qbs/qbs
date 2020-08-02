@@ -52,6 +52,7 @@ CppModule {
     }
 
     qbs.architecture: sdccProbe.found ? sdccProbe.architecture : original
+    qbs.targetPlatform: "none"
 
     compilerVersionMajor: sdccProbe.versionMajor
     compilerVersionMinor: sdccProbe.versionMinor

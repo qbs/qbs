@@ -52,6 +52,24 @@ TestBlackboxBareMetal::TestBlackboxBareMetal()
 {
 }
 
+void TestBlackboxBareMetal::targetPlatform()
+{
+    QDir::setCurrent(testDataDir + "/target-platform");
+    QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList("-n"))), 0);
+    if (!m_qbsStdout.contains("unsupported toolset:")) {
+        const bool hasNoPlatform = m_qbsStdout.contains("has no platform: true");
+        QCOMPARE(hasNoPlatform, true);
+        const bool hasNoOS = m_qbsStdout.contains("has no os: true");
+        QCOMPARE(hasNoOS, true);
+    } else {
+        QByteArray toolchain;
+        QByteArray architecture;
+        extractUnsupportedToolset(m_qbsStdout, toolchain, architecture);
+        QSKIP("Unsupported toolchain '" + toolchain
+              + "' for architecture '" + architecture + "'");
+    }
+}
+
 void TestBlackboxBareMetal::application_data()
 {
     QTest::addColumn<QString>("testPath");
