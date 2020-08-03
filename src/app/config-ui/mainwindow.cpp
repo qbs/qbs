@@ -48,7 +48,12 @@
 #include <QtGui/qevent.h>
 #include <QtGui/qkeysequence.h>
 
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+#include <QtGui/qaction.h>
+#else
 #include <QtWidgets/qaction.h>
+#endif
+
 #include <QtWidgets/qlineedit.h>
 #include <QtWidgets/qmenu.h>
 #include <QtWidgets/qmenubar.h>
