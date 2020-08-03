@@ -47,6 +47,7 @@ private slots:
     void application();
 
     void staticLibraryDependencies();
+    void externalStaticLibraries();
 
     void userIncludePaths();
     void systemIncludePaths();

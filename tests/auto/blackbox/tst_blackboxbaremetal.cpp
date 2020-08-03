@@ -107,6 +107,21 @@ void TestBlackboxBareMetal::staticLibraryDependencies()
     QVERIFY(output.contains("lib-e"));
 }
 
+void TestBlackboxBareMetal::externalStaticLibraries()
+{
+    QDir::setCurrent(testDataDir + "/external-static-libraries");
+    QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList("-n"))), 0);
+    if (!m_qbsStdout.contains("unsupported toolset:")) {
+        QCOMPARE(runQbs(), 0);
+    } else {
+        QByteArray toolchain;
+        QByteArray architecture;
+        extractUnsupportedToolset(m_qbsStdout, toolchain, architecture);
+        QSKIP("Unsupported toolchain '" + toolchain
+              + "' for architecture '" + architecture + "'");
+    }
+}
+
 void TestBlackboxBareMetal::userIncludePaths()
 {
     QDir::setCurrent(testDataDir + "/user-include-paths");

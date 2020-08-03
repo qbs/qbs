@@ -126,6 +126,7 @@ CppModule {
         id: applicationLinker
         multiplex: true
         inputs: ["obj", "linkerscript"]
+        inputsFromDependencies: ["staticlibrary"]
         outputFileTags: ["application", "mem_map"]
         outputArtifacts: KEIL.applicationLinkerOutputArtifacts(product)
         prepare: KEIL.prepareLinker.apply(KEIL, arguments)
