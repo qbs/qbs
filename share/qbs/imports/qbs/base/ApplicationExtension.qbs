@@ -38,10 +38,13 @@ XPCService {
         qbs.targetOS.contains("ios") && parseInt(xcode.sdkVersion.split(".")[0], 10) < 9
 
     cpp.entryPoint: "_NSExtensionMain"
+    cpp.frameworkPaths: base.concat(_useLegacyExtensionLibraries
+                                    ? qbs.sysroot + "/System/Library/PrivateFrameworks/"
+                                    : [])
     cpp.frameworks: {
         var frameworks = base.concat(["Foundation"]);
         if (_useLegacyExtensionLibraries)
-            frameworks.push(qbs.sysroot + "/System/Library/PrivateFrameworks/PlugInKit.framework");
+            frameworks.push("PlugInKit");
         return frameworks;
     }
 

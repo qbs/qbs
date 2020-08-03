@@ -92,10 +92,12 @@
 /*!
     \qmlproperty stringList Project::qbsSearchPaths
 
-    A list of paths that are searched for imports and modules in addition to the ones listed
-    in \c{preferences.qbsSearchPaths}. The value set here is merged with the value
+    A list of paths that are searched for imports, modules and module providers in addition to the
+    ones listed in \c{preferences.qbsSearchPaths}. The value set here is merged with the value
     inherited from the parent project, if there is one. The result is inherited by
     all products in the project.
+
+    For the details about how to add custom items, see the \l{Custom Modules and Items} page.
 
     \defaultvalue An empty list
 */

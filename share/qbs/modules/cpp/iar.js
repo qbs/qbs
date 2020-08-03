@@ -305,7 +305,7 @@ function guessArchitecture(macros) {
         return "r32c";
     else if (macros["__ICCM16C__"] === "1")
         return "m16c";
-    else if (macros["__ICCRC16C__"] === "1")
+    else if (macros["__ICCCR16C__"] === "1")
         return "cr16";
 }
 
@@ -598,10 +598,13 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
         break;
     case "all":
         if (architecture !== "78k") {
-            args.push("--deprecated_feature_warnings="
-                +"+attribute_syntax,"
-                +"+preprocessor_extensions,"
-                +"+segment_pragmas");
+            if (architecture !== "avr32" && architecture !== "r32c"
+                && architecture !== "sh" && architecture !== "m16c") {
+                args.push("--deprecated_feature_warnings="
+                    +"+attribute_syntax,"
+                    +"+preprocessor_extensions,"
+                    +"+segment_pragmas");
+            }
             if (tag === "cpp")
                 args.push("--warn_about_c_style_casts");
         }

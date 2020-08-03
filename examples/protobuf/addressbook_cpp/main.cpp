@@ -30,9 +30,17 @@
 
 #include <ctime>
 #include <fstream>
-#include <google/protobuf/util/time_util.h>
 #include <iostream>
 #include <string>
+
+#ifdef __GNUC__
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wunused-parameter"
+#  include <google/protobuf/util/time_util.h>
+#  pragma GCC diagnostic pop
+#else
+#  include <google/protobuf/util/time_util.h>
+#endif  // __GNUC__
 
 #include "addressbook.pb.h"
 

@@ -555,7 +555,7 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
     // * https://sourceforge.net/p/sdcc/bugs/2970/
     // We need to replace the '\r\n\' line endings with the'\n' line
     // endings for each generated object file.
-    var isWindows = input.qbs.targetOS.contains("windows");
+    var isWindows = input.qbs.hostOS.contains("windows");
     if (isWindows) {
         cmd = new JavaScriptCommand();
         cmd.objectPath = outputs.obj[0].filePath;

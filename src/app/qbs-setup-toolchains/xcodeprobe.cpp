@@ -95,6 +95,8 @@ static QStringList archList(const QString &applePlatformName)
             archs << QStringLiteral("x86");
         if (applePlatformName != QStringLiteral("watchsimulator"))
             archs << QStringLiteral("x86_64");
+        if (applePlatformName == QStringLiteral("macosx"))
+            archs << QStringLiteral("arm64");
     } else if (applePlatformName == QStringLiteral("iphoneos")
                || applePlatformName == QStringLiteral("appletvos")) {
         if (applePlatformName != QStringLiteral("appletvos"))

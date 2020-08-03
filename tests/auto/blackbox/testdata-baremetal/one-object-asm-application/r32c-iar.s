@@ -1,0 +1,7 @@
+    PUBLIC main
+    RSEG CODE24:CODE:REORDER:NOROOT(0)
+main:
+    MOV.L:Z #0x0, R2R0
+    RTS
+    RSEG SBREF:DATA:NOROOT(0)
+    END

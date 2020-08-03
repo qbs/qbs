@@ -20,7 +20,25 @@ BareMetalApplication {
                 return true;
             if (qbs.architecture === "avr")
                 return true;
+            if (qbs.architecture === "avr32")
+                return true;
             if (qbs.architecture === "msp430")
+                return true;
+            if (qbs.architecture === "rl78")
+                return true;
+            if (qbs.architecture === "rh850")
+                return true;
+            if (qbs.architecture === "v850")
+                return true;
+            if (qbs.architecture === "78k")
+                return true;
+            if (qbs.architecture === "r32c")
+                return true;
+            if (qbs.architecture === "sh")
+                return true;
+            if (qbs.architecture === "cr16")
+                return true;
+            if (qbs.architecture === "m16c")
                 return true;
         } else if (qbs.toolchainType === "sdcc") {
             if (qbs.architecture === "mcs51")
@@ -32,9 +50,25 @@ BareMetalApplication {
                 return true;
             if (qbs.architecture === "avr")
                 return true;
+            if (qbs.architecture === "avr32")
+                return true;
             if (qbs.architecture === "msp430")
                 return true;
             if (qbs.architecture === "xtensa")
+                return true;
+            if (qbs.architecture === "rl78")
+                return true;
+            if (qbs.architecture === "m32c")
+                return true;
+            if (qbs.architecture === "m32r")
+                return true;
+            if (qbs.architecture === "m68k")
+                return true;
+            if (qbs.architecture === "v850")
+                return true;
+            if (qbs.architecture === "riscv")
+                return true;
+            if (qbs.architecture === "rx")
                 return true;
         }
         console.info("unsupported toolset: %%"
