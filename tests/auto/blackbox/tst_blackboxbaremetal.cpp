@@ -155,4 +155,10 @@ void TestBlackboxBareMetal::preincludeHeaders()
     }
 }
 
+void TestBlackboxBareMetal::defines()
+{
+    QDir::setCurrent(testDataDir + "/defines");
+    QCOMPARE(runQbs(), 0);
+}
+
 QTEST_MAIN(TestBlackboxBareMetal)

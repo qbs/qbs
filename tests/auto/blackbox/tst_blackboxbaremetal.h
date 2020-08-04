@@ -55,6 +55,8 @@ private slots:
 
     void preincludeHeaders();
 
+    void defines();
+
 private:
 
 };
