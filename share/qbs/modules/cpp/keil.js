@@ -643,7 +643,8 @@ function compilerOutputArtifacts(input, useListing) {
         artifacts.push({
             fileTags: ["lst"],
             filePath: Utilities.getHash(input.baseDir) + "/"
-                  + (isMcsArchitecture(input.cpp.architecture)
+                  + ((isMcsArchitecture(input.cpp.architecture)
+                        || isC166Architecture(input.cpp.architecture))
                     ? input.fileName : input.baseName)
                   + ".lst"
         });
