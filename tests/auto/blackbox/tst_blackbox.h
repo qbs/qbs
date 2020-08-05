@@ -242,6 +242,7 @@ private slots:
     void probesAndArrayProperties();
     void probesInNestedModules();
     void productDependenciesByType();
+    void productInExportedModule();
     void productProperties();
     void propertyAssignmentOnNonPresentModule();
     void propertyAssignmentInFailedModule();

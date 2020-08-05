@@ -5691,6 +5691,14 @@ void TestBlackbox::productDependenciesByType()
     QVERIFY(apps.empty());
 }
 
+void TestBlackbox::productInExportedModule()
+{
+    QDir::setCurrent(testDataDir + "/product-in-exported-module");
+    QCOMPARE(runQbs(), 0);
+    QEXPECT_FAIL(nullptr, "QBS-1576", Abort);
+    QVERIFY2(!m_qbsStdout.contains("product: dep"), m_qbsStdout.constData());
+}
+
 void TestBlackbox::properQuoting()
 {
     QDir::setCurrent(testDataDir + "/proper quoting");
