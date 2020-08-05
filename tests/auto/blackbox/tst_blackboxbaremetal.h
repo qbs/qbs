@@ -57,6 +57,9 @@ private slots:
 
     void defines();
 
+    void compilerListingFiles_data();
+    void compilerListingFiles();
+
 private:
 
 };
