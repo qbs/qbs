@@ -60,6 +60,9 @@ private slots:
     void compilerListingFiles_data();
     void compilerListingFiles();
 
+    void linkerMapFile_data();
+    void linkerMapFile();
+
 private:
 
 };
