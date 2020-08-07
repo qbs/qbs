@@ -39,8 +39,17 @@ var TemporaryDir = require("qbs.TemporaryDir");
 var TextFile = require("qbs.TextFile");
 var Utilities = require("qbs.Utilities");
 
+function isMcs51Architecture(architecture) {
+    return architecture === "mcs51";
+}
+
+function isMcs251Architecture(architecture) {
+    return architecture === "mcs251";
+}
+
 function isMcsArchitecture(architecture) {
-    return architecture === "mcs51" || architecture === "mcs251";
+    return isMcs51Architecture(architecture)
+        || isMcs251Architecture(architecture);
 }
 
 function isC166Architecture(architecture) {
@@ -156,7 +165,7 @@ function objectSuffix(qbs) {
 
 function mapFileSuffix(qbs) {
     var architecture = qbs.architecture;
-    if (isMcsArchitecture(architecture))
+    if (isMcs51Architecture(architecture))
         return ".m51";
     if (isC166Architecture(architecture))
         return ".m66";
@@ -1049,7 +1058,9 @@ function linkerFlags(project, product, inputs, outputs) {
 
         // Map file generation flag.
         if (!product.cpp.generateLinkerMapFile)
-            args.push("NOMAP");
+            args.push("NOPRINT");
+        else
+            args.push("PRINT(" + FileInfo.toWindowsSeparators(outputs.mem_map[0].filePath) + ")");
     } else if (isArmArchitecture(architecture)) {
         // Inputs.
         if (inputs.obj)

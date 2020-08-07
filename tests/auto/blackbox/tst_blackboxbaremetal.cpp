@@ -59,7 +59,7 @@ static QByteArray unsupportedToolsetMessage(const QByteArray &output)
 static QString linkerMapFileExtension(const QByteArray &toolchain, const QByteArray &architecture)
 {
     if (toolchain == "keil") {
-        if (architecture == "mcs51" || architecture == "mcs251")
+        if (architecture == "mcs51")
             return QStringLiteral(".m51");
         if (architecture == "c166")
             return QStringLiteral(".m66");
