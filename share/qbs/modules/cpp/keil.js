@@ -1016,7 +1016,7 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
     return args;
 }
 
-function linkerFlags(project, product, input, outputs) {
+function linkerFlags(project, product, inputs, outputs) {
     var args = [];
 
     var architecture = product.qbs.architecture;
@@ -1091,7 +1091,7 @@ function linkerFlags(project, product, input, outputs) {
     return args;
 }
 
-function archiverFlags(project, product, input, outputs) {
+function archiverFlags(project, product, inputs, outputs) {
     var args = [];
 
     var architecture = product.qbs.architecture;
@@ -1171,7 +1171,7 @@ function prepareAssembler(project, product, inputs, outputs, input, output, expl
 
 function prepareLinker(project, product, inputs, outputs, input, output) {
     var primaryOutput = outputs.application[0];
-    var args = linkerFlags(project, product, input, outputs);
+    var args = linkerFlags(project, product, inputs, outputs);
     var linkerPath = product.cpp.linkerPath;
     var architecture = product.cpp.architecture;
     var cmd = new Command(linkerPath, args);
@@ -1188,7 +1188,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
 }
 
 function prepareArchiver(project, product, inputs, outputs, input, output) {
-    var args = archiverFlags(project, product, input, outputs);
+    var args = archiverFlags(project, product, inputs, outputs);
     var archiverPath = product.cpp.archiverPath;
     var architecture = product.cpp.architecture;
     var cmd = new Command(archiverPath, args);

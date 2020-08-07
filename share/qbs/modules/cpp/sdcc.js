@@ -455,7 +455,7 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
     return args;
 }
 
-function linkerFlags(project, product, input, outputs) {
+function linkerFlags(project, product, inputs, outputs) {
     var args = [];
 
     // Target MCU flag.
@@ -534,7 +534,7 @@ function linkerFlags(project, product, input, outputs) {
     return args;
 }
 
-function archiverFlags(project, product, input, outputs) {
+function archiverFlags(project, product, inputs, outputs) {
     var args = ["-rc"];
     args.push(outputs.staticlibrary[0].filePath);
     if (inputs.obj)
@@ -585,7 +585,7 @@ function prepareAssembler(project, product, inputs, outputs, input, output, expl
 
 function prepareLinker(project, product, inputs, outputs, input, output) {
     var primaryOutput = outputs.application[0];
-    var args = linkerFlags(project, product, input, outputs);
+    var args = linkerFlags(project, product, inputs, outputs);
     var linkerPath = effectiveLinkerPath(product);
     var cmd = new Command(linkerPath, args);
     cmd.description = "linking " + primaryOutput.fileName;
@@ -594,7 +594,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
 }
 
 function prepareArchiver(project, product, inputs, outputs, input, output) {
-    var args = archiverFlags(project, product, input, outputs);
+    var args = archiverFlags(project, product, inputs, outputs);
     var archiverPath = product.cpp.archiverPath;
     var cmd = new Command(archiverPath, args);
     cmd.description = "linking " + output.fileName;
