@@ -661,7 +661,7 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
     }
 
     // Listing files generation flag.
-    if (product.cpp.generateCompilerListingFiles)
+    if (input.cpp.generateCompilerListingFiles)
         args.push("-l", outputs.lst[0].filePath);
 
     // Misc flags.
@@ -721,7 +721,7 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
     }
 
     // Listing files generation flag.
-    if (product.cpp.generateAssemblerListingFiles)
+    if (input.cpp.generateAssemblerListingFiles)
         args.push("-l", outputs.lst[0].filePath);
 
     // Misc flags.

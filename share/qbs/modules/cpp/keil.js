@@ -759,7 +759,7 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
         }
 
         // Listing files generation flag.
-        if (!product.cpp.generateCompilerListingFiles)
+        if (!input.cpp.generateCompilerListingFiles)
             args.push("NOPRINT");
         else
             args.push("PRINT(" + FileInfo.toWindowsSeparators(outputs.lst[0].filePath) + ")");
@@ -849,7 +849,7 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
             }
 
             // Listing files generation flag.
-            if (product.cpp.generateCompilerListingFiles) {
+            if (input.cpp.generateCompilerListingFiles) {
                 args.push("--list");
                 args.push("--list_dir", FileInfo.path(outputs.lst[0].filePath));
             }
@@ -973,7 +973,7 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
         args.push("EP");
 
         // Listing files generation flag.
-        if (!product.cpp.generateAssemblerListingFiles)
+        if (!input.cpp.generateAssemblerListingFiles)
             args.push("NOPRINT");
         else
             args.push("PRINT(" + FileInfo.toWindowsSeparators(outputs.lst[0].filePath) + ")");
@@ -1015,7 +1015,7 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
             args.push((endianness === "little") ? "--littleend" : "--bigend");
 
         // Listing files generation flag.
-        if (product.cpp.generateAssemblerListingFiles)
+        if (input.cpp.generateAssemblerListingFiles)
             args.push("--list", outputs.lst[0].filePath);
     }
 
