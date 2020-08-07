@@ -37,7 +37,7 @@
 static bool extractToolset(const QByteArray &output,
                            QByteArray &toolchain, QByteArray &architecture)
 {
-    const QRegularExpression re("%%(\\w+)%%, %%(\\w+)%%");
+    const QRegularExpression re("%%([\\w\\-]+)%%, %%(\\w+)%%");
     QRegularExpressionMatchIterator it = re.globalMatch(output);
     if (!it.hasNext())
         return false;

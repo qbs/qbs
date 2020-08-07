@@ -2,6 +2,10 @@ import "../BareMetalApplication.qbs" as BareMetalApplication
 
 BareMetalApplication {
     condition: {
+        if (qbs.toolchainType === "msvc")
+            return true;
+        if (qbs.toolchainType === "clang-cl")
+            return true;
         if (qbs.toolchainType === "iar")
             return true;
         if (qbs.toolchainType === "keil") {

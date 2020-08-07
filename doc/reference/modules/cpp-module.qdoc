@@ -1845,9 +1845,7 @@
     \qmlproperty bool cpp::generateCompilerListingFiles
     \since Qbs 1.15
 
-    \baremetalproperty
-
-    Whether to auto-generate a compiler listing files.
+    Whether to auto-generate compiler listing files.
 
     \defaultvalue \c{false}
 */
