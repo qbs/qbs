@@ -60,6 +60,17 @@ function canonicalSelectors(selectors, nameSuffixes) {
     return selectors.map(mapper);
 }
 
+function pathsFromEnvs(envs, pathListSeparator) {
+    envs = envs || [];
+    var result = [];
+    for (var i = 0; i < envs.length; ++i) {
+        var value = Environment.getEnv(envs[i]) || '';
+        if (value.length > 0)
+            result = result.concat(value.split(pathListSeparator));
+    }
+    return result;
+}
+
 function configure(selectors, names, nameSuffixes, nameFilter, candidateFilter,
                    searchPaths, pathSuffixes, platformSearchPaths, environmentPaths,
                    platformEnvironmentPaths, pathListSeparator) {
@@ -90,14 +101,11 @@ function configure(selectors, names, nameSuffixes, nameFilter, candidateFilter,
     });
 
     // FIXME: Suggest how to obtain paths from system
-    var _paths = ModUtils.concatAll(searchPaths, platformSearchPaths);
-    // FIXME: Add getenv support
-    var envs = ModUtils.concatAll(platformEnvironmentPaths, environmentPaths);
-    for (var i = 0; i < envs.length; ++i) {
-        var value = Environment.getEnv(envs[i]) || '';
-        if (value.length > 0)
-            _paths = _paths.concat(value.split(pathListSeparator));
-    }
+    var _paths = ModUtils.concatAll(
+                pathsFromEnvs(environmentPaths, pathListSeparator),
+                searchPaths,
+                pathsFromEnvs(platformEnvironmentPaths, pathListSeparator),
+                platformSearchPaths);
     var _suffixes = ModUtils.concatAll('', pathSuffixes);
     _paths = _paths.map(function(p) { return FileInfo.fromNativeSeparators(p); });
     _suffixes = _suffixes.map(function(p) { return FileInfo.fromNativeSeparators(p); });

@@ -39,6 +39,7 @@ CppApplication {
     property pathList inputSearchPaths
     property var inputNameFilter
     property var inputCandidateFilter
+    property stringList inputEnvironmentPaths
 
     property stringList outputFilePaths
     property var outputCandidatePaths
@@ -52,6 +53,7 @@ CppApplication {
         candidateFilter: inputCandidateFilter
         searchPaths: inputSearchPaths
         platformSearchPaths: []
+        environmentPaths: inputEnvironmentPaths
     }
 
     property bool validate: {

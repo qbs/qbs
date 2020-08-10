@@ -2961,6 +2961,7 @@ void TestBlackbox::pathProbe_data()
     QTest::newRow("mult-files-mult-suffixes") << QString("mult-files-mult-suffixes.qbs") << true;
     QTest::newRow("name-filter") << QString("name-filter.qbs") << true;
     QTest::newRow("candidate-filter") << QString("candidate-filter.qbs") << true;
+    QTest::newRow("environment-paths") << QString("environment-paths.qbs") << true;
 }
 
 void TestBlackbox::pathProbe()
@@ -2972,6 +2973,7 @@ void TestBlackbox::pathProbe()
 
     QbsRunParameters buildParams("build", QStringList{"-f", projectFile});
     buildParams.expectFailure = !successExpected;
+    buildParams.environment.insert("SEARCH_PATH", "usr/bin");
     QCOMPARE(runQbs(buildParams) == 0, successExpected);
     if (!successExpected)
         QVERIFY2(m_qbsStderr.contains("Probe failed to find files"), m_qbsStderr);

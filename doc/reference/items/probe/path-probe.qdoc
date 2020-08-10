@@ -37,10 +37,11 @@
     locations.
 
     PathProbe takes as input lists of paths to search files from and file name patterns. The paths
-    are specified by using the searchPaths, platformSearchPaths, environmentPaths, and
-    platformEnvironmentPaths properties. The file name patterns are specified by the \l names and
-    nameSuffixes properties. Returns the first file that matches the file name patterns. If no such
-    file is found, the \l {Probe::found}{probe.found} property is set to \c false.
+    are specified by using the environmentPaths, searchPaths, platformEnvironmentPaths and
+    platformSearchPaths properties; the path are searched in the same order as listed. The file
+    name patterns are specified by the \l names and nameSuffixes properties. Returns the first file
+    that matches the file name patterns. If no such file is found, the
+    \l {Probe::found}{probe.found} property is set to \c false.
 
     For example, a simple PathProbe that searches for the stdio.h header can be used as follows:
 
