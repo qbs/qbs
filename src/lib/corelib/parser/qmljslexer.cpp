@@ -46,7 +46,11 @@
 #include <QtCore/qdebug.h>
 
 QT_BEGIN_NAMESPACE
-Q_CORE_EXPORT double qstrtod(const char *s00, char const **se, bool *ok);
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+Q_CORE_EXPORT double qstrntod(const char *s00, int len, char const **se, bool *ok);
+#else
+Q_CORE_EXPORT double qstrntod(const char *s00, qsizetype len, char const **se, bool *ok);
+#endif
 QT_END_NAMESPACE
 
 namespace QbsQmlJS {
@@ -453,15 +457,13 @@ again:
                 }
             }
 
-            chars.append('\0');
-
             const char *begin = chars.constData();
             const char *end = nullptr;
             bool ok = false;
 
-            _tokenValue = qstrtod(begin, &end, &ok);
+            _tokenValue = qstrntod(begin, chars.size(), &end, &ok);
 
-            if (end - begin != chars.size() - 1) {
+            if (end - begin != chars.size()) {
                 _errorCode = IllegalExponentIndicator;
                 _errorMessage = QCoreApplication::translate("QmlParser", "Illegal syntax for exponential number");
                 return T_ERROR;
@@ -846,15 +848,13 @@ int Lexer::scanNumber(QChar ch)
         return T_NUMERIC_LITERAL;
     }
 
-    chars.append('\0');
-
     const char *begin = chars.constData();
     const char *end = nullptr;
     bool ok = false;
 
-    _tokenValue = qstrtod(begin, &end, &ok);
+    _tokenValue = qstrntod(begin, chars.size(), &end, &ok);
 
-    if (end - begin != chars.size() - 1) {
+    if (end - begin != chars.size()) {
         _errorCode = IllegalExponentIndicator;
         _errorMessage = QCoreApplication::translate("QmlParser", "Illegal syntax for exponential number");
         return T_ERROR;
