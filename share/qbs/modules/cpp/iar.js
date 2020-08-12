@@ -579,10 +579,10 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
     // Optimization flags.
     switch (input.cpp.optimization) {
     case "small":
-        args.push("-Ohs");
+        args.push("-Ohz");
         break;
     case "fast":
-        args.push("-Ohz");
+        args.push("-Ohs");
         break;
     case "none":
         args.push("-On");
