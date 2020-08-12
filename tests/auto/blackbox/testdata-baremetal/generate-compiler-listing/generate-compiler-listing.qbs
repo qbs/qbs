@@ -2,6 +2,8 @@ import "../BareMetalApplication.qbs" as BareMetalApplication
 
 BareMetalApplication {
     condition: {
+        if (qbs.toolchainType === "sdcc")
+            return true;
         if (qbs.toolchainType === "msvc")
             return true;
         if (qbs.toolchainType === "clang-cl")

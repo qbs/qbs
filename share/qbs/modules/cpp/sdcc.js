@@ -238,25 +238,20 @@ function collectLibraryDependencies(product) {
     return result;
 }
 
-function compilerOutputArtifacts(input) {
+function compilerOutputArtifacts(input, useListing) {
     var obj = {
         fileTags: ["obj"],
         filePath: Utilities.getHash(input.baseDir) + "/"
               + input.fileName + input.cpp.objectSuffix
     };
 
-    // We need to use the asm_adb, lst, asm_src, asm_sym and rst_data
+    // We need to use the asm_adb, asm_src, asm_sym and rst_data
     // artifacts without of any conditions. Because SDCC always generates
     // it (and seems, this behavior can not be disabled for SDCC).
     var asm_adb = {
         fileTags: ["asm_adb"],
         filePath: Utilities.getHash(input.baseDir) + "/"
               + input.fileName + ".adb"
-    };
-    var lst = {
-        fileTags: ["lst"],
-        filePath: Utilities.getHash(input.baseDir) + "/"
-              + input.fileName + ".lst"
     };
     var asm_src = {
         fileTags: ["asm_src"],
@@ -273,7 +268,15 @@ function compilerOutputArtifacts(input) {
         filePath: Utilities.getHash(input.baseDir) + "/"
               + input.fileName + ".rst"
     };
-    return [obj, asm_adb, lst, asm_src, asm_sym, rst_data];
+    var artifacts = [obj, asm_adb, asm_src, asm_sym, rst_data];
+    if (useListing) {
+        artifacts.push({
+            fileTags: ["lst"],
+            filePath: Utilities.getHash(input.baseDir) + "/"
+              + input.fileName + ".lst"
+        });
+    }
+    return artifacts;
 }
 
 function applicationLinkerOutputArtifacts(product) {
@@ -584,13 +587,38 @@ function prepareAssembler(project, product, inputs, outputs, input, output, expl
 }
 
 function prepareLinker(project, product, inputs, outputs, input, output) {
+    var cmds = [];
     var primaryOutput = outputs.application[0];
     var args = linkerFlags(project, product, inputs, outputs);
     var linkerPath = effectiveLinkerPath(product);
     var cmd = new Command(linkerPath, args);
     cmd.description = "linking " + primaryOutput.fileName;
     cmd.highlight = "linker";
-    return [cmd];
+    cmds.push(cmd);
+
+    // It is a workaround which removes the generated listing files
+    // if it is disabled by cpp.generateCompilerListingFiles property.
+    // Reason is that the SDCC compiler does not have an option to
+    // disable generation for a listing files. Besides, the SDCC
+    // compiler use this files and for the linking. So, we can to
+    // remove a listing files only after the linking completes.
+    if (!product.cpp.generateCompilerListingFiles) {
+        cmd = new JavaScriptCommand();
+        cmd.objectPaths = inputs.obj.map(function(a) { return a.filePath; });
+        cmd.objectSuffix = product.cpp.objectSuffix;
+        cmd.sourceCode = function() {
+            objectPaths.forEach(function(objectPath) {
+                if (!objectPath.endsWith(".c" + objectSuffix))
+                    continue; // Skip the assembler objects.
+                var listingPath = FileInfo.joinPaths(
+                    FileInfo.path(objectPath),
+                    FileInfo.completeBaseName(objectPath) + ".lst");
+                File.remove(listingPath);
+            });
+        };
+        cmds.push(cmd);
+    }
+    return cmds;
 }
 
 function prepareArchiver(project, product, inputs, outputs, input, output) {
