@@ -174,13 +174,14 @@ void TestBlackboxBareMetal::compilerListingFiles()
     if (m_qbsStdout.contains("unsupported toolset:"))
         QSKIP(unsupportedToolsetMessage(m_qbsStdout));
     QCOMPARE(runQbs(), 0);
+    const bool isShortListingNames = m_qbsStdout.contains("using short listing file names");
     const QString productName = testPath.mid(1);
     const QString productBuildDir = relativeProductBuildDir(productName);
     const QString hash = inputDirHash(".");
-    const QString mainListing = productBuildDir + "/" + hash + "/main.c.lst";
+    const QString mainListing = productBuildDir + "/" + hash + (isShortListingNames ? "/main.lst" : "/main.c.lst");
     QCOMPARE(regularFileExists(mainListing), generateListing);
-    const QString fooListing = productBuildDir + "/" + hash + "/fun.c.lst";
-    QCOMPARE(regularFileExists(fooListing), generateListing);
+    const QString funListing = productBuildDir + "/" + hash + (isShortListingNames ? "/fun.lst" : "/fun.c.lst");
+    QCOMPARE(regularFileExists(funListing), generateListing);
 }
 
 void TestBlackboxBareMetal::linkerMapFile_data()

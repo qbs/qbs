@@ -16,6 +16,10 @@ BareMetalApplication {
                 || qbs.architecture === "c166") {
                 return true;
             }
+            if (cpp.compilerName.startsWith("armcc")) {
+                console.info("using short listing file names");
+                return true;
+            }
         }
         console.info("unsupported toolset: %%"
             + qbs.toolchainType + "%%, %%" + qbs.architecture + "%%");
