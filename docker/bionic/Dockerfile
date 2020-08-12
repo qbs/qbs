@@ -42,6 +42,7 @@ RUN apt-get update -qq && \
         ccache \
         clang-8 \
         clang-tidy-8 \
+        cmake \
         curl \
         flex \
         git \
@@ -55,6 +56,7 @@ RUN apt-get update -qq && \
         libgl1-mesa-glx \
         libprotobuf-dev \
         libgrpc++-dev \
+        ninja-build \
         nsis \
         pkg-config \
         protobuf-compiler \

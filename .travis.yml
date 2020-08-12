@@ -42,6 +42,11 @@ jobs:
         - docker-compose run bionic scripts/build-qbs-with-qbs.sh
 
     - <<: *build-on-bionic
+      name: With CMake on Ubuntu bionic (linux_gcc64)
+      script:
+        - docker-compose run bionic scripts/build-qbs-with-cmake.sh
+
+    - <<: *build-on-bionic
       name: With QMake on Ubuntu bionic (linux_gcc64)
       env:
         BUILD_OPTIONS="CONFIG+=ccache"

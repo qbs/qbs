@@ -43,31 +43,6 @@
 
 #include <QtCore/qglobal.h>
 
-// ### remove when qbs requires qbs 1.6 to build itself
-#if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0) && defined(__APPLE__) && !defined(Q_OS_MAC)
-#define Q_OS_MAC
-#endif
-
-#ifndef Q_OS_MAC
-
-#include <QtScript/qscriptengine.h>
-
-namespace qbs {
-namespace Internal {
-
-// provide a fake initializer for other platforms
-void initializeJsExtensionPropertyList(QScriptValue extensionObject)
-{
-    // provide a fake object
-    QScriptEngine *engine = extensionObject.engine();
-    extensionObject.setProperty(QLatin1String("PropertyList"), engine->newObject());
-}
-
-} // namespace Internal
-} // namespace qbs
-
-#else // Q_OS_MAC
-
 #include <QtCore/qobject.h>
 #include <QtCore/qstring.h>
 #include <QtCore/qvariant.h>
@@ -82,13 +57,14 @@ void initializeJsExtensionPropertyList(QScriptValue extensionObject);
 
 class PropertyListPrivate;
 
+// We need to have this class in the header since CMake's automoc doesn't handle .mm files
 class PropertyList : public QObject, public QScriptable
 {
     Q_OBJECT
 public:
     static QScriptValue ctor(QScriptContext *context, QScriptEngine *engine);
     PropertyList(QScriptContext *context);
-    ~PropertyList();
+    ~PropertyList() override;
     Q_INVOKABLE bool isEmpty() const;
     Q_INVOKABLE void clear();
     Q_INVOKABLE void readFromObject(const QScriptValue &value);
@@ -109,7 +85,5 @@ private:
 } // namespace qbs
 
 Q_DECLARE_METATYPE(qbs::Internal::PropertyList *)
-
-#endif // Q_OS_MAC
 
 #endif // QBS_PROPERTYLIST_H

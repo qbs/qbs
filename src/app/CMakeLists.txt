@@ -1,0 +1,8 @@
+add_subdirectory(config)
+add_subdirectory(config-ui)
+add_subdirectory(qbs)
+add_subdirectory(qbs-create-project)
+add_subdirectory(qbs-setup-android)
+add_subdirectory(qbs-setup-qt)
+add_subdirectory(qbs-setup-toolchains)
+add_subdirectory(shared)

@@ -18,8 +18,8 @@ SOURCES += \
     $$PWD/utilitiesextension.cpp
 
 darwin {
-    HEADERS += $$PWD/propertylistutils.h
-    SOURCES += $$PWD/propertylist.mm $$PWD/propertylistutils.mm
+    HEADERS += $$PWD/propertylistutils.h $$PWD/propertylist_darwin.h
+    SOURCES += $$PWD/propertylist_darwin.mm $$PWD/propertylistutils.mm
     LIBS += -framework Foundation
 } else {
     SOURCES += $$PWD/propertylist.cpp

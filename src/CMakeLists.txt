@@ -1,0 +1,5 @@
+add_subdirectory(app)
+add_subdirectory(lib)
+add_subdirectory(libexec)
+add_subdirectory(plugins)
+add_subdirectory(shared)

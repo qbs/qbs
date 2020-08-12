@@ -1,0 +1,9 @@
+add_subdirectory(api)
+add_subdirectory(cmdlineparser)
+add_subdirectory(blackbox)
+
+if(WITH_UNIT_TESTS)
+    add_subdirectory(buildgraph)
+    add_subdirectory(language)
+    add_subdirectory(tools)
+endif()

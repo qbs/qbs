@@ -258,7 +258,10 @@ QbsLibrary {
         prefix: "jsextensions/"
         condition: qbs.targetOS.contains("darwin")
         files: [
-            "propertylist.mm",
+            // This is ugly, but because of QBS-1592 we cannot check the platform in the header
+            // using Q_OS_DARWIN
+            "propertylist_darwin.h",
+            "propertylist_darwin.mm",
             "propertylistutils.h",
             "propertylistutils.mm",
         ]
