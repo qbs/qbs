@@ -213,6 +213,7 @@ function guessArmCCArchitecture(targetArchArm, targetArchThumb) {
 }
 
 function guessArmClangArchitecture(targetArchArm, targetArchProfile) {
+    targetArchProfile = targetArchProfile.replace(/'/g, "");
     var arch = "arm";
     if (targetArchArm !== "" && targetArchProfile !== "")
         arch += "v" + targetArchArm + targetArchProfile.toLowerCase();
