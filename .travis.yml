@@ -129,7 +129,7 @@ jobs:
 
     - <<: *build-on-macos
       name: With Qbs on macOS (xcode 11.3) using iOS profile
-      if: branch = master
+      if: NOT branch =~ ^gerrit
       env:
         # Address sanitizer slows autotests down too much.
         # We would hit the maximum build time on Travis.
@@ -154,17 +154,17 @@ jobs:
     - <<: *build-on-macos
       name: With Qbs on macOS (xcode 10.3)
       osx_image: xcode10.3
-      if: branch = master
+      if: NOT branch =~ ^gerrit
 
     - <<: *build-on-macos
       name: With Qbs on macOS (xcode 9.4)
       osx_image: xcode9.4
-      if: branch = master
+      if: NOT branch =~ ^gerrit
 
     - &build-on-windows-with-docker
       stage: Build Qbs and and run autotests
       name: With Qbs on Windows with Docker (Visual Studio 2017)
-      if: branch = master
+      if: NOT branch =~ ^gerrit
       os: windows
       services: docker
       env:
@@ -221,7 +221,7 @@ jobs:
 
     - <<: *build-on-windows
       name: With Qbs on Windows (clang-cl)
-      if: branch = master
+      if: NOT branch =~ ^gerrit
       script:
         - qbs setup-toolchains --detect
         - qbs setup-qt ${QMAKE_PATH} qt
