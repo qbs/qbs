@@ -3,8 +3,7 @@ Module {
         id: propProbe
         property stringList prop: []
         configure: {
-            prop = [];
-            prop.push("probe");
+            prop = ["probe"];
             found = true;
         }
     }
