@@ -60,6 +60,7 @@ Probe {
         if (!packageNames || packageNames.length === 0)
             throw 'PkgConfigProbe.packageNames must be specified.';
         var p = new Process();
+        var stdout;
         try {
             var libDirsToSet = libDirs;
             if (sysroot) {
@@ -86,14 +87,14 @@ Probe {
             }
             var args = packageNames;
             if (p.exec(executable, args.concat([ '--cflags' ])) === 0) {
-                cflags = p.readStdOut().trim();
-                cflags = cflags ? cflags.split(/\s/) : [];
+                stdout = p.readStdOut().trim();
+                cflags = stdout ? stdout.split(/\s/): [];
                 var libsArgs = args.concat("--libs");
                 if (forStaticBuild)
                     libsArgs.push("--static");
                 if (p.exec(executable, libsArgs) === 0) {
-                    libs = p.readStdOut().trim();
-                    libs = libs ? libs.split(/\s/) : [];
+                    stdout = p.readStdOut().trim();
+                    libs = stdout ? stdout.split(/\s/): [];
                     if (p.exec(executable, [packageNames[0]].concat([ '--modversion' ])) === 0) {
                         modversion = p.readStdOut().trim();
                         found = true;
