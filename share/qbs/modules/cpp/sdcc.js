@@ -609,7 +609,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
         cmd.sourceCode = function() {
             objectPaths.forEach(function(objectPath) {
                 if (!objectPath.endsWith(".c" + objectSuffix))
-                    continue; // Skip the assembler objects.
+                    return; // Skip the assembler objects.
                 var listingPath = FileInfo.joinPaths(
                     FileInfo.path(objectPath),
                     FileInfo.completeBaseName(objectPath) + ".lst");
