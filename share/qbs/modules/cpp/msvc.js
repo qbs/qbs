@@ -245,6 +245,9 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
     if (product.cpp.debugInformation && product.cpp.separateDebugInformation)
         args.push("/Fd" + product.targetName + ".cl" + product.cpp.debugInfoSuffix);
 
+    if (input.cpp.generateCompilerListingFiles)
+        args.push("/Fa" + FileInfo.toWindowsSeparators(outputs.lst[0].filePath));
+
     var objectMap = outputs.obj || outputs.intermediate_obj
     var objOutput = objectMap ? objectMap[0] : undefined
     args.push('/Fo' + FileInfo.toWindowsSeparators(objOutput.filePath))

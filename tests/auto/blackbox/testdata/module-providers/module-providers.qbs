@@ -12,7 +12,7 @@ Project {
         Depends { name: "mygenerator.module2" }
         Depends { name: "othergenerator" }
         moduleProviders.mygenerator.chooseLettersFrom: project.beginning
-        moduleProviders.othergenerator.someDefines: "app1"
+        moduleProviders.othergenerator.someDefines: name
         files: "main.cpp"
     }
     CppApplication {

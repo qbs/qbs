@@ -3844,7 +3844,7 @@ QVariantMap ModuleLoader::moduleProviderConfig(ModuleLoader::ProductContext &pro
                 product.theModuleProviderConfig.insert(name.toString(), m);
             }
         };
-        configItemValue->item()->setScope(product.scope);
+        configItemValue->item()->setScope(product.item);
         collectMap(configItemValue->item(), QualifiedId());
     }
     for (auto it = product.moduleProperties.begin(); it != product.moduleProperties.end(); ++it) {

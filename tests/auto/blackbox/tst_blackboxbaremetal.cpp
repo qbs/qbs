@@ -34,10 +34,10 @@
 
 #include <QtCore/qregularexpression.h>
 
-static bool extractUnsupportedToolset(const QByteArray &output,
-                                      QByteArray &toolchain, QByteArray &architecture)
+static bool extractToolset(const QByteArray &output,
+                           QByteArray &toolchain, QByteArray &architecture)
 {
-    const QRegularExpression re("%%(\\w+)%%, %%(\\w+)%%");
+    const QRegularExpression re("%%([\\w\\-]+)%%, %%(\\w+)%%");
     QRegularExpressionMatchIterator it = re.globalMatch(output);
     if (!it.hasNext())
         return false;
@@ -47,9 +47,41 @@ static bool extractUnsupportedToolset(const QByteArray &output,
     return true;
 }
 
+static QByteArray unsupportedToolsetMessage(const QByteArray &output)
+{
+    QByteArray toolchain;
+    QByteArray architecture;
+    extractToolset(output, toolchain, architecture);
+    return "Unsupported toolchain '" + toolchain
+          + "' for architecture '" + architecture + "'";
+}
+
+static QString linkerMapFileExtension(const QByteArray &toolchain, const QByteArray &architecture)
+{
+    if (toolchain == "keil") {
+        if (architecture == "mcs51")
+            return QStringLiteral(".m51");
+        if (architecture == "c166")
+            return QStringLiteral(".m66");
+    }
+    return QStringLiteral(".map");
+}
+
 TestBlackboxBareMetal::TestBlackboxBareMetal()
     : TestBlackboxBase (SRCDIR "/testdata-baremetal", "blackbox-baremetal")
 {
+}
+
+void TestBlackboxBareMetal::targetPlatform()
+{
+    QDir::setCurrent(testDataDir + "/target-platform");
+    QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList("-n"))), 0);
+    if (m_qbsStdout.contains("unsupported toolset:"))
+        QSKIP(unsupportedToolsetMessage(m_qbsStdout));
+    const bool hasNoPlatform = m_qbsStdout.contains("has no platform: true");
+    QCOMPARE(hasNoPlatform, true);
+    const bool hasNoOS = m_qbsStdout.contains("has no os: true");
+    QCOMPARE(hasNoOS, true);
 }
 
 void TestBlackboxBareMetal::application_data()
@@ -65,15 +97,9 @@ void TestBlackboxBareMetal::application()
     QFETCH(QString, testPath);
     QDir::setCurrent(testDataDir + testPath);
     QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList("-n"))), 0);
-    if (!m_qbsStdout.contains("unsupported toolset:")) {
-        QCOMPARE(runQbs(), 0);
-    } else {
-        QByteArray toolchain;
-        QByteArray architecture;
-        extractUnsupportedToolset(m_qbsStdout, toolchain, architecture);
-        QSKIP("Unsupported toolchain '" + toolchain
-              + "' for architecture '" + architecture + "'");
-    }
+    if (m_qbsStdout.contains("unsupported toolset:"))
+        QSKIP(unsupportedToolsetMessage(m_qbsStdout));
+    QCOMPARE(runQbs(), 0);
 }
 
 void TestBlackboxBareMetal::staticLibraryDependencies()
@@ -87,6 +113,15 @@ void TestBlackboxBareMetal::staticLibraryDependencies()
     QVERIFY(output.contains("lib-c"));
     QVERIFY(output.contains("lib-d"));
     QVERIFY(output.contains("lib-e"));
+}
+
+void TestBlackboxBareMetal::externalStaticLibraries()
+{
+    QDir::setCurrent(testDataDir + "/external-static-libraries");
+    QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList("-n"))), 0);
+    if (m_qbsStdout.contains("unsupported toolset:"))
+        QSKIP(unsupportedToolsetMessage(m_qbsStdout));
+    QCOMPARE(runQbs(), 0);
 }
 
 void TestBlackboxBareMetal::userIncludePaths()
@@ -111,15 +146,74 @@ void TestBlackboxBareMetal::preincludeHeaders()
 {
     QDir::setCurrent(testDataDir + "/preinclude-headers");
     QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList("-n"))), 0);
-    if (!m_qbsStdout.contains("unsupported toolset:")) {
-        QCOMPARE(runQbs(), 0);
-    } else {
-        QByteArray toolchain;
-        QByteArray architecture;
-        extractUnsupportedToolset(m_qbsStdout, toolchain, architecture);
-        QSKIP("Unsupported toolchain '" + toolchain
-              + "' for architecture '" + architecture + "'");
-    }
+    if (m_qbsStdout.contains("unsupported toolset:"))
+        QSKIP(unsupportedToolsetMessage(m_qbsStdout));
+    QCOMPARE(runQbs(), 0);
+}
+
+void TestBlackboxBareMetal::defines()
+{
+    QDir::setCurrent(testDataDir + "/defines");
+    QCOMPARE(runQbs(), 0);
+}
+
+void TestBlackboxBareMetal::compilerListingFiles_data()
+{
+    QTest::addColumn<QString>("testPath");
+    QTest::addColumn<bool>("generateListing");
+    QTest::newRow("do-not-generate-compiler-listing") << "/do-not-generate-compiler-listing" << false;
+    QTest::newRow("generate-compiler-listing") << "/generate-compiler-listing" << true;
+}
+
+void TestBlackboxBareMetal::compilerListingFiles()
+{
+    QFETCH(QString, testPath);
+    QFETCH(bool, generateListing);
+    QDir::setCurrent(testDataDir + testPath);
+    QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList("-n"))), 0);
+    if (m_qbsStdout.contains("unsupported toolset:"))
+        QSKIP(unsupportedToolsetMessage(m_qbsStdout));
+    QCOMPARE(runQbs(), 0);
+    const bool isShortListingNames = m_qbsStdout.contains("using short listing file names");
+    const QString productName = testPath.mid(1);
+    const QString productBuildDir = relativeProductBuildDir(productName);
+    const QString hash = inputDirHash(".");
+    const QString mainListing = productBuildDir + "/" + hash + (isShortListingNames ? "/main.lst" : "/main.c.lst");
+    QCOMPARE(regularFileExists(mainListing), generateListing);
+    const QString funListing = productBuildDir + "/" + hash + (isShortListingNames ? "/fun.lst" : "/fun.c.lst");
+    QCOMPARE(regularFileExists(funListing), generateListing);
+}
+
+void TestBlackboxBareMetal::linkerMapFile_data()
+{
+    QTest::addColumn<QString>("testPath");
+    QTest::addColumn<bool>("generateMap");
+    QTest::newRow("do-not-generate-linker-map") << "/do-not-generate-linker-map" << false;
+    QTest::newRow("generate-linker-map") << "/generate-linker-map" << true;
+}
+
+void TestBlackboxBareMetal::linkerMapFile()
+{
+    QFETCH(QString, testPath);
+    QFETCH(bool, generateMap);
+    QDir::setCurrent(testDataDir + testPath);
+    QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList("-n"))), 0);
+    if (m_qbsStdout.contains("unsupported toolset:"))
+        QSKIP(unsupportedToolsetMessage(m_qbsStdout));
+    if (!m_qbsStdout.contains("current toolset:"))
+        QFAIL("No current toolset pattern exists");
+
+    QByteArray toolchain;
+    QByteArray architecture;
+    if (!extractToolset(m_qbsStdout, toolchain, architecture))
+        QFAIL("Unable to extract current toolset");
+
+    QCOMPARE(runQbs(), 0);
+    const QString productName = testPath.mid(1);
+    const QString productBuildDir = relativeProductBuildDir(productName);
+    const auto extension = linkerMapFileExtension(toolchain, architecture);
+    const QString linkerMap = productBuildDir + "/" + productName + extension;
+    QCOMPARE(regularFileExists(linkerMap), generateMap);
 }
 
 QTEST_MAIN(TestBlackboxBareMetal)

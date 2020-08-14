@@ -37,8 +37,6 @@ import "setuprunenv.js" as SetupRunEnv
 GenericGCC {
     condition: false
 
-    staticLibraryPrefix: "lib"
-    staticLibrarySuffix: ".a"
     dynamicLibrarySuffix: ".dll"
     executableSuffix: ".exe"
     debugInfoSuffix: ".debug"

@@ -54,6 +54,7 @@ CppModule {
     }
 
     qbs.architecture: iarProbe.found ? iarProbe.architecture : original
+    qbs.targetPlatform: "none"
 
     compilerVersionMajor: iarProbe.versionMajor
     compilerVersionMinor: iarProbe.versionMinor

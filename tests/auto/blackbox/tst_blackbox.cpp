@@ -2965,6 +2965,7 @@ void TestBlackbox::pathProbe_data()
     QTest::newRow("mult-files-mult-suffixes") << QString("mult-files-mult-suffixes.qbs") << true;
     QTest::newRow("name-filter") << QString("name-filter.qbs") << true;
     QTest::newRow("candidate-filter") << QString("candidate-filter.qbs") << true;
+    QTest::newRow("environment-paths") << QString("environment-paths.qbs") << true;
 }
 
 void TestBlackbox::pathProbe()
@@ -2976,6 +2977,7 @@ void TestBlackbox::pathProbe()
 
     QbsRunParameters buildParams("build", QStringList{"-f", projectFile});
     buildParams.expectFailure = !successExpected;
+    buildParams.environment.insert("SEARCH_PATH", "usr/bin");
     QCOMPARE(runQbs(buildParams) == 0, successExpected);
     if (!successExpected)
         QVERIFY2(m_qbsStderr.contains("Probe failed to find files"), m_qbsStderr);
@@ -5695,6 +5697,14 @@ void TestBlackbox::productDependenciesByType()
         QVERIFY2(apps.removeOne(cleanLine), qPrintable(cleanLine));
     }
     QVERIFY(apps.empty());
+}
+
+void TestBlackbox::productInExportedModule()
+{
+    QDir::setCurrent(testDataDir + "/product-in-exported-module");
+    QCOMPARE(runQbs(), 0);
+    QEXPECT_FAIL(nullptr, "QBS-1576", Abort);
+    QVERIFY2(!m_qbsStdout.contains("product: dep"), m_qbsStdout.constData());
 }
 
 void TestBlackbox::properQuoting()

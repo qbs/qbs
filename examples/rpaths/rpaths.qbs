@@ -12,6 +12,7 @@ Project {
         cpp.sonamePrefix: qbs.targetOS.contains("macos") ? "@rpath" : undefined
         cpp.rpaths: cpp.rpathOrigin
         cpp.cxxLanguageVersion: "c++11"
+        cpp.minimumMacosVersion: "10.8"
         files: [
             "objecta.cpp",
             "objecta.h",
@@ -29,6 +30,7 @@ Project {
         name: "LibraryB"
         bundle.isBundle: false
         cpp.cxxLanguageVersion: "c++11"
+        cpp.minimumMacosVersion: "10.8"
         cpp.sonamePrefix: qbs.targetOS.contains("macos") ? "@rpath" : undefined
         cpp.rpaths: cpp.rpathOrigin
         files: [
@@ -51,6 +53,7 @@ Project {
         bundle.isBundle: false
         cpp.rpaths: FileInfo.joinPaths(cpp.rpathOrigin, "..", "lib")
         cpp.cxxLanguageVersion: "c++11"
+        cpp.minimumMacosVersion: "10.8"
         install: true
         installDir: "examples/bin"
     }

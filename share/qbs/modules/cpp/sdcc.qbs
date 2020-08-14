@@ -52,6 +52,7 @@ CppModule {
     }
 
     qbs.architecture: sdccProbe.found ? sdccProbe.architecture : original
+    qbs.targetPlatform: "none"
 
     compilerVersionMajor: sdccProbe.versionMajor
     compilerVersionMinor: sdccProbe.versionMinor
@@ -100,7 +101,7 @@ CppModule {
         id: assembler
         inputs: ["asm"]
         outputFileTags: ["obj", "asm_adb", "lst", "asm_src", "asm_sym", "rst_data"]
-        outputArtifacts: SDCC.compilerOutputArtifacts(input)
+        outputArtifacts: SDCC.compilerOutputArtifacts(input, true)
         prepare: SDCC.prepareAssembler.apply(SDCC, arguments)
     }
 
@@ -114,7 +115,8 @@ CppModule {
         inputs: ["cpp", "c"]
         auxiliaryInputs: ["hpp"]
         outputFileTags: ["obj", "asm_adb", "lst", "asm_src", "asm_sym", "rst_data"]
-        outputArtifacts: SDCC.compilerOutputArtifacts(input)
+        outputArtifacts: SDCC.compilerOutputArtifacts(
+            input, input.cpp.generateCompilerListingFiles)
         prepare: SDCC.prepareCompiler.apply(SDCC, arguments)
     }
 

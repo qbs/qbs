@@ -149,15 +149,23 @@ CppModule {
         auxiliaryInputs: ["hpp"]
         explicitlyDependsOn: ["c_pch", "cpp_pch"]
 
-        outputFileTags: ["obj", "intermediate_obj"]
+        outputFileTags: ["obj", "intermediate_obj", "lst"]
         outputArtifacts: {
             var tags = input.fileTags.contains("cpp_intermediate_object")
                 ? ["intermediate_obj"]
                 : ["obj"];
-            return [{
+            var artifacts = [];
+            artifacts.push({
                 fileTags: tags,
                 filePath: Utilities.getHash(input.baseDir) + "/" + input.fileName + ".obj"
-            }];
+            });
+            if (input.cpp.generateCompilerListingFiles) {
+                artifacts.push({
+                    fileTags: ["lst"],
+                    filePath: Utilities.getHash(input.baseDir) + "/" + input.fileName + ".lst"
+                });
+            }
+            return artifacts;
         }
 
         prepare: {

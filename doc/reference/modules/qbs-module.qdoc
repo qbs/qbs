@@ -274,9 +274,14 @@
         \li \c{"windows"}
         \li \c{["windows"]}
     \row
+        \li \c{"none"}
+        \li \c{["none"]}
+    \row
         \li \c{undefined}
         \li \c{[]}
     \endtable
+
+    \note The "none" value is usually used for a bare-metal platforms.
 
     \sa {Target Platforms}
 

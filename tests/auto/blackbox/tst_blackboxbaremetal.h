@@ -41,16 +41,27 @@ public:
     TestBlackboxBareMetal();
 
 private slots:
+    void targetPlatform();
+
     void application_data();
     void application();
 
     void staticLibraryDependencies();
+    void externalStaticLibraries();
 
     void userIncludePaths();
     void systemIncludePaths();
     void distributionIncludePaths();
 
     void preincludeHeaders();
+
+    void defines();
+
+    void compilerListingFiles_data();
+    void compilerListingFiles();
+
+    void linkerMapFile_data();
+    void linkerMapFile();
 
 private:
 

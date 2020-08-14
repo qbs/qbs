@@ -133,6 +133,7 @@ Project {
 
         FileTagger { patterns: ["*.inl"]; fileTags: ["hpp"] }
 
+        version: "2.0"
         Android.sdk.apkBaseName: name
         Android.sdk.packageName: "com.sample.teapot"
         Android.sdk.sourceSetDir: teapotProbe.dir

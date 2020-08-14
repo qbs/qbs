@@ -27,6 +27,11 @@ QbsApp {
     Group {
         name: "MinGW specific files"
         condition: qbs.toolchain.contains("mingw")
-        files: ["qbs-setup-toolchains.exe.manifest", "qbs-setup-toolchains.rc"]
+        files: "qbs-setup-toolchains.rc"
+        Group {
+            name: "qbs-setup-toolchains manifest"
+            files: "qbs-setup-toolchains.exe.manifest"
+            fileTags: [] // the manifest is referenced by the rc file
+        }
     }
 }

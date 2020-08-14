@@ -114,6 +114,9 @@ CppModule {
     compilerFrameworkPaths: gccProbe.frameworkPaths
     compilerLibraryPaths: gccProbe.libraryPaths
 
+    staticLibraryPrefix: "lib"
+    staticLibrarySuffix: ".a"
+
     property bool compilerHasTargetOption: qbs.toolchain.contains("clang")
                                            && Utilities.versionCompare(compilerVersion, "3.1") >= 0
     property bool assemblerHasTargetOption: qbs.toolchain.contains("xcode")

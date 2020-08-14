@@ -35,10 +35,8 @@ GenericGCC {
                && qbs.targetOS.contains("unix")
     priority: -50
 
-    staticLibraryPrefix: "lib"
     dynamicLibraryPrefix: "lib"
     loadableModulePrefix: "lib"
-    staticLibrarySuffix: ".a"
     dynamicLibrarySuffix: ".so"
     debugInfoSuffix: ".debug"
     imageFormat: "elf"

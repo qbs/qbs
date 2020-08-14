@@ -74,6 +74,7 @@ LinuxGCC {
     property string toolchainTriple: [targetAbi === "androideabi" ? "arm" : targetArch,
                                       targetSystem, targetAbi].join("-")
 
+    internalVersion: undefined
     toolchainPrefix: undefined
 
     machineType: {

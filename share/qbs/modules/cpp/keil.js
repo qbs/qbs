@@ -39,8 +39,17 @@ var TemporaryDir = require("qbs.TemporaryDir");
 var TextFile = require("qbs.TextFile");
 var Utilities = require("qbs.Utilities");
 
+function isMcs51Architecture(architecture) {
+    return architecture === "mcs51";
+}
+
+function isMcs251Architecture(architecture) {
+    return architecture === "mcs251";
+}
+
 function isMcsArchitecture(architecture) {
-    return architecture === "mcs51" || architecture === "mcs251";
+    return isMcs51Architecture(architecture)
+        || isMcs251Architecture(architecture);
 }
 
 function isC166Architecture(architecture) {
@@ -156,7 +165,7 @@ function objectSuffix(qbs) {
 
 function mapFileSuffix(qbs) {
     var architecture = qbs.architecture;
-    if (isMcsArchitecture(architecture))
+    if (isMcs51Architecture(architecture))
         return ".m51";
     if (isC166Architecture(architecture))
         return ".m66";
@@ -204,6 +213,7 @@ function guessArmCCArchitecture(targetArchArm, targetArchThumb) {
 }
 
 function guessArmClangArchitecture(targetArchArm, targetArchProfile) {
+    targetArchProfile = targetArchProfile.replace(/'/g, "");
     var arch = "arm";
     if (targetArchArm !== "" && targetArchProfile !== "")
         arch += "v" + targetArchArm + targetArchProfile.toLowerCase();
@@ -643,7 +653,8 @@ function compilerOutputArtifacts(input, useListing) {
         artifacts.push({
             fileTags: ["lst"],
             filePath: Utilities.getHash(input.baseDir) + "/"
-                  + (isMcsArchitecture(input.cpp.architecture)
+                  + ((isMcsArchitecture(input.cpp.architecture)
+                        || isC166Architecture(input.cpp.architecture))
                     ? input.fileName : input.baseName)
                   + ".lst"
         });
@@ -749,7 +760,7 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
         }
 
         // Listing files generation flag.
-        if (!product.cpp.generateCompilerListingFiles)
+        if (!input.cpp.generateCompilerListingFiles)
             args.push("NOPRINT");
         else
             args.push("PRINT(" + FileInfo.toWindowsSeparators(outputs.lst[0].filePath) + ")");
@@ -839,7 +850,7 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
             }
 
             // Listing files generation flag.
-            if (product.cpp.generateCompilerListingFiles) {
+            if (input.cpp.generateCompilerListingFiles) {
                 args.push("--list");
                 args.push("--list_dir", FileInfo.path(outputs.lst[0].filePath));
             }
@@ -963,7 +974,7 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
         args.push("EP");
 
         // Listing files generation flag.
-        if (!product.cpp.generateAssemblerListingFiles)
+        if (!input.cpp.generateAssemblerListingFiles)
             args.push("NOPRINT");
         else
             args.push("PRINT(" + FileInfo.toWindowsSeparators(outputs.lst[0].filePath) + ")");
@@ -1005,7 +1016,7 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
             args.push((endianness === "little") ? "--littleend" : "--bigend");
 
         // Listing files generation flag.
-        if (product.cpp.generateAssemblerListingFiles)
+        if (input.cpp.generateAssemblerListingFiles)
             args.push("--list", outputs.lst[0].filePath);
     }
 
@@ -1015,7 +1026,7 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
     return args;
 }
 
-function linkerFlags(project, product, input, outputs) {
+function linkerFlags(project, product, inputs, outputs) {
     var args = [];
 
     var architecture = product.qbs.architecture;
@@ -1048,7 +1059,9 @@ function linkerFlags(project, product, input, outputs) {
 
         // Map file generation flag.
         if (!product.cpp.generateLinkerMapFile)
-            args.push("NOMAP");
+            args.push("NOPRINT");
+        else
+            args.push("PRINT(" + FileInfo.toWindowsSeparators(outputs.mem_map[0].filePath) + ")");
     } else if (isArmArchitecture(architecture)) {
         // Inputs.
         if (inputs.obj)
@@ -1090,7 +1103,7 @@ function linkerFlags(project, product, input, outputs) {
     return args;
 }
 
-function archiverFlags(project, product, input, outputs) {
+function archiverFlags(project, product, inputs, outputs) {
     var args = [];
 
     var architecture = product.qbs.architecture;
@@ -1170,7 +1183,7 @@ function prepareAssembler(project, product, inputs, outputs, input, output, expl
 
 function prepareLinker(project, product, inputs, outputs, input, output) {
     var primaryOutput = outputs.application[0];
-    var args = linkerFlags(project, product, input, outputs);
+    var args = linkerFlags(project, product, inputs, outputs);
     var linkerPath = product.cpp.linkerPath;
     var architecture = product.cpp.architecture;
     var cmd = new Command(linkerPath, args);
@@ -1187,7 +1200,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
 }
 
 function prepareArchiver(project, product, inputs, outputs, input, output) {
-    var args = archiverFlags(project, product, input, outputs);
+    var args = archiverFlags(project, product, inputs, outputs);
     var archiverPath = product.cpp.archiverPath;
     var architecture = product.cpp.architecture;
     var cmd = new Command(archiverPath, args);
