@@ -35,7 +35,7 @@ function args(product, input, outputs)
     var defines = product.cpp.compilerDefinesByLanguage;
     if (input.fileTags.contains("objcpp"))
         defines = ModUtils.flattenDictionary(defines["objcpp"]) || [];
-    else if (input.fileTags.contains("cpp"))
+    else if (input.fileTags.contains("cpp") || input.fileTags.contains("hpp"))
         defines = ModUtils.flattenDictionary(defines["cpp"]) || [];
     else
         defines = [];
