@@ -84,6 +84,10 @@ void TestBlackboxAndroid::android()
     QFETCH(bool, generateAab);
     QFETCH(bool, isIncrementalBuild);
 
+    // skip tests on github except when run in docker - this var is not propagated into the image
+    if (qEnvironmentVariableIsSet("GITHUB_ACTIONS"))
+        QSKIP("Skip Android tests when running on GitHub");
+
     const SettingsPtr s = settings();
     Profile p(theProfileName(projectDir == "qml-app"), s.get());
     if (!p.exists())

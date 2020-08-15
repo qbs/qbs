@@ -40,6 +40,8 @@ set -eu
 ##
 #############################################################################
 
+export LSAN_OPTIONS="suppressions=$( cd "$(dirname "$0")" ; pwd -P )/address-sanitizer-suppressions.txt:print_suppressions=0"
+
 export PATH="$1:$PATH"
 export QBS_AUTOTEST_ALWAYS_LOG_STDERR=true
 

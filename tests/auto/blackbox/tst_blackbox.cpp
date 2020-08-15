@@ -1392,6 +1392,9 @@ void TestBlackbox::vcsSubversion()
     if (svnFilePath.isEmpty())
         QSKIP("svn not found");
 
+    if (HostOsInfo::isWindowsHost() && qEnvironmentVariableIsSet("GITHUB_ACTIONS"))
+        QSKIP("Skip this test when running on GitHub");
+
     // Set up repo.
     QTemporaryDir repoDir;
     QVERIFY(repoDir.isValid());
@@ -7408,6 +7411,9 @@ void TestBlackbox::nodejs()
 
 void TestBlackbox::typescript()
 {
+    if (qEnvironmentVariableIsSet("GITHUB_ACTIONS"))
+        QSKIP("Skip this test when running on GitHub");
+
     const SettingsPtr s = settings();
     Profile p(profileName(), s.get());
 
@@ -7525,6 +7531,9 @@ void TestBlackbox::innoSetup()
         return;
     }
 
+    if (HostOsInfo::isWindowsHost() && qEnvironmentVariableIsSet("GITHUB_ACTIONS"))
+        QSKIP("Skip this test when running on GitHub");
+
     QDir::setCurrent(testDataDir + "/innosetup");
     QCOMPARE(runQbs(), 0);
     QVERIFY(m_qbsStdout.contains("compiling test.iss"));
@@ -7535,6 +7544,9 @@ void TestBlackbox::innoSetup()
 
 void TestBlackbox::innoSetupDependencies()
 {
+    if (HostOsInfo::isWindowsHost() && qEnvironmentVariableIsSet("GITHUB_ACTIONS"))
+        QSKIP("Skip this test when running on GitHub");
+
     const SettingsPtr s = settings();
     Profile profile(profileName(), s.get());
 
@@ -7813,6 +7825,10 @@ void TestBlackbox::fallbackModuleProvider()
     QFETCH(bool, fallbacksEnabledGlobally);
     QFETCH(QStringList, pkgConfigLibDirs);
     QFETCH(bool, successExpected);
+
+    if (HostOsInfo::isWindowsHost() && qEnvironmentVariableIsSet("GITHUB_ACTIONS"))
+        QSKIP("Skip this test when running on GitHub");
+
     QDir::setCurrent(testDataDir + "/fallback-module-provider");
     static const auto b2s = [](bool b) { return QString(b ? "true" : "false"); };
     QbsRunParameters resolveParams("resolve",

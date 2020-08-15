@@ -1,0 +1,22 @@
+name: 'Download Qt'
+description: 'Downloads Qt'
+inputs:
+  version:
+    description: 'Qt version'
+    required: false
+    default: '5.15.0'
+  target:
+    description: 'Qt target (desktop, ios, android)'
+    required: false
+    default: 'desktop'
+  toolchain:
+    description: 'Qt toolchain'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Install Qt
+      run: |
+        export QT_DIR=$(./scripts/install-qt.sh -d $HOME/Qt --version ${{ inputs.version }} --target ${{ inputs.target }} --toolchain ${{ inputs.toolchain }} qtbase qtdeclarative qttools qtscript qtscxml)
+        echo ::add-path::$QT_DIR
+      shell: bash

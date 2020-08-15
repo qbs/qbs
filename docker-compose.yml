@@ -6,6 +6,8 @@ x-default-service: &linux
     - BUILD_OPTIONS
     - QTEST_FUNCTION_TIMEOUT
     - QBS_AUTOTEST_PROFILE
+    - QBS_TEST_SOURCE_ROOT
+    - WITH_TESTS
   volumes:
     - .:/qbs
     - ~/.ccache:/home/devel/.ccache

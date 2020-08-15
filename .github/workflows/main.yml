@@ -1,0 +1,403 @@
+name: Build and test Qbs
+
+on: [push]
+
+jobs:
+  build-linux:
+    name: ${{ matrix.config.name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - {
+            name: 'Build on Linux (gcc)',
+            options: 'modules.cpp.compilerWrapper:ccache modules.qbs.debugInformation:true modules.qbsbuildconfig.enableBundledQt:true',
+            script: './scripts/build-qbs-with-qbs.sh',
+            cacheid: '{{ runner.os }}-gcc-ccache',
+          }
+    env:
+      BUILD_OPTIONS: ${{ matrix.config.options }}
+      WITH_TESTS: 0
+    steps:
+    - uses: actions/checkout@v1
+    - name: Create .ccache dir
+      run: mkdir -p ~/.ccache
+    - name: prepare timestamp
+      id: ccache_cache_timestamp
+      run: |
+        export TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+        echo ::set-output name=timestamp::$TIMESTAMP
+    - name: ccache cache files
+      uses: actions/cache@v2
+      with:
+        path: ~/.ccache
+        key: ${{ matrix.config.cacheid }}-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
+        restore-keys: ${{ matrix.config.cacheid }}
+    - name: Pull the Bionic Image
+      run: docker-compose pull bionic
+    - name: Print ccache stats
+      run: docker-compose run bionic ccache -s
+    - name: Build Qbs
+      run: docker-compose run bionic ${{ matrix.config.script }}
+    - name: Print ccache stats
+      run: docker-compose run bionic ccache -s
+    - name: Create acrhive
+      run: tar -C release/install-root/ -cJf qbs-${{ runner.os }}-${{ github.run_id }}.tar.xz usr/local
+    - name: Upload artifacts
+      uses: 'actions/upload-artifact@v2'
+      with:
+        name: qbs-${{ runner.os }}-${{ github.run_id }}.tar.xz
+        path: qbs-${{ runner.os }}-${{ github.run_id }}.tar.xz
+
+  build-linux-extra:
+    name: ${{ matrix.config.name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - {
+            name: 'Build on Linux (clang_tidy)',
+            script: './scripts/run-analyzer.sh',
+            options: 'profile:qt-clang_64 modules.cpp.compilerWrapper:ccache',
+            cacheid: '{{ runner.os }}-clang-ccache',
+          }
+        - {
+            name: 'Build on Linux (CMake)',
+            script: './scripts/build-qbs-with-cmake.sh',
+            cacheid: '{{ runner.os }}-cmake-ccache',
+          }
+        - {
+            name: 'Build on Linux (QMake)',
+            script: './scripts/build-qbs-with-qmake.sh',
+            options: 'CONFIG+=ccache',
+            cacheid: '{{ runner.os }}-qmake-ccache',
+          }
+    env:
+      BUILD_OPTIONS: ${{ matrix.config.options }}
+      QTEST_FUNCTION_TIMEOUT: 9000000
+    steps:
+    - uses: actions/checkout@v1
+    - name: Create .ccache dir
+      run: mkdir -p ~/.ccache
+    - name: prepare timestamp
+      id: ccache_cache_timestamp
+      run: |
+        export TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+        echo ::set-output name=timestamp::$TIMESTAMP
+    - name: ccache cache files
+      uses: actions/cache@v2
+      with:
+        path: ~/.ccache
+        key: ${{ matrix.config.cacheid }}-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
+        restore-keys: ${{ matrix.config.cacheid }}
+    - name: Pull the Bionic Image
+      run: docker-compose pull bionic
+    - name: Print ccache stats
+      run: docker-compose run bionic ccache -s
+    - name: Build Qbs
+      run: docker-compose run bionic ${{ matrix.config.script }}
+    - name: Print ccache stats
+      run: docker-compose run bionic ccache -s
+
+  build-macos:
+    name: Build on macOS
+    runs-on: macos-latest
+    timeout-minutes: 45
+    env:
+      BUILD_OPTIONS: 'modules.cpp.compilerWrapper:ccache modules.qbs.debugInformation:true modules.qbsbuildconfig.enableAddressSanitizer:false modules.qbsbuildconfig.enableBundledQt:true'
+      WITH_TESTS: 0
+    steps:
+    - uses: actions/checkout@v1
+    - name: Create .ccache dir
+      run: mkdir -p ~/.ccache
+    - name: prepare timestamp
+      id: ccache_cache_timestamp
+      run: |
+        export TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+        echo ::set-output name=timestamp::$TIMESTAMP
+    - name: ccache cache files
+      uses: actions/cache@v2
+      with:
+        path: ~/.ccache
+        key: ${{ runner.os }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
+        restore-keys: ${{ runner.os }}-ccache-
+    - name: Install required packages
+      run: |
+        brew install ccache p7zip
+        /usr/bin/python3 -m pip install --user beautifulsoup4 lxml
+    - name: Install Qt
+      uses: ./.github/actions/download-qt
+      with:
+        toolchain: clang_64
+    - name: Install Qt Creator
+      uses: ./.github/actions/download-qtc
+    - name: Print ccache stats
+      run: ccache -s
+    - name: Setup Qbs
+      run: |
+        qbs setup-toolchains --detect
+        qbs setup-qt --detect
+        qbs config profiles.qt.baseProfile xcode-macosx-x86_64
+        qbs config defaultProfile qt
+        qbs config --list
+    - name: Build Qbs
+      run: scripts/build-qbs-with-qbs.sh
+    - name: Print ccache stats
+      run: ccache -s
+    - name: Create acrhive
+      run: tar -C release/install-root/ -cJf qbs-${{ runner.os }}-${{ github.run_id }}.tar.xz usr/local
+    - name: Upload artifacts
+      uses: 'actions/upload-artifact@v2'
+      with:
+        name: qbs-${{ runner.os }}-${{ github.run_id }}.tar.xz
+        path: qbs-${{ runner.os }}-${{ github.run_id }}.tar.xz
+
+  build-windows:
+    name: Build on Windows
+    runs-on: windows-latest
+    timeout-minutes: 45
+    env:
+      BUILD_OPTIONS: 'modules.cpp.compilerWrapper:clcache modules.qbsbuildconfig.enableAddressSanitizer:false modules.qbsbuildconfig.enableBundledQt:true'
+      WITH_TESTS: 0
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install beautifulsoup4 lxml
+        pip install git+https://github.com/frerich/clcache.git@cae73d8255d78db8ba11e23c51fd2c9a89e7475b
+    - name: clcache cache files
+      uses: actions/cache@v2
+      with:
+        path: ~/clcache
+        key: ${{ runner.os }}-clcache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
+        restore-keys: ${{ runner.os }}-clcache-
+    - name: Print clcache stats
+      run: clcache -s
+    - name: Install Qt
+      uses: ./.github/actions/download-qt
+      with:
+        toolchain: win64_msvc2019_64
+    - name: Install Qt Creator
+      uses: ./.github/actions/download-qtc
+    - name: Setup Qbs
+      run: |
+        qbs setup-toolchains --detect
+        qbs setup-qt $(which qmake).exe qt
+        qbs config defaultProfile qt
+        qbs config --list
+      shell: bash
+    - name: Build Qbs
+      run: scripts/build-qbs-with-qbs.sh
+      shell: bash
+    - name: Print clcache stats
+      run: clcache -s
+    - name: Create acrhive
+      run: 7z a qbs-${{ runner.os }}-${{ github.run_id }}.7z release/install-root/ -r
+      shell: bash
+    - name: Upload artifacts
+      uses: 'actions/upload-artifact@v2'
+      with:
+        name: qbs-${{ runner.os }}-${{ github.run_id }}.7z
+        path: qbs-${{ runner.os }}-${{ github.run_id }}.7z
+
+  test-linux:
+    name: ${{ matrix.config.name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    needs: build-linux
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - {
+            name: 'Run Linux tests (gcc)',
+            image: 'bionic',
+            profile: 'qt-gcc_64',
+            script: './scripts/test-qbs.sh',
+          }
+        - {
+            name: 'Run Linux tests (clang)',
+            image: 'bionic',
+            profile: 'qt-clang_64',
+            script: './scripts/test-qbs.sh',
+          }
+        - {
+            name: 'Run Android tests (Qt 5.13)',
+            image: 'bionic-android-513',
+            profile: '',
+            script: './scripts/test-qt-for-android.sh',
+          }
+        - {
+            name: 'Run Android tests (Qt 5.14)',
+            image: 'bionic-android-514',
+            profile: '',
+            script: './scripts/test-qt-for-android.sh',
+          }
+    env:
+      QBS_TEST_SOURCE_ROOT: 'tests'
+      QBS_AUTOTEST_PROFILE: ${{ matrix.config.profile }}
+      QTEST_FUNCTION_TIMEOUT: 9000000
+    steps:
+    - uses: actions/checkout@v1
+    - name: Download artifact
+      uses: actions/download-artifact@v1
+      with:
+        name: qbs-${{ runner.os }}-${{ github.run_id }}.tar.xz
+        path: ./
+    - name: Unpack artifact
+      run: mkdir -p release/install-root/ && tar xf qbs-${{ runner.os }}-${{ github.run_id }}.tar.xz -C release/install-root/
+    - name: Pull the Docker Image
+      run: docker-compose pull ${{ matrix.config.image }}
+    - name: Run tests
+      run: docker-compose run ${{ matrix.config.image }} ${{ matrix.config.script }} release/install-root/usr/local/bin
+
+  test-baremetal:
+    name: Run Baremetal tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    needs: build-linux
+    env:
+      QBS_TEST_SOURCE_ROOT: 'tests'
+    steps:
+    - uses: actions/checkout@v1
+    - name: Download artifact
+      uses: actions/download-artifact@v1
+      with:
+        name: qbs-${{ runner.os }}-${{ github.run_id }}.tar.xz
+        path: ./
+    - name: Unpack artifact
+      run: mkdir -p release/install-root/ && tar xf qbs-${{ runner.os }}-${{ github.run_id }}.tar.xz -C release/install-root/
+    - name: Pull the Focal-Baremetal Image
+      run: docker-compose pull focal-baremetal
+    - name: arm-none-eabi-gcc-9_2
+      run: QBS_AUTOTEST_PROFILE=arm-none-eabi-gcc-9_2 docker-compose run focal-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+    - name: avr-gcc-5_4
+      run: QBS_AUTOTEST_PROFILE=avr-gcc-5_4 docker-compose run focal-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+    - name: msp430-gcc-4_6
+      run: QBS_AUTOTEST_PROFILE=msp430-gcc-4_6 docker-compose run focal-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+    - name: sdcc-3_8_0-mcs51
+      run: QBS_AUTOTEST_PROFILE=sdcc-3_8_0-mcs51 docker-compose run focal-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+    - name: sdcc-3_8_0-stm8
+      run: QBS_AUTOTEST_PROFILE=sdcc-3_8_0-stm8 docker-compose run focal-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+
+  test-macos:
+    name: ${{ matrix.config.name }}
+    runs-on: macos-latest
+    timeout-minutes: 45
+    needs: build-macos
+    env:
+      QTEST_FUNCTION_TIMEOUT: 9000000
+      QBS_AUTOTEST_PROFILE: 'qt'
+      QBS_TEST_SOURCE_ROOT: 'tests'
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - {
+            name: 'Run macOS tests (Xcode 11.6)',
+            target: 'desktop',
+            toolchain: 'clang_64',
+            testProfile: 'xcode_11_6-macosx-x86_64',
+          }
+        - {
+            name: 'Run macOS tests (Xcode 10.3)',
+            target: 'desktop',
+            toolchain: 'clang_64',
+            testProfile: 'xcode_10_3-macosx-x86_64',
+          }
+        - {
+            name: 'Run iOS tests (Xcode 11.6)',
+            target: 'ios',
+            toolchain: 'ios',
+            testProfile: 'xcode_11_6-iphoneos-arm64',
+          }
+    steps:
+    - uses: actions/checkout@v1
+    - name: Download artifact
+      uses: actions/download-artifact@v1
+      with:
+        name: qbs-${{ runner.os }}-${{ github.run_id }}.tar.xz
+        path: ./
+    - name: Unpack artifact
+      run: mkdir -p release/install-root/ && tar xf qbs-${{ runner.os }}-${{ github.run_id }}.tar.xz -C release/install-root/
+    - name: Update PATH
+      run: echo ::add-path::./release/install-root/usr/local/bin
+    - name: Install required packages
+      run: brew install capnp ccache grpc icoutils makensis protobuf p7zip
+    - name: Install Qt
+      uses: ./.github/actions/download-qt
+      with:
+        target: ${{ matrix.config.target }}
+        toolchain: ${{ matrix.config.toolchain }}
+    - name: Setup Qbs
+      run: |
+        qbs setup-toolchains --detect
+        qbs setup-qt --detect
+        qbs config profiles.qt.baseProfile ${{ matrix.config.testProfile }}
+        qbs config defaultProfile qt
+        qbs config --list
+    - name: Run Tests
+      run: ./scripts/test-qbs.sh ./release/install-root/usr/local/bin
+
+  test-windows:
+    name: ${{ matrix.config.name }}
+    runs-on: windows-latest
+    timeout-minutes: 45
+    needs: build-windows
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - {
+            name: 'Run Windows tests (MSVC 2019)',
+            target: 'desktop',
+            toolchain: 'win64_msvc2019_64',
+            testProfile: 'MSVC2019-x64',
+          }
+        - {
+            name: 'Run Windows tests (clang-cl)',
+            target: 'desktop',
+            toolchain: 'win64_msvc2019_64',
+            testProfile: 'clang-cl-x86_64',
+          }
+    env:
+      QTEST_FUNCTION_TIMEOUT: 9000000
+      QBS_AUTOTEST_PROFILE: 'qt'
+      QBS_TEST_SOURCE_ROOT: 'tests'
+    steps:
+    - uses: actions/checkout@v1
+    - name: Download artifact
+      uses: actions/download-artifact@v1
+      with:
+        name: qbs-${{ runner.os }}-${{ github.run_id }}.7z
+        path: ./
+    - name: Unpack artifact
+      run: 7z x qbs-${{ runner.os }}-${{ github.run_id }}.7z
+      shell: bash
+    - name: Update PATH
+      run: echo ::add-path::./release/install-root/bin
+      shell: bash
+    - name: Install Qt
+      uses: ./.github/actions/download-qt
+      with:
+        toolchain: ${{ matrix.config.toolchain }}
+    - name: Setup Qbs
+      run: |
+        qbs setup-toolchains --detect
+        qbs setup-qt $(which qmake).exe qt
+        qbs config profiles.qt.baseProfile ${{ matrix.config.testProfile }}
+        qbs config defaultProfile qt
+        qbs config --list
+      shell: bash
+    - name: Run Tests
+      run: ./scripts/test-qbs.sh ./release/install-root/bin
+      shell: bash

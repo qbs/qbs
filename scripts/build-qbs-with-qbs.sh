@@ -78,6 +78,16 @@ if [ "$WITH_DOCS" -ne 0 ]; then
     qbs build -p "qbs documentation" ${BUILD_OPTIONS}
 fi
 
+WITH_ARCHIVE=${WITH_ARCHIVE:-0}
+if [ "$WITH_ARCHIVE" -ne 0 ]; then
+    qbs build -p dist ${BUILD_OPTIONS} "products.qbs archive.includeTopLevelDir:true"
+fi
+
+WITH_TESTS=${WITH_TESTS:-1}
+if [ "$WITH_TESTS" -eq 0 ]; then
+    exit 0
+fi
+
 QMAKE_PATH=${QMAKE_PATH:-$(which qmake)}
 
 #

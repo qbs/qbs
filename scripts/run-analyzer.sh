@@ -57,14 +57,7 @@ if [ -z "$RUN_CLANG_TIDY" ] || [ -z "$CLANG_TIDY" ]; then
     fi
 fi
 
-NPROC=`which nproc`
-SYSCTL=`which sysctl`
-CPU_COUNT=2
-if [ ! -z "$NPROC" ]; then # Linux
-    CPU_COUNT=`$NPROC --all`
-elif [ ! -z "$SYSCTL" ]; then  # macOS
-    CPU_COUNT=`$SYSCTL -n hw.ncpu`
-fi
+CPU_COUNT=$("$(dirname "$0")"/cpu-count.sh)
 
 BUILD_OPTIONS="\
     ${QBS_BUILD_PROFILE:+profile:${QBS_BUILD_PROFILE}} \

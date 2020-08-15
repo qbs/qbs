@@ -1,0 +1,15 @@
+name: 'Download Qt Creator'
+description: 'Downloads Qt Creator'
+inputs:
+  version:
+    description: 'Qt Creator version'
+    required: false
+    default: '4.12.4'
+runs:
+  using: "composite"
+  steps:
+    - name: Install Qt Creator
+      run: |
+        export QTC_DIR=$(./scripts/install-qt.sh -d $HOME/Qt --version ${{ inputs.version }} qtcreator)
+        echo ::add-path::$QTC_DIR
+      shell: bash
