@@ -266,6 +266,12 @@ void TestBlackboxQt::mocFlags()
     QVERIFY(runQbs(params) != 0);
 }
 
+void TestBlackboxQt::mocCompilerDefines()
+{
+    QDir::setCurrent(testDataDir + "/moc-compiler-defines");
+    QCOMPARE(runQbs(), 0);
+}
+
 void TestBlackboxQt::mocSameFileName()
 {
     QDir::setCurrent(testDataDir + "/moc-same-file-name");
