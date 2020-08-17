@@ -1,6 +1,7 @@
 import qbs
 
 QbsAutotest {
+    Depends { name: "qbsconsolelogger" }
     testName: "buildgraph"
     condition: qbsbuildconfig.enableUnitTests
     files: [

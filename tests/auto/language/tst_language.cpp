@@ -43,6 +43,7 @@
 
 #include "../shared.h"
 
+#include <app/shared/logging/consolelogger.h>
 #include <language/evaluator.h>
 #include <language/filecontext.h>
 #include <language/identifiersearch.h>
@@ -63,8 +64,6 @@
 #include <tools/qttools.h>
 #include <tools/settings.h>
 #include <tools/stlutils.h>
-
-#include "../shared/logging/consolelogger.h"
 
 #include <QtCore/qprocess.h>
 

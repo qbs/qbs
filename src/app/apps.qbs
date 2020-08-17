@@ -9,5 +9,6 @@ Project {
         "qbs-setup-android/qbs-setup-android.qbs",
         "qbs-setup-qt/qbs-setup-qt.qbs",
         "qbs-setup-toolchains/qbs-setup-toolchains.qbs",
+        "shared/shared.qbs",
     ]
 }

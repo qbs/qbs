@@ -3,6 +3,7 @@ import qbs.Utilities
 
 QbsAutotest {
     Depends { name: "qbsversion" }
+    Depends { name: "qbsconsolelogger" }
     Depends {
         name: "Qt.script"
         condition: !qbsbuildconfig.useBundledQtScript

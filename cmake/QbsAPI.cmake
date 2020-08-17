@@ -188,7 +188,10 @@ function(add_qbs_test test_name)
     target_compile_definitions(
         ${target_name} PRIVATE ${_arg_DEFINES} ${DEFAULT_DEFINES} PUBLIC ${_arg_PUBLIC_DEFINES})
     target_include_directories(
-        ${target_name} PRIVATE ${_arg_INCLUDES} PUBLIC ${_arg_PUBLIC_INCLUDES})
+        ${target_name}
+        PRIVATE ${_arg_INCLUDES} "${CMAKE_CURRENT_SOURCE_DIR}/../../../src"
+        PUBLIC ${_arg_PUBLIC_INCLUDES}
+        )
     target_link_libraries(
         ${target_name}
         PRIVATE ${_arg_DEPENDS} qbscore qbslogging Qt5::Test

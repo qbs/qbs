@@ -38,6 +38,7 @@
 ****************************************************************************/
 #include "tst_buildgraph.h"
 
+#include <app/shared/logging/consolelogger.h>
 #include <buildgraph/artifact.h>
 #include <buildgraph/buildgraph.h>
 #include <buildgraph/cycledetector.h>
@@ -46,8 +47,6 @@
 #include <language/language.h>
 #include <logging/logger.h>
 #include <tools/error.h>
-
-#include "../shared/logging/consolelogger.h"
 
 #include <QtTest/qtest.h>
 

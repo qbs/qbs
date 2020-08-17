@@ -16,19 +16,8 @@ QtApplication {
     ]
     cpp.includePaths: [
         "../../../src",
-        "../../../src/app/shared", // for the logger
     ]
     cpp.cxxLanguageVersion: "c++14"
-    Group {
-        name: "logging"
-        prefix: FileInfo.joinPaths(product.sourceDirectory, "../../../src/app/shared/logging") + '/'
-        files: [
-            "coloredoutput.cpp",
-            "coloredoutput.h",
-            "consolelogger.cpp",
-            "consolelogger.h"
-        ]
-    }
     cpp.rpaths: qbsbuildconfig.libRPaths
 
     qbs.commonRunEnvironment: ({

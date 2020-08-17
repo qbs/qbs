@@ -3,6 +3,7 @@ import qbs.Utilities
 
 QbsAutotest {
     Depends { name: "qbsversion" }
+    Depends { name: "qbsconsolelogger" }
     testName: "cmdlineparser"
     files: ["tst_cmdlineparser.cpp", "../../../src/app/qbs/qbstool.cpp"]
     cpp.defines: base.concat([
