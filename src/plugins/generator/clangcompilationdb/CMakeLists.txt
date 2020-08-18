@@ -5,6 +5,6 @@ set(SOURCES
     )
 
 add_qbs_plugin(clangcompilationdbgenerator
-    DEPENDS corelib
+    DEPENDS qbscore
     SOURCES ${SOURCES}
     )

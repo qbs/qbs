@@ -11,6 +11,6 @@ set(SOURCES
 
 add_qbs_plugin(qbs_cpp_scanner
     DEFINES "CPLUSPLUS_NO_PARSER"
-    DEPENDS corelib
+    DEPENDS qbscore
     SOURCES ${SOURCES}
     )

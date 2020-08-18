@@ -67,6 +67,6 @@ list_transform_prepend(IO_SOURCES io/)
 
 add_qbs_library(qbsmsbuild
     STATIC
-    DEPENDS corelib
+    DEPENDS qbscore
     SOURCES ${SOLUTION_SOURCES} ${MSBUILD_SOURCES} ${MSBUILD_ITEMS_SOURCES} ${IO_SOURCES}
     )

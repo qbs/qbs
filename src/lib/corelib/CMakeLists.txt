@@ -413,7 +413,7 @@ if(WIN32)
     set(EXTERNAL_DEPENDS "psapi" "shell32")
 endif()
 
-add_qbs_library(corelib
+add_qbs_library(qbscore
     DEFINES
         "QBS_VERSION=\"${QBS_VERSION}\""
         "QBS_RELATIVE_LIBEXEC_PATH=\"${QBS_RELATIVE_LIBEXEC_PATH}\""

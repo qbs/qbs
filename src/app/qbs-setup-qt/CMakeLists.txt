@@ -7,6 +7,6 @@ set(SOURCES
     )
 
 add_qbs_app(qbs-setup-qt
-    DEPENDS corelib logginglib
+    DEPENDS qbscore qbslogging
     SOURCES ${SOURCES}
     )

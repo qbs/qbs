@@ -193,7 +193,7 @@ function(add_qbs_test test_name)
         ${target_name} PRIVATE ${_arg_INCLUDES} PUBLIC ${_arg_PUBLIC_INCLUDES})
     target_link_libraries(
         ${target_name}
-        PRIVATE ${_arg_DEPENDS} corelib logginglib Qt5::Test
+        PRIVATE ${_arg_DEPENDS} qbscore qbslogging Qt5::Test
         PUBLIC ${_arg_PUBLIC_DEPENDS}
         )
 

@@ -5,9 +5,9 @@ set(SOURCES
     consolelogger.h
    )
 
-add_qbs_library(logginglib
+add_qbs_library(qbslogging
     STATIC
-    DEPENDS corelib
+    DEPENDS qbscore
     PUBLIC_INCLUDES $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../>
     SOURCES ${SOURCES}
     )
