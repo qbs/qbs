@@ -63,8 +63,6 @@ Preferences::Preferences(Settings *settings, QVariantMap profileContents)
 {
 }
 
-Preferences::~Preferences() = default;
-
 /*!
  * \brief Returns true <=> colored output should be used for printing messages.
  * This is only relevant for command-line frontends.

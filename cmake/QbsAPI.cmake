@@ -104,10 +104,8 @@ function(add_qbs_library target_name)
     endif()
 
     set(library_type SHARED)
-    set(library_define "QBS_LIBRARY")
     if (_arg_STATIC)
         set(library_type STATIC)
-        set(library_define "QBS_STATIC_LIB")
     endif()
 
     string(REGEX REPLACE "\\.[0..9]+$" "" _SOVERSION ${QBS_VERSION})
@@ -115,7 +113,7 @@ function(add_qbs_library target_name)
     add_library(${target_name} ${library_type} ${_arg_SOURCES})
     target_compile_definitions(
         ${target_name}
-        PRIVATE ${_arg_DEFINES} ${library_define} ${DEFAULT_DEFINES}
+        PRIVATE ${_arg_DEFINES} ${DEFAULT_DEFINES}
         PUBLIC ${_arg_PUBLIC_DEFINES})
     target_include_directories(
         ${target_name}

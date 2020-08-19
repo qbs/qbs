@@ -56,7 +56,6 @@ class QBS_EXPORT Preferences
 public:
     explicit Preferences(Settings *settings, QString profileName = QString());
     Preferences(Settings *settings, QVariantMap profileContents);
-    ~Preferences();
 
     bool useColoredOutput() const;
     int jobs() const;
