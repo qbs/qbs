@@ -2,7 +2,7 @@ import qbs
 import qbs.FileInfo
 import qbs.Utilities
 
-QtApplication {
+QbsProduct {
     type: ["application", "autotest"]
     consoleApplication: true
     property string testName
@@ -11,14 +11,12 @@ QtApplication {
     Depends { name: "Qt.testlib" }
     Depends { name: "qbscore" }
     Depends { name: "qbsbuildconfig" }
-    cpp.defines: [
+    cpp.defines: [ // deliberately override base defines
         "QBS_TEST_SUITE_NAME=" + Utilities.cStringQuote(testName.toUpperCase().replace("-", "_"))
     ]
     cpp.includePaths: [
         "../../../src",
     ]
-    cpp.cxxLanguageVersion: "c++14"
-    cpp.rpaths: qbsbuildconfig.libRPaths
 
     qbs.commonRunEnvironment: ({
         "QBS_INSTALL_DIR": FileInfo.joinPaths(qbs.installRoot, qbs.installPrefix)
