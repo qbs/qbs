@@ -944,7 +944,7 @@ QList<Item *> ModuleLoader::multiplexProductItem(ProductContext *dummyContext, I
 
         return extractMultiplexInfo(productItem, qbsModule.item);
     };
-    const MultiplexInfo multiplexInfo
+    const auto multiplexInfo
             = callWithTemporaryBaseModule<const MultiplexInfo>(dummyContext,
                                                                extractMultiplexInfoFromProduct);
 

@@ -206,7 +206,7 @@ void PersistentPool::doLoadValue(QStringList &l)
 
 void PersistentPool::doLoadValue(QProcessEnvironment &env)
 {
-    const QStringList keys = load<QStringList>();
+    const auto keys = load<QStringList>();
     for (const QString &key : keys)
         env.insert(key, load<QString>());
 }
