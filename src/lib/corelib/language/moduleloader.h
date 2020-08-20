@@ -58,6 +58,7 @@
 
 #include <map>
 #include <memory>
+#include <optional>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -414,7 +415,7 @@ private:
     ItemReader *m_reader;
     Evaluator *m_evaluator;
     QMap<QString, QStringList> m_moduleDirListCache;
-    QHash<std::pair<QString, QualifiedId>, std::pair<bool, QString>> m_existingModulePathCache;
+    QHash<std::pair<QString, QualifiedId>, std::optional<QString>> m_existingModulePathCache;
 
     // The keys are file paths, the values are module prototype items accompanied by a profile.
     std::unordered_map<QString, std::vector<std::pair<Item *, QString>>> m_modulePrototypes;

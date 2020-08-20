@@ -3786,19 +3786,17 @@ QString ModuleLoader::findExistingModulePath(const QString &searchPath,
     // isFileCaseCorrect is a very expensive call on macOS, so we cache the value for the
     // modules and search paths we've already processed
     auto &moduleInfo = m_existingModulePathCache[{searchPath, moduleName}];
-    if (moduleInfo.first) // poor man's std::optional<QString>
-        return moduleInfo.second;
+    if (moduleInfo)
+        return *moduleInfo;
 
     for (const QString &moduleNamePart : moduleName) {
         dirPath = FileInfo::resolvePath(dirPath, moduleNamePart);
         if (!FileInfo::exists(dirPath) || !FileInfo::isFileCaseCorrect(dirPath)) {
-            moduleInfo.first = true;
-            return moduleInfo.second = QString();
+            return *(moduleInfo = QString());
         }
     }
 
-    moduleInfo.first = true;
-    return moduleInfo.second = dirPath;
+    return *(moduleInfo = dirPath);
 }
 
 QStringList ModuleLoader::findExistingModulePaths(
