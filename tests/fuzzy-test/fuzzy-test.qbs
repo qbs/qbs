@@ -5,7 +5,7 @@ QtApplication {
     type: "application"
     consoleApplication: true
     Depends { name: "qbsbuildconfig" }
-    cpp.cxxLanguageVersion: "c++14"
+    cpp.cxxLanguageVersion: "c++17"
     files: [
         "commandlineparser.cpp",
         "commandlineparser.h",

@@ -14,7 +14,7 @@ INCLUDEPATH += $${PWD}/../
 contains(QT_CONFIG, reduce_exports):CONFIG += hide_symbols
 win32:CONFIG(debug, debug|release):TARGET = $${TARGET}d
 CONFIG(debug, debug|release):DEFINES += QT_STRICT_ITERATORS
-CONFIG += c++14
+CONFIG += c++17
 CONFIG += create_prl
 
 include(../../qbs_version.pri)

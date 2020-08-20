@@ -9,7 +9,7 @@ include($${PWD}/../lib/corelib/use_corelib.pri)
 
 TEMPLATE = lib
 
-CONFIG += c++14
+CONFIG += c++17
 CONFIG(static, static|shared): CONFIG += create_prl
 CONFIG += plugin
 
