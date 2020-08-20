@@ -71,11 +71,17 @@ public:
     {
     }
 
-    class const_iterator : public std::iterator<std::forward_iterator_tag, T *>
+    class const_iterator
     {
         const NodeSet &m_nodes;
         NodeSet::const_iterator m_it;
     public:
+        using value_type = T*;
+        using difference_type = ptrdiff_t;
+        using pointer = value_type*;
+        using reference = value_type&;
+        using iterator_category = std::forward_iterator_tag;
+
         const_iterator(const NodeSet &nodes, const NodeSet::const_iterator &it)
             : m_nodes(nodes), m_it(it)
         {
