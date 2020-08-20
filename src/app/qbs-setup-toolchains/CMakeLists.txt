@@ -21,6 +21,6 @@ set(SOURCES
     )
 
 add_qbs_app(qbs-setup-toolchains
-    DEPENDS qbscore qbslogging
+    DEPENDS qbscore qbsconsolelogger
     SOURCES ${SOURCES}
     )

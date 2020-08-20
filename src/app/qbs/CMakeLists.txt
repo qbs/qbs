@@ -43,7 +43,7 @@ add_qbs_app(qbs
         "QBS_RELATIVE_LIBEXEC_PATH=\"${QBS_RELATIVE_LIBEXEC_PATH}\""
         "QBS_RELATIVE_SEARCH_PATH=\"${QBS_RELATIVE_SEARCH_PATH}\""
         "QBS_RELATIVE_PLUGINS_PATH=\"${QBS_RELATIVE_PLUGINS_PATH}\""
-    DEPENDS qbscore qbslogging
+    DEPENDS qbscore qbsconsolelogger
     SOURCES ${SOURCES} ${PARSER_SOURCES}
     )
 

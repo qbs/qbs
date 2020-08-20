@@ -8,6 +8,6 @@ set(SOURCES
     )
 
 add_qbs_app(qbs-config
-    DEPENDS qbscore qbslogging
+    DEPENDS qbscore qbsconsolelogger
     SOURCES ${SOURCES}
     )

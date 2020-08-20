@@ -5,6 +5,6 @@ set(SOURCES
     )
 
 add_qbs_app(qbs-create-project
-    DEPENDS qbscore qbslogging
+    DEPENDS qbscore qbsconsolelogger
     SOURCES ${SOURCES}
     )
