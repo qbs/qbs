@@ -101,6 +101,9 @@ CppApplication {
         cpp.driverFlags: [
             "--cpu", "cortex-m4.fp.sp"
         ]
+        cpp.assemblerFlags: [
+            "--cpu", "cortex-m4.fp.sp"
+        ]
     }
 
     Group {

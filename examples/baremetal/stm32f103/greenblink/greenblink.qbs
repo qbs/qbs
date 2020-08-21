@@ -99,6 +99,9 @@ CppApplication {
         cpp.driverFlags: [
             "--cpu", "cortex-m3"
         ]
+        cpp.assemblerFlags: [
+            "--cpu", "cortex-m3"
+        ]
     }
 
     Group {
