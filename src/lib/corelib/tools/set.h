@@ -349,8 +349,8 @@ typename Set<T>::iterator Set<T>::asMutableIterator(typename Set<T>::const_itera
 
 template<typename T> template<typename U> Set<T> Set<T>::filtered(const Set<U> &s)
 {
-    static_assert(std::is_pointer<T>::value, "Set::filtered() assumes pointer types");
-    static_assert(std::is_pointer<U>::value, "Set::filtered() assumes pointer types");
+    static_assert(std::is_pointer_v<T>, "Set::filtered() assumes pointer types");
+    static_assert(std::is_pointer_v<U>, "Set::filtered() assumes pointer types");
     Set<T> filteredSet;
     for (auto &u : s) {
         if (hasDynamicType<std::remove_pointer_t<T>>(u))

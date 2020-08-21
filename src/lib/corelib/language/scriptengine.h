@@ -231,10 +231,10 @@ public:
     using QScriptEngine::newFunction;
 
     template <typename T, typename E,
-              typename = std::enable_if_t<std::is_pointer<T>::value>,
-              typename = std::enable_if_t<std::is_pointer<E>::value>,
-              typename = std::enable_if_t<std::is_base_of<
-                QScriptEngine, std::remove_pointer_t<E>>::value>
+              typename = std::enable_if_t<std::is_pointer_v<T>>,
+              typename = std::enable_if_t<std::is_pointer_v<E>>,
+              typename = std::enable_if_t<std::is_base_of_v<
+                QScriptEngine, std::remove_pointer_t<E>>>
               > QScriptValue newFunction(QScriptValue (*signature)(QScriptContext *, E, T), T arg) {
         return QScriptEngine::newFunction(
                     reinterpret_cast<FunctionWithArgSignature>(signature),

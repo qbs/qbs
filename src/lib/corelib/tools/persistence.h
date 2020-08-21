@@ -340,8 +340,8 @@ struct PPHelper
 /***** Specializations of Helper class *****/
 
 template<typename T>
-struct PPHelper<T, std::enable_if_t<std::is_member_function_pointer<
-        decltype(&T::template completeSerializationOp<PersistentPool::Load>)>::value>>
+struct PPHelper<T, std::enable_if_t<std::is_member_function_pointer_v<
+        decltype(&T::template completeSerializationOp<PersistentPool::Load>)>>>
 {
     static void store(const T &value, PersistentPool *pool)
     {
@@ -353,7 +353,7 @@ struct PPHelper<T, std::enable_if_t<std::is_member_function_pointer<
     }
 };
 
-template<typename T> struct PPHelper<T, std::enable_if_t<std::is_integral<T>::value>>
+template<typename T> struct PPHelper<T, std::enable_if_t<std::is_integral_v<T>>>
 {
     static void store(const T &value, PersistentPool *pool) { pool->m_stream << value; }
     static void load(T &value, PersistentPool *pool) { pool->m_stream >> value; }
@@ -370,7 +370,7 @@ template<> struct PPHelper<long>
     }
 };
 
-template<typename T> struct PPHelper<T, std::enable_if_t<std::is_enum<T>::value>>
+template<typename T> struct PPHelper<T, std::enable_if_t<std::is_enum_v<T>>>
 {
     using U = std::underlying_type_t<T>;
     static void store(const T &value, PersistentPool *pool)
@@ -413,8 +413,8 @@ template<typename T> struct PPHelper<T *>
     static void load(T* &value, PersistentPool *pool) { value = pool->idLoad<T>(); }
 };
 
-template<typename T> struct PPHelper<T, std::enable_if_t<std::is_same<T, QString>::value
-        || std::is_same<T, QStringList>::value || std::is_same<T, QProcessEnvironment>::value>>
+template<typename T> struct PPHelper<T, std::enable_if_t<std::is_same_v<T, QString>
+        || std::is_same_v<T, QStringList> || std::is_same_v<T, QProcessEnvironment>>>
 {
     static void store(const T &v, PersistentPool *pool) { pool->idStoreValue(v); }
     static void load(T &v, PersistentPool *pool) { v = pool->idLoadValue<T>(); }
