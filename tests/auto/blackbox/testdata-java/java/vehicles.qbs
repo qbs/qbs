@@ -34,7 +34,7 @@ Project {
 
         Export {
             Depends { name: "java" }
-            java.manifestClassPath: [product.targetName + ".jar"]
+            java.manifestClassPath: [exportingProduct.targetName + ".jar"]
         }
     }
 
@@ -50,7 +50,7 @@ Project {
 
         Export {
             Depends { name: "java" }
-            java.manifestClassPath: [product.targetName + ".jar"]
+            java.manifestClassPath: [exportingProduct.targetName + ".jar"]
         }
     }
 
@@ -68,13 +68,13 @@ Project {
             cpp.systemIncludePaths: {
                 var paths = importingProduct.java.jdkIncludePaths;
                 if (Utilities.versionCompare(importingProduct.java.version, "1.8") >= 0) {
-                    paths.push(product.buildDirectory); // generated JNI headers
+                    paths.push(exportingProduct.buildDirectory); // generated JNI headers
                 }
                 return paths;
             }
 
             Depends { name: "java" }
-            java.manifestClassPath: [product.targetName + ".jar"]
+            java.manifestClassPath: [exportingProduct.targetName + ".jar"]
         }
 
         qbs.installPrefix: ""

@@ -83,15 +83,15 @@
     }
     \endcode
 
-    In contrast to Module items, \c{product} within Export items refers to the product which defines
-    the Export item. Use the \c{importingProduct} variable to refer to the product that
-    pulls in the resulting module:
+    Within an Export item, you can use the \c exportingProduct variable to refer to
+    the product which defines the Export item. Use the \c{importingProduct} variable
+    to refer to the product that pulls in the resulting module:
     \code
     Product {
         name: "D"
         Export {
             Depends { name: "cpp" }
-            cpp.includePaths: [product.sourceDirectory, importingProduct.buildDirectory]
+            cpp.includePaths: [exportingProduct.sourceDirectory, importingProduct.buildDirectory]
         }
     }
     \endcode
@@ -111,9 +111,9 @@
     \code
     Export {
         Depends { name: cpp" }
-        cpp.includePaths: [product.sourceDirectory]
+        cpp.includePaths: [exportingProduct.sourceDirectory]
         prefixMapping: [{
-                prefix: product.sourceDirectory,
+                prefix: exportingProduct.sourceDirectory,
                 replacement: FileInfo.joinPaths(qbs.installPrefix, "include")
         }]
     }

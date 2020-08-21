@@ -4,7 +4,7 @@ Project {
         name: "mylib"
         Export {
             Depends { name: "top" }
-            top.productInExport: product.name
+            top.productInExport: exportingProduct.name
         }
     }
 

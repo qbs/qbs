@@ -5,7 +5,7 @@ StaticLibrary {
     property string definePrefix: "USE_"
     Export {
         Depends { name: "dummy" }
-        dummy.defines: [product.definePrefix + product.name.toUpperCase()]
+        dummy.defines: [exportingProduct.definePrefix + exportingProduct.name.toUpperCase()]
         dummy.includePaths: ["./lib"]
     }
 }

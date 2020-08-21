@@ -3984,7 +3984,7 @@ void TestBlackbox::exportsQbs()
 
     // Change tracking for accesses to product.exports (positive).
     WAIT_FOR_NEW_TIMESTAMP();
-    REPLACE_IN_FILE("tool.qbs", "product.toolTags", "[]");
+    REPLACE_IN_FILE("tool.qbs", "exportingProduct.toolTags", "[]");
     QCOMPARE(runQbs(QStringList({"-p", "MyTool"})), 0);
     QVERIFY2(m_qbsStdout.contains("Creating MyTool.qbs"), m_qbsStdout.constData());
 }

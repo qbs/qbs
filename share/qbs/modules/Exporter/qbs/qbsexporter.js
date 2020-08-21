@@ -179,7 +179,7 @@ function writeProperty(project, product, moduleInstallDir, prop, indentation, co
 
     // We emit the literal value, unless the source code clearly refers to values from inside the
     // original project, in which case the evaluated value is used.
-    if (considerValue && /(project|product)\./.test(prop.sourceCode)) {
+    if (considerValue && /(project|product|exportingProduct)\./.test(prop.sourceCode)) {
         var value;
         if (isModuleProperty) {
             var propertyName = prop.name.slice(separatorIndex + 1);

@@ -8,8 +8,8 @@ StaticLibrary {
     Export {
         Depends { name: "dummy" }
         Depends { name: "mylib2" }
-        dummy.defines: [product.definePrefix + product.name.toUpperCase()]
+        dummy.defines: [exportingProduct.definePrefix + exportingProduct.name.toUpperCase()]
         dummy.includePaths: ["./lib"]
-        dummy.somePath: product.aPath
+        dummy.somePath: exportingProduct.aPath
     }
 }

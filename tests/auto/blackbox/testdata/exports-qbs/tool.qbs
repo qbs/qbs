@@ -33,7 +33,7 @@ CppApplication {
     }
 
     Export {
-        property stringList toolTags: product.toolTags
+        property stringList toolTags: exportingProduct.toolTags
         property stringList outTags: [importingProduct.outTag]
         property var helper2Obj: Helper2
         Rule {

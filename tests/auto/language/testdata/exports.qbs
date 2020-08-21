@@ -46,7 +46,7 @@ Project {
     ProductWithInheritedExportItem {
         name: "productWithInheritedExportItem"
         Export {
-            dummy.cFlags: base.concat("PRODUCT_" + product.name.toUpperCase())
+            dummy.cFlags: base.concat("PRODUCT_" + exportingProduct.name.toUpperCase())
             dummy.cxxFlags: ["-bar"]
             Properties {
                 condition: true
@@ -125,7 +125,7 @@ Project {
 
         Export {
             property bool depend: false
-            property var config: product.config
+            property var config: exportingProduct.config
             Depends { condition: depend; name: "cpp" }
             Properties { condition: depend; cpp.includePaths: ["."] }
         }

@@ -3481,12 +3481,13 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
     }
 
     if (exportingProduct) {
-        // TODO: For consistency with modules, it should be the other way around, i.e.
-        //       "exportingProduct" and just "product".
-        moduleScope->setProperty(StringConstants::productVar(),
-                                 ItemValue::create(exportingProduct));
+        const auto exportingProductItemValue = ItemValue::create(exportingProduct);
+        moduleScope->setProperty(QStringLiteral("exportingProduct"), exportingProductItemValue);
         moduleScope->setProperty(QStringLiteral("importingProduct"),
                                  ItemValue::create(productContext->item));
+
+        // TODO: Remove in 1.20.
+        moduleScope->setProperty(StringConstants::productVar(), exportingProductItemValue);
 
         moduleScope->setProperty(StringConstants::projectVar(),
                                  ItemValue::create(exportingProduct->parent()));

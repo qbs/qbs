@@ -6,7 +6,7 @@ Project {
         property string includeDir: qbs.buildVariant === "debug" ? "/d" : "/r"
         Export {
             Depends { name: "cpp" }
-            cpp.includePaths: product.includeDir
+            cpp.includePaths: exportingProduct.includeDir
         }
     }
     Product {

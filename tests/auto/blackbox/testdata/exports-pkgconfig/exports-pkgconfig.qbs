@@ -48,8 +48,8 @@ Project {
                 condition: !someOtherCondition
                 cpp.driverFlags: ["-pthread"]
             }
-            cpp.defines: product.name
-            cpp.includePaths: [FileInfo.joinPaths(product.qbs.installPrefix, "include")]
+            cpp.defines: exportingProduct.name
+            cpp.includePaths: [FileInfo.joinPaths(exportingProduct.qbs.installPrefix, "include")]
             Qt.core.mocName: "muck"
         }
 
@@ -94,7 +94,7 @@ Project {
             Depends { name: "cpp" }
             cpp.includePaths: [
                 "/opt/thesecondlib/include",
-                product.sourceDirectory,
+                exportingProduct.sourceDirectory,
                 importingProduct.buildDirectory
             ]
             property string hurz: importingProduct.name

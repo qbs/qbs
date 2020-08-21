@@ -48,7 +48,7 @@ Project {
 
         Export {
             Depends { name: "cpp" }
-            cpp.includePaths: FileInfo.joinPaths(qbs.installRoot, product.installDir);
+            cpp.includePaths: FileInfo.joinPaths(qbs.installRoot, exportingProduct.installDir);
         }
 
         Rule {
