@@ -46,6 +46,8 @@
 
 #include <QtCore/qstringlist.h>
 
+#include <memory>
+
 namespace qbs {
 namespace Internal {
 
@@ -89,7 +91,7 @@ private:
     QStringList m_searchPaths;
     std::vector<QStringList> m_extraSearchPaths;
     mutable QStringList m_allSearchPaths;
-    ItemReaderVisitorState * const m_visitorState;
+    const std::unique_ptr<ItemReaderVisitorState> m_visitorState;
     qint64 m_elapsedTime = -1;
 };
 

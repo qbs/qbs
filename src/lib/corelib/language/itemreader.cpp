@@ -61,14 +61,12 @@ static void makePathsCanonical(QStringList &paths)
         paths.erase(it, e);
 }
 
-ItemReader::ItemReader(Logger &logger) : m_visitorState(new ItemReaderVisitorState(logger))
+ItemReader::ItemReader(Logger &logger)
+    : m_visitorState(std::make_unique<ItemReaderVisitorState>(logger))
 {
 }
 
-ItemReader::~ItemReader()
-{
-    delete m_visitorState;
-}
+ItemReader::~ItemReader() = default;
 
 void ItemReader::setSearchPaths(const QStringList &searchPaths)
 {
