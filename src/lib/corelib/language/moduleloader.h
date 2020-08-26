@@ -412,7 +412,7 @@ private:
     ItemPool *m_pool;
     Logger &m_logger;
     ProgressObserver *m_progressObserver;
-    ItemReader *m_reader;
+    const std::unique_ptr<ItemReader> m_reader;
     Evaluator *m_evaluator;
     QMap<QString, QStringList> m_moduleDirListCache;
     QHash<std::pair<QString, QualifiedId>, std::optional<QString>> m_existingModulePathCache;

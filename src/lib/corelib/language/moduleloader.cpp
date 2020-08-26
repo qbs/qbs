@@ -250,15 +250,12 @@ ModuleLoader::ModuleLoader(Evaluator *evaluator, Logger &logger)
     : m_pool(nullptr)
     , m_logger(logger)
     , m_progressObserver(nullptr)
-    , m_reader(new ItemReader(logger))
+    , m_reader(std::make_unique<ItemReader>(logger))
     , m_evaluator(evaluator)
 {
 }
 
-ModuleLoader::~ModuleLoader()
-{
-    delete m_reader;
-}
+ModuleLoader::~ModuleLoader() = default;
 
 void ModuleLoader::setProgressObserver(ProgressObserver *progressObserver)
 {
@@ -352,7 +349,7 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
             .value(StringConstants::qbsSearchPathsProperty()).toStringList();
     Item *root;
     {
-        SearchPathsManager searchPathsManager(m_reader, topLevelSearchPaths);
+        SearchPathsManager searchPathsManager(m_reader.get(), topLevelSearchPaths);
         root = loadItemFromFile(parameters.projectFilePath(), CodeLocation());
         if (!root)
             return ModuleLoaderResult();
@@ -1340,7 +1337,7 @@ void ModuleLoader::setupProductDependencies(ProductContext *productContext,
 
     if (m_dependencyResolvingPass == 1)
         setSearchPathsForProduct(productContext);
-    SearchPathsManager searchPathsManager(m_reader, productContext->searchPaths);
+    SearchPathsManager searchPathsManager(m_reader.get(), productContext->searchPaths);
 
     DependsContext dependsContext;
     dependsContext.product = productContext;
@@ -1425,7 +1422,7 @@ void ModuleLoader::handleProduct(ModuleLoader::ProductContext *productContext)
     Item * const item = productContext->item;
 
     m_reader->setExtraSearchPathsStack(productContext->project->searchPathsStack);
-    SearchPathsManager searchPathsManager(m_reader, productContext->searchPaths);
+    SearchPathsManager searchPathsManager(m_reader.get(), productContext->searchPaths);
     addTransitiveDependencies(productContext);
 
     // It is important that dependent modules are merged after their dependency, because
