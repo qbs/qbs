@@ -45,7 +45,7 @@
 #include <ostream>
 
 #if defined(_WIN32) && defined(_MSC_VER)
-#include <codecvt>
+#include <Windows.h>
 #include <locale>
 #define QBS_RENAME_IMPL ::_wrename
 #define QBS_UNLINK_IMPL ::_wunlink
@@ -82,8 +82,10 @@ static inline bool fwrite(const char *s, std::ostream *stream)
 static inline qbs_filesystem_path_string_type utf8_to_native_path(const std::string &str)
 {
 #if defined(_WIN32) && defined(_MSC_VER)
-    std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
-    return converter.from_bytes(str);
+    const int size = MultiByteToWideChar(CP_UTF8, 0, &str[0], (int)str.size(), NULL, 0);
+    std::wstring result(size, 0);
+    MultiByteToWideChar(CP_UTF8, 0, &str[0], (int)str.size(), result.data(), size);
+    return result;
 #else
     return str;
 #endif
