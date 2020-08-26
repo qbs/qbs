@@ -60,8 +60,7 @@ public:
     std::ostream *device();
     bool open();
     bool commit();
-    bool write(const std::vector<char> &data);
-    bool write(const std::string &data);
+    bool write(std::string_view data);
 
 private:
     std::string m_oldFileContents;

@@ -78,7 +78,7 @@ VisualStudioGuidPool::~VisualStudioGuidPool()
             productData.insert(it.first, it.second.toString().toStdString());
 
         const auto data = JsonDocument(productData).toJson();
-        file.write(std::vector<char> { data.cbegin(), data.cend() });
+        file.write({data.data(), data.size()});
         file.commit();
     }
 }

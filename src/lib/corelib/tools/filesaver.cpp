@@ -107,14 +107,9 @@ bool FileSaver::commit()
     return true;
 }
 
-bool FileSaver::write(const std::vector<char> &data)
+bool FileSaver::write(std::string_view data)
 {
-    return fwrite(data, device());
-}
-
-bool FileSaver::write(const std::string &data)
-{
-    return fwrite(data, device());
+    return fwrite(data.data(), data.size(), device());
 }
 
 } // namespace Internal
