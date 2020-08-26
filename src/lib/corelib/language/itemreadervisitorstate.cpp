@@ -104,15 +104,12 @@ class ItemReaderVisitorState::ASTCache : public QHash<QString, ASTCacheValue> {}
 
 ItemReaderVisitorState::ItemReaderVisitorState(Logger &logger)
     : m_logger(logger)
-    , m_astCache(new ASTCache)
+    , m_astCache(std::make_unique<ASTCache>())
 {
 
 }
 
-ItemReaderVisitorState::~ItemReaderVisitorState()
-{
-    delete m_astCache;
-}
+ItemReaderVisitorState::~ItemReaderVisitorState() = default;
 
 Item *ItemReaderVisitorState::readFile(const QString &filePath, const QStringList &searchPaths,
                                   ItemPool *itemPool)

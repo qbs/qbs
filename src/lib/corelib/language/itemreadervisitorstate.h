@@ -44,6 +44,8 @@
 
 #include <QtCore/qstringlist.h>
 
+#include <memory>
+
 namespace qbs {
 namespace Internal {
 class Item;
@@ -72,7 +74,7 @@ private:
     Item *m_mostDerivingItem = nullptr;
 
     class ASTCache;
-    ASTCache * const m_astCache;
+    const std::unique_ptr<ASTCache> m_astCache;
 };
 
 } // namespace Internal
