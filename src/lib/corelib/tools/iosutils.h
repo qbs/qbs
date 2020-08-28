@@ -45,7 +45,7 @@
 #include <ostream>
 
 #if defined(_WIN32) && defined(_MSC_VER)
-#include <Windows.h>
+#include <windows.h>
 #include <locale>
 #define QBS_RENAME_IMPL ::_wrename
 #define QBS_UNLINK_IMPL ::_wunlink
