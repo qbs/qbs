@@ -12,6 +12,7 @@ build
 *.pdb
 *.pro.user*
 *.qbs.user*
+CMakeLists.txt.user*
 *.xcodeproj/
 target_wrapper.sh
 *~
