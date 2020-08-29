@@ -170,11 +170,6 @@ jobs:
       osx_image: xcode10.3
       if: NOT branch =~ ^gerrit
 
-    - <<: *build-on-macos
-      name: With Qbs on macOS (xcode 9.4)
-      osx_image: xcode9.4
-      if: NOT branch =~ ^gerrit
-
     - &build-on-windows-with-docker
       stage: Build Qbs and and run autotests
       name: With Qbs on Windows with Docker (Visual Studio 2017)
