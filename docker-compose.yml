@@ -28,7 +28,7 @@ services:
   bionic-android-513:
     << : *linux
     hostname: bionic-android
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:bionic-android-5.13.2-3
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:bionic-android-5.13.2-4
     build:
       dockerfile: docker/bionic/test-android.Dockerfile
       context: .
@@ -38,7 +38,7 @@ services:
   bionic-android-514:
     << : *linux
     hostname: bionic-android
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:bionic-android-5.14.0-3
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:bionic-android-5.14.0-4
     build:
       dockerfile: docker/bionic/test-android.Dockerfile
       context: .
@@ -48,7 +48,7 @@ services:
   focal-baremetal:
     << : *linux
     hostname: focal-baremetal
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:focal-baremetal-0
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:focal-baremetal-1
     build:
       dockerfile: docker/focal/test-baremetal.Dockerfile
       context: .

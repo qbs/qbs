@@ -35,6 +35,7 @@ RUN apt-get update -qq && \
     apt-get install -qq -y --no-install-recommends \
         ca-certificates \
         curl \
+        libasan4 \
         libglib2.0-0 \
         libgl1-mesa-glx \
         openjdk-8-jdk-headless \
