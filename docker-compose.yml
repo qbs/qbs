@@ -66,6 +66,10 @@ services:
       - BUILD_OPTIONS
       - WITH_DOCS
     volumes:
-      - .:C:\qbs
-      - ~/.ccache:C:\.ccache
+      - type: bind
+        source: .
+        target: C:\qbs
+      - type: bind
+        source: ~/.ccache
+        target: C:\.ccache
     network_mode: nat
