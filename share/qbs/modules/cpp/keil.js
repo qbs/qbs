@@ -476,14 +476,7 @@ function dumpArmCCCompilerMacros(compilerFilePath, tag, nullDevice) {
 
     var p = new Process();
     p.exec(compilerFilePath, args, false);
-    var map = {};
-    p.readStdOut().trim().split(/\r?\n/g).map(function (line) {
-        if (!line.startsWith("#define"))
-            return;
-        var parts = line.split(" ", 3);
-        map[parts[1]] = parts[2];
-    });
-    return map;
+    return ModUtils.extractMacros(p.readStdOut());
 }
 
 function dumpArmClangCompilerMacros(compilerFilePath, tag, nullDevice) {
@@ -491,12 +484,7 @@ function dumpArmClangCompilerMacros(compilerFilePath, tag, nullDevice) {
                 "-x", ((tag === "cpp") ? "c++" : "c"), nullDevice ];
     var p = new Process();
     p.exec(compilerFilePath, args, false);
-    var map = {};
-    p.readStdOut().trim().split(/\r?\n/g).map(function (line) {
-        var parts = line.split(" ", 3);
-        map[parts[1]] = parts[2];
-    });
-    return map;
+    return ModUtils.extractMacros(p.readStdOut());
 }
 
 function dumpMacros(compilerFilePath, tag, nullDevice) {

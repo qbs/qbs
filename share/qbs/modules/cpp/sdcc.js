@@ -121,12 +121,7 @@ function dumpMacros(compilerFilePath, architecture) {
 
     var p = new Process();
     p.exec(compilerFilePath, args, true);
-    var map = {};
-    p.readStdOut().trim().split(/\r?\n/g).map(function (line) {
-        var parts = line.split(" ", 3);
-        map[parts[1]] = parts[2];
-    });
-    return map;
+    return ModUtils.extractMacros(p.readStdOut());
 }
 
 function dumpDefaultPaths(compilerFilePath, architecture) {

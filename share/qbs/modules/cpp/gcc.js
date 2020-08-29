@@ -1462,12 +1462,7 @@ function dumpMacros(env, compilerFilePath, args, nullDevice, tag) {
         p.exec(compilerFilePath,
                (args || []).concat(["-Wp,-dM", "-E", "-x", languageName(tag || "c") , nullDevice]),
                true);
-        var map = {};
-        p.readStdOut().trim().split(/\r?\n/g).map(function (line) {
-            var parts = line.split(" ", 3);
-            map[parts[1]] = parts[2];
-        });
-        return map;
+        return ModUtils.extractMacros(p.readStdOut());
     } finally {
         p.close();
     }

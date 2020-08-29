@@ -634,3 +634,14 @@ function toJSLiteral(v) {
         return "undefined";
     return JSON.stringify(v);
 }
+
+function extractMacros(output) {
+    var m = {};
+    output.trim().split(/\r?\n/g).map(function (line) {
+        if (!line.startsWith("#define"))
+            return;
+        var parts = line.split(" ", 3);
+        m[parts[1]] = parts[2];
+    });
+    return m;
+}
