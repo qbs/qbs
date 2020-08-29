@@ -63,7 +63,7 @@ using Internal::Tr;
 static const QString defaultDeveloperPath =
         QStringLiteral("/Applications/Xcode.app/Contents/Developer");
 static const std::regex defaultDeveloperPathRegex(
-        "^/Applications/Xcode([a-zA-Z0-9 _-]+)\\.app/Contents/Developer$");
+        "^/Applications/Xcode([a-zA-Z0-9 ._-]+)\\.app/Contents/Developer$");
 
 static QString targetOS(const QString &applePlatformName)
 {
@@ -218,8 +218,9 @@ void XcodeProbe::detectAll()
             const auto devPath = developerPath.toStdString();
             std::smatch match;
             if (std::regex_match(devPath, match, defaultDeveloperPathRegex))
-                profileName += QString::fromStdString(match[1]).toLower().replace(QLatin1Char(' '),
-                                                                                  QLatin1Char('-'));
+                profileName += QString::fromStdString(match[1]).toLower().
+                        replace(QLatin1Char(' '), QLatin1Char('-')).
+                        replace(QLatin1Char('.'), QLatin1Char('_'));
             else
                 profileName += QString::number(i++);
         }
