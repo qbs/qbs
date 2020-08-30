@@ -120,7 +120,7 @@ Module {
     }
 
     setupBuildEnvironment: {
-        if (toolchainInstallPath) {
+        if (product.nsis.toolchainInstallPath) {
             var v = new ModUtils.EnvironmentVariable("PATH", ";", true);
             v.prepend(product.nsis.toolchainInstallPath);
             v.prepend(FileInfo.joinPaths(product.nsis.toolchainInstallPath, "bin"));
