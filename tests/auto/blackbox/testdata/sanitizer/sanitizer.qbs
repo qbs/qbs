@@ -2,9 +2,15 @@ CppApplication {
     property string sanitizer
 
     property bool supportsSanitizer: {
-        if (qbs.toolchain.contains("clang-cl"))
+        if (qbs.toolchain.contains("clang-cl")) {
+            if (cpp.toolchainInstallPath.contains("Microsoft Visual Studio")
+                    && qbs.architecture === "x86_64") {
+                // 32 bit sanitizer shipped with VS misses the x86_64 libraries
+                return false;
+            }
             // only these are supported
             return sanitizer === "address" || sanitizer === "undefined";
+        }
         if (!qbs.toolchain.contains("gcc"))
             return false;
         if (qbs.toolchain.contains("mingw"))
