@@ -143,13 +143,19 @@ void TestBlackboxJobLimits::jobLimits()
     SettingsPtr theSettings = settings();
     qbs::Internal::TemporaryProfile profile("jobLimitsProfile", theSettings.get());
     profile.p.setValue("preferences.jobLimit.singleton", prefsJobCount);
+    profile.p.setValue("baseProfile", profileName());
     theSettings->sync();
     QbsRunParameters resolveParams("resolve");
     resolveParams.profile = profile.p.name();
     resolveParams.arguments << ("project.projectJobCount:" + QString::number(projectJobCount))
                             << ("project.productJobCount:" + QString::number(productJobCount))
-                            << ("project.moduleJobCount:" + QString::number(moduleJobCount));
+                            << ("project.moduleJobCount:" + QString::number(moduleJobCount))
+                            << ("--force-probe-execution");
     QCOMPARE(runQbs(resolveParams), 0);
+
+    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+        QSKIP("Skip test in cross-compiled build");
+
     QbsRunParameters buildParams;
     buildParams.expectFailure = !expectSuccess;
     if (cliJobCount != -1)

@@ -23,6 +23,7 @@ Project {
         Depends { name: "othergenerator" }
         Profile {
             name: "myProfile"
+            baseProfile: project.profile
             moduleProviders.mygenerator.chooseLettersFrom: product.end
             moduleProviders.othergenerator.someDefines: "app2"
         }

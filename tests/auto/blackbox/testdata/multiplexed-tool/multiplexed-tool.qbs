@@ -2,12 +2,20 @@ Project {
     CppApplication {
         name: "tool"
         consoleApplication: true
+        property bool _testPlatform: {
+            var result = qbs.targetPlatform === qbs.hostPlatform;
+            if (!result)
+                console.info("targetPlatform differs from hostPlatform");
+            return result;
+        }
         Profile {
             name: "debugProfile"
+            baseProfile: project.profile
             qbs.buildVariant: "debug"
         }
         Profile {
             name: "releaseProfile"
+            baseProfile: project.profile
             qbs.buildVariant: "release"
         }
         multiplexByQbsProperties: "profiles"

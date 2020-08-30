@@ -55,6 +55,12 @@ Project {
         }
     }
     Product {
+        property bool _testPlatform: {
+            var result = qbs.targetPlatform === qbs.hostPlatform;
+            if (!result)
+                console.info("targetPlatform differs from hostPlatform");
+            return result;
+        }
         name: "p"
         type: "tool_out"
         Depends { name: "tool" }

@@ -5178,6 +5178,9 @@ void TestBlackbox::multipleConfigurations()
 void TestBlackbox::multiplexedTool()
 {
     QDir::setCurrent(testDataDir + "/multiplexed-tool");
+    QCOMPARE(runQbs(QStringLiteral("resolve")), 0);
+    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+        QSKIP("Cannot run binaries in cross-compiled build");
     QCOMPARE(runQbs(), 0);
     QCOMPARE(m_qbsStdout.count("creating tool.out"), 4);
 }
