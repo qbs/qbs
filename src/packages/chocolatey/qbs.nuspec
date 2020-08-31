@@ -18,6 +18,6 @@
     <copyright>© 2017 The Qt Company Ltd.</copyright>
     <licenseUrl>http://doc.qt.io/qt-5/licensing.html</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <iconUrl>https://d3hp9ud7yvwzy0.cloudfront.net/wp-content/uploads/2015/02/Qt-logo-medium.png</iconUrl>
+    <iconUrl>https://rawcdn.githack.com/qbs/qbs/v1.17.0/src/packages/chocolatey/icon.png</iconUrl>
   </metadata>
 </package>
