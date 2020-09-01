@@ -13,7 +13,11 @@ jobs:
         config:
         - {
             name: 'Build on Linux (gcc)',
-            options: 'modules.cpp.compilerWrapper:ccache modules.qbs.debugInformation:true modules.qbsbuildconfig.enableBundledQt:true',
+            options: 'modules.cpp.compilerWrapper:ccache
+                      modules.qbs.debugInformation:true
+                      modules.qbsbuildconfig.enableBundledQt:true
+                      products.qbs_archive.targetName:qbs-linux-${{ github.run_id }}
+                      products.qbs_archive.includeTests:true',
             script: './scripts/build-qbs-with-qbs.sh',
             cacheid: 'gcc',
           }
@@ -43,13 +47,11 @@ jobs:
       run: docker-compose run bionic ${{ matrix.config.script }}
     - name: Print ccache stats
       run: docker-compose run bionic ccache -s
-    - name: Create acrhive
-      run: tar -C release/install-root/ -cJf qbs-${{ runner.os }}-${{ github.run_id }}.tar.xz usr/local
     - name: Upload artifacts
       uses: 'actions/upload-artifact@v2'
       with:
-        name: qbs-${{ runner.os }}-${{ github.run_id }}.tar.xz
-        path: qbs-${{ runner.os }}-${{ github.run_id }}.tar.xz
+        name: qbs-linux-${{ github.run_id }}.tar.gz
+        path: release/qbs-linux-${{ github.run_id }}.tar.gz
 
   build-linux-extra:
     name: ${{ matrix.config.name }}
@@ -108,7 +110,13 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 45
     env:
-      BUILD_OPTIONS: 'modules.cpp.compilerWrapper:ccache modules.qbs.debugInformation:true modules.qbsbuildconfig.enableAddressSanitizer:false modules.qbsbuildconfig.enableBundledQt:true'
+      BUILD_OPTIONS: |
+        modules.cpp.compilerWrapper:ccache
+        modules.qbs.debugInformation:true
+        modules.qbsbuildconfig.enableAddressSanitizer:false
+        modules.qbsbuildconfig.enableBundledQt:true
+        products.qbs_archive.targetName:qbs-macos-${{ github.run_id }}
+        products.qbs_archive.includeTests:true
       WITH_TESTS: 0
     steps:
     - uses: actions/checkout@v1
@@ -148,20 +156,23 @@ jobs:
       run: scripts/build-qbs-with-qbs.sh
     - name: Print ccache stats
       run: ccache -s
-    - name: Create acrhive
-      run: tar -C release/install-root/ -cJf qbs-${{ runner.os }}-${{ github.run_id }}.tar.xz usr/local
     - name: Upload artifacts
       uses: 'actions/upload-artifact@v2'
       with:
-        name: qbs-${{ runner.os }}-${{ github.run_id }}.tar.xz
-        path: qbs-${{ runner.os }}-${{ github.run_id }}.tar.xz
+        name: qbs-macos-${{ github.run_id }}.tar.gz
+        path: release/qbs-macos-${{ github.run_id }}.tar.gz
 
   build-windows:
     name: Build on Windows
     runs-on: windows-latest
     timeout-minutes: 45
     env:
-      BUILD_OPTIONS: 'modules.cpp.compilerWrapper:clcache modules.qbsbuildconfig.enableAddressSanitizer:false modules.qbsbuildconfig.enableBundledQt:true'
+      BUILD_OPTIONS: |
+        modules.cpp.compilerWrapper:clcache
+        modules.qbsbuildconfig.enableAddressSanitizer:false
+        modules.qbsbuildconfig.enableBundledQt:true
+        products.qbs_archive.targetName:qbs-windows-${{ github.run_id }}
+        products.qbs_archive.includeTests:true,
       WITH_TESTS: 0
     steps:
     - uses: actions/checkout@v1
@@ -200,14 +211,11 @@ jobs:
       shell: bash
     - name: Print clcache stats
       run: clcache -s
-    - name: Create acrhive
-      run: 7z a qbs-${{ runner.os }}-${{ github.run_id }}.7z release/install-root/ -r
-      shell: bash
     - name: Upload artifacts
       uses: 'actions/upload-artifact@v2'
       with:
-        name: qbs-${{ runner.os }}-${{ github.run_id }}.7z
-        path: qbs-${{ runner.os }}-${{ github.run_id }}.7z
+        name: qbs-windows-${{ github.run_id }}.zip
+        path: release/qbs-windows-${{ github.run_id }}.zip
 
   test-linux:
     name: ${{ matrix.config.name }}
@@ -251,10 +259,10 @@ jobs:
     - name: Download artifact
       uses: actions/download-artifact@v1
       with:
-        name: qbs-${{ runner.os }}-${{ github.run_id }}.tar.xz
+        name: qbs-linux-${{ github.run_id }}.tar.gz
         path: ./
     - name: Unpack artifact
-      run: mkdir -p release/install-root/ && tar xf qbs-${{ runner.os }}-${{ github.run_id }}.tar.xz -C release/install-root/
+      run: mkdir -p release/install-root/ && tar xzf qbs-linux-${{ github.run_id }}.tar.gz -C release/install-root/
     - name: Pull the Docker Image
       run: docker-compose pull ${{ matrix.config.image }}
     - name: Run tests
@@ -272,10 +280,10 @@ jobs:
     - name: Download artifact
       uses: actions/download-artifact@v1
       with:
-        name: qbs-${{ runner.os }}-${{ github.run_id }}.tar.xz
+        name: qbs-linux-${{ github.run_id }}.tar.gz
         path: ./
     - name: Unpack artifact
-      run: mkdir -p release/install-root/ && tar xf qbs-${{ runner.os }}-${{ github.run_id }}.tar.xz -C release/install-root/
+      run: mkdir -p release/install-root/ && tar xzf qbs-linux-${{ github.run_id }}.tar.gz -C release/install-root/
     - name: Pull the Focal-Baremetal Image
       run: docker-compose pull focal-baremetal
     - name: arm-none-eabi-gcc-9_2
@@ -325,10 +333,10 @@ jobs:
     - name: Download artifact
       uses: actions/download-artifact@v1
       with:
-        name: qbs-${{ runner.os }}-${{ github.run_id }}.tar.xz
+        name: qbs-macos-${{ github.run_id }}.tar.gz
         path: ./
     - name: Unpack artifact
-      run: mkdir -p release/install-root/ && tar xf qbs-${{ runner.os }}-${{ github.run_id }}.tar.xz -C release/install-root/
+      run: mkdir -p release/install-root/ && tar xzf qbs-macos-${{ github.run_id }}.tar.gz -C release/install-root/
     - name: Update PATH
       run: echo ::add-path::./release/install-root/usr/local/bin
     - name: Install required packages
@@ -378,10 +386,13 @@ jobs:
     - name: Download artifact
       uses: actions/download-artifact@v1
       with:
-        name: qbs-${{ runner.os }}-${{ github.run_id }}.7z
+        name: qbs-windows-${{ github.run_id }}.zip
         path: ./
     - name: Unpack artifact
-      run: 7z x qbs-${{ runner.os }}-${{ github.run_id }}.7z
+      run: |
+        mkdir -p release/install-root
+        cd release/install-root
+        7z x ../../qbs-windows-${{ github.run_id }}.zip
       shell: bash
     - name: Update PATH
       run: echo ::add-path::./release/install-root/bin

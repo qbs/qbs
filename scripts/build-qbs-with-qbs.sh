@@ -78,9 +78,9 @@ if [ "$WITH_DOCS" -ne 0 ]; then
     qbs build -p "qbs documentation" ${BUILD_OPTIONS}
 fi
 
-WITH_ARCHIVE=${WITH_ARCHIVE:-0}
+WITH_ARCHIVE=${WITH_ARCHIVE:-1}
 if [ "$WITH_ARCHIVE" -ne 0 ]; then
-    qbs build -p dist ${BUILD_OPTIONS} "products.qbs archive.includeTopLevelDir:true"
+    qbs build -p "qbs_archive" ${BUILD_OPTIONS}
 fi
 
 WITH_TESTS=${WITH_TESTS:-1}

@@ -15,13 +15,15 @@ QbsProduct {
         condition: qbs.targetOS.contains("unix") && project.withDocumentation
     }
     Depends { productTypes: ["qbsapplication", "qbsplugin"] }
+    Depends { productTypes: ["autotest"]; condition: includeTests }
 
     Depends { name: "archiver" }
 
     property bool includeTopLevelDir: false
+    property bool includeTests: false
 
     builtByDefault: false
-    name: "qbs archive"
+    name: "qbs_archive"
     type: ["archiver.archive"]
     targetName: "qbs-" + qbs.targetOS[0] + "-" + qbs.architecture + "-" + qbsversion.version
     destinationDirectory: project.buildDirectory
