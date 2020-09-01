@@ -76,6 +76,10 @@ Module {
     readonly property string executableSuffix: ".exe"
 
     validate: {
+        if (!innoSetupProbe.found) {
+            throw ModUtils.ModuleError("Could not find InnoSetup in Windows registry. Make " +
+                                       "sure InnoSetup is installed correctly.");
+        }
         var validator = new ModUtils.PropertyValidator("innosetup");
         validator.setRequiredProperty("toolchainInstallPath", toolchainInstallPath);
         validator.setRequiredProperty("version", version);

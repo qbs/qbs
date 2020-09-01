@@ -29,6 +29,7 @@
 ****************************************************************************/
 
 Product {
-    Depends { name: "innosetup"; condition: qbs.targetOS.contains("windows") }
+    condition: qbs.targetOS.contains("windows") && innosetup.present
+    Depends { name: "innosetup"; condition: qbs.targetOS.contains("windows"); required: false }
     type: ["innosetup.exe"]
 }

@@ -7493,48 +7493,20 @@ void TestBlackbox::includeLookup()
     QVERIFY2(m_qbsStdout.contains("definition.."), m_qbsStdout.constData());
 }
 
-static bool haveInnoSetup(const Profile &profile)
-{
-    if (profile.value("innosetup.toolchainInstallPath").isValid())
-        return true;
-
-    QStringList regKeys;
-    regKeys << QStringLiteral("HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Inno Setup 5_is1")
-            << QStringLiteral("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Inno Setup 5_is1");
-
-    QStringList paths = QProcessEnvironment::systemEnvironment().value("PATH")
-            .split(HostOsInfo::pathListSeparator(), QBS_SKIP_EMPTY_PARTS);
-
-    for (const QString &key : qAsConst(regKeys)) {
-        QSettings settings(key, QSettings::NativeFormat);
-        QString str = settings.value(QStringLiteral("InstallLocation")).toString();
-        if (!str.isEmpty())
-            paths.prepend(str);
-    }
-
-    for (const QString &path : qAsConst(paths)) {
-        if (regularFileExists(QDir::fromNativeSeparators(path) +
-                          HostOsInfo::appendExecutableSuffix(QStringLiteral("/ISCC"))))
-            return true;
-    }
-
-    return false;
-}
-
 void TestBlackbox::innoSetup()
 {
     const SettingsPtr s = settings();
     Profile profile(profileName(), s.get());
 
-    if (!haveInnoSetup(profile)) {
-        QSKIP("Inno Setup is not installed");
-        return;
-    }
-
-    if (HostOsInfo::isWindowsHost() && qEnvironmentVariableIsSet("GITHUB_ACTIONS"))
-        QSKIP("Skip this test when running on GitHub");
-
     QDir::setCurrent(testDataDir + "/innosetup");
+
+    QCOMPARE(runQbs({"resolve"}), 0);
+    const bool withInnosetup = m_qbsStdout.contains("has innosetup: true");
+    const bool withoutInnosetup = m_qbsStdout.contains("has innosetup: false");
+    QVERIFY2(withInnosetup || withoutInnosetup, m_qbsStdout.constData());
+    if (withoutInnosetup)
+        QSKIP("innosetup module not present");
+
     QCOMPARE(runQbs(), 0);
     QVERIFY(m_qbsStdout.contains("compiling test.iss"));
     QVERIFY(m_qbsStdout.contains("compiling Example1.iss"));
@@ -7544,21 +7516,19 @@ void TestBlackbox::innoSetup()
 
 void TestBlackbox::innoSetupDependencies()
 {
-    if (HostOsInfo::isWindowsHost() && qEnvironmentVariableIsSet("GITHUB_ACTIONS"))
-        QSKIP("Skip this test when running on GitHub");
-
     const SettingsPtr s = settings();
     Profile profile(profileName(), s.get());
 
-    if (!haveInnoSetup(profile)) {
-        QSKIP("Inno Setup is not installed");
-        return;
-    }
-
     QDir::setCurrent(testDataDir + "/innosetupDependencies");
+
+    QCOMPARE(runQbs({"resolve"}), 0);
+    const bool withInnosetup = m_qbsStdout.contains("has innosetup: true");
+    const bool withoutInnosetup = m_qbsStdout.contains("has innosetup: false");
+    QVERIFY2(withInnosetup || withoutInnosetup, m_qbsStdout.constData());
+    if (withoutInnosetup)
+        QSKIP("innosetup module not present");
+
     QbsRunParameters params;
-    if (!HostOsInfo::isWindowsHost())
-        params.arguments << "qbs.targetOS:windows";
     QCOMPARE(runQbs(params), 0);
     QVERIFY(m_qbsStdout.contains("compiling test.iss"));
     QVERIFY(regularFileExists(relativeBuildDir() + "/qbs.setup.test.exe"));

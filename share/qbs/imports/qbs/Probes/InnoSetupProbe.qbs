@@ -35,18 +35,25 @@ PathProbe {
     property var version
 
     configure: {
-        var keySuffix = "Microsoft\\Windows\\CurrentVersion\\Uninstall\\Inno Setup 5_is1";
         var keys = [
-            "HKEY_LOCAL_MACHINE\\SOFTWARE\\" + keySuffix,
-            "HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\" + keySuffix
+            "HKEY_LOCAL_MACHINE\\SOFTWARE\\",
+            "HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\"
         ];
-        for (var i in keys) {
-            var v = Utilities.getNativeSetting(keys[i], "DisplayVersion");
-            if (v) {
-                path = Utilities.getNativeSetting(keys[i], "InstallLocation");
-                version = v;
-                found = path && version;
-                return;
+        var keySuffixes = [
+            "Microsoft\\Windows\\CurrentVersion\\Uninstall\\Inno Setup 5_is1",
+            "Microsoft\\Windows\\CurrentVersion\\Uninstall\\Inno Setup 6_is1"
+        ];
+        for (var i = 0; i < keys.length; ++i) {
+            for (var j = 0; j < keySuffixes.length; ++j) {
+                var key = keys[i] + keySuffixes[j];
+
+                var v = Utilities.getNativeSetting(key, "DisplayVersion");
+                if (v) {
+                    path = Utilities.getNativeSetting(key, "InstallLocation");
+                    version = v;
+                    found = path && version;
+                    return;
+                }
             }
         }
     }
