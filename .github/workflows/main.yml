@@ -15,7 +15,7 @@ jobs:
             name: 'Build on Linux (gcc)',
             options: 'modules.cpp.compilerWrapper:ccache modules.qbs.debugInformation:true modules.qbsbuildconfig.enableBundledQt:true',
             script: './scripts/build-qbs-with-qbs.sh',
-            cacheid: '{{ runner.os }}-gcc-ccache',
+            cacheid: 'gcc',
           }
     env:
       BUILD_OPTIONS: ${{ matrix.config.options }}
@@ -33,7 +33,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ~/.ccache
-        key: ${{ matrix.config.cacheid }}-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
+        key: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
         restore-keys: ${{ matrix.config.cacheid }}
     - name: Pull the Bionic Image
       run: docker-compose pull bionic
@@ -63,18 +63,18 @@ jobs:
             name: 'Build on Linux (clang_tidy)',
             script: './scripts/run-analyzer.sh',
             options: 'profile:qt-clang_64 modules.cpp.compilerWrapper:ccache',
-            cacheid: '{{ runner.os }}-clang-ccache',
+            cacheid: 'clang',
           }
         - {
             name: 'Build on Linux (CMake)',
             script: './scripts/build-qbs-with-cmake.sh',
-            cacheid: '{{ runner.os }}-cmake-ccache',
+            cacheid: 'cmake',
           }
         - {
             name: 'Build on Linux (QMake)',
             script: './scripts/build-qbs-with-qmake.sh',
             options: 'CONFIG+=ccache',
-            cacheid: '{{ runner.os }}-qmake-ccache',
+            cacheid: 'qmake',
           }
     env:
       BUILD_OPTIONS: ${{ matrix.config.options }}
@@ -92,7 +92,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ~/.ccache
-        key: ${{ matrix.config.cacheid }}-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
+        key: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
         restore-keys: ${{ matrix.config.cacheid }}
     - name: Pull the Bionic Image
       run: docker-compose pull bionic
