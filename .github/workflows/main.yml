@@ -185,6 +185,12 @@ jobs:
         python -m pip install --upgrade pip
         pip install beautifulsoup4 lxml
         pip install git+https://github.com/frerich/clcache.git@cae73d8255d78db8ba11e23c51fd2c9a89e7475b
+    - name: prepare timestamp
+      id: ccache_cache_timestamp
+      run: |
+        export TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+        echo ::set-output name=timestamp::$TIMESTAMP
+      shell: bash
     - name: clcache cache files
       uses: actions/cache@v2
       with:
