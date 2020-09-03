@@ -34,7 +34,7 @@ jobs:
       with:
         path: ~/.ccache
         key: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
-        restore-keys: ${{ matrix.config.cacheid }}
+        restore-keys: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache-
     - name: Pull the Bionic Image
       run: docker-compose pull bionic
     - name: Print ccache stats
@@ -93,7 +93,7 @@ jobs:
       with:
         path: ~/.ccache
         key: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
-        restore-keys: ${{ matrix.config.cacheid }}
+        restore-keys: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache-
     - name: Pull the Bionic Image
       run: docker-compose pull bionic
     - name: Print ccache stats
