@@ -65,9 +65,11 @@ PathProbe {
         includePaths = defaultPaths.includePaths;
 
         var version = SDCC.guessVersion(macros);
-        versionMajor = version.major;
-        versionMinor = version.minor;
-        versionPatch = version.patch;
-        found = version.found;
+        if (version) {
+            versionMajor = version.major;
+            versionMinor = version.minor;
+            versionPatch = version.patch;
+            found = true;
+        }
    }
 }

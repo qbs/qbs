@@ -267,20 +267,17 @@ function guessVersion(macros) {
         var mcsVersion = macros["__C51__"] || macros["__C251__"];
         return { major: parseInt(mcsVersion / 100),
             minor: parseInt(mcsVersion % 100),
-            patch: 0,
-            found: true }
+            patch: 0 }
     } else if (macros["__C166__"]) {
         var xcVersion = macros["__C166__"];
         return { major: parseInt(xcVersion / 100),
             minor: parseInt(xcVersion % 100),
-            patch: 0,
-            found: true }
+            patch: 0 }
     } else if (macros["__CC_ARM"] || macros["__clang__"]) {
         var armVersion = macros["__ARMCC_VERSION"];
         return { major: parseInt(armVersion / 1000000),
             minor: parseInt(armVersion / 10000) % 100,
-            patch: parseInt(armVersion) % 10000,
-            found: true }
+            patch: parseInt(armVersion) % 10000 }
     }
 }
 

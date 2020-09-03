@@ -95,19 +95,15 @@ function guessVersion(macros) {
             && "__SDCC_VERSION_PATCH" in macros) {
         return { major: parseInt(macros["__SDCC_VERSION_MAJOR"], 10),
             minor: parseInt(macros["__SDCC_VERSION_MINOR"], 10),
-            patch: parseInt(macros["__SDCC_VERSION_PATCH"], 10),
-            found: macros["SDCC"] }
+            patch: parseInt(macros["__SDCC_VERSION_PATCH"], 10) }
     } else if ("__SDCC" in macros) {
         var versions = macros["__SDCC"].split("_");
         if (versions.length === 3) {
-            return {
-                major: parseInt(versions[0], 10),
+            return { major: parseInt(versions[0], 10),
                 minor: parseInt(versions[1], 10),
-                patch: parseInt(versions[2], 10),
-                found: macros["SDCC"] };
+                patch: parseInt(versions[2], 10) };
         }
     }
-    return { found: false };
 }
 
 function dumpMacros(compilerFilePath, architecture) {

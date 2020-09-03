@@ -321,8 +321,7 @@ function guessVersion(macros, architecture)
     if (architecture.startsWith("arm")) {
         return { major: parseInt(version / 1000000),
             minor: parseInt(version / 1000) % 1000,
-            patch: parseInt(version) % 1000,
-            found: true }
+            patch: parseInt(version) % 1000 }
     } else if (architecture === "mcs51" || architecture === "avr" || architecture === "stm8"
                || architecture === "msp430" || architecture === "rl78" || architecture === "rx"
                || architecture === "rh850" || architecture === "v850" || architecture === "78k"
@@ -331,8 +330,7 @@ function guessVersion(macros, architecture)
                || architecture === "m16c" || architecture === "cr16") {
         return { major: parseInt(version / 100),
             minor: parseInt(version % 100),
-            patch: 0,
-            found: true }
+            patch: 0 }
     }
 }
 
