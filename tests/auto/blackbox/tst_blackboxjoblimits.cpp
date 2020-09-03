@@ -39,6 +39,7 @@ public:
     TestBlackboxJobLimits();
 
 private slots:
+    void initTestCase();
     void jobLimits_data();
     void jobLimits();
 };
@@ -46,6 +47,16 @@ private slots:
 TestBlackboxJobLimits::TestBlackboxJobLimits()
     : TestBlackboxBase (SRCDIR "/testdata-joblimits", "blackbox-joblimits")
 {
+}
+
+void TestBlackboxJobLimits::initTestCase()
+{
+    TestBlackboxBase::initTestCase();
+
+    QDir::setCurrent(testDataDir + "/job-limits-init");
+    QCOMPARE(runQbs({"resolve"}), 0);
+    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+        QSKIP("Skip test in cross-compiled build");
 }
 
 void TestBlackboxJobLimits::jobLimits_data()
@@ -149,12 +160,8 @@ void TestBlackboxJobLimits::jobLimits()
     resolveParams.profile = profile.p.name();
     resolveParams.arguments << ("project.projectJobCount:" + QString::number(projectJobCount))
                             << ("project.productJobCount:" + QString::number(productJobCount))
-                            << ("project.moduleJobCount:" + QString::number(moduleJobCount))
-                            << ("--force-probe-execution");
+                            << ("project.moduleJobCount:" + QString::number(moduleJobCount));
     QCOMPARE(runQbs(resolveParams), 0);
-
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
-        QSKIP("Skip test in cross-compiled build");
 
     QbsRunParameters buildParams;
     buildParams.expectFailure = !expectSuccess;
