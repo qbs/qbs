@@ -143,8 +143,6 @@ jobs:
         toolchain: clang_64
     - name: Install Qt Creator
       uses: ./.github/actions/download-qtc
-    - name: Print ccache stats
-      run: ccache -s
     - name: Setup Qbs
       run: |
         qbs setup-toolchains --detect
@@ -152,6 +150,8 @@ jobs:
         qbs config profiles.qt.baseProfile xcode-macosx-x86_64
         qbs config defaultProfile qt
         qbs config --list
+    - name: Print ccache stats
+      run: ccache -s
     - name: Build Qbs
       run: scripts/build-qbs-with-qbs.sh
     - name: Print ccache stats
@@ -176,15 +176,6 @@ jobs:
       WITH_TESTS: 0
     steps:
     - uses: actions/checkout@v1
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.8
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install beautifulsoup4 lxml
-        pip install git+https://github.com/frerich/clcache.git@cae73d8255d78db8ba11e23c51fd2c9a89e7475b
     - name: prepare timestamp
       id: ccache_cache_timestamp
       run: |
@@ -197,8 +188,15 @@ jobs:
         path: ~/clcache
         key: ${{ runner.os }}-clcache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
         restore-keys: ${{ runner.os }}-clcache-
-    - name: Print clcache stats
-      run: clcache -s
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+    - name: Install required packages
+      run: |
+        python -m pip install --upgrade pip
+        pip install beautifulsoup4 lxml
+        pip install git+https://github.com/frerich/clcache.git@cae73d8255d78db8ba11e23c51fd2c9a89e7475b
     - name: Install Qt
       uses: ./.github/actions/download-qt
       with:
@@ -212,6 +210,8 @@ jobs:
         qbs config defaultProfile qt
         qbs config --list
       shell: bash
+    - name: Print clcache stats
+      run: clcache -s
     - name: Build Qbs
       run: scripts/build-qbs-with-qbs.sh
       shell: bash
