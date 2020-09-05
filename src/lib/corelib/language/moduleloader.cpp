@@ -3332,18 +3332,16 @@ Item *ModuleLoader::getModulePrototype(ProductContext *productContext,
     // This is the reason we need to have different items per profile.
     const QVariantMap profileModuleProperties
             = productContext->moduleProperties.value(fullModuleName).toMap();
-    for (QVariantMap::const_iterator vmit = profileModuleProperties.begin();
-            vmit != profileModuleProperties.end(); ++vmit)
-    {
-        if (Q_UNLIKELY(!module->hasProperty(vmit.key()))) {
+    for (auto it = profileModuleProperties.cbegin(); it != profileModuleProperties.cend(); ++it) {
+        if (Q_UNLIKELY(!module->hasProperty(it.key()))) {
             productContext->unknownProfilePropertyErrors[module].emplace_back
-                    (Tr::tr("Unknown property: %1.%2").arg(fullModuleName, vmit.key()));
+                    (Tr::tr("Unknown property: %1.%2").arg(fullModuleName, it.key()));
             continue;
         }
-        const PropertyDeclaration decl = module->propertyDeclaration(vmit.key());
-        VariantValuePtr v = VariantValue::create(convertToPropertyType(vmit.value(), decl.type(),
-                QStringList(fullModuleName), vmit.key()));
-        module->setProperty(vmit.key(), v);
+        const PropertyDeclaration decl = module->propertyDeclaration(it.key());
+        VariantValuePtr v = VariantValue::create(convertToPropertyType(it.value(), decl.type(),
+                QStringList(fullModuleName), it.key()));
+        module->setProperty(it.key(), v);
     }
 
     return module;
