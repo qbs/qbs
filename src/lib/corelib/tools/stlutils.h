@@ -93,6 +93,13 @@ void removeAll(C &container, const typename C::value_type &v)
                     std::end(container));
 }
 
+template <typename C, typename Pred>
+void removeIf(C &container, const Pred &pred)
+{
+    container.erase(std::remove_if(std::begin(container), std::end(container), pred),
+                    std::end(container));
+}
+
 template <class Container, class UnaryPredicate>
 bool any_of(const Container &container, const UnaryPredicate &predicate)
 {

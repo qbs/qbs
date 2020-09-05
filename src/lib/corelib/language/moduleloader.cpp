@@ -1975,15 +1975,10 @@ bool ModuleLoader::mergeExportItems(const ProductContext &productContext)
 {
     std::vector<Item *> exportItems;
     QList<Item *> children = productContext.item->children();
-    for (int i = 0; i < children.size();) {
-        Item * const child = children.at(i);
-        if (child->type() == ItemType::Export) {
-            exportItems.push_back(child);
-            children.removeAt(i);
-        } else {
-            ++i;
-        }
-    }
+
+    auto isExport = [](Item *item) { return item->type() == ItemType::Export; };
+    std::copy_if(children.cbegin(), children.cend(), std::back_inserter(exportItems), isExport);
+    qbs::Internal::removeIf(children, isExport);
 
     // Note that we do not return if there are no Export items: The "merged" item becomes the
     // "product module", which always needs to exist, regardless of whether the product sources
