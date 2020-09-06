@@ -89,7 +89,7 @@ void TestBlackboxAndroid::android()
         QSKIP("Skip Android tests when running on GitHub");
 
     const SettingsPtr s = settings();
-    Profile p(theProfileName(projectDir == "qml-app"), s.get());
+    Profile p(theProfileName(projectDir == "qml-app" || projectDir == "qt-app"), s.get());
     if (!p.exists())
         p = Profile("none", s.get());
     int status;
@@ -295,6 +295,57 @@ void TestBlackboxAndroid::android_data()
     };
     bool generateAab = false;
     bool isIncrementalBuild = false;
+
+    auto qtAppExpectedFiles = [&](bool generateAab) {
+        QByteArrayList expectedFile;
+        if (usingOldQt) {
+            expectedFile << commonFiles(generateAab) + expandArchs(ndkArchsForQt, {
+                       cxxLibPath("libgnustl_shared.so", true),
+                       "assets/--Added-by-androiddeployqt--/qt_cache_pregenerated_file_list",
+                       "lib/${ARCH}/libplugins_imageformats_libqgif.so",
+                       "lib/${ARCH}/libplugins_imageformats_libqicns.so",
+                       "lib/${ARCH}/libplugins_imageformats_libqico.so",
+                       "lib/${ARCH}/libplugins_imageformats_libqjpeg.so",
+                       "lib/${ARCH}/libplugins_imageformats_libqtga.so",
+                       "lib/${ARCH}/libplugins_imageformats_libqtiff.so",
+                       "lib/${ARCH}/libplugins_imageformats_libqwbmp.so",
+                       "lib/${ARCH}/libplugins_imageformats_libqwebp.so",
+                       "lib/${ARCH}/libplugins_platforms_android_libqtforandroid.so",
+                       "lib/${ARCH}/libplugins_styles_libqandroidstyle.so",
+                       "lib/${ARCH}/libQt5Core.so",
+                       "lib/${ARCH}/libQt5Gui.so",
+                       "lib/${ARCH}/libQt5Widgets.so",
+                       "lib/${ARCH}/libqt-app.so"}, generateAab);
+        } else {
+            expectedFile << commonFiles(generateAab) + expandArchs(ndkArchsForQt, {
+                       cxxLibPath("libgnustl_shared.so", true),
+                       "lib/${ARCH}/libplugins_imageformats_qgif_${ARCH}.so",
+                       "lib/${ARCH}/libplugins_imageformats_qicns_${ARCH}.so",
+                       "lib/${ARCH}/libplugins_imageformats_qico_${ARCH}.so",
+                       "lib/${ARCH}/libplugins_imageformats_qjpeg_${ARCH}.so",
+                       "lib/${ARCH}/libplugins_imageformats_qtga_${ARCH}.so",
+                       "lib/${ARCH}/libplugins_imageformats_qtiff_${ARCH}.so",
+                       "lib/${ARCH}/libplugins_imageformats_qwbmp_${ARCH}.so",
+                       "lib/${ARCH}/libplugins_imageformats_qwebp_${ARCH}.so",
+                       "lib/${ARCH}/libplugins_platforms_qtforandroid_${ARCH}.so",
+                       "lib/${ARCH}/libplugins_styles_qandroidstyle_${ARCH}.so",
+                       "lib/${ARCH}/libQt5Core_${ARCH}.so",
+                       "lib/${ARCH}/libQt5Gui_${ARCH}.so",
+                       "lib/${ARCH}/libQt5Widgets_${ARCH}.so",
+                       "lib/${ARCH}/libqt-app_${ARCH}.so"}, generateAab);
+        }
+        if (generateAab)
+            expectedFile << "base/resources.pb" << "base/assets.pb" << "base/native.pb";
+        else
+            expectedFile << "resources.arsc";
+        return expectedFile;
+    };
+    QTest::newRow("qt app")
+            << "qt-app" << QStringList("qt-app")
+            << (QList<QByteArrayList>() << (QByteArrayList() << qtAppExpectedFiles(generateAab)
+                                            << "res/layout/splash.xml"))
+            << QStringList{aaptVersion(enableAapt2), packageType(generateAab)}
+            << enableAapt2 << generateAab << isIncrementalBuild;
 
     auto teaPotAppExpectedFiles = [&](const QByteArrayList &archs, bool generateAab) {
         QByteArrayList expectedFile;
