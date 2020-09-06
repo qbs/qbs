@@ -57,8 +57,9 @@ SUBDIRS += \
     src_libexec\
     src_plugins\
     static.pro\
-    static_res\
-    tests
+    static_res
+
+!CONFIG(nomake_tests): SUBDIRS += tests
 
 OTHER_FILES += \
     doc/*.qdoc \
