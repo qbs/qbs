@@ -1,7 +1,7 @@
 #
 # Install Qt and Qbs for Linux
 #
-FROM ubuntu:bionic
+FROM ubuntu:focal
 LABEL Description="Ubuntu development environment for Qbs with Qt and various dependencies for testing Qbs modules and functionality"
 ARG QT_VERSION
 ARG QTCREATOR_VERSION
@@ -29,12 +29,12 @@ RUN apt-get update -qq && \
     usermod -a -G sudo ${USER_NAME} && \
     echo "%devel         ALL = (ALL) NOPASSWD: ALL" >> /etc/sudoers
 
-COPY docker/bionic/entrypoint.sh /sbin/entrypoint.sh
+COPY docker/focal/entrypoint.sh /sbin/entrypoint.sh
 ENTRYPOINT ["/sbin/entrypoint.sh"]
 
 # Qbs build dependencies
 RUN apt-get update -qq && \
-    apt-get install -qq -y --no-install-recommends \
+    DEBIAN_FRONTEND="noninteractive" apt-get install -qq -y --no-install-recommends \
         bison \
         build-essential \
         ca-certificates \
@@ -54,8 +54,10 @@ RUN apt-get update -qq && \
         libfontconfig1 \
         libgl1-mesa-dev \
         libgl1-mesa-glx \
+        libnanopb-dev \
         libprotobuf-dev \
         libgrpc++-dev \
+        nanopb \
         ninja-build \
         nsis \
         pkg-config \
@@ -73,7 +75,7 @@ RUN apt-get update -qq && \
     update-alternatives --install /usr/bin/clang-check clang-check /usr/bin/clang-check-8 100 && \
     update-alternatives --install /usr/bin/python python /usr/bin/python3 100 && \
     update-alternatives --install /usr/bin/pip pip /usr/bin/pip3 100 && \
-    pip install beautifulsoup4 lxml pyyaml
+    pip install beautifulsoup4 lxml protobuf pyyaml
 
 ENV LLVM_INSTALL_DIR=/usr/lib/llvm-8
 

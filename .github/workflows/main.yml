@@ -37,14 +37,14 @@ jobs:
         path: ~/.ccache
         key: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache-${{ steps.get-timestamp.outputs.timestamp }}
         restore-keys: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache-
-    - name: Pull the Bionic Image
-      run: docker-compose pull bionic
+    - name: Pull the Focal Image
+      run: docker-compose pull focal
     - name: Print ccache stats
-      run: docker-compose run bionic ccache -s
+      run: docker-compose run focal ccache -s
     - name: Build Qbs
-      run: docker-compose run bionic ${{ matrix.config.script }}
+      run: docker-compose run focal ${{ matrix.config.script }}
     - name: Print ccache stats
-      run: docker-compose run bionic ccache -s
+      run: docker-compose run focal ccache -s
     - name: Upload artifacts
       uses: 'actions/upload-artifact@v2'
       with:
@@ -92,14 +92,14 @@ jobs:
         path: ~/.ccache
         key: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache-${{ steps.get-timestamp.outputs.timestamp }}
         restore-keys: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache-
-    - name: Pull the Bionic Image
-      run: docker-compose pull bionic
+    - name: Pull the Focal Image
+      run: docker-compose pull focal
     - name: Print ccache stats
-      run: docker-compose run bionic ccache -s
+      run: docker-compose run focal ccache -s
     - name: Build Qbs
-      run: docker-compose run bionic ${{ matrix.config.script }}
+      run: docker-compose run focal ${{ matrix.config.script }}
     - name: Print ccache stats
-      run: docker-compose run bionic ccache -s
+      run: docker-compose run focal ccache -s
 
   build-macos:
     name: Build on macOS
@@ -226,25 +226,25 @@ jobs:
         config:
         - {
             name: 'Run Linux tests (gcc)',
-            image: 'bionic',
+            image: 'focal',
             profile: 'qt-gcc_64',
             script: './scripts/test-qbs.sh',
           }
         - {
             name: 'Run Linux tests (clang)',
-            image: 'bionic',
+            image: 'focal',
             profile: 'qt-clang_64',
             script: './scripts/test-qbs.sh',
           }
         - {
             name: 'Run Android tests (Qt 5.13)',
-            image: 'bionic-android-513',
+            image: 'focal-android-513',
             profile: '',
             script: './scripts/test-qt-for-android.sh',
           }
         - {
             name: 'Run Android tests (Qt 5.14)',
-            image: 'bionic-android-514',
+            image: 'focal-android-514',
             profile: '',
             script: './scripts/test-qt-for-android.sh',
           }

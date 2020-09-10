@@ -25,47 +25,47 @@ stages:
 
 jobs:
   include:
-    - &build-on-bionic
+    - &build-on-focal
       stage: Build Qbs and and run autotests
-      name: With Qbs on Ubuntu bionic (linux_gcc64)
+      name: With Qbs on Ubuntu focal (linux_gcc64)
       env:
         BUILD_OPTIONS="modules.cpp.compilerWrapper:ccache modules.qbs.debugInformation:true"
       services:
         - docker
       before_script:
-        - docker-compose pull bionic
+        - docker-compose pull focal
         - ccache -M 5G
         - ccache -s
       after_script:
         - ccache -s
       script:
-        - docker-compose run bionic scripts/build-qbs-with-qbs.sh
+        - docker-compose run focal scripts/build-qbs-with-qbs.sh
 
-    - <<: *build-on-bionic
+    - <<: *build-on-focal
       name: With Qbs and with Qt 5.13 for Android
       before_install:
-        - docker-compose pull bionic
-        - docker-compose pull bionic-android-513
+        - docker-compose pull focal
+        - docker-compose pull focal-android-513
       script:
-        - docker-compose run bionic qbs build modules.cpp.compilerWrapper:ccache modules.qbsbuildconfig.enableBundledQt:true config:release
-        - docker-compose run bionic-android-513 scripts/test-qt-for-android.sh release/install-root/usr/local/bin
+        - docker-compose run focal qbs build modules.cpp.compilerWrapper:ccache modules.qbsbuildconfig.enableBundledQt:true config:release
+        - docker-compose run focal-android-513 scripts/test-qt-for-android.sh release/install-root/usr/local/bin
 
-    - <<: *build-on-bionic
+    - <<: *build-on-focal
       name: With Qbs and with Qt 5.14 for Android
       before_install:
-        - docker-compose pull bionic
-        - docker-compose pull bionic-android-514
+        - docker-compose pull focal
+        - docker-compose pull focal-android-514
       script:
-        - docker-compose run bionic qbs build modules.cpp.compilerWrapper:ccache modules.qbsbuildconfig.enableBundledQt:true config:release
-        - docker-compose run bionic-android-514 scripts/test-qt-for-android.sh release/install-root/usr/local/bin
+        - docker-compose run focal qbs build modules.cpp.compilerWrapper:ccache modules.qbsbuildconfig.enableBundledQt:true config:release
+        - docker-compose run focal-android-514 scripts/test-qt-for-android.sh release/install-root/usr/local/bin
 
-    - <<: *build-on-bionic
+    - <<: *build-on-focal
       name: With Qbs and with baremetal
       before_install:
-        - docker-compose pull bionic
+        - docker-compose pull focal
         - docker-compose pull focal-baremetal
       script:
-        - docker-compose run bionic qbs build modules.cpp.compilerWrapper:ccache modules.qbsbuildconfig.enableBundledQt:true config:release
+        - docker-compose run focal qbs build modules.cpp.compilerWrapper:ccache modules.qbsbuildconfig.enableBundledQt:true config:release
         - QBS_AUTOTEST_PROFILE=arm-none-eabi-gcc-9_2 docker-compose run focal-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
         - QBS_AUTOTEST_PROFILE=avr-gcc-5_4 docker-compose run focal-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
         - QBS_AUTOTEST_PROFILE=msp430-gcc-4_6 docker-compose run focal-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin

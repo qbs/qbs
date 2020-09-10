@@ -1,7 +1,7 @@
 #
 # Android SDK/NDK + Qt for Android for testing Qbs
 #
-FROM ubuntu:bionic
+FROM ubuntu:focal
 LABEL Description="Ubuntu test environment for Qbs and Qt for Android"
 
 # Allow colored output on command line.
@@ -27,7 +27,7 @@ RUN apt-get update -qq && \
     usermod -a -G sudo ${USER_NAME} && \
     echo "%devel         ALL = (ALL) NOPASSWD: ALL" >> /etc/sudoers
 
-COPY docker/bionic/entrypoint.sh /sbin/entrypoint.sh
+COPY docker/focal/entrypoint.sh /sbin/entrypoint.sh
 ENTRYPOINT ["/sbin/entrypoint.sh"]
 
 # Qbs build dependencies
@@ -35,7 +35,7 @@ RUN apt-get update -qq && \
     apt-get install -qq -y --no-install-recommends \
         ca-certificates \
         curl \
-        libasan4 \
+        libasan5 \
         libglib2.0-0 \
         libgl1-mesa-glx \
         openjdk-8-jdk-headless \

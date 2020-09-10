@@ -33,7 +33,7 @@ ENTRYPOINT ["/sbin/entrypoint.sh"]
 # Install baremetal toolchains and Qbs runtime dependencies.
 RUN apt-get update -qq && \
     apt-get install -qq -y \
-        libasan4 \
+        libasan5 \
         libglib2.0-0 \
         libgssapi-krb5-2 \
         libgl1-mesa-glx \
