@@ -40,7 +40,7 @@ Probe {
     property path conanfilePath
     property path packageReference
     property path executable: "conan" + (qbs.hostOS.contains("windows") ? ".exe": "")
-    property stringList generators: ["json"];
+    property stringList generators: ["json"]
     property var options
     property var settings
 

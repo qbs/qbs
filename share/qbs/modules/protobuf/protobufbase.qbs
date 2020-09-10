@@ -14,7 +14,7 @@ Module {
 
     FileTagger {
         patterns: ["*.proto"]
-        fileTags: ["protobuf.input"];
+        fileTags: ["protobuf.input"]
     }
 
     Probes.BinaryProbe {

@@ -33,17 +33,17 @@ import "../../../modules/cpp/sdcc.js" as SDCC
 
 PathProbe {
     // Inputs
-    property string compilerFilePath;
-    property string preferredArchitecture;
+    property string compilerFilePath
+    property string preferredArchitecture
 
     // Outputs
-    property string architecture;
-    property string endianness;
-    property int versionMajor;
-    property int versionMinor;
-    property int versionPatch;
-    property stringList includePaths;
-    property var compilerDefinesByLanguage;
+    property string architecture
+    property string endianness
+    property int versionMajor
+    property int versionMinor
+    property int versionPatch
+    property stringList includePaths
+    property var compilerDefinesByLanguage
 
     configure: {
         compilerDefinesByLanguage = {};

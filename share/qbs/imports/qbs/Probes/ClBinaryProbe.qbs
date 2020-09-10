@@ -35,7 +35,7 @@ import "path-probe.js" as PathProbeConfigure
 
 BinaryProbe {
     // input
-    property string preferredArchitecture;
+    property string preferredArchitecture
 
     configure: {
         var _selectors;

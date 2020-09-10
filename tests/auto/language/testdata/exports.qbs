@@ -142,8 +142,9 @@ Project {
         name: "broken_cycle1"
         Export {
             property bool depend: true
-            Depends { name: "broken_cycle3"; condition: depend }                                                                                                                                                                                                }
+            Depends { name: "broken_cycle3"; condition: depend }
         }
+    }
     Product {
         name: "broken_cycle2"
         Export {

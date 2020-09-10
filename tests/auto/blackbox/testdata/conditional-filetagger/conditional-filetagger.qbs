@@ -1,7 +1,7 @@
 CppApplication {
     name: "theApp"
     property bool enableTagger
-    files: ["main.custom"];
+    files: ["main.custom"]
     FileTagger {
         condition: enableTagger
         patterns: ["*.custom"]

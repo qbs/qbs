@@ -35,7 +35,7 @@ import "path-probe.js" as PathProbeConfigure
 
 BinaryProbe {
     // output
-    property string vcvarsallPath;
+    property string vcvarsallPath
 
     configure: {
         var _selectors;

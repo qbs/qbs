@@ -33,19 +33,19 @@ import "../../../modules/cpp/keil.js" as KEIL
 
 PathProbe {
     // Inputs
-    property string compilerFilePath;
-    property stringList enableDefinesByLanguage;
+    property string compilerFilePath
+    property stringList enableDefinesByLanguage
 
     property string _nullDevice: qbs.nullDevice
 
     // Outputs
-    property string architecture;
-    property string endianness;
-    property int versionMajor;
-    property int versionMinor;
-    property int versionPatch;
-    property stringList includePaths;
-    property var compilerDefinesByLanguage;
+    property string architecture
+    property string endianness
+    property int versionMajor
+    property int versionMinor
+    property int versionPatch
+    property stringList includePaths
+    property var compilerDefinesByLanguage
 
     configure: {
         compilerDefinesByLanguage = {};
