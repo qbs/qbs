@@ -72,8 +72,9 @@ ProtobufBase {
             var result = HelperFunctions.doPrepare(
                         input.protobuf.cpp, product, input, outputs, "cpp");
             if (input.fileTags.contains("protobuf.grpc")) {
-                result = ModUtils.concatAll(result, HelperFunctions.doPrepareGrpc(
-                                input.protobuf.cpp, product, input, outputs, "cpp"));
+                result = ModUtils.concatAll(result, HelperFunctions.doPrepare(
+                                input.protobuf.cpp, product, input, outputs, "grpc",
+                                "protoc-gen-grpc=" + input.protobuf.cpp.grpcPluginPath));
             }
             return result;
         }

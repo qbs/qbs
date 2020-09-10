@@ -92,12 +92,15 @@ function objcArtifact(outputDir, input, tag, suffix) {
     }
 }
 
-function doPrepare(module, product, input, outputs, lang)
+function doPrepare(module, product, input, outputs, generator, plugin)
 {
     var outputDir = module._outputDir;
     var args = [];
 
-    args.push("--" + lang + "_out", outputDir);
+    if (!!plugin)
+        args.push("--plugin=" + plugin)
+
+    args.push("--" + generator + "_out", outputDir);
 
     var importPaths = module.importPaths;
     if (importPaths.length === 0)
@@ -112,31 +115,6 @@ function doPrepare(module, product, input, outputs, lang)
 
     var cmd = new Command(module.compilerPath, args);
     cmd.highlight = "codegen";
-    cmd.description = "generating " + lang + " files for " + input.fileName;
-    return [cmd];
-}
-
-function doPrepareGrpc(module, product, input, outputs, lang)
-{
-    var outputDir = module._outputDir;
-    var args = [];
-
-    args.push("--grpc_out", outputDir);
-    args.push("--plugin=protoc-gen-grpc=" + module.grpcPluginPath);
-
-    var importPaths = module.importPaths;
-    if (importPaths.length === 0)
-        importPaths = [FileInfo.path(input.filePath)];
-    importPaths.forEach(function(path) {
-        if (!FileInfo.isAbsolutePath(path))
-            path = FileInfo.joinPaths(product.sourceDirectory, path);
-        args.push("--proto_path", path);
-    });
-
-    args.push(input.filePath);
-
-    var cmd = new Command(module.compilerPath, args);
-    cmd.highlight = "codegen";
-    cmd.description = "generating " + lang + " files for " + input.fileName;
+    cmd.description = "generating " + generator + " files for " + input.fileName;
     return [cmd];
 }

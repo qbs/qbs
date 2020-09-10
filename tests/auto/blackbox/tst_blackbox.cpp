@@ -5743,6 +5743,7 @@ void TestBlackbox::protobuf_data()
     QTest::addColumn<bool>("successExpected");
     QTest::newRow("cpp") << QString("addressbook_cpp.qbs") << QStringList() << true;
     QTest::newRow("objc") << QString("addressbook_objc.qbs") << QStringList() << true;
+    QTest::newRow("nanopb") << QString("addressbook_nanopb.qbs") << QStringList() << true;
     QTest::newRow("import") << QString("import.qbs") << QStringList() << true;
     QTest::newRow("missing import dir") << QString("needs-import-dir.qbs")
                                         << QStringList() << false;
