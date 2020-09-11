@@ -42,27 +42,6 @@ jobs:
         - docker-compose run bionic scripts/build-qbs-with-qbs.sh
 
     - <<: *build-on-bionic
-      name: With CMake on Ubuntu bionic (linux_gcc64)
-      script:
-        - docker-compose run bionic scripts/build-qbs-with-cmake.sh
-
-    - <<: *build-on-bionic
-      name: With QMake on Ubuntu bionic (linux_gcc64)
-      env:
-        BUILD_OPTIONS="CONFIG+=ccache"
-      script:
-        - docker-compose run bionic scripts/build-qbs-with-qmake.sh
-
-    - <<: *build-on-bionic
-      name: With Qbs on Ubuntu bionic (linux_clang64 & clang_tidy)
-      env:
-        BUILD_OPTIONS="profile:qt-clang_64 modules.cpp.compilerWrapper:ccache"
-      services:
-        - docker
-      script:
-        - docker-compose run --rm bionic scripts/run-analyzer.sh
-
-    - <<: *build-on-bionic
       name: With Qbs and with Qt 5.13 for Android
       before_install:
         - docker-compose pull bionic
