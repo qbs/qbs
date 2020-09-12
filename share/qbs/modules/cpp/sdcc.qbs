@@ -48,6 +48,7 @@ CppModule {
         id: sdccProbe
         condition: !_skipAllChecks
         compilerFilePath: compilerPath
+        enableDefinesByLanguage: enableCompilerDefinesByLanguage
         preferredArchitecture: qbs.architecture
     }
 

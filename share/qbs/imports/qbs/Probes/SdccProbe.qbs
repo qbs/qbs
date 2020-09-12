@@ -34,6 +34,7 @@ import "../../../modules/cpp/sdcc.js" as SDCC
 PathProbe {
     // Inputs
     property string compilerFilePath
+    property stringList enableDefinesByLanguage
     property string preferredArchitecture
 
     // Outputs
@@ -53,9 +54,22 @@ PathProbe {
             return;
         }
 
-        var macros = SDCC.dumpMacros(compilerFilePath, preferredArchitecture);
+        var languages = enableDefinesByLanguage;
+        if (!languages || languages.length === 0)
+            languages = ["c"];
 
-        // SDCC it is only the C language compiler.
+        // SDCC compiler support only the C-language.
+        if (!languages.contains("c")) {
+            found = false;
+            return;
+        }
+
+        var macros = SDCC.dumpMacros(compilerFilePath, preferredArchitecture);
+        if (!macros) {
+            found = false;
+            return;
+        }
+
         compilerDefinesByLanguage["c"] = macros;
 
         architecture = SDCC.guessArchitecture(macros);
@@ -69,7 +83,7 @@ PathProbe {
             versionMajor = version.major;
             versionMinor = version.minor;
             versionPatch = version.patch;
-            found = true;
+            found = !!architecture && !!endianness;
         }
    }
 }
