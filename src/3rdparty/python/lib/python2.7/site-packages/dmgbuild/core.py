@@ -11,6 +11,7 @@ import sys
 import tempfile
 import tokenize
 import json
+import time
 
 try:
     {}.iteritems
@@ -128,7 +129,7 @@ def load_json(filename, settings):
     settings['icon_locations'] = icon_locations
 
 def build_dmg(filename, volume_name, settings_file=None, settings={},
-              defines={}, lookForHiDPI=True):
+              defines={}, lookForHiDPI=True, detach_retries=5):
     options = {
         # Default settings
         'filename': filename,
@@ -397,7 +398,7 @@ def build_dmg(filename, volume_name, settings_file=None, settings={},
         for name,target in iteritems(options['symlinks']):
             total_size += 4096
 
-        total_size = str(max(total_size / 1024, 1024)) + 'K'
+        total_size = str(max(total_size / 1000, 1024)) + 'K'
 
     ret, output = hdiutil('create',
                           '-ov',
@@ -462,7 +463,7 @@ def build_dmg(filename, volume_name, settings_file=None, settings={},
                         imageDirectory = '.'
                     for candidateName in os.listdir(imageDirectory):
                         hasScale = re.match(
-                            '^(?P<name>.+)@(?P<scale>\d+)x(?P<extension>\.\w+)$',
+                            r'^(?P<name>.+)@(?P<scale>\d+)x(?P<extension>\.\w+)$',
                             candidateName)
                         if hasScale and name == hasScale.group('name') and \
                             extension == hasScale.group('extension'):
@@ -549,7 +550,11 @@ def build_dmg(filename, volume_name, settings_file=None, settings={},
         hdiutil('detach', '-force', device, plist=False)
         raise
 
-    ret, output = hdiutil('detach', device, plist=False)
+    for tries in range(detach_retries):
+        ret, output = hdiutil('detach', device, plist=False)
+        if not ret:
+            break
+        time.sleep(1)
 
     if ret:
         hdiutil('detach', '-force', device, plist=False)

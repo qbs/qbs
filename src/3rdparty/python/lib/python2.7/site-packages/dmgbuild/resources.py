@@ -1,19 +1,16 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-
 import struct
 
 class Resource (object):
     def __init__(self, res_type, res_id, res_name, data=None, res_attrs=0):
-        self.res_type = str(res_type)
+        self.res_type = res_type
         self.res_id = res_id
-        if isinstance(res_name, basestring):
-            res_name = str(res_name)
         self.res_name = res_name
         self.res_attrs = res_attrs
         if data is None:
             self.data = None
-        self.data = str(data)
+        self.data = data
 
         self.data_offset = None
         self.name_offset = None
@@ -30,8 +27,8 @@ class TMPLResource (Resource):
         data = []
         for name,typecode in tmpl:
             data.append(struct.pack(b'B', len(name)))
-            data.append(str(name))
-            data.append(str(typecode))
+            data.append(name)
+            data.append(typecode)
         super(TMPLResource, self).__init__(b'TMPL', res_id, res_name,
                                            b''.join(data), res_attrs)
 
@@ -41,14 +38,15 @@ class StringListResource (Resource):
         data.append(struct.pack(b'>H', len(strings)))
         for s in strings:
             data.append(struct.pack(b'B', len(s)))
-            data.append(str(s))
+            data.append(s)
+
         super(StringListResource, self).__init__(b'STR#', res_id, res_name,
                                                  b''.join(data), res_attrs)
 
 class TextResource (Resource):
     def __init__(self, res_id, res_name, string, res_attrs=0):
         super(TextResource, self).__init__(b'TEXT', res_id, res_name,
-                                           str(string), res_attrs)
+                                           string, res_attrs)
 
 class Style (object):
     # Fonts
@@ -234,7 +232,13 @@ class ResourceFork (object):
                     res_name_offset += name_offset
                     if res_name_offset >= map_start + map_len:
                         raise ValueError('Bad resource data - name out of range')
-                    res_name_len = struct.unpack(b'B', data[res_name_offset])[0]
+                    try:
+                        # python2
+                        res_name_len = struct.unpack(b'B', data[res_name_offset])[0]
+                    except:
+                        # python3
+                        res_name_len = data[res_name_offset]
+
                     res_name = data[res_name_offset + 1:res_name_offset + res_name_len + 1]
 
                 result.types[res_type].append(Resource(res_type, res_id,
@@ -271,7 +275,7 @@ class ResourceFork (object):
                     name_offset = 65535
                 else:
                     name_offset = names_len
-                    n = str(item.res_name)
+                    n = item.res_name
                     names.append(struct.pack(b'B', len(n)) + n)
                     names_len += 1 + len(n)
 

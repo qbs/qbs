@@ -428,16 +428,17 @@ def add_license(filename, license_info):
         is_two_byte = lang_id in (14, 51, 52, 53) # Japanese, Korean, SimpChinese, TradChinese
 
         if os.path.isfile(license_data):
-            with open(license_data) as f:
+            mode = 'rb' if license_data.endswith('.rtf') else 'r'
+            with open(license_data, mode=mode) as f:
                 license_data = f.read()
 
-        if license_data.startswith('{\\rtf1'):
-            fork.add(Resource(b'RTF ', 5000 + ndx, language + ' SLA',
-                              str(license_data)))
+        if type(license_data) == bytes and license_data.startswith(b'{\\rtf1'):
+            fork.add(Resource(b'RTF ', 5000 + ndx, (language + ' SLA').encode(),
+                              license_data))
         else:
-            fork.add(TextResource(5000 + ndx, language + ' SLA',
+            fork.add(TextResource(5000 + ndx, (language + ' SLA').encode(),
                                   maybe_encode(license_data, encoding_name)))
-            fork.add(StyleResource(5000 + ndx, language + ' SLA',
+            fork.add(StyleResource(5000 + ndx, (language + ' SLA').encode(),
                                    [Style(0, 12, 9, Style.Helvetica,
                                           0, 0, (0, 0, 0))]))
 
@@ -449,8 +450,7 @@ def add_license(filename, license_info):
 
         buttons = [maybe_encode(b, encoding_name) for b in buttons]
 
-        fork.add(StringListResource(5000 + ndx, language + ' Buttons',
-                                    buttons))
+        fork.add(StringListResource(5000 + ndx, (language + ' Buttons').encode(), buttons))
 
         lpic.append((lang_id, ndx, is_two_byte))
 

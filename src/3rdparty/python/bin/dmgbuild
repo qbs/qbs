@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
 from __future__ import unicode_literals
@@ -33,9 +33,4 @@ for d in args.defines:
         v = v[1:-1]
     defines[k] = v
 
-dmgbuild.build_dmg(
-    args.filename.decode('utf_8'),
-    args.volume_name.decode('utf_8'),
-    args.settings.decode('utf_8'),
-    defines=defines,
-    lookForHiDPI=args.lookForHiDPI)
+dmgbuild.build_dmg(args.filename, args.volume_name, args.settings, defines=defines, lookForHiDPI=args.lookForHiDPI)
