@@ -7796,9 +7796,6 @@ void TestBlackbox::fallbackModuleProvider()
     QFETCH(QStringList, pkgConfigLibDirs);
     QFETCH(bool, successExpected);
 
-    if (HostOsInfo::isWindowsHost() && qEnvironmentVariableIsSet("GITHUB_ACTIONS"))
-        QSKIP("Skip this test when running on GitHub");
-
     QDir::setCurrent(testDataDir + "/fallback-module-provider");
     static const auto b2s = [](bool b) { return QString(b ? "true" : "false"); };
     QbsRunParameters resolveParams("resolve",

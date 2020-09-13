@@ -395,6 +395,8 @@ jobs:
     - name: Update PATH
       run: echo ::add-path::./release/install-root/bin
       shell: bash
+    - name: Install required packages
+      run: choco install -y pkgconfiglite
     - name: Install Qt
       uses: ./.github/actions/download-qt
       with:
