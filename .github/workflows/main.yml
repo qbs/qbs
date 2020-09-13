@@ -29,15 +29,13 @@ jobs:
     - name: Create .ccache dir
       run: mkdir -p ~/.ccache
     - name: prepare timestamp
-      id: ccache_cache_timestamp
-      run: |
-        export TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-        echo ::set-output name=timestamp::$TIMESTAMP
+      id: get-timestamp
+      run: echo ::set-output name=timestamp::$(date -u +"%Y-%m-%dT%H:%M:%SZ")
     - name: ccache cache files
       uses: actions/cache@v2
       with:
         path: ~/.ccache
-        key: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
+        key: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache-${{ steps.get-timestamp.outputs.timestamp }}
         restore-keys: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache-
     - name: Pull the Bionic Image
       run: docker-compose pull bionic
@@ -86,15 +84,13 @@ jobs:
     - name: Create .ccache dir
       run: mkdir -p ~/.ccache
     - name: prepare timestamp
-      id: ccache_cache_timestamp
-      run: |
-        export TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-        echo ::set-output name=timestamp::$TIMESTAMP
+      id: get-timestamp
+      run: echo ::set-output name=timestamp::$(date -u +"%Y-%m-%dT%H:%M:%SZ")
     - name: ccache cache files
       uses: actions/cache@v2
       with:
         path: ~/.ccache
-        key: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
+        key: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache-${{ steps.get-timestamp.outputs.timestamp }}
         restore-keys: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache-
     - name: Pull the Bionic Image
       run: docker-compose pull bionic
@@ -123,15 +119,13 @@ jobs:
     - name: Create .ccache dir
       run: mkdir -p ~/.ccache
     - name: prepare timestamp
-      id: ccache_cache_timestamp
-      run: |
-        export TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-        echo ::set-output name=timestamp::$TIMESTAMP
+      id: get-timestamp
+      run: echo ::set-output name=timestamp::$(date -u +"%Y-%m-%dT%H:%M:%SZ")
     - name: ccache cache files
       uses: actions/cache@v2
       with:
         path: ~/.ccache
-        key: ${{ runner.os }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
+        key: ${{ runner.os }}-ccache-${{ steps.get-timestamp.outputs.timestamp }}
         restore-keys: ${{ runner.os }}-ccache-
     - name: Install required packages
       run: |
@@ -177,17 +171,15 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: prepare timestamp
-      id: ccache_cache_timestamp
-      run: |
-        export TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-        echo ::set-output name=timestamp::$TIMESTAMP
+      id: get-timestamp
+      run: echo ::set-output name=timestamp::$(date -u +"%Y-%m-%dT%H:%M:%SZ")
       shell: bash
     - name: clcache cache files
       uses: actions/cache@v2
       with:
         path: ~/clcache
-        key: ${{ runner.os }}-clcache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
-        restore-keys: ${{ runner.os }}-clcache-
+        key: ${{ runner.os }}-msvc-clcache-${{ steps.get-timestamp.outputs.timestamp }}
+        restore-keys: ${{ runner.os }}-msvc-clcache-
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
