@@ -716,18 +716,18 @@
     the Docker command line and ensures that the correct image tag is used. All available images
     are listed in the \c docker-compose.yml file in the project root directory.
 
-    Run the following command to download the \QBS development image based on Ubuntu 18.04
-    \e Bionic:
+    Run the following command to download the \QBS development image based on Ubuntu 20.04
+    \e Focal:
 
     \code
-        docker-compose pull bionic
+        docker-compose pull focal
     \endcode
 
     You can then create a new container with the \QBS source directory mounted from your host
     machine's file system, by running:
 
     \code
-        docker-compose run --rm bionic
+        docker-compose run --rm focal
     \endcode
 
     You will now be in an interactive Linux shell where you can develop and build \QBS.
