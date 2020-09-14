@@ -320,10 +320,11 @@ private:
             const CodeLocation &dependsItemLocation, const QualifiedId &moduleName,
             FallbackMode fallbackMode, bool isRequired, Item *moduleInstance);
     QStringList &getModuleFileNames(const QString &dirPath);
-    Item *loadModuleFile(ProductContext *productContext, const QString &fullModuleName,
-            bool isBaseModule, const QString &filePath, bool *triedToLoad, Item *moduleInstance);
-    Item *getModulePrototype(ProductContext *productContext, const QString &fullModuleName,
-                             const QString &filePath, bool *triedToLoad);
+    std::pair<Item *, bool> loadModuleFile(
+            ProductContext *productContext, const QString &fullModuleName, bool isBaseModule,
+            const QString &filePath, Item *moduleInstance);
+    std::pair<Item *, bool> getModulePrototype(ProductContext *productContext,
+            const QString &fullModuleName, const QString &filePath);
     Item::Module loadBaseModule(ProductContext *productContext, Item *item);
     void setupBaseModulePrototype(Item *prototype);
     template <typename T, typename F>

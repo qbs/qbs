@@ -3151,9 +3151,8 @@ Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
         QStringList &moduleFileNames = getModuleFileNames(dirPath);
         for (auto it = moduleFileNames.begin(); it != moduleFileNames.end(); ) {
             const QString &filePath = *it;
-            bool triedToLoad = true;
-            Item *module = loadModuleFile(productContext, fullName, isBaseModule(moduleName),
-                                          filePath, &triedToLoad, moduleInstance);
+            const auto [module, triedToLoad] = loadModuleFile(
+                    productContext, fullName, isBaseModule(moduleName), filePath, moduleInstance);
             if (module)
                 candidates.emplace_back(module, 0, i);
             if (!triedToLoad)
@@ -3267,22 +3266,24 @@ static Item *findDeepestModuleInstance(Item *instance)
     return instance;
 }
 
-Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString &fullModuleName,
-        bool isBaseModule, const QString &filePath, bool *triedToLoad, Item *moduleInstance)
+std::pair<Item *, bool> ModuleLoader::loadModuleFile(
+        ProductContext *productContext, const QString &fullModuleName, bool isBaseModule,
+        const QString &filePath, Item *moduleInstance)
 {
     checkCancelation();
 
     qCDebug(lcModuleLoader) << "loadModuleFile" << fullModuleName << "from" << filePath;
 
-    Item * const module = getModulePrototype(productContext, fullModuleName, filePath, triedToLoad);
+    const auto [module, triedToLoad] =
+            getModulePrototype(productContext, fullModuleName, filePath);
     if (!module)
-        return nullptr;
+        return {nullptr, triedToLoad};
 
     const auto key = std::make_pair(module, productContext);
     const auto it = m_modulePrototypeEnabledInfo.find(key);
     if (it != m_modulePrototypeEnabledInfo.end()) {
         qCDebug(lcModuleLoader) << "prototype cache hit (level 2)";
-        return it.value() ? module : nullptr;
+        return {it.value() ? module : nullptr, triedToLoad};
     }
 
     // Set the name before evaluating any properties. EvaluatorScriptClass reads the module name.
@@ -3296,7 +3297,7 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
     if (!enabled) {
         qCDebug(lcModuleLoader) << "condition of module" << fullModuleName << "is false";
         m_modulePrototypeEnabledInfo.insert(key, false);
-        return nullptr;
+        return {nullptr, triedToLoad};
     }
 
     if (isBaseModule)
@@ -3305,17 +3306,18 @@ Item *ModuleLoader::loadModuleFile(ProductContext *productContext, const QString
         resolveParameterDeclarations(module);
 
     m_modulePrototypeEnabledInfo.insert(key, true);
-    return module;
+    return {module, triedToLoad};
 }
 
-Item *ModuleLoader::getModulePrototype(ProductContext *productContext,
-        const QString &fullModuleName, const QString &filePath, bool *triedToLoad)
+// Returns the module prototype item and a boolean indicating if we tried to load it from the file
+std::pair<Item *, bool> ModuleLoader::getModulePrototype(ProductContext *productContext,
+        const QString &fullModuleName, const QString &filePath)
 {
     auto &prototypeList = m_modulePrototypes[filePath];
     for (const auto &prototype : prototypeList) {
         if (prototype.second == productContext->profileName) {
             qCDebug(lcModuleLoader) << "prototype cache hit (level 1)";
-            return prototype.first;
+            return {prototype.first, true};
         }
     }
     Item * const module = loadItemFromFile(filePath, CodeLocation());
@@ -3323,8 +3325,7 @@ Item *ModuleLoader::getModulePrototype(ProductContext *productContext,
         qCDebug(lcModuleLoader).nospace()
                             << "Alleged module " << fullModuleName << " has type '"
                             << module->typeName() << "', so it's not a module after all.";
-        *triedToLoad = false;
-        return nullptr;
+        return {nullptr, false};
     }
     prototypeList.emplace_back(module, productContext->profileName);
 
@@ -3344,7 +3345,7 @@ Item *ModuleLoader::getModulePrototype(ProductContext *productContext,
         module->setProperty(it.key(), v);
     }
 
-    return module;
+    return {module, true};
 }
 
 Item::Module ModuleLoader::loadBaseModule(ProductContext *productContext, Item *item)
