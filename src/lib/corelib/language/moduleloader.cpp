@@ -3319,7 +3319,6 @@ Item *ModuleLoader::getModulePrototype(ProductContext *productContext,
         }
     }
     Item * const module = loadItemFromFile(filePath, CodeLocation());
-    prototypeList.emplace_back(module, productContext->profileName);
     if (module->type() != ItemType::Module) {
         qCDebug(lcModuleLoader).nospace()
                             << "Alleged module " << fullModuleName << " has type '"
@@ -3327,6 +3326,7 @@ Item *ModuleLoader::getModulePrototype(ProductContext *productContext,
         *triedToLoad = false;
         return nullptr;
     }
+    prototypeList.emplace_back(module, productContext->profileName);
 
     // Module properties that are defined in the profile are used as default values.
     // This is the reason we need to have different items per profile.
