@@ -579,11 +579,11 @@ function prepareAssembler(project, product, inputs, outputs, input, output, expl
 
 function prepareLinker(project, product, inputs, outputs, input, output) {
     var cmds = [];
-    var primaryOutput = outputs.application[0];
+    var target = outputs.application[0];
     var args = linkerFlags(project, product, inputs, outputs);
     var linkerPath = effectiveLinkerPath(product);
     var cmd = new Command(linkerPath, args);
-    cmd.description = "linking " + primaryOutput.fileName;
+    cmd.description = "linking " + target.fileName;
     cmd.highlight = "linker";
     cmds.push(cmd);
 
@@ -609,6 +609,21 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
         };
         cmds.push(cmd);
     }
+    // It is a workaround which removes the generated linker map file
+    // if it is disabled by cpp.generateLinkerMapFile property.
+    // Reason is that the SDCC compiler always generates this file,
+    // and does not have an option to disable generation for a linker
+    // map file. So, we can to remove a listing files only after the
+    // linking completes.
+    if (!product.cpp.generateLinkerMapFile) {
+        cmd = new JavaScriptCommand();
+        cmd.mapFilePath = FileInfo.joinPaths(
+            FileInfo.path(target.filePath),
+            FileInfo.completeBaseName(target.fileName) + ".map");
+        cmd.sourceCode = function() { File.remove(mapFilePath); };
+        cmds.push(cmd);
+    }
+
     return cmds;
 }
 
