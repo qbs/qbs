@@ -2952,9 +2952,9 @@ private:
     std::vector<DependsChainEntry> &m_dependsChain;
 };
 
-static bool isBaseModule(const QualifiedId &moduleName)
+static bool isBaseModule(QStringView fullModuleName)
 {
-    return moduleName.size() == 1 && moduleName.front() == StringConstants::qbsModule();
+    return fullModuleName == StringConstants::qbsModule();
 }
 
 class DelayedPropertyChanger
@@ -3028,7 +3028,8 @@ Item *ModuleLoader::loadModule(ProductContext *productContext, Item *exportingPr
     // Prepare module instance for evaluating Module.condition.
     DelayedPropertyChanger delayedPropertyChanger;
     const QString &qbsModuleName = StringConstants::qbsModule();
-    if (!isBaseModule(moduleName)) {
+    const auto fullName = moduleName.toString();
+    if (!isBaseModule(fullName)) {
         ItemValuePtr qbsProp = productContext->item->itemProperty(qbsModuleName);
         if (qbsProp) {
             ValuePtr qbsModuleValue = moduleInstance->ownProperty(qbsModuleName);
@@ -3041,7 +3042,7 @@ Item *ModuleLoader::loadModule(ProductContext *productContext, Item *exportingPr
     }
 
     Item *modulePrototype = nullptr;
-    ProductModuleInfo * const pmi = productModule(productContext, moduleName.toString(),
+    ProductModuleInfo * const pmi = productModule(productContext, fullName,
                                                   multiplexId, *isProductDependency);
     if (pmi) {
         m_dependsChain.back().isProduct = true;
@@ -3152,7 +3153,7 @@ Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
         for (auto it = moduleFileNames.begin(); it != moduleFileNames.end(); ) {
             const QString &filePath = *it;
             const auto [module, triedToLoad] = loadModuleFile(
-                    productContext, fullName, isBaseModule(moduleName), filePath, moduleInstance);
+                    productContext, fullName, filePath, moduleInstance);
             if (module)
                 candidates.emplace_back(module, 0, i);
             if (!triedToLoad)
@@ -3267,7 +3268,7 @@ static Item *findDeepestModuleInstance(Item *instance)
 }
 
 std::pair<Item *, bool> ModuleLoader::loadModuleFile(
-        ProductContext *productContext, const QString &fullModuleName, bool isBaseModule,
+        ProductContext *productContext, const QString &fullModuleName,
         const QString &filePath, Item *moduleInstance)
 {
     checkCancelation();
@@ -3300,7 +3301,7 @@ std::pair<Item *, bool> ModuleLoader::loadModuleFile(
         return {nullptr, triedToLoad};
     }
 
-    if (isBaseModule)
+    if (isBaseModule(fullModuleName))
         setupBaseModulePrototype(module);
     else
         resolveParameterDeclarations(module);
@@ -3535,7 +3536,7 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
     if (productModuleInfo) {
         dependsContext.productDependencies = &productContext->productModuleDependencies[fullName];
         resolveDependencies(&dependsContext, moduleInstance);
-    } else if (!isBaseModule(moduleName)) {
+    } else if (!isBaseModule(fullName)) {
         dependsContext.productDependencies = &productContext->info.usedProducts;
         resolveDependencies(&dependsContext, moduleInstance);
     }

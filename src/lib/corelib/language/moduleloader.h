@@ -321,7 +321,7 @@ private:
             FallbackMode fallbackMode, bool isRequired, Item *moduleInstance);
     QStringList &getModuleFileNames(const QString &dirPath);
     std::pair<Item *, bool> loadModuleFile(
-            ProductContext *productContext, const QString &fullModuleName, bool isBaseModule,
+            ProductContext *productContext, const QString &fullModuleName,
             const QString &filePath, Item *moduleInstance);
     std::pair<Item *, bool> getModulePrototype(ProductContext *productContext,
             const QString &fullModuleName, const QString &filePath);
