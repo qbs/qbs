@@ -553,6 +553,7 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
     if (isWindows) {
         cmd = new JavaScriptCommand();
         cmd.objectPath = outputs.obj[0].filePath;
+        cmd.silent = true;
         cmd.sourceCode = function() {
             var lines = [];
             var file = new TextFile(objectPath, TextFile.ReadWrite);
@@ -597,6 +598,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
         cmd = new JavaScriptCommand();
         cmd.objectPaths = inputs.obj.map(function(a) { return a.filePath; });
         cmd.objectSuffix = product.cpp.objectSuffix;
+        cmd.silent = true;
         cmd.sourceCode = function() {
             objectPaths.forEach(function(objectPath) {
                 if (!objectPath.endsWith(".c" + objectSuffix))
@@ -620,6 +622,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
         cmd.mapFilePath = FileInfo.joinPaths(
             FileInfo.path(target.filePath),
             FileInfo.completeBaseName(target.fileName) + ".map");
+        cmd.silent = true;
         cmd.sourceCode = function() { File.remove(mapFilePath); };
         cmds.push(cmd);
     }
