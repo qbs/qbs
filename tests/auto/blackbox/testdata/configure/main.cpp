@@ -30,7 +30,7 @@
 
 int main()
 {
-    printf("%s..\n", TEXT);
+    std::printf("%s..\n", TEXT);
     return 0;
 }
 
