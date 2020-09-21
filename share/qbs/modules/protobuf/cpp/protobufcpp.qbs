@@ -42,7 +42,7 @@ ProtobufBase {
         return result;
     }
     cpp.includePaths: {
-        var result = [_outputDir];
+        var result = [outputDir];
         if (includePath)
             result.push(includePath);
         if (useGrpc && grpcIncludePath)
@@ -52,17 +52,19 @@ ProtobufBase {
 
     Rule {
         inputs: ["protobuf.input", "protobuf.grpc"]
-        outputFileTags: ["hpp", "cpp"]
+        outputFileTags: ["hpp", "protobuf.hpp", "cpp"]
         outputArtifacts: {
             var outputDir = HelperFunctions.getOutputDir(input.protobuf.cpp, input);
             var result = [
-                        HelperFunctions.cppArtifact(outputDir, input, "hpp", ".pb.h"),
+                        HelperFunctions.cppArtifact(outputDir, input, ["hpp", "protobuf.hpp"],
+                                                    ".pb.h"),
                         HelperFunctions.cppArtifact(outputDir, input, "cpp", ".pb.cc")
                     ];
             if (input.fileTags.contains("protobuf.grpc")) {
                 result.push(
-                        HelperFunctions.cppArtifact(outputDir, input, "hpp", ".grpc.pb.h"),
-                        HelperFunctions.cppArtifact(outputDir, input, "cpp", ".grpc.pb.cc"));
+                        HelperFunctions.cppArtifact(outputDir, input, ["hpp", "protobuf.hpp"],
+                                                    ".grpc.pb.h"),
+                        HelperFunctions.cppArtifact(outputDir, input, ["cpp"], ".grpc.pb.cc"));
             }
 
             return result;

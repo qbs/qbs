@@ -1,0 +1,6 @@
+syntax = "proto3";
+package protobuf.library.hello;
+
+message World {
+    int32 value = 1;
+};

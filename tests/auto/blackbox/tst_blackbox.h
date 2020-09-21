@@ -253,6 +253,7 @@ private slots:
     void propertiesInExportItems();
     void protobuf_data();
     void protobuf();
+    void protobufLibraryInstall();
     void pseudoMultiplexing();
     void qbsConfig();
     void qbsSession();

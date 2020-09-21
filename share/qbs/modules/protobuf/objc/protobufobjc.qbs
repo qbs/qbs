@@ -12,7 +12,7 @@ ProtobufBase {
 
     Depends { name: "cpp" }
 
-    cpp.includePaths: [_outputDir].concat(!frameworkPath && includePath ? [includePath] : [])
+    cpp.includePaths: [outputDir].concat(!frameworkPath && includePath ? [includePath] : [])
     cpp.libraryPaths: !frameworkPath && libraryPath ? [libraryPath] : []
     cpp.dynamicLibraries: !frameworkPath && libraryPath ? ["ProtocolBuffers"] : []
     cpp.frameworkPaths: frameworkPath ? [frameworkPath] : []
@@ -21,12 +21,13 @@ ProtobufBase {
 
     Rule {
         inputs: ["protobuf.input"]
-        outputFileTags: ["hpp", "objc"]
+        outputFileTags: ["hpp", "protobuf.hpp", "objc"]
         outputArtifacts: {
             var outputDir = HelperFunctions.getOutputDir(input.protobuf.objc, input);
             return [
-                HelperFunctions.objcArtifact(outputDir, input, "hpp", ".pbobjc.h"),
-                HelperFunctions.objcArtifact(outputDir, input, "objc", ".pbobjc.m")
+                HelperFunctions.objcArtifact(outputDir, input, ["hpp", "protobuf.hpp"],
+                                             ".pbobjc.h"),
+                HelperFunctions.objcArtifact(outputDir, input, ["objc"], ".pbobjc.m")
             ];
         }
 

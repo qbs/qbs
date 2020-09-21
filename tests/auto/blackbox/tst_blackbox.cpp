@@ -5750,6 +5750,8 @@ void TestBlackbox::protobuf_data()
     QTest::newRow("provided import dir")
             << QString("needs-import-dir.qbs")
             << QStringList("products.app.theImportDir:subdir") << true;
+    QTest::newRow("create proto library")
+            << QString("create-proto-library.qbs") << QStringList() << true;
 }
 
 void TestBlackbox::protobuf()
@@ -5771,6 +5773,28 @@ void TestBlackbox::protobuf()
     QbsRunParameters runParams("run");
     runParams.expectFailure = !successExpected;
     QCOMPARE(runQbs(runParams) == 0, successExpected);
+}
+
+void TestBlackbox::protobufLibraryInstall()
+{
+    QDir::setCurrent(testDataDir + "/protobuf-library-install");
+    rmDirR(relativeBuildDir());
+    QbsRunParameters resolveParams("resolve", QStringList{"qbs.installPrefix:/usr/local"});
+    QCOMPARE(runQbs(resolveParams), 0);
+    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+        QSKIP("Cannot run binaries in cross-compiled build");
+    const bool withProtobuf = m_qbsStdout.contains("has protobuf: true");
+    const bool withoutProtobuf = m_qbsStdout.contains("has protobuf: false");
+    QVERIFY2(withProtobuf || withoutProtobuf, m_qbsStdout.constData());
+    if (withoutProtobuf)
+        QSKIP("protobuf module not present");
+    QbsRunParameters buildParams("build");
+    buildParams.expectFailure = false;
+    QCOMPARE(runQbs(buildParams), 0);
+
+    const QString installRootInclude = relativeBuildDir() + "/install-root/usr/local/include";
+    QVERIFY(QFileInfo::exists(installRootInclude + "/hello.pb.h") &&
+            QFileInfo::exists(installRootInclude + "/hello/world.pb.h"));
 }
 
 void TestBlackbox::pseudoMultiplexing()

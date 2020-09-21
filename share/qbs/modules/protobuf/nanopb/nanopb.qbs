@@ -23,7 +23,7 @@ ProtobufBase {
     }
     cpp.dynamicLibraries: "protobuf-nanopb"
     cpp.includePaths: {
-        var result = [_outputDir];
+        var result = [outputDir];
         if (includePath)
             result.push(includePath);
         return result;
@@ -31,12 +31,13 @@ ProtobufBase {
 
     Rule {
         inputs: ["protobuf.input"]
-        outputFileTags: ["hpp", "cpp"]
+        outputFileTags: ["hpp", "protobuf.hpp", "cpp"]
         outputArtifacts: {
             var outputDir = HelperFunctions.getOutputDir(input.protobuf.nanopb, input);
             var result = [
-                        HelperFunctions.cppArtifact(outputDir, input, "hpp", ".pb.h"),
-                        HelperFunctions.cppArtifact(outputDir, input, "cpp", ".pb.c")
+                        HelperFunctions.cppArtifact(outputDir, input, ["hpp", "protobuf.hpp"],
+                                                    ".pb.h"),
+                        HelperFunctions.cppArtifact(outputDir, input, ["cpp"], ".pb.c")
                     ];
 
             return result;

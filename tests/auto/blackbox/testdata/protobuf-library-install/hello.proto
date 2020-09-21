@@ -1,0 +1,8 @@
+syntax = "proto3";
+package protobuf.library;
+
+import "hello/world.proto";
+
+message Hello {
+    hello.World world = 1;
+};

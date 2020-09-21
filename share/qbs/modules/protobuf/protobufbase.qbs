@@ -10,7 +10,7 @@ Module {
 
     property pathList importPaths: []
 
-    property string _outputDir: product.buildDirectory + "/protobuf"
+    readonly property string outputDir: product.buildDirectory + "/protobuf"
 
     FileTagger {
         patterns: ["*.proto"]

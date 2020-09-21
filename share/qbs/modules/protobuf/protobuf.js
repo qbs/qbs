@@ -54,7 +54,7 @@ function toCamelCase(str){
 }
 
 function getOutputDir(module, input)  {
-    var outputDir = module._outputDir;
+    var outputDir = module.outputDir;
     var importPaths = module.importPaths;
     if (importPaths.length !== 0) {
         var canonicalInput = File.canonicalFilePath(FileInfo.path(input.filePath));
@@ -69,9 +69,9 @@ function getOutputDir(module, input)  {
     return outputDir;
 }
 
-function cppArtifact(outputDir, input, tag, suffix) {
+function cppArtifact(outputDir, input, tags, suffix) {
     return {
-        fileTags: [tag],
+        fileTags: tags,
         filePath: FileInfo.joinPaths(outputDir, FileInfo.baseName(input.fileName) + suffix),
         cpp: {
             includePaths: [].concat(input.cpp.includePaths, outputDir),
@@ -80,9 +80,9 @@ function cppArtifact(outputDir, input, tag, suffix) {
     };
 }
 
-function objcArtifact(outputDir, input, tag, suffix) {
+function objcArtifact(outputDir, input, tags, suffix) {
     return {
-        fileTags: [tag],
+        fileTags: tags,
         filePath: FileInfo.joinPaths(
                       outputDir, toCamelCase(FileInfo.baseName(input.fileName)) + suffix),
         cpp: {
@@ -94,7 +94,7 @@ function objcArtifact(outputDir, input, tag, suffix) {
 
 function doPrepare(module, product, input, outputs, generator, plugin)
 {
-    var outputDir = module._outputDir;
+    var outputDir = module.outputDir;
     var args = [];
 
     if (!!plugin)
