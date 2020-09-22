@@ -83,6 +83,9 @@ CppModule {
     property string archiverName: KEIL.archiverName(qbs) + compilerExtension
     property string archiverPath: FileInfo.joinPaths(toolchainInstallPath, archiverName)
 
+    property string disassemblerName: KEIL.disassemblerName(qbs) + compilerExtension
+    property string disassemblerPath: FileInfo.joinPaths(toolchainInstallPath, disassemblerName)
+
     runtimeLibrary: "static"
 
     staticLibrarySuffix: KEIL.staticLibrarySuffix(qbs)

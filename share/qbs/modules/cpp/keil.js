@@ -133,6 +133,11 @@ function archiverName(qbs) {
             + architecture + "'";
 }
 
+function disassemblerName(qbs) {
+    var architecture = qbs.architecture;
+    return isArmArchitecture(architecture) ? "fromelf" : undefined;
+}
+
 function staticLibrarySuffix(qbs) {
     var architecture = qbs.architecture;
     if (isMcsArchitecture(architecture) || isC166Architecture(architecture)
@@ -638,9 +643,7 @@ function compilerOutputArtifacts(input, useListing) {
         artifacts.push({
             fileTags: ["lst"],
             filePath: Utilities.getHash(input.baseDir) + "/"
-                  + ((isMcsArchitecture(input.cpp.architecture)
-                        || isC166Architecture(input.cpp.architecture))
-                    ? input.fileName : input.baseName)
+                  + (isArmCCCompiler(input.cpp.compilerPath) ? input.baseName : input.fileName)
                   + ".lst"
         });
     }
@@ -1011,6 +1014,13 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
     return args;
 }
 
+function disassemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
+    var args = ["--disassemble", "--interleave=source"];
+    args.push(outputs.obj[0].filePath);
+    args.push("--output=" + outputs.lst[0].filePath);
+    return args;
+}
+
 function linkerFlags(project, product, inputs, outputs) {
     var args = [];
 
@@ -1133,6 +1143,7 @@ function archiverFlags(project, product, inputs, outputs) {
 }
 
 function prepareCompiler(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
+    var cmds = [];
     var args = compilerFlags(project, product, input, outputs, explicitlyDependsOn);
     var compilerPath = input.cpp.compilerPath;
     var architecture = input.cpp.architecture;
@@ -1146,7 +1157,21 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
         cmd.maxExitCode = 1;
         cmd.stdoutFilterFunction = filterC166Output;
     }
-    return [cmd];
+    cmds.push(cmd);
+
+    // The ARMCLANG compiler does not support generation
+    // for the listing files:
+    // * https://www.keil.com/support/docs/4152.htm
+    // So, we generate the listing files from the object files
+    // using the disassembler.
+    if (isArmClangCompiler(compilerPath) && input.cpp.generateCompilerListingFiles) {
+        args = disassemblerFlags(project, product, input, outputs, explicitlyDependsOn);
+        var disassemblerPath = input.cpp.disassemblerPath;
+        cmd = new Command(disassemblerPath, args);
+        cmd.silent = true;
+        cmds.push(cmd);
+    }
+    return cmds;
 }
 
 function prepareAssembler(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
