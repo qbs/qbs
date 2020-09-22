@@ -31,7 +31,7 @@
 
 int main(int argc, char **argv)
 {
-    printf("Hello World!\n");
+    std::printf("Hello World!\n");
     Narf narf;
     narf.shout();
     Zort zort;

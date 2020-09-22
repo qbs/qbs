@@ -36,6 +36,6 @@ Object::Object(QObject *parent)
 int main()
 {
     Object obj;
-    printf("Hello World\n");
+    std::printf("Hello World\n");
 }
 

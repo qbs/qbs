@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
     const std::string lockFilePath = std::string(argv[0]) + ".lock";
     std::FILE * const lockFile = std::fopen(lockFilePath.c_str(), "w");
     if (!lockFile) {
-        std::cerr << "cannot open lock file: " << strerror(errno) << std::endl;
+        std::cerr << "cannot open lock file: " << std::strerror(errno) << std::endl;
         return 2;
     }
     if (!tryLock(lockFile)) {
@@ -71,17 +71,17 @@ int main(int argc, char *argv[])
             std::cerr << "tool is exclusive" << std::endl;
             return 3;
         } else {
-            std::cerr << "unexpected lock failure: " << strerror(errno) << std::endl;
-            fclose(lockFile);
+            std::cerr << "unexpected lock failure: " << std::strerror(errno) << std::endl;
+            std::fclose(lockFile);
             return 4;
         }
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
-    fclose(lockFile);
+    std::fclose(lockFile);
     std::FILE * const output = std::fopen(argv[1], "w");
     if (!output) {
-        std::cerr << "cannot create output file: " << strerror(errno) << std::endl;
+        std::cerr << "cannot create output file: " << std::strerror(errno) << std::endl;
         return 5;
     }
-    fclose(output);
+    std::fclose(output);
 }

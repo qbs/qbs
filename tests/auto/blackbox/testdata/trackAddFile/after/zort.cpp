@@ -30,6 +30,6 @@
 
 void Zort::shout()
 {
-    printf("ZORT!\n");
+    std::printf("ZORT!\n");
 }
 

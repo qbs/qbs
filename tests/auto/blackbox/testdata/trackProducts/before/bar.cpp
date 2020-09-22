@@ -30,5 +30,5 @@
 
 int main()
 {
-    printf("bar\n");
+    std::printf("bar\n");
 }

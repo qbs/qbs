@@ -30,5 +30,5 @@
 
 int main()
 {
-    printf("foo\n");
+    std::printf("foo\n");
 }

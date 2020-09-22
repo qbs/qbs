@@ -32,10 +32,10 @@
 
 void foo()
 {
-    printf("foo\n");
+    std::printf("foo\n");
 }
 
 void bar()
 {
-    printf("bar\n");
+    std::printf("bar\n");
 }

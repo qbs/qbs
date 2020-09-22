@@ -30,6 +30,6 @@
 
 void Narf::shout()
 {
-    printf("NARF!\n");
+    std::printf("NARF!\n");
 }
 

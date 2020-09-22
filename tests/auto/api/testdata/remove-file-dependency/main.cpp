@@ -31,7 +31,7 @@
 
 int main()
 {
-    printf("The magic value is %d.\n", magicValue());
+    std::printf("The magic value is %d.\n", magicValue());
     return 0;
 }
 

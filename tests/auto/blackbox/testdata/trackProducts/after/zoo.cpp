@@ -30,5 +30,5 @@
 
 int main()
 {
-    printf("zoo\n");
+    std::printf("zoo\n");
 }

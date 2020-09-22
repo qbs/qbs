@@ -31,7 +31,7 @@ int foo();
 
 int main(int argc, char **argv)
 {
-    printf("there's %d foo here\n", foo());
+    std::printf("there's %d foo here\n", foo());
     return 0;
 }
 

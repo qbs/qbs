@@ -31,6 +31,6 @@
 
 void doAwesomeStuff()
 {
-    printf(magnificentMessage);
+    std::printf(magnificentMessage);
 }
 

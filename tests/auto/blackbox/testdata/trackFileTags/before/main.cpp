@@ -29,7 +29,7 @@
 
 int main(int argc, char **argv)
 {
-    printf("there's no foo here\n");
+    std::printf("there's no foo here\n");
     return 0;
 }
 

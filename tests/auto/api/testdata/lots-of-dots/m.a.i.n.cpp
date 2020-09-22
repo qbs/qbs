@@ -33,6 +33,6 @@
 int main()
 {
     ObjectNarf obj;
-    puts("...");
+    std::puts("...");
 }
 
