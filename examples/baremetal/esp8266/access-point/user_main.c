@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2019 Denis Shienkov <denis.shienkov@gmail.com>
+** Copyright (C) 2020 Denis Shienkov <denis.shienkov@gmail.com>
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the examples of Qbs.
@@ -48,19 +48,58 @@
 **
 ****************************************************************************/
 
-import qbs
+#include "user_config.h"
 
-Project {
-    name: "BareMetal"
-    references: [
-        "stm32f4discovery/stm32f4discovery.qbs",
-        "at90can128olimex/at90can128olimex.qbs",
-        "cc2540usbdongle/cc2540usbdongle.qbs",
-        "stm8s103f3/stm8s103f3.qbs",
-        "msp430f5529/msp430f5529.qbs",
-        "cy7c68013a/cy7c68013a.qbs",
-        "stm32f103/stm32f103.qbs",
-        "pca10040/pca10040.qbs",
-        "esp8266/esp8266.qbs",
-    ]
+// From ESP8266 SDK.
+#include <osapi.h>
+
+static const partition_item_t esp_partitions[] = {
+    {SYSTEM_PARTITION_BOOTLOADER, ESP_PART_BL_ADDR, ESP_PART_BOOTLOADER_SIZE},
+    {SYSTEM_PARTITION_OTA_1, ESP_PART_APP1_ADDR, ESP_PART_APPLICATION_SIZE},
+    {SYSTEM_PARTITION_OTA_2, ESP_PART_APP2_ADDR, ESP_PART_APPLICATION_SIZE},
+    {SYSTEM_PARTITION_RF_CAL, ESP_PART_RF_CAL_ADDR, ESP_PART_RF_CAL_SIZE},
+    {SYSTEM_PARTITION_PHY_DATA, ESP_PART_PHY_DATA_ADDR, ESP_PART_PHY_DATA_SIZE},
+    {SYSTEM_PARTITION_SYSTEM_PARAMETER, ESP_PART_SYS_PARAM_ADDR, ESP_PART_SYS_PARAM_SIZE}
+};
+
+enum {
+    ESP_PART_COUNT = sizeof(esp_partitions) / sizeof(esp_partitions[0])
+};
+
+LOCAL void ICACHE_FLASH_ATTR user_init_done(void)
+{
+    os_printf("esp: initialization completed\n");
+}
+
+void ICACHE_FLASH_ATTR user_pre_init(void)
+{
+    const bool ok = system_partition_table_regist(esp_partitions, ESP_PART_COUNT, SPI_FLASH_SIZE_MAP);
+    if (!ok) {
+        os_printf("esp: partitions registration failed\n");
+        while (true);
+    }
+}
+
+void ICACHE_FLASH_ATTR user_init(void)
+{
+    os_printf("esp: SDK version: %s\n", system_get_sdk_version());
+    os_printf("esp: reset reason: %u\n", system_get_rst_info()->reason);
+
+    const bool ok = wifi_set_opmode(SOFTAP_MODE);
+    if (!ok) {
+        os_printf("esp: set softap mode failed\n");
+    } else {
+        struct softap_config ap_cfg = {0};
+        ap_cfg.authmode = ESP_AUTO_MODE_CFG;
+        ap_cfg.beacon_interval = ESP_BEACON_INTERVAL_MS_CFG;
+        ap_cfg.channel = ESP_CHANNEL_NO_CFG;
+        ap_cfg.max_connection = 0;
+        ap_cfg.ssid_hidden = false;
+        os_memcpy(&ap_cfg.ssid, ESP_SSID_CFG, sizeof(ESP_SSID_CFG));
+        const bool ok = wifi_softap_set_config(&ap_cfg);
+        if (!ok)
+            os_printf("esp: set softap configuration failed\n");
+    }
+
+    system_init_done_cb(user_init_done);
 }
