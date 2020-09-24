@@ -296,58 +296,49 @@ function dumpMcsCompilerMacros(compilerFilePath, tag) {
     // to create and compile a special temporary file and to parse the console
     // output with the own magic pattern: (""|"key"|"value"|"").
 
-    function createDumpMacrosFile() {
-        var td = new TemporaryDir();
-        var fn = FileInfo.fromNativeSeparators(td.path() + "/dump-macros.c");
-        var tf = new TextFile(fn, TextFile.WriteOnly);
-        tf.writeLine("#define VALUE_TO_STRING(x) #x");
-        tf.writeLine("#define VALUE(x) VALUE_TO_STRING(x)");
+    var outputDirectory = new TemporaryDir();
+    var outputFilePath = FileInfo.fromNativeSeparators(FileInfo.joinPaths(outputDirectory.path(),
+                                                       "dump-macros.c"));
+    var outputFile = new TextFile(outputFilePath, TextFile.WriteOnly);
 
-        // Prepare for C51 compiler.
-        tf.writeLine("#if defined(__C51__) || defined(__CX51__)");
-        tf.writeLine("#  define VAR_NAME_VALUE(var) \"(\"\"\"\"|\"#var\"|\"VALUE(var)\"|\"\"\"\")\"");
-        tf.writeLine("#  if defined (__C51__)");
-        tf.writeLine("#    pragma message (VAR_NAME_VALUE(__C51__))");
-        tf.writeLine("#  endif");
-        tf.writeLine("#  if defined(__CX51__)");
-        tf.writeLine("#    pragma message (VAR_NAME_VALUE(__CX51__))");
-        tf.writeLine("#  endif");
-        tf.writeLine("#  if defined(__MODEL__)");
-        tf.writeLine("#    pragma message (VAR_NAME_VALUE(__MODEL__))");
-        tf.writeLine("#  endif");
-        tf.writeLine("#  if defined(__STDC__)");
-        tf.writeLine("#    pragma message (VAR_NAME_VALUE(__STDC__))");
-        tf.writeLine("#  endif");
-        tf.writeLine("#endif");
+    outputFile.writeLine("#define VALUE_TO_STRING(x) #x");
+    outputFile.writeLine("#define VALUE(x) VALUE_TO_STRING(x)");
 
-        // Prepare for C251 compiler.
-        tf.writeLine("#if defined(__C251__)");
-        tf.writeLine("#  define VAR_NAME_VALUE(var) \"\"|#var|VALUE(var)|\"\"");
-        tf.writeLine("#  if defined (__C251__)");
-        tf.writeLine("#    warning (VAR_NAME_VALUE(__C251__))");
-        tf.writeLine("#  endif");
-        tf.writeLine("#  if defined (__MODEL__)");
-        tf.writeLine("#    warning (VAR_NAME_VALUE(__MODEL__))");
-        tf.writeLine("#  endif");
-        tf.writeLine("#  if defined (__STDC__)");
-        tf.writeLine("#    warning (VAR_NAME_VALUE(__STDC__))");
-        tf.writeLine("#  endif");
-        tf.writeLine("#  if defined (__FLOAT64__)");
-        tf.writeLine("#    warning (VAR_NAME_VALUE(__FLOAT64__))");
-        tf.writeLine("#  endif");
-        tf.writeLine("#  if defined (__MODSRC__)");
-        tf.writeLine("#    warning (VAR_NAME_VALUE(__MODSRC__))");
-        tf.writeLine("#  endif");
-        tf.writeLine("#endif");
-        tf.close();
-        return fn;
+    // Predefined keys for C51 and C251 compilers, see details:
+    // * https://www.keil.com/support/man/docs/c51/c51_pp_predefmacroconst.htm
+    // * https://www.keil.com/support/man/docs/c251/c251_pp_predefmacroconst.htm
+    var keys = ["__C51__", "__CX51__", "__C251__", "__MODEL__",
+                "__STDC__", "__FLOAT64__", "__MODSRC__"];
+
+    // For C51 compiler.
+    outputFile.writeLine("#if defined(__C51__) || defined(__CX51__)");
+    outputFile.writeLine("#  define VAR_NAME_VALUE(var) \"(\"\"\"\"|\"#var\"|\"VALUE(var)\"|\"\"\"\")\"");
+    for (var i in keys) {
+        var key = keys[i];
+        outputFile.writeLine("#  if defined (" + key + ")");
+        outputFile.writeLine("#    pragma message (VAR_NAME_VALUE(" + key + "))");
+        outputFile.writeLine("#  endif");
     }
+    outputFile.writeLine("#endif");
 
-    var fn = createDumpMacrosFile();
-    var p = new Process();
-    p.exec(compilerFilePath, [ fn ], false);
+    // For C251 compiler.
+    outputFile.writeLine("#if defined(__C251__)");
+    outputFile.writeLine("#  define VAR_NAME_VALUE(var) \"\"|#var|VALUE(var)|\"\"");
+    for (var i in keys) {
+        var key = keys[i];
+        outputFile.writeLine("#  if defined (" + key + ")");
+        outputFile.writeLine("#    warning (VAR_NAME_VALUE(" + key + "))");
+        outputFile.writeLine("#  endif");
+    }
+    outputFile.writeLine("#endif");
+
+    outputFile.close();
+
+    var process = new Process();
+    process.exec(compilerFilePath, [outputFilePath], false);
+    File.remove(outputFilePath);
     var map = {};
-    p.readStdOut().trim().split(/\r?\n/g).map(function(line) {
+    process.readStdOut().trim().split(/\r?\n/g).map(function(line) {
         var parts = line.split("\"|\"", 4);
         if (parts.length === 4)
             map[parts[1]] = parts[2];
@@ -373,80 +364,55 @@ function dumpC166CompilerMacros(compilerFilePath, tag) {
     //
     // where the '__C166__' is a key, and the '757' is a value.
 
-    function createDumpMacrosFile() {
-        var td = new TemporaryDir();
-        var fn = FileInfo.fromNativeSeparators(td.path() + "/dump-macros.c");
-        var tf = new TextFile(fn, TextFile.WriteOnly);
+    var outputDirectory = new TemporaryDir();
+    var outputFilePath = FileInfo.fromNativeSeparators(outputDirectory.path() + "/dump-macros.c");
+    var outputFile = new TextFile(outputFilePath, TextFile.WriteOnly);
 
-        // Prepare for C166 compiler.
-        tf.writeLine("#if defined(__C166__)");
-        tf.writeLine("#  if defined(__C166__)");
-        tf.writeLine("#   warning __C166__");
-        tf.writeLine("#   pragma __C166__");
-        tf.writeLine("#  endif");
-        tf.writeLine("#  if defined(__DUS__)");
-        tf.writeLine("#   warning __DUS__");
-        tf.writeLine("#   pragma __DUS__");
-        tf.writeLine("#  endif");
-        tf.writeLine("#  if defined(__MAC__)");
-        tf.writeLine("#   warning __MAC__");
-        tf.writeLine("#   pragma __MAC__");
-        tf.writeLine("#  endif");
-        tf.writeLine("#  if defined(__MOD167__)");
-        tf.writeLine("#   warning __MOD167__");
-        tf.writeLine("#   pragma __MOD167__");
-        tf.writeLine("#  endif");
-        tf.writeLine("#  if defined(__MODEL__)");
-        tf.writeLine("#   warning __MODEL__");
-        tf.writeLine("#   pragma __MODEL__");
-        tf.writeLine("#  endif");
-        tf.writeLine("#  if defined(__MODV2__)");
-        tf.writeLine("#   warning __MODV2__");
-        tf.writeLine("#   pragma __MODV2__");
-        tf.writeLine("#  endif");
-        tf.writeLine("#  if defined(__SAVEMAC__)");
-        tf.writeLine("#   warning __SAVEMAC__");
-        tf.writeLine("#   pragma __SAVEMAC__");
-        tf.writeLine("#  endif");
-        tf.writeLine("#  if defined(__STDC__)");
-        tf.writeLine("#   warning __STDC__");
-        tf.writeLine("#   pragma __STDC__");
-        tf.writeLine("#  endif");
-        tf.writeLine("#endif");
+    // Predefined keys for C166 compiler, see details:
+    // * https://www.keil.com/support/man/docs/c166/c166_pp_predefmacroconst.htm
+    var keys = ["__C166__", "__DUS__", "__MAC__", "__MOD167__",
+                "__MODEL__", "__MODV2__", "__SAVEMAC__", "__STDC__"];
 
-        tf.close();
-        return fn;
+    // For C166 compiler.
+    outputFile.writeLine("#if defined(__C166__)");
+    for (var i in keys) {
+        var key = keys[i];
+        outputFile.writeLine("#  if defined (" + key + ")");
+        outputFile.writeLine("#    warning " + key);
+        outputFile.writeLine("#    pragma " + key);
+        outputFile.writeLine("#  endif");
     }
+    outputFile.writeLine("#endif");
 
-    var fn = createDumpMacrosFile();
-    var p = new Process();
-    p.exec(compilerFilePath, [ fn ], false);
-    var lines = p.readStdOut().trim().split(/\r?\n/g);
+    outputFile.close();
 
+    function extractKey(line, knownKeys) {
+        for (var i in keys) {
+            var key = knownKeys[i];
+            var regexp = new RegExp("^\\*\\*\\* WARNING C320 IN LINE .+: (" + key + ")$");
+            var match = regexp.exec(line);
+            if (match)
+                return key;
+        }
+    };
+
+    function extractValue(line) {
+        var regexp = new RegExp("^\\*\\*\\* WARNING C2 IN LINE .+'(.+)':.+$");
+        var match = regexp.exec(line);
+        if (match)
+            return match[1];
+    };
+
+    var process = new Process();
+    process.exec(compilerFilePath, [outputFilePath], false);
+    File.remove(outputFilePath);
+    var lines = process.readStdOut().trim().split(/\r?\n/g);
     var map = {};
     for (var i = 0; i < lines.length; ++i) {
         // First line should contains the macro key.
         var keyLine = lines[i];
-        if (!keyLine.startsWith("***"))
-            continue;
-        var key;
-        if (keyLine.endsWith("__C166__"))
-            key = "__C166__";
-        else if (keyLine.endsWith("__DUS__"))
-            key = "__DUS__";
-        else if (keyLine.endsWith("__MAC__"))
-            key = "__MAC__";
-        else if (keyLine.endsWith("__MOD167__"))
-            key = "__MOD167__";
-        else if (keyLine.endsWith("__MODEL__"))
-            key = "__MODEL__";
-        else if (keyLine.endsWith("__MODV2__"))
-            key = "__MODV2__";
-        else if (keyLine.endsWith("__SAVEMAC__"))
-            key = "__SAVEMAC__";
-        else if (keyLine.endsWith("__STDC__"))
-            key = "__STDC__";
-        else
+        var key = extractKey(keyLine, keys);
+        if (!key)
             continue;
 
         i += 1;
@@ -455,17 +421,9 @@ function dumpC166CompilerMacros(compilerFilePath, tag) {
 
         // Second line should contains the macro value.
         var valueLine = lines[i];
-        if (!valueLine.startsWith("***"))
+        var value = extractValue(valueLine);
+        if (!value)
             continue;
-
-        var startQuoteIndex = valueLine.indexOf("'");
-        if (startQuoteIndex === -1)
-            continue;
-        var stopQuoteIndex = valueLine.indexOf("'", startQuoteIndex + 1);
-        if (stopQuoteIndex === -1)
-            continue;
-
-        var value = valueLine.substring(startQuoteIndex + 1, stopQuoteIndex);
         map[key] = value;
     }
     return map;
