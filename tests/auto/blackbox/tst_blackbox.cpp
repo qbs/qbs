@@ -937,7 +937,7 @@ void TestBlackbox::dependenciesProperty()
     QJsonArray cpp_dependencies = product2_cpp.value("dependencies").toArray();
     QVERIFY(!cpp_dependencies.isEmpty());
     int qbsCount = 0;
-    for (const auto &dep : cpp_dependencies) {
+    for (const auto dep : cpp_dependencies) {
         if (dep.toObject().value("name").toString() == "qbs")
             ++qbsCount;
     }
@@ -6310,7 +6310,7 @@ void TestBlackbox::qbsSession()
     QCOMPARE(receivedMessage.value("type").toString(), QString("files-added"));
     error = receivedMessage.value("error").toObject();
     if (!error.isEmpty()) {
-        for (const auto &item: error[QStringLiteral("items")].toArray()) {
+        for (const auto item: error[QStringLiteral("items")].toArray()) {
             const auto description = QStringLiteral("Project file updates are not enabled");
             if (item.toObject()[QStringLiteral("description")].toString().contains(description))
                 QSKIP("File updates are disabled");
@@ -6335,7 +6335,7 @@ void TestBlackbox::qbsSession()
             QJsonArray products = projectData.value("products").toArray();
             bool file1 = false;
             bool file2 = false;
-            for (const QJsonValue &v : products) {
+            for (const QJsonValue v : products) {
                 const QJsonObject product = v.toObject();
                 const QString productName = product.value("full-display-name").toString();
                 const QJsonArray groups = product.value("groups").toArray();
@@ -6437,7 +6437,7 @@ void TestBlackbox::qbsSession()
             QJsonArray products = projectData.value("products").toArray();
             bool file1 = false;
             bool file2 = false;
-            for (const QJsonValue &v : products) {
+            for (const QJsonValue v : products) {
                 const QJsonObject product = v.toObject();
                 const QString productName = product.value("full-display-name").toString();
                 const QJsonArray groups = product.value("groups").toArray();
