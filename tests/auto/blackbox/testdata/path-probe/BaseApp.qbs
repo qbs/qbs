@@ -31,7 +31,7 @@
 import qbs.FileInfo
 import qbs.Probes
 
-CppApplication {
+Product {
 
     property varList inputSelectors
     property varList inputNames
@@ -129,6 +129,4 @@ CppApplication {
                     + ", expected = " + JSON.stringify(expectedCandidatePaths);
         }
     }
-
-    files: ["main.cpp"]
 }
