@@ -254,10 +254,17 @@ private slots:
     void protobuf_data();
     void protobuf();
     void protobufLibraryInstall();
+    void providersProperties();
     void pseudoMultiplexing();
     void qbsConfig();
     void qbsConfigAddProfile();
     void qbsConfigAddProfile_data();
+    void qbsModuleProviders();
+    void qbsModuleProviders_data();
+    void qbsModuleProvidersCliOverride();
+    void qbsModuleProvidersCliOverride_data();
+    void qbsModuleProvidersCompatibility();
+    void qbsModuleProvidersCompatibility_data();
     void qbsSession();
     void qbsVersion();
     void qtBug51237();

@@ -5846,6 +5846,18 @@ void TestBlackbox::protobufLibraryInstall()
             QFileInfo::exists(installRootInclude + "/hello/world.pb.h"));
 }
 
+// Tests whether it is possible to set providers properties in a Product or from command-line
+void TestBlackbox::providersProperties()
+{
+    QDir::setCurrent(testDataDir + "/providers-properties");
+
+    QbsRunParameters params("build");
+    params.arguments = QStringList("moduleProviders.provider_b.someProp: \"otherValue\"");
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(m_qbsStdout.contains("p.qbsmetatestmodule.prop: someValue"), m_qbsStdout);
+    QVERIFY2(m_qbsStdout.contains("p.qbsothermodule.prop: otherValue"), m_qbsStdout);
+}
+
 void TestBlackbox::pseudoMultiplexing()
 {
     // This is "pseudo-multiplexing" on all platforms that initialize qbs.architectures
@@ -6017,6 +6029,118 @@ void TestBlackbox::qbsConfigAddProfile_data()
                                    << QString("Profile properties must be key/value pairs");
     QTest::newRow("missing values") << QStringList{"p", "p1", "v1", "p2"}
                                     << QString("Profile properties must be key/value pairs");
+}
+
+// Tests whether it is possible to set qbsModuleProviders in Product and Project items
+// and that the order of providers results in correct priority
+void TestBlackbox::qbsModuleProviders()
+{
+    QFETCH(QStringList, arguments);
+    QFETCH(QString, firstProp);
+    QFETCH(QString, secondProp);
+
+    QDir::setCurrent(testDataDir + "/qbs-module-providers");
+
+    QbsRunParameters params("resolve");
+    params.arguments = arguments;
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(m_qbsStdout.contains(("p1.qbsmetatestmodule.prop: " + firstProp).toUtf8()),
+             m_qbsStdout);
+    QVERIFY2(m_qbsStdout.contains(("p1.qbsothermodule.prop: " + secondProp).toUtf8()),
+             m_qbsStdout);
+    QVERIFY2(m_qbsStdout.contains(("p2.qbsmetatestmodule.prop: " + firstProp).toUtf8()),
+             m_qbsStdout);
+    QVERIFY2(m_qbsStdout.contains(("p2.qbsothermodule.prop: " + secondProp).toUtf8()),
+             m_qbsStdout);
+}
+
+void TestBlackbox::qbsModuleProviders_data()
+{
+    QTest::addColumn<QStringList>("arguments");
+    QTest::addColumn<QString>("firstProp");
+    QTest::addColumn<QString>("secondProp");
+
+    QTest::newRow("default") << QStringList() << "from_provider_a" << "undefined";
+    QTest::newRow("override")
+            << QStringList("projects.project.qbsModuleProviders:provider_b")
+            << "from_provider_b"
+            << "from_provider_b";
+    QTest::newRow("override list a")
+            << QStringList("projects.project.qbsModuleProviders:provider_a,provider_b")
+            << "from_provider_a"
+            << "from_provider_b";
+    QTest::newRow("override list b")
+            << QStringList("projects.project.qbsModuleProviders:provider_b,provider_a")
+            << "from_provider_b"
+            << "from_provider_b";
+}
+
+// Tests possible use-cases how to override providers from command-line
+void TestBlackbox::qbsModuleProvidersCliOverride()
+{
+    QFETCH(QStringList, arguments);
+    QFETCH(QString, propertyValue);
+
+    QDir::setCurrent(testDataDir + "/qbs-module-providers-cli-override");
+
+    QbsRunParameters params("resolve");
+    params.arguments = arguments;
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(m_qbsStdout.contains(("qbsmetatestmodule.prop: " + propertyValue).toUtf8()),
+             m_qbsStdout);
+}
+
+void TestBlackbox::qbsModuleProvidersCliOverride_data()
+{
+    QTest::addColumn<QStringList>("arguments");
+    QTest::addColumn<QString>("propertyValue");
+
+    QTest::newRow("default") << QStringList() << "undefined";
+    QTest::newRow("project-wide")
+            << QStringList("project.qbsModuleProviders:provider_a")
+            << "from_provider_a";
+    QTest::newRow("concrete project")
+            << QStringList("projects.innerProject.qbsModuleProviders:provider_a")
+            << "from_provider_a";
+    QTest::newRow("concrete product")
+            << QStringList("products.product.qbsModuleProviders:provider_a")
+            << "from_provider_a";
+    QTest::newRow("concrete project override project-wide")
+            << QStringList({
+                    "project.qbsModuleProviders:provider_a",
+                    "projects.innerProject.qbsModuleProviders:provider_b"})
+            << "from_provider_b";
+    QTest::newRow("concrete product override project-wide")
+            << QStringList({
+                    "project.qbsModuleProviders:provider_a",
+                    "products.product.qbsModuleProviders:provider_b"})
+            << "from_provider_b";
+}
+
+// Tests whether scoped providers can be used as named, i.e. new provider machinery
+// is compatible with the old one
+void TestBlackbox::qbsModuleProvidersCompatibility()
+{
+    QFETCH(QStringList, arguments);
+    QFETCH(QString, propertyValue);
+
+    QDir::setCurrent(testDataDir + "/qbs-module-providers-compatibility");
+
+    QbsRunParameters params("resolve");
+    params.arguments = arguments;
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(m_qbsStdout.contains(("qbsmetatestmodule.prop: " + propertyValue).toUtf8()),
+             m_qbsStdout);
+}
+
+void TestBlackbox::qbsModuleProvidersCompatibility_data()
+{
+    QTest::addColumn<QStringList>("arguments");
+    QTest::addColumn<QString>("propertyValue");
+
+    QTest::newRow("default") << QStringList() << "from_scoped_provider";
+    QTest::newRow("scoped by name") << QStringList("project.qbsModuleProviders:qbsmetatestmodule") << "from_scoped_provider";
+    QTest::newRow("named") << QStringList("project.qbsModuleProviders:named_provider") << "from_named_provider";
 }
 
 static QJsonObject getNextSessionPacket(QProcess &session, QByteArray &data)

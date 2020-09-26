@@ -1743,7 +1743,12 @@
     If \QBS encounters a \l Depends item whose name does not match a known module,
     it checks whether such a module can be generated. This procedure works as follows:
     \list 1
-        \li All \l{Project::qbsSearchPaths}{search paths} are scanned for a file called
+        \li If the \l{Product::qbsModuleProviders}{qbsModuleProviders} property is not
+            \c undefined, for each provider name in the list, all
+            \l{Project::qbsSearchPaths}{search paths} are scanned for a file called
+            \c {module-providers/<name>.qbs} or \c {module-providers/<name>/provider.qbs}.
+        \li If the \l{Product::qbsModuleProviders}{qbsModuleProviders} property is \c undefined,
+            \l{Project::qbsSearchPaths}{search paths} are scanned for a file called
             \c {module-providers/<name>/provider.qbs}, where \c <name> is the name of the dependency
             as specified in the \c Depends item. Multi-component names such as "a.b" are turned
             into nested directories, and each of them is scanned, starting with the deepest path.
@@ -1764,6 +1769,20 @@
             \l{Depends::enableFallback}{Depends} item or globally via the
             \l{no-fallback-module-provider}{--no-fallback-module-provider} option.
     \endlist
+
+    \section1 Selecting Module Providers
+
+    As described above, it is possible to select which providers to run using the
+    \l{Product::qbsModuleProviders}{qbsModuleProviders} property. Providers contribute to the
+    \l{Product::}{qbsSearchPaths} in the order specified by this property, so modules generated
+    by providers specified earlier are prioritized. This property can be set on the
+    Product as well as the \l{Project::qbsModuleProviders}{Project} level:
+
+    \code
+    $ qbs resolve project.qbsModuleProviders:providerA    \ # sets property globally for the Project
+        projects.SomeProject.qbsModuleProviders:providerB \ # overrides property for the specific Project
+        products.SomeProduct.qbsModuleProviders:providerC \ # overrides property for the specific Product
+    \endcode
 
     \section1 Parameterizing Module Providers
 

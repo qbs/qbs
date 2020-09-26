@@ -283,3 +283,15 @@
     The value of this property is automatically set by \QBS and cannot be
     changed by the user.
 */
+
+/*!
+    \qmlproperty stringList Product::qbsModuleProviders
+
+    The list of \l{Module Providers} to use for this product.
+
+    Overrides \l{Project::qbsModuleProviders}{Project.qbsModuleProviders}.
+
+    \sa Project::qbsModuleProviders
+
+    \since Qbs 1.21
+*/

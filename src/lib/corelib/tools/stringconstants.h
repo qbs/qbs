@@ -143,6 +143,7 @@ public:
     static const QString &profilesProperty() { return profiles(); }
     QBS_STRING_CONSTANT(productTypesProperty, "productTypes")
     QBS_STRING_CONSTANT(productsKey, "products")
+    QBS_STRING_CONSTANT(qbsModuleProviders, "qbsModuleProviders")
     QBS_STRING_CONSTANT(qbsSearchPathsProperty, "qbsSearchPaths")
     QBS_STRING_CONSTANT(referencesProperty, "references")
     QBS_STRING_CONSTANT(recursiveProperty, "recursive")

@@ -135,10 +135,19 @@ static QStringList toStringList(const QScriptValue &scriptValue)
 
 QStringList Evaluator::stringListValue(const Item *item, const QString &name, bool *propertyWasSet)
 {
+    const auto result = optionalStringListValue(item, name, propertyWasSet);
+    return result ? *result : QStringList();
+}
+
+std::optional<QStringList> Evaluator::optionalStringListValue(
+        const Item *item, const QString &name, bool *propertyWasSet)
+{
     QScriptValue v = property(item, name);
     handleEvaluationError(item, name, v);
     if (propertyWasSet)
         *propertyWasSet = isNonDefaultValue(item, name);
+    if (v.isUndefined())
+        return std::nullopt;
     return toStringList(v);
 }
 

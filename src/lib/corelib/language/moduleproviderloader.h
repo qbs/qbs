@@ -57,7 +57,14 @@ public:
     using FallbackMode = ModuleLoader::FallbackMode;
     explicit ModuleProviderLoader(ItemReader *itemReader, Evaluator *evaluator);
 
-    enum class ModuleProviderLookup { Regular, Fallback };
+    enum class ModuleProviderLookup { Scoped, Named, Fallback };
+
+    struct Provider
+    {
+        QualifiedId name;
+        ModuleProviderLookup lookup;
+    };
+
     struct ModuleProviderResult
     {
         ModuleProviderResult() = default;
@@ -88,13 +95,14 @@ public:
             const QualifiedId &moduleName,
             FallbackMode fallbackMode);
     ModuleProviderResult findModuleProvider(
-            const QualifiedId &name,
+            const std::vector<Provider> &providers,
             ProductContext &product,
-            ModuleProviderLookup lookupType,
             const CodeLocation &dependsItemLocation);
     QVariantMap moduleProviderConfig(ProductContext &product);
 
     const Set<QString> &tempQbsFiles() const { return m_tempQbsFiles; }
+
+    std::optional<std::vector<QualifiedId>> getModuleProviders(Item *item);
 
 private:
     QString findModuleProviderFile(const QualifiedId &name, ModuleProviderLookup lookupType);

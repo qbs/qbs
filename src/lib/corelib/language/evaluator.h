@@ -49,6 +49,7 @@
 #include <QtScript/qscriptvalue.h>
 
 #include <functional>
+#include <optional>
 
 namespace qbs {
 namespace Internal {
@@ -77,6 +78,8 @@ public:
     QString stringValue(const Item *item, const QString &name,
                         const QString &defaultValue = QString(), bool *propertyWasSet = nullptr);
     QStringList stringListValue(const Item *item, const QString &name,
+                                bool *propertyWasSet = nullptr);
+    std::optional<QStringList> optionalStringListValue(const Item *item, const QString &name,
                                 bool *propertyWasSet = nullptr);
 
     void convertToPropertyType(const PropertyDeclaration& decl, const CodeLocation &loc,

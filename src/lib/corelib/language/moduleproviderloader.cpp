@@ -72,58 +72,87 @@ ModuleProviderLoader::ModuleProviderResult ModuleProviderLoader::executeModulePr
         const QualifiedId &moduleName,
         FallbackMode fallbackMode)
 {
-    ModuleProviderResult result;
-    for (QualifiedId providerName = moduleName; !providerName.empty();
-         providerName.pop_back()) {
-        qCDebug(lcModuleLoader) << "Module" << moduleName.toString()
-                                << "not found, checking for module providers";
-        result = findModuleProvider(providerName, productContext,
-                                    ModuleProviderLookup::Regular, dependsItemLocation);
-        if (result.providerFound)
-            break;
+    ModuleProviderLoader::ModuleProviderResult result;
+    std::vector<Provider> providersToRun;
+    qCDebug(lcModuleLoader) << "Module" << moduleName.toString()
+                            << "not found, checking for module providers";
+    const auto providerNames = getModuleProviders(productContext.item);
+    if (providerNames) {
+        for (const auto &providerName : *providerNames)
+            providersToRun.push_back({providerName, ModuleProviderLookup::Named});
+    } else {
+        for (QualifiedId providerName = moduleName; !providerName.empty();
+            providerName.pop_back()) {
+                providersToRun.push_back({providerName, ModuleProviderLookup::Scoped});
+        }
     }
-    if (fallbackMode == FallbackMode::Enabled && !result.providerFound) {
-        qCDebug(lcModuleLoader) << "Specific module provider not found for"
+    result = findModuleProvider(providersToRun, productContext, dependsItemLocation);
+
+    if (fallbackMode == FallbackMode::Enabled
+            && !result.providerFound
+            && !providerNames) {
+            qCDebug(lcModuleLoader) << "Specific module provider not found for"
                                 << moduleName.toString()  << ", setting up fallback.";
-        result = findModuleProvider(moduleName, productContext,
-                                    ModuleProviderLookup::Fallback, dependsItemLocation);
+        result = findModuleProvider(
+                {{moduleName, ModuleProviderLookup::Fallback}},
+                productContext,
+                dependsItemLocation);
     }
+
     return result;
 }
 
 ModuleProviderLoader::ModuleProviderResult ModuleProviderLoader::findModuleProvider(
-        const QualifiedId &name,
+        const std::vector<Provider> &providers,
         ProductContext &product,
-        ModuleProviderLookup lookupType,
         const CodeLocation &dependsItemLocation)
 {
-    const QVariantMap config = moduleProviderConfig(product).value(name.toString()).toMap();
-    ModuleProviderInfo &info =
-            m_storedModuleProviderInfo.providers[{name.toString(), config, int(lookupType)}];
-    if (info.name.isEmpty()) { // not found in cache
-        info.name = name;
-        info.config = config;
-        info.providerFile = findModuleProviderFile(name, lookupType);
-        if (info.providerFile.isEmpty())
-            return {};
-        info.searchPaths = getProviderSearchPaths(
-                name, info.providerFile, product, config, dependsItemLocation);
-        info.transientOutput = m_parameters.dryRun();
-    } else {
-        if (info.providerFile.isEmpty())
-            return {};
-        qCDebug(lcModuleLoader) << "Re-using provider" << name << "from cache";
-    }
-    if (info.searchPaths.empty()) {
-        qCDebug(lcModuleLoader) << "Module provider did run, but did not set up "
-                                    "any modules.";
-        return {true, false};
-    }
-    qCDebug(lcModuleLoader) << "Module provider added" << info.searchPaths.size()
-                            << "new search path(s)";
+    if (providers.empty())
+        return {};
+    QStringList allSearchPaths;
+    ModuleProviderResult result;
+    for (const auto &[name, lookupType] : providers) {
+        const QVariantMap config = moduleProviderConfig(product).value(name.toString()).toMap();
+        ModuleProviderInfo &info =
+                m_storedModuleProviderInfo.providers[{name.toString(), config, int(lookupType)}];
+        const bool fromCache = !info.name.isEmpty();
+        if (!fromCache) {
+            info.name = name;
+            info.config = config;
+            info.providerFile = findModuleProviderFile(name, lookupType);
+            if (!info.providerFile.isEmpty()) {
+                qCDebug(lcModuleLoader) << "Running provider" << name << "at" << info.providerFile;
+                info.searchPaths = getProviderSearchPaths(
+                        name, info.providerFile, product, config, dependsItemLocation);
+                info.transientOutput = m_parameters.dryRun();
+            }
+        }
+        if (info.providerFile.isEmpty()) {
+            if (lookupType == ModuleProviderLookup::Named)
+                throw ErrorInfo(Tr::tr("Unknown provider '%1'").arg(name.toString()));
+            continue;
+        }
+        if (fromCache)
+            qCDebug(lcModuleLoader) << "Re-using provider" << name << "from cache";
 
-    m_reader->pushExtraSearchPaths(info.searchPaths);
-    return {true, true};
+        result.providerFound = true;
+        if (info.searchPaths.empty()) {
+            qCDebug(lcModuleLoader)
+                    << "Module provider did run, but did not set up any modules.";
+            continue;
+        }
+        qCDebug(lcModuleLoader) << "Module provider added" << info.searchPaths.size()
+                                << "new search path(s)";
+
+        allSearchPaths << info.searchPaths;
+    }
+    if (allSearchPaths.isEmpty())
+        return result;
+
+    m_reader->pushExtraSearchPaths(allSearchPaths);
+    result.providerAddedSearchPaths = true;
+
+    return result;
 }
 
 QVariantMap ModuleProviderLoader::moduleProviderConfig(
@@ -179,27 +208,52 @@ QVariantMap ModuleProviderLoader::moduleProviderConfig(
     return *(product.theModuleProviderConfig = std::move(providerConfig));
 }
 
+std::optional<std::vector<QualifiedId>> ModuleProviderLoader::getModuleProviders(Item *item)
+{
+    while (item) {
+        const auto providers =
+                m_evaluator->optionalStringListValue(item, StringConstants::qbsModuleProviders());
+        if (providers) {
+            std::vector<QualifiedId> result;
+            result.reserve(providers->size());
+            for (const auto &provider : *providers)
+                result.push_back(QualifiedId::fromString(provider));
+            return result;
+        }
+        item = item->parent();
+    }
+    return std::nullopt;
+}
+
 QString ModuleProviderLoader::findModuleProviderFile(
             const QualifiedId &name, ModuleProviderLookup lookupType)
 {
     for (const QString &path : m_reader->allSearchPaths()) {
         QString fullPath = FileInfo::resolvePath(path, QStringLiteral("module-providers"));
         switch (lookupType) {
-        case ModuleProviderLookup::Regular:
+        case ModuleProviderLookup::Named: {
+            const auto result =
+                    FileInfo::resolvePath(fullPath, name.toString() + QStringLiteral(".qbs"));
+            if (FileInfo::exists(result)) {
+                fullPath = result;
+                break;
+            }
+            [[fallthrough]];
+        }
+        case ModuleProviderLookup::Scoped:
             for (const QString &component : name)
                 fullPath = FileInfo::resolvePath(fullPath, component);
+            fullPath = FileInfo::resolvePath(fullPath, QStringLiteral("provider.qbs"));
             break;
         case ModuleProviderLookup::Fallback:
-            fullPath = FileInfo::resolvePath(fullPath, QStringLiteral("__fallback"));
+            fullPath = FileInfo::resolvePath(fullPath, QStringLiteral("__fallback/provider.qbs"));
             break;
         }
-        const QString providerFile = FileInfo::resolvePath(fullPath,
-                                                           QStringLiteral("provider.qbs"));
-        if (!FileInfo::exists(providerFile)) {
-            qCDebug(lcModuleLoader) << "No module provider found at" << providerFile;
+        if (!FileInfo::exists(fullPath)) {
+            qCDebug(lcModuleLoader) << "No module provider found at" << fullPath;
             continue;
         }
-        return providerFile;
+        return fullPath;
     }
     return {};
 }

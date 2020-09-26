@@ -69,11 +69,14 @@
 
     The name of the module provider.
 
-    This property is set by \QBS. For simple dependency names, it is the name of the dependency
-    as specified in the \l Depends item. If the dependency name consists of multiple components,
-    the value is the name up until (and including) the component that corresponds to the directory
-    the provider was found in. For instance, if the dependency is \c {x.m1} and the provider was
-    found in \c {module-providers/x/m1/provider.qbs}, then \c name is \c {x.m1}.
+    This property is set by \QBS.
+
+    If provider is \l{How \QBS Uses Module Providers}{requested} via the
+    \l{Product::qbsModuleProviders}{qbsModuleProviders} property, it is the name specified in this
+    property and matches the provider file name, without the \c .qbs extension.
+    Otherwise, it is the name of the directory the provider was found in, relative to
+    the particular module-providers base directory. For instance, if the dependency is \c {x.m1} and
+    the provider was found in \c {module-providers/x/m1/provider.qbs}, then \c name is \c {x.m1}.
     If the provider was found in \c {module-providers/x/provider.qbs}, then \c name is \c x.
 */
 
