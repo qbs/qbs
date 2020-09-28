@@ -48,6 +48,7 @@
     \li \l{How do I build against libraries that provide pkg-config files?}
     \li \l{How do I create application bundles and frameworks on iOS, macOS, tvOS, and watchOS?}
     \li \l{How do I apply C/C++ preprocessor macros to only a subset of the files in my product?}
+    \li \l{How do I disable a compiler warning?}
     \li \l{How do I make the state of my Git repository available to my source files?}
     \li \l{How do I limit the number of concurrent jobs for the linker only?}
     \li \l{How do I add QML files to a project?}
@@ -518,6 +519,37 @@
             condition: project.supportMyFeature
             cpp.defines: commonDefines.concat("MYFEATURE_SUPPORTED")
         }
+    }
+    \endcode
+
+    \section1 How do I disable a compiler warning?
+
+    You can use the \l {cpp::commonCompilerFlags}{cpp.commonCompilerFlags} property
+    to pass flags to the compiler. For example, to disable deprecation warnings:
+
+    \code
+    CppApplication {
+        // ...
+
+        readonly property bool isMsvc: qbs.toolchain.contains("msvc")
+
+        cpp.commonCompilerFlags: isMsvc ? "/wd4996" : "-Wno-deprecated-declarations"
+    }
+    \endcode
+
+    It is also possible to disable all warnings at once by setting the
+    \l {cpp::commonCompilerFlags}{cpp.warningLevel} property to \c "none".
+    Usually this approach is discouraged, but it can be useful in some cases,
+    such as when compiling third party code:
+
+    \code
+    Group {
+        cpp.warningLevel: "none"
+
+        files: [
+            "3rdparty.h",
+            "3rdparty.cpp"
+        ]
     }
     \endcode
 
