@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2019 Denis Shienkov <denis.shienkov@gmail.com>
+** Copyright (C) 2020 Denis Shienkov <denis.shienkov@gmail.com>
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the examples of Qbs.
@@ -50,18 +50,89 @@
 
 import qbs
 
-Project {
-    name: "BareMetal"
-    references: [
-        "stm32f4discovery/stm32f4discovery.qbs",
-        "at90can128olimex/at90can128olimex.qbs",
-        "cc2540usbdongle/cc2540usbdongle.qbs",
-        "stm8s103f3/stm8s103f3.qbs",
-        "msp430f5529/msp430f5529.qbs",
-        "cy7c68013a/cy7c68013a.qbs",
-        "stm32f103/stm32f103.qbs",
-        "pca10040/pca10040.qbs",
-        "pca10001/pca10001.qbs",
-        "esp8266/esp8266.qbs",
-    ]
+CppApplication {
+    condition: {
+        if (!qbs.architecture.startsWith("arm"))
+            return false;
+        return (qbs.toolchain.contains("gcc")
+                || qbs.toolchain.contains("keil"))
+                && !qbs.toolchain.contains("xcode")
+    }
+    name: "pca10001-greenblink"
+    cpp.cLanguageVersion: "c99"
+    cpp.positionIndependentCode: false
+
+    //
+    // GCC-specific properties and sources.
+    //
+
+    Properties {
+        condition: qbs.toolchain.contains("gcc")
+        cpp.driverFlags: [
+            "-mcpu=cortex-m0",
+            "-specs=nosys.specs"
+        ]
+    }
+
+    Group {
+        condition: qbs.toolchain.contains("gcc")
+        name: "GCC"
+        prefix: "gcc/"
+        Group {
+            name: "Startup"
+            fileTags: ["asm"]
+            files: ["startup.s"]
+        }
+        Group {
+            name: "Linker Script"
+            fileTags: ["linkerscript"]
+            files: ["flash.ld"]
+        }
+    }
+
+    //
+    // KEIL-specific properties and sources.
+    //
+
+    Properties {
+        condition: qbs.toolchain.contains("keil")
+        cpp.assemblerFlags: [
+            "--cpu", "cortex-m0"
+        ]
+        cpp.driverFlags: [
+            "--cpu", "cortex-m0"
+        ]
+    }
+
+    Group {
+        condition: qbs.toolchain.contains("keil")
+        name: "KEIL"
+        prefix: "keil/"
+        Group {
+            name: "Startup"
+            fileTags: ["asm"]
+            files: ["startup.s"]
+        }
+        Group {
+            name: "Linker Script"
+            fileTags: ["linkerscript"]
+            files: ["flash.sct"]
+        }
+    }
+
+    //
+    // Common code.
+    //
+
+    Group {
+        name: "Gpio"
+        files: ["gpio.c", "gpio.h"]
+    }
+
+    Group {
+        name: "System"
+        files: ["system.h"]
+    }
+
+    files: ["main.c"]
 }
