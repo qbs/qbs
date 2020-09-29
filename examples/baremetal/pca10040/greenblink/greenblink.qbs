@@ -98,6 +98,9 @@ CppApplication {
 
     Properties {
         condition: qbs.toolchain.contains("keil")
+        cpp.assemblerFlags: [
+            "--cpu", "cortex-m4.fp.sp"
+        ]
         cpp.driverFlags: [
             "--cpu", "cortex-m4.fp.sp"
         ]
