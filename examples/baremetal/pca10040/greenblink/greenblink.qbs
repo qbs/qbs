@@ -68,6 +68,11 @@ CppApplication {
 
     Properties {
         condition: qbs.toolchain.contains("gcc")
+        cpp.assemblerFlags: [
+            "-mcpu=cortex-m4",
+            "-mfloat-abi=hard",
+            "-mfpu=fpv4-sp-d16",
+        ]
         cpp.driverFlags: [
             "-mcpu=cortex-m4",
             "-mfloat-abi=hard",

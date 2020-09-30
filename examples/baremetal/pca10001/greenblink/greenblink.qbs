@@ -69,6 +69,9 @@ CppApplication {
 
     Properties {
         condition: qbs.toolchain.contains("gcc")
+        cpp.assemblerFlags: [
+            "-mcpu=cortex-m0",
+        ]
         cpp.driverFlags: [
             "-mcpu=cortex-m0",
             "-specs=nosys.specs"
