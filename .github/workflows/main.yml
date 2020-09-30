@@ -168,6 +168,7 @@ jobs:
         products.qbs_archive.targetName:qbs-windows-${{ github.run_id }}
         products.qbs_archive.includeTests:true,
       WITH_TESTS: 0
+      QT_ASSUME_STDERR_HAS_CONSOLE: 1
     steps:
     - uses: actions/checkout@v1
     - name: prepare timestamp
@@ -385,6 +386,7 @@ jobs:
       QTEST_FUNCTION_TIMEOUT: 9000000
       QBS_AUTOTEST_PROFILE: 'qt'
       QBS_TEST_SOURCE_ROOT: 'tests'
+      QT_ASSUME_STDERR_HAS_CONSOLE: 1
     steps:
     - uses: actions/checkout@v1
     - name: Download artifact
