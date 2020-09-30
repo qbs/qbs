@@ -55,6 +55,7 @@ CppApplication {
         if (!qbs.architecture.startsWith("arm"))
             return false;
         return (qbs.toolchain.contains("gcc")
+                || qbs.toolchain.contains("iar")
                 || qbs.toolchain.contains("keil"))
                 && !qbs.toolchain.contains("xcode")
     }
@@ -87,6 +88,36 @@ CppApplication {
             name: "Linker Script"
             fileTags: ["linkerscript"]
             files: ["flash.ld"]
+        }
+    }
+
+    //
+    // IAR-specific properties and sources.
+    //
+
+    Properties {
+        condition: qbs.toolchain.contains("iar")
+        cpp.assemblerFlags: [
+            "--cpu", "cortex-m0"
+        ]
+        cpp.driverFlags: [
+            "--cpu", "cortex-m0"
+        ]
+    }
+
+    Group {
+        condition: qbs.toolchain.contains("iar")
+        name: "IAR"
+        prefix: "iar/"
+        Group {
+            name: "Startup"
+            fileTags: ["asm"]
+            files: ["startup.s"]
+        }
+        Group {
+            name: "Linker Script"
+            fileTags: ["linkerscript"]
+            files: ["flash.icf"]
         }
     }
 

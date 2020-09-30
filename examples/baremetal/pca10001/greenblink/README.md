@@ -6,4 +6,5 @@ LED on the board.
 The following toolchains are supported:
 
   * GNU Arm Embedded Toolchain
+  * IAR Embedded Workbench
   * KEIL Microcontroller Development Kit
