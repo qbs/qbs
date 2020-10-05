@@ -166,7 +166,14 @@ var PropertyListVariableExpander = (function () {
             var syntax;
             var idx = -1;
             for (var i in syntaxes) {
-                var j = str.lastIndexOf(syntaxes[i].open);
+                var j;
+                // normal case - we search for the last occurrence to do a correct replacement
+                // for nested variables, e.g. ${VAR1_${VAR2}}. This doesn't work in case
+                // when start == end, e.g. @VAR@ - in that case we search from the start
+                if (syntaxes[i].open !== syntaxes[i].close)
+                    j = str.lastIndexOf(syntaxes[i].open);
+                else
+                    j = str.indexOf(syntaxes[i].open);
                 if (j > idx) {
                     syntax = syntaxes[i];
                     idx = j;

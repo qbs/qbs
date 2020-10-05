@@ -62,6 +62,7 @@ private slots:
     void iconset();
     void iconsetApp();
     void infoPlist();
+    void infoPlistVariables();
     void objcArc();
     void overrideInfoPlist();
     void xcode();

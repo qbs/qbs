@@ -897,6 +897,38 @@ void TestBlackboxApple::infoPlist()
     }
 }
 
+void TestBlackboxApple::infoPlistVariables()
+{
+    QDir::setCurrent(testDataDir + "/infoPlistVariables");
+
+    QbsRunParameters params;
+    params.arguments = QStringList() << "-f" << "infoPlistVariables.qbs";
+    QCOMPARE(runQbs(params), 0);
+
+    const auto infoPlistPath = getInfoPlistPath(
+            relativeProductBuildDir("infoPlistVariables") + "/infoPlistVariables.app");
+    QVERIFY(QFile::exists(infoPlistPath));
+    const auto content = readInfoPlistFile(infoPlistPath);
+    QVERIFY(!content.isEmpty());
+
+    QCOMPARE(content.value(QStringLiteral("Curly")),
+             QStringLiteral("infoPlistVariables"));
+    QCOMPARE(content.value(QStringLiteral("Braces")),
+             QStringLiteral("infoPlistVariables"));
+    QCOMPARE(content.value(QStringLiteral("At")),
+             QStringLiteral("infoPlistVariables"));
+    QCOMPARE(content.value(QStringLiteral("CurlyMult")),
+             QStringLiteral("infoPlistVariables_infoPlistVariables"));
+    QCOMPARE(content.value(QStringLiteral("BracesMult")),
+             QStringLiteral("infoPlistVariables_infoPlistVariables"));
+    QCOMPARE(content.value(QStringLiteral("AtMult")),
+             QStringLiteral("infoPlistVariables_infoPlistVariables"));
+    QCOMPARE(content.value(QStringLiteral("CurlyNested")),
+             QStringLiteral("infoPlistVariables"));
+    QCOMPARE(content.value(QStringLiteral("BracesNested")),
+             QStringLiteral("infoPlistVariables"));
+}
+
 void TestBlackboxApple::objcArc()
 {
     QDir::setCurrent(testDataDir + QLatin1String("/objc-arc"));

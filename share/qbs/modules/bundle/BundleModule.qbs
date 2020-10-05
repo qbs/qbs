@@ -187,7 +187,7 @@ Module {
 
     property bool _useXcodeBuildSpecs: true // false to use ONLY the qbs build specs
 
-    readonly property var extraEnv: ({
+    property var extraEnv: ({
         "PRODUCT_BUNDLE_IDENTIFIER": identifier
     })
 
