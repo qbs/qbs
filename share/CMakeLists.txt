@@ -1,12 +1,18 @@
+if(QBS_RESOURCES_INSTALL_DIR)
+    set(QBS_SHARE_DIR "${QBS_RESOURCES_INSTALL_DIR}/share")
+else()
+    set(QBS_SHARE_DIR "share")
+endif()
+
 if(WIN32)
     install(
         FILES ../bin/ibmsvc.xml ../bin/ibqbs.bat
-        DESTINATION "${CMAKE_INSTALL_PREFIX}/${QBS_APP_INSTALL_DIR}"
+        DESTINATION "${QBS_APP_INSTALL_DIR}"
         )
 endif()
 install(
     PROGRAMS ../src/3rdparty/python/bin/dmgbuild
-    DESTINATION "${CMAKE_INSTALL_PREFIX}/${QBS_LIBEXEC_PATH}"
+    DESTINATION "${QBS_LIBEXEC_PATH}"
     )
 add_custom_target(copy-runtime-files-dmgbuild ALL
     COMMAND ${CMAKE_COMMAND} -E copy
@@ -16,12 +22,12 @@ add_custom_target(copy-runtime-files-dmgbuild ALL
 install(
     # trailing slash avoid copying the 'site-packages' dir and only copies its content
     DIRECTORY ../src/3rdparty/python/lib/python2.7/site-packages/
-    DESTINATION "${CMAKE_INSTALL_PREFIX}/${QBS_RESOURCES_INSTALL_DIR}/share/qbs/python"
+    DESTINATION "${QBS_SHARE_DIR}/qbs/python"
     FILES_MATCHING PATTERN "*.py"
     )
 install(
     DIRECTORY qbs
-    DESTINATION "${CMAKE_INSTALL_PREFIX}/${QBS_RESOURCES_INSTALL_DIR}/share")
+    DESTINATION "${QBS_SHARE_DIR}")
 add_custom_target(copy-runtime-files-qbs ALL
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${CMAKE_CURRENT_SOURCE_DIR}/qbs
@@ -29,7 +35,7 @@ add_custom_target(copy-runtime-files-qbs ALL
     )
 install(
     DIRECTORY ../examples
-    DESTINATION "${CMAKE_INSTALL_PREFIX}/${QBS_RESOURCES_INSTALL_DIR}/share/qbs"
+    DESTINATION "${QBS_SHARE_DIR}/qbs"
     )
 
 if(WIN32)
@@ -56,10 +62,10 @@ add_custom_target(
 
 install(
     DIRECTORY ${CMAKE_BINARY_DIR}/default/install-root/share/qbs/qml-type-descriptions
-    DESTINATION "${CMAKE_INSTALL_PREFIX}/${QBS_RESOURCES_INSTALL_DIR}/share/qbs"
+    DESTINATION "${QBS_SHARE_DIR}/qbs"
     )
 
 install(
     DIRECTORY ${CMAKE_BINARY_DIR}/default/install-root/share/qbs/qml-type-descriptions
-    DESTINATION "${CMAKE_INSTALL_PREFIX}/${QBS_RESOURCES_INSTALL_DIR}/share/qbs"
+    DESTINATION "${QBS_SHARE_DIR}/qbs"
     )
