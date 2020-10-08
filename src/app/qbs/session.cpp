@@ -301,7 +301,7 @@ void Session::setupProject(const QJsonObject &request)
 
 void Session::buildProject(const QJsonObject &request)
 {
-    if (!checkNormalRequestPrerequisites("build-done"))
+    if (!checkNormalRequestPrerequisites("project-built"))
         return;
     const ProductSelection productSelection = getProductSelection(request);
     setLogLevelFromRequest(request);
