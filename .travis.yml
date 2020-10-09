@@ -25,53 +25,6 @@ stages:
 
 jobs:
   include:
-    - &build-on-focal
-      stage: Build Qbs and and run autotests
-      name: With Qbs on Ubuntu focal (linux_gcc64)
-      env:
-        BUILD_OPTIONS="modules.cpp.compilerWrapper:ccache modules.qbs.debugInformation:true"
-      services:
-        - docker
-      before_script:
-        - docker-compose pull focal
-        - ccache -M 5G
-        - ccache -s
-      after_script:
-        - ccache -s
-      script:
-        - docker-compose run focal scripts/build-qbs-with-qbs.sh
-
-    - <<: *build-on-focal
-      name: With Qbs and with Qt 5.13 for Android
-      before_install:
-        - docker-compose pull focal
-        - docker-compose pull focal-android-513
-      script:
-        - docker-compose run focal qbs build modules.cpp.compilerWrapper:ccache modules.qbsbuildconfig.enableBundledQt:true config:release
-        - docker-compose run focal-android-513 scripts/test-qt-for-android.sh release/install-root/usr/local/bin
-
-    - <<: *build-on-focal
-      name: With Qbs and with Qt 5.14 for Android
-      before_install:
-        - docker-compose pull focal
-        - docker-compose pull focal-android-514
-      script:
-        - docker-compose run focal qbs build modules.cpp.compilerWrapper:ccache modules.qbsbuildconfig.enableBundledQt:true config:release
-        - docker-compose run focal-android-514 scripts/test-qt-for-android.sh release/install-root/usr/local/bin
-
-    - <<: *build-on-focal
-      name: With Qbs and with baremetal
-      before_install:
-        - docker-compose pull focal
-        - docker-compose pull focal-baremetal
-      script:
-        - docker-compose run focal qbs build modules.cpp.compilerWrapper:ccache modules.qbsbuildconfig.enableBundledQt:true config:release
-        - QBS_AUTOTEST_PROFILE=arm-none-eabi-gcc-9_2 docker-compose run focal-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
-        - QBS_AUTOTEST_PROFILE=avr-gcc-5_4 docker-compose run focal-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
-        - QBS_AUTOTEST_PROFILE=msp430-gcc-4_6 docker-compose run focal-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
-        - QBS_AUTOTEST_PROFILE=sdcc-3_8_0-mcs51 docker-compose run focal-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
-        - QBS_AUTOTEST_PROFILE=sdcc-3_8_0-stm8 docker-compose run focal-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
-
     - &build-on-macos
       stage: Build Qbs and and run autotests
       name: With Qbs on macOS (xcode 11.5)
@@ -120,35 +73,6 @@ jobs:
             lldb --core $f --batch --one-line "bt"
           done;
 
-    - <<: *build-on-macos
-      name: With Qbs on macOS (xcode 11.5) using iOS profile
-      if: NOT branch =~ ^gerrit
-      env:
-        # Address sanitizer slows autotests down too much.
-        # We would hit the maximum build time on Travis.
-        BUILD_OPTIONS=modules.qbsbuildconfig.enableAddressSanitizer:false
-        QT_INSTALL_DIR=/Users/travis/Qt
-        PATH="${QT_INSTALL_DIR}/Qt Creator.app/Contents/MacOS:${PATH}"
-        QMAKE_PATH=${QT_INSTALL_DIR}/${QT_VERSION}/clang_64/bin/qmake
-        QBS_AUTOTEST_QMAKE_PATH=${QT_INSTALL_DIR}/${QT_VERSION}/ios/bin/qmake
-        QBS_BUILD_PROFILE=qt
-        QBS_AUTOTEST_BASE_PROFILE=xcode-iphoneos-arm64
-        WITH_DOCS=0
-      before_install:
-        - ./scripts/install-qt.sh -d ${QT_INSTALL_DIR} --version ${QT_VERSION} qtbase qtdeclarative qttools qtscript
-        - ./scripts/install-qt.sh -d ${QT_INSTALL_DIR} --version ${QT_VERSION} --target ios --toolchain ios qtbase qtdeclarative qttools qtscript
-        - ./scripts/install-qt.sh -d ${QT_INSTALL_DIR} --version ${QTCREATOR_VERSION} qtcreator
-      script:
-        - qbs setup-toolchains --detect
-        - qbs setup-qt ${QMAKE_PATH} qt
-        - qbs config profiles.qt.baseProfile xcode-macosx-x86_64
-        - scripts/build-qbs-with-qbs.sh
-
-    - <<: *build-on-macos
-      name: With Qbs on macOS (xcode 10.3)
-      osx_image: xcode10.3
-      if: NOT branch =~ ^gerrit
-
     - &build-on-windows-with-docker
       stage: Build Qbs and and run autotests
       name: With Qbs on Windows with Docker (Visual Studio 2017)
@@ -177,45 +101,3 @@ jobs:
           config:release profile:qt
       after_script:
         - docker-compose run --rm windows clcache -s
-
-    - &build-on-windows
-      stage: Build Qbs and and run autotests
-      name: With Qbs on Windows (Visual Studio 2019)
-      os: windows
-      env:
-        # Need to build in release mode. Otherwise autotests would be too slow.
-        BUILD_OPTIONS="config:release modules.cpp.compilerWrapper:clcache"
-        QMAKE_PATH=${QT_INSTALL_DIR}/${QT_VERSION}/msvc2019_64/bin/qmake.exe
-        PATH="${QT_INSTALL_DIR}/Tools/QtCreator/bin:/c/Python38:/c/Python39:/c/Python38/Scripts:/c/Python39/Scripts:${PATH}"
-        QBS_BUILD_PROFILE=qt
-        CLCACHE_DIR="${HOME}/.ccache"
-      before_install:
-        # Install Qbs and Qt
-        - ./scripts/install-qt.sh -d ${QT_INSTALL_DIR} --version ${QT_VERSION} --toolchain win64_msvc2019_64 qtbase qtdeclarative qttools qtscript
-        - ./scripts/install-qt.sh -d ${QT_INSTALL_DIR} --version ${QTCREATOR_VERSION} qtcreator
-        - choco install python3
-        - choco install -y visualstudio2019buildtools --package-parameters "--add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --norestart"
-        - pip3 install conan beautifulsoup4 lxml
-        - pip3 install git+https://github.com/frerich/clcache.git@cae73d8255d78db8ba11e23c51fd2c9a89e7475b
-      before_script:
-        - clcache -s
-      after_script:
-        - clcache -s
-      script:
-        - find "C:/Program Files (x86)/Microsoft Visual Studio/2017" -name vcvarsall.bat
-        - find "C:/Program Files (x86)/Microsoft Visual Studio/2019" -name vcvarsall.bat
-        - qbs setup-toolchains --detect
-        - qbs setup-qt ${QMAKE_PATH} qt
-        - qbs config profiles.qt.baseProfile MSVC2019-x64
-        - qbs config defaultProfile qt
-        - scripts/build-qbs-with-qbs.sh
-
-    - <<: *build-on-windows
-      name: With Qbs on Windows (clang-cl)
-      if: NOT branch =~ ^gerrit
-      script:
-        - qbs setup-toolchains --detect
-        - qbs setup-qt ${QMAKE_PATH} qt
-        - qbs config profiles.qt.baseProfile clang-cl-x86_64
-        - qbs config defaultProfile qt
-        - scripts/build-qbs-with-qbs.sh
