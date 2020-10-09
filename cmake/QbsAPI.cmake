@@ -12,6 +12,7 @@ endif()
 set(QBS_OUTPUT_PREFIX "" CACHE STRING "Qbs build output location relative to CMAKE_BINARY_DIR.")
 set(QBS_APP_INSTALL_DIR "bin" CACHE STRING "Relative install location for Qbs binaries.")
 set(QBS_LIB_INSTALL_DIR "${_DEFAULT_LIB_INSTALL_DIR}" CACHE STRING "Relative install location for Qbs libraries.")
+set(QBS_DLL_INSTALL_DIR "${QBS_LIB_INSTALL_DIR}" CACHE STRING "Relative install location for Qbs DLLs.")
 set(QBS_LIBEXEC_INSTALL_DIR "${_DEFAULT_LIBEXEC_INSTALL_DIR}" CACHE STRING "Relative install location for Qbs libexec.")
 set(QBS_PLUGINS_INSTALL_BASE "${QBS_LIBDIR_NAME}" CACHE STRING "Relative install location for Qbs plugins.")
 set(QBS_RESOURCES_INSTALL_BASE "." CACHE STRING "Relative install location for Qbs resources.")
@@ -135,15 +136,19 @@ function(add_qbs_library target_name)
     target_link_libraries(${target_name} PRIVATE ${_arg_DEPENDS} PUBLIC ${_arg_PUBLIC_DEPENDS})
 
     set_target_properties(${target_name} PROPERTIES
+        ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${QBS_OUTPUT_PREFIX}${QBS_LIB_INSTALL_DIR}
         LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${QBS_OUTPUT_PREFIX}${QBS_LIB_INSTALL_DIR}
-        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${QBS_OUTPUT_PREFIX}${QBS_LIB_INSTALL_DIR}
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${QBS_OUTPUT_PREFIX}${QBS_DLL_INSTALL_DIR}
         BUILD_RPATH "${QBS_LIB_RPATH}"
         INSTALL_RPATH "${QBS_LIB_RPATH}"
         SOVERSION ${_SOVERSION}
         VERSION ${QBS_VERSION}
         )
     if (NOT _arg_STATIC)
-        install(TARGETS ${target_name} LIBRARY DESTINATION ${QBS_LIB_INSTALL_DIR})
+        install(TARGETS ${target_name}
+            LIBRARY DESTINATION ${QBS_LIB_INSTALL_DIR}
+            RUNTIME DESTINATION ${QBS_DLL_INSTALL_DIR}
+        )
     endif()
 endfunction()
 
@@ -172,7 +177,10 @@ function(add_qbs_plugin target_name)
         BUILD_RPATH "${QBS_PLUGINS_RPATH}"
         INSTALL_RPATH "${QBS_PLUGINS_RPATH}"
         )
-    install(TARGETS ${target_name} LIBRARY DESTINATION ${QBS_PLUGINS_INSTALL_DIR})
+    install(TARGETS ${target_name}
+        LIBRARY DESTINATION ${QBS_PLUGINS_INSTALL_DIR}
+        RUNTIME DESTINATION ${QBS_PLUGINS_INSTALL_DIR}
+    )
 endfunction()
 
 function(add_qbs_test test_name)
