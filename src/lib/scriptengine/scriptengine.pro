@@ -11,6 +11,8 @@ DEFINES   += QT_NO_USING_NAMESPACE
 
 CONFIG += building-libs
 CONFIG += staticlib
+CONFIG -= c++17
+CONFIG += c++14
 
 GENERATED_SOURCES_DIR = generated
 
