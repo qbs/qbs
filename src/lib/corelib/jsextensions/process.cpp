@@ -213,8 +213,8 @@ int Process::exec(const QString &program, const QStringList &arguments, bool thr
         } else if (m_qProcess->exitStatus() == QProcess::CrashExit || m_qProcess->exitCode() != 0) {
             QString errorMessage = m_qProcess->error() == QProcess::Crashed
                     ? Tr::tr("Error running '%1': %2").arg(program, m_qProcess->errorString())
-                    : Tr::tr("Process '%1' finished with exit code %2.").arg(program).arg(
-                          m_qProcess->exitCode());
+                    : Tr::tr("Process '%1 %2' finished with exit code %3.").arg(program).
+                      arg(arguments.join(QStringLiteral(" "))).arg(m_qProcess->exitCode());
             const QString stdOut = readStdOut();
             if (!stdOut.isEmpty())
                 errorMessage.append(Tr::tr(" The standard output was:\n")).append(stdOut);

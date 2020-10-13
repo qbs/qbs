@@ -214,17 +214,15 @@ void TestBlackboxAndroid::android_data()
         const QByteArray path = "lib/${ARCH}/";
         return path + (usesClang ? "libc++_shared.so" : oldcxxLib);
     };
-    bool usingOldQt = true;
+    qbs::Version version(5, 13);
     QStringList qmakeFilePaths = pQt.value(QStringLiteral("moduleProviders.Qt.qmakeFilePaths")).
             toStringList();
-    if (qmakeFilePaths.size() == 1) {
-        qbs::Version version = TestBlackboxBase::qmakeVersion(qmakeFilePaths[0]);
-        if (version.isValid() && version >= qbs::Version(5, 14))
-            usingOldQt = false;
-    }
+    if (qmakeFilePaths.size() == 1)
+        version = TestBlackboxBase::qmakeVersion(qmakeFilePaths[0]);
+    bool singleArchQt = (version < qbs::Version(5, 14));
 
     QByteArrayList archsForQt;
-    if (usingOldQt) {
+    if (singleArchQt) {
         archsForQt = { pQt.value("qbs.architecture").toString().toUtf8() };
         if (archsStringList.empty())
             archsStringList << QStringLiteral("armv7a"); // must match default in common.qbs
@@ -294,7 +292,7 @@ void TestBlackboxAndroid::android_data()
 
     auto qtAppExpectedFiles = [&](bool generateAab) {
         QByteArrayList expectedFile;
-        if (usingOldQt) {
+        if (singleArchQt) {
             expectedFile << commonFiles(generateAab) + expandArchs(ndkArchsForQt, {
                        cxxLibPath("libgnustl_shared.so", true),
                        "assets/--Added-by-androiddeployqt--/qt_cache_pregenerated_file_list",
@@ -418,7 +416,7 @@ void TestBlackboxAndroid::android_data()
             << enableAapt2 << generateAab << isIncrementalBuild;
     auto qmlAppExpectedFiles = [&](bool generateAab) {
         QByteArrayList expectedFile;
-        if (usingOldQt) {
+        if (singleArchQt) {
             expectedFile << commonFiles(generateAab) + expandArchs(ndkArchsForQt, {
                            "assets/--Added-by-androiddeployqt--/qml/QtQuick.2/plugins.qmltypes",
                            "assets/--Added-by-androiddeployqt--/qml/QtQuick.2/qmldir",
@@ -487,11 +485,18 @@ void TestBlackboxAndroid::android_data()
                            "lib/${ARCH}/libQt5Gui_${ARCH}.so",
                            "lib/${ARCH}/libQt5Network_${ARCH}.so",
                            "lib/${ARCH}/libQt5Qml_${ARCH}.so",
-                           "lib/${ARCH}/libQt5QuickParticles_${ARCH}.so",
                            "lib/${ARCH}/libQt5Quick_${ARCH}.so",
                            "lib/${ARCH}/libQt5QmlModels_${ARCH}.so",
                            "lib/${ARCH}/libQt5QmlWorkerScript_${ARCH}.so",
                            "lib/${ARCH}/libqmlapp_${ARCH}.so"}, generateAab);
+            if (version >= qbs::Version(5, 15))
+                expectedFile << expandArchs(ndkArchsForQt, {
+                           "lib/${ARCH}/libQt5RemoteObjects_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQml_RemoteObjects_qtqmlremoteobjects_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQml_StateMachine_qtqmlstatemachine_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQml_WorkerScript.2_workerscriptplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQml_Models.2_modelsplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQml_qmlplugin_${ARCH}.so"}, generateAab);
         }
         if (generateAab)
             expectedFile << "base/resources.pb" << "base/assets.pb" << "base/native.pb";
@@ -502,7 +507,7 @@ void TestBlackboxAndroid::android_data()
 
     auto qmlAppMinistroExpectedFiles = [&](bool generateAab) {
         QByteArrayList expectedFile;
-        if (usingOldQt) {
+        if (singleArchQt) {
             expectedFile << commonFiles(generateAab) + expandArchs(ndkArchsForQt, {
                         "assets/--Added-by-androiddeployqt--/qt_cache_pregenerated_file_list",
                         cxxLibPath("libgnustl_shared.so", true),
@@ -521,7 +526,7 @@ void TestBlackboxAndroid::android_data()
     };
     auto qmlAppCustomMetaDataExpectedFiles = [&](bool generateAab) {
         QByteArrayList expectedFile;
-        if (usingOldQt) {
+        if (singleArchQt) {
             expectedFile << commonFiles(generateAab) + expandArchs(ndkArchsForQt, {
                         "assets/--Added-by-androiddeployqt--/qml/QtQuick.2/plugins.qmltypes",
                         "assets/--Added-by-androiddeployqt--/qml/QtQuick.2/qmldir",
@@ -592,11 +597,18 @@ void TestBlackboxAndroid::android_data()
                         "lib/${ARCH}/libQt5Gui_${ARCH}.so",
                         "lib/${ARCH}/libQt5Network_${ARCH}.so",
                         "lib/${ARCH}/libQt5Qml_${ARCH}.so",
-                        "lib/${ARCH}/libQt5QuickParticles_${ARCH}.so",
                         "lib/${ARCH}/libQt5Quick_${ARCH}.so",
                         "lib/${ARCH}/libQt5QmlModels_${ARCH}.so",
                         "lib/${ARCH}/libQt5QmlWorkerScript_${ARCH}.so",
                         "lib/${ARCH}/libqmlapp_${ARCH}.so"}, generateAab);
+            if (version >= qbs::Version(5, 15))
+                expectedFile << expandArchs(ndkArchsForQt, {
+                           "lib/${ARCH}/libQt5RemoteObjects_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQml_RemoteObjects_qtqmlremoteobjects_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQml_StateMachine_qtqmlstatemachine_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQml_WorkerScript.2_workerscriptplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQml_Models.2_modelsplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQml_qmlplugin_${ARCH}.so"}, generateAab);
         }
         if (generateAab)
             expectedFile << "base/resources.pb" << "base/assets.pb" << "base/native.pb";
@@ -605,7 +617,7 @@ void TestBlackboxAndroid::android_data()
         return expectedFile;
     };
     QStringList qmlAppCustomProperties;
-    if (usingOldQt) {
+    if (singleArchQt) {
         qmlAppCustomProperties = QStringList{"modules.Android.sdk.automaticSources:false",
                             "modules.qbs.architecture:" + archsForQt.first()};
     } else {
@@ -701,30 +713,6 @@ void TestBlackboxAndroid::android_data()
     isIncrementalBuild = false;
     enableAapt2 = false;
     generateAab = false;
-    QTest::newRow("no native")
-            << "no-native"
-            << QStringList("com.example.android.basicmediadecoder")
-            << (QList<QByteArrayList>() << commonFiles(generateAab) + expandArchs(archs, {
-                       "resources.arsc",
-                       "res/drawable-hdpi-v4/ic_action_play_disabled.png",
-                       "res/drawable-hdpi-v4/ic_action_play.png",
-                       "res/drawable-hdpi-v4/ic_launcher.png",
-                       "res/drawable-hdpi-v4/tile.9.png",
-                       "res/drawable-mdpi-v4/ic_action_play_disabled.png",
-                       "res/drawable-mdpi-v4/ic_action_play.png",
-                       "res/drawable-mdpi-v4/ic_launcher.png",
-                       "res/drawable/selector_play.xml",
-                       "res/drawable-xhdpi-v4/ic_action_play_disabled.png",
-                       "res/drawable-xhdpi-v4/ic_action_play.png",
-                       "res/drawable-xhdpi-v4/ic_launcher.png",
-                       "res/drawable-xxhdpi-v4/ic_launcher.png",
-                       "res/layout/sample_main.xml",
-                       "res/menu/action_menu.xml",
-                       "res/menu-v11/action_menu.xml",
-                       "res/raw/vid_bigbuckbunny.mp4"}, generateAab))
-            << QStringList{aaptVersion(enableAapt2), packageType(generateAab)}
-            << enableAapt2 << generateAab << isIncrementalBuild;
-    enableAapt2 = true;
     auto noNativeExpectedFiles = [&](bool generateAab) {
         QByteArrayList expectedFile;
         expectedFile << commonFiles(generateAab) + expandArchs(archs, {
@@ -742,8 +730,6 @@ void TestBlackboxAndroid::android_data()
                     "res/drawable-xxhdpi-v4/ic_launcher.png",
                     "res/layout/sample_main.xml",
                     "res/menu/action_menu.xml",
-                    // I have no idea why this file is generated with aapt and not with aapt2
-                    //"res/menu-v11/action_menu.xml",
                     "res/raw/vid_bigbuckbunny.mp4"}, generateAab);
         if (generateAab)
             expectedFile << "base/resources.pb";
@@ -751,6 +737,13 @@ void TestBlackboxAndroid::android_data()
             expectedFile << "resources.arsc";
         return expectedFile;
     };
+    QTest::newRow("no native")
+            << "no-native"
+            << QStringList("com.example.android.basicmediadecoder")
+            << (QList<QByteArrayList>() << noNativeExpectedFiles(generateAab))
+            << QStringList{aaptVersion(enableAapt2), packageType(generateAab)}
+            << enableAapt2 << generateAab << isIncrementalBuild;
+    enableAapt2 = true;
     QTest::newRow("no native aapt2")
             << "no-native"
             << QStringList("com.example.android.basicmediadecoder")

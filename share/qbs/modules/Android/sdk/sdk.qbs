@@ -67,6 +67,8 @@ Module {
     property int buildToolsVersionMinor: buildToolsVersionParts[1]
     property int buildToolsVersionPatch: buildToolsVersionParts[2]
     property string platform: sdkProbe.platform
+    property string minimumVersion: "21"
+    property string targetVersion: platformVersion.toString()
 
     property path bundletoolFilePath: bundletoolProbe.filePath
 
@@ -337,6 +339,20 @@ Module {
                     }
                 }
 
+                var usedSdkElem = rootElem.firstChild("uses-sdk");
+                if (!usedSdkElem || !usedSdkElem.isElement()) {
+                    usedSdkElem = manifestData.createElement("uses-sdk");
+                    rootElem.appendChild(usedSdkElem);
+                } else {
+                    if (!usedSdkElem.isElement())
+                        throw "Tag uses-sdk is not an element in '" + input.filePath + "'.";
+                }
+                usedSdkElem.setAttribute("android:minSdkVersion",
+                                         product.Android.sdk.minimumVersion);
+                usedSdkElem.setAttribute("android:targetSdkVersion",
+                                         product.Android.sdk.targetVersion);
+
+                rootElem.appendChild(usedSdkElem);
                 manifestData.save(output.filePath, 4);
             }
             return cmd;

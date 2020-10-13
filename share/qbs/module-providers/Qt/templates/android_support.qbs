@@ -53,6 +53,10 @@ Module {
         java._tagJniHeaders: false // prevent rule cycle
     }
     Properties {
+        condition: _enableSdkSupport && Utilities.versionCompare(version, "5.15") >= 0
+        java.additionalClassPaths: [FileInfo.joinPaths(_qtInstallDir, "jar", "QtAndroid.jar")]
+    }
+    Properties {
         condition: _enableNdkSupport && (Android.ndk.abi === "armeabi-v7a" || Android.ndk.abi === "x86")
         cpp.defines: "ANDROID_HAS_WSTRING"
     }

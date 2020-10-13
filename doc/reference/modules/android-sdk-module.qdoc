@@ -250,3 +250,19 @@
 
     \defaultvalue \c "apk"
 */
+
+/*!
+    \qmlproperty string Android.sdk::minimumVersion
+
+    Minimum API Level required for the application to run.
+
+    \defaultvalue \c "21"
+*/
+
+/*!
+    \qmlproperty string Android.sdk::targetVersion
+
+    API Level that the application targets.
+
+    \defaultvalue \c platformVersion
+*/
