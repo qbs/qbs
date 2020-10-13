@@ -48,6 +48,16 @@ services:
       args:
         QT_VERSION: 5.14.0
 
+  focal-android-515:
+    << : *linux
+    hostname: focal-android
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:focal-android-5.15.1-0
+    build:
+      dockerfile: docker/focal/test-android.Dockerfile
+      context: .
+      args:
+        QT_VERSION: 5.15.1
+
   focal-baremetal:
     << : *linux
     hostname: focal-baremetal

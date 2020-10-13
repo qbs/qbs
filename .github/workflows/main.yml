@@ -249,6 +249,12 @@ jobs:
             profile: '',
             script: './scripts/test-qt-for-android.sh',
           }
+        - {
+            name: 'Run Android tests (Qt 5.15)',
+            image: 'focal-android-515',
+            profile: '',
+            script: './scripts/test-qt-for-android.sh',
+          }
     env:
       QBS_TEST_SOURCE_ROOT: 'tests'
       QBS_AUTOTEST_PROFILE: ${{ matrix.config.profile }}
