@@ -372,6 +372,7 @@ QbsLibrary {
         files: [
             "qmlerror.cpp",
             "qmlerror.h",
+            "qmljs.g",
             "qmljsast.cpp",
             "qmljsast_p.h",
             "qmljsastfwd_p.h",
