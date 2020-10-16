@@ -101,12 +101,18 @@ USER root
 #
 ARG QT_VERSION
 COPY scripts/install-qt.sh install-qt.sh
-RUN if [ "${QT_VERSION}" \< "5.14" ]; then \
+RUN if [ "${QT_VERSION}" \< "5.14" ] || [ ! "${QT_VERSION}" \< "6.0.0" ]; then \
         QT_ABIS="android_armv7 android_arm64_v8a android_x86 android_x86_64"; \
     else \
         QT_ABIS="any"; \
     fi; \
+    if [ ! "${QT_VERSION}" \< "6.0.0" ]; then \
+        ./install-qt.sh --version ${QT_VERSION} qtbase qtdeclarative icu; \
+        QT_COMPONENTS="qtbase qtdeclarative qttools qtquickcontrols2 qtquicktimeline"; \
+    else \
+        QT_COMPONENTS="qtbase qtdeclarative qttools qtimageformats"; \
+    fi; \
     for abi in ${QT_ABIS}; do \
-        ./install-qt.sh --version ${QT_VERSION} --target android --toolchain ${abi} qtbase qtdeclarative qttools qtimageformats; \
+        ./install-qt.sh --version ${QT_VERSION} --target android --toolchain ${abi} ${QT_COMPONENTS}; \
     done && \
     echo "export QT_VERSION=${QT_VERSION}" >> /etc/profile.d/qt.sh

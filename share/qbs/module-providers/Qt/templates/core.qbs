@@ -21,9 +21,15 @@ Module {
     Depends { name: "Qt.android_support"; condition: qbs.targetOS.contains("android") }
     Properties {
         condition: qbs.targetOS.contains("android")
-        Qt.android_support._qtInstallDir: FileInfo.path(binPath)
+        Qt.android_support._qtBinaryDir: FileInfo.path(binPath)
+        Qt.android_support._qtInstallDir: FileInfo.path(installPath)
         Qt.android_support.version: version
     }
+    // qmlImportScanner is required by androiddeployqt even if the project doesn't
+    // depend on qml. That's why the scannerName must be defined here and not in the
+    // qml module
+    property string qmlImportScannerName: "qmlimportscanner"
+    property string qmlImportScannerFilePath: binPath + '/' + qmlImportScannerName
 
     version: @version@
     property stringList architectures: @archs@
@@ -32,6 +38,7 @@ Module {
     property stringList config: @config@
     property stringList qtConfig: @qtConfig@
     property path binPath: @binPath@
+    property path installPath: @installPath@
     property path incPath: @incPath@
     property path libPath: @libPath@
     property path pluginPath: @pluginPath@

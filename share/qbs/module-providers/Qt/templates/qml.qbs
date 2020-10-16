@@ -6,8 +6,8 @@ QtModule {
     qtModuleName: "Qml"
     Depends { name: "Qt"; submodules: @dependencies@}
 
-    property string qmlImportScannerName: "qmlimportscanner"
-    property string qmlImportScannerFilePath: Qt.core.binPath + '/' + qmlImportScannerName
+    property string qmlImportScannerName: Qt.core.qmlImportScannerName
+    property string qmlImportScannerFilePath: Qt.core.qmlImportScannerFilePath
     property string qmlPath: @qmlPath@
 
     property bool generateCacheFiles: false

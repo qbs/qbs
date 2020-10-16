@@ -246,8 +246,8 @@ function getQtProperties(qmakeFilePath, qbs) {
     qtProps.includePath = pathQueryValue(queryResult, "QT_INSTALL_HEADERS");
     qtProps.libraryPath = pathQueryValue(queryResult, "QT_INSTALL_LIBS");
     qtProps.hostLibraryPath = pathQueryValue(queryResult, "QT_HOST_LIBS");
-    qtProps.binaryPath = pathQueryValue(queryResult, "QT_HOST_BINS")
-            || pathQueryValue(queryResult, "QT_INSTALL_BINS");
+    qtProps.binaryPath = pathQueryValue(queryResult, "QT_HOST_BINS");
+    qtProps.installPath = pathQueryValue(queryResult, "QT_INSTALL_BINS");
     qtProps.documentationPath = pathQueryValue(queryResult, "QT_INSTALL_DOCS");
     qtProps.pluginPath = pathQueryValue(queryResult, "QT_INSTALL_PLUGINS");
     qtProps.qmlPath = pathQueryValue(queryResult, "QT_INSTALL_QML");
@@ -1329,6 +1329,7 @@ function replaceSpecialValues(content, module, qtProps, abi) {
         config: ModUtils.toJSLiteral(qtProps.configItems),
         qtConfig: ModUtils.toJSLiteral(qtProps.qtConfigItems),
         binPath: ModUtils.toJSLiteral(qtProps.binaryPath),
+        installPath: ModUtils.toJSLiteral(qtProps.installPath),
         libPath: ModUtils.toJSLiteral(qtProps.libraryPath),
         pluginPath: ModUtils.toJSLiteral(qtProps.pluginPath),
         incPath: ModUtils.toJSLiteral(qtProps.includePath),

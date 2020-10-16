@@ -221,10 +221,10 @@ void TestBlackboxAndroid::android_data()
     qbs::Version version(5, 13);
     QStringList qmakeFilePaths = pQt.value(QStringLiteral("moduleProviders.Qt.qmakeFilePaths")).
             toStringList();
-    if (qmakeFilePaths.size() == 1)
+    if (qmakeFilePaths.size() >= 1)
         version = TestBlackboxBase::qmakeVersion(qmakeFilePaths[0]);
     bool singleArchQt = (version < qbs::Version(5, 14));
-
+    QByteArray qtVersionMajor((version >= qbs::Version(6, 0)) ? "6" : "5");
     QByteArrayList archsForQt;
     if (singleArchQt) {
         archsForQt = { pQt.value("qbs.architecture").toString().toUtf8() };
@@ -294,7 +294,7 @@ void TestBlackboxAndroid::android_data()
     bool generateAab = false;
     bool isIncrementalBuild = false;
 
-    auto qtAppExpectedFiles = [&](bool generateAab) {
+    auto qtAppExpectedFiles = [&](bool generateAab, bool enableAapt2) {
         QByteArrayList expectedFile;
         if (singleArchQt) {
             expectedFile << commonFiles(generateAab) + expandArchs(ndkArchsForQt, {
@@ -318,30 +318,36 @@ void TestBlackboxAndroid::android_data()
             expectedFile << commonFiles(generateAab) + expandArchs(ndkArchsForQt, {
                        cxxLibPath("libgnustl_shared.so", true),
                        "lib/${ARCH}/libplugins_imageformats_qgif_${ARCH}.so",
-                       "lib/${ARCH}/libplugins_imageformats_qicns_${ARCH}.so",
                        "lib/${ARCH}/libplugins_imageformats_qico_${ARCH}.so",
                        "lib/${ARCH}/libplugins_imageformats_qjpeg_${ARCH}.so",
-                       "lib/${ARCH}/libplugins_imageformats_qtga_${ARCH}.so",
-                       "lib/${ARCH}/libplugins_imageformats_qtiff_${ARCH}.so",
-                       "lib/${ARCH}/libplugins_imageformats_qwbmp_${ARCH}.so",
-                       "lib/${ARCH}/libplugins_imageformats_qwebp_${ARCH}.so",
                        "lib/${ARCH}/libplugins_platforms_qtforandroid_${ARCH}.so",
-                       "lib/${ARCH}/libplugins_styles_qandroidstyle_${ARCH}.so",
-                       "lib/${ARCH}/libQt5Core_${ARCH}.so",
-                       "lib/${ARCH}/libQt5Gui_${ARCH}.so",
-                       "lib/${ARCH}/libQt5Widgets_${ARCH}.so",
+                       "lib/${ARCH}/libQt" + qtVersionMajor + "Core_${ARCH}.so",
+                       "lib/${ARCH}/libQt" + qtVersionMajor + "Gui_${ARCH}.so",
+                       "lib/${ARCH}/libQt" + qtVersionMajor + "Widgets_${ARCH}.so",
                        "lib/${ARCH}/libqt-app_${ARCH}.so"}, generateAab);
         }
         if (generateAab)
             expectedFile << "base/resources.pb" << "base/assets.pb" << "base/native.pb";
         else
             expectedFile << "resources.arsc";
+        if (version >= qbs::Version(5, 14))
+            expectedFile << expandArchs(ndkArchsForQt, {
+                       "lib/${ARCH}/libplugins_styles_qandroidstyle_${ARCH}.so"}, generateAab);
+        if (version < qbs::Version(6, 0) && version >= qbs::Version(5, 14))
+            expectedFile << expandArchs(ndkArchsForQt, {
+                       "lib/${ARCH}/libplugins_imageformats_qicns_${ARCH}.so",
+                       "lib/${ARCH}/libplugins_imageformats_qtga_${ARCH}.so",
+                       "lib/${ARCH}/libplugins_imageformats_qtiff_${ARCH}.so",
+                       "lib/${ARCH}/libplugins_imageformats_qwbmp_${ARCH}.so",
+                       "lib/${ARCH}/libplugins_imageformats_qwebp_${ARCH}.so"}, generateAab);
+        if (!enableAapt2 && version < qbs::Version(6, 0))
+            expectedFile << "res/layout/splash.xml";
         return expectedFile;
     };
     QTest::newRow("qt app")
             << "qt-app" << QStringList("qt-app")
-            << (QList<QByteArrayList>() << (QByteArrayList() << qtAppExpectedFiles(generateAab)
-                                            << "res/layout/splash.xml"))
+            << (QList<QByteArrayList>() << (QByteArrayList() << qtAppExpectedFiles(generateAab,
+                                                                                   enableAapt2)))
             << QStringList{aaptVersion(enableAapt2), packageType(generateAab)}
             << enableAapt2 << generateAab << isIncrementalBuild;
 
@@ -418,7 +424,7 @@ void TestBlackboxAndroid::android_data()
                            "modules.qbs.architecture:" + archsStringList.first(),
                            aaptVersion(enableAapt2), packageType(generateAab)}
             << enableAapt2 << generateAab << isIncrementalBuild;
-    auto qmlAppExpectedFiles = [&](bool generateAab) {
+    auto qmlAppExpectedFiles = [&](bool generateAab, bool enableAapt2) {
         QByteArrayList expectedFile;
         if (singleArchQt) {
             expectedFile << commonFiles(generateAab) + expandArchs(ndkArchsForQt, {
@@ -462,15 +468,9 @@ void TestBlackboxAndroid::android_data()
             expectedFile << commonFiles(generateAab) + expandArchs(ndkArchsForQt, {
                            "assets/android_rcc_bundle.rcc",
                            cxxLibPath("libgnustl_shared.so", true),
-                           "lib/${ARCH}/libplugins_bearer_qandroidbearer_${ARCH}.so",
                            "lib/${ARCH}/libplugins_imageformats_qgif_${ARCH}.so",
-                           "lib/${ARCH}/libplugins_imageformats_qicns_${ARCH}.so",
                            "lib/${ARCH}/libplugins_imageformats_qico_${ARCH}.so",
                            "lib/${ARCH}/libplugins_imageformats_qjpeg_${ARCH}.so",
-                           "lib/${ARCH}/libplugins_imageformats_qtga_${ARCH}.so",
-                           "lib/${ARCH}/libplugins_imageformats_qtiff_${ARCH}.so",
-                           "lib/${ARCH}/libplugins_imageformats_qwbmp_${ARCH}.so",
-                           "lib/${ARCH}/libplugins_imageformats_qwebp_${ARCH}.so",
                            "lib/${ARCH}/libplugins_platforms_qtforandroid_${ARCH}.so",
                            "lib/${ARCH}/libplugins_qmltooling_qmldbg_debugger_${ARCH}.so",
                            "lib/${ARCH}/libplugins_qmltooling_qmldbg_inspector_${ARCH}.so",
@@ -483,34 +483,80 @@ void TestBlackboxAndroid::android_data()
                            "lib/${ARCH}/libplugins_qmltooling_qmldbg_quickprofiler_${ARCH}.so",
                            "lib/${ARCH}/libplugins_qmltooling_qmldbg_server_${ARCH}.so",
                            "lib/${ARCH}/libplugins_qmltooling_qmldbg_tcp_${ARCH}.so",
-                           "lib/${ARCH}/libqml_QtQuick.2_qtquick2plugin_${ARCH}.so",
-                           "lib/${ARCH}/libqml_QtQuick_Window.2_windowplugin_${ARCH}.so",
-                           "lib/${ARCH}/libQt5Core_${ARCH}.so",
-                           "lib/${ARCH}/libQt5Gui_${ARCH}.so",
-                           "lib/${ARCH}/libQt5Network_${ARCH}.so",
-                           "lib/${ARCH}/libQt5Qml_${ARCH}.so",
-                           "lib/${ARCH}/libQt5Quick_${ARCH}.so",
-                           "lib/${ARCH}/libQt5QmlModels_${ARCH}.so",
-                           "lib/${ARCH}/libQt5QmlWorkerScript_${ARCH}.so",
+                           "lib/${ARCH}/libQt" + qtVersionMajor + "Core_${ARCH}.so",
+                           "lib/${ARCH}/libQt" + qtVersionMajor + "Gui_${ARCH}.so",
+                           "lib/${ARCH}/libQt" + qtVersionMajor + "Network_${ARCH}.so",
+                           "lib/${ARCH}/libQt" + qtVersionMajor + "Qml_${ARCH}.so",
+                           "lib/${ARCH}/libQt" + qtVersionMajor + "Quick_${ARCH}.so",
+                           "lib/${ARCH}/libQt" + qtVersionMajor + "QmlModels_${ARCH}.so",
+                           "lib/${ARCH}/libQt" + qtVersionMajor + "QmlWorkerScript_${ARCH}.so",
                            "lib/${ARCH}/libqmlapp_${ARCH}.so"}, generateAab);
             if (version < qbs::Version(5, 15))
                 expectedFile << expandArchs(ndkArchsForQt, {
                            "lib/${ARCH}/libQt5QuickParticles_${ARCH}.so"}, generateAab);
-            if (version >= qbs::Version(5, 15))
+            if (version >= qbs::Version(5, 15) && version < qbs::Version(6, 0))
                 expectedFile << expandArchs(ndkArchsForQt, {
                            "lib/${ARCH}/libqml_QtQml_StateMachine_qtqmlstatemachine_${ARCH}.so",
                            "lib/${ARCH}/libqml_QtQml_WorkerScript.2_workerscriptplugin_${ARCH}.so",
                            "lib/${ARCH}/libqml_QtQml_Models.2_modelsplugin_${ARCH}.so",
                            "lib/${ARCH}/libqml_QtQml_qmlplugin_${ARCH}.so"}, generateAab);
+            if (version >= qbs::Version(5, 14) && version < qbs::Version(6, 0))
+                expectedFile << expandArchs(ndkArchsForQt, {
+                           "lib/${ARCH}/libqml_QtQuick.2_qtquick2plugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQuick_Window.2_windowplugin_${ARCH}.so"},
+                                            generateAab);
+            if (version < qbs::Version(6, 0))
+                expectedFile << expandArchs(ndkArchsForQt, {
+                           "lib/${ARCH}/libplugins_bearer_qandroidbearer_${ARCH}.so",
+                           "lib/${ARCH}/libplugins_imageformats_qicns_${ARCH}.so",
+                           "lib/${ARCH}/libplugins_imageformats_qtga_${ARCH}.so",
+                           "lib/${ARCH}/libplugins_imageformats_qtiff_${ARCH}.so",
+                           "lib/${ARCH}/libplugins_imageformats_qwbmp_${ARCH}.so",
+                           "lib/${ARCH}/libplugins_imageformats_qwebp_${ARCH}.so"}, generateAab);
+            if (version >= qbs::Version(6, 0))
+                expectedFile << expandArchs(ndkArchsForQt, {
+                           "lib/${ARCH}/libQt6OpenGL_${ARCH}.so",
+                           "lib/${ARCH}/libQt6QuickControls2Impl_${ARCH}.so",
+                           "lib/${ARCH}/libQt6QuickControls2_${ARCH}.so",
+                           "lib/${ARCH}/libQt6QuickParticles_${ARCH}.so",
+                           "lib/${ARCH}/libQt6QuickShapes_${ARCH}.so",
+                           "lib/${ARCH}/libQt6QuickTemplates2_${ARCH}.so",
+                           "lib/${ARCH}/libQt6Sql_${ARCH}.so",
+                           "lib/${ARCH}/libplugins_sqldrivers_qsqlite_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQml_Models_modelsplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQml_WorkerScript_workerscriptplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQml_qmlplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQuick_Controls_Basic_impl_qtquickcontrols2basicstyleimplplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQuick_Controls_Basic_qtquickcontrols2basicstyleplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQuick_Controls_Fusion_impl_qtquickcontrols2fusionstyleimplplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQuick_Controls_Fusion_qtquickcontrols2fusionstyleplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQuick_Controls_Imagine_impl_qtquickcontrols2imaginestyleimplplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQuick_Controls_Imagine_qtquickcontrols2imaginestyleplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQuick_Controls_Material_impl_qtquickcontrols2materialstyleimplplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQuick_Controls_Material_qtquickcontrols2materialstyleplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQuick_Controls_Universal_impl_qtquickcontrols2universalstyleimplplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQuick_Controls_Universal_qtquickcontrols2universalstyleplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQuick_Controls_impl_qtquickcontrols2implplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQuick_Controls_qtquickcontrols2plugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQuick_LocalStorage_qmllocalstorageplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQuick_NativeStyle_qtquickcontrols2nativestyleplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQuick_Particles_particlesplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQuick_Shapes_qmlshapesplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQuick_Templates_qtquicktemplates2plugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQuick_Timeline_qtquicktimelineplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQuick_Layouts_qquicklayoutsplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQuick_qtquick2plugin_${ARCH}.so"}, generateAab);
         }
         if (generateAab)
             expectedFile << "base/resources.pb" << "base/assets.pb" << "base/native.pb";
         else
             expectedFile << "resources.arsc";
+        if (!enableAapt2 && version < qbs::Version(6, 0))
+            expectedFile << "res/layout/splash.xml";
         return expectedFile;
     };
 
-    auto qmlAppMinistroExpectedFiles = [&](bool generateAab) {
+    auto qmlAppMinistroExpectedFiles = [&](bool generateAab, bool enableAapt2) {
         QByteArrayList expectedFile;
         if (singleArchQt) {
             expectedFile << commonFiles(generateAab) + expandArchs(ndkArchsForQt, {
@@ -527,9 +573,11 @@ void TestBlackboxAndroid::android_data()
             expectedFile << "base/resources.pb" << "base/assets.pb" << "base/native.pb";
         else
             expectedFile << "resources.arsc";
+        if (!enableAapt2 && version < qbs::Version(6, 0))
+            expectedFile << "res/layout/splash.xml";
         return expectedFile;
     };
-    auto qmlAppCustomMetaDataExpectedFiles = [&](bool generateAab) {
+    auto qmlAppCustomMetaDataExpectedFiles = [&](bool generateAab, bool enableAapt2) {
         QByteArrayList expectedFile;
         if (singleArchQt) {
             expectedFile << commonFiles(generateAab) + expandArchs(ndkArchsForQt, {
@@ -575,15 +623,9 @@ void TestBlackboxAndroid::android_data()
                         "assets/android_rcc_bundle.rcc",
                         "assets/dummyasset.txt",
                         cxxLibPath("libgnustl_shared.so", true),
-                        "lib/${ARCH}/libplugins_bearer_qandroidbearer_${ARCH}.so",
                         "lib/${ARCH}/libplugins_imageformats_qgif_${ARCH}.so",
-                        "lib/${ARCH}/libplugins_imageformats_qicns_${ARCH}.so",
                         "lib/${ARCH}/libplugins_imageformats_qico_${ARCH}.so",
                         "lib/${ARCH}/libplugins_imageformats_qjpeg_${ARCH}.so",
-                        "lib/${ARCH}/libplugins_imageformats_qtga_${ARCH}.so",
-                        "lib/${ARCH}/libplugins_imageformats_qtiff_${ARCH}.so",
-                        "lib/${ARCH}/libplugins_imageformats_qwbmp_${ARCH}.so",
-                        "lib/${ARCH}/libplugins_imageformats_qwebp_${ARCH}.so",
                         "lib/${ARCH}/libplugins_platforms_qtforandroid_${ARCH}.so",
                         "lib/${ARCH}/libplugins_qmltooling_qmldbg_debugger_${ARCH}.so",
                         "lib/${ARCH}/libplugins_qmltooling_qmldbg_inspector_${ARCH}.so",
@@ -596,30 +638,76 @@ void TestBlackboxAndroid::android_data()
                         "lib/${ARCH}/libplugins_qmltooling_qmldbg_quickprofiler_${ARCH}.so",
                         "lib/${ARCH}/libplugins_qmltooling_qmldbg_server_${ARCH}.so",
                         "lib/${ARCH}/libplugins_qmltooling_qmldbg_tcp_${ARCH}.so",
-                        "lib/${ARCH}/libqml_QtQuick.2_qtquick2plugin_${ARCH}.so",
-                        "lib/${ARCH}/libqml_QtQuick_Window.2_windowplugin_${ARCH}.so",
-                        "lib/${ARCH}/libQt5Core_${ARCH}.so",
-                        "lib/${ARCH}/libQt5Gui_${ARCH}.so",
-                        "lib/${ARCH}/libQt5Network_${ARCH}.so",
-                        "lib/${ARCH}/libQt5Qml_${ARCH}.so",
-                        "lib/${ARCH}/libQt5Quick_${ARCH}.so",
-                        "lib/${ARCH}/libQt5QmlModels_${ARCH}.so",
-                        "lib/${ARCH}/libQt5QmlWorkerScript_${ARCH}.so",
+                        "lib/${ARCH}/libQt" + qtVersionMajor + "Core_${ARCH}.so",
+                        "lib/${ARCH}/libQt" + qtVersionMajor + "Gui_${ARCH}.so",
+                        "lib/${ARCH}/libQt" + qtVersionMajor + "Network_${ARCH}.so",
+                        "lib/${ARCH}/libQt" + qtVersionMajor + "Qml_${ARCH}.so",
+                        "lib/${ARCH}/libQt" + qtVersionMajor + "Quick_${ARCH}.so",
+                        "lib/${ARCH}/libQt" + qtVersionMajor + "QmlModels_${ARCH}.so",
+                        "lib/${ARCH}/libQt" + qtVersionMajor + "QmlWorkerScript_${ARCH}.so",
                         "lib/${ARCH}/libqmlapp_${ARCH}.so"}, generateAab);
             if (version < qbs::Version(5, 15))
                 expectedFile << expandArchs(ndkArchsForQt, {
-                        "lib/${ARCH}/libQt5QuickParticles_${ARCH}.so"}, generateAab);
-            if (version >= qbs::Version(5, 15))
+                           "lib/${ARCH}/libQt5QuickParticles_${ARCH}.so"}, generateAab);
+            if (version >= qbs::Version(5, 15) && version < qbs::Version(6, 0))
                 expectedFile << expandArchs(ndkArchsForQt, {
                            "lib/${ARCH}/libqml_QtQml_StateMachine_qtqmlstatemachine_${ARCH}.so",
                            "lib/${ARCH}/libqml_QtQml_WorkerScript.2_workerscriptplugin_${ARCH}.so",
                            "lib/${ARCH}/libqml_QtQml_Models.2_modelsplugin_${ARCH}.so",
                            "lib/${ARCH}/libqml_QtQml_qmlplugin_${ARCH}.so"}, generateAab);
+            if (version >= qbs::Version(5, 14) && version < qbs::Version(6, 0))
+                expectedFile << expandArchs(ndkArchsForQt, {
+                           "lib/${ARCH}/libqml_QtQuick.2_qtquick2plugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQuick_Window.2_windowplugin_${ARCH}.so"},
+                                            generateAab);
+            if (version < qbs::Version(6, 0))
+                expectedFile << expandArchs(ndkArchsForQt, {
+                           "lib/${ARCH}/libplugins_bearer_qandroidbearer_${ARCH}.so",
+                           "lib/${ARCH}/libplugins_imageformats_qicns_${ARCH}.so",
+                           "lib/${ARCH}/libplugins_imageformats_qtga_${ARCH}.so",
+                           "lib/${ARCH}/libplugins_imageformats_qtiff_${ARCH}.so",
+                           "lib/${ARCH}/libplugins_imageformats_qwbmp_${ARCH}.so",
+                           "lib/${ARCH}/libplugins_imageformats_qwebp_${ARCH}.so"}, generateAab);
+            if (version >= qbs::Version(6, 0))
+                expectedFile << expandArchs(ndkArchsForQt, {
+                           "lib/${ARCH}/libQt6OpenGL_${ARCH}.so",
+                           "lib/${ARCH}/libQt6QuickControls2Impl_${ARCH}.so",
+                           "lib/${ARCH}/libQt6QuickControls2_${ARCH}.so",
+                           "lib/${ARCH}/libQt6QuickParticles_${ARCH}.so",
+                           "lib/${ARCH}/libQt6QuickShapes_${ARCH}.so",
+                           "lib/${ARCH}/libQt6QuickTemplates2_${ARCH}.so",
+                           "lib/${ARCH}/libQt6Sql_${ARCH}.so",
+                           "lib/${ARCH}/libplugins_sqldrivers_qsqlite_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQml_Models_modelsplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQml_WorkerScript_workerscriptplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQml_qmlplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQuick_Controls_Basic_impl_qtquickcontrols2basicstyleimplplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQuick_Controls_Basic_qtquickcontrols2basicstyleplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQuick_Controls_Fusion_impl_qtquickcontrols2fusionstyleimplplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQuick_Controls_Fusion_qtquickcontrols2fusionstyleplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQuick_Controls_Imagine_impl_qtquickcontrols2imaginestyleimplplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQuick_Controls_Imagine_qtquickcontrols2imaginestyleplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQuick_Controls_Material_impl_qtquickcontrols2materialstyleimplplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQuick_Controls_Material_qtquickcontrols2materialstyleplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQuick_Controls_Universal_impl_qtquickcontrols2universalstyleimplplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQuick_Controls_Universal_qtquickcontrols2universalstyleplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQuick_Controls_impl_qtquickcontrols2implplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQuick_Controls_qtquickcontrols2plugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQuick_LocalStorage_qmllocalstorageplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQuick_NativeStyle_qtquickcontrols2nativestyleplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQuick_Particles_particlesplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQuick_Shapes_qmlshapesplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQuick_Templates_qtquicktemplates2plugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQuick_Timeline_qtquicktimelineplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQuick_Layouts_qquicklayoutsplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQuick_qtquick2plugin_${ARCH}.so"}, generateAab);
         }
         if (generateAab)
             expectedFile << "base/resources.pb" << "base/assets.pb" << "base/native.pb";
         else
             expectedFile << "resources.arsc";
+        if (!enableAapt2 && version < qbs::Version(6, 0))
+            expectedFile << "res/layout/splash.xml";
         return expectedFile;
     };
     QStringList qmlAppCustomProperties;
@@ -642,8 +730,7 @@ void TestBlackboxAndroid::android_data()
     generateAab = false;
     QTest::newRow("qml app")
             << "qml-app" << QStringList("qmlapp")
-            << (QList<QByteArrayList>() << (QByteArrayList() << qmlAppExpectedFiles(generateAab)
-                                            << "res/layout/splash.xml"))
+            << (QList<QByteArrayList>() << qmlAppExpectedFiles(generateAab, enableAapt2))
             << (QStringList() << qmlAppCustomProperties << aaptVersion(enableAapt2)
                               << packageType(generateAab))
             << enableAapt2 << generateAab << isIncrementalBuild;
@@ -651,14 +738,14 @@ void TestBlackboxAndroid::android_data()
     enableAapt2 = true;
     QTest::newRow("qml app aapt2")
             << "qml-app" << QStringList("qmlapp")
-            << (QList<QByteArrayList>() << qmlAppExpectedFiles(generateAab))
+            << (QList<QByteArrayList>() << qmlAppExpectedFiles(generateAab, enableAapt2))
             << (QStringList() << qmlAppCustomProperties << aaptVersion(enableAapt2)
                               << packageType(generateAab))
             << enableAapt2 << generateAab << isIncrementalBuild;
     generateAab = true;
     QTest::newRow("qml app aab")
             << "qml-app" << QStringList("qmlapp")
-            << (QList<QByteArrayList>() << qmlAppExpectedFiles(generateAab))
+            << (QList<QByteArrayList>() << qmlAppExpectedFiles(generateAab, enableAapt2))
             << (QStringList() << qmlAppCustomProperties << aaptVersion(enableAapt2)
                               << packageType(generateAab))
             << enableAapt2 << generateAab << isIncrementalBuild;
@@ -668,8 +755,8 @@ void TestBlackboxAndroid::android_data()
     QTest::newRow("qml app using Ministro")
             << "qml-app" << QStringList("qmlapp")
             << (QList<QByteArrayList>() << (QByteArrayList()
-                                            << qmlAppMinistroExpectedFiles(generateAab)
-                                            << "res/layout/splash.xml"))
+                                            << qmlAppMinistroExpectedFiles(generateAab,
+                                                                           enableAapt2)))
             << (QStringList() << "modules.Qt.android_support.useMinistro:true"
                 << "modules.Android.sdk.automaticSources:false" << aaptVersion(enableAapt2)
                 << packageType(generateAab))
@@ -677,26 +764,30 @@ void TestBlackboxAndroid::android_data()
     enableAapt2 = true;
     QTest::newRow("qml app using Ministro aapt2")
             << "qml-app" << QStringList("qmlapp")
-            << (QList<QByteArrayList>() << qmlAppMinistroExpectedFiles(generateAab))
+            << (QList<QByteArrayList>() << qmlAppMinistroExpectedFiles(generateAab,
+                                                                       enableAapt2))
             << (QStringList() << "modules.Qt.android_support.useMinistro:true"
                 << "modules.Android.sdk.automaticSources:false" << aaptVersion(enableAapt2)
                 << packageType(generateAab))
             << enableAapt2 << generateAab << isIncrementalBuild;
     generateAab = true;
-    QTest::newRow("qml app using Ministro aab")
-            << "qml-app" << QStringList("qmlapp")
-            << (QList<QByteArrayList>() << qmlAppMinistroExpectedFiles(generateAab))
-            << (QStringList() << "modules.Qt.android_support.useMinistro:true"
-                << "modules.Android.sdk.automaticSources:false" << aaptVersion(enableAapt2)
-                << packageType(generateAab))
-            << enableAapt2 << generateAab << isIncrementalBuild;
+    if (!singleArchQt) {
+        QTest::newRow("qml app using Ministro aab")
+                << "qml-app" << QStringList("qmlapp")
+                << (QList<QByteArrayList>() << qmlAppMinistroExpectedFiles(generateAab,
+                                                                           enableAapt2))
+                << (QStringList() << "modules.Qt.android_support.useMinistro:true"
+                    << "modules.Android.sdk.automaticSources:false" << aaptVersion(enableAapt2)
+                    << packageType(generateAab))
+                << enableAapt2 << generateAab << isIncrementalBuild;
+    }
     enableAapt2 = false;
     generateAab = false;
     QTest::newRow("qml app with custom metadata")
             << "qml-app" << QStringList("qmlapp")
             << (QList<QByteArrayList>() << (QByteArrayList()
-                                            << qmlAppCustomMetaDataExpectedFiles(generateAab)
-                                            << "res/layout/splash.xml"))
+                                            << qmlAppCustomMetaDataExpectedFiles(generateAab,
+                                                                                 enableAapt2)))
             << QStringList{"modules.Android.sdk.automaticSources:true",
                aaptVersion(enableAapt2), packageType(generateAab)}
             << enableAapt2 << generateAab << isIncrementalBuild;
@@ -704,18 +795,22 @@ void TestBlackboxAndroid::android_data()
     QTest::newRow("qml app with custom metadata aapt2")
             << "qml-app" << QStringList("qmlapp")
             << (QList<QByteArrayList>() << (QByteArrayList()
-                                            << qmlAppCustomMetaDataExpectedFiles(generateAab)))
+                                            << qmlAppCustomMetaDataExpectedFiles(generateAab,
+                                                                                 enableAapt2)))
             << QStringList{"modules.Android.sdk.automaticSources:true", aaptVersion(enableAapt2),
                packageType(generateAab)}
             << enableAapt2 << generateAab << isIncrementalBuild;
     generateAab = true;
-    QTest::newRow("qml app with custom metadata aab")
-            << "qml-app" << QStringList("qmlapp")
-            << (QList<QByteArrayList>() << (QByteArrayList()
-                                            << qmlAppCustomMetaDataExpectedFiles(generateAab)))
-            << QStringList{"modules.Android.sdk.automaticSources:true", aaptVersion(enableAapt2),
-               packageType(generateAab)}
-            << enableAapt2 << generateAab << isIncrementalBuild;
+    if (!singleArchQt) {
+        QTest::newRow("qml app with custom metadata aab")
+                << "qml-app" << QStringList("qmlapp")
+                << (QList<QByteArrayList>() << (QByteArrayList()
+                                                << qmlAppCustomMetaDataExpectedFiles(generateAab,
+                                                                                     enableAapt2)))
+                << QStringList{"modules.Android.sdk.automaticSources:true", aaptVersion(enableAapt2),
+                   packageType(generateAab)}
+                << enableAapt2 << generateAab << isIncrementalBuild;
+    }
     isIncrementalBuild = false;
     enableAapt2 = false;
     generateAab = false;

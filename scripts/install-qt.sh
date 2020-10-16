@@ -231,6 +231,7 @@ function compute_url(){
     local COMPONENT=$1
     local CURL="curl -s -L"
     local BASE_URL="http://download.qt.io/online/qtsdkrepository/${HOST_OS}/${TARGET_PLATFORM}"
+    local ANDROID_ARCH=$(echo ${TOOLCHAIN##android_})
 
     if [[ "${COMPONENT}" =~ "qtcreator" ]]; then
 
@@ -244,6 +245,10 @@ function compute_url(){
 
     else
         REMOTE_BASES=(
+            # New repository format (>=6.0.0)
+            "qt6_${VERSION//./}/qt.qt6.${VERSION//./}.${TOOLCHAIN}"
+            "qt6_${VERSION//./}_${ANDROID_ARCH}/qt.qt6.${VERSION//./}.${TOOLCHAIN}"
+            "qt6_${VERSION//./}_${ANDROID_ARCH}/qt.qt6.${VERSION//./}.${COMPONENT}.${TOOLCHAIN}"
             # New repository format (>=5.9.6)
             "qt5_${VERSION//./}/qt.qt5.${VERSION//./}.${TOOLCHAIN}"
             "qt5_${VERSION//./}/qt.qt5.${VERSION//./}.${COMPONENT}.${TOOLCHAIN}"
@@ -274,7 +279,7 @@ rm -f "${HASH_FILEPATH}"
 for COMPONENT in ${COMPONENTS}; do
 
     URL="$(compute_url ${COMPONENT})"
-    echo "Downloading ${COMPONENT}..." >&2
+    echo "Downloading ${COMPONENT} ${URL}..." >&2
     curl --progress-bar -L -o ${DOWNLOAD_DIR}/package.7z ${URL} >&2
     7z x -y -o${INSTALL_DIR} ${DOWNLOAD_DIR}/package.7z >/dev/null 2>&1
     7z l -ba -slt -y ${DOWNLOAD_DIR}/package.7z | tr '\\' '/' | sed -n -e "s|^Path\ =\ |${INSTALL_DIR}/|p" >> "${HASH_FILEPATH}" 2>/dev/null
@@ -298,9 +303,18 @@ for COMPONENT in ${COMPONENTS}; do
             SUBDIR="${TOOLCHAIN}"
         fi
 
-        CONF_FILE="${INSTALL_DIR}/${VERSION}/${SUBDIR}/bin/qt.conf"
-        echo "[Paths]" > ${CONF_FILE}
-        echo "Prefix = .." >> ${CONF_FILE}
+        if [ "${TARGET_PLATFORM}" == "android" ] && [ ! "${QT_VERSION}" \< "6.0.0" ]; then
+            CONF_FILE="${INSTALL_DIR}/${VERSION}/${SUBDIR}/bin/target_qt.conf"
+            sed -i "s|target|../$TOOLCHAIN|g" "${CONF_FILE}"
+            sed -i "/HostPrefix/ s|$|gcc_64|g" "${CONF_FILE}"
+            ANDROID_QMAKE_FILE="${INSTALL_DIR}/${VERSION}/${SUBDIR}/bin/qmake"
+            QMAKE_FILE="${INSTALL_DIR}/${VERSION}/gcc_64/bin/qmake"
+            sed -i "s|\/home\/qt\/work\/install\/bin\/qmake|$QMAKE_FILE|g" "${ANDROID_QMAKE_FILE}"
+        else
+            CONF_FILE="${INSTALL_DIR}/${VERSION}/${SUBDIR}/bin/qt.conf"
+            echo "[Paths]" > ${CONF_FILE}
+            echo "Prefix = .." >> ${CONF_FILE}
+        fi
 
         # Adjust the license to be able to run qmake
         # sed with -i requires intermediate file on Mac OS
