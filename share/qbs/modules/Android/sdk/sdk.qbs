@@ -476,7 +476,9 @@ Module {
         inputs: product.aggregate ? [] : inputTags
         Artifact {
             filePath: FileInfo.joinPaths(product.Android.sdk.packageContentsDir, "lib",
-                                         input.Android.ndk.abi, input.fileName)
+                                         input.Android.ndk.abi, product.Android.sdk._archInName ?
+                                             input.baseName + "_" + input.Android.ndk.abi + ".so" :
+                                             input.fileName)
             fileTags: "android.nativelibrary_deployed"
         }
         prepare: {

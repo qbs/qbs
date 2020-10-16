@@ -189,7 +189,7 @@ Module {
                 } else {
                     f.writeLine('"stdcpp-path": "' + product.Android.sdk.ndkDir +
                                 '/toolchains/llvm/prebuilt/' + hostArch + '/sysroot/usr/lib/",');
-                    f.writeLine('"application-binary": "' + theBinary.product.name + '"');
+                    f.writeLine('"application-binary": "' + theBinary.product.targetName + '"');
                 }
                 f.writeLine("}");
                 f.close();
@@ -296,7 +296,8 @@ Module {
                                   FileInfo.joinPaths(product.Qt.android_support._deployQtOutDir,
                                                      "libs",
                                                      input.Android.ndk.abi,
-                                                     input.fileName));
+                                                     input.baseName + "_" + input.Android.ndk.abi +
+                                                     ".so"));
                     }
                 }
             };

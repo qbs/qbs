@@ -604,7 +604,7 @@ void TestBlackboxAndroid::android_data()
                         "lib/${ARCH}/libqmlapp_${ARCH}.so"}, generateAab);
             if (version < qbs::Version(5, 15))
                 expectedFile << expandArchs(ndkArchsForQt, {
-                           "lib/${ARCH}/libQt5QuickParticles_${ARCH}.so"}, generateAab);
+                        "lib/${ARCH}/libQt5QuickParticles_${ARCH}.so"}, generateAab);
             if (version >= qbs::Version(5, 15))
                 expectedFile << expandArchs(ndkArchsForQt, {
                            "lib/${ARCH}/libqml_QtQml_StateMachine_qtqmlstatemachine_${ARCH}.so",
