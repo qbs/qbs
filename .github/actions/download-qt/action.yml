@@ -17,6 +17,6 @@ runs:
   steps:
     - name: Install Qt
       run: |
-        export QT_DIR=$(./scripts/install-qt.sh -d $HOME/Qt --version ${{ inputs.version }} --target ${{ inputs.target }} --toolchain ${{ inputs.toolchain }} qtbase qtdeclarative qttools qtscript qtscxml)
-        echo ::add-path::$QT_DIR
+        QT_DIR=$(./scripts/install-qt.sh -d $HOME/Qt --version ${{ inputs.version }} --target ${{ inputs.target }} --toolchain ${{ inputs.toolchain }} qtbase qtdeclarative qttools qtscript qtscxml)
+        (cygpath -w ${QTC_DIR} 2>/dev/null || echo ${QT_DIR}) >> ${GITHUB_PATH}
       shell: bash

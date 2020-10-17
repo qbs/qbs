@@ -343,7 +343,7 @@ jobs:
     - name: Unpack artifact
       run: mkdir -p release/install-root/ && tar xzf qbs-macos-${{ github.run_id }}.tar.gz -C release/install-root/
     - name: Update PATH
-      run: echo ::add-path::./release/install-root/usr/local/bin
+      run: echo "./release/install-root/usr/local/bin" >> $GITHUB_PATH
     - name: Install required packages
       run: brew install capnp ccache grpc icoutils makensis protobuf p7zip
     - name: Install Qt
@@ -401,8 +401,7 @@ jobs:
         7z x ../../qbs-windows-${{ github.run_id }}.zip
       shell: bash
     - name: Update PATH
-      run: echo ::add-path::./release/install-root/bin
-      shell: bash
+      run: echo "./release/install-root/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
     - name: Install required packages
       run: choco install -y pkgconfiglite
     - name: Install Qt

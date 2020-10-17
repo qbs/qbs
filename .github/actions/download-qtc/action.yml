@@ -10,6 +10,6 @@ runs:
   steps:
     - name: Install Qt Creator
       run: |
-        export QTC_DIR=$(./scripts/install-qt.sh -d $HOME/Qt --version ${{ inputs.version }} qtcreator)
-        echo ::add-path::$QTC_DIR
+        QTC_DIR=$(./scripts/install-qt.sh -d $HOME/Qt --version ${{ inputs.version }} qtcreator)
+        (cygpath -w ${QTC_DIR} 2>/dev/null || echo ${QTC_DIR}) >> ${GITHUB_PATH}
       shell: bash
