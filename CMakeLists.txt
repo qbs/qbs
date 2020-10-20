@@ -27,12 +27,6 @@ option(WITH_UNIT_TESTS "Build Unit Tests" OFF)
 option(WITH_PROJECT_FILE_UPDATES "Enable project file updates support" OFF)
 option(INSTALL_PUBLIC_HEADERS "Whether to install public headers" ON)
 
-find_program(CCACHE_FOUND ccache)
-if(CCACHE_FOUND)
-    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
-    set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache) # Less useful to do it for linking, see edit2
-endif(CCACHE_FOUND)
-
 if(WITH_TESTS)
     enable_testing()
     set(QT_TEST_COMPONENT Test)
