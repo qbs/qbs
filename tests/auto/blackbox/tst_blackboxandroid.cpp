@@ -489,10 +489,11 @@ void TestBlackboxAndroid::android_data()
                            "lib/${ARCH}/libQt5QmlModels_${ARCH}.so",
                            "lib/${ARCH}/libQt5QmlWorkerScript_${ARCH}.so",
                            "lib/${ARCH}/libqmlapp_${ARCH}.so"}, generateAab);
+            if (version < qbs::Version(5, 15))
+                expectedFile << expandArchs(ndkArchsForQt, {
+                           "lib/${ARCH}/libQt5QuickParticles_${ARCH}.so"}, generateAab);
             if (version >= qbs::Version(5, 15))
                 expectedFile << expandArchs(ndkArchsForQt, {
-                           "lib/${ARCH}/libQt5RemoteObjects_${ARCH}.so",
-                           "lib/${ARCH}/libqml_QtQml_RemoteObjects_qtqmlremoteobjects_${ARCH}.so",
                            "lib/${ARCH}/libqml_QtQml_StateMachine_qtqmlstatemachine_${ARCH}.so",
                            "lib/${ARCH}/libqml_QtQml_WorkerScript.2_workerscriptplugin_${ARCH}.so",
                            "lib/${ARCH}/libqml_QtQml_Models.2_modelsplugin_${ARCH}.so",
@@ -601,10 +602,11 @@ void TestBlackboxAndroid::android_data()
                         "lib/${ARCH}/libQt5QmlModels_${ARCH}.so",
                         "lib/${ARCH}/libQt5QmlWorkerScript_${ARCH}.so",
                         "lib/${ARCH}/libqmlapp_${ARCH}.so"}, generateAab);
+            if (version < qbs::Version(5, 15))
+                expectedFile << expandArchs(ndkArchsForQt, {
+                           "lib/${ARCH}/libQt5QuickParticles_${ARCH}.so"}, generateAab);
             if (version >= qbs::Version(5, 15))
                 expectedFile << expandArchs(ndkArchsForQt, {
-                           "lib/${ARCH}/libQt5RemoteObjects_${ARCH}.so",
-                           "lib/${ARCH}/libqml_QtQml_RemoteObjects_qtqmlremoteobjects_${ARCH}.so",
                            "lib/${ARCH}/libqml_QtQml_StateMachine_qtqmlstatemachine_${ARCH}.so",
                            "lib/${ARCH}/libqml_QtQml_WorkerScript.2_workerscriptplugin_${ARCH}.so",
                            "lib/${ARCH}/libqml_QtQml_Models.2_modelsplugin_${ARCH}.so",
