@@ -1938,7 +1938,7 @@ void TestLanguage::modulePropertiesInGroups()
         QCOMPARE(g21Gmod1List1, QStringList() << "gmod1_list1_proto" << "g2");
         const auto &g21Gmod1List2 = moduleProperty(g21Props, "gmod.gmod1", "gmod1_list2")
                 .toStringList();
-        QEXPECT_FAIL(0, "no re-eval when no module props set", Continue);
+        QEXPECT_FAIL(nullptr, "no re-eval when no module props set", Continue);
         QCOMPARE(g21Gmod1List2, QStringList() << "grouptest" << "g2.1" << "gmod1_list2_proto");
         const int g21P0 = moduleProperty(g21Props, "gmod.gmod1", "p0").toInt();
         QCOMPARE(g21P0, 6);
@@ -1948,7 +1948,7 @@ void TestLanguage::modulePropertiesInGroups()
         QCOMPARE(g21Gmod2String, QString("g2"));
         const auto &g21Gmod2List = moduleProperty(g21Props, "gmod2", "gmod2_list")
                 .toStringList();
-        QEXPECT_FAIL(0, "no re-eval when no module props set", Continue);
+        QEXPECT_FAIL(nullptr, "no re-eval when no module props set", Continue);
         QCOMPARE(g21Gmod2List, QStringList() << "g2" << "commonName_in_gmod1"
                  << "g2.1_gmod4_g2.1_gmod3" << "g2.1_gmod3" << "gmod2_list_proto");
 
@@ -1965,11 +1965,11 @@ void TestLanguage::modulePropertiesInGroups()
         QCOMPARE(g211DepProp, 2);
         const auto &g211Gmod2String
                 = moduleProperty(g211Props, "gmod2", "gmod2_string").toString();
-        QEXPECT_FAIL(0, "re-eval not triggered", Continue);
+        QEXPECT_FAIL(nullptr, "re-eval not triggered", Continue);
         QCOMPARE(g211Gmod2String, QString("g2.1.1"));
         const auto &g211Gmod2List = moduleProperty(g211Props, "gmod2", "gmod2_list")
                 .toStringList();
-        QEXPECT_FAIL(0, "re-eval not triggered", Continue);
+        QEXPECT_FAIL(nullptr, "re-eval not triggered", Continue);
         QCOMPARE(g211Gmod2List, QStringList() << "g2.1.1" << "commonName_in_gmod1"
                  << "g2.1.1_gmod4_g2.1.1_gmod3" << "g2.1.1_gmod3" << "gmod2_list_proto");
 

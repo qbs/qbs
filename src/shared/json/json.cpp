@@ -3672,7 +3672,7 @@ bool JsonDocument::operator==(const JsonDocument &other) const
  */
 bool JsonDocument::isNull() const
 {
-    return (d == 0);
+    return (d == nullptr);
 }
 
 

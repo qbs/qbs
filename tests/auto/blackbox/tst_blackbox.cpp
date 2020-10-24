@@ -3303,7 +3303,7 @@ void TestBlackbox::propertyAssignmentInFailedModule()
     QVERIFY(runQbs(failParams) != 0);
     QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList("modules.m.doFail:true"))), 0);
     QVERIFY2(m_qbsStdout.contains("Resolving"), m_qbsStdout.constData());
-    QEXPECT_FAIL(0, "circular dependency between module merging and validation", Continue);
+    QEXPECT_FAIL(nullptr, "circular dependency between module merging and validation", Continue);
     QCOMPARE(runQbs(failParams), 0);
 }
 

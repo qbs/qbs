@@ -114,7 +114,7 @@ static void *openScannerQrc(const unsigned short *filePath, const char *fileTags
     const int fileSize = static_cast<int>(s.st_size);
     opaque->mapl = fileSize;
 
-    void *map = mmap(0, s.st_size, PROT_READ, MAP_PRIVATE, opaque->fd, 0);
+    void *map = mmap(nullptr, s.st_size, PROT_READ, MAP_PRIVATE, opaque->fd, 0);
     if (map == nullptr)
         return nullptr;
 #else
@@ -180,7 +180,7 @@ ScannerPlugin qrcScanner =
     NoScannerFlags
 };
 
-ScannerPlugin *qtScanners[] = {&qrcScanner, NULL};
+ScannerPlugin *qtScanners[] = {&qrcScanner, nullptr};
 
 static void QbsQtScannerPluginLoad()
 {
