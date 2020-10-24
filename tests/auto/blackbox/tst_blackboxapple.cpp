@@ -194,7 +194,7 @@ void TestBlackboxApple::appleMultiConfig()
         QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiappmultivariant.app/Contents/MacOS/"
                                                 "fatmultiappmultivariant_debug").isExecutable());
         QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiappmultivariant.app/Contents/MacOS/"
-                                                "fatmultiappmultivariant_profile").isExecutable());
+                                                "fatmultiappmultivariant_profiling").isExecutable());
         QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiappmultivariant.app/Contents/Info.plist")
                 .isRegularFile());
         QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiappmultivariant.app/Contents/PkgInfo")
@@ -206,12 +206,12 @@ void TestBlackboxApple::appleMultiConfig()
         QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/Versions/A").isRegularDir());
         QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/Versions/A/multilib").isRegularFile());
         QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/Versions/A/multilib_debug").isRegularFile());
-        QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/Versions/A/multilib_profile").isRegularFile());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/Versions/A/multilib_profiling").isRegularFile());
         QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/Versions/A/Resources").isRegularDir());
         QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/Versions/A/Resources/Info.plist").isRegularFile());
         QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/Versions/Current").isDirSymLink());
 
-        for (const QString &variant : { "release", "debug", "profile" }) {
+        for (const QString &variant : { "release", "debug", "profiling" }) {
             for (const QString &arch : { "x86_64" }) {
                 QProcess process;
                 process.setProgram("/usr/bin/arch");
@@ -253,7 +253,7 @@ void TestBlackboxApple::appleMultiConfig()
         QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiappmultivariant.app/"
                                                 "fatmultiappmultivariant_debug").isExecutable());
         QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiappmultivariant.app/"
-                                                "fatmultiappmultivariant_profile").isExecutable());
+                                                "fatmultiappmultivariant_profiling").isExecutable());
         QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiappmultivariant.app/Info.plist")
                 .isRegularFile());
         QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiappmultivariant.app/PkgInfo")
@@ -261,7 +261,7 @@ void TestBlackboxApple::appleMultiConfig()
 
         QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/multilib").isRegularFile());
         QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/multilib_debug").isRegularFile());
-        QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/multilib_profile").isRegularFile());
+        QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/multilib_profiling").isRegularFile());
         QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/Info.plist").isRegularFile());
     } else {
         QVERIFY2(false, qPrintable(m_qbsStdout));

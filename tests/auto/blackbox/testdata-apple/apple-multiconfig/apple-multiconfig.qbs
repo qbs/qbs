@@ -109,7 +109,7 @@ Project {
         cpp.minimumMacosVersion: "10.6"
         cpp.minimumIosVersion: "8.0"
         qbs.architectures: Helpers.getArchitectures(qbs, project.xcodeVersion)
-        qbs.buildVariants: ["debug", "profile"]
+        qbs.buildVariants: ["debug", "profiling"]
 
         install: true
         installDir: ""
@@ -125,7 +125,7 @@ Project {
         cpp.sonamePrefix: qbs.targetOS.contains("darwin") ? "@rpath" : undefined
         cpp.defines: ["VARIANT=" + Utilities.cStringQuote(qbs.buildVariant)]
         qbs.architectures: Helpers.getArchitectures(qbs, project.xcodeVersion)
-        qbs.buildVariants: ["release", "debug", "profile"]
+        qbs.buildVariants: ["release", "debug", "profiling"]
 
         install: true
         installDir: ""
@@ -141,7 +141,7 @@ Project {
         cpp.sonamePrefix: qbs.targetOS.contains("darwin") ? "@rpath" : undefined
         cpp.defines: ["VARIANT=" + Utilities.cStringQuote(qbs.buildVariant)]
         qbs.architectures: Helpers.getArchitectures(qbs, project.xcodeVersion)
-        qbs.buildVariants: ["debug", "profile"]
+        qbs.buildVariants: ["debug", "profiling"]
 
         install: true
         installDir: ""
@@ -157,7 +157,7 @@ Project {
         cpp.sonamePrefix: "@rpath"
         cpp.defines: ["VARIANT=" + Utilities.cStringQuote(qbs.buildVariant)]
         qbs.architectures: Helpers.getArchitectures(qbs, project.xcodeVersion)
-        qbs.buildVariants: ["debug", "profile"]
+        qbs.buildVariants: ["debug", "profiling"]
         install: true
         installDir: ""
     }
@@ -170,7 +170,7 @@ Project {
         cpp.sonamePrefix: "@rpath"
         cpp.defines: ["VARIANT=" + Utilities.cStringQuote(qbs.buildVariant)]
         qbs.architectures: Helpers.getArchitectures(qbs, project.xcodeVersion)
-        qbs.buildVariants: ["debug", "profile"]
+        qbs.buildVariants: ["debug", "profiling"]
         install: true
         installDir: ""
     }
