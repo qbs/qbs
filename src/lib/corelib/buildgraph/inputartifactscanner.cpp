@@ -266,23 +266,25 @@ void InputArtifactScanner::resolveScanResultDependencies(const Artifact *inputAr
         const RawScanResult &scanResult, QList<FileResourceBase *> *artifactsToScan,
         InputArtifactScannerContext::ScannerResolvedDependenciesCache &cache)
 {
-    for (const RawScannedDependency &dependency : scanResult.deps) {
+    auto getResolvedDependency = [inputArtifact, &cache](const RawScannedDependency &dependency)
+            -> ResolvedDependency*
+    {
         const QString &dependencyFilePath = dependency.filePath();
         InputArtifactScannerContext::ResolvedDependencyCacheItem &cachedResolvedDependencyItem
                 = cache.resolvedDependenciesCache[dependency.dirPath()][dependency.fileName()];
         ResolvedDependency &resolvedDependency = cachedResolvedDependencyItem.resolvedDependency;
         if (cachedResolvedDependencyItem.valid) {
             if (resolvedDependency.filePath.isEmpty())
-                goto unresolved;
-            goto resolved;
+                return nullptr;
+            return &resolvedDependency;
         }
         cachedResolvedDependencyItem.valid = true;
 
         if (FileInfo::isAbsolute(dependencyFilePath)) {
             resolveDepencency(dependency, inputArtifact->product.get(), &resolvedDependency);
             if (resolvedDependency.filePath.isEmpty())
-                goto unresolved;
-            goto resolved;
+                return nullptr;
+            return &resolvedDependency;
         }
 
         // try include paths
@@ -290,14 +292,19 @@ void InputArtifactScanner::resolveScanResultDependencies(const Artifact *inputAr
             resolveDepencency(dependency, inputArtifact->product.get(),
                               &resolvedDependency, includePath);
             if (resolvedDependency.isValid())
-                goto resolved;
+                return &resolvedDependency;
         }
+        return nullptr;
+    };
 
-unresolved:
-        qCWarning(lcDepScan) << "unresolved dependency " << dependencyFilePath;
-        continue;
+    for (const RawScannedDependency &dependency : scanResult.deps) {
+        const auto maybeResolvedDependency = getResolvedDependency(dependency);
+        if (!maybeResolvedDependency) {
+            qCWarning(lcDepScan) << "unresolved dependency " << dependency.filePath();
+            continue;
+        }
+        auto &resolvedDependency = *maybeResolvedDependency;
 
-resolved:
         handleDependency(resolvedDependency);
         if (artifactsToScan && resolvedDependency.file) {
             if (resolvedDependency.file->fileType() == FileResourceBase::FileTypeArtifact) {
