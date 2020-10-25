@@ -213,13 +213,12 @@ Set<DependencyScanner *> InputArtifactScanner::scannersForArtifact(const Artifac
         if (!cache.valid) {
             cache.valid = true;
             for (ScannerPlugin *scanner : ScannerPluginManager::scannersForFileTag(fileTag)) {
-                const auto pluginScanner = new PluginDependencyScanner(scanner);
-                cache.scanners.push_back(DependencyScannerPtr(pluginScanner));
+                cache.scanners.push_back(std::make_shared<PluginDependencyScanner>(scanner));
             }
             for (const ResolvedScannerConstPtr &scanner : product->scanners) {
                 if (scanner->inputs.contains(fileTag)) {
-                    cache.scanners.push_back(DependencyScannerPtr(
-                                new UserDependencyScanner(scanner, engine)));
+                    cache.scanners.push_back(
+                                std::make_shared<UserDependencyScanner>(scanner, engine));
                     break;
                 }
             }
