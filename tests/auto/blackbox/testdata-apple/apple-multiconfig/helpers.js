@@ -41,7 +41,7 @@ function enableOldArch(qbs, xcodeVersion) {
 }
 
 function getNewArch(qbs) {
-    if (qbs.targetOS.contains("macos"))
+    if (qbs.targetOS.contains("macos") || qbs.targetOS.contains("ios-simulator"))
         return "x86_64"
     else if (qbs.targetOS.contains("ios"))
         return "arm64"
@@ -53,7 +53,7 @@ function getNewArch(qbs) {
 }
 
 function getOldArch(qbs) {
-    if (qbs.targetOS.contains("macos"))
+    if (qbs.targetOS.contains("macos") || qbs.targetOS.contains("ios-simulator"))
         return "x86"
     else if (qbs.targetOS.contains("ios"))
         return "armv7a"
