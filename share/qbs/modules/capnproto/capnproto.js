@@ -47,7 +47,7 @@ function validatePlugin(name, path) {
 }
 
 function getOutputDir(module, input)  {
-    var outputDir = module._outputDir;
+    var outputDir = module.outputDir;
     var importPaths = module.importPaths;
     if (importPaths.length !== 0) {
         var canonicalInput = File.canonicalFilePath(FileInfo.path(input.filePath));

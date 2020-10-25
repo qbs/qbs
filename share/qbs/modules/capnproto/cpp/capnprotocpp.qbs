@@ -40,7 +40,7 @@ CapnProtoBase {
 
     pluginName: "capnpc-c++"
 
-    cpp.systemIncludePaths: _outputDir
+    cpp.systemIncludePaths: outputDir
     cpp.cxxLanguageVersion: "c++14"
 
     Rule {

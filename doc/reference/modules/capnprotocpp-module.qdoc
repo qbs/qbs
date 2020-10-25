@@ -103,6 +103,16 @@
 */
 
 /*!
+    \qmlproperty string capnproto.cpp::outputDir
+    \readonly
+
+    The directory where the \c capnpc compiler generated files are placed.
+
+    The value of this property is automatically set by \QBS and cannot be
+    changed by the user.
+*/
+
+/*!
     \qmlproperty bool capnproto.cpp::useRpc
 
     Use this property to enable support for the RPC framework.
