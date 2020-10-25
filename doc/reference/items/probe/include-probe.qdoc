@@ -26,7 +26,6 @@
 ****************************************************************************/
 
 /*!
-    \contentspage list-of-probes.html
     \qmltype IncludeProbe
     \inqmlmodule QbsProbes
     \ingroup list-of-items

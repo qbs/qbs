@@ -25,7 +25,6 @@
 **
 ****************************************************************************/
 /*!
-    \contentspage list-of-convenience-items.html
     \nextpage AppleDiskImage
     \qmltype AppleApplicationDiskImage
     \since Qbs 1.9

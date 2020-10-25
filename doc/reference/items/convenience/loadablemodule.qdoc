@@ -26,7 +26,6 @@
 **
 ****************************************************************************/
 /*!
-    \contentspage list-of-convenience-items.html
     \previouspage Library
     \nextpage QtApplication
     \qmltype LoadableModule

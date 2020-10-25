@@ -26,7 +26,6 @@
 ****************************************************************************/
 
 /*!
-    \contentspage index.html
     \qmltype Qt.declarative
     \inqmlmodule QbsModules
     \brief Provides Qt Quick 1 support.

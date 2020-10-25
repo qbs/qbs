@@ -25,7 +25,6 @@
 **
 ****************************************************************************/
 /*!
-    \contentspage list-of-probes.html
     \qmltype KeilProbe
     \inqmlmodule QbsProbes
     \ingroup list-of-items

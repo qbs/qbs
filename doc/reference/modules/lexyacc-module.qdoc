@@ -26,7 +26,6 @@
 ****************************************************************************/
 
 /*!
-    \contentspage index.html
     \qmltype lex_yacc
     \inqmlmodule QbsModules
     \since Qbs 1.6

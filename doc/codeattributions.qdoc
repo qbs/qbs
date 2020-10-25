@@ -1,6 +1,5 @@
 /*!
 
-\contentspage attributions.html
 \ingroup attributions-libs
 \ingroup attributions-qbs
 \page qbs-attribution-ds_store.html attribution
@@ -49,7 +48,6 @@ THE SOFTWARE.
 
 /*!
 
-\contentspage attributions.html
 \ingroup attributions-libs
 \ingroup attributions-qbs
 \page qbs-attribution-dmgbuild.html attribution
@@ -98,7 +96,6 @@ THE SOFTWARE.
 
 /*!
 
-\contentspage attributions.html
 \ingroup attributions-libs
 \ingroup attributions-qbs
 \page qbs-attribution-mac_alias.html attribution
@@ -147,7 +144,6 @@ THE SOFTWARE.
 
 /*!
 
-\contentspage attributions.html
 \ingroup attributions-libs
 \ingroup attributions-qbs
 \page qbs-attribution-biplist.html attribution
@@ -202,7 +198,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /*!
 
-\contentspage attributions.html
 \ingroup attributions-libs
 \ingroup attributions-qbs
 \page qbs-attribution-cppscanner.html attribution

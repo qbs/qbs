@@ -26,7 +26,6 @@
 ****************************************************************************/
 
 /*!
-    \contentspage index.html
     \qmltype nsis
     \inqmlmodule QbsModules
     \since Qbs 1.2

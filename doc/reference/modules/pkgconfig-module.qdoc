@@ -26,7 +26,6 @@
 ****************************************************************************/
 
 /*!
-    \contentspage index.html
     \qmltype pkgconfig
     \inqmlmodule QbsModules
     \since 1.13

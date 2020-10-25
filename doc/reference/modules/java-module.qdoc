@@ -26,7 +26,6 @@
 ****************************************************************************/
 
 /*!
-    \contentspage index.html
     \qmltype java
     \inqmlmodule QbsModules
     \since Qbs 1.4

@@ -26,7 +26,6 @@
 ****************************************************************************/
 
 /*!
-    \contentspage index.html
     \qmltype cpufeatures
     \inqmlmodule QbsModules
     \since Qbs 1.10

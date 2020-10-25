@@ -25,7 +25,6 @@
 **
 ****************************************************************************/
 /*!
-    \contentspage list-of-probes.html
     \qmltype SdccProbe
     \inqmlmodule QbsProbes
     \ingroup list-of-items

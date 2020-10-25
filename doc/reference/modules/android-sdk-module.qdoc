@@ -26,7 +26,6 @@
 ****************************************************************************/
 
 /*!
-    \contentspage index.html
     \qmltype Android.sdk
     \inqmlmodule QbsModules
     \since Qbs 1.4

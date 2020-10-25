@@ -25,7 +25,6 @@
 **
 ****************************************************************************/
 /*!
-    \contentspage index.html
     \previouspage custom-modules.html
     \nextpage reference.html
     \page howtos.html
@@ -629,7 +628,7 @@
     \section1 How do I add QML files to a project?
 
     The simplest way to add QML files to a project is to add them to a
-    \l {The Qt Resource System}{resource file}:
+    \l {https://doc.qt.io/qt/resources.html}{Qt resource file}:
 
     \code
     QtGuiApplication {

@@ -26,7 +26,6 @@
 ****************************************************************************/
 
 /*!
-    \contentspage index.html
     \qmltype Qt.qml
     \inqmlmodule QbsModules
     \brief Provides Qt QML support.

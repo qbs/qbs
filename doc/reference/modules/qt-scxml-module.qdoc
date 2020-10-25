@@ -26,7 +26,6 @@
 ****************************************************************************/
 
 /*!
-    \contentspage index.html
     \qmltype Qt.scxml
     \inqmlmodule QbsModules
     \brief Provides Qt SCXML support.

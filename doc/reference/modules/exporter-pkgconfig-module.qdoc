@@ -26,7 +26,6 @@
 ****************************************************************************/
 
 /*!
-    \contentspage index.html
     \qmltype Exporter.pkgconfig
     \inqmlmodule QbsModules
     \since Qbs 1.12

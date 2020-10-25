@@ -25,7 +25,6 @@
 **
 ****************************************************************************/
 /*!
-    \contentspage list-of-probes.html
     \qmltype IarProbe
     \inqmlmodule QbsProbes
     \ingroup list-of-items

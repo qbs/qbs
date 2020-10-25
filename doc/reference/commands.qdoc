@@ -29,7 +29,6 @@
 // TODO: "\c" markup is used for all properties in table due to QTBUG-35505.
 
 /*!
-    \contentspage reference.html
     \page commands.html
 
     \title Command and JavaScriptCommand

@@ -26,7 +26,6 @@
 ****************************************************************************/
 
 /*!
-    \contentspage index.html
     \qmltype Qt.android_support
     \inqmlmodule QbsModules
     \brief Provides Qt support for the Android platform.

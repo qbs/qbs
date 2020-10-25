@@ -26,7 +26,6 @@
 ****************************************************************************/
 
 /*!
-    \contentspage index.html
     \qmltype Qt.dbus
     \inqmlmodule QbsModules
     \brief Provides Qt D-Bus support.

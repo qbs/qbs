@@ -26,7 +26,6 @@
 ****************************************************************************/
 
 /*!
-    \contentspage index.html
     \qmltype Qt.plugin_support
     \inqmlmodule QbsModules
     \since Qbs 1.13.0

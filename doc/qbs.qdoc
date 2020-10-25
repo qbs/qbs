@@ -33,7 +33,6 @@
 
 
 /*!
-    \contentspage{index.html}{Qbs}
     \page index.html
     \nextpage overview.html
 
@@ -94,7 +93,6 @@
 
 
 /*!
-    \contentspage index.html
     \previouspage index.html
     \page overview.html
     \nextpage setup.html
@@ -409,7 +407,6 @@
 
 
 /*!
-    \contentspage index.html
     \previouspage overview.html
     \page setup.html
     \nextpage installing.html
@@ -424,7 +421,6 @@
 */
 
 /*!
-    \contentspage index.html
     \previouspage reference.html
     \page building-qbs.html
     \nextpage porting-to-qbs.html
@@ -786,7 +782,6 @@
 
 
 /*!
-    \contentspage index.html
     \previouspage setup.html
     \page installing.html
     \nextpage configuring.html
@@ -843,7 +838,6 @@
 */
 
 /*!
-    \contentspage index.html
     \previouspage installing.html
     \page configuring.html
     \nextpage qt-versions.html
@@ -937,7 +931,6 @@
 */
 
 /*!
-    \contentspage index.html
     \previouspage configuring.html
     \page qt-versions.html
     \nextpage usage.html
@@ -1007,7 +1000,6 @@
 */
 
 /*!
-    \contentspage index.html
     \previouspage qt-versions.html
     \page usage.html
     \nextpage language-introduction.html
@@ -1031,7 +1023,6 @@
 
 
 /*!
-    \contentspage index.html
     \previouspage usage.html
     \page language-introduction.html
     \nextpage building-applications.html
@@ -1438,7 +1429,6 @@
 
 
 /*!
-    \contentspage index.html
     \previouspage language-introduction.html
     \page building-applications.html
     \nextpage running-applications.html
@@ -1501,7 +1491,6 @@
 */
 
 /*!
-    \contentspage index.html
     \previouspage running-applications.html
     \page installing-files.html
     \nextpage {Target Platforms}
@@ -1575,7 +1564,6 @@
 */
 
 /*!
-    \contentspage index.html
     \previouspage building-applications.html
     \page running-applications.html
     \nextpage installing-files.html
@@ -1595,7 +1583,6 @@
 */
 
 /*!
-    \contentspage index.html
     \previouspage {Target Platforms}
     \page shell.html
     \nextpage generators.html
@@ -1615,7 +1602,6 @@
 */
 
 /*!
-    \contentspage index.html
     \previouspage multiplexing.html
     \page custom-modules.html
     \nextpage module-providers.html
@@ -1689,7 +1675,6 @@
 */
 
 /*!
-    \contentspage index.html
     \previouspage custom-modules.html
     \page module-providers.html
     \nextpage howtos.html
@@ -1745,7 +1730,6 @@
 */
 
 /*!
-    \contentspage index.html
     \previouspage shell.html
     \page generators.html
     \nextpage multiplexing.html
@@ -1937,7 +1921,6 @@
 */
 
 /*!
-    \contentspage index.html
     \previouspage generators.html
     \page multiplexing.html
     \nextpage custom-modules.html
@@ -2001,7 +1984,6 @@
 */
 
 /*!
-    \contentspage index.html
     \previouspage json-api.html
     \page attributions.html
 
