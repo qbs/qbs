@@ -339,6 +339,12 @@ jobs:
             toolchain: 'ios',
             testProfile: 'xcode_12-iphoneos-arm64',
           }
+        - {
+            name: 'Run iOS-sim tests (Xcode 12.0)',
+            target: 'ios',
+            toolchain: 'ios',
+            testProfile: 'xcode_12-iphonesimulator-x86_64',
+          }
     steps:
     - uses: actions/checkout@v1
     - name: Download artifact
