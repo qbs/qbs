@@ -30,8 +30,4 @@
 
 CppApplication {
     Depends { name: "Qt.core" }
-    Properties {
-        condition: isForAndroid && Qt.android_support._multiAbi
-        targetName: name + "_" + Android.ndk.abi
-    }
 }

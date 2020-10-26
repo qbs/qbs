@@ -39,6 +39,14 @@ DarwinGCC {
     condition: qbs.targetOS.contains('ios') &&
                qbs.toolchain && qbs.toolchain.contains('gcc')
 
+    minimumIosVersion: {
+        if (qbs.architecture == "armv7a")
+            return "6.0";
+        // XCode 12 requres version (at least 8.0) to be present in the -target triplet
+        // when compiling for ios-simulator
+        if (xcode.present && Utilities.versionCompare(xcode.version, "12.0") >= 0)
+            return "8.0";
+    }
     targetSystem: "ios" + (minimumIosVersion || "")
 
     minimumDarwinVersion: minimumIosVersion
