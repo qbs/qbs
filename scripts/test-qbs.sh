@@ -48,8 +48,6 @@ export LSAN_OPTIONS="suppressions=$( cd "$(dirname "$0")" ; pwd -P )/address-san
 
 export PATH="$1:$PATH"
 
-qbs-config --list profiles
-
 CPUS=$("$(dirname "$0")"/cpu-count.sh)
 
 export QBS_AUTOTEST_PROFILE=${QBS_AUTOTEST_PROFILE:-qt}
