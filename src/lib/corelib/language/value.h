@@ -98,8 +98,6 @@ public:
 class JSSourceValue : public Value
 {
     friend class ItemReaderASTVisitor;
-    JSSourceValue(bool createdByPropertiesBlock);
-    JSSourceValue(const JSSourceValue &other);
 
     enum Flag
     {
@@ -114,6 +112,9 @@ class JSSourceValue : public Value
     Q_DECLARE_FLAGS(Flags, Flag)
 
 public:
+    explicit JSSourceValue(bool createdByPropertiesBlock);
+    JSSourceValue(const JSSourceValue &other);
+
     static JSSourceValuePtr QBS_AUTOTEST_EXPORT create(bool createdByPropertiesBlock = false);
     ~JSSourceValue() override;
 
@@ -190,8 +191,8 @@ private:
 
 class ItemValue : public Value
 {
-    ItemValue(Item *item, bool createdByPropertiesBlock);
 public:
+    ItemValue(Item *item, bool createdByPropertiesBlock);
     static ItemValuePtr create(Item *item, bool createdByPropertiesBlock = false);
 
     Item *item() const { return m_item; }
@@ -207,8 +208,8 @@ private:
 
 class VariantValue : public Value
 {
-    VariantValue(QVariant v);
 public:
+    explicit VariantValue(QVariant v);
     static VariantValuePtr create(const QVariant &v = QVariant());
 
     void apply(ValueHandler *handler) override { handler->handle(this); }

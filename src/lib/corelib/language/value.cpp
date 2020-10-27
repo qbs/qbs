@@ -110,14 +110,14 @@ JSSourceValue::JSSourceValue(const JSSourceValue &other) : Value(other)
 
 JSSourceValuePtr JSSourceValue::create(bool createdByPropertiesBlock)
 {
-    return JSSourceValuePtr(new JSSourceValue(createdByPropertiesBlock));
+    return std::make_shared<JSSourceValue>(createdByPropertiesBlock);
 }
 
 JSSourceValue::~JSSourceValue() = default;
 
 ValuePtr JSSourceValue::clone() const
 {
-    return JSSourceValuePtr(new JSSourceValue(*this));
+    return std::make_shared<JSSourceValue>(*this);
 }
 
 QString JSSourceValue::sourceCodeForEvaluation() const
@@ -171,7 +171,7 @@ ItemValue::ItemValue(Item *item, bool createdByPropertiesBlock)
 
 ItemValuePtr ItemValue::create(Item *item, bool createdByPropertiesBlock)
 {
-    return ItemValuePtr(new ItemValue(item, createdByPropertiesBlock));
+    return std::make_shared<ItemValue>(item, createdByPropertiesBlock);
 }
 
 ValuePtr ItemValue::clone() const
@@ -191,7 +191,7 @@ VariantValuePtr VariantValue::create(const QVariant &v)
         return invalidValue();
     if (static_cast<QMetaType::Type>(v.type()) == QMetaType::Bool)
         return v.toBool() ? VariantValue::trueValue() : VariantValue::falseValue();
-    return VariantValuePtr(new VariantValue(v));
+    return std::make_shared<VariantValue>(v);
 }
 
 ValuePtr VariantValue::clone() const
@@ -201,19 +201,19 @@ ValuePtr VariantValue::clone() const
 
 const VariantValuePtr &VariantValue::falseValue()
 {
-    static const VariantValuePtr v = VariantValuePtr(new VariantValue(false));
+    static const VariantValuePtr v = std::make_shared<VariantValue>(false);
     return v;
 }
 
 const VariantValuePtr &VariantValue::trueValue()
 {
-    static const VariantValuePtr v = VariantValuePtr(new VariantValue(true));
+    static const VariantValuePtr v = std::make_shared<VariantValue>(true);
     return v;
 }
 
 const VariantValuePtr &VariantValue::invalidValue()
 {
-    static const VariantValuePtr v = VariantValuePtr(new VariantValue(QVariant()));
+    static const VariantValuePtr v = std::make_shared<VariantValue>(QVariant());
     return v;
 }
 
