@@ -3802,13 +3802,14 @@ QStringList ModuleLoader::findExistingModulePaths(
 
 QVariantMap ModuleLoader::moduleProviderConfig(ModuleLoader::ProductContext &product)
 {
-    if (product.moduleProviderConfigRetrieved)
-        return product.theModuleProviderConfig;
+    if (product.theModuleProviderConfig)
+        return *product.theModuleProviderConfig;
+    QVariantMap providerConfig;
     const ItemValueConstPtr configItemValue
             = product.item->itemProperty(StringConstants::moduleProviders());
     if (configItemValue) {
         const std::function<void(const Item *, QualifiedId)> collectMap
-                = [this, &product, &collectMap](const Item *item, const QualifiedId &name) {
+                = [this, &providerConfig, &collectMap](const Item *item, const QualifiedId &name) {
             const Item::PropertyMap &props = item->properties();
             for (auto it = props.begin(); it != props.end(); ++it) {
                 QVariant value;
@@ -3826,9 +3827,9 @@ QVariantMap ModuleLoader::moduleProviderConfig(ModuleLoader::ProductContext &pro
                     value = static_cast<VariantValue *>(it.value().get())->value();
                     break;
                 }
-                QVariantMap m = product.theModuleProviderConfig.value(name.toString()).toMap();
+                QVariantMap m = providerConfig.value(name.toString()).toMap();
                 m.insert(it.key(), value);
-                product.theModuleProviderConfig.insert(name.toString(), m);
+                providerConfig.insert(name.toString(), m);
             }
         };
         configItemValue->item()->setScope(product.item);
@@ -3841,15 +3842,14 @@ QVariantMap ModuleLoader::moduleProviderConfig(ModuleLoader::ProductContext &pro
         const QVariantMap providerConfigFromBuildConfig = it.value().toMap();
         if (providerConfigFromBuildConfig.empty())
             continue;
-        QVariantMap currentMapForProvider = product.theModuleProviderConfig.value(provider).toMap();
+        QVariantMap currentMapForProvider = providerConfig.value(provider).toMap();
         for (auto propIt = providerConfigFromBuildConfig.begin();
              propIt != providerConfigFromBuildConfig.end(); ++propIt) {
             currentMapForProvider.insert(propIt.key(), propIt.value());
         }
-        product.theModuleProviderConfig.insert(provider, currentMapForProvider);
+        providerConfig.insert(provider, currentMapForProvider);
     }
-    product.moduleProviderConfigRetrieved = true;
-    return product.theModuleProviderConfig;
+    return *(product.theModuleProviderConfig = std::move(providerConfig));
 }
 
 ModuleLoader::ModuleProviderResult ModuleLoader::findModuleProvider(const QualifiedId &name,

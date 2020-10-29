@@ -187,8 +187,7 @@ private:
 
         std::vector<QStringList> newlyAddedModuleProviderSearchPaths;
         Set<QualifiedId> knownModuleProviders;
-        QVariantMap theModuleProviderConfig;
-        bool moduleProviderConfigRetrieved = false;
+        std::optional<QVariantMap> theModuleProviderConfig;
 
         // The key corresponds to DeferredDependsContext.exportingProductItem, which is the
         // only value from that data structure that we still need here.
