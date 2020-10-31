@@ -44,12 +44,11 @@
 #include <tools/qbs_export.h>
 
 #include <QtCore/qglobal.h>
+#include <QtCore/qstringlist.h>
 
 QT_BEGIN_NAMESPACE
 class QProcess;
 class QProcessEnvironment;
-class QString;
-class QStringList;
 QT_END_NAMESPACE
 
 class TestApi;

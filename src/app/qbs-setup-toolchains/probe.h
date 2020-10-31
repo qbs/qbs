@@ -43,13 +43,10 @@
 #include <tools/version.h>
 
 #include <QtCore/qfileinfo.h>
+#include <QtCore/qstring.h>
+#include <QtCore/qstringlist.h>
 
 #include <tuple> // for std::tie
-
-QT_BEGIN_NAMESPACE
-class QString;
-class QStringList;
-QT_END_NAMESPACE
 
 namespace qbs { class Settings; }
 

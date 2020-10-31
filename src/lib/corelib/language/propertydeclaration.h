@@ -43,10 +43,6 @@
 #include <QtCore/qshareddata.h>
 #include <QtCore/qstring.h>
 
-QT_BEGIN_NAMESPACE
-class QStringList;
-QT_END_NAMESPACE
-
 namespace qbs {
 namespace Internal {
 class DeprecationInfo;

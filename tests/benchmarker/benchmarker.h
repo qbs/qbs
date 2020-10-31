@@ -32,11 +32,8 @@
 
 #include <QtCore/qhash.h>
 #include <QtCore/qstring.h>
+#include <QtCore/qstringlist.h>
 #include <QtCore/qtemporarydir.h>
-
-QT_BEGIN_NAMESPACE
-class QStringList;
-QT_END_NAMESPACE
 
 namespace qbsBenchmarker {
 

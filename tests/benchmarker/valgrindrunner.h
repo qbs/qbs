@@ -30,14 +30,9 @@
 
 #include "activities.h"
 
-#include <QtCore/qlist.h>
-#include <QtCore/qstring.h>
+#include <QtCore/qstringlist.h>
 
 #include <mutex>
-
-QT_BEGIN_NAMESPACE
-class QStringList;
-QT_END_NAMESPACE
 
 namespace qbsBenchmarker {
 

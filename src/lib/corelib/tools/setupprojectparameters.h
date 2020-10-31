@@ -44,10 +44,10 @@
 #include <tools/error.h>
 
 #include <QtCore/qshareddata.h>
+#include <QtCore/qstringlist.h>
 
 QT_BEGIN_NAMESPACE
 class QProcessEnvironment;
-class QStringList;
 using QVariantMap = QMap<QString, QVariant>;
 QT_END_NAMESPACE
 

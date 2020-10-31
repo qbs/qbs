@@ -45,10 +45,10 @@
 #include "joblimits.h"
 
 #include <QtCore/qshareddata.h>
+#include <QtCore/qstringlist.h>
 
 QT_BEGIN_NAMESPACE
 class QJsonObject;
-class QStringList;
 QT_END_NAMESPACE
 
 namespace qbs {

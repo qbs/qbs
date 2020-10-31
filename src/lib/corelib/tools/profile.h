@@ -42,11 +42,8 @@
 #include "qbs_export.h"
 
 #include <QtCore/qstring.h>
+#include <QtCore/qstringlist.h>
 #include <QtCore/qvariant.h>
-
-QT_BEGIN_NAMESPACE
-class QStringList;
-QT_END_NAMESPACE
 
 namespace qbs {
 class ErrorInfo;

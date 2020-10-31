@@ -30,10 +30,10 @@
 
 #include <QtCore/qglobal.h>
 #include <QtCore/qstring.h>
+#include <QtCore/qstringlist.h>
 
 QT_BEGIN_NAMESPACE
 class QByteArray;
-class QStringList;
 QT_END_NAMESPACE
 
 namespace qbsBenchmarker {

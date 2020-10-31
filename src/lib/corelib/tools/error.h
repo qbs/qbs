@@ -45,12 +45,10 @@
 #include <QtCore/qhash.h>
 #include <QtCore/qmetatype.h>
 #include <QtCore/qshareddata.h>
+#include <QtCore/qstringlist.h>
 
 QT_BEGIN_NAMESPACE
 class QJsonObject;
-template <class T> class QList;
-class QString;
-class QStringList;
 QT_END_NAMESPACE
 
 namespace qbs {

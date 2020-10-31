@@ -43,11 +43,7 @@
 
 #include "qbs_export.h"
 #include <QtCore/qglobal.h>
-
-QT_BEGIN_NAMESPACE
-class QString;
-class QStringList;
-QT_END_NAMESPACE
+#include <QtCore/qstringlist.h>
 
 namespace qbs {
 
