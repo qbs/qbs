@@ -77,8 +77,8 @@ void Benchmarker::benchmark()
                                     m_baseOutputDir.path() + "/benchmark-data." + m_oldCommit);
     ValgrindRunner newDataRetriever(m_activities, m_testProject, newQbsBuildDir,
                                     m_baseOutputDir.path() + "/benchmark-data." + m_newCommit);
-    QFuture<void> oldFuture = QtConcurrent::run(&oldDataRetriever, &ValgrindRunner::run);
-    QFuture<void> newFuture = QtConcurrent::run(&newDataRetriever, &ValgrindRunner::run);
+    QFuture<void> oldFuture = QtConcurrent::run([&oldDataRetriever]{ oldDataRetriever.run(); });
+    QFuture<void> newFuture = QtConcurrent::run([&newDataRetriever]{ newDataRetriever.run(); });
     oldFuture.waitForFinished();
     const auto oldValgrindResults = oldDataRetriever.results();
     for (const ValgrindResult &valgrindResult : oldValgrindResults) {

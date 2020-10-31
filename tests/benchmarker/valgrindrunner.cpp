@@ -59,11 +59,11 @@ void ValgrindRunner::run()
 {
     std::deque<QFuture<void>> futures;
     if (m_activities & ActivityResolving)
-        futures.push_back(QtConcurrent::run(this, &ValgrindRunner::traceResolving));
+        futures.push_back(QtConcurrent::run([this]{ traceResolving(); }));
     if (m_activities & ActivityRuleExecution)
-        futures.push_back(QtConcurrent::run(this, &ValgrindRunner::traceRuleExecution));
+        futures.push_back(QtConcurrent::run([this]{ traceRuleExecution(); }));
     if (m_activities & ActivityNullBuild)
-        futures.push_back(QtConcurrent::run(this, &ValgrindRunner::traceNullBuild));
+        futures.push_back(QtConcurrent::run([this]{ traceNullBuild(); }));
     while (!futures.empty()) {
         futures.front().waitForFinished();
         futures.pop_front();
@@ -100,12 +100,11 @@ void ValgrindRunner::traceActivity(Activity activity, const QString &buildDirCal
 {
     QString activityString;
     QString qbsCommand;
-    bool dryRun;
+    bool dryRun = false;
     switch (activity) {
     case ActivityResolving:
         activityString = "resolving";
         qbsCommand = "resolve";
-        dryRun = false;
         break;
     case ActivityRuleExecution:
         activityString = "rule-execution";
@@ -115,16 +114,21 @@ void ValgrindRunner::traceActivity(Activity activity, const QString &buildDirCal
     case ActivityNullBuild:
         activityString = "null-build";
         qbsCommand = "build";
-        dryRun = false;
         break;
     }
 
     const QString outFileCallgrind = m_baseOutputDir + "/outfile." + activityString + ".callgrind";
     const QString outFileMassif = m_baseOutputDir + "/outfile." + activityString + ".massif";
-    QFuture<qint64> callGrindFuture = QtConcurrent::run(this, &ValgrindRunner::runCallgrind,
-            qbsCommand, buildDirCallgrind, dryRun, outFileCallgrind);
-    QFuture<qint64> massifFuture = QtConcurrent::run(this, &ValgrindRunner::runMassif, qbsCommand,
-            buildDirMassif, dryRun, outFileMassif);
+    QFuture<qint64> callGrindFuture = QtConcurrent::run(
+                [this, qbsCommand, buildDirCallgrind, dryRun, outFileCallgrind]
+    {
+        return runCallgrind(qbsCommand, buildDirCallgrind, dryRun, outFileCallgrind);
+    });
+    QFuture<qint64> massifFuture = QtConcurrent::run(
+                [this, qbsCommand, buildDirMassif, dryRun, outFileMassif]
+    {
+        return runMassif(qbsCommand, buildDirMassif, dryRun, outFileMassif);
+    });
     callGrindFuture.waitForFinished();
     massifFuture.waitForFinished();
     addToResults(ValgrindResult(activity, callGrindFuture.result(), massifFuture.result()));
