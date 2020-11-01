@@ -95,7 +95,7 @@ private:
         return false;
     }
 
-    void add(const QStringRef &name)
+    void add(QStringView name)
     {
         if (m_first) {
             m_first = false;
@@ -104,9 +104,10 @@ private:
             m_suffix.reserve(m_suffix.length() + name.length() * 2 + 2);
             m_suffix += QLatin1Char(',');
         }
-        m_suffix += name;
-        m_suffix += QLatin1Char(':');
-        m_suffix += name;
+        // ugly, but qt5 does not have append overload for QStringView
+        m_suffix.append(name.data(), name.size());
+        m_suffix.append(QLatin1Char(':'));
+        m_suffix.append(name.data(), name.size());
     }
 
     bool m_first = false;

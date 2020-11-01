@@ -77,8 +77,8 @@ private:
 
     FileTime m_timestamp;
     QString m_filePath;
-    QStringRef m_dirPath;
-    QStringRef m_fileName;
+    QStringView m_dirPath;
+    QStringView m_fileName;
 };
 
 class FileDependency : public FileResourceBase

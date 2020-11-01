@@ -260,8 +260,8 @@ void Item::setupForBuiltinType(Logger &logger)
             sourceValue->setIsBuiltinDefaultValue();
             sourceValue->setFile(file());
             sourceValue->setSourceCode(pd.initialValueSource().isEmpty()
-                                       ? QStringRef(&StringConstants::undefinedValue())
-                                       : QStringRef(&pd.initialValueSource()));
+                                       ? StringConstants::undefinedValue()
+                                       : pd.initialValueSource());
             m_properties.insert(pd.name(), sourceValue);
         } else if (pd.isDeprecated()) {
             const DeprecationInfo &di = pd.deprecationInfo();

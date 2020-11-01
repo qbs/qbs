@@ -271,7 +271,7 @@ bool ItemReaderASTVisitor::handleBindingRhs(AST::Statement *statement,
         value->m_flags |= JSSourceValue::HasFunctionForm;
 
     value->setFile(m_file);
-    value->setSourceCode(textRefOf(m_file->content(), statement));
+    value->setSourceCode(textViewOf(m_file->content(), statement));
     value->setLocation(statement->firstSourceLocation().startLine,
                        statement->firstSourceLocation().startColumn);
 

@@ -139,7 +139,7 @@ private:
             value = JSSourceValue::create(true);
             value->setFile(conditionalValue->file());
             item->setProperty(propertyName, value);
-            value->setSourceCode(QStringRef(&StringConstants::baseVar()));
+            value->setSourceCode(StringConstants::baseVar());
             value->setSourceUsesBaseFlag();
         }
         m_alternative.value = conditionalValue;

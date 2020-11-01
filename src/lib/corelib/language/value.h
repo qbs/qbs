@@ -121,8 +121,8 @@ public:
     void apply(ValueHandler *handler) override { handler->handle(this); }
     ValuePtr clone() const override;
 
-    void setSourceCode(const QStringRef &sourceCode) { m_sourceCode = sourceCode; }
-    const QStringRef &sourceCode() const { return m_sourceCode; }
+    void setSourceCode(QStringView sourceCode) { m_sourceCode = sourceCode; }
+    QStringView sourceCode() const { return m_sourceCode; }
     QString sourceCodeForEvaluation() const;
 
     void setLocation(int line, int column);
@@ -179,7 +179,7 @@ public:
     void setDefiningItem(Item *item) override;
 
 private:
-    QStringRef m_sourceCode;
+    QStringView m_sourceCode;
     int m_line;
     int m_column;
     FileContextPtr m_file;

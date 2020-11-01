@@ -133,16 +133,16 @@ void FileInfo::splitIntoDirectoryAndFileName(const QString &filePath, QString *d
     *fileName = filePath.mid(idx + 1);
 }
 
-void FileInfo::splitIntoDirectoryAndFileName(const QString &filePath, QStringRef *dirPath, QStringRef *fileName)
+void FileInfo::splitIntoDirectoryAndFileName(const QString &filePath, QStringView *dirPath, QStringView *fileName)
 {
     int idx = filePath.lastIndexOf(QLatin1Char('/'));
     if (idx < 0) {
-        dirPath->clear();
-        *fileName = QStringRef(&filePath);
+        *dirPath = QStringView();
+        *fileName = QStringView(filePath);
         return;
     }
-    *dirPath = filePath.leftRef(idx);
-    *fileName = filePath.midRef(idx + 1);
+    *dirPath = QStringView(filePath).left(idx);
+    *fileName = QStringView(filePath).mid(idx + 1);
 }
 
 bool FileInfo::exists(const QString &fp)
@@ -180,12 +180,7 @@ bool FileInfo::isAbsolute(const QString &path, HostOsInfo::HostOs hostOs)
     return false;
 }
 
-bool FileInfo::isPattern(const QString &str)
-{
-    return isPattern(QStringRef(&str));
-}
-
-bool FileInfo::isPattern(const QStringRef &str)
+bool FileInfo::isPattern(QStringView str)
 {
     for (const QChar &ch : str) {
         if (ch == QLatin1Char('*') || ch == QLatin1Char('?')

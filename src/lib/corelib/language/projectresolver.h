@@ -186,8 +186,8 @@ private:
     QHash<ResolvedProductPtr, Item *> m_productItemMap;
     mutable QHash<FileContextConstPtr, ResolvedFileContextPtr> m_fileContextMap;
     mutable QHash<CodeLocation, ScriptFunctionPtr> m_scriptFunctionMap;
-    mutable QHash<std::pair<QStringRef, QStringList>, QString> m_scriptFunctions;
-    mutable QHash<QStringRef, QString> m_sourceCode;
+    mutable QHash<std::pair<QStringView, QStringList>, QString> m_scriptFunctions;
+    mutable QHash<QStringView, QString> m_sourceCode;
     const SetupProjectParameters m_setupParams;
     ModuleLoaderResult m_loadResult;
     Set<CodeLocation> m_groupLocationWarnings;

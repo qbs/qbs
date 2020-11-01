@@ -64,10 +64,10 @@ QString textOf(const QString &source, QbsQmlJS::AST::Node *node)
                       int(node->lastSourceLocation().end() - node->firstSourceLocation().begin()));
 }
 
-QStringRef textRefOf(const QString &source, QbsQmlJS::AST::Node *node)
+QStringView textViewOf(const QString &source, QbsQmlJS::AST::Node *node)
 {
     const quint32 firstBegin = node->firstSourceLocation().begin();
-    return source.midRef(firstBegin, int(node->lastSourceLocation().end() - firstBegin));
+    return QStringView(source).mid(firstBegin, int(node->lastSourceLocation().end() - firstBegin));
 }
 
 } // namespace Internal

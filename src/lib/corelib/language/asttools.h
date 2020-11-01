@@ -50,7 +50,7 @@ namespace Internal {
 QStringList toStringList(QbsQmlJS::AST::UiQualifiedId *qid);
 CodeLocation toCodeLocation(const QString &filePath, const QbsQmlJS::AST::SourceLocation &location);
 QString textOf(const QString &source, QbsQmlJS::AST::Node *node);
-QStringRef textRefOf(const QString &source, QbsQmlJS::AST::Node *node);
+QStringView textViewOf(const QString &source, QbsQmlJS::AST::Node *node);
 
 } // namespace Internal
 } // namespace qbs
