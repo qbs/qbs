@@ -49,11 +49,11 @@ RUN echo "export JAVA_HOME=${JAVA_HOME}" > /etc/profile.d/android.sh && \
 ENV ANDROID_HOME="/home/${USER_NAME}/android"
 ENV ANDROID_SDK_ROOT=${ANDROID_HOME}
 ENV ANDROID_NDK_ROOT=${ANDROID_HOME}/ndk-bundle
-ENV PATH="${JAVA_HOME}:${ANDROID_HOME}/platform-tools:${ANDROID_HOME}/tools/bin:$PATH"
+ENV PATH="${JAVA_HOME}:${ANDROID_HOME}/platform-tools:${ANDROID_HOME}/cmdline-tools/bin:$PATH"
 RUN echo "export ANDROID_HOME=/home/${USER_NAME}/android" >> /etc/profile.d/android.sh && \
     echo "export ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT}" >> /etc/profile.d/android.sh && \
     echo "export ANDROID_NDK_ROOT=${ANDROID_NDK_ROOT}" >> /etc/profile.d/android.sh && \
-    echo "export PATH=${ANDROID_HOME}/platform-tools:${ANDROID_HOME}/tools/bin:\$PATH" >> /etc/profile.d/android.sh
+    echo "export PATH=${ANDROID_HOME}/platform-tools:${ANDROID_HOME}/cmdline-tools/bin:\$PATH" >> /etc/profile.d/android.sh
 
 #
 # We ned to run the following steps as the target user
@@ -61,18 +61,18 @@ RUN echo "export ANDROID_HOME=/home/${USER_NAME}/android" >> /etc/profile.d/andr
 USER ${USER_NAME}
 RUN mkdir ${ANDROID_HOME}
 
-# Get Android SDK TOOLS
-ARG SDK_TOOLS_VERSION="4333796"
-RUN curl -s https://dl.google.com/android/repository/sdk-tools-linux-${SDK_TOOLS_VERSION}.zip > ${ANDROID_HOME}/sdk.zip && \
-    unzip ${ANDROID_HOME}/sdk.zip -d ${ANDROID_HOME} && \
-    rm -v ${ANDROID_HOME}/sdk.zip
+# Get Android command line tools
+ARG COMMAND_LINE_TOOLS_VERSION="6858069"
+RUN curl -s https://dl.google.com/android/repository/commandlinetools-linux-${COMMAND_LINE_TOOLS_VERSION}_latest.zip > ${ANDROID_HOME}/commandlinetools.zip && \
+    unzip ${ANDROID_HOME}/commandlinetools.zip -d ${ANDROID_HOME} && \
+    rm -v ${ANDROID_HOME}/commandlinetools.zip
 
 # Accept SDK license
 ARG ANDROID_PLATFORM="android-29"
-ARG BUILD_TOOLS="28.0.3"
-RUN yes | sdkmanager --verbose --licenses && \
-          sdkmanager --update && \
-          sdkmanager "platforms;${ANDROID_PLATFORM}" "build-tools;${BUILD_TOOLS}" "platform-tools" "tools" "ndk-bundle" && \
+ARG BUILD_TOOLS="29.0.2"
+RUN yes | sdkmanager "--sdk_root=${ANDROID_HOME}" --verbose --licenses && \
+          sdkmanager "--sdk_root=${ANDROID_HOME}" --update && \
+          sdkmanager "--sdk_root=${ANDROID_HOME}" "platforms;${ANDROID_PLATFORM}" "build-tools;${BUILD_TOOLS}" "platform-tools" "tools" "ndk-bundle" && \
     /usr/lib/jvm/java-8-openjdk-amd64/bin/keytool -genkey -keystore /home/${USER_NAME}/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname 'CN=Android Debug,O=Android,C=US'
 
 # Install ndk samples in ${ANDROID_NDK_ROOT}/samples
@@ -92,7 +92,7 @@ RUN mkdir ${ANDROID_SDK_ROOT}/samples && \
 
 # Download buildtool to generate aab packages in ${ANDROID_SDK_ROOT}
 RUN cd ${ANDROID_SDK_ROOT} && \
-    curl -sLO https://github.com/google/bundletool/releases/download/0.15.0/bundletool-all-0.15.0.jar
+    curl -sLO https://github.com/google/bundletool/releases/download/1.3.0/bundletool-all-1.3.0.jar
 
 USER root
 
