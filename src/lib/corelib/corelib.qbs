@@ -5,6 +5,10 @@ QbsLibrary {
     Depends { name: "cpp" }
     Depends { name: "Qt"; submodules: ["core-private", "network", "xml"] }
     Depends {
+        name: "Qt.core5compat";
+        condition: Utilities.versionCompare(Qt.core.version, "6.0.0") >= 0
+    }
+    Depends {
         name: "Qt.script"
         condition: !qbsbuildconfig.useBundledQtScript
         required: false
