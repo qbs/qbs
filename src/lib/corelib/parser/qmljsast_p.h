@@ -57,6 +57,10 @@
 
 #include <QtCore/qstring.h>
 
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+#include <QtCore5Compat/qstringref.h>
+#endif
+
 namespace QbsQmlJS {
 
 #define QMLJS_DECLARE_AST_NODE(name) \

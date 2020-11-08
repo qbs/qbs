@@ -56,6 +56,10 @@
 #include <tools/qbs_export.h>
 #include <QtCore/qstring.h>
 
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+#include <QtCore5Compat/qstringref.h>
+#endif
+
 namespace QbsQmlJS {
 
 class Engine;

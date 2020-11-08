@@ -149,7 +149,7 @@ QStringRef Engine::newStringRef(const QString &text)
 {
     const int pos = _extraCode.length();
     _extraCode += text;
-    return _extraCode.midRef(pos, text.length());
+    return QStringRef(&_extraCode).mid(pos, text.length());
 }
 
 QStringRef Engine::newStringRef(const QChar *chars, int size)

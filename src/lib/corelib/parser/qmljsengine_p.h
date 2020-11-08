@@ -58,6 +58,10 @@
 
 #include <QtCore/qstring.h>
 
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+#include <QtCore5Compat/qstringref.h>
+#endif
+
 #include <set>
 #include <utility>
 
@@ -115,7 +119,10 @@ public:
 
     MemoryPool *pool();
 
-    inline QStringRef midRef(int position, int size) { return _code.midRef(position, size); }
+    inline QStringRef midRef(int position, int size)
+    {
+        return QStringRef(&_code).mid(position, size);
+    }
 
     QStringRef newStringRef(const QString &s);
     QStringRef newStringRef(const QChar *chars, int size);
