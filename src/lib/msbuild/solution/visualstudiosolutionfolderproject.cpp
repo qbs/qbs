@@ -41,7 +41,7 @@ VisualStudioSolutionFolderProject::VisualStudioSolutionFolderProject(QObject *pa
 
 QUuid VisualStudioSolutionFolderProject::projectTypeGuid() const
 {
-    return QStringLiteral("{2150E333-8FDC-42A3-9474-1A3956D46DE8}");
+    return QUuid::fromString(QStringLiteral("{2150E333-8FDC-42A3-9474-1A3956D46DE8}"));
 }
 
 } // namespace qbs
