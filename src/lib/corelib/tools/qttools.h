@@ -118,6 +118,15 @@ QHash<K, V> &unite(QHash<K, V> &h, const QHash<K, V> &other)
 #endif
 }
 
+inline void setupDefaultCodec(QTextStream &stream)
+{
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
+    stream.setCodec("UTF-8");
+#else
+    Q_UNUSED(stream);
+#endif
+}
+
 } // namespace qbs
 
 #endif // QBSQTTOOLS_H

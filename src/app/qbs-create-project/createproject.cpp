@@ -103,7 +103,7 @@ void ProjectCreator::serializeProject(const ProjectCreator::Project &project)
                         .arg(projectFile.fileName(), projectFile.errorString()));
     }
     QTextStream fileContents(&projectFile);
-    fileContents.setCodec("UTF-8");
+    qbs::setupDefaultCodec(fileContents);
     fileContents << "import qbs\n\n";
     if (!project.fileNames.empty() || m_projectStructure == ProjectStructure::Flat) {
         fileContents << "Product {\n";

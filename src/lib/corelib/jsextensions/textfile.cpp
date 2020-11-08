@@ -47,6 +47,12 @@
 #include <QtCore/qtextstream.h>
 #include <QtCore/qvariant.h>
 
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+#include <QtCore5Compat/qtextcodec.h>
+#else
+#include <QtCore/qtextcodec.h>
+#endif
+
 #include <QtScript/qscriptable.h>
 #include <QtScript/qscriptengine.h>
 #include <QtScript/qscriptvalue.h>
@@ -82,15 +88,15 @@ public:
 
 private:
     TextFile(QScriptContext *context, const QString &filePath, OpenMode mode = ReadOnly,
-             const QString &codec = QLatin1String("UTF8"));
+             const QString &codec = QLatin1String("UTF-8"));
 
     bool checkForClosed() const;
 
     // ResourceAcquiringScriptObject implementation
     void releaseResources() override;
 
-    QFile *m_file;
-    QTextStream *m_stream;
+    QFile *m_file = nullptr;
+    QTextCodec *m_codec = nullptr;
 };
 
 QScriptValue TextFile::ctor(QScriptContext *context, QScriptEngine *engine)
@@ -132,7 +138,6 @@ QScriptValue TextFile::ctor(QScriptContext *context, QScriptEngine *engine)
 
 TextFile::~TextFile()
 {
-    delete m_stream;
     delete m_file;
 }
 
@@ -143,7 +148,8 @@ TextFile::TextFile(QScriptContext *context, const QString &filePath, OpenMode mo
     Q_ASSERT(thisObject().engine() == engine());
 
     m_file = new QFile(filePath);
-    m_stream = new QTextStream(m_file);
+    const auto newCodec = QTextCodec::codecForName(qPrintable(codec));
+    m_codec = newCodec ? newCodec : QTextCodec::codecForName("UTF-8");
     QIODevice::OpenMode m = QIODevice::NotOpen;
     if (mode & ReadOnly)
         m |= QIODevice::ReadOnly;
@@ -151,6 +157,7 @@ TextFile::TextFile(QScriptContext *context, const QString &filePath, OpenMode mo
         m |= QIODevice::WriteOnly;
     if (mode & Append)
         m |= QIODevice::Append;
+    m |= QIODevice::Text;
     if (Q_UNLIKELY(!m_file->open(m))) {
         context->throwError(Tr::tr("Unable to open file '%1': %2")
                             .arg(filePath, m_file->errorString()));
@@ -163,8 +170,6 @@ void TextFile::close()
 {
     if (checkForClosed())
         return;
-    delete m_stream;
-    m_stream = nullptr;
     m_file->close();
     delete m_file;
     m_file = nullptr;
@@ -181,28 +186,33 @@ void TextFile::setCodec(const QString &codec)
 {
     if (checkForClosed())
         return;
-    m_stream->setCodec(qPrintable(codec));
+    const auto newCodec = QTextCodec::codecForName(qPrintable(codec));
+    if (newCodec)
+        m_codec = newCodec;
 }
 
 QString TextFile::readLine()
 {
     if (checkForClosed())
         return {};
-    return m_stream->readLine();
+    auto result = m_codec->toUnicode(m_file->readLine());
+    if (!result.isEmpty() && result.back() == QLatin1Char('\n'))
+        result.chop(1);
+    return result;
 }
 
 QString TextFile::readAll()
 {
     if (checkForClosed())
         return {};
-    return m_stream->readAll();
+    return m_codec->toUnicode(m_file->readAll());
 }
 
 bool TextFile::atEof() const
 {
     if (checkForClosed())
         return true;
-    return m_stream->atEnd();
+    return m_file->atEnd();
 }
 
 void TextFile::truncate()
@@ -210,24 +220,21 @@ void TextFile::truncate()
     if (checkForClosed())
         return;
     m_file->resize(0);
-    m_stream->reset();
 }
 
 void TextFile::write(const QString &str)
 {
     if (checkForClosed())
         return;
-    (*m_stream) << str;
+    m_file->write(m_codec->fromUnicode(str));
 }
 
 void TextFile::writeLine(const QString &str)
 {
     if (checkForClosed())
         return;
-    (*m_stream) << str;
-    if (HostOsInfo::isWindowsHost())
-        (*m_stream) << '\r';
-    (*m_stream) << '\n';
+    m_file->write(m_codec->fromUnicode(str));
+    m_file->putChar('\n');
 }
 
 bool TextFile::checkForClosed() const

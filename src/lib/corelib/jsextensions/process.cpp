@@ -46,10 +46,13 @@
 
 #include <QtCore/qobject.h>
 #include <QtCore/qprocess.h>
-#include <QtCore/qtextcodec.h>
 #include <QtCore/qtextstream.h>
 #include <QtCore/qvariant.h>
-
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+#include <QtCore5Compat/qtextcodec.h>
+#else
+#include <QtCore/qtextcodec.h>
+#endif
 #include <QtScript/qscriptable.h>
 #include <QtScript/qscriptengine.h>
 #include <QtScript/qscriptvalue.h>
@@ -100,10 +103,10 @@ private:
     // ResourceAcquiringScriptObject implementation
     void releaseResources() override;
 
-    QProcess *m_qProcess;
+    QProcess *m_qProcess = nullptr;
     QProcessEnvironment m_environment;
     QString m_workingDirectory;
-    QTextStream *m_textStream;
+    QTextCodec *m_codec = nullptr;
 };
 
 QScriptValue Process::ctor(QScriptContext *context, QScriptEngine *engine)
@@ -143,7 +146,6 @@ QScriptValue Process::ctor(QScriptContext *context, QScriptEngine *engine)
 
 Process::~Process()
 {
-    delete m_textStream;
     delete m_qProcess;
 }
 
@@ -153,7 +155,7 @@ Process::Process(QScriptContext *context)
     Q_ASSERT(thisObject().engine() == engine());
 
     m_qProcess = new QProcess;
-    m_textStream = new QTextStream(m_qProcess);
+    m_codec = QTextCodec::codecForName("UTF-8");
 }
 
 QString Process::getEnv(const QString &name)
@@ -188,7 +190,7 @@ bool Process::start(const QString &program, const QStringList &arguments)
         m_qProcess->setWorkingDirectory(m_workingDirectory);
 
     m_qProcess->setProcessEnvironment(m_environment);
-    m_qProcess->start(findExecutable(program), arguments);
+    m_qProcess->start(findExecutable(program), arguments, QIODevice::ReadWrite | QIODevice::Text);
     return m_qProcess->waitForStarted();
 }
 
@@ -234,8 +236,6 @@ void Process::close()
     if (!m_qProcess)
         return;
     Q_ASSERT(thisObject().engine() == engine());
-    delete m_textStream;
-    m_textStream = nullptr;
     delete m_qProcess;
     m_qProcess = nullptr;
 }
@@ -262,32 +262,36 @@ void Process::kill()
 void Process::setCodec(const QString &codec)
 {
     Q_ASSERT(thisObject().engine() == engine());
-    m_textStream->setCodec(qPrintable(codec));
+    const auto newCodec = QTextCodec::codecForName(qPrintable(codec));
+    if (newCodec)
+        m_codec = newCodec;
 }
 
 QString Process::readLine()
 {
-    return m_textStream->readLine();
+    auto result = m_codec->toUnicode(m_qProcess->readLine());
+    if (!result.isEmpty() && result.back() == QLatin1Char('\n'))
+        result.chop(1);
+    return result;
 }
 
 bool Process::atEnd() const
 {
-    return m_textStream->atEnd();
+    return m_qProcess->atEnd();
 }
 
 QString Process::readStdOut()
 {
-    return m_textStream->readAll();
+    return m_codec->toUnicode(m_qProcess->readAllStandardOutput());
 }
 
 QString Process::readStdErr()
 {
-    return m_textStream->codec()->toUnicode(m_qProcess->readAllStandardError());
+    return m_codec->toUnicode(m_qProcess->readAllStandardError());
 }
 
 void Process::closeWriteChannel()
 {
-    m_textStream->flush();
     m_qProcess->closeWriteChannel();
 }
 
@@ -310,15 +314,13 @@ void Process::releaseResources()
 
 void Process::write(const QString &str)
 {
-    (*m_textStream) << str;
+    m_qProcess->write(m_codec->fromUnicode(str));
 }
 
 void Process::writeLine(const QString &str)
 {
-    (*m_textStream) << str;
-    if (HostOsInfo::isWindowsHost())
-        (*m_textStream) << '\r';
-    (*m_textStream) << '\n';
+    m_qProcess->write(m_codec->fromUnicode(str));
+    m_qProcess->putChar('\n');
 }
 
 QScriptValue Process::js_shellQuote(QScriptContext *context, QScriptEngine *engine)

@@ -125,7 +125,7 @@ Item *ItemReaderVisitorState::readFile(const QString &filePath, const QStringLis
 
         m_filesRead.insert(filePath);
         QTextStream stream(&file);
-        stream.setCodec("UTF-8");
+        setupDefaultCodec(stream);
         const QString &code = stream.readAll();
         QbsQmlJS::Lexer lexer(cacheValue.engine());
         lexer.setCode(code, 1);

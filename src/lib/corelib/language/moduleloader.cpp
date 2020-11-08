@@ -3887,7 +3887,7 @@ ModuleLoader::ModuleProviderResult ModuleLoader::findModuleProvider(const Qualif
         const QVariant moduleConfig = moduleProviderConfig(product).value(name.toString());
         QTextStream stream(&dummyItemFile);
         using Qt::endl;
-        stream.setCodec("UTF-8");
+        setupDefaultCodec(stream);
         stream << "import qbs.FileInfo" << endl;
         stream << "import qbs.Utilities" << endl;
         stream << "import '" << providerFile << "' as Provider" << endl;

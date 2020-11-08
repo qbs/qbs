@@ -128,7 +128,7 @@ void ConfigCommandExecutor::exportSettings(const QString &filename)
                 .arg(QDir::toNativeSeparators(filename), file.errorString()));
     }
     QTextStream stream(&file);
-    stream.setCodec("UTF-8");
+    setupDefaultCodec(stream);
     const auto keys = m_settings->allKeys(m_scope);
     for (const QString &key : keys)
         stream << key << ": " << qbs::settingsValueToRepresentation(m_settings->value(key, m_scope))
@@ -148,7 +148,7 @@ void ConfigCommandExecutor::importSettings(const QString &filename)
         m_settings->remove(key);
 
     QTextStream stream(&file);
-    stream.setCodec("UTF-8");
+    setupDefaultCodec(stream);
     while (!stream.atEnd()) {
         QString line = stream.readLine();
         int colon = line.indexOf(QLatin1Char(':'));
