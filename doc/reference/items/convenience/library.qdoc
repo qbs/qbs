@@ -78,7 +78,7 @@
 */
 
 /*!
-    \qmlproperty string Library::installDebugInformation
+    \qmlproperty bool Library::installDebugInformation
 
     If \c{true}, the debug information will be installed to
     \l{Library::debugInformationInstallDir}{debugInformationInstallDir}.
