@@ -412,12 +412,9 @@ function dumpDefaultPaths(compilerFilePath, tag) {
         if (pass === 1)
             continue;
 
-        var parts = output.substring(startQuoteIndex + 1, endQuoteIndex).split("\n");
-        var includePath = "";
-        for (var i in parts)
-            includePath += parts[i].trim();
-
-        includePaths.push(includePath);
+        var path = output.substring(startQuoteIndex + 1, endQuoteIndex)
+            .replace(/[\s]{2,}/g, ' ');
+        includePaths.push(path);
     }
 
     return {
