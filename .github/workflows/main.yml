@@ -130,7 +130,7 @@ jobs:
     - name: Install required packages
       run: |
         brew install ccache p7zip
-        /usr/bin/python3 -m pip install --user beautifulsoup4 lxml
+        python3 -m pip install --user beautifulsoup4 lxml
     - name: Install Qt
       uses: ./.github/actions/download-qt
       with:
