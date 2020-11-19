@@ -1170,12 +1170,16 @@ void TestLanguage::getNativeSetting()
         project = loader->loadProject(defaultParameters);
 
         QString expectedTargetName;
-        if (HostOsInfo::isMacosHost())
-            expectedTargetName = QStringLiteral("Mac OS X");
-        else if (HostOsInfo::isWindowsHost())
+        if (HostOsInfo::isMacosHost()) {
+            if (HostOsInfo::hostOsVersion() >= qbs::Version(11))
+                expectedTargetName = QStringLiteral("macOS");
+            else
+                expectedTargetName = QStringLiteral("Mac OS X");
+        } else if (HostOsInfo::isWindowsHost()) {
             expectedTargetName = QStringLiteral("Windows");
-        else
+        } else {
             expectedTargetName = QStringLiteral("Unix");
+        }
 
         QVERIFY(!!project);
         QHash<QString, ResolvedProductPtr> products;
