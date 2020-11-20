@@ -12,7 +12,7 @@ env:
   global:
     - QT_INSTALL_DIR=~/Qt
     - QT_VERSION=5.15.0
-    - QTCREATOR_VERSION=4.12.4
+    - QTCREATOR_VERSION=4.13.3
     - QTEST_FUNCTION_TIMEOUT=9000000
 
 cache:

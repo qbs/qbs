@@ -235,13 +235,11 @@ function compute_url(){
 
     if [[ "${COMPONENT}" =~ "qtcreator" ]]; then
 
-        REMOTE_BASE="tools_qtcreator/qt.tools.qtcreator"
-        REMOTE_PATH="$(${CURL} ${BASE_URL}/${REMOTE_BASE}/ | grep -o -E "${VERSION}[0-9\-]*${COMPONENT}\.7z" | tail -1)"
-
-        if [ ! -z "${REMOTE_PATH}" ]; then
-            echo "${BASE_URL}/${REMOTE_BASE}/${REMOTE_PATH}"
-            return 0
-        fi
+        SHORT_VERSION=${VERSION%??}
+        BASE_URL="http://download.qt.io/official_releases/qtcreator"
+        REMOTE_PATH="${SHORT_VERSION}/${VERSION}/installer_source/${HOST_OS}/qtcreator.7z"
+        echo "${BASE_URL}/${REMOTE_PATH}"
+        return 0
 
     else
         REMOTE_BASES=(
@@ -330,7 +328,7 @@ for COMPONENT in ${COMPONENTS}; do
         if [ "${HOST_OS}" == "mac_x64" ]; then
             echo "${INSTALL_DIR}/Qt Creator.app/Contents/MacOS"
         else
-            echo "${INSTALL_DIR}/Tools/QtCreator/bin"
+            echo "${INSTALL_DIR}/bin"
         fi
     fi
 
