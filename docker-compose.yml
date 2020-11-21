@@ -9,6 +9,7 @@ x-default-service: &linux
     - QBS_TEST_SOURCE_ROOT
     - WITH_ARCHIVE
     - WITH_TESTS
+    - CLCACHE_DIR
   volumes:
     - .:/qbs
     - ~/.ccache:/home/devel/.ccache

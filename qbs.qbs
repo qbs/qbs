@@ -62,7 +62,6 @@ Project {
     Product {
         name: "continuous integration files"
         files: [
-            ".travis.yml",
             ".clang-tidy",
             "docker-compose.yml",
             ".github/**/*.yml",
