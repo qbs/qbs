@@ -292,9 +292,13 @@ Module {
 
     property bool combineMocOutput: cpp.combineCxxSources
     property bool enableBigResources: false
+    // Product should not moc in the aggregate when multiplexing.
+    property bool enableMoc: !(product.multiplexed || product.aggregate)
+                             || product.multiplexConfigurationId
 
     Rule {
         name: "QtCoreMocRuleCpp"
+        condition: enableMoc
         property string cppInput: cpp.combineCxxSources ? "cpp.combine" : "cpp"
         property string objcppInput: cpp.combineObjcxxSources ? "objcpp.combine" : "objcpp"
         inputs: [objcppInput, cppInput]
@@ -306,6 +310,7 @@ Module {
     }
     Rule {
         name: "QtCoreMocRuleHpp"
+        condition: enableMoc
         inputs: "hpp"
         auxiliaryInputs: ["qt_plugin_metadata", "cpp", "objcpp"];
         excludedInputs: "unmocable"
