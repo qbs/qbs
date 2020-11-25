@@ -253,8 +253,10 @@ static std::vector<ToolchainInstallInfo> installedSdccsFromRegistry()
                 return candidate == SdccInstallInfo{
                     info.compilerPath.filePath(), info.compilerVersion.toString()};
             });
-            if (infosIt == infosEnd)
-                infos.push_back({candidate.compilerPath, Version::fromString(candidate.version)});
+            if (infosIt == infosEnd) {
+                infos.push_back({QFileInfo(candidate.compilerPath),
+                                 Version::fromString(candidate.version)});
+            }
         }
     }
 

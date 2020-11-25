@@ -82,7 +82,7 @@ static QChar convertHex(QChar c1, QChar c2)
 
 static QChar convertUnicode(QChar c1, QChar c2, QChar c3, QChar c4)
 {
-    return {uchar((convertHex(c3.unicode()) << 4) + convertHex(c4.unicode())),
+    return QChar{uchar((convertHex(c3.unicode()) << 4) + convertHex(c4.unicode())),
                  uchar((convertHex(c1.unicode()) << 4) + convertHex(c2.unicode()))};
 }
 

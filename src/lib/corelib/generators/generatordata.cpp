@@ -133,7 +133,7 @@ QFileInfo GeneratableProject::filePath() const
         filePath.insert(it.value().location().filePath());
     }
     Q_ASSERT(filePath.size() == 1);
-    return *filePath.begin();
+    return QFileInfo(*filePath.begin());
 }
 
 bool GeneratableProject::hasMultipleConfigurations() const

@@ -92,7 +92,7 @@ const Internal::VisualStudioVersionInfo &MSBuildTargetProject::versionInfo() con
 
 QUuid MSBuildTargetProject::guid() const
 {
-    return {d->projectGuidProperty->value().toString()};
+    return QUuid{d->projectGuidProperty->value().toString()};
 }
 
 void MSBuildTargetProject::setGuid(const QUuid &guid)

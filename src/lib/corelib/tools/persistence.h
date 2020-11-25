@@ -50,6 +50,7 @@
 #include <QtCore/qprocess.h>
 #include <QtCore/qregularexpression.h>
 #include <QtCore/qstring.h>
+#include <QtCore/qstringlist.h>
 #include <QtCore/qvariant.h>
 
 #include <memory>
@@ -467,6 +468,7 @@ template<typename T> struct PPHelper<QFlags<T>>
 
 template<typename T> struct IsSimpleContainer : std::false_type { };
 template<typename T> struct IsSimpleContainer<QList<T>> : std::true_type { };
+template<> struct IsSimpleContainer<QStringList> : std::false_type { };
 template<typename T> struct IsSimpleContainer<std::vector<T>> : std::true_type { };
 
 template<typename T> struct PPHelper<T, std::enable_if_t<IsSimpleContainer<T>::value>>

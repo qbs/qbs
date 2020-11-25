@@ -410,8 +410,8 @@ static QStringList renesasRl78RegistrySearchPaths()
         if (installLocation.isEmpty())
             continue;
 
-        const QFileInfo toolchainPath = QDir(installLocation).absolutePath()
-                + QLatin1String("/rl78-elf/rl78-elf/bin");
+        const QFileInfo toolchainPath(QDir(installLocation).absolutePath()
+                + QLatin1String("/rl78-elf/rl78-elf/bin"));
         if (!toolchainPath.exists())
             continue;
         searchPaths.push_back(toolchainPath.absoluteFilePath());
@@ -442,8 +442,8 @@ static QStringList mplabX32RegistrySearchPaths()
         if (installLocation.isEmpty())
             continue;
 
-        const QFileInfo toolchainPath = QDir(installLocation).absolutePath()
-                + QLatin1String("/bin");
+        const QFileInfo toolchainPath(QDir(installLocation).absolutePath()
+                + QLatin1String("/bin"));
         if (!toolchainPath.exists())
             continue;
         searchPaths.push_back(toolchainPath.absoluteFilePath());
@@ -543,7 +543,7 @@ void gccProbe(Settings *settings, std::vector<Profile> &profiles, const QString 
                     || fileName.startsWith(QLatin1String("c99-gcc"))) {
                 continue;
             }
-            const QFileInfo candidate = dir.filePath(fileName);
+            const QFileInfo candidate(dir.filePath(fileName));
             // Filter duplicates.
             const auto existingEnd = candidates.end();
             const auto existingIt = std::find_if(
