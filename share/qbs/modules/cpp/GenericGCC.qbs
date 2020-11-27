@@ -134,8 +134,7 @@ CppModule {
     property string toolchainPrefix: compilerPathProbe.found
                                      ? compilerPathProbe.tcPrefix
                                      : undefined
-    property string toolchainInstallPath: compilerPathProbe.found ? compilerPathProbe.path
-                                                                  : undefined
+    toolchainInstallPath: compilerPathProbe.found ? compilerPathProbe.path : undefined
     property string binutilsPath: binutilsProbe.found ? binutilsProbe.path : toolchainInstallPath
 
     assemblerName: 'as' + compilerExtension

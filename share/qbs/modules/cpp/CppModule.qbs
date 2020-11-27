@@ -145,6 +145,12 @@ Module {
                         be set."
     }
 
+    property string toolchainInstallPath
+    PropertyOptions {
+        name: "toolchainInstallPath"
+        description: "a path to the directory where the toolchain executable files are located."
+    }
+
     property pathList includePaths
     property pathList systemIncludePaths
     property pathList distributionIncludePaths

@@ -81,7 +81,6 @@ CppModule {
     separateDebugInformation: true
 
     property bool generateManifestFile: true
-    property string toolchainInstallPath
 
     architecture: qbs.architecture
     endianness: "little"

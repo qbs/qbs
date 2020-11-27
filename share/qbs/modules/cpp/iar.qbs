@@ -64,8 +64,7 @@ CppModule {
     compilerDefinesByLanguage: iarProbe.compilerDefinesByLanguage
     compilerIncludePaths: iarProbe.includePaths
 
-    property string toolchainInstallPath: compilerPathProbe.found
-        ? compilerPathProbe.path : undefined
+    toolchainInstallPath: compilerPathProbe.found ? compilerPathProbe.path : undefined
 
     property string compilerExtension: qbs.hostOS.contains("windows") ? ".exe" : ""
 

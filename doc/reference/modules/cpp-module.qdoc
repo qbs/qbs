@@ -1882,3 +1882,11 @@
 
     \defaultvalue \c{true}
 */
+
+/*!
+    \qmlproperty string cpp::toolchainInstallPath
+
+    Path to the directory where the toolchain executable files are located.
+
+    \nodefaultvalue
+*/
