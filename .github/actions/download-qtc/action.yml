@@ -4,7 +4,7 @@ inputs:
   version:
     description: 'Qt Creator version'
     required: false
-    default: '4.12.4'
+    default: '4.13.3'
 runs:
   using: "composite"
   steps:

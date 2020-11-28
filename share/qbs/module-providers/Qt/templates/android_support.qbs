@@ -15,8 +15,9 @@ Module {
     property stringList extraLibs // qmake: ANDROID_EXTRA_LIBS
     property bool verboseAndroidDeployQt: false
 
-    property string _androidDeployQtFilePath: FileInfo.joinPaths(_qtInstallDir, "bin",
+    property string _androidDeployQtFilePath: FileInfo.joinPaths(_qtBinaryDir, "bin",
                                                                  "androiddeployqt")
+    property string _qtBinaryDir
     property string _qtInstallDir
     // TODO: Remove in 1.20
     // From 1.20 product property used from an export item will point to the
@@ -54,7 +55,12 @@ Module {
     }
     Properties {
         condition: _enableSdkSupport && Utilities.versionCompare(version, "5.15") >= 0
+                   && Utilities.versionCompare(version, "6.0") < 0
         java.additionalClassPaths: [FileInfo.joinPaths(_qtInstallDir, "jar", "QtAndroid.jar")]
+    }
+    Properties {
+        condition: _enableSdkSupport && Utilities.versionCompare(version, "6.0") >= 0
+        java.additionalClassPaths: [FileInfo.joinPaths(_qtInstallDir, "jar", "Qt6Android.jar")]
     }
     Properties {
         condition: _enableNdkSupport && (Android.ndk.abi === "armeabi-v7a" || Android.ndk.abi === "x86")
@@ -65,11 +71,19 @@ Module {
         Android.sdk._archInName: _multiAbi
         Android.sdk._bundledInAssets: _multiAbi
     }
+    Properties {
+        condition: _enableSdkSupport && Utilities.versionCompare(version, "6.0") < 0
+        Android.sdk.minimumVersion: "21"
+    }
+    Properties {
+        condition: _enableSdkSupport && Utilities.versionCompare(version, "6.0") >= 0
+        Android.sdk.minimumVersion: "23"
+    }
 
     Rule {
         condition: _enableSdkSupport
         multiplex: true
-        property stringList inputTags: "android.nativelibrary"
+        property stringList inputTags: ["android.nativelibrary", "qrc"]
         inputsFromDependencies: inputTags
         inputs: product.aggregate ? [] : inputTags
         Artifact {
@@ -180,6 +194,21 @@ Module {
                 if (Array.isArray(product.qmlImportPaths) && product.qmlImportPaths.length > 0)
                     f.writeLine('"qml-import-paths": "' + product.qmlImportPaths.join(',') + '",');
 
+                if (Utilities.versionCompare(product.Qt.android_support.version, "6.0") >= 0) {
+                    f.writeLine('"qml-importscanner-binary": "' +
+                                product.Qt.core.qmlImportScannerFilePath + '",');
+                    f.writeLine('"rcc-binary": "' + product.Qt.core.binPath + '/rcc' + '",');
+
+                    if (inputs["qrc"] && inputs["qrc"].length > 0) {
+                        var qrcFiles = [];
+                        var qrcInputs = inputs["qrc"];
+                        for (i = 0; i < qrcInputs.length; ++i) {
+                            qrcFiles.push(qrcInputs[i].filePath);
+                        }
+                        f.writeLine('"qrcFiles": "' + qrcFiles.join(',') + '",');
+                    }
+                }
+
                 // QBS-1429
                 if (!product.Qt.android_support._multiAbi) {
                     f.writeLine('"stdcpp-path": "' + (product.cpp.sharedStlFilePath
@@ -191,6 +220,7 @@ Module {
                                 '/toolchains/llvm/prebuilt/' + hostArch + '/sysroot/usr/lib/",');
                     f.writeLine('"application-binary": "' + theBinary.product.targetName + '"');
                 }
+
                 f.writeLine("}");
                 f.close();
             };

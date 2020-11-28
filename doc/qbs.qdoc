@@ -467,6 +467,52 @@
 
     Regenerating the man page requires the \c help2man tool.
 
+    \section1 Building \QBS with СMake
+
+    To build \QBS, enter the following commands:
+
+    \code
+        mkdir build && cd build
+        cmake -DQt5_DIR=${QT_DIR}/lib/cmake/Qt5/ ..
+        make
+    \endcode
+
+    Where \c ${QT_DIR} is the directory where Qt is installed. Passing the \c Qt5_DIR option
+    is not necessary if \c qmake is present in \c PATH.
+
+    Depending on your platform, you might use \c mingw32-make, \c nmake, or
+    \c jom instead of \c make.
+
+    Alternatively, you can use the
+    \l{https://cmake.org/cmake/help/latest/generator/Ninja.html}{Ninja} generator:
+    \code
+        cmake -GNinja -DQt5_DIR=${QT_DIR}/lib/cmake/Qt5/ ..
+        ninja
+    \endcode
+
+    \section2 CMake Configure Options
+
+    \QBS recognizes the following CMake options (passed to CMake in the form of \c{-DOPTION=value})
+    to customize the build:
+
+    \table
+    \header \li Option              \li Notes                       \li Default value
+    \row    \li WITH_TESTS          \li Enable autotests.           \li \c ON
+    \row    \li WITH_UNIT_TESTS     \li Enable additional autotests. \li \c OFF
+    \row    \li WITH_PROJECT_FILE_UPDATES \li Enable API for updating project files. This
+                                              implies a dependency to the QtGui module.
+                                           \li \c OFF
+    \row    \li INSTALL_PUBLIC_HEADERS     \li Whether to install public headers. \li \c ON
+    \endtable
+
+    \section2 Using ccache with CMake
+
+    To enable using \l{https://ccache.dev}{ccache} when building \QBS, pass the following options
+    to CMake:
+    \code
+        cmake -DQt5_DIR=${QT_DIR}/lib/cmake/Qt5/ -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache ..
+    \endcode
+
     \section1 Building \QBS with QMake
 
     To build \QBS, enter the following command:

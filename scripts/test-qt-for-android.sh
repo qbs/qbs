@@ -63,8 +63,8 @@ qbs setup-android --ndk-dir ${ANDROID_HOME}/ndk-bundle --sdk-dir ${ANDROID_HOME}
 export QBS_AUTOTEST_PROFILE=qbs_autotests-android
 export QBS_AUTOTEST_ALWAYS_LOG_STDERR=true
 
-if [ ! "${QT_VERSION}" \< "5.14.0" ]; then
-    echo "Using multi-arch data sets for qml tests (only for qt version >= 5.14) with all architectures"
+if [ ! "${QT_VERSION}" \< "5.14.0" ] && [ "${QT_VERSION}" \< "6.0.0" ]; then
+    echo "Using multi-arch data sets for qml tests (only for qt version >= 5.14 and < 6.0.0) with all architectures"
     qbs config --list
     tst_blackbox-android
 

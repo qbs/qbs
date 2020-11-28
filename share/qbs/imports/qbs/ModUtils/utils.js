@@ -638,10 +638,12 @@ function toJSLiteral(v) {
 function extractMacros(output) {
     var m = {};
     output.trim().split(/\r?\n/g).map(function (line) {
-        if (!line.startsWith("#define"))
+        var prefix = "#define ";
+        if (!line.startsWith(prefix))
             return;
-        var parts = line.split(" ", 3);
-        m[parts[1]] = parts[2];
+        var index = line.indexOf(" ", prefix.length);
+        if (index !== -1)
+            m[line.substr(prefix.length, index - prefix.length)] = line.substr(index + 1);
     });
     return m;
 }
