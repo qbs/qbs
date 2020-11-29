@@ -32,32 +32,27 @@ install(
     DESTINATION "${QBS_RESOURCES_INSTALL_DIR}/qbs"
     )
 
-if(WIN32)
-    get_target_property(_QTCORE_LIBRARY Qt5::Core IMPORTED_LOCATION_RELEASE)
-    if(NOT _QTCORE_LIBRARY)
-        get_target_property(_QTCORE_LIBRARY Qt5::Core IMPORTED_LOCATION_DEBUG)
-    endif()
-    get_filename_component(_QT_LIBRARY_PATH "${_QTCORE_LIBRARY}" DIRECTORY)
-    get_target_property(_QBS_LIBRARY_PATH qbscore LIBRARY_OUTPUT_DIRECTORY)
-    set(UPDATE_PATH_COMMAND set "PATH=${_QT_LIBRARY_PATH}\;${_QBS_LIBRARY_PATH}\;%PATH%")
-else()
-    set(UPDATE_PATH_COMMAND "")
-endif()
-
 get_target_property(_QBS_OUTPUT_DIR qbs RUNTIME_OUTPUT_DIRECTORY)
 add_custom_target(
     BuildQbsResources ALL
     COMMAND ${UPDATE_PATH_COMMAND}
     COMMAND ${_QBS_OUTPUT_DIR}/qbs
-        build
+        resolve
         --settings-dir ${PROJECT_BINARY_DIR}/settings
         -f ${PROJECT_SOURCE_DIR}/qbs.qbs
         -d ${PROJECT_BINARY_DIR}/
-        -p "qbs resources"
+        config:resources-build
         qbs.installPrefix:undefined
         project.withCode:false
         project.withDocumentation:false
         profile:none
+    COMMAND ${_QBS_OUTPUT_DIR}/qbs
+        build
+        --settings-dir ${PROJECT_BINARY_DIR}/settings
+        -f ${PROJECT_SOURCE_DIR}/qbs.qbs
+        -d ${PROJECT_BINARY_DIR}/
+        config:resources-build
+        -p "qbs resources"
     DEPENDS qbs copy-runtime-files-qbs
     )
 
