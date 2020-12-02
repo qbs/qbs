@@ -44,9 +44,13 @@ ProtobufBase {
         }
 
         prepare: {
+            var options = input.protobuf.nanopb.importPaths.map(function (path) {
+                return "-I" + path;
+            })
+
             var result = HelperFunctions.doPrepare(
                         input.protobuf.nanopb, product, input, outputs, "nanopb",
-                        input.protobuf.nanopb._plugin);
+                        input.protobuf.nanopb._plugin, options);
             return result;
         }
     }

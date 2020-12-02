@@ -34,6 +34,10 @@
 
 #include "addressbook_nanopb.pb.h"
 
+static_assert(std::is_array<decltype(std::declval<tutorial_Person>().name)>::value, "");
+static_assert(std::is_array<decltype(std::declval<tutorial_Person>().email)>::value, "");
+static_assert(std::is_array<decltype(std::declval<tutorial_Person>().phones)>::value, "");
+
 bool writeString(pb_ostream_t *stream, const pb_field_t *field, void *const *)
 {
     constexpr auto str = "0123456789";

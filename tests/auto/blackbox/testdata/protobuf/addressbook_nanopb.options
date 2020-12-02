@@ -1,0 +1,3 @@
+tutorial.Person.name max_size:128
+tutorial.Person.email max_size:256
+tutorial.Person.phones max_count:16
