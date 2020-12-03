@@ -66,7 +66,8 @@ pushd build
 # Build all default products of Qbs
 #
 cmake -GNinja -DQt5_DIR=${QT_DIR}/lib/cmake/Qt5/ ${BUILD_OPTIONS} ..
-ninja
+cmake --build .
+cmake --install . --prefix "install-root"
 
 #
 # Set up profiles for the freshly built Qbs if not
