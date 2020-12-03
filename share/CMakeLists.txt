@@ -57,11 +57,11 @@ add_custom_target(
     )
 
 install(
-    DIRECTORY ${PROJECT_BINARY_DIR}/default/install-root/share/qbs/qml-type-descriptions
+    DIRECTORY ${PROJECT_BINARY_DIR}/resources-build/install-root/share/qbs/qml-type-descriptions
     DESTINATION "${QBS_RESOURCES_INSTALL_DIR}/qbs"
     )
 
 install(
-    DIRECTORY ${PROJECT_BINARY_DIR}/default/install-root/share/qbs/qml-type-descriptions
+    DIRECTORY ${PROJECT_BINARY_DIR}/resources-build/install-root/share/qbs/qml-type-descriptions
     DESTINATION "${QBS_RESOURCES_INSTALL_DIR}/qbs"
     )
