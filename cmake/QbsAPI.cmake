@@ -1,3 +1,4 @@
+set(QBS_APP_INSTALL_DIR "bin" CACHE STRING "Relative install location for Qbs binaries.")
 # default paths
 set(QBS_LIBDIR_NAME "lib")
 if(WIN32)
@@ -10,7 +11,6 @@ endif()
 
 # path options
 set(QBS_OUTPUT_PREFIX "" CACHE STRING "Qbs build output location relative to CMAKE_BINARY_DIR.")
-set(QBS_APP_INSTALL_DIR "bin" CACHE STRING "Relative install location for Qbs binaries.")
 set(QBS_LIB_INSTALL_DIR "${_DEFAULT_LIB_INSTALL_DIR}" CACHE STRING "Relative install location for Qbs libraries.")
 set(QBS_DLL_INSTALL_DIR "${QBS_LIB_INSTALL_DIR}" CACHE STRING "Relative install location for Qbs DLLs.")
 set(QBS_LIBEXEC_INSTALL_DIR "${_DEFAULT_LIBEXEC_INSTALL_DIR}" CACHE STRING "Relative install location for Qbs libexec.")
