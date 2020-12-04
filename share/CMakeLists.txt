@@ -32,6 +32,7 @@ install(
     DESTINATION "${QBS_RESOURCES_INSTALL_DIR}/qbs"
     )
 
+get_update_path_command(UPDATE_PATH_COMMAND)
 get_target_property(_QBS_OUTPUT_DIR qbs RUNTIME_OUTPUT_DIRECTORY)
 add_custom_target(
     BuildQbsResources ALL

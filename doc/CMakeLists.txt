@@ -13,6 +13,7 @@ if (QBS_INSTALL_HTML_DOCS OR QBS_INSTALL_QCH_DOCS)
         set(_INSTALL_QCH_DOCS false)
     endif()
 
+    get_update_path_command(UPDATE_PATH_COMMAND)
     add_custom_target(
         BuildQbsDocumentation ALL
         COMMAND ${UPDATE_PATH_COMMAND}
