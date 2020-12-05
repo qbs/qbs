@@ -273,7 +273,7 @@ void TestBlackboxApple::aggregateDependencyLinking()
     const auto xcodeVersion = findXcodeVersion();
     // XCode 11 produces warning about deprecation of 32-bit apps, but still works
     const bool hasX86Mac = xcodeVersion < qbs::Version(12);
-    const bool hasArmMac = false;
+    const bool hasArmMac = xcodeVersion >= qbs::Version(12, 2);
 
     QDir::setCurrent(testDataDir + "/aggregateDependencyLinking");
     QbsRunParameters params{QStringList{"-p", "multi_arch_lib"}};
