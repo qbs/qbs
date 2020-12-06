@@ -361,10 +361,10 @@ jobs:
       matrix:
         config:
         - {
-            name: 'Run macOS tests (Xcode 12.0)',
+            name: 'Run macOS tests (Xcode 12.2)',
             target: 'desktop',
             toolchain: 'clang_64',
-            testProfile: 'xcode_12-macosx-x86_64',
+            testProfile: 'xcode_12_2-macosx-x86_64',
           }
         - {
             name: 'Run macOS tests (Xcode 11.6)',
