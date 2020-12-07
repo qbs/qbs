@@ -628,8 +628,8 @@
     \row    \li version                      \li string
     \endtable
 
-    The \c dependencies are the names of products that occur in the (enabled)
-    \l Depends items of this product.
+    The elements of the \c dependencies array correspond to the full-display-name
+    properties of the products that this product has pulled in via \l Depends items.
 
     The \c generated-artifacts are files that are created by the \l{Rule}{rules}
     in this product.
