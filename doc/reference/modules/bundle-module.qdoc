@@ -204,7 +204,7 @@
 */
 
 /*!
-    \qmlproperty bool bundle::resources
+    \qmlproperty pathList bundle::resources
 
     A list of resources to copy to a bundle's \c Resources subdirectory. Files
     will automatically be copied into \c lproj subdirectories corresponding to
