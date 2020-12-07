@@ -41,7 +41,7 @@ LinuxGCC {
 
     condition: qbs.targetOS.contains("android") && qbs.toolchain && qbs.toolchain.contains("llvm")
     priority: 2
-    rpaths: [rpathOrigin]
+    rpaths: []
 
     cxxLanguageVersion: "c++14"
     property string cxxStlBaseDir: FileInfo.joinPaths(Android.ndk.ndkDir, "sources", "cxx-stl")
@@ -128,12 +128,7 @@ LinuxGCC {
         return includes;
     }
 
-    defines: {
-        var list = ["ANDROID"];
-        // Might be superseded by an -mandroid-version or similar Clang compiler flag in future
-        list.push("__ANDROID_API__=" + Android.ndk.platformVersion);
-        return list;
-    }
+    defines: ["ANDROID", "__ANDROID__"]
 
     binutilsPath: FileInfo.joinPaths(Android.ndk.ndkDir, "toolchains", "llvm", "prebuilt",
                                      Android.ndk.hostArch, "bin");
@@ -158,9 +153,10 @@ LinuxGCC {
         }
     }
 
-    targetVendor: "none"
+    target: [targetArch, targetSystem, targetAbi].join("-")
     targetSystem: "linux"
-    targetAbi: "android" + (["armeabi", "armeabi-v7a"].contains(Android.ndk.abi) ? "eabi" : "")
+    targetAbi: "android" + (["armeabi", "armeabi-v7a"].contains(Android.ndk.abi) ? "eabi" : "") +
+               Android.ndk.platformVersion
 
     endianness: "little"
 
