@@ -56,6 +56,7 @@ CppApplication {
     Depends { condition: product.condition; name: "ib" }
     condition: qbs.hostOS.contains("macos") && xcode.present && qbs.targetPlatform.contains("ios")
     name: "Cocoa Touch Application"
+    install: true
 
     cpp.useObjcPrecompiledHeader: true
     cpp.minimumIosVersion: "8.0"
