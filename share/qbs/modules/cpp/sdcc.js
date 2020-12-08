@@ -404,6 +404,7 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
     }
 
     // Misc flags.
+    escapablePreprocessorFlags = escapablePreprocessorFlags.uniqueConcat(input.cpp.cppFlags);
     var escapedPreprocessorFlags = escapePreprocessorFlags(escapablePreprocessorFlags);
     if (escapedPreprocessorFlags)
         Array.prototype.push.apply(args, escapedPreprocessorFlags);
