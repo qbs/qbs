@@ -13,6 +13,7 @@ if (QBS_INSTALL_HTML_DOCS OR QBS_INSTALL_QCH_DOCS)
         set(_INSTALL_QCH_DOCS false)
     endif()
 
+    get_target_property(_QT_QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
     get_update_path_command(UPDATE_PATH_COMMAND)
     add_custom_target(
         BuildQbsDocumentation ALL
@@ -24,12 +25,13 @@ if (QBS_INSTALL_HTML_DOCS OR QBS_INSTALL_QCH_DOCS)
             -d ${PROJECT_BINARY_DIR}/
             config:doc-build
             qbs.installPrefix:undefined
+            qbs.buildVariant:release
             project.withCode:false
             project.withDocumentation:true
             profile:none
             modules.qbsbuildconfig.installHtml:${_INSTALL_HTML_DOCS}
             modules.qbsbuildconfig.installQch:${_INSTALL_QCH_DOCS}
-            moduleProviders.Qt.qmakeFilePaths:${QT_QMAKE_EXECUTABLE}
+            moduleProviders.Qt.qmakeFilePaths:${_QT_QMAKE_EXECUTABLE}
         COMMAND ${_QBS_OUTPUT_DIR}/qbs
             build
             --settings-dir ${PROJECT_BINARY_DIR}/settings
