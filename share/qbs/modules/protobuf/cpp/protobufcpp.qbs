@@ -15,6 +15,13 @@ ProtobufBase {
     property string grpcIncludePath: grpcIncludeProbe.path
     property string grpcLibraryPath: grpcLibraryProbe.path
 
+    readonly property string _libraryName: {
+        var libraryName = FileInfo.baseName(libraryProbe.fileName);
+        if (libraryName.startsWith("lib"))
+            libraryName = libraryName.substring(3);
+        return libraryName;
+    }
+
     Depends { name: "cpp" }
 
     property path grpcPluginPath: grpcPluginProbe.filePath
@@ -34,7 +41,9 @@ ProtobufBase {
         return result;
     }
     cpp.dynamicLibraries: {
-        var result = ["protobuf"];
+        var result = [];
+        if (_libraryName)
+            result.push(_libraryName)
         if (qbs.targetOS.contains("unix"))
             result.push("pthread");
         if (useGrpc)
@@ -89,7 +98,10 @@ ProtobufBase {
 
     Probes.LibraryProbe {
         id: libraryProbe
-        names: "protobuf"
+        names: [
+            "protobuf",
+            "protobufd",
+        ]
     }
 
     Probes.IncludeProbe {
