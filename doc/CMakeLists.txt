@@ -37,7 +37,7 @@ if (QBS_INSTALL_HTML_DOCS OR QBS_INSTALL_QCH_DOCS)
             -d ${PROJECT_BINARY_DIR}/
             config:doc-build
             -p "qbs documentation"
-        DEPENDS qbs copy-runtime-files-qbs
+        DEPENDS qbs copy-runtime-files-qbs qbs_processlauncher
       )
   install(
       DIRECTORY ${PROJECT_BINARY_DIR}/doc-build/install-root/share/doc/qbs/html/
