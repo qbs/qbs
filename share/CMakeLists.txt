@@ -54,7 +54,7 @@ add_custom_target(
         -d ${PROJECT_BINARY_DIR}/
         config:resources-build
         -p "qbs resources"
-    DEPENDS qbs copy-runtime-files-qbs
+    DEPENDS qbs copy-runtime-files-qbs qbs_processlauncher
     )
 
 install(
