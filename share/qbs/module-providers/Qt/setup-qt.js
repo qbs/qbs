@@ -246,7 +246,8 @@ function getQtProperties(qmakeFilePath, qbs) {
     qtProps.includePath = pathQueryValue(queryResult, "QT_INSTALL_HEADERS");
     qtProps.libraryPath = pathQueryValue(queryResult, "QT_INSTALL_LIBS");
     qtProps.hostLibraryPath = pathQueryValue(queryResult, "QT_HOST_LIBS");
-    qtProps.binaryPath = pathQueryValue(queryResult, "QT_HOST_BINS");
+    qtProps.binaryPath = pathQueryValue(queryResult, "QT_HOST_BINS")
+            || pathQueryValue(queryResult, "QT_INSTALL_BINS");
     qtProps.installPath = pathQueryValue(queryResult, "QT_INSTALL_BINS");
     qtProps.documentationPath = pathQueryValue(queryResult, "QT_INSTALL_DOCS");
     qtProps.pluginPath = pathQueryValue(queryResult, "QT_INSTALL_PLUGINS");
