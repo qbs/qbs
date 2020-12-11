@@ -58,6 +58,7 @@ if (QBS_INSTALL_HTML_DOCS OR QBS_INSTALL_QCH_DOCS)
                 project.withCode:false
                 project.withDocumentation:true
                 profile:none
+                "products.qbs documentation.pythonPath:${Python3_EXECUTABLE}"
                 modules.qbsbuildconfig.installHtml:${_INSTALL_HTML_DOCS}
                 modules.qbsbuildconfig.installQch:${_INSTALL_QCH_DOCS}
                 moduleProviders.Qt.qmakeFilePaths:${_QT_QMAKE_EXECUTABLE}
