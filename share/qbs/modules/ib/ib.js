@@ -173,7 +173,7 @@ function ibtooldArguments(product, inputs, input, outputs, overrideOutput) {
     // --target-device and -output-partial-info-plist were introduced in Xcode 6.0 for ibtool
     if (ModUtils.moduleProperty(product, "ibtoolVersionMajor") >= 6 || inputs.assetcatalog) {
         args.push("--output-partial-info-plist", (outputs && outputs.partial_infoplist)
-                  ? outputs.partial_infoplist[0].filePath
+                  ? outputs.partial_infoplist[outputs.partial_infoplist.length - 1].filePath
                   : "/dev/null");
 
         // For iOS, we'd normally only output the devices specified in TARGETED_DEVICE_FAMILY
