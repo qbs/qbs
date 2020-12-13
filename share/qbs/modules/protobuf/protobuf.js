@@ -86,6 +86,7 @@ function objcArtifact(outputDir, input, tags, suffix) {
         filePath: FileInfo.joinPaths(
                       outputDir, toCamelCase(FileInfo.baseName(input.fileName)) + suffix),
         cpp: {
+            automaticReferenceCounting: false,
             includePaths: [].concat(input.cpp.includePaths, outputDir),
             warningLevel: "none",
         }
