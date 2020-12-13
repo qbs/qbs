@@ -13,15 +13,13 @@
         14E3FEB4175FB2E800C857C6 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 14E3FEB2175FB2E800C857C6 /* InfoPlist.strings */; };
         14E3FEB6175FB2E800C857C6 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 14E3FEB5175FB2E800C857C6 /* main.m */; };
         14E3FEBA175FB2E800C857C6 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 14E3FEB9175FB2E800C857C6 /* AppDelegate.m */; };
-        14E3FEBC175FB2E800C857C6 /* Default.png in Resources */ = {isa = PBXBuildFile; fileRef = 14E3FEBB175FB2E800C857C6 /* Default.png */; };
-        14E3FEBE175FB2E800C857C6 /* Default@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 14E3FEBD175FB2E800C857C6 /* Default@2x.png */; };
-        14E3FEC0175FB2E800C857C6 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 14E3FEBF175FB2E800C857C6 /* Default-568h@2x.png */; };
         14E3FEC3175FB2E800C857C6 /* MasterViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 14E3FEC2175FB2E800C857C6 /* MasterViewController.m */; };
         14E3FEC6175FB2E900C857C6 /* DetailViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 14E3FEC5175FB2E900C857C6 /* DetailViewController.m */; };
         14E3FEC9175FB2E900C857C6 /* MasterViewController_iPhone.xib in Resources */ = {isa = PBXBuildFile; fileRef = 14E3FEC7175FB2E900C857C6 /* MasterViewController_iPhone.xib */; };
         14E3FECC175FB2E900C857C6 /* MasterViewController_iPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = 14E3FECA175FB2E900C857C6 /* MasterViewController_iPad.xib */; };
         14E3FECF175FB2E900C857C6 /* DetailViewController_iPhone.xib in Resources */ = {isa = PBXBuildFile; fileRef = 14E3FECD175FB2E900C857C6 /* DetailViewController_iPhone.xib */; };
         14E3FED2175FB2E900C857C6 /* DetailViewController_iPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = 14E3FED0175FB2E900C857C6 /* DetailViewController_iPad.xib */; };
+        AC83486F258674C900A9CBBB /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AC83486E258674C900A9CBBB /* LaunchScreen.storyboard */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -35,9 +33,6 @@
         14E3FEB7175FB2E800C857C6 /* CocoaTouchApplication-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CocoaTouchApplication-Prefix.pch"; sourceTree = "<group>"; };
         14E3FEB8175FB2E800C857C6 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
         14E3FEB9175FB2E800C857C6 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
-        14E3FEBB175FB2E800C857C6 /* Default.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Default.png; sourceTree = "<group>"; };
-        14E3FEBD175FB2E800C857C6 /* Default@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default@2x.png"; sourceTree = "<group>"; };
-        14E3FEBF175FB2E800C857C6 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
         14E3FEC1175FB2E800C857C6 /* MasterViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MasterViewController.h; sourceTree = "<group>"; };
         14E3FEC2175FB2E800C857C6 /* MasterViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MasterViewController.m; sourceTree = "<group>"; };
         14E3FEC4175FB2E800C857C6 /* DetailViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DetailViewController.h; sourceTree = "<group>"; };
@@ -46,6 +41,7 @@
         14E3FECB175FB2E900C857C6 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MasterViewController_iPad.xib; sourceTree = "<group>"; };
         14E3FECE175FB2E900C857C6 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/DetailViewController_iPhone.xib; sourceTree = "<group>"; };
         14E3FED1175FB2E900C857C6 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/DetailViewController_iPad.xib; sourceTree = "<group>"; };
+        AC83486E258674C900A9CBBB /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -103,6 +99,7 @@
                 14E3FECD175FB2E900C857C6 /* DetailViewController_iPhone.xib */,
                 14E3FED0175FB2E900C857C6 /* DetailViewController_iPad.xib */,
                 14E3FEB0175FB2E800C857C6 /* Supporting Files */,
+                AC83486E258674C900A9CBBB /* LaunchScreen.storyboard */,
             );
             path = CocoaTouchApplication;
             sourceTree = "<group>";
@@ -114,9 +111,6 @@
                 14E3FEB2175FB2E800C857C6 /* InfoPlist.strings */,
                 14E3FEB5175FB2E800C857C6 /* main.m */,
                 14E3FEB7175FB2E800C857C6 /* CocoaTouchApplication-Prefix.pch */,
-                14E3FEBB175FB2E800C857C6 /* Default.png */,
-                14E3FEBD175FB2E800C857C6 /* Default@2x.png */,
-                14E3FEBF175FB2E800C857C6 /* Default-568h@2x.png */,
             );
             name = "Supporting Files";
             sourceTree = "<group>";
@@ -173,10 +167,8 @@
             isa = PBXResourcesBuildPhase;
             buildActionMask = 2147483647;
             files = (
+                AC83486F258674C900A9CBBB /* LaunchScreen.storyboard in Resources */,
                 14E3FEB4175FB2E800C857C6 /* InfoPlist.strings in Resources */,
-                14E3FEBC175FB2E800C857C6 /* Default.png in Resources */,
-                14E3FEBE175FB2E800C857C6 /* Default@2x.png in Resources */,
-                14E3FEC0175FB2E800C857C6 /* Default-568h@2x.png in Resources */,
                 14E3FEC9175FB2E900C857C6 /* MasterViewController_iPhone.xib in Resources */,
                 14E3FECC175FB2E900C857C6 /* MasterViewController_iPad.xib in Resources */,
                 14E3FECF175FB2E900C857C6 /* DetailViewController_iPhone.xib in Resources */,

@@ -59,6 +59,7 @@ CppApplication {
     install: true
 
     bundle.identifierPrefix: "io.qbs"
+    bundle.infoPlist: ({"UILaunchStoryboardName": "LaunchScreen"})
 
     cpp.useObjcPrecompiledHeader: true
     cpp.minimumIosVersion: "9.0"
@@ -93,9 +94,7 @@ CppApplication {
     Group {
         id: bundle_resources
         files: [
-            "CocoaTouchApplication/Default-568h@2x.png",
-            "CocoaTouchApplication/Default.png",
-            "CocoaTouchApplication/Default@2x.png",
+            "CocoaTouchApplication/LaunchScreen.storyboard",
             "CocoaTouchApplication/en.lproj/InfoPlist.strings"
         ]
     }
