@@ -292,6 +292,36 @@ void TestBlackboxApple::aggregateDependencyLinking()
     QVERIFY2(QString::fromUtf8(m_qbsStdout).contains(fatLibPath), m_qbsStdout);
 }
 
+void TestBlackboxApple::appiconset()
+{
+    QDir::setCurrent(testDataDir + QLatin1String("/ib/appiconset"));
+
+    QbsRunParameters params;
+    params.arguments = QStringList() << "-f" << "appiconset.qbs";
+    QCOMPARE(runQbs(params), 0);
+
+    const auto infoPlistPath = getInfoPlistPath(
+            relativeProductBuildDir("appiconset") + "/appiconset.app");
+    QVERIFY(QFile::exists(infoPlistPath));
+    const auto content = readInfoPlistFile(infoPlistPath);
+    QVERIFY(!content.isEmpty());
+
+    if (m_qbsStdout.contains("bundle.isShallow: false")) {
+        QCOMPARE(content.value(QStringLiteral("CFBundleIconFile")), QStringLiteral("AppIcon"));
+        QCOMPARE(content.value(QStringLiteral("CFBundleIconName")), QStringLiteral("AppIcon"));
+        QVERIFY(regularFileExists(relativeProductBuildDir("appiconset")
+                                  + "/appiconset.app/Contents/Resources/AppIcon.icns"));
+    } else if (m_qbsStdout.contains("bundle.isShallow: true")) {
+        const auto icons = content.value(QStringLiteral("CFBundleIcons")).toMap();
+        QVERIFY2(!icons.isEmpty(), "Info.plist doesn't contain CFBundleIcons key");
+        const auto primaryIcon = icons.value(QStringLiteral("CFBundlePrimaryIcon")).toMap();
+        QVERIFY2(!primaryIcon.isEmpty(), "Info.plist doesn't contain CFBundlePrimaryIcon key");
+        QCOMPARE(primaryIcon.value(QStringLiteral("CFBundleIconName")), QStringLiteral("AppIcon"));
+    } else {
+        QVERIFY2(false, "Cannot determine bundle type");
+    }
+}
+
 void TestBlackboxApple::assetCatalog()
 {
     QFETCH(bool, flatten);
