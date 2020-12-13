@@ -59,7 +59,7 @@ CppApplication {
     install: true
 
     cpp.useObjcPrecompiledHeader: true
-    cpp.minimumIosVersion: "8.0"
+    cpp.minimumIosVersion: "9.0"
     cpp.frameworks: [ "UIKit", "Foundation", "CoreGraphics" ]
 
     Group {
