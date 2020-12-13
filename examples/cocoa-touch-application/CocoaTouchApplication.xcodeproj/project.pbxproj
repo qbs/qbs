@@ -148,7 +148,7 @@
             isa = PBXProject;
             attributes = {
                 LastUpgradeCheck = 1220;
-                ORGANIZATIONNAME = "Petroules Corporation";
+                ORGANIZATIONNAME = io.qbs;
             };
             buildConfigurationList = 14E3FEA1175FB2E800C857C6 /* Build configuration list for PBXProject "CocoaTouchApplication" */;
             compatibilityVersion = "Xcode 3.2";
@@ -347,7 +347,7 @@
                 GCC_PRECOMPILE_PREFIX_HEADER = YES;
                 GCC_PREFIX_HEADER = "CocoaTouchApplication/CocoaTouchApplication-Prefix.pch";
                 INFOPLIST_FILE = "CocoaTouchApplication/CocoaTouchApplication-Info.plist";
-                PRODUCT_BUNDLE_IDENTIFIER = "org.example.${PRODUCT_NAME:rfc1034identifier}";
+                PRODUCT_BUNDLE_IDENTIFIER = "io.qbs.${PRODUCT_NAME:rfc1034identifier}";
                 PRODUCT_NAME = "$(TARGET_NAME)";
                 WRAPPER_EXTENSION = app;
             };
@@ -359,7 +359,7 @@
                 GCC_PRECOMPILE_PREFIX_HEADER = YES;
                 GCC_PREFIX_HEADER = "CocoaTouchApplication/CocoaTouchApplication-Prefix.pch";
                 INFOPLIST_FILE = "CocoaTouchApplication/CocoaTouchApplication-Info.plist";
-                PRODUCT_BUNDLE_IDENTIFIER = "org.example.${PRODUCT_NAME:rfc1034identifier}";
+                PRODUCT_BUNDLE_IDENTIFIER = "io.qbs.${PRODUCT_NAME:rfc1034identifier}";
                 PRODUCT_NAME = "$(TARGET_NAME)";
                 WRAPPER_EXTENSION = app;
             };

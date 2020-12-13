@@ -58,6 +58,8 @@ CppApplication {
     name: "Cocoa Touch Application"
     install: true
 
+    bundle.identifierPrefix: "io.qbs"
+
     cpp.useObjcPrecompiledHeader: true
     cpp.minimumIosVersion: "9.0"
     cpp.automaticReferenceCounting: true
