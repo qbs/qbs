@@ -60,6 +60,7 @@ CppApplication {
 
     cpp.useObjcPrecompiledHeader: true
     cpp.minimumIosVersion: "9.0"
+    cpp.automaticReferenceCounting: true
     cpp.frameworks: [ "UIKit", "Foundation", "CoreGraphics" ]
 
     Group {
