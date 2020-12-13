@@ -44,7 +44,7 @@ git remote add gerrit ssh://<gerrit-username>@codereview.qt-project.org:29418/qb
 
 Install the hook generating Commit-Id files into your top level project directory:
 ```
-gitdir=$(git rev-parse --git-dir); scp -P 29418 codereview.qt-project.org:hooks/commit-msg ${gitdir}/hooks/
+gitdir=$(git rev-parse --git-dir); scp -p -P 29418 codereview.qt-project.org:hooks/commit-msg "${gitdir}/hooks/"
 ```
 
 This hook automatically adds a "Change-Id: …" line to the commit message. Change-Id is used
