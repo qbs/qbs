@@ -257,6 +257,13 @@ jobs:
             profile: '',
             script: './scripts/test-qt-for-android.sh',
           }
+        - {
+            name: 'Run Linux tests (Qt 4.8.7)',
+            image: 'focal-qt4',
+            profile: '',
+            script: './scripts/test-qt4.sh',
+          }
+
     env:
       QBS_TEST_SOURCE_ROOT: 'tests'
       QBS_AUTOTEST_PROFILE: ${{ matrix.config.profile }}
