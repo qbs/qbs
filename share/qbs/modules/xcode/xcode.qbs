@@ -12,6 +12,11 @@ import 'xcode.js' as Xcode
 Module {
     id: xcodeModule
 
+    Probes.XcodeLocationProbe {
+        id: xcodeLocationProbe
+        condition: !xcodeModule.developerPath
+    }
+
     Probes.XcodeProbe {
         id: xcodeProbe
         developerPath: xcodeModule.developerPath
@@ -27,7 +32,9 @@ Module {
 
     version: xcodeProbe.xcodeVersion
 
-    property path developerPath: "/Applications/Xcode.app/Contents/Developer"
+    property path developerPath: xcodeLocationProbe.found
+                                 ? xcodeLocationProbe.developerPath
+                                 : undefined
     property string sdk: DarwinTools.applePlatformName(qbs.targetOS, platformType)
     property stringList targetDevices: DarwinTools.targetDevices(qbs.targetOS)
 
