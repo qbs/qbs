@@ -9,9 +9,9 @@ import "../protobuf.js" as HelperFunctions
 ProtobufBase {
     property string includePath: includeProbe.path
     property string libraryPath: libraryProbe.path
-    property string pluginPath: pluginProbe.path
-    property string _plugin: "protoc-gen-nanopb=" +
-                             FileInfo.joinPaths(pluginPath, "protoc-gen-nanopb")
+    property string pluginPath: pluginProbe.filePath
+    property string pluginName: "protoc-gen-nanopb"
+    readonly property string _plugin: "protoc-gen-nanopb=" + pluginPath
     readonly property string _libraryName: {
         var libraryName = FileInfo.baseName(libraryProbe.fileName);
         if (libraryName.startsWith("lib"))
@@ -81,7 +81,7 @@ ProtobufBase {
 
     Probes.BinaryProbe {
         id: pluginProbe
-        names: "protoc-gen-nanopb"
+        names: pluginName
     }
 
     validate: {
