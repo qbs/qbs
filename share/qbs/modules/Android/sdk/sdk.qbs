@@ -96,7 +96,6 @@ Module {
 
     property bool _enableRules: !product.multiplexConfigurationId && !!packageName
 
-    property bool _archInName: false
     property bool _bundledInAssets: true
 
     Group {

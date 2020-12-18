@@ -86,13 +86,14 @@ function objcArtifact(outputDir, input, tags, suffix) {
         filePath: FileInfo.joinPaths(
                       outputDir, toCamelCase(FileInfo.baseName(input.fileName)) + suffix),
         cpp: {
+            automaticReferenceCounting: false,
             includePaths: [].concat(input.cpp.includePaths, outputDir),
             warningLevel: "none",
         }
     }
 }
 
-function doPrepare(module, product, input, outputs, generator, plugin)
+function doPrepare(module, product, input, outputs, generator, plugin, generatorOptions)
 {
     var outputDir = module.outputDir;
     var args = [];
@@ -101,6 +102,10 @@ function doPrepare(module, product, input, outputs, generator, plugin)
         args.push("--plugin=" + plugin)
 
     args.push("--" + generator + "_out", outputDir);
+    if (!!generatorOptions) {
+        for (var i = 0; i < generatorOptions.length; ++i)
+            args.push("--" + generator + "_opt=" + generatorOptions[i])
+    }
 
     var importPaths = module.importPaths;
     if (importPaths.length === 0)

@@ -1,0 +1,176 @@
+name: Build release packages
+
+on:
+  push:
+    branches-ignore:
+      - 'gerrit/*'
+    tags:
+      - 'v*'
+
+jobs:
+  build-linux:
+    name: ${{ matrix.config.name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - {
+            name: 'Build on Linux (gcc)',
+            options: 'modules.cpp.compilerWrapper:ccache
+                      modules.qbs.debugInformation:true
+                      modules.qbsbuildconfig.enableAddressSanitizer:false
+                      modules.qbsbuildconfig.enableUnitTests:false
+                      modules.qbsbuildconfig.enableBundledQt:true',
+            script: './scripts/build-qbs-with-qbs.sh',
+            cacheid: 'gcc-release',
+          }
+    env:
+      BUILD_OPTIONS: ${{ matrix.config.options }}
+      WITH_TESTS: 0
+    steps:
+    - uses: actions/checkout@v1
+    - name: Create .ccache dir
+      run: mkdir -p ~/.ccache
+    - name: test
+      run: echo ${{ github.ref }}
+    - name: prepare timestamp
+      id: get-timestamp
+      run: echo ::set-output name=timestamp::$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+    - name: ccache cache files
+      uses: actions/cache@v2
+      with:
+        path: ~/.ccache
+        key: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache-${{ steps.get-timestamp.outputs.timestamp }}
+        restore-keys: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache-
+    - name: Pull the Focal Image
+      run: docker-compose pull focal
+    - name: Print ccache stats
+      run: docker-compose run focal ccache -s
+    - name: Build Qbs
+      run: docker-compose run focal ${{ matrix.config.script }}
+    - name: Print ccache stats
+      run: docker-compose run focal ccache -s
+    - name: Get archive name
+      id: get-archive-name
+      run: echo ::set-output name=archive-name::$(git describe)
+    - name: Upload artifacts
+      uses: 'actions/upload-artifact@v2'
+      with:
+        name: qbs-linux-${{ steps.get-archive-name.outputs.archive-name }}.tar.gz
+        path: release/qbs-linux-*.tar.gz
+
+  build-macos:
+    name: Build on macOS
+    runs-on: macos-latest
+    timeout-minutes: 45
+    env:
+      BUILD_OPTIONS: |
+        modules.cpp.compilerWrapper:ccache
+        modules.qbs.debugInformation:true
+        modules.qbsbuildconfig.enableUnitTests:false
+        modules.qbsbuildconfig.enableAddressSanitizer:false
+        modules.qbsbuildconfig.enableBundledQt:true
+      WITH_TESTS: 0
+    steps:
+    - uses: actions/checkout@v1
+    - name: Create .ccache dir
+      run: mkdir -p ~/.ccache
+    - name: prepare timestamp
+      id: get-timestamp
+      run: echo ::set-output name=timestamp::$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+    - name: ccache cache files
+      uses: actions/cache@v2
+      with:
+        path: ~/.ccache
+        key: ${{ runner.os }}-release-ccache-${{ steps.get-timestamp.outputs.timestamp }}
+        restore-keys: ${{ runner.os }}-release-ccache-
+    - name: Install required packages
+      run: |
+        brew install ccache p7zip
+        python3 -m pip install --user beautifulsoup4 lxml
+    - name: Install Qt
+      uses: ./.github/actions/download-qt
+      with:
+        toolchain: clang_64
+    - name: Install Qt Creator
+      uses: ./.github/actions/download-qtc
+      with:
+        version: 4.13.2
+    - name: Setup Qbs
+      run: |
+        qbs setup-toolchains --detect
+        qbs setup-qt --detect
+        qbs config profiles.qt.baseProfile xcode-macosx-x86_64
+        qbs config defaultProfile qt
+        qbs config --list
+    - name: Print ccache stats
+      run: ccache -s
+    - name: Build Qbs
+      run: scripts/build-qbs-with-qbs.sh
+    - name: Print ccache stats
+      run: ccache -s
+    - name: Get archive name
+      id: get-archive-name
+      run: echo ::set-output name=archive-name::$(git describe)
+    - name: Upload artifacts
+      uses: 'actions/upload-artifact@v2'
+      with:
+        name: qbs-macos-${{ steps.get-archive-name.outputs.archive-name }}.tar.gz
+        path: release/qbs-macos-*.tar.gz
+
+  build-windows-with-docker:
+    name: Build on Windows (Docker)
+    runs-on: windows-latest
+    timeout-minutes: 45
+    env:
+      WITH_TESTS: 0
+      QT_ASSUME_STDERR_HAS_CONSOLE: 1
+      CLCACHE_DIR: C:\.ccache
+    steps:
+    - uses: actions/checkout@v1
+    - name: Create .ccache dir
+      run: mkdir -p ~/.ccache
+      shell: bash
+    - name: prepare timestamp
+      id: get-timestamp
+      run: echo ::set-output name=timestamp::$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+      shell: bash
+    - name: clcache cache files
+      uses: actions/cache@v2
+      with:
+        path: ~/.ccache
+        key: ${{ runner.os }}-release-msvc-docker-clcache-${{ steps.get-timestamp.outputs.timestamp }}
+        restore-keys: ${{ runner.os }}-release-msvc-docker-clcache-
+    - name: Pull the Windows Image
+      run: docker-compose pull windows
+    - name: Print clcache stats
+      run: docker-compose run --rm windows clcache -s
+    - name: Build Qbs
+      run: >
+        docker-compose run --rm windows qbs build
+        -p dist
+        qbs.buildVariant:release
+        modules.cpp.compilerWrapper:clcache
+        modules.qbsbuildconfig.enableBundledQt:true
+        modules.qbsbuildconfig.enableProjectFileUpdates:true
+        modules.qbsbuildconfig.enableUnitTests:false
+        modules.cpp.treatWarningsAsErrors:true
+        project.withDocumentation:true
+        config:release-64 profile:qt64
+        config:release profile:qt
+    - name: Print clcache stats
+      run: docker-compose run --rm windows clcache -s
+    - name: Get archive name
+      id: get-archive-name
+      run: echo ::set-output name=archive-name::$(git describe)
+      shell: bash
+    - name: Upload artifacts
+      uses: 'actions/upload-artifact@v2'
+      with:
+        name: qbs-windows-${{ steps.get-archive-name.outputs.archive-name }}.zip
+        path: |
+          release/qbs.*.nupkg
+          release/qbs-windows-*.zip
+          release-64/qbs-windows-*.zip

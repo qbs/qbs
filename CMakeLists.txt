@@ -26,6 +26,8 @@ option(WITH_TESTS "Build Tests" ON)
 option(WITH_UNIT_TESTS "Build Unit Tests" OFF)
 option(WITH_PROJECT_FILE_UPDATES "Enable project file updates support" OFF)
 option(INSTALL_PUBLIC_HEADERS "Whether to install public headers" ON)
+option(QBS_INSTALL_HTML_DOCS "Whether to install HTML Documentation" OFF)
+option(QBS_INSTALL_QCH_DOCS "Whether to install QCH Documentation" OFF)
 
 if(WITH_TESTS)
     enable_testing()
@@ -39,6 +41,7 @@ find_package(Qt5
     )
 
 add_subdirectory(src)
+add_subdirectory(doc)
 add_subdirectory(share)
 if(WITH_TESTS)
     add_subdirectory(tests)

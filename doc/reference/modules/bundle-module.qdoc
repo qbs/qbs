@@ -96,8 +96,9 @@
 
     A prefix for the product's bundle identifier. If \l{bundle::}{identifier}
     is left unset, the bundle identifier will be a concatenation of this value
-    and the \l{bundle::}{identifier} property, separated by a period (.). This
-    corresponds to the organization identifier in Xcode.
+    and the \l{Product::targetName}{Product.targetName} property formatted as
+    an RFC-1034 identifier, separated by a period (.). This corresponds to the
+    organization identifier in Xcode.
 
     \defaultvalue \c{org.example}
 */
@@ -106,8 +107,9 @@
     \qmlproperty string bundle::identifier
 
     The bundle's identifier. If left unset, the bundle identifier will be a
-    concatenation of this value and the \l{bundle::}{identifierPrefix} property,
-    separated by a period (.).
+    concatenation of the \l{bundle::}{identifierPrefix} value and the
+    \l{Product::targetName}{Product.targetName} propertyy formatted as an
+    RFC-1034 identifier, separated by a period (.).
 
     \defaultvalue A combination of \l{bundle::}{identifierPrefix} and the
     product's target name formatted as an RFC-1034 identifier.
@@ -204,7 +206,7 @@
 */
 
 /*!
-    \qmlproperty bool bundle::resources
+    \qmlproperty pathList bundle::resources
 
     A list of resources to copy to a bundle's \c Resources subdirectory. Files
     will automatically be copied into \c lproj subdirectories corresponding to

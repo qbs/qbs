@@ -9,9 +9,15 @@ import "../protobuf.js" as HelperFunctions
 ProtobufBase {
     property string includePath: includeProbe.path
     property string libraryPath: libraryProbe.path
-    property string pluginPath: pluginProbe.path
-    property string _plugin: "protoc-gen-nanopb=" +
-                             FileInfo.joinPaths(pluginPath, "protoc-gen-nanopb")
+    property string pluginPath: pluginProbe.filePath
+    property string pluginName: "protoc-gen-nanopb"
+    readonly property string _plugin: "protoc-gen-nanopb=" + pluginPath
+    readonly property string _libraryName: {
+        var libraryName = FileInfo.baseName(libraryProbe.fileName);
+        if (libraryName.startsWith("lib"))
+            libraryName = libraryName.substring(3);
+        return libraryName;
+    }
 
     Depends { name: "cpp" }
 
@@ -21,7 +27,12 @@ ProtobufBase {
             result.push(libraryPath);
         return result;
     }
-    cpp.dynamicLibraries: "protobuf-nanopb"
+    cpp.dynamicLibraries: {
+        var result = [];
+        if (_libraryName)
+            result.push(_libraryName);
+        return result;
+    }
     cpp.includePaths: {
         var result = [outputDir];
         if (includePath)
@@ -44,9 +55,13 @@ ProtobufBase {
         }
 
         prepare: {
+            var options = input.protobuf.nanopb.importPaths.map(function (path) {
+                return "-I" + path;
+            })
+
             var result = HelperFunctions.doPrepare(
                         input.protobuf.nanopb, product, input, outputs, "nanopb",
-                        input.protobuf.nanopb._plugin);
+                        input.protobuf.nanopb._plugin, options);
             return result;
         }
     }
@@ -58,12 +73,15 @@ ProtobufBase {
 
     Probes.LibraryProbe {
         id: libraryProbe
-        names: "protobuf-nanopb"
+        names: [
+            "protobuf-nanopb",
+            "protobuf-nanopbd",
+        ]
     }
 
     Probes.BinaryProbe {
         id: pluginProbe
-        names: "protoc-gen-nanopb"
+        names: pluginName
     }
 
     validate: {

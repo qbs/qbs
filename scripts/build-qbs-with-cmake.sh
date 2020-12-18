@@ -45,7 +45,15 @@ set -e
 #
 export QBS_AUTOTEST_SETTINGS_DIR="${QBS_AUTOTEST_SETTINGS_DIR:-/tmp/qbs-settings}"
 
-BUILD_OPTIONS="-DWITH_UNIT_TESTS=1 -DWITH_PROJECT_FILE_UPDATES=1 -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache ${BUILD_OPTIONS}"
+BUILD_OPTIONS="\
+    -DWITH_UNIT_TESTS=1 \
+    -DWITH_PROJECT_FILE_UPDATES=1 \
+    -DQBS_INSTALL_HTML_DOCS=1 \
+    -DQBS_INSTALL_QCH_DOCS=1 \
+    -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+    -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+    ${BUILD_OPTIONS} \
+"
 
 QMAKE_PATH="${QMAKE_PATH:-$(which qmake)}"
 QT_DIR=$(dirname ${QMAKE_PATH})/../
@@ -58,7 +66,8 @@ pushd build
 # Build all default products of Qbs
 #
 cmake -GNinja -DQt5_DIR=${QT_DIR}/lib/cmake/Qt5/ ${BUILD_OPTIONS} ..
-ninja
+cmake --build .
+cmake --install . --prefix "install-root"
 
 #
 # Set up profiles for the freshly built Qbs if not

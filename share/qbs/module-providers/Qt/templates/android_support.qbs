@@ -68,7 +68,6 @@ Module {
     }
     Properties {
         condition: _enableSdkSupport
-        Android.sdk._archInName: _multiAbi
         Android.sdk._bundledInAssets: _multiAbi
     }
     Properties {
@@ -79,6 +78,7 @@ Module {
         condition: _enableSdkSupport && Utilities.versionCompare(version, "6.0") >= 0
         Android.sdk.minimumVersion: "23"
     }
+    cpp.archSuffix: _multiAbi ? "_" + Android.ndk.abi : ""
 
     Rule {
         condition: _enableSdkSupport
@@ -324,10 +324,8 @@ Module {
                         var input = inputs["android.nativelibrary"][i];
                         File.copy(input.filePath,
                                   FileInfo.joinPaths(product.Qt.android_support._deployQtOutDir,
-                                                     "libs",
-                                                     input.Android.ndk.abi,
-                                                     input.baseName + "_" + input.Android.ndk.abi +
-                                                     ".so"));
+                                                     "libs", input.Android.ndk.abi,
+                                                     input.fileName));
                     }
                 }
             };
@@ -396,31 +394,7 @@ Module {
                         File.remove(oldLibs[i]);
                 }
             };
-
-            // androiddeployqt doesn't strip the deployed libraries anymore so it has to done here
-            var stripLibsCmd = new JavaScriptCommand();
-            stripLibsCmd.description = "Stripping unneeded symbols from deployed qt libraries";
-            stripLibsCmd.sourceCode = function() {
-                var stripArgs = ["--strip-all"];
-                var architectures = [];
-                for (var i in inputs["android.nativelibrary"])
-                    architectures.push(inputs["android.nativelibrary"][i].Android.ndk.abi);
-                for (var i in architectures) {
-                    var abiDirPath = FileInfo.joinPaths(product.Android.sdk.packageContentsDir,
-                                                        "lib", architectures[i]);
-                    var files = File.directoryEntries(abiDirPath, File.Files);
-                    for (var i = 0; i < files.length; ++i) {
-                        var filePath = FileInfo.joinPaths(abiDirPath, files[i]);
-                        if (FileInfo.suffix(filePath) == "so") {
-                            stripArgs.push(filePath);
-                        }
-                    }
-                }
-                var process = new Process();
-                process.exec(product.cpp.stripPath, stripArgs, false);
-            }
-
-            return [copyCmd, androidDeployQtCmd, moveCmd, stripLibsCmd];
+            return [copyCmd, androidDeployQtCmd, moveCmd];
         }
     }
 

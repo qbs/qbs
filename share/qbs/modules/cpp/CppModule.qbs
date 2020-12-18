@@ -179,6 +179,7 @@ Module {
     property string executablePrefix: ""
     property string staticLibrarySuffix: ""
     property string dynamicLibrarySuffix: ""
+    property string archSuffix: ""
     property string loadableModuleSuffix: ""
     property string executableSuffix: ""
     property string debugInfoSuffix: ""

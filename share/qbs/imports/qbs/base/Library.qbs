@@ -60,6 +60,8 @@ NativeBinary {
                 return ["dynamiclibrary", "dynamiclibrary_symlink"];
             if (isStaticLibrary)
                 return ["staticlibrary"];
+            if (isLoadableModule)
+                return ["loadablemodule"];
             return [];
         }
         qbs.install: true

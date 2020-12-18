@@ -697,7 +697,7 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
         }
         for (const ResolvedProductPtr &resolvedDependentProduct
              : qAsConst(resolvedProduct->dependencies)) {
-            product.d->dependencies << resolvedDependentProduct->name; // FIXME: Shouldn't this be a unique name?
+            product.d->dependencies << resolvedDependentProduct->fullDisplayName();
         }
         std::sort(product.d->type.begin(), product.d->type.end());
         std::sort(product.d->groups.begin(), product.d->groups.end());

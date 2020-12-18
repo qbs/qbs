@@ -19,9 +19,11 @@ CppApplication {
         console.info("has protobuf: " + protobuf.nanopb.present);
         return protobuf.nanopb.present;
     }
+    protobuf.nanopb.importPaths: product.sourceDirectory
 
     files: [
         "addressbook_nanopb.proto",
+        "addressbook_nanopb.options",
         "main_nanopb.cpp",
     ]
 }

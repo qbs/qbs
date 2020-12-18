@@ -107,6 +107,8 @@ function dynamicLibraryFilePath(product, variantSuffix, version, maxParts) {
         version = undefined;
     }
 
+    fileName += product.moduleProperty("cpp", "archSuffix");
+
     // Append the suffix (i.e. libqbs.1.0.0.dylib, libqbs.so, qbs.dll)
     fileName += product.moduleProperty("cpp", "dynamicLibrarySuffix");
 

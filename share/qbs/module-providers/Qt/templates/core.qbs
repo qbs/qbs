@@ -190,7 +190,8 @@ Module {
             return undefined;
         return frameworks;
     }
-    cpp.rpaths: qbs.targetOS.contains('linux') ? [libPath] : undefined
+    cpp.rpaths: qbs.targetOS.contains('linux') && !qbs.targetOS.contains("android") ? [libPath] :
+                                                                                      undefined
     cpp.runtimeLibrary: qbs.toolchain.contains("msvc")
         ? config.contains("static_runtime") ? "static" : "dynamic"
         : original

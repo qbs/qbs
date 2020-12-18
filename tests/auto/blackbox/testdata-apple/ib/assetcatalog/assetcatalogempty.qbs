@@ -17,7 +17,8 @@ Project {
                 filez.push("empty.xcassets/empty.iconset");
             else if (Utilities.versionCompare(xcode.version, "5") >= 0)
                 filez.push("empty.xcassets");
-            if (qbs.hostOSVersionMinor >= 10 // need macOS 10.10 to build SBs
+            if ((qbs.hostOSVersionMajor >= 11
+                 || qbs.hostOSVersionMinor >= 10) // need macOS 10.10 or higher to build SBs
                     && cpp.minimumMacosVersion !== undefined
                     && Utilities.versionCompare(cpp.minimumMacosVersion, "10.10") >= 0)
                 filez.push("Storyboard.storyboard");

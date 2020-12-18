@@ -21,7 +21,7 @@ Project {
             id: pythonProbe
             names: ["python3", "python"] // on Windows, there's no python3
         }
-        property string _pythonExe: pythonProbe.found ? pythonProbe.filePath : undefined
+        property string pythonPath: pythonProbe.found ? pythonProbe.filePath : undefined
 
         files: [
             "../README.md",
@@ -66,11 +66,11 @@ Project {
             outputFileTags: ["qdoc-html", "qbsdoc.dummy"] // TODO: Hack. Rule injection to the rescue?
             outputArtifacts: [{filePath: "dummy", fileTags: ["qbsdoc.dummy"]}]
             prepare: {
-                if (!product._pythonExe)
+                if (!product.pythonPath)
                     throw "Python executable was not found";
                 var scriptPath = explicitlyDependsOn["qbsdoc.fiximports"][0].filePath;
                 var htmlDir = FileInfo.path(FileInfo.path(inputs["qdoc-png"][0].filePath));
-                var fixCmd = new Command(product._pythonExe, [scriptPath, htmlDir]);
+                var fixCmd = new Command(product.pythonPath, [scriptPath, htmlDir]);
                 fixCmd.description = "fixing bogus QML import statements";
                 return [fixCmd];
             }

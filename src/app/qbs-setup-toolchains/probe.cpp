@@ -163,10 +163,10 @@ void createProfile(const QString &profileName, const QString &toolchainType,
             : toolchainTypeFromCompilerName(compiler.fileName());
     const QStringList toolchain = canonicalToolchain(realToolchainType);
 
-    if (toolchain.contains(QLatin1String("msvc")))
-        createMsvcProfile(compiler, settings, profileName);
-    else if (toolchain.contains(QLatin1String("clang-cl")))
+    if (toolchain.contains(QLatin1String("clang-cl")))
         createClangClProfile(compiler, settings, profileName);
+    else if (toolchain.contains(QLatin1String("msvc")))
+        createMsvcProfile(compiler, settings, profileName);
     else if (toolchain.contains(QLatin1String("gcc")))
         createGccProfile(compiler, settings, realToolchainType, profileName);
     else if (toolchain.contains(QLatin1String("iar")))
