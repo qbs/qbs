@@ -55,8 +55,7 @@
 int printUsage(char *argv0)
 {
     NSString *programName = [[NSString alloc] initWithUTF8String:argv0];
-    NSLog(@"%@", [[NSString alloc] initWithFormat:@"Usage: %@ add|list ADDRESS_BOOK_FILE", programName]);
-    [programName release];
+    NSLog(@"Usage: %@ add|list ADDRESS_BOOK_FILE", programName);
     return -1;
 }
 
@@ -65,9 +64,9 @@ NSString *readString(NSString *promt)
     NSLog(@"%@", promt);
     NSFileHandle *inputFile = [NSFileHandle fileHandleWithStandardInput];
     NSData *inputData = [inputFile availableData];
-    NSString *result = [[[NSString alloc]initWithData:inputData encoding:NSUTF8StringEncoding] autorelease];
-    result = [[result stringByTrimmingCharactersInSet:
-            [NSCharacterSet whitespaceAndNewlineCharacterSet]] autorelease];
+    NSString *result = [[NSString alloc] initWithData:inputData encoding:NSUTF8StringEncoding];
+    result = [result stringByTrimmingCharactersInSet:
+            [NSCharacterSet whitespaceAndNewlineCharacterSet]];
     return result;
 }
 
@@ -98,7 +97,7 @@ void promptForAddress(Person* person)
         else if ([type compare:@"work"] == NSOrderedSame)
             phoneNumber.type = Person_PhoneType_Work;
         else
-            NSLog(@"%@", @"Unknown phone type.  Using default.");
+            NSLog(@"Unknown phone type. Using default.");
 
         [person.phonesArray addObject:phoneNumber];
     }
@@ -107,20 +106,15 @@ void promptForAddress(Person* person)
 // Iterates though all people in the AddressBook and prints info about them.
 void listPeople(AddressBook *addressBook)
 {
-    NSArray *people = addressBook.peopleArray;
-    for (unsigned i = 0; i < [people count]; i++) {
-        Person *person = [people objectAtIndex:i];
-
-        NSLog(@"%@", [[[NSString alloc] initWithFormat:@"Person ID: %d", person.id_p] autorelease]);
-        NSLog(@"%@", [[[NSString alloc] initWithFormat:@"Person name: %@", person.name] autorelease]);
+    for (Person *person in addressBook.peopleArray) {
+        NSLog(@"Person ID: %d", person.id_p);
+        NSLog(@"Person name: %@", person.name);
 
         if ([person.email length] != 0) {
-            NSLog(@"%@", [[[NSString alloc] initWithFormat:@"E-mail address: %@", person.email] autorelease]);
+            NSLog(@"E-mail address: %@", person.email);
         }
 
-        NSArray *phones = person.phonesArray;
-        for (unsigned j = 0; j < [phones count]; j++) {
-            Person_PhoneNumber *phoneNumber = [phones objectAtIndex:j];
+        for (Person_PhoneNumber *phoneNumber in person.phonesArray) {
             NSString *phonePrefix;
 
             switch (phoneNumber.type) {
@@ -138,7 +132,7 @@ void listPeople(AddressBook *addressBook)
                 break;
             }
 
-            NSLog(@"%@", [[[NSString alloc] initWithFormat:@"  %@ #: %@", phonePrefix, phoneNumber.number] autorelease]);
+            NSLog(@"  %@ #: %@", phonePrefix, phoneNumber.number);
         }
         printf("\n");
     }
@@ -149,43 +143,41 @@ int main(int argc, char *argv[])
     if (argc != 3)
         return printUsage(argv[0]);
 
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    @autoreleasepool
+    {
+        AddressBook *addressBook;
+        NSString *filePath = [[NSString alloc] initWithUTF8String:argv[2]];
 
-    AddressBook *addressBook;// = [AddressBook alloc];
-    NSString *filePath = [[[NSString alloc] initWithUTF8String:argv[2]] autorelease];
-
-    // Read the existing address book.
-    NSData *data = [NSData dataWithContentsOfFile:filePath];
-    if (!data) {
-        NSLog(@"%@", [[NSString alloc] initWithFormat:@"%@ : File not found.", filePath]);
-        addressBook = [[[AddressBook alloc] init] autorelease];
-    } else {
-        NSError *error;
-        addressBook = [AddressBook parseFromData:data error:&error];
-        if (!addressBook) {
-            NSLog(@"%@", @"Failed to parse address book.");
-            [pool drain];
-            return -1;
-        }
-    }
-
-    if (strcmp(argv[1], "add") == 0) {
-        // Add an address.
-        Person *person = [[Person alloc] init];
-        promptForAddress(person);
-        [addressBook.peopleArray addObject:person];
-
+        // Read the existing address book.
+        NSData *data = [NSData dataWithContentsOfFile:filePath];
         if (!data) {
-            NSLog(@"%@", @"Creating a new file.");
+            NSLog(@"%@ : File not found.", filePath);
+            addressBook = [[AddressBook alloc] init];
+        } else {
+            NSError *error;
+            addressBook = [AddressBook parseFromData:data error:&error];
+            if (!addressBook) {
+                NSLog(@"Failed to parse address book.");
+                return -1;
+            }
         }
-        [[addressBook data] writeToFile:filePath atomically:YES];
-    } else if (strcmp(argv[1], "list") == 0) {
-        listPeople(addressBook);
-    } else {
-        [pool drain];
-        return printUsage(argv[0]);
-    }
 
-    [pool drain];
-    return 0;
+        if (strcmp(argv[1], "add") == 0) {
+            // Add an address.
+            Person *person = [[Person alloc] init];
+            promptForAddress(person);
+            [addressBook.peopleArray addObject:person];
+
+            if (!data) {
+                NSLog(@"Creating a new file.");
+            }
+            [[addressBook data] writeToFile:filePath atomically:YES];
+        } else if (strcmp(argv[1], "list") == 0) {
+            listPeople(addressBook);
+        } else {
+            return printUsage(argv[0]);
+        }
+
+        return 0;
+    }
 }

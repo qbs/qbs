@@ -7,8 +7,9 @@ CppApplication {
     Depends { name: "cpp" }
     Depends { name: "protobuf.objc"; required: false }
 
-    files: [
-        "../shared/addressbook.proto",
-        "main.m",
-    ]
+    Group {
+        cpp.automaticReferenceCounting: true
+        files: "main.m"
+    }
+    files: "../shared/addressbook.proto"
 }
