@@ -60,7 +60,7 @@ PathProbe {
                 else if (qbs.architecture === "x86")
                     result = ["/usr/lib32", "/usr/lib/i386-linux-gnu"]
             }
-            result = result.concat(["/usr/lib", "/usr/local/lib"]);
+            result = result.concat(["/usr/lib", "/usr/local/lib", "/lib", "/app/lib"]);
         }
 
         return result;
