@@ -267,6 +267,6 @@ function writeImportStatements(product, moduleFile)
     if (!imports.contains("import qbs.FileInfo"))
         imports.push("import qbs.FileInfo");
 
-    for (var i = 0; i < product.exports.imports.length; ++i)
-        moduleFile.writeLine(product.exports.imports[i]);
+    for (var i = 0; i < imports.length; ++i)
+        moduleFile.writeLine(imports[i]);
 }
