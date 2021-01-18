@@ -43,7 +43,7 @@ function supportXLinker(architecture) {
         || architecture === "msp430" || architecture === "v850"
         || architecture === "m68k" || architecture === "m32c"
         || architecture === "r32c" || architecture === "m16c"
-        || architecture === "cr16";
+        || architecture === "cr16" || architecture === "hcs12";
 }
 
 function supportILinker(architecture) {
@@ -59,7 +59,7 @@ function supportXArchiver(architecture) {
         || architecture === "78k" || architecture === "avr32"
         || architecture === "m68k" || architecture === "m32c"
         || architecture === "r32c" || architecture === "m16c"
-        || architecture === "cr16";
+        || architecture === "cr16" || architecture === "hcs12";
 }
 
 function supportIArchiver(architecture) {
@@ -94,6 +94,8 @@ function architectureCode(architecture) {
         return "34";
     case "cr16":
         return "45";
+    case "hcs12":
+        return "12";
     case "rh850": case "rl78": case "rx": case "stm8": case "sh": case "riscv":
         return "";
     default:
@@ -141,6 +143,8 @@ function compilerName(qbs) {
         return "iccm16c";
     else if (architecture === "cr16")
         return "icccr16c";
+    else if (architecture === "hcs12")
+        return "icchcs12";
     throw "Unable to deduce compiler name for unsupported architecture: '"
             + architecture + "'";
 }
@@ -183,6 +187,8 @@ function assemblerName(qbs) {
         return "am16c";
     else if (architecture === "cr16")
         return "acr16c";
+    else if (architecture === "hcs12")
+        return "ahcs12";
     throw "Unable to deduce assembler name for unsupported architecture: '"
             + architecture + "'";
 }
@@ -307,6 +313,8 @@ function guessArchitecture(macros) {
         return "m16c";
     else if (macros["__ICCCR16C__"] === "1")
         return "cr16";
+    else if (macros["__ICCHCS12__"] === "1")
+        return "hcs12";
 }
 
 function guessEndianness(macros) {
@@ -327,7 +335,7 @@ function guessVersion(macros, architecture)
                || architecture === "rh850" || architecture === "v850" || architecture === "78k"
                || architecture === "avr32" || architecture === "sh" || architecture === "riscv"
                || architecture === "m68k" || architecture === "m32c" || architecture === "r32c"
-               || architecture === "m16c" || architecture === "cr16") {
+               || architecture === "m16c" || architecture === "cr16" || architecture === "hcs12") {
         return { major: parseInt(version / 100),
             minor: parseInt(version % 100),
             patch: 0 }
@@ -356,6 +364,7 @@ function cppLanguageOption(compilerFilePath) {
     case "iccr32c":
     case "iccm16c":
     case "icccr16c":
+    case "icchcs12":
         return "--ec++";
     }
     throw "Unable to deduce C++ language option for unsupported compiler: '"
@@ -587,7 +596,7 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
         args.push("--no_warnings");
         break;
     case "all":
-        if (architecture !== "78k") {
+        if (architecture !== "78k" && architecture !== "hcs12") {
             if (architecture !== "avr32" && architecture !== "r32c"
                 && architecture !== "sh" && architecture !== "m16c") {
                 args.push("--deprecated_feature_warnings="
@@ -638,7 +647,7 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
                    || architecture === "avr32" || architecture === "sh"
                    || architecture === "m68k" || architecture === "m32c"
                    || architecture === "r32c" || architecture === "m16c"
-                   || architecture === "cr16") {
+                   || architecture === "cr16" || architecture === "hcs12") {
             args.push("--ec++");
         }
     }

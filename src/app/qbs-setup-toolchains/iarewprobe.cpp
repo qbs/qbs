@@ -65,7 +65,8 @@ static QStringList knownIarCompilerNames()
             QStringLiteral("iccavr32"), QStringLiteral("iccsh"),
             QStringLiteral("iccriscv"), QStringLiteral("icccf"),
             QStringLiteral("iccm32c"), QStringLiteral("iccr32c"),
-            QStringLiteral("iccm16c"), QStringLiteral("icccr16c")};
+            QStringLiteral("iccm16c"), QStringLiteral("icccr16c"),
+            QStringLiteral("icchcs12")};
 }
 
 static QString guessIarArchitecture(const QFileInfo &compiler)
@@ -107,6 +108,8 @@ static QString guessIarArchitecture(const QFileInfo &compiler)
         return QStringLiteral("m16c");
     if (baseName == QLatin1String("icccr16c"))
         return QStringLiteral("cr16");
+    if (baseName == QLatin1String("icchcs12"))
+        return QStringLiteral("hcs12");
     return {};
 }
 
@@ -190,7 +193,8 @@ static Version dumpIarCompilerVersion(const QFileInfo &compiler)
                || arch == QLatin1String("m32c")
                || arch == QLatin1String("r32c")
                || arch == QLatin1String("m16c")
-               || arch == QLatin1String("rc16")) {
+               || arch == QLatin1String("rc16")
+               || arch == QLatin1String("hcs12")) {
         return Version{verCode / 100, verCode % 100};
     }
 
@@ -249,6 +253,7 @@ static std::vector<ToolchainInstallInfo> installedIarsFromRegistry()
             {QStringLiteral("EWR32C"), QStringLiteral("/r32c/bin/iccr32c.exe")},
             {QStringLiteral("EWM16C"), QStringLiteral("/m16c/bin/iccm16c.exe")},
             {QStringLiteral("EWCR16C"), QStringLiteral("/cr16c/bin/icccr16c.exe")},
+            {QStringLiteral("EWHCS12"), QStringLiteral("/hcs12/bin/icchcs12.exe")},
         };
 
         QSettings registry(QLatin1String(kRegistryNode), QSettings::NativeFormat);
