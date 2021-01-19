@@ -67,11 +67,6 @@ if [ ! "${QT_VERSION}" \< "5.14.0" ] && [ "${QT_VERSION}" \< "6.0.0" ]; then
     echo "Using multi-arch data sets for qml tests (only for qt version >= 5.14 and < 6.0.0) with all architectures"
     qbs config --list
     tst_blackbox-android
-
-    echo "Using multi-arch data sets for qml tests (only for qt version >= 5.14) with only armv7a and x86_64"
-    qbs config profiles.qbs_autotests-android-qt.qbs.architectures '["armv7a","x86_64"]'
-    qbs config --list
-    tst_blackbox-android
 fi;
 
 echo "Using single-arch (armv7a) data sets for qml tests"
