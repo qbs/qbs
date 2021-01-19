@@ -178,20 +178,18 @@ Module {
     property path compiledResourcesDir: FileInfo.joinPaths(product.buildDirectory,
                                                            "compiled_resources")
     property string packageContentsDir: FileInfo.joinPaths(product.buildDirectory, packageType)
-    property string debugKeyStorePath: FileInfo.joinPaths(
-                                           Environment.getEnv(qbs.hostOS.contains("windows")
-                                                              ? "USERPROFILE" : "HOME"),
-                                           ".android", "debug.keystore")
-    property bool useApksigner: buildToolsVersion && Utilities.versionCompare(
-                                    buildToolsVersion, "24.0.3") >= 0
     property stringList aidlSearchPaths
 
     Depends { name: "java"; condition: _enableRules }
+    Depends { name: "codesign"; condition: _enableRules }
     Properties {
         condition: _enableRules
         java.languageVersion: platformJavaVersion
         java.runtimeVersion: platformJavaVersion
         java.bootClassPaths: androidJarFilePath
+        codesign.apksignerFilePath: Android.sdk.apksignerFilePath
+        codesign._packageName: Android.sdk.apkBaseName + (_generateAab ? ".aab" : ".apk")
+        codesign.useApksigner: !_generateAab
     }
 
     validate: {
@@ -211,6 +209,11 @@ Module {
                                        + "Android bundletool can be downloaded from "
                                        + "https://github.com/google/bundletool");
         }
+        if (Utilities.versionCompare(buildToolsVersion, "24.0.3") < 0) {
+            throw ModUtils.ModuleError("Version of Android SDK build tools too old. This version "
+                                       + "is " + buildToolsVersion + " and minimum version is "
+                                       + "24.0.3. Please update the Android SDK.")
+        }
     }
 
     FileTagger {
@@ -221,36 +224,6 @@ Module {
     FileTagger {
         patterns: ["*.aidl"]
         fileTags: ["android.aidl"]
-    }
-
-    FileTagger {
-        patterns: ["*.keystore"]
-        fileTags: ["android.keystore"]
-    }
-
-    // Typically there is a debug keystore in ~/.android/debug.keystore which gets created
-    // by the native build tools the first time a build is done. However, we don't want to create it
-    // ourselves, because writing to a location outside the qbs build directory is both polluting
-    // and has the potential for race conditions. So we'll instruct the user what to do.
-    Group {
-        name: "Android debug keystore"
-        files: {
-            if (!File.exists(Android.sdk.debugKeyStorePath)) {
-                throw ModUtils.ModuleError("Could not find an Android debug keystore at " +
-                      Android.sdk.debugKeyStorePath + ". " +
-                      "If you are developing for Android on this machine for the first time and " +
-                      "have never built an application using the native Gradle / Android Studio " +
-                      "tooling, this is normal. You must create the debug keystore now using the " +
-                      "following command, in order to continue:\n\n" +
-                      SdkUtils.createDebugKeyStoreCommandString(java.keytoolFilePath,
-                                                                Android.sdk.debugKeyStorePath) +
-                      "\n\n" +
-                      "See the following URL for more information: " +
-                      "https://developer.android.com/studio/publish/app-signing.html#debug-mode");
-            }
-            return [Android.sdk.debugKeyStorePath];
-        }
-        fileTags: ["android.keystore"]
     }
 
     Parameter {
@@ -525,11 +498,11 @@ Module {
         inputs: [
             "android.resources", "android.assets", "android.manifest_final",
             "android.dex", "android.stl_deployed",
-            "android.nativelibrary_deployed", "android.keystore"
+            "android.nativelibrary_deployed"
         ]
         Artifact {
-            filePath: product.Android.sdk.apkBaseName + ".apk"
-            fileTags: "android.package"
+            filePath: product.Android.sdk.apkBaseName + ".apk_unsigned"
+            fileTags: "android.package_unsigned"
         }
         prepare: SdkUtils.prepareAaptPackage.apply(SdkUtils, arguments)
     }
@@ -540,11 +513,11 @@ Module {
         inputs: [
             "android.apk_resources", "android.manifest_final",
             "android.dex", "android.stl_deployed",
-            "android.nativelibrary_deployed", "android.keystore"
+            "android.nativelibrary_deployed"
         ]
         Artifact {
-            filePath: product.Android.sdk.apkBaseName + ".apk"
-            fileTags: "android.package"
+            filePath: product.Android.sdk.apkBaseName + ".apk_unsigned"
+            fileTags: "android.package_unsigned"
         }
         prepare: SdkUtils.prepareApkPackage.apply(SdkUtils, arguments)
     }
@@ -558,8 +531,8 @@ Module {
             "android.nativelibrary_deployed"
         ]
         Artifact {
-            filePath: product.Android.sdk.apkBaseName + ".aab"
-            fileTags: "android.package"
+            filePath: product.Android.sdk.apkBaseName + ".aab_unsigned"
+            fileTags: "android.package_unsigned"
         }
         prepare: SdkUtils.prepareBundletoolPackage.apply(SdkUtils, arguments)
     }

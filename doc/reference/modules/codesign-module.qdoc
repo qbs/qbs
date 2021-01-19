@@ -33,7 +33,8 @@
 
     \brief Provides code signing support.
 
-    The \c codesign module contains properties and rules for code signing on Apple platforms.
+    The \c codesign module contains properties and rules for code signing on Apple and Android
+    platforms.
 
     \section2 Relevant File Tags
 
@@ -243,4 +244,66 @@
     \defaultvalue \c undefined
 
     \appleproperty
+*/
+
+/*!
+    \qmlproperty bool codesign::useApksigner
+
+    If \c true, the package is signed using apksignerFilePath binary.
+    Set this property to \c false to use the jarsignerFilePath one.
+    Set by the Android.sdk module.
+
+    \since Qbs 1.19
+
+    \defaultvalue \c true
+
+    \androidproperty
+*/
+
+/*!
+    \qmlproperty string codesign::keystorePath
+
+    The absolute path to the keystore file.
+
+    \since Qbs 1.19
+
+    \defaultvalue \c "${HOME}/.android/debug.keystore"
+
+    \androidproperty
+*/
+
+/*!
+    \qmlproperty string codesign::keystorePassword
+
+    The keystore password.
+
+    \since Qbs 1.19
+
+    \defaultvalue \c "android"
+
+    \androidproperty
+*/
+
+/*!
+    \qmlproperty string codesign::keyPassword
+
+    The key password.
+
+    \since Qbs 1.19
+
+    \defaultvalue \c "android"
+
+    \androidproperty
+*/
+
+/*!
+    \qmlproperty string codesign::keyAlias
+
+    The key alias.
+
+    \since Qbs 1.19
+
+    \defaultvalue \c "androiddebugkey"
+
+    \androidproperty
 */

@@ -268,14 +268,19 @@ void TestBlackboxAndroid::android_data()
         return result;
     };
 
-    auto commonFiles = [](bool generateAab) {
+    auto commonFiles = [](bool generateAab, bool codeSign = true,
+            QString keyAlias="androiddebugkey") {
+        QByteArrayList files;
         if (generateAab)
-            return (QByteArrayList()
-                    << "base/manifest/AndroidManifest.xml" << "base/dex/classes.dex"
-                    << "BundleConfig.pb");
-        return (QByteArrayList()
-                << "AndroidManifest.xml" << "META-INF/ANDROIDD.RSA" << "META-INF/ANDROIDD.SF"
-                << "META-INF/MANIFEST.MF" << "classes.dex");
+            files << "base/manifest/AndroidManifest.xml" << "base/dex/classes.dex"
+                  << "BundleConfig.pb";
+        else
+            files << "AndroidManifest.xml" << "classes.dex";
+        if (codeSign)
+            files << QByteArray("META-INF/" + keyAlias.toUpper().left(8).toUtf8() + ".RSA")
+                  << QByteArray("META-INF/" + keyAlias.toUpper().left(8).toUtf8() + ".SF")
+                  << "META-INF/MANIFEST.MF";
+        return files;
     };
 
     QTest::addColumn<QString>("projectDir");
@@ -296,10 +301,11 @@ void TestBlackboxAndroid::android_data()
     bool generateAab = false;
     bool isIncrementalBuild = false;
 
-    auto qtAppExpectedFiles = [&](bool generateAab, bool enableAapt2) {
+    auto qtAppExpectedFiles = [&](bool generateAab, bool enableAapt2, bool codeSign = true,
+            QString keyAlias="androiddebugkey") {
         QByteArrayList expectedFile;
         if (singleArchQt) {
-            expectedFile << commonFiles(generateAab) + expandArchs(ndkArchsForQt, {
+            expectedFile << commonFiles(generateAab, codeSign, keyAlias) + expandArchs(ndkArchsForQt, {
                        cxxLibPath("libgnustl_shared.so", true),
                        "assets/--Added-by-androiddeployqt--/qt_cache_pregenerated_file_list",
                        "lib/${ARCH}/libplugins_imageformats_libqgif.so",
@@ -317,7 +323,7 @@ void TestBlackboxAndroid::android_data()
                        "lib/${ARCH}/libQt5Widgets.so",
                        "lib/${ARCH}/libqt-app.so"}, generateAab);
         } else {
-            expectedFile << commonFiles(generateAab) + expandArchs(ndkArchsForQt, {
+            expectedFile << commonFiles(generateAab, codeSign, keyAlias) + expandArchs(ndkArchsForQt, {
                        cxxLibPath("libgnustl_shared.so", true),
                        "lib/${ARCH}/libplugins_imageformats_qgif_${ARCH}.so",
                        "lib/${ARCH}/libplugins_imageformats_qico_${ARCH}.so",
@@ -329,7 +335,7 @@ void TestBlackboxAndroid::android_data()
                        "lib/${ARCH}/libqt-app_${ARCH}.so"}, generateAab);
         }
         if (generateAab)
-            expectedFile << "base/resources.pb" << "base/assets.pb" << "base/native.pb";
+            expectedFile << "base/resources.pb" << "base/native.pb";
         else
             expectedFile << "resources.arsc";
         if (version >= qbs::Version(5, 14))
@@ -346,11 +352,82 @@ void TestBlackboxAndroid::android_data()
             expectedFile << "res/layout/splash.xml";
         return expectedFile;
     };
+    auto codeSignProperties = [&](bool codeSign, QString keyStorePath, QString keystorePassword,
+            QString keyPassword, QString keyAlias) {
+        if (!codeSign)
+            return QStringList{"modules.codesign.enableCodeSigning:false"};
+        return QStringList{
+            "modules.codesign.enableCodeSigning:true",
+            "modules.codesign.keystorePath:" + keyStorePath,
+            "modules.codesign.keystorePassword:" + keystorePassword,
+            "modules.codesign.keyPassword:" + keyPassword,
+            "modules.codesign.keyAlias:" + keyAlias,
+        };
+    };
+    bool codeSign = true;
+    QString keyStorePath(testDataDir + "/qt-app/test.keystore");
+    QString keystorePassword("qbsKeystoreTest");
+    QString keyPassword("qbsKeyTest");
+    QString keyAlias("qbsTest");
     QTest::newRow("qt app")
             << "qt-app" << QStringList("qt-app")
             << (QList<QByteArrayList>() << (QByteArrayList() << qtAppExpectedFiles(generateAab,
-                                                                                   enableAapt2)))
-            << QStringList{aaptVersion(enableAapt2), packageType(generateAab)}
+                                                                                   enableAapt2,
+                                                                                   codeSign,
+                                                                                   keyAlias)))
+            << (QStringList() << codeSignProperties(codeSign, keyStorePath, keystorePassword,
+                                                    keyPassword, keyAlias)
+                << aaptVersion(enableAapt2)
+                << packageType(generateAab))
+            << enableAapt2 << generateAab << isIncrementalBuild;
+    codeSign = false;
+    QTest::newRow("qt app no signing")
+            << "qt-app" << QStringList("qt-app")
+            << (QList<QByteArrayList>() << (QByteArrayList() << qtAppExpectedFiles(generateAab,
+                                                                                   enableAapt2,
+                                                                                   codeSign,
+                                                                                   keyAlias)))
+            << (QStringList() << codeSignProperties(codeSign, keyStorePath, keystorePassword,
+                                                    keyPassword, keyAlias)
+                << aaptVersion(enableAapt2)
+                << packageType(generateAab))
+            << enableAapt2 << generateAab << isIncrementalBuild;
+    enableAapt2 = true;
+    codeSign = true;
+    QTest::newRow("qt app aapt2")
+            << "qt-app" << QStringList("qt-app")
+            << (QList<QByteArrayList>() << (QByteArrayList() << qtAppExpectedFiles(generateAab,
+                                                                                   enableAapt2,
+                                                                                   codeSign,
+                                                                                   keyAlias)))
+            << (QStringList() << codeSignProperties(codeSign, keyStorePath, keystorePassword,
+                                                    keyPassword, keyAlias)
+                << aaptVersion(enableAapt2)
+                << packageType(generateAab))
+            << enableAapt2 << generateAab << isIncrementalBuild;
+    generateAab = true;
+    QTest::newRow("qt app aab")
+            << "qt-app" << QStringList("qt-app")
+            << (QList<QByteArrayList>() << (QByteArrayList() << qtAppExpectedFiles(generateAab,
+                                                                                   enableAapt2,
+                                                                                   codeSign,
+                                                                                   keyAlias)))
+            << (QStringList() << codeSignProperties(codeSign, keyStorePath, keystorePassword,
+                                                    keyPassword, keyAlias)
+                << aaptVersion(enableAapt2)
+                << packageType(generateAab))
+            << enableAapt2 << generateAab << isIncrementalBuild;
+    codeSign = false;
+    QTest::newRow("qt app aab no signing")
+            << "qt-app" << QStringList("qt-app")
+            << (QList<QByteArrayList>() << (QByteArrayList() << qtAppExpectedFiles(generateAab,
+                                                                                   enableAapt2,
+                                                                                   codeSign,
+                                                                                   keyAlias)))
+            << (QStringList() << codeSignProperties(codeSign, keyStorePath, keystorePassword,
+                                                    keyPassword, keyAlias)
+                << aaptVersion(enableAapt2)
+                << packageType(generateAab))
             << enableAapt2 << generateAab << isIncrementalBuild;
 
     const QByteArrayList ndkArchsForQtSave = ndkArchsForQt;
@@ -383,6 +460,8 @@ void TestBlackboxAndroid::android_data()
         return expectedFile;
     };
 
+    generateAab = false;
+    enableAapt2 = false;
     QTest::newRow("teapot")
             << "teapot" << QStringList("TeapotNativeActivity")
             << (QList<QByteArrayList>() << teaPotAppExpectedFiles(archs, generateAab))
@@ -437,6 +516,7 @@ void TestBlackboxAndroid::android_data()
                            "modules.qbs.architecture:" + archsStringList.first(),
                            aaptVersion(enableAapt2), packageType(generateAab)}
             << enableAapt2 << generateAab << isIncrementalBuild;
+
     auto qmlAppExpectedFiles = [&](bool generateAab, bool enableAapt2) {
         QByteArrayList expectedFile;
         if (singleArchQt) {
@@ -730,7 +810,6 @@ void TestBlackboxAndroid::android_data()
     } else {
         qmlAppCustomProperties = QStringList{"modules.Android.sdk.automaticSources:false"};
     }
-
     // aapt tool for the resources works with a directory option pointing to the parent directory
     // of the resources (res).
     // The Qt.android_support module adds res/values/libs.xml (from Qt install dir). So the res from
@@ -851,6 +930,7 @@ void TestBlackboxAndroid::android_data()
             expectedFile << "resources.arsc";
         return expectedFile;
     };
+
     QTest::newRow("no native")
             << "no-native"
             << QStringList("com.example.android.basicmediadecoder")

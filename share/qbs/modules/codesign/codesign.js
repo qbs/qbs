@@ -32,6 +32,7 @@
 var File = require("qbs.File");
 var FileInfo = require("qbs.FileInfo");
 var PathTools = require("qbs.PathTools");
+var Process = require("qbs.Process");
 var PropertyList = require("qbs.PropertyList");
 var Utilities = require("qbs.Utilities");
 
@@ -276,4 +277,75 @@ function prepareSign(project, product, inputs, outputs, input, output) {
     }
 
     return cmds;
+}
+
+function signApkPackage(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
+    var apkInput = inputs["android.package_unsigned"][0];
+    var apkOutput = outputs["android.package"][0];
+    var cmd;
+    if (product.codesign.enableCodeSigning) {
+        var args = ["sign",
+                    "--ks", product.codesign.keystorePath,
+                    "--ks-pass", "pass:" + product.codesign.keystorePassword,
+                    "--ks-key-alias", product.codesign.keyAlias,
+                    "--key-pass", "pass:" + product.codesign.keyPassword,
+                    "--out", apkOutput.filePath,
+                    apkInput.filePath];
+        cmd = new Command(product.codesign.apksignerFilePath, args);
+        cmd.description = "signing " + apkOutput.fileName;
+    } else {
+        cmd = new JavaScriptCommand();
+        cmd.description = "copying without signing " + apkOutput.fileName;
+        cmd.source = apkInput.filePath;
+        cmd.target = apkOutput.filePath;
+        cmd.silent = true;
+        cmd.sourceCode = function() {
+            // If enableCodeSigning is changed to false without any change to unsigned package then
+            // the copy won't happen because of timestamps. So the target file needs file needs to
+            // be removed to avoid it.
+            File.remove(target);
+            File.copy(source, target);
+        }
+    }
+    return cmd;
+}
+
+function signAabPackage(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
+    var aabInput = inputs["android.package_unsigned"][0];
+    var aabOutput = outputs["android.package"][0];
+    var cmd;
+    if (product.codesign.enableCodeSigning) {
+        args = ["-sigalg", "SHA1withRSA", "-digestalg", "SHA1",
+                "-keystore", product.codesign.keystorePath,
+                "-storepass", product.codesign.keystorePassword,
+                "-keypass", product.codesign.keyPassword,
+                "-signedjar", aabOutput.filePath,
+                aabInput.filePath,
+                product.codesign.keyAlias];
+        cmd = new Command(product.codesign.jarsignerFilePath, args);
+        cmd.description = "signing " + aabOutput.fileName;
+    } else {
+        cmd = new JavaScriptCommand();
+        cmd.description = "copying without signing " + aabOutput.fileName;
+        cmd.source = aabInput.filePath;
+        cmd.target = aabOutput.filePath;
+        cmd.silent = true;
+        cmd.sourceCode = function() {
+            // If enableCodeSigning is changed to false without any change to unsigned package then
+            // the copy won't happen because of timestamps. So the target file needs file needs to
+            // be removed to avoid it.
+            File.remove(target);
+            File.copy(source, target);
+        }
+    }
+    return cmd;
+}
+
+function createDebugKeyStoreCommandString(keytoolFilePath, keystoreFilePath, keystorePassword,
+                                          keyPassword, keyAlias) {
+    var args = ["-genkey", "-keystore", keystoreFilePath, "-alias", keyAlias,
+                "-storepass", keystorePassword, "-keypass", keyPassword, "-keyalg", "RSA",
+                "-keysize", "2048", "-validity", "10000", "-dname",
+                "CN=Android Debug,O=Android,C=US"];
+    return Process.shellQuote(keytoolFilePath, args);
 }
