@@ -1,7 +1,7 @@
 Project {
     QtGuiApplication {
         Depends { name: "Lib" }
-        files: ["main.cpp", "MainWindow.cpp", "MainWindow.h"]
+        files: ["main.cpp", "MainWindow.cpp", "MainWindow.h", "Test.java"]
         Android.sdk.packageName: "my.qtapp"
         Android.sdk.apkBaseName: name
         Depends { name: "Qt"; submodules: ["core", "widgets"] }

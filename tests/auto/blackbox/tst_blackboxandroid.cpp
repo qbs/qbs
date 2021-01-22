@@ -79,7 +79,7 @@ void TestBlackboxAndroid::android()
     QFETCH(QString, projectDir);
     QFETCH(QStringList, productNames);
     QFETCH(QList<QByteArrayList>, expectedFilesLists);
-    QFETCH(QStringList, qmlAppCustomProperties);
+    QFETCH(QStringList, customProperties);
     QFETCH(bool, enableAapt2);
     QFETCH(bool, generateAab);
     QFETCH(bool, isIncrementalBuild);
@@ -112,6 +112,8 @@ void TestBlackboxAndroid::android()
 
     const QString buildSubDir = enableAapt2 ? (generateAab ? "aab" : "aapt2") : "aapt";
     QDir::setCurrent(testDataDir + "/" + projectDir);
+    if (!isIncrementalBuild)
+        rmDirR(relativeBuildDir(buildSubDir));
 
     static const QStringList configNames { "debug", "release" };
     for (const QString &configName : configNames) {
@@ -119,7 +121,7 @@ void TestBlackboxAndroid::android()
         const QString configArgument = "config:" + configName;
         QbsRunParameters resolveParams("resolve");
         resolveParams.buildDirectory = buildSubDir;
-        resolveParams.arguments << configArgument << qmlAppCustomProperties;
+        resolveParams.arguments << configArgument << customProperties;
         resolveParams.profile = p.name();
         QCOMPARE(runQbs(resolveParams), 0);
         QbsRunParameters buildParams(QStringList{"--command-echo-mode", "command-line",
@@ -279,7 +281,7 @@ void TestBlackboxAndroid::android_data()
     QTest::addColumn<QString>("projectDir");
     QTest::addColumn<QStringList>("productNames");
     QTest::addColumn<QList<QByteArrayList>>("expectedFilesLists");
-    QTest::addColumn<QStringList>("qmlAppCustomProperties");
+    QTest::addColumn<QStringList>("customProperties");
     QTest::addColumn<bool>("enableAapt2");
     QTest::addColumn<bool>("generateAab");
     QTest::addColumn<bool>("isIncrementalBuild");
@@ -350,6 +352,17 @@ void TestBlackboxAndroid::android_data()
                                                                                    enableAapt2)))
             << QStringList{aaptVersion(enableAapt2), packageType(generateAab)}
             << enableAapt2 << generateAab << isIncrementalBuild;
+
+    const QByteArrayList ndkArchsForQtSave = ndkArchsForQt;
+    ndkArchsForQt = {ndkArchsForQt.first()};
+    QTest::newRow("qt app (single arch)")
+            << "qt-app" << QStringList("qt-app")
+            << (QList<QByteArrayList>() << (QByteArrayList() << qtAppExpectedFiles(generateAab,
+                                                                                   enableAapt2)))
+            << QStringList{aaptVersion(enableAapt2), packageType(generateAab),
+                           "modules.qbs.architectures:" + archsForQt.first()}
+            << enableAapt2 << generateAab << isIncrementalBuild;
+    ndkArchsForQt = ndkArchsForQtSave;
 
     auto teaPotAppExpectedFiles = [&](const QByteArrayList &archs, bool generateAab) {
         QByteArrayList expectedFile;
