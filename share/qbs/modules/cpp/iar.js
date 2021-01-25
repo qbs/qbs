@@ -43,7 +43,8 @@ function supportXLinker(architecture) {
         || architecture === "msp430" || architecture === "v850"
         || architecture === "m68k" || architecture === "m32c"
         || architecture === "r32c" || architecture === "m16c"
-        || architecture === "cr16" || architecture === "hcs12";
+        || architecture === "cr16" || architecture === "hcs12"
+        || architecture === "hcs8";
 }
 
 function supportILinker(architecture) {
@@ -59,7 +60,8 @@ function supportXArchiver(architecture) {
         || architecture === "78k" || architecture === "avr32"
         || architecture === "m68k" || architecture === "m32c"
         || architecture === "r32c" || architecture === "m16c"
-        || architecture === "cr16" || architecture === "hcs12";
+        || architecture === "cr16" || architecture === "hcs12"
+        || architecture === "hcs8";
 }
 
 function supportIArchiver(architecture) {
@@ -96,6 +98,8 @@ function architectureCode(architecture) {
         return "45";
     case "hcs12":
         return "12";
+    case "hcs8":
+        return "78";
     case "rh850": case "rl78": case "rx": case "stm8": case "sh": case "riscv":
         return "";
     default:
@@ -145,6 +149,8 @@ function compilerName(qbs) {
         return "icccr16c";
     else if (architecture === "hcs12")
         return "icchcs12";
+    else if (architecture === "hcs8")
+        return "iccs08";
     throw "Unable to deduce compiler name for unsupported architecture: '"
             + architecture + "'";
 }
@@ -189,6 +195,8 @@ function assemblerName(qbs) {
         return "acr16c";
     else if (architecture === "hcs12")
         return "ahcs12";
+    else if (architecture === "hcs8")
+        return "as08";
     throw "Unable to deduce assembler name for unsupported architecture: '"
             + architecture + "'";
 }
@@ -315,6 +323,8 @@ function guessArchitecture(macros) {
         return "cr16";
     else if (macros["__ICCHCS12__"] === "1")
         return "hcs12";
+    else if (macros["__ICCS08__"] === "1")
+        return "hcs8";
 }
 
 function guessEndianness(macros) {
@@ -335,7 +345,8 @@ function guessVersion(macros, architecture)
                || architecture === "rh850" || architecture === "v850" || architecture === "78k"
                || architecture === "avr32" || architecture === "sh" || architecture === "riscv"
                || architecture === "m68k" || architecture === "m32c" || architecture === "r32c"
-               || architecture === "m16c" || architecture === "cr16" || architecture === "hcs12") {
+               || architecture === "m16c" || architecture === "cr16" || architecture === "hcs12"
+               || architecture === "hcs8") {
         return { major: parseInt(version / 100),
             minor: parseInt(version % 100),
             patch: 0 }
@@ -596,7 +607,7 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
         args.push("--no_warnings");
         break;
     case "all":
-        if (architecture !== "78k" && architecture !== "hcs12") {
+        if (architecture !== "78k" && architecture !== "hcs12" && architecture !== "hcs8") {
             if (architecture !== "avr32" && architecture !== "r32c"
                 && architecture !== "sh" && architecture !== "m16c") {
                 args.push("--deprecated_feature_warnings="
@@ -704,7 +715,8 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
             || architecture === "rx" || architecture === "rh850"
             || architecture === "avr32" || architecture === "sh"
             || architecture === "riscv" || architecture === "m68k"
-            || architecture === "r32c" || architecture === "cr16") {
+            || architecture === "r32c" || architecture === "cr16"
+            || architecture === "hcs8") {
         // Silent output generation flag.
         args.push("--silent");
         // Warning level flags.

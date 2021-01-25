@@ -335,6 +335,9 @@
         \li 16-bit compact RISC architecture microcontroller family
             developed by National Semiconductor
     \row
+        \li \c{"hcs8"}
+        \li 8-bit HC08 and S08 microcontroller family from Freescale Semiconductor
+    \row
         \li \c{"hcs12"}
         \li 16-bit HC12 and S12 microcontroller family from Freescale Semiconductor
     \row
