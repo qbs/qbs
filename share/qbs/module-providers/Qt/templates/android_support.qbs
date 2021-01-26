@@ -38,7 +38,7 @@ Module {
     Depends { name: "Android.sdk"; condition: _enableSdkSupport }
     Depends { name: "Android.ndk"; condition: _enableNdkSupport }
     Depends { name: "java"; condition: _enableSdkSupport }
-    Depends { name: "cpp" }
+    Depends { name: "cpp"; condition: _enableNdkSupport }
 
     Properties {
         condition: _enableNdkSupport && qbs.toolchain.contains("clang")
@@ -62,8 +62,10 @@ Module {
         condition: _enableSdkSupport && Utilities.versionCompare(version, "6.0") >= 0
         java.additionalClassPaths: [FileInfo.joinPaths(_qtInstallDir, "jar", "Qt6Android.jar")]
     }
+    // "ANDROID_HAS_WSTRING" was removed from qtcore qstring.h in Qt 5.14.0
     Properties {
-        condition: _enableNdkSupport && (Android.ndk.abi === "armeabi-v7a" || Android.ndk.abi === "x86")
+        condition: _enableNdkSupport && Utilities.versionCompare(version, "5.14.0") < 0 &&
+                   (Android.ndk.abi === "armeabi-v7a" || Android.ndk.abi === "x86")
         cpp.defines: "ANDROID_HAS_WSTRING"
     }
     Properties {
@@ -78,7 +80,11 @@ Module {
         condition: _enableSdkSupport && Utilities.versionCompare(version, "6.0") >= 0
         Android.sdk.minimumVersion: "23"
     }
-    cpp.archSuffix: _multiAbi ? "_" + Android.ndk.abi : ""
+
+    Properties {
+        condition: _enableNdkSupport
+        cpp.archSuffix: _multiAbi ? "_" + Android.ndk.abi : ""
+    }
 
     Rule {
         condition: _enableSdkSupport
