@@ -588,6 +588,8 @@ function guessArchitecture(m) {
             architecture = "sh";
         } else if (hasAnyOf(m, ["__CR16__"])) {
             architecture = "cr16";
+        } else if (hasAnyOf(m, ["__mc68hc1x__", "__mc68hc1x"])) {
+            architecture = "hcs12";
         }
     }
 
