@@ -35,12 +35,10 @@ msbuildlib.subdir = src/lib/msbuild
 msbuildlib.depends = corelib
 src_app.subdir = src/app
 src_app.depends = corelib
+CONFIG(static, static|shared): src_app.depends += src_plugins
 src_libexec.subdir = src/libexec
 src_plugins.subdir = src/plugins
-CONFIG(shared, static|shared) {
-    src_plugins.depends = corelib
-    src_app.depends += src_plugins
-}
+CONFIG(shared, static|shared): src_plugins.depends = corelib
 src_plugins.depends += msbuildlib
 tests.depends = static_res
 static_res.file = static-res.pro
