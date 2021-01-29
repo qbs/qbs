@@ -52,6 +52,7 @@ private slots:
     void userIncludePaths();
     void systemIncludePaths();
     void distributionIncludePaths();
+    void compilerIncludePaths();
 
     void preincludeHeaders();
 

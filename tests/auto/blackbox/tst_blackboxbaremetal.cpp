@@ -32,6 +32,7 @@
 
 #include "../shared.h"
 
+#include <QtCore/qdir.h>
 #include <QtCore/qregularexpression.h>
 
 static bool extractToolset(const QByteArray &output,
@@ -44,6 +45,17 @@ static bool extractToolset(const QByteArray &output,
     const QRegularExpressionMatch match = it.next();
     toolchain = match.captured(1).toLocal8Bit();
     architecture = match.captured(2).toLocal8Bit();
+    return true;
+}
+
+static bool extractCompilerIncludePaths(const QByteArray &output, QStringList &compilerIncludePaths)
+{
+    const QRegularExpression re("%%([^%%]+)%%");
+    QRegularExpressionMatchIterator it = re.globalMatch(output);
+    if (!it.hasNext())
+        return false;
+    const QRegularExpressionMatch match = it.next();
+    compilerIncludePaths = match.captured(1).split(",");
     return true;
 }
 
@@ -140,6 +152,22 @@ void TestBlackboxBareMetal::distributionIncludePaths()
 {
     QDir::setCurrent(testDataDir + "/distribution-include-paths");
     QCOMPARE(runQbs(), 0);
+}
+
+void TestBlackboxBareMetal::compilerIncludePaths()
+{
+    QDir::setCurrent(testDataDir + "/compiler-include-paths");
+    QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList("-n"))), 0);
+    if (!m_qbsStdout.contains("compilerIncludePaths:"))
+        QFAIL("No compiler include paths exists");
+
+    QStringList includePaths;
+    QVERIFY(extractCompilerIncludePaths(m_qbsStdout, includePaths));
+    QVERIFY(includePaths.count() > 0);
+    for (const auto &includePath : includePaths) {
+        const QDir dir(includePath);
+        QVERIFY(dir.exists());
+    }
 }
 
 void TestBlackboxBareMetal::preincludeHeaders()

@@ -510,45 +510,47 @@ function dumpMacros(compilerFilePath, tag) {
     return ModUtils.extractMacros(outFile.readAll());
 }
 
-function dumpDefaultPaths(compilerFilePath, tag) {
+function dumpCompilerIncludePaths(compilerFilePath, tag) {
+    // We can dump the compiler include paths using the undocumented `--IDE3` flag,
+    // e.g. which also is used in the IAR extension for the VSCode. In this case the
+    // compiler procuces the console output in the following format:
+    // `$$TOOL_BEGIN $$VERSION "3" $$INC_BEGIN $$FILEPATH "<path\\to\\directory>" $$TOOL_END`
+
     var tempDir = new TemporaryDir();
     var inFilePath = FileInfo.fromNativeSeparators(tempDir.path() + "/empty-source.c");
     var inFile = new TextFile(inFilePath, TextFile.WriteOnly);
 
-    var args = [ inFilePath, "--preinclude", "." ];
+    var args = ["--IDE3", inFilePath];
     if (tag === "cpp" && supportCppLanguage(compilerFilePath))
         args.push(cppLanguageOption(compilerFilePath));
 
-    var p = new Process();
-    // This process should return an error, don't throw
-    // an error in this case.
-    p.exec(compilerFilePath, args, false);
-    var output = p.readStdErr();
-
     var includePaths = [];
-    var pass = 0;
-    for (var pos = 0; pos < output.length; ++pos) {
-        var searchIndex = output.indexOf("searched:", pos);
-        if (searchIndex === -1)
-            break;
-        var startQuoteIndex = output.indexOf('"', searchIndex + 1);
-        if (startQuoteIndex === -1)
-            break;
-        var endQuoteIndex = output.indexOf('"', startQuoteIndex + 1);
-        if (endQuoteIndex === -1)
-            break;
-        pos = endQuoteIndex + 1;
+    var p = new Process();
+    // It is possible that the process can return an error code in case the
+    // compiler does not support the `--IDE3` flag. So, don't throw an error in this case.
+    p.exec(compilerFilePath, args, false);
+    p.readStdOut().trim().split(/\r?\n/g).map(function(line) {
+        var m = line.match(/\$\$INC_BEGIN\s\$\$FILEPATH\s\"([^"]*)/);
+        if (m) {
+            var includePath =  m[1].replace(/\\\\/g, '/');
+            if (includePath)
+                includePaths.push(includePath);
+        }
+    });
 
-        // Ignore the first path as it is not a compiler include path.
-        ++pass;
-        if (pass === 1)
-            continue;
-
-        var path = output.substring(startQuoteIndex + 1, endQuoteIndex)
-            .replace(/[\s]{2,}/g, ' ');
-        includePaths.push(path);
+    if (includePaths.length === 0) {
+        // This can happen if the compiler does not support the `--IDE3` flag,
+        // e.g. IAR for S08 architecture. In this case we use fallback to the
+        // detection of the `inc` directory.
+        var includePath = FileInfo.joinPaths(FileInfo.path(compilerFilePath), "../inc/");
+        includePaths.push(includePath);
     }
 
+    return includePaths;
+}
+
+function dumpDefaultPaths(compilerFilePath, tag) {
+    var includePaths = dumpCompilerIncludePaths(compilerFilePath, tag);
     return {
         "includePaths": includePaths
     };
