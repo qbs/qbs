@@ -825,6 +825,11 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
         args.push("-w" + (input.cpp.warningLevel === "none" ? "-" : "+"));
     }
 
+    // Byte order flags.
+    var endianness = input.cpp.endianness;
+    if (endianness && supportEndianness(architecture))
+        args.push("--endian=" + endianness);
+
     // Listing files generation flag.
     if (input.cpp.generateAssemblerListingFiles)
         args.push("-l", outputs.lst[0].filePath);
