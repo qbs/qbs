@@ -794,6 +794,16 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
     // Output.
     args.push("-o", outputs.obj[0].filePath);
 
+    var architecture = input.qbs.architecture;
+
+    // The `--preinclude` flag is only supported for a certain
+    // set of assemblers, not for all.
+    if (supportIAssembler(architecture)) {
+        var prefixHeaders = input.cpp.prefixHeaders;
+        for (var i in prefixHeaders)
+            args.push("--preinclude", prefixHeaders[i]);
+    }
+
     // Includes.
     var allIncludePaths = [];
     var systemIncludePaths = input.cpp.systemIncludePaths;
@@ -809,7 +819,6 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
         args.push("-r");
 
     // Architecture specific flags.
-    var architecture = input.qbs.architecture;
     if (supportIAssembler(architecture)) {
         // Silent output generation flag.
         args.push("--silent");
