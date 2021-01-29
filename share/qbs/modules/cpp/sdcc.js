@@ -142,7 +142,8 @@ function dumpDefaultPaths(compilerFilePath, architecture) {
                     || line.startsWith("libpath:")) {
             addIncludePaths = false;
         } else if (addIncludePaths) {
-            includePaths.push(line);
+            if (File.exists(line))
+                includePaths.push(line);
         }
     }
 
