@@ -89,13 +89,12 @@ static QByteArray dumpSdccMacros(const QFileInfo &compiler,
     return  p.readAllStandardOutput();
 }
 
-static QString dumpSdccArchitecture(const QFileInfo &compiler,
-                                    const QString &arch)
+static bool supportsSdccArchitecture(const QFileInfo &compiler, QStringView flag)
 {
-    const auto targetFlag = QStringLiteral("-m%1").arg(arch);
-    const auto token = QStringLiteral("__SDCC_%1").arg(arch);
+    const auto targetFlag = QStringLiteral("-m%1").arg(flag);
     const auto macros = dumpSdccMacros(compiler, targetFlag);
-    return macros.contains(token.toLatin1()) ? arch : QString();
+    const auto token = QStringLiteral("__SDCC_%1").arg(flag);
+    return macros.contains(token.toLatin1());
 }
 
 static std::vector<Profile> createSdccProfileHelper(
@@ -107,13 +106,15 @@ static std::vector<Profile> createSdccProfileHelper(
 
     std::vector<Profile> profiles;
 
-    const char *knownArchs[] = {"mcs51", "stm8"};
+    static constexpr struct KnownArch {
+        QStringView architecture;
+        QStringView flag;
+    } knownArchs[] = {{u"mcs51", u"mcs51"}, {u"stm8", u"stm8"}, {u"hcs8", u"hc08"}};
+
     for (const auto &knownArch : knownArchs) {
-        const auto actualArch = dumpSdccArchitecture(
-                    compiler, QString::fromLatin1(knownArch));
         // Don't create a profile in case the compiler does
         // not support the proposed architecture.
-        if (actualArch != QString::fromLatin1(knownArch))
+        if (!supportsSdccArchitecture(compiler, knownArch.flag))
             continue;
 
         QString fullProfileName;
@@ -122,18 +123,18 @@ static std::vector<Profile> createSdccProfileHelper(
             // in auto-detecting mode.
             if (!info.compilerVersion.isValid()) {
                 fullProfileName = QStringLiteral("sdcc-unknown-%1")
-                        .arg(actualArch);
+                        .arg(knownArch.architecture);
             } else {
                 const QString version = info.compilerVersion.toString(
                             QLatin1Char('_'), QLatin1Char('_'));
                 fullProfileName = QStringLiteral("sdcc-%1-%2").arg(
-                            version, actualArch);
+                            version, knownArch.architecture);
             }
         } else {
             // Append the detected actual architecture name
             // to the proposed profile name.
             fullProfileName = QStringLiteral("%1-%2").arg(
-                        profileName, actualArch);
+                        profileName, knownArch.architecture);
         }
 
         Profile profile(fullProfileName, settings);
@@ -141,8 +142,8 @@ static std::vector<Profile> createSdccProfileHelper(
                          compiler.absolutePath());
         profile.setValue(QStringLiteral("qbs.toolchainType"),
                          QStringLiteral("sdcc"));
-        if (!actualArch.isEmpty())
-            profile.setValue(QStringLiteral("qbs.architecture"), actualArch);
+        profile.setValue(QStringLiteral("qbs.architecture"),
+                         knownArch.architecture.toString());
 
         qbsInfo() << Tr::tr("Profile '%1' created for '%2'.").arg(
                          profile.name(), compiler.absoluteFilePath());

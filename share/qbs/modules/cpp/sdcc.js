@@ -50,6 +50,8 @@ function assemblerName(qbs) {
         return "sdas8051";
     case "stm8":
         return "sdasstm8";
+    case "hcs8":
+        return "sdas6808";
     }
     throw "Unable to deduce assembler name for unsupported architecture: '"
             + qbs.architecture + "'";
@@ -61,6 +63,8 @@ function linkerName(qbs) {
         return "sdld";
     case "stm8":
         return "sdldstm8";
+    case "hcs8":
+        return "sdld6808";
     }
     throw "Unable to deduce linker name for unsupported architecture: '"
             + qbs.architecture + "'";
@@ -75,6 +79,8 @@ function targetArchitectureFlag(architecture) {
         return "-mmcs51";
     if (architecture === "stm8")
         return "-mstm8";
+    if (architecture === "hcs8")
+        return "-mhc08";
 }
 
 function guessArchitecture(macros) {
@@ -82,6 +88,8 @@ function guessArchitecture(macros) {
         return "mcs51";
     if (macros["__SDCC_stm8"] === "1")
         return "stm8";
+    if (macros["__SDCC_hc08"] === "1")
+        return "hcs8";
 }
 
 function guessEndianness(macros) {
