@@ -77,6 +77,19 @@ CppApplication {
         ]
     }
     Properties {
+        condition: qbs.toolchain.contains("iar")
+            && qbs.architecture === "m32c"
+        cpp.driverLinkerFlags: [
+            "-D_CSTACK_SIZE=100",
+            "-D_NEAR_HEAP_SIZE=400",
+            "-D_FAR_HEAP_SIZE=400",
+            "-D_HUGE_HEAP_SIZE=400",
+            "-D_ISTACK_SIZE=40",
+            "-f", cpp.toolchainInstallPath + "/../config/lnkm32c.xcl",
+            cpp.toolchainInstallPath + (qbs.debugInformation ? "/../lib/dlib/dlm32cnf.r48" : "/../lib/clib/clm32cf.r48")
+        ]
+    }
+    Properties {
         condition: qbs.toolchain.contains("keil")
             && qbs.architecture.startsWith("arm")
             && cpp.compilerName.startsWith("armcc")
