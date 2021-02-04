@@ -68,6 +68,15 @@ CppApplication {
         ]
     }
     Properties {
+        condition: qbs.toolchain.contains("iar")
+            && qbs.architecture === "hcs8"
+        cpp.driverLinkerFlags: [
+            "-D_CSTACK_SIZE=200",
+            "-D_HEAP_SIZE=200",
+            "-f", cpp.toolchainInstallPath + "/../config/lnkunspecifieds08.xcl"
+        ]
+    }
+    Properties {
         condition: qbs.toolchain.contains("keil")
             && qbs.architecture.startsWith("arm")
             && cpp.compilerName.startsWith("armcc")
