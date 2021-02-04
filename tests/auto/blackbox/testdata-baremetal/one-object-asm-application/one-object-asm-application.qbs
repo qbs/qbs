@@ -45,6 +45,8 @@ BareMetalApplication {
                 return true;
             if (qbs.architecture === "stm8")
                 return true;
+            if (qbs.architecture === "hcs8")
+                return true;
         } else if (qbs.toolchainType === "gcc") {
             if (qbs.architecture.startsWith("arm"))
                 return true;
