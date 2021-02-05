@@ -12,6 +12,8 @@ ProtobufBase {
 
     property bool useGrpc: false
 
+    property bool _linkLibraries: true
+
     property string grpcIncludePath: grpcIncludeProbe.path
     property string grpcLibraryPath: grpcLibraryProbe.path
 
@@ -33,6 +35,9 @@ ProtobufBase {
     }
 
     cpp.libraryPaths: {
+        if (!_linkLibraries)
+            return [];
+
         var result = [];
         if (libraryPath)
             result.push(libraryPath);
@@ -41,6 +46,9 @@ ProtobufBase {
         return result;
     }
     cpp.dynamicLibraries: {
+        if (!_linkLibraries)
+            return [];
+
         var result = [];
         if (_libraryName)
             result.push(_libraryName)
@@ -51,6 +59,9 @@ ProtobufBase {
         return result;
     }
     cpp.includePaths: {
+        if (!_linkLibraries)
+            return [outputDir];
+
         var result = [outputDir];
         if (includePath)
             result.push(includePath);
@@ -118,17 +129,17 @@ ProtobufBase {
     validate: {
         HelperFunctions.validateCompiler(compilerName, compilerPath);
 
-        if (!HelperFunctions.checkPath(includePath))
+        if (_linkLibraries && !HelperFunctions.checkPath(includePath))
             throw "Can't find cpp protobuf include files. Please set the includePath property.";
-        if (!HelperFunctions.checkPath(libraryPath))
+        if (_linkLibraries && !HelperFunctions.checkPath(libraryPath))
             throw "Can't find cpp protobuf library. Please set the libraryPath property.";
 
         if (useGrpc) {
             if (!File.exists(grpcPluginPath))
                 throw "Can't find grpc_cpp_plugin plugin. Please set the grpcPluginPath property.";
-            if (!HelperFunctions.checkPath(grpcIncludePath))
+            if (_linkLibraries && !HelperFunctions.checkPath(grpcIncludePath))
                 throw "Can't find grpc++ include files. Please set the grpcIncludePath property.";
-            if (!HelperFunctions.checkPath(grpcLibraryPath))
+            if (_linkLibraries && !HelperFunctions.checkPath(grpcLibraryPath))
                 throw "Can't find grpc++ library. Please set the grpcLibraryPath property.";
         }
     }
