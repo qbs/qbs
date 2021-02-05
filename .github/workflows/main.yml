@@ -303,6 +303,8 @@ jobs:
       run: QBS_AUTOTEST_PROFILE=sdcc-3_8_0-mcs51 docker-compose run focal-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
     - name: sdcc-3_8_0-stm8
       run: QBS_AUTOTEST_PROFILE=sdcc-3_8_0-stm8 docker-compose run focal-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+    - name: sdcc-3_8_0-hcs8
+      run: QBS_AUTOTEST_PROFILE=sdcc-3_8_0-hcs8 docker-compose run focal-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
 
   test-macos:
     name: ${{ matrix.config.name }}
