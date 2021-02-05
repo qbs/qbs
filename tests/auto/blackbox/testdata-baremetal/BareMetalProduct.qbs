@@ -99,6 +99,24 @@ Product {
         ]
     }
     Properties {
+        condition: qbs.toolchain.contains("iar")
+            && qbs.architecture === "m68k"
+        cpp.cFlags: [
+            "--no_div"
+        ]
+        cpp.driverLinkerFlags: [
+            "-D__FLASHBEGIN=0",
+            "-D__FLASHEND=1FFFF",
+            "-D__RAMBEGIN=800000",
+            "-D__RAMEND=803FFF",
+            "-D_CSTACK_SIZE=200",
+            "-D_HEAP_SIZE=1000",
+            "-D_VBR_ADDRESS=0",
+            "-f", cpp.toolchainInstallPath + "/../config/lnkm51ac128.xcl",
+            cpp.toolchainInstallPath + "/../lib/dlcfcffdn.r68"
+        ]
+    }
+    Properties {
         condition: qbs.toolchain.contains("keil")
             && qbs.architecture.startsWith("arm")
             && cpp.compilerName.startsWith("armcc")
