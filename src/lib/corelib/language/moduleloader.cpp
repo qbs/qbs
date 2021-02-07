@@ -1339,7 +1339,7 @@ void ModuleLoader::setupProductDependencies(ProductContext *productContext,
             || !containsKey(m_productsWithDeferredDependsItems, productContext)) {
         addProductModuleDependencies(productContext);
     }
-    productContext->project->result->productInfos.insert(item, productContext->info);
+    productContext->project->result->productInfos[item] = productContext->info;
 }
 
 // Leaf modules first.
@@ -1515,7 +1515,7 @@ void ModuleLoader::handleProduct(ModuleLoader::ProductContext *productContext)
             handleGroup(productContext, child, reverseModuleDeps);
         }
     }
-    productContext->project->result->productInfos.insert(item, productContext->info);
+    productContext->project->result->productInfos[item] = productContext->info;
 }
 
 static Item *rootPrototype(Item *item)
@@ -4166,8 +4166,7 @@ void ModuleLoader::handleProductError(const ErrorInfo &error,
     const auto errorItems = error.items();
     for (const ErrorItem &ei : errorItems)
         productContext->info.delayedError.append(ei.description(), ei.codeLocation());
-    productContext->project->result->productInfos.insert(productContext->item,
-                                                         productContext->info);
+    productContext->project->result->productInfos[productContext->item] = productContext->info;
     m_disabledItems << productContext->item;
     m_erroneousProducts.insert(productContext->name);
 }

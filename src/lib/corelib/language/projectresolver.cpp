@@ -655,8 +655,8 @@ QVariantMap ProjectResolver::resolveAdditionalModuleProperties(const Item *group
                                                                const QVariantMap &currentValues)
 {
     // Step 1: Retrieve the properties directly set in the group
-    const ModulePropertiesPerGroup &mp = m_loadResult.productInfos.value(m_productContext->item)
-            .modulePropertiesSetInGroups;
+    const ModulePropertiesPerGroup &mp = mapValue(
+            m_loadResult.productInfos, m_productContext->item).modulePropertiesSetInGroups;
     const auto it = mp.find(group);
     if (it == mp.end())
         return {};
@@ -945,7 +945,7 @@ void ProjectResolver::collectExportedProductDependencies()
             }
         }
         const ModuleLoaderResult::ProductInfo &importingProductInfo
-                = m_loadResult.productInfos.value(importingProductItem);
+                = mapValue(m_loadResult.productInfos, importingProductItem);
         const ProductDependencyInfos &depInfos
                 = getProductDependencies(dummyProduct, importingProductInfo);
         for (const auto &dep : depInfos.dependencies) {
@@ -1610,7 +1610,7 @@ void ProjectResolver::resolveProductDependencies(const ProjectContext &projectCo
             continue;
         Item *productItem = m_productItemMap.value(rproduct);
         const ModuleLoaderResult::ProductInfo &productInfo
-                = m_loadResult.productInfos.value(productItem);
+                = mapValue(m_loadResult.productInfos, productItem);
         const ProductDependencyInfos &depInfos = getProductDependencies(rproduct, productInfo);
         if (depInfos.hasDisabledDependency)
             disabledDependency = true;

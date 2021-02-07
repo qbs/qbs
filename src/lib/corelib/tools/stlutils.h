@@ -75,6 +75,17 @@ bool containsKey(const C &container, const typename C::key_type &v)
     return container.find(v) != end;
 }
 
+template <class C>
+typename C::mapped_type mapValue(
+        const C &container,
+        const typename C::key_type &key,
+        const typename C::mapped_type &value = typename C::mapped_type())
+{
+    const auto end = container.cend();
+    const auto it = container.find(key);
+    return it != end ? it->second : value;
+}
+
 template <typename C>
 bool removeOne(C &container, const typename C::value_type &v)
 {

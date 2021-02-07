@@ -106,7 +106,7 @@ struct ModuleLoaderResult
 
     std::shared_ptr<ItemPool> itemPool;
     Item *root;
-    QHash<Item *, ProductInfo> productInfos;
+    std::unordered_map<Item *, ProductInfo> productInfos;
     std::vector<ProbeConstPtr> projectProbes;
     ModuleProviderInfoList moduleProviderInfo;
     Set<QString> qbsFiles;
