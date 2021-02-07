@@ -202,6 +202,9 @@ JsCommandExecutor::JsCommandExecutor(const Logger &logger, QObject *parent)
     , m_objectInThread(new JsCommandExecutorThreadObject(logger))
     , m_running(false)
 {
+    qRegisterMetaType<Transformer *>("Transformer *");
+    qRegisterMetaType<const JavaScriptCommand *>("const JavaScriptCommand *");
+
     m_objectInThread->moveToThread(m_thread);
     connect(m_objectInThread, &JsCommandExecutorThreadObject::finished,
             this, &JsCommandExecutor::onJavaScriptCommandFinished);
