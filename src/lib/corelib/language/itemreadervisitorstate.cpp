@@ -99,7 +99,7 @@ private:
     QExplicitlySharedDataPointer<ASTCacheValueData> d;
 };
 
-class ItemReaderVisitorState::ASTCache : public QHash<QString, ASTCacheValue> {};
+class ItemReaderVisitorState::ASTCache : public std::unordered_map<QString, ASTCacheValue> {};
 
 
 ItemReaderVisitorState::ItemReaderVisitorState(Logger &logger)
