@@ -11,7 +11,7 @@ jobs:
   build-linux:
     name: ${{ matrix.config.name }}
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
@@ -64,7 +64,7 @@ jobs:
   build-macos:
     name: Build on macOS
     runs-on: macos-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     env:
       BUILD_OPTIONS: |
         modules.cpp.compilerWrapper:ccache
@@ -123,7 +123,7 @@ jobs:
   build-windows-with-docker:
     name: Build on Windows (Docker)
     runs-on: windows-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     env:
       WITH_TESTS: 0
       QT_ASSUME_STDERR_HAS_CONSOLE: 1

@@ -6,7 +6,7 @@ jobs:
   build-linux:
     name: ${{ matrix.config.name }}
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
@@ -54,7 +54,7 @@ jobs:
   build-linux-extra:
     name: ${{ matrix.config.name }}
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
@@ -104,7 +104,7 @@ jobs:
   build-macos:
     name: Build on macOS
     runs-on: macos-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     env:
       BUILD_OPTIONS: |
         modules.cpp.compilerWrapper:ccache
@@ -161,7 +161,7 @@ jobs:
   build-windows:
     name: Build on Windows
     runs-on: windows-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     env:
       BUILD_OPTIONS: |
         modules.cpp.compilerWrapper:clcache
@@ -221,7 +221,7 @@ jobs:
   test-linux:
     name: ${{ matrix.config.name }}
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     needs: build-linux
     strategy:
       fail-fast: false
@@ -278,7 +278,7 @@ jobs:
   test-baremetal:
     name: Run Baremetal tests
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     needs: build-linux
     env:
       QBS_TEST_SOURCE_ROOT: 'tests'
@@ -309,7 +309,7 @@ jobs:
   test-macos:
     name: ${{ matrix.config.name }}
     runs-on: macos-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     needs: build-macos
     env:
       QTEST_FUNCTION_TIMEOUT: 9000000
@@ -380,7 +380,7 @@ jobs:
   test-windows:
     name: ${{ matrix.config.name }}
     runs-on: windows-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     needs: build-windows
     strategy:
       fail-fast: false
