@@ -468,7 +468,7 @@ void CommandList::load(PersistentPool &pool)
 
 void CommandList::store(PersistentPool &pool) const
 {
-    pool.store(m_commands.size());
+    pool.store(int(m_commands.size()));
     for (const AbstractCommandPtr &cmd : m_commands) {
         pool.store(static_cast<quint8>(cmd->type()));
         pool.store(cmd);

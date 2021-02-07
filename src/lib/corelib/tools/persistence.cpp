@@ -218,7 +218,7 @@ void PersistentPool::doStoreValue(const QString &s)
 
 void PersistentPool::doStoreValue(const QStringList &l)
 {
-    m_stream << l.size();
+    m_stream << int(l.size());
     for (const QString &s : l)
         store(s);
 }

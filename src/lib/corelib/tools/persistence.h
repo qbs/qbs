@@ -498,7 +498,7 @@ struct PPHelper<T, std::enable_if_t<IsKeyValueContainer<T>::value>>
 {
     static void store(const T &container, PersistentPool *pool)
     {
-        pool->store(container.size());
+        pool->store(int(container.size()));
         for (auto it = container.cbegin(); it != container.cend(); ++it) {
             pool->store(it.key());
             pool->store(it.value());
