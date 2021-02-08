@@ -64,6 +64,8 @@ private slots:
     void linkerMapFile_data();
     void linkerMapFile();
 
+    void compilerDefinesByLanguage();
+
 private:
 
 };

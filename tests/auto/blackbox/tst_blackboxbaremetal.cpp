@@ -244,4 +244,11 @@ void TestBlackboxBareMetal::linkerMapFile()
     QCOMPARE(regularFileExists(linkerMap), generateMap);
 }
 
+void TestBlackboxBareMetal::compilerDefinesByLanguage()
+{
+    QDir::setCurrent(testDataDir + "/compiler-defines-by-language");
+    QbsRunParameters params(QStringList{ "-f", "compiler-defines-by-language.qbs" });
+    QCOMPARE(runQbs(params), 0);
+}
+
 QTEST_MAIN(TestBlackboxBareMetal)
