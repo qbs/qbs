@@ -143,7 +143,7 @@ Product {
     Properties {
         condition: qbs.toolchain.contains("gcc")
             && qbs.architecture === "msp430"
-        cpp.driverFlags: ["-mmcu=msp430f5529"]
+        cpp.driverFlags: ["-mmcu=msp430f5529", "-nostdlib"]
     }
     Properties {
         condition: qbs.toolchain.contains("gcc")
