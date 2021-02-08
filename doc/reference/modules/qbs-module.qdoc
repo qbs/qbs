@@ -331,6 +331,9 @@
         \li \c{"avr32"}
         \li 32-bit RISC architecture microcontroller family developed by Atmel
     \row
+        \li \c{"c166"}
+        \li 16-bit architecture microcontroller family developed by Infineon
+    \row
         \li \c{"cr16"}
         \li 16-bit compact RISC architecture microcontroller family
             developed by National Semiconductor
@@ -362,6 +365,10 @@
         \li 16- and 32-bit CISC microprocessor, developed by Motorola
             Semiconductor Products Sector, and further improved as ColdFire
             architecture developed by NXP
+    \row
+        \li \c{"mcs251"}
+        \li 8-, 16-, and 32-bit microcontroller family which is a next binary
+        compatible generation for the \c "mcs51" family
     \row
         \li \c{"mcs51"}
         \li 8-bit Harvard architecture microcontroller family developed by Intel

@@ -52,7 +52,10 @@
 
     Detected architecture of the target platform's processor.
 
-    The possible values are \c "arm", \c "mcs51" and \c "avr".
+    The possible values are \c "arm", \c "mcs51", \c "avr", \c "avr32",
+    \c "stm8", \c "riscv", \c "rl78", \c "rx", \c "rh850", \c "v850",
+    \c "78k", \c "sh", \c "r32c", \c "m32c", \c "m16c", \c "msp430",
+    \c "hcs12", \c "hcs8", \c "m68k", and \c "cr16".
 
     \nodefaultvalue
 */

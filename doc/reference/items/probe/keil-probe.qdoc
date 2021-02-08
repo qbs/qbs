@@ -52,7 +52,7 @@
 
     Detected architecture of the target platform's processor.
 
-    The possible values are \c "arm" and \c "mcs51".
+    The possible values are \c "arm", \c "mcs51", \c "mcs251" and \c "c166".
 
     \nodefaultvalue
 */
