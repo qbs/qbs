@@ -110,6 +110,8 @@ Product {
             return libraries;
         }
 
+        fileTags: []
+
         qbs.install: true
         qbs.installDir: qbsbuildconfig.libInstallDir
         qbs.installSourceBase: qbs.targetOS.contains("windows") ? Qt.core.binPath : Qt.core.libPath
