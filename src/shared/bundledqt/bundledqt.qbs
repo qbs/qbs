@@ -79,7 +79,9 @@ Product {
                     var suffix = ".framework/";
                     var frameworkPath = fp.substr(0, fp.lastIndexOf(suffix) + suffix.length - 1);
                     var versionsPath = frameworkPath + "/Versions";
-                    var versionPath = versionsPath + "/" + Qt.core.versionMajor;
+                    var versionName = Utilities.versionCompare(Qt.core.version, "6") >= 0
+                            ? "A" : Qt.core.versionMajor;
+                    var versionPath = versionsPath + "/" + versionName;
                     list.push(frameworkPath + "/Resources");
                     list.push(versionPath + "/Resources/Info.plist");
                     list.push(versionPath + "/" + FileInfo.fileName(fp));
