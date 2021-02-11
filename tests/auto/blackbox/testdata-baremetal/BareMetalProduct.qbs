@@ -150,4 +150,9 @@ Product {
             && qbs.architecture === "m32r"
         cpp.driverFlags: ["-nostdlib"]
     }
+    Properties {
+        condition: qbs.toolchain.contains("gcc")
+            && qbs.architecture === "riscv"
+        cpp.driverFlags: ["-nostdlib"]
+    }
 }
