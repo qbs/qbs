@@ -1,6 +1,7 @@
 import qbs
 import qbs.File
 import qbs.FileInfo
+import qbs.Probes
 import qbs.Process
 
 Project {
@@ -389,6 +390,11 @@ Project {
             ]
             fileTags: ["qtscriptheader"]
         }
+        Probes.BinaryProbe {
+            id: perlProbe
+            names: "perl"
+        }
+        property string perlPath: perlProbe.found ? perlProbe.filePath : undefined
         Rule {
             multiplex: true
             inputs: ["qtscriptheader"]
@@ -413,7 +419,7 @@ Project {
                 var qtScriptSrcPath = FileInfo.cleanPath(
                             FileInfo.path(inputs["qtscriptheader"][0].filePath) + "/../../..");
                 console.info("qtScriptSrcPath: " + qtScriptSrcPath);
-                var cmd = new Command("perl", [
+                var cmd = new Command(product.perlPath, [
                                           syncQtPath,
                                           "-minimal",
                                           "-version", product.Qt.core.version,
