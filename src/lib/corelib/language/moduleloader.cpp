@@ -1544,7 +1544,7 @@ private:
     void check(const QVariantMap &parameters, const QualifiedId &moduleName) const
     {
         for (auto it = parameters.begin(); it != parameters.end(); ++it) {
-            if (it.value().type() == QVariant::Map) {
+            if (it.value().userType() == QVariant::Map) {
                 check(it.value().toMap(), QualifiedId(moduleName) << it.key());
             } else {
                 const auto &deps = m_productItem->modules();
@@ -1942,7 +1942,7 @@ void ModuleLoader::printProfilingInfo()
 static void mergeParameters(QVariantMap &dst, const QVariantMap &src)
 {
     for (auto it = src.begin(); it != src.end(); ++it) {
-        if (it.value().type() == QVariant::Map) {
+        if (it.value().userType() == QVariant::Map) {
             QVariant &vdst = dst[it.key()];
             QVariantMap mdst = vdst.toMap();
             mergeParameters(mdst, it.value().toMap());
@@ -3243,7 +3243,7 @@ static QVariant convertToPropertyType(const QVariant &v, PropertyDeclaration::Ty
         return v;
 
     // Handle the foo,bar,bla stringlist syntax.
-    if (t == PropertyDeclaration::StringList && v.type() == QVariant::String)
+    if (t == PropertyDeclaration::StringList && v.userType() == QVariant::String)
         return v.toString().split(QLatin1Char(','));
 
     QVariant c = v;

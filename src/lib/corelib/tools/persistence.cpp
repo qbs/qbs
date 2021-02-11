@@ -140,7 +140,7 @@ void PersistentPool::finalizeWriteStream()
 
 void PersistentPool::storeVariant(const QVariant &variant)
 {
-    const auto type = static_cast<quint32>(variant.type());
+    const auto type = static_cast<quint32>(variant.userType());
     m_stream << type;
     switch (type) {
     case QMetaType::QString:

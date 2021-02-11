@@ -117,9 +117,9 @@ QVariant Settings::value(const QString &key, Scopes scopes, const QVariant &defa
     }
     if (!systemValue.isValid())
         return userValue;
-    if (static_cast<QMetaType::Type>(userValue.type()) == QMetaType::QStringList)
+    if (static_cast<QMetaType::Type>(userValue.userType()) == QMetaType::QStringList)
         return userValue.toStringList() + systemValue.toStringList();
-    if (static_cast<QMetaType::Type>(userValue.type()) == QMetaType::QVariantList)
+    if (static_cast<QMetaType::Type>(userValue.userType()) == QMetaType::QVariantList)
         return userValue.toList() + systemValue.toList();
     return userValue;
 }

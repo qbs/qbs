@@ -109,11 +109,11 @@ void SettingsCreator::migrate()
     const auto allKeys = m_settings->allKeys();
     for (const QString &key : allKeys) {
         QVariant v = m_settings->value(key);
-        if (v.type() == QVariant::String) {
+        if (v.userType() == QVariant::String) {
             QString s = v.toString();
             if (s.contains(oldProfilesDir))
                 m_settings->setValue(key, s.replace(oldProfilesDir, newProfilesDir));
-        } else if (v.type() == QVariant::StringList) {
+        } else if (v.userType() == QVariant::StringList) {
             const QStringList oldList = v.toStringList();
             QStringList newList;
             for (const QString &oldString : oldList) {

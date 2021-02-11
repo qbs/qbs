@@ -900,7 +900,7 @@ void ProjectResolver::adaptExportedPropertyValues(const Item *shadowProductItem)
     const std::function<QVariant(const QVariantMap &, const QVariant &)> mapper
             = [&stringListMapper, &mapper](
             const QVariantMap &mappings, const QVariant &value) -> QVariant {
-        switch (static_cast<QMetaType::Type>(value.type())) {
+        switch (static_cast<QMetaType::Type>(value.userType())) {
         case QMetaType::QString:
             return stringMapper(mappings, value.toString());
         case QMetaType::QStringList:

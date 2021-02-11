@@ -994,7 +994,7 @@ static QString mapToString(const QVariantMap &map, const QString &prefix)
     QString stringRep;
     for (const QString &key : qAsConst(keys)) {
         const QVariant &val = map.value(key);
-        if (val.type() == QVariant::Map) {
+        if (val.userType() == QVariant::Map) {
             stringRep += mapToString(val.value<QVariantMap>(), prefix + key + QLatin1Char('.'));
         } else {
             stringRep += QStringLiteral("%1%2: %3\n")

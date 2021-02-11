@@ -67,8 +67,8 @@ QVariant representationToSettingsValue(const QString &representation)
     QVariant variant = variantFromString(representation, ok);
 
     // We have no floating-point properties, so this is most likely intended to be a string.
-    if (static_cast<QMetaType::Type>(variant.type()) == QMetaType::Float
-            || static_cast<QMetaType::Type>(variant.type()) == QMetaType::Double) {
+    if (static_cast<QMetaType::Type>(variant.userType()) == QMetaType::Float
+            || static_cast<QMetaType::Type>(variant.userType()) == QMetaType::Double) {
         variant = variantFromString(QLatin1Char('"') + representation + QLatin1Char('"'), ok);
     }
 

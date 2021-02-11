@@ -127,33 +127,33 @@ static NSArray *toArray(const QVariantList &list);
 
 static id toObject(const QVariant &variant)
 {
-    if (variant.type() == QVariant::Hash) {
+    if (variant.userType() == QVariant::Hash) {
         return toDictionary(qHashToMap(variant.toHash()));
-    } else if (variant.type() == QVariant::Map) {
+    } else if (variant.userType() == QVariant::Map) {
         return toDictionary(variant.toMap());
-    } else if (variant.type() == QVariant::List) {
+    } else if (variant.userType() == QVariant::List) {
         return toArray(variant.toList());
-    } else if (variant.type() == QVariant::String) {
+    } else if (variant.userType() == QVariant::String) {
         return variant.toString().toNSString();
-    } else if (variant.type() == QVariant::ByteArray) {
+    } else if (variant.userType() == QVariant::ByteArray) {
         return variant.toByteArray().toNSData();
-    } else if (variant.type() == QVariant::Date ||
-               variant.type() == QVariant::DateTime) {
+    } else if (variant.userType() == QVariant::Date ||
+               variant.userType() == QVariant::DateTime) {
         return variant.toDateTime().toNSDate();
-    } else if (variant.type() == QVariant::Bool) {
+    } else if (variant.userType() == QVariant::Bool) {
         return variant.toBool()
                 ? [NSNumber numberWithBool:YES]
                 : [NSNumber numberWithBool:NO];
-    } else if (variant.type() == QVariant::Char ||
-               variant.type() == QVariant::Int) {
+    } else if (variant.userType() == QVariant::Char ||
+               variant.userType() == QVariant::Int) {
         return [NSNumber numberWithInt:variant.toInt()];
-    } else if (variant.type() == QVariant::UInt) {
+    } else if (variant.userType() == QVariant::UInt) {
         return [NSNumber numberWithUnsignedInt:variant.toUInt()];
-    } else if (variant.type() == QVariant::LongLong) {
+    } else if (variant.userType() == QVariant::LongLong) {
         return [NSNumber numberWithLongLong:variant.toLongLong()];
-    } else if (variant.type() == QVariant::ULongLong) {
+    } else if (variant.userType() == QVariant::ULongLong) {
         return [NSNumber numberWithUnsignedLongLong:variant.toULongLong()];
-    } else if (variant.type() == QVariant::Double) {
+    } else if (variant.userType() == QVariant::Double) {
         return [NSNumber numberWithDouble:variant.toDouble()];
     } else {
         return [NSNull null];

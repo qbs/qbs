@@ -163,7 +163,7 @@ LogWriter operator<<(LogWriter w, const Internal::Set<QString> &strSet)
 LogWriter operator<<(LogWriter w, const QVariant &variant)
 {
     QString str = QLatin1String(variant.typeName()) + QLatin1Char('(');
-    if (variant.type() == QVariant::List) {
+    if (variant.userType() == QVariant::List) {
         bool firstLoop = true;
         const auto list = variant.toList();
         for (const QVariant &item : list) {

@@ -189,7 +189,7 @@ VariantValuePtr VariantValue::create(const QVariant &v)
 {
     if (!v.isValid())
         return invalidValue();
-    if (static_cast<QMetaType::Type>(v.type()) == QMetaType::Bool)
+    if (static_cast<QMetaType::Type>(v.userType()) == QMetaType::Bool)
         return v.toBool() ? VariantValue::trueValue() : VariantValue::falseValue();
     return std::make_shared<VariantValue>(v);
 }
