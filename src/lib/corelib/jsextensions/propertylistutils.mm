@@ -127,33 +127,33 @@ static NSArray *toArray(const QVariantList &list);
 
 static id toObject(const QVariant &variant)
 {
-    if (variant.userType() == QVariant::Hash) {
+    if (variant.userType() == QMetaType::QVariantHash) {
         return toDictionary(qHashToMap(variant.toHash()));
-    } else if (variant.userType() == QVariant::Map) {
+    } else if (variant.userType() == QMetaType::QVariantMap) {
         return toDictionary(variant.toMap());
-    } else if (variant.userType() == QVariant::List) {
+    } else if (variant.userType() == QMetaType::QVariantList) {
         return toArray(variant.toList());
-    } else if (variant.userType() == QVariant::String) {
+    } else if (variant.userType() == QMetaType::QString) {
         return variant.toString().toNSString();
-    } else if (variant.userType() == QVariant::ByteArray) {
+    } else if (variant.userType() == QMetaType::QByteArray) {
         return variant.toByteArray().toNSData();
-    } else if (variant.userType() == QVariant::Date ||
-               variant.userType() == QVariant::DateTime) {
+    } else if (variant.userType() == QMetaType::QDate ||
+               variant.userType() == QMetaType::QDateTime) {
         return variant.toDateTime().toNSDate();
-    } else if (variant.userType() == QVariant::Bool) {
+    } else if (variant.userType() == QMetaType::Bool) {
         return variant.toBool()
                 ? [NSNumber numberWithBool:YES]
                 : [NSNumber numberWithBool:NO];
-    } else if (variant.userType() == QVariant::Char ||
-               variant.userType() == QVariant::Int) {
+    } else if (variant.userType() == QMetaType::Char ||
+               variant.userType() == QMetaType::Int) {
         return [NSNumber numberWithInt:variant.toInt()];
-    } else if (variant.userType() == QVariant::UInt) {
+    } else if (variant.userType() == QMetaType::UInt) {
         return [NSNumber numberWithUnsignedInt:variant.toUInt()];
-    } else if (variant.userType() == QVariant::LongLong) {
+    } else if (variant.userType() == QMetaType::LongLong) {
         return [NSNumber numberWithLongLong:variant.toLongLong()];
-    } else if (variant.userType() == QVariant::ULongLong) {
+    } else if (variant.userType() == QMetaType::ULongLong) {
         return [NSNumber numberWithUnsignedLongLong:variant.toULongLong()];
-    } else if (variant.userType() == QVariant::Double) {
+    } else if (variant.userType() == QMetaType::Double) {
         return [NSNumber numberWithDouble:variant.toDouble()];
     } else {
         return [NSNull null];

@@ -178,7 +178,7 @@ void MSBuildProjectWriterPrivate::visitEnd(const MSBuildItemGroup *)
 void MSBuildProjectWriterPrivate::visitStart(const MSBuildItemMetadata *itemMetadata)
 {
     QString stringValue;
-    if (itemMetadata->value().userType() == QVariant::Bool) {
+    if (itemMetadata->value().userType() == QMetaType::Bool) {
         stringValue = itemMetadata->value().toBool()
                 ? QStringLiteral("True")
                 : QStringLiteral("False");
@@ -210,7 +210,7 @@ void MSBuildProjectWriterPrivate::visitEnd(const MSBuildProject *)
 void MSBuildProjectWriterPrivate::visitStart(const MSBuildProperty *property)
 {
     QString stringValue;
-    if (property->value().userType() == QVariant::Bool)
+    if (property->value().userType() == QMetaType::Bool)
         stringValue = property->value().toBool() ? QStringLiteral("True") : QStringLiteral("False");
     else
         stringValue = property->value().toString();

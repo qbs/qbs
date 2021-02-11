@@ -53,7 +53,7 @@ static QScriptValue toScriptValue(ScriptEngine *engine, const QString &productNa
     QScriptValue obj = engine->newObject();
     bool objIdAddedToObserver = false;
     for (auto it = v.begin(); it != v.end(); ++it) {
-        if (it.value().userType() == QVariant::Map) {
+        if (it.value().userType() == QMetaType::QVariantMap) {
             obj.setProperty(it.key(), toScriptValue(engine, productName, it.value().toMap(),
                     depName, QualifiedId(moduleName) << it.key()));
         } else {

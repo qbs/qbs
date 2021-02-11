@@ -75,7 +75,7 @@ QString toJSLiteral(const QVariant &val)
 {
     if (!val.isValid())
         return Internal::StringConstants::undefinedValue();
-    if (val.userType() == QVariant::List || val.userType() == QVariant::StringList) {
+    if (val.userType() == QMetaType::QVariantList || val.userType() == QMetaType::QStringList) {
         QString res;
         const auto list = val.toList();
         for (const QVariant &child : list) {
@@ -86,7 +86,7 @@ QString toJSLiteral(const QVariant &val)
         res.append(QLatin1Char(']'));
         return res;
     }
-    if (val.userType() == QVariant::Map) {
+    if (val.userType() == QMetaType::QVariantMap) {
         const QVariantMap &vm = val.toMap();
         QString str = QStringLiteral("{");
         for (QVariantMap::const_iterator it = vm.begin(); it != vm.end(); ++it) {
@@ -97,9 +97,9 @@ QString toJSLiteral(const QVariant &val)
         str += QLatin1Char('}');
         return str;
     }
-    if (val.userType() == QVariant::Bool)
+    if (val.userType() == QMetaType::Bool)
         return toJSLiteral(val.toBool());
-    if (val.canConvert(QVariant::String))
+    if (val.canConvert(QMetaType::QString))
         return toJSLiteral(val.toString());
     return QStringLiteral("Unconvertible type %1").arg(QLatin1String(val.typeName()));
 }

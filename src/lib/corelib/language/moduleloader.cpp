@@ -1544,7 +1544,7 @@ private:
     void check(const QVariantMap &parameters, const QualifiedId &moduleName) const
     {
         for (auto it = parameters.begin(); it != parameters.end(); ++it) {
-            if (it.value().userType() == QVariant::Map) {
+            if (it.value().userType() == QMetaType::QVariantMap) {
                 check(it.value().toMap(), QualifiedId(moduleName) << it.key());
             } else {
                 const auto &deps = m_productItem->modules();
@@ -1942,7 +1942,7 @@ void ModuleLoader::printProfilingInfo()
 static void mergeParameters(QVariantMap &dst, const QVariantMap &src)
 {
     for (auto it = src.begin(); it != src.end(); ++it) {
-        if (it.value().userType() == QVariant::Map) {
+        if (it.value().userType() == QMetaType::QVariantMap) {
             QVariant &vdst = dst[it.key()];
             QVariantMap mdst = vdst.toMap();
             mergeParameters(mdst, it.value().toMap());
@@ -3207,30 +3207,30 @@ QStringList &ModuleLoader::getModuleFileNames(const QString &dirPath)
     return moduleFileNames;
 }
 
-// returns QVariant::Invalid for types that do not need conversion
-static QVariant::Type variantType(PropertyDeclaration::Type t)
+// returns QMetaType::UnknownType for types that do not need conversion
+static QMetaType::Type variantType(PropertyDeclaration::Type t)
 {
     switch (t) {
     case PropertyDeclaration::UnknownType:
         break;
     case PropertyDeclaration::Boolean:
-        return QVariant::Bool;
+        return QMetaType::Bool;
     case PropertyDeclaration::Integer:
-        return QVariant::Int;
+        return QMetaType::Int;
     case PropertyDeclaration::Path:
-        return QVariant::String;
+        return QMetaType::QString;
     case PropertyDeclaration::PathList:
-        return QVariant::StringList;
+        return QMetaType::QStringList;
     case PropertyDeclaration::String:
-        return QVariant::String;
+        return QMetaType::QString;
     case PropertyDeclaration::StringList:
-        return QVariant::StringList;
+        return QMetaType::QStringList;
     case PropertyDeclaration::VariantList:
-        return QVariant::List;
+        return QMetaType::QVariantList;
     case PropertyDeclaration::Variant:
         break;
     }
-    return QVariant::Invalid;
+    return QMetaType::UnknownType;
 }
 
 static QVariant convertToPropertyType(const QVariant &v, PropertyDeclaration::Type t,
@@ -3238,12 +3238,12 @@ static QVariant convertToPropertyType(const QVariant &v, PropertyDeclaration::Ty
 {
     if (v.isNull() || !v.isValid())
         return v;
-    const QVariant::Type vt = variantType(t);
-    if (vt == QVariant::Invalid)
+    const auto vt = variantType(t);
+    if (vt == QMetaType::UnknownType)
         return v;
 
     // Handle the foo,bar,bla stringlist syntax.
-    if (t == PropertyDeclaration::StringList && v.userType() == QVariant::String)
+    if (t == PropertyDeclaration::StringList && v.userType() == QMetaType::QString)
         return v.toString().split(QLatin1Char(','));
 
     QVariant c = v;
