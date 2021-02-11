@@ -43,7 +43,8 @@ RUN apt-get update -qq && \
         gcc-msp430 \
         sdcc \
         binutils-xtensa-lx106 \
-        gcc-xtensa-lx106
+        gcc-xtensa-lx106 \
+        gcc-riscv64-unknown-elf
 
 # Work-around for QTBUG-79020.
 RUN echo "export QT_NO_GLIB=1" >> /etc/profile.d/qt.sh

@@ -72,7 +72,7 @@ services:
   focal-baremetal:
     << : *linux
     hostname: focal-baremetal
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:focal-baremetal-3
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:focal-baremetal-4
     build:
       dockerfile: docker/focal/test-baremetal.Dockerfile
       context: .
