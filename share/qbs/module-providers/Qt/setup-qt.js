@@ -197,6 +197,8 @@ function fillEntryPointLibs(qtProps, debug) {
     var qtMainCandidates = ["qtmain"];
     if (isMinGW && qtProps.qtMajorVersion === 5)
         qtMainCandidates.push("qt5main");
+    if (qtProps.qtMajorVersion === 6)
+        qtMainCandidates.push("Qt6EntryPoint");
 
     for (var i = 0; i < qtMainCandidates.length; ++i) {
         var baseNameCandidate = qtMainCandidates[i];
