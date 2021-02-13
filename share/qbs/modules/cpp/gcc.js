@@ -355,11 +355,12 @@ function linkerFlags(project, product, inputs, outputs, primaryOutput, linkerPat
         return rpath;
     }
 
+    function isNotSystemRunPath(p) {
+        return !FileInfo.isAbsolutePath(p) || (!systemRunPaths.contains(p)
+                && !canonicalSystemRunPaths.contains(File.canonicalFilePath(p)));
+    };
+
     if (!product.qbs.targetOS.contains("windows")) {
-        function isNotSystemRunPath(p) {
-            return !FileInfo.isAbsolutePath(p) || (!systemRunPaths.contains(p)
-                    && !canonicalSystemRunPaths.contains(File.canonicalFilePath(p)));
-        };
         for (i in rpaths) {
             if (isNotSystemRunPath(rpaths[i]))
                 escapableLinkerFlags.push("-rpath", fixupRPath(rpaths[i]));
