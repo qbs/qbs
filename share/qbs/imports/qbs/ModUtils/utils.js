@@ -48,7 +48,7 @@ function mergeCFiles(inputs, outputFilePath)
 }
 
 function sanitizedList(list, product, fullPropertyName) {
-    if (!Array.isArray(list))
+    if (!(list instanceof Array))
         return list;
     var filterFunc = function(elem) {
         if (typeof elem === "string" && elem.length === 0) {

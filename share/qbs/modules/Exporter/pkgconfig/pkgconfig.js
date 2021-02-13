@@ -44,9 +44,9 @@ function writeEntry(product, file, key, propertyName, required, additionalValues
     var value = product.Exporter.pkgconfig[propertyName];
     if (additionalValues && additionalValues.length > 0)
         value = (value || []).concat(additionalValues);
-    var valueIsNotEmpty = value && (!Array.isArray(value) || value.length > 0);
+    var valueIsNotEmpty = value && (!(value instanceof Array) || value.length > 0);
     if (valueIsNotEmpty) {
-        if (Array.isArray(value))
+        if (value instanceof Array)
             value = value.join(' ');
         file.writeLine(key + ": " + value);
     } else if (required) {
@@ -92,7 +92,7 @@ function collectAutodetectedData(topLevelProduct)
         var value = transformFunc
                 ? eval("(" + transformFunc + ")(product, moduleName, propertyName, originalValue)")
                 : originalValue;
-        if (Array.isArray(value))
+        if (value instanceof Array)
             value.forEach(function(v, i, a) { a[i] = quoteAndPrefixify(v); });
         else if (value)
             value = quoteAndPrefixify(value);

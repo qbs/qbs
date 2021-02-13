@@ -240,7 +240,7 @@ Module {
             if (!product.java._tagJniHeaders) {
                 for (var i = 0; i < artifacts.length; ++i) {
                     var a = artifacts[i];
-                    if (Array.isArray(a.fileTags))
+                    if (a.fileTags instanceof Array)
                         a.fileTags = a.fileTags.filter(function(tag) { return tag != "hpp"; });
                 }
             }

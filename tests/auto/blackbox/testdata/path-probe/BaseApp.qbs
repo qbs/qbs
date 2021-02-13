@@ -61,7 +61,7 @@ Product {
             if (lhs.length !== rhs.length)
                 return false;
             for (var i = 0; i < lhs.length; ++i) {
-                if (Array.isArray(lhs[i]) && Array.isArray(rhs[i])) {
+                if ((lhs[i] instanceof Array) && (rhs[i] instanceof Array)) {
                     if (!compareArrays(lhs[i], rhs[i]))
                         return false;
                 } else if (FileInfo.resolvePath(path, lhs[i]) !== FileInfo.resolvePath(path, rhs[i])) {

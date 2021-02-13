@@ -113,7 +113,7 @@ function checkValuePrefix(name, value, forbiddenPrefix, prefixDescription)
 
 function stringifyValue(project, product, moduleInstallDir, prop, value)
 {
-    if (Array.isArray(value)) {
+    if (value instanceof Array) {
         var repr = "[";
         for (var i = 0; i < value.length; ++i) {
             repr += stringifyValue(project, product, moduleInstallDir, prop, value[i]) + ", ";

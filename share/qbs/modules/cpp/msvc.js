@@ -354,7 +354,7 @@ function collectLibraryDependencies(product) {
         if (!obj.cpp)
             return;
         function ensureArray(a) {
-            return Array.isArray(a) ? a : [];
+            return (a instanceof Array) ? a : [];
         }
         function sanitizedModuleListProperty(obj, moduleName, propertyName) {
             return ensureArray(ModUtils.sanitizedModuleProperty(obj, moduleName, propertyName));

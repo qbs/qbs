@@ -197,7 +197,7 @@ Module {
                 var prefixDirs = product.Qt.android_support.extraPrefixDirs;
                 if (prefixDirs && prefixDirs.length > 0)
                     f.writeLine('"extraPrefixDirs": ' + JSON.stringify(prefixDirs) + ',');
-                if (Array.isArray(product.qmlImportPaths) && product.qmlImportPaths.length > 0)
+                if ((product.qmlImportPaths instanceof Array) && product.qmlImportPaths.length > 0)
                     f.writeLine('"qml-import-paths": "' + product.qmlImportPaths.join(',') + '",');
 
                 if (Utilities.versionCompare(product.Qt.android_support.version, "6.0") >= 0) {

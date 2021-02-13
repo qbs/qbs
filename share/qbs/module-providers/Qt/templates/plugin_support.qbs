@@ -32,7 +32,7 @@ Module {
                     newValue = [];
                 else if (typeof newValue == "string")
                     newValue = [newValue];
-                if (!Array.isArray(newValue))
+                if (!newValue instanceof Array)
                     throw "Invalid value '" + newValue + "' in Qt.plugin_support.pluginsByType";
                 eppt[pluginType] = (eppt[pluginType] || []).uniqueConcat(newValue);
             }

@@ -36,7 +36,7 @@ var ModUtils = require("qbs.ModUtils");
 function asStringList(key, value) {
     if (typeof(value) === "string")
         return [value];
-    if (Array.isArray(value))
+    if (value instanceof Array)
         return value;
     throw key + " must be a string or a stringList";
 }
@@ -45,7 +45,7 @@ function canonicalSelectors(selectors, nameSuffixes) {
     var mapper = function(selector) {
         if (typeof(selector) === "string")
             return {names : [selector]};
-        if (Array.isArray(selector))
+        if (selector instanceof Array)
             return {names : selector};
         // dict
         if (!selector.names)

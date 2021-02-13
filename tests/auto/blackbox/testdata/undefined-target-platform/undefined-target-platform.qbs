@@ -6,7 +6,7 @@ Product {
     qbs.targetPlatform: undefined
 
     readonly property bool _validate: {
-        if (Array.isArray(qbs.targetOS) && qbs.targetOS.length === 0)
+        if ((qbs.targetOS instanceof Array) && qbs.targetOS.length === 0)
             return true;
         throw "Invalid qbs.targetOS value: " + qbs.targetOS;
     }
