@@ -98,7 +98,7 @@ UnixGCC {
 
     setupBuildEnvironment: {
         for (var key in product.cpp.buildEnv) {
-            v = new ModUtils.EnvironmentVariable(key);
+            var v = new ModUtils.EnvironmentVariable(key);
             v.value = product.cpp.buildEnv[key];
             v.set();
         }

@@ -273,7 +273,7 @@ Module {
             for (var i = 0; i < (aidlSearchPaths ? aidlSearchPaths.length : 0); ++i)
                 args.push("-I" + aidlSearchPaths[i]);
             args.push(input.filePath, output.filePath);
-            cmd = new Command(aidl, args);
+            var cmd = new Command(aidl, args);
             cmd.description = "Processing " + input.fileName;
             return [cmd];
         }
@@ -498,7 +498,7 @@ Module {
         outputArtifacts: {
             var deploymentData = SdkUtils.stlDeploymentData(product, inputs, "stl");
             var outputs = [];
-            for (i = 0; i < deploymentData.outputFilePaths.length; ++i) {
+            for (var i = 0; i < deploymentData.outputFilePaths.length; ++i) {
                 outputs.push({filePath: deploymentData.outputFilePaths[i],
                               fileTags: "android.stl_deployed"});
             }
