@@ -89,7 +89,7 @@ function productTypeIdentifier(productType) {
 }
 
 function excludedAuxiliaryInputs(project, product) {
-    var chain = product.moduleProperty("bundle", "_productTypeIdentifierChain");
+    var chain = product.bundle._productTypeIdentifierChain;
     var bestPossibleType;
     for (var i = chain.length - 1; i >= 0; --i) {
         switch (chain[i]) {
