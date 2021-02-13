@@ -57,6 +57,7 @@ RUN apt-get update -qq && \
         libnanopb-dev \
         libprotobuf-dev \
         libgrpc++-dev \
+        libxkbcommon-x11-0 \
         nanopb \
         ninja-build \
         nsis \
@@ -85,7 +86,7 @@ ENV LLVM_INSTALL_DIR=/usr/lib/llvm-8
 #
 COPY scripts/install-qt.sh install-qt.sh
 
-RUN ./install-qt.sh --version ${QT_VERSION} qtbase qtdeclarative qtscript qttools qtx11extras qtscxml icu && \
+RUN ./install-qt.sh --version ${QT_VERSION} qtbase qtdeclarative qtscript qttools qtx11extras qtscxml qt5compat icu && \
     ./install-qt.sh --version ${QTCREATOR_VERSION} qtcreator && \
     echo "export PATH=/opt/Qt/${QT_VERSION}/gcc_64/bin:/opt/Qt/Tools/QtCreator/bin:\${PATH}" > /etc/profile.d/qt.sh
 

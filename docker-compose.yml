@@ -21,13 +21,24 @@ services:
   focal:
     << : *linux
     hostname: focal
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:focal-5.15.2_1.17.1-0
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:focal-5.15.2_1.17.1-1
     build:
       dockerfile: docker/focal/Dockerfile
       context: .
       args:
         QT_VERSION: 5.15.2
         QTCREATOR_VERSION: 4.13.3
+
+  focal-qt6:
+    << : *linux
+    hostname: focal-qt6
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:focal-qt6-6.0.2_1.18.1-0
+    build:
+      dockerfile: docker/focal/Dockerfile
+      context: .
+      args:
+        QT_VERSION: 6.0.2
+        QTCREATOR_VERSION: 4.14.1
 
   focal-android-513:
     << : *linux
