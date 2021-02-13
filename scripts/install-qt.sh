@@ -292,11 +292,18 @@ rm -f "${HASH_FILEPATH}"
 
 for COMPONENT in ${COMPONENTS}; do
 
+    if [[ "${COMPONENT}" =~ "qtcreator" ]] && [[ "${HOST_OS}" != "mac_x64" ]]; then
+        UNPACK_DIR="${INSTALL_DIR}/Tools/QtCreator"
+        mkdir -p ${UNPACK_DIR}
+    else
+        UNPACK_DIR="${INSTALL_DIR}"
+    fi
+
     URL="$(compute_url ${COMPONENT})"
     echo "Downloading ${COMPONENT} ${URL}..." >&2
     curl --progress-bar -L -o ${DOWNLOAD_DIR}/package.7z ${URL} >&2
-    7z x -y -o${INSTALL_DIR} ${DOWNLOAD_DIR}/package.7z >/dev/null 2>&1
-    7z l -ba -slt -y ${DOWNLOAD_DIR}/package.7z | tr '\\' '/' | sed -n -e "s|^Path\ =\ |${INSTALL_DIR}/|p" >> "${HASH_FILEPATH}" 2>/dev/null
+    7z x -y -o${UNPACK_DIR} ${DOWNLOAD_DIR}/package.7z >/dev/null 2>&1
+    7z l -ba -slt -y ${DOWNLOAD_DIR}/package.7z | tr '\\' '/' | sed -n -e "s|^Path\ =\ |${UNPACK_DIR}/|p" >> "${HASH_FILEPATH}" 2>/dev/null
     rm -f ${DOWNLOAD_DIR}/package.7z
 
     #
@@ -318,21 +325,21 @@ for COMPONENT in ${COMPONENTS}; do
         fi
 
         if [ "${TARGET_PLATFORM}" == "android" ] && [ ! "${QT_VERSION}" \< "6.0.0" ]; then
-            CONF_FILE="${INSTALL_DIR}/${VERSION}/${SUBDIR}/bin/target_qt.conf"
+            CONF_FILE="${UNPACK_DIR}/${VERSION}/${SUBDIR}/bin/target_qt.conf"
             sed -i "s|target|../$TOOLCHAIN|g" "${CONF_FILE}"
             sed -i "/HostPrefix/ s|$|gcc_64|g" "${CONF_FILE}"
-            ANDROID_QMAKE_FILE="${INSTALL_DIR}/${VERSION}/${SUBDIR}/bin/qmake"
-            QMAKE_FILE="${INSTALL_DIR}/${VERSION}/gcc_64/bin/qmake"
+            ANDROID_QMAKE_FILE="${UNPACK_DIR}/${VERSION}/${SUBDIR}/bin/qmake"
+            QMAKE_FILE="${UNPACK_DIR}/${VERSION}/gcc_64/bin/qmake"
             sed -i "s|\/home\/qt\/work\/install\/bin\/qmake|$QMAKE_FILE|g" "${ANDROID_QMAKE_FILE}"
         else
-            CONF_FILE="${INSTALL_DIR}/${VERSION}/${SUBDIR}/bin/qt.conf"
+            CONF_FILE="${UNPACK_DIR}/${VERSION}/${SUBDIR}/bin/qt.conf"
             echo "[Paths]" > ${CONF_FILE}
             echo "Prefix = .." >> ${CONF_FILE}
         fi
 
         # Adjust the license to be able to run qmake
         # sed with -i requires intermediate file on Mac OS
-        PRI_FILE="${INSTALL_DIR}/${VERSION}/${SUBDIR}/mkspecs/qconfig.pri"
+        PRI_FILE="${UNPACK_DIR}/${VERSION}/${SUBDIR}/mkspecs/qconfig.pri"
         sed -i.bak 's/Enterprise/OpenSource/g' "${PRI_FILE}"
         sed -i.bak 's/licheck.*//g' "${PRI_FILE}"
         rm "${PRI_FILE}.bak"
@@ -342,9 +349,9 @@ for COMPONENT in ${COMPONENTS}; do
         echo $(dirname "${CONF_FILE}")
     elif [[ "${COMPONENT}" =~ "qtcreator" ]]; then
         if [ "${HOST_OS}" == "mac_x64" ]; then
-            echo "${INSTALL_DIR}/Qt Creator.app/Contents/MacOS"
+            echo "${UNPACK_DIR}/Qt Creator.app/Contents/MacOS"
         else
-            echo "${INSTALL_DIR}/bin"
+            echo "${UNPACK_DIR}/bin"
         fi
     fi
 
