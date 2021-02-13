@@ -79,7 +79,7 @@ QtModule {
         condition: useCompiler
         inputs: 'qt.quick.qrc'
         searchPaths: [FileInfo.path(input.filePath)]
-        scan: QC.scanQrc(input.filePath)
+        scan: QC.scanQrc(product, input.filePath)
     }
 
     FileTagger {
@@ -100,7 +100,7 @@ QtModule {
             var cmd = new JavaScriptCommand();
             cmd.silent = true;
             cmd.sourceCode = function() {
-                var content = QC.contentFromQrc(input.filePath);
+                var content = QC.contentFromQrc(product, input.filePath);
                 content.qrcFilePath = input.filePath;
 
                 var tf = new TextFile(output.filePath, TextFile.WriteOnly);

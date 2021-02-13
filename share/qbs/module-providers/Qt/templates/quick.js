@@ -31,7 +31,7 @@
 var FileInfo = require("qbs.FileInfo");
 var Process = require("qbs.Process");
 
-function scanQrc(qrcFilePath) {
+function scanQrc(product, qrcFilePath) {
     var absInputDir = FileInfo.path(qrcFilePath);
     var result = [];
     var process = new Process();
@@ -65,8 +65,8 @@ function qtQuickResourceFileOutputName(fileName) {
     return fileName.replace(/\.qrc$/, "_qtquickcompiler.qrc");
 }
 
-function contentFromQrc(qrcFilePath) {
-    var filesInQrc = scanQrc(qrcFilePath);
+function contentFromQrc(product, qrcFilePath) {
+    var filesInQrc = scanQrc(product, qrcFilePath);
     var qmlJsFiles = filesInQrc.filter(function (filePath) {
         return (/\.(js|qml)$/).test(filePath);
     } );
