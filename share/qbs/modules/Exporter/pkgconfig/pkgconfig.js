@@ -83,7 +83,7 @@ function collectAutodetectedData(topLevelProduct)
                 || (value.length > installPrefix.length && value[installPrefix.length] !== '/')) {
             return quotedValue;
         }
-        return quotedValue.replace(product.qbs.installPrefix, "${prefix}");
+        return quotedValue.replace(topLevelProduct.qbs.installPrefix, "${prefix}");
     }
 
     function transformedValue(product, moduleName, propertyName)
