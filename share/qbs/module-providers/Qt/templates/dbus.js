@@ -29,6 +29,7 @@
 ****************************************************************************/
 
 var FileInfo = require("qbs.FileInfo");
+var ModUtils = require("qbs.ModUtils");
 
 function outputFileName(input, suffix)
 {

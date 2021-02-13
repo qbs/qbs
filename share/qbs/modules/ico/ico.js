@@ -29,6 +29,7 @@
 ****************************************************************************/
 
 var File = require("qbs.File");
+var FileInfo = require("qbs.FileInfo");
 var Process = require("qbs.Process");
 
 function prepareIconset(project, product, inputs, outputs, input, output) {

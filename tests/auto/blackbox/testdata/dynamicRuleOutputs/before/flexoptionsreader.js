@@ -35,7 +35,7 @@
 **
 ****************************************************************************/
 
-// needs import qbs.TextFile
+var TextFile = require("qbs.TextFile");
 
 function readFlexOptions(filePath)
 {

@@ -30,9 +30,11 @@
 
 var File = require("qbs.File");
 var FileInfo = require("qbs.FileInfo");
+var ModUtils = require("qbs.ModUtils");
 var Process = require("qbs.Process");
 var TextFile = require("qbs.TextFile");
 var Utilities = require("qbs.Utilities");
+var Xml = require("qbs.Xml");
 
 function availableBuildToolsVersions(sdkDir) {
     var re = /^([0-9]+)\.([0-9]+)\.([0-9]+)$/;
