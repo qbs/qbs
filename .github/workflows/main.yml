@@ -379,7 +379,16 @@ jobs:
         qbs config defaultProfile qt
         qbs config --list
     - name: Run Tests
-      run: ./scripts/test-qbs.sh ./release/install-root/usr/local/bin
+      run: |
+        sudo chmod g+w /cores
+        ulimit -c unlimited
+        ./scripts/test-qbs.sh ./release/install-root/usr/local/bin
+    - name: Coredump on failure
+      if: ${{ failure() }}
+      run: |
+        for f in $(find /cores -maxdepth 1 -name 'core.*' -print); do
+          lldb --core $f --batch --one-line "bt"
+        done;
 
   test-windows:
     name: ${{ matrix.config.name }}
