@@ -4,7 +4,7 @@ inputs:
   version:
     description: 'Qt version'
     required: false
-    default: '5.15.0'
+    default: '5.15.2'
   target:
     description: 'Qt target (desktop, ios, android)'
     required: false
