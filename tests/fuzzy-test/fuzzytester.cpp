@@ -67,7 +67,7 @@ void FuzzyTester::runTest(const QString &profile, const QString &startCommit,
     qDebug("Found buildable start commit %s.", qPrintable(workingStartCommit));
     QStringList allCommits = findAllCommits(workingStartCommit);
     qDebug("The test set comprises all %d commits between the start commit and HEAD.",
-           allCommits.size());
+           int(allCommits.size()));
 
     // Shuffle the initial sequence. Otherwise all invocations of the tool with the same start
     // commit would try the same sequence of commits.
@@ -94,7 +94,7 @@ void FuzzyTester::runTest(const QString &profile, const QString &startCommit,
             m_currentCommit = currentCommit;
             buildSequence << currentCommit;
             checkoutCommit(currentCommit);
-            qDebug("Testing incremental build #%d (%s)", buildSequence.size() - 1,
+            qDebug("Testing incremental build #%d (%s)", int(buildSequence.size()) - 1,
                    qPrintable(currentCommit));
 
             // Doing "resolve" and "build" separately introduces additional possibilities
