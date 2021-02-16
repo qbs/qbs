@@ -18,7 +18,8 @@ jobs:
         config:
         - {
             name: 'Build on Linux (gcc)',
-            options: 'modules.cpp.compilerWrapper:ccache
+            options: 'qbs.installPrefix:""
+                      modules.cpp.compilerWrapper:ccache
                       modules.qbs.debugInformation:true
                       modules.qbsbuildconfig.enableAddressSanitizer:false
                       modules.qbsbuildconfig.enableProjectFileUpdates:false
@@ -68,6 +69,7 @@ jobs:
     timeout-minutes: 45
     env:
       BUILD_OPTIONS: |
+        qbs.installPrefix:""
         modules.cpp.compilerWrapper:ccache
         modules.qbs.debugInformation:true
         modules.qbsbuildconfig.enableUnitTests:false
