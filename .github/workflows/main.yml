@@ -289,7 +289,7 @@ jobs:
       run: docker-compose run ${{ matrix.config.image }} ${{ matrix.config.script }} release/install-root/usr/local/bin
 
   test-baremetal:
-    name: Run Baremetal tests
+    name: Run Baremetal tests (Linux)
     runs-on: ubuntu-latest
     timeout-minutes: 60
     needs: build-linux
@@ -322,6 +322,139 @@ jobs:
       run: QBS_AUTOTEST_PROFILE=sdcc-3_8_0-stm8 docker-compose run focal-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
     - name: sdcc-3_8_0-hcs8
       run: QBS_AUTOTEST_PROFILE=sdcc-3_8_0-hcs8 docker-compose run focal-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+
+  test-baremetal-windows:
+    name: Run Baremetal tests (Windows)
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 30
+    needs: build-windows
+    env:
+      QBS_TEST_SOURCE_ROOT: 'tests'
+      QT_ASSUME_STDERR_HAS_CONSOLE: 1
+    steps:
+    - uses: actions/checkout@v1
+    - name: Download artifact
+      uses: actions/download-artifact@v1
+      with:
+        name: qbs-windows-${{ github.run_id }}.zip
+        path: ./
+    - name: Unpack artifact
+      run: mkdir -p release/install-root/ && unzip qbs-windows-${{ github.run_id }}.zip -d release/install-root/
+      shell: bash
+    - name: keil-9_53_0-mcs51
+      run: QBS_AUTOTEST_PROFILE=keil-9_53_0-mcs51 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: keil-5_60_0-mcs251
+      run: QBS_AUTOTEST_PROFILE=keil-5_60_0-mcs251 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: keil-7_57_0-c166
+      run: QBS_AUTOTEST_PROFILE=keil-7_57_0-c166 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: keil-5_30_0-arm
+      run: QBS_AUTOTEST_PROFILE=keil-5_30_0-arm scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: keil-llvm-5_30_0-arm
+      run: QBS_AUTOTEST_PROFILE=keil-5_30_0-arm scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: iar-8_50_5-arm
+      run: QBS_AUTOTEST_PROFILE=iar-8_50_5-arm scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: iar-10_30_1-mcs51
+      run: QBS_AUTOTEST_PROFILE=iar-10_30_1-mcs51 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: iar-7_30_1-avr
+      run: QBS_AUTOTEST_PROFILE=iar-7_30_1-avr scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: iar-4_30_2-avr32
+      run: QBS_AUTOTEST_PROFILE=iar-4_30_2-avr32 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: iar-7_20_1-msp430
+      run: QBS_AUTOTEST_PROFILE=iar-7_20_1-msp430 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: iar-3_11_2_234-stm8
+      run: QBS_AUTOTEST_PROFILE=iar-3_11_2_234-stm8 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: iar-4_20_1-rx
+      run: QBS_AUTOTEST_PROFILE=iar-4_20_1-rx scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: iar-4_20_1-rl78
+      run: QBS_AUTOTEST_PROFILE=iar-4_20_1-rl78 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: iar-5_10_1-v850
+      run: QBS_AUTOTEST_PROFILE=iar-5_10_1-v850 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: iar-2_21_1-rh850
+      run: QBS_AUTOTEST_PROFILE=iar-2_21_1-rh850 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: iar-2_30_1-sh
+      run: QBS_AUTOTEST_PROFILE=iar-2_30_1-sh scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: iar-4_81_1-78k
+      run: QBS_AUTOTEST_PROFILE=iar-4_81_1-78k scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: iar-4_10_1-hcs12
+      run: QBS_AUTOTEST_PROFILE=iar-4_10_1-hcs12 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: iar-1_40_2-r32c
+      run: QBS_AUTOTEST_PROFILE=iar-1_40_2-r32c scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: iar-3_71_1-m16c
+      run: QBS_AUTOTEST_PROFILE=iar-3_71_1-m16c scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: iar-1_21_1-riscv
+      run: QBS_AUTOTEST_PROFILE=iar-1_21_1-riscv scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: iar-3_30_1-cr16
+      run: QBS_AUTOTEST_PROFILE=iar-3_30_1-cr16 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: sdcc-4_0_0-mcs51
+      run: QBS_AUTOTEST_PROFILE=sdcc-4_0_0-mcs51 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: sdcc-4_0_0-stm8
+      run: QBS_AUTOTEST_PROFILE=sdcc-4_0_0-stm8 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: sdcc-4_0_0-hcs8
+      run: QBS_AUTOTEST_PROFILE=sdcc-4_0_0-hcs8 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: avr-gcc-4_6_2
+      run: QBS_AUTOTEST_PROFILE=avr-gcc-4_6_2 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: avr32-gcc-4_4_3
+      run: QBS_AUTOTEST_PROFILE=avr32-gcc-4_4_3 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: m32c-elf-gcc-4_7_3
+      run: QBS_AUTOTEST_PROFILE=m32c-elf-gcc-4_7_3 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: m32r-elf-gcc-4_8_0
+      run: QBS_AUTOTEST_PROFILE=m32r-elf-gcc-4_8_0 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: m68k-elf-gcc-4_8_0
+      run: QBS_AUTOTEST_PROFILE=m68k-elf-gcc-4_8_0 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: msp430-elf-gcc-8_3_1
+      run: QBS_AUTOTEST_PROFILE=msp430-elf-gcc-8_3_1 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: riscv64-unknown-elf-gcc-10_1_0
+      run: QBS_AUTOTEST_PROFILE=riscv64-unknown-elf-gcc-10_1_0 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: v850-elf-gcc-4_7_2
+      run: QBS_AUTOTEST_PROFILE=v850-elf-gcc-4_7_2 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: arm-none-eabi-gcc-9_3_1
+      run: QBS_AUTOTEST_PROFILE=arm-none-eabi-gcc-9_3_1 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: xtensa-lx106-elf-gcc-5_2_0
+      run: QBS_AUTOTEST_PROFILE=xtensa-lx106-elf-gcc-5_2_0 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: xtensa-esp32-elf-gcc-8_4_0
+      run: QBS_AUTOTEST_PROFILE=xtensa-esp32-elf-gcc-8_4_0 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: rl78-elf-gcc-4_9_2_202002-GNURL78
+      run: QBS_AUTOTEST_PROFILE=rl78-elf-gcc-4_9_2_202002-GNURL78 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: rx-elf-gcc-8_3_0_202004-GNURX
+      run: QBS_AUTOTEST_PROFILE=rx-elf-gcc-8_3_0_202004-GNURX scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
 
   test-macos:
     name: ${{ matrix.config.name }}
