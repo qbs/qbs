@@ -204,7 +204,7 @@ static void scanCppFile(void *opaq, CPlusPlus::Lexer &yylex, bool scanForFileTag
 static void *openScanner(const unsigned short *filePath, const char *fileTags, int flags)
 {
     std::unique_ptr<Opaq> opaque(new Opaq);
-    opaque->fileName = QString::fromUtf16(filePath);
+    opaque->fileName = QString::fromUtf16(reinterpret_cast<const char16_t *>(filePath));
     const int fileTagsLength = static_cast<int>(std::strlen(fileTags));
     const QList<QByteArray> &tagList = QByteArray::fromRawData(fileTags, fileTagsLength).split(',');
     if (tagList.contains("hpp"))
