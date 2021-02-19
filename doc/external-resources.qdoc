@@ -121,6 +121,11 @@
 */
 
 /*!
+    \externalpage https://github.com/nanopb/nanopb
+    \title nanopb
+*/
+
+/*!
     \externalpage nolink
     \title macOS
     \internal

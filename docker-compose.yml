@@ -77,6 +77,14 @@ services:
       dockerfile: docker/focal/test-baremetal.Dockerfile
       context: .
 
+  focal-qt4:
+    << : *linux
+    hostname: focal-qt4
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:focal-qt4-0
+    build:
+      dockerfile: docker/focal/test-qt4.Dockerfile
+      context: .
+
   windows:
     image: ${DOCKER_USER:-qbsbuild}/qbsdev:windowsservercore-5.15.0_1.16.0-0
     build:

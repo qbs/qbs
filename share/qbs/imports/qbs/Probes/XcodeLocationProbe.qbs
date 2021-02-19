@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2015 The Qt Company Ltd.
+** Copyright (C) 2020 Ivan Komissarov (abbapoh@gmail.com)
 ** Contact: http://www.qt.io/licensing
 **
 ** This file is part of Qbs.
@@ -28,16 +28,20 @@
 **
 ****************************************************************************/
 
-PathProbe {
-    platformSearchPaths: qbs.targetOS.contains("unix") ? [
-        "/usr/include",
-        "/usr/local/include",
-        "/include",
-        "/app/include",
-    ] : []
-    platformEnvironmentPaths: {
-        if (qbs.toolchain.contains('msvc'))
-            return [ "INCLUDE" ];
-        return undefined;
+import qbs.Process
+
+Probe {
+    property path developerPath
+    configure: {
+        var p = new Process();
+        try {
+            p.exec("/usr/bin/xcode-select", ["--print-path"], true);
+            developerPath = p.readStdOut().trim();
+        } catch (e) {
+            developerPath = "/Applications/Xcode.app/Contents/Developer";
+        } finally {
+            p.close();
+            found = true;
+        }
     }
 }

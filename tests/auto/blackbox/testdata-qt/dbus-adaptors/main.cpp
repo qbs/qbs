@@ -50,9 +50,15 @@
 
 #include "car.h"
 #include "car_adaptor.h"
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QGraphicsView>
 #include <QtWidgets/QGraphicsScene>
+#else
+#include <QApplication>
+#include <QGraphicsView>
+#include <QGraphicsScene>
+#endif
 #include <QtDBus/QDBusConnection>
 
 int main(int argc, char *argv[])

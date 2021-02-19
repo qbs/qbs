@@ -1,4 +1,14 @@
+import qbs.Utilities
+
 QtGuiApplication {
+    condition: {
+        // pluginTypes empty for Qt4
+        if (Utilities.versionCompare(Qt.core.version, "5.0") < 0) {
+            console.info("using qt4");
+            return false;
+        }
+        return true;
+    }
     Probe {
         id: staticProbe
         property bool isStaticQt: Qt.gui.isStaticLibrary

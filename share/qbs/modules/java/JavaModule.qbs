@@ -234,14 +234,18 @@ Module {
         inputsFromDependencies: ["java.jar"]
         explicitlyDependsOn: ["java.class-internal"]
 
-        outputFileTags: ["java.class"].concat(_tagJniHeaders ? ["hpp"] : []) // Annotations can produce additional java source files. Ignored for now.
+        outputFileTags: ["java.class"].concat(_tagJniHeaders ? ["hpp"] : ["java.jni-hpp"]) // Annotations can produce additional java source files. Ignored for now.
         outputArtifacts: {
             var artifacts = JavaUtils.outputArtifacts(product, inputs);
             if (!product.java._tagJniHeaders) {
                 for (var i = 0; i < artifacts.length; ++i) {
                     var a = artifacts[i];
                     if (a.fileTags instanceof Array)
-                        a.fileTags = a.fileTags.filter(function(tag) { return tag != "hpp"; });
+                        a.fileTags = a.fileTags.map(function(tag) {
+                            if (tag === "hpp")
+                                return "java.jni-hpp";
+                            return tag;
+                        });
                 }
             }
             return artifacts;

@@ -70,7 +70,9 @@ void TestBlackboxQt::autoQrc()
 void TestBlackboxQt::cachedQml()
 {
     QDir::setCurrent(testDataDir + "/cached-qml");
-    QCOMPARE(runQbs(), 0);
+    if ((runQbs() != 0) && m_qbsStderr.contains("Dependency 'Qt.qml' not found for product 'app'"))
+        QSKIP("Qt version too old");
+
     QString dataDir = relativeBuildDir() + "/install-root/data";
     QVERIFY2(m_qbsStdout.contains("qmlcachegen must work: true")
              || m_qbsStdout.contains("qmlcachegen must work: false"),
@@ -133,6 +135,8 @@ void TestBlackboxQt::forcedMoc()
 {
     QDir::setCurrent(testDataDir + "/forced-moc");
     QCOMPARE(runQbs(QbsRunParameters("resolve")), 0);
+    if (m_qbsStdout.contains("using qt4"))
+        QSKIP("Qt version too old");
     if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
         QSKIP("Cannot run binaries in cross-compiled build");
     QCOMPARE(runQbs(QbsRunParameters("run")), 0);
@@ -143,6 +147,8 @@ void TestBlackboxQt::includedMocCpp()
 {
     QDir::setCurrent(testDataDir + "/included-moc-cpp");
     QCOMPARE(runQbs(), 0);
+    if (m_qbsStdout.contains("using qt4"))
+        QSKIP("Qt version too old");
     QVERIFY2(!m_qbsStdout.contains("compiling moc_myobject.cpp"), m_qbsStdout.constData());
     WAIT_FOR_NEW_TIMESTAMP();
     REPLACE_IN_FILE("myobject.cpp", "#include <moc_myobject.cpp", "// #include <moc_myobject.cpp");
@@ -296,6 +302,8 @@ void TestBlackboxQt::pluginMetaData()
 {
     QDir::setCurrent(testDataDir + "/plugin-meta-data");
     QCOMPARE(runQbs(QbsRunParameters("resolve")), 0);
+    if (m_qbsStdout.contains("using qt4"))
+        QSKIP("Qt version too old");
     if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
         QSKIP("Cannot run binaries in cross-compiled build");
 
@@ -325,7 +333,11 @@ void TestBlackboxQt::pluginSupport()
         resolveParams.arguments << "modules.m1.useDummy:true";
         resolveParams.expectFailure = true;
     }
-    QCOMPARE(runQbs(resolveParams) == 0, !invalidPlugin);
+    bool resolveResult = runQbs(resolveParams) == 0;
+    if (m_qbsStdout.contains("using qt4"))
+        QSKIP("Qt version too old");
+    QCOMPARE(resolveResult, !invalidPlugin);
+
     if (invalidPlugin) {
         QVERIFY2(m_qbsStderr.contains("Plugin 'dummy' of type 'imageformats' was requested, "
                                       "but is not available"), m_qbsStderr.constData());
@@ -404,7 +416,9 @@ void TestBlackboxQt::qmlTypeRegistrar()
     rmDirR(relativeBuildDir());
     const QStringList args{"modules.Qt.qml.importName:" + importName,
                            "modules.Qt.qml.typesInstallDir:" + installDir};
-    QCOMPARE(runQbs(QbsRunParameters("resolve", args)), 0);
+    if ((runQbs(QbsRunParameters("resolve", args)) != 0) &&
+            m_qbsStderr.contains("Dependency 'Qt.qml' not found for product 'myapp'"))
+        QSKIP("Qt version too old");
     const bool hasRegistrar = m_qbsStdout.contains("has registrar");
     const bool doesNotHaveRegistrar = m_qbsStdout.contains("does not have registrar");
     QVERIFY(hasRegistrar != doesNotHaveRegistrar);
@@ -437,7 +451,9 @@ void TestBlackboxQt::qtKeywords()
 void TestBlackboxQt::quickCompiler()
 {
     QDir::setCurrent(testDataDir + "/quick-compiler");
-    QCOMPARE(runQbs(), 0);
+    if ((runQbs() != 0) &&
+            m_qbsStderr.contains("'Qt.quick' has version 4.8.7, but it needs to be at least 5.0.0."))
+        QSKIP("Qt version too old");
     const bool hasCompiler = m_qbsStdout.contains("compiler available");
     const bool doesNotHaveCompiler = m_qbsStdout.contains("compiler not available");
     QVERIFY2(hasCompiler || doesNotHaveCompiler, m_qbsStdout.constData());
@@ -546,6 +562,8 @@ void TestBlackboxQt::track_qrc()
 {
     QDir::setCurrent(testDataDir + "/qrc");
     QCOMPARE(runQbs(QbsRunParameters("resolve")), 0);
+    if (m_qbsStdout.contains("using qt4"))
+        QSKIP("Qt version too old");
     if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
         QSKIP("Cannot run binaries in cross-compiled build");
     QCOMPARE(runQbs(QbsRunParameters("run")), 0);

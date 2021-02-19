@@ -49,7 +49,12 @@
 ****************************************************************************/
 
 #include "car.h"
+
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
 #include <QtWidgets/QtWidgets>
+#else
+#include <QtGui>
+#endif
 #include <math.h>
 
 static const double Pi = 3.14159265358979323846264338327950288419717;
