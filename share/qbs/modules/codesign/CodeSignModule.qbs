@@ -42,4 +42,6 @@ Module {
     property string codesignName
     property string codesignPath: codesignName
     property stringList codesignFlags
+
+    property bool _canSignArtifacts: false // whether can sign individual actifacts
 }

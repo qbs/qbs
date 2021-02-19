@@ -1385,8 +1385,10 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
         }
     }
 
-    Array.prototype.push.apply(
+    if (product.cpp.shouldSignArtifacts) {
+        Array.prototype.push.apply(
                 commands, Codesign.prepareSign(project, product, inputs, outputs, input, output));
+    }
 
     return commands;
 }

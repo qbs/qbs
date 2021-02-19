@@ -212,6 +212,9 @@ CppModule {
         return createSymlinks && internalVersion && ["macho", "elf"].contains(cpp.imageFormat);
     }
 
+    readonly property bool shouldSignArtifacts: codesign._canSignArtifacts
+                                                && codesign.enableCodeSigning
+
     property string internalVersion: {
         if (product.version === undefined)
             return undefined;
@@ -409,7 +412,7 @@ CppModule {
                 filePath: product.destinationDirectory + "/"
                           + PathTools.dynamicLibraryFilePath(product),
                 fileTags: ["bundle.input", "dynamiclibrary"]
-                        .concat(product.codesign.enableCodeSigning
+                        .concat(product.cpp.shouldSignArtifacts
                                 ? ["codesign.signed_artifact"] : []),
                 bundle: {
                     _bundleFilePath: product.destinationDirectory + "/"
@@ -521,7 +524,7 @@ CppModule {
                 filePath: FileInfo.joinPaths(product.destinationDirectory,
                                              PathTools.loadableModuleFilePath(product)),
                 fileTags: ["bundle.input", "loadablemodule"]
-                        .concat(product.codesign.enableCodeSigning
+                        .concat(product.cpp.shouldSignArtifacts
                                 ? ["codesign.signed_artifact"] : []),
                 bundle: {
                     _bundleFilePath: FileInfo.joinPaths(product.destinationDirectory,
@@ -561,7 +564,7 @@ CppModule {
                 filePath: FileInfo.joinPaths(product.destinationDirectory,
                                              PathTools.applicationFilePath(product)),
                 fileTags: ["bundle.input", "application"].concat(
-                    product.codesign.enableCodeSigning ? ["codesign.signed_artifact"] : []),
+                    product.cpp.shouldSignArtifacts ? ["codesign.signed_artifact"] : []),
                 bundle: {
                     _bundleFilePath: FileInfo.joinPaths(product.destinationDirectory,
                                                         PathTools.bundleExecutableFilePath(product))

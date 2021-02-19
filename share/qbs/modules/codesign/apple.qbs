@@ -58,6 +58,8 @@ CodeSignModule {
     codesignName: "codesign"
     codesignPath: codesignProbe.filePath
 
+    _canSignArtifacts: true
+
     property string signingType: {
         if (_adHocCodeSigningAllowed)
             return "ad-hoc";
