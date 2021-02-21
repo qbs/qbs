@@ -288,6 +288,10 @@ function compute_url(){
     exit 1
 }
 
+function version {
+  echo "$@" | awk -F. '{ printf("%03d%03d%03d\n", $1,$2,$3); }';
+}
+
 mkdir -p ${INSTALL_DIR}
 rm -f "${HASH_FILEPATH}"
 
@@ -298,6 +302,18 @@ for COMPONENT in ${COMPONENTS}; do
         mkdir -p ${UNPACK_DIR}
     else
         UNPACK_DIR="${INSTALL_DIR}"
+    fi
+
+    if [ "$(version "${VERSION}")" -ge "$(version "6.0.0")" ]; then
+        if [[ "${COMPONENT}" =~ "qtscript" ]] || [[ "${COMPONENT}" =~ "qtscxml" ]] || [[ "${COMPONENT}" =~ "qtx11extras" ]]; then
+            echo "Component ${COMPONENT} was removed in Qt6, skipping" >&2
+            continue
+        fi
+    else
+        if [[ "${COMPONENT}" =~ "qt5compat" ]]; then
+            echo "Component ${COMPONENT} is not present in Qt ${VERSION}, skipping" >&2
+            continue
+        fi
     fi
 
     URL="$(compute_url ${COMPONENT})"
