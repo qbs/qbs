@@ -43,6 +43,7 @@
 #include <QtCore/qhash.h>
 #include <QtCore/qstringlist.h>
 #include <QtCore/qtextstream.h>
+#include <QtCore/qvariant.h>
 
 #include <functional>
 
@@ -124,6 +125,24 @@ inline void setupDefaultCodec(QTextStream &stream)
     stream.setCodec("UTF-8");
 #else
     Q_UNUSED(stream);
+#endif
+}
+
+inline bool qVariantCanConvert(const QVariant &variant, int typeId)
+{
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+    return variant.canConvert(QMetaType(typeId));
+#else
+    return variant.canConvert(typeId); // deprecated in Qt6
+#endif
+}
+
+inline bool qVariantConvert(QVariant &variant, int typeId)
+{
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+    return variant.convert(QMetaType(typeId));
+#else
+    return variant.convert(typeId); // deprecated in Qt6
 #endif
 }
 

@@ -40,6 +40,7 @@
 #include "jsliterals.h"
 
 #include <tools/stringconstants.h>
+#include <tools/qttools.h>
 
 #include <QtCore/qregularexpression.h>
 
@@ -99,7 +100,7 @@ QString toJSLiteral(const QVariant &val)
     }
     if (val.userType() == QMetaType::Bool)
         return toJSLiteral(val.toBool());
-    if (val.canConvert(QMetaType::QString))
+    if (qVariantCanConvert(val, QMetaType::QString))
         return toJSLiteral(val.toString());
     return QStringLiteral("Unconvertible type %1").arg(QLatin1String(val.typeName()));
 }

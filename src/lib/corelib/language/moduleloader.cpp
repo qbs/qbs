@@ -3247,7 +3247,7 @@ static QVariant convertToPropertyType(const QVariant &v, PropertyDeclaration::Ty
         return v.toString().split(QLatin1Char(','));
 
     QVariant c = v;
-    if (!c.convert(vt)) {
+    if (!qVariantConvert(c, vt)) {
         QStringList name = namePrefix;
         name << key;
         throw ErrorInfo(Tr::tr("Value '%1' of property '%2' has incompatible type.")
