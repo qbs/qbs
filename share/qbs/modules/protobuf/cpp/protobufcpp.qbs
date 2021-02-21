@@ -16,7 +16,9 @@ ProtobufBase {
     property string grpcLibraryPath: grpcLibraryProbe.path
 
     readonly property string _libraryName: {
-        var libraryName = FileInfo.baseName(libraryProbe.fileName);
+        var libraryName;
+        if (libraryProbe.found)
+            libraryName = FileInfo.baseName(libraryProbe.fileName);
         if (libraryName.startsWith("lib"))
             libraryName = libraryName.substring(3);
         return libraryName;
