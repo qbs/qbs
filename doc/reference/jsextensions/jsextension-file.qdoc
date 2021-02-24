@@ -47,6 +47,9 @@
     \note \c targetFilePath must be the counterpart of \c sourceFilePath at the new location,
     \b{not} the new parent directory. This allows the copy to have a different name and is true
     even if \c sourceFilePath is a directory.
+    \note The file is not copied if the source file timestamp is older than the destination file
+    timestamp. If you want to replace the newer file, you need to remove it first via
+    File.remove().
 
     \section2 exists
     \code
