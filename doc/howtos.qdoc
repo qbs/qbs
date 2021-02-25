@@ -54,6 +54,7 @@
     \li \l{How do I define a reusable Group of files that can be included in other \QBS files?}
     \li \l{How do I print the value of a property?}
     \li \l{How do I debug \QBS scripts?}
+    \li \l{How do I sign an application for an Apple platform?}
     \endlist
 
     \section1 How do I build a Qt-based project?
@@ -775,5 +776,47 @@
     respective configuration, use the \c{qbs status} command:
     \code
     qbs status config:release
+    \endcode
+
+    \section1 How do I sign an application for an Apple platform?
+
+    To sign an application for an Apple platform, you need to use the \l{codesign} module.
+
+    \code
+        Depends { name: "codesign" }
+    \endcode
+
+    Several properties should be set to do signing as shown below.
+
+    Make sure that bundle and team indentifiers match the one used for signing:
+
+    \code
+        bundle.identifierPrefix: "com.johndoe"
+        codesign.teamIdentifier: "John Doe"
+    \endcode
+
+    It is also possible to use an ID of the team identifier instead of a name:
+    \code
+        codesign.teamIdentifier: "1234ABCDEF"
+    \endcode
+
+    \QBS will then try to find the matching signing identity and provisioning profile based on
+    \l{codesign::signingType}{codesign.signingType}.
+
+    It is also possible to specify \l{codesign::signingIdentity}{codesign.signingIdentity}
+    manually:
+
+    \code
+        codesign.signingIdentity: "Apple Development: johndoe@apple.com (ABCDEF1234)"
+    \endcode
+
+    It is also possible to use an ID of the signing identity instead of a name:
+    \code
+        codesign.signingIdentity: "ABCDEF1234567890ABCDEF1234567890ABCDEF12"
+    \endcode
+
+    If \QBS cannot find the suitable provisioning profile, you can specify it manually as well:
+    \code
+        codesign.provisioningProfile: "abcdef12-1234-5678-1111-abcdef123456"
     \endcode
 */
