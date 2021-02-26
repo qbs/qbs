@@ -28,6 +28,7 @@
 **
 ****************************************************************************/
 
+var BinaryFile = require("qbs.BinaryFile");
 var Cpp = require("cpp.js");
 var Environment = require("qbs.Environment");
 var File = require("qbs.File");
@@ -546,6 +547,35 @@ function archiverFlags(project, product, inputs, outputs) {
     return args;
 }
 
+// This is the workaround for the SDCC bug on a Windows host:
+// * https://sourceforge.net/p/sdcc/bugs/2970/
+// We need to replace the '\r\n\' line endings with the'\n' line
+// endings for each generated object file.
+function patchObjectFiles(project, product, inputs, outputs, input, output) {
+    var isWindows = input.qbs.hostOS.contains("windows");
+    if (isWindows && input.cpp.debugInformation) {
+        cmd = new JavaScriptCommand();
+        cmd.objectPath = outputs.obj[0].filePath;
+        cmd.silent = true;
+        cmd.sourceCode = function() {
+            var file = new BinaryFile(objectPath, BinaryFile.ReadWrite);
+            var data = file.read(file.size());
+            file.resize(0);
+            for (var pos = 0; pos < data.length; ++pos) {
+                // Find the next index of CR (\r) symbol.
+                var index = data.indexOf(0x0d, pos);
+                if (index < 0)
+                    index = data.length;
+                // Write next data chunk between the previous position and the CR
+                // symbol, exclude the CR symbol.
+                file.write(data.slice(pos, index));
+                pos = index;
+            }
+        };
+        return cmd;
+    }
+}
+
 function prepareCompiler(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
     var cmds = [];
     var args = compilerFlags(project, product, input, outputs, explicitlyDependsOn);
@@ -555,37 +585,27 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
     cmd.highlight = "compiler";
     cmds.push(cmd);
 
-    // This is the workaround for the SDCC bug on a Windows host:
-    // * https://sourceforge.net/p/sdcc/bugs/2970/
-    // We need to replace the '\r\n\' line endings with the'\n' line
-    // endings for each generated object file.
-    var isWindows = input.qbs.hostOS.contains("windows");
-    if (isWindows) {
-        cmd = new JavaScriptCommand();
-        cmd.objectPath = outputs.obj[0].filePath;
-        cmd.silent = true;
-        cmd.sourceCode = function() {
-            var lines = [];
-            var file = new TextFile(objectPath, TextFile.ReadWrite);
-            while (!file.atEof())
-                lines.push(file.readLine() + "\n");
-            file.truncate();
-            for (var l in lines)
-                file.write(lines[l]);
-        };
+    cmd = patchObjectFiles(project, product, inputs, outputs, input, output);
+    if (cmd)
         cmds.push(cmd);
-    }
 
     return cmds;
 }
 
 function prepareAssembler(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
+    var cmds = [];
     var args = assemblerFlags(project, product, input, outputs, explicitlyDependsOn);
     var assemblerPath = input.cpp.assemblerPath;
     var cmd = new Command(assemblerPath, args);
     cmd.description = "assembling " + input.fileName;
     cmd.highlight = "compiler";
-    return [cmd];
+    cmds.push(cmd);
+
+    cmd = patchObjectFiles(project, product, inputs, outputs, input, output);
+    if (cmd)
+        cmds.push(cmd);
+
+    return cmds;
 }
 
 function prepareLinker(project, product, inputs, outputs, input, output) {
