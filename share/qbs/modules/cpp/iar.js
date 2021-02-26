@@ -839,7 +839,7 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
     // Byte order flags.
     var endianness = input.cpp.endianness;
     if (endianness && supportEndianness(architecture))
-        args.push("--endian=" + endianness);
+        args.push("--endian", endianness);
 
     // Listing files generation flag.
     if (input.cpp.generateAssemblerListingFiles)
