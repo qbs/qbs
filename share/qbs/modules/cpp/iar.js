@@ -533,7 +533,7 @@ function dumpCompilerIncludePaths(compilerFilePath, tag) {
         var m = line.match(/\$\$INC_BEGIN\s\$\$FILEPATH\s\"([^"]*)/);
         if (m) {
             var includePath =  m[1].replace(/\\\\/g, '/');
-            if (includePath)
+            if (includePath && File.exists(includePath))
                 includePaths.push(includePath);
         }
     });
@@ -543,7 +543,8 @@ function dumpCompilerIncludePaths(compilerFilePath, tag) {
         // e.g. IAR for S08 architecture. In this case we use fallback to the
         // detection of the `inc` directory.
         var includePath = FileInfo.joinPaths(FileInfo.path(compilerFilePath), "../inc/");
-        includePaths.push(includePath);
+        if (File.exists(includePath))
+            includePaths.push(includePath);
     }
 
     return includePaths;
