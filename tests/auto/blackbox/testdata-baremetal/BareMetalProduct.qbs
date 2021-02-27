@@ -44,7 +44,7 @@ Product {
     Properties {
         condition: qbs.toolchain.contains("iar")
             && qbs.architecture === "78k"
-        cpp.cFlags: [
+        cpp.commonCompilerFlags: [
             "--core", "78k0",
             "--code_model", "standard"
         ]
