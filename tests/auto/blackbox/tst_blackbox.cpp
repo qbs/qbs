@@ -3598,16 +3598,14 @@ void TestBlackbox::propertyEvaluationContext()
 
 void TestBlackbox::qtBug51237()
 {
-    const QString profileName = "profile-qtBug51237";
-    const QString propertyName = "mymodule.theProperty";
-    {
-        const SettingsPtr s = settings();
-        Profile profile(profileName, s.get());
-        profile.setValue(propertyName, QStringList());
-    }
+    const SettingsPtr s = settings();
+    qbs::Internal::TemporaryProfile profile("qbs_autotests_qtBug51237", s.get());
+    profile.p.setValue("mymodule.theProperty", QStringList());
+    s->sync();
+
     QDir::setCurrent(testDataDir + "/QTBUG-51237");
     QbsRunParameters params;
-    params.profile = profileName;
+    params.profile = profile.p.name();
     QCOMPARE(runQbs(params), 0);
 }
 
