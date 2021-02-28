@@ -363,6 +363,7 @@ private:
     QMap<QString, QString> findNodejs(int *status);
     QMap<QString, QString> findTypeScript(int *status);
     QString findArchiver(const QString &fileName, int *status = nullptr);
+    bool prepareAndRunConan();
     static bool lexYaccExist();
     static qbs::Version bisonVersion();
 };

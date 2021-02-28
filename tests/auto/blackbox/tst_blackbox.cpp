@@ -144,6 +144,26 @@ QString TestBlackbox::findArchiver(const QString &fileName, int *status)
     return binary;
 }
 
+bool TestBlackbox::prepareAndRunConan()
+{
+    QString executable = findExecutable({"conan"});
+    if (executable.isEmpty()) {
+        qInfo() << "conan is not installed or not available in PATH.";
+        return false;
+    }
+    const auto profilePath = QDir::homePath() + "/.conan2/profiles/qbs-test";
+    if (!QFileInfo(profilePath).exists()) {
+        qInfo() << "conan profile is not installed, run './scripts/setup-conan-profiles.sh'";
+        return false;
+    }
+    QProcess conan;
+    QDir::setCurrent(testDataDir + "/conan-provider/testlibdep");
+    rmDirR("build");
+    QStringList arguments{"install", ".", "--profile:all=qbs-test", "--output-folder=build"};
+    conan.start(executable, arguments);
+    return waitForProcessSuccess(conan, 60000);
+}
+
 bool TestBlackbox::lexYaccExist()
 {
     return !findExecutable(QStringList("lex")).isEmpty()
@@ -836,6 +856,12 @@ void TestBlackbox::capnproto()
     QDir::setCurrent(testDataDir + "/capnproto");
     rmDirR(relativeBuildDir());
 
+    if (QTest::currentDataTag() == QLatin1String("cpp-conan")
+        || QTest::currentDataTag() == QLatin1String("rpc-conan")) {
+        if (!prepareAndRunConan())
+            QSKIP("conan is not prepared, check messages above");
+    }
+
     QbsRunParameters params{QStringLiteral("resolve"), {QStringLiteral("-f"), projectFile}};
     params.arguments << arguments;
     QCOMPARE(runQbs(params), 0);
@@ -860,6 +886,11 @@ void TestBlackbox::capnproto_data()
         << QStringLiteral("capnproto_relative_import.qbs") << pkgConfigArgs;
     QTest::newRow("absolute import")
         << QStringLiteral("capnproto_absolute_import.qbs") << pkgConfigArgs;
+
+    QStringList conanArgs(
+        {"project.qbsModuleProviders:conan", "moduleProviders.conan.installDirectory:build"});
+    QTest::newRow("cpp-conan") << QStringLiteral("capnproto_cpp.qbs") << conanArgs;
+    QTest::newRow("rpc-conan") << QStringLiteral("greeter_cpp.qbs") << conanArgs;
 }
 
 void TestBlackbox::changedFiles_data()
@@ -1431,19 +1462,6 @@ void TestBlackbox::variantSuffix_data()
                             std::make_pair(QString("unix"), QStringList())});
 }
 
-static bool waitForProcessSuccess(QProcess &p, int msecs = 30000)
-{
-    if (!p.waitForStarted(msecs) || !p.waitForFinished(msecs)) {
-        qDebug() << p.errorString();
-        return false;
-    }
-    if (p.exitCode() != 0) {
-        qDebug() << p.readAllStandardError();
-        return false;
-    }
-    return true;
-}
-
 void TestBlackbox::vcsGit()
 {
     const QString gitFilePath = findExecutable(QStringList("git"));
@@ -1969,6 +1987,9 @@ void TestBlackbox::conanfileProbe_data()
 void TestBlackbox::conanfileProbe()
 {
     QFETCH(bool, forceFailure);
+
+    if (qEnvironmentVariableIsSet("GITHUB_ACTIONS"))
+        QSKIP("Skip this test when running on GitHub");
 
     QString executable = findExecutable({"conan"});
     if (executable.isEmpty())
@@ -6133,6 +6154,12 @@ void TestBlackbox::protobuf_data()
     QTest::newRow("cpp-pkgconfig")
         << QString("addressbook_cpp.qbs")
         << QStringList({"project.qbsModuleProviders:qbspkgconfig"}) << true << true;
+    QTest::newRow("cpp-conan") << QString("addressbook_cpp.qbs")
+                               << QStringList(
+                                      {"project.qbsModuleProviders:conan",
+                                       "qbs.buildVariant:release",
+                                       "moduleProviders.conan.installDirectory:build"})
+                               << true << true;
     QTest::newRow("objc") << QString("addressbook_objc.qbs") << QStringList() << false << true;
     QTest::newRow("nanopb") << QString("addressbook_nanopb.qbs") << QStringList() << false << true;
     QTest::newRow("import") << QString("import.qbs") << QStringList() << true << true;
@@ -6153,6 +6180,12 @@ void TestBlackbox::protobuf()
     QFETCH(bool, hasModules);
     QFETCH(bool, successExpected);
     rmDirR(relativeBuildDir());
+
+    if (QTest::currentDataTag() == QLatin1String("cpp-conan")) {
+        if (!prepareAndRunConan())
+            QSKIP("conan is not prepared, check messages above");
+    }
+
     QbsRunParameters resolveParams("resolve", QStringList{"-f", projectFile} << properties);
     QCOMPARE(runQbs(resolveParams), 0);
     if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
@@ -8708,6 +8741,9 @@ void TestBlackbox::grpc_data()
             << "moduleProviders.qbspkgconfig.extraPaths:/usr/local/opt/openssl@1.1/lib/pkgconfig";
     }
     QTest::newRow("cpp-pkgconfig") << QString("grpc_cpp.qbs") << pkgConfigArgs << true;
+    QStringList conanArgs(
+        {"project.qbsModuleProviders:conan", "moduleProviders.conan.installDirectory:build"});
+    QTest::newRow("cpp-conan") << QString("grpc_cpp.qbs") << conanArgs << true;
 }
 
 void TestBlackbox::grpc()
@@ -8718,6 +8754,11 @@ void TestBlackbox::grpc()
     QFETCH(bool, hasModules);
 
     rmDirR(relativeBuildDir());
+    if (QTest::currentDataTag() == QLatin1String("cpp-conan")) {
+        if (!prepareAndRunConan())
+            QSKIP("conan is not prepared, check messages above");
+    }
+
     QbsRunParameters resolveParams("resolve", QStringList{"-f", projectFile});
     resolveParams.arguments << arguments;
     QCOMPARE(runQbs(resolveParams), 0);

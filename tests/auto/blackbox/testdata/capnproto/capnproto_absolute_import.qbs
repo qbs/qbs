@@ -17,4 +17,5 @@ CppApplication {
         "capnproto_absolute_import.cpp",
         "imports/foo.capnp",
     ]
+    qbs.buildVariant: "release"
 }

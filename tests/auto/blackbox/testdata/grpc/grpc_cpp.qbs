@@ -14,6 +14,7 @@ CppApplication {
     cpp.cxxLanguageVersion: "c++17"
     cpp.minimumMacosVersion: "10.15"
     cpp.warningLevel: "none"
+    qbs.buildVariant: "release"
 
     Depends { name: "protobuf.cpp"; required: false }
     Depends { name: "grpc++"; id: grpcpp; required: false }
@@ -22,7 +23,7 @@ CppApplication {
     property bool hasDependencies: {
         console.info("has grpc: " + protobuf.cpp.present);
         console.info("has modules: " + grpcpp.present);
-        return protobuf.cpp.present;
+        return protobuf.cpp.present && grpcpp.present;
     }
 
     files: "grpc.cpp"

@@ -15,4 +15,5 @@ CppApplication {
         "capnproto_cpp.cpp",
         "foo.capnp"
     ]
+    qbs.buildVariant: "release"
 }

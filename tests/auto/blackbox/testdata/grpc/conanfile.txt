@@ -1,0 +1,7 @@
+[requires]
+grpc/1.54.3
+[tool_requires]
+protobuf/3.21.12
+grpc/1.54.3
+[generators]
+QbsDeps

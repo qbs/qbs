@@ -44,6 +44,8 @@ private slots:
     void allowedValues();
     void allowedValues_data();
     void brokenProvider();
+    void conanProvider();
+    void conanProvider_data();
     void moduleProviders();
     void moduleProvidersCache();
     void nonEagerModuleProvider();

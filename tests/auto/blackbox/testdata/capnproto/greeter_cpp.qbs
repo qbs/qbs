@@ -14,11 +14,14 @@ Project {
         name: "server"
         consoleApplication: true
         cpp.minimumMacosVersion: "10.8"
+        // workaround for broken capnproto
+        cpp.staticLibraries: qbs.targetOS.contains("windows") ? "Advapi32" : []
         capnproto.cpp.useRpc: true
         files: [
             "greeter.capnp",
             "greeter-server.cpp"
         ]
+        qbs.buildVariant: "release"
     }
     CppApplication {
         Depends { name: "capnproto.cpp"; required: false }
@@ -26,9 +29,11 @@ Project {
         consoleApplication: true
         capnproto.cpp.useRpc: true
         cpp.minimumMacosVersion: "10.8"
+        cpp.staticLibraries: qbs.targetOS.contains("windows") ? "Advapi32" : []
         files: [
             "greeter.capnp",
             "greeter-client.cpp"
         ]
+        qbs.buildVariant: "release"
     }
 }

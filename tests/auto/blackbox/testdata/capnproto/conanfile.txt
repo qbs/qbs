@@ -1,0 +1,6 @@
+[requires]
+capnproto/1.0.2
+[tool_requires]
+capnproto/1.0.2
+[generators]
+QbsDeps

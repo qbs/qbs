@@ -90,6 +90,8 @@ public:
 public slots:
     virtual void initTestCase();
 
+    static QString findExecutable(const QStringList &fileNames);
+
 protected:
     virtual void validateTestProfile();
 
@@ -99,7 +101,6 @@ protected:
     static QByteArray unifiedLineEndings(const QByteArray &ba);
     static void sanitizeOutput(QByteArray *ba);
     static void ccp(const QString &sourceDirPath, const QString &targetDirPath);
-    static QString findExecutable(const QStringList &fileNames);
     QMap<QString, QString> findJdkTools(int *status);
     static qbs::Version qmakeVersion(const QString &qmakeFilePath);
 
@@ -112,5 +113,7 @@ protected:
     QByteArray m_qbsStdout;
     int m_needsQt = false;
 };
+
+bool waitForProcessSuccess(QProcess &p, int msecs = 30000);
 
 #endif // TST_BLACKBOXBASE_H

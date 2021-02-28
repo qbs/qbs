@@ -87,6 +87,67 @@ void TestBlackboxProviders::brokenProvider()
     QCOMPARE(m_qbsStderr.count("This provider is broken"), 2);
 }
 
+void TestBlackboxProviders::conanProvider()
+{
+    QFETCH(bool, generateConanFiles);
+    QFETCH(bool, successExpected);
+
+    const auto executable = findExecutable({"conan"});
+    if (executable.isEmpty())
+        QSKIP("conan is not installed or not available in PATH.");
+
+    const auto generator = QDir::homePath() + "/.conan2/extensions/generators/qbsdeps.py";
+    if (!QFileInfo(generator).exists()) {
+        QSKIP(
+            "qbsdeps.py is not installed, call 'conan config install src/conan/ from qbs source'.");
+    }
+
+    const auto profilePath = QDir::homePath() + "/.conan2/profiles/qbs-test";
+    if (!QFileInfo(profilePath).exists())
+        QSKIP("conan profile is not installed, run './scripts/setup-conan-profiles.sh'.");
+
+    // install testlibdep first
+    QProcess conan;
+    QDir::setCurrent(testDataDir + "/conan-provider/testlibdep");
+    conan.start(executable, {"create", ".", "--profile:all=qbs-test"});
+    QVERIFY(waitForProcessSuccess(conan));
+
+    // install testlib second
+    QDir::setCurrent(testDataDir + "/conan-provider/testlib");
+    conan.start(executable, {"create", ".", "--profile:all=qbs-test"});
+    QVERIFY(waitForProcessSuccess(conan));
+
+    // now build an app using those libs
+    QDir::setCurrent(testDataDir + "/conan-provider");
+
+    rmDirR(relativeBuildDir());
+    rmDirR("build");
+
+    if (generateConanFiles) {
+        QStringList arguments{
+            "install", ".", "-g=QbsDeps", "--profile:all=qbs-test", "--output-folder=build"};
+        QProcess conan;
+        conan.start(executable, arguments);
+        QVERIFY(waitForProcessSuccess(conan));
+    }
+
+    QbsRunParameters buildParams(
+        "build",
+        {"--force-probe-execution",
+         "moduleProviders.conan.installDirectory:" + QDir::currentPath() + "/build"});
+    buildParams.expectFailure = !successExpected;
+    QCOMPARE(runQbs(buildParams) == 0, successExpected);
+}
+
+void TestBlackboxProviders::conanProvider_data()
+{
+    QTest::addColumn<bool>("generateConanFiles");
+    QTest::addColumn<bool>("successExpected");
+
+    QTest::addRow("no conan files generated") << false << false;
+    QTest::addRow("conan files generated") << true << true;
+}
+
 void TestBlackboxProviders::moduleProviders()
 {
     QDir::setCurrent(testDataDir + "/module-providers");

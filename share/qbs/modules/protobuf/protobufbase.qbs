@@ -6,6 +6,7 @@ import "protobuf.js" as HelperFunctions
 Module {
     property string compilerName: "protoc"
     property string compilerPath: compilerProbe.filePath
+    property var _searchPaths
 
     property pathList importPaths: []
 
@@ -19,5 +20,6 @@ Module {
     Probes.BinaryProbe {
         id: compilerProbe
         names: [compilerName]
+        searchPaths: _searchPaths
     }
 }

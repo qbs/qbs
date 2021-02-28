@@ -28,6 +28,7 @@
 **
 ****************************************************************************/
 
+import qbs.FileInfo
 import qbs.Probes
 import "capnproto.js" as HelperFunctions
 
@@ -42,14 +43,18 @@ Module {
 
     property string outputDir: product.buildDirectory + "/capnp"
 
+    property var _searchPaths
+
     Probes.BinaryProbe {
         id: compilerProbe
         names: compilerName ? [compilerName] : []
+        searchPaths: _searchPaths
     }
 
     Probes.BinaryProbe {
         id: pluginProbe
         names: pluginName ? [pluginName] : []
+        searchPaths: _searchPaths
     }
 
     FileTagger {

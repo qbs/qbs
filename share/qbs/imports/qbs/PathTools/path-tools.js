@@ -232,3 +232,25 @@ function prependOrSetPath(path, pathList, separator) {
         return path;
     return path + separator + pathList;
 }
+
+function librarySuffixes(targetOS, types, forImport) {
+    if (targetOS.includes("windows")) {
+        if (forImport)
+            return [".lib"];
+        return [].concat(types.includes("shared") ? [".dll"] : []);
+    }
+    if (targetOS.includes("darwin")) {
+        return []
+            .concat(types.includes("shared") ? [".dylib"] : [])
+            .concat(types.includes("static") ? [".a"] : []);
+    }
+    return []
+        .concat(types.includes("shared") ? [".so"] : [])
+        .concat(types.includes("static") ? [".a"] : []);
+}
+
+function libraryNameFilter(targetOS) {
+    if (targetOS.contains("unix"))
+        return function(name) { return "lib" + name; }
+    return function(name) { return name; }
+}

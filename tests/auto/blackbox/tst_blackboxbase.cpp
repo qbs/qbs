@@ -274,3 +274,16 @@ qbs::Version TestBlackboxBase::qmakeVersion(const QString &qmakeFilePath)
         qDebug() << "qmake '" << qmakeFilePath << "' version is not valid.";
     return version;
 }
+
+bool waitForProcessSuccess(QProcess &p, int msecs)
+{
+    if (!p.waitForStarted(msecs) || !p.waitForFinished(msecs)) {
+        qDebug() << p.errorString();
+        return false;
+    }
+    if (p.exitCode() != 0) {
+        qDebug() << p.readAllStandardError();
+        return false;
+    }
+    return true;
+}

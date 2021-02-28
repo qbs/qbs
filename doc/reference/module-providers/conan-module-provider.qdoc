@@ -1,0 +1,101 @@
+/****************************************************************************
+**
+** Copyright (C) 2024 Ivan Komissarov (abbapoh@gmail.com)
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+/*!
+    \qmltype conan
+    \inqmlmodule QbsModuleProviders
+    \since 2.4
+
+    \brief Module provider for the Conan package manager.
+
+    This module provider allows integration with the \l{https://conan.io}{Conan} package manager.
+
+    \section1 Prerequisites
+    In order to use this provider, you will need to install the
+    \l{https://github.com/qbs/qbs/blob/master/src/conan/extensions/generators/qbsdeps.py}{QbsDeps generator}
+    first. In order to do so, clone the \QBS repository and run the following command from the \QBS
+    source directory:
+    \code
+    $ conan config install src/conan/
+    \endcode
+    This will copy the generator to \c .conan2/extensions/generators/qbsdeps.py in the user's home
+    directory.
+    Alternatively, you can use \c curl to download the file:
+    \code
+    $ curl 'https://github.com/qbs/qbs/raw/master/src/conan/extensions/generators/qbsdeps.py' -o ~/.conan2/extensions/generators/qbsdeps.py
+    \endcode
+
+    \section1 Example
+    For details on how to setup a project to use with Conan, see the \
+    l{https://github.com/qbs/qbs/blob/master/examples/protobuf/addressbook_conan}{addressbook_conan}
+    folder in examples.
+    First, you will need a \l{https://docs.conan.io/2/reference/conanfile_txt.html}{conanfile} as
+    shown below.
+    \code
+    [requires]
+    protobuf/3.21.12
+    [tool_requires]
+    protobuf/3.21.12
+    [generators]
+    QbsDeps
+    \endcode
+    We use the text version for simplicity, but you can use the Python conanfile as well.
+
+    Next, set the \l{Product::qbsModuleProviders}{qbsModuleProviders} property to \c "conan":
+    \snippet ../examples/protobuf/addressbook_conan/addressbook_conan.qbs 0
+
+    Install Conan dependencies and run the QbsDeps generator from the \c addressbook_conan dir:
+    \code
+    $ conan install . -g=QbsDeps --output-folder=build --build missing
+    \endcode
+    This will create the \c{./build/qbs-deps} directory contaning files for provider. Now you can
+    pass the conan install directory to the provider:
+    \code
+    $ qbs moduleProviders.conan.installDirectory:build
+    \endcode
+    You should see the following output if everything is correct:
+    \code
+    Build graph does not yet exist for configuration 'default'. Starting from scratch.
+    Resolving project for configuration default
+    Setting up Conan module 'protobuflib'
+    Setting up Conan module 'zlib'
+    ...
+    Build done for configuration default.
+    \endcode
+*/
+
+/*!
+    \qmlproperty string conan::installDirectory
+
+    The path to the conan install installDirectory.
+
+    \QBS searches for files created by the QbsDeps generator in that directory.
+
+    If not set, the provider will not be run.
+
+    \defaultvalue undefined
+*/

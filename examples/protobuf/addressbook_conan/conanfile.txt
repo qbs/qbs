@@ -1,0 +1,6 @@
+[requires]
+protobuf/3.21.12
+[tool_requires]
+protobuf/3.21.12
+[generators]
+QbsDeps

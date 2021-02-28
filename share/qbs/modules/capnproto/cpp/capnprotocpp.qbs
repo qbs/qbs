@@ -40,6 +40,7 @@ CapnProtoBase {
 
     pluginName: "capnpc-c++"
     version: capnp.version
+    _searchPaths: capnp.hostBinDirs
 
     cpp.systemIncludePaths: outputDir
     cpp.cxxLanguageVersion: "c++14"

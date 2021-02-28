@@ -232,6 +232,18 @@ jobs:
         path: ~/clcache
         key: ${{ runner.os }}-msvc-clcache-${{ steps.get-timestamp.outputs.timestamp }}
         restore-keys: ${{ runner.os }}-msvc-clcache
+    - name: Install Conan
+      run: |
+        choco install conan
+        choco install ninja
+        echo "C:\\Program Files\\conan\\conan" >> $GITHUB_PATH
+        echo "C:\\ProgramData\\chocolatey\\lib\\ninja\\tools" >> $GITHUB_PATH
+      shell: bash
+    - name: Configure Conan
+      run: |
+        conan config install src/conan/
+        ./scripts/setup-conan-profiles.sh
+      shell: bash
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
@@ -720,6 +732,13 @@ jobs:
       run: echo "./release/install-root/usr/local/bin" >> $GITHUB_PATH
     - name: Install required packages
       run: brew install capnp ccache grpc icoutils makensis protobuf p7zip
+    - name: Install Conan
+      if: matrix.config.toolchain == 'clang_64'
+      run: |
+        brew install ninja
+        brew install conan
+        conan config install src/conan/
+        ./scripts/setup-conan-profiles.sh
     - name: Install Host Qt
       if: matrix.config.toolchain == 'ios'
       uses: ./.github/actions/download-qt
@@ -835,6 +854,26 @@ jobs:
         version: ${{ matrix.config.qtVersion }}
     - name: Install MinGW
       uses: ./.github/actions/download-mingw
+    - name: Install Ninja
+      if: matrix.config.toolchain == 'win64_msvc2019_64'
+      run: |
+        choco install ninja
+        echo "C:\\ProgramData\\chocolatey\\lib\\ninja\\tools" >> $GITHUB_PATH
+      shell: bash
+    - name: Install Conan
+      if: matrix.config.toolchain == 'win64_msvc2019_64'
+      run: |
+        choco install conan
+        choco install ninja
+        echo "C:\\Program Files\\conan\\conan" >> $GITHUB_PATH
+        echo "C:\\ProgramData\\chocolatey\\lib\\ninja\\tools" >> $GITHUB_PATH
+      shell: bash
+    - name: Configure Conan
+      if: matrix.config.toolchain == 'win64_msvc2019_64'
+      run: |
+        conan config install src/conan/
+        ./scripts/setup-conan-profiles.sh
+      shell: bash
     - name: Setup Qbs
       run: |
         qbs setup-toolchains --detect

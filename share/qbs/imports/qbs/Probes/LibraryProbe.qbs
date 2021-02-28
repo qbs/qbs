@@ -28,15 +28,11 @@
 **
 ****************************************************************************/
 
+import qbs.PathTools
+
 PathProbe {
     property string endianness
-    nameSuffixes: {
-        if (qbs.targetOS.contains("windows"))
-            return [".lib"];
-        if (qbs.targetOS.contains("macos"))
-            return [".dylib", ".a"];
-        return [".so", ".a"];
-    }
+    nameSuffixes: PathTools.librarySuffixes(qbs.targetOS, ["shared", "static"], true)
     platformSearchPaths: {
         var result = [];
         if (qbs.targetOS.contains("unix")) {
@@ -65,17 +61,7 @@ PathProbe {
 
         return result;
     }
-    nameFilter: {
-        if (qbs.targetOS.contains("unix")) {
-            return function(name) {
-                return "lib" + name;
-            }
-        } else {
-            return function(name) {
-                return name;
-            }
-        }
-    }
+    nameFilter: PathTools.libraryNameFilter(qbs.targetOS)
     platformEnvironmentPaths: {
         if (qbs.targetOS.contains("windows"))
             return [ "PATH" ];
