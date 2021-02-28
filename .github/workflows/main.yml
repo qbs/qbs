@@ -381,7 +381,7 @@ jobs:
     - name: Setup Qbs
       run: |
         qbs setup-toolchains --detect
-        qbs setup-qt --detect
+        qbs setup-qt $(which qmake) qt
         qbs config profiles.qt.baseProfile ${{ matrix.config.testProfile }}
         qbs config defaultProfile qt
         qbs config --list
