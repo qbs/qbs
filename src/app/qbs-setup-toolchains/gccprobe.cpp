@@ -282,30 +282,28 @@ static QStringList gnuRegistrySearchPaths()
     if (!HostOsInfo::isWindowsHost())
         return {};
 
+#ifdef Q_OS_WIN64
+    static const char kRegistryNode[] = "HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\ARM";
+#else
+    static const char kRegistryNode[] = "HKEY_LOCAL_MACHINE\\SOFTWARE\\ARM";
+#endif
+
     QStringList searchPaths;
-
-    QSettings registry(QLatin1String(kUninstallRegistryKey), QSettings::NativeFormat);
-    const auto productGroups = registry.childGroups();
-    for (const QString &productKey : productGroups) {
-        // Registry token for the "GNU Tools for ARM Embedded Processors".
-        if (!productKey.startsWith(
-                    QLatin1String("GNU Tools for ARM Embedded Processors"))) {
-            continue;
+    QSettings registry(QLatin1String(kRegistryNode), QSettings::NativeFormat);
+    const auto groupKeys = registry.childGroups();
+    for (const QString &groupKey : groupKeys) {
+        registry.beginGroup(groupKey);
+        const QString rootPath = registry.value(QStringLiteral("InstallFolder")).toString();
+        if (!rootPath.isEmpty()) {
+            const QFileInfo toolchainPath(rootPath + QLatin1String("/bin"));
+            if (toolchainPath.exists()) {
+                const auto filePath = toolchainPath.absoluteFilePath();
+                if (!searchPaths.contains(filePath))
+                    searchPaths.push_back(filePath);
+            }
         }
-        registry.beginGroup(productKey);
-        QString uninstallFilePath = registry.value(
-                    QLatin1String("UninstallString")).toString();
-        if (uninstallFilePath.startsWith(QLatin1Char('"')))
-            uninstallFilePath.remove(0, 1);
-        if (uninstallFilePath.endsWith(QLatin1Char('"')))
-            uninstallFilePath.remove(uninstallFilePath.size() - 1, 1);
         registry.endGroup();
-
-        const QString toolkitRootPath = QFileInfo(uninstallFilePath).path();
-        const QString toolchainPath = toolkitRootPath + QLatin1String("/bin");
-        searchPaths.push_back(toolchainPath);
     }
-
     return searchPaths;
 }
 
