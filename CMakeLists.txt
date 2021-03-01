@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.10)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 include(FeatureSummary)
-include(QbsAPI)
+include(QbsBuildConfig)
 
 file(STRINGS VERSION QBS_VERSION)
 project(Qbs VERSION ${QBS_VERSION})
