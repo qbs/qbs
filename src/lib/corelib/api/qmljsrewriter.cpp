@@ -41,10 +41,6 @@
 
 #include <parser/qmljsast_p.h>
 
-#include <QtGui/qtextobject.h>
-#include <QtGui/qtextcursor.h>
-#include <QtGui/qtextdocument.h>
-
 namespace QbsQmlJS {
 using namespace AST;
 
@@ -500,28 +496,19 @@ bool Rewriter::includeSurroundingWhitespace(const QString &source, int &start, i
     return paragraphFound;
 }
 
-void Rewriter::includeLeadingEmptyLine(const QString &source, int &start)
+void Rewriter::includeLeadingEmptyLine(QStringView source, int &start)
 {
-    QTextDocument doc(source);
-
     if (start == 0)
         return;
 
-    if (doc.characterAt(start - 1) != QChar::ParagraphSeparator)
+    const qsizetype lineEnd = source.lastIndexOf(QChar::LineFeed, start);
+    if (lineEnd <= 0)
         return;
-
-    QTextCursor tc(&doc);
-    tc.setPosition(start);
-    const int blockNr = tc.blockNumber();
-    if (blockNr == 0)
+    const qsizetype lineStart = source.lastIndexOf(QChar::LineFeed, lineEnd - 1) + 1;
+    const auto line = source.mid(lineStart, lineEnd - lineStart);
+    if (!line.trimmed().isEmpty())
         return;
-
-    const QTextBlock prevBlock = tc.block().previous();
-    const QString trimmedPrevBlockText = prevBlock.text().trimmed();
-    if (!trimmedPrevBlockText.isEmpty())
-        return;
-
-    start = prevBlock.position();
+    start = lineStart;
 }
 
 void Rewriter::includeEmptyGroupedProperty(UiObjectDefinition *groupedProperty, UiObjectMember *memberToBeRemoved, int &start, int &end)

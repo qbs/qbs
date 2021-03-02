@@ -97,7 +97,7 @@ public:
     static AST::UiObjectMemberList *searchMemberToInsertAfter(AST::UiObjectMemberList *members, const QString &propertyName, const QStringList &propertyOrder);
 
     static bool includeSurroundingWhitespace(const QString &source, int &start, int &end);
-    static void includeLeadingEmptyLine(const QString &source, int &start);
+    static void includeLeadingEmptyLine(QStringView source, int &start);
     static void includeEmptyGroupedProperty(AST::UiObjectDefinition *groupedProperty, AST::UiObjectMember *memberToBeRemoved, int &start, int &end);
 
 private:
