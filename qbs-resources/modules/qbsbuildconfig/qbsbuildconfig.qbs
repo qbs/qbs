@@ -11,7 +11,7 @@ Module {
     property bool enableUbSanitizer: false
     property bool enableThreadSanitizer: false
     property bool enableUnitTests: false
-    property bool enableProjectFileUpdates: false
+    property bool enableProjectFileUpdates: true
     property bool enableRPath: true
     property bool installApiHeaders: true
     property bool enableBundledQt: false

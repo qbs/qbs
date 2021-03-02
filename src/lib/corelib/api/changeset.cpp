@@ -44,12 +44,12 @@
 namespace QbsQmlJS {
 
 ChangeSet::ChangeSet()
-    : m_string(nullptr), m_cursor(nullptr), m_error(false)
+    : m_string(nullptr), m_error(false)
 {
 }
 
 ChangeSet::ChangeSet(QList<EditOp> operations)
-    : m_string(nullptr), m_cursor(nullptr), m_operationList(std::move(operations)), m_error(false)
+    : m_string(nullptr), m_operationList(std::move(operations)), m_error(false)
 {
 }
 
@@ -131,7 +131,6 @@ QList<ChangeSet::EditOp> ChangeSet::operationList() const
 void ChangeSet::clear()
 {
     m_string = nullptr;
-    m_cursor = nullptr;
     m_operationList.clear();
     m_error = false;
 }
@@ -274,10 +273,6 @@ void ChangeSet::doReplace(const EditOp &replace_helper, QList<EditOp> *replaceLi
 
     if (m_string) {
         m_string->replace(replace_helper.pos1, replace_helper.length1, replace_helper.text);
-    } else if (m_cursor) {
-        m_cursor->setPosition(replace_helper.pos1);
-        m_cursor->setPosition(replace_helper.pos1 + replace_helper.length1, QTextCursor::KeepAnchor);
-        m_cursor->insertText(replace_helper.text);
     }
 }
 
@@ -348,21 +343,10 @@ void ChangeSet::apply(QString *s)
     m_string = nullptr;
 }
 
-void ChangeSet::apply(QTextCursor *textCursor)
-{
-    m_cursor = textCursor;
-    apply_helper();
-    m_cursor = nullptr;
-}
-
 QString ChangeSet::textAt(int pos, int length)
 {
     if (m_string) {
         return m_string->mid(pos, length);
-    } else if (m_cursor) {
-        m_cursor->setPosition(pos);
-        m_cursor->setPosition(pos + length, QTextCursor::KeepAnchor);
-        return m_cursor->selectedText();
     }
     return {};
 }
@@ -380,17 +364,11 @@ void ChangeSet::apply_helper()
     }
 
     // execute replaces
-    if (m_cursor)
-        m_cursor->beginEditBlock();
-
     while (!replaceList.empty()) {
         const EditOp cmd(replaceList.front());
         replaceList.removeFirst();
         doReplace(cmd, &replaceList);
     }
-
-    if (m_cursor)
-        m_cursor->endEditBlock();
 }
 
 } // namespace QbsQmlJS

@@ -17,7 +17,6 @@ QbsLibrary {
         name: "qbsscriptengine"
         condition: qbsbuildconfig.useBundledQtScript || !Qt.script.present
     }
-    Depends { condition: qbsbuildconfig.enableProjectFileUpdates; name: "Qt.gui" }
     name: "qbscore"
     property stringList bundledQtScriptIncludes: qbsbuildconfig.useBundledQtScript
             || !Qt.script.present ? qbsscriptengine.includePaths : []

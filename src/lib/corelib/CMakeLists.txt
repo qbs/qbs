@@ -422,7 +422,7 @@ add_qbs_library(qbscore
     PUBLIC_DEFINES
         ${QBS_PROJECT_FILE_UPDATES_DEFINES}
     DEPENDS
-        Qt5::CorePrivate Qt5::Gui Qt5::Network Qt5::Script Qt5::Xml ${EXTERNAL_DEPENDS}
+        Qt5::CorePrivate Qt5::Network Qt5::Script Qt5::Xml ${EXTERNAL_DEPENDS}
     PUBLIC_DEPENDS
         Qt5::Core
     INCLUDES

@@ -43,8 +43,6 @@
 #include <QtCore/qstring.h>
 #include <QtCore/qlist.h>
 
-QT_FORWARD_DECLARE_CLASS(QTextCursor)
-
 namespace QbsQmlJS {
 
 class ChangeSet
@@ -109,7 +107,6 @@ public:
     bool hadErrors();
 
     void apply(QString *s);
-    void apply(QTextCursor *textCursor);
 
 private:
     // length-based API.
@@ -129,7 +126,6 @@ private:
 
 private:
     QString *m_string;
-    QTextCursor *m_cursor;
 
     QList<EditOp> m_operationList;
     bool m_error;
