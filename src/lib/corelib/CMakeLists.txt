@@ -419,6 +419,7 @@ add_qbs_library(qbscore
         "QBS_RELATIVE_LIBEXEC_PATH=\"${QBS_RELATIVE_LIBEXEC_PATH}\""
         "QBS_LIBRARY"
         ${QBS_UNIT_TESTS_DEFINES}
+    PUBLIC_DEFINES
         ${QBS_PROJECT_FILE_UPDATES_DEFINES}
     DEPENDS
         Qt5::CorePrivate Qt5::Gui Qt5::Network Qt5::Script Qt5::Xml ${EXTERNAL_DEPENDS}
