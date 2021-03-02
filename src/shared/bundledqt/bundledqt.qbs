@@ -66,8 +66,15 @@ Product {
                     var dir      = FileInfo.path(fp);
                     list.push(dir + "/" + basename + ".so");
                     list.push(dir + "/" + basename + ".so." + Qt.core.versionMajor);
-                    list.push(dir + "/" + basename + ".so." + Qt.core.versionMajor + "." + Qt.core.versionMinor);
-                    list.push(fp);
+                    if (Utilities.versionCompare(Qt.core.version, "6") < 0) {
+                        list.push(dir + "/" + basename + ".so."
+                                  + Qt.core.versionMajor + "."
+                                  + Qt.core.versionMinor);
+                    }
+                    list.push(dir + "/" + basename + ".so."
+                              + Qt.core.versionMajor + "."
+                              + Qt.core.versionMinor + "."
+                              + Qt.core.versionPatch);
 
                 } else if (Qt.core.frameworkBuild) {
                     var fp = Qt[mod].libFilePathRelease;
