@@ -100,7 +100,7 @@ static void *openScannerQrc(const unsigned short *filePath, const char *fileTags
     std::unique_ptr<OpaqQrc> opaque(new OpaqQrc);
 
 #ifdef Q_OS_UNIX
-    QString filePathS = QString::fromUtf16(filePath);
+    QString filePathS = QString::fromUtf16(reinterpret_cast<const char16_t *>(filePath));
     opaque->fd = open(qPrintable(filePathS), O_RDONLY);
     if (opaque->fd == -1) {
         opaque->fd = 0;
@@ -118,7 +118,7 @@ static void *openScannerQrc(const unsigned short *filePath, const char *fileTags
     if (map == nullptr)
         return nullptr;
 #else
-    opaque->file = new QFile(QString::fromUtf16(filePath));
+    opaque->file = new QFile(QString::fromUtf16(reinterpret_cast<const char16_t *>(filePath)));
     if (!opaque->file->open(QFile::ReadOnly))
         return nullptr;
 
