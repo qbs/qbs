@@ -1,7 +1,7 @@
 import qbs
 import qbs.Utilities
 
-QbsAutotest {
+QbsUnittest {
     Depends { name: "qbsversion" }
 
     testName: "tools"

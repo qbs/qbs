@@ -1,14 +1,9 @@
 import qbs
 import qbs.Utilities
 
-QbsAutotest {
+QbsUnittest {
     Depends { name: "qbsversion" }
     Depends { name: "qbsconsolelogger" }
-    Depends {
-        name: "Qt.script"
-        condition: !qbsbuildconfig.useBundledQtScript
-        required: false
-    }
 
     testName: "language"
     condition: qbsbuildconfig.enableUnitTests
