@@ -9,7 +9,7 @@ QbsAutotest {
         "QBS_RELATIVE_LIBEXEC_PATH=" + Utilities.cStringQuote(qbsbuildconfig.relativeLibexecPath),
         "QBS_RELATIVE_SEARCH_PATH=" + Utilities.cStringQuote(qbsbuildconfig.relativeSearchPath),
         "QBS_RELATIVE_PLUGINS_PATH=" + Utilities.cStringQuote(qbsbuildconfig.relativePluginsPath)
-    ]).concat(qbsbuildconfig.enableProjectFileUpdates ? ["QBS_ENABLE_PROJECT_FILE_UPDATES"] : [])
+    ])
 
     Group {
         name: "testdata"

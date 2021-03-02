@@ -399,7 +399,6 @@ void Session::addFiles(const QJsonObject &request)
     }
     ErrorInfo error;
     QStringList failedFiles;
-#ifdef QBS_ENABLE_PROJECT_FILE_UPDATES
     for (const QString &filePath : data.filePaths) {
         const ErrorInfo e = m_project.addFiles(data.product, data.group, {filePath});
         if (e.hasError()) {
@@ -408,7 +407,6 @@ void Session::addFiles(const QJsonObject &request)
             failedFiles.push_back(filePath);
         }
     }
-#endif
     QJsonObject reply;
     reply.insert(StringConstants::type(), QLatin1String("files-added"));
     insertErrorInfoIfNecessary(reply, error);
@@ -435,7 +433,6 @@ void Session::removeFiles(const QJsonObject &request)
     }
     ErrorInfo error;
     QStringList failedFiles;
-#ifdef QBS_ENABLE_PROJECT_FILE_UPDATES
     for (const QString &filePath : data.filePaths) {
         const ErrorInfo e = m_project.removeFiles(data.product, data.group, {filePath});
         if (e.hasError()) {
@@ -444,7 +441,6 @@ void Session::removeFiles(const QJsonObject &request)
             failedFiles.push_back(filePath);
         }
     }
-#endif
     QJsonObject reply;
     reply.insert(StringConstants::type(), QLatin1String("files-removed"));
     insertErrorInfoIfNecessary(reply, error);
@@ -656,9 +652,6 @@ Session::FileUpdateData Session::prepareFileUpdate(const QJsonObject &request)
         data.error = tr("Cannot update the list of source files while a job is running.");
     if (!m_project.isValid())
         data.error = tr("No valid project. You need to resolve first.");
-#ifndef QBS_ENABLE_PROJECT_FILE_UPDATES
-    data.error = ErrorInfo(tr("Project file updates are not enabled in this build of qbs."));
-#endif
     return data;
 }
 

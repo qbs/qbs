@@ -620,8 +620,6 @@ qbs::GroupData findGroup(const qbs::ProductData &product, const QString &name)
     return qbs::GroupData();
 }
 
-#ifdef QBS_ENABLE_PROJECT_FILE_UPDATES
-
 static qbs::Project::ProductSelection defaultProducts()
 {
     return qbs::Project::ProductSelectionDefaultOnly;
@@ -851,8 +849,6 @@ void TestApi::changeContent()
     waitForFinished(job.get());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
 }
-
-#endif // QBS_ENABLE_PROJECT_FILE_UPDATES
 
 void TestApi::commandExtraction()
 {

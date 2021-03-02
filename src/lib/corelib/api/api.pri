@@ -38,15 +38,12 @@ SOURCES += \
     INSTALLS += api_headers
 }
 
-qbs_enable_project_file_updates {
-    HEADERS += \
-        $$PWD/changeset.h \
-        $$PWD/projectfileupdater.h \
-        $$PWD/qmljsrewriter.h
+HEADERS += \
+    $$PWD/changeset.h \
+    $$PWD/projectfileupdater.h \
+    $$PWD/qmljsrewriter.h
 
-    SOURCES += \
-        $$PWD/changeset.cpp \
-        $$PWD/projectfileupdater.cpp \
-        $$PWD/qmljsrewriter.cpp
-    DEFINES += QBS_ENABLE_PROJECT_FILE_UPDATES
-}
+SOURCES += \
+    $$PWD/changeset.cpp \
+    $$PWD/projectfileupdater.cpp \
+    $$PWD/qmljsrewriter.cpp

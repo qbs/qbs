@@ -61,7 +61,6 @@ CPU_COUNT=$("$(dirname "$0")"/cpu-count.sh)
 
 BUILD_OPTIONS="\
     ${QBS_BUILD_PROFILE:+profile:${QBS_BUILD_PROFILE}} \
-    modules.qbsbuildconfig.enableProjectFileUpdates:true \
     modules.cpp.treatWarningsAsErrors:true \
     modules.qbs.buildVariant:release \
     project.withTests:false \
