@@ -7,20 +7,21 @@ import "../protobufbase.qbs" as ProtobufBase
 import "../protobuf.js" as HelperFunctions
 
 ProtobufBase {
-    property string includePath: includeProbe.path
-    property string libraryPath: libraryProbe.path
+    property string includePath: includeProbe.found ? includeProbe.path : undefined
+    property string libraryPath: libraryProbe.found ? libraryProbe.path : undefined
 
     property bool useGrpc: false
 
-    property string grpcIncludePath: grpcIncludeProbe.path
-    property string grpcLibraryPath: grpcLibraryProbe.path
+    property string grpcIncludePath: grpcIncludeProbe.found ? grpcIncludeProbe.path : undefined
+    property string grpcLibraryPath: grpcLibraryProbe.found ? grpcLibraryProbe.path : undefined
 
     readonly property string _libraryName: {
         var libraryName;
-        if (libraryProbe.found)
+        if (libraryProbe.found) {
             libraryName = FileInfo.baseName(libraryProbe.fileName);
-        if (libraryName.startsWith("lib"))
-            libraryName = libraryName.substring(3);
+            if (libraryName.startsWith("lib"))
+                libraryName = libraryName.substring(3);
+        }
         return libraryName;
     }
 
@@ -36,9 +37,9 @@ ProtobufBase {
 
     cpp.libraryPaths: {
         var result = [];
-        if (libraryPath)
-            result.push(libraryPath);
-        if (useGrpc && grpcLibraryPath)
+        if (libraryProbe.found)
+            result.push(libraryProbe.path);
+        if (useGrpc && grpcLibraryProbe.found)
             result.push(grpcLibraryPath);
         return result;
     }
@@ -54,9 +55,9 @@ ProtobufBase {
     }
     cpp.includePaths: {
         var result = [outputDir];
-        if (includePath)
+        if (includeProbe.found)
             result.push(includePath);
-        if (useGrpc && grpcIncludePath)
+        if (useGrpc && grpcIncludeProbe.found)
             result.push(grpcIncludePath);
         return result;
     }
@@ -96,6 +97,8 @@ ProtobufBase {
     Probes.IncludeProbe {
         id: includeProbe
         names: "google/protobuf/message.h"
+        platformSearchPaths: includePath ? [] : base
+        searchPaths: includePath ? [includePath] : []
     }
 
     Probes.LibraryProbe {
@@ -104,33 +107,39 @@ ProtobufBase {
             "protobuf",
             "protobufd",
         ]
+        platformSearchPaths: libraryPath ? [] : base
+        searchPaths: libraryPath ? [libraryPath] : []
     }
 
     Probes.IncludeProbe {
         id: grpcIncludeProbe
         pathSuffixes: "grpc++"
         names: "grpc++.h"
+        platformSearchPaths: grpcIncludePath ? [] : base
+        searchPaths: grpcIncludePath ? [grpcIncludePath] : []
     }
 
     Probes.LibraryProbe {
         id: grpcLibraryProbe
         names: "grpc++"
+        platformSearchPaths: grpcLibraryPath ? [] : base
+        searchPaths: grpcLibraryPath ? [grpcLibraryPath] : []
     }
 
     validate: {
         HelperFunctions.validateCompiler(compilerName, compilerPath);
 
-        if (!HelperFunctions.checkPath(includePath))
+        if (!includeProbe.found)
             throw "Can't find cpp protobuf include files. Please set the includePath property.";
-        if (!HelperFunctions.checkPath(libraryPath))
+        if (!libraryProbe.found)
             throw "Can't find cpp protobuf library. Please set the libraryPath property.";
 
         if (useGrpc) {
             if (!File.exists(grpcPluginPath))
                 throw "Can't find grpc_cpp_plugin plugin. Please set the grpcPluginPath property.";
-            if (!HelperFunctions.checkPath(grpcIncludePath))
+            if (!grpcIncludeProbe.found)
                 throw "Can't find grpc++ include files. Please set the grpcIncludePath property.";
-            if (!HelperFunctions.checkPath(grpcLibraryPath))
+            if (!grpcLibraryProbe.found)
                 throw "Can't find grpc++ library. Please set the grpcLibraryPath property.";
         }
     }
