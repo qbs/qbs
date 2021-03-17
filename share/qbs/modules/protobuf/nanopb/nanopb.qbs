@@ -72,6 +72,8 @@ ProtobufBase {
     Probes.IncludeProbe {
         id: includeProbe
         names: ["pb.h", "pb_encode.h", "pb_decode.h", "pb_common.h"]
+        platformSearchPaths: includePath ? [] : base
+        searchPaths: includePath ? [includePath] : []
     }
 
     Probes.LibraryProbe {
