@@ -514,8 +514,13 @@ function isFramework(modInfo, qtProps) {
     if (!qtProps.frameworkBuild || modInfo.isStaticLibrary)
         return false;
     var modulesNeverBuiltAsFrameworks = [
-        "bootstrap", "openglextensions", "platformsupport", "qmldevtools", "uitools", "harfbuzzng"
+        "bootstrap", "openglextensions", "platformsupport", "qmldevtools", "harfbuzzng"
     ];
+
+    if (qtProps.qtMajorVersion <= 5) {
+        modulesNeverBuiltAsFrameworks.push("uitools"); // is framework since qt6
+    }
+
     return !modulesNeverBuiltAsFrameworks.contains(modInfo.qbsName);
 }
 
