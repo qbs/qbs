@@ -2369,7 +2369,7 @@ void ModuleLoader::adjustDefiningItemsInGroupModuleInstances(const Item::Module 
     //     c) The defining item is a different instance of the module, i.e. it was instantiated
     //        in some other module.
 
-    QHash<Item *, Item *> definingItemReplacements;
+    std::unordered_map<Item *, Item *> definingItemReplacements;
 
     Item *modulePrototype = rootPrototype(module.item->prototype());
     QBS_CHECK(modulePrototype->type() == ItemType::Module
