@@ -60,7 +60,7 @@ NativeBinary {
     installDir: isBundle ? "Applications" : "bin"
 
     Group {
-        condition: install
+        condition: install && _installable
         fileTagsFilter: isBundle ? "bundle.content" : "application"
         qbs.install: true
         qbs.installDir: installDir
@@ -68,7 +68,7 @@ NativeBinary {
     }
 
     Group {
-        condition: installDebugInformation
+        condition: installDebugInformation && _installable
         fileTagsFilter: ["debuginfo_app"]
         qbs.install: true
         qbs.installDir: debugInformationInstallDir

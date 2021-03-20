@@ -35,6 +35,9 @@ Product {
 
     property bool install: false
     property string installDir
+    // Product artifacts should be installed if it's not multiplexed or aggregated,
+    // or if it is multiplexed and it's the aggregate product
+    readonly property bool _installable: !multiplexed || !aggregate || !multiplexConfigurationId
 
     property bool installDebugInformation: false
     property string debugInformationInstallDir: installDir

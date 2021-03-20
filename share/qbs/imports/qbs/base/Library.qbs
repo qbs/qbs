@@ -52,7 +52,7 @@ NativeBinary {
     property string importLibInstallDir: "lib"
 
     Group {
-        condition: install
+        condition: install && _installable
         fileTagsFilter: {
             if (isBundle)
                 return ["bundle.content"];
@@ -70,14 +70,16 @@ NativeBinary {
     }
 
     Group {
-        condition: installImportLib && type.contains("dynamiclibrary")
+        condition: installImportLib
+                   && type.contains("dynamiclibrary")
+                   && _installable
         fileTagsFilter: "dynamiclibrary_import"
         qbs.install: true
         qbs.installDir: importLibInstallDir
     }
 
     Group {
-        condition: installDebugInformation
+        condition: installDebugInformation && _installable
         fileTagsFilter: {
             if (isDynamicLibrary)
                 return ["debuginfo_dll"];
