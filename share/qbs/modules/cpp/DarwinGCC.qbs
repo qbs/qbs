@@ -216,7 +216,8 @@ UnixGCC {
         multiplex: true
 
         outputFileTags: ["bundle.input", "application", "primary", "debuginfo_app",
-                         "debuginfo_bundle", "bundle.variant_symlink", "debuginfo_plist"]
+                         "debuginfo_bundle", "bundle.variant_symlink", "debuginfo_plist",
+                         "codesign.signed_artifact"]
         outputArtifacts: Darwin.lipoOutputArtifacts(product, inputs, "application", "app")
 
         prepare: Darwin.prepareLipo.apply(Darwin, arguments)
@@ -228,7 +229,7 @@ UnixGCC {
         multiplex: true
 
         outputFileTags: ["bundle.input", "loadablemodule", "primary", "debuginfo_loadablemodule",
-                         "debuginfo_bundle", "debuginfo_plist"]
+                         "debuginfo_bundle", "debuginfo_plist", "codesign.signed_artifact"]
         outputArtifacts: Darwin.lipoOutputArtifacts(product, inputs, "loadablemodule",
                                                                      "loadablemodule")
 
@@ -242,7 +243,7 @@ UnixGCC {
 
         outputFileTags: ["bundle.input", "dynamiclibrary", "dynamiclibrary_symbols", "primary",
                          "debuginfo_dll","debuginfo_bundle","bundle.variant_symlink",
-                         "debuginfo_plist"]
+                         "debuginfo_plist", "codesign.signed_artifact"]
         outputArtifacts: Darwin.lipoOutputArtifacts(product, inputs, "dynamiclibrary", "dll")
 
         prepare: Darwin.prepareLipo.apply(Darwin, arguments)
@@ -253,7 +254,7 @@ UnixGCC {
         inputsFromDependencies: ["staticlibrary"]
         multiplex: true
 
-        outputFileTags: ["bundle.input", "staticlibrary", "primary"]
+        outputFileTags: ["bundle.input", "staticlibrary", "primary", "codesign.signed_artifact"]
         outputArtifacts: Darwin.lipoOutputArtifacts(product, inputs, "staticlibrary")
 
         prepare: Darwin.prepareLipo.apply(Darwin, arguments)

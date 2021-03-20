@@ -1,6 +1,6 @@
 import qbs.Utilities
 
-import "helpers.js" as Helpers
+import "../multiarch-helpers.js" as Helpers
 
 Project {
     minimumQbsVersion: "1.8"

@@ -717,6 +717,9 @@ void TestBlackboxApple::codesign()
 {
     QFETCH(bool, isBundle);
     QFETCH(bool, enableSigning);
+    QFETCH(bool, multiArch);
+
+    const auto xcodeVersion = findXcodeVersion();
 
     QDir::setCurrent(testDataDir + "/codesign");
     QbsRunParameters params(QStringList{"qbs.installPrefix:''"});
@@ -724,9 +727,16 @@ void TestBlackboxApple::codesign()
             << QStringLiteral("project.isBundle:%1").arg(isBundle ? "true" : "false");
     params.arguments
             << QStringLiteral("project.enableSigning:%1").arg(enableSigning ? "true" : "false");
+    if (multiArch)
+        params.arguments << QStringLiteral("project.xcodeVersion:") + xcodeVersion.toString();
 
     rmDirR(relativeBuildDir());
     QCOMPARE(runQbs(params), 0);
+
+    const int codeSignCount =
+            QString::fromUtf8(m_qbsStdout).count(QStringLiteral("codesign"));
+    // We have 3 products, we have to sign each exactly once, even in the multiplexed case
+    QCOMPARE(codeSignCount, enableSigning ? 3 : 0);
 
     const auto appName = isBundle ? QStringLiteral("A.app") : QStringLiteral("A");
     const auto appPath = defaultInstallRoot + "/" + appName;
@@ -772,11 +782,14 @@ void TestBlackboxApple::codesign_data()
 {
     QTest::addColumn<bool>("isBundle");
     QTest::addColumn<bool>("enableSigning");
+    QTest::addColumn<bool>("multiArch");
 
-    QTest::newRow("bundle, unsigned") << true << false;
-    QTest::newRow("standalone, unsigned") << false << false;
-    QTest::newRow("bundle, signed") << true << true;
-    QTest::newRow("standalone, signed") << false << true;
+    QTest::newRow("bundle, unsigned") << true << false << false;
+    QTest::newRow("standalone, unsigned") << false << false << false;
+    QTest::newRow("bundle, signed") << true << true << false;
+    QTest::newRow("standalone, signed") << false << true << false;
+    QTest::newRow("bundle, signed, multiarch") << true << true << true;
+    QTest::newRow("standalone, signed, multiarch") << false << true << true;
 }
 
 void TestBlackboxApple::deploymentTarget()

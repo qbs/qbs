@@ -1,5 +1,8 @@
+import "../multiarch-helpers.js" as Helpers
+
 Project {
     name: "p"
+    property string xcodeVersion
 
     property bool isBundle: true
     property bool enableSigning: true
@@ -12,6 +15,9 @@ Project {
         codesign.signingType: "ad-hoc"
         install: true
         installDir: ""
+
+        qbs.architectures:
+            project.xcodeVersion ? Helpers.getArchitectures(qbs, project.xcodeVersion) : []
     }
 
     DynamicLibrary {
@@ -23,6 +29,8 @@ Project {
         codesign.signingType: "ad-hoc"
         install: true
         installDir: ""
+        qbs.architectures:
+            project.xcodeVersion ? Helpers.getArchitectures(qbs, project.xcodeVersion) : []
     }
 
     LoadableModule {
@@ -34,5 +42,7 @@ Project {
         codesign.signingType: "ad-hoc"
         install: true
         installDir: ""
+        qbs.architectures:
+            project.xcodeVersion ? Helpers.getArchitectures(qbs, project.xcodeVersion) : []
     }
 }

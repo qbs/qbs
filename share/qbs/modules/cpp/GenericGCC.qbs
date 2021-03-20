@@ -214,6 +214,8 @@ CppModule {
 
     readonly property bool shouldSignArtifacts: codesign._canSignArtifacts
                                                 && codesign.enableCodeSigning
+                                                // codesigning is done during the lipo step
+                                                && !product.multiplexed
 
     property string internalVersion: {
         if (product.version === undefined)

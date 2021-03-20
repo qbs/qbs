@@ -28,6 +28,7 @@
 **
 ****************************************************************************/
 
+var Codesign = require("../codesign/codesign.js");
 var File = require("qbs.File");
 var FileInfo = require("qbs.FileInfo");
 var Gcc = require("./gcc.js");
@@ -98,6 +99,9 @@ function lipoOutputArtifacts(product, inputs, fileTag, debugSuffix) {
             tags.push("bundle.variant_symlink");
         else
             tags.push(fileTag, "primary");
+
+        if (product.codesign.enableCodeSigning)
+            tags.push("codesign.signed_artifact");
 
         return {
             filePath: FileInfo.joinPaths(product.destinationDirectory,
@@ -188,6 +192,12 @@ function prepareLipo(project, product, inputs, outputs, input, output) {
     commands.push(cmd);
     if (outputs.dynamiclibrary_symbols)
         Array.prototype.push.apply(commands, Gcc.createSymbolCheckingCommands(product, outputs));
+
+    if (product.codesign.enableCodeSigning) {
+        Array.prototype.push.apply(
+                commands, Codesign.prepareSign(project, product, inputs, outputs, input, output));
+    }
+
     return commands;
 }
 
