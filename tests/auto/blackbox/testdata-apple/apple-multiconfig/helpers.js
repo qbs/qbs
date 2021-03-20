@@ -36,12 +36,16 @@ var Utilities = require("qbs.Utilities");
 function enableOldArch(qbs, xcodeVersion) {
     return qbs.targetOS.contains("macos")
             && xcodeVersion
-            && Utilities.versionCompare(xcodeVersion, "10") < 0
+            && (Utilities.versionCompare(xcodeVersion, "10") < 0
+                || Utilities.versionCompare(xcodeVersion, "12.2") >= 0)
             || qbs.targetOS.contains("ios")
 }
 
-function getNewArch(qbs) {
-    if (qbs.targetOS.contains("macos") || qbs.targetOS.contains("ios-simulator"))
+function getNewArch(qbs, xcodeVersion) {
+    if (qbs.targetOS.contains("macos"))
+        return xcodeVersion
+                && Utilities.versionCompare(xcodeVersion, "12.2") >= 0 ? "arm64" : "x86_64";
+    else if (qbs.targetOS.contains("ios-simulator"))
         return "x86_64"
     else if (qbs.targetOS.contains("ios"))
         return "arm64"
@@ -52,8 +56,11 @@ function getNewArch(qbs) {
     throw "unsupported targetOS: " + qbs.targetOS;
 }
 
-function getOldArch(qbs) {
-    if (qbs.targetOS.contains("macos") || qbs.targetOS.contains("ios-simulator"))
+function getOldArch(qbs, xcodeVersion) {
+    if (qbs.targetOS.contains("macos"))
+        return xcodeVersion
+                && Utilities.versionCompare(xcodeVersion, "12.2") >= 0 ? "x86_64" : "x86";
+    else if (qbs.targetOS.contains("ios-simulator"))
         return "x86"
     else if (qbs.targetOS.contains("ios"))
         return "armv7a"
@@ -62,6 +69,6 @@ function getOldArch(qbs) {
 
 function getArchitectures(qbs, xcodeVersion) {
     return enableOldArch(qbs, xcodeVersion)
-            ? [getOldArch(qbs), getNewArch(qbs)]
-            : [getNewArch(qbs)];
+            ? [getOldArch(qbs, xcodeVersion), getNewArch(qbs, xcodeVersion)]
+            : [getNewArch(qbs, xcodeVersion)];
 }
