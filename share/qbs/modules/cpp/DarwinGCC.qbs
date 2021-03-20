@@ -227,7 +227,8 @@ UnixGCC {
         inputsFromDependencies: ["loadablemodule"]
         multiplex: true
 
-        outputFileTags: ["bundle.input", "loadablemodule", "primary", "debuginfo_loadablemodule"]
+        outputFileTags: ["bundle.input", "loadablemodule", "primary", "debuginfo_loadablemodule",
+                         "debuginfo_bundle", "debuginfo_plist"]
         outputArtifacts: Darwin.lipoOutputArtifacts(product, inputs, "loadablemodule",
                                                                      "loadablemodule")
 
