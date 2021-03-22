@@ -52,4 +52,8 @@ CPUS=$("$(dirname "$0")"/cpu-count.sh)
 
 export QBS_AUTOTEST_PROFILE=${QBS_AUTOTEST_PROFILE:-qt}
 echo "Running Qbs tests (${CPUS} jobs in parallel)."
-find $1 -name "tst_*" | xargs -I{} -n1 -P${CPUS} bash -c 'export LOG=$(mktemp) ; $({} > ${LOG} 2>&1) ; export RESULT=$? ; cat ${LOG} ; exit ${RESULT}'
+find $1 -name "tst_*" \
+    | grep -v tst_blackbox-joblimits \
+    | xargs -I{} -n1 -P${CPUS} bash -c \
+        'export LOG=$(mktemp) ; $({} > ${LOG} 2>&1) ; export RESULT=$? ; cat ${LOG} ; exit ${RESULT}'
+tst_blackbox-joblimits
