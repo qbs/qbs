@@ -267,6 +267,10 @@ function getQtProperties(qmakeFilePath, qbs) {
         qtProps.mkspecBasePath = FileInfo.joinPaths
                 (pathQueryValue(queryResult, "QT_INSTALL_DATA"), "mkspecs");
     }
+
+    if (Utilities.versionCompare(qtProps.qtVersion, "6") >= 0)
+        qtProps.libExecPath = pathQueryValue(queryResult, "QT_INSTALL_LIBEXECS");
+
     if (!File.exists(qtProps.mkspecBasePath))
         throw "Cannot extract the mkspecs directory.";
 
@@ -1339,6 +1343,7 @@ function replaceSpecialValues(content, module, qtProps, abi) {
         binPath: ModUtils.toJSLiteral(qtProps.binaryPath),
         installPath: ModUtils.toJSLiteral(qtProps.installPath),
         libPath: ModUtils.toJSLiteral(qtProps.libraryPath),
+        libExecPath: ModUtils.toJSLiteral(qtProps.libExecPath),
         pluginPath: ModUtils.toJSLiteral(qtProps.pluginPath),
         incPath: ModUtils.toJSLiteral(qtProps.includePath),
         docPath: ModUtils.toJSLiteral(qtProps.documentationPath),
@@ -1541,6 +1546,8 @@ function setupOneQt(qmakeFilePath, outputBaseDir, uniquify, location, qbs) {
                                  allFiles);
                 copyTemplateFile("qdoc.js", qbsQtModuleDir, qtProps, androidAbis[a], location,
                                  allFiles);
+                copyTemplateFile("rcc.js", qbsQtModuleDir, qtProps, androidAbis[a], location,
+                                 allFiles);
             } else if (module.qbsName === "gui") {
                 moduleTemplateFileName = "gui.qbs";
             } else if (module.qbsName === "scxml") {
@@ -1563,6 +1570,8 @@ function setupOneQt(qmakeFilePath, outputBaseDir, uniquify, location, qbs) {
             } else if (module.qbsName === "quick") {
                 moduleTemplateFileName = "quick.qbs";
                 copyTemplateFile("quick.js", qbsQtModuleDir, qtProps, androidAbis[a], location,
+                                 allFiles);
+                copyTemplateFile("rcc.js", qbsQtModuleDir, qtProps, androidAbis[a], location,
                                  allFiles);
             } else if (module.isPlugin) {
                 moduleTemplateFileName = "plugin.qbs";

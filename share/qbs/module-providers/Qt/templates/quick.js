@@ -30,13 +30,14 @@
 
 var FileInfo = require("qbs.FileInfo");
 var Process = require("qbs.Process");
+var Rcc = require("rcc.js");
 
 function scanQrc(product, qrcFilePath) {
     var absInputDir = FileInfo.path(qrcFilePath);
     var result = [];
     var process = new Process();
     try {
-        var rcc = FileInfo.joinPaths(product.Qt.core.binPath, 'rcc' + product.cpp.executableSuffix);
+        var rcc = FileInfo.joinPaths(Rcc.fullPath(product) + product.cpp.executableSuffix);
         var exitCode = process.exec(rcc, ["--list", qrcFilePath], true);
         for (;;) {
             var line = process.readLine();

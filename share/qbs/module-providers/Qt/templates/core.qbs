@@ -5,6 +5,7 @@ import qbs.Utilities
 import qbs.Xml
 import "moc.js" as Moc
 import "qdoc.js" as Qdoc
+import "rcc.js" as Rcc
 
 Module {
     condition: (qbs.targetPlatform === targetPlatform || isCombinedUIKitBuild)
@@ -41,12 +42,14 @@ Module {
     property path installPath: @installPath@
     property path incPath: @incPath@
     property path libPath: @libPath@
+    property path libExecPath: @libExecPath@
     property path pluginPath: @pluginPath@
     property string mkspecName: @mkspecName@
     property path mkspecPath: @mkspecPath@
     property string mocName: "moc"
     property stringList mocFlags: []
     property string lreleaseName: "lrelease"
+    property string rccName: "rcc"
     property string qdocName: versionMajor >= 5 ? "qdoc" : "qdoc3"
     property stringList qdocEnvironment
     property path docPath: @docPath@
@@ -433,7 +436,7 @@ Module {
                         "-o", output.filePath];
             if (input.Qt.core.enableBigResources)
                 args.push("-pass", "1");
-            var cmd = new Command(product.Qt.core.binPath + '/rcc', args);
+            var cmd = new Command(Rcc.fullPath(product), args);
             cmd.description = "rcc "
                 + (input.Qt.core.enableBigResources ? "(pass 1) " : "")
                 + input.fileName;
@@ -464,7 +467,7 @@ Module {
             }
             var qrcArtifact = findChild(input, function(c) { return c.fileTags.contains("qrc"); });
             var cppArtifact = findChild(input, function(c) { return c.fileTags.contains("cpp"); });
-            var cmd = new Command(product.Qt.core.binPath + '/rcc',
+            var cmd = new Command(Rcc.fullPath(product),
                                   [qrcArtifact.filePath,
                                    "-temp", input.filePath,
                                    "-name", FileInfo.completeBaseName(input.filePath),

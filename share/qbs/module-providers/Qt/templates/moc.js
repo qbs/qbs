@@ -29,6 +29,7 @@
 ****************************************************************************/
 
 var ModUtils = require("qbs.ModUtils");
+var Utilities = require("qbs.Utilities");
 
 function args(product, input, outputs)
 {
@@ -78,7 +79,9 @@ function args(product, input, outputs)
 
 function fullPath(product)
 {
-    return product.Qt.core.binPath + '/' + product.Qt.core.mocName;
+    if (Utilities.versionCompare(product.Qt.core.version, "6.1") < 0)
+        return product.Qt.core.binPath + '/' + product.Qt.core.mocName;
+    return product.Qt.core.libExecPath + '/' + product.Qt.core.mocName;
 }
 
 function outputArtifacts(project, product, inputs, input)

@@ -23,9 +23,11 @@ QtModule {
         }
 
         prepare: {
-            var cmd = new Command(ModUtils.moduleProperty(product, "binPath") + '/'
-                                  + ModUtils.moduleProperty(product, "uicName"),
-                                  [input.filePath, '-o', output.filePath])
+            var uicPath = Utilities.versionCompare(product.Qt.gui.version, "6.1") < 0
+                    ? product.Qt.core.binPath + '/' + product.Qt.gui.uicName
+                    : product.Qt.core.libExecPath + '/' + product.Qt.gui.uicName;
+
+            var cmd = new Command(uicPath, [input.filePath, '-o', output.filePath]);
             cmd.description = 'uic ' + input.fileName;
             cmd.highlight = 'codegen';
             return cmd;
