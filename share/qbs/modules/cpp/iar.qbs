@@ -88,8 +88,7 @@ CppModule {
 
     staticLibrarySuffix: IAR.staticLibrarySuffix(qbs)
     executableSuffix: IAR.executableSuffix(qbs)
-
-    property string objectSuffix: IAR.objectSuffix(qbs)
+    objectSuffix: IAR.objectSuffix(qbs)
 
     imageFormat: IAR.imageFormat(qbs)
 

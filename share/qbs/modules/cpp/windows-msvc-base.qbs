@@ -88,6 +88,7 @@ CppModule {
     dynamicLibrarySuffix: ".dll"
     executableSuffix: ".exe"
     debugInfoSuffix: ".pdb"
+    objectSuffix: ".obj"
     imageFormat: "pe"
     Properties {
         condition: product.multiplexByQbsProperties.contains("buildVariants")
@@ -113,7 +114,7 @@ CppModule {
         auxiliaryInputs: ["hpp"]
         Artifact {
             fileTags: ['obj']
-            filePath: Utilities.getHash(input.completeBaseName) + '_c.obj'
+            filePath: Utilities.getHash(input.completeBaseName) + '_c' + input.cpp.objectSuffix
         }
         Artifact {
             fileTags: ['c_pch']
@@ -131,7 +132,7 @@ CppModule {
         auxiliaryInputs: ["hpp"]
         Artifact {
             fileTags: ['obj']
-            filePath: Utilities.getHash(input.completeBaseName) + '_cpp.obj'
+            filePath: Utilities.getHash(input.completeBaseName) + '_cpp' + input.cpp.objectSuffix
         }
         Artifact {
             fileTags: ['cpp_pch']
@@ -156,7 +157,7 @@ CppModule {
             var artifacts = [];
             artifacts.push({
                 fileTags: tags,
-                filePath: Utilities.getHash(input.baseDir) + "/" + input.fileName + ".obj"
+                filePath: Utilities.getHash(input.baseDir) + "/" + input.fileName + input.cpp.objectSuffix
             });
             if (input.cpp.generateCompilerListingFiles) {
                 artifacts.push({
@@ -326,7 +327,7 @@ CppModule {
     Rule {
         inputs: ["asm"]
         Artifact {
-            filePath: Utilities.getHash(input.baseDir) + "/" + input.completeBaseName + ".obj"
+            filePath: Utilities.getHash(input.baseDir) + "/" + input.completeBaseName + input.cpp.objectSuffix
             fileTags: ["obj"]
         }
         prepare: {

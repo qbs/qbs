@@ -68,7 +68,7 @@ MingwBaseModule {
         auxiliaryInputs: ["hpp"]
 
         Artifact {
-            filePath: Utilities.getHash(input.baseDir) + "/" + input.completeBaseName + "_res.o"
+            filePath: Utilities.getHash(input.baseDir) + "/" + input.completeBaseName + "_res" + input.cpp.objectSuffix
             fileTags: ["obj"]
         }
 

@@ -445,7 +445,7 @@ Module {
     Rule {
         inputs: ["intermediate_obj"]
         Artifact {
-            filePath: input.completeBaseName + ".2.o"
+            filePath: input.completeBaseName + ".2" + input.cpp.objectSuffix
             fileTags: ["obj"]
         }
         prepare: {

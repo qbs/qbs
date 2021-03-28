@@ -89,8 +89,7 @@ CppModule {
 
     staticLibrarySuffix: ".lib"
     executableSuffix: ".ihx"
-
-    property string objectSuffix: ".rel"
+    objectSuffix: ".rel"
 
     imageFormat: "ihx"
 

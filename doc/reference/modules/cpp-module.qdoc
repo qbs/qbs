@@ -618,6 +618,14 @@
 */
 
 /*!
+    \qmlproperty string cpp::objectSuffix
+
+    A string to append to the generated object files.
+
+    \defaultvalue \l{qbs::toolchain}{toolchain}-dependent, typical values are \c ".o" or \c ".obj"
+*/
+
+/*!
     \qmlproperty pathList cpp::prefixHeaders
     \since Qbs 1.0.1
 

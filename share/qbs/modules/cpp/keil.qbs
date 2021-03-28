@@ -89,8 +89,8 @@ CppModule {
 
     staticLibrarySuffix: KEIL.staticLibrarySuffix(qbs)
     executableSuffix: KEIL.executableSuffix(qbs)
+    objectSuffix: KEIL.objectSuffix(qbs)
 
-    property string objectSuffix: KEIL.objectSuffix(qbs)
     property string mapFileSuffix: KEIL.mapFileSuffix(qbs)
 
     imageFormat: KEIL.imageFormat(qbs)

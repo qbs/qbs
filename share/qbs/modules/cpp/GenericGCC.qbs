@@ -608,7 +608,7 @@ CppModule {
             return [{
                 fileTags: tags,
                 filePath: FileInfo.joinPaths(Utilities.getHash(input.baseDir),
-                                             input.fileName + ".o")
+                                             input.fileName + input.cpp.objectSuffix)
             }];
         }
 
@@ -623,7 +623,7 @@ CppModule {
 
         Artifact {
             fileTags: ["obj"]
-            filePath: FileInfo.joinPaths(Utilities.getHash(input.baseDir), input.fileName + ".o")
+            filePath: FileInfo.joinPaths(Utilities.getHash(input.baseDir), input.fileName + input.cpp.objectSuffix)
         }
 
         prepare: {
