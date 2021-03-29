@@ -28,6 +28,7 @@
 **
 ****************************************************************************/
 
+var Codesign = require("../codesign/codesign.js");
 var Cpp = require("cpp.js");
 var File = require("qbs.File");
 var FileInfo = require("qbs.FileInfo");
@@ -653,6 +654,12 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
         cmd.highlight = 'linker';
         cmd.workingDirectory = FileInfo.path(primaryOutput.filePath)
         commands.push(cmd);
+    }
+
+    if (product.cpp.shouldSignArtifacts) {
+        Array.prototype.push.apply(
+                    commands, Codesign.prepareSigntool(
+                        project, product, inputs, outputs, input, output));
     }
 
     return commands;

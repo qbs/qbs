@@ -96,7 +96,7 @@ CodeSignModule {
         }
     }
 
-    property string signingTimestamp: "none"
+    signingTimestamp: "none"
 
     property string provisioningProfile
     PropertyOptions {

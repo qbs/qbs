@@ -40,6 +40,8 @@ import 'msvc.js' as MSVC
 CppModule {
     condition: false
 
+    Depends { name: "codesign" }
+
     windowsApiCharacterSet: "unicode"
     platformDefines: {
         var defines = base.concat(WindowsUtils.characterSetDefines(windowsApiCharacterSet))
@@ -99,6 +101,8 @@ CppModule {
     }
 
     property var buildEnv
+
+    readonly property bool shouldSignArtifacts: codesign.enableCodeSigning
 
     setupBuildEnvironment: {
         for (var key in product.cpp.buildEnv) {
@@ -192,10 +196,16 @@ CppModule {
         inputs: ['obj', 'native.pe.manifest', 'def']
         inputsFromDependencies: ['staticlibrary', 'dynamiclibrary_import', "debuginfo_app"]
 
-        outputFileTags: ["application", "debuginfo_app", "mem_map"]
+        outputFileTags: {
+            var tags = ["application", "debuginfo_app", "mem_map"];
+            if (shouldSignArtifacts)
+                tags.push("codesign.signed_artifact");
+            return tags;
+        }
         outputArtifacts: {
             var app = {
-                fileTags: ["application"],
+                fileTags: ["application"].concat(
+                    product.cpp.shouldSignArtifacts ? ["codesign.signed_artifact"] : []),
                 filePath: FileInfo.joinPaths(
                               product.destinationDirectory,
                               PathTools.applicationFilePath(product))
@@ -230,11 +240,17 @@ CppModule {
         inputs: ['obj', 'native.pe.manifest', 'def']
         inputsFromDependencies: ['staticlibrary', 'dynamiclibrary_import', "debuginfo_dll"]
 
-        outputFileTags: ["dynamiclibrary", "dynamiclibrary_import", "debuginfo_dll"]
+        outputFileTags: {
+            var tags = ["dynamiclibrary", "dynamiclibrary_import", "debuginfo_dll"];
+            if (shouldSignArtifacts)
+                tags.push("codesign.signed_artifact");
+            return tags;
+        }
         outputArtifacts: {
             var artifacts = [
                 {
-                    fileTags: ["dynamiclibrary"],
+                    fileTags: ["dynamiclibrary"].concat(
+                        product.cpp.shouldSignArtifacts ? ["codesign.signed_artifact"] : []),
                     filePath: product.destinationDirectory + "/" + PathTools.dynamicLibraryFilePath(product)
                 },
                 {

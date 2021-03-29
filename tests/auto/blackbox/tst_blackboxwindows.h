@@ -1,8 +1,7 @@
 /****************************************************************************
 **
-** Copyright (C) 2018 The Qt Company Ltd.
-** Copyright (C) 2021 Ivan Komissarov (abbapoh@gmail.com)
-** Contact: http://www.qt.io/licensing
+** Copyright (C) 2021 Denis Shienkov <denis.shienkov@gmail.com>
+** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
 **
@@ -29,25 +28,24 @@
 **
 ****************************************************************************/
 
-import qbs
-import qbs.File
-import qbs.FileInfo
-import "codesign.js" as CodeSign
+#ifndef TST_BLACKBOXWINDOWS_H
+#define TST_BLACKBOXWINDOWS_H
 
-Module {
-    condition: false
+#include "tst_blackboxbase.h"
 
-    property bool enableCodeSigning: false
+class TestBlackboxWindows : public TestBlackboxBase
+{
+    Q_OBJECT
 
-    property string codesignName
-    property string codesignPath: codesignName
-    property stringList codesignFlags
+public:
+    TestBlackboxWindows();
 
-    property string signingTimestamp
-    PropertyOptions {
-        name: "signingTimestamp"
-        description: "URL of the RFC 3161 time stamp server."
-    }
+public slots:
+    void initTestCase() override;
 
-    property bool _canSignArtifacts: false // whether can sign individual actifacts
-}
+private slots:
+    void standaloneCodesign();
+    void standaloneCodesign_data();
+};
+
+#endif // TST_BLACKBOXWINDOWS_H

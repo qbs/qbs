@@ -63,15 +63,25 @@
 */
 
 /*!
-    \qmlproperty string codesign::codesignFlags
+    \qmlproperty string codesign::signingTimestamp
+
+    URL of the timestamp authority RFC 3161 server to be contacted to authenticate code signing.
+    \c undefined or \c empty indicates that a system-specific default should be used;
+    \c{"none"} explicitly disables the use of timestamp services on Apple platforms.
+
+    \since Qbs 1.19
+
+    \defaultvalue \c "none" on Apple, \c undefined otherwise
+*/
+
+/*!
+    \qmlproperty stringList codesign::codesignFlags
 
     Additional flags passed to the \c{codesign} tool.
 
     \since Qbs 1.19
 
-    \defaultvalue \c{undefined}
-
-    \appleproperty
+    \nodefaultvalue
 */
 
 /*!
@@ -81,9 +91,7 @@
 
     \since Qbs 1.19
 
-    \defaultvalue \c{"codesign"}
-
-    \appleproperty
+    \defaultvalue Determined automatically
 */
 
 /*!
@@ -94,8 +102,6 @@
     \since Qbs 1.19
 
     \defaultvalue Determined automatically
-
-    \appleproperty
 */
 
 /*!
@@ -104,6 +110,7 @@
     Whether to actually perform code signing.
 
     \since Qbs 1.19
+
     \defaultvalue \c false
 */
 
@@ -159,21 +166,6 @@
     \since Qbs 1.19
 
     \defaultvalue Determined by \l{codesign::signingType}{signingType}
-
-    \appleproperty
-*/
-
-/*!
-    \qmlproperty string codesign::signingTimestamp
-
-    URL of the timestamp authority server to be contacted to authenticate code signing.
-    \c{undefined} indicates that a system-specific default should be used, and the empty
-    string indicates the default server provided by Apple. \c{"none"} explicitly disables
-    the use of timestamp services and this should not usually need to be changed.
-
-    \since Qbs 1.19
-
-    \defaultvalue \c{"none"}
 
     \appleproperty
 */
@@ -306,4 +298,82 @@
     \defaultvalue \c "androiddebugkey"
 
     \androidproperty
+*/
+
+/*!
+    \qmlproperty string codesign::subjectName
+
+    Specifies the name of the subject of the signing certificate.
+    This value can be a substring of the entire subject name.
+
+    \since Qbs 1.19
+
+    \defaultvalue \c undefined
+
+    \windowsproperty
+*/
+
+/*!
+    \qmlproperty string codesign::rootSubjectName
+
+    Specifies the name of the subject of the root certificate that
+    the signing certificate must chain to. This value may be a substring
+    of the entire subject name of the root certificate.
+
+    \since Qbs 1.19
+
+    \defaultvalue \c undefined
+
+    \windowsproperty
+*/
+
+/*!
+    \qmlproperty string codesign::hashAlgorithm
+
+    Specifies the default hash algorithm used on the signing certificate.
+    The possible values are \c sha1, \c sha256, \c sha384, and \c sha512.
+
+    \note Only available in Windows 10 kit builds 20236 and later.
+
+    \since Qbs 1.19
+
+    \defaultvalue \c undefined
+
+    \windowsproperty
+*/
+
+/*!
+    \qmlproperty string codesign::certificatePath
+
+    Specifies the full path to the signing certificate file (*.pfx).
+
+    \since Qbs 1.19
+
+    \defaultvalue \c undefined
+
+    \windowsproperty
+*/
+
+/*!
+    \qmlproperty string codesign::certificatePassword
+
+    Specifies the password to use when opening a signing certificate file (*.pfx).
+
+    \since Qbs 1.19
+
+    \defaultvalue \c undefined
+
+    \windowsproperty
+*/
+
+/*!
+    \qmlproperty string codesign::crossCertificatePath
+
+    Specifies the full path to the additional certificate file (*.cer).
+
+    \since Qbs 1.19
+
+    \defaultvalue \c undefined
+
+    \windowsproperty
 */
