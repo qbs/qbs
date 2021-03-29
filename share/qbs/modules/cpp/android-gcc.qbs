@@ -43,21 +43,32 @@ LinuxGCC {
     priority: 2
     rpaths: []
 
+    // toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/x86_64-linux-android
     cxxLanguageVersion: "c++14"
-    property string cxxStlBaseDir: FileInfo.joinPaths(Android.ndk.ndkDir, "sources", "cxx-stl")
-    property string stlBaseDir: FileInfo.joinPaths(cxxStlBaseDir, "llvm-libc++")
 
-    property string stlLibsDir: {
-        if (stlBaseDir)
-            return FileInfo.joinPaths(stlBaseDir, "libs", Android.ndk.abi);
-        return undefined;
+    property string archLibsDir:  {
+        switch (qbs.architecture) {
+        case "arm64":
+            return "aarch64";
+        case "armv7a":
+            return "arm";
+        case "x86_64":
+            return qbs.architecture;
+        case "x86":
+            return "i686";
+        }
     }
+    property string targetDir: "android" + (["armeabi", "armeabi-v7a"].contains(Android.ndk.abi) ? "eabi" : "")
+    property string triple: [archLibsDir, targetSystem, targetDir].join("-")
+    property string libsDir: FileInfo.joinPaths(sysroot, "usr", "lib", triple);
 
-    property string sharedStlFilePath: (stlLibsDir && Android.ndk.appStl.endsWith("_shared"))
-        ? FileInfo.joinPaths(stlLibsDir, dynamicLibraryPrefix + Android.ndk.appStl + dynamicLibrarySuffix)
+    property string sharedStlFilePath: (libsDir && Android.ndk.appStl.endsWith("_shared"))
+        ? FileInfo.joinPaths(libsDir, dynamicLibraryPrefix + Android.ndk.appStl + dynamicLibrarySuffix)
         : undefined
-    property string staticStlFilePath: (stlLibsDir && Android.ndk.appStl.endsWith("_static"))
-        ? FileInfo.joinPaths(stlLibsDir, NdkUtils.stlFilePath(staticLibraryPrefix, Android.ndk, staticLibrarySuffix))
+    property string staticStlFilePath: (libsDir && Android.ndk.appStl.endsWith("_static"))
+        ? FileInfo.joinPaths(libsDir, Android.ndk.platformVersion,
+                             NdkUtils.stlFileName(staticLibraryPrefix, Android.ndk,
+                                                  staticLibrarySuffix))
         : undefined
 
     Group {
@@ -91,41 +102,26 @@ LinuxGCC {
 
     linkerFlags: NdkUtils.commonLinkerFlags(Android.ndk.abi);
     driverLinkerFlags: {
-        var flags = ["-fuse-ld=lld", "-Wl,--exclude-libs,libgcc.a", "-Wl,--exclude-libs,libatomic.a", "-nostdlib++"];
-        if (Android.ndk.appStl.startsWith("c++") && Android.ndk.abi === "armeabi-v7a")
-            flags = flags.concat(["-Wl,--exclude-libs,libunwind.a"]);
+        var flags = ["-fuse-ld=lld", "-Wl,--exclude-libs,libgcc.a", "-nostdlib++"];
+        // See https://android.googlesource.com/platform/ndk/+/ndk-release-r21/docs/BuildSystemMaintainers.md#Unwinding
+        if (Android.ndk.abi === "armeabi-v7a") {
+            flags = flags.concat(["-Wl,--exclude-libs,libgcc_real.a"]);
+            if (Android.ndk.appStl.startsWith("c++"))
+                flags = flags.concat(["-Wl,--exclude-libs,libunwind.a"]);
+        }
         return flags;
     }
 
     platformDriverFlags: ["-fdata-sections", "-ffunction-sections", "-funwind-tables",
                           "-fstack-protector-strong", "-no-canonical-prefixes"]
 
-    libraryPaths: {
-        var prefix = FileInfo.joinPaths(sysroot, "usr");
-        var paths = [];
-        if (Android.ndk.abi === "x86_64") // no lib64 for arm64-v8a
-            paths.push(FileInfo.joinPaths(prefix, "lib64"));
-        paths.push(FileInfo.joinPaths(prefix, "lib"));
-        paths.push(stlLibsDir);
-        return paths;
-    }
-
     dynamicLibraries: {
         var libs = ["c", "m"];
         if (sharedStlFilePath)
-            libs.push(FileInfo.joinPaths(stlLibsDir, NdkUtils.stlFilePath(dynamicLibraryPrefix, Android.ndk, dynamicLibrarySuffix)));
+            libs.push(FileInfo.joinPaths(libsDir, Android.ndk.platformVersion,
+                                         NdkUtils.stlFileName(dynamicLibraryPrefix, Android.ndk,
+                                                              dynamicLibrarySuffix)));
         return libs;
-    }
-    staticLibraries: staticStlFilePath
-    systemIncludePaths: {
-        var includes = [FileInfo.joinPaths(sysroot, "usr", "include", toolchainTriple)];
-        if (Android.ndk.abi === "armeabi-v7a") {
-            includes.push(FileInfo.joinPaths(Android.ndk.ndkDir, "sources", "android",
-                                             "support", "include"));
-        }
-        includes.push(FileInfo.joinPaths(stlBaseDir, "include"));
-        includes.push(FileInfo.joinPaths(stlBaseDir + "abi", "include"));
-        return includes;
     }
 
     defines: ["ANDROID", "__ANDROID__"]
@@ -133,10 +129,8 @@ LinuxGCC {
     binutilsPath: FileInfo.joinPaths(Android.ndk.ndkDir, "toolchains", "llvm", "prebuilt",
                                      Android.ndk.hostArch, "bin");
     binutilsPathPrefix: FileInfo.joinPaths(binutilsPath, "llvm-")
-    syslibroot: FileInfo.joinPaths(Android.ndk.ndkDir, "platforms",
-                                   Android.ndk.platform, "arch-"
-                                   + NdkUtils.abiNameToDirName(Android.ndk.abi))
-    sysroot: FileInfo.joinPaths(Android.ndk.ndkDir, "sysroot")
+    sysroot: FileInfo.joinPaths(Android.ndk.ndkDir, "toolchains", "llvm", "prebuilt",
+                                Android.ndk.hostArch, "sysroot")
 
     targetArch: {
         switch (qbs.architecture) {

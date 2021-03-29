@@ -100,6 +100,6 @@ function commonLinkerFlags(abi) {
     return ["-z", "noexecstack", "-z", "relro", "-z", "now", "--build-id=sha1", "--gc-sections" ];
 }
 
-function stlFilePath(path, ndk, suffix) {
-    return path + ndk.appStl.slice(0, ndk.appStl.indexOf('_')) + suffix + "." + ndk.platformVersion;
+function stlFileName(prefix, ndk, suffix) {
+    return prefix + ndk.appStl.slice(0, ndk.appStl.indexOf('_')) + suffix;
 }
