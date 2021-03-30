@@ -507,14 +507,6 @@ function dumpDefaultPaths(compilerFilePath, nullDevice) {
     return { "includePaths": includePaths };
 }
 
-function adjustPathsToWindowsSeparators(sourcePaths) {
-    var resulingPaths = [];
-    sourcePaths.forEach(function(path) {
-        resulingPaths.push(FileInfo.toWindowsSeparators(path));
-    });
-    return resulingPaths;
-}
-
 function collectLibraryDependencies(product) {
     var seen = {};
     var result = [];
@@ -661,20 +653,18 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
     var architecture = input.qbs.architecture;
     if (isMcsArchitecture(architecture) || isC166Architecture(architecture)) {
         // Input.
-        args.push(FileInfo.toWindowsSeparators(input.filePath));
+        args.push(input.filePath);
 
         // Output.
-        args.push("OBJECT (" + FileInfo.toWindowsSeparators(outputs.obj[0].filePath) + ")");
+        args.push("OBJECT (" + outputs.obj[0].filePath + ")");
 
         // Defines.
         if (allDefines.length > 0)
             args = args.concat("DEFINE (" + allDefines.join(",") + ")");
 
         // Includes.
-        if (allIncludePaths.length > 0) {
-            var adjusted = adjustPathsToWindowsSeparators(allIncludePaths);
-            args = args.concat("INCDIR (" + adjusted.join(";") + ")");
-        }
+        if (allIncludePaths.length > 0)
+            args = args.concat("INCDIR (" + allIncludePaths.join(";") + ")");
 
         // Debug information flags.
         if (input.cpp.debugInformation)
@@ -709,7 +699,7 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
         if (!input.cpp.generateCompilerListingFiles)
             args.push("NOPRINT");
         else
-            args.push("PRINT(" + FileInfo.toWindowsSeparators(outputs.lst[0].filePath) + ")");
+            args.push("PRINT(" + outputs.lst[0].filePath + ")");
     } else if (isArmArchitecture(architecture)) {
         // Input.
         args.push("-c", input.filePath);
@@ -897,20 +887,18 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
     var architecture = input.qbs.architecture;
     if (isMcsArchitecture(architecture) || isC166Architecture(architecture)) {
         // Input.
-        args.push(FileInfo.toWindowsSeparators(input.filePath));
+        args.push(input.filePath);
 
         // Output.
-        args.push("OBJECT (" + FileInfo.toWindowsSeparators(outputs.obj[0].filePath) + ")");
+        args.push("OBJECT (" + outputs.obj[0].filePath + ")");
 
         // Defines.
         if (allDefines.length > 0)
             args = args.concat("DEFINE (" + allDefines.join(",") + ")");
 
         // Includes.
-        if (allIncludePaths.length > 0) {
-            var adjusted = adjustPathsToWindowsSeparators(allIncludePaths);
+        if (allIncludePaths.length > 0)
             args = args.concat("INCDIR (" + adjusted.join(";") + ")");
-        }
 
         // Debug information flags.
         if (input.cpp.debugInformation)
@@ -923,7 +911,7 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
         if (!input.cpp.generateAssemblerListingFiles)
             args.push("NOPRINT");
         else
-            args.push("PRINT(" + FileInfo.toWindowsSeparators(outputs.lst[0].filePath) + ")");
+            args.push("PRINT(" + outputs.lst[0].filePath + ")");
     } else if (isArmArchitecture(architecture)) {
         // Input.
         args.push(input.filePath);
@@ -1002,19 +990,17 @@ function linkerFlags(project, product, inputs, outputs) {
         libraryObjects.forEach(function(dep) { addObjectPath(dep); })
 
         // Add all input objects as arguments (application and library object files).
-        var adjusted = adjustPathsToWindowsSeparators(allObjectPaths);
-        args = args.concat(adjusted.join(","));
+        if (allObjectPaths.length > 0)
+            args = args.concat(allObjectPaths.join(","));
 
         // Output.
-        // Note: We need to wrap an output file name with quotes. Otherwise
-        // the linker will ignore a specified file name.
-        args.push("TO", '"' + FileInfo.toWindowsSeparators(outputs.application[0].filePath) + '"');
+        args.push("TO", outputs.application[0].filePath);
 
         // Map file generation flag.
         if (!product.cpp.generateLinkerMapFile)
             args.push("NOPRINT");
         else
-            args.push("PRINT(" + FileInfo.toWindowsSeparators(outputs.mem_map[0].filePath) + ")");
+            args.push("PRINT(" + outputs.mem_map[0].filePath + ")");
     } else if (isArmArchitecture(architecture)) {
         // Inputs.
         if (inputs.obj)
@@ -1074,13 +1060,11 @@ function archiverFlags(project, product, inputs, outputs) {
             inputs.obj.map(function(obj) { addObjectPath(obj) });
 
         // Add all input objects as arguments.
-        var adjusted = adjustPathsToWindowsSeparators(allObjectPaths);
-        args = args.concat(adjusted.join(","));
+        if (allObjectPaths.length > 0)
+            args = args.concat(allObjectPaths.join(","));
 
         // Output.
-        // Note: We need to wrap a output file name with quotes. Otherwise
-        // the linker will ignore a specified file name.
-        args.push("TO", '"' + FileInfo.toWindowsSeparators(outputs.staticlibrary[0].filePath) + '"');
+        args.push("TO", outputs.staticlibrary[0].filePath);
     } else if (isArmArchitecture(architecture)) {
         // Note: The ARM archiver command line expect the output file
         // first, and then a set of input objects.
