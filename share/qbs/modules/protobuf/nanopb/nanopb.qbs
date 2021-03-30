@@ -7,17 +7,18 @@ import "../protobufbase.qbs" as ProtobufBase
 import "../protobuf.js" as HelperFunctions
 
 ProtobufBase {
-    property string includePath: includeProbe.path
-    property string libraryPath: libraryProbe.path
+    property string includePath: includeProbe.found ? includeProbe.path : undefined
+    property string libraryPath: libraryProbe.found ? libraryProbe.path : undefined
     property string pluginPath: pluginProbe.filePath
     property string pluginName: "protoc-gen-nanopb"
     readonly property string _plugin: "protoc-gen-nanopb=" + pluginPath
     readonly property string _libraryName: {
         var libraryName;
-        if (libraryProbe.found)
+        if (libraryProbe.found) {
             libraryName = FileInfo.baseName(libraryProbe.fileName);
-        if (libraryName.startsWith("lib"))
-            libraryName = libraryName.substring(3);
+            if (libraryName.startsWith("lib"))
+                libraryName = libraryName.substring(3);
+        }
         return libraryName;
     }
 
@@ -25,8 +26,8 @@ ProtobufBase {
 
     cpp.libraryPaths: {
         var result = [];
-        if (libraryPath)
-            result.push(libraryPath);
+        if (libraryProbe.found)
+            result.push(libraryProbe.path);
         return result;
     }
     cpp.dynamicLibraries: {
@@ -37,7 +38,7 @@ ProtobufBase {
     }
     cpp.includePaths: {
         var result = [outputDir];
-        if (includePath)
+        if (includeProbe.found)
             result.push(includePath);
         return result;
     }
@@ -71,6 +72,8 @@ ProtobufBase {
     Probes.IncludeProbe {
         id: includeProbe
         names: ["pb.h", "pb_encode.h", "pb_decode.h", "pb_common.h"]
+        platformSearchPaths: includePath ? [] : base
+        searchPaths: includePath ? [includePath] : []
     }
 
     Probes.LibraryProbe {
@@ -79,6 +82,8 @@ ProtobufBase {
             "protobuf-nanopb",
             "protobuf-nanopbd",
         ]
+        platformSearchPaths: libraryPath ? [] : base
+        searchPaths: libraryPath ? [libraryPath] : []
     }
 
     Probes.BinaryProbe {
@@ -89,9 +94,9 @@ ProtobufBase {
     validate: {
         HelperFunctions.validateCompiler(compilerName, compilerPath);
 
-        if (!HelperFunctions.checkPath(includePath))
+        if (!includeProbe.found)
             throw "Can't find nanopb protobuf include files. Please set the includePath property.";
-        if (!HelperFunctions.checkPath(libraryPath))
+        if (!libraryProbe.found)
             throw "Can't find nanopb protobuf library. Please set the libraryPath property.";
         if (!HelperFunctions.checkPath(pluginPath))
             throw "Can't find nanopb protobuf plugin. Please set the pluginPath property.";
