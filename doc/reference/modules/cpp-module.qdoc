@@ -626,6 +626,14 @@
 */
 
 /*!
+    \qmlproperty string cpp::linkerMapSuffix
+
+    A string to append to the generated linker memory map files.
+
+    \defaultvalue \l{qbs::toolchain}{toolchain}-dependent, typical value is \c ".map"
+*/
+
+/*!
     \qmlproperty pathList cpp::prefixHeaders
     \since Qbs 1.0.1
 

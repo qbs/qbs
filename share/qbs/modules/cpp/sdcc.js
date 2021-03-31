@@ -303,7 +303,7 @@ function applicationLinkerOutputArtifacts(product) {
         fileTags: ["mem_map"],
         filePath: FileInfo.joinPaths(
                       product.destinationDirectory,
-                      product.targetName + ".map")
+                      product.targetName + product.cpp.linkerMapSuffix)
     };
     return [app, lk_cmd, mem_summary, mem_map]
 }
@@ -651,7 +651,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
         cmd = new JavaScriptCommand();
         cmd.mapFilePath = FileInfo.joinPaths(
             FileInfo.path(target.filePath),
-            FileInfo.completeBaseName(target.fileName) + ".map");
+            FileInfo.completeBaseName(target.fileName) + product.cpp.linkerMapSuffix);
         cmd.silent = true;
         cmd.sourceCode = function() { File.remove(mapFilePath); };
         cmds.push(cmd);

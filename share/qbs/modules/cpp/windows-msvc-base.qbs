@@ -210,7 +210,7 @@ CppModule {
                     fileTags: ["mem_map"],
                     filePath: FileInfo.joinPaths(
                                   product.destinationDirectory,
-                                  product.targetName + ".map")
+                                  product.targetName + product.cpp.linkerMapSuffix)
                 });
             }
             return artifacts;

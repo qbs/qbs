@@ -168,7 +168,7 @@ function objectSuffix(qbs) {
             + architecture + "'";
 }
 
-function mapFileSuffix(qbs) {
+function linkerMapSuffix(qbs) {
     var architecture = qbs.architecture;
     if (isMcs51Architecture(architecture))
         return ".m51";
@@ -611,7 +611,7 @@ function applicationLinkerOutputArtifacts(product) {
         fileTags: ["mem_map"],
         filePath: FileInfo.joinPaths(
                       product.destinationDirectory,
-                      product.targetName + product.cpp.mapFileSuffix)
+                      product.targetName + product.cpp.linkerMapSuffix)
     };
     return [app, mem_map];
 }

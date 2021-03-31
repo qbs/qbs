@@ -578,7 +578,7 @@ CppModule {
             if (product.cpp.generateLinkerMapFile) {
                 artifacts.push({
                     filePath: FileInfo.joinPaths(product.destinationDirectory,
-                                                 product.targetName + ".map"),
+                                                 product.targetName + product.cpp.linkerMapSuffix),
                     fileTags: ["mem_map"]
                 });
             }
