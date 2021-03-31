@@ -970,24 +970,37 @@ function disassemblerFlags(project, product, input, outputs, explicitlyDependsOn
 function linkerFlags(project, product, inputs, outputs) {
     var args = [];
 
+    // Library paths.
+    var libraryPaths = product.cpp.libraryPaths;
+
     var architecture = product.qbs.architecture;
     if (isMcsArchitecture(architecture) || isC166Architecture(architecture)) {
-        // Note: The C51/256/166 linker does not distinguish an object files and
+        // Note: The C51, C251, or C166 linker does not distinguish an object files and
         // a libraries, it interpret all this stuff as an input objects,
         // so, we need to pass it together in one string.
-
         var allObjectPaths = [];
-        function addObjectPath(obj) {
-            allObjectPaths.push(obj.filePath);
-        }
 
         // Inputs.
         if (inputs.obj)
-            inputs.obj.map(function(obj) { addObjectPath(obj) });
+            inputs.obj.map(function(obj) { allObjectPaths.push(obj.filePath) });
 
         // Library dependencies.
         var libraryObjects = collectLibraryDependencies(product);
-        libraryObjects.forEach(function(dep) { addObjectPath(dep); })
+        allObjectPaths = allObjectPaths.concat(libraryObjects.map(function(lib) {
+            // Semi-intelligent handling the library paths.
+            // We need to add the full path prefix to the library file if this
+            // file is not absolute or not relative. Reason is that the C51, C251,
+            // and C166 linkers does not support the library paths.
+            var filePath = lib.filePath;
+            if (FileInfo.isAbsolutePath(filePath))
+                return filePath;
+            for (var i = 0; i < libraryPaths.length; ++i) {
+                var fullPath = FileInfo.joinPaths(libraryPaths[i], filePath);
+                if (File.exists(fullPath))
+                    return fullPath;
+            }
+            return filePath;
+        }));
 
         // Add all input objects as arguments (application and library object files).
         if (allObjectPaths.length > 0)
@@ -1009,8 +1022,6 @@ function linkerFlags(project, product, inputs, outputs) {
         // Output.
         args.push("--output", outputs.application[0].filePath);
 
-        // Library paths.
-        var libraryPaths = product.cpp.libraryPaths;
         if (libraryPaths)
             args.push("--userlibpath=" + libraryPaths.join(","));
 

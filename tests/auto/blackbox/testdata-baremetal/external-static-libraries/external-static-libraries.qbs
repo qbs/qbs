@@ -2,20 +2,6 @@ import "../BareMetalApplication.qbs" as BareMetalApplication
 import "../BareMetalStaticLibrary.qbs" as BareMetalStaticLibrary
 
 Project {
-    condition: {
-        // The KEIL C51/C251/C166 toolchains support only a
-        // full paths to the external libraries.
-        if (qbs.toolchainType === "keil") {
-            if (qbs.architecture === "mcs51"
-                || qbs.architecture === "mcs251"
-                || qbs.architecture === "c166") {
-                console.info("unsupported toolset: %%"
-                    + qbs.toolchainType + "%%, %%" + qbs.architecture + "%%");
-                return false;
-            }
-        }
-        return true;
-    }
     property string outputLibrariesDirectory: sourceDirectory + "/libs"
     BareMetalStaticLibrary {
         name: "lib-a"
