@@ -353,6 +353,24 @@ jobs:
             script: './scripts/test-qt-for-android.sh',
           }
         - {
+            name: 'Run Android tests (ndk r19c)',
+            image: 'focal-android-ndk-r19c',
+            profile: '',
+            script: './scripts/test-for-android.sh',
+          }
+        - {
+            name: 'Run Android tests (ndk r21e)',
+            image: 'focal-android-ndk-r21e',
+            profile: '',
+            script: './scripts/test-for-android.sh',
+          }
+        - {
+            name: 'Run Android tests (ndk r23)',
+            image: 'focal-android-ndk-r23',
+            profile: '',
+            script: './scripts/test-for-android.sh',
+          }
+        - {
             name: 'Run Linux tests (Qt 4.8.7)',
             image: 'focal-qt4',
             profile: '',

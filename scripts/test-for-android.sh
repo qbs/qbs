@@ -47,32 +47,18 @@ export LSAN_OPTIONS="suppressions=$( cd "$(dirname "$0")" ; pwd -P )/address-san
 #
 # These are set outside of this script, for instance in the Docker image
 #
-QT_INSTALL_DIR=/opt/Qt/${QT_VERSION}
 echo "Android SDK installed at ${ANDROID_SDK_ROOT}"
 echo "Android NDK installed at ${ANDROID_NDK_ROOT}"
-echo "Qt installed at ${QT_INSTALL_DIR}"
 
 # Cleaning profiles
 qbs config --unset profiles.qbs_autotests-android
-qbs config --unset profiles.qbs_autotests-android-qt
 
 # Setting auto test profiles
-qbs setup-android --ndk-dir ${ANDROID_NDK_ROOT} --sdk-dir ${ANDROID_SDK_ROOT} qbs_autotests-android
-qbs setup-android --ndk-dir ${ANDROID_NDK_ROOT} --sdk-dir ${ANDROID_SDK_ROOT} --qt-dir ${QT_INSTALL_DIR} qbs_autotests-android-qt
+qbs setup-android --ndk-dir ${ANDROID_NDK_ROOT} --sdk-dir ${ANDROID_HOME} qbs_autotests-android
 
 export QBS_AUTOTEST_PROFILE=qbs_autotests-android
 export QBS_AUTOTEST_ALWAYS_LOG_STDERR=true
 export QTEST_FUNCTION_TIMEOUT=9000000
-
-if [ ! "${QT_VERSION}" \< "5.14.0" ] && [ "${QT_VERSION}" \< "6.0.0" ]; then
-    echo "Using multi-arch data sets for qml tests (only for qt version >= 5.14 and < 6.0.0) with all architectures"
-    qbs config --list
-    tst_blackbox-android
-fi;
-
-echo "Using single-arch (armv7a) data sets for qml tests"
-qbs config --unset profiles.qbs_autotests-android-qt.qbs.architectures
-qbs config profiles.qbs_autotests-android-qt.qbs.architecture armv7a
 
 qbs config --list
 
