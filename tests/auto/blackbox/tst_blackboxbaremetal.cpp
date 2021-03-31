@@ -214,18 +214,20 @@ void TestBlackboxBareMetal::compilerListingFiles()
 
 void TestBlackboxBareMetal::linkerMapFile_data()
 {
-    QTest::addColumn<QString>("testPath");
     QTest::addColumn<bool>("generateMap");
-    QTest::newRow("do-not-generate-linker-map") << "/do-not-generate-linker-map" << false;
-    QTest::newRow("generate-linker-map") << "/generate-linker-map" << true;
+    QTest::newRow("do-not-generate-linker-map") << false;
+    QTest::newRow("generate-linker-map") << true;
 }
 
 void TestBlackboxBareMetal::linkerMapFile()
 {
-    QFETCH(QString, testPath);
     QFETCH(bool, generateMap);
-    QDir::setCurrent(testDataDir + testPath);
-    QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList("-n"))), 0);
+    QDir::setCurrent(testDataDir + "/linker-map");
+
+    rmDirR(relativeBuildDir());
+    const QStringList args = {QStringLiteral("modules.cpp.generateLinkerMapFile:%1")
+                                  .arg(generateMap ? "true" : "false")};
+    QCOMPARE(runQbs(QbsRunParameters("resolve", args)), 0);
     if (m_qbsStdout.contains("unsupported toolset:"))
         QSKIP(unsupportedToolsetMessage(m_qbsStdout));
     if (!m_qbsStdout.contains("current toolset:"))
@@ -236,11 +238,10 @@ void TestBlackboxBareMetal::linkerMapFile()
     if (!extractToolset(m_qbsStdout, toolchain, architecture))
         QFAIL("Unable to extract current toolset");
 
-    QCOMPARE(runQbs(), 0);
-    const QString productName = testPath.mid(1);
-    const QString productBuildDir = relativeProductBuildDir(productName);
+    QCOMPARE(runQbs(QbsRunParameters(args)), 0);
+    const QString productBuildDir = relativeProductBuildDir("linker-map");
     const auto extension = linkerMapFileExtension(toolchain, architecture);
-    const QString linkerMap = productBuildDir + "/" + productName + extension;
+    const QString linkerMap = productBuildDir + "/linker-map" + extension;
     QCOMPARE(regularFileExists(linkerMap), generateMap);
 }
 

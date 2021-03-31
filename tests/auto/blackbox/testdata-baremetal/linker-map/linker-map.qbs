@@ -6,6 +6,5 @@ BareMetalApplication {
             + qbs.toolchainType + "%%, %%" + qbs.architecture + "%%");
         return true;
     }
-    cpp.generateLinkerMapFile: false
     files: ["main.c"]
 }
