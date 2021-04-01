@@ -167,6 +167,13 @@ Module {
     property path apksignerFilePath: FileInfo.joinPaths(buildToolsDir, "apksigner")
     property path aidlFilePath: FileInfo.joinPaths(buildToolsDir, "aidl")
     property path dxFilePath: FileInfo.joinPaths(buildToolsDir, "dx")
+    property path d8FilePath: FileInfo.joinPaths(buildToolsDir, "d8")
+    property string dexCompilerName: "d8"
+    PropertyOptions {
+        name: "dexCompilerName"
+        allowedValues: ["dx", "d8"]
+    }
+    readonly property bool _useD8: dexCompilerName === "d8"
     property path zipalignFilePath: FileInfo.joinPaths(buildToolsDir, "zipalign")
     property path androidJarFilePath: FileInfo.joinPaths(sdkDir, "platforms", platform,
                                                          "android.jar")
@@ -430,7 +437,7 @@ Module {
         condition: _enableRules
         multiplex: true
         inputs: ["java.class"]
-        inputsFromDependencies: ["java.jar"]
+        inputsFromDependencies: ["java.jar", "bundled_jar"]
         Artifact {
             filePath: product.Android.sdk._generateAab ?
                           FileInfo.joinPaths(product.Android.sdk.packageContentsDir, "dex",

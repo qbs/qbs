@@ -41,6 +41,7 @@ Product {
                 if (product.moduleProperty("Android.sdk", "present")) {
                     tools["sdk"] = product.moduleProperty("Android.sdk", "sdkDir");
                     tools["sdk-build-tools-dx"] = product.Android.sdk.dxFilePath;
+                    tools["sdk-build-tools-d8"] = product.Android.sdk.d8FilePath;
                 }
 
                 if (product.java && product.java.present)

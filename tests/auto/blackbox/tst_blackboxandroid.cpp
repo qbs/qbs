@@ -58,6 +58,7 @@ QMap<QString, QString> TestBlackboxAndroid::findAndroid(int *status, const QStri
     return {
         {"sdk", QDir::fromNativeSeparators(tools["sdk"].toString())},
         {"sdk-build-tools-dx", QDir::fromNativeSeparators(tools["sdk-build-tools-dx"].toString())},
+        {"sdk-build-tools-d8", QDir::fromNativeSeparators(tools["sdk-build-tools-d8"].toString())},
         {"ndk", QDir::fromNativeSeparators(tools["ndk"].toString())},
         {"ndk-samples", QDir::fromNativeSeparators(tools["ndk-samples"].toString())},
         {"jar", QDir::fromNativeSeparators(tools["jar"].toString())},
@@ -83,6 +84,7 @@ void TestBlackboxAndroid::android()
     QFETCH(bool, enableAapt2);
     QFETCH(bool, generateAab);
     QFETCH(bool, isIncrementalBuild);
+    QFETCH(bool, enableD8);
 
     // skip tests on github except when run in docker - this var is not propagated into the image
     if (qEnvironmentVariableIsSet("GITHUB_ACTIONS"))
@@ -181,11 +183,12 @@ void TestBlackboxAndroid::android()
         }
 
         if (projectDir == "multiple-libs-per-apk") {
-            const auto dxPath = androidPaths["sdk-build-tools-dx"];
-            QVERIFY(!dxPath.isEmpty());
+            const auto dexCompilerPath = enableD8 ? androidPaths["sdk-build-tools-d8"]
+                    : androidPaths["sdk-build-tools-dx"];
+            QVERIFY(!dexCompilerPath.isEmpty());
             const auto lines = m_qbsStdout.split('\n');
             const auto it = std::find_if(lines.cbegin(), lines.cend(), [&](const QByteArray &line) {
-                return !line.isEmpty() && line.startsWith(dxPath.toUtf8());
+                return !line.isEmpty() && line.startsWith(dexCompilerPath.toUtf8());
             });
             QVERIFY2(it != lines.cend(), qPrintable(m_qbsStdout.constData()));
             const auto line = *it;
@@ -290,6 +293,7 @@ void TestBlackboxAndroid::android_data()
     QTest::addColumn<bool>("enableAapt2");
     QTest::addColumn<bool>("generateAab");
     QTest::addColumn<bool>("isIncrementalBuild");
+    QTest::addColumn<bool>("enableD8");
 
     const auto aaptVersion = [](bool enableAapt2) {
         return QString("modules.Android.sdk.aaptName:") + (enableAapt2 ? "aapt2" : "aapt");
@@ -300,6 +304,11 @@ void TestBlackboxAndroid::android_data()
     };
     bool generateAab = false;
     bool isIncrementalBuild = false;
+
+    const auto dexCompilerVersion = [](bool enableD8) {
+        return QString("modules.Android.sdk.dexCompilerName:") + (enableD8 ? "d8" : "dx");
+    };
+    bool enableD8 = true;
 
     auto qtAppExpectedFiles = [&](bool generateAab, bool enableAapt2, bool codeSign = true,
             QString keyAlias="androiddebugkey") {
@@ -379,7 +388,7 @@ void TestBlackboxAndroid::android_data()
                                                     keyPassword, keyAlias)
                 << aaptVersion(enableAapt2)
                 << packageType(generateAab))
-            << enableAapt2 << generateAab << isIncrementalBuild;
+            << enableAapt2 << generateAab << isIncrementalBuild << enableD8;;
     codeSign = false;
     QTest::newRow("qt app no signing")
             << "qt-app" << QStringList("qt-app")
@@ -391,7 +400,7 @@ void TestBlackboxAndroid::android_data()
                                                     keyPassword, keyAlias)
                 << aaptVersion(enableAapt2)
                 << packageType(generateAab))
-            << enableAapt2 << generateAab << isIncrementalBuild;
+            << enableAapt2 << generateAab << isIncrementalBuild << enableD8;
     enableAapt2 = true;
     codeSign = true;
     QTest::newRow("qt app aapt2")
@@ -404,7 +413,7 @@ void TestBlackboxAndroid::android_data()
                                                     keyPassword, keyAlias)
                 << aaptVersion(enableAapt2)
                 << packageType(generateAab))
-            << enableAapt2 << generateAab << isIncrementalBuild;
+            << enableAapt2 << generateAab << isIncrementalBuild << enableD8;
     generateAab = true;
     QTest::newRow("qt app aab")
             << "qt-app" << QStringList("qt-app")
@@ -416,7 +425,7 @@ void TestBlackboxAndroid::android_data()
                                                     keyPassword, keyAlias)
                 << aaptVersion(enableAapt2)
                 << packageType(generateAab))
-            << enableAapt2 << generateAab << isIncrementalBuild;
+            << enableAapt2 << generateAab << isIncrementalBuild << enableD8;
     codeSign = false;
     QTest::newRow("qt app aab no signing")
             << "qt-app" << QStringList("qt-app")
@@ -428,7 +437,7 @@ void TestBlackboxAndroid::android_data()
                                                     keyPassword, keyAlias)
                 << aaptVersion(enableAapt2)
                 << packageType(generateAab))
-            << enableAapt2 << generateAab << isIncrementalBuild;
+            << enableAapt2 << generateAab << isIncrementalBuild << enableD8;
 
     const QByteArrayList ndkArchsForQtSave = ndkArchsForQt;
     ndkArchsForQt = {ndkArchsForQt.first()};
@@ -438,7 +447,7 @@ void TestBlackboxAndroid::android_data()
                                                                                    enableAapt2)))
             << QStringList{aaptVersion(enableAapt2), packageType(generateAab),
                            "modules.qbs.architectures:" + archsForQt.first()}
-            << enableAapt2 << generateAab << isIncrementalBuild;
+            << enableAapt2 << generateAab << isIncrementalBuild << enableD8;
     ndkArchsForQt = ndkArchsForQtSave;
 
     auto teaPotAppExpectedFiles = [&](const QByteArrayList &archs, bool generateAab) {
@@ -459,26 +468,25 @@ void TestBlackboxAndroid::android_data()
             expectedFile << "resources.arsc";
         return expectedFile;
     };
-
     generateAab = false;
     enableAapt2 = false;
     QTest::newRow("teapot")
             << "teapot" << QStringList("TeapotNativeActivity")
             << (QList<QByteArrayList>() << teaPotAppExpectedFiles(archs, generateAab))
             << QStringList{aaptVersion(enableAapt2), packageType(generateAab)}
-            << enableAapt2 << generateAab << isIncrementalBuild;
+            << enableAapt2 << generateAab << isIncrementalBuild << enableD8;
     enableAapt2 = true;
     QTest::newRow("teapot aapt2")
             << "teapot" << QStringList("TeapotNativeActivity")
             << (QList<QByteArrayList>() << teaPotAppExpectedFiles(archs, generateAab))
             << QStringList{aaptVersion(enableAapt2), packageType(generateAab)}
-            << enableAapt2 << generateAab << isIncrementalBuild;
+            << enableAapt2 << generateAab << isIncrementalBuild << enableD8;
     generateAab = true;
     QTest::newRow("teapot aapt2 aab")
             << "teapot" << QStringList("TeapotNativeActivity")
             << (QList<QByteArrayList>() << teaPotAppExpectedFiles(archs, generateAab))
             << QStringList{aaptVersion(enableAapt2), packageType(generateAab)}
-            << enableAapt2 << generateAab << isIncrementalBuild;
+            << enableAapt2 << generateAab << isIncrementalBuild << enableD8;
     enableAapt2 = false;
     generateAab = false;
     QTest::newRow("minimal-native")
@@ -490,7 +498,7 @@ void TestBlackboxAndroid::android_data()
             << QStringList{"products.minimalnative.multiplexByQbsProperties:[]",
                            "modules.qbs.architecture:" + archsStringList.first(),
                            aaptVersion(enableAapt2)}
-            << enableAapt2 << generateAab << isIncrementalBuild;
+            << enableAapt2 << generateAab << isIncrementalBuild << enableD8;
     enableAapt2 = true;
     QTest::newRow("minimal-native aapt2")
             << "minimal-native" << QStringList("minimalnative")
@@ -502,7 +510,7 @@ void TestBlackboxAndroid::android_data()
             << QStringList{"products.minimalnative.multiplexByQbsProperties:[]",
                            "modules.qbs.architecture:" + archsStringList.first(),
                            aaptVersion(enableAapt2), packageType(generateAab)}
-            << enableAapt2 << generateAab << isIncrementalBuild;
+            << enableAapt2 << generateAab << isIncrementalBuild << enableD8;
     generateAab = true;
     QTest::newRow("minimal-native aapt2 aab")
             << "minimal-native" << QStringList("minimalnative")
@@ -515,7 +523,7 @@ void TestBlackboxAndroid::android_data()
             << QStringList{"products.minimalnative.multiplexByQbsProperties:[]",
                            "modules.qbs.architecture:" + archsStringList.first(),
                            aaptVersion(enableAapt2), packageType(generateAab)}
-            << enableAapt2 << generateAab << isIncrementalBuild;
+            << enableAapt2 << generateAab << isIncrementalBuild << enableD8;
 
     auto qmlAppExpectedFiles = [&](bool generateAab, bool enableAapt2) {
         QByteArrayList expectedFile;
@@ -808,7 +816,7 @@ void TestBlackboxAndroid::android_data()
             << (QList<QByteArrayList>() << qmlAppExpectedFiles(generateAab, enableAapt2))
             << (QStringList() << qmlAppCustomProperties << aaptVersion(enableAapt2)
                               << packageType(generateAab))
-            << enableAapt2 << generateAab << isIncrementalBuild;
+            << enableAapt2 << generateAab << isIncrementalBuild << enableD8;
 
     enableAapt2 = true;
     QTest::newRow("qml app aapt2")
@@ -816,14 +824,14 @@ void TestBlackboxAndroid::android_data()
             << (QList<QByteArrayList>() << qmlAppExpectedFiles(generateAab, enableAapt2))
             << (QStringList() << qmlAppCustomProperties << aaptVersion(enableAapt2)
                               << packageType(generateAab))
-            << enableAapt2 << generateAab << isIncrementalBuild;
+            << enableAapt2 << generateAab << isIncrementalBuild << enableD8;
     generateAab = true;
     QTest::newRow("qml app aab")
             << "qml-app" << QStringList("qmlapp")
             << (QList<QByteArrayList>() << qmlAppExpectedFiles(generateAab, enableAapt2))
             << (QStringList() << qmlAppCustomProperties << aaptVersion(enableAapt2)
                               << packageType(generateAab))
-            << enableAapt2 << generateAab << isIncrementalBuild;
+            << enableAapt2 << generateAab << isIncrementalBuild << enableD8;
     enableAapt2 = false;
     generateAab = false;
     QTest::newRow("qml app with custom metadata")
@@ -833,7 +841,7 @@ void TestBlackboxAndroid::android_data()
                                                                                  enableAapt2)))
             << QStringList{"modules.Android.sdk.automaticSources:true",
                aaptVersion(enableAapt2), packageType(generateAab)}
-            << enableAapt2 << generateAab << isIncrementalBuild;
+            << enableAapt2 << generateAab << isIncrementalBuild << enableD8;
     enableAapt2 = true;
     QTest::newRow("qml app with custom metadata aapt2")
             << "qml-app" << QStringList("qmlapp")
@@ -842,7 +850,7 @@ void TestBlackboxAndroid::android_data()
                                                                                  enableAapt2)))
             << QStringList{"modules.Android.sdk.automaticSources:true", aaptVersion(enableAapt2),
                packageType(generateAab)}
-            << enableAapt2 << generateAab << isIncrementalBuild;
+            << enableAapt2 << generateAab << isIncrementalBuild << enableD8;
     generateAab = true;
     if (!singleArchQt) {
         QTest::newRow("qml app with custom metadata aab")
@@ -852,7 +860,7 @@ void TestBlackboxAndroid::android_data()
                                                                                      enableAapt2)))
                 << QStringList{"modules.Android.sdk.automaticSources:true", aaptVersion(enableAapt2),
                    packageType(generateAab)}
-                << enableAapt2 << generateAab << isIncrementalBuild;
+                << enableAapt2 << generateAab << isIncrementalBuild << enableD8;
     }
     isIncrementalBuild = false;
     enableAapt2 = false;
@@ -887,44 +895,45 @@ void TestBlackboxAndroid::android_data()
             << QStringList("com.example.android.basicmediadecoder")
             << (QList<QByteArrayList>() << noNativeExpectedFiles(generateAab))
             << QStringList{aaptVersion(enableAapt2), packageType(generateAab)}
-            << enableAapt2 << generateAab << isIncrementalBuild;
+            << enableAapt2 << generateAab << isIncrementalBuild << enableD8;
     enableAapt2 = true;
     QTest::newRow("no native aapt2")
             << "no-native"
             << QStringList("com.example.android.basicmediadecoder")
             << (QList<QByteArrayList>() << noNativeExpectedFiles(generateAab))
             << QStringList{aaptVersion(enableAapt2), packageType(generateAab)}
-            << enableAapt2 << generateAab << isIncrementalBuild;
+            << enableAapt2 << generateAab << isIncrementalBuild << enableD8;
     generateAab = true;
     QTest::newRow("no native aab")
             << "no-native"
             << QStringList("com.example.android.basicmediadecoder")
             << (QList<QByteArrayList>() << noNativeExpectedFiles(generateAab))
             << QStringList{aaptVersion(enableAapt2), packageType(generateAab)}
-            << enableAapt2 << generateAab << isIncrementalBuild;
+            << enableAapt2 << generateAab << isIncrementalBuild << enableD8;
     enableAapt2 = false;
     generateAab = false;
     QTest::newRow("aidl") << "aidl" << QStringList("io.qbs.aidltest")
                                << (QList<QByteArrayList>() << (QByteArrayList()
                                                                << commonFiles(generateAab)))
                                << QStringList{aaptVersion(enableAapt2), packageType(generateAab)}
-                               << enableAapt2 << generateAab << isIncrementalBuild;
+                               << enableAapt2 << generateAab << isIncrementalBuild << enableD8;
     enableAapt2 = true;
     QTest::newRow("aidl") << "aidl" << QStringList("io.qbs.aidltest")
                                << (QList<QByteArrayList>() << (QByteArrayList()
                                                                << commonFiles(generateAab)
                                                                << "resources.arsc"))
                                << QStringList{aaptVersion(enableAapt2), packageType(generateAab)}
-                               << enableAapt2 << generateAab << isIncrementalBuild;
+                               << enableAapt2 << generateAab << isIncrementalBuild << enableD8;
     generateAab = true;
     QTest::newRow("aidl") << "aidl" << QStringList("io.qbs.aidltest")
                                << (QList<QByteArrayList>() << (QByteArrayList()
                                                                << commonFiles(generateAab)
                                                                << "base/resources.pb"))
                                << QStringList{aaptVersion(enableAapt2), packageType(generateAab)}
-                               << enableAapt2 << generateAab << isIncrementalBuild;
+                               << enableAapt2 << generateAab << isIncrementalBuild << enableD8;
     enableAapt2 = false;
     generateAab = false;
+    enableD8 = false;
     QTest::newRow("multiple libs")
             << "multiple-libs-per-apk"
             << QStringList("twolibs")
@@ -933,8 +942,22 @@ void TestBlackboxAndroid::android_data()
                        "lib/${ARCH}/liblib1.so",
                        "lib/${ARCH}/liblib2.so",
                        cxxLibPath("libstlport_shared.so", false)}, generateAab))
-            << QStringList{aaptVersion(enableAapt2), packageType(generateAab)}
-            << enableAapt2 << generateAab << isIncrementalBuild;
+            << QStringList{aaptVersion(enableAapt2), packageType(generateAab),
+               dexCompilerVersion(enableD8)}
+            << enableAapt2 << generateAab << isIncrementalBuild << enableD8;
+    enableD8 = true;
+    QTest::newRow("multiple libs with d8")
+            << "multiple-libs-per-apk"
+            << QStringList("twolibs")
+            << (QList<QByteArrayList>() << commonFiles(generateAab) + expandArchs(archs, {
+                       "resources.arsc",
+                       "lib/${ARCH}/liblib1.so",
+                       "lib/${ARCH}/liblib2.so",
+                       cxxLibPath("libstlport_shared.so", false)}, generateAab))
+            << QStringList{aaptVersion(enableAapt2), packageType(generateAab),
+               dexCompilerVersion(enableD8)}
+            << enableAapt2 << generateAab << isIncrementalBuild << enableD8;
+    enableD8 = false;
     enableAapt2 = true;
     QTest::newRow("multiple libs aapt2")
             << "multiple-libs-per-apk"
@@ -944,8 +967,9 @@ void TestBlackboxAndroid::android_data()
                        "lib/${ARCH}/liblib1.so",
                        "lib/${ARCH}/liblib2.so",
                        cxxLibPath("libstlport_shared.so", false)}, generateAab))
-            << QStringList{aaptVersion(enableAapt2), packageType(generateAab)}
-            << enableAapt2 << generateAab << isIncrementalBuild;
+            << QStringList{aaptVersion(enableAapt2), packageType(generateAab),
+               dexCompilerVersion(enableD8)}
+            << enableAapt2 << generateAab << isIncrementalBuild << enableD8;
     generateAab = true;
     QTest::newRow("multiple libs aab")
             << "multiple-libs-per-apk"
@@ -955,8 +979,9 @@ void TestBlackboxAndroid::android_data()
                        "lib/${ARCH}/liblib1.so",
                        "lib/${ARCH}/liblib2.so",
                        cxxLibPath("libstlport_shared.so", false)}, generateAab))
-            << QStringList{aaptVersion(enableAapt2), packageType(generateAab)}
-            << enableAapt2 << generateAab << isIncrementalBuild;
+            << QStringList{aaptVersion(enableAapt2), packageType(generateAab),
+               dexCompilerVersion(enableD8)}
+            << enableAapt2 << generateAab << isIncrementalBuild << enableD8;
     enableAapt2 = false;
     generateAab = false;
     auto expectedFiles1 = [&](bool generateAab) {
@@ -985,16 +1010,18 @@ void TestBlackboxAndroid::android_data()
             << "multiple-apks-per-project"
             << (QStringList() << "twolibs1" << "twolibs2")
             << QList<QByteArrayList>{expectedFiles1(generateAab), expectedFiles2(generateAab)}
-            << QStringList{aaptVersion(enableAapt2), packageType(generateAab)}
-            << enableAapt2 << generateAab << isIncrementalBuild;
+            << QStringList{aaptVersion(enableAapt2), packageType(generateAab),
+               dexCompilerVersion(enableD8)}
+            << enableAapt2 << generateAab << isIncrementalBuild << enableD8;
     enableAapt2 = true;
     QTest::newRow("multiple apks aapt2")
             << "multiple-apks-per-project"
             << (QStringList() << "twolibs1" << "twolibs2")
             << (QList<QByteArrayList>() << expectedFiles1(generateAab)
                 << (QByteArrayList() << expectedFiles2(generateAab) << "resources.arsc"))
-            << QStringList{aaptVersion(enableAapt2), packageType(generateAab)}
-            << enableAapt2 << generateAab << isIncrementalBuild;
+            << QStringList{aaptVersion(enableAapt2), packageType(generateAab),
+               dexCompilerVersion(enableD8)}
+            << enableAapt2 << generateAab << isIncrementalBuild << enableD8;
     generateAab = true;
     QTest::newRow("multiple apks aab")
             << "multiple-apks-per-project"
@@ -1002,8 +1029,9 @@ void TestBlackboxAndroid::android_data()
             << (QList<QByteArrayList>() << expectedFiles1(generateAab)
                 << (QByteArrayList() << expectedFiles2(generateAab) << "base/resources.pb"
                     << "base/native.pb"))
-            << QStringList{aaptVersion(enableAapt2), packageType(generateAab)}
-            << enableAapt2 << generateAab << isIncrementalBuild;
+            << QStringList{aaptVersion(enableAapt2), packageType(generateAab),
+               dexCompilerVersion(enableD8)}
+            << enableAapt2 << generateAab << isIncrementalBuild << enableD8;
 }
 
 QTEST_MAIN(TestBlackboxAndroid)

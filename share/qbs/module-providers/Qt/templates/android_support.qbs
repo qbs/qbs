@@ -14,7 +14,6 @@ Module {
     property stringList extraPlugins // qmake: ANDROID_EXTRA_PLUGINS
     property stringList extraLibs // qmake: ANDROID_EXTRA_LIBS
     property bool verboseAndroidDeployQt: false
-
     property string _androidDeployQtFilePath: FileInfo.joinPaths(_qtBinaryDir, "bin",
                                                                  "androiddeployqt")
     property string _qtBinaryDir
@@ -57,6 +56,8 @@ Module {
         Android.sdk.customManifestProcessing: true
         java._tagJniHeaders: false // prevent rule cycle
     }
+    readonly property string _qtAndroidJarFileName: Utilities.versionCompare(version, "6.0") >= 0 ?
+                                                       "Qt6Android.jar" : "QtAndroid.jar"
     Properties {
         condition: _enableSdkSupport && Utilities.versionCompare(version, "5.15") >= 0
                    && Utilities.versionCompare(version, "6.0") < 0
@@ -301,8 +302,11 @@ Module {
                 filePath: "deployqt.list",
                 fileTags: "android.deployqt_list"
             },
+            // androiddeployqt potentially copies more jar files but this one will always be there
+            // since it comes with Qt.core
             {
-                filePath: FileInfo.joinPaths(product.java.classFilesDir, "QtAndroid.jar"),
+                filePath: FileInfo.joinPaths(product.java.classFilesDir,
+                                             product.Qt.android_support._qtAndroidJarFileName),
                 fileTags: "bundled_jar"
             }
         ]
@@ -353,6 +357,7 @@ Module {
             var moveCmd = new JavaScriptCommand();
             moveCmd.description = "processing androiddeployqt outout";
             moveCmd.sourceCode = function() {
+                File.makePath(product.java.classFilesDir);
                 var libsDir = product.Qt.android_support._deployQtOutDir + "/libs";
                 var libDir = product.Android.sdk.packageContentsDir + "/lib";
                 var listFilePath = outputs["android.deployqt_list"][0].filePath;

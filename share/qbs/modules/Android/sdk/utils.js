@@ -57,8 +57,21 @@ function availableBuildToolsVersions(sdkDir) {
 }
 
 function prepareDex(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
-    var dxFilePath = product.Android.sdk.dxFilePath;
-    var args = ["--dex", "--output", output.filePath, product.java.classFilesDir];
+    var dexCompilerFilePath = product.Android.sdk._useD8 ? product.Android.sdk.d8FilePath
+                                                         : product.Android.sdk.dxFilePath;
+    var args = ["--output", FileInfo.path(output.filePath)];
+
+    if (product.Android.sdk._useD8) {
+        args.push("--no-desugaring", "--release");
+        var classes = inputs["java.class"];
+        if (classes) {
+            args = args.concat(classes.map(function(javaClass) {
+                 return FileInfo.relativePath(product.java.classFilesDir, javaClass.filePath) }));
+        }
+    } else {
+        args.unshift("--dex");
+        args.push(product.java.classFilesDir);
+    }
 
     var jarFiles = [];
     function traverseJarDeps(dep) {
@@ -80,8 +93,42 @@ function prepareDex(project, product, inputs, outputs, input, output, explicitly
 
     args = args.concat(jarFiles);
 
-    var cmd = new Command(dxFilePath, args);
-    cmd.description = "creating " + output.fileName;
+    var cmd;
+    if (product.Android.sdk._useD8) {
+        cmd = new JavaScriptCommand();
+        cmd.args = args;
+        cmd.dexCompilerFilePath = dexCompilerFilePath;
+        cmd.description = "creating " + output.fileName;
+        cmd.workingDirectory = product.java.classFilesDir;
+        cmd.extendedDescription = dexCompilerFilePath + " " + args.join(' ');
+        cmd.highlight = "compiler";
+        cmd.sourceCode = function() {
+            // androiddeployqt copied jar files in product.java.classFilesDir
+            // but the rule only tags one jar file ("QtAndroid.jar"/"Qt6Android.jar")
+            // So to pass all files to d8, Qbs needs to read the directory
+            var bundledJarFilesDir = product.java.classFilesDir;
+            var bundledJarFiles = File.directoryEntries(bundledJarFilesDir, File.Files
+                                                        | File.NoDotAndDotDot);
+            args = args.concat(bundledJarFiles.map(function(jarFile) {
+                 return FileInfo.joinPaths(bundledJarFilesDir, jarFile) }));
+            var process = new Process();
+            var exitCode;
+            process.setWorkingDirectory(workingDirectory);
+            process.exec(dexCompilerFilePath, args, true);
+            try {
+                process.exec(dexCompilerFilePath, args, true);
+            } catch (e) {
+                throw new Error("Error while running dex compiler command: '"
+                    + Process.shellQuote(dexCompilerFilePath, args) + "': " + e.toString());
+            } finally {
+                process.close();
+            }
+        }
+    } else {
+        cmd = new Command(dexCompilerFilePath, args);
+        cmd.description = "creating " + output.fileName;
+        cmd.workingDirectory = product.java.classFilesDir;
+    }
     return [cmd];
 }
 
