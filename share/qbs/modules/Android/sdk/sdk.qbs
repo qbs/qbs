@@ -150,7 +150,7 @@ Module {
     }
 
     property path buildToolsDir: FileInfo.joinPaths(sdkDir, "build-tools", buildToolsVersion)
-    property string aaptName: "aapt"
+    property string aaptName: "aapt2"
     PropertyOptions {
         name: "aaptName"
         allowedValues: ["aapt", "aapt2"]
