@@ -73,7 +73,7 @@ services:
   focal-android-600:
     << : *linux
     hostname: focal-android
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:focal-android-6.0.0-1
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:focal-android-6.0.0-2
     build:
       dockerfile: docker/focal/test-android.Dockerfile
       context: .

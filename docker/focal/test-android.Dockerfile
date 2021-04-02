@@ -72,8 +72,14 @@ ARG ANDROID_PLATFORM="android-29"
 ARG BUILD_TOOLS="29.0.2"
 RUN yes | sdkmanager "--sdk_root=${ANDROID_HOME}" --verbose --licenses && \
           sdkmanager "--sdk_root=${ANDROID_HOME}" --update && \
-          sdkmanager "--sdk_root=${ANDROID_HOME}" "platforms;${ANDROID_PLATFORM}" "build-tools;${BUILD_TOOLS}" "platform-tools" "tools" "ndk-bundle" && \
-    /usr/lib/jvm/java-8-openjdk-amd64/bin/keytool -genkey -keystore /home/${USER_NAME}/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname 'CN=Android Debug,O=Android,C=US'
+          sdkmanager "--sdk_root=${ANDROID_HOME}" "platforms;${ANDROID_PLATFORM}"
+
+RUN yes | sdkmanager "--sdk_root=${ANDROID_HOME}" "build-tools;${BUILD_TOOLS}"
+RUN yes | sdkmanager "--sdk_root=${ANDROID_HOME}" "platform-tools"
+RUN yes | sdkmanager "--sdk_root=${ANDROID_HOME}" "tools"
+RUN yes | sdkmanager "--sdk_root=${ANDROID_HOME}" "ndk-bundle"
+
+RUN /usr/lib/jvm/java-8-openjdk-amd64/bin/keytool -genkey -keystore /home/${USER_NAME}/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname 'CN=Android Debug,O=Android,C=US'
 
 # Install ndk samples in ${ANDROID_NDK_ROOT}/samples
 RUN cd ${ANDROID_NDK_ROOT} && \

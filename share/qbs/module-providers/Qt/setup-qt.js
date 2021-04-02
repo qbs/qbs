@@ -268,8 +268,10 @@ function getQtProperties(qmakeFilePath, qbs) {
                 (pathQueryValue(queryResult, "QT_INSTALL_DATA"), "mkspecs");
     }
 
-    if (Utilities.versionCompare(qtProps.qtVersion, "6") >= 0)
-        qtProps.libExecPath = pathQueryValue(queryResult, "QT_INSTALL_LIBEXECS");
+    if (Utilities.versionCompare(qtProps.qtVersion, "6") >= 0) {
+        qtProps.libExecPath = pathQueryValue(queryResult, "QT_HOST_LIBEXECS")
+                || pathQueryValue(queryResult, "QT_INSTALL_LIBEXECS");
+    }
 
     if (!File.exists(qtProps.mkspecBasePath))
         throw "Cannot extract the mkspecs directory.";
