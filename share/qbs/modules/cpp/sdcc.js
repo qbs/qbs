@@ -641,6 +641,12 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
         };
         cmds.push(cmd);
     }
+
+    function buildLinkerMapFilePath(target, suffix) {
+        return FileInfo.joinPaths(FileInfo.path(target.filePath),
+                                  FileInfo.completeBaseName(target.fileName) + suffix);
+    }
+
     // It is a workaround which removes the generated linker map file
     // if it is disabled by cpp.generateLinkerMapFile property.
     // Reason is that the SDCC compiler always generates this file,
@@ -649,11 +655,20 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     // linking completes.
     if (!product.cpp.generateLinkerMapFile) {
         cmd = new JavaScriptCommand();
-        cmd.mapFilePath = FileInfo.joinPaths(
-            FileInfo.path(target.filePath),
-            FileInfo.completeBaseName(target.fileName) + product.cpp.linkerMapSuffix);
+        cmd.mapFilePath = buildLinkerMapFilePath(target, product.cpp.linkerMapSuffix);
         cmd.silent = true;
         cmd.sourceCode = function() { File.remove(mapFilePath); };
+        cmds.push(cmd);
+    }
+    // It is a workaround to rename the extension of the output linker
+    // map file to the specified one, since the linker generates only
+    // files with the '.map' extension.
+    if (product.cpp.generateLinkerMapFile && (product.cpp.linkerMapSuffix !== ".map")) {
+        cmd = new JavaScriptCommand();
+        cmd.newMapFilePath = buildLinkerMapFilePath(target, product.cpp.linkerMapSuffix);
+        cmd.oldMapFilePath = buildLinkerMapFilePath(target, ".map");
+        cmd.silent = true;
+        cmd.sourceCode = function() { File.move(oldMapFilePath, newMapFilePath); };
         cmds.push(cmd);
     }
 
