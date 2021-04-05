@@ -239,7 +239,7 @@ function collectLibraryDependencies(product) {
     return result;
 }
 
-function compilerOutputArtifacts(input, useListing) {
+function compilerOutputArtifacts(input, isCompilerArtifacts) {
     var obj = {
         fileTags: ["obj"],
         filePath: Utilities.getHash(input.baseDir) + "/"
@@ -270,11 +270,17 @@ function compilerOutputArtifacts(input, useListing) {
               + input.fileName + ".rst"
     };
     var artifacts = [obj, asm_adb, asm_src, asm_sym, rst_data];
-    if (useListing) {
+    if (isCompilerArtifacts && input.cpp.generateCompilerListingFiles) {
         artifacts.push({
             fileTags: ["lst"],
             filePath: Utilities.getHash(input.baseDir) + "/"
-              + input.fileName + ".lst"
+              + input.fileName + input.cpp.compilerListingSuffix
+        });
+    } else if (!isCompilerArtifacts && input.cpp.generateAssemblerListingFiles) {
+        artifacts.push({
+            fileTags: ["lst"],
+            filePath: Utilities.getHash(input.baseDir) + "/"
+              + input.fileName + input.cpp.assemblerListingSuffix
         });
     }
     return artifacts;
@@ -628,6 +634,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
         cmd = new JavaScriptCommand();
         cmd.objectPaths = inputs.obj.map(function(a) { return a.filePath; });
         cmd.objectSuffix = product.cpp.objectSuffix;
+        cmd.listingSuffix = product.cpp.compilerListingSuffix
         cmd.silent = true;
         cmd.sourceCode = function() {
             objectPaths.forEach(function(objectPath) {
@@ -635,7 +642,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
                     return; // Skip the assembler objects.
                 var listingPath = FileInfo.joinPaths(
                     FileInfo.path(objectPath),
-                    FileInfo.completeBaseName(objectPath) + ".lst");
+                    FileInfo.completeBaseName(objectPath) + listingSuffix);
                 File.remove(listingPath);
             });
         };

@@ -100,7 +100,7 @@ CppModule {
         id: assembler
         inputs: ["asm"]
         outputFileTags: ["obj", "asm_adb", "lst", "asm_src", "asm_sym", "rst_data"]
-        outputArtifacts: SDCC.compilerOutputArtifacts(input, true)
+        outputArtifacts: SDCC.compilerOutputArtifacts(input, false)
         prepare: SDCC.prepareAssembler.apply(SDCC, arguments)
     }
 
@@ -114,8 +114,7 @@ CppModule {
         inputs: ["cpp", "c"]
         auxiliaryInputs: ["hpp"]
         outputFileTags: ["obj", "asm_adb", "lst", "asm_src", "asm_sym", "rst_data"]
-        outputArtifacts: SDCC.compilerOutputArtifacts(
-            input, input.cpp.generateCompilerListingFiles)
+        outputArtifacts: SDCC.compilerOutputArtifacts(input, true)
         prepare: SDCC.prepareCompiler.apply(SDCC, arguments)
     }
 

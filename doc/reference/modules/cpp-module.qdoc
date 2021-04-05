@@ -634,6 +634,22 @@
 */
 
 /*!
+    \qmlproperty string cpp::compilerListingSuffix
+
+    A string to append to the generated compiler listing files.
+
+    \defaultvalue \l{qbs::toolchain}{toolchain}-dependent, typical value is \c ".lst"
+*/
+
+/*!
+    \qmlproperty string cpp::assemblerListingSuffix
+
+    A string to append to the generated assembler listing files.
+
+    \defaultvalue \l{qbs::toolchain}{toolchain}-dependent, typical value is \c ".lst"
+*/
+
+/*!
     \qmlproperty pathList cpp::prefixHeaders
     \since Qbs 1.0.1
 

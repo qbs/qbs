@@ -162,7 +162,8 @@ CppModule {
             if (input.cpp.generateCompilerListingFiles) {
                 artifacts.push({
                     fileTags: ["lst"],
-                    filePath: Utilities.getHash(input.baseDir) + "/" + input.fileName + ".lst"
+                    filePath: Utilities.getHash(input.baseDir)
+                              + "/" + input.fileName + input.cpp.compilerListingSuffix
                 });
             }
             return artifacts;

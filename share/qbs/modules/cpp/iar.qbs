@@ -99,8 +99,7 @@ CppModule {
         id: assembler
         inputs: ["asm"]
         outputFileTags: ["obj", "lst"]
-        outputArtifacts: IAR.compilerOutputArtifacts(
-            input, input.cpp.generateAssemblerListingFiles)
+        outputArtifacts: IAR.compilerOutputArtifacts(input, false)
         prepare: IAR.prepareAssembler.apply(IAR, arguments)
     }
 
@@ -114,8 +113,7 @@ CppModule {
         inputs: ["cpp", "c"]
         auxiliaryInputs: ["hpp"]
         outputFileTags: ["obj", "lst"]
-        outputArtifacts: IAR.compilerOutputArtifacts(
-            input, input.cpp.generateCompilerListingFiles)
+        outputArtifacts: IAR.compilerOutputArtifacts(input, true)
         prepare: IAR.prepareCompiler.apply(IAR, arguments)
     }
 
