@@ -186,28 +186,42 @@ void TestBlackboxBareMetal::defines()
 
 void TestBlackboxBareMetal::compilerListingFiles_data()
 {
-    QTest::addColumn<QString>("testPath");
     QTest::addColumn<bool>("generateListing");
-    QTest::newRow("do-not-generate-compiler-listing") << "/do-not-generate-compiler-listing" << false;
-    QTest::newRow("generate-compiler-listing") << "/generate-compiler-listing" << true;
+    QTest::newRow("do-not-generate-compiler-listing") << false;
+    QTest::newRow("generate-compiler-listing") << true;
 }
 
 void TestBlackboxBareMetal::compilerListingFiles()
 {
-    QFETCH(QString, testPath);
     QFETCH(bool, generateListing);
-    QDir::setCurrent(testDataDir + testPath);
-    QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList("-n"))), 0);
+    QDir::setCurrent(testDataDir + "/compiler-listing");
+
+    rmDirR(relativeBuildDir());
+    QStringList args = {QStringLiteral("modules.cpp.generateCompilerListingFiles:%1")
+                            .arg(generateListing ? "true" : "false")};
+
+    QCOMPARE(runQbs(QbsRunParameters("resolve", args)), 0);
     if (m_qbsStdout.contains("unsupported toolset:"))
         QSKIP(unsupportedToolsetMessage(m_qbsStdout));
-    QCOMPARE(runQbs(), 0);
+    if (!m_qbsStdout.contains("compiler listing suffix:"))
+        QFAIL("No current compiler listing suffix pattern exists");
+
+    QString compilerListingSuffix;
+    if (!extractQuitedValue(m_qbsStdout, compilerListingSuffix))
+        QFAIL("Unable to extract current compiler listing suffix");
+
     const bool isShortListingNames = m_qbsStdout.contains("using short listing file names");
-    const QString productName = testPath.mid(1);
-    const QString productBuildDir = relativeProductBuildDir(productName);
+
+    QCOMPARE(runQbs(QbsRunParameters(args)), 0);
+    const QString productBuildDir = relativeProductBuildDir("compiler-listing");
     const QString hash = inputDirHash(".");
-    const QString mainListing = productBuildDir + "/" + hash + (isShortListingNames ? "/main.lst" : "/main.c.lst");
+    const QString mainListing = productBuildDir + "/" + hash
+                                + (isShortListingNames ? "/main" : "/main.c")
+                                + compilerListingSuffix;
     QCOMPARE(regularFileExists(mainListing), generateListing);
-    const QString funListing = productBuildDir + "/" + hash + (isShortListingNames ? "/fun.lst" : "/fun.c.lst");
+    const QString funListing = productBuildDir + "/" + hash
+                               + (isShortListingNames ? "/fun" : "/fun.c")
+                               + compilerListingSuffix;
     QCOMPARE(regularFileExists(funListing), generateListing);
 }
 
