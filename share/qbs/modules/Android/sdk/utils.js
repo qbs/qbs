@@ -174,7 +174,8 @@ function prepareAapt2CompileResource(project, product, inputs, outputs, input, o
         throw "Cannot create directory '" + FileInfo.toNativeSeparators(compilesResourcesDir) +
               "'.";
     }
-    var args = ["compile", input.filePath, "-o", compilesResourcesDir];
+    var args = ["compile", FileInfo.toNativeSeparators(input.filePath),
+                "-o", FileInfo.toNativeSeparators(compilesResourcesDir)];
     var cmd = new Command(product.Android.sdk.aaptFilePath, args);
     var outputFileName = generateAapt2ResourceFileName(input.filePath);
     cmd.description = "compiling resource " + input.fileName + " into " + outputFileName;
