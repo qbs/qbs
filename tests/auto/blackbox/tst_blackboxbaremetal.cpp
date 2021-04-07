@@ -210,18 +210,14 @@ void TestBlackboxBareMetal::compilerListingFiles()
     if (!extractQuitedValue(m_qbsStdout, compilerListingSuffix))
         QFAIL("Unable to extract current compiler listing suffix");
 
-    const bool isShortListingNames = m_qbsStdout.contains("using short listing file names");
-
     QCOMPARE(runQbs(QbsRunParameters(args)), 0);
     const QString productBuildDir = relativeProductBuildDir("compiler-listing");
     const QString hash = inputDirHash(".");
     const QString mainListing = productBuildDir + "/" + hash
-                                + (isShortListingNames ? "/main" : "/main.c")
-                                + compilerListingSuffix;
+                                + "/main.c" + compilerListingSuffix;
     QCOMPARE(regularFileExists(mainListing), generateListing);
     const QString funListing = productBuildDir + "/" + hash
-                               + (isShortListingNames ? "/fun" : "/fun.c")
-                               + compilerListingSuffix;
+                               + "/fun.c" + compilerListingSuffix;
     QCOMPARE(regularFileExists(funListing), generateListing);
 }
 

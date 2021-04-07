@@ -593,15 +593,13 @@ function compilerOutputArtifacts(input, isCompilerArtifacts) {
         artifacts.push({
             fileTags: ["lst"],
             filePath: Utilities.getHash(input.baseDir) + "/"
-                  + (isArmCCCompiler(input.cpp.compilerPath) ? input.baseName : input.fileName)
-                  + input.cpp.compilerListingSuffix
+                  + input.fileName + input.cpp.compilerListingSuffix
         });
     } else if (!isCompilerArtifacts && input.cpp.generateAssemblerListingFiles) {
         artifacts.push({
             fileTags: ["lst"],
             filePath: Utilities.getHash(input.baseDir) + "/"
-                  + (isArmCCCompiler(input.cpp.compilerPath) ? input.baseName : input.fileName)
-                  + input.cpp.assemblerListingSuffix
+                  + input.fileName + input.cpp.assemblerListingSuffix
         });
     }
     return artifacts;
@@ -1102,6 +1100,38 @@ function archiverFlags(project, product, inputs, outputs) {
     return args;
 }
 
+// The ARMCLANG compiler does not support generation
+// for the listing files:
+// * https://www.keil.com/support/docs/4152.htm
+// So, we generate the listing files from the object files
+// using the disassembler.
+function generateClangCompilerListing(project, product, inputs, outputs, input, output) {
+    if (isArmClangCompiler(input.cpp.compilerPath) && input.cpp.generateCompilerListingFiles) {
+        var args = disassemblerFlags(project, product, input, outputs, explicitlyDependsOn);
+        var disassemblerPath = input.cpp.disassemblerPath;
+        var cmd = new Command(disassemblerPath, args);
+        cmd.silent = true;
+        return cmd;
+    }
+}
+
+// The ARMCC compiler generates the listing files only in a short form,
+// e.g. to 'module.lst' instead of 'module.{c|cpp}.lst', that complicates
+// the auto-tests. Therefore we need to rename generated listing files
+// with correct unified names.
+function generateArmccCompilerListing(project, product, inputs, outputs, input, output) {
+    if (isArmCCCompiler(input.cpp.compilerPath) && input.cpp.generateCompilerListingFiles) {
+        var listingPath = FileInfo.path(outputs.lst[0].filePath);
+        var cmd = new JavaScriptCommand();
+        cmd.oldListing = FileInfo.joinPaths(listingPath, input.baseName + ".lst");
+        cmd.newListing = FileInfo.joinPaths(
+                    listingPath, input.fileName + input.cpp.compilerListingSuffix);
+        cmd.silent = true;
+        cmd.sourceCode = function() { File.move(oldListing, newListing); };
+        return cmd;
+    }
+}
+
 function prepareCompiler(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
     var cmds = [];
     var args = compilerFlags(project, product, input, outputs, explicitlyDependsOn);
@@ -1119,18 +1149,14 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
     }
     cmds.push(cmd);
 
-    // The ARMCLANG compiler does not support generation
-    // for the listing files:
-    // * https://www.keil.com/support/docs/4152.htm
-    // So, we generate the listing files from the object files
-    // using the disassembler.
-    if (isArmClangCompiler(compilerPath) && input.cpp.generateCompilerListingFiles) {
-        args = disassemblerFlags(project, product, input, outputs, explicitlyDependsOn);
-        var disassemblerPath = input.cpp.disassemblerPath;
-        cmd = new Command(disassemblerPath, args);
-        cmd.silent = true;
+    cmd = generateClangCompilerListing(project, product, inputs, outputs, input, output);
+    if (cmd)
         cmds.push(cmd);
-    }
+
+    cmd = generateArmccCompilerListing(project, product, inputs, outputs, input, output);
+    if (cmd)
+        cmds.push(cmd);
+
     return cmds;
 }
 
