@@ -562,7 +562,7 @@ function buildLinkerMapFilePath(target, suffix) {
 // * https://sourceforge.net/p/sdcc/bugs/2970/
 // We need to replace the '\r\n\' line endings with the'\n' line
 // endings for each generated object file.
-function patchObjectFiles(project, product, inputs, outputs, input, output) {
+function patchObjectFile(project, product, inputs, outputs, input, output) {
     var isWindows = input.qbs.hostOS.contains("windows");
     if (isWindows && input.cpp.debugInformation) {
         var cmd = new JavaScriptCommand();
@@ -620,27 +620,48 @@ function renameLinkerMapFile(project, product, inputs, outputs, input, output) {
 }
 
 // It is a workaround which removes the generated listing files
-// if it is disabled by cpp.generateCompilerListingFiles property.
+// if it is disabled by cpp.generateCompilerListingFiles property
+// or when the cpp.compilerListingSuffix differs with '.lst'.
 // Reason is that the SDCC compiler does not have an option to
 // disable generation for a listing files. Besides, the SDCC
 // compiler use this files and for the linking. So, we can to
 // remove a listing files only after the linking completes.
 function removeCompilerListingFiles(project, product, inputs, outputs, input, output) {
-    if (!product.cpp.generateCompilerListingFiles) {
-        var cmd = new JavaScriptCommand();
-        cmd.objectPaths = inputs.obj.map(function(a) { return a.filePath; });
-        cmd.objectSuffix = product.cpp.objectSuffix;
-        cmd.silent = true;
-        cmd.sourceCode = function() {
-            objectPaths.forEach(function(objectPath) {
-                if (!objectPath.endsWith(".c" + objectSuffix))
-                    return; // Skip the assembler objects.
-                var listingPath = FileInfo.joinPaths(
-                    FileInfo.path(objectPath),
-                    FileInfo.completeBaseName(objectPath) + ".lst");
+    var cmd = new JavaScriptCommand();
+    cmd.objects = inputs.obj.map(function(a) { return a; });
+    cmd.silent = true;
+    cmd.sourceCode = function() {
+        objects.forEach(function(object) {
+            if (!object.filePath.endsWith(".c" + object.cpp.objectSuffix))
+                return; // Skip the assembler generated objects.
+            if (!object.cpp.generateCompilerListingFiles
+                    || (object.cpp.compilerListingSuffix !== ".lst")) {
+                var listingPath = FileInfo.joinPaths(FileInfo.path(object.filePath),
+                                                     object.completeBaseName + ".lst");
                 File.remove(listingPath);
-            });
-        };
+            }
+        })
+    };
+    return cmd;
+}
+
+// It is a workaround that duplicates the generated listing files
+// but with desired names. The problem is that the SDCC compiler does
+// not support an options to specify names for the generated listing
+// files. At the same time, the compiler always generates the listing
+// files in the form of 'module.c.lst', which makes it impossible to
+// change the file suffix to a user-specified one. In addition, these
+// files are also somehow used for linking. Thus, we can not rename them
+// on the compiling stage.
+function duplicateCompilerListingFile(project, product, inputs, outputs, input, output) {
+    if (input.cpp.generateCompilerListingFiles
+            && (input.cpp.compilerListingSuffix !== ".lst")) {
+        var cmd = new JavaScriptCommand();
+        cmd.newListing = outputs.lst[0].filePath;
+        cmd.oldListing = FileInfo.joinPaths(FileInfo.path(outputs.lst[0].filePath),
+                                            outputs.lst[0].completeBaseName + ".lst");
+        cmd.silent = true;
+        cmd.sourceCode = function() { File.copy(oldListing, newListing); };
         return cmd;
     }
 }
@@ -654,7 +675,11 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
     cmd.highlight = "compiler";
     cmds.push(cmd);
 
-    cmd = patchObjectFiles(project, product, inputs, outputs, input, output);
+    cmd = patchObjectFile(project, product, inputs, outputs, input, output);
+    if (cmd)
+        cmds.push(cmd);
+
+    cmd = duplicateCompilerListingFile(project, product, inputs, outputs, input, output);
     if (cmd)
         cmds.push(cmd);
 
@@ -670,7 +695,7 @@ function prepareAssembler(project, product, inputs, outputs, input, output, expl
     cmd.highlight = "compiler";
     cmds.push(cmd);
 
-    cmd = patchObjectFiles(project, product, inputs, outputs, input, output);
+    cmd = patchObjectFile(project, product, inputs, outputs, input, output);
     if (cmd)
         cmds.push(cmd);
 

@@ -187,18 +187,23 @@ void TestBlackboxBareMetal::defines()
 void TestBlackboxBareMetal::compilerListingFiles_data()
 {
     QTest::addColumn<bool>("generateListing");
-    QTest::newRow("do-not-generate-compiler-listing") << false;
-    QTest::newRow("generate-compiler-listing") << true;
+    QTest::addColumn<QString>("customListingSuffix");
+    QTest::newRow("do-not-generate-compiler-listing") << false << "";
+    QTest::newRow("generate-default-compiler-listing") << true << "";
+    QTest::newRow("generate-custom-compiler-listing") << true << ".lll";
 }
 
 void TestBlackboxBareMetal::compilerListingFiles()
 {
     QFETCH(bool, generateListing);
+    QFETCH(QString, customListingSuffix);
     QDir::setCurrent(testDataDir + "/compiler-listing");
 
     rmDirR(relativeBuildDir());
     QStringList args = {QStringLiteral("modules.cpp.generateCompilerListingFiles:%1")
                             .arg(generateListing ? "true" : "false")};
+    if (!customListingSuffix.isEmpty())
+        args << QStringLiteral("modules.cpp.compilerListingSuffix:%1").arg(customListingSuffix);
 
     QCOMPARE(runQbs(QbsRunParameters("resolve", args)), 0);
     if (m_qbsStdout.contains("unsupported toolset:"))
@@ -209,6 +214,9 @@ void TestBlackboxBareMetal::compilerListingFiles()
     QString compilerListingSuffix;
     if (!extractQuitedValue(m_qbsStdout, compilerListingSuffix))
         QFAIL("Unable to extract current compiler listing suffix");
+
+    if (!customListingSuffix.isEmpty())
+        QCOMPARE(compilerListingSuffix, customListingSuffix);
 
     QCOMPARE(runQbs(QbsRunParameters(args)), 0);
     const QString productBuildDir = relativeProductBuildDir("compiler-listing");
