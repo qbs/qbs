@@ -42,6 +42,7 @@
 #include "../shared/logging/consolelogger.h"
 
 #include <tools/error.h>
+#include <tools/profile.h>
 #include <tools/qttools.h>
 #include <tools/settingsrepresentation.h>
 
@@ -73,6 +74,17 @@ void ConfigCommandExecutor::execute(const ConfigCommand &command)
         for (const QString &varName : command.varNames)
             m_settings->remove(varName);
         break;
+    case ConfigCommand::CfgAddProfile: {
+        Profile profile(command.varValue, m_settings);
+        profile.removeProfile();
+        Q_ASSERT(command.varNames.size() % 2 == 0);
+        for (int i = 0; i < command.varNames.size(); i += 2) {
+            const QString &key = command.varNames.at(i);
+            const QString &rawValue = command.varNames.at(i + 1);
+            profile.setValue(key, representationToSettingsValue(rawValue));
+        }
+        break;
+    }
     case ConfigCommand::CfgExport:
         exportSettings(command.fileName);
         break;

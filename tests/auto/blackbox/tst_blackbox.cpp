@@ -5958,6 +5958,67 @@ void TestBlackbox::qbsConfig()
     }
 }
 
+void TestBlackbox::qbsConfigAddProfile()
+{
+    QbsRunParameters params("config");
+    QTemporaryDir settingsDir1;
+    QTemporaryDir settingsDir2;
+    QVERIFY(settingsDir1.isValid());
+    QVERIFY(settingsDir2.isValid());
+    const QStringList settingsDir1Args = QStringList{"--settings-dir", settingsDir1.path()};
+    const QStringList settingsDir2Args = QStringList{"--settings-dir", settingsDir2.path()};
+
+    QFETCH(QStringList, args);
+    QFETCH(QString, errorMsg);
+
+    // Step 1: Run --add-profile.
+    params.arguments = settingsDir1Args;
+    params.arguments << "--add-profile";
+    params.arguments << args;
+    params.expectFailure = !errorMsg.isEmpty();
+    QCOMPARE(runQbs(params) == 0, !params.expectFailure);
+    if (params.expectFailure) {
+        QVERIFY(QString::fromLocal8Bit(m_qbsStderr).contains(errorMsg));
+        return;
+    }
+    params.expectFailure = false;
+    params.arguments = settingsDir1Args;
+    params.arguments << "--list";
+    QCOMPARE(runQbs(params), 0);
+    const QByteArray output1 = m_qbsStdout;
+
+    // Step 2: Set properties manually.
+    for (int i = 1; i < args.size(); i += 2) {
+        params.arguments = settingsDir2Args;
+        params.arguments << ("profiles." + args.first() + '.' + args.at(i)) << args.at(i + 1);
+        QCOMPARE(runQbs(params), 0);
+    }
+    params.arguments = settingsDir2Args;
+    params.arguments << "--list";
+    QCOMPARE(runQbs(params), 0);
+    const QByteArray output2 = m_qbsStdout;
+
+    // Step3: Compare results.
+    QCOMPARE(output1, output2);
+}
+
+void TestBlackbox::qbsConfigAddProfile_data()
+{
+    QTest::addColumn<QStringList>("args");
+    QTest::addColumn<QString>("errorMsg");
+    QTest::newRow("no arguments") << QStringList() << QString("Profile name missing");
+    QTest::newRow("empty name") << QStringList{"", "p", "v"}
+                                << QString("Profile name must not be empty");
+    QTest::newRow("no properties") << QStringList("p")
+                                   << QString("Profile properties must be provided");
+    QTest::newRow("one property") << QStringList{"p", "p", "v"} << QString();
+    QTest::newRow("two properties") << QStringList{"p", "p1", "v1", "p2", "v2"} << QString();
+    QTest::newRow("missing value") << QStringList{"p", "p"}
+                                   << QString("Profile properties must be key/value pairs");
+    QTest::newRow("missing values") << QStringList{"p", "p1", "v1", "p2"}
+                                    << QString("Profile properties must be key/value pairs");
+}
+
 static QJsonObject getNextSessionPacket(QProcess &session, QByteArray &data)
 {
     int totalSize = -1;

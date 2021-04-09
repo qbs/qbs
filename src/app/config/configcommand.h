@@ -47,7 +47,7 @@
 class ConfigCommand
 {
 public:
-    enum Command { CfgSet, CfgUnset, CfgList, CfgExport, CfgImport, CfgNone };
+    enum Command { CfgSet, CfgUnset, CfgList, CfgExport, CfgImport, CfgAddProfile, CfgNone };
 
     ConfigCommand() : command(CfgNone) {}
 

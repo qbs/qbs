@@ -71,6 +71,8 @@ void ConfigCommandLineParser::parse(const QStringList &commandLine)
             setCommand(ConfigCommand::CfgExport);
         else if (arg == QLatin1String("import"))
             setCommand(ConfigCommand::CfgImport);
+        else if (arg == QLatin1String("add-profile"))
+            setCommand(ConfigCommand::CfgAddProfile);
         else if (arg == QLatin1String("settings-dir"))
             assignOptionArgument(arg, m_settingsDir);
         else if (arg == QLatin1String("user"))
@@ -113,6 +115,22 @@ void ConfigCommandLineParser::parse(const QStringList &commandLine)
     case ConfigCommand::CfgList:
         m_command.varNames = m_commandLine;
         break;
+    case ConfigCommand::CfgAddProfile:
+        if (m_commandLine.empty())
+            throw Error(Tr::tr("Profile name missing."));
+        m_command.varValue = m_commandLine.takeFirst();
+        if (m_command.varValue.isEmpty())
+            throw Error(Tr::tr("Profile name must not be empty."));
+        m_command.varNames = m_commandLine;
+        if (m_command.varNames.isEmpty())
+            throw Error(Tr::tr("Profile properties must be provided."));
+        if (m_command.varNames.size() % 2 != 0)
+            throw Error(Tr::tr("Profile properties must be key/value pairs."));
+        for (int i = 0; i < m_command.varNames.size(); ++i) {
+            if (m_command.varNames.at(i).isEmpty())
+                throw Error(Tr::tr("Property names must not be empty."));
+        }
+        break;
     default:
         break;
     }
@@ -140,12 +158,13 @@ void ConfigCommandLineParser::printUsage() const
         "    qbs config [--settings-dir <settings directory] <key> <value>"
         "\n"
          "Options:\n"
-         "    --list [<root> ...] list keys under key <root> or all keys\n"
-         "    --user              consider only user-level settings\n"
-         "    --system            consider only system-level settings\n"
-         "    --unset <name>      remove key with given name\n"
-         "    --import <file>     import settings from given file\n"
-         "    --export <file>     export settings to given file\n");
+         "    --list [<root> ...]      list keys under key <root> or all keys\n"
+         "    --user                   consider only user-level settings\n"
+         "    --system                 consider only system-level settings\n"
+         "    --unset <name>           remove key with given name\n"
+         "    --add-profile <name> <key> <value> ...  add profile with the given name and properties\n"
+         "    --import <file>          import settings from given file\n"
+         "    --export <file>          export settings to given file\n");
 }
 
 void ConfigCommandLineParser::assignOptionArgument(const QString &option, QString &argument)

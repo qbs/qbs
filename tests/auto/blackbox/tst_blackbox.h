@@ -258,6 +258,8 @@ private slots:
     void protobufLibraryInstall();
     void pseudoMultiplexing();
     void qbsConfig();
+    void qbsConfigAddProfile();
+    void qbsConfigAddProfile_data();
     void qbsSession();
     void qbsVersion();
     void qtBug51237();
