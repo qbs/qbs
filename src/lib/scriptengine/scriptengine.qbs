@@ -383,6 +383,13 @@ Project {
     Product {
         type: ["hpp"]
         name: "QtScriptFwdHeaders"
+        condition: qbsbuildconfig.useBundledQtScript || !Qt.script.present
+        Depends { name: "qbsbuildconfig" }
+        Depends {
+            name: "Qt.script"
+            condition: !qbsbuildconfig.useBundledQtScript
+            required: false
+        }
         Depends { name: "Qt.core" }
         Group {
             files: [
