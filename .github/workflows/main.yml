@@ -218,6 +218,71 @@ jobs:
         name: qbs-windows-${{ github.run_id }}.zip
         path: release/qbs-windows-${{ github.run_id }}.zip
 
+  build-windows-mingw:
+    name: Build on Windows (MinGW)
+    runs-on: windows-latest
+    timeout-minutes: 60
+    env:
+      BUILD_OPTIONS: |
+        modules.cpp.compilerWrapper:ccache
+        modules.qbsbuildconfig.enableAddressSanitizer:false
+        modules.qbsbuildconfig.enableBundledQt:true
+        products.qbs_archive.targetName:qbs-windows-${{ github.run_id }}
+        products.qbs_archive.includeTests:true,
+      QT_ASSUME_STDERR_HAS_CONSOLE: 1
+      WITH_TESTS: 0
+      CCACHE_DIR: ${{ github.workspace }}\ccache
+    steps:
+    - uses: actions/checkout@v1
+    - name: prepare timestamp
+      id: get-timestamp
+      run: echo ::set-output name=timestamp::$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+      shell: bash
+    - name: ccache cache files
+      uses: actions/cache@v2
+      with:
+        path: ${{ github.workspace }}/ccache
+        key: ${{ runner.os }}-mingw-ccache-${{ steps.get-timestamp.outputs.timestamp }}
+        restore-keys: ${{ runner.os }}-mingw-ccache-
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+    - name: Install required packages
+      run: |
+        choco install ccache
+        python -m pip install --upgrade pip
+        pip install beautifulsoup4 lxml
+    - name: Install Qt
+      uses: ./.github/actions/download-qt
+      with:
+        toolchain: win64_mingw81
+    - name: Install Qt Creator
+      uses: ./.github/actions/download-qtc
+    - name: Install MinGW
+      uses: ./.github/actions/download-mingw
+    - name: Setup Qbs
+      run: |
+        qbs setup-toolchains --detect
+        qbs setup-toolchains --type mingw $(which g++).exe mingw-qt
+        qbs setup-qt $(which qmake).exe qt
+        qbs config profiles.qt.baseProfile mingw-qt
+        qbs config defaultProfile qt
+        qbs config --list
+      shell: bash
+    - name: Print ccache stats
+      run: ccache -s
+    - name: Build Qbs
+      run: scripts/build-qbs-with-qbs.sh
+      shell: bash
+    - name: Print ccache stats
+      run: ccache -s
+    - name: Upload artifacts
+      uses: 'actions/upload-artifact@v2'
+      with:
+        name: qbs-windows-mingw-${{ github.run_id }}.zip
+        path: release/qbs-windows-mingw-${{ github.run_id }}.zip
+
   test-linux:
     name: ${{ matrix.config.name }}
     runs-on: ubuntu-latest
@@ -596,6 +661,14 @@ jobs:
             qtVersion: '5.15.2',
             script: './scripts/test-qbs.sh',
           }
+        - {
+            name: 'Run Windows tests (MinGW)',
+            target: 'desktop',
+            toolchain: 'win64_mingw81',
+            testProfile: 'mingw-qt',
+            qtVersion: '5.15.2',
+            script: './scripts/test-qbs.sh',
+          }
     env:
       QTEST_FUNCTION_TIMEOUT: 9000000
       QBS_AUTOTEST_PROFILE: 'qt'
@@ -623,9 +696,12 @@ jobs:
       with:
         toolchain: ${{ matrix.config.toolchain }}
         version: ${{ matrix.config.qtVersion }}
+    - name: Install MinGW
+      uses: ./.github/actions/download-mingw
     - name: Setup Qbs
       run: |
         qbs setup-toolchains --detect
+        qbs setup-toolchains --type mingw $(which g++).exe mingw-qt
         qbs setup-qt $(which qmake).exe qt
         qbs config profiles.qt.baseProfile ${{ matrix.config.testProfile }}
         qbs config defaultProfile qt

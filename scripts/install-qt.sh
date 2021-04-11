@@ -256,7 +256,14 @@ function compute_url(){
         REMOTE_PATH="${SHORT_VERSION}/${VERSION}/installer_source/${HOST_OS}/qtcreator.7z"
         echo "${BASE_URL}/${REMOTE_PATH}"
         return 0
+    elif [[ "${COMPONENT}" =~ "mingw" ]]; then
+        REMOTE_BASE="tools_mingw/qt.tools.${TOOLCHAIN}${VERSION//./}"
 
+        REMOTE_PATH="$(${CURL} ${BASE_URL}/${REMOTE_BASE}/ | grep -o -E "[[:alnum:]_.\-]*7z" | grep -v "meta" | head -1)"
+        if [ ! -z "${REMOTE_PATH}" ]; then
+            echo "${BASE_URL}/${REMOTE_BASE}/${REMOTE_PATH}"
+            return 0
+        fi
     else
         REMOTE_BASES=(
             # New repository format (>=6.0.0)
@@ -364,6 +371,12 @@ for COMPONENT in ${COMPONENTS}; do
         # Print the directory so that the caller can
         # adjust the PATH variable.
         echo $(dirname "${CONF_FILE}")
+    elif [[ "${COMPONENT}" =~ "mingw" ]]; then
+        if [[ "${TOOLCHAIN}" =~ "win64_mingw" ]]; then
+            echo "${UNPACK_DIR}/Tools/mingw${VERSION//./}_64/bin"
+        elif [[ "${TOOLCHAIN}" =~ "win32_mingw" ]]; then
+            echo "${UNPACK_DIR}/Tools/mingw${VERSION//./}/bin"
+        fi
     elif [[ "${COMPONENT}" =~ "qtcreator" ]]; then
         if [ "${HOST_OS}" == "mac_x64" ]; then
             echo "${UNPACK_DIR}/Qt Creator.app/Contents/MacOS"

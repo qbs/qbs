@@ -1,0 +1,19 @@
+name: 'Download MinGW'
+description: 'Downloads MinGW'
+inputs:
+  version:
+    description: 'MinGW version'
+    required: false
+    default: '8.1.0'
+  toolchain:
+    description: 'Toolchain'
+    required: false
+    default: 'win64_mingw'
+runs:
+  using: "composite"
+  steps:
+    - name: Install MinGW
+      run: |
+        MINGW_DIR=$(./scripts/install-qt.sh -d $HOME/Qt --version ${{ inputs.version }} --toolchain ${{ inputs.toolchain }} mingw)
+        (cygpath -w ${MINGW_DIR} 2>/dev/null || echo ${MINGW_DIR}) >> ${GITHUB_PATH}
+      shell: bash
