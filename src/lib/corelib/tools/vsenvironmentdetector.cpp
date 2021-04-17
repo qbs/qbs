@@ -241,8 +241,10 @@ void VsEnvironmentDetector::writeBatchFile(QIODevice *device, const QString &vcv
           << "setlocal" << endl;
         batClearVars(s, varnames);
         s << "set PATH=" << m_windowsSystemDirPath << endl; // vcvarsall.bat needs tools from here
-        s << "call \"" << vcvarsallbat << "\" " << vcArchitecture(msvc)
-          << " || exit /b 1" << endl;
+        s << "call \"" << vcvarsallbat << "\" " << vcArchitecture(msvc);
+        if (!msvc->sdkVersion.isEmpty())
+            s << " " << msvc->sdkVersion;
+        s << " || exit /b 1" << endl;
         batPrintVars(s, varnames);
         s << "endlocal" << endl;
     }

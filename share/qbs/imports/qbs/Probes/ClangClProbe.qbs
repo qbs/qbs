@@ -42,6 +42,7 @@ PathProbe {
     property string preferredArchitecture
     property string _nullDevice: qbs.nullDevice
     property string _pathListSeparator: qbs.pathListSeparator
+    property string winSdkVersion
 
     // Outputs
     property int versionMajor
@@ -58,9 +59,21 @@ PathProbe {
             languages = ["c"];
 
         var info = languages.contains("c")
-                ? Utilities.clangClCompilerInfo(compilerFilePath, preferredArchitecture, vcvarsallFilePath, "c") : {};
+                ? Utilities.clangClCompilerInfo(
+                      compilerFilePath,
+                      preferredArchitecture,
+                      vcvarsallFilePath,
+                      "c",
+                      winSdkVersion)
+                : {};
         var infoCpp = languages.contains("cpp")
-                ? Utilities.clangClCompilerInfo(compilerFilePath, preferredArchitecture, vcvarsallFilePath, "cpp") : {};
+                ? Utilities.clangClCompilerInfo(
+                      compilerFilePath,
+                      preferredArchitecture,
+                      vcvarsallFilePath,
+                      "cpp",
+                      winSdkVersion)
+                : {};
         found = (!languages.contains("c") ||
                  (!!info && !!info.macros && !!info.buildEnvironment))
              && (!languages.contains("cpp") ||

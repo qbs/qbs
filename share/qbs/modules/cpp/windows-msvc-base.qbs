@@ -108,6 +108,8 @@ CppModule {
         }
     }
 
+    property string windowsSdkVersion
+
     Rule {
         condition: useCPrecompiledHeader
         inputs: ["c_pch_src"]

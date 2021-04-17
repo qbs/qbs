@@ -38,6 +38,7 @@ PathProbe {
     property string compilerFilePath
     property stringList enableDefinesByLanguage
     property string preferredArchitecture
+    property string winSdkVersion
 
     // Outputs
     property string architecture
@@ -54,9 +55,9 @@ PathProbe {
             languages = ["c"];
 
         var info = languages.contains("c")
-                ? Utilities.msvcCompilerInfo(compilerFilePath, "c") : {};
+                ? Utilities.msvcCompilerInfo(compilerFilePath, "c", winSdkVersion) : {};
         var infoCpp = languages.contains("cpp")
-                ? Utilities.msvcCompilerInfo(compilerFilePath, "cpp") : {};
+                ? Utilities.msvcCompilerInfo(compilerFilePath, "cpp", winSdkVersion) : {};
         found = (!languages.contains("c") ||
                  (!!info && !!info.macros && !!info.buildEnvironment))
              && (!languages.contains("cpp") ||

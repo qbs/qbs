@@ -1914,3 +1914,14 @@
 
     \defaultvalue \c{true}
 */
+
+/*!
+    \qmlproperty string cpp::windowsSdkVersion
+    \since Qbs 1.19
+
+    Which Windows SDK version should be used with MSVC toolchain. By default,
+    the latest SDK is used.
+
+    \windowsproperty
+    \nodefaultvalue
+*/

@@ -81,12 +81,14 @@ public:
     QString binPath;
     QString pathPrefix;
     QString architecture;
+    QString sdkVersion;
     QProcessEnvironment environment;
 
     MSVC() = default;
 
-    MSVC(const QString &clPath, QString arch):
-        architecture(std::move(arch))
+    MSVC(const QString &clPath, QString arch, QString sdkVersion = {}):
+        architecture(std::move(arch)),
+        sdkVersion(std::move(sdkVersion))
     {
         QDir parentDir = QFileInfo(clPath).dir();
         binPath = parentDir.absolutePath();

@@ -468,9 +468,10 @@ static std::pair<QVariantMap /*result*/, QString /*error*/> msvcCompilerInfoHelp
         const QString &compilerFilePath,
         MSVC::CompilerLanguage language,
         const QString &vcvarsallPath,
-        const QString &arch)
+        const QString &arch,
+        const QString &sdkVersion)
 {
-    MSVC msvc(compilerFilePath, arch);
+    MSVC msvc(compilerFilePath, arch, sdkVersion);
     VsEnvironmentDetector envdetector(vcvarsallPath);
     if (!envdetector.start(&msvc))
         return { {}, QStringLiteral("Detecting the MSVC build environment failed: ")
@@ -501,12 +502,16 @@ QScriptValue UtilitiesExtension::js_msvcCompilerInfo(QScriptContext *context, QS
     return context->throwError(QScriptContext::UnknownError,
         QStringLiteral("msvcCompilerInfo is not available on this platform"));
 #else
-    if (Q_UNLIKELY(context->argumentCount() < 2))
+    if (Q_UNLIKELY(context->argumentCount() < 3))
         return context->throwError(QScriptContext::SyntaxError,
-                                   QStringLiteral("msvcCompilerInfo expects 2 arguments"));
+                                   QStringLiteral("msvcCompilerInfo expects 3 arguments"));
 
     const QString compilerFilePath = context->argument(0).toString();
     const QString compilerLanguage = context->argument(1).toString();
+    const QString sdkVersion =
+            !context->argument(2).isNull() && !context->argument(2).isUndefined()
+            ? context->argument(2).toString()
+            : QString();
     MSVC::CompilerLanguage language;
     if (compilerLanguage == QStringLiteral("c"))
         language = MSVC::CLanguage;
@@ -517,7 +522,11 @@ QScriptValue UtilitiesExtension::js_msvcCompilerInfo(QScriptContext *context, QS
             QStringLiteral("msvcCompilerInfo expects \"c\" or \"cpp\" as its second argument"));
 
     const auto result = msvcCompilerInfoHelper(
-            compilerFilePath, language, {}, MSVC::architectureFromClPath(compilerFilePath));
+            compilerFilePath,
+            language,
+            {},
+            MSVC::architectureFromClPath(compilerFilePath),
+            sdkVersion);
     if (result.first.isEmpty())
         return context->throwError(QScriptContext::UnknownError, result.second);
     return engine->toScriptValue(result.first);
@@ -531,9 +540,9 @@ QScriptValue UtilitiesExtension::js_clangClCompilerInfo(QScriptContext *context,
     return context->throwError(QScriptContext::UnknownError,
         QStringLiteral("clangClCompilerInfo is not available on this platform"));
 #else
-    if (Q_UNLIKELY(context->argumentCount() < 4))
+    if (Q_UNLIKELY(context->argumentCount() < 5))
         return context->throwError(QScriptContext::SyntaxError,
-                                   QStringLiteral("clangClCompilerInfo expects 4 arguments"));
+                                   QStringLiteral("clangClCompilerInfo expects 5 arguments"));
 
     const QString compilerFilePath = context->argument(0).toString();
     // architecture cannot be empty as vcvarsall.bat requires at least 1 arg, so fallback
@@ -542,8 +551,13 @@ QScriptValue UtilitiesExtension::js_clangClCompilerInfo(QScriptContext *context,
             ? context->argument(1).toString()
             : QString::fromStdString(HostOsInfo::hostOSArchitecture());
     QString vcvarsallPath = context->argument(2).toString();
-    const QString compilerLanguage = context->argumentCount() > 3
+    const QString compilerLanguage =
+            !context->argument(3).isNull() && !context->argument(3).isUndefined()
             ? context->argument(3).toString()
+            : QString();
+    const QString sdkVersion =
+            !context->argument(4).isNull() && !context->argument(4).isUndefined()
+            ? context->argument(4).toString()
             : QString();
     MSVC::CompilerLanguage language;
     if (compilerLanguage == QStringLiteral("c"))
@@ -555,7 +569,7 @@ QScriptValue UtilitiesExtension::js_clangClCompilerInfo(QScriptContext *context,
             QStringLiteral("clangClCompilerInfo expects \"c\" or \"cpp\" as its fourth argument"));
 
     const auto result = msvcCompilerInfoHelper(
-            compilerFilePath, language, vcvarsallPath, arch);
+            compilerFilePath, language, vcvarsallPath, arch, sdkVersion);
     if (result.first.isEmpty())
         return context->throwError(QScriptContext::UnknownError, result.second);
     return engine->toScriptValue(result.first);
