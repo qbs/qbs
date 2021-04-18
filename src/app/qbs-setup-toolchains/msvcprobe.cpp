@@ -58,6 +58,7 @@
 #include <QtCore/qstringlist.h>
 
 #include <algorithm>
+#include <unordered_set>
 #include <vector>
 
 using namespace qbs;
@@ -182,9 +183,14 @@ void msvcProbe(Settings *settings, std::vector<Profile> &profiles)
         }
     }
 
+    std::unordered_set<QString> seenNames;
     for (MSVC &msvc : msvcs) {
         const QString name = QLatin1String("MSVC") + msvc.version + QLatin1Char('-')
                 + msvc.architecture;
+        // TODO: Qbs currently does not support multiple versions of installed MSVCs
+        // so we stop at the first (the newest) one
+        if (!seenNames.insert(name).second)
+            continue;
         try {
             msvc.init();
             addMSVCPlatform(settings, profiles, name, &msvc);

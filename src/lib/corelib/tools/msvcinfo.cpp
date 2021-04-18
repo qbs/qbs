@@ -43,6 +43,7 @@
 #include <logging/logger.h>
 #include <tools/error.h>
 #include <tools/profile.h>
+#include <tools/stlutils.h>
 #include <tools/stringconstants.h>
 
 #include <QtCore/qbytearray.h>
@@ -471,12 +472,20 @@ static std::vector<MSVC> installedCompilersHelper(Logger &logger)
             QDir vcInstallDir = vsInstallDir;
             vcInstallDir.cd(QStringLiteral("Tools/MSVC"));
             const auto vcVersionStrs = vcInstallDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+            std::vector<Version> vcVersions;
+            vcVersions.reserve(vcVersionStrs.size());
             for (const QString &vcVersionStr : vcVersionStrs) {
                 const Version vcVersion = Version::fromString(vcVersionStr);
                 if (!vcVersion.isValid())
                     continue;
+                vcVersions.push_back(vcVersion);
+            }
+            // sort the versions so the new one comes first
+            std::sort(vcVersions.begin(), vcVersions.end(), std::greater());
+
+            for (const Version &vcVersion : vcVersions) {
                 QDir specificVcInstallDir = vcInstallDir;
-                if (!specificVcInstallDir.cd(vcVersionStr)
+                if (!specificVcInstallDir.cd(vcVersion.toString())
                     || !specificVcInstallDir.cd(QStringLiteral("bin"))) {
                     continue;
                 }
