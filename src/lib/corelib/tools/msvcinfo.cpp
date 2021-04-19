@@ -481,7 +481,7 @@ static std::vector<MSVC> installedCompilersHelper(Logger &logger)
                 vcVersions.push_back(vcVersion);
             }
             // sort the versions so the new one comes first
-            std::sort(vcVersions.begin(), vcVersions.end(), std::greater());
+            std::sort(vcVersions.begin(), vcVersions.end(), std::greater<>());
 
             for (const Version &vcVersion : vcVersions) {
                 QDir specificVcInstallDir = vcInstallDir;
