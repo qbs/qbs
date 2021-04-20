@@ -244,6 +244,9 @@ void VsEnvironmentDetector::writeBatchFile(QIODevice *device, const QString &vcv
         s << "call \"" << vcvarsallbat << "\" " << vcArchitecture(msvc);
         if (!msvc->sdkVersion.isEmpty())
             s << " " << msvc->sdkVersion;
+        const auto vcVarsVer = MSVC::vcVariablesVersionFromBinPath(msvc->binPath);
+        if (!vcVarsVer.isEmpty())
+            s << " -vcvars_ver=" << vcVarsVer;
         s << " || exit /b 1" << endl;
         batPrintVars(s, varnames);
         s << "endlocal" << endl;

@@ -58,7 +58,7 @@
 #include <QtCore/qstringlist.h>
 
 #include <algorithm>
-#include <unordered_set>
+#include <set>
 #include <vector>
 
 using namespace qbs;
@@ -183,14 +183,21 @@ void msvcProbe(Settings *settings, std::vector<Profile> &profiles)
         }
     }
 
-    std::unordered_set<QString> seenNames;
+    // we want the same MSVC version share the same suffix in profiles, thus use
+    // a set to know the number of versions processed so far
+    std::map<QString /*VS*/, std::set<QString /*vcInstallPath*/>> msvcCounters;
     for (MSVC &msvc : msvcs) {
-        const QString name = QLatin1String("MSVC") + msvc.version + QLatin1Char('-')
+        // each VS needs its own counter
+        auto &msvcVersions = msvcCounters[msvc.version];
+        // vcInstallPath is "Microsoft Visual Studio/2019/Enterprise/VC/Tools/MSVC/14.16.27023/bin"
+        // Since msvcs are sorted by version, when the new vcInstallPath is inserted, we start
+        // a new group of compilers of the same version incrementing the set size
+        msvcVersions.insert(msvc.vcInstallPath);
+        // index is the number of specific vcInstallPaths (e.g. compiler versions) seen so far
+        const qsizetype index = msvcVersions.size() - 1;
+        const QString suffix = index == 0 ? QString() : QStringLiteral("-%1").arg(index);
+        const QString name = QLatin1String("MSVC") + msvc.version + suffix + QLatin1Char('-')
                 + msvc.architecture;
-        // TODO: Qbs currently does not support multiple versions of installed MSVCs
-        // so we stop at the first (the newest) one
-        if (!seenNames.insert(name).second)
-            continue;
         try {
             msvc.init();
             addMSVCPlatform(settings, profiles, name, &msvc);

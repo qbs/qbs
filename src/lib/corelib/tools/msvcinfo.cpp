@@ -510,9 +510,30 @@ QString MSVC::architectureFromClPath(const QString &clPath)
 {
     const auto parentDir = QFileInfo(clPath).absolutePath();
     const auto parentDirName = QFileInfo(parentDir).fileName().toLower();
+    // can be the case when cl.exe is present within the Windows SDK installation... but can it?
     if (parentDirName == QLatin1String("bin"))
         return QStringLiteral("x86");
     return parentDirName;
+}
+
+QString MSVC::vcVariablesVersionFromBinPath(const QString &binPath)
+{
+    const auto binDirName = QFileInfo(binPath).fileName().toLower();
+    // the case when cl.exe is present within the Windows SDK installation
+    if (binDirName == QLatin1String("bin"))
+        return {};
+    // binPath is something like
+    // Microsoft Visual Studio 14.0/VC/bin/amd64_x86
+    // or
+    // Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.28.29910/bin/Hostx64/x64
+    QDir dir(binPath);
+    dir.cdUp();
+    // older Visual Studios do not support multiple compiler versions
+    if (dir.dirName().toLower() == QLatin1String("bin"))
+        return {};
+    dir.cdUp();
+    dir.cdUp();
+    return dir.dirName();
 }
 
 QString MSVC::canonicalArchitecture(const QString &arch)
