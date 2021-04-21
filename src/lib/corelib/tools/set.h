@@ -112,8 +112,8 @@ public:
     Set &operator&=(const Set &other) { return intersect(other); }
     Set &operator&=(const T &v) { return intersect(Set{ v }); }
 
-    iterator find(const T &v) { return std::find(m_data.begin(), m_data.end(), v); }
-    const_iterator find(const T &v) const { return std::find(m_data.cbegin(), m_data.cend(), v); }
+    iterator find(const T &v) { return binaryFind(m_data.begin(), m_data.end(), v); }
+    const_iterator find(const T &v) const { return binaryFind(m_data.cbegin(), m_data.cend(), v); }
     std::pair<iterator, bool> insert(const T &v);
     Set &operator+=(const T &v) { insert(v); return *this; }
     Set &operator|=(const T &v) { return operator+=(v); }
