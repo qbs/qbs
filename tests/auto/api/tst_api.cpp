@@ -1615,12 +1615,11 @@ void TestApi::listBuildSystemFiles()
                                                                         m_logSink, nullptr));
     waitForFinished(job.get());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
-    const auto buildSystemFiles = qbs::Internal::Set<QString>::fromStdSet(
-                job->project().buildSystemFiles());
-    QVERIFY(buildSystemFiles.contains(setupParams.projectFilePath()));
-    QVERIFY(buildSystemFiles.contains(setupParams.buildRoot() + "/subproject2/subproject2.qbs"));
-    QVERIFY(buildSystemFiles.contains(setupParams.buildRoot()
-                                      + "/subproject2/subproject3/subproject3.qbs"));
+    const auto buildSystemFiles = job->project().buildSystemFiles();
+    QVERIFY(buildSystemFiles.count(setupParams.projectFilePath()));
+    QVERIFY(buildSystemFiles.count(setupParams.buildRoot() + "/subproject2/subproject2.qbs"));
+    QVERIFY(buildSystemFiles.count(setupParams.buildRoot()
+                                   + "/subproject2/subproject3/subproject3.qbs"));
 }
 
 void TestApi::localProfiles()

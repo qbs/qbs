@@ -42,6 +42,7 @@
 
 #include <tools/dynamictypecheck.h>
 #include <tools/persistence.h>
+#include <tools/stlutils.h>
 
 #ifdef QT_CORE_LIB
 #include <QtCore/qstringlist.h>
@@ -100,6 +101,8 @@ public:
 
     Set() = default;
     Set(const std::initializer_list<T> &list);
+    template<typename InputIterator>
+    Set(InputIterator first, InputIterator last);
 
     Set &unite(const Set &other);
     Set &operator+=(const Set &other) { return unite(other); }
@@ -143,14 +146,7 @@ public:
     QStringList toStringList() const;
     QString toString(const T& value) const { return value.toString(); }
     QString toString() const;
-
-    static Set<T> fromList(const QList<T> &list);
-    QList<T> toList() const;
 #endif
-
-    static Set<T> fromStdVector(const std::vector<T> &vector);
-    static Set<T> fromStdSet(const std::set<T> &set);
-    std::set<T> toStdSet() const;
 
     template<typename U> static Set<T> filtered(const Set<U> &s);
 
@@ -175,6 +171,15 @@ template<typename T> Set<T>::Set(const std::initializer_list<T> &list) : m_data(
     sort();
     const auto last = std::unique(m_data.begin(), m_data.end());
     m_data.erase(last, m_data.end());
+}
+
+template<typename T>
+template<typename InputIterator>
+Set<T>::Set(InputIterator first, InputIterator last)
+{
+    reserveIfForwardIterator(&m_data, first, last);
+    std::copy(first, last, std::back_inserter(m_data));
+    sort();
 }
 
 template<typename T> Set<T> &Set<T>::intersect(const Set<T> &other)
@@ -301,44 +306,7 @@ template<typename T> QString Set<T>::toString() const
 
 template<> inline QString Set<QString>::toString(const QString &value) const { return value; }
 
-template<typename T> Set<T> Set<T>::fromList(const QList<T> &list)
-{
-    Set<T> s;
-    std::copy(list.cbegin(), list.cend(), std::back_inserter(s.m_data));
-    s.sort();
-    return s;
-}
-
-template<typename T> QList<T> Set<T>::toList() const
-{
-    QList<T> list;
-    std::copy(m_data.cbegin(), m_data.cend(), std::back_inserter(list));
-    return list;
-}
 #endif
-
-template<typename T> Set<T> Set<T>::fromStdVector(const std::vector<T> &vector)
-{
-    Set<T> s;
-    std::copy(vector.cbegin(), vector.cend(), std::back_inserter(s.m_data));
-    s.sort();
-    return s;
-}
-
-template<typename T> Set<T> Set<T>::fromStdSet(const std::set<T> &set)
-{
-    Set<T> s;
-    std::copy(set.cbegin(), set.cend(), std::back_inserter(s.m_data));
-    return s;
-}
-
-template<typename T> std::set<T> Set<T>::toStdSet() const
-{
-    std::set<T> set;
-    for (auto it = cbegin(); it != cend(); ++it)
-        set.insert(*it);
-    return set;
-}
 
 template<typename T>
 typename Set<T>::iterator Set<T>::asMutableIterator(typename Set<T>::const_iterator cit)

@@ -127,7 +127,7 @@ QStringList PluginDependencyScanner::collectDependencies(Artifact *artifact, Fil
         result += outFilePath;
     }
     m_plugin->close(scannerHandle);
-    return result.toList();
+    return rangeTo<QStringList>(result);
 }
 
 bool PluginDependencyScanner::recursive() const

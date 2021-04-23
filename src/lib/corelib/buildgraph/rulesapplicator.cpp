@@ -228,7 +228,7 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
         }
     }
 
-    ArtifactSet newOutputs = ArtifactSet::fromList(outputArtifacts);
+    const auto newOutputs = rangeTo<ArtifactSet>(outputArtifacts);
     const ArtifactSet oldOutputs = collectOldOutputArtifacts(inputArtifacts);
     handleRemovedRuleOutputs(m_completeInputSet, oldOutputs - newOutputs, m_removedArtifacts,
                              m_logger);

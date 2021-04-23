@@ -193,7 +193,7 @@ public:
                 allDependencies += dep;
         }
         const Set<ResolvedProductPtr> rootProducts
-                = Set<ResolvedProductPtr>::fromStdVector(m_allProducts) - allDependencies;
+                = rangeTo<Set<ResolvedProductPtr>>(m_allProducts) - allDependencies;
         m_priority = UINT_MAX;
         m_seenProducts.clear();
         for (const ResolvedProductPtr &rootProduct : rootProducts)

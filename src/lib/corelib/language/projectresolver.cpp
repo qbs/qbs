@@ -635,13 +635,14 @@ SourceArtifactPtr ProjectResolver::createSourceArtifact(const ResolvedProductPtr
     return artifact;
 }
 
-static QualifiedIdSet propertiesToEvaluate(const QList<QualifiedId> &initialProps,
-                                              const PropertyDependencies &deps)
+static QualifiedIdSet propertiesToEvaluate(std::deque<QualifiedId> initialProps,
+                                           const PropertyDependencies &deps)
 {
-    QList<QualifiedId> remainingProps = initialProps;
+    std::deque<QualifiedId> remainingProps = std::move(initialProps);
     QualifiedIdSet allProperties;
     while (!remainingProps.empty()) {
-        const QualifiedId prop = remainingProps.takeFirst();
+        const QualifiedId prop = remainingProps.front();
+        remainingProps.pop_front();
         const auto insertResult = allProperties.insert(prop);
         if (!insertResult.second)
             continue;
@@ -663,8 +664,9 @@ QVariantMap ProjectResolver::resolveAdditionalModuleProperties(const Item *group
     const QualifiedIdSet &propsSetInGroup = it->second;
 
     // Step 2: Gather all properties that depend on these properties.
-    const QualifiedIdSet &propsToEval
-            = propertiesToEvaluate(propsSetInGroup.toList(), m_evaluator->propertyDependencies());
+    const QualifiedIdSet &propsToEval = propertiesToEvaluate(
+            rangeTo<std::deque<QualifiedId>>(propsSetInGroup),
+            m_evaluator->propertyDependencies());
 
     // Step 3: Evaluate all these properties and replace their values in the map
     QVariantMap modulesMap = currentValues;

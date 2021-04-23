@@ -181,7 +181,7 @@ void ArtifactCleaner::cleanup(const TopLevelProjectPtr &project,
 
     // Directories created during the build are not artifacts (TODO: should they be?),
     // so we have to clean them up manually.
-    QList<QString> dirList = directories.toList();
+    auto dirList = rangeTo<QStringList>(directories);
     for (int i = 0; i < dirList.size(); ++i) {
         const QString &dir = dirList.at(i);
         if (!dir.startsWith(project->buildDirectory))

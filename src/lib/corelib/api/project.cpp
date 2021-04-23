@@ -958,7 +958,7 @@ QVariantMap Project::projectConfiguration() const
 std::set<QString> Project::buildSystemFiles() const
 {
     QBS_ASSERT(isValid(), return {});
-    return d->internalProject->buildSystemFiles.toStdSet();
+    return rangeTo<std::set<QString>>(d->internalProject->buildSystemFiles);
 }
 
 RuleCommandList Project::ruleCommands(const ProductData &product,

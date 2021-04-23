@@ -850,8 +850,7 @@ void doSanityChecks(const ResolvedProjectPtr &project, const Logger &logger)
     if (qEnvironmentVariableIsEmpty("QBS_SANITY_CHECKS"))
         return;
     Set<QString> productNames;
-    const Set<ResolvedProductPtr> allProducts
-            = Set<ResolvedProductPtr>::fromStdVector(project->allProducts());
+    const auto allProducts = rangeTo<Set<ResolvedProductPtr>>(project->allProducts());
     doSanityChecks(project, allProducts, productNames, logger);
 }
 

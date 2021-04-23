@@ -895,8 +895,8 @@ bool operator==(const RuleArtifact &a1, const RuleArtifact &a2)
     return a1.filePath == a2.filePath
             && a1.fileTags == a2.fileTags
             && a1.alwaysUpdated == a2.alwaysUpdated
-            && Set<RuleArtifact::Binding>::fromStdVector(a1.bindings) ==
-               Set<RuleArtifact::Binding>::fromStdVector(a2.bindings);
+            && rangeTo<Set<RuleArtifact::Binding>>(a1.bindings) ==
+               rangeTo<Set<RuleArtifact::Binding>>(a2.bindings);
 }
 
 bool operator==(const RuleArtifact::Binding &b1, const RuleArtifact::Binding &b2)

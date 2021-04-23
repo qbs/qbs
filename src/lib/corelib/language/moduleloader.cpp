@@ -174,7 +174,7 @@ public:
             }
         }
         const Set<ProductContext *> rootProducts
-                = Set<ProductContext *>::fromList(allProducts) - allDependencies;
+                = rangeTo<Set<ProductContext *>>(allProducts) - allDependencies;
         for (ProductContext * const rootProduct : rootProducts)
             traverse(rootProduct);
         if (m_sortedProducts.size() < allProducts.size()) {

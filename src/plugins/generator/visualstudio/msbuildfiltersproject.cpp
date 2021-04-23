@@ -105,12 +105,13 @@ MSBuildFiltersProject::MSBuildFiltersProject(const GeneratableProductData &produ
         filter->appendProperty(QStringLiteral("SourceControlFiles"), options->sourceControlFiles());
     }
 
-    Internal::Set<QString> allFiles;
+    using StringSet = Internal::Set<QString>;
+    StringSet allFiles;
     const auto productDatas = product.data.values();
     for (const auto &productData : productDatas) {
         for (const auto &groupData : productData.groups())
             if (groupData.isEnabled())
-                allFiles.unite(Internal::Set<QString>::fromList(groupData.allFilePaths()));
+                allFiles.unite(Internal::rangeTo<StringSet>(groupData.allFilePaths()));
     }
 
     MSBuildItemGroup *headerFilesGroup = nullptr;

@@ -183,6 +183,42 @@ size_t hashRange(R &&range)
     return hashRange(std::begin(range), std::end(range));
 }
 
+// based on qcontainertools_impl.h
+template <typename Iterator>
+using IfIsForwardIterator_t = typename std::enable_if_t<
+    std::is_convertible_v<
+        typename std::iterator_traits<Iterator>::iterator_category, std::forward_iterator_tag>,
+    bool>;
+
+template <typename Iterator>
+using IfIsNotForwardIterator = typename std::enable_if_t<
+    !std::is_convertible_v<
+        typename std::iterator_traits<Iterator>::iterator_category, std::forward_iterator_tag>,
+    bool>;
+
+template <typename Container,
+          typename InputIterator,
+          IfIsNotForwardIterator<InputIterator> = true>
+void reserveIfForwardIterator(Container *, InputIterator, InputIterator)
+{
+}
+
+template <typename Container,
+          typename ForwardIterator,
+          IfIsForwardIterator_t<ForwardIterator> = true>
+void reserveIfForwardIterator(Container *c, ForwardIterator f, ForwardIterator l)
+{
+    c->reserve(static_cast<typename Container::size_type>(std::distance(f, l)));
+}
+
+// similar to ranges::to proposal
+// http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1206r1.pdf
+template <class C, class R>
+C rangeTo(R &&r)
+{
+    return C(std::begin(r), std::end(r));
+}
+
 } // namespace Internal
 } // namespace qbs
 

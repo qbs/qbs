@@ -65,6 +65,7 @@ using Internal::none_of;
 using Internal::contains;
 using Internal::HostOsInfo;
 using Internal::Tr;
+using Internal::rangeTo;
 
 static QStringList qmakeExecutableNames()
 {
@@ -195,7 +196,7 @@ QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
 
 static bool isToolchainProfile(const Profile &profile)
 {
-    const auto actual = Internal::Set<QString>::fromList(
+    const auto actual = rangeTo<Internal::Set<QString>>(
                 profile.allKeys(Profile::KeySelectionRecursive));
     Internal::Set<QString> expected{ QStringLiteral("qbs.toolchainType") };
     if (HostOsInfo::isMacosHost())
@@ -237,8 +238,8 @@ static Match compatibility(const QtEnvironment &env, const Profile &toolchainPro
             ? canonicalToolchain(toolchainType)
             : toolchainProfile.value(QStringLiteral("qbs.toolchain")).toStringList();
 
-    const auto toolchainNames = Internal::Set<QString>::fromList(toolchain);
-    const auto qtToolchainNames = Internal::Set<QString>::fromList(env.qbsToolchain);
+    const auto toolchainNames = rangeTo<Internal::Set<QString>>(toolchain);
+    const auto qtToolchainNames = rangeTo<Internal::Set<QString>>(env.qbsToolchain);
     if (areProfilePropertiesIncompatible(toolchainNames, qtToolchainNames)) {
         auto intersection = toolchainNames;
         intersection.intersect(qtToolchainNames);
