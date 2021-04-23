@@ -3,14 +3,31 @@ var FileInfo = require("qbs.FileInfo");
 var Process = require("qbs.Process");
 var TextFile = require("qbs.TextFile");
 
-function scannerData(scannerFilePath, qmlFiles, qmlPath)
+function scannerData(scannerFilePath, qmlFiles, qmlPath, targetOS)
 {
     var p;
     try {
         p = new Process();
-        p.exec(scannerFilePath, ["-qmlFiles"].concat(qmlFiles).concat(["-importPath", qmlPath]),
-                true);
-        return JSON.parse(p.readStdOut());
+        if (!targetOS.contains("windows")) {
+            p.exec(scannerFilePath, ["-qmlFiles"].concat(qmlFiles).concat(["-importPath", qmlPath]),
+                    true);
+            return JSON.parse(p.readStdOut());
+        }
+        var data = [];
+        var nextFileIndex = 0;
+        while (nextFileIndex < qmlFiles.length) {
+            var currentFileList = [];
+            var currentFileListStringLength = 0;
+            while (nextFileIndex < qmlFiles.length && currentFileListStringLength < 30000) {
+                var currentFile = qmlFiles[nextFileIndex++];
+                currentFileList.push(currentFile);
+                currentFileListStringLength += currentFile.length;
+            }
+            p.exec(scannerFilePath, ["-qmlFiles"].concat(currentFileList)
+                   .concat(["-importPath", qmlPath]), true);
+            data = data.concat(JSON.parse(p.readStdOut()));
+        }
+        return data;
     } finally {
         if (p)
             p.close();

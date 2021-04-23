@@ -144,7 +144,7 @@ QtModule {
                     qmlInputs = [];
                 var scannerData = Qml.scannerData(product.Qt.qml.qmlImportScannerFilePath,
                         qmlInputs.map(function(inp) { return inp.filePath; }),
-                        product.Qt.qml.qmlPath);
+                        product.Qt.qml.qmlPath, product.qbs.targetOS);
                 var cppFile;
                 var listFile;
                 try {

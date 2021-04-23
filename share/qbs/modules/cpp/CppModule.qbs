@@ -188,6 +188,8 @@ Module {
     property string dynamicLibraryImportSuffix: ".lib"
     property string objectSuffix: ".o"
     property string linkerMapSuffix: ".map"
+    property string compilerListingSuffix: ".lst"
+    property string assemblerListingSuffix: ".lst"
     property bool createSymlinks: true
     property stringList dynamicLibraries // list of names, will be linked with -lname
     property stringList staticLibraries // list of static library files

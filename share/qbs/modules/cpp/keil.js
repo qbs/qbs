@@ -582,19 +582,24 @@ function filterC166Output(output) {
     return filteredLines.join('\n');
 };
 
-function compilerOutputArtifacts(input, useListing) {
+function compilerOutputArtifacts(input, isCompilerArtifacts) {
     var artifacts = [];
     artifacts.push({
         fileTags: ["obj"],
         filePath: Utilities.getHash(input.baseDir) + "/"
               + input.fileName + input.cpp.objectSuffix
     });
-    if (useListing) {
+    if (isCompilerArtifacts && input.cpp.generateCompilerListingFiles) {
         artifacts.push({
             fileTags: ["lst"],
             filePath: Utilities.getHash(input.baseDir) + "/"
-                  + (isArmCCCompiler(input.cpp.compilerPath) ? input.baseName : input.fileName)
-                  + ".lst"
+                  + input.fileName + input.cpp.compilerListingSuffix
+        });
+    } else if (!isCompilerArtifacts && input.cpp.generateAssemblerListingFiles) {
+        artifacts.push({
+            fileTags: ["lst"],
+            filePath: Utilities.getHash(input.baseDir) + "/"
+                  + input.fileName + input.cpp.assemblerListingSuffix
         });
     }
     return artifacts;
@@ -970,24 +975,37 @@ function disassemblerFlags(project, product, input, outputs, explicitlyDependsOn
 function linkerFlags(project, product, inputs, outputs) {
     var args = [];
 
+    // Library paths.
+    var libraryPaths = product.cpp.libraryPaths;
+
     var architecture = product.qbs.architecture;
     if (isMcsArchitecture(architecture) || isC166Architecture(architecture)) {
-        // Note: The C51/256/166 linker does not distinguish an object files and
+        // Note: The C51, C251, or C166 linker does not distinguish an object files and
         // a libraries, it interpret all this stuff as an input objects,
         // so, we need to pass it together in one string.
-
         var allObjectPaths = [];
-        function addObjectPath(obj) {
-            allObjectPaths.push(obj.filePath);
-        }
 
         // Inputs.
         if (inputs.obj)
-            inputs.obj.map(function(obj) { addObjectPath(obj) });
+            inputs.obj.map(function(obj) { allObjectPaths.push(obj.filePath) });
 
         // Library dependencies.
         var libraryObjects = collectLibraryDependencies(product);
-        libraryObjects.forEach(function(dep) { addObjectPath(dep); })
+        allObjectPaths = allObjectPaths.concat(libraryObjects.map(function(lib) {
+            // Semi-intelligent handling the library paths.
+            // We need to add the full path prefix to the library file if this
+            // file is not absolute or not relative. Reason is that the C51, C251,
+            // and C166 linkers does not support the library paths.
+            var filePath = lib.filePath;
+            if (FileInfo.isAbsolutePath(filePath))
+                return filePath;
+            for (var i = 0; i < libraryPaths.length; ++i) {
+                var fullPath = FileInfo.joinPaths(libraryPaths[i], filePath);
+                if (File.exists(fullPath))
+                    return fullPath;
+            }
+            return filePath;
+        }));
 
         // Add all input objects as arguments (application and library object files).
         if (allObjectPaths.length > 0)
@@ -1009,8 +1027,6 @@ function linkerFlags(project, product, inputs, outputs) {
         // Output.
         args.push("--output", outputs.application[0].filePath);
 
-        // Library paths.
-        var libraryPaths = product.cpp.libraryPaths;
         if (libraryPaths)
             args.push("--userlibpath=" + libraryPaths.join(","));
 
@@ -1084,6 +1100,38 @@ function archiverFlags(project, product, inputs, outputs) {
     return args;
 }
 
+// The ARMCLANG compiler does not support generation
+// for the listing files:
+// * https://www.keil.com/support/docs/4152.htm
+// So, we generate the listing files from the object files
+// using the disassembler.
+function generateClangCompilerListing(project, product, inputs, outputs, input, output) {
+    if (isArmClangCompiler(input.cpp.compilerPath) && input.cpp.generateCompilerListingFiles) {
+        var args = disassemblerFlags(project, product, input, outputs, explicitlyDependsOn);
+        var disassemblerPath = input.cpp.disassemblerPath;
+        var cmd = new Command(disassemblerPath, args);
+        cmd.silent = true;
+        return cmd;
+    }
+}
+
+// The ARMCC compiler generates the listing files only in a short form,
+// e.g. to 'module.lst' instead of 'module.{c|cpp}.lst', that complicates
+// the auto-tests. Therefore we need to rename generated listing files
+// with correct unified names.
+function generateArmccCompilerListing(project, product, inputs, outputs, input, output) {
+    if (isArmCCCompiler(input.cpp.compilerPath) && input.cpp.generateCompilerListingFiles) {
+        var listingPath = FileInfo.path(outputs.lst[0].filePath);
+        var cmd = new JavaScriptCommand();
+        cmd.oldListing = FileInfo.joinPaths(listingPath, input.baseName + ".lst");
+        cmd.newListing = FileInfo.joinPaths(
+                    listingPath, input.fileName + input.cpp.compilerListingSuffix);
+        cmd.silent = true;
+        cmd.sourceCode = function() { File.move(oldListing, newListing); };
+        return cmd;
+    }
+}
+
 function prepareCompiler(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
     var cmds = [];
     var args = compilerFlags(project, product, input, outputs, explicitlyDependsOn);
@@ -1101,18 +1149,14 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
     }
     cmds.push(cmd);
 
-    // The ARMCLANG compiler does not support generation
-    // for the listing files:
-    // * https://www.keil.com/support/docs/4152.htm
-    // So, we generate the listing files from the object files
-    // using the disassembler.
-    if (isArmClangCompiler(compilerPath) && input.cpp.generateCompilerListingFiles) {
-        args = disassemblerFlags(project, product, input, outputs, explicitlyDependsOn);
-        var disassemblerPath = input.cpp.disassemblerPath;
-        cmd = new Command(disassemblerPath, args);
-        cmd.silent = true;
+    cmd = generateClangCompilerListing(project, product, inputs, outputs, input, output);
+    if (cmd)
         cmds.push(cmd);
-    }
+
+    cmd = generateArmccCompilerListing(project, product, inputs, outputs, input, output);
+    if (cmd)
+        cmds.push(cmd);
+
     return cmds;
 }
 

@@ -239,7 +239,7 @@ function collectLibraryDependencies(product) {
     return result;
 }
 
-function compilerOutputArtifacts(input, useListing) {
+function compilerOutputArtifacts(input, isCompilerArtifacts) {
     var obj = {
         fileTags: ["obj"],
         filePath: Utilities.getHash(input.baseDir) + "/"
@@ -270,11 +270,17 @@ function compilerOutputArtifacts(input, useListing) {
               + input.fileName + ".rst"
     };
     var artifacts = [obj, asm_adb, asm_src, asm_sym, rst_data];
-    if (useListing) {
+    if (isCompilerArtifacts && input.cpp.generateCompilerListingFiles) {
         artifacts.push({
             fileTags: ["lst"],
             filePath: Utilities.getHash(input.baseDir) + "/"
-              + input.fileName + ".lst"
+              + input.fileName + input.cpp.compilerListingSuffix
+        });
+    } else if (!isCompilerArtifacts && input.cpp.generateAssemblerListingFiles) {
+        artifacts.push({
+            fileTags: ["lst"],
+            filePath: Utilities.getHash(input.baseDir) + "/"
+              + input.fileName + input.cpp.assemblerListingSuffix
         });
     }
     return artifacts;
@@ -547,14 +553,19 @@ function archiverFlags(project, product, inputs, outputs) {
     return args;
 }
 
+function buildLinkerMapFilePath(target, suffix) {
+    return FileInfo.joinPaths(FileInfo.path(target.filePath),
+                              FileInfo.completeBaseName(target.fileName) + suffix);
+}
+
 // This is the workaround for the SDCC bug on a Windows host:
 // * https://sourceforge.net/p/sdcc/bugs/2970/
 // We need to replace the '\r\n\' line endings with the'\n' line
 // endings for each generated object file.
-function patchObjectFiles(project, product, inputs, outputs, input, output) {
+function patchObjectFile(project, product, inputs, outputs, input, output) {
     var isWindows = input.qbs.hostOS.contains("windows");
     if (isWindows && input.cpp.debugInformation) {
-        cmd = new JavaScriptCommand();
+        var cmd = new JavaScriptCommand();
         cmd.objectPath = outputs.obj[0].filePath;
         cmd.silent = true;
         cmd.sourceCode = function() {
@@ -576,6 +587,85 @@ function patchObjectFiles(project, product, inputs, outputs, input, output) {
     }
 }
 
+// It is a workaround which removes the generated linker map file
+// if it is disabled by cpp.generateLinkerMapFile property.
+// Reason is that the SDCC compiler always generates this file,
+// and does not have an option to disable generation for a linker
+// map file. So, we can to remove a listing files only after the
+// linking completes.
+function removeLinkerMapFile(project, product, inputs, outputs, input, output) {
+    if (!product.cpp.generateLinkerMapFile) {
+        var target = outputs.application[0];
+        var cmd = new JavaScriptCommand();
+        cmd.mapFilePath = buildLinkerMapFilePath(target, product.cpp.linkerMapSuffix)
+        cmd.silent = true;
+        cmd.sourceCode = function() { File.remove(mapFilePath); };
+        return cmd;
+    }
+}
+
+// It is a workaround to rename the extension of the output linker
+// map file to the specified one, since the linker generates only
+// files with the '.map' extension.
+function renameLinkerMapFile(project, product, inputs, outputs, input, output) {
+    if (product.cpp.generateLinkerMapFile && (product.cpp.linkerMapSuffix !== ".map")) {
+        var target = outputs.application[0];
+        var cmd = new JavaScriptCommand();
+        cmd.newMapFilePath = buildLinkerMapFilePath(target, product.cpp.linkerMapSuffix);
+        cmd.oldMapFilePath = buildLinkerMapFilePath(target, ".map");
+        cmd.silent = true;
+        cmd.sourceCode = function() { File.move(oldMapFilePath, newMapFilePath); };
+        return cmd;
+    }
+}
+
+// It is a workaround which removes the generated listing files
+// if it is disabled by cpp.generateCompilerListingFiles property
+// or when the cpp.compilerListingSuffix differs with '.lst'.
+// Reason is that the SDCC compiler does not have an option to
+// disable generation for a listing files. Besides, the SDCC
+// compiler use this files and for the linking. So, we can to
+// remove a listing files only after the linking completes.
+function removeCompilerListingFiles(project, product, inputs, outputs, input, output) {
+    var cmd = new JavaScriptCommand();
+    cmd.objects = inputs.obj.map(function(a) { return a; });
+    cmd.silent = true;
+    cmd.sourceCode = function() {
+        objects.forEach(function(object) {
+            if (!object.filePath.endsWith(".c" + object.cpp.objectSuffix))
+                return; // Skip the assembler generated objects.
+            if (!object.cpp.generateCompilerListingFiles
+                    || (object.cpp.compilerListingSuffix !== ".lst")) {
+                var listingPath = FileInfo.joinPaths(FileInfo.path(object.filePath),
+                                                     object.completeBaseName + ".lst");
+                File.remove(listingPath);
+            }
+        })
+    };
+    return cmd;
+}
+
+// It is a workaround that duplicates the generated listing files
+// but with desired names. The problem is that the SDCC compiler does
+// not support an options to specify names for the generated listing
+// files. At the same time, the compiler always generates the listing
+// files in the form of 'module.c.lst', which makes it impossible to
+// change the file suffix to a user-specified one. In addition, these
+// files are also somehow used for linking. Thus, we can not rename them
+// on the compiling stage.
+function duplicateCompilerListingFile(project, product, inputs, outputs, input, output) {
+    if (input.cpp.generateCompilerListingFiles
+            && (input.cpp.compilerListingSuffix !== ".lst")) {
+        var cmd = new JavaScriptCommand();
+        cmd.newListing = outputs.lst[0].filePath;
+        cmd.oldListing = FileInfo.joinPaths(FileInfo.path(outputs.lst[0].filePath),
+                                            outputs.lst[0].completeBaseName + ".lst");
+        cmd.silent = true;
+        cmd.sourceCode = function() { File.copy(oldListing, newListing); };
+        return cmd;
+    }
+}
+
 function prepareCompiler(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
     var cmds = [];
     var args = compilerFlags(project, product, input, outputs, explicitlyDependsOn);
@@ -585,7 +675,11 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
     cmd.highlight = "compiler";
     cmds.push(cmd);
 
-    cmd = patchObjectFiles(project, product, inputs, outputs, input, output);
+    cmd = patchObjectFile(project, product, inputs, outputs, input, output);
+    if (cmd)
+        cmds.push(cmd);
+
+    cmd = duplicateCompilerListingFile(project, product, inputs, outputs, input, output);
     if (cmd)
         cmds.push(cmd);
 
@@ -601,7 +695,7 @@ function prepareAssembler(project, product, inputs, outputs, input, output, expl
     cmd.highlight = "compiler";
     cmds.push(cmd);
 
-    cmd = patchObjectFiles(project, product, inputs, outputs, input, output);
+    cmd = patchObjectFile(project, product, inputs, outputs, input, output);
     if (cmd)
         cmds.push(cmd);
 
@@ -610,52 +704,24 @@ function prepareAssembler(project, product, inputs, outputs, input, output, expl
 
 function prepareLinker(project, product, inputs, outputs, input, output) {
     var cmds = [];
-    var target = outputs.application[0];
     var args = linkerFlags(project, product, inputs, outputs);
     var linkerPath = effectiveLinkerPath(product);
     var cmd = new Command(linkerPath, args);
-    cmd.description = "linking " + target.fileName;
+    cmd.description = "linking " + outputs.application[0].fileName;
     cmd.highlight = "linker";
     cmds.push(cmd);
 
-    // It is a workaround which removes the generated listing files
-    // if it is disabled by cpp.generateCompilerListingFiles property.
-    // Reason is that the SDCC compiler does not have an option to
-    // disable generation for a listing files. Besides, the SDCC
-    // compiler use this files and for the linking. So, we can to
-    // remove a listing files only after the linking completes.
-    if (!product.cpp.generateCompilerListingFiles) {
-        cmd = new JavaScriptCommand();
-        cmd.objectPaths = inputs.obj.map(function(a) { return a.filePath; });
-        cmd.objectSuffix = product.cpp.objectSuffix;
-        cmd.silent = true;
-        cmd.sourceCode = function() {
-            objectPaths.forEach(function(objectPath) {
-                if (!objectPath.endsWith(".c" + objectSuffix))
-                    return; // Skip the assembler objects.
-                var listingPath = FileInfo.joinPaths(
-                    FileInfo.path(objectPath),
-                    FileInfo.completeBaseName(objectPath) + ".lst");
-                File.remove(listingPath);
-            });
-        };
+    cmd = removeCompilerListingFiles(project, product, inputs, outputs, input, output);
+    if (cmd)
         cmds.push(cmd);
-    }
-    // It is a workaround which removes the generated linker map file
-    // if it is disabled by cpp.generateLinkerMapFile property.
-    // Reason is that the SDCC compiler always generates this file,
-    // and does not have an option to disable generation for a linker
-    // map file. So, we can to remove a listing files only after the
-    // linking completes.
-    if (!product.cpp.generateLinkerMapFile) {
-        cmd = new JavaScriptCommand();
-        cmd.mapFilePath = FileInfo.joinPaths(
-            FileInfo.path(target.filePath),
-            FileInfo.completeBaseName(target.fileName) + product.cpp.linkerMapSuffix);
-        cmd.silent = true;
-        cmd.sourceCode = function() { File.remove(mapFilePath); };
+
+    cmd = renameLinkerMapFile(project, product, inputs, outputs, input, output);
+    if (cmd)
         cmds.push(cmd);
-    }
+
+    cmd = removeLinkerMapFile(project, product, inputs, outputs, input, output);
+    if (cmd)
+        cmds.push(cmd);
 
     return cmds;
 }

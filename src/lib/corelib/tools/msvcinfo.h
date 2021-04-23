@@ -81,12 +81,14 @@ public:
     QString binPath;
     QString pathPrefix;
     QString architecture;
+    QString sdkVersion;
     QProcessEnvironment environment;
 
     MSVC() = default;
 
-    MSVC(const QString &clPath, QString arch):
-        architecture(std::move(arch))
+    MSVC(const QString &clPath, QString arch, QString sdkVersion = {}):
+        architecture(std::move(arch)),
+        sdkVersion(std::move(sdkVersion))
     {
         QDir parentDir = QFileInfo(clPath).dir();
         binPath = parentDir.absolutePath();
@@ -98,6 +100,7 @@ public:
 
     QBS_EXPORT void init();
     QBS_EXPORT static QString architectureFromClPath(const QString &clPath);
+    QBS_EXPORT static QString vcVariablesVersionFromBinPath(const QString &binPath);
     QBS_EXPORT static QString canonicalArchitecture(const QString &arch);
     QBS_EXPORT static std::pair<QString, QString> getHostTargetArchPair(const QString &arch);
     QBS_EXPORT QString binPathForArchitecture(const QString &arch) const;

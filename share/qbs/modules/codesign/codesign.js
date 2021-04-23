@@ -202,6 +202,75 @@ function findBestProvisioningProfile(product, files) {
     }
 }
 
+/**
+  * Finds out the search paths for the `signtool.exe` utility supplied with
+  * the Windows SDK's.
+  */
+function findBestSignToolSearchPaths(arch) {
+    var searchPaths = [];
+    var keys = [
+                "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Microsoft SDKs\\Windows",
+                "HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Microsoft SDKs\\Windows"
+            ];
+    for (var keyIndex = 0; keyIndex < keys.length; ++keyIndex) {
+        var re = /^v([0-9]+)\.([0-9]+)$/;
+        var groups = Utilities.nativeSettingGroups(keys[keyIndex]).filter(function(version) {
+            return version.match(re);
+        });
+
+        groups.sort(function(a, b) {
+            return Utilities.versionCompare(b.substring(1), a.substring(1));
+        });
+
+        function addSearchPath(searchPath) {
+            if (File.exists(searchPath) && !searchPaths.contains(searchPath)) {
+                searchPaths.push(searchPath);
+                return true;
+            }
+            return false;
+        }
+
+        for (var groupIndex = 0; groupIndex < groups.length; ++groupIndex) {
+            var fullKey = keys[keyIndex] + "\\" + groups[groupIndex];
+            var fullVersion = Utilities.getNativeSetting(fullKey, "ProductVersion");
+            if (fullVersion) {
+                var installRoot = FileInfo.cleanPath(
+                            Utilities.getNativeSetting(fullKey, "InstallationFolder"));
+                if (installRoot) {
+                    // Try to add the architecture-independent path at first.
+                    var searchPath = FileInfo.joinPaths(installRoot, "App Certification Kit");
+                    if (!addSearchPath(searchPath)) {
+                        // Try to add the architecture-dependent paths at second.
+                        var binSearchPath = FileInfo.joinPaths(installRoot, "bin/" + fullVersion);
+                        if (!File.exists(binSearchPath)) {
+                            binSearchPath += ".0";
+                            if (!File.exists(binSearchPath))
+                                continue;
+                        }
+
+                        function kitsArchitectureSubDirectory(arch) {
+                            if (arch === "x86")
+                                return "x86";
+                            else if (arch === "x86_64")
+                                return "x64";
+                            else if (arch.startsWith("arm64"))
+                                return "arm64";
+                            else if (arch.startsWith("arm"))
+                                return "arm";
+                        }
+
+                        var archDir = kitsArchitectureSubDirectory(arch);
+                        searchPath = FileInfo.joinPaths(binSearchPath, archDir);
+                        addSearchPath(searchPath);
+                    }
+                }
+            }
+        }
+    }
+
+    return searchPaths;
+}
+
 function prepareSign(project, product, inputs, outputs, input, output) {
     var cmd, cmds = [];
 
@@ -243,10 +312,10 @@ function prepareSign(project, product, inputs, outputs, input, output) {
         args.push("--force");
         args.push("--sign", actualSigningIdentity.SHA1);
 
-        // If signingTimestamp is undefined, do not specify the flag at all -
+        // If signingTimestamp is undefined or empty, do not specify the flag at all -
         // this uses the system-specific default behavior
         var signingTimestamp = product.codesign.signingTimestamp;
-        if (signingTimestamp !== undefined) {
+        if (signingTimestamp) {
             // If signingTimestamp is an empty string, specify the flag but do
             // not specify a value - this uses a default Apple-provided server
             var flag = "--timestamp";
@@ -348,4 +417,50 @@ function createDebugKeyStoreCommandString(keytoolFilePath, keystoreFilePath, key
                 "-keysize", "2048", "-validity", "10000", "-dname",
                 "CN=Android Debug,O=Android,C=US"];
     return Process.shellQuote(keytoolFilePath, args);
+}
+
+function prepareSigntool(project, product, inputs, outputs, input, output) {
+    var cmd, cmds = [];
+
+    if (!product.codesign.enableCodeSigning)
+        return cmds;
+
+    var args = ["sign"].concat(product.codesign.codesignFlags || []);
+
+    var subjectName = product.codesign.subjectName;
+    if (subjectName)
+        args.push("/n", subjectName);
+
+    var rootSubjectName = product.codesign.rootSubjectName;
+    if (rootSubjectName)
+        args.push("/r", rootSubjectName);
+
+    var hashAlgorithm = product.codesign.hashAlgorithm;
+    if (hashAlgorithm)
+        args.push("/fd", hashAlgorithm);
+
+    var signingTimestamp = product.codesign.signingTimestamp;
+    if (signingTimestamp)
+        args.push("/tr", signingTimestamp);
+
+    var certificatePath = product.codesign.certificatePath;
+    if (certificatePath)
+        args.push("/f", certificatePath);
+
+    var certificatePassword = product.codesign.certificatePassword;
+    if (certificatePassword)
+        args.push("/p", certificatePassword);
+
+    var crossCertificatePath = product.codesign.crossCertificatePath;
+    if (crossCertificatePath)
+        args.push("/ac", crossCertificatePath);
+
+    var outputArtifact = outputs["codesign.signed_artifact"][0];
+    args.push(outputArtifact.filePath);
+
+    cmd = new Command(product.codesign.codesignPath, args);
+    cmd.description = "signing " + outputArtifact.fileName;
+    cmd.highlight = "linker";
+    cmds.push(cmd);
+    return cmds;
 }

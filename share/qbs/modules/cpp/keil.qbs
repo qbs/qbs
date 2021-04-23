@@ -103,8 +103,7 @@ CppModule {
         id: assembler
         inputs: ["asm"]
         outputFileTags: ["obj", "lst"]
-        outputArtifacts: KEIL.compilerOutputArtifacts(
-            input, input.cpp.generateAssemblerListingFiles)
+        outputArtifacts: KEIL.compilerOutputArtifacts(input, false)
         prepare: KEIL.prepareAssembler.apply(KEIL, arguments)
     }
 
@@ -118,8 +117,7 @@ CppModule {
         inputs: ["cpp", "c"]
         auxiliaryInputs: ["hpp"]
         outputFileTags: ["obj", "lst"]
-        outputArtifacts: KEIL.compilerOutputArtifacts(
-            input, input.cpp.generateCompilerListingFiles)
+        outputArtifacts: KEIL.compilerOutputArtifacts(input, true)
         prepare: KEIL.prepareCompiler.apply(KEIL, arguments)
     }
 

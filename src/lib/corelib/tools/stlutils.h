@@ -123,6 +123,21 @@ bool none_of(const Container &container, const UnaryPredicate &predicate)
     return std::none_of(std::begin(container), std::end(container), predicate);
 }
 
+template <class It, class T, class Compare>
+It binaryFind(It begin, It end, const T &value, Compare comp)
+{
+    const auto it = std::lower_bound(begin, end, value, comp);
+    if (it == end || comp(value, *it))
+        return end;
+    return it;
+}
+
+template <class It, class T>
+It binaryFind(It begin, It end, const T &value)
+{
+    return binaryFind(begin, end, value, std::less<T>());
+}
+
 template <class C>
 C &operator<<(C &container, const typename C::value_type &v)
 {

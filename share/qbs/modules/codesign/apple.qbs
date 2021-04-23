@@ -96,7 +96,7 @@ CodeSignModule {
         }
     }
 
-    property string signingTimestamp: "none"
+    signingTimestamp: "none"
 
     property string provisioningProfile
     PropertyOptions {
@@ -125,7 +125,7 @@ CodeSignModule {
         var identities = CodeSign.findSigningIdentities(signingIdentity, teamIdentifier);
         if (identities && Object.keys(identities).length > 1) {
             throw "Multiple codesigning identities (i.e. certificate and private key pairs) " +
-                    "matching “" + signingIdentity + "” were found." +
+                    "matching '" + signingIdentity + "' were found." +
                     CodeSign.humanReadableIdentitySummary(identities);
         }
 
@@ -240,17 +240,17 @@ CodeSignModule {
                     }
                 });
             } else if (uuid) {
-                throw "Your build settings specify a provisioning profile with the UUID “"
-                        + uuid + "”, however, no such provisioning profile was found.";
+                throw "Your build settings specify a provisioning profile with the UUID '"
+                        + uuid + "', however, no such provisioning profile was found.";
             } else if (product._provisioningProfileRequired) {
                 var hasProfiles = !!((inputs["codesign.provisioningprofile"] || []).length);
                 var teamIdentifier = product.teamIdentifier;
                 var codeSignIdentity = product.signingIdentity;
                 if (hasProfiles) {
                     if (codeSignIdentity) {
-                        console.warn("No provisioning profiles matching the bundle identifier “"
+                        console.warn("No provisioning profiles matching the bundle identifier '"
                                      + product.bundle.identifier
-                                     + "” were found.");
+                                     + "' were found.");
                     } else {
                         console.warn("No provisioning profiles matching an applicable signing "
                                      + "identity were found.");
@@ -260,13 +260,13 @@ CodeSignModule {
                         if (teamIdentifier) {
                             console.warn("No provisioning profiles with a valid signing identity "
                                          + "(i.e. certificate and private key pair) matching the "
-                                         + "team ID “" + teamIdentifier + "” were found.")
+                                         + "team ID '" + teamIdentifier + "' were found.")
                         } else {
                             console.warn("No provisioning profiles with a valid signing identity "
                                          + "(i.e. certificate and private key pair) were found.");
                         }
                      } else {
-                        console.warn("No non–expired provisioning profiles were found.");
+                        console.warn("No non-expired provisioning profiles were found.");
                     }
                 }
             }

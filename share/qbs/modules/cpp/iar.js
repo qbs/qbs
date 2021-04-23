@@ -612,18 +612,24 @@ function collectLibraryDependencies(product) {
     return result;
 }
 
-function compilerOutputArtifacts(input, useListing) {
+function compilerOutputArtifacts(input, isCompilerArtifacts) {
     var artifacts = [];
     artifacts.push({
         fileTags: ["obj"],
         filePath: Utilities.getHash(input.baseDir) + "/"
               + input.fileName + input.cpp.objectSuffix
     });
-    if (useListing) {
+    if (isCompilerArtifacts && input.cpp.generateCompilerListingFiles) {
         artifacts.push({
             fileTags: ["lst"],
             filePath: Utilities.getHash(input.baseDir) + "/"
-              + input.fileName + ".lst"
+              + input.fileName + input.cpp.compilerListingSuffix
+        });
+    } else if (!isCompilerArtifacts && input.cpp.generateAssemblerListingFiles) {
+        artifacts.push({
+            fileTags: ["lst"],
+            filePath: Utilities.getHash(input.baseDir) + "/"
+              + input.fileName + input.cpp.assemblerListingSuffix
         });
     }
     return artifacts;

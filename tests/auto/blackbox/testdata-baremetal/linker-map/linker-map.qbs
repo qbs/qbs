@@ -1,10 +1,8 @@
 import "../BareMetalApplication.qbs" as BareMetalApplication
 
 BareMetalApplication {
-    condition: {
-        console.info("current toolset: %%"
-            + qbs.toolchainType + "%%, %%" + qbs.architecture + "%%");
-        return true;
+    property bool dummy: {
+        console.info("linker map suffix: %%" + cpp.linkerMapSuffix + "%%");
     }
     files: ["main.c"]
 }

@@ -79,6 +79,7 @@ private slots:
     void set_remove();
     void set_contains();
     void set_containsSet();
+    void set_find();
     void set_begin();
     void set_end();
     void set_insert();

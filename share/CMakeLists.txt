@@ -36,8 +36,7 @@ get_update_path_command(UPDATE_PATH_COMMAND)
 get_target_property(_QBS_OUTPUT_DIR qbs RUNTIME_OUTPUT_DIRECTORY)
 add_custom_target(
     BuildQbsResources ALL
-    COMMAND ${UPDATE_PATH_COMMAND}
-    COMMAND ${_QBS_OUTPUT_DIR}/qbs
+    COMMAND ${CMAKE_COMMAND} -E env "${UPDATE_PATH_COMMAND}" ${_QBS_OUTPUT_DIR}/qbs
         resolve
         --settings-dir ${PROJECT_BINARY_DIR}/settings
         -f ${PROJECT_SOURCE_DIR}/qbs.qbs
@@ -47,7 +46,7 @@ add_custom_target(
         project.withCode:false
         project.withDocumentation:false
         profile:none
-    COMMAND ${_QBS_OUTPUT_DIR}/qbs
+    COMMAND ${CMAKE_COMMAND} -E env "${UPDATE_PATH_COMMAND}" ${_QBS_OUTPUT_DIR}/qbs
         build
         --settings-dir ${PROJECT_BINARY_DIR}/settings
         -f ${PROJECT_SOURCE_DIR}/qbs.qbs

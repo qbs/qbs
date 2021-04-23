@@ -51,6 +51,7 @@ MsvcBaseModule {
         compilerFilePath: compilerPath
         enableDefinesByLanguage: enableCompilerDefinesByLanguage
         preferredArchitecture: qbs.architecture
+        winSdkVersion: windowsSdkVersion
     }
 
     qbs.architecture: msvcProbe.found ? msvcProbe.architecture : original

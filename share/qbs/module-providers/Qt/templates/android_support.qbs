@@ -4,6 +4,7 @@ import qbs.ModUtils
 import qbs.TextFile
 import qbs.Utilities
 import qbs.Process
+import qbs.Xml
 
 Module {
     version: @version@
@@ -34,6 +35,10 @@ Module {
     property string _deployQtOutDir: FileInfo.joinPaths(product.buildDirectory, "deployqt_out")
 
     property bool _multiAbi: Utilities.versionCompare(version, "5.14") >= 0
+
+    // QTBUG-87288: correct QtNetwork jar dependencies for 5.15.0 < Qt < 5.15.3
+    property bool _correctQtNetworkDependencies: Utilities.versionCompare(version, "5.15.0") > 0 &&
+                                                 Utilities.versionCompare(version, "5.15.3") < 0
 
     Depends { name: "Android.sdk"; condition: _enableSdkSupport }
     Depends { name: "Android.ndk"; condition: _enableNdkSupport }
@@ -355,8 +360,6 @@ Module {
             var moveCmd = new JavaScriptCommand();
             moveCmd.description = "processing androiddeployqt outout";
             moveCmd.sourceCode = function() {
-                File.move(product.Qt.android_support._deployQtOutDir + "/AndroidManifest.xml",
-                          outputs["android.manifest_final"][0].filePath);
                 var libsDir = product.Qt.android_support._deployQtOutDir + "/libs";
                 var libDir = product.Android.sdk.packageContentsDir + "/lib";
                 var listFilePath = outputs["android.deployqt_list"][0].filePath;
@@ -400,7 +403,78 @@ Module {
                         File.remove(oldLibs[i]);
                 }
             };
-            return [copyCmd, androidDeployQtCmd, moveCmd];
+
+            var correctingCmd = new JavaScriptCommand();
+            if (product.Qt.android_support._correctQtNetworkDependencies) {
+                correctingCmd.description = "correcting network jar dependency";
+                correctingCmd.sourceCode = function() {
+                    var findNetworkLib = function() {
+                        var libsDir = product.Android.sdk.packageContentsDir + "/lib";
+                        var dirList = File.directoryEntries(libsDir, File.Dirs |
+                                                            File.NoDotAndDotDot);
+                        for (var i = 0; i < dirList.length; ++i) {
+                            var archDir = FileInfo.joinPaths(libsDir, dirList[i]);
+                            var fileList = File.directoryEntries(archDir, File.Files);
+                            if (fileList) {
+                                for (var j = 0; j < fileList.length; ++j) {
+                                    if (fileList[j].contains("libQt5Network")) {
+                                        return true;
+                                    }
+                                }
+                            }
+                        }
+                        return false;
+                    }
+
+                    if (findNetworkLib()) {
+                        var manifestData = new Xml.DomDocument();
+                        var manifestFilePath = product.Qt.android_support._deployQtOutDir +
+                                "/AndroidManifest.xml"
+                        manifestData.load(manifestFilePath);
+
+                        var rootElem = manifestData.documentElement();
+                        if (!rootElem || !rootElem.isElement() || rootElem.tagName() != "manifest")
+                            throw "No manifest tag found in '" + manifestFilePath + "'.";
+                        var appElem = rootElem.firstChild("application");
+                        if (!appElem || !appElem.isElement() || appElem.tagName() != "application")
+                            throw "No application tag found in '" + manifestFilePath + "'.";
+                        var activityElem = appElem.firstChild("activity");
+                        if (!activityElem || !activityElem.isElement() ||
+                                activityElem.tagName() != "activity")
+                            throw "No activity tag found in '" + manifestFilePath + "'.";
+                        var metaDataElem = activityElem.firstChild("meta-data");
+                        while (metaDataElem && metaDataElem.isElement()) {
+                            if (metaDataElem.attribute("android:name") ==
+                                    "android.app.load_local_jars" ) {
+                                var value = metaDataElem.attribute("android:value");
+                                var fileName = "QtAndroidNetwork.jar";
+                                metaDataElem.setAttribute("android:value", value + ":jar/" +
+                                                          fileName);
+                                var jarFilePath = FileInfo.joinPaths(
+                                            product.Qt.android_support._qtInstallDir, "jar",
+                                            fileName);
+                                var targetFilePath = FileInfo.joinPaths(product.java.classFilesDir,
+                                                                        fileName);
+                                File.copy(jarFilePath, targetFilePath);
+                                break;
+                            }
+                            metaDataElem = metaDataElem.nextSibling("meta-data");
+                        }
+                        manifestData.save(outputs["android.manifest_final"][0].filePath, 4);
+                    } else {
+                        File.move(product.Qt.android_support._deployQtOutDir + "/AndroidManifest.xml",
+                                  outputs["android.manifest_final"][0].filePath);
+                    }
+                };
+            } else {
+                correctingCmd.description = "copying manifest";
+                correctingCmd.sourceCode = function() {
+                    File.move(product.Qt.android_support._deployQtOutDir + "/AndroidManifest.xml",
+                              outputs["android.manifest_final"][0].filePath);
+                }
+            }
+
+            return [copyCmd, androidDeployQtCmd, moveCmd, correctingCmd];
         }
     }
 

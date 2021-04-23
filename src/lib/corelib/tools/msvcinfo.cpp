@@ -43,6 +43,7 @@
 #include <logging/logger.h>
 #include <tools/error.h>
 #include <tools/profile.h>
+#include <tools/stlutils.h>
 #include <tools/stringconstants.h>
 
 #include <QtCore/qbytearray.h>
@@ -471,12 +472,20 @@ static std::vector<MSVC> installedCompilersHelper(Logger &logger)
             QDir vcInstallDir = vsInstallDir;
             vcInstallDir.cd(QStringLiteral("Tools/MSVC"));
             const auto vcVersionStrs = vcInstallDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+            std::vector<Version> vcVersions;
+            vcVersions.reserve(vcVersionStrs.size());
             for (const QString &vcVersionStr : vcVersionStrs) {
                 const Version vcVersion = Version::fromString(vcVersionStr);
                 if (!vcVersion.isValid())
                     continue;
+                vcVersions.push_back(vcVersion);
+            }
+            // sort the versions so the new one comes first
+            std::sort(vcVersions.begin(), vcVersions.end(), std::greater<>());
+
+            for (const Version &vcVersion : vcVersions) {
                 QDir specificVcInstallDir = vcInstallDir;
-                if (!specificVcInstallDir.cd(vcVersionStr)
+                if (!specificVcInstallDir.cd(vcVersion.toString())
                     || !specificVcInstallDir.cd(QStringLiteral("bin"))) {
                     continue;
                 }
@@ -501,9 +510,30 @@ QString MSVC::architectureFromClPath(const QString &clPath)
 {
     const auto parentDir = QFileInfo(clPath).absolutePath();
     const auto parentDirName = QFileInfo(parentDir).fileName().toLower();
+    // can be the case when cl.exe is present within the Windows SDK installation... but can it?
     if (parentDirName == QLatin1String("bin"))
         return QStringLiteral("x86");
     return parentDirName;
+}
+
+QString MSVC::vcVariablesVersionFromBinPath(const QString &binPath)
+{
+    const auto binDirName = QFileInfo(binPath).fileName().toLower();
+    // the case when cl.exe is present within the Windows SDK installation
+    if (binDirName == QLatin1String("bin"))
+        return {};
+    // binPath is something like
+    // Microsoft Visual Studio 14.0/VC/bin/amd64_x86
+    // or
+    // Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.28.29910/bin/Hostx64/x64
+    QDir dir(binPath);
+    dir.cdUp();
+    // older Visual Studios do not support multiple compiler versions
+    if (dir.dirName().toLower() == QLatin1String("bin"))
+        return {};
+    dir.cdUp();
+    dir.cdUp();
+    return dir.dirName();
 }
 
 QString MSVC::canonicalArchitecture(const QString &arch)

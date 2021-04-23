@@ -70,3 +70,12 @@ add_qbs_test(blackbox-qt
         tst_blackboxqt.cpp
         tst_blackboxqt.h
     )
+
+add_qbs_test(blackbox-windows
+    SOURCES
+        ../shared.h
+        tst_blackboxbase.cpp
+        tst_blackboxbase.h
+        tst_blackboxwindows.cpp
+        tst_blackboxwindows.h
+    )

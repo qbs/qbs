@@ -53,6 +53,7 @@ MsvcBaseModule {
         vcvarsallFilePath: vcvarsallPath
         enableDefinesByLanguage: enableCompilerDefinesByLanguage
         preferredArchitecture: qbs.architecture
+        winSdkVersion: windowsSdkVersion
     }
 
     qbs.architecture: clangClProbe.found ? clangClProbe.architecture : original

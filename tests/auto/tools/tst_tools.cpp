@@ -673,6 +673,30 @@ void TestTools::set_containsSet()
     QVERIFY(set3.contains(set4));
 }
 
+void TestTools::set_find()
+{
+    Set<QString> set1;
+
+    for (int i = 0; i < 500; ++i) {
+        QVERIFY(set1.find(QString::number(i)) == set1.end());
+        set1.insert(QString::number(i));
+        const auto it = set1.find(QString::number(i));
+        QVERIFY(it != set1.end());
+        QVERIFY(*it == QString::number(i));
+    }
+
+    QCOMPARE(set1.size(), size_t { 500 });
+
+    for (int j = 0; j < 500; ++j) {
+        int i = (j * 17) % 500;
+        const auto it = set1.find(QString::number(i));
+        QVERIFY(it != set1.end());
+        QVERIFY(*it == QString::number(i));
+        set1.remove(QString::number(i));
+        QVERIFY(set1.find(QString::number(i)) == set1.end());
+    }
+}
+
 void TestTools::set_begin()
 {
     Set<int> set1;

@@ -59,6 +59,16 @@ static bool extractCompilerIncludePaths(const QByteArray &output, QStringList &c
     return true;
 }
 
+static bool extractQuitedValue(const QByteArray &output, QString &pattern)
+{
+    const QRegularExpression re("%%(.+)%%");
+    const QRegularExpressionMatch match = re.match(output);
+    if (!match.hasMatch())
+        return false;
+    pattern = match.captured(1);
+    return true;
+}
+
 static QByteArray unsupportedToolsetMessage(const QByteArray &output)
 {
     QByteArray toolchain;
@@ -66,17 +76,6 @@ static QByteArray unsupportedToolsetMessage(const QByteArray &output)
     extractToolset(output, toolchain, architecture);
     return "Unsupported toolchain '" + toolchain
           + "' for architecture '" + architecture + "'";
-}
-
-static QString linkerMapFileExtension(const QByteArray &toolchain, const QByteArray &architecture)
-{
-    if (toolchain == "keil") {
-        if (architecture == "mcs51")
-            return QStringLiteral(".m51");
-        if (architecture == "c166")
-            return QStringLiteral(".m66");
-    }
-    return QStringLiteral(".map");
 }
 
 TestBlackboxBareMetal::TestBlackboxBareMetal()
@@ -187,61 +186,84 @@ void TestBlackboxBareMetal::defines()
 
 void TestBlackboxBareMetal::compilerListingFiles_data()
 {
-    QTest::addColumn<QString>("testPath");
     QTest::addColumn<bool>("generateListing");
-    QTest::newRow("do-not-generate-compiler-listing") << "/do-not-generate-compiler-listing" << false;
-    QTest::newRow("generate-compiler-listing") << "/generate-compiler-listing" << true;
+    QTest::addColumn<QString>("customListingSuffix");
+    QTest::newRow("do-not-generate-compiler-listing") << false << "";
+    QTest::newRow("generate-default-compiler-listing") << true << "";
+    QTest::newRow("generate-custom-compiler-listing") << true << ".lll";
 }
 
 void TestBlackboxBareMetal::compilerListingFiles()
 {
-    QFETCH(QString, testPath);
     QFETCH(bool, generateListing);
-    QDir::setCurrent(testDataDir + testPath);
-    QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList("-n"))), 0);
+    QFETCH(QString, customListingSuffix);
+    QDir::setCurrent(testDataDir + "/compiler-listing");
+
+    rmDirR(relativeBuildDir());
+    QStringList args = {QStringLiteral("modules.cpp.generateCompilerListingFiles:%1")
+                            .arg(generateListing ? "true" : "false")};
+    if (!customListingSuffix.isEmpty())
+        args << QStringLiteral("modules.cpp.compilerListingSuffix:%1").arg(customListingSuffix);
+
+    QCOMPARE(runQbs(QbsRunParameters("resolve", args)), 0);
     if (m_qbsStdout.contains("unsupported toolset:"))
         QSKIP(unsupportedToolsetMessage(m_qbsStdout));
-    QCOMPARE(runQbs(), 0);
-    const bool isShortListingNames = m_qbsStdout.contains("using short listing file names");
-    const QString productName = testPath.mid(1);
-    const QString productBuildDir = relativeProductBuildDir(productName);
+    if (!m_qbsStdout.contains("compiler listing suffix:"))
+        QFAIL("No current compiler listing suffix pattern exists");
+
+    QString compilerListingSuffix;
+    if (!extractQuitedValue(m_qbsStdout, compilerListingSuffix))
+        QFAIL("Unable to extract current compiler listing suffix");
+
+    if (!customListingSuffix.isEmpty())
+        QCOMPARE(compilerListingSuffix, customListingSuffix);
+
+    QCOMPARE(runQbs(QbsRunParameters(args)), 0);
+    const QString productBuildDir = relativeProductBuildDir("compiler-listing");
     const QString hash = inputDirHash(".");
-    const QString mainListing = productBuildDir + "/" + hash + (isShortListingNames ? "/main.lst" : "/main.c.lst");
+    const QString mainListing = productBuildDir + "/" + hash
+                                + "/main.c" + compilerListingSuffix;
     QCOMPARE(regularFileExists(mainListing), generateListing);
-    const QString funListing = productBuildDir + "/" + hash + (isShortListingNames ? "/fun.lst" : "/fun.c.lst");
+    const QString funListing = productBuildDir + "/" + hash
+                               + "/fun.c" + compilerListingSuffix;
     QCOMPARE(regularFileExists(funListing), generateListing);
 }
 
 void TestBlackboxBareMetal::linkerMapFile_data()
 {
     QTest::addColumn<bool>("generateMap");
-    QTest::newRow("do-not-generate-linker-map") << false;
-    QTest::newRow("generate-linker-map") << true;
+    QTest::addColumn<QString>("customMapSuffix");
+    QTest::newRow("do-not-generate-linker-map") << false << "";
+    QTest::newRow("generate-default-linker-map") << true << "";
+    QTest::newRow("generate-custom-linker-map") << true << ".mmm";
 }
 
 void TestBlackboxBareMetal::linkerMapFile()
 {
     QFETCH(bool, generateMap);
+    QFETCH(QString, customMapSuffix);
     QDir::setCurrent(testDataDir + "/linker-map");
 
     rmDirR(relativeBuildDir());
-    const QStringList args = {QStringLiteral("modules.cpp.generateLinkerMapFile:%1")
-                                  .arg(generateMap ? "true" : "false")};
-    QCOMPARE(runQbs(QbsRunParameters("resolve", args)), 0);
-    if (m_qbsStdout.contains("unsupported toolset:"))
-        QSKIP(unsupportedToolsetMessage(m_qbsStdout));
-    if (!m_qbsStdout.contains("current toolset:"))
-        QFAIL("No current toolset pattern exists");
+    QStringList args = {QStringLiteral("modules.cpp.generateLinkerMapFile:%1")
+                            .arg(generateMap ? "true" : "false")};
+    if (!customMapSuffix.isEmpty())
+        args << QStringLiteral("modules.cpp.linkerMapSuffix:%1").arg(customMapSuffix);
 
-    QByteArray toolchain;
-    QByteArray architecture;
-    if (!extractToolset(m_qbsStdout, toolchain, architecture))
-        QFAIL("Unable to extract current toolset");
+    QCOMPARE(runQbs(QbsRunParameters("resolve", args)), 0);
+    if (!m_qbsStdout.contains("linker map suffix:"))
+        QFAIL("No current linker map suffix pattern exists");
+
+    QString linkerMapSuffix;
+    if (!extractQuitedValue(m_qbsStdout, linkerMapSuffix))
+        QFAIL("Unable to extract current linker map suffix");
+
+    if (!customMapSuffix.isEmpty())
+        QCOMPARE(linkerMapSuffix, customMapSuffix);
 
     QCOMPARE(runQbs(QbsRunParameters(args)), 0);
     const QString productBuildDir = relativeProductBuildDir("linker-map");
-    const auto extension = linkerMapFileExtension(toolchain, architecture);
-    const QString linkerMap = productBuildDir + "/linker-map" + extension;
+    const QString linkerMap = productBuildDir + "/linker-map" + linkerMapSuffix;
     QCOMPARE(regularFileExists(linkerMap), generateMap);
 }
 
