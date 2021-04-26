@@ -9,6 +9,7 @@ Project {
     CppApplication {
         name: "A"
         files: "app.cpp"
+        condition: qbs.toolchain.contains("msvc")
         codesign.enableCodeSigning: project.enableSigning
         codesign.hashAlgorithm: project.hashAlgorithm
         codesign.subjectName: project.subjectName
@@ -16,7 +17,8 @@ Project {
         install: true
         installDir: ""
         property bool dummy: {
-            console.info("signtool path: %%" + codesign.codesignPath + "%%");
+            if (codesign.codesignPath)
+                console.info("signtool path: %%" + codesign.codesignPath + "%%");
         }
     }
 
@@ -24,6 +26,7 @@ Project {
         Depends { name: "cpp" }
         name: "B"
         files: "app.cpp"
+        condition: qbs.toolchain.contains("msvc")
         codesign.enableCodeSigning: project.enableSigning
         codesign.hashAlgorithm: project.hashAlgorithm
         codesign.subjectName: project.subjectName
@@ -31,7 +34,8 @@ Project {
         install: true
         installDir: ""
         property bool dummy: {
-            console.info("signtool path: %%" + codesign.codesignPath + "%%");
+            if (codesign.codesignPath)
+                console.info("signtool path: %%" + codesign.codesignPath + "%%");
         }
     }
 }
