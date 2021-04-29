@@ -70,6 +70,12 @@ if [ ! "${QT_VERSION}" \< "5.14.0" ] && [ "${QT_VERSION}" \< "6.0.0" ]; then
     tst_blackbox-android
 fi;
 
+if [ ! "${QT_VERSION}" \< "6.3.0" ]; then
+    echo "Using multi-arch data sets for qml tests (only for qt version >= 6.3.0) with all architectures"
+    qbs config --list
+    tst_blackbox-android
+fi;
+
 echo "Using single-arch (armv7a) data sets for qml tests"
 qbs config --unset profiles.qbs_autotests-android-qt.qbs.architectures
 qbs config profiles.qbs_autotests-android-qt.qbs.architecture armv7a
