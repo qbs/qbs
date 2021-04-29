@@ -12,8 +12,8 @@ Project {
         Export {
             Depends { name: "wix" }
             wix.defines: base.concat(["msiName=" +
-                FileInfo.joinPaths(product.buildDirectory,
-                    product.targetName + wix.windowsInstallerSuffix)])
+                FileInfo.joinPaths(exportingProduct.buildDirectory,
+                    exportingProduct.targetName + wix.windowsInstallerSuffix)])
         }
     }
 

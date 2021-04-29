@@ -25,7 +25,7 @@ Project {
         Depends { name: "helper2" }
         Export {
             Depends { name: "cpp" }
-            cpp.includePaths: [product.sourceDirectory + '/helper1']
+            cpp.includePaths: [exportingProduct.sourceDirectory + '/helper1']
         }
     }
 
@@ -38,7 +38,7 @@ Project {
         Depends { name: "cpp" }
         Export {
             Depends { name: "cpp" }
-            cpp.includePaths: [product.sourceDirectory + '/helper2']
+            cpp.includePaths: [exportingProduct.sourceDirectory + '/helper2']
         }
     }
 }

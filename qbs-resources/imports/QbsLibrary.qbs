@@ -61,15 +61,15 @@ QbsProduct {
         Depends { name: "Qt"; submodules: ["core"] }
 
         Properties {
-            condition: product.hasExporter
+            condition: exportingProduct.hasExporter
             prefixMapping: [{
-                prefix: product.sourceDirectory,
-                replacement: FileInfo.joinPaths(product.qbs.installPrefix,
-                                                product.headerInstallPrefix)
+                prefix: exportingProduct.sourceDirectory,
+                replacement: FileInfo.joinPaths(exportingProduct.qbs.installPrefix,
+                                                exportingProduct.headerInstallPrefix)
             }]
         }
 
-        cpp.includePaths: [product.sourceDirectory]
-        cpp.defines: product.visibilityType === "static" ? ["QBS_STATIC_LIB"] : []
+        cpp.includePaths: [exportingProduct.sourceDirectory]
+        cpp.defines: exportingProduct.visibilityType === "static" ? ["QBS_STATIC_LIB"] : []
     }
 }

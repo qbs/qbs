@@ -368,7 +368,7 @@ Project {
         Export {
             Depends { name: "QtScriptFwdHeaders" }
             Depends { name: "cpp" }
-            property stringList includePaths: [product.sourceDirectory + "/include"]
+            property stringList includePaths: [exportingProduct.sourceDirectory + "/include"]
                                               .concat(QtScriptFwdHeaders.publicIncludePaths)
             Properties {
                 condition: qbs.targetOS.contains("unix")
@@ -441,10 +441,10 @@ Project {
         Export {
             Depends { name: "Qt.core" }
             property stringList publicIncludePaths: [
-                FileInfo.joinPaths(product.buildDirectory, "include")
+                FileInfo.joinPaths(exportingProduct.buildDirectory, "include")
             ]
             property stringList privateIncludePaths: [
-                FileInfo.joinPaths(product.buildDirectory, "include",
+                FileInfo.joinPaths(exportingProduct.buildDirectory, "include",
                                    "QtScript", Qt.core.version, "QtScript")
             ]
         }

@@ -20,8 +20,8 @@ Module {
                                                                  "androiddeployqt")
     property string _qtBinaryDir
     property string _qtInstallDir
-    // TODO: Remove in 1.20
-    // From 1.20 product property used from an export item will point to the
+    // TODO: Remove in 1.21
+    // From 1.21 product property used from an export item will point to the
     // importingProduct property. So using the importingProduct property will be useless
     // and the change will be reverted
     property var _importingProduct: (typeof importingProduct !== "undefined") ? importingProduct :

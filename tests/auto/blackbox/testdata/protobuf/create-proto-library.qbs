@@ -32,7 +32,7 @@ Project {
             Depends { name: "protobuf.cpp"; required: false }
             cpp.cxxLanguageVersion: "c++11"
             cpp.minimumMacosVersion: "10.8"
-            cpp.includePaths: product.protobuf.cpp.outputDir
+            cpp.includePaths: exportingProduct.protobuf.cpp.outputDir
         }
     }
 

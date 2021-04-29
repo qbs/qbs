@@ -40,7 +40,7 @@ Project {
         Depends { name: "cpp" }
         Export {
             Depends { name: "cpp" }
-            cpp.includePaths: [product.sourceDirectory + '/some helper']
+            cpp.includePaths: [exportingProduct.sourceDirectory + '/some helper']
         }
     }
 }

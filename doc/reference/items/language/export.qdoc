@@ -44,8 +44,8 @@
         name: "A"
         Export {
             Depends { name: "cpp" }
-            cpp.includePaths: product.sourceDirectory
-            cpp.defines: ["USING_" + product.name.toUpperCase()]
+            cpp.includePaths: exportingProduct.sourceDirectory
+            cpp.defines: ["USING_" + exportingProduct.name.toUpperCase()]
         }
     }
 

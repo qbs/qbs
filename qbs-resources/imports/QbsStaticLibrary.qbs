@@ -4,6 +4,6 @@ QbsProduct {
         Depends { name: "cpp" }
         Depends { name: "Qt"; submodules: ["core"] }
 
-        cpp.includePaths: [product.sourceDirectory]
+        cpp.includePaths: [exportingProduct.sourceDirectory]
     }
 }
