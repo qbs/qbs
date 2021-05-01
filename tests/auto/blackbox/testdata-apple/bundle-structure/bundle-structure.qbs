@@ -134,6 +134,9 @@ Project {
         name: "G"
         bundle.isBundle: true
         bundle.resources: ["resource.txt"]
+        // XCode 12.5 does not support com.apple.product-type.in-app-purchase-content type anymore,
+        // so use older specs from Qbs
+        bundle._useXcodeBuildSpecs: false
         Group {
             fileTagsFilter: product.type.concat(project.bundleFileTags)
             qbs.install: true

@@ -28,6 +28,7 @@
 **
 ****************************************************************************/
 
+var File = require("qbs.File");
 var FileInfo = require("qbs.FileInfo");
 var DarwinTools = require("qbs.DarwinTools");
 var ModUtils = require("qbs.ModUtils");
@@ -149,38 +150,69 @@ function _assign(target, source) {
     }
 }
 
-function macOSSpecsPath(version, developerPath) {
-    if (Utilities.versionCompare(version, "12") >= 0) {
-        return FileInfo.joinPaths(
-                    developerPath, "Platforms", "MacOSX.platform", "Developer", "Library", "Xcode",
-                    "PrivatePlugIns", "IDEOSXSupportCore.ideplugin", "Contents", "Resources");
+function macOSSpecsPaths(version, developerPath) {
+    var result = [];
+    if (Utilities.versionCompare(version, "12.5") >= 0) {
+        result.push(FileInfo.joinPaths(
+                    developerPath, "..", "PlugIns", "XCBSpecifications.ideplugin",
+                    "Contents", "Resources"));
     }
-    return FileInfo.joinPaths(
-                developerPath, "Platforms", "MacOSX.platform", "Developer", "Library", "Xcode",
-                "Specifications");
+
+    if (Utilities.versionCompare(version, "12") >= 0) {
+        result.push(FileInfo.joinPaths(
+                    developerPath, "Platforms", "MacOSX.platform", "Developer", "Library", "Xcode",
+                    "PrivatePlugIns", "IDEOSXSupportCore.ideplugin", "Contents", "Resources"));
+    } else {
+        result.push(FileInfo.joinPaths(
+                    developerPath, "Platforms", "MacOSX.platform", "Developer", "Library", "Xcode",
+                    "Specifications"));
+    }
+    return result;
 }
 
 var XcodeBuildSpecsReader = (function () {
-    function XcodeBuildSpecsReader(specsPath, separator, additionalSettings, useShallowBundles) {
+    function XcodeBuildSpecsReader(specsPaths, separator, additionalSettings, useShallowBundles) {
         this._additionalSettings = additionalSettings;
         this._useShallowBundles = useShallowBundles;
-        var i;
-        var plist = new PropertyList2();
-        var plist2 = new PropertyList2();
-        try {
-            plist.readFromFile(specsPath + ["/MacOSX", "Package", "Types.xcspec"].join(separator));
-            plist2.readFromFile(specsPath + ["/MacOSX", "Product", "Types.xcspec"].join(separator));
-            this._packageTypes = plist.toObject();
-            this._productTypes = plist2.toObject();
-            this._types = {};
-            for (i = 0; i < this._packageTypes.length; ++i)
-                this._types[this._packageTypes[i]["Identifier"]] = this._packageTypes[i];
-            for (i = 0; i < this._productTypes.length; ++i)
-                this._types[this._productTypes[i]["Identifier"]] = this._productTypes[i];
-        } finally {
-            plist.clear();
-            plist2.clear();
+
+        this._packageTypes = [];
+        this._productTypes = [];
+
+        var i, j;
+        for (i = 0; i < specsPaths.length; ++i) {
+            var specsPath = specsPaths[i];
+            var names = ["Darwin", "MacOSX"];
+            for (j = 0; j < names.length; ++j) {
+                var name = names[j];
+                var plist = new PropertyList2();
+                var plist2 = new PropertyList2();
+                try
+                {
+                    var plistName = [name, "Package", "Types.xcspec"].join(separator);
+                    var plistName2 = [name, "Product", "Types.xcspec"].join(separator);
+                    var plistPath = FileInfo.joinPaths(specsPath, plistName);
+                    var plistPath2 = FileInfo.joinPaths(specsPath, plistName2);
+                    if (File.exists(plistPath)) {
+                        plist.readFromFile(plistPath);
+                        this._packageTypes = this._packageTypes.concat(plist.toObject());
+                    }
+                    if (File.exists(plistPath2)) {
+                        plist2.readFromFile(plistPath2);
+                        this._productTypes = this._productTypes.concat(plist2.toObject());
+                    }
+                } finally {
+                    plist.clear();
+                    plist2.clear();
+                }
+            }
         }
+
+        this._types = {};
+        for (i = 0; i < this._packageTypes.length; ++i)
+            this._types[this._packageTypes[i]["Identifier"]] = this._packageTypes[i];
+        for (i = 0; i < this._productTypes.length; ++i)
+            this._types[this._productTypes[i]["Identifier"]] = this._productTypes[i];
+
     }
     XcodeBuildSpecsReader.prototype.productTypeIdentifierChain = function (typeIdentifier) {
         var ids = [typeIdentifier];
@@ -291,7 +323,7 @@ var XcodeBuildSpecsReader = (function () {
             var original;
             while (original !== setting) {
                 original = setting;
-                setting = DarwinTools.expandPlistEnvironmentVariables({ key: setting }, obj, true)["key"];
+                setting = DarwinTools.expandPlistEnvironmentVariables({ key: setting }, obj, false)["key"];
             }
             return setting;
         }
