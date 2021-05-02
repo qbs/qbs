@@ -1,590 +1,803 @@
-[
-  {
-    "IconNamePrefix" : "TargetExecutable",
-    "DefaultBuildProperties" : {
-      "REZ_EXECUTABLE" : "YES",
-      "FULL_PRODUCT_NAME" : "$(EXECUTABLE_NAME)",
-      "LIBRARY_FLAG_NOSPACE" : "YES",
-      "FRAMEWORK_FLAG_PREFIX" : "-framework",
-      "INSTALL_PATH" : "\/usr\/local\/bin",
-      "GCC_INLINES_ARE_PRIVATE_EXTERN" : "YES",
-      "GCC_DYNAMIC_NO_PIC" : "NO",
-      "GCC_SYMBOLS_PRIVATE_EXTERN" : "YES",
-      "CODE_SIGNING_ALLOWED" : "YES",
-      "STRIP_STYLE" : "all",
-      "EXECUTABLE_PREFIX" : "",
-      "MACH_O_TYPE" : "mh_execute",
-      "EXECUTABLE_SUFFIX" : "",
-      "LIBRARY_FLAG_PREFIX" : "-l"
+//
+//  MacOSX Product Types.xcspec
+//
+//  Copyright © 1999-2020 Apple Inc.  All rights reserved.
+//
+//  Product type specifications in the macOS platform.
+//
+(
+    //
+    // Single-file product types
+    //
+    
+    // Tool (normal Unix command-line executable)
+    {   Type = ProductType;
+        Identifier = com.apple.product-type.tool;
+        Class = PBXToolProductType;
+        Name = "Command-line Tool";
+        Description = "Standalone command-line tool";
+        IconNamePrefix = "TargetExecutable";
+        DefaultTargetName = "Command-line Tool";
+        DefaultBuildProperties = {
+            FULL_PRODUCT_NAME = "$(EXECUTABLE_NAME)";
+            MACH_O_TYPE = "mh_execute";
+            EXECUTABLE_PREFIX = "";
+            EXECUTABLE_SUFFIX = "";
+            REZ_EXECUTABLE = YES;
+            INSTALL_PATH = "/usr/local/bin";
+            FRAMEWORK_FLAG_PREFIX = "-framework";
+            LIBRARY_FLAG_PREFIX = "-l";
+            LIBRARY_FLAG_NOSPACE = YES;
+            GCC_DYNAMIC_NO_PIC = NO;
+            GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+            GCC_INLINES_ARE_PRIVATE_EXTERN = YES;
+            STRIP_STYLE = "all";
+            CODE_SIGNING_ALLOWED = YES;
+        };
+        PackageTypes = (
+            com.apple.package-type.mach-o-executable   // default
+        );
+        WantsSigningEditing = YES;
+        WantsBundleIdentifierEditing = YES;
     },
-    "PackageTypes" : [
-      "com.apple.package-type.mach-o-executable"
-    ],
-    "Type" : "ProductType",
-    "DefaultTargetName" : "Command-line Tool",
-    "Name" : "Command-line Tool",
-    "Identifier" : "com.apple.product-type.tool",
-    "Description" : "Standalone command-line tool",
-    "Class" : "PBXToolProductType"
-  },
-  {
-    "IconNamePrefix" : "TargetExecutable",
-    "IsJava" : "YES",
-    "PackageTypes" : [
-      "com.apple.package-type.jarfile",
-      "com.apple.package-type.zipfile",
-      "com.apple.package-type.javaclassfolder"
-    ],
-    "Type" : "ProductType",
-    "DefaultTargetName" : "Java Command-line Tool",
-    "Name" : "Java Command-line Tool",
-    "Identifier" : "com.apple.product-type.tool.java",
-    "Description" : "Java Command-line tool",
-    "DefaultBuildProperties" : {
-      "REZ_EXECUTABLE" : "YES",
-      "INSTALL_PATH" : "\/usr\/local\/bin",
-      "FULL_PRODUCT_NAME" : "$(EXECUTABLE_NAME)"
-    }
-  },
-  {
-    "IconNamePrefix" : "TargetPlugin",
-    "DefaultBuildProperties" : {
-      "DEAD_CODE_STRIPPING" : "NO",
-      "REZ_EXECUTABLE" : "YES",
-      "LINK_WITH_STANDARD_LIBRARIES" : "NO",
-      "FULL_PRODUCT_NAME" : "$(EXECUTABLE_NAME)",
-      "LIBRARY_FLAG_NOSPACE" : "YES",
-      "FRAMEWORK_FLAG_PREFIX" : "-framework",
-      "INSTALL_PATH" : "$(HOME)\/Objects",
-      "SKIP_INSTALL" : "YES",
-      "GCC_INLINES_ARE_PRIVATE_EXTERN" : "YES",
-      "KEEP_PRIVATE_EXTERNS" : "YES",
-      "EXECUTABLE_EXTENSION" : "o",
-      "PUBLIC_HEADERS_FOLDER_PATH" : "\/usr\/local\/include",
-      "MACH_O_TYPE" : "mh_object",
-      "EXECUTABLE_SUFFIX" : ".$(EXECUTABLE_EXTENSION)",
-      "LIBRARY_FLAG_PREFIX" : "-l",
-      "PRIVATE_HEADERS_FOLDER_PATH" : "\/usr\/local\/include",
-      "STRIP_STYLE" : "debugging"
-    },
-    "PackageTypes" : [
-      "com.apple.package-type.mach-o-objfile"
-    ],
-    "Type" : "ProductType",
-    "DefaultTargetName" : "Object File",
-    "Name" : "Object File",
-    "Identifier" : "com.apple.product-type.objfile",
-    "Description" : "Object File",
-    "Class" : "XCStandaloneExecutableProductType"
-  },
-  {
-    "IconNamePrefix" : "TargetLibrary",
-    "DefaultBuildProperties" : {
-      "LIBRARY_FLAG_PREFIX" : "-l",
-      "STRIP_STYLE" : "debugging",
-      "REZ_EXECUTABLE" : "YES",
-      "FULL_PRODUCT_NAME" : "$(EXECUTABLE_NAME)",
-      "LD_DYLIB_INSTALL_NAME" : "$(DYLIB_INSTALL_NAME_BASE:standardizepath)\/$(EXECUTABLE_PATH)",
-      "DYLIB_COMPATIBILITY_VERSION" : "1",
-      "INSTALL_PATH" : "\/usr\/local\/lib",
-      "FRAMEWORK_FLAG_PREFIX" : "-framework",
-      "LIBRARY_FLAG_NOSPACE" : "YES",
-      "GCC_INLINES_ARE_PRIVATE_EXTERN" : "YES",
-      "CODE_SIGNING_ALLOWED" : "YES",
-      "CODE_SIGNING_REQUIRED" : "NO",
-      "EXECUTABLE_EXTENSION" : "dylib",
-      "PUBLIC_HEADERS_FOLDER_PATH" : "\/usr\/local\/include",
-      "DYLIB_INSTALL_NAME_BASE" : "$(INSTALL_PATH)",
-      "EXECUTABLE_SUFFIX" : ".$(EXECUTABLE_EXTENSION)",
-      "PRIVATE_HEADERS_FOLDER_PATH" : "\/usr\/local\/include",
-      "MACH_O_TYPE" : "mh_dylib",
-      "DYLIB_CURRENT_VERSION" : "1"
-    },
-    "PackageTypes" : [
-      "com.apple.package-type.mach-o-dylib"
-    ],
-    "Type" : "ProductType",
-    "DefaultTargetName" : "Dynamic Library",
-    "Name" : "Dynamic Library",
-    "Identifier" : "com.apple.product-type.library.dynamic",
-    "Description" : "Dynamic library",
-    "Class" : "PBXDynamicLibraryProductType"
-  },
-  {
-    "IconNamePrefix" : "TargetLibrary",
-    "DefaultBuildProperties" : {
-      "STRIP_STYLE" : "debugging",
-      "CLANG_ENABLE_MODULE_DEBUGGING" : "NO",
-      "REZ_EXECUTABLE" : "YES",
-      "FULL_PRODUCT_NAME" : "$(EXECUTABLE_NAME)",
-      "LIBRARY_FLAG_NOSPACE" : "YES",
-      "FRAMEWORK_FLAG_PREFIX" : "-framework",
-      "INSTALL_PATH" : "\/usr\/local\/lib",
-      "EXECUTABLE_EXTENSION" : "a",
-      "EXECUTABLE_PREFIX" : "lib",
-      "PUBLIC_HEADERS_FOLDER_PATH" : "\/usr\/local\/include",
-      "EXECUTABLE_SUFFIX" : ".$(EXECUTABLE_EXTENSION)",
-      "LIBRARY_FLAG_PREFIX" : "-l",
-      "PRIVATE_HEADERS_FOLDER_PATH" : "\/usr\/local\/include",
-      "MACH_O_TYPE" : "staticlib"
-    },
-    "AlwaysPerformSeparateStrip" : "YES",
-    "PackageTypes" : [
-      "com.apple.package-type.static-library"
-    ],
-    "Type" : "ProductType",
-    "DefaultTargetName" : "Static Library",
-    "Name" : "Static Library",
-    "Identifier" : "com.apple.product-type.library.static",
-    "Description" : "Static library",
-    "Class" : "PBXStaticLibraryProductType"
-  },
-  {
-    "IconNamePrefix" : "TargetPlugin",
-    "IsJava" : "YES",
-    "PackageTypes" : [
-      "com.apple.package-type.jarfile",
-      "com.apple.package-type.zipfile",
-      "com.apple.package-type.javaclassfolder"
-    ],
-    "Type" : "ProductType",
-    "DefaultTargetName" : "Java Library",
-    "Name" : "Java Library",
-    "Identifier" : "com.apple.product-type.library.java.archive",
-    "Description" : "Java library packaged as a Jar file, Zip file, or class folder",
-    "DefaultBuildProperties" : {
-      "INSTALL_PATH" : "\/usr\/local\/lib",
-      "FULL_PRODUCT_NAME" : "$(PRODUCT_NAME)"
-    }
-  },
-  {
-    "HasInfoPlistStrings" : "YES",
-    "Description" : "Generic bundle",
-    "HasInfoPlist" : "YES",
-    "Name" : "Bundle",
-    "Class" : "PBXBundleProductType",
-    "DefaultTargetName" : "Bundle",
-    "DefaultBuildProperties" : {
-      "LIBRARY_FLAG_NOSPACE" : "YES",
-      "WRAPPER_NAME" : "$(WRAPPER_PREFIX)$(PRODUCT_NAME)$(WRAPPER_SUFFIX)",
-      "FRAMEWORK_FLAG_PREFIX" : "-framework",
-      "GCC_INLINES_ARE_PRIVATE_EXTERN" : "YES",
-      "WRAPPER_SUFFIX" : ".$(WRAPPER_EXTENSION)",
-      "FULL_PRODUCT_NAME" : "$(WRAPPER_NAME)",
-      "WRAPPER_EXTENSION" : "bundle",
-      "CODE_SIGNING_ALLOWED" : "YES",
-      "WRAPPER_PREFIX" : "",
-      "STRIP_STYLE" : "non-global",
-      "MACH_O_TYPE" : "mh_bundle",
-      "LIBRARY_FLAG_PREFIX" : "-l"
-    },
-    "PackageTypes" : [
-      "com.apple.package-type.wrapper",
-      "com.apple.package-type.wrapper.shallow"
-    ],
-    "IsWrapper" : "YES",
-    "Type" : "ProductType",
-    "Identifier" : "com.apple.product-type.bundle",
-    "IconNamePrefix" : "TargetPlugin"
-  },
-  {
-    "PackageTypes" : [
-      "com.apple.package-type.wrapper.shallow"
-    ],
-    "Type" : "ProductType",
-    "BasedOn" : "com.apple.product-type.bundle",
-    "Name" : "Bundle (Shallow)",
-    "Identifier" : "com.apple.product-type.bundle.shallow",
-    "Description" : "Bundle (Shallow)",
-    "Class" : "PBXBundleProductType"
-  },
-  {
-    "Description" : "Application",
-    "Class" : "PBXApplicationProductType",
-    "Name" : "Application",
-    "RunpathSearchPathForEmbeddedFrameworks" : "@executable_path\/..\/Frameworks",
-    "ValidateEmbeddedBinaries" : "YES",
-    "ProvisioningProfileSupported" : "YES",
-    "DefaultTargetName" : "Application",
-    "DefaultBuildProperties" : {
-      "INSTALL_PATH" : "$(LOCAL_APPS_DIR)",
-      "WRAPPER_EXTENSION" : "app",
-      "GCC_DYNAMIC_NO_PIC" : "NO",
-      "STRIP_STYLE" : "all",
-      "CODE_SIGNING_ALLOWED" : "YES",
-      "GCC_INLINES_ARE_PRIVATE_EXTERN" : "YES",
-      "WRAPPER_SUFFIX" : ".$(WRAPPER_EXTENSION)",
-      "GCC_SYMBOLS_PRIVATE_EXTERN" : "YES",
-      "MACH_O_TYPE" : "mh_execute"
-    },
-    "BasedOn" : "com.apple.product-type.bundle",
-    "ProvisioningProfileRequired" : "NO",
-    "PackageTypes" : [
-      "com.apple.package-type.wrapper.application"
-    ],
-    "Type" : "ProductType",
-    "CanEmbedCompilerSanitizerLibraries" : "YES",
-    "Identifier" : "com.apple.product-type.application",
-    "IconNamePrefix" : "TargetApp"
-  },
-  {
-    "PackageTypes" : [
-      "com.apple.package-type.wrapper.application.shallow"
-    ],
-    "Type" : "ProductType",
-    "BasedOn" : "com.apple.product-type.application",
-    "Name" : "Application (Shallow Bundle)",
-    "Identifier" : "com.apple.product-type.application.shallow",
-    "Description" : "Application (Shallow Bundle)",
-    "Class" : "PBXApplicationProductType"
-  },
-  {
-    "DefaultBuildProperties" : {
-      "PKGINFO_PATH" : "",
-      "INFOPLIST_PATH" : ""
-    },
-    "IsJava" : "YES",
-    "Type" : "ProductType",
-    "BasedOn" : "com.apple.product-type.application",
-    "Name" : "Java Application",
-    "Identifier" : "com.apple.product-type.application.java",
-    "Description" : "Java Application",
-    "DefaultTargetName" : "Java Application"
-  },
-  {
-    "IconNamePrefix" : "TargetFramework",
-    "DefaultTargetName" : "Framework",
-    "DefaultBuildProperties" : {
-      "CODE_SIGNING_REQUIRES_TEAM" : "YES",
-      "LD_DYLIB_INSTALL_NAME" : "$(DYLIB_INSTALL_NAME_BASE:standardizepath)\/$(EXECUTABLE_PATH)",
-      "CODE_SIGNING_REQUIRED" : "NO",
-      "CODE_SIGNING_ALLOWED" : "YES",
-      "INSTALL_PATH" : "$(LOCAL_LIBRARY_DIR)\/Frameworks",
-      "WRAPPER_SUFFIX" : ".$(WRAPPER_EXTENSION)",
-      "WRAPPER_EXTENSION" : "framework",
-      "FRAMEWORK_VERSION" : "A",
-      "ENTITLEMENTS_REQUIRED" : "NO",
-      "STRIP_STYLE" : "debugging",
-      "DYLIB_INSTALL_NAME_BASE" : "$(INSTALL_PATH)",
-      "MACH_O_TYPE" : "mh_dylib"
-    },
-    "PackageTypes" : [
-      "com.apple.package-type.wrapper.framework"
-    ],
-    "Type" : "ProductType",
-    "BasedOn" : "com.apple.product-type.bundle",
-    "Name" : "Framework",
-    "Identifier" : "com.apple.product-type.framework",
-    "Description" : "Framework",
-    "Class" : "PBXFrameworkProductType"
-  },
-  {
-    "PackageTypes" : [
-      "com.apple.package-type.wrapper.framework.shallow"
-    ],
-    "Type" : "ProductType",
-    "BasedOn" : "com.apple.product-type.framework",
-    "Name" : "Framework (Shallow Bundle)",
-    "Identifier" : "com.apple.product-type.framework.shallow",
-    "Description" : "Framework (Shallow Bundle)",
-    "Class" : "PBXFrameworkProductType"
-  },
-  {
-    "IconNamePrefix" : "TargetFramework",
-    "DefaultTargetName" : "Static Framework",
-    "DefaultBuildProperties" : {
-      "WRAPPER_EXTENSION" : "framework",
-      "DYLIB_INSTALL_NAME_BASE" : "",
-      "CODE_SIGNING_ALLOWED" : "NO",
-      "FRAMEWORK_VERSION" : "A",
-      "LD_DYLIB_INSTALL_NAME" : "",
-      "GCC_INLINES_ARE_PRIVATE_EXTERN" : "NO",
-      "INSTALL_PATH" : "$(LOCAL_LIBRARY_DIR)\/Frameworks",
-      "WRAPPER_SUFFIX" : ".$(WRAPPER_EXTENSION)",
-      "MACH_O_TYPE" : "staticlib"
-    },
-    "AlwaysPerformSeparateStrip" : "YES",
-    "PackageTypes" : [
-      "com.apple.package-type.wrapper.framework.static"
-    ],
-    "Type" : "ProductType",
-    "BasedOn" : "com.apple.product-type.framework",
-    "Name" : "Static Framework",
-    "Identifier" : "com.apple.product-type.framework.static",
-    "Description" : "Static Framework",
-    "Class" : "XCStaticFrameworkProductType"
-  },
-  {
-    "DefaultTargetName" : "Kernel Extension",
-    "DefaultBuildProperties" : {
-      "GCC_ENABLE_BUILTIN_FUNCTIONS" : "NO",
-      "MODULE_START" : "0",
-      "PRIVATE_HEADERS_FOLDER_PATH" : "$(KEXT_FRAMEWORK)\/Contents\/PrivateHeaders\/$(KEXT_FAMILY_NAME)",
-      "WRAPPER_SUFFIX" : ".$(WRAPPER_EXTENSION)",
-      "MACH_O_TYPE" : "mh_execute",
-      "GCC_ENABLE_KERNEL_DEVELOPMENT" : "YES",
-      "PRODUCT_TYPE_CPLUSPLUSFLAGS" : "$(inherited) $(KEXT_CPLUSPLUSFLAGS)",
-      "MODULE_STOP" : "0",
-      "GCC_ENABLE_FLOATING_POINT_LIBRARY_CALLS" : "YES",
-      "GCC_PRODUCT_TYPE_PREPROCESSOR_DEFINITIONS" : "$(inherited) KERNEL KERNEL_PRIVATE DRIVER_PRIVATE APPLE NeXT",
-      "GCC_DISABLE_STATIC_FUNCTION_INLINING" : "YES",
-      "ENABLE_APPLE_KEXT_CODE_GENERATION" : "YES",
-      "CODE_SIGNING_ALLOWED" : "YES",
-      "GCC_FORCE_CPU_SUBTYPE_ALL" : "YES",
-      "PRODUCT_SPECIFIC_LDFLAGS" : "$(inherited) $(KEXT_LDFLAGS)",
-      "WRAPPER_EXTENSION" : "kext",
-      "KERNEL_EXTENSION_HEADER_SEARCH_PATHS" : "$(KERNEL_FRAMEWORK)\/PrivateHeaders $(KERNEL_FRAMEWORK_HEADERS)",
-      "GCC_INLINES_ARE_PRIVATE_EXTERN" : "NO",
-      "PRODUCT_TYPE_CFLAGS" : "$(inherited) $(KEXT_CFLAGS)",
-      "KEXT_FRAMEWORK_NAME" : "Kernel",
-      "GCC_NO_COMMON_BLOCKS" : "YES",
-      "GCC_ENABLE_PASCAL_STRINGS" : "NO",
-      "PUBLIC_HEADERS_FOLDER_PATH" : "$(KEXT_FRAMEWORK)\/Contents\/Headers\/$(KEXT_FAMILY_NAME)",
-      "GCC_ENABLE_FUNCTION_INLINING" : "YES",
-      "KERNEL_FRAMEWORK_HEADERS" : "$(KERNEL_FRAMEWORK)\/Headers",
-      "KEXT_FAMILY_NAME" : "family",
-      "KEXT_FRAMEWORK" : "$(SYSTEM_LIBRARY_DIR)\/Frameworks\/$(KEXT_FRAMEWORK_NAME).framework",
-      "GCC_ENABLE_CPP_EXCEPTIONS" : "NO",
-      "GCC_ENABLE_CPP_RTTI" : "NO",
-      "MODULE_NAME" : "com.company.driver.modulename",
-      "GCC_USE_STANDARD_INCLUDE_SEARCHING" : "NO",
-      "KERNEL_FRAMEWORK" : "$(SDKROOT)$(SYSTEM_LIBRARY_DIR)\/Frameworks\/Kernel.framework",
-      "MODULE_VERSION" : "1.0",
-      "INSTALL_PATH" : "$(DEFAULT_KEXT_INSTALL_PATH)",
-      "PRODUCT_TYPE_HEADER_SEARCH_PATHS" : "$(inherited) $(KERNEL_EXTENSION_HEADER_SEARCH_PATHS)",
-      "GCC_CHECK_RETURN_VALUE_OF_OPERATOR_NEW" : "YES",
-      "STRIP_STYLE" : "debugging"
-    },
-    "PackageTypes" : [
-      "com.apple.package-type.wrapper.kernel-extension",
-      "com.apple.package-type.wrapper.kernel-extension.shallow"
-    ],
-    "Type" : "ProductType",
-    "BasedOn" : "com.apple.product-type.bundle",
-    "Name" : "Kernel Extension",
-    "Identifier" : "com.apple.product-type.kernel-extension",
-    "Description" : "Kernel extension",
-    "Class" : "XCKernelExtensionProductType"
-  },
-  {
-    "DefaultBuildProperties" : {
 
+    // Java tool
+    {   Type = ProductType;
+        Identifier = com.apple.product-type.tool.java;
+        Name = "Java Command-line Tool";
+        Description = "Java Command-line tool";
+        IconNamePrefix = "TargetExecutable";
+        DefaultTargetName = "Java Command-line Tool";
+        DefaultBuildProperties = {
+            FULL_PRODUCT_NAME = "$(EXECUTABLE_NAME)";
+            REZ_EXECUTABLE = YES;
+            INSTALL_PATH = "/usr/local/bin";
+        };
+        IsJava = YES;
+        PackageTypes = (
+            com.apple.package-type.jarfile,   // default
+            com.apple.package-type.zipfile,
+            com.apple.package-type.javaclassfolder
+        );
     },
-    "PackageTypes" : [
-      "com.apple.package-type.wrapper.kernel-extension.shallow"
-    ],
-    "Type" : "ProductType",
-    "BasedOn" : "com.apple.product-type.kernel-extension",
-    "Name" : "Kernel Extension (Shallow)",
-    "Identifier" : "com.apple.product-type.kernel-extension.shallow",
-    "Description" : "Kernel extension (shallow)",
-    "Class" : "XCKernelExtensionProductType"
-  },
-  {
-    "DefaultTargetName" : "IOKit Kernel Extension",
-    "DefaultBuildProperties" : {
-      "CODE_SIGNING_ALLOWED" : "YES"
-    },
-    "PackageTypes" : [
-      "com.apple.package-type.wrapper.kernel-extension",
-      "com.apple.package-type.wrapper.kernel-extension.shallow"
-    ],
-    "Type" : "ProductType",
-    "BasedOn" : "com.apple.product-type.kernel-extension",
-    "Name" : "IOKit Kernel Extension",
-    "Identifier" : "com.apple.product-type.kernel-extension.iokit",
-    "Description" : "IOKit Kernel extension",
-    "Class" : "XCKernelExtensionProductType"
-  },
-  {
-    "DefaultTargetName" : "IOKit Kernel Extension (Shallow)",
-    "DefaultBuildProperties" : {
 
+    // Object file
+    {   Type = ProductType;
+        Identifier = com.apple.product-type.objfile;
+        Class = XCStandaloneExecutableProductType;
+        Name = "Object File";
+        Description = "Object File";
+        IconNamePrefix = "TargetPlugin";
+        DefaultTargetName = "Object File";
+        DefaultBuildProperties = {
+            FULL_PRODUCT_NAME = "$(EXECUTABLE_NAME)";
+            MACH_O_TYPE = "mh_object";
+            LINK_WITH_STANDARD_LIBRARIES = NO;
+            REZ_EXECUTABLE = YES;
+            EXECUTABLE_SUFFIX = ".$(EXECUTABLE_EXTENSION)";
+            EXECUTABLE_EXTENSION = "o";
+            PUBLIC_HEADERS_FOLDER_PATH = "/usr/local/include";
+            PRIVATE_HEADERS_FOLDER_PATH = "/usr/local/include";
+            INSTALL_PATH = "$(HOME)/Objects";
+            FRAMEWORK_FLAG_PREFIX = "-framework";
+            LIBRARY_FLAG_PREFIX = "-l";
+            LIBRARY_FLAG_NOSPACE = YES;
+            SKIP_INSTALL = YES;
+            STRIP_STYLE = "debugging";
+            GCC_INLINES_ARE_PRIVATE_EXTERN = YES;
+            KEEP_PRIVATE_EXTERNS = YES;
+            DEAD_CODE_STRIPPING = NO;
+        };
+        PackageTypes = (
+            com.apple.package-type.mach-o-objfile   // default
+        );
     },
-    "PackageTypes" : [
-      "com.apple.package-type.wrapper.kernel-extension.shallow"
-    ],
-    "Type" : "ProductType",
-    "BasedOn" : "com.apple.product-type.kernel-extension",
-    "Name" : "IOKit Kernel Extension (Shallow)",
-    "Identifier" : "com.apple.product-type.kernel-extension.iokit.shallow",
-    "Description" : "IOKit Kernel extension (Shallow)",
-    "Class" : "XCKernelExtensionProductType"
-  },
-  {
-    "DefaultBuildProperties" : {
-      "TEST_FRAMEWORK_SEARCH_PATHS" : [
-        "$(inherited)",
-        "$(PLATFORM_DIR)\/Developer\/Library\/Frameworks"
-      ],
-      "PRODUCT_SPECIFIC_LDFLAGS" : "-framework XCTest",
-      "WRAPPER_EXTENSION" : "xctest",
-      "PRODUCT_TYPE_FRAMEWORK_SEARCH_PATHS" : "$(TEST_FRAMEWORK_SEARCH_PATHS)"
+
+    // Dynamic library
+    {   Type = ProductType;
+        Identifier = com.apple.product-type.library.dynamic;
+        Class = PBXDynamicLibraryProductType;
+        Name = "Dynamic Library";
+        Description = "Dynamic library";
+        IconNamePrefix = "TargetLibrary";
+        DefaultTargetName = "Dynamic Library";
+        DefaultBuildProperties = {
+            FULL_PRODUCT_NAME = "$(EXECUTABLE_NAME)";
+            MACH_O_TYPE = "mh_dylib";
+            REZ_EXECUTABLE = YES;
+            EXECUTABLE_SUFFIX = ".$(EXECUTABLE_EXTENSION)";
+            EXECUTABLE_EXTENSION = "dylib";
+            PUBLIC_HEADERS_FOLDER_PATH = "/usr/local/include";
+            PRIVATE_HEADERS_FOLDER_PATH = "/usr/local/include";
+            INSTALL_PATH = "/usr/local/lib";
+            DYLIB_INSTALL_NAME_BASE = "$(INSTALL_PATH)";
+            LD_DYLIB_INSTALL_NAME = "$(DYLIB_INSTALL_NAME_BASE:standardizepath)/$(EXECUTABLE_PATH)";
+            DYLIB_COMPATIBILITY_VERSION = "1";
+            DYLIB_CURRENT_VERSION = "1";
+            FRAMEWORK_FLAG_PREFIX = "-framework";
+            LIBRARY_FLAG_PREFIX = "-l";
+            LIBRARY_FLAG_NOSPACE = YES;
+            STRIP_STYLE = "debugging";
+            GCC_INLINES_ARE_PRIVATE_EXTERN = YES;
+            CODE_SIGNING_ALLOWED = YES;
+            CODE_SIGNING_REQUIRED = NO;
+        };
+        PackageTypes = (
+            com.apple.package-type.mach-o-dylib   // default
+        );
     },
-    "PackageTypes" : [
-      "com.apple.package-type.bundle.unit-test"
-    ],
-    "CanEmbedCompilerSanitizerLibraries" : "YES",
-    "IsUnitTest" : "YES",
-    "Type" : "ProductType",
-    "BasedOn" : "com.apple.product-type.bundle",
-    "Name" : "Unit Test Bundle",
-    "Identifier" : "com.apple.product-type.bundle.unit-test",
-    "Description" : "Unit Test Bundle",
-    "Class" : "PBXXCTestBundleProductType"
-  },
-  {
-    "DefaultBuildProperties" : {
-      "TEST_FRAMEWORK_SEARCH_PATHS" : [
-        "$(inherited)",
-        "$(PLATFORM_DIR)\/Developer\/Library\/Frameworks"
-      ],
-      "PRODUCT_SPECIFIC_LDFLAGS" : "-framework XCTest",
-      "WRAPPER_EXTENSION" : "xctest",
-      "USES_XCTRUNNER" : "YES",
-      "PRODUCT_TYPE_FRAMEWORK_SEARCH_PATHS" : "$(TEST_FRAMEWORK_SEARCH_PATHS)"
+
+    // Static library
+    {   Type = ProductType;
+        Identifier = com.apple.product-type.library.static;
+        Class = PBXStaticLibraryProductType;
+        Name = "Static Library";
+        Description = "Static library";
+        IconNamePrefix = "TargetLibrary";
+        DefaultTargetName = "Static Library";
+        DefaultBuildProperties = {
+            FULL_PRODUCT_NAME = "$(EXECUTABLE_NAME)";
+            MACH_O_TYPE = "staticlib";
+            REZ_EXECUTABLE = YES;
+            EXECUTABLE_PREFIX = "lib";
+            EXECUTABLE_SUFFIX = ".$(EXECUTABLE_EXTENSION)";
+            EXECUTABLE_EXTENSION = "a";
+            PUBLIC_HEADERS_FOLDER_PATH = "/usr/local/include";
+            PRIVATE_HEADERS_FOLDER_PATH = "/usr/local/include";
+            INSTALL_PATH = "/usr/local/lib";
+            FRAMEWORK_FLAG_PREFIX = "-framework";
+            LIBRARY_FLAG_PREFIX = "-l";
+            LIBRARY_FLAG_NOSPACE = YES;
+            STRIP_STYLE = "debugging";
+            CLANG_ENABLE_MODULE_DEBUGGING = NO;
+            CODE_SIGNING_ALLOWED = NO;
+        };
+        AlwaysPerformSeparateStrip = YES;
+        PackageTypes = (
+            com.apple.package-type.static-library   // default
+        );
     },
-    "PackageTypes" : [
-      "com.apple.package-type.bundle.unit-test"
-    ],
-    "ProvisioningProfileSupported" : "YES",
-    "IsUITest" : "YES",
-    "Type" : "ProductType",
-    "BasedOn" : "com.apple.product-type.bundle.unit-test",
-    "Name" : "UI Testing Bundle",
-    "Identifier" : "com.apple.product-type.bundle.ui-testing",
-    "Description" : "UI Testing Bundle",
-    "Class" : "PBXXCTestBundleProductType"
-  },
-  {
-    "DefaultBuildProperties" : {
-      "WRAPPER_EXTENSION" : "octest"
+
+    // Java library (jar or zip file)
+    {   Type = ProductType;
+        Identifier = com.apple.product-type.library.java.archive;
+        Name = "Java Library";
+        Description = "Java library packaged as a Jar file, Zip file, or class folder";
+        IconNamePrefix = "TargetPlugin";
+        DefaultTargetName = "Java Library";
+        DefaultBuildProperties = {
+            FULL_PRODUCT_NAME = "$(PRODUCT_NAME)";
+            INSTALL_PATH = "/usr/local/lib";
+        };
+        IsJava = YES;
+        PackageTypes = (
+            com.apple.package-type.jarfile,   // default
+            com.apple.package-type.zipfile,
+            com.apple.package-type.javaclassfolder
+        );
     },
-    "PackageTypes" : [
-      "com.apple.package-type.bundle.ocunit-test"
-    ],
-    "IsUnitTest" : "YES",
-    "Type" : "ProductType",
-    "BasedOn" : "com.apple.product-type.bundle",
-    "Name" : "OCUnit Test Bundle",
-    "Identifier" : "com.apple.product-type.bundle.ocunit-test",
-    "Description" : "OCUnit Test Bundle",
-    "Class" : "PBXBundleProductType"
-  },
-  {
-    "HasInfoPlistStrings" : "NO",
-    "PackageTypes" : [
-      "com.apple.package-type.in-app-purchase-content"
-    ],
-    "HasInfoPlist" : "YES",
-    "IsWrapper" : "YES",
-    "Type" : "ProductType",
-    "DefaultBuildProperties" : {
-      "FULL_PRODUCT_NAME" : "$(WRAPPER_NAME)"
+    
+    
+    //
+    // Wrapper product types
+    //
+
+    // Bundle
+    {   Type = ProductType;
+        Identifier = com.apple.product-type.bundle;
+        Class = PBXBundleProductType;
+        Name = "Bundle";
+        Description = "Generic bundle";
+        IconNamePrefix = "TargetPlugin";
+        DefaultTargetName = "Bundle";
+        DefaultBuildProperties = {
+            FULL_PRODUCT_NAME = "$(WRAPPER_NAME)";
+            MACH_O_TYPE = "mh_bundle";
+            WRAPPER_PREFIX = "";
+            WRAPPER_SUFFIX = ".$(WRAPPER_EXTENSION)";
+            WRAPPER_EXTENSION = "bundle";
+            WRAPPER_NAME = "$(WRAPPER_PREFIX)$(PRODUCT_NAME)$(WRAPPER_SUFFIX)";
+            FRAMEWORK_FLAG_PREFIX = "-framework";
+            LIBRARY_FLAG_PREFIX = "-l";
+            LIBRARY_FLAG_NOSPACE = YES;
+            STRIP_STYLE = "non-global";
+            GCC_INLINES_ARE_PRIVATE_EXTERN = YES;
+            CODE_SIGNING_ALLOWED = YES;
+        };
+        PackageTypes = (
+            com.apple.package-type.wrapper,             // default
+            com.apple.package-type.wrapper.shallow      // Not clear if this is needed in the presence of the Shallow Bundle product type below.
+        );
+        IsWrapper = YES;
+        HasInfoPlist = YES;
+        HasInfoPlistStrings = YES;
+        WantsBundleIdentifierEditing = YES;
+        WantsSigningEditing = YES;
     },
-    "Name" : "In-App Purchase Content",
-    "Identifier" : "com.apple.product-type.in-app-purchase-content",
-    "Description" : "In-App Purchase Content",
-    "Class" : "PBXBundleProductType"
-  },
-  {
-    "IconNamePrefix" : "XPCService",
-    "DefaultTargetName" : "XPC Service",
-    "CanEmbedCompilerSanitizerLibraries" : "YES",
-    "DefaultBuildProperties" : {
-      "MACH_O_TYPE" : "mh_execute",
-      "WRAPPER_EXTENSION" : "xpc"
+    
+    // Shallow Bundle Product
+    {   Type = ProductType;
+        Identifier = com.apple.product-type.bundle.shallow;
+        BasedOn = com.apple.product-type.bundle;
+        Class = PBXBundleProductType;
+        Name = "Bundle (Shallow)";
+        Description = "Bundle (Shallow)";
+        PackageTypes = (
+            com.apple.package-type.wrapper.shallow
+        );
     },
-    "PackageTypes" : [
-      "com.apple.package-type.xpc-service"
-    ],
-    "Type" : "ProductType",
-    "BasedOn" : "com.apple.product-type.bundle",
-    "Name" : "XPC Service",
-    "Identifier" : "com.apple.product-type.xpc-service",
-    "Description" : "XPC Service",
-    "Class" : "PBXBundleProductType"
-  },
-  {
-    "IconNamePrefix" : "XPCService",
-    "DefaultTargetName" : "PlugInKit PlugIn",
-    "DefaultBuildProperties" : {
-      "WRAPPER_EXTENSION" : "pluginkit",
-      "PRODUCT_SPECIFIC_LDFLAGS" : "$(SDKROOT)\/System\/Library\/PrivateFrameworks\/PlugInKit.framework\/PlugInKit"
+
+    // Application
+    {   Type = ProductType;
+        Identifier = com.apple.product-type.application;
+        BasedOn = com.apple.product-type.bundle;
+        Class = PBXApplicationProductType;
+        Name = "Application";
+        Description = "Application";
+        IconNamePrefix = "TargetApp";
+        DefaultTargetName = "Application";
+        DefaultBuildProperties = {
+            MACH_O_TYPE = "mh_execute";
+            GCC_DYNAMIC_NO_PIC = NO;
+            GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+            GCC_INLINES_ARE_PRIVATE_EXTERN = YES;
+            WRAPPER_SUFFIX = ".$(WRAPPER_EXTENSION)";
+            WRAPPER_EXTENSION = "app";
+            INSTALL_PATH = "$(LOCAL_APPS_DIR)";
+            STRIP_STYLE = "all";
+            CODE_SIGNING_ALLOWED = YES;
+            LD_RUNPATH_SEARCH_PATHS = "$(LD_RUNPATH_SEARCH_PATHS_$(IS_MACCATALYST))";
+            LD_RUNPATH_SEARCH_PATHS_YES = ( "@loader_path/../Frameworks", );
+        };
+        PackageTypes = (
+            com.apple.package-type.wrapper.application  // default
+        );
+
+        /** Product type validation hooks */
+        Validation = {
+
+            // Checks - a dictionary of checks that are perform just prior to building the product
+            // Each dictionary key is the "XCPropertyMacroExpression" to evaluate
+            // The dictionary value contains the error message to display if the condition evaluates to false.
+            Checks = {
+                // This is intentially empty as currently all of the checks are done in-code for this particular application type. However, we enable the plubmbing for the validation tool spec infrastructure to be called to avoid any further hacks in pbxbuild or xcbuild. This is to enable rdar://problem/45590882.
+            };
+
+            // Determines if the legacy build system has support for this validation hook. This is a workaround for enabling additional validation in xcbuild (specifically for rdar://problem/45590882), which does not have the same plugin restriction that is imposed on pbxbuild's implementation of the validation hooks.
+            EnabledForLegacyBuildSystem = NO;
+
+            // ValidationToolSpec - the identifier of the tool (script) to run after a target is constructed.
+            ValidationToolSpec = "com.apple.build-tools.platform.validate";
+        };
+        CanEmbedCompilerSanitizerLibraries = YES;
+        RunpathSearchPathForEmbeddedFrameworks = "@executable_path/../Frameworks";
+        ValidateEmbeddedBinaries = YES;
+        ProvisioningProfileSupported = YES;
+        ProvisioningProfileRequired = NO;
+        WantsBundleIdentifierEditing = YES;
+        WantsSigningEditing = YES;
     },
-    "PackageTypes" : [
-      "com.apple.package-type.pluginkit-plugin"
-    ],
-    "Type" : "ProductType",
-    "BasedOn" : "com.apple.product-type.xpc-service",
-    "Name" : "PlugInKit PlugIn",
-    "Identifier" : "com.apple.product-type.pluginkit-plugin",
-    "Description" : "PlugInKit PlugIn",
-    "Class" : "PBXBundleProductType"
-  },
-  {
-    "Description" : "App Extension",
-    "Class" : "PBXBundleProductType",
-    "Name" : "App Extension",
-    "ProvisioningProfileSupported" : "YES",
-    "DefaultTargetName" : "App Extension",
-    "DefaultBuildProperties" : {
-      "APPLICATION_EXTENSION_API_ONLY" : "YES",
-      "PRODUCT_SPECIFIC_LDFLAGS" : "-e _NSExtensionMain",
-      "WRAPPER_EXTENSION" : "appex",
-      "CODE_SIGNING_ALLOWED" : "YES"
+
+    // Shallow Application Product
+    {   Type = ProductType;
+        Identifier = com.apple.product-type.application.shallow;
+        BasedOn = com.apple.product-type.application;
+        Class = PBXApplicationProductType;   // see radar 5604879, this shouldn't be necesary
+        Name = "Application (Shallow Bundle)";
+        Description = "Application (Shallow Bundle)";
+        PackageTypes = (
+            com.apple.package-type.wrapper.application.shallow
+        );
     },
-    "BasedOn" : "com.apple.product-type.pluginkit-plugin",
-    "ProvisioningProfileRequired" : "NO",
-    "PackageTypes" : [
-      "com.apple.package-type.app-extension"
-    ],
-    "Type" : "ProductType",
-    "Identifier" : "com.apple.product-type.app-extension",
-    "IconNamePrefix" : "AppExtension"
-  },
-  {
-    "Description" : "Xcode Extension",
-    "Class" : "PBXBundleProductType",
-    "Name" : "Xcode Extension",
-    "ProvisioningProfileSupported" : "YES",
-    "DefaultTargetName" : "Xcode Extension",
-    "DefaultBuildProperties" : {
-      "APPLICATION_EXTENSION_API_ONLY" : "YES",
-      "PRODUCT_SPECIFIC_LDFLAGS" : "-e _XCExtensionMain -lXcodeExtension -weak_framework XcodeKit",
-      "PRODUCT_TYPE_LIBRARY_SEARCH_PATHS" : [
-        "$(inherited)",
-        "$(DEVELOPER_USR_DIR)\/lib"
-      ],
-      "CODE_SIGNING_ALLOWED" : "YES",
-      "WRAPPER_EXTENSION" : "appex",
-      "PRODUCT_TYPE_FRAMEWORK_SEARCH_PATHS" : [
-        "$(inherited)",
-        "$(DEVELOPER_FRAMEWORKS_DIR)"
-      ]
+
+    // Java Application
+    {   Type = ProductType;
+        Identifier = com.apple.product-type.application.java;
+        BasedOn = com.apple.product-type.application;
+        Name = "Java Application";
+        Description = "Java Application";
+        DefaultTargetName = "Java Application";
+        DefaultBuildProperties = {
+            INFOPLIST_PATH = "";
+            PKGINFO_PATH = "";
+        };
+        IsJava = YES;
     },
-    "BasedOn" : "com.apple.product-type.app-extension",
-    "ProvisioningProfileRequired" : "NO",
-    "PackageTypes" : [
-      "com.apple.package-type.app-extension"
-    ],
-    "Type" : "ProductType",
-    "Identifier" : "com.apple.product-type.xcode-extension",
-    "IconNamePrefix" : "XcodeExtension"
-  },
-  {
-    "DefaultTargetName" : "Spotlight",
-    "DefaultBuildProperties" : {
-      "CODE_SIGNING_ALLOWED" : "YES"
+
+    // Framework
+    {   Type = ProductType;
+        Identifier = com.apple.product-type.framework;
+        BasedOn = com.apple.product-type.bundle;
+        Class = PBXFrameworkProductType;
+        Name = "Framework";
+        Description = "Framework";
+        IconNamePrefix = "TargetFramework";
+        DefaultTargetName = "Framework";
+        DefaultBuildProperties = {
+            MACH_O_TYPE = "mh_dylib";
+            FRAMEWORK_VERSION = "A";
+            WRAPPER_SUFFIX = ".$(WRAPPER_EXTENSION)";
+            WRAPPER_EXTENSION = "framework";
+            INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+            DYLIB_INSTALL_NAME_BASE = "$(INSTALL_PATH)";
+            LD_DYLIB_INSTALL_NAME = "$(DYLIB_INSTALL_NAME_BASE:standardizepath)/$(EXECUTABLE_PATH)";
+            STRIP_STYLE = "debugging";
+            CODE_SIGNING_ALLOWED = YES;
+            CODE_SIGNING_REQUIRED = NO;
+            ENTITLEMENTS_REQUIRED = NO;
+            CODE_SIGNING_REQUIRES_TEAM = YES;
+        };
+        PackageTypes = (
+            com.apple.package-type.wrapper.framework   // default
+        );
     },
-    "PackageTypes" : [
-      "com.apple.package-type.spotlight-importer"
-    ],
-    "Type" : "ProductType",
-    "BasedOn" : "com.apple.product-type.bundle",
-    "Name" : "Spotlight Importer",
-    "Identifier" : "com.apple.product-type.spotlight-importer",
-    "Description" : "Spotlight Importer",
-    "Class" : "PBXBundleProductType"
-  }
-]
+
+    // Shallow Framework Product 
+    {   Type = ProductType;
+        Identifier = com.apple.product-type.framework.shallow;
+        BasedOn = com.apple.product-type.framework;
+        Class = PBXFrameworkProductType;
+        Name = "Framework (Shallow Bundle)";
+        Description = "Framework (Shallow Bundle)";
+        PackageTypes = (
+            com.apple.package-type.wrapper.framework.shallow
+        );
+    },
+
+    // Static framework
+    {   Type = ProductType;
+        Identifier = com.apple.product-type.framework.static;
+        BasedOn = com.apple.product-type.framework;
+        Class = XCStaticFrameworkProductType;
+        Name = "Static Framework";
+        Description = "Static Framework";
+        IconNamePrefix = "TargetFramework";
+        DefaultTargetName = "Static Framework";
+        DefaultBuildProperties = {
+            MACH_O_TYPE = "staticlib";
+            FRAMEWORK_VERSION = "A";
+            WRAPPER_SUFFIX = ".$(WRAPPER_EXTENSION)";
+            WRAPPER_EXTENSION = "framework";
+            INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+            DYLIB_INSTALL_NAME_BASE = "";
+            LD_DYLIB_INSTALL_NAME = "";
+            GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+            CODE_SIGNING_ALLOWED = NO;
+        };
+        AlwaysPerformSeparateStrip = YES;
+        PackageTypes = (
+            com.apple.package-type.wrapper.framework.static   // default
+        );
+    },
+
+    // System extension
+    {   Type = ProductType;
+        Identifier = com.apple.product-type.system-extension;
+        BasedOn = com.apple.product-type.bundle;
+        Name = "DriverKit Driver";
+        Description = "DriverKit driver";
+        DefaultTargetName = "DriverKit Driver";
+        DefaultBuildProperties = {
+            MACH_O_TYPE = "mh_execute";
+            WRAPPER_SUFFIX = ".$(WRAPPER_EXTENSION)";
+            WRAPPER_EXTENSION = "systemextension";
+
+            PRODUCT_NAME = "$(PRODUCT_BUNDLE_IDENTIFIER)";
+        };
+        PackageTypes = (
+            com.apple.package-type.wrapper.system-extension,
+        );
+        ProvisioningProfileSupported = YES;
+        ProvisioningProfileRequired = NO;
+    },
+
+    // DriverKit driver
+    {   Type = ProductType;
+        Identifier = com.apple.product-type.driver-extension;
+        BasedOn = com.apple.product-type.system-extension;
+        Name = "DriverKit Driver";
+        Description = "DriverKit driver";
+        DefaultTargetName = "DriverKit Driver";
+        DefaultBuildProperties = {
+            SDKROOT = "driverkit";
+            MACH_O_TYPE = "mh_execute";
+            WRAPPER_SUFFIX = ".$(WRAPPER_EXTENSION)";
+            WRAPPER_EXTENSION = "dext";
+            INSTALL_PATH = "$(DEFAULT_DEXT_INSTALL_PATH)";
+            STRIP_STYLE = "debugging";
+
+            DEXT_FRAMEWORK_NAME = "DriverKit";
+            DEXT_FRAMEWORK = "$(SYSTEM_LIBRARY_DIR)/Frameworks/$(DEXT_FRAMEWORK_NAME).framework";
+
+            GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+
+            PRODUCT_NAME = "$(PRODUCT_BUNDLE_IDENTIFIER)";
+            PRODUCT_TYPE_HEADER_SEARCH_PATHS = "$(inherited) $(IIG_HEADERS_DIR)";
+        };
+        DefaultEntitlements = {
+            "com.apple.developer.driverkit" = YES;
+        };
+        PackageTypes = (
+            com.apple.package-type.wrapper.driver-extension,
+        );
+    },
+
+    // Kernel Extension
+    {   Type = ProductType;
+        Identifier = com.apple.product-type.kernel-extension;
+        BasedOn = com.apple.product-type.bundle;
+        Class = XCKernelExtensionProductType;
+        Name = "Kernel Extension";
+        Description = "Kernel extension";
+        DefaultTargetName = "Kernel Extension";
+        DefaultBuildProperties = {
+            MACH_O_TYPE = "mh_execute";
+            WRAPPER_SUFFIX = ".$(WRAPPER_EXTENSION)";
+            WRAPPER_EXTENSION = "kext";
+            INSTALL_PATH = "$(DEFAULT_KEXT_INSTALL_PATH)";
+            STRIP_STYLE = "debugging";
+
+            KEXT_FRAMEWORK_NAME = "Kernel";
+            KEXT_FRAMEWORK = "$(SYSTEM_LIBRARY_DIR)/Frameworks/$(KEXT_FRAMEWORK_NAME).framework";
+            KEXT_FAMILY_NAME = "family";
+            PUBLIC_HEADERS_FOLDER_PATH = "$(KEXT_FRAMEWORK)/Contents/Headers/$(KEXT_FAMILY_NAME)";
+            PRIVATE_HEADERS_FOLDER_PATH = "$(KEXT_FRAMEWORK)/Contents/PrivateHeaders/$(KEXT_FAMILY_NAME)";
+            MODULE_NAME = "com.company.driver.modulename";
+            MODULE_VERSION = "1.0";
+            MODULE_START = "0";
+            MODULE_STOP = "0";
+            
+            ENABLE_APPLE_KEXT_CODE_GENERATION = YES;                // -fapple-kext
+            GCC_ENABLE_KERNEL_DEVELOPMENT = YES;                    // -mkernel
+            
+            GCC_USE_STANDARD_INCLUDE_SEARCHING = NO;                // -nostdinc
+            GCC_ENABLE_PASCAL_STRINGS = NO;                         // Disables -fpascal-strings
+            GCC_FORCE_CPU_SUBTYPE_ALL = YES;                        // -force_cpusubtype_ALL
+            GCC_CHECK_RETURN_VALUE_OF_OPERATOR_NEW = YES;           // -fcheck-new
+            GCC_INLINES_ARE_PRIVATE_EXTERN = NO;                    // -fvisibility-inlines-hidden
+            GCC_ENABLE_BUILTIN_FUNCTIONS = NO;                      // -fno-builtin
+            GCC_NO_COMMON_BLOCKS = YES;                             // -fno-common
+            GCC_ENABLE_CPP_EXCEPTIONS = NO;                         // -fno-exceptions
+            GCC_ENABLE_CPP_RTTI = NO;                               // -fno-rtti
+            
+            // Supposedly these two flags are the default in GCC, but they're provided here for compatibility with older Xcode versions.
+            GCC_ENABLE_FUNCTION_INLINING = YES;                     // -finline
+            GCC_DISABLE_STATIC_FUNCTION_INLINING = YES;             // -fno-keep-inline-functions
+            
+            // Per-product-type settings.
+            // The KERNEL_*** settings are defined differently for some SDKs, so we continue to use them for compatibility reasons.
+            KERNEL_FRAMEWORK = "$(SDKROOT)$(SYSTEM_LIBRARY_DIR)/Frameworks/Kernel.framework";
+            KERNEL_FRAMEWORK_HEADERS = "$(KERNEL_FRAMEWORK)/Headers";
+            KERNEL_EXTENSION_HEADER_SEARCH_PATHS = "$(KERNEL_FRAMEWORK)/PrivateHeaders $(KERNEL_FRAMEWORK_HEADERS)";
+            // These settings are reserved for use by product types.
+            GCC_PRODUCT_TYPE_PREPROCESSOR_DEFINITIONS = "$(inherited) KERNEL KERNEL_PRIVATE DRIVER_PRIVATE APPLE NeXT";
+            PRODUCT_TYPE_CFLAGS = "$(inherited) $(KEXT_CFLAGS)";
+            PRODUCT_TYPE_CPLUSPLUSFLAGS = "$(inherited) $(KEXT_CPLUSPLUSFLAGS)";
+            PRODUCT_SPECIFIC_LDFLAGS = "$(inherited) $(KEXT_LDFLAGS)";
+            PRODUCT_TYPE_HEADER_SEARCH_PATHS = "$(inherited) $(KERNEL_EXTENSION_HEADER_SEARCH_PATHS)";
+            
+            CODE_SIGNING_ALLOWED = YES;
+            
+            ARCHS_STANDARD = "arm64e x86_64";
+            ARCHS_STANDARD_64_BIT = "$(ARCHS_STANDARD)";
+            ARCHS_STANDARD_INCLUDING_64_BIT = "$(ARCHS_STANDARD)";
+        };
+        PackageTypes = (
+            com.apple.package-type.wrapper.kernel-extension,            // Default
+            com.apple.package-type.wrapper.kernel-extension.shallow,
+        );
+    },
+        
+    // Shallow Kernel Extension
+    {
+        Type = ProductType;
+        Identifier = com.apple.product-type.kernel-extension.shallow;
+        BasedOn = com.apple.product-type.kernel-extension;
+        Class = XCKernelExtensionProductType;
+        Name = "Kernel Extension (Shallow)";
+        Description = "Kernel extension (shallow)";
+        DefaultBuildProperties = {
+            // None yet
+        };
+        PackageTypes = (
+            com.apple.package-type.wrapper.kernel-extension.shallow,
+        );
+    },
+
+    // IOKit Kernel Extension
+    {   Type = ProductType;
+        Identifier = com.apple.product-type.kernel-extension.iokit;
+        BasedOn = com.apple.product-type.kernel-extension;
+        Class = XCKernelExtensionProductType;
+        Name = "IOKit Kernel Extension";
+        Description = "IOKit Kernel extension";
+        DefaultTargetName = "IOKit Kernel Extension";
+        DefaultBuildProperties = {
+            CODE_SIGNING_ALLOWED = YES;
+        };
+        PackageTypes = (
+            com.apple.package-type.wrapper.kernel-extension,            // Default
+            com.apple.package-type.wrapper.kernel-extension.shallow,
+        );
+    },
+
+    // Shallow IOKit Kernel Extension
+    {   Type = ProductType;
+        Identifier = com.apple.product-type.kernel-extension.iokit.shallow;
+        BasedOn = com.apple.product-type.kernel-extension;
+        Class = XCKernelExtensionProductType;
+        Name = "IOKit Kernel Extension (Shallow)";
+        Description = "IOKit Kernel extension (Shallow)";
+        DefaultTargetName = "IOKit Kernel Extension (Shallow)";
+        DefaultBuildProperties = {
+            // None yet
+        };
+        PackageTypes = (
+            com.apple.package-type.wrapper.kernel-extension.shallow,
+        );
+    },
+
+    // Unit Test Bundle
+    {   Type = ProductType;
+        Identifier = com.apple.product-type.bundle.unit-test;
+        BasedOn = com.apple.product-type.bundle;
+        Class = PBXXCTestBundleProductType;
+        Name = "Unit Test Bundle";
+        Description = "Unit Test Bundle";
+        DefaultBuildProperties = {
+            WRAPPER_EXTENSION = "xctest";
+            ENABLE_TESTING_SEARCH_PATHS = YES;
+            PRODUCT_SPECIFIC_LDFLAGS = "-framework XCTest";
+            XCTRUNNER_PATH = "$(XCTRUNNER_PATH$(TEST_BUILD_STYLE))";
+            LD_RUNPATH_SEARCH_PATHS = "$(LD_RUNPATH_SEARCH_PATHS_$(IS_MACCATALYST))";
+            LD_RUNPATH_SEARCH_PATHS_YES = (
+                "@loader_path/../Frameworks",
+                "@executable_path/../Frameworks",
+            );
+        };
+        PackageTypes = (
+            com.apple.package-type.bundle.unit-test
+        );
+        CanEmbedCompilerSanitizerLibraries = YES;
+        IsUnitTest = YES;
+        WantsBundleIdentifierEditing = NO;
+    },
+
+    // UI Testing Bundle
+    {   Type = ProductType;
+        Identifier = com.apple.product-type.bundle.ui-testing;
+        BasedOn = com.apple.product-type.bundle.unit-test;
+        Class = PBXXCTestBundleProductType;
+        Name = "UI Testing Bundle";
+        Description = "UI Testing Bundle";
+        DefaultBuildProperties = {
+            USES_XCTRUNNER = "YES";
+        };
+        PackageTypes = (
+            com.apple.package-type.bundle.unit-test
+        );
+        ProvisioningProfileSupported = YES;
+        IsUITest = YES;
+        InfoPlistAdditions = {
+            XCTContainsUITests = YES;
+        };
+        WantsBundleIdentifierEditing = NO;
+    },
+
+    // Legacy OCUnit Test Bundle
+    {   Type = ProductType;
+        Identifier = com.apple.product-type.bundle.ocunit-test;
+        BasedOn = com.apple.product-type.bundle;
+        Class = PBXBundleProductType;
+        Name = "OCUnit Test Bundle";
+        Description = "OCUnit Test Bundle";
+        DefaultBuildProperties = {
+            WRAPPER_EXTENSION = "octest";
+        };
+        PackageTypes = (
+            com.apple.package-type.bundle.ocunit-test
+        );
+        IsUnitTest = YES;
+    },
+        
+    // In-App Purchase Content
+    {   Type = ProductType;
+        Identifier = com.apple.product-type.in-app-purchase-content;
+        Class = PBXBundleProductType;
+        Name = "In-App Purchase Content";
+        Description = "In-App Purchase Content";
+        DefaultBuildProperties = {
+            CODE_SIGNING_ALLOWED = NO;
+            FULL_PRODUCT_NAME = "$(WRAPPER_NAME)";
+        };
+        PackageTypes = (
+            com.apple.package-type.in-app-purchase-content,             // default
+        );
+        IsWrapper = YES;
+        HasInfoPlist = YES;
+        HasInfoPlistStrings = NO;
+    },
+
+    // XPC Service
+    {
+		Type = ProductType;
+		Identifier = "com.apple.product-type.xpc-service";
+		BasedOn = "com.apple.product-type.bundle";
+		Class = PBXBundleProductType;
+		Name = "XPC Service";
+		Description = "XPC Service";
+		IconNamePrefix = XPCService;
+		DefaultTargetName = "XPC Service";
+        CanEmbedCompilerSanitizerLibraries = YES;
+        "DefaultBuildProperties" = {
+            "MACH_O_TYPE" = "mh_execute";
+            WRAPPER_EXTENSION = "xpc";
+            LD_RUNPATH_SEARCH_PATHS = "$(LD_RUNPATH_SEARCH_PATHS_$(IS_MACCATALYST)_$(_BOOL_$(SKIP_INSTALL)))";
+            LD_RUNPATH_SEARCH_PATHS_YES_YES = (
+                "@loader_path/../Frameworks",
+                "@loader_path/../../../../Frameworks",
+            );
+            LD_RUNPATH_SEARCH_PATHS_YES_NO = ( "@loader_path/../Frameworks", );
+        };
+		PackageTypes = (
+			"com.apple.package-type.xpc-service",
+		);
+        ProvisioningProfileSupported = YES;
+        ProvisioningProfileRequired = NO;
+        WantsBundleIdentifierEditing = YES;
+        WantsSigningEditing = YES;
+	},
+
+    // PlugIn-Kit PlugIn
+    {
+        Type = ProductType;
+        Identifier = "com.apple.product-type.pluginkit-plugin";
+        BasedOn = "com.apple.product-type.xpc-service";
+        Class = PBXBundleProductType;
+        Name = "PlugInKit PlugIn";
+        Description = "PlugInKit PlugIn";
+        IconNamePrefix = XPCService;
+        DefaultTargetName = "PlugInKit PlugIn";
+        "DefaultBuildProperties" = {
+            "PRODUCT_SPECIFIC_LDFLAGS" = "$(SDKROOT)/System/Library/PrivateFrameworks/PlugInKit.framework/PlugInKit";
+            WRAPPER_EXTENSION = "pluginkit";
+        };
+        PackageTypes = (
+            "com.apple.package-type.pluginkit-plugin",
+        );
+    },
+        
+    // App Extension
+    {
+        Type = ProductType;
+        Identifier = "com.apple.product-type.app-extension";
+        BasedOn = "com.apple.product-type.pluginkit-plugin";
+        Class = PBXBundleProductType;
+        Name = "App Extension";
+        Description = "App Extension";
+        IconNamePrefix = AppExtension;
+        DefaultTargetName = "App Extension";
+        "DefaultBuildProperties" = {
+            "CODE_SIGNING_ALLOWED" = YES;
+            "APPLICATION_EXTENSION_API_ONLY" = YES;
+            "PRODUCT_SPECIFIC_LDFLAGS" = "-e _NSExtensionMain";
+            WRAPPER_EXTENSION = "appex";
+        };
+        PackageTypes = (
+            "com.apple.package-type.app-extension",
+        );
+        ProvisioningProfileSupported = YES;
+        ProvisioningProfileRequired = NO;
+        WantsBundleIdentifierEditing = YES;
+        WantsSigningEditing = YES;
+    },
+    
+    // Xcode Extension
+    {
+        Type = ProductType;
+        Identifier = "com.apple.product-type.xcode-extension";
+        BasedOn = "com.apple.product-type.app-extension";
+        Name = "Xcode Extension";
+        Description = "Xcode Extension";
+        IconNamePrefix = XcodeExtension;
+        DefaultTargetName = "Xcode Extension";
+        "DefaultBuildProperties" = {
+            "CODE_SIGNING_ALLOWED" = YES;
+            "APPLICATION_EXTENSION_API_ONLY" = YES;
+            "PRODUCT_SPECIFIC_LDFLAGS" = "-e _XCExtensionMain -lXcodeExtension";
+            "PRODUCT_TYPE_FRAMEWORK_SEARCH_PATHS" = (
+                "$(inherited)",
+                "$(DEVELOPER_FRAMEWORKS_DIR)",
+            );
+            "PRODUCT_TYPE_LIBRARY_SEARCH_PATHS" = (
+                "$(inherited)",
+                "$(DEVELOPER_USR_DIR)/lib",
+            );
+            LD_RUNPATH_SEARCH_PATHS = (
+                "@loader_path/../Frameworks",
+            );
+            WRAPPER_EXTENSION = "appex";
+        };
+        PackageTypes = (
+            "com.apple.package-type.app-extension",
+        );
+        ProvisioningProfileSupported = YES;
+        ProvisioningProfileRequired = NO;
+        WantsBundleIdentifierEditing = YES;
+        WantsSigningEditing = YES;
+    },
+    
+    // Spotlight Importer
+    {
+        Type = ProductType;
+        Identifier = "com.apple.product-type.spotlight-importer";
+        BasedOn = "com.apple.product-type.bundle";
+        Class = PBXBundleProductType;
+        Name = "Spotlight Importer";
+        Description = "Spotlight Importer";
+        DefaultTargetName = "Spotlight";
+        "DefaultBuildProperties" = {
+            "CODE_SIGNING_ALLOWED" = YES;
+        };
+        PackageTypes = (
+            "com.apple.package-type.spotlight-importer",
+        );
+    },
+
+    // Copied from iOS specs to aid in build system diagnostic support.
+    // Later, we should put these in some central place.
+    {
+        Type = ProductType;
+        Identifier = "com.apple.product-type.app-extension.messages";
+        BasedOn = "com.apple.product-type.app-extension";
+    },
+
+    {
+        Type = ProductType;
+        Identifier = "com.apple.product-type.app-extension.messages-sticker-pack";
+        BasedOn = "com.apple.product-type.app-extension";
+        IsCapabilitiesUnsupported = YES;
+        WantsSimpleTargetEditing = YES;
+        DefaultBuildProperties = {
+            MESSAGES_APPLICATION_EXTENSION_PRODUCT_BINARY_SOURCE_PATH = "$(PLATFORM_DIR)/Library/Application Support/MessagesApplicationExtensionStub/MessagesApplicationExtensionStub";
+            ASSETCATALOG_COMPILER_INCLUDE_STICKER_CONTENT = YES;
+            ASSETCATALOG_COMPILER_TARGET_STICKERS_ICON_ROLE = "extension";
+            ASSETCATALOG_COMPILER_STICKER_PACK_IDENTIFIER_PREFIX = "$(PRODUCT_BUNDLE_IDENTIFIER).sticker-pack.";
+        };
+        AllowedBuildPhases = (
+            "com.apple.buildphase.resources",
+            "com.apple.buildphase.shell-script",
+        );
+        InfoPlistAdditions = {
+            LSApplicationIsStickerProvider = YES;
+        };
+    },
+
+    {
+        Type = ProductType;
+        Identifier = "com.apple.product-type.application.on-demand-install-capable";
+        BasedOn = "com.apple.product-type.application";
+        Name = "App Clip";
+        Description = "App Clip";
+        DefaultBuildProperties = {
+            ENABLE_ON_DEMAND_RESOURCES = NO;
+            ASSETCATALOG_COMPILER_STANDALONE_ICON_BEHAVIOR = none; // Don't include standalone icons to keep size down
+            PRODUCT_SPECIFIC_LDFLAGS = "$(inherited) -framework AppClip";
+            SKIP_INSTALL = YES;
+        };
+        DefaultEntitlements = {
+            "com.apple.developer.on-demand-install-capable" = YES;
+        };
+        SupportsOnDemandResources = NO;
+        IsEmbeddable = YES;
+        BuildPhaseInjectionsWhenEmbedding = (
+            {
+                BuildPhase = "CopyFiles";
+                Name = "Embed App Clips";
+                RunOnlyForDeploymentPostprocessing = NO;
+                DstSubFolderSpec = 16;
+                DstPath = "$(CONTENTS_FOLDER_PATH)/AppClips";
+            }
+        );
+    },
+)
