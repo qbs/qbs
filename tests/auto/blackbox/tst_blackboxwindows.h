@@ -44,8 +44,12 @@ public slots:
     void initTestCase() override;
 
 private slots:
+    void innoSetup();
+    void innoSetupDependencies();
     void standaloneCodesign();
     void standaloneCodesign_data();
+    void wix();
+    void wixDependencies();
 };
 
 #endif // TST_BLACKBOXWINDOWS_H

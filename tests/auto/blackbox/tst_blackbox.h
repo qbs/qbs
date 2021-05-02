@@ -143,8 +143,6 @@ private slots:
     void importingProduct();
     void importsConflict();
     void includeLookup();
-    void innoSetup();
-    void innoSetupDependencies();
     void inputTagsChangeTracking_data();
     void inputTagsChangeTracking();
     void inputsFromDependencies();
@@ -337,8 +335,6 @@ private slots:
     void wholeArchive_data();
     void wildCardsAndRules();
     void wildcardRenaming();
-    void wix();
-    void wixDependencies();
     void zip();
     void zip_data();
     void zipInvalid();

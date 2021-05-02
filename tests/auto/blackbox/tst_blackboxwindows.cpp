@@ -33,11 +33,14 @@
 #include "../shared.h"
 
 #include <tools/hostosinfo.h>
+#include <tools/profile.h>
+#include <tools/qttools.h>
 
 #include <QtCore/qdir.h>
 #include <QtCore/qregularexpression.h>
 
 using qbs::Internal::HostOsInfo;
+using qbs::Profile;
 
 struct SigntoolInfo
 {
@@ -117,6 +120,47 @@ void TestBlackboxWindows::initTestCase()
     TestBlackboxBase::initTestCase();
 }
 
+void TestBlackboxWindows::innoSetup()
+{
+    const SettingsPtr s = settings();
+    Profile profile(profileName(), s.get());
+
+    QDir::setCurrent(testDataDir + "/innosetup");
+
+    QCOMPARE(runQbs({"resolve"}), 0);
+    const bool withInnosetup = m_qbsStdout.contains("has innosetup: true");
+    const bool withoutInnosetup = m_qbsStdout.contains("has innosetup: false");
+    QVERIFY2(withInnosetup || withoutInnosetup, m_qbsStdout.constData());
+    if (withoutInnosetup)
+        QSKIP("innosetup module not present");
+
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(m_qbsStdout.contains("compiling test.iss"));
+    QVERIFY(m_qbsStdout.contains("compiling Example1.iss"));
+    QVERIFY(regularFileExists(relativeProductBuildDir("QbsSetup") + "/qbs.setup.test.exe"));
+    QVERIFY(regularFileExists(relativeProductBuildDir("Example1") + "/Example1.exe"));
+}
+
+void TestBlackboxWindows::innoSetupDependencies()
+{
+    const SettingsPtr s = settings();
+    Profile profile(profileName(), s.get());
+
+    QDir::setCurrent(testDataDir + "/innosetupDependencies");
+
+    QCOMPARE(runQbs({"resolve"}), 0);
+    const bool withInnosetup = m_qbsStdout.contains("has innosetup: true");
+    const bool withoutInnosetup = m_qbsStdout.contains("has innosetup: false");
+    QVERIFY2(withInnosetup || withoutInnosetup, m_qbsStdout.constData());
+    if (withoutInnosetup)
+        QSKIP("innosetup module not present");
+
+    QbsRunParameters params;
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY(m_qbsStdout.contains("compiling test.iss"));
+    QVERIFY(regularFileExists(relativeBuildDir() + "/qbs.setup.test.exe"));
+}
+
 void TestBlackboxWindows::standaloneCodesign()
 {
     QFETCH(SigntoolInfo::CodeSignResult, result);
@@ -169,6 +213,95 @@ void TestBlackboxWindows::standaloneCodesign_data()
     QTest::newRow("standalone, signed, sha256, qbs@community.test, RFC3061 timestamp")
         << SigntoolInfo::CodeSignResult::Signed << "sha256" << "qbs@community.test"
         << "http://timestamp.digicert.com";
+}
+
+
+static bool haveWiX(const Profile &profile)
+{
+    if (profile.value("wix.toolchainInstallPath").isValid() &&
+            profile.value("wix.toolchainInstallRoot").isValid()) {
+        return true;
+    }
+
+    QStringList regKeys;
+    regKeys << QStringLiteral("HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows Installer XML\\")
+            << QStringLiteral("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows Installer XML\\");
+
+    QStringList paths = QProcessEnvironment::systemEnvironment().value("PATH")
+            .split(HostOsInfo::pathListSeparator(), QBS_SKIP_EMPTY_PARTS);
+
+    for (const QString &key : qAsConst(regKeys)) {
+        const QStringList versions = QSettings(key, QSettings::NativeFormat).childGroups();
+        for (const QString &version : versions) {
+            QSettings settings(key + version, QSettings::NativeFormat);
+            QString str = settings.value(QStringLiteral("InstallRoot")).toString();
+            if (!str.isEmpty())
+                paths.prepend(str);
+        }
+    }
+
+    for (const QString &path : qAsConst(paths)) {
+        if (regularFileExists(QDir::fromNativeSeparators(path) +
+                          HostOsInfo::appendExecutableSuffix(QStringLiteral("/candle"))) &&
+            regularFileExists(QDir::fromNativeSeparators(path) +
+                          HostOsInfo::appendExecutableSuffix(QStringLiteral("/light")))) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void TestBlackboxWindows::wix()
+{
+    const SettingsPtr s = settings();
+    Profile profile(profileName(), s.get());
+
+    if (!haveWiX(profile)) {
+        QSKIP("WiX is not installed");
+        return;
+    }
+
+    QByteArray arch = profile.value("qbs.architecture").toString().toLatin1();
+    if (arch.isEmpty())
+        arch = QByteArrayLiteral("x86");
+
+    QDir::setCurrent(testDataDir + "/wix");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling QbsSetup.wxs"), m_qbsStdout);
+    QVERIFY2(m_qbsStdout.contains("linking qbs.msi"), m_qbsStdout);
+    QVERIFY(regularFileExists(relativeProductBuildDir("QbsSetup") + "/qbs.msi"));
+
+    if (HostOsInfo::isWindowsHost()) {
+        QVERIFY2(m_qbsStdout.contains("compiling QbsBootstrapper.wxs"), m_qbsStdout);
+        QVERIFY2(m_qbsStdout.contains("linking qbs-setup-" + arch + ".exe"), m_qbsStdout);
+        QVERIFY(regularFileExists(relativeProductBuildDir("QbsBootstrapper")
+                                  + "/qbs-setup-" + arch + ".exe"));
+    }
+}
+
+void TestBlackboxWindows::wixDependencies()
+{
+    const SettingsPtr s = settings();
+    Profile profile(profileName(), s.get());
+
+    if (!haveWiX(profile)) {
+        QSKIP("WiX is not installed");
+        return;
+    }
+
+    QByteArray arch = profile.value("qbs.architecture").toString().toLatin1();
+    if (arch.isEmpty())
+        arch = QByteArrayLiteral("x86");
+
+    QDir::setCurrent(testDataDir + "/wixDependencies");
+    QbsRunParameters params;
+    if (!HostOsInfo::isWindowsHost())
+        params.arguments << "qbs.targetOS:windows";
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling QbsSetup.wxs"), m_qbsStdout);
+    QVERIFY2(m_qbsStdout.contains("linking qbs.msi"), m_qbsStdout);
+    QVERIFY(regularFileExists(relativeBuildDir() + "/qbs.msi"));
 }
 
 QTEST_MAIN(TestBlackboxWindows)
