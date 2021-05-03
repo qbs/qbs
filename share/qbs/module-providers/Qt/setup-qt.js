@@ -569,11 +569,15 @@ function libraryBaseName(modInfo, qtProps, debugBuild) {
             || modInfo.name === "DataVisualization"
             || modInfo.name === "Phonon";
 
-    var libName = !modInfo.modulePrefix && !libNameBroken ? "Qt" : modInfo.modulePrefix;
-    if (qtProps.qtMajorVersion >= 5 && !isFramework(modInfo, qtProps) && !libNameBroken)
-        libName += qtProps.qtMajorVersion;
+    var libName = "";
+    if (!modInfo.isExternal) {
+        libName += !modInfo.modulePrefix && !libNameBroken ? "Qt" : modInfo.modulePrefix;
+        if (qtProps.qtMajorVersion >= 5 && !isFramework(modInfo, qtProps) && !libNameBroken)
+            libName += qtProps.qtMajorVersion;
+    }
     libName += moduleNameWithoutPrefix(modInfo);
-    libName += qtProps.qtLibInfix;
+    if (!modInfo.isExternal)
+        libName += qtProps.qtLibInfix;
     return libBaseName(modInfo, libName, debugBuild, qtProps);
 }
 
@@ -969,7 +973,8 @@ function extractPaths(rhs, filePath) {
             if (endIndex === -1)
                 endIndex = rhs.length;
         }
-        paths.push(FileInfo.cleanPath(rhs.slice(startIndex, endIndex)));
+        paths.push(FileInfo.cleanPath(rhs.slice(startIndex, endIndex)
+                                      .replace("$$PWD", FileInfo.path(filePath))));
         startIndex = endIndex + 1;
     }
     return paths;
@@ -1063,17 +1068,21 @@ function allQt5Modules(qtProps, androidAbi) {
     for (var i = 0; i < modulePriFiles.length; ++i) {
         var priFileName = modulePriFiles[i];
         var priFilePath = FileInfo.joinPaths(modulesDir, priFileName);
+        var genericFileNamePrefix = "qt_";
         var moduleFileNamePrefix = "qt_lib_";
         var pluginFileNamePrefix = "qt_plugin_";
         var moduleFileNameSuffix = ".pri";
         var fileHasPluginPrefix = priFileName.startsWith(pluginFileNamePrefix);
-        if (!fileHasPluginPrefix && (!priFileName.startsWith(moduleFileNamePrefix))
+        if (!fileHasPluginPrefix && !priFileName.startsWith(genericFileNamePrefix)
                 || !priFileName.endsWith(moduleFileNameSuffix)) {
             continue;
         }
         var moduleInfo = makeQtModuleInfo();
         moduleInfo.isPlugin = fileHasPluginPrefix;
-        var fileNamePrefix = moduleInfo.isPlugin ? pluginFileNamePrefix : moduleFileNamePrefix;
+        moduleInfo.isExternal = !moduleInfo.isPlugin
+                && !priFileName.startsWith(moduleFileNamePrefix);
+        var fileNamePrefix = moduleInfo.isPlugin ? pluginFileNamePrefix : moduleInfo.isExternal
+                                                   ? genericFileNamePrefix : moduleFileNamePrefix;
         moduleInfo.qbsName = priFileName.slice(fileNamePrefix.length, -moduleFileNameSuffix.length);
         if (moduleInfo.isPlugin) {
             moduleInfo.name = moduleInfo.qbsName;
