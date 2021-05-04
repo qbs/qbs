@@ -2,7 +2,7 @@
 .qmake.stash
 .qbs
 .vscode*
-build
+/build
 *.dll
 *.dylib
 *.exe

@@ -17,9 +17,9 @@ CppApplication {
     files: ["consumer.cpp"]
     cpp.defines: {
         var defs = [];
-        if (MyLib.config.feature_x)
+        if (MyLib.configuration.feature_x)
             defs.push("FEATURE_X");
-        if (MyLib.config.feature_y)
+        if (MyLib.configuration.feature_y)
             defs.push("FEATURE_Y");
         return defs;
     }

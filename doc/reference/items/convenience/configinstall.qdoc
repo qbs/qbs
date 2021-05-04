@@ -1,0 +1,149 @@
+/****************************************************************************
+**
+** Copyright (C) 2025 Ivan Komissarov (abbapoh@gmail.com).
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+/*!
+    \previouspage AutotestRunner
+    \nextpage CppApplication
+    \qmltype ConfigInstall
+    \inqmlmodule QbsConvenienceItems
+    \ingroup list-of-items
+    \since Qbs 3.1
+
+    \brief This is the base item for the \l{config.install} module.
+
+    This items contains properties that configure built-in
+    items such as \l{Application}, \l{Library}, and \l{Plugin}.
+*/
+
+/*!
+    \qmlproperty string ConfigInstall::applicationsDirectory
+    The directory where application bundles should be installed on Apple platforms.
+    \defaultvalue \l{installpaths::applications}{installpaths.applications}
+*/
+
+/*!
+    \qmlproperty string ConfigInstall::binariesDirectory
+    The directory where binaries should be installed.
+    \defaultvalue \l{installpaths::bin}{installpaths.bin}
+*/
+
+/*!
+    \qmlproperty string ConfigInstall::debugInformationDirectory
+    The directory where debug information should be installed.
+
+    If not set, the value is auto-detected based on item type installing debug info into the
+    same folder as the main artifact.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string ConfigInstall::dynamicLibrariesDirectory
+    The directory where dynamic libraries should be installed.
+    \defaultvalue \l{installpaths::bin}{installpaths.bin} on Windows,
+    \l{installpaths::lib}{installpaths.lib} otherwise
+*/
+
+/*!
+    \qmlproperty string ConfigInstall::frameworksDirectory
+    The directory where frameworks should be installed.
+    \defaultvalue \l{installpaths::library}{installpaths.library} + \c{"/"}
+        + \l{installpaths::frameworks}{installpaths.frameworks}
+*/
+
+/*!
+    \qmlproperty string ConfigInstall::importLibrariesDirectory
+    The directory where import libraries should be installed.
+    \defaultvalue \l{installpaths::lib}{installpaths.lib}
+*/
+
+/*!
+    \qmlproperty bool ConfigInstall::install
+    Controls whether products should be installed by default.
+    \defaultvalue \c true
+*/
+
+/*!
+    \qmlproperty bool ConfigInstall::debugInformation
+    Controls whether debug information should be installed.
+    \defaultvalue \l{install}
+*/
+
+/*!
+    \qmlproperty bool ConfigInstall::dynamicLibraries
+    Controls whether dynamic libraries should be installed.
+    \defaultvalue \l{install}
+*/
+
+/*!
+    \qmlproperty bool ConfigInstall::frameworks
+    Controls whether frameworks should be installed.
+    \defaultvalue \l{install}
+*/
+
+/*!
+    \qmlproperty bool ConfigInstall::importLibraries
+    Controls whether import libraries should be installed (relevant for Windows dynamic libraries).
+    \defaultvalue \c false
+*/
+
+/*!
+    \qmlproperty bool ConfigInstall::loadableModules
+    Controls whether loadable modules should be installed.
+    \defaultvalue \l{install}
+*/
+
+/*!
+    \qmlproperty bool ConfigInstall::plugins
+    Controls whether plugins should be installed.
+    \defaultvalue \l{install}
+*/
+
+/*!
+    \qmlproperty bool ConfigInstall::staticLibraries
+    Controls whether static libraries should be installed.
+    \defaultvalue \c false
+*/
+
+/*!
+    \qmlproperty string ConfigInstall::loadableModulesDirectory
+    The directory where loadable modules should be installed.
+    \defaultvalue \l{installpaths::library}{installpaths.library} + \c{"/"}
+        + \l{installpaths::frameworks}{installpaths.frameworks}
+*/
+
+/*!
+    \qmlproperty string ConfigInstall::pluginsDirectory
+    The directory where plugins should be installed.
+    \defaultvalue \l{installpaths::plugins}{installpaths.plugins}
+*/
+
+/*!
+    \qmlproperty string ConfigInstall::staticLibrariesDirectory
+    The directory where static libraries should be installed.
+    \defaultvalue \l{installpaths::lib}{installpaths.lib}
+*/

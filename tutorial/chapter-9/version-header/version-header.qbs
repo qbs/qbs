@@ -7,7 +7,7 @@ Product {
     name: "version_header"
     type: "hpp"
 
-    Depends { name: "mybuildconfig" }
+    Depends { name: "config.myproject" }
 //! [0]
 
 //! [1]
@@ -36,7 +36,7 @@ Product {
 
                 content = content.replace(
                     "${PRODUCT_VERSION}",
-                    product.mybuildconfig.productVersion);
+                    product.config.myproject.productVersion);
 
                 file = new TextFile(output.filePath, TextFile.WriteOnly);
                 file.write(content);

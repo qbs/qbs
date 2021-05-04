@@ -2,6 +2,7 @@
 **
 ** Copyright (C) 2017 The Qt Company Ltd.
 ** Copyright (C) 2015 Jake Petroules.
+** Copyright (C) 2025 Ivan Komissarov (abbapoh@gmail.com).
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -28,13 +29,16 @@
 /*!
     \previouspage Library
     \nextpage QtApplication
-    \qmltype LoadableModule
-    \inherits Plugin
+    \qmltype Plugin
+    \inherits Library
     \inqmlmodule QbsConvenienceItems
     \ingroup list-of-items
-    \keyword QML.LoadableModule
+    \keyword QML.Plugin
 
-    \brief Loadable module.
+    \brief Plugin base item.
 
-    Same as the \l{Plugin} item.
+    A Plugin item is a \l{DynamicLibrary} that is installed to the \{installpaths::plugins}
+    directory.
+
+    This item exists for the convenience of project file authors.
 */

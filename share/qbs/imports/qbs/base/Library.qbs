@@ -39,18 +39,24 @@ NativeBinary {
     readonly property bool isStaticLibrary: type.contains("staticlibrary")
     readonly property bool isLoadableModule: type.contains("loadablemodule")
 
+    Depends { name: "config.install" }
+
+    install: installDir !== undefined
     installDir: {
-        if (isBundle)
-            return "Library/Frameworks";
-        if (isDynamicLibrary)
-            return qbs.targetOS.contains("windows") ? "bin" : "lib";
-        if (isStaticLibrary)
-            return "lib";
+        if (isForAndroid)
+            return undefined;
+        if (isForDarwin && bundle.isBundle && config.install.frameworks)
+            return config.install.frameworksDirectory;
+        if (isStaticLibrary && config.install.staticLibraries)
+            return config.install.staticLibrariesDirectory;
+        if (isDynamicLibrary && config.install.dynamicLibraries)
+            return config.install.dynamicLibrariesDirectory;
+        return undefined;
     }
 
-    install: !isStaticLibrary && !isForAndroid
-    property bool installImportLib: false
-    property string importLibInstallDir: "lib"
+    property bool installImportLib: config.install.importLibraries
+    property string importLibInstallDir: config.install.importLibrariesDirectory
+    debugInformationInstallDir: config.install.debugInformationDirectory || installDir
 
     Group {
         condition: install && _installable

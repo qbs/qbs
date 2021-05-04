@@ -419,7 +419,7 @@
     \page tutorial-7.html
     \nextpage tutorial-8.html
 
-    \title Buildconfig Module
+    \title Config Module
 
     In the previous chapter, we added some properties to our main \l{Project} file. While this is a
     perfect approach for \e public properties of the project, sometimes we want
@@ -427,52 +427,86 @@
     in the \l{Project} file, but that would make it very convoluted. Also, accessing the top-level
     project all the way from products makes things strongly tied.
 
-    You can also use a \l{Module} that \l{Product}{products} may depend on. That way, a
-    \l{Product} only uses properties of the module it depends on without the need to know about
-    the top-level project.
-
-    Let's create a file named \c{mybuildconfig.qbs} and put it into the
-    \c{qbs/modules/mybuildconfig} directory, near the \c{qbs/imports} directory:
+    Let's create a file named \c{module.qbs} and put it into the
+    \c{qbs/modules/config/install} directory, near the \c{qbs/imports} directory:
     \code
-        // qbs/modules/mybuildconfig.qbs
-        Module {
+        // qbs/modules/config/install/module.qbs
+        ConfigInstall {
+        }
+    \endcode
+    Here we inherit the \l{ConfigInstall} item in order to re-use its properies. Since custom
+    \l{Project::qbsSearchPaths}{qbsSearchPaths} are searched first, now our version
+    will be used instead of built-in one.
+
+    First, let's change the default value of the
+    \l{ConfigInstall::importLibraries}{config.install.importLibraries} in order to install
+    import libraries on Windows:
+    \code
+        // qbs/modules/config/install/module.qbs
+        ConfigInstall {
+            importLibraries: true
         }
     \endcode
 
-    So far, this is just an empty \l{Module} so let's add some properties to it:
-    \snippet ../tutorial/chapter-7/qbs/modules/mybuildconfig/mybuildconfig.qbs 0
+    We could extend the \l{config.install} module with additional properties, but that could create
+    collisions when someone tries to include the source code of your project into their project.
+    Thus, we will create a new \c{config.myproject} module and use the same approach with the base
+    item as \QBS does for the \c{config.install} module.
 
-    We added the \c appInstallDir and \c libInstallDir properties that will allow us to configure
-    the installation location of the our application and library, respectively.
+    Let's create a new item and add a new property to it:
+    \snippet ../tutorial/chapter-7/qbs/imports/ConfigMyProject.qbs 0
 
-    Now we can use our module in the \c{MyApplication.qbs} item:
-    \snippet ../tutorial/chapter-7/qbs/imports/MyApplication.qbs 0
+    We added the \c{installPublicHeaders} property that will allow us to configure whether we
+    need to install public headers for our library.
+
+    Now let's use the item in a module:
+    \snippet ../tutorial/chapter-7/qbs/modules/config/myproject/module.qbs 0
+
+    Now we can use our module in the \c{MyLibrary.qbs} item:
+    \snippet ../tutorial/chapter-7/qbs/imports/MyLibrary.qbs 0
 
     We pull in the new module using the \l{Depends} item, similar to how we pulled in
-    the \l{cpp} module dependency earlier. We also set the \l{Application::installDir}{installDir}
-    property to the corresponding module property, namely to \c{mybuildconfig.appInstallDir}.
+    the \l{cpp} module dependency earlier.
+
+    We add a new \c{publicHeaders} property that will contain the list of headers we want to
+    install.
+
+    Finally, we create a \l{Group} item that installs headers listed by the \c{publicHeaders}
+    property to the \l{installpaths::include}{installpaths.include} directory.
+
+    Note that we use the \l{installpaths} module - it is pulled in by the
+    \l{DynamicLibrary} item and is available in all items that inherit that item.
+
+    Now we can rewrite the \c{lib/lib.qbs} to use the new property:
+
+    \snippet ../tutorial/chapter-7/lib/lib.qbs 0
+
+    Instead of the \c{config.myproject.installPublicHeaders} property, we could also use the
+    property in the \l{Project} item similar to how we did in the previous
+    chapter. There is no strong preference which way to use, however using modules for
+    configuration is more flexible as it is also possible to set properties of other modules
+    as described below.
 
     \QBS \l{Module}{modules} have the feature to automatically export properties of other modules.
     Those exported properties are merged in the resulting product. We can use this feature to set
     the \l{cpp::rpaths}{cpp.rpaths} in our module rather than in products:
 
-    \snippet ../tutorial/chapter-7/qbs/modules/mybuildconfig/mybuildconfig.qbs 1
+    \snippet ../tutorial/chapter-7/qbs/imports/ConfigMyProject.qbs 1
 
     Here, we inject the dependency on the \l{cpp} module and calculate the \c{libRPaths} property.
     This is a relative path from the \c{product.installDir} (which is either \c{"bin"}
-    or \c{"lib"}, depending on product type to \c{libInstallDir}). Finally, we set
-    \l{cpp::rpaths}{cpp.rpaths} to this property. This way, those \c rpaths will be automatically
-    exported to all products that depend on the \c{mybuildconfig} module.
+    or \c{"lib"}, depending on product type) to
+    \l{ConfigInstall::dynamicLibrariesDirectory}{dynamicLibrariesDirectory} (which is \c{"lib"}
+    by default). Finally, we set \l{cpp::rpaths}{cpp.rpaths} to this property. This way, those
+    \c rpaths will be automatically exported to all products that depend on the
+    \c{config.myproject} module.
 
-    Now, we can also use our new module in the library item:
-    \snippet ../tutorial/chapter-7/qbs/imports/MyLibrary.qbs 0
-
-    Let's change the library folder name from \c{"lib"} to \c{"lib64"} when building our project:
+    Let's change whether to install public headers when building our project:
     \code
-        $ qbs modules.mybuildconfig.libDirName:lib64
+        $ qbs modules.config.myproject.installPublicHeaders:true
         ...
-        $ ls default/install-root/usr/local/
-        bin    lib64
+        $ ls default/install-root/usr/local/include/
+        lib.h
     \endcode
 */
 
@@ -486,12 +520,12 @@
     In this chapter, we will make our library more configurable. We will add configuration options
     to be able to choose between static and dynamic builds.
 
-    We start with some new properties in the \c mybuildconfig module:
+    We start with some a new property in the \c ConfigMyProject item:
     \code
+    // qbs/imports/ConfigMyProject.qbs
     Module {
         ...
         property bool staticBuild: false
-        property bool installStaticLib: true
         ...
     }
     \endcode
@@ -511,7 +545,7 @@
     Second, we change the \l{Product::type}{type} of the product so it depends on the \c staticBuild
     property:
     \code
-    type: mybuildconfig.staticBuild ? "staticlibrary" : "dynamiclibrary"
+    type: config.myproject.staticBuild ? "staticlibrary" : "dynamiclibrary"
     \endcode
 
     Third, we change our \e{export macro} to be different in the static and dynamic builds to
@@ -520,7 +554,7 @@
     readonly property string _nameUpper : name.replace(" ", "_").toUpperCase()
     property string libraryMacro: _nameUpper + "_LIBRARY"
     property string staticLibraryMacro: _nameUpper + "_STATIC_LIBRARY"
-    cpp.defines: mybuildconfig.staticBuild ? [staticLibraryMacro] : [libraryMacro]
+    cpp.defines: buildconfig.staticBuild ? [staticLibraryMacro] : [libraryMacro]
     \endcode
 
     Note that in a static build we export the \c MYLIB_STATIC_LIBRARY macro so that the dependent
@@ -528,14 +562,14 @@
     \code
     Export {
         ...
-        cpp.defines: exportingProduct.mybuildconfig.staticBuild
+        cpp.defines: exportingProduct.config.myproject.staticBuild
             ? [exportingProduct.staticLibraryMacro] : []
     }
     \endcode
 
     Now we can build our project in dynamic or static mode:
     \code
-    $ qbs resolve modules.mybuildconfig.staticBuild:false && qbs build
+    $ qbs resolve modules.config.myproject.staticBuild:false && qbs build
     ...
     $ ls default/install-root/usr/local/lib/
         libmylib.1.0.0.so
@@ -543,10 +577,24 @@
         libmylib.1.so
         libmylib.so
     $ rm -r default
-    $ qbs resolve modules.mybuildconfig.staticBuild:true && qbs build
+    $ qbs resolve modules.config.myproject.staticBuild:true modules.config.install.staticLibraries:true && qbs build
     ...
     $ $ ls default/install-root/usr/local/lib/
         libmylib.a
+    \endcode
+
+    \note \QBS does not install static libraries by default, thats why we set the
+    \l{ConfigInstall::staticLibraries}{config.install.staticLibraries} property to \c{true} to
+    enforce installation of the static library. We can also change the default in the
+    \c{config.install} module:
+    \code
+    // qbs/modules/config/install/module.qbs
+    ConfigInstall {
+        ...
+        importLibraries: true
+        staticLibraries: true
+        ...
+    }
     \endcode
 */
 
@@ -564,8 +612,8 @@
     In this section, we will create a simple header with a string constant based on the variable
     in our project.
 
-    First, we add this variable to our \c mybuildconfig module:
-    \snippet ../tutorial/chapter-9/qbs/modules/mybuildconfig/mybuildconfig.qbs 0
+    First, we add this variable to our \c config.myproject base item:
+    \snippet ../tutorial/chapter-9/qbs/imports/ConfigMyProject.qbs 0
 
     Next, we create a new file, \c{version.h.in}, located in the \c{version-header} directory. This
     file contains the template for our header:
@@ -579,8 +627,8 @@
     First, we import \l{TextFile Service}{TextFile}. We will need this class to read the template
     and write the resulting header. Second, we declare a new \l{Product} named \c{"version_header"}
     and with the \c{"hpp"} type. This is the type of the artifact we will create in the Rule.
-    Third, we add the dependency on the \c mybuildconfig module to use the new
-    \c mybuildconfig.productVersion variable.
+    Third, we add the dependency on the \c config.myproject module to use the new
+    \c config.myproject.productVersion variable.
 
     We also add a \l{Group} with the template file and assign the \c{version_h_in} tag to the file:
     \snippet ../tutorial/chapter-9/version-header/version-header.qbs 1
@@ -610,8 +658,8 @@
     \l{Command and JavaScriptCommand}. In the sourceCode variable, we create a JavaScript
     function that opens the \l{The inputs and outputs Variables}{input file}, reads its content
     using the \l{TextFile Service}{TextFile} object, replaces the \c "${PRODUCT_VERSION}"
-    placeholder with the actual value in the \c product.mybuildconfig.productVersion variable, and
-    writes the resulting content into the \l{The inputs and outputs Variables}{output file}.
+    placeholder with the actual value in the \c product.config.myproject.productVersion variable,
+    and writes the resulting content into the \l{The inputs and outputs Variables}{output file}.
 
     Finally, we export the \l{Product::buildDirectory}{exportingProduct.buildDirectory} so that
     products that depend on this product can include our generated header:

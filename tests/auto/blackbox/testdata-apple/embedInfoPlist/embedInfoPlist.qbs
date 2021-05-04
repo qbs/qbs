@@ -36,6 +36,7 @@ Project {
         bundle.isBundle: false
         bundle.embedInfoPlist: true
         files: ["main.m"]
+        installDir: ""
         cpp.frameworks: ["Foundation"]
         bundle.infoPlist: ({
             "QBS": "org.qt-project.qbs.testdata.embedInfoPlist.bundle"

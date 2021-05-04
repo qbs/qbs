@@ -44,6 +44,7 @@ import "../codesign/codesign.js" as Codesign
 Module {
     Depends { name: "xcode"; required: false; }
     Depends { name: "codesign"; required: false; }
+    Depends { name: "installpaths" }
 
     Probe {
         id: bundleSettingsProbe
@@ -70,8 +71,8 @@ Module {
             "IS_MACCATALYST": "NO",
             "LD_RUNPATH_SEARCH_PATHS_NO": [],
             "PRODUCT_NAME": product.targetName,
-            "LOCAL_APPS_DIR": Environment.getEnv("HOME") + "/Applications",
-            "LOCAL_LIBRARY_DIR": Environment.getEnv("HOME") + "/Library",
+            "LOCAL_APPS_DIR": FileInfo.joinPaths("/", installpaths.applications),
+            "LOCAL_LIBRARY_DIR": FileInfo.joinPaths("/", installpaths.library),
             // actually, this is cpp.targetAbi, but XCode does not set it for non-simulator builds
             // while Qbs set it to "macho".
             "LLVM_TARGET_TRIPLE_SUFFIX": qbs.targetOS.includes("simulator") ? "-simulator" : "",

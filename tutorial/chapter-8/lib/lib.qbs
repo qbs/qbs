@@ -1,9 +1,7 @@
 MyLibrary {
     name: "mylib"
-    files: [
-        "lib.c",
-        "lib.h",
-    ]
+    files: [ "lib.c" ]
+    publicHeaders: [ "lib.h" ]
     Depends { name: 'cpp' }
     cpp.defines: ['CRUCIAL_DEFINE']
 }

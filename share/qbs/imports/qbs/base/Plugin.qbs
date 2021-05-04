@@ -1,5 +1,6 @@
 /****************************************************************************
 **
+** Copyright (C) 2025 Ivan Komissarov (abbapoh@gmail.com).
 ** Copyright (C) 2015 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing
 **
@@ -28,9 +29,8 @@
 **
 ****************************************************************************/
 
-Plugin {
-    type: isForDarwin ? ["loadablemodule"] : base
-    installDir: config.install.loadableModules && isForDarwin && bundle.isBundle
-        ? config.install.loadableModulesDirectory
-        : base
+DynamicLibrary {
+    Depends { name: "config.install" }
+    installDir: config.install.plugins ? config.install.pluginsDirectory : undefined
+    debugInformationInstallDir: config.install.debugInformationDirectory || installDir
 }

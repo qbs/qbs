@@ -20,7 +20,7 @@ DynamicLibrary {
         bundle.isBundle: false
     }
     files: ["mylib.cpp"]
-    property var config: ({feature_x: false, feature_y: true})
+    property var configuration: ({feature_x: false, feature_y: true})
     Group {
         name: "API headers"
         files: ["mylib.h"]
@@ -39,7 +39,7 @@ DynamicLibrary {
     Export {
         Depends { name: "cpp" }
         property string includeDir: exportingProduct.sourceDirectory
-        property var config: exportingProduct.config
+        property var configuration: exportingProduct.configuration
         Properties {
             cpp.includePaths: [includeDir]
             cpp.dynamicLibraries: []

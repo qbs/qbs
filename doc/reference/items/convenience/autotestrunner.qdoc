@@ -27,7 +27,7 @@
 ****************************************************************************/
 /*!
     \previouspage ApplicationExtension
-    \nextpage CppApplication
+    \nextpage ConfigInstall
     \qmltype AutotestRunner
     \inqmlmodule QbsConvenienceItems
     \ingroup list-of-items
