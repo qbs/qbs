@@ -155,7 +155,12 @@ CppModule {
         auxiliaryInputs: ["hpp"]
         explicitlyDependsOn: ["c_pch", "cpp_pch"]
 
-        outputFileTags: ["obj", "intermediate_obj", "lst"]
+        outputFileTags: {
+            var tags = ["obj", "intermediate_obj"];
+            if (generateCompilerListingFiles)
+                tags.push("lst");
+            return tags;
+        }
         outputArtifacts: {
             var tags = input.fileTags.contains("cpp_intermediate_object")
                 ? ["intermediate_obj"]
@@ -197,7 +202,9 @@ CppModule {
         inputsFromDependencies: ['staticlibrary', 'dynamiclibrary_import', "debuginfo_app"]
 
         outputFileTags: {
-            var tags = ["application", "debuginfo_app", "mem_map"];
+            var tags = ["application", "debuginfo_app"];
+            if (generateLinkerMapFile)
+                tags.push("mem_map");
             if (shouldSignArtifacts)
                 tags.push("codesign.signed_artifact");
             return tags;

@@ -102,7 +102,7 @@ CppModule {
     Rule {
         id: assembler
         inputs: ["asm"]
-        outputFileTags: ["obj", "lst"]
+        outputFileTags: KEIL.compilerOutputTags(generateAssemblerListingFiles)
         outputArtifacts: KEIL.compilerOutputArtifacts(input, false)
         prepare: KEIL.prepareAssembler.apply(KEIL, arguments)
     }
@@ -116,7 +116,7 @@ CppModule {
         id: compiler
         inputs: ["cpp", "c"]
         auxiliaryInputs: ["hpp"]
-        outputFileTags: ["obj", "lst"]
+        outputFileTags: KEIL.compilerOutputTags(generateCompilerListingFiles)
         outputArtifacts: KEIL.compilerOutputArtifacts(input, true)
         prepare: KEIL.prepareCompiler.apply(KEIL, arguments)
     }
@@ -126,7 +126,7 @@ CppModule {
         multiplex: true
         inputs: ["obj", "linkerscript"]
         inputsFromDependencies: ["staticlibrary"]
-        outputFileTags: ["application", "mem_map"]
+        outputFileTags: KEIL.applicationLinkerOutputTags(generateLinkerMapFile)
         outputArtifacts: KEIL.applicationLinkerOutputArtifacts(product)
         prepare: KEIL.prepareLinker.apply(KEIL, arguments)
     }

@@ -403,12 +403,14 @@ CppModule {
         }
         inputsFromDependencies: ["dynamiclibrary_symbols", "staticlibrary", "dynamiclibrary_import"]
 
-        outputFileTags: [
-            "bundle.input",
-            "dynamiclibrary", "dynamiclibrary_symlink", "dynamiclibrary_symbols", "debuginfo_dll",
-            "debuginfo_bundle","dynamiclibrary_import", "debuginfo_plist",
-            "codesign.signed_artifact",
-        ]
+        outputFileTags: {
+            var tags = ["bundle.input", "dynamiclibrary", "dynamiclibrary_symlink",
+                        "dynamiclibrary_symbols", "debuginfo_dll", "debuginfo_bundle",
+                        "dynamiclibrary_import", "debuginfo_plist"];
+            if (shouldSignArtifacts)
+                tags.push("codesign.signed_artifact");
+            return tags;
+        }
         outputArtifacts: {
             var artifacts = [{
                 filePath: product.destinationDirectory + "/"
@@ -519,8 +521,13 @@ CppModule {
         }
         inputsFromDependencies: ["dynamiclibrary_symbols", "dynamiclibrary_import", "staticlibrary"]
 
-        outputFileTags: ["bundle.input", "loadablemodule", "debuginfo_loadablemodule",
-                         "debuginfo_bundle", "debuginfo_plist", "codesign.signed_artifact"]
+        outputFileTags: {
+            var tags = ["bundle.input", "loadablemodule", "debuginfo_loadablemodule",
+                        "debuginfo_bundle", "debuginfo_plist"];
+            if (shouldSignArtifacts)
+                tags.push("codesign.signed_artifact");
+            return tags;
+        }
         outputArtifacts: {
             var app = {
                 filePath: FileInfo.joinPaths(product.destinationDirectory,
@@ -559,8 +566,15 @@ CppModule {
         }
         inputsFromDependencies: ["dynamiclibrary_symbols", "dynamiclibrary_import", "staticlibrary"]
 
-        outputFileTags: ["bundle.input", "application", "debuginfo_app", "debuginfo_bundle",
-                         "debuginfo_plist", "mem_map", "codesign.signed_artifact"]
+        outputFileTags: {
+            var tags = ["bundle.input", "application", "debuginfo_app", "debuginfo_bundle",
+                        "debuginfo_plist"];
+            if (shouldSignArtifacts)
+                tags.push("codesign.signed_artifact");
+            if (generateLinkerMapFile)
+                tags.push("mem_map");
+            return tags;
+        }
         outputArtifacts: {
             var app = {
                 filePath: FileInfo.joinPaths(product.destinationDirectory,

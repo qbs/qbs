@@ -582,6 +582,20 @@ function filterC166Output(output) {
     return filteredLines.join('\n');
 };
 
+function compilerOutputTags(needsListingFiles) {
+    var tags = ["obj"];
+    if (needsListingFiles)
+        tags.push("lst");
+    return tags;
+}
+
+function applicationLinkerOutputTags(needsLinkerMapFile) {
+    var tags = ["application"];
+    if (needsLinkerMapFile)
+        tags.push("mem_map");
+    return tags;
+}
+
 function compilerOutputArtifacts(input, isCompilerArtifacts) {
     var artifacts = [];
     artifacts.push({
@@ -606,19 +620,21 @@ function compilerOutputArtifacts(input, isCompilerArtifacts) {
 }
 
 function applicationLinkerOutputArtifacts(product) {
-    var app = {
+    var artifacts = [{
         fileTags: ["application"],
         filePath: FileInfo.joinPaths(
-                      product.destinationDirectory,
-                      PathTools.applicationFilePath(product))
-    };
-    var mem_map = {
-        fileTags: ["mem_map"],
-        filePath: FileInfo.joinPaths(
-                      product.destinationDirectory,
-                      product.targetName + product.cpp.linkerMapSuffix)
-    };
-    return [app, mem_map];
+            product.destinationDirectory,
+            PathTools.applicationFilePath(product))
+    }];
+    if (product.cpp.generateLinkerMapFile) {
+        artifacts.push({
+            fileTags: ["mem_map"],
+            filePath: FileInfo.joinPaths(
+                product.destinationDirectory,
+                product.targetName + product.cpp.linkerMapSuffix)
+        });
+    }
+    return artifacts;
 }
 
 function staticLibraryLinkerOutputArtifacts(product) {

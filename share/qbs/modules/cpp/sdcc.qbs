@@ -99,7 +99,7 @@ CppModule {
     Rule {
         id: assembler
         inputs: ["asm"]
-        outputFileTags: ["obj", "asm_adb", "lst", "asm_src", "asm_sym", "rst_data"]
+        outputFileTags: SDCC.compilerOutputTags(generateAssemblerListingFiles)
         outputArtifacts: SDCC.compilerOutputArtifacts(input, false)
         prepare: SDCC.prepareAssembler.apply(SDCC, arguments)
     }
@@ -113,7 +113,7 @@ CppModule {
         id: compiler
         inputs: ["cpp", "c"]
         auxiliaryInputs: ["hpp"]
-        outputFileTags: ["obj", "asm_adb", "lst", "asm_src", "asm_sym", "rst_data"]
+        outputFileTags: SDCC.compilerOutputTags(generateCompilerListingFiles)
         outputArtifacts: SDCC.compilerOutputArtifacts(input, true)
         prepare: SDCC.prepareCompiler.apply(SDCC, arguments)
     }
@@ -123,7 +123,7 @@ CppModule {
         multiplex: true
         inputs: ["obj", "linkerscript"]
         inputsFromDependencies: ["staticlibrary"]
-        outputFileTags: ["application", "lk_cmd", "mem_summary", "mem_map"]
+        outputFileTags: SDCC.applicationLinkerOutputTags(generateLinkerMapFile)
         outputArtifacts: SDCC.applicationLinkerOutputArtifacts(product)
         prepare: SDCC.prepareLinker.apply(SDCC, arguments)
     }
