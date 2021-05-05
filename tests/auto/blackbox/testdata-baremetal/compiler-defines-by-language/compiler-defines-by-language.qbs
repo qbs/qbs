@@ -2,6 +2,8 @@ import "../BareMetalApplication.qbs" as BareMetalApplication
 
 Project {
     property bool supportsCpp: {
+        if (qbs.toolchain.contains("cosmic"))
+            return false;
         if (qbs.toolchain.contains("sdcc"))
             return false;
         if (qbs.toolchain.contains("keil")) {

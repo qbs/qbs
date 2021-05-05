@@ -502,6 +502,9 @@
         \li \c{"clang-cl"}
         \li \c{["clang-cl", "msvc"]}
     \row
+        \li \c{"cosmic"}
+        \li \c{["cosmic"]}
+    \row
         \li \c{"gcc"}
         \li \c{["gcc"]}
     \row

@@ -532,6 +532,9 @@ jobs:
     - name: rx-elf-gcc-8_3_0_202004-GNURX
       run: QBS_AUTOTEST_PROFILE=rx-elf-gcc-8_3_0_202004-GNURX scripts/test-baremetal.sh release/install-root/bin
       shell: bash
+    - name: cosmic-4_3_11-arm
+      run: QBS_AUTOTEST_PROFILE=cosmic-4_3_11-arm scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
 
   test-macos:
     name: ${{ matrix.config.name }}

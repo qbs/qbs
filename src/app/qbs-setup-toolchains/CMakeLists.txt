@@ -3,6 +3,8 @@ set(SOURCES
     clangclprobe.h
     commandlineparser.cpp
     commandlineparser.h
+    cosmicprobe.cpp
+    cosmicprobe.h
     gccprobe.cpp
     gccprobe.h
     iarewprobe.cpp

@@ -2,7 +2,10 @@ import "../BareMetalApplication.qbs" as BareMetalApplication
 
 BareMetalApplication {
     condition: {
-        if (qbs.toolchainType === "keil") {
+        if (qbs.toolchainType === "cosmic") {
+            if (qbs.architecture.startsWith("arm"))
+                return true;
+        } else if (qbs.toolchainType === "keil") {
             if (qbs.architecture.startsWith("arm"))
                 return true;
             if (qbs.architecture === "mcs51")

@@ -39,6 +39,7 @@
 #include "probe.h"
 
 #include "clangclprobe.h"
+#include "cosmicprobe.h"
 #include "gccprobe.h"
 #include "iarewprobe.h"
 #include "keilprobe.h"
@@ -117,6 +118,8 @@ QString toolchainTypeFromCompilerName(const QString &compilerName)
         return QStringLiteral("keil");
     if (isSdccCompiler(compilerName))
         return QStringLiteral("sdcc");
+    if (isCosmicCompiler(compilerName))
+        return QStringLiteral("cosmic");
     return {};
 }
 
@@ -136,6 +139,7 @@ void probe(Settings *settings)
     iarProbe(settings, profiles);
     keilProbe(settings, profiles);
     sdccProbe(settings, profiles);
+    cosmicProbe(settings, profiles);
 
     if (profiles.empty()) {
         qStderr << Tr::tr("Could not detect any toolchains. No profile created.") << Qt::endl;
@@ -175,6 +179,8 @@ void createProfile(const QString &profileName, const QString &toolchainType,
         createKeilProfile(compiler, settings, profileName);
     else if (toolchain.contains(QLatin1String("sdcc")))
         createSdccProfile(compiler, settings, profileName);
+    else if (toolchain.contains(QLatin1String("cosmic")))
+        createCosmicProfile(compiler, settings, profileName);
     else
         throw qbs::ErrorInfo(Tr::tr("Cannot create profile: Unknown toolchain type."));
 }
