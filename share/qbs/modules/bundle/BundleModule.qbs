@@ -71,6 +71,9 @@ Module {
             "PRODUCT_NAME": product.targetName,
             "LOCAL_APPS_DIR": Environment.getEnv("HOME") + "/Applications",
             "LOCAL_LIBRARY_DIR": Environment.getEnv("HOME") + "/Library",
+            // actually, this is cpp.targetAbi, but XCode does not set it for non-simulator builds
+            // while Qbs set it to "macho".
+            "LLVM_TARGET_TRIPLE_SUFFIX": qbs.targetOS.contains("simulator") ? "-simulator" : "",
             "SWIFT_PLATFORM_TARGET_PREFIX": isMacOs ? "macos"
                                                     : qbs.targetOS.contains("ios") ? "ios" : "",
             "TARGET_BUILD_DIR": product.buildDirectory,
@@ -83,14 +86,14 @@ Module {
         property var productTypeIdentifierChain: []
 
         configure: {
-            var specsPath = path;
+            var specsPaths = [path];
             var specsSeparator = "-";
             if (xcodeDeveloperPath && useXcodeBuildSpecs) {
-                specsPath = Bundle.macOSSpecsPath(xcodeVersion, xcodeDeveloperPath);
+                specsPaths = Bundle.macOSSpecsPaths(xcodeVersion, xcodeDeveloperPath);
                 specsSeparator = " ";
             }
 
-            var reader = new Bundle.XcodeBuildSpecsReader(specsPath,
+            var reader = new Bundle.XcodeBuildSpecsReader(specsPaths,
                                                           specsSeparator,
                                                           additionalSettings,
                                                           !isMacOs);

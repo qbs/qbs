@@ -212,10 +212,15 @@ var PropertyListVariableExpander = (function () {
                         varValue = "";
                     }
                     varValue = String(varValue);
-                    if (varFormatter !== undefined)
-                        varFormatter = varFormatter.toLowerCase();
-                    if (varFormatter === "rfc1034identifier")
-                        varValue = Utilities.rfc1034Identifier(varValue);
+                    if (varFormatter !== undefined) {
+                        // TODO: XCode supports multiple formatters separated by a comma
+                        var varFormatterLower = varFormatter.toLowerCase();
+                        if (varFormatterLower === "rfc1034identifier")
+                            varValue = Utilities.rfc1034Identifier(varValue);
+                        if (varValue === "" && varFormatterLower.startsWith("default="))
+                            varValue = varFormatter.split("=")[1];
+                    }
+
                     value = value.slice(0, i) + varValue + value.slice(j + repl.syntax.close.length);
                     changes = true;
                     repl = indexOfReplacementStart(syntaxes, value);

@@ -232,7 +232,7 @@ static void makeSubProjectNamesUniqe(const ResolvedProjectPtr &parentProject)
 TopLevelProjectPtr ProjectResolver::resolveTopLevelProject()
 {
     if (m_progressObserver)
-        m_progressObserver->setMaximum(m_loadResult.productInfos.size());
+        m_progressObserver->setMaximum(int(m_loadResult.productInfos.size()));
     const TopLevelProjectPtr project = TopLevelProject::create();
     project->buildDirectory = TopLevelProject::deriveBuildDirectory(m_setupParams.buildRoot(),
             TopLevelProject::deriveId(m_setupParams.finalBuildConfigurationTree()));

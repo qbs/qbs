@@ -35,7 +35,9 @@ import qbs.Probes
 import "codesign.js" as CODESIGN
 
 CodeSignModule {
-    condition: qbs.targetOS.contains("windows") && qbs.hostOS.contains("windows")
+    condition: qbs.targetOS.contains("windows")
+               && qbs.hostOS.contains("windows")
+               && qbs.toolchain.contains("msvc")
 
     _canSignArtifacts: true
 

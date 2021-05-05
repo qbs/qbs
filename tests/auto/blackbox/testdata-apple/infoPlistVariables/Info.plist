@@ -18,5 +18,7 @@
         <string>${${EXE}_NAME}</string>
         <key>BracesNested</key>
         <string>${${EXE}_NAME}</string>
+        <key>WithDefault</key>
+        <string>${NON_EXISTING:default=DEFAULT}</string>
 </dict>
 </plist>

@@ -1069,6 +1069,8 @@ void TestBlackboxApple::infoPlistVariables()
              QStringLiteral("infoPlistVariables"));
     QCOMPARE(content.value(QStringLiteral("BracesNested")),
              QStringLiteral("infoPlistVariables"));
+    QCOMPARE(content.value(QStringLiteral("WithDefault")),
+             QStringLiteral("DEFAULT"));
 }
 
 void TestBlackboxApple::objcArc()
