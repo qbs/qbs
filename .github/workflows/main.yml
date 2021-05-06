@@ -137,8 +137,6 @@ jobs:
         toolchain: clang_64
     - name: Install Qt Creator
       uses: ./.github/actions/download-qtc
-      with:
-        version: 4.13.2
     - name: Setup Qbs
       run: |
         qbs setup-toolchains --detect
