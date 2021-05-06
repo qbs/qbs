@@ -251,6 +251,11 @@ function compute_url(){
 
     if [[ "${COMPONENT}" =~ "qtcreator" ]]; then
 
+        if [[ "${HOST_OS}" == "windows_x86" ]]; then
+            # newer QtC versions do not supported x86 version anymore
+            HOST_OS="windows_x64"
+        fi
+
         SHORT_VERSION=${VERSION%??}
         BASE_URL="${MIRROR}/official_releases/qtcreator"
         REMOTE_PATH="${SHORT_VERSION}/${VERSION}/installer_source/${HOST_OS}/qtcreator.7z"
