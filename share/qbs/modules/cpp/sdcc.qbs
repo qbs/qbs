@@ -99,8 +99,10 @@ CppModule {
     Rule {
         id: assembler
         inputs: ["asm"]
-        outputFileTags: SDCC.compilerOutputTags(generateAssemblerListingFiles)
-        outputArtifacts: SDCC.compilerOutputArtifacts(input, false)
+        outputFileTags: SDCC.extraCompilerOutputTags().concat(
+                            ModUtils.compilerOutputTags(generateAssemblerListingFiles))
+        outputArtifacts: SDCC.extraCompilerOutputArtifacts(input).concat(
+                             ModUtils.compilerOutputArtifacts(input, false))
         prepare: SDCC.prepareAssembler.apply(SDCC, arguments)
     }
 
@@ -113,8 +115,10 @@ CppModule {
         id: compiler
         inputs: ["cpp", "c"]
         auxiliaryInputs: ["hpp"]
-        outputFileTags: SDCC.compilerOutputTags(generateCompilerListingFiles)
-        outputArtifacts: SDCC.compilerOutputArtifacts(input, true)
+        outputFileTags: SDCC.extraCompilerOutputTags().concat(
+                            ModUtils.compilerOutputTags(generateCompilerListingFiles))
+        outputArtifacts: SDCC.extraCompilerOutputArtifacts(input).concat(
+                             ModUtils.compilerOutputArtifacts(input, true))
         prepare: SDCC.prepareCompiler.apply(SDCC, arguments)
     }
 
@@ -123,8 +127,10 @@ CppModule {
         multiplex: true
         inputs: ["obj", "linkerscript"]
         inputsFromDependencies: ["staticlibrary"]
-        outputFileTags: SDCC.applicationLinkerOutputTags(generateLinkerMapFile)
-        outputArtifacts: SDCC.applicationLinkerOutputArtifacts(product)
+        outputFileTags: SDCC.extraApplicationLinkerOutputTags().concat(
+                            ModUtils.applicationLinkerOutputTags(generateLinkerMapFile))
+        outputArtifacts: SDCC.extraApplicationLinkerOutputArtifacts(product).concat(
+                             ModUtils.applicationLinkerOutputArtifacts(product))
         prepare: SDCC.prepareLinker.apply(SDCC, arguments)
     }
 
@@ -133,8 +139,8 @@ CppModule {
         multiplex: true
         inputs: ["obj"]
         inputsFromDependencies: ["staticlibrary"]
-        outputFileTags: ["staticlibrary"]
-        outputArtifacts: SDCC.staticLibraryLinkerOutputArtifacts(product)
+        outputFileTags: ModUtils.staticLibraryLinkerOutputTags()
+        outputArtifacts: ModUtils.staticLibraryLinkerOutputArtifacts(product)
         prepare: SDCC.prepareArchiver.apply(SDCC, arguments)
     }
 }

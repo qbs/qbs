@@ -507,61 +507,6 @@ function dumpDefaultPaths(compilerFilePath, nullDevice) {
     return { "includePaths": includePaths };
 }
 
-function collectLibraryDependencies(product) {
-    var seen = {};
-    var result = [];
-
-    function addFilePath(filePath) {
-        result.push({ filePath: filePath });
-    }
-
-    function addArtifactFilePaths(dep, artifacts) {
-        if (!artifacts)
-            return;
-        var artifactFilePaths = artifacts.map(function(a) { return a.filePath; });
-        artifactFilePaths.forEach(addFilePath);
-    }
-
-    function addExternalStaticLibs(obj) {
-        if (!obj.cpp)
-            return;
-        function ensureArray(a) {
-            return (a instanceof Array) ? a : [];
-        }
-        function sanitizedModuleListProperty(obj, moduleName, propertyName) {
-            return ensureArray(ModUtils.sanitizedModuleProperty(obj, moduleName, propertyName));
-        }
-        var externalLibs = [].concat(
-                    sanitizedModuleListProperty(obj, "cpp", "staticLibraries"));
-        var staticLibrarySuffix = obj.moduleProperty("cpp", "staticLibrarySuffix");
-        externalLibs.forEach(function(staticLibraryName) {
-            if (!staticLibraryName.endsWith(staticLibrarySuffix))
-                staticLibraryName += staticLibrarySuffix;
-            addFilePath(staticLibraryName);
-        });
-    }
-
-    function traverse(dep) {
-        if (seen.hasOwnProperty(dep.name))
-            return;
-        seen[dep.name] = true;
-
-        if (dep.parameters.cpp && dep.parameters.cpp.link === false)
-            return;
-
-        var staticLibraryArtifacts = dep.artifacts["staticlibrary"];
-        if (staticLibraryArtifacts) {
-            dep.dependencies.forEach(traverse);
-            addArtifactFilePaths(dep, staticLibraryArtifacts);
-            addExternalStaticLibs(dep);
-        }
-    }
-
-    product.dependencies.forEach(traverse);
-    addExternalStaticLibs(product);
-    return result;
-}
-
 function filterMcsOutput(output) {
     var filteredLines = [];
     output.split(/\r\n|\r|\n/).forEach(function(line) {
@@ -581,71 +526,6 @@ function filterC166Output(output) {
     });
     return filteredLines.join('\n');
 };
-
-function compilerOutputTags(needsListingFiles) {
-    var tags = ["obj"];
-    if (needsListingFiles)
-        tags.push("lst");
-    return tags;
-}
-
-function applicationLinkerOutputTags(needsLinkerMapFile) {
-    var tags = ["application"];
-    if (needsLinkerMapFile)
-        tags.push("mem_map");
-    return tags;
-}
-
-function compilerOutputArtifacts(input, isCompilerArtifacts) {
-    var artifacts = [];
-    artifacts.push({
-        fileTags: ["obj"],
-        filePath: Utilities.getHash(input.baseDir) + "/"
-              + input.fileName + input.cpp.objectSuffix
-    });
-    if (isCompilerArtifacts && input.cpp.generateCompilerListingFiles) {
-        artifacts.push({
-            fileTags: ["lst"],
-            filePath: Utilities.getHash(input.baseDir) + "/"
-                  + input.fileName + input.cpp.compilerListingSuffix
-        });
-    } else if (!isCompilerArtifacts && input.cpp.generateAssemblerListingFiles) {
-        artifacts.push({
-            fileTags: ["lst"],
-            filePath: Utilities.getHash(input.baseDir) + "/"
-                  + input.fileName + input.cpp.assemblerListingSuffix
-        });
-    }
-    return artifacts;
-}
-
-function applicationLinkerOutputArtifacts(product) {
-    var artifacts = [{
-        fileTags: ["application"],
-        filePath: FileInfo.joinPaths(
-            product.destinationDirectory,
-            PathTools.applicationFilePath(product))
-    }];
-    if (product.cpp.generateLinkerMapFile) {
-        artifacts.push({
-            fileTags: ["mem_map"],
-            filePath: FileInfo.joinPaths(
-                product.destinationDirectory,
-                product.targetName + product.cpp.linkerMapSuffix)
-        });
-    }
-    return artifacts;
-}
-
-function staticLibraryLinkerOutputArtifacts(product) {
-    var staticLib = {
-        fileTags: ["staticlibrary"],
-        filePath: FileInfo.joinPaths(
-                      product.destinationDirectory,
-                      PathTools.staticLibraryFilePath(product))
-    };
-    return [staticLib]
-}
 
 function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
     // Determine which C-language we're compiling.
@@ -1006,7 +886,7 @@ function linkerFlags(project, product, inputs, outputs) {
             inputs.obj.map(function(obj) { allObjectPaths.push(obj.filePath) });
 
         // Library dependencies.
-        var libraryObjects = collectLibraryDependencies(product);
+        var libraryObjects = ModUtils.collectLibraryDependencies(product);
         allObjectPaths = allObjectPaths.concat(libraryObjects.map(function(lib) {
             // Semi-intelligent handling the library paths.
             // We need to add the full path prefix to the library file if this
@@ -1047,7 +927,7 @@ function linkerFlags(project, product, inputs, outputs) {
             args.push("--userlibpath=" + libraryPaths.join(","));
 
         // Library dependencies.
-        var libraryDependencies = collectLibraryDependencies(product);
+        var libraryDependencies = ModUtils.collectLibraryDependencies(product);
         args = args.concat(libraryDependencies.map(function(dep) { return dep.filePath; }));
 
         // Debug information flag.

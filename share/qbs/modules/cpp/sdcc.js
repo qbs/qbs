@@ -184,93 +184,25 @@ function escapePreprocessorFlags(preprocessorFlags) {
     return ["-Wp " + preprocessorFlags.join(",")];
 }
 
-function collectLibraryDependencies(product) {
-    var seen = {};
-    var result = [];
-
-    function addFilePath(filePath) {
-        result.push({ filePath: filePath });
-    }
-
-    function addArtifactFilePaths(dep, artifacts) {
-        if (!artifacts)
-            return;
-        var artifactFilePaths = artifacts.map(function(a) { return a.filePath; });
-        artifactFilePaths.forEach(addFilePath);
-    }
-
-    function addExternalStaticLibs(obj) {
-        if (!obj.cpp)
-            return;
-        function ensureArray(a) {
-            return (a instanceof Array) ? a : [];
-        }
-        function sanitizedModuleListProperty(obj, moduleName, propertyName) {
-            return ensureArray(ModUtils.sanitizedModuleProperty(obj, moduleName, propertyName));
-        }
-        var externalLibs = [].concat(
-                    sanitizedModuleListProperty(obj, "cpp", "staticLibraries"));
-        var staticLibrarySuffix = obj.moduleProperty("cpp", "staticLibrarySuffix");
-        externalLibs.forEach(function(staticLibraryName) {
-            if (!staticLibraryName.endsWith(staticLibrarySuffix))
-                staticLibraryName += staticLibrarySuffix;
-            addFilePath(staticLibraryName);
-        });
-    }
-
-    function traverse(dep) {
-        if (seen.hasOwnProperty(dep.name))
-            return;
-        seen[dep.name] = true;
-
-        if (dep.parameters.cpp && dep.parameters.cpp.link === false)
-            return;
-
-        var staticLibraryArtifacts = dep.artifacts["staticlibrary"];
-        if (staticLibraryArtifacts) {
-            dep.dependencies.forEach(traverse);
-            addArtifactFilePaths(dep, staticLibraryArtifacts);
-            addExternalStaticLibs(dep);
-        }
-    }
-
-    product.dependencies.forEach(traverse);
-    addExternalStaticLibs(product);
-    return result;
+// We need to use the asm_adb, asm_src, asm_sym and rst_data
+// artifacts without of any conditions. Because SDCC always generates
+// it (and seems, this behavior can not be disabled for SDCC).
+function extraCompilerOutputTags() {
+    return ["asm_adb", "asm_src", "asm_sym", "rst_data"];
 }
 
-function compilerOutputTags(needsListingFiles) {
-    // We need to use the asm_adb, asm_src, asm_sym and rst_data
-    // artifacts without of any conditions. Because SDCC always generates
-    // it (and seems, this behavior can not be disabled for SDCC).
-
-    var tags = ["obj", "asm_adb", "asm_src", "asm_sym", "rst_data"]
-    if (needsListingFiles)
-        tags.push("lst");
-    return tags;
+// We need to use the lk_cmd, and mem_summary artifacts without
+// of any conditions. Because SDCC always generates
+// it (and seems, this behavior can not be disabled for SDCC).
+function extraApplicationLinkerOutputTags() {
+    return ["lk_cmd", "mem_summary"];
 }
 
-function applicationLinkerOutputTags(needsLinkerMapFile) {
-    // We need to use the lk_cmd, and mem_summary artifacts without
-    // of any conditions. Because SDCC always generates
-    // it (and seems, this behavior can not be disabled for SDCC).
-
-    var tags = ["application", "lk_cmd", "mem_summary"];
-    if (needsLinkerMapFile)
-        tags.push("mem_map");
-    return tags;
-}
-
-function compilerOutputArtifacts(input, isCompilerArtifacts) {
-    // We need to use the asm_adb, asm_src, asm_sym and rst_data
-    // artifacts without of any conditions. Because SDCC always generates
-    // it (and seems, this behavior can not be disabled for SDCC).
-
-    var artifacts = [{
-        fileTags: ["obj"],
-        filePath: Utilities.getHash(input.baseDir) + "/"
-            + input.fileName + input.cpp.objectSuffix
-    }, {
+// We need to use the asm_adb, asm_src, asm_sym and rst_data
+// artifacts without of any conditions. Because SDCC always generates
+// it (and seems, this behavior can not be disabled for SDCC).
+function extraCompilerOutputArtifacts(input) {
+    return [{
         fileTags: ["asm_adb"],
         filePath: Utilities.getHash(input.baseDir) + "/"
             + input.fileName + ".adb"
@@ -287,33 +219,13 @@ function compilerOutputArtifacts(input, isCompilerArtifacts) {
         filePath: Utilities.getHash(input.baseDir) + "/"
             + input.fileName + ".rst"
     }];
-    if (isCompilerArtifacts && input.cpp.generateCompilerListingFiles) {
-        artifacts.push({
-            fileTags: ["lst"],
-            filePath: Utilities.getHash(input.baseDir) + "/"
-                + input.fileName + input.cpp.compilerListingSuffix
-        });
-    } else if (!isCompilerArtifacts && input.cpp.generateAssemblerListingFiles) {
-        artifacts.push({
-            fileTags: ["lst"],
-            filePath: Utilities.getHash(input.baseDir) + "/"
-                + input.fileName + input.cpp.assemblerListingSuffix
-        });
-    }
-    return artifacts;
 }
 
-function applicationLinkerOutputArtifacts(product) {
-    // We need to use the lk_cmd, and mem_summary artifacts without
-    // of any conditions. Because SDCC always generates
-    // it (and seems, this behavior can not be disabled for SDCC).
-
-    var artifacts = [{
-        fileTags: ["application"],
-        filePath: FileInfo.joinPaths(
-            product.destinationDirectory,
-            PathTools.applicationFilePath(product))
-    }, {
+// We need to use the lk_cmd, and mem_summary artifacts without
+// of any conditions. Because SDCC always generates
+// it (and seems, this behavior can not be disabled for SDCC).
+function extraApplicationLinkerOutputArtifacts(product) {
+    return [{
         fileTags: ["lk_cmd"],
         filePath: FileInfo.joinPaths(
             product.destinationDirectory,
@@ -324,25 +236,6 @@ function applicationLinkerOutputArtifacts(product) {
             product.destinationDirectory,
             product.targetName + ".mem")
     }];
-    if (product.cpp.generateLinkerMapFile) {
-        artifacts.push({
-            fileTags: ["mem_map"],
-            filePath: FileInfo.joinPaths(
-                product.destinationDirectory,
-                product.targetName + product.cpp.linkerMapSuffix)
-        });
-    }
-    return artifacts;
-}
-
-function staticLibraryLinkerOutputArtifacts(product) {
-    var staticLib = {
-        fileTags: ["staticlibrary"],
-        filePath: FileInfo.joinPaths(
-                      product.destinationDirectory,
-                      PathTools.staticLibraryFilePath(product))
-    };
-    return [staticLib]
 }
 
 function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
@@ -503,7 +396,7 @@ function linkerFlags(project, product, inputs, outputs) {
     if (distributionLibraryPaths)
         allLibraryPaths = allLibraryPaths.uniqueConcat(distributionLibraryPaths);
 
-    var libraryDependencies = collectLibraryDependencies(product);
+    var libraryDependencies = ModUtils.collectLibraryDependencies(product);
 
     var escapableLinkerFlags = [];
 

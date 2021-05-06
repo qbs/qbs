@@ -102,8 +102,8 @@ CppModule {
     Rule {
         id: assembler
         inputs: ["asm"]
-        outputFileTags: KEIL.compilerOutputTags(generateAssemblerListingFiles)
-        outputArtifacts: KEIL.compilerOutputArtifacts(input, false)
+        outputFileTags: ModUtils.compilerOutputTags(generateAssemblerListingFiles)
+        outputArtifacts: ModUtils.compilerOutputArtifacts(input, false)
         prepare: KEIL.prepareAssembler.apply(KEIL, arguments)
     }
 
@@ -116,8 +116,8 @@ CppModule {
         id: compiler
         inputs: ["cpp", "c"]
         auxiliaryInputs: ["hpp"]
-        outputFileTags: KEIL.compilerOutputTags(generateCompilerListingFiles)
-        outputArtifacts: KEIL.compilerOutputArtifacts(input, true)
+        outputFileTags: ModUtils.compilerOutputTags(generateCompilerListingFiles)
+        outputArtifacts: ModUtils.compilerOutputArtifacts(input, true)
         prepare: KEIL.prepareCompiler.apply(KEIL, arguments)
     }
 
@@ -126,8 +126,8 @@ CppModule {
         multiplex: true
         inputs: ["obj", "linkerscript"]
         inputsFromDependencies: ["staticlibrary"]
-        outputFileTags: KEIL.applicationLinkerOutputTags(generateLinkerMapFile)
-        outputArtifacts: KEIL.applicationLinkerOutputArtifacts(product)
+        outputFileTags: ModUtils.applicationLinkerOutputTags(generateLinkerMapFile)
+        outputArtifacts: ModUtils.applicationLinkerOutputArtifacts(product)
         prepare: KEIL.prepareLinker.apply(KEIL, arguments)
     }
 
@@ -136,8 +136,8 @@ CppModule {
         multiplex: true
         inputs: ["obj"]
         inputsFromDependencies: ["staticlibrary"]
-        outputFileTags: ["staticlibrary"]
-        outputArtifacts: KEIL.staticLibraryLinkerOutputArtifacts(product)
+        outputFileTags: ModUtils.staticLibraryLinkerOutputTags()
+        outputArtifacts: ModUtils.staticLibraryLinkerOutputArtifacts(product)
         prepare: KEIL.prepareArchiver.apply(KEIL, arguments)
     }
 }
