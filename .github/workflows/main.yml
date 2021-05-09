@@ -225,7 +225,7 @@ jobs:
         modules.cpp.compilerWrapper:ccache
         modules.qbsbuildconfig.enableAddressSanitizer:false
         modules.qbsbuildconfig.enableBundledQt:true
-        products.qbs_archive.targetName:qbs-windows-${{ github.run_id }}
+        products.qbs_archive.targetName:qbs-windows-mingw-${{ github.run_id }}
         products.qbs_archive.includeTests:true,
       QT_ASSUME_STDERR_HAS_CONSOLE: 1
       WITH_TESTS: 0
