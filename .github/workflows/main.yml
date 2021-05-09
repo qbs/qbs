@@ -68,6 +68,7 @@ jobs:
         - {
             name: 'Build on Linux (CMake)',
             script: './scripts/build-qbs-with-cmake.sh',
+            options: '-DQBS_USE_BUNDLED_QT_SCRIPT=1',
             cacheid: 'cmake',
           }
         - {
@@ -81,6 +82,8 @@ jobs:
       QTEST_FUNCTION_TIMEOUT: 9000000
     steps:
     - uses: actions/checkout@v1
+      with:
+        submodules: true
     - name: Create .ccache dir
       run: mkdir -p ~/.ccache
     - name: prepare timestamp

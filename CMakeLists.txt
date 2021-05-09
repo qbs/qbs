@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.15)
 
 ## Add paths to check for cmake modules:
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
@@ -29,9 +29,11 @@ if(WITH_TESTS)
 endif()
 
 find_package(Qt5
-    COMPONENTS Concurrent Core Gui Network Script Widgets Xml ${QT_TEST_COMPONENT}
+    COMPONENTS Concurrent Core Gui Network Widgets Xml ${QT_TEST_COMPONENT}
     REQUIRED
     )
+
+find_package(Qt5 COMPONENTS Script)
 
 add_subdirectory(src)
 add_subdirectory(doc)

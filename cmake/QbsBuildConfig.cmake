@@ -3,6 +3,7 @@ option(WITH_UNIT_TESTS "Build Unit Tests" OFF)
 option(WITH_PROJECT_FILE_UPDATES "Enable project file updates support" ON)
 option(INSTALL_PUBLIC_HEADERS "Whether to install public headers" ON)
 option(QBS_ENABLE_RPATH "Whether to enable RPATH" ON)
+option(QBS_USE_BUNDLED_QT_SCRIPT "Whether to use bundled QtScript module" OFF)
 option(QBS_INSTALL_HTML_DOCS "Whether to install HTML Documentation" OFF)
 option(QBS_INSTALL_QCH_DOCS "Whether to install QCH Documentation" OFF)
 
