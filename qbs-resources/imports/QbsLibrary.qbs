@@ -28,7 +28,7 @@ QbsProduct {
 
     Group {
         fileTagsFilter: libType.concat("dynamiclibrary_symlink")
-            .concat(qbs.buildVariant === "debug" ? ["debuginfo_dll"] : [])
+            .concat(qbs.debugInformation ? ["debuginfo_dll"] : [])
         qbs.install: install
         qbs.installDir: targetInstallDir
         qbs.installSourceBase: buildDirectory

@@ -163,6 +163,7 @@ jobs:
     env:
       BUILD_OPTIONS: |
         modules.cpp.compilerWrapper:clcache
+        modules.qbs.debugInformation:true
         modules.qbsbuildconfig.enableAddressSanitizer:false
         modules.qbsbuildconfig.enableBundledQt:true
         products.qbs_archive.targetName:qbs-windows-${{ github.run_id }}

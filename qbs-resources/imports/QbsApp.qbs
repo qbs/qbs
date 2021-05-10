@@ -10,7 +10,7 @@ QbsProduct {
     consoleApplication: true
     Group {
         fileTagsFilter: product.type
-            .concat(qbs.buildVariant === "debug" ? ["debuginfo_app"] : [])
+            .concat(qbs.debugInformation ? ["debuginfo_app"] : [])
         qbs.install: true
         qbs.installDir: targetInstallDir
         qbs.installSourceBase: buildDirectory

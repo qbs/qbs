@@ -20,7 +20,6 @@ jobs:
             name: 'Build on Linux (gcc)',
             options: 'qbs.installPrefix:""
                       modules.cpp.compilerWrapper:ccache
-                      modules.qbs.debugInformation:true
                       modules.qbsbuildconfig.enableAddressSanitizer:false
                       modules.qbsbuildconfig.enableProjectFileUpdates:false
                       modules.qbsbuildconfig.enableUnitTests:false
@@ -71,7 +70,6 @@ jobs:
       BUILD_OPTIONS: |
         qbs.installPrefix:""
         modules.cpp.compilerWrapper:ccache
-        modules.qbs.debugInformation:true
         modules.qbsbuildconfig.enableUnitTests:false
         modules.qbsbuildconfig.enableProjectFileUpdates:false
         modules.qbsbuildconfig.enableAddressSanitizer:false
