@@ -66,7 +66,6 @@ class Process : public QObject, public QScriptable, public ResourceAcquiringScri
 public:
     static QScriptValue ctor(QScriptContext *context, QScriptEngine *engine);
     Process(QScriptContext *context);
-    ~Process() override;
 
     Q_INVOKABLE QString getEnv(const QString &name);
     Q_INVOKABLE void setEnv(const QString &name, const QString &value);
@@ -103,7 +102,7 @@ private:
     // ResourceAcquiringScriptObject implementation
     void releaseResources() override;
 
-    QProcess *m_qProcess = nullptr;
+    std::unique_ptr<QProcess> m_qProcess;
     QProcessEnvironment m_environment;
     QString m_workingDirectory;
     QTextCodec *m_codec = nullptr;
@@ -144,17 +143,12 @@ QScriptValue Process::ctor(QScriptContext *context, QScriptEngine *engine)
     return obj;
 }
 
-Process::~Process()
-{
-    delete m_qProcess;
-}
-
 Process::Process(QScriptContext *context)
 {
     Q_UNUSED(context);
     Q_ASSERT(thisObject().engine() == engine());
 
-    m_qProcess = new QProcess;
+    m_qProcess = std::make_unique<QProcess>();
     m_codec = QTextCodec::codecForName("UTF-8");
 }
 
@@ -236,8 +230,7 @@ void Process::close()
     if (!m_qProcess)
         return;
     Q_ASSERT(thisObject().engine() == engine());
-    delete m_qProcess;
-    m_qProcess = nullptr;
+    m_qProcess.reset();
 }
 
 bool Process::waitForFinished(int msecs)
