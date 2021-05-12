@@ -67,7 +67,6 @@ public:
     };
 
     static QScriptValue ctor(QScriptContext *context, QScriptEngine *engine);
-    ~BinaryFile() override;
 
     Q_INVOKABLE void close();
     Q_INVOKABLE QString filePath();
@@ -87,7 +86,7 @@ private:
     // ResourceAcquiringScriptObject implementation
     void releaseResources() override;
 
-    QFile *m_file = nullptr;
+    std::unique_ptr<QFile> m_file;
 };
 
 QScriptValue BinaryFile::ctor(QScriptContext *context, QScriptEngine *engine)
@@ -120,11 +119,6 @@ QScriptValue BinaryFile::ctor(QScriptContext *context, QScriptEngine *engine)
     return engine->newQObject(t, QScriptEngine::QtOwnership);
 }
 
-BinaryFile::~BinaryFile()
-{
-    delete m_file;
-}
-
 BinaryFile::BinaryFile(QScriptContext *context, const QString &filePath, OpenMode mode)
 {
     Q_ASSERT(thisObject().engine() == engine());
@@ -146,12 +140,11 @@ BinaryFile::BinaryFile(QScriptContext *context, const QString &filePath, OpenMod
         return;
     }
 
-    m_file = new QFile(filePath);
+    m_file = std::make_unique<QFile>(filePath);
     if (Q_UNLIKELY(!m_file->open(m))) {
         context->throwError(Tr::tr("Unable to open file '%1': %2")
                             .arg(filePath, m_file->errorString()));
-        delete m_file;
-        m_file = nullptr;
+        m_file.reset();
     }
 }
 
@@ -160,8 +153,7 @@ void BinaryFile::close()
     if (checkForClosed())
         return;
     m_file->close();
-    delete m_file;
-    m_file = nullptr;
+    m_file.reset();
 }
 
 QString BinaryFile::filePath()

@@ -74,7 +74,6 @@ public:
     };
 
     static QScriptValue ctor(QScriptContext *context, QScriptEngine *engine);
-    ~TextFile() override;
 
     Q_INVOKABLE void close();
     Q_INVOKABLE QString filePath();
@@ -95,7 +94,7 @@ private:
     // ResourceAcquiringScriptObject implementation
     void releaseResources() override;
 
-    QFile *m_file = nullptr;
+    std::unique_ptr<QFile> m_file;
     QTextCodec *m_codec = nullptr;
 };
 
@@ -136,18 +135,13 @@ QScriptValue TextFile::ctor(QScriptContext *context, QScriptEngine *engine)
     return engine->newQObject(t, QScriptEngine::QtOwnership);
 }
 
-TextFile::~TextFile()
-{
-    delete m_file;
-}
-
 TextFile::TextFile(QScriptContext *context, const QString &filePath, OpenMode mode,
                    const QString &codec)
 {
     Q_UNUSED(codec)
     Q_ASSERT(thisObject().engine() == engine());
 
-    m_file = new QFile(filePath);
+    m_file = std::make_unique<QFile>(filePath);
     const auto newCodec = QTextCodec::codecForName(qPrintable(codec));
     m_codec = newCodec ? newCodec : QTextCodec::codecForName("UTF-8");
     QIODevice::OpenMode m = QIODevice::NotOpen;
@@ -161,8 +155,7 @@ TextFile::TextFile(QScriptContext *context, const QString &filePath, OpenMode mo
     if (Q_UNLIKELY(!m_file->open(m))) {
         context->throwError(Tr::tr("Unable to open file '%1': %2")
                             .arg(filePath, m_file->errorString()));
-        delete m_file;
-        m_file = nullptr;
+        m_file.reset();
     }
 }
 
@@ -171,8 +164,7 @@ void TextFile::close()
     if (checkForClosed())
         return;
     m_file->close();
-    delete m_file;
-    m_file = nullptr;
+    m_file.reset();
 }
 
 QString TextFile::filePath()
