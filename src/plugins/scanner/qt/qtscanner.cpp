@@ -71,11 +71,11 @@ struct OpaqQrc
     int fd = 0;
     int mapl = 0;
 #else
-    QFile *file = nullptr;
+    std::unique_ptr<QFile> file;
 #endif
 
     char *map = nullptr;
-    QXmlStreamReader *xml = nullptr;
+    std::unique_ptr<QXmlStreamReader> xml;
     QByteArray current;
     OpaqQrc() = default;
 
@@ -86,10 +86,7 @@ struct OpaqQrc
             munmap (map, mapl);
         if (fd)
             close (fd);
-#else
-        delete file;
 #endif
-        delete xml;
     }
 };
 
@@ -118,7 +115,8 @@ static void *openScannerQrc(const unsigned short *filePath, const char *fileTags
     if (map == nullptr)
         return nullptr;
 #else
-    opaque->file = new QFile(QString::fromUtf16(reinterpret_cast<const char16_t *>(filePath)));
+    opaque->file = std::make_unique<QFile>(
+                QString::fromUtf16(reinterpret_cast<const char16_t *>(filePath)));
     if (!opaque->file->open(QFile::ReadOnly))
         return nullptr;
 
@@ -129,7 +127,8 @@ static void *openScannerQrc(const unsigned short *filePath, const char *fileTags
 #endif
 
     opaque->map = reinterpret_cast<char *>(map);
-    opaque->xml = new QXmlStreamReader(QByteArray::fromRawData(opaque->map, fileSize));
+    opaque->xml = std::make_unique<QXmlStreamReader>(
+                QByteArray::fromRawData(opaque->map, fileSize));
 
     return static_cast<void *>(opaque.release());
 }
