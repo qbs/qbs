@@ -123,17 +123,15 @@ public:
 };
 
 SettingsModel::SettingsModel(const QString &settingsDir, Settings::Scope scope, QObject *parent)
-    : QAbstractItemModel(parent), d(new SettingsModelPrivate)
+    : QAbstractItemModel(parent),
+      d(std::make_unique<SettingsModelPrivate>())
 {
     d->settings = std::make_unique<qbs::Settings>(settingsDir);
     d->settings->setScopeForWriting(scope);
     d->readSettings();
 }
 
-SettingsModel::~SettingsModel()
-{
-    delete d;
-}
+SettingsModel::~SettingsModel() = default;
 
 void SettingsModel::reload()
 {

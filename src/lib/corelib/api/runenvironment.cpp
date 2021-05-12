@@ -109,15 +109,12 @@ RunEnvironment::RunEnvironment(const ResolvedProductPtr &product,
         const TopLevelProjectConstPtr &project, const InstallOptions &installOptions,
         const QProcessEnvironment &environment, const QStringList &setupRunEnvConfig,
         Settings *settings, const Logger &logger)
-    : d(new RunEnvironmentPrivate(product, project, installOptions, environment, setupRunEnvConfig,
-                                  settings, logger))
+    : d(std::make_unique<RunEnvironmentPrivate>(product, project, installOptions, environment,
+                                                setupRunEnvConfig, settings, logger))
 {
 }
 
-RunEnvironment::~RunEnvironment()
-{
-    delete d;
-}
+RunEnvironment::~RunEnvironment() = default;
 
 int RunEnvironment::runShell(ErrorInfo *error)
 {

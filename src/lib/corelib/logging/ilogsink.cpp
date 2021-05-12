@@ -82,14 +82,11 @@ public:
     std::mutex mutex;
 };
 
-ILogSink::ILogSink() : d(new ILogSinkPrivate)
+ILogSink::ILogSink() : d(std::make_unique<ILogSinkPrivate>())
 {
 }
 
-ILogSink::~ILogSink()
-{
-    delete d;
-}
+ILogSink::~ILogSink() = default;
 
 void ILogSink::setLogLevel(LoggerLevel level)
 {

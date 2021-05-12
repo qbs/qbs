@@ -46,6 +46,8 @@
 #include <QtCore/qabstractitemmodel.h>
 #include <QtCore/qvariant.h>
 
+#include <memory>
+
 namespace qbs {
 
 class QBS_EXPORT SettingsModel : public QAbstractItemModel
@@ -81,7 +83,7 @@ public:
 
 private:
     class SettingsModelPrivate;
-    SettingsModelPrivate * const d;
+    const std::unique_ptr<SettingsModelPrivate> d;
 };
 
 } // namespace qbs

@@ -43,6 +43,8 @@
 
 #include <QtCore/qstring.h>
 
+#include <memory>
+
 namespace qbs {
 class ErrorInfo;
 
@@ -83,7 +85,7 @@ private:
                                 const QString &tag) = 0;
 
     class ILogSinkPrivate;
-    ILogSinkPrivate * const d;
+    const std::unique_ptr<ILogSinkPrivate> d;
 };
 
 } // namespace qbs

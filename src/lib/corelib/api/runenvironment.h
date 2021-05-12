@@ -46,6 +46,8 @@
 #include <QtCore/qglobal.h>
 #include <QtCore/qstringlist.h>
 
+#include <memory>
+
 QT_BEGIN_NAMESPACE
 class QProcess;
 class QProcessEnvironment;
@@ -95,7 +97,7 @@ private:
     const QProcessEnvironment getBuildEnvironment() const;
 
     class RunEnvironmentPrivate;
-    RunEnvironmentPrivate * const d;
+    const std::unique_ptr<RunEnvironmentPrivate> d;
 };
 
 } // namespace qbs

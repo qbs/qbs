@@ -35,6 +35,8 @@
 
 #include <QtCore/qglobal.h>
 
+#include <memory>
+
 namespace qbs {
 
 class MSBuildProject;
@@ -50,7 +52,7 @@ public:
     bool write(const MSBuildProject *project);
 
 private:
-    MSBuildProjectWriterPrivate *d;
+    const std::unique_ptr<MSBuildProjectWriterPrivate> d;
 };
 
 } // namespace qbs

@@ -58,14 +58,11 @@ public:
 };
 
 ProjectGenerator::ProjectGenerator()
-    : d(new ProjectGeneratorPrivate)
+    : d(std::make_unique<ProjectGeneratorPrivate>())
 {
 }
 
-ProjectGenerator::~ProjectGenerator()
-{
-    delete d;
-}
+ProjectGenerator::~ProjectGenerator() = default;
 
 static QString _configurationName(const Project &project)
 {

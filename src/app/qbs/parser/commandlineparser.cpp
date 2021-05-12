@@ -111,14 +111,9 @@ public:
     bool logTime;
 };
 
-CommandLineParser::CommandLineParser() : d(nullptr)
-{
-}
+CommandLineParser::CommandLineParser() = default;
 
-CommandLineParser::~CommandLineParser()
-{
-    delete d;
-}
+CommandLineParser::~CommandLineParser() = default;
 
 void CommandLineParser::printHelp() const
 {
@@ -309,8 +304,7 @@ QList<QVariantMap> CommandLineParser::buildConfigurations() const
 
 bool CommandLineParser::parseCommandLine(const QStringList &args)
 {
-    delete d;
-    d = new CommandLineParserPrivate;
+    d = std::make_unique<CommandLineParserPrivate>();
     d->commandLine = args;
     try {
         d->doParse();

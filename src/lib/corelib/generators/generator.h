@@ -45,6 +45,8 @@
 #include <QtCore/qlist.h>
 #include <QtCore/qstring.h>
 
+#include <memory>
+
 namespace qbs {
 
 class ProjectGeneratorPrivate;
@@ -89,7 +91,7 @@ private:
     QVariantMap buildConfiguration(const Project &project) const;
     QStringList buildConfigurationCommandLine(const Project &project) const;
 
-    ProjectGeneratorPrivate *d;
+    const std::unique_ptr<ProjectGeneratorPrivate> d;
 };
 
 } // namespace qbs

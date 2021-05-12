@@ -50,6 +50,8 @@
 #include <QtScript/qscriptable.h>
 #include <QtScript/qscriptvalue.h>
 
+#include <memory>
+
 namespace qbs {
 namespace Internal {
 
@@ -78,7 +80,7 @@ public:
     Q_INVOKABLE QString toXMLString() const;
     Q_INVOKABLE QString toJSON(const QString &style = QString()) const;
 private:
-    PropertyListPrivate *d;
+    const std::unique_ptr<PropertyListPrivate> d;
 };
 
 } // namespace Internal

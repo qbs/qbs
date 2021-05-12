@@ -94,13 +94,10 @@ PropertyListPrivate::PropertyListPrivate()
 {
 }
 
-PropertyList::~PropertyList()
-{
-    delete d;
-}
+PropertyList::~PropertyList() = default;
 
 PropertyList::PropertyList(QScriptContext *context)
-: d(new PropertyListPrivate)
+    : d(std::make_unique<PropertyListPrivate>())
 {
     Q_UNUSED(context);
     Q_ASSERT(thisObject().engine() == engine());

@@ -61,7 +61,7 @@ TimedActivityLogger::TimedActivityLogger(const Logger &logger, const QString &ac
 {
     if (!enabled)
         return;
-    d = new TimedActivityLoggerPrivate;
+    d = std::make_unique<TimedActivityLoggerPrivate>();
     d->logger = logger;
     d->activity = activity;
     d->logger.qbsLog(LoggerInfo, true) << Tr::tr("Starting activity '%2'.").arg(activity);
@@ -75,8 +75,7 @@ void TimedActivityLogger::finishActivity()
     const QString timeString = elapsedTimeString(d->timer.elapsed());
     d->logger.qbsLog(LoggerInfo, true)
             << Tr::tr("Activity '%2' took %3.").arg(d->activity, timeString);
-    delete d;
-    d = nullptr;
+    d.reset();
 }
 
 TimedActivityLogger::~TimedActivityLogger()

@@ -42,6 +42,8 @@
 
 #include <QtCore/qelapsedtimer.h>
 
+#include <memory>
+
 QT_BEGIN_NAMESPACE
 class QString;
 QT_END_NAMESPACE
@@ -61,7 +63,7 @@ public:
 
 private:
     class TimedActivityLoggerPrivate;
-    TimedActivityLoggerPrivate *d;
+    std::unique_ptr<TimedActivityLoggerPrivate> d;
 };
 
 class AccumulatingTimer

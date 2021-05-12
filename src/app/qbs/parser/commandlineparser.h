@@ -44,6 +44,8 @@
 #include <QtCore/qstringlist.h>
 #include <QtCore/qvariant.h>
 
+#include <memory>
+
 namespace qbs {
 class BuildOptions;
 class CleanOptions;
@@ -90,7 +92,7 @@ public:
 
 private:
     class CommandLineParserPrivate;
-    CommandLineParserPrivate *d;
+    std::unique_ptr<CommandLineParserPrivate> d;
 };
 
 } // namespace qbs

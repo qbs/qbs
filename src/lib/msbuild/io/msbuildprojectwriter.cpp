@@ -86,23 +86,20 @@ public:
 };
 
 MSBuildProjectWriter::MSBuildProjectWriter(std::ostream *device)
-    : d(new MSBuildProjectWriterPrivate)
+    : d(std::make_unique<MSBuildProjectWriterPrivate>())
 {
     d->device = device;
     d->writer = std::make_unique<QXmlStreamWriter>(&d->buffer);
     d->writer->setAutoFormatting(true);
 }
 
-MSBuildProjectWriter::~MSBuildProjectWriter()
-{
-    delete d;
-}
+MSBuildProjectWriter::~MSBuildProjectWriter() = default;
 
 bool MSBuildProjectWriter::write(const MSBuildProject *project)
 {
     d->buffer.clear();
     d->writer->writeStartDocument();
-    project->accept(d);
+    project->accept(d.get());
     d->writer->writeEndDocument();
     if (d->writer->hasError())
         return false;
