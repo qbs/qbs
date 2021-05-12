@@ -15,7 +15,7 @@ list_transform_prepend(PROTOCOL_SOURCES ${PATH_TO_PROTOCOL_SOURCES}/)
 
 add_qbs_app(qbs_processlauncher
     DESTINATION ${QBS_LIBEXEC_INSTALL_DIR}
-    DEPENDS Qt5::Core Qt5::Network
+    DEPENDS Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Network
     INCLUDES ${PATH_TO_PROTOCOL_SOURCES}
     SOURCES ${SOURCES} ${PROTOCOL_SOURCES}
     )

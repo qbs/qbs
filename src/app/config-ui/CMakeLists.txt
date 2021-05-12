@@ -14,6 +14,6 @@ if(APPLE)
 endif()
 
 add_qbs_app(qbs-config-ui
-    DEPENDS qbscore qbsconsolelogger Qt5::Widgets ${MACOS_FRAMEWORKS}
+    DEPENDS qbscore qbsconsolelogger Qt${QT_VERSION_MAJOR}::Widgets ${MACOS_FRAMEWORKS}
     SOURCES ${SOURCES} ${MACOS_SOURCES}
     )

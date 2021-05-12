@@ -55,9 +55,9 @@ endif()
 
 function(get_update_path_command var)
     if(WIN32)
-        get_target_property(_QTCORE_LIBRARY Qt5::Core IMPORTED_LOCATION_RELEASE)
+        get_target_property(_QTCORE_LIBRARY Qt${QT_VERSION_MAJOR}::Core IMPORTED_LOCATION_RELEASE)
         if(NOT _QTCORE_LIBRARY)
-            get_target_property(_QTCORE_LIBRARY Qt5::Core IMPORTED_LOCATION_DEBUG)
+            get_target_property(_QTCORE_LIBRARY Qt${QT_VERSION_MAJOR}::Core IMPORTED_LOCATION_DEBUG)
         endif()
         get_filename_component(_QT_LIBRARY_PATH "${_QTCORE_LIBRARY}" DIRECTORY)
         get_target_property(_QBS_LIBRARY_PATH qbscore LIBRARY_OUTPUT_DIRECTORY)
@@ -240,7 +240,7 @@ function(add_qbs_test test_name)
         )
     target_link_libraries(
         ${target_name}
-        PRIVATE ${_arg_DEPENDS} qbscore qbsconsolelogger Qt5::Test
+        PRIVATE ${_arg_DEPENDS} qbscore qbsconsolelogger Qt${QT_VERSION_MAJOR}::Test
         PUBLIC ${_arg_PUBLIC_DEPENDS}
         )
 

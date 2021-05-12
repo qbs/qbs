@@ -422,9 +422,14 @@ add_qbs_library(qbscore
     PUBLIC_DEFINES
         ${QBS_PROJECT_FILE_UPDATES_DEFINES}
     DEPENDS
-        Qt5::CorePrivate Qt5::Network qbsscriptengine Qt5::Xml ${EXTERNAL_DEPENDS}
+        Qt${QT_VERSION_MAJOR}::CorePrivate
+        Qt${QT_VERSION_MAJOR}::Network
+        Qt${QT_VERSION_MAJOR}::Xml
+        Qt6Core5Compat
+        qbsscriptengine
+        ${EXTERNAL_DEPENDS}
     PUBLIC_DEPENDS
-        Qt5::Core
+        Qt${QT_VERSION_MAJOR}::Core
     INCLUDES
         "${CMAKE_CURRENT_SOURCE_DIR}/../.."
     SOURCES

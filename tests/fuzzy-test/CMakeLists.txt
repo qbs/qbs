@@ -7,6 +7,6 @@ set(SOURCES
     )
 
 add_qbs_app(qbs_fuzzy-test
-    DEPENDS Qt5::Core
+    DEPENDS Qt${QT_VERSION_MAJOR}::Core
     SOURCES ${SOURCES}
     )

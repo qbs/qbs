@@ -38,7 +38,7 @@ set(QT_SCRIPT_INCLUDES
     "${QT_SCRIPT_PATH}/script"
     "${QT_SCRIPT_PATH}/script/api"
     "${QT_SCRIPT_PATH}/script/parser"
-    "${CMAKE_CURRENT_BINARY_DIR}/include/QtScript/${Qt5_VERSION}/QtScript"
+    "${CMAKE_CURRENT_BINARY_DIR}/include/QtScript/${QT_VERSION}/QtScript"
 )
 
 set(QT_SCRIPT_DEFINES
@@ -83,7 +83,7 @@ else()
         "-Wno-nonnull-compare" "-pthread")
 endif()
 
-set(QT_SCRIPT_PUBLIC_DEPENDS Qt5::Core)
+set(QT_SCRIPT_PUBLIC_DEPENDS Qt${QT_VERSION_MAJOR}::Core)
 if (UNIX)
     list(APPEND QT_SCRIPT_PUBLIC_DEPENDS "pthread")
 elseif(WIN32)
@@ -323,7 +323,7 @@ list_transform_prepend(PARSER_SOURCES "${QT_SCRIPT_PATH}/script/parser/")
 
 find_package(Perl)
 
-get_target_property(_QT_QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
+get_target_property(_QT_QMAKE_EXECUTABLE Qt${QT_VERSION_MAJOR}::qmake IMPORTED_LOCATION)
 get_filename_component(_QT_BIN_DIRECTORY ${_QT_QMAKE_EXECUTABLE} DIRECTORY)
 
 file(GLOB API_HEADERS "${QT_SCRIPT_PATH}/script/api/*.h")
@@ -334,7 +334,7 @@ add_custom_command(
     OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/include/QtScript/qscriptengine.h"
     COMMAND ${PERL_EXECUTABLE} "${_QT_BIN_DIRECTORY}/syncqt.pl"
         -minimal
-        -version "${Qt5_VERSION}"
+        -version "${QT_VERSION}"
         -outdir ${CMAKE_CURRENT_BINARY_DIR}
         "${QT_SCRIPT_PATH}/.."
     BYPRODUCTS
@@ -344,7 +344,7 @@ add_custom_command(
 add_qbs_library(qbsscriptengine
     STATIC
     DEFINES ${QT_SCRIPT_DEFINES}
-    DEPENDS Qt5::CorePrivate
+    DEPENDS Qt${QT_VERSION_MAJOR}::CorePrivate Qt6Core5Compat
     PUBLIC_DEPENDS ${QT_SCRIPT_PUBLIC_DEPENDS}
     INCLUDES ${QT_SCRIPT_PUBLIC_INCLUDES} ${QT_SCRIPT_INCLUDES} ${JAVASCRIPT_CORE_INCLUDES}
     PUBLIC_INCLUDES ${QT_SCRIPT_PUBLIC_INCLUDES}

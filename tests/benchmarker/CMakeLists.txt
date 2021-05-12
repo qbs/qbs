@@ -13,6 +13,6 @@ set(SOURCES
     )
 
 add_qbs_app(qbs_benchmarker
-    DEPENDS Qt5::Core Qt5::Concurrent
+    DEPENDS Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Concurrent
     SOURCES ${SOURCES}
     )

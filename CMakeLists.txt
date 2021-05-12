@@ -22,18 +22,28 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
+find_package(QT NAMES Qt6 Qt5 COMPONENTS Core REQUIRED)
+
 if(WITH_TESTS)
     enable_testing()
     set(QT_TEST_COMPONENT Test)
-    set(IMPLICIT_DEPENDS Qt5::Test)
+    set(IMPLICIT_DEPENDS Qt${QT_VERSION_MAJOR}::Test)
 endif()
 
-find_package(Qt5
+find_package(Qt${QT_VERSION_MAJOR}
     COMPONENTS Concurrent Core Gui Network Widgets Xml ${QT_TEST_COMPONENT}
     REQUIRED
     )
 
-find_package(Qt5 COMPONENTS Script)
+find_package(Qt${QT_VERSION_MAJOR} OPTIONAL_COMPONENTS Script)
+
+if (Qt6_FOUND)
+    find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core5Compat REQUIRED)
+    set_property(TARGET Qt6::Core5Compat PROPERTY IMPORTED_GLOBAL TRUE) # hack for CMake < 1.18
+    add_library(Qt6Core5Compat ALIAS Qt6::Core5Compat)
+else()
+    add_library(Qt6Core5Compat INTERFACE)
+endif()
 
 add_subdirectory(src)
 add_subdirectory(doc)
