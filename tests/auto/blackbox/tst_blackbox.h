@@ -265,6 +265,7 @@ private slots:
     void qbsModuleProvidersCliOverride_data();
     void qbsModuleProvidersCompatibility();
     void qbsModuleProvidersCompatibility_data();
+    void qbspkgconfigModuleProvider();
     void qbsSession();
     void qbsVersion();
     void qtBug51237();

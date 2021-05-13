@@ -75,6 +75,12 @@
 */
 
 /*!
+    \qmlmodule QbsModuleProviders
+    \title List of Module Providers
+    These are the module providers shipped with \QBS.
+*/
+
+/*!
     \group list-of-items
     \title List of All Items
 

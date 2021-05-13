@@ -1,0 +1,6 @@
+Name: libA
+Description: just a test
+Version: 0.0.1
+
+Cflags: -DTHE_MAGIC_DEFINE -I/usr/local/include
+Libs: -L/usr/local/lib -llibA

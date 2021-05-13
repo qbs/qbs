@@ -56,7 +56,7 @@ Product {
 
     Group {
         name: "Module providers"
-        files: ["qbs/module-providers/**/*"]
+        files: ["qbs/module-providers/*", "qbs/module-providers/**/*"]
         fileTags: ["qbs resources"]
         qbs.install: true
         qbs.installDir: qbsbuildconfig.resourcesInstallDir + "/share"

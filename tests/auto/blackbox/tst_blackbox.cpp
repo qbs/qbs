@@ -6144,6 +6144,28 @@ void TestBlackbox::qbsModuleProvidersCompatibility_data()
     QTest::newRow("named") << QStringList("project.qbsModuleProviders:named_provider") << "from_named_provider";
 }
 
+void TestBlackbox::qbspkgconfigModuleProvider()
+{
+    QDir::setCurrent(testDataDir + "/qbspkgconfig-module-provider/libs");
+
+    const auto commonParams = QbsRunParameters(QStringLiteral("install"), {
+            QStringLiteral("qbs.installPrefix:/usr/local"),
+            QStringLiteral("--install-root"),
+            QStringLiteral("install-root")
+    });
+    auto dynamicParams = commonParams;
+    dynamicParams.arguments << "config:library" << "projects.libs.isBundle:false";
+    QCOMPARE(runQbs(dynamicParams), 0);
+
+    QDir::setCurrent(testDataDir + "/qbspkgconfig-module-provider");
+
+    QbsRunParameters params;
+    params.arguments
+            << "moduleProviders.qbspkgconfig.libDirs:libdir"
+            << "moduleProviders.qbspkgconfig.sysroot:" + QDir::currentPath() + "/libs/install-root";
+    QCOMPARE(runQbs(params), 0);
+}
+
 static QJsonObject getNextSessionPacket(QProcess &session, QByteArray &data)
 {
     int totalSize = -1;
