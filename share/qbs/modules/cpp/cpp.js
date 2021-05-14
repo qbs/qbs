@@ -28,6 +28,11 @@
 **
 ****************************************************************************/
 
+var FileInfo = require("qbs.FileInfo");
+var ModUtils = require("qbs.ModUtils");
+var PathTools = require("qbs.PathTools");
+var Utilities = require("qbs.Utilities");
+
 function languageVersion(versionArray, knownValues, lang) {
     if (!versionArray)
         return undefined;
@@ -43,4 +48,141 @@ function languageVersion(versionArray, knownValues, lang) {
     console.debug("Randomly choosing '" + version
                   + "' from list of unknown " + lang + " version strings (" + versions + ")");
     return version;
+}
+
+function extractMacros(output) {
+    var m = {};
+    output.trim().split(/\r?\n/g).map(function (line) {
+        var prefix = "#define ";
+        if (!line.startsWith(prefix))
+            return;
+        var index = line.indexOf(" ", prefix.length);
+        if (index !== -1)
+            m[line.substr(prefix.length, index - prefix.length)] = line.substr(index + 1);
+    });
+    return m;
+}
+
+function compilerOutputTags(needsListingFiles) {
+    var tags = ["obj"];
+    if (needsListingFiles)
+        tags.push("lst");
+    return tags;
+}
+
+function applicationLinkerOutputTags(needsLinkerMapFile) {
+    var tags = ["application"];
+    if (needsLinkerMapFile)
+        tags.push("mem_map");
+    return tags;
+}
+
+function staticLibraryLinkerOutputTags() {
+    return ["staticlibrary"];
+}
+
+function compilerOutputArtifacts(input, isCompilerArtifacts) {
+    var artifacts = [];
+    artifacts.push({
+        fileTags: ["obj"],
+        filePath: Utilities.getHash(input.baseDir) + "/"
+              + input.fileName + input.cpp.objectSuffix
+    });
+    if (isCompilerArtifacts && input.cpp.generateCompilerListingFiles) {
+        artifacts.push({
+            fileTags: ["lst"],
+            filePath: Utilities.getHash(input.baseDir) + "/"
+              + input.fileName + input.cpp.compilerListingSuffix
+        });
+    } else if (!isCompilerArtifacts && input.cpp.generateAssemblerListingFiles) {
+        artifacts.push({
+            fileTags: ["lst"],
+            filePath: Utilities.getHash(input.baseDir) + "/"
+              + input.fileName + input.cpp.assemblerListingSuffix
+        });
+    }
+    return artifacts;
+}
+
+function applicationLinkerOutputArtifacts(product) {
+    var artifacts = [{
+        fileTags: ["application"],
+        filePath: FileInfo.joinPaths(
+            product.destinationDirectory,
+            PathTools.applicationFilePath(product))
+    }];
+    if (product.cpp.generateLinkerMapFile) {
+        artifacts.push({
+            fileTags: ["mem_map"],
+            filePath: FileInfo.joinPaths(
+                product.destinationDirectory,
+                product.targetName + product.cpp.linkerMapSuffix)
+        });
+    }
+    return artifacts;
+}
+
+function staticLibraryLinkerOutputArtifacts(product) {
+    var staticLib = {
+        fileTags: ["staticlibrary"],
+        filePath: FileInfo.joinPaths(
+                      product.destinationDirectory,
+                      PathTools.staticLibraryFilePath(product))
+    };
+    return [staticLib]
+}
+
+function collectLibraryDependencies(product) {
+    var seen = {};
+    var result = [];
+
+    function addFilePath(filePath) {
+        result.push({ filePath: filePath });
+    }
+
+    function addArtifactFilePaths(dep, artifacts) {
+        if (!artifacts)
+            return;
+        var artifactFilePaths = artifacts.map(function(a) { return a.filePath; });
+        artifactFilePaths.forEach(addFilePath);
+    }
+
+    function addExternalStaticLibs(obj) {
+        if (!obj.cpp)
+            return;
+        function ensureArray(a) {
+            return (a instanceof Array) ? a : [];
+        }
+        function sanitizedModuleListProperty(obj, moduleName, propertyName) {
+            return ensureArray(ModUtils.sanitizedModuleProperty(obj, moduleName, propertyName));
+        }
+        var externalLibs = [].concat(
+                    sanitizedModuleListProperty(obj, "cpp", "staticLibraries"));
+        var staticLibrarySuffix = obj.moduleProperty("cpp", "staticLibrarySuffix");
+        externalLibs.forEach(function(staticLibraryName) {
+            if (!staticLibraryName.endsWith(staticLibrarySuffix))
+                staticLibraryName += staticLibrarySuffix;
+            addFilePath(staticLibraryName);
+        });
+    }
+
+    function traverse(dep) {
+        if (seen.hasOwnProperty(dep.name))
+            return;
+        seen[dep.name] = true;
+
+        if (dep.parameters.cpp && dep.parameters.cpp.link === false)
+            return;
+
+        var staticLibraryArtifacts = dep.artifacts["staticlibrary"];
+        if (staticLibraryArtifacts) {
+            dep.dependencies.forEach(traverse);
+            addArtifactFilePaths(dep, staticLibraryArtifacts);
+            addExternalStaticLibs(dep);
+        }
+    }
+
+    product.dependencies.forEach(traverse);
+    addExternalStaticLibs(product);
+    return result;
 }

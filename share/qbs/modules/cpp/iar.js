@@ -507,7 +507,7 @@ function dumpMacros(compilerFilePath, tag) {
     var p = new Process();
     p.exec(compilerFilePath, args, true);
     var outFile = new TextFile(outFilePath, TextFile.ReadOnly);
-    return ModUtils.extractMacros(outFile.readAll());
+    return Cpp.extractMacros(outFile.readAll());
 }
 
 function dumpCompilerIncludePaths(compilerFilePath, tag) {
@@ -774,7 +774,7 @@ function linkerFlags(project, product, inputs, outputs) {
         allLibraryPaths = allLibraryPaths.uniqueConcat(distributionLibraryPaths);
 
     // Library dependencies.
-    var libraryDependencies = ModUtils.collectLibraryDependencies(product);
+    var libraryDependencies = Cpp.collectLibraryDependencies(product);
     if (libraryDependencies)
         args = args.concat(libraryDependencies.map(function(dep) { return dep.filePath }));
 

@@ -126,7 +126,7 @@ function dumpMacros(compilerFilePath, architecture) {
 
     var p = new Process();
     p.exec(compilerFilePath, args, true);
-    return ModUtils.extractMacros(p.readStdOut());
+    return Cpp.extractMacros(p.readStdOut());
 }
 
 function dumpDefaultPaths(compilerFilePath, architecture) {
@@ -396,7 +396,7 @@ function linkerFlags(project, product, inputs, outputs) {
     if (distributionLibraryPaths)
         allLibraryPaths = allLibraryPaths.uniqueConcat(distributionLibraryPaths);
 
-    var libraryDependencies = ModUtils.collectLibraryDependencies(product);
+    var libraryDependencies = Cpp.collectLibraryDependencies(product);
 
     var escapableLinkerFlags = [];
 

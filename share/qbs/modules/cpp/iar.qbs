@@ -31,10 +31,10 @@
 import qbs 1.0
 import qbs.File
 import qbs.FileInfo
-import qbs.ModUtils
 import qbs.PathTools
 import qbs.Probes
 import qbs.Utilities
+import "cpp.js" as Cpp
 import "iar.js" as IAR
 
 CppModule {
@@ -98,8 +98,8 @@ CppModule {
     Rule {
         id: assembler
         inputs: ["asm"]
-        outputFileTags: ModUtils.compilerOutputTags(generateAssemblerListingFiles)
-        outputArtifacts: ModUtils.compilerOutputArtifacts(input, false)
+        outputFileTags: Cpp.compilerOutputTags(generateAssemblerListingFiles)
+        outputArtifacts: Cpp.compilerOutputArtifacts(input, false)
         prepare: IAR.prepareAssembler.apply(IAR, arguments)
     }
 
@@ -112,8 +112,8 @@ CppModule {
         id: compiler
         inputs: ["cpp", "c"]
         auxiliaryInputs: ["hpp"]
-        outputFileTags: ModUtils.compilerOutputTags(generateCompilerListingFiles)
-        outputArtifacts: ModUtils.compilerOutputArtifacts(input, true)
+        outputFileTags: Cpp.compilerOutputTags(generateCompilerListingFiles)
+        outputArtifacts: Cpp.compilerOutputArtifacts(input, true)
         prepare: IAR.prepareCompiler.apply(IAR, arguments)
     }
 
@@ -122,8 +122,8 @@ CppModule {
         multiplex: true
         inputs: ["obj", "linkerscript"]
         inputsFromDependencies: ["staticlibrary"]
-        outputFileTags: ModUtils.applicationLinkerOutputTags(generateLinkerMapFile)
-        outputArtifacts: ModUtils.applicationLinkerOutputArtifacts(product)
+        outputFileTags: Cpp.applicationLinkerOutputTags(generateLinkerMapFile)
+        outputArtifacts: Cpp.applicationLinkerOutputArtifacts(product)
         prepare: IAR.prepareLinker.apply(IAR, arguments)
     }
 
@@ -132,8 +132,8 @@ CppModule {
         multiplex: true
         inputs: ["obj"]
         inputsFromDependencies: ["staticlibrary"]
-        outputFileTags: ModUtils.staticLibraryLinkerOutputTags()
-        outputArtifacts: ModUtils.staticLibraryLinkerOutputArtifacts(product)
+        outputFileTags: Cpp.staticLibraryLinkerOutputTags()
+        outputArtifacts: Cpp.staticLibraryLinkerOutputArtifacts(product)
         prepare: IAR.prepareArchiver.apply(IAR, arguments)
     }
 }

@@ -31,8 +31,8 @@
 import qbs 1.0
 import qbs.File
 import qbs.FileInfo
-import qbs.ModUtils
 import qbs.Probes
+import "cpp.js" as Cpp
 import "keil.js" as KEIL
 
 CppModule {
@@ -102,8 +102,8 @@ CppModule {
     Rule {
         id: assembler
         inputs: ["asm"]
-        outputFileTags: ModUtils.compilerOutputTags(generateAssemblerListingFiles)
-        outputArtifacts: ModUtils.compilerOutputArtifacts(input, false)
+        outputFileTags: Cpp.compilerOutputTags(generateAssemblerListingFiles)
+        outputArtifacts: Cpp.compilerOutputArtifacts(input, false)
         prepare: KEIL.prepareAssembler.apply(KEIL, arguments)
     }
 
@@ -116,8 +116,8 @@ CppModule {
         id: compiler
         inputs: ["cpp", "c"]
         auxiliaryInputs: ["hpp"]
-        outputFileTags: ModUtils.compilerOutputTags(generateCompilerListingFiles)
-        outputArtifacts: ModUtils.compilerOutputArtifacts(input, true)
+        outputFileTags: Cpp.compilerOutputTags(generateCompilerListingFiles)
+        outputArtifacts: Cpp.compilerOutputArtifacts(input, true)
         prepare: KEIL.prepareCompiler.apply(KEIL, arguments)
     }
 
@@ -126,8 +126,8 @@ CppModule {
         multiplex: true
         inputs: ["obj", "linkerscript"]
         inputsFromDependencies: ["staticlibrary"]
-        outputFileTags: ModUtils.applicationLinkerOutputTags(generateLinkerMapFile)
-        outputArtifacts: ModUtils.applicationLinkerOutputArtifacts(product)
+        outputFileTags: Cpp.applicationLinkerOutputTags(generateLinkerMapFile)
+        outputArtifacts: Cpp.applicationLinkerOutputArtifacts(product)
         prepare: KEIL.prepareLinker.apply(KEIL, arguments)
     }
 
@@ -136,8 +136,8 @@ CppModule {
         multiplex: true
         inputs: ["obj"]
         inputsFromDependencies: ["staticlibrary"]
-        outputFileTags: ModUtils.staticLibraryLinkerOutputTags()
-        outputArtifacts: ModUtils.staticLibraryLinkerOutputArtifacts(product)
+        outputFileTags: Cpp.staticLibraryLinkerOutputTags()
+        outputArtifacts: Cpp.staticLibraryLinkerOutputArtifacts(product)
         prepare: KEIL.prepareArchiver.apply(KEIL, arguments)
     }
 }

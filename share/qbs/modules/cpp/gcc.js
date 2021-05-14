@@ -1446,7 +1446,7 @@ function dumpMacros(env, compilerFilePath, args, nullDevice, tag) {
         p.exec(compilerFilePath,
                (args || []).concat(["-Wp,-dM", "-E", "-x", languageName(tag || "c") , nullDevice]),
                true);
-        return ModUtils.extractMacros(p.readStdOut());
+        return Cpp.extractMacros(p.readStdOut());
     } finally {
         p.close();
     }

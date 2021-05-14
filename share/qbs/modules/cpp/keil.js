@@ -436,7 +436,7 @@ function dumpArmCCCompilerMacros(compilerFilePath, tag, nullDevice) {
 
     var p = new Process();
     p.exec(compilerFilePath, args, false);
-    return ModUtils.extractMacros(p.readStdOut());
+    return Cpp.extractMacros(p.readStdOut());
 }
 
 function dumpArmClangCompilerMacros(compilerFilePath, tag, nullDevice) {
@@ -444,7 +444,7 @@ function dumpArmClangCompilerMacros(compilerFilePath, tag, nullDevice) {
                 "-x", ((tag === "cpp") ? "c++" : "c"), nullDevice ];
     var p = new Process();
     p.exec(compilerFilePath, args, false);
-    return ModUtils.extractMacros(p.readStdOut());
+    return Cpp.extractMacros(p.readStdOut());
 }
 
 function dumpMacros(compilerFilePath, tag, nullDevice) {
@@ -886,7 +886,7 @@ function linkerFlags(project, product, inputs, outputs) {
             inputs.obj.map(function(obj) { allObjectPaths.push(obj.filePath) });
 
         // Library dependencies.
-        var libraryObjects = ModUtils.collectLibraryDependencies(product);
+        var libraryObjects = Cpp.collectLibraryDependencies(product);
         allObjectPaths = allObjectPaths.concat(libraryObjects.map(function(lib) {
             // Semi-intelligent handling the library paths.
             // We need to add the full path prefix to the library file if this
@@ -927,7 +927,7 @@ function linkerFlags(project, product, inputs, outputs) {
             args.push("--userlibpath=" + libraryPaths.join(","));
 
         // Library dependencies.
-        var libraryDependencies = ModUtils.collectLibraryDependencies(product);
+        var libraryDependencies = Cpp.collectLibraryDependencies(product);
         args = args.concat(libraryDependencies.map(function(dep) { return dep.filePath; }));
 
         // Debug information flag.
