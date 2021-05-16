@@ -124,6 +124,17 @@ Item *ItemReader::readFile(const QString &filePath)
     return m_visitorState->readFile(filePath, allSearchPaths(), m_pool);
 }
 
+Item *ItemReader::readFile(const QString &filePath, const CodeLocation &referencingLocation)
+{
+    try {
+        return readFile(filePath);
+    } catch (const ErrorInfo &e) {
+        if (e.hasLocation())
+            throw;
+        throw ErrorInfo(e.toString(), referencingLocation);
+    }
+}
+
 Set<QString> ItemReader::filesRead() const
 {
     return m_visitorState->filesRead();

@@ -46,6 +46,7 @@
 #include "itemreader.h"
 #include "language.h"
 #include "modulemerger.h"
+#include "moduleproviderloader.h"
 #include "qualifiedid.h"
 #include "scriptengine.h"
 #include "value.h"
@@ -57,7 +58,6 @@
 #include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/fileinfo.h>
-#include <tools/jsliterals.h>
 #include <tools/preferences.h>
 #include <tools/profile.h>
 #include <tools/profiling.h>
@@ -75,7 +75,6 @@
 #include <QtCore/qdiriterator.h>
 #include <QtCore/qjsondocument.h>
 #include <QtCore/qjsonobject.h>
-#include <QtCore/qtemporaryfile.h>
 #include <QtCore/qtextstream.h>
 #include <QtCore/qthreadstorage.h>
 #include <QtScript/qscriptvalueiterator.h>
@@ -254,6 +253,7 @@ ModuleLoader::ModuleLoader(Evaluator *evaluator, Logger &logger)
     , m_progressObserver(nullptr)
     , m_reader(std::make_unique<ItemReader>(logger))
     , m_evaluator(evaluator)
+    , m_moduleProviderLoader(std::make_unique<ModuleProviderLoader>(m_reader.get(), m_evaluator))
 {
 }
 
@@ -289,7 +289,7 @@ void ModuleLoader::setStoredProfiles(const QVariantMap &profiles)
 
 void ModuleLoader::setStoredModuleProviderInfo(const ModuleProviderInfoList &moduleProviderInfo)
 {
-    m_moduleProviderInfo = moduleProviderInfo;
+    m_moduleProviderLoader->setModuleProviderInfo(moduleProviderInfo);
 }
 
 ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
@@ -304,6 +304,7 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
     m_disabledItems.clear();
     m_reader->clearExtraSearchPathsStack();
     m_reader->setEnableTiming(parameters.logElapsedTime());
+    m_moduleProviderLoader->setProjectParameters(m_parameters);
     m_elapsedTimeProbes = m_elapsedTimePrepareProducts = m_elapsedTimeHandleProducts
             = m_elapsedTimeProductDependencies = m_elapsedTimeTransitiveDependencies
             = m_elapsedTimePropertyChecking = 0;
@@ -379,7 +380,7 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
     handleTopLevelProject(&result, root, buildDirectory,
                   Set<QString>() << QDir::cleanPath(parameters.projectFilePath()));
     result.root = root;
-    result.qbsFiles = m_reader->filesRead() - m_tempQbsFiles;
+    result.qbsFiles = m_reader->filesRead() - m_moduleProviderLoader->tempQbsFiles();
     for (auto it = m_localProfiles.cbegin(); it != m_localProfiles.cend(); ++it)
         result.profileConfigs.remove(it.key());
     printProfilingInfo();
@@ -641,7 +642,7 @@ void ModuleLoader::handleTopLevelProject(ModuleLoaderResult *loadResult, Item *p
     }
 
     loadResult->projectProbes = tlp.probes;
-    loadResult->moduleProviderInfo = m_moduleProviderInfo;
+    loadResult->moduleProviderInfo = m_moduleProviderLoader->moduleProviderInfo();
 
     m_reader->clearExtraSearchPathsStack();
     AccumulatingTimer timer(m_parameters.logElapsedTime()
@@ -2059,14 +2060,7 @@ bool ModuleLoader::mergeExportItems(const ProductContext &productContext)
 Item *ModuleLoader::loadItemFromFile(const QString &filePath,
                                      const CodeLocation &referencingLocation)
 {
-    Item *item;
-    try {
-        item = m_reader->readFile(filePath);
-    } catch (const ErrorInfo &e) {
-        if (e.hasLocation())
-            throw;
-        throw ErrorInfo(e.toString(), referencingLocation);
-    }
+    Item *item = m_reader->readFile(filePath, referencingLocation);
     handleAllPropertyOptionsItems(item);
     return item;
 }
@@ -2241,20 +2235,7 @@ void ModuleLoader::setSearchPathsForProduct(ModuleLoader::ProductContext *produc
             product->searchPaths << p;
     }
 
-    // Existing module provider search paths are re-used if and only if the provider configuration
-    // at setup time was the same as the current one for the respective module provider.
-    if (!m_moduleProviderInfo.empty()) {
-        const QVariantMap configForProduct = moduleProviderConfig(*product);
-        for (const ModuleProviderInfo &c : m_moduleProviderInfo) {
-            if (configForProduct.value(c.name.toString()).toMap() == c.config) {
-                qCDebug(lcModuleLoader) << "re-using search paths" << c.searchPaths
-                                        << "from module provider" << c.name
-                                        << "for product" << product->name;
-                product->knownModuleProviders.insert(c.name);
-                product->searchPaths << c.searchPaths;
-            }
-        }
-    }
+    m_moduleProviderLoader->setupKnownModuleProviders(*product);
 }
 
 ModuleLoader::ShadowProductInfo ModuleLoader::getShadowProductInfo(
@@ -3122,28 +3103,11 @@ Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
     auto existingPaths = findExistingModulePaths(m_reader->allSearchPaths(), moduleName);
 
     if (existingPaths.isEmpty()) { // no suitable names found, try to use providers
-        bool moduleAlreadyKnown = false;
-        ModuleProviderResult result;
-        for (QualifiedId providerName = moduleName; !providerName.empty();
-             providerName.pop_back()) {
-            if (!productContext->knownModuleProviders.insert(providerName).second) {
-                moduleAlreadyKnown = true;
-                break;
-            }
-            qCDebug(lcModuleLoader) << "Module" << moduleName.toString()
-                                    << "not found, checking for module providers";
-            result = findModuleProvider(providerName, *productContext,
-                                        ModuleProviderLookup::Regular, dependsItemLocation);
-            if (result.providerFound)
-                break;
-        }
-        if (fallbackMode == FallbackMode::Enabled && !result.providerFound
-                && !moduleAlreadyKnown) {
-            qCDebug(lcModuleLoader) << "Specific module provider not found for"
-                                    << moduleName.toString()  << ", setting up fallback.";
-            result = findModuleProvider(moduleName, *productContext,
-                                        ModuleProviderLookup::Fallback, dependsItemLocation);
-        }
+        const auto result = m_moduleProviderLoader->executeModuleProvider(
+                    *productContext,
+                    dependsItemLocation,
+                    moduleName,
+                    fallbackMode);
         if (result.providerAddedSearchPaths) {
             qCDebug(lcModuleLoader) << "Re-checking for module" << moduleName.toString()
                                     << "with newly added search paths from module provider";
@@ -3811,152 +3775,6 @@ QStringList ModuleLoader::findExistingModulePaths(
             result.append(dirPath);
     }
     return result;
-}
-
-QVariantMap ModuleLoader::moduleProviderConfig(ModuleLoader::ProductContext &product)
-{
-    if (product.theModuleProviderConfig)
-        return *product.theModuleProviderConfig;
-    QVariantMap providerConfig;
-    const ItemValueConstPtr configItemValue
-            = product.item->itemProperty(StringConstants::moduleProviders());
-    if (configItemValue) {
-        const std::function<void(const Item *, QualifiedId)> collectMap
-                = [this, &providerConfig, &collectMap](const Item *item, const QualifiedId &name) {
-            const Item::PropertyMap &props = item->properties();
-            for (auto it = props.begin(); it != props.end(); ++it) {
-                QVariant value;
-                switch (it.value()->type()) {
-                case Value::ItemValueType: {
-                    const auto childItem = static_cast<ItemValue *>(it.value().get())->item();
-                    childItem->setScope(item->scope());
-                    collectMap(childItem, QualifiedId(name) << it.key());
-                    continue;
-                }
-                case Value::JSSourceValueType:
-                    value = m_evaluator->value(item, it.key()).toVariant();
-                    break;
-                case Value::VariantValueType:
-                    value = static_cast<VariantValue *>(it.value().get())->value();
-                    break;
-                }
-                QVariantMap m = providerConfig.value(name.toString()).toMap();
-                m.insert(it.key(), value);
-                providerConfig.insert(name.toString(), m);
-            }
-        };
-        configItemValue->item()->setScope(product.item);
-        collectMap(configItemValue->item(), QualifiedId());
-    }
-    for (auto it = product.moduleProperties.begin(); it != product.moduleProperties.end(); ++it) {
-        if (!it.key().startsWith(QStringLiteral("moduleProviders.")))
-            continue;
-        const QString provider = it.key().mid(QStringLiteral("moduleProviders.").size());
-        const QVariantMap providerConfigFromBuildConfig = it.value().toMap();
-        if (providerConfigFromBuildConfig.empty())
-            continue;
-        QVariantMap currentMapForProvider = providerConfig.value(provider).toMap();
-        for (auto propIt = providerConfigFromBuildConfig.begin();
-             propIt != providerConfigFromBuildConfig.end(); ++propIt) {
-            currentMapForProvider.insert(propIt.key(), propIt.value());
-        }
-        providerConfig.insert(provider, currentMapForProvider);
-    }
-    return *(product.theModuleProviderConfig = std::move(providerConfig));
-}
-
-ModuleLoader::ModuleProviderResult ModuleLoader::findModuleProvider(const QualifiedId &name,
-        ModuleLoader::ProductContext &product, ModuleProviderLookup lookupType,
-        const CodeLocation &dependsItemLocation)
-{
-    for (const QString &path : m_reader->allSearchPaths()) {
-        QString fullPath = FileInfo::resolvePath(path, QStringLiteral("module-providers"));
-        switch (lookupType) {
-        case ModuleProviderLookup::Regular:
-            for (const QString &component : name)
-                fullPath = FileInfo::resolvePath(fullPath, component);
-            break;
-        case ModuleProviderLookup::Fallback:
-            fullPath = FileInfo::resolvePath(fullPath, QStringLiteral("__fallback"));
-            break;
-        }
-        const QString providerFile = FileInfo::resolvePath(fullPath,
-                                                           QStringLiteral("provider.qbs"));
-        if (!FileInfo::exists(providerFile)) {
-            qCDebug(lcModuleLoader) << "No module provider found at" << providerFile;
-            continue;
-        }
-        QTemporaryFile dummyItemFile;
-        if (!dummyItemFile.open()) {
-            throw ErrorInfo(Tr::tr("Failed to create temporary file for running module provider "
-                                   "for dependency '%1': %2").arg(name.toString(),
-                                                                  dummyItemFile.errorString()));
-        }
-        m_tempQbsFiles << dummyItemFile.fileName();
-        qCDebug(lcModuleLoader) << "Instantiating module provider at" << providerFile;
-        const QString projectBuildDir = product.project->item->variantProperty(
-                    StringConstants::buildDirectoryProperty())->value().toString();
-        const QString searchPathBaseDir = ModuleProviderInfo::outputDirPath(projectBuildDir, name);
-        const QVariant moduleConfig = moduleProviderConfig(product).value(name.toString());
-        QTextStream stream(&dummyItemFile);
-        using Qt::endl;
-        setupDefaultCodec(stream);
-        stream << "import qbs.FileInfo" << endl;
-        stream << "import qbs.Utilities" << endl;
-        stream << "import '" << providerFile << "' as Provider" << endl;
-        stream << "Provider {" << endl;
-        stream << "    name: " << toJSLiteral(name.toString()) << endl;
-        stream << "    property var config: (" << toJSLiteral(moduleConfig) << ')' << endl;
-        stream << "    outputBaseDir: FileInfo.joinPaths(baseDirPrefix, "
-                  "        Utilities.getHash(JSON.stringify(config)))" << endl;
-        stream << "    property string baseDirPrefix: " << toJSLiteral(searchPathBaseDir) << endl;
-        stream << "    property stringList searchPaths: (relativeSearchPaths || [])"
-                  "        .map(function(p) { return FileInfo.joinPaths(outputBaseDir, p); })"
-               << endl;
-        stream << "}" << endl;
-        stream.flush();
-        Item * const providerItem = loadItemFromFile(dummyItemFile.fileName(), dependsItemLocation);
-        if (providerItem->type() != ItemType::ModuleProvider) {
-            throw ErrorInfo(Tr::tr("File '%1' declares an item of type '%2', "
-                                   "but '%3' was expected.")
-                .arg(providerFile, providerItem->typeName(),
-                     BuiltinDeclarations::instance().nameForType(ItemType::ModuleProvider)));
-        }
-        providerItem->setParent(product.item);
-        const QVariantMap configMap = moduleConfig.toMap();
-        for (auto it = configMap.begin(); it != configMap.end(); ++it) {
-            const PropertyDeclaration decl = providerItem->propertyDeclaration(it.key());
-            if (!decl.isValid()) {
-                throw ErrorInfo(Tr::tr("No such property '%1' in module provider '%2'.")
-                                .arg(it.key(), name.toString()));
-            }
-            providerItem->setProperty(it.key(), VariantValue::create(it.value()));
-        }
-        EvalContextSwitcher contextSwitcher(m_evaluator->engine(), EvalContext::ModuleProvider);
-        const QStringList searchPaths
-                = m_evaluator->stringListValue(providerItem, QStringLiteral("searchPaths"));
-        const auto addToGlobalInfo = [=] {
-            m_moduleProviderInfo.emplace_back(ModuleProviderInfo(name, moduleConfig.toMap(),
-                                                         searchPaths, m_parameters.dryRun()));
-        };
-        if (searchPaths.empty()) {
-            qCDebug(lcModuleLoader) << "Module provider did run, but did not set up "
-                                       "any modules.";
-            addToGlobalInfo();
-            return {true, false};
-        }
-        qCDebug(lcModuleLoader) << "Module provider added" << searchPaths.size()
-                                << "new search path(s)";
-
-        // (1) is needed so the immediate new look-up works.
-        // (2) is needed so the next use of SearchPathManager considers the new paths.
-        // (3) is needed for possible re-use in subsequent products and builds.
-        m_reader->pushExtraSearchPaths(searchPaths); // (1)
-        product.searchPaths << searchPaths; // (2)
-        addToGlobalInfo(); // (3)
-        return {true, true};
-    }
-    return {};
 }
 
 void ModuleLoader::setScopeForDescendants(Item *item, Item *scope)

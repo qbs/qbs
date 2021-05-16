@@ -29,6 +29,7 @@ HEADERS += \
     $$PWD/moduleloader.h \
     $$PWD/modulemerger.h \
     $$PWD/moduleproviderinfo.h \
+    $$PWD/moduleproviderloader.h \
     $$PWD/preparescriptobserver.h \
     $$PWD/projectresolver.h \
     $$PWD/property.h \
@@ -63,6 +64,7 @@ SOURCES += \
     $$PWD/loader.cpp \
     $$PWD/moduleloader.cpp \
     $$PWD/modulemerger.cpp \
+    $$PWD/moduleproviderloader.cpp \
     $$PWD/preparescriptobserver.cpp \
     $$PWD/scriptpropertyobserver.cpp \
     $$PWD/projectresolver.cpp \

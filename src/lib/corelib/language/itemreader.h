@@ -80,6 +80,7 @@ public:
     const QStringList &allSearchPaths() const;
 
     Item *readFile(const QString &filePath);
+    Item *readFile(const QString &filePath, const CodeLocation &referencingLocation);
 
     Set<QString> filesRead() const;
 

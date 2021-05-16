@@ -73,6 +73,7 @@ namespace Internal {
 class Evaluator;
 class Item;
 class ItemReader;
+class ModuleProviderLoader;
 class ProgressObserver;
 class QualifiedId;
 
@@ -137,6 +138,7 @@ public:
     ModuleLoaderResult load(const SetupProjectParameters &parameters);
 
 private:
+    friend class ModuleProviderLoader;
     class ProductSortByDependencies;
 
     class ContextBase
@@ -343,19 +345,6 @@ private:
     QStringList findExistingModulePaths(
             const QStringList &searchPaths, const QualifiedId &moduleName);
 
-    enum class ModuleProviderLookup { Regular, Fallback };
-    struct ModuleProviderResult
-    {
-        ModuleProviderResult() = default;
-        ModuleProviderResult(bool ran, bool added)
-            : providerFound(ran), providerAddedSearchPaths(added) {}
-        bool providerFound = false;
-        bool providerAddedSearchPaths = false;
-    };
-    ModuleProviderResult findModuleProvider(const QualifiedId &name, ProductContext &product,
-            ModuleProviderLookup lookupType, const CodeLocation &dependsItemLocation);
-    QVariantMap moduleProviderConfig(ProductContext &product);
-
     static void setScopeForDescendants(Item *item, Item *scope);
     void overrideItemProperties(Item *item, const QString &buildConfigKey,
                                 const QVariantMap &buildConfig);
@@ -413,6 +402,7 @@ private:
     ProgressObserver *m_progressObserver;
     const std::unique_ptr<ItemReader> m_reader;
     Evaluator *m_evaluator;
+    const std::unique_ptr<ModuleProviderLoader> m_moduleProviderLoader;
     QMap<QString, QStringList> m_moduleDirListCache;
     QHash<std::pair<QString, QualifiedId>, std::optional<QString>> m_existingModulePathCache;
 
@@ -452,9 +442,6 @@ private:
 
     std::unordered_map<ProductContext *, Set<DeferredDependsContext>> m_productsWithDeferredDependsItems;
     Set<Item *> m_exportsWithDeferredDependsItems;
-
-    ModuleProviderInfoList m_moduleProviderInfo;
-    Set<QString> m_tempQbsFiles;
 
     SetupProjectParameters m_parameters;
     std::unique_ptr<Settings> m_settings;

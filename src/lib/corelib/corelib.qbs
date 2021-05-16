@@ -321,6 +321,8 @@ QbsLibrary {
             "modulemerger.cpp",
             "modulemerger.h",
             "moduleproviderinfo.h",
+            "moduleproviderloader.cpp",
+            "moduleproviderloader.h",
             "preparescriptobserver.cpp",
             "preparescriptobserver.h",
             "projectresolver.cpp",

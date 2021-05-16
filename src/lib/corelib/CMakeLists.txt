@@ -228,6 +228,8 @@ set(LANGUAGE_SOURCES
     modulemerger.cpp
     modulemerger.h
     moduleproviderinfo.h
+    moduleproviderloader.cpp
+    moduleproviderloader.h
     preparescriptobserver.cpp
     preparescriptobserver.h
     projectresolver.cpp
