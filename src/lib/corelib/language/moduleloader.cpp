@@ -227,15 +227,25 @@ private:
 
 class SearchPathsManager {
 public:
-    SearchPathsManager(ItemReader *itemReader, const QStringList &extraSearchPaths)
+    explicit SearchPathsManager(ItemReader *itemReader)
         : m_itemReader(itemReader)
+        , m_oldSize(itemReader->extraSearchPathsStack().size())
+    {
+    }
+    SearchPathsManager(ItemReader *itemReader, const QStringList &extraSearchPaths)
+        : SearchPathsManager(itemReader)
     {
         m_itemReader->pushExtraSearchPaths(extraSearchPaths);
     }
-    ~SearchPathsManager() { m_itemReader->popExtraSearchPaths(); }
+    ~SearchPathsManager()
+    {
+        while (m_itemReader->extraSearchPathsStack().size() > m_oldSize)
+            m_itemReader->popExtraSearchPaths();
+    }
 
 private:
     ItemReader * const m_itemReader;
+    size_t m_oldSize{0};
 };
 
 ModuleLoader::ModuleLoader(Evaluator *evaluator, Logger &logger)
@@ -590,9 +600,9 @@ void ModuleLoader::handleTopLevelProject(ModuleLoaderResult *loadResult, Item *p
                     throw err;
                 handleProductError(err, &productContext);
             }
-            for (std::size_t i = 0; i < productContext.newlyAddedModuleProviderSearchPaths.size(); ++i)
-                m_reader->popExtraSearchPaths();
-            productContext.newlyAddedModuleProviderSearchPaths.clear();
+            // extraSearchPathsStack is changed during dependency resolution, check
+            // that we've rolled back all the changes
+            QBS_CHECK(m_reader->extraSearchPathsStack() == projectContext->searchPathsStack);
         }
     }
     if (!m_productsWithDeferredDependsItems.empty() || !m_exportsWithDeferredDependsItems.empty()) {
@@ -673,8 +683,8 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
         return;
     }
     topLevelProjectContext->projects.push_back(p.release());
-    m_reader->pushExtraSearchPaths(readExtraSearchPaths(projectItem)
-                                   << projectItem->file()->dirPath());
+    SearchPathsManager searchPathsManager(m_reader.get(), readExtraSearchPaths(projectItem)
+                                          << projectItem->file()->dirPath());
     projectContext.searchPathsStack = m_reader->extraSearchPathsStack();
     projectContext.item = projectItem;
 
@@ -758,7 +768,6 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
             break;
         }
     }
-    m_reader->popExtraSearchPaths();
 }
 
 QString ModuleLoader::MultiplexInfo::toIdString(size_t row) const
@@ -1328,6 +1337,10 @@ void ModuleLoader::setupProductDependencies(ProductContext *productContext,
 
     if (m_dependencyResolvingPass == 1)
         setSearchPathsForProduct(productContext);
+
+    // Module providers may push some extra search paths which we will be cleared
+    // by this SearchPathsManager. However, they will be also added to productContext->searchPaths
+    // so second pass will take that into account
     SearchPathsManager searchPathsManager(m_reader.get(), productContext->searchPaths);
 
     DependsContext dependsContext;
@@ -3937,13 +3950,10 @@ ModuleLoader::ModuleProviderResult ModuleLoader::findModuleProvider(const Qualif
 
         // (1) is needed so the immediate new look-up works.
         // (2) is needed so the next use of SearchPathManager considers the new paths.
-        // (3) is needed for the code that removes the product-specific search paths when
-        //     product handling is done.
-        // (4) is needed for possible re-use in subsequent products and builds.
+        // (3) is needed for possible re-use in subsequent products and builds.
         m_reader->pushExtraSearchPaths(searchPaths); // (1)
         product.searchPaths << searchPaths; // (2)
-        product.newlyAddedModuleProviderSearchPaths.push_back(searchPaths); // (3)
-        addToGlobalInfo(); // (4)
+        addToGlobalInfo(); // (3)
         return {true, true};
     }
     return {};

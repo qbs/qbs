@@ -88,7 +88,7 @@ void ItemReader::popExtraSearchPaths()
     m_allSearchPaths.clear();
 }
 
-std::vector<QStringList> ItemReader::extraSearchPathsStack() const
+const std::vector<QStringList> &ItemReader::extraSearchPathsStack() const
 {
     return m_extraSearchPaths;
 }

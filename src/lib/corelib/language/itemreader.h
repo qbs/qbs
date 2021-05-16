@@ -74,7 +74,7 @@ public:
     void setSearchPaths(const QStringList &searchPaths);
     void pushExtraSearchPaths(const QStringList &extraSearchPaths);
     void popExtraSearchPaths();
-    std::vector<QStringList> extraSearchPathsStack() const;
+    const std::vector<QStringList> &extraSearchPathsStack() const;
     void setExtraSearchPathsStack(const std::vector<QStringList> &s);
     void clearExtraSearchPathsStack();
     const QStringList &allSearchPaths() const;

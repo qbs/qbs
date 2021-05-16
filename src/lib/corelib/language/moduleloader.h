@@ -185,7 +185,6 @@ private:
         std::unordered_map<const Item *, std::vector<ErrorInfo>> unknownProfilePropertyErrors;
         QStringList searchPaths;
 
-        std::vector<QStringList> newlyAddedModuleProviderSearchPaths;
         Set<QualifiedId> knownModuleProviders;
         std::optional<QVariantMap> theModuleProviderConfig;
 
