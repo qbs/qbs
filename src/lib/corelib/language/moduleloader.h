@@ -451,6 +451,7 @@ private:
     qint64 m_elapsedTimeProbes = 0;
     qint64 m_elapsedTimePrepareProducts = 0;
     qint64 m_elapsedTimeProductDependencies = 0;
+    qint64 m_elapsedTimeModuleProviders = 0;
     qint64 m_elapsedTimeTransitiveDependencies = 0;
     qint64 m_elapsedTimeHandleProducts = 0;
     qint64 m_elapsedTimePropertyChecking = 0;

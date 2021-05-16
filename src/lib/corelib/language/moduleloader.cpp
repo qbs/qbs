@@ -308,6 +308,7 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
     m_elapsedTimeProbes = m_elapsedTimePrepareProducts = m_elapsedTimeHandleProducts
             = m_elapsedTimeProductDependencies = m_elapsedTimeTransitiveDependencies
             = m_elapsedTimePropertyChecking = 0;
+    m_elapsedTimeModuleProviders = 0;
     m_elapsedTimeProbes = 0;
     m_probesEncountered = m_probesRun = m_probesCachedCurrent = m_probesCachedOld = 0;
     m_settings = std::make_unique<Settings>(parameters.settingsDirectory());
@@ -1934,6 +1935,9 @@ void ModuleLoader::printProfilingInfo()
                                       << Tr::tr("Setting up product dependencies took %1.")
                                          .arg(elapsedTimeString(m_elapsedTimeProductDependencies));
     m_logger.qbsLog(LoggerInfo, true) << "\t\t"
+                                      << Tr::tr("Running module providers took %1.")
+                                         .arg(elapsedTimeString(m_elapsedTimeModuleProviders));
+    m_logger.qbsLog(LoggerInfo, true) << "\t\t"
             << Tr::tr("Setting up transitive product dependencies took %1.")
                .arg(elapsedTimeString(m_elapsedTimeTransitiveDependencies));
     m_logger.qbsLog(LoggerInfo, true) << "\t"
@@ -3103,6 +3107,8 @@ Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
     auto existingPaths = findExistingModulePaths(m_reader->allSearchPaths(), moduleName);
 
     if (existingPaths.isEmpty()) { // no suitable names found, try to use providers
+        AccumulatingTimer providersTimer(
+                m_parameters.logElapsedTime() ? &m_elapsedTimeModuleProviders : nullptr);
         const auto result = m_moduleProviderLoader->executeModuleProvider(
                     *productContext,
                     dependsItemLocation,
