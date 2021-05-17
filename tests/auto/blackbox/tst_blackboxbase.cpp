@@ -96,17 +96,16 @@ int TestBlackboxBase::runQbs(const QbsRunParameters &params)
         process.setWorkingDirectory(params.workingDir);
     process.setProcessEnvironment(params.environment);
     process.start(qbsExecutableFilePath, args);
+    int exitCode = 0;
     if (!process.waitForStarted() || !process.waitForFinished(testTimeoutInMsecs())
             || process.exitStatus() != QProcess::NormalExit) {
-        m_qbsStderr = process.readAllStandardError();
-        m_qbsStdout = process.readAllStandardOutput();
         if (!params.expectCrash) {
             QTest::qFail("qbs did not run correctly", __FILE__, __LINE__);
             qDebug("%s", qPrintable(process.errorString()));
-            qDebug("%s", m_qbsStderr.constData());
-            qDebug("%s", m_qbsStdout.constData());
         }
-        return -1;
+        exitCode = -1;
+    } else {
+        exitCode = process.exitCode();
     }
 
     m_qbsStderr = process.readAllStandardError();
@@ -114,14 +113,14 @@ int TestBlackboxBase::runQbs(const QbsRunParameters &params)
     sanitizeOutput(&m_qbsStderr);
     sanitizeOutput(&m_qbsStdout);
     const bool shouldLog = (process.exitStatus() != QProcess::NormalExit
-            || process.exitCode() != 0) && !params.expectFailure;
+            || exitCode != 0) && !params.expectFailure;
     if (!m_qbsStderr.isEmpty()
             && (shouldLog || qEnvironmentVariableIsSet("QBS_AUTOTEST_ALWAYS_LOG_STDERR")))
         qDebug("%s", m_qbsStderr.constData());
     if (!m_qbsStdout.isEmpty()
             && (shouldLog || qEnvironmentVariableIsSet("QBS_AUTOTEST_ALWAYS_LOG_STDOUT")))
         qDebug("%s", m_qbsStdout.constData());
-    return process.exitCode();
+    return exitCode;
 }
 
 /*!
