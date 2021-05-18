@@ -39,10 +39,14 @@ find_package(Qt${QT_VERSION_MAJOR} OPTIONAL_COMPONENTS Script)
 
 if (Qt6_FOUND)
     find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core5Compat REQUIRED)
-    set_property(TARGET Qt6::Core5Compat PROPERTY IMPORTED_GLOBAL TRUE) # hack for CMake < 1.18
-    add_library(Qt6Core5Compat ALIAS Qt6::Core5Compat)
+    if(NOT TARGET Qt6Core5Compat)
+        set_property(TARGET Qt6::Core5Compat PROPERTY IMPORTED_GLOBAL TRUE) # hack for CMake < 1.18
+        add_library(Qt6Core5Compat ALIAS Qt6::Core5Compat)
+    endif()
 else()
+  if(NOT TARGET Qt6Core5Compat)
     add_library(Qt6Core5Compat INTERFACE)
+  endif()
 endif()
 
 add_subdirectory(src)
