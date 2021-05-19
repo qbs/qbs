@@ -97,7 +97,13 @@ CppModule {
     enableExceptions: false
     enableRtti: false
 
-    property string preincludeFlag: KEIL.preincludeFlag(compilerPath)
+    defineFlag: "-D"
+    includeFlag: "-I"
+    systemIncludeFlag: "-I"
+    preincludeFlag: KEIL.preincludeFlag(compilerPath)
+    libraryDependencyFlag: ""
+    libraryPathFlag: "--userlibpath="
+    linkerScriptFlag: "--scatter"
 
     Rule {
         id: assembler

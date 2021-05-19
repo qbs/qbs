@@ -188,9 +188,7 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
         args.push(rtl);
     }
 
-    var driverFlags = product.cpp.driverFlags;
-    if (driverFlags)
-        args = args.concat(driverFlags);
+    args = args.concat(Cpp.collectMiscDriverArguments(product));
 
     // warnings:
     var warningLevel = input.cpp.warningLevel;
@@ -200,37 +198,26 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
         args.push('/Wall')
     if (input.cpp.treatWarningsAsErrors)
         args.push('/WX')
-    var includePaths = input.cpp.includePaths;
-    if (includePaths) {
-        args = args.concat([].uniqueConcat(includePaths).map(function(path) {
-            return '/I' + FileInfo.toWindowsSeparators(path);
-        }));
-    }
 
-    var allSystemIncludePaths = [];
-    var systemIncludePaths = input.cpp.systemIncludePaths;
-    if (systemIncludePaths)
-        allSystemIncludePaths = allSystemIncludePaths.uniqueConcat(systemIncludePaths);
-    var distributionIncludePaths = input.cpp.distributionIncludePaths;
-    if (distributionIncludePaths)
-        allSystemIncludePaths = allSystemIncludePaths.uniqueConcat(distributionIncludePaths);
-    var includeFlag = "/I";
+    var includePaths = Cpp.collectIncludePaths(input);
+    args = args.concat([].uniqueConcat(includePaths).map(function(path) {
+        return input.cpp.includeFlag + FileInfo.toWindowsSeparators(path);
+    }));
+
+    var includeFlag = input.cpp.includeFlag;
     if (supportsExternalIncludesOption(input)) {
         args.push("/experimental:external");
-        includeFlag = "/external:I"
+        includeFlag = input.cpp.systemIncludeFlag;
     }
-    allSystemIncludePaths.forEach(function(path) {
-        args.push(includeFlag, FileInfo.toWindowsSeparators(path)); });
+    var systemIncludePaths = Cpp.collectSystemIncludePaths(input);
+    args = args.concat([].uniqueConcat(systemIncludePaths).map(function(path) {
+        return includeFlag + FileInfo.toWindowsSeparators(path);
+    }));
 
-    var allDefines = [];
-    var platformDefines = input.cpp.platformDefines;
-    if (platformDefines)
-        allDefines = allDefines.uniqueConcat(platformDefines);
-    var defines = input.cpp.defines;
-    if (defines)
-        allDefines = allDefines.uniqueConcat(defines);
-    for (i in allDefines)
-        args.push('/D' + allDefines[i].replace(/%/g, "%%"));
+    var defines = Cpp.collectDefines(input);
+    args = args.concat([].uniqueConcat(defines).map(function(define) {
+        return input.cpp.defineFlag + define.replace(/%/g, "%%");
+    }));
 
     var minimumWindowsVersion = product.cpp.minimumWindowsVersion;
     if (minimumWindowsVersion) {
@@ -238,7 +225,7 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
         if (hexVersion) {
             var versionDefs = [ 'WINVER', '_WIN32_WINNT', '_WIN32_WINDOWS' ];
             for (i in versionDefs) {
-                args.push('/D' + versionDefs[i] + '=' + hexVersion);
+                args.push(input.cpp.defineFlag + versionDefs[i] + '=' + hexVersion);
             }
         }
     }
@@ -254,9 +241,10 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
     args.push('/Fo' + FileInfo.toWindowsSeparators(objOutput.filePath))
     args.push(FileInfo.toWindowsSeparators(input.filePath))
 
-    var prefixHeaders = product.cpp.prefixHeaders;
-    for (i in prefixHeaders)
-        args.push("/FI" + FileInfo.toWindowsSeparators(prefixHeaders[i]));
+    var preincludePaths = Cpp.collectPreincludePaths(input);
+    args = args.concat([].uniqueConcat(preincludePaths).map(function(path) {
+        return input.cpp.preincludeFlag + FileInfo.toWindowsSeparators(path);
+    }));
 
     // Language
     if (tag === "cpp") {
@@ -301,10 +289,7 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
         }
     }
 
-    args = args.concat(ModUtils.moduleProperty(input, 'platformFlags'),
-                       ModUtils.moduleProperty(input, 'flags'),
-                       ModUtils.moduleProperty(input, 'platformFlags', tag),
-                       ModUtils.moduleProperty(input, 'flags', tag));
+    args = args.concat(Cpp.collectMiscCompilerArguments(input, tag));
 
     var compilerPath = product.cpp.compilerPath;
     var wrapperArgs = product.cpp.compilerWrapper;
@@ -435,19 +420,14 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
 
     if (useCompilerDriver) {
         args.push('/nologo');
-        var driverFlags = product.cpp.driverFlags;
-        if (driverFlags)
-            args = args.concat(driverFlags);
-        var driverLinkerFlags = product.cpp.driverLinkerFlags;
-        if (driverLinkerFlags)
-            args = args.concat(driverLinkerFlags);
+        args = args.concat(Cpp.collectMiscDriverArguments(product),
+                           Cpp.collectMiscLinkerArguments(product));
     }
 
-    var allInputs = inputs.obj || [];
-    for (i in allInputs) {
-        var fileName = FileInfo.toWindowsSeparators(allInputs[i].filePath)
-        args.push(fileName)
-    }
+    var allInputs = Cpp.collectLinkerObjectPaths(inputs);
+    args = args.concat([].uniqueConcat(allInputs).map(function(path) {
+        return FileInfo.toWindowsSeparators(path);
+    }));
 
     var linkerArgs = ['/nologo']
     if (linkDLL) {
@@ -581,12 +561,12 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
         args.push('/Fe' + linkerOutputNativeFilePath);
     else
         linkerArgs.push('/OUT:' + linkerOutputNativeFilePath);
-    var libraryPaths = product.cpp.libraryPaths;
-    if (libraryPaths)
-        libraryPaths = [].uniqueConcat(libraryPaths);
-    for (i in libraryPaths) {
-        linkerArgs.push('/LIBPATH:' + FileInfo.toWindowsSeparators(libraryPaths[i]))
-    }
+
+    var libraryPaths = Cpp.collectLibraryPaths(product);
+    linkerArgs = linkerArgs.concat([].uniqueConcat(libraryPaths).map(function(path) {
+        return product.cpp.libraryPathFlag + FileInfo.toWindowsSeparators(path);
+    }));
+
     handleDiscardProperty(product, linkerArgs);
     var linkerFlags = product.cpp.platformLinkerFlags.concat(product.cpp.linkerFlags);
     linkerArgs = linkerArgs.concat(linkerFlags);

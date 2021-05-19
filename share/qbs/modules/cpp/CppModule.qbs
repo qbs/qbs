@@ -204,6 +204,14 @@ Module {
     property bool discardUnusedData
     property bool removeDuplicateLibraries: true
 
+    property string defineFlag
+    property string includeFlag
+    property string systemIncludeFlag
+    property string preincludeFlag
+    property string libraryDependencyFlag
+    property string libraryPathFlag
+    property string linkerScriptFlag
+
     property string linkerMode: "automatic"
     PropertyOptions {
         name: "linkerMode"

@@ -186,3 +186,143 @@ function collectLibraryDependencies(product) {
     addExternalStaticLibs(product);
     return result;
 }
+
+function collectDefines(input) {
+    var allDefines = [];
+    var platformDefines = input.cpp.platformDefines;
+    if (platformDefines)
+        allDefines = allDefines.uniqueConcat(platformDefines);
+    var defines = input.cpp.defines;
+    if (defines)
+        allDefines = allDefines.uniqueConcat(defines);
+    return allDefines;
+}
+
+function collectIncludePaths(input) {
+    var allIncludePaths = [];
+    var includePaths = input.cpp.includePaths;
+    if (includePaths)
+        allIncludePaths = allIncludePaths.uniqueConcat(includePaths);
+    return allIncludePaths;
+}
+
+function collectSystemIncludePaths(input) {
+    var allIncludePaths = [];
+    var systemIncludePaths = input.cpp.systemIncludePaths;
+    if (systemIncludePaths)
+        allIncludePaths = allIncludePaths.uniqueConcat(systemIncludePaths);
+    var distributionIncludePaths = input.cpp.distributionIncludePaths;
+    if (distributionIncludePaths)
+        allIncludePaths = allIncludePaths.uniqueConcat(distributionIncludePaths);
+    return allIncludePaths;
+}
+
+function collectPreincludePaths(input) {
+    return input.cpp.prefixHeaders;
+}
+
+function collectLibraryPaths(product) {
+    var allLibraryPaths = [];
+    var libraryPaths = product.cpp.libraryPaths;
+    if (libraryPaths)
+        allLibraryPaths = allLibraryPaths.uniqueConcat(libraryPaths);
+    var distributionLibraryPaths = product.cpp.distributionLibraryPaths;
+    if (distributionLibraryPaths)
+        allLibraryPaths = allLibraryPaths.uniqueConcat(distributionLibraryPaths);
+    return allLibraryPaths;
+}
+
+function collectLinkerScriptPaths(inputs) {
+    return inputs.linkerscript
+            ? inputs.linkerscript.map(function(script) { return script.filePath; })
+            : [];
+}
+
+function collectLinkerObjectPaths(inputs) {
+    return inputs.obj ? inputs.obj.map(function(obj) { return obj.filePath; }) : [];
+}
+
+function collectLibraryDependenciesArguments(product) {
+    var deps = collectLibraryDependencies(product);
+    return deps.map(function(dep) { return product.cpp.libraryDependencyFlag + dep.filePath })
+}
+
+function collectDefinesArguments(input) {
+    var defines = collectDefines(input);
+    return defines.map(function(define) { return input.cpp.defineFlag + define });
+}
+
+function collectIncludePathsArguments(input) {
+    var paths = collectIncludePaths(input);
+    return paths.map(function(path) { return input.cpp.includeFlag + path });
+}
+
+function collectSystemIncludePathsArguments(input, flag) {
+    flag = (flag === undefined) ? input.cpp.systemIncludeFlag : flag;
+    var paths = collectSystemIncludePaths(input);
+    return paths.map(function(path) { return flag + path });
+}
+
+function collectPreincludePathsArguments(input, split) {
+    var paths = collectPreincludePaths(input);
+    if (split) {
+        var args = [];
+        for (var i = 0; i < paths.length; ++i)
+            args.push(input.cpp.preincludeFlag, paths[i]);
+        return args;
+    } else {
+        return paths.map(function(path) { return input.cpp.preincludeFlag + path });
+    }
+}
+
+function collectLibraryPathsArguments(product, flag) {
+    flag = (flag === undefined) ? product.cpp.libraryPathFlag : flag;
+    var paths = collectLibraryPaths(product);
+    return paths.map(function(path) { return flag + path });
+}
+
+function collectLinkerScriptPathsArguments(product, inputs, split, flag) {
+    flag = (flag === undefined) ? product.cpp.linkerScriptFlag : flag;
+    var paths = collectLinkerScriptPaths(inputs);
+    if (split) {
+        var args = [];
+        for (var i = 0; i < paths.length; ++i)
+            args.push(flag, paths[i]);
+        return args;
+    } else {
+        return paths.map(function(path) { return flag + path });
+    }
+}
+
+function collectLinkerObjectPathsArguments(product, inputs, flag) {
+    flag = (flag === undefined) ? "" : flag;
+    var paths = collectLinkerObjectPaths(product);
+    return paths.map(function(path) { return flag + path });
+}
+
+function collectMiscCompilerArguments(input, tag) {
+    return [].concat(ModUtils.moduleProperty(input, "platformFlags"),
+                     ModUtils.moduleProperty(input, "flags"),
+                     ModUtils.moduleProperty(input, "platformFlags", tag),
+                     ModUtils.moduleProperty(input, "flags", tag));
+}
+
+function collectMiscAssemblerArguments(input, tag) {
+    return [].concat(ModUtils.moduleProperty(input, "platformFlags", tag),
+                     ModUtils.moduleProperty(input, "flags", tag));
+}
+
+function collectMiscDriverArguments(config) {
+    return [].concat(ModUtils.moduleProperty(config, "platformDriverFlags"),
+                     ModUtils.moduleProperty(config, "driverFlags"),
+                     ModUtils.moduleProperty(config, "targetDriverFlags"));
+}
+
+function collectMiscLinkerArguments(product) {
+    return [].concat(ModUtils.moduleProperty(product, "driverLinkerFlags"));
+}
+
+function collectMiscEscapableLinkerArguments(product) {
+    return [].concat(ModUtils.moduleProperty(product, "platformLinkerFlags"),
+                     ModUtils.moduleProperty(product, "linkerFlags"));
+}

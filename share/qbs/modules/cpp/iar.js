@@ -362,6 +362,56 @@ function imageFormat(qbs) {
     return (code !== "") ? "ubrof" : "elf";
 }
 
+function libraryPathFlag(qbs) {
+    var architecture = qbs.architecture;
+    if (supportILinker(architecture))
+        return "-L";
+    else if (supportXLinker((architecture)))
+        return "-I";
+    throw "Unable to deduce library path flag for unsupported architecture: '"
+            + architecture + "'";
+}
+
+function linkerScriptFlag(qbs) {
+    var architecture = qbs.architecture;
+    if (supportILinker(architecture))
+        return "--config";
+    else if (supportXLinker((architecture)))
+        return "-f";
+    throw "Unable to deduce linker script flag for unsupported architecture: '"
+            + architecture + "'";
+}
+
+function linkerSilentFlag(qbs) {
+    var architecture = qbs.architecture;
+    if (supportILinker(architecture))
+        return "--silent";
+    else if (supportXLinker(architecture))
+        return "-S";
+    throw "Unable to deduce linker silent flag for unsupported architecture: '"
+            + architecture + "'";
+}
+
+function linkerMapFileFlag(qbs) {
+    var architecture = qbs.architecture;
+    if (supportILinker(architecture))
+        return "--map";
+    else if (supportXLinker(architecture))
+        return "-l";
+    throw "Unable to deduce linker map flag for unsupported architecture: '"
+            + architecture + "'";
+}
+
+function linkerEntryPointFlag(qbs) {
+    var architecture = qbs.architecture;
+    if (supportILinker(architecture))
+        return "--entry";
+    else if (supportXLinker(architecture))
+        return "-s";
+    throw "Unable to deduce linker entry point flag for unsupported architecture: '"
+            + architecture + "'";
+}
+
 function guessArmArchitecture(core) {
     var arch = "arm";
     if (core === "__ARM4M__")
@@ -566,32 +616,15 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
     // Output.
     args.push("-o", outputs.obj[0].filePath);
 
-    var prefixHeaders = input.cpp.prefixHeaders;
-    for (var i in prefixHeaders)
-        args.push("--preinclude", prefixHeaders[i]);
+    // Preinclude headers.
+    args = args.concat(Cpp.collectPreincludePathsArguments(input, true));
 
     // Defines.
-    var allDefines = [];
-    var platformDefines = input.cpp.platformDefines;
-    if (platformDefines)
-        allDefines = allDefines.uniqueConcat(platformDefines);
-    var defines = input.cpp.defines;
-    if (defines)
-        allDefines = allDefines.uniqueConcat(defines);
-    args = args.concat(allDefines.map(function(define) { return "-D" + define }));
+    args = args.concat(Cpp.collectDefinesArguments(input));
 
     // Includes.
-    var allIncludePaths = [];
-    var includePaths = input.cpp.includePaths;
-    if (includePaths)
-        allIncludePaths = allIncludePaths.uniqueConcat(includePaths);
-    var systemIncludePaths = input.cpp.systemIncludePaths;
-    if (systemIncludePaths)
-        allIncludePaths = allIncludePaths.uniqueConcat(systemIncludePaths);
-    var distributionIncludePaths = input.cpp.distributionIncludePaths;
-    if (distributionIncludePaths)
-        allIncludePaths = allIncludePaths.uniqueConcat(distributionIncludePaths);
-    args = args.concat(allIncludePaths.map(function(include) { return "-I" + include }));
+    args = args.concat(Cpp.collectIncludePathsArguments(input));
+    args = args.concat(Cpp.collectSystemIncludePathsArguments(input));
 
     // Silent output generation flag.
     args.push("--silent");
@@ -679,11 +712,8 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
         args.push("-l", outputs.lst[0].filePath);
 
     // Misc flags.
-    args = args.concat(ModUtils.moduleProperty(input, "platformFlags"),
-                       ModUtils.moduleProperty(input, "flags"),
-                       ModUtils.moduleProperty(input, "platformFlags", tag),
-                       ModUtils.moduleProperty(input, "flags", tag),
-                       ModUtils.moduleProperty(input, "driverFlags", tag));
+    args = args.concat(Cpp.collectMiscCompilerArguments(input, tag),
+                       Cpp.collectMiscDriverArguments(product));
     return args;
 }
 
@@ -703,21 +733,12 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
 
     // The `--preinclude` flag is only supported for a certain
     // set of assemblers, not for all.
-    if (supportIAssembler(architecture)) {
-        var prefixHeaders = input.cpp.prefixHeaders;
-        for (var i in prefixHeaders)
-            args.push("--preinclude", prefixHeaders[i]);
-    }
+    if (supportIAssembler(architecture))
+        args = args.concat(Cpp.collectPreincludePathsArguments(input));
 
     // Includes.
-    var allIncludePaths = [];
-    var systemIncludePaths = input.cpp.systemIncludePaths;
-    if (systemIncludePaths)
-        allIncludePaths = allIncludePaths.uniqueConcat(systemIncludePaths);
-    var distributionIncludePaths = input.cpp.distributionIncludePaths;
-    if (distributionIncludePaths)
-        allIncludePaths = allIncludePaths.uniqueConcat(distributionIncludePaths);
-    args = args.concat(allIncludePaths.map(function(include) { return "-I" + include }));
+    args = args.concat(Cpp.collectIncludePathsArguments(input));
+    args = args.concat(Cpp.collectSystemIncludePathsArguments(input));
 
     // Debug information flags.
     if (input.cpp.debugInformation)
@@ -749,8 +770,7 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
         args.push("-l", outputs.lst[0].filePath);
 
     // Misc flags.
-    args = args.concat(ModUtils.moduleProperty(input, "platformFlags", tag),
-                       ModUtils.moduleProperty(input, "flags", tag));
+    args = args.concat(Cpp.collectMiscAssemblerArguments(input, tag));
     return args;
 }
 
@@ -758,63 +778,41 @@ function linkerFlags(project, product, inputs, outputs) {
     var args = [];
 
     // Inputs.
-    if (inputs.obj)
-        args = args.concat(inputs.obj.map(function(obj) { return obj.filePath }));
+    args = args.concat(Cpp.collectLinkerObjectPaths(inputs));
 
     // Output.
     args.push("-o", outputs.application[0].filePath);
 
     // Library paths.
-    var allLibraryPaths = [];
-    var libraryPaths = product.cpp.libraryPaths;
-    if (libraryPaths)
-        allLibraryPaths = allLibraryPaths.uniqueConcat(libraryPaths);
-    var distributionLibraryPaths = product.cpp.distributionLibraryPaths;
-    if (distributionLibraryPaths)
-        allLibraryPaths = allLibraryPaths.uniqueConcat(distributionLibraryPaths);
+    args = args.concat(Cpp.collectLibraryPathsArguments(product));
 
     // Library dependencies.
-    var libraryDependencies = Cpp.collectLibraryDependencies(product);
-    if (libraryDependencies)
-        args = args.concat(libraryDependencies.map(function(dep) { return dep.filePath }));
+    args = args.concat(Cpp.collectLibraryDependenciesArguments(product));
 
     // Linker scripts.
-    var linkerScripts = inputs.linkerscript
-        ? inputs.linkerscript.map(function(a) { return a.filePath; }) : [];
+    args = args.concat(Cpp.collectLinkerScriptPathsArguments(product, inputs));
 
-    // Architecture specific flags.
-    var architecture = product.qbs.architecture;
-    if (supportILinker(architecture)) {
-        args = args.concat(allLibraryPaths.map(function(path) { return '-L' + path }));
-        // Silent output generation flag.
-        args.push("--silent");
-        // Map file generation flag.
-        if (product.cpp.generateLinkerMapFile)
-            args.push("--map", outputs.mem_map[0].filePath);
-        // Entry point flag.
-        if (product.cpp.entryPoint)
-            args.push("--entry", product.cpp.entryPoint);
-        // Linker scripts flags.
-        linkerScripts.forEach(function(script) { args.push("--config", script); });
-    } else if (supportXLinker(architecture)) {
-        args = args.concat(allLibraryPaths.map(function(path) { return '-I' + path }));
-        // Silent output generation flag.
-        args.push("-S");
-        // Debug information flag.
+    // Silent output generation flag.
+    args.push(linkerSilentFlag(product.qbs));
+
+    // Map file generation flag.
+    if (product.cpp.generateLinkerMapFile)
+        args.push(linkerMapFileFlag(product.qbs), outputs.mem_map[0].filePath);
+
+    // Entry point flag.
+    if (product.cpp.entryPoint)
+        args.push(linkerEntryPointFlag(product.qbs), product.cpp.entryPoint);
+
+    // Debug information flag.
+    if (supportXLinker(product.qbs.architecture)) {
         if (product.cpp.debugInformation)
             args.push("-rt");
-        // Map file generation flag.
-        if (product.cpp.generateLinkerMapFile)
-            args.push("-l", outputs.mem_map[0].filePath);
-        // Entry point flag.
-        if (product.cpp.entryPoint)
-            args.push("-s", product.cpp.entryPoint);
-        // Linker scripts flags.
-        linkerScripts.forEach(function(script) { args.push("-f", script); });
     }
 
     // Misc flags.
-    args = args.concat(ModUtils.moduleProperty(product, "driverLinkerFlags"));
+    args = args.concat(Cpp.collectMiscEscapableLinkerArguments(product),
+                       Cpp.collectMiscLinkerArguments(product),
+                       Cpp.collectMiscDriverArguments(product));
     return args;
 }
 
@@ -822,8 +820,7 @@ function archiverFlags(project, product, inputs, outputs) {
     var args = [];
 
     // Inputs.
-    if (inputs.obj)
-        args = args.concat(inputs.obj.map(function(obj) { return obj.filePath }));
+    args = args.concat(Cpp.collectLinkerObjectPaths(inputs));
 
     // Output.
     var architecture = product.qbs.architecture;

@@ -205,8 +205,12 @@ CppModule {
     property stringList dsymutilFlags
 
     property bool alwaysUseLipo: false
-    property string includeFlag: "-I"
-    property string systemIncludeFlag: "-isystem"
+    defineFlag: "-D"
+    includeFlag: "-I"
+    systemIncludeFlag: "-isystem"
+    preincludeFlag: "-include"
+    libraryPathFlag: "-L"
+    linkerScriptFlag: "-T"
 
     readonly property bool shouldCreateSymlinks: {
         return createSymlinks && internalVersion && ["macho", "elf"].contains(cpp.imageFormat);

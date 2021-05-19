@@ -96,6 +96,14 @@ CppModule {
     enableExceptions: false
     enableRtti: false
 
+    defineFlag: "-D"
+    includeFlag: "-I"
+    systemIncludeFlag: "-isystem"
+    preincludeFlag: "-include"
+    libraryDependencyFlag: "-l"
+    libraryPathFlag: "-L"
+    linkerScriptFlag: "-f"
+
     Rule {
         id: assembler
         inputs: ["asm"]

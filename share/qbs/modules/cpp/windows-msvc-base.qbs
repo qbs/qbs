@@ -114,6 +114,12 @@ CppModule {
 
     property string windowsSdkVersion
 
+    defineFlag: "/D"
+    includeFlag: "/I"
+    systemIncludeFlag: "/external:I"
+    preincludeFlag: "/FI"
+    libraryPathFlag: "/LIBPATH:"
+
     Rule {
         condition: useCPrecompiledHeader
         inputs: ["c_pch_src"]

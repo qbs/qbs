@@ -239,9 +239,6 @@ function extraApplicationLinkerOutputArtifacts(product) {
 }
 
 function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
-    // Determine which C-language we"re compiling.
-    var tag = ModUtils.fileTagForTargetLanguage(input.fileTags.concat(outputs.obj[0].fileTags));
-
     var args = [];
     var escapablePreprocessorFlags = [];
 
@@ -252,37 +249,19 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
     args.push("-c");
     args.push("-o", outputs.obj[0].filePath);
 
-    var prefixHeaders = input.cpp.prefixHeaders;
-    for (var i in prefixHeaders)
-        escapablePreprocessorFlags.push("-include " + prefixHeaders[i]);
+    // Prefix headers.
+    escapablePreprocessorFlags = escapablePreprocessorFlags.concat(
+                Cpp.collectPreincludePathsArguments(input));
 
     // Defines.
-    var allDefines = [];
-    var platformDefines = input.cpp.platformDefines;
-    if (platformDefines)
-        allDefines = allDefines.uniqueConcat(platformDefines);
-    var defines = input.cpp.defines;
-    if (defines)
-        allDefines = allDefines.uniqueConcat(defines);
-    args = args.concat(allDefines.map(function(define) { return "-D" + define }));
+    args = args.concat(Cpp.collectDefinesArguments(input));
 
     // Includes.
-    var includePaths = input.cpp.includePaths;
-    if (includePaths) {
-        args = args.concat([].uniqueConcat(includePaths).map(function(path) {
-            return "-I" + path; }));
-    }
-
-    var allSystemIncludePaths = [];
-    var systemIncludePaths = input.cpp.systemIncludePaths;
-    if (systemIncludePaths)
-        allSystemIncludePaths = allSystemIncludePaths.uniqueConcat(systemIncludePaths);
-    var distributionIncludePaths = input.cpp.distributionIncludePaths;
-    if (distributionIncludePaths)
-        allSystemIncludePaths = allSystemIncludePaths.uniqueConcat(distributionIncludePaths);
+    args = args.concat(Cpp.collectIncludePathsArguments(input));
     escapablePreprocessorFlags = escapablePreprocessorFlags.concat(
-        allSystemIncludePaths.map(function(include) { return "-isystem " + include }));
+                Cpp.collectSystemIncludePathsArguments(input));
 
+    // Target MCU flag.
     var targetFlag = targetArchitectureFlag(input.cpp.architecture);
     if (targetFlag)
         args.push(targetFlag);
@@ -315,6 +294,9 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
     if (input.cpp.treatWarningsAsErrors)
         args.push("--Werror");
 
+    // Determine which C-language we"re compiling.
+    var tag = ModUtils.fileTagForTargetLanguage(input.fileTags.concat(outputs.obj[0].fileTags));
+
     // C language version flags.
     if (tag === "c") {
         var knownValues = ["c11", "c99", "c89"];
@@ -333,46 +315,28 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
         }
     }
 
-    // Misc flags.
-    escapablePreprocessorFlags = escapablePreprocessorFlags.uniqueConcat(input.cpp.cppFlags);
     var escapedPreprocessorFlags = escapePreprocessorFlags(escapablePreprocessorFlags);
     if (escapedPreprocessorFlags)
         Array.prototype.push.apply(args, escapedPreprocessorFlags);
 
-    args = args.concat(ModUtils.moduleProperty(input, "platformFlags"),
-                       ModUtils.moduleProperty(input, "flags"),
-                       ModUtils.moduleProperty(input, "platformFlags", tag),
-                       ModUtils.moduleProperty(input, "flags", tag),
-                       ModUtils.moduleProperty(input, "driverFlags", tag));
-
+    // Misc flags.
+    args = args.concat(Cpp.collectMiscCompilerArguments(input, tag),
+                       Cpp.collectMiscDriverArguments(input));
     return args;
 }
 
 function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
-    // Determine which C-language we"re compiling
-    var tag = ModUtils.fileTagForTargetLanguage(input.fileTags.concat(outputs.obj[0].fileTags));
-
     var args = [];
 
     // Includes.
-    var includePaths = input.cpp.includePaths;
-    if (includePaths) {
-        args = args.concat([].uniqueConcat(includePaths).map(function(path) {
-            return "-I" + path; }));
-    }
+    args = args.concat(Cpp.collectIncludePathsArguments(input));
+    args = args.concat(Cpp.collectSystemIncludePathsArguments(input, input.cpp.includeFlag));
 
-    var allSystemIncludePaths = [];
-    var systemIncludePaths = input.cpp.systemIncludePaths;
-    if (systemIncludePaths)
-        allSystemIncludePaths = allSystemIncludePaths.uniqueConcat(systemIncludePaths);
-    var distributionIncludePaths = input.cpp.distributionIncludePaths;
-    if (distributionIncludePaths)
-        allSystemIncludePaths = allSystemIncludePaths.uniqueConcat(distributionIncludePaths);
-    args = args.concat(allSystemIncludePaths.map(function(include) { return "-I" + include }));
+    // Determine which C-language we"re compiling.
+    var tag = ModUtils.fileTagForTargetLanguage(input.fileTags.concat(outputs.obj[0].fileTags));
 
     // Misc flags.
-    args = args.concat(ModUtils.moduleProperty(input, "platformFlags", tag),
-                       ModUtils.moduleProperty(input, "flags", tag));
+    args = args.concat(Cpp.collectMiscCompilerArguments(input, tag));
 
     args.push("-ol");
     args.push(outputs.obj[0].filePath);
@@ -388,82 +352,53 @@ function linkerFlags(project, product, inputs, outputs) {
     if (targetFlag)
         args.push(targetFlag);
 
-    var allLibraryPaths = [];
-    var libraryPaths = product.cpp.libraryPaths;
-    if (libraryPaths)
-        allLibraryPaths = allLibraryPaths.uniqueConcat(libraryPaths);
-    var distributionLibraryPaths = product.cpp.distributionLibraryPaths;
-    if (distributionLibraryPaths)
-        allLibraryPaths = allLibraryPaths.uniqueConcat(distributionLibraryPaths);
-
-    var libraryDependencies = Cpp.collectLibraryDependencies(product);
-
     var escapableLinkerFlags = [];
 
     // Map file generation flag.
     if (product.cpp.generateLinkerMapFile)
         escapableLinkerFlags.push("-m");
 
-    if (product.cpp.platformLinkerFlags)
-        Array.prototype.push.apply(escapableLinkerFlags, product.cpp.platformLinkerFlags);
-    if (product.cpp.linkerFlags)
-        Array.prototype.push.apply(escapableLinkerFlags, product.cpp.linkerFlags);
+    escapableLinkerFlags = escapableLinkerFlags.concat(Cpp.collectMiscEscapableLinkerArguments(product));
 
     var useCompilerDriver = useCompilerDriverLinker(product);
-    if (useCompilerDriver) {
-        // Output.
-        args.push("-o", outputs.application[0].filePath);
 
-        // Inputs.
-        if (inputs.obj)
-            args = args.concat(inputs.obj.map(function(obj) { return obj.filePath }));
+    // Output.
+    if (useCompilerDriver)
+        args.push("-o");
+    args.push(outputs.application[0].filePath);
 
-        // Library paths.
-        args = args.concat(allLibraryPaths.map(function(path) { return "-L" + path }));
+    // Inputs.
+    args = args.concat(Cpp.collectLinkerObjectPaths(inputs));
 
-        // Linker scripts.
-        var scripts = inputs.linkerscript
-            ? inputs.linkerscript.map(function(scr) { return "-f" + scr.filePath; }) : [];
-        if (scripts)
-            Array.prototype.push.apply(escapableLinkerFlags, scripts);
-    } else {
-        // Output.
-        args.push(outputs.application[0].filePath);
+    // Library paths.
+    var libraryPathFlag = useCompilerDriver ? "-L" : "-k";
+    args = args.concat(Cpp.collectLibraryPathsArguments(product, libraryPathFlag));
 
-        // Inputs.
-        if (inputs.obj)
-            args = args.concat(inputs.obj.map(function(obj) { return obj.filePath }));
-
-        // Library paths.
-        args = args.concat(allLibraryPaths.map(function(path) { return "-k" + path }));
-
-        // Linker scripts.
-        // Note: We need to split the '-f' and the file path to separate
-        // lines; otherwise the linking fails.
-        inputs.linkerscript.forEach(function(scr) {
-            escapableLinkerFlags.push("-f", scr.filePath);
-        });
-    }
+    // Linker scripts.
+    // Note: We need to split the '-f' flag and the file path to separate
+    // lines when we don't use the compiler driver mode.
+    escapableLinkerFlags = escapableLinkerFlags.concat(
+                Cpp.collectLinkerScriptPathsArguments(product, inputs, !useCompilerDriver));
 
     // Library dependencies.
-    if (libraryDependencies)
-        args = args.concat(libraryDependencies.map(function(dep) { return "-l" + dep.filePath }));
+    args = args.concat(Cpp.collectLibraryDependenciesArguments(product));
 
-    // Misc flags.
     var escapedLinkerFlags = escapeLinkerFlags(product, escapableLinkerFlags);
     if (escapedLinkerFlags)
         Array.prototype.push.apply(args, escapedLinkerFlags);
-    var driverLinkerFlags = useCompilerDriver ? product.cpp.driverLinkerFlags : undefined;
-    if (driverLinkerFlags)
-        Array.prototype.push.apply(args, driverLinkerFlags);
+
+    // Misc flags.
+    if (useCompilerDriver) {
+        args = args.concat(Cpp.collectMiscLinkerArguments(product),
+                           Cpp.collectMiscDriverArguments(product));
+    }
     return args;
 }
 
 function archiverFlags(project, product, inputs, outputs) {
     var args = ["-rc"];
     args.push(outputs.staticlibrary[0].filePath);
-    if (inputs.obj)
-        args = args.concat(inputs.obj.map(function(obj) { return obj.filePath }));
+    args = args.concat(Cpp.collectLinkerObjectPaths(inputs));
     return args;
 }
 

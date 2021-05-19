@@ -532,25 +532,6 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
     var tag = ModUtils.fileTagForTargetLanguage(input.fileTags.concat(outputs.obj[0].fileTags));
     var args = [];
 
-    var allDefines = [];
-    var platformDefines = input.cpp.platformDefines;
-    if (platformDefines)
-        allDefines = allDefines.uniqueConcat(platformDefines);
-    var defines = input.cpp.defines;
-    if (defines)
-        allDefines = allDefines.uniqueConcat(defines);
-
-    var allIncludePaths = [];
-    var includePaths = input.cpp.includePaths;
-    if (includePaths)
-        allIncludePaths = allIncludePaths.uniqueConcat(includePaths);
-    var systemIncludePaths = input.cpp.systemIncludePaths;
-    if (systemIncludePaths)
-        allIncludePaths = allIncludePaths.uniqueConcat(systemIncludePaths);
-    var distributionIncludePaths = input.cpp.distributionIncludePaths;
-    if (distributionIncludePaths)
-        allIncludePaths = allIncludePaths.uniqueConcat(distributionIncludePaths);
-
     var architecture = input.qbs.architecture;
     if (isMcsArchitecture(architecture) || isC166Architecture(architecture)) {
         // Input.
@@ -560,10 +541,13 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
         args.push("OBJECT (" + outputs.obj[0].filePath + ")");
 
         // Defines.
-        if (allDefines.length > 0)
-            args = args.concat("DEFINE (" + allDefines.join(",") + ")");
+        var defines = Cpp.collectDefines(input);
+        if (defines.length > 0)
+            args = args.concat("DEFINE (" + defines.join(",") + ")");
 
         // Includes.
+        var allIncludePaths = [].concat(Cpp.collectIncludePaths(input),
+                                        Cpp.collectSystemIncludePaths(input));
         if (allIncludePaths.length > 0)
             args = args.concat("INCDIR (" + allIncludePaths.join(";") + ")");
 
@@ -604,17 +588,19 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
     } else if (isArmArchitecture(architecture)) {
         // Input.
         args.push("-c", input.filePath);
+
         // Output.
         args.push("-o", outputs.obj[0].filePath);
 
-        // Defines.
-        args = args.concat(allDefines.map(function(define) { return '-D' + define }));
-        // Includes.
-        args = args.concat(allIncludePaths.map(function(include) { return '-I' + include }));
+        // Preinclude headers.
+        args = args.concat(Cpp.collectPreincludePathsArguments(input, true));
 
-        var prefixHeaders = input.cpp.prefixHeaders;
-        for (var i in prefixHeaders)
-            args.push(input.cpp.preincludeFlag, prefixHeaders[i]);
+        // Defines.
+        args = args.concat(Cpp.collectDefinesArguments(input));
+
+        // Includes.
+        args = args.concat(Cpp.collectIncludePathsArguments(input));
+        args = args.concat(Cpp.collectSystemIncludePathsArguments(input));
 
         var compilerPath = input.cpp.compilerPath;
         if (isArmCCCompiler(compilerPath)) {
@@ -753,11 +739,8 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
     }
 
     // Misc flags.
-    args = args.concat(ModUtils.moduleProperty(input, "platformFlags"),
-                       ModUtils.moduleProperty(input, "flags"),
-                       ModUtils.moduleProperty(input, "platformFlags", tag),
-                       ModUtils.moduleProperty(input, "flags", tag),
-                       ModUtils.moduleProperty(input, "driverFlags", tag));
+    args = args.concat(Cpp.collectMiscCompilerArguments(input, tag),
+                       Cpp.collectMiscDriverArguments(input));
     return args;
 }
 
@@ -765,25 +748,6 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
     // Determine which C-language we're compiling
     var tag = ModUtils.fileTagForTargetLanguage(input.fileTags.concat(outputs.obj[0].fileTags));
     var args = [];
-
-    var allDefines = [];
-    var platformDefines = input.cpp.platformDefines;
-    if (platformDefines)
-        allDefines = allDefines.uniqueConcat(platformDefines);
-    var defines = input.cpp.defines;
-    if (defines)
-        allDefines = allDefines.uniqueConcat(defines);
-
-    var allIncludePaths = [];
-    var includePaths = input.cpp.includePaths;
-    if (includePaths)
-        allIncludePaths = allIncludePaths.uniqueConcat(includePaths);
-    var systemIncludePaths = input.cpp.systemIncludePaths;
-    if (systemIncludePaths)
-        allIncludePaths = allIncludePaths.uniqueConcat(systemIncludePaths);
-    var distributionIncludePaths = input.cpp.distributionIncludePaths;
-    if (distributionIncludePaths)
-        allIncludePaths = allIncludePaths.uniqueConcat(distributionIncludePaths);
 
     var architecture = input.qbs.architecture;
     if (isMcsArchitecture(architecture) || isC166Architecture(architecture)) {
@@ -793,13 +757,11 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
         // Output.
         args.push("OBJECT (" + outputs.obj[0].filePath + ")");
 
-        // Defines.
-        if (allDefines.length > 0)
-            args = args.concat("DEFINE (" + allDefines.join(",") + ")");
-
         // Includes.
+        var allIncludePaths = [].concat(Cpp.collectIncludePaths(input),
+                                        Cpp.collectSystemIncludePaths(input));
         if (allIncludePaths.length > 0)
-            args = args.concat("INCDIR (" + adjusted.join(";") + ")");
+            args = args.concat("INCDIR (" + allIncludePaths.join(";") + ")");
 
         // Debug information flags.
         if (input.cpp.debugInformation)
@@ -820,20 +782,9 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
         // Output.
         args.push("-o", outputs.obj[0].filePath);
 
-        // Defines.
-        allDefines.forEach(function(define) {
-            var parts = define.split("=");
-            args.push("--pd");
-            if (parts[1] === undefined)
-                args.push(parts[0] + " SETA " + 1);
-            else if (parts[1].contains("\""))
-                args.push(parts[0] + " SETS " + parts[1]);
-            else
-                args.push(parts[0] + " SETA " + parts[1]);
-        });
-
         // Includes.
-        args = args.concat(allIncludePaths.map(function(include) { return '-I' + include }));
+        args = args.concat(Cpp.collectIncludePathsArguments(input));
+        args = args.concat(Cpp.collectSystemIncludePathsArguments(input));
 
         // Debug information flags.
         if (input.cpp.debugInformation) {
@@ -856,8 +807,7 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
     }
 
     // Misc flags.
-    args = args.concat(ModUtils.moduleProperty(input, "platformFlags", tag),
-                       ModUtils.moduleProperty(input, "flags", tag));
+    args = args.concat(Cpp.collectMiscAssemblerArguments(input, tag));
     return args;
 }
 
@@ -871,39 +821,39 @@ function disassemblerFlags(project, product, input, outputs, explicitlyDependsOn
 function linkerFlags(project, product, inputs, outputs) {
     var args = [];
 
-    // Library paths.
-    var libraryPaths = product.cpp.libraryPaths;
+    var libraryPaths = Cpp.collectLibraryPaths(product);
 
     var architecture = product.qbs.architecture;
     if (isMcsArchitecture(architecture) || isC166Architecture(architecture)) {
+        // Semi-intelligent handling the library paths.
+        // We need to add the full path prefix to the library file if this
+        // file is not absolute or not relative. Reason is that the C51, C251,
+        // and C166 linkers does not support the library paths.
+        function collectLibraryObjectPaths(product) {
+            var libraryObjects = Cpp.collectLibraryDependencies(product);
+            return libraryObjects.map(function(dep) {
+                var filePath = dep.filePath;
+                if (FileInfo.isAbsolutePath(filePath))
+                    return filePath;
+                for (var i = 0; i < libraryPaths.length; ++i) {
+                    var fullPath = FileInfo.joinPaths(libraryPaths[i], filePath);
+                    if (File.exists(fullPath))
+                        return fullPath;
+                }
+                return filePath;
+            });
+        }
+
         // Note: The C51, C251, or C166 linker does not distinguish an object files and
         // a libraries, it interpret all this stuff as an input objects,
         // so, we need to pass it together in one string.
-        var allObjectPaths = [];
-
-        // Inputs.
-        if (inputs.obj)
-            inputs.obj.map(function(obj) { allObjectPaths.push(obj.filePath) });
-
-        // Library dependencies.
-        var libraryObjects = Cpp.collectLibraryDependencies(product);
-        allObjectPaths = allObjectPaths.concat(libraryObjects.map(function(lib) {
-            // Semi-intelligent handling the library paths.
-            // We need to add the full path prefix to the library file if this
-            // file is not absolute or not relative. Reason is that the C51, C251,
-            // and C166 linkers does not support the library paths.
-            var filePath = lib.filePath;
-            if (FileInfo.isAbsolutePath(filePath))
-                return filePath;
-            for (var i = 0; i < libraryPaths.length; ++i) {
-                var fullPath = FileInfo.joinPaths(libraryPaths[i], filePath);
-                if (File.exists(fullPath))
-                    return fullPath;
-            }
-            return filePath;
-        }));
+        function collectAllObjectPathsArguments(product, inputs) {
+            return [].concat(Cpp.collectLinkerObjectPaths(inputs),
+                             collectLibraryObjectPaths(product));
+        }
 
         // Add all input objects as arguments (application and library object files).
+        var allObjectPaths = collectAllObjectPathsArguments(product, inputs);
         if (allObjectPaths.length > 0)
             args = args.concat(allObjectPaths.join(","));
 
@@ -917,23 +867,20 @@ function linkerFlags(project, product, inputs, outputs) {
             args.push("PRINT(" + outputs.mem_map[0].filePath + ")");
     } else if (isArmArchitecture(architecture)) {
         // Inputs.
-        if (inputs.obj)
-            args = args.concat(inputs.obj.map(function(obj) { return obj.filePath }));
+        args = args.concat(Cpp.collectLinkerObjectPaths(inputs));
 
         // Output.
         args.push("--output", outputs.application[0].filePath);
 
-        if (libraryPaths)
-            args.push("--userlibpath=" + libraryPaths.join(","));
+        // Library paths.
+        if (libraryPaths.length > 0)
+            args.push(product.cpp.libraryPathFlag + libraryPaths.join(","));
 
         // Library dependencies.
-        var libraryDependencies = Cpp.collectLibraryDependencies(product);
-        args = args.concat(libraryDependencies.map(function(dep) { return dep.filePath; }));
+        args = args.concat(Cpp.collectLibraryDependenciesArguments(product));
 
-        // Debug information flag.
-        var debugInformation = product.cpp.debugInformation;
-        if (debugInformation !== undefined)
-            args.push(debugInformation ? "--debug" : "--no_debug");
+        // Linker scripts.
+        args = args.concat(Cpp.collectLinkerScriptPathsArguments(product, inputs));
 
         // Map file generation flag.
         if (product.cpp.generateLinkerMapFile)
@@ -943,37 +890,33 @@ function linkerFlags(project, product, inputs, outputs) {
         if (product.cpp.entryPoint)
             args.push("--entry", product.cpp.entryPoint);
 
-        // Linker scripts flags.
-        var linkerScripts = inputs.linkerscript
-                ? inputs.linkerscript.map(function(a) { return a.filePath; }) : [];
-        linkerScripts.forEach(function(script) { args.push("--scatter", script); });
+        // Debug information flag.
+        var debugInformation = product.cpp.debugInformation;
+        if (debugInformation !== undefined)
+            args.push(debugInformation ? "--debug" : "--no_debug");
     }
 
     // Misc flags.
-    args = args.concat(ModUtils.moduleProperty(product, "driverLinkerFlags"));
+    args = args.concat(Cpp.collectMiscEscapableLinkerArguments(product),
+                       Cpp.collectMiscLinkerArguments(product),
+                       Cpp.collectMiscDriverArguments(product));
     return args;
 }
 
 function archiverFlags(project, product, inputs, outputs) {
     var args = [];
 
+    // Inputs.
+    var objectPaths = Cpp.collectLinkerObjectPaths(inputs);
+
     var architecture = product.qbs.architecture;
     if (isMcsArchitecture(architecture) || isC166Architecture(architecture)) {
         // Library creation command.
         args.push("TRANSFER");
 
-        var allObjectPaths = [];
-        function addObjectPath(obj) {
-            allObjectPaths.push(obj.filePath);
-        }
-
         // Inputs.
-        if (inputs.obj)
-            inputs.obj.map(function(obj) { addObjectPath(obj) });
-
-        // Add all input objects as arguments.
-        if (allObjectPaths.length > 0)
-            args = args.concat(allObjectPaths.join(","));
+        if (objectPaths.length > 0)
+            args = args.concat(objectPaths.join(","));
 
         // Output.
         args.push("TO", outputs.staticlibrary[0].filePath);
@@ -985,8 +928,7 @@ function archiverFlags(project, product, inputs, outputs) {
         args.push("--create", outputs.staticlibrary[0].filePath);
 
         // Inputs.
-        if (inputs.obj)
-            args = args.concat(inputs.obj.map(function(obj) { return obj.filePath }));
+        args = args.concat(objectPaths);
 
         // Debug information flag.
         if (product.cpp.debugInformation)
