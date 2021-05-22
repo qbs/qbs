@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 Ivan Komissarov (abbapoh@gmail.com)
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -37,70 +37,52 @@
 **
 ****************************************************************************/
 
-#include "jsextensions.h"
+#ifndef PKGCONFIG_H
+#define PKGCONFIG_H
 
-#include <QtCore/qmap.h>
-#include <QtScript/qscriptengine.h>
-
-#include <utility>
-
-using InitializerMap = QMap<QString, void (*)(QScriptValue)>;
-static InitializerMap setupMap()
-{
-#define INITIALIZER_NAME(name) initializeJsExtension##name
-#define ADD_JS_EXTENSION(name) \
-    void INITIALIZER_NAME(name)(QScriptValue); \
-    map.insert(QStringLiteral(#name), &INITIALIZER_NAME(name))
-
-    InitializerMap map;
-    ADD_JS_EXTENSION(BinaryFile);
-    ADD_JS_EXTENSION(Environment);
-    ADD_JS_EXTENSION(File);
-    ADD_JS_EXTENSION(FileInfo);
-    ADD_JS_EXTENSION(PkgConfig);
-    ADD_JS_EXTENSION(Process);
-    ADD_JS_EXTENSION(PropertyList);
-    ADD_JS_EXTENSION(TemporaryDir);
-    ADD_JS_EXTENSION(TextFile);
-    ADD_JS_EXTENSION(Utilities);
-    ADD_JS_EXTENSION(Xml);
-    return map;
-}
+#include "pcpackage.h"
 
 namespace qbs {
-namespace Internal {
 
-static InitializerMap &initializers()
+class PkgConfig
 {
-    static InitializerMap theMap = setupMap();
-    return theMap;
-}
+public:
+    struct Options {
+        using VariablesMap = PcPackage::VariablesMap;
 
-void JsExtensions::setupExtensions(const QStringList &names, const QScriptValue &scope)
-{
-    for (const QString &name : names)
-        initializers().value(name)(scope);
-}
+        std::vector<std::string> searchPaths;        // PKG_CONFIG_PATH, PKG_CONFIG_LIBDIR
+        std::string sysroot;                         // PKG_CONFIG_SYSROOT_DIR
+        std::string topBuildDir;                     // PKG_CONFIG_TOP_BUILD_DIR
+        bool allowSystemLibraryPaths{false};         // PKG_CONFIG_ALLOW_SYSTEM_LIBS
+        std::vector<std::string> systemLibraryPaths; // PKG_CONFIG_SYSTEM_LIBRARY_PATH
+        bool disableUninstalled{true};               // PKG_CONFIG_DISABLE_UNINSTALLED
+        VariablesMap globalVariables;
+        VariablesMap systemVariables;
+    };
 
-QScriptValue JsExtensions::loadExtension(QScriptEngine *engine, const QString &name)
-{
-    if (!hasExtension(name))
-        return {};
+    using Packages = std::vector<PcPackage>;
+    using BrokenPackages = std::vector<PcBrokenPackage>;
 
-    QScriptValue extensionObj = engine->newObject();
-    initializers().value(name)(extensionObj);
-    return extensionObj.property(name);
-}
+    explicit PkgConfig();
+    explicit PkgConfig(Options options);
 
-bool JsExtensions::hasExtension(const QString &name)
-{
-    return initializers().contains(name);
-}
+    const Options &options() const { return m_options; }
+    const Packages &packages() const { return m_packages; }
+    const BrokenPackages &brokenPackages() const { return m_brokenPackages; }
+    const PcPackage &getPackage(std::string_view baseFileName) const;
 
-QStringList JsExtensions::extensionNames()
-{
-    return initializers().keys();
-}
+    std::string_view packageGetVariable(const PcPackage &pkg, std::string_view var) const;
 
-} // namespace Internal
+private:
+    std::pair<Packages, BrokenPackages> findPackages() const;
+
+private:
+    Options m_options;
+
+    Packages m_packages;
+    BrokenPackages m_brokenPackages;
+};
+
 } // namespace qbs
+
+#endif // PKGCONFIG_H

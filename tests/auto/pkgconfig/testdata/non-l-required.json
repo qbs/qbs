@@ -1,0 +1,12 @@
+{
+    "Name": "Non-l flags required test package",
+    "Description": "Test package for checking order of non-L Libs & Cflags",
+    "Version": "1.0.0",
+    "Libs": [
+        {"Type": "StaticLibraryName", "Value": "/non-l-required.a"},
+        {"Type": "LinkerFlag", "Value": "-pthread"}
+    ],
+    "Cflags": [
+        {"Type": "IncludePath", "Value": "/non-l-required/include"}
+    ]
+}

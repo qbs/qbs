@@ -332,7 +332,7 @@ inline QString testWorkDir(const QString &testName)
         if (!dir.endsWith(QLatin1Char('/')))
             dir += QLatin1Char('/');
     }
-    return dir + testName + "/testWorkDir";
+    return QDir::cleanPath(dir + testName + "/testWorkDir");
 }
 
 inline bool copyDllExportHeader(const QString &srcDataDir, const QString &targetDataDir)

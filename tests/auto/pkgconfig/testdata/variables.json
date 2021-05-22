@@ -1,0 +1,17 @@
+{
+    "Name": "Complex variables",
+    "Description": "Test complex variable output",
+    "Version": "1.0",
+    "Vars": {
+        "prefix": "/local",
+        "exec_prefix": "/local",
+        "libdir": "/local/lib",
+        "includedir": "\"/local/include\"",
+        "cppflags": "-I\"/local/include\"/foo  -DFOO=\\\"/bar\\\""
+    },
+    "Cflags": [
+        {"Type": "IncludePath", "Value": "/local/include"},
+        {"Type": "IncludePath", "Value": "/local/include/foo"},
+        {"Type": "Define", "Value": "FOO=\"/bar\""}
+    ]
+}

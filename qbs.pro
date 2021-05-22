@@ -30,7 +30,9 @@ defineTest(minQtVersion) {
 }
 
 TEMPLATE = subdirs
+pkgconfig.file = src/lib/pkgconfig/pkgconfig.pro
 corelib.file = src/lib/corelib/corelib.pro
+corelib.depends = pkgconfig
 msbuildlib.subdir = src/lib/msbuild
 msbuildlib.depends = corelib
 src_app.subdir = src/app
@@ -45,10 +47,11 @@ static_res.file = static-res.pro
 static_res.depends = src_app src_libexec src_plugins static.pro
 qbs_use_bundled_qtscript {
     scriptenginelib.file = src/lib/scriptengine/scriptengine.pro
-    corelib.depends = scriptenginelib
+    corelib.depends += scriptenginelib
     SUBDIRS += scriptenginelib
 }
 SUBDIRS += \
+    pkgconfig \
     corelib\
     msbuildlib\
     src_app\

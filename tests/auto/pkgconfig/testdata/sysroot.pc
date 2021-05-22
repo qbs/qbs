@@ -1,0 +1,12 @@
+prefix=/opt
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+sysroot=${pc_sysrootdir}
+
+Name: Test for sysroot
+Description: Test package for testing sysroot
+Version: 1.0.0
+Requires:
+Libs: -L${libdir} -lsystem
+Cflags: -I${includedir} -idirafter ${includedir}/after -isystem ${includedir}/system

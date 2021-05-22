@@ -8,6 +8,8 @@ qbs_use_bundled_qtscript {
     QT += script
 }
 
+include(../pkgconfig/use_pkgconfig.pri)
+
 isEmpty(QBS_RELATIVE_LIBEXEC_PATH) {
     win32:QBS_RELATIVE_LIBEXEC_PATH=../bin
     else:QBS_RELATIVE_LIBEXEC_PATH=../libexec/qbs

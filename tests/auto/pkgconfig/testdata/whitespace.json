@@ -1,0 +1,24 @@
+{
+    "Name": "Whitespace test",
+    "Description": "Dummy pkgconfig test package for testing pkgconfig",
+    "Version": "1.0.0",
+    "Vars": {
+        "prefix": "/usr",
+        "exec_prefix": "/usr",
+        "libdir": "\"/usr/white space/lib\"",
+        "includedir": "\"/usr/white space/include\""
+    },
+    "Libs": [
+        {"Type": "LibraryPath", "Value": "/usr/white space/lib"},
+        {"Type": "LibraryName", "Value": "foo bar"},
+        {"Type": "LibraryName", "Value": "bar baz"},
+        {"Type": "LinkerFlag", "Value": "-r:foo"}
+    ],
+    "Cflags": [
+        {"Type": "IncludePath", "Value": "/usr/white space/include"},
+        {"Type": "IncludePath", "Value": "$(top_builddir)"},
+        {"Type": "IncludePath", "Value": "include dir"},
+        {"Type": "IncludePath", "Value": "other include dir"},
+        {"Type": "Define", "Value": "lala=misc"}
+    ]
+}

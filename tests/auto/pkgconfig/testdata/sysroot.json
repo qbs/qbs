@@ -1,0 +1,21 @@
+{
+    "Name": "Test for sysroot",
+    "Description": "Test package for testing sysroot",
+    "Version": "1.0.0",
+    "Vars": {
+        "prefix": "/opt",
+        "exec_prefix": "/opt",
+        "libdir": "/opt/lib",
+        "includedir": "/opt/include",
+        "sysroot": "/newroot"
+    },
+    "Libs": [
+        {"Type": "LibraryPath", "Value": "/newroot/opt/lib"},
+        {"Type": "LibraryName", "Value": "system"}
+    ],
+    "Cflags": [
+        {"Type": "IncludePath", "Value": "/newroot/opt/include"},
+        {"Type": "DirAfterIncludePath", "Value": "/newroot/opt/include/after"},
+        {"Type": "SystemIncludePath", "Value": "/newroot/opt/include/system"}
+    ]
+}

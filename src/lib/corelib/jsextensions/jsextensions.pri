@@ -2,7 +2,8 @@ QT += xml
 
 HEADERS += \
     $$PWD/moduleproperties.h \
-    $$PWD/jsextensions.h
+    $$PWD/jsextensions.h \
+    $$PWD/pkgconfigjs.h
 
 SOURCES += \
     $$PWD/environmentextension.cpp \
@@ -11,6 +12,7 @@ SOURCES += \
     $$PWD/temporarydir.cpp \
     $$PWD/textfile.cpp \
     $$PWD/binaryfile.cpp \
+    $$PWD/pkgconfigjs.cpp \
     $$PWD/process.cpp \
     $$PWD/moduleproperties.cpp \
     $$PWD/domxml.cpp \

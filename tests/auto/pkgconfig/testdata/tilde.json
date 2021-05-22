@@ -1,0 +1,11 @@
+{
+    "Name": "tilde",
+    "Description": "tilde test module",
+    "Version": "1.0",
+    "Libs": [
+        {"Type": "LibraryPath", "Value": "~"}
+    ],
+    "Cflags": [
+        {"Type": "IncludePath", "Value": "~"}
+    ]
+}

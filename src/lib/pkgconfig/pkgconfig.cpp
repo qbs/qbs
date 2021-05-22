@@ -1,0 +1,265 @@
+/****************************************************************************
+**
+** Copyright (C) 2021 Ivan Komissarov (abbapoh@gmail.com)
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:LGPL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 3 as published by the Free Software
+** Foundation and appearing in the file LICENSE.LGPL3 included in the
+** packaging of this file. Please review the following information to
+** ensure the GNU Lesser General Public License version 3 requirements
+** will be met: https://www.gnu.org/licenses/lgpl-3.0.html.
+**
+** GNU General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU
+** General Public License version 2.0 or (at your option) the GNU General
+** Public license version 3 or any later version approved by the KDE Free
+** Qt Foundation. The licenses are as published by the Free Software
+** Foundation and appearing in the file LICENSE.GPL2 and LICENSE.GPL3
+** included in the packaging of this file. Please review the following
+** information to ensure the GNU General Public License requirements will
+** be met: https://www.gnu.org/licenses/gpl-2.0.html and
+** https://www.gnu.org/licenses/gpl-3.0.html.
+**
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+#include "pkgconfig.h"
+#include "pcparser.h"
+
+#if HAS_STD_FILESYSTEM
+#  include <filesystem>
+#else
+#  include <QtCore/QDir>
+#  include <QtCore/QFileInfo>
+#endif
+
+#include <algorithm>
+#include <iostream>
+
+namespace qbs {
+
+namespace {
+
+std::string varToEnvVar(std::string_view pkg, std::string_view var)
+{
+    auto result = std::string("PKG_CONFIG_");
+    result += pkg;
+    result += '_';
+    result += var;
+
+    for (char &p : result) {
+        int c = std::toupper(p);
+
+        if (!std::isalnum(c))
+            c = '_';
+
+        p = char(c);
+    }
+
+    return result;
+}
+
+std::vector<std::string> split(std::string_view str, const char delim)
+{
+    std::vector<std::string> result;
+    size_t prev = 0;
+    size_t pos = 0;
+    do {
+        pos = str.find(delim, prev);
+        if (pos == std::string::npos) pos = str.length();
+        std::string token(str.substr(prev, pos - prev));
+        if (!token.empty())
+            result.push_back(token);
+        prev = pos + 1;
+    } while (pos < str.length() && prev < str.length());
+    return result;
+}
+
+constexpr inline char listSeparator() noexcept
+{
+#if defined(WIN32)
+    return ';';
+#else
+    return ':';
+#endif
+}
+
+[[noreturn]] void raizeUnknownPackageException(std::string_view package)
+{
+    std::string message;
+    message += "Can't find package '";
+    message += package;
+    message += "'";
+    throw PcException(message);
+}
+
+} // namespace
+
+PkgConfig::PkgConfig()
+    : PkgConfig(Options())
+{
+}
+
+PkgConfig::PkgConfig(Options options)
+    : m_options(std::move(options))
+{
+    if (m_options.searchPaths.empty())
+        m_options.searchPaths = split(PKG_CONFIG_PC_PATH, listSeparator());
+
+    if (m_options.topBuildDir.empty())
+        m_options.topBuildDir = "$(top_builddir)"; // pkg-config sets this for automake =)
+
+    if (m_options.systemLibraryPaths.empty())
+        m_options.systemLibraryPaths = split(PKG_CONFIG_SYSTEM_LIBRARY_PATH, ':');
+
+    // this is weird on Windows, but that's what pkg-config does
+    if (m_options.sysroot.empty())
+        m_options.globalVariables["pc_sysrootdir"] = "/";
+    else
+        m_options.globalVariables["pc_sysrootdir"] = m_options.sysroot;
+    m_options.globalVariables["pc_top_builddir"] = m_options.topBuildDir;
+
+    std::tie(m_packages, m_brokenPackages) = findPackages();
+}
+
+const PcPackage &PkgConfig::getPackage(std::string_view baseFileName) const
+{
+    // heterogeneous comparator so we can search the package using string_view
+    const auto lessThan = [](const PcPackage &package, const std::string_view &name)
+    {
+        return package.baseFileName < name;
+    };
+
+    const auto it = std::lower_bound(m_packages.begin(), m_packages.end(), baseFileName, lessThan);
+    if (it == m_packages.end() || baseFileName != it->baseFileName)
+        raizeUnknownPackageException(baseFileName);
+    return *it;
+}
+
+std::string_view PkgConfig::packageGetVariable(const PcPackage &pkg, std::string_view var) const
+{
+    std::string_view varval;
+
+    if (var.empty())
+        return varval;
+
+    const auto &globals = m_options.globalVariables;
+    if (auto it = globals.find(var); it != globals.end())
+        varval = it->second;
+
+    // Allow overriding specific variables using an environment variable of the
+    // form PKG_CONFIG_$PACKAGENAME_$VARIABLE
+    if (!pkg.baseFileName.empty()) {
+        const std::string envVariable = varToEnvVar(pkg.baseFileName, var);
+        const auto it = m_options.systemVariables.find(envVariable);
+        if (it != m_options.systemVariables.end())
+            return it->second;
+    }
+
+    if (varval.empty()) {
+        const auto it = pkg.vars.find(var);
+        varval = (it != pkg.vars.end()) ? it->second : std::string_view();
+    }
+
+    return varval;
+}
+
+#if HAS_STD_FILESYSTEM
+std::vector<std::string> getPcFilePaths(const std::vector<std::string> &searchPaths)
+{
+    std::vector<std::filesystem::path> paths;
+
+    for (const auto &searchPath : searchPaths) {
+        if (!std::filesystem::directory_entry(searchPath).exists())
+            continue;
+        const auto dir = std::filesystem::directory_iterator(searchPath);
+        std::copy_if(
+            std::filesystem::begin(dir),
+            std::filesystem::end(dir),
+            std::back_inserter(paths),
+            [](const auto &entry) { return entry.path().extension() == ".pc"; }
+        );
+    }
+    std::vector<std::string> result;
+    std::transform(
+        std::begin(paths),
+        std::end(paths),
+        std::back_inserter(result),
+        [](const auto &path) { return path.generic_string(); }
+    );
+    return result;
+}
+#else
+std::vector<std::string> getPcFilePaths(const std::vector<std::string> &searchPaths)
+{
+    std::vector<std::string> result;
+    for (const auto &path : searchPaths) {
+        QDir dir(QString::fromStdString(path));
+        const auto paths = dir.entryList({QStringLiteral("*.pc")});
+        std::transform(
+            std::begin(paths),
+            std::end(paths),
+            std::back_inserter(result),
+            [&dir](const auto &path) { return dir.filePath(path).toStdString(); }
+        );
+    }
+    return result;
+}
+#endif
+
+std::pair<PkgConfig::Packages, PkgConfig::BrokenPackages> PkgConfig::findPackages() const
+{
+    Packages result;
+    BrokenPackages brokenResult;
+    PcParser parser(*this);
+
+    const auto systemLibraryPaths = !m_options.allowSystemLibraryPaths ?
+                std::unordered_set<std::string>(
+                m_options.systemLibraryPaths.begin(),
+                m_options.systemLibraryPaths.end()) : std::unordered_set<std::string>();
+
+    const auto pcFilePaths = getPcFilePaths(m_options.searchPaths);
+
+    for (const auto &pcFilePath : pcFilePaths) {
+        if (m_options.disableUninstalled) {
+            if (pcFilePath.find("-uninstalled.pc") != std::string::npos)
+                continue;
+        }
+
+        try {
+            result.emplace_back(
+                    parser.parsePackageFile(pcFilePath)
+                        // Weird, but pkg-config removes libs first and only then appends
+                        // sysroot. Looks like sysroot has to be used with
+                        // allowSystemLibraryPaths: true
+                        .removeSystemLibraryPaths(systemLibraryPaths)
+                        .prependSysroot(m_options.sysroot));
+        } catch (const PcException &ex) {
+            // not sure if it's OK to use exceptions for handling errors like
+            brokenResult.push_back(PcBrokenPackage{pcFilePath, ex.what()});
+        }
+    }
+
+    const auto lessThanPackage = [](const PcPackage &lhs, const PcPackage &rhs)
+    {
+        return lhs.baseFileName < rhs.baseFileName;
+    };
+    std::sort(result.begin(), result.end(), lessThanPackage);
+    return {result, brokenResult};
+}
+
+} // namespace qbs

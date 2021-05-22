@@ -16,6 +16,7 @@ QbsLibrary {
         name: "qbsscriptengine"
         condition: qbsbuildconfig.useBundledQtScript || !Qt.script.present
     }
+    Depends { name: "qbspkgconfig" }
     name: "qbscore"
     property stringList bundledQtScriptIncludes: qbsbuildconfig.useBundledQtScript
             || !Qt.script.present ? qbsscriptengine.includePaths : []
@@ -235,6 +236,8 @@ QbsLibrary {
             "jsextensions.h",
             "moduleproperties.cpp",
             "moduleproperties.h",
+            "pkgconfigjs.cpp",
+            "pkgconfigjs.h",
             "process.cpp",
             "temporarydir.cpp",
             "textfile.cpp",

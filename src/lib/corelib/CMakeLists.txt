@@ -158,6 +158,8 @@ set(JS_EXTENSIONS_SOURCES
     jsextensions.h
     moduleproperties.cpp
     moduleproperties.h
+    pkgconfigjs.cpp
+    pkgconfigjs.h
     process.cpp
     temporarydir.cpp
     textfile.cpp
@@ -426,6 +428,7 @@ add_qbs_library(qbscore
         Qt${QT_VERSION_MAJOR}::Network
         Qt${QT_VERSION_MAJOR}::Xml
         Qt6Core5Compat
+        qbspkgconfig
         qbsscriptengine
     PUBLIC_DEPENDS
         Qt${QT_VERSION_MAJOR}::Core

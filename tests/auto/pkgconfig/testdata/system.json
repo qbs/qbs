@@ -1,0 +1,17 @@
+{
+    "Name": "System library",
+    "Description": "Test package",
+    "Version": "1.0.0",
+    "Vars": {
+        "prefix": "/usr",
+        "exec_prefix": "/usr",
+        "libdir": "/usr/lib",
+        "includedir": "/usr/include"
+    },
+    "Libs": [
+        {"Type": "LibraryName", "Value": "system"}
+    ],
+    "Cflags": [
+        {"Type": "IncludePath", "Value": "/usr/include"}
+    ]
+}

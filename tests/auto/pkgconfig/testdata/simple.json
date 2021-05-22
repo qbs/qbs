@@ -1,0 +1,20 @@
+{
+    "Name": "Simple test",
+    "Description": "Dummy pkgconfig test package for testing pkgconfig",
+    "Version": "1.0.0",
+    "Vars": {
+        "prefix": "/usr",
+        "exec_prefix": "/usr",
+        "libdir": "/usr/lib",
+        "includedir": "/usr/include"
+    },
+    "Libs": [
+        {"Type": "LibraryName", "Value": "simple"}
+    ],
+    "LibsPrivate": [
+        {"Type": "LibraryName", "Value": "m"}
+    ],
+    "Cflags": [
+        {"Type": "IncludePath", "Value": "/usr/include"}
+    ]
+}

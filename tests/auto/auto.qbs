@@ -15,6 +15,7 @@ Project {
         "buildgraph/buildgraph.qbs",
         "cmdlineparser/cmdlineparser.qbs",
         "language/language.qbs",
+        "pkgconfig/pkgconfig.qbs",
         "tools/tools.qbs",
     ]
 }

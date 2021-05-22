@@ -219,6 +219,12 @@ C rangeTo(R &&r)
     return C(std::begin(r), std::end(r));
 }
 
+template<class Enum>
+constexpr std::underlying_type_t<Enum> toUnderlying(Enum e) noexcept
+{
+    return static_cast<std::underlying_type_t<Enum>>(e);
+}
+
 } // namespace Internal
 } // namespace qbs
 

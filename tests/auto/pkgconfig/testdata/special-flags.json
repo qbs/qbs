@@ -1,0 +1,30 @@
+{
+    "Name": "Special flags test",
+    "Description": "Dummy pkgconfig test package for testing pkgconfig",
+    "Version": "1.0.0",
+    "Vars": {
+        "prefix": "/usr",
+        "exec_prefix": "/usr",
+        "libdir": "/usr/lib",
+        "includedir": "/usr/include"
+    },
+    "Libs": [
+        {"Type": "LibraryPath", "Value": "/foo"},
+        {"Type": "Framework", "Value": "Foo"},
+        {"Type": "LibraryName", "Value": "simple"},
+        {"Type": "LibraryPath", "Value": "/bar"},
+        {"Type": "Framework", "Value": "Bar"},
+        {"Type": "LinkerFlag", "Value": "-Wl,-framework"},
+        {"Type": "LinkerFlag", "Value": "-Wl,Baz"}
+    ],
+    "Cflags": [
+        {"Type": "IncludePath", "Value": "/foo"},
+        {"Type": "CompilerFlag", "Value": "-g"},
+        {"Type": "SystemIncludePath", "Value": "/system1"},
+        {"Type": "DirAfterIncludePath", "Value": "/after1"},
+        {"Type": "CompilerFlag", "Value": "-ffoo"},
+        {"Type": "IncludePath", "Value": "/bar"},
+        {"Type": "DirAfterIncludePath", "Value": "/after2"},
+        {"Type": "SystemIncludePath", "Value": "/system2"}
+    ]
+}

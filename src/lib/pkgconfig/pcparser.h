@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 Ivan Komissarov (abbapoh@gmail.com)
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -37,70 +37,48 @@
 **
 ****************************************************************************/
 
-#include "jsextensions.h"
+#ifndef PC_PARSER_H
+#define PC_PARSER_H
 
-#include <QtCore/qmap.h>
-#include <QtScript/qscriptengine.h>
-
-#include <utility>
-
-using InitializerMap = QMap<QString, void (*)(QScriptValue)>;
-static InitializerMap setupMap()
-{
-#define INITIALIZER_NAME(name) initializeJsExtension##name
-#define ADD_JS_EXTENSION(name) \
-    void INITIALIZER_NAME(name)(QScriptValue); \
-    map.insert(QStringLiteral(#name), &INITIALIZER_NAME(name))
-
-    InitializerMap map;
-    ADD_JS_EXTENSION(BinaryFile);
-    ADD_JS_EXTENSION(Environment);
-    ADD_JS_EXTENSION(File);
-    ADD_JS_EXTENSION(FileInfo);
-    ADD_JS_EXTENSION(PkgConfig);
-    ADD_JS_EXTENSION(Process);
-    ADD_JS_EXTENSION(PropertyList);
-    ADD_JS_EXTENSION(TemporaryDir);
-    ADD_JS_EXTENSION(TextFile);
-    ADD_JS_EXTENSION(Utilities);
-    ADD_JS_EXTENSION(Xml);
-    return map;
-}
+#include "pcpackage.h"
 
 namespace qbs {
-namespace Internal {
 
-static InitializerMap &initializers()
+class PkgConfig;
+
+class PcParser
 {
-    static InitializerMap theMap = setupMap();
-    return theMap;
-}
+public:
+    explicit PcParser(const PkgConfig &pkgConfig);
 
-void JsExtensions::setupExtensions(const QStringList &names, const QScriptValue &scope)
-{
-    for (const QString &name : names)
-        initializers().value(name)(scope);
-}
+    PcPackage parsePackageFile(const std::string &path);
 
-QScriptValue JsExtensions::loadExtension(QScriptEngine *engine, const QString &name)
-{
-    if (!hasExtension(name))
-        return {};
+private:
+    std::string trimAndSubstitute(const PcPackage &pkg, std::string_view str) const;
+    void parseStringField(
+            PcPackage &pkg,
+            std::string &field,
+            std::string_view fieldName,
+            std::string_view str);
+    void parseLibs(
+            PcPackage &pkg,
+            std::vector<PcPackage::Flag> &libs,
+            std::string_view fieldName,
+            std::string_view str);
+    std::vector<PcPackage::Flag> doParseLibs(const std::vector<std::string> &argv);
+    void parseCFlags(PcPackage &pkg, std::string_view str);
+    std::vector<PcPackage::RequiredVersion> parseModuleList(PcPackage &pkg, std::string_view str);
+    void parseVersionsField(
+            PcPackage &pkg,
+            std::vector<PcPackage::RequiredVersion> &modules,
+            std::string_view fieldName,
+            std::string_view str);
+    void parseLine(PcPackage &pkg, std::string_view str);
 
-    QScriptValue extensionObj = engine->newObject();
-    initializers().value(name)(extensionObj);
-    return extensionObj.property(name);
-}
+private:
+    const PkgConfig &m_pkgConfig;
+};
 
-bool JsExtensions::hasExtension(const QString &name)
-{
-    return initializers().contains(name);
-}
-
-QStringList JsExtensions::extensionNames()
-{
-    return initializers().keys();
-}
-
-} // namespace Internal
 } // namespace qbs
+
+#endif // PC_PARSER_H
