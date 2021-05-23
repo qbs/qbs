@@ -651,27 +651,6 @@ void TestBlackboxAndroid::android_data()
         return expectedFile;
     };
 
-    auto qmlAppMinistroExpectedFiles = [&](bool generateAab, bool enableAapt2) {
-        QByteArrayList expectedFile;
-        if (singleArchQt) {
-            expectedFile << commonFiles(generateAab) + expandArchs(ndkArchsForQt, {
-                        "assets/--Added-by-androiddeployqt--/qt_cache_pregenerated_file_list",
-                        cxxLibPath("libgnustl_shared.so", true),
-                        "lib/${ARCH}/libqmlapp.so"}, generateAab);
-        } else {
-            expectedFile << commonFiles(generateAab) + expandArchs(ndkArchsForQt, {
-                        "assets/android_rcc_bundle.rcc",
-                        cxxLibPath("libgnustl_shared.so", true),
-                        "lib/${ARCH}/libqmlapp_${ARCH}.so"}, generateAab);
-        }
-        if (generateAab)
-            expectedFile << "base/resources.pb" << "base/assets.pb" << "base/native.pb";
-        else
-            expectedFile << "resources.arsc";
-        if (!enableAapt2 && version < qbs::Version(6, 0))
-            expectedFile << "res/layout/splash.xml";
-        return expectedFile;
-    };
     auto qmlAppCustomMetaDataExpectedFiles = [&](bool generateAab, bool enableAapt2) {
         QByteArrayList expectedFile;
         if (singleArchQt) {
@@ -845,38 +824,6 @@ void TestBlackboxAndroid::android_data()
             << (QStringList() << qmlAppCustomProperties << aaptVersion(enableAapt2)
                               << packageType(generateAab))
             << enableAapt2 << generateAab << isIncrementalBuild;
-    enableAapt2 = false;
-    generateAab = false;
-    isIncrementalBuild = true;
-    QTest::newRow("qml app using Ministro")
-            << "qml-app" << QStringList("qmlapp")
-            << (QList<QByteArrayList>() << (QByteArrayList()
-                                            << qmlAppMinistroExpectedFiles(generateAab,
-                                                                           enableAapt2)))
-            << (QStringList() << "modules.Qt.android_support.useMinistro:true"
-                << "modules.Android.sdk.automaticSources:false" << aaptVersion(enableAapt2)
-                << packageType(generateAab))
-            << enableAapt2 << generateAab << isIncrementalBuild;
-    enableAapt2 = true;
-    QTest::newRow("qml app using Ministro aapt2")
-            << "qml-app" << QStringList("qmlapp")
-            << (QList<QByteArrayList>() << qmlAppMinistroExpectedFiles(generateAab,
-                                                                       enableAapt2))
-            << (QStringList() << "modules.Qt.android_support.useMinistro:true"
-                << "modules.Android.sdk.automaticSources:false" << aaptVersion(enableAapt2)
-                << packageType(generateAab))
-            << enableAapt2 << generateAab << isIncrementalBuild;
-    generateAab = true;
-    if (!singleArchQt) {
-        QTest::newRow("qml app using Ministro aab")
-                << "qml-app" << QStringList("qmlapp")
-                << (QList<QByteArrayList>() << qmlAppMinistroExpectedFiles(generateAab,
-                                                                           enableAapt2))
-                << (QStringList() << "modules.Qt.android_support.useMinistro:true"
-                    << "modules.Android.sdk.automaticSources:false" << aaptVersion(enableAapt2)
-                    << packageType(generateAab))
-                << enableAapt2 << generateAab << isIncrementalBuild;
-    }
     enableAapt2 = false;
     generateAab = false;
     QTest::newRow("qml app with custom metadata")

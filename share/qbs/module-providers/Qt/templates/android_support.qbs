@@ -8,7 +8,6 @@ import qbs.Xml
 
 Module {
     version: @version@
-    property bool useMinistro: false
     property string qmlRootDir: product.sourceDirectory
     property stringList extraPrefixDirs
     property stringList deploymentDependencies // qmake: ANDROID_DEPLOYMENT_DEPENDENCIES
@@ -280,39 +279,33 @@ Module {
             "android.manifest_final", "android.resources", "android.assets", "bundled_jar",
             "android.deployqt_list",
         ]
-        outputArtifacts: {
-            var artifacts = [
-                {
-                    filePath: "AndroidManifest.xml",
-                    fileTags: "android.manifest_final"
-                },
-                {
-                    filePath: product.Qt.android_support._deployQtOutDir + "/res/values/libs.xml",
-                    fileTags: "android.resources"
-                },
-                {
-                    filePath: product.Qt.android_support._deployQtOutDir
-                              + "/res/values/strings.xml",
-                    fileTags: "android.resources"
-                },
-                {
-                    filePath: product.Qt.android_support._deployQtOutDir + "/assets/.dummy",
-                    fileTags: "android.assets"
-                },
-                {
-                    filePath: "deployqt.list",
-                    fileTags: "android.deployqt_list"
-                },
-
-            ];
-            if (!product.Qt.android_support.useMinistro) {
-                artifacts.push({
-                    filePath: FileInfo.joinPaths(product.java.classFilesDir, "QtAndroid.jar"),
-                    fileTags: ["bundled_jar"]
-                });
+        outputArtifacts: [
+            {
+                filePath: "AndroidManifest.xml",
+                fileTags: "android.manifest_final"
+            },
+            {
+                filePath: product.Qt.android_support._deployQtOutDir + "/res/values/libs.xml",
+                fileTags: "android.resources"
+            },
+            {
+                filePath: product.Qt.android_support._deployQtOutDir
+                          + "/res/values/strings.xml",
+                fileTags: "android.resources"
+            },
+            {
+                filePath: product.Qt.android_support._deployQtOutDir + "/assets/.dummy",
+                fileTags: "android.assets"
+            },
+            {
+                filePath: "deployqt.list",
+                fileTags: "android.deployqt_list"
+            },
+            {
+                filePath: FileInfo.joinPaths(product.java.classFilesDir, "QtAndroid.jar"),
+                fileTags: "bundled_jar"
             }
-            return artifacts;
-        }
+        ]
         prepare: {
             var copyCmd = new JavaScriptCommand();
             copyCmd.description = "copying Qt resource templates";
@@ -343,7 +336,7 @@ Module {
             var androidDeployQtArgs = [
                 "--output", product.Qt.android_support._deployQtOutDir,
                 "--input", inputs["qt_androiddeployqt_input"][0].filePath, "--aux-mode",
-                "--deployment", product.Qt.android_support.useMinistro ? "ministro" : "bundled",
+                "--deployment", "bundled",
                 "--android-platform", product.Android.sdk.platform,
             ];
             if (product.Qt.android_support.verboseAndroidDeployQt)

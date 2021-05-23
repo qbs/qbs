@@ -38,17 +38,6 @@
 */
 
 /*!
-    \qmlproperty bool Qt.android_support::useMinistro
-
-    Whether or not to use the Ministro service. If this property is enabled, then
-    the Qt libraries required by your application as well as some other resources
-    will not be packaged into the APK file, but are expected to be present on the
-    device at run time.
-
-    \defaultvalue \c false
-*/
-
-/*!
     \qmlproperty string Qt.android_support::qmlRootDir
 
     The root directory of the product's QML files. This information is passed to
