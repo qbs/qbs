@@ -43,6 +43,8 @@ function compilerName(qbs) {
         return  "cxcorm";
     else if (architecture === "stm8")
         return  "cxstm8";
+    else if (architecture === "hcs8")
+        return  "cx6808";
     throw "Unable to deduce compiler name for unsupported architecture: '"
             + architecture + "'";
 }
@@ -53,30 +55,41 @@ function assemblerName(qbs) {
         return "cacorm";
     if (architecture === "stm8")
         return "castm8";
+    else if (architecture === "hcs8")
+        return  "ca6808";
     throw "Unable to deduce assembler name for unsupported architecture: '"
             + architecture + "'";
 }
 
 function linkerName(qbs) {
     var architecture = qbs.architecture;
-    if (architecture.startsWith("arm") || architecture === "stm8")
+    if (architecture.startsWith("arm")
+            || architecture === "stm8"
+            || architecture === "hcs8") {
         return "clnk";
+    }
     throw "Unable to deduce linker name for unsupported architecture: '"
             + architecture + "'";
 }
 
 function listerName(qbs) {
     var architecture = qbs.architecture;
-    if (architecture.startsWith("arm") || architecture === "stm8")
+    if (architecture.startsWith("arm")
+            || architecture === "stm8"
+            || architecture === "hcs8") {
         return "clabs";
+    }
     throw "Unable to deduce lister name for unsupported architecture: '"
             + architecture + "'";
 }
 
 function archiverName(qbs) {
     var architecture = qbs.architecture;
-    if (architecture.startsWith("arm") || architecture === "stm8")
+    if (architecture.startsWith("arm")
+            || architecture === "stm8"
+            || architecture === "hcs8") {
         return "clib";
+    }
     throw "Unable to deduce archiver name for unsupported architecture: '"
             + architecture + "'";
 }
@@ -87,6 +100,8 @@ function staticLibrarySuffix(qbs) {
         return ".cxm";
     else if (architecture === "stm8")
         return ".sm8";
+    else if (architecture === "hcs8")
+        return ".h08";
     throw "Unable to deduce static library suffix for unsupported architecture: '"
             + architecture + "'";
 }
@@ -97,22 +112,30 @@ function executableSuffix(qbs) {
         return ".cxm";
     else if (architecture === "stm8")
         return ".sm8";
+    else if (architecture === "hcs8")
+        return ".h08";
     throw "Unable to deduce executable suffix for unsupported architecture: '"
             + architecture + "'";
 }
 
 function objectSuffix(qbs) {
     var architecture = qbs.architecture;
-    if (architecture.startsWith("arm") || architecture === "stm8")
+    if (architecture.startsWith("arm")
+            || architecture === "stm8"
+            || architecture === "hcs8") {
         return ".o";
+    }
     throw "Unable to deduce object file suffix for unsupported architecture: '"
             + architecture + "'";
 }
 
 function imageFormat(qbs) {
     var architecture = qbs.architecture;
-    if (architecture.startsWith("arm") || architecture === "stm8")
+    if (architecture.startsWith("arm")
+            || architecture === "stm8"
+            || architecture === "hcs8") {
         return "cosmic";
+    }
     throw "Unable to deduce image format for unsupported architecture: '"
             + architecture + "'";
 }
@@ -123,6 +146,8 @@ function guessArchitecture(compilerFilePath) {
         return "arm";
     else if (baseName === "cxstm8")
         return "stm8";
+    else if (baseName === "cx6808")
+        return "hcs8";
     throw "Unable to deduce architecture for unsupported compiler: '"
             + baseName + "'";
 }
@@ -181,8 +206,11 @@ function dumpVersion(compilerFilePath) {
 
 function guessEndianness(architecture) {
     // There is no mention of supported endianness in the cosmic compiler.
-    if (architecture.startsWith("arm") || architecture === "stm8")
+    if (architecture.startsWith("arm")
+            || architecture === "stm8"
+            || architecture === "hcs8") {
         return "big";
+    }
     throw "Unable to deduce endianness for unsupported architecture: '"
             + architecture + "'";
 }
@@ -197,6 +225,10 @@ function dumpDefaultPaths(compilerFilePath, architecture) {
             includePaths.push(includePath);
     } else if (architecture === "stm8") {
         includePath = FileInfo.joinPaths(rootPath, "hstm8");
+        if (File.exists(includePath))
+            includePaths.push(includePath);
+    } else if (architecture === "hcs8") {
+        includePath = FileInfo.joinPaths(rootPath, "h6808");
         if (File.exists(includePath))
             includePaths.push(includePath);
     }
