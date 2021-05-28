@@ -41,6 +41,8 @@ function compilerName(qbs) {
     var architecture = qbs.architecture;
     if (architecture.startsWith("arm"))
         return  "cxcorm";
+    else if (architecture === "stm8")
+        return  "cxstm8";
     throw "Unable to deduce compiler name for unsupported architecture: '"
             + architecture + "'";
 }
@@ -49,13 +51,15 @@ function assemblerName(qbs) {
     var architecture = qbs.architecture;
     if (architecture.startsWith("arm"))
         return "cacorm";
+    if (architecture === "stm8")
+        return "castm8";
     throw "Unable to deduce assembler name for unsupported architecture: '"
             + architecture + "'";
 }
 
 function linkerName(qbs) {
     var architecture = qbs.architecture;
-    if (architecture.startsWith("arm"))
+    if (architecture.startsWith("arm") || architecture === "stm8")
         return "clnk";
     throw "Unable to deduce linker name for unsupported architecture: '"
             + architecture + "'";
@@ -63,7 +67,7 @@ function linkerName(qbs) {
 
 function listerName(qbs) {
     var architecture = qbs.architecture;
-    if (architecture.startsWith("arm"))
+    if (architecture.startsWith("arm") || architecture === "stm8")
         return "clabs";
     throw "Unable to deduce lister name for unsupported architecture: '"
             + architecture + "'";
@@ -71,7 +75,7 @@ function listerName(qbs) {
 
 function archiverName(qbs) {
     var architecture = qbs.architecture;
-    if (architecture.startsWith("arm"))
+    if (architecture.startsWith("arm") || architecture === "stm8")
         return "clib";
     throw "Unable to deduce archiver name for unsupported architecture: '"
             + architecture + "'";
@@ -81,6 +85,8 @@ function staticLibrarySuffix(qbs) {
     var architecture = qbs.architecture;
     if (architecture.startsWith("arm"))
         return ".cxm";
+    else if (architecture === "stm8")
+        return ".sm8";
     throw "Unable to deduce static library suffix for unsupported architecture: '"
             + architecture + "'";
 }
@@ -89,13 +95,15 @@ function executableSuffix(qbs) {
     var architecture = qbs.architecture;
     if (architecture.startsWith("arm"))
         return ".cxm";
+    else if (architecture === "stm8")
+        return ".sm8";
     throw "Unable to deduce executable suffix for unsupported architecture: '"
             + architecture + "'";
 }
 
 function objectSuffix(qbs) {
     var architecture = qbs.architecture;
-    if (architecture.startsWith("arm"))
+    if (architecture.startsWith("arm") || architecture === "stm8")
         return ".o";
     throw "Unable to deduce object file suffix for unsupported architecture: '"
             + architecture + "'";
@@ -103,7 +111,7 @@ function objectSuffix(qbs) {
 
 function imageFormat(qbs) {
     var architecture = qbs.architecture;
-    if (architecture.startsWith("arm"))
+    if (architecture.startsWith("arm") || architecture === "stm8")
         return "cosmic";
     throw "Unable to deduce image format for unsupported architecture: '"
             + architecture + "'";
@@ -113,6 +121,8 @@ function guessArchitecture(compilerFilePath) {
     var baseName = FileInfo.baseName(compilerFilePath);
     if (baseName === "cxcorm")
         return "arm";
+    else if (baseName === "cxstm8")
+        return "stm8";
     throw "Unable to deduce architecture for unsupported compiler: '"
             + baseName + "'";
 }
@@ -171,7 +181,7 @@ function dumpVersion(compilerFilePath) {
 
 function guessEndianness(architecture) {
     // There is no mention of supported endianness in the cosmic compiler.
-    if (architecture.startsWith("arm"))
+    if (architecture.startsWith("arm") || architecture === "stm8")
         return "big";
     throw "Unable to deduce endianness for unsupported architecture: '"
             + architecture + "'";
@@ -179,9 +189,14 @@ function guessEndianness(architecture) {
 
 function dumpDefaultPaths(compilerFilePath, architecture) {
     var rootPath = FileInfo.path(compilerFilePath);
+    var includePath;
     var includePaths = [];
     if (architecture.startsWith("arm")) {
-        var includePath = FileInfo.joinPaths(rootPath, "hcorm");
+        includePath = FileInfo.joinPaths(rootPath, "hcorm");
+        if (File.exists(includePath))
+            includePaths.push(includePath);
+    } else if (architecture === "stm8") {
+        includePath = FileInfo.joinPaths(rootPath, "hstm8");
         if (File.exists(includePath))
             includePaths.push(includePath);
     }

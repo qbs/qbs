@@ -5,6 +5,8 @@ BareMetalApplication {
         if (qbs.toolchainType === "cosmic") {
             if (qbs.architecture.startsWith("arm"))
                 return true;
+            if (qbs.architecture === "stm8")
+                return true;
         } else if (qbs.toolchainType === "keil") {
             if (qbs.architecture.startsWith("arm"))
                 return true;

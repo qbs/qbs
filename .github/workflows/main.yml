@@ -535,6 +535,9 @@ jobs:
     - name: cosmic-4_3_11-arm
       run: QBS_AUTOTEST_PROFILE=cosmic-4_3_11-arm scripts/test-baremetal.sh release/install-root/bin
       shell: bash
+    - name: cosmic-4_5_2-stm8
+      run: QBS_AUTOTEST_PROFILE=cosmic-4_5_2-stm8 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
 
   test-macos:
     name: ${{ matrix.config.name }}

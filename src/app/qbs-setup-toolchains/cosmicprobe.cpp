@@ -58,7 +58,7 @@ using Internal::HostOsInfo;
 
 static QStringList knownCosmicCompilerNames()
 {
-    return {QStringLiteral("cxcorm")};
+    return {QStringLiteral("cxcorm"), QStringLiteral("cxstm8")};
 }
 
 static QString guessCosmicArchitecture(const QFileInfo &compiler)
@@ -66,6 +66,8 @@ static QString guessCosmicArchitecture(const QFileInfo &compiler)
     const auto baseName = compiler.baseName();
     if (baseName == QLatin1String("cxcorm"))
         return QStringLiteral("arm");
+    if (baseName == QLatin1String("cxstm8"))
+        return QStringLiteral("stm8");
     return {};
 }
 
