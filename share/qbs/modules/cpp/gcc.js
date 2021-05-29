@@ -1228,6 +1228,59 @@ function createSymbolCheckingCommands(product, outputs) {
     return commands;
 }
 
+function separateDebugInfoCommands(product, outputs, primaryOutput) {
+    var commands = [];
+
+    var debugInfo = outputs.debuginfo_app || outputs.debuginfo_dll
+            || outputs.debuginfo_loadablemodule;
+
+    if (debugInfo) {
+        var objcopy = product.cpp.objcopyPath;
+
+        var cmd = new Command(objcopy, ["--only-keep-debug", primaryOutput.filePath,
+                                    debugInfo[0].filePath]);
+        cmd.silent = true;
+        commands.push(cmd);
+
+        cmd = new Command(objcopy, ["--strip-debug", primaryOutput.filePath]);
+        cmd.silent = true;
+        commands.push(cmd);
+
+        cmd = new Command(objcopy, ["--add-gnu-debuglink=" + debugInfo[0].filePath,
+                                    primaryOutput.filePath]);
+        cmd.silent = true;
+        commands.push(cmd);
+    }
+
+    return commands;
+}
+
+function separateDebugInfoCommandsDarwin(product, outputs, primaryOutputs) {
+    var commands = [];
+
+    var debugInfo = outputs.debuginfo_app || outputs.debuginfo_dll
+            || outputs.debuginfo_loadablemodule;
+    if (debugInfo) {
+        var dsymPath = debugInfo[0].filePath;
+        if (outputs.debuginfo_bundle && outputs.debuginfo_bundle[0])
+            dsymPath = outputs.debuginfo_bundle[0].filePath;
+
+        var flags = product.cpp.dsymutilFlags || [];
+        var files = primaryOutputs.map(function (f) { return f.filePath; });
+        var cmd = new Command(product.cpp.dsymutilPath,
+                              flags.concat(["-o", dsymPath].concat(files)));
+        cmd.description = "generating dSYM for " + product.name;
+        commands.push(cmd);
+
+        // strip debug info
+        cmd = new Command(product.cpp.stripPath, ["-S"].concat(files));
+        cmd.silent = true;
+        commands.push(cmd);
+    }
+
+    return commands;
+}
+
 function prepareLinker(project, product, inputs, outputs, input, output) {
     var i, primaryOutput, cmd, commands = [];
 
@@ -1274,44 +1327,13 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     setResponseFileThreshold(cmd, product);
     commands.push(cmd);
 
-    var debugInfo = outputs.debuginfo_app || outputs.debuginfo_dll
-            || outputs.debuginfo_loadablemodule;
-    if (debugInfo) {
-        if (product.qbs.targetOS.contains("darwin")) {
-            if (!product.aggregate) {
-                var dsymPath = debugInfo[0].filePath;
-                if (outputs.debuginfo_bundle && outputs.debuginfo_bundle[0])
-                    dsymPath = outputs.debuginfo_bundle[0].filePath;
-                var flags = product.cpp.dsymutilFlags || [];
-                cmd = new Command(product.cpp.dsymutilPath, flags.concat([
-                    "-o", dsymPath, primaryOutput.filePath
-                ]));
-                cmd.description = "generating dSYM for " + product.name;
-                commands.push(cmd);
-
-                // strip debug info
-                cmd = new Command(product.cpp.stripPath,
-                                  ["-S", primaryOutput.filePath]);
-                cmd.silent = true;
-                commands.push(cmd);
-            }
-        } else {
-            var objcopy = product.cpp.objcopyPath;
-
-            cmd = new Command(objcopy, ["--only-keep-debug", primaryOutput.filePath,
-                                        debugInfo[0].filePath]);
-            cmd.silent = true;
-            commands.push(cmd);
-
-            cmd = new Command(objcopy, ["--strip-debug", primaryOutput.filePath]);
-            cmd.silent = true;
-            commands.push(cmd);
-
-            cmd = new Command(objcopy, ["--add-gnu-debuglink=" + debugInfo[0].filePath,
-                                        primaryOutput.filePath]);
-            cmd.silent = true;
-            commands.push(cmd);
+    if (product.qbs.targetOS.contains("darwin")) {
+        if (!product.aggregate) {
+            commands = commands.concat(separateDebugInfoCommandsDarwin(
+                                           product, outputs, [primaryOutput]));
         }
+    } else {
+        commands = commands.concat(separateDebugInfoCommands(product, outputs, primaryOutput));
     }
 
     if (outputs.dynamiclibrary) {

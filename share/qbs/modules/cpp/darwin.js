@@ -172,25 +172,8 @@ function prepareLipo(project, product, inputs, outputs, input, output) {
         commands.push(cmd);
     }
 
-    var debugInfo = outputs.debuginfo_app || outputs.debuginfo_dll
-            || outputs.debuginfo_loadablemodule;
-    if (debugInfo) {
-        var dsymPath = debugInfo[0].filePath;
-        if (outputs.debuginfo_bundle && outputs.debuginfo_bundle[0])
-            dsymPath = outputs.debuginfo_bundle[0].filePath;
-        var flags = ModUtils.moduleProperty(product, "dsymutilFlags") || [];
-        var files = outputs.primary.map(function (f) { return f.filePath; });
-        cmd = new Command(ModUtils.moduleProperty(product, "dsymutilPath"), flags.concat([
-            "-o", dsymPath
-        ]).concat(files));
-        cmd.description = "generating dSYM for " + product.name;
-        commands.push(cmd);
-
-        // strip debug info
-        cmd = new Command(ModUtils.moduleProperty(product, "stripPath"), ["-S"].concat(files));
-        cmd.silent = true;
-        commands.push(cmd);
-    }
+    commands = commands.concat(
+            Gcc.separateDebugInfoCommandsDarwin(product, outputs, outputs.primary));
 
     if (outputs.dynamiclibrary_symbols)
         Array.prototype.push.apply(commands, Gcc.createSymbolCheckingCommands(product, outputs));
