@@ -9,6 +9,8 @@ BareMetalApplication {
                 return true;
             if (qbs.architecture === "hcs8")
                 return true;
+            if (qbs.architecture === "hcs12")
+                return true;
         } else if (qbs.toolchainType === "keil") {
             if (qbs.architecture.startsWith("arm"))
                 return true;
