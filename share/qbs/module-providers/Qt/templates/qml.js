@@ -3,12 +3,12 @@ var FileInfo = require("qbs.FileInfo");
 var Process = require("qbs.Process");
 var TextFile = require("qbs.TextFile");
 
-function scannerData(scannerFilePath, qmlFiles, qmlPath, targetOS)
+function scannerData(scannerFilePath, qmlFiles, qmlPath, hostOS)
 {
     var p;
     try {
         p = new Process();
-        if (!targetOS.contains("windows")) {
+        if (!hostOS.contains("windows")) {
             p.exec(scannerFilePath, ["-qmlFiles"].concat(qmlFiles).concat(["-importPath", qmlPath]),
                     true);
             return JSON.parse(p.readStdOut());
