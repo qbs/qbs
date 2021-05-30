@@ -47,6 +47,8 @@ function compilerName(qbs) {
         return  "cx6808";
     else if (architecture === "hcs12")
         return  "cx6812";
+    else if (architecture === "m68k")
+        return  "cx332";
     throw "Unable to deduce compiler name for unsupported architecture: '"
             + architecture + "'";
 }
@@ -61,6 +63,8 @@ function assemblerName(qbs) {
         return  "ca6808";
     else if (architecture === "hcs12")
         return  "ca6812";
+    else if (architecture === "m68k")
+        return  "ca332";
     throw "Unable to deduce assembler name for unsupported architecture: '"
             + architecture + "'";
 }
@@ -70,7 +74,8 @@ function linkerName(qbs) {
     if (architecture.startsWith("arm")
             || architecture === "stm8"
             || architecture === "hcs8"
-            || architecture === "hcs12") {
+            || architecture === "hcs12"
+            || architecture === "m68k") {
         return "clnk";
     }
     throw "Unable to deduce linker name for unsupported architecture: '"
@@ -82,7 +87,8 @@ function listerName(qbs) {
     if (architecture.startsWith("arm")
             || architecture === "stm8"
             || architecture === "hcs8"
-            || architecture === "hcs12") {
+            || architecture === "hcs12"
+            || architecture === "m68k") {
         return "clabs";
     }
     throw "Unable to deduce lister name for unsupported architecture: '"
@@ -94,7 +100,8 @@ function archiverName(qbs) {
     if (architecture.startsWith("arm")
             || architecture === "stm8"
             || architecture === "hcs8"
-            || architecture === "hcs12") {
+            || architecture === "hcs12"
+            || architecture === "m68k") {
         return "clib";
     }
     throw "Unable to deduce archiver name for unsupported architecture: '"
@@ -111,6 +118,8 @@ function staticLibrarySuffix(qbs) {
         return ".h08";
     else if (architecture === "hcs12")
         return ".h12";
+    else if (architecture === "m68k")
+        return ".332";
     throw "Unable to deduce static library suffix for unsupported architecture: '"
             + architecture + "'";
 }
@@ -125,6 +134,8 @@ function executableSuffix(qbs) {
         return ".h08";
     else if (architecture === "hcs12")
         return ".h12";
+    else if (architecture === "m68k")
+        return ".332";
     throw "Unable to deduce executable suffix for unsupported architecture: '"
             + architecture + "'";
 }
@@ -134,7 +145,8 @@ function objectSuffix(qbs) {
     if (architecture.startsWith("arm")
             || architecture === "stm8"
             || architecture === "hcs8"
-            || architecture === "hcs12") {
+            || architecture === "hcs12"
+            || architecture === "m68k") {
         return ".o";
     }
     throw "Unable to deduce object file suffix for unsupported architecture: '"
@@ -146,7 +158,8 @@ function imageFormat(qbs) {
     if (architecture.startsWith("arm")
             || architecture === "stm8"
             || architecture === "hcs8"
-            || architecture === "hcs12") {
+            || architecture === "hcs12"
+            || architecture === "m68k") {
         return "cosmic";
     }
     throw "Unable to deduce image format for unsupported architecture: '"
@@ -163,6 +176,8 @@ function guessArchitecture(compilerFilePath) {
         return "hcs8";
     else if (baseName === "cx6812")
         return "hcs12";
+    else if (baseName === "cx332")
+        return "m68k";
     throw "Unable to deduce architecture for unsupported compiler: '"
             + baseName + "'";
 }
@@ -210,7 +225,7 @@ function dumpVersion(compilerFilePath) {
     p.exec(compilerFilePath, ["-vers"]);
     // COSMIC compiler use the errors output!
     var output = p.readStdErr();
-    var match = output.match(/^COSMIC.+V(\d+)\.?(\d+)\.?(\*|\d+)/);
+    var match = output.match(/^COSMIC.+V(\d+)\.?(\d+)\.?(\*|\d+)?/);
     if (match) {
         var major = match[1] ? parseInt(match[1], 10) : 0;
         var minor = match[2] ? parseInt(match[2], 10) : 0;
@@ -224,7 +239,8 @@ function guessEndianness(architecture) {
     if (architecture.startsWith("arm")
             || architecture === "stm8"
             || architecture === "hcs8"
-            || architecture === "hcs12") {
+            || architecture === "hcs12"
+            || architecture === "m68k") {
         return "big";
     }
     throw "Unable to deduce endianness for unsupported architecture: '"
@@ -249,6 +265,10 @@ function dumpDefaultPaths(compilerFilePath, architecture) {
             includePaths.push(includePath);
     } else if (architecture === "hcs12") {
         includePath = FileInfo.joinPaths(rootPath, "h6812");
+        if (File.exists(includePath))
+            includePaths.push(includePath);
+    } else if (architecture === "m68k") {
+        includePath = FileInfo.joinPaths(rootPath, "h332");
         if (File.exists(includePath))
             includePaths.push(includePath);
     }

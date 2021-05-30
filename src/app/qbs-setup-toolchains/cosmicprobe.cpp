@@ -59,7 +59,8 @@ using Internal::HostOsInfo;
 static QStringList knownCosmicCompilerNames()
 {
     return {QStringLiteral("cxcorm"), QStringLiteral("cxstm8"),
-            QStringLiteral("cx6808"), QStringLiteral("cx6812")};
+            QStringLiteral("cx6808"), QStringLiteral("cx6812"),
+            QStringLiteral("cx332")};
 }
 
 static QString guessCosmicArchitecture(const QFileInfo &compiler)
@@ -73,6 +74,8 @@ static QString guessCosmicArchitecture(const QFileInfo &compiler)
         return QStringLiteral("hcs8");
     if (baseName == QLatin1String("cx6812"))
         return QStringLiteral("hcs12");
+    if (baseName == QLatin1String("cx332"))
+        return QStringLiteral("m68k");
     return {};
 }
 
@@ -121,7 +124,7 @@ static Version dumpCosmicCompilerVersion(const QFileInfo &compiler)
     }
 
     const QByteArray output = p.readAllStandardError();
-    const QRegularExpression re(QLatin1String("^COSMIC.+V(\\d+)\\.?(\\d+)\\.?(\\*|\\d+)"));
+    const QRegularExpression re(QLatin1String("^COSMIC.+V(\\d+)\\.?(\\d+)\\.?(\\*|\\d+)?"));
     const QRegularExpressionMatch match = re.match(QString::fromLatin1(output));
     if (!match.hasMatch())
         return Version{};
