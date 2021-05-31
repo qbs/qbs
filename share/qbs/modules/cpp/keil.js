@@ -79,9 +79,9 @@ function isArmClangCompiler(compilerPath) {
 
 function compilerName(qbs) {
     var architecture = qbs.architecture;
-    if (architecture === "mcs51")
+    if (isMcs51Architecture(architecture))
         return "c51";
-    if (architecture === "mcs251")
+    if (isMcs251Architecture(architecture))
         return "c251";
     if (isC166Architecture(architecture))
         return "c166";
@@ -93,9 +93,9 @@ function compilerName(qbs) {
 
 function assemblerName(qbs) {
     var architecture = qbs.architecture;
-    if (architecture === "mcs51")
+    if (isMcs51Architecture(architecture))
         return "a51";
-    if (architecture === "mcs251")
+    if (isMcs251Architecture(architecture))
         return "a251";
     if (isC166Architecture(architecture))
         return "a166";
@@ -107,9 +107,9 @@ function assemblerName(qbs) {
 
 function linkerName(qbs) {
     var architecture = qbs.architecture;
-    if (architecture === "mcs51")
+    if (isMcs51Architecture(architecture))
         return "bl51";
-    if (architecture === "mcs251")
+    if (isMcs251Architecture(architecture))
         return "l251";
     if (isC166Architecture(architecture))
         return "l166";
@@ -121,9 +121,9 @@ function linkerName(qbs) {
 
 function archiverName(qbs) {
     var architecture = qbs.architecture;
-    if (architecture === "mcs51")
+    if (isMcs51Architecture(architecture))
         return "lib51";
-    if (architecture === "mcs251")
+    if (isMcs251Architecture(architecture))
         return "lib251";
     if (isC166Architecture(architecture))
         return "lib166";
@@ -575,7 +575,7 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
             break;
         case "all":
             args.push("WARNINGLEVEL (2)");
-            if (architecture === "mcs51")
+            if (isMcs51Architecture(architecture))
                 args.push("FARWARNING");
             break;
         }
