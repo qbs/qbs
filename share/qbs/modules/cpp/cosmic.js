@@ -49,8 +49,6 @@ function compilerName(qbs) {
         return  "cx6812";
     else if (architecture === "m68k")
         return  "cx332";
-    throw "Unable to deduce compiler name for unsupported architecture: '"
-            + architecture + "'";
 }
 
 function assemblerName(qbs) {
@@ -65,8 +63,6 @@ function assemblerName(qbs) {
         return  "ca6812";
     else if (architecture === "m68k")
         return  "ca332";
-    throw "Unable to deduce assembler name for unsupported architecture: '"
-            + architecture + "'";
 }
 
 function linkerName(qbs) {
@@ -78,8 +74,6 @@ function linkerName(qbs) {
             || architecture === "m68k") {
         return "clnk";
     }
-    throw "Unable to deduce linker name for unsupported architecture: '"
-            + architecture + "'";
 }
 
 function listerName(qbs) {
@@ -91,8 +85,6 @@ function listerName(qbs) {
             || architecture === "m68k") {
         return "clabs";
     }
-    throw "Unable to deduce lister name for unsupported architecture: '"
-            + architecture + "'";
 }
 
 function archiverName(qbs) {
@@ -104,8 +96,6 @@ function archiverName(qbs) {
             || architecture === "m68k") {
         return "clib";
     }
-    throw "Unable to deduce archiver name for unsupported architecture: '"
-            + architecture + "'";
 }
 
 function staticLibrarySuffix(qbs) {
@@ -120,8 +110,6 @@ function staticLibrarySuffix(qbs) {
         return ".h12";
     else if (architecture === "m68k")
         return ".332";
-    throw "Unable to deduce static library suffix for unsupported architecture: '"
-            + architecture + "'";
 }
 
 function executableSuffix(qbs) {
@@ -136,8 +124,6 @@ function executableSuffix(qbs) {
         return ".h12";
     else if (architecture === "m68k")
         return ".332";
-    throw "Unable to deduce executable suffix for unsupported architecture: '"
-            + architecture + "'";
 }
 
 function objectSuffix(qbs) {
@@ -149,8 +135,6 @@ function objectSuffix(qbs) {
             || architecture === "m68k") {
         return ".o";
     }
-    throw "Unable to deduce object file suffix for unsupported architecture: '"
-            + architecture + "'";
 }
 
 function imageFormat(qbs) {
@@ -162,8 +146,6 @@ function imageFormat(qbs) {
             || architecture === "m68k") {
         return "cosmic";
     }
-    throw "Unable to deduce image format for unsupported architecture: '"
-            + architecture + "'";
 }
 
 function guessArchitecture(compilerFilePath) {
@@ -178,8 +160,6 @@ function guessArchitecture(compilerFilePath) {
         return "hcs12";
     else if (baseName === "cx332")
         return "m68k";
-    throw "Unable to deduce architecture for unsupported compiler: '"
-            + baseName + "'";
 }
 
 function dumpMacros(compilerFilePath) {
@@ -243,8 +223,6 @@ function guessEndianness(architecture) {
             || architecture === "m68k") {
         return "big";
     }
-    throw "Unable to deduce endianness for unsupported architecture: '"
-            + architecture + "'";
 }
 
 function dumpDefaultPaths(compilerFilePath, architecture) {

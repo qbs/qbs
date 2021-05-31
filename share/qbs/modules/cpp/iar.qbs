@@ -103,6 +103,10 @@ CppModule {
     libraryPathFlag: IAR.libraryPathFlag(qbs)
     linkerScriptFlag: IAR.linkerScriptFlag(qbs)
 
+    knownArchitectures: ["78k", "arm", "avr", "avr32", "cr16",
+        "hcs12", "hcs8", "m16c", "m32c", "m68k", "mcs51", "msp430",
+        "r32c", "rh850", "riscv", "rl78", "rx", "sh", "stm8", "v850"]
+
     Rule {
         id: assembler
         inputs: ["asm"]

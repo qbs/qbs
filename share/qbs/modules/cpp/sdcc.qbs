@@ -104,6 +104,8 @@ CppModule {
     libraryPathFlag: "-L"
     linkerScriptFlag: "-f"
 
+    knownArchitectures: ["hcs8", "mcs51", "stm8"]
+
     Rule {
         id: assembler
         inputs: ["asm"]

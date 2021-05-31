@@ -105,6 +105,8 @@ CppModule {
     libraryPathFlag: "--userlibpath="
     linkerScriptFlag: "--scatter"
 
+    knownArchitectures: ["arm", "c166", "mcs251", "mcs51"]
+
     Rule {
         id: assembler
         inputs: ["asm"]

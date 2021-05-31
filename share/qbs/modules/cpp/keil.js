@@ -87,8 +87,6 @@ function compilerName(qbs) {
         return "c166";
     if (isArmArchitecture(architecture))
         return "armcc";
-    throw "Unable to deduce compiler name for unsupported architecture: '"
-            + architecture + "'";
 }
 
 function assemblerName(qbs) {
@@ -101,8 +99,6 @@ function assemblerName(qbs) {
         return "a166";
     if (isArmArchitecture(architecture))
         return "armasm";
-    throw "Unable to deduce assembler name for unsupported architecture: '"
-            + architecture + "'";
 }
 
 function linkerName(qbs) {
@@ -115,8 +111,6 @@ function linkerName(qbs) {
         return "l166";
     if (isArmArchitecture(architecture))
         return "armlink";
-    throw "Unable to deduce linker name for unsupported architecture: '"
-            + architecture + "'";
 }
 
 function archiverName(qbs) {
@@ -129,8 +123,6 @@ function archiverName(qbs) {
         return "lib166";
     if (isArmArchitecture(architecture))
         return "armar";
-    throw "Unable to deduce archiver name for unsupported architecture: '"
-            + architecture + "'";
 }
 
 function disassemblerName(qbs) {
@@ -144,8 +136,6 @@ function staticLibrarySuffix(qbs) {
             || isArmArchitecture(architecture)) {
         return ".lib";
     }
-    throw "Unable to deduce static library suffix for unsupported architecture: '"
-            + architecture + "'";
 }
 
 function executableSuffix(qbs) {
@@ -154,8 +144,6 @@ function executableSuffix(qbs) {
         return ".abs";
     if (isArmArchitecture(architecture))
         return ".axf";
-    throw "Unable to deduce executable suffix for unsupported architecture: '"
-            + architecture + "'";
 }
 
 function objectSuffix(qbs) {
@@ -164,8 +152,6 @@ function objectSuffix(qbs) {
         return ".obj";
     if (isArmArchitecture(architecture))
         return ".o";
-    throw "Unable to deduce object file suffix for unsupported architecture: '"
-            + architecture + "'";
 }
 
 function linkerMapSuffix(qbs) {
@@ -185,8 +171,6 @@ function imageFormat(qbs) {
         return "omf";
     if (isArmArchitecture(architecture))
         return "elf";
-    throw "Unable to deduce image format for unsupported architecture: '"
-            + architecture + "'";
 }
 
 function preincludeFlag(compilerPath) {

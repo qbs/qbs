@@ -252,8 +252,6 @@ function compilerName(qbs) {
         return "iccstm8";
     else if (architecture === "v850")
         return "iccv850";
-    throw "Unable to deduce compiler name for unsupported architecture: '"
-            + architecture + "'";
 }
 
 function assemblerName(qbs) {
@@ -298,8 +296,6 @@ function assemblerName(qbs) {
         return "iasmstm8";
     else if (architecture === "v850")
         return "av850";
-    throw "Unable to deduce assembler name for unsupported architecture: '"
-            + architecture + "'";
 }
 
 function linkerName(qbs) {
@@ -308,8 +304,6 @@ function linkerName(qbs) {
         return "xlink";
     else if (supportILinker(architecture))
         return architecture.startsWith("arm") ? "ilinkarm" : ("ilink" + architecture);
-    throw "Unable to deduce linker name for unsupported architecture: '"
-            + architecture + "'";
 }
 
 function archiverName(qbs) {
@@ -318,47 +312,29 @@ function archiverName(qbs) {
         return "xar";
     else if (supportIArchiver(architecture))
         return "iarchive";
-    throw "Unable to deduce archiver name for unsupported architecture: '"
-            + architecture + "'";
 }
 
 function staticLibrarySuffix(qbs) {
     var architecture = qbs.architecture;
     var code = architectureCode(architecture);
-    if (code === undefined) {
-        throw "Unable to deduce static library suffix for unsupported architecture: '"
-                + architecture + "'";
-    }
     return (code !== "") ? (".r" + code) : ".a";
 }
 
 function executableSuffix(qbs) {
     var architecture = qbs.architecture;
     var code = architectureCode(architecture);
-    if (code === undefined) {
-        throw "Unable to deduce executable suffix for unsupported architecture: '"
-                + architecture + "'";
-    }
     return (code !== "") ? ((qbs.debugInformation) ? (".d" + code) : (".a" + code)) : ".out";
 }
 
 function objectSuffix(qbs) {
     var architecture = qbs.architecture;
     var code = architectureCode(architecture);
-    if (code === undefined) {
-        throw "Unable to deduce object file suffix for unsupported architecture: '"
-                + architecture + "'";
-    }
     return (code !== "") ? (".r" + code) : ".o";
 }
 
 function imageFormat(qbs) {
     var architecture = qbs.architecture;
     var code = architectureCode(architecture);
-    if (code === undefined) {
-        throw "Unable to deduce image format for unsupported architecture: '"
-                + architecture + "'";
-    }
     return (code !== "") ? "ubrof" : "elf";
 }
 
@@ -368,8 +344,6 @@ function libraryPathFlag(qbs) {
         return "-L";
     else if (supportXLinker((architecture)))
         return "-I";
-    throw "Unable to deduce library path flag for unsupported architecture: '"
-            + architecture + "'";
 }
 
 function linkerScriptFlag(qbs) {
@@ -378,8 +352,6 @@ function linkerScriptFlag(qbs) {
         return "--config";
     else if (supportXLinker((architecture)))
         return "-f";
-    throw "Unable to deduce linker script flag for unsupported architecture: '"
-            + architecture + "'";
 }
 
 function linkerSilentFlag(qbs) {
@@ -388,8 +360,6 @@ function linkerSilentFlag(qbs) {
         return "--silent";
     else if (supportXLinker(architecture))
         return "-S";
-    throw "Unable to deduce linker silent flag for unsupported architecture: '"
-            + architecture + "'";
 }
 
 function linkerMapFileFlag(qbs) {
@@ -398,8 +368,6 @@ function linkerMapFileFlag(qbs) {
         return "--map";
     else if (supportXLinker(architecture))
         return "-l";
-    throw "Unable to deduce linker map flag for unsupported architecture: '"
-            + architecture + "'";
 }
 
 function linkerEntryPointFlag(qbs) {
@@ -408,8 +376,6 @@ function linkerEntryPointFlag(qbs) {
         return "--entry";
     else if (supportXLinker(architecture))
         return "-s";
-    throw "Unable to deduce linker entry point flag for unsupported architecture: '"
-            + architecture + "'";
 }
 
 function guessArmArchitecture(core) {
@@ -540,8 +506,6 @@ function cppLanguageOption(compilerFilePath) {
     case "iccv850":
         return "--ec++";
     }
-    throw "Unable to deduce C++ language option for unsupported compiler: '"
-            + FileInfo.toNativeSeparators(compilerFilePath) + "'";
 }
 
 function dumpMacros(compilerFilePath, tag) {

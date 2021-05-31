@@ -32,7 +32,7 @@
 import qbs.ModUtils
 import qbs.Utilities
 import qbs.WindowsUtils
-
+import "cpp.js" as Cpp
 import "setuprunenv.js" as SetupRunEnv
 
 Module {
@@ -211,6 +211,8 @@ Module {
     property string libraryDependencyFlag
     property string libraryPathFlag
     property string linkerScriptFlag
+
+    property stringList knownArchitectures: []
 
     property string linkerMode: "automatic"
     PropertyOptions {
@@ -540,6 +542,13 @@ Module {
                     + WindowsUtils.knownWindowsVersions().map(function (a) {
                         return '"' + a + '"'; }).join(", ")
                     + ". See https://docs.microsoft.com/en-us/windows/desktop/SysInfo/operating-system-version");
+            }
+
+            if (knownArchitectures && knownArchitectures.length > 0) {
+                var isSupported = Cpp.supportsArchitecture(qbs.architecture, knownArchitectures);
+                if (!isSupported) {
+                    throw ModUtils.ModuleError("Unsupported architecture: '" + qbs.architecture + "'");
+                }
             }
         }
     }

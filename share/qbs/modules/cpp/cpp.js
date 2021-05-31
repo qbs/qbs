@@ -326,3 +326,16 @@ function collectMiscEscapableLinkerArguments(product) {
     return [].concat(ModUtils.moduleProperty(product, "platformLinkerFlags"),
                      ModUtils.moduleProperty(product, "linkerFlags"));
 }
+
+function supportsArchitecture(architecture, knownArchitectures) {
+    for (var i = 0; i < knownArchitectures.length; ++i) {
+        if (architecture.startsWith("arm")) {
+            if (architecture.startsWith(knownArchitectures[i]))
+                return true;
+        } else {
+            if (architecture === knownArchitectures[i])
+                return true;
+        }
+    }
+    return false;
+}

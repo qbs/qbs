@@ -54,8 +54,6 @@ function assemblerName(qbs) {
     case "hcs8":
         return "sdas6808";
     }
-    throw "Unable to deduce assembler name for unsupported architecture: '"
-            + qbs.architecture + "'";
 }
 
 function linkerName(qbs) {
@@ -67,8 +65,6 @@ function linkerName(qbs) {
     case "hcs8":
         return "sdld6808";
     }
-    throw "Unable to deduce linker name for unsupported architecture: '"
-            + qbs.architecture + "'";
 }
 
 function archiverName(qbs) {
