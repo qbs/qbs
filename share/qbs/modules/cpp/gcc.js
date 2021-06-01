@@ -1289,6 +1289,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
                 cmd.description = "generating dSYM for " + product.name;
                 commands.push(cmd);
 
+                // strip debug info
                 cmd = new Command(product.cpp.stripPath,
                                   ["-S", primaryOutput.filePath]);
                 cmd.silent = true;

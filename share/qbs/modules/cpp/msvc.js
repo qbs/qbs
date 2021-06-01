@@ -207,6 +207,10 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
     var includeFlag = input.cpp.includeFlag;
     if (supportsExternalIncludesOption(input)) {
         args.push("/experimental:external");
+        var enforcesSlashW =
+                Utilities.versionCompare(input.cpp.compilerVersion, "19.29.30037") >= 0
+        if (enforcesSlashW)
+            args.push("/external:W0")
         includeFlag = input.cpp.systemIncludeFlag;
     }
     var systemIncludePaths = Cpp.collectSystemIncludePaths(input);
