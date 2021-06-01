@@ -94,6 +94,9 @@ public:
     const Set<QString> &tempQbsFiles() const { return m_tempQbsFiles; }
 
 private:
+    QString findModuleProviderFile(const QualifiedId &name, ModuleProviderLookup lookupType);
+
+private:
     ItemReader *const m_reader{nullptr};
     Evaluator *const m_evaluator{nullptr};
 

@@ -121,95 +121,80 @@ ModuleProviderLoader::ModuleProviderResult ModuleProviderLoader::findModuleProvi
         ModuleProviderLookup lookupType,
         const CodeLocation &dependsItemLocation)
 {
-    for (const QString &path : m_reader->allSearchPaths()) {
-        QString fullPath = FileInfo::resolvePath(path, QStringLiteral("module-providers"));
-        switch (lookupType) {
-        case ModuleProviderLookup::Regular:
-            for (const QString &component : name)
-                fullPath = FileInfo::resolvePath(fullPath, component);
-            break;
-        case ModuleProviderLookup::Fallback:
-            fullPath = FileInfo::resolvePath(fullPath, QStringLiteral("__fallback"));
-            break;
-        }
-        const QString providerFile = FileInfo::resolvePath(fullPath,
-                                                           QStringLiteral("provider.qbs"));
-        if (!FileInfo::exists(providerFile)) {
-            qCDebug(lcModuleLoader) << "No module provider found at" << providerFile;
-            continue;
-        }
-        QTemporaryFile dummyItemFile;
-        if (!dummyItemFile.open()) {
-            throw ErrorInfo(Tr::tr("Failed to create temporary file for running module provider "
+    const QString providerFile = findModuleProviderFile(name, lookupType);
+    if (providerFile.isEmpty())
+        return {};
+
+    QTemporaryFile dummyItemFile;
+    if (!dummyItemFile.open()) {
+        throw ErrorInfo(Tr::tr("Failed to create temporary file for running module provider "
                                    "for dependency '%1': %2").arg(name.toString(),
                                                                   dummyItemFile.errorString()));
-        }
-        m_tempQbsFiles << dummyItemFile.fileName();
-        qCDebug(lcModuleLoader) << "Instantiating module provider at" << providerFile;
-        const QString projectBuildDir = product.project->item->variantProperty(
-                    StringConstants::buildDirectoryProperty())->value().toString();
-        const QString searchPathBaseDir = ModuleProviderInfo::outputDirPath(projectBuildDir, name);
-        const QVariant moduleConfig = moduleProviderConfig(product).value(name.toString());
-        QTextStream stream(&dummyItemFile);
-        using Qt::endl;
-        setupDefaultCodec(stream);
-        stream << "import qbs.FileInfo" << endl;
-        stream << "import qbs.Utilities" << endl;
-        stream << "import '" << providerFile << "' as Provider" << endl;
-        stream << "Provider {" << endl;
-        stream << "    name: " << toJSLiteral(name.toString()) << endl;
-        stream << "    property var config: (" << toJSLiteral(moduleConfig) << ')' << endl;
-        stream << "    outputBaseDir: FileInfo.joinPaths(baseDirPrefix, "
+    }
+    m_tempQbsFiles << dummyItemFile.fileName();
+    qCDebug(lcModuleLoader) << "Instantiating module provider at" << providerFile;
+    const QString projectBuildDir = product.project->item->variantProperty(
+                StringConstants::buildDirectoryProperty())->value().toString();
+    const QString searchPathBaseDir = ModuleProviderInfo::outputDirPath(projectBuildDir, name);
+    const QVariant moduleConfig = moduleProviderConfig(product).value(name.toString());
+    QTextStream stream(&dummyItemFile);
+    using Qt::endl;
+    setupDefaultCodec(stream);
+    stream << "import qbs.FileInfo" << endl;
+    stream << "import qbs.Utilities" << endl;
+    stream << "import '" << providerFile << "' as Provider" << endl;
+    stream << "Provider {" << endl;
+    stream << "    name: " << toJSLiteral(name.toString()) << endl;
+    stream << "    property var config: (" << toJSLiteral(moduleConfig) << ')' << endl;
+    stream << "    outputBaseDir: FileInfo.joinPaths(baseDirPrefix, "
                   "        Utilities.getHash(JSON.stringify(config)))" << endl;
-        stream << "    property string baseDirPrefix: " << toJSLiteral(searchPathBaseDir) << endl;
-        stream << "    property stringList searchPaths: (relativeSearchPaths || [])"
+    stream << "    property string baseDirPrefix: " << toJSLiteral(searchPathBaseDir) << endl;
+    stream << "    property stringList searchPaths: (relativeSearchPaths || [])"
                   "        .map(function(p) { return FileInfo.joinPaths(outputBaseDir, p); })"
                << endl;
-        stream << "}" << endl;
-        stream.flush();
-        Item * const providerItem =
-                m_reader->readFile(dummyItemFile.fileName(), dependsItemLocation);
-        if (providerItem->type() != ItemType::ModuleProvider) {
-            throw ErrorInfo(Tr::tr("File '%1' declares an item of type '%2', "
+    stream << "}" << endl;
+    stream.flush();
+    Item * const providerItem =
+            m_reader->readFile(dummyItemFile.fileName(), dependsItemLocation);
+    if (providerItem->type() != ItemType::ModuleProvider) {
+        throw ErrorInfo(Tr::tr("File '%1' declares an item of type '%2', "
                                    "but '%3' was expected.")
-                .arg(providerFile, providerItem->typeName(),
-                     BuiltinDeclarations::instance().nameForType(ItemType::ModuleProvider)));
-        }
-        providerItem->setParent(product.item);
-        const QVariantMap configMap = moduleConfig.toMap();
-        for (auto it = configMap.begin(); it != configMap.end(); ++it) {
-            const PropertyDeclaration decl = providerItem->propertyDeclaration(it.key());
-            if (!decl.isValid()) {
-                throw ErrorInfo(Tr::tr("No such property '%1' in module provider '%2'.")
-                                .arg(it.key(), name.toString()));
-            }
-            providerItem->setProperty(it.key(), VariantValue::create(it.value()));
-        }
-        EvalContextSwitcher contextSwitcher(m_evaluator->engine(), EvalContext::ModuleProvider);
-        const QStringList searchPaths
-                = m_evaluator->stringListValue(providerItem, QStringLiteral("searchPaths"));
-        const auto addToGlobalInfo = [=] {
-            m_moduleProviderInfo.emplace_back(ModuleProviderInfo(name, moduleConfig.toMap(),
-                                                         searchPaths, m_parameters.dryRun()));
-        };
-        if (searchPaths.empty()) {
-            qCDebug(lcModuleLoader) << "Module provider did run, but did not set up "
-                                       "any modules.";
-            addToGlobalInfo();
-            return {true, false};
-        }
-        qCDebug(lcModuleLoader) << "Module provider added" << searchPaths.size()
-                                << "new search path(s)";
-
-        // (1) is needed so the immediate new look-up works.
-        // (2) is needed so the next use of SearchPathManager considers the new paths.
-        // (3) is needed for possible re-use in subsequent products and builds.
-        m_reader->pushExtraSearchPaths(searchPaths); // (1)
-        product.searchPaths << searchPaths; // (2)
-        addToGlobalInfo(); // (3)
-        return {true, true};
+                        .arg(providerFile, providerItem->typeName(),
+                             BuiltinDeclarations::instance().nameForType(ItemType::ModuleProvider)));
     }
-    return {};
+    providerItem->setParent(product.item);
+    const QVariantMap configMap = moduleConfig.toMap();
+    for (auto it = configMap.begin(); it != configMap.end(); ++it) {
+        const PropertyDeclaration decl = providerItem->propertyDeclaration(it.key());
+        if (!decl.isValid()) {
+            throw ErrorInfo(Tr::tr("No such property '%1' in module provider '%2'.")
+                            .arg(it.key(), name.toString()));
+        }
+        providerItem->setProperty(it.key(), VariantValue::create(it.value()));
+    }
+    EvalContextSwitcher contextSwitcher(m_evaluator->engine(), EvalContext::ModuleProvider);
+    const QStringList searchPaths
+            = m_evaluator->stringListValue(providerItem, QStringLiteral("searchPaths"));
+    const auto addToGlobalInfo = [=] {
+        m_moduleProviderInfo.emplace_back(ModuleProviderInfo(name, moduleConfig.toMap(),
+                                                             searchPaths, m_parameters.dryRun()));
+    };
+    if (searchPaths.empty()) {
+        qCDebug(lcModuleLoader) << "Module provider did run, but did not set up "
+                                       "any modules.";
+        addToGlobalInfo();
+        return {true, false};
+    }
+    qCDebug(lcModuleLoader) << "Module provider added" << searchPaths.size()
+                            << "new search path(s)";
+
+    // (1) is needed so the immediate new look-up works.
+    // (2) is needed so the next use of SearchPathManager considers the new paths.
+    // (3) is needed for possible re-use in subsequent products and builds.
+    m_reader->pushExtraSearchPaths(searchPaths); // (1)
+    product.searchPaths << searchPaths; // (2)
+    addToGlobalInfo(); // (3)
+    return {true, true};
 }
 
 QVariantMap ModuleProviderLoader::moduleProviderConfig(
@@ -263,6 +248,31 @@ QVariantMap ModuleProviderLoader::moduleProviderConfig(
         providerConfig.insert(provider, currentMapForProvider);
     }
     return *(product.theModuleProviderConfig = std::move(providerConfig));
+}
+
+QString ModuleProviderLoader::findModuleProviderFile(
+            const QualifiedId &name, ModuleProviderLookup lookupType)
+{
+    for (const QString &path : m_reader->allSearchPaths()) {
+        QString fullPath = FileInfo::resolvePath(path, QStringLiteral("module-providers"));
+        switch (lookupType) {
+        case ModuleProviderLookup::Regular:
+            for (const QString &component : name)
+                fullPath = FileInfo::resolvePath(fullPath, component);
+            break;
+        case ModuleProviderLookup::Fallback:
+            fullPath = FileInfo::resolvePath(fullPath, QStringLiteral("__fallback"));
+            break;
+        }
+        const QString providerFile = FileInfo::resolvePath(fullPath,
+                                                           QStringLiteral("provider.qbs"));
+        if (!FileInfo::exists(providerFile)) {
+            qCDebug(lcModuleLoader) << "No module provider found at" << providerFile;
+            continue;
+        }
+        return providerFile;
+    }
+    return {};
 }
 
 } // namespace Internal
