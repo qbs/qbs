@@ -136,47 +136,11 @@ ModuleProviderLoader::ModuleProviderResult ModuleProviderLoader::findModuleProvi
     const QString projectBuildDir = product.project->item->variantProperty(
                 StringConstants::buildDirectoryProperty())->value().toString();
     const QString searchPathBaseDir = ModuleProviderInfo::outputDirPath(projectBuildDir, name);
-    const QVariant moduleConfig = moduleProviderConfig(product).value(name.toString());
-    QTextStream stream(&dummyItemFile);
-    using Qt::endl;
-    setupDefaultCodec(stream);
-    stream << "import qbs.FileInfo" << endl;
-    stream << "import qbs.Utilities" << endl;
-    stream << "import '" << providerFile << "' as Provider" << endl;
-    stream << "Provider {" << endl;
-    stream << "    name: " << toJSLiteral(name.toString()) << endl;
-    stream << "    property var config: (" << toJSLiteral(moduleConfig) << ')' << endl;
-    stream << "    outputBaseDir: FileInfo.joinPaths(baseDirPrefix, "
-                  "        Utilities.getHash(JSON.stringify(config)))" << endl;
-    stream << "    property string baseDirPrefix: " << toJSLiteral(searchPathBaseDir) << endl;
-    stream << "    property stringList searchPaths: (relativeSearchPaths || [])"
-                  "        .map(function(p) { return FileInfo.joinPaths(outputBaseDir, p); })"
-               << endl;
-    stream << "}" << endl;
-    stream.flush();
-    Item * const providerItem =
-            m_reader->readFile(dummyItemFile.fileName(), dependsItemLocation);
-    if (providerItem->type() != ItemType::ModuleProvider) {
-        throw ErrorInfo(Tr::tr("File '%1' declares an item of type '%2', "
-                                   "but '%3' was expected.")
-                        .arg(providerFile, providerItem->typeName(),
-                             BuiltinDeclarations::instance().nameForType(ItemType::ModuleProvider)));
-    }
-    providerItem->setParent(product.item);
-    const QVariantMap configMap = moduleConfig.toMap();
-    for (auto it = configMap.begin(); it != configMap.end(); ++it) {
-        const PropertyDeclaration decl = providerItem->propertyDeclaration(it.key());
-        if (!decl.isValid()) {
-            throw ErrorInfo(Tr::tr("No such property '%1' in module provider '%2'.")
-                            .arg(it.key(), name.toString()));
-        }
-        providerItem->setProperty(it.key(), VariantValue::create(it.value()));
-    }
-    EvalContextSwitcher contextSwitcher(m_evaluator->engine(), EvalContext::ModuleProvider);
+    const QVariantMap config = moduleProviderConfig(product).value(name.toString()).toMap();
     const QStringList searchPaths
-            = m_evaluator->stringListValue(providerItem, QStringLiteral("searchPaths"));
+            = getProviderSearchPaths(name, providerFile, product, config, dependsItemLocation);
     const auto addToGlobalInfo = [=] {
-        m_moduleProviderInfo.emplace_back(ModuleProviderInfo(name, moduleConfig.toMap(),
+        m_moduleProviderInfo.emplace_back(ModuleProviderInfo(name, config,
                                                              searchPaths, m_parameters.dryRun()));
     };
     if (searchPaths.empty()) {
@@ -273,6 +237,62 @@ QString ModuleProviderLoader::findModuleProviderFile(
         return providerFile;
     }
     return {};
+}
+
+QStringList ModuleProviderLoader::getProviderSearchPaths(
+        const QualifiedId &name,
+        const QString &providerFile,
+        ProductContext &product,
+        const QVariantMap &moduleConfig,
+        const CodeLocation &location)
+{
+    QTemporaryFile dummyItemFile;
+    if (!dummyItemFile.open()) {
+        throw ErrorInfo(Tr::tr("Failed to create temporary file for running module provider "
+                               "for dependency '%1': %2").arg(name.toString(),
+                                                              dummyItemFile.errorString()));
+    }
+    m_tempQbsFiles << dummyItemFile.fileName();
+    qCDebug(lcModuleLoader) << "Instantiating module provider at" << providerFile;
+    const QString projectBuildDir = product.project->item->variantProperty(
+                StringConstants::buildDirectoryProperty())->value().toString();
+    const QString searchPathBaseDir = ModuleProviderInfo::outputDirPath(projectBuildDir, name);
+    QTextStream stream(&dummyItemFile);
+    using Qt::endl;
+    setupDefaultCodec(stream);
+    stream << "import qbs.FileInfo" << endl;
+    stream << "import qbs.Utilities" << endl;
+    stream << "import '" << providerFile << "' as Provider" << endl;
+    stream << "Provider {" << endl;
+    stream << "    name: " << toJSLiteral(name.toString()) << endl;
+    stream << "    property var config: (" << toJSLiteral(moduleConfig) << ')' << endl;
+    stream << "    outputBaseDir: FileInfo.joinPaths(baseDirPrefix, "
+              "        Utilities.getHash(JSON.stringify(config)))" << endl;
+    stream << "    property string baseDirPrefix: " << toJSLiteral(searchPathBaseDir) << endl;
+    stream << "    property stringList searchPaths: (relativeSearchPaths || [])"
+              "        .map(function(p) { return FileInfo.joinPaths(outputBaseDir, p); })"
+           << endl;
+    stream << "}" << endl;
+    stream.flush();
+    Item * const providerItem =
+            m_reader->readFile(dummyItemFile.fileName(), location);
+    if (providerItem->type() != ItemType::ModuleProvider) {
+        throw ErrorInfo(Tr::tr("File '%1' declares an item of type '%2', "
+                               "but '%3' was expected.")
+            .arg(providerFile, providerItem->typeName(),
+                 BuiltinDeclarations::instance().nameForType(ItemType::ModuleProvider)));
+    }
+    providerItem->setParent(product.item);
+    for (auto it = moduleConfig.begin(); it != moduleConfig.end(); ++it) {
+        const PropertyDeclaration decl = providerItem->propertyDeclaration(it.key());
+        if (!decl.isValid()) {
+            throw ErrorInfo(Tr::tr("No such property '%1' in module provider '%2'.")
+                            .arg(it.key(), name.toString()));
+        }
+        providerItem->setProperty(it.key(), VariantValue::create(it.value()));
+    }
+    EvalContextSwitcher contextSwitcher(m_evaluator->engine(), EvalContext::ModuleProvider);
+    return m_evaluator->stringListValue(providerItem, QStringLiteral("searchPaths"));
 }
 
 } // namespace Internal

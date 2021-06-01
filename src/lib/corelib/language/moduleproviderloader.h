@@ -95,6 +95,12 @@ public:
 
 private:
     QString findModuleProviderFile(const QualifiedId &name, ModuleProviderLookup lookupType);
+    QStringList getProviderSearchPaths(
+            const QualifiedId &name,
+            const QString &providerFile,
+            ProductContext &product,
+            const QVariantMap &moduleConfig,
+            const CodeLocation &location);
 
 private:
     ItemReader *const m_reader{nullptr};
