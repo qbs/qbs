@@ -125,17 +125,6 @@ ModuleProviderLoader::ModuleProviderResult ModuleProviderLoader::findModuleProvi
     if (providerFile.isEmpty())
         return {};
 
-    QTemporaryFile dummyItemFile;
-    if (!dummyItemFile.open()) {
-        throw ErrorInfo(Tr::tr("Failed to create temporary file for running module provider "
-                                   "for dependency '%1': %2").arg(name.toString(),
-                                                                  dummyItemFile.errorString()));
-    }
-    m_tempQbsFiles << dummyItemFile.fileName();
-    qCDebug(lcModuleLoader) << "Instantiating module provider at" << providerFile;
-    const QString projectBuildDir = product.project->item->variantProperty(
-                StringConstants::buildDirectoryProperty())->value().toString();
-    const QString searchPathBaseDir = ModuleProviderInfo::outputDirPath(projectBuildDir, name);
     const QVariantMap config = moduleProviderConfig(product).value(name.toString()).toMap();
     const QStringList searchPaths
             = getProviderSearchPaths(name, providerFile, product, config, dependsItemLocation);
