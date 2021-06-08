@@ -77,107 +77,61 @@ function isArmClangCompiler(compilerPath) {
     return FileInfo.baseName(compilerPath).toLowerCase() === "armclang";
 }
 
-function compilerName(qbs) {
-    var architecture = qbs.architecture;
-    if (isMcs51Architecture(architecture))
-        return "c51";
-    if (isMcs251Architecture(architecture))
-        return "c251";
-    if (isC166Architecture(architecture))
-        return "c166";
-    if (isArmArchitecture(architecture))
-        return "armcc";
-}
-
-function assemblerName(qbs) {
-    var architecture = qbs.architecture;
-    if (isMcs51Architecture(architecture))
-        return "a51";
-    if (isMcs251Architecture(architecture))
-        return "a251";
-    if (isC166Architecture(architecture))
-        return "a166";
-    if (isArmArchitecture(architecture))
-        return "armasm";
-}
-
-function linkerName(qbs) {
-    var architecture = qbs.architecture;
-    if (isMcs51Architecture(architecture))
-        return "bl51";
-    if (isMcs251Architecture(architecture))
-        return "l251";
-    if (isC166Architecture(architecture))
-        return "l166";
-    if (isArmArchitecture(architecture))
-        return "armlink";
-}
-
-function archiverName(qbs) {
-    var architecture = qbs.architecture;
-    if (isMcs51Architecture(architecture))
-        return "lib51";
-    if (isMcs251Architecture(architecture))
-        return "lib251";
-    if (isC166Architecture(architecture))
-        return "lib166";
-    if (isArmArchitecture(architecture))
-        return "armar";
-}
-
-function disassemblerName(qbs) {
-    var architecture = qbs.architecture;
-    return isArmArchitecture(architecture) ? "fromelf" : undefined;
-}
-
-function staticLibrarySuffix(qbs) {
-    var architecture = qbs.architecture;
-    if (isMcsArchitecture(architecture) || isC166Architecture(architecture)
-            || isArmArchitecture(architecture)) {
-        return ".lib";
-    }
-}
-
-function executableSuffix(qbs) {
-    var architecture = qbs.architecture;
-    if (isMcsArchitecture(architecture) || isC166Architecture(architecture))
-        return ".abs";
-    if (isArmArchitecture(architecture))
-        return ".axf";
-}
-
-function objectSuffix(qbs) {
-    var architecture = qbs.architecture;
-    if (isMcsArchitecture(architecture) || isC166Architecture(architecture))
-        return ".obj";
-    if (isArmArchitecture(architecture))
-        return ".o";
-}
-
-function linkerMapSuffix(qbs) {
-    var architecture = qbs.architecture;
-    if (isMcs51Architecture(architecture))
-        return ".m51";
-    if (isC166Architecture(architecture))
-        return ".m66";
-    return ".map";
-}
-
-function imageFormat(qbs) {
-    var architecture = qbs.architecture;
-    if (isMcsArchitecture(architecture) || isC166Architecture(architecture))
-        // Keil OMF51 or OMF2 Object Module Format (which is an
-        // extension of the original Intel OMF51).
-        return "omf";
-    if (isArmArchitecture(architecture))
-        return "elf";
-}
-
 function preincludeFlag(compilerPath) {
     if (isArmCCCompiler(compilerPath))
         return "--preinclude";
     else if (isArmClangCompiler(compilerPath))
         return "-include";
+}
+
+function toolchainDetails(qbs) {
+    var architecture = qbs.architecture;
+    if (isMcs51Architecture(architecture)) {
+        return {
+            "imageFormat": "omf",
+            "linkerMapSuffix":".m51",
+            "objectSuffix": ".obj",
+            "executableSuffix": ".abs",
+            "compilerName": "c51",
+            "assemblerName": "a51",
+            "linkerName": "bl51",
+            "archiverName": "lib51"
+        };
+    } else if (isMcs251Architecture(architecture)) {
+        return {
+            "imageFormat": "omf",
+            "linkerMapSuffix":".m51",
+            "objectSuffix": ".obj",
+            "executableSuffix": ".abs",
+            "compilerName": "c251",
+            "assemblerName": "a251",
+            "linkerName": "l251",
+            "archiverName": "lib251"
+        };
+    } else if (isC166Architecture(architecture)) {
+        return {
+            "imageFormat": "omf",
+            "linkerMapSuffix":".m66",
+            "objectSuffix": ".obj",
+            "executableSuffix": ".abs",
+            "compilerName": "c166",
+            "assemblerName": "a166",
+            "linkerName": "l166",
+            "archiverName": "lib166"
+        };
+    } else if (isArmArchitecture(architecture)) {
+        return {
+            "imageFormat": "elf",
+            "linkerMapSuffix":".map",
+            "objectSuffix": ".o",
+            "executableSuffix": ".axf",
+            "disassemblerName": "fromelf",
+            "compilerName": "armcc",
+            "assemblerName": "armasm",
+            "linkerName": "armlink",
+            "archiverName": "armar"
+        };
+    }
 }
 
 function guessArmCCArchitecture(targetArchArm, targetArchThumb) {

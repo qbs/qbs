@@ -41,34 +41,24 @@ var TextFile = require("qbs.TextFile");
 var Utilities = require("qbs.Utilities");
 var WindowsUtils = require("qbs.WindowsUtils");
 
-function compilerName(qbs) {
-    return "sdcc";
-}
-
-function assemblerName(qbs) {
-    switch (qbs.architecture) {
-    case "mcs51":
-        return "sdas8051";
-    case "stm8":
-        return "sdasstm8";
-    case "hcs8":
-        return "sdas6808";
+function toolchainDetails(qbs) {
+    var architecture = qbs.architecture;
+    if (architecture === "mcs51") {
+        return {
+            "assemblerName": "sdas8051",
+            "linkerName": "sdld"
+        }
+    } else if (architecture === "stm8") {
+        return {
+            "assemblerName": "sdasstm8",
+            "linkerName": "sdldstm8"
+        }
+    } else if (architecture === "hcs8") {
+        return {
+            "assemblerName": "sdas6808",
+            "linkerName": "sdld6808"
+        }
     }
-}
-
-function linkerName(qbs) {
-    switch (qbs.architecture) {
-    case "mcs51":
-        return "sdld";
-    case "stm8":
-        return "sdldstm8";
-    case "hcs8":
-        return "sdld6808";
-    }
-}
-
-function archiverName(qbs) {
-    return "sdar";
 }
 
 function targetArchitectureFlag(architecture) {

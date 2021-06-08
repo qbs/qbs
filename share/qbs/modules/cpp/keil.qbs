@@ -70,29 +70,29 @@ CppModule {
     property string cCompilerName: compilerName
     property string cxxCompilerName: compilerName
 
-    compilerName: KEIL.compilerName(qbs) + compilerExtension
+    compilerName: toolchainDetails.compilerName + compilerExtension
     compilerPath: FileInfo.joinPaths(toolchainInstallPath, compilerName)
 
-    assemblerName: KEIL.assemblerName(qbs) + compilerExtension
+    assemblerName: toolchainDetails.assemblerName + compilerExtension
     assemblerPath: FileInfo.joinPaths(toolchainInstallPath, assemblerName)
 
-    linkerName: KEIL.linkerName(qbs) + compilerExtension
+    linkerName: toolchainDetails.linkerName + compilerExtension
     linkerPath: FileInfo.joinPaths(toolchainInstallPath, linkerName)
 
-    property string archiverName: KEIL.archiverName(qbs) + compilerExtension
+    property string archiverName: toolchainDetails.archiverName + compilerExtension
     property string archiverPath: FileInfo.joinPaths(toolchainInstallPath, archiverName)
 
-    property string disassemblerName: KEIL.disassemblerName(qbs) + compilerExtension
+    property string disassemblerName: toolchainDetails.disassemblerName + compilerExtension
     property string disassemblerPath: FileInfo.joinPaths(toolchainInstallPath, disassemblerName)
 
     runtimeLibrary: "static"
 
-    staticLibrarySuffix: KEIL.staticLibrarySuffix(qbs)
-    executableSuffix: KEIL.executableSuffix(qbs)
-    objectSuffix: KEIL.objectSuffix(qbs)
-    linkerMapSuffix: KEIL.linkerMapSuffix(qbs)
+    staticLibrarySuffix: ".lib"
+    executableSuffix: toolchainDetails.executableSuffix
+    objectSuffix: toolchainDetails.objectSuffix
+    linkerMapSuffix: toolchainDetails.linkerMapSuffix
 
-    imageFormat: KEIL.imageFormat(qbs)
+    imageFormat: toolchainDetails.imageFormat
 
     enableExceptions: false
     enableRtti: false
@@ -104,6 +104,8 @@ CppModule {
     libraryDependencyFlag: ""
     libraryPathFlag: "--userlibpath="
     linkerScriptFlag: "--scatter"
+
+    toolchainDetails: KEIL.toolchainDetails(qbs)
 
     knownArchitectures: ["arm", "c166", "mcs251", "mcs51"]
 

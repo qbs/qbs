@@ -73,16 +73,16 @@ CppModule {
 
     property string linkerMode: "automatic"
 
-    compilerName: SDCC.compilerName(qbs) + compilerExtension
+    compilerName: "sdcc" + compilerExtension
     compilerPath: FileInfo.joinPaths(toolchainInstallPath, compilerName)
 
-    assemblerName: SDCC.assemblerName(qbs) + compilerExtension
+    assemblerName: toolchainDetails.assemblerName + compilerExtension
     assemblerPath: FileInfo.joinPaths(toolchainInstallPath, assemblerName)
 
-    linkerName: SDCC.linkerName(qbs) + compilerExtension
+    linkerName: toolchainDetails.linkerName + compilerExtension
     linkerPath: FileInfo.joinPaths(toolchainInstallPath, linkerName)
 
-    property string archiverName: SDCC.archiverName(qbs) + compilerExtension
+    property string archiverName: "sdar" + compilerExtension
     property string archiverPath: FileInfo.joinPaths(toolchainInstallPath, archiverName)
 
     runtimeLibrary: "static"
@@ -103,6 +103,8 @@ CppModule {
     libraryDependencyFlag: "-l"
     libraryPathFlag: "-L"
     linkerScriptFlag: "-f"
+
+    toolchainDetails: SDCC.toolchainDetails(qbs)
 
     knownArchitectures: ["hcs8", "mcs51", "stm8"]
 

@@ -72,25 +72,25 @@ CppModule {
     property string cCompilerName: compilerName
     property string cxxCompilerName: compilerName
 
-    compilerName: IAR.compilerName(qbs) + compilerExtension
+    compilerName: toolchainDetails.compilerName + compilerExtension
     compilerPath: FileInfo.joinPaths(toolchainInstallPath, compilerName)
 
-    assemblerName: IAR.assemblerName(qbs) + compilerExtension
+    assemblerName: toolchainDetails.assemblerName + compilerExtension
     assemblerPath: FileInfo.joinPaths(toolchainInstallPath, assemblerName)
 
-    linkerName: IAR.linkerName(qbs) + compilerExtension
+    linkerName: toolchainDetails.linkerName + compilerExtension
     linkerPath: FileInfo.joinPaths(toolchainInstallPath, linkerName)
 
-    property string archiverName: IAR.archiverName(qbs) + compilerExtension
+    property string archiverName: toolchainDetails.archiverName + compilerExtension
     property string archiverPath: FileInfo.joinPaths(toolchainInstallPath, archiverName)
 
     runtimeLibrary: "static"
 
-    staticLibrarySuffix: IAR.staticLibrarySuffix(qbs)
-    executableSuffix: IAR.executableSuffix(qbs)
-    objectSuffix: IAR.objectSuffix(qbs)
+    staticLibrarySuffix: toolchainDetails.staticLibrarySuffix
+    executableSuffix: toolchainDetails.executableSuffix
+    objectSuffix: toolchainDetails.objectSuffix
 
-    imageFormat: IAR.imageFormat(qbs)
+    imageFormat: toolchainDetails.imageFormat
 
     enableExceptions: false
     enableRtti: false
@@ -100,8 +100,14 @@ CppModule {
     systemIncludeFlag: "-I"
     preincludeFlag: "--preinclude"
     libraryDependencyFlag: ""
-    libraryPathFlag: IAR.libraryPathFlag(qbs)
-    linkerScriptFlag: IAR.linkerScriptFlag(qbs)
+    libraryPathFlag: toolchainDetails.libraryPathFlag
+    linkerScriptFlag: toolchainDetails.linkerScriptFlag
+
+    property string linkerSilentFlag: toolchainDetails.linkerSilentFlag
+    property string linkerMapFileFlag: toolchainDetails.linkerMapFileFlag
+    property string linkerEntryPointFlag: toolchainDetails.linkerEntryPointFlag
+
+    toolchainDetails: IAR.toolchainDetails(qbs)
 
     knownArchitectures: ["78k", "arm", "avr", "avr32", "cr16",
         "hcs12", "hcs8", "m16c", "m32c", "m68k", "mcs51", "msp430",

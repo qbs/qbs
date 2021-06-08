@@ -37,114 +37,43 @@ var Process = require("qbs.Process");
 var TemporaryDir = require("qbs.TemporaryDir");
 var TextFile = require("qbs.TextFile");
 
-function compilerName(qbs) {
+function toolchainDetails(qbs) {
     var architecture = qbs.architecture;
-    if (architecture.startsWith("arm"))
-        return  "cxcorm";
-    else if (architecture === "stm8")
-        return  "cxstm8";
-    else if (architecture === "hcs8")
-        return  "cx6808";
-    else if (architecture === "hcs12")
-        return  "cx6812";
-    else if (architecture === "m68k")
-        return  "cx332";
-}
-
-function assemblerName(qbs) {
-    var architecture = qbs.architecture;
-    if (architecture.startsWith("arm"))
-        return "cacorm";
-    if (architecture === "stm8")
-        return "castm8";
-    else if (architecture === "hcs8")
-        return  "ca6808";
-    else if (architecture === "hcs12")
-        return  "ca6812";
-    else if (architecture === "m68k")
-        return  "ca332";
-}
-
-function linkerName(qbs) {
-    var architecture = qbs.architecture;
-    if (architecture.startsWith("arm")
-            || architecture === "stm8"
-            || architecture === "hcs8"
-            || architecture === "hcs12"
-            || architecture === "m68k") {
-        return "clnk";
-    }
-}
-
-function listerName(qbs) {
-    var architecture = qbs.architecture;
-    if (architecture.startsWith("arm")
-            || architecture === "stm8"
-            || architecture === "hcs8"
-            || architecture === "hcs12"
-            || architecture === "m68k") {
-        return "clabs";
-    }
-}
-
-function archiverName(qbs) {
-    var architecture = qbs.architecture;
-    if (architecture.startsWith("arm")
-            || architecture === "stm8"
-            || architecture === "hcs8"
-            || architecture === "hcs12"
-            || architecture === "m68k") {
-        return "clib";
-    }
-}
-
-function staticLibrarySuffix(qbs) {
-    var architecture = qbs.architecture;
-    if (architecture.startsWith("arm"))
-        return ".cxm";
-    else if (architecture === "stm8")
-        return ".sm8";
-    else if (architecture === "hcs8")
-        return ".h08";
-    else if (architecture === "hcs12")
-        return ".h12";
-    else if (architecture === "m68k")
-        return ".332";
-}
-
-function executableSuffix(qbs) {
-    var architecture = qbs.architecture;
-    if (architecture.startsWith("arm"))
-        return ".cxm";
-    else if (architecture === "stm8")
-        return ".sm8";
-    else if (architecture === "hcs8")
-        return ".h08";
-    else if (architecture === "hcs12")
-        return ".h12";
-    else if (architecture === "m68k")
-        return ".332";
-}
-
-function objectSuffix(qbs) {
-    var architecture = qbs.architecture;
-    if (architecture.startsWith("arm")
-            || architecture === "stm8"
-            || architecture === "hcs8"
-            || architecture === "hcs12"
-            || architecture === "m68k") {
-        return ".o";
-    }
-}
-
-function imageFormat(qbs) {
-    var architecture = qbs.architecture;
-    if (architecture.startsWith("arm")
-            || architecture === "stm8"
-            || architecture === "hcs8"
-            || architecture === "hcs12"
-            || architecture === "m68k") {
-        return "cosmic";
+    if (architecture.startsWith("arm")) {
+        return {
+            "executableSuffix": ".cxm",
+            "staticLibrarySuffix": ".cxm",
+            "assemblerName": "cacorm",
+            "compilerName": "cxcorm"
+        };
+    } else if (architecture === "stm8") {
+        return {
+            "executableSuffix": ".sm8",
+            "staticLibrarySuffix": ".sm8",
+            "assemblerName": "castm8",
+            "compilerName": "cxstm8"
+        };
+    } else if (architecture === "hcs8") {
+        return {
+            "executableSuffix": ".h08",
+            "staticLibrarySuffix": ".h08",
+            "assemblerName": "ca6808",
+            "compilerName": "cx6808"
+        };
+    } else if (architecture === "hcs12") {
+        return {
+            "executableSuffix": ".h12",
+            "staticLibrarySuffix": ".h12",
+            "assemblerName": "ca6812",
+            "compilerName": "cx6812"
+        };
+    } else if (architecture === "m68k") {
+        return {
+            "executableSuffix": ".332",
+            "staticLibrarySuffix": ".332",
+            "assemblerName": "ca332",
+            "compilerName": "cx332"
+        };
     }
 }
 
@@ -216,13 +145,7 @@ function dumpVersion(compilerFilePath) {
 
 function guessEndianness(architecture) {
     // There is no mention of supported endianness in the cosmic compiler.
-    if (architecture.startsWith("arm")
-            || architecture === "stm8"
-            || architecture === "hcs8"
-            || architecture === "hcs12"
-            || architecture === "m68k") {
-        return "big";
-    }
+    return "big";
 }
 
 function dumpDefaultPaths(compilerFilePath, architecture) {

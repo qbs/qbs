@@ -210,172 +210,103 @@ function architectureCode(architecture) {
     }
 }
 
-function compilerName(qbs) {
+function toolchainDetails(qbs) {
     var architecture = qbs.architecture;
-    if (architecture.startsWith("arm"))
-        return  "iccarm";
-    else if (architecture === "78k")
-        return "icc78k";
-    else if (architecture === "avr")
-        return "iccavr";
-    else if (architecture === "avr32")
-        return "iccavr32";
-    else if (architecture === "cr16")
-        return "icccr16c";
-    else if (architecture === "hcs12")
-        return "icchcs12";
-    else if (architecture === "hcs8")
-        return "iccs08";
-    else if (architecture === "m16c")
-        return "iccm16c";
-    else if (architecture === "m32c")
-        return "iccm32c";
-    else if (architecture === "m68k")
-        return "icccf";
-    else if (architecture === "mcs51")
-        return "icc8051";
-    else if (architecture === "msp430")
-        return "icc430";
-    else if (architecture === "r32c")
-        return "iccr32c";
-    else if (architecture === "rh850")
-        return "iccrh850";
-    else if (architecture === "riscv")
-        return "iccriscv";
-    else if (architecture === "rl78")
-        return "iccrl78";
-    else if (architecture === "rx")
-        return "iccrx";
-    else if (architecture === "sh")
-        return "iccsh";
-    else if (architecture === "stm8")
-        return "iccstm8";
-    else if (architecture === "v850")
-        return "iccv850";
-}
+    var code = architectureCode(architecture);
+    var details = {};
 
-function assemblerName(qbs) {
-    var architecture = qbs.architecture;
-    if (architecture.startsWith("arm"))
-        return "iasmarm";
-    else if (architecture === "78k")
-        return "a78k";
-    else if (architecture === "avr")
-        return "aavr";
-    else if (architecture === "avr32")
-        return "aavr32";
-    else if (architecture === "cr16")
-        return "acr16c";
-    else if (architecture === "hcs12")
-        return "ahcs12";
-    else if (architecture === "hcs8")
-        return "as08";
-    else if (architecture === "m16c")
-        return "am16c";
-    else if (architecture === "m32c")
-        return "am32c";
-    else if (architecture === "m68k")
-        return "acf";
-    else if (architecture === "mcs51")
-        return "a8051";
-    else if (architecture === "msp430")
-        return "a430";
-    else if (architecture === "r32c")
-        return "ar32c";
-    else if (architecture === "rh850")
-        return "iasmrh850";
-    else if (architecture === "riscv")
-        return "iasmriscv";
-    else if (architecture === "rl78")
-        return "iasmrl78";
-    else if (architecture === "rx")
-        return "iasmrx";
-    else if (architecture === "sh")
-        return "iasmsh";
-    else if (architecture === "stm8")
-        return "iasmstm8";
-    else if (architecture === "v850")
-        return "av850";
-}
+    if (supportXLinker(architecture)) {
+        details.libraryPathFlag = "-I";
+        details.linkerScriptFlag = "-f";
+        details.linkerName = "xlink";
+        details.linkerSilentFlag = "-S";
+        details.linkerMapFileFlag = "-l";
+        details.linkerEntryPointFlag = "-s";
+    } else if (supportILinker(architecture)) {
+        details.libraryPathFlag = "-L";
+        details.linkerScriptFlag = "--config";
+        details.linkerSilentFlag = "--silent";
+        details.linkerMapFileFlag = "--map";
+        details.linkerEntryPointFlag = "--entry";
+        details.linkerName = architecture.startsWith("arm")
+                ? "ilinkarm" : ("ilink" + architecture);
+    }
 
-function linkerName(qbs) {
-    var architecture = qbs.architecture;
-    if (supportXLinker(architecture))
-        return "xlink";
-    else if (supportILinker(architecture))
-        return architecture.startsWith("arm") ? "ilinkarm" : ("ilink" + architecture);
-}
-
-function archiverName(qbs) {
-    var architecture = qbs.architecture;
     if (supportXArchiver(architecture))
-        return "xar";
+        details.archiverName = "xar";
     else if (supportIArchiver(architecture))
-        return "iarchive";
-}
+        details.archiverName = "iarchive";
 
-function staticLibrarySuffix(qbs) {
-    var architecture = qbs.architecture;
-    var code = architectureCode(architecture);
-    return (code !== "") ? (".r" + code) : ".a";
-}
+    var hasCode = (code !== "");
+    details.staticLibrarySuffix = hasCode ? (".r" + code) : ".a";
+    details.executableSuffix = hasCode
+            ? ((qbs.debugInformation) ? (".d" + code) : (".a" + code)) : ".out";
+    details.objectSuffix = hasCode ? (".r" + code) : ".o";
+    details.imageFormat = hasCode ? "ubrof" : "elf";
 
-function executableSuffix(qbs) {
-    var architecture = qbs.architecture;
-    var code = architectureCode(architecture);
-    return (code !== "") ? ((qbs.debugInformation) ? (".d" + code) : (".a" + code)) : ".out";
-}
+    if (architecture.startsWith("arm")) {
+        details.compilerName = "iccarm";
+        details.assemblerName = "iasmarm";
+    } else if (architecture === "78k") {
+        details.compilerName = "icc78k";
+        details.assemblerName = "a78k";
+    } else if (architecture === "avr") {
+        details.compilerName = "iccavr";
+        details.assemblerName = "aavr";
+    } else if (architecture === "avr32") {
+        details.compilerName = "iccavr32";
+        details.assemblerName = "aavr32";
+    } else if (architecture === "cr16") {
+        details.compilerName = "icccr16c";
+        details.assemblerName = "acr16c";
+    } else if (architecture === "hcs12") {
+        details.compilerName = "icchcs12";
+        details.assemblerName = "ahcs12";
+    } else if (architecture === "hcs8") {
+        details.compilerName = "iccs08";
+        details.assemblerName = "as08";
+    } else if (architecture === "m16c") {
+        details.compilerName = "iccm16c";
+        details.assemblerName = "am16c";
+    } else if (architecture === "m32c") {
+        details.compilerName = "iccm32c";
+        details.assemblerName = "am32c";
+    } else if (architecture === "m68k") {
+        details.compilerName = "icccf";
+        details.assemblerName = "acf";
+    } else if (architecture === "mcs51") {
+        details.compilerName = "icc8051";
+        details.assemblerName = "a8051";
+    } else if (architecture === "msp430") {
+        details.compilerName = "icc430";
+        details.assemblerName = "a430";
+    } else if (architecture === "r32c") {
+        details.compilerName = "iccr32c";
+        details.assemblerName = "ar32c";
+    } else if (architecture === "rh850") {
+        details.compilerName = "iccrh850";
+        details.assemblerName = "iasmrh850";
+    } else if (architecture === "riscv") {
+        details.compilerName = "iccriscv";
+        details.assemblerName = "iasmriscv";
+    } else if (architecture === "rl78") {
+        details.compilerName = "iccrl78";
+        details.assemblerName = "iasmrl78";
+    } else if (architecture === "rx") {
+        details.compilerName = "iccrx";
+        details.assemblerName = "iasmrx";
+    } else if (architecture === "sh") {
+        details.compilerName = "iccsh";
+        details.assemblerName = "iasmsh";
+    } else if (architecture === "stm8") {
+        details.compilerName = "iccstm8";
+        details.assemblerName = "iasmstm8";
+    } else if (architecture === "v850") {
+        details.compilerName = "iccv850";
+        details.assemblerName = "av850";
+    }
 
-function objectSuffix(qbs) {
-    var architecture = qbs.architecture;
-    var code = architectureCode(architecture);
-    return (code !== "") ? (".r" + code) : ".o";
-}
-
-function imageFormat(qbs) {
-    var architecture = qbs.architecture;
-    var code = architectureCode(architecture);
-    return (code !== "") ? "ubrof" : "elf";
-}
-
-function libraryPathFlag(qbs) {
-    var architecture = qbs.architecture;
-    if (supportILinker(architecture))
-        return "-L";
-    else if (supportXLinker((architecture)))
-        return "-I";
-}
-
-function linkerScriptFlag(qbs) {
-    var architecture = qbs.architecture;
-    if (supportILinker(architecture))
-        return "--config";
-    else if (supportXLinker((architecture)))
-        return "-f";
-}
-
-function linkerSilentFlag(qbs) {
-    var architecture = qbs.architecture;
-    if (supportILinker(architecture))
-        return "--silent";
-    else if (supportXLinker(architecture))
-        return "-S";
-}
-
-function linkerMapFileFlag(qbs) {
-    var architecture = qbs.architecture;
-    if (supportILinker(architecture))
-        return "--map";
-    else if (supportXLinker(architecture))
-        return "-l";
-}
-
-function linkerEntryPointFlag(qbs) {
-    var architecture = qbs.architecture;
-    if (supportILinker(architecture))
-        return "--entry";
-    else if (supportXLinker(architecture))
-        return "-s";
+    return details;
 }
 
 function guessArmArchitecture(core) {
@@ -757,15 +688,15 @@ function linkerFlags(project, product, inputs, outputs) {
     args = args.concat(Cpp.collectLinkerScriptPathsArguments(product, inputs));
 
     // Silent output generation flag.
-    args.push(linkerSilentFlag(product.qbs));
+    args.push(product.cpp.linkerSilentFlag);
 
     // Map file generation flag.
     if (product.cpp.generateLinkerMapFile)
-        args.push(linkerMapFileFlag(product.qbs), outputs.mem_map[0].filePath);
+        args.push(product.cpp.linkerMapFileFlag, outputs.mem_map[0].filePath);
 
     // Entry point flag.
     if (product.cpp.entryPoint)
-        args.push(linkerEntryPointFlag(product.qbs), product.cpp.entryPoint);
+        args.push(product.cpp.linkerEntryPointFlag, product.cpp.entryPoint);
 
     // Debug information flag.
     if (supportXLinker(product.qbs.architecture)) {

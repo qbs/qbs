@@ -213,6 +213,7 @@ Module {
     property string linkerScriptFlag
 
     property stringList knownArchitectures: []
+    property var toolchainDetails
 
     property string linkerMode: "automatic"
     PropertyOptions {

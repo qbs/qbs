@@ -72,26 +72,26 @@ CppModule {
     property string cCompilerName: compilerName
     property string cxxCompilerName: compilerName
 
-    compilerName: COSMIC.compilerName(qbs) + compilerExtension
+    compilerName: toolchainDetails.compilerName + compilerExtension
     compilerPath: FileInfo.joinPaths(toolchainInstallPath, compilerName)
 
-    assemblerName: COSMIC.assemblerName(qbs) + compilerExtension
+    assemblerName: toolchainDetails.assemblerName + compilerExtension
     assemblerPath: FileInfo.joinPaths(toolchainInstallPath, assemblerName)
 
-    linkerName: COSMIC.linkerName(qbs) + compilerExtension
+    linkerName: "clnk" + compilerExtension
     linkerPath: FileInfo.joinPaths(toolchainInstallPath, linkerName)
 
-    property string archiverName: COSMIC.archiverName(qbs) + compilerExtension
+    property string archiverName: "clib" + compilerExtension
     property string archiverPath: FileInfo.joinPaths(toolchainInstallPath, archiverName)
 
     runtimeLibrary: "static"
 
-    staticLibrarySuffix: COSMIC.staticLibrarySuffix(qbs)
-    executableSuffix: COSMIC.executableSuffix(qbs)
+    staticLibrarySuffix: toolchainDetails.staticLibrarySuffix
+    executableSuffix: toolchainDetails.executableSuffix
 
-    property string objectSuffix: COSMIC.objectSuffix(qbs)
+    property string objectSuffix: ".o"
 
-    imageFormat: COSMIC.imageFormat(qbs)
+    imageFormat: "cosmic"
 
     enableExceptions: false
     enableRtti: false
@@ -103,6 +103,8 @@ CppModule {
     libraryDependencyFlag: ""
     libraryPathFlag: "-l"
     linkerScriptFlag: ""
+
+    toolchainDetails: COSMIC.toolchainDetails(qbs)
 
     knownArchitectures: ["arm", "hcs12", "hcs8", "m68k", "stm8"]
 
