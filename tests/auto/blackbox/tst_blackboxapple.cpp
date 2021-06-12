@@ -751,7 +751,8 @@ void TestBlackboxApple::codesign()
         QCOMPARE(codeSignInfo.second.value(QByteArrayLiteral("Signature")), "adhoc");
     }
 
-    const auto libName = isBundle ? QStringLiteral("B.framework") : QStringLiteral("libB.dylib");
+    const auto libName =
+            isBundle ? QStringLiteral("B.framework") : QStringLiteral("libB.1.0.0.dylib");
     const auto libPath = defaultInstallRoot + "/" + libName;
     QVERIFY(QFileInfo(libPath).exists());
     codeSignInfo = getCodeSignInfo(libPath);

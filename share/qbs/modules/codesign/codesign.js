@@ -301,8 +301,8 @@ function prepareSign(project, product, inputs, outputs, input, output) {
         // If this is a framework, we need to sign its versioned directory
         var subpath = "";
         if (isBundle) {
-            var frameworkVersion = product.bundle.frameworkVersion;
-            if (frameworkVersion) {
+            var isFramework = product.bundle.packageType === "FMWK";
+            if (isFramework) {
                 subpath = product.bundle.contentsFolderPath;
                 subpath = subpath.substring(product.bundle.bundleName.length);
             }
