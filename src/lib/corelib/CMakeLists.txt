@@ -429,9 +429,9 @@ add_qbs_library(qbscore
         Qt${QT_VERSION_MAJOR}::Xml
         Qt6Core5Compat
         qbsscriptengine
-        ${EXTERNAL_DEPENDS}
     PUBLIC_DEPENDS
         Qt${QT_VERSION_MAJOR}::Core
+        ${EXTERNAL_DEPENDS}
     INCLUDES
         "${CMAKE_CURRENT_SOURCE_DIR}/../.."
     SOURCES
