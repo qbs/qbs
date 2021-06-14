@@ -1,6 +1,7 @@
 .qmake.cache
 .qmake.stash
 .qbs
+.vscode*
 build
 *.dll
 *.dylib
