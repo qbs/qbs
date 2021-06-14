@@ -214,6 +214,7 @@ Module {
 
     property stringList knownArchitectures: []
     property var toolchainDetails
+    property string compilerExtension: qbs.hostOS.contains("windows") ? ".exe" : ""
 
     property string linkerMode: "automatic"
     PropertyOptions {

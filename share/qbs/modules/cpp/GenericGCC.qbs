@@ -178,7 +178,6 @@ CppModule {
     property string toolchainPathPrefix: Gcc.pathPrefix(toolchainInstallPath, toolchainPrefix)
     property string binutilsPathPrefix: Gcc.pathPrefix(binutilsPath, toolchainPrefix)
 
-    property string compilerExtension: qbs.hostOS.contains("windows") ? ".exe" : ""
     property string cCompilerName: (qbs.toolchain.contains("clang") ? "clang" : "gcc")
                                    + compilerExtension
     property string cxxCompilerName: (qbs.toolchain.contains("clang") ? "clang++" : "g++")

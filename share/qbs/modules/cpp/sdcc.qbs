@@ -65,8 +65,6 @@ CppModule {
 
     toolchainInstallPath: compilerPathProbe.found ? compilerPathProbe.path : undefined
 
-    property string compilerExtension: qbs.hostOS.contains("windows") ? ".exe" : ""
-
     /* Work-around for QtCreator which expects these properties to exist. */
     property string cCompilerName: compilerName
     property string cxxCompilerName: compilerName
