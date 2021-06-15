@@ -443,6 +443,10 @@ function prepareSigntool(project, product, inputs, outputs, input, output) {
     if (signingTimestamp)
         args.push("/tr", signingTimestamp);
 
+    var timestampAlgorithm = product.codesign.timestampAlgorithm;
+    if (timestampAlgorithm)
+        args.push("/td", timestampAlgorithm);
+
     var certificatePath = product.codesign.certificatePath;
     if (certificatePath)
         args.push("/f", certificatePath);

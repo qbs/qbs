@@ -14,6 +14,7 @@ Project {
         codesign.hashAlgorithm: project.hashAlgorithm
         codesign.subjectName: project.subjectName
         codesign.signingTimestamp: project.signingTimestamp
+        codesign.timestampAlgorithm: "sha256"
         install: true
         installDir: ""
         property bool dummy: {
@@ -31,6 +32,7 @@ Project {
         codesign.hashAlgorithm: project.hashAlgorithm
         codesign.subjectName: project.subjectName
         codesign.signingTimestamp: project.signingTimestamp
+        codesign.timestampAlgorithm: "sha256"
         install: true
         installDir: ""
         property bool dummy: {

@@ -343,6 +343,22 @@
 */
 
 /*!
+    \qmlproperty string codesign::timestampAlgorithm
+
+    Specifies the default timestamp algorithm used together with the
+    \c signingTimestamp property. The possible values are \c sha1, \c sha256.
+
+    \note If this value is not set, then the default sha1 algorithm
+    will be used.
+
+    \since Qbs 1.19.2
+
+    \defaultvalue \c undefined
+
+    \windowsproperty
+*/
+
+/*!
     \qmlproperty string codesign::certificatePath
 
     Specifies the full path to the signing certificate file (*.pfx).
