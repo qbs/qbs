@@ -308,9 +308,7 @@ function prepareSign(project, product, inputs, outputs, input, output) {
             }
         }
 
-        var args = product.codesign.codesignFlags || [];
-        args.push("--force");
-        args.push("--sign", actualSigningIdentity.SHA1);
+        var args = ["--force", "--sign", actualSigningIdentity.SHA1];
 
         // If signingTimestamp is undefined or empty, do not specify the flag at all -
         // this uses the system-specific default behavior
@@ -328,6 +326,9 @@ function prepareSign(project, product, inputs, outputs, input, output) {
             args.push("--entitlements", inputs["codesign.xcent"][j].filePath);
             break; // there should only be one
         }
+
+        args = args.concat(product.codesign.codesignFlags || []);
+
         args.push(outputFilePath + subpath);
         cmd = new Command(product.codesign.codesignPath, args);
         cmd.description = "codesign " + outputFileName
@@ -425,7 +426,7 @@ function prepareSigntool(project, product, inputs, outputs, input, output) {
     if (!product.codesign.enableCodeSigning)
         return cmds;
 
-    var args = ["sign"].concat(product.codesign.codesignFlags || []);
+    var args = ["sign"];
 
     var subjectName = product.codesign.subjectName;
     if (subjectName)
@@ -458,6 +459,8 @@ function prepareSigntool(project, product, inputs, outputs, input, output) {
     var crossCertificatePath = product.codesign.crossCertificatePath;
     if (crossCertificatePath)
         args.push("/ac", crossCertificatePath);
+
+    args = args.concat(product.codesign.codesignFlags || []);
 
     var outputArtifact = outputs["codesign.signed_artifact"][0];
     args.push(outputArtifact.filePath);
