@@ -109,7 +109,7 @@ struct ModuleLoaderResult
     Item *root;
     std::unordered_map<Item *, ProductInfo> productInfos;
     std::vector<ProbeConstPtr> projectProbes;
-    ModuleProviderInfoList moduleProviderInfo;
+    StoredModuleProviderInfo storedModuleProviderInfo;
     Set<QString> qbsFiles;
     QVariantMap profileConfigs;
 };
@@ -132,7 +132,7 @@ public:
     void setOldProductProbes(const QHash<QString, std::vector<ProbeConstPtr>> &oldProbes);
     void setLastResolveTime(const FileTime &time) { m_lastResolveTime = time; }
     void setStoredProfiles(const QVariantMap &profiles);
-    void setStoredModuleProviderInfo(const ModuleProviderInfoList &moduleProviderInfo);
+    void setStoredModuleProviderInfo(const StoredModuleProviderInfo &moduleProviderInfo);
     Evaluator *evaluator() const { return m_evaluator; }
 
     ModuleLoaderResult load(const SetupProjectParameters &parameters);

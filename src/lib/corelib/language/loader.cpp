@@ -104,7 +104,7 @@ void Loader::setStoredProfiles(const QVariantMap &profiles)
     m_storedProfiles = profiles;
 }
 
-void Loader::setStoredModuleProviderInfo(const ModuleProviderInfoList &providerInfo)
+void Loader::setStoredModuleProviderInfo(const StoredModuleProviderInfo &providerInfo)
 {
     m_storedModuleProviderInfo = providerInfo;
 }

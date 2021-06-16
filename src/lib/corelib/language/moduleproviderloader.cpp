@@ -70,9 +70,9 @@ void ModuleProviderLoader::setupKnownModuleProviders(ProductContext &product)
 {
     // Existing module provider search paths are re-used if and only if the provider configuration
     // at setup time was the same as the current one for the respective module provider.
-    if (!m_moduleProviderInfo.empty()) {
+    if (!m_storedModuleProviderInfo.providers.empty()) {
         const QVariantMap configForProduct = moduleProviderConfig(product);
-        for (const ModuleProviderInfo &c : m_moduleProviderInfo) {
+        for (const ModuleProviderInfo &c : m_storedModuleProviderInfo.providers) {
             if (configForProduct.value(c.name.toString()).toMap() == c.config) {
                 qCDebug(lcModuleLoader) << "re-using search paths" << c.searchPaths
                                         << "from module provider" << c.name
@@ -129,8 +129,8 @@ ModuleProviderLoader::ModuleProviderResult ModuleProviderLoader::findModuleProvi
     const QStringList searchPaths
             = getProviderSearchPaths(name, providerFile, product, config, dependsItemLocation);
     const auto addToGlobalInfo = [=] {
-        m_moduleProviderInfo.emplace_back(ModuleProviderInfo(name, config,
-                                                             searchPaths, m_parameters.dryRun()));
+        m_storedModuleProviderInfo.providers.emplace_back(
+                ModuleProviderInfo(name, config, searchPaths, m_parameters.dryRun()));
     };
     if (searchPaths.empty()) {
         qCDebug(lcModuleLoader) << "Module provider did run, but did not set up "

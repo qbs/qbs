@@ -287,9 +287,9 @@ void ModuleLoader::setStoredProfiles(const QVariantMap &profiles)
     m_storedProfiles = profiles;
 }
 
-void ModuleLoader::setStoredModuleProviderInfo(const ModuleProviderInfoList &moduleProviderInfo)
+void ModuleLoader::setStoredModuleProviderInfo(const StoredModuleProviderInfo &moduleProviderInfo)
 {
-    m_moduleProviderLoader->setModuleProviderInfo(moduleProviderInfo);
+    m_moduleProviderLoader->setStoredModuleProviderInfo(moduleProviderInfo);
 }
 
 ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
@@ -643,7 +643,7 @@ void ModuleLoader::handleTopLevelProject(ModuleLoaderResult *loadResult, Item *p
     }
 
     loadResult->projectProbes = tlp.probes;
-    loadResult->moduleProviderInfo = m_moduleProviderLoader->moduleProviderInfo();
+    loadResult->storedModuleProviderInfo = m_moduleProviderLoader->storedModuleProviderInfo();
 
     m_reader->clearExtraSearchPathsStack();
     AccumulatingTimer timer(m_parameters.logElapsedTime()

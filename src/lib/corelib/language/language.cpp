@@ -614,7 +614,7 @@ QString TopLevelProject::profile() const
 
 void TopLevelProject::makeModuleProvidersNonTransient()
 {
-    for (ModuleProviderInfo &m : moduleProviderInfo)
+    for (ModuleProviderInfo &m : moduleProviderInfo.providers)
         m.transientOutput = false;
 }
 
@@ -664,7 +664,7 @@ void TopLevelProject::store(PersistentPool &pool)
 void TopLevelProject::cleanupModuleProviderOutput()
 {
     QString error;
-    for (const ModuleProviderInfo &m : moduleProviderInfo) {
+    for (const ModuleProviderInfo &m : moduleProviderInfo.providers) {
         if (m.transientOutput) {
             if (!removeDirectoryWithContents(m.outputDirPath(buildDirectory), &error))
                 qCWarning(lcBuildGraph) << "Error removing module provider output:" << error;

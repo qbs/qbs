@@ -87,6 +87,17 @@ public:
 
 using ModuleProviderInfoList = std::vector<ModuleProviderInfo>;
 
+// Persistent info stored between sessions
+struct StoredModuleProviderInfo
+{
+    ModuleProviderInfoList providers;
+
+    template<PersistentPool::OpType opType> void completeSerializationOp(PersistentPool &pool)
+    {
+        pool.serializationOp<opType>(providers);
+    }
+};
+
 } // namespace Internal
 } // namespace qbs
 
