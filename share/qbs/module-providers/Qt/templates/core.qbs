@@ -30,7 +30,7 @@ Module {
     // depend on qml. That's why the scannerName must be defined here and not in the
     // qml module
     property string qmlImportScannerName: "qmlimportscanner"
-    property string qmlImportScannerFilePath: binPath + '/' + qmlImportScannerName
+    property string qmlImportScannerFilePath: qmlLibExecPath + '/' + qmlImportScannerName
 
     version: @version@
     property stringList architectures: @archs@
@@ -43,6 +43,7 @@ Module {
     property path incPath: @incPath@
     property path libPath: @libPath@
     property path libExecPath: @libExecPath@
+    property path qmlLibExecPath: @qmlLibExecPath@
     property path pluginPath: @pluginPath@
     property string mkspecName: @mkspecName@
     property path mkspecPath: @mkspecPath@

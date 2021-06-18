@@ -107,7 +107,7 @@ QtModule {
                 args.push("--foreign-types=" + foreignTypes.join(","));
             args.push("-o", outputs.cpp[0].filePath);
             args = args.concat(inputs["qt.core.metatypes"].map(filePathFromArtifact));
-            var cmd = new Command(product.Qt.core.binPath + "/qmltyperegistrar", args);
+            var cmd = new Command(product.Qt.core.qmlLibExecPath + "/qmltyperegistrar", args);
             cmd.description = "running qmltyperegistrar";
             cmd.highlight = "codegen";
             return cmd;

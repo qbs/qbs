@@ -9,7 +9,7 @@ Module {
         if (!qmlcachegenProbe.found)
             throw "qmlcachegen unsupported for this target";
     }
-    property string qmlCacheGenPath: FileInfo.joinPaths(Qt.core.binPath, "qmlcachegen")
+    property string qmlCacheGenPath: FileInfo.joinPaths(Qt.core.qmlLibExecPath, "qmlcachegen")
                                      + (qbs.hostOS.contains("windows") ? ".exe" : "")
     property bool supportsAllArchitectures: Utilities.versionCompare(Qt.core.version, "5.11") >= 0
     property string installDir

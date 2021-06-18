@@ -273,6 +273,10 @@ function getQtProperties(qmakeFilePath, qbs) {
                 || pathQueryValue(queryResult, "QT_INSTALL_LIBEXECS");
     }
 
+    // QML tools were only moved in Qt 6.2.
+    qtProps.qmlLibExecPath = Utilities.versionCompare(qtProps.qtVersion, "6.2") >= 0
+        ? qtProps.libExecPath : qtProps.binaryPath
+
     if (!File.exists(qtProps.mkspecBasePath))
         throw "Cannot extract the mkspecs directory.";
 
@@ -1355,6 +1359,7 @@ function replaceSpecialValues(content, module, qtProps, abi) {
         installPath: ModUtils.toJSLiteral(qtProps.installPath),
         libPath: ModUtils.toJSLiteral(qtProps.libraryPath),
         libExecPath: ModUtils.toJSLiteral(qtProps.libExecPath),
+        qmlLibExecPath: ModUtils.toJSLiteral(qtProps.qmlLibExecPath),
         pluginPath: ModUtils.toJSLiteral(qtProps.pluginPath),
         incPath: ModUtils.toJSLiteral(qtProps.includePath),
         docPath: ModUtils.toJSLiteral(qtProps.documentationPath),
@@ -1572,7 +1577,7 @@ function setupOneQt(qmakeFilePath, outputBaseDir, uniquify, location, qbs) {
                 copyTemplateFile("qml.js", qbsQtModuleDir, qtProps, androidAbis[a], location,
                                  allFiles);
                 var qmlcacheStr = "qmlcache";
-                if (File.exists(FileInfo.joinPaths(qtProps.binaryPath,
+                if (File.exists(FileInfo.joinPaths(qtProps.qmlLibExecPath,
                                                    "qmlcachegen" + exeSuffix(qbs)))) {
                     copyTemplateFile(qmlcacheStr + ".qbs",
                                      FileInfo.joinPaths(qbsQtModuleBaseDir, qmlcacheStr), qtProps,
