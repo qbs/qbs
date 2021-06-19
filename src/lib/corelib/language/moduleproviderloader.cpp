@@ -66,38 +66,15 @@ ModuleProviderLoader::ModuleProviderLoader(ItemReader *reader, Evaluator *evalua
 {
 }
 
-void ModuleProviderLoader::setupKnownModuleProviders(ProductContext &product)
-{
-    // Existing module provider search paths are re-used if and only if the provider configuration
-    // at setup time was the same as the current one for the respective module provider.
-    if (!m_storedModuleProviderInfo.providers.empty()) {
-        const QVariantMap configForProduct = moduleProviderConfig(product);
-        for (const ModuleProviderInfo &c : m_storedModuleProviderInfo.providers) {
-            if (configForProduct.value(c.name.toString()).toMap() == c.config) {
-                qCDebug(lcModuleLoader) << "re-using search paths" << c.searchPaths
-                                        << "from module provider" << c.name
-                                        << "for product" << product.name;
-                product.knownModuleProviders.insert(c.name);
-                product.searchPaths << c.searchPaths;
-            }
-        }
-    }
-}
-
 ModuleProviderLoader::ModuleProviderResult ModuleProviderLoader::executeModuleProvider(
         ProductContext &productContext,
         const CodeLocation &dependsItemLocation,
         const QualifiedId &moduleName,
         FallbackMode fallbackMode)
 {
-    bool moduleAlreadyKnown = false;
     ModuleProviderResult result;
     for (QualifiedId providerName = moduleName; !providerName.empty();
          providerName.pop_back()) {
-        if (!productContext.knownModuleProviders.insert(providerName).second) {
-            moduleAlreadyKnown = true;
-            break;
-        }
         qCDebug(lcModuleLoader) << "Module" << moduleName.toString()
                                 << "not found, checking for module providers";
         result = findModuleProvider(providerName, productContext,
@@ -105,8 +82,7 @@ ModuleProviderLoader::ModuleProviderResult ModuleProviderLoader::executeModulePr
         if (result.providerFound)
             break;
     }
-    if (fallbackMode == FallbackMode::Enabled && !result.providerFound
-            && !moduleAlreadyKnown) {
+    if (fallbackMode == FallbackMode::Enabled && !result.providerFound) {
         qCDebug(lcModuleLoader) << "Specific module provider not found for"
                                 << moduleName.toString()  << ", setting up fallback.";
         result = findModuleProvider(moduleName, productContext,
@@ -121,32 +97,32 @@ ModuleProviderLoader::ModuleProviderResult ModuleProviderLoader::findModuleProvi
         ModuleProviderLookup lookupType,
         const CodeLocation &dependsItemLocation)
 {
-    const QString providerFile = findModuleProviderFile(name, lookupType);
-    if (providerFile.isEmpty())
-        return {};
-
     const QVariantMap config = moduleProviderConfig(product).value(name.toString()).toMap();
-    const QStringList searchPaths
-            = getProviderSearchPaths(name, providerFile, product, config, dependsItemLocation);
-    const auto addToGlobalInfo = [=] {
-        m_storedModuleProviderInfo.providers.emplace_back(
-                ModuleProviderInfo(name, config, searchPaths, m_parameters.dryRun()));
-    };
-    if (searchPaths.empty()) {
+    ModuleProviderInfo &info =
+            m_storedModuleProviderInfo.providers[{name.toString(), config, int(lookupType)}];
+    if (info.name.isEmpty()) { // not found in cache
+        info.name = name;
+        info.config = config;
+        info.providerFile = findModuleProviderFile(name, lookupType);
+        if (info.providerFile.isEmpty())
+            return {};
+        info.searchPaths = getProviderSearchPaths(
+                name, info.providerFile, product, config, dependsItemLocation);
+        info.transientOutput = m_parameters.dryRun();
+    } else {
+        if (info.providerFile.isEmpty())
+            return {};
+        qCDebug(lcModuleLoader) << "Re-using provider" << name << "from cache";
+    }
+    if (info.searchPaths.empty()) {
         qCDebug(lcModuleLoader) << "Module provider did run, but did not set up "
-                                       "any modules.";
-        addToGlobalInfo();
+                                    "any modules.";
         return {true, false};
     }
-    qCDebug(lcModuleLoader) << "Module provider added" << searchPaths.size()
+    qCDebug(lcModuleLoader) << "Module provider added" << info.searchPaths.size()
                             << "new search path(s)";
 
-    // (1) is needed so the immediate new look-up works.
-    // (2) is needed so the next use of SearchPathManager considers the new paths.
-    // (3) is needed for possible re-use in subsequent products and builds.
-    m_reader->pushExtraSearchPaths(searchPaths); // (1)
-    product.searchPaths << searchPaths; // (2)
-    addToGlobalInfo(); // (3)
+    m_reader->pushExtraSearchPaths(info.searchPaths);
     return {true, true};
 }
 

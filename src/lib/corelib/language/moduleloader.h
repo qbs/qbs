@@ -76,6 +76,7 @@ class ItemReader;
 class ModuleProviderLoader;
 class ProgressObserver;
 class QualifiedId;
+class SearchPathsManager;
 
 using ModulePropertiesPerGroup = std::unordered_map<const Item *, QualifiedIdSet>;
 
@@ -187,7 +188,6 @@ private:
         std::unordered_map<const Item *, std::vector<ErrorInfo>> unknownProfilePropertyErrors;
         QStringList searchPaths;
 
-        Set<QualifiedId> knownModuleProviders;
         std::optional<QVariantMap> theModuleProviderConfig;
 
         // The key corresponds to DeferredDependsContext.exportingProductItem, which is the

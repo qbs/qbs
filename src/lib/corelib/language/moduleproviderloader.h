@@ -82,7 +82,6 @@ public:
         m_parameters = std::move(parameters);
     }
 
-    void setupKnownModuleProviders(ProductContext &product);
     ModuleProviderResult executeModuleProvider(
             ProductContext &productContext,
             const CodeLocation &dependsItemLocation,
