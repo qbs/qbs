@@ -40,6 +40,8 @@
 #ifndef QBSQTTOOLS_H
 #define QBSQTTOOLS_H
 
+#include <tools/stlutils.h>
+
 #include <QtCore/qhash.h>
 #include <QtCore/qstringlist.h>
 #include <QtCore/qtextstream.h>
@@ -71,12 +73,38 @@ template<typename T1, typename T2> struct hash<std::pair<T1, T2>>
         return std::hash<T1>()(x.first) ^ std::hash<T2>()(x.second);
     }
 };
+
+template <typename... Ts>
+struct hash<std::tuple<Ts...>>
+{
+private:
+    template<std::size_t... Ns>
+    static size_t helper(std::index_sequence<Ns...>, const std::tuple<Ts...> &tuple) noexcept
+    {
+        size_t seed = 0;
+        (qbs::Internal::hashCombineHelper(seed, std::get<Ns>(tuple)), ...);
+        return seed;
+    }
+
+public:
+    size_t operator()(const std::tuple<Ts...> & tuple) const noexcept
+    {
+        return helper(std::make_index_sequence<sizeof...(Ts)>(), tuple);
+    }
+};
+
 } // namespace std
 
 QT_BEGIN_NAMESPACE
 
 uint qHash(const QStringList &list);
 uint qHash(const QProcessEnvironment &env);
+
+template<typename... Args>
+uint qHash(const std::tuple<Args...> &tuple)
+{
+    return std::hash<std::tuple<Args...>>()(tuple) % std::numeric_limits<uint>::max();
+}
 
 #if (QT_VERSION < QT_VERSION_CHECK(5, 14, 0))
 namespace Qt {
