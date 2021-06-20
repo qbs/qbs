@@ -453,6 +453,33 @@ template<typename T, typename U> struct PPHelper<std::pair<T, U>>
     }
 };
 
+template<typename... Args> struct PPHelper<std::tuple<Args...>>
+{
+    template<std::size_t... Ns>
+    static void storeHelper(
+            std::index_sequence<Ns...>, const std::tuple<Args...> &tuple, PersistentPool *pool)
+    {
+        (pool->store(std::get<Ns>(tuple)), ...);
+    }
+
+    static void store(const std::tuple<Args...> &tuple, PersistentPool *pool)
+    {
+        storeHelper(std::make_index_sequence<sizeof...(Args)>(), tuple, pool);
+    }
+
+    template<std::size_t... Ns>
+    static void loadHelper(
+            std::index_sequence<Ns...>, std::tuple<Args...> &tuple, PersistentPool *pool)
+    {
+        (pool->load(std::get<Ns>(tuple)), ...);
+    }
+
+    static void load(std::tuple<Args...> &tuple, PersistentPool * pool)
+    {
+        loadHelper(std::make_index_sequence<sizeof...(Args)>(), tuple, pool);
+    }
+};
+
 template<typename T> struct PPHelper<QFlags<T>>
 {
     using Int = typename QFlags<T>::Int;
