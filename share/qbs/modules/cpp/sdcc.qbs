@@ -110,9 +110,9 @@ CppModule {
         id: assembler
         inputs: ["asm"]
         outputFileTags: SDCC.extraCompilerOutputTags().concat(
-                            Cpp.compilerOutputTags(generateAssemblerListingFiles))
+                            Cpp.assemblerOutputTags(generateAssemblerListingFiles))
         outputArtifacts: SDCC.extraCompilerOutputArtifacts(input).concat(
-                             Cpp.compilerOutputArtifacts(input, false))
+                             Cpp.assemblerOutputArtifacts(input))
         prepare: SDCC.prepareAssembler.apply(SDCC, arguments)
     }
 
@@ -128,7 +128,7 @@ CppModule {
         outputFileTags: SDCC.extraCompilerOutputTags().concat(
                             Cpp.compilerOutputTags(generateCompilerListingFiles))
         outputArtifacts: SDCC.extraCompilerOutputArtifacts(input).concat(
-                             Cpp.compilerOutputArtifacts(input, true))
+                             Cpp.compilerOutputArtifacts(input))
         prepare: SDCC.prepareCompiler.apply(SDCC, arguments)
     }
 

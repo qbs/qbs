@@ -114,8 +114,8 @@ CppModule {
     Rule {
         id: assembler
         inputs: ["asm"]
-        outputFileTags: Cpp.compilerOutputTags(generateAssemblerListingFiles)
-        outputArtifacts: Cpp.compilerOutputArtifacts(input, false)
+        outputFileTags: Cpp.assemblerOutputTags(generateAssemblerListingFiles)
+        outputArtifacts: Cpp.assemblerOutputArtifacts(input)
         prepare: IAR.prepareAssembler.apply(IAR, arguments)
     }
 
@@ -129,7 +129,7 @@ CppModule {
         inputs: ["cpp", "c"]
         auxiliaryInputs: ["hpp"]
         outputFileTags: Cpp.compilerOutputTags(generateCompilerListingFiles)
-        outputArtifacts: Cpp.compilerOutputArtifacts(input, true)
+        outputArtifacts: Cpp.compilerOutputArtifacts(input)
         prepare: IAR.prepareCompiler.apply(IAR, arguments)
     }
 

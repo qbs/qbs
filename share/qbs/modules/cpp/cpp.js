@@ -63,6 +63,13 @@ function extractMacros(output) {
     return m;
 }
 
+function assemblerOutputTags(needsListingFiles) {
+    var tags = ["obj"];
+    if (needsListingFiles)
+        tags.push("lst");
+    return tags;
+}
+
 function compilerOutputTags(needsListingFiles) {
     var tags = ["obj"];
     if (needsListingFiles)
@@ -81,24 +88,35 @@ function staticLibraryLinkerOutputTags() {
     return ["staticlibrary"];
 }
 
-function compilerOutputArtifacts(input, isCompilerArtifacts) {
+function assemblerOutputArtifacts(input) {
     var artifacts = [];
     artifacts.push({
         fileTags: ["obj"],
         filePath: Utilities.getHash(input.baseDir) + "/"
               + input.fileName + input.cpp.objectSuffix
     });
-    if (isCompilerArtifacts && input.cpp.generateCompilerListingFiles) {
-        artifacts.push({
-            fileTags: ["lst"],
-            filePath: Utilities.getHash(input.baseDir) + "/"
-              + input.fileName + input.cpp.compilerListingSuffix
-        });
-    } else if (!isCompilerArtifacts && input.cpp.generateAssemblerListingFiles) {
+    if (input.cpp.generateAssemblerListingFiles) {
         artifacts.push({
             fileTags: ["lst"],
             filePath: Utilities.getHash(input.baseDir) + "/"
               + input.fileName + input.cpp.assemblerListingSuffix
+        });
+    }
+    return artifacts;
+}
+
+function compilerOutputArtifacts(input) {
+    var artifacts = [];
+    artifacts.push({
+        fileTags: ["obj"],
+        filePath: Utilities.getHash(input.baseDir) + "/"
+              + input.fileName + input.cpp.objectSuffix
+    });
+    if (input.cpp.generateCompilerListingFiles) {
+        artifacts.push({
+            fileTags: ["lst"],
+            filePath: Utilities.getHash(input.baseDir) + "/"
+              + input.fileName + input.cpp.compilerListingSuffix
         });
     }
     return artifacts;
