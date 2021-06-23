@@ -318,11 +318,8 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
     args = args.concat(Cpp.collectIncludePathsArguments(input));
     args = args.concat(Cpp.collectSystemIncludePathsArguments(input, input.cpp.includeFlag));
 
-    // Determine which C-language we"re compiling.
-    var tag = ModUtils.fileTagForTargetLanguage(input.fileTags.concat(outputs.obj[0].fileTags));
-
     // Misc flags.
-    args = args.concat(Cpp.collectMiscCompilerArguments(input, tag));
+    args = args.concat(Cpp.collectMiscAssemblerArguments(input, "asm"));
 
     args.push("-ol");
     args.push(outputs.obj[0].filePath);

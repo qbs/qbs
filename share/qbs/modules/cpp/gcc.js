@@ -943,9 +943,7 @@ function prepareAssembler(project, product, inputs, outputs, input, output) {
     if (warnings === 'none')
         args.push('-W');
 
-    var tag = "asm";
-    args = args.concat(Cpp.collectMiscAssemblerArguments(input, tag));
-
+    args = args.concat(Cpp.collectMiscAssemblerArguments(input, "asm"));
     args = args.concat(Cpp.collectIncludePathsArguments(input));
     args = args.concat(Cpp.collectSystemIncludePathsArguments(input));
 

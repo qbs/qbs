@@ -281,11 +281,8 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
     if (input.cpp.debugInformation)
         args.push("-xx");
 
-    // Determine which C-language we"re compiling
-    var tag = ModUtils.fileTagForTargetLanguage(input.fileTags.concat(outputs.obj[0].fileTags));
-
     // Misc flags.
-    args = args.concat(Cpp.collectMiscAssemblerArguments(input, tag));
+    args = args.concat(Cpp.collectMiscAssemblerArguments(input, "asm"));
 
     // Listing files generation flag.
     if (input.cpp.generateAssemblerListingFiles) {

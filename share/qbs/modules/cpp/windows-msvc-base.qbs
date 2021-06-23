@@ -35,6 +35,7 @@ import qbs.PathTools
 import qbs.Probes
 import qbs.Utilities
 import qbs.WindowsUtils
+import 'cpp.js' as Cpp
 import 'msvc.js' as MSVC
 
 CppModule {
@@ -368,8 +369,7 @@ CppModule {
                         FileInfo.toWindowsSeparators(input.filePath)];
             if (product.cpp.debugInformation)
                 args.push("/Zi");
-            args = args.concat(ModUtils.moduleProperty(input, 'platformFlags', 'asm'),
-                               ModUtils.moduleProperty(input, 'flags', 'asm'));
+            args = args.concat(Cpp.collectMiscAssemblerArguments(input, "asm"));
             var cmd = new Command(product.cpp.assemblerPath, args);
             cmd.description = "assembling " + input.fileName;
             cmd.jobPool = "assembler";

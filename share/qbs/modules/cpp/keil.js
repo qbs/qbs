@@ -683,10 +683,7 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
 }
 
 function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
-    // Determine which C-language we're compiling
-    var tag = ModUtils.fileTagForTargetLanguage(input.fileTags.concat(outputs.obj[0].fileTags));
     var args = [];
-
     var architecture = input.qbs.architecture;
     if (isMcsArchitecture(architecture) || isC166Architecture(architecture)) {
         // Input.
@@ -745,7 +742,7 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
     }
 
     // Misc flags.
-    args = args.concat(Cpp.collectMiscAssemblerArguments(input, tag));
+    args = args.concat(Cpp.collectMiscAssemblerArguments(input, "asm"));
     return args;
 }
 
