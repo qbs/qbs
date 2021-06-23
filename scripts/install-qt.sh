@@ -223,10 +223,10 @@ if ${INSTALLATION_IS_VALID}; then
 fi
 
 MIRRORS="\
-    http://download.qt.io \
     http://ftp.acc.umu.se/mirror/qt.io/qtproject \
     http://qt.mirrors.tds.net/qt \
     http://ftp.fau.de/qtproject \
+    http://download.qt.io \
 "
 
 for MIRROR in ${MIRRORS}; do
