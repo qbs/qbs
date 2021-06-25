@@ -100,6 +100,9 @@ private slots:
     void stringutils_endsWith();
     void stringutils_trimmed();
 
+    void hash_tuple();
+    void hash_range();
+
 private:
     QString setupSettingsDir1();
     QString setupSettingsDir2();

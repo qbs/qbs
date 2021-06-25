@@ -68,6 +68,16 @@
 using namespace qbs;
 using namespace qbs::Internal;
 
+namespace std {
+template<typename T> struct hash<std::vector<T>>
+{
+    std::size_t operator()(const std::vector<T> &v) const noexcept
+    {
+        return hashRange(v);
+    }
+};
+} // namespace std
+
 TestTools::TestTools(Settings *settings)
     : m_settings(settings), testDataDir(testWorkDir("tools"))
 {
@@ -1297,6 +1307,40 @@ void TestTools::stringutils_trimmed()
     QCOMPARE(trimmed(std::move(a)), std::string(""));
     a = " a   ";
     QCOMPARE(trimmed(std::move(a)), std::string("a"));
+}
+
+void TestTools::hash_tuple()
+{
+    using Key = std::tuple<int, int>;
+
+    Key key0{0, 5};
+    Key key1{10, 20};
+    Key key2{30, 40};
+
+    std::unordered_map<Key, int> map;
+    map.insert({key1, 1});
+    map.insert({key2, 2});
+
+    QCOMPARE(map[key0], 0);
+    QCOMPARE(map[key1], 1);
+    QCOMPARE(map[key2], 2);
+}
+
+void TestTools::hash_range()
+{
+    using Key = std::vector<int>;
+
+    Key key0;
+    Key key1{1};
+    Key key2{1, 2};
+
+    std::unordered_map<Key, int> map;
+    map.insert({key1, 1});
+    map.insert({key2, 2});
+
+    QCOMPARE(map[key0], 0);
+    QCOMPARE(map[key1], 1);
+    QCOMPARE(map[key2], 2);
 }
 
 int main(int argc, char *argv[])
