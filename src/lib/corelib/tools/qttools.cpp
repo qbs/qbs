@@ -41,6 +41,26 @@
 
 #include <QtCore/qprocess.h>
 
+namespace std {
+
+size_t hash<QVariant>::operator()(const QVariant &v) const noexcept
+{
+    switch (v.userType()) {
+    case QMetaType::UnknownType: return 0;
+    case QMetaType::Int: return std::hash<int>()(v.toInt());
+    case QMetaType::UInt: return std::hash<int>()(v.toUInt());
+    case QMetaType::QString: return std::hash<QString>()(v.toString());
+    case QMetaType::QStringList: return std::hash<QStringList>()(v.toStringList());
+    case QMetaType::QVariantList: return std::hash<QVariantList>()(v.toList());
+    case QMetaType::QVariantMap: return std::hash<QVariantMap>()(v.toMap());
+    case QMetaType::QVariantHash: return std::hash<QVariantHash>()(v.toHash());
+    default:
+        QBS_ASSERT("Unsupported variant type" && false, return 0);
+    }
+}
+
+} // namespace std
+
 QT_BEGIN_NAMESPACE
 
 uint qHash(const QStringList &list)

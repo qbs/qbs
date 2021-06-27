@@ -40,6 +40,7 @@
 #ifndef QBSQTTOOLS_H
 #define QBSQTTOOLS_H
 
+#include <tools/qbsassert.h>
 #include <tools/stlutils.h>
 
 #include <QtCore/qhash.h>
@@ -93,6 +94,44 @@ public:
     }
 };
 
+
+template<> struct hash<QStringList>
+{
+    std::size_t operator()(const QStringList &s) const noexcept
+    {
+        return qbs::Internal::hashRange(s);
+    }
+};
+
+template<> struct hash<QVariant>
+{
+    size_t operator()(const QVariant &v) const noexcept;
+};
+
+template<> struct hash<QVariantList>
+{
+    size_t operator()(const QVariantList &v) const noexcept
+    {
+        return qbs::Internal::hashRange(v);
+    }
+};
+
+template<> struct hash<QVariantMap>
+{
+    size_t operator()(const QVariantMap &v) const noexcept
+    {
+        return qbs::Internal::hashRange(v);
+    }
+};
+
+template<> struct hash<QVariantHash>
+{
+    size_t operator()(const QVariantHash &v) const noexcept
+    {
+        return qbs::Internal::hashRange(v);
+    }
+};
+
 } // namespace std
 
 QT_BEGIN_NAMESPACE
@@ -104,6 +143,21 @@ template<typename... Args>
 uint qHash(const std::tuple<Args...> &tuple)
 {
     return std::hash<std::tuple<Args...>>()(tuple) % std::numeric_limits<uint>::max();
+}
+
+inline uint qHash(const QVariant &v)
+{
+    return std::hash<QVariant>()(v) % std::numeric_limits<uint>::max();
+}
+
+inline uint qHash(const QVariantMap &v)
+{
+    return std::hash<QVariantMap>()(v) % std::numeric_limits<uint>::max();
+}
+
+inline uint qHash(const QVariantHash &v)
+{
+    return std::hash<QVariantHash>()(v) % std::numeric_limits<uint>::max();
 }
 
 #if (QT_VERSION < QT_VERSION_CHECK(5, 14, 0))
