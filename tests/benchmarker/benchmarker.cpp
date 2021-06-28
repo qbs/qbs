@@ -32,6 +32,7 @@
 #include "valgrindrunner.h"
 
 #include <QtConcurrent/qtconcurrentrun.h>
+#include <QtCore/QCoreApplication>
 
 #include <iostream>
 #include <utility>
@@ -118,9 +119,15 @@ void Benchmarker::buildQbs(const QString &buildDir) const
 {
     if (!QDir::root().mkpath(buildDir))
         throw Exception(QStringLiteral("Failed to create directory '%1'.").arg(buildDir));
-    runProcess(QStringList() << "qmake" << "CONFIG+=force_debug_info"
-               << (m_qbsRepo + "/qbs.pro"), buildDir);
-    runProcess(QStringList() << "make" << "-s", buildDir);
+    runProcess(QStringList() << QCoreApplication::applicationDirPath() + "/qbs"
+               << "resolve"
+               << "config:benchmarker"
+               << "qbs.buildVariant:profiling"
+               << "qbs.installPrefix:''"
+               << "-f" << m_qbsRepo + "/qbs.qbs", buildDir);
+    runProcess(QStringList() << QCoreApplication::applicationDirPath() + "/qbs"
+               << "build"
+               << "config:benchmarker", buildDir);
 }
 
 } // namespace qbsBenchmarker

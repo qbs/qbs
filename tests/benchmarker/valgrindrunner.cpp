@@ -48,7 +48,7 @@ ValgrindRunner::ValgrindRunner(Activities activities, QString testProject,
                                const QString &qbsBuildDir, const QString &baseOutputDir)
     : m_activities(activities)
     , m_testProject(std::move(testProject))
-    , m_qbsBinary(qbsBuildDir + "/bin/qbs")
+    , m_qbsBinary(qbsBuildDir + "/benchmarker/install-root/bin/qbs")
     , m_baseOutputDir(baseOutputDir)
 {
     if (!QDir::root().mkpath(m_baseOutputDir))
