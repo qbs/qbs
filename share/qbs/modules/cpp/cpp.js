@@ -78,7 +78,7 @@ function assemblerOutputTags(needsListingFiles) {
 }
 
 function compilerOutputTags(needsListingFiles) {
-    var tags = ["obj"];
+    var tags = ["obj", "intermediate_obj"];
     if (needsListingFiles)
         tags.push("lst");
     return tags;
@@ -127,13 +127,21 @@ function assemblerOutputArtifacts(input) {
     return artifacts;
 }
 
-function compilerOutputArtifacts(input) {
-    var artifacts = [];
-    artifacts.push({
-        fileTags: ["obj"],
+function compilerOutputArtifacts(input, inputs) {
+    var objTags = input.fileTags.contains("cpp_intermediate_object")
+        ? ["intermediate_obj"]
+        : ["obj"];
+    if (inputs) {
+        if (inputs.c || inputs.objc)
+            objTags.push("c_obj");
+        if (inputs.cpp || inputs.objcpp)
+            objTags.push("cpp_obj");
+    }
+    var artifacts = [{
+        fileTags: objTags,
         filePath: FileInfo.joinPaths(Utilities.getHash(input.baseDir),
                                      input.fileName + input.cpp.objectSuffix)
-    });
+    }];
     if (input.cpp.generateCompilerListingFiles) {
         artifacts.push({
             fileTags: ["lst"],

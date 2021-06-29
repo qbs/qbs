@@ -147,33 +147,8 @@ CppModule {
         inputs: ["cpp", "c"]
         auxiliaryInputs: ["hpp"]
         explicitlyDependsOn: ["c_pch", "cpp_pch"]
-
-        outputFileTags: {
-            var tags = ["obj", "intermediate_obj"];
-            if (generateCompilerListingFiles)
-                tags.push("lst");
-            return tags;
-        }
-        outputArtifacts: {
-            var tags = input.fileTags.contains("cpp_intermediate_object")
-                ? ["intermediate_obj"]
-                : ["obj"];
-            var artifacts = [];
-            artifacts.push({
-                fileTags: tags,
-                filePath: FileInfo.joinPaths(Utilities.getHash(input.baseDir),
-                                             input.fileName + input.cpp.objectSuffix)
-            });
-            if (input.cpp.generateCompilerListingFiles) {
-                artifacts.push({
-                    fileTags: ["lst"],
-                    filePath: FileInfo.joinPaths(Utilities.getHash(input.baseDir),
-                                                 input.fileName + input.cpp.compilerListingSuffix)
-                });
-            }
-            return artifacts;
-        }
-
+        outputFileTags: Cpp.compilerOutputTags(generateCompilerListingFiles)
+        outputArtifacts: Cpp.compilerOutputArtifacts(input)
         prepare: MSVC.prepareCompiler.apply(MSVC, arguments)
     }
 
@@ -342,11 +317,8 @@ CppModule {
 
     Rule {
         inputs: ["asm"]
-        Artifact {
-            filePath: FileInfo.joinPaths(Utilities.getHash(input.baseDir),
-                                         input.completeBaseName + input.cpp.objectSuffix)
-            fileTags: ["obj"]
-        }
+        outputFileTags: Cpp.assemblerOutputTags(false)
+        outputArtifacts: Cpp.assemblerOutputArtifacts(input)
         prepare: {
             var args = ["/nologo", "/c",
                         "/Fo" + FileInfo.toWindowsSeparators(output.filePath),

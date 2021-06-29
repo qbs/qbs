@@ -611,37 +611,16 @@ CppModule {
         inputs: ["cpp", "c", "objcpp", "objc", "asm_cpp"]
         auxiliaryInputs: ["hpp"]
         explicitlyDependsOn: ["c_pch", "cpp_pch", "objc_pch", "objcpp_pch"]
-
-        outputFileTags: ["obj", "c_obj", "cpp_obj", "intermediate_obj"]
-        outputArtifacts: {
-            var tags;
-            if (input.fileTags.contains("cpp_intermediate_object"))
-                tags = ["intermediate_obj"];
-            else
-                tags = ["obj"];
-            if (inputs.c || inputs.objc)
-                tags.push("c_obj");
-            if (inputs.cpp || inputs.objcpp)
-                tags.push("cpp_obj");
-            return [{
-                fileTags: tags,
-                filePath: FileInfo.joinPaths(Utilities.getHash(input.baseDir),
-                                             input.fileName + input.cpp.objectSuffix)
-            }];
-        }
-
+        outputFileTags: Cpp.compilerOutputTags(false).concat(["c_obj", "cpp_obj"])
+        outputArtifacts: Cpp.compilerOutputArtifacts(input, inputs)
         prepare: Gcc.prepareCompiler.apply(Gcc, arguments)
     }
 
     Rule {
         name: "assembler"
         inputs: ["asm"]
-
-        Artifact {
-            fileTags: ["obj"]
-            filePath: FileInfo.joinPaths(Utilities.getHash(input.baseDir), input.fileName + input.cpp.objectSuffix)
-        }
-
+        outputFileTags: Cpp.assemblerOutputTags(false)
+        outputArtifacts: Cpp.assemblerOutputArtifacts(input)
         prepare: Gcc.prepareAssembler.apply(Gcc, arguments)
     }
 
