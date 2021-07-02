@@ -3937,9 +3937,11 @@ void ModuleLoader::addTransitiveDependencies(ProductContext *ctx)
         if (module.isProduct) {
             ctx->item->addModule(module);
         } else {
+            const FallbackMode fallbackMode = m_parameters.fallbackProviderEnabled()
+                    ? FallbackMode::Enabled : FallbackMode::Disabled;
             Item::Module dep;
             dep.item = loadModule(ctx, nullptr, ctx->item, ctx->item->location(), QString(),
-                                  module.name, QString(), FallbackMode::Disabled,
+                                  module.name, QString(), fallbackMode,
                                   module.required, &dep.isProduct, &dep.parameters);
             if (!dep.item) {
                 throw ErrorInfo(Tr::tr("Module '%1' not found when setting up transitive "
