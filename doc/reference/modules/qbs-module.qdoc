@@ -505,6 +505,9 @@
         \li \c{"cosmic"}
         \li \c{["cosmic"]}
     \row
+        \li \c{"dmc"}
+        \li \c{["dmc"]}
+    \row
         \li \c{"gcc"}
         \li \c{["gcc"]}
     \row

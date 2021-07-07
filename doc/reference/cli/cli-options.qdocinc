@@ -499,6 +499,8 @@
         \li \c iar
         \li \c keil
         \li \c sdcc
+        \li \c cosmic
+        \li \c dmc
      \endlist
 
 //! [type]

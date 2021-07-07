@@ -6,6 +6,7 @@ HEADERS += \
     clangclprobe.h \
     commandlineparser.h \
     cosmicprobe.h \
+    dmcprobe.h \
     gccprobe.h \
     iarewprobe.h \
     keilprobe.h \
@@ -18,6 +19,7 @@ SOURCES += \
     clangclprobe.cpp \
     commandlineparser.cpp \
     cosmicprobe.cpp \
+    dmcprobe.cpp \
     gccprobe.cpp \
     iarewprobe.cpp \
     keilprobe.cpp \

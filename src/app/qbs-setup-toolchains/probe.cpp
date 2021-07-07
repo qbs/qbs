@@ -40,6 +40,7 @@
 
 #include "clangclprobe.h"
 #include "cosmicprobe.h"
+#include "dmcprobe.h"
 #include "gccprobe.h"
 #include "iarewprobe.h"
 #include "keilprobe.h"
@@ -120,6 +121,8 @@ QString toolchainTypeFromCompilerName(const QString &compilerName)
         return QStringLiteral("sdcc");
     if (isCosmicCompiler(compilerName))
         return QStringLiteral("cosmic");
+    if (isDmcCompiler(compilerName))
+        return QStringLiteral("dmc");
     return {};
 }
 
@@ -140,6 +143,7 @@ void probe(Settings *settings)
     keilProbe(settings, profiles);
     sdccProbe(settings, profiles);
     cosmicProbe(settings, profiles);
+    dmcProbe(settings, profiles);
 
     if (profiles.empty()) {
         qStderr << Tr::tr("Could not detect any toolchains. No profile created.") << Qt::endl;
@@ -181,6 +185,8 @@ void createProfile(const QString &profileName, const QString &toolchainType,
         createSdccProfile(compiler, settings, profileName);
     else if (toolchain.contains(QLatin1String("cosmic")))
         createCosmicProfile(compiler, settings, profileName);
+    else if (toolchain.contains(QLatin1String("dmc")))
+        createDmcProfile(compiler, settings, profileName);
     else
         throw qbs::ErrorInfo(Tr::tr("Cannot create profile: Unknown toolchain type."));
 }
@@ -306,4 +312,22 @@ bool isSameExecutable(const QString &filePath1, const QString &filePath2)
 #endif
 
     return false;
+}
+
+MacrosMap dumpMacros(const std::function<QStringList()> &func)
+{
+    MacrosMap macros;
+    const QStringList lines = func();
+    for (const QString &line : lines) {
+        const QString prefix = QLatin1String("#define ");
+        if (!line.startsWith(prefix))
+            return macros;
+        const auto index = line.indexOf(QLatin1String(" "), prefix.length());
+        if (index != -1) {
+            const auto key = line.mid(prefix.length(), index - prefix.length());
+            const auto value =  line.mid(index + 1);
+            macros.insert(key, value);
+        }
+    }
+    return macros;
 }

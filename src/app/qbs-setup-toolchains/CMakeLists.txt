@@ -5,6 +5,8 @@ set(SOURCES
     commandlineparser.h
     cosmicprobe.cpp
     cosmicprobe.h
+    dmcprobe.cpp
+    dmcprobe.h
     gccprobe.cpp
     gccprobe.h
     iarewprobe.cpp

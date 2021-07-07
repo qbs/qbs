@@ -28,6 +28,7 @@
 **
 ****************************************************************************/
 
+var File = require("qbs.File");
 var FileInfo = require("qbs.FileInfo");
 var ModUtils = require("qbs.ModUtils");
 var PathTools = require("qbs.PathTools");
@@ -63,6 +64,12 @@ function extractMacros(output) {
     return m;
 }
 
+function relativePath(baseDirectory, filePath) {
+    if (FileInfo.isAbsolutePath(filePath))
+        return FileInfo.relativePath(baseDirectory, filePath);
+    return filePath;
+}
+
 function assemblerOutputTags(needsListingFiles) {
     var tags = ["obj"];
     if (needsListingFiles)
@@ -84,8 +91,16 @@ function applicationLinkerOutputTags(needsLinkerMapFile) {
     return tags;
 }
 
+function dynamicLibraryLinkerOutputTags() {
+    return ["dynamiclibrary", "dynamiclibrary_import"];
+}
+
 function staticLibraryLinkerOutputTags() {
     return ["staticlibrary"];
+}
+
+function resourceCompilerOutputTags() {
+    return ["res"];
 }
 
 function assemblerOutputArtifacts(input) {
@@ -140,32 +155,57 @@ function applicationLinkerOutputArtifacts(product) {
     return artifacts;
 }
 
+function dynamicLibraryLinkerOutputArtifacts(product) {
+    return [{
+        fileTags: ["dynamiclibrary"],
+        filePath: FileInfo.joinPaths(product.destinationDirectory,
+                                     PathTools.dynamicLibraryFilePath(product))
+    }, {
+        fileTags: ["dynamiclibrary_import"],
+        filePath: FileInfo.joinPaths(product.destinationDirectory,
+                                     PathTools.importLibraryFilePath(product)),
+        alwaysUpdated: false
+    }];
+}
+
 function staticLibraryLinkerOutputArtifacts(product) {
-    var staticLib = {
+    return [{
         fileTags: ["staticlibrary"],
-        filePath: FileInfo.joinPaths(
-                      product.destinationDirectory,
-                      PathTools.staticLibraryFilePath(product))
-    };
-    return [staticLib]
+        filePath: FileInfo.joinPaths(product.destinationDirectory,
+                                     PathTools.staticLibraryFilePath(product))
+    }];
+}
+
+function resourceCompilerOutputArtifacts(input) {
+    return [{
+        fileTags: ["res"],
+        filePath: FileInfo.joinPaths(Utilities.getHash(input.baseDir),
+                                     input.completeBaseName + input.cpp.resourceSuffix)
+    }];
 }
 
 function collectLibraryDependencies(product) {
     var seen = {};
     var result = [];
 
-    function addFilePath(filePath) {
-        result.push({ filePath: filePath });
+    function addFilePath(filePath, wholeArchive, productName) {
+        result.push({ filePath: filePath, wholeArchive: wholeArchive, productName: productName });
     }
 
     function addArtifactFilePaths(dep, artifacts) {
         if (!artifacts)
             return;
         var artifactFilePaths = artifacts.map(function(a) { return a.filePath; });
-        artifactFilePaths.forEach(addFilePath);
+        var wholeArchive = dep.parameters.cpp && dep.parameters.cpp.linkWholeArchive;
+        var artifactsAreImportLibs = artifacts.length > 0
+                && artifacts[0].fileTags.contains("dynamiclibrary_import");
+        for (var i = 0; i < artifactFilePaths.length; ++i) {
+            addFilePath(artifactFilePaths[i], wholeArchive,
+                        artifactsAreImportLibs ? dep.name : undefined);
+        }
     }
 
-    function addExternalStaticLibs(obj) {
+    function addExternalLibs(obj) {
         if (!obj.cpp)
             return;
         function ensureArray(a) {
@@ -175,34 +215,55 @@ function collectLibraryDependencies(product) {
             return ensureArray(ModUtils.sanitizedModuleProperty(obj, moduleName, propertyName));
         }
         var externalLibs = [].concat(
-                    sanitizedModuleListProperty(obj, "cpp", "staticLibraries"));
-        var staticLibrarySuffix = obj.moduleProperty("cpp", "staticLibrarySuffix");
-        externalLibs.forEach(function(staticLibraryName) {
-            if (!staticLibraryName.endsWith(staticLibrarySuffix))
-                staticLibraryName += staticLibrarySuffix;
-            addFilePath(staticLibraryName);
+                    sanitizedModuleListProperty(obj, "cpp", "staticLibraries"),
+                    sanitizedModuleListProperty(obj, "cpp", "dynamicLibraries"));
+        var libSuffix = obj.moduleProperty("cpp", "staticLibrarySuffix");
+        externalLibs.forEach(function(libName) {
+            if (!libName.endsWith(libSuffix) && !libName.startsWith('@'))
+                libName += libSuffix;
+            addFilePath(libName);
         });
     }
 
     function traverse(dep) {
         if (seen.hasOwnProperty(dep.name))
             return;
-        seen[dep.name] = true;
-
         if (dep.parameters.cpp && dep.parameters.cpp.link === false)
             return;
 
         var staticLibraryArtifacts = dep.artifacts["staticlibrary"];
+        var dynamicLibraryArtifacts = staticLibraryArtifacts
+                ? null : dep.artifacts["dynamiclibrary_import"];
         if (staticLibraryArtifacts) {
+            seen[dep.name] = true;
             dep.dependencies.forEach(traverse);
             addArtifactFilePaths(dep, staticLibraryArtifacts);
-            addExternalStaticLibs(dep);
+            addExternalLibs(dep);
+        } else if (dynamicLibraryArtifacts) {
+            seen[dep.name] = true;
+            addArtifactFilePaths(dep, dynamicLibraryArtifacts);
         }
     }
 
     product.dependencies.forEach(traverse);
-    addExternalStaticLibs(product);
+    addExternalLibs(product);
     return result;
+}
+
+function collectAbsoluteLibraryDependencyPaths(product) {
+    var paths = collectLibraryPaths(product);
+    var deps = collectLibraryDependencies(product);
+    return deps.map(function(dep) {
+        var filePath = dep.filePath;
+        if (FileInfo.isAbsolutePath(filePath))
+            return filePath;
+        for (var i = 0; i < paths.length; ++i) {
+            var fullPath = FileInfo.joinPaths(paths[i], filePath);
+            if (File.exists(fullPath))
+                return fullPath;
+        }
+        return filePath;
+    });
 }
 
 function collectDefines(input) {
@@ -258,6 +319,10 @@ function collectLinkerScriptPaths(inputs) {
 
 function collectLinkerObjectPaths(inputs) {
     return inputs.obj ? inputs.obj.map(function(obj) { return obj.filePath; }) : [];
+}
+
+function collectResourceObjectPaths(inputs) {
+    return inputs.res ? inputs.res.map(function(res) { return res.filePath; }) : [];
 }
 
 function collectLibraryDependenciesArguments(product) {
