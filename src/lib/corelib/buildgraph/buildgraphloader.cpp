@@ -58,6 +58,7 @@
 #include <logging/translator.h>
 #include <tools/buildgraphlocker.h>
 #include <tools/fileinfo.h>
+#include <tools/jsliterals.h>
 #include <tools/persistence.h>
 #include <tools/profile.h>
 #include <tools/profiling.h>
@@ -868,9 +869,23 @@ bool BuildGraphLoader::checkConfigCompatibility()
     if (!m_parameters.overrideBuildGraphData()) {
         if (!m_parameters.overriddenValues().empty()
                 && m_parameters.overriddenValues() != restoredProject->overriddenValues) {
+            const auto toUserOutput = [](const QVariantMap &propMap) {
+                QString o;
+                for (auto it = propMap.begin(); it != propMap.end(); ++it) {
+                    if (!o.isEmpty())
+                        o += QLatin1Char(' ');
+                    o.append(it.key()).append(QLatin1Char(':')).append(toJSLiteral(it.value()));
+                }
+                return o;
+            };
             throw ErrorInfo(Tr::tr("Property values set on the command line differ from the "
-                                   "ones used for the previous build. Use the 'resolve' command if "
-                                   "you really want to rebuild with the new properties."));
+                                   "ones used for the previous build.\n"
+                                   "Old property values: %1\n"
+                                   "New property values: %2\n"
+                                   "Use the 'resolve' command if "
+                                   "you really want to rebuild with the new properties.")
+                            .arg(toUserOutput(restoredProject->overriddenValues))
+                            .arg(toUserOutput(m_parameters.overriddenValues())));
             }
         m_parameters.setOverriddenValues(restoredProject->overriddenValues);
         if (m_parameters.topLevelProfile() != restoredProject->profile()) {
