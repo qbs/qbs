@@ -244,8 +244,8 @@ void TestBlackboxApple::appleMultiConfig()
         QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/Versions/A/Resources/Info.plist").isRegularFile());
         QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/Versions/Current").isDirSymLink());
 
-        for (const QString &variant : { "release", "debug", "profiling" }) {
-            for (const QString &arch : { "x86_64" }) {
+        for (const QString variant : { "release", "debug", "profiling" }) {
+            for (const QString arch : { "x86_64" }) {
                 QProcess process;
                 process.setProgram("/usr/bin/arch");
                 process.setArguments({
