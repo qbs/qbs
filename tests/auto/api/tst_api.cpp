@@ -2975,7 +2975,7 @@ void TestApi::trackAddQObjectHeader()
             = defaultSetupParameters("missing-qobject-header/missingheader.qbs");
     QFile qbsFile(params.projectFilePath());
     QVERIFY(qbsFile.open(QIODevice::WriteOnly | QIODevice::Truncate));
-    qbsFile.write("import qbs.base 1.0\nCppApplication {\n    Depends { name: 'Qt.core' }\n"
+    qbsFile.write("CppApplication {\n    Depends { name: 'Qt.core' }\n"
                   "    files: ['main.cpp', 'myobject.cpp']\n}");
     qbsFile.close();
     ProcessResultReceiver receiver;
@@ -2986,7 +2986,7 @@ void TestApi::trackAddQObjectHeader()
 
     WAIT_FOR_NEW_TIMESTAMP();
     QVERIFY(qbsFile.open(QIODevice::WriteOnly | QIODevice::Truncate));
-    qbsFile.write("import qbs.base 1.0\nCppApplication {\n    Depends { name: 'Qt.core' }\n"
+    qbsFile.write("CppApplication {\n    Depends { name: 'Qt.core' }\n"
                   "    files: ['main.cpp', 'myobject.cpp','myobject.h']\n}");
     qbsFile.close();
     errorInfo = doBuildProject("missing-qobject-header/missingheader.qbs");
@@ -3000,7 +3000,7 @@ void TestApi::trackRemoveQObjectHeader()
     removeBuildDir(params);
     QFile qbsFile(params.projectFilePath());
     QVERIFY(qbsFile.open(QIODevice::WriteOnly | QIODevice::Truncate));
-    qbsFile.write("import qbs.base 1.0\nCppApplication {\n    Depends { name: 'Qt.core' }\n"
+    qbsFile.write("CppApplication {\n    Depends { name: 'Qt.core' }\n"
                   "    files: ['main.cpp', 'myobject.cpp','myobject.h']\n}");
     qbsFile.close();
     qbs::ErrorInfo errorInfo = doBuildProject("missing-qobject-header/missingheader.qbs");
@@ -3008,7 +3008,7 @@ void TestApi::trackRemoveQObjectHeader()
 
     WAIT_FOR_NEW_TIMESTAMP();
     QVERIFY(qbsFile.open(QIODevice::WriteOnly | QIODevice::Truncate));
-    qbsFile.write("import qbs.base 1.0\nCppApplication {\n    Depends { name: 'Qt.core' }\n"
+    qbsFile.write("CppApplication {\n    Depends { name: 'Qt.core' }\n"
                   "    files: ['main.cpp', 'myobject.cpp']\n}");
     qbsFile.close();
     ProcessResultReceiver receiver;

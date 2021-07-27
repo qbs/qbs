@@ -1,5 +1,3 @@
-import qbs
-
 QtApplication {
     name: "qbs_fuzzy-test"
     type: "application"

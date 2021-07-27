@@ -1,5 +1,3 @@
-import qbs
-
 CppApplication {
     condition: qbs.toolchain.contains("gcc") && qbs.architecture === "xtensa"
 

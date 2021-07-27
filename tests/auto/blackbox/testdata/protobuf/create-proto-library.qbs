@@ -1,5 +1,3 @@
-import qbs
-
 Project {
     StaticLibrary {
         condition: {

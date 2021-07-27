@@ -1,4 +1,4 @@
-import qbs
+import qbs // FIXME: Don't remove this import because then the test fails!
 
 Module {
     Probe {

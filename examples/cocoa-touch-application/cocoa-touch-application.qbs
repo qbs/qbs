@@ -49,8 +49,6 @@
 **
 ****************************************************************************/
 
-import qbs 1.0
-
 CppApplication {
     Depends { name: "xcode"; required: false }
     Depends { condition: product.condition; name: "ib" }

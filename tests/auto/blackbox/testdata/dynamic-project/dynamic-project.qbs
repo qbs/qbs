@@ -23,7 +23,6 @@ Project
                 var productFilePath = FileInfo.joinPaths(tempDir, name + ".qbs");
                 var file = new TextFile(productFilePath, TextFile.WriteOnly);
                 try {
-                    file.writeLine("import qbs");
                     file.writeLine("CppApplication");
                     file.writeLine("{");
                     file.writeLine("\tfiles: [ \"" + productSrcDir + "/*.cpp\" ]");

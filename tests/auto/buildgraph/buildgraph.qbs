@@ -1,5 +1,3 @@
-import qbs
-
 QbsUnittest {
     Depends { name: "qbsconsolelogger" }
     testName: "buildgraph"

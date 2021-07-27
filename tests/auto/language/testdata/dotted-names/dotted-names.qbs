@@ -1,5 +1,3 @@
-import qbs
-
 Project {
     name: "theProject"
     property bool includeDottedProduct

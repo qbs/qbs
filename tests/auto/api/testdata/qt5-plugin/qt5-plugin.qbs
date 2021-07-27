@@ -1,4 +1,3 @@
-import qbs.base
 import qbs.File
 import qbs.FileInfo
 

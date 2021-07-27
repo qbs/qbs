@@ -1,5 +1,3 @@
-import qbs
-
 QbsApp {
     name: "qbs-setup-android"
     files: [

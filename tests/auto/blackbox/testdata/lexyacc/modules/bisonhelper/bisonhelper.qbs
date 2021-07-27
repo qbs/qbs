@@ -1,4 +1,3 @@
-import qbs
 import qbs.Process
 
 Module {

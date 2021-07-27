@@ -28,7 +28,6 @@
 **
 ****************************************************************************/
 
-import qbs
 import qbs.Probes
 import "capnproto.js" as HelperFunctions
 

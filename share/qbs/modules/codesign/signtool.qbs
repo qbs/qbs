@@ -28,7 +28,6 @@
 **
 ****************************************************************************/
 
-import qbs
 import qbs.File
 import qbs.ModUtils
 import qbs.Probes
