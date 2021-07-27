@@ -9,6 +9,7 @@ Project {
 
     CppApplication {
         name: "A"
+        version: "1.0.0"
         bundle.isBundle: project.isBundle
         files: "app.cpp"
         codesign.enableCodeSigning: project.enableSigning
@@ -23,6 +24,7 @@ Project {
     DynamicLibrary {
         Depends { name: "cpp" }
         name: "B"
+        version: "1.0.0"
         bundle.isBundle: project.isBundle
         files: "app.cpp"
         codesign.enableCodeSigning: project.enableSigning
@@ -36,6 +38,7 @@ Project {
     LoadableModule {
         Depends { name: "cpp" }
         name: "C"
+        version: "1.0.0"
         bundle.isBundle: project.isBundle
         files: "app.cpp"
         codesign.enableCodeSigning: project.enableSigning

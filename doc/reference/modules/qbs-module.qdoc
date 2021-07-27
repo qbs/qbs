@@ -526,6 +526,9 @@
         \li \c{"msvc"}
         \li \c{["msvc"]}
     \row
+        \li \c{"qcc"}
+        \li \c{["qcc"]}
+    \row
         \li \c{"sdcc"}
         \li \c{["sdcc"]}
     \row

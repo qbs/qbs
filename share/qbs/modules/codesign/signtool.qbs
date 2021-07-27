@@ -70,6 +70,13 @@ CodeSignModule {
         allowedValues: ["sha1", "sha256", "sha384", "sha512"]
     }
 
+    property string timestampAlgorithm
+    PropertyOptions {
+        name: "timestampAlgorithm"
+        description: "Name of the timestamp algorithm."
+        allowedValues: ["sha1", "sha256"]
+    }
+
     property path certificatePath
     PropertyOptions {
         name: "certificatePath"
