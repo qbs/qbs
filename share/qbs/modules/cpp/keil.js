@@ -476,7 +476,7 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
         args.push(input.filePath);
 
         // Output.
-        args.push("OBJECT (" + outputs.obj[0].filePath + ")");
+        args.push("OBJECT(" + FileInfo.toWindowsSeparators(outputs.obj[0].filePath) + ")");
 
         // Defines.
         var defines = Cpp.collectDefines(input);
@@ -487,7 +487,8 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
         var allIncludePaths = [].concat(Cpp.collectIncludePaths(input),
                                         Cpp.collectSystemIncludePaths(input));
         if (allIncludePaths.length > 0)
-            args = args.concat("INCDIR (" + allIncludePaths.join(";") + ")");
+            args = args.concat("INCDIR(" + allIncludePaths.map(function(path) {
+                return FileInfo.toWindowsSeparators(path); }).join(";") + ")");
 
         // Debug information flags.
         if (input.cpp.debugInformation)
@@ -522,7 +523,7 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
         if (!input.cpp.generateCompilerListingFiles)
             args.push("NOPRINT");
         else
-            args.push("PRINT(" + outputs.lst[0].filePath + ")");
+            args.push("PRINT(" + FileInfo.toWindowsSeparators(outputs.lst[0].filePath) + ")");
     } else if (isArmArchitecture(architecture)) {
         // Input.
         args.push("-c", input.filePath);
@@ -690,13 +691,14 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
         args.push(input.filePath);
 
         // Output.
-        args.push("OBJECT (" + outputs.obj[0].filePath + ")");
+        args.push("OBJECT(" + FileInfo.toWindowsSeparators(outputs.obj[0].filePath) + ")");
 
         // Includes.
         var allIncludePaths = [].concat(Cpp.collectIncludePaths(input),
                                         Cpp.collectSystemIncludePaths(input));
         if (allIncludePaths.length > 0)
-            args = args.concat("INCDIR (" + allIncludePaths.join(";") + ")");
+            args = args.concat("INCDIR(" + allIncludePaths.map(function(path) {
+                return FileInfo.toWindowsSeparators(path); }).join(";") + ")");
 
         // Debug information flags.
         if (input.cpp.debugInformation)
@@ -709,7 +711,7 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
         if (!input.cpp.generateAssemblerListingFiles)
             args.push("NOPRINT");
         else
-            args.push("PRINT(" + outputs.lst[0].filePath + ")");
+            args.push("PRINT(" + FileInfo.toWindowsSeparators(outputs.lst[0].filePath) + ")");
     } else if (isArmArchitecture(architecture)) {
         // Input.
         args.push(input.filePath);
@@ -790,16 +792,17 @@ function linkerFlags(project, product, inputs, outputs) {
         // Add all input objects as arguments (application and library object files).
         var allObjectPaths = collectAllObjectPathsArguments(product, inputs);
         if (allObjectPaths.length > 0)
-            args = args.concat(allObjectPaths.join(","));
+            args = args.concat(allObjectPaths.map(function(path) {
+                return FileInfo.toWindowsSeparators(path); }).join(","));
 
         // Output.
-        args.push("TO", outputs.application[0].filePath);
+        args.push("TO", FileInfo.toWindowsSeparators(outputs.application[0].filePath));
 
         // Map file generation flag.
         if (!product.cpp.generateLinkerMapFile)
             args.push("NOPRINT");
         else
-            args.push("PRINT(" + outputs.mem_map[0].filePath + ")");
+            args.push("PRINT(" + FileInfo.toWindowsSeparators(outputs.mem_map[0].filePath) + ")");
     } else if (isArmArchitecture(architecture)) {
         // Inputs.
         args = args.concat(Cpp.collectLinkerObjectPaths(inputs));
@@ -851,10 +854,11 @@ function archiverFlags(project, product, inputs, outputs) {
 
         // Inputs.
         if (objectPaths.length > 0)
-            args = args.concat(objectPaths.join(","));
+            args = args.concat(objectPaths.map(function(path) {
+                return FileInfo.toWindowsSeparators(path); }).join(","));
 
         // Output.
-        args.push("TO", outputs.staticlibrary[0].filePath);
+        args.push("TO", FileInfo.toWindowsSeparators(outputs.staticlibrary[0].filePath));
     } else if (isArmArchitecture(architecture)) {
         // Note: The ARM archiver command line expect the output file
         // first, and then a set of input objects.
