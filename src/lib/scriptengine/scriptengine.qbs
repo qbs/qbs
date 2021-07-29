@@ -15,7 +15,10 @@ Project {
         Depends { name: "QtScriptFwdHeaders" }
         Depends { name: "cpp" }
         Depends { name: "Qt"; submodules: ["core-private"] }
-        type: ["staticlibrary"]
+        Depends {
+            name: "Qt.core5compat";
+            condition: Utilities.versionCompare(Qt.core.version, "6.0.0") >= 0
+        }
         name: "qbsscriptengine"
 
         generatePkgConfigFile: false
@@ -119,9 +122,14 @@ Project {
         }
         cpp.warningLevel: "none"
         cpp.optimization: "fast" // We cannot afford -O0 for QtScript even in debug builds.
+        cpp.frameworks: base.concat(qbs.targetOS.contains("darwin") ? ["CoreFoundation"] : [])
         Properties {
             condition: qbs.targetOS.contains("unix")
             cpp.dynamicLibraries: base.concat(["pthread"])
+        }
+        Properties {
+            condition: qbs.targetOS.contains("windows")
+            cpp.dynamicLibraries: base.concat(["winmm"])
         }
 
         Group {

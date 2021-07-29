@@ -328,7 +328,14 @@ get_filename_component(_QT_BIN_DIRECTORY ${_QT_QMAKE_EXECUTABLE} DIRECTORY)
 
 file(GLOB API_HEADERS "${QT_SCRIPT_PATH}/script/api/*.h")
 
-message("${QT_SCRIPT_PATH}")
+set(EXTERNAL_DEPENDS "")
+if(APPLE)
+    set(EXTERNAL_DEPENDS "-framework CoreFoundation")
+endif()
+
+if(WIN32)
+    set(EXTERNAL_DEPENDS "winmm")
+endif()
 
 add_custom_command(
     OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/include/QtScript/qscriptengine.h"
@@ -342,9 +349,8 @@ add_custom_command(
     )
 
 add_qbs_library(qbsscriptengine
-    STATIC
     DEFINES ${QT_SCRIPT_DEFINES}
-    DEPENDS Qt${QT_VERSION_MAJOR}::CorePrivate Qt6Core5Compat
+    DEPENDS Qt${QT_VERSION_MAJOR}::CorePrivate Qt6Core5Compat ${EXTERNAL_DEPENDS}
     PUBLIC_DEPENDS ${QT_SCRIPT_PUBLIC_DEPENDS}
     INCLUDES ${QT_SCRIPT_PUBLIC_INCLUDES} ${QT_SCRIPT_INCLUDES} ${JAVASCRIPT_CORE_INCLUDES}
     PUBLIC_INCLUDES ${QT_SCRIPT_PUBLIC_INCLUDES}
