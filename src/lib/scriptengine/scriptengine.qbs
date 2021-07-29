@@ -3,6 +3,7 @@ import qbs.File
 import qbs.FileInfo
 import qbs.Probes
 import qbs.Process
+import qbs.Utilities
 
 Project {
     QbsLibrary {
@@ -418,7 +419,12 @@ Project {
                 fileTags: ["hpp"]
             }
             prepare: {
-                var syncQtPath = FileInfo.joinPaths(product.Qt.core.binPath, "syncqt.pl");
+                var syncQtPath;
+                if (Utilities.versionCompare(product.Qt.core.version, "6.1") >= 0) {
+                    syncQtPath = FileInfo.joinPaths(product.Qt.core.libExecPath, "syncqt.pl");
+                } else {
+                    syncQtPath = FileInfo.joinPaths(product.Qt.core.binPath, "syncqt.pl");
+                }
                 if (!File.exists(syncQtPath)) {
                     // syncqt.pl is not in Qt's bin path. We might have a developer build.
                     // As we don't provide QT_HOST_BINS/src in our Qt modules we must

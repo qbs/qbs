@@ -323,8 +323,8 @@ list_transform_prepend(PARSER_SOURCES "${QT_SCRIPT_PATH}/script/parser/")
 
 find_package(Perl)
 
-get_target_property(_QT_QMAKE_EXECUTABLE Qt${QT_VERSION_MAJOR}::qmake IMPORTED_LOCATION)
-get_filename_component(_QT_BIN_DIRECTORY ${_QT_QMAKE_EXECUTABLE} DIRECTORY)
+get_target_property(_QT_MOC_EXECUTABLE Qt${QT_VERSION_MAJOR}::moc IMPORTED_LOCATION)
+get_filename_component(_QT_LIBEXEC_DIRECTORY ${_QT_MOC_EXECUTABLE} DIRECTORY)
 
 file(GLOB API_HEADERS "${QT_SCRIPT_PATH}/script/api/*.h")
 
@@ -339,7 +339,7 @@ endif()
 
 add_custom_command(
     OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/include/QtScript/qscriptengine.h"
-    COMMAND ${PERL_EXECUTABLE} "${_QT_BIN_DIRECTORY}/syncqt.pl"
+    COMMAND ${PERL_EXECUTABLE} "${_QT_LIBEXEC_DIRECTORY}/syncqt.pl"
         -minimal
         -version "${QT_VERSION}"
         -outdir ${CMAKE_CURRENT_BINARY_DIR}

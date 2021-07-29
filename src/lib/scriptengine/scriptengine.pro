@@ -53,7 +53,11 @@ CONFIG(release, debug|release): DEFINES += NDEBUG
 DEFINES += JS_NO_EXPORT
 
 !build_pass {
-    qtPrepareTool(QMAKE_SYNCQT, syncqt, , system)
+    versionAtLeast(QT_VERSION, 6.1.0) {
+        qtPrepareLibExecTool(QMAKE_SYNCQT, syncqt, , system)
+    } else {
+        qtPrepareTool(QMAKE_SYNCQT, syncqt, , system)
+    }
     QMAKE_SYNCQT += \
         -minimal -version $$[QT_VERSION] \
         -outdir $$system_quote($$system_path($$OUT_PWD)) \
