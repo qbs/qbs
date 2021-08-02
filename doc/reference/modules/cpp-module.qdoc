@@ -1925,3 +1925,17 @@
     \windowsproperty
     \nodefaultvalue
 */
+
+/*!
+    \qmlproperty string cpp::enableCxxLanguageMacro
+    \since Qbs 1.20
+
+    Whether to set the \c{/Zc:__cplusplus} macro
+    (\l{https://docs.microsoft.com/en-us/cpp/build/reference/zc-cplusplus})
+
+    This property only applies to MSVC toolchain. clang-cl also supports
+    this option, but it has no effect.
+
+    \windowsproperty
+    \defaultvalue \c{true} for MSVC, \c{false} for clang-cl
+*/

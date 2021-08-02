@@ -65,4 +65,6 @@ MsvcBaseModule {
     toolchainInstallPath: compilerPathProbe.found ? compilerPathProbe.path
                                                   : undefined
     buildEnv: msvcProbe.buildEnv
+
+    enableCxxLanguageMacro: true
 }
