@@ -363,5 +363,4 @@ add_qbs_library(qbsscriptengine
         ${BRIDGE_SOURCES}
         ${PARSER_SOURCES}
     )
-set_property(TARGET qbsscriptengine PROPERTY CXX_STANDARD 14)
 target_compile_options(qbsscriptengine PRIVATE ${QT_SCRIPT_CXX_FLAGS})

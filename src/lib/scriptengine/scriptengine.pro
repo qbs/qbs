@@ -10,8 +10,6 @@ DEFINES   += JSC=QTJSC jscyyparse=qtjscyyparse jscyylex=qtjscyylex jscyyerror=qt
 DEFINES   += QT_NO_USING_NAMESPACE
 
 CONFIG += building-libs
-CONFIG -= c++17
-CONFIG += c++14
 
 GENERATED_SOURCES_DIR = generated
 

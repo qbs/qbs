@@ -28,7 +28,6 @@ Project {
         property bool useSystemMalloc: !qbs.targetOS.contains("macos")
                                        && !qbs.targetOS.contains("unix")
         property string qtscriptPath: "../../shared/qtscript/src/"
-        cpp.cxxLanguageVersion: "c++14"
         cpp.includePaths: {
             var result = base.concat(
                 ".",
