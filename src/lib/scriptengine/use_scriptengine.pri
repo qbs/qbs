@@ -12,6 +12,11 @@
         LIBS += -lqbsscriptengine$$qtPlatformTargetSuffix()
     }
 
+    isEmpty(QBS_RPATH): QBS_RPATH = ../$$QBS_LIBRARY_DIRNAME
+    !qbs_disable_rpath {
+        linux-*: QMAKE_LFLAGS += -Wl,-z,origin \'-Wl,-rpath,\$\$ORIGIN/$${QBS_RPATH}\'
+        macos: QMAKE_LFLAGS += -Wl,-rpath,@loader_path/$${QBS_RPATH}
+    }
 }
 
 INCLUDEPATH += \

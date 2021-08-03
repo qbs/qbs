@@ -3,6 +3,7 @@ import qbs.File
 import qbs.FileInfo
 import qbs.Probes
 import qbs.Process
+import qbs.Utilities
 
 Project {
     QbsLibrary {
@@ -15,7 +16,10 @@ Project {
         Depends { name: "QtScriptFwdHeaders" }
         Depends { name: "cpp" }
         Depends { name: "Qt"; submodules: ["core-private"] }
-        type: ["staticlibrary"]
+        Depends {
+            name: "Qt.core5compat";
+            condition: Utilities.versionCompare(Qt.core.version, "6.0.0") >= 0
+        }
         name: "qbsscriptengine"
 
         generatePkgConfigFile: false
@@ -24,7 +28,6 @@ Project {
         property bool useSystemMalloc: !qbs.targetOS.contains("macos")
                                        && !qbs.targetOS.contains("unix")
         property string qtscriptPath: "../../shared/qtscript/src/"
-        cpp.cxxLanguageVersion: "c++14"
         cpp.includePaths: {
             var result = base.concat(
                 ".",
@@ -119,9 +122,14 @@ Project {
         }
         cpp.warningLevel: "none"
         cpp.optimization: "fast" // We cannot afford -O0 for QtScript even in debug builds.
+        cpp.frameworks: base.concat(qbs.targetOS.contains("darwin") ? ["CoreFoundation"] : [])
         Properties {
             condition: qbs.targetOS.contains("unix")
             cpp.dynamicLibraries: base.concat(["pthread"])
+        }
+        Properties {
+            condition: qbs.targetOS.contains("windows")
+            cpp.dynamicLibraries: base.concat(["winmm"])
         }
 
         Group {
@@ -410,7 +418,12 @@ Project {
                 fileTags: ["hpp"]
             }
             prepare: {
-                var syncQtPath = FileInfo.joinPaths(product.Qt.core.binPath, "syncqt.pl");
+                var syncQtPath;
+                if (Utilities.versionCompare(product.Qt.core.version, "6.1") >= 0) {
+                    syncQtPath = FileInfo.joinPaths(product.Qt.core.libExecPath, "syncqt.pl");
+                } else {
+                    syncQtPath = FileInfo.joinPaths(product.Qt.core.binPath, "syncqt.pl");
+                }
                 if (!File.exists(syncQtPath)) {
                     // syncqt.pl is not in Qt's bin path. We might have a developer build.
                     // As we don't provide QT_HOST_BINS/src in our Qt modules we must

@@ -76,6 +76,7 @@ class ItemReader;
 class ModuleProviderLoader;
 class ProgressObserver;
 class QualifiedId;
+class SearchPathsManager;
 
 using ModulePropertiesPerGroup = std::unordered_map<const Item *, QualifiedIdSet>;
 
@@ -109,7 +110,7 @@ struct ModuleLoaderResult
     Item *root;
     std::unordered_map<Item *, ProductInfo> productInfos;
     std::vector<ProbeConstPtr> projectProbes;
-    ModuleProviderInfoList moduleProviderInfo;
+    StoredModuleProviderInfo storedModuleProviderInfo;
     Set<QString> qbsFiles;
     QVariantMap profileConfigs;
 };
@@ -132,7 +133,7 @@ public:
     void setOldProductProbes(const QHash<QString, std::vector<ProbeConstPtr>> &oldProbes);
     void setLastResolveTime(const FileTime &time) { m_lastResolveTime = time; }
     void setStoredProfiles(const QVariantMap &profiles);
-    void setStoredModuleProviderInfo(const ModuleProviderInfoList &moduleProviderInfo);
+    void setStoredModuleProviderInfo(const StoredModuleProviderInfo &moduleProviderInfo);
     Evaluator *evaluator() const { return m_evaluator; }
 
     ModuleLoaderResult load(const SetupProjectParameters &parameters);
@@ -187,7 +188,6 @@ private:
         std::unordered_map<const Item *, std::vector<ErrorInfo>> unknownProfilePropertyErrors;
         QStringList searchPaths;
 
-        Set<QualifiedId> knownModuleProviders;
         std::optional<QVariantMap> theModuleProviderConfig;
 
         // The key corresponds to DeferredDependsContext.exportingProductItem, which is the

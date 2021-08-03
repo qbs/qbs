@@ -39,13 +39,10 @@
 #include "project.h"
 #include "project_p.h"
 
-#ifdef QBS_ENABLE_PROJECT_FILE_UPDATES
-#include "projectfileupdater.h"
-#endif
-
 #include "internaljobs.h"
 #include "jobs.h"
 #include "projectdata_p.h"
+#include "projectfileupdater.h"
 #include "propertymap_p.h"
 #include "rulecommand_p.h"
 #include "runenvironment.h"
@@ -343,7 +340,6 @@ void ProjectPrivate::setupInstallData(ArtifactData &artifact,
     }
 }
 
-#ifdef QBS_ENABLE_PROJECT_FILE_UPDATES
 void ProjectPrivate::addGroup(const ProductData &product, const QString &groupName)
 {
     if (groupName.isEmpty())
@@ -520,7 +516,6 @@ void ProjectPrivate::removeGroup(const ProductData &product, const GroupData &gr
     remover.apply();
 
 }
-#endif // QBS_ENABLE_PROJECT_FILE_UPDATES
 
 void ProjectPrivate::prepareChangeToProject()
 {
@@ -1057,7 +1052,6 @@ Project::BuildGraphInfo Project::getBuildGraphInfo() const
     return info;
 }
 
-#ifdef QBS_ENABLE_PROJECT_FILE_UPDATES
 /*!
  * \brief Adds a new empty group to the given product.
  * Returns an \c ErrorInfo object for which \c hasError() is false in case of a success
@@ -1155,6 +1149,5 @@ ErrorInfo Project::removeGroup(const ProductData &product, const GroupData &grou
         return errorInfo;
     }
 }
-#endif // QBS_ENABLE_PROJECT_FILE_UPDATES
 
 } // namespace qbs

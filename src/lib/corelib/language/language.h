@@ -688,7 +688,7 @@ public:
     QString buildDirectory; // Not saved
     QProcessEnvironment environment;
     std::vector<ProbeConstPtr> probes;
-    ModuleProviderInfoList moduleProviderInfo;
+    StoredModuleProviderInfo moduleProviderInfo;
 
     QHash<QString, QString> canonicalFilePathResults; // Results of calls to "File.canonicalFilePath()."
     QHash<QString, bool> fileExistsResults; // Results of calls to "File.exists()".

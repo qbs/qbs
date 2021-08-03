@@ -643,8 +643,8 @@ bool BuildGraphLoader::hasBuildSystemFileChanged(const Set<QString> &buildSystem
         const auto generatedChecker = [&file, restoredProject](const ModuleProviderInfo &mpi) {
             return file.startsWith(mpi.outputDirPath(restoredProject->buildDirectory));
         };
-        const bool fileWasCreatedByModuleProvider = any_of(restoredProject->moduleProviderInfo,
-                                                           generatedChecker);
+        const bool fileWasCreatedByModuleProvider =
+                any_of(restoredProject->moduleProviderInfo.providers, generatedChecker);
         const FileTime referenceTime = fileWasCreatedByModuleProvider
                 ? restoredProject->lastEndResolveTime : restoredProject->lastStartResolveTime;
         if (referenceTime < fi.lastModified()) {

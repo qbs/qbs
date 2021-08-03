@@ -159,14 +159,12 @@ public:
     BuildGraphInfo getBuildGraphInfo() const;
 
 
-#ifdef QBS_ENABLE_PROJECT_FILE_UPDATES
     ErrorInfo addGroup(const ProductData &product, const QString &groupName);
     ErrorInfo addFiles(const ProductData &product, const GroupData &group,
                        const QStringList &filePaths);
     ErrorInfo removeFiles(const ProductData &product, const GroupData &group,
                           const QStringList &filePaths);
     ErrorInfo removeGroup(const ProductData &product, const GroupData &group);
-#endif // QBS_ENABLE_PROJECT_FILE_UPDATES
 
 private:
     Project(const Internal::TopLevelProjectPtr &internalProject, const Internal::Logger &logger);

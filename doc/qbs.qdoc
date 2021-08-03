@@ -513,8 +513,6 @@
     \header \li Option              \li Notes                       \li Default value
     \row    \li WITH_TESTS          \li Enable autotests.           \li \c ON
     \row    \li WITH_UNIT_TESTS     \li Enable additional autotests. \li \c OFF
-    \row    \li WITH_PROJECT_FILE_UPDATES \li Enable API for updating project files. This
-                                              implies a dependency to the QtGui module.
                                            \li \c OFF
     \row    \li INSTALL_PUBLIC_HEADERS     \li Whether to install public headers. \li \c ON
     \endtable
@@ -558,8 +556,6 @@
     \row    \li qbs_no_dev_install  \li Exclude header files from installation, that is, perform a
                                         non-developer build.
     \row    \li qbs_no_man_install  \li Exclude the man page from installation.
-    \row    \li qbs_enable_project_file_updates \li Enable API for updating project files. This
-                                        implies a dependency to the Qt GUI module.
     \row    \li qbs_use_bundled_qtscript        \li Use the bundled QtScript library.
     \endtable
 
@@ -631,11 +627,6 @@
         \li \c false
         \li Enable additional autotests. Enabling this option will export some symbols that would
             otherwise be private.
-    \row
-        \li enableProjectFileUpdates
-        \li \c false
-        \li Enable API for updating project files. This is required for an IDE and implies a
-            dependency to the Qt GUI module that would not be needed for the \QBS command-line tool.
     \row
         \li enableRPath
         \li \c true

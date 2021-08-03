@@ -123,6 +123,7 @@ LinuxGCC {
                                                               dynamicLibrarySuffix)));
         return libs;
     }
+    staticLibraries: staticStlFilePath
 
     defines: ["ANDROID", "__ANDROID__"]
 

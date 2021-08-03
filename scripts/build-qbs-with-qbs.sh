@@ -59,7 +59,6 @@ fi
 BUILD_OPTIONS="\
     profile:${QBS_BUILD_PROFILE} \
     modules.qbsbuildconfig.enableAddressSanitizer:true \
-    modules.qbsbuildconfig.enableProjectFileUpdates:true \
     modules.qbsbuildconfig.enableUnitTests:true \
     modules.cpp.treatWarningsAsErrors:true \
     modules.cpp.separateDebugInformation:true \

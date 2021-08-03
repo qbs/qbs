@@ -579,9 +579,9 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
 
     var wrapperArgs = product.cpp.linkerWrapper;
     if (wrapperArgs && wrapperArgs.length > 0) {
-        linkerArgs.unshift(linkerPath);
+        args.unshift(linkerPath);
         linkerPath = wrapperArgs.shift();
-        linkerArgs = wrapperArgs.concat(linkerArgs);
+        args = wrapperArgs.concat(args);
     }
     var commands = [];
     var warningCmd = new JavaScriptCommand();

@@ -21,7 +21,6 @@ jobs:
             options: 'qbs.installPrefix:""
                       modules.cpp.compilerWrapper:ccache
                       modules.qbsbuildconfig.enableAddressSanitizer:false
-                      modules.qbsbuildconfig.enableProjectFileUpdates:false
                       modules.qbsbuildconfig.enableUnitTests:false
                       modules.qbsbuildconfig.enableBundledQt:true',
             script: './scripts/build-qbs-with-qbs.sh',
@@ -71,7 +70,6 @@ jobs:
         qbs.installPrefix:""
         modules.cpp.compilerWrapper:ccache
         modules.qbsbuildconfig.enableUnitTests:false
-        modules.qbsbuildconfig.enableProjectFileUpdates:false
         modules.qbsbuildconfig.enableAddressSanitizer:false
         modules.qbsbuildconfig.enableBundledQt:true
       WITH_TESTS: 0
@@ -156,7 +154,6 @@ jobs:
         qbs.buildVariant:release
         modules.cpp.compilerWrapper:clcache
         modules.qbsbuildconfig.enableBundledQt:true
-        modules.qbsbuildconfig.enableProjectFileUpdates:false
         modules.qbsbuildconfig.enableUnitTests:false
         modules.cpp.treatWarningsAsErrors:true
         project.withDocumentation:true

@@ -323,16 +323,23 @@ list_transform_prepend(PARSER_SOURCES "${QT_SCRIPT_PATH}/script/parser/")
 
 find_package(Perl)
 
-get_target_property(_QT_QMAKE_EXECUTABLE Qt${QT_VERSION_MAJOR}::qmake IMPORTED_LOCATION)
-get_filename_component(_QT_BIN_DIRECTORY ${_QT_QMAKE_EXECUTABLE} DIRECTORY)
+get_target_property(_QT_MOC_EXECUTABLE Qt${QT_VERSION_MAJOR}::moc IMPORTED_LOCATION)
+get_filename_component(_QT_LIBEXEC_DIRECTORY ${_QT_MOC_EXECUTABLE} DIRECTORY)
 
 file(GLOB API_HEADERS "${QT_SCRIPT_PATH}/script/api/*.h")
 
-message("${QT_SCRIPT_PATH}")
+set(EXTERNAL_DEPENDS "")
+if(APPLE)
+    set(EXTERNAL_DEPENDS "-framework CoreFoundation")
+endif()
+
+if(WIN32)
+    set(EXTERNAL_DEPENDS "winmm")
+endif()
 
 add_custom_command(
     OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/include/QtScript/qscriptengine.h"
-    COMMAND ${PERL_EXECUTABLE} "${_QT_BIN_DIRECTORY}/syncqt.pl"
+    COMMAND ${PERL_EXECUTABLE} "${_QT_LIBEXEC_DIRECTORY}/syncqt.pl"
         -minimal
         -version "${QT_VERSION}"
         -outdir ${CMAKE_CURRENT_BINARY_DIR}
@@ -342,9 +349,8 @@ add_custom_command(
     )
 
 add_qbs_library(qbsscriptengine
-    STATIC
     DEFINES ${QT_SCRIPT_DEFINES}
-    DEPENDS Qt${QT_VERSION_MAJOR}::CorePrivate Qt6Core5Compat
+    DEPENDS Qt${QT_VERSION_MAJOR}::CorePrivate Qt6Core5Compat ${EXTERNAL_DEPENDS}
     PUBLIC_DEPENDS ${QT_SCRIPT_PUBLIC_DEPENDS}
     INCLUDES ${QT_SCRIPT_PUBLIC_INCLUDES} ${QT_SCRIPT_INCLUDES} ${JAVASCRIPT_CORE_INCLUDES}
     PUBLIC_INCLUDES ${QT_SCRIPT_PUBLIC_INCLUDES}
@@ -357,5 +363,4 @@ add_qbs_library(qbsscriptengine
         ${BRIDGE_SOURCES}
         ${PARSER_SOURCES}
     )
-set_property(TARGET qbsscriptengine PROPERTY CXX_STANDARD 14)
 target_compile_options(qbsscriptengine PRIVATE ${QT_SCRIPT_CXX_FLAGS})

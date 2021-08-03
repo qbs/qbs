@@ -238,6 +238,10 @@ public:
     }
     ~SearchPathsManager()
     {
+        reset();
+    }
+    void reset()
+    {
         while (m_itemReader->extraSearchPathsStack().size() > m_oldSize)
             m_itemReader->popExtraSearchPaths();
     }
@@ -287,9 +291,9 @@ void ModuleLoader::setStoredProfiles(const QVariantMap &profiles)
     m_storedProfiles = profiles;
 }
 
-void ModuleLoader::setStoredModuleProviderInfo(const ModuleProviderInfoList &moduleProviderInfo)
+void ModuleLoader::setStoredModuleProviderInfo(const StoredModuleProviderInfo &moduleProviderInfo)
 {
-    m_moduleProviderLoader->setModuleProviderInfo(moduleProviderInfo);
+    m_moduleProviderLoader->setStoredModuleProviderInfo(moduleProviderInfo);
 }
 
 ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
@@ -643,7 +647,7 @@ void ModuleLoader::handleTopLevelProject(ModuleLoaderResult *loadResult, Item *p
     }
 
     loadResult->projectProbes = tlp.probes;
-    loadResult->moduleProviderInfo = m_moduleProviderLoader->moduleProviderInfo();
+    loadResult->storedModuleProviderInfo = m_moduleProviderLoader->storedModuleProviderInfo();
 
     m_reader->clearExtraSearchPathsStack();
     AccumulatingTimer timer(m_parameters.logElapsedTime()
@@ -2238,8 +2242,6 @@ void ModuleLoader::setSearchPathsForProduct(ModuleLoader::ProductContext *produc
         if (!currentSearchPaths.contains(p) && FileInfo(p).exists())
             product->searchPaths << p;
     }
-
-    m_moduleProviderLoader->setupKnownModuleProviders(*product);
 }
 
 ModuleLoader::ShadowProductInfo ModuleLoader::getShadowProductInfo(
@@ -3034,6 +3036,7 @@ Item *ModuleLoader::loadModule(ProductContext *productContext, Item *exportingPr
         }
     }
 
+    SearchPathsManager searchPathsManager(m_reader.get()); // paths can be added by providers
     Item *modulePrototype = nullptr;
     ProductModuleInfo * const pmi = productModule(productContext, fullName,
                                                   multiplexId, *isProductDependency);
@@ -3049,6 +3052,8 @@ Item *ModuleLoader::loadModule(ProductContext *productContext, Item *exportingPr
     delayedPropertyChanger.applyNow();
     if (!modulePrototype)
         return nullptr;
+
+    searchPathsManager.reset(); // deps must be processed in a clean state
 
     instantiateModule(productContext, exportingProductItem, item, moduleInstance, modulePrototype,
                       moduleName, pmi);
@@ -3937,9 +3942,11 @@ void ModuleLoader::addTransitiveDependencies(ProductContext *ctx)
         if (module.isProduct) {
             ctx->item->addModule(module);
         } else {
+            const FallbackMode fallbackMode = m_parameters.fallbackProviderEnabled()
+                    ? FallbackMode::Enabled : FallbackMode::Disabled;
             Item::Module dep;
             dep.item = loadModule(ctx, nullptr, ctx->item, ctx->item->location(), QString(),
-                                  module.name, QString(), FallbackMode::Disabled,
+                                  module.name, QString(), fallbackMode,
                                   module.required, &dep.isProduct, &dep.parameters);
             if (!dep.item) {
                 throw ErrorInfo(Tr::tr("Module '%1' not found when setting up transitive "

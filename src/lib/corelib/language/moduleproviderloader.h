@@ -67,10 +67,14 @@ public:
         bool providerAddedSearchPaths = false;
     };
 
-    const ModuleProviderInfoList &moduleProviderInfo() const { return m_moduleProviderInfo; }
-    void setModuleProviderInfo(ModuleProviderInfoList moduleProviderInfo)
+    const StoredModuleProviderInfo &storedModuleProviderInfo() const
     {
-        m_moduleProviderInfo = std::move(moduleProviderInfo);
+        return m_storedModuleProviderInfo;
+    }
+
+    void setStoredModuleProviderInfo(StoredModuleProviderInfo moduleProviderInfo)
+    {
+        m_storedModuleProviderInfo = std::move(moduleProviderInfo);
     }
 
     void setProjectParameters(SetupProjectParameters parameters)
@@ -78,7 +82,6 @@ public:
         m_parameters = std::move(parameters);
     }
 
-    void setupKnownModuleProviders(ProductContext &product);
     ModuleProviderResult executeModuleProvider(
             ProductContext &productContext,
             const CodeLocation &dependsItemLocation,
@@ -107,7 +110,7 @@ private:
     Evaluator *const m_evaluator{nullptr};
 
     SetupProjectParameters m_parameters;
-    ModuleProviderInfoList m_moduleProviderInfo;
+    StoredModuleProviderInfo m_storedModuleProviderInfo;
     Set<QString> m_tempQbsFiles;
 };
 

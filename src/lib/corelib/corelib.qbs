@@ -24,8 +24,6 @@ QbsLibrary {
         ".",
         "../.." // for the plugin headers
     ])
-    property stringList projectFileUpdateDefines:
-        qbsbuildconfig.enableProjectFileUpdates ? ["QBS_ENABLE_PROJECT_FILE_UPDATES"] : []
     property stringList enableUnitTestsDefines:
         qbsbuildconfig.enableUnitTests ? ["QBS_ENABLE_UNIT_TESTS"] : []
     property stringList systemSettingsDirDefines: qbsbuildconfig.systemSettingsDir
@@ -33,8 +31,7 @@ QbsLibrary {
     cpp.defines: base.concat([
         "QBS_RELATIVE_LIBEXEC_PATH=" + Utilities.cStringQuote(qbsbuildconfig.relativeLibexecPath),
         "QBS_VERSION=" + Utilities.cStringQuote(version),
-    ]).concat(projectFileUpdateDefines).concat(enableUnitTestsDefines)
-    .concat(systemSettingsDirDefines)
+    ]).concat(enableUnitTestsDefines).concat(systemSettingsDirDefines)
 
     Properties {
         condition: qbs.targetOS.contains("windows")
@@ -55,7 +52,6 @@ QbsLibrary {
     }
     Group {
         name: "project file updating"
-        condition: qbsbuildconfig.enableProjectFileUpdates
         prefix: "api/"
         files: [
             "changeset.cpp",
@@ -529,9 +525,5 @@ QbsLibrary {
         ]
         qbs.install: qbsbuildconfig.installApiHeaders
         qbs.installDir: headerInstallPrefix
-    }
-    Export {
-        Depends { name: "cpp" }
-        cpp.defines: base.concat(exportingProduct.projectFileUpdateDefines)
     }
 }

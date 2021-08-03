@@ -65,7 +65,7 @@ public:
     void setOldProductProbes(const QHash<QString, std::vector<ProbeConstPtr>> &oldProbes);
     void setLastResolveTime(const FileTime &time) { m_lastResolveTime = time; }
     void setStoredProfiles(const QVariantMap &profiles);
-    void setStoredModuleProviderInfo(const ModuleProviderInfoList &providerInfo);
+    void setStoredModuleProviderInfo(const StoredModuleProviderInfo &providerInfo);
     TopLevelProjectPtr loadProject(const SetupProjectParameters &parameters);
 
     static void setupProjectFilePath(SetupProjectParameters &parameters);
@@ -77,7 +77,7 @@ private:
     QStringList m_searchPaths;
     std::vector<ProbeConstPtr> m_oldProjectProbes;
     QHash<QString, std::vector<ProbeConstPtr>> m_oldProductProbes;
-    ModuleProviderInfoList m_storedModuleProviderInfo;
+    StoredModuleProviderInfo m_storedModuleProviderInfo;
     QVariantMap m_storedProfiles;
     FileTime m_lastResolveTime;
 };

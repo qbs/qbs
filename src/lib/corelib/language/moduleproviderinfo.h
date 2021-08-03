@@ -76,16 +76,32 @@ public:
 
     template<PersistentPool::OpType opType> void completeSerializationOp(PersistentPool &pool)
     {
-        pool.serializationOp<opType>(reinterpret_cast<QStringList &>(name), config, searchPaths);
+        pool.serializationOp<opType>(
+                reinterpret_cast<QStringList &>(name), config, providerFile, searchPaths);
     }
 
     QualifiedId name;
     QVariantMap config;
+    QString providerFile;
     QStringList searchPaths;
     bool transientOutput = false; // Not to be serialized.
 };
 
 using ModuleProviderInfoList = std::vector<ModuleProviderInfo>;
+
+// Persistent info stored between sessions
+struct StoredModuleProviderInfo
+{
+    using CacheKey = std::tuple<QString /*name*/, QVariantMap /*config*/, int /*lookup*/>;
+    using ModuleProvidersCache = QHash<CacheKey, ModuleProviderInfo>;
+
+    ModuleProvidersCache providers;
+
+    template<PersistentPool::OpType opType> void completeSerializationOp(PersistentPool &pool)
+    {
+        pool.serializationOp<opType>(providers);
+    }
+};
 
 } // namespace Internal
 } // namespace qbs
