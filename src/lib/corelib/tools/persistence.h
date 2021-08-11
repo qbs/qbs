@@ -82,16 +82,14 @@ public:
         QVariantMap projectConfig;
     };
 
-    template<typename T, typename ...Types> void store(const T &value, const Types &...args)
+    template<typename ...Types> void store(const Types &...args)
     {
-        PPHelper<T>::store(value, this);
-        store(args...);
+        (... , PPHelper<Types>::store(args, this));
     }
 
-    template<typename T, typename ...Types> void load(T &value, Types &...args)
+    template<typename ...Types> void load(Types &...args)
     {
-        PPHelper<T>::load(value, this);
-        load(args...);
+        (... , PPHelper<Types>::load(args, this));
     }
     template<typename T> T load() {
         T tmp;
@@ -100,30 +98,28 @@ public:
     }
 
     enum OpType { Store, Load };
-    template<OpType type, typename T, typename ...Types> struct OpTypeHelper { };
-    template<typename T, typename ...Types> struct OpTypeHelper<Store, T, Types...>
+    template<OpType type, typename ...Types> struct OpTypeHelper { };
+    template<typename ...Types> struct OpTypeHelper<Store, Types...>
     {
-        static void serializationOp(PersistentPool *pool, const T &value, const Types &...args)
+        static void serializationOp(PersistentPool *pool, const Types &...args)
         {
-            pool->store(value, args...);
+            pool->store(args...);
         }
     };
-    template<typename T, typename ...Types> struct OpTypeHelper<Load, T, Types...>
+    template<typename ...Types> struct OpTypeHelper<Load, Types...>
     {
-        static void serializationOp(PersistentPool *pool, T &value, Types &...args)
+        static void serializationOp(PersistentPool *pool, Types &...args)
         {
-            pool->load(value, args...);
+            pool->load(args...);
         }
     };
-    template<OpType type, typename T, typename ...Types> void serializationOp(const T &value,
-                                                                              const Types &...args)
+    template<OpType type, typename ...Types> void serializationOp(const Types &...args)
     {
-        OpTypeHelper<type, T, Types...>::serializationOp(this, value, args...);
+        OpTypeHelper<type, Types...>::serializationOp(this, args...);
     }
-    template<OpType type, typename T, typename ...Types> void serializationOp(T &value,
-                                                                              Types &...args)
+    template<OpType type, typename ...Types> void serializationOp(Types &...args)
     {
-        OpTypeHelper<type, T, Types...>::serializationOp(this, value, args...);
+        OpTypeHelper<type, Types...>::serializationOp(this, args...);
     }
 
     void load(const QString &filePath);
@@ -159,10 +155,6 @@ private:
     template<typename T> std::vector<T> &idStorage();
     template<typename T> QHash<T, PersistentObjectId> &idMap();
     template<typename T> PersistentObjectId &lastStoredId();
-
-    // Recursion termination
-    void store() {}
-    void load() {}
 
     static const PersistentObjectId ValueNotFoundId = -1;
     static const PersistentObjectId EmptyValueId = -2;
