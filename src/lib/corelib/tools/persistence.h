@@ -98,28 +98,17 @@ public:
     }
 
     enum OpType { Store, Load };
-    template<OpType type, typename ...Types> struct OpTypeHelper { };
-    template<typename ...Types> struct OpTypeHelper<Store, Types...>
-    {
-        static void serializationOp(PersistentPool *pool, const Types &...args)
-        {
-            pool->store(args...);
-        }
-    };
-    template<typename ...Types> struct OpTypeHelper<Load, Types...>
-    {
-        static void serializationOp(PersistentPool *pool, Types &...args)
-        {
-            pool->load(args...);
-        }
-    };
     template<OpType type, typename ...Types> void serializationOp(const Types &...args)
     {
-        OpTypeHelper<type, Types...>::serializationOp(this, args...);
+        static_assert(type == Store);
+        store(args...);
     }
     template<OpType type, typename ...Types> void serializationOp(Types &...args)
     {
-        OpTypeHelper<type, Types...>::serializationOp(this, args...);
+        if constexpr(type == Store)
+            store(args...);
+        else
+            load(args...);
     }
 
     void load(const QString &filePath);
