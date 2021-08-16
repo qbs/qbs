@@ -39,7 +39,7 @@ find_package(Qt${QT_VERSION_MAJOR}
     REQUIRED
     )
 
-find_package(Qt${QT_VERSION_MAJOR} OPTIONAL_COMPONENTS Script)
+find_package(Qt${QT_VERSION_MAJOR} OPTIONAL_COMPONENTS Script QUIET)
 
 if (Qt6_FOUND)
     find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core5Compat REQUIRED)
