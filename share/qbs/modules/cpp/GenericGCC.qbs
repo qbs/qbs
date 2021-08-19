@@ -416,14 +416,14 @@ CppModule {
         }
         outputArtifacts: {
             var artifacts = [{
-                filePath: product.destinationDirectory + "/"
-                          + PathTools.dynamicLibraryFilePath(product),
+                filePath: FileInfo.joinPaths(product.destinationDirectory,
+                                             PathTools.dynamicLibraryFilePath(product)),
                 fileTags: ["bundle.input", "dynamiclibrary"]
                         .concat(product.cpp.shouldSignArtifacts
                                 ? ["codesign.signed_artifact"] : []),
                 bundle: {
-                    _bundleFilePath: product.destinationDirectory + "/"
-                                     + PathTools.bundleExecutableFilePath(product)
+                    _bundleFilePath: FileInfo.joinPaths(product.destinationDirectory,
+                                                        PathTools.bundleExecutableFilePath(product))
                 }
             }];
             if (product.cpp.imageFormat === "pe") {
@@ -447,9 +447,9 @@ CppModule {
                 var maxVersionParts = product.cpp.internalVersion ? 3 : 1;
                 for (var i = 0; i < maxVersionParts; ++i) {
                     var symlink = {
-                        filePath: product.destinationDirectory + "/"
-                                  + PathTools.dynamicLibraryFilePath(product, undefined, undefined,
-                                                                     i),
+                        filePath: FileInfo.joinPaths(product.destinationDirectory,
+                                                     PathTools.dynamicLibraryFilePath(
+                                                         product, undefined, undefined, i)),
                         fileTags: ["dynamiclibrary_symlink"]
                     };
                     if (i > 0 && artifacts[i-1].filePath == symlink.filePath)

@@ -107,14 +107,14 @@ function assemblerOutputArtifacts(input) {
     var artifacts = [];
     artifacts.push({
         fileTags: ["obj"],
-        filePath: Utilities.getHash(input.baseDir) + "/"
-              + input.fileName + input.cpp.objectSuffix
+        filePath: FileInfo.joinPaths(Utilities.getHash(input.baseDir),
+                                     input.fileName + input.cpp.objectSuffix)
     });
     if (input.cpp.generateAssemblerListingFiles) {
         artifacts.push({
             fileTags: ["lst"],
-            filePath: Utilities.getHash(input.baseDir) + "/"
-              + input.fileName + input.cpp.assemblerListingSuffix
+            filePath: FileInfo.joinPaths(Utilities.getHash(input.baseDir),
+                                         input.fileName + input.cpp.assemblerListingSuffix)
         });
     }
     return artifacts;
@@ -124,14 +124,14 @@ function compilerOutputArtifacts(input) {
     var artifacts = [];
     artifacts.push({
         fileTags: ["obj"],
-        filePath: Utilities.getHash(input.baseDir) + "/"
-              + input.fileName + input.cpp.objectSuffix
+        filePath: FileInfo.joinPaths(Utilities.getHash(input.baseDir),
+                                     input.fileName + input.cpp.objectSuffix)
     });
     if (input.cpp.generateCompilerListingFiles) {
         artifacts.push({
             fileTags: ["lst"],
-            filePath: Utilities.getHash(input.baseDir) + "/"
-              + input.fileName + input.cpp.compilerListingSuffix
+            filePath: FileInfo.joinPaths(Utilities.getHash(input.baseDir),
+                                         input.fileName + input.cpp.compilerListingSuffix)
         });
     }
     return artifacts;
@@ -140,16 +140,14 @@ function compilerOutputArtifacts(input) {
 function applicationLinkerOutputArtifacts(product) {
     var artifacts = [{
         fileTags: ["application"],
-        filePath: FileInfo.joinPaths(
-            product.destinationDirectory,
-            PathTools.applicationFilePath(product))
+        filePath: FileInfo.joinPaths(product.destinationDirectory,
+                                     PathTools.applicationFilePath(product))
     }];
     if (product.cpp.generateLinkerMapFile) {
         artifacts.push({
             fileTags: ["mem_map"],
-            filePath: FileInfo.joinPaths(
-                product.destinationDirectory,
-                product.targetName + product.cpp.linkerMapSuffix)
+            filePath: FileInfo.joinPaths(product.destinationDirectory,
+                                         product.targetName + product.cpp.linkerMapSuffix)
         });
     }
     return artifacts;

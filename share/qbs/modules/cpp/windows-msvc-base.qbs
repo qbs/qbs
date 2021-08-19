@@ -176,13 +176,14 @@ CppModule {
             var artifacts = [];
             artifacts.push({
                 fileTags: tags,
-                filePath: Utilities.getHash(input.baseDir) + "/" + input.fileName + input.cpp.objectSuffix
+                filePath: FileInfo.joinPaths(Utilities.getHash(input.baseDir),
+                                             input.fileName + input.cpp.objectSuffix)
             });
             if (input.cpp.generateCompilerListingFiles) {
                 artifacts.push({
                     fileTags: ["lst"],
-                    filePath: Utilities.getHash(input.baseDir)
-                              + "/" + input.fileName + input.cpp.compilerListingSuffix
+                    filePath: FileInfo.joinPaths(Utilities.getHash(input.baseDir),
+                                                 input.fileName + input.cpp.compilerListingSuffix)
                 });
             }
             return artifacts;
@@ -266,11 +267,13 @@ CppModule {
                 {
                     fileTags: ["dynamiclibrary"].concat(
                         product.cpp.shouldSignArtifacts ? ["codesign.signed_artifact"] : []),
-                    filePath: product.destinationDirectory + "/" + PathTools.dynamicLibraryFilePath(product)
+                    filePath: FileInfo.joinPaths(product.destinationDirectory,
+                                                 PathTools.dynamicLibraryFilePath(product))
                 },
                 {
                     fileTags: ["dynamiclibrary_import"],
-                    filePath: product.destinationDirectory + "/" + PathTools.importLibraryFilePath(product),
+                    filePath: FileInfo.joinPaths(product.destinationDirectory,
+                                                 PathTools.importLibraryFilePath(product)),
                     alwaysUpdated: false
                 }
             ];
@@ -341,7 +344,8 @@ CppModule {
         auxiliaryInputs: ["hpp"]
 
         Artifact {
-            filePath: Utilities.getHash(input.baseDir) + "/" + input.completeBaseName + ".res"
+            filePath: FileInfo.joinPaths(Utilities.getHash(input.baseDir),
+                                         input.completeBaseName + ".res")
             fileTags: ["obj"]
         }
 
@@ -361,7 +365,8 @@ CppModule {
     Rule {
         inputs: ["asm"]
         Artifact {
-            filePath: Utilities.getHash(input.baseDir) + "/" + input.completeBaseName + input.cpp.objectSuffix
+            filePath: FileInfo.joinPaths(Utilities.getHash(input.baseDir),
+                                         input.completeBaseName + input.cpp.objectSuffix)
             fileTags: ["obj"]
         }
         prepare: {
