@@ -214,15 +214,18 @@ function collectLibraryDependencies(product) {
         function sanitizedModuleListProperty(obj, moduleName, propertyName) {
             return ensureArray(ModUtils.sanitizedModuleProperty(obj, moduleName, propertyName));
         }
-        var externalLibs = [].concat(
-                    sanitizedModuleListProperty(obj, "cpp", "staticLibraries"),
-                    sanitizedModuleListProperty(obj, "cpp", "dynamicLibraries"));
-        var libSuffix = obj.moduleProperty("cpp", "staticLibrarySuffix");
-        externalLibs.forEach(function(libName) {
-            if (!libName.endsWith(libSuffix) && !libName.startsWith('@'))
-                libName += libSuffix;
-            addFilePath(libName);
-        });
+        function handleExternalLibraries(tag, suffix) {
+            var externalLibs = sanitizedModuleListProperty(obj, "cpp", tag) || [];
+            externalLibs.forEach(function(libName) {
+                if (!libName.endsWith(suffix) && !libName.startsWith('@'))
+                    libName += suffix;
+                addFilePath(libName, false);
+            });
+        }
+        handleExternalLibraries("staticLibraries",
+                                obj.moduleProperty("cpp", "staticLibrarySuffix"));
+        handleExternalLibraries("dynamicLibraries",
+                                obj.moduleProperty("cpp", "dynamicLibraryImportSuffix"));
     }
 
     function traverse(dep) {

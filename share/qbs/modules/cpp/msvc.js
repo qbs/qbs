@@ -319,72 +319,6 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
     return [cmd];
 }
 
-function collectLibraryDependencies(product) {
-    var seen = {};
-    var result = [];
-
-    function addFilePath(filePath, wholeArchive, productName) {
-        result.push({ filePath: filePath, wholeArchive: wholeArchive, productName: productName });
-    }
-
-    function addArtifactFilePaths(dep, artifacts) {
-        if (!artifacts)
-            return;
-        var artifactFilePaths = artifacts.map(function(a) { return a.filePath; });
-        var wholeArchive = dep.parameters.cpp && dep.parameters.cpp.linkWholeArchive;
-        var artifactsAreImportLibs = artifacts.length > 0
-                && artifacts[0].fileTags.contains("dynamiclibrary_import");
-        for (var i = 0; i < artifactFilePaths.length; ++i) {
-            addFilePath(artifactFilePaths[i], wholeArchive,
-                        artifactsAreImportLibs ? dep.name : undefined);
-        }
-    }
-
-    function addExternalLibs(obj) {
-        if (!obj.cpp)
-            return;
-        function ensureArray(a) {
-            return (a instanceof Array) ? a : [];
-        }
-        function sanitizedModuleListProperty(obj, moduleName, propertyName) {
-            return ensureArray(ModUtils.sanitizedModuleProperty(obj, moduleName, propertyName));
-        }
-        var externalLibs = [].concat(
-                    sanitizedModuleListProperty(obj, "cpp", "staticLibraries"),
-                    sanitizedModuleListProperty(obj, "cpp", "dynamicLibraries"));
-        externalLibs.forEach(function (libName) {
-            if (!libName.match(/\.lib$/i) && !libName.startsWith('@'))
-                libName += ".lib";
-            addFilePath(libName, false);
-        });
-    }
-
-    function traverse(dep) {
-        if (seen.hasOwnProperty(dep.name))
-            return;
-
-        if (dep.parameters.cpp && dep.parameters.cpp.link === false)
-            return;
-
-        var staticLibraryArtifacts = dep.artifacts["staticlibrary"];
-        var dynamicLibraryArtifacts = staticLibraryArtifacts
-                ? null : dep.artifacts["dynamiclibrary_import"];
-        if (staticLibraryArtifacts) {
-            seen[dep.name] = true;
-            dep.dependencies.forEach(traverse);
-            addArtifactFilePaths(dep, staticLibraryArtifacts);
-            addExternalLibs(dep);
-        } else if (dynamicLibraryArtifacts) {
-            seen[dep.name] = true;
-            addArtifactFilePaths(dep, dynamicLibraryArtifacts);
-        }
-    }
-
-    product.dependencies.forEach(traverse);
-    addExternalLibs(product);
-    return result;
-}
-
 function linkerSupportsWholeArchive(product)
 {
     return Utilities.versionCompare(product.cpp.compilerVersion, "19.0.24215.1") >= 0
@@ -524,7 +458,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
 
     var wholeArchiveSupported = linkerSupportsWholeArchive(product);
     var wholeArchiveRequested = false;
-    var libDeps = collectLibraryDependencies(product);
+    var libDeps = Cpp.collectLibraryDependencies(product);
     var prevLib;
     for (i = 0; i < libDeps.length; ++i) {
         var dep = libDeps[i];
