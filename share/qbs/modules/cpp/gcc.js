@@ -710,9 +710,17 @@ function standardFallbackValueOrDefault(toolchain, compilerVersion, languageVers
         "c++20": {
             "fallback": "c++2a",
             "toolchains": [
-                {"name": "xcode"}, // not yet implemented
-                {"name": "clang"}, // not yet implemented
-                {"name": "gcc"} // not yet implemented
+                {"name": "xcode"}, // ??
+                {"name": "clang", "version": "11.0"},
+                {"name": "gcc", "version": "10.1"}
+            ]
+        },
+        "c++23": {
+            "fallback": "c++2b",
+            "toolchains": [
+                {"name": "xcode"},
+                {"name": "clang"},
+                {"name": "gcc"}
             ]
         }
     };
@@ -876,7 +884,7 @@ function compilerFlags(project, product, input, output, explicitlyDependsOn) {
             return Cpp.languageVersion(input.cpp.cLanguageVersion, knownValues, "C");
         case "cpp":
         case "objcpp":
-            knownValues = ["c++20", "c++2a", "c++17", "c++1z",
+            knownValues = ["c++23", "c++2b", "c++20", "c++2a", "c++17", "c++1z",
                            "c++14", "c++1y", "c++11", "c++0x",
                            "c++03", "c++98"];
             return Cpp.languageVersion(input.cpp.cxxLanguageVersion, knownValues, "C++");

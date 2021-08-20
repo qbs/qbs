@@ -96,6 +96,12 @@ function hasZCplusPlusOption(input)
             || (input.qbs.toolchain.contains("clang-cl") && input.cpp.compilerVersionMajor >= 9);
 }
 
+function hasCxx20Option(input)
+{
+    return Utilities.versionCompare(input.cpp.compilerVersion, "19.29.30133.0") >= 0
+            || (input.qbs.toolchain.contains("clang-cl") && input.cpp.compilerVersionMajor >= 13);
+}
+
 function supportsExternalIncludesOption(input) {
     if (input.qbs.toolchain.contains("clang-cl"))
         return false; // Exclude clang-cl.
@@ -108,7 +114,7 @@ function supportsExternalIncludesOption(input) {
 
 function addLanguageVersionFlag(input, args) {
     var cxxVersion = Cpp.languageVersion(input.cpp.cxxLanguageVersion,
-                                         ["c++20", "c++17", "c++14", "c++11", "c++98"], "C++");
+            ["c++23", "c++20", "c++17", "c++14", "c++11", "c++98"], "C++");
     if (!cxxVersion)
         return;
 
@@ -124,6 +130,8 @@ function addLanguageVersionFlag(input, args) {
         flag = "/std:c++14";
     else if (cxxVersion === "c++17" && hasCxx17Option(input))
         flag = "/std:c++17";
+    else if (cxxVersion === "c++20" && hasCxx20Option(input))
+        flag = "/std:c++20";
     else if (cxxVersion !== "c++11" && cxxVersion !== "c++98")
         flag = "/std:c++latest";
     if (flag)

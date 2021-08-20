@@ -1,4 +1,4 @@
 Module {
     Depends { name: "cpp" }
-    cpp.cxxLanguageVersion: "c++17"
+    cpp.cxxLanguageVersion: "c++23"
 }
