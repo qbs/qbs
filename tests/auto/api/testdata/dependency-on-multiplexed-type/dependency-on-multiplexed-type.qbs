@@ -1,5 +1,3 @@
-import qbs
-
 Project {
     Product { name: "dep"; type: "x" }
     Product {

@@ -28,7 +28,6 @@
 **
 ****************************************************************************/
 
-import qbs
 import qbs.ModUtils
 import qbs.TextFile
 import "freedesktop.js" as Fdo

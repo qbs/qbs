@@ -1,5 +1,3 @@
-import qbs
-
 CppApplication {
     condition: {
         var result = qbs.targetPlatform === qbs.hostPlatform;

@@ -1,5 +1,3 @@
-import qbs
-
 CppApplication {
     consoleApplication: true
     condition: protobuf.cpp.present && qbs.targetPlatform === qbs.hostPlatform

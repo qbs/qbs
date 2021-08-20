@@ -1,5 +1,3 @@
-import qbs
-
 Project {
     references: [
         "archive/archive.qbs",

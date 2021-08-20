@@ -48,8 +48,6 @@
 **
 ****************************************************************************/
 
-import qbs
-
 AppleApplicationDiskImage {
     condition: qbs.targetOS.contains("macos")
     name: "Cocoa Application DMG"

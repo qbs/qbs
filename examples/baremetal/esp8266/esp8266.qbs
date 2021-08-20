@@ -48,8 +48,6 @@
 **
 ****************************************************************************/
 
-import qbs
-
 Project {
     name: "Examples for esp8266-wroom-02 board"
     qbsSearchPaths: "qbs"

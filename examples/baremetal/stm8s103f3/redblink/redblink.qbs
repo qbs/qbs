@@ -48,8 +48,6 @@
 **
 ****************************************************************************/
 
-import qbs
-
 CppApplication {
     condition: {
         if (!qbs.architecture.contains("stm8"))

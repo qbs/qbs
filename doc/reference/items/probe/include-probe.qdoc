@@ -39,7 +39,6 @@
     For example, IncludeProbe can be used to search for a zlib header as follows:
 
     \code
-    import qbs
     import qbs.Probes
 
     CppApplication {

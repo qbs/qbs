@@ -1,5 +1,3 @@
-import qbs 1.0
-
 QbsApp {
     name: "qbs-setup-qt"
     files: [

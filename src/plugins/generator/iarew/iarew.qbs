@@ -1,4 +1,3 @@
-import qbs
 import "../../qbsplugin.qbs" as QbsPlugin
 
 QbsPlugin {

@@ -48,8 +48,6 @@
 **
 ****************************************************************************/
 
-import qbs 1.0
-
 Project {
     property bool hasSpecialFeature: true
     Application {

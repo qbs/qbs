@@ -83,6 +83,19 @@ function hasCxx17Option(input)
             || (input.qbs.toolchain.contains("clang-cl") && input.cpp.compilerVersionMajor >= 7);
 }
 
+function hasZCplusPlusOption(input)
+{
+    // /Zc:__cplusplus is supported starting from Visual Studio 15.7
+    // Looks like closest MSVC version is 14.14.26428 (cl ver 19.14.26433)
+    // At least, this version is tested
+    // https://docs.microsoft.com/en-us/cpp/build/reference/zc-cplusplus
+    // clang-cl supports this option starting around-ish versions 8/9, but it
+    // ignores this option, so this doesn't really matter
+    // https://reviews.llvm.org/D45877
+    return Utilities.versionCompare(input.cpp.compilerVersion, "19.14.26433") >= 0
+            || (input.qbs.toolchain.contains("clang-cl") && input.cpp.compilerVersionMajor >= 9);
+}
+
 function supportsExternalIncludesOption(input) {
     if (input.qbs.toolchain.contains("clang-cl"))
         return false; // Exclude clang-cl.
@@ -95,7 +108,7 @@ function supportsExternalIncludesOption(input) {
 
 function addLanguageVersionFlag(input, args) {
     var cxxVersion = Cpp.languageVersion(input.cpp.cxxLanguageVersion,
-                                         ["c++17", "c++14", "c++11", "c++98"], "C++");
+                                         ["c++20", "c++17", "c++14", "c++11", "c++98"], "C++");
     if (!cxxVersion)
         return;
 
@@ -239,6 +252,9 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
 
     if (input.cpp.generateCompilerListingFiles)
         args.push("/Fa" + FileInfo.toWindowsSeparators(outputs.lst[0].filePath));
+
+    if (input.cpp.enableCxxLanguageMacro && hasZCplusPlusOption(input))
+        args.push("/Zc:__cplusplus");
 
     var objectMap = outputs.obj || outputs.intermediate_obj
     var objOutput = objectMap ? objectMap[0] : undefined

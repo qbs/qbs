@@ -1,5 +1,3 @@
-import qbs
-
 Project {
     references: [
         "corelib/corelib.qbs",

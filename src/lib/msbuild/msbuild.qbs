@@ -1,5 +1,3 @@
-import qbs
-
 QbsStaticLibrary {
     Depends { name: "cpp" }
     Depends { name: "qbscore" }

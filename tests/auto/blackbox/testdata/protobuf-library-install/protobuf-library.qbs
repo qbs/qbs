@@ -1,5 +1,3 @@
-import qbs
-
 StaticLibrary {
     condition: {
         var result = qbs.targetPlatform === qbs.hostPlatform;

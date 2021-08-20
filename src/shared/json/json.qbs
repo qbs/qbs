@@ -1,5 +1,3 @@
-import qbs
-
 QbsStaticLibrary {
     name: "qbsjson"
     files: [

@@ -1,5 +1,3 @@
-import qbs 1.0
-
 QbsApp {
     Depends { name: "Qt.widgets" }
     name: "qbs-config-ui"

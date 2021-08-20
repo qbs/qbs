@@ -1,5 +1,3 @@
-import qbs
-
 CppApplication {
     name: "grpc_cpp"
     consoleApplication: true
