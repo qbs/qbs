@@ -1,4 +1,8 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.10)
+
+if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.15")
+    cmake_policy(VERSION 3.15)
+endif()
 
 ## Add paths to check for cmake modules:
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
@@ -35,7 +39,7 @@ find_package(Qt${QT_VERSION_MAJOR}
     REQUIRED
     )
 
-find_package(Qt${QT_VERSION_MAJOR} OPTIONAL_COMPONENTS Script)
+find_package(Qt${QT_VERSION_MAJOR} OPTIONAL_COMPONENTS Script QUIET)
 
 if (Qt6_FOUND)
     find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core5Compat REQUIRED)
@@ -48,7 +52,8 @@ else()
     add_library(Qt6Core5Compat INTERFACE)
   endif()
   if (NOT QBS_USE_BUNDLED_QT_SCRIPT AND Qt5Script_FOUND)
-      add_library(qbsscriptengine ALIAS Qt5::Script)
+      add_library(qbsscriptengine INTERFACE)
+      target_link_libraries(qbsscriptengine INTERFACE Qt5::Script)
   endif()
 endif()
 

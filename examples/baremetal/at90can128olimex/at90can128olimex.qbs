@@ -48,8 +48,6 @@
 **
 ****************************************************************************/
 
-import qbs
-
 Project {
     name: "Examples for Olimex AVR-CAN board"
     references: [

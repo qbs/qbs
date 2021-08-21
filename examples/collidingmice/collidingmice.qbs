@@ -48,8 +48,6 @@
 **
 ****************************************************************************/
 
-import qbs 1.0
-
 CppApplication {
     name : "CollidingMice"
     Depends { name: "Qt.widgets" }

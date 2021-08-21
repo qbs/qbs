@@ -1,5 +1,3 @@
-import qbs
-
 QbsApp {
     name: "qbs-create-project"
     files: [

@@ -48,8 +48,6 @@
 **
 ****************************************************************************/
 
-import qbs
-
 Project {
     name: "Examples for stm32f103 board"
     references: [

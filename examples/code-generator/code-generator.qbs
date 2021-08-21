@@ -47,7 +47,6 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-import qbs
 
 Project {
     // A code generator that outputs a "Hello World" C++ program.

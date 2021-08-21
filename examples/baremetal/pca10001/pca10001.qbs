@@ -48,8 +48,6 @@
 **
 ****************************************************************************/
 
-import qbs
-
 Project {
     name: "Examples for pca10001/pca10024 boards"
     references: [

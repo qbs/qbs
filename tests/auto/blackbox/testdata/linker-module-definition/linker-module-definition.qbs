@@ -1,5 +1,3 @@
-import qbs
-
 Project {
     condition: {
         var result = qbs.targetPlatform === qbs.hostPlatform;

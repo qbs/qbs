@@ -48,8 +48,6 @@
 **
 ****************************************************************************/
 
-import qbs
-
 Project {
     name: "Examples for stm8s103f3 board"
     references: [

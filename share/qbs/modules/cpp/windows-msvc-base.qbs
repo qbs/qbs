@@ -104,6 +104,7 @@ CppModule {
     property var buildEnv
 
     readonly property bool shouldSignArtifacts: codesign.enableCodeSigning
+    property bool enableCxxLanguageMacro: false
 
     setupBuildEnvironment: {
         for (var key in product.cpp.buildEnv) {

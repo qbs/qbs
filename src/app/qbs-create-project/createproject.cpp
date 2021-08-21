@@ -104,7 +104,6 @@ void ProjectCreator::serializeProject(const ProjectCreator::Project &project)
     }
     QTextStream fileContents(&projectFile);
     qbs::setupDefaultCodec(fileContents);
-    fileContents << "import qbs\n\n";
     if (!project.fileNames.empty() || m_projectStructure == ProjectStructure::Flat) {
         fileContents << "Product {\n";
         const ProductFlags productFlags = getFlags(project);

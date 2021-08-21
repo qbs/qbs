@@ -1,5 +1,3 @@
-import qbs
-
 CppApplication {
     consoleApplication: true
     condition: protobuf.objc.present && qbs.targetOS.contains("macos")

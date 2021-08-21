@@ -854,7 +854,7 @@
     If the value is left undefined, the compiler default will be used.
     If the list contains more than one value, the highest version is chosen.
 
-    Possible values include: \c{"c++98"}, \c{"c++11"}, \c{"c++14"}, \c{"c++17"}.
+    Possible values include: \c{"c++98"}, \c{"c++11"}, \c{"c++14"}, \c{"c++17"}, \c{"c++20"}.
 
     \nodefaultvalue
 */
@@ -1924,4 +1924,18 @@
 
     \windowsproperty
     \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string cpp::enableCxxLanguageMacro
+    \since Qbs 1.20
+
+    Whether to set the \c{/Zc:__cplusplus} macro
+    (\l{https://docs.microsoft.com/en-us/cpp/build/reference/zc-cplusplus})
+
+    This property only applies to MSVC toolchain. clang-cl also supports
+    this option, but it has no effect.
+
+    \windowsproperty
+    \defaultvalue \c{true} for MSVC, \c{false} for clang-cl
 */

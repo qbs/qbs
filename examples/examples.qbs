@@ -48,8 +48,6 @@
 **
 ****************************************************************************/
 
-import qbs
-
 Project {
     references: [
         "app-and-lib/app-and-lib.qbs",

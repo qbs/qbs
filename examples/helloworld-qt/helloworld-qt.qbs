@@ -48,8 +48,6 @@
 **
 ****************************************************************************/
 
-import qbs
-
 QtApplication {
     name: "HelloWorld-Qt"
     files: "main.cpp"

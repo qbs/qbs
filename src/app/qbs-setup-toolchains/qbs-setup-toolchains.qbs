@@ -1,5 +1,3 @@
-import qbs 1.0
-
 QbsApp {
     name: "qbs-setup-toolchains"
     cpp.dynamicLibraries: qbs.targetOS.contains("windows") ? base.concat("shell32") : base

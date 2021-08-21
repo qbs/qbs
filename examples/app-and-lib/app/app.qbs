@@ -48,8 +48,6 @@
 **
 ****************************************************************************/
 
-import qbs 1.0
-
 Application {
     consoleApplication: true
     files : [ "main.cpp" ]
