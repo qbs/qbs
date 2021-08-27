@@ -22,7 +22,8 @@ jobs:
                       modules.cpp.compilerWrapper:ccache
                       modules.qbsbuildconfig.enableAddressSanitizer:false
                       modules.qbsbuildconfig.enableUnitTests:false
-                      modules.qbsbuildconfig.enableBundledQt:true',
+                      modules.qbsbuildconfig.enableBundledQt:true
+                      products.qbs_archive.targetName:qbs-linux-${{ github.run_id }}',
             script: './scripts/build-qbs-with-qbs.sh',
             cacheid: 'gcc-release',
           }
@@ -58,8 +59,8 @@ jobs:
     - name: Upload artifacts
       uses: 'actions/upload-artifact@v2'
       with:
-        name: qbs-linux-${{ steps.get-archive-name.outputs.archive-name }}.tar.gz
-        path: release/qbs-linux-*.tar.gz
+        name: qbs-linux-${{ github.run_id }}.tar.gz
+        path: release/qbs-linux-${{ github.run_id }}.tar.gz
 
   build-macos:
     name: Build on macOS
@@ -72,6 +73,7 @@ jobs:
         modules.qbsbuildconfig.enableUnitTests:false
         modules.qbsbuildconfig.enableAddressSanitizer:false
         modules.qbsbuildconfig.enableBundledQt:true
+        products.qbs_archive.targetName:qbs-macos-${{ github.run_id }}
       WITH_TESTS: 0
     steps:
     - uses: actions/checkout@v1
@@ -111,14 +113,11 @@ jobs:
       run: scripts/build-qbs-with-qbs.sh
     - name: Print ccache stats
       run: ccache -s
-    - name: Get archive name
-      id: get-archive-name
-      run: echo ::set-output name=archive-name::$(git describe)
     - name: Upload artifacts
       uses: 'actions/upload-artifact@v2'
       with:
-        name: qbs-macos-${{ steps.get-archive-name.outputs.archive-name }}.tar.gz
-        path: release/qbs-macos-*.tar.gz
+        name: qbs-macos-${{ github.run_id }}.tar.gz
+        path: release/qbs-macos-${{ github.run_id }}.tar.gz
 
   build-windows-with-docker:
     name: Build on Windows (Docker)
@@ -168,8 +167,78 @@ jobs:
     - name: Upload artifacts
       uses: 'actions/upload-artifact@v2'
       with:
-        name: qbs-windows-${{ steps.get-archive-name.outputs.archive-name }}.zip
+        name: qbs-windows-${{ github.run_id }}
         path: |
           release/qbs.*.nupkg
           release/qbs-windows-*.zip
           release-64/qbs-windows-*.zip
+
+  create-archives:
+    name: Create Archives
+    runs-on: ubuntu-latest
+    needs: [build-linux, build-windows-with-docker]
+    steps:
+    - uses: actions/checkout@v1
+    - name: Get version name
+      id: get-version-name
+      run: echo ::set-output name=version-name::$(cat VERSION)
+    - name: Create directories
+      run: |
+        mkdir release
+        mkdir tmp
+    - name: Copy sources
+      run: rsync -av --exclude='.git/' --exclude='tmp/' . ./tmp/qbs-src-${{ steps.get-version-name.outputs.version-name }}
+    - name: Zip Archive
+      run: |
+        cd tmp/
+        zip -r ../release/qbs-src-${{ steps.get-version-name.outputs.version-name }}.zip qbs-src-${{ steps.get-version-name.outputs.version-name }}
+    - name: Tarball Archive
+      run: |
+        cd tmp/
+        tar czf ../release/qbs-src-${{ steps.get-version-name.outputs.version-name }}.tar.gz qbs-src-${{ steps.get-version-name.outputs.version-name }}
+    - name: Download Linux artifacts
+      uses: actions/download-artifact@v1
+      with:
+        name: qbs-linux-${{ github.run_id }}.tar.gz
+        path: ./tmp
+    - name: Repack Linux artifact
+      run: |
+        mkdir -p tmp/qbs-linux-x86_64-${{ steps.get-version-name.outputs.version-name }}
+        tar xzf ./tmp/qbs-linux-${{ github.run_id }}.tar.gz -C tmp/qbs-linux-x86_64-${{ steps.get-version-name.outputs.version-name }}
+        cd tmp/
+        tar czf ../release/qbs-linux-x86_64-${{ steps.get-version-name.outputs.version-name }}.tar.gz qbs-linux-x86_64-${{ steps.get-version-name.outputs.version-name }}
+    - name: Download Windows artifacts
+      uses: actions/download-artifact@v1
+      with:
+        name: qbs-windows-${{ github.run_id }}
+        path: ./tmp
+    - name: Copy Windows artifacts
+      run: |
+        cp ./tmp/release/qbs.*.nupkg ./release
+        cp ./tmp/release/qbs-windows-x86-*.zip ./release
+        cp ./tmp/release-64/qbs-windows-x86_64-*.zip ./release
+    - name: Copy changelog
+      run: cp changelogs/changes-${{ steps.get-version-name.outputs.version-name }}.md release || echo "changelog not found"
+    - name: Generate checksums
+      run: |
+        cd release/
+        find . -type f -printf '%f\n' | grep -v .txt | xargs md5sum > md5sums.txt
+        find . -type f -printf '%f\n' | grep -v .txt | xargs sha256sum > sha256sums.txt
+    - name: Get archive name
+      id: get-archive-name
+      run: echo ::set-output name=archive-name::$(git describe)
+    - name: Upload artifacts
+      uses: 'actions/upload-artifact@v2'
+      with:
+        name: qbs-release-${{ steps.get-archive-name.outputs.archive-name }}
+        path: |
+          release/qbs-src-*.zip
+          release/qbs-src-*.tar.gz
+          release/qbs-linux-*.tar.gz
+          release/qbs.*.nupkg
+          release/qbs-windows-x86-*.zip
+          release/qbs-windows-x86_64-*.zip
+          release/changes-*.md
+          release/md5sums.txt
+          release/sha256sums.txt
+
