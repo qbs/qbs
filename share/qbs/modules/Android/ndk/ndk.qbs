@@ -50,6 +50,20 @@ Module {
         description: "Supported Android ABIs"
         allowedValues: ["arm64-v8a", "armeabi-v7a", "x86", "x86_64"]
     }
+    // From https://android.googlesource.com/platform/ndk/+/refs/heads/ndk-release-r21/docs/BuildSystemMaintainers.md
+    // Android Studio‘s LLDB debugger uses a binary’s build ID to locate debug information. To
+    // ensure that LLDB works with a binary, pass an option like -Wl,--build-id=sha1 to Clang when
+    // linking. Other --build-id= modes are OK, but avoid a plain --build-id argument when using
+    // LLD, because Android Studio‘s version of LLDB doesn’t recognize LLD's default 8-byte build
+    // ID. See Issue 885.
+
+    // Plain --build-id option is nevertheless implemented when buildId property is empty.
+
+    // Possible values (from man page of ld.lld — ELF linker from the LLVM project):
+    // one of fast, md5, sha1, tree, uuid, 0xhex-string, and none. tree is an alias for sha1.
+    // Build-IDs of type fast, md5, sha1, and tree are calculated from the object contents. fast is
+    // not intended to be cryptographically secure.
+    property string buildId: "sha1"
 
     // See https://developer.android.com/ndk/guides/cpp-support.html
     property string appStl: "c++_shared"

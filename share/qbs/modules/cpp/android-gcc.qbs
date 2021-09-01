@@ -100,7 +100,7 @@ LinuxGCC {
 
     commonCompilerFlags: NdkUtils.commonCompilerFlags(qbs.toolchain, qbs.buildVariant, Android.ndk)
 
-    linkerFlags: NdkUtils.commonLinkerFlags(Android.ndk.abi);
+    linkerFlags: NdkUtils.commonLinkerFlags(Android.ndk);
     driverLinkerFlags: {
         var flags = ["-fuse-ld=lld", "-Wl,--exclude-libs,libgcc.a", "-nostdlib++"];
         // See https://android.googlesource.com/platform/ndk/+/ndk-release-r21/docs/BuildSystemMaintainers.md#Unwinding

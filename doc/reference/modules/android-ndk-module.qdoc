@@ -78,6 +78,17 @@
 */
 
 /*!
+    \qmlproperty string Android.ndk::buildId
+
+    Value to pass to the --build-id linker flag.
+    Plain --build-id option is used when buildId property is empty.
+
+    \since Qbs 1.21
+
+    \defaultvalue \c "sha1"
+*/
+
+/*!
     \qmlproperty string Android.ndk::appStl
 
     The library to use for C++. The possible values are:

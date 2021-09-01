@@ -96,8 +96,9 @@ function commonCompilerFlags(toolchain, buildVariant, ndk) {
     return flags;
 }
 
-function commonLinkerFlags(abi) {
-    return ["-z", "noexecstack", "-z", "relro", "-z", "now", "--build-id=sha1", "--gc-sections" ];
+function commonLinkerFlags(ndk) {
+    var buildId = (ndk.buildId) ? "--build-id=" + ndk.buildId : "--build-id";
+    return ["-z", "noexecstack", "-z", "relro", "-z", "now", buildId, "--gc-sections"];
 }
 
 function stlFileName(prefix, ndk, suffix) {
