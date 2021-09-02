@@ -56,6 +56,7 @@
 
 namespace qbs {
 namespace Internal {
+class CppModulesScanner;
 class BuildGraphNode;
 class QtMocScanner;
 class ScriptEngine;
@@ -126,7 +127,8 @@ private:
     ArtifactSet m_completeInputSet;
     TransformerPtr m_transformer;
     TransformerConstPtr m_oldTransformer;
-    QtMocScanner *m_mocScanner;
+    QtMocScanner *m_mocScanner = nullptr;
+    CppModulesScanner *m_cxxModulesScanner = nullptr;
     Logger m_logger;
     bool m_ruleUsesIo = false;
 };

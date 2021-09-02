@@ -65,7 +65,7 @@ struct QBS_EXPORT ScanResult
 
 struct QBS_EXPORT CppScannerContext
 {
-    enum FileType { FT_UNKNOWN, FT_HPP, FT_CPP, FT_C, FT_OBJC, FT_OBJCPP, FT_RC };
+    enum FileType { FT_UNKNOWN, FT_HPP, FT_CPP, FT_CPPM, FT_C, FT_OBJC, FT_OBJCPP, FT_RC };
 
     CppScannerContext() = default;
     CppScannerContext(const CppScannerContext &other) = delete;
@@ -95,6 +95,9 @@ struct QBS_EXPORT CppScannerContext
     std::string_view fileContent;
     FileType fileType{FT_UNKNOWN};
     QList<ScanResult> includedFiles;
+    QByteArray providesModule;
+    bool isInterface{false};
+    QList<QByteArray> requiresModules;
     bool hasQObjectMacro{false};
     bool hasPluginMetaDataMacro{false};
 };

@@ -88,15 +88,55 @@ static QStringList collectCppIncludePaths(const QVariantMap &modules)
     return result;
 }
 
+static bool modulesEnabled(const QVariantMap &properties)
+{
+    const QVariantMap cpp = properties.value(StringConstants::cppModule()).toMap();
+    if (cpp.empty())
+        return false;
+    return cpp.value(QStringLiteral("forceUseCxxModules")).toBool();
+}
+
+static QString getCompiledModuleSuffix(const QVariantMap &modules)
+{
+    const QVariantMap cpp = modules.value(StringConstants::cppModule()).toMap();
+    if (cpp.empty())
+        return {};
+
+    return cpp.value(QStringLiteral("compiledModuleSuffix")).toString();
+}
+
 PluginDependencyScanner::PluginDependencyScanner(ScannerPlugin *plugin)
     : m_plugin(plugin)
 {
 }
 
+QStringList PluginDependencyScanner::collectModulesPaths(const ResolvedProduct *product)
+{
+    QStringList result;
+    if (!product)
+        return result;
+    const auto getModulesPath = [](const ResolvedProduct *product) -> QString {
+        return product->buildDirectory() + QStringLiteral("/cxx-modules");
+    };
+    result << getModulesPath(product);
+    // a module can also be in the dependent product
+    for (const auto &dep : product->dependencies) {
+        const auto depProduct = dep.get();
+        if (depProduct)
+            result << getModulesPath(depProduct);
+    }
+    return result;
+}
+
 QStringList PluginDependencyScanner::collectSearchPaths(Artifact *artifact)
 {
-    if (m_plugin->flags & ScannerUsesCppIncludePaths)
-        return collectCppIncludePaths(artifact->properties->value());
+    if (m_plugin->flags & ScannerUsesCppIncludePaths) {
+        auto result = collectCppIncludePaths(artifact->properties->value());
+        if (modulesEnabled(artifact->properties->value()) && artifact->product) {
+            result << collectModulesPaths(artifact->product.get());
+        }
+        return result;
+    }
     return {};
 }
 
@@ -123,6 +163,10 @@ QStringList PluginDependencyScanner::collectDependencies(Artifact *artifact, Fil
             QString localFilePath = FileInfo::resolvePath(baseDirOfInFilePath, outFilePath);
             if (FileInfo::exists(localFilePath))
                 outFilePath = localFilePath;
+        }
+        if (flags & SC_MODULE_FLAG) {
+            outFilePath = outFilePath.replace(QLatin1Char(':'), QLatin1Char('-'))
+                          + getCompiledModuleSuffix(artifact->properties->value());
         }
         result += outFilePath;
     }

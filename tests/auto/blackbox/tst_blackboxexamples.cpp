@@ -50,7 +50,7 @@ QStringList TestBlackboxExamples::collectExamples(const QString &dirPath)
 TestBlackboxExamples::TestBlackboxExamples()
     : TestBlackboxBase(SRCDIR "/../../../examples/", "blackbox-examples")
 {
-    setNeedsQt();
+    // setNeedsQt();
 }
 
 void TestBlackboxExamples::baremetal_data()
@@ -83,6 +83,7 @@ void TestBlackboxExamples::examples_data()
     auto examples = collectExamples(testDataDir);
     examples.append(collectExamples(testDataDir + "/protobuf"));
     examples.append(collectExamples(testDataDir + "/flatbuffers"));
+    examples.append(collectExamples(testDataDir + "/cxx-modules"));
     std::sort(examples.begin(), examples.end());
 
     for (const auto &example: examples) {

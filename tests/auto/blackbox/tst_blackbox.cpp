@@ -2100,6 +2100,83 @@ void TestBlackbox::cpuFeatures()
     }
 }
 
+void TestBlackbox::cxxModules_data()
+{
+    QTest::addColumn<QString>("projectDir");
+    QTest::newRow("single-module") << "single-module";
+    QTest::newRow("dot-in-name") << "dot-in-name";
+    QTest::newRow("export-import") << "export-import";
+    QTest::newRow("dependent-modules") << "dependent-modules";
+    QTest::newRow("declaration-implementation") << "declaration-implementation";
+    QTest::newRow("library-module") << "library-module";
+    QTest::newRow("partitions") << "partitions";
+    QTest::newRow("partitions-recursive") << "partitions-recursive";
+    QTest::newRow("partitions-dependency-on-module") << "partitions-dependency-on-module";
+    QTest::newRow("partitions-library") << "partitions-library";
+}
+
+void TestBlackbox::cxxModules()
+{
+    QFETCH(QString, projectDir);
+    QDir::setCurrent(testDataDir + "/cxx-modules/" + projectDir);
+
+    rmDirR(relativeBuildDir());
+    QCOMPARE(runQbs(QbsRunParameters{"resolve"}), 0);
+    if (m_qbsStdout.contains("Unsupported toolchainType"))
+        QSKIP("Modules are not supported for this toolchain");
+
+    QCOMPARE(runQbs(QbsRunParameters{"build"}), 0);
+}
+
+void TestBlackbox::cxxModulesChangesTracking()
+{
+    const auto checkContains = [this](const QStringList &files) {
+        for (const auto &file : files) {
+            if (!m_qbsStdout.contains(QByteArrayLiteral("compiling ") + file.toUtf8()))
+                return false;
+        }
+        return true;
+    };
+    const auto checkNotContains = [this](const QStringList &files) {
+        for (const auto &file : files) {
+            if (m_qbsStdout.contains(QByteArrayLiteral("compiling ") + file.toUtf8()))
+                return false;
+        }
+        return true;
+    };
+    QDir::setCurrent(testDataDir + "/cxx-modules/dependent-modules");
+    rmDirR(relativeBuildDir());
+    QCOMPARE(runQbs(QbsRunParameters{"resolve"}), 0);
+    if (m_qbsStdout.contains("Unsupported toolchainType"))
+        QSKIP("Modules are not supported for this toolchain");
+    QbsRunParameters buildParams{"build"};
+    QCOMPARE(runQbs(buildParams), 0);
+    QVERIFY2(checkContains({"a.cppm", "b.cppm", "c.cppm", "main.cpp"}), m_qbsStdout.constData());
+
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("main.cpp");
+    QCOMPARE(runQbs(buildParams), 0);
+    QVERIFY2(checkContains({"main.cpp"}), m_qbsStdout.constData());
+    QVERIFY2(checkNotContains({"a.cppm", "b.cppm", "c.cppm"}), m_qbsStdout.constData());
+
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("c.cppm");
+    QCOMPARE(runQbs(buildParams), 0);
+    QVERIFY2(checkContains({"c.cppm", "main.cpp"}), m_qbsStdout.constData());
+    QVERIFY2(checkNotContains({"a.cppm", "b.cppm"}), m_qbsStdout.constData());
+
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("b.cppm");
+    QCOMPARE(runQbs(buildParams), 0);
+    QVERIFY2(checkContains({"b.cppm", "c.cppm", "main.cpp"}), m_qbsStdout.constData());
+    QVERIFY2(checkNotContains({"a.cppm"}), m_qbsStdout.constData());
+
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("a.cppm");
+    QCOMPARE(runQbs(buildParams), 0);
+    QVERIFY2(checkContains({"a.cppm", "b.cppm", "c.cppm", "main.cpp"}), m_qbsStdout.constData());
+}
+
 void TestBlackbox::dateProperty()
 {
     QDir::setCurrent(testDataDir + "/date-property");

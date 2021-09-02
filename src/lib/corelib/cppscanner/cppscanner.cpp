@@ -63,6 +63,13 @@ public:
         return static_cast<int>(tk.length()) == literal.size()
                && memcmp(m_fileContent + tk.begin(), literal.data(), literal.size()) == 0;
     }
+
+    QByteArray toByteArray(const Token &tk) const
+    {
+        const auto ptr = m_fileContent + tk.begin();
+        const auto len = tk.length();
+        return {ptr, int(len)};
+    }
 };
 
 static void doScanCppFile(
@@ -73,6 +80,8 @@ static void doScanCppFile(
 {
     const QLatin1String includeLiteral("include");
     const QLatin1String importLiteral("import");
+    const QLatin1String exportLiteral("export");
+    const QLatin1String moduleLiteral("module");
     const QLatin1String defineLiteral("define");
     const QLatin1String qobjectLiteral("Q_OBJECT");
     const QLatin1String qgadgetLiteral("Q_GADGET");
@@ -86,7 +95,104 @@ static void doScanCppFile(
 
     yylex(&tk);
 
+    auto stepLexer = [&]() mutable {
+        oldTk = tk;
+        yylex(&tk);
+    };
+
+    auto parseModule = [&]() mutable {
+        auto mod = tc.toByteArray(tk);
+
+        while (tk.isNot(T_EOF_SYMBOL) && tk.isNot(T_SEMICOLON)) {
+            stepLexer();
+
+            if (tk.is(T_DOT)) {
+                stepLexer();
+
+                mod += '.';
+                mod += tc.toByteArray(tk);
+            } else if (tk.is(T_COLON)) {
+                stepLexer();
+
+                mod += ':';
+                mod += tc.toByteArray(tk);
+
+                break;
+            }
+        }
+
+        if (context.fileType == CppScannerContext::FileType::FT_CPPM)
+            context.providesModule = mod;
+        else
+            context.requiresModules << mod;
+    };
+    auto parseImport = [&]() mutable {
+        if (tk.is(T_COLON)) {
+            stepLexer();
+
+            if (!context.providesModule.isEmpty()) {
+                const auto getModuleName = [](const QByteArray &moduleOrPartition) -> QByteArray {
+                    const auto index = moduleOrPartition.indexOf(':');
+                    if (index == -1)
+                        return moduleOrPartition;
+                    return moduleOrPartition.mid(0, index);
+                };
+                context.requiresModules
+                    << getModuleName(context.providesModule) + ':' + tc.toByteArray(tk);
+            }
+            return;
+        }
+
+        bool isGlobal = false;
+        if (tk.is(T_LESS)) {
+            stepLexer();
+            isGlobal = true;
+        }
+        auto mod = tc.toByteArray(tk);
+
+        while (tk.isNot(T_EOF_SYMBOL) && tk.isNot(T_SEMICOLON) && tk.isNot(T_GREATER)) {
+            stepLexer();
+
+            if (tk.is(T_DOT)) {
+                stepLexer();
+
+                mod += '.';
+                mod += tc.toByteArray(tk);
+            }
+        }
+        if (isGlobal) {
+            mod = '<' + mod + '>';
+        }
+        context.requiresModules << mod;
+    };
+
     while (tk.isNot(T_EOF_SYMBOL)) {
+        if (scanForDependencies && tk.newline() && tk.is(T_IDENTIFIER)) {
+            if (tc.equals(tk, moduleLiteral)) {
+                stepLexer();
+                if (tk.isNot(T_SEMICOLON))
+                    parseModule();
+                continue;
+            } else if (tc.equals(tk, importLiteral)) {
+                stepLexer();
+                parseImport();
+                continue;
+            } else if (tc.equals(tk, exportLiteral)) {
+                stepLexer();
+
+                if (tc.equals(tk, moduleLiteral)) {
+                    stepLexer();
+                    parseModule();
+
+                    context.isInterface = true;
+                    continue;
+                } else if (tc.equals(tk, importLiteral)) {
+                    stepLexer();
+                    parseImport();
+                    continue;
+                }
+            }
+        }
         if (tk.newline() && tk.is(T_POUND)) {
             yylex(&tk);
 
@@ -128,8 +234,8 @@ static void doScanCppFile(
                 }
             }
         }
-        oldTk = tk;
-        yylex(&tk);
+
+        stepLexer();
     }
 }
 
@@ -147,6 +253,8 @@ bool scanCppFile(
         context.fileType = CppScannerContext::FT_HPP;
     else if (tagList.contains("cpp"))
         context.fileType = CppScannerContext::FT_CPP;
+    else if (tagList.contains("cppm"))
+        context.fileType = CppScannerContext::FT_CPPM;
     else if (tagList.contains("objcpp"))
         context.fileType = CppScannerContext::FT_OBJCPP;
     else
@@ -214,6 +322,7 @@ span<const std::string_view> additionalFileTags(const CppScannerContext &context
             return {context.hasPluginMetaDataMacro ? thMocPluginCpp : thMocCpp, 1};
         case CppScannerContext::FT_HPP:
             return {context.hasPluginMetaDataMacro ? thMocPluginHpp : thMocHpp, 1};
+
         default:
             break;
         }

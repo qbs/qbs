@@ -28,10 +28,12 @@
 **
 ****************************************************************************/
 
+var BinaryFile = require("qbs.BinaryFile");
 var File = require("qbs.File");
 var FileInfo = require("qbs.FileInfo");
 var ModUtils = require("qbs.ModUtils");
 var PathTools = require("qbs.PathTools");
+var TextFile = require("qbs.TextFile");
 var Utilities = require("qbs.Utilities");
 
 function languageVersion(versionArray, knownValues, lang) {
@@ -83,10 +85,12 @@ function assemblerOutputTags(needsListingFiles) {
     return tags;
 }
 
-function compilerOutputTags(needsListingFiles) {
+function compilerOutputTags(withListingFiles, withCxxModules) {
     var tags = ["obj", "intermediate_obj"];
-    if (needsListingFiles)
+    if (withListingFiles)
         tags.push("lst");
+    if (withCxxModules)
+        tags = tags.concat(["compiled-module", "modulemap", "moduleinfo"]);
     return tags;
 }
 
@@ -133,14 +137,63 @@ function assemblerOutputArtifacts(input) {
     return artifacts;
 }
 
-function compilerOutputArtifacts(input, inputs) {
+function cxxModulesArtifacts(input) {
+    var artifacts = [];
+    if (input.cpp.forceUseCxxModules === false)
+        return artifacts;
+
+    if (input.cpp.compiledModuleSuffix === undefined
+        || input.cpp.moduleOutputFlag === undefined
+        || input.cpp.moduleFileFlag === undefined) {
+        console.warn("Skip additional artifacts for '" + input.fileName + "' since '"
+            + input.qbs.toolchainType + "' toolchain does not support C++ Modules.");
+        return artifacts;
+    }
+
+    var moduleInformation = CppModulesScanner.apply(input);
+
+    if (moduleInformation.providesModule || moduleInformation.requiresModules.length > 0) {
+        artifacts.push({
+            filePath: FileInfo.joinPaths(Utilities.getHash(input.baseDir),
+                                         input.fileName + input.cpp.moduleMapSuffix),
+            fileTags: ["modulemap"],
+            // we can't use maps here only strings and lists
+            cpp: {
+                _providesModule: moduleInformation.providesModule,
+                _isInterfaceModule: moduleInformation.isInterfaceModule,
+                _requiresModules : moduleInformation.requiresModules,
+            },
+        })
+    }
+    if (input.fileTags.includes("cppm")) {
+        const moduleName = moduleInformation.providesModule
+            ? moduleInformation.providesModule : undefined;
+        if (moduleName) {
+            const moduleFileName = moduleName.replace(':', '-');
+            artifacts.push({
+                filePath: FileInfo.joinPaths("cxx-modules", moduleFileName + product.cpp.compiledModuleSuffix),
+                fileTags: ["compiled-module"],
+            })
+            artifacts.push({
+                filePath: FileInfo.joinPaths("cxx-modules", moduleFileName + product.cpp.moduleInfoSuffix),
+                fileTags: ["moduleinfo"],
+            })
+        } else {
+            console.warn("File '" + input.fileName + "' has 'cppm' tag, but does not "
+                + "provide a module interface unit or partition");
+        }
+    }
+    return artifacts;
+}
+
+function compilerOutputArtifacts(input, inputs, withCxxModules) {
     var objTags = input.fileTags.includes("cpp_intermediate_object")
         ? ["intermediate_obj"]
         : ["obj"];
     if (inputs) {
         if (inputs.c || inputs.objc)
             objTags.push("c_obj");
-        if (inputs.cpp || inputs.objcpp)
+        if (inputs.cpp || inputs.objcpp || inputs.cppm)
             objTags.push("cpp_obj");
     }
     var artifacts = [{
@@ -155,6 +208,8 @@ function compilerOutputArtifacts(input, inputs) {
                                          input.fileName + input.cpp.compilerListingSuffix)
         });
     }
+    if (withCxxModules)
+        artifacts = artifacts.concat(cxxModulesArtifacts(input));
     return artifacts;
 }
 
@@ -436,6 +491,8 @@ function collectLinkerObjectPathsArguments(product, inputs, flag) {
 }
 
 function collectMiscCompilerArguments(input, tag) {
+    if (tag === "cppm")
+        tag = "cpp";
     return [].concat(ModUtils.moduleProperty(input, "platformFlags"),
                      ModUtils.moduleProperty(input, "flags"),
                      ModUtils.moduleProperty(input, "platformFlags", tag),
@@ -473,4 +530,154 @@ function supportsArchitecture(architecture, knownArchitectures) {
         }
     }
     return false;
+}
+
+function prepareModuleInfo(moduleInformation, input, output, product) {
+    var command = new JavaScriptCommand()
+    command.moduleInformation = moduleInformation
+    command.outPath = output.filePath
+    command.description = "generating module info for " + input.fileName
+    command.highlight = "filegen"
+
+    command.sourceCode = function() {
+        var file = new TextFile(outPath, TextFile.WriteOnly);
+        file.write(JSON.stringify(moduleInformation, undefined, 4));
+        file.close();
+    }
+
+    return command;
+}
+
+function prepareModuleMap(moduleInformation, input, mm, product) {
+    var modulesFromDeps = {};
+
+    product.dependencies.forEach(function(dep){
+        (dep.artifacts["compiled-module"] || []).forEach(function(a) {
+            modulesFromDeps[a.completeBaseName.replace('-', ':')] = a.filePath;
+        });
+    });
+
+    var generateModuleMap = new JavaScriptCommand()
+    generateModuleMap.outPath = mm.filePath
+    generateModuleMap.moduleInformation = moduleInformation;
+    generateModuleMap.compiledModuleSuffix = product.cpp.compiledModuleSuffix;
+    generateModuleMap.moduleInfoSuffix = product.cpp.moduleInfoSuffix;
+    generateModuleMap.moduleOutputFlag = product.cpp.moduleOutputFlag;
+    generateModuleMap.moduleFileFlag = product.cpp.moduleFileFlag;
+    generateModuleMap.toolchain = product.qbs.toolchain;
+    generateModuleMap.toolchainType = product.qbs.toolchainType;
+    generateModuleMap.modulesFromDeps = modulesFromDeps;
+    generateModuleMap.description = "generating module map for " + input.fileName
+    generateModuleMap.highlight = "filegen"
+    generateModuleMap.sourceCode = function() {
+        function moduleFileOption(moduleName) {
+            return moduleFileFlag.replace("%module%", moduleName);
+        }
+        function moduleOutputOption(moduleName) {
+            return moduleOutputFlag.replace("%module%", moduleName);
+        }
+
+        var content = "";
+        if (toolchainType === "gcc" || toolchainType === "mingw")
+            content += "$root .\n";
+        const isModule = input.fileTags.includes("cppm");
+        function modulePath(moduleName) {
+            return FileInfo.joinPaths(
+                product.buildDirectory,
+                "cxx-modules",
+                moduleName.replace(':', "-") + compiledModuleSuffix);
+        }
+        const providesModule = moduleInformation.providesModule
+        if (isModule && providesModule !== undefined) {
+            if (toolchainType === "msvc") {
+                if (moduleInformation.isInterfaceModule)
+                    content += "-interface\n";
+                else
+                    content += "-internalPartition\n";
+            }
+            content += moduleOutputOption(providesModule)
+                + modulePath(providesModule) + "\n";
+        }
+
+        function isHeaderImport(mod) {
+            return mod.length > 2
+                && (mod[0] == '<' && mod[mod.length - 1] == '>'
+                    || mod[0] == '"' && mod[mod.length - 1] == '"')
+        }
+
+        function processImport(mod) {
+            if (!isHeaderImport(mod)) {
+                const moduleFile = modulesFromDeps[mod] || modulePath(mod);
+                content += moduleFileOption(mod) + moduleFile + "\n";
+
+                function getModuleInfo(moduleFile) {
+                    const moduleInfoPath = FileInfo.joinPaths(
+                        FileInfo.path(moduleFile), FileInfo.completeBaseName(moduleFile) + moduleInfoSuffix);
+                    var file = new TextFile(moduleInfoPath, TextFile.ReadOnly);
+                    const moduleInfo = JSON.parse(file.readAll());
+                    file.close();
+                    return moduleInfo;
+                }
+
+                function processImportsRecursive(moduleFile) {
+                    // can we do better rather than pass info via a file?
+                    const moduleInfo = getModuleInfo(moduleFile);
+                    const requiresModules = moduleInfo['requiresModules'] || [];
+                    requiresModules.forEach(function(importModule) {
+                        const importModuleFile = modulesFromDeps[importModule] || modulePath(importModule);
+                        content += moduleFileOption(importModule) + importModuleFile + "\n";
+                        processImportsRecursive(importModuleFile);
+                    });
+                }
+
+                processImportsRecursive(moduleFile);
+            }
+        }
+        moduleInformation.requiresModules.forEach(processImport);
+
+        // converts UTF string to an array of bytes
+        function encode(string) {
+            var bytes = [];
+            for (var i = 0; i < string.length; i++) {
+                bytes.push(string.charCodeAt(i));
+            }
+            return bytes;
+        }
+
+        // MinGW fails if file contains \r on Windows, so we use Unix line-endings on all platforms
+        // and thus we use BinaryFile instead of TextFile here
+        var file = new BinaryFile(outPath, TextFile.WriteOnly);
+        file.write(encode(content));
+        file.close();
+    }
+
+    return generateModuleMap;
+}
+
+function prepareModules(project, product, inputs, outputs, input, output) {
+    var commands = [];
+
+    // module map is present for both cppm and regular cpp files if they use modules
+    const moduleMapOutputs = outputs["modulemap"];
+    if (moduleMapOutputs === undefined)
+        return commands;
+
+    const cppModuleMap = moduleMapOutputs[0];
+    if (cppModuleMap === undefined)
+        return commands;
+
+    const moduleInformation = {
+        providesModule: cppModuleMap.cpp._providesModule,
+        isInterfaceModule: cppModuleMap.cpp._isInterfaceModule,
+        requiresModules: cppModuleMap.cpp._requiresModules,
+    };
+
+    // module info json is present only for cppm
+    var cppModuleInfo = outputs["moduleinfo"];
+    if (cppModuleInfo)
+        commands.push(prepareModuleInfo(moduleInformation, input, cppModuleInfo[0], product));
+
+    commands.push(prepareModuleMap(moduleInformation, input, cppModuleMap, product));
+
+    return commands;
 }

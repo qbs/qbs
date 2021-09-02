@@ -39,13 +39,13 @@
 #ifndef SCANNER_H
 #define SCANNER_H
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define SC_LOCAL_INCLUDE_FLAG   0x1
-#define SC_GLOBAL_INCLUDE_FLAG  0x2
+#define SC_LOCAL_INCLUDE_FLAG 0x1
+#define SC_GLOBAL_INCLUDE_FLAG 0x2
+#define SC_MODULE_FLAG 0x4
 
 enum OpenScannerFlags
 {

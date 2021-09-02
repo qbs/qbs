@@ -95,6 +95,9 @@ private slots:
     void conflictingPropertyValues_data();
     void conflictingPropertyValues();
     void cpuFeatures();
+    void cxxModules_data();
+    void cxxModules();
+    void cxxModulesChangesTracking();
     void dateProperty();
     void dependenciesProperty();
     void dependencyScanningLoop();
