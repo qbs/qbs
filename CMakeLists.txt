@@ -9,6 +9,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 include(FeatureSummary)
 include(QbsBuildConfig)
+include(QbsDocumentation)
 
 file(STRINGS VERSION QBS_VERSION)
 project(Qbs VERSION ${QBS_VERSION})
@@ -55,6 +56,15 @@ else()
       add_library(qbsscriptengine INTERFACE)
       target_link_libraries(qbsscriptengine INTERFACE Qt5::Script)
   endif()
+endif()
+
+if (QBS_INSTALL_HTML_DOCS OR QBS_INSTALL_QCH_DOCS)
+    find_package(Python3 COMPONENTS Interpreter)
+    if (Qt6_FOUND)
+        find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Tools REQUIRED)
+    else()
+        find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Help REQUIRED)
+    endif()
 endif()
 
 add_subdirectory(src)
