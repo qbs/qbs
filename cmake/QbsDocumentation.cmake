@@ -94,7 +94,7 @@ endfunction()
 
 function(_qbs_setup_qdoc_targets _qdocconf_file _retval)
     cmake_parse_arguments(_arg "" "HTML_DIR;INSTALL_DIR;POSTFIX"
-        "INDEXES;INCLUDE_DIRECTORIES;FRAMEWORK_PATHS;ENVIRONMENT_EXPORTS" ${ARGN})
+        "INDEXES;INCLUDE_DIRECTORIES;FRAMEWORK_PATHS;ENVIRONMENT_EXPORTS;SOURCES" ${ARGN})
 
     foreach(_index ${_arg_INDEXES})
         list(APPEND _qdoc_index_args "-indexdir;${_index}")
@@ -144,13 +144,14 @@ function(_qbs_setup_qdoc_targets _qdocconf_file _retval)
             )
     endif()
 
-    set(_html_target "html_docs_${_target}")
-    add_custom_target("${_html_target}"
-        ${_full_qdoc_command} -outputdir "${_html_outputdir}" "${_qdocconf_file}"
-        ${_qdoc_index_args} ${_qdoc_include_args}
+    set(_html_artifact "${_html_outputdir}/index.html")
+    add_custom_command(
+        OUTPUT "${_html_artifact}"
+        COMMAND cmake -E remove_directory "${_html_outputdir}"
+        COMMAND ${_full_qdoc_command} -outputdir "${_html_outputdir}" "${_qdocconf_file}"
+            ${_qdoc_index_args} ${_qdoc_include_args}
+        DEPENDS "${_qdocconf_file}" ${_arg_SOURCES}
         COMMENT "Build HTML documentation from ${_qdocconf_file}"
-        DEPENDS "${_qdocconf_file}"
-        SOURCES "${_qdocconf_file}"
         WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
         VERBATIM
         )
@@ -164,16 +165,21 @@ function(_qbs_setup_qdoc_targets _qdocconf_file _retval)
         message(FATAL_ERROR "Cannot import lxml and bs4 python modules. Qbs documentation will not be built.")
     endif()
 
-    set(_fixed_html_target "fixed_html_docs_${_target}")
+    set(_fixed_html_artifact "${CMAKE_CURRENT_BINARY_DIR}/qbsdoc.dummy")
     set(_fix_qml_imports_script ${Qbs_SOURCE_DIR}/doc/fix-qmlimports.py)
-    add_custom_target("${_fixed_html_target}"
-        ${Python3_EXECUTABLE} "${_fix_qml_imports_script}" ${_html_outputdir}
-        DEPENDS "${_html_target}"
-        SOURCES "${_fix_qml_imports_script}"
+    add_custom_command(
+        OUTPUT "${_fixed_html_artifact}"
+        COMMAND ${Python3_EXECUTABLE} "${_fix_qml_imports_script}" ${_html_outputdir}
+        COMMAND cmake -E touch ${_fixed_html_artifact}
+        DEPENDS "${_html_artifact}" "${_fix_qml_imports_script}"
+        COMMENT "Fixing bogus QML import statements"
         WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
         VERBATIM
         )
-    add_dependencies(qbs_html_docs "${_fixed_html_target}")
+
+    set(_html_target "qbs_html_docs_${_target}")
+    add_custom_target(${_html_target} DEPENDS "${_fixed_html_artifact}")
+    add_dependencies(qbs_html_docs "${_html_target}")
 
     set("${_retval}" "${_html_outputdir}" PARENT_SCOPE)
 endfunction()
@@ -198,15 +204,21 @@ function(_qbs_setup_qhelpgenerator_targets _qdocconf_file _html_outputdir)
     set(_qch_outputdir "${_arg_QCH_DIR}")
     file(MAKE_DIRECTORY "${_qch_outputdir}")
 
-    set(_qch_target "qch_docs_${_target}")
-    set(_html_target "html_docs_${_target}")
-    add_custom_target("${_qch_target}"
-        Qt${QT_VERSION_MAJOR}::qhelpgenerator "${_html_outputdir}/${_target}.qhp" -o "${_qch_outputdir}/${_target}.qch"
+    set(_fixed_html_artifact "${CMAKE_CURRENT_BINARY_DIR}/qbsdoc.dummy")
+    set(_qhp_artifact "${_html_outputdir}/${_target}.qhp")
+    set(_qch_artifact "${_qch_outputdir}/${_target}.qch")
+    add_custom_command(
+        OUTPUT "${_qch_artifact}"
+        COMMAND Qt${QT_VERSION_MAJOR}::qhelpgenerator "${_qhp_artifact}" -o "${_qch_artifact}"
+        DEPENDS "${_fixed_html_artifact}"
         COMMENT "Build QCH documentation from ${_qdocconf_file}"
         WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
         VERBATIM
         )
-    add_dependencies("${_qch_target}" "${_html_target}")
+
+    set(_html_target "qbs_html_docs_${_target}")
+    set(_qch_target "qbs_qch_docs_${_target}")
+    add_custom_target("${_qch_target}" DEPENDS "${_qch_artifact}")
     add_dependencies(qbs_qch_docs "${_qch_target}")
 
     install(FILES "${_qch_outputdir}/${_target}.qch" DESTINATION "${_arg_INSTALL_DIR}"
@@ -224,7 +236,7 @@ function(_qbs_qdoc_build_qdocconf_file _qdocconf_file)
     endif()
 
     cmake_parse_arguments(_arg "QCH" "HTML_DIR;QCH_DIR;INSTALL_DIR;POSTFIX"
-        "INDEXES;INCLUDE_DIRECTORIES;FRAMEWORK_PATHS;ENVIRONMENT_EXPORTS" ${ARGN})
+        "INDEXES;INCLUDE_DIRECTORIES;FRAMEWORK_PATHS;ENVIRONMENT_EXPORTS;SOURCES" ${ARGN})
     if (_arg_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "qdoc_build_qdocconf_file has unknown arguments: ${_arg_UNPARSED_ARGUMENTS}.")
     endif()
@@ -239,6 +251,7 @@ function(_qbs_qdoc_build_qdocconf_file _qdocconf_file)
         POSTFIX "${_arg_POSTFIX}"
         INCLUDE_DIRECTORIES ${_arg_INCLUDE_DIRECTORIES}
         FRAMEWORK_PATHS ${_arg_FRAMEWORK_PATHS}
+        SOURCES ${_arg_SOURCES}
         )
 
     if (_arg_QCH)
@@ -250,7 +263,7 @@ endfunction()
 
 function(add_qbs_documentation qdocconf_file)
     cmake_parse_arguments(_arg "" ""
-        "INCLUDE_DIRECTORIES;FRAMEWORK_PATHS" ${ARGN})
+        "INCLUDE_DIRECTORIES;FRAMEWORK_PATHS;SOURCES" ${ARGN})
     if (_arg_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "add_qbs_documentation has unknown arguments: ${_arg_UNPARSED_ARGUMENTS}.")
     endif()
@@ -281,5 +294,6 @@ function(add_qbs_documentation qdocconf_file)
     _qbs_qdoc_build_qdocconf_file(${qdocconf_file} ${_qch_params} ${_qdoc_params}
         INCLUDE_DIRECTORIES ${_arg_INCLUDE_DIRECTORIES}
         FRAMEWORK_PATHS ${_arg_FRAMEWORK_PATHS}
+        SOURCES ${_arg_SOURCES}
         )
 endfunction()
