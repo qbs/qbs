@@ -300,10 +300,9 @@
 
     \QBS can be used not only from the command line, but also in combination
     with an IDE, such as Qt Creator or Visual Studio Code. These IDEs directly
-    support \QBS projects using the new \QBS
-    {https://doc.qt.io/qbs/cli-session.html}{session} feature. Thus, these IDEs
+    support \QBS projects using the new \QBS \l{session} feature. Thus, these IDEs
     can retrieve all the information required to build a single file or project
-    through a session's JSON protocol {https://doc.qt.io/qbs/json-api.html}{API}.
+    through a session's JSON protocol \l{Appendix C: The JSON API}{API}.
 
     In addition, \QBS can generate projects for Visual Studio, IAR EW, and
     Keil uVision, but it still is an experimental option. For more information,
@@ -323,7 +322,7 @@
     \section3 Visual Studio Code
 
     \l{https://code.visualstudio.com/}{Visual Studio Code} provides the
-    {https://marketplace.visualstudio.com/items?itemName=qbs-community.qbs-tools}
+    \l{https://marketplace.visualstudio.com/items?itemName=qbs-community.qbs-tools}
     {qbs-community} plugin that provides accurate information about the build progress
     and displays a project tree that reflects the logical structure of the project.
     Also, it can provide low-level information, such as the file system structure.
