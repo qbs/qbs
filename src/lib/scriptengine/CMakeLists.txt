@@ -105,9 +105,9 @@ if (NOT _USE_SYSTEM_MALLOC)
     )
     list_transform_prepend(SYSTEM_MALLOC_SOURCES "${QT_SCRIPT_PATH}/3rdparty/javascriptcore/JavaScriptCore/")
 
-    list(APPEND QT_SCRIPT_DEFINES "USE_SYSTEM_MALLOC")
 else()
     set(SYSTEM_MALLOC_SOURCES "")
+    list(APPEND QT_SCRIPT_DEFINES "USE_SYSTEM_MALLOC")
 endif()
 
 set(JAVASCRIPT_CORE_SOURCES
