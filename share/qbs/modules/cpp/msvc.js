@@ -386,7 +386,8 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
                            Cpp.collectMiscLinkerArguments(product));
     }
 
-    var allInputs = Cpp.collectLinkerObjectPaths(inputs);
+    var allInputs = [].concat(Cpp.collectLinkerObjectPaths(inputs),
+                              Cpp.collectResourceObjectPaths(inputs));
     args = args.concat([].uniqueConcat(allInputs).map(function(path) {
         return FileInfo.toWindowsSeparators(path);
     }));

@@ -207,7 +207,7 @@ CppModule {
     Rule {
         name: "applicationLinker"
         multiplex: true
-        inputs: ['obj', 'native.pe.manifest', 'def']
+        inputs: ['obj', 'res', 'native.pe.manifest', 'def']
         inputsFromDependencies: ['staticlibrary', 'dynamiclibrary_import', "debuginfo_app"]
 
         outputFileTags: {
@@ -253,7 +253,7 @@ CppModule {
     Rule {
         name: "dynamicLibraryLinker"
         multiplex: true
-        inputs: ['obj', 'native.pe.manifest', 'def']
+        inputs: ['obj', 'res', 'native.pe.manifest', 'def']
         inputsFromDependencies: ['staticlibrary', 'dynamiclibrary_import', "debuginfo_dll"]
 
         outputFileTags: {
@@ -296,7 +296,7 @@ CppModule {
     Rule {
         name: "libtool"
         multiplex: true
-        inputs: ["obj"]
+        inputs: ["obj", "res"]
         inputsFromDependencies: ["staticlibrary", "dynamiclibrary_import"]
         outputFileTags: ["staticlibrary", "debuginfo_cl"]
         outputArtifacts: {
@@ -324,6 +324,10 @@ CppModule {
                 var fileName = FileInfo.toWindowsSeparators(inputs.obj[i].filePath)
                 args.push(fileName)
             }
+            for (var i in inputs.res) {
+                var fileName = FileInfo.toWindowsSeparators(inputs.res[i].filePath)
+                args.push(fileName)
+            }
             var cmd = new Command("lib.exe", args);
             cmd.description = 'creating ' + lib.fileName;
             cmd.highlight = 'linker';
@@ -342,13 +346,8 @@ CppModule {
     Rule {
         inputs: ["rc"]
         auxiliaryInputs: ["hpp"]
-
-        Artifact {
-            filePath: FileInfo.joinPaths(Utilities.getHash(input.baseDir),
-                                         input.completeBaseName + ".res")
-            fileTags: ["obj"]
-        }
-
+        outputFileTags: Cpp.resourceCompilerOutputTags()
+        outputArtifacts: Cpp.resourceCompilerOutputArtifacts(input)
         prepare: {
             // From MSVC 2010 on, the logo can be suppressed.
             var logo = product.cpp.compilerVersionMajor >= 16

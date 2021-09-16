@@ -426,6 +426,7 @@ function linkerFlags(project, product, inputs, outputs, primaryOutput, linkerPat
     args.push("-o", primaryOutput.filePath);
 
     args = args.concat(Cpp.collectLinkerObjectPaths(inputs));
+    args = args.concat(Cpp.collectResourceObjectPaths(inputs));
 
     for (i in frameworks) {
         frameworkExecutablePath = PathTools.frameworkExecutablePath(frameworks[i]);

@@ -33,6 +33,7 @@ import qbs.FileInfo
 import qbs.ModUtils
 import qbs.Utilities
 
+import 'cpp.js' as Cpp
 import "setuprunenv.js" as SetupRunEnv
 
 MingwBaseModule {
@@ -66,13 +67,8 @@ MingwBaseModule {
     Rule {
         inputs: ["rc"]
         auxiliaryInputs: ["hpp"]
-
-        Artifact {
-            filePath: FileInfo.joinPaths(Utilities.getHash(input.baseDir),
-                                         input.completeBaseName + "_res" + input.cpp.objectSuffix)
-            fileTags: ["obj"]
-        }
-
+        outputFileTags: Cpp.resourceCompilerOutputTags()
+        outputArtifacts: Cpp.resourceCompilerOutputArtifacts(input)
         prepare: {
             var platformDefines = input.cpp.platformDefines;
             var defines = input.cpp.defines;
@@ -97,6 +93,7 @@ MingwBaseModule {
                 args.push(systemIncludePaths[i]);
             }
 
+            args.push("-O", "coff"); // Set COFF format explicitly.
             args = args.concat(['-i', input.filePath, '-o', output.filePath]);
             var cmd = new Command(product.cpp.windresPath, args);
             cmd.description = 'compiling ' + input.fileName;

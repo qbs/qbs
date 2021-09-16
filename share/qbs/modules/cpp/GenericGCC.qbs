@@ -397,7 +397,7 @@ CppModule {
         condition: product.cpp.shouldLink
         multiplex: true
         inputs: {
-            var tags = ["obj", "linkerscript", "versionscript"];
+            var tags = ["obj", "res", "linkerscript", "versionscript"];
             if (product.bundle && product.bundle.embedInfoPlist
                     && product.qbs.targetOS.contains("darwin")) {
                 tags.push("aggregate_infoplist");
@@ -471,7 +471,7 @@ CppModule {
         name: "staticLibraryLinker"
         condition: product.cpp.shouldLink
         multiplex: true
-        inputs: ["obj", "linkerscript"]
+        inputs: ["obj", "res", "linkerscript"]
         inputsFromDependencies: ["dynamiclibrary_symbols", "dynamiclibrary_import", "staticlibrary"]
 
         outputFileTags: ["bundle.input", "staticlibrary", "c_staticlibrary", "cpp_staticlibrary"]
@@ -501,6 +501,8 @@ CppModule {
             var args = ['rcs', output.filePath];
             for (var i in inputs.obj)
                 args.push(inputs.obj[i].filePath);
+            for (var i in inputs.res)
+                args.push(inputs.res[i].filePath);
             var cmd = new Command(product.cpp.archiverPath, args);
             cmd.description = 'creating ' + output.fileName;
             cmd.highlight = 'linker'
@@ -515,7 +517,7 @@ CppModule {
         condition: product.cpp.shouldLink
         multiplex: true
         inputs: {
-            var tags = ["obj", "linkerscript"];
+            var tags = ["obj", "res", "linkerscript"];
             if (product.bundle && product.bundle.embedInfoPlist
                     && product.qbs.targetOS.contains("darwin")) {
                 tags.push("aggregate_infoplist");
@@ -560,7 +562,7 @@ CppModule {
         condition: product.cpp.shouldLink
         multiplex: true
         inputs: {
-            var tags = ["obj", "linkerscript"];
+            var tags = ["obj", "res", "linkerscript"];
             if (product.bundle && product.bundle.embedInfoPlist
                     && product.qbs.targetOS.contains("darwin")) {
                 tags.push("aggregate_infoplist");
