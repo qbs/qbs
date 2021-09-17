@@ -158,11 +158,13 @@ function(_qbs_setup_qdoc_targets _qdocconf_file _retval)
 
     if (NOT Python3_Interpreter_FOUND)
         message(WARNING "Cannot find python3 binary. Qbs documentation will not be built.")
+        return()
     endif()
     _find_python_module(lxml)
     _find_python_module(bs4)
     if (NOT PY_LXML OR NOT PY_BS4)
-        message(FATAL_ERROR "Cannot import lxml and bs4 python modules. Qbs documentation will not be built.")
+        message(WARNING "Cannot import lxml and bs4 python modules. Qbs documentation will not be built.")
+        return()
     endif()
 
     set(_fixed_html_artifact "${CMAKE_CURRENT_BINARY_DIR}/qbsdoc.dummy")
@@ -199,6 +201,11 @@ function(_qbs_setup_qhelpgenerator_targets _qdocconf_file _html_outputdir)
         return()
     endif()
 
+    set(_html_target "qbs_html_docs_${_target}")
+    if (NOT TARGET ${_html_target})
+        return()
+    endif()
+
     get_filename_component(_target "${_qdocconf_file}" NAME_WE)
 
     set(_qch_outputdir "${_arg_QCH_DIR}")
@@ -216,7 +223,6 @@ function(_qbs_setup_qhelpgenerator_targets _qdocconf_file _html_outputdir)
         VERBATIM
         )
 
-    set(_html_target "qbs_html_docs_${_target}")
     set(_qch_target "qbs_qch_docs_${_target}")
     add_custom_target("${_qch_target}" DEPENDS "${_qch_artifact}")
     add_dependencies(qbs_qch_docs "${_qch_target}")
