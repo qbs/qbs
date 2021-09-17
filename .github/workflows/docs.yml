@@ -1,0 +1,38 @@
+name: Build and Qbs docs
+
+on:
+  push:
+    paths:
+      - 'doc/**'
+      - 'examples/**'
+      - 'scripts/build-qbs-doc.sh'
+      - 'VERSION'
+
+jobs:
+  build-docs:
+    name: ${{ matrix.config.name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - {
+            name: 'Build Qbs Docs',
+            options: '',
+            script: './scripts/build-qbs-doc.sh'
+          }
+    env:
+      BUILD_OPTIONS: ${{ matrix.config.options }}
+      WITH_TESTS: 0
+    steps:
+    - uses: actions/checkout@v1
+    - name: Pull the Focal Image
+      run: docker-compose pull focal
+    - name: Build Qbs Docs
+      run: docker-compose run focal ${{ matrix.config.script }}
+    - name: Upload artifacts
+      uses: 'actions/upload-artifact@v2'
+      with:
+        name: qbs-docs-${{ github.run_id }}
+        path: documentation/install-root/usr/local/share/doc/qbs/

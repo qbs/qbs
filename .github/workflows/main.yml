@@ -1,6 +1,10 @@
 name: Build and test Qbs
 
-on: [push]
+on:
+  push:
+    paths-ignore:
+      - 'changelogs/**'
+      - 'doc/**'
 
 jobs:
   build-linux:
