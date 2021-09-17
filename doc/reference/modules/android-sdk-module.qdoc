@@ -235,14 +235,16 @@
 
 /*!
     \qmlproperty string Android.sdk::aaptName
+    \since Qbs 1.17
 
     Name of the aapt binary. Allowed options: "aapt" and "aapt2".
 
-    \defaultvalue \c "aapt"
+    \defaultvalue \c "aapt2"
 */
 
 /*!
     \qmlproperty string Android.sdk::packageType
+    \since Qbs 1.17
 
     Type of the package. Allowed options: "apk" and "aab".
     Type "apk" generates a runnable package whereas "aab" generates a package for Google Play.
@@ -251,7 +253,17 @@
 */
 
 /*!
+    \qmlproperty string Android.sdk::dexCompilerName
+    \since Qbs 1.20
+
+    Name of the dex compiler binary. Allowed options: "dx" and "d8".
+
+    \defaultvalue \c "d8"
+*/
+
+/*!
     \qmlproperty string Android.sdk::minimumVersion
+    \since Qbs 1.17
 
     Minimum API Level required for the application to run.
 
@@ -260,6 +272,7 @@
 
 /*!
     \qmlproperty string Android.sdk::targetVersion
+    \since Qbs 1.17
 
     API Level that the application targets.
 
