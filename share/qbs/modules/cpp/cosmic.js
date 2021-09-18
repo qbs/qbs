@@ -189,22 +189,14 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
     var args = [];
 
     // Up to 128 include files.
-    args = args.concat(Cpp.collectPreincludePaths(input).map(function(path) {
-        return input.cpp.preincludeFlag + Cpp.relativePath(product.buildDirectory, path);
-    }));
+    args = args.concat(Cpp.collectPreincludePathsArguments(input));
 
     // Defines.
-    args = args.concat(Cpp.collectDefines(input).map(function(define) {
-        return input.cpp.defineFlag + Cpp.relativePath(product.buildDirectory, define);
-    }));
+    args = args.concat(Cpp.collectDefinesArguments(input));
 
     // Up to 128 include paths.
-    args = args.concat(Cpp.collectIncludePaths(input).map(function(path) {
-        return input.cpp.includeFlag + Cpp.relativePath(product.buildDirectory, path);
-    }));
-    args = args.concat(Cpp.collectSystemIncludePaths(input).map(function(path) {
-        return input.cpp.systemIncludeFlag + Cpp.relativePath(product.buildDirectory, path);
-    }));
+    args = args.concat(Cpp.collectIncludePathsArguments(input));
+    args = args.concat(Cpp.collectSystemIncludePathsArguments(input));
 
     // Debug information flags.
     if (input.cpp.debugInformation)
@@ -239,16 +231,14 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
     }
 
     // Objects output directory.
-    args.push("-co", Cpp.relativePath(product.buildDirectory,
-                                      FileInfo.path(outputs.obj[0].filePath)));
+    args.push("-co", FileInfo.path(outputs.obj[0].filePath));
 
     // Listing files generation flag.
     if (input.cpp.generateCompilerListingFiles) {
         // Enable listings.
         args.push("-l");
         // Listings output directory.
-        args.push("-cl", Cpp.relativePath(product.buildDirectory,
-                                          FileInfo.path(outputs.lst[0].filePath)));
+        args.push("-cl", FileInfo.path(outputs.lst[0].filePath));
     }
 
     // Misc flags.
@@ -256,7 +246,7 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
                        Cpp.collectMiscDriverArguments(product));
 
     // Input.
-    args.push(Cpp.relativePath(product.buildDirectory, input.filePath));
+    args.push(input.filePath);
     return args;
 }
 
@@ -264,12 +254,8 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
     var args = [];
 
     // Up to 128 include paths.
-    args = args.concat(Cpp.collectIncludePaths(input).map(function(path) {
-        return input.cpp.includeFlag + Cpp.relativePath(product.buildDirectory, path);
-    }));
-    args = args.concat(Cpp.collectSystemIncludePaths(input).map(function(path) {
-        return input.cpp.systemIncludeFlag + Cpp.relativePath(product.buildDirectory, path);
-    }));
+    args = args.concat(Cpp.collectIncludePathsArguments(input));
+    args = args.concat(Cpp.collectSystemIncludePathsArguments(input));
 
     // Debug information flags.
     if (input.cpp.debugInformation)
@@ -281,14 +267,14 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
     // Listing files generation flag.
     if (input.cpp.generateAssemblerListingFiles) {
         args.push("-l");
-        args.push("+l", Cpp.relativePath(product.buildDirectory, outputs.lst[0].filePath));
+        args.push("+l", outputs.lst[0].filePath);
     }
 
     // Objects output file path.
-    args.push("-o", Cpp.relativePath(product.buildDirectory, outputs.obj[0].filePath));
+    args.push("-o", outputs.obj[0].filePath);
 
     // Input.
-    args.push(Cpp.relativePath(product.buildDirectory, input.filePath));
+    args.push(input.filePath);
     return args;
 }
 
@@ -297,15 +283,18 @@ function linkerFlags(project, product, inputs, outputs) {
 
     // Library paths.
     args = args.concat(Cpp.collectLibraryPaths(product).map(function(path) {
+        // It is workaround to use the relative paths avoids a strange linking
+        // errors. Maybe it is related to the limitations on the length of the
+        // command arguments, or on the length of the paths.
         return product.cpp.libraryPathFlag + Cpp.relativePath(product.buildDirectory, path);
     }));
 
     // Output.
-    args.push("-o", Cpp.relativePath(product.buildDirectory, outputs.application[0].filePath));
+    args.push("-o", outputs.application[0].filePath);
 
     // Map file generation flag.
     if (product.cpp.generateLinkerMapFile)
-        args.push("-m", Cpp.relativePath(product.buildDirectory, outputs.mem_map[0].filePath));
+        args.push("-m", outputs.mem_map[0].filePath);
 
     // Misc flags.
     args = args.concat(Cpp.collectMiscEscapableLinkerArguments(product),
@@ -313,17 +302,16 @@ function linkerFlags(project, product, inputs, outputs) {
                        Cpp.collectMiscDriverArguments(product));
 
     // Linker scripts.
-    args = args.concat(Cpp.collectLinkerScriptPaths(inputs).map(function(path) {
-        return product.cpp.linkerScriptFlag + Cpp.relativePath(product.buildDirectory, path);
-    }));
+    args = args.concat(Cpp.collectLinkerScriptPathsArguments(product, inputs));
 
     // Input objects.
-    args = args.concat(Cpp.collectLinkerObjectPaths(inputs).map(function(path) {
-        return Cpp.relativePath(product.buildDirectory, path);
-    }));
+    args = args.concat(Cpp.collectLinkerObjectPaths(inputs));
 
     // Library dependencies (order has matters).
     args = args.concat(Cpp.collectLibraryDependencies(product).map(function(dep) {
+        // It is workaround to use the relative paths avoids a strange linking
+        // errors. Maybe it is related to the limitations on the length of the
+        // command arguments, or on the length of the paths.
         return Cpp.relativePath(product.buildDirectory, dep.filePath);
     }));
 
@@ -334,13 +322,10 @@ function archiverFlags(project, product, inputs, outputs) {
     var args = ["-cl"];
 
     // Output.
-    args.push(Cpp.relativePath(product.buildDirectory, outputs.staticlibrary[0].filePath));
+    args.push(outputs.staticlibrary[0].filePath);
 
     // Input objects.
-    args = args.concat(Cpp.collectLinkerObjectPaths(inputs).map(function(path) {
-        return Cpp.relativePath(product.buildDirectory, path);
-    }));
-
+    args = args.concat(Cpp.collectLinkerObjectPaths(inputs));
     return args;
 }
 
