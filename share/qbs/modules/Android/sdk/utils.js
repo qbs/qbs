@@ -393,7 +393,8 @@ function prepareBundletoolPackage(project, product, inputs, outputs, input, outp
     args.push("--modules=" + baseFilePath);
     args.push("--output=" + aabFilePath);
     var cmd = new Command(product.java.interpreterFilePath, args);
-    cmd.description = "generating " + aabFilePath.fileName;
+    var aabFileName = outputs["android.package_unsigned"][0].fileName;
+    cmd.description = "generating " + aabFileName;
     cmds.push(cmd);
 
     return cmds;
