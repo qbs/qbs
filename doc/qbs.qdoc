@@ -912,7 +912,7 @@
     For example, a profile for building C++ applications contains at least the
     installation path and the type of the compiler toolchain. A profile for
     building Qt applications contains the toolchain-specific properties as well
-    as \l{Qt-specific Module Provider Properties}{the path to the Qt installation}.
+    as \l{Qt::qmakeFilePaths}{the path to the Qt installation}.
 
     This topic describes profiles stored in the \QBS settings. In some cases it
     might be beneficial to keep profiles explicitly in the project sources. This
