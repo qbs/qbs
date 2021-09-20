@@ -4,8 +4,9 @@ Project {
     property bool removeDuplicates
     property string libDir: buildDirectory + "/lib"
     property bool dummy: {
+        // most BSD systems (including macOS) use LLVM linker now
         console.info("is bfd linker: "
-                     + (qbs.toolchain.contains("gcc") && !qbs.hostOS.contains("macos")))
+                     + (qbs.toolchain.contains("gcc") && !qbs.hostOS.contains("bsd")))
     }
 
     qbsSearchPaths: "."
