@@ -945,7 +945,7 @@ function prepareAssembler(project, product, inputs, outputs, input, output) {
 
     args = args.concat(Cpp.collectMiscAssemblerArguments(input, "asm"));
     args = args.concat(Cpp.collectIncludePathsArguments(input));
-    args = args.concat(Cpp.collectSystemIncludePathsArguments(input));
+    args = args.concat(Cpp.collectSystemIncludePathsArguments(input, input.cpp.includeFlag));
 
     args.push("-o", output.filePath);
     args.push(input.filePath);
