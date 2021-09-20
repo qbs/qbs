@@ -1472,6 +1472,28 @@ function dumpDefaultPaths(env, compilerFilePath, args, nullDevice, pathListSepar
     }
 }
 
+function targetLinkerFlags(targetArch, targetOS) {
+    var linkerFlags = {
+        "windows": {
+            "i386": "i386pe",
+            "x86_64": "i386pep",
+        },
+        "freebsd": {
+            "i386": "elf_i386_fbsd",
+            "x86_64": "elf_x86_64_fbsd",
+        },
+        "other": {
+            "i386": "elf_i386",
+            "x86_64": "elf_x86_64",
+        }
+    };
+    if (targetOS.contains("windows"))
+        return linkerFlags["windows"][targetArch];
+    else if (targetOS.contains("freebsd"))
+        return linkerFlags["freebsd"][targetArch];
+    return linkerFlags["other"][targetArch];
+}
+
 function targetFlags(tool, hasTargetOption, target, targetArch, machineType, targetOS) {
     var args = [];
     if (hasTargetOption) {
@@ -1484,8 +1506,8 @@ function targetFlags(tool, hasTargetOption, target, targetArch, machineType, tar
                 "x86_64": ["-m64"],
             },
             "linker": {
-                "i386": ["-m", targetOS.contains("windows") ? "i386pe" : "elf_i386"],
-                "x86_64": ["-m", targetOS.contains("windows") ? "i386pep" : "elf_x86_64"],
+                "i386": ["-m", targetLinkerFlags("i386", targetOS)],
+                "x86_64": ["-m", targetLinkerFlags("x86_64", targetOS)],
             },
             "assembler": {
                 "i386": ["--32"],
