@@ -53,23 +53,28 @@ function getQmakeFilePaths(qmakeFilePaths, qbs) {
     if (qmakeFilePaths && qmakeFilePaths.length > 0)
         return qmakeFilePaths;
     console.info("Detecting Qt installations...");
-    var pathValue = Environment.getEnv("PATH");
-    if (!pathValue)
-        return [];
-    var dirs = splitNonEmpty(pathValue, qbs.pathListSeparator);
-    var suffix = exeSuffix(qbs);
     var filePaths = [];
-    for (var i = 0; i < dirs.length; ++i) {
-        var candidate = FileInfo.joinPaths(dirs[i], "qmake" + suffix);
-        var canonicalCandidate = FileInfo.canonicalPath(candidate);
-        if (!canonicalCandidate || !File.exists(canonicalCandidate))
-            continue;
-        if (FileInfo.completeBaseName(canonicalCandidate) !== "qtchooser")
-            candidate = canonicalCandidate;
-        if (!filePaths.contains(candidate)) {
-            console.info("Found Qt at '" + toNative(candidate) + "'.");
-            filePaths.push(candidate);
+    var pathValue = Environment.getEnv("PATH");
+    if (pathValue) {
+        var dirs = splitNonEmpty(pathValue, qbs.pathListSeparator);
+        var suffix = exeSuffix(qbs);
+        for (var i = 0; i < dirs.length; ++i) {
+            var candidate = FileInfo.joinPaths(dirs[i], "qmake" + suffix);
+            var canonicalCandidate = FileInfo.canonicalPath(candidate);
+            if (!canonicalCandidate || !File.exists(canonicalCandidate))
+                continue;
+            if (FileInfo.completeBaseName(canonicalCandidate) !== "qtchooser")
+                candidate = canonicalCandidate;
+            if (!filePaths.contains(candidate)) {
+                console.info("Found Qt at '" + toNative(candidate) + "'.");
+                filePaths.push(candidate);
+            }
         }
+    }
+    if (filePaths.length === 0) {
+        console.warn("Could not find any qmake executables in PATH. Either make sure a qmake "
+        + "executable is present in PATH or set the moduleProviders.Qt.qmakeFilePaths property "
+        + "to point a qmake executable.");
     }
     return filePaths;
 }
