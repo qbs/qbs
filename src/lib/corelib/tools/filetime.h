@@ -47,7 +47,12 @@
 
 #if defined(Q_OS_UNIX) && !defined(__APPLE__)
 #include <time.h>
-#define HAS_CLOCK_GETTIME (_POSIX_C_SOURCE >= 199309L)
+#  if defined(Q_OS_FREEBSD)
+// FreeBSD 9.0 and above supports m_tim
+#    define HAS_CLOCK_GETTIME (__FreeBSD_version >= 900000)
+#  else
+#    define HAS_CLOCK_GETTIME (_POSIX_C_SOURCE >= 199309L)
+#  endif
 #endif // Q_OS_UNIX
 
 #ifdef __APPLE__
