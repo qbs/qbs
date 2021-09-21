@@ -45,27 +45,11 @@
 #include <QtCore/qdatastream.h>
 #include <QtCore/qdebug.h>
 
-#if defined(Q_OS_UNIX) && !defined(__APPLE__)
+#if defined(Q_OS_UNIX)
 #include <time.h>
-#  if defined(Q_OS_FREEBSD)
-// FreeBSD 9.0 and above supports m_tim
-#    define HAS_CLOCK_GETTIME (__FreeBSD_version >= 900000)
-#  else
-#    define HAS_CLOCK_GETTIME (_POSIX_C_SOURCE >= 199309L)
-#  endif
 #endif // Q_OS_UNIX
 
 #ifdef __APPLE__
-
-#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101200
-// macOS 10.12+ ships clock_gettime.
-#else
-// We implement our own clock_gettime.
-#define APPLE_CUSTOM_CLOCK_GETTIME 1
-#endif // __MAC_OS_X_VERSION_MIN_REQUIRED
-
-// Either way we have a clock_gettime in the end.
-#define HAS_CLOCK_GETTIME 1
 
 // Apple stat struct has slightly different names for time fields.
 #define APPLE_STAT_TIMESPEC 1
@@ -79,11 +63,7 @@ class QBS_AUTOTEST_EXPORT FileTime
 {
 public:
 #if defined(Q_OS_UNIX)
-#if HAS_CLOCK_GETTIME
     using InternalType = timespec;
-#else
-    using InternalType = time_t;
-#endif // HAS_CLOCK_GETTIME
 #elif defined(Q_OS_WIN)
     using InternalType = quint64;
 #else
@@ -112,7 +92,7 @@ public:
 
     template<PersistentPool::OpType opType> void completeSerializationOp(PersistentPool &pool)
     {
-#if HAS_CLOCK_GETTIME
+#if !defined(Q_OS_WIN)
         pool.serializationOp<opType>(m_fileTime.tv_sec, m_fileTime.tv_nsec);
 #else
         pool.serializationOp<opType>(m_fileTime);

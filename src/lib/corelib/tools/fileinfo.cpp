@@ -354,10 +354,8 @@ FileTime FileInfo::lastModified() const
 {
 #if APPLE_STAT_TIMESPEC
     return m_stat.st_mtimespec;
-#elif HAS_CLOCK_GETTIME
-    return m_stat.st_mtim;
 #else
-    return m_stat.st_mtime;
+    return m_stat.st_mtim;
 #endif
 }
 
@@ -365,10 +363,8 @@ FileTime FileInfo::lastStatusChange() const
 {
 #if APPLE_STAT_TIMESPEC
     return m_stat.st_ctimespec;
-#elif HAS_CLOCK_GETTIME
-    return m_stat.st_ctim;
 #else
-    return m_stat.st_ctime;
+    return m_stat.st_ctim;
 #endif
 }
 

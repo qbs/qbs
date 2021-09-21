@@ -50,23 +50,32 @@
 namespace qbs {
 namespace Internal {
 
-#ifdef APPLE_CUSTOM_CLOCK_GETTIME
-#include <sys/time.h>
+#if !defined(Q_OS_WIN)
 
-#ifndef CLOCK_REALTIME
-#define CLOCK_REALTIME 0
-#endif
-
-// clk_id isn't used, only the CLOCK_REALTIME case is implemented.
-int clock_gettime(int /*clk_id*/, struct timespec *t)
+// based on https://github.com/qt/qtbase/blob/5.13/src/corelib/kernel/qelapsedtimer_unix.cpp
+// for details why it is implemented this way, see Qt source code
+#  if !defined(CLOCK_REALTIME)
+#    define CLOCK_REALTIME 0
+static inline void qbs_clock_gettime(int, struct timespec *ts)
 {
+    // support clock_gettime with gettimeofday
     struct timeval tv;
-    // Resolution of gettimeofday is 1000nsecs = 1 microsecond.
-    int ret = gettimeofday(&tv, NULL);
-    t->tv_sec  = tv.tv_sec;
-    t->tv_nsec = tv.tv_usec * 1000;
-    return ret;
+    gettimeofday(&tv, 0);
+    ts->tv_sec = tv.tv_sec;
+    ts->tv_nsec = tv.tv_usec * 1000;
 }
+
+#    ifdef _POSIX_MONOTONIC_CLOCK
+#      undef _POSIX_MONOTONIC_CLOCK
+#      define _POSIX_MONOTONIC_CLOCK -1
+#    endif
+#  else
+static inline void qbs_clock_gettime(clockid_t clock, struct timespec *ts)
+{
+    clock_gettime(clock, ts);
+}
+#  endif
+
 #endif
 
 FileTime::FileTime()
@@ -75,16 +84,14 @@ FileTime::FileTime()
     static_assert(sizeof(FileTime::InternalType) == sizeof(FILETIME),
                   "FileTime::InternalType has wrong size.");
     m_fileTime = 0;
-#elif HAS_CLOCK_GETTIME
-    m_fileTime = {0, 0};
 #else
-    m_fileTime = 0;
+    m_fileTime = {0, 0};
 #endif
 }
 
 FileTime::FileTime(const FileTime::InternalType &ft) : m_fileTime(ft)
 {
-#if HAS_CLOCK_GETTIME
+#if !defined(Q_OS_WIN)
     if (m_fileTime.tv_sec == 0)
         m_fileTime.tv_nsec = 0; // stat() sets only the first member to 0 for non-existing files.
 #endif
@@ -96,7 +103,7 @@ int FileTime::compare(const FileTime &other) const
     auto const t1 = reinterpret_cast<const FILETIME *>(&m_fileTime);
     auto const t2 = reinterpret_cast<const FILETIME *>(&other.m_fileTime);
     return CompareFileTime(t1, t2);
-#elif HAS_CLOCK_GETTIME
+#else
     if (m_fileTime.tv_sec < other.m_fileTime.tv_sec)
         return -1;
     if (m_fileTime.tv_sec > other.m_fileTime.tv_sec)
@@ -106,18 +113,12 @@ int FileTime::compare(const FileTime &other) const
     if (m_fileTime.tv_nsec > other.m_fileTime.tv_nsec)
         return 1;
     return 0;
-#else
-    if (m_fileTime < other.m_fileTime)
-        return -1;
-    if (m_fileTime > other.m_fileTime)
-        return 1;
-    return 0;
 #endif
 }
 
 void FileTime::clear()
 {
-#if HAS_CLOCK_GETTIME
+#if !defined(Q_OS_WIN)
     m_fileTime = { 0, 0 };
 #else
     m_fileTime = 0;
@@ -138,19 +139,10 @@ FileTime FileTime::currentTime()
     auto const ft = reinterpret_cast<FILETIME *>(&result.m_fileTime);
     SystemTimeToFileTime(&st, ft);
     return result;
-#elif defined APPLE_CUSTOM_CLOCK_GETTIME
-    InternalType t;
-    // Explicitly use our custom version, so that we don't get an additional unresolved symbol on a
-    // system that actually provides one, but isn't used due to the minimium deployment target
-    // being lower.
-    qbs::Internal::clock_gettime(CLOCK_REALTIME, &t);
-    return t;
-#elif HAS_CLOCK_GETTIME
-    InternalType t;
-    clock_gettime(CLOCK_REALTIME, &t);
-    return t;
 #else
-    return time(nullptr);
+    InternalType t;
+    qbs_clock_gettime(CLOCK_REALTIME, &t);
+    return t;
 #endif
 }
 
@@ -171,16 +163,14 @@ FileTime FileTime::oldestTime()
     auto const ft = reinterpret_cast<FILETIME *>(&result.m_fileTime);
     SystemTimeToFileTime(&st, ft);
     return result;
-#elif HAS_CLOCK_GETTIME
-    return FileTime({1, 0});
 #else
-    return 1;
+    return FileTime({1, 0});
 #endif
 }
 
 double FileTime::asDouble() const
 {
-#if HAS_CLOCK_GETTIME
+#if !defined(Q_OS_WIN)
     return static_cast<double>(m_fileTime.tv_sec);
 #else
     return static_cast<double>(m_fileTime);
@@ -200,11 +190,7 @@ QString FileTime::toString() const
     return result;
 #else
     QDateTime dt;
-#if HAS_CLOCK_GETTIME
-   dt.setMSecsSinceEpoch(m_fileTime.tv_sec * 1000 + m_fileTime.tv_nsec / 1000000);
-#else
-    dt.setTime_t(m_fileTime);
-#endif
+    dt.setMSecsSinceEpoch(m_fileTime.tv_sec * 1000 + m_fileTime.tv_nsec / 1000000);
     return dt.toString(Qt::ISODateWithMs);
 #endif
 }
