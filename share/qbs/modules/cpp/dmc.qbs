@@ -88,11 +88,9 @@ CppModule {
     runtimeLibrary: "dynamic"
 
     staticLibrarySuffix: ".lib"
-    dynamicLibraryImportSuffix: ".lib"
     dynamicLibrarySuffix: ".dll"
     executableSuffix: ".exe"
     objectSuffix: ".obj"
-    resourceSuffix: ".res"
 
     imageFormat: "pe"
 

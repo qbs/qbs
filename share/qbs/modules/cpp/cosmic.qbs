@@ -86,8 +86,6 @@ CppModule {
     staticLibrarySuffix: toolchainDetails.staticLibrarySuffix
     executableSuffix: toolchainDetails.executableSuffix
 
-    property string objectSuffix: ".o"
-
     imageFormat: "cosmic"
 
     enableExceptions: false
