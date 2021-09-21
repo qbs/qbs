@@ -338,6 +338,10 @@
         \li 16-bit compact RISC architecture microcontroller family
             developed by National Semiconductor
     \row
+        \li \c{"e2k"}
+        \li 512-bit Russian wide VLIW microprocessor developed by Moscow Center
+            of SPARC Technologies (MCST) and fabricated by TSMC
+    \row
         \li \c{"hcs8"}
         \li 8-bit HC08 and S08 microcontroller family from Freescale Semiconductor
     \row
