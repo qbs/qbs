@@ -311,6 +311,7 @@ Module {
             }
         ]
         prepare: {
+            var cmds = [];
             var copyCmd = new JavaScriptCommand();
             copyCmd.description = "copying Qt resource templates";
             copyCmd.sourceCode = function() {
@@ -337,6 +338,8 @@ Module {
                     }
                 }
             };
+            cmds.push(copyCmd);
+
             var androidDeployQtArgs = [
                 "--output", product.Qt.android_support._deployQtOutDir,
                 "--input", inputs["qt_androiddeployqt_input"][0].filePath, "--aux-mode",
@@ -348,6 +351,7 @@ Module {
             var androidDeployQtCmd = new Command(
                         product.Qt.android_support._androidDeployQtFilePath, androidDeployQtArgs);
             androidDeployQtCmd.description = "running androiddeployqt";
+            cmds.push(androidDeployQtCmd);
 
             // We do not want androiddeployqt to write directly into our APK base dir, so
             // we ran it on an isolated directory and now we move stuff over.
@@ -355,7 +359,7 @@ Module {
             // of androiddeployqt creates fewer files, the other ones are removed from
             // the APK base dir.
             var moveCmd = new JavaScriptCommand();
-            moveCmd.description = "processing androiddeployqt outout";
+            moveCmd.description = "processing androiddeployqt output";
             moveCmd.sourceCode = function() {
                 File.makePath(product.java.classFilesDir);
                 var libsDir = product.Qt.android_support._deployQtOutDir + "/libs";
@@ -401,6 +405,34 @@ Module {
                         File.remove(oldLibs[i]);
                 }
             };
+            cmds.push(moveCmd);
+
+            // androiddeployqt doesn't strip the deployed libraries anymore so it has to done here
+            // but only for release build
+            if (product.qbs.buildVariant == "release") {
+                var stripLibsCmd = new JavaScriptCommand();
+                stripLibsCmd.description = "stripping unneeded symbols from deployed qt libraries";
+                stripLibsCmd.sourceCode = function() {
+                    var stripArgs = ["--strip-all"];
+                    var architectures = [];
+                    for (var i in inputs["android.nativelibrary"])
+                        architectures.push(inputs["android.nativelibrary"][i].Android.ndk.abi);
+                    for (var i in architectures) {
+                        var abiDirPath = FileInfo.joinPaths(product.Android.sdk.packageContentsDir,
+                                                            "lib", architectures[i]);
+                        var files = File.directoryEntries(abiDirPath, File.Files);
+                        for (var i = 0; i < files.length; ++i) {
+                            var filePath = FileInfo.joinPaths(abiDirPath, files[i]);
+                            if (FileInfo.suffix(filePath) == "so") {
+                                stripArgs.push(filePath);
+                            }
+                        }
+                    }
+                    var process = new Process();
+                    process.exec(product.cpp.stripPath, stripArgs, false);
+                }
+                cmds.push(stripLibsCmd);
+            }
 
             var correctingCmd = new JavaScriptCommand();
             if (product.Qt.android_support._correctQtNetworkDependencies) {
@@ -471,8 +503,9 @@ Module {
                               outputs["android.manifest_final"][0].filePath);
                 }
             }
+            cmds.push(correctingCmd);
 
-            return [copyCmd, androidDeployQtCmd, moveCmd, correctingCmd];
+            return cmds;
         }
     }
 
