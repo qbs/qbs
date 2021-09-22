@@ -50,7 +50,82 @@
 namespace qbs {
 namespace Internal {
 
-#if !defined(Q_OS_WIN)
+#if defined(Q_OS_WIN)
+
+FileTime::FileTime()
+{
+    static_assert(sizeof(FileTime::InternalType) == sizeof(FILETIME),
+                  "FileTime::InternalType has wrong size.");
+    m_fileTime = 0;
+}
+
+FileTime::FileTime(const FileTime::InternalType &ft) : m_fileTime(ft)
+{
+}
+
+int FileTime::compare(const FileTime &other) const
+{
+    auto const t1 = reinterpret_cast<const FILETIME *>(&m_fileTime);
+    auto const t2 = reinterpret_cast<const FILETIME *>(&other.m_fileTime);
+    return CompareFileTime(t1, t2);
+}
+
+void FileTime::clear()
+{
+    m_fileTime = 0;
+}
+
+bool FileTime::isValid() const
+{
+    return *this != FileTime();
+}
+
+FileTime FileTime::currentTime()
+{
+    FileTime result;
+    SYSTEMTIME st;
+    GetSystemTime(&st);
+    auto const ft = reinterpret_cast<FILETIME *>(&result.m_fileTime);
+    SystemTimeToFileTime(&st, ft);
+    return result;
+}
+
+FileTime FileTime::oldestTime()
+{
+    SYSTEMTIME st = {
+        1601,
+        1,
+        5,
+        2,
+        0,
+        0,
+        0,
+        0
+    };
+    FileTime result;
+    auto const ft = reinterpret_cast<FILETIME *>(&result.m_fileTime);
+    SystemTimeToFileTime(&st, ft);
+    return result;
+}
+
+double FileTime::asDouble() const
+{
+    return static_cast<double>(m_fileTime);
+}
+
+QString FileTime::toString() const
+{
+    auto const ft = reinterpret_cast<const FILETIME *>(&m_fileTime);
+    SYSTEMTIME stUTC, stLocal;
+    FileTimeToSystemTime(ft, &stUTC);
+    SystemTimeToTzSpecificLocalTime(NULL, &stUTC, &stLocal);
+    const QString result = QStringLiteral("%1.%2.%3 %4:%5:%6")
+            .arg(stLocal.wDay, 2, 10, QLatin1Char('0')).arg(stLocal.wMonth, 2, 10, QLatin1Char('0')).arg(stLocal.wYear)
+            .arg(stLocal.wHour, 2, 10, QLatin1Char('0')).arg(stLocal.wMinute, 2, 10, QLatin1Char('0')).arg(stLocal.wSecond, 2, 10, QLatin1Char('0'));
+    return result;
+}
+
+#else // defined(Q_OS_WIN)
 
 // based on https://github.com/qt/qtbase/blob/5.13/src/corelib/kernel/qelapsedtimer_unix.cpp
 // for details why it is implemented this way, see Qt source code
@@ -76,34 +151,19 @@ static inline void qbs_clock_gettime(clockid_t clock, struct timespec *ts)
 }
 #  endif
 
-#endif
-
 FileTime::FileTime()
 {
-#ifdef Q_OS_WIN
-    static_assert(sizeof(FileTime::InternalType) == sizeof(FILETIME),
-                  "FileTime::InternalType has wrong size.");
-    m_fileTime = 0;
-#else
     m_fileTime = {0, 0};
-#endif
 }
 
 FileTime::FileTime(const FileTime::InternalType &ft) : m_fileTime(ft)
 {
-#if !defined(Q_OS_WIN)
     if (m_fileTime.tv_sec == 0)
         m_fileTime.tv_nsec = 0; // stat() sets only the first member to 0 for non-existing files.
-#endif
 }
 
 int FileTime::compare(const FileTime &other) const
 {
-#ifdef Q_OS_WIN
-    auto const t1 = reinterpret_cast<const FILETIME *>(&m_fileTime);
-    auto const t2 = reinterpret_cast<const FILETIME *>(&other.m_fileTime);
-    return CompareFileTime(t1, t2);
-#else
     if (m_fileTime.tv_sec < other.m_fileTime.tv_sec)
         return -1;
     if (m_fileTime.tv_sec > other.m_fileTime.tv_sec)
@@ -113,16 +173,11 @@ int FileTime::compare(const FileTime &other) const
     if (m_fileTime.tv_nsec > other.m_fileTime.tv_nsec)
         return 1;
     return 0;
-#endif
 }
 
 void FileTime::clear()
 {
-#if !defined(Q_OS_WIN)
     m_fileTime = { 0, 0 };
-#else
-    m_fileTime = 0;
-#endif
 }
 
 bool FileTime::isValid() const
@@ -132,68 +187,29 @@ bool FileTime::isValid() const
 
 FileTime FileTime::currentTime()
 {
-#ifdef Q_OS_WIN
-    FileTime result;
-    SYSTEMTIME st;
-    GetSystemTime(&st);
-    auto const ft = reinterpret_cast<FILETIME *>(&result.m_fileTime);
-    SystemTimeToFileTime(&st, ft);
-    return result;
-#else
     InternalType t;
     qbs_clock_gettime(CLOCK_REALTIME, &t);
     return t;
-#endif
 }
 
 FileTime FileTime::oldestTime()
 {
-#ifdef Q_OS_WIN
-    SYSTEMTIME st = {
-        1601,
-        1,
-        5,
-        2,
-        0,
-        0,
-        0,
-        0
-    };
-    FileTime result;
-    auto const ft = reinterpret_cast<FILETIME *>(&result.m_fileTime);
-    SystemTimeToFileTime(&st, ft);
-    return result;
-#else
     return FileTime({1, 0});
-#endif
 }
 
 double FileTime::asDouble() const
 {
-#if !defined(Q_OS_WIN)
     return static_cast<double>(m_fileTime.tv_sec);
-#else
-    return static_cast<double>(m_fileTime);
-#endif
 }
 
 QString FileTime::toString() const
 {
-#ifdef Q_OS_WIN
-    auto const ft = reinterpret_cast<const FILETIME *>(&m_fileTime);
-    SYSTEMTIME stUTC, stLocal;
-    FileTimeToSystemTime(ft, &stUTC);
-    SystemTimeToTzSpecificLocalTime(NULL, &stUTC, &stLocal);
-    const QString result = QStringLiteral("%1.%2.%3 %4:%5:%6")
-            .arg(stLocal.wDay, 2, 10, QLatin1Char('0')).arg(stLocal.wMonth, 2, 10, QLatin1Char('0')).arg(stLocal.wYear)
-            .arg(stLocal.wHour, 2, 10, QLatin1Char('0')).arg(stLocal.wMinute, 2, 10, QLatin1Char('0')).arg(stLocal.wSecond, 2, 10, QLatin1Char('0'));
-    return result;
-#else
     QDateTime dt;
     dt.setMSecsSinceEpoch(m_fileTime.tv_sec * 1000 + m_fileTime.tv_nsec / 1000000);
     return dt.toString(Qt::ISODateWithMs);
-#endif
 }
+
+#endif // defined(Q_OS_WIN)
 
 } // namespace Internal
 } // namespace qbs
