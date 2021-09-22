@@ -96,6 +96,17 @@ services:
       dockerfile: docker/focal/test-qt4.Dockerfile
       context: .
 
+  leap:
+    << : *linux
+    hostname: leap
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:leap-5.15.2_1.19.2-0
+    build:
+      dockerfile: docker/leap/Dockerfile
+      context: .
+      args:
+        QT_VERSION: 5.15.2
+        QTCREATOR_VERSION: 4.15.2
+
   windows:
     image: ${DOCKER_USER:-qbsbuild}/qbsdev:windowsservercore-5.15.0_1.18.2-0
     build:
