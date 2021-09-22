@@ -389,12 +389,25 @@ function prepareBundletoolPackage(project, product, inputs, outputs, input, outp
     }
     cmds.push(removeCmd);
 
+    var bundleConfigFilePath = FileInfo.joinPaths(product.buildDirectory, "BundleConfig.json");
+    var createBundleConfigCmd = new JavaScriptCommand();
+    createBundleConfigCmd.description = "create BundleConfig.json";
+    createBundleConfigCmd.filePath = bundleConfigFilePath;
+    createBundleConfigCmd.sourceCode = function() {
+        var bc = new TextFile(filePath, TextFile.WriteOnly);
+        bc.writeLine('{"optimizations": {');
+        bc.writeLine('"uncompress_native_libraries": {');
+        bc.writeLine('"enabled": false');
+        bc.writeLine('}}}');
+    }
+    cmds.push(createBundleConfigCmd);
+
     var args = ["-jar", product.Android.sdk.bundletoolFilePath, "build-bundle"];
     args.push("--modules=" + baseFilePath);
     args.push("--output=" + aabFilePath);
+    args.push("--config=" + bundleConfigFilePath);
     var cmd = new Command(product.java.interpreterFilePath, args);
-    var aabFileName = outputs["android.package_unsigned"][0].fileName;
-    cmd.description = "generating " + aabFileName;
+    cmd.description = "generating " + aabFilePath.fileName;
     cmds.push(cmd);
 
     return cmds;
