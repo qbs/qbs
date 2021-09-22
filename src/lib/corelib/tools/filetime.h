@@ -49,13 +49,6 @@
 #include <time.h>
 #endif // Q_OS_UNIX
 
-#ifdef __APPLE__
-
-// Apple stat struct has slightly different names for time fields.
-#define APPLE_STAT_TIMESPEC 1
-
-#endif // __APPLE__
-
 namespace qbs {
 namespace Internal {
 

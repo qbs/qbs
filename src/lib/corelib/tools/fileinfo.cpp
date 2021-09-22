@@ -337,6 +337,67 @@ QString applicationDirPath()
 
 #elif defined(Q_OS_UNIX)
 
+namespace GetFileTimes {
+
+enum TimeType { LastModified, LastStatusChanged };
+
+// SFINAE magic inspired by
+// https://github.com/qt/qtbase/blob/5.13/src/corelib/io/qfilesystemengine_unix.cpp
+template<
+        TimeType type,
+        typename T,
+        std::enable_if_t<(&T::st_mtim, &T::st_ctim, true), int> = 0>
+static inline FileTime get(const T &stat)
+{
+    if constexpr (type == LastModified)
+        return stat.st_mtim;
+    else if constexpr (type == LastStatusChanged)
+        return stat.st_ctim;
+}
+
+// we are interested in real members, not compatibility macros
+#  if defined(st_mtimespec)
+#    undef st_mtimespec
+#  endif
+
+#  if defined(st_ctimespec)
+#    undef st_ctimespec
+#  endif
+
+template<
+        TimeType type,
+        typename T,
+        std::enable_if_t<(&T::st_mtimespec, &T::st_ctimespec, true), int> = 0>
+static inline FileTime get(const T &stat)
+{
+    if constexpr (type == LastModified)
+        return stat.st_mtimespec;
+    else if constexpr (type == LastStatusChanged)
+        return stat.st_ctimespec;
+}
+
+#  if defined(st_mtimensec)
+#    undef st_mtimensec
+#  endif
+
+#  if defined(st_ctimensec)
+#    undef st_ctimensec
+#  endif
+
+template<
+        TimeType type,
+        typename T,
+        std::enable_if_t<(&T::st_mtimensec, &T::st_ctimensec, true), int> = 0>
+static inline FileTime get(const T &stat)
+{
+    if constexpr (type == LastModified)
+        return FileTime::InternalType{stat.st_mtime, stat.st_mtimensec};
+    else if constexpr (type == LastStatusChanged)
+        return FileTime::InternalType{stat.st_ctime, stat.st_ctimensec};
+}
+
+} // namespace GetFileTimes
+
 FileInfo::FileInfo(const QString &fileName)
 {
     if (stat(fileName.toLocal8Bit().constData(), &m_stat) == -1) {
@@ -352,20 +413,12 @@ bool FileInfo::exists() const
 
 FileTime FileInfo::lastModified() const
 {
-#if APPLE_STAT_TIMESPEC
-    return m_stat.st_mtimespec;
-#else
-    return m_stat.st_mtim;
-#endif
+    return GetFileTimes::get<GetFileTimes::LastModified>(m_stat);
 }
 
 FileTime FileInfo::lastStatusChange() const
 {
-#if APPLE_STAT_TIMESPEC
-    return m_stat.st_ctimespec;
-#else
-    return m_stat.st_ctim;
-#endif
+    return GetFileTimes::get<GetFileTimes::LastStatusChanged>(m_stat);
 }
 
 bool FileInfo::isDir() const
