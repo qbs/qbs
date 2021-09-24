@@ -75,7 +75,6 @@ RUN apt-get update -qq && \
     update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-8 100 && \
     update-alternatives --install /usr/bin/clang-check clang-check /usr/bin/clang-check-8 100 && \
     update-alternatives --install /usr/bin/python python /usr/bin/python3 100 && \
-    update-alternatives --install /usr/bin/pip pip /usr/bin/pip3 100 && \
     pip install beautifulsoup4 lxml protobuf pyyaml
 
 ENV LLVM_INSTALL_DIR=/usr/lib/llvm-8
