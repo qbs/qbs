@@ -811,6 +811,7 @@ void TestBlackbox::capnproto_data()
     QTest::addColumn<QString>("projectFile");
 
     QTest::newRow("cpp") << QStringLiteral("capnproto_cpp.qbs");
+    QTest::newRow("cpp-pkgconfig") << QStringLiteral("capnproto_cpp_pkgconfig.qbs");
     QTest::newRow("greeter cpp (grpc)") << QStringLiteral("greeter_cpp.qbs");
     QTest::newRow("relative import") << QStringLiteral("capnproto_relative_import.qbs");
     QTest::newRow("absolute import") << QStringLiteral("capnproto_absolute_import.qbs");
