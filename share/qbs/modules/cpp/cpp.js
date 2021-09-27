@@ -103,6 +103,13 @@ function resourceCompilerOutputTags() {
     return ["res"];
 }
 
+function precompiledHeaderOutputTags(lang, generateObjects) {
+    var tags = [lang + "_pch"];
+    if (generateObjects)
+        tags.push("obj");
+    return tags;
+};
+
 function assemblerOutputArtifacts(input) {
     var artifacts = [];
     artifacts.push({
@@ -180,6 +187,21 @@ function resourceCompilerOutputArtifacts(input) {
         filePath: FileInfo.joinPaths(Utilities.getHash(input.baseDir),
                                      input.completeBaseName + input.cpp.resourceSuffix)
     }];
+}
+
+function precompiledHeaderOutputArtifacts(input, product, lang, generateObjects) {
+    var artifacts = [{
+        fileTags: [lang + "_pch"],
+        filePath: product.name + "_" + lang + product.cpp.precompiledHeaderSuffix
+    }];
+    if (generateObjects) {
+        artifacts.push({
+            fileTags: ["obj"],
+            filePath: Utilities.getHash(input.completeBaseName)
+                        + "_" + lang + input.cpp.objectSuffix
+        });
+    }
+    return artifacts;
 }
 
 function collectLibraryDependencies(product) {

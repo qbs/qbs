@@ -38,6 +38,7 @@ import qbs.TextFile
 import qbs.Utilities
 import qbs.UnixUtils
 import qbs.WindowsUtils
+import 'cpp.js' as Cpp
 import 'gcc.js' as Gcc
 
 CppModule {
@@ -118,6 +119,8 @@ CppModule {
 
     staticLibraryPrefix: "lib"
     staticLibrarySuffix: ".a"
+
+    precompiledHeaderSuffix: ".gch"
 
     property bool compilerHasTargetOption: qbs.toolchain.contains("clang")
                                            && Utilities.versionCompare(compilerVersion, "3.1") >= 0
@@ -656,10 +659,8 @@ CppModule {
         condition: useCPrecompiledHeader
         inputs: ["c_pch_src"]
         auxiliaryInputs: ["hpp"]
-        Artifact {
-            filePath: product.name + "_c.gch"
-            fileTags: ["c_pch"]
-        }
+        outputFileTags: Cpp.precompiledHeaderOutputTags("c", false)
+        outputArtifacts: Cpp.precompiledHeaderOutputArtifacts(input, product, "c", false)
         prepare: {
             return Gcc.prepareCompiler.apply(Gcc, arguments);
         }
@@ -669,10 +670,8 @@ CppModule {
         condition: useCxxPrecompiledHeader
         inputs: ["cpp_pch_src"]
         auxiliaryInputs: ["hpp"]
-        Artifact {
-            filePath: product.name + "_cpp.gch"
-            fileTags: ["cpp_pch"]
-        }
+        outputFileTags: Cpp.precompiledHeaderOutputTags("cpp", false)
+        outputArtifacts: Cpp.precompiledHeaderOutputArtifacts(input, product, "cpp", false)
         prepare: {
             return Gcc.prepareCompiler.apply(Gcc, arguments);
         }
@@ -682,10 +681,8 @@ CppModule {
         condition: useObjcPrecompiledHeader
         inputs: ["objc_pch_src"]
         auxiliaryInputs: ["hpp"]
-        Artifact {
-            filePath: product.name + "_objc.gch"
-            fileTags: ["objc_pch"]
-        }
+        outputFileTags: Cpp.precompiledHeaderOutputTags("objc", false)
+        outputArtifacts: Cpp.precompiledHeaderOutputArtifacts(input, product, "objc", false)
         prepare: {
             return Gcc.prepareCompiler.apply(Gcc, arguments);
         }
@@ -695,10 +692,8 @@ CppModule {
         condition: useObjcxxPrecompiledHeader
         inputs: ["objcpp_pch_src"]
         auxiliaryInputs: ["hpp"]
-        Artifact {
-            filePath: product.name + "_objcpp.gch"
-            fileTags: ["objcpp_pch"]
-        }
+        outputFileTags: Cpp.precompiledHeaderOutputTags("objcpp", false)
+        outputArtifacts: Cpp.precompiledHeaderOutputArtifacts(input, product, "objcpp", false)
         prepare: {
             return Gcc.prepareCompiler.apply(Gcc, arguments);
         }

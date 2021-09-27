@@ -92,6 +92,7 @@ CppModule {
     executableSuffix: ".exe"
     debugInfoSuffix: ".pdb"
     objectSuffix: ".obj"
+    precompiledHeaderSuffix: ".pch"
     imageFormat: "pe"
     Properties {
         condition: product.multiplexByQbsProperties.contains("buildVariants")
@@ -126,14 +127,8 @@ CppModule {
         condition: useCPrecompiledHeader
         inputs: ["c_pch_src"]
         auxiliaryInputs: ["hpp"]
-        Artifact {
-            fileTags: ['obj']
-            filePath: Utilities.getHash(input.completeBaseName) + '_c' + input.cpp.objectSuffix
-        }
-        Artifact {
-            fileTags: ['c_pch']
-            filePath: product.name + '_c.pch'
-        }
+        outputFileTags: Cpp.precompiledHeaderOutputTags("c", true)
+        outputArtifacts: Cpp.precompiledHeaderOutputArtifacts(input, product, "c", true)
         prepare: {
             return MSVC.prepareCompiler.apply(MSVC, arguments);
         }
@@ -144,14 +139,8 @@ CppModule {
         inputs: ["cpp_pch_src"]
         explicitlyDependsOn: ["c_pch"]  // to prevent vc--0.pdb conflict
         auxiliaryInputs: ["hpp"]
-        Artifact {
-            fileTags: ['obj']
-            filePath: Utilities.getHash(input.completeBaseName) + '_cpp' + input.cpp.objectSuffix
-        }
-        Artifact {
-            fileTags: ['cpp_pch']
-            filePath: product.name + '_cpp.pch'
-        }
+        outputFileTags: Cpp.precompiledHeaderOutputTags("cpp", true)
+        outputArtifacts: Cpp.precompiledHeaderOutputArtifacts(input, product, "cpp", true)
         prepare: {
             return MSVC.prepareCompiler.apply(MSVC, arguments);
         }
