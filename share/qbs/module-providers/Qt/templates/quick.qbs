@@ -158,7 +158,6 @@ QtModule {
             var cmds = [];
             var qmlCompiler = product.Qt.quick.compilerFilePath;
             var useCacheGen = product.Qt.quick._compilerIsQmlCacheGen;
-            var supportsFiltering = product.Qt.quick._supportsQmlJsFiltering;
             var cmd;
             var loaderFlags = [];
 
