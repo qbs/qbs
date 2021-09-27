@@ -129,9 +129,7 @@ CppModule {
         auxiliaryInputs: ["hpp"]
         outputFileTags: Cpp.precompiledHeaderOutputTags("c", true)
         outputArtifacts: Cpp.precompiledHeaderOutputArtifacts(input, product, "c", true)
-        prepare: {
-            return MSVC.prepareCompiler.apply(MSVC, arguments);
-        }
+        prepare: MSVC.prepareCompiler.apply(MSVC, arguments)
     }
 
     Rule {
@@ -141,9 +139,7 @@ CppModule {
         auxiliaryInputs: ["hpp"]
         outputFileTags: Cpp.precompiledHeaderOutputTags("cpp", true)
         outputArtifacts: Cpp.precompiledHeaderOutputArtifacts(input, product, "cpp", true)
-        prepare: {
-            return MSVC.prepareCompiler.apply(MSVC, arguments);
-        }
+        prepare: MSVC.prepareCompiler.apply(MSVC, arguments)
     }
 
     Rule {
@@ -178,9 +174,7 @@ CppModule {
             return artifacts;
         }
 
-        prepare: {
-            return MSVC.prepareCompiler.apply(MSVC, arguments);
-        }
+        prepare: MSVC.prepareCompiler.apply(MSVC, arguments)
     }
 
     FileTagger {
@@ -234,9 +228,7 @@ CppModule {
             return artifacts;
         }
 
-        prepare: {
-            return MSVC.prepareLinker.apply(MSVC, arguments);
-        }
+        prepare: MSVC.prepareLinker.apply(MSVC, arguments)
     }
 
     Rule {
@@ -277,9 +269,7 @@ CppModule {
             return artifacts;
         }
 
-        prepare: {
-            return MSVC.prepareLinker.apply(MSVC, arguments);
-        }
+        prepare: MSVC.prepareLinker.apply(MSVC, arguments)
     }
 
     Rule {

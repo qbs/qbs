@@ -465,9 +465,7 @@ CppModule {
             return artifacts;
         }
 
-        prepare: {
-            return Gcc.prepareLinker.apply(Gcc, arguments);
-        }
+        prepare: Gcc.prepareLinker.apply(Gcc, arguments)
     }
 
     Rule {
@@ -555,9 +553,7 @@ CppModule {
             return artifacts;
         }
 
-        prepare: {
-            return Gcc.prepareLinker.apply(Gcc, arguments);
-        }
+        prepare: Gcc.prepareLinker.apply(Gcc, arguments)
     }
 
     Rule {
@@ -607,9 +603,7 @@ CppModule {
             return artifacts;
         }
 
-        prepare: {
-            return Gcc.prepareLinker.apply(Gcc, arguments);
-        }
+        prepare: Gcc.prepareLinker.apply(Gcc, arguments)
     }
 
     Rule {
@@ -636,9 +630,7 @@ CppModule {
             }];
         }
 
-        prepare: {
-            return Gcc.prepareCompiler.apply(Gcc, arguments);
-        }
+        prepare: Gcc.prepareCompiler.apply(Gcc, arguments)
     }
 
     Rule {
@@ -650,9 +642,7 @@ CppModule {
             filePath: FileInfo.joinPaths(Utilities.getHash(input.baseDir), input.fileName + input.cpp.objectSuffix)
         }
 
-        prepare: {
-            return Gcc.prepareAssembler.apply(Gcc, arguments);
-        }
+        prepare: Gcc.prepareAssembler.apply(Gcc, arguments)
     }
 
     Rule {
@@ -661,9 +651,7 @@ CppModule {
         auxiliaryInputs: ["hpp"]
         outputFileTags: Cpp.precompiledHeaderOutputTags("c", false)
         outputArtifacts: Cpp.precompiledHeaderOutputArtifacts(input, product, "c", false)
-        prepare: {
-            return Gcc.prepareCompiler.apply(Gcc, arguments);
-        }
+        prepare: Gcc.prepareCompiler.apply(Gcc, arguments)
     }
 
     Rule {
@@ -672,9 +660,7 @@ CppModule {
         auxiliaryInputs: ["hpp"]
         outputFileTags: Cpp.precompiledHeaderOutputTags("cpp", false)
         outputArtifacts: Cpp.precompiledHeaderOutputArtifacts(input, product, "cpp", false)
-        prepare: {
-            return Gcc.prepareCompiler.apply(Gcc, arguments);
-        }
+        prepare: Gcc.prepareCompiler.apply(Gcc, arguments)
     }
 
     Rule {
@@ -683,9 +669,7 @@ CppModule {
         auxiliaryInputs: ["hpp"]
         outputFileTags: Cpp.precompiledHeaderOutputTags("objc", false)
         outputArtifacts: Cpp.precompiledHeaderOutputArtifacts(input, product, "objc", false)
-        prepare: {
-            return Gcc.prepareCompiler.apply(Gcc, arguments);
-        }
+        prepare: Gcc.prepareCompiler.apply(Gcc, arguments)
     }
 
     Rule {
@@ -694,9 +678,7 @@ CppModule {
         auxiliaryInputs: ["hpp"]
         outputFileTags: Cpp.precompiledHeaderOutputTags("objcpp", false)
         outputArtifacts: Cpp.precompiledHeaderOutputArtifacts(input, product, "objcpp", false)
-        prepare: {
-            return Gcc.prepareCompiler.apply(Gcc, arguments);
-        }
+        prepare: Gcc.prepareCompiler.apply(Gcc, arguments)
     }
 
     FileTagger {

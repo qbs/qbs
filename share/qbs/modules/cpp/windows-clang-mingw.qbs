@@ -94,6 +94,6 @@ MingwBaseModule {
             fileTags: ["obj"]
         }
 
-        prepare: MSVC.createRcCommand(product.cpp.rcFilePath, input, output);
+        prepare: MSVC.createRcCommand(product.cpp.rcFilePath, input, output)
     }
 }

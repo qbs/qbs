@@ -23,9 +23,7 @@ QtModule {
             fileTags: ["cpp"]
         }
 
-        prepare: {
-            return DBus.createCommands(product, input, outputs, "-a");
-        }
+        prepare: DBus.createCommands(product, input, outputs, "-a")
     }
 
     Rule {
@@ -41,9 +39,7 @@ QtModule {
             fileTags: ["cpp"]
         }
 
-        prepare: {
-            return DBus.createCommands(product, input, outputs, "-p");
-        }
+        prepare: DBus.createCommands(product, input, outputs, "-p")
     }
 
     architectures: @archs@
