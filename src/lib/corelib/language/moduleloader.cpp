@@ -2685,6 +2685,7 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
         if (it != moduleResults->end()) {
             it->required = it->required || isRequired;
             it->requiredValue = it->requiredValue || isRequiredValue;
+            it->fallbackEnabled = it->fallbackEnabled && fallbackMode == FallbackMode::Enabled;
             it->versionRange.narrowDown(versionRange);
             continue;
         }
@@ -2719,6 +2720,7 @@ void ModuleLoader::resolveDependsItem(DependsContext *dependsContext, Item *pare
         result.item = moduleItem;
         result.requiredValue = isRequiredValue;
         result.required = isRequired;
+        result.fallbackEnabled = fallbackMode == FallbackMode::Enabled;
         result.parameters = defaultParameters;
         result.versionRange = versionRange;
         moduleResults->push_back(result);
@@ -3771,6 +3773,7 @@ void ModuleLoader::collectAllModules(Item *item, std::vector<Item::Module> *modu
             if (m.required)
                 it->required = true;
             it->versionRange.narrowDown(m.versionRange);
+            it->fallbackEnabled = it->fallbackEnabled && m.fallbackEnabled;
             continue;
         }
         modules->push_back(m);
@@ -3884,7 +3887,7 @@ void ModuleLoader::addTransitiveDependencies(ProductContext *ctx)
         if (module.isProduct) {
             ctx->item->addModule(module);
         } else {
-            const FallbackMode fallbackMode = m_parameters.fallbackProviderEnabled()
+            const FallbackMode fallbackMode = module.fallbackEnabled
                     ? FallbackMode::Enabled : FallbackMode::Disabled;
             Item::Module dep;
             dep.item = loadModule(ctx, nullptr, ctx->item, ctx->item->location(), QString(),
@@ -3899,6 +3902,7 @@ void ModuleLoader::addTransitiveDependencies(ProductContext *ctx)
             dep.name = module.name;
             dep.required = module.required;
             dep.versionRange = module.versionRange;
+            dep.fallbackEnabled = fallbackMode == FallbackMode::Enabled;
             ctx->item->addModule(dep);
         }
     }

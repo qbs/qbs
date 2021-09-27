@@ -83,6 +83,7 @@ public:
         bool isProduct;
         bool requiredValue = true; // base value of the required prop
         bool required;
+        bool fallbackEnabled = true;
         QVariantMap parameters;
         VersionRange versionRange;
     };
