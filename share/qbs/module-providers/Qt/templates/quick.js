@@ -67,12 +67,13 @@ function qtQuickResourceFileOutputName(fileName) {
 }
 
 function contentFromQrc(product, qrcFilePath) {
+    var supportsFiltering = product.Qt.quick._supportsQmlJsFiltering;
     var filesInQrc = scanQrc(product, qrcFilePath);
     var qmlJsFiles = filesInQrc.filter(function (filePath) {
         return (/\.(js|qml)$/).test(filePath);
     } );
     var content = {};
-    if (filesInQrc.length - qmlJsFiles.length > 0) {
+    if (!supportsFiltering || filesInQrc.length - qmlJsFiles.length > 0) {
         content.newQrcFileName = qtQuickResourceFileOutputName(input.fileName);
     }
     content.qmlJsFiles = qmlJsFiles.map(function (filePath) {

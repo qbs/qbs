@@ -66,6 +66,8 @@ QtModule {
 
     readonly property bool _compilerIsQmlCacheGen: Utilities.versionCompare(Qt.core.version,
                                                                             "5.11") >= 0
+    readonly property bool _supportsQmlJsFiltering: Utilities.versionCompare(Qt.core.version,
+                                                                             "5.15") < 0
     readonly property string _generatedLoaderFileName: _compilerIsQmlCacheGen
                                                        ? "qmlcache_loader.cpp"
                                                        : "qtquickcompiler_loader.cpp"
@@ -156,6 +158,7 @@ QtModule {
             var cmds = [];
             var qmlCompiler = product.Qt.quick.compilerFilePath;
             var useCacheGen = product.Qt.quick._compilerIsQmlCacheGen;
+            var supportsFiltering = product.Qt.quick._supportsQmlJsFiltering;
             var cmd;
             var loaderFlags = [];
 
@@ -175,6 +178,8 @@ QtModule {
                     loaderFlags.push("--resource-file-mapping="
                                      + FileInfo.fileName(info.qrcFilePath)
                                      + ":" + info.newQrcFileName);
+                    // Qt 5.15 doesn't really filter anyting but merely copies the qrc
+                    // content to the new location
                     var args = ["--filter-resource-file",
                                 info.qrcFilePath];
                     if (useCacheGen)
