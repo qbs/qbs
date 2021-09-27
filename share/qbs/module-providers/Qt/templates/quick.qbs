@@ -176,7 +176,7 @@ QtModule {
                 if (info.newQrcFileName) {
                     loaderFlags.push("--resource-file-mapping="
                                      + FileInfo.fileName(info.qrcFilePath)
-                                     + ":" + info.newQrcFileName);
+                                     + '=' + info.newQrcFileName);
                     // Qt 5.15 doesn't really filter anyting but merely copies the qrc
                     // content to the new location
                     var args = ["--filter-resource-file",
