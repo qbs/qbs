@@ -168,6 +168,11 @@ ModuleProvider {
             }
         }
 
+        var moduleMapping = {
+            "protobuf": "protobuflib",
+            "grpc++": "grpcpp"
+        }
+
         var pkgConfig = new PkgConfig(options);
 
         var brokenPackages = [];
@@ -178,7 +183,9 @@ ModuleProvider {
                 brokenPackages.push(pkg);
                 continue;
             }
-            var moduleName = getModuleName(packageName);
+            var moduleName = moduleMapping[packageName]
+                    ? moduleMapping[packageName]
+                    : getModuleName(packageName);
             var moduleInfo = getModuleInfo(pkg, staticMode);
             var deps = getModuleDependencies(pkg, staticMode);
 

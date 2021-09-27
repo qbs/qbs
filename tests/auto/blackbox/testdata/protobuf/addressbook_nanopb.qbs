@@ -15,6 +15,7 @@ CppApplication {
     Depends { name: "protobuf.nanopb"; required: false }
     property bool hasProtobuf: {
         console.info("has protobuf: " + protobuf.nanopb.present);
+        console.info("has modules: false");
         return protobuf.nanopb.present;
     }
     protobuf.nanopb.importPaths: product.sourceDirectory

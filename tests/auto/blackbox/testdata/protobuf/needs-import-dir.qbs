@@ -17,6 +17,7 @@ CppApplication {
     Depends { name: "protobuf.cpp"; required: false }
     property bool hasProtobuf: {
         console.info("has protobuf: " + protobuf.cpp.present);
+        console.info("has modules: " + protobuflib.present);
         return protobuf.cpp.present;
     }
 

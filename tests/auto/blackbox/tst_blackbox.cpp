@@ -5803,18 +5803,24 @@ void TestBlackbox::protobuf_data()
 {
     QTest::addColumn<QString>("projectFile");
     QTest::addColumn<QStringList>("properties");
+    QTest::addColumn<bool>("hasModules");
     QTest::addColumn<bool>("successExpected");
-    QTest::newRow("cpp") << QString("addressbook_cpp.qbs") << QStringList() << true;
-    QTest::newRow("objc") << QString("addressbook_objc.qbs") << QStringList() << true;
-    QTest::newRow("nanopb") << QString("addressbook_nanopb.qbs") << QStringList() << true;
-    QTest::newRow("import") << QString("import.qbs") << QStringList() << true;
+    QTest::newRow("cpp") << QString("addressbook_cpp.qbs") << QStringList() << false << true;
+    QTest::newRow("cpp-pkgconfig")
+        << QString("addressbook_cpp.qbs")
+        << QStringList("project.qbsModuleProviders:qbspkgconfig")
+        << true
+        << true;
+    QTest::newRow("objc") << QString("addressbook_objc.qbs") << QStringList() << false << true;
+    QTest::newRow("nanopb") << QString("addressbook_nanopb.qbs") << QStringList() << false << true;
+    QTest::newRow("import") << QString("import.qbs") << QStringList() << false << true;
     QTest::newRow("missing import dir") << QString("needs-import-dir.qbs")
-                                        << QStringList() << false;
+                                        << QStringList() << false << false;
     QTest::newRow("provided import dir")
             << QString("needs-import-dir.qbs")
-            << QStringList("products.app.theImportDir:subdir") << true;
+            << QStringList("products.app.theImportDir:subdir") << false << true;
     QTest::newRow("create proto library")
-            << QString("create-proto-library.qbs") << QStringList() << true;
+            << QString("create-proto-library.qbs") << QStringList() << false << true;
 }
 
 void TestBlackbox::protobuf()
@@ -5822,6 +5828,7 @@ void TestBlackbox::protobuf()
     QDir::setCurrent(testDataDir + "/protobuf");
     QFETCH(QString, projectFile);
     QFETCH(QStringList, properties);
+    QFETCH(bool, hasModules);
     QFETCH(bool, successExpected);
     rmDirR(relativeBuildDir());
     QbsRunParameters resolveParams("resolve", QStringList{"-f", projectFile} << properties);
@@ -5833,6 +5840,10 @@ void TestBlackbox::protobuf()
     QVERIFY2(withProtobuf || withoutProtobuf, m_qbsStdout.constData());
     if (withoutProtobuf)
         QSKIP("protobuf module not present");
+    const bool hasMods = m_qbsStdout.contains("has modules: true");
+    const bool dontHaveMods = m_qbsStdout.contains("has modules: false");
+    QVERIFY2(hasMods == !dontHaveMods, m_qbsStdout.constData());
+    QCOMPARE(hasMods, hasModules);
     QbsRunParameters runParams("run");
     runParams.expectFailure = !successExpected;
     QCOMPARE(runQbs(runParams) == 0, successExpected);
@@ -8355,21 +8366,42 @@ void TestBlackbox::groupsInModules()
 void TestBlackbox::grpc_data()
 {
     QTest::addColumn<QString>("projectFile");
-    QTest::newRow("cpp") << QString("grpc_cpp.qbs");
+    QTest::addColumn<QStringList>("arguments");
+    QTest::addColumn<bool>("hasModules");
+
+    QTest::newRow("cpp") << QString("grpc_cpp.qbs") << QStringList() << false;
+
+    QStringList pkgConfigArgs("project.qbsModuleProviders:qbspkgconfig");
+    // on macOS, openSSL is hidden from pkg-config by default
+    if (qbs::Internal::HostOsInfo::isMacosHost()) {
+        pkgConfigArgs
+            << "moduleProviders.qbspkgconfig.extraPaths:/usr/local/opt/openssl@1.1/lib/pkgconfig";
+    }
+    QTest::newRow("cpp-pkgconfig") << QString("grpc_cpp.qbs") << pkgConfigArgs << true;
 }
 
 void TestBlackbox::grpc()
 {
     QDir::setCurrent(testDataDir + "/grpc");
     QFETCH(QString, projectFile);
+    QFETCH(QStringList, arguments);
+    QFETCH(bool, hasModules);
+
     rmDirR(relativeBuildDir());
     QbsRunParameters resolveParams("resolve", QStringList{"-f", projectFile});
+    resolveParams.arguments << arguments;
     QCOMPARE(runQbs(resolveParams), 0);
     const bool withGrpc = m_qbsStdout.contains("has grpc: true");
     const bool withoutGrpc = m_qbsStdout.contains("has grpc: false");
     QVERIFY2(withGrpc || withoutGrpc, m_qbsStdout.constData());
     if (withoutGrpc)
         QSKIP("grpc module not present");
+
+    const bool hasMods = m_qbsStdout.contains("has modules: true");
+    const bool dontHaveMods = m_qbsStdout.contains("has modules: false");
+    QVERIFY2(hasMods == !dontHaveMods, m_qbsStdout.constData());
+    QCOMPARE(hasMods, hasModules);
+
     if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
         QSKIP("Cannot run binaries in cross-compiled build");
 

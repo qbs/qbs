@@ -12,6 +12,7 @@ CppApplication {
     Depends { name: "protobuf.objc"; required: false }
     property bool hasProtobuf: {
         console.info("has protobuf: " + protobuf.objc.present);
+        console.info("has modules: false");
         return protobuf.objc.present;
     }
 
