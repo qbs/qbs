@@ -3497,17 +3497,17 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
     }
 
     // For foo.bar in modulePrototype create an item foo in moduleInstance.
-    for (const auto &iip : instanceItemProperties(modulePrototype)) {
-        if (iip.second->item()->properties().empty())
+    for (const auto &[propertyName, itemValue] : instanceItemProperties(modulePrototype)) {
+        if (itemValue->item()->properties().empty())
             continue;
         qCDebug(lcModuleLoader) << "The prototype of " << moduleName
-                            << " sets properties on " << iip.first.toString();
-        Item *item = moduleInstanceItem(moduleInstance, iip.first);
-        item->setPrototype(iip.second->item());
-        if (iip.second->createdByPropertiesBlock()) {
-            ItemValuePtr itemValue = moduleInstance->itemProperty(iip.first.front());
-            for (int i = 1; i < iip.first.size(); ++i)
-                itemValue = itemValue->item()->itemProperty(iip.first.at(i));
+                            << " sets properties on " << propertyName.toString();
+        Item *item = moduleInstanceItem(moduleInstance, propertyName);
+        item->setPrototype(itemValue->item());
+        if (itemValue->createdByPropertiesBlock()) {
+            ItemValuePtr itemValue = moduleInstance->itemProperty(propertyName.front());
+            for (int i = 1; i < propertyName.size(); ++i)
+                itemValue = itemValue->item()->itemProperty(propertyName.at(i));
             itemValue->setCreatedByPropertiesBlock(true);
         }
     }
