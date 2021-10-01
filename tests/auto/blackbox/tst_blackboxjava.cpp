@@ -198,7 +198,7 @@ void TestBlackboxJava::javaDependencyTracking_data()
         return {};
     };
 
-    static const auto knownJdkVersions = QStringList() << "1.6" << "1.7" << "1.8" << "1.9"
+    static const auto knownJdkVersions = QStringList() << "1.7" << "1.8" << "1.9"
                                                        << QString(); // default JDK;
     QStringList seenJdkVersions;
     for (const auto &jdkVersion : knownJdkVersions) {
