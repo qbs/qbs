@@ -1,5 +1,5 @@
 Project {
-    CppApplication {
+    Product {
         name: "mysterious creature"
         files: ["easter bunny"]
     }

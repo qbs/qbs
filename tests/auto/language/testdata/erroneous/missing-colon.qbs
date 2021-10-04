@@ -1,3 +1,5 @@
-CppApplication {
-    cpp.dynamicLibraries { }
+Product {
+    Depends { name: "dummy" }
+    qbsSearchPaths: ".."
+    dummy.cxxFlags { }
 }

@@ -1,10 +1,11 @@
-Application {
+Product {
+    type: "app"
     Group {
-        fileTagsFilter: "application"
+        fileTagsFilter: "app"
         qbs.install: true
     }
     Group {
-        fileTagsFilter: "application"
+        fileTagsFilter: "app"
         qbs.install: false
     }
 }

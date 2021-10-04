@@ -1,15 +1,15 @@
 Project {
-    CppApplication {
+    Product {
         name: "A"
         Depends { name: "B" }
         files: ["main.cpp"]
     }
-    CppApplication {
+    Product {
         name: "B"
         Depends { name: "C" }
         files: ["main.cpp"]
     }
-    CppApplication {
+    Product {
         name: "C"
         Depends { name: "A" }
         files: ["main.cpp"]

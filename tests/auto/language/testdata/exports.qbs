@@ -1,7 +1,8 @@
 import "exports_product.qbs" as ProductWithInheritedExportItem
 
 Project {
-    Application {
+    Product {
+        type: "app"
         name: "myapp"
         Depends { name: "mylib" }
         Depends { name: "dummy" }
@@ -15,30 +16,35 @@ Project {
         "subdir2/exports-mylib2.qbs"
     ]
 
-    Application {
+    Product {
+        type: "app"
         name: "A"
         Depends { name: "qbs" }
         Depends { name: "B" }
     }
-    StaticLibrary {
+    Product {
+        type: "lib"
         name: "B"
         Export {
             Depends { name: "C" }
             Depends { name: "qbs" }
         }
     }
-    StaticLibrary {
+    Product {
+        type: "lib"
         name: "C"
         Export {
             Depends { name: "D" }
             Depends { name: "qbs" }
         }
     }
-    StaticLibrary {
+    Product {
+        type: "lib"
         name: "D"
     }
 
-    Application {
+    Product {
+        type: "app"
         name: "myapp2"
         Depends { name: "productWithInheritedExportItem" }
         Depends { name: "qbs" }
@@ -54,7 +60,8 @@ Project {
             }
         }
     }
-    Application {
+    Product {
+        type: "app"
         name: "myapp3"
         Depends { name: "productWithInheritedExportItem"; versionAtLeast: "2.0" }
     }

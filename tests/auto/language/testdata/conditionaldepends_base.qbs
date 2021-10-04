@@ -1,4 +1,4 @@
-Application {
+Product {
     name: 'conditionaldepends_base'
     property bool someProp: false
     Depends {

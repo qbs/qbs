@@ -887,7 +887,7 @@ void TestLanguage::erroneousFiles_data()
     QTest::newRow("invalid-property-option")
             << "PropertyOptions item refers to non-existing property 's0meProp'";
     QTest::newRow("missing-colon")
-            << "Invalid item 'cpp.dynamicLibraries'. Did you mean to set a module property?";
+            << "Invalid item 'dummy.cxxFlags'. Did you mean to set a module property?";
     QTest::newRow("syntax-error-in-probe")
             << "syntax-error-in-probe.qbs:4:20.*ReferenceError";
     QTest::newRow("wrong-toplevel-item")

@@ -1,5 +1,5 @@
 Project {
-    Application {
+    Product {
         name: "product1"
         property bool dummyProp: {
             if (!(dummy.cFlags instanceof Array))
