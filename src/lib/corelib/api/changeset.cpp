@@ -39,8 +39,6 @@
 
 #include "changeset.h"
 
-#include <QtGui/qtextcursor.h>
-
 namespace QbsQmlJS {
 
 ChangeSet::ChangeSet()

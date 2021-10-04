@@ -55,7 +55,9 @@ Module {
         platformSearchPaths: [Android.sdk.sdkDir]
         names: ["bundletool-all"]
         nameSuffixes: ["-0.11.0.jar", "-0.12.0.jar", "-0.13.0.jar", "-0.13.3.jar", "-0.13.4.jar",
-            "-0.14.0.jar", "-0.15.0.jar", "-1.0.0.jar", "-1.1.0.jar", "-1.2.0.jar", "-1.3.0.jar"]
+            "-0.14.0.jar", "-0.15.0.jar", "-1.0.0.jar", "-1.1.0.jar", "-1.2.0.jar", "-1.3.0.jar",
+            "-1.4.0.jar", "-1.5.0.jar", "-1.6.0.jar", "-1.6.1.jar", "-1.7.0.jar", "-1.7.1.jar",
+            "-1.8.0.jar"]
     }
 
     property path sdkDir: sdkProbe.path
