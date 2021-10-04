@@ -3757,13 +3757,13 @@ Item *ModuleLoader::wrapInProjectIfNecessary(Item *item)
 QString ModuleLoader::findExistingModulePath(const QString &searchPath,
         const QualifiedId &moduleName)
 {
-    QString dirPath = searchPath + QStringLiteral("/modules");
-
     // isFileCaseCorrect is a very expensive call on macOS, so we cache the value for the
     // modules and search paths we've already processed
     auto &moduleInfo = m_existingModulePathCache[{searchPath, moduleName}];
     if (moduleInfo)
         return *moduleInfo;
+
+    QString dirPath = searchPath + QStringLiteral("/modules");
 
     for (const QString &moduleNamePart : moduleName) {
         dirPath = FileInfo::resolvePath(dirPath, moduleNamePart);
