@@ -3347,7 +3347,7 @@ static std::vector<std::pair<QualifiedId, ItemValuePtr>> instanceItemProperties(
 {
     std::vector<std::pair<QualifiedId, ItemValuePtr>> result;
     QualifiedId name;
-    std::function<void(Item *)> f = [&] (Item *item) {
+    const auto func = [&] (Item *item, const auto &f) -> void {
         for (auto it = item->properties().begin(), end = item->properties().end();
                 it != end; ++it) {
             if (it.value()->type() != Value::ItemValueType)
@@ -3357,13 +3357,13 @@ static std::vector<std::pair<QualifiedId, ItemValuePtr>> instanceItemProperties(
                 continue;
             name.push_back(it.key());
             if (itemValue->item()->type() == ItemType::ModulePrefix)
-                f(itemValue->item());
+                f(itemValue->item(), f);
             else
                 result.emplace_back(name, itemValue);
             name.removeLast();
         }
     };
-    f(item);
+    func(item, func);
     return result;
 }
 
