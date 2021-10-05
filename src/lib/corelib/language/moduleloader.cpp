@@ -3395,7 +3395,8 @@ static std::vector<std::pair<QualifiedId, ItemValuePtr>> instanceItemProperties(
     std::vector<std::pair<QualifiedId, ItemValuePtr>> result;
     QualifiedId name;
     std::function<void(Item *)> f = [&] (Item *item) {
-        for (auto it = item->properties().begin(); it != item->properties().end(); ++it) {
+        for (auto it = item->properties().begin(), end = item->properties().end();
+                it != end; ++it) {
             if (it.value()->type() != Value::ItemValueType)
                 continue;
             ItemValuePtr itemValue = std::static_pointer_cast<ItemValue>(it.value());
