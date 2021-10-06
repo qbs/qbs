@@ -387,5 +387,28 @@ void Item::setPropertyDeclarations(const Item::PropertyDeclarationMap &decls)
     m_propertyDeclarations = decls;
 }
 
+void Item::overrideProperties(
+        const QVariantMap &overridden,
+        const QualifiedId &namePrefix,
+        const SetupProjectParameters &parameters,
+         Logger &logger)
+{
+    if (overridden.isEmpty())
+        return;
+    for (QVariantMap::const_iterator it = overridden.constBegin(); it != overridden.constEnd();
+            ++it) {
+        const PropertyDeclaration decl = propertyDeclaration(it.key());
+        if (!decl.isValid()) {
+            ErrorInfo error(Tr::tr("Unknown property: %1.%2").
+                    arg(namePrefix.toString(), it.key()));
+            handlePropertyError(error, parameters, logger);
+            continue;
+        }
+        setProperty(it.key(),
+                VariantValue::create(PropertyDeclaration::convertToPropertyType(
+                        it.value(), decl.type(), namePrefix, it.key())));
+    }
+}
+
 } // namespace Internal
 } // namespace qbs

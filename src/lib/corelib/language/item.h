@@ -55,6 +55,9 @@
 #include <vector>
 
 namespace qbs {
+
+class SetupProjectParameters;
+
 namespace Internal {
 class ItemObserver;
 class ItemPool;
@@ -142,6 +145,11 @@ public:
     bool isPresentModule() const;
     void setupForBuiltinType(Logger &logger);
     void copyProperty(const QString &propertyName, Item *target) const;
+    void overrideProperties(
+        const QVariantMap &config,
+        const QualifiedId &namePrefix,
+        const SetupProjectParameters &parameters,
+        Logger &logger);
 
 private:
     ItemValuePtr itemProperty(const QString &name, const Item *itemTemplate,

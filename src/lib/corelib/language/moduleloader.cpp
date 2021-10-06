@@ -257,7 +257,8 @@ ModuleLoader::ModuleLoader(Evaluator *evaluator, Logger &logger)
     , m_progressObserver(nullptr)
     , m_reader(std::make_unique<ItemReader>(logger))
     , m_evaluator(evaluator)
-    , m_moduleProviderLoader(std::make_unique<ModuleProviderLoader>(m_reader.get(), m_evaluator))
+    , m_moduleProviderLoader(
+        std::make_unique<ModuleProviderLoader>(m_reader.get(), m_evaluator, m_logger))
 {
 }
 
@@ -3755,19 +3756,7 @@ void ModuleLoader::overrideItemProperties(Item *item, const QString &buildConfig
     const QVariant buildConfigValue = buildConfig.value(buildConfigKey);
     if (buildConfigValue.isNull())
         return;
-    const QVariantMap overridden = buildConfigValue.toMap();
-    for (QVariantMap::const_iterator it = overridden.constBegin(); it != overridden.constEnd();
-            ++it) {
-        const PropertyDeclaration decl = item->propertyDeclaration(it.key());
-        if (!decl.isValid()) {
-            ErrorInfo error(Tr::tr("Unknown property: %1.%2").arg(buildConfigKey, it.key()));
-            handlePropertyError(error, m_parameters, m_logger);
-            continue;
-        }
-        item->setProperty(it.key(),
-                VariantValue::create(PropertyDeclaration::convertToPropertyType(
-                        it.value(), decl.type(), QStringList(buildConfigKey), it.key())));
-    }
+    item->overrideProperties(buildConfigValue.toMap(), buildConfigKey, m_parameters, m_logger);
 }
 
 void ModuleLoader::collectAllModules(Item *item, std::vector<Item::Module> *modules)

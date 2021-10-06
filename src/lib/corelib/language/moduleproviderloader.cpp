@@ -60,9 +60,10 @@
 namespace qbs {
 namespace Internal {
 
-ModuleProviderLoader::ModuleProviderLoader(ItemReader *reader, Evaluator *evaluator)
+ModuleProviderLoader::ModuleProviderLoader(ItemReader *reader, Evaluator *evaluator, Logger &logger)
     : m_reader(reader)
     , m_evaluator(evaluator)
+    , m_logger(logger)
 {
 }
 
@@ -302,19 +303,7 @@ QStringList ModuleProviderLoader::getProviderSearchPaths(
                  BuiltinDeclarations::instance().nameForType(ItemType::ModuleProvider)));
     }
     providerItem->setParent(product.item);
-
-    // TODO: this looks like ModuleLoader::overrideItemProperties(), merge them?
-    for (auto it = moduleConfig.begin(); it != moduleConfig.end(); ++it) {
-        const PropertyDeclaration decl = providerItem->propertyDeclaration(it.key());
-        if (!decl.isValid()) {
-            throw ErrorInfo(Tr::tr("No such property '%1' in module provider '%2'.")
-                            .arg(it.key(), name.toString()));
-        }
-        VariantValuePtr v = VariantValue::create(
-                PropertyDeclaration::convertToPropertyType(it.value(), decl.type(),
-                        QStringList(name), it.key()));
-        providerItem->setProperty(it.key(), v);
-    }
+    providerItem->overrideProperties(moduleConfig, name.toString(), m_parameters, m_logger);
     EvalContextSwitcher contextSwitcher(m_evaluator->engine(), EvalContext::ModuleProvider);
     return m_evaluator->stringListValue(providerItem, QStringLiteral("searchPaths"));
 }

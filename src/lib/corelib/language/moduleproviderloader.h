@@ -50,12 +50,14 @@
 namespace qbs {
 namespace Internal {
 
+class Logger;
+
 class ModuleProviderLoader
 {
 public:
     using ProductContext = ModuleLoader::ProductContext;
     using FallbackMode = ModuleLoader::FallbackMode;
-    explicit ModuleProviderLoader(ItemReader *itemReader, Evaluator *evaluator);
+    explicit ModuleProviderLoader(ItemReader *itemReader, Evaluator *evaluator, Logger &logger);
 
     enum class ModuleProviderLookup { Scoped, Named, Fallback };
 
@@ -118,6 +120,7 @@ private:
     Evaluator *const m_evaluator{nullptr};
 
     SetupProjectParameters m_parameters;
+    Logger &m_logger;
     StoredModuleProviderInfo m_storedModuleProviderInfo;
     Set<QString> m_tempQbsFiles;
 };
