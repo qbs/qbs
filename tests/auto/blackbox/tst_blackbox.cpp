@@ -5852,10 +5852,11 @@ void TestBlackbox::providersProperties()
     QDir::setCurrent(testDataDir + "/providers-properties");
 
     QbsRunParameters params("build");
-    params.arguments = QStringList("moduleProviders.provider_b.someProp: \"otherValue\"");
+    params.arguments = QStringList("moduleProviders.provider_b.someProp: \"first,second\"");
     QCOMPARE(runQbs(params), 0);
-    QVERIFY2(m_qbsStdout.contains("p.qbsmetatestmodule.prop: someValue"), m_qbsStdout);
-    QVERIFY2(m_qbsStdout.contains("p.qbsothermodule.prop: otherValue"), m_qbsStdout);
+    QVERIFY2(m_qbsStdout.contains("p.qbsmetatestmodule.listProp: [\"someValue\"]"), m_qbsStdout);
+    QVERIFY2(m_qbsStdout.contains(
+            "p.qbsothermodule.listProp: [\"first\",\"second\"]"), m_qbsStdout);
 }
 
 void TestBlackbox::pseudoMultiplexing()

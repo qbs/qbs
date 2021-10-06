@@ -42,13 +42,45 @@
 #include "deprecationinfo.h"
 #include <api/languageinfo.h>
 
+#include <logging/translator.h>
+
+#include <tools/error.h>
+#include <tools/qttools.h>
 #include <tools/stringconstants.h>
 
+#include <QtCore/qmetatype.h>
 #include <QtCore/qshareddata.h>
 #include <QtCore/qstringlist.h>
+#include <QtCore/qvariant.h>
 
 namespace qbs {
 namespace Internal {
+
+// returns QMetaType::UnknownType for types that do not need conversion
+static QMetaType::Type variantType(PropertyDeclaration::Type t)
+{
+    switch (t) {
+    case PropertyDeclaration::UnknownType:
+        break;
+    case PropertyDeclaration::Boolean:
+        return QMetaType::Bool;
+    case PropertyDeclaration::Integer:
+        return QMetaType::Int;
+    case PropertyDeclaration::Path:
+        return QMetaType::QString;
+    case PropertyDeclaration::PathList:
+        return QMetaType::QStringList;
+    case PropertyDeclaration::String:
+        return QMetaType::QString;
+    case PropertyDeclaration::StringList:
+        return QMetaType::QStringList;
+    case PropertyDeclaration::VariantList:
+        return QMetaType::QVariantList;
+    case PropertyDeclaration::Variant:
+        break;
+    }
+    return QMetaType::UnknownType;
+}
 
 class PropertyDeclarationData : public QSharedData
 {
@@ -241,6 +273,30 @@ const DeprecationInfo &PropertyDeclaration::deprecationInfo() const
 void PropertyDeclaration::setDeprecationInfo(const DeprecationInfo &deprecationInfo)
 {
     d->deprecationInfo = deprecationInfo;
+}
+
+// see also: EvaluatorScriptClass::convertToPropertyType()
+QVariant PropertyDeclaration::convertToPropertyType(const QVariant &v, Type t,
+    const QStringList &namePrefix, const QString &key)
+{
+    if (v.isNull() || !v.isValid())
+        return v;
+    const auto vt = variantType(t);
+    if (vt == QMetaType::UnknownType)
+        return v;
+
+    // Handle the foo,bar,bla stringlist syntax.
+    if (t == PropertyDeclaration::StringList && v.userType() == QMetaType::QString)
+        return v.toString().split(QLatin1Char(','));
+
+    QVariant c = v;
+    if (!qVariantConvert(c, vt)) {
+        QStringList name = namePrefix;
+        name << key;
+        throw ErrorInfo(Tr::tr("Value '%1' of property '%2' has incompatible type.")
+                        .arg(v.toString(), name.join(QLatin1Char('.'))));
+    }
+    return c;
 }
 
 } // namespace Internal

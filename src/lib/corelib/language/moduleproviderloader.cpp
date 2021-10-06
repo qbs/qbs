@@ -302,13 +302,18 @@ QStringList ModuleProviderLoader::getProviderSearchPaths(
                  BuiltinDeclarations::instance().nameForType(ItemType::ModuleProvider)));
     }
     providerItem->setParent(product.item);
+
+    // TODO: this looks like ModuleLoader::overrideItemProperties(), merge them?
     for (auto it = moduleConfig.begin(); it != moduleConfig.end(); ++it) {
         const PropertyDeclaration decl = providerItem->propertyDeclaration(it.key());
         if (!decl.isValid()) {
             throw ErrorInfo(Tr::tr("No such property '%1' in module provider '%2'.")
                             .arg(it.key(), name.toString()));
         }
-        providerItem->setProperty(it.key(), VariantValue::create(it.value()));
+        VariantValuePtr v = VariantValue::create(
+                PropertyDeclaration::convertToPropertyType(it.value(), decl.type(),
+                        QStringList(name), it.key()));
+        providerItem->setProperty(it.key(), v);
     }
     EvalContextSwitcher contextSwitcher(m_evaluator->engine(), EvalContext::ModuleProvider);
     return m_evaluator->stringListValue(providerItem, QStringLiteral("searchPaths"));

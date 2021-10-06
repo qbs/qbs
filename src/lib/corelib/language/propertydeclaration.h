@@ -43,6 +43,10 @@
 #include <QtCore/qshareddata.h>
 #include <QtCore/qstring.h>
 
+QT_BEGIN_NAMESPACE
+class QVariant;
+QT_END_NAMESPACE
+
 namespace qbs {
 namespace Internal {
 class DeprecationInfo;
@@ -112,6 +116,9 @@ public:
     bool isExpired() const;
     const DeprecationInfo &deprecationInfo() const;
     void setDeprecationInfo(const DeprecationInfo &deprecationInfo);
+
+    static QVariant convertToPropertyType(
+            const QVariant &v, Type t, const QStringList &namePrefix, const QString &key);
 
 private:
     QSharedDataPointer<PropertyDeclarationData> d;

@@ -3194,55 +3194,6 @@ QStringList &ModuleLoader::getModuleFileNames(const QString &dirPath)
     return moduleFileNames;
 }
 
-// returns QMetaType::UnknownType for types that do not need conversion
-static QMetaType::Type variantType(PropertyDeclaration::Type t)
-{
-    switch (t) {
-    case PropertyDeclaration::UnknownType:
-        break;
-    case PropertyDeclaration::Boolean:
-        return QMetaType::Bool;
-    case PropertyDeclaration::Integer:
-        return QMetaType::Int;
-    case PropertyDeclaration::Path:
-        return QMetaType::QString;
-    case PropertyDeclaration::PathList:
-        return QMetaType::QStringList;
-    case PropertyDeclaration::String:
-        return QMetaType::QString;
-    case PropertyDeclaration::StringList:
-        return QMetaType::QStringList;
-    case PropertyDeclaration::VariantList:
-        return QMetaType::QVariantList;
-    case PropertyDeclaration::Variant:
-        break;
-    }
-    return QMetaType::UnknownType;
-}
-
-static QVariant convertToPropertyType(const QVariant &v, PropertyDeclaration::Type t,
-    const QStringList &namePrefix, const QString &key)
-{
-    if (v.isNull() || !v.isValid())
-        return v;
-    const auto vt = variantType(t);
-    if (vt == QMetaType::UnknownType)
-        return v;
-
-    // Handle the foo,bar,bla stringlist syntax.
-    if (t == PropertyDeclaration::StringList && v.userType() == QMetaType::QString)
-        return v.toString().split(QLatin1Char(','));
-
-    QVariant c = v;
-    if (!qVariantConvert(c, vt)) {
-        QStringList name = namePrefix;
-        name << key;
-        throw ErrorInfo(Tr::tr("Value '%1' of property '%2' has incompatible type.")
-                        .arg(v.toString(), name.join(QLatin1Char('.'))));
-    }
-    return c;
-}
-
 static Item *findDeepestModuleInstance(Item *instance)
 {
     while (instance->prototype() && instance->prototype()->type() == ItemType::ModuleInstance)
@@ -3324,8 +3275,9 @@ std::pair<Item *, bool> ModuleLoader::getModulePrototype(ProductContext *product
             continue;
         }
         const PropertyDeclaration decl = module->propertyDeclaration(it.key());
-        VariantValuePtr v = VariantValue::create(convertToPropertyType(it.value(), decl.type(),
-                QStringList(fullModuleName), it.key()));
+        VariantValuePtr v = VariantValue::create(
+                PropertyDeclaration::convertToPropertyType(it.value(), decl.type(),
+                        QStringList(fullModuleName), it.key()));
         module->setProperty(it.key(), v);
     }
 
@@ -3813,8 +3765,8 @@ void ModuleLoader::overrideItemProperties(Item *item, const QString &buildConfig
             continue;
         }
         item->setProperty(it.key(),
-                VariantValue::create(convertToPropertyType(it.value(), decl.type(),
-                        QStringList(buildConfigKey), it.key())));
+                VariantValue::create(PropertyDeclaration::convertToPropertyType(
+                        it.value(), decl.type(), QStringList(buildConfigKey), it.key())));
     }
 }
 
