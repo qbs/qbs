@@ -40,6 +40,7 @@
 #include "pkgconfigjs.h"
 
 #include <language/scriptengine.h>
+#include <tools/version.h>
 
 #include <QtScript/qscriptengine.h>
 #include <QtScript/qscriptvalue.h>
@@ -82,9 +83,38 @@ QVariantMap packageToMap(const PcPackage &package)
 
     const auto requiredVersionToMap = [](const PcPackage::RequiredVersion &version)
     {
+        using Type = PcPackage::RequiredVersion::ComparisonType;
         QVariantMap result;
         result[QStringLiteral("name")] = QString::fromStdString(version.name);
-        result[QStringLiteral("version")] = QString::fromStdString(version.version);
+        const auto versionString = QString::fromStdString(version.version);
+        const auto qbsVersion = Version::fromString(QString::fromStdString(version.version));
+        const auto nextQbsVersion = Version(
+                qbsVersion.majorVersion(),
+                qbsVersion.minorVersion(),
+                qbsVersion.patchLevel() + 1);
+        switch (version.comparison) {
+        case Type::LessThan:
+            result[QStringLiteral("versionBelow")] = versionString;
+            break;
+        case Type::GreaterThan:
+            result[QStringLiteral("versionAtLeast")] = nextQbsVersion.toString();
+            break;
+        case Type::LessThanEqual:
+            result[QStringLiteral("versionBelow")] = nextQbsVersion.toString();
+            break;
+        case Type::GreaterThanEqual:
+            result[QStringLiteral("versionAtLeast")] = versionString;
+            break;
+        case Type::Equal:
+            result[QStringLiteral("version")] = versionString;
+            break;
+        case Type::NotEqual:
+            result[QStringLiteral("versionBelow")] = versionString;
+            result[QStringLiteral("versionAtLeast")] = nextQbsVersion.toString();
+            break;
+        case Type::AlwaysMatch:
+            break;
+        }
         result[QStringLiteral("comparison")] = QVariant::fromValue(qint32(version.comparison));
         return result;
     };
