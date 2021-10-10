@@ -232,6 +232,8 @@ PkgConfig::Options PkgConfigJs::convertOptions(const QProcessEnvironment &env, c
                 std::back_inserter(result.systemLibraryPaths),
                 [](const QString &str){ return str.toStdString(); });
     result.disableUninstalled = map.value(QStringLiteral("disableUninstalled"), true).toBool();
+    result.staticMode = map.value(QStringLiteral("staticMode"), false).toBool();
+    result.mergeDependencies = map.value(QStringLiteral("mergeDependencies"), true).toBool();
     result.globalVariables =
             variablesFromQVariantMap(map.value(QStringLiteral("globalVariables")).toMap());
     result.systemVariables = envToVariablesMap(env);

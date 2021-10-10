@@ -171,6 +171,26 @@ public:
     explicit PcException(const std::string &message) : std::runtime_error(message) {}
 };
 
+inline bool operator==(const PcPackage::Flag &lhs, const PcPackage::Flag &rhs)
+{
+    return lhs.type == rhs.type && lhs.value == rhs.value;
+}
+
+inline bool operator!=(const PcPackage::Flag &lhs, const PcPackage::Flag &rhs)
+{
+    return !(lhs == rhs);
+}
+
 } // namespace qbs
+
+namespace std {
+template<> struct hash<qbs::PcPackage::Flag>
+{
+    size_t operator()(const qbs::PcPackage::Flag &v) const noexcept
+    {
+        return hash<std::string>()(v.value) + size_t(v.type);
+    }
+};
+} // namespace std
 
 #endif // PC_PACKAGE_H

@@ -1,0 +1,19 @@
+{
+    "Name": "Requires test package",
+    "Description": "Dummy pkgconfig test package for testing Requires/Requires.private",
+    "Version": "1.0.0",
+    "Libs": [
+        {"Type": "LibraryPath", "Value": "/public-dep/lib"},
+        {"Type": "LibraryName", "Value": "public-dep"},
+        {"Type": "LibraryPath", "Value": "/requires-test/lib"},
+        {"Type": "LibraryName", "Value": "requires-test"}
+    ],
+    "Cflags": [
+        {"Type": "IncludePath", "Value": "/public-dep/include"},
+        {"Type": "IncludePath", "Value": "/requires-test/include"}
+    ],
+    "Requires": [
+    ],
+    "RequiresPrivate": [
+    ]
+}

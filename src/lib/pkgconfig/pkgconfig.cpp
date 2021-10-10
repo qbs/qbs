@@ -106,6 +106,50 @@ constexpr inline char listSeparator() noexcept
 #endif
 }
 
+// based on https://stackoverflow.com/a/33135699/295518
+int compareVersions(std::string_view v1, std::string_view v2)
+{
+    for (size_t i = 0, j = 0; i < v1.length() || j < v2.length(); ) {
+        size_t acc1 = 0;
+        size_t acc2 = 0;
+
+        while (i < v1.length() && v1[i] != '.') {
+            acc1 = acc1 * 10 + (v1[i] - '0');
+            i++;
+        }
+        while (j < v2.length() && v2[j] != '.') {
+            acc2 = acc2 * 10 + (v2[j] - '0');
+            j++;
+        }
+
+        if (acc1 < acc2)
+            return -1;
+        if (acc1 > acc2)
+            return +1;
+
+        ++i;
+        ++j;
+    }
+    return 0;
+}
+
+using ComparisonType = PcPackage::RequiredVersion::ComparisonType;
+
+bool versionTest(ComparisonType comparison, std::string_view a, std::string_view b)
+{
+    switch (comparison) {
+    case ComparisonType::LessThan: return compareVersions(a, b) < 0;
+    case ComparisonType::GreaterThan: return compareVersions(a, b) > 0;
+    case ComparisonType::LessThanEqual: return compareVersions(a, b) <= 0;
+    case ComparisonType::GreaterThanEqual: return compareVersions(a, b) >= 0;
+    case ComparisonType::Equal: return compareVersions(a, b) == 0;
+    case ComparisonType::NotEqual: return compareVersions(a, b) != 0;
+    case ComparisonType::AlwaysMatch: return true;
+    }
+
+    return false;
+}
+
 [[noreturn]] void raizeUnknownPackageException(std::string_view package)
 {
     std::string message;
@@ -113,6 +157,13 @@ constexpr inline char listSeparator() noexcept
     message += package;
     message += "'";
     throw PcException(message);
+}
+
+template <class C>
+C &operator<<(C &container, const C &other)
+{
+    container.insert(container.end(), other.cbegin(), other.cend());
+    return container;
 }
 
 } // namespace
@@ -237,6 +288,160 @@ std::vector<std::string> getPcFilePaths(const std::vector<std::string> &searchPa
 }
 #endif
 
+PcBrokenPackage makeMissingDependency(
+    const PcPackage &package, const PcPackage::RequiredVersion &depVersion)
+{
+    std::string message;
+    message += "Package ";
+    message += package.name;
+    message += " requires package ";
+    message += depVersion.name;
+    message += " but it is not found";
+    return PcBrokenPackage{
+            package.filePath, package.baseFileName, std::move(message)};
+}
+
+PcBrokenPackage makeBrokenDependency(
+    const PcPackage &package, const PcPackage::RequiredVersion &depVersion)
+{
+    std::string message;
+    message += "Package ";
+    message += package.name;
+    message += " requires package ";
+    message += depVersion.name;
+    message += " but it is broken";
+    return PcBrokenPackage{
+            package.filePath, package.baseFileName, std::move(message)};
+}
+
+PcBrokenPackage makeVersionMismatchDependency(
+    const PcPackage &package,
+    const PcPackage &depPackage,
+    const PcPackage::RequiredVersion &depVersion)
+{
+    std::string message;
+    message += "Package ";
+    message += package.name;
+    message += " requires version ";
+    message += PcPackage::RequiredVersion::comparisonToString(
+            depVersion.comparison);
+    message += depVersion.version;
+    message += " but ";
+    message += depPackage.version;
+    message += " is present";
+    return PcBrokenPackage{
+            package.filePath, package.baseFileName, std::move(message)};
+}
+
+PkgConfig::Packages PkgConfig::mergeDependencies(const PkgConfig::Packages &packages) const
+{
+    std::unordered_map<std::string_view, const PcPackageVariant *> packageHash;
+
+    struct MergedHashEntry
+    {
+        PcPackageVariant package; // merged package or broken package
+        std::vector<const PcPackage *> deps; // unmerged transitive deps, including Package itself
+    };
+    std::unordered_map<std::string, MergedHashEntry> mergedHash;
+
+    for (const auto &package: packages)
+        packageHash[package.getBaseFileName()] = &package;
+
+    auto func = [&](const PcPackageVariant &package, auto &f) -> const MergedHashEntry &
+    {
+        const auto it = mergedHash.find(package.getBaseFileName());
+        if (it != mergedHash.end())
+            return it->second;
+
+        auto &entry = mergedHash[package.getBaseFileName()];
+
+        auto visitor = [&](auto &&package) -> PcPackageVariant {
+
+            using T = std::decay_t<decltype(package)>;
+            if constexpr (std::is_same_v<T, PcPackage>) { // NOLINT
+
+                using Flags = std::vector<PcPackage::Flag>;
+
+                // returns true if multiple copies of the flag can present in the same package
+                // we can't properly merge flags that have multiple parameters except for
+                // -framework which we handle correctly.
+                auto canHaveDuplicates = [](const PcPackage::Flag::Type &type) {
+                    return type == PcPackage::Flag::Type::LinkerFlag
+                            || type == PcPackage::Flag::Type::CompilerFlag;
+                };
+
+                std::unordered_set<PcPackage::Flag> visitedFlags;
+                // appends only those flags to the target that were not seen before (except for
+                // ones that can have duplicates)
+                auto mergeFlags = [&](Flags &target, const Flags &source)
+                {
+                    for (const auto &flag: source) {
+                        if (canHaveDuplicates(flag.type) || visitedFlags.insert(flag).second)
+                            target.push_back(flag);
+                    }
+                };
+
+                std::unordered_set<const PcPackage *> visitedDeps;
+
+                PcPackage result;
+                // copy only meta info for now
+                result.filePath = package.filePath;
+                result.baseFileName = package.baseFileName;
+                result.name = package.name;
+                result.version = package.version;
+                result.description = package.description;
+                result.url = package.url;
+
+                auto allDependencies = package.requiresPublic;
+                if (m_options.staticMode)
+                    allDependencies << package.requiresPrivate;
+
+                for (const auto &dependency: allDependencies) {
+                    const auto it = packageHash.find(dependency.name);
+                    if (it == packageHash.end())
+                        return makeMissingDependency(result, dependency);
+
+                    const auto childEntry = f(*it->second, f);
+                    if (childEntry.package.isBroken())
+                        return makeBrokenDependency(result, dependency);
+
+                    const auto &mergedPackage = childEntry.package.asPackage();
+                    const bool versionOk = versionTest(
+                            dependency.comparison, mergedPackage.version, dependency.version);
+                    if (!versionOk)
+                        return makeVersionMismatchDependency(result, mergedPackage, dependency);
+
+                    for (const auto *dep: childEntry.deps) {
+                        if (visitedDeps.insert(dep).second)
+                            entry.deps.push_back(dep);
+                    }
+                }
+
+                entry.deps.push_back(&package);
+
+                for (const auto *dep: entry.deps) {
+                    mergeFlags(result.libs, dep->libs);
+                    mergeFlags(result.cflags, dep->cflags);
+                }
+
+                return result;
+            }
+            return package;
+        };
+        entry.package = package.visit(visitor);
+
+        return entry;
+    };
+
+    for (auto &package: packages)
+        func(package, func);
+
+    Packages result;
+    for (auto &[key, value]: mergedHash)
+        result.push_back(std::move(value.package));
+    return result;
+}
+
 PkgConfig::Packages PkgConfig::findPackages() const
 {
     Packages result;
@@ -269,6 +474,9 @@ PkgConfig::Packages PkgConfig::findPackages() const
         });
         result.emplace_back(std::move(pkg));
     }
+
+    if (m_options.mergeDependencies)
+        result = mergeDependencies(result);
 
     const auto lessThanPackage = [](const PcPackageVariant &lhs, const PcPackageVariant &rhs)
     {

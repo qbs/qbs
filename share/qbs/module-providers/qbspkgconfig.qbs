@@ -54,6 +54,7 @@ ModuleProvider {
             return "";
         return qbs.sysroot;
     }
+    property bool mergeDependencies: true
 
     relativeSearchPaths: {
 
@@ -143,6 +144,8 @@ ModuleProvider {
         var options = {};
         options.searchPaths = libDirs;
         options.sysroot = sysroot;
+        options.staticMode = staticMode;
+        options.mergeDependencies = mergeDependencies;
         if (options.sysroot && !options.searchPaths) {
             options.searchPaths = [
                 sysroot + "/usr/lib/pkgconfig",
