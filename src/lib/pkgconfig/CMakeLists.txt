@@ -8,7 +8,7 @@ set(SOURCES
 )
 list_transform_prepend(SOLUTION_SOURCES solution/)
 
-if(APPLE)
+if(APPLE OR MINGW)
     set(HAS_STD_FILESYSTEM "0")
 else()
     set(HAS_STD_FILESYSTEM "1")

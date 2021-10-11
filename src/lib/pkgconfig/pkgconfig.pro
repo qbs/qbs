@@ -6,7 +6,7 @@ DEFINES += \
     PKG_CONFIG_SYSTEM_LIBRARY_PATH=\\\"/usr/$${QBS_LIBRARY_DIRNAME}/\\\" \
     QBS_PC_WITH_QT_SUPPORT=1
 
-macos {
+macos|win32-g++ {
     DEFINES += HAS_STD_FILESYSTEM=0
 } else {
     DEFINES += HAS_STD_FILESYSTEM=1
