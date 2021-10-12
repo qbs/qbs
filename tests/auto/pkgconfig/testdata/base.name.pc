@@ -1,0 +1,12 @@
+prefix=/usr
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: Base Name test
+Description: Checks correct baseName detection
+Version: 1.0.0
+Requires:
+Libs: -lsimple
+Libs.private: -lm
+Cflags: -I${includedir}

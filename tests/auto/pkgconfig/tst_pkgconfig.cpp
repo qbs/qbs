@@ -166,6 +166,7 @@ void TestPkgConfig::pkgConfig_data()
     QTest::newRow("tilde") << QStringLiteral("tilde") << QVariantMap();
     QTest::newRow("variables") << QStringLiteral("variables") << QVariantMap();
     QTest::newRow("whitespace") << QStringLiteral("whitespace") << QVariantMap();
+    QTest::newRow("base.name") << QStringLiteral("base.name") << QVariantMap();
 }
 
 void TestPkgConfig::benchSystem()

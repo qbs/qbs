@@ -393,7 +393,7 @@ std::string baseName(const std::string_view &filePath)
     auto pos = filePath.rfind('/');
     const auto fileName =
             pos == std::string_view::npos ? std::string_view() : filePath.substr(pos + 1);
-    pos = fileName.find('.');
+    pos = fileName.rfind('.');
     return std::string(pos == std::string_view::npos
             ? std::string_view()
             : fileName.substr(0, pos));
