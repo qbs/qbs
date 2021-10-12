@@ -57,5 +57,10 @@ QbsStaticLibrary {
     Export {
         Depends { name: "cpp" }
         cpp.defines: exportingProduct.publicDefines
+        cpp.staticLibraries: {
+            if (qbs.toolchainType === "gcc" && cpp.compilerVersionMajor === 7)
+                return ["stdc++fs"];
+            return [];
+        }
     }
 }

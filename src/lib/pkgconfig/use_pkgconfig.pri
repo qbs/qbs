@@ -28,6 +28,16 @@ win32 {
     LIBS += $${QBSPKGCONFIG_LIB}
 }
 
+gcc {
+    isEmpty(COMPILER_VERSION) {
+        COMPILER_VERSION = $$system($$QMAKE_CXX " -dumpversion")
+        COMPILER_MAJOR_VERSION = $$str_member($$COMPILER_VERSION)
+        equals(COMPILER_MAJOR_VERSION, 7) {
+            LIBS += -lstdc++fs
+        }
+    }
+}
+
 INCLUDEPATH += \
     $$PWD
 

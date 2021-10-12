@@ -41,7 +41,15 @@
 #include "pcparser.h"
 
 #if HAS_STD_FILESYSTEM
-#  include <filesystem>
+#  if __has_include(<filesystem>)
+#    include <filesystem>
+#  else
+#    include <experimental/filesystem>
+// We need the alias from std::experimental::filesystem to std::filesystem
+namespace std {
+    namespace filesystem = experimental::filesystem;
+}
+#  endif
 #else
 #  include <QtCore/QDir>
 #  include <QtCore/QFileInfo>
@@ -184,7 +192,7 @@ std::vector<std::string> getPcFilePaths(const std::vector<std::string> &searchPa
     std::vector<std::filesystem::path> paths;
 
     for (const auto &searchPath : searchPaths) {
-        if (!std::filesystem::directory_entry(searchPath).exists())
+        if (!std::filesystem::exists(std::filesystem::directory_entry(searchPath).status()))
             continue;
         const auto dir = std::filesystem::directory_iterator(searchPath);
         std::copy_if(
