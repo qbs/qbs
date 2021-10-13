@@ -453,7 +453,8 @@ jobs:
     runs-on: [self-hosted, windows, x64]
     timeout-minutes: 30
     needs: build-windows
-    if: ${{ github.actor == 'rweickelt' }}
+    # baremetal VM is down, disable the workflow for now
+    if: 'false'
     env:
       QBS_TEST_SOURCE_ROOT: 'tests'
       QT_ASSUME_STDERR_HAS_CONSOLE: 1
