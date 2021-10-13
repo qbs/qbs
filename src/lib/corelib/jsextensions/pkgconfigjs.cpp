@@ -56,7 +56,7 @@ namespace {
 template<typename C, typename F> QVariantList convert(const C &c, F &&f)
 {
     QVariantList result;
-    result.reserve(c.size());
+    result.reserve(int(c.size()));
     std::transform(c.begin(), c.end(), std::back_inserter(result), f);
     return result;
 }
