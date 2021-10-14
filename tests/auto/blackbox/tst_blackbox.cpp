@@ -1867,8 +1867,18 @@ void TestBlackbox::cxxLanguageVersion_data()
                             std::make_pair(QString("msvc-new"), QString("/std:"))});
 }
 
+void TestBlackbox::conanfileProbe_data()
+{
+    QTest::addColumn<bool>("forceFailure");
+
+    QTest::newRow("success") << false;
+    QTest::newRow("failure") << true;
+}
+
 void TestBlackbox::conanfileProbe()
 {
+    QFETCH(bool, forceFailure);
+
     QString executable = findExecutable({"conan"});
     if (executable.isEmpty())
         QSKIP("conan is not installed or not available in PATH.");
@@ -1883,7 +1893,10 @@ void TestBlackbox::conanfileProbe()
     QVERIFY(waitForProcessSuccess(conan));
 
     QDir::setCurrent(testDataDir + "/conanfile-probe/testapp");
-    QCOMPARE(runQbs(QbsRunParameters("resolve", {"--force-probe-execution"})), 0);
+    QCOMPARE(runQbs(QbsRunParameters("resolve",
+                                     {"--force-probe-execution",
+                                      QStringLiteral("projects.conanfile-probe-project.forceFailure:") +
+                                      (forceFailure ? "true" : "false")})), forceFailure ? 1 : 0);
 
     QFile file(relativeBuildDir() + "/results.json");
     QVERIFY(file.open(QIODevice::ReadOnly));

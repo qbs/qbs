@@ -246,3 +246,12 @@
 
     \nodefaultvalue
 */
+
+/*!
+    \qmlproperty var ConanfileProbe::verbose
+
+    Set to \c{true} to print all output of `conan install`.
+    If this property is \c{false} only error output will be printed.
+
+    \defaultvalue \c{false}
+*/

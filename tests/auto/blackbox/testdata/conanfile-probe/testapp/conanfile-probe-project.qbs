@@ -2,11 +2,12 @@ import qbs.Probes
 import qbs.TextFile
 
 Project {
+    readonly property bool forceFailure: false
 
     Probes.ConanfileProbe {
         id: conan
         conanfilePath: path + "/conanfile.py"
-        options: ({opt: "True"})
+        options: ({opt: "True", forceFailure: (project.forceFailure ? "True" : "False")})
         settings: ({os: "AIX"})
     }
 

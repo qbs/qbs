@@ -43,6 +43,7 @@ Probe {
     property stringList generators: ["json"]
     property var options
     property var settings
+    property bool verbose: false
 
     // Output
     property var dependencies
@@ -104,11 +105,25 @@ Probe {
 
         args = args.concat(["-if", generatedFilesPath]);
         var p = new Process();
-        try {
-            p.exec(executable, args, true);
-        } finally {
-            p.close();
+        p.start(executable, args);
+        while (!p.waitForFinished(500)) {
+            const output = p.readStdOut();
+            if (verbose && output) {
+                console.info(output);
+            }
         }
+        while (!p.atEnd()) {
+            const output = p.readStdOut();
+            if (verbose && output) {
+                console.info(output);
+            }
+        }
+        if (p.exitCode()) {
+            const errorOutput = p.readStdErr();
+            p.close();
+            throw errorOutput;
+        }
+        p.close();
 
         if (generators.contains("json")) {
             if (!File.exists(generatedFilesPath + "/conanbuildinfo.json"))
