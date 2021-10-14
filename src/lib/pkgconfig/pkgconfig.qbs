@@ -4,6 +4,7 @@ import qbs.Utilities
 QbsStaticLibrary {
     Depends { name: "cpp" }
     Depends { name: "qbsbuildconfig" }
+    Depends { name: "qbsvariant" }
 
     property stringList pcPaths: {
         var result = [];
@@ -56,6 +57,7 @@ QbsStaticLibrary {
 
     Export {
         Depends { name: "cpp" }
+        Depends { name: "qbsvariant" }
         cpp.defines: exportingProduct.publicDefines
         cpp.staticLibraries: {
             if (qbs.toolchainType === "gcc" && cpp.compilerVersionMajor === 7)

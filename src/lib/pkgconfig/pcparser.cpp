@@ -407,7 +407,8 @@ PcParser::PcParser(const PkgConfig &pkgConfig)
 
 }
 
-PcPackage PcParser::parsePackageFile(const std::string &path)
+PcPackageVariant PcParser::parsePackageFile(const std::string &path)
+try
 {
     PcPackage package;
 
@@ -434,6 +435,8 @@ PcPackage PcParser::parsePackageFile(const std::string &path)
     while (readOneLine(file, line))
         parseLine(package, line);
     return package;
+} catch(const PcException &ex) {
+    return PcBrokenPackage{path, baseName(path), ex.what()};
 }
 
 std::string PcParser::trimAndSubstitute(const PcPackage &pkg, std::string_view str) const

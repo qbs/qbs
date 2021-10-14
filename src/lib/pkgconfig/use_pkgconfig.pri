@@ -1,4 +1,5 @@
 include(../../library_dirname.pri)
+include(../../shared/variant/variant.pri)
 
 isEmpty(QBSLIBDIR) {
     QBSLIBDIR = $${OUT_PWD}/../../../$${QBS_LIBRARY_DIRNAME}

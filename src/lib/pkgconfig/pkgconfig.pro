@@ -1,5 +1,6 @@
 TARGET = qbspkgconfig
 include(../staticlibrary.pri)
+include(../../shared/variant/variant.pri)
 
 DEFINES += \
     PKG_CONFIG_PC_PATH=\\\"/usr/lib/pkgconfig:/usr/share/pkgconfig\\\" \

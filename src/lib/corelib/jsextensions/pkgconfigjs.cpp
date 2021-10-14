@@ -65,6 +65,7 @@ template<typename C, typename F> QVariantList convert(const C &c, F &&f)
 QVariantMap packageToMap(const PcPackage &package)
 {
     QVariantMap result;
+    result[QStringLiteral("isBroken")] = false;
     result[QStringLiteral("filePath")] = QString::fromStdString(package.filePath);
     result[QStringLiteral("baseFileName")] = QString::fromStdString(package.baseFileName);
     result[QStringLiteral("name")] = QString::fromStdString(package.name);
@@ -133,9 +134,22 @@ QVariantMap packageToMap(const PcPackage &package)
 QVariantMap brokenPackageToMap(const PcBrokenPackage &package)
 {
     QVariantMap result;
+    result[QStringLiteral("isBroken")] = true;
     result[QStringLiteral("filePath")] = QString::fromStdString(package.filePath);
+    result[QStringLiteral("baseFileName")] = QString::fromStdString(package.baseFileName);
     result[QStringLiteral("errorText")] = QString::fromStdString(package.errorText);
     return result;
+}
+
+QVariantMap packageVariantToMap(const PcPackageVariant &package)
+{
+    return package.visit([](const auto &value) {
+        using T = std::decay_t<decltype(value)>;
+        if constexpr (std::is_same_v<T, PcPackage>)
+            return packageToMap(value);
+        else
+            return brokenPackageToMap(value);
+    });
 }
 
 PcPackage::VariablesMap envToVariablesMap(const QProcessEnvironment &env)
@@ -195,11 +209,10 @@ PkgConfigJs::PkgConfigJs(
         convertOptions(static_cast<ScriptEngine *>(engine)->environment(), options)))
 {
     Q_UNUSED(context);
-    for (const auto &package : m_pkgConfig->packages())
-        m_packages.insert(QString::fromStdString(package.baseFileName), packageToMap(package));
-
-    for (const auto &package : m_pkgConfig->brokenPackages())
-        m_brokenPackages.push_back(brokenPackageToMap(package));
+    for (const auto &package : m_pkgConfig->packages()) {
+        m_packages.insert(
+                QString::fromStdString(package.getBaseFileName()), packageVariantToMap(package));
+    }
 }
 
 PkgConfig::Options PkgConfigJs::convertOptions(const QProcessEnvironment &env, const QVariantMap &map)

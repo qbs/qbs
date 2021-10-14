@@ -74,7 +74,9 @@ void TestPkgConfig::pkgConfig()
     const auto json = QJsonDocument::fromJson(jsonFile.readAll(), &error).toVariant().toMap();
     QCOMPARE(error.error, QJsonParseError::NoError);
 
-    const auto &package = pkgConfig.getPackage(fileName.toStdString());
+    const auto &packageOr = pkgConfig.getPackage(fileName.toStdString());
+    QVERIFY(packageOr.isValid());
+    const auto &package = packageOr.asPackage();
     QCOMPARE(QString::fromStdString(package.baseFileName), fileName);
     QCOMPARE(QString::fromStdString(package.name), json.value("Name").toString());
     QCOMPARE(QString::fromStdString(package.description), json.value("Description").toString());

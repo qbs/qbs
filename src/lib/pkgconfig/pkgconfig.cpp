@@ -141,19 +141,27 @@ PkgConfig::PkgConfig(Options options)
         m_options.globalVariables["pc_sysrootdir"] = m_options.sysroot;
     m_options.globalVariables["pc_top_builddir"] = m_options.topBuildDir;
 
-    std::tie(m_packages, m_brokenPackages) = findPackages();
+    m_packages = findPackages();
 }
 
-const PcPackage &PkgConfig::getPackage(std::string_view baseFileName) const
+const PcPackageVariant &PkgConfig::getPackage(std::string_view baseFileName) const
 {
     // heterogeneous comparator so we can search the package using string_view
-    const auto lessThan = [](const PcPackage &package, const std::string_view &name)
+    const auto lessThan = [](const PcPackageVariant &package, const std::string_view &name)
     {
-        return package.baseFileName < name;
+        return package.visit([name](auto &&value) noexcept {
+            return value.baseFileName < name;
+        });
+    };
+
+    const auto testPackage = [baseFileName](const PcPackageVariant &package) {
+        return package.visit([baseFileName](auto &&value) noexcept {
+            return baseFileName != value.baseFileName;
+        });
     };
 
     const auto it = std::lower_bound(m_packages.begin(), m_packages.end(), baseFileName, lessThan);
-    if (it == m_packages.end() || baseFileName != it->baseFileName)
+    if (it == m_packages.end() || testPackage(*it))
         raizeUnknownPackageException(baseFileName);
     return *it;
 }
@@ -229,10 +237,9 @@ std::vector<std::string> getPcFilePaths(const std::vector<std::string> &searchPa
 }
 #endif
 
-std::pair<PkgConfig::Packages, PkgConfig::BrokenPackages> PkgConfig::findPackages() const
+PkgConfig::Packages PkgConfig::findPackages() const
 {
     Packages result;
-    BrokenPackages brokenResult;
     PcParser parser(*this);
 
     const auto systemLibraryPaths = !m_options.allowSystemLibraryPaths ?
@@ -248,26 +255,27 @@ std::pair<PkgConfig::Packages, PkgConfig::BrokenPackages> PkgConfig::findPackage
                 continue;
         }
 
-        try {
-            result.emplace_back(
-                    parser.parsePackageFile(pcFilePath)
+        auto pkg = parser.parsePackageFile(pcFilePath);
+        pkg.visit([&](auto &value) {
+            using T = std::decay_t<decltype(value)>;
+            if constexpr (std::is_same_v<T, PcPackage>) { // NOLINT
+                value = std::move(value)
                         // Weird, but pkg-config removes libs first and only then appends
                         // sysroot. Looks like sysroot has to be used with
                         // allowSystemLibraryPaths: true
                         .removeSystemLibraryPaths(systemLibraryPaths)
-                        .prependSysroot(m_options.sysroot));
-        } catch (const PcException &ex) {
-            // not sure if it's OK to use exceptions for handling errors like
-            brokenResult.push_back(PcBrokenPackage{pcFilePath, ex.what()});
-        }
+                        .prependSysroot(m_options.sysroot);
+            }
+        });
+        result.emplace_back(std::move(pkg));
     }
 
-    const auto lessThanPackage = [](const PcPackage &lhs, const PcPackage &rhs)
+    const auto lessThanPackage = [](const PcPackageVariant &lhs, const PcPackageVariant &rhs)
     {
-        return lhs.baseFileName < rhs.baseFileName;
+        return lhs.getBaseFileName() < rhs.getBaseFileName();
     };
     std::sort(result.begin(), result.end(), lessThanPackage);
-    return {result, brokenResult};
+    return result;
 }
 
 } // namespace qbs

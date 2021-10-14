@@ -161,19 +161,18 @@ ModuleProvider {
         }
 
         var pkgConfig = new PkgConfig(options);
-        var brokenPackages = pkgConfig.brokenPackages();
-        if (brokenPackages.length !== 0) {
-            console.warn("Failed to load some pkg-config packages:");
-            for (var i = 0; i < brokenPackages.length; ++i) {
-                console.warn("    " + brokenPackages[i].filePath
-                    + ": " + brokenPackages[i].errorText);
-            }
-        }
+
+        var brokenPackages = [];
         var packages = pkgConfig.packages();
         for (var packageName in packages) {
+            var pkg = packages[packageName];
+            if (pkg.isBroken) {
+                brokenPackages.push(pkg);
+                continue;
+            }
             var moduleName = getModuleName(packageName);
-            var moduleInfo = getModuleInfo(packages[packageName], staticMode);
-            var deps = getModuleDependencies(packages[packageName], staticMode);
+            var moduleInfo = getModuleInfo(pkg, staticMode);
+            var deps = getModuleDependencies(pkg, staticMode);
 
             var moduleDir = FileInfo.joinPaths(outputDir, moduleName);
             File.makePath(moduleDir);
@@ -211,6 +210,15 @@ ModuleProvider {
             module.writeLine("}");
             module.close();
         }
+
+        if (brokenPackages.length !== 0) {
+            console.warn("Failed to load some pkg-config packages:");
+            for (var i = 0; i < brokenPackages.length; ++i) {
+                console.warn("    " + brokenPackages[i].filePath
+                    + ": " + brokenPackages[i].errorText);
+            }
+        }
+
         return "";
     }
 }

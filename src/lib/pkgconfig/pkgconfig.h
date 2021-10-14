@@ -60,27 +60,24 @@ public:
         VariablesMap systemVariables;
     };
 
-    using Packages = std::vector<PcPackage>;
-    using BrokenPackages = std::vector<PcBrokenPackage>;
+    using Packages = std::vector<PcPackageVariant>;
 
     explicit PkgConfig();
     explicit PkgConfig(Options options);
 
     const Options &options() const { return m_options; }
     const Packages &packages() const { return m_packages; }
-    const BrokenPackages &brokenPackages() const { return m_brokenPackages; }
-    const PcPackage &getPackage(std::string_view baseFileName) const;
+    const PcPackageVariant &getPackage(std::string_view baseFileName) const;
 
     std::string_view packageGetVariable(const PcPackage &pkg, std::string_view var) const;
 
 private:
-    std::pair<Packages, BrokenPackages> findPackages() const;
+    Packages findPackages() const;
 
 private:
     Options m_options;
 
     Packages m_packages;
-    BrokenPackages m_brokenPackages;
 };
 
 } // namespace qbs
