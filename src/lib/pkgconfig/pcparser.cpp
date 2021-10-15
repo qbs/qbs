@@ -761,8 +761,7 @@ void PcParser::parseLine(PcPackage &pkg, std::string_view str)
         // ignore this feature for now
 
         const auto value = trimAndSubstitute(pkg, str);
-        const auto [it, ok] = pkg.vars.insert({std::string(tag), value});
-        if (!ok)
+        if (!pkg.vars.insert({std::string(tag), value}).second)
             raizeDuplicateVariableException(pkg, tag);
     }
 }
