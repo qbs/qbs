@@ -1098,9 +1098,6 @@
         }
     \endcode
 
-    The import statement gives us access to some built-in types and specifies the
-    used language version.
-
     \a Application describes the product we want to build. In this case, an
     application. This is just a shortcut for writing
     \code
