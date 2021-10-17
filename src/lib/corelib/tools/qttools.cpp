@@ -47,8 +47,9 @@ size_t hash<QVariant>::operator()(const QVariant &v) const noexcept
 {
     switch (v.userType()) {
     case QMetaType::UnknownType: return 0;
+    case QMetaType::Bool: return std::hash<bool>()(v.toBool());
     case QMetaType::Int: return std::hash<int>()(v.toInt());
-    case QMetaType::UInt: return std::hash<int>()(v.toUInt());
+    case QMetaType::UInt: return std::hash<uint>()(v.toUInt());
     case QMetaType::QString: return std::hash<QString>()(v.toString());
     case QMetaType::QStringList: return std::hash<QStringList>()(v.toStringList());
     case QMetaType::QVariantList: return std::hash<QVariantList>()(v.toList());
