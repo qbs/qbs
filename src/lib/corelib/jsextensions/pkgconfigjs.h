@@ -66,7 +66,7 @@ public:
         StaticLibraryName = toUnderlying(PcPackage::Flag::Type::StaticLibraryName),
         Framework = toUnderlying(PcPackage::Flag::Type::Framework),
         FrameworkPath = toUnderlying(PcPackage::Flag::Type::FrameworkPath),
-        LinkerFlags = toUnderlying(PcPackage::Flag::Type::LinkerFlag),
+        LinkerFlag = toUnderlying(PcPackage::Flag::Type::LinkerFlag),
         IncludePath = toUnderlying(PcPackage::Flag::Type::IncludePath),
         SystemIncludePath = toUnderlying(PcPackage::Flag::Type::SystemIncludePath),
         Define = toUnderlying(PcPackage::Flag::Type::Define),
