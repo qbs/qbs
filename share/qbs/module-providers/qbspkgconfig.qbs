@@ -108,7 +108,10 @@ ModuleProvider {
             result.commonCompilerFlags =
                     pkg.cflags.filter(typeFilter(PkgConfig.CompilerFlag)).map(mapper);
 
-            var libsInfo = !staticMode ? getLibsInfo(pkg.libs) : getLibsInfo(pkg.libsPrivate);
+            var allLibs = pkg.libs;
+            if (staticMode)
+                allLibs = allLibs.concat(pkg.libsPrivate);
+            var libsInfo = getLibsInfo(allLibs);
             for (var key in libsInfo) {
                 result[key] = libsInfo[key];
             }
