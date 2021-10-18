@@ -175,8 +175,8 @@ void TestLanguage::init()
 void TestLanguage::initTestCase()
 {
     m_logger = Logger(m_logSink);
-    m_engine = ScriptEngine::create(m_logger, EvalContext::PropertyEvaluation, this);
-    loader = new Loader(m_engine, m_logger);
+    m_engine = ScriptEngine::create(m_logger, EvalContext::PropertyEvaluation);
+    loader = new Loader(m_engine.get(), m_logger);
     loader->setSearchPaths(QStringList()
                            << (testDataDir() + "/../../../../share/qbs"));
     defaultParameters.setTopLevelProfile(profileName());
@@ -1602,7 +1602,7 @@ void TestLanguage::itemPrototype()
     item->setProperty("y", sourceValueCreator.create("x + 1"));
     item->setProperty("z", sourceValueCreator.create("2"));
 
-    Evaluator evaluator(m_engine);
+    Evaluator evaluator(m_engine.get());
     QCOMPARE(evaluator.property(proto, "x").toVariant().toInt(), 1);
     QCOMPARE(evaluator.property(proto, "y").toVariant().toInt(), 1);
     QVERIFY(!evaluator.property(proto, "z").isValid());
@@ -1626,7 +1626,7 @@ void TestLanguage::itemScope()
     item->setScope(scope2);
     item->setProperty("z", sourceValueCreator.create("x + y"));
 
-    Evaluator evaluator(m_engine);
+    Evaluator evaluator(m_engine.get());
     QCOMPARE(evaluator.property(scope1, "x").toVariant().toInt(), 1);
     QCOMPARE(evaluator.property(scope2, "y").toVariant().toInt(), 2);
     QVERIFY(!evaluator.property(scope2, "x").isValid());

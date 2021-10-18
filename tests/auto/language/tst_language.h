@@ -60,7 +60,7 @@ private:
     qbs::ILogSink *m_logSink;
     qbs::Settings * const m_settings;
     qbs::Internal::Logger m_logger;
-    qbs::Internal::ScriptEngine *m_engine;
+    std::unique_ptr<qbs::Internal::ScriptEngine> m_engine;
     qbs::Internal::Loader *loader;
     qbs::Internal::TopLevelProjectPtr project;
     qbs::SetupProjectParameters defaultParameters;

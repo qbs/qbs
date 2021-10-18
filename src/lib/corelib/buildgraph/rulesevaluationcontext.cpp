@@ -65,10 +65,7 @@ RulesEvaluationContext::RulesEvaluationContext(Logger logger)
     JavaScriptCommand::setupForJavaScript(m_prepareScriptScope);
 }
 
-RulesEvaluationContext::~RulesEvaluationContext()
-{
-    delete m_engine;
-}
+RulesEvaluationContext::~RulesEvaluationContext() = default;
 
 void RulesEvaluationContext::initializeObserver(const QString &description, int maximumProgress)
 {

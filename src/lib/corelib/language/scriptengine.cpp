@@ -99,8 +99,8 @@ uint qHash(const ScriptEngine::PropertyCacheKey &k, uint seed = 0)
 
 std::mutex ScriptEngine::m_creationDestructionMutex;
 
-ScriptEngine::ScriptEngine(Logger &logger, EvalContext evalContext, QObject *parent)
-    : QScriptEngine(parent), m_scriptImporter(new ScriptImporter(this)),
+ScriptEngine::ScriptEngine(Logger &logger, EvalContext evalContext, PrivateTag)
+    : m_scriptImporter(new ScriptImporter(this)),
       m_modulePropertyScriptClass(nullptr),
       m_propertyCacheEnabled(true), m_active(false), m_logger(logger), m_evalContext(evalContext),
       m_observer(new PrepareScriptObserver(this, UnobserveMode::Disabled))
@@ -118,10 +118,10 @@ ScriptEngine::ScriptEngine(Logger &logger, EvalContext evalContext, QObject *par
     extendJavaScriptBuiltins();
 }
 
-ScriptEngine *ScriptEngine::create(Logger &logger, EvalContext evalContext, QObject *parent)
+std::unique_ptr<ScriptEngine> ScriptEngine::create(Logger &logger, EvalContext evalContext)
 {
     std::lock_guard<std::mutex> lock(m_creationDestructionMutex);
-    return new ScriptEngine(logger, evalContext, parent);
+    return std::make_unique<ScriptEngine>(logger, evalContext, PrivateTag());
 }
 
 ScriptEngine::~ScriptEngine()

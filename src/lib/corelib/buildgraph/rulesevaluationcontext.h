@@ -69,7 +69,7 @@ public:
         RulesEvaluationContext * const m_evalContext;
     };
 
-    ScriptEngine *engine() const { return m_engine; }
+    ScriptEngine *engine() const { return m_engine.get(); }
     QScriptValue scope() const { return m_scope; }
 
     void setObserver(ProgressObserver *observer) { m_observer = observer; }
@@ -85,7 +85,7 @@ private:
     void cleanupScope();
 
     Logger m_logger;
-    ScriptEngine * const m_engine;
+    const std::unique_ptr<ScriptEngine> m_engine;
     ProgressObserver *m_observer;
     unsigned int m_initScopeCalls;
     QScriptValue m_scope;

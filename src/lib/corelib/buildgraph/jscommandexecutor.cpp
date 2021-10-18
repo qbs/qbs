@@ -184,12 +184,12 @@ private:
     ScriptEngine *provideScriptEngine()
     {
         if (!m_scriptEngine)
-            m_scriptEngine = ScriptEngine::create(m_logger, EvalContext::JsCommand, this);
-        return m_scriptEngine;
+            m_scriptEngine = ScriptEngine::create(m_logger, EvalContext::JsCommand);
+        return m_scriptEngine.get();
     }
 
     Logger m_logger;
-    ScriptEngine *m_scriptEngine;
+    std::unique_ptr<ScriptEngine> m_scriptEngine;
     JavaScriptCommandResult m_result;
     bool m_running = false;
     bool m_cancelled = false;

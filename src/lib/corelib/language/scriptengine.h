@@ -102,10 +102,12 @@ enum class ObserveMode { Enabled, Disabled };
 class QBS_AUTOTEST_EXPORT ScriptEngine : public QScriptEngine
 {
     Q_OBJECT
-    ScriptEngine(Logger &logger, EvalContext evalContext, QObject *parent = nullptr);
+    struct PrivateTag {};
 public:
-    static ScriptEngine *create(Logger &logger, EvalContext evalContext, QObject *parent = nullptr);
+    ScriptEngine(Logger &logger, EvalContext evalContext, PrivateTag);
     ~ScriptEngine() override;
+
+    static std::unique_ptr<ScriptEngine> create(Logger &logger, EvalContext evalContext);
 
     Logger &logger() const { return m_logger; }
     void import(const FileContextBaseConstPtr &fileCtx, QScriptValue &targetObject,
