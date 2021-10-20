@@ -70,7 +70,7 @@ public:
         IncludePath = toUnderlying(PcPackage::Flag::Type::IncludePath),
         SystemIncludePath = toUnderlying(PcPackage::Flag::Type::SystemIncludePath),
         Define = toUnderlying(PcPackage::Flag::Type::Define),
-        CompilerFlags = toUnderlying(PcPackage::Flag::Type::CompilerFlag),
+        CompilerFlag = toUnderlying(PcPackage::Flag::Type::CompilerFlag),
     };
     Q_ENUM(FlagType);
 
