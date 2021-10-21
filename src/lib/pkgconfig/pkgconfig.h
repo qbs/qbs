@@ -50,7 +50,8 @@ public:
     struct Options {
         using VariablesMap = PcPackage::VariablesMap;
 
-        std::vector<std::string> searchPaths;        // PKG_CONFIG_PATH, PKG_CONFIG_LIBDIR
+        std::vector<std::string> libDirs;            // PKG_CONFIG_LIBDIR
+        std::vector<std::string> extraPaths;         // PKG_CONFIG_PATH
         std::string sysroot;                         // PKG_CONFIG_SYSROOT_DIR
         std::string topBuildDir;                     // PKG_CONFIG_TOP_BUILD_DIR
         bool allowSystemLibraryPaths{false};         // PKG_CONFIG_ALLOW_SYSTEM_LIBS

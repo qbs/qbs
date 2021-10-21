@@ -72,7 +72,7 @@ void TestPkgConfig::pkgConfig()
 
     Options options = qbs::Internal::PkgConfigJs::convertOptions(
             QProcessEnvironment::systemEnvironment(), optionsMap);
-    options.searchPaths.push_back(m_workingDataDir.toStdString());
+    options.libDirs.push_back(m_workingDataDir.toStdString());
 
     PkgConfig pkgConfig(std::move(options));
 

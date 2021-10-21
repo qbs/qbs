@@ -218,8 +218,10 @@ PkgConfigJs::PkgConfigJs(
 PkgConfig::Options PkgConfigJs::convertOptions(const QProcessEnvironment &env, const QVariantMap &map)
 {
     PkgConfig::Options result;
-    result.searchPaths =
-            stringListToStdVector(map.value(QStringLiteral("searchPaths")).toStringList());
+    result.libDirs =
+            stringListToStdVector(map.value(QStringLiteral("libDirs")).toStringList());
+    result.extraPaths =
+            stringListToStdVector(map.value(QStringLiteral("extraPaths")).toStringList());
     result.sysroot = map.value(QStringLiteral("sysroot")).toString().toStdString();
     result.topBuildDir = map.value(QStringLiteral("topBuildDir")).toString().toStdString();
     result.allowSystemLibraryPaths =

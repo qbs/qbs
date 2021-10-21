@@ -176,8 +176,8 @@ PkgConfig::PkgConfig()
 PkgConfig::PkgConfig(Options options)
     : m_options(std::move(options))
 {
-    if (m_options.searchPaths.empty())
-        m_options.searchPaths = split(PKG_CONFIG_PC_PATH, listSeparator());
+    if (m_options.libDirs.empty())
+        m_options.libDirs = split(PKG_CONFIG_PC_PATH, listSeparator());
 
     if (m_options.topBuildDir.empty())
         m_options.topBuildDir = "$(top_builddir)"; // pkg-config sets this for automake =)
@@ -452,7 +452,10 @@ PkgConfig::Packages PkgConfig::findPackages() const
                 m_options.systemLibraryPaths.begin(),
                 m_options.systemLibraryPaths.end()) : std::unordered_set<std::string>();
 
-    const auto pcFilePaths = getPcFilePaths(m_options.searchPaths);
+    auto allSearchPaths = m_options.extraPaths;
+    allSearchPaths.insert(
+            allSearchPaths.end(), m_options.libDirs.begin(), m_options.libDirs.end());
+    const auto pcFilePaths = getPcFilePaths(allSearchPaths);
 
     for (const auto &pcFilePath : pcFilePaths) {
         if (m_options.disableUninstalled) {

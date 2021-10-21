@@ -57,7 +57,18 @@
     \note You do not need to set this for cross-compilation in order to point
           to the sysroot. \QBS does that for you.
 
-    This property is the equivalent of the \c{PKG_CONFIG_PATH} / \c{PKG_CONFIG_LIBDIR} variables
+    This property is the equivalent of the \c{PKG_CONFIG_LIBDIR} variable
+    for the \c{pkg-config} tool.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty stringList qbspkgconfig::extraPaths
+
+    Set this if you need to add extra search directories.
+
+    This property is the equivalent of the \c{PKG_CONFIG_PATH} variable
     for the \c{pkg-config} tool.
 
     \nodefaultvalue

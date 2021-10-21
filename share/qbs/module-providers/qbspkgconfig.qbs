@@ -47,6 +47,7 @@ import qbs.TextFile
 
 ModuleProvider {
     property string executableFilePath
+    property stringList extraPaths
     property stringList libDirs
     property bool staticMode: false
     property path sysroot: {
@@ -142,17 +143,18 @@ ModuleProvider {
         File.makePath(outputDir);
 
         var options = {};
-        options.searchPaths = libDirs;
+        options.libDirs = libDirs;
         options.sysroot = sysroot;
         options.staticMode = staticMode;
         options.mergeDependencies = mergeDependencies;
-        if (options.sysroot && !options.searchPaths) {
-            options.searchPaths = [
+        options.extraPaths = extraPaths;
+        if (options.sysroot && !options.libDirs) {
+            options.libDirs = [
                 sysroot + "/usr/lib/pkgconfig",
                 sysroot + "/usr/share/pkgconfig"
             ];
         }
-        if (!options.searchPaths) {
+        if (!options.libDirs) {
             // if we have pkg-config installed, let's ask it for its search paths (since
             // built-in search paths can differ between platforms)
             var executable = executableFilePath ? executableFilePath : getPkgConfigExecutable(qbs);
@@ -161,7 +163,7 @@ ModuleProvider {
                 if (p.exec(executable, ['pkg-config', '--variable=pc_path']) === 0) {
                     var stdout = p.readStdOut().trim();
                     // TODO: qbs.pathListSeparator? depends on what pkg-config prints on Windows
-                    options.searchPaths = stdout ? stdout.split(':'): [];
+                    options.libDirs = stdout ? stdout.split(':'): [];
                 }
             }
         }
