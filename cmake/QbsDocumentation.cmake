@@ -201,12 +201,12 @@ function(_qbs_setup_qhelpgenerator_targets _qdocconf_file _html_outputdir)
         return()
     endif()
 
+    get_filename_component(_target "${_qdocconf_file}" NAME_WE)
+
     set(_html_target "qbs_html_docs_${_target}")
     if (NOT TARGET ${_html_target})
         return()
     endif()
-
-    get_filename_component(_target "${_qdocconf_file}" NAME_WE)
 
     set(_qch_outputdir "${_arg_QCH_DIR}")
     file(MAKE_DIRECTORY "${_qch_outputdir}")
