@@ -16,6 +16,7 @@ Module {
     property bool verboseAndroidDeployQt: false
     property string _androidDeployQtFilePath: FileInfo.joinPaths(_qtBinaryDir, "bin",
                                                                  "androiddeployqt")
+    property string rccFilePath
     property string _qtBinaryDir
     property string _qtInstallDir
     // TODO: Remove in 1.21
@@ -208,7 +209,7 @@ Module {
                 if (Utilities.versionCompare(product.Qt.android_support.version, "6.0") >= 0) {
                     f.writeLine('"qml-importscanner-binary": "' +
                                 product.Qt.core.qmlImportScannerFilePath + '",');
-                    f.writeLine('"rcc-binary": "' + product.Qt.core.binPath + '/rcc' + '",');
+                    f.writeLine('"rcc-binary": "' + product.Qt.android_support.rccFilePath + '",');
 
                     if (inputs["qrc"] && inputs["qrc"].length > 0) {
                         var qrcFiles = [];

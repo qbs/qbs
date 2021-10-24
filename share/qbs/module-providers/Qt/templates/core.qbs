@@ -25,6 +25,7 @@ Module {
         Qt.android_support._qtBinaryDir: FileInfo.path(binPath)
         Qt.android_support._qtInstallDir: FileInfo.path(installPath)
         Qt.android_support.version: version
+        Qt.android_support.rccFilePath: Rcc.fullPath(product)
     }
     // qmlImportScanner is required by androiddeployqt even if the project doesn't
     // depend on qml. That's why the scannerName must be defined here and not in the
