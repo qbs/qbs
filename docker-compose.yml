@@ -84,6 +84,17 @@ services:
         QT_VERSION: 6.0.0
         ANDROID_NDK_VERSION: 23.0.7599858
 
+  focal-android-620:
+    << : *linux
+    hostname: focal-android
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:focal-android-6.2.0-0
+    build:
+      dockerfile: docker/focal/test-android.Dockerfile
+      context: .
+      args:
+        QT_VERSION: 6.2.0
+        ANDROID_NDK_VERSION: 23.0.7599858
+
   focal-android-ndk-r19c:
     << : *linux
     hostname: focal-android
