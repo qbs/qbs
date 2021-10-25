@@ -8455,8 +8455,8 @@ void TestBlackbox::ico()
             QCOMPARE(b.at(12), '\0');
             QCOMPARE(b.at(26), '\0');
             QCOMPARE(b.at(28), '\0');
-            QWARN("this version of icoutil does not support setting the hotspot "
-                  "for cursor files with multiple images");
+            qWarning() << "this version of icoutil does not support setting the hotspot "
+                  "for cursor files with multiple images";
         } else {
             QCOMPARE(b.at(10), '\x8');
             QCOMPARE(b.at(12), '\x9');
