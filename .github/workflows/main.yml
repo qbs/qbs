@@ -58,7 +58,7 @@ jobs:
   build-linux-extra:
     name: ${{ matrix.config.name }}
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:
@@ -88,7 +88,7 @@ jobs:
             image: 'focal-qt6',
             script: './scripts/build-qbs-with-qbs.sh',
             options: 'modules.cpp.compilerWrapper:ccache
-                      modules.qbsbuildconfig.enableAddressSanitizer:false
+                      products.qbsscriptengine.qbsbuildconfig.enableAddressSanitizer:false
                       modules.qbs.debugInformation:true
                       modules.qbsbuildconfig.enableBundledQt:true',
             cacheid: 'gcc-qt6',
