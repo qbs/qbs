@@ -353,6 +353,12 @@ jobs:
             script: './scripts/test-qt-for-android.sh',
           }
         - {
+            name: 'Run Android tests (Qt 6.2.0)',
+            image: 'focal-android-620',
+            profile: '',
+            script: './scripts/test-qt-for-android.sh',
+          }
+        - {
             name: 'Run Android tests (ndk r19c)',
             image: 'focal-android-ndk-r19c',
             profile: '',
@@ -598,7 +604,7 @@ jobs:
             runner: 'macos-11.0',
             target: 'desktop',
             toolchain: 'clang_64',
-            testProfile: 'xcode_12_5-macosx-x86_64',
+            testProfile: 'xcode_12_5_1-macosx-x86_64',
             qtVersion: '5.15.2',
             script: './scripts/test-qbs.sh',
           }
@@ -607,7 +613,7 @@ jobs:
             runner: 'macos-11.0',
             target: 'desktop',
             toolchain: 'clang_64',
-            testProfile: 'xcode_12_5-macosx-x86_64',
+            testProfile: 'xcode_12_5_1-macosx-x86_64',
             qtVersion: '6.0.2',
             script: './scripts/test-qt.sh',
           }
@@ -616,7 +622,7 @@ jobs:
             runner: 'macos-11.0',
             target: 'ios',
             toolchain: 'ios',
-            testProfile: 'xcode_12_5-iphoneos-arm64',
+            testProfile: 'xcode_12_5_1-iphoneos-arm64',
             qtVersion: '5.15.2',
             script: './scripts/test-qbs.sh',
           }
@@ -625,7 +631,7 @@ jobs:
             runner: 'macos-11.0',
             target: 'ios',
             toolchain: 'ios',
-            testProfile: 'xcode_12_5-iphonesimulator-x86_64',
+            testProfile: 'xcode_12_5_1-iphonesimulator-x86_64',
             qtVersion: '5.15.2',
             script: './scripts/test-qbs.sh',
           }

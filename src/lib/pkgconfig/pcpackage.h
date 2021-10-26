@@ -40,12 +40,15 @@
 #ifndef PC_PACKAGE_H
 #define PC_PACKAGE_H
 
+#include <variant.h>
+
 #include <map>
 #include <optional>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 namespace qbs {
@@ -123,7 +126,43 @@ class PcBrokenPackage
 {
 public:
     std::string filePath;
+    std::string baseFileName;
     std::string errorText;
+};
+
+class PcPackageVariant: public Variant::variant<PcPackage, PcBrokenPackage>
+{
+public:
+    using Base = Variant::variant<PcPackage, PcBrokenPackage>;
+    using Base::Base;
+
+    bool isValid() const noexcept { return index() == 0; }
+    bool isBroken() const noexcept { return index() == 1; }
+
+    const PcPackage &asPackage() const { return Variant::get<PcPackage>(*this); }
+    PcPackage &asPackage() { return Variant::get<PcPackage>(*this); }
+
+    const PcBrokenPackage &asBrokenPackage() const { return Variant::get<PcBrokenPackage>(*this); }
+    PcBrokenPackage &asBrokenPackage() { return Variant::get<PcBrokenPackage>(*this); }
+
+    template<typename F>
+    decltype(auto) visit(F &&f) const
+    {
+         return Variant::visit(std::forward<F>(f), static_cast<const Base &>(*this));
+    }
+
+    template<typename F>
+    decltype(auto) visit(F &&f)
+    {
+        return Variant::visit(std::forward<F>(f), static_cast<Base &>(*this));
+    }
+
+    const std::string &getBaseFileName() const
+    {
+        return visit([](auto &&value) noexcept -> const std::string & {
+            return value.baseFileName;
+        });
+    }
 };
 
 class PcException: public std::runtime_error
@@ -132,6 +171,26 @@ public:
     explicit PcException(const std::string &message) : std::runtime_error(message) {}
 };
 
+inline bool operator==(const PcPackage::Flag &lhs, const PcPackage::Flag &rhs)
+{
+    return lhs.type == rhs.type && lhs.value == rhs.value;
+}
+
+inline bool operator!=(const PcPackage::Flag &lhs, const PcPackage::Flag &rhs)
+{
+    return !(lhs == rhs);
+}
+
 } // namespace qbs
+
+namespace std {
+template<> struct hash<qbs::PcPackage::Flag>
+{
+    size_t operator()(const qbs::PcPackage::Flag &v) const noexcept
+    {
+        return hash<std::string>()(v.value) + size_t(v.type);
+    }
+};
+} // namespace std
 
 #endif // PC_PACKAGE_H

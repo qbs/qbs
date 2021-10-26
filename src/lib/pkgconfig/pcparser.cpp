@@ -42,7 +42,15 @@
 #include "pkgconfig.h"
 
 #if HAS_STD_FILESYSTEM
-#include <filesystem>
+#  if __has_include(<filesystem>)
+#    include <filesystem>
+#  else
+#    include <experimental/filesystem>
+// We need the alias from std::experimental::filesystem to std::filesystem
+namespace std {
+    namespace filesystem = experimental::filesystem;
+}
+#  endif
 #else
 #include <QFileInfo>
 #endif
@@ -385,7 +393,7 @@ std::string baseName(const std::string_view &filePath)
     auto pos = filePath.rfind('/');
     const auto fileName =
             pos == std::string_view::npos ? std::string_view() : filePath.substr(pos + 1);
-    pos = fileName.find('.');
+    pos = fileName.rfind('.');
     return std::string(pos == std::string_view::npos
             ? std::string_view()
             : fileName.substr(0, pos));
@@ -399,7 +407,8 @@ PcParser::PcParser(const PkgConfig &pkgConfig)
 
 }
 
-PcPackage PcParser::parsePackageFile(const std::string &path)
+PcPackageVariant PcParser::parsePackageFile(const std::string &path)
+try
 {
     PcPackage package;
 
@@ -426,6 +435,8 @@ PcPackage PcParser::parsePackageFile(const std::string &path)
     while (readOneLine(file, line))
         parseLine(package, line);
     return package;
+} catch(const PcException &ex) {
+    return PcBrokenPackage{path, baseName(path), ex.what()};
 }
 
 std::string PcParser::trimAndSubstitute(const PcPackage &pkg, std::string_view str) const
@@ -753,8 +764,7 @@ void PcParser::parseLine(PcPackage &pkg, std::string_view str)
         // ignore this feature for now
 
         const auto value = trimAndSubstitute(pkg, str);
-        const auto [it, ok] = pkg.vars.insert({std::string(tag), value});
-        if (!ok)
+        if (!pkg.vars.insert({std::string(tag), value}).second)
             raizeDuplicateVariableException(pkg, tag);
     }
 }

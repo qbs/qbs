@@ -40,6 +40,7 @@
 #include "pkgconfigjs.h"
 
 #include <language/scriptengine.h>
+#include <tools/version.h>
 
 #include <QtScript/qscriptengine.h>
 #include <QtScript/qscriptvalue.h>
@@ -56,7 +57,7 @@ namespace {
 template<typename C, typename F> QVariantList convert(const C &c, F &&f)
 {
     QVariantList result;
-    result.reserve(c.size());
+    result.reserve(int(c.size()));
     std::transform(c.begin(), c.end(), std::back_inserter(result), f);
     return result;
 }
@@ -64,6 +65,7 @@ template<typename C, typename F> QVariantList convert(const C &c, F &&f)
 QVariantMap packageToMap(const PcPackage &package)
 {
     QVariantMap result;
+    result[QStringLiteral("isBroken")] = false;
     result[QStringLiteral("filePath")] = QString::fromStdString(package.filePath);
     result[QStringLiteral("baseFileName")] = QString::fromStdString(package.baseFileName);
     result[QStringLiteral("name")] = QString::fromStdString(package.name);
@@ -82,9 +84,38 @@ QVariantMap packageToMap(const PcPackage &package)
 
     const auto requiredVersionToMap = [](const PcPackage::RequiredVersion &version)
     {
+        using Type = PcPackage::RequiredVersion::ComparisonType;
         QVariantMap result;
         result[QStringLiteral("name")] = QString::fromStdString(version.name);
-        result[QStringLiteral("version")] = QString::fromStdString(version.version);
+        const auto versionString = QString::fromStdString(version.version);
+        const auto qbsVersion = Version::fromString(QString::fromStdString(version.version));
+        const auto nextQbsVersion = Version(
+                qbsVersion.majorVersion(),
+                qbsVersion.minorVersion(),
+                qbsVersion.patchLevel() + 1);
+        switch (version.comparison) {
+        case Type::LessThan:
+            result[QStringLiteral("versionBelow")] = versionString;
+            break;
+        case Type::GreaterThan:
+            result[QStringLiteral("versionAtLeast")] = nextQbsVersion.toString();
+            break;
+        case Type::LessThanEqual:
+            result[QStringLiteral("versionBelow")] = nextQbsVersion.toString();
+            break;
+        case Type::GreaterThanEqual:
+            result[QStringLiteral("versionAtLeast")] = versionString;
+            break;
+        case Type::Equal:
+            result[QStringLiteral("version")] = versionString;
+            break;
+        case Type::NotEqual:
+            result[QStringLiteral("versionBelow")] = versionString;
+            result[QStringLiteral("versionAtLeast")] = nextQbsVersion.toString();
+            break;
+        case Type::AlwaysMatch:
+            break;
+        }
         result[QStringLiteral("comparison")] = QVariant::fromValue(qint32(version.comparison));
         return result;
     };
@@ -103,9 +134,22 @@ QVariantMap packageToMap(const PcPackage &package)
 QVariantMap brokenPackageToMap(const PcBrokenPackage &package)
 {
     QVariantMap result;
+    result[QStringLiteral("isBroken")] = true;
     result[QStringLiteral("filePath")] = QString::fromStdString(package.filePath);
+    result[QStringLiteral("baseFileName")] = QString::fromStdString(package.baseFileName);
     result[QStringLiteral("errorText")] = QString::fromStdString(package.errorText);
     return result;
+}
+
+QVariantMap packageVariantToMap(const PcPackageVariant &package)
+{
+    return package.visit([](const auto &value) {
+        using T = std::decay_t<decltype(value)>;
+        if constexpr (std::is_same_v<T, PcPackage>)
+            return packageToMap(value);
+        else
+            return brokenPackageToMap(value);
+    });
 }
 
 PcPackage::VariablesMap envToVariablesMap(const QProcessEnvironment &env)
@@ -165,18 +209,19 @@ PkgConfigJs::PkgConfigJs(
         convertOptions(static_cast<ScriptEngine *>(engine)->environment(), options)))
 {
     Q_UNUSED(context);
-    for (const auto &package : m_pkgConfig->packages())
-        m_packages.insert(QString::fromStdString(package.baseFileName), packageToMap(package));
-
-    for (const auto &package : m_pkgConfig->brokenPackages())
-        m_brokenPackages.push_back(brokenPackageToMap(package));
+    for (const auto &package : m_pkgConfig->packages()) {
+        m_packages.insert(
+                QString::fromStdString(package.getBaseFileName()), packageVariantToMap(package));
+    }
 }
 
 PkgConfig::Options PkgConfigJs::convertOptions(const QProcessEnvironment &env, const QVariantMap &map)
 {
     PkgConfig::Options result;
-    result.searchPaths =
-            stringListToStdVector(map.value(QStringLiteral("searchPaths")).toStringList());
+    result.libDirs =
+            stringListToStdVector(map.value(QStringLiteral("libDirs")).toStringList());
+    result.extraPaths =
+            stringListToStdVector(map.value(QStringLiteral("extraPaths")).toStringList());
     result.sysroot = map.value(QStringLiteral("sysroot")).toString().toStdString();
     result.topBuildDir = map.value(QStringLiteral("topBuildDir")).toString().toStdString();
     result.allowSystemLibraryPaths =
@@ -189,6 +234,8 @@ PkgConfig::Options PkgConfigJs::convertOptions(const QProcessEnvironment &env, c
                 std::back_inserter(result.systemLibraryPaths),
                 [](const QString &str){ return str.toStdString(); });
     result.disableUninstalled = map.value(QStringLiteral("disableUninstalled"), true).toBool();
+    result.staticMode = map.value(QStringLiteral("staticMode"), false).toBool();
+    result.mergeDependencies = map.value(QStringLiteral("mergeDependencies"), true).toBool();
     result.globalVariables =
             variablesFromQVariantMap(map.value(QStringLiteral("globalVariables")).toMap());
     result.systemVariables = envToVariablesMap(env);

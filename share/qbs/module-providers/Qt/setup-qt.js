@@ -701,9 +701,13 @@ function doSetupLibraries(modInfo, qtProps, debugBuild, nonExistingPrlFiles, and
             && !modInfo.isStaticLibrary && qtProps.qtMajorVersion < 5;
     if (isNonStaticQt4OnWindows)
         prlFilePath = prlFilePath.slice(0, prlFilePath.length - 1); // The prl file base name does *not* contain the version number...
+    // qt for android versions 6.0 and 6.1 don't have the architecture suffix in the prl file
     if (androidAbi.length > 0
             && modInfo.name !== "QtBootstrap"
-            && modInfo.name !== "QtQmlDevTools") {
+            && (modInfo.name !== "QtQmlDevTools" || modInfo.name === "QtQmlDevTools"
+                && Utilities.versionCompare(qtProps.qtVersion, "6.2") >= 0)
+            && (Utilities.versionCompare(qtProps.qtVersion, "6.0") < 0
+                || Utilities.versionCompare(qtProps.qtVersion, "6.2") >= 0)) {
         prlFilePath += "_";
         prlFilePath += androidAbi;
     }
@@ -769,7 +773,10 @@ function doSetupLibraries(modInfo, qtProps, debugBuild, nonExistingPrlFiles, and
                     if (++i < parts.length)
                         frameworks.push(parts[i]);
                 } else if (part === "-pthread") {
-                    libs.push("pthread");
+                    // prl files for android have QMAKE_PRL_LIBS = -llog -pthread but the pthread
+                    // functionality is included in libc.
+                    if (androidAbi.length === 0)
+                        libs.push("pthread");
                 } else if (part.startsWith('-')) { // Some other option
                     console.debug("QMAKE_PRL_LIBS contains non-library option '" + part
                                   + "' in file '" + prlFilePath + "'");
@@ -786,7 +793,7 @@ function doSetupLibraries(modInfo, qtProps, debugBuild, nonExistingPrlFiles, and
         if (nonExistingPrlFiles.contains(prlFilePath))
             return;
         nonExistingPrlFiles.push(prlFilePath);
-        if (!libFilePath && modInfo.mustExist) {
+        if (modInfo.mustExist) {
             console.warn("Could not open prl file '" + toNative(prlFilePath) + "' for module '"
                          + modInfo.name
                          + "' (" + e + "), and failed to deduce the library file path. "

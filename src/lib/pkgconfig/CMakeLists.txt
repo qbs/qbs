@@ -8,10 +8,15 @@ set(SOURCES
 )
 list_transform_prepend(SOLUTION_SOURCES solution/)
 
-if(APPLE)
+if(APPLE OR MINGW)
     set(HAS_STD_FILESYSTEM "0")
 else()
     set(HAS_STD_FILESYSTEM "1")
+endif()
+
+set(QBS_PKGCONFIG_PUBLIC_DEPENDS "")
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0)
+    set(QBS_PKGCONFIG_PUBLIC_DEPENDS "stdc++fs")
 endif()
 
 add_qbs_library(qbspkgconfig
@@ -22,6 +27,6 @@ add_qbs_library(qbspkgconfig
         "HAS_STD_FILESYSTEM=${HAS_STD_FILESYSTEM}"
     PUBLIC_DEFINES
         "QBS_PC_WITH_QT_SUPPORT=1"
-    PUBLIC_DEPENDS Qt${QT_VERSION_MAJOR}::Core
+    PUBLIC_DEPENDS Qt${QT_VERSION_MAJOR}::Core ${QBS_PKGCONFIG_PUBLIC_DEPENDS} qbsvariant
     SOURCES ${SOURCES}
 )

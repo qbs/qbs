@@ -66,11 +66,11 @@ public:
         StaticLibraryName = toUnderlying(PcPackage::Flag::Type::StaticLibraryName),
         Framework = toUnderlying(PcPackage::Flag::Type::Framework),
         FrameworkPath = toUnderlying(PcPackage::Flag::Type::FrameworkPath),
-        LinkerFlags = toUnderlying(PcPackage::Flag::Type::LinkerFlag),
+        LinkerFlag = toUnderlying(PcPackage::Flag::Type::LinkerFlag),
         IncludePath = toUnderlying(PcPackage::Flag::Type::IncludePath),
         SystemIncludePath = toUnderlying(PcPackage::Flag::Type::SystemIncludePath),
         Define = toUnderlying(PcPackage::Flag::Type::Define),
-        CompilerFlags = toUnderlying(PcPackage::Flag::Type::CompilerFlag),
+        CompilerFlag = toUnderlying(PcPackage::Flag::Type::CompilerFlag),
     };
     Q_ENUM(FlagType);
 
@@ -91,7 +91,6 @@ public:
             QScriptContext *context, QScriptEngine *engine, const QVariantMap &options = {});
 
     Q_INVOKABLE QVariantMap packages() const { return m_packages; }
-    Q_INVOKABLE QVariantList brokenPackages() const { return m_brokenPackages; }
 
     // also used in tests
     static PkgConfig::Options convertOptions(const QProcessEnvironment &env, const QVariantMap &map);
@@ -99,7 +98,6 @@ public:
 private:
     std::unique_ptr<PkgConfig> m_pkgConfig;
     QVariantMap m_packages;
-    QVariantList m_brokenPackages;
 };
 
 } // namespace Internal

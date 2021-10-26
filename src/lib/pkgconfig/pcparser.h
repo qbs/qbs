@@ -51,7 +51,7 @@ class PcParser
 public:
     explicit PcParser(const PkgConfig &pkgConfig);
 
-    PcPackage parsePackageFile(const std::string &path);
+    PcPackageVariant parsePackageFile(const std::string &path);
 
 private:
     std::string trimAndSubstitute(const PcPackage &pkg, std::string_view str) const;

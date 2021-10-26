@@ -1,0 +1,76 @@
+/****************************************************************************
+**
+** Copyright (C) 2021 Ivan Komissarov (abbapoh@gmail.com)
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+/*!
+    \qmltype Qt
+    \inqmlmodule QbsModuleProviders
+
+    \brief Module provider that generates Qt modules.
+
+    Looking up a Qt installation happens via a \l{Module Providers}{module provider}.
+    By default, if a dependency to a Qt module is encountered, \QBS collects all Qt installations
+    it can find. This lookup happens by searching for \c qmake executables in the \c PATH
+    environment variable. Alternatively, you can explicitly tell \QBS which Qt
+    installations it should consider by setting the qmakeFilePaths
+    module provider \l{Parameterizing Module Providers}{property}. In that case,
+    the environment will be ignored. For instance, with the following Linux command line,
+    \QBS will build the project against a custom Qt instead of the standard one in \c{/usr/bin}:
+    \code
+    $ qbs moduleProviders.Qt.qmakeFilePaths:/opt/myqt/bin/qmake
+    \endcode
+    You can also set the module provider property in a profile. The simplest way to do
+    this is via the \l setup-qt tool. For examples of how to use this tool, see the
+    \l{Managing Qt Versions} section.
+
+    This provider is activated automatically when encountering a dependency on the Qt
+    module and the \l{Product::qbsModuleProviders}{qbsModuleProviders} property
+    is \c undefined:
+    \code
+    CppApplication {
+        Depends { name: "Qt.core" }
+        files: "main.cpp"
+    }
+    \endcode
+
+    Alternatively, you can activate this provider explicitly via the
+    \l{Product::qbsModuleProviders}{qbsModuleProviders} property:
+    \code
+    CppApplication {
+        Depends { name: "Qt.core" }
+        files: "main.cpp"
+        qbsModuleProviders: "Qt"
+    }
+    \endcode
+*/
+
+/*!
+    \qmlproperty stringList Qt::qmakeFilePaths
+
+    List of paths to \c qmake executables.
+
+    \defaultvalue undefined
+*/

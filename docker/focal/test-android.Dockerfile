@@ -115,7 +115,11 @@ RUN if [ "${QT_VERSION}" \< "5.14" ] || [ ! "${QT_VERSION}" \< "6.0.0" ]; then \
     fi; \
     if [ ! "${QT_VERSION}" \< "6.0.0" ]; then \
         ./install-qt.sh --version ${QT_VERSION} qtbase qtdeclarative icu; \
-        QT_COMPONENTS="qtbase qtdeclarative qttools qtquickcontrols2 qtquicktimeline"; \
+        if [ "${QT_VERSION}" \< "6.1.0" ]; then \
+            QT_COMPONENTS="qtbase qtdeclarative qttools qtquickcontrols2 qtquicktimeline svg"; \
+        else \
+            QT_COMPONENTS="qtbase qtdeclarative qttools qtquicktimeline svg"; \
+        fi; \
     else \
         QT_COMPONENTS="qtbase qtdeclarative qttools qtimageformats"; \
     fi; \

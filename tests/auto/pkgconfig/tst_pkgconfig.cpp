@@ -60,22 +60,32 @@ void TestPkgConfig::initTestCase()
 
 void TestPkgConfig::pkgConfig()
 {
-    QFETCH(QString, fileName);
+    QFETCH(QString, pcFileName);
+    QFETCH(QString, jsonFileName);
     QFETCH(QVariantMap, optionsMap);
 
-    Options options = qbs::Internal::PkgConfigJs::convertOptions(QProcessEnvironment::systemEnvironment(), optionsMap);
-    options.searchPaths.push_back(m_workingDataDir.toStdString());
+    if (jsonFileName.isEmpty())
+        jsonFileName = pcFileName;
+
+    if (!optionsMap.contains("mergeDependencies"))
+        optionsMap["mergeDependencies"] = false;
+
+    Options options = qbs::Internal::PkgConfigJs::convertOptions(
+            QProcessEnvironment::systemEnvironment(), optionsMap);
+    options.libDirs.push_back(m_workingDataDir.toStdString());
 
     PkgConfig pkgConfig(std::move(options));
 
-    QFile jsonFile(m_workingDataDir + "/" + fileName + ".json");
+    QFile jsonFile(m_workingDataDir + "/" + jsonFileName + ".json");
     QVERIFY(jsonFile.open(QIODevice::ReadOnly));
     QJsonParseError error{};
     const auto json = QJsonDocument::fromJson(jsonFile.readAll(), &error).toVariant().toMap();
     QCOMPARE(error.error, QJsonParseError::NoError);
 
-    const auto &package = pkgConfig.getPackage(fileName.toStdString());
-    QCOMPARE(QString::fromStdString(package.baseFileName), fileName);
+    const auto &packageOr = pkgConfig.getPackage(pcFileName.toStdString());
+    QVERIFY(packageOr.isValid());
+    const auto &package = packageOr.asPackage();
+    QCOMPARE(QString::fromStdString(package.baseFileName), pcFileName);
     QCOMPARE(QString::fromStdString(package.name), json.value("Name").toString());
     QCOMPARE(QString::fromStdString(package.description), json.value("Description").toString());
     QCOMPARE(QString::fromStdString(package.version), json.value("Version").toString());
@@ -153,19 +163,38 @@ void TestPkgConfig::pkgConfig()
 
 void TestPkgConfig::pkgConfig_data()
 {
-    QTest::addColumn<QString>("fileName");
+    QTest::addColumn<QString>("pcFileName");
+    QTest::addColumn<QString>("jsonFileName");
     QTest::addColumn<QVariantMap>("optionsMap");
 
-    QTest::newRow("non-l-required") << QStringLiteral("non-l-required") << QVariantMap();
-    QTest::newRow("simple") << QStringLiteral("simple") << QVariantMap();
-    QTest::newRow("requires-test") << QStringLiteral("requires-test") << QVariantMap();
-    QTest::newRow("special-flags") << QStringLiteral("special-flags") << QVariantMap();
-    QTest::newRow("system") << QStringLiteral("system") << QVariantMap();
+    QTest::newRow("non-l-required")
+            << QStringLiteral("non-l-required") << QString() << QVariantMap();
+    QTest::newRow("simple")
+            << QStringLiteral("simple") << QString() << QVariantMap();
+    QTest::newRow("requires-test")
+            << QStringLiteral("requires-test") << QString() << QVariantMap();
+    QTest::newRow("requires-test-merged")
+            << QStringLiteral("requires-test")
+            << QStringLiteral("requires-test-merged")
+            << QVariantMap({{"mergeDependencies", true}});
+    QTest::newRow("requires-test-merged-static")
+            << QStringLiteral("requires-test")
+            << QStringLiteral("requires-test-merged-static")
+            << QVariantMap({{"mergeDependencies", true}, {"staticMode", true}});
+    QTest::newRow("special-flags")
+            << QStringLiteral("special-flags") << QString() << QVariantMap();
+    QTest::newRow("system")
+            << QStringLiteral("system") << QString() << QVariantMap();
     QTest::newRow("sysroot")
-            << QStringLiteral("sysroot") << QVariantMap({{"sysroot", "/newroot"}});
-    QTest::newRow("tilde") << QStringLiteral("tilde") << QVariantMap();
-    QTest::newRow("variables") << QStringLiteral("variables") << QVariantMap();
-    QTest::newRow("whitespace") << QStringLiteral("whitespace") << QVariantMap();
+            << QStringLiteral("sysroot") << QString() << QVariantMap({{"sysroot", "/newroot"}});
+    QTest::newRow("tilde")
+            << QStringLiteral("tilde") << QString() << QVariantMap();
+    QTest::newRow("variables")
+            << QStringLiteral("variables") << QString() << QVariantMap();
+    QTest::newRow("whitespace")
+            << QStringLiteral("whitespace") << QString() << QVariantMap();
+    QTest::newRow("base.name")
+            << QStringLiteral("base.name") << QString() << QVariantMap();
 }
 
 void TestPkgConfig::benchSystem()

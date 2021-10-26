@@ -130,6 +130,7 @@ void ModuleMerger::start()
                 m.item = m_mergedModule.item;
                 m.required = m_mergedModule.required;
                 m.versionRange = m_mergedModule.versionRange;
+                m.fallbackEnabled = m_mergedModule.fallbackEnabled;
             }
             modules << m;
         }
@@ -207,6 +208,8 @@ void ModuleMerger::mergeModule(Item::PropertyMap *dstProps, const Item::Module &
     // Update dependency constraints
     if (dep->required)
         m_mergedModule.required = true;
+    // if one dep has fallback disabled, disable it for the merged module
+    m_mergedModule.fallbackEnabled = m_mergedModule.fallbackEnabled && dep->fallbackEnabled;
     m_mergedModule.versionRange.narrowDown(dep->versionRange);
 
     // We need to touch the unmerged module instances later once more

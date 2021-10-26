@@ -1,4 +1,5 @@
 include(../../library_dirname.pri)
+include(../../shared/variant/variant.pri)
 
 isEmpty(QBSLIBDIR) {
     QBSLIBDIR = $${OUT_PWD}/../../../$${QBS_LIBRARY_DIRNAME}
@@ -26,6 +27,16 @@ win32 {
         QBSPKGCONFIG_LIB = lib$${QBSPKGCONFIG_LIB}
     }
     LIBS += $${QBSPKGCONFIG_LIB}
+}
+
+gcc {
+    isEmpty(COMPILER_VERSION) {
+        COMPILER_VERSION = $$system($$QMAKE_CXX " -dumpversion")
+        COMPILER_MAJOR_VERSION = $$str_member($$COMPILER_VERSION)
+        equals(COMPILER_MAJOR_VERSION, 7) {
+            LIBS += -lstdc++fs
+        }
+    }
 }
 
 INCLUDEPATH += \

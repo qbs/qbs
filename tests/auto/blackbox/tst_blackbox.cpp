@@ -811,6 +811,7 @@ void TestBlackbox::capnproto_data()
     QTest::addColumn<QString>("projectFile");
 
     QTest::newRow("cpp") << QStringLiteral("capnproto_cpp.qbs");
+    QTest::newRow("cpp-pkgconfig") << QStringLiteral("capnproto_cpp_pkgconfig.qbs");
     QTest::newRow("greeter cpp (grpc)") << QStringLiteral("greeter_cpp.qbs");
     QTest::newRow("relative import") << QStringLiteral("capnproto_relative_import.qbs");
     QTest::newRow("absolute import") << QStringLiteral("capnproto_absolute_import.qbs");
@@ -6142,6 +6143,28 @@ void TestBlackbox::qbsModuleProvidersCompatibility_data()
     QTest::newRow("default") << QStringList() << "from_scoped_provider";
     QTest::newRow("scoped by name") << QStringList("project.qbsModuleProviders:qbsmetatestmodule") << "from_scoped_provider";
     QTest::newRow("named") << QStringList("project.qbsModuleProviders:named_provider") << "from_named_provider";
+}
+
+void TestBlackbox::qbspkgconfigModuleProvider()
+{
+    QDir::setCurrent(testDataDir + "/qbspkgconfig-module-provider/libs");
+
+    const auto commonParams = QbsRunParameters(QStringLiteral("install"), {
+            QStringLiteral("qbs.installPrefix:/usr/local"),
+            QStringLiteral("--install-root"),
+            QStringLiteral("install-root")
+    });
+    auto dynamicParams = commonParams;
+    dynamicParams.arguments << "config:library" << "projects.libs.isBundle:false";
+    QCOMPARE(runQbs(dynamicParams), 0);
+
+    QDir::setCurrent(testDataDir + "/qbspkgconfig-module-provider");
+
+    QbsRunParameters params;
+    params.arguments
+            << "moduleProviders.qbspkgconfig.libDirs:libdir"
+            << "moduleProviders.qbspkgconfig.sysroot:" + QDir::currentPath() + "/libs/install-root";
+    QCOMPARE(runQbs(params), 0);
 }
 
 static QJsonObject getNextSessionPacket(QProcess &session, QByteArray &data)
