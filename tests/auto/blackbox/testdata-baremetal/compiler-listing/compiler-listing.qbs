@@ -2,7 +2,8 @@ import "../BareMetalApplication.qbs" as BareMetalApplication
 
 BareMetalApplication {
     condition: {
-        if (qbs.toolchain.includes("gcc") || qbs.toolchainType === "watcom") {
+        if (qbs.toolchain.includes("clang") || qbs.toolchain.includes("emscripten")
+                || qbs.toolchainType === "watcom") {
             console.info("unsupported toolset: %%"
                 + qbs.toolchainType + "%%, %%" + qbs.architecture + "%%");
             return false;

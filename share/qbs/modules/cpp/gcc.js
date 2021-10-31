@@ -1149,6 +1149,12 @@ function prepareCompiler(project, product, inputs, outputs, input, output_, expl
         args = wrapperArgs.concat(args);
     }
 
+    if (input.cpp.generateCompilerListingFiles && !pchOutput && outputs.lst) {
+        // This feature is not supported on Clang.
+        if (!product.qbs.toolchain.includes("clang"))
+            args.push("-Wa,-adhln=" + outputs.lst[0].filePath);
+    }
+
     var cmd = new Command(compilerPath, args);
     cmd.description = (pchOutput ? 'pre' : '') + 'compiling ' + input.fileName;
     if (pchOutput)

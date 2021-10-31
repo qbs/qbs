@@ -557,7 +557,8 @@ CppModule {
         auxiliaryInputs: ["hpp", "moduleinfo", "modulemap"]
         auxiliaryInputsFromDependencies: ["hpp", "moduleinfo"]
         explicitlyDependsOn: ["c_pch", "cpp_pch", "objc_pch", "objcpp_pch"]
-        outputFileTags: Cpp.compilerOutputTags(/*withListingFiles*/ false, /*withCxxModules*/ true)
+        outputFileTags: Cpp.compilerOutputTags(generateCompilerListingFiles,
+                                               /*withCxxModules*/ true)
             .concat(["c_obj", "cpp_obj"])
         outputArtifacts: Cpp.compilerOutputArtifacts(input, inputs, /*withCxxModules*/ true)
         prepare: Gcc.prepareCompiler.apply(Gcc, arguments)
