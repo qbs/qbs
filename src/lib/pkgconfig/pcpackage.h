@@ -114,7 +114,7 @@ public:
     std::vector<RequiredVersion> conflicts;
 
     using VariablesMap = std::map<std::string, std::string, std::less<>>;
-    VariablesMap vars;
+    VariablesMap variables;
 
     bool uninstalled{false};
 

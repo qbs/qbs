@@ -238,8 +238,8 @@ std::string_view PkgConfig::packageGetVariable(const PcPackage &pkg, std::string
     }
 
     if (varval.empty()) {
-        const auto it = pkg.vars.find(var);
-        varval = (it != pkg.vars.end()) ? it->second : std::string_view();
+        const auto it = pkg.variables.find(var);
+        varval = (it != pkg.variables.end()) ? it->second : std::string_view();
     }
 
     return varval;
