@@ -391,6 +391,7 @@ PkgConfig::Packages PkgConfig::mergeDependencies(const PkgConfig::Packages &pack
                 result.version = package.version;
                 result.description = package.description;
                 result.url = package.url;
+                result.variables = package.variables;
 
                 auto allDependencies = package.requiresPublic;
                 if (m_options.staticMode)
