@@ -62,6 +62,14 @@ template<typename C, typename F> QVariantList convert(const C &c, F &&f)
     return result;
 }
 
+QVariantMap variablesMapToMap(const PcPackage::VariablesMap &variables)
+{
+    QVariantMap result;
+    for (const auto &item: variables)
+        result.insert(QString::fromStdString(item.first), QString::fromStdString(item.second));
+    return result;
+}
+
 QVariantMap packageToMap(const PcPackage &package)
 {
     QVariantMap result;
@@ -127,6 +135,7 @@ QVariantMap packageToMap(const PcPackage &package)
     result[QStringLiteral("requiresPrivate")] =
             convert(package.requiresPrivate, requiredVersionToMap);
     result[QStringLiteral("conflicts")] = convert(package.conflicts, requiredVersionToMap);
+    result[QStringLiteral("variables")] = variablesMapToMap(package.variables);
 
     return result;
 };
