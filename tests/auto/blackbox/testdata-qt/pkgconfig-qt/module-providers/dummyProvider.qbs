@@ -1,0 +1,3 @@
+ModuleProvider {
+    relativeSearchPaths: ""
+}
