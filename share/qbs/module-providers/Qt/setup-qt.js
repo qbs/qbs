@@ -789,7 +789,14 @@ function doSetupLibraries(modInfo, qtProps, debugBuild, nonExistingPrlFiles, and
             }
         }
     } catch (e) {
-        libFilePath = guessLibraryFilePath(prlFilePath, libDir, qtProps);
+        // qt_ext_lib_extX.pri (usually) don't have a corresponding prl file.
+        // So the pri file variable QMAKE_LIBS_LIBX points to the library
+        if (modInfo.isExternal ) {
+            libFilePath = debugBuild ? modInfo.staticLibrariesDebug[0] :
+                                       modInfo.staticLibrariesRelease[0];
+        } else {
+            libFilePath = guessLibraryFilePath(prlFilePath, libDir, qtProps);
+        }
         if (nonExistingPrlFiles.contains(prlFilePath))
             return;
         nonExistingPrlFiles.push(prlFilePath);
@@ -1085,21 +1092,22 @@ function allQt5Modules(qtProps, androidAbi) {
     for (var i = 0; i < modulePriFiles.length; ++i) {
         var priFileName = modulePriFiles[i];
         var priFilePath = FileInfo.joinPaths(modulesDir, priFileName);
-        var genericFileNamePrefix = "qt_";
+        var externalFileNamePrefix = "qt_ext_";
         var moduleFileNamePrefix = "qt_lib_";
         var pluginFileNamePrefix = "qt_plugin_";
         var moduleFileNameSuffix = ".pri";
+        var fileHasExternalPrefix = priFileName.startsWith(externalFileNamePrefix);
+        var fileHasModulePrefix = priFileName.startsWith(moduleFileNamePrefix);
         var fileHasPluginPrefix = priFileName.startsWith(pluginFileNamePrefix);
-        if (!fileHasPluginPrefix && !priFileName.startsWith(genericFileNamePrefix)
+        if (!fileHasPluginPrefix && !fileHasModulePrefix && !fileHasExternalPrefix
                 || !priFileName.endsWith(moduleFileNameSuffix)) {
             continue;
         }
         var moduleInfo = makeQtModuleInfo();
         moduleInfo.isPlugin = fileHasPluginPrefix;
-        moduleInfo.isExternal = !moduleInfo.isPlugin
-                && !priFileName.startsWith(moduleFileNamePrefix);
+        moduleInfo.isExternal = !moduleInfo.isPlugin && !fileHasModulePrefix;
         var fileNamePrefix = moduleInfo.isPlugin ? pluginFileNamePrefix : moduleInfo.isExternal
-                                                   ? genericFileNamePrefix : moduleFileNamePrefix;
+                                                   ? externalFileNamePrefix : moduleFileNamePrefix;
         moduleInfo.qbsName = priFileName.slice(fileNamePrefix.length, -moduleFileNameSuffix.length);
         if (moduleInfo.isPlugin) {
             moduleInfo.name = moduleInfo.qbsName;
@@ -1111,74 +1119,120 @@ function allQt5Modules(qtProps, androidAbi) {
         var hasV2 = false;
         var hasModuleEntry = false;
         var lines = getFileContentsRecursively(priFilePath);
-        for (var j = 0; j < lines.length; ++j) {
-            var line = lines[j].trim();
-            var firstEqualsOffset = line.indexOf('=');
-            if (firstEqualsOffset === -1)
-                continue;
-            var key = line.slice(0, firstEqualsOffset).trim();
-            var value = line.slice(firstEqualsOffset + 1).trim();
-            if (!key.startsWith(moduleKeyPrefix) || !value)
-                continue;
-            if (key.endsWith(".name")) {
-                moduleInfo.name = value;
-            } else if (key.endsWith(".module")) {
-                hasModuleEntry = true;
-            } else if (key.endsWith(".depends")) {
-                moduleInfo.dependencies = splitNonEmpty(value, ' ');
-                for (var k = 0; k < moduleInfo.dependencies.length; ++k) {
-                    moduleInfo.dependencies[k]
-                            = moduleInfo.dependencies[k].replace("_private", "-private");
-                }
-            } else if (key.endsWith(".module_config")) {
-                var elems = splitNonEmpty(value, ' ');
-                for (k = 0; k < elems.length; ++k) {
-                    var elem = elems[k];
-                    if (elem === "no_link")
-                        moduleInfo.hasLibrary = false;
-                    else if (elem === "staticlib")
-                        moduleInfo.isStaticLibrary = true;
-                    else if (elem === "internal_module")
-                        moduleInfo.isPrivate = true;
-                    else if (elem === "v2")
-                        hasV2 = true;
-                }
-            } else if (key.endsWith(".includes")) {
-                moduleInfo.includePaths = extractPaths(value, priFilePath);
-                for (k = 0; k < moduleInfo.includePaths.length; ++k) {
-                    moduleInfo.includePaths[k] = moduleInfo.includePaths[k]
-                         .replace("$$QT_MODULE_INCLUDE_BASE", qtProps.includePath)
-                         .replace("$$QT_MODULE_HOST_LIB_BASE", qtProps.hostLibraryPath)
-                         .replace("$$QT_MODULE_LIB_BASE", qtProps.libraryPath);
-                }
-            } else if (key.endsWith(".libs")) {
-                var libDirs = extractPaths(value, priFilePath);
-                if (libDirs.length === 1) {
-                    moduleInfo.libDir = libDirs[0]
-                        .replace("$$QT_MODULE_HOST_LIB_BASE", qtProps.hostLibraryPath)
-                        .replace("$$QT_MODULE_LIB_BASE", qtProps.libraryPath);
-                } else {
-                    moduleInfo.libDir = qtProps.libraryPath;
-                }
-            } else if (key.endsWith(".DEFINES")) {
-                moduleInfo.compilerDefines = splitNonEmpty(value, ' ');
-            } else if (key.endsWith(".VERSION")) {
-                moduleInfo.version = value;
-            } else if (key.endsWith(".plugin_types")) {
-                moduleInfo.supportedPluginTypes = splitNonEmpty(value, ' ');
-            } else if (key.endsWith(".TYPE")) {
-                moduleInfo.pluginData.type = value;
-            } else if (key.endsWith(".EXTENDS")) {
-                moduleInfo.pluginData["extends"] = splitNonEmpty(value, ' ');
-                for (k = 0; k < moduleInfo.pluginData["extends"].length; ++k) {
-                    if (moduleInfo.pluginData["extends"][k] === "-") {
-                        moduleInfo.pluginData["extends"].splice(k, 1);
-                        moduleInfo.pluginData.autoLoad = false;
-                        break;
+        if (moduleInfo.isExternal) {
+            moduleInfo.name = "qt" + moduleInfo.qbsName;
+            moduleInfo.isStaticLibrary = true;
+            for (var k = 0; k < lines.length; ++k) {
+                var extLine = lines[k].trim();
+                var extFirstEqualsOffset = extLine.indexOf('=');
+                if (extFirstEqualsOffset === -1)
+                    continue;
+                var extKey = extLine.slice(0, extFirstEqualsOffset).trim();
+                var extValue = extLine.slice(extFirstEqualsOffset + 1).trim();
+                if (!extKey.startsWith("QMAKE_") || !extValue)
+                    continue;
+
+                var elements = extKey.split('_');
+                if (elements.length >= 3) {
+                    if (elements[1] === "LIBS") {
+                        extValue = extValue.replace("/home/qt/work/qt/qtbase/lib",
+                                                    qtProps.libraryPath);
+                        extValue = extValue.replace("$$[QT_INSTALL_LIBS]", qtProps.libraryPath);
+                        extValue = extValue.replace("$$[QT_INSTALL_LIBS/get]", qtProps.libraryPath);
+                        if (elements.length === 4 ) {
+                            if (elements[3] === androidAbi) {
+                                moduleInfo.staticLibrariesRelease.push(extValue);
+                                moduleInfo.staticLibrariesDebug.push(extValue);
+                            }
+                        } else if (elements.length === 5 ) {
+                            // That's for "x86_64"
+                            var abi = elements[3] + '_' + elements[4];
+                            if (abi === androidAbi) {
+                                moduleInfo.staticLibrariesRelease.push(extValue);
+                                moduleInfo.staticLibrariesDebug.push(extValue);
+                            }
+                        } else {
+                            moduleInfo.staticLibrariesRelease.push(extValue);
+                            moduleInfo.staticLibrariesDebug.push(extValue);
+                        }
+                    } else if (elements[1] === "INCDIR") {
+                        moduleInfo.includePaths.push(extValue.replace("$$[QT_INSTALL_HEADERS]",
+                                                                      qtProps.includePath));
                     }
                 }
-            } else if (key.endsWith(".CLASS_NAME")) {
-                moduleInfo.pluginData.className = value;
+            }
+            moduleInfo.compilerDefines.push("QT_" + moduleInfo.qbsName.toUpperCase() + "_LIB");
+            moduleInfo.mustExist = false;
+        } else {
+            for (var j = 0; j < lines.length; ++j) {
+                var line = lines[j].trim();
+                var firstEqualsOffset = line.indexOf('=');
+                if (firstEqualsOffset === -1)
+                    continue;
+                var key = line.slice(0, firstEqualsOffset).trim();
+                var value = line.slice(firstEqualsOffset + 1).trim();
+                if (!key.startsWith(moduleKeyPrefix) || !value)
+                    continue;
+                if (key.endsWith(".name")) {
+                    moduleInfo.name = value;
+                } else if (key.endsWith(".module")) {
+                    hasModuleEntry = true;
+                } else if (key.endsWith(".depends")) {
+                    moduleInfo.dependencies = splitNonEmpty(value, ' ');
+                    for (var k = 0; k < moduleInfo.dependencies.length; ++k) {
+                        moduleInfo.dependencies[k]
+                                = moduleInfo.dependencies[k].replace("_private", "-private");
+                    }
+                } else if (key.endsWith(".module_config")) {
+                    var elems = splitNonEmpty(value, ' ');
+                    for (k = 0; k < elems.length; ++k) {
+                        var elem = elems[k];
+                        if (elem === "no_link")
+                            moduleInfo.hasLibrary = false;
+                        else if (elem === "staticlib")
+                            moduleInfo.isStaticLibrary = true;
+                        else if (elem === "internal_module")
+                            moduleInfo.isPrivate = true;
+                        else if (elem === "v2")
+                            hasV2 = true;
+                    }
+                } else if (key.endsWith(".includes")) {
+                    moduleInfo.includePaths = extractPaths(value, priFilePath);
+                    for (k = 0; k < moduleInfo.includePaths.length; ++k) {
+                        moduleInfo.includePaths[k] = moduleInfo.includePaths[k]
+                        .replace("$$QT_MODULE_INCLUDE_BASE", qtProps.includePath)
+                        .replace("$$QT_MODULE_HOST_LIB_BASE", qtProps.hostLibraryPath)
+                        .replace("$$QT_MODULE_LIB_BASE", qtProps.libraryPath);
+                    }
+                } else if (key.endsWith(".libs")) {
+                    var libDirs = extractPaths(value, priFilePath);
+                    if (libDirs.length === 1) {
+                        moduleInfo.libDir = libDirs[0]
+                        .replace("$$QT_MODULE_HOST_LIB_BASE", qtProps.hostLibraryPath)
+                        .replace("$$QT_MODULE_LIB_BASE", qtProps.libraryPath);
+                    } else {
+                        moduleInfo.libDir = qtProps.libraryPath;
+                    }
+                } else if (key.endsWith(".DEFINES")) {
+                    moduleInfo.compilerDefines = splitNonEmpty(value, ' ');
+                } else if (key.endsWith(".VERSION")) {
+                    moduleInfo.version = value;
+                } else if (key.endsWith(".plugin_types")) {
+                    moduleInfo.supportedPluginTypes = splitNonEmpty(value, ' ');
+                } else if (key.endsWith(".TYPE")) {
+                    moduleInfo.pluginData.type = value;
+                } else if (key.endsWith(".EXTENDS")) {
+                    moduleInfo.pluginData["extends"] = splitNonEmpty(value, ' ');
+                    for (k = 0; k < moduleInfo.pluginData["extends"].length; ++k) {
+                        if (moduleInfo.pluginData["extends"][k] === "-") {
+                            moduleInfo.pluginData["extends"].splice(k, 1);
+                            moduleInfo.pluginData.autoLoad = false;
+                            break;
+                        }
+                    }
+                } else if (key.endsWith(".CLASS_NAME")) {
+                    moduleInfo.pluginData.className = value;
+                }
             }
         }
         if (hasV2 && !hasModuleEntry)
