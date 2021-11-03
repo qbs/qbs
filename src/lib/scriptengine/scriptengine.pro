@@ -1,8 +1,11 @@
 TARGET = qbsscriptengine
 include(../library.pri)
-INSTALLS =
 
 QT         = core-private
+
+versionAtLeast(QT_VERSION, 6.0.0) {
+    QT        += core5compat
+}
 
 DEFINES   += QT_BUILD_SCRIPT_LIB
 

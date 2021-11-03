@@ -4,6 +4,10 @@
         QBSLIBDIR = $$shadowed($$PWD/../../../$${QBS_LIBRARY_DIRNAME})
     }
 
+    versionAtLeast(QT_VERSION, 6.0.0) {
+        QT *= core5compat
+    }
+
     LIBS += -L$$QBSLIBDIR
     macos {
         LIBS += -lqbsscriptengine
