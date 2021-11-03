@@ -1131,6 +1131,11 @@
     ---CrazyProduct.qbs---
     Product {
         property string craziness: "low"
+
+        files: [
+            "Crazy.h",
+            "Crazy.cpp"
+        ]
     }
 
     ---hellocrazyworld.qbs---
@@ -1139,6 +1144,7 @@
     CrazyProduct {
         craziness: "enormous"
         name: "hellocrazyworld"
+        files: base.concat(["main.cpp"])
         // ...
     }
     \endcode
@@ -1164,6 +1170,7 @@
     }
     \endcode
 
+    See \l {Special Property Values} for more details about the \l base property.
 
     \section1 Modules
 

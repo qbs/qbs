@@ -52,6 +52,7 @@
     \li \l{How do I limit the number of concurrent jobs for the linker only?}
     \li \l{How do I add QML files to a project?}
     \li \l{How do I define a reusable Group of files that can be included in other \QBS files?}
+    \li \l{How do I access properties of a base type?}
     \li \l{How do I print the value of a property?}
     \li \l{How do I debug \QBS scripts?}
     \li \l{How do I sign an application for an Apple platform?}
@@ -721,6 +722,31 @@
         QmlUiFiles {}
     }
     \endcode
+
+    \section1 How do I access properties of a base type?
+
+    You can use the \l base property. For example, to append to a list of files
+    that come from the base type, you can use \c {base.concat()}:
+
+    \code
+    // TestBase.qbs
+
+    QtGuiApplication {
+        files: [
+            "TestCaseBase.h",
+            "TestCaseBase.cpp"
+        ]
+    }
+    \endcode
+
+    \code
+    // tst_stuff.qbs
+    TestBase {
+        files: base.concat(["tst_stuff.cpp"])
+    }
+    \endcode
+
+    See \l {Special Property Values} for more details.
 
     \section1 How do I print the value of a property?
 
