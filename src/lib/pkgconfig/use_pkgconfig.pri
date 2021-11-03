@@ -33,7 +33,7 @@ gcc {
     isEmpty(COMPILER_VERSION) {
         COMPILER_VERSION = $$system($$QMAKE_CXX " -dumpversion")
         COMPILER_MAJOR_VERSION = $$str_member($$COMPILER_VERSION)
-        equals(COMPILER_MAJOR_VERSION, 7) {
+        lessThan(COMPILER_MAJOR_VERSION, 9) {
             LIBS += -lstdc++fs
         }
     }
