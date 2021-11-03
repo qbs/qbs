@@ -45,6 +45,8 @@ import qbs.PkgConfig
 import qbs.Process
 import qbs.TextFile
 
+import "Qt/setup-qt.js" as SetupQt
+
 ModuleProvider {
     property string executableFilePath
     property stringList extraPaths
@@ -59,10 +61,11 @@ ModuleProvider {
 
     relativeSearchPaths: {
 
+        function exeSuffix(qbs) { return qbs.hostOS.contains("windows") ? ".exe" : ""; }
+
         // we need Probes in Providers...
         function getPkgConfigExecutable(qbs) {
             function splitNonEmpty(s, c) { return s.split(c).filter(function(e) { return e; }) }
-            function exeSuffix(qbs) { return qbs.hostOS.contains("windows") ? ".exe" : ""; }
 
             var pathValue = Environment.getEnv("PATH");
             if (!pathValue)
@@ -168,6 +171,37 @@ ModuleProvider {
             }
         }
 
+        function setupQt(pkg) {
+            var packageName = pkg.baseFileName;
+            if (packageName === "QtCore"
+                    || packageName === "Qt5Core"
+                    || packageName === "Qt6Core") {
+                var hostBins = pkg.variables["host_bins"];
+                if (!hostBins) {
+                    if (packageName === "QtCore") { // Qt4 does not have host_bins
+                        var mocLocation = pkg.variables["moc_location"];
+                        if (!mocLocation) {
+                            console.warn("No moc_location variable in " + packageName);
+                            return;
+                        }
+                        hostBins = FileInfo.path(mocLocation);
+                    } else {
+                        console.warn("No host_bins variable in " + packageName);
+                        return;
+                    }
+                }
+                var suffix = exeSuffix(qbs);
+                var qmakePaths = [FileInfo.joinPaths(hostBins, "qmake" + suffix)];
+                var qtProviderDir = FileInfo.joinPaths(path, "Qt");
+                SetupQt.doSetup(qmakePaths, outputBaseDir, qtProviderDir, qbs);
+            }
+        }
+
+        var moduleMapping = {
+            "protobuf": "protobuflib",
+            "grpc++": "grpcpp"
+        }
+
         var pkgConfig = new PkgConfig(options);
 
         var brokenPackages = [];
@@ -178,7 +212,13 @@ ModuleProvider {
                 brokenPackages.push(pkg);
                 continue;
             }
-            var moduleName = getModuleName(packageName);
+            if (packageName.startsWith("Qt")) {
+                setupQt(pkg);
+                continue;
+            }
+            var moduleName = moduleMapping[packageName]
+                    ? moduleMapping[packageName]
+                    : getModuleName(packageName);
             var moduleInfo = getModuleInfo(pkg, staticMode);
             var deps = getModuleDependencies(pkg, staticMode);
 

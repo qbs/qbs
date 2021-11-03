@@ -7,12 +7,13 @@ class TestApp(ConanFile):
     version = "6.6.6"
 
     settings = "os"
-    options = {"opt": [True, False]}
-    default_options = {"opt": False}
+    options = {"opt": [True, False], "forceFailure": [True, False]}
+    default_options = {"opt": False, "forceFailure": False}
 
     requires = "testlib/1.2.3@qbs/testing"
 
     def configure(self):
+        assert(not self.options.forceFailure)
         self.options["testlib"].opt = self.options.opt
 
     def source(self):

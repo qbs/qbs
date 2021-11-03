@@ -84,16 +84,6 @@ void SettingsCreator::migrate()
     QString oldSettingsDir = m_settingsBaseDir;
     if (thePredecessor.isValid())
         oldSettingsDir.append(QLatin1String("/qbs/")).append(thePredecessor.toString());
-    QString oldProfilesDir = oldSettingsDir;
-    if (!thePredecessor.isValid())
-        oldProfilesDir += QLatin1String("/qbs");
-    oldProfilesDir += QLatin1String("/profiles");
-    const QString newProfilesDir = m_newSettingsDir + QLatin1String("/profiles");
-    QString errorMessage;
-    if (QFileInfo(oldProfilesDir).exists()
-            && !copyFileRecursion(oldProfilesDir, newProfilesDir, false, true, &errorMessage)) {
-        qWarning() << "Error in settings migration: " << errorMessage;
-    }
     const QString oldSettingsFilePath = oldSettingsDir + QLatin1Char('/') + m_settingsFileName;
     if (QFileInfo(oldSettingsFilePath).exists()
             && (!QDir::root().mkpath(m_newSettingsDir)
@@ -102,28 +92,7 @@ void SettingsCreator::migrate()
                    << "to" << m_newSettingsFilePath;
     }
 
-    // Adapt all paths in settings that point to the old location. At the time of this writing,
-    // that's only preferences.qbsSearchPaths as written by libqtprofilesetup, but we don't want
-    // to hardcode that here.
     m_settings = std::make_unique<QSettings>(m_newSettingsFilePath, format());
-    const auto allKeys = m_settings->allKeys();
-    for (const QString &key : allKeys) {
-        QVariant v = m_settings->value(key);
-        if (v.userType() == QMetaType::QString) {
-            QString s = v.toString();
-            if (s.contains(oldProfilesDir))
-                m_settings->setValue(key, s.replace(oldProfilesDir, newProfilesDir));
-        } else if (v.userType() == QMetaType::QStringList) {
-            const QStringList oldList = v.toStringList();
-            QStringList newList;
-            for (const QString &oldString : oldList) {
-                QString newString = oldString;
-                newList << newString.replace(oldProfilesDir, newProfilesDir);
-            }
-            if (newList != oldList)
-                m_settings->setValue(key, newList);
-        }
-    }
 }
 
 void SettingsCreator::createQSettings()

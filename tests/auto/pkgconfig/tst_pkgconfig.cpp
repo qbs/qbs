@@ -90,12 +90,13 @@ void TestPkgConfig::pkgConfig()
     QCOMPARE(QString::fromStdString(package.description), json.value("Description").toString());
     QCOMPARE(QString::fromStdString(package.version), json.value("Version").toString());
 
-    auto vars = json["Vars"].toMap();
-    vars["pcfiledir"] = QFileInfo(m_workingDataDir).absoluteFilePath();
+    auto variables = json["Vars"].toMap();
+    variables["pcfiledir"] = QFileInfo(m_workingDataDir).absoluteFilePath();
 
-    for (const auto &[key, value]: package.vars) {
+    QCOMPARE(size_t(variables.size()), package.variables.size());
+    for (const auto &[key, value]: package.variables) {
         QCOMPARE(QString::fromStdString(value),
-                 vars.value(QString::fromStdString(key)).toString());
+                 variables.value(QString::fromStdString(key)).toString());
     }
 
     const auto jsonLibs = json.value("Libs").toJsonArray().toVariantList();
@@ -191,6 +192,10 @@ void TestPkgConfig::pkgConfig_data()
             << QStringLiteral("tilde") << QString() << QVariantMap();
     QTest::newRow("variables")
             << QStringLiteral("variables") << QString() << QVariantMap();
+    QTest::newRow("variables-merged")
+            << QStringLiteral("variables")
+            << QString()
+            << QVariantMap({{"mergeDependencies", true}});
     QTest::newRow("whitespace")
             << QStringLiteral("whitespace") << QString() << QVariantMap();
     QTest::newRow("base.name")

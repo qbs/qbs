@@ -238,8 +238,8 @@ std::string_view PkgConfig::packageGetVariable(const PcPackage &pkg, std::string
     }
 
     if (varval.empty()) {
-        const auto it = pkg.vars.find(var);
-        varval = (it != pkg.vars.end()) ? it->second : std::string_view();
+        const auto it = pkg.variables.find(var);
+        varval = (it != pkg.variables.end()) ? it->second : std::string_view();
     }
 
     return varval;
@@ -391,6 +391,7 @@ PkgConfig::Packages PkgConfig::mergeDependencies(const PkgConfig::Packages &pack
                 result.version = package.version;
                 result.description = package.description;
                 result.url = package.url;
+                result.variables = package.variables;
 
                 auto allDependencies = package.requiresPublic;
                 if (m_options.staticMode)

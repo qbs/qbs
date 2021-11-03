@@ -424,11 +424,11 @@ try
 #if HAS_STD_FILESYSTEM
     const auto fsPath = std::filesystem::path(path);
     package.filePath = fsPath.generic_string();
-    package.vars["pcfiledir"] = fsPath.parent_path().generic_string();
+    package.variables["pcfiledir"] = fsPath.parent_path().generic_string();
 #else
     QFileInfo fileInfo(QString::fromStdString(path));
     package.filePath = fileInfo.absoluteFilePath().toStdString();
-    package.vars["pcfiledir"] = fileInfo.absolutePath().toStdString();
+    package.variables["pcfiledir"] = fileInfo.absolutePath().toStdString();
 #endif
 
     std::string line;
@@ -764,7 +764,7 @@ void PcParser::parseLine(PcPackage &pkg, std::string_view str)
         // ignore this feature for now
 
         const auto value = trimAndSubstitute(pkg, str);
-        if (!pkg.vars.insert({std::string(tag), value}).second)
+        if (!pkg.variables.insert({std::string(tag), value}).second)
             raizeDuplicateVariableException(pkg, tag);
     }
 }

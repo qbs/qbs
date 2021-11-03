@@ -12,6 +12,7 @@ ProtobufBase {
     property bool useGrpc: false
 
     property bool _linkLibraries: true
+    readonly property bool _hasModules: protobuflib.present && (!useGrpc || grpcpp.present)
 
     property string grpcIncludePath: grpcIncludeProbe.found ? grpcIncludeProbe.path : undefined
     property string grpcLibraryPath: grpcLibraryProbe.found ? grpcLibraryProbe.path : undefined
@@ -27,6 +28,18 @@ ProtobufBase {
     }
 
     Depends { name: "cpp" }
+    Depends {
+        name: "protobuflib";
+        condition: _linkLibraries;
+        required: false;
+        enableFallback: false
+    }
+    Depends {
+        name: "grpcpp";
+        condition: _linkLibraries && useGrpc;
+        required: false;
+        enableFallback: false
+    }
 
     property path grpcPluginPath: grpcPluginProbe.filePath
 
@@ -37,7 +50,7 @@ ProtobufBase {
     }
 
     cpp.libraryPaths: {
-        if (!_linkLibraries)
+        if (!_linkLibraries || _hasModules)
             return [];
 
         var result = [];
@@ -48,7 +61,7 @@ ProtobufBase {
         return result;
     }
     cpp.dynamicLibraries: {
-        if (!_linkLibraries)
+        if (!_linkLibraries || _hasModules)
             return [];
 
         var result = [];
@@ -61,7 +74,7 @@ ProtobufBase {
         return result;
     }
     cpp.includePaths: {
-        if (!_linkLibraries)
+        if (!_linkLibraries || _hasModules)
             return [outputDir];
 
         var result = [outputDir];
@@ -138,6 +151,9 @@ ProtobufBase {
 
     validate: {
         HelperFunctions.validateCompiler(compilerName, compilerPath);
+
+        if (_hasModules)
+            return;
 
         if (_linkLibraries && !includeProbe.found)
             throw "Can't find cpp protobuf include files. Please set the includePath property.";

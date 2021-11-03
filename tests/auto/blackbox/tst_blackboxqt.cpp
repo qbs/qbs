@@ -298,6 +298,49 @@ void TestBlackboxQt::pkgconfig()
         QSKIP("pkgconfig or Qt not found");
 }
 
+void TestBlackboxQt::pkgconfigQt()
+{
+    QFETCH(QStringList, arguments);
+    QFETCH(bool, success);
+
+    QDir::setCurrent(testDataDir + "/pkgconfig-qt");
+    rmDirR(relativeBuildDir());
+
+    QbsRunParameters dumpParams("resolve", {"-f", "dump-libpath.qbs"});
+    QCOMPARE(runQbs(dumpParams), 0);
+    auto lines = QString::fromUtf8(m_qbsStdout).split('\n');
+    const QString needle = "libPath=";
+    qbs::Internal::removeIf(
+            lines, [&needle](const auto &line) { return !line.startsWith(needle); });
+    QCOMPARE(lines.size(), 1);
+    const auto libPath = lines[0].mid(needle.size());
+    const auto prefix = QFileInfo(libPath).path();
+    const auto pkgConfigPath = libPath + "/pkgconfig/";
+    if (!QFileInfo(pkgConfigPath).exists())
+        QSKIP("No *.pc files found");
+
+    rmDirR(relativeBuildDir());
+    QbsRunParameters params("build", {"-f", "pkgconfig-qt.qbs"});
+    // need to override prefix for the downloaded Qt
+    params.environment.insert("PKG_CONFIG_QT5CORE_PREFIX", prefix);
+    params.arguments << "moduleProviders.qbspkgconfig.extraPaths:" + pkgConfigPath;
+    params.arguments << arguments;
+
+    QCOMPARE(runQbs(params) == 0, success);
+
+    if (!success)
+        QVERIFY(m_qbsStderr.contains("Dependency 'Qt.core' not found for product 'p'"));
+}
+
+void TestBlackboxQt::pkgconfigQt_data()
+{
+    QTest::addColumn<QStringList>("arguments");
+    QTest::addColumn<bool>("success");
+    QTest::newRow("pkgconfig") << QStringList() << true;
+    QTest::newRow("dummy")
+            << QStringList({"products.p.qbsModuleProviders:dummyProvider"}) << false;
+}
+
 void TestBlackboxQt::pluginMetaData()
 {
     QDir::setCurrent(testDataDir + "/plugin-meta-data");

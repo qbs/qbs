@@ -58,6 +58,8 @@ private slots:
     void mocCompilerDefines();
     void mocSameFileName();
     void pkgconfig();
+    void pkgconfigQt();
+    void pkgconfigQt_data();
     void pluginMetaData();
     void pluginSupport_data();
     void pluginSupport();

@@ -18,6 +18,7 @@ CppApplication {
 
     property bool hasDependencies: {
         console.info("has grpc: " + protobuf.cpp.present);
+        console.info("has modules: " + grpcpp.present);
         return protobuf.cpp.present;
     }
 

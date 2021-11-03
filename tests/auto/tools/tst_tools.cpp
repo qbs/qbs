@@ -308,10 +308,10 @@ void TestTools::testSettingsMigration()
     QFETCH(bool, hasOldSettings);
     Settings settings(baseDir);
     if (hasOldSettings) {
-        QVERIFY(QFileInfo(settings.baseDirectory() + "/qbs/" QBS_VERSION "/profiles/right.txt")
+        // checks that we do not copy old "profiles/" dir anymore
+        QVERIFY(!QFileInfo(settings.baseDirectory() + "/qbs/" QBS_VERSION "/profiles/right.txt")
                 .exists());
-        QCOMPARE(settings.value("key", Settings::UserScope).toString(),
-                 settings.baseDirectory() + "/qbs/" QBS_VERSION "/profilesright");
+        QVERIFY(!settings.value("key", Settings::UserScope).toString().isEmpty());
     } else {
         QVERIFY(!QFileInfo(settings.baseDirectory() + "/qbs/" QBS_VERSION "/profiles").exists());
         QVERIFY(settings.allKeys(Settings::UserScope).empty());
