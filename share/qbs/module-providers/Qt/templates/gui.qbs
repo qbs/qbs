@@ -28,7 +28,7 @@ QtModule {
                     : product.Qt.core.libExecPath + '/' + product.Qt.gui.uicName;
 
             var cmd = new Command(uicPath, [input.filePath, '-o', output.filePath]);
-            cmd.description = 'uic ' + input.fileName;
+            cmd.description = 'generating ' + output.fileName;
             cmd.highlight = 'codegen';
             return cmd;
         }

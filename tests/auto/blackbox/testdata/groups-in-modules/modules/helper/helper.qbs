@@ -39,7 +39,7 @@ Module {
 
         prepare: {
             var cmd = new Command(FileInfo.joinPaths(product.buildDirectory, product.targetName), [input.filePath, output.filePath]);
-            cmd.description = "compile " + input.fileName + " => " + output.fileName;
+            cmd.description = "compiling " + input.fileName + " to " + output.fileName;
             return [cmd];
         }
     }

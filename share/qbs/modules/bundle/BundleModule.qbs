@@ -777,7 +777,7 @@ Module {
                         && product.moduleProperty("qbs", "targetOS").contains("macos")) {
                     cmd = new Command(ModUtils.moduleProperty(product, "lsregisterPath"),
                                       ["-f", product.bundle.bundleName]);
-                    cmd.description = "register " + ModUtils.moduleProperty(product, "bundleName");
+                    cmd.description = "registering " + ModUtils.moduleProperty(product, "bundleName");
                     commands.push(cmd);
                 }
             }

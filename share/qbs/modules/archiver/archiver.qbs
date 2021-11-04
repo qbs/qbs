@@ -229,7 +229,7 @@ Module {
             }
 
             var archiverCommand = new Command(binary, args);
-            archiverCommand.description = "Creating archive file " + output.fileName;
+            archiverCommand.description = "creating archive file " + output.fileName;
             archiverCommand.highlight = "linker";
             archiverCommand.workingDirectory
                     = product.moduleProperty("archiver", "workingDirectory");

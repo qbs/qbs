@@ -80,7 +80,7 @@ Project {
             prepare: {
                 var cmd = new JavaScriptCommand();
                 cmd.highlight = "codegen";
-                cmd.description = "Making output from other output";
+                cmd.description = "making output from other output";
                 cmd.sourceCode = function() { File.copy(input.filePath, output.filePath); }
                 return cmd;
             }

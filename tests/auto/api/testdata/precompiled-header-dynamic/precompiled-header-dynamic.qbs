@@ -21,7 +21,7 @@ CppApplication {
         }
         prepare: {
             var cmd = new JavaScriptCommand();
-            cmd.description = "Generating " + output.fileName;
+            cmd.description = "generating " + output.fileName;
             cmd.sourceCode = function() { File.copy(input.filePath, output.filePath); }
             return [cmd];
         }

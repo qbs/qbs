@@ -31,7 +31,7 @@ Project {
             outputFileTags: "product-under-test"
             prepare: {
                 var cmd = new Command(inputs["application"][0].filePath);
-                cmd.description = "Calling application that runs forever";
+                cmd.description = "calling application that runs forever";
                 cmd.timeout = 3;
                 return cmd;
             }

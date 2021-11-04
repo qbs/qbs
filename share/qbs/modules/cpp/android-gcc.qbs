@@ -170,7 +170,7 @@ LinuxGCC {
         prepare: {
             var stripArgs = ["--strip-all", "-o", output.filePath, input.filePath];
             var stripCmd = new Command(product.cpp.stripPath, stripArgs);
-            stripCmd.description = "Stripping unneeded symbols from " + input.fileName;
+            stripCmd.description = "stripping unneeded symbols from " + input.fileName;
             return stripCmd;
         }
     }

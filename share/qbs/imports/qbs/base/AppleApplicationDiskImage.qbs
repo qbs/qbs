@@ -56,7 +56,7 @@ AppleDiskImage {
         prepare: Array.prototype.map.call(outputs["dmg.input"], function (symlink) {
             var cmd = new Command("ln", ["-sfn", symlink.dmg.symlinkTarget, symlink.filePath]);
             cmd.workingDirectory = product.stageDirectory;
-            cmd.description = "symlinking " + symlink.fileName + " => " + symlink.dmg.symlinkTarget;
+            cmd.description = "symlinking " + symlink.fileName + " to " + symlink.dmg.symlinkTarget;
             return cmd;
         });
     }

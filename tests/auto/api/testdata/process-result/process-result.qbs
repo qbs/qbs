@@ -27,7 +27,7 @@ Project {
                     cmd.stdoutFilePath = product.buildDirectory + "/stdout.txt";
                 if (product.redirectStderr)
                     cmd.stderrFilePath = product.buildDirectory + "/stderr.txt";
-                cmd.description = "Building app-caller";
+                cmd.description = "building app-caller";
                 return [cmd];
             }
         }

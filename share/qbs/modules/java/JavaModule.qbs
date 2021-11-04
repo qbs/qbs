@@ -253,7 +253,7 @@ Module {
         prepare: {
             var cmd = new Command(ModUtils.moduleProperty(product, "compilerFilePath"),
                                   JavaUtils.javacArguments(product, inputs));
-            cmd.description = "Compiling Java sources";
+            cmd.description = "compiling Java sources";
             cmd.highlight = "compiler";
             return [cmd];
         }

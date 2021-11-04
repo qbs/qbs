@@ -16,7 +16,7 @@ Product {
         }
         prepare: {
             var cmd = new JavaScriptCommand();
-            cmd.description = "Creating output";
+            cmd.description = "creating output";
             if (product.errorType === "qobject")
                 cmd.dummy = new TextFile(input.filePath, TextFile.ReadOnly);
             else if (product.errorType === "input")

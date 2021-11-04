@@ -133,7 +133,7 @@ void TestBlackboxAndroid::android()
         QCOMPARE(runQbs(buildParams), 0);
         for (const QString &productName : qAsConst(productNames)) {
             const QByteArray tag(QTest::currentDataTag());
-            QCOMPARE(m_qbsStdout.count("Generating BuildConfig.java"),
+            QCOMPARE(m_qbsStdout.count("generating BuildConfig.java"),
                      isIncrementalBuild ? 0 : productNames.size());
             const QString packageName = productName + (generateAab ? ".aab" : ".apk");
             QVERIFY(m_qbsStdout.contains(packageName.toLocal8Bit()));

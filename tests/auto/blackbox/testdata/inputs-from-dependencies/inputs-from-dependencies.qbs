@@ -37,7 +37,7 @@ Project {
             }
             prepare: {
                 var cmd = new JavaScriptCommand();
-                cmd.description = "Gathering text files";
+                cmd.description = "gathering text files";
                 cmd.sourceCode = function() {
                     for (i in inputs.txt)
                         console.info(inputs.txt[i].filePath);

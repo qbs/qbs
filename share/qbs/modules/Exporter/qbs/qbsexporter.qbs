@@ -59,7 +59,7 @@ Module {
         }
         prepare: {
             var cmd = new JavaScriptCommand();
-            cmd.description = "Creating " + output.fileName;
+            cmd.description = "creating " + output.fileName;
             cmd.sourceCode = function() {
                 var f = new TextFile(output.filePath, TextFile.WriteOnly);
                 HelperFunctions.writeImportStatements(product, f);

@@ -447,7 +447,7 @@ function prepareArchiver(project, product, inputs, outputs, input, output) {
     var args = archiverFlags(project, product, inputs, outputs);
     var cmd = new Command(product.cpp.archiverPath, args);
     cmd.workingDirectory = product.buildDirectory;
-    cmd.description = "linking " + output.fileName;
+    cmd.description = "creating " + output.fileName;
     cmd.highlight = "linker";
     return [cmd];
 }

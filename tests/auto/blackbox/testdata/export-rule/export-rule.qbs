@@ -13,7 +13,7 @@ Project {
         Export {
             Depends { name: "cpp" }
             property bool enableTagger
-            property string description: "Creating C++ source file.";
+            property string description: "creating C++ source file.";
             FileTagger {
                 condition: enableTagger
                 patterns: ["*.blubb"]

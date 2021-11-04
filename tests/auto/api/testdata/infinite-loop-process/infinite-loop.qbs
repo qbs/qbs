@@ -24,7 +24,7 @@ Project {
             outputFileTags: "mytype"
             prepare: {
                 var cmd = new Command(inputs["application"][0].filePath);
-                cmd.description = "Calling application that runs forever";
+                cmd.description = "calling application that runs forever";
                 return cmd;
             }
         }

@@ -122,7 +122,7 @@ Product {
                                                                cmd.nuspecFileName),
                                     "--limitoutput",
                                     "--outputdirectory", cmd.chocoOutDirectory]);
-            cmd2.description = "choco pack " + inputs["chocolatey.nuspec"][0].fileName;
+            cmd2.description = "packing choco " + inputs["chocolatey.nuspec"][0].fileName;
             return [cmd, cmd2];
         }
     }

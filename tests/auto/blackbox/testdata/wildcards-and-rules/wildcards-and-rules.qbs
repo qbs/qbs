@@ -22,7 +22,7 @@ Product {
         }
         prepare: {
             var cmd = new JavaScriptCommand();
-            cmd.description = "Creating output artifact";
+            cmd.description = "creating output artifact";
             cmd.highlight = "codegen";
             cmd.sourceCode = function() {
                 var file = new TextFile(output.filePath, TextFile.WriteOnly);

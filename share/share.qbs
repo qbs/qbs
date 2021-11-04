@@ -81,7 +81,7 @@ Product {
         }
         prepare: {
             var cmd = new JavaScriptCommand();
-            cmd.description = "Generating " + output.fileName;
+            cmd.description = "generating " + output.fileName;
             cmd.highlight = "codegen";
             cmd.sourceCode = function() {
                 var tf;
@@ -106,7 +106,7 @@ Product {
         }
         prepare: {
             var cmd = new JavaScriptCommand();
-            cmd.description = "Generating " + output.fileName;
+            cmd.description = "generating " + output.fileName;
             cmd.highlight = "codegen";
             cmd.sourceCode = function() {
                 var tf;

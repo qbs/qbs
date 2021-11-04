@@ -27,7 +27,7 @@ Project {
             }
             prepare: {
                 var cmd = new JavaScriptCommand();
-                cmd.description = "Creating " + output.fileName;
+                cmd.description = "creating " + output.fileName;
                 cmd.sourceCode = function() {
                     var file = new TextFile(output.filePath, TextFile.WriteOnly);
                     for (var i = 0; i < inputs.installable.length; ++i)

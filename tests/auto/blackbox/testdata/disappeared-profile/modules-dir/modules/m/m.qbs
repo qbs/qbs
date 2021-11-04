@@ -10,7 +10,7 @@ Module {
         }
         prepare: {
             var cmd = new JavaScriptCommand();
-            cmd.description = "Creating " + output.fileName + " with " + product.m.p1;
+            cmd.description = "creating " + output.fileName + " with " + product.m.p1;
             cmd.sourceCode = function() {};
             return [cmd];
         }
@@ -24,7 +24,7 @@ Module {
         }
         prepare: {
             var cmd = new JavaScriptCommand();
-            cmd.description = "Creating " + output.fileName + " with " + product.m.p2;
+            cmd.description = "creating " + output.fileName + " with " + product.m.p2;
             cmd.sourceCode = function() {};
             return [cmd];
         }

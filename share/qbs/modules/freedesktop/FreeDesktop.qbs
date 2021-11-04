@@ -70,7 +70,7 @@ Module {
 
         prepare: {
             var cmd = new JavaScriptCommand();
-            cmd.description = input.fileName + "->" + output.fileName;
+            cmd.description = "generating " + output.fileName + " from " + input.fileName;
             cmd.highlight = "codegen";
             cmd.sourceCode = function() {
                 var aggregateDesktopKeys = Fdo.parseDesktopFile(input.filePath);

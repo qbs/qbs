@@ -446,7 +446,7 @@ Project {
                                               FileInfo.path(output.filePath) + "/../.."),
                                           qtScriptSrcPath
                                       ]);
-                cmd.description = "Create forwarding headers for the bundled QtScript module.";
+                cmd.description = "creating forwarding headers for the bundled QtScript module.";
                 return cmd;
             }
         }

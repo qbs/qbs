@@ -18,7 +18,7 @@ Module {
         prepare: {
             var cmd = new JavaScriptCommand();
             cmd.highlight = "codegen";
-            cmd.description = "Making output from input";
+            cmd.description = "making output from input";
             cmd.sourceCode = function() {
                 // console.info('Change in source code');
                 console.info(input.TestModule.testProperty);

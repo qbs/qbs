@@ -22,7 +22,7 @@ Product {
         }
         prepare: {
             var cmd = new JavaScriptCommand();
-            cmd.description = "Generating " + output.fileName;
+            cmd.description = "generating " + output.fileName;
             cmd.sourceCode = function() {
                 var f = new TextFile(output.filePath, TextFile.WriteOnly);
                 f.write('(');

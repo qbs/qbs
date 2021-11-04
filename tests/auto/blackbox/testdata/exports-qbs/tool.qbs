@@ -49,7 +49,7 @@ CppApplication {
             prepare: {
                 var cmd = new Command(explicitlyDependsOn["MyTool.tool"][0].filePath,
                                       [input.filePath, output.filePath]);
-                cmd.description = input.fileName + " -> " + output.fileName;
+                cmd.description = "compiling" + input.fileName + " to " + output.fileName;
                 return [cmd];
             }
         }

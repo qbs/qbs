@@ -1001,7 +1001,7 @@ void TestBlackbox::dependenciesProperty()
     REPLACE_IN_FILE(projectFile, "// Depends { name: 'newDependency' }",
                     "Depends { name: 'newDependency' }");
     QCOMPARE(runQbs(), 0);
-    QVERIFY2(m_qbsStdout.contains("generate product1.deps"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("generating product1.deps"), m_qbsStdout.constData());
     readDepsOutput(depsFile, jsondoc);
     dependencies = jsondoc.array();
     QCOMPARE(dependencies.size(), 3);
@@ -1012,7 +1012,7 @@ void TestBlackbox::dependenciesProperty()
     REPLACE_IN_FILE(projectFile, "// Depends { name: 'product2' }", "Depends { name: 'product2' }");
     QCOMPARE(runQbs(), 0);
     QVERIFY2(m_qbsStdout.contains("Resolving"), m_qbsStdout.constData());
-    QVERIFY2(!m_qbsStdout.contains("generate product1.deps"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("generating product1.deps"), m_qbsStdout.constData());
     readDepsOutput(depsFile, jsondoc);
     dependencies = jsondoc.array();
     QCOMPARE(dependencies.size(), 3);
@@ -1022,7 +1022,7 @@ void TestBlackbox::dependenciesProperty()
              0);
     QCOMPARE(runQbs(), 0);
     QVERIFY2(!m_qbsStdout.contains("compiling product2.cpp"), m_qbsStdout.constData());
-    QVERIFY2(m_qbsStdout.contains("generate product1.deps"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("generating product1.deps"), m_qbsStdout.constData());
     readDepsOutput(depsFile, jsondoc);
     dependencies = jsondoc.array();
     QCOMPARE(dependencies.size(), 3);
@@ -1034,7 +1034,7 @@ void TestBlackbox::dependenciesProperty()
                                      "products.product2.cpp.defines:DIGEDAG"})), 0);
     QCOMPARE(runQbs(), 0);
     QVERIFY2(m_qbsStdout.contains("compiling product2.cpp"), m_qbsStdout.constData());
-    QVERIFY2(m_qbsStdout.contains("generate product1.deps"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("generating product1.deps"), m_qbsStdout.constData());
     readDepsOutput(depsFile, jsondoc);
     dependencies = jsondoc.array();
     QCOMPARE(dependencies.size(), 3);
@@ -1103,16 +1103,16 @@ void TestBlackbox::disappearedProfile()
     QbsRunParameters buildParams;
     buildParams.profile.clear();
     QCOMPARE(runQbs(buildParams), 0);
-    QVERIFY2(m_qbsStdout.contains("Creating dummy1.txt with p1 from profile"),
+    QVERIFY2(m_qbsStdout.contains("creating dummy1.txt with p1 from profile"),
              m_qbsStdout.constData());
-    QVERIFY2(m_qbsStdout.contains("Creating dummy2.txt with p2 from profile"),
+    QVERIFY2(m_qbsStdout.contains("creating dummy2.txt with p2 from profile"),
              m_qbsStdout.constData());
 
     // Now we do use the "resolve" command, so the new property value is taken into account.
     QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(buildParams), 0);
-    QVERIFY2(!m_qbsStdout.contains("Creating dummy1.txt"), m_qbsStdout.constData());
-    QVERIFY2(m_qbsStdout.contains("Creating dummy2.txt with p2 new from profile"),
+    QVERIFY2(!m_qbsStdout.contains("creating dummy1.txt"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("creating dummy2.txt with p2 new from profile"),
              m_qbsStdout.constData());
 
     // Now we change the profile again without a "resolve" command. However, this time we
@@ -1125,8 +1125,8 @@ void TestBlackbox::disappearedProfile()
                     "property string p1: 'p1 from module'");
     QCOMPARE(runQbs(buildParams), 0);
     QVERIFY2(m_qbsStdout.contains("Resolving"), m_qbsStdout.constData());
-    QVERIFY2(!m_qbsStdout.contains("Creating dummy1.txt"), m_qbsStdout.constData());
-    QVERIFY2(!m_qbsStdout.contains("Creating dummy2.txt"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("creating dummy1.txt"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("creating dummy2.txt"), m_qbsStdout.constData());
 
     // Now we run the "resolve" command without giving the necessary settings path to find
     // the profile.
@@ -2640,11 +2640,11 @@ void TestBlackbox::ruleWithNonRequiredInputs()
     output = outFile.readAll();
     QCOMPARE(output, QByteArray("(a.inp,b.inp,c.inp,)"));
     QCOMPARE(runQbs(), 0);
-    QVERIFY2(!m_qbsStdout.contains("Generating"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("generating"), m_qbsStdout.constData());
     WAIT_FOR_NEW_TIMESTAMP();
     touch("a.inp");
     QCOMPARE(runQbs(), 0);
-    QVERIFY2(m_qbsStdout.contains("Generating"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("generating"), m_qbsStdout.constData());
 }
 
 void TestBlackbox::sanitizer_data()
@@ -3386,9 +3386,9 @@ void TestBlackbox::propertyChanges()
     QVERIFY(m_qbsStdout.contains("compiling lib.cpp"));
     QVERIFY(m_qbsStdout.contains("linking product 1.debug"));
     QVERIFY(m_qbsStdout.contains("generated.txt"));
-    QVERIFY(m_qbsStdout.contains("Making output from input"));
+    QVERIFY(m_qbsStdout.contains("making output from input"));
     QVERIFY(m_qbsStdout.contains("default value"));
-    QVERIFY(m_qbsStdout.contains("Making output from other output"));
+    QVERIFY(m_qbsStdout.contains("making output from other output"));
     QFile generatedFile(relativeProductBuildDir("generated text file") + "/generated.txt");
     QVERIFY(generatedFile.open(QIODevice::ReadOnly));
     QCOMPARE(generatedFile.readAll(), QByteArray("prefix 1contents 1suffix 1"));
@@ -3402,8 +3402,8 @@ void TestBlackbox::propertyChanges()
     QVERIFY(!m_qbsStdout.contains("compiling lib.cpp.cpp"));
     QVERIFY(!m_qbsStdout.contains("linking"));
     QVERIFY(!m_qbsStdout.contains("generated.txt"));
-    QVERIFY(!m_qbsStdout.contains("Making output from input"));
-    QVERIFY(!m_qbsStdout.contains("Making output from other output"));
+    QVERIFY(!m_qbsStdout.contains("making output from input"));
+    QVERIFY(!m_qbsStdout.contains("making output from other output"));
 
     // Incremental build with no changes, but updated project file timestamp.
     WAIT_FOR_NEW_TIMESTAMP();
@@ -3415,8 +3415,8 @@ void TestBlackbox::propertyChanges()
     QVERIFY(!m_qbsStdout.contains("compiling lib.cpp"));
     QVERIFY(!m_qbsStdout.contains("linking"));
     QVERIFY(!m_qbsStdout.contains("generated.txt"));
-    QVERIFY(!m_qbsStdout.contains("Making output from input"));
-    QVERIFY(!m_qbsStdout.contains("Making output from other output"));
+    QVERIFY(!m_qbsStdout.contains("making output from input"));
+    QVERIFY(!m_qbsStdout.contains("making output from other output"));
 
     // Incremental build, input property changed for first product
     WAIT_FOR_NEW_TIMESTAMP();
@@ -3428,8 +3428,8 @@ void TestBlackbox::propertyChanges()
     QVERIFY(!m_qbsStdout.contains("linking product 3"));
     QVERIFY(!m_qbsStdout.contains("linking library"));
     QVERIFY(!m_qbsStdout.contains("generated.txt"));
-    QVERIFY(!m_qbsStdout.contains("Making output from input"));
-    QVERIFY(!m_qbsStdout.contains("Making output from other output"));
+    QVERIFY(!m_qbsStdout.contains("making output from input"));
+    QVERIFY(!m_qbsStdout.contains("making output from other output"));
 
     // Incremental build, input property changed via project for second product.
     WAIT_FOR_NEW_TIMESTAMP();
@@ -3439,8 +3439,8 @@ void TestBlackbox::propertyChanges()
     QVERIFY(m_qbsStdout.contains("compiling source2.cpp"));
     QVERIFY(!m_qbsStdout.contains("linking product 3"));
     QVERIFY(!m_qbsStdout.contains("generated.txt"));
-    QVERIFY(!m_qbsStdout.contains("Making output from input"));
-    QVERIFY(!m_qbsStdout.contains("Making output from other output"));
+    QVERIFY(!m_qbsStdout.contains("making output from input"));
+    QVERIFY(!m_qbsStdout.contains("making output from other output"));
 
     // Incremental build, input property changed via command line for second product.
     params.command = "resolve";
@@ -3458,8 +3458,8 @@ void TestBlackbox::propertyChanges()
     QVERIFY(m_qbsStdout.contains("compiling source2.cpp"));
     QVERIFY(!m_qbsStdout.contains("linking product 3"));
     QVERIFY(!m_qbsStdout.contains("generated.txt"));
-    QVERIFY(!m_qbsStdout.contains("Making output from input"));
-    QVERIFY(!m_qbsStdout.contains("Making output from other output"));
+    QVERIFY(!m_qbsStdout.contains("making output from input"));
+    QVERIFY(!m_qbsStdout.contains("making output from other output"));
 
     // Incremental build, input property changed via environment for third product.
     params.environment.insert("QBS_BLACKBOX_DEFINE", "newvalue");
@@ -3474,8 +3474,8 @@ void TestBlackbox::propertyChanges()
     QVERIFY(!m_qbsStdout.contains("linking product 2"));
     QVERIFY(!m_qbsStdout.contains("compiling source3.cpp"));
     QVERIFY(!m_qbsStdout.contains("generated.txt"));
-    QVERIFY(!m_qbsStdout.contains("Making output from input"));
-    QVERIFY(!m_qbsStdout.contains("Making output from other output"));
+    QVERIFY(!m_qbsStdout.contains("making output from input"));
+    QVERIFY(!m_qbsStdout.contains("making output from other output"));
     params.environment.insert("QBS_BLACKBOX_DEFINE", "newvalue");
     QCOMPARE(runQbs(params), 0);
     QCOMPARE(runQbs(), 0);
@@ -3490,8 +3490,8 @@ void TestBlackbox::propertyChanges()
     QVERIFY(!m_qbsStdout.contains("linking product 2"));
     QVERIFY(m_qbsStdout.contains("compiling source3.cpp"));
     QVERIFY(!m_qbsStdout.contains("generated.txt"));
-    QVERIFY(!m_qbsStdout.contains("Making output from input"));
-    QVERIFY(!m_qbsStdout.contains("Making output from other output"));
+    QVERIFY(!m_qbsStdout.contains("making output from input"));
+    QVERIFY(!m_qbsStdout.contains("making output from other output"));
 
     // Incremental build, module property changed via command line.
     params.arguments << "qbs.enableDebugCode:false";
@@ -3511,8 +3511,8 @@ void TestBlackbox::propertyChanges()
     QVERIFY(m_qbsStdout.contains("compiling source2.cpp"));
     QVERIFY(m_qbsStdout.contains("compiling source3.cpp"));
     QVERIFY(!m_qbsStdout.contains("generated.txt"));
-    QVERIFY(!m_qbsStdout.contains("Making output from input"));
-    QVERIFY(!m_qbsStdout.contains("Making output from other output"));
+    QVERIFY(!m_qbsStdout.contains("making output from input"));
+    QVERIFY(!m_qbsStdout.contains("making output from other output"));
 
     // Incremental build, non-essential dependency removed.
     WAIT_FOR_NEW_TIMESTAMP();
@@ -3524,8 +3524,8 @@ void TestBlackbox::propertyChanges()
     QVERIFY(!m_qbsStdout.contains("linking product 3"));
     QVERIFY(!m_qbsStdout.contains("linking library"));
     QVERIFY(!m_qbsStdout.contains("generated.txt"));
-    QVERIFY(!m_qbsStdout.contains("Making output from input"));
-    QVERIFY(!m_qbsStdout.contains("Making output from other output"));
+    QVERIFY(!m_qbsStdout.contains("making output from input"));
+    QVERIFY(!m_qbsStdout.contains("making output from other output"));
 
     // Incremental build, prepare script of a transformer changed.
     WAIT_FOR_NEW_TIMESTAMP();
@@ -3536,8 +3536,8 @@ void TestBlackbox::propertyChanges()
     QVERIFY(!m_qbsStdout.contains("compiling source3.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling lib.cpp"));
     QVERIFY(m_qbsStdout.contains("generated.txt"));
-    QVERIFY(!m_qbsStdout.contains("Making output from input"));
-    QVERIFY(!m_qbsStdout.contains("Making output from other output"));
+    QVERIFY(!m_qbsStdout.contains("making output from input"));
+    QVERIFY(!m_qbsStdout.contains("making output from other output"));
     QVERIFY(generatedFile.open(QIODevice::ReadOnly));
     QCOMPARE(generatedFile.readAll(), QByteArray("prefix 1contents 2suffix 1"));
     generatedFile.close();
@@ -3551,8 +3551,8 @@ void TestBlackbox::propertyChanges()
     QVERIFY(!m_qbsStdout.contains("compiling source3.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling lib.cpp"));
     QVERIFY(m_qbsStdout.contains("generated.txt"));
-    QVERIFY(!m_qbsStdout.contains("Making output from input"));
-    QVERIFY(!m_qbsStdout.contains("Making output from other output"));
+    QVERIFY(!m_qbsStdout.contains("making output from input"));
+    QVERIFY(!m_qbsStdout.contains("making output from other output"));
     QVERIFY(generatedFile.open(QIODevice::ReadOnly));
     QCOMPARE(generatedFile.readAll(), QByteArray("prefix 2contents 2suffix 1"));
     generatedFile.close();
@@ -3566,8 +3566,8 @@ void TestBlackbox::propertyChanges()
     QVERIFY(!m_qbsStdout.contains("compiling source3.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling lib.cpp"));
     QVERIFY(m_qbsStdout.contains("generated.txt"));
-    QVERIFY(!m_qbsStdout.contains("Making output from input"));
-    QVERIFY(!m_qbsStdout.contains("Making output from other output"));
+    QVERIFY(!m_qbsStdout.contains("making output from input"));
+    QVERIFY(!m_qbsStdout.contains("making output from other output"));
     QVERIFY(generatedFile.open(QIODevice::ReadOnly));
     QCOMPARE(generatedFile.readAll(), QByteArray("prefix 2contents 2suffix 2"));
     generatedFile.close();
@@ -3581,8 +3581,8 @@ void TestBlackbox::propertyChanges()
     QVERIFY(!m_qbsStdout.contains("compiling source3.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling lib.cpp"));
     QVERIFY(!m_qbsStdout.contains("generated.txt"));
-    QVERIFY(m_qbsStdout.contains("Making output from input"));
-    QVERIFY(m_qbsStdout.contains("Making output from other output"));
+    QVERIFY(m_qbsStdout.contains("making output from input"));
+    QVERIFY(m_qbsStdout.contains("making output from other output"));
     QVERIFY(m_qbsStdout.contains("new value"));
 
     // Incremental build, prepare script of a rule in a module changed.
@@ -3595,8 +3595,8 @@ void TestBlackbox::propertyChanges()
     QVERIFY(!m_qbsStdout.contains("compiling source3.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling lib.cpp"));
     QVERIFY(!m_qbsStdout.contains("generated.txt"));
-    QVERIFY(m_qbsStdout.contains("Making output from input"));
-    QVERIFY(m_qbsStdout.contains("Making output from other output"));
+    QVERIFY(m_qbsStdout.contains("making output from input"));
+    QVERIFY(m_qbsStdout.contains("making output from other output"));
 }
 
 void TestBlackbox::propertyEvaluationContext()
@@ -3939,7 +3939,7 @@ void TestBlackbox::exportRule()
     params.expectFailure = false;
     QCOMPARE(runQbs(params), 0);
     QCOMPARE(runQbs(), 0);
-    QVERIFY2(m_qbsStdout.contains("Creating C++ source file"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("creating C++ source file"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("compiling myapp.cpp"), m_qbsStdout.constData());
 }
 
@@ -3957,8 +3957,8 @@ void TestBlackbox::exportsPkgconfig()
 {
     QDir::setCurrent(testDataDir + "/exports-pkgconfig");
     QCOMPARE(runQbs(), 0);
-    QVERIFY2(m_qbsStdout.contains("Creating TheFirstLib.pc"), m_qbsStdout.constData());
-    QVERIFY2(m_qbsStdout.contains("Creating TheSecondLib.pc"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("creating TheFirstLib.pc"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("creating TheSecondLib.pc"), m_qbsStdout.constData());
     QFile sourcePcFile(HostOsInfo::isWindowsHost() ? "TheFirstLib_windows.pc" : "TheFirstLib.pc");
     QString generatedPcFilePath = relativeProductBuildDir("TheFirstLib") + "/TheFirstLib.pc";
     QFile generatedPcFile(generatedPcFilePath);
@@ -3973,8 +3973,8 @@ void TestBlackbox::exportsPkgconfig()
     touch("firstlib.cpp");
     QCOMPARE(runQbs(), 0);
     QVERIFY2(m_qbsStdout.contains("linking"), m_qbsStdout.constData());
-    QVERIFY2(!m_qbsStdout.contains("Creating TheFirstLib.pc"), m_qbsStdout.constData());
-    QVERIFY2(!m_qbsStdout.contains("Creating TheSecondLib.pc"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("creating TheFirstLib.pc"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("creating TheSecondLib.pc"), m_qbsStdout.constData());
 }
 
 void TestBlackbox::exportsQbs()
@@ -4024,19 +4024,19 @@ void TestBlackbox::exportsQbs()
     // Change tracking for accesses to product.exports (negative).
     QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList{"-f", "exports-qbs.qbs"})), 0);
     QCOMPARE(runQbs(), 0);
-    QVERIFY2(m_qbsStdout.contains("Creating MyTool.qbs"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("creating MyTool.qbs"), m_qbsStdout.constData());
     WAIT_FOR_NEW_TIMESTAMP();
     touch("exports-qbs.qbs");
     QCOMPARE(runQbs(QStringList({"-p", "MyTool"})), 0);
-    QVERIFY2(!m_qbsStdout.contains("Creating MyTool.qbs"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("creating MyTool.qbs"), m_qbsStdout.constData());
 
     // Rebuilding the target binary should not cause recreating the module file.
     WAIT_FOR_NEW_TIMESTAMP();
     touch("mylib.cpp");
     QCOMPARE(runQbs(), 0);
     QVERIFY2(m_qbsStdout.count("linking") >= 2, m_qbsStdout.constData());
-    QVERIFY2(!m_qbsStdout.contains("Creating MyLib"), m_qbsStdout.constData());
-    QVERIFY2(!m_qbsStdout.contains("Creating MyTool.qbs"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("creating MyLib"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("creating MyTool.qbs"), m_qbsStdout.constData());
 
     // Changing a setting that influences the name of a target artifact should cause
     // recreating the module file.
@@ -4045,14 +4045,14 @@ void TestBlackbox::exportsQbs()
     QCOMPARE(runQbs(resolveParams), 0);
     QCOMPARE(runQbs(), 0);
     QVERIFY2(m_qbsStdout.count("linking") >= 2, m_qbsStdout.constData());
-    QVERIFY2(m_qbsStdout.count("Creating MyLib") == 2, m_qbsStdout.constData());
-    QVERIFY2(!m_qbsStdout.contains("Creating MyTool.qbs"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.count("creating MyLib") == 2, m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("creating MyTool.qbs"), m_qbsStdout.constData());
 
     // Change tracking for accesses to product.exports (positive).
     WAIT_FOR_NEW_TIMESTAMP();
     REPLACE_IN_FILE("tool.qbs", "exportingProduct.toolTags", "[]");
     QCOMPARE(runQbs(QStringList({"-p", "MyTool"})), 0);
-    QVERIFY2(m_qbsStdout.contains("Creating MyTool.qbs"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("creating MyTool.qbs"), m_qbsStdout.constData());
 }
 
 void TestBlackbox::externalLibs()
@@ -7269,9 +7269,9 @@ void TestBlackbox::autotests()
         QVERIFY2(m_qbsStderr.contains(expectedErrorMessage), m_qbsStderr.constData());
         return;
     }
-    QVERIFY2(m_qbsStdout.contains("Running test test1")
-             && m_qbsStdout.contains("Running test test2")
-             && m_qbsStdout.contains("Running test test3"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("running test test1")
+             && m_qbsStdout.contains("running test test2")
+             && m_qbsStdout.contains("running test test3"), m_qbsStdout.constData());
     QCOMPARE(m_qbsStdout.count("PASS"), 2);
     QCOMPARE(m_qbsStderr.count("FAIL"), 1);
 }
@@ -7773,7 +7773,7 @@ void TestBlackbox::wildCardsAndRules()
 {
     QDir::setCurrent(testDataDir + "/wildcards-and-rules");
     QCOMPARE(runQbs(), 0);
-    QVERIFY(m_qbsStdout.contains("Creating output artifact"));
+    QVERIFY(m_qbsStdout.contains("creating output artifact"));
     QFile output(relativeProductBuildDir("wildcards-and-rules") + "/test.mytype");
     QVERIFY2(output.open(QIODevice::ReadOnly), qPrintable(output.errorString()));
     QCOMPARE(output.readAll().count('\n'), 1);
@@ -7785,7 +7785,7 @@ void TestBlackbox::wildCardsAndRules()
     QbsRunParameters params;
     params.expectFailure = true;
     QCOMPARE(runQbs(params), 0);
-    QVERIFY(m_qbsStdout.contains("Creating output artifact"));
+    QVERIFY(m_qbsStdout.contains("creating output artifact"));
     QVERIFY2(output.open(QIODevice::ReadOnly), qPrintable(output.errorString()));
     QCOMPARE(output.readAll().count('\n'), 2);
     output.close();
@@ -7794,11 +7794,11 @@ void TestBlackbox::wildCardsAndRules()
     WAIT_FOR_NEW_TIMESTAMP();
     touch("dep.dep");
     QCOMPARE(runQbs(), 0);
-    QVERIFY(m_qbsStdout.contains("Creating output artifact"));
+    QVERIFY(m_qbsStdout.contains("creating output artifact"));
 
     // Add nothing.
     QCOMPARE(runQbs(), 0);
-    QVERIFY(!m_qbsStdout.contains("Creating output artifact"));
+    QVERIFY(!m_qbsStdout.contains("creating output artifact"));
 }
 
 void TestBlackbox::loadableModule()
@@ -8337,8 +8337,8 @@ void TestBlackbox::groupsInModules()
         QSKIP("Cannot run binaries in cross-compiled build");
     QbsRunParameters params;
     QCOMPARE(runQbs(params), 0);
-    QVERIFY(m_qbsStdout.contains("compile rock.coal => rock.diamond"));
-    QVERIFY(m_qbsStdout.contains("compile chunk.coal => chunk.diamond"));
+    QVERIFY(m_qbsStdout.contains("compiling rock.coal to rock.diamond"));
+    QVERIFY(m_qbsStdout.contains("compiling chunk.coal to chunk.diamond"));
     QVERIFY(m_qbsStdout.contains("compiling helper2.c"));
     QVERIFY(!m_qbsStdout.contains("compiling helper3.c"));
     QVERIFY(m_qbsStdout.contains("compiling helper4.c"));
@@ -8346,8 +8346,8 @@ void TestBlackbox::groupsInModules()
     QVERIFY(!m_qbsStdout.contains("compiling helper6.c"));
 
     QCOMPARE(runQbs(params), 0);
-    QVERIFY(!m_qbsStdout.contains("compile rock.coal => rock.diamond"));
-    QVERIFY(!m_qbsStdout.contains("compile chunk.coal => chunk.diamond"));
+    QVERIFY(!m_qbsStdout.contains("compiling rock.coal to rock.diamond"));
+    QVERIFY(!m_qbsStdout.contains("compiling chunk.coal to chunk.diamond"));
 
     WAIT_FOR_NEW_TIMESTAMP();
     touch("modules/helper/diamondc.c");
@@ -8355,8 +8355,8 @@ void TestBlackbox::groupsInModules()
     waitForFileUnlock();
     QCOMPARE(runQbs(params), 0);
     QVERIFY(m_qbsStdout.contains("compiling diamondc.c"));
-    QVERIFY(m_qbsStdout.contains("compile rock.coal => rock.diamond"));
-    QVERIFY(m_qbsStdout.contains("compile chunk.coal => chunk.diamond"));
+    QVERIFY(m_qbsStdout.contains("compiling rock.coal to rock.diamond"));
+    QVERIFY(m_qbsStdout.contains("compiling chunk.coal to chunk.diamond"));
     QVERIFY(regularFileExists(relativeProductBuildDir("groups-in-modules") + "/rock.diamond"));
     QFile output(relativeProductBuildDir("groups-in-modules") + "/rock.diamond");
     QVERIFY(output.open(QIODevice::ReadOnly));

@@ -135,7 +135,7 @@ QtModule {
         prepare: {
             var cmd = new JavaScriptCommand();
             if (inputs["qt.qml.qml"])
-                cmd.description = "Creating " + outputs["cpp"][0].fileName;
+                cmd.description = "creating " + outputs["cpp"][0].fileName;
             else
                 cmd.silent = true;
             cmd.sourceCode = function() {

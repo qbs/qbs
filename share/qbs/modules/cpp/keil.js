@@ -977,7 +977,7 @@ function prepareArchiver(project, product, inputs, outputs, input, output) {
     var archiverPath = product.cpp.archiverPath;
     var architecture = product.cpp.architecture;
     var cmd = new Command(archiverPath, args);
-    cmd.description = "linking " + output.fileName;
+    cmd.description = "creating " + output.fileName;
     cmd.highlight = "linker";
     if (isMcsArchitecture(architecture)) {
         cmd.stdoutFilterFunction = filterMcsOutput;

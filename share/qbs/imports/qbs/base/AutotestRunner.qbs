@@ -94,7 +94,7 @@ Product {
                 .concat([commandFilePath])
                 .concat(arguments);
             var cmd = new Command(fullCommandLine[0], fullCommandLine.slice(1));
-            cmd.description = "Running test " + input.fileName;
+            cmd.description = "running test " + input.fileName;
             cmd.environment = product.environment;
             cmd.workingDirectory = workingDir;
             cmd.timeout = timeout;

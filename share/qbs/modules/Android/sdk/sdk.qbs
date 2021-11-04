@@ -256,7 +256,7 @@ Module {
                 args.push("-I" + aidlSearchPaths[i]);
             args.push(input.filePath, output.filePath);
             var cmd = new Command(aidl, args);
-            cmd.description = "Processing " + input.fileName;
+            cmd.description = "processing " + input.fileName;
             return [cmd];
         }
     }
@@ -276,7 +276,7 @@ Module {
         }
         prepare: {
             var cmd = new JavaScriptCommand();
-            cmd.description = "Ensuring correct package name in Android manifest file";
+            cmd.description = "ensuring correct package name in Android manifest file";
             cmd.sourceCode = function() {
                 var manifestData = new Xml.DomDocument();
                 manifestData.load(input.filePath);
@@ -421,7 +421,7 @@ Module {
 
         prepare: {
             var cmd = new JavaScriptCommand();
-            cmd.description = "Generating BuildConfig.java";
+            cmd.description = "generating BuildConfig.java";
             cmd.sourceCode = function() {
                 var debugValue = product.qbs.buildVariant === "debug" ? "true" : "false";
                 var ofile = new TextFile(output.filePath, TextFile.WriteOnly);

@@ -18,7 +18,7 @@ Product {
         }
         prepare: {
             var cmd = new JavaScriptCommand();
-            cmd.description = "Creating file:'" + output.fileName + "'";
+            cmd.description = "creating file:'" + output.fileName + "'";
             cmd.highlight = "codegen";
             cmd.sourceCode = function() {
                 var file = new TextFile(output.filePath, TextFile.WriteOnly);

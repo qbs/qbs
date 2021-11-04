@@ -10,7 +10,7 @@ Module {
             var cmd = new JavaScriptCommand();
             cmd.sourceCode = function() { };
             var prop = product.lowerlevel.prop;
-            cmd.description = "lowerlevel.prop is '" + prop + "'.";
+            cmd.description = "lowerlevel.prop is '" + prop + "'";
             return [cmd];
         }
     }

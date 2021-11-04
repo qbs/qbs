@@ -18,7 +18,7 @@ Project {
             }
             prepare: {
                 var cmd = new JavaScriptCommand();
-                cmd.description = 'generate ' + FileInfo.fileName(output.filePath);
+                cmd.description = 'generating ' + FileInfo.fileName(output.filePath);
                 cmd.highlight = 'codegen';
                 cmd.sourceCode = function() {
                     file = new TextFile(output.filePath, TextFile.WriteOnly);

@@ -15,7 +15,7 @@ Product {
         prepare: {
             var cmd = new JavaScriptCommand();
             PrepareHelper.prepare(cmd);
-            cmd.description = "Creating output";
+            cmd.description = "creating output";
             return [cmd];
         }
     }

@@ -65,7 +65,7 @@ Project {
                 args[0] = args[0].replace(/;/g, '\\;')
                 cmd = new Command(product.qbs.shellPath, ['-c'].concat(args))
             }
-            cmd.description = 'generate\t' + FileInfo.fileName(output.filePath);
+            cmd.description = 'generating ' + FileInfo.fileName(output.filePath);
             cmd.highlight = 'codegen';
             return cmd;
         }

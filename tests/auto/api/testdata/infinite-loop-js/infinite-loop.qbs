@@ -8,7 +8,7 @@ Product {
         }
         prepare: {
             var cmd = new JavaScriptCommand();
-            cmd.description = "Running infinite loop";
+            cmd.description = "running infinite loop";
             cmd.sourceCode = function() {
                 while (true)
                     ;

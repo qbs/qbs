@@ -116,7 +116,7 @@ Project {
                 }
                 prepare: {
                     var cmd = new JavaScriptCommand();
-                    cmd.description = "Collecting apps";
+                    cmd.description = "collecting apps";
                     cmd.sourceCode = function() {
                         var file = new TextFile(output.filePath, TextFile.WriteOnly);
                         for (var i = 0; i < inputs["application"].length; ++i)

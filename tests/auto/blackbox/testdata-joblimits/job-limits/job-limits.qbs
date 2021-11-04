@@ -37,7 +37,7 @@ Project {
                     var cmd = new Command(explicitlyDependsOn.tool_tag[0].filePath,
                                           [output.filePath]);
                     cmd.workingDirectory = product.buildDirectory;
-                    cmd.description = "Running tool";
+                    cmd.description = "running tool";
                     cmd.jobPool = "singleton";
                     return cmd;
                 }

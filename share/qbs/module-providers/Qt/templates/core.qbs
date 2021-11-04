@@ -499,7 +499,7 @@ Module {
             var args = ['-silent', '-qm', output.filePath].concat(inputFilePaths);
             var cmd = new Command(product.Qt.core.binPath + '/'
                                   + product.Qt.core.lreleaseName, args);
-            cmd.description = 'Creating ' + output.fileName;
+            cmd.description = 'creating ' + output.fileName;
             cmd.highlight = 'filegen';
             return cmd;
         }

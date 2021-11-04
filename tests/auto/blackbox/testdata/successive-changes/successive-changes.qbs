@@ -17,7 +17,7 @@ Project {
             }
             prepare: {
                 var cmd = new JavaScriptCommand();
-                cmd.description = "Creating output";
+                cmd.description = "creating output";
                 cmd.sourceCode = function() {
                     var f = new TextFile(output.filePath, TextFile.WriteOnly);
                     f.write(project.version);

@@ -13,7 +13,7 @@ Module {
         outputFileTags: "out"
         prepare: {
             var cmd = new JavaScriptCommand();
-            cmd.description = "Creating out artifact";
+            cmd.description = "creating out artifact";
             cmd.sourceCode = function() {
                 console.info("found: " + product.mymodule.found);
             };

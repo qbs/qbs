@@ -16,7 +16,7 @@ Project {
                 }
                 prepare: {
                     var cmd = new JavaScriptCommand();
-                    cmd.description = "Copying file";
+                    cmd.description = "copying file";
                     cmd.sourceCode = function() {
                         File.copy(input.filePath, output.filePath);
                     }

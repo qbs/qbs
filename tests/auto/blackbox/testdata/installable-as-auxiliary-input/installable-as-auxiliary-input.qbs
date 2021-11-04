@@ -56,7 +56,7 @@ Project {
             Artifact { filePath: "theheader.h.in"; fileTags: "header.in" }
             prepare: {
                 var cmd = new JavaScriptCommand();
-                cmd.description = "Creating " + output.fileName;
+                cmd.description = "creating " + output.fileName;
                 cmd.sourceCode = function() {
                     for (var i = 0; i < 1000; ++i) { // Artificial delay.
                         var file = new TextFile(output.filePath, TextFile.WriteOnly);
@@ -75,7 +75,7 @@ Project {
             Artifact { filePath: "theheader.h"; fileTags: "header" }
             prepare: {
                 var cmd = new JavaScriptCommand();
-                cmd.description = "Creating " + output.fileName;
+                cmd.description = "creating " + output.fileName;
                 cmd.sourceCode = function() { File.copy(input.filePath, output.filePath); };
                 return [cmd];
             }

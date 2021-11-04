@@ -23,7 +23,7 @@ Product {
         }
         prepare: {
             var cmd = new JavaScriptCommand();
-            cmd.description = "Creating " + output.fileName;
+            cmd.description = "creating " + output.fileName;
             cmd.sourceCode = function() {
                 var inputList = explicitlyDependsOn["txt.in"];
                 var fileNameList = [];
