@@ -1,4 +1,6 @@
-!qbs_do_not_link_bundled_qtscript {
+include(../bundledlibs.pri)
+
+qbs_use_bundled_qtscript:!qbs_do_not_link_bundled_qtscript {
     include(../../library_dirname.pri)
     isEmpty(QBSLIBDIR) {
         QBSLIBDIR = $$shadowed($$PWD/../../../$${QBS_LIBRARY_DIRNAME})

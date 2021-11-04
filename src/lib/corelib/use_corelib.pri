@@ -1,5 +1,6 @@
 include(../../../qbs_version.pri)
 include(../../library_dirname.pri)
+include(../scriptengine/use_scriptengine.pri)
 
 isEmpty(QBSLIBDIR) {
     QBSLIBDIR = $$OUT_PWD/../../../$${QBS_LIBRARY_DIRNAME}
