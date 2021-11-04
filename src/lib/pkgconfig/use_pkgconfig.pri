@@ -29,7 +29,7 @@ win32 {
     LIBS += $${QBSPKGCONFIG_LIB}
 }
 
-gcc {
+gcc:!clang {
     isEmpty(COMPILER_VERSION) {
         COMPILER_VERSION = $$system($$QMAKE_CXX " -dumpversion")
         COMPILER_MAJOR_VERSION = $$str_member($$COMPILER_VERSION)
