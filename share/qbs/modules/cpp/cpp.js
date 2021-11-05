@@ -51,9 +51,15 @@ function languageVersion(versionArray, knownValues, lang) {
     return version;
 }
 
-function extractMacros(output) {
+function extractMacros(output, regexp) {
     var m = {};
-    output.trim().split(/\r?\n/g).map(function (line) {
+    output.trim().split(/\r?\n/g).map(function(line) {
+        if (regexp) {
+            var match = regexp.exec(line);
+            if (!match)
+                return;
+            line = match[1];
+        }
         var prefix = "#define ";
         if (!line.startsWith(prefix))
             return;

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2022 Denis Shienkov <denis.shienkov@gmail.com>
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -37,49 +37,22 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_SETUPTOOLCHAINS_PROBE_H
-#define QBS_SETUPTOOLCHAINS_PROBE_H
+#ifndef QBS_SETUPTOOLCHAINS_WATCOMPROBE_H
+#define QBS_SETUPTOOLCHAINS_WATCOMPROBE_H
 
-#include <tools/version.h>
+#include <QtCore/qlist.h>
 
-#include <QtCore/qfileinfo.h>
-#include <QtCore/qstring.h>
-#include <QtCore/qstringlist.h>
+QT_BEGIN_NAMESPACE
+class QFileInfo;
+QT_END_NAMESPACE
 
-#include <functional> // for std::function
-#include <tuple> // for std::tie
+namespace qbs {
+class Profile;
+class Settings;
+} // namespace qbs
 
-namespace qbs { class Settings; }
-
-QStringList systemSearchPaths();
-
-QString findExecutable(const QString &fileName);
-
-QString toolchainTypeFromCompilerName(const QString &compilerName);
-
-void createProfile(const QString &profileName, const QString &toolchainType,
-                   const QString &compilerFilePath, qbs::Settings *settings);
-
-void probe(qbs::Settings *settings);
-
-struct ToolchainInstallInfo
-{
-    QFileInfo compilerPath;
-    qbs::Version compilerVersion;
-};
-
-inline bool operator<(const ToolchainInstallInfo &lhs, const ToolchainInstallInfo &rhs)
-{
-    const auto lp = lhs.compilerPath.absoluteFilePath();
-    const auto rp = rhs.compilerPath.absoluteFilePath();
-    return std::tie(lp, lhs.compilerVersion) < std::tie(rp, rhs.compilerVersion);
-}
-
-int extractVersion(const QByteArray &macroDump, const QByteArray &keyToken);
-
-bool isSameExecutable(const QString &exe1, const QString &exe2);
-
-using MacrosMap = QMap<QString, QString>;
-MacrosMap dumpMacros(const std::function<QStringList()> &func);
+bool isWatcomCompiler(const QString &compilerName);
+void createWatcomProfile(const QFileInfo &compiler, qbs::Settings *settings, QString profileName);
+void watcomProbe(qbs::Settings *settings, std::vector<qbs::Profile> &profiles);
 
 #endif // Header guard

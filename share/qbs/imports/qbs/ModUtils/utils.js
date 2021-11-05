@@ -538,7 +538,7 @@ function guessArchitecture(m) {
                         break;
                 }
             }
-        } else if (hasAnyOf(m, ["__i386", "__i386__", "_M_IX86"])) {
+        } else if (hasAnyOf(m, ["__i386", "__i386__", "_M_IX86", "__386__"])) {
             architecture = "x86";
         } else if (hasAnyOf(m, ["__x86_64", "__x86_64__", "__amd64", "_M_X64", "_M_AMD64"])) {
             architecture = "x86_64";
@@ -618,7 +618,7 @@ function guessTargetPlatform(m) {
             return "hpux";
         if (hasAnyOf(m, ["__sun", "sun"]))
             return "solaris";
-        if (hasAnyOf(m, ["__linux__", "__linux"]))
+        if (hasAnyOf(m, ["__linux__", "__linux", "__LINUX__"]))
             return "linux";
         if (hasAnyOf(m, ["__FreeBSD__", "__DragonFly__", "__FreeBSD_kernel__"]))
             return "freebsd";

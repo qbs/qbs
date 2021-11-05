@@ -501,6 +501,7 @@
         \li \c sdcc
         \li \c cosmic
         \li \c dmc
+        \li \c watcom
      \endlist
 
 //! [type]

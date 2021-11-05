@@ -20,6 +20,8 @@ set(SOURCES
     probe.h
     sdccprobe.cpp
     sdccprobe.h
+    watcomprobe.cpp
+    watcomprobe.h
     xcodeprobe.cpp
     xcodeprobe.h
     )

@@ -13,6 +13,7 @@ HEADERS += \
     msvcprobe.h \
     probe.h \
     sdccprobe.h \
+    watcomprobe.h \
     xcodeprobe.h \
 
 SOURCES += \
@@ -27,6 +28,7 @@ SOURCES += \
     msvcprobe.cpp \
     probe.cpp \
     sdccprobe.cpp \
+    watcomprobe.cpp \
     xcodeprobe.cpp \
 
 mingw {

@@ -38,6 +38,7 @@ Project {
         name: "cpp_language"
         files: ["app.c", "cpptest.cpp"]
         cpp.enableCompilerDefinesByLanguage: ["cpp"]
+        cpp.enableExceptions: false
         property var foo: {
             if (!cpp.compilerDefinesByLanguage)
                 throw "ASSERT cpp.compilerDefinesByLanguage: "
@@ -56,6 +57,7 @@ Project {
         name: "c_and_cpp_language"
         files: ["app.c", "ctest.c", "cpptest.cpp"]
         cpp.enableCompilerDefinesByLanguage: ["c", "cpp"]
+        cpp.enableExceptions: false
         property var foo: {
             if (!cpp.compilerDefinesByLanguage)
                 throw "ASSERT cpp.compilerDefinesByLanguage: "

@@ -536,6 +536,9 @@
         \li \c{"sdcc"}
         \li \c{["sdcc"]}
     \row
+        \li \c{"watcom"}
+        \li \c{["watcom"]}
+    \row
         \li \c{"xcode"}
         \li \c{["xcode", "clang", "llvm", "gcc"]}
     \endtable

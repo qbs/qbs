@@ -46,6 +46,7 @@
 #include "keilprobe.h"
 #include "msvcprobe.h"
 #include "sdccprobe.h"
+#include "watcomprobe.h"
 #include "xcodeprobe.h"
 
 #include <logging/translator.h>
@@ -123,6 +124,8 @@ QString toolchainTypeFromCompilerName(const QString &compilerName)
         return QStringLiteral("cosmic");
     if (isDmcCompiler(compilerName))
         return QStringLiteral("dmc");
+    if (isWatcomCompiler(compilerName))
+        return QStringLiteral("watcom");
     return {};
 }
 
@@ -144,6 +147,7 @@ void probe(Settings *settings)
     sdccProbe(settings, profiles);
     cosmicProbe(settings, profiles);
     dmcProbe(settings, profiles);
+    watcomProbe(settings, profiles);
 
     if (profiles.empty()) {
         qStderr << Tr::tr("Could not detect any toolchains. No profile created.") << Qt::endl;
@@ -187,6 +191,8 @@ void createProfile(const QString &profileName, const QString &toolchainType,
         createCosmicProfile(compiler, settings, profileName);
     else if (toolchain.contains(QLatin1String("dmc")))
         createDmcProfile(compiler, settings, profileName);
+    else if (toolchain.contains(QLatin1String("watcom")))
+        createWatcomProfile(compiler, settings, profileName);
     else
         throw qbs::ErrorInfo(Tr::tr("Cannot create profile: Unknown toolchain type."));
 }

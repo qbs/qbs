@@ -1,0 +1,15 @@
+name: 'Download OpenWatcom'
+description: 'Downloads OpenWatcom'
+inputs:
+  version:
+    description: 'OpenWatcom version'
+    required: false
+    default: '2.0'
+runs:
+  using: "composite"
+  steps:
+    - name: Install OpenWatcom
+      run: |
+        OW_DIR=$(./scripts/install-ow.sh -d $HOME/watcom --version ${{ inputs.version }})
+        (cygpath -w ${OW_DIR} 2>/dev/null || echo ${OW_DIR}) >> ${GITHUB_PATH}
+      shell: bash
