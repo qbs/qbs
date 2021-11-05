@@ -53,6 +53,6 @@
 
 int main()
 {
-    puts("Now calling a function from mylib:");
+    std::puts("Now calling a function from mylib:");
     return bla();
 }

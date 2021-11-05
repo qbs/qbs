@@ -56,6 +56,6 @@
 
 int bla()
 {
-    puts("Hello World!");
+    std::puts("Hello World!");
     return 2;
 }
