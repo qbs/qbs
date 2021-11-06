@@ -85,13 +85,15 @@ bool operator==(const ScriptEngine::PropertyCacheKey &lhs,
             && lhs.m_propertyName == rhs.m_propertyName;
 }
 
-static inline uint combineHash(uint h1, uint h2, uint seed)
+
+
+static inline QHashValueType combineHash(QHashValueType h1, QHashValueType h2, QHashValueType seed)
 {
     // stolen from qHash(QPair)
     return ((h1 << 16) | (h1 >> 16)) ^ h2 ^ seed;
 }
 
-uint qHash(const ScriptEngine::PropertyCacheKey &k, uint seed = 0)
+QHashValueType qHash(const ScriptEngine::PropertyCacheKey &k, QHashValueType seed = 0)
 {
     return combineHash(qHash(k.m_moduleName),
                        combineHash(qHash(k.m_propertyName), qHash(k.m_propertyMap), seed), seed);

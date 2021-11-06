@@ -52,6 +52,7 @@
 #include <tools/filetime.h>
 #include <tools/joblimits.h>
 #include <tools/persistence.h>
+#include <tools/porting.h>
 #include <tools/set.h>
 #include <tools/weakpointer.h>
 
@@ -212,7 +213,7 @@ private:
         : alwaysUpdated(true)
     {}
 };
-uint qHash(const RuleArtifact::Binding &b);
+QHashValueType qHash(const RuleArtifact::Binding &b);
 bool operator==(const RuleArtifact::Binding &b1, const RuleArtifact::Binding &b2);
 inline bool operator!=(const RuleArtifact::Binding &b1, const RuleArtifact::Binding &b2) {
     return !(b1 == b2);

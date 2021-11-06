@@ -904,7 +904,7 @@ bool operator==(const RuleArtifact::Binding &b1, const RuleArtifact::Binding &b2
     return b1.code == b2.code && b1.name == b2.name;
 }
 
-uint qHash(const RuleArtifact::Binding &b)
+QHashValueType qHash(const RuleArtifact::Binding &b)
 {
     return qHash(std::make_pair(b.code, b.name.join(QLatin1Char(','))));
 }

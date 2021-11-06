@@ -94,7 +94,7 @@ inline bool operator==(const Property &p1, const Property &p2)
 }
 bool operator<(const Property &p1, const Property &p2);
 
-inline uint qHash(const Property &p)
+inline auto qHash(const Property &p)
 {
     return QT_PREPEND_NAMESPACE(qHash)(p.productName + p.moduleName + p.propertyName);
 }

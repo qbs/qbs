@@ -438,6 +438,7 @@ QbsLibrary {
             "pathutils.h",
             "persistence.cpp",
             "persistence.h",
+            "porting.h",
             "preferences.cpp",
             "processresult.cpp",
             "processresult_p.h",

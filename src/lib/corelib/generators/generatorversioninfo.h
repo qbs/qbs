@@ -74,7 +74,7 @@ private:
     utils::ArchitectureFlags m_archs;
 };
 
-inline quint32 qHash(const VersionInfo &info)
+inline auto qHash(const VersionInfo &info)
 {
     return qHash(info.version().toString());
 }

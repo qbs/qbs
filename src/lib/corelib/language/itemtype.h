@@ -82,7 +82,7 @@ enum class ItemType {
     Unknown
 };
 
-inline uint qHash(ItemType t) { return QT_PREPEND_NAMESPACE(qHash)(uint(t)); }
+inline auto qHash(ItemType t) { return QT_PREPEND_NAMESPACE(qHash)(uint(t)); }
 
 } // namespace Internal
 } // namespace qbs

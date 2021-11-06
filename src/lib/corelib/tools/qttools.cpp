@@ -38,6 +38,7 @@
 ****************************************************************************/
 
 #include "qttools.h"
+#include "porting.h"
 
 #include <QtCore/qprocess.h>
 
@@ -64,15 +65,15 @@ size_t hash<QVariant>::operator()(const QVariant &v) const noexcept
 
 QT_BEGIN_NAMESPACE
 
-uint qHash(const QStringList &list)
+qbs::QHashValueType qHash(const QStringList &list)
 {
-    uint s = 0;
+    qbs::QHashValueType s = 0;
     for (const QString &n : list)
         s ^= qHash(n) + 0x9e3779b9 + (s << 6) + (s >> 2);
     return s;
 }
 
-uint qHash(const QProcessEnvironment &env)
+qbs::QHashValueType qHash(const QProcessEnvironment &env)
 {
     return qHash(env.toStringList());
 }

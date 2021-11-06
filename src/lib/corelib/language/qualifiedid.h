@@ -60,7 +60,7 @@ public:
     QString toString() const;
 };
 
-inline uint qHash(const QualifiedId &qid) { return qHash(qid.toString()); }
+inline auto qHash(const QualifiedId &qid) { return qHash(qid.toString()); }
 
 using QualifiedIdSet = Set<QualifiedId>;
 

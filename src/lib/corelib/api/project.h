@@ -43,6 +43,7 @@
 #include "transformerdata.h"
 #include "../language/forward_decls.h"
 #include "../tools/error.h"
+#include "../tools/porting.h"
 #include "../tools/qbs_export.h"
 
 #include <QtCore/qshareddata.h>
@@ -83,7 +84,7 @@ class ProjectPrivate;
 class QBS_EXPORT Project
 {
     friend class SetupProjectJob;
-    friend uint qHash(const Project &p);
+    friend QHashValueType qHash(const Project &p);
 public:
     SetupProjectJob *setupProject(const SetupProjectParameters &parameters,
                                   ILogSink *logSink, QObject *jobOwner);
@@ -173,7 +174,7 @@ private:
 };
 
 inline bool operator!=(const Project &p1, const Project &p2) { return !(p1 == p2); }
-inline uint qHash(const Project &p) { return QT_PREPEND_NAMESPACE(qHash)(p.d.data()); }
+inline QHashValueType qHash(const Project &p) { return QT_PREPEND_NAMESPACE(qHash)(p.d.data()); }
 
 } // namespace qbs
 
