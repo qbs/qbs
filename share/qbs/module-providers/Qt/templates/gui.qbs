@@ -59,7 +59,7 @@ QtModule {
                   : undefined
 
     cpp.defines: @defines@
-    cpp.includePaths: @includes@
+    cpp.systemIncludePaths: @includes@
     cpp.libraryPaths: @libraryPaths@
 
     Properties {

@@ -24,7 +24,7 @@ QtModule {
     pluginTypes: @pluginTypes@
     moduleConfig: @moduleConfig@
     cpp.defines: @defines@
-    cpp.includePaths: @includes@
+    cpp.systemIncludePaths: @includes@
     cpp.libraryPaths: @libraryPaths@
     @additionalContent@
 }

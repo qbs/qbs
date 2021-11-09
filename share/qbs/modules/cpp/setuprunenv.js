@@ -66,6 +66,8 @@ function gatherPaths(product, libPaths, frameworkPaths, seenProducts)
         product.cpp.libraryPaths.forEach(function(p) { addExternalLibPath(product, libPaths, p); });
     if (product.cpp && product.cpp.frameworkPaths)
         product.cpp.frameworkPaths.forEach(function(p) { addNewElement(frameworkPaths, p); });
+    if (product.cpp && product.cpp.systemFrameworkPaths)
+        product.cpp.systemFrameworkPaths.forEach(function(p) { addNewElement(frameworkPaths, p); });
 
     // Extract paths from dynamic libraries, if they are given as file paths.
     if (product.cpp && product.cpp.dynamicLibraries) {

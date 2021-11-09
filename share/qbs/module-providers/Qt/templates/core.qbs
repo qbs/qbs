@@ -161,11 +161,8 @@ Module {
         }
         return flags;
     }
-    cpp.includePaths: {
-        var paths = @includes@;
-        paths.push(mkspecPath, generatedHeadersDir);
-        return paths;
-    }
+    cpp.includePaths: generatedHeadersDir
+    cpp.systemIncludePaths: @includes@.concat(mkspecPath)
     cpp.libraryPaths: {
         var libPaths = [libPath];
         if (staticBuild && pluginPath)
@@ -184,7 +181,7 @@ Module {
     }
     cpp.dynamicLibraries: dynamicLibs
     cpp.linkerFlags: coreLinkerFlags
-    cpp.frameworkPaths: coreFrameworkPaths.concat(frameworkBuild ? [libPath] : [])
+    cpp.systemFrameworkPaths: coreFrameworkPaths.concat(frameworkBuild ? [libPath] : [])
     cpp.frameworks: {
         var frameworks = coreFrameworks
         if (frameworkBuild)

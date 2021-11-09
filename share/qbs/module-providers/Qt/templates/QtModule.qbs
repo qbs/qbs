@@ -81,6 +81,6 @@ Module {
         cpp.dynamicLibraries: dynamicLibs
         cpp.frameworks: mFrameworks.concat(!isStaticLibrary && Qt.core.frameworkBuild
                         ? [libNameForLinker] : [])
-        cpp.frameworkPaths: mFrameworkPaths
+        cpp.systemFrameworkPaths: mFrameworkPaths
     }
 }
