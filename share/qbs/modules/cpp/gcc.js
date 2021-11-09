@@ -529,6 +529,8 @@ function linkerFlags(project, product, inputs, outputs, primaryOutput, linkerPat
     Array.prototype.push.apply(escapedLinkerFlags, args);
     if (useCompilerDriver)
         escapedLinkerFlags = escapedLinkerFlags.concat(Cpp.collectMiscLinkerArguments(product));
+    if (product.qbs.toolchain.contains("mingw") && product.cpp.runtimeLibrary === "static")
+        escapedLinkerFlags = ['-static-libgcc', '-static-libstdc++'].concat(escapedLinkerFlags);
     return escapedLinkerFlags;
 }
 
