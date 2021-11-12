@@ -57,6 +57,8 @@ private slots:
     void mocFlags();
     void mocCompilerDefines();
     void mocSameFileName();
+    void noRelinkOnQDebug();
+    void noRelinkOnQDebug_data();
     void pkgconfig();
     void pkgconfigQt();
     void pkgconfigQt_data();

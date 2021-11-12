@@ -197,7 +197,7 @@ Module {
     cpp.runtimeLibrary: qbs.toolchain.contains("msvc")
         ? config.contains("static_runtime") ? "static" : "dynamic"
         : original
-    cpp.positionIndependentCode: versionMajor >= 5 ? true : undefined
+    cpp.positionIndependentCode: versionMajor >= 5 ? true : original
     cpp.cxxFlags: {
         var flags = [];
         if (qbs.toolchain.contains('msvc')) {

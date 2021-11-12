@@ -285,6 +285,57 @@ void TestBlackboxQt::mocSameFileName()
     QCOMPARE(m_qbsStdout.count("compiling moc_someclass.cpp"), 2);
 }
 
+void TestBlackboxQt::noRelinkOnQDebug()
+{
+    QFETCH(QString, checkMode);
+    QFETCH(bool, expectRelink);
+
+    QVERIFY(QDir::setCurrent(testDataDir + "/no-relink-on-qdebug"));
+    rmDirR("default");
+
+    // Target check.
+    QCOMPARE(runQbs(QbsRunParameters("resolve")), 0);
+    QVERIFY2(m_qbsStdout.contains("is GCC: "), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("is MinGW: "), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("is Darwin: "), m_qbsStdout.constData());
+    const bool isGCCLike = m_qbsStdout.contains("is GCC: true");
+    const bool isMingw = m_qbsStdout.contains("is MinGW: true");
+    const bool isDarwin = m_qbsStdout.contains("is Darwin: true");
+    if (!isGCCLike)
+        expectRelink = false;
+    else if (isMingw || isDarwin)
+        expectRelink = true;
+
+    // Initial build.
+    QbsRunParameters params("resolve");
+    if (isGCCLike && !checkMode.isEmpty())
+        params.arguments << ("modules.cpp.exportedSymbolsCheckMode:" + checkMode);
+    QCOMPARE(runQbs(params), 0);
+    QCOMPARE(runQbs(), 0);
+    QCOMPARE(m_qbsStdout.count("linking"), 2);
+
+    // Inserting the qDebug() statement will pull in weak symbols.
+    WAIT_FOR_NEW_TIMESTAMP();
+    REPLACE_IN_FILE("lib.cpp", "// qDebug", "qDebug");
+    QCOMPARE(runQbs(), 0);
+    QCOMPARE(m_qbsStdout.count("linking"), expectRelink ? 2 : 1);
+
+    // Also check the opposite case.
+    WAIT_FOR_NEW_TIMESTAMP();
+    REPLACE_IN_FILE("lib.cpp", "qDebug", "// qDebug");
+    QCOMPARE(runQbs(), 0);
+    QCOMPARE(m_qbsStdout.count("linking"), expectRelink ? 2 : 1);
+}
+
+void TestBlackboxQt::noRelinkOnQDebug_data()
+{
+    QTest::addColumn<QString>("checkMode");
+    QTest::addColumn<bool>("expectRelink");
+    QTest::newRow("default") << QString() << false;
+    QTest::newRow("relaxed") << QString("ignore-undefined") << false;
+    QTest::newRow("strict") << QString("strict") << true;
+}
+
 void TestBlackboxQt::pkgconfig()
 {
     QDir::setCurrent(testDataDir + "/pkgconfig");

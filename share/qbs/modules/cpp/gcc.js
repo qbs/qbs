@@ -1207,8 +1207,13 @@ function createSymbolCheckingCommands(product, outputs) {
                 oldSymbols = oldNmResult.allGlobalSymbols;
                 newSymbols = newNmResult.allGlobalSymbols;
             } else {
-                oldSymbols = oldNmResult.definedGlobalSymbols;
-                newSymbols = newNmResult.definedGlobalSymbols;
+                var weakFilter = function(line) {
+                    var symbolType = line.split(/\s+/)[1];
+                    return symbolType != "v" && symbolType != "V"
+                            && symbolType != "w" && symbolType != "W";
+                };
+                oldSymbols = oldNmResult.definedGlobalSymbols.filter(weakFilter);
+                newSymbols = newNmResult.definedGlobalSymbols.filter(weakFilter);
             }
             if (oldSymbols.length !== newSymbols.length) {
                 console.debug("List of relevant symbols differs for '" + libFilePath + "'.");
