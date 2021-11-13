@@ -122,7 +122,7 @@ std::vector<ClangClInfo> ClangClInfo::installedCompilers(
     if (registry.contains(key)) {
         const auto compilerPath = QDir::fromNativeSeparators(registry.value(key).toString())
                 + QStringLiteral("/bin/") + compilerName;
-        if (QFileInfo(compilerPath).exists())
+        if (QFileInfo::exists(compilerPath))
             compilerPaths.push_back(compilerPath);
     }
 
@@ -133,7 +133,7 @@ std::vector<ClangClInfo> ClangClInfo::installedCompilers(
         const auto value
                 = QDir::fromNativeSeparators(QString::fromLocal8Bit(qgetenv(envVar)));
         const auto compilerPath = value + QStringLiteral("/LLVM/bin/") + compilerName;
-        if (QFileInfo(compilerPath).exists() && !contains(compilerPaths, compilerPath))
+        if (QFileInfo::exists(compilerPath) && !contains(compilerPaths, compilerPath))
             compilerPaths.push_back(compilerPath);
     }
 
@@ -156,7 +156,7 @@ std::vector<ClangClInfo> ClangClInfo::installedCompilers(
     for (const auto &msvc : msvcs) {
         const auto compilerPath = QStringLiteral("%1/VC/Tools/Llvm/bin/%2")
                 .arg(msvc.installDir, compilerName);
-        if (QFileInfo(compilerPath).exists()) {
+        if (QFileInfo::exists(compilerPath)) {
             const auto vcvarsallPath = msvc.findVcvarsallBat();
             if (vcvarsallPath.isEmpty()) {
                 logger.qbsWarning()

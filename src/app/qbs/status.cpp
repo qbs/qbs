@@ -146,7 +146,7 @@ int printStatus(const ProjectData &project)
             QStringList sourceFiles = group.allFilePaths();
             std::sort(sourceFiles.begin(), sourceFiles.end());
             for (const QString &sourceFile : qAsConst(sourceFiles)) {
-                if (!QFileInfo(sourceFile).exists())
+                if (!QFileInfo::exists(sourceFile))
                     missingFiles.push_back(sourceFile);
                 qbsInfo() << "    " << sourceFile.mid(projectDirectoryPathLength + 1);
                 untrackedFilesInProject.removeOne(sourceFile);
