@@ -303,7 +303,6 @@ bool TrafoChangeTracker::commandsNeedRerun() const
             return true;
     }
 
-    QMap<QString, SourceArtifactConstPtr> artifactMap;
     for (auto it = m_transformer->propertiesRequestedFromArtifactInCommands.cbegin();
          it != m_transformer->propertiesRequestedFromArtifactInCommands.cend(); ++it) {
         for (const Property &property : qAsConst(it.value())) {

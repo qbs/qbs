@@ -293,7 +293,7 @@ void qbs::MakefileGenerator::generate()
             stream << "install-" << productTarget << ": " << productTarget << '\n';
             Set<QString> createdDirs;
             const auto installableArtifacts = productData.installableArtifacts();
-            for (const ArtifactData &artifact : productData.installableArtifacts()) {
+            for (const ArtifactData &artifact : installableArtifacts) {
                 const QString &outputDir = artifact.installData().localInstallDir();
                 if (outputDir.contains(QLatin1Char(' '))) {
                     logger().qbsWarning() << Tr::tr("Skipping installation of '%1', because "
