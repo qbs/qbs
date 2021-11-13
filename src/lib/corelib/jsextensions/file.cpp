@@ -82,7 +82,7 @@ public:
         NoFilter = -1
     };
     Q_DECLARE_FLAGS(Filters, Filter)
-    Q_ENUMS(Filter)
+    Q_ENUM(Filter)
 
     static QScriptValue js_ctor(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_copy(QScriptContext *context, QScriptEngine *engine);

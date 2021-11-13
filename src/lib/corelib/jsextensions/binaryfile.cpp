@@ -58,13 +58,13 @@ namespace Internal {
 class BinaryFile : public QObject, public QScriptable, public ResourceAcquiringScriptObject
 {
     Q_OBJECT
-    Q_ENUMS(OpenMode)
 public:
     enum OpenMode {
         ReadOnly = 1,
         WriteOnly = 2,
         ReadWrite = ReadOnly | WriteOnly
     };
+    Q_ENUM(OpenMode)
 
     static QScriptValue ctor(QScriptContext *context, QScriptEngine *engine);
 

@@ -63,7 +63,6 @@ namespace Internal {
 class TextFile : public QObject, public QScriptable, public ResourceAcquiringScriptObject
 {
     Q_OBJECT
-    Q_ENUMS(OpenMode)
 public:
     enum OpenMode
     {
@@ -72,6 +71,7 @@ public:
         ReadWrite = ReadOnly | WriteOnly,
         Append = 4
     };
+    Q_ENUM(OpenMode)
 
     static QScriptValue ctor(QScriptContext *context, QScriptEngine *engine);
 
