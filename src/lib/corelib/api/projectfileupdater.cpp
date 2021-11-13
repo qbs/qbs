@@ -238,7 +238,7 @@ void ProjectFileGroupInserter::doApply(QString &fileContent, UiProgram *ast)
     const ChangeSet::EditOp &insertOp = editOps.front();
     setLineOffset(lineOffset);
 
-    int insertionLine = fileContent.left(insertOp.pos1).count(QLatin1Char('\n'));
+    int insertionLine = QStringView{fileContent}.left(insertOp.pos1).count(QLatin1Char('\n'));
     for (int i = 0; i < insertOp.text.size() && insertOp.text.at(i) == QLatin1Char('\n'); ++i)
         ++insertionLine; // To account for newlines prepended by the rewriter.
     ++insertionLine; // To account for zero-based indexing.
@@ -268,7 +268,8 @@ static int getLineOffsetForChangedBinding(const ChangeSet &changeSet, const QStr
 
 static int getBindingLine(const ChangeSet &changeSet, const QString &fileContent)
 {
-    return fileContent.left(getEditOp(changeSet).pos1 + 1).count(QLatin1Char('\n')) + 1;
+    return QStringView{fileContent}.left(getEditOp(changeSet).pos1 + 1)
+               .count(QLatin1Char('\n')) + 1;
 }
 
 
