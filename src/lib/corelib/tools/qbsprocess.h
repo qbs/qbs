@@ -69,7 +69,7 @@ public:
     QString errorString() const { return m_errorString; }
 
 signals:
-    void error(QProcess::ProcessError error);
+    void errorOccurred(QProcess::ProcessError error);
     void finished(int exitCode);
 
 private:

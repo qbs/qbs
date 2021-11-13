@@ -65,7 +65,7 @@ void QbsProcess::start(const QString &command, const QStringList &arguments)
 {
     if (m_socketError) {
         m_error = QProcess::FailedToStart;
-        emit error(m_error);
+        emit errorOccurred(m_error);
         return;
     }
     m_command = command;
@@ -95,7 +95,7 @@ void QbsProcess::cancel()
         m_errorString = Tr::tr("Process canceled before it was started.");
         m_error = QProcess::FailedToStart;
         m_state = QProcess::NotRunning;
-        emit error(m_error);
+        emit errorOccurred(m_error);
         break;
     case QProcess::Running:
         sendPacket(StopProcessPacket(token()));
@@ -155,7 +155,7 @@ void QbsProcess::handleSocketError(const QString &message)
     if (m_state != QProcess::NotRunning) {
         m_state = QProcess::NotRunning;
         m_error = QProcess::FailedToStart;
-        emit error(m_error);
+        emit errorOccurred(m_error);
     }
 }
 
@@ -166,7 +166,7 @@ void QbsProcess::handleErrorPacket(const QByteArray &packetData)
     m_error = packet.error;
     m_errorString = packet.errorString;
     m_state = QProcess::NotRunning;
-    emit error(m_error);
+    emit errorOccurred(m_error);
 }
 
 void QbsProcess::handleFinishedPacket(const QByteArray &packetData)

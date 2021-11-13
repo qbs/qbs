@@ -73,7 +73,7 @@ namespace Internal {
 ProcessCommandExecutor::ProcessCommandExecutor(const Logger &logger, QObject *parent)
     : AbstractCommandExecutor(logger, parent)
 {
-    connect(&m_process, static_cast<void (QbsProcess::*)(QProcess::ProcessError)>(&QbsProcess::error),
+    connect(&m_process, &QbsProcess::errorOccurred,
             this, &ProcessCommandExecutor::onProcessError);
     connect(&m_process, static_cast<void (QbsProcess::*)(int)>(&QbsProcess::finished),
             this, &ProcessCommandExecutor::onProcessFinished);
