@@ -224,14 +224,12 @@ static void addDefaultGlobalSections(const GeneratableProject &topLevelProject,
     for (const auto project : projects) {
         for (const auto &qbsProject : topLevelProject.projects) {
             projectConfigurationPlatformsSection->appendProperty(
-                QStringLiteral("%1.%2.ActiveCfg")
-                        .arg(project->guid().toString())
-                        .arg(MSBuildUtils::fullDisplayName(qbsProject)),
+                QStringLiteral("%1.%2.ActiveCfg").arg(project->guid().toString(),
+                                                      MSBuildUtils::fullDisplayName(qbsProject)),
                 MSBuildUtils::fullName(qbsProject));
             projectConfigurationPlatformsSection->appendProperty(
-                QStringLiteral("%1.%2.Build.0")
-                        .arg(project->guid().toString())
-                        .arg(MSBuildUtils::fullDisplayName(qbsProject)),
+                QStringLiteral("%1.%2.Build.0").arg(project->guid().toString(),
+                                                    MSBuildUtils::fullDisplayName(qbsProject)),
                 MSBuildUtils::fullName(qbsProject));
         }
     }

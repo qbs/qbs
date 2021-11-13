@@ -92,14 +92,12 @@ public:
 
     static QString fullDisplayName(const qbs::Project &project)
     {
-        return QStringLiteral("%1|%2")
-                .arg(configurationName(project))
-                .arg(displayPlatform(project));
+        return QStringLiteral("%1|%2").arg(configurationName(project), displayPlatform(project));
     }
 
     static QString fullName(const qbs::Project &project)
     {
-        return QStringLiteral("%1|%2").arg(configurationName(project)).arg(platform(project));
+        return QStringLiteral("%1|%2").arg(configurationName(project), platform(project));
     }
 
     static QString buildTaskCondition(const Project &buildTask)

@@ -1800,7 +1800,7 @@ void ModuleLoader::handlePropertyOptions(Item *optionsItem)
     if (property && decl.isExpired()) {
         ErrorInfo e(Tr::tr("Property '%1' was scheduled for removal in version %2, but "
                            "is still present.")
-                    .arg(name).arg(removalVersion.toString()),
+                    .arg(name, removalVersion.toString()),
                     property->location());
         e.append(Tr::tr("Removal version for '%1' specified here.").arg(name),
                  optionsItem->location());

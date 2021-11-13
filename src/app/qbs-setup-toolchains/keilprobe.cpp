@@ -184,8 +184,7 @@ static Version dumpMcsCompilerVersion(const QFileInfo &compiler)
     if (verCode < 0) {
         qbsWarning() << Tr::tr("No %1 tokens was found"
                                " in the compiler dump:\n%2")
-                        .arg(knownKeys.join(QLatin1Char(',')))
-                        .arg(QString::fromUtf8(dump));
+                        .arg(knownKeys.join(QLatin1Char(',')), QString::fromUtf8(dump));
         return Version{};
     }
     return Version{verCode / 100, verCode % 100};

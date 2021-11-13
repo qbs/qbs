@@ -884,8 +884,8 @@ bool BuildGraphLoader::checkConfigCompatibility()
                                    "New property values: %2\n"
                                    "Use the 'resolve' command if "
                                    "you really want to rebuild with the new properties.")
-                            .arg(toUserOutput(restoredProject->overriddenValues))
-                            .arg(toUserOutput(m_parameters.overriddenValues())));
+                            .arg(toUserOutput(restoredProject->overriddenValues),
+                                     toUserOutput(m_parameters.overriddenValues())));
             }
         m_parameters.setOverriddenValues(restoredProject->overriddenValues);
         if (m_parameters.topLevelProfile() != restoredProject->profile()) {

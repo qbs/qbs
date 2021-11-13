@@ -130,13 +130,11 @@ void ClangCompilationDatabaseGenerator::writeProjectDatabase(const QString &file
 
     if (!databaseFile.open(QFile::WriteOnly))
         throw ErrorInfo(Tr::tr("Cannot open '%1' for writing: %2")
-                        .arg(filePath)
-                        .arg(databaseFile.errorString()));
+                        .arg(filePath, databaseFile.errorString()));
 
     if (databaseFile.write(database.toJson()) == -1)
         throw ErrorInfo(Tr::tr("Error while writing '%1': %2")
-                        .arg(filePath)
-                        .arg(databaseFile.errorString()));
+                        .arg(filePath, databaseFile.errorString()));
 }
 
 bool ClangCompilationDatabaseGenerator::hasValidInputFileTag(const QStringList &fileTags) const

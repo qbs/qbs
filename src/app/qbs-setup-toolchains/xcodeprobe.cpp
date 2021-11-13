@@ -171,7 +171,7 @@ void XcodeProbe::detectDeveloperPaths()
 
 void XcodeProbe::setupDefaultToolchains(const QString &devPath, const QString &xcodeName)
 {
-    qbsInfo() << Tr::tr("Profile '%1' created for '%2'.").arg(xcodeName).arg(devPath);
+    qbsInfo() << Tr::tr("Profile '%1' created for '%2'.").arg(xcodeName, devPath);
 
     Profile installationProfile(xcodeName, settings);
     installationProfile.removeProfile();
