@@ -815,7 +815,7 @@ JsonValue::JsonValue(const JsonObject &o)
 JsonValue::~JsonValue()
 {
     if (t == String && stringData && !stringData->ref.deref())
-        free(stringData);
+        delete stringData;
 
     if (d && !d->ref.deref())
         delete d;
@@ -842,7 +842,7 @@ JsonValue::JsonValue(const JsonValue &other)
 JsonValue &JsonValue::operator=(const JsonValue &other)
 {
     if (t == String && stringData && !stringData->ref.deref())
-        free(stringData);
+        delete stringData;
 
     t = other.t;
     dbl = other.dbl;
