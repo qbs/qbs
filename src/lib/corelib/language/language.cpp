@@ -664,7 +664,7 @@ void TopLevelProject::store(PersistentPool &pool)
 void TopLevelProject::cleanupModuleProviderOutput()
 {
     QString error;
-    for (const ModuleProviderInfo &m : moduleProviderInfo.providers) {
+    for (const ModuleProviderInfo &m : qAsConst(moduleProviderInfo.providers)) {
         if (m.transientOutput) {
             if (!removeDirectoryWithContents(m.outputDirPath(buildDirectory), &error))
                 qCWarning(lcBuildGraph) << "Error removing module provider output:" << error;

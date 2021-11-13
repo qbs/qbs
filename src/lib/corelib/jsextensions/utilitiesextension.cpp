@@ -479,7 +479,8 @@ static std::pair<QVariantMap /*result*/, QString /*error*/> msvcCompilerInfoHelp
 
     try {
         QVariantMap envMap;
-        for (const QString &key : msvc.environment.keys())
+        const auto keys = msvc.environment.keys();
+        for (const QString &key : keys)
             envMap.insert(key, msvc.environment.value(key));
 
         return {
