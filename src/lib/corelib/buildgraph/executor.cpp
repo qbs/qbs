@@ -1056,7 +1056,7 @@ void Executor::onJobFinished(const qbs::ErrorInfo &err)
         if (m_evalContext->engine()->isActive()) {
             qCDebug(lcExec) << "Executor job finished while rule execution is pausing. "
                                "Delaying slot execution.";
-            QTimer::singleShot(0, job, [job, err] { job->finished(err); });
+            QTimer::singleShot(0, job, [job, err] { emit job->finished(err); });
             return;
         }
 
