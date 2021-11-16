@@ -329,6 +329,12 @@ jobs:
             script: './scripts/test-qt.sh',
           }
         - {
+            name: 'Run Linux tests (gcc, Qt 6.2 static)',
+            image: 'focal-qt6-static',
+            profile: 'qt-gcc_64',
+            script: './scripts/test-qt.sh',
+          }
+        - {
             name: 'Run Android tests (Qt 5.13)',
             image: 'focal-android-513',
             profile: '',
