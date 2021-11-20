@@ -60,9 +60,8 @@ static bool overlaps(int posA, int lengthA, int posB, int lengthB) {
                 || (posA <= posB && posA + lengthA > posB)
                 // A contained in B
                 || (posB < posA && posB + lengthB > posA + lengthA);
-    } else {
-        return (posB > posA && posB < posA + lengthA);
     }
+    return (posB > posA && posB < posA + lengthA);
 }
 
 bool ChangeSet::hasOverlap(int pos, int length)

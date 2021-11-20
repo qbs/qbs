@@ -76,22 +76,24 @@ private:
         if (fileSuffix.compare(QLatin1String("c"),
                                Qt::CaseInsensitive) == 0) {
             return CSourceFileType;
-        } else if (fileSuffix.compare(QLatin1String("cpp"),
+        }
+        if (fileSuffix.compare(QLatin1String("cpp"),
                                       Qt::CaseInsensitive) == 0) {
             return CppSourceFileType;
-        } else if (fileSuffix.compare(QLatin1String("s"),
+        }
+        if (fileSuffix.compare(QLatin1String("s"),
                                       Qt::CaseInsensitive) == 0
                    || fileSuffix.compare(QLatin1String("a51"),
                                          Qt::CaseInsensitive) == 0) {
             return AssemblerFileType;
-        } else if (fileSuffix.compare(QLatin1String("lib"),
+        }
+        if (fileSuffix.compare(QLatin1String("lib"),
                                       Qt::CaseInsensitive) == 0) {
             return LibraryFileType;
-        } else {
-            // All header files, text files and include files
-            // interpretes as a text file types.
-            return TextFileType;
         }
+        // All header files, text files and include files
+        // interpretes as a text file types.
+        return TextFileType;
     }
 };
 

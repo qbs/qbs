@@ -142,7 +142,8 @@ QString targetBinary(const ProductData &qbsProduct)
     const auto &type = qbsProduct.type();
     if (type.contains(QLatin1String("application"))) {
         return QFileInfo(qbsProduct.targetExecutable()).fileName();
-    } else if (type.contains(QLatin1String("staticlibrary"))) {
+    }
+    if (type.contains(QLatin1String("staticlibrary"))) {
         for (const auto &artifact : qbsProduct.targetArtifacts()) {
             if (artifact.fileTags().contains(QLatin1String("staticlibrary")))
                 return QFileInfo(artifact.filePath()).fileName();

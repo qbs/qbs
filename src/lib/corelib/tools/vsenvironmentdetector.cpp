@@ -124,14 +124,12 @@ QString VsEnvironmentDetector::findVcVarsAllBat(const MSVC &msvc,
     QString fullPath = dir.absoluteFilePath(path);
     if (dir.exists(path))
         return fullPath;
-    else
-        searchedPaths.push_back(fullPath);
+    searchedPaths.push_back(fullPath);
     path = QStringLiteral("Auxiliary/Build/") + vcvarsallbat;
     fullPath = dir.absoluteFilePath(path);
     if (dir.exists(path))
         return fullPath;
-    else
-        searchedPaths.push_back(fullPath);
+    searchedPaths.push_back(fullPath);
     return {};
 }
 

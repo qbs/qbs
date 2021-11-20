@@ -76,7 +76,7 @@ QString ExecutableFinder::findExecutable(const QString &path, const QString &wor
     //if (FileInfo::fileName(filePath) == filePath)
     if (!FileInfo::isAbsolute(filePath))
         return findInPath(filePath, workingDirPath);
-    else if (HostOsInfo::isWindowsHost())
+    if (HostOsInfo::isWindowsHost())
         return findBySuffix(filePath);
     return filePath;
 }

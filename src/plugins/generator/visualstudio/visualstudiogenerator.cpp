@@ -153,7 +153,7 @@ VisualStudioGenerator::VisualStudioGenerator(const VisualStudioVersionInfo &vers
 {
     if (d->versionInfo.usesVcBuild())
         throw ErrorInfo(Tr::tr("VCBuild (Visual Studio 2008 and below) is not supported"));
-    else if (!d->versionInfo.usesMsBuild())
+    if (!d->versionInfo.usesMsBuild())
         throw ErrorInfo(Tr::tr("Unknown/unsupported build engine"));
     Q_ASSERT(d->versionInfo.usesSolutions());
 }

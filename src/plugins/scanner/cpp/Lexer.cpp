@@ -232,7 +232,7 @@ void Lexer::scan_helper(Token *tok)
         while (_yychar && _yychar != quote) {
             if (_yychar == '\n')
                 break;
-            else if (_yychar != '\\')
+            if (_yychar != '\\')
                 yyinp();
             else {
                 yyinp(); // skip `\\'
@@ -573,7 +573,8 @@ void Lexer::scan_helper(Token *tok)
                 // const int yylen = _currentChar - yytext;
                 //tok->f.kind = classifyObjCAtKeyword(yytext, yylen);		 /// ### FIXME
                 break;
-            } else if (ch == '@' && _yychar == '"') {
+            }
+            if (ch == '@' && _yychar == '"') {
                 // objc @string literals
                 ch = _yychar;
                 yyinp();

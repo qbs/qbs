@@ -188,8 +188,7 @@ UiObjectMemberList *Rewriter::searchMemberToInsertAfter(UiObjectMemberList *memb
 
     if (lastObjectDef)
         return lastObjectDef;
-    else
-        return lastNonObjectDef;
+    return lastNonObjectDef;
 }
 
 UiArrayMemberList *Rewriter::searchMemberToInsertAfter(UiArrayMemberList *members,
@@ -221,8 +220,7 @@ UiArrayMemberList *Rewriter::searchMemberToInsertAfter(UiArrayMemberList *member
 
     if (lastObjectDef)
         return lastObjectDef;
-    else
-        return lastNonObjectDef;
+    return lastNonObjectDef;
 }
 
 UiObjectMemberList *Rewriter::searchMemberToInsertAfter(UiObjectMemberList *members,
@@ -301,7 +299,8 @@ void Rewriter::changeBinding(UiObjectInitializer *ast,
 
             break;
         // for grouped properties:
-        } else if (!prefix.isEmpty()) {
+        }
+        if (!prefix.isEmpty()) {
             if (auto def = cast<UiObjectDefinition *>(member)) {
                 if (toString(def->qualifiedTypeNameId) == prefix)
                     changeBinding(def->initializer, suffix, newValue, binding);
@@ -355,22 +354,20 @@ bool Rewriter::isMatchingPropertyMember(const QString &propertyName,
 {
     if (auto publicMember = cast<UiPublicMember*>(member))
         return publicMember->name == propertyName;
-    else if (auto objectBinding = cast<UiObjectBinding*>(member))
+    if (auto objectBinding = cast<UiObjectBinding*>(member))
         return toString(objectBinding->qualifiedId) == propertyName;
-    else if (auto scriptBinding = cast<UiScriptBinding*>(member))
+    if (auto scriptBinding = cast<UiScriptBinding*>(member))
         return toString(scriptBinding->qualifiedId) == propertyName;
-    else if (auto arrayBinding = cast<UiArrayBinding*>(member))
+    if (auto arrayBinding = cast<UiArrayBinding*>(member))
         return toString(arrayBinding->qualifiedId) == propertyName;
-    else
-        return false;
+    return false;
 }
 
 bool Rewriter::nextMemberOnSameLine(UiObjectMemberList *members)
 {
     if (members && members->next && members->next->member)
         return members->next->member->firstSourceLocation().startLine == members->member->lastSourceLocation().startLine;
-    else
-        return false;
+    return false;
 }
 
 void Rewriter::insertIntoArray(UiArrayBinding *ast, const QString &newValue)
@@ -465,7 +462,8 @@ bool Rewriter::includeSurroundingWhitespace(const QString &source, int &start, i
                 paragraphFound = true;
                 paragraphSkipped = true;
                 break;
-            } else if (end == source.length()) {
+            }
+            if (end == source.length()) {
                 break;
             }
 

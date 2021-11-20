@@ -69,10 +69,9 @@ static unsigned char convertHex(ushort c)
 {
     if (c >= '0' && c <= '9')
         return (c - '0');
-    else if (c >= 'a' && c <= 'f')
+    if (c >= 'a' && c <= 'f')
         return (c - 'a' + 10);
-    else
-        return (c - 'A' + 10);
+    return (c - 'A' + 10);
 }
 
 static QChar convertHex(QChar c1, QChar c2)
@@ -297,10 +296,9 @@ again:
                 _tokenLine = _currentLineNumber;
                 _tokenStartPtr = _codePtr - 1; // ### TODO: insert it before the optional \r sequence.
                 return T_SEMICOLON;
-            } else {
-                _terminator = true;
-                syncProhibitAutomaticSemicolon();
             }
+            _terminator = true;
+            syncProhibitAutomaticSemicolon();
         }
 
         scanChar();
@@ -352,7 +350,8 @@ again:
                     return T_GT_GT_GT_EQ;
                 }
                 return T_GT_GT_GT;
-            } else if (_char == QLatin1Char('=')) {
+            }
+            if (_char == QLatin1Char('=')) {
                 scanChar();
                 return T_GT_GT_EQ;
             }
@@ -556,7 +555,8 @@ again:
             while (!_char.isNull()) {
                 if (_char == QLatin1Char('\n') || _char == QLatin1Char('\\')) {
                     break;
-                } else if (_char == quote) {
+                }
+                if (_char == quote) {
                     _tokenSpell = _engine->midRef(
                                 int(startCode - _code.unicode() - 1), int(_codePtr - startCode));
                     scanChar();
@@ -920,7 +920,7 @@ bool Lexer::scanRegExp(RegExpBodyPrefix prefix)
             while (! _char.isNull() && ! isLineTerminator()) {
                 if (_char == QLatin1Char(']'))
                     break;
-                else if (_char == QLatin1Char('\\')) {
+                if (_char == QLatin1Char('\\')) {
                     // regular expression backslash sequence
                     _tokenText += _char;
                     scanChar();

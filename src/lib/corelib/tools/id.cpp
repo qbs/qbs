@@ -272,8 +272,7 @@ bool Id::operator==(const char *name) const
     const auto string = getStringFromId(m_id);
     if (!string.isNull() && name)
         return strcmp(string.data(), name) == 0;
-    else
-        return false;
+    return false;
 }
 
 bool Id::alphabeticallyBefore(Id other) const

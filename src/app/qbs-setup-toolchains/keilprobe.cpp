@@ -307,11 +307,11 @@ static Version dumpArmClangCompilerVersion(const QFileInfo &compiler)
 static Version dumpKeilCompilerVersion(const QFileInfo &compiler)
 {
     const QString arch = guessKeilArchitecture(compiler);
-    if (arch == QLatin1String("mcs51") || arch == QLatin1String("mcs251")) {
+    if (arch == QLatin1String("mcs51") || arch == QLatin1String("mcs251"))
         return dumpMcsCompilerVersion(compiler);
-    } else if (arch == QLatin1String("c166")) {
+    if (arch == QLatin1String("c166"))
         return dumpC166CompilerVersion(compiler);
-    } else if (arch == QLatin1String("arm")) {
+    if (arch == QLatin1String("arm")) {
         if (isArmClangCompiler(compiler))
             return dumpArmClangCompilerVersion(compiler);
         return dumpArmCCCompilerVersion(compiler);

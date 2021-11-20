@@ -117,9 +117,9 @@ QString Evaluator::stringValue(const Item *item, const QString &name,
 
 static QStringList toStringList(const QScriptValue &scriptValue)
 {
-    if (scriptValue.isString()) {
+    if (scriptValue.isString())
         return {scriptValue.toString()};
-    } else if (scriptValue.isArray()) {
+    if (scriptValue.isArray()) {
         QStringList lst;
         int i = 0;
         forever {
@@ -277,10 +277,9 @@ void throwOnEvaluationError(ScriptEngine *engine, const QScriptValue &scriptValu
         if (v.isNumber())
             line = v.toInt32();
         throw ErrorInfo(message, CodeLocation(filePath, line, -1, false));
-    } else {
-        message = value.toString();
-        throw ErrorInfo(message, provideFallbackCodeLocation());
     }
+    message = value.toString();
+    throw ErrorInfo(message, provideFallbackCodeLocation());
 }
 
 } // namespace Internal

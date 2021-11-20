@@ -81,9 +81,8 @@ bool readOneLine(std::ifstream &file, std::string &line)
                 line += '\\';
 
             return n_read > 0;
-        } else {
-            n_read++;
         }
+        n_read++;
 
         if (c == '\r') {
             n_read--;

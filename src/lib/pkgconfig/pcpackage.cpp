@@ -67,25 +67,25 @@ std::optional<PcPackage::Flag::Type> PcPackage::Flag::typeFromString(std::string
 {
     if (s == "LibraryName")
         return Type::LibraryName;
-    else if (s == "StaticLibraryName")
+    if (s == "StaticLibraryName")
         return Type::StaticLibraryName;
-    else if (s == "LibraryPath")
+    if (s == "LibraryPath")
         return Type::LibraryPath;
-    else if (s == "Framework")
+    if (s == "Framework")
         return Type::Framework;
-    else if (s == "FrameworkPath")
+    if (s == "FrameworkPath")
         return Type::FrameworkPath;
-    else if (s == "LinkerFlag")
+    if (s == "LinkerFlag")
         return Type::LinkerFlag;
-    else if (s == "IncludePath")
+    if (s == "IncludePath")
         return Type::IncludePath;
-    else if (s == "SystemIncludePath")
+    if (s == "SystemIncludePath")
         return Type::SystemIncludePath;
-    else if (s == "DirAfterIncludePath")
+    if (s == "DirAfterIncludePath")
         return Type::DirAfterIncludePath;
-    else if (s == "Define")
+    if (s == "Define")
         return Type::Define;
-    else if (s == "CompilerFlag")
+    if (s == "CompilerFlag")
         return Type::CompilerFlag;
     return std::nullopt;
 }
@@ -108,17 +108,17 @@ std::optional<ComparisonType> PcPackage::RequiredVersion::comparisonFromString(s
 {
     if (s == "LessThan")
         return ComparisonType::LessThan;
-    else if (s == "GreaterThan")
+    if (s == "GreaterThan")
         return ComparisonType::GreaterThan;
-    else if (s == "LessThanEqual")
+    if (s == "LessThanEqual")
         return ComparisonType::LessThanEqual;
-    else if (s == "GreaterThanEqual")
+    if (s == "GreaterThanEqual")
         return ComparisonType::GreaterThanEqual;
-    else if (s == "Equal")
+    if (s == "Equal")
         return ComparisonType::Equal;
-    else if (s == "NotEqual")
+    if (s == "NotEqual")
         return ComparisonType::NotEqual;
-    else if (s == "AlwaysMatch")
+    if (s == "AlwaysMatch")
         return ComparisonType::AlwaysMatch;
     return std::nullopt;
 }

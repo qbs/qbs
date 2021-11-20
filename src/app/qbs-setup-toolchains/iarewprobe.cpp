@@ -177,9 +177,9 @@ static Version dumpIarCompilerVersion(const QFileInfo &compiler)
     }
 
     const QString arch = guessIarArchitecture(compiler);
-    if (arch == QLatin1String("arm")) {
+    if (arch == QLatin1String("arm"))
         return Version{verCode / 1000000, (verCode / 1000) % 1000, verCode % 1000};
-    } else if (arch == QLatin1String("avr")
+    if (arch == QLatin1String("avr")
                || arch == QLatin1String("mcs51")
                || arch == QLatin1String("stm8")
                || arch == QLatin1String("msp430")

@@ -62,8 +62,7 @@ QVariant getConfigProperty(const QVariantMap &cfg, const QStringList &name)
 {
     if (name.length() == 1)
         return cfg.value(name.front());
-    else
-        return getConfigProperty(cfg.value(name.front()).toMap(), name.mid(1));
+    return getConfigProperty(cfg.value(name.front()).toMap(), name.mid(1));
 }
 
 TemporaryGlobalObjectSetter::TemporaryGlobalObjectSetter(const QScriptValue &object)

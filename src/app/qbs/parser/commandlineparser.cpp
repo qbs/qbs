@@ -582,8 +582,7 @@ QString CommandLineParser::CommandLineParserPrivate::propertyName(const QString 
     // Make fully-qualified, ie "platform" -> "qbs.platform"
     if (aCommandLineName.contains(QLatin1Char('.')))
         return aCommandLineName;
-    else
-        return QLatin1String("qbs.") + aCommandLineName;
+    return QLatin1String("qbs.") + aCommandLineName;
 }
 
 bool CommandLineParser::CommandLineParserPrivate::checkForExistingBuildConfiguration(

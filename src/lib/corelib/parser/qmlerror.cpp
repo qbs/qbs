@@ -149,7 +149,7 @@ bool QmlError::isValid() const
 QUrl QmlError::url() const
 {
     if (d) return d->url;
-    else return {};
+    return {};
 }
 
 /*!
@@ -167,7 +167,7 @@ void QmlError::setUrl(const QUrl &url)
 QString QmlError::description() const
 {
     if (d) return d->description;
-    else return {};
+    return {};
 }
 
 /*!
@@ -185,7 +185,7 @@ void QmlError::setDescription(const QString &description)
 int QmlError::line() const
 {
     if (d) return d->line;
-    else return -1;
+    return -1;
 }
 
 /*!
@@ -203,7 +203,7 @@ void QmlError::setLine(int line)
 int QmlError::column() const
 {
     if (d) return d->column;
-    else return -1;
+    return -1;
 }
 
 /*!

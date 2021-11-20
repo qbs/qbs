@@ -3650,8 +3650,7 @@ bool JsonDocument::operator==(const JsonDocument &other) const
     if (d->header->root()->isObject())
         return JsonObject(d, static_cast<Internal::Object *>(d->header->root()))
                 == JsonObject(other.d, static_cast<Internal::Object *>(other.d->header->root()));
-    else
-        return JsonArray(d, static_cast<Internal::Array *>(d->header->root()))
+    return JsonArray(d, static_cast<Internal::Array *>(d->header->root()))
                 == JsonArray(other.d, static_cast<Internal::Array *>(other.d->header->root()));
 }
 
@@ -4209,7 +4208,7 @@ bool Parser::parseArray()
             char token = nextToken();
             if (token == EndArray)
                 break;
-            else if (token != ValueSeparator) {
+            if (token != ValueSeparator) {
                 if (!eatSpace())
                     lastError = JsonParseError::UnterminatedArray;
                 else

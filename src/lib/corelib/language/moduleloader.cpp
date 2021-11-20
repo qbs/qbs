@@ -1192,14 +1192,13 @@ void ModuleLoader::adjustDependenciesForMultiplexing(const ProductContext &produ
                                          multiplexId);
                 return;
 
-            } else {
-                // Otherwise collect partial matches and decide later
-                const auto dependencyMultiplexConfig =
-                        MultiplexInfo::multiplexIdToVariantMap(dependency->multiplexConfigurationId);
-
-                if (multiplexConfigurationIntersects(dependencyMultiplexConfig, productMultiplexConfig))
-                    multiplexIds << dependency->multiplexConfigurationId;
             }
+            // Otherwise collect partial matches and decide later
+            const auto dependencyMultiplexConfig = MultiplexInfo::multiplexIdToVariantMap(
+                dependency->multiplexConfigurationId);
+
+            if (multiplexConfigurationIntersects(dependencyMultiplexConfig, productMultiplexConfig))
+                multiplexIds << dependency->multiplexConfigurationId;
         } else {
             // (2b), (3b) or (3c)
             const bool profileMatch = !profilesPropertyIsSet || profiles.empty()
@@ -3838,7 +3837,8 @@ void ModuleLoader::addProductModuleDependencies(ProductContext *productContext, 
                                 multiplexConfigIdProp)->value().toString();
                     depsToAdd.push_back(dep);
                     break;
-                } else if (profileMatch) {
+                }
+                if (profileMatch) {
                     dep.multiplexConfigurationId = dependencies.at(i)->multiplexConfigurationId;
                     depsToAdd.push_back(dep);
                 }

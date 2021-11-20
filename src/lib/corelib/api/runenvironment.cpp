@@ -314,11 +314,8 @@ int RunEnvironment::doRunTarget(const QString &targetBin, const QStringList &arg
                 if (process.error() == QProcess::FailedToStart) {
                     throw ErrorInfo(Tr::tr("The process '%1' could not be started: %2")
                                     .arg(targetExecutable, process.errorString()));
-                } else {
-                    d->logger.qbsWarning()
-                            << "QProcess error: " << process.errorString();
                 }
-
+                d->logger.qbsWarning() << "QProcess error: " << process.errorString();
                 return EXIT_FAILURE;
             }
 
@@ -457,11 +454,8 @@ int RunEnvironment::doRunTarget(const QString &targetBin, const QStringList &arg
 #endif
             throw ErrorInfo(Tr::tr("The process '%1' could not be started: %2")
                             .arg(targetExecutable, errorPrefixString + process.errorString()));
-        } else {
-            d->logger.qbsWarning()
-                    << "QProcess error: " << process.errorString();
         }
-
+        d->logger.qbsWarning() << "QProcess error: " << process.errorString();
         return EXIT_FAILURE;
     }
     return process.exitCode();
