@@ -39,6 +39,7 @@
 #include <tools/fileinfo.h>
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
+#include <tools/stlutils.h>
 
 #include <QtCore/qvariant.h>
 
@@ -209,11 +210,9 @@ bool TrafoChangeTracker::isExportedModuleUpToDate(const QString &productName,
 bool TrafoChangeTracker::areExportedModulesUpToDate(
         const std::unordered_map<QString, ExportedModule> &exportedModules) const
 {
-    for (const auto &kv : exportedModules) {
-        if (!isExportedModuleUpToDate(kv.first, kv.second))
-            return false;
-    }
-    return true;
+    return Internal::all_of(exportedModules, [this](const auto &kv) {
+        return isExportedModuleUpToDate(kv.first, kv.second);
+    });
 }
 
 const Artifact *TrafoChangeTracker::getArtifact(const QString &filePath,

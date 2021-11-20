@@ -58,6 +58,7 @@
 #include <tools/qttools.h>
 #include <tools/settings.h>
 #include <tools/settingsrepresentation.h>
+#include <tools/stlutils.h>
 
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qdir.h>
@@ -588,11 +589,9 @@ QString CommandLineParser::CommandLineParserPrivate::propertyName(const QString 
 bool CommandLineParser::CommandLineParserPrivate::checkForExistingBuildConfiguration(
         const QList<QVariantMap> &buildConfigs, const QString &configurationName)
 {
-    for (const QVariantMap &buildConfig : buildConfigs) {
-        if (configurationName == getBuildConfigurationName(buildConfig))
-            return true;
-    }
-    return false;
+    return Internal::any_of(buildConfigs, [&configurationName](const auto &buildConfig) {
+        return configurationName == getBuildConfigurationName(buildConfig);
+    });
 }
 
 bool CommandLineParser::CommandLineParserPrivate::withNonDefaultProducts() const

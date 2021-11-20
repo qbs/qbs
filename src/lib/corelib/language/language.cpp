@@ -57,9 +57,10 @@
 #include <tools/hostosinfo.h>
 #include <tools/error.h>
 #include <tools/fileinfo.h>
-#include <tools/scripttools.h>
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
+#include <tools/scripttools.h>
+#include <tools/stlutils.h>
 #include <tools/stringconstants.h>
 
 #include <QtCore/qcryptographichash.h>
@@ -824,14 +825,13 @@ bool listsAreEqual(const L &l1, const L &l2)
     using V = typename L::value_type;
     const QMap<QString, V> map1 = listToMap(l1);
     const QMap<QString, V> map2 = listToMap(l2);
-    for (const QString &key : map1.keys()) {
+    const auto keys = map1.keys();
+    return Internal::all_of(keys, [&map1, &map2](const auto &key) {
         const V &value2 = map2.value(key);
         if (!value2)
             return false;
-        if (!equals(map1.value(key).get(), value2.get()))
-            return false;
-    }
-    return true;
+        return equals(map1.value(key).get(), value2.get());
+    });
 }
 
 QString keyFromElem(const SourceArtifactPtr &sa) { return sa->absoluteFilePath; }

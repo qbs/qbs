@@ -41,6 +41,7 @@
 
 #include <logging/translator.h>
 #include <tools/qbsassert.h>
+#include <tools/stlutils.h>
 #include <tools/stringconstants.h>
 
 #include <QtCore/qcoreapplication.h>
@@ -182,13 +183,10 @@ bool FileInfo::isAbsolute(const QString &path, HostOsInfo::HostOs hostOs)
 
 bool FileInfo::isPattern(QStringView str)
 {
-    for (const QChar &ch : str) {
-        if (ch == QLatin1Char('*') || ch == QLatin1Char('?')
-                || ch == QLatin1Char(']') || ch == QLatin1Char('[')) {
-            return true;
-        }
-    }
-    return false;
+    return Internal::any_of(str, [](const auto &ch) {
+        return (ch == QLatin1Char('*') || ch == QLatin1Char('?') || ch == QLatin1Char(']')
+                || ch == QLatin1Char('['));
+    });
 }
 
 /**

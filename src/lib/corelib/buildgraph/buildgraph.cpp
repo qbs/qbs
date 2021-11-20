@@ -62,9 +62,10 @@
 #include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/fileinfo.h>
-#include <tools/scripttools.h>
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
+#include <tools/scripttools.h>
+#include <tools/stlutils.h>
 #include <tools/stringconstants.h>
 
 #include <QtCore/qdir.h>
@@ -493,12 +494,9 @@ static bool existsPath_impl(BuildGraphNode *u, BuildGraphNode *v, NodeSet *seen)
     if (!seen->insert(u).second)
         return false;
 
-    for (BuildGraphNode * const childNode : qAsConst(u->children)) {
-        if (existsPath_impl(childNode, v, seen))
-            return true;
-    }
-
-    return false;
+    return Internal::any_of(u->children, [v, seen](const auto &child) {
+        return existsPath_impl(child, v, seen);
+    });
 }
 
 static bool existsPath(BuildGraphNode *u, BuildGraphNode *v)

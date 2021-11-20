@@ -65,6 +65,7 @@
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
 #include <tools/settings.h>
+#include <tools/stlutils.h>
 #include <tools/stringconstants.h>
 
 #include <QtCore/qdir.h>
@@ -479,12 +480,9 @@ bool BuildGraphLoader::probeExecutionForced(
     if (!restoredProject->probes.empty())
         return true;
 
-    for (const auto &p : qAsConst(restoredProducts)) {
-        if (!p->probes.empty())
-            return true;
-    }
-
-    return false;
+    return Internal::any_of(restoredProducts, [](const auto &p) {
+        return !p->probes.empty();
+    });
 }
 
 bool BuildGraphLoader::hasEnvironmentChanged(const TopLevelProjectConstPtr &restoredProject) const

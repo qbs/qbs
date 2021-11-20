@@ -45,6 +45,7 @@
 #include <tools/error.h>
 #include <tools/installoptions.h>
 #include <tools/shellutils.h>
+#include <tools/stlutils.h>
 
 #include <QtCore/qdir.h>
 #include <QtCore/qfile.h>
@@ -146,11 +147,9 @@ bool ClangCompilationDatabaseGenerator::hasValidInputFileTag(const QStringList &
         QStringLiteral("objcpp")
     };
 
-    for (const QString &tag : fileTags) {
-        if (validFileTags.contains(tag))
-            return true;
-    }
-    return false;
+    return Internal::any_of(fileTags, [](const auto &tag) {
+        return validFileTags.contains(tag);
+    });
 }
 
 } // namespace qbs

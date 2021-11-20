@@ -118,6 +118,12 @@ bool any_of(const Container &container, const UnaryPredicate &predicate)
 }
 
 template <class Container, class UnaryPredicate>
+bool all_of(const Container &container, const UnaryPredicate &predicate)
+{
+    return std::all_of(std::begin(container), std::end(container), predicate);
+}
+
+template <class Container, class UnaryPredicate>
 bool none_of(const Container &container, const UnaryPredicate &predicate)
 {
     return std::none_of(std::begin(container), std::end(container), predicate);

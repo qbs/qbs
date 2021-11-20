@@ -42,6 +42,7 @@
 #include <tools/profile.h>
 #include <tools/qttools.h>
 #include <tools/settings.h>
+#include <tools/stlutils.h>
 #include <tools/stringconstants.h>
 
 #include <QtCore/qlist.h>
@@ -90,11 +91,9 @@ QString Node::uniqueChildName() const
 
 bool Node::hasDirectChildWithName(const QString &name) const
 {
-    for (const Node * const child : qAsConst(children)) {
-        if (child->name == name)
-            return true;
-    }
-    return false;
+    return Internal::any_of(children, [&name](const auto &child){
+        return child->name == name;
+    });
 }
 
 } // namespace Internal
