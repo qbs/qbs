@@ -4889,7 +4889,7 @@ int Value::requiredStorage(JsonValue &v, bool *compressed)
         }
         return sizeof(double);
     case JsonValue::String: {
-        std::string s = v.toString().data();
+        std::string s = v.toString();
         *compressed = false;
         return Internal::qStringSize(s);
     }
