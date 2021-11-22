@@ -70,7 +70,7 @@ function contentFromQrc(product, qrcFilePath) {
     var supportsFiltering = product.Qt.quick._supportsQmlJsFiltering;
     var filesInQrc = scanQrc(product, qrcFilePath);
     var qmlJsFiles = filesInQrc.filter(function (filePath) {
-        return (/\.(js|qml)$/).test(filePath);
+        return (/\.(mjs|js|qml)$/).test(filePath);
     } );
     var content = {};
     if (!supportsFiltering || filesInQrc.length - qmlJsFiles.length > 0) {
