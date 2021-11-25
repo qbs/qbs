@@ -11,6 +11,7 @@ Project {
         }
 
         install: true
+        installDebugInformation: false
         installDir: ""
     }
 

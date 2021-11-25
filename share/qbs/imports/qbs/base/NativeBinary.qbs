@@ -39,7 +39,7 @@ Product {
     // or if it is multiplexed and it's the aggregate product
     readonly property bool _installable: !multiplexed || !aggregate || !multiplexConfigurationId
 
-    property bool installDebugInformation: false
+    property bool installDebugInformation: install
     property string debugInformationInstallDir: installDir
 
     Depends { name: "bundle"; condition: isForDarwin }

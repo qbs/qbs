@@ -17,6 +17,7 @@ Project {
         }
         qbs.installPrefix: "/usr"
         install: true
+        installDebugInformation: false
         installDir: "bin"
         Group {
             fileTagsFilter: "obj"

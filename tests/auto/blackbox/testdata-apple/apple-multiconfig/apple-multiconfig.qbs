@@ -26,6 +26,7 @@ Project {
         multiplexByQbsProperties: []
 
         install: true
+        installDebugInformation: false
         installDir: ""
     }
 
@@ -45,6 +46,7 @@ Project {
         qbs.buildVariants: ["release"]
 
         install: true
+        installDebugInformation: false
         installDir: ""
     }
 
@@ -62,6 +64,7 @@ Project {
         multiplexByQbsProperties: []
 
         install: true
+        installDebugInformation: false
         installDir: ""
     }
 
@@ -76,6 +79,7 @@ Project {
         cpp.minimumIosVersion: "8.0"
 
         install: true
+        installDebugInformation: false
         installDir: ""
     }
 
@@ -96,6 +100,7 @@ Project {
         qbs.buildVariants: "debug"
 
         install: true
+        installDebugInformation: false
         installDir: ""
     }
 
@@ -112,6 +117,7 @@ Project {
         qbs.buildVariants: ["debug", "profiling"]
 
         install: true
+        installDebugInformation: false
         installDir: ""
     }
 
@@ -128,6 +134,7 @@ Project {
         qbs.buildVariants: ["release", "debug", "profiling"]
 
         install: true
+        installDebugInformation: false
         installDir: ""
     }
 
@@ -144,6 +151,7 @@ Project {
         qbs.buildVariants: ["debug", "profiling"]
 
         install: true
+        installDebugInformation: false
         installDir: ""
     }
 
@@ -159,6 +167,7 @@ Project {
         qbs.architectures: Helpers.getArchitectures(qbs, project.xcodeVersion)
         qbs.buildVariants: ["debug", "profiling"]
         install: true
+        installDebugInformation: false
         installDir: ""
     }
     DynamicLibrary {
@@ -172,6 +181,7 @@ Project {
         qbs.architectures: Helpers.getArchitectures(qbs, project.xcodeVersion)
         qbs.buildVariants: ["debug", "profiling"]
         install: true
+        installDebugInformation: false
         installDir: ""
     }
 }
