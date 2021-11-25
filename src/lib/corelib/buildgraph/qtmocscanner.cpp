@@ -153,7 +153,7 @@ static RawScanResult runScanner(ScannerPlugin *scanner, const Artifact *artifact
         }
 
         QString baseDirOfInFilePath = artifact->dirPath();
-        forever {
+        for (;;) {
             int flags = 0;
             const char *szOutFilePath = scanner->next(opaq, &length, &flags);
             if (szOutFilePath == nullptr)

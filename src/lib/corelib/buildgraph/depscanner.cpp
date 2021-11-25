@@ -110,7 +110,7 @@ QStringList PluginDependencyScanner::collectDependencies(Artifact *artifact, Fil
     void *scannerHandle = m_plugin->open(filepath.utf16(), fileTags, ScanForDependenciesFlag);
     if (!scannerHandle)
         return {};
-    forever {
+    for (;;) {
         int flags = 0;
         int length = 0;
         const char *szOutFilePath = m_plugin->next(scannerHandle, &length, &flags);

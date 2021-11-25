@@ -122,7 +122,7 @@ static QStringList toStringList(const QScriptValue &scriptValue)
     if (scriptValue.isArray()) {
         QStringList lst;
         int i = 0;
-        forever {
+        for (;;) {
             QScriptValue elem = scriptValue.property(i++);
             if (!elem.isValid())
                 break;
