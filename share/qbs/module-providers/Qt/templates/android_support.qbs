@@ -19,17 +19,9 @@ Module {
     property string rccFilePath
     property string _qtBinaryDir
     property string _qtInstallDir
-    // TODO: Remove in 1.21
-    // From 1.21 product property used from an export item will point to the
-    // importingProduct property. So using the importingProduct property will be useless
-    // and the change will be reverted
-    property var _importingProduct: (typeof importingProduct !== "undefined") ? importingProduct :
-                                                                                product
-    property bool _enableSdkSupport: _importingProduct.type
-                                     && _importingProduct.type.contains("android.package")
+    property bool _enableSdkSupport: product.type && product.type.contains("android.package")
                                      && !consoleApplication
-    property bool _enableNdkSupport: !_importingProduct.aggregate
-                                     || _importingProduct.multiplexConfigurationId
+    property bool _enableNdkSupport: !product.aggregate || product.multiplexConfigurationId
     property string _templatesBaseDir: FileInfo.joinPaths(_qtInstallDir, "src", "android")
     property string _deployQtOutDir: FileInfo.joinPaths(product.buildDirectory, "deployqt_out")
 

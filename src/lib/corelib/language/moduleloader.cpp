@@ -3417,9 +3417,6 @@ void ModuleLoader::instantiateModule(ProductContext *productContext, Item *expor
         const auto importingProductItemValue = ItemValue::create(productContext->item);
         moduleScope->setProperty(QStringLiteral("importingProduct"), importingProductItemValue);
 
-        // TODO: Remove in 1.21.
-        moduleScope->setProperty(StringConstants::productVar(), exportingProductItemValue);
-
         moduleScope->setProperty(StringConstants::projectVar(),
                                  ItemValue::create(exportingProduct->parent()));
 

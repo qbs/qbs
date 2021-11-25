@@ -1,6 +1,6 @@
 Project {
     Product {
-        name: "p"
+        name: "importing"
         Depends { name: "dep" }
     }
     Product {
