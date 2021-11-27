@@ -208,6 +208,15 @@ ProjectFileGroupInserter::ProjectFileGroupInserter(ProductData product, QString 
 {
 }
 
+static int extractLine(const QString &fileContent, int pos)
+{
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 2)
+    return fileContent.leftRef(pos).count(QLatin1Char('\n'));
+#else
+    return QStringView{fileContent}.left(pos).count(QLatin1Char('\n'));
+#endif
+}
+
 void ProjectFileGroupInserter::doApply(QString &fileContent, UiProgram *ast)
 {
     ItemFinder itemFinder(m_product.location());
@@ -238,7 +247,7 @@ void ProjectFileGroupInserter::doApply(QString &fileContent, UiProgram *ast)
     const ChangeSet::EditOp &insertOp = editOps.front();
     setLineOffset(lineOffset);
 
-    int insertionLine = QStringView{fileContent}.left(insertOp.pos1).count(QLatin1Char('\n'));
+    int insertionLine = extractLine(fileContent, insertOp.pos1);
     for (int i = 0; i < insertOp.text.size() && insertOp.text.at(i) == QLatin1Char('\n'); ++i)
         ++insertionLine; // To account for newlines prepended by the rewriter.
     ++insertionLine; // To account for zero-based indexing.
@@ -268,8 +277,7 @@ static int getLineOffsetForChangedBinding(const ChangeSet &changeSet, const QStr
 
 static int getBindingLine(const ChangeSet &changeSet, const QString &fileContent)
 {
-    return QStringView{fileContent}.left(getEditOp(changeSet).pos1 + 1)
-               .count(QLatin1Char('\n')) + 1;
+    return extractLine(fileContent, getEditOp(changeSet).pos1 + 1) + 1;
 }
 
 
