@@ -114,6 +114,9 @@ QmlError::QmlError(const QmlError &other)
 */
 QmlError &QmlError::operator=(const QmlError &other)
 {
+    if (this == &other) // Self assignment guard.
+        return *this;
+
     if (!other.d) {
         delete d;
         d = nullptr;

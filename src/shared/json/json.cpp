@@ -841,6 +841,9 @@ JsonValue::JsonValue(const JsonValue &other)
  */
 JsonValue &JsonValue::operator=(const JsonValue &other)
 {
+    if (this == &other) // Self assignment guard.
+        return *this;
+
     if (t == String && stringData && !stringData->ref.deref())
         delete stringData;
 
@@ -1310,6 +1313,9 @@ JsonArray::JsonArray(const JsonArray &other)
  */
 JsonArray &JsonArray::operator=(const JsonArray &other)
 {
+    if (this == &other) // Self assignment guard.
+        return *this;
+
     if (d != other.d) {
         if (d && !d->ref.deref())
             delete d;
@@ -2353,6 +2359,9 @@ JsonObject::JsonObject(const JsonObject &other)
  */
 JsonObject &JsonObject::operator=(const JsonObject &other)
 {
+    if (this == &other) // Self assignment guard.
+        return *this;
+
     if (d != other.d) {
         if (d && !d->ref.deref())
             delete d;
@@ -3305,6 +3314,9 @@ JsonDocument::JsonDocument(const JsonDocument &other)
  */
 JsonDocument &JsonDocument::operator=(const JsonDocument &other)
 {
+    if (this == &other) // Self assignment guard.
+        return *this;
+
     if (d != other.d) {
         if (d && !d->ref.deref())
             delete d;

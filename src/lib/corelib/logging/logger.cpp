@@ -79,6 +79,9 @@ LogWriter::~LogWriter()
 
 const LogWriter &LogWriter::operator=(const LogWriter &other)
 {
+    if (this == &other) // Self assignment guard.
+        return *this;
+
     m_logSink = other.m_logSink;
     m_level = other.m_level;
     m_message = other.m_message;
