@@ -67,7 +67,7 @@ class TrimValidator : public QValidator
 public:
     explicit TrimValidator(QObject *parent = nullptr) : QValidator(parent) {}
 
-public: // QValidator interface
+    // QValidator interface
     State validate(QString &input, int &pos) const override
     {
         Q_UNUSED(pos);
