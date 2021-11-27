@@ -152,7 +152,7 @@ void ConfigCommandLineParser::setScope(Settings::Scope scope)
 
 void ConfigCommandLineParser::printUsage() const
 {
-    puts("Usage:\n"
+    std::puts("Usage:\n"
         "    qbs config [--settings-dir <settings directory] <options>\n"
         "    qbs config [--settings-dir <settings directory] <key>\n"
         "    qbs config [--settings-dir <settings directory] <key> <value>"

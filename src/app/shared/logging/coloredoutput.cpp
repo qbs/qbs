@@ -62,15 +62,15 @@ void printfColored(TextColor color, const char *str, ...)
     va_end(vl);
 }
 
-void fprintfColored(TextColor color, FILE *file, const char *str, va_list vl)
+void fprintfColored(TextColor color, std::FILE *file, const char *str, va_list vl)
 {
 #if defined(Q_OS_UNIX)
     if (color != TextColorDefault && isatty(fileno(file))) {
         unsigned char bright = (color & TextColorBright) >> 3;
-        fprintf(file, "\033[%d;%dm", bright, 30 + (color & ~TextColorBright));
-        vfprintf(file, str, vl);
-        fprintf(stdout, "\033[0m");
-        fprintf(stderr, "\033[0m");
+        std::fprintf(file, "\033[%d;%dm", bright, 30 + (color & ~TextColorBright));
+        std::vfprintf(file, str, vl);
+        std::fprintf(stdout, "\033[0m");
+        std::fprintf(stderr, "\033[0m");
     } else
 #elif defined(Q_OS_WIN32)
     HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -83,16 +83,16 @@ void fprintfColored(TextColor color, FILE *file, const char *str, va_list vl)
         if (color & TextColorBright)
             bgrColor += FOREGROUND_INTENSITY;
         SetConsoleTextAttribute(hStdout, (csbiInfo.wAttributes & 0xf0) | bgrColor);
-        vfprintf(file, str, vl);
+        std::vfprintf(file, str, vl);
         SetConsoleTextAttribute(hStdout, csbiInfo.wAttributes);
     } else
 #endif
     {
-        vfprintf(file, str, vl);
+        std::vfprintf(file, str, vl);
     }
 }
 
-void fprintfColored(TextColor color, FILE *file, const char *str, ...)
+void fprintfColored(TextColor color, std::FILE *file, const char *str, ...)
 {
     va_list vl;
     va_start(vl, str);

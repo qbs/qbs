@@ -26,16 +26,16 @@
 **
 ****************************************************************************/
 
-#include <stdio.h>
+#include <cstdio>
 
 int bla();
 
 int main()
 {
-    printf(DEFINE"\n");
-    printf(DEFINEWITHSPACE"\n");
-    printf(DEFINEWITHTAB"\n");
-    printf(DEFINEWITHBACKSLASH"\n");
+    std::printf(DEFINE"\n");
+    std::printf(DEFINEWITHSPACE"\n");
+    std::printf(DEFINEWITHTAB"\n");
+    std::printf(DEFINEWITHBACKSLASH"\n");
 
     return bla();
 }

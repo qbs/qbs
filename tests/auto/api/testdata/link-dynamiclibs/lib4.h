@@ -30,7 +30,7 @@
 #define LIB4_H
 
 #include "../dllexport.h"
-#include <stdio.h>
+#include <cstdio>
 
 #ifdef TEST_LIB
 #   define LIB_EXPORT DLL_EXPORT

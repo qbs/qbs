@@ -96,7 +96,7 @@ void RuleGraph::accept(RuleGraphVisitor *visitor) const
 void RuleGraph::dump() const
 {
     QByteArray indent;
-    printf("---rule graph dump:\n");
+    std::printf("---rule graph dump:\n");
     Set<int> rootRules;
     for (const auto &rule : qAsConst(m_rules))
         if (m_parents[rule->ruleGraphId].empty())
@@ -108,9 +108,9 @@ void RuleGraph::dump() const
 void RuleGraph::dump_impl(QByteArray &indent, int rootIndex) const
 {
     const RuleConstPtr r = m_rules[rootIndex];
-    printf("%s", indent.constData());
-    printf("%s", qPrintable(r->toString()));
-    printf("\n");
+    std::printf("%s", indent.constData());
+    std::printf("%s", qPrintable(r->toString()));
+    std::printf("\n");
 
     indent.append("  ");
     for (int childIndex : qAsConst(m_children[rootIndex]))

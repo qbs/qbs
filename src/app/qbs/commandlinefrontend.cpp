@@ -140,7 +140,7 @@ void CommandLineFrontend::start()
         }
 
         if (m_parser.showVersion()) {
-            puts(QBS_VERSION);
+            std::puts(QBS_VERSION);
             qApp->exit(EXIT_SUCCESS);
             return;
         }

@@ -26,7 +26,7 @@
 **
 ****************************************************************************/
 
-#include <stdio.h>
+#include <cstdio>
 
 #ifndef HAVE_MAIN_CPP
 #   error missing define HAVE_MAIN_CPP
@@ -38,9 +38,8 @@
 int main()
 {
 #ifdef _DEBUG
-    puts("Hello World! (debug version)");
+    std::puts("Hello World! (debug version)");
 #else
-    puts("Hello World! (release version)");
+    std::puts("Hello World! (release version)");
 #endif
 }
-

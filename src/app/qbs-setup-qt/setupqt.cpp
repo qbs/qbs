@@ -317,7 +317,7 @@ void SetupQt::saveToQbsSettings(const QString &qtVersionName,
     const QString cleanQtVersionName = Profile::cleanName(qtVersionName);
     QString msg = QCoreApplication::translate("SetupQt", "Creating profile '%1'.")
             .arg(cleanQtVersionName);
-    printf("%s\n", qPrintable(msg));
+    std::printf("%s\n", qPrintable(msg));
 
     Profile profile(cleanQtVersionName, settings);
     profile.removeProfile();

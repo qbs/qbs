@@ -27,13 +27,13 @@
 ****************************************************************************/
 
 #include "../dllexport.h"
-#include <stdio.h>
+#include <cstdio>
 
 DLL_IMPORT void lib3_hello();
 
 DLL_EXPORT void lib2_hello()
 {
-    puts("lib2 says hello!");
+    std::puts("lib2 says hello!");
     lib3_hello();
 }
 

@@ -27,11 +27,11 @@
 ****************************************************************************/
 
 #include "../dllexport.h"
-#include <stdio.h>
+#include <cstdio>
 
 DLL_EXPORT void lib3_hello()
 {
-    puts("lib3 says hello!");
+    std::puts("lib3 says hello!");
 }
 
 DLL_EXPORT char* lib3_greeting()

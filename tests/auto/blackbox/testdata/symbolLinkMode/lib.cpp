@@ -3,9 +3,9 @@ int somefunction()
     return 42;
 }
 
-#include <stdio.h>
+#include <cstdio>
 
 static const auto func = []() {
-    printf("Lib was loaded!\n");
+    std::printf("Lib was loaded!\n");
     return 0;
 }();

@@ -91,7 +91,7 @@ QString processNameByPid(qint64 pid)
     char exePath[64];
     char buf[PATH_MAX];
     memset(buf, 0, sizeof(buf));
-    sprintf(exePath, "/proc/%lld/exe", pid);
+    std::sprintf(exePath, "/proc/%lld/exe", pid);
     if (readlink(exePath, buf, sizeof(buf)) < 0)
         return {};
     return FileInfo::fileName(QString::fromUtf8(buf));

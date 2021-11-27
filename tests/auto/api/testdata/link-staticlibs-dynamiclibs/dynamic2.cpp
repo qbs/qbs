@@ -1,7 +1,7 @@
 #include "../dllexport.h"
-#include <stdio.h>
+#include <cstdio>
 
 DLL_EXPORT void dynamic2_hello()
 {
-    puts("dynamic2 says hello!");
+    std::puts("dynamic2 says hello!");
 }

@@ -26,9 +26,9 @@
 **
 ****************************************************************************/
 
-#include <stdio.h>
+#include <cstdio>
 
 int main()
 {
-    puts("Hello WOrld!");
+    std::puts("Hello WOrld!");
 }

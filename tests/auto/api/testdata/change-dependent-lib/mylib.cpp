@@ -28,10 +28,10 @@
 
 #include "../dllexport.h"
 
-#include <stdio.h>
+#include <cstdio>
 
 DLL_EXPORT int mylib_hello()
 {
-    puts("mylib says hello!");
+    std::puts("mylib says hello!");
     return 0;
 }

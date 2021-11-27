@@ -26,7 +26,7 @@
 **
 ****************************************************************************/
 
-#include <stdio.h>
+#include <cstdio>
 
 #ifndef WORLD
 #   error WORLD is not defined
@@ -34,5 +34,5 @@
 
 int main()
 {
-    puts("Hello " WORLD "!");
+    std::puts("Hello " WORLD "!");
 }

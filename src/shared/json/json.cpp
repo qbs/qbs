@@ -3757,7 +3757,7 @@ static void valueToJson(const Base *b, const Value &v, std::string &json, int in
             // +2 to format to ensure the expected precision
             const int n = std::numeric_limits<double>::digits10 + 2;
             char buf[30] = {0};
-            sprintf(buf, "%.*g", n, d);
+            std::sprintf(buf, "%.*g", n, d);
             // Hack:
             if (buf[0] == '-' && buf[1] == '0' && buf[2] == '\0')
                 json += "0";
@@ -4719,7 +4719,7 @@ int Base::reserveSpace(uint32_t dataSize, int posInTable, uint32_t numItems, boo
 {
     // assert(posInTable >= 0 && posInTable <= (int)length);
     if (size + dataSize >= Value::MaxSize) {
-        fprintf(stderr, "Json: Document too large to store in data structure %d %d %d\n", (uint32_t)size, dataSize, Value::MaxSize);
+        std::fprintf(stderr, "Json: Document too large to store in data structure %d %d %d\n", (uint32_t)size, dataSize, Value::MaxSize);
         return 0;
     }
 

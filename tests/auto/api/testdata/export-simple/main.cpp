@@ -27,13 +27,12 @@
 ****************************************************************************/
 
 #include "../dllexport.h"
-#include <stdio.h>
+#include <cstdio>
 
 DLL_IMPORT int lib1_hello();
 
 int main()
 {
-    puts("application says hello!");
+    std::puts("application says hello!");
     return lib1_hello();
 }
-

@@ -1,7 +1,7 @@
 #include "../dllexport.h"
-#include <stdio.h>
+#include <cstdio>
 
 DLL_EXPORT void plugin3_hello()
 {
-    puts("plugin3 says hello!");
+    std::puts("plugin3 says hello!");
 }

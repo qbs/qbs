@@ -64,7 +64,7 @@ void ConsoleLogSink::doPrintMessage(qbs::LoggerLevel level, const QString &messa
     if (!m_enabled)
         return;
 
-    FILE * const file = level == qbs::LoggerInfo && tag != QStringLiteral("stdErr")
+    std::FILE * const file = level == qbs::LoggerInfo && tag != QStringLiteral("stdErr")
             ? stdout : stderr;
 
     const QString levelTag = logLevelTag(level);
@@ -84,17 +84,17 @@ void ConsoleLogSink::doPrintMessage(qbs::LoggerLevel level, const QString &messa
     static QHash<QString, TextColor> colorTable = setupColorTable();
     fprintfWrapper(colorTable.value(tag, TextColorDefault), file, "%s\n",
                    message.toLocal8Bit().constData());
-    fflush(file);
+    std::fflush(file);
 }
 
-void ConsoleLogSink::fprintfWrapper(TextColor color, FILE *file, const char *str, ...)
+void ConsoleLogSink::fprintfWrapper(TextColor color, std::FILE *file, const char *str, ...)
 {
     va_list vl;
     va_start(vl, str);
     if (m_coloredOutputEnabled && terminalSupportsColor())
         fprintfColored(color, file, str, vl);
     else
-        vfprintf(file, str, vl);
+        std::vfprintf(file, str, vl);
     va_end(vl);
 }
 

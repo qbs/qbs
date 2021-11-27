@@ -68,9 +68,9 @@ int main()
 {
     someUsefulFunction();
 #if defined(HAS_DEBUG)
-    puts("Hello World! (debug version)");
+    std::puts("Hello World! (debug version)");
 #elif defined(HAS_RELEASE)
-    puts("Hello World! (release version)");
+    std::puts("Hello World! (release version)");
 #endif
 #ifdef HAS_SPECIAL_FEATURE
     bragAboutSpecialFeature();

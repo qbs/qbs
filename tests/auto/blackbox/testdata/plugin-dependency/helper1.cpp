@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include <cstdio>
 
 #if defined(_WIN32) || defined(WIN32)
 #   define EXPORT __declspec(dllexport)
@@ -12,5 +12,5 @@
 
 EXPORT void helper1_hello()
 {
-    puts("helper1 says hello!");
+    std::puts("helper1 says hello!");
 }

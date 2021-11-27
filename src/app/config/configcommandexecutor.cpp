@@ -90,10 +90,10 @@ void ConfigCommandExecutor::execute(const ConfigCommand &command)
         break;
     case ConfigCommand::CfgImport:
         // Display old and new settings, in case import fails or user accidentally nukes everything
-        printf("old "); // Will end up as "old settings:"
+        std::printf("old "); // Will end up as "old settings:"
         printSettings(command);
         importSettings(command.fileName);
-        printf("\nnew ");
+        std::printf("\nnew ");
         printSettings(command);
         break;
     case ConfigCommand::CfgNone:
@@ -128,7 +128,7 @@ void ConfigCommandExecutor::printSettings(const ConfigCommand &command)
 
 void ConfigCommandExecutor::printOneSetting(const QString &key)
 {
-    printf("%s: %s\n", qPrintable(key),
+    std::printf("%s: %s\n", qPrintable(key),
            qPrintable(qbs::settingsValueToRepresentation(m_settings->value(key, m_scope))));
  }
 

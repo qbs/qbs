@@ -26,12 +26,13 @@
 **
 ****************************************************************************/
 
-#include <stdio.h>
 #include <some helper.h>
+
+#include <cstdio>
 
 int bla()
 {
     int n = getSomeNumber();
-    printf("Hello World! The magic number is %d.", n);
+    std::printf("Hello World! The magic number is %d.", n);
     return n;
 }

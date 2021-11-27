@@ -34,10 +34,10 @@ TestMe::TestMe()
 
 void TestMe::hello1() const
 {
-    puts("lib4 says hello!");
+    std::puts("lib4 says hello!");
 }
 
 void TestMe::hello2Impl() const
 {
-    puts("lib4 says hello inline!");
+    std::puts("lib4 says hello inline!");
 }

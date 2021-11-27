@@ -109,7 +109,7 @@ bool FileSaver::commit()
 
 bool FileSaver::write(std::string_view data)
 {
-    return fwrite(data.data(), data.size(), device());
+    return Internal::fwrite(data.data(), data.size(), device());
 }
 
 } // namespace Internal

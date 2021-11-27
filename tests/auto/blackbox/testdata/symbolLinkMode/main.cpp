@@ -1,15 +1,15 @@
 extern WEAK_IMPORT int somefunction();
 extern void indirect();
 
-#include <stdio.h>
+#include <cstdio>
 
 int main()
 {
-    printf("meow\n");
+    std::printf("meow\n");
     if (&somefunction != nullptr)
-        printf("somefunction existed and it returned %d\n", somefunction());
+        std::printf("somefunction existed and it returned %d\n", somefunction());
     else
-        printf("somefunction did not exist\n");
+        std::printf("somefunction did not exist\n");
 #if SHOULD_INSTALL_LIB
     indirect();
 #endif

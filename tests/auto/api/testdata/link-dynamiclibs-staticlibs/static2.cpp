@@ -1,7 +1,7 @@
 #include "static2.h"
-#include <stdio.h>
+#include <cstdio>
 
 void TestMe::hello() const
 {
-    puts("static2 says hello!");
+    std::puts("static2 says hello!");
 }

@@ -27,10 +27,11 @@
 ****************************************************************************/
 
 #include "coreutils.h"
-#include <stdio.h>
+
+#include <cstdio>
 
 int main(int argc, char *argv[])
 {
-    printf("%d\n", foo());
+    std::printf("%d\n", foo());
     return 0;
 }

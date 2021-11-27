@@ -1,10 +1,11 @@
 #include "../dllexport.h"
-#include <stdio.h>
+
+#include <cstdio>
 
 DLL_IMPORT int dynamic1_hello();
 
 void static1_hello()
 {
     int n = dynamic1_hello();
-    printf("static%d says hello!\n", n);
+    std::printf("static%d says hello!\n", n);
 }

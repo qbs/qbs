@@ -26,14 +26,14 @@
 **
 ****************************************************************************/
 
-#include <stdio.h>
+#include <cstdio>
 #include <lib4.h>
 
 DLL_IMPORT int lib1_hello();
 
 int main()
 {
-    puts("application says hello!");
+    std::puts("application says hello!");
     TestMe test;
     test.hello1();
     test.hello2();
