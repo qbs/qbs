@@ -434,7 +434,7 @@ PkgConfig::Packages PkgConfig::mergeDependencies(const PkgConfig::Packages &pack
         return entry;
     };
 
-    for (auto &package: packages)
+    for (const auto &package: packages)
         func(package, func);
 
     Packages result;
