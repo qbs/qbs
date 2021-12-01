@@ -620,8 +620,7 @@ void Executor::finishJob(ExecutorJob *job, bool success)
 
 static bool allChildrenBuilt(BuildGraphNode *node)
 {
-    return std::all_of(node->children.cbegin(), node->children.cend(),
-                       std::mem_fn(&BuildGraphNode::isBuilt));
+    return Internal::all_of(node->children, std::mem_fn(&BuildGraphNode::isBuilt));
 }
 
 void Executor::finishNode(BuildGraphNode *leaf)

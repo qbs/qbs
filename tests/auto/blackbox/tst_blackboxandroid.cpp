@@ -174,7 +174,7 @@ void TestBlackboxAndroid::android()
                     return f.contains("qmltooling");
                 };
                 if (none_of(actualFiles, isFileSharedObject)
-                        || std::all_of(actualFiles.cbegin(), actualFiles.cend(), isQmlToolingLib)) {
+                        || qbs::Internal::all_of(actualFiles, isQmlToolingLib)) {
                     qWarning() << msg;
                 } else {
                     QFAIL(msg);
