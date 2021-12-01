@@ -67,6 +67,7 @@
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
 #include <tools/settings.h>
+#include <tools/stlutils.h>
 #include <tools/stringconstants.h>
 
 #include <QtCore/qdir.h>
@@ -661,8 +662,8 @@ bool Executor::transformerHasMatchingOutputTags(const TransformerConstPtr &trans
     if (m_activeFileTags.empty())
         return true; // No filtering requested.
 
-    return std::any_of(transformer->outputs.cbegin(), transformer->outputs.cend(),
-                       [this](const Artifact *a) { return artifactHasMatchingOutputTags(a); });
+    return Internal::any_of(transformer->outputs, [this](const Artifact *a) {
+        return artifactHasMatchingOutputTags(a); });
 }
 
 bool Executor::artifactHasMatchingOutputTags(const Artifact *artifact) const
@@ -1230,8 +1231,8 @@ void Executor::syncFileDependencies()
             if (!product->buildData)
                 continue;
             const auto artifactList = filterByType<Artifact>(product->buildData->allNodes());
-            isReferencedByArtifact = std::any_of(artifactList.begin(), artifactList.end(),
-                    [dep](const Artifact *a) { return a->fileDependencies.contains(dep); });
+            isReferencedByArtifact = Internal::any_of(artifactList, [dep](const Artifact *a) {
+                return a->fileDependencies.contains(dep); });
             // TODO: Would it be safe to mark the artifact as "not up to date" here and clear
             //       its list of file dependencies, rather than doing the check again in
             //       isUpToDate()?

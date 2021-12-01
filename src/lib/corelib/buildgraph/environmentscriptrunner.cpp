@@ -45,9 +45,10 @@
 #include <language/propertymapinternal.h>
 #include <language/resolvedfilecontext.h>
 #include <language/scriptengine.h>
+#include <logging/translator.h>
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
-#include <logging/translator.h>
+#include <tools/stlutils.h>
 #include <tools/stringconstants.h>
 
 #include <QtCore/qhash.h>
@@ -123,8 +124,7 @@ void EnvironmentScriptRunner::setupEnvironment()
     const auto hasScript = [this](const ResolvedModuleConstPtr &m) {
         return !getScript(m.get()).sourceCode().isEmpty();
     };
-    const bool hasAnyScripts = std::any_of(m_product->modules.cbegin(), m_product->modules.cend(),
-                                           hasScript);
+    const bool hasAnyScripts = Internal::any_of(m_product->modules, hasScript);
     if (!hasAnyScripts)
         return;
 

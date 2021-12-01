@@ -2928,8 +2928,8 @@ public:
                         const CodeLocation &dependsLocation)
         : m_dependsChain(dependsChain)
     {
-        const bool alreadyInChain = std::any_of(dependsChain.cbegin(), dependsChain.cend(),
-                                                [&module](const DependsChainEntry &e) {
+        const bool alreadyInChain = Internal::any_of(dependsChain,
+                                                     [&module](const DependsChainEntry &e) {
             return e.name == module;
         });
         if (alreadyInChain) {

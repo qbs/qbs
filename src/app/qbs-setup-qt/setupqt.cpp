@@ -214,7 +214,7 @@ static bool isQtProfile(const Profile &profile)
     // For Profiles created with setup-qt < 5.13.
     const QStringList searchPaths
             = profile.value(QStringLiteral("preferences.qbsSearchPaths")).toStringList();
-    return std::any_of(searchPaths.cbegin(), searchPaths.cend(), [] (const QString &path) {
+    return Internal::any_of(searchPaths, [] (const QString &path) {
         return QFileInfo(path + QStringLiteral("/modules/Qt")).isDir();
     });
 }

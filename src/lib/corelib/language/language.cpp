@@ -114,7 +114,7 @@ bool Probe::needsReconfigure(const FileTime &referenceTime) const
         FileInfo fi(filePath);
         return !fi.exists() || fi.lastModified() > referenceTime;
     };
-    return std::any_of(m_importedFilesUsed.cbegin(), m_importedFilesUsed.cend(), criterion);
+    return Internal::any_of(m_importedFilesUsed, criterion);
 }
 
 

@@ -45,6 +45,8 @@
 #include "setupprojectparameters.h"
 #include "logging/logger.h"
 
+#include <tools/stlutils.h>
+
 #include <QtCore/qjsonarray.h>
 #include <QtCore/qjsonobject.h>
 #include <QtCore/qshareddata.h>
@@ -306,8 +308,8 @@ bool ErrorInfo::isInternalError() const
 
 bool ErrorInfo::hasLocation() const
 {
-    return std::any_of(d->items.cbegin(), d->items.cend(),
-                        [](const ErrorItem &ei) { return ei.codeLocation().isValid(); });
+    return Internal::any_of(d->items, [](const ErrorItem &ei) {
+        return ei.codeLocation().isValid(); });
 }
 
 void ErrorInfo::load(Internal::PersistentPool &pool)

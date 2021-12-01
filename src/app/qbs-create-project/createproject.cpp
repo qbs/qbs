@@ -43,6 +43,7 @@
 #include <tools/error.h>
 #include <tools/jsliterals.h>
 #include <tools/qttools.h>
+#include <tools/stlutils.h>
 
 #include <QtCore/qdebug.h>
 #include <QtCore/qdiriterator.h>
@@ -164,9 +165,8 @@ bool ProjectCreator::isSourceFile(const QString &fileName)
     const auto isMatch = [fileName](const QRegularExpression &rex) {
         return rex.match(fileName).hasMatch();
     };
-    return !std::any_of(m_blackList.cbegin(), m_blackList.cend(), isMatch)
-            && (m_whiteList.empty()
-                || std::any_of(m_whiteList.cbegin(), m_whiteList.cend(), isMatch));
+    return !qbs::Internal::any_of(m_blackList, isMatch)
+            && (m_whiteList.empty() || qbs::Internal::any_of(m_whiteList, isMatch));
 }
 
 ProjectCreator::ProductFlags ProjectCreator::getFlags(const ProjectCreator::Project &project)

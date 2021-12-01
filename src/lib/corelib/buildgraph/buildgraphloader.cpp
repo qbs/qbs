@@ -602,9 +602,7 @@ bool BuildGraphLoader::hasProductFileChanged(const std::vector<ResolvedProductPt
             for (const GroupPtr &group : product->groups) {
                 if (!group->wildcards)
                     continue;
-                const bool reExpansionRequired = std::any_of(
-                            group->wildcards->dirTimeStamps.cbegin(),
-                            group->wildcards->dirTimeStamps.cend(),
+                const bool reExpansionRequired = Internal::any_of(group->wildcards->dirTimeStamps,
                             [](const std::pair<QString, FileTime> &pair) {
                                 return FileInfo(pair.first).lastModified() > pair.second;
                 });
