@@ -42,6 +42,8 @@
 
 #include <logging/translator.h>
 
+#include <tools/stlutils.h>
+
 namespace qbs {
 
 IarewProject::IarewProject(const GeneratableProject &genProject,
@@ -112,12 +114,10 @@ IarewProject::IarewProject(const GeneratableProject &genProject,
                 continue;
             auto sourceArtifacts = group.sourceArtifacts();
             // Remove the linker script artifacts.
-            sourceArtifacts.erase(std::remove_if(sourceArtifacts.begin(),
-                                                 sourceArtifacts.end(),
-                                      [](const auto &artifact){
+            Internal::removeIf(sourceArtifacts, [](const auto &artifact) {
                 const auto tags = artifact.fileTags();
                 return tags.contains(QLatin1String("linkerscript"));
-            }), sourceArtifacts.end());
+            });
 
             if (sourceArtifacts.isEmpty())
                 continue;

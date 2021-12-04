@@ -299,15 +299,12 @@ QString profileNameWithoutHostArch(const QString &profileName)
 // then we drop the crosscompiling toolchain MSVC2017-x86_x64.
 static void compressMsvcProfiles(QStringList &profiles)
 {
-    auto it = std::remove_if(profiles.begin(), profiles.end(),
-                             [&profiles] (const QString &profileName) {
+    Internal::removeIf(profiles, [&profiles] (const QString &profileName) {
         int idx = profileName.indexOf(QLatin1Char('_'));
         if (idx == -1)
             return false;
         return contains(profiles, profileNameWithoutHostArch(profileName));
     });
-    if (it != profiles.end())
-        profiles.erase(it, profiles.end());
 }
 
 void SetupQt::saveToQbsSettings(const QString &qtVersionName,

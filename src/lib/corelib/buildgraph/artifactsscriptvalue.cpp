@@ -45,6 +45,8 @@
 #include <language/language.h>
 #include <language/scriptengine.h>
 
+#include <tools/stlutils.h>
+
 #include <QtScript/qscriptclass.h>
 #include <QtScript/qscriptcontext.h>
 
@@ -162,7 +164,7 @@ template<class ProductOrModule> static QScriptValue js_artifactsForFileTag(
     const auto filter = [productOrModule](const Artifact *a) {
         return !isRelevantArtifact(productOrModule, a);
     };
-    artifacts.erase(std::remove_if(artifacts.begin(), artifacts.end(), filter), artifacts.end());
+    Internal::removeIf(artifacts, filter);
     result = engine->newArray(uint(artifacts.size()));
     ctx->callee().setProperty(CachedValueKey, result);
     int k = 0;

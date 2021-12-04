@@ -42,6 +42,7 @@
 #include "itemreadervisitorstate.h"
 
 #include <tools/profiling.h>
+#include <tools/stlutils.h>
 
 #include <QtCore/qfileinfo.h>
 
@@ -52,13 +53,10 @@ namespace Internal {
 
 static void makePathsCanonical(QStringList &paths)
 {
-    auto it = std::remove_if(paths.begin(), paths.end(), [](QString &p) {
+    Internal::removeIf(paths, [](QString &p) {
         p = QFileInfo(p).canonicalFilePath();
         return p.isEmpty();
     });
-    auto e = paths.end();
-    if (it != e)
-        paths.erase(it, e);
 }
 
 ItemReader::ItemReader(Logger &logger)

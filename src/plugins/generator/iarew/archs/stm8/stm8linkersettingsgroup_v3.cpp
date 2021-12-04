@@ -32,6 +32,8 @@
 
 #include "../../iarewutils.h"
 
+#include <tools/stlutils.h>
+
 #include <QtCore/qdir.h>
 
 namespace qbs {
@@ -100,14 +102,11 @@ struct ConfigPageOptions final
         // on the general page).
         configDefinitions = IarewUtils::flagValues(
                     flags, QStringLiteral("--config_def"));
-        configDefinitions.erase(std::remove_if(
-                                    configDefinitions.begin(),
-                                    configDefinitions.end(),
-                                    [](const auto &definition){
+        Internal::removeIf(configDefinitions, [](const auto &definition){
             const auto def = definition.toString();
             return def.startsWith(QLatin1String("_CSTACK_SIZE"))
                     || def.startsWith(QLatin1String("_HEAP_SIZE"));
-        }), configDefinitions.end());
+        });
     }
 
     QVariantList configFilePaths;

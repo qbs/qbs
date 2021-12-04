@@ -43,6 +43,7 @@
 #include <logging/translator.h>
 #include <tools/architectures.h>
 #include <tools/hostosinfo.h>
+#include <tools/stlutils.h>
 #include <tools/stringconstants.h>
 #include <tools/toolchains.h>
 #include <tools/version.h>
@@ -604,7 +605,7 @@ QScriptValue UtilitiesExtension::js_installedMSVCs(QScriptContext *context, QScr
         auto archPair = MSVC::getHostTargetArchPair(msvc.architecture);
         return archPair.first != hostArch || preferredArch != archPair.second;
     };
-    msvcs.erase(std::remove_if(msvcs.begin(), msvcs.end(), predicate), msvcs.end());
+    Internal::removeIf(msvcs, predicate);
     QVariantList result;
     for (const auto &msvc: msvcs)
         result.append(msvc.toVariantMap());

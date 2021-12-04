@@ -49,8 +49,7 @@ static std::vector<MSVCInstallInfo> compatibleMsvcs(Logger &logger)
         const int major = versions.at(0).toInt(&ok);
         return !(ok && major >= 15); // support MSVC2017 and above
     };
-    const auto it = std::remove_if(msvcs.begin(), msvcs.end(), filter);
-    msvcs.erase(it, msvcs.end());
+    Internal::removeIf(msvcs, filter);
     for (const auto &msvc: msvcs) {
         auto vcvarsallPath = msvc.findVcvarsallBat();
         if (vcvarsallPath.isEmpty())
