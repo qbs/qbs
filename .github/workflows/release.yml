@@ -99,7 +99,7 @@ jobs:
     - name: Install Qt Creator
       uses: ./.github/actions/download-qtc
       with:
-        version: 4.14.2
+        version: 5.0.3
     - name: Setup Qbs
       run: |
         qbs setup-toolchains --detect

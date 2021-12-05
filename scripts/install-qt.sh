@@ -224,7 +224,6 @@ fi
 
 MIRRORS="\
     http://ftp.acc.umu.se/mirror/qt.io/qtproject \
-    http://qt.mirrors.tds.net/qt \
     http://ftp.fau.de/qtproject \
     http://download.qt.io \
 "
