@@ -1069,9 +1069,9 @@
     If this property is set to \c{undefined}, the default runtime library of the
     toolchain is used.
 
-    \note This property is only functional for MSVC.
+    \note This property is only functional for MSVC and MinGW.
 
-    \defaultvalue \c{"dynamic"} for MSVC, \c{undefined} for other compilers.
+    \defaultvalue \c{"dynamic"} for MSVC and MinGW, \c{undefined} for other compilers.
 */
 
 /*!

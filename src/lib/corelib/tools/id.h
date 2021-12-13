@@ -41,6 +41,7 @@
 #define QBS_TOOLS_ID_H
 
 #include "qbs_export.h"
+#include <tools/porting.h>
 
 #include <QtCore/qmetatype.h>
 #include <QtCore/qstring.h>
@@ -84,7 +85,7 @@ private:
     int m_id;
 };
 
-inline uint qHash(const Id &id) { return id.uniqueIdentifier(); }
+inline QHashValueType qHash(const Id &id) { return id.uniqueIdentifier(); }
 
 } // namespace Internal
 } // namespace qbs

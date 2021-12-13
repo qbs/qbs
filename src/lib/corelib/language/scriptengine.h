@@ -47,6 +47,7 @@
 #include <logging/logger.h>
 #include <tools/codelocation.h>
 #include <tools/filetime.h>
+#include <tools/porting.h>
 #include <tools/set.h>
 
 #include <QtCore/qdir.h>
@@ -313,11 +314,11 @@ private:
         const PropertyMapConstPtr m_propertyMap;
 
         friend bool operator==(const PropertyCacheKey &lhs, const PropertyCacheKey &rhs);
-        friend uint qHash(const ScriptEngine::PropertyCacheKey &k, uint seed);
+        friend QHashValueType qHash(const ScriptEngine::PropertyCacheKey &k, QHashValueType seed);
     };
 
     friend bool operator==(const PropertyCacheKey &lhs, const PropertyCacheKey &rhs);
-    friend uint qHash(const ScriptEngine::PropertyCacheKey &k, uint seed);
+    friend QHashValueType qHash(const ScriptEngine::PropertyCacheKey &k, QHashValueType seed);
 
     static std::mutex m_creationDestructionMutex;
     ScriptImporter *m_scriptImporter;

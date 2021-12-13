@@ -75,7 +75,7 @@ public:
         : n(length), str(s)
     {
         if (!n)
-            length = n = qstrlen(s);
+            length = n = int(qstrlen(s));
         h = 0;
         while (length--) {
             h = (h << 4) + *s++;
@@ -95,7 +95,7 @@ static bool operator==(const StringHolder &sh1, const StringHolder &sh2)
 }
 
 
-static uint qHash(const StringHolder &sh)
+QHashValueType qHash(const StringHolder &sh)
 {
     return sh.h;
 }

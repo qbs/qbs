@@ -71,7 +71,7 @@ public:
         pool.serializationOp<opType>(scopeName, filePaths, location);
     }
 };
-inline uint qHash(const JsImport &jsi) { return qHash(jsi.scopeName); }
+inline auto qHash(const JsImport &jsi) { return qHash(jsi.scopeName); }
 
 inline bool operator<(const JsImport &lhs, const JsImport &rhs)
 {

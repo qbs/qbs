@@ -44,6 +44,7 @@ GenericGCC {
     windowsApiCharacterSet: "unicode"
     platformDefines: base.concat(WindowsUtils.characterSetDefines(windowsApiCharacterSet))
                          .concat("WIN32")
+    runtimeLibrary: "dynamic"
 
     Properties {
         condition: product.multiplexByQbsProperties.contains("buildVariants")

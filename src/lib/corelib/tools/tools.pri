@@ -30,6 +30,7 @@ HEADERS += \
     $$PWD/launchersocket.h \
     $$PWD/msvcinfo.h \
     $$PWD/persistence.h \
+    $$PWD/porting.h \
     $$PWD/scannerpluginmanager.h \
     $$PWD/scripttools.h \
     $$PWD/set.h \

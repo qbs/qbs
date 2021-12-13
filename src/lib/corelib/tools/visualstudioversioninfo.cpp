@@ -181,7 +181,7 @@ QString VisualStudioVersionInfo::platformToolsetVersion() const
     return QStringLiteral("v%1").arg(m_version.majorVersion() * 10);
 }
 
-quint32 qHash(const VisualStudioVersionInfo &info)
+QHashValueType qHash(const VisualStudioVersionInfo &info)
 {
     return qHash(info.version().toString());
 }

@@ -43,6 +43,7 @@
 
 #include "qbs_export.h"
 
+#include <tools/porting.h>
 #include <tools/version.h>
 
 #include <QtCore/qstring.h>
@@ -78,7 +79,7 @@ private:
     Version m_version;
 };
 
-quint32 qHash(const VisualStudioVersionInfo &info);
+QHashValueType qHash(const VisualStudioVersionInfo &info);
 
 } // namespace Internal
 } // namespace qbs

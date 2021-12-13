@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -37,58 +37,19 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_SOURCELOCATION_H
-#define QBS_SOURCELOCATION_H
+#ifndef QBS_TOOLS_PORTING_H
+#define QBS_TOOLS_PORTING_H
 
-#include "qbs_export.h"
-
-#include <QtCore/qdebug.h>
-#include <QtCore/qshareddata.h>
-
-QT_BEGIN_NAMESPACE
-class QDataStream;
-class QJsonObject;
-class QString;
-QT_END_NAMESPACE
+#include <QtCore/qglobal.h>
 
 namespace qbs {
-namespace Internal { class PersistentPool; }
 
-class QBS_EXPORT CodeLocation
-{
-    friend QBS_EXPORT bool operator==(const CodeLocation &cl1, const CodeLocation &cl2);
-public:
-    CodeLocation();
-    explicit CodeLocation(const QString &aFilePath, int aLine = -1, int aColumn = -1,
-                          bool checkPath = true);
-    CodeLocation(const CodeLocation &other);
-    CodeLocation &operator=(const CodeLocation &other);
-    ~CodeLocation();
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+using QHashValueType = uint;
+#else
+using QHashValueType = size_t;
+#endif
 
-    QString filePath() const;
-    int line() const;
-    int column() const;
+}
 
-    bool isValid() const;
-    QString toString() const;
-    QJsonObject toJson() const;
-
-    void load(Internal::PersistentPool &pool);
-    void store(Internal::PersistentPool &pool) const;
-
-private:
-    class CodeLocationPrivate;
-    QExplicitlySharedDataPointer<CodeLocationPrivate> d;
-};
-
-QBS_EXPORT bool operator==(const CodeLocation &cl1, const CodeLocation &cl2);
-QBS_EXPORT bool operator!=(const CodeLocation &cl1, const CodeLocation &cl2);
-QBS_EXPORT bool operator<(const CodeLocation &cl1, const CodeLocation &cl2);
-
-inline auto qHash(const CodeLocation &cl) { return qHash(cl.toString()); }
-
-QDebug operator<<(QDebug debug, const CodeLocation &location);
-
-} // namespace qbs
-
-#endif // QBS_SOURCELOCATION_H
+#endif

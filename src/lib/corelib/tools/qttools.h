@@ -41,6 +41,7 @@
 #define QBSQTTOOLS_H
 
 #include <tools/qbsassert.h>
+#include <tools/porting.h>
 #include <tools/stlutils.h>
 
 #include <QtCore/qhash.h>
@@ -136,26 +137,26 @@ template<> struct hash<QVariantHash>
 
 QT_BEGIN_NAMESPACE
 
-uint qHash(const QStringList &list);
-uint qHash(const QProcessEnvironment &env);
+qbs::QHashValueType qHash(const QStringList &list);
+qbs::QHashValueType qHash(const QProcessEnvironment &env);
 
 template<typename... Args>
-uint qHash(const std::tuple<Args...> &tuple)
+qbs::QHashValueType qHash(const std::tuple<Args...> &tuple)
 {
     return std::hash<std::tuple<Args...>>()(tuple) % std::numeric_limits<uint>::max();
 }
 
-inline uint qHash(const QVariant &v)
+inline qbs::QHashValueType qHash(const QVariant &v)
 {
     return std::hash<QVariant>()(v) % std::numeric_limits<uint>::max();
 }
 
-inline uint qHash(const QVariantMap &v)
+inline qbs::QHashValueType qHash(const QVariantMap &v)
 {
     return std::hash<QVariantMap>()(v) % std::numeric_limits<uint>::max();
 }
 
-inline uint qHash(const QVariantHash &v)
+inline qbs::QHashValueType qHash(const QVariantHash &v)
 {
     return std::hash<QVariantHash>()(v) % std::numeric_limits<uint>::max();
 }

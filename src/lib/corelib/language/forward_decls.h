@@ -142,12 +142,14 @@ class PersistentPool;
 } // namespace qbs
 
 #ifdef QT_CORE_LIB
+#include "../tools/porting.h"
+
 #include <QtCore/qhash.h>
 
 namespace qbs {
 namespace Internal {
 
-template <typename T> inline static uint qHash(const std::shared_ptr<T> &p, uint seed = 0)
+template <typename T> inline static QHashValueType qHash(const std::shared_ptr<T> &p, QHashValueType seed = 0)
 {
     return ::qHash(p.get(), seed);
 }
