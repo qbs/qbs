@@ -82,7 +82,7 @@ CodeSignModule {
         description: "Path to the signing certificate PFX file."
     }
 
-    property path certificatePassword
+    property string certificatePassword
     PropertyOptions {
         name: "certificatePassword"
         description: "Password to use when opening a certificate PFX file."
