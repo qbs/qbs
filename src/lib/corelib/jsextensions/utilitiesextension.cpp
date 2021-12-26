@@ -465,6 +465,22 @@ QScriptValue UtilitiesExtension::js_signingIdentities(QScriptContext *context,
 }
 
 #ifdef Q_OS_WIN
+// Try to detect the cross-architecture from the compiler path; prepend the host architecture
+// if it is differ than the target architecture (e.g. something like x64_x86 and so forth).
+static QString detectArchitecture(const QString &compilerFilePath, const QString &targetArch)
+{
+    const auto startIndex = compilerFilePath.lastIndexOf(QLatin1String("Host"));
+    if (startIndex == -1)
+        return targetArch;
+    const auto endIndex = compilerFilePath.indexOf(QLatin1Char('/'), startIndex);
+    if (endIndex == -1)
+        return targetArch;
+    const auto hostArch = compilerFilePath.mid(startIndex + 4, endIndex - startIndex - 4).toLower();
+    if (hostArch.isEmpty() || (hostArch == targetArch))
+        return targetArch;
+    return hostArch + QLatin1Char('_') + targetArch;
+}
+
 static std::pair<QVariantMap /*result*/, QString /*error*/> msvcCompilerInfoHelper(
         const QString &compilerFilePath,
         MSVC::CompilerLanguage language,
@@ -472,7 +488,8 @@ static std::pair<QVariantMap /*result*/, QString /*error*/> msvcCompilerInfoHelp
         const QString &arch,
         const QString &sdkVersion)
 {
-    MSVC msvc(compilerFilePath, arch, sdkVersion);
+    QString detailedArch = detectArchitecture(compilerFilePath, arch);
+    MSVC msvc(compilerFilePath, std::move(detailedArch), sdkVersion);
     VsEnvironmentDetector envdetector(vcvarsallPath);
     if (!envdetector.start(&msvc))
         return { {}, QStringLiteral("Detecting the MSVC build environment failed: ")
