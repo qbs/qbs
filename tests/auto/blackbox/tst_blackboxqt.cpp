@@ -365,7 +365,9 @@ void TestBlackboxQt::pkgconfigQt()
             lines, [&needle](const auto &line) { return !line.startsWith(needle); });
     QCOMPARE(lines.size(), 1);
     const auto libPath = lines[0].mid(needle.size());
-    const auto prefix = QFileInfo(libPath).path();
+    auto prefix = QFileInfo(libPath).path();
+    if (prefix.endsWith("/lib") && !prefix.startsWith("/lib"))
+       prefix = QFileInfo(prefix).path();
     const auto pkgConfigPath = libPath + "/pkgconfig/";
     if (!QFileInfo(pkgConfigPath).exists())
         QSKIP("No *.pc files found");
