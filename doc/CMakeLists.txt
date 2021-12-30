@@ -26,3 +26,5 @@ add_qbs_documentation(
         ${_DOC_IMAGES_SOURCES}
         ${_DOC_TARGETS_SOURCES}
     )
+
+add_subdirectory(man)

@@ -1,6 +1,7 @@
 # Options:
 option(QBS_INSTALL_HTML_DOCS "Whether to install Qbs HTML Documentation" OFF)
 option(QBS_INSTALL_QCH_DOCS "Whether to install Qbs QCH Documentation" OFF)
+option(QBS_INSTALL_MAN_PAGE "Whether to install Qbs man page" OFF)
 
 # Get information on directories from qmake
 # as this is not yet exported by cmake.
