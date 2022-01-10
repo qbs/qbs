@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2018 The Qt Company Ltd.
+** Copyright (C) 2022 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -123,12 +123,6 @@
 /*!
     \externalpage https://github.com/nanopb/nanopb
     \title nanopb
-*/
-
-/*!
-    \externalpage nolink
-    \title macOS
-    \internal
 */
 
 /*!

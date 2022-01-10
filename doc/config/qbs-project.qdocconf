@@ -5,6 +5,9 @@ include($QT_INSTALL_DOCS/global/fileextensions.qdocconf)
 project     = "Qbs"
 description = "Qbs Manual"
 
+#Words to ignore for auto-linking
+ignorewords += macOS
+
 headerdirs =
 sourcedirs = ..
 imagedirs = ../images ../templates/images
