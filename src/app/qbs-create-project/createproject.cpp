@@ -62,10 +62,10 @@ void ProjectCreator::run(const QString &topLevelDir, ProjectStructure projectStr
                          const QStringList &whiteList, const QStringList &blackList)
 {
     m_projectStructure = projectStructure;
-    for (const QString &s : whiteList)
-        m_whiteList.push_back(QRegularExpression(QRegularExpression::wildcardToRegularExpression(s)));
-    for (const QString &s : blackList)
-        m_blackList.push_back(QRegularExpression(QRegularExpression::wildcardToRegularExpression(s)));
+    qbs::Internal::transform(whiteList, m_whiteList, [](const QString &s) {
+        return QRegularExpression(QRegularExpression::wildcardToRegularExpression(s)); });
+    qbs::Internal::transform(blackList, m_blackList, [](const QString &s) {
+        return QRegularExpression(QRegularExpression::wildcardToRegularExpression(s)); });
     m_topLevelProject.dirPath = topLevelDir;
     setupProject(&m_topLevelProject);
     serializeProject(m_topLevelProject);

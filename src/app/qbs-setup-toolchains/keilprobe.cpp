@@ -416,10 +416,8 @@ void keilProbe(Settings *settings, std::vector<Profile> &profiles)
                    pathInfos.cbegin(), pathInfos.cend(),
                    std::back_inserter(allInfos));
 
-    for (const ToolchainInstallInfo &info : allInfos) {
-        const auto profile = createKeilProfileHelper(info, settings);
-        profiles.push_back(profile);
-    }
+    qbs::Internal::transform(allInfos, profiles, [settings](const auto &info) {
+        return createKeilProfileHelper(info, settings); });
 
     if (allInfos.empty())
         qbsInfo() << Tr::tr("No KEIL toolchains found.");

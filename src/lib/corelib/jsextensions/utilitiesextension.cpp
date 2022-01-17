@@ -144,10 +144,9 @@ QScriptValue UtilitiesExtension::js_canonicalPlatform(QScriptContext *context,
 
     if (context->argumentCount() == 1 && value.isString()) {
         return engine->toScriptValue([&value] {
-            QStringList list;
-            for (const auto &s : HostOsInfo::canonicalOSIdentifiers(value.toString().toStdString()))
-                list.push_back(QString::fromStdString(s));
-            return list;
+            const auto ids = HostOsInfo::canonicalOSIdentifiers(value.toString().toStdString());
+            return transformed<QStringList>(ids, [](const auto &s) {
+                return QString::fromStdString(s); });
         }());
     }
 

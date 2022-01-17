@@ -42,6 +42,7 @@
 #include <language/scriptengine.h>
 #include <logging/translator.h>
 #include <tools/hostosinfo.h>
+#include <tools/stlutils.h>
 
 #include <QtCore/qfile.h>
 #include <QtCore/qfileinfo.h>
@@ -214,10 +215,7 @@ QVariantList BinaryFile::read(qint64 size)
                               .arg(m_file->fileName(), m_file->errorString()));
     }
 
-    QVariantList data;
-    std::for_each(bytes.constBegin(), bytes.constEnd(), [&data](const char &c) {
-        data.append(c); });
-    return data;
+    return transformed<QVariantList>(bytes, [](const char &c) { return c; });
 }
 
 void BinaryFile::write(const QVariantList &data)
@@ -225,9 +223,8 @@ void BinaryFile::write(const QVariantList &data)
     if (checkForClosed())
         return;
 
-    QByteArray bytes;
-    std::for_each(data.constBegin(), data.constEnd(), [&bytes](const QVariant &v) {
-        bytes.append(char(v.toUInt() & 0xFF)); });
+    const auto bytes = transformed<QByteArray>(data, [](const QVariant &v) {
+        return char(v.toUInt() & 0xFF); });
 
     const qint64 size = m_file->write(bytes);
     if (Q_UNLIKELY(size == -1)) {

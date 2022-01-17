@@ -103,9 +103,9 @@ JSSourceValue::JSSourceValue(const JSSourceValue &other) : Value(other)
     m_baseValue = other.m_baseValue
             ? std::static_pointer_cast<JSSourceValue>(other.m_baseValue->clone())
             : JSSourceValuePtr();
-    m_alternatives.reserve(other.m_alternatives.size());
-    for (const Alternative &otherAlt : other.m_alternatives)
-        m_alternatives.push_back(otherAlt.clone());
+    m_alternatives = transformed<std::vector<Alternative>>(
+        other.m_alternatives, [](const auto &alternative) {
+        return alternative.clone(); });
 }
 
 JSSourceValuePtr JSSourceValue::create(bool createdByPropertiesBlock)

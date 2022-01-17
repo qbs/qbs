@@ -669,12 +669,12 @@ std::vector<MSVC> MSVC::installedCompilers(Logger &logger)
         }
 
         const auto ais = findSupportedArchitectures(msvc);
-        for (const MSVCArchInfo &ai : ais) {
+        transform(ais, msvcs, [&msvc](const auto &ai) {
             MSVC specificMSVC = msvc;
             specificMSVC.architecture = ai.arch;
             specificMSVC.binPath = ai.binPath;
-            msvcs.push_back(specificMSVC);
-        }
+            return specificMSVC;
+        });
     }
     return msvcs;
 }

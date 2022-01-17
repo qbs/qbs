@@ -34,6 +34,8 @@
 
 #include <generators/generatorutils.h>
 
+#include <tools/stlutils.h>
+
 namespace qbs {
 namespace keiluv {
 namespace arm {
@@ -91,11 +93,8 @@ struct LinkerPageOptions final
 
         // Transform all paths to relative.
         const QString baseDirectory = qbs::gen::utils::buildRootPath(qbsProject);
-        std::transform(scatterFiles.begin(), scatterFiles.end(),
-                       std::back_inserter(scatterFiles),
-                       [baseDirectory](const QString &scatterFile) {
-            return gen::utils::relativeFilePath(baseDirectory, scatterFile);
-        });
+        Internal::transform(scatterFiles, [&baseDirectory](const auto &file) {
+            return gen::utils::relativeFilePath(baseDirectory, file); });
 
         // Make a first scatter file as a main scatter file.
         // Other scatter files will be interpretes as a misc controls.

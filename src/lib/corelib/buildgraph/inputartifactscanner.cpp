@@ -49,11 +49,12 @@
 
 #include <language/language.h>
 #include <logging/categories.h>
-#include <tools/fileinfo.h>
-#include <tools/scannerpluginmanager.h>
-#include <tools/qbsassert.h>
 #include <tools/error.h>
+#include <tools/fileinfo.h>
+#include <tools/qbsassert.h>
 #include <tools/qttools.h>
+#include <tools/scannerpluginmanager.h>
+#include <tools/stlutils.h>
 
 #include <QtCore/qdir.h>
 #include <QtCore/qstringlist.h>
@@ -212,9 +213,9 @@ Set<DependencyScanner *> InputArtifactScanner::scannersForArtifact(const Artifac
         InputArtifactScannerContext::DependencyScannerCacheItem &cache = scannerCache[fileTag];
         if (!cache.valid) {
             cache.valid = true;
-            for (ScannerPlugin *scanner : ScannerPluginManager::scannersForFileTag(fileTag)) {
-                cache.scanners.push_back(std::make_shared<PluginDependencyScanner>(scanner));
-            }
+            const auto scanners = ScannerPluginManager::scannersForFileTag(fileTag);
+            transform(scanners, cache.scanners, [](const auto &scanner) {
+                return std::make_shared<PluginDependencyScanner>(scanner); });
             for (const ResolvedScannerConstPtr &scanner : product->scanners) {
                 if (scanner->inputs.contains(fileTag)) {
                     cache.scanners.push_back(

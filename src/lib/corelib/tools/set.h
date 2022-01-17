@@ -292,11 +292,7 @@ template<typename T> void Set<T>::store(PersistentPool &pool) const
 #ifdef QT_CORE_LIB
 template<typename T> QStringList Set<T>::toStringList() const
 {
-    QStringList sl;
-    sl.reserve(int(size()));
-    std::transform(cbegin(), cend(), std::back_inserter(sl),
-                   [this](const T &e) { return toString(e); });
-    return sl;
+    return transformed<QStringList>(*this, [this](const T &e) { return toString(e); });
 }
 
 template<typename T> QString Set<T>::toString() const

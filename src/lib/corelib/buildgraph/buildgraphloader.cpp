@@ -971,10 +971,8 @@ void BuildGraphLoader::rescueOldBuildData(const ResolvedProductConstPtr &restore
                 rad.children.emplace_back(child->product->name,
                         child->product->multiplexConfigurationId, child->filePath(),
                         childrenInfo.childrenAddedByScanner.contains(child));
-                std::transform(oldArtifact->fileDependencies.cbegin(),
-                               oldArtifact->fileDependencies.cend(),
-                               std::back_inserter(rad.fileDependencies),
-                               std::mem_fn(&FileDependency::filePath));
+                transform(oldArtifact->fileDependencies, rad.fileDependencies,
+                          std::mem_fn(&FileDependency::filePath));
             }
             newlyResolvedProduct->buildData->addRescuableArtifactData(oldArtifact->filePath(), rad);
         }

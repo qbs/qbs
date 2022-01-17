@@ -286,8 +286,8 @@ void qbs::MakefileGenerator::generate()
                 }
                 if (!processCommandEncountered && builtByDefault) {
                     const auto outputs = transformerData.outputs();
-                    for (const ArtifactData &output : outputs)
-                        filesCreatedByJsCommands.push_back(output.filePath());
+                    transform(outputs, filesCreatedByJsCommands, [](const auto &output) {
+                        return output.filePath(); });
                 }
             }
             stream << "install-" << productTarget << ": " << productTarget << '\n';

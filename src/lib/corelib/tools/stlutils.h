@@ -54,6 +54,28 @@ C sorted(const C &container)
     return result;
 }
 
+template <typename To, typename From, typename Op>
+To transformed(const From &from, Op op)
+{
+    To to;
+    to.reserve(from.size());
+    std::transform(std::cbegin(from), std::cend(from), std::back_inserter(to), std::move(op));
+    return to;
+}
+
+template <typename C, typename Op>
+void transform(C &&container, Op op)
+{
+    std::transform(std::begin(container), std::end(container), std::begin(container),
+                   std::move(op));
+}
+
+template <typename To, typename From, typename Op>
+void transform(const From &from, To &&to, Op op)
+{
+    std::transform(std::cbegin(from), std::cend(from), std::back_inserter(to), std::move(op));
+}
+
 template <class C, class T>
 bool contains(const C &container, const T &v)
 {

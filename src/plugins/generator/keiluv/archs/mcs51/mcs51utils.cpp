@@ -30,6 +30,8 @@
 
 #include "mcs51utils.h"
 
+#include <tools/stlutils.h>
+
 namespace qbs {
 namespace keiluv {
 namespace mcs51 {
@@ -71,8 +73,7 @@ QString flagValue(const QStringList &flags, const QString &flagKey)
 QStringList flagValueParts(const QString &flagValue, const QLatin1Char &sep)
 {
     auto parts = flagValue.split(sep);
-    std::transform(parts.begin(), parts.end(), parts.begin(),
-                   [](const auto &part) { return part.trimmed(); });
+    Internal::transform(parts, [](const auto &part) { return part.trimmed(); });
     return parts;
 }
 

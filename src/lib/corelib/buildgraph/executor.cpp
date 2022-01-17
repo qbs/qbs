@@ -1107,10 +1107,8 @@ void Executor::checkForUnbuiltProducts()
         m_logger.qbsInfo() << Tr::tr("Build done%1.").arg(configString());
     } else {
         m_error.append(Tr::tr("The following products could not be built%1:").arg(configString()));
-        QStringList productNames;
-        std::transform(unbuiltProducts.cbegin(), unbuiltProducts.cend(),
-                       std::back_inserter(productNames),
-                       [](const ResolvedProductConstPtr &p) { return p->fullDisplayName(); });
+        auto productNames = transformed<QStringList>(unbuiltProducts, [](const auto &p) {
+            return p->fullDisplayName(); });
         std::sort(productNames.begin(), productNames.end());
         m_error.append(productNames.join(QLatin1String(", ")));
     }

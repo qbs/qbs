@@ -646,8 +646,7 @@ static QualifiedIdSet propertiesToEvaluate(std::deque<QualifiedId> initialProps,
         const auto insertResult = allProperties.insert(prop);
         if (!insertResult.second)
             continue;
-        for (const QualifiedId &directDep : deps.value(prop))
-            remainingProps.push_back(directDep);
+        transform(deps.value(prop), remainingProps, [](const QualifiedId &id) { return id; });
     }
     return allProperties;
 }
@@ -1103,8 +1102,11 @@ void ProjectResolver::resolveExport(Item *exportItem, ProjectContext *)
         return p1.fullName < p2.fullName;
     };
     std::sort(exportedModule.m_properties.begin(), exportedModule.m_properties.end(), cmpFunc);
-    for (const Item * const child : exportItem->children())
-        exportedModule.children.push_back(resolveExportChild(child, exportedModule));
+
+    transform(exportItem->children(), exportedModule.children,
+              [&exportedModule, this](const auto &child) {
+        return resolveExportChild(child, exportedModule); });
+
     for (const JsImport &jsImport : exportItem->file()->jsImports()) {
         if (usesImport(exportedModule, jsImport.scopeName)) {
             exportedModule.importStatements << getLineAtLocation(jsImport.location,
@@ -1130,12 +1132,12 @@ std::unique_ptr<ExportedItem> ProjectResolver::resolveExportChild(const Item *it
     // the original type name.
     exportedItem->name = item->typeName();
 
-    for (const Item * const child : item->children())
-        exportedItem->children.push_back(resolveExportChild(child, module));
+    transform(item->children(), exportedItem->children, [&module, this](const auto &child) {
+        return resolveExportChild(child, module); });
+
     setupExportedProperties(item, QString(), exportedItem->properties);
     return exportedItem;
 }
-
 
 QString ProjectResolver::sourceCodeAsFunction(const JSSourceValueConstPtr &value,
                                               const PropertyDeclaration &decl) const

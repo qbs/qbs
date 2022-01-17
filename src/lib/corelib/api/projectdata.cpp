@@ -45,8 +45,9 @@
 #include <tools/fileinfo.h>
 #include <tools/jsliterals.h>
 #include <tools/qbsassert.h>
-#include <tools/stringconstants.h>
 #include <tools/qttools.h>
+#include <tools/stlutils.h>
+#include <tools/stringconstants.h>
 #include <tools/stringconstants.h>
 
 #include <QtCore/qdir.h>
@@ -62,9 +63,10 @@ using namespace Internal;
 template<typename T> static QJsonArray toJsonArray(const QList<T> &list,
                                                    const QStringList &moduleProperties)
 {
+    // We can't use transformed from stlutils.h here as QJsonArray has not the reserve() method.
     QJsonArray jsonArray;
-    std::transform(list.begin(), list.end(), std::back_inserter(jsonArray),
-                   [&moduleProperties](const T &v) { return v.toJson(moduleProperties);});
+    transform(list, jsonArray, [&moduleProperties](const T &v) {
+        return v.toJson(moduleProperties);});
     return jsonArray;
 }
 
@@ -218,11 +220,7 @@ bool GroupData::isEnabled() const
 QStringList GroupData::allFilePaths() const
 {
     const QList<ArtifactData> &artifacts = allSourceArtifacts();
-    QStringList paths;
-    paths.reserve(artifacts.size());
-    std::transform(artifacts.cbegin(), artifacts.cend(), std::back_inserter(paths),
-                          [](const ArtifactData &sa) { return sa.filePath(); });
-    return paths;
+    return transformed<QStringList>(artifacts, [](const auto &sa) { return sa.filePath(); });
 }
 
 bool operator!=(const GroupData &lhs, const GroupData &rhs)

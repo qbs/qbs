@@ -183,8 +183,8 @@ void ScriptEngine::import(const JsImport &jsImport, QScriptValue &targetObject)
         m_jsImportCache.insert(jsImport, jsImportValue);
         std::vector<QString> &filePathsForScriptValue
                 = m_filePathsPerImport[jsImportValue.objectId()];
-        for (const QString &fp : jsImport.filePaths)
-            filePathsForScriptValue.push_back(fp);
+        transform(jsImport.filePaths, filePathsForScriptValue, [](const auto &fp) {
+            return fp; });
     }
 
     QScriptValue sv = newObject();

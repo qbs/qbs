@@ -53,6 +53,7 @@
 
 #include <tools/fileinfo.h>
 #include <tools/jsliterals.h>
+#include <tools/stlutils.h>
 #include <tools/stringconstants.h>
 
 #include <QtCore/qtemporaryfile.h>
@@ -79,8 +80,8 @@ ModuleProviderLoader::ModuleProviderResult ModuleProviderLoader::executeModulePr
                             << "not found, checking for module providers";
     const auto providerNames = getModuleProviders(productContext.item);
     if (providerNames) {
-        for (const auto &providerName : *providerNames)
-            providersToRun.push_back({providerName, ModuleProviderLookup::Named});
+        providersToRun = transformed<std::vector<Provider>>(*providerNames, [](const auto &name) {
+            return Provider{name, ModuleProviderLookup::Named}; });
     } else {
         for (QualifiedId providerName = moduleName; !providerName.empty();
             providerName.pop_back()) {
@@ -215,11 +216,8 @@ std::optional<std::vector<QualifiedId>> ModuleProviderLoader::getModuleProviders
         const auto providers =
                 m_evaluator->optionalStringListValue(item, StringConstants::qbsModuleProviders());
         if (providers) {
-            std::vector<QualifiedId> result;
-            result.reserve(providers->size());
-            for (const auto &provider : *providers)
-                result.push_back(QualifiedId::fromString(provider));
-            return result;
+            return transformed<std::vector<QualifiedId>>(*providers, [](const auto &provider) {
+                return QualifiedId::fromString(provider); });
         }
         item = item->parent();
     }

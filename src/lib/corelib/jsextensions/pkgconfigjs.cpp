@@ -180,11 +180,8 @@ PcPackage::VariablesMap variablesFromQVariantMap(const QVariantMap &map)
 
 std::vector<std::string> stringListToStdVector(const QStringList &list)
 {
-    std::vector<std::string> result;
-    result.reserve(list.size());
-    for (const auto &string : list)
-        result.push_back(string.toStdString());
-    return result;
+    return transformed<std::vector<std::string>>(list, [](const auto &s) {
+        return s.toStdString(); });
 }
 
 } // namespace

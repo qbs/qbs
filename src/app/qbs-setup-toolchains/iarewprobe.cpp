@@ -323,10 +323,8 @@ void iarProbe(Settings *settings, std::vector<Profile> &profiles)
                    pathInfos.cbegin(), pathInfos.cend(),
                    std::back_inserter(allInfos));
 
-    for (const ToolchainInstallInfo &info : allInfos) {
-        const auto profile = createIarProfileHelper(info, settings);
-        profiles.push_back(profile);
-    }
+    qbs::Internal::transform(allInfos, profiles, [settings](const auto &info) {
+        return createIarProfileHelper(info, settings); });
 
     if (allInfos.empty())
         qbsInfo() << Tr::tr("No IAR toolchains found.");

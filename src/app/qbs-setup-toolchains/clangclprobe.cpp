@@ -50,6 +50,7 @@
 #include <tools/profile.h>
 #include <tools/qttools.h>
 #include <tools/settings.h>
+#include <tools/stlutils.h>
 
 #include <QtCore/qdir.h>
 #include <QtCore/qfileinfo.h>
@@ -125,10 +126,8 @@ void clangClProbe(Settings *settings, std::vector<Profile> &profiles)
         QStringLiteral("x86_64"),
         QStringLiteral("x86")
     };
-    for (const auto &arch: architectures) {
+    qbs::Internal::transform(architectures, profiles, [settings, clangCl](const auto &arch) {
         const auto profileName = QStringLiteral("clang-cl-%1").arg(arch);
-        auto profile = createProfileHelper(
-                settings, profileName, clangCl.toolchainInstallPath, clangCl.vcvarsallPath, arch);
-        profiles.push_back(std::move(profile));
-    }
+        return createProfileHelper(settings, profileName, clangCl.toolchainInstallPath,
+                                   clangCl.vcvarsallPath, arch); });
 }

@@ -32,6 +32,8 @@
 
 #include <generators/generatorutils.h>
 
+#include <tools/stlutils.h>
+
 namespace qbs {
 namespace KeiluvUtils {
 
@@ -82,10 +84,8 @@ QStringList includes(const PropertyMap &qbsProps)
                 qbsProps, {QStringLiteral("includePaths"),
                            QStringLiteral("systemIncludePaths")});
     // Transform include path separators to native.
-    std::transform(paths.begin(), paths.end(), paths.begin(),
-                   [](const auto &path) {
-        return QDir::toNativeSeparators(path);
-    });
+    Internal::transform(paths, [](const auto &path) {
+        return QDir::toNativeSeparators(path); });
     return paths;
 }
 
@@ -100,23 +100,18 @@ QStringList staticLibraries(const PropertyMap &qbsProps)
     auto libs = gen::utils::cppStringModuleProperties(
                 qbsProps, {QStringLiteral("staticLibraries")});
     // Transform library path separators to native.
-    std::transform(libs.begin(), libs.end(), libs.begin(),
-                   [](const auto &path) {
-        return QDir::toNativeSeparators(path);
-    });
+    Internal::transform(libs, [](const auto &path) {
+        return QDir::toNativeSeparators(path); });
     return libs;
 }
 
 QStringList dependencies(const std::vector<ProductData> &qbsProductDeps)
 {
-    QStringList deps;
-    for (const ProductData &qbsProductDep : qbsProductDeps) {
-        const auto path = qbsProductDep.buildDirectory()
-                + QLatin1String("/obj/")
-                + gen::utils::targetBinary(qbsProductDep);
-        deps.push_back(QDir::toNativeSeparators(path));
-    }
-    return deps;
+    return Internal::transformed<QStringList>(qbsProductDeps, [](const auto &dep) {
+        const auto path = dep.buildDirectory() + QLatin1String("/obj/")
+                          + gen::utils::targetBinary(dep);
+        return QDir::toNativeSeparators(path);
+    });
 }
 
 } // namespace KeiluvUtils

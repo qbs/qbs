@@ -211,10 +211,8 @@ void dmcProbe(Settings *settings, std::vector<Profile> &profiles)
     qbsInfo() << Tr::tr("Trying to detect DMC toolchains...");
 
     const std::vector<ToolchainInstallInfo> allInfos = installedDmcsFromPath();
-    for (const ToolchainInstallInfo &info : allInfos) {
-        const auto profile = createDmcProfileHelper(info, settings);
-        profiles.push_back(profile);
-    }
+    qbs::Internal::transform(allInfos, profiles, [settings](const auto &info) {
+        return createDmcProfileHelper(info, settings); });
 
     if (allInfos.empty())
         qbsInfo() << Tr::tr("No DMC toolchains found.");

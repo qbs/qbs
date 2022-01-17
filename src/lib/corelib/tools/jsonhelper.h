@@ -40,6 +40,8 @@
 #ifndef QBS_JSON_HELPER_H
 #define QBS_JSON_HELPER_H
 
+#include <tools/stlutils.h>
+
 #include <QtCore/qjsonarray.h>
 #include <QtCore/qjsonobject.h>
 #include <QtCore/qjsonvalue.h>
@@ -60,10 +62,7 @@ template<> inline QString fromJson(const QJsonValue &v) { return v.toString(); }
 template<> inline QStringList fromJson(const QJsonValue &v)
 {
     const QJsonArray &jsonList = v.toArray();
-    QStringList stringList;
-    std::transform(jsonList.begin(), jsonList.end(), std::back_inserter(stringList),
-                   [](const auto &v) { return v.toString(); });
-    return stringList;
+    return transformed<QStringList>(jsonList, [](const auto &v) { return v.toString(); });
 }
 template<> inline QVariantMap fromJson(const QJsonValue &v) { return v.toObject().toVariantMap(); }
 template<> inline QProcessEnvironment fromJson(const QJsonValue &v)

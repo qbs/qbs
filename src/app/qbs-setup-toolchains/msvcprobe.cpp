@@ -130,12 +130,13 @@ void msvcProbe(Settings *settings, std::vector<Profile> &profiles)
             if (sdk.isDefault)
                 defaultWinSDK = sdk;
             const auto ais = MSVC::findSupportedArchitectures(sdk);
-            for (const MSVCArchInfo &ai : ais) {
+
+            qbs::Internal::transform(ais, winSDKs, [&sdk](const auto &ai) {
                 WinSDK specificSDK = sdk;
                 specificSDK.architecture = ai.arch;
                 specificSDK.binPath = ai.binPath;
-                winSDKs.push_back(specificSDK);
-            }
+                return specificSDK;
+            });
         }
     }
 

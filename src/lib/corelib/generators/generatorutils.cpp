@@ -30,6 +30,8 @@
 
 #include "generatorutils.h"
 
+#include <tools/stlutils.h>
+
 namespace qbs {
 namespace gen {
 namespace utils {
@@ -189,11 +191,10 @@ QStringList cppStringModuleProperties(const PropertyMap &qbsProps,
 {
     QStringList properties;
     for (const auto &propertyName : propertyNames) {
-        const auto entries = qbsProps.getModuleProperty(
-                    Internal::StringConstants::cppModule(),
-                    propertyName).toStringList();
-        for (const auto &entry : entries)
-            properties.push_back(entry.trimmed());
+        const auto entries = qbsProps.getModuleProperty(Internal::StringConstants::cppModule(),
+                                                        propertyName).toStringList();
+        Internal::transform(entries, properties, [](const auto &entry) {
+            return entry.trimmed(); });
     }
     return properties;
 }

@@ -171,10 +171,8 @@ void cosmicProbe(Settings *settings, std::vector<Profile> &profiles)
     qbsInfo() << Tr::tr("Trying to detect COSMIC toolchains...");
 
     const std::vector<ToolchainInstallInfo> allInfos = installedCosmicsFromPath();
-    for (const ToolchainInstallInfo &info : allInfos) {
-        const auto profile = createCosmicProfileHelper(info, settings);
-        profiles.push_back(profile);
-    }
+    qbs::Internal::transform(allInfos, profiles, [settings](const auto &info) {
+        return createCosmicProfileHelper(info, settings); });
 
     if (allInfos.empty())
         qbsInfo() << Tr::tr("No COSMIC toolchains found.");

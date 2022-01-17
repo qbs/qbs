@@ -47,6 +47,7 @@
 #include <tools/hostosinfo.h>
 #include <tools/profile.h>
 #include <tools/settings.h>
+#include <tools/stlutils.h>
 #include <tools/toolchains.h>
 
 #include <QtCore/qdir.h>
@@ -269,11 +270,8 @@ static QStringList buildCompilerNameFilters(const QString &compilerName)
         QLatin1String("*-*-*-*-") + compilerName + QLatin1String("-[1-9]*")
     };
 
-    std::transform(filters.begin(), filters.end(), filters.begin(),
-                   [](const auto &filter) {
-        return HostOsInfo::appendExecutableSuffix(filter);
-    });
-
+    Internal::transform(filters, [](const auto &filter) {
+        return HostOsInfo::appendExecutableSuffix(filter); });
     return filters;
 }
 

@@ -147,9 +147,8 @@ std::vector<ClangClInfo> ClangClInfo::installedCompilers(
 
     std::vector<ClangClInfo> result;
     result.reserve(compilerPaths.size() + msvcs.size());
-
-    for (const auto &path: compilerPaths)
-        result.push_back({getToolchainInstallPath(QFileInfo(path)), vcvarsallPath});
+    transform(compilerPaths, result, [&vcvarsallPath](const auto &path) {
+        return ClangClInfo{getToolchainInstallPath(QFileInfo(path)), vcvarsallPath}; });
 
     // If we didn't find custom LLVM installation, try to find if it's installed with Visual Studio
     for (const auto &msvc : msvcs) {
