@@ -8,7 +8,7 @@ QtApplication {
     }
     Android.sdk.packageName: "my.qmlapp"
     Android.sdk.apkBaseName: name
-    property stringList qmlImportPaths: path
+    Qt.android_support.qmlImportPaths: path
     files: [
         "main.cpp",
         "qml.qrc",

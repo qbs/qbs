@@ -10,6 +10,7 @@ Module {
     version: @version@
     property string qmlRootDir: product.sourceDirectory
     property stringList extraPrefixDirs
+    property stringList qmlImportPaths
     property stringList deploymentDependencies // qmake: ANDROID_DEPLOYMENT_DEPENDENCIES
     property stringList extraPlugins // qmake: ANDROID_EXTRA_PLUGINS
     property stringList extraLibs // qmake: ANDROID_EXTRA_LIBS
@@ -195,7 +196,10 @@ Module {
                 var prefixDirs = product.Qt.android_support.extraPrefixDirs;
                 if (prefixDirs && prefixDirs.length > 0)
                     f.writeLine('"extraPrefixDirs": ' + JSON.stringify(prefixDirs) + ',');
-                if ((product.qmlImportPaths instanceof Array) && product.qmlImportPaths.length > 0)
+                var qmlImportPaths = product.Qt.android_support.qmlImportPaths;
+                if (qmlImportPaths && qmlImportPaths.length > 0)
+                    f.writeLine('"qml-import-paths": "' + qmlImportPaths.join(',') + '",');
+                else if ((product.qmlImportPaths instanceof Array) && product.qmlImportPaths.length > 0)
                     f.writeLine('"qml-import-paths": "' + product.qmlImportPaths.join(',') + '",');
 
                 if (Utilities.versionCompare(product.Qt.android_support.version, "6.0") >= 0) {

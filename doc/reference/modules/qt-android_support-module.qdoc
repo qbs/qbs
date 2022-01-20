@@ -74,6 +74,15 @@
 */
 
 /*!
+    \qmlproperty stringList Qt.android_support::qmlImportPaths
+
+    Additional directories to search for QML imports.
+
+    \defaultvalue \c undefined
+    \since 1.22
+*/
+
+/*!
     \qmlproperty bool Qt.android_support::verboseAndroidDeployQt
 
     Enable this property if you want verbose output from the
