@@ -31,6 +31,7 @@ HEADERS += \
     $$PWD/moduleproviderinfo.h \
     $$PWD/moduleproviderloader.h \
     $$PWD/preparescriptobserver.h \
+    $$PWD/probesresolver.h \
     $$PWD/projectresolver.h \
     $$PWD/property.h \
     $$PWD/propertydeclaration.h \
@@ -67,6 +68,7 @@ SOURCES += \
     $$PWD/moduleproviderloader.cpp \
     $$PWD/preparescriptobserver.cpp \
     $$PWD/scriptpropertyobserver.cpp \
+    $$PWD/probesresolver.cpp \
     $$PWD/projectresolver.cpp \
     $$PWD/property.cpp \
     $$PWD/propertydeclaration.cpp \

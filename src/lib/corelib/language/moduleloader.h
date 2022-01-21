@@ -74,6 +74,7 @@ class Evaluator;
 class Item;
 class ItemReader;
 class ModuleProviderLoader;
+class ProbesResolver;
 class ProgressObserver;
 class QualifiedId;
 class SearchPathsManager;
@@ -140,6 +141,7 @@ public:
 
 private:
     friend class ModuleProviderLoader;
+    friend class ProbesResolver;
     class ProductSortByDependencies;
 
     class ContextBase
@@ -334,8 +336,6 @@ private:
             const QualifiedId &moduleName, ProductModuleInfo *productModuleInfo);
     void createChildInstances(Item *instance, Item *prototype,
                               QHash<Item *, Item *> *prototypeInstanceMap) const;
-    void resolveProbes(ProductContext *productContext, Item *item);
-    void resolveProbe(ProductContext *productContext, Item *parent, Item *probe);
     void checkCancelation() const;
     bool checkItemCondition(Item *item, Item *itemToDisable = nullptr);
     QStringList readExtraSearchPaths(Item *item, bool *wasSet = nullptr);
@@ -357,19 +357,6 @@ private:
     void copyGroupsFromModulesToProduct(const ProductContext &productContext);
     void markModuleTargetGroups(Item *group, const Item::Module &module);
     bool checkExportItemCondition(Item *exportItem, const ProductContext &productContext);
-    ProbeConstPtr findOldProjectProbe(const QString &globalId, bool condition,
-                                      const QVariantMap &initialProperties,
-                                      const QString &sourceCode) const;
-    ProbeConstPtr findOldProductProbe(const QString &productName, bool condition,
-                                      const QVariantMap &initialProperties,
-                                      const QString &sourceCode) const;
-    ProbeConstPtr findCurrentProbe(const CodeLocation &location, bool condition,
-                                   const QVariantMap &initialProperties) const;
-
-    enum class CompareScript { No, Yes };
-    bool probeMatches(const ProbeConstPtr &probe, bool condition,
-                      const QVariantMap &initialProperties, const QString &configureScript,
-                      CompareScript compareScript) const;
 
     void printProfilingInfo();
     void handleProductError(const ErrorInfo &error, ProductContext *productContext);
@@ -402,6 +389,7 @@ private:
     ProgressObserver *m_progressObserver;
     const std::unique_ptr<ItemReader> m_reader;
     Evaluator *m_evaluator;
+    const std::unique_ptr<ProbesResolver> m_probesResolver;
     const std::unique_ptr<ModuleProviderLoader> m_moduleProviderLoader;
     QMap<QString, QStringList> m_moduleDirListCache;
     QHash<std::pair<QString, QualifiedId>, std::optional<QString>> m_existingModulePathCache;
@@ -431,10 +419,7 @@ private:
     class DependsChainManager;
     std::vector<DependsChainEntry> m_dependsChain;
 
-    QHash<QString, std::vector<ProbeConstPtr>> m_oldProjectProbes;
-    QHash<QString, std::vector<ProbeConstPtr>> m_oldProductProbes;
     FileTime m_lastResolveTime;
-    QHash<CodeLocation, std::vector<ProbeConstPtr>> m_currentProbes;
     QVariantMap m_storedProfiles;
     QVariantMap m_localProfiles;
     std::multimap<QString, const ProductContext *> m_productsByName;
@@ -455,10 +440,6 @@ private:
     qint64 m_elapsedTimeTransitiveDependencies = 0;
     qint64 m_elapsedTimeHandleProducts = 0;
     qint64 m_elapsedTimePropertyChecking = 0;
-    quint64 m_probesEncountered = 0;
-    quint64 m_probesRun = 0;
-    quint64 m_probesCachedCurrent = 0;
-    quint64 m_probesCachedOld = 0;
     Set<QString> m_projectNamesUsedInOverrides;
     Set<QString> m_productNamesUsedInOverrides;
     Set<QString> m_disabledProjects;

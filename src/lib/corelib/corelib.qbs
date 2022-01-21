@@ -323,6 +323,8 @@ QbsLibrary {
             "moduleproviderloader.h",
             "preparescriptobserver.cpp",
             "preparescriptobserver.h",
+            "probesresolver.cpp",
+            "probesresolver.h",
             "projectresolver.cpp",
             "projectresolver.h",
             "property.cpp",

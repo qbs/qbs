@@ -47,6 +47,7 @@
 #include "language.h"
 #include "modulemerger.h"
 #include "moduleproviderloader.h"
+#include "probesresolver.h"
 #include "qualifiedid.h"
 #include "scriptengine.h"
 #include "value.h"
@@ -104,24 +105,6 @@ static bool multiplexConfigurationIntersects(const QVariantMap &lhs, const QVari
 }
 
 class ModuleLoader::ItemModuleList : public QList<Item::Module> {};
-
-static QString probeGlobalId(Item *probe)
-{
-    QString id;
-
-    for (Item *obj = probe; obj; obj = obj->prototype()) {
-        if (!obj->id().isEmpty()) {
-            id = obj->id();
-            break;
-        }
-    }
-
-    if (id.isEmpty())
-        return {};
-
-    QBS_CHECK(probe->file());
-    return id + QLatin1Char('_') + probe->file()->filePath();
-}
 
 class ModuleLoader::ProductSortByDependencies
 {
@@ -257,6 +240,7 @@ ModuleLoader::ModuleLoader(Evaluator *evaluator, Logger &logger)
     , m_progressObserver(nullptr)
     , m_reader(std::make_unique<ItemReader>(logger))
     , m_evaluator(evaluator)
+    , m_probesResolver(std::make_unique<ProbesResolver>(m_evaluator, m_logger))
     , m_moduleProviderLoader(
         std::make_unique<ModuleProviderLoader>(m_reader.get(), m_evaluator, m_logger))
 {
@@ -277,14 +261,12 @@ void ModuleLoader::setSearchPaths(const QStringList &searchPaths)
 
 void ModuleLoader::setOldProjectProbes(const std::vector<ProbeConstPtr> &oldProbes)
 {
-    m_oldProjectProbes.clear();
-    for (const ProbeConstPtr& probe : oldProbes)
-        m_oldProjectProbes[probe->globalId()] << probe;
+    m_probesResolver->setOldProjectProbes(oldProbes);
 }
 
 void ModuleLoader::setOldProductProbes(const QHash<QString, std::vector<ProbeConstPtr>> &oldProbes)
 {
-    m_oldProductProbes = oldProbes;
+    m_probesResolver->setOldProductProbes(oldProbes);
 }
 
 void ModuleLoader::setStoredProfiles(const QVariantMap &profiles)
@@ -310,12 +292,11 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
     m_reader->clearExtraSearchPathsStack();
     m_reader->setEnableTiming(parameters.logElapsedTime());
     m_moduleProviderLoader->setProjectParameters(m_parameters);
-    m_elapsedTimeProbes = m_elapsedTimePrepareProducts = m_elapsedTimeHandleProducts
+    m_probesResolver->setProjectParameters(m_parameters);
+    m_elapsedTimePrepareProducts = m_elapsedTimeHandleProducts
             = m_elapsedTimeProductDependencies = m_elapsedTimeTransitiveDependencies
             = m_elapsedTimePropertyChecking = 0;
     m_elapsedTimeModuleProviders = 0;
-    m_elapsedTimeProbes = 0;
-    m_probesEncountered = m_probesRun = m_probesCachedCurrent = m_probesCachedOld = 0;
     m_settings = std::make_unique<Settings>(parameters.settingsDirectory());
 
     const auto keys = m_parameters.overriddenValues().keys();
@@ -714,7 +695,7 @@ void ModuleLoader::handleProject(ModuleLoaderResult *loadResult,
     for (Item * const child : projectItem->children())
         child->setScope(projectContext.scope);
 
-    resolveProbes(&dummyProductContext, projectItem);
+    m_probesResolver->resolveProbes(&dummyProductContext, projectItem);
     projectContext.topLevelProject->probes << dummyProductContext.info.probes;
 
     handleProfileItems(projectItem, &projectContext);
@@ -1453,7 +1434,7 @@ void ModuleLoader::handleProduct(ModuleLoader::ProductContext *productContext)
         if (!module.item->isPresentModule())
             continue;
         try {
-            resolveProbes(productContext, module.item);
+            m_probesResolver->resolveProbes(productContext, module.item);
             if (module.versionRange.minimum.isValid()
                     || module.versionRange.maximum.isValid()) {
                 if (module.versionRange.maximum.isValid()
@@ -1487,7 +1468,7 @@ void ModuleLoader::handleProduct(ModuleLoader::ProductContext *productContext)
         }
     }
 
-    resolveProbes(productContext, item);
+    m_probesResolver->resolveProbes(productContext, item);
 
     // Module validation must happen in an extra pass, after all Probes have been resolved.
     EvalCacheEnabler cacheEnabler(m_evaluator);
@@ -1867,64 +1848,6 @@ bool ModuleLoader::checkExportItemCondition(Item *exportItem, const ProductConte
     return checkItemCondition(exportItem);
 }
 
-ProbeConstPtr ModuleLoader::findOldProjectProbe(
-        const QString &globalId,
-        bool condition,
-        const QVariantMap &initialProperties,
-        const QString &sourceCode) const
-{
-    if (m_parameters.forceProbeExecution())
-        return {};
-
-    for (const ProbeConstPtr &oldProbe : m_oldProjectProbes.value(globalId)) {
-        if (probeMatches(oldProbe, condition, initialProperties, sourceCode, CompareScript::Yes))
-            return oldProbe;
-    }
-
-    return {};
-}
-
-ProbeConstPtr ModuleLoader::findOldProductProbe(
-        const QString &productName,
-        bool condition,
-        const QVariantMap &initialProperties,
-        const QString &sourceCode) const
-{
-    if (m_parameters.forceProbeExecution())
-        return {};
-
-    for (const ProbeConstPtr &oldProbe : m_oldProductProbes.value(productName)) {
-        if (probeMatches(oldProbe, condition, initialProperties, sourceCode, CompareScript::Yes))
-            return oldProbe;
-    }
-
-    return {};
-}
-
-ProbeConstPtr ModuleLoader::findCurrentProbe(
-        const CodeLocation &location,
-        bool condition,
-        const QVariantMap &initialProperties) const
-{
-    const std::vector<ProbeConstPtr> &cachedProbes = m_currentProbes.value(location);
-    for (const ProbeConstPtr &probe : cachedProbes) {
-        if (probeMatches(probe, condition, initialProperties, QString(), CompareScript::No))
-            return probe;
-    }
-    return {};
-}
-
-bool ModuleLoader::probeMatches(const ProbeConstPtr &probe, bool condition,
-        const QVariantMap &initialProperties, const QString &configureScript,
-        CompareScript compareScript) const
-{
-    return probe->condition() == condition
-            && probe->initialProperties() == initialProperties
-            && (compareScript == CompareScript::No
-                || (probe->configureScript() == configureScript
-                    && !probe->needsReconfigure(m_lastResolveTime)));
-}
-
 void ModuleLoader::printProfilingInfo()
 {
     if (!m_parameters.logElapsedTime())
@@ -1947,14 +1870,7 @@ void ModuleLoader::printProfilingInfo()
     m_logger.qbsLog(LoggerInfo, true) << "\t"
                                       << Tr::tr("Handling products took %1.")
                                       .arg(elapsedTimeString(m_elapsedTimeHandleProducts));
-    m_logger.qbsLog(LoggerInfo, true) << "\t\t"
-                                      << Tr::tr("Running Probes took %1.")
-                                         .arg(elapsedTimeString(m_elapsedTimeProbes));
-    m_logger.qbsLog(LoggerInfo, true) << "\t\t"
-            << Tr::tr("%1 probes encountered, %2 configure scripts executed, "
-                      "%3 re-used from current run, %4 re-used from earlier run.")
-               .arg(m_probesEncountered).arg(m_probesRun).arg(m_probesCachedCurrent)
-               .arg(m_probesCachedOld);
+    m_probesResolver->printProfilingInfo();
     m_logger.qbsLog(LoggerInfo, true) << "\t"
                                       << Tr::tr("Property checking took %1.")
                                          .arg(elapsedTimeString(m_elapsedTimePropertyChecking));
@@ -3504,122 +3420,6 @@ void ModuleLoader::createChildInstances(Item *instance, Item *prototype,
         Item::addChild(instance, childInstance);
         createChildInstances(childInstance, childPrototype, prototypeInstanceMap);
     }
-}
-
-void ModuleLoader::resolveProbes(ProductContext *productContext, Item *item)
-{
-    AccumulatingTimer probesTimer(m_parameters.logElapsedTime() ? &m_elapsedTimeProbes : nullptr);
-    EvalContextSwitcher evalContextSwitcher(m_evaluator->engine(), EvalContext::ProbeExecution);
-    for (Item * const child : item->children())
-        if (child->type() == ItemType::Probe)
-            resolveProbe(productContext, item, child);
-}
-
-void ModuleLoader::resolveProbe(ProductContext *productContext, Item *parent, Item *probe)
-{
-    qCDebug(lcModuleLoader) << "Resolving Probe at " << probe->location().toString();
-    ++m_probesEncountered;
-    const QString &probeId = probeGlobalId(probe);
-    if (Q_UNLIKELY(probeId.isEmpty()))
-        throw ErrorInfo(Tr::tr("Probe.id must be set."), probe->location());
-    const JSSourceValueConstPtr configureScript
-            = probe->sourceProperty(StringConstants::configureProperty());
-    QBS_CHECK(configureScript);
-    if (Q_UNLIKELY(configureScript->sourceCode() == StringConstants::undefinedValue()))
-        throw ErrorInfo(Tr::tr("Probe.configure must be set."), probe->location());
-    using ProbeProperty = std::pair<QString, QScriptValue>;
-    std::vector<ProbeProperty> probeBindings;
-    QVariantMap initialProperties;
-    for (Item *obj = probe; obj; obj = obj->prototype()) {
-        const Item::PropertyMap &props = obj->properties();
-        for (auto it = props.cbegin(); it != props.cend(); ++it) {
-            const QString &name = it.key();
-            if (name == StringConstants::configureProperty())
-                continue;
-            const QScriptValue value = m_evaluator->value(probe, name);
-            probeBindings << ProbeProperty(name, value);
-            if (name != StringConstants::conditionProperty())
-                initialProperties.insert(name, value.toVariant());
-        }
-    }
-    ScriptEngine * const engine = m_evaluator->engine();
-    QScriptValue configureScope;
-    const bool condition = m_evaluator->boolValue(probe, StringConstants::conditionProperty());
-    const QString &sourceCode = configureScript->sourceCode().toString();
-    ProbeConstPtr resolvedProbe;
-    if (parent->type() == ItemType::Project
-            || productContext->name.startsWith(StringConstants::shadowProductPrefix())) {
-        resolvedProbe = findOldProjectProbe(probeId, condition, initialProperties, sourceCode);
-    } else {
-        const QString &uniqueProductName = productContext->uniqueName();
-        resolvedProbe
-                = findOldProductProbe(uniqueProductName, condition, initialProperties, sourceCode);
-    }
-    if (!resolvedProbe) {
-        resolvedProbe = findCurrentProbe(probe->location(), condition, initialProperties);
-        if (resolvedProbe) {
-            qCDebug(lcModuleLoader) << "probe results cached from current run";
-            ++m_probesCachedCurrent;
-        }
-    } else {
-        qCDebug(lcModuleLoader) << "probe results cached from earlier run";
-        ++m_probesCachedOld;
-    }
-    std::vector<QString> importedFilesUsedInConfigure;
-    if (!condition) {
-        qCDebug(lcModuleLoader) << "Probe disabled; skipping";
-    } else if (!resolvedProbe) {
-        ++m_probesRun;
-        qCDebug(lcModuleLoader) << "configure script needs to run";
-        const Evaluator::FileContextScopes fileCtxScopes
-                = m_evaluator->fileContextScopes(configureScript->file());
-        engine->currentContext()->pushScope(fileCtxScopes.fileScope);
-        engine->currentContext()->pushScope(fileCtxScopes.importScope);
-        configureScope = engine->newObject();
-        for (const ProbeProperty &b : probeBindings)
-            configureScope.setProperty(b.first, b.second);
-        engine->currentContext()->pushScope(configureScope);
-        engine->clearRequestedProperties();
-        QScriptValue sv = engine->evaluate(configureScript->sourceCodeForEvaluation());
-        engine->currentContext()->popScope();
-        engine->currentContext()->popScope();
-        engine->currentContext()->popScope();
-        engine->releaseResourcesOfScriptObjects();
-        if (Q_UNLIKELY(engine->hasErrorOrException(sv)))
-            throw ErrorInfo(engine->lastErrorString(sv), configureScript->location());
-        importedFilesUsedInConfigure = engine->importedFilesUsedInScript();
-    } else {
-        importedFilesUsedInConfigure = resolvedProbe->importedFilesUsed();
-    }
-    QVariantMap properties;
-    for (const ProbeProperty &b : probeBindings) {
-        QVariant newValue;
-        if (resolvedProbe) {
-            newValue = resolvedProbe->properties().value(b.first);
-        } else {
-            if (condition) {
-                QScriptValue v = configureScope.property(b.first);
-                m_evaluator->convertToPropertyType(probe->propertyDeclaration(
-                                                   b.first), probe->location(), v);
-                if (Q_UNLIKELY(engine->hasErrorOrException(v)))
-                    throw ErrorInfo(engine->lastError(v));
-                newValue = v.toVariant();
-            } else {
-                newValue = initialProperties.value(b.first);
-            }
-        }
-        if (newValue != b.second.toVariant())
-            probe->setProperty(b.first, VariantValue::create(newValue));
-        if (!resolvedProbe)
-            properties.insert(b.first, newValue);
-    }
-    if (!resolvedProbe) {
-        resolvedProbe = Probe::create(probeId, probe->location(), condition,
-                                      sourceCode, properties, initialProperties,
-                                      importedFilesUsedInConfigure);
-        m_currentProbes[probe->location()] << resolvedProbe;
-    }
-    productContext->info.probes << resolvedProbe;
 }
 
 void ModuleLoader::checkCancelation() const
