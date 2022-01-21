@@ -43,6 +43,7 @@
 
 #include "moduleloader.h"
 #include "moduleproviderinfo.h"
+#include "probesresolver.h"
 
 #include <QtCore/qmap.h>
 #include <QtCore/qvariant.h>
@@ -57,7 +58,8 @@ class ModuleProviderLoader
 public:
     using ProductContext = ModuleLoader::ProductContext;
     using FallbackMode = ModuleLoader::FallbackMode;
-    explicit ModuleProviderLoader(ItemReader *itemReader, Evaluator *evaluator, Logger &logger);
+    explicit ModuleProviderLoader(ItemReader *itemReader, Evaluator *evaluator,
+                                  ProbesResolver *probesResolver, Logger &logger);
 
     enum class ModuleProviderLookup { Scoped, Named, Fallback };
 
@@ -118,6 +120,7 @@ private:
 private:
     ItemReader *const m_reader{nullptr};
     Evaluator *const m_evaluator{nullptr};
+    ProbesResolver *const m_probesResolver{nullptr};
 
     SetupProjectParameters m_parameters;
     Logger &m_logger;

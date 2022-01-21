@@ -3,7 +3,7 @@ var FileInfo = require("qbs.FileInfo");
 var TextFile = require("qbs.TextFile");
 var ModUtils = require("qbs.ModUtils");
 
-function writeModule(outputBaseDir, name, prop, listProp) {
+function writeModule(outputBaseDir, name, prop, listProp, boolProp) {
     console.info("Running setup script for " + name);
     var moduleDir = FileInfo.joinPaths(outputBaseDir, "modules", name);
     File.makePath(moduleDir);
@@ -13,6 +13,10 @@ function writeModule(outputBaseDir, name, prop, listProp) {
     if (listProp) {
         module.writeLine("    property stringList listProp: "
             + ModUtils.toJSLiteral(listProp));
+    }
+    if (boolProp) {
+        module.writeLine("    property bool boolProp: "
+            + ModUtils.toJSLiteral(boolProp));
     }
     module.writeLine("}");
     module.close();

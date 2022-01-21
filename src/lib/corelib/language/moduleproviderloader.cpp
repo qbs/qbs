@@ -44,6 +44,7 @@
 #include "evaluator.h"
 #include "itemreader.h"
 #include "moduleloader.h"
+#include "probesresolver.h"
 
 #include <language/scriptengine.h>
 #include <language/value.h>
@@ -61,9 +62,11 @@
 namespace qbs {
 namespace Internal {
 
-ModuleProviderLoader::ModuleProviderLoader(ItemReader *reader, Evaluator *evaluator, Logger &logger)
+ModuleProviderLoader::ModuleProviderLoader(ItemReader *reader, Evaluator *evaluator,
+                                           ProbesResolver *probesResolver, Logger &logger)
     : m_reader(reader)
     , m_evaluator(evaluator)
+    , m_probesResolver(probesResolver)
     , m_logger(logger)
 {
 }
@@ -302,6 +305,9 @@ QStringList ModuleProviderLoader::getProviderSearchPaths(
     }
     providerItem->setParent(product.item);
     providerItem->overrideProperties(moduleConfig, name.toString(), m_parameters, m_logger);
+
+    m_probesResolver->resolveProbes(&product, providerItem);
+
     EvalContextSwitcher contextSwitcher(m_evaluator->engine(), EvalContext::ModuleProvider);
     return m_evaluator->stringListValue(providerItem, QStringLiteral("searchPaths"));
 }

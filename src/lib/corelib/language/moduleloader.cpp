@@ -242,7 +242,8 @@ ModuleLoader::ModuleLoader(Evaluator *evaluator, Logger &logger)
     , m_evaluator(evaluator)
     , m_probesResolver(std::make_unique<ProbesResolver>(m_evaluator, m_logger))
     , m_moduleProviderLoader(
-        std::make_unique<ModuleProviderLoader>(m_reader.get(), m_evaluator, m_logger))
+        std::make_unique<ModuleProviderLoader>(m_reader.get(), m_evaluator, m_probesResolver.get(),
+                                               m_logger))
 {
 }
 

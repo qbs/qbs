@@ -328,6 +328,7 @@ void BuiltinDeclarations::addModuleProviderItem()
          << PropertyDeclaration(QStringLiteral("outputBaseDir"), PropertyDeclaration::String)
          << PropertyDeclaration(QStringLiteral("relativeSearchPaths"),
                                 PropertyDeclaration::StringList);
+    item.setAllowedChildTypes({ItemType::Probe});
     insert(item);
 }
 

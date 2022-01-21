@@ -3333,6 +3333,23 @@ void TestBlackbox::probeInExportedModule()
     QVERIFY2(m_qbsStdout.contains("listProp: myother,my"), m_qbsStdout.constData());
 }
 
+void TestBlackbox::probeInModuleProvider()
+{
+    QDir::setCurrent(testDataDir + "/probe-in-module-provider");
+
+    QbsRunParameters params;
+    params.command = "build";
+    params.arguments << "--force-probe-execution";
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(m_qbsStdout.contains("Running probe"), m_qbsStdout);
+    QVERIFY2(m_qbsStdout.contains("p.qbsmetatestmodule.boolProp: true"), m_qbsStdout);
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("probe-in-module-provider.qbs");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("p.qbsmetatestmodule.boolProp: true"), m_qbsStdout);
+    QVERIFY2(!m_qbsStdout.contains("Running probe"), m_qbsStdout);
+}
+
 void TestBlackbox::probesAndArrayProperties()
 {
     QDir::setCurrent(testDataDir + "/probes-and-array-properties");

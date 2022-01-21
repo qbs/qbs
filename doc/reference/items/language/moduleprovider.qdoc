@@ -40,6 +40,8 @@
     The actual module creation is done on the right-hand side of the
     \l{ModuleProvider::relativeSearchPaths}{relativeSearchPaths} property.
 
+    A ModuleProvider item may contain \l{Probe} items.
+
     Here is a complete minimal example of a module provider. It just creates an empty module.
     If you put this item into the file \c {module-providers/mymodule/provider.qbs}
     in your project source directory, you will be able to successfully build a product which

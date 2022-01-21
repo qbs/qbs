@@ -35,7 +35,7 @@
 
     \brief Locates files outside the project.
 
-    Probe items can appear inside \l{Product} and \l{Project} items.
+    Probe items can appear inside \l{Product}, \l{Project} and \l{ModuleProvider} items.
     They are run prior to building, for instance to locate dependent headers, libraries, and other
     files outside the project directory whose locations are not known ahead of time.
     Probes can be parameterized via their properties and typically store results in
