@@ -55,6 +55,15 @@ auto sorted(C &&container)
     return result;
 }
 
+template <typename C, typename Pred>
+auto sorted(C &&container, Pred &&pred)
+{
+    using R = std::remove_cv_t<std::remove_reference_t<C>>;
+    R result(std::forward<C>(container));
+    std::sort(std::begin(result), std::end(result), std::forward<Pred>(pred));
+    return result;
+}
+
 template <typename To, typename From, typename Op>
 To transformed(const From &from, Op op)
 {

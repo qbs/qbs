@@ -76,12 +76,10 @@ std::string LanguageInfo::qmlTypeInfo()
 
         Internal::ItemDeclaration itemDecl
                 = builtins.declarationsForType(builtins.typeForName(typeName));
-        auto properties = itemDecl.properties();
-        std::sort(std::begin(properties), std::end(properties), []
-                  (const Internal::PropertyDeclaration &a, const Internal::PropertyDeclaration &b) {
-            return a.name() < b.name();
-        });
-        for (const Internal::PropertyDeclaration &property : std::as_const(properties)) {
+        const auto properties = Internal::sorted(
+            itemDecl.properties(),
+            [](const auto &lhs, const auto &rhs) { return lhs.name() < rhs.name(); });
+        for (const Internal::PropertyDeclaration &property : properties) {
             result.append("        Property { name: \"");
             result.append(property.name().toUtf8().data());
             result.append("\"; ");

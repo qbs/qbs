@@ -82,14 +82,11 @@ ErrorInfo ProjectGenerator::generate(const QList<Project> &projects,
                                 const QString &qbsSettingsDir,
                                 const Internal::Logger &logger)
 {
-    d->projects = projects;
-    std::sort(d->projects.begin(), d->projects.end(),
-              [](const Project &a, const Project &b) {
-                  return _configurationName(a) < _configurationName(b); });
-    d->buildConfigurations = buildConfigurations;
-    std::sort(d->buildConfigurations.begin(), d->buildConfigurations.end(),
-              [](const QVariantMap &a, const QVariantMap &b) {
-                  return _configurationName(a) < _configurationName(b); });
+    d->projects = Internal::sorted(projects, [](const Project &lhs, const Project &rhs) {
+        return _configurationName(lhs) < _configurationName(rhs); });
+    d->buildConfigurations = Internal::sorted(
+        buildConfigurations, [](const QVariantMap &lhs, const QVariantMap &rhs) {
+            return _configurationName(lhs) < _configurationName(rhs); });
     d->installOptions = installOptions;
     d->qbsSettingsDir = qbsSettingsDir;
     d->logger = logger;
