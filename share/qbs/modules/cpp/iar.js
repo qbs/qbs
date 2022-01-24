@@ -729,6 +729,7 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
     var cmd = new Command(compilerPath, args);
     cmd.description = "compiling " + input.fileName;
     cmd.highlight = "compiler";
+    cmd.jobPool = "compiler";
     return [cmd];
 }
 
@@ -738,6 +739,7 @@ function prepareAssembler(project, product, inputs, outputs, input, output, expl
     var cmd = new Command(assemblerPath, args);
     cmd.description = "assembling " + input.fileName;
     cmd.highlight = "compiler";
+    cmd.jobPool = "assembler";
     return [cmd];
 }
 
@@ -748,6 +750,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     var cmd = new Command(linkerPath, args);
     cmd.description = "linking " + primaryOutput.fileName;
     cmd.highlight = "linker";
+    cmd.jobPool = "linker";
     return [cmd];
 }
 
@@ -757,6 +760,7 @@ function prepareArchiver(project, product, inputs, outputs, input, output) {
     var cmd = new Command(archiverPath, args);
     cmd.description = "creating " + output.fileName;
     cmd.highlight = "linker";
+    cmd.jobPool = "linker";
     cmd.stdoutFilterFunction = function(output) {
         return "";
     };

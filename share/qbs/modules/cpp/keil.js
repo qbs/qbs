@@ -917,6 +917,7 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
     var cmd = new Command(compilerPath, args);
     cmd.description = "compiling " + input.fileName;
     cmd.highlight = "compiler";
+    cmd.jobPool = "compiler";
     if (isMcsArchitecture(architecture)) {
         cmd.maxExitCode = 1;
         cmd.stdoutFilterFunction = filterMcsOutput;
@@ -944,6 +945,7 @@ function prepareAssembler(project, product, inputs, outputs, input, output, expl
     var cmd = new Command(assemblerPath, args);
     cmd.description = "assembling " + input.fileName;
     cmd.highlight = "compiler";
+    cmd.jobPool = "assembler";
     if (isMcsArchitecture(architecture)) {
         cmd.maxExitCode = 1;
         cmd.stdoutFilterFunction = filterMcsOutput;
@@ -962,6 +964,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     var cmd = new Command(linkerPath, args);
     cmd.description = "linking " + primaryOutput.fileName;
     cmd.highlight = "linker";
+    cmd.jobPool = "linker";
     if (isMcsArchitecture(architecture)) {
         cmd.maxExitCode = 1;
         cmd.stdoutFilterFunction = filterMcsOutput;
@@ -979,6 +982,7 @@ function prepareArchiver(project, product, inputs, outputs, input, output) {
     var cmd = new Command(archiverPath, args);
     cmd.description = "creating " + output.fileName;
     cmd.highlight = "linker";
+    cmd.jobPool = "linker";
     if (isMcsArchitecture(architecture)) {
         cmd.stdoutFilterFunction = filterMcsOutput;
     } else if (isC166Architecture(architecture)) {

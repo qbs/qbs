@@ -406,6 +406,7 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
     cmd.workingDirectory = product.buildDirectory;
     cmd.description = "compiling " + input.fileName;
     cmd.highlight = "compiler";
+    cmd.jobPool = "compiler";
     return [cmd];
 }
 
@@ -415,6 +416,7 @@ function prepareAssembler(project, product, inputs, outputs, input, output, expl
     cmd.workingDirectory = product.buildDirectory;
     cmd.description = "compiling " + input.fileName;
     cmd.highlight = "compiler";
+    cmd.jobPool = "assembler";
     return [cmd];
 }
 
@@ -428,6 +430,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     cmd.workingDirectory = product.buildDirectory;
     cmd.description = "linking " + primaryOutput.fileName;
     cmd.highlight = "linker";
+    cmd.jobPool = "linker";
     cmds.push(cmd);
 
     if (outputs.dynamiclibrary
@@ -449,6 +452,7 @@ function prepareArchiver(project, product, inputs, outputs, input, output) {
     cmd.workingDirectory = product.buildDirectory;
     cmd.description = "creating " + output.fileName;
     cmd.highlight = "linker";
+    cmd.jobPool = "linker";
     return [cmd];
 }
 
@@ -458,5 +462,6 @@ function prepareRccCompiler(project, product, inputs, outputs, input, output) {
     cmd.workingDirectory = product.buildDirectory;
     cmd.description = "compiling " + input.fileName;
     cmd.highlight = "compiler";
+    cmd.jobPool = "compiler";
     return [cmd];
 }
