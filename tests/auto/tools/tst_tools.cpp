@@ -53,6 +53,7 @@
 #include <tools/set.h>
 #include <tools/settings.h>
 #include <tools/setupprojectparameters.h>
+#include <tools/span.h>
 #include <tools/stringutils.h>
 #include <tools/version.h>
 
@@ -1260,6 +1261,12 @@ void TestTools::hash_range()
     QCOMPARE(map[key0], 0);
     QCOMPARE(map[key1], 1);
     QCOMPARE(map[key2], 2);
+}
+
+void TestTools::span()
+{
+    std::vector<int> vec;
+    qbs::Internal::span<int> span(vec);
 }
 
 int main(int argc, char *argv[])

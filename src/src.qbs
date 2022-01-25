@@ -9,5 +9,6 @@ Project {
         "shared/json/json.qbs",
         "shared/lsp/lsp.qbs",
         "shared/quickjs/quickjs.qbs",
+        "shared/span/span.qbs",
     ]
 }

@@ -456,6 +456,7 @@ add_qbs_library(qbscore
         qbsquickjs
     PUBLIC_DEPENDS
         Qt${QT_VERSION_MAJOR}::Core
+        span
         ${EXTERNAL_DEPENDS}
     INCLUDES
         "${CMAKE_CURRENT_SOURCE_DIR}/../.."

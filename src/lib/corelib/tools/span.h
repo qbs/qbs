@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2020 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -36,80 +36,46 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
+#ifndef QBS_SPAN_H
+#define QBS_SPAN_H
 
-#include <QtCore/qlist.h>
-#include <QtCore/qobject.h>
+#include <qcompilerdetection.h>
 
-QT_BEGIN_NAMESPACE
-class QTemporaryDir;
-QT_END_NAMESPACE
+// The (Apple) Clang implementation of span is incomplete until LLVM 15 / Xcode 14.3 / macOS 13
+#if __cplusplus >= 202002L \
+    && !(defined(__apple_build_version__) && __apple_build_version__ < 14030022)
+#include <span>
 
 namespace qbs {
-class Settings;
-}
+namespace Internal {
+using std::as_bytes;
+using std::as_writable_bytes;
+using std::get;
+using std::span;
+} // namespace Internal
+} // namespace qbs
 
-class TestTools : public QObject
-{
-    Q_OBJECT
+#else
+QT_WARNING_PUSH
 
-public:
-    TestTools(qbs::Settings *settings);
-    ~TestTools();
+#if defined(Q_CC_MSVC)
+#pragma system_header
+#elif defined(Q_CC_GNU) || defined(Q_CC_CLANG)
+#pragma GCC system_header
+#endif
 
-public slots:
-   virtual void initTestCase();
+// disable automatic usage of std::span in span-lite
+// since we make that decision ourselves at the top of this header
+#define span_CONFIG_SELECT_SPAN span_SPAN_NONSTD
 
-private slots:
-    void fileSaver();
+#include <span.hpp>
+namespace qbs {
+namespace Internal {
+using namespace nonstd;
+} // namespace Internal
+} // namespace qbs
 
-    void fileCaseCheck();
-    void testBuildConfigMerging();
-    void testFileInfo();
-    void testProcessNameByPid();
-    void testProfiles();
-    void testSettingsMigration();
-    void testSettingsMigration_data();
+QT_WARNING_POP
+#endif
 
-    void set_operator_eq();
-    void set_swap();
-    void set_size();
-    void set_capacity();
-    void set_reserve();
-    void set_clear();
-    void set_remove();
-    void set_contains();
-    void set_containsSet();
-    void set_find();
-    void set_begin();
-    void set_end();
-    void set_insert();
-    void set_reverseIterators();
-    void set_stlIterator();
-    void set_stlMutableIterator();
-    void set_setOperations();
-    void set_makeSureTheComfortFunctionsCompile();
-    void set_initializerList();
-    void set_intersects();
-
-    void stringutils_join();
-    void stringutils_join_data();
-    void stringutils_join_empty();
-    void stringutils_join_char();
-    void stringutils_join_char_data();
-    void stringutils_trimmed();
-
-    void hash_tuple();
-    void hash_range();
-
-    void span();
-
-private:
-    QString setupSettingsDir1();
-    QString setupSettingsDir2();
-    QString setupSettingsDir3();
-
-    qbs::Settings * const m_settings;
-    QList<QTemporaryDir *> m_tmpDirs;
-
-    const QString testDataDir;
-};
+#endif // QBS_SPAN_H

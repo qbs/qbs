@@ -5,7 +5,7 @@ QbsProduct {
     Depends { name: "cpp" }
     Depends { name: "Exporter.pkgconfig"; condition: generatePkgConfigFile }
     Depends { name: "Exporter.qbs"; condition: generateQbsModule }
-    Depends { name: "cpp" }
+    Depends { name: "span" }
 
     property string visibilityType: staticBuild ? "static" : "dynamic"
     property string headerInstallPrefix: "/include/qbs"
@@ -59,6 +59,7 @@ QbsProduct {
     Export {
         Depends { name: "cpp" }
         Depends { name: "Qt"; submodules: ["core"] }
+        Depends { name: "span" }
 
         Properties {
             condition: exportingProduct.hasExporter
