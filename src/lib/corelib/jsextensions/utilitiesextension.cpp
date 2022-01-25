@@ -144,9 +144,10 @@ QScriptValue UtilitiesExtension::js_canonicalPlatform(QScriptContext *context,
 
     if (context->argumentCount() == 1 && value.isString()) {
         return engine->toScriptValue([&value] {
-            const auto ids = HostOsInfo::canonicalOSIdentifiers(value.toString().toStdString());
-            return transformed<QStringList>(ids, [](const auto &s) {
-                return QString::fromStdString(s); });
+            QStringList list;
+            for (const auto &s : HostOsInfo::canonicalOSIdentifiers(value.toString()))
+                list.push_back(s);
+            return list;
         }());
     }
 
@@ -567,7 +568,7 @@ QScriptValue UtilitiesExtension::js_clangClCompilerInfo(QScriptContext *context,
     // to host architecture if none is present
     QString arch = !context->argument(1).isNull() && !context->argument(1).isUndefined()
             ? context->argument(1).toString()
-            : QString::fromStdString(HostOsInfo::hostOSArchitecture());
+            : HostOsInfo::hostOSArchitecture();
     QString vcvarsallPath = context->argument(2).toString();
     const QString compilerLanguage =
             !context->argument(3).isNull() && !context->argument(3).isUndefined()
@@ -607,7 +608,7 @@ QScriptValue UtilitiesExtension::js_installedMSVCs(QScriptContext *context, QScr
     }
 
     const auto value0 = context->argument(0);
-    const auto hostArch = QString::fromStdString(HostOsInfo::hostOSArchitecture());
+    const auto hostArch = HostOsInfo::hostOSArchitecture();
     const auto preferredArch = !value0.isNull() && !value0.isUndefined()
             ? value0.toString()
             : hostArch;

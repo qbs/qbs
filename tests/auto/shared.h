@@ -351,8 +351,7 @@ inline qbs::Internal::HostOsInfo::HostOs targetOs()
     const qbs::Profile buildProfile(profileName(), s.get());
     const QString targetPlatform = buildProfile.value("qbs.targetPlatform").toString();
     if (!targetPlatform.isEmpty()) {
-        const std::vector<std::string> targetOS = qbs::Internal::HostOsInfo::canonicalOSIdentifiers(
-                    targetPlatform.toStdString());
+        const auto targetOS = qbs::Internal::HostOsInfo::canonicalOSIdentifiers(targetPlatform);
         if (qbs::Internal::contains(targetOS, "windows"))
             return qbs::Internal::HostOsInfo::HostOsWindows;
         if (qbs::Internal::contains(targetOS, "linux"))

@@ -172,7 +172,7 @@ static QString platformFromDirName(const QString &dir)
         return QStringLiteral("android");
     if (dir == QLatin1String("Boot2Qt"))
         return QStringLiteral("linux");
-    return QString::fromStdString(HostOsInfo::hostOSIdentifier());
+    return HostOsInfo::hostOSIdentifier();
 }
 
 QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)

@@ -3228,11 +3228,9 @@ Item::Module ModuleLoader::loadBaseModule(ProductContext *productContext, Item *
 void ModuleLoader::setupBaseModulePrototype(Item *prototype)
 {
     prototype->setProperty(QStringLiteral("hostPlatform"),
-                           VariantValue::create(QString::fromStdString(
-                                                    HostOsInfo::hostOSIdentifier())));
+                           VariantValue::create(HostOsInfo::hostOSIdentifier()));
     prototype->setProperty(QStringLiteral("hostArchitecture"),
-                           VariantValue::create(QString::fromStdString(
-                                                    HostOsInfo::hostOSArchitecture())));
+                           VariantValue::create(HostOsInfo::hostOSArchitecture()));
     prototype->setProperty(QStringLiteral("libexecPath"),
                            VariantValue::create(m_parameters.libexecPath()));
 

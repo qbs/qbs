@@ -73,10 +73,10 @@ public:
     // Add more as needed.
     enum HostOs { HostOsWindows, HostOsLinux, HostOsMacos, HostOsOtherUnix, HostOsOther };
 
-    static inline std::string hostOSIdentifier();
-    static inline std::string hostOSArchitecture();
-    static inline std::vector<std::string> hostOSIdentifiers();
-    static inline std::vector<std::string> canonicalOSIdentifiers(const std::string &os);
+    static inline QString hostOSIdentifier();
+    static inline QString hostOSArchitecture();
+    static inline std::vector<QString> hostOSIdentifiers();
+    static inline std::vector<QString> canonicalOSIdentifiers(const QString &os);
     static inline HostOs hostOs();
 
     static inline Version hostOsVersion() {
@@ -177,68 +177,68 @@ public:
     }
 };
 
-std::string HostOsInfo::hostOSIdentifier()
+QString HostOsInfo::hostOSIdentifier()
 {
 #if defined(__APPLE__)
-    return "macos";
+    return QStringLiteral("macos");
 #elif defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
-    return "windows";
+    return QStringLiteral("windows");
 #elif defined(_AIX)
-    return "aix";
+    return QStringLiteral("aix");
 #elif defined(hpux) || defined(__hpux)
-    return "hpux";
+    return QStringLiteral("hpux");
 #elif defined(__sun) || defined(sun)
-    return "solaris";
+    return QStringLiteral("solaris");
 #elif defined(__linux__) || defined(__linux)
-    return "linux";
+    return QStringLiteral("linux");
 #elif defined(__FreeBSD__) || defined(__DragonFly__) || defined(__FreeBSD_kernel__)
-    return "freebsd";
+    return QStringLiteral("freebsd");
 #elif defined(__NetBSD__)
-    return "netbsd";
+    return QStringLiteral("netbsd");
 #elif defined(__OpenBSD__)
-    return "openbsd";
+    return QStringLiteral("openbsd");
 #elif defined(__GNU__)
-    return "hurd";
+    return QStringLiteral("hurd");
 #elif defined(__HAIKU__)
-    return "haiku";
+    return QStringLiteral("haiku");
 #else
     #warning "Qbs has not been ported to this OS - see http://qbs.io/"
-    return "";
+    return {};
 #endif
 }
 
-std::string HostOsInfo::hostOSArchitecture()
+QString HostOsInfo::hostOSArchitecture()
 {
     const auto cpuArch = QSysInfo::currentCpuArchitecture();
     if (cpuArch == QLatin1String("i386"))
-        return "x86";
-    return cpuArch.toStdString();
+        return QStringLiteral("x86");
+    return cpuArch;
 }
 
-std::vector<std::string> HostOsInfo::hostOSIdentifiers()
+std::vector<QString> HostOsInfo::hostOSIdentifiers()
 {
     return canonicalOSIdentifiers(hostOSIdentifier());
 }
 
-std::vector<std::string> HostOsInfo::canonicalOSIdentifiers(const std::string &name)
+std::vector<QString> HostOsInfo::canonicalOSIdentifiers(const QString &name)
 {
-    std::vector<std::string> list { name };
-    if (contains({"ios-simulator"}, name))
-        list << canonicalOSIdentifiers("ios");
-    if (contains({"tvos-simulator"}, name))
-        list << canonicalOSIdentifiers("tvos");
-    if (contains({"watchos-simulator"}, name))
-        list << canonicalOSIdentifiers("watchos");
-    if (contains({"macos", "ios", "tvos", "watchos"}, name))
-        list << canonicalOSIdentifiers("darwin");
-    if (contains({"darwin", "freebsd", "netbsd", "openbsd"}, name))
-        list << canonicalOSIdentifiers("bsd");
-    if (contains({"android"}, name))
-        list << canonicalOSIdentifiers("linux");
+    std::vector<QString> list { name };
+    if (contains({u"ios-simulator"}, name))
+        list << canonicalOSIdentifiers(QStringLiteral("ios"));
+    if (contains({u"tvos-simulator"}, name))
+        list << canonicalOSIdentifiers(QStringLiteral("tvos"));
+    if (contains({u"watchos-simulator"}, name))
+        list << canonicalOSIdentifiers(QStringLiteral("watchos"));
+    if (contains({u"macos", u"ios", u"tvos", u"watchos"}, name))
+        list << canonicalOSIdentifiers(QStringLiteral("darwin"));
+    if (contains({u"darwin", u"freebsd", u"netbsd", u"openbsd"}, name))
+        list << canonicalOSIdentifiers(QStringLiteral("bsd"));
+    if (contains({u"android"}, name))
+        list << canonicalOSIdentifiers(QStringLiteral("linux"));
 
     // Note: recognized non-Unix platforms include: windows, haiku, vxworks
-    if (contains({"bsd", "aix", "hpux", "solaris", "linux", "hurd", "qnx", "integrity"}, name))
-        list << canonicalOSIdentifiers("unix");
+    if (contains({u"bsd", u"aix", u"hpux", u"solaris", u"linux", u"hurd", u"qnx", u"integrity"}, name))
+        list << canonicalOSIdentifiers(QStringLiteral("unix"));
 
     return list;
 }

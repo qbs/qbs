@@ -231,12 +231,9 @@ private:
 static bool doesProfileTargetOS(const Profile &profile, const QString &os)
 {
     const auto target = profile.value(QStringLiteral("qbs.targetPlatform"));
-    if (target.isValid()) {
-        return Internal::contains(HostOsInfo::canonicalOSIdentifiers(
-                                      target.toString().toStdString()),
-                                  os.toStdString());
-    }
-    return Internal::contains(HostOsInfo::hostOSIdentifiers(), os.toStdString());
+    if (target.isValid())
+        return Internal::contains(HostOsInfo::canonicalOSIdentifiers(target.toString()), os);
+    return Internal::contains(HostOsInfo::hostOSIdentifiers(), os);
 }
 
 static QString buildProfileName(const QFileInfo &cfi)

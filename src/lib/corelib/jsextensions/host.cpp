@@ -71,7 +71,7 @@ static QStringList osList()
 {
     QStringList list;
     for (const auto &s : HostOsInfo::canonicalOSIdentifiers(HostOsInfo::hostOSIdentifier()))
-        list.push_back(QString::fromStdString(s));
+        list.push_back(s);
     return list;
 }
 
@@ -86,7 +86,7 @@ QScriptValue Host::js_architecture(QScriptContext *context, QScriptEngine *engin
     Q_UNUSED(context);
     Q_UNUSED(engine);
 
-    return QString::fromStdString(HostOsInfo::hostOSArchitecture());
+    return HostOsInfo::hostOSArchitecture();
 }
 
 QScriptValue Host::js_os(QScriptContext *context, QScriptEngine *engine)
@@ -100,7 +100,7 @@ QScriptValue Host::js_platform(QScriptContext *context, QScriptEngine *engine)
 {
     Q_UNUSED(context);
     Q_UNUSED(engine);
-    return QString::fromStdString(HostOsInfo::hostOSIdentifier());
+    return HostOsInfo::hostOSIdentifier();
 }
 
 QScriptValue Host::js_osVersion(QScriptContext *context, QScriptEngine *engine)

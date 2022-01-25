@@ -101,7 +101,7 @@ void createClangClProfile(const QFileInfo &compiler, Settings *settings,
             compiler.filePath(), ConsoleLogger::instance());
     if (clangCl.isEmpty())
         return;
-    const auto hostArch = QString::fromStdString(HostOsInfo::hostOSArchitecture());
+    const auto hostArch = HostOsInfo::hostOSArchitecture();
     createProfileHelper(
             settings, profileName, clangCl.toolchainInstallPath, clangCl.vcvarsallPath, hostArch);
 }

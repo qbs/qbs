@@ -4599,7 +4599,7 @@ void TestBlackbox::jsExtensionsHost()
              HostOsInfo::hostOSArchitecture());
     QStringList list;
     for (const auto &s : HostOsInfo::canonicalOSIdentifiers(HostOsInfo::hostOSIdentifier()))
-        list.push_back(QString::fromStdString(s));
+        list.push_back(s);
     QCOMPARE(lines.at(i++).trimmed().constData(), "os: " + list.join(','));
     QCOMPARE(lines.at(i++).trimmed().constData(), "platform: " + HostOsInfo::hostOSIdentifier());
     QCOMPARE(lines.at(i++).trimmed().constData(), "osVersion: " +
@@ -8454,9 +8454,10 @@ void TestBlackbox::hostOsProperties()
         QSKIP("Cannot run binaries in cross-compiled build");
     QCOMPARE(runQbs(QStringLiteral("run")), 0);
     QVERIFY2(m_qbsStdout.contains(
-                 ("HOST_ARCHITECTURE = " + HostOsInfo::hostOSArchitecture()).data()),
+                 ("HOST_ARCHITECTURE = " + HostOsInfo::hostOSArchitecture().toUtf8()).data()),
              m_qbsStdout.constData());
-    QVERIFY2(m_qbsStdout.contains(("HOST_PLATFORM = " + HostOsInfo::hostOSIdentifier()).data()),
+    QVERIFY2(m_qbsStdout.contains(
+                ("HOST_PLATFORM = " + HostOsInfo::hostOSIdentifier().toUtf8()).data()),
              m_qbsStdout.constData());
 }
 
