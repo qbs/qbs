@@ -9,6 +9,7 @@ SOURCES += \
     $$PWD/environmentextension.cpp \
     $$PWD/file.cpp \
     $$PWD/fileinfoextension.cpp \
+    $$PWD/host.cpp \
     $$PWD/temporarydir.cpp \
     $$PWD/textfile.cpp \
     $$PWD/binaryfile.cpp \

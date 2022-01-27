@@ -1,0 +1,139 @@
+/****************************************************************************
+**
+** Copyright (C) 2022 Raphaël Cotty <raphael.cotty@gmail.com>
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:LGPL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 3 as published by the Free Software
+** Foundation and appearing in the file LICENSE.LGPL3 included in the
+** packaging of this file. Please review the following information to
+** ensure the GNU Lesser General Public License version 3 requirements
+** will be met: https://www.gnu.org/licenses/lgpl-3.0.html.
+**
+** GNU General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU
+** General Public License version 2.0 or (at your option) the GNU General
+** Public license version 3 or any later version approved by the KDE Free
+** Qt Foundation. The licenses are as published by the Free Software
+** Foundation and appearing in the file LICENSE.GPL2 and LICENSE.GPL3
+** included in the packaging of this file. Please review the following
+** information to ensure the GNU General Public License requirements will
+** be met: https://www.gnu.org/licenses/gpl-2.0.html and
+** https://www.gnu.org/licenses/gpl-3.0.html.
+**
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+/*!
+    \page jsextension-host.html
+    \ingroup list-of-builtin-services
+
+    \title Host Service
+    \brief Provides host information.
+
+    The \c Host service offers various information about the host environment, such as operating
+    system names, platform name.
+
+    \section1 Available Operations
+
+    \section2 architecture
+    \code
+    Host.architecture(): string
+    \endcode
+    Returns the host operating system architecture.
+
+    See \l{qbs::architecture}{qbs.architecture} for the target-specific equivalent property.
+    architecture.
+    \funsince 1.22
+
+    \section2 os
+    \code
+    Host.os(): string[]
+    \endcode
+    Returns the host operating system names.
+
+    See the \l{qbs::targetOS}{qbs.targetOS} for the target-specific equivalent property.
+    \funsince 1.22
+
+    \section2 platform
+    \code
+    Host.platform(): string[]
+    \endcode
+    Returns the host operating system platform.
+
+    See the \l{qbs::targetPlatform}{qbs.targetPlatform} for the target-specific equivalent property.
+    \funsince 1.22
+
+
+    \section2 osVersion
+    \code
+    Host.osVersion(): string
+    \endcode
+    Returns the host operating system version. Currently, only defined for Windows and Apple
+    platforms.
+
+    Consists of two or three numbers separated by dots. For example, \c "10.9" or \c "6.3.9600".
+    \funsince 1.22
+
+    \section2 osBuildVersion
+    \code
+    Host.osBuildVersion(): string
+    \endcode
+    Returns the host operating system build version. Currently, only defined for Windows and Apple
+    platforms.
+
+    On Windows, this is the 4 or 5 digit Windows build number and is equivalent
+    to \l{qbs::}{versionPatch}. On Apple platforms, this is a standard build number in the Apple
+    versioning scheme. For example, \c "13C64".
+    \funsince 1.22
+
+    \section2 osVersionParts
+    \code
+    Host.osVersionParts(): string[]
+    \endcode
+    Returns the host operating system version as a list.
+
+    For example, Windows 8.1 (version 6.3.9600) would correspond to a value of \c[6, 3, 9600].
+    \funsince 1.22
+
+    \section2 osVersionMajor
+    \code
+    Host.osVersionMajor(): string[]
+    \endcode
+    Returns the host operating system major version.
+    \funsince 1.22
+
+    \section2 osVersionMinor
+    \code
+    Host.osVersionMinor(): string[]
+    \endcode
+    Returns the host operating system minor version.
+    \funsince 1.22
+
+    \section2 osVersionPatch
+    \code
+    Host.osVersionPatch(): string[]
+    \endcode
+    Returns the host operating system patch level.
+    \funsince 1.22
+
+    \section2 nullDevice
+    \code
+    Host.nullDevice(): string[]
+    \endcode
+    Returns the platform-specific file path corresponding to the null device.
+    \funsince 1.22
+*/

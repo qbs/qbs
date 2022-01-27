@@ -284,7 +284,7 @@
 
     \sa {Target Platforms}
 
-    \defaultvalue \l{qbs::hostPlatform}{hostPlatform}
+    \defaultvalue \l{platform}{Host.platform()}
 */
 
 /*!
@@ -604,24 +604,6 @@
 */
 
 /*!
-    \qmlproperty string qbs::pathListSeparator
-
-    The platform-specific separator for a path list that is used in environment
-    variables or other contexts.
-
-    \defaultvalue \c{";"} on Windows, \c{":"} on Unix.
-*/
-
-/*!
-    \qmlproperty string qbs::nullDevice
-    \since Qbs 1.4.2
-
-    The platform-specific file path corresponding to the null device.
-
-    \defaultvalue \c{"NUL"} on Windows, \c{"/dev/null"} on Unix.
-*/
-
-/*!
     \qmlproperty path qbs::shellPath
     \since Qbs 1.5
 
@@ -634,109 +616,6 @@
     On Unix-like platforms, this is \c{/bin/sh}.
 
     \defaultvalue \c{"%COMSPEC%"} on Windows, \c{"/bin/sh"} on Unix
-*/
-
-/*!
-    \qmlproperty string qbs::hostArchitecture
-    \since Qbs 1.16
-
-    Contains the host OS architecture.
-
-    \defaultvalue Determined automatically.
-*/
-
-/*!
-    \qmlproperty stringList qbs::hostOS
-
-    This property is set by \QBS internally and specifies the OS \QBS is running
-    on.
-
-    The possible values for this property are the values of \l{qbs::}{targetOS},
-    even though some of them may not be supported.
-
-    \nodefaultvalue
-*/
-
-/*!
-    \qmlproperty string qbs::hostOSVersion
-    \readonly
-    \since Qbs 1.2
-
-    The host operating system version. Currently, only defined for Windows and
-    Apple platforms.
-
-    Consists of two or three numbers separated by dots. For example, \c "10.9"
-    or \c "6.3.9600".
-
-    \nodefaultvalue
-*/
-
-/*!
-    \qmlproperty string qbs::hostOSBuildVersion
-    \readonly
-    \since Qbs 1.2
-
-    The host operating system's build version. Currently, only defined for
-    Windows and Apple platforms.
-
-    On Windows, this is the 4 or 5 digit Windows build number and is equivalent
-    to \l{qbs::}{versionPatch}. On Apple platforms, this is a standard build
-    number in the Apple versioning scheme. For example, \c "13C64".
-
-    \nodefaultvalue
-*/
-
-/*!
-    \qmlproperty int qbs::hostOSVersionMajor
-    \readonly
-    \since Qbs 1.2
-
-    The host operating system major version.
-
-    \defaultvalue \c{hostOSVersionParts[0]}
-*/
-
-/*!
-    \qmlproperty int qbs::hostOSVersionMinor
-    \since Qbs 1.2
-
-    The host operating system minor version.
-
-    \defaultvalue \c{hostOSVersionParts[1]}
-*/
-
-/*!
-    \qmlproperty list qbs::hostOSVersionParts
-    \readonly
-    \since Qbs 1.2
-
-    The host operating system version as a list.
-
-    For example, Windows 8.1 (version 6.3.9600) would correspond to a value of
-    \c[6, 3, 9600].
-
-    \defaultvalue \c []
-*/
-
-/*!
-    \qmlproperty int qbs::hostOSVersionPatch
-    \readonly
-    \since Qbs 1.2
-
-    The host operating system patch level.
-
-    \defaultvalue \c{hostOSVersionParts[2]}
-*/
-
-/*!
-    \qmlproperty string qbs::hostPlatform
-    \since Qbs 1.11
-
-    Contains the host OS platform.
-
-    \sa {qbs::hostArchitecture}{hostArchitecture}
-
-    \defaultvalue Determined automatically.
 */
 
 /*!

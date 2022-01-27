@@ -168,6 +168,7 @@ private slots:
     void invalidLibraryNames_data();
     void jsExtensionsFile();
     void jsExtensionsFileInfo();
+    void jsExtensionsHost();
     void jsExtensionsProcess();
     void jsExtensionsPropertyList();
     void jsExtensionsTemporaryDir();

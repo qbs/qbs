@@ -57,6 +57,7 @@ static InitializerMap setupMap()
     ADD_JS_EXTENSION(Environment);
     ADD_JS_EXTENSION(File);
     ADD_JS_EXTENSION(FileInfo);
+    ADD_JS_EXTENSION(Host);
     ADD_JS_EXTENSION(PkgConfig);
     ADD_JS_EXTENSION(Process);
     ADD_JS_EXTENSION(PropertyList);

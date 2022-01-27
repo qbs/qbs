@@ -4551,7 +4551,7 @@ void TestBlackbox::jsExtensionsFileInfo()
     QVERIFY(output.exists());
     QVERIFY(output.open(QIODevice::ReadOnly));
     const QList<QByteArray> lines = output.readAll().trimmed().split('\n');
-    QCOMPARE(lines.size(), 26);
+    QCOMPARE(lines.size(), 28);
     int i = 0;
     QCOMPARE(lines.at(i++).trimmed().constData(), "blubb");
     QCOMPARE(lines.at(i++).trimmed().constData(), qUtf8Printable(
@@ -4580,6 +4580,44 @@ void TestBlackbox::jsExtensionsFileInfo()
     QCOMPARE(lines.at(i++).trimmed().constData(), "../blubb.tar.gz");
     QCOMPARE(lines.at(i++).trimmed().constData(), "\\tmp\\blubb.tar.gz");
     QCOMPARE(lines.at(i++).trimmed().constData(), "c:\\tmp\\blubb.tar.gz");
+    QCOMPARE(lines.at(i++).trimmed().constData(), qUtf8Printable(HostOsInfo::pathListSeparator()));
+    QCOMPARE(lines.at(i++).trimmed().constData(), qUtf8Printable(HostOsInfo::pathSeparator()));
+}
+
+void TestBlackbox::jsExtensionsHost()
+{
+    QDir::setCurrent(testDataDir + "//jsextensions-host");
+    QbsRunParameters params(QStringList { "-f", "host.qbs" });
+    QCOMPARE(runQbs(params), 0);
+    QFile output("output.txt");
+    QVERIFY(output.exists());
+    QVERIFY(output.open(QIODevice::ReadOnly));
+    const QList<QByteArray> lines = output.readAll().trimmed().split('\n');
+    QCOMPARE(lines.size(), 10);
+    int i = 0;
+    QCOMPARE(lines.at(i++).trimmed().constData(), "architecture: " +
+             HostOsInfo::hostOSArchitecture());
+    QStringList list;
+    for (const auto &s : HostOsInfo::canonicalOSIdentifiers(HostOsInfo::hostOSIdentifier()))
+        list.push_back(QString::fromStdString(s));
+    QCOMPARE(lines.at(i++).trimmed().constData(), "os: " + list.join(','));
+    QCOMPARE(lines.at(i++).trimmed().constData(), "platform: " + HostOsInfo::hostOSIdentifier());
+    QCOMPARE(lines.at(i++).trimmed().constData(), "osVersion: " +
+             HostOsInfo::hostOsVersion().toString());
+    QCOMPARE(lines.at(i++).trimmed().constData(), "osBuildVersion: " +
+             (HostOsInfo::hostOsBuildVersion().isNull() ? "undefined" :
+                                                         HostOsInfo::hostOsBuildVersion()));
+    QCOMPARE(lines.at(i++).trimmed().constData(), "osVersionParts: " +
+             HostOsInfo::hostOsVersion().toString(','));
+    QCOMPARE(lines.at(i++).trimmed().constData(), "osVersionMajor: " + QString::number(
+             HostOsInfo::hostOsVersion().majorVersion()));
+    QCOMPARE(lines.at(i++).trimmed().constData(), "osVersionMinor: " + QString::number(
+             HostOsInfo::hostOsVersion().minorVersion()));
+    QCOMPARE(lines.at(i++).trimmed().constData(), "osVersionPatch: " + QString::number(
+             HostOsInfo::hostOsVersion().patchLevel()));
+    QString nullDevice = HostOsInfo::isWindowsHost() ? QStringLiteral("NUL") :
+                                                       QStringLiteral("/dev/null");
+    QCOMPARE(lines.at(i++).trimmed().constData(), "nullDevice: " + nullDevice);
 }
 
 void TestBlackbox::jsExtensionsProcess()

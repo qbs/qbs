@@ -98,6 +98,28 @@ public:
         return v;
     }
 
+    static QString hostOsBuildVersion() {
+        QString v;
+        if (HostOsInfo::isWindowsHost()) {
+            QSettings settings(QStringLiteral("HKEY_LOCAL_MACHINE\\Software\\"
+                                                   "Microsoft\\Windows NT\\CurrentVersion"),
+                               QSettings::NativeFormat);
+            v = settings.value(QStringLiteral("CurrentBuildNumber")).toString();
+        } else if (HostOsInfo::isMacosHost()) {
+            QSettings serverSettings(QStringLiteral(
+                                         "/System/Library/CoreServices/ServerVersion.plist"),
+                               QSettings::NativeFormat);
+            v = serverSettings.value(QStringLiteral("ProductBuildVersion")).toString();
+            if (v.isNull()) {
+                QSettings systemSettings(QStringLiteral(
+                                             "/System/Library/CoreServices/SystemVersion.plist"),
+                                   QSettings::NativeFormat);
+                v = systemSettings.value(QStringLiteral("ProductBuildVersion")).toString();
+            }
+        }
+        return v;
+    }
+
     static bool isWindowsHost() { return hostOs() == HostOsWindows; }
     static bool isLinuxHost() { return hostOs() == HostOsLinux; }
     static bool isMacosHost() { return hostOs() == HostOsMacos; }

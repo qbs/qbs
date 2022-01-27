@@ -154,6 +154,7 @@ set(JS_EXTENSIONS_SOURCES
     environmentextension.cpp
     file.cpp
     fileinfoextension.cpp
+    host.cpp
     jsextensions.cpp
     jsextensions.h
     moduleproperties.cpp

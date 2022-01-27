@@ -148,7 +148,7 @@
 
     The list of environment variables that contains paths where to search files. Paths in the
     environment variable should be separated using
-    \l{qbs::pathListSeparator}{qbs.pathListSeparator}.
+    \l{pathListSeparator}{FileInfo.pathListSeparator()}.
 
     \nodefaultvalue
 */
@@ -158,7 +158,7 @@
 
     The list of platform environment variables that contains paths where to search files. Paths in
     the environment variable should be separated using
-    \l{qbs::pathListSeparator}{qbs.pathListSeparator}.
+    \l{pathListSeparator}{FileInfo.pathListSeparator()}.
 
     \nodefaultvalue
 */

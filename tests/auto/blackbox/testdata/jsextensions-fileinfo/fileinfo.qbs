@@ -39,6 +39,8 @@ Product {
                 output.writeLine(FileInfo.relativePath("/tmp", "/blubb.tar.gz"));
                 output.writeLine(FileInfo.toWindowsSeparators("/tmp/blubb.tar.gz"));
                 output.writeLine(FileInfo.toWindowsSeparators("c:\\tmp\\blubb.tar.gz"));
+                output.writeLine(FileInfo.pathListSeparator());
+                output.writeLine(FileInfo.pathSeparator());
                 output.close();
             };
             return [cmd];

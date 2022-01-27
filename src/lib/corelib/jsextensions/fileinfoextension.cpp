@@ -84,6 +84,8 @@ public:
     static QScriptValue js_toNativeSeparators(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_fromNativeSeparators(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_joinPaths(QScriptContext *context, QScriptEngine *engine);
+    static QScriptValue js_pathListSeparator(QScriptContext *context, QScriptEngine *engine);
+    static QScriptValue js_pathSeparator(QScriptContext *context, QScriptEngine *engine);
 };
 
 QScriptValue FileInfoExtension::js_ctor(QScriptContext *context, QScriptEngine *engine)
@@ -281,6 +283,20 @@ QScriptValue FileInfoExtension::js_joinPaths(QScriptContext *context, QScriptEng
     return engine->toScriptValue(uniqueSeparators(paths.join(QLatin1Char('/'))));
 }
 
+QScriptValue FileInfoExtension::js_pathListSeparator(QScriptContext *context, QScriptEngine *engine)
+{
+    Q_UNUSED(context);
+    Q_UNUSED(engine);
+    return QString(HostOsInfo::pathListSeparator());
+}
+
+QScriptValue FileInfoExtension::js_pathSeparator(QScriptContext *context, QScriptEngine *engine)
+{
+    Q_UNUSED(context);
+    Q_UNUSED(engine);
+    return QString(HostOsInfo::pathSeparator());
+}
+
 } // namespace Internal
 } // namespace qbs
 
@@ -322,6 +338,10 @@ void initializeJsExtensionFileInfo(QScriptValue extensionObject)
                             engine->newFunction(FileInfoExtension::js_fromNativeSeparators));
     fileInfoObj.setProperty(QStringLiteral("joinPaths"),
                             engine->newFunction(FileInfoExtension::js_joinPaths));
+    fileInfoObj.setProperty(QStringLiteral("pathListSeparator"),
+                            engine->newFunction(FileInfoExtension::js_pathListSeparator));
+    fileInfoObj.setProperty(QStringLiteral("pathSeparator"),
+                            engine->newFunction(FileInfoExtension::js_pathSeparator));
     extensionObject.setProperty(QStringLiteral("FileInfo"), fileInfoObj);
 }
 

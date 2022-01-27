@@ -149,4 +149,19 @@
     FileInfo.toWindowsSeparators(filePath: string): string
     \endcode
     Returns \c filePath with all '/' characters replaced by '\\'.
+
+    \section2 pathListSeparator
+    \code
+    FileInfo.pathListSeparator(): string
+    \endcode
+    Returns the host operating system separator for a path list that is used in environment
+    variables or other contexts.
+    \funsince 1.22
+
+    \section2 pathSeparator
+    \code
+    FileInfo.pathSeparator(): string
+    \endcode
+    Returns the host operating system path separator.
+    \funsince 1.22
 */
