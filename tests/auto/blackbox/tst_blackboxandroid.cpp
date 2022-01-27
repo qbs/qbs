@@ -221,7 +221,7 @@ void TestBlackboxAndroid::android_data()
         const bool usesClang = (forQt ? pQt : p).value(QStringLiteral("qbs.toolchainType"))
                 .toString() == "clang";
         const QByteArray path = "lib/${ARCH}/";
-        return path + (usesClang ? "libc++_shared.so" : oldcxxLib);
+        return path + (usesClang ? QByteArrayLiteral("libc++_shared.so") : oldcxxLib);
     };
     qbs::Version version(5, 13);
     QStringList qmakeFilePaths = pQt.value(QStringLiteral("moduleProviders.Qt.qmakeFilePaths")).
@@ -259,7 +259,7 @@ void TestBlackboxAndroid::android_data()
     auto expandArchs = [] (const QByteArrayList &archs, const QByteArrayList &lst, bool aabPackage) {
         const QByteArray &archPlaceHolder = "${ARCH}";
         QByteArrayList result;
-        QByteArray base( aabPackage ? "base/" : QByteArray());
+        QByteArray base( aabPackage ? "base/" : "");
         for (const QByteArray &entry : lst) {
             if (entry.contains(archPlaceHolder)) {
                 for (const QByteArray &arch : qAsConst(archs))
