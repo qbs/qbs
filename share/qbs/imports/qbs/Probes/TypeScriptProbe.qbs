@@ -30,6 +30,7 @@
 
 import qbs.File
 import qbs.FileInfo
+import qbs.Host
 import qbs.ModUtils
 import "path-probe.js" as PathProbeConfigure
 import "../../../modules/typescript/typescript.js" as TypeScript
@@ -60,11 +61,10 @@ BinaryProbe {
         var selectors;
         var results = PathProbeConfigure.configure(
                     selectors, names, nameSuffixes, nameFilter, candidateFilter, searchPaths,
-                    pathSuffixes, platformSearchPaths, environmentPaths, platformEnvironmentPaths,
-                    pathListSeparator);
+                    pathSuffixes, platformSearchPaths, environmentPaths, platformEnvironmentPaths);
 
-        var v = new ModUtils.EnvironmentVariable("PATH", pathListSeparator,
-                                                 hostOS.contains("windows"));
+        var v = new ModUtils.EnvironmentVariable("PATH", FileInfo.pathListSeparator(),
+                                                 Host.os().contains("windows"));
         v.prepend(interpreterPath);
 
         var resultsMapper = function(result) {

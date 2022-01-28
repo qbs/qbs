@@ -31,6 +31,7 @@
 import qbs.Process
 import qbs.File
 import qbs.FileInfo
+import qbs.Host
 import qbs.TextFile
 import qbs.Utilities
 
@@ -39,7 +40,7 @@ Probe {
     property stringList additionalArguments: []
     property path conanfilePath
     property path packageReference
-    property path executable: "conan" + (qbs.hostOS.contains("windows") ? ".exe": "")
+    property path executable: "conan" + (Host.os().contains("windows") ? ".exe": "")
     property stringList generators: ["json"]
     property var options
     property var settings

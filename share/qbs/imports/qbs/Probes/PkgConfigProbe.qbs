@@ -28,6 +28,7 @@
 **
 ****************************************************************************/
 
+import qbs.Host
 import qbs.Process
 import qbs.FileInfo
 
@@ -42,7 +43,6 @@ Probe {
     property string maxVersion
     property bool forStaticBuild: false
     property stringList libDirs // Full, non-sysrooted paths, mirroring the environment variable
-    property string pathListSeparator: qbs.pathListSeparator
 
     // Output
     property stringList cflags // Unmodified --cflags output
@@ -73,7 +73,7 @@ Probe {
                 }
             }
             if (libDirsToSet)
-                p.setEnv("PKG_CONFIG_LIBDIR", libDirsToSet.join(pathListSeparator));
+                p.setEnv("PKG_CONFIG_LIBDIR", libDirsToSet.join(FileInfo.pathListSeparator()));
             var versionArgs = [];
             if (minVersion !== undefined)
                 versionArgs.push("--atleast-version=" + minVersion);

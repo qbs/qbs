@@ -1,7 +1,9 @@
+import qbs.Host
+
 CppApplication {
     Depends { name: "capnproto.cpp"; required: false }
     condition: {
-        var result = qbs.targetPlatform === qbs.hostPlatform;
+        var result = qbs.targetPlatform === Host.platform();
         if (!result)
             console.info("targetPlatform differs from hostPlatform");
         if (!capnproto.cpp.present)

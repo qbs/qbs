@@ -1,4 +1,5 @@
 import "MyStaticLib.qbs" as MyStaticLib
+import qbs.Host
 
 Project {
     property bool removeDuplicates
@@ -6,7 +7,7 @@ Project {
     property bool dummy: {
         // most BSD systems (including macOS) use LLVM linker now
         console.info("is bfd linker: "
-                     + (qbs.toolchain.contains("gcc") && !qbs.hostOS.contains("bsd")))
+                     + (qbs.toolchain.contains("gcc") && !Host.os().contains("bsd")))
     }
 
     qbsSearchPaths: "."

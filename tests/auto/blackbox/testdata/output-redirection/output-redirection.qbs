@@ -1,4 +1,5 @@
 import qbs.FileInfo
+import qbs.Host
 
 Product {
     name: "the-product"
@@ -21,7 +22,7 @@ Product {
         prepare: {
             var binary;
             var prefixArgs;
-            if (product.qbs.hostOS.contains("windows")) {
+            if (Host.os().contains("windows")) {
                 binary = product.qbs.windowsShellPath;
                 prefixArgs = ["/c", "type"];
             } else {

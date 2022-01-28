@@ -1,3 +1,4 @@
+import qbs.Host
 import qbs.TextFile
 import '../QtModule.qbs' as QtModule
 import "qml.js" as Qml
@@ -144,7 +145,7 @@ QtModule {
                     qmlInputs = [];
                 var scannerData = Qml.scannerData(product.Qt.qml.qmlImportScannerFilePath,
                         qmlInputs.map(function(inp) { return inp.filePath; }),
-                        product.Qt.qml.qmlPath, product.qbs.hostOS);
+                        product.Qt.qml.qmlPath, Host.os());
                 var cppFile;
                 var listFile;
                 try {

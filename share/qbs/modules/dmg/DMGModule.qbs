@@ -31,6 +31,7 @@
 import qbs.DarwinTools
 import qbs.File
 import qbs.FileInfo
+import qbs.Host
 import qbs.ModUtils
 import qbs.Process
 import qbs.TextFile
@@ -39,7 +40,7 @@ import "dmg.js" as Dmg
 Module {
     Depends { name: "xcode"; required: false }
 
-    condition: qbs.hostOS.contains("darwin") && qbs.targetOS.contains("darwin")
+    condition: Host.os().contains("darwin") && qbs.targetOS.contains("darwin")
 
     property string volumeName: product.targetName
     PropertyOptions {

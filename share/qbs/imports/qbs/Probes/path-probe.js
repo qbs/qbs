@@ -73,7 +73,7 @@ function pathsFromEnvs(envs, pathListSeparator) {
 
 function configure(selectors, names, nameSuffixes, nameFilter, candidateFilter,
                    searchPaths, pathSuffixes, platformSearchPaths, environmentPaths,
-                   platformEnvironmentPaths, pathListSeparator) {
+                   platformEnvironmentPaths) {
     var result = { found: false, files: [] };
     if (!selectors && !names)
         throw '"names" or "selectors" must be specified';
@@ -102,9 +102,9 @@ function configure(selectors, names, nameSuffixes, nameFilter, candidateFilter,
 
     // FIXME: Suggest how to obtain paths from system
     var _paths = ModUtils.concatAll(
-                pathsFromEnvs(environmentPaths, pathListSeparator),
+                pathsFromEnvs(environmentPaths, FileInfo.pathListSeparator()),
                 searchPaths,
-                pathsFromEnvs(platformEnvironmentPaths, pathListSeparator),
+                pathsFromEnvs(platformEnvironmentPaths, FileInfo.pathListSeparator()),
                 platformSearchPaths);
     var _suffixes = ModUtils.concatAll('', pathSuffixes);
     _paths = _paths.map(function(p) { return FileInfo.fromNativeSeparators(p); });

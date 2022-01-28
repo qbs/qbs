@@ -31,6 +31,7 @@
 import qbs.Environment
 import qbs.File
 import qbs.FileInfo
+import qbs.Host
 import qbs.ModUtils
 import qbs.Probes
 import qbs.Utilities
@@ -39,7 +40,7 @@ Module {
     Probes.PathProbe {
         id: qnxSdkProbe
         names: ["qnx700", "qnx660", "qnx650"]
-        searchPaths: qbs.hostOS.contains("windows")
+        searchPaths: Host.os().contains("windows")
                       ? [Environment.getEnv("USERPROFILE"), Environment.getEnv("SystemDrive")]
                       : [Environment.getEnv("HOME"), "/opt"]
     }
@@ -77,11 +78,11 @@ Module {
     property string hostArch: qnx7 ? "x86_64" : "x86"
 
     property string hostOs: {
-        if (qbs.hostOS.contains("linux"))
+        if (Host.os().contains("linux"))
             return "linux";
-        if (qbs.hostOS.contains("macos"))
+        if (Host.os().contains("macos"))
             return "darwin";
-        if (qbs.hostOS.contains("windows"))
+        if (Host.os().contains("windows"))
             return qnx7 ? "win64" : "win32";
     }
 
@@ -111,7 +112,7 @@ Module {
         }
 
         if (!hostOs) {
-            throw ModUtils.ModuleError("Host operating system '" + qbs.hostOS
+            throw ModUtils.ModuleError("Host operating system '" + Host.os()
                                        + "' is not supported by the QNX SDK.");
         } else if (!File.exists(hostDir)) {
             throw ModUtils.ModuleError("Detected host tools operating system '" + hostOs

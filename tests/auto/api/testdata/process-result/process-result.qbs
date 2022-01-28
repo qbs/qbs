@@ -1,3 +1,5 @@
+import qbs.Host
+
 Project {
     CppApplication {
         name: "app"
@@ -6,7 +8,7 @@ Project {
     }
     Product {
         condition: {
-            var result = qbs.targetPlatform === qbs.hostPlatform;
+            var result = qbs.targetPlatform === Host.platform();
             if (!result)
                 console.info("targetPlatform differs from hostPlatform");
             return result;

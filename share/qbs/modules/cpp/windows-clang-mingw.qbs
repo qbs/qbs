@@ -30,6 +30,7 @@
 
 import qbs.File
 import qbs.FileInfo
+import qbs.Host
 import qbs.ModUtils
 import qbs.Utilities
 import "msvc.js" as MSVC
@@ -68,16 +69,16 @@ MingwBaseModule {
                                                    "llvm-rc" + compilerExtension)
 
     setupBuildEnvironment: {
-        if (product.qbs.hostOS.contains("windows") && product.qbs.sysroot) {
-            var v = new ModUtils.EnvironmentVariable("PATH", product.qbs.pathListSeparator, true);
+        if (Host.os().contains("windows") && product.qbs.sysroot) {
+            var v = new ModUtils.EnvironmentVariable("PATH", FileInfo.pathListSeparator(), true);
             v.prepend(FileInfo.joinPaths(product.qbs.sysroot, "bin"));
             v.set();
         }
     }
 
     setupRunEnvironment: {
-        if (product.qbs.hostOS.contains("windows") && product.qbs.sysroot) {
-            var v = new ModUtils.EnvironmentVariable("PATH", product.qbs.pathListSeparator, true);
+        if (Host.os().contains("windows") && product.qbs.sysroot) {
+            var v = new ModUtils.EnvironmentVariable("PATH", FileInfo.pathListSeparator(), true);
             v.prepend(FileInfo.joinPaths(product.qbs.sysroot, "bin"));
             v.set();
             SetupRunEnv.setupRunEnvironment(product, config);

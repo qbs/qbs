@@ -1,4 +1,5 @@
 import qbs.File
+import qbs.Host
 import qbs.Probes
 
 CLIModule {
@@ -14,9 +15,9 @@ CLIModule {
         names: ["mono"]
         platformSearchPaths: {
             var paths = [];
-            if (qbs.hostOS.contains("macos"))
+            if (Host.os().contains("macos"))
                 paths.push("/Library/Frameworks/Mono.framework/Commands");
-            if (qbs.hostOS.contains("unix"))
+            if (Host.os().contains("unix"))
                 paths.push("/usr/bin");
             return paths;
         }

@@ -1,4 +1,5 @@
 import qbs.FileInfo
+import qbs.Host
 
 Project {
     WindowsInstallerPackage {
@@ -19,7 +20,7 @@ Project {
 
     WindowsSetupPackage {
         Depends { name: "QbsSetup" }
-        condition: qbs.hostOS.contains("windows") // currently does not work in Wine with WiX 3.9
+        condition: Host.os().contains("windows") // currently does not work in Wine with WiX 3.9
         name: "QbsBootstrapper"
         targetName: "qbs-setup-" + qbs.architecture
         files: ["QbsBootstrapper.wxs"]

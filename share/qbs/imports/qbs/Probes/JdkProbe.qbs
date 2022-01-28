@@ -30,14 +30,14 @@
 ****************************************************************************/
 
 import qbs.Environment
+import qbs.Host
 import "../../../modules/java/utils.js" as JavaUtils
 
 PathProbe {
     // Inputs
-    property stringList hostOS: qbs.hostOS
     property string architecture: !_androidCrossCompiling ? qbs.architecture : undefined
     property bool _androidCrossCompiling: qbs.targetOS.contains("android")
-                                          && !qbs.hostOS.contains("android")
+                                          && !Host.os().contains("android")
 
     environmentPaths: Environment.getEnv("JAVA_HOME")
     platformSearchPaths: [
@@ -47,7 +47,8 @@ PathProbe {
     ]
 
     configure: {
-        path = JavaUtils.findJdkPath(hostOS, architecture, environmentPaths, platformSearchPaths);
+        path = JavaUtils.findJdkPath(Host.os(), architecture, environmentPaths,
+                                     platformSearchPaths);
         found = !!path;
     }
 }

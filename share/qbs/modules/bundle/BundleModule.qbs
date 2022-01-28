@@ -33,6 +33,7 @@ import qbs.DarwinTools
 import qbs.Environment
 import qbs.File
 import qbs.FileInfo
+import qbs.Host
 import qbs.ModUtils
 import qbs.PropertyList
 import qbs.TextFile
@@ -618,7 +619,7 @@ Module {
                 for (var i = 0; i < artifacts.length; ++i)
                     artifacts[i].bundle = { wrapperPath: wrapperPath };
 
-                if (product.qbs.hostOS.contains("darwin") && product.codesign
+                if (Host.os().contains("darwin") && product.codesign
                         && product.codesign.enableCodeSigning) {
                     artifacts.push({
                         filePath: FileInfo.joinPaths(product.bundle.contentsFolderPath, "_CodeSignature/CodeResources"),

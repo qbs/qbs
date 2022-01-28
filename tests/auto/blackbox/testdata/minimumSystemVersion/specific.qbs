@@ -3,9 +3,11 @@ import qbs.Utilities
 // a specific version of the operating systems is specified
 // when the application is run its output should confirm
 // that the given values took effect
+import qbs.Host
+
 CppApplication {
     condition: {
-        var result = qbs.targetPlatform === qbs.hostPlatform;
+        var result = qbs.targetPlatform === Host.platform();
         if (!result)
             console.info("targetPlatform differs from hostPlatform");
         return result && qbs.targetOS.contains("windows") || qbs.targetOS.contains("macos");

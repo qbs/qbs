@@ -1,5 +1,6 @@
 import qbs.Environment
 import qbs.FileInfo
+import qbs.Host
 import qbs.Utilities
 
 Project {
@@ -25,7 +26,7 @@ Project {
 
     Product {
         condition: {
-            var result = qbs.targetPlatform === qbs.hostPlatform;
+            var result = qbs.targetPlatform === Host.platform();
             if (!result)
                 console.info("targetPlatform differs from hostPlatform");
             return result;
@@ -41,9 +42,9 @@ Project {
                 cmd.description = "running " + input.filePath;
 
                 var envVars = {};
-                if (product.qbs.hostOS.contains("windows")) {
+                if (Host.os().contains("windows")) {
                     envVars["PATH"] = FileInfo.toWindowsSeparators(input["Qt.core"].binPath);
-                } else if (product.qbs.hostOS.contains("macos")) {
+                } else if (Host.os().contains("macos")) {
                     envVars["DYLD_LIBRARY_PATH"] = input["Qt.core"].libPath;
                     envVars["DYLD_FRAMEWORK_PATH"] = input["Qt.core"].libPath;
                 } else {
@@ -51,7 +52,7 @@ Project {
                 }
                 for (var varName in envVars) {
                     var oldValue = Environment.getEnv(varName) || "";
-                    var newValue = envVars[varName] + product.qbs.pathListSeparator + oldValue;
+                    var newValue = envVars[varName] + FileInfo.pathListSeparator() + oldValue;
                     cmd.environment.push(varName + '=' + newValue);
                 }
 

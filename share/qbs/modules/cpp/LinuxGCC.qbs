@@ -28,6 +28,7 @@
 **
 ****************************************************************************/
 
+import qbs.Host
 import qbs.Process
 
 UnixGCC {
@@ -41,7 +42,7 @@ UnixGCC {
 
     Probe {
         id: runPathsProbe
-        condition: !_skipAllChecks && qbs.targetPlatform === qbs.hostPlatform
+        condition: !_skipAllChecks && qbs.targetPlatform === Host.platform()
         property stringList systemRunPaths: []
         configure: {
             var paths = [];

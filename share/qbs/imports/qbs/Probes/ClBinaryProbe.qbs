@@ -42,7 +42,7 @@ BinaryProbe {
         var results = PathProbeConfigure.configure(_selectors, names, nameSuffixes, nameFilter,
                                                    candidateFilter, searchPaths, pathSuffixes,
                                                    platformSearchPaths, environmentPaths,
-                                                   platformEnvironmentPaths, pathListSeparator);
+                                                   platformEnvironmentPaths);
         if (!results.found) {
             var msvcs = Utilities.installedMSVCs(preferredArchitecture);
             if (msvcs.length >= 1) {

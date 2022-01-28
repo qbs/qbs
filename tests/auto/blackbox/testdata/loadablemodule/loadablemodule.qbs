@@ -1,3 +1,5 @@
+import qbs.Host
+
 Project {
     LoadableModule {
         Depends { name: "cpp" }
@@ -16,7 +18,7 @@ Project {
 
     CppApplication {
         condition: {
-            var result = qbs.targetPlatform === qbs.hostPlatform;
+            var result = qbs.targetPlatform === Host.platform();
             if (!result)
                 console.info("targetPlatform differs from hostPlatform");
             return result;

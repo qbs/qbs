@@ -1,5 +1,6 @@
 // base for Common Language Infrastructure modules
 import qbs.FileInfo
+import qbs.Host
 import qbs.ModUtils
 import "cli.js" as CLI
 
@@ -87,8 +88,8 @@ Module {
     }
 
     setupBuildEnvironment: {
-        var v = new ModUtils.EnvironmentVariable("PATH", product.qbs.pathListSeparator,
-                                                 product.qbs.hostOS.contains("windows"));
+        var v = new ModUtils.EnvironmentVariable("PATH", FileInfo.pathListSeparator(),
+                                                 Host.os().contains("windows"));
         v.prepend(product.cli.toolchainInstallPath);
         v.set();
     }

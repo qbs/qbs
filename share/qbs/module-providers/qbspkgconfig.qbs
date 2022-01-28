@@ -40,6 +40,7 @@
 import qbs.Environment
 import qbs.File
 import qbs.FileInfo
+import qbs.Host
 import qbs.ModUtils
 import qbs.PkgConfig
 import qbs.Process
@@ -61,7 +62,7 @@ ModuleProvider {
 
     relativeSearchPaths: {
 
-        function exeSuffix(qbs) { return qbs.hostOS.contains("windows") ? ".exe" : ""; }
+        function exeSuffix(qbs) { return Host.os().contains("windows") ? ".exe" : ""; }
 
         // we need Probes in Providers...
         function getPkgConfigExecutable(qbs) {
@@ -70,7 +71,7 @@ ModuleProvider {
             var pathValue = Environment.getEnv("PATH");
             if (!pathValue)
                 return undefined;
-            var dirs = splitNonEmpty(pathValue, qbs.pathListSeparator);
+            var dirs = splitNonEmpty(pathValue, FileInfo.pathListSeparator());
             var suffix = exeSuffix(qbs);
             var filePaths = [];
             for (var i = 0; i < dirs.length; ++i) {
@@ -165,7 +166,7 @@ ModuleProvider {
                 var p = new Process()
                 if (p.exec(executable, ['pkg-config', '--variable=pc_path']) === 0) {
                     var stdout = p.readStdOut().trim();
-                    // TODO: qbs.pathListSeparator? depends on what pkg-config prints on Windows
+                    // TODO: pathListSeparator? depends on what pkg-config prints on Windows
                     options.libDirs = stdout ? stdout.split(':'): [];
                 }
             }

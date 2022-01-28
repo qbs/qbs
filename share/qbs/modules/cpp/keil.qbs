@@ -30,12 +30,13 @@
 
 import qbs.File
 import qbs.FileInfo
+import qbs.Host
 import qbs.Probes
 import "cpp.js" as Cpp
 import "keil.js" as KEIL
 
 CppModule {
-    condition: qbs.hostOS.contains("windows") && qbs.toolchain && qbs.toolchain.contains("keil")
+    condition: Host.os().contains("windows") && qbs.toolchain && qbs.toolchain.contains("keil")
 
     Probes.BinaryProbe {
         id: compilerPathProbe

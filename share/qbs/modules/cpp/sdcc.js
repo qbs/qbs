@@ -33,6 +33,7 @@ var Cpp = require("cpp.js");
 var Environment = require("qbs.Environment");
 var File = require("qbs.File");
 var FileInfo = require("qbs.FileInfo");
+var Host = require("qbs.Host");
 var ModUtils = require("qbs.ModUtils");
 var PathTools = require("qbs.PathTools");
 var Process = require("qbs.Process");
@@ -395,7 +396,7 @@ function buildLinkerMapFilePath(target, suffix) {
 // We need to replace the '\r\n\' line endings with the'\n' line
 // endings for each generated object file.
 function patchObjectFile(project, product, inputs, outputs, input, output) {
-    var isWindows = input.qbs.hostOS.contains("windows");
+    var isWindows = Host.os().contains("windows");
     if (isWindows && input.cpp.debugInformation) {
         var cmd = new JavaScriptCommand();
         cmd.objectPath = outputs.obj[0].filePath;

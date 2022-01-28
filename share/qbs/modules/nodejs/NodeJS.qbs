@@ -31,6 +31,7 @@
 import qbs.Environment
 import qbs.File
 import qbs.FileInfo
+import qbs.Host
 import qbs.ModUtils
 import qbs.Probes
 
@@ -84,13 +85,13 @@ Module {
                                                                        "tmp", "nodejs.intermediate")
 
     setupBuildEnvironment: {
-        var v = new ModUtils.EnvironmentVariable("PATH", product.qbs.pathListSeparator, product.qbs.hostOS.contains("windows"));
+        var v = new ModUtils.EnvironmentVariable("PATH", FileInfo.pathListSeparator(), Host.os().contains("windows"));
         v.prepend(product.nodejs.toolchainInstallPath);
         v.set();
     }
 
     setupRunEnvironment: {
-        var v = new ModUtils.EnvironmentVariable("NODE_PATH", product.qbs.pathListSeparator, product.qbs.hostOS.contains("windows"));
+        var v = new ModUtils.EnvironmentVariable("NODE_PATH", FileInfo.pathListSeparator(), Host.os().contains("windows"));
         v.prepend(FileInfo.path(Environment.getEnv("QBS_RUN_FILE_PATH")));
         v.set();
     }

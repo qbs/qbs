@@ -42,7 +42,7 @@ BinaryProbe {
         var results = PathProbeConfigure.configure(_selectors, names, nameSuffixes, nameFilter,
                                                    candidateFilter, searchPaths, pathSuffixes,
                                                    platformSearchPaths, environmentPaths,
-                                                   platformEnvironmentPaths, pathListSeparator);
+                                                   platformEnvironmentPaths);
         var compilerPath;
         if (results.found)
             compilerPath = results.files[0].filePath;

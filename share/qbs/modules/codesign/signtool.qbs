@@ -29,13 +29,14 @@
 ****************************************************************************/
 
 import qbs.File
+import qbs.Host
 import qbs.ModUtils
 import qbs.Probes
 import "codesign.js" as CODESIGN
 
 CodeSignModule {
     condition: qbs.targetOS.contains("windows")
-               && qbs.hostOS.contains("windows")
+               && Host.os().contains("windows")
                && qbs.toolchain.contains("msvc")
 
     _canSignArtifacts: true
@@ -43,7 +44,7 @@ CodeSignModule {
     Probes.BinaryProbe {
         id: signtoolProbe
         names: [codesignName]
-        searchPaths: CODESIGN.findBestSignToolSearchPaths(qbs.hostArchitecture)
+        searchPaths: CODESIGN.findBestSignToolSearchPaths(Host.architecture())
     }
 
     codesignName: "signtool"

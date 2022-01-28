@@ -32,6 +32,7 @@ var Codesign = require("../codesign/codesign.js");
 var Cpp = require("cpp.js");
 var File = require("qbs.File");
 var FileInfo = require("qbs.FileInfo");
+var Host = require("qbs.Host");
 var DarwinTools = require("qbs.DarwinTools");
 var ModUtils = require("qbs.ModUtils");
 var PathTools = require("qbs.PathTools");
@@ -1011,7 +1012,7 @@ function linkerEnvVars(config, inputs)
 
 function setResponseFileThreshold(command, product)
 {
-    if (product.qbs.targetOS.contains("windows") && product.qbs.hostOS.contains("windows"))
+    if (product.qbs.targetOS.contains("windows") && Host.os().contains("windows"))
         command.responseFileThreshold = 10000;
 }
 

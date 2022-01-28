@@ -1,11 +1,12 @@
 import qbs.FileInfo
+import qbs.Host
 
 Module {
     Depends { name: "cpp" }
     Group {
         name: "thetool binary"
         files: FileInfo.cleanPath(FileInfo.joinPaths(path, "..", "..",
-                   "thetool" + (qbs.hostOS.contains("windows") ? ".exe" : "")));
+                   "thetool" + (Host.os().contains("windows") ? ".exe" : "")));
         fileTags: ["thetool.thetool"]
         filesAreTargets: true
     }

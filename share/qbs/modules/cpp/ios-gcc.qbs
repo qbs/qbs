@@ -31,6 +31,7 @@
 import qbs.DarwinTools
 import qbs.File
 import qbs.FileInfo
+import qbs.Host
 import qbs.ModUtils
 import qbs.Utilities
 
@@ -40,7 +41,7 @@ DarwinGCC {
                qbs.toolchain && qbs.toolchain.contains('gcc')
 
     minimumIosVersion: {
-        if (qbs.architecture == "armv7a")
+        if (Host.architecture() == "armv7a")
             return "6.0";
         // XCode 12 requres version (at least 8.0) to be present in the -target triplet
         // when compiling for ios-simulator

@@ -1,10 +1,12 @@
+import qbs.Host
+
 Project {
     CppApplication {
         name: "myapp"
         files: ["main.cpp"]
         Depends {
             name: "plugin1"                             // not to be linked
-            cpp.link: qbs.hostOS === undefined
+            cpp.link: Host.os() === undefined
         }
         Depends { name: "plugin2" }                     // not to be linked
         Depends {

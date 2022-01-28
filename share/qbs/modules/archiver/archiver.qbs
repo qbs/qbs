@@ -30,6 +30,7 @@
 
 import qbs.Environment
 import qbs.File
+import qbs.Host
 import qbs.FileInfo
 import qbs.Probes
 
@@ -53,7 +54,7 @@ Module {
         names: ["7z"]
         platformSearchPaths: {
             var paths = base;
-            if (qbs.hostOS.contains("windows")) {
+            if (Host.os().contains("windows")) {
                 var env32 = Environment.getEnv("PROGRAMFILES(X86)");
                 var env64 = Environment.getEnv("PROGRAMFILES");
                 if (env64 === env32 && env64.endsWith(" (x86)"))

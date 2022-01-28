@@ -1,5 +1,6 @@
 import qbs.Environment
 import qbs.FileInfo
+import qbs.Host
 import "path-probe.js" as PathProbeConfigure
 
 BinaryProbe {
@@ -13,7 +14,7 @@ BinaryProbe {
 
     platformSearchPaths: {
         var paths = base;
-        if (qbs.targetOS.contains("windows") && qbs.hostOS.contains("windows"))
+        if (qbs.targetOS.contains("windows") && Host.os().contains("windows"))
             paths.push(FileInfo.joinPaths(
                            Environment.getEnv("SystemDrive"), "MinGW", "bin"));
         return paths;
@@ -51,8 +52,7 @@ BinaryProbe {
         var selectors;
         var results = PathProbeConfigure.configure(
                     selectors, names, nameSuffixes, nameFilter, candidateFilter, searchPaths,
-                    pathSuffixes, platformSearchPaths, environmentPaths, platformEnvironmentPaths,
-                    pathListSeparator);
+                    pathSuffixes, platformSearchPaths, environmentPaths, platformEnvironmentPaths);
 
         found = results.found;
         if (!found)

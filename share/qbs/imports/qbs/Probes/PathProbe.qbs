@@ -29,6 +29,7 @@
 ****************************************************************************/
 
 import "path-probe.js" as PathProbeConfigure
+import qbs.Host
 import qbs.ModUtils
 
 Probe {
@@ -40,11 +41,9 @@ Probe {
     property varList selectors
     property pathList searchPaths
     property stringList pathSuffixes
-    property pathList platformSearchPaths: hostOS.contains("unix") ? ['/usr', '/usr/local'] : []
+    property pathList platformSearchPaths: Host.os().contains("unix") ? ['/usr', '/usr/local'] : []
     property stringList environmentPaths
     property stringList platformEnvironmentPaths
-    property stringList hostOS: qbs.hostOS
-    property string pathListSeparator: qbs.pathListSeparator
 
     // Output
     property stringList candidatePaths
@@ -58,7 +57,7 @@ Probe {
         var results = PathProbeConfigure.configure(selectors, names, nameSuffixes, nameFilter,
                                                    candidateFilter, searchPaths, pathSuffixes,
                                                    platformSearchPaths, environmentPaths,
-                                                   platformEnvironmentPaths, pathListSeparator);
+                                                   platformEnvironmentPaths);
         found = results.found;
         allResults = results.files;
 

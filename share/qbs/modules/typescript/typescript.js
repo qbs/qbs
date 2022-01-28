@@ -132,7 +132,7 @@ function outputArtifacts(product, inputs) {
         process.setEnv("NODE_PATH", [
             ModUtils.moduleProperty(product, "toolchainInstallPath"),
             product.moduleProperty("nodejs", "packageManagerRootPath")
-        ].join(product.moduleProperty("qbs", "pathListSeparator")));
+        ].join(FileInfo.pathListSeparator()));
         process.exec(product.moduleProperty("nodejs", "interpreterFilePath"),
                      [FileInfo.joinPaths(product.buildDirectory,
                                          ".io.qt.qbs.internal.typescript",

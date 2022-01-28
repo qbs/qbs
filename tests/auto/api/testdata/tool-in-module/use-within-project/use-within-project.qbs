@@ -1,3 +1,5 @@
+import qbs.Host
+
 Project {
     CppApplication {
         name: "thetool"
@@ -5,7 +7,7 @@ Project {
         files: "main.cpp"
 
         property bool skip: {
-            var result = qbs.targetPlatform !== qbs.hostPlatform;
+            var result = qbs.targetPlatform !== Host.platform();
             if (result)
                 console.info("Skip this test");
             return result;

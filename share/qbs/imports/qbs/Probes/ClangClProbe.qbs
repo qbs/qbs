@@ -30,6 +30,7 @@
 
 import qbs.File
 import qbs.FileInfo
+import qbs.Host
 import qbs.ModUtils
 import qbs.Utilities
 import "../../../modules/cpp/gcc.js" as Gcc
@@ -40,8 +41,6 @@ PathProbe {
     property string vcvarsallFilePath
     property stringList enableDefinesByLanguage
     property string preferredArchitecture
-    property string _nullDevice: qbs.nullDevice
-    property string _pathListSeparator: qbs.pathListSeparator
     property string winSdkVersion
 
     // Outputs
@@ -95,8 +94,8 @@ PathProbe {
         var clangPath = FileInfo.joinPaths(FileInfo.path(compilerFilePath), "clang.exe");
 
         var defaultPaths = Gcc.dumpDefaultPaths(buildEnv, clangPath,
-                                                [], _nullDevice,
-                                                _pathListSeparator, "", "");
+                                                [], Host.nullDevice(),
+                                                FileInfo.pathListSeparator(), "", "");
         includePaths = defaultPaths.includePaths;
         architecture = ModUtils.guessArchitecture(macros);
     }

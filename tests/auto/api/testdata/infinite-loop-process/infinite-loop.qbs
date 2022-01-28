@@ -1,3 +1,5 @@
+import qbs.Host
+
 Project {
     CppApplication {
         type: "application"
@@ -17,7 +19,7 @@ Project {
         Depends { name: "infinite-loop" }
         Depends {
             name: "cpp" // Make sure build environment is set up properly.
-            condition: qbs.hostOS.contains("windows") && qbs.toolchain.contains("gcc")
+            condition: Host.os().contains("windows") && qbs.toolchain.contains("gcc")
         }
         Rule {
             inputsFromDependencies: "application"

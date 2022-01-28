@@ -1,4 +1,5 @@
 import qbs.FileInfo
+import qbs.Host
 import qbs.TextFile
 
 Project {
@@ -9,7 +10,7 @@ Project {
     }
     Product {
         condition: {
-            var result = qbs.targetPlatform === qbs.hostPlatform;
+            var result = qbs.targetPlatform === Host.platform();
             if (!result)
                 console.info("targetPlatform differs from hostPlatform");
             return result;

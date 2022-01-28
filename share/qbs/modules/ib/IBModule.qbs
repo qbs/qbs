@@ -31,6 +31,7 @@
 import qbs.BundleTools
 import qbs.DarwinTools
 import qbs.File
+import qbs.Host
 import qbs.FileInfo
 import qbs.ModUtils
 import qbs.Process
@@ -49,7 +50,7 @@ Module {
         }
     }
 
-    condition: qbs.hostOS.contains("darwin") && qbs.targetOS.contains("darwin")
+    condition: Host.os().contains("darwin") && qbs.targetOS.contains("darwin")
 
     property bool warnings: true
     property bool errors: true

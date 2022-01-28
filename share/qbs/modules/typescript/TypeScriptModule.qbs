@@ -30,6 +30,7 @@
 
 import qbs.File
 import qbs.FileInfo
+import qbs.Host
 import qbs.ModUtils
 import qbs.Probes
 import qbs.Process
@@ -129,7 +130,7 @@ Module {
 
         var preValidator = new ModUtils.PropertyValidator("nodejs");
         preValidator.addCustomValidator("interpreterFileName", nodejs.interpreterFileName, function (value) {
-            return value === "node" + (qbs.hostOS.contains("windows") ? ".exe" : "");
+            return value === "node" + (Host.os().contains("windows") ? ".exe" : "");
         }, interpreterMessage);
         preValidator.addCustomValidator("interpreterFilePath", nodejs.interpreterFilePath, function (value) {
             return value.endsWith(nodejs.interpreterFileName);

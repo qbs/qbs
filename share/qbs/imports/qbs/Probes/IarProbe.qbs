@@ -36,8 +36,6 @@ PathProbe {
     property string compilerFilePath
     property stringList enableDefinesByLanguage
 
-    property string _nullDevice: qbs.nullDevice
-
     // Outputs
     property string architecture
     property string endianness

@@ -193,7 +193,7 @@ function javacArguments(product, inputs, overrides) {
         classPaths.push(inputs["java.jar"][i].filePath);
     var debugArg = product.moduleProperty("qbs", "buildVariant") === "debug"
             ? "-g" : "-g:none";
-    var pathListSeparator = product.moduleProperty("qbs", "pathListSeparator");
+    var pathListSeparator = FileInfo.pathListSeparator();
     var args = [
             "-classpath", classPaths.join(pathListSeparator),
             "-s", product.buildDirectory,
@@ -312,7 +312,7 @@ function outputArtifacts(product, inputs) {
         process.setWorkingDirectory(
                     FileInfo.joinPaths(ModUtils.moduleProperty(product, "internalClassFilesDir")));
 
-        var sep = product.moduleProperty("qbs", "pathListSeparator");
+        var sep = FileInfo.pathListSeparator();
         var toolsJarPath = ModUtils.moduleProperty(product, "toolsJarPath");
         var javaArgs = [
             "-classpath", process.workingDirectory() + (toolsJarPath ? (sep + toolsJarPath) : ""),

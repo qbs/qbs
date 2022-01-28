@@ -30,6 +30,7 @@
 
 import qbs.File
 import qbs.FileInfo
+import qbs.Host
 import qbs.PathTools
 import qbs.Probes
 import qbs.Utilities
@@ -37,7 +38,7 @@ import "dmc.js" as DMC
 import "cpp.js" as Cpp
 
 CppModule {
-    condition: qbs.hostOS.contains("windows") && qbs.toolchain && qbs.toolchain.contains("dmc")
+    condition: Host.os().contains("windows") && qbs.toolchain && qbs.toolchain.contains("dmc")
 
     Probes.BinaryProbe {
         id: compilerPathProbe

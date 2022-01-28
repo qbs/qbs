@@ -29,14 +29,13 @@
 ****************************************************************************/
 
 import qbs.File
+import qbs.Host
 import "../../../modules/cpp/keil.js" as KEIL
 
 PathProbe {
     // Inputs
     property string compilerFilePath
     property stringList enableDefinesByLanguage
-
-    property string _nullDevice: qbs.nullDevice
 
     // Outputs
     property string architecture
@@ -62,7 +61,7 @@ PathProbe {
         for (var i = 0; i < languages.length; ++i) {
             var tag = languages[i];
             compilerDefinesByLanguage[tag] = KEIL.dumpMacros(
-                compilerFilePath, tag, _nullDevice);
+                        compilerFilePath, tag, Host.nullDevice());
         }
 
         var macros = compilerDefinesByLanguage["c"]
@@ -72,7 +71,7 @@ PathProbe {
         endianness = KEIL.guessEndianness(macros);
 
         var defaultPaths = KEIL.dumpDefaultPaths(
-            compilerFilePath, _nullDevice);
+                    compilerFilePath, Host.nullDevice());
 
         includePaths = defaultPaths.includePaths;
 

@@ -29,6 +29,7 @@
 ****************************************************************************/
 
 import qbs.File
+import qbs.Host
 import "../../../modules/cpp/gcc.js" as Gcc
 
 PathProbe {
@@ -36,7 +37,6 @@ PathProbe {
     property string compilerFilePath
     property var environment
 
-    property string _nullDevice: qbs.nullDevice
     property stringList _toolchain: qbs.toolchain
 
     // Outputs
@@ -50,7 +50,7 @@ PathProbe {
             return;
         }
 
-        var macros = Gcc.dumpMacros(environment, compilerFilePath, undefined, _nullDevice);
+        var macros = Gcc.dumpMacros(environment, compilerFilePath, undefined, Host.nullDevice());
 
         if (_toolchain.contains("clang")) {
             versionMajor = parseInt(macros["__clang_major__"], 10);

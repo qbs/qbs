@@ -1,3 +1,4 @@
+import qbs.Host
 import qbs.Utilities
 
 Project {
@@ -7,7 +8,7 @@ Project {
                 console.info("using qt4");
                 return false;
             }
-            var result = qbs.targetPlatform === qbs.hostPlatform;
+            var result = qbs.targetPlatform === Host.platform();
             if (!result)
                 console.info("targetPlatform differs from hostPlatform");
             return result;

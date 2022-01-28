@@ -28,8 +28,10 @@
 **
 ****************************************************************************/
 
+import qbs.Host
+
 PathProbe {
-    nameSuffixes: qbs.hostOS.contains("windows") ? [".com", ".exe", ".bat", ".cmd"] : undefined
-    platformSearchPaths: hostOS.contains("unix") ? ["/usr/bin", "/usr/local/bin"] : []
+    nameSuffixes: Host.os().contains("windows") ? [".com", ".exe", ".bat", ".cmd"] : undefined
+    platformSearchPaths: Host.os().contains("unix") ? ["/usr/bin", "/usr/local/bin"] : []
     platformEnvironmentPaths: [ "PATH" ]
 }

@@ -30,6 +30,7 @@
 
 import qbs.File
 import qbs.FileInfo
+import qbs.Host
 import qbs.ModUtils
 import qbs.PathTools
 import qbs.Probes
@@ -261,7 +262,7 @@ CppModule {
             // __USING_SJLJ_EXCEPTIONS__ is defined as 1 when using SJLJ exceptions, but there don't
             // seem to be defines for the other models, so use the presence of the DLLs for now.
             var prefix = toolchainInstallPath;
-            if (!qbs.hostOS.contains("windows"))
+            if (!Host.os().contains("windows"))
                 prefix = FileInfo.joinPaths(toolchainInstallPath, "..", "lib", "gcc",
                                             toolchainPrefix,
                                             [compilerVersionMajor, compilerVersionMinor].join("."));

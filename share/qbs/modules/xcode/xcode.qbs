@@ -193,7 +193,7 @@ Module {
     })
 
     setupBuildEnvironment: {
-        var v = new ModUtils.EnvironmentVariable("PATH", product.qbs.pathListSeparator, false);
+        var v = new ModUtils.EnvironmentVariable("PATH", FileInfo.pathListSeparator(), false);
         v.prepend(product.xcode.platformPath + "/Developer/usr/bin");
         v.prepend(product.xcode.developerPath + "/usr/bin");
         v.set();

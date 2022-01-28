@@ -30,6 +30,7 @@
 
 import qbs.File
 import qbs.FileInfo
+import qbs.Host
 import qbs.ModUtils
 import qbs.Utilities
 
@@ -89,7 +90,7 @@ Module {
 
     // Private properties
     property string registryKey: {
-        if (!qbs.hostOS.contains("windows"))
+        if (!Host.os().contains("windows"))
             return undefined;
 
         var keys = [ "HKEY_LOCAL_MACHINE\\SOFTWARE\\NSIS", "HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\NSIS" ];

@@ -34,6 +34,7 @@ import qbs.DarwinTools
 import qbs.Environment
 import qbs.File
 import qbs.FileInfo
+import qbs.Host
 import qbs.ModUtils
 import qbs.PropertyList
 import qbs.Probes
@@ -49,7 +50,7 @@ CodeSignModule {
         names: [codesignName]
     }
 
-    condition: qbs.hostOS.contains("macos") && qbs.targetOS.contains("darwin")
+    condition: Host.os().contains("macos") && qbs.targetOS.contains("darwin")
     priority: 0
 
     enableCodeSigning: _codeSigningRequired

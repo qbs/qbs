@@ -29,11 +29,12 @@
 **
 ****************************************************************************/
 
+import qbs.Host
 import qbs.Probes
 import "windows-msvc-base.qbs" as MsvcBaseModule
 
 MsvcBaseModule {
-    condition: qbs.hostOS.contains('windows') &&
+    condition: Host.os().contains('windows') &&
                qbs.targetOS.contains('windows') &&
                qbs.toolchain && qbs.toolchain.contains('msvc')
     priority: 50

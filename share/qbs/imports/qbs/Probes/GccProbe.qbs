@@ -29,6 +29,8 @@
 ****************************************************************************/
 
 import qbs.File
+import qbs.FileInfo
+import qbs.Host
 import qbs.ModUtils
 import "../../../modules/cpp/gcc.js" as Gcc
 
@@ -39,8 +41,6 @@ PathProbe {
     property stringList flags: []
     property var environment
 
-    property string _nullDevice: qbs.nullDevice
-    property string _pathListSeparator: qbs.pathListSeparator
     property string _sysroot: qbs.sysroot
     property stringList _targetOS: qbs.targetOS
 
@@ -63,7 +63,8 @@ PathProbe {
             if (fp && File.exists(fp)) {
                 try {
                     compilerDefinesByLanguage[languages[i]] = Gcc.dumpMacros(environment, fp,
-                                                                             flags, _nullDevice,
+                                                                             flags,
+                                                                             Host.nullDevice(),
                                                                              languages[i]);
                 } catch (e) {
                     // Only throw errors when determining the compiler defines for the C language;
@@ -84,8 +85,8 @@ PathProbe {
                   || compilerDefinesByLanguage["objcpp"];
         var defaultPaths = Gcc.dumpDefaultPaths(environment, compilerFilePathByLanguage["cpp"] ||
                                                 compilerFilePathByLanguage["c"],
-                                                flags, _nullDevice,
-                                                _pathListSeparator, _sysroot, _targetOS);
+                                                flags, Host.nullDevice(),
+                                                FileInfo.pathListSeparator(), _sysroot, _targetOS);
         found = !!macros && !!defaultPaths;
 
         includePaths = defaultPaths.includePaths;

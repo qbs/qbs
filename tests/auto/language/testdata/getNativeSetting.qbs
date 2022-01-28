@@ -1,13 +1,15 @@
 import qbs.FileInfo
 import qbs.Utilities
 
+import qbs.Host
+
 Project {
     Product {
         name: "p1"
         targetName: {
-            if (qbs.hostOS.contains("macos")) {
+            if (Host.os().contains("macos")) {
                 return Utilities.getNativeSetting("/System/Library/CoreServices/SystemVersion.plist", "ProductName");
-            } else if (qbs.hostOS.contains("windows")) {
+            } else if (Host.os().contains("windows")) {
                 var productName = Utilities.getNativeSetting("HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows NT\\CurrentVersion", "ProductName");
                 if (productName.contains("Windows")) {
                     return "Windows";

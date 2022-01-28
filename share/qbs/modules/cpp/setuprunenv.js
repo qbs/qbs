@@ -30,6 +30,7 @@
 
 var FileInfo = require("qbs.FileInfo");
 var File = require("qbs.File");
+var Host = require("qbs.Host");
 var ModUtils = require("qbs.ModUtils"); // TODO: append/prepend functionality should go to qbs.Environment
 
 function addNewElement(list, elem)
@@ -48,7 +49,7 @@ function artifactDir(artifact)
 function addExternalLibPath(product, list, path)
 {
     addNewElement(list, path);
-    if (product.qbs.hostOS.contains("windows") && FileInfo.fileName(path) === "lib") {
+    if (Host.os().contains("windows") && FileInfo.fileName(path) === "lib") {
         var binPath = FileInfo.joinPaths(FileInfo.path(path), "bin");
         if (File.exists(binPath))
             addNewElement(list, binPath);
@@ -108,7 +109,7 @@ function setupRunEnvironment(product, config)
     if (config.contains("ignore-lib-dependencies"))
         return;
 
-    if (product.qbs.hostPlatform !== product.qbs.targetPlatform)
+    if (Host.platform() !== product.qbs.targetPlatform)
         return;
 
     var libPaths = [];
@@ -134,8 +135,8 @@ function setupRunEnvironment(product, config)
             envVarName = "DYLD_LIBRARY_PATH";
         else
             envVarName = "LD_LIBRARY_PATH";
-        var envVar = new ModUtils.EnvironmentVariable(envVarName, product.qbs.pathListSeparator,
-                                                      product.qbs.hostOS.contains("windows"));
+        var envVar = new ModUtils.EnvironmentVariable(envVarName, FileInfo.pathListSeparator(),
+                                                      Host.os().contains("windows"));
         libPaths.forEach(function(p) { envVar.prepend(p); });
         envVar.set();
     }

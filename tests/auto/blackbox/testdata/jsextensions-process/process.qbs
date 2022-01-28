@@ -1,12 +1,13 @@
 import qbs.Environment
 import qbs.FileInfo
+import qbs.Host
 import qbs.Process
 import qbs.TextFile
 
 Project {
     Product {
         condition: {
-            var result = qbs.targetPlatform === qbs.hostPlatform;
+            var result = qbs.targetPlatform === Host.platform();
             if (!result)
                 console.info("targetPlatform differs from hostPlatform");
             return result;
@@ -54,7 +55,7 @@ Project {
 
                     // closeWriteChannel test
                     process = new Process();
-                    if (product.qbs.hostOS.contains("windows"))
+                    if (Host.os().contains("windows"))
                         process.start(product.qbs.windowsShellPath,
                             ["/C", product.qbs.windowsSystemRoot + "\\system32\\sort.exe"]);
                     else
@@ -75,7 +76,7 @@ Project {
                     testReadlineFile.close();
 
                     process = new Process();
-                    if (product.qbs.hostOS.contains("windows"))
+                    if (Host.os().contains("windows"))
                         process.exec(product.qbs.windowsShellPath,
                                      ["/C", "type", "123.txt"],
                                      true);

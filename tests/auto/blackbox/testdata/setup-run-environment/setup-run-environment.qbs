@@ -1,4 +1,5 @@
 import qbs.FileInfo
+import qbs.Host
 
 Project {
     DynamicLibrary { // Product dependency, installed
@@ -64,7 +65,7 @@ Project {
         // Testing shows that clang (8.0) does not find dynamic libraries via
         // the -L<dir> and -l<libname> mechanism unless the name is "lib<libname>.a".
         Properties {
-            condition: qbs.hostOS.contains("windows") && qbs.toolchain.contains("clang")
+            condition: Host.os().contains("windows") && qbs.toolchain.contains("clang")
             cpp.dynamicLibraryPrefix: "lib"
             cpp.dynamicLibraryImportSuffix: ".a"
         }
@@ -91,7 +92,7 @@ Project {
 
     CppApplication {
         condition: {
-            var result = qbs.targetPlatform === qbs.hostPlatform;
+            var result = qbs.targetPlatform === Host.platform();
             if (!result)
                 console.info("targetPlatform differs from hostPlatform");
             return result;

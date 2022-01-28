@@ -30,6 +30,7 @@
 
 import qbs.File
 import qbs.FileInfo
+import qbs.Host
 import qbs.ModUtils
 import qbs.Probes
 import qbs.Utilities
@@ -124,7 +125,7 @@ Module {
     }
 
     // MSI/MSM package validation only works natively on Windows
-    property bool enablePackageValidation: qbs.hostOS.contains("windows")
+    property bool enablePackageValidation: Host.os().contains("windows")
 
     property string executableSuffix: ".exe"
     property string windowsInstallerSuffix: ".msi"
@@ -151,7 +152,7 @@ Module {
     }
 
     setupBuildEnvironment: {
-        var v = new ModUtils.EnvironmentVariable("PATH", product.qbs.pathListSeparator, true);
+        var v = new ModUtils.EnvironmentVariable("PATH", FileInfo.pathListSeparator(), true);
         v.prepend(product.wix.toolchainInstallPath);
         v.prepend(product.wix.toolchainInstallRoot);
         v.set();

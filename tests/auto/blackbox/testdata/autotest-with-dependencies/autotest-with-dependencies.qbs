@@ -1,9 +1,10 @@
 import qbs.FileInfo
+import qbs.Host
 
 Project {
     CppApplication {
         condition: {
-            var result = qbs.targetPlatform === qbs.hostPlatform;
+            var result = qbs.targetPlatform === Host.platform();
             if (!result)
                 console.info("targetPlatform differs from hostPlatform");
             return result;
@@ -29,7 +30,7 @@ Project {
     AutotestRunner {
         Depends {
             name: "cpp" // Make sure build environment is set up properly.
-            condition: qbs.hostOS.contains("windows") && qbs.toolchain.contains("gcc")
+            condition: Host.os().contains("windows") && qbs.toolchain.contains("gcc")
         }
         arguments: FileInfo.joinPaths(qbs.installRoot, qbs.installPrefix, "bin")
         auxiliaryInputs: "test-helper"

@@ -40,6 +40,7 @@
 var Environment = require("qbs.Environment");
 var File = require("qbs.File");
 var FileInfo = require("qbs.FileInfo");
+var Host = require("qbs.Host");
 var ModUtils = require("qbs.ModUtils");
 var Process = require("qbs.Process");
 var TextFile = require("qbs.TextFile");
@@ -47,7 +48,7 @@ var Utilities = require("qbs.Utilities");
 
 function splitNonEmpty(s, c) { return s.split(c).filter(function(e) { return e; }); }
 function toNative(p) { return FileInfo.toNativeSeparators(p); }
-function exeSuffix(qbs) { return qbs.hostOS.contains("windows") ? ".exe" : ""; }
+function exeSuffix(qbs) { return Host.os().contains("windows") ? ".exe" : ""; }
 
 function getQmakeFilePaths(qmakeFilePaths, qbs) {
     if (qmakeFilePaths && qmakeFilePaths.length > 0)
@@ -56,7 +57,7 @@ function getQmakeFilePaths(qmakeFilePaths, qbs) {
     var filePaths = [];
     var pathValue = Environment.getEnv("PATH");
     if (pathValue) {
-        var dirs = splitNonEmpty(pathValue, qbs.pathListSeparator);
+        var dirs = splitNonEmpty(pathValue, FileInfo.pathListSeparator());
         var suffix = exeSuffix(qbs);
         for (var i = 0; i < dirs.length; ++i) {
             var candidate = FileInfo.joinPaths(dirs[i], "qmake" + suffix);
@@ -304,7 +305,7 @@ function getQtProperties(qmakeFilePath, qbs) {
         if (mkspecsBaseSrcPath && !File.exists(qtProps.mkspecPath))
             qtProps.mkspecPath = FileInfo.joinPaths(mkspecsBaseSrcPath, qtProps.mkspecName);
     } else {
-        if (qbs.hostOS.contains("windows")) {
+        if (Host.os().contains("windows")) {
             var baseDirPath = FileInfo.joinPaths(qtProps.mkspecBasePath, "default");
             var fileContent = readFileContent(FileInfo.joinPaths(baseDirPath, "qmake.conf"));
             qtProps.mkspecPath = configVariable(fileContent, "QMAKESPEC_ORIGINAL");

@@ -52,13 +52,13 @@ MingwBaseModule {
     }
 
     setupBuildEnvironment: {
-        var v = new ModUtils.EnvironmentVariable("PATH", product.qbs.pathListSeparator, true);
+        var v = new ModUtils.EnvironmentVariable("PATH", FileInfo.pathListSeparator(), true);
         v.prepend(product.cpp.toolchainInstallPath);
         v.set();
     }
 
     setupRunEnvironment: {
-        var v = new ModUtils.EnvironmentVariable("PATH", product.qbs.pathListSeparator, true);
+        var v = new ModUtils.EnvironmentVariable("PATH", FileInfo.pathListSeparator(), true);
         v.prepend(product.cpp.toolchainInstallPath);
         v.set();
         SetupRunEnv.setupRunEnvironment(product, config);
