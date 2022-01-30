@@ -54,7 +54,7 @@ services:
   focal-android-513:
     << : *linux
     hostname: focal-android
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:focal-android-5.13.2-3
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:focal-android-5.13.2-4
     build:
       dockerfile: docker/focal/test-android.Dockerfile
       context: .
@@ -65,7 +65,7 @@ services:
   focal-android-514:
     << : *linux
     hostname: focal-android
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:focal-android-5.14.0-3
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:focal-android-5.14.0-4
     build:
       dockerfile: docker/focal/test-android.Dockerfile
       context: .
@@ -76,7 +76,7 @@ services:
   focal-android-515:
     << : *linux
     hostname: focal-android
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:focal-android-5.15.1-3
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:focal-android-5.15.1-4
     build:
       dockerfile: docker/focal/test-android.Dockerfile
       context: .
@@ -87,7 +87,7 @@ services:
   focal-android-600:
     << : *linux
     hostname: focal-android
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:focal-android-6.0.0-3
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:focal-android-6.0.0-4
     build:
       dockerfile: docker/focal/test-android.Dockerfile
       context: .
@@ -98,12 +98,23 @@ services:
   focal-android-620:
     << : *linux
     hostname: focal-android
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:focal-android-6.2.0-0
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:focal-android-6.2.0-4
     build:
       dockerfile: docker/focal/test-android.Dockerfile
       context: .
       args:
         QT_VERSION: 6.2.0
+        ANDROID_NDK_VERSION: 23.0.7599858
+
+  focal-android-630:
+    << : *linux
+    hostname: focal-android
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:focal-android-6.3.0-0
+    build:
+      dockerfile: docker/focal/test-android.Dockerfile
+      context: .
+      args:
+        QT_VERSION: 6.3.0
         ANDROID_NDK_VERSION: 23.0.7599858
 
   focal-android-ndk-r19c:

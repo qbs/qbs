@@ -613,9 +613,22 @@ void TestBlackboxAndroid::android_data()
                            "lib/${ARCH}/libplugins_imageformats_qtiff_${ARCH}.so",
                            "lib/${ARCH}/libplugins_imageformats_qwbmp_${ARCH}.so",
                            "lib/${ARCH}/libplugins_imageformats_qwebp_${ARCH}.so"}, generateAab);
-            if (version >= qbs::Version(6, 0)) {
+            if (version >= qbs::Version(6, 0))
                 expectedFile << expandArchs(ndkArchsForQt, {
                            "lib/${ARCH}/libQt6OpenGL_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQml_Models_modelsplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQml_WorkerScript_workerscriptplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQml_qmlplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQuick_qtquick2plugin_${ARCH}.so"}, generateAab);
+            if (version >= qbs::Version(6, 2))
+                expectedFile << expandArchs(ndkArchsForQt, {
+                           "lib/${ARCH}/libplugins_networkinformation_qandroidnetworkinformation_${ARCH}.so",
+                           "lib/${ARCH}/libplugins_tls_qcertonlybackend_${ARCH}.so",
+                           "lib/${ARCH}/libplugins_tls_qopensslbackend_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQuick_Window_quickwindowplugin_${ARCH}.so",
+                                            }, generateAab);
+            if (version >= qbs::Version(6, 0) && version < qbs::Version(6, 3)) {
+                expectedFile << expandArchs(ndkArchsForQt, {
                            "lib/${ARCH}/libQt6QuickControls2Impl_${ARCH}.so",
                            "lib/${ARCH}/libQt6QuickControls2_${ARCH}.so",
                            "lib/${ARCH}/libQt6QuickParticles_${ARCH}.so",
@@ -623,9 +636,6 @@ void TestBlackboxAndroid::android_data()
                            "lib/${ARCH}/libQt6QuickTemplates2_${ARCH}.so",
                            "lib/${ARCH}/libQt6Sql_${ARCH}.so",
                            "lib/${ARCH}/libplugins_sqldrivers_qsqlite_${ARCH}.so",
-                           "lib/${ARCH}/libqml_QtQml_Models_modelsplugin_${ARCH}.so",
-                           "lib/${ARCH}/libqml_QtQml_WorkerScript_workerscriptplugin_${ARCH}.so",
-                           "lib/${ARCH}/libqml_QtQml_qmlplugin_${ARCH}.so",
                            "lib/${ARCH}/libqml_QtQuick_Controls_Basic_impl_qtquickcontrols2basicstyleimplplugin_${ARCH}.so",
                            "lib/${ARCH}/libqml_QtQuick_Controls_Basic_qtquickcontrols2basicstyleplugin_${ARCH}.so",
                            "lib/${ARCH}/libqml_QtQuick_Controls_Fusion_impl_qtquickcontrols2fusionstyleimplplugin_${ARCH}.so",
@@ -644,11 +654,9 @@ void TestBlackboxAndroid::android_data()
                            "lib/${ARCH}/libqml_QtQuick_Shapes_qmlshapesplugin_${ARCH}.so",
                            "lib/${ARCH}/libqml_QtQuick_Templates_qtquicktemplates2plugin_${ARCH}.so",
                            "lib/${ARCH}/libqml_QtQuick_Timeline_qtquicktimelineplugin_${ARCH}.so",
-                           "lib/${ARCH}/libqml_QtQuick_Layouts_qquicklayoutsplugin_${ARCH}.so",
-                           "lib/${ARCH}/libqml_QtQuick_qtquick2plugin_${ARCH}.so"}, generateAab);
+                           "lib/${ARCH}/libqml_QtQuick_Layouts_qquicklayoutsplugin_${ARCH}.so"}, generateAab);
                 if (version >= qbs::Version(6, 2))
                     expectedFile << expandArchs(ndkArchsForQt, {
-                                "lib/${ARCH}/libqml_QtQuick_Window_quickwindowplugin_${ARCH}.so",
                                 "lib/${ARCH}/libqml_QtQuick_tooling_quicktoolingplugin_${ARCH}.so",
                                 "lib/${ARCH}/libQt6QmlLocalStorage_${ARCH}.so",
                                 "lib/${ARCH}/libQt6QmlXmlListModel_${ARCH}.so",
@@ -657,9 +665,6 @@ void TestBlackboxAndroid::android_data()
                                 "lib/${ARCH}/libQt6QuickDialogs2_${ARCH}.so",
                                 "lib/${ARCH}/libQt6QuickLayouts_${ARCH}.so",
                                 "lib/${ARCH}/libQt6QuickTimeline_${ARCH}.so",
-                                "lib/${ARCH}/libplugins_networkinformation_qandroidnetworkinformation_${ARCH}.so",
-                                "lib/${ARCH}/libplugins_tls_qcertonlybackend_${ARCH}.so",
-                                "lib/${ARCH}/libplugins_tls_qopensslbackend_${ARCH}.so",
                                 "lib/${ARCH}/libqml_QtQml_XmlListModel_qmlxmllistmodelplugin_${ARCH}.so",
                                 "lib/${ARCH}/libqml_QtQuick_Dialogs_qtquickdialogsplugin_${ARCH}.so",
                                 "lib/${ARCH}/libqml_QtQuick_Dialogs_quickimpl_qtquickdialogs2quickimplplugin_${ARCH}.so"},
@@ -769,9 +774,22 @@ void TestBlackboxAndroid::android_data()
                            "lib/${ARCH}/libplugins_imageformats_qtiff_${ARCH}.so",
                            "lib/${ARCH}/libplugins_imageformats_qwbmp_${ARCH}.so",
                            "lib/${ARCH}/libplugins_imageformats_qwebp_${ARCH}.so"}, generateAab);
-            if (version >= qbs::Version(6, 0)) {
+            if (version >= qbs::Version(6, 0))
                 expectedFile << expandArchs(ndkArchsForQt, {
                            "lib/${ARCH}/libQt6OpenGL_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQml_Models_modelsplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQml_WorkerScript_workerscriptplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQml_qmlplugin_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQuick_qtquick2plugin_${ARCH}.so"}, generateAab);
+            if (version >= qbs::Version(6, 2))
+                expectedFile << expandArchs(ndkArchsForQt, {
+                           "lib/${ARCH}/libplugins_networkinformation_qandroidnetworkinformation_${ARCH}.so",
+                           "lib/${ARCH}/libplugins_tls_qcertonlybackend_${ARCH}.so",
+                           "lib/${ARCH}/libplugins_tls_qopensslbackend_${ARCH}.so",
+                           "lib/${ARCH}/libqml_QtQuick_Window_quickwindowplugin_${ARCH}.so",
+                                            }, generateAab);
+            if (version >= qbs::Version(6, 0) && version < qbs::Version(6, 3)) {
+                expectedFile << expandArchs(ndkArchsForQt, {
                            "lib/${ARCH}/libQt6QuickControls2Impl_${ARCH}.so",
                            "lib/${ARCH}/libQt6QuickControls2_${ARCH}.so",
                            "lib/${ARCH}/libQt6QuickParticles_${ARCH}.so",
@@ -779,9 +797,6 @@ void TestBlackboxAndroid::android_data()
                            "lib/${ARCH}/libQt6QuickTemplates2_${ARCH}.so",
                            "lib/${ARCH}/libQt6Sql_${ARCH}.so",
                            "lib/${ARCH}/libplugins_sqldrivers_qsqlite_${ARCH}.so",
-                           "lib/${ARCH}/libqml_QtQml_Models_modelsplugin_${ARCH}.so",
-                           "lib/${ARCH}/libqml_QtQml_WorkerScript_workerscriptplugin_${ARCH}.so",
-                           "lib/${ARCH}/libqml_QtQml_qmlplugin_${ARCH}.so",
                            "lib/${ARCH}/libqml_QtQuick_Controls_Basic_impl_qtquickcontrols2basicstyleimplplugin_${ARCH}.so",
                            "lib/${ARCH}/libqml_QtQuick_Controls_Basic_qtquickcontrols2basicstyleplugin_${ARCH}.so",
                            "lib/${ARCH}/libqml_QtQuick_Controls_Fusion_impl_qtquickcontrols2fusionstyleimplplugin_${ARCH}.so",
@@ -800,11 +815,9 @@ void TestBlackboxAndroid::android_data()
                            "lib/${ARCH}/libqml_QtQuick_Shapes_qmlshapesplugin_${ARCH}.so",
                            "lib/${ARCH}/libqml_QtQuick_Templates_qtquicktemplates2plugin_${ARCH}.so",
                            "lib/${ARCH}/libqml_QtQuick_Timeline_qtquicktimelineplugin_${ARCH}.so",
-                           "lib/${ARCH}/libqml_QtQuick_Layouts_qquicklayoutsplugin_${ARCH}.so",
-                           "lib/${ARCH}/libqml_QtQuick_qtquick2plugin_${ARCH}.so"}, generateAab);
+                           "lib/${ARCH}/libqml_QtQuick_Layouts_qquicklayoutsplugin_${ARCH}.so"}, generateAab);
                 if (version >= qbs::Version(6, 2))
                     expectedFile << expandArchs(ndkArchsForQt, {
-                                "lib/${ARCH}/libqml_QtQuick_Window_quickwindowplugin_${ARCH}.so",
                                 "lib/${ARCH}/libqml_QtQuick_tooling_quicktoolingplugin_${ARCH}.so",
                                 "lib/${ARCH}/libQt6QmlLocalStorage_${ARCH}.so",
                                 "lib/${ARCH}/libQt6QmlXmlListModel_${ARCH}.so",
@@ -813,9 +826,6 @@ void TestBlackboxAndroid::android_data()
                                 "lib/${ARCH}/libQt6QuickDialogs2_${ARCH}.so",
                                 "lib/${ARCH}/libQt6QuickLayouts_${ARCH}.so",
                                 "lib/${ARCH}/libQt6QuickTimeline_${ARCH}.so",
-                                "lib/${ARCH}/libplugins_networkinformation_qandroidnetworkinformation_${ARCH}.so",
-                                "lib/${ARCH}/libplugins_tls_qcertonlybackend_${ARCH}.so",
-                                "lib/${ARCH}/libplugins_tls_qopensslbackend_${ARCH}.so",
                                 "lib/${ARCH}/libqml_QtQml_XmlListModel_qmlxmllistmodelplugin_${ARCH}.so",
                                 "lib/${ARCH}/libqml_QtQuick_Dialogs_qtquickdialogsplugin_${ARCH}.so",
                                 "lib/${ARCH}/libqml_QtQuick_Dialogs_quickimpl_qtquickdialogs2quickimplplugin_${ARCH}.so"},

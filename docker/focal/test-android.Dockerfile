@@ -69,7 +69,7 @@ RUN curl -s https://dl.google.com/android/repository/commandlinetools-linux-${CO
     rm -v ${ANDROID_HOME}/commandlinetools.zip
 
 # Accept SDK license
-ARG ANDROID_PLATFORM="android-29"
+ARG ANDROID_PLATFORM="android-30"
 ARG BUILD_TOOLS="29.0.2"
 RUN yes | sdkmanager "--sdk_root=${ANDROID_HOME}" --verbose --licenses && \
           sdkmanager "--sdk_root=${ANDROID_HOME}" --update && \
