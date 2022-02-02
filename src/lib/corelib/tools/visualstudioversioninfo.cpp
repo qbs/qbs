@@ -58,8 +58,8 @@ VisualStudioVersionInfo::VisualStudioVersionInfo(const Version &version)
 std::set<VisualStudioVersionInfo> VisualStudioVersionInfo::knownVersions()
 {
     static const std::set<VisualStudioVersionInfo> known = {
-        Version(16), Version(15), Version(14), Version(12), Version(11), Version(10), Version(9),
-        Version(8), Version(7, 1), Version(7), Version(6)
+        Version(17), Version(16), Version(15), Version(14), Version(12), Version(11),
+        Version(10), Version(9), Version(8), Version(7, 1), Version(7), Version(6)
     };
     return known;
 }
@@ -173,6 +173,7 @@ QString VisualStudioVersionInfo::toolsVersion() const
 QString VisualStudioVersionInfo::platformToolsetVersion() const
 {
     static std::pair<int, QString> table[] = {
+        {17, QStringLiteral("v143")},             // VS 2022
         {16, QStringLiteral("v142")},             // VS 2019
         {15, QStringLiteral("v141")}              // VS 2017
     };
