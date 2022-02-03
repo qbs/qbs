@@ -99,6 +99,17 @@
 */
 
 /*!
+    \qmlproperty stringList qbspkgconfig::executableNames
+
+    The names of the \c pkg-config executable to search for.
+
+    Note that since newer distributions use \l{http://pkgconf.org}{pkgconf} by default, it has
+    higher priority over \c pkg-config.
+
+    \defaultvalue \c{["pkgconf", "pkg-config"]}
+*/
+
+/*!
     \qmlproperty path qbspkgconfig::sysroot
 
     Set this property if you need to overwrite the default search sysroot path used by

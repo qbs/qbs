@@ -72,7 +72,7 @@ function getQmakeFilePaths(qmakeFilePaths) {
     if (filePaths.length === 0) {
         console.warn("Could not find any qmake executables in PATH. Either make sure a qmake "
         + "executable is present in PATH or set the moduleProviders.Qt.qmakeFilePaths property "
-        + "to point a qmake executable.");
+        + "to point to a qmake executable.");
     }
     return filePaths;
 }

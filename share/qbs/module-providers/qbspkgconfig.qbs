@@ -51,7 +51,8 @@ import qbs.TextFile
 import "Qt/setup-qt.js" as SetupQt
 
 ModuleProvider {
-    property string executableFilePath
+    property stringList executableNames: ["pkgconf", "pkg-config"]
+    property string executableFilePath: pkgConfigProbe.filePath
     property stringList extraPaths
     property stringList libDirs
     property bool staticMode: false
@@ -61,6 +62,12 @@ ModuleProvider {
     // the sysroot points into the Xcode installation and does not contain .pc files.
     property path sysroot: qbs.toolchain && qbs.toolchain.includes("xcode")
                            ? undefined : qbs.sysroot
+
+    Probes.BinaryProbe {
+        id: pkgConfigProbe
+        condition: !executableFilePath
+        names: executableNames
+    }
 
     Probes.QbsPkgConfigProbe {
         id: theProbe
@@ -143,7 +150,6 @@ ModuleProvider {
         var outputDir = FileInfo.joinPaths(outputBaseDir, "modules");
         File.makePath(outputDir);
 
-        // TODO: ponder how we can solve forward mapping with Packages so we can fill deps
         var moduleMapping = {
             "protobuf": "protobuflib"
         }

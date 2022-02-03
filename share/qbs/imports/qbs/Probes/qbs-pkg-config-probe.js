@@ -35,25 +35,6 @@ var PkgConfig = require("qbs.PkgConfig");
 var ProviderUtils = require("qbs.ProviderUtils");
 var Process = require("qbs.Process");
 
-// We should probably use BinaryProbe instead in the provider
-function getPkgConfigExecutable() {
-    function splitNonEmpty(s, c) { return s.split(c).filter(function(e) { return e; }) }
-
-    var pathValue = Environment.getEnv("PATH");
-    if (!pathValue)
-        return undefined;
-    var dirs = splitNonEmpty(pathValue, FileInfo.pathListSeparator());
-    for (var i = 0; i < dirs.length; ++i) {
-        var candidate =
-            FileInfo.joinPaths(dirs[i], "pkg-config" + FileInfo.executableSuffix());
-        var canonicalCandidate = FileInfo.canonicalPath(candidate);
-        if (!canonicalCandidate || !File.exists(canonicalCandidate))
-            continue;
-        return canonicalCandidate;
-    }
-    return undefined;
-}
-
 function getQmakePaths(pkg) {
     var packageName = pkg.baseFileName;
     if (packageName === "QtCore"
@@ -104,13 +85,12 @@ function configure(
     if (!options.libDirs) {
         // if we have pkg-config/pkgconf installed, let's ask it for its search paths (since
         // built-in search paths can differ between platforms)
-        var executable = executableFilePath ? executableFilePath : getPkgConfigExecutable();
-        if (executable) {
+        if (executableFilePath) {
             var p = new Process()
-            if (p.exec(executable, ['pkg-config', '--variable=pc_path']) === 0) {
+            if (p.exec(executableFilePath, ['pkg-config', '--variable=pc_path']) === 0) {
                 var stdout = p.readStdOut().trim();
                 options.libDirs = stdout ? stdout.split(FileInfo.pathListSeparator()): [];
-                var installDir = FileInfo.path(executable);
+                var installDir = FileInfo.path(executableFilePath);
                 options.libDirs = options.libDirs.map(function(path){
                     if (FileInfo.isAbsolutePath(path))
                         return path;
