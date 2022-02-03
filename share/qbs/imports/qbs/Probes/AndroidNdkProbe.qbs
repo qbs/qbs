@@ -48,7 +48,7 @@ PathProbe {
         if (Host.os().contains("windows"))
             paths.push(FileInfo.joinPaths(Environment.getEnv("LOCALAPPDATA"),
                                           "Android", "sdk", "ndk-bundle"));
-        if (qHost.os().contains("macos"))
+        if (Host.os().contains("macos"))
             paths.push(FileInfo.joinPaths(Environment.getEnv("HOME"),
                                           "Library", "Android", "sdk", "ndk-bundle"));
         if (Host.os().contains("linux"))
