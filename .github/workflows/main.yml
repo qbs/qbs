@@ -808,6 +808,11 @@ jobs:
             testProfile: 'watcom-2_0_0-x86',
             script: './scripts/test-baremetal.sh',
           }
+        - {
+            name: 'Run Windows tests (DigitalMars)',
+            testProfile: 'dmc-8_42_0-x86',
+            script: './scripts/test-baremetal.sh',
+          }
     env:
       QTEST_FUNCTION_TIMEOUT: 9000000
       QBS_AUTOTEST_PROFILE: 'extra'
@@ -832,6 +837,8 @@ jobs:
       run: choco install -y pkgconfiglite --download-checksum=6004df17818f5a6dbf19cb335cc92702
     - name: Install OpenWatcom
       uses: ./.github/actions/download-ow
+    - name: Install DigitalMars
+      uses: ./.github/actions/download-dm
     - name: Setup Qbs
       run: |
         qbs setup-toolchains --detect

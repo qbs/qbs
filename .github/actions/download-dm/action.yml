@@ -1,0 +1,15 @@
+name: 'Download DigitalMars'
+description: 'Downloads DigitalMars'
+inputs:
+  version:
+    description: 'DigitalMars version'
+    required: false
+    default: '8.57'
+runs:
+  using: "composite"
+  steps:
+    - name: Install DigitalMars
+      run: |
+        DM_DIR=$(./scripts/install-dm.sh -d $HOME/dm --version ${{ inputs.version }})
+        (cygpath -w ${DM_DIR} 2>/dev/null || echo ${DM_DIR}) >> ${GITHUB_PATH}
+      shell: bash

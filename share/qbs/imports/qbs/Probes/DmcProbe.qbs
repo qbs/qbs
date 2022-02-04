@@ -83,7 +83,7 @@ PathProbe {
             versionMajor = version.major;
             versionMinor = version.minor;
             versionPatch = version.patch;
-            found = !!architecture && !!endianness;
+            found = !!architecture;
         }
    }
 }
