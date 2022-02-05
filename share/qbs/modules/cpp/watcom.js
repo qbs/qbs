@@ -40,13 +40,20 @@ var TextFile = require("qbs.TextFile");
 var Utilities = require("qbs.Utilities");
 
 function toolchainDetails(qbs) {
-    var targetPlatform = qbs.targetPlatform;
+    var platform = qbs.targetPlatform;
     var details = {};
-    if (targetPlatform.contains("windows")) {
+    if (platform === "dos") {
+        details.imageFormat = "mz";
+        details.executableSuffix = ".exe";
+    } else if (platform === "os2") {
         details.imageFormat = "pe";
         details.executableSuffix = ".exe";
         details.dynamicLibrarySuffix = ".dll";
-    } else if (targetPlatform.contains("linux")) {
+    } else if (platform === "windows") {
+        details.imageFormat = "pe";
+        details.executableSuffix = ".exe";
+        details.dynamicLibrarySuffix = ".dll";
+    } else if (platform === "linux") {
         details.imageFormat = "elf";
         details.executableSuffix = "";
         details.dynamicLibrarySuffix = ".so";
@@ -61,6 +68,31 @@ function languageFlag(tag) {
         return "-xc++";
 }
 
+function targetFlag(platform, architecture, type) {
+    if (platform === "dos") {
+        if (architecture === "x86_16")
+            return "-bdos";
+        else if (architecture === "x86")
+            return "-bdos4g";
+    } else if (platform === "os2") {
+        if (architecture === "x86_16")
+            return "-bos2";
+        else if (architecture === "x86")
+            return "-bos2v2";
+    } else if (platform === "windows") {
+        if (architecture === "x86_16")
+            return "-bwindows";
+        else if (architecture === "x86") {
+            if (type.contains("application"))
+                return "-bnt";
+            else if (type.contains("dynamiclibrary"))
+                return "-bnt_dll";
+        }
+    } else if (platform === "linux") {
+        return "-blinux";
+    }
+}
+
 function guessVersion(macros) {
     var version = parseInt(macros["__WATCOMC__"], 10)
             || parseInt(macros["__WATCOM_CPLUSPLUS__"], 10);
@@ -71,7 +103,8 @@ function guessVersion(macros) {
     }
 }
 
-function guessEnvironment(targetPlatform, toolchainInstallPath, pathListSeparator) {
+function guessEnvironment(hostOs, platform, architecture,
+                          toolchainInstallPath, pathListSeparator) {
     var toolchainRootPath = FileInfo.path(toolchainInstallPath);
     if (!File.exists(toolchainRootPath)) {
         throw "Unable to deduce environment due to compiler root directory: '"
@@ -95,23 +128,44 @@ function guessEnvironment(targetPlatform, toolchainInstallPath, pathListSeparato
 
     setVariable("WATCOM", [toolchainRootPath], undefined, pathListSeparator);
     setVariable("EDPATH", ["eddat"], toolchainRootPath, pathListSeparator);
-    if (targetPlatform === "windows") {
-        setVariable("WIPFC", ["wipfc"], toolchainRootPath, pathListSeparator);
-        setVariable("PATH", ["binw", "binnt", "binnt64"], toolchainRootPath, pathListSeparator);
-        setVariable("INCLUDE", ["h", "h/nt", "h/nt/directx", "h/nt/ddk"],
-                    toolchainRootPath, pathListSeparator);
-        setVariable("WHTMLHELP", ["binnt/help"], toolchainRootPath, pathListSeparator);
-    } else if (targetPlatform === "linux") {
+
+    if (hostOs.contains("linux"))
         setVariable("PATH", ["binl64", "binl"], toolchainRootPath, pathListSeparator);
+    else if (hostOs.contains("windows"))
+        setVariable("PATH", ["binnt64", "binnt"], toolchainRootPath, pathListSeparator);
+
+    if (platform === "linux") {
         setVariable("INCLUDE", ["lh"], toolchainRootPath, pathListSeparator);
     } else {
-        throw "Unable to deduce environment for unsupported target platform: '"
-                + targetPlatform + "'";
+        // Common for DOS, Windows, OS/2.
+        setVariable("WIPFC", ["wipfc"], toolchainRootPath, pathListSeparator);
+        setVariable("WHTMLHELP", ["binnt/help"], toolchainRootPath, pathListSeparator);
+
+        var includes = ["h"];
+        if (platform === "dos") {
+            // Same includes as before.
+        } else if (platform === "os2") {
+            if (architecture === "x86")
+                includes = includes.concat(["h/os2"]);
+            else if (architecture === "x86_16")
+                includes = includes.concat(["h/os21x"]);
+        } else if (platform === "windows") {
+            if (architecture === "x86")
+                includes = includes.concat(["h/nt", "h/nt/directx", "h/nt/ddk"]);
+            else if (architecture === "x86_16")
+                includes = includes.concat(["h/win"]);
+        } else {
+            throw "Unable to deduce environment for unsupported target platform: '"
+                    + platform + "'";
+        }
+
+        setVariable("INCLUDE", includes, toolchainRootPath, pathListSeparator);
     }
+
     return env;
 }
 
-function dumpMacros(environment, compilerPath, tag) {
+function dumpMacros(environment, compilerPath, platform, architecture, tag) {
     // Note: The Open Watcom compiler does not support the predefined
     // macros dumping. So, we do it with the following trick, where we try
     // to create and compile a special temporary file and to parse the console
@@ -178,7 +232,10 @@ function dumpMacros(environment, compilerPath, tag) {
     for (var envkey in environment)
         process.setEnv(envkey, environment[envkey]);
 
-    var args = [ outputFilePath ].concat(languageFlag(tag));
+    var target = targetFlag(platform, architecture, ["application"]);
+    var lang = languageFlag(tag);
+    var args = [ target, lang, outputFilePath ];
+
     process.exec(compilerPath, args, false);
     var m = Cpp.extractMacros(process.readStdOut(), /"?(#define(\s\w+){1,2})"?$/);
     if (tag === "cpp" && m["__cplusplus"] === "1")
@@ -249,9 +306,12 @@ function assemblerFlags(project, product, input, outputs, explicitlyDependsOn) {
 function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
     var args = ["-g" + (input.cpp.debugInformation ? "3" : "0")];
 
-    var targetPlatform = product.qbs.targetPlatform;
+    var target = targetFlag(product.qbs.targetPlatform, product.qbs.architecture,
+                            product.type);
+    args.push(target);
+
     if (product.type.contains("application")) {
-        if (targetPlatform === "windows") {
+        if (product.qbs.targetPlatform === "windows") {
             var consoleApplication = product.consoleApplication;
             args.push(consoleApplication ? "-mconsole" : "-mwindows");
         }
@@ -358,18 +418,16 @@ function linkerFlags(project, product, inputs, outputs) {
     var args = [];
     var useCompilerDriver = useCompilerDriverLinker(product);
     if (useCompilerDriver) {
-        var targetPlatform = product.qbs.targetPlatform;
+        var target = targetFlag(product.qbs.targetPlatform, product.qbs.architecture,
+                                product.type);
+        args.push(target);
+
         if (product.type.contains("application")) {
-            if (targetPlatform === "windows")
-                args.push("-bnt")
-            else if (targetPlatform === "linux")
-                args.push("-blinux")
             args.push("-o", FileInfo.toNativeSeparators(outputs.application[0].filePath));
             if (product.cpp.generateLinkerMapFile)
                 args.push("-fm=" + FileInfo.toNativeSeparators(outputs.mem_map[0].filePath));
         } else if (product.type.contains("dynamiclibrary")) {
             if (targetPlatform === "windows") {
-                args.push("-bnt_dll")
                 args.push("-Wl, option implib=" + FileInfo.toNativeSeparators(
                               outputs.dynamiclibrary_import[0].filePath));
             }

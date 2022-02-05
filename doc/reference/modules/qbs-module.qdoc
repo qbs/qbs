@@ -210,6 +210,9 @@
         \li \c{"android"}
         \li \c{["android", "linux", "unix"]}
     \row
+        \li \c{"dos"}
+        \li \c{["dos"]}
+    \row
         \li \c{"freebsd"}
         \li \c{["freebsd", "bsd", "unix"]}
     \row
@@ -245,6 +248,9 @@
     \row
         \li \c{"openbsd"}
         \li \c{["openbsd", "bsd", "unix"]}
+    \row
+        \li \c{"os2"}
+        \li \c{["os2"]}
     \row
         \li \c{"qnx"}
         \li \c{["qnx", "unix"]}
@@ -441,6 +447,9 @@
     \row
         \li \c{"x86"}
         \li 32-bit ISA architecture processor family developed by Intel
+    \row
+        \li \c{"x86_16"}
+        \li 16-bit ISA architecture processor family developed by Intel
     \row
         \li \c{"x86_64"}
         \li 64-bit ISA architecture processor family developed by AMD

@@ -804,8 +804,33 @@ jobs:
       matrix:
         config:
         - {
-            name: 'Run Windows tests (OpenWatcom)',
-            testProfile: 'watcom-2_0_0-x86',
+            name: 'Run Windows tests (OpenWatcom DOS 32 bit)',
+            testProfile: 'watcom-2_0_0-dos-x86',
+            script: './scripts/test-baremetal.sh',
+          }
+        - {
+            name: 'Run Windows tests (OpenWatcom DOS 16 bit)',
+            testProfile: 'watcom-2_0_0-dos-x86_16',
+            script: './scripts/test-baremetal.sh',
+          }
+        - {
+            name: 'Run Windows tests (OpenWatcom OS/2 32 bit)',
+            testProfile: 'watcom-2_0_0-os2-x86',
+            script: './scripts/test-baremetal.sh',
+          }
+        - {
+            name: 'Run Windows tests (OpenWatcom OS/2 16 bit)',
+            testProfile: 'watcom-2_0_0-os2-x86_16',
+            script: './scripts/test-baremetal.sh',
+          }
+        - {
+            name: 'Run Windows tests (OpenWatcom Windows 32 bit)',
+            testProfile: 'watcom-2_0_0-windows-x86',
+            script: './scripts/test-baremetal.sh',
+          }
+        - {
+            name: 'Run Windows tests (OpenWatcom Windows 16 bit)',
+            testProfile: 'watcom-2_0_0-windows-x86_16',
             script: './scripts/test-baremetal.sh',
           }
         - {

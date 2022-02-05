@@ -53,6 +53,7 @@ CppModule {
         _pathListSeparator: qbs.pathListSeparator
         _toolchainInstallPath: toolchainInstallPath
         _targetPlatform: qbs.targetPlatform
+        _targetArchitecture: qbs.architecture
     }
 
     qbs.architecture: watcomProbe.found ? watcomProbe.architecture : original
@@ -110,7 +111,7 @@ CppModule {
 
     toolchainDetails: WATCOM.toolchainDetails(qbs)
 
-    knownArchitectures: ["x86"]
+    knownArchitectures: ["x86", "x86_16"]
 
     property var buildEnv: watcomProbe.environment
     setupBuildEnvironment: {

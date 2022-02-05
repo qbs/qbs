@@ -29,6 +29,7 @@
 ****************************************************************************/
 
 import qbs.File
+import qbs.Host
 import qbs.ModUtils
 import "../../../modules/cpp/watcom.js" as WATCOM
 
@@ -40,6 +41,7 @@ PathProbe {
     property string _pathListSeparator
     property string _toolchainInstallPath
     property string _targetPlatform
+    property string _targetArchitecture
 
     // Outputs
     property string architecture
@@ -64,8 +66,8 @@ PathProbe {
         if (!languages || languages.length === 0)
             languages = ["c"];
 
-        environment = WATCOM.guessEnvironment(_targetPlatform, _toolchainInstallPath,
-                                              _pathListSeparator);
+        environment = WATCOM.guessEnvironment(Host.os(), _targetPlatform, _targetArchitecture,
+                                              _toolchainInstallPath, _pathListSeparator);
 
         includePaths = environment["INCLUDE"].split(_pathListSeparator).filter(function(path) {
             return File.exists(path);
@@ -73,7 +75,9 @@ PathProbe {
 
         for (var i = 0; i < languages.length; ++i) {
             var tag = languages[i];
-            compilerDefinesByLanguage[tag] = WATCOM.dumpMacros(environment, compilerFilePath, tag);
+            compilerDefinesByLanguage[tag] = WATCOM.dumpMacros(
+                        environment, compilerFilePath,
+                        _targetPlatform, _targetArchitecture, tag);
         }
 
         var macros = compilerDefinesByLanguage["c"]

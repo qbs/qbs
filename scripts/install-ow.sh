@@ -44,7 +44,7 @@ function show_help() {
 usage: install-ow [options] [components]
 
 Examples
-  ./install-ow.sh --platform win --architecture x64
+  ./install-ow.sh --version 2.0
 
 Options
   -d, --directory <directory>
@@ -52,63 +52,37 @@ Options
         Maps to c:/watcom on Windows, /opt/watcom on Linux
         by default.
 
-  --platform <platform-os>
-        The host platform. Can be one of linux, win. Auto-detected by default.
-
-  --architecture <architecture-os>
-        The host architecture. Can be one of x86, x64. Auto-detected by default.
-
   --version <version>
-        The desired toolchain version. Currently supported only
-        1.9 and 2.0 versions.
+        The desired toolchain version.
+        Currently supported only 2.0 version.
 
 EOF
 }
 
-VERSION=2.0 # Default latest version (a fork of original toolchain)..
+VERSION=2.0
+INSTALL_DIR=
+BIN_DIR=
 
-case "$OSTYPE" in
-    *linux*)
-        PLATFORM="linux"
-        INSTALL_DIR="/opt/watcom"
-        EXE_SUFFIX=
-        ;;
-    msys)
-        PLATFORM="win"
-        INSTALL_DIR="/c/watcom"
-        EXE_SUFFIX=".exe"
-        ;;
-    *)
-        PLATFORM=
-        INSTALL_DIR=
-        EXE_SUFFIX=
-        ;;
-esac
-
-case "$HOSTTYPE" in
-    x86_64)
-        ARCHITECTURE="x64"
-        ;;
-    x86)
-        ARCHITECTURE="x86"
-        ;;
-    *)
-        ARCHITECTURE=
-        ;;
-esac
+if [[ "$OSTYPE" =~ "linux" ]]; then
+    INSTALL_DIR="/opt/watcom"
+    if [[ "$HOSTTYPE" == "x86_64" ]]; then
+        BIN_DIR="binl64"
+    elif [[ "$HOSTTYPE" == "x86" ]]; then
+        BIN_DIR="binl"
+    fi
+elif [[ "$OSTYPE" == "msys" ]]; then
+    INSTALL_DIR="/c/watcom"
+    if [[ "$HOSTTYPE" == "x86_64" ]]; then
+        BIN_DIR="binnt64"
+    elif [[ "$HOSTTYPE" == "x86" ]]; then
+        BIN_DIR="binnt"
+    fi
+fi
 
 while [ $# -gt 0 ]; do
     case "$1" in
         --directory|-d)
             INSTALL_DIR="$2"
-            shift
-            ;;
-        --platform)
-            PLATFORM="$2"
-            shift
-            ;;
-        --architecture)
-            ARCHITECTURE="$2"
             shift
             ;;
         --version)
@@ -130,64 +104,25 @@ if [ -z "${INSTALL_DIR}" ]; then
     exit 1
 fi
 
-if [ -z "${PLATFORM}" ]; then
-    echo "No --platform specified or auto-detection failed." >&2
-    exit 1
-fi
-
-if [ -z "${ARCHITECTURE}" ]; then
-    echo "No --architecture specified or auto-detection failed." >&2
-    exit 1
-fi
-
 if [ -z "${VERSION}" ]; then
     echo "No --version specified." >&2
     exit 1
 fi
 
-DOWNLOAD_DIR=`mktemp -d 2>/dev/null || mktemp -d -t 'ow-installer'`
+DOWNLOAD_DIR=`mktemp -d 2>/dev/null || mktemp -d -t 'ow-tmp'`
 
-BASE_URL_PREFIX="https://github.com/open-watcom/open-watcom-"
+VERSION_MAJOR=`echo $VERSION | cut -d. -f1`
+VERSION_MINOR=`echo $VERSION | cut -d. -f2`
 
-if [[ "${VERSION}" == "1.9" ]]; then
-    # Original old OW v1.9 release supports only the 32-bit packages!
-    if [[ "${PLATFORM}" =~ "linux" ]]; then
-        BIN_DIR="binl"
-        HOST="linux"
-    elif [[ "${PLATFORM}" =~ "win" ]]; then
-        HOST="win32"
-        BIN_DIR="binnt"
-    fi
-    URL="${BASE_URL_PREFIX}${VERSION}/releases/download/ow1.9/open-watcom-c-${HOST}-1.9${EXE_SUFFIX}"
-else
-    if [[ "${PLATFORM}" =~ "linux" ]]; then
-        if [[ "${ARCHITECTURE}" =~ "x86" ]]; then
-            BIN_DIR="binl"
-        elif [[ "${ARCHITECTURE}" =~ "x64" ]]; then
-            BIN_DIR="binl"
-        fi
-    elif [[ "${PLATFORM}" =~ "win" ]]; then
-        if [[ "${ARCHITECTURE}" =~ "x86" ]]; then
-            BIN_DIR="binnt"
-        elif [[ "${ARCHITECTURE}" =~ "x64" ]]; then
-            BIN_DIR="binnt64"
-        fi
-    fi
-    # Default URL for the latest OW v2.0 fork.
-    URL="${BASE_URL_PREFIX}v2/releases/download/Current-build/open-watcom-2_0-c-${PLATFORM}-${ARCHITECTURE}${EXE_SUFFIX}"
-fi
+OW_URL="https://github.com/open-watcom/open-watcom-v${VERSION_MAJOR}/releases/download/Current-build/ow-snapshot.tar.gz"
+OW_TARGZ="${DOWNLOAD_DIR}/ow.tar.gz"
 
-INSTALLER="${DOWNLOAD_DIR}/setup${EXE_SUFFIX}"
+echo "Downloading compiler from ${OW_URL}..." >&2
+curl --progress-bar -L -o ${OW_TARGZ} ${OW_URL} >&2
 
-echo "Downloading from ${URL}..." >&2
-curl --progress-bar -L -o ${INSTALLER} ${URL} >&2
+echo "Unpacking compiler to ${INSTALL_DIR}..." >&2
+7z x "${OW_TARGZ}" -so | 7z x -aoa -si -ttar -o"${INSTALL_DIR}" >/dev/null 2>&1
 
-echo "Installing to ${INSTALL_DIR}..." >&2
-if [[ "${PLATFORM}" =~ "linux" ]]; then
-    chmod +777 ${INSTALLER}
-fi
-
-${INSTALLER} -dDstDir=${INSTALL_DIR} -i -np -ns
 echo "${INSTALL_DIR}/${BIN_DIR}"
 
-rm -f ${INSTALLER}
+rm -f ${OW_TARGZ}

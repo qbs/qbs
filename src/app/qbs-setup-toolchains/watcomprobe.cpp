@@ -58,32 +58,64 @@ using namespace qbs;
 using Internal::HostOsInfo;
 using Internal::Tr;
 
+namespace {
+
+struct Details {
+    QStringView architecture;
+    QStringView platform;
+};
+
+constexpr struct Platform {
+    QStringView flag;
+    Details keys;
+    Details target;
+} knownPlatforms[] = {
+    // DOS 16/32 bit.
+    {u"-bdos", {u"__I86__", u"__DOS__"}, {u"x86_16", u"dos"}},
+    {u"-bdos4g", {u"__386__", u"__DOS__"}, {u"x86", u"dos"}},
+    // Windows 16/32 bit.
+    {u"-bwindows", {u"__I86__", u"__WINDOWS__"}, {u"x86_16", u"windows"}},
+    {u"-bnt", {u"__386__", u"__NT__"}, {u"x86", u"windows"}},
+    // OS/2 16/32 bit.
+    {u"-bos2", {u"__I86__", u"__OS2__"}, {u"x86_16", u"os2"}},
+    {u"-bos2v2", {u"__386__", u"__OS2__"}, {u"x86", u"os2"}},
+    // Linux 32 bit.
+    {u"-blinux", {u"__386__", u"__LINUX__"}, {u"x86", u"linux"}},
+};
+
+} // namespace
+
 static QStringList knownWatcomCompilerNames()
 {
     return {QStringLiteral("owcc")};
 }
 
-static QStringList dumpOutput(const QFileInfo &compiler, const QStringList &keys)
+static QStringList dumpOutput(const QFileInfo &compiler, QStringView flag,
+                              const QList<QStringView> &keys)
 {
     const QString filePath = QDir(QDir::tempPath()).absoluteFilePath(
         QLatin1String("watcom-dump.c"));
     QFile fakeIn(filePath);
     if (!fakeIn.open(QIODevice::Truncate | QIODevice::WriteOnly | QIODevice::Text)) {
         qbsWarning() << Tr::tr("Unable to open temporary file %1 for output: %2")
-                            .arg(fakeIn.fileName(), fakeIn.errorString());
-        return QStringList{};
+                        .arg(fakeIn.fileName(), fakeIn.errorString());
+        return {};
     }
     fakeIn.write("#define VALUE_TO_STRING(x) #x\n");
     fakeIn.write("#define VALUE(x) VALUE_TO_STRING(x)\n");
     fakeIn.write("#define VAR_NAME_VALUE(var) \"#define \" #var\" \"VALUE(var)\n");
-    for (const QString &key : keys) {
+    for (const auto &key : keys) {
         fakeIn.write("#if defined(" + key.toLatin1() + ")\n");
         fakeIn.write("#pragma message (VAR_NAME_VALUE(" + key.toLatin1() + "))\n");
         fakeIn.write("#endif\n");
     }
     fakeIn.close();
     QProcess p;
-    p.start(compiler.absoluteFilePath(), {QDir::toNativeSeparators(filePath)});
+    QStringList args;
+    if (!flag.isEmpty())
+        args.push_back(flag.toString());
+    args.push_back(QDir::toNativeSeparators(filePath));
+    p.start(compiler.absoluteFilePath(), std::move(args));
     p.waitForFinished(3000);
     fakeIn.remove();
     const QStringList lines = QString::fromUtf8(p.readAllStandardOutput())
@@ -91,60 +123,80 @@ static QStringList dumpOutput(const QFileInfo &compiler, const QStringList &keys
     return lines;
 }
 
-static QString guessWatcomArchitecture(const QFileInfo &compiler)
+static bool supportsWatcomPlatform(const QFileInfo &compiler, const Platform &platform)
 {
-    const QStringList keys = {QStringLiteral("__I86__"), QStringLiteral("__386__")};
-    const auto macros = dumpMacros([&compiler, &keys]() { return dumpOutput(compiler, keys); });
-    for (auto index = 0; index < keys.count(); ++index) {
-        const auto &key = keys.at(index);
-        if (macros.contains(key) && macros.value(key) == QLatin1String("1")) {
-            switch (index) {
-            case 0:
-                return QLatin1String("x86_16");
-            case 1:
-                return QLatin1String("x86");
-            default:
-                break;
-            }
-        }
-    }
-    return QLatin1String("unknown");
+    const auto macros = dumpMacros([&compiler, &platform]() {
+        const QList<QStringView> keys = {platform.keys.architecture, platform.keys.platform};
+        return dumpOutput(compiler, platform.flag, keys); });
+
+    auto matches = [&macros](QStringView key) {
+        const auto k = key.toString();
+        if (!macros.contains(k))
+            return false;
+        return macros.value(k) == QLatin1String("1");
+    };
+
+    return matches(platform.keys.architecture) && matches(platform.keys.platform);
 }
 
-static Profile createWatcomProfileHelper(const ToolchainInstallInfo &info,
-                                         Settings *settings,
-                                         QString profileName = QString())
+static std::vector<Profile> createWatcomProfileHelper(const ToolchainInstallInfo &info,
+                                                      Settings *settings,
+                                                      const QString &profileName = QString())
 {
     const QFileInfo compiler = info.compilerPath;
-    const QString architecture = guessWatcomArchitecture(compiler);
+    std::vector<Profile> profiles;
 
-    // In case the profile is auto-detected.
-    if (profileName.isEmpty()) {
-        if (!info.compilerVersion.isValid()) {
-            profileName = QStringLiteral("watcom-unknown-%1").arg(architecture);
+    for (const auto &knownPlatform : knownPlatforms) {
+        // Don't create a profile in case the compiler does
+        // not support the proposed architecture.
+        if (!supportsWatcomPlatform(compiler, knownPlatform))
+            continue;
+
+        QString fullProfilename;
+        if (profileName.isEmpty()) {
+            // Create a full profile name in case we is in auto-detecting mode.
+            if (!info.compilerVersion.isValid()) {
+                fullProfilename = QStringLiteral("watcom-unknown-%1-%2")
+                        .arg(knownPlatform.target.platform)
+                        .arg(knownPlatform.target.architecture);
+            } else {
+                const QString version= info.compilerVersion.toString(QLatin1Char('_'),
+                                                                     QLatin1Char('_'));
+                fullProfilename = QStringLiteral("watcom-%1-%2-%3")
+                        .arg(version)
+                        .arg(knownPlatform.target.platform)
+                        .arg(knownPlatform.target.architecture);
+            }
         } else {
-            const QString version = info.compilerVersion.toString(QLatin1Char('_'),
-                                                                  QLatin1Char('_'));
-            profileName = QStringLiteral("watcom-%1-%2").arg(version, architecture);
+            // Append the detected actual architecture name to the proposed profile name.
+            fullProfilename = QStringLiteral("%1-%2-%3")
+                    .arg(profileName)
+                    .arg(knownPlatform.target.platform)
+                    .arg(knownPlatform.target.architecture);
         }
+
+        Profile profile(fullProfilename, settings);
+        profile.setValue(QStringLiteral("cpp.toolchainInstallPath"), compiler.absolutePath());
+        profile.setValue(QStringLiteral("qbs.toolchainType"), QStringLiteral("watcom"));
+        profile.setValue(QStringLiteral("qbs.architecture"),
+                         knownPlatform.target.architecture.toString());
+        profile.setValue(QStringLiteral("qbs.targetPlatform"),
+                         knownPlatform.target.platform.toString());
+
+        qbsInfo() << Tr::tr("Profile '%1' created for '%2'.")
+                     .arg(profile.name(), compiler.absoluteFilePath());
+
+        profiles.push_back(std::move(profile));
     }
 
-    Profile profile(profileName, settings);
-    profile.setValue(QStringLiteral("cpp.toolchainInstallPath"), compiler.absolutePath());
-    profile.setValue(QStringLiteral("qbs.toolchainType"), QStringLiteral("watcom"));
-    if (!architecture.isEmpty())
-        profile.setValue(QStringLiteral("qbs.architecture"), architecture);
-
-    qbsInfo() << Tr::tr("Profile '%1' created for '%2'.")
-                     .arg(profile.name(), compiler.absoluteFilePath());
-    return profile;
+    return profiles;
 }
 
 static Version dumpWatcomVersion(const QFileInfo &compiler)
 {
-    const QStringList keys = {QStringLiteral("__WATCOMC__"),
-                              QStringLiteral("__WATCOM_CPLUSPLUS__")};
-    const auto macros = dumpMacros([&compiler, &keys]() { return dumpOutput(compiler, keys); });
+    const QList<QStringView> keys = {u"__WATCOMC__", u"__WATCOM_CPLUSPLUS__"};
+    const auto macros = dumpMacros([&compiler, &keys]() {
+        return dumpOutput(compiler, u"", keys); });
     for (const auto &macro : macros) {
         const int verCode = macro.toInt();
         return Version{(verCode - 1100) / 100,
@@ -195,6 +247,9 @@ void watcomProbe(Settings *settings, std::vector<Profile> &profiles)
         return;
     }
 
-    qbs::Internal::transform(allInfos, profiles, [settings](const auto &info) {
-        return createWatcomProfileHelper(info, settings); });
+    for (const ToolchainInstallInfo &info : allInfos) {
+        const auto newProfiles = createWatcomProfileHelper(info, settings);
+        profiles.reserve(profiles.size() + int(newProfiles.size()));
+        std::copy(newProfiles.cbegin(), newProfiles.cend(), std::back_inserter(profiles));
+    }
 }
