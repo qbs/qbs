@@ -613,9 +613,9 @@ function guessTargetPlatform(m) {
             return "vxworks";
         if (hasAnyOf(m, ["__APPLE__"]))
             return "darwin";
-        if (hasAnyOf(m, ["WIN32", "_WIN32", "__WIN32__", "__NT__", "__WINDOWS__"]))
+        if (hasAnyOf(m, ["WIN32", "_WIN32", "__WIN32__", "__NT__", "__WINDOWS__", "_WINDOWS"]))
             return "windows";
-        if (hasAnyOf(m, ["MSDOS", "__DOS__"]))
+        if (hasAnyOf(m, ["MSDOS", "__DOS__", "DOS386"]))
             return "dos";
         if (hasAnyOf(m, ["__OS2__"]))
             return "os2";

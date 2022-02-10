@@ -835,8 +835,18 @@ jobs:
             script: './scripts/test-baremetal.sh',
           }
         - {
-            name: 'Run Windows tests (DigitalMars)',
-            testProfile: 'dmc-8_42_0-x86',
+            name: 'Run Windows tests (DigitalMars DOS 16 bit)',
+            testProfile: 'dmc-8_57_0-dos-x86_16',
+            script: './scripts/test-baremetal.sh',
+          }
+        - {
+            name: 'Run Windows tests (DigitalMars Windows 32 bit)',
+            testProfile: 'dmc-8_57_0-windows-x86',
+            script: './scripts/test-baremetal.sh',
+          }
+        - {
+            name: 'Run Windows tests (DigitalMars Windows 16 bit)',
+            testProfile: 'dmc-8_57_0-windows-x86_16',
             script: './scripts/test-baremetal.sh',
           }
     env:

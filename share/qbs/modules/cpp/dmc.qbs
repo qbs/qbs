@@ -43,7 +43,7 @@ CppModule {
     Probes.BinaryProbe {
         id: compilerPathProbe
         condition: !toolchainInstallPath && !_skipAllChecks
-        names: ["cxcorm"]
+        names: ["dmc"]
     }
 
     Probes.DmcProbe {
@@ -51,10 +51,13 @@ CppModule {
         condition: !_skipAllChecks
         compilerFilePath: compilerPath
         enableDefinesByLanguage: enableCompilerDefinesByLanguage
+        _targetPlatform: qbs.targetPlatform
+        _targetArchitecture: qbs.architecture
+        _targetExtender: extenderName
     }
 
     qbs.architecture: dmcProbe.found ? dmcProbe.architecture : original
-    qbs.targetPlatform: dmcProbe.targetPlatform
+    qbs.targetPlatform: dmcProbe.found ? dmcProbe.targetPlatform : original
 
     compilerVersionMajor: dmcProbe.versionMajor
     compilerVersionMinor: dmcProbe.versionMinor
@@ -86,6 +89,18 @@ CppModule {
     property string rccCompilerName: "rcc.exe"
     property string rccCompilerPath: FileInfo.joinPaths(toolchainInstallPath, rccCompilerName)
 
+    property string extenderName
+    PropertyOptions {
+        name: "extenderName"
+        allowedValues: [undefined, "dosz", "dosr", "dosx", "dosp"]
+        description: "Specifies the DOS memory extender to compile with:\n"
+            + " - \"dosz\" is the ZPM 16 bit DOS Extender\n"
+            + " - \"dosr\" is the Rational 16 bit DOS Extender\n"
+            + " - \"dosx\" is the DOSX 32 bit DOS Extender\n"
+            + " - \"dosp\" is the Pharlap 32 bit DOS Extender\n"
+        ;
+    }
+
     runtimeLibrary: "dynamic"
 
     staticLibrarySuffix: ".lib"
@@ -93,7 +108,12 @@ CppModule {
     executableSuffix: ".exe"
     objectSuffix: ".obj"
 
-    imageFormat: "pe"
+    imageFormat: {
+        if (qbs.targetPlatform === "dos")
+            return "mz";
+        else if (qbs.targetPlatform === "windows")
+            return "pe";
+    }
 
     defineFlag: "-D"
     includeFlag: "-I"
@@ -101,7 +121,7 @@ CppModule {
     preincludeFlag: "-HI"
     libraryPathFlag: "-L/packcode"
 
-    knownArchitectures: ["x86"]
+    knownArchitectures: ["x86", "x86_16"]
 
     Rule {
         id: assembler

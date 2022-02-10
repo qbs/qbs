@@ -95,9 +95,13 @@ DOWNLOAD_DIR=`mktemp -d 2>/dev/null || mktemp -d -t 'dm-tmp'`
 
 DM_URL="http://ftp.digitalmars.com/Digital_Mars_C++/Patch/dm${VERSION//./}c.zip"
 UTILS_URL="http://ftp.digitalmars.com/bup.zip"
+DOS_LIBS_URL="http://ftp.digitalmars.com/Digital_Mars_C++/Patch/dm850dos.zip"
+DOSX_LIBS_URL="http://ftp.digitalmars.com/Digital_Mars_C++/Patch/dm831x.zip"
 
 DM_ZIP="${DOWNLOAD_DIR}/dm.zip"
 UTILS_ZIP="${DOWNLOAD_DIR}/utils.zip"
+DOS_LIBS_ZIP="${DOWNLOAD_DIR}/doslibs.zip"
+DOSX_LIBS_ZIP="${DOWNLOAD_DIR}/dosxlibs.zip"
 
 echo "Downloading compiler from ${DM_URL}..." >&2
 curl --progress-bar -L -o ${DM_ZIP} ${DM_URL} >&2
@@ -105,13 +109,27 @@ curl --progress-bar -L -o ${DM_ZIP} ${DM_URL} >&2
 echo "Downloading utils from ${UTILS_URL}..." >&2
 curl --progress-bar -L -o ${UTILS_ZIP} ${UTILS_URL} >&2
 
+echo "Downloading DOS libs from ${DOS_LIBS_URL}..." >&2
+curl --progress-bar -L -o ${DOS_LIBS_ZIP} ${DOS_LIBS_URL} >&2
+
+echo "Downloading DOSX libs from ${DOSX_LIBS_URL}..." >&2
+curl --progress-bar -L -o ${DOSX_LIBS_ZIP} ${DOSX_LIBS_URL} >&2
+
 echo "Unpacking compiler to ${INSTALL_DIR}..." >&2
 7z x -y -o${INSTALL_DIR} ${DM_ZIP} >/dev/null 2>&1
 
 echo "Unpacking utils to ${INSTALL_DIR}..." >&2
 7z x -y -o${INSTALL_DIR} ${UTILS_ZIP} >/dev/null 2>&1
 
+echo "Unpacking DOS libs to ${INSTALL_DIR}..." >&2
+7z x -y -o${INSTALL_DIR} ${DOS_LIBS_ZIP} >/dev/null 2>&1
+
+echo "Unpacking DOSX libs to ${INSTALL_DIR}..." >&2
+7z x -y -o${INSTALL_DIR} ${DOSX_LIBS_ZIP} >/dev/null 2>&1
+
 echo "${INSTALL_DIR}/dm/bin"
 
 rm -f ${DM_ZIP}
 rm -f ${UTILS_ZIP}
+rm -f ${DOS_LIBS_ZIP}
+rm -f ${DOSX_LIBS_ZIP}

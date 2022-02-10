@@ -54,124 +54,165 @@
 #include <QtCore/qsettings.h>
 #include <QtCore/qstandardpaths.h>
 
+#include <optional>
+
 using namespace qbs;
 using Internal::Tr;
 using Internal::HostOsInfo;
+
+namespace {
+struct Target {
+    QString platform;
+    QString architecture;
+    QString extender;
+};
+}
 
 static QStringList knownDmcCompilerNames()
 {
     return {QStringLiteral("dmc")};
 }
 
-static QString guessDmcArchitecture(const QFileInfo &compiler)
+static QStringList dumpOutput(const QFileInfo &compiler, const QStringList &flags,
+                              const QStringList &keys)
 {
-    const QStringList keys = {QStringLiteral("__I86__")};
-    const auto macros = dumpMacros([&compiler, &keys]() {
-        const QString filePath = QDir(QDir::tempPath())
-                                     .absoluteFilePath(QLatin1String("dmc-dump.c"));
-        QFile fakeIn(filePath);
-        if (!fakeIn.open(QIODevice::Truncate | QIODevice::WriteOnly | QIODevice::Text)) {
-            qbsWarning() << Tr::tr("Unable to open temporary file %1 for output: %2")
-                                .arg(fakeIn.fileName(), fakeIn.errorString());
-            return QStringList{};
-        }
-        fakeIn.write("#define VALUE_TO_STRING(x) #x\n");
-        fakeIn.write("#define VALUE(x) VALUE_TO_STRING(x)\n");
-        fakeIn.write("#define VAR_NAME_VALUE(var) \"#define \" #var\" \"VALUE(var)\n");
-        for (const QString &key : keys) {
-            fakeIn.write("#if defined(" + key.toLatin1() + ")\n");
-            fakeIn.write("#pragma message (VAR_NAME_VALUE(" + key.toLatin1() + "))\n");
-            fakeIn.write("#endif\n");
-        }
-        fakeIn.close();
-        QProcess p;
-        p.start(compiler.absoluteFilePath(), {QStringLiteral("-e"), filePath});
-        p.waitForFinished(3000);
-        fakeIn.remove();
-        const QStringList lines = QString::fromUtf8(p.readAllStandardOutput())
-                                      .split(QRegularExpression(QLatin1String("\\r?\\n")));
-        return lines;
-    });
-
-    for (const QString &key : keys) {
-        if (macros.contains(key)) {
-            bool ok = false;
-            const auto value = macros.value(key).toInt(&ok);
-            if (ok) {
-                switch (value) {
-                case 0: // 8088
-                case 2: // 286
-                case 3: // 386
-                case 4: // 486
-                    break;
-                case 5: // P5
-                case 6: // P6
-                    return QLatin1String("x86");
-                default:
-                    break;
-                }
-            }
-        }
+    const QString filePath = QDir(QDir::tempPath()).absoluteFilePath(
+        QLatin1String("dmc-dump.c"));
+    QFile fakeIn(filePath);
+    if (!fakeIn.open(QIODevice::Truncate | QIODevice::WriteOnly | QIODevice::Text)) {
+        qbsWarning() << Tr::tr("Unable to open temporary file %1 for output: %2")
+                        .arg(fakeIn.fileName(), fakeIn.errorString());
+        return {};
     }
+    fakeIn.write("#define VALUE_TO_STRING(x) #x\n");
+    fakeIn.write("#define VALUE(x) VALUE_TO_STRING(x)\n");
+    fakeIn.write("#define VAR_NAME_VALUE(var) \"#define \" #var\" \"VALUE(var)\n");
+    for (const auto &key : keys) {
+        const auto content = key.toLatin1();
+        fakeIn.write("#if defined(" + content + ")\n");
+        fakeIn.write("#pragma message (VAR_NAME_VALUE(" + content + "))\n");
+        fakeIn.write("#endif\n");
+    }
+    fakeIn.close();
 
-    return QLatin1String("unknown");
+    QStringList args = {QStringLiteral("-e")};
+    args.reserve(args.size() + int(flags.size()));
+    std::copy(flags.cbegin(), flags.cend(), std::back_inserter(args));
+    args.push_back(QDir::toNativeSeparators(filePath));
+
+    QProcess p;
+    p.start(compiler.absoluteFilePath(), std::move(args));
+    p.waitForFinished(3000);
+    fakeIn.remove();
+    static QRegularExpression re(QLatin1String("\\r?\\n"));
+    const QStringList lines = QString::fromUtf8(p.readAllStandardOutput()).split(re);
+    return lines;
 }
 
-static Profile createDmcProfileHelper(const ToolchainInstallInfo &info,
-                                      Settings *settings,
-                                      QString profileName = QString())
+static std::optional<Target> dumpDmcTarget(const QFileInfo &compiler, const QStringList &flags)
+{
+    const QStringList keys = {
+        QStringLiteral("DOS16RM"),
+        QStringLiteral("DOS386"),
+        QStringLiteral("MSDOS"),
+        QStringLiteral("__NT__"),
+        QStringLiteral("_WINDOWS"),
+    };
+    const auto macros = dumpMacros([&compiler, &flags, &keys]() {
+        return dumpOutput(compiler, flags, keys); });
+
+    if (macros.contains(QLatin1String("__NT__"))) {
+        return Target{QLatin1String("windows"), QLatin1String("x86"), QLatin1String("")};
+    } else if (macros.contains(QLatin1String("_WINDOWS"))) {
+        return Target{QLatin1String("windows"), QLatin1String("x86_16"), QLatin1String("")};
+    } else if (macros.contains(QLatin1String("DOS386"))) {
+        if (flags.contains(QLatin1String("-mx")))
+            return Target{QLatin1String("dos"), QLatin1String("x86"), QLatin1String("dosx")};
+        else if (flags.contains(QLatin1String("-mp")))
+            return Target{QLatin1String("dos"), QLatin1String("x86"), QLatin1String("dosp")};
+    } else if (macros.contains(QLatin1String("DOS16RM"))) {
+        if (flags.contains(QLatin1String("-mz")))
+            return Target{QLatin1String("dos"), QLatin1String("x86_16"), QLatin1String("dosz")};
+        else if (flags.contains(QLatin1String("-mr")))
+            return Target{QLatin1String("dos"), QLatin1String("x86_16"), QLatin1String("dosr")};
+    } else if (macros.contains(QLatin1String("MSDOS"))) {
+        return Target{QLatin1String("dos"), QLatin1String("x86_16"), QLatin1String("")};
+    }
+
+    return {};
+}
+
+static std::vector<Profile> createDmcProfileHelper(const ToolchainInstallInfo &info,
+                                                   Settings *settings,
+                                                   QString profileName = QString())
 {
     const QFileInfo compiler = info.compilerPath;
-    const QString architecture = guessDmcArchitecture(compiler);
+    std::vector<Profile> profiles;
 
-    // In case the profile is auto-detected.
-    if (profileName.isEmpty()) {
-        if (!info.compilerVersion.isValid()) {
-            profileName = QStringLiteral("dmc-unknown-%1").arg(architecture);
+    const QVector<QStringList> probes = {
+        { QStringLiteral("-mn"), QStringLiteral("-WA") }, // Windows NT 32 bit.
+        { QStringLiteral("-ml"),  QStringLiteral("-WA") }, // Windows 3.x 16 bit.
+        { QStringLiteral("-mx") }, // DOS with DOSX extender 32 bit.
+        { QStringLiteral("-mp") }, // DOS with Phar Lap extender 32 bit.
+        { QStringLiteral("-mr") }, // DOS with Rational DOS Extender 16 bit.
+        { QStringLiteral("-mz") }, // DOS with  ZPM DOS Extender 16 bit.
+        { QStringLiteral("-mc") }, // DOS 16 bit.
+    };
+
+   for (const auto &flags : probes) {
+       const auto target = dumpDmcTarget(compiler, flags);
+        if (!target)
+            continue;
+
+        QString fullProfilename;
+        QString platform = target->extender.isEmpty() ? target->platform : target->extender;
+        if (profileName.isEmpty()) {
+            // Create a full profile name in case we is in auto-detecting mode.
+            if (!info.compilerVersion.isValid()) {
+                fullProfilename = QStringLiteral("dmc-unknown-%1-%2")
+                        .arg(platform, target->architecture);
+            } else {
+                const QString version = info.compilerVersion.toString(QLatin1Char('_'),
+                                                                      QLatin1Char('_'));
+                fullProfilename = QStringLiteral("dmc-%1-%2-%3")
+                        .arg(version, platform, target->architecture);
+            }
         } else {
-            const QString version = info.compilerVersion.toString(QLatin1Char('_'),
-                                                                  QLatin1Char('_'));
-            profileName = QStringLiteral("dmc-%1-%2").arg(
-                version, architecture);
+            // Append the detected actual architecture name to the proposed profile name.
+            fullProfilename = QStringLiteral("%1-%2-%3")
+                    .arg(profileName, platform, target->architecture);
         }
-    }
 
-    Profile profile(profileName, settings);
-    profile.setValue(QLatin1String("cpp.toolchainInstallPath"), compiler.absolutePath());
-    profile.setValue(QLatin1String("qbs.toolchainType"), QLatin1String("dmc"));
-    if (!architecture.isEmpty())
-        profile.setValue(QLatin1String("qbs.architecture"), architecture);
+        Profile profile(fullProfilename, settings);
+        profile.setValue(QStringLiteral("cpp.toolchainInstallPath"), compiler.absolutePath());
+        profile.setValue(QStringLiteral("qbs.toolchainType"), QStringLiteral("dmc"));
+        profile.setValue(QStringLiteral("qbs.architecture"), target->architecture);
+        profile.setValue(QStringLiteral("qbs.targetPlatform"), target->platform);
+        if (!target->extender.isEmpty())
+            profile.setValue(QStringLiteral("cpp.extenderName"), target->extender);
 
-    qbsInfo() << Tr::tr("Profile '%1' created for '%2'.").arg(
-        profile.name(), compiler.absoluteFilePath());
-    return profile;
+        qbsInfo() << Tr::tr("Profile '%1' created for '%2'.")
+                     .arg(profile.name(), compiler.absoluteFilePath());
+
+        profiles.push_back(std::move(profile));
+   }
+
+    return profiles;
 }
 
-static Version dumpDmcCompilerVersion(const QFileInfo &compiler)
+static Version dumpDmcVersion(const QFileInfo &compiler)
 {
-    QProcess p;
-    QStringList args;
-    p.start(compiler.absoluteFilePath(), args);
-    p.waitForFinished(3000);
-    const auto es = p.exitStatus();
-    if (es != QProcess::NormalExit) {
-        const QByteArray out = p.readAll();
-        qbsWarning() << Tr::tr("Compiler dumping failed:\n%1")
-                            .arg(QString::fromUtf8(out));
-        return Version{};
+    const QStringList keys = {QStringLiteral("__DMC__")};
+    const auto macros = dumpMacros([&compiler, keys]() {
+        return dumpOutput(compiler, {}, keys); });
+    for (const auto &macro : macros) {
+        if (!macro.startsWith(QLatin1String("0x")))
+            continue;
+        const int verCode = macro.midRef(2).toInt();
+        return Version{(verCode / 100), (verCode % 100), 0};
     }
-
-    const QByteArray output = p.readAllStandardOutput();
-    const QRegularExpression re(QLatin1String(
-        "^Digital Mars Compiler Version (\\d+)\\.?(\\d+)\\.?(\\*|\\d+)?"));
-    const QRegularExpressionMatch match = re.match(QString::fromLatin1(output));
-    if (!match.hasMatch())
-        return Version{};
-
-    const auto major = match.captured(1).toInt();
-    const auto minor = match.captured(2).toInt();
-    const auto patch = match.captured(3).toInt();
-    return Version{major, minor, patch};
+    qbsWarning() << Tr::tr("No __DMC__ token was found in the compiler dump");
+    return Version{};
 }
 
 static std::vector<ToolchainInstallInfo> installedDmcsFromPath()
@@ -184,7 +225,7 @@ static std::vector<ToolchainInstallInfo> installedDmcsFromPath()
                 HostOsInfo::appendExecutableSuffix(compilerName)));
         if (!dmcPath.exists())
             continue;
-        const Version version = dumpDmcCompilerVersion(dmcPath);
+        const Version version = dumpDmcVersion(dmcPath);
         infos.push_back({dmcPath, version});
     }
     std::sort(infos.begin(), infos.end());
@@ -211,9 +252,14 @@ void dmcProbe(Settings *settings, std::vector<Profile> &profiles)
     qbsInfo() << Tr::tr("Trying to detect DMC toolchains...");
 
     const std::vector<ToolchainInstallInfo> allInfos = installedDmcsFromPath();
-    qbs::Internal::transform(allInfos, profiles, [settings](const auto &info) {
-        return createDmcProfileHelper(info, settings); });
-
-    if (allInfos.empty())
+    if (allInfos.empty()) {
         qbsInfo() << Tr::tr("No DMC toolchains found.");
+        return;
+    }
+
+    for (const ToolchainInstallInfo &info : allInfos) {
+        const auto newProfiles = createDmcProfileHelper(info, settings);
+        profiles.reserve(profiles.size() + int(newProfiles.size()));
+        std::copy(newProfiles.cbegin(), newProfiles.cend(), std::back_inserter(profiles));
+    }
 }

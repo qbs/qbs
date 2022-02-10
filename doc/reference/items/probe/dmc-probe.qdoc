@@ -54,17 +54,7 @@
 
     Detected architecture of the target platform's processor.
 
-    The only possible value is \c "x86".
-
-    \nodefaultvalue
-*/
-
-/*!
-    \qmlproperty string DmcProbe::endianness
-
-    Detected endianness of the target platform's processor architecture.
-
-    The possible value is \c "little".
+    The possible values are \c "x86" and \c "x86_16".
 
     \nodefaultvalue
 */
@@ -74,7 +64,7 @@
 
     Detected target platform.
 
-    The possible value is \c "windows".
+    The possible values are \c "windows" and \c "dos".
 
     \nodefaultvalue
 */
@@ -99,6 +89,23 @@
     \qmlproperty int DmcProbe::versionPatch
 
     Detected patch compiler version.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty stringList DmcProbe::includePaths
+
+    Detected compiler include paths.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty var DmcProbe::compilerDefinesByLanguage
+
+    Detected set of compiler pre-defined macros depending
+    on the \c "C" or \c "C++" language.
 
     \nodefaultvalue
 */
