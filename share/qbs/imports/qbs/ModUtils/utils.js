@@ -538,8 +538,11 @@ function guessArchitecture(m) {
                         break;
                 }
             }
-        } else if (hasAnyOf(m, ["__i386", "__i386__", "_M_IX86", "__386__"])) {
+        } else if (hasAnyOf(m, ["__i386", "__i386__", "__386__"])) {
             architecture = "x86";
+        } else if (hasAnyOf(m, ["_M_IX86"])) {
+            var code = parseInt(m["_M_IX86"]);
+            architecture = (code < 300) ? "x86_16" : "x86";
         } else if (hasAnyOf(m, ["__x86_64", "__x86_64__", "__amd64", "_M_X64", "_M_AMD64"])) {
             architecture = "x86_64";
             if (hasAnyOf(m, ["__x86_64h", "__x86_64h__"]))
@@ -610,8 +613,12 @@ function guessTargetPlatform(m) {
             return "vxworks";
         if (hasAnyOf(m, ["__APPLE__"]))
             return "darwin";
-        if (hasAnyOf(m, ["WIN32", "_WIN32", "__WIN32__", "__NT__"]))
+        if (hasAnyOf(m, ["WIN32", "_WIN32", "__WIN32__", "__NT__", "__WINDOWS__"]))
             return "windows";
+        if (hasAnyOf(m, ["MSDOS", "__DOS__"]))
+            return "dos";
+        if (hasAnyOf(m, ["__OS2__"]))
+            return "os2";
         if (hasAnyOf(m, ["_AIX"]))
             return "aix";
         if (hasAnyOf(m, ["hpux", "__hpux"]))
