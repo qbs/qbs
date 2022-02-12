@@ -78,6 +78,15 @@ static QByteArray unsupportedToolsetMessage(const QByteArray &output)
           + "' for architecture '" + architecture + "'";
 }
 
+static QByteArray brokenProbeMessage(const QByteArray &output)
+{
+    QByteArray toolchain;
+    QByteArray architecture;
+    extractToolset(output, toolchain, architecture);
+    return "Broken probe for toolchain '" + toolchain
+          + "' for architecture '" + architecture + "'";
+}
+
 TestBlackboxBareMetal::TestBlackboxBareMetal()
     : TestBlackboxBase (SRCDIR "/testdata-baremetal", "blackbox-baremetal")
 {
@@ -290,6 +299,14 @@ void TestBlackboxBareMetal::compilerDefinesByLanguage()
     QDir::setCurrent(testDataDir + "/compiler-defines-by-language");
     QbsRunParameters params(QStringList{ "-f", "compiler-defines-by-language.qbs" });
     QCOMPARE(runQbs(params), 0);
+}
+
+void TestBlackboxBareMetal::toolchainProbe()
+{
+    QDir::setCurrent(testDataDir + "/toolchain-probe");
+    QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList("-n"))), 0);
+    if (m_qbsStdout.contains("broken probe:"))
+        QFAIL(brokenProbeMessage(m_qbsStdout));
 }
 
 QTEST_MAIN(TestBlackboxBareMetal)

@@ -68,6 +68,8 @@ private slots:
 
     void compilerDefinesByLanguage();
 
+    void toolchainProbe();
+
 private:
 
 };
