@@ -54,7 +54,7 @@
 
     Detected architecture of the target platform's processor.
 
-    The only possible value is \c "x86".
+    The possible values are \c "x86" and \c "x86_16".
 
     \nodefaultvalue
 */
@@ -74,7 +74,7 @@
 
     Detected target platform.
 
-    The possible values are \c "windows" and \c "linux".
+    The possible values are \c "windows", \c "linux", \c "os2" and \c "dos".
 
     \nodefaultvalue
 */
