@@ -114,6 +114,13 @@ UnixGCC {
                 dict["LSMinimumSystemVersion"] = minimumMacosVersion;
         }
 
+        if (qbs.targetOS.contains("ios") && minimumIosVersion)
+            dict["MinimumOSVersion"] = minimumIosVersion;
+        else if (qbs.targetOS.contains("tvos") && minimumTvosVersion)
+            dict["MinimumOSVersion"] = minimumTvosVersion;
+        else if (qbs.targetOS.contains("watchos") && minimumWatchosVersion)
+            dict["MinimumOSVersion"] = minimumWatchosVersion;
+
         if (qbs.targetOS.containsAny(["ios", "tvos"])) {
             dict["LSRequiresIPhoneOS"] = true;
 
