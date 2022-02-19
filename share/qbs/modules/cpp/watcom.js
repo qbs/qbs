@@ -80,13 +80,14 @@ function targetFlag(platform, architecture, type) {
         else if (architecture === "x86")
             return "-bos2v2";
     } else if (platform === "windows") {
-        if (architecture === "x86_16")
+        if (architecture === "x86_16") {
+            if (type.contains("dynamiclibrary"))
+                return "-bwindows_dll";
             return "-bwindows";
-        else if (architecture === "x86") {
-            if (type.contains("application"))
-                return "-bnt";
-            else if (type.contains("dynamiclibrary"))
+        } else if (architecture === "x86") {
+            if (type.contains("dynamiclibrary"))
                 return "-bnt_dll";
+            return "-bnt";
         }
     } else if (platform === "linux") {
         return "-blinux";
@@ -427,7 +428,7 @@ function linkerFlags(project, product, inputs, outputs) {
             if (product.cpp.generateLinkerMapFile)
                 args.push("-fm=" + FileInfo.toNativeSeparators(outputs.mem_map[0].filePath));
         } else if (product.type.contains("dynamiclibrary")) {
-            if (targetPlatform === "windows") {
+            if (product.qbs.targetPlatform === "windows") {
                 args.push("-Wl, option implib=" + FileInfo.toNativeSeparators(
                               outputs.dynamiclibrary_import[0].filePath));
             }

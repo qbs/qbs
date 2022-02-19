@@ -357,12 +357,17 @@ function linkerFlags(project, product, inputs, outputs) {
                 args.push("-L/SUBSYSTEM:" + (product.consoleApplication ? "CONSOLE" : "WINDOWS"));
         } else if (product.type.contains("dynamiclibrary")) {
             args.push("-o" + FileInfo.toWindowsSeparators(outputs.dynamiclibrary[0].filePath));
+            if (product.qbs.targetPlatform === "windows" && product.qbs.architecture === "x86") {
+                args.push("kernel32.lib");
+                args.push("-L/IMPLIB:" + FileInfo.toWindowsSeparators(
+                              outputs.dynamiclibrary_import[0].filePath));
+            }
         }
 
         if (product.cpp.debugInformation)
-            args.push("/DEBUG");
+            args.push("-L/DEBUG");
 
-        args.push("/NOLOGO", "/SILENT");
+        args.push("-L/NOLOGO", "-L/SILENT");
     }
 
     // Misc flags.
@@ -432,20 +437,10 @@ function renameLinkerMapFile(project, product, inputs, outputs, input, output) {
     cmd.newMapFilePath = buildLinkerMapFilePath(target, product.cpp.linkerMapSuffix);
     cmd.oldMapFilePath = buildLinkerMapFilePath(target, ".map");
     cmd.silent = true;
-    cmd.sourceCode = function() { File.move(oldMapFilePath, newMapFilePath); };
-    return cmd;
-}
-
-// It is a workaround to generate the import library file from the dynamic library.
-// Because the DMC compiler use the separate `implib.exe` tool for that.
-function createImportLib(project, product, inputs, outputs, input, output) {
-    var args = [
-                FileInfo.toWindowsSeparators(outputs.dynamiclibrary_import[0].filePath),
-                FileInfo.toWindowsSeparators(outputs.dynamiclibrary[0].filePath)
-            ];
-    var cmd = new Command(input.cpp.implibPath, args);
-    cmd.workingDirectory = product.buildDirectory;
-    cmd.silent = true;
+    cmd.sourceCode = function() {
+        if (oldMapFilePath !== newMapFilePath)
+            File.move(oldMapFilePath, newMapFilePath);
+    };
     return cmd;
 }
 
@@ -482,16 +477,11 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     cmd.jobPool = "linker";
     cmds.push(cmd);
 
-    if (outputs.dynamiclibrary
-            || (outputs.application && !product.cpp.generateLinkerMapFile)) {
-        if (outputs.dynamiclibrary)
-            cmds.push(createImportLib(project, product, inputs, outputs, input, output));
-        cmds.push(removeLinkerMapFile(project, product, inputs, outputs, input, output));
-    } else if (outputs.application
-               && product.cpp.generateLinkerMapFile
-               && (product.cpp.linkerMapSuffix !== ".map")) {
+    if (product.cpp.generateLinkerMapFile)
         cmds.push(renameLinkerMapFile(project, product, inputs, outputs, input, output));
-    }
+    else
+        cmds.push(removeLinkerMapFile(project, product, inputs, outputs, input, output));
+
     return cmds;
 }
 

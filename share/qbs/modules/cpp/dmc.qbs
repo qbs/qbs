@@ -84,8 +84,6 @@ CppModule {
 
     property string archiverName: "lib.exe"
     property string archiverPath: FileInfo.joinPaths(toolchainInstallPath, archiverName)
-    property string implibName: "implib.exe"
-    property string implibPath: FileInfo.joinPaths(toolchainInstallPath, implibName)
     property string rccCompilerName: "rcc.exe"
     property string rccCompilerPath: FileInfo.joinPaths(toolchainInstallPath, rccCompilerName)
 

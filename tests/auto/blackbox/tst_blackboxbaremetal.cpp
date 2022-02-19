@@ -139,6 +139,20 @@ void TestBlackboxBareMetal::externalStaticLibraries()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackboxBareMetal::sharedLibraries()
+{
+    QDir::setCurrent(testDataDir + "/shared-libraries");
+    QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList("-n"))), 0);
+    if (m_qbsStdout.contains("unsupported toolset:"))
+        QSKIP(unsupportedToolsetMessage(m_qbsStdout));
+    QCOMPARE(runQbs(QbsRunParameters("build")), 0);
+    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+        QSKIP("Cannot run binaries in cross-compiled build");
+    QCOMPARE(runQbs(QbsRunParameters("run")), 0);
+    QVERIFY2(m_qbsStdout.contains("Hello from app"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("Hello from lib"), m_qbsStdout.constData());
+}
+
 void TestBlackboxBareMetal::userIncludePaths()
 {
     QDir::setCurrent(testDataDir + "/user-include-paths");
