@@ -543,6 +543,8 @@ function guessArchitecture(m) {
         } else if (hasAnyOf(m, ["_M_IX86"])) {
             var code = parseInt(m["_M_IX86"]);
             architecture = (code < 300) ? "x86_16" : "x86";
+        } else if (hasAnyOf(m, ["_M_I86"])) {
+            architecture = "x86_16";
         } else if (hasAnyOf(m, ["__x86_64", "__x86_64__", "__amd64", "_M_X64", "_M_AMD64"])) {
             architecture = "x86_64";
             if (hasAnyOf(m, ["__x86_64h", "__x86_64h__"]))
