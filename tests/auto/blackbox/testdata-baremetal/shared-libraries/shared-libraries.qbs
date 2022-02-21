@@ -11,8 +11,6 @@ Project {
 
         if (qbs.toolchainType === "msvc")
             return true;
-        if (qbs.toolchainType === "gcc")
-            return true;
 
         console.info("unsupported toolset: %%"
             + qbs.toolchainType + "%%, %%" + qbs.architecture + "%%");
