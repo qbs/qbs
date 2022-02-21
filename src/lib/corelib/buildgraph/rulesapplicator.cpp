@@ -1,5 +1,3 @@
-#include <utility>
-
 /****************************************************************************
 **
 ** Copyright (C) 2016 The Qt Company Ltd.
@@ -41,7 +39,6 @@
 #include "rulesapplicator.h"
 
 #include "buildgraph.h"
-#include "productbuilddata.h"
 #include "projectbuilddata.h"
 #include "qtmocscanner.h"
 #include "rulecommands.h"
@@ -57,7 +54,6 @@
 #include <language/preparescriptobserver.h>
 #include <language/propertymapinternal.h>
 #include <language/resolvedfilecontext.h>
-#include <language/scriptengine.h>
 #include <logging/categories.h>
 #include <logging/translator.h>
 #include <tools/error.h>
@@ -69,7 +65,6 @@
 
 #include <QtCore/qcryptographichash.h>
 #include <QtCore/qdir.h>
-#include <QtScript/qscriptvalueiterator.h>
 
 #include <memory>
 #include <vector>
@@ -113,10 +108,10 @@ void RulesApplicator::applyRule(RuleNode *ruleNode, const ArtifactSet &inputArti
     m_completeInputSet = inputArtifacts;
     if (m_rule->name.startsWith(QLatin1String("QtCoreMocRule"))) {
         delete m_mocScanner;
-        m_mocScanner = new QtMocScanner(m_product, scope());
+        m_mocScanner = new QtMocScanner(m_product, engine(), scope());
     }
-    QScriptValue prepareScriptContext = engine()->newObject();
-    prepareScriptContext.setPrototype(engine()->globalObject());
+    ScopedJsValue prepareScriptContext(jsContext(), engine()->newObject());
+    JS_SetPrototype(jsContext(), prepareScriptContext, engine()->globalObject());
     setupScriptEngineForFile(engine(), m_rule->prepareScript.fileContext(), scope(),
                              ObserveMode::Enabled);
     setupScriptEngineForProduct(engine(), m_product.get(), m_rule->module.get(),
@@ -134,6 +129,7 @@ void RulesApplicator::applyRule(RuleNode *ruleNode, const ArtifactSet &inputArti
     }
     if (engine()->usesIo())
         m_ruleUsesIo = true;
+    engine()->releaseInputArtifactScriptValues(ruleNode);
 }
 
 void RulesApplicator::handleRemovedRuleOutputs(const ArtifactSet &inputArtifacts,
@@ -164,9 +160,9 @@ ArtifactSet RulesApplicator::collectAuxiliaryInputs(const Rule *rule,
                                    CurrentProduct | Dependencies);
 }
 
-static void copyProperty(const QString &name, const QScriptValue &src, QScriptValue dst)
+static void copyProperty(JSContext *ctx, const QString &name, const JSValue &src, JSValue dst)
 {
-    dst.setProperty(name, src.property(name));
+    setJsProperty(ctx, dst, name, getJsProperty(ctx, src, name));
 }
 
 static QStringList toStringList(const ArtifactSet &artifacts)
@@ -180,7 +176,7 @@ static QStringList toStringList(const ArtifactSet &artifacts)
     return lst;
 }
 
-void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &prepareScriptContext)
+void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, JSValue prepareScriptContext)
 {
     evalContext()->checkForCancelation();
     for (const Artifact *inputArtifact : inputArtifacts)
@@ -202,20 +198,22 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
     engine()->clearRequestedProperties();
 
     // create the output artifacts from the set of input artifacts
-    m_transformer->setupInputs(prepareScriptContext);
-    m_transformer->setupExplicitlyDependsOn(prepareScriptContext);
-    copyProperty(StringConstants::inputsVar(), prepareScriptContext, scope());
-    copyProperty(StringConstants::inputVar(), prepareScriptContext, scope());
-    copyProperty(StringConstants::explicitlyDependsOnVar(), prepareScriptContext, scope());
-    copyProperty(StringConstants::productVar(), prepareScriptContext, scope());
-    copyProperty(StringConstants::projectVar(), prepareScriptContext, scope());
+    m_transformer->setupInputs(engine(), prepareScriptContext);
+    m_transformer->setupExplicitlyDependsOn(engine(), prepareScriptContext);
+    copyProperty(jsContext(), StringConstants::inputsVar(), prepareScriptContext, scope());
+    copyProperty(jsContext(), StringConstants::inputVar(), prepareScriptContext, scope());
+    copyProperty(jsContext(), StringConstants::explicitlyDependsOnVar(),
+                 prepareScriptContext, scope());
+    copyProperty(jsContext(), StringConstants::productVar(), prepareScriptContext, scope());
+    copyProperty(jsContext(), StringConstants::projectVar(), prepareScriptContext, scope());
     if (m_rule->isDynamic()) {
-        outputArtifacts = runOutputArtifactsScript(inputArtifacts,
-                    ScriptEngine::argumentList(Rule::argumentNamesForOutputArtifacts(), scope()));
+        const ScopedJsValueList argList
+                = engine()->argumentList(Rule::argumentNamesForOutputArtifacts(), scope());
+        outputArtifacts = runOutputArtifactsScript(inputArtifacts, argList);
     } else {
         Set<QString> outputFilePaths;
         for (const auto &ruleArtifact : m_rule->artifacts) {
-            const OutputArtifactInfo outputInfo = createOutputArtifactFromRuleArtifact(
+            const OutputArtifactInfo &outputInfo = createOutputArtifactFromRuleArtifact(
                         ruleArtifact, inputArtifacts, &outputFilePaths);
             if (!outputInfo.artifact)
                 continue;
@@ -255,53 +253,57 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, QScriptValue &p
     }
 
     if (inputArtifacts != m_transformer->inputs)
-        m_transformer->setupInputs(prepareScriptContext);
+        m_transformer->setupInputs(engine(), prepareScriptContext);
 
     // change the transformer outputs according to the bindings in Artifact
-    QScriptValue scriptValue;
-    if (!ruleArtifactArtifactMap.empty())
-        engine()->setGlobalObject(prepareScriptContext);
-    for (auto it = ruleArtifactArtifactMap.crbegin(), end = ruleArtifactArtifactMap.crend();
-         it != end; ++it) {
-        const RuleArtifact *ra = it->first;
-        if (ra->bindings.empty())
-            continue;
+    if (!ruleArtifactArtifactMap.empty()) {
+        const TemporaryGlobalObjectSetter gos(engine(), prepareScriptContext);
+        for (auto it = ruleArtifactArtifactMap.crbegin(), end = ruleArtifactArtifactMap.crend();
+             it != end; ++it) {
+            const RuleArtifact *ra = it->first;
+            if (ra->bindings.empty())
+                continue;
 
-        // expose attributes of this artifact
-        const OutputArtifactInfo outputInfo = it->second;
-        Artifact *outputArtifact = outputInfo.artifact;
-        outputArtifact->properties = outputArtifact->properties->clone();
+            // expose attributes of this artifact
+            const OutputArtifactInfo &outputInfo = it->second;
+            Artifact *outputArtifact = outputInfo.artifact;
+            outputArtifact->properties = outputArtifact->properties->clone();
 
-        scope().setProperty(StringConstants::fileNameProperty(),
-                            engine()->toScriptValue(outputArtifact->filePath()));
-        scope().setProperty(StringConstants::fileTagsProperty(),
-                            toScriptValue(engine(), outputArtifact->fileTags().toStringList()));
+            setJsProperty(jsContext(), scope(), StringConstants::fileNameProperty(),
+                          engine()->toScriptValue(outputArtifact->filePath()));
+            setJsProperty(jsContext(), scope(), StringConstants::fileTagsProperty(),
+                          makeJsStringList(engine()->context(),
+                                           outputArtifact->fileTags().toStringList()));
 
-        QVariantMap artifactModulesCfg = outputArtifact->properties->value();
-        for (const auto &binding : ra->bindings) {
-            scriptValue = engine()->evaluate(binding.code);
-            if (Q_UNLIKELY(engine()->hasErrorOrException(scriptValue))) {
-                QString msg = QStringLiteral("evaluating rule binding '%1': %2");
-                throw ErrorInfo(msg.arg(binding.name.join(QLatin1Char('.')),
-                                        engine()->lastErrorString(scriptValue)),
-                                engine()->lastErrorLocation(scriptValue, binding.location));
+            QVariantMap artifactModulesCfg = outputArtifact->properties->value();
+            for (const auto &binding : ra->bindings) {
+                const ScopedJsValue scriptValue(jsContext(), engine()->evaluate(
+                                                    JsValueOwner::Caller, binding.code,
+                                                    binding.location.filePath(),
+                                                    binding.location.line()));
+                if (JsException ex = engine()->checkAndClearException(binding.location)) {
+                    ErrorInfo err = ex.toErrorInfo();
+                    err.prepend(QStringLiteral("evaluating rule binding '%1'")
+                                .arg(binding.name.join(QLatin1Char('.'))));
+                    throw err;
+                }
+                const QVariant value = getJsVariant(jsContext(), scriptValue);
+                setConfigProperty(artifactModulesCfg, binding.name, value);
+                outputArtifact->pureProperties.emplace_back(binding.name, value);
             }
-            const QVariant value = scriptValue.toVariant();
-            setConfigProperty(artifactModulesCfg, binding.name, value);
-            outputArtifact->pureProperties.emplace_back(binding.name, value);
-        }
-        outputArtifact->properties->setValue(artifactModulesCfg);
-        if (!outputInfo.newlyCreated && (outputArtifact->fileTags() != outputInfo.oldFileTags
-                || outputArtifact->properties->value() != outputInfo.oldProperties)) {
-            invalidateArtifactAsRuleInputIfNecessary(outputArtifact);
+            outputArtifact->properties->setValue(artifactModulesCfg);
+            if (!outputInfo.newlyCreated
+                    && (outputArtifact->fileTags() != outputInfo.oldFileTags
+                        || outputArtifact->properties->value() != outputInfo.oldProperties)) {
+                invalidateArtifactAsRuleInputIfNecessary(outputArtifact);
+            }
         }
     }
-    if (!ruleArtifactArtifactMap.empty())
-        engine()->setGlobalObject(prepareScriptContext.prototype());
 
-    m_transformer->setupOutputs(prepareScriptContext);
-    m_transformer->createCommands(engine(), m_rule->prepareScript,
-            ScriptEngine::argumentList(Rule::argumentNamesForPrepare(), prepareScriptContext));
+    m_transformer->setupOutputs(engine(), prepareScriptContext);
+    const ScopedJsValueList argList = engine()->argumentList(Rule::argumentNamesForPrepare(),
+                                                             prepareScriptContext);
+    m_transformer->createCommands(engine(), m_rule->prepareScript, argList);
     if (Q_UNLIKELY(m_transformer->commands.empty()))
         throw ErrorInfo(Tr::tr("There is a rule without commands: %1.")
                         .arg(m_rule->toString()), m_rule->prepareScript.location());
@@ -386,12 +388,14 @@ RulesApplicator::OutputArtifactInfo RulesApplicator::createOutputArtifactFromRul
     FileTags fileTags;
     bool alwaysUpdated;
     if (ruleArtifact) {
-        QScriptValue scriptValue = engine()->evaluate(ruleArtifact->filePath,
-                                                      ruleArtifact->filePathLocation.filePath(),
-                                                      ruleArtifact->filePathLocation.line());
-        if (Q_UNLIKELY(engine()->hasErrorOrException(scriptValue)))
-            throw engine()->lastError(scriptValue, ruleArtifact->filePathLocation);
-        outputPath = scriptValue.toString();
+        const ScopedJsValue scriptValue(
+                    jsContext(),
+                    engine()->evaluate(JsValueOwner::Caller, ruleArtifact->filePath,
+                                       ruleArtifact->filePathLocation.filePath(),
+                                       ruleArtifact->filePathLocation.line()));
+        if (JsException ex = engine()->checkAndClearException(ruleArtifact->filePathLocation))
+            throw ex.toErrorInfo();
+        outputPath = getJsString(jsContext(), scriptValue);
         fileTags = ruleArtifact->fileTags;
         alwaysUpdated = ruleArtifact->alwaysUpdated;
     } else {
@@ -514,26 +518,31 @@ public:
 };
 
 QList<Artifact *> RulesApplicator::runOutputArtifactsScript(const ArtifactSet &inputArtifacts,
-        const QScriptValueList &args)
+        const JSValueList &args)
 {
     QList<Artifact *> lst;
-    QScriptValue fun = engine()->evaluate(m_rule->outputArtifactsScript.sourceCode(),
-                                          m_rule->outputArtifactsScript.location().filePath(),
-                                          m_rule->outputArtifactsScript.location().line());
-    if (!fun.isFunction())
+    const ScopedJsValue fun(jsContext(),
+                            engine()->evaluate(JsValueOwner::Caller,
+                                               m_rule->outputArtifactsScript.sourceCode(),
+                                               m_rule->outputArtifactsScript.location().filePath(),
+                                               m_rule->outputArtifactsScript.location().line()));
+    if (!JS_IsFunction(jsContext(), fun))
         throw ErrorInfo(QStringLiteral("Function expected."),
                         m_rule->outputArtifactsScript.location());
-    QScriptValue res = fun.call(QScriptValue(), args);
-    engine()->releaseResourcesOfScriptObjects();
-    if (engine()->hasErrorOrException(res))
-        throw engine()->lastError(res, m_rule->outputArtifactsScript.location());
-    if (!res.isArray())
+    JSValueList argv(args.begin(), args.end());
+    const ScopedJsValue res(
+                jsContext(),
+                JS_Call(jsContext(), fun, engine()->globalObject(), int(args.size()), argv.data()));
+    if (JsException ex = engine()->checkAndClearException(m_rule->outputArtifactsScript.location()))
+        throw ex.toErrorInfo();
+    if (!JS_IsArray(jsContext(), res))
         throw ErrorInfo(Tr::tr("Rule.outputArtifacts must return an array of objects."),
                         m_rule->outputArtifactsScript.location());
-    const quint32 c = res.property(StringConstants::lengthProperty()).toUInt32();
+    const quint32 c = getJsIntProperty(jsContext(), res, StringConstants::lengthProperty());
     for (quint32 i = 0; i < c; ++i) {
         try {
-            lst.push_back(createOutputArtifactFromScriptValue(res.property(i), inputArtifacts));
+            ScopedJsValue val(engine()->context(), JS_GetPropertyUint32(jsContext(), res, i));
+            lst.push_back(createOutputArtifactFromScriptValue(val, inputArtifacts));
         } catch (const RuleOutputArtifactsException &roae) {
             ErrorInfo ei = roae;
             ei.prepend(Tr::tr("Error in Rule.outputArtifacts[%1]").arg(i),
@@ -556,6 +565,8 @@ class ArtifactBindingsExtractor
         QString name;
         QVariant value;
     };
+    ScriptEngine *m_engine = nullptr;
+    JSContext *m_ctx = nullptr;
     std::vector<Entry> m_propertyValues;
 
     static Set<QString> getArtifactItemPropertyNames()
@@ -570,35 +581,36 @@ class ArtifactBindingsExtractor
         return s;
     }
 
-    void extractPropertyValues(const QScriptValue &obj, const QString &moduleName = QString())
+    void extractPropertyValues(const JSValue &obj, const QString &moduleName = QString())
     {
-        QScriptValueIterator svit(obj);
-        while (svit.hasNext()) {
-            svit.next();
-            const QString name = svit.name();
+        handleJsProperties(m_ctx, obj, [&](const JSAtom &prop, const JSPropertyDescriptor &desc) {
+            const QString name = getJsString(m_ctx, prop);
             if (moduleName.isEmpty()) {
                 // Ignore property names that are part of the Artifact item.
                 static const Set<QString> artifactItemPropertyNames
                         = getArtifactItemPropertyNames();
                 if (artifactItemPropertyNames.contains(name))
-                    continue;
+                    return;
             }
 
-            const QScriptValue value = svit.value();
-            if (value.isObject() && !value.isArray() && !value.isError() && !value.isRegExp()) {
+            const JSValue value = desc.value;
+            if (JS_IsObject(value) && !JS_IsArray(m_ctx, value) && !JS_IsError(m_ctx, value)
+                    && !JS_IsRegExp(m_ctx, value)) {
                 QString newModuleName;
                 if (!moduleName.isEmpty())
                     newModuleName.append(moduleName + QLatin1Char('.'));
                 newModuleName.append(name);
                 extractPropertyValues(value, newModuleName);
             } else {
-                m_propertyValues.emplace_back(moduleName, name, value.toVariant());
+                m_propertyValues.emplace_back(moduleName, name, getJsVariant(m_ctx, value));
             }
-        }
+        });
     }
 public:
-    void apply(Artifact *outputArtifact, const QScriptValue &obj)
+    void apply(ScriptEngine *engine, Artifact *outputArtifact, const JSValue &obj)
     {
+        m_engine = engine;
+        m_ctx = m_engine->context();
         extractPropertyValues(obj);
         if (m_propertyValues.empty())
             return;
@@ -614,24 +626,27 @@ public:
     }
 };
 
-Artifact *RulesApplicator::createOutputArtifactFromScriptValue(const QScriptValue &obj,
+Artifact *RulesApplicator::createOutputArtifactFromScriptValue(const JSValue &obj,
         const ArtifactSet &inputArtifacts)
 {
-    if (!obj.isObject()) {
+    if (!JS_IsObject(obj)) {
         throw ErrorInfo(Tr::tr("Elements of the Rule.outputArtifacts array must be "
                                "of Object type."), m_rule->outputArtifactsScript.location());
     }
-    const QString unresolvedFilePath
-            = obj.property(StringConstants::filePathProperty()).toVariant().toString();
+    QString unresolvedFilePath;
+    const ScopedJsValue jsFilePath(jsContext(), getJsProperty(jsContext(), obj,
+                                                              StringConstants::filePathProperty()));
+    if (JS_IsString(jsFilePath))
+        unresolvedFilePath = getJsString(jsContext(), jsFilePath);
     if (unresolvedFilePath.isEmpty()) {
         throw RuleOutputArtifactsException(
                 Tr::tr("Property filePath must be a non-empty string."));
     }
     const QString filePath = FileInfo::resolvePath(m_product->buildDirectory(), unresolvedFilePath);
     const FileTags fileTags = FileTags::fromStringList(
-                obj.property(StringConstants::fileTagsProperty()).toVariant().toStringList());
-    const QVariant alwaysUpdatedVar
-            = obj.property(StringConstants::alwaysUpdatedProperty()).toVariant();
+                getJsStringListProperty(jsContext(), obj, StringConstants::fileTagsProperty()));
+    const QVariant alwaysUpdatedVar = getJsVariantProperty(jsContext(), obj,
+                                                           StringConstants::alwaysUpdatedProperty());
     const bool alwaysUpdated = alwaysUpdatedVar.isValid() ? alwaysUpdatedVar.toBool() : true;
     OutputArtifactInfo outputInfo = createOutputArtifact(filePath, fileTags, alwaysUpdated,
                                                          inputArtifacts);
@@ -642,14 +657,13 @@ Artifact *RulesApplicator::createOutputArtifactFromScriptValue(const QScriptValu
                        "Alternatively, a FileTagger can be provided.")
                     .arg(unresolvedFilePath));
     }
-    const FileTags explicitlyDependsOn = FileTags::fromStringList(
-                obj.property(StringConstants::explicitlyDependsOnProperty())
-                .toVariant().toStringList());
+    const FileTags explicitlyDependsOn = FileTags::fromStringList(getJsStringListProperty(
+            jsContext(), obj, StringConstants::explicitlyDependsOnProperty()));
     for (const FileTag &tag : explicitlyDependsOn) {
         for (Artifact * const dependency : m_product->lookupArtifactsByFileTag(tag))
             connect(outputInfo.artifact, dependency);
     }
-    ArtifactBindingsExtractor().apply(outputInfo.artifact, obj);
+    ArtifactBindingsExtractor().apply(engine(), outputInfo.artifact, obj);
     if (!outputInfo.newlyCreated && (outputInfo.artifact->fileTags() != outputInfo.oldFileTags
             || outputInfo.artifact->properties->value() != outputInfo.oldProperties)) {
         invalidateArtifactAsRuleInputIfNecessary(outputInfo.artifact);
@@ -670,15 +684,9 @@ const RulesEvaluationContextPtr &RulesApplicator::evalContext() const
     return m_product->topLevelProject()->buildData->evaluationContext;
 }
 
-ScriptEngine *RulesApplicator::engine() const
-{
-    return evalContext()->engine();
-}
-
-QScriptValue RulesApplicator::scope() const
-{
-    return evalContext()->scope();
-}
+ScriptEngine *RulesApplicator::engine() const { return evalContext()->engine(); }
+JSContext *RulesApplicator::jsContext() const { return engine()->context(); }
+JSValue RulesApplicator::scope() const { return evalContext()->scope(); }
 
 } // namespace Internal
 } // namespace qbs

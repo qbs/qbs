@@ -43,10 +43,9 @@
 #include <language/forward_decls.h>
 #include <language/filetags.h>
 #include <language/preparescriptobserver.h>
+#include <tools/scripttools.h>
 
 #include <QtCore/qstringlist.h>
-
-#include <QtScript/qscriptvalue.h>
 
 class ScannerPlugin;
 
@@ -115,11 +114,11 @@ private:
                                        const PropertyMapConstPtr &m2) const override;
     bool cacheIsPerFile() const override { return true; }
 
-    QStringList evaluate(const Artifact *artifact, const FileResourceBase *fileToScan, const PrivateScriptFunction &script);
+    QStringList evaluate(Artifact *artifact, const FileResourceBase *fileToScan, const PrivateScriptFunction &script);
 
     ResolvedScannerConstPtr m_scanner;
     ScriptEngine *m_engine;
-    QScriptValue m_global;
+    ScopedJsValue m_global;
     ResolvedProduct *m_product;
 };
 

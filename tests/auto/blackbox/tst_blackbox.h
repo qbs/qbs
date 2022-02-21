@@ -82,7 +82,6 @@ private slots:
     void combinedSources();
     void commandFile();
     void compilerDefinesByLanguage();
-    void concurrentExecutor();
     void conditionalExport();
     void conditionalFileTagger();
     void configure();
@@ -285,7 +284,6 @@ private slots:
     void reproducibleBuild();
     void reproducibleBuild_data();
     void require();
-    void requireDeprecated();
     void rescueTransformerData();
     void responseFiles();
     void retaggedOutputArtifact();

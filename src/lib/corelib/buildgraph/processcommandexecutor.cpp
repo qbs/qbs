@@ -61,11 +61,11 @@
 #include <tools/shellutils.h>
 #include <tools/stringconstants.h>
 
+#include <quickjs.h>
+
 #include <QtCore/qdir.h>
 #include <QtCore/qtemporaryfile.h>
 #include <QtCore/qtimer.h>
-
-#include <QtScript/qscriptvalue.h>
 
 namespace qbs {
 namespace Internal {
@@ -215,34 +215,39 @@ QString ProcessCommandExecutor::filterProcessOutput(const QByteArray &_output,
     if (filterFunctionSource.isEmpty())
         return output;
 
-    QScriptValue scope = scriptEngine()->newObject();
-    scope.setPrototype(scriptEngine()->globalObject());
-    for (QVariantMap::const_iterator it = command()->properties().constBegin();
-            it != command()->properties().constEnd(); ++it) {
-        scope.setProperty(it.key(), scriptEngine()->toScriptValue(it.value()));
+    JSContext * const ctx = scriptEngine()->context();
+    const ScopedJsValue scope(ctx, JS_NewObjectProto(ctx, scriptEngine()->globalObject()));
+    for (auto it = command()->properties().constBegin();
+         it != command()->properties().constEnd(); ++it) {
+        setJsProperty(ctx, scope, it.key(), scriptEngine()->toScriptValue(it.value()));
     }
 
-    TemporaryGlobalObjectSetter tgos(scope);
-    QScriptValue filterFunction = scriptEngine()->evaluate(QLatin1String("var f = ")
-                                                           + filterFunctionSource
-                                                           + QLatin1String("; f"));
-    if (!filterFunction.isFunction()) {
+    TemporaryGlobalObjectSetter tgos(scriptEngine(), scope);
+    const ScopedJsValue filterFunction(
+                ctx,
+                scriptEngine()->evaluate(JsValueOwner::Caller,
+                                         QLatin1String("var f = ")
+                                         + filterFunctionSource
+                                         + QLatin1String("; f")));
+    if (!JS_IsFunction(scriptEngine()->context(), filterFunction)) {
         logger().printWarning(ErrorInfo(Tr::tr("Error in filter function: %1.\n%2")
-                         .arg(filterFunctionSource, filterFunction.toString())));
+                         .arg(filterFunctionSource,
+                              getJsString(scriptEngine()->context(), filterFunction))));
         return output;
     }
 
-    QScriptValue outputArg = scriptEngine()->newArray(1);
-    outputArg.setProperty(0, scriptEngine()->toScriptValue(output));
-    QScriptValue filteredOutput = filterFunction.call(scriptEngine()->undefinedValue(), outputArg);
-    if (scriptEngine()->hasErrorOrException(filteredOutput)) {
-        logger().printWarning(ErrorInfo(Tr::tr("Error when calling output filter function: %1")
-                         .arg(scriptEngine()->lastErrorString(filteredOutput)),
-                                        scriptEngine()->lastErrorLocation(filteredOutput)));
+    const ScopedJsValue outputArg(ctx, scriptEngine()->toScriptValue(output));
+    JSValue outputArgForCall = outputArg;
+    const ScopedJsValue filteredOutput(
+                ctx, JS_Call(ctx, filterFunction, JS_UNDEFINED, 1, &outputArgForCall));
+    if (const JsException ex = scriptEngine()->checkAndClearException({})) {
+        ErrorInfo err = ex.toErrorInfo();
+        err.prepend(Tr::tr("Error when calling output filter function"));
+        logger().printWarning(err);
         return output;
     }
 
-    return filteredOutput.toString();
+    return getJsString(ctx, filteredOutput);
 }
 
 static QProcess::ProcessError saveToFile(const QString &filePath, const QByteArray &content)

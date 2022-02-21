@@ -44,12 +44,13 @@
 #include "nodeset.h"
 #include <language/filetags.h>
 #include <language/forward_decls.h>
+#include <language/scriptengine.h>
 #include <logging/logger.h>
+#include <quickjs.h>
 
 #include <QtCore/qflags.h>
 #include <QtCore/qhash.h>
 #include <QtCore/qstring.h>
-#include <QtScript/qscriptvalue.h>
 
 #include <unordered_map>
 
@@ -85,7 +86,7 @@ public:
     Q_DECLARE_FLAGS(InputsSources, InputsSourceFlag)
 
 private:
-    void doApply(const ArtifactSet &inputArtifacts, QScriptValue &prepareScriptContext);
+    void doApply(const ArtifactSet &inputArtifacts, JSValue prepareScriptContext);
     ArtifactSet collectOldOutputArtifacts(const ArtifactSet &inputArtifacts) const;
 
     struct OutputArtifactInfo {
@@ -100,13 +101,14 @@ private:
     OutputArtifactInfo createOutputArtifact(const QString &filePath, const FileTags &fileTags,
             bool alwaysUpdated, const ArtifactSet &inputArtifacts);
     QList<Artifact *> runOutputArtifactsScript(const ArtifactSet &inputArtifacts,
-            const QScriptValueList &args);
-    Artifact *createOutputArtifactFromScriptValue(const QScriptValue &obj,
+            const JSValueList &args);
+    Artifact *createOutputArtifactFromScriptValue(const JSValue &obj,
             const ArtifactSet &inputArtifacts);
     QString resolveOutPath(const QString &path) const;
     const RulesEvaluationContextPtr &evalContext() const;
     ScriptEngine *engine() const;
-    QScriptValue scope() const;
+    JSContext *jsContext() const;
+    JSValue scope() const;
 
     static ArtifactSet collectAdditionalInputs(const FileTags &tags,
                                                const Rule *rule, const ResolvedProduct *product,

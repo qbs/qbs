@@ -68,8 +68,6 @@
 #include <QtCore/qdiriterator.h>
 #include <QtCore/qmap.h>
 
-#include <QtScript/qscriptvalue.h>
-
 #include <algorithm>
 #include <memory>
 #include <mutex>

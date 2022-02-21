@@ -461,10 +461,9 @@ function renameLinkerMapFile(project, product, inputs, outputs, input, output) {
 // remove a listing files only after the linking completes.
 function removeCompilerListingFiles(project, product, inputs, outputs, input, output) {
     var cmd = new JavaScriptCommand();
-    cmd.objects = inputs.obj.map(function(a) { return a; });
     cmd.silent = true;
     cmd.sourceCode = function() {
-        objects.forEach(function(object) {
+        inputs.obj.forEach(function(object) {
             if (!object.filePath.endsWith(".c" + object.cpp.objectSuffix))
                 return; // Skip the assembler generated objects.
             if (!object.cpp.generateCompilerListingFiles

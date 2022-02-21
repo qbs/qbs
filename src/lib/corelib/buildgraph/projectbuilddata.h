@@ -47,10 +47,10 @@
 #include <tools/set.h>
 #include <tools/qttools.h>
 
+#include <quickjs.h>
+
 #include <QtCore/qlist.h>
 #include <QtCore/qstring.h>
-
-#include <QtScript/qscriptvalue.h>
 
 #include <unordered_map>
 
@@ -126,7 +126,7 @@ private:
 
     RulesEvaluationContextPtr evalContext() const;
     ScriptEngine *engine() const;
-    QScriptValue scope() const;
+    JSValue scope() const;
 
     TopLevelProjectPtr m_project;
     Logger m_logger;

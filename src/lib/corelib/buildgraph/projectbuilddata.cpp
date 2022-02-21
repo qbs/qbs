@@ -473,7 +473,7 @@ ScriptEngine *BuildDataResolver::engine() const
     return evalContext()->engine();
 }
 
-QScriptValue BuildDataResolver::scope() const
+JSValue BuildDataResolver::scope() const
 {
     return evalContext()->scope();
 }

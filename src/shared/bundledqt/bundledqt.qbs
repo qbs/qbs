@@ -6,7 +6,6 @@ Product {
     Depends { name: "qbsbuildconfig" }
     Depends { name: "Qt"; submodules: ["core", "gui", "network", "printsupport", "widgets", "xml"] }
     Depends { name: "Qt.test"; condition: project.withTests === true }
-    Depends { name: "Qt.script"; condition: !qbsbuildconfig.useBundledQtScript; required: false }
     Depends {
         name: "Qt.core5compat";
         condition: Utilities.versionCompare(Qt.core.version, "6") >= 0

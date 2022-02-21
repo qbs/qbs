@@ -41,21 +41,14 @@
 
 #include <language/forward_decls.h>
 
-#include <QtScript/qscriptvalue.h>
-
-QT_BEGIN_NAMESPACE
-class QScriptContext;
-QT_END_NAMESPACE
+#include <quickjs.h>
 
 namespace qbs {
 namespace Internal {
 class ScriptEngine;
 
-QScriptValue artifactsScriptValueForProduct(QScriptContext *ctx, ScriptEngine *engine,
-                                            const ResolvedProduct *product);
-
-QScriptValue artifactsScriptValueForModule(QScriptContext *ctx, ScriptEngine *engine,
-                                           const ResolvedModule *module);
+JSValue artifactsScriptValueForProduct(JSContext *ctx, JSValueConst this_val, int, JSValueConst *);
+JSValue artifactsScriptValueForModule(JSContext *ctx, JSValueConst this_val, int, JSValueConst *);
 
 } // namespace Internal
 } // namespace qbs

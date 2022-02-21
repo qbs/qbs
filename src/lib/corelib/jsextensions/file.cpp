@@ -37,6 +37,8 @@
 **
 ****************************************************************************/
 
+#include "jsextension.h"
+
 #include <language/scriptengine.h>
 #include <logging/translator.h>
 #include <tools/fileinfo.h>
@@ -44,15 +46,11 @@
 #include <QtCore/qdir.h>
 #include <QtCore/qfileinfo.h>
 
-#include <QtScript/qscriptable.h>
-#include <QtScript/qscriptengine.h>
-
 namespace qbs {
 namespace Internal {
 
-class File : public QObject, QScriptable
+class File : public JsExtension<File>
 {
-    Q_OBJECT
 public:
     enum Filter {
         Dirs = 0x001,
@@ -82,209 +80,198 @@ public:
         NoFilter = -1
     };
     Q_DECLARE_FLAGS(Filters, Filter)
-    Q_ENUM(Filter)
 
-    static QScriptValue js_ctor(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_copy(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_exists(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_directoryEntries(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_lastModified(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_makePath(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_move(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_remove(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_canonicalFilePath(QScriptContext *context, QScriptEngine *engine);
+    static const char *name() { return "File"; }
+    static void setupStaticMethods(JSContext *ctx, JSValue classObj);
+    static void declareEnums(JSContext *ctx, JSValue classObj);
+    static JSValue jsCopy(JSContext *ctx, JSValueConst, int argc, JSValueConst *argv);
+    static JSValue jsExists(JSContext *ctx, JSValueConst, int argc, JSValueConst *argv);
+    static JSValue jsDirectoryEntries(JSContext *ctx, JSValueConst,
+                                      int argc, JSValueConst *argv);
+    static JSValue jsLastModified(JSContext *ctx, JSValueConst,
+                                  int argc, JSValueConst *argv);
+    static JSValue jsMakePath(JSContext *ctx, JSValueConst, int argc, JSValueConst *argv);
+    static JSValue jsMove(JSContext *ctx, JSValueConst, int argc, JSValueConst *argv);
+    static JSValue jsRemove(JSContext *ctx, JSValueConst, int argc, JSValueConst *argv);
+    static JSValue jsCanonicalFilePath(JSContext *ctx, JSValueConst,
+                                       int argc, JSValueConst *argv);
 };
 
-QScriptValue File::js_ctor(QScriptContext *context, QScriptEngine *engine)
+void File::setupStaticMethods(JSContext *ctx, JSValue classObj)
 {
-    Q_UNUSED(engine);
-    return context->throwError(Tr::tr("'File' cannot be instantiated."));
+    setupMethod(ctx, classObj, "copy", &File::jsCopy, 2);
+    setupMethod(ctx, classObj, "exists", &File::jsExists, 1);
+    setupMethod(ctx, classObj, "directoryEntries", File::jsDirectoryEntries, 2);
+    setupMethod(ctx, classObj, "lastModified", File::jsLastModified, 1);
+    setupMethod(ctx, classObj, "makePath", &File::jsMakePath, 1);
+    setupMethod(ctx, classObj, "move", &File::jsMove, 3);
+    setupMethod(ctx, classObj, "remove", &File::jsRemove, 1);
+    setupMethod(ctx, classObj, "canonicalFilePath", &File::jsCanonicalFilePath, 1);
 }
 
-QScriptValue File::js_copy(QScriptContext *context, QScriptEngine *engine)
+void File::declareEnums(JSContext *ctx, JSValue classObj)
 {
-    Q_UNUSED(engine);
-    if (Q_UNLIKELY(context->argumentCount() < 2)) {
-        return context->throwError(QScriptContext::SyntaxError,
-                                   Tr::tr("copy expects 2 arguments"));
-    }
-
-    const auto se = static_cast<ScriptEngine *>(engine);
-    const DubiousContextList dubiousContexts({
-            DubiousContext(EvalContext::PropertyEvaluation),
-            DubiousContext(EvalContext::RuleExecution, DubiousContext::SuggestMoving)
-    });
-    se->checkContext(QStringLiteral("File.copy()"), dubiousContexts);
-
-    const QString sourceFile = context->argument(0).toString();
-    const QString targetFile = context->argument(1).toString();
-    QString errorMessage;
-    if (Q_UNLIKELY(!copyFileRecursion(sourceFile, targetFile, true, true, &errorMessage)))
-        return context->throwError(errorMessage);
-    return true;
+    DECLARE_ENUM(ctx, classObj, Dirs);
+    DECLARE_ENUM(ctx, classObj, Files);
+    DECLARE_ENUM(ctx, classObj, Drives);
+    DECLARE_ENUM(ctx, classObj, NoSymLinks);
+    DECLARE_ENUM(ctx, classObj, AllEntries);
+    DECLARE_ENUM(ctx, classObj, TypeMask);
+    DECLARE_ENUM(ctx, classObj, Readable);
+    DECLARE_ENUM(ctx, classObj, Writable);
+    DECLARE_ENUM(ctx, classObj, Executable);
+    DECLARE_ENUM(ctx, classObj, PermissionMask);
+    DECLARE_ENUM(ctx, classObj, Modified);
+    DECLARE_ENUM(ctx, classObj, Hidden);
+    DECLARE_ENUM(ctx, classObj, System);
+    DECLARE_ENUM(ctx, classObj, AccessMask);
+    DECLARE_ENUM(ctx, classObj, AllDirs);
+    DECLARE_ENUM(ctx, classObj, CaseSensitive);
+    DECLARE_ENUM(ctx, classObj, NoDot);
+    DECLARE_ENUM(ctx, classObj, NoDotDot);
+    DECLARE_ENUM(ctx, classObj, NoDotAndDotDot);
+    DECLARE_ENUM(ctx, classObj, NoFilter);
 }
 
-QScriptValue File::js_exists(QScriptContext *context, QScriptEngine *engine)
+JSValue File::jsCopy(JSContext *ctx, JSValue, int argc, JSValue *argv)
 {
-    Q_UNUSED(engine);
-    if (Q_UNLIKELY(context->argumentCount() < 1)) {
-        return context->throwError(QScriptContext::SyntaxError,
-                                   Tr::tr("exist expects 1 argument"));
-    }
-    const QString filePath = context->argument(0).toString();
-    const bool exists = FileInfo::exists(filePath);
-    const auto se = static_cast<ScriptEngine *>(engine);
-    se->addFileExistsResult(filePath, exists);
-    return exists;
+    try {
+        const auto se = ScriptEngine::engineForContext(ctx);
+        const DubiousContextList dubiousContexts({
+                DubiousContext(EvalContext::PropertyEvaluation),
+                DubiousContext(EvalContext::RuleExecution, DubiousContext::SuggestMoving)
+        });
+        se->checkContext(QStringLiteral("File.copy()"), dubiousContexts);
+
+        const auto args = getArguments<QString, QString>(ctx, "File.copy", argc, argv);
+        QString errorMessage;
+        if (Q_UNLIKELY(!copyFileRecursion(std::get<0>(args), std::get<1>(args), true, true,
+                                          &errorMessage))) {
+            throw errorMessage;
+        }
+        return JS_TRUE;
+    } catch (const QString &error) { return throwError(ctx, error); }
 }
 
-QScriptValue File::js_directoryEntries(QScriptContext *context, QScriptEngine *engine)
+JSValue File::jsExists(JSContext *ctx, JSValue, int argc, JSValue *argv)
 {
-    Q_UNUSED(engine);
-    if (Q_UNLIKELY(context->argumentCount() < 2)) {
-        return context->throwError(QScriptContext::SyntaxError,
-                                   Tr::tr("directoryEntries expects 2 arguments"));
-    }
-
-    const auto se = static_cast<ScriptEngine *>(engine);
-    const DubiousContextList dubiousContexts({
-            DubiousContext(EvalContext::PropertyEvaluation, DubiousContext::SuggestMoving)
-    });
-    se->checkContext(QStringLiteral("File.directoryEntries()"), dubiousContexts);
-
-    const QString path = context->argument(0).toString();
-    const auto filters = static_cast<QDir::Filters>(context->argument(1).toUInt32());
-    QDir dir(path);
-    const QStringList entries = dir.entryList(filters, QDir::Name);
-    se->addDirectoryEntriesResult(path, filters, entries);
-    return qScriptValueFromSequence(engine, entries);
+    try {
+        const auto filePath = getArgument<QString>(ctx, "File.exists", argc, argv);
+        const bool exists = FileInfo::exists(filePath);
+        ScriptEngine::engineForContext(ctx)->addFileExistsResult(filePath, exists);
+        return JS_NewBool(ctx, exists);
+    } catch (const QString &error) { return throwError(ctx, error); }
 }
 
-QScriptValue File::js_remove(QScriptContext *context, QScriptEngine *engine)
+JSValue File::jsDirectoryEntries(JSContext *ctx, JSValue, int argc, JSValue *argv)
 {
-    Q_UNUSED(engine);
-    if (Q_UNLIKELY(context->argumentCount() < 1)) {
-        return context->throwError(QScriptContext::SyntaxError,
-                                   Tr::tr("remove expects 1 argument"));
-    }
+    try {
+        const auto se = ScriptEngine::engineForContext(ctx);
+        const DubiousContextList dubiousContexts({
+                DubiousContext(EvalContext::PropertyEvaluation, DubiousContext::SuggestMoving)
+        });
+        se->checkContext(QStringLiteral("File.directoryEntries()"), dubiousContexts);
 
-    const auto se = static_cast<ScriptEngine *>(engine);
-    const DubiousContextList dubiousContexts({ DubiousContext(EvalContext::PropertyEvaluation) });
-    se->checkContext(QStringLiteral("File.remove()"), dubiousContexts);
-
-    QString fileName = context->argument(0).toString();
-
-    QString errorMessage;
-    if (Q_UNLIKELY(!removeFileRecursion(QFileInfo(fileName), &errorMessage)))
-        return context->throwError(errorMessage);
-    return true;
+        const auto args = getArguments<QString, qint32>(ctx, "Environment.directoryEntries",
+                                                        argc, argv);
+        const QString path = std::get<0>(args);
+        const QDir dir(path);
+        const auto filters = static_cast<QDir::Filters>(std::get<1>(args));
+        const QStringList entries = dir.entryList(filters, QDir::Name);
+        se->addDirectoryEntriesResult(path, filters, entries);
+        return makeJsStringList(ctx, entries);
+    } catch (const QString &error) { return throwError(ctx, error); }
 }
 
-QScriptValue File::js_lastModified(QScriptContext *context, QScriptEngine *engine)
+JSValue File::jsRemove(JSContext *ctx, JSValue, int argc, JSValue *argv)
 {
-    Q_UNUSED(engine);
-    if (Q_UNLIKELY(context->argumentCount() < 1)) {
-        return context->throwError(QScriptContext::SyntaxError,
-                                   Tr::tr("File.lastModified() expects an argument"));
-    }
-    const QString filePath = context->argument(0).toString();
-    const FileTime timestamp = FileInfo(filePath).lastModified();
-    const auto se = static_cast<ScriptEngine *>(engine);
-    se->addFileLastModifiedResult(filePath, timestamp);
-    return timestamp.asDouble();
+    try {
+        const auto se = ScriptEngine::engineForContext(ctx);
+        const DubiousContextList dubiousContexts{DubiousContext(EvalContext::PropertyEvaluation)};
+        se->checkContext(QStringLiteral("File.remove()"), dubiousContexts);
+        const auto fileName = getArgument<QString>(ctx, "Environment.remove", argc, argv);
+        QString errorMessage;
+        if (Q_UNLIKELY(!removeFileRecursion(QFileInfo(fileName), &errorMessage)))
+            throw errorMessage;
+        return JS_TRUE;
+    } catch (const QString &error) { return throwError(ctx, error); }
 }
 
-QScriptValue File::js_makePath(QScriptContext *context, QScriptEngine *engine)
+JSValue File::jsLastModified(JSContext *ctx, JSValue, int argc, JSValue *argv)
 {
-    Q_UNUSED(engine);
-    if (Q_UNLIKELY(context->argumentCount() < 1)) {
-        return context->throwError(QScriptContext::SyntaxError,
-                                   Tr::tr("makePath expects 1 argument"));
-    }
-
-    const auto se = static_cast<ScriptEngine *>(engine);
-    const DubiousContextList dubiousContexts({ DubiousContext(EvalContext::PropertyEvaluation) });
-    se->checkContext(QStringLiteral("File.makePath()"), dubiousContexts);
-
-    return QDir::root().mkpath(context->argument(0).toString());
+    try {
+        const auto filePath = getArgument<QString>(ctx, "Environment.lastModified", argc, argv);
+        const FileTime timestamp = FileInfo(filePath).lastModified();
+        const auto se = ScriptEngine::engineForContext(ctx);
+        se->addFileLastModifiedResult(filePath, timestamp);
+        return JS_NewFloat64(ctx, timestamp.asDouble());
+    } catch (const QString &error) { return throwError(ctx, error); }
 }
 
-QScriptValue File::js_move(QScriptContext *context, QScriptEngine *engine)
+JSValue File::jsMakePath(JSContext *ctx, JSValue, int argc, JSValue *argv)
 {
-    Q_UNUSED(engine);
-    if (Q_UNLIKELY(context->argumentCount() < 2)) {
-        return context->throwError(QScriptContext::SyntaxError,
-                                   Tr::tr("move expects 2 arguments"));
-    }
-
-    const auto se = static_cast<ScriptEngine *>(engine);
-    const DubiousContextList dubiousContexts({ DubiousContext(EvalContext::PropertyEvaluation) });
-    se->checkContext(QStringLiteral("File.move()"), dubiousContexts);
-
-    const QString sourceFile = context->argument(0).toString();
-    const QString targetFile = context->argument(1).toString();
-    const bool overwrite = context->argumentCount() > 2 ? context->argument(2).toBool() : true;
-
-    if (Q_UNLIKELY(QFileInfo(sourceFile).isDir()))
-        return context->throwError(QStringLiteral("Could not move '%1' to '%2': "
-                                                         "Source file path is a directory.")
-                                   .arg(sourceFile, targetFile));
-
-    if (Q_UNLIKELY(QFileInfo(targetFile).isDir())) {
-        return context->throwError(QStringLiteral("Could not move '%1' to '%2': "
-                                                         "Destination file path is a directory.")
-                                   .arg(sourceFile, targetFile));
-    }
-
-    QFile f(targetFile);
-    if (overwrite && f.exists() && !f.remove())
-        return context->throwError(QStringLiteral("Could not move '%1' to '%2': %3")
-                                   .arg(sourceFile, targetFile, f.errorString()));
-
-    if (QFile::exists(targetFile))
-        return context->throwError(QStringLiteral("Could not move '%1' to '%2': "
-                                                         "Destination file exists.")
-                                   .arg(sourceFile, targetFile));
-
-    QFile f2(sourceFile);
-    if (Q_UNLIKELY(!f2.rename(targetFile)))
-        return context->throwError(QStringLiteral("Could not move '%1' to '%2': %3")
-                                   .arg(sourceFile, targetFile, f2.errorString()));
-    return true;
+    try {
+        const auto se = ScriptEngine::engineForContext(ctx);
+        const DubiousContextList dubiousContexts{DubiousContext(EvalContext::PropertyEvaluation)};
+        se->checkContext(QStringLiteral("File.makePath()"), dubiousContexts);
+        const auto path = getArgument<QString>(ctx, "File.makePath", argc, argv);
+        return JS_NewBool(ctx, QDir::root().mkpath(path));
+    } catch (const QString &error) { return throwError(ctx, error); }
 }
 
-QScriptValue File::js_canonicalFilePath(QScriptContext *context, QScriptEngine *engine)
+JSValue File::jsMove(JSContext *ctx, JSValue, int argc, JSValue *argv)
 {
-    Q_UNUSED(engine);
-    if (Q_UNLIKELY(context->argumentCount() < 1)) {
-        return context->throwError(QScriptContext::SyntaxError,
-                                   Tr::tr("canonicalFilePath expects 1 argument"));
-    }
-    return QFileInfo(context->argument(0).toString()).canonicalFilePath();
+    try {
+        const auto se = ScriptEngine::engineForContext(ctx);
+        const DubiousContextList dubiousContexts{DubiousContext(EvalContext::PropertyEvaluation)};
+        se->checkContext(QStringLiteral("File.move()"), dubiousContexts);
+
+        const auto args = getArguments<QString, QString>(ctx, "File.move", argc, argv);
+        const QString sourceFile = std::get<0>(args);
+        const QString targetFile = std::get<1>(args);
+        const auto overwrite = argc > 2 ? fromArg<bool>(ctx, "File.move", 3, argv[2]) : true;
+
+        if (Q_UNLIKELY(QFileInfo(sourceFile).isDir())) {
+            throw QStringLiteral("Could not move '%1' to '%2': "
+                                 "Source file path is a directory.").arg(sourceFile, targetFile);
+        }
+        if (Q_UNLIKELY(QFileInfo(targetFile).isDir())) {
+            throw QStringLiteral("Could not move '%1' to '%2': "
+                                 "Destination file path is a directory.")
+                    .arg(sourceFile, targetFile);
+        }
+
+        QFile f(targetFile);
+        if (overwrite && f.exists() && !f.remove()) {
+            throw QStringLiteral("Could not move '%1' to '%2': %3")
+                .arg(sourceFile, targetFile, f.errorString());
+        }
+        if (QFile::exists(targetFile)) {
+            throw QStringLiteral("Could not move '%1' to '%2': "
+                                 "Destination file exists.").arg(sourceFile, targetFile);
+        }
+
+        QFile f2(sourceFile);
+        if (Q_UNLIKELY(!f2.rename(targetFile))) {
+            throw QStringLiteral("Could not move '%1' to '%2': %3")
+                .arg(sourceFile, targetFile, f2.errorString());
+        }
+        return JS_TRUE;
+    } catch (const QString &error) { return throwError(ctx, error); }
+}
+
+JSValue File::jsCanonicalFilePath(JSContext *ctx, JSValue, int argc, JSValue *argv)
+{
+    try {
+        const auto path = getArgument<QString>(ctx, "File.canonicalFilePath", argc, argv);
+        return makeJsString(ctx, QFileInfo(path).canonicalFilePath());
+    } catch (const QString &error) { return throwError(ctx, error); }
 }
 
 } // namespace Internal
 } // namespace qbs
 
-void initializeJsExtensionFile(QScriptValue extensionObject)
+void initializeJsExtensionFile(qbs::Internal::ScriptEngine *engine, JSValue extensionObject)
 {
-    using namespace qbs::Internal;
-    QScriptEngine *engine = extensionObject.engine();
-    QScriptValue fileObj = engine->newQMetaObject(&File::staticMetaObject,
-                                                  engine->newFunction(&File::js_ctor));
-    fileObj.setProperty(QStringLiteral("copy"), engine->newFunction(File::js_copy));
-    fileObj.setProperty(QStringLiteral("exists"), engine->newFunction(File::js_exists));
-    fileObj.setProperty(QStringLiteral("directoryEntries"),
-                        engine->newFunction(File::js_directoryEntries));
-    fileObj.setProperty(QStringLiteral("lastModified"), engine->newFunction(File::js_lastModified));
-    fileObj.setProperty(QStringLiteral("makePath"), engine->newFunction(File::js_makePath));
-    fileObj.setProperty(QStringLiteral("move"), engine->newFunction(File::js_move));
-    fileObj.setProperty(QStringLiteral("remove"), engine->newFunction(File::js_remove));
-    fileObj.setProperty(QStringLiteral("canonicalFilePath"),
-                        engine->newFunction(File::js_canonicalFilePath));
-    extensionObject.setProperty(QStringLiteral("File"), fileObj);
+    qbs::Internal::File::registerClass(engine, extensionObject);
 }
-
-Q_DECLARE_METATYPE(qbs::Internal::File *)
-
-#include "file.moc"

@@ -87,8 +87,9 @@ CodeLocation::CodeLocation(const QString &aFilePath, int aLine, int aColumn, boo
 }
 
 CodeLocation::CodeLocation(const CodeLocation &other) = default;
-
+CodeLocation::CodeLocation(CodeLocation &&other) noexcept = default;
 CodeLocation &CodeLocation::operator=(const CodeLocation &other) = default;
+CodeLocation &CodeLocation::operator=(CodeLocation &&other) noexcept = default;
 
 CodeLocation::~CodeLocation() = default;
 

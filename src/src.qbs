@@ -5,8 +5,9 @@ Project {
         "libexec/libexec.qbs",
         "packages/packages.qbs",
         "plugins/plugins.qbs",
-        "shared/json/json.qbs",
         "shared/bundledqt/bundledqt.qbs",
+        "shared/json/json.qbs",
+        "shared/quickjs/quickjs.qbs",
         "shared/variant/variant.qbs",
     ]
 }

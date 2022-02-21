@@ -40,7 +40,6 @@
 #include "error.h"
 
 #include "persistence.h"
-#include "qttools.h"
 #include "stringconstants.h"
 #include "setupprojectparameters.h"
 #include "logging/logger.h"
@@ -209,15 +208,21 @@ ErrorInfo::ErrorInfo(const QString &description, const QStringList &backtrace)
 {
     append(description);
     for (const QString &traceLine : backtrace) {
-        static const std::regex regexp("^(.+) at (.+):(\\-?[0-9]+)$");
+        if (traceLine.contains(QStringLiteral("<eval>")))
+            continue;
+        static const std::regex regexpWithFunc("^(.+) at [^(]*\\((.+):(\\-?[0-9]+)\\)$");
+        static const std::regex regexpWithoutFunc("^(.+) at (.+):(\\-?[0-9]+)$");
         std::smatch match;
         const std::string tl = traceLine.toStdString();
-        if (std::regex_match(tl, match, regexp)) {
-            const QString message = QString::fromStdString(match[1]),
-                             file = QString::fromStdString(match[2]),
-                             line = QString::fromStdString(match[3]);
+        bool hasMatch = std::regex_match(tl, match, regexpWithFunc);
+        if (!hasMatch)
+            hasMatch = std::regex_match(tl, match, regexpWithoutFunc);
+        if (hasMatch) {
+            const QString message = QString::fromStdString(match[1]).trimmed();
+            const QString file = QString::fromStdString(match[2]);
+            const QString line = QString::fromStdString(match[3]);
             const CodeLocation location(file, line.toInt());
-            appendBacktrace(message, location);
+            appendBacktrace(message, CodeLocation(file, line.toInt()));
         }
     }
 }

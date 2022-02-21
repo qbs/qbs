@@ -86,13 +86,14 @@ MsvcBaseModule {
     linkerPath: FileInfo.joinPaths(toolchainInstallPath, linkerName)
 
     validateFunc: {
+        var baseFunc = base;
         return function() {
             if (_skipAllChecks)
                 return;
             var validator = new ModUtils.PropertyValidator("cpp");
             validator.setRequiredProperty("vcvarsallPath", vcvarsallPath);
             validator.validate();
-            base();
+            baseFunc();
         }
     }
 }

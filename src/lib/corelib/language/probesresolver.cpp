@@ -57,7 +57,10 @@
 #include <logging/logger.h>
 #include <logging/translator.h>
 #include <tools/profiling.h>
+#include <tools/scripttools.h>
 #include <tools/stringconstants.h>
+
+#include <quickjs.h>
 
 namespace qbs {
 namespace Internal {
@@ -128,8 +131,10 @@ void ProbesResolver::resolveProbe(ModuleLoader::ProductContext *productContext, 
     QBS_CHECK(configureScript);
     if (Q_UNLIKELY(configureScript->sourceCode() == StringConstants::undefinedValue()))
         throw ErrorInfo(Tr::tr("Probe.configure must be set."), probe->location());
-    using ProbeProperty = std::pair<QString, QScriptValue>;
+    using ProbeProperty = std::pair<QString, ScopedJsValue>;
     std::vector<ProbeProperty> probeBindings;
+    ScriptEngine * const engine = m_evaluator->engine();
+    JSContext * const ctx = engine->context();
     QVariantMap initialProperties;
     for (Item *obj = probe; obj; obj = obj->prototype()) {
         const Item::PropertyMap &props = obj->properties();
@@ -137,14 +142,12 @@ void ProbesResolver::resolveProbe(ModuleLoader::ProductContext *productContext, 
             const QString &name = it.key();
             if (name == StringConstants::configureProperty())
                 continue;
-            const QScriptValue value = m_evaluator->value(probe, name);
-            probeBindings << ProbeProperty(name, value);
+            const JSValue value = m_evaluator->value(probe, name);
+            probeBindings.emplace_back(name, ScopedJsValue(ctx, value));
             if (name != StringConstants::conditionProperty())
-                initialProperties.insert(name, value.toVariant());
+                initialProperties.insert(name, getJsVariant(ctx, value));
         }
     }
-    ScriptEngine * const engine = m_evaluator->engine();
-    QScriptValue configureScope;
     const bool condition = m_evaluator->boolValue(probe, StringConstants::conditionProperty());
     const QString &sourceCode = configureScript->sourceCode().toString();
     ProbeConstPtr resolvedProbe;
@@ -166,6 +169,7 @@ void ProbesResolver::resolveProbe(ModuleLoader::ProductContext *productContext, 
         qCDebug(lcModuleLoader) << "probe results cached from earlier run";
         ++m_probesCachedOld;
     }
+    ScopedJsValue configureScope(ctx, JS_UNDEFINED);
     std::vector<QString> importedFilesUsedInConfigure;
     if (!condition) {
         qCDebug(lcModuleLoader) << "Probe disabled; skipping";
@@ -174,20 +178,15 @@ void ProbesResolver::resolveProbe(ModuleLoader::ProductContext *productContext, 
         qCDebug(lcModuleLoader) << "configure script needs to run";
         const Evaluator::FileContextScopes fileCtxScopes
                 = m_evaluator->fileContextScopes(configureScript->file());
-        engine->currentContext()->pushScope(fileCtxScopes.fileScope);
-        engine->currentContext()->pushScope(fileCtxScopes.importScope);
-        configureScope = engine->newObject();
+        configureScope.setValue(engine->newObject());
         for (const ProbeProperty &b : probeBindings)
-            configureScope.setProperty(b.first, b.second);
-        engine->currentContext()->pushScope(configureScope);
+            setJsProperty(ctx, configureScope, b.first, JS_DupValue(ctx, b.second));
         engine->clearRequestedProperties();
-        QScriptValue sv = engine->evaluate(configureScript->sourceCodeForEvaluation());
-        engine->currentContext()->popScope();
-        engine->currentContext()->popScope();
-        engine->currentContext()->popScope();
-        engine->releaseResourcesOfScriptObjects();
-        if (Q_UNLIKELY(engine->hasErrorOrException(sv)))
-            throw ErrorInfo(engine->lastErrorString(sv), configureScript->location());
+        ScopedJsValue sv(ctx, engine->evaluate(JsValueOwner::Caller,
+                configureScript->sourceCodeForEvaluation(), {}, 1,
+                {fileCtxScopes.fileScope, fileCtxScopes.importScope, configureScope}));
+        if (JsException ex = engine->checkAndClearException(configureScript->location()))
+            throw ex.toErrorInfo();
         importedFilesUsedInConfigure = engine->importedFilesUsedInScript();
     } else {
         importedFilesUsedInConfigure = resolvedProbe->importedFilesUsed();
@@ -199,17 +198,28 @@ void ProbesResolver::resolveProbe(ModuleLoader::ProductContext *productContext, 
             newValue = resolvedProbe->properties().value(b.first);
         } else {
             if (condition) {
-                QScriptValue v = configureScope.property(b.first);
-                m_evaluator->convertToPropertyType(probe->propertyDeclaration(
-                                                   b.first), probe->location(), v);
-                if (Q_UNLIKELY(engine->hasErrorOrException(v)))
-                    throw ErrorInfo(engine->lastError(v));
-                newValue = v.toVariant();
+                JSValue v = getJsProperty(ctx, configureScope, b.first);
+                const JSValue saved = v;
+                ScopedJsValue valueMgr(ctx, saved);
+                const PropertyDeclaration decl = probe->propertyDeclaration(b.first);
+                m_evaluator->convertToPropertyType(decl, probe->location(), v);
+
+                // If the value was converted from scalar to array as per our convenience
+                // functionality, then the original value is now the only element of a
+                // newly allocated array and thus gets deleted via that array.
+                // The array itself is owned by the script engine, so we must stay out of
+                // memory management here.
+                if (v != saved)
+                    valueMgr.setValue(JS_UNDEFINED);
+
+                if (JsException ex = engine->checkAndClearException({}))
+                    throw ex.toErrorInfo();
+                newValue = getJsVariant(ctx, v);
             } else {
                 newValue = initialProperties.value(b.first);
             }
         }
-        if (newValue != b.second.toVariant())
+        if (newValue != getJsVariant(ctx, b.second))
             probe->setProperty(b.first, VariantValue::create(newValue));
         if (!resolvedProbe)
             properties.insert(b.first, newValue);

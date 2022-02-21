@@ -104,6 +104,8 @@ int TestBlackboxBase::runQbs(const QbsRunParameters &params)
             qDebug("%s", qPrintable(process.errorString()));
         }
         exitCode = -1;
+    } else if (m_qbsStdout.contains("Memory leak:")) {
+        exitCode = 27;
     } else {
         exitCode = process.exitCode();
     }

@@ -3,5 +3,5 @@ add_qbs_test(buildgraph
         tst_buildgraph.cpp
         tst_buildgraph.h
     DEPENDS
-        qbsscriptengine
+        qbsquickjsheaders
     )

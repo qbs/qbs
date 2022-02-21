@@ -40,9 +40,9 @@
 #ifndef SCRIPTIMPORTER_H
 #define SCRIPTIMPORTER_H
 
-#include <QtCore/qhash.h>
+#include <quickjs.h>
 
-#include <QtScript/qscriptvalue.h>
+#include <QtCore/qhash.h>
 
 namespace qbs {
 namespace Internal {
@@ -53,9 +53,10 @@ class ScriptImporter
 {
 public:
     ScriptImporter(ScriptEngine *scriptEngine);
-    QScriptValue importSourceCode(const QString &sourceCode, const QString &filePath, QScriptValue &targetObject);
+    JSValue importSourceCode(const QString &sourceCode, const QString &filePath,
+                             JSValue &targetObject);
 
-    static void copyProperties(const QScriptValue &src, QScriptValue &dst);
+    static void copyProperties(JSContext *ctx, const JSValue &src, JSValue &dst);
 
 private:
     ScriptEngine *m_engine;

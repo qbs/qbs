@@ -62,7 +62,9 @@ public:
     explicit CodeLocation(const QString &aFilePath, int aLine = -1, int aColumn = -1,
                           bool checkPath = true);
     CodeLocation(const CodeLocation &other);
+    CodeLocation(CodeLocation &&other) noexcept;
     CodeLocation &operator=(const CodeLocation &other);
+    CodeLocation &operator=(CodeLocation &&other) noexcept;
     ~CodeLocation();
 
     QString filePath() const;

@@ -189,7 +189,7 @@ jobs:
         mkdir release
         mkdir tmp
     - name: Copy sources
-      run: rsync -av --exclude='.git/' --exclude='tmp/' --exclude='src/shared/qtscript/.git' . ./tmp/qbs-src-${{ steps.get-version-name.outputs.version-name }}
+      run: rsync -av --exclude='.git/' --exclude='tmp/' . ./tmp/qbs-src-${{ steps.get-version-name.outputs.version-name }}
     - name: Zip Archive
       run: |
         cd tmp/

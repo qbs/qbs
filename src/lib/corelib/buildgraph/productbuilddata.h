@@ -86,6 +86,9 @@ public:
     void setBuildPriority(unsigned int prio) { m_buildPriority = prio; }
 
     bool checkAndSetJsArtifactsMapUpToDateFlag();
+    std::unique_lock<std::mutex> getArtifactsMapLock() {
+        return std::unique_lock(m_artifactsMapMutex);
+    }
 
     template<PersistentPool::OpType opType> void completeSerializationOp(PersistentPool &pool)
     {

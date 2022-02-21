@@ -43,41 +43,32 @@
 #include <buildgraph/forward_decls.h>
 #include <language/forward_decls.h>
 
-#include <QtScript/qscriptcontext.h>
-#include <QtScript/qscriptvalue.h>
+#include <quickjs.h>
 
 namespace qbs {
 namespace Internal {
-
 class ScriptEngine;
 
 enum ModulePropertiesScriptValueCommonPropertyKeys : quint32
 {
     ModuleNameKey,
-    ProductPtrKey,
-    ArtifactPtrKey,
     DependencyParametersKey,
 };
 
-QScriptValue getDataForModuleScriptValue(QScriptEngine *engine, const ResolvedProduct *product,
-                                         const Artifact *artifact, const ResolvedModule *module);
+JSValue createDataForModuleScriptValue(ScriptEngine *engine,
+                                       const Artifact *artifact);
 
 class ModuleProperties
 {
 public:
-    static void init(QScriptValue productObject, const ResolvedProduct *product);
-    static void init(QScriptValue artifactObject, const Artifact *artifact);
-    static void setModuleScriptValue(QScriptValue targetObject, const QScriptValue &moduleObject,
-                                     const QString &moduleName);
+    static void init(ScriptEngine *engine, JSValue productObject, const ResolvedProduct *product);
+    static void init(ScriptEngine *engine, JSValue artifactObject, const Artifact *artifact);
+    static void setModuleScriptValue(ScriptEngine *engine, JSValue targetObject,
+                                     const JSValue &moduleObject, const QString &moduleName);
 
 private:
-    static void init(QScriptValue objectWithProperties, const void *ptr, const QString &type);
-    static void setupModules(QScriptValue &object, const ResolvedProduct *product,
+    static void setupModules(ScriptEngine *engine, JSValue &object, const ResolvedProduct *product,
                              const Artifact *artifact);
-
-    static QScriptValue js_moduleProperty(QScriptContext *context, QScriptEngine *engine);
-
-    static QScriptValue moduleProperty(QScriptContext *context, QScriptEngine *engine);
 };
 
 } // namespace Internal

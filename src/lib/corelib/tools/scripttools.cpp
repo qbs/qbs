@@ -39,9 +39,10 @@
 
 #include "scripttools.h"
 
-#include <QtCore/qdatastream.h>
+#include <language/scriptengine.h>
+#include <tools/error.h>
 
-#include <QtScript/qscriptengine.h>
+#include <QtCore/qdatastream.h>
 
 namespace qbs {
 namespace Internal {
@@ -65,16 +66,246 @@ QVariant getConfigProperty(const QVariantMap &cfg, const QStringList &name)
     return getConfigProperty(cfg.value(name.front()).toMap(), name.mid(1));
 }
 
-TemporaryGlobalObjectSetter::TemporaryGlobalObjectSetter(const QScriptValue &object)
+TemporaryGlobalObjectSetter::TemporaryGlobalObjectSetter(
+        ScriptEngine *engine, const JSValue &object)
+    : m_engine(engine), m_oldGlobalObject(engine->globalObject())
 {
-    QScriptEngine *engine = object.engine();
-    m_oldGlobalObject = engine->globalObject();
     engine->setGlobalObject(object);
 }
 
 TemporaryGlobalObjectSetter::~TemporaryGlobalObjectSetter()
 {
-    m_oldGlobalObject.engine()->setGlobalObject(m_oldGlobalObject);
+    m_engine->setGlobalObject(m_oldGlobalObject);
+}
+
+JsException::JsException(JsException &&other) noexcept
+    : m_ctx(other.m_ctx), m_exception(other.m_exception),
+      m_fallbackLocation(std::move(other.m_fallbackLocation))
+{
+    other.m_exception = JS_NULL;
+}
+
+JsException::~JsException() { JS_FreeValue(m_ctx, m_exception); }
+
+QString JsException::message() const
+{
+    if (JS_IsString(m_exception))
+        return getJsString(m_ctx, m_exception);
+    return getJsStringProperty(m_ctx, m_exception, QStringLiteral("message"));
+}
+
+const QStringList JsException::stackTrace() const
+{
+    return getJsStringProperty(m_ctx, m_exception, QLatin1String("stack"))
+            .split(QLatin1Char('\n'), Qt::SkipEmptyParts);
+}
+
+ErrorInfo JsException::toErrorInfo() const
+{
+    const QString msg = message();
+    ErrorInfo e(msg, stackTrace());
+    if (e.hasLocation() || !m_fallbackLocation.isValid())
+        return e;
+    return ErrorInfo(msg, m_fallbackLocation);
+}
+
+void defineJsProperty(JSContext *ctx, JSValueConst obj, const QString &prop, JSValue val)
+{
+    JS_DefinePropertyValueStr(ctx, obj, prop.toUtf8().constData(), val, 0);
+}
+
+JSValue getJsProperty(JSContext *ctx, JSValue obj, const QString &prop)
+{
+    return JS_GetPropertyStr(ctx, obj, prop.toUtf8().constData());
+}
+
+void setJsProperty(JSContext *ctx, JSValue obj, const QString &prop, JSValue val)
+{
+    if (JS_SetPropertyStr(ctx, obj, prop.toUtf8().constData(), val) <= 0)
+        qDebug() << "Oje!";
+}
+
+void setJsProperty(JSContext *ctx, JSValue obj, const QString &prop, const QString &val)
+{
+    setJsProperty(ctx, obj, prop, makeJsString(ctx, val));
+}
+
+void handleJsProperties(JSContext *ctx, JSValue obj,
+                        const std::function<void (const JSAtom &,
+                                                  const JSPropertyDescriptor &)> &handler)
+{
+    struct PropsHolder {
+        PropsHolder(JSContext *ctx) : ctx(ctx) {}
+        ~PropsHolder() {
+            for (uint32_t i = 0; i < count; ++i)
+                JS_FreeAtom(ctx, props[i].atom);
+            js_free(ctx, props);
+        }
+        JSContext * const ctx;
+        JSPropertyEnum *props = nullptr;
+        uint32_t count = 0;
+    } propsHolder(ctx);
+    JS_GetOwnPropertyNames(ctx, &propsHolder.props, &propsHolder.count, obj, JS_GPN_STRING_MASK);
+    for (uint32_t i = 0; i < propsHolder.count; ++i) {
+        JSPropertyDescriptor desc{0, JS_UNDEFINED, JS_UNDEFINED, JS_UNDEFINED};
+        JS_GetOwnProperty(ctx, &desc, obj, propsHolder.props[i].atom);
+        const ScopedJsValueList valueHolder(ctx, {desc.value, desc.getter, desc.setter});
+        handler(propsHolder.props[i].atom, desc);
+    }
+}
+
+QString getJsString(JSContext *ctx, JSValueConst val)
+{
+    size_t strLen;
+    const char * const str = JS_ToCStringLen(ctx, &strLen, val);
+    QString s = QString::fromUtf8(str, strLen);
+    JS_FreeCString(ctx, str);
+    return s;
+}
+
+QString getJsStringProperty(JSContext *ctx, JSValue obj, const QString &prop)
+{
+    const ScopedJsValue sv(ctx, getJsProperty(ctx, obj, prop));
+    return getJsString(ctx, sv);
+}
+
+int getJsIntProperty(JSContext *ctx, JSValue obj, const QString &prop)
+{
+    return JS_VALUE_GET_INT(getJsProperty(ctx, obj, prop));
+}
+
+bool getJsBoolProperty(JSContext *ctx, JSValue obj, const QString &prop)
+{
+    return JS_VALUE_GET_BOOL(getJsProperty(ctx, obj, prop));
+}
+
+JSValue makeJsString(JSContext *ctx, const QString &s)
+{
+    return ScriptEngine::engineForContext(ctx)->asJsValue(s);
+}
+
+JSValue makeJsStringList(JSContext *ctx, const QStringList &l)
+{
+    return ScriptEngine::engineForContext(ctx)->asJsValue(l);
+}
+
+JSValue throwError(JSContext *ctx, const QString &message)
+{
+    return JS_Throw(ctx, makeJsString(ctx, message));
+}
+
+QStringList getJsStringList(JSContext *ctx, JSValue val)
+{
+    if (JS_IsString(val))
+        return {getJsString(ctx, val)};
+    if (!JS_IsArray(ctx, val))
+        return {};
+    const int size = getJsIntProperty(ctx, val, QLatin1String("length"));
+    QStringList l;
+    for (int i = 0; i < size; ++i) {
+        const ScopedJsValue elem(ctx, JS_GetPropertyUint32(ctx, val, i));
+        l << getJsString(ctx, elem);
+    }
+    return l;
+}
+
+JSValue makeJsVariant(JSContext *ctx, const QVariant &v)
+{
+    switch (static_cast<QMetaType::Type>(v.userType())) {
+    case QMetaType::QString:
+        return makeJsString(ctx, v.toString());
+    case QMetaType::QStringList:
+        return makeJsStringList(ctx, v.toStringList());
+    case QMetaType::QVariantList:
+        return makeJsVariantList(ctx, v.toList());
+    case QMetaType::Int:
+    case QMetaType::UInt:
+        return JS_NewInt32(ctx, v.toInt());
+    case QMetaType::Long:
+    case QMetaType::ULong:
+    case QMetaType::LongLong:
+    case QMetaType::ULongLong:
+        return JS_NewInt64(ctx, v.toInt());
+    case QMetaType::Bool:
+        return JS_NewBool(ctx, v.toBool());
+    case QMetaType::QVariantMap:
+        return makeJsVariantMap(ctx, v.toMap());
+    default:
+        return JS_UNDEFINED;
+    }
+}
+
+JSValue makeJsVariantList(JSContext *ctx, const QVariantList &l)
+{
+    return ScriptEngine::engineForContext(ctx)->asJsValue(l);
+}
+
+JSValue makeJsVariantMap(JSContext *ctx, const QVariantMap &m)
+{
+    return ScriptEngine::engineForContext(ctx)->asJsValue(m);
+}
+
+static QVariant getJsVariantImpl(JSContext *ctx, JSValue val, QList<JSValue> path)
+{
+    if (JS_IsString(val))
+        return getJsString(ctx, val);
+    if (JS_IsBool(val))
+        return bool(JS_VALUE_GET_BOOL(val));
+    if (JS_IsArray(ctx, val)) {
+        if (path.contains(val))
+            return {};
+        path << val;
+        QVariantList l;
+        const int size = getJsIntProperty(ctx, val, QLatin1String("length"));
+        for (int i = 0; i < size; ++i) {
+            const ScopedJsValue sv(ctx, JS_GetPropertyUint32(ctx, val, i));
+            l << getJsVariantImpl(ctx, sv, path);
+        }
+        return l;
+    }
+    if (JS_IsObject(val)) {
+        if (path.contains(val))
+            return {};
+        path << val;
+        QVariantMap map;
+        handleJsProperties(ctx, val, [ctx, &map, path](const JSAtom &prop, const JSPropertyDescriptor &desc) {
+            map.insert(getJsString(ctx, prop), getJsVariantImpl(ctx, desc.value, path));
+        });
+        return map;
+    }
+    const auto tag = JS_VALUE_GET_TAG(val);
+    if (tag == JS_TAG_INT)
+        return JS_VALUE_GET_INT(val);
+    else if (tag == JS_TAG_FLOAT64)
+        return JS_VALUE_GET_FLOAT64(val);
+    return {};
+}
+
+QVariant getJsVariant(JSContext *ctx, JSValue val)
+{
+    return getJsVariantImpl(ctx, val, {});
+}
+
+QStringList getJsStringListProperty(JSContext *ctx, JSValue obj, const QString &prop)
+{
+    JSValue array = getJsProperty(ctx, obj, prop);
+    QStringList list = getJsStringList(ctx, array);
+    JS_FreeValue(ctx, array);
+    return list;
+}
+
+QVariant getJsVariantProperty(JSContext *ctx, JSValue obj, const QString &prop)
+{
+    const JSValue vv = getJsProperty(ctx, obj, prop);
+    QVariant v = getJsVariant(ctx, vv);
+    JS_FreeValue(ctx, vv);
+    return v;
+}
+
+QString getJsString(JSContext *ctx, JSAtom atom)
+{
+    const ScopedJsValue atomString(ctx, JS_AtomToString(ctx, atom));
+    return getJsString(ctx, atomString);
 }
 
 } // namespace Internal

@@ -64,7 +64,7 @@
 #include <QtCore/qstringlist.h>
 #include <QtCore/qvariant.h>
 
-#include <QtScript/qscriptvalue.h>
+#include <quickjs.h>
 
 #include <memory>
 #include <mutex>
@@ -335,7 +335,7 @@ class PrivateScriptFunction
     friend bool operator==(const PrivateScriptFunction &a, const PrivateScriptFunction &b);
 public:
     void initialize(const ScriptFunctionPtr &sharedData) { m_sharedData = sharedData; }
-    mutable QScriptValue scriptFunction; // not stored
+    mutable JSValue scriptFunction = JS_UNDEFINED; // not stored
 
     QString &sourceCode() const { return m_sharedData->sourceCode; }
     CodeLocation &location()  const { return m_sharedData->location; }

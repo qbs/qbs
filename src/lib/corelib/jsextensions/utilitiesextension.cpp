@@ -37,8 +37,10 @@
 **
 ****************************************************************************/
 
+#include "jsextension.h"
+#include "jsextensions.h"
+
 #include <api/languageinfo.h>
-#include <jsextensions/jsextensions.h>
 #include <language/scriptengine.h>
 #include <logging/translator.h>
 #include <tools/architectures.h>
@@ -84,9 +86,6 @@ struct fat_arch_64 {
 #include <QtCore/qfile.h>
 #include <QtCore/qlibrary.h>
 
-#include <QtScript/qscriptable.h>
-#include <QtScript/qscriptengine.h>
-
 namespace qbs {
 namespace Internal {
 
@@ -94,112 +93,141 @@ class DummyLogSink : public ILogSink {
     void doPrintMessage(LoggerLevel, const QString &, const QString &) override { }
 };
 
-class UtilitiesExtension : public QObject, QScriptable
+class UtilitiesExtension : public JsExtension<UtilitiesExtension>
 {
-    Q_OBJECT
 public:
-    static QScriptValue js_ctor(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_canonicalArchitecture(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_canonicalPlatform(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_canonicalTargetArchitecture(QScriptContext *context,
-                                                       QScriptEngine *engine);
-    static QScriptValue js_canonicalToolchain(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_cStringQuote(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_getHash(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_getNativeSetting(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_kernelVersion(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_nativeSettingGroups(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_rfc1034identifier(QScriptContext *context, QScriptEngine *engine);
+    static const char *name() { return "Utilities"; }
+    static void setupStaticMethods(JSContext *ctx, JSValue classObj);
+    static JSValue js_canonicalArchitecture(JSContext *ctx, JSValueConst, int, JSValueConst *);
+    static JSValue js_canonicalPlatform(JSContext *ctx, JSValueConst, int argc, JSValueConst *argv);
+    static JSValue js_canonicalTargetArchitecture(JSContext *ctx, JSValueConst,
+                                                  int, JSValueConst *);
+    static JSValue js_canonicalToolchain(JSContext *ctx, JSValueConst, int, JSValueConst *);
+    static JSValue js_cStringQuote(JSContext *ctx, JSValueConst, int argc, JSValueConst *argv);
+    static JSValue js_getHash(JSContext *ctx, JSValueConst, int argc, JSValueConst *argv);
+    static JSValue js_getNativeSetting(JSContext *ctx, JSValueConst, int argc, JSValueConst *argv);
+    static JSValue js_kernelVersion(JSContext *ctx, JSValueConst, int, JSValueConst *);
+    static JSValue js_nativeSettingGroups(JSContext *ctx, JSValueConst, int, JSValueConst *);
+    static JSValue js_rfc1034identifier(JSContext *ctx, JSValueConst, int, JSValueConst *);
 
-    static QScriptValue js_smimeMessageContent(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_certificateInfo(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_signingIdentities(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_msvcCompilerInfo(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_clangClCompilerInfo(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_installedMSVCs(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_installedClangCls(QScriptContext *context, QScriptEngine *engine);
+    static JSValue js_smimeMessageContent(JSContext *ctx, JSValueConst, int, JSValueConst *);
+    static JSValue js_certificateInfo(JSContext *ctx, JSValueConst, int, JSValueConst *);
+    static JSValue js_signingIdentities(JSContext *ctx, JSValueConst, int, JSValueConst *);
+    static JSValue js_msvcCompilerInfo(JSContext *ctx, JSValueConst, int argc, JSValueConst *argv);
+    static JSValue js_clangClCompilerInfo(JSContext *ctx, JSValueConst, int argc, JSValueConst *argv);
+    static JSValue js_installedMSVCs(JSContext *ctx, JSValueConst, int, JSValueConst *);
+    static JSValue js_installedClangCls(JSContext *ctx, JSValueConst, int, JSValueConst *);
 
-    static QScriptValue js_versionCompare(QScriptContext *context, QScriptEngine *engine);
+    static JSValue js_versionCompare(JSContext *ctx, JSValueConst, int argc, JSValueConst *argv);
 
-    static QScriptValue js_qmlTypeInfo(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_builtinExtensionNames(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_isSharedLibrary(QScriptContext *context, QScriptEngine *engine);
+    static JSValue js_qmlTypeInfo(JSContext *ctx, JSValueConst, int, JSValueConst *);
+    static JSValue js_builtinExtensionNames(JSContext *ctx, JSValueConst, int, JSValueConst *);
+    static JSValue js_isSharedLibrary(JSContext *ctx, JSValueConst, int argc, JSValueConst *argv);
 
-    static QScriptValue js_getArchitecturesFromBinary(QScriptContext *context,
-                                                      QScriptEngine *engine);
+    static JSValue js_getArchitecturesFromBinary(JSContext *ctx, JSValueConst, int, JSValueConst *);
 };
 
-QScriptValue UtilitiesExtension::js_ctor(QScriptContext *context, QScriptEngine *engine)
+JSValue UtilitiesExtension::js_canonicalPlatform(JSContext *ctx, JSValueConst,
+                                                 int argc, JSValueConst *argv)
 {
-    Q_UNUSED(engine);
-    return context->throwError(Tr::tr("'Utilities' cannot be instantiated."));
-}
-
-QScriptValue UtilitiesExtension::js_canonicalPlatform(QScriptContext *context,
-                                                      QScriptEngine *engine)
-{
-    const QScriptValue value = context->argument(0);
-    if (value.isUndefined() || value.isNull())
-        return engine->toScriptValue(QStringList());
-
-    if (context->argumentCount() == 1 && value.isString()) {
-        return engine->toScriptValue([&value] {
-            QStringList list;
-            for (const auto &s : HostOsInfo::canonicalOSIdentifiers(value.toString()))
-                list.push_back(s);
-            return list;
-        }());
+    try {
+        const auto platform = getArgument<QString>(ctx, "Utilities.canonicalPlatform", argc, argv);
+        if (platform.isEmpty())
+            return makeJsStringList(ctx, {});
+        std::vector<QString> platforms = HostOsInfo::canonicalOSIdentifiers(platform);
+        return makeJsStringList(ctx, QStringList(std::move_iterator(platforms.begin()),
+                                                 std::move_iterator(platforms.end())));
+    } catch (const QString &error) {
+        return throwError(ctx, error);
     }
-
-    return context->throwError(QScriptContext::SyntaxError,
-        QStringLiteral("canonicalPlatform expects one argument of type string"));
 }
 
-QScriptValue UtilitiesExtension::js_canonicalTargetArchitecture(QScriptContext *context,
-                                                                QScriptEngine *engine)
+JSValue UtilitiesExtension::js_canonicalTargetArchitecture(JSContext *ctx, JSValueConst,
+                                                           int argc, JSValueConst *argv)
 {
-    const QScriptValue arch = context->argument(0);
-    if (arch.isUndefined() || arch.isNull())
-        return arch;
-
-    QScriptValue endianness = context->argument(1);
-    if (endianness.isUndefined() || endianness.isNull())
-        endianness = QString();
-    const QScriptValue vendor = context->argument(2);
-    const QScriptValue system = context->argument(3);
-    const QScriptValue abi = context->argument(4);
-
-    if (!arch.isString() || !endianness.isString()
-            || !vendor.isString() || !system.isString() || !abi.isString())
-        return context->throwError(QScriptContext::SyntaxError,
-            QStringLiteral("canonicalTargetArchitecture expects 1 to 5 arguments of type string"));
-
-    return engine->toScriptValue(canonicalTargetArchitecture(arch.toString(), endianness.toString(),
-                                                             vendor.toString(),
-                                                             system.toString(), abi.toString()));
+    try {
+        const auto arch = getArgument<QString>(ctx, "Utilities.canonicalTargetArchitecture",
+                                               argc, argv);
+        QString endianness, vendor, system, abi;
+        if (argc > 1)
+            endianness = fromArg<QString>(ctx, "Utilities.canonicalTargetArchitecture", 2, argv[1]);
+        if (argc > 2)
+            vendor = fromArg<QString>(ctx, "Utilities.canonicalTargetArchitecture", 3, argv[2]);
+        if (argc > 3)
+            system = fromArg<QString>(ctx, "Utilities.canonicalTargetArchitecture", 4, argv[3]);
+        if (argc > 4)
+            abi = fromArg<QString>(ctx, "Utilities.canonicalTargetArchitecture", 5, argv[4]);
+        return makeJsString(ctx,
+                            canonicalTargetArchitecture(arch, endianness, vendor, system, abi));
+    } catch (const QString &error) {
+        return throwError(ctx, error);
+    }
 }
 
-QScriptValue UtilitiesExtension::js_canonicalArchitecture(QScriptContext *context,
-                                                          QScriptEngine *engine)
+void UtilitiesExtension::setupStaticMethods(JSContext *ctx, JSValue classObj)
 {
-    const QScriptValue value = context->argument(0);
-    if (value.isUndefined() || value.isNull())
-        return value;
-
-    if (context->argumentCount() == 1 && value.isString())
-        return engine->toScriptValue(canonicalArchitecture(value.toString()));
-
-    return context->throwError(QScriptContext::SyntaxError,
-        QStringLiteral("canonicalArchitecture expects one argument of type string"));
+    setupMethod(ctx, classObj, "canonicalArchitecture",
+                      &UtilitiesExtension::js_canonicalArchitecture, 1);
+    setupMethod(ctx, classObj, "canonicalPlatform",
+                      &UtilitiesExtension::js_canonicalPlatform, 1);
+    setupMethod(ctx, classObj, "canonicalTargetArchitecture",
+                      &UtilitiesExtension::js_canonicalTargetArchitecture, 1);
+    setupMethod(ctx, classObj, "canonicalToolchain",
+                      &UtilitiesExtension::js_canonicalToolchain, 1);
+    setupMethod(ctx, classObj, "cStringQuote", &UtilitiesExtension::js_cStringQuote, 1);
+    setupMethod(ctx, classObj, "getHash", &UtilitiesExtension::js_getHash, 1);
+    setupMethod(ctx, classObj, "getNativeSetting",
+                      &UtilitiesExtension::js_getNativeSetting, 3);
+    setupMethod(ctx, classObj, "kernelVersion", &UtilitiesExtension::js_kernelVersion, 0);
+    setupMethod(ctx, classObj, "nativeSettingGroups",
+                      &UtilitiesExtension::js_nativeSettingGroups, 1);
+    setupMethod(ctx, classObj, "rfc1034Identifier",
+                      &UtilitiesExtension::js_rfc1034identifier, 1);
+    setupMethod(ctx, classObj, "smimeMessageContent",
+                      &UtilitiesExtension::js_smimeMessageContent, 1);
+    setupMethod(ctx, classObj, "certificateInfo", &UtilitiesExtension::js_certificateInfo, 1);
+    setupMethod(ctx, classObj, "signingIdentities",
+                      &UtilitiesExtension::js_signingIdentities, 1);
+    setupMethod(ctx, classObj, "msvcCompilerInfo",
+                      &UtilitiesExtension::js_msvcCompilerInfo, 1);
+    setupMethod(ctx, classObj, "clangClCompilerInfo",
+                      &UtilitiesExtension::js_clangClCompilerInfo, 1);
+    setupMethod(ctx, classObj, "installedMSVCs", &UtilitiesExtension::js_installedMSVCs, 1);
+    setupMethod(ctx, classObj, "installedClangCls",
+                      &UtilitiesExtension::js_installedClangCls, 1);
+    setupMethod(ctx, classObj, "versionCompare", &UtilitiesExtension::js_versionCompare, 2);
+    setupMethod(ctx, classObj, "qmlTypeInfo", &UtilitiesExtension::js_qmlTypeInfo, 0);
+    setupMethod(ctx, classObj, "builtinExtensionNames",
+                      &UtilitiesExtension::js_builtinExtensionNames, 0);
+    setupMethod(ctx, classObj, "isSharedLibrary", &UtilitiesExtension::js_isSharedLibrary, 1);
+    setupMethod(ctx, classObj, "getArchitecturesFromBinary",
+                      &UtilitiesExtension::js_getArchitecturesFromBinary, 1);
 }
 
-QScriptValue UtilitiesExtension::js_canonicalToolchain(QScriptContext *context,
-                                                       QScriptEngine *engine)
+JSValue UtilitiesExtension::js_canonicalArchitecture(JSContext *ctx, JSValueConst,
+                                                     int argc, JSValueConst *argv)
 {
-    QStringList toolchain;
-    for (int i = 0; i < context->argumentCount(); ++i)
-        toolchain << context->argument(i).toString();
-    return engine->toScriptValue(canonicalToolchain(toolchain));
+    try {
+        const auto arch = getArgument<QString>(ctx, "Utilities.canonicalArchitecture", argc, argv);
+        if (arch.isEmpty())
+            return makeJsString(ctx, {});
+        return makeJsString(ctx, canonicalArchitecture(arch));
+    } catch (const QString &error) {
+        return throwError(ctx, error);
+    }
+}
+
+JSValue UtilitiesExtension::js_canonicalToolchain(JSContext *ctx, JSValueConst,
+                                                  int argc, JSValueConst *argv)
+{
+    try {
+        QStringList toolchain;
+        for (int i = 0; i < argc; ++i)
+            toolchain << fromArg<QString>(ctx, "Utilities.canonicalToolchain", i + 1, argv[i]);
+        return makeJsStringList(ctx, canonicalToolchain(toolchain));
+    } catch (const QString &error) {
+        return throwError(ctx, error);
+    }
 }
 
 // copied from src/corelib/tools/qtools_p.h
@@ -331,74 +359,85 @@ static inline QString escapedString(const Char *begin, int length, bool isUnicod
     return out;
 }
 
-QScriptValue UtilitiesExtension::js_cStringQuote(QScriptContext *context, QScriptEngine *engine)
+JSValue UtilitiesExtension::js_cStringQuote(JSContext *ctx, JSValueConst,
+                                            int argc, JSValueConst *argv)
 {
-    if (Q_UNLIKELY(context->argumentCount() < 1)) {
-        return context->throwError(QScriptContext::SyntaxError,
-                                   QStringLiteral("cStringQuote expects 1 argument"));
+    try {
+        const auto str = getArgument<QString>(ctx, "Utilities.cStringQuote", argc, argv);
+        return makeJsString(ctx, escapedString(
+                                reinterpret_cast<const ushort *>(str.constData()), str.size()));
+    } catch (const QString &error) {
+        return throwError(ctx, error);
     }
-    QString value = context->argument(0).toString();
-    return engine->toScriptValue(escapedString(reinterpret_cast<const ushort *>(value.constData()), value.size()));
 }
 
-QScriptValue UtilitiesExtension::js_getHash(QScriptContext *context, QScriptEngine *engine)
+JSValue UtilitiesExtension::js_getHash(JSContext *ctx, JSValueConst, int argc, JSValueConst *argv)
 {
-    if (Q_UNLIKELY(context->argumentCount() < 1)) {
-        return context->throwError(QScriptContext::SyntaxError,
-                                   QStringLiteral("getHash expects 1 argument"));
+    try {
+        const QByteArray input = getArgument<QString>(ctx, "Utilities.getHash", argc, argv)
+                .toLatin1();
+        const QByteArray hash = QCryptographicHash::hash(input, QCryptographicHash::Sha1)
+                .toHex().left(16);
+        return makeJsString(ctx, QString::fromLatin1(hash));
+    } catch (const QString &error) {
+        return throwError(ctx, error);
     }
-    const QByteArray input = context->argument(0).toString().toLatin1();
-    const QByteArray hash
-            = QCryptographicHash::hash(input, QCryptographicHash::Sha1).toHex().left(16);
-    return engine->toScriptValue(QString::fromLatin1(hash));
 }
 
-QScriptValue UtilitiesExtension::js_getNativeSetting(QScriptContext *context, QScriptEngine *engine)
+JSValue UtilitiesExtension::js_getNativeSetting(JSContext *ctx, JSValueConst,
+                                                int argc, JSValueConst *argv)
 {
-    if (Q_UNLIKELY(context->argumentCount() < 1 || context->argumentCount() > 3)) {
-        return context->throwError(QScriptContext::SyntaxError,
-                                   QStringLiteral("getNativeSetting expects between 1 and 3 arguments"));
+    try {
+        const auto path = getArgument<QString>(ctx, "Utilities.getNativeSetting", argc, argv);
+
+        QString key;
+        if (argc > 1)
+            key = fromArg<QString>(ctx, "Utilities.getNativeSetting", 2, argv[1]);
+
+        // QSettings will ignore the default value if an empty key is passed.
+        if (key.isEmpty()) {
+            key = HostOsInfo::isWindowsHost() ? StringConstants::dot() // default registry value
+                                              : QLatin1String("__dummy");
+        }
+
+        QVariant defaultValue;
+        if (argc > 2)
+            defaultValue = fromArg<QVariant>(ctx, "Utilities.getNativeSetting", 3, argv[2]);
+
+        const QSettings settings(path, QSettings::NativeFormat);
+        const QVariant v = settings.value(key, defaultValue);
+        return v.isNull() ? JS_UNDEFINED : makeJsVariant(ctx, v);
+    } catch (const QString &error) {
+        return throwError(ctx, error);
     }
-
-    QString key = context->argumentCount() > 1 ? context->argument(1).toString() : QString();
-
-    // We'll let empty string represent the default registry value
-    if (HostOsInfo::isWindowsHost() && key.isEmpty())
-        key = StringConstants::dot();
-
-    QVariant defaultValue = context->argumentCount() > 2 ? context->argument(2).toVariant() : QVariant();
-
-    QSettings settings(context->argument(0).toString(), QSettings::NativeFormat);
-    QVariant value = settings.value(key, defaultValue);
-    return value.isNull() ? engine->undefinedValue() : engine->toScriptValue(value);
 }
 
-QScriptValue UtilitiesExtension::js_kernelVersion(QScriptContext *context, QScriptEngine *engine)
+JSValue UtilitiesExtension::js_kernelVersion(JSContext *ctx, JSValueConst, int, JSValueConst *)
 {
-    Q_UNUSED(context);
-    return engine->toScriptValue(QSysInfo::kernelVersion());
+    return makeJsString(ctx, QSysInfo::kernelVersion());
 }
 
-QScriptValue UtilitiesExtension::js_nativeSettingGroups(QScriptContext *context,
-                                                        QScriptEngine *engine)
+JSValue UtilitiesExtension::js_nativeSettingGroups(JSContext *ctx, JSValueConst,
+                                                   int argc, JSValueConst *argv)
 {
-    if (Q_UNLIKELY(context->argumentCount() != 1)) {
-        return context->throwError(QScriptContext::SyntaxError,
-                                   QStringLiteral("nativeSettingGroups expects 1 argument"));
+    try {
+        const auto path = getArgument<QString>(ctx, "Utilities.nativeSettingGroups", argc, argv);
+        QSettings settings(path, QSettings::NativeFormat);
+        return makeJsStringList(ctx, settings.childGroups());
+    } catch (const QString &error) {
+        return throwError(ctx, error);
     }
-
-    QSettings settings(context->argument(0).toString(), QSettings::NativeFormat);
-    return engine->toScriptValue(settings.childGroups());
 }
 
-QScriptValue UtilitiesExtension::js_rfc1034identifier(QScriptContext *context,
-                                                      QScriptEngine *engine)
+JSValue UtilitiesExtension::js_rfc1034identifier(JSContext *ctx, JSValueConst,
+                                                 int argc, JSValueConst *argv)
 {
-    if (Q_UNLIKELY(context->argumentCount() != 1))
-        return context->throwError(QScriptContext::SyntaxError,
-                                   QStringLiteral("rfc1034Identifier expects 1 argument"));
-    const QString identifier = context->argument(0).toString();
-    return engine->toScriptValue(HostOsInfo::rfc1034Identifier(identifier));
+    try {
+        const auto identifier = getArgument<QString>(ctx, "Utilities.rfc1034identifier", argc, argv);
+        return makeJsString(ctx, HostOsInfo::rfc1034Identifier(identifier));
+    } catch (const QString &error) {
+        return throwError(ctx, error);
+    }
 }
 
 /**
@@ -411,56 +450,55 @@ QScriptValue UtilitiesExtension::js_rfc1034identifier(QScriptContext *context,
  * \note A provisioning profile is an S/MIME message whose contents are an XML property list,
  * so this method can be used to read such files.
  */
-QScriptValue UtilitiesExtension::js_smimeMessageContent(QScriptContext *context,
-                                                        QScriptEngine *engine)
+JSValue UtilitiesExtension::js_smimeMessageContent(JSContext *ctx, JSValueConst,
+                                                   int argc, JSValueConst *argv)
 {
 #if !defined(Q_OS_MACOS) && !defined(Q_OS_OSX)
-    Q_UNUSED(engine);
-    return context->throwError(QScriptContext::UnknownError,
-        QStringLiteral("smimeMessageContent is not available on this platform"));
+    Q_UNUSED(argc)
+    Q_UNUSED(argv)
+    return throwError(ctx, QStringLiteral("smimeMessageContent is not available on this platform"));
 #else
-    if (Q_UNLIKELY(context->argumentCount() != 1))
-        return context->throwError(QScriptContext::SyntaxError,
-                                   QStringLiteral("smimeMessageContent expects 1 argument"));
+    try {
+        const QString filePath = getArgument<QString>(ctx, "Utilities.smimeMessageContent",
+                                                      argc, argv);
+        QFile file(filePath);
+        if (!file.open(QIODevice::ReadOnly))
+            return JS_UNDEFINED;
 
-    const QString filePath = context->argument(0).toString();
-    QFile file(filePath);
-    if (!file.open(QIODevice::ReadOnly))
-        return engine->undefinedValue();
-
-    QByteArray content = smimeMessageContent(file.readAll());
-    if (content.isEmpty())
-        return engine->undefinedValue();
-    return engine->toScriptValue(content);
+        QByteArray content = smimeMessageContent(file.readAll());
+        if (content.isEmpty())
+            return JS_UNDEFINED;
+        return toJsValue(ctx, content);
+    } catch (const QString &error) {
+        return throwError(ctx, error);
+    }
 #endif
 }
 
-QScriptValue UtilitiesExtension::js_certificateInfo(QScriptContext *context,
-                                                    QScriptEngine *engine)
+JSValue UtilitiesExtension::js_certificateInfo(JSContext *ctx, JSValueConst,
+                                               int argc, JSValueConst *argv)
 {
 #if !defined(Q_OS_MACOS) && !defined(Q_OS_OSX)
-    Q_UNUSED(engine);
-    return context->throwError(QScriptContext::UnknownError,
-        QStringLiteral("certificateInfo is not available on this platform"));
+    Q_UNUSED(argc)
+    Q_UNUSED(argv)
+    return throwError(ctx, QStringLiteral("certificateInfo is not available on this platform"));
 #else
-    if (Q_UNLIKELY(context->argumentCount() != 1))
-        return context->throwError(QScriptContext::SyntaxError,
-                                   QStringLiteral("certificateInfo expects 1 argument"));
-    return engine->toScriptValue(certificateInfo(context->argument(0).toVariant().toByteArray()));
+    try {
+        const QVariant arg = getArgument<QVariant>(ctx, "Utilities.certificateInfo", argc, argv);
+        return toJsValue(ctx, certificateInfo(arg.toByteArray()));
+    }  catch (const QString &error) {
+        return throwError(ctx, error);
+    }
 #endif
 }
 
 // Rough command line equivalent: security find-identity -p codesigning -v
-QScriptValue UtilitiesExtension::js_signingIdentities(QScriptContext *context,
-                                                      QScriptEngine *engine)
+JSValue UtilitiesExtension::js_signingIdentities(JSContext *ctx, JSValueConst, int, JSValueConst *)
 {
 #if !defined(Q_OS_MACOS) && !defined(Q_OS_OSX)
-    Q_UNUSED(engine);
-    return context->throwError(QScriptContext::UnknownError,
-        QStringLiteral("signingIdentities is not available on this platform"));
+    return throwError(ctx, QStringLiteral("signingIdentities is not available on this platform"));
 #else
-    Q_UNUSED(context);
-    return engine->toScriptValue(identitiesProperties());
+    return makeJsVariantMap(ctx, identitiesProperties());
 #endif
 }
 
@@ -514,186 +552,164 @@ static std::pair<QVariantMap /*result*/, QString /*error*/> msvcCompilerInfoHelp
 }
 #endif
 
-QScriptValue UtilitiesExtension::js_msvcCompilerInfo(QScriptContext *context, QScriptEngine *engine)
+JSValue UtilitiesExtension::js_msvcCompilerInfo(JSContext *ctx, JSValueConst, int argc, JSValueConst *argv)
 {
 #ifndef Q_OS_WIN
-    Q_UNUSED(engine);
-    return context->throwError(QScriptContext::UnknownError,
-        QStringLiteral("msvcCompilerInfo is not available on this platform"));
+    Q_UNUSED(argc)
+    Q_UNUSED(argv)
+    return throwError(ctx, QStringLiteral("msvcCompilerInfo is not available on this platform"));
 #else
-    if (Q_UNLIKELY(context->argumentCount() < 3))
-        return context->throwError(QScriptContext::SyntaxError,
-                                   QStringLiteral("msvcCompilerInfo expects 3 arguments"));
-
-    const QString compilerFilePath = context->argument(0).toString();
-    const QString compilerLanguage = context->argument(1).toString();
-    const QString sdkVersion =
-            !context->argument(2).isNull() && !context->argument(2).isUndefined()
-            ? context->argument(2).toString()
-            : QString();
-    MSVC::CompilerLanguage language;
-    if (compilerLanguage == QStringLiteral("c"))
-        language = MSVC::CLanguage;
-    else if (compilerLanguage == StringConstants::cppLang())
-        language = MSVC::CPlusPlusLanguage;
-    else
-        return context->throwError(QScriptContext::TypeError,
-            QStringLiteral("msvcCompilerInfo expects \"c\" or \"cpp\" as its second argument"));
-
-    const auto result = msvcCompilerInfoHelper(
-            compilerFilePath,
-            language,
-            {},
-            MSVC::architectureFromClPath(compilerFilePath),
-            sdkVersion);
-    if (result.first.isEmpty())
-        return context->throwError(QScriptContext::UnknownError, result.second);
-    return engine->toScriptValue(result.first);
+    try {
+        const auto args = getArguments<QString, QString, QString>(ctx, "Utilities.msvcCompilerInfo", argc, argv);
+        const QString compilerFilePath = std::get<0>(args);
+        const QString compilerLanguage = std::get<1>(args);
+        const QString sdkVersion = std::get<2>(args);
+        MSVC::CompilerLanguage language;
+        if (compilerLanguage == QStringLiteral("c"))
+            language = MSVC::CLanguage;
+        else if (compilerLanguage == StringConstants::cppLang())
+            language = MSVC::CPlusPlusLanguage;
+        else
+            throw Tr::tr("Utilities.msvcCompilerInfo expects \"c\" or \"cpp\" as its second argument");
+        const auto result = msvcCompilerInfoHelper(
+                    compilerFilePath,
+                    language,
+                    {},
+                    MSVC::architectureFromClPath(compilerFilePath),
+                    sdkVersion);
+        if (result.first.isEmpty())
+            throw result.second;
+        return toJsValue(ctx, result.first);
+    } catch (const QString &error) {
+        return throwError(ctx, error);
+    }
 #endif
 }
 
-QScriptValue UtilitiesExtension::js_clangClCompilerInfo(QScriptContext *context, QScriptEngine *engine)
+JSValue UtilitiesExtension::js_clangClCompilerInfo(JSContext *ctx, JSValueConst, int argc, JSValueConst *argv)
 {
 #ifndef Q_OS_WIN
-    Q_UNUSED(engine);
-    return context->throwError(QScriptContext::UnknownError,
-        QStringLiteral("clangClCompilerInfo is not available on this platform"));
+    Q_UNUSED(argc)
+    Q_UNUSED(argv)
+    return throwError(ctx, QStringLiteral("clangClCompilerInfo is not available on this platform"));
 #else
-    if (Q_UNLIKELY(context->argumentCount() < 5))
-        return context->throwError(QScriptContext::SyntaxError,
-                                   QStringLiteral("clangClCompilerInfo expects 5 arguments"));
+    try {
+        const auto args = getArguments<QString, QString, QString, QString, QString>(ctx, "Utilities.clangClCompilerInfo", argc, argv);
+    const QString compilerFilePath = std::get<0>(args);
 
-    const QString compilerFilePath = context->argument(0).toString();
     // architecture cannot be empty as vcvarsall.bat requires at least 1 arg, so fallback
     // to host architecture if none is present
-    QString arch = !context->argument(1).isNull() && !context->argument(1).isUndefined()
-            ? context->argument(1).toString()
-            : HostOsInfo::hostOSArchitecture();
-    QString vcvarsallPath = context->argument(2).toString();
-    const QString compilerLanguage =
-            !context->argument(3).isNull() && !context->argument(3).isUndefined()
-            ? context->argument(3).toString()
-            : QString();
-    const QString sdkVersion =
-            !context->argument(4).isNull() && !context->argument(4).isUndefined()
-            ? context->argument(4).toString()
-            : QString();
+    QString arch = std::get<1>(args);
+    if (arch.isEmpty())
+        arch = HostOsInfo::hostOSArchitecture();
+
+    const QString vcvarsallPath = std::get<2>(args);
+    const QString compilerLanguage = std::get<3>(args);
+    const QString sdkVersion = std::get<4>(args);
     MSVC::CompilerLanguage language;
     if (compilerLanguage == QStringLiteral("c"))
         language = MSVC::CLanguage;
     else if (compilerLanguage == StringConstants::cppLang())
         language = MSVC::CPlusPlusLanguage;
     else
-        return context->throwError(QScriptContext::TypeError,
-            QStringLiteral("clangClCompilerInfo expects \"c\" or \"cpp\" as its fourth argument"));
+        throw Tr::tr("Utilities.clangClCompilerInfo expects \"c\" or \"cpp\" as its fourth argument");
 
     const auto result = msvcCompilerInfoHelper(
             compilerFilePath, language, vcvarsallPath, arch, sdkVersion);
     if (result.first.isEmpty())
-        return context->throwError(QScriptContext::UnknownError, result.second);
-    return engine->toScriptValue(result.first);
+        throw result.second;
+    return toJsValue(ctx, result.first);
+    } catch (const QString &error) {
+        return throwError(ctx, error);
+    }
 #endif
 }
 
-QScriptValue UtilitiesExtension::js_installedMSVCs(QScriptContext *context, QScriptEngine *engine)
+JSValue UtilitiesExtension::js_installedMSVCs(JSContext *ctx, JSValueConst, int argc, JSValueConst *argv)
 {
 #ifndef Q_OS_WIN
-    Q_UNUSED(engine);
-    return context->throwError(QScriptContext::UnknownError,
-        QStringLiteral("installedMSVCs is not available on this platform"));
+    return throwError(ctx, QStringLiteral("Utilities.installedMSVCs is not available on this platform"));
+    Q_UNUSED(argc)
+    Q_UNUSED(argv)
 #else
-    if (Q_UNLIKELY(context->argumentCount() != 1)) {
-        return context->throwError(QScriptContext::SyntaxError,
-                                   QStringLiteral("installedMSVCs expects 1 arguments"));
+    try {
+        const QString hostArch = HostOsInfo::hostOSArchitecture();
+        QString preferredArch = getArgument<QString>(ctx, "Utilities.installedMSVCs", argc, argv);
+        if (preferredArch.isEmpty())
+            preferredArch = hostArch;
+
+        DummyLogSink dummySink;
+        Logger dummyLogger(&dummySink);
+        auto msvcs = MSVC::installedCompilers(dummyLogger);
+
+        const auto predicate = [&preferredArch, &hostArch](const MSVC &msvc)
+        {
+            auto archPair = MSVC::getHostTargetArchPair(msvc.architecture);
+            return archPair.first != hostArch || preferredArch != archPair.second;
+        };
+        Internal::removeIf(msvcs, predicate);
+        QVariantList result;
+        for (const auto &msvc: msvcs)
+            result.append(msvc.toVariantMap());
+        return makeJsVariantList(ctx, result);
+    } catch (const QString &error) {
+        return throwError(ctx, error);
     }
-
-    const auto value0 = context->argument(0);
-    const auto hostArch = HostOsInfo::hostOSArchitecture();
-    const auto preferredArch = !value0.isNull() && !value0.isUndefined()
-            ? value0.toString()
-            : hostArch;
-
-    DummyLogSink dummySink;
-    Logger dummyLogger(&dummySink);
-    auto msvcs = MSVC::installedCompilers(dummyLogger);
-
-    const auto predicate = [&preferredArch, &hostArch](const MSVC &msvc)
-    {
-        auto archPair = MSVC::getHostTargetArchPair(msvc.architecture);
-        return archPair.first != hostArch || preferredArch != archPair.second;
-    };
-    Internal::removeIf(msvcs, predicate);
-    QVariantList result;
-    for (const auto &msvc: msvcs)
-        result.append(msvc.toVariantMap());
-    return engine->toScriptValue(result);
 #endif
 }
 
-QScriptValue UtilitiesExtension::js_installedClangCls(
-        QScriptContext *context, QScriptEngine *engine)
+JSValue UtilitiesExtension::js_installedClangCls(JSContext *ctx, JSValueConst, int argc, JSValueConst *argv)
 {
 #ifndef Q_OS_WIN
-    Q_UNUSED(engine);
-    return context->throwError(QScriptContext::UnknownError,
-        QStringLiteral("installedClangCls is not available on this platform"));
+    Q_UNUSED(argc)
+    Q_UNUSED(argv)
+    return throwError(ctx, QStringLiteral("Utilities.installedClangCls is not available on this platform"));
 #else
-    if (Q_UNLIKELY(context->argumentCount() != 1)) {
-        return context->throwError(QScriptContext::SyntaxError,
-                                   QStringLiteral("installedClangCls expects 1 arguments"));
+    try {
+        const QString path = getArgument<QString>(ctx, "Utilities.installedClangCls", argc, argv);
+        DummyLogSink dummySink;
+        Logger dummyLogger(&dummySink);
+        auto compilers = ClangClInfo::installedCompilers({path}, dummyLogger);
+        QVariantList result;
+        for (const auto &compiler: compilers)
+            result.append(compiler.toVariantMap());
+        return makeJsVariantList(ctx, result);
+    } catch (const QString &error) {
+        return throwError(ctx, error);
     }
-
-    const auto value0 = context->argument(0);
-    const auto path = !value0.isNull() && !value0.isUndefined() ? value0.toString() : QString();
-
-    DummyLogSink dummySink;
-    Logger dummyLogger(&dummySink);
-    auto compilers = ClangClInfo::installedCompilers({path}, dummyLogger);
-    QVariantList result;
-    for (const auto &compiler: compilers)
-        result.append(compiler.toVariantMap());
-    return engine->toScriptValue(result);
 #endif
 }
 
-QScriptValue UtilitiesExtension::js_versionCompare(QScriptContext *context, QScriptEngine *engine)
+JSValue UtilitiesExtension::js_versionCompare(JSContext *ctx, JSValueConst,
+                                              int argc, JSValueConst *argv)
 {
-    if (context->argumentCount() == 2) {
-        const QScriptValue value1 = context->argument(0);
-        const QScriptValue value2 = context->argument(1);
-        if (value1.isString() && value2.isString()) {
-            const auto a = Version::fromString(value1.toString());
-            const auto b = Version::fromString(value2.toString());
-            return engine->toScriptValue(compare(a, b));
-        }
-    }
-
-    return context->throwError(QScriptContext::SyntaxError,
-        QStringLiteral("versionCompare expects two arguments of type string"));
+    try {
+        const auto args = getArguments<QString, QString>(ctx, "Utilities.versionCompare",
+                                                         argc, argv);
+        const auto a = Version::fromString(std::get<0>(args));
+        const auto b = Version::fromString(std::get<1>(args));
+        return JS_NewInt32(ctx, compare(a, b));
+    } catch (const QString &error) { return throwError(ctx, error); }
 }
 
-QScriptValue UtilitiesExtension::js_qmlTypeInfo(QScriptContext *context, QScriptEngine *engine)
+JSValue UtilitiesExtension::js_qmlTypeInfo(JSContext *ctx, JSValueConst, int, JSValueConst *)
 {
-    Q_UNUSED(context);
-    return engine->toScriptValue(QString::fromStdString(qbs::LanguageInfo::qmlTypeInfo()));
+    return makeJsString(ctx, QString::fromStdString(qbs::LanguageInfo::qmlTypeInfo()));
 }
 
-QScriptValue UtilitiesExtension::js_builtinExtensionNames(QScriptContext *context,
-                                                          QScriptEngine *engine)
+JSValue UtilitiesExtension::js_builtinExtensionNames(JSContext *ctx, JSValueConst,
+                                                     int, JSValueConst *)
 {
-    Q_UNUSED(context);
-    return engine->toScriptValue(JsExtensions::extensionNames());
+    return makeJsStringList(ctx, JsExtensions::extensionNames());
 }
 
-QScriptValue UtilitiesExtension::js_isSharedLibrary(QScriptContext *context, QScriptEngine *engine)
+JSValue UtilitiesExtension::js_isSharedLibrary(JSContext *ctx, JSValueConst,
+                                               int argc, JSValueConst *argv)
 {
-    if (context->argumentCount() == 1) {
-        const QScriptValue value = context->argument(0);
-        if (value.isString())
-            return engine->toScriptValue(QLibrary::isLibrary(value.toString()));
-    }
-    return context->throwError(QScriptContext::SyntaxError,
-        QStringLiteral("isSharedLibrary expects one argument of type string"));
+    try {
+        const auto fileName = getArgument<QString>(ctx, "Utilities.isSharedLibrary", argc, argv);
+        return JS_NewBool(ctx, QLibrary::isLibrary(fileName));
+    } catch (const QString &error) { return throwError(ctx, error); }
 }
 
 #ifdef __APPLE__
@@ -891,88 +907,32 @@ static QStringList detectMachOArchs(QIODevice *device)
 }
 #endif
 
-QScriptValue UtilitiesExtension::js_getArchitecturesFromBinary(QScriptContext *context,
-                                                               QScriptEngine *engine)
+JSValue UtilitiesExtension::js_getArchitecturesFromBinary(JSContext *ctx, JSValueConst,
+                                                          int argc, JSValueConst *argv)
 {
-    if (context->argumentCount() != 1) {
-        return context->throwError(QScriptContext::SyntaxError,
-                QStringLiteral("getArchitecturesFromBinary expects exactly one argument"));
-    }
-    const QScriptValue arg = context->argument(0);
-    if (!arg.isString()) {
-        return context->throwError(QScriptContext::SyntaxError,
-                QStringLiteral("getArchitecturesFromBinary expects a string argument"));
-    }
-    QStringList archs;
+    try {
+        const auto path = getArgument<QString>(ctx, "Utilities.getArchitecturesFromBinary",
+                                               argc, argv);
+        QStringList archs;
 #ifdef __APPLE__
-    QFile file(arg.toString());
-    if (!file.open(QIODevice::ReadOnly)) {
-        return context->throwError(QScriptContext::SyntaxError,
-                QStringLiteral("Failed to open file '%1': %2")
-                                   .arg(file.fileName(), file.errorString()));
-    }
-    archs = detectMachOArchs(&file);
+        QFile file(path);
+        if (!file.open(QIODevice::ReadOnly)) {
+            throw Tr::tr("In Utilities.getArchitecturesFromBinary: "
+                         "Failed to open file '%1': %2")
+                    .arg(file.fileName(), file.errorString());
+        }
+        archs = detectMachOArchs(&file);
+#else
+        Q_UNUSED(path)
 #endif // __APPLE__
-    return engine->toScriptValue(archs);
+        return makeJsStringList(ctx, archs);
+    } catch (const QString &error) { return throwError(ctx, error); }
 }
 
 } // namespace Internal
 } // namespace qbs
 
-void initializeJsExtensionUtilities(QScriptValue extensionObject)
+void initializeJsExtensionUtilities(qbs::Internal::ScriptEngine *engine, JSValue extensionObject)
 {
-    using namespace qbs::Internal;
-    QScriptEngine *engine = extensionObject.engine();
-    QScriptValue environmentObj = engine->newQMetaObject(&UtilitiesExtension::staticMetaObject,
-                                             engine->newFunction(&UtilitiesExtension::js_ctor));
-    environmentObj.setProperty(QStringLiteral("canonicalArchitecture"),
-                               engine->newFunction(UtilitiesExtension::js_canonicalArchitecture, 1));
-    environmentObj.setProperty(QStringLiteral("canonicalPlatform"),
-                               engine->newFunction(UtilitiesExtension::js_canonicalPlatform, 1));
-    environmentObj.setProperty(QStringLiteral("canonicalTargetArchitecture"),
-                               engine->newFunction(
-                                   UtilitiesExtension::js_canonicalTargetArchitecture, 4));
-    environmentObj.setProperty(QStringLiteral("canonicalToolchain"),
-                               engine->newFunction(UtilitiesExtension::js_canonicalToolchain));
-    environmentObj.setProperty(QStringLiteral("cStringQuote"),
-                               engine->newFunction(UtilitiesExtension::js_cStringQuote, 1));
-    environmentObj.setProperty(QStringLiteral("getHash"),
-                               engine->newFunction(UtilitiesExtension::js_getHash, 1));
-    environmentObj.setProperty(QStringLiteral("getNativeSetting"),
-                               engine->newFunction(UtilitiesExtension::js_getNativeSetting, 3));
-    environmentObj.setProperty(QStringLiteral("kernelVersion"),
-                               engine->newFunction(UtilitiesExtension::js_kernelVersion, 0));
-    environmentObj.setProperty(QStringLiteral("nativeSettingGroups"),
-                               engine->newFunction(UtilitiesExtension::js_nativeSettingGroups, 1));
-    environmentObj.setProperty(QStringLiteral("rfc1034Identifier"),
-                               engine->newFunction(UtilitiesExtension::js_rfc1034identifier, 1));
-    environmentObj.setProperty(QStringLiteral("smimeMessageContent"),
-                               engine->newFunction(UtilitiesExtension::js_smimeMessageContent, 1));
-    environmentObj.setProperty(QStringLiteral("certificateInfo"),
-                               engine->newFunction(UtilitiesExtension::js_certificateInfo, 1));
-    environmentObj.setProperty(QStringLiteral("signingIdentities"),
-                               engine->newFunction(UtilitiesExtension::js_signingIdentities, 0));
-    environmentObj.setProperty(QStringLiteral("msvcCompilerInfo"),
-                               engine->newFunction(UtilitiesExtension::js_msvcCompilerInfo, 1));
-    environmentObj.setProperty(QStringLiteral("clangClCompilerInfo"),
-                               engine->newFunction(UtilitiesExtension::js_clangClCompilerInfo, 1));
-    environmentObj.setProperty(QStringLiteral("installedMSVCs"),
-                               engine->newFunction(UtilitiesExtension::js_installedMSVCs, 1));
-    environmentObj.setProperty(QStringLiteral("installedClangCls"),
-                               engine->newFunction(UtilitiesExtension::js_installedClangCls, 1));
-    environmentObj.setProperty(QStringLiteral("versionCompare"),
-                               engine->newFunction(UtilitiesExtension::js_versionCompare, 2));
-    environmentObj.setProperty(QStringLiteral("qmlTypeInfo"),
-                               engine->newFunction(UtilitiesExtension::js_qmlTypeInfo, 0));
-    environmentObj.setProperty(QStringLiteral("builtinExtensionNames"),
-                               engine->newFunction(UtilitiesExtension::js_builtinExtensionNames, 0));
-    environmentObj.setProperty(QStringLiteral("isSharedLibrary"),
-                               engine->newFunction(UtilitiesExtension::js_isSharedLibrary, 1));
-    environmentObj.setProperty(QStringLiteral("getArchitecturesFromBinary"),
-                               engine->newFunction(UtilitiesExtension::js_getArchitecturesFromBinary, 1));
-    extensionObject.setProperty(QStringLiteral("Utilities"), environmentObj);
+    qbs::Internal::UtilitiesExtension::registerClass(engine, extensionObject);
 }
-
-Q_DECLARE_METATYPE(qbs::Internal::UtilitiesExtension *)
-
-#include "utilitiesextension.moc"

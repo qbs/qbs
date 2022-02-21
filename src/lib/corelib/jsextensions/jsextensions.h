@@ -40,22 +40,20 @@
 #ifndef QBS_JSEXTENSIONS_H
 #define QBS_JSEXTENSIONS_H
 
-#include <QtCore/qhash.h>
-#include <QtCore/qstringlist.h>
+#include <quickjs.h>
 
-QT_BEGIN_NAMESPACE
-class QScriptEngine;
-class QScriptValue;
-QT_END_NAMESPACE
+#include <QtCore/qstringlist.h>
 
 namespace qbs {
 namespace Internal {
+class ScriptEngine;
 
 class JsExtensions
 {
 public:
-    static void setupExtensions(const QStringList &names, const QScriptValue &scope);
-    static QScriptValue loadExtension(QScriptEngine *engine, const QString &name);
+    static void setupExtensions(ScriptEngine *engine, const QStringList &names,
+                                const JSValue &scope);
+    static JSValue loadExtension(ScriptEngine *engine, const QString &name);
     static bool hasExtension(const QString &name);
     static QStringList extensionNames();
 };

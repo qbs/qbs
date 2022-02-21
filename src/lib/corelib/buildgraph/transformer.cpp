@@ -39,6 +39,7 @@
 #include "transformer.h"
 
 #include "artifact.h"
+#include "productbuilddata.h"
 #include <jsextensions/moduleproperties.h>
 #include <language/language.h>
 #include <language/preparescriptobserver.h>
@@ -54,6 +55,7 @@
 #include <QtCore/qdir.h>
 
 #include <algorithm>
+#include <vector>
 
 namespace qbs {
 namespace Internal {
@@ -64,78 +66,82 @@ Transformer::Transformer() : alwaysRun(false)
 
 Transformer::~Transformer() = default;
 
-static QScriptValue js_baseName(QScriptContext *ctx, QScriptEngine *engine,
-                                const Artifact *artifact)
+static JSValue js_baseName(JSContext *ctx, JSValueConst this_val, int, JSValueConst *)
 {
-    Q_UNUSED(ctx);
-    Q_UNUSED(engine);
-    return {FileInfo::baseName(artifact->filePath())};
+    return ScriptEngine::engineForContext(ctx)->getArtifactProperty(this_val,
+            [ctx](const Artifact *a) {
+        return makeJsString(ctx, FileInfo::baseName(a->filePath()));
+    });
 }
 
-static QScriptValue js_completeBaseName(QScriptContext *ctx, QScriptEngine *engine,
-                                        const Artifact *artifact)
+static JSValue js_completeBaseName(JSContext *ctx, JSValueConst this_val, int, JSValueConst *)
 {
-    Q_UNUSED(ctx);
-    Q_UNUSED(engine);
-    return {FileInfo::completeBaseName(artifact->filePath())};
+    return ScriptEngine::engineForContext(ctx)->getArtifactProperty(this_val,
+            [ctx](const Artifact *a) {
+        return makeJsString(ctx, FileInfo::completeBaseName(a->filePath()));
+    });
 }
 
-static QScriptValue js_baseDir(QScriptContext *ctx, QScriptEngine *engine,
-                               const Artifact *artifact)
+static JSValue js_baseDir(JSContext *ctx, JSValueConst this_val, int, JSValueConst *)
 {
-    Q_UNUSED(ctx);
-    Q_UNUSED(engine);
-    QString basedir;
-    if (artifact->artifactType == Artifact::SourceFile) {
-        QDir sourceDir(artifact->product->sourceDirectory);
-        basedir = FileInfo::path(sourceDir.relativeFilePath(artifact->filePath()));
-    } else {
-        QDir buildDir(artifact->product->buildDirectory());
-        basedir = FileInfo::path(buildDir.relativeFilePath(artifact->filePath()));
-    }
-    return basedir;
+    return ScriptEngine::engineForContext(ctx)->getArtifactProperty(this_val,
+            [ctx](const Artifact *artifact) {
+        QString basedir;
+        if (artifact->artifactType == Artifact::SourceFile) {
+            QDir sourceDir(artifact->product->sourceDirectory);
+            basedir = FileInfo::path(sourceDir.relativeFilePath(artifact->filePath()));
+        } else {
+            QDir buildDir(artifact->product->buildDirectory());
+            basedir = FileInfo::path(buildDir.relativeFilePath(artifact->filePath()));
+        }
+        return makeJsString(ctx, basedir);
+    });
 }
 
-static QScriptValue js_children(QScriptContext *ctx, QScriptEngine *engine, const Artifact *artifact)
+static JSValue js_children(JSContext *ctx, JSValueConst this_val, int, JSValueConst *)
 {
-    Q_UNUSED(ctx);
-    QScriptValue sv = engine->newArray();
-    uint idx = 0;
-    for (const Artifact *child : artifact->childArtifacts()) {
-        sv.setProperty(idx++, Transformer::translateFileConfig(static_cast<ScriptEngine *>(engine),
-                                                               child, QString()));
-    }
-    return sv;
+    return ScriptEngine::engineForContext(ctx)->getArtifactProperty(this_val,
+            [ctx](const Artifact *artifact) {
+        JSValue sv = JS_NewArray(ctx);
+        uint idx = 0;
+
+        // FIXME: childArtifacts() is not guarded by any mutex ...
+        for (Artifact *child : artifact->childArtifacts()) {
+            JS_SetPropertyUint32(ctx, sv, idx++, Transformer::translateFileConfig(
+                                     ScriptEngine::engineForContext(ctx), child, QString()));
+        }
+        return sv;
+    });
 }
 
-static void setArtifactProperty(QScriptValue &obj, const QString &name,
-        QScriptValue (*func)(QScriptContext *, QScriptEngine *, const Artifact *),
-        const Artifact *artifact)
+static void setArtifactProperty(JSContext *ctx, JSValue &obj, const QString &name,
+                                JSCFunction *func)
 {
-    obj.setProperty(name, static_cast<ScriptEngine *>(obj.engine())->newFunction(func, artifact),
-                    QScriptValue::PropertyGetter);
+    const QByteArray nameBa = name.toUtf8();
+    const JSValue jsFunc = JS_NewCFunction(ctx, func, nameBa.constData(), 0);
+    const ScopedJsAtom nameAtom(ctx, nameBa);
+    JS_DefinePropertyGetSet(ctx, obj, nameAtom, jsFunc, JS_UNDEFINED, JS_PROP_HAS_GET);
 }
 
-QScriptValue Transformer::translateFileConfig(ScriptEngine *scriptEngine, const Artifact *artifact,
-                                              const QString &defaultModuleName)
+JSValue Transformer::translateFileConfig(ScriptEngine *engine, Artifact *artifact,
+                                         const QString &defaultModuleName)
 {
-    QScriptValue obj = scriptEngine->newObject();
-    attachPointerTo(obj, artifact);
-    ModuleProperties::init(obj, artifact);
-    obj.setProperty(StringConstants::fileNameProperty(), artifact->fileName());
-    obj.setProperty(StringConstants::filePathProperty(), artifact->filePath());
-    setArtifactProperty(obj, StringConstants::baseNameProperty(), js_baseName, artifact);
-    setArtifactProperty(obj, StringConstants::completeBaseNameProperty(), js_completeBaseName,
-                        artifact);
-    setArtifactProperty(obj, QStringLiteral("baseDir"), js_baseDir, artifact);
-    setArtifactProperty(obj, QStringLiteral("children"), js_children, artifact);
-    const QStringList fileTags = sorted(artifact->fileTags().toStringList());
-    scriptEngine->setObservedProperty(obj, StringConstants::fileTagsProperty(),
-                                      scriptEngine->toScriptValue(fileTags));
-    scriptEngine->observer()->addArtifactId(obj.objectId());
-    if (!defaultModuleName.isEmpty())
-        obj.setProperty(StringConstants::moduleNameProperty(), defaultModuleName);
-    return obj;
+    return engine->getArtifactScriptValue(artifact, defaultModuleName, [&](JSValue obj) {
+        ModuleProperties::init(engine, obj, artifact);
+        JSContext * const ctx = engine->context();
+        setJsProperty(ctx, obj, StringConstants::fileNameProperty(), artifact->fileName());
+        setJsProperty(ctx, obj, StringConstants::filePathProperty(), artifact->filePath());
+        setArtifactProperty(ctx, obj, StringConstants::baseNameProperty(), js_baseName);
+        setArtifactProperty(ctx, obj, StringConstants::completeBaseNameProperty(), js_completeBaseName);
+        setArtifactProperty(ctx, obj, QStringLiteral("baseDir"), js_baseDir);
+        setArtifactProperty(ctx, obj, QStringLiteral("children"), js_children);
+        const QStringList fileTags = sorted(artifact->fileTags().toStringList());
+        const ScopedJsValue jsFileTags(ctx, engine->toScriptValue(fileTags));
+        engine->setObservedProperty(obj, StringConstants::fileTagsProperty(), jsFileTags);
+        engine->observer()->addArtifactId(jsObjectId(obj));
+        if (!defaultModuleName.isEmpty())
+            setJsProperty(ctx, obj, StringConstants::moduleNameProperty(), defaultModuleName);
+    });
 }
 
 static bool compareByFilePath(const Artifact *a1, const Artifact *a2)
@@ -143,9 +149,8 @@ static bool compareByFilePath(const Artifact *a1, const Artifact *a2)
     return a1->filePath() < a2->filePath();
 }
 
-QScriptValue Transformer::translateInOutputs(ScriptEngine *scriptEngine,
-                                             const ArtifactSet &artifacts,
-                                             const QString &defaultModuleName)
+JSValue Transformer::translateInOutputs(ScriptEngine *engine, const ArtifactSet &artifacts,
+                                        const QString &defaultModuleName)
 {
     using TagArtifactsMap = QMap<QString, QList<Artifact*>>;
     TagArtifactsMap tagArtifactsMap;
@@ -155,16 +160,16 @@ QScriptValue Transformer::translateInOutputs(ScriptEngine *scriptEngine,
     for (TagArtifactsMap::Iterator it = tagArtifactsMap.begin(); it != tagArtifactsMap.end(); ++it)
         std::sort(it.value().begin(), it.value().end(), compareByFilePath);
 
-    QScriptValue jsTagFiles = scriptEngine->newObject();
-    for (TagArtifactsMap::const_iterator tag = tagArtifactsMap.constBegin(); tag != tagArtifactsMap.constEnd(); ++tag) {
+    JSValue jsTagFiles = engine->newObject();
+    for (auto tag = tagArtifactsMap.constBegin(); tag != tagArtifactsMap.constEnd(); ++tag) {
         const QList<Artifact*> &artifacts = tag.value();
-        QScriptValue jsFileConfig = scriptEngine->newArray(artifacts.size());
+        JSValue jsFileConfig = JS_NewArray(engine->context());
         int i = 0;
         for (Artifact * const artifact : artifacts) {
-            jsFileConfig.setProperty(i++, translateFileConfig(scriptEngine, artifact,
-                                                              defaultModuleName));
+            JS_SetPropertyUint32(engine->context(), jsFileConfig, i++,
+                                 translateFileConfig(engine, artifact, defaultModuleName));
         }
-        jsTagFiles.setProperty(tag.key(), jsFileConfig);
+        setJsProperty(engine->context(), jsTagFiles, tag.key(), jsFileConfig);
     }
 
     return jsTagFiles;
@@ -177,66 +182,70 @@ ResolvedProductPtr Transformer::product() const
     return (*outputs.cbegin())->product.lock();
 }
 
-void Transformer::setupInputs(QScriptValue targetScriptValue, const ArtifactSet &inputs,
-        const QString &defaultModuleName)
+void Transformer::setupInputs(ScriptEngine *engine, JSValue targetScriptValue,
+                              const ArtifactSet &inputs, const QString &defaultModuleName)
 {
-    const auto scriptEngine = static_cast<ScriptEngine *>(targetScriptValue.engine());
-    QScriptValue scriptValue = translateInOutputs(scriptEngine, inputs, defaultModuleName);
-    targetScriptValue.setProperty(StringConstants::inputsVar(), scriptValue);
-    QScriptValue inputScriptValue;
+    JSValue scriptValue = translateInOutputs(engine, inputs, defaultModuleName);
+    setJsProperty(engine->context(), targetScriptValue, StringConstants::inputsVar(), scriptValue);
+    JSValue inputScriptValue = JS_UNDEFINED;
     if (inputs.size() == 1) {
         Artifact *input = *inputs.cbegin();
         const FileTags &fileTags = input->fileTags();
         QBS_ASSERT(!fileTags.empty(), return);
-        QScriptValue inputsForFileTag = scriptValue.property(fileTags.cbegin()->toString());
-        inputScriptValue = inputsForFileTag.property(0);
+        const ScopedJsValue inputsForFileTag(
+                    engine->context(),
+                    getJsProperty(engine->context(), scriptValue, fileTags.cbegin()->toString()));
+        inputScriptValue = JS_GetPropertyUint32(engine->context(), inputsForFileTag, 0);
     }
-    targetScriptValue.setProperty(StringConstants::inputVar(), inputScriptValue);
+    setJsProperty(engine->context(), targetScriptValue, StringConstants::inputVar(),
+                  inputScriptValue);
 }
 
-void Transformer::setupInputs(const QScriptValue &targetScriptValue)
+void Transformer::setupInputs(ScriptEngine *engine, const JSValue &targetScriptValue)
 {
-    setupInputs(targetScriptValue, inputs, rule->module->name);
+    setupInputs(engine, targetScriptValue, inputs, rule->module->name);
 }
 
-void Transformer::setupOutputs(QScriptValue targetScriptValue)
+void Transformer::setupOutputs(ScriptEngine *engine, JSValue targetScriptValue)
 {
-    const auto scriptEngine = static_cast<ScriptEngine *>(targetScriptValue.engine());
     const QString &defaultModuleName = rule->module->name;
-    QScriptValue scriptValue = translateInOutputs(scriptEngine, outputs, defaultModuleName);
-    targetScriptValue.setProperty(StringConstants::outputsVar(), scriptValue);
-    QScriptValue outputScriptValue;
+    JSValue scriptValue = translateInOutputs(engine, outputs, defaultModuleName);
+    setJsProperty(engine->context(), targetScriptValue, StringConstants::outputsVar(), scriptValue);
+    JSValue outputScriptValue = JS_UNDEFINED;
     if (outputs.size() == 1) {
         Artifact *output = *outputs.cbegin();
         const FileTags &fileTags = output->fileTags();
         QBS_ASSERT(!fileTags.empty(), return);
-        QScriptValue outputsForFileTag = scriptValue.property(fileTags.cbegin()->toString());
-        outputScriptValue = outputsForFileTag.property(0);
+        const ScopedJsValue outputsForFileTag(
+                    engine->context(),
+                    getJsProperty(engine->context(), scriptValue, fileTags.cbegin()->toString()));
+        outputScriptValue = JS_GetPropertyUint32(engine->context(), outputsForFileTag, 0);
     }
-    targetScriptValue.setProperty(StringConstants::outputVar(), outputScriptValue);
+    setJsProperty(engine->context(), targetScriptValue, StringConstants::outputVar(),
+                  outputScriptValue);
 }
 
-void Transformer::setupExplicitlyDependsOn(QScriptValue targetScriptValue)
+void Transformer::setupExplicitlyDependsOn(ScriptEngine *engine, JSValue targetScriptValue)
 {
-    const auto scriptEngine = static_cast<ScriptEngine *>(targetScriptValue.engine());
-    QScriptValue scriptValue = translateInOutputs(scriptEngine, explicitlyDependsOn,
-                                                  rule->module->name);
-    targetScriptValue.setProperty(StringConstants::explicitlyDependsOnVar(), scriptValue);
+    JSValue scriptValue = translateInOutputs(engine, explicitlyDependsOn, rule->module->name);
+    setJsProperty(engine->context(), targetScriptValue, StringConstants::explicitlyDependsOnVar(),
+                  scriptValue);
 }
 
-AbstractCommandPtr Transformer::createCommandFromScriptValue(const QScriptValue &scriptValue,
-                                                             const CodeLocation &codeLocation)
+AbstractCommandPtr Transformer::createCommandFromScriptValue(
+        ScriptEngine *engine, const JSValue &scriptValue, const CodeLocation &codeLocation)
 {
     AbstractCommandPtr cmdBase;
-    if (scriptValue.isUndefined() || !scriptValue.isValid())
+    if (JS_IsUndefined(scriptValue) || JS_IsUninitialized(scriptValue))
         return cmdBase;
-    QString className = scriptValue.property(StringConstants::classNameProperty()).toString();
+    QString className = getJsStringProperty(engine->context(), scriptValue,
+                                            StringConstants::classNameProperty());
     if (className == StringConstants::commandType())
         cmdBase = ProcessCommand::create();
     else if (className == StringConstants::javaScriptCommandType())
         cmdBase = JavaScriptCommand::create();
     if (cmdBase)
-        cmdBase->fillFromScriptValue(&scriptValue, codeLocation);
+        cmdBase->fillFromScriptValue(engine->context(), &scriptValue, codeLocation);
     if (className == StringConstants::commandType()) {
         auto procCmd = static_cast<ProcessCommand *>(cmdBase.get());
         procCmd->clearRelevantEnvValues();
@@ -248,18 +257,20 @@ AbstractCommandPtr Transformer::createCommandFromScriptValue(const QScriptValue 
 }
 
 void Transformer::createCommands(ScriptEngine *engine, const PrivateScriptFunction &script,
-                                 const QScriptValueList &args)
+                                 const JSValueList &args)
 {
-    if (!script.scriptFunction.isValid() || script.scriptFunction.engine() != engine) {
-        script.scriptFunction = engine->evaluate(script.sourceCode(),
+    if (JS_IsUndefined(script.scriptFunction))  {
+        script.scriptFunction = engine->evaluate(JsValueOwner::ScriptEngine, script.sourceCode(),
                                                   script.location().filePath(),
                                                   script.location().line());
-        if (Q_UNLIKELY(!script.scriptFunction.isFunction()))
+        if (Q_UNLIKELY(!JS_IsFunction(engine->context(), script.scriptFunction)))
             throw ErrorInfo(Tr::tr("Invalid prepare script."), script.location());
     }
-
-    QScriptValue scriptValue = script.scriptFunction.call(QScriptValue(), args);
-    engine->releaseResourcesOfScriptObjects();
+    JSValueList argv(args.cbegin(), args.cend());
+    const ScopedJsValue scriptValue(
+                engine->context(),
+                JS_Call(engine->context(), script.scriptFunction, engine->globalObject(),
+                        int(argv.size()), argv.data()));
     propertiesRequestedInPrepareScript = engine->propertiesRequestedInScript();
     propertiesRequestedFromArtifactInPrepareScript = engine->propertiesRequestedFromArtifact();
     importedFilesUsedInPrepareScript = engine->importedFilesUsedInScript();
@@ -271,22 +282,24 @@ void Transformer::createCommands(ScriptEngine *engine, const PrivateScriptFuncti
                                                                      p->exportedModule));
     }
     engine->clearRequestedProperties();
-    if (Q_UNLIKELY(engine->hasErrorOrException(scriptValue)))
-        throw engine->lastError(scriptValue, script.location());
+    if (JsException ex = engine->checkAndClearException(script.location()))
+        throw ex.toErrorInfo();
     commands.clear();
-    if (scriptValue.isArray()) {
-        const int count = scriptValue.property(StringConstants::lengthProperty()).toInt32();
+    if (JS_IsArray(engine->context(), scriptValue)) {
+        const int count = JS_VALUE_GET_INT(getJsProperty(engine->context(), scriptValue,
+                                                         StringConstants::lengthProperty()));
         for (qint32 i = 0; i < count; ++i) {
-            QScriptValue item = scriptValue.property(i);
-            if (item.isValid() && !item.isUndefined()) {
-                const AbstractCommandPtr cmd
-                        = createCommandFromScriptValue(item, script.location());
+            ScopedJsValue item(engine->context(),
+                               JS_GetPropertyUint32(engine->context(), scriptValue, i));
+            if (!JS_IsUninitialized(item) && !JS_IsUndefined(item)) {
+                const AbstractCommandPtr cmd = createCommandFromScriptValue(engine, item,
+                                                                            script.location());
                 if (cmd)
                     commands.addCommand(cmd);
             }
         }
     } else {
-        const AbstractCommandPtr cmd = createCommandFromScriptValue(scriptValue,
+        const AbstractCommandPtr cmd = createCommandFromScriptValue(engine, scriptValue,
                                                                     script.location());
         if (cmd)
             commands.addCommand(cmd);

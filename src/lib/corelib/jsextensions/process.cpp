@@ -37,6 +37,8 @@
 **
 ****************************************************************************/
 
+#include "jsextension.h"
+
 #include <language/scriptengine.h>
 #include <logging/translator.h>
 #include <tools/executablefinder.h>
@@ -44,7 +46,6 @@
 #include <tools/shellutils.h>
 #include <tools/stringconstants.h>
 
-#include <QtCore/qobject.h>
 #include <QtCore/qprocess.h>
 #include <QtCore/qtextstream.h>
 #include <QtCore/qvariant.h>
@@ -53,54 +54,91 @@
 #else
 #include <QtCore/qtextcodec.h>
 #endif
-#include <QtScript/qscriptable.h>
-#include <QtScript/qscriptengine.h>
-#include <QtScript/qscriptvalue.h>
 
 namespace qbs {
 namespace Internal {
 
-class Process : public QObject, public QScriptable, public ResourceAcquiringScriptObject
+class Process : public JsExtension<Process>
 {
-    Q_OBJECT
+    friend class JsExtension<Process>;
 public:
-    static QScriptValue ctor(QScriptContext *context, QScriptEngine *engine);
-    Process(QScriptContext *context);
+    static const char *name() { return "Process"; }
+    static JSValue ctor(JSContext *ctx, JSValueConst, JSValueConst, int, JSValueConst *, int);
+    static void setupStaticMethods(JSContext *ctx, JSValue classObj);
+    static void setupMethods(JSContext *ctx, JSValue obj);
+    Process(JSContext *context);
 
-    Q_INVOKABLE QString getEnv(const QString &name);
-    Q_INVOKABLE void setEnv(const QString &name, const QString &value);
-    Q_INVOKABLE void setCodec(const QString &codec);
+    DEFINE_JS_FORWARDER(jsGetEnv, &Process::getEnv, "Process.getEnv")
+    DEFINE_JS_FORWARDER(jsSetEnv, &Process::setEnv, "Process.setEnv")
+    DEFINE_JS_FORWARDER(jsSetCodec, &Process::setCodec, "Process.setCodec")
+    DEFINE_JS_FORWARDER(jsWorkingDir, &Process::workingDirectory, "Process.workingDirectory")
+    DEFINE_JS_FORWARDER(jsSetWorkingDir, &Process::setWorkingDirectory,
+                        "Process.setWorkingDirectory")
+    DEFINE_JS_FORWARDER(jsStart, &Process::start, "Process.start")
+    DEFINE_JS_FORWARDER(jsClose, &Process::close, "Process.close")
+    DEFINE_JS_FORWARDER(jsTerminate, &Process::terminate, "Process.terminate")
+    DEFINE_JS_FORWARDER(jsKill, &Process::kill, "Process.kill")
+    DEFINE_JS_FORWARDER(jsReadLine, &Process::readLine, "Process.readLine")
+    DEFINE_JS_FORWARDER(jsAtEnd, &Process::atEnd, "Process.atEnd")
+    DEFINE_JS_FORWARDER(jsReadStdOut, &Process::readStdOut, "Process.readStdOut")
+    DEFINE_JS_FORWARDER(jsReadStdErr, &Process::readStdErr, "Process.readStdErr")
+    DEFINE_JS_FORWARDER(jsCloseWriteChannel, &Process::closeWriteChannel,
+                        "Process.closeWriteChannel")
+    DEFINE_JS_FORWARDER(jsWrite, &Process::write, "Process.write")
+    DEFINE_JS_FORWARDER(jsWriteLine, &Process::writeLine, "Process.writeLine")
+    DEFINE_JS_FORWARDER(jsExitCode, &Process::exitCode, "Process.exitCode")
 
-    Q_INVOKABLE QString workingDirectory();
-    Q_INVOKABLE void setWorkingDirectory(const QString &dir);
+    static JSValue jsExec(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv)
+    {
+        try {
+            const auto args = getArguments<QString, QStringList>(ctx, "Process.exec", argc, argv);
+            bool throwOnError = false;
+            if (argc > 2)
+                throwOnError = fromArg<bool>(ctx, "Process.exec", 3, argv[2]);
+            return JS_NewInt32(ctx, fromJsObject(ctx, this_val)
+                               ->exec(std::get<0>(args), std::get<1>(args), throwOnError));
+        } catch (const QString &error) { return throwError(ctx, error); }
+    }
+    static JSValue jsWaitForFinished(JSContext *ctx, JSValueConst this_val,
+                                     int argc, JSValueConst *argv)
+    {
+        try {
+            int msecs = 30000;
+            if (argc > 0)
+                msecs = getArgument<int>(ctx, "Process.waitForFinished", argc, argv);
+            return JS_NewBool(ctx, fromJsObject(ctx, this_val)->waitForFinished(msecs));
+        } catch (const QString &error) { return throwError(ctx, error); }
+    }
+    QString getEnv(const QString &name) const { return m_environment.value(name); }
+    void setEnv(const QString &name, const QString &value) { m_environment.insert(name, value); }
+    void setCodec(const QString &codec);
 
-    Q_INVOKABLE bool start(const QString &program, const QStringList &arguments);
-    Q_INVOKABLE int exec(const QString &program, const QStringList &arguments,
-                         bool throwOnError = false);
-    Q_INVOKABLE void close();
-    Q_INVOKABLE bool waitForFinished(int msecs = 30000);
-    Q_INVOKABLE void terminate();
-    Q_INVOKABLE void kill();
+    QString workingDirectory() const { return m_workingDirectory; }
+    void setWorkingDirectory(const QString &dir) { m_workingDirectory = dir; }
 
-    Q_INVOKABLE QString readLine();
-    Q_INVOKABLE bool atEnd() const;
-    Q_INVOKABLE QString readStdOut();
-    Q_INVOKABLE QString readStdErr();
+    bool start(const QString &program, const QStringList &arguments);
+    int exec(const QString &program, const QStringList &arguments, bool throwOnError);
+    void close();
+    bool waitForFinished(int msecs);
+    void terminate() { m_qProcess->terminate(); }
+    void kill() { m_qProcess->kill(); }
 
-    Q_INVOKABLE void closeWriteChannel();
+    QString readLine();
+    bool atEnd() const { return m_qProcess->atEnd(); }
+    QString readStdOut() { return m_codec->toUnicode(m_qProcess->readAllStandardOutput()); }
+    QString readStdErr() { return m_codec->toUnicode(m_qProcess->readAllStandardError()); }
 
-    Q_INVOKABLE void write(const QString &str);
-    Q_INVOKABLE void writeLine(const QString &str);
+    void closeWriteChannel() { m_qProcess->closeWriteChannel(); }
 
-    Q_INVOKABLE int exitCode() const;
+    void write(const QString &str) { m_qProcess->write(m_codec->fromUnicode(str)); }
+    void writeLine(const QString &str);
 
-    static QScriptValue js_shellQuote(QScriptContext *context, QScriptEngine *engine);
+    int exitCode() const { return m_qProcess->exitCode(); }
+
+    static JSValue jsShellQuote(JSContext *ctx, JSValue, int argc, JSValue *argv);
 
 private:
     QString findExecutable(const QString &filePath) const;
-
-    // ResourceAcquiringScriptObject implementation
-    void releaseResources() override;
 
     std::unique_ptr<QProcess> m_qProcess;
     QProcessEnvironment m_environment;
@@ -108,78 +146,69 @@ private:
     QTextCodec *m_codec = nullptr;
 };
 
-QScriptValue Process::ctor(QScriptContext *context, QScriptEngine *engine)
+JSValue Process::ctor(JSContext *ctx, JSValueConst, JSValueConst, int, JSValueConst *, int)
 {
-    Process *t;
-    switch (context->argumentCount()) {
-    case 0:
-        t = new Process(context);
-        break;
-    default:
-        return context->throwError(QStringLiteral("Process()"));
-    }
+    try {
+        JSValue obj = createObject(ctx);
 
-    const auto se = static_cast<ScriptEngine *>(engine);
-    se->addResourceAcquiringScriptObject(t);
-    const DubiousContextList dubiousContexts ({
+        Process * const process = fromJsObject(ctx, obj);
+        const auto se = ScriptEngine::engineForContext(ctx);
+        const DubiousContextList dubiousContexts{
             DubiousContext(EvalContext::PropertyEvaluation, DubiousContext::SuggestMoving)
-    });
-    se->checkContext(QStringLiteral("qbs.Process"), dubiousContexts);
+        };
+        se->checkContext(QStringLiteral("qbs.Process"), dubiousContexts);
 
-    QScriptValue obj = engine->newQObject(t, QScriptEngine::QtOwnership);
-
-    // Get environment
-    QVariant v = engine->property(StringConstants::qbsProcEnvVarInternal());
-    if (v.isNull()) {
-        // The build environment is not initialized yet.
-        // This can happen if one uses Process on the RHS of a binding like Group.name.
-        t->m_environment = static_cast<ScriptEngine *>(engine)->environment();
-    } else {
-        t->m_environment
-            = QProcessEnvironment(*reinterpret_cast<QProcessEnvironment*>(v.value<void*>()));
-    }
-    se->setUsesIo();
-
-    return obj;
+        // Get environment
+        QVariant v = se->property(StringConstants::qbsProcEnvVarInternal());
+        if (v.isNull()) {
+            // The build environment is not initialized yet.
+            // This can happen if one uses Process on the RHS of a binding like Group.name.
+            process->m_environment = se->environment();
+        } else {
+            process->m_environment
+                = QProcessEnvironment(*reinterpret_cast<QProcessEnvironment*>(v.value<void*>()));
+        }
+        se->setUsesIo();
+        return obj;
+    } catch (const QString &error) { return throwError(ctx, error); }
 }
 
-Process::Process(QScriptContext *context)
+void Process::setupStaticMethods(JSContext *ctx, JSValue classObj)
 {
-    Q_UNUSED(context);
-    Q_ASSERT(thisObject().engine() == engine());
+    setupMethod(ctx, classObj, "shellQuote", &Process::jsShellQuote, 3);
+}
 
+void Process::setupMethods(JSContext *ctx, JSValue obj)
+{
+    setupMethod(ctx, obj, "getEnv", &jsGetEnv, 1);
+    setupMethod(ctx, obj, "setEnv", &jsSetEnv, 2);
+    setupMethod(ctx, obj, "setCodec", &jsSetCodec, 1);
+    setupMethod(ctx, obj, "workingDirectory", &jsWorkingDir, 0);
+    setupMethod(ctx, obj, "setWorkingDirectory", &jsSetWorkingDir, 1);
+    setupMethod(ctx, obj, "start", &jsStart, 2);
+    setupMethod(ctx, obj, "exec", &jsExec, 3);
+    setupMethod(ctx, obj, "close", &jsClose, 0);
+    setupMethod(ctx, obj, "waitForFinished", &jsWaitForFinished, 1);
+    setupMethod(ctx, obj, "terminate", &jsTerminate, 0);
+    setupMethod(ctx, obj, "kill", &jsKill, 0);
+    setupMethod(ctx, obj, "readLine", &jsReadLine, 0);
+    setupMethod(ctx, obj, "atEnd", &jsAtEnd, 0);
+    setupMethod(ctx, obj, "readStdOut", &jsReadStdOut, 0);
+    setupMethod(ctx, obj, "readStdErr", &jsReadStdErr, 0);
+    setupMethod(ctx, obj, "closeWriteChannel", &jsCloseWriteChannel, 0);
+    setupMethod(ctx, obj, "write", &jsWrite, 1);
+    setupMethod(ctx, obj, "writeLine", &jsWriteLine, 1);
+    setupMethod(ctx, obj, "exitCode", &jsExitCode, 0);
+}
+
+Process::Process(JSContext *)
+{
     m_qProcess = std::make_unique<QProcess>();
     m_codec = QTextCodec::codecForName("UTF-8");
 }
 
-QString Process::getEnv(const QString &name)
-{
-    Q_ASSERT(thisObject().engine() == engine());
-    return m_environment.value(name);
-}
-
-void Process::setEnv(const QString &name, const QString &value)
-{
-    Q_ASSERT(thisObject().engine() == engine());
-    m_environment.insert(name, value);
-}
-
-QString Process::workingDirectory()
-{
-    Q_ASSERT(thisObject().engine() == engine());
-    return m_workingDirectory;
-}
-
-void Process::setWorkingDirectory(const QString &dir)
-{
-    Q_ASSERT(thisObject().engine() == engine());
-    m_workingDirectory = dir;
-}
-
 bool Process::start(const QString &program, const QStringList &arguments)
 {
-    Q_ASSERT(thisObject().engine() == engine());
-
     if (!m_workingDirectory.isEmpty())
         m_qProcess->setWorkingDirectory(m_workingDirectory);
 
@@ -190,13 +219,9 @@ bool Process::start(const QString &program, const QStringList &arguments)
 
 int Process::exec(const QString &program, const QStringList &arguments, bool throwOnError)
 {
-    Q_ASSERT(thisObject().engine() == engine());
-
     if (!start(findExecutable(program), arguments)) {
-        if (throwOnError) {
-            context()->throwError(Tr::tr("Error running '%1': %2")
-                                  .arg(program, m_qProcess->errorString()));
-        }
+        if (throwOnError)
+            throw Tr::tr("Error running '%1': %2").arg(program, m_qProcess->errorString());
         return -1;
     }
     m_qProcess->closeWriteChannel();
@@ -204,8 +229,7 @@ int Process::exec(const QString &program, const QStringList &arguments, bool thr
     if (throwOnError) {
         if (m_qProcess->error() != QProcess::UnknownError
                 && m_qProcess->error() != QProcess::Crashed) {
-            context()->throwError(Tr::tr("Error running '%1': %2")
-                                  .arg(program, m_qProcess->errorString()));
+            throw Tr::tr("Error running '%1': %2").arg(program, m_qProcess->errorString());
         } else if (m_qProcess->exitStatus() == QProcess::CrashExit || m_qProcess->exitCode() != 0) {
             QString errorMessage = m_qProcess->error() == QProcess::Crashed
                     ? Tr::tr("Error running '%1': %2").arg(program, m_qProcess->errorString())
@@ -218,7 +242,7 @@ int Process::exec(const QString &program, const QStringList &arguments, bool thr
             const QString stdErr = readStdErr();
             if (!stdErr.isEmpty())
                 errorMessage.append(Tr::tr(" The standard error output was:\n")).append(stdErr);
-            context()->throwError(errorMessage);
+            throw errorMessage;
         }
     }
     if (m_qProcess->error() != QProcess::UnknownError)
@@ -230,32 +254,18 @@ void Process::close()
 {
     if (!m_qProcess)
         return;
-    Q_ASSERT(thisObject().engine() == engine());
     m_qProcess.reset();
 }
 
 bool Process::waitForFinished(int msecs)
 {
-    Q_ASSERT(thisObject().engine() == engine());
-
     if (m_qProcess->state() == QProcess::NotRunning)
         return true;
     return m_qProcess->waitForFinished(msecs);
 }
 
-void Process::terminate()
-{
-    m_qProcess->terminate();
-}
-
-void Process::kill()
-{
-    m_qProcess->kill();
-}
-
 void Process::setCodec(const QString &codec)
 {
-    Q_ASSERT(thisObject().engine() == engine());
     const auto newCodec = QTextCodec::codecForName(qPrintable(codec));
     if (newCodec)
         m_codec = newCodec;
@@ -269,46 +279,10 @@ QString Process::readLine()
     return result;
 }
 
-bool Process::atEnd() const
-{
-    return m_qProcess->atEnd();
-}
-
-QString Process::readStdOut()
-{
-    return m_codec->toUnicode(m_qProcess->readAllStandardOutput());
-}
-
-QString Process::readStdErr()
-{
-    return m_codec->toUnicode(m_qProcess->readAllStandardError());
-}
-
-void Process::closeWriteChannel()
-{
-    m_qProcess->closeWriteChannel();
-}
-
-int Process::exitCode() const
-{
-    return m_qProcess->exitCode();
-}
-
 QString Process::findExecutable(const QString &filePath) const
 {
     ExecutableFinder exeFinder(ResolvedProductPtr(), m_environment);
     return exeFinder.findExecutable(filePath, m_workingDirectory);
-}
-
-void Process::releaseResources()
-{
-    close();
-    deleteLater();
-}
-
-void Process::write(const QString &str)
-{
-    m_qProcess->write(m_codec->fromUnicode(str));
 }
 
 void Process::writeLine(const QString &str)
@@ -317,34 +291,24 @@ void Process::writeLine(const QString &str)
     m_qProcess->putChar('\n');
 }
 
-QScriptValue Process::js_shellQuote(QScriptContext *context, QScriptEngine *engine)
+JSValue Process::jsShellQuote(JSContext *ctx, JSValueConst, int argc, JSValueConst *argv)
 {
-    if (Q_UNLIKELY(context->argumentCount() < 2)) {
-        return context->throwError(QScriptContext::SyntaxError,
-                                   QStringLiteral("shellQuote expects at least 2 arguments"));
-    }
-    const QString program = context->argument(0).toString();
-    const QStringList args = context->argument(1).toVariant().toStringList();
-    HostOsInfo::HostOs hostOs = HostOsInfo::hostOs();
-    if (context->argumentCount() > 2) {
-        hostOs = context->argument(2).toVariant().toStringList().contains(QLatin1String("windows"))
-                ? HostOsInfo::HostOsWindows : HostOsInfo::HostOsOtherUnix;
-    }
-    return engine->toScriptValue(shellQuote(program, args, hostOs));
+    try {
+        const auto args = getArguments<QString, QStringList>(ctx, "Process.shellQuote", argc, argv);
+        HostOsInfo::HostOs hostOs = HostOsInfo::hostOs();
+        if (argc > 2) {
+            const auto osList = fromArg<QStringList>(ctx, "Process.shellQuote", 3, argv[2]);
+            hostOs = osList.contains(QLatin1String("windows"))
+                    ? HostOsInfo::HostOsWindows : HostOsInfo::HostOsOtherUnix;
+        }
+        return makeJsString(ctx, shellQuote(std::get<0>(args), std::get<1>(args), hostOs));
+    } catch (const QString &error) { return throwError(ctx, error); }
 }
 
 } // namespace Internal
 } // namespace qbs
 
-void initializeJsExtensionProcess(QScriptValue extensionObject)
+void initializeJsExtensionProcess(qbs::Internal::ScriptEngine *engine, JSValue extensionObject)
 {
-    using namespace qbs::Internal;
-    QScriptEngine *engine = extensionObject.engine();
-    QScriptValue obj = engine->newQMetaObject(&Process::staticMetaObject, engine->newFunction(&Process::ctor));
-    extensionObject.setProperty(QStringLiteral("Process"), obj);
-    obj.setProperty(QStringLiteral("shellQuote"), engine->newFunction(Process::js_shellQuote, 3));
+    qbs::Internal::Process::registerClass(engine, extensionObject);
 }
-
-Q_DECLARE_METATYPE(qbs::Internal::Process *)
-
-#include "process.moc"

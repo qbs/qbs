@@ -47,14 +47,15 @@
 #include <tools/persistence.h>
 #include <tools/set.h>
 
+#include <quickjs.h>
+
 #include <QtCore/qprocess.h>
 #include <QtCore/qstringlist.h>
 #include <QtCore/qvariant.h>
 
-#include <QtScript/qscriptvalue.h>
-
 namespace qbs {
 namespace Internal {
+class ScriptEngine;
 
 class AbstractCommand
 {
@@ -75,7 +76,8 @@ public:
 
     virtual CommandType type() const = 0;
     virtual bool equals(const AbstractCommand *other) const;
-    virtual void fillFromScriptValue(const QScriptValue *scriptValue, const CodeLocation &codeLocation);
+    virtual void fillFromScriptValue(JSContext *ctx, const JSValue *scriptValue,
+                                     const CodeLocation &codeLocation);
 
     QString fullDescription(const QString &productName) const;
     const QString description() const { return m_description; }
@@ -94,7 +96,7 @@ public:
 
 protected:
     AbstractCommand();
-    void applyCommandProperties(const QScriptValue *scriptValue);
+    void applyCommandProperties(JSContext *ctx, const JSValue *scriptValue);
 
     Set<QString> m_predefinedProperties;
 
@@ -121,11 +123,11 @@ class ProcessCommand : public AbstractCommand
 {
 public:
     static ProcessCommandPtr create() { return ProcessCommandPtr(new ProcessCommand); }
-    static void setupForJavaScript(QScriptValue targetObject);
+    static void setupForJavaScript(ScriptEngine *engine, JSValue targetObject);
 
     CommandType type() const override { return ProcessCommandType; }
     bool equals(const AbstractCommand *otherAbstractCommand) const override;
-    void fillFromScriptValue(const QScriptValue *scriptValue,
+    void fillFromScriptValue(JSContext *ctx, const JSValue *scriptValue,
                              const CodeLocation &codeLocation) override;
     const QString program() const { return m_program; }
     const QStringList arguments() const { return m_arguments; }
@@ -186,16 +188,15 @@ class JavaScriptCommand : public AbstractCommand
 {
 public:
     static JavaScriptCommandPtr create() { return JavaScriptCommandPtr(new JavaScriptCommand); }
-    static void setupForJavaScript(QScriptValue targetObject);
+    static void setupForJavaScript(ScriptEngine *engine, JSValue targetObject);
 
     CommandType type() const override { return JavaScriptCommandType; }
     bool equals(const AbstractCommand *otherAbstractCommand) const override;
-    void fillFromScriptValue(const QScriptValue *scriptValue,
+    void fillFromScriptValue(JSContext *ctx, const JSValue *scriptValue,
                              const CodeLocation &codeLocation) override;
 
     const QString &scopeName() const { return m_scopeName; }
     const QString &sourceCode() const { return m_sourceCode; }
-    void setSourceCode(const QString &str) { m_sourceCode = str; }
 
     void load(PersistentPool &pool) override;
     void store(PersistentPool &pool) override;

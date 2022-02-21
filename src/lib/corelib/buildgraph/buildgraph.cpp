@@ -45,7 +45,6 @@
 #include "projectbuilddata.h"
 #include "productbuilddata.h"
 #include "rulenode.h"
-#include "scriptclasspropertyiterator.h"
 #include "transformer.h"
 
 #include <jsextensions/jsextensions.h>
@@ -70,7 +69,6 @@
 
 #include <QtCore/qdir.h>
 #include <QtCore/qfile.h>
-#include <QtScript/qscriptclass.h>
 
 #include <algorithm>
 #include <iterator>
@@ -83,146 +81,187 @@ static QString childItemsProperty() { return QStringLiteral("childItems"); }
 static QString exportsProperty() { return QStringLiteral("exports"); }
 
 // TODO: Introduce productscriptvalue.{h,cpp}.
-static QScriptValue getDataForProductScriptValue(QScriptEngine *engine,
-                                                 const ResolvedProduct *product)
+
+static JSValue getDataObject(JSContext *ctx, JSValue obj)
 {
-    QScriptValue data = engine->newObject();
-    QVariant v;
-    v.setValue<quintptr>(reinterpret_cast<quintptr>(product));
-    data.setProperty(ProductPtrKey, engine->newVariant(v));
-    return data;
+    return getJsProperty(ctx, obj, StringConstants::dataPropertyInternal());
 }
 
-class ProductPropertyScriptClass : public QScriptClass
+static JSValue getValueFromData(JSContext *ctx, JSValue data,
+                                ModulePropertiesScriptValueCommonPropertyKeys key)
 {
-public:
-    ProductPropertyScriptClass(QScriptEngine *engine) : QScriptClass(engine) { }
+    return JS_GetPropertyUint32(ctx, data, key);
+}
 
-private:
-    QueryFlags queryProperty(const QScriptValue &object, const QScriptString &name, QueryFlags,
-                             uint *) override
-    {
-        if (name == StringConstants::parametersProperty()) {
-            m_result = object.data().property(DependencyParametersKey);
-            return HandlesReadAccess;
-        }
-        if (name == StringConstants::moduleNameProperty()) {
-            m_result = object.data().property(ModuleNameKey);
-            return HandlesReadAccess;
-        }
-        if (name == StringConstants::dependenciesProperty()
-                || name == StringConstants::artifactsProperty()
-                || name == exportsProperty()) {
-            // The prototype is not backed by a QScriptClass.
-            m_result = object.prototype().property(name);
-            return HandlesReadAccess;
-        }
-
-        getProduct(object);
-        QBS_ASSERT(m_product, return {});
-
-        const auto it = m_product->productProperties.find(name);
-
-        // It is important that we reject unknown property names. Otherwise QtScript will forward
-        // *everything* to us, including built-in stuff like the hasOwnProperty function.
-        if (it == m_product->productProperties.cend())
-            return {};
-
-        qbsEngine()->addPropertyRequestedInScript(Property(m_product->uniqueName(), QString(), name,
-                it.value(), Property::PropertyInProduct));
-        m_result = qbsEngine()->toScriptValue(it.value());
-        return HandlesReadAccess;
-    }
-
-    QScriptValue property(const QScriptValue &, const QScriptString &, uint) override
-    {
-        return m_result;
-    }
-
-    QScriptClassPropertyIterator *newIterator(const QScriptValue &object) override
-    {
-        getProduct(object);
-        QBS_ASSERT(m_product, return nullptr);
-
-        // These two are in the prototype and are thus common to all product script values.
-        std::vector<QString> additionalProperties({StringConstants::artifactsProperty(),
-                                                   StringConstants::dependenciesProperty(),
-                                                   exportsProperty()});
-
-        // The "moduleName" convenience property is only available for the "main product" in a rule,
-        // and the "parameters" property exists only for elements of the "dependencies" array for
-        // which dependency parameters are present.
-        if (object.data().property(ModuleNameKey).isValid())
-            additionalProperties.push_back(StringConstants::moduleNameProperty());
-        else if (object.data().property(DependencyParametersKey).isValid())
-            additionalProperties.push_back(StringConstants::parametersProperty());
-        return new ScriptClassPropertyIterator(object, m_product->productProperties,
-                                               additionalProperties);
-    }
-
-    void getProduct(const QScriptValue &object)
-    {
-        if (m_lastObjectId != object.objectId()) {
-            m_lastObjectId = object.objectId();
-            m_product = reinterpret_cast<const ResolvedProduct *>(
-                        object.data().property(ProductPtrKey).toVariant().value<quintptr>());
-        }
-    }
-
-    ScriptEngine *qbsEngine() const { return static_cast<ScriptEngine *>(engine()); }
-
-    qint64 m_lastObjectId = 0;
-    const ResolvedProduct *m_product = nullptr;
-    QScriptValue m_result;
-};
-
-static QScriptValue setupProjectScriptValue(ScriptEngine *engine,
-        const ResolvedProjectConstPtr &project)
+static JSValue getValueFromObject(JSContext *ctx, JSValue obj,
+                                ModulePropertiesScriptValueCommonPropertyKeys key)
 {
-    QScriptValue &obj = engine->projectScriptValue(project.get());
-    if (obj.isValid())
-        return obj;
+    const ScopedJsValue data(ctx, getDataObject(ctx, obj));
+    return getValueFromData(ctx, data, key);
+}
+
+void getPropertyNames(JSContext *ctx, JSPropertyEnum **ptab, uint32_t *plen,
+                      const QVariantMap &properties, const QStringList &extraPropertyNames,
+                      JSValue extraObject)
+{
+    JSPropertyEnum *basePTab = nullptr;
+    uint32_t basePlen = 0;
+    JS_GetOwnPropertyNames(ctx, &basePTab, &basePlen, extraObject,
+                           JS_GPN_STRING_MASK | JS_GPN_ENUM_ONLY);
+    *plen = uint32_t(extraPropertyNames.size() + properties.size() + basePlen);
+    *ptab = reinterpret_cast<JSPropertyEnum *>(js_malloc(ctx, *plen * sizeof **ptab));
+    JSPropertyEnum *entry = *ptab;
+    for (auto it = properties.begin(); it != properties.end(); ++it, ++entry) {
+        entry->atom = JS_NewAtom(ctx, it.key().toUtf8().constData());
+        entry->is_enumerable = 1;
+    }
+    for (const QString &prop : extraPropertyNames) {
+        entry->atom = JS_NewAtom(ctx, prop.toUtf8().constData());
+        entry->is_enumerable = 1;
+        ++entry;
+    }
+    for (uint32_t i = 0; i < basePlen; ++i, ++entry) {
+        entry->atom = basePTab[i].atom;
+        entry->is_enumerable = 1;
+    }
+    js_free(ctx, basePTab);
+}
+
+static int getProductPropertyNames(JSContext *ctx, JSPropertyEnum **ptab, uint32_t *plen,
+                                   JSValueConst obj)
+{
+    ScriptEngine * const engine = ScriptEngine::engineForContext(ctx);
+    const ScopedJsValue data(ctx, getDataObject(engine->context(), obj));
+    const auto product = attachedPointer<ResolvedProduct>(
+                obj, engine->productPropertyScriptClass());
+    QBS_ASSERT(product, return -1);
+
+    // The "moduleName" convenience property is only available for the "main product" in a rule,
+    // and the "parameters" property exists only for elements of the "dependencies" array for
+    // which dependency parameters are present.
+    const auto hasModuleName = [&] {
+        const ScopedJsValue v(ctx, getValueFromData(ctx, data, ModuleNameKey));
+        return JS_IsString(v);
+    };
+    const auto hasDependencyParams = [&] {
+        const ScopedJsValue v(ctx, getValueFromData(ctx, data, DependencyParametersKey));
+        return JS_IsObject(v);
+    };
+    QStringList additionalProperties;
+    if (hasModuleName())
+        additionalProperties.push_back(StringConstants::moduleNameProperty());
+    else if (hasDependencyParams())
+        additionalProperties.push_back(StringConstants::parametersProperty());
+    getPropertyNames(ctx, ptab, plen, product->productProperties, additionalProperties,
+                     engine->baseProductScriptValue(product));
+    return 0;
+}
+
+static int getProductProperty(JSContext *ctx, JSPropertyDescriptor *desc, JSValueConst obj,
+                              JSAtom prop)
+{
+    if (desc) {
+        desc->getter = desc->setter = desc->value = JS_UNDEFINED;
+        desc->flags = JS_PROP_ENUMERABLE;
+    }
+    const QString name = getJsString(ctx, prop);
+    if (name == StringConstants::parametersProperty()) {
+        if (desc)
+            desc->value = getValueFromObject(ctx, obj, DependencyParametersKey);
+        return 1;
+    }
+    if (name == StringConstants::moduleNameProperty()) {
+        if (desc)
+            desc->value = getValueFromObject(ctx, obj, ModuleNameKey);
+        return 1;
+    }
+
+    ScriptEngine * const engine = ScriptEngine::engineForContext(ctx);
+    const auto product = attachedPointer<ResolvedProduct>(
+                obj, engine->productPropertyScriptClass());
+    QBS_ASSERT(product, return -1);
+
+    const JSValue baseProductValue = engine->baseProductScriptValue(product);
+    if (name == exportsProperty()) {
+        if (desc)
+            desc->value = getJsProperty(ctx, baseProductValue, name);
+        engine->addRequestedExport(product);
+        return 1;
+    }
+
+    const auto it = product->productProperties.constFind(name);
+    if (it == product->productProperties.cend()) {
+        ScopedJsValue v(ctx, JS_GetProperty(ctx, baseProductValue, prop));
+        const int ret = JS_IsUndefined(v) ? 0 : 1;
+        if (desc)
+            desc->value = v.release();
+        return ret;
+    }
+
+    engine->addPropertyRequestedInScript(Property(product->uniqueName(), QString(), name,
+                                                  it.value(), Property::PropertyInProduct));
+    if (desc)
+        desc->value = engine->toScriptValue(it.value());
+    return 1;
+}
+
+static JSValue setupProjectScriptValue(ScriptEngine *engine, const ResolvedProjectConstPtr &project)
+{
+    JSValue &obj = engine->projectScriptValue(project.get());
+    if (JS_IsObject(obj))
+        return JS_DupValue(engine->context(), obj);
     obj = engine->newObject();
-    obj.setProperty(StringConstants::filePathProperty(), project->location.filePath());
-    obj.setProperty(StringConstants::pathProperty(), FileInfo::path(project->location.filePath()));
+    setJsProperty(engine->context(), obj, StringConstants::filePathProperty(),
+                  project->location.filePath());
+    setJsProperty(engine->context(), obj, StringConstants::pathProperty(),
+                  FileInfo::path(project->location.filePath()));
     const QVariantMap &projectProperties = project->projectProperties();
     for (QVariantMap::const_iterator it = projectProperties.begin();
             it != projectProperties.end(); ++it) {
-        engine->setObservedProperty(obj, it.key(), engine->toScriptValue(it.value()));
+        const ScopedJsValue val(engine->context(), engine->toScriptValue(it.value()));
+        engine->setObservedProperty(obj, it.key(), val);
     }
-    engine->observer()->addProjectObjectId(obj.objectId(), project->name);
-    return obj;
+    engine->observer()->addProjectObjectId(jsObjectId(obj), project->name);
+    return JS_DupValue(engine->context(), obj);
 }
 
-static QScriptValue setupProductScriptValue(ScriptEngine *engine, const ResolvedProduct *product);
+static void setupBaseProductScriptValue(ScriptEngine *engine, const ResolvedProduct *product);
 
 class DependenciesFunction
 {
 public:
-    DependenciesFunction(ScriptEngine *engine)
-        : m_engine(engine)
-    {
-    }
+    DependenciesFunction(ScriptEngine *engine) : m_engine(engine) { }
 
-    void init(QScriptValue &productScriptValue, QScriptValue &exportsScriptValue,
-              const ResolvedProduct *product)
+    void init(JSValue &productScriptValue, JSValue exportsScriptValue)
     {
-        QScriptValue depfunc = m_engine->newFunction(&js_internalProductDependencies, product);
-        productScriptValue.setProperty(StringConstants::dependenciesProperty(), depfunc,
-                                       QScriptValue::ReadOnly | QScriptValue::Undeletable
-                                       | QScriptValue::PropertyGetter);
-        depfunc = m_engine->newFunction(&js_exportedProductDependencies, product);
-        exportsScriptValue.setProperty(StringConstants::dependenciesProperty(), depfunc,
-                                       QScriptValue::ReadOnly | QScriptValue::Undeletable
-                                       | QScriptValue::PropertyGetter);
+        const QByteArray name = StringConstants::dependenciesProperty().toUtf8();
+        const ScopedJsValue depfunc(
+                    m_engine->context(),
+                    JS_NewCFunction(m_engine->context(), &js_internalProductDependencies,
+                                    name.constData(), 0));
+        const ScopedJsAtom depAtom(m_engine->context(), name);
+        JS_DefineProperty(m_engine->context(), productScriptValue, depAtom, JS_UNDEFINED, depfunc,
+                          JS_UNDEFINED, JS_PROP_HAS_GET | JS_PROP_ENUMERABLE);
+        const ScopedJsValue exportedDepfunc(
+                    m_engine->context(),
+                    JS_NewCFunction(m_engine->context(), &js_exportedProductDependencies,
+                                    name.constData(), 0));
+        JS_DefineProperty(m_engine->context(), exportsScriptValue, depAtom, JS_UNDEFINED,
+                          exportedDepfunc, JS_UNDEFINED, JS_PROP_HAS_GET | JS_PROP_ENUMERABLE);
     }
 
 private:
     enum class DependencyType { Internal, Exported };
-    static QScriptValue js_productDependencies(QScriptContext *, ScriptEngine *engine,
-            const ResolvedProduct *product, DependencyType depType)
+    static JSValue js_productDependencies(const ResolvedProduct *product,
+                                          JSContext *ctx, JSValueConst this_val, int argc,
+                                          JSValueConst *argv, DependencyType depType)
     {
-        QScriptValue result = engine->newArray();
+        Q_UNUSED(this_val)
+        Q_UNUSED(argc)
+        Q_UNUSED(argv)
+
+        ScriptEngine * const engine = ScriptEngine::engineForContext(ctx);
+        JSValue result = JS_NewArray(ctx);
         quint32 idx = 0;
         const bool exportCase = depType == DependencyType::Exported;
         std::vector<ResolvedProductPtr> productDeps;
@@ -245,201 +284,233 @@ private:
             productDeps = product->dependencies;
         }
         for (const ResolvedProductPtr &dependency : qAsConst(productDeps)) {
-            QScriptValue obj = engine->newObject(engine->productPropertyScriptClass());
-            obj.setPrototype(setupProductScriptValue(static_cast<ScriptEngine *>(engine),
-                                                     dependency.get()));
+            setupBaseProductScriptValue(engine, dependency.get());
+            JSValue obj = JS_NewObjectClass(engine->context(),
+                                            engine->productPropertyScriptClass());
+            attachPointerTo(obj, dependency.get());
             const QVariantMap &params
                     = (exportCase ? product->exportedModule.dependencyParameters.value(dependency)
                                   : product->dependencyParameters.value(dependency));
-            QScriptValue data = getDataForProductScriptValue(engine, dependency.get());
-            data.setProperty(DependencyParametersKey, dependencyParametersValue(
-                                 product->uniqueName(), dependency->name, params, engine));
-            obj.setData(data);
-            result.setProperty(idx++, obj);
+            JSValue data = JS_NewObjectClass(engine->context(), engine->dataWithPtrClass());
+            JS_SetPropertyUint32(ctx, data, DependencyParametersKey, dependencyParametersValue(
+                                     product->uniqueName(), dependency->name, params, engine));
+            defineJsProperty(ctx, obj, StringConstants::dataPropertyInternal(), data);
+            JS_SetPropertyUint32(ctx, result, idx++, obj);
         }
         if (exportCase) {
             for (const ExportedModuleDependency &m : product->exportedModule.moduleDependencies) {
-                QScriptValue obj = engine->newObject();
-                obj.setProperty(StringConstants::nameProperty(), m.name);
-                QScriptValue exportsValue = engine->newObject();
-                obj.setProperty(exportsProperty(), exportsValue);
-                exportsValue.setProperty(StringConstants::dependenciesProperty(),
-                                         engine->newArray());
+                JSValue obj = engine->newObject();
+                setJsProperty(ctx, obj, StringConstants::nameProperty(), m.name);
+                JSValue exportsValue = engine->newObject();
+                setJsProperty(ctx, obj, exportsProperty(), exportsValue);
+                setJsProperty(ctx, exportsValue, StringConstants::dependenciesProperty(),
+                              JS_NewArray(ctx));
                 for (auto modIt = m.moduleProperties.begin(); modIt != m.moduleProperties.end();
                      ++modIt) {
                     const QVariantMap entries = modIt.value().toMap();
                     if (entries.empty())
                         continue;
-                    QScriptValue moduleObj = engine->newObject();
-                    ModuleProperties::setModuleScriptValue(exportsValue, moduleObj, modIt.key());
-                    for (auto valIt = entries.begin(); valIt != entries.end(); ++valIt)
-                        moduleObj.setProperty(valIt.key(), engine->toScriptValue(valIt.value()));
+                    JSValue moduleObj = engine->newObject();
+                    ModuleProperties::setModuleScriptValue(engine, exportsValue, moduleObj,
+                                                           modIt.key());
+                    for (auto valIt = entries.begin(); valIt != entries.end(); ++valIt) {
+                        setJsProperty(ctx, moduleObj, valIt.key(),
+                                      engine->toScriptValue(valIt.value()));
+                    }
                 }
-                result.setProperty(idx++, obj);
+                JS_SetPropertyUint32(ctx, result, idx++, obj);
             }
             return result;
         }
         for (const auto &dependency : product->modules) {
             if (dependency->isProduct)
                 continue;
-            QScriptValue obj = engine->newObject(engine->modulePropertyScriptClass());
-            obj.setPrototype(engine->moduleScriptValuePrototype(dependency.get()));
-
-            // The prototype must exist already, because we set it up for all modules
-            // of the product in ModuleProperties::init().
-            QBS_ASSERT(obj.prototype().isValid(), ;);
-
+            JSValue obj = JS_NewObjectClass(ctx, engine->modulePropertyScriptClass());
+            attachPointerTo(obj, dependency.get());
             const QVariantMap &params = product->moduleParameters.value(dependency);
-            QScriptValue data = getDataForModuleScriptValue(engine, product, nullptr,
-                                                            dependency.get());
-            data.setProperty(DependencyParametersKey, dependencyParametersValue(
-                                 product->uniqueName(), dependency->name, params, engine));
-            obj.setData(data);
-            result.setProperty(idx++, obj);
+            JSValue data = createDataForModuleScriptValue(engine, nullptr);
+            JS_SetPropertyUint32(ctx, data, DependencyParametersKey, dependencyParametersValue(
+                                     product->uniqueName(), dependency->name, params, engine));
+            defineJsProperty(ctx, obj, StringConstants::dataPropertyInternal(), data);
+            JS_SetPropertyUint32(ctx, result, idx++, obj);
         }
         return result;
     }
 
-    static QScriptValue js_internalProductDependencies(QScriptContext *ctx, ScriptEngine *engine,
-                                                       const ResolvedProduct * const product)
+    static JSValue js_internalProductDependencies(JSContext *ctx, JSValueConst this_val,
+                                                  int argc, JSValueConst *argv)
     {
+        ScriptEngine * const engine = ScriptEngine::engineForContext(ctx);
+        const auto product = attachedPointer<ResolvedProduct>(this_val, engine->dataWithPtrClass());
         engine->addDependenciesArrayRequested(product);
-        return js_productDependencies(ctx, engine, product, DependencyType::Internal);
+        return js_productDependencies(product, ctx, this_val, argc, argv,
+                                      DependencyType::Internal);
     }
 
-    static QScriptValue js_exportedProductDependencies(QScriptContext *ctx, ScriptEngine *engine,
-                                                       const ResolvedProduct * const product)
+    static JSValue js_exportedProductDependencies(JSContext *ctx, JSValueConst this_val,
+                                                  int argc, JSValueConst *argv)
     {
-        return js_productDependencies(ctx, engine, product, DependencyType::Exported);
+        const auto product = attachedPointer<ResolvedProduct>(
+                    this_val, ScriptEngine::engineForContext(ctx)->dataWithPtrClass());
+        return js_productDependencies(product, ctx, this_val, argc, argv, DependencyType::Exported);
     }
 
     ScriptEngine *m_engine;
 };
 
-static QScriptValue setupExportedPropertyScriptValue(const ExportedProperty &property,
+static JSValue setupExportedPropertyScriptValue(const ExportedProperty &property,
                                                      ScriptEngine *engine)
 {
-    QScriptValue propertyScriptValue = engine->newObject();
-    propertyScriptValue.setProperty(StringConstants::nameProperty(), property.fullName);
-    propertyScriptValue.setProperty(StringConstants::typeProperty(),
-                                    PropertyDeclaration::typeString(property.type));
-    propertyScriptValue.setProperty(StringConstants::sourceCodeProperty(), property.sourceCode);
-    propertyScriptValue.setProperty(QStringLiteral("isBuiltin"), property.isBuiltin);
+    JSValue propertyScriptValue = engine->newObject();
+    setJsProperty(engine->context(), propertyScriptValue, StringConstants::nameProperty(),
+                  property.fullName);
+    setJsProperty(engine->context(), propertyScriptValue, StringConstants::typeProperty(),
+                  PropertyDeclaration::typeString(property.type));
+    setJsProperty(engine->context(), propertyScriptValue, StringConstants::sourceCodeProperty(),
+                  property.sourceCode);
+    JS_SetPropertyStr(engine->context(), propertyScriptValue, "isBuiltin",
+                      JS_NewBool(engine->context(), property.isBuiltin));
     return propertyScriptValue;
 }
 
-static void setupExportedPropertiesScriptValue(QScriptValue &parentObject,
+static void setupExportedPropertiesScriptValue(JSValue &parentObject,
                                                const std::vector<ExportedProperty> &properties,
                                                ScriptEngine *engine)
 {
-    QScriptValue propertiesScriptValue = engine->newArray(static_cast<uint>(properties.size()));
-    parentObject.setProperty(QStringLiteral("properties"), propertiesScriptValue);
+    JSValue propertiesScriptValue = JS_NewArray(engine->context());
     quint32 arrayIndex = 0;
     for (const ExportedProperty &p : properties) {
-        propertiesScriptValue.setProperty(arrayIndex++,
-                                          setupExportedPropertyScriptValue(p, engine));
+        JS_SetPropertyUint32(engine->context(), propertiesScriptValue, arrayIndex++,
+                             setupExportedPropertyScriptValue(p, engine));
     }
+    JS_SetPropertyStr(engine->context(), parentObject, "properties", propertiesScriptValue);
 }
 
-static QScriptValue setupExportedItemScriptValue(const ExportedItem *item, ScriptEngine *engine)
+static JSValue setupExportedItemScriptValue(const ExportedItem *item, ScriptEngine *engine)
 {
-    QScriptValue itemScriptValue = engine->newObject();
-    itemScriptValue.setProperty(StringConstants::nameProperty(), item->name);
+    JSValue itemScriptValue = engine->newObject();
+    setJsProperty(engine->context(), itemScriptValue, StringConstants::nameProperty(), item->name);
     setupExportedPropertiesScriptValue(itemScriptValue, item->properties, engine);
-    QScriptValue childrenScriptValue = engine->newArray(static_cast<uint>(item->children.size()));
-    itemScriptValue.setProperty(childItemsProperty(), childrenScriptValue);
+    JSValue childrenScriptValue = JS_NewArray(engine->context());
     quint32 arrayIndex = 0;
     for (const auto &childItem : item->children) {
-        childrenScriptValue.setProperty(arrayIndex++,
-                                        setupExportedItemScriptValue(childItem.get(), engine));
+        JS_SetPropertyUint32(engine->context(), childrenScriptValue, arrayIndex++,
+                             setupExportedItemScriptValue(childItem.get(), engine));
     }
+    setJsProperty(engine->context(), itemScriptValue, childItemsProperty(), childrenScriptValue);
     return itemScriptValue;
 }
 
-static QScriptValue setupExportsScriptValue(const ExportedModule &module, ScriptEngine *engine)
+static JSValue setupExportsScriptValue(const ResolvedProduct *product, ScriptEngine *engine)
 {
-    QScriptValue exportsScriptValue = engine->newObject();
-    for (auto it = module.propertyValues.cbegin(); it != module.propertyValues.cend(); ++it)
-        exportsScriptValue.setProperty(it.key(), engine->toScriptValue(it.value()));
+    const ExportedModule &module = product->exportedModule;
+    JSValue exportsScriptValue = JS_NewObjectClass(engine->context(), engine->dataWithPtrClass());
+    attachPointerTo(exportsScriptValue, product);
+    for (auto it = module.propertyValues.cbegin(); it != module.propertyValues.cend(); ++it) {
+        setJsProperty(engine->context(), exportsScriptValue, it.key(),
+                      engine->toScriptValue(it.value()));
+    }
     setupExportedPropertiesScriptValue(exportsScriptValue, module.m_properties, engine);
-    QScriptValue childrenScriptValue = engine->newArray(static_cast<uint>(module.children.size()));
-    exportsScriptValue.setProperty(childItemsProperty(), childrenScriptValue);
+    JSValue childrenScriptValue = JS_NewArray(engine->context());
     quint32 arrayIndex = 0;
     for (const auto &exportedItem : module.children) {
-        childrenScriptValue.setProperty(arrayIndex++,
-                                        setupExportedItemScriptValue(exportedItem.get(), engine));
+        JS_SetPropertyUint32(engine->context(), childrenScriptValue, arrayIndex++,
+                             setupExportedItemScriptValue(exportedItem.get(), engine));
     }
-    QScriptValue importsScriptValue = engine->newArray(module.importStatements.size());
-    exportsScriptValue.setProperty(StringConstants::importsProperty(), importsScriptValue);
+    setJsProperty(engine->context(), exportsScriptValue, childItemsProperty(), childrenScriptValue);
+    JSValue importsScriptValue = JS_NewArray(engine->context());
     arrayIndex = 0;
-    for (const QString &importStatement : module.importStatements)
-        importsScriptValue.setProperty(arrayIndex++, importStatement);
+    for (const QString &importStatement : module.importStatements) {
+        JS_SetPropertyUint32(engine->context(), importsScriptValue, arrayIndex++,
+                             makeJsString(engine->context(), importStatement));
+    }
+    setJsProperty(engine->context(), exportsScriptValue, StringConstants::importsProperty(),
+                  importsScriptValue);
     for (auto it = module.modulePropertyValues.cbegin(); it != module.modulePropertyValues.cend();
          ++it) {
         const QVariantMap entries = it.value().toMap();
         if (entries.empty())
             continue;
-        QScriptValue moduleObject = engine->newObject();
-        ModuleProperties::setModuleScriptValue(exportsScriptValue, moduleObject, it.key());
-        for (auto valIt = entries.begin(); valIt != entries.end(); ++valIt)
-            moduleObject.setProperty(valIt.key(), engine->toScriptValue(valIt.value()));
+        JSValue moduleObject = engine->newObject();
+        ModuleProperties::setModuleScriptValue(engine, exportsScriptValue, moduleObject, it.key());
+        for (auto valIt = entries.begin(); valIt != entries.end(); ++valIt) {
+            setJsProperty(engine->context(), moduleObject, valIt.key(),
+                          engine->toScriptValue(valIt.value()));
+        }
     }
     return exportsScriptValue;
 }
 
-static QScriptValue setupProductScriptValue(ScriptEngine *engine, const ResolvedProduct *product)
+static void setupBaseProductScriptValue(ScriptEngine *engine, const ResolvedProduct *product)
 {
-    QScriptValue &productScriptValue = engine->productScriptValuePrototype(product);
-    if (productScriptValue.isValid())
-        return productScriptValue;
-    productScriptValue = engine->newObject();
-    ModuleProperties::init(productScriptValue, product);
+    JSValue &productScriptValue = engine->baseProductScriptValue(product);
+    if (JS_IsObject(productScriptValue))
+        return;
+    const ScopedJsValue proto(engine->context(), JS_NewObject(engine->context()));
+    productScriptValue = JS_NewObjectProtoClass(engine->context(), proto,
+                                                engine->dataWithPtrClass());
+    attachPointerTo(productScriptValue, product);
+    ModuleProperties::init(engine, productScriptValue, product);
 
-    QScriptValue artifactsFunc = engine->newFunction(&artifactsScriptValueForProduct, product);
-    productScriptValue.setProperty(StringConstants::artifactsProperty(), artifactsFunc,
-                                   QScriptValue::ReadOnly | QScriptValue::Undeletable
-                                   | QScriptValue::PropertyGetter);
+    const QByteArray funcName = StringConstants::artifactsProperty().toUtf8();
+    const ScopedJsValue artifactsFunc(
+                engine->context(),
+                JS_NewCFunction(engine->context(), &artifactsScriptValueForProduct,
+                                funcName.constData(), 0));
+    const ScopedJsAtom artifactsAtom(engine->context(), funcName);
+    JS_DefineProperty(engine->context(), productScriptValue, artifactsAtom,
+                      JS_UNDEFINED, artifactsFunc, JS_UNDEFINED,
+                      JS_PROP_HAS_GET | JS_PROP_ENUMERABLE);
 
-    QScriptValue exportsScriptValue = setupExportsScriptValue(product->exportedModule, engine);
-    DependenciesFunction(engine).init(productScriptValue, exportsScriptValue, product);
+    // FIXME: Proper un-observe rather than ref count decrease here.
+    ScopedJsValue exportsScriptValue(engine->context(), setupExportsScriptValue(product, engine));
+    DependenciesFunction(engine).init(productScriptValue, exportsScriptValue);
+
+    // TODO: Why are these necessary? We catch accesses to product.exports in getProductProperty().
+    // But the exportsQbs() and exportsPkgConfig() tests fail without them.
     engine->setObservedProperty(productScriptValue, exportsProperty(), exportsScriptValue);
-    engine->observer()->addExportsObjectId(exportsScriptValue.objectId(), product);
-    return productScriptValue;
+    engine->observer()->addExportsObjectId(jsObjectId(exportsScriptValue), product);
 }
 
 void setupScriptEngineForFile(ScriptEngine *engine, const FileContextBaseConstPtr &fileContext,
-        QScriptValue targetObject, const ObserveMode &observeMode)
+        JSValue targetObject, const ObserveMode &observeMode)
 {
     engine->import(fileContext, targetObject, observeMode);
-    JsExtensions::setupExtensions(fileContext->jsExtensions(), targetObject);
+    JsExtensions::setupExtensions(engine, fileContext->jsExtensions(), targetObject);
 }
 
 void setupScriptEngineForProduct(ScriptEngine *engine, ResolvedProduct *product,
-                                 const ResolvedModule *module, QScriptValue targetObject,
+                                 const ResolvedModule *module, JSValue targetObject,
                                  bool setBuildEnvironment)
 {
-    QScriptValue projectScriptValue = setupProjectScriptValue(engine, product->project.lock());
-    targetObject.setProperty(StringConstants::projectVar(), projectScriptValue);
-
+    JSValue projectScriptValue = setupProjectScriptValue(engine, product->project.lock());
+    setJsProperty(engine->context(), targetObject, StringConstants::projectVar(),
+                  projectScriptValue);
     if (setBuildEnvironment) {
         QVariant v;
         v.setValue<void*>(&product->buildEnvironment);
         engine->setProperty(StringConstants::qbsProcEnvVarInternal(), v);
     }
-    QScriptClass *scriptClass = engine->productPropertyScriptClass();
-    if (!scriptClass) {
-        scriptClass = new ProductPropertyScriptClass(engine);
-        engine->setProductPropertyScriptClass(scriptClass);
+    JSClassID scriptClass = engine->productPropertyScriptClass();
+    if (scriptClass == 0) {
+        engine->setProductPropertyScriptClass(engine->registerClass("ProductProperties", nullptr,
+                nullptr, JS_UNDEFINED, &getProductPropertyNames, &getProductProperty));
+        scriptClass = engine->productPropertyScriptClass();
     }
-    QScriptValue productScriptValue = engine->newObject(scriptClass);
-    productScriptValue.setPrototype(setupProductScriptValue(engine, product));
-    targetObject.setProperty(StringConstants::productVar(), productScriptValue);
+    setupBaseProductScriptValue(engine, product);
+    JSValue productScriptValue = JS_NewObjectClass(engine->context(), scriptClass);
+    attachPointerTo(productScriptValue, product);
+    setJsProperty(engine->context(), targetObject, StringConstants::productVar(),
+                  productScriptValue);
 
-    QScriptValue data = getDataForProductScriptValue(engine, product);
+    JSValue data = JS_NewObjectClass(engine->context(), engine->dataWithPtrClass());
     // If the Rule is in a Module, set up the 'moduleName' property
-    if (!module->name.isEmpty())
-        data.setProperty(ModuleNameKey, module->name);
-    productScriptValue.setData(data);
+    if (!module->name.isEmpty()) {
+        JS_SetPropertyUint32(engine->context(), data, ModuleNameKey,
+                             makeJsString(engine->context(), module->name));
+    }
+    defineJsProperty(engine->context(), productScriptValue,
+                     StringConstants::dataPropertyInternal(), data);
 }
 
 bool findPath(BuildGraphNode *u, BuildGraphNode *v, QList<BuildGraphNode *> &path)

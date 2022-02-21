@@ -1,4 +1,2 @@
-leak:libQt5Script.so.5
-leak:libqbsscriptengine.so
 leak:QThreadPrivate::QThreadPrivate
 leak:QArrayData::allocate

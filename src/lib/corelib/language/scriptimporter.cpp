@@ -48,8 +48,6 @@
 #include <parser/qmljsparser_p.h>
 #include <tools/error.h>
 
-#include <QtScript/qscriptvalueiterator.h>
-
 namespace qbs {
 namespace Internal {
 
@@ -121,10 +119,10 @@ ScriptImporter::ScriptImporter(ScriptEngine *scriptEngine)
 {
 }
 
-QScriptValue ScriptImporter::importSourceCode(const QString &sourceCode, const QString &filePath,
-        QScriptValue &targetObject)
+JSValue ScriptImporter::importSourceCode(const QString &sourceCode, const QString &filePath,
+        JSValue &targetObject)
 {
-    Q_ASSERT(targetObject.isObject());
+    Q_ASSERT(JS_IsObject(targetObject));
     // The targetObject doesn't get overwritten but enhanced by the contents of the .js file.
     // This is necessary for library imports that consist of multiple js files.
 
@@ -144,19 +142,17 @@ QScriptValue ScriptImporter::importSourceCode(const QString &sourceCode, const Q
         code = QLatin1String("(function(){\n") + sourceCode + extractor.suffix();
     }
 
-    QScriptValue result = m_engine->evaluate(code, filePath, 0);
-    throwOnEvaluationError(m_engine, result, [&filePath] () { return CodeLocation(filePath, 0); });
-    copyProperties(result, targetObject);
+    JSValue result = m_engine->evaluate(JsValueOwner::Caller, code, filePath, 0);
+    throwOnEvaluationError(m_engine, [&filePath] () { return CodeLocation(filePath, 0); });
+    copyProperties(m_engine->context(), result, targetObject);
     return result;
 }
 
-void ScriptImporter::copyProperties(const QScriptValue &src, QScriptValue &dst)
+void ScriptImporter::copyProperties(JSContext *ctx, const JSValue &src, JSValue &dst)
 {
-    QScriptValueIterator it(src);
-    while (it.hasNext()) {
-        it.next();
-        dst.setProperty(it.name(), it.value());
-    }
+    handleJsProperties(ctx, src, [ctx, &dst](const JSAtom &name, const JSPropertyDescriptor &desc) {
+        JS_SetProperty(ctx, dst, name, JS_DupValue(ctx, desc.value));
+    });
 }
 
 } // namespace Internal

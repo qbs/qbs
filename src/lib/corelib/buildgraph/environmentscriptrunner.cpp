@@ -51,6 +51,8 @@
 #include <tools/stlutils.h>
 #include <tools/stringconstants.h>
 
+#include <quickjs.h>
+
 #include <QtCore/qhash.h>
 #include <QtCore/qvariant.h>
 
@@ -165,38 +167,40 @@ void EnvironmentScriptRunner::setupEnvironment()
             continue;
 
         RulesEvaluationContext::Scope s(m_evalContext);
-        QScriptValue envScriptContext = engine()->newObject();
-        envScriptContext.setPrototype(engine()->globalObject());
+        JSContext * const ctx = engine()->context();
+        ScopedJsValue envScriptContext(ctx, JS_NewObjectProto(ctx, engine()->globalObject()));
         setupScriptEngineForProduct(engine(), m_product, module, envScriptContext, false);
         const QString &productKey = StringConstants::productVar();
         const QString &projectKey = StringConstants::projectVar();
-        m_evalContext->scope().setProperty(productKey, envScriptContext.property(productKey));
-        m_evalContext->scope().setProperty(projectKey, envScriptContext.property(projectKey));
+        setJsProperty(ctx, m_evalContext->scope(), productKey,
+                      getJsProperty(ctx, envScriptContext, productKey));
+        setJsProperty(ctx, m_evalContext->scope(), projectKey,
+                      getJsProperty(ctx, envScriptContext, projectKey));
         if (m_envType == RunEnv) {
-            QScriptValue configArray = engine()->newArray(m_runEnvConfig.size());
+            JSValue configArray = JS_NewArray(ctx);
             for (int i = 0; i < m_runEnvConfig.size(); ++i)
-                configArray.setProperty(i, QScriptValue(m_runEnvConfig.at(i)));
-            m_evalContext->scope().setProperty(QStringLiteral("config"), configArray);
+                JS_SetPropertyUint32(ctx, configArray, i, makeJsString(ctx, m_runEnvConfig.at(i)));
+            JS_SetPropertyStr(ctx, m_evalContext->scope(), "config", configArray);
         }
         setupScriptEngineForFile(engine(), setupScript.fileContext(), m_evalContext->scope(),
                                  ObserveMode::Disabled);
         // TODO: Cache evaluate result
-        QScriptValue fun = engine()->evaluate(setupScript.sourceCode(),
-                                              setupScript.location().filePath(),
-                                              setupScript.location().line());
-        QBS_CHECK(fun.isFunction());
-        const QScriptValueList svArgs = ScriptEngine::argumentList(scriptFunctionArgs,
-                                                                   m_evalContext->scope());
-        const QScriptValue res = fun.call(QScriptValue(), svArgs);
-        engine()->releaseResourcesOfScriptObjects();
-        if (Q_UNLIKELY(engine()->hasErrorOrException(res))) {
+        ScopedJsValue fun(ctx, engine()->evaluate(JsValueOwner::Caller, setupScript.sourceCode(),
+                                                  setupScript.location().filePath(),
+                                                  setupScript.location().line()));
+        QBS_CHECK(JS_IsFunction(ctx, fun));
+        const ScopedJsValueList svArgs = engine()->argumentList(scriptFunctionArgs,
+                                                                m_evalContext->scope());
+        JSValueList argsForFun = svArgs;
+        JS_Call(ctx, fun, engine()->globalObject(), int(argsForFun.size()), argsForFun.data());
+        if (const JsException ex = engine()->checkAndClearException(setupScript.location())) {
             const QString scriptName = m_envType == BuildEnv
                     ? StringConstants::setupBuildEnvironmentProperty()
                     : StringConstants::setupRunEnvironmentProperty();
-            throw ErrorInfo(Tr::tr("Error running %1 script for product '%2': %3")
-                            .arg(scriptName, m_product->fullDisplayName(),
-                                 engine()->lastErrorString(res)),
-                            engine()->lastErrorLocation(res, setupScript.location()));
+            ErrorInfo err = ex.toErrorInfo();
+            err.prepend(Tr::tr("Error running %1 script for product '%2'")
+                        .arg(scriptName, m_product->fullDisplayName()));
+            throw err;
         }
     }
 

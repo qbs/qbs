@@ -1782,13 +1782,6 @@ void TestBlackbox::clean()
         QVERIFY2(symlinkExists(symLink), qPrintable(symLink));
 }
 
-void TestBlackbox::concurrentExecutor()
-{
-    QDir::setCurrent(testDataDir + "/concurrent-executor");
-    QCOMPARE(runQbs(QStringList() << "-j" << "2"), 0);
-    QVERIFY2(!m_qbsStderr.contains("ASSERT"), m_qbsStderr.constData());
-}
-
 void TestBlackbox::conditionalExport()
 {
     QDir::setCurrent(testDataDir + "/conditional-export");
@@ -2505,8 +2498,8 @@ void TestBlackbox::referenceErrorInExport()
     QbsRunParameters params;
     params.expectFailure = true;
     QVERIFY(runQbs(params) != 0);
-    QVERIFY(m_qbsStderr.contains(
-        "referenceErrorInExport.qbs:15:12 ReferenceError: Can't find variable: includePaths"));
+    QVERIFY2(m_qbsStderr.contains("referenceErrorInExport.qbs:5:27 'includePaths' is not defined"),
+             m_qbsStderr.constData());
 }
 
 void TestBlackbox::removeDuplicateLibraries_data()
@@ -5297,16 +5290,6 @@ void TestBlackbox::require()
     QCOMPARE(runQbs(), 0);
 }
 
-void TestBlackbox::requireDeprecated()
-{
-    QDir::setCurrent(testDataDir + "/require-deprecated");
-    QCOMPARE(runQbs(), 0);
-    QVERIFY2(m_qbsStderr.contains("loadExtension() function is deprecated"),
-             m_qbsStderr.constData());
-    QVERIFY2(m_qbsStderr.contains("loadFile() function is deprecated"),
-             m_qbsStderr.constData());
-}
-
 void TestBlackbox::rescueTransformerData()
 {
     QDir::setCurrent(testDataDir + "/rescue-transformer-data");
@@ -7760,6 +7743,11 @@ void TestBlackbox::nodejs()
     if (p.value("nodejs.packageManagerPrefixPath").toString().isEmpty()
             && status != 0 && m_qbsStderr.contains("nodejs.packageManagerPrefixPath")) {
         QSKIP("nodejs.packageManagerFilePath not set and automatic detection failed");
+    }
+
+    if (p.value("nodejs.interpreterFilePath").toString().isEmpty()
+            && status != 0 && m_qbsStderr.contains("interpreterPath")) {
+        QSKIP("nodejs.interpreterFilePath not set and automatic detection failed");
     }
 
     if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))

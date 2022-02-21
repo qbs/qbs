@@ -57,7 +57,7 @@ function dmgbuildSettings(product, inputs) {
         volumeIcon = volumeIcons[0].filePath;
     }
 
-    var licenseFileObjects = Array.prototype.map.call(inputs["dmg.license"], function (a) {
+    var licenseFileObjects = Array.prototype.map.call(inputs["dmg.license"] || [], function (a) {
         return {
             "dmg": {
                 "licenseLocale": localizationFromArtifact(a),
@@ -97,7 +97,7 @@ function dmgbuildSettings(product, inputs) {
         }, {});
     }
 
-    var contentsArray = Array.prototype.map.call(inputs["dmg.input"], function (a) {
+    var contentsArray = Array.prototype.map.call(inputs["dmg.input"] || [], function (a) {
         if (a.dmg.sourceBase && !a.filePath.startsWith(a.dmg.sourceBase)) {
             throw new Error("Cannot install '" + a.filePath + "', " +
                             "because it doesn't start with the value of " +
@@ -114,7 +114,7 @@ function dmgbuildSettings(product, inputs) {
         };
     });
 
-    Array.prototype.forEach.call(product.dmg.iconPositions, function (obj) {
+    Array.prototype.forEach.call(product.dmg.iconPositions || [], function (obj) {
         var existingIndex = -1;
         Array.prototype.forEach.call(contentsArray, function (contentsItem, i) {
             if (contentsItem["name"] === obj["path"])

@@ -46,172 +46,177 @@
 #include <language/scriptengine.h>
 
 #include <tools/stlutils.h>
-
-#include <QtScript/qscriptclass.h>
-#include <QtScript/qscriptcontext.h>
+#include <tools/stringconstants.h>
 
 namespace qbs {
 namespace Internal {
 
-enum BuildGraphScriptValueCommonPropertyKeys : quint32 {
-    CachedValueKey,
-    FileTagKey,
-    ProductPtrKey,
-};
-
-class ArtifactsScriptClass : public QScriptClass
+template<class ProductOrModule>
+static bool isRelevantArtifact(const ProductOrModule *productOrModule, const Artifact *artifact)
 {
-public:
-    ArtifactsScriptClass(QScriptEngine *engine) : QScriptClass(engine) { }
-
-private:
-    QueryFlags queryProperty(const QScriptValue &object, const QScriptString &name,
-                             QueryFlags flags, uint *id) override
-    {
-        getProduct(object);
-        qbsEngine()->setNonExistingArtifactSetRequested(m_product, name.toString());
-        return QScriptClass::queryProperty(object, name, flags, id);
+    if constexpr (std::is_same_v<ProductOrModule, ResolvedProduct>) {
+        Q_UNUSED(productOrModule)
+        return !artifact->isTargetOfModule();
+    } else {
+        return artifact->targetOfModule == productOrModule->name;
     }
+}
 
-    QScriptClassPropertyIterator *newIterator(const QScriptValue &object) override
-    {
-        getProduct(object);
-        qbsEngine()->setArtifactsEnumerated(m_product);
-        return QScriptClass::newIterator(object);
+template<class ProductOrModule>
+static ArtifactSetByFileTag artifactsMap(const ProductOrModule *productOrModule)
+{
+    if constexpr (std::is_same_v<ProductOrModule, ResolvedProduct>)
+        return productOrModule->buildData->artifactsByFileTag();
+    else
+        return artifactsMap(productOrModule->product);
+}
+
+template<class ProductOrModule> static int scriptClassIndex()
+{
+    if constexpr (std::is_same_v<ProductOrModule, ResolvedProduct>)
+        return 0;
+    return 1;
+}
+
+template<class ProductOrModule>
+std::unique_lock<std::mutex> getArtifactsMapLock(ProductOrModule *productOrModule)
+{
+    if constexpr (std::is_same_v<ProductOrModule, ResolvedProduct>)
+        return productOrModule->buildData->getArtifactsMapLock();
+    else
+        return getArtifactsMapLock(productOrModule->product);
+}
+
+template<class ProductOrModule>
+static bool checkAndSetArtifactsMapUpToDateFlag(const ProductOrModule *productOrModule)
+{
+    if constexpr (std::is_same_v<ProductOrModule, ResolvedProduct>)
+        return productOrModule->buildData->checkAndSetJsArtifactsMapUpToDateFlag();
+    else
+        return checkAndSetArtifactsMapUpToDateFlag(productOrModule->product);
+}
+
+// Must be called with artifacts map lock held!
+template<class ProductOrModule>
+void registerArtifactsMapAccess(ScriptEngine *engine, ProductOrModule *productOrModule)
+{
+    if constexpr (std::is_same_v<ProductOrModule, ResolvedProduct>) {
+        if (!checkAndSetArtifactsMapUpToDateFlag(productOrModule))
+            engine->setArtifactsMapRequested(productOrModule, true);
+        else
+            engine->setArtifactsMapRequested(productOrModule, false);
+    } else {
+        registerArtifactsMapAccess(engine, productOrModule->product);
     }
+}
 
-    void getProduct(const QScriptValue &object)
-    {
-        if (m_lastObjectId != object.objectId()) {
-            m_lastObjectId = object.objectId();
-            m_product = reinterpret_cast<const ResolvedProduct *>(
-                        object.data().property(ProductPtrKey).toVariant().value<quintptr>());
+template<class ProductOrModule>
+static int getArtifactsPropertyNames(JSContext *ctx, JSPropertyEnum **ptab, uint32_t *plen,
+                                     JSValueConst obj)
+{
+    ScriptEngine * const engine = ScriptEngine::engineForContext(ctx);
+    const auto productOrModule = attachedPointer<ProductOrModule>(
+                obj, engine->artifactsScriptClass(scriptClassIndex<ProductOrModule>()));
+    const std::unique_lock lock = getArtifactsMapLock(productOrModule);
+    registerArtifactsMapAccess(engine, productOrModule);
+    if constexpr (std::is_same_v<ProductOrModule, ResolvedProduct>)
+        engine->setArtifactsEnumerated(productOrModule);
+    const auto &map = artifactsMap(productOrModule);
+    const auto filter = [productOrModule](const Artifact *a) {
+        return isRelevantArtifact(productOrModule, a);
+    };
+    QStringList tags;
+    for (auto it = map.cbegin(); it != map.cend(); ++it) {
+        if (any_of(it.value(), filter)) {
+            tags << it.key().toString();
         }
     }
-
-    ScriptEngine *qbsEngine() const { return static_cast<ScriptEngine *>(engine()); }
-
-    qint64 m_lastObjectId = 0;
-    const ResolvedProduct *m_product = nullptr;
-};
-
-static bool isRelevantArtifact(const ResolvedProduct *, const Artifact *artifact)
-{
-    return !artifact->isTargetOfModule();
-}
-static bool isRelevantArtifact(const ResolvedModule *module, const Artifact *artifact)
-{
-    return artifact->targetOfModule == module->name;
-}
-
-static ArtifactSetByFileTag artifactsMap(const ResolvedProduct *product)
-{
-    return product->buildData->artifactsByFileTag();
-}
-
-static ArtifactSetByFileTag artifactsMap(const ResolvedModule *module)
-{
-    return artifactsMap(module->product);
-}
-
-static QScriptValue createArtifactsObject(const ResolvedProduct *product, ScriptEngine *engine)
-{
-    QScriptClass *scriptClass = engine->artifactsScriptClass();
-    if (!scriptClass) {
-        scriptClass = new ArtifactsScriptClass(engine);
-        engine->setArtifactsScriptClass(scriptClass);
+    *plen = tags.size();
+    if (!tags.isEmpty()) {
+        *ptab = reinterpret_cast<JSPropertyEnum *>(js_malloc(ctx, *plen * sizeof **ptab));
+        JSPropertyEnum *entry = *ptab;
+        for (const QString &tag : qAsConst(tags)) {
+            entry->atom = JS_NewAtom(ctx, tag.toUtf8().constData());
+            entry->is_enumerable = 1;
+            ++entry;
+        }
+    } else {
+        *ptab = nullptr;
     }
-    QScriptValue artifactsObj = engine->newObject(scriptClass);
-    QScriptValue data = engine->newObject();
-    QVariant v;
-    v.setValue<quintptr>(reinterpret_cast<quintptr>(product));
-    data.setProperty(ProductPtrKey, engine->newVariant(v));
-    artifactsObj.setData(data);
-    return artifactsObj;
+    return 0;
 }
 
-static QScriptValue createArtifactsObject(const ResolvedModule *, ScriptEngine *engine)
+template<class ProductOrModule>
+static int getArtifactsProperty(JSContext *ctx, JSPropertyDescriptor *desc,
+                                JSValueConst obj, JSAtom prop)
 {
-    return engine->newObject();
-}
+    if (!desc)
+        return 1;
 
-static bool checkAndSetArtifactsMapUpToDateFlag(const ResolvedProduct *p)
-{
-    return p->buildData->checkAndSetJsArtifactsMapUpToDateFlag();
-}
-static bool checkAndSetArtifactsMapUpToDateFlag(const ResolvedModule *) { return true; }
-
-static void registerArtifactsMapAccess(const ResolvedProduct *p, ScriptEngine *e, bool forceUpdate)
-{
-    e->setArtifactsMapRequested(p, forceUpdate);
-}
-static void registerArtifactsMapAccess(const ResolvedModule *, ScriptEngine *, bool) {}
-static void registerArtifactsSetAccess(const ResolvedProduct *p, const FileTag &t, ScriptEngine *e)
-{
-    e->setArtifactSetRequestedForTag(p, t);
-}
-static void registerArtifactsSetAccess(const ResolvedModule *, const FileTag &, ScriptEngine *) {}
-
-template<class ProductOrModule> static QScriptValue js_artifactsForFileTag(
-        QScriptContext *ctx, ScriptEngine *engine, const ProductOrModule *productOrModule)
-{
-    const FileTag fileTag = FileTag(ctx->callee().property(FileTagKey).toString().toUtf8());
-    registerArtifactsSetAccess(productOrModule, fileTag, engine);
-    QScriptValue result = ctx->callee().property(CachedValueKey);
-    if (result.isArray())
-        return result;
-    auto artifacts = artifactsMap(productOrModule).value(fileTag);
-    const auto filter = [productOrModule](const Artifact *a) {
-        return !isRelevantArtifact(productOrModule, a);
-    };
-    Internal::removeIf(artifacts, filter);
-    result = engine->newArray(uint(artifacts.size()));
-    ctx->callee().setProperty(CachedValueKey, result);
-    int k = 0;
-    for (const Artifact * const artifact : artifacts)
-        result.setProperty(k++, Transformer::translateFileConfig(engine, artifact, QString()));
-    return result;
-}
-
-template<class ProductOrModule> static QScriptValue js_artifacts(
-        QScriptContext *ctx, ScriptEngine *engine, const ProductOrModule *productOrModule)
-{
-    QScriptValue artifactsObj = ctx->callee().property(CachedValueKey);
-    if (artifactsObj.isObject() && checkAndSetArtifactsMapUpToDateFlag(productOrModule)) {
-        registerArtifactsMapAccess(productOrModule, engine, false);
-        return artifactsObj;
-    }
-    registerArtifactsMapAccess(productOrModule, engine, true);
-    artifactsObj = createArtifactsObject(productOrModule, engine);
-    ctx->callee().setProperty(CachedValueKey, artifactsObj);
+    desc->flags = JS_PROP_ENUMERABLE;
+    desc->value = desc->getter = desc->setter = JS_UNDEFINED;
+    ScriptEngine * const engine = ScriptEngine::engineForContext(ctx);
+    const auto productOrModule = attachedPointer<ProductOrModule>(
+                obj, engine->artifactsScriptClass(scriptClassIndex<ProductOrModule>()));
+    const std::unique_lock lock = getArtifactsMapLock(productOrModule);
+    registerArtifactsMapAccess(engine, productOrModule);
+    const QString tagString = getJsString(ctx, prop);
+    const FileTag fileTag(tagString.toUtf8());
     const auto &map = artifactsMap(productOrModule);
-    for (auto it = map.cbegin(); it != map.cend(); ++it) {
-        const auto filter = [productOrModule](const Artifact *a) {
-            return isRelevantArtifact(productOrModule, a);
-        };
-        if (std::none_of(it.value().cbegin(), it.value().cend(), filter))
-            continue;
-        QScriptValue fileTagFunc = engine->newFunction(&js_artifactsForFileTag<ProductOrModule>,
-                                                       productOrModule);
-        const QString fileTag = it.key().toString();
-        fileTagFunc.setProperty(FileTagKey, fileTag);
-        artifactsObj.setProperty(fileTag, fileTagFunc,
-                                 QScriptValue::ReadOnly | QScriptValue::Undeletable
-                                 | QScriptValue::PropertyGetter);
+    const auto it = map.constFind(fileTag);
+    if (it == map.constEnd()) {
+        if constexpr (std::is_same_v<ProductOrModule, ResolvedProduct>)
+            engine->setNonExistingArtifactSetRequested(productOrModule, tagString);
+        return 1;
     }
+    if constexpr (std::is_same_v<ProductOrModule, ResolvedProduct>)
+        engine->setArtifactSetRequestedForTag(productOrModule, fileTag);
+    ArtifactSet artifacts = it.value();
+    removeIf(artifacts, [productOrModule](const Artifact *a) {
+        return !isRelevantArtifact(productOrModule, a);
+    });
+    if (!artifacts.empty()) {
+        desc->value = JS_NewArray(ctx); // TODO: Also cache this list?
+        int k = 0;
+        for (Artifact * const artifact : artifacts) {
+            JS_SetPropertyUint32(ctx, desc->value, k++,
+                                 Transformer::translateFileConfig(engine, artifact, QString()));
+        }
+    }
+    return 1;
+}
+
+template<class ProductOrModule> static JSValue js_artifacts(JSContext *ctx,
+                                                            JSValue jsProductOrModule)
+{
+    ScriptEngine * const engine = ScriptEngine::engineForContext(ctx);
+    const auto productOrModule = attachedPointer<ProductOrModule>(jsProductOrModule,
+                                                                  engine->dataWithPtrClass());
+    JSValue artifactsObj = engine->artifactsMapScriptValue(productOrModule);
+    if (!JS_IsUndefined(artifactsObj))
+        return artifactsObj;
+    const int classIndex = scriptClassIndex<ProductOrModule>();
+    JSClassID scriptClass = engine->artifactsScriptClass(classIndex);
+    if (scriptClass == 0) {
+        const QByteArray className = "ArtifactsScriptClass" + QByteArray::number(classIndex);
+        scriptClass = engine->registerClass(className.constData(), nullptr, nullptr, JS_UNDEFINED,
+                                            &getArtifactsPropertyNames<ProductOrModule>,
+                                            &getArtifactsProperty<ProductOrModule>);
+        engine->setArtifactsScriptClass(classIndex, scriptClass);
+    }
+    artifactsObj = JS_NewObjectClass(engine->context(), scriptClass);
+    attachPointerTo(artifactsObj, productOrModule);
     return artifactsObj;
 }
 
-QScriptValue artifactsScriptValueForProduct(QScriptContext *ctx, ScriptEngine *engine,
-                                            const ResolvedProduct *product)
+JSValue artifactsScriptValueForProduct(JSContext *ctx, JSValue this_val, int, JSValue *)
 {
-    return js_artifacts(ctx, engine, product);
+    return js_artifacts<ResolvedProduct>(ctx, this_val);
 }
 
-QScriptValue artifactsScriptValueForModule(QScriptContext *ctx, ScriptEngine *engine,
-                                           const ResolvedModule *module)
+JSValue artifactsScriptValueForModule(JSContext *ctx, JSValueConst this_val, int, JSValueConst *)
 {
-    return js_artifacts(ctx, engine, module);
+    return js_artifacts<ResolvedModule>(ctx, this_val);
 }
 
 } // namespace Internal

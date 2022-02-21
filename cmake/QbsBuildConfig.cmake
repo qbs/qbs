@@ -2,7 +2,9 @@ option(WITH_TESTS "Build Tests" ON)
 option(WITH_UNIT_TESTS "Build Unit Tests" OFF)
 option(INSTALL_PUBLIC_HEADERS "Whether to install public headers" ON)
 option(QBS_ENABLE_RPATH "Whether to enable RPATH" ON)
-option(QBS_USE_BUNDLED_QT_SCRIPT "Whether to use bundled QtScript module" OFF)
+
+include(CMakeDependentOption)
+cmake_dependent_option(QBS_QUICKJS_LEAK_CHECK "Whether to check for quickjs leaks at the end" ON "CMAKE_BUILD_TYPE STREQUAL Debug" OFF)
 
 set(QBS_APP_INSTALL_DIR "bin" CACHE STRING "Relative install location for Qbs binaries.")
 # default paths

@@ -102,7 +102,6 @@ void ProductBuildData::addFileTagToArtifact(Artifact *artifact, const FileTag &t
 
 ArtifactSetByFileTag ProductBuildData::artifactsByFileTag() const
 {
-    std::lock_guard<std::mutex> l(m_artifactsMapMutex);
     return m_artifactsByFileTag;
 }
 
@@ -124,7 +123,6 @@ void ProductBuildData::addRescuableArtifactData(const QString &filePath,
 
 bool ProductBuildData::checkAndSetJsArtifactsMapUpToDateFlag()
 {
-    std::lock_guard<std::mutex> l(m_artifactsMapMutex);
     if (!m_jsArtifactsMapUpToDate) {
         m_jsArtifactsMapUpToDate = true;
         return false;

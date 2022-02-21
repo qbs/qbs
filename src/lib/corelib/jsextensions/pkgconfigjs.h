@@ -37,15 +37,14 @@
 **
 ****************************************************************************/
 
+#include "jsextension.h"
+
 #include "tools/qbs_export.h"
 #include <tools/stlutils.h>
 
 #include <pkgconfig.h>
 
-#include <QtCore/qobject.h>
 #include <QtCore/qvariant.h>
-
-#include <QtScript/qscriptable.h>
 
 #include <memory>
 
@@ -54,13 +53,10 @@ class QProcessEnvironment;
 namespace qbs {
 namespace Internal {
 
-class QBS_AUTOTEST_EXPORT PkgConfigJs : public QObject, QScriptable
+class QBS_AUTOTEST_EXPORT PkgConfigJs : public JsExtension<PkgConfigJs>
 {
-    Q_OBJECT
 public:
-
-    // can we trick moc here to avoid duplication?
-    enum class FlagType {
+    enum FlagType {
         LibraryName = toUnderlying(PcPackage::Flag::Type::LibraryName),
         LibraryPath = toUnderlying(PcPackage::Flag::Type::LibraryPath),
         StaticLibraryName = toUnderlying(PcPackage::Flag::Type::StaticLibraryName),
@@ -72,7 +68,6 @@ public:
         Define = toUnderlying(PcPackage::Flag::Type::Define),
         CompilerFlag = toUnderlying(PcPackage::Flag::Type::CompilerFlag),
     };
-    Q_ENUM(FlagType);
 
     enum class ComparisonType {
         LessThan,
@@ -83,17 +78,21 @@ public:
         NotEqual,
         AlwaysMatch
     };
-    Q_ENUM(ComparisonType);
 
-    static QScriptValue ctor(QScriptContext *context, QScriptEngine *engine);
+    static const char *name() { return "PkgConfig"; }
+    static void declareEnums(JSContext *ctx, JSValue classObj);
+    static JSValue ctor(JSContext *ctx, JSValueConst, JSValueConst,
+                        int argc, JSValueConst *argv, int);
 
-    explicit PkgConfigJs(
-            QScriptContext *context, QScriptEngine *engine, const QVariantMap &options = {});
+    explicit PkgConfigJs(JSContext *ctx, const QVariantMap &options = {});
 
-    Q_INVOKABLE QVariantMap packages() const { return m_packages; }
+    DEFINE_JS_FORWARDER(jsPackages, &PkgConfigJs::packages, "PkgConfig.packages")
+    QVariantMap packages() const { return m_packages; }
 
     // also used in tests
     static PkgConfig::Options convertOptions(const QProcessEnvironment &env, const QVariantMap &map);
+
+    static void setupMethods(JSContext *ctx, JSValue obj);
 
 private:
     std::unique_ptr<PkgConfig> m_pkgConfig;

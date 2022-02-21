@@ -46,37 +46,39 @@
 namespace qbs {
 namespace Internal {
 
-static QScriptValue toScriptValue(ScriptEngine *engine, const QString &productName,
-                                  const QVariantMap &v, const QString &depName,
-                                  const QualifiedId &moduleName)
+static JSValue toScriptValue(ScriptEngine *engine, const QString &productName,
+                             const QVariantMap &v, const QString &depName,
+                             const QualifiedId &moduleName)
 {
-    QScriptValue obj = engine->newObject();
+    JSValue obj = engine->newObject();
     bool objIdAddedToObserver = false;
     for (auto it = v.begin(); it != v.end(); ++it) {
         if (it.value().userType() == QMetaType::QVariantMap) {
-            obj.setProperty(it.key(), toScriptValue(engine, productName, it.value().toMap(),
-                    depName, QualifiedId(moduleName) << it.key()));
+            setJsProperty(engine->context(), obj, it.key(),
+                          toScriptValue(engine, productName, it.value().toMap(),
+                                        depName, QualifiedId(moduleName) << it.key()));
         } else {
             if (!objIdAddedToObserver) {
                 objIdAddedToObserver = true;
-                engine->observer()->addParameterObjectId(obj.objectId(), productName, depName,
+                engine->observer()->addParameterObjectId(jsObjectId(obj), productName, depName,
                                                          moduleName);
             }
-            engine->setObservedProperty(obj, it.key(), engine->toScriptValue(it.value()));
+            const ScopedJsValue val(engine->context(), engine->toScriptValue(it.value()));
+            engine->setObservedProperty(obj, it.key(), val);
         }
     }
     return obj;
 }
 
 
-static QScriptValue toScriptValue(ScriptEngine *scriptEngine, const QString &productName,
-                                  const QVariantMap &v, const QString &depName)
+static JSValue toScriptValue(ScriptEngine *scriptEngine, const QString &productName,
+                             const QVariantMap &v, const QString &depName)
 {
     return toScriptValue(scriptEngine, productName, v, depName, {});
 }
 
-QScriptValue dependencyParametersValue(const QString &productName, const QString &dependencyName,
-                                       const QVariantMap &parametersMap, ScriptEngine *engine)
+JSValue dependencyParametersValue(const QString &productName, const QString &dependencyName,
+                                  const QVariantMap &parametersMap, ScriptEngine *engine)
 {
     return toScriptValue(engine, productName, parametersMap, dependencyName);
 }

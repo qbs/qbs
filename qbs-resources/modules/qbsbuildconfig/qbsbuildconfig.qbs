@@ -14,7 +14,6 @@ Module {
     property bool enableRPath: true
     property bool installApiHeaders: true
     property bool enableBundledQt: false
-    property bool useBundledQtScript: false
     property bool staticBuild: false
     property string libDirName: "lib"
     property string appInstallDir: "bin"
@@ -47,11 +46,12 @@ Module {
     property string pluginsInstallDir: libDirName + "/qbs/plugins"
     property string qmlTypeDescriptionsInstallDir: FileInfo.joinPaths(resourcesInstallDir,
                                                                   "share/qbs/qml-type-descriptions")
+    property bool dumpJsLeaks: qbs.buildVariant === "debug"
 
     Properties {
         condition: project.withCode && qbs.toolchain.contains("gcc")
         cpp.cxxFlags: {
-            var flags = [];
+            var flags = ["-Wno-missing-field-initializers"];
             if (enableAddressSanitizer)
                 flags.push("-fno-omit-frame-pointer");
             function isClang() { return qbs.toolchain.contains("clang"); }

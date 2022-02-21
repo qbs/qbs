@@ -308,6 +308,9 @@ void TestLanguage::chainedProbes()
         const TopLevelProjectConstPtr project = loader->loadProject(parameters);
         QVERIFY(!!project);
         QCOMPARE(project->products.size(), size_t(1));
+        const QString prop1Val = project->products.front()->moduleProperties
+                ->moduleProperty("m", "prop1").toString();
+        QCOMPARE(prop1Val, QLatin1String("probe1Val"));
         const QString prop2Val = project->products.front()->moduleProperties
                 ->moduleProperty("m", "prop2").toString();
         QCOMPARE(prop2Val, QLatin1String("probe1Valprobe2Val"));
@@ -805,11 +808,11 @@ void TestLanguage::erroneousFiles_data()
     QTest::newRow("importloop1")
             << "Loop detected when importing";
     QTest::newRow("nonexistentouter")
-            << "Can't find variable: outer";
+            << "'outer' is not defined";
     QTest::newRow("invalid_file")
             << "does not exist";
     QTest::newRow("invalid-parameter-rhs")
-            << "ReferenceError: Can't find variable: access";
+            << "'access' is not defined";
     QTest::newRow("invalid-parameter-type")
             << "Value assigned to property 'stringParameter' does not have type 'string'.";
     QTest::newRow("invalid_property_type")
@@ -874,8 +877,8 @@ void TestLanguage::erroneousFiles_data()
     QTest::newRow("wrongQbsVersionFormat")
             << "The value '.*' of Project.minimumQbsVersion is not a valid version string.";
     QTest::newRow("properties-item-with-invalid-condition")
-            << "properties-item-with-invalid-condition.qbs:4:19.*TypeError: Result of expression "
-               "'cpp.nonexistingproperty'";
+            << "properties-item-with-invalid-condition.qbs:4:19.*"
+               "cannot read property 'contains' of undefined";
     QTest::newRow("misused-inherited-property") << "Binding to non-item property";
     QTest::newRow("undeclared_property_in_Properties_item") << "Item 'blubb' is not declared";
     QTest::newRow("same-module-prefix1") << "The name of module 'prefix1' is equal to the first "
@@ -889,7 +892,7 @@ void TestLanguage::erroneousFiles_data()
     QTest::newRow("missing-colon")
             << "Invalid item 'dummy.cxxFlags'. Did you mean to set a module property?";
     QTest::newRow("syntax-error-in-probe")
-            << "syntax-error-in-probe.qbs:4:20.*ReferenceError";
+            << "syntax-error-in-probe.qbs:4:20.*'fngkgsdjfgklkf' is not defined";
     QTest::newRow("wrong-toplevel-item")
             << "wrong-toplevel-item.qbs:1:1.*The top-level item must be of type 'Project' or "
                "'Product', but it is of type 'Artifact'.";
@@ -914,10 +917,10 @@ void TestLanguage::erroneousFiles_data()
             << "module-with-invalid-original.qbs:2:24.*The special value 'original' cannot be used "
                "on the right-hand side of a property declaration.";
     QTest::newRow("original-in-export-item")
-            << "original-in-export-item.qbs:7:32.*The special value 'original' cannot be used "
+            << "original-in-export-item.qbs:5:32.*The special value 'original' cannot be used "
                "on the right-hand side of a property declaration.";
     QTest::newRow("original-in-export-item2")
-            << "original-in-export-item2.qbs:6:9.*Item 'x.y' is not declared. Did you forget "
+            << "original-in-export-item2.qbs:4:9.*Item 'x.y' is not declared. Did you forget "
                "to add a Depends item";
     QTest::newRow("original-in-export-item3")
             << "original-in-export-item3.qbs:6:9.*Item 'x.y' is not declared. Did you forget "
@@ -938,9 +941,9 @@ void TestLanguage::erroneousFiles_data()
             << "dependency-profile-mismatch-2.qbs:15:9 Dependency from product 'main' to "
                "product 'dep' not fulfilled. There are no eligible multiplex candidates.";
     QTest::newRow("duplicate-multiplex-value")
-            << "duplicate-multiplex-value.qbs:3:1.*Duplicate entry 'x86' in qbs.architectures.";
+            << "duplicate-multiplex-value.qbs:1:1.*Duplicate entry 'x86' in qbs.architectures.";
     QTest::newRow("duplicate-multiplex-value2")
-            << "duplicate-multiplex-value2.qbs:3:1.*Duplicate entry 'architecture' in "
+            << "duplicate-multiplex-value2.qbs:1:1.*Duplicate entry 'architecture' in "
                "Product.multiplexByQbsProperties.";
     QTest::newRow("invalid-references")
             << "invalid-references.qbs:2:17.*Cannot open '.*nosuchproject.qbs'";
@@ -1603,12 +1606,13 @@ void TestLanguage::itemPrototype()
     item->setProperty("z", sourceValueCreator.create("2"));
 
     Evaluator evaluator(m_engine.get());
-    QCOMPARE(evaluator.property(proto, "x").toVariant().toInt(), 1);
-    QCOMPARE(evaluator.property(proto, "y").toVariant().toInt(), 1);
-    QVERIFY(!evaluator.property(proto, "z").isValid());
-    QCOMPARE(evaluator.property(item, "x").toVariant().toInt(), 1);
-    QCOMPARE(evaluator.property(item, "y").toVariant().toInt(), 2);
-    QCOMPARE(evaluator.property(item, "z").toVariant().toInt(), 2);
+    JSContext * const ctx = m_engine->context();
+    QCOMPARE(getJsVariant(ctx, evaluator.property(proto, "x")).toInt(), 1);
+    QCOMPARE(getJsVariant(ctx, evaluator.property(proto, "y")).toInt(), 1);
+    QVERIFY(JS_IsUndefined(evaluator.property(proto, "z")));
+    QCOMPARE(getJsVariant(ctx, evaluator.property(item, "x")).toInt(), 1);
+    QCOMPARE(getJsVariant(ctx, evaluator.property(item, "y")).toInt(), 2);
+    QCOMPARE(getJsVariant(ctx, evaluator.property(item, "z")).toInt(), 2);
 }
 
 void TestLanguage::itemScope()
@@ -1627,10 +1631,11 @@ void TestLanguage::itemScope()
     item->setProperty("z", sourceValueCreator.create("x + y"));
 
     Evaluator evaluator(m_engine.get());
-    QCOMPARE(evaluator.property(scope1, "x").toVariant().toInt(), 1);
-    QCOMPARE(evaluator.property(scope2, "y").toVariant().toInt(), 2);
-    QVERIFY(!evaluator.property(scope2, "x").isValid());
-    QCOMPARE(evaluator.property(item, "z").toVariant().toInt(), 3);
+    JSContext * const ctx = m_engine->context();
+    QCOMPARE(getJsVariant(ctx, evaluator.property(scope1, "x")).toInt(), 1);
+    QCOMPARE(getJsVariant(ctx, evaluator.property(scope2, "y")).toInt(), 2);
+    QVERIFY(JS_IsUndefined(evaluator.property(scope2, "x")));
+    QCOMPARE(getJsVariant(ctx, evaluator.property(item, "z")).toInt(), 3);
 }
 
 void TestLanguage::jsExtensions()
@@ -1640,10 +1645,10 @@ void TestLanguage::jsExtensions()
     QTextStream ts(&file);
     QString code = ts.readAll();
     QVERIFY(!code.isEmpty());
-    QScriptValue evaluated = m_engine->evaluate(code, file.fileName(), 1);
-    if (m_engine->hasErrorOrException(evaluated)) {
-        qDebug() << m_engine->uncaughtExceptionBacktrace();
-        QFAIL(qPrintable(m_engine->lastErrorString(evaluated)));
+    m_engine->evaluate(JsValueOwner::Caller, code, file.fileName(), 1);
+    if (JsException ex = m_engine->checkAndClearException({})) {
+        qDebug() << ex.stackTrace();
+        QFAIL(qPrintable(ex.message()));
     }
 }
 

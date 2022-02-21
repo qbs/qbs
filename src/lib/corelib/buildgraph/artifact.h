@@ -50,6 +50,7 @@
 
 #include <QtCore/qstring.h>
 
+#include <functional>
 #include <utility>
 #include <vector>
 
@@ -123,8 +124,12 @@ public:
     void load(PersistentPool &pool) override;
     void store(PersistentPool &pool) override;
 
+    using Deregister = std::function<void(const Artifact *)>;
+    void setDeregister(const Deregister &deregister) { m_deregister = deregister; }
+
 private:
     FileTags m_fileTags;
+    Deregister m_deregister;
 };
 
 template<> inline QString Set<Artifact *>::toString(Artifact * const &artifact) const

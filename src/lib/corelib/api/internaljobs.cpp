@@ -50,6 +50,7 @@
 #include <buildgraph/rulesevaluationcontext.h>
 #include <language/language.h>
 #include <language/loader.h>
+#include <language/scriptengine.h>
 #include <logging/logger.h>
 #include <logging/translator.h>
 #include <tools/buildgraphlocker.h>
@@ -76,6 +77,8 @@ public:
     {
         std::lock_guard<std::mutex> lock(m_cancelMutex);
         m_canceled = true;
+        if (scriptEngine())
+            scriptEngine()->cancel();
     }
 
 private:

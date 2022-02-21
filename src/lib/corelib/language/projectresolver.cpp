@@ -67,6 +67,8 @@
 #include <tools/stlutils.h>
 #include <tools/stringconstants.h>
 
+#include <quickjs.h>
+
 #include <QtCore/qdir.h>
 #include <QtCore/qregularexpression.h>
 
@@ -326,7 +328,8 @@ void ProjectResolver::resolveProjectFully(Item *item, ProjectResolver::ProjectCo
             continue;
         const ValueConstPtr v = item->property(it.key());
         QBS_ASSERT(v && v->type() != Value::ItemValueType, continue);
-        projectProperties.insert(it.key(), m_evaluator->value(item, it.key()).toVariant());
+        const ScopedJsValue sv(m_engine->context(), m_evaluator->value(item, it.key()));
+        projectProperties.insert(it.key(), getJsVariant(m_engine->context(), sv));
     }
     projectContext->project->setProjectProperties(projectProperties);
 
@@ -475,7 +478,7 @@ void ProjectResolver::resolveProductFully(Item *item, ProjectContext *projectCon
     createProductConfig(product.get());
     product->productProperties.insert(StringConstants::destinationDirProperty(),
                                       product->destinationDirectory);
-    ModuleProperties::init(m_evaluator->scriptValue(item), product.get());
+    ModuleProperties::init(m_evaluator->engine(), m_evaluator->scriptValue(item), product.get());
 
     QList<Item *> subItems = item->children();
     const ValuePtr filesProperty = item->property(StringConstants::filesProperty());
@@ -1213,9 +1216,10 @@ void ProjectResolver::resolveRule(Item *item, ProjectContext *projectContext)
     }
 
     rule->name = m_evaluator->stringValue(item, StringConstants::nameProperty());
-    rule->prepareScript.initialize(scriptFunctionValue(item, StringConstants::prepareProperty()));
-    rule->outputArtifactsScript.initialize(scriptFunctionValue(
-                                               item, StringConstants::outputArtifactsProperty()));
+    rule->prepareScript.initialize(
+                scriptFunctionValue(item, StringConstants::prepareProperty()));
+    rule->outputArtifactsScript.initialize(
+                scriptFunctionValue(item, StringConstants::outputArtifactsProperty()));
     rule->outputFileTags = m_evaluator->fileTagsValue(
                 item, StringConstants::outputFileTagsProperty());
     if (rule->outputArtifactsScript.isValid()) {
@@ -1395,9 +1399,10 @@ void ProjectResolver::resolveScanner(Item *item, ProjectResolver::ProjectContext
     scanner->module = m_moduleContext ? m_moduleContext->module : projectContext->dummyModule;
     scanner->inputs = m_evaluator->fileTagsValue(item, StringConstants::inputsProperty());
     scanner->recursive = m_evaluator->boolValue(item, StringConstants::recursiveProperty());
-    scanner->searchPathsScript.initialize(scriptFunctionValue(
-                                              item, StringConstants::searchPathsProperty()));
-    scanner->scanScript.initialize(scriptFunctionValue(item, StringConstants::scanProperty()));
+    scanner->searchPathsScript.initialize(
+                scriptFunctionValue(item, StringConstants::searchPathsProperty()));
+    scanner->scanScript.initialize(
+                scriptFunctionValue(item, StringConstants::scanProperty()));
     m_productContext->product->scanners.push_back(scanner);
 }
 
@@ -1739,6 +1744,7 @@ QVariantMap ProjectResolver::evaluateProperties(const Item *item, const Item *pr
 void ProjectResolver::evaluateProperty(const Item *item, const QString &propName,
         const ValuePtr &propValue, QVariantMap &result, bool checkErrors)
 {
+    JSContext * const ctx = m_engine->context();
     switch (propValue->type()) {
     case Value::ItemValueType:
     {
@@ -1754,23 +1760,24 @@ void ProjectResolver::evaluateProperty(const Item *item, const QString &propName
         if (pd.flags().testFlag(PropertyDeclaration::PropertyNotAvailableInConfig)) {
             break;
         }
-        const QScriptValue scriptValue = m_evaluator->property(item, propName);
-        if (checkErrors && Q_UNLIKELY(m_evaluator->engine()->hasErrorOrException(scriptValue))) {
-            throw ErrorInfo(m_evaluator->engine()->lastError(scriptValue,
-                                                             propValue->location()));
+        const ScopedJsValue scriptValue(ctx, m_evaluator->property(item, propName));
+        if (JsException ex = m_evaluator->engine()->checkAndClearException(propValue->location())) {
+            if (checkErrors)
+                throw ex.toErrorInfo();
         }
 
         // NOTE: Loses type information if scriptValue.isUndefined == true,
         //       as such QScriptValues become invalid QVariants.
         QVariant v;
-        if (scriptValue.isFunction()) {
-            v = scriptValue.toString();
+        if (JS_IsFunction(ctx, scriptValue)) {
+            v = getJsString(ctx, scriptValue);
         } else {
-            v = scriptValue.toVariant();
+            v = getJsVariant(ctx, scriptValue);
             QVariantMap m = v.toMap();
             if (m.contains(StringConstants::importScopeNamePropertyInternal())) {
                 QVariantMap tmp = m;
-                m = scriptValue.prototype().toVariant().toMap();
+                const ScopedJsValue proto(ctx, JS_GetPrototype(ctx, scriptValue));
+                m = getJsVariant(ctx, proto).toMap();
                 for (auto it = tmp.begin(); it != tmp.end(); ++it)
                     m.insert(it.key(), it.value());
                 v = m;
@@ -1855,7 +1862,7 @@ void ProjectResolver::collectPropertiesForExportItem(const QualifiedId &moduleNa
             {
                 valueItem->setScope(moduleInstance);
                 if (!hadName) {
-                    // EvaluatorScriptClass expects a name here.
+                    // Evaluator expects a name here.
                     valueItem->setProperty(StringConstants::nameProperty(),
                                            VariantValue::create(moduleName.toString()));
                 }

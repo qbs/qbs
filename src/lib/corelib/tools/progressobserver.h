@@ -47,6 +47,7 @@ QT_END_NAMESPACE
 
 namespace qbs {
 namespace Internal {
+class ScriptEngine;
 
 class ProgressObserver
 {
@@ -64,6 +65,14 @@ public:
 
     // Call this to ensure that the progress bar always goes to 100%.
     void setFinished();
+
+    void setScriptEngine(ScriptEngine *engine) { m_scriptEngine = engine; }
+
+protected:
+    ScriptEngine *scriptEngine() const { return m_scriptEngine; }
+
+private:
+    ScriptEngine *m_scriptEngine = nullptr;
 };
 
 } // namespace Internal

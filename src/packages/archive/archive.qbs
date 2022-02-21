@@ -6,7 +6,6 @@ import qbs.TextFile
 QbsProduct {
     Depends { name: "qbs_processlauncher" }
     Depends { name: "qbscore" }
-    Depends { name: "qbsscriptengine"; required: false }
     Depends { name: "bundledqt"; required: false }
     Depends { name: "qbs documentation"; condition: project.withDocumentation }
     Depends { name: "qbs resources" }

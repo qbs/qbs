@@ -41,11 +41,10 @@
 #define QBS_QTMOCSCANNER_H
 
 #include <language/language.h>
+#include <quickjs.h>
 
 #include <QtCore/qhash.h>
 #include <QtCore/qstring.h>
-
-#include <QtScript/qscriptvalue.h>
 
 QT_BEGIN_NAMESPACE
 class QScriptContext;
@@ -55,6 +54,7 @@ class ScannerPlugin;
 
 namespace qbs {
 namespace Internal {
+class ScriptEngine;
 
 class Artifact;
 struct CommonFileTags;
@@ -62,17 +62,19 @@ struct CommonFileTags;
 class QtMocScanner
 {
 public:
-    explicit QtMocScanner(const ResolvedProductPtr &product, QScriptValue targetScriptValue);
+    explicit QtMocScanner(const ResolvedProductPtr &product, ScriptEngine *engine,
+                          JSValue targetScriptValue);
     ~QtMocScanner();
 
 private:
     void findIncludedMocCppFiles();
-    static QScriptValue js_apply(QScriptContext *ctx, QScriptEngine *engine, QtMocScanner *that);
-    QScriptValue apply(QScriptEngine *engine, const Artifact *artifact);
+    static JSValue js_apply(JSContext *ctx, JSValue this_val, int argc, JSValue *argv);
+    JSValue apply(ScriptEngine *engine, const Artifact *artifact);
 
+    ScriptEngine * const m_engine;
     const CommonFileTags &m_tags;
     const ResolvedProductPtr &m_product;
-    QScriptValue m_targetScriptValue;
+    JSValue m_targetScriptValue;
     QHash<QString, QString> m_includedMocCppFiles;
     ScannerPlugin *m_cppScanner = nullptr;
 };

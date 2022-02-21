@@ -54,6 +54,7 @@
 
 #include <tools/fileinfo.h>
 #include <tools/jsliterals.h>
+#include <tools/scripttools.h>
 #include <tools/stlutils.h>
 #include <tools/stringconstants.h>
 
@@ -182,9 +183,12 @@ QVariantMap ModuleProviderLoader::getModuleProviderConfig(
                     collectMap(childItem, QualifiedId(name) << it.key());
                     continue;
                 }
-                case Value::JSSourceValueType:
-                    value = m_evaluator->value(item, it.key()).toVariant();
+                case Value::JSSourceValueType: {
+                    const ScopedJsValue sv(m_evaluator->engine()->context(),
+                                           m_evaluator->value(item, it.key()));
+                    value = getJsVariant(m_evaluator->engine()->context(), sv);
                     break;
+                }
                 case Value::VariantValueType:
                     value = static_cast<VariantValue *>(it.value().get())->value();
                     break;
@@ -270,7 +274,9 @@ QVariantMap ModuleProviderLoader::evaluateQbsModule(ProductContext &product) con
         product.item->property(StringConstants::qbsModule()));
     QVariantMap result;
     for (const auto &property : properties) {
-        auto value = m_evaluator->value(qbsItemValue->item(), property).toVariant();
+        const ScopedJsValue val(m_evaluator->engine()->context(),
+                                m_evaluator->value(qbsItemValue->item(), property));
+        auto value = getJsVariant(m_evaluator->engine()->context(), val);
         if (value.isValid())
             result[property] = std::move(value);
     }

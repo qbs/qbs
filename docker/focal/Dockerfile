@@ -85,7 +85,7 @@ ENV LLVM_INSTALL_DIR=/usr/lib/llvm-12
 #
 COPY scripts/install-qt.sh install-qt.sh
 
-RUN ./install-qt.sh --version ${QT_VERSION} qtbase qtdeclarative qtscript qttools qtx11extras qtscxml qt5compat icu && \
+RUN ./install-qt.sh --version ${QT_VERSION} qtbase qtdeclarative qttools qtx11extras qtscxml qt5compat icu && \
     ./install-qt.sh --version ${QTCREATOR_VERSION} qtcreator && \
     echo "export PATH=/opt/Qt/${QT_VERSION}/gcc_64/bin:/opt/Qt/Tools/QtCreator/bin:\${PATH}" > /etc/profile.d/qt.sh
 

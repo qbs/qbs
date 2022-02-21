@@ -56,7 +56,7 @@
 
 #include <QtCore/qvariant.h>
 
-#include <QtScript/qscriptcontext.h>
+#include <vector>
 
 namespace qbs {
 namespace Internal {
@@ -158,10 +158,9 @@ UserDependencyScanner::UserDependencyScanner(ResolvedScannerConstPtr scanner,
                                              ScriptEngine *engine)
     : m_scanner(std::move(scanner)),
       m_engine(engine),
+      m_global(engine->context(), JS_NewObjectProto(engine->context(), m_engine->globalObject())),
       m_product(nullptr)
 {
-    m_global = m_engine->newObject();
-    m_global.setPrototype(m_engine->globalObject());
     setupScriptEngineForFile(m_engine, m_scanner->scanScript.fileContext(), m_global,
                              ObserveMode::Disabled); // TODO: QBS-1092
 }
@@ -218,7 +217,7 @@ public:
     }
 };
 
-QStringList UserDependencyScanner::evaluate(const Artifact *artifact,
+QStringList UserDependencyScanner::evaluate(Artifact *artifact,
         const FileResourceBase *fileToScan, const PrivateScriptFunction &script)
 {
     ScriptEngineActiveFlagGuard guard(m_engine);
@@ -229,38 +228,42 @@ QStringList UserDependencyScanner::evaluate(const Artifact *artifact,
                                     m_scanner->module.get(), m_global, true);
     }
 
-    QScriptValueList args;
+    JSValueList args;
     args.reserve(fileToScan ? 4 : 3);
-    args.push_back(m_global.property(StringConstants::projectVar()));
-    args.push_back(m_global.property(StringConstants::productVar()));
+    args.push_back(getJsProperty(m_engine->context(), m_global, StringConstants::projectVar()));
+    args.push_back(getJsProperty(m_engine->context(), m_global, StringConstants::productVar()));
     args.push_back(Transformer::translateFileConfig(m_engine, artifact, m_scanner->module->name));
     if (fileToScan)
-        args.push_back(fileToScan->filePath());
+        args.push_back(makeJsString(m_engine->context(), fileToScan->filePath()));
+    const ScopedJsValueList argsMgr(m_engine->context(), args);
 
-    m_engine->setGlobalObject(m_global);
-    QScriptValue &function = script.scriptFunction;
-    if (!function.isValid() || function.engine() != m_engine) {
-        function = m_engine->evaluate(script.sourceCode());
-        if (Q_UNLIKELY(!function.isFunction()))
+    const TemporaryGlobalObjectSetter gos(m_engine, m_global);
+    JSValue &function = script.scriptFunction;
+    if (!JS_IsFunction(m_engine->context(), function)) {
+        function = m_engine->evaluate(JsValueOwner::ScriptEngine, script.sourceCode());
+        if (Q_UNLIKELY(!JS_IsFunction(m_engine->context(), function)))
             throw ErrorInfo(Tr::tr("Invalid scan script."), script.location());
     }
-    QScriptValue result = function.call(QScriptValue(), args);
-    m_engine->setGlobalObject(m_global.prototype());
+    const ScopedJsValue result(
+                m_engine->context(),
+                JS_Call(m_engine->context(), function, m_engine->globalObject(),
+                        int(args.size()), args.data()));
     m_engine->clearRequestedProperties();
-    if (Q_UNLIKELY(m_engine->hasErrorOrException(result))) {
-        QString msg = Tr::tr("evaluating scan script: ") + m_engine->lastErrorString(result);
-        const CodeLocation loc = m_engine->lastErrorLocation(result, script.location());
-        m_engine->clearExceptions();
-        throw ErrorInfo(msg, loc);
+    if (JsException ex = m_engine->checkAndClearException(script.location())) {
+        ErrorInfo err = ex.toErrorInfo();
+        err.prepend(Tr::tr("Error evaluating scan script"));
+        throw err;
     }
     QStringList list;
-    if (result.isArray()) {
-        const int count = result.property(StringConstants::lengthProperty()).toInt32();
+    if (JS_IsArray(m_engine->context(), result)) {
+        const int count = getJsIntProperty(m_engine->context(), result,
+                                           StringConstants::lengthProperty());
         list.reserve(count);
         for (qint32 i = 0; i < count; ++i) {
-            QScriptValue item = result.property(i);
-            if (item.isValid() && !item.isUndefined())
-                list.push_back(item.toString());
+            JSValue item = JS_GetPropertyUint32(m_engine->context(), result, i);
+            if (!JS_IsUninitialized(item) && !JS_IsUndefined(item))
+                list.push_back(getJsString(m_engine->context(), item));
+            JS_FreeValue(m_engine->context(), item);
         }
     }
     return list;

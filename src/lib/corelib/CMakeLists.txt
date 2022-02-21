@@ -110,7 +110,6 @@ set(BUILD_GRAPH_SOURCES
     rulesapplicator.h
     rulesevaluationcontext.cpp
     rulesevaluationcontext.h
-    scriptclasspropertyiterator.h
     timestampsupdater.cpp
     timestampsupdater.h
     transformer.cpp
@@ -172,7 +171,6 @@ list_transform_prepend(JS_EXTENSIONS_SOURCES jsextensions/)
 
 if(APPLE)
     set(JS_EXTENSIONS_MACOS_SOURCES
-        propertylist_darwin.h
         propertylist_darwin.mm
         propertylistutils.h
         propertylistutils.mm
@@ -194,11 +192,8 @@ set(LANGUAGE_SOURCES
     builtindeclarations.cpp
     builtindeclarations.h
     deprecationinfo.h
-    evaluationdata.h
     evaluator.cpp
     evaluator.h
-    evaluatorscriptclass.cpp
-    evaluatorscriptclass.h
     filecontext.cpp
     filecontext.h
     filecontextbase.cpp
@@ -435,7 +430,7 @@ add_qbs_library(qbscore
         Qt${QT_VERSION_MAJOR}::Xml
         Qt6Core5Compat
         qbspkgconfig
-        qbsscriptengine
+        qbsquickjs
     PUBLIC_DEPENDS
         Qt${QT_VERSION_MAJOR}::Core
         ${EXTERNAL_DEPENDS}

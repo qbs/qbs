@@ -143,8 +143,9 @@ Module {
 
         validator.addCustomValidator("architecture", architecture, function (value) {
             return !architecture || architecture === Utilities.canonicalArchitecture(architecture);
-        }, "'" + architecture + "' is invalid. You must use the canonical name '" +
-        Utilities.canonicalArchitecture(architecture) + "'");
+        }, "'" + architecture + "' is invalid." + (architecture
+            ? " You must use the canonical name '" + Utilities.canonicalArchitecture(architecture)
+            : "") + "'");
 
         validator.addCustomValidator("toolchain", toolchain, function (value) {
             if (toolchain === undefined)

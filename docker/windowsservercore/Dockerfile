@@ -42,10 +42,10 @@ RUN certutil -generateSSTFromWU roots.sst && \
 ARG QT_VERSION
 COPY scripts/install-qt.sh install-qt.sh
 
-RUN bash -c "./install-qt.sh -d /c/Qt --version ${QT_VERSION} --toolchain win64_msvc2019_64 qtbase qtdeclarative qttools qtscript"
+RUN bash -c "./install-qt.sh -d /c/Qt --version ${QT_VERSION} --toolchain win64_msvc2019_64 qtbase qtdeclarative qttools"
 ENV QTDIR64=C:\\Qt\\${QT_VERSION}\\msvc2019_64
 
-RUN bash -c "./install-qt.sh -d /c/Qt --version ${QT_VERSION} --toolchain win32_msvc2019 qtbase qtdeclarative qttools qtscript"
+RUN bash -c "./install-qt.sh -d /c/Qt --version ${QT_VERSION} --toolchain win32_msvc2019 qtbase qtdeclarative qttools"
 ENV QTDIR=C:\\Qt\\${QT_VERSION}\\msvc2019
 
 RUN qbs setup-toolchains --detect && \

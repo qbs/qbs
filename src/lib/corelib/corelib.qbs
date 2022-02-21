@@ -7,20 +7,10 @@ QbsLibrary {
         name: "Qt.core5compat";
         condition: Utilities.versionCompare(Qt.core.version, "6.0.0") >= 0
     }
-    Depends {
-        name: "Qt.script"
-        condition: !qbsbuildconfig.useBundledQtScript
-        required: false
-    }
-    Depends {
-        name: "qbsscriptengine"
-        condition: qbsbuildconfig.useBundledQtScript || !Qt.script.present
-    }
+    Depends { name: "quickjs" }
     Depends { name: "qbspkgconfig" }
     name: "qbscore"
-    property stringList bundledQtScriptIncludes: qbsbuildconfig.useBundledQtScript
-            || !Qt.script.present ? qbsscriptengine.includePaths : []
-    cpp.includePaths: base.concat(bundledQtScriptIncludes).concat([
+    cpp.includePaths: base.concat([
         ".",
         "../.." // for the plugin headers
     ])
@@ -172,7 +162,6 @@ QbsLibrary {
             "rulesapplicator.h",
             "rulesevaluationcontext.cpp",
             "rulesevaluationcontext.h",
-            "scriptclasspropertyiterator.h",
             "timestampsupdater.cpp",
             "timestampsupdater.h",
             "transformer.cpp",
@@ -233,6 +222,7 @@ QbsLibrary {
             "file.cpp",
             "fileinfoextension.cpp",
             "host.cpp",
+            "jsextension.h",
             "jsextensions.cpp",
             "jsextensions.h",
             "moduleproperties.cpp",
@@ -260,9 +250,6 @@ QbsLibrary {
         prefix: "jsextensions/"
         condition: qbs.targetOS.contains("darwin")
         files: [
-            // This is ugly, but because of QBS-1592 we cannot check the platform in the header
-            // using Q_OS_DARWIN
-            "propertylist_darwin.h",
             "propertylist_darwin.mm",
             "propertylistutils.h",
             "propertylistutils.mm",
@@ -283,11 +270,8 @@ QbsLibrary {
             "builtindeclarations.cpp",
             "builtindeclarations.h",
             "deprecationinfo.h",
-            "evaluationdata.h",
             "evaluator.cpp",
             "evaluator.h",
-            "evaluatorscriptclass.cpp",
-            "evaluatorscriptclass.h",
             "filecontext.cpp",
             "filecontext.h",
             "filecontextbase.cpp",

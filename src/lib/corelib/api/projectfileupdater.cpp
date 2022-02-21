@@ -66,7 +66,7 @@ namespace Internal {
 class ItemFinder : public Visitor
 {
 public:
-    ItemFinder(const CodeLocation &cl) : m_cl(cl), m_item(nullptr) { }
+    ItemFinder(CodeLocation cl) : m_cl(std::move(cl)), m_item(nullptr) { }
 
     UiObjectDefinition *item() const { return m_item; }
 

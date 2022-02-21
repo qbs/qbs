@@ -387,11 +387,11 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     var linkDLL = (outputs.dynamiclibrary ? true : false)
     var primaryOutput = (linkDLL ? outputs.dynamiclibrary[0] : outputs.application[0])
     var debugInformation = product.cpp.debugInformation;
-    var additionalManifestInputs = Array.prototype.map.call(inputs["native.pe.manifest"],
+    var additionalManifestInputs = Array.prototype.map.call(inputs["native.pe.manifest"] || [],
         function (a) {
             return a.filePath;
         });
-    var moduleDefinitionInputs = Array.prototype.map.call(inputs["def"],
+    var moduleDefinitionInputs = Array.prototype.map.call(inputs["def"] || [],
         function (a) {
             return a.filePath;
         });

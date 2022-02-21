@@ -42,11 +42,10 @@
 #include <language/forward_decls.h>
 #include <logging/logger.h>
 
+#include <quickjs.h>
+
 #include <QtCore/qhash.h>
 #include <QtCore/qstring.h>
-
-#include <QtScript/qscriptprogram.h>
-#include <QtScript/qscriptvalue.h>
 
 namespace qbs {
 namespace Internal {
@@ -70,7 +69,7 @@ public:
     };
 
     ScriptEngine *engine() const { return m_engine.get(); }
-    QScriptValue scope() const { return m_scope; }
+    JSValue scope() const { return m_scope; }
 
     void setObserver(ProgressObserver *observer) { m_observer = observer; }
     ProgressObserver *observer() const { return m_observer; }
@@ -79,8 +78,6 @@ public:
     void checkForCancelation();
 
 private:
-    friend class Scope;
-
     void initScope();
     void cleanupScope();
 
@@ -88,8 +85,8 @@ private:
     const std::unique_ptr<ScriptEngine> m_engine;
     ProgressObserver *m_observer;
     unsigned int m_initScopeCalls;
-    QScriptValue m_scope;
-    QScriptValue m_prepareScriptScope;
+    JSValue m_scope = JS_UNDEFINED;
+    const JSValue m_prepareScriptScope;
 };
 
 } // namespace Internal

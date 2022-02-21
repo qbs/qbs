@@ -37,13 +37,14 @@
 **
 ****************************************************************************/
 
+#include "jsextension.h"
+
 #include <language/scriptengine.h>
 #include <logging/translator.h>
 #include <tools/hostosinfo.h>
 
 #include <QtCore/qfile.h>
 #include <QtCore/qfileinfo.h>
-#include <QtCore/qobject.h>
 #include <QtCore/qtextstream.h>
 #include <QtCore/qvariant.h>
 
@@ -53,16 +54,12 @@
 #include <QtCore/qtextcodec.h>
 #endif
 
-#include <QtScript/qscriptable.h>
-#include <QtScript/qscriptengine.h>
-#include <QtScript/qscriptvalue.h>
-
 namespace qbs {
 namespace Internal {
 
-class TextFile : public QObject, public QScriptable, public ResourceAcquiringScriptObject
+class TextFile : public JsExtension<TextFile>
 {
-    Q_OBJECT
+    friend class JsExtension<TextFile>;
 public:
     enum OpenMode
     {
@@ -71,77 +68,92 @@ public:
         ReadWrite = ReadOnly | WriteOnly,
         Append = 4
     };
-    Q_ENUM(OpenMode)
 
-    static QScriptValue ctor(QScriptContext *context, QScriptEngine *engine);
-
-    Q_INVOKABLE void close();
-    Q_INVOKABLE QString filePath();
-    Q_INVOKABLE void setCodec(const QString &codec);
-    Q_INVOKABLE QString readLine();
-    Q_INVOKABLE QString readAll();
-    Q_INVOKABLE bool atEof() const;
-    Q_INVOKABLE void truncate();
-    Q_INVOKABLE void write(const QString &str);
-    Q_INVOKABLE void writeLine(const QString &str);
+    static const char *name() { return "TextFile"; }
+    static void declareEnums(JSContext *ctx, JSValue classObj);
+    static JSValue ctor(JSContext *ctx, JSValueConst, JSValueConst,
+                        int argc, JSValueConst *argv, int);
+    static void setupMethods(JSContext *ctx, JSValue obj);
 
 private:
-    TextFile(QScriptContext *context, const QString &filePath, OpenMode mode = ReadOnly,
-             const QString &codec = QLatin1String("UTF-8"));
+    DEFINE_JS_FORWARDER(jsClose, &TextFile::close, "TextFile.close")
+    DEFINE_JS_FORWARDER(jsFilePath, &TextFile::filePath, "TextFile.filePath")
+    DEFINE_JS_FORWARDER(jsSetCodec, &TextFile::setCodec, "TextFile.setCodec")
+    DEFINE_JS_FORWARDER(jsReadLine, &TextFile::readLine, "TextFile.readLine")
+    DEFINE_JS_FORWARDER(jsReadAll, &TextFile::readAll, "TextFile.readAll")
+    DEFINE_JS_FORWARDER(jsAtEof, &TextFile::atEof, "TextFile.atEof")
+    DEFINE_JS_FORWARDER(jsTruncate, &TextFile::truncate, "TextFile.truncate")
+    DEFINE_JS_FORWARDER(jsWrite, &TextFile::write, "TextFile.write")
+    DEFINE_JS_FORWARDER(jsWriteLine, &TextFile::writeLine, "TextFile.writeLine")
 
-    bool checkForClosed() const;
+    void close();
+    QString filePath();
+    void setCodec(const QString &codec);
+    QString readLine();
+    QString readAll();
+    bool atEof() const;
+    void truncate();
+    void write(const QString &str);
+    void writeLine(const QString &str);
 
-    // ResourceAcquiringScriptObject implementation
-    void releaseResources() override;
+    TextFile(JSContext *, const QString &filePath, OpenMode mode, const QString &codec);
+
+    void checkForClosed() const;
 
     std::unique_ptr<QFile> m_file;
     QTextCodec *m_codec = nullptr;
 };
 
-QScriptValue TextFile::ctor(QScriptContext *context, QScriptEngine *engine)
+void TextFile::declareEnums(JSContext *ctx, JSValue classObj)
 {
-    TextFile *t;
-    switch (context->argumentCount()) {
-    case 0:
-        return context->throwError(Tr::tr("TextFile constructor needs path of file to be opened."));
-    case 1:
-        t = new TextFile(context, context->argument(0).toString());
-        break;
-    case 2:
-        t = new TextFile(context,
-                         context->argument(0).toString(),
-                         static_cast<OpenMode>(context->argument(1).toInt32())
-                         );
-        break;
-    case 3:
-        t = new TextFile(context,
-                         context->argument(0).toString(),
-                         static_cast<OpenMode>(context->argument(1).toInt32()),
-                         context->argument(2).toString()
-                         );
-        break;
-    default:
-        return context->throwError(Tr::tr("TextFile constructor takes at most three parameters."));
-    }
-
-    const auto se = static_cast<ScriptEngine *>(engine);
-    se->addResourceAcquiringScriptObject(t);
-    const DubiousContextList dubiousContexts({
-            DubiousContext(EvalContext::PropertyEvaluation, DubiousContext::SuggestMoving)
-    });
-    se->checkContext(QStringLiteral("qbs.TextFile"), dubiousContexts);
-    se->setUsesIo();
-
-    return engine->newQObject(t, QScriptEngine::QtOwnership);
+    DECLARE_ENUM(ctx, classObj, ReadOnly);
+    DECLARE_ENUM(ctx, classObj, WriteOnly);
+    DECLARE_ENUM(ctx, classObj, ReadWrite);
+    DECLARE_ENUM(ctx, classObj, Append);
 }
 
-TextFile::TextFile(QScriptContext *context, const QString &filePath, OpenMode mode,
-                   const QString &codec)
+JSValue TextFile::ctor(JSContext *ctx, JSValueConst, JSValueConst,
+                       int argc, JSValueConst *argv, int)
 {
-    Q_UNUSED(codec)
-    Q_ASSERT(thisObject().engine() == engine());
+    try {
+        const auto filePath = getArgument<QString>(ctx, "TextFile constructor", argc, argv);
+        OpenMode mode = ReadOnly;
+        QString codec = QLatin1String("UTF-8");
+        if (argc > 1) {
+            mode = static_cast<OpenMode>
+                    (fromArg<qint32>(ctx, "TextFile constructor", 2, argv[1]));
+        }
+        if (argc > 2) {
+            codec = fromArg<QString>(ctx, "TextFile constructor", 3, argv[2]);
+        }
+        ScopedJsValue obj(ctx, createObject(ctx, filePath, mode, codec));
 
-    m_file = std::make_unique<QFile>(filePath);
+        const auto se = ScriptEngine::engineForContext(ctx);
+        const DubiousContextList dubiousContexts {
+            DubiousContext(EvalContext::PropertyEvaluation, DubiousContext::SuggestMoving)
+        };
+        se->checkContext(QStringLiteral("qbs.TextFile"), dubiousContexts);
+        se->setUsesIo();
+        return obj.release();
+    } catch (const QString &error) { return throwError(ctx, error); }
+}
+
+void TextFile::setupMethods(JSContext *ctx, JSValue obj)
+{
+    setupMethod(ctx, obj, "close", &jsClose, 0);
+    setupMethod(ctx, obj, "filePath", &jsFilePath, 0);
+    setupMethod(ctx, obj, "atEof", &jsAtEof, 0);
+    setupMethod(ctx, obj, "setCodec", &jsSetCodec, 1);
+    setupMethod(ctx, obj, "readLine", &jsReadLine, 0);
+    setupMethod(ctx, obj, "readAll", &jsReadAll, 0);
+    setupMethod(ctx, obj, "truncate", &jsTruncate, 0);
+    setupMethod(ctx, obj, "write", &jsWrite, 1);
+    setupMethod(ctx, obj, "writeLine", &jsWriteLine, 1);
+}
+
+TextFile::TextFile(JSContext *, const QString &filePath, OpenMode mode, const QString &codec)
+{
+    auto file = std::make_unique<QFile>(filePath);
     const auto newCodec = QTextCodec::codecForName(qPrintable(codec));
     m_codec = newCodec ? newCodec : QTextCodec::codecForName("UTF-8");
     QIODevice::OpenMode m = QIODevice::NotOpen;
@@ -152,32 +164,27 @@ TextFile::TextFile(QScriptContext *context, const QString &filePath, OpenMode mo
     if (mode & Append)
         m |= QIODevice::Append;
     m |= QIODevice::Text;
-    if (Q_UNLIKELY(!m_file->open(m))) {
-        context->throwError(Tr::tr("Unable to open file '%1': %2")
-                            .arg(filePath, m_file->errorString()));
-        m_file.reset();
-    }
+    if (Q_UNLIKELY(!file->open(m)))
+        throw Tr::tr("Unable to open file '%1': %2").arg(filePath, file->errorString());
+    m_file = std::move(file);
 }
 
 void TextFile::close()
 {
-    if (checkForClosed())
-        return;
+    checkForClosed();
     m_file->close();
     m_file.reset();
 }
 
 QString TextFile::filePath()
 {
-    if (checkForClosed())
-        return {};
+    checkForClosed();
     return QFileInfo(*m_file).absoluteFilePath();
 }
 
 void TextFile::setCodec(const QString &codec)
 {
-    if (checkForClosed())
-        return;
+    checkForClosed();
     const auto newCodec = QTextCodec::codecForName(qPrintable(codec));
     if (newCodec)
         m_codec = newCodec;
@@ -185,8 +192,7 @@ void TextFile::setCodec(const QString &codec)
 
 QString TextFile::readLine()
 {
-    if (checkForClosed())
-        return {};
+    checkForClosed();
     auto result = m_codec->toUnicode(m_file->readLine());
     if (!result.isEmpty() && result.back() == QLatin1Char('\n'))
         result.chop(1);
@@ -195,68 +201,45 @@ QString TextFile::readLine()
 
 QString TextFile::readAll()
 {
-    if (checkForClosed())
-        return {};
+    checkForClosed();
     return m_codec->toUnicode(m_file->readAll());
 }
 
 bool TextFile::atEof() const
 {
-    if (checkForClosed())
-        return true;
+    checkForClosed();
     return m_file->atEnd();
 }
 
 void TextFile::truncate()
 {
-    if (checkForClosed())
-        return;
+    checkForClosed();
     m_file->resize(0);
 }
 
 void TextFile::write(const QString &str)
 {
-    if (checkForClosed())
-        return;
+    checkForClosed();
     m_file->write(m_codec->fromUnicode(str));
 }
 
 void TextFile::writeLine(const QString &str)
 {
-    if (checkForClosed())
-        return;
+    checkForClosed();
     m_file->write(m_codec->fromUnicode(str));
     m_file->putChar('\n');
 }
 
-bool TextFile::checkForClosed() const
+void TextFile::checkForClosed() const
 {
-    if (m_file)
-        return false;
-    QScriptContext *ctx = context();
-    if (ctx)
-        ctx->throwError(Tr::tr("Access to TextFile object that was already closed."));
-    return true;
-}
-
-void TextFile::releaseResources()
-{
-    close();
-    deleteLater();
+    if (!m_file)
+        throw Tr::tr("Access to TextFile object that was already closed.");
 }
 
 } // namespace Internal
 } // namespace qbs
 
-void initializeJsExtensionTextFile(QScriptValue extensionObject)
+void initializeJsExtensionTextFile(qbs::Internal::ScriptEngine *engine, JSValue extensionObject)
 {
-    using namespace qbs::Internal;
-    QScriptEngine *engine = extensionObject.engine();
-    QScriptValue obj = engine->newQMetaObject(&TextFile::staticMetaObject,
-                                              engine->newFunction(&TextFile::ctor));
-    extensionObject.setProperty(QStringLiteral("TextFile"), obj);
+    qbs::Internal::TextFile::registerClass(engine, extensionObject);
 }
-
-Q_DECLARE_METATYPE(qbs::Internal::TextFile *)
-
-#include "textfile.moc"

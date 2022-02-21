@@ -4,8 +4,9 @@ BaseApp {
     inputNames: ["tool.1", "tool.2"]
     inputSearchPaths: "bin"
     inputCandidateFilter: {
+        var fi = FileInfo;
         return function(f) {
-            return FileInfo.fileName(f) == "tool.2";
+            return fi.fileName(f) == "tool.2";
         }
     }
     outputFilePaths: ["bin/tool.2"]

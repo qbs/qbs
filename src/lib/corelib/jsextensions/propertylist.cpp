@@ -38,11 +38,11 @@
 **
 ****************************************************************************/
 
-#include <QtScript/qscriptengine.h>
+#include <language/scriptengine.h>
 
-void initializeJsExtensionPropertyList(QScriptValue extensionObject)
+void initializeJsExtensionPropertyList(qbs::Internal::ScriptEngine *engine, JSValue extensionObject)
 {
-    QScriptEngine *engine = extensionObject.engine();
-    QScriptValue obj = engine->newObject(); // provide a fake object
-    extensionObject.setProperty(QStringLiteral("PropertyList"), obj);
+    JSValue obj = engine->newObject(); // provide a fake object
+    qbs::Internal::setJsProperty(engine->context(), extensionObject,
+                                 QStringLiteral("PropertyList"), obj);
 }

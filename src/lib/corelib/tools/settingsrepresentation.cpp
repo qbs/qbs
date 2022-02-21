@@ -41,8 +41,8 @@
 
 #include "jsliterals.h"
 
-#include <QtScript/qscriptengine.h>
-#include <QtScript/qscriptvalue.h>
+#include <language/scriptengine.h>
+#include <logging/logger.h>
 
 namespace qbs {
 
@@ -54,11 +54,19 @@ QString settingsValueToRepresentation(const QVariant &value)
 static QVariant variantFromString(const QString &str, bool &ok)
 {
     // ### use Qt5's JSON reader at some point.
-    QScriptEngine engine;
-    QScriptValue sv = engine.evaluate(QLatin1String("(function(){return ")
-                                      + str + QLatin1String(";})()"));
-    ok = !sv.isError();
-    return sv.toVariant();
+    class DummyLogSink : public ILogSink {
+        void doPrintMessage(LoggerLevel, const QString &, const QString &) override { }
+    } logSink;
+    Internal::Logger logger(&logSink);
+
+    const auto engine = Internal::ScriptEngine::create(logger, {});
+    Internal::ScopedJsValue sv(
+                engine->context(),
+                engine->evaluate(Internal::JsValueOwner::Caller,
+                                 QLatin1String("(function(){return ") + str
+                                 + QLatin1String(";})()")));
+    ok = !engine->checkAndClearException({});
+    return Internal::getJsVariant(engine->context(), sv);
 }
 
 QVariant representationToSettingsValue(const QString &representation)

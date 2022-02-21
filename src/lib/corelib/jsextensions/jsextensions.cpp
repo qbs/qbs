@@ -39,17 +39,19 @@
 
 #include "jsextensions.h"
 
+#include <language/scriptengine.h>
+#include <tools/scripttools.h>
+
 #include <QtCore/qmap.h>
-#include <QtScript/qscriptengine.h>
 
 #include <utility>
 
-using InitializerMap = QMap<QString, void (*)(QScriptValue)>;
+using InitializerMap = QMap<QString, void (*)(qbs::Internal::ScriptEngine *, JSValue)>;
 static InitializerMap setupMap()
 {
 #define INITIALIZER_NAME(name) initializeJsExtension##name
 #define ADD_JS_EXTENSION(name) \
-    void INITIALIZER_NAME(name)(QScriptValue); \
+    void INITIALIZER_NAME(name)(qbs::Internal::ScriptEngine *, JSValue); \
     map.insert(QStringLiteral(#name), &INITIALIZER_NAME(name))
 
     InitializerMap map;
@@ -77,20 +79,21 @@ static InitializerMap &initializers()
     return theMap;
 }
 
-void JsExtensions::setupExtensions(const QStringList &names, const QScriptValue &scope)
+void JsExtensions::setupExtensions(ScriptEngine *engine, const QStringList &names,
+                                   const JSValue &scope)
 {
     for (const QString &name : names)
-        initializers().value(name)(scope);
+        initializers().value(name)(engine, scope);
 }
 
-QScriptValue JsExtensions::loadExtension(QScriptEngine *engine, const QString &name)
+JSValue JsExtensions::loadExtension(ScriptEngine *engine, const QString &name)
 {
     if (!hasExtension(name))
         return {};
 
-    QScriptValue extensionObj = engine->newObject();
-    initializers().value(name)(extensionObj);
-    return extensionObj.property(name);
+    ScopedJsValue extensionObj(engine->context(), engine->newObject());
+    initializers().value(name)(engine, extensionObj);
+    return getJsProperty(engine->context(), extensionObj, name);
 }
 
 bool JsExtensions::hasExtension(const QString &name)

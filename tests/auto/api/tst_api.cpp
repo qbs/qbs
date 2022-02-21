@@ -1010,7 +1010,7 @@ void TestApi::errorInSetupRunEnvironment()
         qbs::ErrorInfo error;
         const QProcessEnvironment env = runEnv.runEnvironment(&error);
         QVERIFY(error.hasError());
-        QVERIFY(error.toString().contains("trallala"));
+        QVERIFY2(error.toString().contains("trallala"), qPrintable(error.toString()));
     } catch (const qbs::ErrorInfo &) {
         exceptionCaught = true;
     }
@@ -1434,7 +1434,7 @@ void TestApi::infiniteLoopResolving()
                                                                               m_logSink, nullptr));
     QTimer::singleShot(1000, setupJob.get(), &qbs::AbstractJob::cancel);
     QVERIFY(waitForFinished(setupJob.get(), testTimeoutInMsecs()));
-    QVERIFY2(setupJob->error().toString().toLower().contains("cancel"),
+    QVERIFY2(setupJob->error().toString().toLower().contains("interrupted"),
              qPrintable(setupJob->error().toString()));
 }
 

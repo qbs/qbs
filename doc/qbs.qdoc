@@ -556,7 +556,6 @@
     \row    \li qbs_no_dev_install  \li Exclude header files from installation, that is, perform a
                                         non-developer build.
     \row    \li qbs_no_man_install  \li Exclude the man page from installation.
-    \row    \li qbs_use_bundled_qtscript        \li Use the bundled QtScript library.
     \endtable
 
     In addition, you can set the \c QBS_SYSTEM_SETTINGS_DIR environment variable
@@ -642,11 +641,6 @@
         \li \c false
         \li Holds whether the Qt libraries that \QBS depends on will be bundled with \QBS during
             the \c install step. This option is only implemented on macOS.
-    \row
-        \li useBundledQtScript
-        \li \c false
-        \li Use the bundled QtScript module instead of the one shipped with Qt. In that case,
-            QtScript should be checked out as a git submodule.
     \row
         \li libDirName
         \li \c "lib"

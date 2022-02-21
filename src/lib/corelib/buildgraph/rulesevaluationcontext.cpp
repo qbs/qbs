@@ -38,9 +38,7 @@
 ****************************************************************************/
 #include "rulesevaluationcontext.h"
 
-#include "artifact.h"
 #include "rulecommands.h"
-#include "transformer.h"
 #include <language/language.h>
 #include <language/scriptengine.h>
 #include <logging/translator.h>
@@ -57,15 +55,19 @@ RulesEvaluationContext::RulesEvaluationContext(Logger logger)
     : m_logger(std::move(logger)),
       m_engine(ScriptEngine::create(m_logger, EvalContext::RuleExecution)),
       m_observer(nullptr),
-      m_initScopeCalls(0)
+      m_initScopeCalls(0),
+      m_prepareScriptScope(m_engine->newObject())
 {
-    m_prepareScriptScope = m_engine->newObject();
-    m_prepareScriptScope.setPrototype(m_engine->globalObject());
-    ProcessCommand::setupForJavaScript(m_prepareScriptScope);
-    JavaScriptCommand::setupForJavaScript(m_prepareScriptScope);
+
+    JS_SetPrototype(m_engine->context(), m_prepareScriptScope, m_engine->globalObject());
+    ProcessCommand::setupForJavaScript(m_engine.get(), m_prepareScriptScope);
+    JavaScriptCommand::setupForJavaScript(m_engine.get(), m_prepareScriptScope);
 }
 
-RulesEvaluationContext::~RulesEvaluationContext() = default;
+RulesEvaluationContext::~RulesEvaluationContext()
+{
+    JS_FreeValue(m_engine->context(), m_prepareScriptScope);
+}
 
 void RulesEvaluationContext::initializeObserver(const QString &description, int maximumProgress)
 {
@@ -92,7 +94,7 @@ void RulesEvaluationContext::initScope()
 
     m_engine->setActive(true);
     m_scope = m_engine->newObject();
-    m_scope.setPrototype(m_prepareScriptScope);
+    JS_SetPrototype(m_engine->context(), m_scope, m_prepareScriptScope);
     m_engine->setGlobalObject(m_scope);
 }
 
@@ -102,8 +104,11 @@ void RulesEvaluationContext::cleanupScope()
     if (--m_initScopeCalls > 0)
         return;
 
-    m_scope = QScriptValue();
-    m_engine->setGlobalObject(m_prepareScriptScope.prototype());
+    JS_FreeValue(m_engine->context(), m_scope);
+    m_scope = JS_UNDEFINED;
+    const ScopedJsValue proto(engine()->context(),
+                              JS_GetPrototype(m_engine->context(), m_prepareScriptScope));
+    m_engine->setGlobalObject(proto);
     m_engine->setActive(false);
 }
 

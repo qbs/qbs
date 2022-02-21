@@ -45,9 +45,11 @@
 #include <buildgraph/requestedartifacts.h>
 #include <buildgraph/requesteddependencies.h>
 #include <logging/logger.h>
+#include <quickjs.h>
 #include <tools/codelocation.h>
 #include <tools/filetime.h>
 #include <tools/porting.h>
+#include <tools/scripttools.h>
 #include <tools/set.h>
 
 #include <QtCore/qdir.h>
@@ -56,8 +58,7 @@
 #include <QtCore/qprocess.h>
 #include <QtCore/qstring.h>
 
-#include <QtScript/qscriptengine.h>
-
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <stack>
@@ -68,8 +69,10 @@
 namespace qbs {
 namespace Internal {
 class Artifact;
+class Evaluator;
 class JsImport;
 class PrepareScriptObserver;
+class RuleNode;
 class ScriptImporter;
 class ScriptPropertyObserver;
 
@@ -86,34 +89,32 @@ public:
 };
 using DubiousContextList = std::vector<DubiousContext>;
 
-
-/*
- * ScriptObject that acquires resources, for example a file handle.
- * The ScriptObject should have QtOwnership and deleteLater() itself in releaseResources.
- */
-class ResourceAcquiringScriptObject
-{
-public:
-    virtual ~ResourceAcquiringScriptObject() = default;
-    virtual void releaseResources() = 0;
-};
+enum class JsValueOwner { Caller, ScriptEngine }; // TODO: This smells like cheating. Should always be Caller.
 
 enum class ObserveMode { Enabled, Disabled };
 
-class QBS_AUTOTEST_EXPORT ScriptEngine : public QScriptEngine
+class QBS_AUTOTEST_EXPORT ScriptEngine
 {
-    Q_OBJECT
     struct PrivateTag {};
 public:
     ScriptEngine(Logger &logger, EvalContext evalContext, PrivateTag);
-    ~ScriptEngine() override;
+    ~ScriptEngine();
 
     static std::unique_ptr<ScriptEngine> create(Logger &logger, EvalContext evalContext);
+    static ScriptEngine *engineForRuntime(const JSRuntime *runtime);
+    static ScriptEngine *engineForContext(const JSContext *ctx);
+    static LookupResult doExtraScopeLookup(JSContext *ctx, JSAtom prop);
+
+    void reset();
 
     Logger &logger() const { return m_logger; }
-    void import(const FileContextBaseConstPtr &fileCtx, QScriptValue &targetObject,
+    void import(const FileContextBaseConstPtr &fileCtx, JSValue &targetObject,
                 ObserveMode observeMode);
     void clearImportsCache();
+
+    void registerEvaluator(Evaluator *evaluator);
+    void unregisterEvaluator(const Evaluator *evaluator);
+    Evaluator *evaluator() const { return m_evaluator; }
 
     void setEvalContext(EvalContext c) { m_evalContext = c; }
     EvalContext evalContext() const { return m_evalContext; }
@@ -144,14 +145,7 @@ public:
     }
     void addPropertyRequestedFromArtifact(const Artifact *artifact, const Property &property);
     void addRequestedExport(const ResolvedProduct *product) { m_requestedExports.insert(product); }
-    void clearRequestedProperties() {
-        m_propertiesRequestedInScript.clear();
-        m_propertiesRequestedFromArtifact.clear();
-        m_importsRequestedInScript.clear();
-        m_productsWithRequestedDependencies.clear();
-        m_requestedArtifacts.clear();
-        m_requestedExports.clear();
-    }
+    void clearRequestedProperties();
     PropertySet propertiesRequestedInScript() const { return m_propertiesRequestedInScript; }
     QHash<QString, PropertySet> propertiesRequestedFromArtifact() const {
         return m_propertiesRequestedFromArtifact;
@@ -167,7 +161,7 @@ public:
     RequestedArtifacts requestedArtifacts() const { return m_requestedArtifacts; }
     Set<const ResolvedProduct *> requestedExports() const { return m_requestedExports; }
 
-    void addImportRequestedInScript(qint64 importValueId);
+    void addImportRequestedInScript(quintptr importValueId);
     std::vector<QString> importedFilesUsedInScript() const;
 
     void setUsesIo() { m_usesIo = true; }
@@ -183,11 +177,8 @@ public:
     QVariant retrieveFromPropertyCache(const QString &moduleName, const QString &propertyName,
                                        const PropertyMapConstPtr &propertyMap);
 
-    void defineProperty(QScriptValue &object, const QString &name, const QScriptValue &descriptor);
-    void setObservedProperty(QScriptValue &object, const QString &name, const QScriptValue &value);
+    void setObservedProperty(JSValue &object, const QString &name, const JSValue &value);
     void unobserveProperties();
-    void setDeprecatedProperty(QScriptValue &object, const QString &name, const QString &newName,
-            const QScriptValue &value);
     PrepareScriptObserver *observer() const { return m_observer.get(); }
 
     QProcessEnvironment environment() const;
@@ -206,23 +197,34 @@ public:
 
     QHash<QString, FileTime> fileLastModifiedResults() const { return m_fileLastModifiedResult; }
     Set<QString> imports() const;
-    static QScriptValueList argumentList(const QStringList &argumentNames,
-            const QScriptValue &context);
 
-    QStringList uncaughtExceptionBacktraceOrEmpty() const {
-        return hasUncaughtException() ? uncaughtExceptionBacktrace() : QStringList();
-    }
-    bool hasErrorOrException(const QScriptValue &v) const {
-        return v.isError() || hasUncaughtException();
-    }
-    QScriptValue lastErrorValue(const QScriptValue &v) const {
-        return v.isError() ? v : uncaughtException();
-    }
-    QString lastErrorString(const QScriptValue &v) const { return lastErrorValue(v).toString(); }
-    CodeLocation lastErrorLocation(const QScriptValue &v,
-                                   const CodeLocation &fallbackLocation = CodeLocation()) const;
-    ErrorInfo lastError(const QScriptValue &v,
-                        const CodeLocation &fallbackLocation = CodeLocation()) const;
+    JSValue newObject() const;
+    JSValue newArray(int length, JsValueOwner owner);
+    void takeOwnership(JSValue v);
+    JSValue undefinedValue() const { return JS_UNDEFINED; }
+    JSValue toScriptValue(const QVariant &v) const { return makeJsVariant(m_context, v); }
+    JSValue evaluate(JsValueOwner resultOwner, const QString &code,
+                     const QString &filePath = QString(), int line = 1,
+                     const JSValueList &scopeChain = {});
+    void setLastLookupStatus(bool success) { m_lastLookupWasSuccess = success; }
+    JSContext *context() const { return m_context; }
+    JSValue globalObject() const { return m_globalObject; }
+    void setGlobalObject(JSValue obj) { m_globalObject = obj; }
+    void handleJsProperties(JSValueConst obj, const  PropertyHandler &handler);
+    ScopedJsValueList argumentList(const QStringList &argumentNames, const JSValue &context) const;
+
+    using GetProperty = int (*)(JSContext *ctx, JSPropertyDescriptor *desc,
+                                JSValueConst obj, JSAtom prop);
+    using GetPropertyNames = int (*)(JSContext *ctx, JSPropertyEnum **ptab, uint32_t *plen,
+                                     JSValueConst obj);
+    JSClassID registerClass(const char *name, JSClassCall *constructor, JSClassFinalizer *finalizer,
+                            JSValue scope,
+                            GetPropertyNames getPropertyNames = nullptr,
+                            GetProperty getProperty = nullptr);
+    JSClassID getClassId(const char *name) const;
+
+    JsException checkAndClearException(const CodeLocation &fallbackLocation) const;
+    JSValue throwError(const QString &message) const;
 
     void cancel();
 
@@ -231,77 +233,85 @@ public:
     bool isActive() const { return m_active; }
     void setActive(bool on) { m_active = on; }
 
-    using QScriptEngine::newFunction;
+    JSClassID modulePropertyScriptClass() const;
+    void setModulePropertyScriptClass(JSClassID modulePropertyScriptClass);
 
-    template <typename T, typename E,
-              typename = std::enable_if_t<std::is_pointer_v<T>>,
-              typename = std::enable_if_t<std::is_pointer_v<E>>,
-              typename = std::enable_if_t<std::is_base_of_v<
-                QScriptEngine, std::remove_pointer_t<E>>>
-              > QScriptValue newFunction(QScriptValue (*signature)(QScriptContext *, E, T), T arg) {
-        return QScriptEngine::newFunction(
-                    reinterpret_cast<FunctionWithArgSignature>(signature),
-                    reinterpret_cast<void *>(const_cast<
-                                             std::add_pointer_t<
-                                             std::remove_const_t<
-                                             std::remove_pointer_t<T>>>>(arg)));
-    }
-
-    QScriptClass *modulePropertyScriptClass() const;
-    void setModulePropertyScriptClass(QScriptClass *modulePropertyScriptClass);
-
-    QScriptClass *productPropertyScriptClass() const { return m_productPropertyScriptClass; }
-    void setProductPropertyScriptClass(QScriptClass *productPropertyScriptClass)
+    JSClassID productPropertyScriptClass() const { return m_productPropertyScriptClass; }
+    void setProductPropertyScriptClass(JSClassID productPropertyScriptClass)
     {
         m_productPropertyScriptClass = productPropertyScriptClass;
     }
 
-    QScriptClass *artifactsScriptClass() const { return m_artifactsScriptClass; }
-    void setArtifactsScriptClass(QScriptClass *artifactsScriptClass)
+    JSClassID artifactsScriptClass(int index) const { return m_artifactsScriptClass[index]; }
+    void setArtifactsScriptClass(int index, JSClassID artifactsScriptClass)
     {
-        m_artifactsScriptClass = artifactsScriptClass;
+        m_artifactsScriptClass[index] = artifactsScriptClass;
     }
 
-    void addResourceAcquiringScriptObject(ResourceAcquiringScriptObject *obj);
-    void releaseResourcesOfScriptObjects();
+    JSValue artifactsMapScriptValue(const ResolvedProduct *product);
+    void setArtifactsMapScriptValue(const ResolvedProduct *product, JSValue value);
+    JSValue artifactsMapScriptValue(const ResolvedModule *module);
+    void setArtifactsMapScriptValue(const ResolvedModule *module, JSValue value);
 
-    QScriptValue &productScriptValuePrototype(const ResolvedProduct *product)
+    JSValue getArtifactProperty(JSValue obj,
+                                const std::function<JSValue(const Artifact *)> &propGetter);
+
+    JSValue& baseProductScriptValue(const ResolvedProduct *product)
     {
-        return m_productScriptValues[product];
+        return m_baseProductScriptValues[product];
     }
 
-    QScriptValue &projectScriptValue(const ResolvedProject *project)
+    JSValue &projectScriptValue(const ResolvedProject *project)
     {
         return m_projectScriptValues[project];
     }
 
-    QScriptValue &moduleScriptValuePrototype(const ResolvedModule *module)
+    JSValue &baseModuleScriptValue(const ResolvedModule *module)
     {
-        return m_moduleScriptValues[module];
+        return m_baseModuleScriptValues[module];
     }
 
-private:
-    QScriptValue newFunction(FunctionWithArgSignature signature, void *arg) Q_DECL_EQ_DELETE;
+    JSValue getArtifactScriptValue(Artifact *a, const QString &moduleName,
+                                   const std::function<void(JSValue obj)> &setup);
+    void releaseInputArtifactScriptValues(const RuleNode *ruleNode);
 
-    void abort();
+    const JSValueList &contextStack() const { return m_contextStack; }
+
+    JSClassID dataWithPtrClass() const { return m_dataWithPtrClass; }
+
+    JSValue getInternalExtension(const char *name) const;
+    void addInternalExtension(const char *name, JSValue ext);
+    JSValue asJsValue(const QString &s);
+    JSValue asJsValue(const QStringList &l);
+    JSValue asJsValue(const QVariantList &l);
+    JSValue asJsValue(const QVariantMap &m);
+
+    QVariant property(const char *name) const { return m_properties.value(QLatin1String(name)); }
+    void setProperty(const char *k, const QVariant &v) { m_properties.insert(QLatin1String(k), v); }
+
+private:
+    static int interruptor(JSRuntime *rt, void *opaqueEngine);
 
     bool gatherFileResults() const;
 
+    void setMaxStackSize();
+    void setPropertyOnGlobalObject(const QString &property, JSValue value);
     void installQbsBuiltins();
     void extendJavaScriptBuiltins();
-    void installFunction(const QString &name, int length, QScriptValue *functionValue,
-                         FunctionSignature f, QScriptValue *targetObject);
-    void installQbsFunction(const QString &name, int length, FunctionSignature f);
-    void installConsoleFunction(const QString &name,
-                                QScriptValue (*f)(QScriptContext *, QScriptEngine *, Logger *));
-    void installImportFunctions();
+    void installConsoleFunction(JSValue consoleObj, const QString &name, LoggerLevel level);
+    void installImportFunctions(JSValue importScope);
     void uninstallImportFunctions();
-    void import(const JsImport &jsImport, QScriptValue &targetObject);
-    void observeImport(QScriptValue &jsImport);
-    void importFile(const QString &filePath, QScriptValue &targetObject);
-    static QScriptValue js_loadExtension(QScriptContext *context, QScriptEngine *qtengine);
-    static QScriptValue js_loadFile(QScriptContext *context, QScriptEngine *qtengine);
-    static QScriptValue js_require(QScriptContext *context, QScriptEngine *qtengine);
+    void import(const JsImport &jsImport, JSValue &targetObject);
+    void observeImport(JSValue &jsImport);
+    void importFile(const QString &filePath, JSValue &targetObject);
+    static JSValue js_require(JSContext *ctx, JSValueConst this_val,
+                              int argc, JSValueConst *argv, int magic, JSValue *func_data);
+    JSValue mergeExtensionObjects(const JSValueList &lst);
+    JSValue loadInternalExtension(const QString &uri);
+
+    static void handleUndefinedFound(JSContext *ctx);
+    static void handleFunctionEntered(JSContext *ctx, JSValue this_obj);
+    static void handleFunctionExited(JSContext *ctx);
 
     class PropertyCacheKey
     {
@@ -320,21 +330,24 @@ private:
     friend bool operator==(const PropertyCacheKey &lhs, const PropertyCacheKey &rhs);
     friend QHashValueType qHash(const ScriptEngine::PropertyCacheKey &k, QHashValueType seed);
 
-    static std::mutex m_creationDestructionMutex;
+    JSRuntime * const m_jsRuntime = JS_NewRuntime();
+    JSContext * const m_context = JS_NewContext(m_jsRuntime);
+    JSValue m_globalObject = JS_NULL;
     ScriptImporter *m_scriptImporter;
-    QScriptClass *m_modulePropertyScriptClass;
-    QScriptClass *m_productPropertyScriptClass = nullptr;
-    QScriptClass *m_artifactsScriptClass = nullptr;
-    QHash<JsImport, QScriptValue> m_jsImportCache;
-    std::unordered_map<QString, QScriptValue> m_jsFileCache;
-    bool m_propertyCacheEnabled;
-    bool m_active;
+    JSClassID m_modulePropertyScriptClass = 0;
+    JSClassID m_productPropertyScriptClass = 0;
+    JSClassID m_artifactsScriptClass[2] = {0, 0};
+    JSClassID m_dataWithPtrClass = 0;
+    Evaluator *m_evaluator = nullptr;
+    QHash<JsImport, JSValue> m_jsImportCache;
+    std::unordered_map<QString, JSValue> m_jsFileCache;
+    bool m_propertyCacheEnabled = true;
+    bool m_active = false;
+    bool m_canceling = false;
     QHash<PropertyCacheKey, QVariant> m_propertyCache;
     PropertySet m_propertiesRequestedInScript;
     QHash<QString, PropertySet> m_propertiesRequestedFromArtifact;
     Logger &m_logger;
-    QScriptValue m_definePropertyFunction;
-    QScriptValue m_emptyFunction;
     QProcessEnvironment m_environment;
     QHash<QString, QString> m_canonicalFilePathResult;
     QHash<QString, bool> m_fileExistsResult;
@@ -342,28 +355,36 @@ private:
     QHash<QString, FileTime> m_fileLastModifiedResult;
     std::stack<QString> m_currentDirPathStack;
     std::stack<QStringList> m_extensionSearchPathsStack;
-    QScriptValue m_loadFileFunction;
-    QScriptValue m_loadExtensionFunction;
-    QScriptValue m_requireFunction;
-    QScriptValue m_qbsObject;
-    QScriptValue m_consoleObject;
-    QScriptValue m_cancelationError;
+    std::stack<std::pair<QString, int>> m_evalPositions;
+    JSValue m_qbsObject = JS_UNDEFINED;
     qint64 m_elapsedTimeImporting = -1;
     bool m_usesIo = false;
     EvalContext m_evalContext;
-    std::vector<ResourceAcquiringScriptObject *> m_resourceAcquiringScriptObjects;
     const std::unique_ptr<PrepareScriptObserver> m_observer;
-    std::vector<std::tuple<QScriptValue, QString, QScriptValue>> m_observedProperties;
-    std::vector<QScriptValue> m_requireResults;
-    std::unordered_map<qint64, std::vector<QString>> m_filePathsPerImport;
+    std::vector<std::tuple<JSValue, QString, JSValue>> m_observedProperties;
+    JSValueList m_requireResults;
+    std::unordered_map<quintptr, std::vector<QString>> m_filePathsPerImport;
     std::vector<qint64> m_importsRequestedInScript;
     Set<const ResolvedProduct *> m_productsWithRequestedDependencies;
     RequestedArtifacts m_requestedArtifacts;
     Set<const ResolvedProduct *> m_requestedExports;
     ObserveMode m_observeMode = ObserveMode::Disabled;
-    std::unordered_map<const ResolvedProduct *, QScriptValue> m_productScriptValues;
-    std::unordered_map<const ResolvedProject *, QScriptValue> m_projectScriptValues;
-    std::unordered_map<const ResolvedModule *, QScriptValue> m_moduleScriptValues;
+    std::unordered_map<const ResolvedProduct *, JSValue> m_baseProductScriptValues;
+    std::unordered_map<const ResolvedProduct *, JSValue> m_productArtifactsMapScriptValues;
+    std::unordered_map<const ResolvedModule *, JSValue> m_moduleArtifactsMapScriptValues;
+    std::unordered_map<const ResolvedProject *, JSValue> m_projectScriptValues;
+    std::unordered_map<const ResolvedModule *, JSValue> m_baseModuleScriptValues;
+    QList<JSValueList> m_scopeChains;
+    JSValueList m_contextStack;
+    QHash<JSClassID, JSClassExoticMethods> m_exoticMethods;
+    QHash<QString, JSClassID> m_classes;
+    QHash<QString, JSValue> m_internalExtensions;
+    QHash<QString, JSValue> m_stringCache;
+    QHash<JSValue, int> m_evalResults;
+    QHash<QPair<Artifact *, QString>, JSValue> m_artifactsScriptValues;
+    QVariantMap m_properties;
+    std::recursive_mutex m_artifactsMutex;
+    bool m_lastLookupWasSuccess = false;
 };
 
 class EvalContextSwitcher

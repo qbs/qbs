@@ -78,7 +78,6 @@
 #include <QtCore/qjsonobject.h>
 #include <QtCore/qtextstream.h>
 #include <QtCore/qthreadstorage.h>
-#include <QtScript/qscriptvalueiterator.h>
 
 #include <algorithm>
 #include <memory>
@@ -816,7 +815,8 @@ ModuleLoader::MultiplexInfo ModuleLoader::extractMultiplexInfo(Item *productItem
 {
     static const QString mpmKey = QStringLiteral("multiplexMap");
 
-    const QScriptValue multiplexMap = m_evaluator->value(qbsModuleItem, mpmKey);
+    JSContext * const ctx = m_evaluator->engine()->context();
+    const ScopedJsValue multiplexMap(ctx, m_evaluator->value(qbsModuleItem, mpmKey));
     const QStringList multiplexByQbsProperties = m_evaluator->stringListValue(
                 productItem, StringConstants::multiplexByQbsPropertiesProperty());
 
@@ -831,7 +831,7 @@ ModuleLoader::MultiplexInfo ModuleLoader::extractMultiplexInfo(Item *productItem
 
     Set<QString> uniqueMultiplexByQbsProperties;
     for (const QString &key : multiplexByQbsProperties) {
-        const QString mappedKey = multiplexMap.property(key).toString();
+        const QString mappedKey = getJsStringProperty(ctx, multiplexMap, key);
         if (mappedKey.isEmpty())
             throw ErrorInfo(Tr::tr("There is no entry for '%1' in 'qbs.multiplexMap'.").arg(key));
 
@@ -841,13 +841,13 @@ ModuleLoader::MultiplexInfo ModuleLoader::extractMultiplexInfo(Item *productItem
                             productItem->location());
         }
 
-        const QScriptValue arr = m_evaluator->value(qbsModuleItem, key);
-        if (arr.isUndefined())
+        const ScopedJsValue arr(ctx, m_evaluator->value(qbsModuleItem, key));
+        if (JS_IsUndefined(arr))
             continue;
-        if (!arr.isArray())
+        if (!JS_IsArray(ctx, arr))
             throw ErrorInfo(Tr::tr("Property '%1' must be an array.").arg(key));
 
-        const quint32 arrlen = arr.property(StringConstants::lengthProperty()).toUInt32();
+        const quint32 arrlen = getJsIntProperty(ctx, arr, StringConstants::lengthProperty());
         if (arrlen == 0)
             continue;
 
@@ -855,7 +855,8 @@ ModuleLoader::MultiplexInfo ModuleLoader::extractMultiplexInfo(Item *productItem
         mprow.resize(arrlen);
         QVariantList entriesForKey;
         for (quint32 i = 0; i < arrlen; ++i) {
-            const QVariant value = arr.property(i).toVariant();
+            const ScopedJsValue sv(ctx, JS_GetPropertyUint32(ctx, arr, i));
+            const QVariant value = getJsVariant(ctx, sv);
             if (entriesForKey.contains(value)) {
                 throw ErrorInfo(Tr::tr("Duplicate entry '%1' in qbs.%2.")
                                 .arg(value.toString(), key), productItem->location());
@@ -1922,8 +1923,8 @@ bool ModuleLoader::mergeExportItems(const ProductContext &productContext)
         for (Item * const child : exportItem->children()) {
             if (child->type() == ItemType::Parameters) {
                 adjustParametersScopes(child, child);
-                mergeParameters(pmi.defaultParameters,
-                                m_evaluator->scriptValue(child).toVariant().toMap());
+                mergeParameters(pmi.defaultParameters, getJsVariant(
+                    m_evaluator->engine()->context(), m_evaluator->scriptValue(child)).toMap());
             } else {
                 if (child->type() == ItemType::Depends) {
                     bool productTypesIsSet;
@@ -2036,8 +2037,10 @@ void ModuleLoader::evaluateProfileValues(const QualifiedId &namePrefix, Item *it
             item->setType(ItemType::ModulePrefix); // TODO: Introduce new item type
             if (item != profileItem)
                 item->setScope(profileItem);
+            const ScopedJsValue sv(m_evaluator->engine()->context(),
+                                   m_evaluator->value(item, it.key()));
             values.insert(name.join(QLatin1Char('.')),
-                          m_evaluator->value(item, it.key()).toVariant());
+                getJsVariant(m_evaluator->engine()->context(), sv));
             break;
         }
     }
@@ -2710,18 +2713,17 @@ static Item::PropertyMap filterItemProperties(const Item::PropertyMap &propertie
     return result;
 }
 
-static QVariantMap safeToVariant(const QScriptValue &v)
+static QVariantMap safeToVariant(JSContext *ctx, const JSValue &v)
 {
     QVariantMap result;
-    QScriptValueIterator it(v);
-    while (it.hasNext()) {
-        it.next();
-        QScriptValue u = it.value();
-        if (u.isError())
-            throw ErrorInfo(u.toString());
-        result[it.name()] = (u.isObject() && !u.isArray() && !u.isRegExp())
-                ? safeToVariant(u) : it.value().toVariant();
-    }
+    handleJsProperties(ctx, v, [&](const JSAtom &prop, const JSPropertyDescriptor &desc) {
+        const JSValue u = desc.value;
+        if (JS_IsError(ctx, u))
+            throw ErrorInfo(getJsString(ctx, u));
+        const QString name = getJsString(ctx, prop);
+        result[name] = (JS_IsObject(u) && !JS_IsArray(ctx, u) && !JS_IsRegExp(ctx, u))
+                ? safeToVariant(ctx, u) : getJsVariant(ctx, u);
+    });
     return result;
 }
 
@@ -2735,9 +2737,9 @@ QVariantMap ModuleLoader::extractParameters(Item *dependsItem) const
 
     auto origProperties = dependsItem->properties();
     dependsItem->setProperties(itemProperties);
-    QScriptValue sv = m_evaluator->scriptValue(dependsItem);
+    JSValue sv = m_evaluator->scriptValue(dependsItem);
     try {
-        result = safeToVariant(sv);
+        result = safeToVariant(m_evaluator->engine()->context(), sv);
     } catch (const ErrorInfo &exception) {
         auto ei = exception;
         ei.prepend(Tr::tr("Error in dependency parameter."), dependsItem->location());
@@ -3123,7 +3125,7 @@ std::pair<Item *, bool> ModuleLoader::loadModuleFile(
         return {it.value() ? module : nullptr, triedToLoad};
     }
 
-    // Set the name before evaluating any properties. EvaluatorScriptClass reads the module name.
+    // Set the name before evaluating any properties. Evaluator reads the module name.
     module->setProperty(StringConstants::nameProperty(), VariantValue::create(fullModuleName));
 
     Item *deepestModuleInstance = findDeepestModuleInstance(moduleInstance);

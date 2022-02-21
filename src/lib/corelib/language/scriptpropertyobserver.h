@@ -40,10 +40,11 @@
 #ifndef QBS_SCRIPTPROPERTYOBSERVER_H
 #define QBS_SCRIPTPROPERTYOBSERVER_H
 
+#include <quickjs.h>
+
 #include <QtCore/qglobal.h>
 
 QT_BEGIN_NAMESPACE
-class QScriptValue;
 class QString;
 QT_END_NAMESPACE
 
@@ -64,8 +65,8 @@ public:
 
     virtual ~ScriptPropertyObserver();
 
-    virtual void onPropertyRead(const QScriptValue &object, const QString &name,
-                                const QScriptValue &value) = 0;
+    virtual void onPropertyRead(const JSValue &object, const QString &name,
+                                const JSValue &value) = 0;
 
 protected:
     ScriptEngine * engine() const { return m_engine; }

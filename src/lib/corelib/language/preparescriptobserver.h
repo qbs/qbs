@@ -44,6 +44,8 @@
 
 #include <tools/set.h>
 
+#include <quickjs.h>
+
 #include <QtCore/qstring.h>
 
 #include <unordered_map>
@@ -69,7 +71,7 @@ public:
     }
 
     void addArtifactId(qint64 artifactId) { m_artifactIds.insert(artifactId); }
-    bool addImportId(qint64 importId) { return m_importIds.insert(importId).second; }
+    bool addImportId(quintptr importId) { return m_importIds.insert(importId).second; }
     void clearImportIds() { m_importIds.clear(); }
     void addParameterObjectId(qint64 id, const QString &productName, const QString &depName,
                               const QualifiedId &moduleName)
@@ -79,14 +81,13 @@ public:
         m_parameterObjects.insert(std::make_pair(id, value));
     }
 
-private:
-    void onPropertyRead(const QScriptValue &object, const QString &name,
-                        const QScriptValue &value) override;
+    void onPropertyRead(const JSValue &object, const QString &name, const JSValue &value) override;
 
+private:
     std::unordered_map<qint64, QString> m_projectObjectIds;
     std::unordered_map<qint64, std::pair<QString, QString>> m_parameterObjects;
     std::unordered_map<qint64, const ResolvedProduct *> m_exportsObjectIds;
-    Set<qint64> m_importIds;
+    Set<quintptr> m_importIds;
     Set<qint64> m_artifactIds;
 };
 

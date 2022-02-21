@@ -43,9 +43,10 @@
 #include <language/forward_decls.h>
 #include <tools/qbs_export.h>
 
-#include <QtCore/qstringlist.h>
+#include <quickjs.h>
 
-#include <QtScript/qscriptvalue.h>
+#include <QtCore/qstringlist.h>
+#include <QtCore/QVariantMap>
 
 namespace qbs {
 namespace Internal {
@@ -88,13 +89,17 @@ void removeGeneratedArtifactFromDisk(const QString &filePath, const Logger &logg
 void disconnect(BuildGraphNode *u, BuildGraphNode *v);
 
 void setupScriptEngineForFile(ScriptEngine *engine, const FileContextBaseConstPtr &fileContext,
-        QScriptValue targetObject, const ObserveMode &observeMode);
+        JSValue targetObject, const ObserveMode &observeMode);
 void setupScriptEngineForProduct(ScriptEngine *engine, ResolvedProduct *product,
-                                 const ResolvedModule *module, QScriptValue targetObject,
+                                 const ResolvedModule *module, JSValue targetObject,
                                  bool setBuildEnvironment);
 QString relativeArtifactFileName(const Artifact *artifact); // Debugging helpers
 
 void doSanityChecks(const ResolvedProjectPtr &project, const Logger &logger);
+
+void getPropertyNames(JSContext *ctx, JSPropertyEnum **ptab, uint32_t *plen,
+                      const QVariantMap &properties, const QStringList &extraPropertyNames,
+                      JSValueConst extraObject);
 
 } // namespace Internal
 } // namespace qbs

@@ -38,16 +38,13 @@
 **
 ****************************************************************************/
 
+#include "jsextension.h"
+
 #include <language/scriptengine.h>
 
 #include <QtCore/qfileinfo.h>
-#include <QtCore/qobject.h>
 #include <QtCore/qtemporarydir.h>
 #include <QtCore/qvariant.h>
-
-#include <QtScript/qscriptable.h>
-#include <QtScript/qscriptengine.h>
-#include <QtScript/qscriptvalue.h>
 
 namespace qbs {
 namespace Internal {
@@ -60,63 +57,49 @@ static bool tempDirIsCanonical()
     return false;
 }
 
-class TemporaryDir : public QObject, public QScriptable
+class TemporaryDir : public JsExtension<TemporaryDir>
 {
-    Q_OBJECT
+    friend class JsExtension<TemporaryDir>;
 public:
-    static QScriptValue ctor(QScriptContext *context, QScriptEngine *engine);
-    TemporaryDir(QScriptContext *context);
-    Q_INVOKABLE bool isValid() const;
-    Q_INVOKABLE QString path() const;
-    Q_INVOKABLE bool remove();
+    static const char *name() { return "TemporaryDir"; }
+    static JSValue ctor(JSContext *ctx, JSValueConst, JSValueConst, int, JSValueConst *, int)
+    {
+        const auto se = ScriptEngine::engineForContext(ctx);
+        const DubiousContextList dubiousContexts{DubiousContext(EvalContext::PropertyEvaluation,
+                                                                DubiousContext::SuggestMoving)};
+        se->checkContext(QStringLiteral("qbs.TemporaryDir"), dubiousContexts);
+        return createObject(ctx);
+    }
+    static void setupMethods(JSContext *ctx, JSValue obj)
+    {
+        setupMethod(ctx, obj, "isValid", &jsIsValid, 0);
+        setupMethod(ctx, obj, "path", &jsPath, 0);
+        setupMethod(ctx, obj, "remove", &jsRemove, 0);
+    }
+
 private:
-    QTemporaryDir dir;
+    TemporaryDir(JSContext *) { m_dir.setAutoRemove(false); }
+
+    DEFINE_JS_FORWARDER(jsIsValid, &TemporaryDir::isValid, "TemporaryDir.isValid")
+    DEFINE_JS_FORWARDER(jsPath, &TemporaryDir::path, "TemporaryDir.path")
+    DEFINE_JS_FORWARDER(jsRemove, &TemporaryDir::remove, "TemporaryDir.remove")
+
+    bool isValid() const { return m_dir.isValid(); }
+
+    QString path() const
+    {
+        return tempDirIsCanonical() ? m_dir.path() : QFileInfo(m_dir.path()).canonicalFilePath();
+    }
+
+    bool remove() { return m_dir.remove(); }
+
+    QTemporaryDir m_dir;
 };
-
-QScriptValue TemporaryDir::ctor(QScriptContext *context, QScriptEngine *engine)
-{
-    const auto se = static_cast<ScriptEngine *>(engine);
-    const DubiousContextList dubiousContexts({
-            DubiousContext(EvalContext::PropertyEvaluation, DubiousContext::SuggestMoving)
-    });
-    se->checkContext(QStringLiteral("qbs.TemporaryDir"), dubiousContexts);
-
-    const auto t = new TemporaryDir(context);
-    QScriptValue obj = engine->newQObject(t, QScriptEngine::ScriptOwnership);
-    return obj;
-}
-
-TemporaryDir::TemporaryDir(QScriptContext *context)
-{
-    Q_UNUSED(context);
-    dir.setAutoRemove(false);
-}
-
-bool TemporaryDir::isValid() const
-{
-    return dir.isValid();
-}
-
-QString TemporaryDir::path() const
-{
-    return tempDirIsCanonical() ? dir.path() : QFileInfo(dir.path()).canonicalFilePath();
-}
-
-bool TemporaryDir::remove()
-{
-    return dir.remove();
-}
 
 } // namespace Internal
 } // namespace qbs
 
-void initializeJsExtensionTemporaryDir(QScriptValue extensionObject)
+void initializeJsExtensionTemporaryDir(qbs::Internal::ScriptEngine *engine, JSValue extensionObject)
 {
-    using namespace qbs::Internal;
-    QScriptEngine *engine = extensionObject.engine();
-    QScriptValue obj = engine->newQMetaObject(&TemporaryDir::staticMetaObject,
-                                              engine->newFunction(&TemporaryDir::ctor));
-    extensionObject.setProperty(QStringLiteral("TemporaryDir"), obj);
+    qbs::Internal::TemporaryDir::registerClass(engine, extensionObject);
 }
-
-#include "temporarydir.moc"

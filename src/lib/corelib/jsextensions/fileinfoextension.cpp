@@ -37,6 +37,8 @@
 **
 ****************************************************************************/
 
+#include "jsextension.h"
+
 #include <language/scriptengine.h>
 #include <logging/translator.h>
 #include <tools/fileinfo.h>
@@ -44,9 +46,6 @@
 
 #include <QtCore/qdir.h>
 #include <QtCore/qfileinfo.h>
-
-#include <QtScript/qscriptable.h>
-#include <QtScript/qscriptengine.h>
 
 #include <regex>
 
@@ -63,300 +62,253 @@ static QString uniqueSeparators(QString path)
     return path;
 }
 
-class FileInfoExtension : public QObject, QScriptable
+class FileInfoExtension : public JsExtension<FileInfoExtension>
 {
-    Q_OBJECT
 public:
-    static QScriptValue js_ctor(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_path(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_fileName(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_baseName(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_suffix(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_completeSuffix(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_canonicalPath(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_cleanPath(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_completeBaseName(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_relativePath(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_resolvePath(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_isAbsolutePath(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_toWindowsSeparators(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_fromWindowsSeparators(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_toNativeSeparators(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_fromNativeSeparators(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_joinPaths(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_pathListSeparator(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_pathSeparator(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_executableSuffix(QScriptContext *context, QScriptEngine *engine);
+    static const char *name() { return "FileInfo"; }
+    static void setupStaticMethods(JSContext *ctx, JSValue classObj);
+    static JSValue jsPath(JSContext *ctx, JSValueConst, int argc, JSValueConst *argv);
+    static JSValue jsFileName(JSContext *ctx, JSValueConst, int argc, JSValueConst *argv);
+    static JSValue jsBaseName(JSContext *ctx, JSValueConst, int argc, JSValueConst *argv);
+    static JSValue jsSuffix(JSContext *ctx, JSValueConst, int argc, JSValueConst *argv);
+    static JSValue jsCompleteSuffix(JSContext *ctx, JSValueConst,
+                                    int argc, JSValueConst *argv);
+    static JSValue jsCanonicalPath(JSContext *ctx, JSValueConst,
+                                   int argc, JSValueConst *argv);
+    static JSValue jsCleanPath(JSContext *ctx, JSValueConst, int argc, JSValueConst *argv);
+    static JSValue jsCompleteBaseName(JSContext *ctx, JSValueConst,
+                                      int argc, JSValueConst *argv);
+    static JSValue jsRelativePath(JSContext *ctx, JSValueConst,
+                                  int argc, JSValueConst *argv);
+    static JSValue jsResolvePath(JSContext *ctx, JSValueConst,
+                                 int argc, JSValueConst *argv);
+    static JSValue jsIsAbsolutePath(JSContext *ctx, JSValueConst,
+                                    int argc, JSValueConst *argv);
+    static JSValue jsToWindowsSeparators(JSContext *ctx, JSValueConst,
+                                         int argc, JSValueConst *argv);
+    static JSValue jsFromWindowsSeparators(JSContext *ctx, JSValueConst,
+                                           int argc, JSValueConst *argv);
+    static JSValue jsToNativeSeparators(JSContext *ctx, JSValueConst,
+                                        int argc, JSValueConst *argv);
+    static JSValue jsFromNativeSeparators(JSContext *ctx, JSValueConst,
+                                          int argc, JSValueConst *argv);
+    static JSValue jsJoinPaths(JSContext *ctx, JSValueConst, int argc, JSValueConst *argv);
+    static JSValue jsPathListSeparator(JSContext *ctx, JSValueConst, int, JSValueConst *);
+    static JSValue jsPathSeparator(JSContext *ctx, JSValueConst, int, JSValueConst *);
+    static JSValue jsExecutableSuffix(JSContext *ctx, JSValueConst, int, JSValueConst *);
 };
 
-QScriptValue FileInfoExtension::js_ctor(QScriptContext *context, QScriptEngine *engine)
+void FileInfoExtension::setupStaticMethods(JSContext *ctx, JSValue classObj)
 {
-    Q_UNUSED(engine);
-    return context->throwError(Tr::tr("'FileInfo' cannot be instantiated."));
+    setupMethod(ctx, classObj, StringConstants::fileInfoPath(), &FileInfoExtension::jsPath, 1);
+    setupMethod(ctx, classObj, StringConstants::fileInfoFileName(),
+                      &FileInfoExtension::jsFileName, 1);
+    setupMethod(ctx, classObj, StringConstants::baseNameProperty(),
+                      &FileInfoExtension::jsBaseName, 1);
+    setupMethod(ctx, classObj, "suffix", &FileInfoExtension::jsSuffix, 1);
+    setupMethod(ctx, classObj, "completeSuffix", &FileInfoExtension::jsCompleteSuffix, 1);
+    setupMethod(ctx, classObj, "canonicalPath", &FileInfoExtension::jsCanonicalPath, 1);
+    setupMethod(ctx, classObj, "cleanPath", &FileInfoExtension::jsCleanPath, 1);
+    setupMethod(ctx, classObj, StringConstants::completeBaseNameProperty(),
+                      &FileInfoExtension::jsCompleteBaseName, 1);
+    setupMethod(ctx, classObj, "relativePath", &FileInfoExtension::jsRelativePath, 1);
+    setupMethod(ctx, classObj, "resolvePath", &FileInfoExtension::jsResolvePath, 1);
+    setupMethod(ctx, classObj, "isAbsolutePath", &FileInfoExtension::jsIsAbsolutePath, 1);
+    setupMethod(ctx, classObj, "toWindowsSeparators",
+                      &FileInfoExtension::jsToWindowsSeparators, 1);
+    setupMethod(ctx, classObj, "fromWindowsSeparators",
+                      &FileInfoExtension::jsFromWindowsSeparators, 1);
+    setupMethod(ctx, classObj, "toNativeSeparators",
+                      &FileInfoExtension::jsToNativeSeparators, 1);
+    setupMethod(ctx, classObj, "fromNativeSeparators",
+                      &FileInfoExtension::jsFromNativeSeparators, 1);
+    setupMethod(ctx, classObj, "joinPaths", &FileInfoExtension::jsJoinPaths, 0);
+    setupMethod(ctx, classObj, "pathListSeparator",
+                      &FileInfoExtension::jsPathListSeparator, 0);
+    setupMethod(ctx, classObj, "pathSeparator", &FileInfoExtension::jsPathSeparator, 0);
+    setupMethod(ctx, classObj, "executableSuffix", &FileInfoExtension::jsExecutableSuffix, 0);
 }
 
-QScriptValue FileInfoExtension::js_path(QScriptContext *context, QScriptEngine *engine)
+JSValue FileInfoExtension::jsPath(JSContext *ctx, JSValue, int argc, JSValue *argv)
 {
-    Q_UNUSED(engine);
-    if (Q_UNLIKELY(context->argumentCount() < 1)) {
-        return context->throwError(QScriptContext::SyntaxError,
-                                   Tr::tr("path expects 1 argument"));
-    }
-    HostOsInfo::HostOs hostOs = HostOsInfo::hostOs();
-    if (context->argumentCount() > 1) {
-        hostOs = context->argument(1).toVariant().toStringList().contains(QLatin1String("windows"))
-                ? HostOsInfo::HostOsWindows : HostOsInfo::HostOsOtherUnix;
-    }
-    return FileInfo::path(context->argument(0).toString(), hostOs);
-}
-
-QScriptValue FileInfoExtension::js_fileName(QScriptContext *context, QScriptEngine *engine)
-{
-    Q_UNUSED(engine);
-    if (Q_UNLIKELY(context->argumentCount() < 1)) {
-        return context->throwError(QScriptContext::SyntaxError,
-                                   Tr::tr("fileName expects 1 argument"));
-    }
-    return FileInfo::fileName(context->argument(0).toString());
-}
-
-QScriptValue FileInfoExtension::js_baseName(QScriptContext *context, QScriptEngine *engine)
-{
-    Q_UNUSED(engine);
-    if (Q_UNLIKELY(context->argumentCount() < 1)) {
-        return context->throwError(QScriptContext::SyntaxError,
-                                   Tr::tr("baseName expects 1 argument"));
-    }
-    return FileInfo::baseName(context->argument(0).toString());
-}
-
-QScriptValue FileInfoExtension::js_suffix(QScriptContext *context, QScriptEngine *engine)
-{
-    Q_UNUSED(engine);
-    if (Q_UNLIKELY(context->argumentCount() < 1)) {
-        return context->throwError(QScriptContext::SyntaxError,
-                                   Tr::tr("suffix expects 1 argument"));
-    }
-    return FileInfo::suffix(context->argument(0).toString());
-}
-
-QScriptValue FileInfoExtension::js_completeSuffix(QScriptContext *context, QScriptEngine *engine)
-{
-    Q_UNUSED(engine);
-    if (Q_UNLIKELY(context->argumentCount() < 1)) {
-        return context->throwError(QScriptContext::SyntaxError,
-                                   Tr::tr("completeSuffix expects 1 argument"));
-    }
-    return FileInfo::completeSuffix(context->argument(0).toString());
-}
-
-QScriptValue FileInfoExtension::js_canonicalPath(QScriptContext *context, QScriptEngine *engine)
-{
-    Q_UNUSED(engine);
-    if (Q_UNLIKELY(context->argumentCount() < 1)) {
-        return context->throwError(QScriptContext::SyntaxError,
-                                   Tr::tr("canonicalPath expects 1 argument"));
-    }
-    return QFileInfo(context->argument(0).toString()).canonicalFilePath();
-}
-
-QScriptValue FileInfoExtension::js_cleanPath(QScriptContext *context, QScriptEngine *engine)
-{
-    Q_UNUSED(engine);
-    if (Q_UNLIKELY(context->argumentCount() < 1)) {
-        return context->throwError(QScriptContext::SyntaxError,
-                                   Tr::tr("cleanPath expects 1 argument"));
-    }
-    return QDir::cleanPath(context->argument(0).toString());
-}
-
-QScriptValue FileInfoExtension::js_completeBaseName(QScriptContext *context, QScriptEngine *engine)
-{
-    Q_UNUSED(engine);
-    if (Q_UNLIKELY(context->argumentCount() < 1)) {
-        return context->throwError(QScriptContext::SyntaxError,
-                                   Tr::tr("completeBaseName expects 1 argument"));
-    }
-    return FileInfo::completeBaseName(context->argument(0).toString());
-}
-
-QScriptValue FileInfoExtension::js_relativePath(QScriptContext *context, QScriptEngine *engine)
-{
-    Q_UNUSED(engine);
-    if (Q_UNLIKELY(context->argumentCount() < 1)) {
-        return context->throwError(QScriptContext::SyntaxError,
-                                   Tr::tr("relativePath expects 2 arguments"));
-    }
-    const QString baseDir = context->argument(0).toString();
-    const QString filePath = context->argument(1).toString();
-    if (!FileInfo::isAbsolute(baseDir)) {
-        return context->throwError(QScriptContext::SyntaxError,
-                                   Tr::tr("FileInfo.relativePath() expects an absolute path as "
-                                          "its first argument, but it is '%1'.").arg(baseDir));
-    }
-    if (!FileInfo::isAbsolute(filePath)) {
-        return context->throwError(QScriptContext::SyntaxError,
-                                   Tr::tr("FileInfo.relativePath() expects an absolute path as "
-                                          "its second argument, but it is '%1'.").arg(filePath));
-    }
-    return QDir(baseDir).relativeFilePath(filePath);
-}
-
-QScriptValue FileInfoExtension::js_resolvePath(QScriptContext *context, QScriptEngine *engine)
-{
-    Q_UNUSED(engine);
-    if (Q_UNLIKELY(context->argumentCount() < 1)) {
-        return context->throwError(QScriptContext::SyntaxError,
-                                   Tr::tr("resolvePath expects 2 arguments"));
-    }
-    const QString base = context->argument(0).toString();
-    const QString rel = context->argument(1).toString();
-    return FileInfo::resolvePath(base, rel);
-}
-
-QScriptValue FileInfoExtension::js_isAbsolutePath(QScriptContext *context, QScriptEngine *engine)
-{
-    Q_UNUSED(engine);
-    if (Q_UNLIKELY(context->argumentCount() < 1)) {
-        return context->throwError(QScriptContext::SyntaxError,
-                                   Tr::tr("isAbsolutePath expects 1 argument"));
-    }
-    HostOsInfo::HostOs hostOs = HostOsInfo::hostOs();
-    if (context->argumentCount() > 1) {
-        hostOs = context->argument(1).toVariant().toStringList().contains(QLatin1String("windows"))
-                ? HostOsInfo::HostOsWindows : HostOsInfo::HostOsOtherUnix;
-    }
-    return FileInfo::isAbsolute(context->argument(0).toString(), hostOs);
-}
-
-QScriptValue FileInfoExtension::js_toWindowsSeparators(QScriptContext *context, QScriptEngine *engine)
-{
-    Q_UNUSED(engine);
-    if (Q_UNLIKELY(context->argumentCount() < 1)) {
-        return context->throwError(QScriptContext::SyntaxError,
-                                   Tr::tr("toWindowsSeparators expects 1 argument"));
-    }
-    return context->argument(0).toString().replace(QLatin1Char('/'), QLatin1Char('\\'));
-}
-
-QScriptValue FileInfoExtension::js_fromWindowsSeparators(QScriptContext *context, QScriptEngine *engine)
-{
-    Q_UNUSED(engine);
-    if (Q_UNLIKELY(context->argumentCount() < 1)) {
-        return context->throwError(QScriptContext::SyntaxError,
-                                   Tr::tr("fromWindowsSeparators expects 1 argument"));
-    }
-    return context->argument(0).toString().replace(QLatin1Char('\\'), QLatin1Char('/'));
-}
-
-QScriptValue FileInfoExtension::js_toNativeSeparators(QScriptContext *context, QScriptEngine *engine)
-{
-    Q_UNUSED(engine);
-    if (Q_UNLIKELY(context->argumentCount() < 1)) {
-        return context->throwError(QScriptContext::SyntaxError,
-                                   Tr::tr("toNativeSeparators expects 1 argument"));
-    }
-    return QDir::toNativeSeparators(context->argument(0).toString());
-}
-
-QScriptValue FileInfoExtension::js_fromNativeSeparators(QScriptContext *context, QScriptEngine *engine)
-{
-    Q_UNUSED(engine);
-    if (Q_UNLIKELY(context->argumentCount() < 1)) {
-        return context->throwError(QScriptContext::SyntaxError,
-                                   Tr::tr("fromNativeSeparators expects 1 argument"));
-    }
-    return QDir::fromNativeSeparators(context->argument(0).toString());
-}
-
-QScriptValue FileInfoExtension::js_joinPaths(QScriptContext *context, QScriptEngine *engine)
-{
-    Q_UNUSED(engine);
-    QStringList paths;
-    for (int i = 0; i < context->argumentCount(); ++i) {
-        const QScriptValue value = context->argument(i);
-        if (!value.isUndefined() && !value.isNull()) {
-            const QString arg = value.toString();
-            if (!arg.isEmpty())
-                paths.push_back(arg);
+    try {
+        const auto filePath = getArgument<QString>(ctx, "FileInfo.path", argc, argv);
+        HostOsInfo::HostOs hostOs = HostOsInfo::hostOs();
+        if (argc > 1) {
+            const auto osList = fromArg<QStringList>(ctx, "FileInfo.path", 2, argv[1]);
+            hostOs = osList.contains(QLatin1String("windows"))
+                    ? HostOsInfo::HostOsWindows : HostOsInfo::HostOsOtherUnix;
         }
-    }
-    return engine->toScriptValue(uniqueSeparators(paths.join(QLatin1Char('/'))));
+        return makeJsString(ctx, FileInfo::path(filePath, hostOs));
+    } catch (const QString &error) { return throwError(ctx, error); }
 }
 
-QScriptValue FileInfoExtension::js_pathListSeparator(QScriptContext *context, QScriptEngine *engine)
+JSValue FileInfoExtension::jsFileName(JSContext *ctx, JSValue, int argc, JSValue *argv)
 {
-    Q_UNUSED(context);
-    Q_UNUSED(engine);
-    return QString(HostOsInfo::pathListSeparator());
+    try {
+        const auto filePath = getArgument<QString>(ctx, "FileInfo.fileName", argc, argv);
+        return makeJsString(ctx, FileInfo::fileName(filePath));
+    } catch (const QString &error) { return throwError(ctx, error); }
 }
 
-QScriptValue FileInfoExtension::js_pathSeparator(QScriptContext *context, QScriptEngine *engine)
+JSValue FileInfoExtension::jsBaseName(JSContext *ctx, JSValue, int argc, JSValue *argv)
 {
-    Q_UNUSED(context);
-    Q_UNUSED(engine);
-    return QString(HostOsInfo::pathSeparator());
+    try {
+        const auto filePath = getArgument<QString>(ctx, "FileInfo.baseName", argc, argv);
+        return makeJsString(ctx, FileInfo::baseName(filePath));
+    } catch (const QString &error) { return throwError(ctx, error); }
 }
 
-QScriptValue FileInfoExtension::js_executableSuffix(QScriptContext *context, QScriptEngine *engine)
+JSValue FileInfoExtension::jsSuffix(JSContext *ctx, JSValue, int argc, JSValue *argv)
 {
-    Q_UNUSED(context);
-    Q_UNUSED(engine);
+    try {
+        const auto filePath = getArgument<QString>(ctx, "FileInfo.suffix", argc, argv);
+        return makeJsString(ctx, FileInfo::suffix(filePath));
+    } catch (const QString &error) { return throwError(ctx, error); }
+}
+
+JSValue FileInfoExtension::jsCompleteSuffix(JSContext *ctx, JSValue, int argc, JSValue *argv)
+{
+    try {
+        const auto filePath = getArgument<QString>(ctx, "FileInfo.completeSuffix", argc, argv);
+        return makeJsString(ctx, FileInfo::completeSuffix(filePath));
+    } catch (const QString &error) { return throwError(ctx, error); }
+}
+
+JSValue FileInfoExtension::jsCanonicalPath(JSContext *ctx, JSValue, int argc, JSValue *argv)
+{
+    try {
+        const auto filePath = getArgument<QString>(ctx, "FileInfo.canonicalPath", argc, argv);
+        return makeJsString(ctx, QFileInfo(filePath).canonicalFilePath());
+    } catch (const QString &error) { return throwError(ctx, error); }
+}
+
+JSValue FileInfoExtension::jsCleanPath(JSContext *ctx, JSValue, int argc, JSValue *argv)
+{
+    try {
+        const auto filePath = getArgument<QString>(ctx, "FileInfo.cleanPath", argc, argv);
+        return makeJsString(ctx, QDir::cleanPath(filePath));
+    } catch (const QString &error) { return throwError(ctx, error); }
+}
+
+JSValue FileInfoExtension::jsCompleteBaseName(JSContext *ctx, JSValue, int argc, JSValue *argv)
+{
+    try {
+        const auto filePath = getArgument<QString>(ctx, "FileInfo.completeBaseName", argc, argv);
+        return makeJsString(ctx, FileInfo::completeBaseName(filePath));
+    } catch (const QString &error) { return throwError(ctx, error); }
+}
+
+JSValue FileInfoExtension::jsRelativePath(JSContext *ctx, JSValue, int argc, JSValue *argv)
+{
+    try {
+        const auto args = getArguments<QString, QString>(ctx, "File.relativePath", argc, argv);
+        const QString baseDir = std::get<0>(args);
+        const QString filePath = std::get<1>(args);
+        if (!FileInfo::isAbsolute(baseDir)) {
+            throw Tr::tr("FileInfo.relativePath() expects an absolute path as "
+                         "its first argument, but it is '%1'.").arg(baseDir);
+        }
+        if (!FileInfo::isAbsolute(filePath)) {
+            throw Tr::tr("FileInfo.relativePath() expects an absolute path as "
+                         "its second argument, but it is '%1'.").arg(filePath);
+        }
+        return makeJsString(ctx, QDir(baseDir).relativeFilePath(filePath));
+
+    } catch (const QString &error) { return throwError(ctx, error); }
+}
+
+JSValue FileInfoExtension::jsResolvePath(JSContext *ctx, JSValue, int argc, JSValue *argv)
+{
+    try {
+        const auto args = getArguments<QString, QString>(ctx, "File.resolvePath", argc, argv);
+        const QString base = std::get<0>(args);
+        const QString rel = std::get<1>(args);
+        return makeJsString(ctx, FileInfo::resolvePath(base, rel));
+    } catch (const QString &error) { return throwError(ctx, error); }
+}
+
+JSValue FileInfoExtension::jsIsAbsolutePath(JSContext *ctx, JSValue, int argc, JSValue *argv)
+{
+    try {
+        const auto filePath = getArgument<QString>(ctx, "FileInfo.isAbsolutePath", argc, argv);
+        HostOsInfo::HostOs hostOs = HostOsInfo::hostOs();
+        if (argc > 1) {
+            const auto osList = fromArg<QStringList>(ctx, "FileInfo.isAbsolutePath", 2, argv[1]);
+            hostOs = osList.contains(QLatin1String("windows"))
+                    ? HostOsInfo::HostOsWindows : HostOsInfo::HostOsOtherUnix;
+        }
+        return JS_NewBool(ctx, FileInfo::isAbsolute(filePath, hostOs));
+    } catch (const QString &error) { return throwError(ctx, error); }
+}
+
+JSValue FileInfoExtension::jsToWindowsSeparators(JSContext *ctx, JSValue, int argc, JSValue *argv)
+{
+    try {
+        auto filePath = getArgument<QString>(ctx, "FileInfo.toWindowsSeparators", argc, argv);
+        return makeJsString(ctx, filePath.replace(QLatin1Char('/'), QLatin1Char('\\')));
+    } catch (const QString &error) { return throwError(ctx, error); }
+}
+
+JSValue FileInfoExtension::jsFromWindowsSeparators(JSContext *ctx, JSValue, int argc, JSValue *argv)
+{
+    try {
+        auto filePath = getArgument<QString>(ctx, "FileInfo.fromWindowsSeparators", argc, argv);
+        return makeJsString(ctx, filePath.replace(QLatin1Char('\\'), QLatin1Char('/')));
+    } catch (const QString &error) { return throwError(ctx, error); }
+}
+
+JSValue FileInfoExtension::jsToNativeSeparators(JSContext *ctx, JSValue, int argc, JSValue *argv)
+{
+    try {
+        const auto filePath = getArgument<QString>(ctx, "FileInfo.toWindowsSeparators", argc, argv);
+        return makeJsString(ctx, QDir::toNativeSeparators(filePath));
+    } catch (const QString &error) { return throwError(ctx, error); }
+}
+
+JSValue FileInfoExtension::jsFromNativeSeparators(JSContext *ctx, JSValue, int argc, JSValue *argv)
+{
+    try {
+        const auto filePath = getArgument<QString>(ctx, "FileInfo.fromWindowsSeparators",
+                                                   argc, argv);
+        return makeJsString(ctx, QDir::fromNativeSeparators(filePath));
+    } catch (const QString &error) { return throwError(ctx, error); }
+}
+
+JSValue FileInfoExtension::jsJoinPaths(JSContext *ctx, JSValue, int argc, JSValue *argv)
+{
+    try {
+        QStringList paths;
+        for (int i = 0; i < argc; ++i) {
+            const auto value = fromArg<QString>(ctx, "FileInfo.joinPaths", i + 1, argv[i]);
+            if (!value.isEmpty())
+                paths.push_back(value);
+        }
+        return makeJsString(ctx, uniqueSeparators(paths.join(QLatin1Char('/'))));
+    } catch (const QString &error) { return throwError(ctx, error); }
+}
+
+JSValue FileInfoExtension::jsPathListSeparator(JSContext *ctx, JSValue, int, JSValue *)
+{
+    return makeJsString(ctx, QString(HostOsInfo::pathListSeparator()));
+}
+
+JSValue FileInfoExtension::jsPathSeparator(JSContext *ctx, JSValue, int, JSValue *)
+{
+    return makeJsString(ctx, QString(HostOsInfo::pathSeparator()));
+}
+
+JSValue FileInfoExtension::jsExecutableSuffix(JSContext *ctx, JSValue, int, JSValue *)
+{
     static QString executableSuffix = HostOsInfo::isWindowsHost() ?
-                                          QLatin1String(QBS_HOST_EXE_SUFFIX) : QString();
-    return executableSuffix;
+                QLatin1String(QBS_HOST_EXE_SUFFIX) : QString();
+    return makeJsString(ctx, executableSuffix);
 }
 
 } // namespace Internal
 } // namespace qbs
 
-void initializeJsExtensionFileInfo(QScriptValue extensionObject)
+void initializeJsExtensionFileInfo(qbs::Internal::ScriptEngine *engine, JSValue extensionObject)
 {
-    using namespace qbs::Internal;
-    QScriptEngine *engine = extensionObject.engine();
-    QScriptValue fileInfoObj = engine->newQMetaObject(&FileInfoExtension::staticMetaObject,
-                                                  engine->newFunction(&FileInfoExtension::js_ctor));
-    fileInfoObj.setProperty(StringConstants::fileInfoPath(),
-                            engine->newFunction(FileInfoExtension::js_path));
-    fileInfoObj.setProperty(StringConstants::fileInfoFileName(),
-                            engine->newFunction(FileInfoExtension::js_fileName));
-    fileInfoObj.setProperty(StringConstants::baseNameProperty(),
-                            engine->newFunction(FileInfoExtension::js_baseName));
-    fileInfoObj.setProperty(QStringLiteral("suffix"),
-                            engine->newFunction(FileInfoExtension::js_suffix));
-    fileInfoObj.setProperty(QStringLiteral("completeSuffix"),
-                            engine->newFunction(FileInfoExtension::js_completeSuffix));
-    fileInfoObj.setProperty(QStringLiteral("canonicalPath"),
-                            engine->newFunction(FileInfoExtension::js_canonicalPath));
-    fileInfoObj.setProperty(QStringLiteral("cleanPath"),
-                            engine->newFunction(FileInfoExtension::js_cleanPath));
-    fileInfoObj.setProperty(StringConstants::completeBaseNameProperty(),
-                            engine->newFunction(FileInfoExtension::js_completeBaseName));
-    fileInfoObj.setProperty(QStringLiteral("relativePath"),
-                            engine->newFunction(FileInfoExtension::js_relativePath));
-    fileInfoObj.setProperty(QStringLiteral("resolvePath"),
-                            engine->newFunction(FileInfoExtension::js_resolvePath));
-    fileInfoObj.setProperty(QStringLiteral("isAbsolutePath"),
-                            engine->newFunction(FileInfoExtension::js_isAbsolutePath));
-    fileInfoObj.setProperty(QStringLiteral("toWindowsSeparators"),
-                            engine->newFunction(FileInfoExtension::js_toWindowsSeparators));
-    fileInfoObj.setProperty(QStringLiteral("fromWindowsSeparators"),
-                            engine->newFunction(FileInfoExtension::js_fromWindowsSeparators));
-    fileInfoObj.setProperty(QStringLiteral("toNativeSeparators"),
-                            engine->newFunction(FileInfoExtension::js_toNativeSeparators));
-    fileInfoObj.setProperty(QStringLiteral("fromNativeSeparators"),
-                            engine->newFunction(FileInfoExtension::js_fromNativeSeparators));
-    fileInfoObj.setProperty(QStringLiteral("joinPaths"),
-                            engine->newFunction(FileInfoExtension::js_joinPaths));
-    fileInfoObj.setProperty(QStringLiteral("pathListSeparator"),
-                            engine->newFunction(FileInfoExtension::js_pathListSeparator));
-    fileInfoObj.setProperty(QStringLiteral("pathSeparator"),
-                            engine->newFunction(FileInfoExtension::js_pathSeparator));
-    fileInfoObj.setProperty(QStringLiteral("executableSuffix"),
-                            engine->newFunction(FileInfoExtension::js_executableSuffix));
-    extensionObject.setProperty(QStringLiteral("FileInfo"), fileInfoObj);
+    qbs::Internal::FileInfoExtension::registerClass(engine, extensionObject);
 }
-
-Q_DECLARE_METATYPE(qbs::Internal::FileInfoExtension *)
-
-#include "fileinfoextension.moc"

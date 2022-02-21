@@ -42,9 +42,6 @@
 #include <language/scriptengine.h>
 #include <tools/version.h>
 
-#include <QtScript/qscriptengine.h>
-#include <QtScript/qscriptvalue.h>
-
 #include <QtCore/QProcessEnvironment>
 
 #include <stdexcept>
@@ -186,35 +183,39 @@ std::vector<std::string> stringListToStdVector(const QStringList &list)
 
 } // namespace
 
-QScriptValue PkgConfigJs::ctor(QScriptContext *context, QScriptEngine *engine)
+void PkgConfigJs::declareEnums(JSContext *ctx, JSValue classObj)
+{
+    DECLARE_ENUM(ctx, classObj, LibraryName);
+    DECLARE_ENUM(ctx, classObj, LibraryPath);
+    DECLARE_ENUM(ctx, classObj, StaticLibraryName);
+    DECLARE_ENUM(ctx, classObj, Framework);
+    DECLARE_ENUM(ctx, classObj, FrameworkPath);
+    DECLARE_ENUM(ctx, classObj, LinkerFlag);
+    DECLARE_ENUM(ctx, classObj, IncludePath);
+    DECLARE_ENUM(ctx, classObj, SystemIncludePath);
+    DECLARE_ENUM(ctx, classObj, Define);
+    DECLARE_ENUM(ctx, classObj, CompilerFlag);
+}
+
+JSValue PkgConfigJs::ctor(JSContext *ctx, JSValue, JSValue, int argc, JSValue *argv, int)
 {
     try {
-        PkgConfigJs *e = nullptr;
-        switch (context->argumentCount()) {
-        case 0:
-            e = new PkgConfigJs(context, engine);
-            break;
-        case 1:
-            e = new PkgConfigJs(context, engine, context->argument(0).toVariant().toMap());
-            break;
-
-        default:
-            return context->throwError(
-                    QStringLiteral("TextFile constructor takes at most three parameters."));
-        }
-
-        return engine->newQObject(e, QScriptEngine::ScriptOwnership);
+        QVariantMap options;
+        if (argc > 0)
+            options = fromArg<QVariant>(ctx, "PkgConfig constructor", 1, argv[0]).toMap();
+        JSValue obj = createObject(ctx, options);
+        return obj;
     } catch (const PcException &e) {
-        return context->throwError(QString::fromUtf8(e.what()));
+        return throwError(ctx, QString::fromUtf8(e.what()));
+    } catch (const QString &error) {
+        return throwError(ctx, error);
     }
 }
 
-PkgConfigJs::PkgConfigJs(
-        QScriptContext *context, QScriptEngine *engine, const QVariantMap &options) :
+PkgConfigJs::PkgConfigJs(JSContext *ctx, const QVariantMap &options) :
     m_pkgConfig(std::make_unique<PkgConfig>(
-        convertOptions(static_cast<ScriptEngine *>(engine)->environment(), options)))
+        convertOptions(ScriptEngine::engineForContext(ctx)->environment(), options)))
 {
-    Q_UNUSED(context);
     for (const auto &package : m_pkgConfig->packages()) {
         m_packages.insert(
                 QString::fromStdString(package.getBaseFileName()), packageVariantToMap(package));
@@ -249,16 +250,15 @@ PkgConfig::Options PkgConfigJs::convertOptions(const QProcessEnvironment &env, c
     return result;
 }
 
+void PkgConfigJs::setupMethods(JSContext *ctx, JSValue obj)
+{
+    setupMethod(ctx, obj, "packages", &PkgConfigJs::jsPackages, 0);
+}
+
 } // namespace Internal
 } // namespace qbs
 
-void initializeJsExtensionPkgConfig(QScriptValue extensionObject)
+void initializeJsExtensionPkgConfig(qbs::Internal::ScriptEngine *engine, JSValue extensionObject)
 {
-    using namespace qbs::Internal;
-    QScriptEngine *engine = extensionObject.engine();
-    QScriptValue obj = engine->newQMetaObject(
-                &PkgConfigJs::staticMetaObject, engine->newFunction(&PkgConfigJs::ctor));
-    extensionObject.setProperty(QStringLiteral("PkgConfig"), obj);
+    qbs::Internal::PkgConfigJs::registerClass(engine, extensionObject);
 }
-
-Q_DECLARE_METATYPE(qbs::Internal::PkgConfigJs *)

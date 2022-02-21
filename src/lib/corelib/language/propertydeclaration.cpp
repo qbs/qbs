@@ -281,7 +281,6 @@ ErrorInfo PropertyDeclaration::checkForDeprecation(DeprecationWarningMode mode,
     return deprecationInfo().checkForDeprecation(mode, name(), loc, false, logger);
 }
 
-// see also: EvaluatorScriptClass::convertToPropertyType()
 QVariant PropertyDeclaration::convertToPropertyType(const QVariant &v, Type t,
     const QStringList &namePrefix, const QString &key)
 {

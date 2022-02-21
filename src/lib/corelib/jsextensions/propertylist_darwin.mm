@@ -38,20 +38,72 @@
 **
 ****************************************************************************/
 
-#include "propertylist_darwin.h"
+#include "jsextension.h"
+#include "propertylistutils.h"
 
 #include <language/scriptengine.h>
+#include <logging/translator.h>
 #include <tools/hostosinfo.h>
 
 #include <QtCore/qfile.h>
-#include <QtCore/qobject.h>
 #include <QtCore/qstring.h>
 #include <QtCore/qtextstream.h>
 #include <QtCore/qvariant.h>
 
-#include <QtScript/qscriptable.h>
-#include <QtScript/qscriptengine.h>
-#include <QtScript/qscriptvalue.h>
+namespace qbs {
+namespace Internal {
+
+class PropertyList : public JsExtension<PropertyList>
+{
+public:
+    static const char *name() { return "PropertyList"; }
+    static JSValue ctor(JSContext *ctx, JSValueConst, JSValueConst, int, JSValueConst *, int);
+    PropertyList(JSContext *) {}
+    static void setupMethods(JSContext *ctx, JSValue obj);
+
+    DEFINE_JS_FORWARDER(jsIsEmpty, &PropertyList::isEmpty, "PropertyList.isEmpty");
+    DEFINE_JS_FORWARDER(jsClear, &PropertyList::clear, "PropertyList.clear");
+    DEFINE_JS_FORWARDER(jsReadFromObject, &PropertyList::readFromObject,
+                        "PropertyList.readFromObject");
+    DEFINE_JS_FORWARDER(jsReadFromString, &PropertyList::readFromString,
+                        "PropertyList.readFromString");
+    DEFINE_JS_FORWARDER(jsReadFromFile, &PropertyList::readFromFile, "PropertyList.readFromFile");
+    DEFINE_JS_FORWARDER(jsReadFromData, &PropertyList::readFromData, "PropertyList.readFromData");
+    DEFINE_JS_FORWARDER(jsWriteToFile, &PropertyList::writeToFile, "PropertyList.writeToFile");
+    DEFINE_JS_FORWARDER(jsFormat, &PropertyList::format, "PropertyList.format");
+    DEFINE_JS_FORWARDER(jsToObject, &PropertyList::toObject, "PropertyList.toObject");
+    DEFINE_JS_FORWARDER(jsToString, &PropertyList::toString, "PropertyList.toString");
+    DEFINE_JS_FORWARDER(jsToXmlString, &PropertyList::toXMLString, "PropertyList.toXMLString");
+
+    static JSValue jsToJson(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv)
+    {
+        try {
+            QString style;
+            if (argc > 0)
+                style = fromArg<QString>(ctx, "Process.exec", 1, argv[0]);
+            return toJsValue(ctx, fromJsObject(ctx, this_val)->toJSON(style));
+        } catch (const QString &error) { return throwError(ctx, error); }
+    }
+
+private:
+    bool isEmpty() const { return m_propertyListObject.isNull(); }
+    void clear();
+    void readFromObject(const QVariant &value);
+    void readFromString(const QString &input);
+    void readFromFile(const QString &filePath);
+    void readFromData(const QByteArray &data);
+    void writeToFile(const QString &filePath, const QString &plistFormat);
+    std::optional<QString> format() const;
+    QVariant toObject() const { return m_propertyListObject; }
+    QString toString(const QString &plistFormat) const;
+    QString toXMLString() const;
+    QString toJSON(const QString &style = QString()) const;
+
+    QByteArray writeToData(const QString &format) const;
+
+    QVariant m_propertyListObject;
+    int m_propertyListFormat = 0;
+};
 
 // Same values as CoreFoundation and Foundation APIs
 enum {
@@ -61,69 +113,45 @@ enum {
     QPropertyListJSONFormat = 1000 // If this conflicts someday, just change it :)
 };
 
-namespace qbs {
-namespace Internal {
-
-class PropertyListPrivate
+JSValue PropertyList::ctor(JSContext *ctx, JSValueConst, JSValueConst, int, JSValueConst *, int)
 {
-public:
-    PropertyListPrivate();
-
-    QVariant propertyListObject;
-    int propertyListFormat;
-
-    void readFromData(QScriptContext *context, const QByteArray &data);
-    QByteArray writeToData(QScriptContext *context, const QString &format);
-};
-
-QScriptValue PropertyList::ctor(QScriptContext *context, QScriptEngine *engine)
-{
-    auto const se = static_cast<ScriptEngine *>(engine);
-    const DubiousContextList dubiousContexts({
+    try {
+        JSValue obj = createObject(ctx);
+        const auto se = ScriptEngine::engineForContext(ctx);
+        const DubiousContextList dubiousContexts{
             DubiousContext(EvalContext::PropertyEvaluation, DubiousContext::SuggestMoving)
-    });
-    se->checkContext(QStringLiteral("qbs.PropertyList"), dubiousContexts);
-
-    auto p = new PropertyList(context);
-    QScriptValue obj = engine->newQObject(p, QScriptEngine::ScriptOwnership);
-    return obj;
+        };
+        se->checkContext(QStringLiteral("qbs.PropertyList"), dubiousContexts);
+        return obj;
+    } catch (const QString &error) { return throwError(ctx, error); }
 }
 
-PropertyListPrivate::PropertyListPrivate()
-    : propertyListObject(), propertyListFormat(0)
+void PropertyList::setupMethods(JSContext *ctx, JSValue obj)
 {
-}
-
-PropertyList::~PropertyList() = default;
-
-PropertyList::PropertyList(QScriptContext *context)
-    : d(std::make_unique<PropertyListPrivate>())
-{
-    Q_UNUSED(context);
-    Q_ASSERT(thisObject().engine() == engine());
-}
-
-bool PropertyList::isEmpty() const
-{
-    Q_ASSERT(thisObject().engine() == engine());
-    auto p = qscriptvalue_cast<PropertyList*>(thisObject());
-    return p->d->propertyListObject.isNull();
+    setupMethod(ctx, obj, "isEmpty", &jsIsEmpty, 0);
+    setupMethod(ctx, obj, "clear", &jsClear, 0);
+    setupMethod(ctx, obj, "readFromObject", &jsReadFromObject, 1);
+    setupMethod(ctx, obj, "readFromString", &jsReadFromString, 1);
+    setupMethod(ctx, obj, "readFromFile", &jsReadFromFile, 1);
+    setupMethod(ctx, obj, "readFromData", &jsReadFromData, 1);
+    setupMethod(ctx, obj, "writeToFile", &jsWriteToFile, 1);
+    setupMethod(ctx, obj, "format", &jsFormat, 0);
+    setupMethod(ctx, obj, "toObject", &jsToObject, 0);
+    setupMethod(ctx, obj, "toString", &jsToString, 1);
+    setupMethod(ctx, obj, "toXMLString", &jsToXmlString, 1);
+    setupMethod(ctx, obj, "toJSON", &jsToJson, 1);
 }
 
 void PropertyList::clear()
 {
-    Q_ASSERT(thisObject().engine() == engine());
-    auto p = qscriptvalue_cast<PropertyList*>(thisObject());
-    p->d->propertyListObject = QVariant();
-    p->d->propertyListFormat = 0;
+    m_propertyListObject = QVariant();
+    m_propertyListFormat = 0;
 }
 
-void PropertyList::readFromObject(const QScriptValue &value)
+void PropertyList::readFromObject(const QVariant &value)
 {
-    Q_ASSERT(thisObject().engine() == engine());
-    auto p = qscriptvalue_cast<PropertyList*>(thisObject());
-    p->d->propertyListObject = value.toVariant();
-    p->d->propertyListFormat = 0; // wasn't deserialized from any external format
+    m_propertyListObject = value;
+    m_propertyListFormat = 0; // wasn't deserialized from any external format
 }
 
 void PropertyList::readFromString(const QString &input)
@@ -133,111 +161,18 @@ void PropertyList::readFromString(const QString &input)
 
 void PropertyList::readFromFile(const QString &filePath)
 {
-    Q_ASSERT(thisObject().engine() == engine());
-    auto p = qscriptvalue_cast<PropertyList*>(thisObject());
-
     QFile file(filePath);
     if (file.open(QIODevice::ReadOnly)) {
         const QByteArray data = file.readAll();
         if (file.error() == QFile::NoError) {
-            p->d->readFromData(p->context(), data);
+            readFromData(data);
             return;
         }
     }
-
-    p->context()->throwError(QStringLiteral("%1: %2").arg(filePath).arg(file.errorString()));
+    throw QStringLiteral("%1: %2").arg(filePath).arg(file.errorString());
 }
 
 void PropertyList::readFromData(const QByteArray &data)
-{
-    Q_ASSERT(thisObject().engine() == engine());
-    auto p = qscriptvalue_cast<PropertyList*>(thisObject());
-    p->d->readFromData(p->context(), data);
-}
-
-void PropertyList::writeToFile(const QString &filePath, const QString &plistFormat)
-{
-    Q_ASSERT(thisObject().engine() == engine());
-    auto p = qscriptvalue_cast<PropertyList*>(thisObject());
-
-    QFile file(filePath);
-    QByteArray data = p->d->writeToData(p->context(), plistFormat);
-    if (Q_LIKELY(!data.isEmpty())) {
-        if (file.open(QIODevice::WriteOnly) && file.write(data) == data.size()) {
-            return;
-        }
-    }
-
-    p->context()->throwError(QStringLiteral("%1: %2").arg(filePath).arg(file.errorString()));
-}
-
-QScriptValue PropertyList::format() const
-{
-    Q_ASSERT(thisObject().engine() == engine());
-    auto p = qscriptvalue_cast<PropertyList*>(thisObject());
-    switch (p->d->propertyListFormat)
-    {
-    case QPropertyListOpenStepFormat:
-        return QStringLiteral("openstep");
-    case QPropertyListXMLFormat_v1_0:
-        return QStringLiteral("xml1");
-    case QPropertyListBinaryFormat_v1_0:
-        return QStringLiteral("binary1");
-    case QPropertyListJSONFormat:
-        return QStringLiteral("json");
-    default:
-        return p->engine()->undefinedValue();
-    }
-}
-
-QScriptValue PropertyList::toObject() const
-{
-    Q_ASSERT(thisObject().engine() == engine());
-    auto p = qscriptvalue_cast<PropertyList*>(thisObject());
-    return p->engine()->toScriptValue(p->d->propertyListObject);
-}
-
-QString PropertyList::toString(const QString &plistFormat) const
-{
-    Q_ASSERT(thisObject().engine() == engine());
-    auto p = qscriptvalue_cast<PropertyList*>(thisObject());
-
-    if (plistFormat == QLatin1String("binary1")) {
-        p->context()->throwError(QStringLiteral("Property list object cannot be converted to a "
-                                               "string in the binary1 format; this format can only "
-                                               "be written directly to a file"));
-        return {};
-    }
-
-    if (!isEmpty())
-        return QString::fromUtf8(p->d->writeToData(p->context(), plistFormat));
-
-    return {};
-}
-
-QString PropertyList::toXMLString() const
-{
-    return toString(QStringLiteral("xml1"));
-}
-
-QString PropertyList::toJSON(const QString &style) const
-{
-    QString format = QLatin1String("json");
-    if (!style.isEmpty())
-        format += QLatin1String("-") + style;
-
-    return toString(format);
-}
-
-} // namespace Internal
-} // namespace qbs
-
-#include "propertylistutils.h"
-
-namespace qbs {
-namespace Internal {
-
-void PropertyListPrivate::readFromData(QScriptContext *context, const QByteArray &data)
 {
     @autoreleasepool {
         NSPropertyListFormat format;
@@ -260,32 +195,85 @@ void PropertyListPrivate::readFromData(QScriptContext *context, const QByteArray
             }
         }
 
-        if (Q_UNLIKELY(!plist)) {
-            context->throwError(QString::fromNSString(errorString));
+        if (Q_UNLIKELY(!plist))
+            throw QString::fromNSString(errorString);
+        QVariant obj = QPropertyListUtils::fromPropertyList(plist);
+        if (!obj.isNull()) {
+            m_propertyListObject = obj;
+            m_propertyListFormat = internalFormat;
         } else {
-            QVariant obj = QPropertyListUtils::fromPropertyList(plist);
-            if (!obj.isNull()) {
-                propertyListObject = obj;
-                propertyListFormat = internalFormat;
-            } else {
-                context->throwError(QStringLiteral("error converting property list"));
-            }
+            throw Tr::tr("error converting property list");
         }
     }
 }
 
-QByteArray PropertyListPrivate::writeToData(QScriptContext *context, const QString &format)
+void PropertyList::writeToFile(const QString &filePath, const QString &plistFormat)
+{
+    QFile file(filePath);
+    QByteArray data = writeToData(plistFormat);
+    if (Q_LIKELY(!data.isEmpty())) {
+        if (file.open(QIODevice::WriteOnly) && file.write(data) == data.size()) {
+            return;
+        }
+    }
+
+    throw QStringLiteral("%1: %2").arg(filePath).arg(file.errorString());
+}
+
+std::optional<QString> PropertyList::format() const
+{
+    switch (m_propertyListFormat)
+    {
+    case QPropertyListOpenStepFormat:
+        return QStringLiteral("openstep");
+    case QPropertyListXMLFormat_v1_0:
+        return QStringLiteral("xml1");
+    case QPropertyListBinaryFormat_v1_0:
+        return QStringLiteral("binary1");
+    case QPropertyListJSONFormat:
+        return QStringLiteral("json");
+    default:
+        return {};
+    }
+}
+
+QString PropertyList::toString(const QString &plistFormat) const
+{
+    if (plistFormat == QLatin1String("binary1")) {
+        throw Tr::tr("Property list object cannot be converted to a "
+                     "string in the binary1 format; this format can only "
+                     "be written directly to a file");
+    }
+
+    if (!isEmpty())
+        return QString::fromUtf8(writeToData(plistFormat));
+    return {};
+}
+
+QString PropertyList::toXMLString() const
+{
+    return toString(QStringLiteral("xml1"));
+}
+
+QString PropertyList::toJSON(const QString &style) const
+{
+    QString format = QLatin1String("json");
+    if (!style.isEmpty())
+        format += QLatin1String("-") + style;
+
+    return toString(format);
+}
+
+QByteArray PropertyList::writeToData(const QString &format) const
 {
     @autoreleasepool {
         NSError *error = nil;
         NSString *errorString = nil;
         NSData *data = nil;
 
-        id obj = QPropertyListUtils::toPropertyList(propertyListObject);
-        if (!obj) {
-            context->throwError(QStringLiteral("error converting property list"));
-            return QByteArray();
-        }
+        id obj = QPropertyListUtils::toPropertyList(m_propertyListObject);
+        if (!obj)
+            throw Tr::tr("error converting property list");
 
         if (format == QLatin1String("json") || format == QLatin1String("json-pretty") ||
             format == QLatin1String("json-compact")) {
@@ -322,9 +310,8 @@ QByteArray PropertyListPrivate::writeToData(QScriptContext *context, const QStri
                                                      @"format", format.toUtf8().constData()];
         }
 
-        if (Q_UNLIKELY(!data)) {
-            context->throwError(QString::fromNSString(errorString));
-        }
+        if (Q_UNLIKELY(!data))
+            throw QString::fromNSString(errorString);
 
         return QByteArray::fromNSData(data);
     }
@@ -333,11 +320,7 @@ QByteArray PropertyListPrivate::writeToData(QScriptContext *context, const QStri
 } // namespace Internal
 } // namespace qbs
 
-void initializeJsExtensionPropertyList(QScriptValue extensionObject)
+void initializeJsExtensionPropertyList(qbs::Internal::ScriptEngine *engine, JSValue extensionObject)
 {
-    using namespace qbs::Internal;
-    QScriptEngine *engine = extensionObject.engine();
-    QScriptValue obj = engine->newQMetaObject(&PropertyList::staticMetaObject,
-                                              engine->newFunction(&PropertyList::ctor));
-    extensionObject.setProperty(QStringLiteral("PropertyList"), obj);
+    qbs::Internal::PropertyList::registerClass(engine, extensionObject);
 }

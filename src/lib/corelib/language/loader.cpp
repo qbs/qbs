@@ -56,7 +56,6 @@
 
 #include <QtCore/qdir.h>
 #include <QtCore/qobject.h>
-#include <QtCore/qtimer.h>
 
 namespace qbs {
 namespace Internal {
@@ -131,14 +130,12 @@ TopLevelProjectPtr Loader::loadProject(const SetupProjectParameters &_parameters
                         << QDir::toNativeSeparators(parameters.projectFilePath()) << "'.";
 
     m_engine->setEnvironment(parameters.adjustedEnvironment());
-    m_engine->clearExceptions();
+    m_engine->checkAndClearException({});
     m_engine->clearImportsCache();
     m_engine->clearRequestedProperties();
     m_engine->enableProfiling(parameters.logElapsedTime());
     m_logger.clearWarnings();
     EvalContextSwitcher evalContextSwitcher(m_engine, EvalContext::PropertyEvaluation);
-
-    QTimer cancelationTimer;
 
     // At this point, we cannot set a sensible total effort, because we know nothing about
     // the project yet. That's why we use a placeholder here, so the user at least
@@ -147,13 +144,7 @@ TopLevelProjectPtr Loader::loadProject(const SetupProjectParameters &_parameters
     if (m_progressObserver) {
         m_progressObserver->initialize(Tr::tr("Resolving project for configuration %1")
                 .arg(TopLevelProject::deriveId(parameters.finalBuildConfigurationTree())), 1);
-        cancelationTimer.setSingleShot(false);
-        QObject::connect(&cancelationTimer, &QTimer::timeout, [this]() {
-            QBS_ASSERT(m_progressObserver, return);
-            if (m_progressObserver->canceled())
-                m_engine->cancel();
-        });
-        cancelationTimer.start(1000);
+        m_progressObserver->setScriptEngine(m_engine);
     }
 
     const FileTime resolveTime = FileTime::currentTime();

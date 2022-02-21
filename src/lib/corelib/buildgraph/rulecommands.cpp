@@ -39,6 +39,8 @@
 ****************************************************************************/
 
 #include "rulecommands.h"
+
+#include <language/scriptengine.h>
 #include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/fileinfo.h>
@@ -47,9 +49,6 @@
 #include <tools/stringconstants.h>
 
 #include <QtCore/qfile.h>
-
-#include <QtScript/qscriptengine.h>
-#include <QtScript/qscriptvalueiterator.h>
 
 namespace qbs {
 namespace Internal {
@@ -79,10 +78,11 @@ static QString stdoutFilterFunctionProperty() { return QStringLiteral("stdoutFil
 static QString timeoutProperty() { return QStringLiteral("timeout"); }
 static QString workingDirProperty() { return QStringLiteral("workingDirectory"); }
 
-static QString invokedSourceCode(const QScriptValue &codeOrFunction)
+static QString invokedSourceCode(JSContext *ctx, const JSValue &codeOrFunction)
 {
-    const QString &code = codeOrFunction.toString();
-    return codeOrFunction.isFunction() ? QStringLiteral("(") + code + QStringLiteral(")()") : code;
+    const QString &code = getJsString(ctx, codeOrFunction);
+    return JS_IsFunction(ctx, codeOrFunction)
+            ? QStringLiteral("(") + code + QStringLiteral(")()") : code;
 }
 
 AbstractCommand::AbstractCommand()
@@ -110,17 +110,18 @@ bool AbstractCommand::equals(const AbstractCommand *other) const
             && m_properties == other->m_properties;
 }
 
-void AbstractCommand::fillFromScriptValue(const QScriptValue *scriptValue, const CodeLocation &codeLocation)
+void AbstractCommand::fillFromScriptValue(JSContext *ctx, const JSValue *scriptValue,
+                                          const CodeLocation &codeLocation)
 {
-    m_description = scriptValue->property(StringConstants::descriptionProperty()).toString();
-    m_extendedDescription = scriptValue->property(extendedDescriptionProperty()).toString();
-    m_highlight = scriptValue->property(highlightProperty()).toString();
-    m_ignoreDryRun = scriptValue->property(ignoreDryRunProperty()).toBool();
-    m_silent = scriptValue->property(silentProperty()).toBool();
-    m_jobPool = scriptValue->property(StringConstants::jobPoolProperty()).toString();
-    const auto timeoutScriptValue = scriptValue->property(timeoutProperty());
-    if (!timeoutScriptValue.isUndefined() && !timeoutScriptValue.isNull())
-        m_timeout = timeoutScriptValue.toInt32();
+    m_description = getJsStringProperty(ctx, *scriptValue, StringConstants::descriptionProperty());
+    m_extendedDescription = getJsStringProperty(ctx, *scriptValue, extendedDescriptionProperty());
+    m_highlight = getJsStringProperty(ctx, *scriptValue, highlightProperty());
+    m_ignoreDryRun = getJsBoolProperty(ctx, *scriptValue, ignoreDryRunProperty());
+    m_silent = getJsBoolProperty(ctx, *scriptValue, silentProperty());
+    m_jobPool = getJsStringProperty(ctx, *scriptValue, StringConstants::jobPoolProperty());
+    const auto timeoutScriptValue = getJsProperty(ctx, *scriptValue, timeoutProperty());
+    if (!JS_IsUndefined(timeoutScriptValue) && !JS_IsNull(timeoutScriptValue))
+        m_timeout = JS_VALUE_GET_INT(timeoutScriptValue);
     m_codeLocation = codeLocation;
 
     m_predefinedProperties
@@ -148,94 +149,95 @@ void AbstractCommand::store(PersistentPool &pool)
     serializationOp<PersistentPool::Store>(pool);
 }
 
-void AbstractCommand::applyCommandProperties(const QScriptValue *scriptValue)
+void AbstractCommand::applyCommandProperties(JSContext *ctx, const JSValue *scriptValue)
 {
-    QScriptValueIterator it(*scriptValue);
-    while (it.hasNext()) {
-        it.next();
-        if (m_predefinedProperties.contains(it.name()))
-            continue;
-        const QVariant value = it.value().toVariant();
-        if (QMetaType::Type(value.userType()) == QMetaType::QObjectStar
-                || it.value().scriptClass()
-                || it.value().data().isValid()) {
+    handleJsProperties(ctx, *scriptValue, [this, ctx](const JSAtom &prop, const JSPropertyDescriptor &desc) {
+        const QString name = getJsString(ctx, prop);
+        if (m_predefinedProperties.contains(name))
+            return;
+        // TODO: Use script class for command objects, don't allow setting random properties
+        if (!isSimpleValue(desc.value)) {
             throw ErrorInfo(Tr::tr("Property '%1' has a type unsuitable for storing in a command "
-                                   "object.").arg(it.name()), m_codeLocation);
+                                   "object.").arg(name), m_codeLocation);
         }
-        m_properties.insert(it.name(), value);
-    }
+        m_properties.insert(name, getJsVariant(ctx, desc.value));
+    });
 }
 
-static QScriptValue js_CommandBase(QScriptContext *context, QScriptEngine *engine)
+static JSValue js_CommandBase(JSContext *ctx)
 {
-    QScriptValue cmd = context->thisObject();
-    QBS_ASSERT(context->isCalledAsConstructor(), cmd = engine->newObject());
-    cmd.setProperty(StringConstants::descriptionProperty(),
-                    engine->toScriptValue(AbstractCommand::defaultDescription()));
-    cmd.setProperty(extendedDescriptionProperty(),
-                    engine->toScriptValue(AbstractCommand::defaultExtendedDescription()));
-    cmd.setProperty(highlightProperty(),
-                    engine->toScriptValue(AbstractCommand::defaultHighLight()));
-    cmd.setProperty(ignoreDryRunProperty(),
-                    engine->toScriptValue(AbstractCommand::defaultIgnoreDryRun()));
-    cmd.setProperty(silentProperty(),
-                    engine->toScriptValue(AbstractCommand::defaultIsSilent()));
-    cmd.setProperty(timeoutProperty(),
-                    engine->toScriptValue(AbstractCommand::defaultTimeout()));
+    const JSValue cmd = JS_NewObject(ctx);
+    setJsProperty(ctx, cmd, StringConstants::descriptionProperty(),
+                  makeJsString(ctx, AbstractCommand::defaultDescription()));
+    setJsProperty(ctx, cmd, extendedDescriptionProperty(),
+                  makeJsString(ctx, AbstractCommand::defaultExtendedDescription()));
+    setJsProperty(ctx, cmd, highlightProperty(),
+                  makeJsString(ctx, AbstractCommand::defaultHighLight()));
+    setJsProperty(ctx, cmd, ignoreDryRunProperty(),
+                  JS_NewBool(ctx, AbstractCommand::defaultIgnoreDryRun()));
+    setJsProperty(ctx, cmd, silentProperty(),
+                  JS_NewBool(ctx, AbstractCommand::defaultIsSilent()));
+    setJsProperty(ctx, cmd, timeoutProperty(),
+                  JS_NewInt32(ctx, AbstractCommand::defaultTimeout()));
     return cmd;
 }
 
-static QScriptValue js_Command(QScriptContext *context, QScriptEngine *engine)
+static JSValue js_Command(JSContext *ctx, JSValueConst, JSValueConst,
+                          int argc, JSValueConst *argv, int)
 {
-    if (Q_UNLIKELY(!context->isCalledAsConstructor()))
-        return context->throwError(Tr::tr("Command constructor called without new."));
-
     static ProcessCommandPtr commandPrototype = ProcessCommand::create();
-
-    QScriptValue program = context->argument(0);
-    if (program.isUndefined())
-        program = engine->toScriptValue(commandPrototype->program());
-    QScriptValue arguments = context->argument(1);
-    if (arguments.isUndefined())
-        arguments = engine->toScriptValue(commandPrototype->arguments());
-    QScriptValue cmd = js_CommandBase(context, engine);
-    cmd.setProperty(StringConstants::classNameProperty(),
-                    engine->toScriptValue(StringConstants::commandType()));
-    cmd.setProperty(programProperty(), program);
-    cmd.setProperty(argumentsProperty(), arguments);
-    cmd.setProperty(workingDirProperty(),
-                    engine->toScriptValue(commandPrototype->workingDir()));
-    cmd.setProperty(maxExitCodeProperty(),
-                    engine->toScriptValue(commandPrototype->maxExitCode()));
-    cmd.setProperty(stdoutFilterFunctionProperty(),
-                    engine->toScriptValue(commandPrototype->stdoutFilterFunction()));
-    cmd.setProperty(stderrFilterFunctionProperty(),
-                    engine->toScriptValue(commandPrototype->stderrFilterFunction()));
-    cmd.setProperty(responseFileThresholdProperty(),
-                    engine->toScriptValue(commandPrototype->responseFileThreshold()));
-    cmd.setProperty(responseFileArgumentIndexProperty(),
-                    engine->toScriptValue(commandPrototype->responseFileArgumentIndex()));
-    cmd.setProperty(responseFileUsagePrefixProperty(),
-                    engine->toScriptValue(commandPrototype->responseFileUsagePrefix()));
-    cmd.setProperty(responseFileSeparatorProperty(),
-                    engine->toScriptValue(commandPrototype->responseFileSeparator()));
-    cmd.setProperty(stdoutFilePathProperty(),
-                    engine->toScriptValue(commandPrototype->stdoutFilePath()));
-    cmd.setProperty(stderrFilePathProperty(),
-                    engine->toScriptValue(commandPrototype->stderrFilePath()));
-    cmd.setProperty(environmentProperty(),
-                    engine->toScriptValue(commandPrototype->environment().toStringList()));
-    cmd.setProperty(ignoreDryRunProperty(),
-                    engine->toScriptValue(commandPrototype->ignoreDryRun()));
+    JSValue program = JS_UNDEFINED;
+    if (argc > 0)
+        program = JS_DupValue(ctx, argv[0]);
+    if (JS_IsUndefined(program))
+        program = makeJsString(ctx, commandPrototype->program());
+    JSValue arguments = JS_UNDEFINED;
+    if (argc > 1)
+        arguments = JS_DupValue(ctx, argv[1]);
+    if (JS_IsUndefined(arguments))
+        arguments = makeJsStringList(ctx, commandPrototype->arguments());
+    if (JS_IsString(arguments)) {
+        JSValue args = JS_NewArray(ctx);
+        JS_SetPropertyUint32(ctx, args, 0, arguments);
+        arguments = args;
+    }
+    JSValue cmd = js_CommandBase(ctx);
+    setJsProperty(ctx, cmd, StringConstants::classNameProperty(),
+                  makeJsString(ctx, StringConstants::commandType()));
+    setJsProperty(ctx, cmd, programProperty(), program);
+    setJsProperty(ctx, cmd, argumentsProperty(), arguments);
+    setJsProperty(ctx, cmd, workingDirProperty(),
+                  makeJsString(ctx, commandPrototype->workingDir()));
+    setJsProperty(ctx, cmd, maxExitCodeProperty(),
+                  JS_NewInt32(ctx, commandPrototype->maxExitCode()));
+    setJsProperty(ctx, cmd, stdoutFilterFunctionProperty(),
+                  makeJsString(ctx, commandPrototype->stdoutFilterFunction()));
+    setJsProperty(ctx, cmd, stderrFilterFunctionProperty(),
+                  makeJsString(ctx, commandPrototype->stderrFilterFunction()));
+    setJsProperty(ctx, cmd, responseFileThresholdProperty(),
+                  JS_NewInt32(ctx, commandPrototype->responseFileThreshold()));
+    setJsProperty(ctx, cmd, responseFileArgumentIndexProperty(),
+                  JS_NewInt32(ctx, commandPrototype->responseFileArgumentIndex()));
+    setJsProperty(ctx, cmd, responseFileUsagePrefixProperty(),
+                  makeJsString(ctx, commandPrototype->responseFileUsagePrefix()));
+    setJsProperty(ctx, cmd, responseFileSeparatorProperty(),
+                  makeJsString(ctx, commandPrototype->responseFileSeparator()));
+    setJsProperty(ctx, cmd, stdoutFilePathProperty(),
+                  makeJsString(ctx, commandPrototype->stdoutFilePath()));
+    setJsProperty(ctx, cmd, stderrFilePathProperty(),
+                  makeJsString(ctx, commandPrototype->stderrFilePath()));
+    setJsProperty(ctx, cmd, environmentProperty(),
+                  makeJsStringList(ctx, commandPrototype->environment().toStringList()));
+    setJsProperty(ctx, cmd, ignoreDryRunProperty(),
+                  JS_NewBool(ctx, commandPrototype->ignoreDryRun()));
     return cmd;
 }
 
 
-void ProcessCommand::setupForJavaScript(QScriptValue targetObject)
+void ProcessCommand::setupForJavaScript(ScriptEngine *engine, JSValue targetObject)
 {
-    QBS_CHECK(targetObject.isObject());
-    QScriptValue ctor = targetObject.engine()->newFunction(js_Command, 2);
-    targetObject.setProperty(StringConstants::commandType(), ctor);
+    engine->registerClass(StringConstants::commandType().toUtf8().constData(), js_Command, nullptr,
+                          targetObject);
 }
 
 ProcessCommand::ProcessCommand()
@@ -289,40 +291,37 @@ bool ProcessCommand::equals(const AbstractCommand *otherAbstractCommand) const
             && m_environment == other->m_environment;
 }
 
-void ProcessCommand::fillFromScriptValue(const QScriptValue *scriptValue, const CodeLocation &codeLocation)
+void ProcessCommand::fillFromScriptValue(JSContext *ctx, const JSValue *scriptValue, const CodeLocation &codeLocation)
 {
-    AbstractCommand::fillFromScriptValue(scriptValue, codeLocation);
-    m_program = scriptValue->property(programProperty()).toString();
-    m_arguments = scriptValue->property(argumentsProperty()).toVariant().toStringList();
-    m_workingDir = scriptValue->property(workingDirProperty()).toString();
-    m_maxExitCode = scriptValue->property(maxExitCodeProperty()).toInt32();
+    AbstractCommand::fillFromScriptValue(ctx, scriptValue, codeLocation);
+    m_program = getJsStringProperty(ctx, *scriptValue, programProperty());
+    m_arguments = getJsStringListProperty(ctx, *scriptValue, argumentsProperty());
+    m_workingDir = getJsStringProperty(ctx, *scriptValue, workingDirProperty());
+    m_maxExitCode = getJsIntProperty(ctx, *scriptValue, maxExitCodeProperty());
 
-    // toString() is required, presumably due to QtScript bug that manifests itself on Windows
-    const QScriptValue stdoutFilterFunction
-            = scriptValue->property(stdoutFilterFunctionProperty()).toString();
+    const ScopedJsValue stdoutFilterFunction(ctx, getJsProperty(ctx, *scriptValue,
+                                                                stdoutFilterFunctionProperty()));
+    if (JS_IsFunction(ctx, stdoutFilterFunction))
+        m_stdoutFilterFunction = QLatin1Char('(') + getJsString(ctx, stdoutFilterFunction) + QLatin1Char(')');
 
-    m_stdoutFilterFunction = invokedSourceCode(stdoutFilterFunction);
+    const ScopedJsValue stderrFilterFunction(ctx, getJsProperty(ctx, *scriptValue,
+                                                                stderrFilterFunctionProperty()));
+    if (JS_IsFunction(ctx, stderrFilterFunction))
+        m_stderrFilterFunction = QLatin1Char('(') + getJsString(ctx, stderrFilterFunction) + QLatin1Char(')');
 
-    // toString() is required, presumably due to QtScript bug that manifests itself on Windows
-    const QScriptValue stderrFilterFunction
-            = scriptValue->property(stderrFilterFunctionProperty()).toString();
-
-    m_stderrFilterFunction = invokedSourceCode(stderrFilterFunction);
-    m_relevantEnvVars = scriptValue->property(QStringLiteral("relevantEnvironmentVariables"))
-            .toVariant().toStringList();
-    m_responseFileThreshold = scriptValue->property(responseFileThresholdProperty())
-            .toInt32();
-    m_responseFileArgumentIndex = scriptValue->property(responseFileArgumentIndexProperty())
-            .toInt32();
-    m_responseFileUsagePrefix = scriptValue->property(responseFileUsagePrefixProperty())
-            .toString();
-    m_responseFileSeparator = scriptValue->property(responseFileSeparatorProperty())
-            .toString();
-    QStringList envList = scriptValue->property(environmentProperty()).toVariant()
-            .toStringList();
+    m_relevantEnvVars = getJsStringListProperty(ctx, *scriptValue,
+                                                QStringLiteral("relevantEnvironmentVariables"));
+    m_responseFileThreshold = getJsIntProperty(ctx, *scriptValue, responseFileThresholdProperty());
+    m_responseFileArgumentIndex = getJsIntProperty(ctx, *scriptValue,
+                                                   responseFileArgumentIndexProperty());
+    m_responseFileUsagePrefix = getJsStringProperty(ctx, *scriptValue,
+                                                    responseFileUsagePrefixProperty());
+    m_responseFileSeparator = getJsStringProperty(ctx, *scriptValue,
+                                                  responseFileSeparatorProperty());
+    QStringList envList = getJsStringListProperty(ctx, *scriptValue, environmentProperty());
     getEnvironmentFromList(envList);
-    m_stdoutFilePath = scriptValue->property(stdoutFilePathProperty()).toString();
-    m_stderrFilePath = scriptValue->property(stderrFilePathProperty()).toString();
+    m_stdoutFilePath = getJsStringProperty(ctx, *scriptValue, stdoutFilePathProperty());
+    m_stderrFilePath = getJsStringProperty(ctx, *scriptValue, stderrFilePathProperty());
 
     m_predefinedProperties
             << programProperty()
@@ -337,7 +336,7 @@ void ProcessCommand::fillFromScriptValue(const QScriptValue *scriptValue, const 
             << environmentProperty()
             << stdoutFilePathProperty()
             << stderrFilePathProperty();
-    applyCommandProperties(scriptValue);
+    applyCommandProperties(ctx, scriptValue);
 }
 
 QStringList ProcessCommand::relevantEnvVars() const
@@ -365,43 +364,42 @@ void ProcessCommand::store(PersistentPool &pool)
     serializationOp<PersistentPool::Store>(pool);
 }
 
-static QString currentImportScopeName(QScriptContext *context)
+static QString currentImportScopeName(JSContext *ctx)
 {
-    for (; context; context = context->parentContext()) {
-        QScriptValue v = context->thisObject()
-                .property(StringConstants::importScopeNamePropertyInternal());
-        if (v.isString())
-            return v.toString();
+    const ScriptEngine * const engine = ScriptEngine::engineForContext(ctx);
+    const JSValueList &contextStack = engine->contextStack();
+    for (auto it = contextStack.rbegin(); it != contextStack.rend(); ++it) {
+        if (!JS_IsObject(*it))
+            continue;
+        const ScopedJsValue v(ctx, getJsProperty(ctx, *it,
+                StringConstants::importScopeNamePropertyInternal()));
+        if (JS_IsString(v))
+            return getJsString(ctx, v);
     }
     return {};
 }
 
-static QScriptValue js_JavaScriptCommand(QScriptContext *context, QScriptEngine *engine)
+static JSValue js_JavaScriptCommand(JSContext *ctx, JSValueConst, JSValueConst,
+                                    int argc, JSValueConst *, int)
 {
-    if (Q_UNLIKELY(!context->isCalledAsConstructor()))
-        return context->throwError(Tr::tr("JavaScriptCommand constructor called without new."));
-    if (Q_UNLIKELY(context->argumentCount() != 0)) {
-        return context->throwError(QScriptContext::SyntaxError,
-                                  Tr::tr("JavaScriptCommand c'tor doesn't take arguments."));
-    }
+    if (argc > 0)
+        return throwError(ctx, Tr::tr("JavaScriptCommand c'tor doesn't take arguments."));
 
     static JavaScriptCommandPtr commandPrototype = JavaScriptCommand::create();
-    QScriptValue cmd = js_CommandBase(context, engine);
-    cmd.setProperty(StringConstants::classNameProperty(),
-                    engine->toScriptValue(StringConstants::javaScriptCommandType()));
-    cmd.setProperty(StringConstants::sourceCodeProperty(),
-                    engine->toScriptValue(commandPrototype->sourceCode()));
-    cmd.setProperty(StringConstants::importScopeNamePropertyInternal(),
-                    engine->toScriptValue(currentImportScopeName(context)));
-
+    JSValue cmd = js_CommandBase(ctx);
+    setJsProperty(ctx, cmd, StringConstants::classNameProperty(),
+                  makeJsString(ctx, StringConstants::javaScriptCommandType()));
+    setJsProperty(ctx, cmd, StringConstants::sourceCodeProperty(),
+                  makeJsString(ctx, commandPrototype->sourceCode()));
+    setJsProperty(ctx, cmd, StringConstants::importScopeNamePropertyInternal(),
+                  makeJsString(ctx, currentImportScopeName(ctx)));
     return cmd;
 }
 
-void JavaScriptCommand::setupForJavaScript(QScriptValue targetObject)
+void JavaScriptCommand::setupForJavaScript(ScriptEngine *engine, JSValue targetObject)
 {
-    QBS_CHECK(targetObject.isObject());
-    QScriptValue ctor = targetObject.engine()->newFunction(js_JavaScriptCommand, 0);
-    targetObject.setProperty(StringConstants::javaScriptCommandType(), ctor);
+    engine->registerClass(StringConstants::javaScriptCommandType().toUtf8().constData(),
+                          js_JavaScriptCommand, nullptr, targetObject);
 }
 
 JavaScriptCommand::JavaScriptCommand() = default;
@@ -414,22 +412,24 @@ bool JavaScriptCommand::equals(const AbstractCommand *otherAbstractCommand) cons
     return m_sourceCode == other->m_sourceCode;
 }
 
-void JavaScriptCommand::fillFromScriptValue(const QScriptValue *scriptValue, const CodeLocation &codeLocation)
+void JavaScriptCommand::fillFromScriptValue(JSContext *ctx, const JSValue *scriptValue,
+                                            const CodeLocation &codeLocation)
 {
-    AbstractCommand::fillFromScriptValue(scriptValue, codeLocation);
+    AbstractCommand::fillFromScriptValue(ctx, scriptValue, codeLocation);
 
-    const QScriptValue importScope = scriptValue->property(
-                StringConstants::importScopeNamePropertyInternal());
-    if (importScope.isString())
-        m_scopeName = importScope.toString();
+    const ScopedJsValue importScope(ctx, getJsProperty(ctx, *scriptValue,
+            StringConstants::importScopeNamePropertyInternal()));
+    if (JS_IsString(importScope))
+        m_scopeName = getJsString(ctx, importScope);
 
-    const QScriptValue sourceCode = scriptValue->property(StringConstants::sourceCodeProperty());
-    m_sourceCode = invokedSourceCode(sourceCode);
+    const ScopedJsValue sourceCode(ctx, getJsProperty(ctx, *scriptValue,
+                                                      StringConstants::sourceCodeProperty()));
+    m_sourceCode = invokedSourceCode(ctx, sourceCode);
 
     m_predefinedProperties << StringConstants::classNameProperty()
                            << StringConstants::sourceCodeProperty()
                            << StringConstants::importScopeNamePropertyInternal();
-    applyCommandProperties(scriptValue);
+    applyCommandProperties(ctx, scriptValue);
 }
 
 void JavaScriptCommand::load(PersistentPool &pool)

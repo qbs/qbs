@@ -45,7 +45,7 @@ usage: install-qt [options] [components]
 
 Examples
   ./install-qt.sh --version 5.13.1 qtbase
-  ./install-qt.sh --version 5.14.0 --target android --toolchain any qtbase qtscript
+  ./install-qt.sh --version 5.14.0 --target android --toolchain any qtbase
 
 Positional arguments
   components

@@ -37,6 +37,8 @@
 **
 ****************************************************************************/
 
+#include "jsextension.h"
+
 #include <language/scriptengine.h>
 #include <logging/translator.h>
 #include <tools/hostosinfo.h>
@@ -44,93 +46,89 @@
 
 #include <QtCore/qdir.h>
 
-#include <QtScript/qscriptable.h>
-#include <QtScript/qscriptengine.h>
-
 namespace qbs {
 namespace Internal {
 
-class EnvironmentExtension : public QObject, QScriptable
+class EnvironmentExtension : public JsExtension<EnvironmentExtension>
 {
-    Q_OBJECT
 public:
-    void initializeJsExtensionEnvironment(QScriptValue extensionObject);
-    static QScriptValue js_ctor(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_getEnv(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_putEnv(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_unsetEnv(QScriptContext *context, QScriptEngine *engine);
-    static QScriptValue js_currentEnv(QScriptContext *context, QScriptEngine *engine);
+    static const char *name() { return "Environment"; }
+    static void setupStaticMethods(JSContext *ctx, JSValue classObj);
+    static JSValue jsGetEnv(JSContext *ctx, JSValueConst, int argc, JSValueConst *argv);
+    static JSValue jsPutEnv(JSContext *ctx, JSValueConst, int argc, JSValueConst *argv);
+    static JSValue jsUnsetEnv(JSContext *ctx, JSValueConst, int argc, JSValueConst *argv);
+    static JSValue jsCurrentEnv(JSContext *ctx, JSValueConst, int, JSValueConst *);
 };
 
-QScriptValue EnvironmentExtension::js_ctor(QScriptContext *context, QScriptEngine *engine)
+void EnvironmentExtension::setupStaticMethods(JSContext *ctx, JSValue classObj)
 {
-    Q_UNUSED(engine);
-    return context->throwError(Tr::tr("'Environment' cannot be instantiated."));
+    setupMethod(ctx, classObj, "getEnv", &EnvironmentExtension::jsGetEnv, 1);
+    setupMethod(ctx, classObj, "putEnv", &EnvironmentExtension::jsPutEnv, 2);
+    setupMethod(ctx, classObj, "unsetEnv", &EnvironmentExtension::jsUnsetEnv, 1);
+    setupMethod(ctx, classObj, "currentEnv", &EnvironmentExtension::jsCurrentEnv, 0);
 }
 
-static QProcessEnvironment *getProcessEnvironment(QScriptContext *context, QScriptEngine *engine,
-                                                  const QString &func, bool doThrow = true)
+static QProcessEnvironment *getProcessEnvironment(ScriptEngine *engine, const QString &func,
+                                                  bool doThrow = true)
 {
     QVariant v = engine->property(StringConstants::qbsProcEnvVarInternal());
     auto procenv = reinterpret_cast<QProcessEnvironment *>(v.value<void *>());
-    if (!procenv && doThrow)
-        throw context->throwError(QScriptContext::UnknownError,
-                                  QStringLiteral("%1 can only be called from ").arg(func) +
-                                  QStringLiteral("Module.setupBuildEnvironment and ") +
-                                  QStringLiteral("Module.setupRunEnvironment"));
+    if (!procenv && doThrow) {
+        throw QStringLiteral("%1 can only be called from "
+                             "Module.setupBuildEnvironment and "
+                             "Module.setupRunEnvironment").arg(func);
+    }
     return procenv;
 }
 
-QScriptValue EnvironmentExtension::js_getEnv(QScriptContext *context, QScriptEngine *engine)
+JSValue EnvironmentExtension::jsGetEnv(JSContext *ctx, JSValueConst, int argc, JSValueConst *argv)
 {
-    if (Q_UNLIKELY(context->argumentCount() != 1))
-        return context->throwError(QScriptContext::SyntaxError,
-                                   QStringLiteral("getEnv expects 1 argument"));
-    const QProcessEnvironment env = static_cast<ScriptEngine *>(engine)->environment();
-    const QProcessEnvironment *procenv = getProcessEnvironment(context, engine,
-                                                               QStringLiteral("getEnv"), false);
+    try {
+        const auto name = getArgument<QString>(ctx, "Environment.getEnv", argc, argv);
+        ScriptEngine * const engine = ScriptEngine::engineForContext(ctx);
+        const QProcessEnvironment env = engine->environment();
+        const QProcessEnvironment *procenv = getProcessEnvironment(engine, QStringLiteral("getEnv"),
+                                                                   false);
+        if (!procenv)
+            procenv = &env;
+        const QString value = procenv->value(name);
+        return value.isNull() ? engine->undefinedValue() : makeJsString(ctx, value);
+    } catch (const QString &error) { return throwError(ctx, error); }
+}
+
+JSValue EnvironmentExtension::jsPutEnv(JSContext *ctx, JSValue, int argc, JSValue *argv)
+{
+    try {
+        const auto args = getArguments<QString, QString>(ctx, "Environment.putEnv", argc, argv);
+        getProcessEnvironment(ScriptEngine::engineForContext(ctx), QStringLiteral("putEnv"))
+                ->insert(std::get<0>(args), std::get<1>(args));
+        return JS_UNDEFINED;
+    } catch (const QString &error) { return throwError(ctx, error); }
+}
+
+JSValue EnvironmentExtension::jsUnsetEnv(JSContext *ctx, JSValue, int argc, JSValue *argv)
+{
+    try {
+        const auto name = getArgument<QString>(ctx, "Environment.unsetEnv", argc, argv);
+        getProcessEnvironment(ScriptEngine::engineForContext(ctx), QStringLiteral("unsetEnv"))
+                ->remove(name);
+        return JS_UNDEFINED;
+    } catch (const QString &error) { return throwError(ctx, error); }
+}
+
+JSValue EnvironmentExtension::jsCurrentEnv(JSContext *ctx, JSValue, int, JSValue *)
+{
+    ScriptEngine * const engine = ScriptEngine::engineForContext(ctx);
+    const QProcessEnvironment env = engine->environment();
+    const QProcessEnvironment *procenv = getProcessEnvironment(engine, QStringLiteral("currentEnv"),
+                                                               false);
     if (!procenv)
         procenv = &env;
-
-    const QString name = context->argument(0).toString();
-    const QString value = procenv->value(name);
-    return value.isNull() ? engine->undefinedValue() : value;
-}
-
-QScriptValue EnvironmentExtension::js_putEnv(QScriptContext *context, QScriptEngine *engine)
-{
-    if (Q_UNLIKELY(context->argumentCount() != 2))
-        return context->throwError(QScriptContext::SyntaxError,
-                                   QStringLiteral("putEnv expects 2 arguments"));
-    getProcessEnvironment(context, engine, QStringLiteral("putEnv"))->insert(
-                context->argument(0).toString(),
-                context->argument(1).toString());
-    return engine->undefinedValue();
-}
-
-QScriptValue EnvironmentExtension::js_unsetEnv(QScriptContext *context, QScriptEngine *engine)
-{
-    if (Q_UNLIKELY(context->argumentCount() != 1))
-        return context->throwError(QScriptContext::SyntaxError,
-                                   QStringLiteral("unsetEnv expects 1 argument"));
-    getProcessEnvironment(context, engine, QStringLiteral("unsetEnv"))->remove(
-                context->argument(0).toString());
-    return engine->undefinedValue();
-}
-
-QScriptValue EnvironmentExtension::js_currentEnv(QScriptContext *context, QScriptEngine *engine)
-{
-    Q_UNUSED(context);
-    const QProcessEnvironment env = static_cast<ScriptEngine *>(engine)->environment();
-    const QProcessEnvironment *procenv = getProcessEnvironment(context, engine,
-                                                               QStringLiteral("currentEnv"), false);
-    if (!procenv)
-        procenv = &env;
-    QScriptValue envObject = engine->newObject();
+    JSValue envObject = engine->newObject();
     const auto keys = procenv->keys();
     for (const QString &key : keys) {
         const QString keyName = HostOsInfo::isWindowsHost() ? key.toUpper() : key;
-        envObject.setProperty(keyName, QScriptValue(procenv->value(key)));
+        setJsProperty(ctx, envObject, keyName, procenv->value(key));
     }
     return envObject;
 }
@@ -138,23 +136,7 @@ QScriptValue EnvironmentExtension::js_currentEnv(QScriptContext *context, QScrip
 } // namespace Internal
 } // namespace qbs
 
-void initializeJsExtensionEnvironment(QScriptValue extensionObject)
+void initializeJsExtensionEnvironment(qbs::Internal::ScriptEngine *engine, JSValue extensionObject)
 {
-    using namespace qbs::Internal;
-    QScriptEngine *engine = extensionObject.engine();
-    QScriptValue environmentObj = engine->newQMetaObject(&EnvironmentExtension::staticMetaObject,
-                                             engine->newFunction(&EnvironmentExtension::js_ctor));
-    environmentObj.setProperty(QStringLiteral("getEnv"),
-                               engine->newFunction(EnvironmentExtension::js_getEnv, 1));
-    environmentObj.setProperty(QStringLiteral("putEnv"),
-                               engine->newFunction(EnvironmentExtension::js_putEnv, 2));
-    environmentObj.setProperty(QStringLiteral("unsetEnv"),
-                               engine->newFunction(EnvironmentExtension::js_unsetEnv, 1));
-    environmentObj.setProperty(QStringLiteral("currentEnv"),
-                               engine->newFunction(EnvironmentExtension::js_currentEnv, 0));
-    extensionObject.setProperty(QStringLiteral("Environment"), environmentObj);
+    qbs::Internal::EnvironmentExtension::registerClass(engine, extensionObject);
 }
-
-Q_DECLARE_METATYPE(qbs::Internal::EnvironmentExtension *)
-
-#include "environmentextension.moc"

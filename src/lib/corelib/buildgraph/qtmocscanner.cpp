@@ -54,9 +54,6 @@
 
 #include <QtCore/qdebug.h>
 
-#include <QtScript/qscriptcontext.h>
-#include <QtScript/qscriptengine.h>
-
 namespace qbs {
 namespace Internal {
 
@@ -102,21 +99,23 @@ private:
 
 static QString qtMocScannerJsName() { return QStringLiteral("QtMocScanner"); }
 
-QtMocScanner::QtMocScanner(const ResolvedProductPtr &product, QScriptValue targetScriptValue)
-    : m_tags(*commonFileTags())
+QtMocScanner::QtMocScanner(const ResolvedProductPtr &product, ScriptEngine *engine, JSValue targetScriptValue)
+    : m_engine(engine)
+    , m_tags(*commonFileTags())
     , m_product(product)
-    , m_targetScriptValue(targetScriptValue)
+    , m_targetScriptValue(JS_DupValue(engine->context(), targetScriptValue))
 {
-    const auto engine = static_cast<ScriptEngine *>(targetScriptValue.engine());
-    QScriptValue scannerObj = engine->newObject();
-    targetScriptValue.setProperty(qtMocScannerJsName(), scannerObj);
-    QScriptValue applyFunction = engine->newFunction(&js_apply, this);
-    scannerObj.setProperty(QStringLiteral("apply"), applyFunction);
+    JSValue scannerObj = JS_NewObjectClass(engine->context(), engine->dataWithPtrClass());
+    attachPointerTo(scannerObj, this);
+    setJsProperty(engine->context(), targetScriptValue, qtMocScannerJsName(), scannerObj);
+    JSValue applyFunction = JS_NewCFunction(engine->context(), &js_apply, "QtMocScanner", 1);
+    setJsProperty(engine->context(), scannerObj, QStringLiteral("apply"), applyFunction);
 }
 
 QtMocScanner::~QtMocScanner()
 {
-    m_targetScriptValue.setProperty(qtMocScannerJsName(), QScriptValue());
+    setJsProperty(m_engine->context(), m_targetScriptValue, qtMocScannerJsName(), JS_UNDEFINED);
+    JS_FreeValue(m_engine->context(), m_targetScriptValue);
 }
 
 static RawScanResult runScanner(ScannerPlugin *scanner, const Artifact *artifact)
@@ -199,22 +198,24 @@ void QtMocScanner::findIncludedMocCppFiles()
     }
 }
 
-QScriptValue QtMocScanner::js_apply(QScriptContext *ctx, QScriptEngine *engine,
-                                    QtMocScanner *that)
+JSValue QtMocScanner::js_apply(JSContext *ctx, JSValue this_val, int argc, JSValue *argv)
 {
-    QScriptValue input = ctx->argument(0);
-    return that->apply(engine, attachedPointer<Artifact>(input));
+    if (argc < 1)
+        return throwError(ctx, Tr::tr("QtMocScanner.apply() requires an argument."));
+    ScriptEngine * const engine = ScriptEngine::engineForContext(ctx);
+    const auto scanner = attachedPointer<QtMocScanner>(this_val, engine->dataWithPtrClass());
+    return scanner->apply(engine, attachedPointer<Artifact>(argv[0], engine->dataWithPtrClass()));
 }
 
-static QScriptValue scannerCountError(QScriptEngine *engine, size_t scannerCount,
-        const QString &fileTag)
+static JSValue scannerCountError(ScriptEngine *engine, size_t scannerCount,
+                                 const QString &fileTag)
 {
-    return engine->currentContext()->throwError(
-                Tr::tr("There are %1 scanners for the file tag %2. "
-                       "Expected is exactly one.").arg(scannerCount).arg(fileTag));
+    return throwError(engine->context(),
+                      Tr::tr("There are %1 scanners for the file tag %2. "
+                             "Expected is exactly one.").arg(scannerCount).arg(fileTag));
 }
 
-QScriptValue QtMocScanner::apply(QScriptEngine *engine, const Artifact *artifact)
+JSValue QtMocScanner::apply(ScriptEngine *engine, const Artifact *artifact)
 {
     if (!m_cppScanner) {
         auto scanners = ScannerPluginManager::scannersForFileTag(m_tags.cpp);
@@ -266,11 +267,13 @@ QScriptValue QtMocScanner::apply(QScriptEngine *engine, const Artifact *artifact
                           << "mustCompile:" << mustCompile
                           << "hasPluginMetaDataMacro:" << hasPluginMetaDataMacro;
 
-    QScriptValue obj = engine->newObject();
-    obj.setProperty(QStringLiteral("hasQObjectMacro"), hasQObjectMacro);
-    obj.setProperty(QStringLiteral("mustCompile"), mustCompile);
-    obj.setProperty(QStringLiteral("hasPluginMetaDataMacro"), hasPluginMetaDataMacro);
-    static_cast<ScriptEngine *>(engine)->setUsesIo();
+    JSValue obj = engine->newObject();
+    JSContext * const ctx = m_engine->context();
+    setJsProperty(ctx, obj, QStringLiteral("hasQObjectMacro"), JS_NewBool(ctx, hasQObjectMacro));
+    setJsProperty(ctx, obj, QStringLiteral("mustCompile"), JS_NewBool(ctx, mustCompile));
+    setJsProperty(ctx, obj, QStringLiteral("hasPluginMetaDataMacro"),
+                  JS_NewBool(ctx, hasPluginMetaDataMacro));
+    engine->setUsesIo();
     return obj;
 }
 

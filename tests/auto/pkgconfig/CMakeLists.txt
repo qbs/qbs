@@ -4,5 +4,5 @@ add_qbs_test(pkgconfig
         tst_pkgconfig.h
     DEPENDS
         qbspkgconfig
-        qbsscriptengine
+        qbsquickjsheaders
     )
