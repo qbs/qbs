@@ -48,7 +48,7 @@ var Utilities = require("qbs.Utilities");
 
 function splitNonEmpty(s, c) { return s.split(c).filter(function(e) { return e; }); }
 function toNative(p) { return FileInfo.toNativeSeparators(p); }
-function exeSuffix(qbs) { return Host.os().contains("windows") ? ".exe" : ""; }
+function exeSuffix(qbs) { return FileInfo.executableSuffix(); }
 
 function getQmakeFilePaths(qmakeFilePaths, qbs) {
     if (qmakeFilePaths && qmakeFilePaths.length > 0)

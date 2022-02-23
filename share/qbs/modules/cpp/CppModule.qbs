@@ -29,7 +29,7 @@
 ****************************************************************************/
 
 // base for Cpp modules
-import qbs.Host
+import qbs.FileInfo
 import qbs.ModUtils
 import qbs.Utilities
 import qbs.WindowsUtils
@@ -217,7 +217,7 @@ Module {
 
     property stringList knownArchitectures: []
     property var toolchainDetails
-    property string compilerExtension: Host.os().contains("windows") ? ".exe" : ""
+    property string compilerExtension: FileInfo.executableSuffix()
 
     property string linkerMode: "automatic"
     PropertyOptions {

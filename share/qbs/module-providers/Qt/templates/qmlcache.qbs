@@ -1,6 +1,5 @@
 import qbs.File
 import qbs.FileInfo
-import qbs.Host
 import qbs.Process
 import qbs.Utilities
 
@@ -11,7 +10,7 @@ Module {
             throw "qmlcachegen unsupported for this target";
     }
     property string qmlCacheGenPath: FileInfo.joinPaths(Qt.core.qmlLibExecPath, "qmlcachegen")
-                                     + (Host.os().contains("windows") ? ".exe" : "")
+                                     + FileInfo.executableSuffix()
     property bool supportsAllArchitectures: Utilities.versionCompare(Qt.core.version, "5.11") >= 0
     property string installDir
 

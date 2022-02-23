@@ -86,6 +86,7 @@ public:
     static QScriptValue js_joinPaths(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_pathListSeparator(QScriptContext *context, QScriptEngine *engine);
     static QScriptValue js_pathSeparator(QScriptContext *context, QScriptEngine *engine);
+    static QScriptValue js_executableSuffix(QScriptContext *context, QScriptEngine *engine);
 };
 
 QScriptValue FileInfoExtension::js_ctor(QScriptContext *context, QScriptEngine *engine)
@@ -297,6 +298,15 @@ QScriptValue FileInfoExtension::js_pathSeparator(QScriptContext *context, QScrip
     return QString(HostOsInfo::pathSeparator());
 }
 
+QScriptValue FileInfoExtension::js_executableSuffix(QScriptContext *context, QScriptEngine *engine)
+{
+    Q_UNUSED(context);
+    Q_UNUSED(engine);
+    static QString executableSuffix = HostOsInfo::isWindowsHost() ?
+                                          QLatin1String(QBS_HOST_EXE_SUFFIX) : QString();
+    return executableSuffix;
+}
+
 } // namespace Internal
 } // namespace qbs
 
@@ -342,6 +352,8 @@ void initializeJsExtensionFileInfo(QScriptValue extensionObject)
                             engine->newFunction(FileInfoExtension::js_pathListSeparator));
     fileInfoObj.setProperty(QStringLiteral("pathSeparator"),
                             engine->newFunction(FileInfoExtension::js_pathSeparator));
+    fileInfoObj.setProperty(QStringLiteral("executableSuffix"),
+                            engine->newFunction(FileInfoExtension::js_executableSuffix));
     extensionObject.setProperty(QStringLiteral("FileInfo"), fileInfoObj);
 }
 

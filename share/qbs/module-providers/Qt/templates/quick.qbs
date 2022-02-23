@@ -75,7 +75,7 @@ QtModule {
                                                              : Qt.core.binPath
     property string compilerBaseName: (_compilerIsQmlCacheGen ? "qmlcachegen" : "qtquickcompiler")
     property string compilerFilePath: FileInfo.joinPaths(_compilerBaseDir,
-                                        compilerBaseName + product.cpp.executableSuffix)
+                                        compilerBaseName + FileInfo.executableSuffix())
 
     property bool compilerAvailable: File.exists(compilerFilePath);
     property bool useCompiler: compilerAvailable && !_compilerIsQmlCacheGen

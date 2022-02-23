@@ -164,4 +164,11 @@
     \endcode
     Returns the host operating system path separator.
     \funsince 1.22
+
+    \section2 executableSuffix
+    \code
+        FileInfo.executableSuffix(): string
+    \endcode
+    Returns the host operating system executable suffix.
+    \funsince 1.23
 */

@@ -37,7 +37,7 @@ function scanQrc(product, qrcFilePath) {
     var result = [];
     var process = new Process();
     try {
-        var rcc = FileInfo.joinPaths(Rcc.fullPath(product) + product.cpp.executableSuffix);
+        var rcc = FileInfo.joinPaths(Rcc.fullPath(product) + FileInfo.executableSuffix());
         var exitCode = process.exec(rcc, ["--list", qrcFilePath], true);
         for (;;) {
             var line = process.readLine();

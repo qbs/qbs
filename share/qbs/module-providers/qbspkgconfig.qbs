@@ -40,7 +40,6 @@
 import qbs.Environment
 import qbs.File
 import qbs.FileInfo
-import qbs.Host
 import qbs.ModUtils
 import qbs.PkgConfig
 import qbs.Process
@@ -62,7 +61,7 @@ ModuleProvider {
 
     relativeSearchPaths: {
 
-        function exeSuffix(qbs) { return Host.os().contains("windows") ? ".exe" : ""; }
+        function exeSuffix(qbs) { return FileInfo.executableSuffix(); }
 
         // we need Probes in Providers...
         function getPkgConfigExecutable(qbs) {
