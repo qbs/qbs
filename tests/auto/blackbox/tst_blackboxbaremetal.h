@@ -49,6 +49,8 @@ private slots:
     void staticLibraryDependencies();
     void externalStaticLibraries();
 
+    void sharedLibraries();
+
     void userIncludePaths();
     void systemIncludePaths();
     void distributionIncludePaths();
@@ -65,6 +67,8 @@ private slots:
     void linkerMapFile();
 
     void compilerDefinesByLanguage();
+
+    void toolchainProbe();
 
 private:
 

@@ -78,6 +78,15 @@ static QByteArray unsupportedToolsetMessage(const QByteArray &output)
           + "' for architecture '" + architecture + "'";
 }
 
+static QByteArray brokenProbeMessage(const QByteArray &output)
+{
+    QByteArray toolchain;
+    QByteArray architecture;
+    extractToolset(output, toolchain, architecture);
+    return "Broken probe for toolchain '" + toolchain
+          + "' for architecture '" + architecture + "'";
+}
+
 TestBlackboxBareMetal::TestBlackboxBareMetal()
     : TestBlackboxBase (SRCDIR "/testdata-baremetal", "blackbox-baremetal")
 {
@@ -137,6 +146,20 @@ void TestBlackboxBareMetal::externalStaticLibraries()
     if (m_qbsStdout.contains("unsupported toolset:"))
         QSKIP(unsupportedToolsetMessage(m_qbsStdout));
     QCOMPARE(runQbs(), 0);
+}
+
+void TestBlackboxBareMetal::sharedLibraries()
+{
+    QDir::setCurrent(testDataDir + "/shared-libraries");
+    QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList("-n"))), 0);
+    if (m_qbsStdout.contains("unsupported toolset:"))
+        QSKIP(unsupportedToolsetMessage(m_qbsStdout));
+    QCOMPARE(runQbs(QbsRunParameters("build")), 0);
+    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+        QSKIP("Cannot run binaries in cross-compiled build");
+    QCOMPARE(runQbs(QbsRunParameters("run")), 0);
+    QVERIFY2(m_qbsStdout.contains("Hello from app"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("Hello from lib"), m_qbsStdout.constData());
 }
 
 void TestBlackboxBareMetal::userIncludePaths()
@@ -276,6 +299,14 @@ void TestBlackboxBareMetal::compilerDefinesByLanguage()
     QDir::setCurrent(testDataDir + "/compiler-defines-by-language");
     QbsRunParameters params(QStringList{ "-f", "compiler-defines-by-language.qbs" });
     QCOMPARE(runQbs(params), 0);
+}
+
+void TestBlackboxBareMetal::toolchainProbe()
+{
+    QDir::setCurrent(testDataDir + "/toolchain-probe");
+    QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList("-n"))), 0);
+    if (m_qbsStdout.contains("broken probe:"))
+        QFAIL(brokenProbeMessage(m_qbsStdout));
 }
 
 QTEST_MAIN(TestBlackboxBareMetal)

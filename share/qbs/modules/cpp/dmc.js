@@ -38,7 +38,47 @@ var TemporaryDir = require("qbs.TemporaryDir");
 var TextFile = require("qbs.TextFile");
 var Utilities = require("qbs.Utilities");
 
-function dumpMacros(compilerFilePath, tag) {
+function targetFlags(platform, architecture, extender, consoleApp, type) {
+    if (platform === "dos") {
+        if (architecture === "x86_16") {
+            if (extender === "dosz")
+                return ["-mz"];
+            else if (extender === "dosr")
+                return ["-mr"];
+            return ["-mc"];
+        } else if (architecture === "x86") {
+            if (extender === "dosx")
+                return ["-mx"];
+            else if (extender === "dosp")
+                return ["-mp"];
+        }
+    } else if (platform === "windows") {
+        var flags = [];
+        if (architecture === "x86_16") {
+            flags.push("-ml");
+            if (type.contains("application") && !consoleApp)
+                flags.push("-WA");
+            else if (type.contains("dynamiclibrary"))
+                flags.push("-WD");
+        } else if (architecture === "x86") {
+            flags.push("-mn");
+            if (type.contains("application"))
+                flags.push("-WA");
+            else if (type.contains("dynamiclibrary"))
+                flags.push("-WD");
+        }
+        return flags;
+    }
+    return [];
+}
+
+function languageFlags(tag) {
+    if (tag === "cpp")
+        return ["-cpp"];
+    return [];
+}
+
+function dumpMacros(compilerPath, platform, architecture, extender, tag) {
     // Note: The DMC compiler does not support the predefined/ macros dumping. So, we do it
     // with the following trick, where we try to create and compile a special temporary file
     // and to parse the console output with the own magic pattern: #define <key> <value>.
@@ -55,7 +95,8 @@ function dumpMacros(compilerFilePath, tag) {
                 "_MSDOS", "MSDOS",
                 // Prepare the OS/2 target macros.
                 "__OS2__",
-                "WIN32", "_WIN32",
+                // Prepare the Windows target macros.
+                "WIN32", "_WIN32", "__NT__",
                 // Prepare extended the 32 and 16 bit DOS target macros.
                 "DOS386", "DOS16RM",
                 // Prepare the memory model macros.
@@ -96,9 +137,10 @@ function dumpMacros(compilerFilePath, tag) {
 
     var process = new Process();
     process.setWorkingDirectory(outputDirectory.path());
-    var args = ["-c"].concat((tag === "cpp") ? ["-cpp"] : [],
-                             FileInfo.toWindowsSeparators(outputFilePath));
-    process.exec(compilerFilePath, args, false);
+    var lang = languageFlags(tag);
+    var target = targetFlags(platform, architecture, extender, false, ["application"]);
+    var args = ["-c"].concat(lang, target, FileInfo.toWindowsSeparators(outputFilePath));
+    process.exec(compilerPath, args, false);
     File.remove(outputFilePath);
     var out = process.readStdOut();
     return Cpp.extractMacros(out);
@@ -166,6 +208,12 @@ function depsOutputArtifacts(input, product) {
 function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
     var args = ["-c"];
 
+    var tag = ModUtils.fileTagForTargetLanguage(input.fileTags.concat(outputs.obj[0].fileTags));
+    args = args.concat(languageFlags(tag));
+    args = args.concat(targetFlags(product.qbs.targetPlatform, product.qbs.architecture,
+                                   product.cpp.extenderName, product.consoleApplication,
+                                   product.type));
+
     // Input.
     args.push(FileInfo.toWindowsSeparators(input.filePath));
     // Output.
@@ -178,7 +226,6 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
     // Defines.
     args = args.concat(Cpp.collectDefinesArguments(input));
 
-    var tag = ModUtils.fileTagForTargetLanguage(input.fileTags.concat(outputs.obj[0].fileTags));
     if (tag === "cpp") {
         // We need to add the paths to the STL includes, because the DMC compiler does
         // not handle it by default (because the STL libraries is a separate port).
@@ -226,8 +273,6 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
         args.push("-wx");
 
     if (tag === "cpp") {
-        args.push("-cpp");
-
         // Exceptions flag.
         if (input.cpp.enableExceptions)
             args.push("-Ae");
@@ -285,6 +330,10 @@ function linkerFlags(project, product, inputs, outputs) {
 
     var useCompilerDriver = useCompilerDriverLinker(product);
     if (useCompilerDriver) {
+        args = args.concat(targetFlags(product.qbs.targetPlatform, product.qbs.architecture,
+                                       product.cpp.extenderName, product.consoleApplication,
+                                       product.type));
+
         // Input objects.
         args = args.concat(Cpp.collectLinkerObjectPaths(inputs).map(function(path) {
             return FileInfo.toWindowsSeparators(path);
@@ -303,17 +352,22 @@ function linkerFlags(project, product, inputs, outputs) {
         // Output.
         if (product.type.contains("application")) {
             args.push("-o" + FileInfo.toWindowsSeparators(outputs.application[0].filePath));
-            args.push("-WA");
-            args.push("/SUBSYSTEM:" + (product.consoleApplication ? "CONSOLE" : "WINDOWS"));
+            args.push("-L/" + (product.cpp.generateLinkerMapFile ? "MAP" : "NOMAP"));
+            if (product.qbs.targetPlatform === "windows" && product.qbs.architecture === "x86")
+                args.push("-L/SUBSYSTEM:" + (product.consoleApplication ? "CONSOLE" : "WINDOWS"));
         } else if (product.type.contains("dynamiclibrary")) {
             args.push("-o" + FileInfo.toWindowsSeparators(outputs.dynamiclibrary[0].filePath));
-            args.push("-WD");
+            if (product.qbs.targetPlatform === "windows" && product.qbs.architecture === "x86") {
+                args.push("kernel32.lib");
+                args.push("-L/IMPLIB:" + FileInfo.toWindowsSeparators(
+                              outputs.dynamiclibrary_import[0].filePath));
+            }
         }
 
         if (product.cpp.debugInformation)
-            args.push("/DEBUG");
+            args.push("-L/DEBUG");
 
-        args.push("/NOLOGO", "/SILENT");
+        args.push("-L/NOLOGO", "-L/SILENT");
     }
 
     // Misc flags.
@@ -383,20 +437,10 @@ function renameLinkerMapFile(project, product, inputs, outputs, input, output) {
     cmd.newMapFilePath = buildLinkerMapFilePath(target, product.cpp.linkerMapSuffix);
     cmd.oldMapFilePath = buildLinkerMapFilePath(target, ".map");
     cmd.silent = true;
-    cmd.sourceCode = function() { File.move(oldMapFilePath, newMapFilePath); };
-    return cmd;
-}
-
-// It is a workaround to generate the import library file from the dynamic library.
-// Because the DMC compiler use the separate `implib.exe` tool for that.
-function createImportLib(project, product, inputs, outputs, input, output) {
-    var args = [
-                FileInfo.toWindowsSeparators(outputs.dynamiclibrary_import[0].filePath),
-                FileInfo.toWindowsSeparators(outputs.dynamiclibrary[0].filePath)
-            ];
-    var cmd = new Command(input.cpp.implibPath, args);
-    cmd.workingDirectory = product.buildDirectory;
-    cmd.silent = true;
+    cmd.sourceCode = function() {
+        if (oldMapFilePath !== newMapFilePath)
+            File.move(oldMapFilePath, newMapFilePath);
+    };
     return cmd;
 }
 
@@ -433,16 +477,11 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     cmd.jobPool = "linker";
     cmds.push(cmd);
 
-    if (outputs.dynamiclibrary
-            || (outputs.application && !product.cpp.generateLinkerMapFile)) {
-        if (outputs.dynamiclibrary)
-            cmds.push(createImportLib(project, product, inputs, outputs, input, output));
-        cmds.push(removeLinkerMapFile(project, product, inputs, outputs, input, output));
-    } else if (outputs.application
-               && product.cpp.generateLinkerMapFile
-               && (product.cpp.linkerMapSuffix !== ".map")) {
+    if (product.cpp.generateLinkerMapFile)
         cmds.push(renameLinkerMapFile(project, product, inputs, outputs, input, output));
-    }
+    else
+        cmds.push(removeLinkerMapFile(project, product, inputs, outputs, input, output));
+
     return cmds;
 }
 

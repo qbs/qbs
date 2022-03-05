@@ -37,6 +37,10 @@ PathProbe {
     property string compilerFilePath
     property stringList enableDefinesByLanguage
 
+    property string _targetPlatform
+    property string _targetArchitecture
+    property string _targetExtender // Only for DOS 16/32 bit.
+
     // Outputs
     property string architecture
     property string targetPlatform
@@ -62,7 +66,11 @@ PathProbe {
         for (var i = 0; i < languages.length; ++i) {
             var tag = languages[i];
             compilerDefinesByLanguage[tag] = DMC.dumpMacros(
-                compilerFilePath, tag);
+                        compilerFilePath,
+                        _targetPlatform,
+                        _targetArchitecture,
+                        _targetExtender,
+                        tag);
             var paths = DMC.dumpDefaultPaths(compilerFilePath, tag);
             defaultPathsByLanguage[tag] = paths;
         }

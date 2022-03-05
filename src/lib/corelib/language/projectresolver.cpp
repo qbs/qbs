@@ -1586,12 +1586,15 @@ void gatherDependencies(ResolvedProduct *product, DependencyMap &dependencies)
 {
     if (dependencies.contains(product))
         return;
-    Set<ResolvedProduct *> &productDeps = dependencies[product];
+    // Hold locally because the QHash references aren't stable in Qt6.
+    Set<ResolvedProduct *> productDeps = dependencies[product];
     for (const ResolvedProductPtr &dep : qAsConst(product->dependencies)) {
         productDeps << dep.get();
         gatherDependencies(dep.get(), dependencies);
         productDeps += dependencies.value(dep.get());
     }
+    // Now that we gathered the dependencies, put them in the map.
+    dependencies[product] = std::move(productDeps);
 }
 
 

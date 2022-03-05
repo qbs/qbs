@@ -177,7 +177,7 @@ jobs:
 
   build-windows:
     name: Build on Windows
-    runs-on: windows-latest
+    runs-on: windows-2022
     timeout-minutes: 60
     env:
       BUILD_OPTIONS: |
@@ -238,7 +238,7 @@ jobs:
 
   build-windows-mingw:
     name: Build on Windows (MinGW)
-    runs-on: windows-latest
+    runs-on: windows-2022
     timeout-minutes: 60
     env:
       BUILD_OPTIONS: |
@@ -708,7 +708,7 @@ jobs:
 
   test-windows:
     name: ${{ matrix.config.name }}
-    runs-on: windows-latest
+    runs-on: windows-2019
     timeout-minutes: 60
     needs: build-windows
     strategy:
@@ -835,8 +835,18 @@ jobs:
             script: './scripts/test-baremetal.sh',
           }
         - {
-            name: 'Run Windows tests (DigitalMars)',
-            testProfile: 'dmc-8_42_0-x86',
+            name: 'Run Windows tests (DigitalMars DOS 16 bit)',
+            testProfile: 'dmc-8_57_0-dos-x86_16',
+            script: './scripts/test-baremetal.sh',
+          }
+        - {
+            name: 'Run Windows tests (DigitalMars Windows 32 bit)',
+            testProfile: 'dmc-8_57_0-windows-x86',
+            script: './scripts/test-baremetal.sh',
+          }
+        - {
+            name: 'Run Windows tests (DigitalMars Windows 16 bit)',
+            testProfile: 'dmc-8_57_0-windows-x86_16',
             script: './scripts/test-baremetal.sh',
           }
     env:
