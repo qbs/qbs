@@ -110,7 +110,7 @@
     \qmlproperty string PkgConfigProbe::exactVersion
 
     The exact version of the required package. If set, pkg-config will ignore packages with
-    version greater than the value of this property.
+    version that is not equal to the value of this property.
 
     \nodefaultvalue
 */
@@ -119,7 +119,7 @@
     \qmlproperty string PkgConfigProbe::maxVersion
 
     The maximum version of the required package. If set, pkg-config will ignore packages with
-    version that is not equal to the value of this property.
+    version greater than the value of this property.
 
     \nodefaultvalue
 */
