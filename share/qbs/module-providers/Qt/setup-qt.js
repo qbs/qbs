@@ -1425,6 +1425,7 @@ function replaceSpecialValues(content, module, qtProps, abi) {
         qtConfig: ModUtils.toJSLiteral(qtProps.qtConfigItems),
         binPath: ModUtils.toJSLiteral(qtProps.binaryPath),
         installPath: ModUtils.toJSLiteral(qtProps.installPath),
+        installPrefixPath: ModUtils.toJSLiteral(qtProps.installPrefixPath),
         libPath: ModUtils.toJSLiteral(qtProps.libraryPath),
         libExecPath: ModUtils.toJSLiteral(qtProps.libExecPath),
         qmlLibExecPath: ModUtils.toJSLiteral(qtProps.qmlLibExecPath),

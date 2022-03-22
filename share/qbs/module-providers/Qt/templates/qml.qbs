@@ -174,7 +174,8 @@ QtModule {
                                                         product.Qt.core.qtBuildVariant,
                                                         product.qbs.targetOS,
                                                         product.qbs.toolchain,
-                                                        product.Qt.core.libPath);
+                                                        product.Qt.core.libPath,
+                                                        product.Qt.core.installPrefixPath);
                         for (var i = 0; i < libs.length; ++i) {
                             var lib = libs[i];
                             if (!lib.endsWith(product.cpp.objectSuffix)
