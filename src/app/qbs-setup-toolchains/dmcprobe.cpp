@@ -101,7 +101,7 @@ static QStringList dumpOutput(const QFileInfo &compiler, const QStringList &flag
     args.push_back(QDir::toNativeSeparators(filePath));
 
     QProcess p;
-    p.start(compiler.absoluteFilePath(), std::move(args));
+    p.start(compiler.absoluteFilePath(), args);
     p.waitForFinished(3000);
     fakeIn.remove();
     static QRegularExpression re(QLatin1String("\\r?\\n"));
@@ -144,7 +144,7 @@ static std::optional<Target> dumpDmcTarget(const QFileInfo &compiler, const QStr
 
 static std::vector<Profile> createDmcProfileHelper(const ToolchainInstallInfo &info,
                                                    Settings *settings,
-                                                   QString profileName = QString())
+                                                   QStringView profileName = {})
 {
     const QFileInfo compiler = info.compilerPath;
     std::vector<Profile> profiles;
@@ -241,10 +241,10 @@ bool isDmcCompiler(const QString &compilerName)
 }
 
 void createDmcProfile(const QFileInfo &compiler, Settings *settings,
-                      QString profileName)
+                      QStringView profileName)
 {
     const ToolchainInstallInfo info = {compiler, Version{}};
-    createDmcProfileHelper(info, settings, std::move(profileName));
+    createDmcProfileHelper(info, settings, profileName);
 }
 
 void dmcProbe(Settings *settings, std::vector<Profile> &profiles)

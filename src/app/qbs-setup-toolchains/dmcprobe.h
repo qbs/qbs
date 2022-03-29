@@ -54,7 +54,7 @@ class Settings;
 bool isDmcCompiler(const QString &compilerName);
 
 void createDmcProfile(const QFileInfo &compiler, qbs::Settings *settings,
-                      QString profileName);
+                      QStringView profileName);
 
 void dmcProbe(qbs::Settings *settings, std::vector<qbs::Profile> &profiles);
 
