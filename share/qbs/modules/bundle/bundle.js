@@ -181,15 +181,15 @@ var XcodeBuildSpecsReader = (function () {
         var i, j;
         for (i = 0; i < specsPaths.length; ++i) {
             var specsPath = specsPaths[i];
-            var names = ["Darwin", "MacOSX"];
+            var names = ["", "Darwin", "MacOSX"];
             for (j = 0; j < names.length; ++j) {
                 var name = names[j];
                 var plist = new PropertyList2();
                 var plist2 = new PropertyList2();
                 try
                 {
-                    var plistName = [name, "Package", "Types.xcspec"].join(separator);
-                    var plistName2 = [name, "Product", "Types.xcspec"].join(separator);
+                    var plistName = [name, "Package", "Types.xcspec"].join(name ? separator : "");
+                    var plistName2 = [name, "Product", "Types.xcspec"].join(name ? separator : "");
                     var plistPath = FileInfo.joinPaths(specsPath, plistName);
                     var plistPath2 = FileInfo.joinPaths(specsPath, plistName2);
                     if (File.exists(plistPath)) {
