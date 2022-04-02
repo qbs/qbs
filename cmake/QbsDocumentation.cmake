@@ -229,6 +229,8 @@ function(_qbs_setup_qhelpgenerator_targets _qdocconf_file _html_outputdir)
 
     install(FILES "${_qch_outputdir}/${_target}.qch" DESTINATION "${_arg_INSTALL_DIR}"
         COMPONENT qbs_qch_docs)
+    install(DIRECTORY "${_qch_outputdir}/html" DESTINATION "${_arg_INSTALL_DIR}"
+        COMPONENT qbs_html_docs)
 endfunction()
 
 # Helper functions:
