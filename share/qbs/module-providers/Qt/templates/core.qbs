@@ -43,6 +43,7 @@ Module {
     property path installPath: @installPath@
     property path incPath: @incPath@
     property path libPath: @libPath@
+    property path installPrefixPath: @installPrefixPath@
     property path libExecPath: @libExecPath@
     property path qmlLibExecPath: @qmlLibExecPath@
     property path pluginPath: @pluginPath@

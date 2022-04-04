@@ -208,7 +208,7 @@ static Version dumpDmcVersion(const QFileInfo &compiler)
     for (const auto &macro : macros) {
         if (!macro.startsWith(QLatin1String("0x")))
             continue;
-        const int verCode = QStringView{macro}.mid(2).toInt();
+        const int verCode = macro.mid(2).toInt();
         return Version{(verCode / 100), (verCode % 100), 0};
     }
     qbsWarning() << Tr::tr("No __DMC__ token was found in the compiler dump");

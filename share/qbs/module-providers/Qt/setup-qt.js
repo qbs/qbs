@@ -792,12 +792,12 @@ function doSetupLibraries(modInfo, qtProps, debugBuild, nonExistingPrlFiles, and
     } catch (e) {
         // qt_ext_lib_extX.pri (usually) don't have a corresponding prl file.
         // So the pri file variable QMAKE_LIBS_LIBX points to the library
-        if (modInfo.isExternal ) {
+        if (modInfo.isExternal) {
             libFilePath = debugBuild ? modInfo.staticLibrariesDebug[0] :
                                        modInfo.staticLibrariesRelease[0];
-        } else {
-            libFilePath = guessLibraryFilePath(prlFilePath, libDir, qtProps);
         }
+        if (!libFilePath || !File.exists(libFilePath))
+            libFilePath = guessLibraryFilePath(prlFilePath, libDir, qtProps);
         if (nonExistingPrlFiles.contains(prlFilePath))
             return;
         nonExistingPrlFiles.push(prlFilePath);
@@ -1425,6 +1425,7 @@ function replaceSpecialValues(content, module, qtProps, abi) {
         qtConfig: ModUtils.toJSLiteral(qtProps.qtConfigItems),
         binPath: ModUtils.toJSLiteral(qtProps.binaryPath),
         installPath: ModUtils.toJSLiteral(qtProps.installPath),
+        installPrefixPath: ModUtils.toJSLiteral(qtProps.installPrefixPath),
         libPath: ModUtils.toJSLiteral(qtProps.libraryPath),
         libExecPath: ModUtils.toJSLiteral(qtProps.libExecPath),
         qmlLibExecPath: ModUtils.toJSLiteral(qtProps.qmlLibExecPath),

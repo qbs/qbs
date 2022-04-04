@@ -202,7 +202,19 @@ function boolFromSdkOrPlatform(varName, sdkProps, platformProps, defaultValue) {
     return defaultValue;
 }
 
-function archsSpecsPath(version, targetOS, platformType, platformPath, devicePlatformPath) {
+function archsSpecsPath(version, targetOS, platformType, platformPath, devicePlatformPath,
+                        developerPath) {
+    if (Utilities.versionCompare(version, "13.3") >= 0) {
+        var baseDir = FileInfo.joinPaths(developerPath, "..",
+                                         "PlugIns/XCBSpecifications.ideplugin/Contents/Resources");
+        var baseName = targetOS.contains("macos") ? "MacOSX Architectures"
+                : targetOS.contains("ios-simulator") ? "iOS Simulator"
+                : targetOS.contains("ios") ? "iOS Device"
+                : targetOS.contains("tvos-simulator") ? "tvOS Simulator"
+                : targetOS.contains("tvos") ? "tvOS Device"
+                : targetOS.contains("watchos-simulator") ? "watchOS Simulator" : "watchOS Device";
+        return FileInfo.joinPaths(baseDir, baseName + ".xcspec");
+    }
     var _specsPluginBaseName;
     if (Utilities.versionCompare(version, "12") >= 0) {
         if (targetOS.contains("macos"))

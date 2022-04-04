@@ -58,7 +58,7 @@ template <typename To, typename From, typename Op>
 To transformed(const From &from, Op op)
 {
     To to;
-    to.reserve(from.size());
+    to.reserve(int(from.size()));
     std::transform(std::cbegin(from), std::cend(from), std::back_inserter(to), std::move(op));
     return to;
 }

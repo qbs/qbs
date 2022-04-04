@@ -39,7 +39,7 @@ function getPrlRhs(line)
     return line.split('=')[1].trim();
 }
 
-function getLibsForPlugin(pluginData, buildVariant, targetOS, toolchain, qtLibDir)
+function getLibsForPlugin(pluginData, buildVariant, targetOS, toolchain, qtLibDir, qtDir)
 {
     if (!pluginData.path)
         return "";
@@ -59,7 +59,7 @@ function getLibsForPlugin(pluginData, buildVariant, targetOS, toolchain, qtLibDi
     var prlFile = new TextFile(prlFilePath, TextFile.ReadOnly);
     try {
         var pluginLib;
-        var otherLibs = "";
+        var otherLibs = [];
         var line;
         while (!prlFile.atEof()) {
             line = prlFile.readLine().trim();
@@ -74,12 +74,13 @@ function getLibsForPlugin(pluginData, buildVariant, targetOS, toolchain, qtLibDi
                     otherLibsLine = otherLibsLine.replace(/-l([^ ]+)/g, "$1" + ".lib");
                 }
                 otherLibsLine = otherLibsLine.replace(/\$\$\[QT_INSTALL_LIBS\]/g, qtLibDir);
-                otherLibs += otherLibsLine + '\n';
+                otherLibsLine = otherLibsLine.replace(/\$\$\[QT_INSTALL_PREFIX\]/g, qtDir);
+                otherLibs = otherLibs.concat(otherLibsLine.split(' '));
             }
         }
         if (!pluginLib)
             throw "Malformed prl file '" + prlFilePath + "'.";
-        return pluginLib + ' ' + otherLibs;
+        return [pluginLib].concat(otherLibs);
     } finally {
         prlFile.close();
     }

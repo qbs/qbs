@@ -89,7 +89,7 @@ Probe {
 
         architectureSettings = {};
         var archSpecsPath = Xcode.archsSpecsPath(xcodeVersion, targetOS, platformType,
-                                                 platformPath, devicePlatformPath);
+                                                 platformPath, devicePlatformPath, developerPath);
         var archSpecsReader = new Xcode.XcodeArchSpecsReader(archSpecsPath);
         archSpecsReader.getArchitectureSettings().map(function (setting) {
             var val = archSpecsReader.getArchitectureSettingValue(setting);

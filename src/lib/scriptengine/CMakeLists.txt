@@ -73,7 +73,8 @@ elseif(WIN32)
 endif()
 
 if (MSVC)
-    set(QT_SCRIPT_CXX_FLAGS "/wd4291" "/wd4344" "/wd4396" "/wd4503" "/wd4800" "/wd4819" "/wd4996")
+    set(QT_SCRIPT_CXX_FLAGS "/wd4146" "/wd4244" "/wd4267" "/wd4291" "/wd4334"
+        "/wd4344" "/wd4396" "/wd4503" "/wd4800" "/wd4819" "/wd4996")
 else()
     set(QT_SCRIPT_CXX_FLAGS "-fno-strict-aliasing" "-w"
         "-Wall" "-Wreturn-type" "-Wcast-align" "-Wchar-subscripts"

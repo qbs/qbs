@@ -121,7 +121,7 @@ jobs:
 
   build-windows-with-docker:
     name: Build on Windows (Docker)
-    runs-on: windows-latest
+    runs-on: windows-2019
     timeout-minutes: 60
     env:
       WITH_TESTS: 0

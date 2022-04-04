@@ -1,3 +1,4 @@
+import qbs.FileInfo
 import qbs.Host
 import qbs.TextFile
 import '../QtModule.qbs' as QtModule
@@ -156,6 +157,7 @@ QtModule {
                     if (cppFile)
                         cppFile.writeLine("#include <QtPlugin>");
                     var plugins = { };
+                    var libsWithUniqueObjects = [];
                     for (var p in scannerData) {
                         var plugin = scannerData[p].plugin;
                         if (!plugin || plugins[plugin])
@@ -172,9 +174,18 @@ QtModule {
                                                         product.Qt.core.qtBuildVariant,
                                                         product.qbs.targetOS,
                                                         product.qbs.toolchain,
-                                                        product.Qt.core.libPath);
-                        listFile.write(libs + ' ');
+                                                        product.Qt.core.libPath,
+                                                        product.Qt.core.installPrefixPath);
+                        for (var i = 0; i < libs.length; ++i) {
+                            var lib = libs[i];
+                            if (!lib.endsWith(product.cpp.objectSuffix)
+                                    || (!libsWithUniqueObjects.contains(lib)
+                                        && !product.cpp.staticLibraries.contains(FileInfo.cleanPath(lib)))) {
+                                libsWithUniqueObjects.push(lib);
+                            }
+                        }
                     }
+                    listFile.write(libsWithUniqueObjects.join("\n"));
                 } finally {
                     if (cppFile)
                         cppFile.close();

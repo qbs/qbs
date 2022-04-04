@@ -182,6 +182,41 @@ var PropertyListVariableExpander = (function () {
             return { "syntax": syntax, "index": idx };
         }
 
+        function expandString(key, str, env) {
+            if (!str)
+                return str;
+            var repl = indexOfReplacementStart(syntaxes, str);
+            var i = repl.index;
+            while (i !== -1) {
+                var j = str.indexOf(repl.syntax.close, i + repl.syntax.open.length);
+                if (j === -1)
+                    return str;
+                var varParts = str.slice(i + repl.syntax.open.length, j).split(':');
+                var varName = varParts[0];
+                var varFormatter = varParts[1];
+                var varValue = expandString(key, env[varName], env);
+                if (undefined === varValue) {
+                    // skip replacement
+                    if ($this.undefinedVariableFunction)
+                        $this.undefinedVariableFunction(key, varName);
+                    varValue = "";
+                }
+                varValue = String(varValue);
+                if (varFormatter !== undefined) {
+                    // TODO: XCode supports multiple formatters separated by a comma
+                    var varFormatterLower = varFormatter.toLowerCase();
+                    if (varFormatterLower === "rfc1034identifier" || varFormatterLower === "identifier")
+                        varValue = Utilities.rfc1034Identifier(varValue);
+                    if (varValue === "" && varFormatterLower.startsWith("default="))
+                        varValue = varFormatter.split("=")[1];
+                }
+                str = str.slice(0, i) + varValue + str.slice(j + repl.syntax.close.length);
+                repl = indexOfReplacementStart(syntaxes, str);
+                i = repl.index;
+            }
+            return str;
+        }
+
         function expandRecursive(obj, env, checked) {
             checked.push(obj);
             for (var key in obj) {
@@ -194,40 +229,9 @@ var PropertyListVariableExpander = (function () {
                 }
                 if (type !== "string")
                     continue;
-                var repl = indexOfReplacementStart(syntaxes, value);
-                var i = repl.index;
-                var changes = false;
-                while (i !== -1) {
-                    var j = value.indexOf(repl.syntax.close, i + repl.syntax.open.length);
-                    if (j === -1)
-                        break;
-                    var varParts = value.slice(i + repl.syntax.open.length, j).split(':');
-                    var varName = varParts[0];
-                    var varFormatter = varParts[1];
-                    var varValue = env[varName];
-                    if (undefined === varValue) {
-                        // skip replacement
-                        if ($this.undefinedVariableFunction)
-                            $this.undefinedVariableFunction(key, varName);
-                        varValue = "";
-                    }
-                    varValue = String(varValue);
-                    if (varFormatter !== undefined) {
-                        // TODO: XCode supports multiple formatters separated by a comma
-                        var varFormatterLower = varFormatter.toLowerCase();
-                        if (varFormatterLower === "rfc1034identifier")
-                            varValue = Utilities.rfc1034Identifier(varValue);
-                        if (varValue === "" && varFormatterLower.startsWith("default="))
-                            varValue = varFormatter.split("=")[1];
-                    }
-
-                    value = value.slice(0, i) + varValue + value.slice(j + repl.syntax.close.length);
-                    changes = true;
-                    repl = indexOfReplacementStart(syntaxes, value);
-                    i = repl.index;
-                }
-                if (changes)
-                    obj[key] = value;
+                var expandedValue = expandString(key, value, env);
+                if (expandedValue !== value)
+                    obj[key] = expandedValue;
             }
         }
         expandRecursive(obj, env, []);
