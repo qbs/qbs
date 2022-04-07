@@ -1,7 +1,13 @@
 CppApplication {
+    Depends { name: "Sanitizers.address" }
+    Sanitizers.address.enabled: sanitizer === "address"
     property string sanitizer
 
     property bool supportsSanitizer: {
+        if (qbs.toolchain.contains("mingw"))
+            return false;
+        if (sanitizer === "address")
+            return Sanitizers.address._supported;
         if (qbs.toolchain.contains("clang-cl")) {
             if (cpp.toolchainInstallPath.contains("Microsoft Visual Studio")
                     && qbs.architecture === "x86_64") {
@@ -12,8 +18,6 @@ CppApplication {
             return sanitizer === "address" || sanitizer === "undefined";
         }
         if (!qbs.toolchain.contains("gcc"))
-            return false;
-        if (qbs.toolchain.contains("mingw"))
             return false;
         if (qbs.targetOS.contains("ios")) {
             // thread sanitizer is not supported
@@ -34,7 +38,7 @@ CppApplication {
     cpp.minimumMacosVersion: "10.8"
     consoleApplication: true
     cpp.runtimeLibrary: "static"
-    cpp.driverFlags: sanitizer ? ["-fsanitize=" + sanitizer] : []
+    cpp.driverFlags: sanitizer && sanitizer !== "address" ? ["-fsanitize=" + sanitizer] : []
     cpp.debugInformation: true
     files: "sanitizer.cpp"
 }

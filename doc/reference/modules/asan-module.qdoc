@@ -1,0 +1,77 @@
+/****************************************************************************
+**
+** Copyright (C) 2022 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+/*!
+    \qmltype Sanitizers.address
+    \inqmlmodule QbsModules
+    \brief Provides AddressSanitizer support.
+
+    Provides support for the \l{https://clang.llvm.org/docs/AddressSanitizer.html}{AddressSanitizer}
+    tool, which uses compiler instrumentation to detect memory corruption bugs at runtime.
+*/
+
+
+/*!
+    \qmlproperty string Sanitizers.address::detectUseAfterReturn
+
+    Controls whether support for detecting problems with stack use after returning
+    from a function should be built into the application.
+
+    The possible values are:
+    \list
+    \li \c "always": Check for this type of problem unconditionally.
+    \li \c "runtime": Build with this capability, but only do the respective checks if they
+                   are explicitly requested at runtime.
+    \li \c "never": Do not build with support for this check.
+    \endlist
+
+    \note Only the clang compiler (starting at 13.0) supports the full set of values.
+          With GCC and MSVC, "runtime" maps to "always".
+
+    \defaultvalue \c "always"
+*/
+
+/*!
+    \qmlproperty bool Sanitizers.address::detectUseAfterScope
+
+    Controls whether to detect bugs relating the use of variables after they've gone out of scope.
+
+    \note This property has no effect when building with with GCC and MSVC.
+
+    \defaultvalue \c true
+*/
+
+/*!
+    \qmlproperty bool Sanitizers.address::enabled
+
+    Controls whether to enable AddressSanitizer.
+
+    \note You do not need to check if the current toolchain supports AddressSanitizer:
+          If \QBS detects that it doesn't, this property has no effect.
+
+    \defaultvalue \c true
+*/

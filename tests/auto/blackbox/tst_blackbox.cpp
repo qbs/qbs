@@ -2670,10 +2670,10 @@ void TestBlackbox::sanitizer()
     if (m_qbsStdout.contains(QByteArrayLiteral("Compiler does not support sanitizer")))
         QSKIP("Compiler does not support the specified sanitizer");
     if (!sanitizer.isEmpty()) {
-        QVERIFY2(m_qbsStdout.contains(QByteArrayLiteral("-fsanitize=") + sanitizer.toLatin1()),
+        QVERIFY2(m_qbsStdout.contains(QByteArrayLiteral("fsanitize=") + sanitizer.toLatin1()),
                  qPrintable(m_qbsStdout));
     } else {
-        QVERIFY2(!m_qbsStdout.contains(QByteArrayLiteral("-fsanitize=")), qPrintable(m_qbsStdout));
+        QVERIFY2(!m_qbsStdout.contains(QByteArrayLiteral("fsanitize=")), qPrintable(m_qbsStdout));
     }
 }
 

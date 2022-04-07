@@ -18,6 +18,7 @@ Module {
         && qbs.targetPlatform === targetPlatform + "-simulator"
 
     Depends { name: "cpp" }
+    Depends { name: "Sanitizers.address" }
 
     Depends { name: "Qt.android_support"; condition: qbs.targetOS.contains("android") }
     Properties {
@@ -118,6 +119,9 @@ Module {
     property bool lreleaseMultiplexMode: false
 
     property stringList moduleConfig: @moduleConfig@
+
+    Sanitizers.address.enabled: config.contains("sanitize_address")
+
     Properties {
         condition: moduleConfig.contains("use_gold_linker")
         cpp.linkerVariant: "gold"
@@ -151,8 +155,6 @@ Module {
     cpp.driverFlags: {
         var flags = [];
         if (qbs.toolchain.contains("gcc")) {
-            if (config.contains("sanitize_address"))
-                flags.push("-fsanitize=address");
             if (config.contains("sanitize_undefined"))
                 flags.push("-fsanitize=undefined");
             if (config.contains("sanitize_thread"))
