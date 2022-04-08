@@ -765,7 +765,7 @@
     \c items is an array of objects with the following structure:
     \table
     \header \li Property      \li Type           \li Mandatory
-    \row    \li \c message    \li string         \li yes
+    \row    \li description   \li string         \li yes
     \row    \li location      \li \l Location    \li no
     \endtable
 
