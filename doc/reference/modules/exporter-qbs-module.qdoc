@@ -57,10 +57,11 @@
         }
         Export {
             Depends { name: "cpp" }
-            cpp.includePaths: [product.sourceDirectory]
+            cpp.includePaths: [exportingProduct.sourceDirectory]
             prefixMapping: [{
-                    prefix: product.sourceDirectory,
-                    replacement: FileInfo.joinPaths(qbs.installPrefix, product.headersInstallDir)
+                    prefix: exportingProduct.sourceDirectory,
+                    replacement: FileInfo.joinPaths(exportingProduct.qbs.installPrefix,
+                                                    exportingProduct.headersInstallDir)
                 }]
         }
     }

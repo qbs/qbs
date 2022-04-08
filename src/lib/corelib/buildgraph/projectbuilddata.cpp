@@ -240,7 +240,6 @@ void ProjectBuildData::removeArtifact(Artifact *artifact,
         artifact->transformer->outputs.remove(artifact);
     if (removeFromProduct)
         artifact->product->buildData->removeArtifact(artifact);
-    m_isDirty = false;
 }
 
 void ProjectBuildData::setDirty()

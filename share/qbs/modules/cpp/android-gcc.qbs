@@ -128,7 +128,7 @@ LinuxGCC {
     // When using ndk r19c, llvm doesn't add sysroot/usr/include/c++/v1 to the path
     // But it works starting with ndk r20b
     systemIncludePaths: (Utilities.versionCompare(Android.ndk.version, "20") < 0) ?
-                            FileInfo.joinPaths(sysroot, "usr", "include", "c++", "v1") : ""
+                            FileInfo.joinPaths(sysroot, "usr", "include", "c++", "v1") : []
 
     defines: ["ANDROID", "__ANDROID__"]
 
