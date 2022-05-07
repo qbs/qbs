@@ -142,7 +142,7 @@ function(add_qbs_library target_name)
         set(library_type STATIC)
     endif()
 
-    string(REGEX REPLACE "\\.[0..9]+$" "" _SOVERSION ${QBS_VERSION})
+    string(REGEX REPLACE "\\.[0-9]+$" "" _SOVERSION ${QBS_VERSION})
 
     add_library(${target_name} ${library_type} ${_arg_SOURCES})
     target_compile_definitions(
