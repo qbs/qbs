@@ -206,8 +206,11 @@ Module {
         if (qbs.toolchain.contains('msvc')) {
             if (versionMajor < 5)
                 flags.push('/Zc:wchar_t-');
+            if (Utilities.versionCompare(version, "6.3") >= 0
+                && Utilities.versionCompare(cpp.compilerVersion, "19.10") >= 0) {
+                flags.push("/permissive-");
+            }
         }
-
         return flags;
     }
     cpp.cxxStandardLibrary: {
