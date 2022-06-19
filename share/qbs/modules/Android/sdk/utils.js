@@ -91,6 +91,13 @@ function prepareDex(project, product, inputs, outputs, input, output, explicitly
     }
     product.dependencies.forEach(traverseJarDeps);
 
+    if (typeof product.artifacts["java.jar"] !== "undefined") {
+        product.artifacts["java.jar"].forEach(function(artifact) {
+            if (!jarFiles.contains(artifact.filePath))
+                jarFiles.push(artifact.filePath);
+        });
+    }
+
     args = args.concat(jarFiles);
 
     var cmd;
