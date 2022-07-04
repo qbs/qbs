@@ -53,14 +53,26 @@
 namespace qbs {
 namespace Internal {
 
+namespace {
+QString getBaseDir(QString baseDir) {
+    if (!baseDir.isEmpty())
+        return baseDir;
+
+    const char key[] = "QBS_SETTINGS_DIR";
+    if (qEnvironmentVariableIsSet(key))
+        return QLatin1String(qgetenv(key));
+
+    return {};
+}
+} // namespace
+
 static QSettings::Format format()
 {
     return HostOsInfo::isWindowsHost() ? QSettings::IniFormat : QSettings::NativeFormat;
 }
 
-
 SettingsCreator::SettingsCreator(QString baseDir)
-    : m_settingsBaseDir(std::move(baseDir))
+    : m_settingsBaseDir(getBaseDir(std::move(baseDir)))
     , m_qbsVersion(Version::fromString(QLatin1String(QBS_VERSION)))
 {
 }
