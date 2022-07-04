@@ -58,9 +58,11 @@ Module {
             function versionAtLeast(v) {
                 return Utilities.versionCompare(cpp.compilerVersion, v) >= 0;
             };
+            if (isClang())
+                flags.push("-Wno-constant-logical-operand");
             if ((!isClang() && versionAtLeast("9"))
                     || (isClang() && !qbs.hostOS.contains("darwin") && versionAtLeast("10"))) {
-                flags.push("-Wno-deprecated-copy", "-Wno-constant-logical-operand");
+                flags.push("-Wno-deprecated-copy");
             }
             return flags;
         }
