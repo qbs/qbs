@@ -34,6 +34,11 @@ win32:LIBS += -lpsapi -lshell32
 HEADERS += \
     qbs.h
 
+qbs_enable_bundled_qt {
+    linux-*: QMAKE_LFLAGS += -Wl,-z,origin \'-Wl,-rpath,\$\$ORIGIN\'
+    macos: QMAKE_LFLAGS += -Wl,-rpath,@loader_path
+}
+
 !qbs_no_dev_install {
     qbs_h.files = qbs.h
     qbs_h.path = $${QBS_INSTALL_PREFIX}/include/qbs

@@ -557,6 +557,7 @@
                                         non-developer build.
     \row    \li qbs_no_man_install  \li Exclude the man page from installation.
     \row    \li qbs_use_bundled_qtscript        \li Use the bundled QtScript library.
+    \row    \li qbs_enable_bundled_qt        \li Bundle Qt to build and install folder.
     \endtable
 
     In addition, you can set the \c QBS_SYSTEM_SETTINGS_DIR environment variable
