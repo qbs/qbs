@@ -763,6 +763,7 @@ function doSetupLibraries(modInfo, qtProps, debugBuild, nonExistingPrlFiles, and
             for (i = 0; i < parts.length; ++i) {
                 var part = parts[i];
                 part = part.replace("$$[QT_INSTALL_LIBS]", qtProps.libraryPath);
+                part = part.replace("$$[QT_INSTALL_PLUGINS]", qtProps.pluginPath);
                 part = part.replace("$$[QT_INSTALL_PREFIX]", qtProps.installPrefixPath);
                 if (part.startsWith("-l")) {
                     libs.push(part.slice(2));
