@@ -175,6 +175,7 @@ QtModule {
                                                         product.qbs.targetOS,
                                                         product.qbs.toolchain,
                                                         product.Qt.core.libPath,
+                                                        product.Qt.core.pluginPath,
                                                         product.Qt.core.installPrefixPath);
                         for (var i = 0; i < libs.length; ++i) {
                             var lib = libs[i];

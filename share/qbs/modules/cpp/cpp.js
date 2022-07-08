@@ -220,6 +220,7 @@ function precompiledHeaderOutputArtifacts(input, product, lang, generateObjects)
 
 function collectLibraryDependencies(product) {
     var seen = {};
+    var seenObjectFiles = [];
     var result = [];
 
     function addFilePath(filePath, wholeArchive, productName) {
@@ -248,16 +249,23 @@ function collectLibraryDependencies(product) {
         function sanitizedModuleListProperty(obj, moduleName, propertyName) {
             return ensureArray(ModUtils.sanitizedModuleProperty(obj, moduleName, propertyName));
         }
-        function handleExternalLibraries(tag, suffix) {
+        function handleExternalLibraries(tag, libSuffix, objSuffix) {
             var externalLibs = sanitizedModuleListProperty(obj, "cpp", tag) || [];
             externalLibs.forEach(function(libName) {
-                if (!libName.endsWith(suffix) && !libName.startsWith('@'))
-                    libName += suffix;
+                var isObjectFile = objSuffix && libName.endsWith(objSuffix);
+                if (isObjectFile) {
+                    if (seenObjectFiles.contains(libName))
+                        return;
+                    seenObjectFiles.push(libName);
+                }
+                if (!libName.endsWith(libSuffix) && !isObjectFile && !libName.startsWith('@'))
+                    libName += libSuffix;
                 addFilePath(libName, false);
             });
         }
         handleExternalLibraries("staticLibraries",
-                                obj.moduleProperty("cpp", "staticLibrarySuffix"));
+                                obj.moduleProperty("cpp", "staticLibrarySuffix"),
+                                obj.moduleProperty("cpp", "objectSuffix"));
         handleExternalLibraries("dynamicLibraries",
                                 obj.moduleProperty("cpp", "dynamicLibraryImportSuffix"));
     }
