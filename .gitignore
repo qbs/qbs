@@ -3,6 +3,8 @@
 .qbs
 .vscode*
 build
+install
+package
 *.dll
 *.dylib
 *.exe

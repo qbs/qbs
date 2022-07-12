@@ -1,6 +1,8 @@
 include(qbs_plugin_common.pri)
 
 TARGET = $$qbsPluginTarget
+win32:CONFIG(debug, debug|release):CONFIG(static, static|shared): \
+    TARGET = $${TARGET}d
 DESTDIR = $$qbsPluginDestDir
 
 isEmpty(QBSLIBDIR): QBSLIBDIR = $$OUT_PWD/../../../../$${QBS_LIBRARY_DIRNAME}

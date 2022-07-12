@@ -5,6 +5,7 @@ SUBDIRS =\
     qbs-setup-android \
     qbs-setup-toolchains \
     qbs-setup-qt \
-    config
+    config \
+    ../shared/bundledqt
 
 !isEmpty(QT.widgets.name):SUBDIRS += config-ui
