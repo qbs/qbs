@@ -52,7 +52,8 @@ class Settings;
 } // namespace qbs
 
 bool isWatcomCompiler(const QString &compilerName);
-void createWatcomProfile(const QFileInfo &compiler, qbs::Settings *settings, QString profileName);
+void createWatcomProfile(
+    const QFileInfo &compiler, qbs::Settings *settings, QStringView profileName);
 void watcomProbe(qbs::Settings *settings, std::vector<qbs::Profile> &profiles);
 
 #endif // Header guard

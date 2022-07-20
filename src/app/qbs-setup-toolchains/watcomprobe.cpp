@@ -115,7 +115,7 @@ static QStringList dumpOutput(const QFileInfo &compiler, QStringView flag,
     if (!flag.isEmpty())
         args.push_back(flag.toString());
     args.push_back(QDir::toNativeSeparators(filePath));
-    p.start(compiler.absoluteFilePath(), std::move(args));
+    p.start(compiler.absoluteFilePath(), args);
     p.waitForFinished(3000);
     fakeIn.remove();
     const QStringList lines = QString::fromUtf8(p.readAllStandardOutput())
@@ -141,7 +141,7 @@ static bool supportsWatcomPlatform(const QFileInfo &compiler, const Platform &pl
 
 static std::vector<Profile> createWatcomProfileHelper(const ToolchainInstallInfo &info,
                                                       Settings *settings,
-                                                      const QString &profileName = QString())
+                                                      QStringView profileName = {})
 {
     const QFileInfo compiler = info.compilerPath;
     std::vector<Profile> profiles;
@@ -231,10 +231,10 @@ bool isWatcomCompiler(const QString &compilerName)
     });
 }
 
-void createWatcomProfile(const QFileInfo &compiler, Settings *settings, QString profileName)
+void createWatcomProfile(const QFileInfo &compiler, Settings *settings, QStringView profileName)
 {
     const ToolchainInstallInfo info = {compiler, Version{}};
-    createWatcomProfileHelper(info, settings, std::move(profileName));
+    createWatcomProfileHelper(info, settings, profileName);
 }
 
 void watcomProbe(Settings *settings, std::vector<Profile> &profiles)
