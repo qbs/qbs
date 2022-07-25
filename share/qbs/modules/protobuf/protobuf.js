@@ -75,6 +75,7 @@ function cppArtifact(outputDir, input, tags, suffix) {
         filePath: FileInfo.joinPaths(outputDir, FileInfo.baseName(input.fileName) + suffix),
         cpp: {
             includePaths: [].concat(input.cpp.includePaths, outputDir),
+            defines: ["NDEBUG"],
             warningLevel: "none",
         }
     };
