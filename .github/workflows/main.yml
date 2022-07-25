@@ -708,7 +708,7 @@ jobs:
 
   test-windows:
     name: ${{ matrix.config.name }}
-    runs-on: windows-2019
+    runs-on: windows-2022
     timeout-minutes: 60
     needs: build-windows
     strategy:
@@ -716,18 +716,18 @@ jobs:
       matrix:
         config:
         - {
-            name: 'Run Windows tests (MSVC 2019)',
+            name: 'Run Windows tests (MSVC 2022)',
             target: 'desktop',
             toolchain: 'win64_msvc2019_64',
-            testProfile: 'MSVC2019-x64',
+            testProfile: 'MSVC2022-x64',
             qtVersion: '5.15.2',
             script: './scripts/test-qbs.sh',
           }
         - {
-            name: 'Run Windows tests (MSVC 2019, Qt 6.0.2)',
+            name: 'Run Windows tests (MSVC 2022, Qt 6.0.2)',
             target: 'desktop',
             toolchain: 'win64_msvc2019_64',
-            testProfile: 'MSVC2019-x64',
+            testProfile: 'MSVC2022-x64',
             qtVersion: '6.0.2',
             script: './scripts/test-qt.sh',
           }
