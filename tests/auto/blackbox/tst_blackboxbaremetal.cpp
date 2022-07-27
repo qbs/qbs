@@ -123,7 +123,6 @@ void TestBlackboxBareMetal::application()
     if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
         QSKIP("Cannot run binaries in cross-compiled build");
     QCOMPARE(runQbs(QbsRunParameters("run")), 0);
-    QVERIFY2(m_qbsStdout.contains("Hello from app"), m_qbsStdout.constData());
 }
 
 void TestBlackboxBareMetal::staticLibraryDependencies()
