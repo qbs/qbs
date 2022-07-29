@@ -5,6 +5,8 @@ import "../QtModule.qbs" as QtModule
 QtModule {
     qtModuleName: "Scxml"
 
+    property string _qscxmlcDir: Utilities.versionCompare(Qt.core.version, "6.3") >= 0
+                                 ? Qt.core.libExecPath : Qt.core.binPath
     property string qscxmlcName: "qscxmlc"
     property string className
     property string namespace
@@ -26,8 +28,7 @@ QtModule {
 
         prepare: {
             var compilerName = product.moduleProperty("Qt.scxml", "qscxmlcName");
-            var compilerPath = FileInfo.joinPaths(input.moduleProperty("Qt.core", "binPath"),
-                                                  compilerName);
+            var compilerPath = FileInfo.joinPaths(input.Qt.scxml._qscxmlcDir, compilerName);
             var args = ["--header", outputs["hpp"][0].filePath,
                         "--impl", outputs["cpp"][0].filePath];
             var cxx98 = input.moduleProperty("cpp", "cxxLanguageVersion") === "c++98";
