@@ -4,6 +4,7 @@
 
 # Qt Support
 * Adapted to new location of qscxmlc in Qt 6.3.
+* Fixed setting up Qt 6.3 with qbspkgconfig.
 
 # Other modules
 * Fixed protobuf linking on macOS 11.

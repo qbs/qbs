@@ -177,22 +177,22 @@ ModuleProvider {
             if (packageName === "QtCore"
                     || packageName === "Qt5Core"
                     || packageName === "Qt6Core") {
-                var hostBins = pkg.variables["host_bins"];
-                if (!hostBins) {
+                var binDir = pkg.variables["bindir"] || pkg.variables["host_bins"];
+                if (!binDir) {
                     if (packageName === "QtCore") { // Qt4 does not have host_bins
                         var mocLocation = pkg.variables["moc_location"];
                         if (!mocLocation) {
                             console.warn("No moc_location variable in " + packageName);
                             return;
                         }
-                        hostBins = FileInfo.path(mocLocation);
+                        binDir = FileInfo.path(mocLocation);
                     } else {
-                        console.warn("No host_bins variable in " + packageName);
+                        console.warn("No 'bindir' or 'host_bins' variable in " + packageName);
                         return;
                     }
                 }
                 var suffix = exeSuffix(qbs);
-                var qmakePaths = [FileInfo.joinPaths(hostBins, "qmake" + suffix)];
+                var qmakePaths = [FileInfo.joinPaths(binDir, "qmake" + suffix)];
                 var qtProviderDir = FileInfo.joinPaths(path, "Qt");
                 SetupQt.doSetup(qmakePaths, outputBaseDir, qtProviderDir, qbs);
             }
