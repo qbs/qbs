@@ -179,6 +179,8 @@ jobs:
     needs: [build-linux, build-windows-with-docker]
     steps:
     - uses: actions/checkout@v1
+      with:
+        submodules: true
     - name: Get version name
       id: get-version-name
       run: echo ::set-output name=version-name::$(cat VERSION)
@@ -187,7 +189,7 @@ jobs:
         mkdir release
         mkdir tmp
     - name: Copy sources
-      run: rsync -av --exclude='.git/' --exclude='tmp/' . ./tmp/qbs-src-${{ steps.get-version-name.outputs.version-name }}
+      run: rsync -av --exclude='.git/' --exclude='tmp/' --exclude='src/shared/qtscript/.git' . ./tmp/qbs-src-${{ steps.get-version-name.outputs.version-name }}
     - name: Zip Archive
       run: |
         cd tmp/

@@ -6,6 +6,7 @@
 * Adapted to new location of qscxmlc in Qt 6.3.
 * Adapted to new location of qhelpgenerator in Qt 6.3.
 * Fixed setting up Qt 6.3 with qbspkgconfig.
+* Added QtScript module to the source tarballs (QBS-1703).
 
 # Other modules
 * Fixed protobuf linking on macOS 11.
