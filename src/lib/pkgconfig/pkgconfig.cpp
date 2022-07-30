@@ -217,16 +217,17 @@ const PcPackageVariant &PkgConfig::getPackage(std::string_view baseFileName) con
     return *it;
 }
 
-std::string_view PkgConfig::packageGetVariable(const PcPackage &pkg, std::string_view var) const
+std::optional<std::string_view> PkgConfig::packageGetVariable(
+    const PcPackage &pkg, std::string_view var) const
 {
-    std::string_view varval;
+    std::optional<std::string_view> result;
 
     if (var.empty())
-        return varval;
+        return result;
 
     const auto &globals = m_options.globalVariables;
     if (auto it = globals.find(var); it != globals.end())
-        varval = it->second;
+        result = it->second;
 
     // Allow overriding specific variables using an environment variable of the
     // form PKG_CONFIG_$PACKAGENAME_$VARIABLE
@@ -234,15 +235,15 @@ std::string_view PkgConfig::packageGetVariable(const PcPackage &pkg, std::string
         const std::string envVariable = varToEnvVar(pkg.baseFileName, var);
         const auto it = m_options.systemVariables.find(envVariable);
         if (it != m_options.systemVariables.end())
-            return it->second;
+            result = it->second;
     }
 
-    if (varval.empty()) {
-        const auto it = pkg.variables.find(var);
-        varval = (it != pkg.variables.end()) ? it->second : std::string_view();
+    if (!result) {
+        if (const auto it = pkg.variables.find(var); it != pkg.variables.end())
+            result = it->second;
     }
 
-    return varval;
+    return result;
 }
 
 #if HAS_STD_FILESYSTEM

@@ -72,7 +72,8 @@ public:
     const Packages &packages() const { return m_packages; }
     const PcPackageVariant &getPackage(std::string_view baseFileName) const;
 
-    std::string_view packageGetVariable(const PcPackage &pkg, std::string_view var) const;
+    std::optional<std::string_view> packageGetVariable(
+        const PcPackage &pkg, std::string_view var) const;
 
 private:
     Packages findPackages() const;

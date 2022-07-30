@@ -475,10 +475,10 @@ std::string PcParser::trimAndSubstitute(const PcPackage &pkg, std::string_view s
 
             const auto varval = m_pkgConfig.packageGetVariable(pkg, varname);
 
-            if (varval.empty())
+            if (!varval)
                 raizeUndefinedVariableException(pkg, varname);
 
-            result += varval;
+            result += *varval;
         } else {
             result += str.front();
             str.remove_prefix(1);

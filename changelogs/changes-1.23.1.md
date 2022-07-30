@@ -11,6 +11,7 @@
 
 # Other modules
 * Fixed protobuf linking on macOS 11.
+* Fixed handling empty variables in qbspkgconfig (QBS-1702)
 
 # Contributors
 * Christian Kandeler
