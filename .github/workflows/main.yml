@@ -84,7 +84,7 @@ jobs:
             cacheid: 'qmake',
           }
         - {
-            name: 'Build on Linux (gcc, Qt 6)',
+            name: 'Build on Linux (gcc, Qt 6.2)',
             image: 'focal-qt6',
             script: './scripts/build-qbs-with-qbs.sh',
             options: 'modules.cpp.compilerWrapper:ccache
@@ -323,7 +323,7 @@ jobs:
             script: './scripts/test-qbs.sh',
           }
         - {
-            name: 'Run Linux tests (gcc, Qt 6.0)',
+            name: 'Run Linux tests (gcc, Qt 6.2)',
             image: 'focal-qt6',
             profile: 'qt-gcc_64',
             script: './scripts/test-qt.sh',
