@@ -1,6 +1,7 @@
 # C/C++ Support
 * Added support for c17 and c2x values in cpp.cLanguageVersion.
 * Added support for cpp.cLanguageVersion for the MSVC toolchain.
+* Fix passing linker scripts to iar and keil toolchains (QBS-1704).
 
 # Qt Support
 * Adapted to new location of qscxmlc in Qt 6.3.

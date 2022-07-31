@@ -682,7 +682,7 @@ function linkerFlags(project, product, inputs, outputs) {
     args = args.concat(Cpp.collectLibraryDependenciesArguments(product));
 
     // Linker scripts.
-    args = args.concat(Cpp.collectLinkerScriptPathsArguments(product, inputs));
+    args = args.concat(Cpp.collectLinkerScriptPathsArguments(product, inputs, true));
 
     // Silent output generation flag.
     args.push(product.cpp.linkerSilentFlag);
