@@ -573,7 +573,7 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
             args.push("--c89");
             break;
         default:
-            // Default C language version is C11/C99 that
+            // Default C language version is C18/C11/C99 that
             // depends on the IAR version.
             break;
         }
