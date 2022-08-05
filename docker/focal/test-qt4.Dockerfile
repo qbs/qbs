@@ -36,5 +36,5 @@ RUN sudo add-apt-repository ppa:gezakovacs/ppa -y && \
     apt-get update -qq && \
     apt-get install -qq -y \
         build-essential \
-        libqt4-dev
-
+        libqt4-dev \
+        qt4-dev-tools
