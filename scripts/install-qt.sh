@@ -89,7 +89,7 @@ Options
                 android
                     any, android_armv7, android_arm64_v8a
                 desktop
-                    clang_64 (default),
+                    clang_64 (default)
                 ios
                     ios
 
@@ -348,7 +348,7 @@ for COMPONENT in ${COMPONENTS}; do
             SUBDIR="${TOOLCHAIN/win32_/}"
         elif [[ "${TOOLCHAIN}" =~ "any" ]] && [[ "${TARGET_PLATFORM}" == "android" ]]; then
             SUBDIR="android"
-        elif [ "${HOST_OS}" == "mac_x64" ] && [ ! "${VERSION}" \< "6.1.2" ]; then
+        elif [[ "${HOST_OS}" == "mac_x64" ]] && [[ ! "${VERSION}" < "6.1.2" ]] && [[ "${TARGET_PLATFORM}" == "desktop" ]]; then
             SUBDIR="macos"
         else
             SUBDIR="${TOOLCHAIN}"

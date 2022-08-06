@@ -281,7 +281,11 @@ function getQtProperties(qmakeFilePath, qbs) {
 
     // QML tools were only moved in Qt 6.2.
     qtProps.qmlLibExecPath = Utilities.versionCompare(qtProps.qtVersion, "6.2") >= 0
-        ? qtProps.libExecPath : qtProps.binaryPath
+        ? qtProps.libExecPath : qtProps.binaryPath;
+
+    // qhelpgenerator was only moved in Qt 6.3.
+    qtProps.helpGeneratorLibExecPath = Utilities.versionCompare(qtProps.qtVersion, "6.3") >= 0
+        ? qtProps.libExecPath : qtProps.binaryPath;
 
     if (!File.exists(qtProps.mkspecBasePath))
         throw "Cannot extract the mkspecs directory.";
@@ -1433,6 +1437,7 @@ function replaceSpecialValues(content, module, qtProps, abi) {
         pluginPath: ModUtils.toJSLiteral(qtProps.pluginPath),
         incPath: ModUtils.toJSLiteral(qtProps.includePath),
         docPath: ModUtils.toJSLiteral(qtProps.documentationPath),
+        helpGeneratorLibExecPath: ModUtils.toJSLiteral(qtProps.helpGeneratorLibExecPath),
         mkspecName: ModUtils.toJSLiteral(qtProps.mkspecName),
         mkspecPath: ModUtils.toJSLiteral(qtProps.mkspecPath),
         version: ModUtils.toJSLiteral(qtProps.qtVersion),

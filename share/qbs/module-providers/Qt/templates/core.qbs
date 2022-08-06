@@ -57,6 +57,7 @@ Module {
     property string qdocName: versionMajor >= 5 ? "qdoc" : "qdoc3"
     property stringList qdocEnvironment
     property path docPath: @docPath@
+    property string helpGeneratorLibExecPath: @helpGeneratorLibExecPath@
     property stringList helpGeneratorArgs: versionMajor >= 5 ? ["-platform", "minimal"] : []
     property var versionParts: version ? version.split('.').map(function(item) { return parseInt(item, 10); }) : []
     property int versionMajor: versionParts[0]
@@ -545,7 +546,8 @@ Module {
             args = args.concat(product.Qt.core.helpGeneratorArgs);
             args.push("-o");
             args.push(output.filePath);
-            var cmd = new Command(product.Qt.core.binPath + "/qhelpgenerator", args);
+            var cmd = new Command(
+                product.Qt.core.helpGeneratorLibExecPath + "/qhelpgenerator", args);
             cmd.description = 'qhelpgenerator ' + input.fileName;
             cmd.highlight = 'filegen';
             cmd.stdoutFilterFunction = function(output) {

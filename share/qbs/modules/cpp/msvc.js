@@ -102,6 +102,12 @@ function hasCxx20Option(input)
             || (input.qbs.toolchain.contains("clang-cl") && input.cpp.compilerVersionMajor >= 13);
 }
 
+function hasCVerOption(input)
+{
+    return Utilities.versionCompare(input.cpp.compilerVersion, "19.29.30138.0") >= 0
+            || (input.qbs.toolchain.contains("clang-cl") && input.cpp.compilerVersionMajor >= 13);
+}
+
 function supportsExternalIncludesOption(input) {
     if (input.qbs.toolchain.contains("clang-cl"))
         return false; // Exclude clang-cl.
@@ -112,7 +118,7 @@ function supportsExternalIncludesOption(input) {
     return Utilities.versionCompare(input.cpp.compilerVersion, "19.16") >= 0;
 }
 
-function addLanguageVersionFlag(input, args) {
+function addCxxLanguageVersionFlag(input, args) {
     var cxxVersion = Cpp.languageVersion(input.cpp.cxxLanguageVersion,
             ["c++23", "c++20", "c++17", "c++14", "c++11", "c++98"], "C++");
     if (!cxxVersion)
@@ -134,6 +140,25 @@ function addLanguageVersionFlag(input, args) {
         flag = "/std:c++20";
     else if (cxxVersion !== "c++11" && cxxVersion !== "c++98")
         flag = "/std:c++latest";
+    if (flag)
+        args.push(flag);
+}
+
+function addCLanguageVersionFlag(input, args) {
+    var cVersion = Cpp.languageVersion(input.cpp.cLanguageVersion,
+            ["c17", "c11"], "C");
+    if (!cVersion)
+        return;
+
+    var hasStdOption = hasCVerOption(input);
+    if (!hasStdOption)
+        return;
+
+    var flag;
+    if (cVersion === "c17")
+        flag = "/std:c17";
+    else if (cVersion === "c11")
+        flag = "/std:c11";
     if (flag)
         args.push(flag);
 }
@@ -277,9 +302,10 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
     // Language
     if (tag === "cpp") {
         args.push("/TP");
-        addLanguageVersionFlag(input, args);
+        addCxxLanguageVersionFlag(input, args);
     } else if (tag === "c") {
         args.push("/TC");
+        addCLanguageVersionFlag(input, args);
     }
 
     // Whether we're compiling a precompiled header or normal source file

@@ -7916,14 +7916,18 @@ void TestBlackbox::maximumCLanguageVersion()
     QDir::setCurrent(testDataDir + "/maximum-c-language-version");
     QCOMPARE(runQbs(QbsRunParameters("resolve",
                                      QStringList("products.app.enableNewestModule:true"))), 0);
-    if (m_qbsStdout.contains("is msvc"))
-        QSKIP("MSVC has no support for setting the C language version.");
+    const bool isMsvc = m_qbsStdout.contains("is msvc: true");
+    if (isMsvc && m_qbsStdout.contains("is old msvc: true"))
+        QSKIP("MSVC supports setting the C language version only from version 16.8, and Clang from version 13.");
     QCOMPARE(runQbs(QStringList({"--command-echo-mode", "command-line", "-n"})), 0);
     QVERIFY2(m_qbsStdout.contains("c11") || m_qbsStdout.contains("c1x"), m_qbsStdout.constData());
     QCOMPARE(runQbs(QbsRunParameters("resolve",
                                      QStringList("products.app.enableNewestModule:false"))), 0);
     QCOMPARE(runQbs(QStringList({"--command-echo-mode", "command-line", "-n"})), 0);
-    QVERIFY2(m_qbsStdout.contains("c99"), m_qbsStdout.constData());
+    if (isMsvc)
+        QVERIFY2(!m_qbsStdout.contains("c11"), m_qbsStdout.constData());
+    else
+        QVERIFY2(m_qbsStdout.contains("c99"), m_qbsStdout.constData());
 }
 
 void TestBlackbox::maximumCxxLanguageVersion()

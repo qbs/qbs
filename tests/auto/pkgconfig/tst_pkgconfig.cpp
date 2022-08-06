@@ -168,6 +168,8 @@ void TestPkgConfig::pkgConfig_data()
     QTest::addColumn<QString>("jsonFileName");
     QTest::addColumn<QVariantMap>("optionsMap");
 
+    QTest::newRow("empty-variable")
+            << QStringLiteral("empty-variable") << QString() << QVariantMap();
     QTest::newRow("non-l-required")
             << QStringLiteral("non-l-required") << QString() << QVariantMap();
     QTest::newRow("simple")

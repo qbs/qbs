@@ -4,10 +4,13 @@ CppApplication {
 
     Probe {
         id: osProbe
-        property stringList toolchain: qbs.toolchain
+        property string toolchainType: qbs.toolchainType
+        property string compilerVersion: cpp.compilerVersion
         configure: {
-            if (toolchain.contains("msvc"))
-                console.info("is msvc");
+            console.info("is msvc: " + (toolchainType === "msvc" || toolchainType === "clang-cl"));
+            var isOld = (toolchainType === "msvc" && compilerVersion < "19.29.30138")
+                || (toolchainType === "clang-cl" && compilerVersion < "13");
+            console.info("is old msvc: " + isOld);
             found = true;
         }
     }

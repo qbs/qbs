@@ -695,6 +695,22 @@ function standardFallbackValueOrDefault(toolchain, compilerVersion, languageVers
                 {"name": "gcc", "version": "4.7"}
             ]
         },
+        "c17": {
+            "fallback": "c11",
+            "toolchains": [
+                {"name": "xcode", "version": "10.2"},
+                {"name": "clang", "version": "7.0"},
+                {"name": "gcc", "version": "8.1"}
+            ]
+        },
+        "c2x": {
+            "fallback": "c17",
+            "toolchains": [
+                {"name": "xcode", "version": "11.4"},
+                {"name": "clang", "version": "9.0"},
+                {"name": "gcc", "version": "9.0"}
+            ]
+        },
         "c++14": {
             "fallback": "c++1y",
             "toolchains": [
@@ -714,7 +730,7 @@ function standardFallbackValueOrDefault(toolchain, compilerVersion, languageVers
         "c++20": {
             "fallback": "c++2a",
             "toolchains": [
-                {"name": "xcode"}, // ??
+                {"name": "xcode", "version": "12.5"},
                 {"name": "clang", "version": "11.0"},
                 {"name": "gcc", "version": "10.1"}
             ]
@@ -884,7 +900,7 @@ function compilerFlags(project, product, input, output, explicitlyDependsOn) {
         switch (tag) {
         case "c":
         case "objc":
-            var knownValues = ["c11", "c99", "c90", "c89"];
+            var knownValues = ["c2x", "c17", "c11", "c99", "c90", "c89"];
             return Cpp.languageVersion(input.cpp.cLanguageVersion, knownValues, "C");
         case "cpp":
         case "objcpp":

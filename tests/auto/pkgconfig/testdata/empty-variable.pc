@@ -1,0 +1,13 @@
+rootprefix=
+prefix=/usr
+exec_prefix=${rootprefix}/${prefix}
+libdir=${exec_prefix}/lib
+includedir=${rootprefix}/${prefix}/include
+
+Name: Empty Variable test
+Description: Checks that empty variables are handled correcty
+Version: 1.0.0
+Requires:
+Libs: -lsimple
+Libs.private: -lm
+Cflags: -I${includedir}

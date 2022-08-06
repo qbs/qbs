@@ -1,0 +1,21 @@
+{
+    "Name": "Empty Variable test",
+    "Description": "Checks that empty variables are handled correcty",
+    "Version": "1.0.0",
+    "Vars": {
+        "rootprefix": "",
+        "prefix": "/usr",
+        "exec_prefix": "//usr",
+        "libdir": "//usr/lib",
+        "includedir": "//usr/include"
+    },
+    "Libs": [
+        {"Type": "LibraryName", "Value": "simple"}
+    ],
+    "LibsPrivate": [
+        {"Type": "LibraryName", "Value": "m"}
+    ],
+    "Cflags": [
+        {"Type": "IncludePath", "Value": "//usr/include"}
+    ]
+}

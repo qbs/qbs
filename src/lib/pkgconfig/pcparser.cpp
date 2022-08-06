@@ -64,6 +64,15 @@ namespace qbs {
 
 namespace {
 
+// workaround for a missing ctor before c++20
+template<typename It>
+std::string_view makeStringView(It begin, It end)
+{
+    if (begin == end)
+        return {};
+    return std::string_view(&*begin, std::distance(begin, end));
+}
+
 bool readOneLine(std::ifstream &file, std::string &line)
 {
     bool quoted = false;
@@ -133,7 +142,7 @@ std::string_view trimmed(std::string_view str)
     const auto right = std::find_if_not(str.rbegin(), str.rend(), predicate).base();
     if (right <= left)
         return {};
-    return std::string_view(&*left, std::distance(left, right));
+    return makeStringView(left, right);
 }
 
 // based on https://opensource.apple.com/source/distcc/distcc-31.0.81/popt/poptparse.c.auto.html
@@ -466,10 +475,10 @@ std::string PcParser::trimAndSubstitute(const PcPackage &pkg, std::string_view s
 
             const auto varval = m_pkgConfig.packageGetVariable(pkg, varname);
 
-            if (varval.empty())
+            if (!varval)
                 raizeUndefinedVariableException(pkg, varname);
 
-            result += varval;
+            result += *varval;
         } else {
             result += str.front();
             str.remove_prefix(1);
@@ -633,10 +642,10 @@ std::vector<PcPackage::RequiredVersion> PcParser::parseModuleList(PcPackage &pkg
 
         auto start = p;
 
-        while (*p && !std::isspace(*p))
+        while (p != end && !std::isspace(*p))
             ++p;
 
-        const auto name = std::string_view(&*start, std::distance(start, p));
+        const auto name = makeStringView(start, p);
 
         if (name.empty())
             raizeEmptyPackageNameException(pkg);
@@ -651,7 +660,7 @@ std::vector<PcPackage::RequiredVersion> PcParser::parseModuleList(PcPackage &pkg
         while (p != end && !std::isspace(*p))
             ++p;
 
-        const auto comp = std::string_view(&*start, std::distance(start, p));
+        const auto comp = makeStringView(start, p);
         ver.comparison = comparisonFromString(pkg, ver.name, comp);
 
         while (p != end && std::isspace(*p))
@@ -662,7 +671,7 @@ std::vector<PcPackage::RequiredVersion> PcParser::parseModuleList(PcPackage &pkg
         while (p != end && !std::isspace(*p))
             ++p;
 
-        const auto version = std::string_view(&*start, std::distance(start, p));
+        const auto version = makeStringView(start, p);
 
         while (p != end && std::isspace(*p))
             ++p;

@@ -837,7 +837,7 @@
     If the value is left undefined, the compiler default will be used.
     If the list contains more than one value, the highest version is chosen.
 
-    Possible values include: \c{"c89"}, \c{"c99"}, \c{"c11"}.
+    Possible values include: \c{"c89"}, \c{"c99"}, \c{"c11"}, \c{"c17"}, \c{"c2x"}.
 
     \nodefaultvalue
 */
