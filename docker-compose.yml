@@ -18,9 +18,9 @@ x-default-service: &linux
       - SYS_PTRACE
 
 services:
-  focal:
+  focal-qt5: &focal-qt5
     << : *linux
-    hostname: focal
+    hostname: focal-qt5
     image: ${DOCKER_USER:-qbsbuild}/qbsdev:focal-5.15.2_1.20.1-1
     build:
       dockerfile: docker/focal/Dockerfile
@@ -39,6 +39,9 @@ services:
       args:
         QT_VERSION: 6.2.0
         QTCREATOR_VERSION: 5.0.3
+
+  focal:
+    << : *focal-qt5
 
   focal-qt6-static:
     << : *linux
