@@ -309,7 +309,7 @@ static QString vswhereFilePath()
     static const std::vector<const char *> envVarCandidates{"ProgramFiles", "ProgramFiles(x86)"};
     for (const char * const envVar : envVarCandidates) {
         const QString value = QDir::fromNativeSeparators(QString::fromLocal8Bit(qgetenv(envVar)));
-        const QString cmd = value
+        QString cmd = value
                 + QStringLiteral("/Microsoft Visual Studio/Installer/vswhere.exe");
         if (QFileInfo(cmd).exists())
             return cmd;
@@ -509,7 +509,7 @@ void MSVC::init()
 QString MSVC::architectureFromClPath(const QString &clPath)
 {
     const auto parentDir = QFileInfo(clPath).absolutePath();
-    const auto parentDirName = QFileInfo(parentDir).fileName().toLower();
+    auto parentDirName = QFileInfo(parentDir).fileName().toLower();
     // can be the case when cl.exe is present within the Windows SDK installation... but can it?
     if (parentDirName == QLatin1String("bin"))
         return QStringLiteral("x86");
@@ -722,7 +722,7 @@ QString MSVCInstallInfo::findVcvarsallBat() const
 
 std::vector<MSVCInstallInfo> MSVCInstallInfo::installedMSVCs(Logger &logger)
 {
-    const auto installInfos = installedMSVCsFromVsWhere(logger);
+    auto installInfos = installedMSVCsFromVsWhere(logger);
     if (installInfos.empty())
         return installedMSVCsFromRegistry();
     return installInfos;

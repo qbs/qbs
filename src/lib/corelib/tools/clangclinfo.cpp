@@ -61,7 +61,7 @@ static std::vector<MSVCInstallInfo> compatibleMsvcs(Logger &logger)
 static QString findCompatibleVcsarsallBat(const std::vector<MSVCInstallInfo> &msvcs)
 {
     for (const auto &msvc: msvcs) {
-        const auto vcvarsallPath = msvc.findVcvarsallBat();
+        auto vcvarsallPath = msvc.findVcvarsallBat();
         if (!vcvarsallPath.isEmpty())
             return vcvarsallPath;
     }

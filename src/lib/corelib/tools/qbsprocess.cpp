@@ -120,7 +120,7 @@ void QbsProcess::sendPacket(const LauncherPacket &packet)
 
 QByteArray QbsProcess::readAndClear(QByteArray &data)
 {
-    const QByteArray tmp = data;
+    QByteArray tmp = data;
     data.clear();
     return tmp;
 }

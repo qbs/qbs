@@ -592,7 +592,7 @@ TopLevelProject::~TopLevelProject()
 QString TopLevelProject::deriveId(const QVariantMap &config)
 {
     const QVariantMap qbsProperties = config.value(StringConstants::qbsModule()).toMap();
-    const QString configurationName = qbsProperties.value(
+    QString configurationName = qbsProperties.value(
                 StringConstants::configurationNameProperty()).toString();
     return configurationName;
 }

@@ -156,7 +156,7 @@ static QString archFromDirName(const QString &dir)
     const std::string dirString = dir.toStdString();
     if (!std::regex_match(dirString, match, regexp))
         return {};
-    const QString arch = QString::fromStdString(match[1]);
+    QString arch = QString::fromStdString(match[1]);
     if (arch == QLatin1String("32"))
         return QStringLiteral("x86");
     if (arch == QLatin1String("64"))

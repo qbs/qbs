@@ -169,7 +169,7 @@ TopLevelProjectPtr Loader::loadProject(const SetupProjectParameters &_parameters
     const ModuleLoaderResult loadResult = moduleLoader.load(parameters);
     ProjectResolver resolver(&evaluator, loadResult, std::move(parameters), m_logger);
     resolver.setProgressObserver(m_progressObserver);
-    const TopLevelProjectPtr project = resolver.resolve();
+    TopLevelProjectPtr project = resolver.resolve();
     project->lastStartResolveTime = resolveTime;
     project->lastEndResolveTime = FileTime::currentTime();
 

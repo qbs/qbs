@@ -118,8 +118,8 @@ static QStringList dumpOutput(const QFileInfo &compiler, QStringView flag,
     p.start(compiler.absoluteFilePath(), args);
     p.waitForFinished(3000);
     fakeIn.remove();
-    const QStringList lines = QString::fromUtf8(p.readAllStandardOutput())
-                                  .split(QRegularExpression(QLatin1String("\\r?\\n")));
+    QStringList lines = QString::fromUtf8(p.readAllStandardOutput())
+                                .split(QRegularExpression(QLatin1String("\\r?\\n")));
     return lines;
 }
 

@@ -55,7 +55,7 @@ QString canonicalTargetArchitecture(const QString &architecture,
                                     const QString &system,
                                     const QString &abi)
 {
-    const QString arch = canonicalArchitecture(architecture);
+    QString arch = canonicalArchitecture(architecture);
     const bool isApple = (vendor == QStringLiteral("apple")
                           || system == QStringLiteral("darwin")
                           || system == QStringLiteral("macosx")

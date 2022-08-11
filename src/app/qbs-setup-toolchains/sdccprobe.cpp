@@ -84,8 +84,7 @@ static QStringList dumpOutput(const QFileInfo &compiler, const QString &targetFl
     }
 
     static QRegularExpression re(QStringLiteral("\\r?\\n"));
-    const QStringList lines = QString::fromUtf8(p.readAllStandardOutput()).split(re);
-    return lines;
+    return QString::fromUtf8(p.readAllStandardOutput()).split(re);
 }
 
 static bool supportsSdccArchitecture(const QFileInfo &compiler, QStringView flag)

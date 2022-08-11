@@ -85,7 +85,7 @@ Profile createProfileHelper(
 QString findClangCl()
 {
     const auto compilerName = HostOsInfo::appendExecutableSuffix(QStringLiteral("clang-cl"));
-    const auto compilerFromPath = findExecutable(compilerName);
+    auto compilerFromPath = findExecutable(compilerName);
     if (!compilerFromPath.isEmpty())
         return compilerFromPath;
 

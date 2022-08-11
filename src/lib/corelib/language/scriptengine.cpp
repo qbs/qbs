@@ -394,7 +394,7 @@ void ScriptEngine::importFile(const QString &filePath, QScriptValue &targetObjec
 static QString findExtensionDir(const QStringList &searchPaths, const QString &extensionPath)
 {
     for (const QString &searchPath : searchPaths) {
-        const QString dirPath = searchPath + QStringLiteral("/imports/") + extensionPath;
+        QString dirPath = searchPath + QStringLiteral("/imports/") + extensionPath;
         QFileInfo fi(dirPath);
         if (fi.exists() && fi.isDir())
             return dirPath;

@@ -115,12 +115,11 @@ QJsonObject ClangCompilationDatabaseGenerator::createEntry(const QString &filePa
     const QStringList arguments = QStringList() << ruleCommand.executable()
                                                 << ruleCommand.arguments();
 
-    const QJsonObject object = {
+    return QJsonObject{
         { QStringLiteral("directory"), QJsonValue(workDir) },
         { QStringLiteral("arguments"), QJsonArray::fromStringList(arguments) },
         { QStringLiteral("file"), QJsonValue(filePath) }
     };
-    return object;
 }
 
 void ClangCompilationDatabaseGenerator::writeProjectDatabase(const QString &filePath,

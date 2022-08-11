@@ -68,7 +68,7 @@ public:
 
 QString effectiveInstallRoot(const InstallOptions &options, const TopLevelProject *project)
 {
-    const QString installRoot = options.installRoot();
+    QString installRoot = options.installRoot();
     if (!installRoot.isEmpty())
         return installRoot;
 

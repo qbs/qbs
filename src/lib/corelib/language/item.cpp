@@ -168,8 +168,8 @@ ItemValuePtr Item::itemProperty(const QString &name, const Item *itemTemplate,
     if (!itemTemplate)
         return ItemValuePtr();
     const bool createdByPropertiesBlock = itemValue && itemValue->createdByPropertiesBlock();
-    const ItemValuePtr result = ItemValue::create(Item::create(m_pool, itemTemplate->type()),
-                                                 createdByPropertiesBlock);
+    ItemValuePtr result = ItemValue::create(Item::create(m_pool, itemTemplate->type()),
+                                            createdByPropertiesBlock);
     setProperty(name, result);
     return result;
 }

@@ -233,7 +233,7 @@ TopLevelProjectPtr ProjectResolver::resolveTopLevelProject()
 {
     if (m_progressObserver)
         m_progressObserver->setMaximum(int(m_loadResult.productInfos.size()));
-    const TopLevelProjectPtr project = TopLevelProject::create();
+    TopLevelProjectPtr project = TopLevelProject::create();
     project->buildDirectory = TopLevelProject::deriveBuildDirectory(m_setupParams.buildRoot(),
             TopLevelProject::deriveId(m_setupParams.finalBuildConfigurationTree()));
     project->buildSystemFiles = m_loadResult.qbsFiles;

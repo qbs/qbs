@@ -52,7 +52,7 @@ VisualStudioSolutionFileProject::~VisualStudioSolutionFileProject() = default;
 
 QString VisualStudioSolutionFileProject::name() const
 {
-    const auto projectName = IVisualStudioSolutionProject::name();
+    auto projectName = IVisualStudioSolutionProject::name();
     if (projectName.isEmpty())
         return QFileInfo(filePath()).baseName();
     return projectName;

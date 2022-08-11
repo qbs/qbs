@@ -82,7 +82,7 @@ SessionPacket::Status SessionPacket::parseInput(QByteArray &input)
 QJsonObject SessionPacket::retrievePacket()
 {
     QBS_ASSERT(isComplete(), return QJsonObject());
-    const auto packet = QJsonDocument::fromJson(QByteArray::fromBase64(m_payload)).object();
+    auto packet = QJsonDocument::fromJson(QByteArray::fromBase64(m_payload)).object();
     m_payload.clear();
     m_expectedPayloadLength = -1;
     return packet;

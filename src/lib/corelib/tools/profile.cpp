@@ -213,7 +213,7 @@ QVariant Profile::possiblyInheritedValue(const QString &key, const QVariant &def
                                          QStringList profileChain) const
 {
     extendAndCheckProfileChain(profileChain);
-    const QVariant v = localValue(key);
+    QVariant v = localValue(key);
     if (v.isValid())
         return v;
     const QString baseProfileName = baseProfile();

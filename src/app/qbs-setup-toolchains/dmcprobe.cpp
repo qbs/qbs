@@ -105,8 +105,7 @@ static QStringList dumpOutput(const QFileInfo &compiler, const QStringList &flag
     p.waitForFinished(3000);
     fakeIn.remove();
     static QRegularExpression re(QLatin1String("\\r?\\n"));
-    const QStringList lines = QString::fromUtf8(p.readAllStandardOutput()).split(re);
-    return lines;
+    return QString::fromUtf8(p.readAllStandardOutput()).split(re);
 }
 
 static std::optional<Target> dumpDmcTarget(const QFileInfo &compiler, const QStringList &flags)
