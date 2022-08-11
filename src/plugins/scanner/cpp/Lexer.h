@@ -79,7 +79,6 @@ public:
     };
 
     Lexer(const char *firstChar, const char *lastChar);
-    ~Lexer();
 
     bool qtMocRunEnabled() const;
     void setQtMocRunEnabled(bool onoff);

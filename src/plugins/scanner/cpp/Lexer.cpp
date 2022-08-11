@@ -69,8 +69,6 @@ Lexer::Lexer(const char *firstChar, const char *lastChar)
     setSource(firstChar, lastChar);
 }
 
-Lexer::~Lexer() = default;
-
 void Lexer::setSource(const char *firstChar, const char *lastChar)
 {
     _firstChar = firstChar;
