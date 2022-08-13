@@ -95,17 +95,15 @@ struct TargetPageOptions final
         const QString core = IarewUtils::flagValue(
                     flags, QStringLiteral("--core"))
                 .toLower();
-        if (core == QLatin1String("plain")) {
+        // If the core variant is not set, then choose the
+        // default value, CorePlain (see the compiler datasheet for
+        // '--core' option).
+        if (core == QLatin1String("plain") || core.isEmpty()) {
             cpuCore = TargetPageOptions::CorePlain;
         } else if (core == QLatin1String("extended1")) {
             cpuCore = TargetPageOptions::CoreExtended1;
         } else if (core == QLatin1String("extended2")) {
             cpuCore = TargetPageOptions::CoreExtended2;
-        } else {
-            // If the core variant is not set, then choose the
-            // default values (see the compiler datasheet for
-            // '--core' option).
-            cpuCore = TargetPageOptions::CorePlain;
         }
 
         const QString cm = IarewUtils::flagValue(
@@ -119,7 +117,7 @@ struct TargetPageOptions final
             codeModel = TargetPageOptions::CodeModelFar;
         } else if (cm == QLatin1String("banked_ext2")) {
             codeModel = TargetPageOptions::CodeModelBankedExtended2;
-        } else {
+        } else if (cm.isEmpty()) {
             // If the code model is not set, then choose the
             // default values (see the compiler datasheet for
             // '--code_model' option).
@@ -145,7 +143,7 @@ struct TargetPageOptions final
             dataModel = TargetPageOptions::DataModelFarGeneric;
         } else if (dm == QLatin1String("far")) {
             dataModel = TargetPageOptions::DataModelFar;
-        } else {
+        } else if (dm.isEmpty()) {
             // If the data model is not set, then choose the
             // default values (see the compiler datasheet for
             // '--data_model' option).
@@ -172,26 +170,26 @@ struct TargetPageOptions final
         const QString constPlace = IarewUtils::flagValue(
                     flags, QStringLiteral("--place_constants"))
                 .toLower();
-        if (constPlace == QLatin1String("data")) {
+        // If this option is not set, then choose the
+        // default value (see the compiler datasheet for
+        // '--place_constants' option).
+        if (constPlace == QLatin1String("data") || constPlace.isEmpty()) {
             constPlacement = TargetPageOptions::RamMemoryPlace;
         } else if (constPlace == QLatin1String("data_rom")) {
             constPlacement = TargetPageOptions::RomMemoryPlace;
         } else if (constPlace == QLatin1String("code")) {
             constPlacement = TargetPageOptions::CodeMemoryPlace;
-        } else {
-            // If this option is not set, then choose the
-            // default value (see the compiler datasheet for
-            // '--place_constants' option).
-            constPlacement = TargetPageOptions::RamMemoryPlace;
         }
-
         const QString cc = IarewUtils::flagValue(
                     flags, QStringLiteral("--calling_convention")).toLower();
         if (cc == QLatin1String("data_overlay")) {
             callingConvention = TargetPageOptions::DataOverlayConvention;
         } else if (cc == QLatin1String("idata_overlay")) {
             callingConvention = TargetPageOptions::IDataOverlayConvention;
-        } else if (cc == QLatin1String("idata_reentrant")) {
+        } else if (cc == QLatin1String("idata_reentrant") || cc.isEmpty()) {
+            // If this option is not set, then choose the
+            // default value (see the compiler datasheet for
+            // '--calling_convention' option).
             callingConvention = TargetPageOptions::IDataReentrantConvention;
         } else if (cc == QLatin1String("pdata_reentrant")) {
             callingConvention = TargetPageOptions::PDataReentrantConvention;
@@ -199,11 +197,6 @@ struct TargetPageOptions final
             callingConvention = TargetPageOptions::XDataReentrantConvention;
         } else if (cc == QLatin1String("ext_stack_reentrant")) {
             callingConvention = TargetPageOptions::ExtendedStackReentrantConvention;
-        } else {
-            // If this option is not set, then choose the
-            // default value (see the compiler datasheet for
-            // '--calling_convention' option).
-            callingConvention = TargetPageOptions::IDataReentrantConvention;
         }
     }
 
@@ -446,13 +439,12 @@ struct DptrPageOptions final
             case VisibilityIndex:
                 if (part == QLatin1String("shadowed"))
                     dptrVisibility = DptrPageOptions::DptrShadowed;
-                else if (part == QLatin1String("separate"))
-                    dptrVisibility = DptrPageOptions::DptrSeparate;
-                else
-                    // If this option is not set, then choose the
+                else if (part == QLatin1String("separate") || part.isEmpty()) {
+                    // If this option is not set or set to "separate", then choose the
                     // default value (see the compiler datasheet for
                     // '--dptr' option).
                     dptrVisibility = DptrPageOptions::DptrSeparate;
+                }
                 break;
             case SwitchMethodIndex:
                 if (part == QLatin1String("inc")) {
@@ -647,29 +639,21 @@ struct LibraryOptionsPageOptions final
                               Qt::CaseInsensitive)) {
                 const QString prop = flag.split(
                             QLatin1Char('=')).at(0).toLower();
+                // see the compiler datasheet for the '_formatted_write' option.
                 if (prop == QLatin1String("-e_large_write"))
                     printfFormatter = LibraryOptionsPageOptions::PrintfLargeFormatter;
                 else if (prop == QLatin1String("-e_medium_write"))
                     printfFormatter = LibraryOptionsPageOptions::PrintfMediumFormatter;
                 else if (prop == QLatin1String("-e_small_write"))
                     printfFormatter = LibraryOptionsPageOptions::PrintfSmallFormatter;
-                else
-                    // If this option is not set, then choose the
-                    // default value (see the compiler datasheet for
-                    // '_formatted_write' option).
-                    printfFormatter = LibraryOptionsPageOptions::PrintfMediumFormatter;
             } else if (flag.endsWith(QLatin1String("_formatted_read"),
                                      Qt::CaseInsensitive)) {
                 const QString prop = flag.split(QLatin1Char('='))
                         .at(0).toLower();
+                // see the compiler datasheet for the '_formatted_read' option.
                 if (prop == QLatin1String("-e_large_read"))
                     scanfFormatter = LibraryOptionsPageOptions::ScanfLargeFormatter;
                 else if (prop == QLatin1String("-e_medium_read"))
-                    scanfFormatter = LibraryOptionsPageOptions::ScanfMediumFormatter;
-                else
-                    // If this option is not set, then choose the
-                    // default value (see the compiler datasheet for
-                    // '_formatted_read' option).
                     scanfFormatter = LibraryOptionsPageOptions::ScanfMediumFormatter;
             }
         }
