@@ -88,7 +88,7 @@ import os
 import sys
 
 dbFile = sys.argv[1]
-blacklist = ['json.cpp', 'qmljsgrammar.cpp']
+blacklist = ['json.cpp', 'qmljsgrammar.cpp', 'qmljsparser.cpp']
 seenFiles = set()
 patched_db = []
 with open(dbFile, 'r') as f:
