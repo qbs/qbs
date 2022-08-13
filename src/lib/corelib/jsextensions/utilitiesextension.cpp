@@ -203,7 +203,7 @@ QScriptValue UtilitiesExtension::js_canonicalToolchain(QScriptContext *context,
 }
 
 // copied from src/corelib/tools/qtools_p.h
-Q_DECL_CONSTEXPR inline char toHexUpper(uint value) Q_DECL_NOTHROW
+Q_DECL_CONSTEXPR inline uchar toHexUpper(uint value) Q_DECL_NOTHROW
 {
     return "0123456789ABCDEF"[value & 0xF];
 }

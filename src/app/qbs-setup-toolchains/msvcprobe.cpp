@@ -164,10 +164,10 @@ void msvcProbe(Settings *settings, std::vector<Profile> &profiles)
 
     qbsInfo() << Tr::tr("Detecting build environment...");
     std::vector<MSVC *> msvcPtrs;
-    msvcPtrs.resize(winSDKs.size() + msvcs.size());
-    std::transform(winSDKs.begin(), winSDKs.end(), msvcPtrs.begin(),
+    msvcPtrs.reserve(winSDKs.size() + msvcs.size());
+    std::transform(winSDKs.begin(), winSDKs.end(), std::back_inserter(msvcPtrs),
                    [] (WinSDK &sdk) -> MSVC * { return &sdk; });
-    std::transform(msvcs.begin(), msvcs.end(), msvcPtrs.begin() + winSDKs.size(),
+    std::transform(msvcs.begin(), msvcs.end(), std::back_inserter(msvcPtrs),
                    [] (MSVC &msvc) -> MSVC * { return &msvc; });
 
     VsEnvironmentDetector envDetector;
@@ -195,7 +195,7 @@ void msvcProbe(Settings *settings, std::vector<Profile> &profiles)
         // a new group of compilers of the same version incrementing the set size
         msvcVersions.insert(msvc.vcInstallPath);
         // index is the number of specific vcInstallPaths (e.g. compiler versions) seen so far
-        const qsizetype index = msvcVersions.size() - 1;
+        const size_t index = msvcVersions.size() - 1;
         const QString suffix = index == 0 ? QString() : QStringLiteral("-%1").arg(index);
         const QString name = QLatin1String("MSVC") + msvc.version + suffix + QLatin1Char('-')
                 + msvc.architecture;
