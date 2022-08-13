@@ -281,7 +281,7 @@ struct LibraryOptionsPageOptions final
                 else if (prop == QLatin1String("_printflarge"))
                     printfFormatter = PrintfLargeFormatter;
                 else if (prop == QLatin1String("_printflargenomb"))
-                    printfFormatter = PrintfLargeFormatter;
+                    printfFormatter = PrintfLargeNoMultibytesFormatter;
                 else if (prop == QLatin1String("_printfsmall"))
                     printfFormatter = PrintfSmallFormatter;
                 else if (prop == QLatin1String("_printfsmallnomb"))
@@ -299,7 +299,7 @@ struct LibraryOptionsPageOptions final
                 else if (prop == QLatin1String("_scanflarge"))
                     scanfFormatter = ScanfLargeFormatter;
                 else if (prop == QLatin1String("_scanflargenomb"))
-                    scanfFormatter = ScanfLargeFormatter;
+                    scanfFormatter = ScanfLargeNoMultibytesFormatter;
                 else if (prop == QLatin1String("_scanfsmall"))
                     scanfFormatter = ScanfSmallFormatter;
                 else if (prop == QLatin1String("_scanfsmallnomb"))
