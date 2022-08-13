@@ -129,7 +129,7 @@ std::unique_ptr<ScriptEngine> ScriptEngine::create(Logger &logger, EvalContext e
 ScriptEngine::~ScriptEngine()
 {
     m_creationDestructionMutex.lock();
-    connect(this, &QObject::destroyed, std::bind(&std::mutex::unlock, &m_creationDestructionMutex));
+    connect(this, &QObject::destroyed, []{ m_creationDestructionMutex.unlock(); });
 
     releaseResourcesOfScriptObjects();
     delete (m_scriptImporter);
