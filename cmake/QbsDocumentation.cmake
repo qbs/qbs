@@ -300,7 +300,7 @@ function(add_qbs_documentation qdocconf_file)
     if (QBS_INSTALL_QCH_DOCS)
         set(_qch_params QCH QCH_DIR "${CMAKE_CURRENT_BINARY_DIR}")
     endif()
-    set(_qdoc_params HTML_DIR "${CMAKE_CURRENT_BINARY_DIR}/html")
+    set(_qdoc_params HTML_DIR "${CMAKE_CURRENT_BINARY_DIR}/${QBS_DOC_HTML_DIR_NAME}")
     list(APPEND _qdoc_params INSTALL_DIR "${QBS_DOC_INSTALL_DIR}")
 
     # Set up environment for qdoc:
