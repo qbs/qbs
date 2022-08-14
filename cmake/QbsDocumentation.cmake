@@ -70,6 +70,11 @@ function(_qbs_setup_doc_targets)
             BuildQbsDocumentation ALL COMMENT "Build Qbs documentation")
         add_dependencies(BuildQbsDocumentation qbs_html_docs qbs_qch_docs)
     endif()
+    if (NOT TARGET qbs_docs)
+        add_custom_target(
+            qbs_docs ALL COMMENT "Build Qbs documentation")
+        add_dependencies(qbs_docs BuildQbsDocumentation)
+    endif()
 endfunction()
 
 function(_find_python_module module)
@@ -184,6 +189,13 @@ function(_qbs_setup_qdoc_targets _qdocconf_file _retval)
     add_custom_target(${_html_target} DEPENDS "${_fixed_html_artifact}")
     add_dependencies(qbs_html_docs "${_html_target}")
 
+    # artifacts might be required for QCH-only installation, so we build them
+    # always, and skip HTML docs installation here
+    if (QBS_INSTALL_HTML_DOCS)
+        install(DIRECTORY "${_html_outputdir}" DESTINATION "${_arg_INSTALL_DIR}"
+            COMPONENT qbs_docs)
+    endif()
+
     set("${_retval}" "${_html_outputdir}" PARENT_SCOPE)
 endfunction()
 
@@ -229,9 +241,7 @@ function(_qbs_setup_qhelpgenerator_targets _qdocconf_file _html_outputdir)
     add_dependencies(qbs_qch_docs "${_qch_target}")
 
     install(FILES "${_qch_outputdir}/${_target}.qch" DESTINATION "${_arg_INSTALL_DIR}"
-        COMPONENT qbs_qch_docs)
-    install(DIRECTORY "${_qch_outputdir}/html" DESTINATION "${_arg_INSTALL_DIR}"
-        COMPONENT qbs_html_docs)
+        COMPONENT qbs_docs)
 endfunction()
 
 # Helper functions:
@@ -286,6 +296,7 @@ function(add_qbs_documentation qdocconf_file)
     set(SRCDIR "${Qbs_SOURCE_DIR}/doc")
 
     set(_qch_params)
+    # if QBS_INSTALL_QCH_DOCS is No, qch generation will be skipped entirely
     if (QBS_INSTALL_QCH_DOCS)
         set(_qch_params QCH QCH_DIR "${CMAKE_CURRENT_BINARY_DIR}")
     endif()
