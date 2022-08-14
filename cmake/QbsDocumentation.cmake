@@ -125,8 +125,6 @@ function(_qbs_setup_qdoc_targets _qdocconf_file _retval)
 
     get_filename_component(_target "${_qdocconf_file}" NAME_WE)
 
-    #  message(${_target})
-    #  set(_html_outputdir "${_arg_HTML_DIR}/${_target}${_arg_POSTFIX}")
     set(_html_outputdir "${_arg_HTML_DIR}")
     file(MAKE_DIRECTORY "${_html_outputdir}")
 
