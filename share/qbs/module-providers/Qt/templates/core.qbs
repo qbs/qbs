@@ -151,6 +151,8 @@ Module {
             if (Utilities.versionCompare(version, "5.6.0") < 0)
                 defines.push("main=qtmn");
         }
+        if (qbs.toolchain.contains("msvc"))
+            defines.push("_ENABLE_EXTENDED_ALIGNED_STORAGE");
         return defines;
     }
     cpp.driverFlags: {
