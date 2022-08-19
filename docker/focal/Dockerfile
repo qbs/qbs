@@ -40,8 +40,8 @@ RUN apt-get update -qq && \
         ca-certificates \
         capnproto \
         ccache \
-        clang-8 \
-        clang-tidy-8 \
+        clang-12 \
+        clang-tidy-12 \
         cmake \
         curl \
         flex \
@@ -71,13 +71,13 @@ RUN apt-get update -qq && \
         subversion \
         unzip \
         zip && \
-    update-alternatives --install /usr/bin/clang clang /usr/bin/clang-8 100 && \
-    update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-8 100 && \
-    update-alternatives --install /usr/bin/clang-check clang-check /usr/bin/clang-check-8 100 && \
+    update-alternatives --install /usr/bin/clang clang /usr/bin/clang-12 100 && \
+    update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-12 100 && \
+    update-alternatives --install /usr/bin/clang-check clang-check /usr/bin/clang-check-12 100 && \
     update-alternatives --install /usr/bin/python python /usr/bin/python3 100 && \
     pip install beautifulsoup4 lxml protobuf==3.19.1 pyyaml
 
-ENV LLVM_INSTALL_DIR=/usr/lib/llvm-8
+ENV LLVM_INSTALL_DIR=/usr/lib/llvm-12
 
 
 #
