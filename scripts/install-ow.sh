@@ -38,6 +38,7 @@
 ##
 #############################################################################
 set -eu
+set -o pipefail
 
 function show_help() {
     cat <<EOF
@@ -114,15 +115,15 @@ DOWNLOAD_DIR=`mktemp -d 2>/dev/null || mktemp -d -t 'ow-tmp'`
 VERSION_MAJOR=`echo $VERSION | cut -d. -f1`
 VERSION_MINOR=`echo $VERSION | cut -d. -f2`
 
-OW_URL="https://github.com/open-watcom/open-watcom-v${VERSION_MAJOR}/releases/download/Current-build/ow-snapshot.tar.gz"
-OW_TARGZ="${DOWNLOAD_DIR}/ow.tar.gz"
+OW_URL="https://github.com/open-watcom/open-watcom-v${VERSION_MAJOR}/releases/download/Current-build/ow-snapshot.tar.xz"
+OW_TAR="${DOWNLOAD_DIR}/ow.tar.xz"
 
 echo "Downloading compiler from ${OW_URL}..." >&2
-curl --progress-bar -L -o ${OW_TARGZ} ${OW_URL} >&2
+curl --progress-bar -L -o ${OW_TAR} ${OW_URL} >&2
 
 echo "Unpacking compiler to ${INSTALL_DIR}..." >&2
-7z x "${OW_TARGZ}" -so | 7z x -aoa -si -ttar -o"${INSTALL_DIR}" >/dev/null 2>&1
+7z x "${OW_TAR}" -so | 7z x -aoa -si -ttar -o"${INSTALL_DIR}" >/dev/null 2>&1
 
 echo "${INSTALL_DIR}/${BIN_DIR}"
 
-rm -f ${OW_TARGZ}
+rm -f ${OW_TAR}
