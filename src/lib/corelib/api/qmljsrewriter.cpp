@@ -132,8 +132,7 @@ Rewriter::Range Rewriter::addBinding(AST::UiObjectInitializer *ast,
         break;
 
     case ObjectBinding:
-        newPropertyTemplate = QStringLiteral("%1: %2");
-        break;
+        Q_FALLTHROUGH();
 
     case ScriptBinding:
         newPropertyTemplate = QStringLiteral("%1: %2");
