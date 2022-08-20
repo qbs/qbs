@@ -57,7 +57,8 @@ if [ -z "$RUN_CLANG_TIDY" ] || [ -z "$CLANG_TIDY" ]; then
     fi
 fi
 
-CPU_COUNT=$("$(dirname "$0")"/cpu-count.sh)
+SCRIPT_DIR=$(dirname "$0")
+CPU_COUNT=$("${SCRIPT_DIR}/cpu-count.sh")
 
 BUILD_OPTIONS="\
     ${QBS_BUILD_PROFILE:+profile:${QBS_BUILD_PROFILE}} \
