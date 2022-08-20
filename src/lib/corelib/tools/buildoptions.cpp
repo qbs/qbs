@@ -413,8 +413,8 @@ template<> JobLimits fromJson(const QJsonValue &limitsData)
 {
     JobLimits limits;
     const QJsonArray &limitsArray = limitsData.toArray();
-    for (const QJsonValue &v : limitsArray) {
-        const QJsonObject limitData = v.toObject();
+    for (const auto &value : limitsArray) {
+        const QJsonObject limitData = value.toObject();
         QString pool;
         int limit = 0;
         setValueFromJson(pool, limitData, "pool");

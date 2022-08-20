@@ -554,7 +554,7 @@ void Session::getGeneratedFilesForSources(const QJsonObject &request)
     reply.insert(StringConstants::type(), QLatin1String(replyType));
     const QJsonArray specs = request.value(StringConstants::productsKey()).toArray();
     QJsonArray resultProducts;
-    for (const QJsonValue &p : specs) {
+    for (const auto &p : specs) {
         const QJsonObject productObject = p.toObject();
         const ProductData product = getProductByName(
                     productObject.value(StringConstants::fullDisplayNameKey()).toString());
@@ -564,7 +564,7 @@ void Session::getGeneratedFilesForSources(const QJsonObject &request)
         resultProduct.insert(StringConstants::fullDisplayNameKey(), product.fullDisplayName());
         QJsonArray results;
         const QJsonArray requests = productObject.value(QLatin1String("requests")).toArray();
-        for (const QJsonValue &r : requests) {
+        for (const auto &r : requests) {
             const QJsonObject request = r.toObject();
             const QString filePath = request.value(QLatin1String("source-file")).toString();
             const QStringList tags = fromJson<QStringList>(request.value(QLatin1String("tags")));
@@ -646,7 +646,7 @@ Session::FileUpdateData Session::prepareFileUpdate(const QJsonObject &request)
         data.error = tr("Product '%1' not found in project.").arg(productName);
     }
     const QJsonArray filesArray = request.value(QLatin1String("files")).toArray();
-    for (const QJsonValue &v : filesArray)
+    for (const auto &v : filesArray)
         data.filePaths << v.toString();
     if (m_currentJob)
         data.error = tr("Cannot update the list of source files while a job is running.");

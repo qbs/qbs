@@ -356,8 +356,8 @@ static std::vector<MSVCInstallInfo> retrieveInstancesFromVSWhere(
         return result;
     }
     const auto jsonArray = jsonOutput.array();
-    for (const QJsonValue &v : jsonArray) {
-        const QJsonObject o = v.toObject();
+    for (const auto &value : jsonArray) {
+        const QJsonObject o = value.toObject();
         MSVCInstallInfo info;
         info.version = o.value(QStringLiteral("installationVersion")).toString();
         if (productType == ProductType::BuildTools) {
