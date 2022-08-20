@@ -126,8 +126,8 @@ void ConfigCommandLineParser::parse(const QStringList &commandLine)
             throw Error(Tr::tr("Profile properties must be provided."));
         if (m_command.varNames.size() % 2 != 0)
             throw Error(Tr::tr("Profile properties must be key/value pairs."));
-        for (int i = 0; i < m_command.varNames.size(); ++i) {
-            if (m_command.varNames.at(i).isEmpty())
+        for (const auto &varName : qAsConst(m_command.varNames)) {
+            if (varName.isEmpty())
                 throw Error(Tr::tr("Property names must not be empty."));
         }
         break;
