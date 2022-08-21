@@ -869,8 +869,6 @@ jobs:
       shell: bash
     - name: Update PATH
       run: echo "./release/install-root/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-    - name: Install required packages
-      run: choco install -y pkgconfiglite --download-checksum=6004df17818f5a6dbf19cb335cc92702
     - name: Install OpenWatcom
       uses: ./.github/actions/download-ow
     - name: Install DigitalMars

@@ -24,6 +24,7 @@ set(QBS_PLUGINS_INSTALL_BASE "${QBS_LIBDIR_NAME}" CACHE STRING "Relative install
 set(QBS_RESOURCES_INSTALL_BASE "." CACHE STRING "Relative install location for Qbs resources.")
 set(QBS_HEADERS_INSTALL_DIR "include/qbs" CACHE STRING "Relative install location for Qbs headers.")
 set(QBS_DOC_INSTALL_DIR "${QBS_RESOURCES_INSTALL_BASE}/share/doc/qbs" CACHE STRING "Relative install location for Qbs documentation.")
+set(QBS_DOC_HTML_DIR_NAME "html" CACHE STRING "The name of the dir with HTML files, appended to QBS_DOC_INSTALL_DIR.")
 
 set(QBS_PLUGINS_INSTALL_DIR "${QBS_PLUGINS_INSTALL_BASE}/qbs/plugins")
 set(QBS_RESOURCES_INSTALL_DIR "${QBS_RESOURCES_INSTALL_BASE}/share")

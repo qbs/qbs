@@ -1,0 +1,3 @@
+if (QBS_INSTALL_MAN_PAGE)
+    install(FILES qbs.1 DESTINATION ${QBS_RESOURCES_INSTALL_DIR}/man/man1 COMPONENT qbs_docs)
+endif()

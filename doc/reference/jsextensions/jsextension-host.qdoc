@@ -70,7 +70,7 @@
 
     \section2 platform
     \code
-    Host.platform(): string[]
+    Host.platform(): string
     \endcode
     Returns the host operating system platform.
 
@@ -111,21 +111,21 @@
 
     \section2 osVersionMajor
     \code
-    Host.osVersionMajor(): string[]
+    Host.osVersionMajor(): number
     \endcode
     Returns the host operating system major version.
     \funsince 1.22
 
     \section2 osVersionMinor
     \code
-    Host.osVersionMinor(): string[]
+    Host.osVersionMinor(): number
     \endcode
     Returns the host operating system minor version.
     \funsince 1.22
 
     \section2 osVersionPatch
     \code
-    Host.osVersionPatch(): string[]
+    Host.osVersionPatch(): number
     \endcode
     Returns the host operating system patch level.
     \funsince 1.22
