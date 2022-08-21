@@ -3033,7 +3033,7 @@ Item *ModuleLoader::searchAndLoadModuleFile(ProductContext *productContext,
     if (existingPaths.isEmpty()) { // no suitable names found, try to use providers
         AccumulatingTimer providersTimer(
                 m_parameters.logElapsedTime() ? &m_elapsedTimeModuleProviders : nullptr);
-        auto result = m_moduleProviderLoader->executeModuleProvider(
+        auto result = m_moduleProviderLoader->executeModuleProviders(
                     *productContext,
                     dependsItemLocation,
                     moduleName,

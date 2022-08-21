@@ -93,29 +93,30 @@ public:
         m_parameters = std::move(parameters);
     }
 
-    ModuleProviderResult executeModuleProvider(
+    const Set<QString> &tempQbsFiles() const { return m_tempQbsFiles; }
+
+    ModuleProviderResult executeModuleProviders(
             ProductContext &productContext,
             const CodeLocation &dependsItemLocation,
             const QualifiedId &moduleName,
             FallbackMode fallbackMode);
-    ModuleProviderResult findModuleProvider(
-            const std::vector<Provider> &providers,
-            ProductContext &product,
-            const CodeLocation &dependsItemLocation);
-    QVariantMap moduleProviderConfig(ProductContext &product);
 
-    const Set<QString> &tempQbsFiles() const { return m_tempQbsFiles; }
+private:
+    ModuleProviderResult executeModuleProvidersHelper(
+            ProductContext &product,
+            const CodeLocation &dependsItemLocation,
+            const std::vector<Provider> &providers);
+    QVariantMap getModuleProviderConfig(ProductContext &product);
 
     std::optional<std::vector<QualifiedId>> getModuleProviders(Item *item);
 
-private:
     QString findModuleProviderFile(const QualifiedId &name, ModuleProviderLookup lookupType);
-    QStringList getProviderSearchPaths(
+    QStringList evaluateModuleProvider(
+            ProductContext &product,
+            const CodeLocation &location,
             const QualifiedId &name,
             const QString &providerFile,
-            ProductContext &product,
-            const QVariantMap &moduleConfig,
-            const CodeLocation &location);
+            const QVariantMap &moduleConfig);
 
 private:
     ItemReader *const m_reader{nullptr};

@@ -71,7 +71,7 @@ ModuleProviderLoader::ModuleProviderLoader(ItemReader *reader, Evaluator *evalua
 {
 }
 
-ModuleProviderLoader::ModuleProviderResult ModuleProviderLoader::executeModuleProvider(
+ModuleProviderLoader::ModuleProviderResult ModuleProviderLoader::executeModuleProviders(
         ProductContext &productContext,
         const CodeLocation &dependsItemLocation,
         const QualifiedId &moduleName,
@@ -91,33 +91,33 @@ ModuleProviderLoader::ModuleProviderResult ModuleProviderLoader::executeModulePr
                 providersToRun.push_back({providerName, ModuleProviderLookup::Scoped});
         }
     }
-    result = findModuleProvider(providersToRun, productContext, dependsItemLocation);
+    result = executeModuleProvidersHelper(productContext, dependsItemLocation, providersToRun);
 
     if (fallbackMode == FallbackMode::Enabled
             && !result.providerFound
             && !providerNames) {
             qCDebug(lcModuleLoader) << "Specific module provider not found for"
                                 << moduleName.toString()  << ", setting up fallback.";
-        result = findModuleProvider(
-                {{moduleName, ModuleProviderLookup::Fallback}},
+        result = executeModuleProvidersHelper(
                 productContext,
-                dependsItemLocation);
+                dependsItemLocation,
+                {{moduleName, ModuleProviderLookup::Fallback}});
     }
 
     return result;
 }
 
-ModuleProviderLoader::ModuleProviderResult ModuleProviderLoader::findModuleProvider(
-        const std::vector<Provider> &providers,
+ModuleProviderLoader::ModuleProviderResult ModuleProviderLoader::executeModuleProvidersHelper(
         ProductContext &product,
-        const CodeLocation &dependsItemLocation)
+        const CodeLocation &dependsItemLocation,
+        const std::vector<Provider> &providers)
 {
     if (providers.empty())
         return {};
     QStringList allSearchPaths;
     ModuleProviderResult result;
     for (const auto &[name, lookupType] : providers) {
-        const QVariantMap config = moduleProviderConfig(product).value(name.toString()).toMap();
+        const QVariantMap config = getModuleProviderConfig(product).value(name.toString()).toMap();
         ModuleProviderInfo &info =
                 m_storedModuleProviderInfo.providers[{name.toString(), config, int(lookupType)}];
         const bool fromCache = !info.name.isEmpty();
@@ -127,8 +127,8 @@ ModuleProviderLoader::ModuleProviderResult ModuleProviderLoader::findModuleProvi
             info.providerFile = findModuleProviderFile(name, lookupType);
             if (!info.providerFile.isEmpty()) {
                 qCDebug(lcModuleLoader) << "Running provider" << name << "at" << info.providerFile;
-                info.searchPaths = getProviderSearchPaths(
-                        name, info.providerFile, product, config, dependsItemLocation);
+                info.searchPaths = evaluateModuleProvider(
+                        product, dependsItemLocation, name, info.providerFile, config);
                 info.transientOutput = m_parameters.dryRun();
             }
         }
@@ -160,7 +160,7 @@ ModuleProviderLoader::ModuleProviderResult ModuleProviderLoader::findModuleProvi
     return result;
 }
 
-QVariantMap ModuleProviderLoader::moduleProviderConfig(
+QVariantMap ModuleProviderLoader::getModuleProviderConfig(
         ProductContext &product)
 {
     if (product.theModuleProviderConfig)
@@ -228,7 +228,7 @@ std::optional<std::vector<QualifiedId>> ModuleProviderLoader::getModuleProviders
 }
 
 QString ModuleProviderLoader::findModuleProviderFile(
-            const QualifiedId &name, ModuleProviderLookup lookupType)
+        const QualifiedId &name, ModuleProviderLookup lookupType)
 {
     for (const QString &path : m_reader->allSearchPaths()) {
         QString fullPath = FileInfo::resolvePath(path, QStringLiteral("module-providers"));
@@ -260,12 +260,12 @@ QString ModuleProviderLoader::findModuleProviderFile(
     return {};
 }
 
-QStringList ModuleProviderLoader::getProviderSearchPaths(
+QStringList ModuleProviderLoader::evaluateModuleProvider(
+        ProductContext &product,
+        const CodeLocation &dependsItemLocation,
         const QualifiedId &name,
         const QString &providerFile,
-        ProductContext &product,
-        const QVariantMap &moduleConfig,
-        const CodeLocation &location)
+        const QVariantMap &moduleConfig)
 {
     QTemporaryFile dummyItemFile;
     if (!dummyItemFile.open()) {
@@ -296,7 +296,7 @@ QStringList ModuleProviderLoader::getProviderSearchPaths(
     stream << "}" << endl;
     stream.flush();
     Item * const providerItem =
-            m_reader->readFile(dummyItemFile.fileName(), location);
+            m_reader->readFile(dummyItemFile.fileName(), dependsItemLocation);
     if (providerItem->type() != ItemType::ModuleProvider) {
         throw ErrorInfo(Tr::tr("File '%1' declares an item of type '%2', "
                                "but '%3' was expected.")
