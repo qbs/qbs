@@ -769,6 +769,7 @@ jobs:
       run: echo "./release/install-root/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
     - name: Install required packages
       run: choco install -y pkgconfiglite --download-checksum=6004df17818f5a6dbf19cb335cc92702
+      continue-on-error: true  # pkgconfiglite installation is flaky
     - name: Install Qt
       uses: ./.github/actions/download-qt
       with:
