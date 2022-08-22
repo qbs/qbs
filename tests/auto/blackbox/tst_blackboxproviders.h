@@ -45,6 +45,7 @@ private slots:
     void fallbackModuleProvider();
     void moduleProviders();
     void moduleProvidersCache();
+    void nonEagerModuleProvider();
     void probeInModuleProvider();
     void providersProperties();
     void qbsModulePropertiesInProviders();

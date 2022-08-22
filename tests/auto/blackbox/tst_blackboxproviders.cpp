@@ -179,6 +179,22 @@ void TestBlackboxProviders::moduleProvidersCache()
     QCOMPARE(m_qbsStderr.count("Re-using provider \"provider_a\" from cache"), 2);
 }
 
+void TestBlackboxProviders::nonEagerModuleProvider()
+{
+    QDir::setCurrent(testDataDir + "/non-eager-provider");
+
+    QbsRunParameters params("resolve");
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(m_qbsStdout.contains(("Running setup script for qbsmetatestmodule")), m_qbsStdout);
+    QVERIFY2(m_qbsStdout.contains(("Running setup script for qbsothermodule")), m_qbsStdout);
+    QVERIFY2(!m_qbsStdout.contains(("Running setup script for nonexistentmodule")), m_qbsStdout);
+
+    QVERIFY2(m_qbsStdout.contains(("p1.qbsmetatestmodule.prop: from_provider_a")),
+             m_qbsStdout);
+    QVERIFY2(m_qbsStdout.contains(("p1.qbsothermodule.prop: from_provider_a")),
+             m_qbsStdout);
+}
+
 void TestBlackboxProviders::probeInModuleProvider()
 {
     QDir::setCurrent(testDataDir + "/probe-in-module-provider");

@@ -67,6 +67,19 @@
 */
 
 /*!
+    \qmlproperty bool ModuleProvider::isEager
+
+    Holds whether provider is eager.
+
+    Eager provider is executed only once and should create multiple modules at once when executed).
+    A non-eager provider is executed multiple times, one time for each module \QBS tries to
+    instantiate.
+
+    \sa ModuleProvider::moduleName
+    \default true
+*/
+
+/*!
     \qmlproperty string ModuleProvider::name
 
     The name of the module provider.
@@ -80,6 +93,17 @@
     the particular module-providers base directory. For instance, if the dependency is \c {x.m1} and
     the provider was found in \c {module-providers/x/m1/provider.qbs}, then \c name is \c {x.m1}.
     If the provider was found in \c {module-providers/x/provider.qbs}, then \c name is \c x.
+*/
+
+/*!
+    \qmlproperty string ModuleProvider::moduleName
+
+    This property is set by QBS for non-eager providers and contains the name of the module
+    that is currently being instantiated by the provider.
+
+    For eager providers, the value of this property is \c undefined.
+
+    \sa ModuleProvider::isEager
 */
 
 /*!

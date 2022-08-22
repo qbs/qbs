@@ -83,7 +83,9 @@ public:
     QualifiedId name;
     QVariantMap config;
     QString providerFile;
+    bool isEager{true};
     QStringList searchPaths;
+    QHash<QString, QStringList> searchPathsByModule;
     bool transientOutput = false; // Not to be serialized.
 };
 
@@ -95,6 +97,7 @@ class StoredModuleProviderInfo
 public:
     using CacheKey = std::tuple<
         QString /*name*/,
+        QString /*moduleName*/,
         QVariantMap /*config*/,
         QVariantMap /*qbsModule*/,
         int /*lookup*/

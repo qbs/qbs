@@ -98,11 +98,12 @@ private:
     ModuleProviderResult executeModuleProvidersHelper(
             ProductContext &product,
             const CodeLocation &dependsItemLocation,
+            const QualifiedId &moduleName,
             const std::vector<Provider> &providers);
     std::pair<const ModuleProviderInfo &, bool>
     findOrCreateProviderInfo(ProductContext &product, const CodeLocation &dependsItemLocation,
-                             const QualifiedId &name, ModuleProviderLookup lookupType,
-                             const QVariantMap &config, const QVariantMap &qbsModule);
+                             const QualifiedId &moduleName, const QualifiedId &name,
+                             ModuleProviderLookup lookupType, const QVariantMap &qbsModule);
     void setupModuleProviderConfig(ProductContext &product);
 
     std::optional<std::vector<QualifiedId>> getModuleProviders(Item *item);
@@ -110,9 +111,11 @@ private:
     QString findModuleProviderFile(const QualifiedId &name, ModuleProviderLookup lookupType);
     QVariantMap evaluateQbsModule(const ProductContext &product) const;
     Item *createProviderScope(const ProductContext &product, const QVariantMap &qbsModule);
-    QStringList evaluateModuleProvider(
+    using EvaluationResult = std::pair<QStringList, bool /*isEager*/>;
+    EvaluationResult evaluateModuleProvider(
             ProductContext &product,
-            const CodeLocation &location,
+            const CodeLocation &dependsItemLocation,
+            const QualifiedId &moduleName,
             const QualifiedId &name,
             const QString &providerFile,
             const QVariantMap &moduleConfig,
