@@ -617,7 +617,7 @@ jobs:
             runner: 'macos-12',
             target: 'desktop',
             toolchain: 'clang_64',
-            testProfile: 'xcode_13_4-macosx-x86_64',
+            testProfile: 'xcode_13_4_1-macosx-x86_64',
             qtVersion: '5.15.2',
             script: './scripts/test-qbs.sh',
           }
@@ -626,7 +626,7 @@ jobs:
             runner: 'macos-12',
             target: 'desktop',
             toolchain: 'clang_64',
-            testProfile: 'xcode_13_4-macosx-x86_64',
+            testProfile: 'xcode_13_4_1-macosx-x86_64',
             qtVersion: '6.3.1',
             script: './scripts/test-qt.sh',
           }
@@ -644,7 +644,7 @@ jobs:
             runner: 'macos-12',
             target: 'ios',
             toolchain: 'ios',
-            testProfile: 'xcode_13_4-iphonesimulator-x86_64',
+            testProfile: 'xcode_13_4_1-iphonesimulator-x86_64',
             qtVersion: '5.15.2',
             script: './scripts/test-qbs.sh',
           }
