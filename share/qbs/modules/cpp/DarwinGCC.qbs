@@ -110,6 +110,9 @@ UnixGCC {
         if (qbs.targetOS.contains("macos")) {
             dict["NSPrincipalClass"] = "NSApplication"; // needed for Retina display support
 
+            // QBS-1670: set this flag by default to avoid extensive GPU usage
+            dict["NSSupportsAutomaticGraphicsSwitching"] = true;
+
             if (minimumMacosVersion)
                 dict["LSMinimumSystemVersion"] = minimumMacosVersion;
         }
