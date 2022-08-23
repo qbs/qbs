@@ -635,7 +635,7 @@ jobs:
             runner: 'macos-12',
             target: 'ios',
             toolchain: 'ios',
-            testProfile: 'xcode_13_4-iphoneos-arm64',
+            testProfile: 'xcode_13_4_1-iphoneos-arm64',
             qtVersion: '5.15.2',
             script: './scripts/test-qbs.sh',
           }
