@@ -111,12 +111,15 @@ private:
     std::optional<std::vector<QualifiedId>> getModuleProviders(Item *item);
 
     QString findModuleProviderFile(const QualifiedId &name, ModuleProviderLookup lookupType);
+    QVariantMap evaluateQbsModule(ProductContext &product) const;
+    Item *createProviderScope(ProductContext &product, const QVariantMap &qbsModule);
     QStringList evaluateModuleProvider(
             ProductContext &product,
             const CodeLocation &location,
             const QualifiedId &name,
             const QString &providerFile,
-            const QVariantMap &moduleConfig);
+            const QVariantMap &moduleConfig,
+            const QVariantMap &qbsModule);
 
 private:
     ItemReader *const m_reader{nullptr};

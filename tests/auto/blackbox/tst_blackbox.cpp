@@ -6111,6 +6111,27 @@ void TestBlackbox::qbsConfigAddProfile_data()
                                     << QString("Profile properties must be key/value pairs");
 }
 
+// checks that we can set qbs module properties in providers and provider cache works corectly
+void TestBlackbox::qbsModulePropertiesInProviders()
+{
+    QDir::setCurrent(testDataDir + "/qbs-module-properties-in-providers");
+
+    QbsRunParameters params("resolve");
+
+    QCOMPARE(runQbs(params), 0);
+
+    // We have 2 products in 2 configurations, but second product should use the cached value
+    // so we should have only 2 copies of the module, not 4.
+    QCOMPARE(m_qbsStdout.count("Running setup script for qbsmetatestmodule"), 2);
+
+    // Check that products get correct values from modules
+    QVERIFY2(m_qbsStdout.contains(("product1.qbsmetatestmodule.prop: sysroot1")), m_qbsStdout);
+    QVERIFY2(m_qbsStdout.contains(("product1.qbsmetatestmodule.prop: sysroot2")), m_qbsStdout);
+
+    QVERIFY2(m_qbsStdout.contains(("product2.qbsmetatestmodule.prop: sysroot1")), m_qbsStdout);
+    QVERIFY2(m_qbsStdout.contains(("product2.qbsmetatestmodule.prop: sysroot2")), m_qbsStdout);
+}
+
 // Tests whether it is possible to set qbsModuleProviders in Product and Project items
 // and that the order of providers results in correct priority
 void TestBlackbox::qbsModuleProviders()

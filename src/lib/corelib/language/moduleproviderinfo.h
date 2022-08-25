@@ -92,7 +92,12 @@ using ModuleProviderInfoList = std::vector<ModuleProviderInfo>;
 // Persistent info stored between sessions
 struct StoredModuleProviderInfo
 {
-    using CacheKey = std::tuple<QString /*name*/, QVariantMap /*config*/, int /*lookup*/>;
+    using CacheKey = std::tuple<
+        QString /*name*/,
+        QVariantMap /*config*/,
+        QVariantMap /*qbsModule*/,
+        int /*lookup*/
+    >;
     using ModuleProvidersCache = QHash<CacheKey, ModuleProviderInfo>;
 
     ModuleProvidersCache providers;

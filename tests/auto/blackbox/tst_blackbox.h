@@ -262,6 +262,7 @@ private slots:
     void qbsConfig();
     void qbsConfigAddProfile();
     void qbsConfigAddProfile_data();
+    void qbsModulePropertiesInProviders();
     void qbsModuleProviders();
     void qbsModuleProviders_data();
     void qbsModuleProvidersCliOverride();
