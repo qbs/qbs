@@ -650,7 +650,7 @@ jobs:
           }
         - {
             name: 'Run macOS tests (Xcode 12.5)',
-            runner: 'macos-11.0',
+            runner: 'macos-11',
             target: 'desktop',
             toolchain: 'clang_64',
             testProfile: 'xcode_12_5_1-macosx-x86_64',
@@ -659,7 +659,7 @@ jobs:
           }
         - {
             name: 'Run macOS tests (Xcode 11.7)',
-            runner: 'macos-11.0',
+            runner: 'macos-11',
             target: 'desktop',
             toolchain: 'clang_64',
             testProfile: 'xcode_11_7-macosx-x86_64',
