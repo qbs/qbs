@@ -6226,9 +6226,9 @@ void TestBlackbox::qbsModuleProvidersCompatibility_data()
 void TestBlackbox::qbspkgconfigModuleProvider()
 {
     QDir::setCurrent(testDataDir + "/qbspkgconfig-module-provider/libs");
+    rmDirR(relativeBuildDir());
 
     const auto commonParams = QbsRunParameters(QStringLiteral("install"), {
-            QStringLiteral("qbs.installPrefix:/usr/local"),
             QStringLiteral("--install-root"),
             QStringLiteral("install-root")
     });
@@ -6237,11 +6237,12 @@ void TestBlackbox::qbspkgconfigModuleProvider()
     QCOMPARE(runQbs(dynamicParams), 0);
 
     QDir::setCurrent(testDataDir + "/qbspkgconfig-module-provider");
+    rmDirR(relativeBuildDir());
+
+    const auto sysroot = testDataDir + "/qbspkgconfig-module-provider/libs/install-root";
 
     QbsRunParameters params;
-    params.arguments
-            << "moduleProviders.qbspkgconfig.libDirs:libdir"
-            << "moduleProviders.qbspkgconfig.sysroot:" + QDir::currentPath() + "/libs/install-root";
+    params.arguments << "moduleProviders.qbspkgconfig.sysroot:" + sysroot;
     QCOMPARE(runQbs(params), 0);
 }
 

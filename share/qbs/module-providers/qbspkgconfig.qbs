@@ -52,11 +52,7 @@ ModuleProvider {
     property stringList extraPaths
     property stringList libDirs
     property bool staticMode: false
-    property path sysroot: {
-        if (qbs.targetOS.contains("macos"))
-            return "";
-        return qbs.sysroot;
-    }
+    property path sysroot: qbs.sysroot
     property bool mergeDependencies: true
 
     relativeSearchPaths: {
@@ -148,6 +144,8 @@ ModuleProvider {
         var options = {};
         options.libDirs = libDirs;
         options.sysroot = sysroot;
+        if (options.sysroot)
+            options.allowSystemLibraryPaths = true;
         options.staticMode = staticMode;
         options.mergeDependencies = mergeDependencies;
         options.extraPaths = extraPaths;
