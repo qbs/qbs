@@ -33,8 +33,6 @@ import qbs.TextFile
 import "freedesktop.js" as Fdo
 
 Module {
-    id: fdoModule
-
     property string name: product.name
 
     property var desktopKeys
@@ -96,14 +94,14 @@ Module {
     }
 
     Group {
-        condition: fdoModule._fdoSupported
+        condition: product.freedesktop._fdoSupported
         fileTagsFilter: [ "freedesktop.desktopfile" ]
         qbs.install: true
         qbs.installDir: "share/applications"
     }
 
     Group {
-        condition: fdoModule._fdoSupported
+        condition: product.freedesktop._fdoSupported
         fileTagsFilter: [ "freedesktop.appIcon" ]
         qbs.install: true
         qbs.installDir: "share/icons/hicolor/scalable/apps"
@@ -115,7 +113,7 @@ Module {
     }
 
     Group {
-        condition: fdoModule._fdoSupported
+        condition: product.freedesktop._fdoSupported
         fileTagsFilter: [ "freedesktop.appstream" ]
         qbs.install: true
         qbs.installDir: "share/metainfo"
