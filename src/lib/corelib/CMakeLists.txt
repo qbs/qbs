@@ -306,6 +306,7 @@ set(TOOLS_SOURCES
     cleanoptions.cpp
     codelocation.cpp
     commandechomode.cpp
+    deprecationwarningmode.cpp
     dynamictypecheck.h
     error.cpp
     executablefinder.cpp
@@ -389,6 +390,7 @@ set(TOOLS_HEADERS
     cleanoptions.h
     codelocation.h
     commandechomode.h
+    deprecationwarningmode.h
     error.h
     generateoptions.h
     installoptions.h

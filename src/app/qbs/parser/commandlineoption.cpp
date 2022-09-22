@@ -663,6 +663,41 @@ void CommandEchoModeOption::doParse(const QString &representation, QStringList &
     m_echoMode = commandEchoModeFromName(mode);
 }
 
+QString DeprecationWarningsOption::description(CommandType command) const
+{
+    Q_UNUSED(command);
+    return Tr::tr("%1 <mode>\n"
+                  "\tWhat to do when encountering deprecated items or properties.\n"
+                  "\tPossible values are '%2'.\n"
+                  "\tThe default is '%3'.\n")
+            .arg(longRepresentation(),
+                 allDeprecationWarningModeStrings().join(QLatin1String("', '")),
+                 deprecationWarningModeName(defaultDeprecationWarningMode()));
+}
+
+QString DeprecationWarningsOption::longRepresentation() const
+{
+    return QStringLiteral("--deprecation-warnings");
+}
+
+void DeprecationWarningsOption::doParse(const QString &representation, QStringList &input)
+{
+    const QString mode = getArgument(representation, input);
+    if (mode.isEmpty()) {
+        throw ErrorInfo(Tr::tr("Invalid use of option '%1': No deprecation warning mode given.\n"
+                               "Usage: %2")
+                    .arg(representation, description(command())));
+    }
+
+    if (!allDeprecationWarningModeStrings().contains(mode)) {
+        throw ErrorInfo(Tr::tr("Invalid use of option '%1': "
+                               "Invalid deprecation warning mode '%2' given.\nUsage: %3")
+                        .arg(representation, mode, description(command())));
+    }
+
+    m_mode = deprecationWarningModeFromName(mode);
+}
+
 QString WaitLockOption::description(CommandType command) const
 {
     Q_UNUSED(command);

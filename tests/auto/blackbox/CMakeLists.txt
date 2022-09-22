@@ -1,6 +1,7 @@
 add_qbs_test(blackbox
     DEFINES
         ${QBS_UNIT_TESTS_DEFINES}
+        "QBS_VERSION=\"${QBS_VERSION}\""
     SOURCES
         ../shared.h
         tst_blackboxbase.cpp

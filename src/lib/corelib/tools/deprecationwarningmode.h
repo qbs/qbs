@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2022 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -37,51 +37,23 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_ITEMDECLARATION_H
-#define QBS_ITEMDECLARATION_H
+#ifndef QBS_DEPRECATIONWARNINGMODE_H
+#define QBS_DEPRECATIONWARNINGMODE_H
 
-#include "deprecationinfo.h"
-#include "itemtype.h"
-#include "propertydeclaration.h"
-#include <tools/set.h>
+#include "qbs_export.h"
 
-#include <QtCore/qstring.h>
+#include <QtCore/qstringlist.h>
 
 namespace qbs {
-namespace Internal {
 
-class ItemDeclaration
-{
-public:
-    ItemDeclaration(ItemType type = ItemType::Unknown);
+enum class DeprecationWarningMode { Error, On, BeforeRemoval, Off, Sentinel = Off };
 
-    ItemType type() const { return m_type; }
+QBS_EXPORT DeprecationWarningMode defaultDeprecationWarningMode();
+QBS_EXPORT QString deprecationWarningModeName(DeprecationWarningMode mode);
+QBS_EXPORT DeprecationWarningMode deprecationWarningModeFromName(const QString &name);
+QBS_EXPORT QStringList allDeprecationWarningModeStrings();
 
-    using Properties = QList<PropertyDeclaration>;
-    void setProperties(const Properties &props) { m_properties = props; }
-    Properties properties() const { return m_properties; }
-
-    void setDeprecationInfo(const DeprecationInfo &di) { m_deprecationInfo = di; }
-    DeprecationInfo deprecationInfo() const { return m_deprecationInfo; }
-
-    ItemDeclaration &operator<<(const PropertyDeclaration &decl);
-
-    using TypeNames = Set<ItemType>;
-    void setAllowedChildTypes(const TypeNames &typeNames) { m_allowedChildTypes = typeNames; }
-    const TypeNames &allowedChildTypes() const { return m_allowedChildTypes; }
-    bool isChildTypeAllowed(ItemType type) const;
-
-    ErrorInfo checkForDeprecation(DeprecationWarningMode mode, const QString &name,
-                                  const CodeLocation &loc, Logger &logger) const;
-
-private:
-    ItemType m_type;
-    Properties m_properties;
-    TypeNames m_allowedChildTypes;
-    DeprecationInfo m_deprecationInfo;
-};
-
-} // namespace Internal
 } // namespace qbs
 
-#endif // QBS_ITEMDECLARATION_H
+#endif // QBS_DEPRECATIONWARNINGMODE_H
+

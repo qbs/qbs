@@ -143,5 +143,10 @@ void ItemReader::setEnableTiming(bool on)
     m_elapsedTime = on ? 0 : -1;
 }
 
+void ItemReader::setDeprecationWarningMode(DeprecationWarningMode mode)
+{
+    m_visitorState->setDeprecationWarningMode(mode);
+}
+
 } // namespace Internal
 } // namespace qbs

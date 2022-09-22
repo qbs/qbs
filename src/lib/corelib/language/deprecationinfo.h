@@ -39,6 +39,11 @@
 #ifndef QBS_DEPRECATIONINFO_H
 #define QBS_DEPRECATIONINFO_H
 
+#include <api/languageinfo.h>
+#include <logging/logger.h>
+#include <logging/translator.h>
+#include <tools/deprecationwarningmode.h>
+#include <tools/error.h>
 #include <tools/version.h>
 
 #include <QtCore/qstring.h>
@@ -58,7 +63,46 @@ public:
 
     bool isValid() const { return m_removalVersion.isValid(); }
     Version removalVersion() const { return m_removalVersion; }
-    QString additionalUserInfo() const { return m_additionalUserInfo; }
+
+    ErrorInfo checkForDeprecation(DeprecationWarningMode mode, const QString &name,
+                                  const CodeLocation &loc, bool isItem, Logger &logger) const
+    {
+        if (!isValid())
+            return {};
+        const Version qbsVersion = LanguageInfo::qbsVersion();
+        if (removalVersion() <= qbsVersion) {
+            const QString msgTemplate = isItem
+                    ? Tr::tr("The item '%1' can no longer be used. It was removed in Qbs %2.")
+                    : Tr::tr("The property '%1' can no longer be used. It was removed in Qbs %2.");
+            ErrorInfo error(msgTemplate.arg(name, removalVersion().toString()), loc);
+            if (!m_additionalUserInfo.isEmpty())
+                error.append(m_additionalUserInfo);
+            return error;
+        }
+        const QString msgTemplate = isItem
+                ? Tr::tr("The item '%1' is deprecated and will be removed in Qbs %2.")
+                : Tr::tr("The property '%1' is deprecated and will be removed in Qbs %2.");
+        ErrorInfo error(msgTemplate.arg(name, removalVersion().toString()), loc);
+        if (!m_additionalUserInfo.isEmpty())
+            error.append(m_additionalUserInfo);
+        switch (mode) {
+        case DeprecationWarningMode::Error:
+            return error;
+        case DeprecationWarningMode::On:
+            logger.printWarning(error);
+            break;
+        case DeprecationWarningMode::BeforeRemoval: {
+            const Version next(qbsVersion.majorVersion(), qbsVersion.minorVersion() + 1);
+            if (removalVersion() == next || removalVersion().minorVersion() == 0)
+                logger.printWarning(error);
+            break;
+        }
+        case DeprecationWarningMode::Off:
+            break;
+        }
+
+        return {};
+    }
 
 private:
     Version m_removalVersion;

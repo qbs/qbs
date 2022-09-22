@@ -46,6 +46,7 @@
 #include "qualifiedid.h"
 #include <parser/qmljsmemorypool_p.h>
 #include <tools/codelocation.h>
+#include <tools/deprecationwarningmode.h>
 #include <tools/error.h>
 #include <tools/version.h>
 
@@ -144,7 +145,7 @@ public:
     static void removeChild(Item *parent, Item *child);
     void dump() const;
     bool isPresentModule() const;
-    void setupForBuiltinType(Logger &logger);
+    void setupForBuiltinType(DeprecationWarningMode deprecationMode, Logger &logger);
     void copyProperty(const QString &propertyName, Item *target) const;
     void overrideProperties(
         const QVariantMap &config,

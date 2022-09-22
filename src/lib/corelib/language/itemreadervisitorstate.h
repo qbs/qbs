@@ -40,6 +40,7 @@
 #define QBS_ITEMREADERVISITORSTATE_H
 
 #include <logging/logger.h>
+#include <tools/deprecationwarningmode.h>
 #include <tools/set.h>
 
 #include <QtCore/qstringlist.h>
@@ -67,7 +68,11 @@ public:
     Item *mostDerivingItem() const;
     void setMostDerivingItem(Item *item);
 
+    void setDeprecationWarningMode(DeprecationWarningMode mode) { m_deprecationWarningMode = mode; }
+    DeprecationWarningMode deprecationWarningMode() const { return m_deprecationWarningMode; }
+
 private:
+    DeprecationWarningMode m_deprecationWarningMode = defaultDeprecationWarningMode();
     Logger &m_logger;
     Set<QString> m_filesRead;
     QHash<QString, QStringList> m_directoryEntries;

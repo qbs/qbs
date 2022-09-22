@@ -208,6 +208,7 @@ static QList<CommandLineOption::Type> resolveOptions()
             CommandLineOption::DryRunOptionType,
             CommandLineOption::ForceProbesOptionType,
             CommandLineOption::LogTimeOptionType,
+            CommandLineOption::DeprecationWarningsOptionType,
             CommandLineOption::DisableFallbackProviderType};
 }
 

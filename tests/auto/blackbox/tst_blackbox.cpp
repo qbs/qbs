@@ -53,6 +53,7 @@
 #include <QtCore/qsettings.h>
 #include <QtCore/qtemporarydir.h>
 #include <QtCore/qtemporaryfile.h>
+#include <QtCore/qversionnumber.h>
 
 #include <algorithm>
 #include <functional>
@@ -1055,22 +1056,68 @@ void TestBlackbox::dependencyScanningLoop()
 
 void TestBlackbox::deprecatedProperty()
 {
+    QFETCH(QString, version);
+    QFETCH(QString, mode);
+    QFETCH(bool, expiringWarning);
+    QFETCH(bool, expiringError);
+
     QDir::setCurrent(testDataDir + "/deprecated-property");
     QbsRunParameters params(QStringList("-q"));
     params.expectFailure = true;
+    params.environment.insert("REMOVAL_VERSION", version);
+    if (!mode.isEmpty())
+        params.arguments << "--deprecation-warnings" << mode;
     QVERIFY(runQbs(params) != 0);
     m_qbsStderr = QDir::fromNativeSeparators(QString::fromLocal8Bit(m_qbsStderr)).toLocal8Bit();
-    QVERIFY2(m_qbsStderr.contains("deprecated-property.qbs:6:24 The property 'oldProp' is "
-            "deprecated and will be removed in Qbs 99.9.0."), m_qbsStderr.constData());
-    QVERIFY2(m_qbsStderr.contains("deprecated-property.qbs:7:28 The property 'veryOldProp' can no "
-            "longer be used. It was removed in Qbs 1.3.0."), m_qbsStderr.constData());
+    const bool hasExpiringWarning = m_qbsStderr.contains(QByteArray(
+            "deprecated-property.qbs:6:29 The property 'expiringProp' is "
+            "deprecated and will be removed in Qbs ") + version.toLocal8Bit());
+    QVERIFY2(expiringWarning == hasExpiringWarning, m_qbsStderr.constData());
+    const bool hasRemovedOutput = m_qbsStderr.contains(
+                "deprecated-property.qbs:7:28 The property 'veryOldProp' can no "
+                "longer be used. It was removed in Qbs 1.3.0.");
+    QVERIFY2(hasRemovedOutput == !expiringError, m_qbsStderr.constData());
     QVERIFY2(m_qbsStderr.contains("Property 'forgottenProp' was scheduled for removal in version "
                                   "1.8.0, but is still present."), m_qbsStderr.constData());
     QVERIFY2(m_qbsStderr.contains("themodule/m.qbs:22:5 Removal version for 'forgottenProp' "
                                   "specified here."), m_qbsStderr.constData());
-    QVERIFY2(m_qbsStderr.count("Use newProp instead.") == 2, m_qbsStderr.constData());
-    QVERIFY2(m_qbsStderr.count("is deprecated") == 1, m_qbsStderr.constData());
-    QVERIFY2(m_qbsStderr.count("was removed") == 1, m_qbsStderr.constData());
+    QVERIFY2(m_qbsStderr.count("Use newProp instead.") == 1
+             + int(expiringWarning && !expiringError), m_qbsStderr.constData());
+    QVERIFY2(m_qbsStderr.count("is deprecated") == int(expiringWarning), m_qbsStderr.constData());
+    QVERIFY2(m_qbsStderr.count("was removed") == int(!expiringError), m_qbsStderr.constData());
+}
+
+void TestBlackbox::deprecatedProperty_data()
+{
+    QTest::addColumn<QString>("version");
+    QTest::addColumn<QString>("mode");
+    QTest::addColumn<bool>("expiringWarning");
+    QTest::addColumn<bool>("expiringError");
+
+    const auto current = QVersionNumber::fromString(QBS_VERSION);
+    const QString next = QVersionNumber(current.majorVersion(), current.minorVersion() + 1)
+            .toString();
+    const QString nextNext = QVersionNumber(current.majorVersion(), current.minorVersion() + 2)
+            .toString();
+    const QString nextMajor = QVersionNumber(current.majorVersion() + 1).toString();
+
+    QTest::newRow("default/next") << next << QString() << true << false;
+    QTest::newRow("default/nextnext") << nextNext << QString() << false << false;
+    QTest::newRow("default/nextmajor") << nextMajor << QString() << true << false;
+    QTest::newRow("error/next") << next << QString("error") << true << true;
+    QTest::newRow("error/nextnext") << nextNext << QString("error") << true << true;
+    QTest::newRow("error/nextmajor") << nextMajor << QString("error") << true << true;
+    QTest::newRow("on/next") << next << QString("on") << true << false;
+    QTest::newRow("on/nextnext") << nextNext << QString("on") << true << false;
+    QTest::newRow("on/nextmajor") << nextMajor << QString("on") << true << false;
+    QTest::newRow("before-removal/next") << next << QString("before-removal") << true << false;
+    QTest::newRow("before-removal/nextnext") << nextNext << QString("before-removal")
+                                             << false << false;
+    QTest::newRow("before-removal/nextmajor") << nextMajor << QString("before-removal")
+                                             << true << false;
+    QTest::newRow("off/next") << next << QString("off") << false << false;
+    QTest::newRow("off/nextnext") << nextNext << QString("off") << false << false;
+    QTest::newRow("off/nextmajor") << nextMajor << QString("off") << false << false;
 }
 
 void TestBlackbox::disappearedProfile()

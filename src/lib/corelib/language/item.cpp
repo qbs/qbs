@@ -246,7 +246,7 @@ bool Item::isPresentModule() const
     return v && v->type() == Value::JSSourceValueType;
 }
 
-void Item::setupForBuiltinType(Logger &logger)
+void Item::setupForBuiltinType(DeprecationWarningMode deprecationMode, Logger &logger)
 {
     const BuiltinDeclarations &builtins = BuiltinDeclarations::instance();
     const auto properties = builtins.declarationsForType(type()).properties();
@@ -263,23 +263,9 @@ void Item::setupForBuiltinType(Logger &logger)
                                        ? StringConstants::undefinedValue()
                                        : pd.initialValueSource());
             m_properties.insert(pd.name(), sourceValue);
-        } else if (pd.isDeprecated()) {
-            const DeprecationInfo &di = pd.deprecationInfo();
-            if (di.removalVersion() <= LanguageInfo::qbsVersion()) {
-                QString message = Tr::tr("The property '%1' is no longer valid for %2 items. "
-                        "It was removed in qbs %3.")
-                        .arg(pd.name(), typeName(), di.removalVersion().toString());
-                ErrorInfo error(message, value->location());
-                if (!di.additionalUserInfo().isEmpty())
-                    error.append(di.additionalUserInfo());
-                throw error;
-            }
-            QString warning = Tr::tr("The property '%1' is deprecated and will be removed in "
-                                     "qbs %2.").arg(pd.name(), di.removalVersion().toString());
-            ErrorInfo error(warning, value->location());
-            if (!di.additionalUserInfo().isEmpty())
-                error.append(di.additionalUserInfo());
-            logger.printWarning(error);
+        } else if (ErrorInfo error = pd.checkForDeprecation(deprecationMode, value->location(),
+                                                            logger); error.hasError()) {
+            throw error;
         }
     }
 }

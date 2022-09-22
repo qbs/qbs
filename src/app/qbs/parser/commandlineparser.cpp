@@ -278,6 +278,11 @@ QString CommandLineParser::settingsDir() const
     return d->settingsDir();
 }
 
+DeprecationWarningMode CommandLineParser::deprecationWarningMode() const
+{
+    return d->optionPool.deprecationWarningsOption()->mode();
+}
+
 QString CommandLineParser::commandName() const
 {
     return d->command->representation();

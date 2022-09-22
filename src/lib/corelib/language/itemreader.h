@@ -40,8 +40,8 @@
 #ifndef QBS_ITEMREADER_H
 #define QBS_ITEMREADER_H
 
-#include "forward_decls.h"
 #include <logging/logger.h>
+#include <tools/deprecationwarningmode.h>
 #include <tools/set.h>
 
 #include <QtCore/qstringlist.h>
@@ -86,6 +86,8 @@ public:
 
     void setEnableTiming(bool on);
     qint64 elapsedTime() const { return m_elapsedTime; }
+
+    void setDeprecationWarningMode(DeprecationWarningMode mode);
 
 private:
     ItemPool *m_pool = nullptr;

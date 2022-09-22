@@ -95,6 +95,7 @@ private slots:
     void dependenciesProperty();
     void dependencyScanningLoop();
     void deprecatedProperty();
+    void deprecatedProperty_data();
     void disappearedProfile();
     void discardUnusedData();
     void discardUnusedData_data();

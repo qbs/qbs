@@ -40,6 +40,8 @@
 #ifndef QBS_PROPERTYDECLARATION_H
 #define QBS_PROPERTYDECLARATION_H
 
+#include <tools/deprecationwarningmode.h>
+
 #include <QtCore/qshareddata.h>
 #include <QtCore/qstring.h>
 
@@ -48,9 +50,12 @@ class QVariant;
 QT_END_NAMESPACE
 
 namespace qbs {
+class CodeLocation;
+class ErrorInfo;
 namespace Internal {
 class DeprecationInfo;
 class PropertyDeclarationData;
+class Logger;
 
 class PropertyDeclaration
 {
@@ -116,6 +121,8 @@ public:
     bool isExpired() const;
     const DeprecationInfo &deprecationInfo() const;
     void setDeprecationInfo(const DeprecationInfo &deprecationInfo);
+    ErrorInfo checkForDeprecation(DeprecationWarningMode mode, const CodeLocation &loc,
+                                  Logger &logger) const;
 
     static QVariant convertToPropertyType(
             const QVariant &v, Type t, const QStringList &namePrefix, const QString &key);

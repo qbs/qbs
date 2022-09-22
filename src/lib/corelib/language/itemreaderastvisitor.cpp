@@ -173,7 +173,7 @@ bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
         // Only the item at the top of the inheritance chain is a built-in item.
         // We cannot do this in "part 1", because then the visitor would complain about duplicate
         // bindings.
-        item->setupForBuiltinType(m_logger);
+        item->setupForBuiltinType(m_visitorState.deprecationWarningMode(), m_logger);
     }
 
     return false;
@@ -369,24 +369,10 @@ void ItemReaderASTVisitor::checkDeprecationStatus(ItemType itemType, const QStri
                                                   const CodeLocation &itemLocation)
 {
     const ItemDeclaration itemDecl = BuiltinDeclarations::instance().declarationsForType(itemType);
-    const DeprecationInfo &di = itemDecl.deprecationInfo();
-    if (!di.isValid())
-        return;
-    if (di.removalVersion() <= LanguageInfo::qbsVersion()) {
-        QString message = Tr::tr("The item '%1' cannot be used anymore. "
-                "It was removed in qbs %2.")
-                .arg(itemName, di.removalVersion().toString());
-        ErrorInfo error(message, itemLocation);
-        if (!di.additionalUserInfo().isEmpty())
-            error.append(di.additionalUserInfo());
+    const ErrorInfo error = itemDecl.checkForDeprecation(m_visitorState.deprecationWarningMode(),
+                                                         itemName, itemLocation, m_logger);
+    if (error.hasError())
         throw error;
-    }
-    QString warning = Tr::tr("The item '%1' is deprecated and will be removed in "
-                             "qbs %2.").arg(itemName, di.removalVersion().toString());
-    ErrorInfo error(warning, itemLocation);
-    if (!di.additionalUserInfo().isEmpty())
-        error.append(di.additionalUserInfo());
-    m_logger.printWarning(error);
 }
 
 void ItemReaderASTVisitor::doCheckItemTypes(const Item *item)

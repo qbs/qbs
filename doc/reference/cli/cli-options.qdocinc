@@ -331,6 +331,27 @@
 
 //! [config-ui-system]
 
+//! [deprecation-warnings]
+
+    \section2 \c {--deprecation-warnings <mode>}
+
+    Uses the specified deprecation warning mode, which controls what to do when deprecated
+    items or properties are encountered in the project. By default, a warning is emitted
+    if the item or property is scheduled for removal in the next minor version of \QBS.
+    Warnings can also be switched on or off unconditionally, and it can be specified that
+    project resolving should abort if deprecated constructs are present.
+
+    Possible values of \c <mode> are:
+
+    \list
+        \li \c error
+        \li \c on
+        \li \c before-removal (default value)
+        \li \c off
+   \endlist
+
+//! [deprecation-warnings]
+
 //! [log-level]
 
     \section2 \c {--log-level <level>}

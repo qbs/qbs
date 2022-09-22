@@ -13,6 +13,7 @@ HEADERS += \
     $$PWD/clangclinfo.h \
     $$PWD/codelocation.h \
     $$PWD/commandechomode.h \
+    $$PWD/deprecationwarningmode.h \
     $$PWD/dynamictypecheck.h \
     $$PWD/error.h \
     $$PWD/executablefinder.h \
@@ -73,6 +74,7 @@ SOURCES += \
     $$PWD/clangclinfo.cpp \
     $$PWD/codelocation.cpp \
     $$PWD/commandechomode.cpp \
+    $$PWD/deprecationwarningmode.cpp \
     $$PWD/error.cpp \
     $$PWD/executablefinder.cpp \
     $$PWD/fileinfo.cpp \
@@ -127,6 +129,7 @@ osx {
         $$PWD/cleanoptions.h \
         $$PWD/codelocation.h \
         $$PWD/commandechomode.h \
+        $$PWD/deprecationwarningmode.h \
         $$PWD/error.h \
         $$PWD/generateoptions.h \
         $$PWD/installoptions.h \

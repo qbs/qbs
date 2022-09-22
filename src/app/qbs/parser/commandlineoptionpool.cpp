@@ -134,6 +134,9 @@ CommandLineOption *CommandLineOptionPool::getOption(CommandLineOption::Type type
         case CommandLineOption::RunEnvConfigOptionType:
             option = new RunEnvConfigOption;
             break;
+        case CommandLineOption::DeprecationWarningsOptionType:
+            option = new DeprecationWarningsOption;
+            break;
         default:
             qFatal("Unknown option type %d", type);
         }
@@ -285,6 +288,12 @@ DisableFallbackProviderOption *CommandLineOptionPool::disableFallbackProviderOpt
 RunEnvConfigOption *CommandLineOptionPool::runEnvConfigOption() const
 {
     return static_cast<RunEnvConfigOption *>(getOption(CommandLineOption::RunEnvConfigOptionType));
+}
+
+DeprecationWarningsOption *CommandLineOptionPool::deprecationWarningsOption() const
+{
+    return static_cast<DeprecationWarningsOption *>
+            (getOption(CommandLineOption::DeprecationWarningsOptionType));
 }
 
 } // namespace qbs

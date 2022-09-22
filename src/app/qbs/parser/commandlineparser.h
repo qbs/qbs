@@ -41,6 +41,8 @@
 
 #include "commandtype.h"
 
+#include <tools/deprecationwarningmode.h>
+
 #include <QtCore/qstringlist.h>
 #include <QtCore/qvariant.h>
 
@@ -89,6 +91,7 @@ public:
     bool showProgress() const;
     bool showVersion() const;
     QString settingsDir() const;
+    DeprecationWarningMode deprecationWarningMode() const;
 
 private:
     class CommandLineParserPrivate;

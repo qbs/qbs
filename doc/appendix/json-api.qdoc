@@ -117,6 +117,7 @@
     \row    \li build-root                   \li \l FilePath         \li yes
     \row    \li configuration-name           \li string              \li no
     \row    \li data-mode                    \li \l DataMode         \li no
+    \row    \li deprecation-warning-mode     \li string              \li no
     \row    \li dry-run                      \li bool                \li no
     \row    \li environment                  \li \l Environment      \li no
     \row    \li error-handling-mode          \li string              \li no

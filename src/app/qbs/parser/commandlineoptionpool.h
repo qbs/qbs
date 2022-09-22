@@ -79,6 +79,7 @@ public:
     WaitLockOption *waitLockOption() const;
     DisableFallbackProviderOption *disableFallbackProviderOption() const;
     RunEnvConfigOption *runEnvConfigOption() const;
+    DeprecationWarningsOption *deprecationWarningsOption() const;
 
 private:
     mutable QHash<CommandLineOption::Type, CommandLineOption *> m_options;

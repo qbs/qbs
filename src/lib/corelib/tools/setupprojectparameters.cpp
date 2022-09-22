@@ -98,6 +98,7 @@ public:
     SetupProjectParameters::RestoreBehavior restoreBehavior;
     ErrorHandlingMode propertyCheckingMode;
     ErrorHandlingMode productErrorMode;
+    DeprecationWarningMode deprecationWarningMode = defaultDeprecationWarningMode();
     QProcessEnvironment environment;
 };
 
@@ -123,6 +124,11 @@ template<> ErrorHandlingMode fromJson(const QJsonValue &v)
     if (v.toString() == QLatin1String("relaxed"))
         return ErrorHandlingMode::Relaxed;
     return ErrorHandlingMode::Strict;
+}
+
+template<> DeprecationWarningMode fromJson(const QJsonValue &v)
+{
+    return deprecationWarningModeFromName(v.toString());
 }
 
 template<> SetupProjectParameters::RestoreBehavior fromJson(const QJsonValue &v)
@@ -154,6 +160,7 @@ SetupProjectParameters SetupProjectParameters::fromJson(const QJsonObject &data)
     setValueFromJson(params.d->environment, data, "environment");
     setValueFromJson(params.d->restoreBehavior, data, "restore-behavior");
     setValueFromJson(params.d->propertyCheckingMode, data, "error-handling-mode");
+    setValueFromJson(params.d->deprecationWarningMode, data, "deprecation-warning-mode");
     params.d->productErrorMode = params.d->propertyCheckingMode;
     return params;
 }
@@ -686,6 +693,22 @@ ErrorHandlingMode SetupProjectParameters::productErrorMode() const
 void SetupProjectParameters::setProductErrorMode(ErrorHandlingMode mode)
 {
     d->productErrorMode = mode;
+}
+
+/*!
+ * \brief Indicates how deprecated constructs are handled.
+ */
+DeprecationWarningMode SetupProjectParameters::deprecationWarningMode() const
+{
+    return d->deprecationWarningMode;
+}
+
+/*!
+ * \brief Specifies the behavior on encountering deprecated constructs.
+ */
+void SetupProjectParameters::setDeprecationWarningMode(DeprecationWarningMode mode)
+{
+    d->deprecationWarningMode = mode;
 }
 
 } // namespace qbs

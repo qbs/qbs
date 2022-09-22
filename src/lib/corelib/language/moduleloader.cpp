@@ -290,6 +290,7 @@ ModuleLoaderResult ModuleLoader::load(const SetupProjectParameters &parameters)
     m_modulePrototypeEnabledInfo.clear();
     m_parameterDeclarations.clear();
     m_disabledItems.clear();
+    m_reader->setDeprecationWarningMode(parameters.deprecationWarningMode());
     m_reader->clearExtraSearchPathsStack();
     m_reader->setEnableTiming(parameters.logElapsedTime());
     m_moduleProviderLoader->setProjectParameters(m_parameters);
@@ -500,28 +501,10 @@ private:
                 continue;
             const PropertyDeclaration decl = item->propertyDeclaration(it.key());
             if (decl.isValid()) {
-                if (!decl.isDeprecated())
-                    continue;
-                const DeprecationInfo &di = decl.deprecationInfo();
-                QString message;
-                bool warningOnly;
-                if (decl.isExpired()) {
-                    message = Tr::tr("The property '%1' can no longer be used. "
-                                     "It was removed in Qbs %2.")
-                            .arg(decl.name(), di.removalVersion().toString());
-                    warningOnly = false;
-                } else {
-                    message = Tr::tr("The property '%1' is deprecated and will be removed "
-                                     "in Qbs %2.").arg(decl.name(), di.removalVersion().toString());
-                    warningOnly = true;
-                }
-                ErrorInfo error(message, it.value()->location());
-                if (!di.additionalUserInfo().isEmpty())
-                    error.append(di.additionalUserInfo());
-                if (warningOnly)
-                    m_logger.printWarning(error);
-                else
-                    handlePropertyError(error, m_params, m_logger);
+                const ErrorInfo deprecationError = decl.checkForDeprecation(
+                            m_params.deprecationWarningMode(), it.value()->location(), m_logger);
+                if (deprecationError.hasError())
+                    handlePropertyError(deprecationError, m_params, m_logger);
                 continue;
             }
             m_currentName = it.key();
@@ -979,7 +962,7 @@ QList<Item *> ModuleLoader::multiplexProductItem(ProductContext *dummyContext, I
             dependsItem->setProperty(StringConstants::profilesProperty(),
                                      VariantValue::create(QStringList()));
             dependsItem->setFile(aggregator->file());
-            dependsItem->setupForBuiltinType(m_logger);
+            dependsItem->setupForBuiltinType(m_parameters.deprecationWarningMode(), m_logger);
             Item::addChild(aggregator, dependsItem);
         }
     }
@@ -1289,13 +1272,13 @@ void ModuleLoader::prepareProduct(ProjectContext *projectContext, Item *productI
     importer->setFile(productItem->file());
     importer->setLocation(productItem->location());
     importer->setScope(projectContext->scope);
-    importer->setupForBuiltinType(m_logger);
+    importer->setupForBuiltinType(m_parameters.deprecationWarningMode(), m_logger);
     Item * const dependsItem = Item::create(productItem->pool(), ItemType::Depends);
     dependsItem->setProperty(QStringLiteral("name"), VariantValue::create(productContext.name));
     dependsItem->setProperty(QStringLiteral("required"), VariantValue::create(false));
     dependsItem->setFile(importer->file());
     dependsItem->setLocation(importer->location());
-    dependsItem->setupForBuiltinType(m_logger);
+    dependsItem->setupForBuiltinType(m_parameters.deprecationWarningMode(), m_logger);
     Item::addChild(importer, dependsItem);
     Item::addChild(productItem, importer);
     prepareProduct(projectContext, importer);
@@ -1973,7 +1956,7 @@ bool ModuleLoader::mergeExportItems(const ProductContext &productContext)
     merged->setLocation(exportItems.empty()
             ? productContext.item->location() : exportItems.back()->location());
     Item::addChild(productContext.item, merged);
-    merged->setupForBuiltinType(m_logger);
+    merged->setupForBuiltinType(m_parameters.deprecationWarningMode(), m_logger);
     pmi.exportItem = merged;
     pmi.multiplexId = productContext.multiplexConfigurationId;
     productContext.project->topLevelProject->productModules.insert(productContext.name, pmi);
@@ -3501,7 +3484,7 @@ Item *ModuleLoader::wrapInProjectIfNecessary(Item *item)
     Item::addChild(prj, item);
     prj->setFile(item->file());
     prj->setLocation(item->location());
-    prj->setupForBuiltinType(m_logger);
+    prj->setupForBuiltinType(m_parameters.deprecationWarningMode(), m_logger);
     return prj;
 }
 

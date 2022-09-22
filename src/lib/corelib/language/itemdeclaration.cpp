@@ -60,5 +60,11 @@ bool ItemDeclaration::isChildTypeAllowed(ItemType type) const
     return m_allowedChildTypes.contains(type);
 }
 
+ErrorInfo ItemDeclaration::checkForDeprecation(DeprecationWarningMode mode, const QString &name,
+                                               const CodeLocation &loc, Logger &logger) const
+{
+    return deprecationInfo().checkForDeprecation(mode, name, loc, true, logger);
+}
+
 } // namespace Internal
 } // namespace qbs

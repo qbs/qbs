@@ -275,6 +275,12 @@ void PropertyDeclaration::setDeprecationInfo(const DeprecationInfo &deprecationI
     d->deprecationInfo = deprecationInfo;
 }
 
+ErrorInfo PropertyDeclaration::checkForDeprecation(DeprecationWarningMode mode,
+                                                   const CodeLocation &loc, Logger &logger) const
+{
+    return deprecationInfo().checkForDeprecation(mode, name(), loc, false, logger);
+}
+
 // see also: EvaluatorScriptClass::convertToPropertyType()
 QVariant PropertyDeclaration::convertToPropertyType(const QVariant &v, Type t,
     const QStringList &namePrefix, const QString &key)

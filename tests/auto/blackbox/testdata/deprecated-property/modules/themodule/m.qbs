@@ -1,8 +1,8 @@
-import qbs // FIXME: Don't remove this import because then the test fails!
+import qbs.Environment
 
 Module {
     property bool newProp
-    property bool oldProp
+    property bool expiringProp
     property bool forgottenProp
 
     PropertyOptions {
@@ -10,9 +10,9 @@ Module {
         description: "Use this, it's good!"
     }
     PropertyOptions {
-        name: "oldProp"
+        name: "expiringProp"
         description: "Use newProp instead."
-        removalVersion: "99.9"
+        removalVersion: Environment.getEnv("REMOVAL_VERSION")
     }
     PropertyOptions {
         name: "veryOldProp"

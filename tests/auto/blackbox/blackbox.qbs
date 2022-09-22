@@ -25,4 +25,5 @@ QbsAutotest {
     ]
     cpp.defines: base.concat(["SRCDIR=" + Utilities.cStringQuote(path)])
         .concat(qbsbuildconfig.enableUnitTests ? ["QBS_ENABLE_UNIT_TESTS"] : [])
+        .concat("QBS_VERSION=" + Utilities.cStringQuote(qbsversion.version))
 }

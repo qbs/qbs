@@ -42,6 +42,7 @@
 #include "commandtype.h"
 
 #include <tools/commandechomode.h>
+#include <tools/deprecationwarningmode.h>
 #include <tools/joblimits.h>
 
 #include <QtCore/qstringlist.h>
@@ -76,6 +77,7 @@ public:
         WaitLockOptionType,
         RunEnvConfigOptionType,
         DisableFallbackProviderType,
+        DeprecationWarningsOptionType,
     };
 
     virtual ~CommandLineOption();
@@ -365,6 +367,20 @@ private:
     void doParse(const QString &representation, QStringList &input) override;
 
     CommandEchoMode m_echoMode = CommandEchoModeInvalid;
+};
+
+class DeprecationWarningsOption : public CommandLineOption
+{
+public:
+    QString description(CommandType command) const override;
+    QString shortRepresentation() const override { return {}; }
+    QString longRepresentation() const override;
+    DeprecationWarningMode mode() const { return m_mode; }
+
+private:
+    void doParse(const QString &representation, QStringList &input) override;
+
+    DeprecationWarningMode m_mode = defaultDeprecationWarningMode();
 };
 
 class SettingsDirOption : public CommandLineOption

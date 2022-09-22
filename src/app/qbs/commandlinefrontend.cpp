@@ -157,6 +157,7 @@ void CommandLineFrontend::start()
         params.setSettingsDirectory(m_settings->baseDirectory());
         params.setOverrideBuildGraphData(m_parser.command() == ResolveCommandType);
         params.setPropertyCheckingMode(ErrorHandlingMode::Strict);
+        params.setDeprecationWarningMode(m_parser.deprecationWarningMode());
         if (!m_parser.buildBeforeInstalling() || !m_parser.commandCanResolve())
             params.setRestoreBehavior(SetupProjectParameters::RestoreOnly);
         const auto buildConfigs = m_parser.buildConfigurations();

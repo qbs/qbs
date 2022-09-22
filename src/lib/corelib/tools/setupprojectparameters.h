@@ -41,6 +41,7 @@
 
 #include "qbs_export.h"
 
+#include <tools/deprecationwarningmode.h>
 #include <tools/error.h>
 
 #include <QtCore/qshareddata.h>
@@ -143,6 +144,9 @@ public:
 
     ErrorHandlingMode productErrorMode() const;
     void setProductErrorMode(ErrorHandlingMode mode);
+
+    DeprecationWarningMode deprecationWarningMode() const;
+    void setDeprecationWarningMode(DeprecationWarningMode mode);
 
 private:
     QSharedDataPointer<Internal::SetupProjectParametersPrivate> d;
