@@ -222,7 +222,7 @@ static QString parseFlagValue(const QString &flagKey,
             return parts.at(1).trimmed();
     } else if (flagKey < *flagIt) {
         // In this case an option is in form of 'flagKey<flagValue>'.
-        return flagIt->mid(flagKey.count()).trimmed();
+        return flagIt->mid(flagKey.size()).trimmed();
     } else {
         // In this case an option is in form of 'flagKey <flagValue>'.
         ++flagIt;

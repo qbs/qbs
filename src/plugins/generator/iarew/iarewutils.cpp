@@ -105,9 +105,9 @@ QString flagValue(const QStringList &flags, const QString &flagKey)
     // Check that option is in form of 'flagKey=<flagValue>'.
     if (flagIt->contains(QLatin1Char('='))) {
         value = flagIt->split(QLatin1Char('=')).at(1).trimmed();
-    } else if (flagKey.count() < flagIt->count()) {
+    } else if (flagKey.size() < flagIt->size()) {
         // In this case an option is in form of 'flagKey<flagValue>'.
-        value = flagIt->mid(flagKey.count()).trimmed();
+        value = flagIt->mid(flagKey.size()).trimmed();
     } else {
         // In this case an option is in form of 'flagKey <flagValue>'.
         ++flagIt;
