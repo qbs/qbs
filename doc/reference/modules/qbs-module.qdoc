@@ -354,6 +354,9 @@
         \li \c{"hcs12"}
         \li 16-bit HC12 and S12 microcontroller family from Freescale Semiconductor
     \row
+        \li \c{"hppa"}
+        \li 64-bit PA-RISC processor architecture developed by Hewlett-Packard
+    \row
         \li \c{"ia64"}
         \li 64-bit ISA architecture of the Itanium family processors
             developed by Intel

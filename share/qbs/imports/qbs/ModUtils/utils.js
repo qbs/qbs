@@ -597,6 +597,8 @@ function guessArchitecture(m) {
             architecture = "hcs12";
         } else if (hasAnyOf(m, ["__e2k__"])) {
             architecture = "e2k";
+        } else if (hasAnyOf(m, ["__hppa__"])) {
+            architecture = "hppa";
         }
     }
 
