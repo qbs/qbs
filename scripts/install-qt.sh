@@ -261,7 +261,7 @@ function compute_url(){
         echo "${BASE_URL}/${REMOTE_PATH}"
         return 0
     elif [[ "${COMPONENT}" =~ "mingw" ]]; then
-        REMOTE_BASE="tools_mingw/qt.tools.${TOOLCHAIN}${VERSION//./}"
+        REMOTE_BASE="tools_mingw90/qt.tools.${TOOLCHAIN}${VERSION//./}"
 
         REMOTE_PATH="$(${CURL} ${BASE_URL}/${REMOTE_BASE}/ | grep -o -E "[[:alnum:]_.\-]*7z" | grep -v "meta" | head -1)"
         if [ ! -z "${REMOTE_PATH}" ]; then

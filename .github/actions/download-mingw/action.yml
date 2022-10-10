@@ -4,7 +4,7 @@ inputs:
   version:
     description: 'MinGW version'
     required: false
-    default: '8.1.0'
+    default: '9.0.0'
   toolchain:
     description: 'Toolchain'
     required: false

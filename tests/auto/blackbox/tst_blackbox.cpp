@@ -3101,17 +3101,26 @@ void TestBlackbox::pathProbe()
 void TestBlackbox::pchChangeTracking()
 {
     QDir::setCurrent(testDataDir + "/pch-change-tracking");
-    QCOMPARE(runQbs(), 0);
+    bool success = runQbs() == 0;
+    if (!success && m_qbsStderr.contains("mingw32_gt_pch_use_address"))
+        QSKIP("https://gcc.gnu.org/bugzilla/show_bug.cgi?id=91440");
+    QVERIFY(success);
     QVERIFY(m_qbsStdout.contains("precompiling pch.h (cpp)"));
     WAIT_FOR_NEW_TIMESTAMP();
     touch("header1.h");
-    QCOMPARE(runQbs(), 0);
+    success = runQbs() == 0;
+    if (!success && m_qbsStderr.contains("mingw32_gt_pch_use_address"))
+        QSKIP("https://gcc.gnu.org/bugzilla/show_bug.cgi?id=91440");
+    QVERIFY(success);
     QVERIFY(m_qbsStdout.contains("precompiling pch.h (cpp)"));
     QVERIFY(m_qbsStdout.contains("compiling header2.cpp"));
     QVERIFY(m_qbsStdout.contains("compiling main.cpp"));
     WAIT_FOR_NEW_TIMESTAMP();
     touch("header2.h");
-    QCOMPARE(runQbs(), 0);
+    success = runQbs() == 0;
+    if (!success && m_qbsStderr.contains("mingw32_gt_pch_use_address"))
+        QSKIP("https://gcc.gnu.org/bugzilla/show_bug.cgi?id=91440");
+    QVERIFY(success);
     QVERIFY2(!m_qbsStdout.contains("precompiling pch.h (cpp)"), m_qbsStdout.constData());
 }
 
@@ -3241,13 +3250,19 @@ void TestBlackbox::pluginDependency()
 void TestBlackbox::precompiledAndPrefixHeaders()
 {
     QDir::setCurrent(testDataDir + "/precompiled-and-prefix-headers");
-    QCOMPARE(runQbs(), 0);
+    const bool success = runQbs() == 0;
+    if (!success && m_qbsStderr.contains("mingw32_gt_pch_use_address"))
+        QSKIP("https://gcc.gnu.org/bugzilla/show_bug.cgi?id=91440");
+    QVERIFY(success);
 }
 
 void TestBlackbox::precompiledHeaderAndRedefine()
 {
     QDir::setCurrent(testDataDir + "/precompiled-headers-and-redefine");
-    QCOMPARE(runQbs(), 0);
+    const bool success = runQbs() == 0;
+    if (!success && m_qbsStderr.contains("mingw32_gt_pch_use_address"))
+        QSKIP("https://gcc.gnu.org/bugzilla/show_bug.cgi?id=91440");
+    QVERIFY(success);
 }
 
 void TestBlackbox::preventFloatingPointValues()
