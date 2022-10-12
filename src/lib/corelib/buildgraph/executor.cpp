@@ -396,8 +396,10 @@ bool Executor::schedulingBlockedByJobLimit(const BuildGraphNode *node)
         if (currentJobCount == 0)
             continue;
         const auto jobLimitIsExceeded = [currentJobCount, jobPool, this](const Transformer *t) {
-            const int maxJobCount = m_jobLimitsPerProduct.at(t->product().get())
-                    .getLimit(jobPool);
+            const auto it = m_jobLimitsPerProduct.find(t->product().get());
+            if (it == m_jobLimitsPerProduct.cend())
+                return false; // See checkNodeProduct() for why this is possible
+            const int maxJobCount = it->second.getLimit(jobPool);
             return maxJobCount > 0 && currentJobCount >= maxJobCount;
         };
 
