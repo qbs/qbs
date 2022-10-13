@@ -611,10 +611,10 @@ void TestBlackboxQt::staticQtPluginLinking()
     QDir::setCurrent(testDataDir + "/static-qt-plugin-linking");
     QCOMPARE(runQbs(QStringList("products.p.type:application")), 0);
     const bool isStaticQt = m_qbsStdout.contains("Qt is static");
-    QVERIFY2(m_qbsStdout.contains("Creating static import") == isStaticQt, m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("creating static import") == isStaticQt, m_qbsStdout.constData());
     QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList("products.p.type:staticlibrary"))), 0);
     QCOMPARE(runQbs(), 0);
-    QVERIFY2(!m_qbsStdout.contains("Creating static import"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("creating static import"), m_qbsStdout.constData());
 }
 
 void TestBlackboxQt::trackAddMocInclude()
