@@ -50,4 +50,4 @@ export PATH="$1:$PATH"
 
 export QBS_AUTOTEST_PROFILE=${QBS_AUTOTEST_PROFILE:-qt}
 echo "Running Qbs tests."
-find $1 -name "tst*" | xargs -I{} -n1 {}
+find $1 -name "tst*" | xargs -I{} -n1 bash -c "{}"
