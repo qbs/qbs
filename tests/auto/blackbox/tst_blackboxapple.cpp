@@ -359,15 +359,13 @@ void TestBlackboxApple::assetCatalog()
 {
     QFETCH(bool, flatten);
 
-    const auto xcodeVersion = findXcodeVersion();
     QDir::setCurrent(testDataDir + QLatin1String("/ib/assetcatalog"));
 
     rmDirR(relativeBuildDir());
 
     QbsRunParameters params;
-    const auto v = HostOsInfo::hostOsVersion();
     const QString flattens = "modules.ib.flatten:" + QString(flatten ? "true" : "false");
-    const QString macosTarget = "modules.cpp.minimumMacosVersion:'" + v.toString() + "'";
+    const QString macosTarget = "modules.cpp.minimumMacosVersion:'10.15'";
 
     // Make sure a dry run does not write anything
     params.arguments = QStringList() << "-f" << "assetcatalogempty.qbs" << "--dry-run"
@@ -383,39 +381,12 @@ void TestBlackboxApple::assetCatalog()
     QCOMPARE(runQbs(params), 0);
 
     // empty asset catalogs must still produce output
-    if (xcodeVersion >= qbs::Version(5))
-        QVERIFY((bool)m_qbsStdout.contains("compiling empty.xcassets"));
-
-    // should additionally produce raw assets since deployment target will be < 10.9
-    // older versions of ibtool generated either raw assets OR .car files;
-    // newer versions always generate the .car file regardless of the deployment target
-    if (v < qbs::Version(10, 9)) {
-        QVERIFY(regularFileExists(relativeProductBuildDir("assetcatalogempty")
-                                   + "/assetcatalogempty.app/Contents/Resources/other.png"));
-        QVERIFY(regularFileExists(relativeProductBuildDir("assetcatalogempty")
-                                   + "/assetcatalogempty.app/Contents/Resources/other@2x.png"));
-    }
-
-    rmDirR(relativeBuildDir());
-    params.arguments.push_back("modules.cpp.minimumMacosVersion:'10.10'"); // force CAR generation
-    QCOMPARE(runQbs(params), 0);
+    QVERIFY((bool)m_qbsStdout.contains("compiling empty.xcassets"));
 
     // empty asset catalogs must still produce output
-    if (xcodeVersion >= qbs::Version(5)) {
-        QVERIFY((bool)m_qbsStdout.contains("compiling empty.xcassets"));
-        // No matter what, we need a 10.9 host to build CAR files
-        if (HostOsInfo::hostOsVersion() >= qbs::Version(10, 9)) {
-            QVERIFY(regularFileExists(relativeProductBuildDir("assetcatalogempty")
-                                      + "/assetcatalogempty.app/Contents/Resources/Assets.car"));
-        } else {
-            QVERIFY(regularFileExists(relativeProductBuildDir("assetcatalogempty")
-                                      + "/assetcatalogempty.app/Contents/Resources/empty.icns"));
-            QVERIFY(regularFileExists(relativeProductBuildDir("assetcatalogempty")
-                                      + "/assetcatalogempty.app/Contents/Resources/other.png"));
-            QVERIFY(regularFileExists(relativeProductBuildDir("assetcatalogempty")
-                                      + "/assetcatalogempty.app/Contents/Resources/other@2x.png"));
-        }
-    }
+    QVERIFY((bool)m_qbsStdout.contains("compiling empty.xcassets"));
+    QVERIFY(regularFileExists(relativeProductBuildDir("assetcatalogempty")
+                              + "/assetcatalogempty.app/Contents/Resources/Assets.car"));
 
     // this asset catalog happens to have an embedded icon set,
     // but this should NOT be built since it is not in the files list
