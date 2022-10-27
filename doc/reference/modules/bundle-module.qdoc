@@ -465,6 +465,17 @@
 */
 
 /*!
+    \qmlproperty bool bundle::useBuiltinXcodeBuildSpecs
+
+    Set this property to \c true to use Xcode \c .xcspec files shipped with \QBS.
+
+    This property can be used as a workaround when using a new Xcode version that is not supported
+    by \QBS yet.
+
+    \default false
+*/
+
+/*!
     \qmlproperty string bundle::versionsFolderPath
     \readonly
     \since Qbs 1.5
