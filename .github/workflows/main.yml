@@ -711,7 +711,7 @@ jobs:
       if: ${{ failure() }}
       run: |
         for f in $(find /cores -maxdepth 1 -name 'core.*' -print); do
-          lldb --core $f --batch --one-line "bt"
+          lldb --core $f --batch --one-line "bt all"
         done;
 
   test-windows:
