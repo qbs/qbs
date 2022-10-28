@@ -1226,6 +1226,13 @@ void TestBlackbox::discardUnusedData_data()
     QTest::newRow("default") << QString() << true;
 }
 
+void TestBlackbox::dotDotPcFile()
+{
+    QDir::setCurrent(testDataDir + "/dot-dot-pc-file");
+
+    QCOMPARE(runQbs(), 0);
+}
+
 void TestBlackbox::driverLinkerFlags()
 {
     QDir::setCurrent(testDataDir + QLatin1String("/driver-linker-flags"));
@@ -6409,7 +6416,7 @@ void TestBlackbox::qbsSession()
     // Wait for and verify hello packet.
     QJsonObject receivedMessage = getNextSessionPacket(sessionProc, incomingData);
     QCOMPARE(receivedMessage.value("type"), "hello");
-    QCOMPARE(receivedMessage.value("api-level").toInt(), 2);
+    QCOMPARE(receivedMessage.value("api-level").toInt(), 3);
     QCOMPARE(receivedMessage.value("api-compat-level").toInt(), 2);
 
     // Resolve & verify structure

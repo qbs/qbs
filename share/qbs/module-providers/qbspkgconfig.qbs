@@ -120,7 +120,7 @@ ModuleProvider {
             return result;
         }
 
-        function getModuleName(packageName) { return packageName.replace('.', '-'); }
+        function getModuleName(packageName) { return packageName.replace(/\./g, '-'); }
 
         function getModuleDependencies(pkg, staticMode) {
             var mapper = function(p) {
@@ -214,9 +214,9 @@ ModuleProvider {
                 setupQt(pkg);
                 continue;
             }
-            var moduleName = moduleMapping[packageName]
+            var moduleName = getModuleName(moduleMapping[packageName]
                     ? moduleMapping[packageName]
-                    : getModuleName(packageName);
+                    : packageName);
             var moduleInfo = getModuleInfo(pkg, staticMode);
             var deps = getModuleDependencies(pkg, staticMode);
 
@@ -228,7 +228,9 @@ ModuleProvider {
             module.writeLine("    version: " + ModUtils.toJSLiteral(moduleInfo.version));
             module.writeLine("    Depends { name: 'cpp' }");
             deps.forEach(function(dep) {
-                module.write("    Depends { name: '" + dep.name + "'");
+                var depName = getModuleName(
+                        moduleMapping[dep.name] ? moduleMapping[dep.name] : dep.name);
+                module.write("    Depends { name: '" + depName + "'");
                 for (var k in dep) {
                     if (k === "name")
                         continue;

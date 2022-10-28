@@ -99,6 +99,7 @@ private slots:
     void disappearedProfile();
     void discardUnusedData();
     void discardUnusedData_data();
+    void dotDotPcFile();
     void driverLinkerFlags();
     void driverLinkerFlags_data();
     void dynamicLibraryInModule();

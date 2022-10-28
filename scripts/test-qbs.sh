@@ -38,7 +38,7 @@
 ##
 #############################################################################
 
-set -eu
+set -eu -o pipefail
 
 #
 # Qbs is built with the address sanitizer enabled.
@@ -48,12 +48,6 @@ export LSAN_OPTIONS="suppressions=$( cd "$(dirname "$0")" ; pwd -P )/address-san
 
 export PATH="$1:$PATH"
 
-CPUS=$("$(dirname "$0")"/cpu-count.sh)
-
 export QBS_AUTOTEST_PROFILE=${QBS_AUTOTEST_PROFILE:-qt}
-echo "Running Qbs tests (${CPUS} jobs in parallel)."
-find $1 -name "tst_*" \
-    | grep -v tst_blackbox-joblimits \
-    | xargs -I{} -n1 -P${CPUS} bash -c \
-        'export LOG=$(mktemp) ; $({} > ${LOG} 2>&1) ; export RESULT=$? ; cat ${LOG} ; exit ${RESULT}'
-tst_blackbox-joblimits
+echo "Running Qbs tests."
+find $1 -name "tst*" | xargs -I{} -n1 bash -c "{}"

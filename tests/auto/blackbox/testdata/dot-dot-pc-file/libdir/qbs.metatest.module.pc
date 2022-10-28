@@ -1,0 +1,5 @@
+Name: qbs.metatest.module
+Description: just a test
+Version: 0.0.1
+
+Cflags: -DTHE_MAGIC_DEFINE

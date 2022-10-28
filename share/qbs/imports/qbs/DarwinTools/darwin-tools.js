@@ -182,7 +182,7 @@ var PropertyListVariableExpander = (function () {
             return { "syntax": syntax, "index": idx };
         }
 
-        function expandString(key, str, env) {
+        function expandString(key, str, env, seenVars) {
             if (!str)
                 return str;
             var repl = indexOfReplacementStart(syntaxes, str);
@@ -194,7 +194,14 @@ var PropertyListVariableExpander = (function () {
                 var varParts = str.slice(i + repl.syntax.open.length, j).split(':');
                 var varName = varParts[0];
                 var varFormatter = varParts[1];
-                var varValue = expandString(key, env[varName], env);
+                var envValue = env[varName];
+                // if we end up expanding the same variable again, break the recursion
+                if (seenVars.indexOf(varName) !== -1)
+                    envValue = "";
+                else
+                    seenVars.push(varName);
+                var varValue = expandString(key, envValue, env, seenVars);
+                seenVars.pop();
                 if (undefined === varValue) {
                     // skip replacement
                     if ($this.undefinedVariableFunction)
@@ -229,7 +236,7 @@ var PropertyListVariableExpander = (function () {
                 }
                 if (type !== "string")
                     continue;
-                var expandedValue = expandString(key, value, env);
+                var expandedValue = expandString(key, value, env, []);
                 if (expandedValue !== value)
                     obj[key] = expandedValue;
             }
