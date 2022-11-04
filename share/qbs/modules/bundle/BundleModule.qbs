@@ -52,7 +52,7 @@ Module {
         property string xcodeDeveloperPath: xcode.developerPath
         property var xcodeArchSettings: xcode._architectureSettings
         property string productTypeIdentifier: _productTypeIdentifier
-        property bool useXcodeBuildSpecs: _useXcodeBuildSpecs
+        property bool useXcodeBuildSpecs: !useBuiltinXcodeBuildSpecs
         property bool isMacOs: qbs.targetOS.contains("macos")
         property bool xcodePresent: xcode.present
         property string xcodeVersion: xcode.version
@@ -187,11 +187,13 @@ Module {
     readonly property string unlocalizedResourcesFolderPath: bundleSettingsProbe.xcodeSettings["UNLOCALIZED_RESOURCES_FOLDER_PATH"]
     readonly property string versionsFolderPath: bundleSettingsProbe.xcodeSettings["VERSIONS_FOLDER_PATH"]
 
+    property bool useBuiltinXcodeBuildSpecs: !_useXcodeBuildSpecs // true to use ONLY the qbs build specs
+
     // private properties
     property string _productTypeIdentifier: Bundle.productTypeIdentifier(product.type)
     property stringList _productTypeIdentifierChain: bundleSettingsProbe.productTypeIdentifierChain
 
-    property bool _useXcodeBuildSpecs: true // false to use ONLY the qbs build specs
+    property bool _useXcodeBuildSpecs: true // TODO: remove in 1.25
 
     property var extraEnv: ({
         "PRODUCT_BUNDLE_IDENTIFIER": identifier

@@ -613,6 +613,46 @@ jobs:
       matrix:
         config:
         - {
+            name: 'Run macOS tests (Xcode 14.1)',
+            runner: 'macos-12',
+            target: 'desktop',
+            toolchain: 'clang_64',
+            xcodeVersion: '14.1',
+            testProfile: 'xcode_14_1-macosx-x86_64',
+            qtVersion: '5.15.2',
+            script: './scripts/test-qbs.sh',
+          }
+        - {
+            name: 'Run macOS tests (Xcode 14.1, Qt 6.3)',
+            runner: 'macos-12',
+            target: 'desktop',
+            toolchain: 'clang_64',
+            xcodeVersion: '14.1',
+            testProfile: 'xcode_14_1-macosx-x86_64',
+            qtVersion: '6.3.1',
+            script: './scripts/test-qt.sh',
+          }
+        - {
+            name: 'Run iOS tests (Xcode 14.1)',
+            runner: 'macos-12',
+            target: 'ios',
+            toolchain: 'ios',
+            xcodeVersion: '14.1',
+            testProfile: 'xcode_14_1-iphoneos-arm64',
+            qtVersion: '5.15.2',
+            script: './scripts/test-qbs.sh',
+          }
+        - {
+            name: 'Run iOS-sim tests (Xcode 14.1)',
+            runner: 'macos-12',
+            target: 'ios',
+            toolchain: 'ios',
+            xcodeVersion: '14.1',
+            testProfile: 'xcode_14_1-iphonesimulator-x86_64',
+            qtVersion: '5.15.2',
+            script: './scripts/test-qbs.sh',
+          }
+        - {
             name: 'Run macOS tests (Xcode 13.4)',
             runner: 'macos-12',
             target: 'desktop',
@@ -622,36 +662,7 @@ jobs:
             qtVersion: '5.15.2',
             script: './scripts/test-qbs.sh',
           }
-        - {
-            name: 'Run macOS tests (Xcode 13.4, Qt 6.3)',
-            runner: 'macos-12',
-            target: 'desktop',
-            toolchain: 'clang_64',
-            xcodeVersion: '13.4.1',
-            testProfile: 'xcode_13_4_1-macosx-x86_64',
-            qtVersion: '6.3.1',
-            script: './scripts/test-qt.sh',
-          }
-        - {
-            name: 'Run iOS tests (Xcode 13.4)',
-            runner: 'macos-12',
-            target: 'ios',
-            toolchain: 'ios',
-            xcodeVersion: '13.4.1',
-            testProfile: 'xcode_13_4_1-iphoneos-arm64',
-            qtVersion: '5.15.2',
-            script: './scripts/test-qbs.sh',
-          }
-        - {
-            name: 'Run iOS-sim tests (Xcode 13.4)',
-            runner: 'macos-12',
-            target: 'ios',
-            toolchain: 'ios',
-            xcodeVersion: '13.4.1',
-            testProfile: 'xcode_13_4_1-iphonesimulator-x86_64',
-            qtVersion: '5.15.2',
-            script: './scripts/test-qbs.sh',
-          }
+
         - {
             name: 'Run macOS tests (Xcode 12.5)',
             runner: 'macos-11',
@@ -659,16 +670,6 @@ jobs:
             toolchain: 'clang_64',
             xcodeVersion: '12.5.1',
             testProfile: 'xcode_12_5_1-macosx-x86_64',
-            qtVersion: '5.15.2',
-            script: './scripts/test-qbs.sh',
-          }
-        - {
-            name: 'Run macOS tests (Xcode 11.7)',
-            runner: 'macos-11',
-            target: 'desktop',
-            toolchain: 'clang_64',
-            xcodeVersion: '11.7',
-            testProfile: 'xcode_11_7-macosx-x86_64',
             qtVersion: '5.15.2',
             script: './scripts/test-qbs.sh',
           }
