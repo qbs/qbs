@@ -778,8 +778,10 @@ Module {
 
                 if (bundleType === "application"
                         && product.moduleProperty("qbs", "targetOS").contains("macos")) {
+                    var bundlePath = FileInfo.joinPaths(
+                        product.destinationDirectory, product.bundle.bundleName);
                     cmd = new Command(ModUtils.moduleProperty(product, "lsregisterPath"),
-                                      ["-f", product.bundle.bundleName]);
+                                      ["-f", bundlePath]);
                     cmd.description = "registering " + ModUtils.moduleProperty(product, "bundleName");
                     commands.push(cmd);
                 }
