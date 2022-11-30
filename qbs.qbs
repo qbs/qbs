@@ -48,11 +48,6 @@ Project {
     }
 
     Product {
-        name: "qmake project files for qbs"
-        files: ["**/*.pr[io]"]
-    }
-
-    Product {
         name: "cmake project files for qbs"
         files: ["**/CMakeLists.txt"]
     }

@@ -77,13 +77,6 @@ jobs:
             cacheid: 'cmake',
           }
         - {
-            name: 'Build on Linux (QMake)',
-            script: './scripts/build-qbs-with-qmake.sh',
-            image: 'focal',
-            options: 'CONFIG+=ccache',
-            cacheid: 'qmake',
-          }
-        - {
             name: 'Build on Linux (gcc, Qt 6.2)',
             image: 'focal-qt6',
             script: './scripts/build-qbs-with-qbs.sh',

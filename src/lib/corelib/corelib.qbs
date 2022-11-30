@@ -525,13 +525,4 @@ QbsLibrary {
             "applecodesignutils.h"
         ]
     }
-    Group {
-        name: "use_installed.pri"
-        files: [
-            "use_installed_corelib.pri",
-            "../../../qbs_version.pri"
-        ]
-        qbs.install: qbsbuildconfig.installApiHeaders
-        qbs.installDir: headerInstallPrefix
-    }
 }
