@@ -81,10 +81,19 @@ jobs:
             image: 'focal-qt6',
             script: './scripts/build-qbs-with-qbs.sh',
             options: 'modules.cpp.compilerWrapper:ccache
-                      products.qbsscriptengine.qbsbuildconfig.enableAddressSanitizer:false
                       modules.qbs.debugInformation:true
                       modules.qbsbuildconfig.enableBundledQt:true',
             cacheid: 'gcc-qt6',
+          }
+        - {
+            name: 'Build on Linux (gcc, ASAN)',
+            image: 'focal',
+            script: './scripts/build-qbs-with-qbs.sh',
+            options: 'modules.cpp.compilerWrapper:ccache
+                      modules.qbsbuildconfig.enableAddressSanitizer:true
+                      modules.qbs.debugInformation:true
+                      modules.qbsbuildconfig.enableBundledQt:true',
+            cacheid: 'gcc-asan',
           }
     env:
       BUILD_OPTIONS: ${{ matrix.config.options }}
