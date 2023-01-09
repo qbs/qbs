@@ -12,6 +12,7 @@ ProtobufBase {
     property bool useGrpc: false
 
     property bool _linkLibraries: true
+    property stringList _extraGrpcLibs: []
     readonly property bool _hasModules: protobuflib.present && (!useGrpc || grpcpp.present)
 
     property string grpcIncludePath: grpcIncludeProbe.found ? grpcIncludeProbe.path : undefined
@@ -69,8 +70,10 @@ ProtobufBase {
             result.push(_libraryName)
         if (qbs.targetOS.contains("unix"))
             result.push("pthread");
-        if (useGrpc)
+        if (useGrpc) {
+            result = result.concat(_extraGrpcLibs);
             result.push("grpc++");
+        }
         return result;
     }
     cpp.includePaths: {

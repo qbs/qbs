@@ -617,6 +617,7 @@ jobs:
       QTEST_FUNCTION_TIMEOUT: 9000000
       QBS_AUTOTEST_PROFILE: 'qt'
       QBS_TEST_SOURCE_ROOT: 'tests'
+      QBS_EXTRA_GRPC_LIBS: 'absl_synchronization,gpr'
     strategy:
       fail-fast: false
       matrix:
