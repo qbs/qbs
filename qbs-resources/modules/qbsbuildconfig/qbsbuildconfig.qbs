@@ -70,8 +70,10 @@ Module {
             var flags = [];
             if (enableAddressSanitizer)
                 flags.push("-fsanitize=address");
-            if (enableUbSanitizer)
+            if (enableUbSanitizer) {
                 flags.push("-fsanitize=undefined");
+                flags.push("-fno-sanitize=vptr");
+            }
             if (enableThreadSanitizer)
                 flags.push("-fsanitize=thread");
             return flags;

@@ -44,6 +44,7 @@ set -e
 # Suppress findings in some parts of Qbs / dependencies.
 #
 export LSAN_OPTIONS="suppressions=$( cd "$(dirname "$0")" ; pwd -P )/address-sanitizer-suppressions.txt:print_suppressions=0"
+export UBSAN_OPTIONS="suppressions=$( cd "$(dirname "$0")" ; pwd -P )/undefined-sanitizer-suppressions.txt"
 
 if [ -z "${QBS_BUILD_PROFILE}" ]; then
     QBS_BUILD_PROFILE=$(qbs config defaultProfile | cut -d: -f2 | tr -d '[:space:]')
