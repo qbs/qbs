@@ -85,7 +85,7 @@ add_custom_command(
         -f ${PROJECT_SOURCE_DIR}/qbs.qbs
         -d ${PROJECT_BINARY_DIR}/
         config:resources-build
-        qbs.installPrefix:undefined
+        qbs.installPrefix:""
         project.withCode:false
         project.withDocumentation:false
         profile:none
