@@ -450,6 +450,7 @@ function dumpMacros(compilerFilePath, tag) {
         args.push(cppLanguageOption(compilerFilePath));
 
     var p = new Process();
+    p.setWorkingDirectory(tempDir.path());
     p.exec(compilerFilePath, args, true);
     var outFile = new TextFile(outFilePath, TextFile.ReadOnly);
     return Cpp.extractMacros(outFile.readAll());
@@ -471,6 +472,7 @@ function dumpCompilerIncludePaths(compilerFilePath, tag) {
 
     var includePaths = [];
     var p = new Process();
+    p.setWorkingDirectory(tempDir.path());
     // It is possible that the process can return an error code in case the
     // compiler does not support the `--IDE3` flag. So, don't throw an error in this case.
     p.exec(compilerFilePath, args, false);
