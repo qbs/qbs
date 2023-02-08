@@ -45,8 +45,10 @@ function findSigningIdentities(searchString, team) {
         var identity = identities[key];
         if (team && ![identity.subjectInfo.O, identity.subjectInfo.OU].contains(team))
             continue;
-        if (searchString === key || identity.subjectInfo.CN.startsWith(searchString))
+        if (searchString === key
+                || (identity.subjectInfo.CN && identity.subjectInfo.CN.startsWith(searchString))) {
             matchedIdentities[key] = identity;
+        }
     }
     return matchedIdentities;
 }
