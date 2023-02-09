@@ -94,7 +94,9 @@ private:
     void readFromData(const QByteArray &data);
     void writeToFile(const QString &filePath, const QString &plistFormat);
     std::optional<QString> format() const;
-    QVariant toObject() const { return m_propertyListObject; }
+    QVariant toObject() const {
+        return m_propertyListObject.isNull() ? QVariantMap() : m_propertyListObject;
+    }
     QString toString(const QString &plistFormat) const;
     QString toXMLString() const;
     QString toJSON(const QString &style = QString()) const;
