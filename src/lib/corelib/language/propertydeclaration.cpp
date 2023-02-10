@@ -40,11 +40,15 @@
 #include "propertydeclaration.h"
 
 #include "deprecationinfo.h"
+#include "filecontext.h"
+#include "item.h"
+#include "qualifiedid.h"
+#include "value.h"
+
 #include <api/languageinfo.h>
-
 #include <logging/translator.h>
-
 #include <tools/error.h>
+#include <tools/setupprojectparameters.h>
 #include <tools/qttools.h>
 #include <tools/stringconstants.h>
 
@@ -302,6 +306,143 @@ QVariant PropertyDeclaration::convertToPropertyType(const QVariant &v, Type t,
                         .arg(v.toString(), name.join(QLatin1Char('.'))));
     }
     return c;
+}
+
+namespace {
+class PropertyDeclarationCheck : public ValueHandler
+{
+public:
+    PropertyDeclarationCheck(const Set<Item *> &disabledItems,
+                             const SetupProjectParameters &params, Logger &logger)
+        : m_disabledItems(disabledItems)
+        , m_params(params)
+        , m_logger(logger)
+    { }
+    void operator()(Item *item) { handleItem(item); }
+
+private:
+    void handle(JSSourceValue *value) override
+    {
+        if (!value->createdByPropertiesBlock()) {
+            const ErrorInfo error(Tr::tr("Property '%1' is not declared.")
+                                      .arg(m_currentName), value->location());
+            handlePropertyError(error, m_params, m_logger);
+        }
+    }
+    void handle(ItemValue *value) override
+    {
+        if (checkItemValue(value))
+            handleItem(value->item());
+    }
+    bool checkItemValue(ItemValue *value)
+    {
+        // TODO: Remove once QBS-1030 is fixed.
+        if (parentItem()->type() == ItemType::Artifact)
+            return false;
+
+        if (parentItem()->type() == ItemType::Properties)
+            return false;
+
+        // TODO: Check where the in-between module instances come from.
+        if (value->item()->type() == ItemType::ModuleInstancePlaceholder) {
+            for (auto it = m_parentItems.rbegin(); it != m_parentItems.rend(); ++it) {
+                if ((*it)->type() == ItemType::Group)
+                    return false;
+                if ((*it)->type() == ItemType::ModulePrefix)
+                    continue;
+                break;
+            }
+        }
+
+        if (value->item()->type() != ItemType::ModuleInstance
+            && value->item()->type() != ItemType::ModulePrefix
+            && (!parentItem()->file() || !parentItem()->file()->idScope()
+                || !parentItem()->file()->idScope()->hasProperty(m_currentName))
+            && !value->createdByPropertiesBlock()) {
+            CodeLocation location = value->location();
+            for (int i = int(m_parentItems.size() - 1); !location.isValid() && i >= 0; --i)
+                location = m_parentItems.at(i)->location();
+            const ErrorInfo error(Tr::tr("Item '%1' is not declared. "
+                                         "Did you forget to add a Depends item?")
+                                      .arg(m_currentModuleName.toString()), location);
+            handlePropertyError(error, m_params, m_logger);
+            return false;
+        }
+
+        return true;
+    }
+    void handleItem(Item *item)
+    {
+        if (!m_handledItems.insert(item).second)
+            return;
+        if (m_disabledItems.contains(item)
+            || item->type() == ItemType::Module
+            || item->type() == ItemType::Export
+            || (item->type() == ItemType::ModuleInstance && !item->isPresentModule())
+            || item->type() == ItemType::Properties
+
+            // The Properties child of a SubProject item is not a regular item.
+            || item->type() == ItemType::PropertiesInSubProject) {
+            return;
+        }
+
+        m_parentItems.push_back(item);
+        for (Item::PropertyMap::const_iterator it = item->properties().constBegin();
+             it != item->properties().constEnd(); ++it) {
+            if (item->type() == ItemType::Product && it.key() == StringConstants::moduleProviders()
+                && it.value()->type() == Value::ItemValueType)
+                continue;
+            const PropertyDeclaration decl = item->propertyDeclaration(it.key());
+            if (decl.isValid()) {
+                const ErrorInfo deprecationError = decl.checkForDeprecation(
+                    m_params.deprecationWarningMode(), it.value()->location(), m_logger);
+                if (deprecationError.hasError())
+                    handlePropertyError(deprecationError, m_params, m_logger);
+                continue;
+            }
+            m_currentName = it.key();
+            const QualifiedId oldModuleName = m_currentModuleName;
+            if (parentItem()->type() != ItemType::ModulePrefix)
+                m_currentModuleName.clear();
+            m_currentModuleName.push_back(m_currentName);
+            it.value()->apply(this);
+            m_currentModuleName = oldModuleName;
+        }
+        m_parentItems.pop_back();
+        for (Item * const child : item->children()) {
+            switch (child->type()) {
+            case ItemType::Export:
+            case ItemType::Depends:
+            case ItemType::Parameter:
+            case ItemType::Parameters:
+                break;
+            case ItemType::Group:
+                if (item->type() == ItemType::Module || item->type() == ItemType::ModuleInstance)
+                    break;
+                Q_FALLTHROUGH();
+            default:
+                handleItem(child);
+            }
+        }
+    }
+    void handle(VariantValue *) override { /* only created internally - no need to check */ }
+
+    Item *parentItem() const { return m_parentItems.back(); }
+
+    const Set<Item *> &m_disabledItems;
+    Set<Item *> m_handledItems;
+    std::vector<Item *> m_parentItems;
+    QualifiedId m_currentModuleName;
+    QString m_currentName;
+    const SetupProjectParameters &m_params;
+    Logger &m_logger;
+};
+} // namespace
+
+void checkPropertyDeclarations(Item *topLevelItem, const Set<Item *> &disabledItems,
+                               const SetupProjectParameters &params, Logger &logger)
+{
+    PropertyDeclarationCheck(disabledItems, params, logger)(topLevelItem);
 }
 
 } // namespace Internal

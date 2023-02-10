@@ -137,6 +137,7 @@ private slots:
     void modulePropertiesInGroups();
     void modulePropertyOverridesPerProduct();
     void moduleScope();
+    void moduleWithProductDependency();
     void modules_data();
     void modules();
     void multiplexedExports();

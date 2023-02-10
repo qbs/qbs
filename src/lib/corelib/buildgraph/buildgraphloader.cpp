@@ -900,8 +900,8 @@ bool BuildGraphLoader::checkConfigCompatibility()
     if (m_parameters.finalBuildConfigurationTree() != restoredProject->buildConfiguration())
         return false;
     Settings settings(m_parameters.settingsDirectory());
-    for (QVariantMap::ConstIterator it = restoredProject->profileConfigs.constBegin();
-         it != restoredProject->profileConfigs.constEnd(); ++it) {
+    const QVariantMap profileConfigsTree = restoredProject->fullProfileConfigsTree();
+    for (auto it = profileConfigsTree.begin(); it != profileConfigsTree.end(); ++it) {
         const Profile profile(it.key(), &settings);
         const QVariantMap buildConfig = SetupProjectParameters::expandedBuildConfiguration(
                     profile, m_parameters.configurationName());

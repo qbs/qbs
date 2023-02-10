@@ -1006,7 +1006,7 @@ Project::BuildGraphInfo Project::getBuildGraphInfo(const QString &bgFilePath,
         const Internal::TopLevelProjectConstPtr project = BuildGraphLoader::loadProject(bgFilePath);
         info.bgFilePath = bgFilePath;
         info.overriddenProperties = project->overriddenValues;
-        info.profileData = project->profileConfigs;
+        info.profileData = project->fullProfileConfigsTree();
         std::vector<std::pair<QString, QString>> props;
         for (const QString &prop : requestedProperties) {
             QStringList components = prop.split(QLatin1Char('.'));
@@ -1045,7 +1045,7 @@ Project::BuildGraphInfo Project::getBuildGraphInfo() const
             throw ErrorInfo(Tr::tr("A job is currently in progress."));
         info.bgFilePath = d->internalProject->buildGraphFilePath();
         info.overriddenProperties = d->internalProject->overriddenValues;
-        info.profileData = d->internalProject->profileConfigs;
+        info.profileData = d->internalProject->fullProfileConfigsTree();
     } catch (const ErrorInfo &e) {
         info.error = e;
     }

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2023 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -37,53 +37,32 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_MODULEMERGER_H
-#define QBS_MODULEMERGER_H
+#pragma once
 
-#include "item.h"
-#include "qualifiedid.h"
-
-#include <logging/logger.h>
-#include <tools/set.h>
-#include <tools/version.h>
-
-#include <QtCore/qhash.h>
+#include <QVariantMap>
 
 namespace qbs {
+class SetupProjectParameters;
 namespace Internal {
+class Evaluator;
+class Item;
+class Logger;
 
-class ModuleMerger {
+// This class evaluates all Profile items encountered in the project tree and holds the results.
+class LocalProfiles
+{
 public:
-    static void merge(Logger &logger, Item *productItem, const QString &productName,
-                      Item::Modules *topSortedModules);
+    LocalProfiles(const SetupProjectParameters &parameters, Evaluator &evaluator, Logger &logger);
+    ~LocalProfiles();
+
+    void collectProfilesFromItems(Item *productOrProject, Item *projectScope);
+    const QVariantMap &profiles() const;
 
 private:
-    ModuleMerger(Logger &logger, Item *productItem, const QString &productName,
-                 const Item::Modules::iterator &modulesBegin,
-                 const Item::Modules::iterator &modulesEnd);
-
-    void appendPrototypeValueToNextChain(Item *moduleProto, const QString &propertyName,
-            const ValuePtr &sv);
-    void mergeModule(Item::PropertyMap *props, const Item::Module &m);
-    void replaceItemInValues(QualifiedId moduleName, Item *containerItem, Item *toReplace);
-    void start();
-
-    static ValuePtr lastInNextChain(const ValuePtr &v);
-    static const Item::Module *findModule(const Item *item, const QualifiedId &name);
-
-    Logger &m_logger;
-    Item * const m_productItem;
-    Item::Module &m_mergedModule;
-    Item *m_clonedModulePrototype = nullptr;
-    Set<const Item *> m_seenInstances;
-    Set<Item *> m_moduleInstanceContainers;
-    const bool m_isBaseModule;
-    const bool m_isShadowProduct;
-    const Item::Modules::iterator m_modulesBegin;
-    const Item::Modules::iterator m_modulesEnd;
+    class Private;
+    Private * const d;
 };
 
 } // namespace Internal
 } // namespace qbs
 
-#endif // QBS_MODULEMERGER_H

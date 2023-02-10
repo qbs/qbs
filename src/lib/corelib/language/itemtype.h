@@ -74,6 +74,7 @@ enum class ItemType {
     // Internal items created mainly by the module loader.
     IdScope,
     ModuleInstance,
+    ModuleInstancePlaceholder,
     ModuleParameters,
     ModulePrefix,
     Outer,

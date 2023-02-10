@@ -41,12 +41,14 @@
 #define PROJECTRESOLVER_H
 
 #include "filetags.h"
+#include "item.h"
 #include "itemtype.h"
-#include "moduleloader.h"
+#include "projecttreebuilder.h"
 #include "qualifiedid.h"
 
 #include <logging/logger.h>
 #include <tools/set.h>
+#include <tools/setupprojectparameters.h>
 
 #include <QtCore/qhash.h>
 #include <QtCore/qmap.h>
@@ -67,7 +69,7 @@ class ScriptEngine;
 class ProjectResolver
 {
 public:
-    ProjectResolver(Evaluator *evaluator, ModuleLoaderResult loadResult,
+    ProjectResolver(Evaluator *evaluator, ProjectTreeBuilder::Result loadResult,
                     SetupProjectParameters setupParameters, Logger &logger);
     ~ProjectResolver();
 
@@ -122,7 +124,7 @@ private:
     void resolveFileTagger(Item *item, ProjectContext *projectContext);
     void resolveJobLimit(Item *item, ProjectContext *projectContext);
     void resolveScanner(Item *item, ProjectContext *projectContext);
-    void resolveProductDependencies(const ProjectContext &projectContext);
+    void resolveProductDependencies();
     void postProcess(const ResolvedProductPtr &product, ProjectContext *projectContext) const;
     void applyFileTaggers(const ResolvedProductPtr &product) const;
     QVariantMap evaluateModuleValues(Item *item, bool lookupPrototype = true);
@@ -152,14 +154,6 @@ private:
         QVariantMap parameters;
     };
 
-    struct ProductDependencyInfos
-    {
-        std::vector<ProductDependencyInfo> dependencies;
-        bool hasDisabledDependency = false;
-    };
-
-    ProductDependencyInfos getProductDependencies(const ResolvedProductConstPtr &product,
-            const ModuleLoaderResult::ProductInfo &productInfo);
     QString sourceCodeAsFunction(const JSSourceValueConstPtr &value,
                                  const PropertyDeclaration &decl) const;
     QString sourceCodeForEvaluation(const JSSourceValueConstPtr &value) const;
@@ -181,7 +175,7 @@ private:
     ProgressObserver *m_progressObserver = nullptr;
     ProductContext *m_productContext = nullptr;
     ModuleContext *m_moduleContext = nullptr;
-    QMap<QString, ResolvedProductPtr> m_productsByName;
+    QHash<Item *, ResolvedProductPtr> m_productsByItem;
     QHash<FileTag, QList<ResolvedProductPtr> > m_productsByType;
     QHash<ResolvedProductPtr, Item *> m_productItemMap;
     mutable QHash<FileContextConstPtr, ResolvedFileContextPtr> m_fileContextMap;
@@ -189,7 +183,7 @@ private:
     mutable QHash<std::pair<QStringView, QStringList>, QString> m_scriptFunctions;
     mutable QHash<QStringView, QString> m_sourceCode;
     const SetupProjectParameters m_setupParams;
-    ModuleLoaderResult m_loadResult;
+    ProjectTreeBuilder::Result m_loadResult;
     Set<CodeLocation> m_groupLocationWarnings;
     std::vector<std::pair<ResolvedProductPtr, Item *>> m_productExportInfo;
     std::vector<ErrorInfo> m_queuedErrors;

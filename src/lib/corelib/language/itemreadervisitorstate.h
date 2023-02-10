@@ -39,7 +39,6 @@
 #ifndef QBS_ITEMREADERVISITORSTATE_H
 #define QBS_ITEMREADERVISITORSTATE_H
 
-#include <logging/logger.h>
 #include <tools/deprecationwarningmode.h>
 #include <tools/set.h>
 
@@ -51,6 +50,7 @@ namespace qbs {
 namespace Internal {
 class Item;
 class ItemPool;
+class Logger;
 
 class ItemReaderVisitorState
 {
@@ -58,6 +58,7 @@ public:
     ItemReaderVisitorState(Logger &logger);
     ~ItemReaderVisitorState();
 
+    Logger &logger() { return m_logger; }
     Set<QString> filesRead() const { return m_filesRead; }
 
     Item *readFile(const QString &filePath, const QStringList &searchPaths, ItemPool *itemPool);

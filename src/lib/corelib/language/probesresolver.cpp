@@ -46,7 +46,6 @@
 #include "item.h"
 #include "itemreader.h"
 #include "language.h"
-#include "modulemerger.h"
 #include "qualifiedid.h"
 #include "scriptengine.h"
 #include "value.h"
@@ -109,7 +108,7 @@ void ProbesResolver::setOldProductProbes(
     m_oldProductProbes = oldProbes;
 }
 
-void ProbesResolver::resolveProbes(ModuleLoader::ProductContext *productContext, Item *item)
+void ProbesResolver::resolveProbes(ProductContext *productContext, Item *item)
 {
     AccumulatingTimer probesTimer(m_parameters.logElapsedTime() ? &m_elapsedTimeProbes : nullptr);
     EvalContextSwitcher evalContextSwitcher(m_evaluator->engine(), EvalContext::ProbeExecution);
@@ -118,7 +117,7 @@ void ProbesResolver::resolveProbes(ModuleLoader::ProductContext *productContext,
             resolveProbe(productContext, item, child);
 }
 
-void ProbesResolver::resolveProbe(ModuleLoader::ProductContext *productContext, Item *parent,
+void ProbesResolver::resolveProbe(ProductContext *productContext, Item *parent,
                                   Item *probe)
 {
     qCDebug(lcModuleLoader) << "Resolving Probe at " << probe->location().toString();
@@ -291,16 +290,18 @@ bool ProbesResolver::probeMatches(const ProbeConstPtr &probe, bool condition,
                     && !probe->needsReconfigure(m_lastResolveTime)));
 }
 
-void ProbesResolver::printProfilingInfo()
+void ProbesResolver::printProfilingInfo(int indent)
 {
     if (!m_parameters.logElapsedTime())
         return;
-    m_logger.qbsLog(LoggerInfo, true) << "\t\t"
-                                      << Tr::tr("Running Probes took %1.")
-                                         .arg(elapsedTimeString(m_elapsedTimeProbes));
-    m_logger.qbsLog(LoggerInfo, true) << "\t\t"
-            << Tr::tr("%1 probes encountered, %2 configure scripts executed, "
-                      "%3 re-used from current run, %4 re-used from earlier run.")
+    const QByteArray prefix(indent, ' ');
+    m_logger.qbsLog(LoggerInfo, true)
+        << prefix
+        << Tr::tr("Running Probes took %1.").arg(elapsedTimeString(m_elapsedTimeProbes));
+    m_logger.qbsLog(LoggerInfo, true)
+        << prefix
+        << Tr::tr("%1 probes encountered, %2 configure scripts executed, "
+                  "%3 re-used from current run, %4 re-used from earlier run.")
                .arg(m_probesEncountered).arg(m_probesRun).arg(m_probesCachedCurrent)
                .arg(m_probesCachedOld);
 }

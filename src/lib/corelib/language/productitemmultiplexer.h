@@ -39,41 +39,42 @@
 
 #pragma once
 
-#include "item.h"
-
-#include <QString>
+#include <QList>
 #include <QVariantMap>
+
+#include <functional>
 
 namespace qbs {
 class SetupProjectParameters;
 namespace Internal {
 class Evaluator;
-class ItemReader;
+class Item;
 class Logger;
 
-class ModuleLoader
+// This class deals with product multiplexing over the various defined axes.
+// For instance, a product with qbs.architectures: ["x86", "arm"] will get multiplexed into
+// two products with qbs.architecture: "x86" and qbs.architecture: "arm", respectively.
+class ProductItemMultiplexer
 {
 public:
-    ModuleLoader(const SetupProjectParameters &setupParameters, ItemReader &itemReader,
-                 Evaluator &evaluator, Logger &logger);
-    ~ModuleLoader();
+    using QbsItemRetriever = std::function<Item *(Item *)>;
+    ProductItemMultiplexer(const SetupProjectParameters &parameters, Evaluator &evaluator,
+                           Logger &logger, const QbsItemRetriever &qbsItemRetriever);
+    ~ProductItemMultiplexer();
 
-    struct ProductContext {
-        const Item *item = nullptr;
-        const QString &name;
-        const QString &profile;
-        const QVariantMap &profileModuleProperties;
-    };
-    // TODO: Entry point should be searchAndLoadModuleFile(). Needs ProviderLoader clean-up first.
-    std::pair<Item *, bool> loadModuleFile(const ProductContext &product,
-                                           const QString &moduleName, const QString &filePath);
+    // Checks whether the product item is to be multiplexed and returns the list of additional
+    // product items. In the normal, non-multiplex case, this list is empty.
+    QList<Item *> multiplex(
+        const QString &productName,
+        Item *productItem,
+        Item *tempQbsModuleItem,
+        const std::function<void()> &dropTempQbsModule
+        );
 
-    void checkDependencyParameterDeclarations(const ProductContext &product) const;
-    void forwardParameterDeclarations(const Item *dependsItem, const Item::Modules &modules);
+    QVariantMap multiplexIdToVariantMap(const QString &multiplexId);
 
-    // TODO: Remove once entry point is changed.
-    void checkProfileErrorsForModule(Item *module, const QString &moduleName,
-                                     const QString &productName, const QString &profileName);
+    static QString fullProductDisplayName(const QString &name, const QString &multiplexId);
+
 private:
     class Private;
     Private * const d;
@@ -81,4 +82,3 @@ private:
 
 } // namespace Internal
 } // namespace qbs
-

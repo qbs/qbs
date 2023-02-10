@@ -42,8 +42,8 @@
 
 #include "builtindeclarations.h"
 #include "evaluator.h"
+#include "item.h"
 #include "itemreader.h"
-#include "moduleloader.h"
 #include "probesresolver.h"
 
 #include <language/scriptengine.h>
@@ -269,6 +269,7 @@ QVariantMap ModuleProviderLoader::evaluateQbsModule(ProductContext &product) con
 {
     const QString properties[] = {
         QStringLiteral("sysroot"),
+        QStringLiteral("toolchain"),
     };
     const auto qbsItemValue = std::static_pointer_cast<ItemValue>(
         product.item->property(StringConstants::qbsModule()));
@@ -277,8 +278,15 @@ QVariantMap ModuleProviderLoader::evaluateQbsModule(ProductContext &product) con
         const ScopedJsValue val(m_evaluator->engine()->context(),
                                 m_evaluator->value(qbsItemValue->item(), property));
         auto value = getJsVariant(m_evaluator->engine()->context(), val);
-        if (value.isValid())
-            result[property] = std::move(value);
+        if (!value.isValid())
+            continue;
+
+        // The xcode module sets qbs.sysroot; the resulting value is bogus before the probes
+        // have run.
+        if (property == QLatin1String("sysroot") && !FileInfo::isAbsolute(value.toString()))
+            continue;
+
+        result[property] = std::move(value);
     }
     return result;
 }
@@ -342,8 +350,8 @@ QStringList ModuleProviderLoader::evaluateModuleProvider(
            << endl;
     stream << "}" << endl;
     stream.flush();
-    Item * const providerItem =
-            m_reader->readFile(dummyItemFile.fileName(), dependsItemLocation);
+    Item * const providerItem = m_reader->setupItemFromFile(
+        dummyItemFile.fileName(), dependsItemLocation, *m_evaluator);
     if (providerItem->type() != ItemType::ModuleProvider) {
         throw ErrorInfo(Tr::tr("File '%1' declares an item of type '%2', "
                                "but '%3' was expected.")
@@ -353,7 +361,7 @@ QStringList ModuleProviderLoader::evaluateModuleProvider(
 
     providerItem->setScope(createProviderScope(product, qbsModule));
 
-    providerItem->overrideProperties(moduleConfig, name.toString(), m_parameters, m_logger);
+    providerItem->overrideProperties(moduleConfig, name, m_parameters, m_logger);
 
     m_probesResolver->resolveProbes(&product, providerItem);
 

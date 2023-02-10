@@ -42,6 +42,7 @@
 
 #include "forward_decls.h"
 #include <tools/codelocation.h>
+#include <QtCore/qstring.h>
 #include <QtCore/qvariant.h>
 
 #include <vector>
@@ -54,12 +55,25 @@ class ValueHandler;
 class Value
 {
 public:
-    enum Type
-    {
+    enum Type {
         JSSourceValueType,
         ItemValueType,
         VariantValueType
     };
+
+    enum Flag {
+        NoFlags = 0x00,
+        SourceUsesBase = 0x01,
+        SourceUsesOuter = 0x02,
+        SourceUsesOriginal = 0x04,
+        HasFunctionForm = 0x08,
+        ExclusiveListValue = 0x10,
+        BuiltinDefaultValue = 0x20,
+        OriginPropertiesBlock = 0x40,
+        OriginProfile = 0x80,
+        OriginCommandLine = 0x100,
+    };
+    Q_DECLARE_FLAGS(Flags, Flag)
 
     Value(Type t, bool createdByPropertiesBlock);
     Value(const Value &other);
@@ -70,21 +84,50 @@ public:
     virtual ValuePtr clone() const = 0;
     virtual CodeLocation location() const { return {}; }
 
-    Item *definingItem() const;
-    virtual void setDefiningItem(Item *item);
+    Item *scope() const { return m_scope; }
+    virtual void setScope(Item *scope, const QString &scopeName);
+    QString scopeName() const { return m_scopeName; }
+    int priority(const Item *productItem) const;
+    virtual void resetPriority();
 
     ValuePtr next() const;
     void setNext(const ValuePtr &next);
 
-    bool createdByPropertiesBlock() const { return m_createdByPropertiesBlock; }
-    void setCreatedByPropertiesBlock(bool b) { m_createdByPropertiesBlock = b; }
-    void clearCreatedByPropertiesBlock() { m_createdByPropertiesBlock = false; }
+    virtual void addCandidate(const ValuePtr &v) { m_candidates.push_back(v); }
+    const std::vector<ValuePtr> &candidates() const { return m_candidates; }
+    virtual void setCandidates(const std::vector<ValuePtr> &candidates) { m_candidates = candidates; }
+
+    bool createdByPropertiesBlock() const { return m_flags & OriginPropertiesBlock; }
+    void markAsSetByProfile() { m_flags |= OriginProfile; }
+    bool setByProfile() const { return m_flags & OriginProfile; }
+    void markAsSetByCommandLine() { m_flags |= OriginCommandLine; }
+    bool setByCommandLine() const { return m_flags & OriginCommandLine; }
+    bool setInternally() const;
+    bool expired(const Item *productItem) const { return priority(productItem) == 0; }
+
+    void setSourceUsesBase() { m_flags |= SourceUsesBase; }
+    bool sourceUsesBase() const { return m_flags.testFlag(SourceUsesBase); }
+    void setSourceUsesOuter() { m_flags |= SourceUsesOuter; }
+    bool sourceUsesOuter() const { return m_flags.testFlag(SourceUsesOuter); }
+    void setSourceUsesOriginal() { m_flags |= SourceUsesOriginal; }
+    bool sourceUsesOriginal() const { return m_flags.testFlag(SourceUsesOriginal); }
+    void setHasFunctionForm() { m_flags |= HasFunctionForm; }
+    bool hasFunctionForm() const { return m_flags.testFlag(HasFunctionForm); }
+    void setIsExclusiveListValue() { m_flags |= ExclusiveListValue; }
+    bool isExclusiveListValue() { return m_flags.testFlag(ExclusiveListValue); }
+    void setIsBuiltinDefaultValue() { m_flags |= BuiltinDefaultValue; }
+    bool isBuiltinDefaultValue() const { return m_flags.testFlag(BuiltinDefaultValue); }
 
 private:
+    int calculatePriority(const Item *productItem) const;
+
     Type m_type;
-    Item *m_definingItem;
+    Item *m_scope = nullptr;
+    QString m_scopeName;
     ValuePtr m_next;
-    bool m_createdByPropertiesBlock;
+    std::vector<ValuePtr> m_candidates;
+    Flags m_flags;
+    mutable int m_priority = -1;
 };
 
 class ValueHandler
@@ -98,18 +141,6 @@ public:
 class JSSourceValue : public Value
 {
     friend class ItemReaderASTVisitor;
-
-    enum Flag
-    {
-        NoFlags = 0x00,
-        SourceUsesBase = 0x01,
-        SourceUsesOuter = 0x02,
-        SourceUsesOriginal = 0x04,
-        HasFunctionForm = 0x08,
-        ExclusiveListValue = 0x10,
-        BuiltinDefaultValue = 0x20,
-    };
-    Q_DECLARE_FLAGS(Flags, Flag)
 
 public:
     explicit JSSourceValue(bool createdByPropertiesBlock);
@@ -132,17 +163,6 @@ public:
 
     void setFile(const FileContextPtr &file) { m_file = file; }
     const FileContextPtr &file() const { return m_file; }
-
-    void setSourceUsesBaseFlag() { m_flags |= SourceUsesBase; }
-    bool sourceUsesBase() const { return m_flags.testFlag(SourceUsesBase); }
-    bool sourceUsesOuter() const { return m_flags.testFlag(SourceUsesOuter); }
-    bool sourceUsesOriginal() const { return m_flags.testFlag(SourceUsesOriginal); }
-    bool hasFunctionForm() const { return m_flags.testFlag(HasFunctionForm); }
-    void setHasFunctionForm(bool b);
-    void setIsExclusiveListValue() { m_flags |= ExclusiveListValue; }
-    bool isExclusiveListValue() { return m_flags.testFlag(ExclusiveListValue); }
-    void setIsBuiltinDefaultValue() { m_flags |= BuiltinDefaultValue; }
-    bool isBuiltinDefaultValue() const { return m_flags.testFlag(BuiltinDefaultValue); }
 
     const JSSourceValuePtr &baseValue() const { return m_baseValue; }
     void setBaseValue(const JSSourceValuePtr &v) { m_baseValue = v; }
@@ -176,14 +196,16 @@ public:
     void addAlternative(const Alternative &alternative) { m_alternatives.push_back(alternative); }
     void clearAlternatives();
 
-    void setDefiningItem(Item *item) override;
+    void setScope(Item *scope, const QString &scopeName) override;
+    void resetPriority() override;
+    void addCandidate(const ValuePtr &v) override;
+    void setCandidates(const std::vector<ValuePtr> &candidates) override;
 
 private:
     QStringView m_sourceCode;
     int m_line;
     int m_column;
     FileContextPtr m_file;
-    Flags m_flags;
     JSSourceValuePtr m_baseValue;
     std::vector<Alternative> m_alternatives;
 };

@@ -1,4 +1,4 @@
-/****************************************************************************
+﻿/****************************************************************************
 **
 ** Copyright (C) 2023 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
@@ -39,41 +39,58 @@
 
 #pragma once
 
-#include "item.h"
+#include <QtGlobal>
 
-#include <QString>
-#include <QVariantMap>
+QT_BEGIN_NAMESPACE
+class QString;
+QT_END_NAMESPACE
 
 namespace qbs {
 class SetupProjectParameters;
 namespace Internal {
-class Evaluator;
-class ItemReader;
+class Item;
+class ItemPool;
 class Logger;
+class ModulePropertyMerger;
+class QualifiedId;
 
-class ModuleLoader
+// This class is responsible for setting up a proper module instance from a bunch of items:
+//    - Set the item type to ItemType::ModuleInstance (from Module or Export).
+//    - Apply possible command-line overrides for module properties.
+//    - Replace a possible module instance placeholder in the loading item with the actual instance
+//      and merge their values employing the ModulePropertyMerger.
+//    - Setting up the module instance scope.
+// In addition, it also provides helper functions for retrieving/setting module instance items
+// for special purposes.
+class ModuleInstantiator
 {
 public:
-    ModuleLoader(const SetupProjectParameters &setupParameters, ItemReader &itemReader,
-                 Evaluator &evaluator, Logger &logger);
-    ~ModuleLoader();
+    ModuleInstantiator(const SetupProjectParameters &parameters, ItemPool &itemPool,
+                       ModulePropertyMerger &propertyMerger, Logger &logger);
+    ~ModuleInstantiator();
 
-    struct ProductContext {
-        const Item *item = nullptr;
-        const QString &name;
-        const QString &profile;
-        const QVariantMap &profileModuleProperties;
+    struct Context {
+        Item * const product;
+        const QString &productName;
+        Item * const loadingItem;
+        const QString &loadingName;
+        Item * const module;
+        Item * const moduleWithSameName;
+        Item * const exportingProduct;
+        Item * const productScope;
+        Item * const projectScope;
+        const QualifiedId &moduleName;
+        const QString &id;
+        const bool alreadyLoaded;
     };
-    // TODO: Entry point should be searchAndLoadModuleFile(). Needs ProviderLoader clean-up first.
-    std::pair<Item *, bool> loadModuleFile(const ProductContext &product,
-                                           const QString &moduleName, const QString &filePath);
+    void instantiate(const Context &context);
 
-    void checkDependencyParameterDeclarations(const ProductContext &product) const;
-    void forwardParameterDeclarations(const Item *dependsItem, const Item::Modules &modules);
+    // Note that these will also create the respective item value if it does not exist yet.
+    Item *retrieveModuleInstanceItem(Item *containerItem, const QualifiedId &name);
+    Item *retrieveQbsItem(Item *containerItem);
 
-    // TODO: Remove once entry point is changed.
-    void checkProfileErrorsForModule(Item *module, const QString &moduleName,
-                                     const QString &productName, const QString &profileName);
+    void printProfilingInfo(int indent);
+
 private:
     class Private;
     Private * const d;

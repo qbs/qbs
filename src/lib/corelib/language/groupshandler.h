@@ -39,41 +39,42 @@
 
 #pragma once
 
-#include "item.h"
+#include "qualifiedid.h"
 
-#include <QString>
-#include <QVariantMap>
+#include <tools/set.h>
+
+#include <unordered_map>
+#include <utility>
 
 namespace qbs {
 class SetupProjectParameters;
 namespace Internal {
 class Evaluator;
-class ItemReader;
+class Item;
 class Logger;
+class ModuleInstantiator;
 
-class ModuleLoader
+// Sets up Group items for the actual resolving stage. Responsibilities:
+//   - Moving Group items located in modules over to the product.
+//   - Identifying groups declaring target artifacts and marking them accordingly.
+//   - Setting up group-level module instances to ensure proper resolving of per-group module
+//     properties.
+//   - As a side effect of the above point, collecting all properties set on the Group level
+//     to help the ProjectResolver decide which properties need to be re-evaluated at all,
+//     which is an important optimization (see commit 9cd8653eef).
+class GroupsHandler
 {
 public:
-    ModuleLoader(const SetupProjectParameters &setupParameters, ItemReader &itemReader,
-                 Evaluator &evaluator, Logger &logger);
-    ~ModuleLoader();
+    GroupsHandler(const SetupProjectParameters &parameters, ModuleInstantiator &instantiator,
+                  Evaluator &evaluator, Logger &logger);
+    ~GroupsHandler();
 
-    struct ProductContext {
-        const Item *item = nullptr;
-        const QString &name;
-        const QString &profile;
-        const QVariantMap &profileModuleProperties;
-    };
-    // TODO: Entry point should be searchAndLoadModuleFile(). Needs ProviderLoader clean-up first.
-    std::pair<Item *, bool> loadModuleFile(const ProductContext &product,
-                                           const QString &moduleName, const QString &filePath);
+    void setupGroups(Item *product, Item *productScope);
+    std::unordered_map<const Item *, QualifiedIdSet> modulePropertiesSetInGroups() const;
+    Set<Item *> disabledGroups() const;
 
-    void checkDependencyParameterDeclarations(const ProductContext &product) const;
-    void forwardParameterDeclarations(const Item *dependsItem, const Item::Modules &modules);
+    void printProfilingInfo(int indent);
 
-    // TODO: Remove once entry point is changed.
-    void checkProfileErrorsForModule(Item *module, const QString &moduleName,
-                                     const QString &productName, const QString &profileName);
 private:
     class Private;
     Private * const d;
@@ -81,4 +82,3 @@ private:
 
 } // namespace Internal
 } // namespace qbs
-

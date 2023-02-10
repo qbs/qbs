@@ -70,10 +70,9 @@ public:
     mutable QHash<QString, JSValue> valueCache;
 };
 
-static void convertToPropertyType_impl(ScriptEngine *engine,
-                                       const QString &pathPropertiesBaseDir, const Item *item,
-                                       const PropertyDeclaration& decl,
-                                       const CodeLocation &location, JSValue &v);
+static void convertToPropertyType_impl(
+    ScriptEngine *engine, const QString &pathPropertiesBaseDir, const Item *item,
+    const PropertyDeclaration& decl, const Value *value, const CodeLocation &location, JSValue &v);
 static int getEvalPropertyNames(JSContext *ctx, JSPropertyEnum **ptab, uint32_t *plen,
                                 JSValueConst obj);
 static int getEvalProperty(JSContext *ctx, JSPropertyDescriptor *desc,
@@ -202,7 +201,7 @@ bool Evaluator::isNonDefaultValue(const Item *item, const QString &name) const
 void Evaluator::convertToPropertyType(const PropertyDeclaration &decl, const CodeLocation &loc,
                                       JSValue &v)
 {
-    convertToPropertyType_impl(engine(), QString(), nullptr, decl, loc, v);
+    convertToPropertyType_impl(engine(), QString(), nullptr, decl, nullptr, loc, v);
 }
 
 JSValue Evaluator::scriptValue(const Item *item)
@@ -223,7 +222,7 @@ JSValue Evaluator::scriptValue(const Item *item)
     return scriptValue;
 }
 
-void Evaluator::onItemPropertyChanged(Item *item)
+void Evaluator::clearCache(const Item *item)
 {
     const auto data = attachedPointer<EvaluationData>(m_scriptValueMap.value(item),
                                                       m_scriptEngine->dataWithPtrClass());
@@ -309,13 +308,14 @@ static QString overriddenSourceDirectory(const Item *item, const QString &defaul
 static void convertToPropertyType_impl(ScriptEngine *engine,
                                        const QString &pathPropertiesBaseDir, const Item *item,
                                        const PropertyDeclaration& decl,
-                                       const CodeLocation &location, JSValue &v)
+                                       const Value *value, const CodeLocation &location, JSValue &v)
 {
     JSContext * const ctx = engine->context();
     if (JS_IsUndefined(v) || JS_IsError(ctx, v) || JS_IsException(v))
         return;
     QString srcDir;
     QString actualBaseDir;
+    const Item * const srcDirItem = value && value->scope() ? value->scope() : item;
     if (item && !pathPropertiesBaseDir.isEmpty()) {
         const VariantValueConstPtr itemSourceDir
                 = item->variantProperty(QStringLiteral("sourceDirectory"));
@@ -339,8 +339,8 @@ static void convertToPropertyType_impl(ScriptEngine *engine,
             makeTypeError(engine, decl, location, v);
             break;
         }
-        const QString srcDir = item ? overriddenSourceDirectory(item, actualBaseDir)
-                                    : pathPropertiesBaseDir;
+        const QString srcDir = srcDirItem ? overriddenSourceDirectory(srcDirItem, actualBaseDir)
+                                          : pathPropertiesBaseDir;
         if (!srcDir.isEmpty()) {
             v = engine->toScriptValue(QDir::cleanPath(FileInfo::resolvePath(srcDir,
                                                                             getJsString(ctx, v))));
@@ -353,8 +353,8 @@ static void convertToPropertyType_impl(ScriptEngine *engine,
             makeTypeError(engine, decl, location, v);
         break;
     case PropertyDeclaration::PathList:
-        srcDir = item ? overriddenSourceDirectory(item, actualBaseDir)
-                      : pathPropertiesBaseDir;
+        srcDir = srcDirItem ? overriddenSourceDirectory(srcDirItem, actualBaseDir)
+                            : pathPropertiesBaseDir;
         // Fall-through.
     case PropertyDeclaration::StringList:
     {
@@ -565,56 +565,52 @@ private:
                 setupConvenienceProperty(StringConstants::outerVar(), &extraScope, v);
         }
         if (value->sourceUsesOriginal()) {
-            JSValue originalValue = JS_UNDEFINED;
+            JSValue originalJs = JS_UNDEFINED;
             ScopedJsValue originalMgr(engine->context(), JS_UNDEFINED);
             if (data->item->propertyDeclaration(*propertyName).isScalar()) {
                 const Item *item = itemOfProperty;
-                if (item->type() == ItemType::Module || item->type() == ItemType::Export) {
-                    const QString errorMessage = Tr::tr("The special value 'original' cannot "
-                            "be used on the right-hand side of a property declaration.");
-                    extraScope = throwError(engine->context(), errorMessage);
-                    result.second = false;
-                    return result;
-                }
 
-                // TODO: Provide a dedicated item type for not-yet-instantiated things that
-                //       look like module instances in the AST visitor.
-                if (item->type() == ItemType::ModuleInstance
-                        && !item->hasProperty(StringConstants::presentProperty())) {
-                    const QString errorMessage = Tr::tr("Trying to assign property '%1' "
-                            "on something that is not a module.").arg(*propertyName);
-                    extraScope = throwError(engine->context(), errorMessage);
-                    result.second = false;
-                    return result;
-                }
-
-                while (item->type() == ItemType::ModuleInstance)
-                    item = item->prototype();
-                if (item->type() != ItemType::Module && item->type() != ItemType::Export) {
+                if (item->type() != ItemType::ModuleInstance) {
                     const QString errorMessage = Tr::tr("The special value 'original' can only "
                                                         "be used with module properties.");
                     extraScope = throwError(engine->context(), errorMessage);
                     result.second = false;
                     return result;
                 }
-                const ValuePtr v = item->property(*propertyName);
+
+                if (!value->scope()) {
+                    const QString errorMessage = Tr::tr("The special value 'original' cannot "
+                        "be used on the right-hand side of a property declaration.");
+                    extraScope = throwError(engine->context(), errorMessage);
+                    result.second = false;
+                    return result;
+                }
+
+                ValuePtr original;
+                for (const ValuePtr &v : value->candidates()) {
+                    if (!v->scope()) {
+                        original = v;
+                        break;
+                    }
+                }
 
                 // This can happen when resolving shadow products. The error will be ignored
                 // in that case.
-                if (!v) {
+                if (!original) {
                     const QString errorMessage = Tr::tr("Error setting up 'original'.");
                     extraScope = throwError(engine->context(), errorMessage);
                     result.second = false;
                     return result;
                 }
 
-                SVConverter converter(engine, object, v, item, propertyName, data, &originalValue);
+                SVConverter converter(engine, object, original, item, propertyName, data,
+                                      &originalJs);
                 converter.start();
             } else {
-                originalValue = engine->newArray(0, JsValueOwner::Caller);
-                originalMgr.setValue(originalValue);
+                originalJs = engine->newArray(0, JsValueOwner::Caller);
+                originalMgr.setValue(originalJs);
             }
-            setupConvenienceProperty(StringConstants::originalVar(), &extraScope, originalValue);
+            setupConvenienceProperty(StringConstants::originalVar(), &extraScope, originalJs);
         }
         return result;
     }
@@ -627,6 +623,13 @@ private:
         }
     }
 
+    void pushScopeRecursively(const Item *scope)
+    {
+        if (scope) {
+            pushScopeRecursively(scope->scope());
+            pushScope(data->evaluator->scriptValue(scope));
+        }
+    }
     void pushItemScopes(const Item *item)
     {
         const Item *scope = item->scope();
@@ -698,12 +701,11 @@ private:
         }
         pushScope(fileCtxScopes.fileScope);
         pushItemScopes(data->item);
-        if (itemOfProperty->type() != ItemType::ModuleInstance) {
-            // Own properties of module instances must not have the instance itself in the scope.
+        if ((itemOfProperty->type() != ItemType::ModuleInstance
+             && itemOfProperty->type() != ItemType::ModuleInstancePlaceholder) || !value->scope()) {
             pushScope(*object);
         }
-        if (value->definingItem())
-            pushItemScopes(value->definingItem());
+        pushScopeRecursively(value->scope());
         pushScope(maybeExtraScope.first);
         pushScope(fileCtxScopes.importScope);
         if (alternative) {
@@ -756,6 +758,16 @@ private:
     }
 };
 
+static void convertToPropertyType(ScriptEngine *engine, const Item *item,
+                                  const PropertyDeclaration& decl, const Value *value, JSValue &v)
+{
+    if (value->type() == Value::VariantValueType && JS_IsUndefined(v) && !decl.isScalar()) {
+        v = engine->newArray(0, JsValueOwner::ScriptEngine); // QTBUG-51237
+        return;
+    }
+    convertToPropertyType_impl(engine, engine->evaluator()->pathPropertiesBaseDir(), item, decl,
+                               value, value->location(), v);
+}
 
 static QString resultToString(JSContext *ctx, const JSValue &scriptValue)
 {
@@ -770,19 +782,15 @@ static QString resultToString(JSContext *ctx, const JSValue &scriptValue)
     return getJsVariant(ctx, scriptValue).toString();
 }
 
-static void collectValuesFromNextChain(ScriptEngine *engine, const EvaluationData *data,
-                                       JSValue *result, const QString &propertyName,
-                                       const ValuePtr &value)
+static void collectValuesFromNextChain(
+        ScriptEngine *engine, JSValue obj, const ValuePtr &value, const Item *itemOfProperty, const QString &name,
+        const EvaluationData *data, JSValue *result)
 {
     JSValueList lst;
-    Set<Value *> &currentNextChain = data->evaluator->currentNextChain();
-    Set<Value *> oldNextChain = currentNextChain;
-    for (ValuePtr next = value; next; next = next->next())
-        currentNextChain.insert(next.get());
-
     for (ValuePtr next = value; next; next = next->next()) {
-        ScopedJsValue v(engine->context(),
-                        data->evaluator->property(next->definingItem(), propertyName));
+        JSValue v = JS_UNDEFINED;
+        SVConverter svc(engine, &obj, next, itemOfProperty, &name, data, &v);
+        svc.start();
         if (JsException ex = engine->checkAndClearException({})) {
             const ScopedJsValueList l(engine->context(), lst);
             *result = engine->throwError(ex.toErrorInfo().toString());
@@ -790,7 +798,9 @@ static void collectValuesFromNextChain(ScriptEngine *engine, const EvaluationDat
         }
         if (JS_IsUndefined(v))
             continue;
-        lst.push_back(v.release());
+        const PropertyDeclaration decl = data->item->propertyDeclaration(name);
+        convertToPropertyType(engine, data->item, decl, next.get(), v);
+        lst.push_back(JS_DupValue(engine->context(), v));
         if (next->type() == Value::JSSourceValueType
                 && std::static_pointer_cast<JSSourceValue>(next)->isExclusiveListValue()) {
             // TODO: Why on earth do we keep the last _2_ elements?
@@ -803,7 +813,6 @@ static void collectValuesFromNextChain(ScriptEngine *engine, const EvaluationDat
             break;
         }
     }
-    currentNextChain = oldNextChain;
 
     *result = engine->newArray(int(lst.size()), JsValueOwner::ScriptEngine);
     quint32 k = 0;
@@ -822,23 +831,17 @@ static void collectValuesFromNextChain(ScriptEngine *engine, const EvaluationDat
     setJsProperty(ctx, *result, StringConstants::lengthProperty(), JS_NewInt32(ctx, k));
 }
 
-static void convertToPropertyType(ScriptEngine *engine, const Item *item,
-                                  const PropertyDeclaration& decl, const Value *value, JSValue &v)
-{
-    if (value->type() == Value::VariantValueType && JS_IsUndefined(v) && !decl.isScalar()) {
-        v = engine->newArray(0, JsValueOwner::ScriptEngine); // QTBUG-51237
-        return;
-    }
-    convertToPropertyType_impl(engine, engine->evaluator()->pathPropertiesBaseDir(), item, decl,
-                               value->location(), v);
-}
-
 struct EvalResult { JSValue v = JS_UNDEFINED; bool found = false; };
 static EvalResult getEvalProperty(ScriptEngine *engine, JSValue obj, const Item *item,
                                   const QString &name, const EvaluationData *data)
 {
     Evaluator * const evaluator = data->evaluator;
+    const bool isModuleInstance = item->type() == ItemType::ModuleInstance;
     for (; item; item = item->prototype()) {
+        if (isModuleInstance
+            && (item->type() == ItemType::Module || item->type() == ItemType::Export)) {
+            break; // There's no property in a prototype that's not also in the instance.
+        }
         const ValuePtr value = item->ownProperty(name);
         if (!value)
             continue;
@@ -857,8 +860,8 @@ static EvalResult getEvalProperty(ScriptEngine *engine, JSValue obj, const Item 
             }
         }
 
-        if (value->next() && !evaluator->currentNextChain().contains(value.get())) {
-            collectValuesFromNextChain(engine, data, &result, name, value);
+        if (value->next()) {
+            collectValuesFromNextChain(engine, obj, value, itemOfProperty, name, data, &result);
         } else {
             SVConverter converter(engine, &obj, value, itemOfProperty, &name, data, &result);
             converter.start();

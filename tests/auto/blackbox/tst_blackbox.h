@@ -90,6 +90,8 @@ private slots:
     void cxxLanguageVersion_data();
     void conanfileProbe_data();
     void conanfileProbe();
+    void conflictingPropertyValues_data();
+    void conflictingPropertyValues();
     void cpuFeatures();
     void dependenciesProperty();
     void dependencyScanningLoop();

@@ -268,7 +268,7 @@ bool ItemReaderASTVisitor::handleBindingRhs(AST::Statement *statement,
     QBS_CHECK(value);
 
     if (AST::cast<AST::Block *>(statement))
-        value->m_flags |= JSSourceValue::HasFunctionForm;
+        value->setHasFunctionForm();
 
     value->setFile(m_file);
     value->setSourceCode(textViewOf(m_file->content(), statement));
@@ -282,11 +282,11 @@ bool ItemReaderASTVisitor::handleBindingRhs(AST::Statement *statement,
     idsearch.add(StringConstants::originalVar(), &usesOriginal);
     idsearch.start(statement);
     if (usesBase)
-        value->m_flags |= JSSourceValue::SourceUsesBase;
+        value->setSourceUsesBase();
     if (usesOuter)
-        value->m_flags |= JSSourceValue::SourceUsesOuter;
+        value->setSourceUsesOuter();
     if (usesOriginal)
-        value->m_flags |= JSSourceValue::SourceUsesOriginal;
+        value->setSourceUsesOriginal();
     return false;
 }
 

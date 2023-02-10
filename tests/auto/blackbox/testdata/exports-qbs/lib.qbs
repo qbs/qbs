@@ -52,7 +52,7 @@ DynamicLibrary {
             condition: true
             prefixMapping: [{
                 prefix: includeDir,
-                replacement: FileInfo.joinPaths(qbs.installPrefix, exportingProduct.headersInstallDir)
+                replacement: FileInfo.joinPaths(exportingProduct.qbs.installPrefix, exportingProduct.headersInstallDir)
             }]
         }
     }

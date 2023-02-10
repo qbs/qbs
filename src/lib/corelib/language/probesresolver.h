@@ -41,7 +41,9 @@
 #ifndef PROBESRESOLVER_H
 #define PROBESRESOLVER_H
 
-#include "moduleloader.h"
+#include "projecttreebuilder.h"
+
+#include <tools/setupprojectparameters.h>
 
 namespace qbs {
 namespace Internal {
@@ -53,9 +55,9 @@ public:
     void setProjectParameters(SetupProjectParameters parameters);
     void setOldProjectProbes(const std::vector<ProbeConstPtr> &oldProbes);
     void setOldProductProbes(const QHash<QString, std::vector<ProbeConstPtr>> &oldProbes);
-    void resolveProbes(ModuleLoader::ProductContext *productContext, Item *item);
-    void resolveProbe(ModuleLoader::ProductContext *productContext, Item *parent, Item *probe);
-    void printProfilingInfo();
+    void resolveProbes(ProductContext *productContext, Item *item);
+    void resolveProbe(ProductContext *productContext, Item *parent, Item *probe);
+    void printProfilingInfo(int indent);
 
 private:
     ProbeConstPtr findOldProjectProbe(const QString &globalId, bool condition,

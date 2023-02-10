@@ -88,7 +88,7 @@ private:
     Logger &m_logger;
     QHash<QStringList, QString> m_typeNameToFile;
     Item *m_item = nullptr;
-    ItemType m_instanceItemType = ItemType::ModuleInstance;
+    ItemType m_instanceItemType = ItemType::ModuleInstancePlaceholder;
 };
 
 } // namespace Internal

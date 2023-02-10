@@ -216,7 +216,7 @@ CppModule {
     linkerScriptFlag: "-T"
 
     readonly property bool shouldCreateSymlinks: {
-        return createSymlinks && internalVersion && ["macho", "elf"].includes(cpp.imageFormat);
+        return createSymlinks && internalVersion && ["macho", "elf"].includes(imageFormat);
     }
 
     readonly property bool shouldSignArtifacts: codesign._canSignArtifacts

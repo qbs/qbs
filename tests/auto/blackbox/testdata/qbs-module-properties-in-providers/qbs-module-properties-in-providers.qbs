@@ -4,12 +4,12 @@ Project {
 
     Profile {
         name: "profile1"
-        qbs.sysroot: "sysroot1"
+        qbs.sysroot: "/sysroot1"
     }
 
     Profile {
         name: "profile2"
-        qbs.sysroot: "sysroot2"
+        qbs.sysroot: "/sysroot2"
     }
 
     Product {

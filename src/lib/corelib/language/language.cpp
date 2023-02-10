@@ -41,6 +41,7 @@
 
 #include "artifactproperties.h"
 #include "builtindeclarations.h"
+#include "productitemmultiplexer.h"
 #include "propertymapinternal.h"
 #include "scriptengine.h"
 
@@ -60,6 +61,7 @@
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
 #include <tools/scripttools.h>
+#include <tools/setupprojectparameters.h>
 #include <tools/stlutils.h>
 #include <tools/stringconstants.h>
 
@@ -423,18 +425,9 @@ QString ResolvedProduct::uniqueName() const
     return uniqueName(name, multiplexConfigurationId);
 }
 
-QString ResolvedProduct::fullDisplayName(const QString &name,
-                                         const QString &multiplexConfigurationId)
-{
-    QString result = name;
-    if (!multiplexConfigurationId.isEmpty())
-        result.append(QLatin1Char(' ')).append(multiplexIdToString(multiplexConfigurationId));
-    return result;
-}
-
 QString ResolvedProduct::fullDisplayName() const
 {
-    return fullDisplayName(name, multiplexConfigurationId);
+    return ProductItemMultiplexer::fullProductDisplayName(name, multiplexConfigurationId);
 }
 
 QString ResolvedProduct::profile() const
@@ -615,6 +608,16 @@ void TopLevelProject::makeModuleProvidersNonTransient()
 {
     for (ModuleProviderInfo &m : moduleProviderInfo.providers)
         m.transientOutput = false;
+}
+
+QVariantMap TopLevelProject::fullProfileConfigsTree() const
+{
+    QVariantMap tree;
+    for (auto it = profileConfigs.cbegin(); it != profileConfigs.cend(); ++it) {
+        tree.insert(it.key(), SetupProjectParameters::finalBuildConfigurationTree(
+                                  it.value().toMap(), overriddenValues));
+    }
+    return tree;
 }
 
 QString TopLevelProject::buildGraphFilePath() const
@@ -911,11 +914,6 @@ bool artifactPropertyListsAreEqual(const std::vector<ArtifactPropertiesPtr> &l1,
                                    const std::vector<ArtifactPropertiesPtr> &l2)
 {
     return listsAreEqual(l1, l2);
-}
-
-QString multiplexIdToString(const QString &id)
-{
-    return QString::fromUtf8(QByteArray::fromBase64(id.toUtf8()));
 }
 
 bool operator==(const PrivateScriptFunction &a, const PrivateScriptFunction &b)

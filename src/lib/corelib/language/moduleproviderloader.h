@@ -41,7 +41,7 @@
 #ifndef MODULEPROVIDERLOADER_H
 #define MODULEPROVIDERLOADER_H
 
-#include "moduleloader.h"
+#include "projecttreebuilder.h"
 #include "moduleproviderinfo.h"
 #include "probesresolver.h"
 
@@ -50,14 +50,12 @@
 
 namespace qbs {
 namespace Internal {
-
+class ItemReader;
 class Logger;
 
 class ModuleProviderLoader
 {
 public:
-    using ProductContext = ModuleLoader::ProductContext;
-    using FallbackMode = ModuleLoader::FallbackMode;
     explicit ModuleProviderLoader(ItemReader *itemReader, Evaluator *evaluator,
                                   ProbesResolver *probesResolver, Logger &logger);
 

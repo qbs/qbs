@@ -102,7 +102,7 @@ Module {
     property path installSourceBase
     property string installRoot: project.buildDirectory + "/install-root"
     property string installDir
-    property string installPrefix: qbs.targetOS.includes("unix") ? "/usr/local" : ""
+    property string installPrefix: targetOS.includes("unix") ? "/usr/local" : ""
     property path sysroot
 
     PropertyOptions {

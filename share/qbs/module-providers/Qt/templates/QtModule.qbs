@@ -23,6 +23,7 @@ Module {
             // We have to pull in all plugins here, because dependency resolving happens
             // before module merging, and we don't know yet if someone set
             // Qt.pluginSupport.pluginsByType in the product.
+            // TODO: We might be able to use Qt.pluginSupport.pluginsByType now.
             // The real filtering is done later by the plugin module files themselves.
             var list = [];
             var allPlugins = Qt.plugin_support.allPluginsByType;

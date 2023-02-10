@@ -53,6 +53,7 @@
 #include <QtCore/qlist.h>
 #include <QtCore/qmap.h>
 
+#include <optional>
 #include <vector>
 
 namespace qbs {
@@ -75,18 +76,29 @@ class QBS_AUTOTEST_EXPORT Item : public QbsQmlJS::Managed
 public:
     struct Module
     {
-        Module()
-            : item(nullptr), isProduct(false), required(true)
-        {}
-
         QualifiedId name;
-        Item *item;
-        bool isProduct;
-        bool requiredValue = true; // base value of the required prop
-        bool required;
-        bool fallbackEnabled = true;
+        Item *item = nullptr;
+        struct ProductInfo {
+            ProductInfo(Item *i, const QString &m, const QString &p)
+                : item(i), multiplexId(m), profile(p) {}
+            Item *item = nullptr;
+            QString multiplexId;
+            QString profile;
+        };
+        std::optional<ProductInfo> productInfo; // Set if and only if the dep is a product.
+
+        // All items that declared an explicit dependency on this module. Can contain any
+        // number of module instances and at most one product.
+        std::vector<Item *> loadingItems;
+
         QVariantMap parameters;
         VersionRange versionRange;
+
+        // The shorter this value, the "closer to the product" we consider the module,
+        // and the higher its precedence is when merging property values.
+        int maxDependsChainLength = 0;
+
+        bool required = true;
     };
     using Modules = std::vector<Module>;
     using PropertyDeclarationMap = QMap<QString, PropertyDeclaration>;
@@ -99,19 +111,27 @@ public:
     const QString &id() const { return m_id; }
     const CodeLocation &location() const { return m_location; }
     Item *prototype() const { return m_prototype; }
+    Item *rootPrototype();
     Item *scope() const { return m_scope; }
     Item *outerItem() const { return m_outerItem; }
     Item *parent() const { return m_parent; }
     const FileContextPtr &file() const { return m_file; }
     const QList<Item *> &children() const { return m_children; }
+    QList<Item *> &children() { return m_children; }
     Item *child(ItemType type, bool checkForMultiple = true) const;
     const PropertyMap &properties() const { return m_properties; }
+    PropertyMap &properties() { return m_properties; }
     const PropertyDeclarationMap &propertyDeclarations() const { return m_propertyDeclarations; }
     PropertyDeclaration propertyDeclaration(const QString &name, bool allowExpired = true) const;
+
+    // The list of modules is ordered such that dependencies appear before the modules
+    // depending on them.
     const Modules &modules() const { return m_modules; }
+    Modules &modules() { return m_modules; }
+
     void addModule(const Module &module);
     void removeModules() { m_modules.clear(); }
-    void setModules(const Modules &modules) { m_modules = modules; }
+    void setModules(const Modules &modules);
 
     ItemType type() const { return m_type; }
     void setType(ItemType type) { m_type = type; }
@@ -149,6 +169,11 @@ public:
     void copyProperty(const QString &propertyName, Item *target) const;
     void overrideProperties(
         const QVariantMap &config,
+        const QString &key,
+        const SetupProjectParameters &parameters,
+        Logger &logger);
+    void overrideProperties(
+        const QVariantMap &config,
         const QualifiedId &namePrefix,
         const SetupProjectParameters &parameters,
         Logger &logger);
@@ -177,6 +202,10 @@ private:
 };
 
 inline bool operator<(const Item::Module &m1, const Item::Module &m2) { return m1.name < m2.name; }
+
+Item *createNonPresentModule(ItemPool &pool, const QString &name, const QString &reason,
+                             Item *module);
+void setScopeForDescendants(Item *item, Item *scope);
 
 } // namespace Internal
 } // namespace qbs

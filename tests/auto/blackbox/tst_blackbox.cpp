@@ -1961,6 +1961,42 @@ void TestBlackbox::conanfileProbe()
     QCOMPARE(actualResults, expectedResults);
 }
 
+void TestBlackbox::conflictingPropertyValues_data()
+{
+    QTest::addColumn<bool>("overrideInProduct");
+    QTest::newRow("don't override in product") << false;
+    QTest::newRow("override in product") << true;
+}
+
+void TestBlackbox::conflictingPropertyValues()
+{
+    QFETCH(bool, overrideInProduct);
+
+    QDir::setCurrent(testDataDir + "/conflicting-property-values");
+    if (overrideInProduct)
+        REPLACE_IN_FILE("conflicting-property-values.qbs", "// low.prop: name", "low.prop: name");
+    else
+        REPLACE_IN_FILE("conflicting-property-values.qbs", "low.prop: name", "// low.prop: name");
+    WAIT_FOR_NEW_TIMESTAMP();
+    QCOMPARE(runQbs(QString("resolve")), 0);
+    if (overrideInProduct) {
+        // Binding in product itself overrides everything else, module-level conflicts
+        // are irrelevant.
+        QVERIFY2(m_qbsStdout.contains("final prop value: toplevel"), m_qbsStdout.constData());
+        QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
+    } else {
+        // Only the conflicts in the highest-level modules are reported, lower-level conflicts
+        // are irrelevant.
+        // prop2 does not cause a conflict, because the values are the same.
+        QVERIFY2(m_qbsStdout.contains("final prop value: highest"), m_qbsStdout.constData());
+        QVERIFY2(m_qbsStderr.contains("Conflicting scalar values for property 'prop'"),
+                 m_qbsStderr.constData());
+        QVERIFY2(m_qbsStderr.count("values.qbs") == 2, m_qbsStderr.constData());
+        QVERIFY2(m_qbsStderr.contains("values.qbs:20:23"), m_qbsStderr.constData());
+        QVERIFY2(m_qbsStderr.contains("values.qbs:30:23"), m_qbsStderr.constData());
+    }
+}
+
 void TestBlackbox::cpuFeatures()
 {
     QDir::setCurrent(testDataDir + "/cpu-features");
@@ -3447,7 +3483,7 @@ void TestBlackbox::propertyAssignmentInFailedModule()
     QVERIFY(runQbs(failParams) != 0);
     QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList("modules.m.doFail:true"))), 0);
     QVERIFY2(m_qbsStdout.contains("Resolving"), m_qbsStdout.constData());
-    QEXPECT_FAIL(nullptr, "circular dependency between module merging and validation", Continue);
+    failParams.expectFailure = false;
     QCOMPARE(runQbs(failParams), 0);
 }
 
@@ -5574,11 +5610,7 @@ void TestBlackbox::propertyPrecedence()
     switchProfileContents(profile.p, s.get(), false);
     switchFileContents(nonleafFile, true);
     QCOMPARE(runQbs(resolveParams), 0);
-    QVERIFY2(m_qbsStderr.contains("WARNING: Conflicting scalar values at")
-             && m_qbsStderr.contains("nonleaf.qbs:4:22")
-             && m_qbsStderr.contains("dep.qbs:6:26"),
-             m_qbsStderr.constData());
-    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData()); QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: export\n")
              && m_qbsStdout.contains("list prop: [\"export\",\"nonleaf\",\"leaf\"]\n"),
              m_qbsStdout.constData());
@@ -5586,10 +5618,7 @@ void TestBlackbox::propertyPrecedence()
     // Case 8: [cmdline=0,prod=0,export=1,nonleaf=1,profile=1]
     switchProfileContents(profile.p, s.get(), true);
     QCOMPARE(runQbs(resolveParams), 0);
-    QVERIFY2(m_qbsStderr.contains("WARNING: Conflicting scalar values at")
-             && m_qbsStderr.contains("nonleaf.qbs:4:22")
-             && m_qbsStderr.contains("dep.qbs:6:26"),
-             m_qbsStderr.constData());
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("scalar prop: export\n")
              && m_qbsStdout.contains("list prop: [\"export\",\"nonleaf\",\"profile\"]\n"),
@@ -6177,11 +6206,11 @@ void TestBlackbox::qbsModulePropertiesInProviders()
     QCOMPARE(m_qbsStdout.count("Running setup script for qbsmetatestmodule"), 2);
 
     // Check that products get correct values from modules
-    QVERIFY2(m_qbsStdout.contains(("product1.qbsmetatestmodule.prop: sysroot1")), m_qbsStdout);
-    QVERIFY2(m_qbsStdout.contains(("product1.qbsmetatestmodule.prop: sysroot2")), m_qbsStdout);
+    QVERIFY2(m_qbsStdout.contains(("product1.qbsmetatestmodule.prop: /sysroot1")), m_qbsStdout);
+    QVERIFY2(m_qbsStdout.contains(("product1.qbsmetatestmodule.prop: /sysroot2")), m_qbsStdout);
 
-    QVERIFY2(m_qbsStdout.contains(("product2.qbsmetatestmodule.prop: sysroot1")), m_qbsStdout);
-    QVERIFY2(m_qbsStdout.contains(("product2.qbsmetatestmodule.prop: sysroot2")), m_qbsStdout);
+    QVERIFY2(m_qbsStdout.contains(("product2.qbsmetatestmodule.prop: /sysroot1")), m_qbsStdout);
+    QVERIFY2(m_qbsStdout.contains(("product2.qbsmetatestmodule.prop: /sysroot2")), m_qbsStdout);
 }
 
 // Tests whether it is possible to set qbsModuleProviders in Product and Project items

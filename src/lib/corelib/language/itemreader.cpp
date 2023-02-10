@@ -39,9 +39,14 @@
 
 #include "itemreader.h"
 
+#include "deprecationinfo.h"
+#include "evaluator.h"
+#include "item.h"
 #include "itemreadervisitorstate.h"
+#include "value.h"
 
 #include <tools/profiling.h>
+#include <tools/stringconstants.h>
 #include <tools/stlutils.h>
 
 #include <QtCore/qfileinfo.h>
@@ -146,6 +151,73 @@ void ItemReader::setEnableTiming(bool on)
 void ItemReader::setDeprecationWarningMode(DeprecationWarningMode mode)
 {
     m_visitorState->setDeprecationWarningMode(mode);
+}
+
+void ItemReader::handlePropertyOptions(Item *optionsItem, Evaluator &evaluator)
+{
+    const QString name = evaluator.stringValue(optionsItem, StringConstants::nameProperty());
+    if (name.isEmpty()) {
+        throw ErrorInfo(Tr::tr("PropertyOptions item needs a name property"),
+                        optionsItem->location());
+    }
+    const QString description = evaluator.stringValue(
+        optionsItem, StringConstants::descriptionProperty());
+    const auto removalVersion = Version::fromString(
+        evaluator.stringValue(optionsItem, StringConstants::removalVersionProperty()));
+    const auto allowedValues = evaluator.stringListValue(
+        optionsItem, StringConstants::allowedValuesProperty());
+
+    PropertyDeclaration decl = optionsItem->parent()->propertyDeclaration(name);
+    if (!decl.isValid()) {
+        decl.setName(name);
+        decl.setType(PropertyDeclaration::Variant);
+    }
+    decl.setDescription(description);
+    if (removalVersion.isValid()) {
+        DeprecationInfo di(removalVersion, description);
+        decl.setDeprecationInfo(di);
+    }
+    decl.setAllowedValues(allowedValues);
+    const ValuePtr property = optionsItem->parent()->property(name);
+    if (!property && !decl.isExpired()) {
+        throw ErrorInfo(Tr::tr("PropertyOptions item refers to non-existing property '%1'")
+                            .arg(name), optionsItem->location());
+    }
+    if (property && decl.isExpired()) {
+        ErrorInfo e(Tr::tr("Property '%1' was scheduled for removal in version %2, but "
+                           "is still present.")
+                        .arg(name, removalVersion.toString()),
+                    property->location());
+        e.append(Tr::tr("Removal version for '%1' specified here.").arg(name),
+                 optionsItem->location());
+        m_visitorState->logger().printWarning(e);
+    }
+    optionsItem->parent()->setPropertyDeclaration(name, decl);
+}
+
+void ItemReader::handleAllPropertyOptionsItems(Item *item, Evaluator &evaluator)
+{
+    QList<Item *> childItems = item->children();
+    auto childIt = childItems.begin();
+    while (childIt != childItems.end()) {
+        Item * const child = *childIt;
+        if (child->type() == ItemType::PropertyOptions) {
+            handlePropertyOptions(child, evaluator);
+            childIt = childItems.erase(childIt);
+        } else {
+            handleAllPropertyOptionsItems(child, evaluator);
+            ++childIt;
+        }
+    }
+    item->setChildren(childItems);
+}
+
+Item *ItemReader::setupItemFromFile(
+    const QString &filePath, const CodeLocation &referencingLocation, Evaluator &evaluator)
+{
+    Item *item = readFile(filePath, referencingLocation);
+    handleAllPropertyOptionsItems(item, evaluator);
+    return item;
 }
 
 } // namespace Internal

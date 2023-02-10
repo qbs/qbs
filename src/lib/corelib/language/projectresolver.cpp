@@ -117,7 +117,7 @@ struct ProjectResolver::ModuleContext
 class CancelException { };
 
 
-ProjectResolver::ProjectResolver(Evaluator *evaluator, ModuleLoaderResult loadResult,
+ProjectResolver::ProjectResolver(Evaluator *evaluator, ProjectTreeBuilder::Result loadResult,
         SetupProjectParameters setupParameters, Logger &logger)
     : m_evaluator(evaluator)
     , m_logger(logger)
@@ -261,7 +261,7 @@ TopLevelProjectPtr ProjectResolver::resolveTopLevelProject()
     project->environment = m_engine->environment();
     project->buildSystemFiles.unite(m_engine->imports());
     makeSubProjectNamesUniqe(project);
-    resolveProductDependencies(projectContext);
+    resolveProductDependencies();
     collectExportedProductDependencies();
     checkForDuplicateProductNames(project);
 
@@ -411,9 +411,32 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
     productContext.product = product;
     product->location = item->location();
     ProductContextSwitcher contextSwitcher(this, &productContext, m_progressObserver);
+    const auto errorFromDelayedError = [&] {
+        ProjectTreeBuilder::Result::ProductInfo &pi = m_loadResult.productInfos[item];
+        if (pi.delayedError.hasError()) {
+            ErrorInfo errorInfo;
+
+            // First item is "main error", gets prepended again in the catch clause.
+            const QList<ErrorItem> &items = pi.delayedError.items();
+            for (int i = 1; i < items.size(); ++i)
+                errorInfo.append(items.at(i));
+
+            pi.delayedError.clear();
+            return errorInfo;
+        }
+        return ErrorInfo();
+    };
+
+    // Even if we previously encountered an error, try to continue for as long as possible
+    // to provide IDEs with useful data (e.g. the list of files).
+    // If we encounter a follow-up error, suppress it and report the original one instead.
     try {
         resolveProductFully(item, projectContext);
-    } catch (const ErrorInfo &e) {
+        if (const ErrorInfo error = errorFromDelayedError(); error.hasError())
+            throw error;
+    } catch (ErrorInfo e) {
+        if (const ErrorInfo error = errorFromDelayedError(); error.hasError())
+            e = error;
         QString mainErrorString = !product->name.isEmpty()
                 ? Tr::tr("Error while handling product '%1':").arg(product->name)
                 : Tr::tr("Error while handling product:");
@@ -445,21 +468,10 @@ void ProjectResolver::resolveProductFully(Item *item, ProjectContext *projectCon
     product->multiplexConfigurationId
             = m_evaluator->stringValue(item, StringConstants::multiplexConfigurationIdProperty());
     qCDebug(lcProjectResolver) << "resolveProduct" << product->uniqueName();
-    m_productsByName.insert(product->uniqueName(), product);
+    m_productsByItem.insert(item, product);
     product->enabled = product->enabled
             && m_evaluator->boolValue(item, StringConstants::conditionProperty());
-    ModuleLoaderResult::ProductInfo &pi = m_loadResult.productInfos[item];
-    if (pi.delayedError.hasError()) {
-        ErrorInfo errorInfo;
-
-        // First item is "main error", gets prepended again in the catch clause.
-        const QList<ErrorItem> &items = pi.delayedError.items();
-        for (int i = 1; i < items.size(); ++i)
-            errorInfo.append(items.at(i));
-
-        pi.delayedError.clear();
-        throw errorInfo;
-    }
+    ProjectTreeBuilder::Result::ProductInfo &pi = m_loadResult.productInfos[item];
     gatherProductTypes(product.get(), item);
     product->targetName = m_evaluator->stringValue(item, StringConstants::targetNameProperty());
     product->sourceDirectory = m_evaluator->stringValue(
@@ -526,8 +538,10 @@ void ProjectResolver::resolveProductFully(Item *item, ProjectContext *projectCon
 void ProjectResolver::resolveModules(const Item *item, ProjectContext *projectContext)
 {
     JobLimits jobLimits;
-    for (const Item::Module &m : item->modules())
-        resolveModule(m.name, m.item, m.isProduct, m.parameters, jobLimits, projectContext);
+    for (const Item::Module &m : item->modules()) {
+        resolveModule(m.name, m.item, m.productInfo.has_value(), m.parameters, jobLimits,
+                      projectContext);
+    }
     for (int i = 0; i < jobLimits.count(); ++i) {
         const JobLimit &moduleJobLimit = jobLimits.jobLimitAt(i);
         if (m_productContext->product->jobLimits.getLimit(moduleJobLimit.pool()) == -1)
@@ -592,15 +606,9 @@ void ProjectResolver::resolveModule(const QualifiedId &moduleName, Item *item, b
 
 void ProjectResolver::gatherProductTypes(ResolvedProduct *product, Item *item)
 {
-    product->fileTags = m_evaluator->fileTagsValue(item, StringConstants::typeProperty());
-    for (const Item::Module &m : item->modules()) {
-        if (m.item->isPresentModule()) {
-            product->fileTags += m_evaluator->fileTagsValue(m.item,
-                    StringConstants::additionalProductTypesProperty());
-        }
-    }
-    item->setProperty(StringConstants::typeProperty(),
-                      VariantValue::create(sorted(product->fileTags.toStringList())));
+    const VariantValuePtr type = item->variantProperty(StringConstants::typeProperty());
+    if (type)
+        product->fileTags = FileTags::fromStringList(type->value().toStringList());
 }
 
 SourceArtifactPtr ProjectResolver::createSourceArtifact(const ResolvedProductPtr &rproduct,
@@ -678,8 +686,7 @@ QVariantMap ProjectResolver::resolveAdditionalModuleProperties(const Item *group
                 = QualifiedId(fullPropName.mid(0, fullPropName.size() - 1)).toString();
         propsPerModule[moduleName] << fullPropName.last();
     }
-    EvalCacheEnabler cachingEnabler(m_evaluator);
-    m_evaluator->setPathPropertiesBaseDir(m_productContext->product->sourceDirectory);
+    EvalCacheEnabler cachingEnabler(m_evaluator, m_productContext->product->sourceDirectory);
     for (const Item::Module &module : group->modules()) {
         const QString &fullModName = module.name.toString();
         const QStringList propsForModule = propsPerModule.take(fullModName);
@@ -691,7 +698,6 @@ QVariantMap ProjectResolver::resolveAdditionalModuleProperties(const Item *group
         modulesMap.insert(fullModName,
                           evaluateProperties(module.item, module.item, reusableValues, true, true));
     }
-    m_evaluator->clearPathPropertiesBaseDir();
     return modulesMap;
 }
 
@@ -938,37 +944,27 @@ void ProjectResolver::collectExportedProductDependencies()
         if (!exportingProduct->enabled)
             continue;
         Item * const importingProductItem = exportingProductInfo.second;
-        std::vector<QString> directDepNames;
+
+        std::vector<std::pair<ResolvedProductPtr, QVariantMap>> directDeps;
         for (const Item::Module &m : importingProductItem->modules()) {
-            if (m.name.toString() == exportingProduct->name) {
-                for (const Item::Module &dep : m.item->modules()) {
-                    if (dep.isProduct)
-                        directDepNames.push_back(dep.name.toString());
+            if (m.name.toString() != exportingProduct->name)
+                continue;
+            for (const Item::Module &dep : m.item->modules()) {
+                if (dep.productInfo) {
+                    directDeps.emplace_back(m_productsByItem.value(dep.productInfo->item),
+                                            m.parameters);
                 }
-                break;
             }
         }
-        const ModuleLoaderResult::ProductInfo &importingProductInfo
-                = mapValue(m_loadResult.productInfos, importingProductItem);
-        const ProductDependencyInfos &depInfos
-                = getProductDependencies(dummyProduct, importingProductInfo);
-        for (const auto &dep : depInfos.dependencies) {
-            if (dep.product == exportingProduct)
-                continue;
-
-            // Filter out indirect dependencies.
-            // TODO: Depends items using "profile" or "productTypes" will not work.
-            if (!contains(directDepNames, dep.product->name))
-                continue;
-
+        for (const auto &dep : directDeps) {
             if (!contains(exportingProduct->exportedModule.productDependencies,
-                          dep.product->uniqueName())) {
+                          dep.first->uniqueName())) {
                 exportingProduct->exportedModule.productDependencies.push_back(
-                            dep.product->uniqueName());
+                    dep.first->uniqueName());
             }
-            if (!dep.parameters.isEmpty()) {
-                exportingProduct->exportedModule.dependencyParameters.insert(dep.product,
-                                                                             dep.parameters);
+            if (!dep.second.isEmpty()) {
+                exportingProduct->exportedModule.dependencyParameters.insert(dep.first,
+                                                                             dep.second);
             }
         }
         auto &productDeps = exportingProduct->exportedModule.productDependencies;
@@ -1406,64 +1402,6 @@ void ProjectResolver::resolveScanner(Item *item, ProjectResolver::ProjectContext
     m_productContext->product->scanners.push_back(scanner);
 }
 
-ProjectResolver::ProductDependencyInfos ProjectResolver::getProductDependencies(
-        const ResolvedProductConstPtr &product, const ModuleLoaderResult::ProductInfo &productInfo)
-{
-    ProductDependencyInfos result;
-    result.dependencies.reserve(productInfo.usedProducts.size());
-    for (const auto &dependency : productInfo.usedProducts) {
-        QBS_CHECK(!dependency.name.isEmpty());
-        if (dependency.profile == StringConstants::star()) {
-            for (const ResolvedProductPtr &p : qAsConst(m_productsByName)) {
-                if (p->name != dependency.name || p == product || !p->enabled
-                        || (dependency.limitToSubProject && !product->isInParentProject(p))) {
-                    continue;
-                }
-                result.dependencies.emplace_back(p, dependency.parameters);
-            }
-        } else {
-            ResolvedProductPtr usedProduct = m_productsByName.value(dependency.uniqueName());
-            const QString depDisplayName = ResolvedProduct::fullDisplayName(dependency.name,
-                    dependency.multiplexConfigurationId);
-            if (!usedProduct) {
-                throw ErrorInfo(Tr::tr("Product '%1' depends on '%2', which does not exist.")
-                                .arg(product->fullDisplayName(), depDisplayName),
-                                product->location);
-            }
-            if (!dependency.profile.isEmpty() && usedProduct->profile() != dependency.profile) {
-                usedProduct.reset();
-                for (const ResolvedProductPtr &p : qAsConst(m_productsByName)) {
-                    if (p->name == dependency.name && p->profile() == dependency.profile) {
-                        usedProduct = p;
-                        break;
-                    }
-                }
-                if (!usedProduct) {
-                    throw ErrorInfo(Tr::tr("Product '%1' depends on '%2', which does not exist "
-                                           "for the requested profile '%3'.")
-                                    .arg(product->fullDisplayName(), depDisplayName,
-                                         dependency.profile),
-                                    product->location);
-                }
-            }
-            if (!usedProduct->enabled) {
-                if (!dependency.isRequired)
-                    continue;
-                ErrorInfo e;
-                e.append(Tr::tr("Product '%1' depends on '%2',")
-                         .arg(product->name, usedProduct->name), product->location);
-                e.append(Tr::tr("but product '%1' is disabled.").arg(usedProduct->name),
-                             usedProduct->location);
-                if (m_setupParams.productErrorMode() == ErrorHandlingMode::Strict)
-                    throw e;
-                result.hasDisabledDependency = true;
-            }
-            result.dependencies.emplace_back(usedProduct, dependency.parameters);
-        }
-    }
-    return result;
-}
-
 void ProjectResolver::matchArtifactProperties(const ResolvedProductPtr &product,
         const std::vector<SourceArtifactPtr> &artifacts)
 {
@@ -1494,14 +1432,26 @@ void ProjectResolver::printProfilingInfo()
 class TempScopeSetter
 {
 public:
-    TempScopeSetter(Item * item, Item *newScope) : m_item(item), m_oldScope(item->scope())
+    TempScopeSetter(const ValuePtr &value, Item *newScope) : m_value(value), m_oldScope(value->scope())
     {
-        item->setScope(newScope);
+        value->setScope(newScope, {});
     }
-    ~TempScopeSetter() { m_item->setScope(m_oldScope); }
+    ~TempScopeSetter() { if (m_value) m_value->setScope(m_oldScope, {}); }
+
+    TempScopeSetter(const TempScopeSetter &) = delete;
+    TempScopeSetter &operator=(const TempScopeSetter &) = delete;
+    TempScopeSetter &operator=(TempScopeSetter &&) = delete;
+
+    TempScopeSetter(TempScopeSetter &&other) noexcept
+        : m_value(std::move(other.m_value)), m_oldScope(other.m_oldScope)
+    {
+        other.m_value.reset();
+        other.m_oldScope = nullptr;
+    }
+
 private:
-    Item * const m_item;
-    Item * const m_oldScope;
+    ValuePtr m_value;
+    Item *m_oldScope;
 };
 
 void ProjectResolver::collectPropertiesForExportItem(Item *productModuleInstance)
@@ -1509,8 +1459,8 @@ void ProjectResolver::collectPropertiesForExportItem(Item *productModuleInstance
     if (!productModuleInstance->isPresentModule())
         return;
     Item * const exportItem = productModuleInstance->prototype();
-    QBS_CHECK(exportItem && exportItem->type() == ItemType::Export);
-    TempScopeSetter tempScopeSetter(exportItem, productModuleInstance->scope());
+    QBS_CHECK(exportItem);
+    QBS_CHECK(exportItem->type() == ItemType::Export);
     const ItemDeclaration::Properties exportDecls = BuiltinDeclarations::instance()
             .declarationsForType(ItemType::Export).properties();
     ExportedModule &exportedModule = m_productContext->product->exportedModule;
@@ -1526,6 +1476,7 @@ void ProjectResolver::collectPropertiesForExportItem(Item *productModuleInstance
             collectPropertiesForExportItem(it.key(), it.value(), productModuleInstance,
                                            exportedModule.modulePropertyValues);
         } else {
+            TempScopeSetter tss(it.value(), productModuleInstance);
             evaluateProperty(exportItem, it.key(), it.value(), exportedModule.propertyValues,
                              false);
         }
@@ -1538,7 +1489,7 @@ void ProjectResolver::collectPropertiesForModuleInExportItem(const Item::Module 
     if (!module.item->isPresentModule())
         return;
     ExportedModule &exportedModule = m_productContext->product->exportedModule;
-    if (module.isProduct || module.name.first() == StringConstants::qbsModule())
+    if (module.productInfo || module.name.first() == StringConstants::qbsModule())
         return;
     const auto checkName = [module](const ExportedModuleDependency &d) {
         return module.name.toString() == d.name;
@@ -1551,7 +1502,6 @@ void ProjectResolver::collectPropertiesForModuleInExportItem(const Item::Module 
         modulePrototype = modulePrototype->prototype();
     if (!modulePrototype) // Can happen for broken products in relaxed mode.
         return;
-    TempScopeSetter tempScopeSetter(modulePrototype, module.item->scope());
     const Item::PropertyMap &props = modulePrototype->properties();
     ExportedModuleDependency dep;
     dep.name = module.name.toString();
@@ -1565,107 +1515,25 @@ void ProjectResolver::collectPropertiesForModuleInExportItem(const Item::Module 
         collectPropertiesForModuleInExportItem(dep);
 }
 
-static bool hasDependencyCycle(Set<ResolvedProduct *> *checked,
-                               Set<ResolvedProduct *> *branch,
-                               const ResolvedProductPtr &product,
-                               ErrorInfo *error)
+void ProjectResolver::resolveProductDependencies()
 {
-    if (branch->contains(product.get()))
-        return true;
-    if (checked->contains(product.get()))
-        return false;
-    checked->insert(product.get());
-    branch->insert(product.get());
-    for (const ResolvedProductPtr &dep : qAsConst(product->dependencies)) {
-        if (hasDependencyCycle(checked, branch, dep, error)) {
-            error->prepend(dep->name, dep->location);
-            return true;
-        }
-    }
-    branch->remove(product.get());
-    return false;
-}
-
-using DependencyMap = QHash<ResolvedProduct *, Set<ResolvedProduct *>>;
-void gatherDependencies(ResolvedProduct *product, DependencyMap &dependencies)
-{
-    if (dependencies.contains(product))
-        return;
-    // Hold locally because the QHash references aren't stable in Qt6.
-    Set<ResolvedProduct *> productDeps = dependencies[product];
-    for (const ResolvedProductPtr &dep : qAsConst(product->dependencies)) {
-        productDeps << dep.get();
-        gatherDependencies(dep.get(), dependencies);
-        productDeps += dependencies.value(dep.get());
-    }
-    // Now that we gathered the dependencies, put them in the map.
-    dependencies[product] = std::move(productDeps);
-}
-
-
-
-static DependencyMap allDependencies(const std::vector<ResolvedProductPtr> &products)
-{
-    DependencyMap dependencies;
-    for (const ResolvedProductPtr &product : products)
-        gatherDependencies(product.get(), dependencies);
-    return dependencies;
-}
-
-void ProjectResolver::resolveProductDependencies(const ProjectContext &projectContext)
-{
-    // Resolve all inter-product dependencies.
-    const std::vector<ResolvedProductPtr> allProducts = projectContext.project->allProducts();
-    bool disabledDependency = false;
-    for (const ResolvedProductPtr &rproduct : allProducts) {
-        if (!rproduct->enabled)
-            continue;
-        Item *productItem = m_productItemMap.value(rproduct);
-        const ModuleLoaderResult::ProductInfo &productInfo
-                = mapValue(m_loadResult.productInfos, productItem);
-        const ProductDependencyInfos &depInfos = getProductDependencies(rproduct, productInfo);
-        if (depInfos.hasDisabledDependency)
-            disabledDependency = true;
-        for (const auto &dep : depInfos.dependencies) {
-            if (!contains(rproduct->dependencies, dep.product))
-                rproduct->dependencies.push_back(dep.product);
-            if (!dep.parameters.empty())
-                rproduct->dependencyParameters.insert(dep.product, dep.parameters);
-        }
-    }
-
-    // Check for cyclic dependencies.
-    Set<ResolvedProduct *> checked;
-    for (const ResolvedProductPtr &rproduct : allProducts) {
-        Set<ResolvedProduct *> branch;
-        ErrorInfo error;
-        if (hasDependencyCycle(&checked, &branch, rproduct, &error)) {
-            error.prepend(rproduct->name, rproduct->location);
-            error.prepend(Tr::tr("Cyclic dependencies detected."));
-            throw error;
-        }
-    }
-
-    // Mark all products as disabled that have a disabled dependency.
-    if (disabledDependency && m_setupParams.productErrorMode() == ErrorHandlingMode::Relaxed) {
-        const DependencyMap allDeps = allDependencies(allProducts);
-        DependencyMap allDepsReversed;
-        for (auto it = allDeps.constBegin(); it != allDeps.constEnd(); ++it) {
-            for (ResolvedProduct *dep : qAsConst(it.value()))
-                allDepsReversed[dep] << it.key();
-        }
-        for (auto it = allDepsReversed.constBegin(); it != allDepsReversed.constEnd(); ++it) {
-            if (it.key()->enabled)
+    for (auto it = m_productsByItem.cbegin(); it != m_productsByItem.cend(); ++it) {
+        const ResolvedProductPtr &product = it.value();
+        for (const Item::Module &module : it.key()->modules()) {
+            if (!module.productInfo)
                 continue;
-            for (ResolvedProduct * const dependingProduct : qAsConst(it.value())) {
-                if (dependingProduct->enabled) {
-                    m_logger.qbsWarning() << Tr::tr("Disabling product '%1', because it depends on "
-                                                    "disabled product '%2'.")
-                                             .arg(dependingProduct->name, it.key()->name);
-                    dependingProduct->enabled = false;
-                }
-            }
+            const ResolvedProductPtr &dep = m_productsByItem.value(module.productInfo->item);
+            QBS_CHECK(dep);
+            QBS_CHECK(dep != product);
+            it.value()->dependencies << dep;
+            it.value()->dependencyParameters.insert(dep, module.parameters); // TODO: Streamline this with normal module dependencies?
         }
+
+        // TODO: We might want to keep the topological sorting and get rid of "module module dependencies".
+        std::sort(product->dependencies.begin(),product->dependencies.end(),
+                  [](const ResolvedProductPtr &p1, const ResolvedProductPtr &p2) {
+            return p1->fullDisplayName() < p2->fullDisplayName();
+        });
     }
 }
 
@@ -1854,13 +1722,20 @@ void ProjectResolver::collectPropertiesForExportItem(const QualifiedId &moduleNa
 {
     QBS_CHECK(value->type() == Value::ItemValueType);
     Item * const itemValueItem = std::static_pointer_cast<ItemValue>(value)->item();
-    if (itemValueItem->type() == ItemType::ModuleInstance) {
+    if (itemValueItem->propertyDeclarations().isEmpty()) {
+        for (const Item::Module &module : moduleInstance->modules()) {
+            if (module.name == moduleName) {
+                itemValueItem->setPropertyDeclarations(module.item->propertyDeclarations());
+                break;
+            }
+        }
+    }
+    if (itemValueItem->type() == ItemType::ModuleInstancePlaceholder) {
         struct EvalPreparer {
-            EvalPreparer(Item *valueItem, Item *moduleInstance, const QualifiedId &moduleName)
-                : valueItem(valueItem), oldScope(valueItem->scope()),
+            EvalPreparer(Item *valueItem, const QualifiedId &moduleName)
+                : valueItem(valueItem),
                   hadName(!!valueItem->variantProperty(StringConstants::nameProperty()))
             {
-                valueItem->setScope(moduleInstance);
                 if (!hadName) {
                     // Evaluator expects a name here.
                     valueItem->setProperty(StringConstants::nameProperty(),
@@ -1869,15 +1744,16 @@ void ProjectResolver::collectPropertiesForExportItem(const QualifiedId &moduleNa
             }
             ~EvalPreparer()
             {
-                valueItem->setScope(oldScope);
                 if (!hadName)
                     valueItem->setProperty(StringConstants::nameProperty(), VariantValuePtr());
             }
             Item * const valueItem;
-            Item * const oldScope;
             const bool hadName;
         };
-        EvalPreparer ep(itemValueItem, moduleInstance, moduleName);
+        EvalPreparer ep(itemValueItem, moduleName);
+        std::vector<TempScopeSetter> tss;
+        for (const ValuePtr &v : itemValueItem->properties())
+            tss.emplace_back(v, moduleInstance);
         moduleProps.insert(moduleName.toString(), evaluateProperties(itemValueItem, false, false));
         return;
     }
@@ -1892,12 +1768,10 @@ void ProjectResolver::collectPropertiesForExportItem(const QualifiedId &moduleNa
 
 void ProjectResolver::createProductConfig(ResolvedProduct *product)
 {
-    EvalCacheEnabler cachingEnabler(m_evaluator);
-    m_evaluator->setPathPropertiesBaseDir(m_productContext->product->sourceDirectory);
+    EvalCacheEnabler cachingEnabler(m_evaluator, m_productContext->product->sourceDirectory);
     product->moduleProperties->setValue(evaluateModuleValues(m_productContext->item));
     product->productProperties = evaluateProperties(m_productContext->item, m_productContext->item,
                                                     QVariantMap(), true, true);
-    m_evaluator->clearPathPropertiesBaseDir();
 }
 
 void ProjectResolver::callItemFunction(const ItemFuncMap &mappings, Item *item,

@@ -48,29 +48,63 @@
 namespace qbs {
 namespace Internal {
 
-Value::Value(Type t, bool createdByPropertiesBlock)
-    : m_type(t), m_definingItem(nullptr), m_createdByPropertiesBlock(createdByPropertiesBlock)
+Value::Value(Type t, bool createdByPropertiesBlock) : m_type(t)
 {
+    if (createdByPropertiesBlock)
+        m_flags |= OriginPropertiesBlock;
 }
 
 Value::Value(const Value &other)
     : m_type(other.m_type),
-      m_definingItem(other.m_definingItem),
+      m_scope(other.m_scope),
       m_next(other.m_next ? other.m_next->clone() : ValuePtr()),
-      m_createdByPropertiesBlock(other.m_createdByPropertiesBlock)
+      m_flags(other.m_flags)
 {
 }
 
 Value::~Value() = default;
 
-Item *Value::definingItem() const
+void Value::setScope(Item *scope, const QString &scopeName)
 {
-    return m_definingItem;
+    m_scope = scope;
+    m_scopeName = scopeName;
 }
 
-void Value::setDefiningItem(Item *item)
+int Value::priority(const Item *productItem) const
 {
-    m_definingItem = item;
+    if (m_priority == -1)
+        m_priority = calculatePriority(productItem);
+    return m_priority;
+}
+
+int Value::calculatePriority(const Item *productItem) const
+{
+    if (setInternally())
+        return INT_MAX;
+    if (setByCommandLine())
+        return INT_MAX - 1;
+    if (setByProfile())
+        return 2;
+    if (!scope())
+        return 1;
+    if (scope()->type() == ItemType::Product)
+        return INT_MAX - 2;
+    if (!scope()->isPresentModule())
+        return 0;
+    const auto it = std::find_if(
+        productItem->modules().begin(), productItem->modules().end(),
+        [this](const Item::Module &m) { return m.item == scope(); });
+    QBS_CHECK(it != productItem->modules().end());
+    return INT_MAX - 3 - it->maxDependsChainLength;
+}
+
+void Value::resetPriority()
+{
+    m_priority = -1;
+    if (m_next)
+        m_next->resetPriority();
+    for (const ValuePtr &v : m_candidates)
+        v->resetPriority();
 }
 
 ValuePtr Value::next() const
@@ -83,6 +117,11 @@ void Value::setNext(const ValuePtr &next)
     QBS_ASSERT(next.get() != this, return);
     QBS_CHECK(type() != VariantValueType);
     m_next = next;
+}
+
+bool Value::setInternally() const
+{
+    return type() == VariantValueType && !setByProfile() && !setByCommandLine();
 }
 
 
@@ -99,7 +138,6 @@ JSSourceValue::JSSourceValue(const JSSourceValue &other) : Value(other)
     m_line = other.m_line;
     m_column = other.m_column;
     m_file = other.m_file;
-    m_flags = other.m_flags;
     m_baseValue = other.m_baseValue
             ? std::static_pointer_cast<JSSourceValue>(other.m_baseValue->clone())
             : JSSourceValuePtr();
@@ -142,24 +180,45 @@ CodeLocation JSSourceValue::location() const
     return CodeLocation(m_file->filePath(), m_line, m_column);
 }
 
-void JSSourceValue::setHasFunctionForm(bool b)
-{
-    if (b)
-        m_flags |= HasFunctionForm;
-    else
-        m_flags &= ~HasFunctionForm;
-}
-
 void JSSourceValue::clearAlternatives()
 {
     m_alternatives.clear();
 }
 
-void JSSourceValue::setDefiningItem(Item *item)
+void JSSourceValue::setScope(Item *scope, const QString &scopeName)
 {
-    Value::setDefiningItem(item);
+    Value::setScope(scope, scopeName);
+    if (m_baseValue)
+        m_baseValue->setScope(scope, scopeName);
     for (const JSSourceValue::Alternative &a : m_alternatives)
-        a.value->setDefiningItem(item);
+        a.value->setScope(scope, scopeName);
+}
+
+void JSSourceValue::resetPriority()
+{
+    Value::resetPriority();
+    if (m_baseValue)
+        m_baseValue->resetPriority();
+    for (const JSSourceValue::Alternative &a : m_alternatives)
+        a.value->resetPriority();
+}
+
+void JSSourceValue::addCandidate(const ValuePtr &v)
+{
+    Value::addCandidate(v);
+    if (m_baseValue)
+        m_baseValue->addCandidate(v);
+    for (const JSSourceValue::Alternative &a : m_alternatives)
+        a.value->addCandidate(v);
+}
+
+void JSSourceValue::setCandidates(const std::vector<ValuePtr> &candidates)
+{
+    Value::setCandidates(candidates);
+    if (m_baseValue)
+        m_baseValue->setCandidates(candidates);
+    for (const JSSourceValue::Alternative &a : m_alternatives)
+        a.value->setCandidates(candidates);
 }
 
 ItemValue::ItemValue(Item *item, bool createdByPropertiesBlock)

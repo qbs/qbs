@@ -98,12 +98,12 @@ public:
 
     void setCachingEnabled(bool enabled) { m_valueCacheEnabled = enabled; }
     bool cachingEnabled() const { return m_valueCacheEnabled; }
+    void clearCache(const Item *item);
 
     PropertyDependencies &propertyDependencies() { return m_propertyDependencies; }
     void clearPropertyDependencies() { m_propertyDependencies.clear(); }
 
     std::stack<QualifiedId> &requestedProperties() { return m_requestedProperties; }
-    Set<Value *> &currentNextChain() { return m_currentNextChain; }
 
     void handleEvaluationError(const Item *item, const QString &name);
 
@@ -113,7 +113,7 @@ public:
 
     bool isNonDefaultValue(const Item *item, const QString &name) const;
 private:
-    void onItemPropertyChanged(Item *item) override;
+    void onItemPropertyChanged(Item *item) override { clearCache(item); }
     bool evaluateProperty(JSValue *result, const Item *item, const QString &name,
             bool *propertyWasSet);
 
@@ -124,7 +124,6 @@ private:
     QString m_pathPropertiesBaseDir;
     PropertyDependencies m_propertyDependencies;
     std::stack<QualifiedId> m_requestedProperties;
-    Set<Value *> m_currentNextChain;
     bool m_valueCacheEnabled = false;
 };
 
@@ -134,12 +133,17 @@ void throwOnEvaluationError(ScriptEngine *engine,
 class EvalCacheEnabler
 {
 public:
-    EvalCacheEnabler(Evaluator *evaluator) : m_evaluator(evaluator)
+    EvalCacheEnabler(Evaluator *evaluator, const QString &baseDir) : m_evaluator(evaluator)
     {
         m_evaluator->setCachingEnabled(true);
+        m_evaluator->setPathPropertiesBaseDir(baseDir);
     }
 
-    ~EvalCacheEnabler() { m_evaluator->setCachingEnabled(false); }
+    ~EvalCacheEnabler()
+    {
+        m_evaluator->setCachingEnabled(false);
+        m_evaluator->clearPathPropertiesBaseDir();
+    }
 
 private:
     Evaluator * const m_evaluator;

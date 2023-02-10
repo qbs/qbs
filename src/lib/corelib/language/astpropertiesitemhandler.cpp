@@ -140,7 +140,7 @@ private:
             value->setFile(conditionalValue->file());
             item->setProperty(propertyName, value);
             value->setSourceCode(StringConstants::baseVar());
-            value->setSourceUsesBaseFlag();
+            value->setSourceUsesBase();
         }
         m_alternative.value = conditionalValue;
         value->addAlternative(m_alternative);

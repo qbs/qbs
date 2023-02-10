@@ -899,8 +899,6 @@ void TestLanguage::erroneousFiles_data()
     QTest::newRow("conflicting-module-instances")
             << "There is more than one equally prioritized candidate for module "
                "'conflicting-instances'.";
-    QTest::newRow("module-depends-on-product")
-            << "module-with-product-dependency.qbs:2:5.*Modules cannot depend on products.";
     QTest::newRow("overwrite-inherited-readonly-property")
             << "overwrite-inherited-readonly-property.qbs"
                ":2:21.*Cannot set read-only property 'readOnlyString'.";
@@ -1929,7 +1927,7 @@ void TestLanguage::modulePropertiesInGroups()
         QCOMPARE(g2Gmod1List1, QStringList() << "gmod1_list1_proto" << "g2");
         const auto &g2Gmod1List2 = moduleProperty(g2Props, "gmod.gmod1", "gmod1_list2")
                 .toStringList();
-        QCOMPARE(g2Gmod1List2, QStringList() << "grouptest" << "g2" << "gmod1_list2_proto");
+        QCOMPARE(g2Gmod1List2, QStringList() << "grouptest" << "gmod1_string_proto" << "gmod1_list2_proto");
         const int g2P0 = moduleProperty(g2Props, "gmod.gmod1", "p0").toInt();
         QCOMPARE(g2P0, 6);
         const int g2DepProp = moduleProperty(g2Props, "gmod.gmod1", "depProp").toInt();
@@ -2095,7 +2093,25 @@ void TestLanguage::moduleScope()
         qDebug() << e.toString();
     }
     QCOMPARE(exceptionCaught, false);
+}
 
+void TestLanguage::moduleWithProductDependency()
+{
+    bool exceptionCaught = false;
+    try {
+        defaultParameters.setProjectFilePath(testProject("module-depends-on-product.qbs"));
+        TopLevelProjectPtr project = loader->loadProject(defaultParameters);
+        QVERIFY(project);
+        QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+        QCOMPARE(products.size(), 2);
+        ResolvedProductPtr product = products.value("p1");
+        QVERIFY(product);
+        QCOMPARE(int(product->dependencies.size()), 1);
+    } catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
 }
 
 void TestLanguage::modules_data()
@@ -2821,8 +2837,8 @@ void TestLanguage::qbsPropertyConvenienceOverride()
         QCOMPARE(project->products.size(), size_t(1));
         QCOMPARE(project->products.front()->moduleProperties->qbsPropertyValue("installPrefix")
                  .toString(), QString("/opt"));
-    }
-    catch (const ErrorInfo &e) {
+    } catch (const ErrorInfo &e) {
+        exceptionCaught = true;
         qDebug() << e.toString();
     }
     QCOMPARE(exceptionCaught, false);

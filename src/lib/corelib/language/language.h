@@ -361,7 +361,7 @@ public:
     static ResolvedModulePtr create() { return ResolvedModulePtr(new ResolvedModule); }
 
     QString name;
-    QStringList moduleDependencies;
+    QStringList moduleDependencies; // TODO: Still needed?
     PrivateScriptFunction setupBuildEnvironmentScript;
     PrivateScriptFunction setupRunEnvironmentScript;
     ResolvedProduct *product = nullptr;
@@ -597,7 +597,6 @@ public:
     static QString uniqueName(const QString &name,
                               const QString &multiplexConfigurationId);
     QString uniqueName() const;
-    static QString fullDisplayName(const QString &name, const QString &multiplexConfigurationId);
     QString fullDisplayName() const;
     QString profile() const;
 
@@ -707,6 +706,7 @@ public:
     QString id() const { return m_id; }
     QString profile() const;
     void makeModuleProvidersNonTransient();
+    QVariantMap fullProfileConfigsTree() const; // Tree-ified + overridden values
 
     QVariantMap profileConfigs;
     QVariantMap overriddenValues;
@@ -736,8 +736,6 @@ private:
 
 bool artifactPropertyListsAreEqual(const std::vector<ArtifactPropertiesPtr> &l1,
                                    const std::vector<ArtifactPropertiesPtr> &l2);
-
-QString multiplexIdToString(const QString &id);
 
 } // namespace Internal
 } // namespace qbs

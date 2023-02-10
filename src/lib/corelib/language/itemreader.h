@@ -50,7 +50,7 @@
 
 namespace qbs {
 namespace Internal {
-
+class Evaluator;
 class Item;
 class ItemPool;
 class ItemReaderVisitorState;
@@ -79,8 +79,10 @@ public:
     void clearExtraSearchPathsStack();
     const QStringList &allSearchPaths() const;
 
-    Item *readFile(const QString &filePath);
-    Item *readFile(const QString &filePath, const CodeLocation &referencingLocation);
+    // Parses a file, creates an item for it, generates PropertyDeclarations from
+    // PropertyOptions items and removes said items from the item tree.
+    Item *setupItemFromFile(const QString &filePath, const CodeLocation &referencingLocation,
+                            Evaluator &evaluator);
 
     Set<QString> filesRead() const;
 
@@ -90,6 +92,11 @@ public:
     void setDeprecationWarningMode(DeprecationWarningMode mode);
 
 private:
+    Item *readFile(const QString &filePath);
+    Item *readFile(const QString &filePath, const CodeLocation &referencingLocation);
+    void handlePropertyOptions(Item *optionsItem, Evaluator &evaluator);
+    void handleAllPropertyOptionsItems(Item *item, Evaluator &evaluator);
+
     ItemPool *m_pool = nullptr;
     QStringList m_searchPaths;
     std::vector<QStringList> m_extraSearchPaths;

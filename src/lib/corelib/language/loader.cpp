@@ -40,9 +40,10 @@
 #include "loader.h"
 
 #include "evaluator.h"
+#include "itempool.h"
 #include "language.h"
-#include "moduleloader.h"
 #include "projectresolver.h"
+#include "projecttreebuilder.h"
 #include "scriptengine.h"
 
 #include <logging/translator.h>
@@ -149,15 +150,16 @@ TopLevelProjectPtr Loader::loadProject(const SetupProjectParameters &_parameters
 
     const FileTime resolveTime = FileTime::currentTime();
     Evaluator evaluator(m_engine);
-    ModuleLoader moduleLoader(&evaluator, m_logger);
-    moduleLoader.setProgressObserver(m_progressObserver);
-    moduleLoader.setSearchPaths(m_searchPaths);
-    moduleLoader.setOldProjectProbes(m_oldProjectProbes);
-    moduleLoader.setOldProductProbes(m_oldProductProbes);
-    moduleLoader.setLastResolveTime(m_lastResolveTime);
-    moduleLoader.setStoredProfiles(m_storedProfiles);
-    moduleLoader.setStoredModuleProviderInfo(m_storedModuleProviderInfo);
-    const ModuleLoaderResult loadResult = moduleLoader.load(parameters);
+    ItemPool pool;
+    ProjectTreeBuilder projectTreeBuilder(parameters, pool, evaluator, m_logger);
+    projectTreeBuilder.setProgressObserver(m_progressObserver);
+    projectTreeBuilder.setSearchPaths(m_searchPaths);
+    projectTreeBuilder.setOldProjectProbes(m_oldProjectProbes);
+    projectTreeBuilder.setOldProductProbes(m_oldProductProbes);
+    projectTreeBuilder.setLastResolveTime(m_lastResolveTime);
+    projectTreeBuilder.setStoredProfiles(m_storedProfiles);
+    projectTreeBuilder.setStoredModuleProviderInfo(m_storedModuleProviderInfo);
+    const ProjectTreeBuilder::Result loadResult = projectTreeBuilder.load();
     ProjectResolver resolver(&evaluator, loadResult, std::move(parameters), m_logger);
     resolver.setProgressObserver(m_progressObserver);
     TopLevelProjectPtr project = resolver.resolve();

@@ -200,6 +200,8 @@ set(LANGUAGE_SOURCES
     filecontextbase.h
     filetags.cpp
     filetags.h
+    groupshandler.cpp
+    groupshandler.h
     identifiersearch.cpp
     identifiersearch.h
     item.cpp
@@ -221,10 +223,14 @@ set(LANGUAGE_SOURCES
     language.h
     loader.cpp
     loader.h
+    localprofiles.cpp
+    localprofiles.h
+    moduleinstantiator.cpp
+    moduleinstantiator.h
     moduleloader.cpp
     moduleloader.h
-    modulemerger.cpp
-    modulemerger.h
+    modulepropertymerger.cpp
+    modulepropertymerger.h
     moduleproviderinfo.h
     moduleproviderloader.cpp
     moduleproviderloader.h
@@ -232,8 +238,12 @@ set(LANGUAGE_SOURCES
     preparescriptobserver.h
     probesresolver.cpp
     probesresolver.h
+    productitemmultiplexer.cpp
+    productitemmultiplexer.h
     projectresolver.cpp
     projectresolver.h
+    projecttreebuilder.cpp
+    projecttreebuilder.h
     property.cpp
     property.h
     propertydeclaration.cpp

@@ -41,6 +41,7 @@
 #define QBS_PROPERTYDECLARATION_H
 
 #include <tools/deprecationwarningmode.h>
+#include <tools/set.h>
 
 #include <QtCore/qshareddata.h>
 #include <QtCore/qstring.h>
@@ -52,9 +53,11 @@ QT_END_NAMESPACE
 namespace qbs {
 class CodeLocation;
 class ErrorInfo;
+class SetupProjectParameters;
 namespace Internal {
 class DeprecationInfo;
 class PropertyDeclarationData;
+class Item;
 class Logger;
 
 class PropertyDeclaration
@@ -130,6 +133,10 @@ public:
 private:
     QSharedDataPointer<PropertyDeclarationData> d;
 };
+
+void checkPropertyDeclarations(Item *topLevelItem, const Set<Item *> &disabledItems,
+                               const SetupProjectParameters &params, Logger &logger);
+
 
 } // namespace Internal
 } // namespace qbs

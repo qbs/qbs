@@ -41,6 +41,7 @@
 #include "projectdata_p.h"
 #include "propertymap_p.h"
 #include <language/language.h>
+#include <language/productitemmultiplexer.h>
 #include <language/propertymapinternal.h>
 #include <tools/fileinfo.h>
 #include <tools/jsliterals.h>
@@ -558,7 +559,7 @@ const QString &ProductData::name() const
  */
 QString ProductData::fullDisplayName() const
 {
-    return ResolvedProduct::fullDisplayName(name(), multiplexConfigurationId());
+    return ProductItemMultiplexer::fullProductDisplayName(name(), multiplexConfigurationId());
 }
 
 /*!

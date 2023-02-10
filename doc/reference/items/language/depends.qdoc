@@ -127,7 +127,19 @@
     The \l required and \l profiles properties are ignored if this property is
     set.
 
-    Product types attached via Module::additionalProductTypes are not considered.
+    \note This property does not work recursively. Consider this example:
+    \code
+    Product {
+        name: "A"
+        type: "x"
+        Depends { productTypes: "someTag" }
+    }
+    Product {
+        name: "B"
+        Depends { productTypes: "x" }
+    }
+    \endcode
+    It is not guaranteed that \c A will show up in \c B's dependencies.
 
     \nodefaultvalue
 */

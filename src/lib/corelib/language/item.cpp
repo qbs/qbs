@@ -47,6 +47,7 @@
 #include "value.h"
 
 #include <api/languageinfo.h>
+#include <logging/categories.h>
 #include <logging/logger.h>
 #include <logging/translator.h>
 #include <tools/error.h>
@@ -103,11 +104,20 @@ Item *Item::clone() const
     return dup;
 }
 
+Item *Item::rootPrototype()
+{
+    Item *proto = this;
+    while (proto->prototype())
+        proto = proto->prototype();
+    return proto;
+}
+
 QString Item::typeName() const
 {
     switch (type()) {
     case ItemType::IdScope: return QStringLiteral("[IdScope]");
     case ItemType::ModuleInstance: return QStringLiteral("[ModuleInstance]");
+    case ItemType::ModuleInstancePlaceholder: return QStringLiteral("[ModuleInstancePlaceholder]");
     case ItemType::ModuleParameters: return QStringLiteral("[ModuleParametersInstance]");
     case ItemType::ModulePrefix: return QStringLiteral("[ModulePrefix]");
     case ItemType::Outer: return QStringLiteral("[Outer]");
@@ -216,9 +226,23 @@ PropertyDeclaration Item::propertyDeclaration(const QString &name, bool allowExp
 
 void Item::addModule(const Item::Module &module)
 {
-    const auto it = std::lower_bound(m_modules.begin(), m_modules.end(), module);
-    QBS_CHECK(it == m_modules.end() || (module.name != it->name && module.item != it->item));
-    m_modules.insert(it, module);
+    if (!qEnvironmentVariableIsEmpty("QBS_SANITY_CHECKS")) {
+        QBS_CHECK(none_of(m_modules, [&](const Module &m) {
+            if (m.name != module.name)
+                return false;
+            if (!!module.productInfo != !!m.productInfo)
+                return true;
+            if (!module.productInfo)
+                return true;
+            if (module.productInfo->multiplexId == m.productInfo->multiplexId
+                    && module.productInfo->profile == m.productInfo->profile) {
+                return true;
+            }
+            return false;
+        }));
+    }
+
+    m_modules.push_back(module);
 }
 
 void Item::setObserver(ItemObserver *observer) const
@@ -273,6 +297,15 @@ void Item::setupForBuiltinType(DeprecationWarningMode deprecationMode, Logger &l
 void Item::copyProperty(const QString &propertyName, Item *target) const
 {
     target->setProperty(propertyName, property(propertyName));
+}
+
+void Item::overrideProperties(const QVariantMap &config, const QString &key,
+                              const SetupProjectParameters &parameters, Logger &logger)
+{
+    const QVariant configMap = config.value(key);
+    if (configMap.isNull())
+        return;
+    overrideProperties(configMap.toMap(), QualifiedId(key), parameters, logger);
 }
 
 static const char *valueType(const Value *v)
@@ -390,9 +423,37 @@ void Item::overrideProperties(
             handlePropertyError(error, parameters, logger);
             continue;
         }
-        setProperty(it.key(),
-                VariantValue::create(PropertyDeclaration::convertToPropertyType(
-                        it.value(), decl.type(), namePrefix, it.key())));
+        const auto overridenValue = VariantValue::create(PropertyDeclaration::convertToPropertyType(
+            it.value(), decl.type(), namePrefix, it.key()));
+        overridenValue->markAsSetByCommandLine();
+        setProperty(it.key(), overridenValue);
+    }
+}
+
+void Item::setModules(const Modules &modules)
+{
+    m_modules = modules;
+}
+
+Item *createNonPresentModule(ItemPool &pool, const QString &name, const QString &reason, Item *module)
+{
+    qCDebug(lcModuleLoader) << "Non-required module '" << name << "' not loaded (" << reason << ")."
+                            << "Creating dummy module for presence check.";
+    if (!module) {
+        module = Item::create(&pool, ItemType::ModuleInstance);
+        module->setFile(FileContext::create());
+        module->setProperty(StringConstants::nameProperty(), VariantValue::create(name));
+    }
+    module->setType(ItemType::ModuleInstance);
+    module->setProperty(StringConstants::presentProperty(), VariantValue::falseValue());
+    return module;
+}
+
+void setScopeForDescendants(Item *item, Item *scope)
+{
+    for (Item * const child : item->children()) {
+        child->setScope(scope);
+        setScopeForDescendants(child, scope);
     }
 }
 
