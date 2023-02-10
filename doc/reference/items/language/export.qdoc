@@ -109,7 +109,7 @@
     project against it), you would write something like the following:
     \code
     Export {
-        Depends { name: cpp" }
+        Depends { name: "cpp" }
         cpp.includePaths: [exportingProduct.sourceDirectory]
         prefixMapping: [{
                 prefix: exportingProduct.sourceDirectory,
