@@ -178,7 +178,7 @@ function guessMinimumWindowsVersion(qtProps) {
         return "10.0";
     if (!targetsDesktopWindows(qtProps))
         return "";
-    if (qtProps.qtMajorVersion > 6 || (qtProps.qtMajorVersion === 6 && qtProps.qtMinorVersion >= 2))
+    if (qtProps.qtMajorVersion >= 6)
         return "10.0";
     if (qtProps.architecture === "x86_64" || qtProps.architecture === "ia64")
         return "5.2"
