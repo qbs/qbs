@@ -64,7 +64,7 @@ jobs:
 
   build-macos:
     name: Build on macOS
-    runs-on: macos-10.15
+    runs-on: macos-11
     timeout-minutes: 60
     env:
       BUILD_OPTIONS: |
@@ -98,13 +98,11 @@ jobs:
         toolchain: clang_64
     - name: Install Qt Creator
       uses: ./.github/actions/download-qtc
-      with:
-        version: 5.0.3
     - name: Setup Qbs
       run: |
         qbs setup-toolchains --detect
         qbs setup-qt --detect
-        qbs config profiles.qt.baseProfile xcode-macosx-x86_64
+        qbs config profiles.qt.baseProfile xcode_11_7-macosx-x86_64
         qbs config defaultProfile qt
         qbs config --list
     - name: Print ccache stats
