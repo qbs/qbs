@@ -392,6 +392,8 @@ void TestBlackboxQt::pkgconfigQt_data()
     QTest::newRow("pkgconfig") << QStringList() << true;
     QTest::newRow("dummy")
             << QStringList({"products.p.qbsModuleProviders:dummyProvider"}) << false;
+    QTest::newRow("cross-compiling")
+            << QStringList({"moduleProviders.qbspkgconfig.sysroot:/some/fake/sysroot"}) << false;
 }
 
 void TestBlackboxQt::pluginMetaData()
