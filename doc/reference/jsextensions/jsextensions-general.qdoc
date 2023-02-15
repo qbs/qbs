@@ -57,12 +57,6 @@
 
     \section1 Extensions to JavaScript Built-in Objects
 
-    \section2 Array.contains
-    \code
-    Array.contains(e: any): boolean
-    \endcode
-    Returns \c{true} if the array contains the element \c{e}. Returns \c{false} otherwise.
-
     \section2 Array.containsAll
     \code
     Array.containsAll(other: any[]): boolean
@@ -84,24 +78,6 @@
     Returns a copy of this array joined with the array \c{other}.
     Duplicates that would originate from the concatenation are removed.
     The order of elements is preserved.
-
-    \section2 String.contains
-    \code
-    String.contains(s: string): boolean
-    \endcode
-    Returns \c{true} if the string contains the substring \c{s}. Returns \c{false} otherwise.
-
-    \section2 startsWith
-    \code
-    String.startsWith(s: string): boolean
-    \endcode
-    Returns \c{true} if the string starts with the substring \c{s}. Returns \c{false} otherwise.
-
-    \section2 endsWith
-    \code
-    String.endsWith(s: string): boolean
-    \endcode
-    Returns \c{true} if the string ends with the substring \c{s}. Returns \c{false} otherwise.
 
 
     \section1 Console API
