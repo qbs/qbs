@@ -1,16 +1,16 @@
 Project {
     property bool dummy: {
-        if (qbs.targetOS.contains("windows")) {
+        if (qbs.targetOS.includes("windows")) {
             console.info("is windows");
-        } else if (qbs.targetOS.contains("darwin")) {
+        } else if (qbs.targetOS.includes("darwin")) {
             console.info("is darwin");
-            if (qbs.targetOS.contains("macos"))
+            if (qbs.targetOS.includes("macos"))
                 console.info("is mac");
         } else {
             console.info("is unix");
         }
 
-        if (qbs.toolchain.contains("mingw"))
+        if (qbs.toolchain.includes("mingw"))
             console.info("is mingw");
     }
     CppApplication {

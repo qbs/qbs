@@ -56,7 +56,7 @@ Project {
         name: "singlelib"
         targetName: "singlelib"
         files: ["lib.c"]
-        cpp.sonamePrefix: qbs.targetOS.contains("darwin") ? "@rpath" : undefined
+        cpp.sonamePrefix: qbs.targetOS.includes("darwin") ? "@rpath" : undefined
         cpp.defines: ["VARIANT=" + Utilities.cStringQuote(qbs.buildVariant)]
 
         // Turn off multiplexing
@@ -128,7 +128,7 @@ Project {
         targetName: "multilib"
         files: ["lib.c"]
         cpp.minimumIosVersion: "8.0"
-        cpp.sonamePrefix: qbs.targetOS.contains("darwin") ? "@rpath" : undefined
+        cpp.sonamePrefix: qbs.targetOS.includes("darwin") ? "@rpath" : undefined
         cpp.defines: ["VARIANT=" + Utilities.cStringQuote(qbs.buildVariant)]
         qbs.architectures: Helpers.getArchitectures(qbs, project.xcodeVersion)
         qbs.buildVariants: ["release", "debug", "profiling"]
@@ -145,7 +145,7 @@ Project {
         targetName: "multilib-no-release"
         files: ["lib.c"]
         cpp.minimumIosVersion: "8.0"
-        cpp.sonamePrefix: qbs.targetOS.contains("darwin") ? "@rpath" : undefined
+        cpp.sonamePrefix: qbs.targetOS.includes("darwin") ? "@rpath" : undefined
         cpp.defines: ["VARIANT=" + Utilities.cStringQuote(qbs.buildVariant)]
         qbs.architectures: Helpers.getArchitectures(qbs, project.xcodeVersion)
         qbs.buildVariants: ["debug", "profiling"]

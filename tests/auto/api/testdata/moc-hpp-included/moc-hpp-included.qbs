@@ -11,7 +11,7 @@ Project {
         files: ["object.cpp", "object.h"]
 
         Group {
-            condition: qbs.targetOS.contains("darwin")
+            condition: qbs.targetOS.includes("darwin")
             files: ["object2.mm", "object2.h"]
         }
     }

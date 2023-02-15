@@ -5,7 +5,7 @@ Project {
         property stringList toolchain: qbs.toolchain
         property stringList targetOS: qbs.targetOS
         configure: {
-            found = toolchain.contains("gcc") && targetOS.contains("unix");
+            found = toolchain.includes("gcc") && targetOS.includes("unix");
             if (!found)
                 console.info("project disabled");
         }

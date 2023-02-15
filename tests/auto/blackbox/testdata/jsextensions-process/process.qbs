@@ -55,7 +55,7 @@ Project {
 
                     // closeWriteChannel test
                     process = new Process();
-                    if (Host.os().contains("windows"))
+                    if (Host.os().includes("windows"))
                         process.start(product.qbs.windowsShellPath,
                             ["/C", product.qbs.windowsSystemRoot + "\\system32\\sort.exe"]);
                     else
@@ -76,7 +76,7 @@ Project {
                     testReadlineFile.close();
 
                     process = new Process();
-                    if (Host.os().contains("windows"))
+                    if (Host.os().includes("windows"))
                         process.exec(product.qbs.windowsShellPath,
                                      ["/C", "type", "123.txt"],
                                      true);

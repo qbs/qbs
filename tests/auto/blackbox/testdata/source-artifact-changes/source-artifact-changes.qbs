@@ -4,7 +4,7 @@ CppApplication {
     consoleApplication: true
 
     Properties {
-        condition: qbs.targetOS.contains("darwin")
+        condition: qbs.targetOS.includes("darwin")
         bundle.embedInfoPlist: false
     }
 
@@ -12,7 +12,7 @@ CppApplication {
         id: toolchainProbe
         property stringList toolchain: qbs.toolchain
         configure: {
-            console.info("is gcc: " + toolchain.contains("gcc"));
+            console.info("is gcc: " + toolchain.includes("gcc"));
             found = true;
         }
     }

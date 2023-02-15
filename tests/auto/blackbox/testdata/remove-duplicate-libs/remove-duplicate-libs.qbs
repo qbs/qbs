@@ -7,7 +7,7 @@ Project {
     property bool dummy: {
         // most BSD systems (including macOS) use LLVM linker now
         console.info("is bfd linker: "
-                     + (qbs.toolchain.contains("gcc") && !Host.os().contains("bsd")))
+                     + (qbs.toolchain.includes("gcc") && !Host.os().includes("bsd")))
     }
 
     qbsSearchPaths: "."

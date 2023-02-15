@@ -16,7 +16,7 @@ DynamicLibrary {
     cpp.defines: ["MYLIB_BUILD"]
     cpp.variantSuffix: qbs.buildVariant === "debug" ? "d" : ""
     Properties {
-        condition: qbs.targetOS.contains("darwin")
+        condition: qbs.targetOS.includes("darwin")
         bundle.isBundle: false
     }
     files: ["mylib.cpp"]

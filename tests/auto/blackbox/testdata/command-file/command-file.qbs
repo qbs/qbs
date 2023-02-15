@@ -4,7 +4,7 @@ Project {
         destinationDirectory: project.buildDirectory
         Depends { name: "cpp" }
         Properties {
-            condition: qbs.targetOS.contains("darwin")
+            condition: qbs.targetOS.includes("darwin")
             bundle.isBundle: false
         }
         files: ["lib.cpp"]
@@ -14,6 +14,6 @@ Project {
         cpp.libraryPaths: project.buildDirectory
         files: ["main.cpp"]
         cpp.staticLibraries: ['@' + sourceDirectory + '/'
-                + (qbs.toolchain.contains("msvc") ? "list.msvc" : "list.gcc")]
+                + (qbs.toolchain.includes("msvc") ? "list.msvc" : "list.gcc")]
     }
 }

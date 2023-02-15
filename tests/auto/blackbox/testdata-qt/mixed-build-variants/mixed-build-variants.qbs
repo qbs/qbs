@@ -1,6 +1,6 @@
 QtApplication {
     Properties {
-        condition: qbs.toolchain.contains("msvc")
+        condition: qbs.toolchain.includes("msvc")
         Qt.core.qtBuildVariant: "release"
     }
     Qt.core.qtBuildVariant: "dummy"

@@ -5,7 +5,7 @@ Project {
         name: "p1lib1"
         files: ["src/main/jni/lib1.cpp"]
         qbs.targetPlatform: "android"
-        Properties { condition: qbs.toolchain.contains("clang"); Android.ndk.appStl: "c++_shared" }
+        Properties { condition: qbs.toolchain.includes("clang"); Android.ndk.appStl: "c++_shared" }
         Android.ndk.appStl: "stlport_shared"
         qbs.architectures: !qbs.architecture ? ["armv7a", "x86"] : undefined
         cpp.useRPaths: false
@@ -17,7 +17,7 @@ Project {
         name: "p1lib2"
         files: ["src/main/jni/lib2.cpp"]
         qbs.targetPlatform: "android"
-        Properties { condition: qbs.toolchain.contains("clang"); Android.ndk.appStl: "c++_shared" }
+        Properties { condition: qbs.toolchain.includes("clang"); Android.ndk.appStl: "c++_shared" }
         Android.ndk.appStl: "stlport_shared"
         cpp.useRPaths: false
     }

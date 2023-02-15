@@ -43,7 +43,7 @@ Project {
     Product {
         name: "condition_accessing_module_property"
         Group {
-            condition: qbs.targetOS.contains("narf")
+            condition: qbs.targetOS.includes("narf")
             files: ["main.cpp"]
             qbs.install: false
         }

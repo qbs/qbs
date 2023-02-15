@@ -8,13 +8,13 @@ Project {
 
         files: ["lib1.cpp"]
 
-        install: !qbs.targetOS.contains("darwin")
+        install: !qbs.targetOS.includes("darwin")
         installImportLib: true
         installDir: "lib1"
         importLibInstallDir: installDir
 
         Group {
-        condition: qbs.targetOS.contains("darwin")
+        condition: qbs.targetOS.includes("darwin")
             fileTagsFilter: ["bundle.content"]
             qbs.install: true
             qbs.installSourceBase: destinationDirectory
@@ -27,7 +27,7 @@ Project {
         Depends { name: "lib5" }
 
     Properties {
-            condition: qbs.targetOS.contains("darwin")
+            condition: qbs.targetOS.includes("darwin")
             bundle.isBundle: false
         }
 
@@ -41,7 +41,7 @@ Project {
         files: ["lib3.cpp"]
 
         Properties {
-            condition: qbs.targetOS.contains("darwin")
+            condition: qbs.targetOS.includes("darwin")
             bundle.isBundle: false
         }
 
@@ -58,14 +58,14 @@ Project {
         files: ["lib4.cpp"]
 
         Properties {
-            condition: qbs.targetOS.contains("darwin")
+            condition: qbs.targetOS.includes("darwin")
             bundle.isBundle: false
         }
 
         // Testing shows that clang (8.0) does not find dynamic libraries via
         // the -L<dir> and -l<libname> mechanism unless the name is "lib<libname>.a".
         Properties {
-            condition: Host.os().contains("windows") && qbs.toolchain.contains("clang")
+            condition: Host.os().includes("windows") && qbs.toolchain.includes("clang")
             cpp.dynamicLibraryPrefix: "lib"
             cpp.dynamicLibraryImportSuffix: ".a"
         }
@@ -83,7 +83,7 @@ Project {
         Depends { name: "cpp" }
 
         Properties {
-            condition: qbs.targetOS.contains("darwin")
+            condition: qbs.targetOS.includes("darwin")
             bundle.isBundle: false
         }
 
@@ -108,7 +108,7 @@ Project {
 
         property string fullInstallPrefix: FileInfo.joinPaths(qbs.installRoot, qbs.installPrefix)
         property string lib3FilePath: FileInfo.joinPaths(fullInstallPrefix, "lib3",
-                cpp.dynamicLibraryPrefix + "lib3" + (qbs.targetOS.contains("windows")
+                cpp.dynamicLibraryPrefix + "lib3" + (qbs.targetOS.includes("windows")
                                                      ? cpp.dynamicLibraryImportSuffix
                                                      : cpp.dynamicLibrarySuffix))
         cpp.dynamicLibraries: [lib3FilePath, "lib4"]
@@ -117,7 +117,7 @@ Project {
 
     Probe {
         id: osPrinter
-        property bool isWindows: qbs.targetOS.contains("windows")
+        property bool isWindows: qbs.targetOS.includes("windows")
         configure: {
             console.info("is windows");
             found = true;

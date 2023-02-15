@@ -11,7 +11,7 @@ Project {
         }
         Depends {
             name: "cpp" // Make sure build environment is set up properly.
-            condition: Host.os().contains("windows") && qbs.toolchain.contains("gcc")
+            condition: Host.os().includes("windows") && qbs.toolchain.includes("gcc")
         }
     }
 }

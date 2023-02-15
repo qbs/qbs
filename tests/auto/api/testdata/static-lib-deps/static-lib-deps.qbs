@@ -44,23 +44,23 @@ Project {
         ]
 
         Group {
-            condition: qbs.targetOS.contains("macos")
+            condition: qbs.targetOS.includes("macos")
             files: ["d.mm"]
         }
 
         Properties {
-            condition: qbs.targetOS.contains("windows")
+            condition: qbs.targetOS.includes("windows")
             cpp.defines: ["WITH_SETUPAPI"]
             cpp.staticLibraries: ["setupapi"]
         }
         Properties {
-            condition: qbs.targetOS.contains("macos")
+            condition: qbs.targetOS.includes("macos")
             cpp.defines: ["WITH_LEX_YACC"]
             cpp.staticLibraries: ["l", "y"]
             cpp.frameworks: ["Foundation"]
         }
         Properties {
-            condition: qbs.targetOS.contains("linux")
+            condition: qbs.targetOS.includes("linux")
             cpp.defines: ["WITH_PTHREAD"]
             cpp.staticLibraries: ["pthread"]
         }
@@ -84,7 +84,7 @@ Project {
         Depends { name: "e" }
 
         Properties {
-            condition: qbs.targetOS.contains("linux")
+            condition: qbs.targetOS.includes("linux")
             cpp.driverFlags: ["-static"]
         }
 

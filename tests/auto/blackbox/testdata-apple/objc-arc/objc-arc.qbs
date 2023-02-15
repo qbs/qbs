@@ -2,7 +2,7 @@ Product {
     Depends { name: "cpp" }
     consoleApplication: true
     type: ["application"]
-    condition: qbs.targetOS.contains("darwin")
+    condition: qbs.targetOS.includes("darwin")
 
     Group {
         cpp.automaticReferenceCounting: true

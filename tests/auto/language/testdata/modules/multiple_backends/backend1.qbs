@@ -1,4 +1,4 @@
 Module {
-    condition: qbs.targetOS.contains("os1")
+    condition: qbs.targetOS.includes("os1")
     property string prop: "backend 1"
 }

@@ -11,7 +11,7 @@ Project {
         cpp.defines: "MY_EXPORT=DLL_EXPORT"
         files: "lib.cpp"
         Properties {
-            condition: qbs.targetOS.contains("darwin")
+            condition: qbs.targetOS.includes("darwin")
             bundle.isBundle: false
         }
     }

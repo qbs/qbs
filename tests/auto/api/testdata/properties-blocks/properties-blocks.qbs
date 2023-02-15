@@ -14,7 +14,7 @@ Product {
     }
 
     Properties {
-        condition: qbs.targetOS.contains("weird")
+        condition: qbs.targetOS.includes("weird")
         cpp.staticLibraries: "abc"
     }
 

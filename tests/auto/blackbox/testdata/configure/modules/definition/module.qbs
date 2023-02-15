@@ -12,7 +12,7 @@ Module {
             var cmd;
             var args;
             var p = path;
-            if (targetOS.contains("windows")) {
+            if (targetOS.includes("windows")) {
                 cmd = windowsShellPath;
                 args = ["/c", "date", "/t"];
             } else {

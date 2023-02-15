@@ -7,7 +7,7 @@ DynamicLibrary {
     Depends { name: "Qt.core" }
     Depends { name: "cpp" }
     Properties {
-        condition: qbs.targetOS.contains("darwin")
+        condition: qbs.targetOS.includes("darwin")
         bundle.isBundle: false
     }
 

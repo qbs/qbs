@@ -4,7 +4,7 @@ CppApplication {
     files: ["main.c", "Override-Info.plist"]
 
     Properties {
-        condition: qbs.targetOS.contains("darwin")
+        condition: qbs.targetOS.includes("darwin")
         bundle.isBundle: true
         bundle.identifierPrefix: "com.test"
 

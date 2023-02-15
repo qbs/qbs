@@ -16,19 +16,19 @@ Project {
             console.info("Available SDK versions: " + xcode.availableSdkVersions.join(", "));
 
             var targetOsToKey = function(targetOS) {
-                if (targetOS.contains("ios"))
+                if (targetOS.includes("ios"))
                     return "iphoneos";
-                if (targetOS.contains("ios-simulator"))
+                if (targetOS.includes("ios-simulator"))
                     return "iphonesimulator";
-                if (targetOS.contains("macos"))
+                if (targetOS.includes("macos"))
                     return "macosx";
-                if (targetOS.contains("tvos"))
+                if (targetOS.includes("tvos"))
                     return "appletvos";
-                if (targetOS.contains("tvos-simulator"))
+                if (targetOS.includes("tvos-simulator"))
                     return "appletvsimulator";
-                if (targetOS.contains("watchos"))
+                if (targetOS.includes("watchos"))
                     return "watchos";
-                if (targetOS.contains("watchos-simulator"))
+                if (targetOS.includes("watchos-simulator"))
                     return "watchossimulator";
                 throw "Unsupported OS" + targetOS;
             }

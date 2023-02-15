@@ -7,7 +7,7 @@ Module {
         property string yaccBinary: lex_yacc.yaccBinary
         configure: {
             var p = Process();
-            found = p.exec(yaccBinary, ["-V"]) == 0 && p.readStdOut().contains("bison");
+            found = p.exec(yaccBinary, ["-V"]) == 0 && p.readStdOut().includes("bison");
             p.close();
         }
     }

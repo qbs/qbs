@@ -12,7 +12,7 @@ Project {
         Depends { name: "cpp" }
         Depends { name: "static1" }
         Properties {
-            condition: qbs.targetOS.contains("darwin")
+            condition: qbs.targetOS.includes("darwin")
             bundle.isBundle: false
         }
     }
@@ -31,7 +31,7 @@ Project {
         Depends { name: "static2" }
         cpp.visibility: 'hidden'
         Properties {
-            condition: qbs.targetOS.contains("darwin")
+            condition: qbs.targetOS.includes("darwin")
             bundle.isBundle: false
         }
     }

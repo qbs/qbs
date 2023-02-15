@@ -16,7 +16,7 @@ Project {
         Depends {
             name: "functions";
             cpp.symbolLinkMode: product.symbolLinkMode
-            cpp.link: !(product.qbs.targetOS.contains("linux") && product.symbolLinkMode === "weak")
+            cpp.link: !(product.qbs.targetOS.includes("linux") && product.symbolLinkMode === "weak")
         }
 
         property string symbolLinkMode: project.lazy ? "lazy" : "weak"
@@ -27,7 +27,7 @@ Project {
         property string installLib: "SHOULD_INSTALL_LIB=" + project.shouldInstallLibrary
         cpp.defines: {
             if (symbolLinkMode === "weak") {
-                return qbs.targetOS.contains("darwin")
+                return qbs.targetOS.includes("darwin")
                         ? ["WEAK_IMPORT=__attribute__((weak_import))", installLib]
                         : ["WEAK_IMPORT=__attribute__((weak))", installLib];
             }
@@ -49,7 +49,7 @@ Project {
         Depends { name: "indirect"; cpp.symbolLinkMode: "reexport" }
 
         Properties {
-            condition: qbs.targetOS.contains("darwin")
+            condition: qbs.targetOS.includes("darwin")
             bundle.isBundle: false
         }
         name: "functions"
@@ -59,7 +59,7 @@ Project {
         cpp.rpaths: [cpp.rpathOrigin]
 
         Properties {
-            condition: qbs.targetOS.contains("darwin")
+            condition: qbs.targetOS.includes("darwin")
             cpp.sonamePrefix: "@rpath"
         }
 
@@ -72,7 +72,7 @@ Project {
 
         Export {
             // let the autotest pass on Linux where reexport is not supported
-            Depends { name: "indirect"; condition: !qbs.targetOS.contains("darwin") }
+            Depends { name: "indirect"; condition: !qbs.targetOS.includes("darwin") }
 
             // on Linux, there is no LC_WEAK_LOAD_DYLIB equivalent (the library is simply omitted
             // from the list of load commands entirely), so use LD_PRELOAD to emulate
@@ -91,7 +91,7 @@ Project {
         Depends { name: "cpp" }
 
         Properties {
-            condition: qbs.targetOS.contains("darwin")
+            condition: qbs.targetOS.includes("darwin")
             bundle.isBundle: false
         }
         name: "indirect"
@@ -100,7 +100,7 @@ Project {
         cpp.minimumMacosVersion: "10.7"
 
         Properties {
-            condition: qbs.targetOS.contains("darwin")
+            condition: qbs.targetOS.includes("darwin")
             // reexport is incompatible with rpath,
             // "ERROR: ld: file not found: @rpath/libindirect.dylib for architecture x86_64"
             cpp.sonamePrefix: qbs.installRoot + "/lib"

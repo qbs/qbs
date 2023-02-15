@@ -2,7 +2,7 @@ import "../BareMetalApplication.qbs" as BareMetalApplication
 
 BareMetalApplication {
     condition: {
-        if (!qbs.toolchain.contains("gcc")) {
+        if (!qbs.toolchain.includes("gcc")) {
             console.info("compiler listing suffix: %%" + cpp.compilerListingSuffix + "%%");
             return true;
         }

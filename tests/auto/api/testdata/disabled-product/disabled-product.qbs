@@ -2,7 +2,7 @@ CppApplication {
     condition: false
     files: "main.cpp"
     Group {
-        condition: qbs.targetOS.contains("stuff")
+        condition: qbs.targetOS.includes("stuff")
         qbs.install: false
     }
 }

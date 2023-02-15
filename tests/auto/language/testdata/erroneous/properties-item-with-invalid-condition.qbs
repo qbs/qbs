@@ -1,7 +1,7 @@
 Product {
     Depends  { name: "cpp" }
     Properties {
-       condition: cpp.nonexistingproperty.contains("somevalue")
+       condition: cpp.nonexistingproperty.includes("somevalue")
        cpp.defines: ["ABC"]
     }
 }

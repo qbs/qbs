@@ -43,10 +43,10 @@ Product {
         inputs: "txt"
         outputFileTags: "p_tag"
         outputArtifacts: {
-            if (input.fileTags.contains("empty"))
+            if (input.fileTags.includes("empty"))
                 return [];
             return [{
-                filePath: input.fileTags.contains("y") ? "y.out" : "x.out",
+                filePath: input.fileTags.includes("y") ? "y.out" : "x.out",
                 fileTags: "p_tag"
             }]
         }

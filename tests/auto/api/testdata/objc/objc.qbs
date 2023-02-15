@@ -1,6 +1,6 @@
 Project {
     CppApplication {
-        condition: qbs.targetOS.contains("macos")
+        condition: qbs.targetOS.includes("macos")
         files: "main.mm"
         cpp.frameworks: [ "Foundation" ]
     }

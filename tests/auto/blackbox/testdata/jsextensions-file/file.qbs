@@ -33,10 +33,10 @@ Product {
                 if (!created || !File.exists(zePath))
                     throw new Error("zePath was not created.");
                 var entries = File.directoryEntries(product.sourceDirectory, File.AllEntries | File.NoDotAndDotDot);
-                if (entries.length < 3 || !entries.contains("file.qbs"))
+                if (entries.length < 3 || !entries.includes("file.qbs"))
                     throw new Error("Directory did not contain file.qbs");
                 entries = File.directoryEntries(product.sourceDirectory, File.Dirs | File.NoDotAndDotDot);
-                if (entries.length < 1 || !entries.contains("zePath"))
+                if (entries.length < 1 || !entries.includes("zePath"))
                     throw new Error("Directory did not contain only zePath");
                 var moveSource = FileInfo.joinPaths(product.sourceDirectory, "tomove.txt");
                 var moveTarget = FileInfo.joinPaths(product.sourceDirectory, "moved.txt");

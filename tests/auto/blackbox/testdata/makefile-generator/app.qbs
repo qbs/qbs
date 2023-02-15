@@ -13,7 +13,7 @@ CppApplication {
     cpp.cxxLanguageVersion: "c++11"
     cpp.separateDebugInformation: false
     Properties {
-        condition: qbs.targetOS.contains("macos")
+        condition: qbs.targetOS.includes("macos")
         bundle.embedInfoPlist: false
         cpp.minimumMacosVersion: "10.7"
     }

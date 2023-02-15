@@ -3,7 +3,7 @@ CppApplication {
         id: dummy
         property stringList toolchain: qbs.toolchain
         configure: {
-            if (toolchain.contains("msvc"))
+            if (toolchain.includes("msvc"))
                 console.info("msvc");
         }
     }

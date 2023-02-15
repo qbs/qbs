@@ -1,3 +1,3 @@
 Module {
-    condition: !qbs.targetOS.contains("Beatles")
+    condition: !qbs.targetOS.includes("Beatles")
 }

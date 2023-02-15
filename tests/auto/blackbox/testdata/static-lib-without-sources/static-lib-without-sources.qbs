@@ -6,7 +6,7 @@ StaticLibrary {
     }
 
 Product {
-    type: qbs.targetOS.contains("darwin") ? undefined : ["staticlibrary"]
+    type: qbs.targetOS.includes("darwin") ? undefined : ["staticlibrary"]
     name: "b"
     Depends { name: "cpp" }
     Depends { name: "a" }

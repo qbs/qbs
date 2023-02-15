@@ -51,7 +51,7 @@ Project {
             files: ["*.cpp", "*.h"].concat(
                 !File.exists(ndkHelperProbe.dir + "/gl3stub.cpp") ? ["gl3stub.c"] : [])
         }
-        Properties { condition: qbs.toolchain.contains("clang"); Android.ndk.appStl: "c++_shared" }
+        Properties { condition: qbs.toolchain.includes("clang"); Android.ndk.appStl: "c++_shared" }
         Android.ndk.appStl: "gnustl_shared"
         cpp.cxxLanguageVersion: "c++11"
 
@@ -137,7 +137,7 @@ Project {
         Android.sdk.apkBaseName: name
         Android.sdk.packageName: "com.sample.teapot"
         Android.sdk.sourceSetDir: teapotProbe.dir
-        Properties { condition: qbs.toolchain.contains("clang"); Android.ndk.appStl: "c++_shared" }
+        Properties { condition: qbs.toolchain.includes("clang"); Android.ndk.appStl: "c++_shared" }
         Android.ndk.appStl: "gnustl_shared"
         cpp.cxxLanguageVersion: "c++11"
         cpp.dynamicLibraries: ["log", "android", "EGL", "GLESv2"]

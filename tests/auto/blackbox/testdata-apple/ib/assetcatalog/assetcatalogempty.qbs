@@ -3,7 +3,7 @@ import qbs.Utilities
 
 Project {
     condition: {
-        var result = qbs.targetOS.contains("macos");
+        var result = qbs.targetOS.includes("macos");
         if (!result)
             console.info("Skip this test");
         return result;
