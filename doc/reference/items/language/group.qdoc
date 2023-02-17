@@ -48,21 +48,21 @@
         }
         Group {
             name: "Windows files"
-            condition: qbs.targetOS.contains("windows")
+            condition: qbs.targetOS.includes("windows")
             files: "myclass_win_impl.cpp"
         }
         Group {
             name: "Unix files"
-            condition: qbs.targetOS.contains("unix")
+            condition: qbs.targetOS.includes("unix")
             files: "unixhelper.cpp"
             Group {
                 name: "Linux files"
-                condition: qbs.targetOS.contains("linux")
+                condition: qbs.targetOS.includes("linux")
                 files: "myclass_linux_impl.cpp"
             }
             Group {
                 name: "FreeBSD files"
-                condition: qbs.targetOS.contains("freebsd")
+                condition: qbs.targetOS.includes("freebsd")
                 files: "myclass_freebsd_impl.cpp"
             }
         }
