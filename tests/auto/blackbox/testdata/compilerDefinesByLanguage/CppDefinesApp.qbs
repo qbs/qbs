@@ -1,7 +1,7 @@
 CppApplication {
     files: ["app.c"]
 
-    property bool enableObjectiveC: qbs.targetOS.contains("darwin")
+    property bool enableObjectiveC: qbs.targetOS.includes("darwin")
 
     Group {
         name: "C/C++"

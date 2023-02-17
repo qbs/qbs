@@ -5,7 +5,7 @@ CppApplication {
     consoleApplication: true
     cpp.includePaths: ".."
     Properties {
-        condition: Host.os().contains("darwin") && qbs.toolchain.contains("clang")
+        condition: Host.os().includes("darwin") && qbs.toolchain.includes("clang")
         cpp.cFlags: "-Wno-implicit-function-declaration"
     }
     files: [

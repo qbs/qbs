@@ -4,9 +4,9 @@ CppApplication {
 
     files: "main.cpp"
 
-    Depends { name: "bundle"; condition: qbs.targetOS.contains("darwin") }
+    Depends { name: "bundle"; condition: qbs.targetOS.includes("darwin") }
     Properties {
-        condition: qbs.targetOS.contains("darwin")
+        condition: qbs.targetOS.includes("darwin")
         bundle.isBundle: false
     }
 
@@ -17,7 +17,7 @@ CppApplication {
             var cmd = new JavaScriptCommand();
             cmd.silent = true;
             cmd.sourceCode = function() {
-                console.info("is Darwin: " + product.qbs.targetOS.contains("darwin"));
+                console.info("is Darwin: " + product.qbs.targetOS.includes("darwin"));
                 console.info("---" + product.cpp.nmPath + "---");
             }
             return [cmd];

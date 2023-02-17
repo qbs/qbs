@@ -18,7 +18,7 @@ Project {
         cpp.defines: ["XXXX"]
 
         Properties {
-            condition: qbs.targetOS.contains("darwin")
+            condition: qbs.targetOS.includes("darwin")
             bundle.isBundle: false
         }
     }

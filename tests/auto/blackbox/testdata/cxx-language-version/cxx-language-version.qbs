@@ -13,10 +13,10 @@ CppApplication {
             var isEvenNewerMsvc;
             var isOlderMsvc;
             var isGcc;
-            if (toolchain.contains("clang-cl")) {
+            if (toolchain.includes("clang-cl")) {
                 isEvenNewerMsvc = true;
                 isNewerMsvc = true;
-            } else if (toolchain.contains("msvc")) {
+            } else if (toolchain.includes("msvc")) {
                 if (compilerVersion >= "19.12.25831")
                     isEvenNewerMsvc = true;
                 if (compilerVersion >= "18.00.30723")

@@ -9,9 +9,9 @@ Project {
             id: osProbe
             property stringList targetOS: qbs.targetOS
             configure: {
-                console.info("is windows: " + (targetOS.contains("windows") ? "yes" : "no"));
-                console.info("is macos: " + (targetOS.contains("macos") ? "yes" : "no"));
-                console.info("is darwin: " + (targetOS.contains("darwin") ? "yes" : "no"));
+                console.info("is windows: " + (targetOS.includes("windows") ? "yes" : "no"));
+                console.info("is macos: " + (targetOS.includes("macos") ? "yes" : "no"));
+                console.info("is darwin: " + (targetOS.includes("darwin") ? "yes" : "no"));
             }
         }
     }
@@ -55,7 +55,7 @@ Project {
         files: ["main.cpp"]
         cpp.separateDebugInformation: true
         Properties {
-            condition: qbs.targetOS.contains("darwin")
+            condition: qbs.targetOS.includes("darwin")
             cpp.dsymutilFlags: ["--flat"]
         }
     }
@@ -66,7 +66,7 @@ Project {
         files: ["foo.cpp"]
         cpp.separateDebugInformation: true
         Properties {
-            condition: qbs.targetOS.contains("darwin")
+            condition: qbs.targetOS.includes("darwin")
             cpp.dsymutilFlags: ["--flat"]
         }
     }
@@ -76,7 +76,7 @@ Project {
         files: ["foo.cpp"]
         cpp.separateDebugInformation: true
         Properties {
-            condition: qbs.targetOS.contains("darwin")
+            condition: qbs.targetOS.includes("darwin")
             cpp.dsymutilFlags: ["--flat"]
         }
     }
@@ -94,7 +94,7 @@ Project {
         type: ["dynamiclibrary"]
         files: ["foo.cpp"]
         Properties {
-            condition: qbs.targetOS.contains("darwin")
+            condition: qbs.targetOS.includes("darwin")
             bundle.isBundle: false
         }
         cpp.separateDebugInformation: true
@@ -104,7 +104,7 @@ Project {
         name: "bar4"
         files: ["foo.cpp"]
         Properties {
-            condition: qbs.targetOS.contains("darwin")
+            condition: qbs.targetOS.includes("darwin")
             bundle.isBundle: false
         }
         cpp.separateDebugInformation: true
@@ -115,12 +115,12 @@ Project {
         type: ["application"]
         files: ["main.cpp"]
         Properties {
-            condition: qbs.targetOS.contains("darwin")
+            condition: qbs.targetOS.includes("darwin")
             bundle.isBundle: false
         }
         cpp.separateDebugInformation: true
         Properties {
-            condition: qbs.targetOS.contains("darwin")
+            condition: qbs.targetOS.includes("darwin")
             cpp.dsymutilFlags: ["--flat"]
         }
     }
@@ -130,12 +130,12 @@ Project {
         type: ["dynamiclibrary"]
         files: ["foo.cpp"]
         Properties {
-            condition: qbs.targetOS.contains("darwin")
+            condition: qbs.targetOS.includes("darwin")
             bundle.isBundle: false
         }
         cpp.separateDebugInformation: true
         Properties {
-            condition: qbs.targetOS.contains("darwin")
+            condition: qbs.targetOS.includes("darwin")
             cpp.dsymutilFlags: ["--flat"]
         }
     }
@@ -144,12 +144,12 @@ Project {
         name: "bar5"
         files: ["foo.cpp"]
         Properties {
-            condition: qbs.targetOS.contains("darwin")
+            condition: qbs.targetOS.includes("darwin")
             bundle.isBundle: false
         }
         cpp.separateDebugInformation: true
         Properties {
-            condition: qbs.targetOS.contains("darwin")
+            condition: qbs.targetOS.includes("darwin")
             cpp.dsymutilFlags: ["--flat"]
         }
     }

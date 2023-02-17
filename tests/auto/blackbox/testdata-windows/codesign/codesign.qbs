@@ -9,7 +9,7 @@ Project {
     CppApplication {
         name: "A"
         files: "app.cpp"
-        condition: qbs.toolchain.contains("msvc")
+        condition: qbs.toolchain.includes("msvc")
         codesign.enableCodeSigning: project.enableSigning
         codesign.hashAlgorithm: project.hashAlgorithm
         codesign.subjectName: project.subjectName
@@ -27,7 +27,7 @@ Project {
         Depends { name: "cpp" }
         name: "B"
         files: "app.cpp"
-        condition: qbs.toolchain.contains("msvc")
+        condition: qbs.toolchain.includes("msvc")
         codesign.enableCodeSigning: project.enableSigning
         codesign.hashAlgorithm: project.hashAlgorithm
         codesign.subjectName: project.subjectName

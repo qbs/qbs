@@ -23,7 +23,7 @@ Project {
         cpp.cxxLanguageVersion: "c++11"
 
         Properties {
-            condition: qbs.targetOS.contains("unix")
+            condition: qbs.targetOS.includes("unix")
             cpp.rpaths: [cpp.rpathOrigin]
         }
 
@@ -43,12 +43,12 @@ Project {
         Depends { name: "Qt.core" }
 
         Properties {
-            condition: qbs.targetOS.contains("darwin")
+            condition: qbs.targetOS.includes("darwin")
             bundle.isBundle: false
         }
         cpp.defines: [Qt.core.staticBuild ? "QT_STATICPLUGIN" : "QT_PLUGIN"]
         cpp.cxxLanguageVersion: "c++11"
-        cpp.sonamePrefix: qbs.targetOS.contains("darwin") ? "@rpath" : undefined
+        cpp.sonamePrefix: qbs.targetOS.includes("darwin") ? "@rpath" : undefined
         cpp.includePaths: ["."]
         Qt.core.pluginMetaData: ["theKey=theValue"]
 

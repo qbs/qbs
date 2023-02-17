@@ -4,7 +4,7 @@ import qbs.Utilities
 // (but will still compile and link since we avoid passing a
 // bad value to the linker)
 CppApplication {
-    condition: qbs.targetOS.contains("windows")
+    condition: qbs.targetOS.includes("windows")
     files: ["main.cpp"]
     consoleApplication: true
     cpp.minimumWindowsVersion: "5.3"

@@ -34,35 +34,35 @@ var Utilities = require("qbs.Utilities");
 // For example: x86 -> x86_64 on macOS, armv7 -> arm64 on iOS
 
 function enableOldArch(qbs, xcodeVersion) {
-    return qbs.targetOS.contains("macos")
+    return qbs.targetOS.includes("macos")
             && xcodeVersion
             && (Utilities.versionCompare(xcodeVersion, "10") < 0
                 || Utilities.versionCompare(xcodeVersion, "12.2") >= 0)
-            || qbs.targetOS.contains("ios")
+            || qbs.targetOS.includes("ios")
 }
 
 function getNewArch(qbs, xcodeVersion) {
-    if (qbs.targetOS.contains("macos"))
+    if (qbs.targetOS.includes("macos"))
         return xcodeVersion
                 && Utilities.versionCompare(xcodeVersion, "12.2") >= 0 ? "arm64" : "x86_64";
-    else if (qbs.targetOS.contains("ios-simulator"))
+    else if (qbs.targetOS.includes("ios-simulator"))
         return "x86_64"
-    else if (qbs.targetOS.contains("ios"))
+    else if (qbs.targetOS.includes("ios"))
         return "arm64"
-    else if (qbs.targetOS.contains("tvos"))
+    else if (qbs.targetOS.includes("tvos"))
         return "arm64"
-    else if (qbs.targetOS.contains("watchos"))
+    else if (qbs.targetOS.includes("watchos"))
         return "armv7k"
     throw "unsupported targetOS: " + qbs.targetOS;
 }
 
 function getOldArch(qbs, xcodeVersion) {
-    if (qbs.targetOS.contains("macos"))
+    if (qbs.targetOS.includes("macos"))
         return xcodeVersion
                 && Utilities.versionCompare(xcodeVersion, "12.2") >= 0 ? "x86_64" : "x86";
-    else if (qbs.targetOS.contains("ios-simulator"))
+    else if (qbs.targetOS.includes("ios-simulator"))
         return "x86"
-    else if (qbs.targetOS.contains("ios"))
+    else if (qbs.targetOS.includes("ios"))
         return "armv7a"
     throw "unsupported targetOS: " + qbs.targetOS;
 }

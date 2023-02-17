@@ -6,7 +6,7 @@ Module {
     Group {
         name: "thetool binary"
         files: FileInfo.cleanPath(FileInfo.joinPaths(path, "..", "..",
-                   "thetool" + (Host.os().contains("windows") ? ".exe" : "")));
+                   "thetool" + (Host.os().includes("windows") ? ".exe" : "")));
         fileTags: ["thetool.thetool"]
         filesAreTargets: true
     }

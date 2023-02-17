@@ -11,12 +11,12 @@ Product {
     }
 
     Group {
-        condition: type.contains("application")
+        condition: type.includes("application")
         files: "main.cpp"
     }
 
     Group {
-        condition: type.contains("staticlibrary")
+        condition: type.includes("staticlibrary")
         files: "lib.cpp"
     }
 

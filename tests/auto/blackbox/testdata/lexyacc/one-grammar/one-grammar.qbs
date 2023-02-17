@@ -19,10 +19,10 @@ CppApplication {
     Probe {
         id: pathCheck
         property string theDir: {
-            if (qbs.targetOS.contains("windows")) {
-                if (qbs.toolchain.contains("mingw"))
+            if (qbs.targetOS.includes("windows")) {
+                if (qbs.toolchain.includes("mingw"))
                     return cpp.toolchainInstallPath;
-                if (qbs.toolchain.contains("clang") && qbs.sysroot)
+                if (qbs.toolchain.includes("clang") && qbs.sysroot)
                     return qbs.sysroot + "/bin";
             }
         }

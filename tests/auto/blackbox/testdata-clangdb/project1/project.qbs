@@ -7,8 +7,8 @@ Project {
 Application {
     Probe {
         id: dummy
-        property bool isMingw: qbs.toolchain.contains("mingw")
-        property bool isMsvc: qbs.toolchain.contains("msvc")
+        property bool isMingw: qbs.toolchain.includes("mingw")
+        property bool isMsvc: qbs.toolchain.includes("msvc")
         property var buildEnv: cpp.buildEnv
         configure: {
             if (!buildEnv)

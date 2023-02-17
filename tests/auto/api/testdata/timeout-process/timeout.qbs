@@ -9,7 +9,7 @@ Project {
         cpp.cxxLanguageVersion: "c++11"
         cpp.minimumOsxVersion: "10.8" // For <chrono>
         Properties {
-            condition: qbs.toolchain.contains("gcc")
+            condition: qbs.toolchain.includes("gcc")
             cpp.driverFlags: "-pthread"
         }
     }
@@ -26,7 +26,7 @@ Project {
         Depends { name: "infinite-loop" }
         Depends {
             name: "cpp" // Make sure build environment is set up properly.
-            condition: Host.os().contains("windows") && qbs.toolchain.contains("gcc")
+            condition: Host.os().includes("windows") && qbs.toolchain.includes("gcc")
         }
         Rule {
             inputsFromDependencies: "application"

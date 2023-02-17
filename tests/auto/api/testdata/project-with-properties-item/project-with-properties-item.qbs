@@ -3,7 +3,7 @@ Project {
     property string libPath: "/usr/lib"
 
     Properties {
-        condition: qbs.targetOS.contains("macos")
+        condition: qbs.targetOS.includes("macos")
         binPath: "/Users/boo"
         libPath: "/Libraries/foo"
     }

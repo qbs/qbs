@@ -24,7 +24,7 @@ Project {
     }
 
     CppApplication {
-        condition: qbs.targetOS.contains("darwin")
+        condition: qbs.targetOS.includes("darwin")
 
         consoleApplication: true
         name: "LinkedProduct-Objective-C"
@@ -50,7 +50,7 @@ Project {
     }
 
     CppApplication {
-        condition: qbs.targetOS.contains("darwin")
+        condition: qbs.targetOS.includes("darwin")
 
         consoleApplication: true
         name: "LinkedProduct-Objective-C++"

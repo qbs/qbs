@@ -5,7 +5,7 @@ Project {
         name: "dep"
         files: "dep.cpp"
         Properties {
-            condition: qbs.targetOS.contains("darwin")
+            condition: qbs.targetOS.includes("darwin")
             bundle.isBundle: false
         }
     }

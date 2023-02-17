@@ -1,8 +1,8 @@
 DynamicLibrary {
     Depends { name: "cpp" }
-    Depends { name: "bundle"; condition: qbs.targetOS.contains("darwin") }
+    Depends { name: "bundle"; condition: qbs.targetOS.includes("darwin") }
     Properties {
-        condition: qbs.targetOS.contains("darwin")
+        condition: qbs.targetOS.includes("darwin")
         bundle.isBundle: false
         cpp.minimumMacosVersion: "10.7" // For -rpath
     }

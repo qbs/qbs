@@ -2,7 +2,7 @@ import qbs.FileInfo
 import qbs.TextFile
 
 Project {
-    condition: qbs.targetOS.contains("windows")
+    condition: qbs.targetOS.includes("windows")
 
     NSISSetup {
         Depends { name: "app" }

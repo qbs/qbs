@@ -43,7 +43,7 @@ Project {
 
             // check whether multipart module name translation is working
             var actual = product.moduleProperty("Qt.core", "mocName");
-            if (!actual || !actual.contains("moc"))
+            if (!actual || !actual.includes("moc"))
                 throw "multipart module name translation is broken";
 
             // check whether we can access project properties here
@@ -57,7 +57,7 @@ Project {
             code = expandMacros(code, product.replacements);
             var args = ['echo ' + code + '>' + output.filePath]
             var cmd
-            if (product.moduleProperty("qbs", "hostOS").contains('windows')) {
+            if (product.moduleProperty("qbs", "hostOS").includes('windows')) {
                 cmd = new Command(product.qbs.windowsShellPath, ['/C'].concat(args));
             } else {
                 args[0] = args[0].replace(/\(/g, '\\(')

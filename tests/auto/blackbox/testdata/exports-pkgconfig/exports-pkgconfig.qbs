@@ -43,7 +43,7 @@ Project {
             Depends { name: "Qt.core"; required: false }
             Depends { name: "helper1" }
             Depends { name: "helper3" }
-            property bool someCondition: Host.os().contains("windows") // hostOS for easier testing
+            property bool someCondition: Host.os().includes("windows") // hostOS for easier testing
             property bool someOtherCondition: someCondition
             Properties {
                 condition: !someOtherCondition

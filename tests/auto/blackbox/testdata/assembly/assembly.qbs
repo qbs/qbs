@@ -30,9 +30,9 @@ Project {
         name : "testa"
         files : [ "testa.s" ]
         Depends { name: "cpp" }
-        condition: qbs.toolchain.contains("gcc")
+        condition: qbs.toolchain.includes("gcc")
         Properties {
-            condition: qbs.targetOS.contains("darwin")
+            condition: qbs.targetOS.includes("darwin")
             bundle.isBundle: false
         }
     }
@@ -40,9 +40,9 @@ Project {
         name : "testb"
         files : [ "testb.S" ]
         Depends { name: "cpp" }
-        condition: qbs.toolchain.contains("gcc")
+        condition: qbs.toolchain.includes("gcc")
         Properties {
-            condition: qbs.targetOS.contains("darwin")
+            condition: qbs.targetOS.includes("darwin")
             bundle.isBundle: false
         }
     }
@@ -50,9 +50,9 @@ Project {
         name : "testc"
         files : [ "testc.sx" ]
         Depends { name: "cpp" }
-        condition: qbs.toolchain.contains("gcc")
+        condition: qbs.toolchain.includes("gcc")
         Properties {
-            condition: qbs.targetOS.contains("darwin")
+            condition: qbs.targetOS.includes("darwin")
             bundle.isBundle: false
         }
     }
@@ -63,10 +63,10 @@ Project {
             files: ["testd_" + qbs.architecture + ".asm"]
         }
         Depends { name: "cpp" }
-        condition: qbs.toolchain.contains("msvc")
+        condition: qbs.toolchain.includes("msvc")
                    && (qbs.architecture === "x86" || qbs.architecture === "x86_64")
         Properties {
-            condition: qbs.targetOS.contains("darwin")
+            condition: qbs.targetOS.includes("darwin")
             bundle.isBundle: false
         }
     }

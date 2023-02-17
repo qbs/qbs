@@ -14,8 +14,8 @@ Project {
 
         Probe {
             id: osCheck
-            property bool isNormalUnix: qbs.targetOS.contains("unix")
-                                        && !qbs.targetOS.contains("darwin")
+            property bool isNormalUnix: qbs.targetOS.includes("unix")
+                                        && !qbs.targetOS.includes("darwin")
             configure: { console.info("is normal unix: " + (isNormalUnix ? "yes" : "no")); }
         }
     }
@@ -26,7 +26,7 @@ Project {
         Depends { name: "cpp" }
         Depends { name: "static2" }
         Properties {
-            condition: qbs.targetOS.contains("darwin")
+            condition: qbs.targetOS.includes("darwin")
             bundle.isBundle: false
         }
     }
@@ -44,7 +44,7 @@ Project {
         Depends { name: "cpp" }
         cpp.visibility: 'hidden'
         Properties {
-            condition: qbs.targetOS.contains("darwin")
+            condition: qbs.targetOS.includes("darwin")
             bundle.isBundle: false
         }
     }

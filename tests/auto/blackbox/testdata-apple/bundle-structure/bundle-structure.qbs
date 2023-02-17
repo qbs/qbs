@@ -17,7 +17,7 @@ Project {
         Depends { name: "B" }
         Depends { name: "C" }
         Depends { name: "D" }
-        condition: buildableProducts.contains("A")
+        condition: buildableProducts.includes("A")
         name: "A"
         bundle.isBundle: true
         bundle.publicHeaders: ["dummy.h"]
@@ -33,7 +33,7 @@ Project {
         Depends { name: "B" }
         Depends { name: "C" }
         Depends { name: "D" }
-        condition: buildableProducts.contains("ABadApple")
+        condition: buildableProducts.includes("ABadApple")
         name: "ABadApple"
         bundle._productTypeIdentifier: "com.apple.product-type.will.never.exist.ever.guaranteed"
         bundle.isBundle: true
@@ -50,7 +50,7 @@ Project {
         Depends { name: "B" }
         Depends { name: "C" }
         Depends { name: "D" }
-        condition: buildableProducts.contains("ABadThirdParty")
+        condition: buildableProducts.includes("ABadThirdParty")
         name: "ABadThirdParty"
         bundle._productTypeIdentifier: "org.special.third.party.non.existent.product.type"
         bundle.isBundle: true
@@ -103,7 +103,7 @@ Project {
 
     ApplicationExtension {
         Depends { name: "cpp" }
-        condition: buildableProducts.contains("E")
+        condition: buildableProducts.includes("E")
         name: "E"
         bundle.isBundle: true
         bundle.publicHeaders: ["dummy.h"]
@@ -116,7 +116,7 @@ Project {
 
     XPCService {
         Depends { name: "cpp" }
-        condition: buildableProducts.contains("F")
+        condition: buildableProducts.includes("F")
         name: "F"
         bundle.isBundle: true
         bundle.publicHeaders: ["dummy.h"]
@@ -129,7 +129,7 @@ Project {
 
     Product {
         Depends { name: "bundle" }
-        condition: buildableProducts.contains("G")
+        condition: buildableProducts.includes("G")
         type: ["inapppurchase"]
         name: "G"
         bundle.isBundle: true

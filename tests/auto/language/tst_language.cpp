@@ -878,7 +878,7 @@ void TestLanguage::erroneousFiles_data()
             << "The value '.*' of Project.minimumQbsVersion is not a valid version string.";
     QTest::newRow("properties-item-with-invalid-condition")
             << "properties-item-with-invalid-condition.qbs:4:19.*"
-               "cannot read property 'contains' of undefined";
+               "cannot read property 'includes' of undefined";
     QTest::newRow("misused-inherited-property") << "Binding to non-item property";
     QTest::newRow("undeclared_property_in_Properties_item") << "Item 'blubb' is not declared";
     QTest::newRow("same-module-prefix1") << "The name of module 'prefix1' is equal to the first "

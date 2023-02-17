@@ -3,9 +3,9 @@ Project {
         name: "app"
         Depends { name: "lib" }
         property bool dummy: {
-            console.info("is GCC: " + qbs.toolchain.contains("gcc"));
-            console.info("is MinGW: " + qbs.toolchain.contains("mingw"));
-            console.info("is Darwin: " + qbs.targetOS.contains("darwin"));
+            console.info("is GCC: " + qbs.toolchain.includes("gcc"));
+            console.info("is MinGW: " + qbs.toolchain.includes("mingw"));
+            console.info("is Darwin: " + qbs.targetOS.includes("darwin"));
         }
         files: "main.cpp"
     }

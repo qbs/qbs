@@ -8,7 +8,7 @@ CppApplication {
     Group {
         files: ["file.cpp"]
         cpp.defines: ["MYDEF=1"]
-        cpp.cxxFlags: base.concat(qbs.toolchain.contains("clang-cl") ? ["-Wno-clang-cl-pch"] : [])
+        cpp.cxxFlags: base.concat(qbs.toolchain.includes("clang-cl") ? ["-Wno-clang-cl-pch"] : [])
     }
     cpp.treatWarningsAsErrors: true
 

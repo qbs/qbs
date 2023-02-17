@@ -12,7 +12,7 @@ Project {
             id: toolchainProbe
             property stringList toolchain: qbs.toolchain
             configure: {
-                if (toolchain.contains("msvc") && !toolchain.contains("clang-cl"))
+                if (toolchain.includes("msvc") && !toolchain.includes("clang-cl"))
                     console.info("compiler is MSVC")
                 else
                     console.info("compiler is not MSVC")

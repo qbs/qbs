@@ -1281,8 +1281,6 @@
     \list
         \li \l{qbs::}{buildVariant} that specifies the name of the build variant
             for the current build.
-        \li \l{qbs::}{hostOS} that is set by \QBS internally and specifies the
-            operating system \QBS is running on.
         \li \l{qbs::}{targetOS} that specifies the operating system you want to
             build the project for.
     \endlist

@@ -16,7 +16,7 @@ DummyBase {
     property string zort: "zort in dummy"
     property pathList includePaths
     property path somePath
-    property stringList listProp: product.type.contains("blubb") ? ["123"] : ["456"]
+    property stringList listProp: product.type.includes("blubb") ? ["123"] : ["456"]
 
     property bool controllingProp: false
     property stringList listProp2: controllingProp

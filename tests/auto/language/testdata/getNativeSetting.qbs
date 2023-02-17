@@ -7,11 +7,11 @@ Project {
     Product {
         name: "p1"
         targetName: {
-            if (Host.os().contains("macos")) {
+            if (Host.os().includes("macos")) {
                 return Utilities.getNativeSetting("/System/Library/CoreServices/SystemVersion.plist", "ProductName");
-            } else if (Host.os().contains("windows")) {
+            } else if (Host.os().includes("windows")) {
                 var productName = Utilities.getNativeSetting("HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows NT\\CurrentVersion", "ProductName");
-                if (productName.contains("Windows")) {
+                if (productName.includes("Windows")) {
                     return "Windows";
                 }
                 return undefined;

@@ -8,7 +8,7 @@ Project {
         destinationDirectory: project.outputLibrariesDirectory
         Depends { name: "cpp" }
         Properties {
-            condition: qbs.targetOS.contains("darwin")
+            condition: qbs.targetOS.includes("darwin")
             bundle.isBundle: false
         }
         files: ["lib-a.c"]
@@ -19,7 +19,7 @@ Project {
         Depends { name: "cpp" }
         Depends { name: "lib-a" }
         Properties {
-            condition: qbs.targetOS.contains("darwin")
+            condition: qbs.targetOS.includes("darwin")
             bundle.isBundle: false
         }
         files: ["lib-b.c"]

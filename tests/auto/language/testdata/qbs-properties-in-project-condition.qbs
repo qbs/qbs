@@ -1,5 +1,5 @@
 Project {
-    condition: qbs.targetOS.contains("whatever")
+    condition: qbs.targetOS.includes("whatever")
 
     Product {
         name: "never reached"

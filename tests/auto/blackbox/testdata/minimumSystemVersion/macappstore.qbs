@@ -8,7 +8,7 @@ CppApplication {
         var result = qbs.targetPlatform === Host.platform();
         if (!result)
             console.info("targetPlatform differs from hostPlatform");
-        return result && qbs.targetOS.contains("macos");
+        return result && qbs.targetOS.includes("macos");
     }
     files: ["main.mm"]
     consoleApplication: true

@@ -4,7 +4,7 @@ Project {
     LoadableModule {
         Depends { name: "cpp" }
         Properties {
-            condition: qbs.targetOS.contains("darwin")
+            condition: qbs.targetOS.includes("darwin")
             bundle.isBundle: false
         }
         name: "CoolPlugIn"
@@ -30,10 +30,10 @@ Project {
         files: ["main.cpp"]
 
         cpp.cxxLanguageVersion: "c++11"
-        cpp.dynamicLibraries: [qbs.targetOS.contains("windows") ? "kernel32" : "dl"]
+        cpp.dynamicLibraries: [qbs.targetOS.includes("windows") ? "kernel32" : "dl"]
 
         Properties {
-            condition: qbs.targetOS.contains("unix") && !qbs.targetOS.contains("darwin")
+            condition: qbs.targetOS.includes("unix") && !qbs.targetOS.includes("darwin")
             cpp.rpaths: [cpp.rpathOrigin]
         }
 

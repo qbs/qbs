@@ -2,11 +2,11 @@ import "../BareMetalApplication.qbs" as BareMetalApplication
 
 Project {
     property bool supportsCpp: {
-        if (qbs.toolchain.contains("cosmic"))
+        if (qbs.toolchain.includes("cosmic"))
             return false;
-        if (qbs.toolchain.contains("sdcc"))
+        if (qbs.toolchain.includes("sdcc"))
             return false;
-        if (qbs.toolchain.contains("keil")) {
+        if (qbs.toolchain.includes("keil")) {
             if (qbs.architecture === "mcs51"
                     || qbs.architecture === "mcs251"
                     || qbs.architecture === "c166") {

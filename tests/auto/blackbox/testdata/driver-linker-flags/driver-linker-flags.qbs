@@ -8,7 +8,7 @@ CppApplication {
 
     Probe {
         id: toolchainProbe
-        condition: qbs.toolchain.contains("gcc")
+        condition: qbs.toolchain.includes("gcc")
         configure: {
             console.info("toolchain is GCC-like");
             found = true;

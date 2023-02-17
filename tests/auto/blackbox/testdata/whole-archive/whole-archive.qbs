@@ -32,7 +32,7 @@ Project {
             property string compilerVersion: cpp.compilerVersion
             property string dummy: product.linkWholeArchive // To force probe re-execution
             configure: {
-                if (!toolchain.contains("msvc")
+                if (!toolchain.includes("msvc")
                         || Utilities.versionCompare(compilerVersion, "19.0.24215.1") >= 0) {
                     console.info("can link whole archives");
                 } else {

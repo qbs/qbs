@@ -1,7 +1,7 @@
 Project {
     Application {
         Depends { name: "cli" }
-        Depends { name: "HelloWorldModule"; condition: !qbs.toolchain.contains("mono") }
+        Depends { name: "HelloWorldModule"; condition: !qbs.toolchain.includes("mono") }
         Depends { name: "NetLib" }
 
         type: "application"
@@ -16,7 +16,7 @@ Project {
 
     // Mono's VB compiler doesn't support modules yet, and if we try with C#, it crashes anyways
     NetModule {
-        condition: !qbs.toolchain.contains("mono")
+        condition: !qbs.toolchain.includes("mono")
         Depends { name: "cli" }
 
         name: "HelloWorldModule"
@@ -37,7 +37,7 @@ Project {
 
         // fill-in for missing NetModule
         Group {
-            condition: qbs.toolchain.contains("mono")
+            condition: qbs.toolchain.includes("mono")
             files: ["Module.cs"]
         }
 

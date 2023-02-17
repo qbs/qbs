@@ -19,7 +19,7 @@ Project {
         consoleApplication: true
         cpp.cxxLanguageVersion: "c++14"
         Properties {
-            condition: qbs.targetOS.contains("macos")
+            condition: qbs.targetOS.includes("macos")
             cpp.minimumMacosVersion: "10.9"
         }
         files: "main.cpp"

@@ -3,7 +3,7 @@ import qbs.TextFile
 Project {
     InnoSetup {
         property bool _test: {
-            var present = qbs.targetOS.contains("windows") && innosetup.present;
+            var present = qbs.targetOS.includes("windows") && innosetup.present;
             console.info("has innosetup: " + present);
         }
         Depends { name: "app" }

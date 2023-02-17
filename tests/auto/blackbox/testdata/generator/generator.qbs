@@ -18,12 +18,12 @@ CppApplication {
                 var f = new TextFile(input.filePath, TextFile.ReadOnly);
                 var content = f.readAll();
                 f.close();
-                if (content.contains("file1")) {
+                if (content.includes("file1")) {
                     f = new TextFile(outputs.file1[0].filePath, TextFile.WriteOnly);
                     f.writeLine("void f1() {}");
                     f.close();
                 }
-                if (content.contains("file2")) {
+                if (content.includes("file2")) {
                     f = new TextFile(outputs.file2[0].filePath, TextFile.WriteOnly);
                     f.writeLine("void f2() {}");
                     f.close();

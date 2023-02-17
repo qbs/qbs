@@ -5,7 +5,7 @@ Project {
     DynamicLibrary {
         name: "lib"
         Properties {
-            condition: qbs.targetOS.contains("darwin")
+            condition: qbs.targetOS.includes("darwin")
             bundle.isBundle: false
         }
     }

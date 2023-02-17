@@ -42,9 +42,9 @@ Project {
                 cmd.description = "running " + input.filePath;
 
                 var envVars = {};
-                if (Host.os().contains("windows")) {
+                if (Host.os().includes("windows")) {
                     envVars["PATH"] = FileInfo.toWindowsSeparators(input["Qt.core"].binPath);
-                } else if (Host.os().contains("macos")) {
+                } else if (Host.os().includes("macos")) {
                     envVars["DYLD_LIBRARY_PATH"] = input["Qt.core"].libPath;
                     envVars["DYLD_FRAMEWORK_PATH"] = input["Qt.core"].libPath;
                 } else {

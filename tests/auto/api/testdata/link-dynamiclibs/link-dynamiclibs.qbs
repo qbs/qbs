@@ -17,7 +17,7 @@ Project {
         Depends { name: "cpp" }
         Depends { name: "lib2" }
         Properties {
-            condition: qbs.targetOS.contains("darwin")
+            condition: qbs.targetOS.includes("darwin")
             bundle.isBundle: false
         }
     }
@@ -31,7 +31,7 @@ Project {
         Depends { name: "cpp" }
         Depends { name: "lib3" }
         Properties {
-            condition: qbs.targetOS.contains("darwin")
+            condition: qbs.targetOS.includes("darwin")
             bundle.isBundle: false
         }
     }
@@ -44,7 +44,7 @@ Project {
         }
         Depends { name: "cpp" }
         Properties {
-            condition: qbs.targetOS.contains("darwin")
+            condition: qbs.targetOS.includes("darwin")
             bundle.isBundle: false
         }
     }
@@ -58,7 +58,7 @@ Project {
         }
         Depends { name: "cpp" }
         Properties {
-            condition: qbs.targetOS.contains("darwin")
+            condition: qbs.targetOS.includes("darwin")
             bundle.isBundle: false
         }
 

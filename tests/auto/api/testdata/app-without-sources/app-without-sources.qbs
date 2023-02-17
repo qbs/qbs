@@ -26,7 +26,7 @@ Project {
 
         // HACK: cpp.entryPoint currently not working 100% with gcc
         Properties {
-            condition: qbs.toolchain.contains("msvc")
+            condition: qbs.toolchain.includes("msvc")
             cpp.entryPoint: "main"
             cpp.dynamicLibraries: ["ucrt", "kernel32"]
         }

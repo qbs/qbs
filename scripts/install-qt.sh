@@ -378,10 +378,14 @@ for COMPONENT in ${COMPONENTS}; do
         # adjust the PATH variable.
         echo $(dirname "${CONF_FILE}")
     elif [[ "${COMPONENT}" =~ "mingw" ]]; then
+        VERSION_DIR="${VERSION//./}"
         if [[ "${TOOLCHAIN}" =~ "win64_mingw" ]]; then
-            echo "${UNPACK_DIR}/Tools/mingw${VERSION//./}_64/bin"
+            if [[ "${VERSION}" == "9.0.0" ]]; then
+                VERSION_DIR="1120"
+            fi
+            echo "${UNPACK_DIR}/Tools/mingw${VERSION_DIR}_64/bin"
         elif [[ "${TOOLCHAIN}" =~ "win32_mingw" ]]; then
-            echo "${UNPACK_DIR}/Tools/mingw${VERSION//./}_32/bin"
+            echo "${UNPACK_DIR}/Tools/mingw${VERSION_DIR}_32/bin"
         fi
     elif [[ "${COMPONENT}" =~ "qtcreator" ]]; then
         if [ "${HOST_OS}" == "mac_x64" ]; then

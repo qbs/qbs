@@ -2,7 +2,7 @@ Project {
     CppApplication {
         name: "public_tool"
         Properties {
-            condition: qbs.targetOS.contains("darwin")
+            condition: qbs.targetOS.includes("darwin")
             bundle.isBundle: false
         }
         Depends { name: "mylib" }
@@ -20,7 +20,7 @@ Project {
     }
     DynamicLibrary {
         Properties {
-            condition: qbs.targetOS.contains("darwin")
+            condition: qbs.targetOS.includes("darwin")
             bundle.isBundle: false
         }
         Depends { name: "cpp" }

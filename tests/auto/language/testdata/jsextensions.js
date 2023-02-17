@@ -57,9 +57,9 @@ var a = ["one", "two", "three"];
 initTestContext("Array.prototype.contains");
 for (var k in a)
     verify(k !== "contains");
-verify(a.contains("one"));
-verify(a.contains("two"));
-verify(a.contains("three"));
-verify(!a.contains("four"));
+verify(a.includes("one"));
+verify(a.includes("two"));
+verify(a.includes("three"));
+verify(!a.includes("four"));
 
 })()            // END function wrapper

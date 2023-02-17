@@ -23,7 +23,7 @@ jobs:
                       products.qbs_archive.targetName:qbs-linux-${{ github.run_id }}
                       products.qbs_archive.includeTests:true',
             script: './scripts/build-qbs-with-qbs.sh',
-            cacheid: 'gcc',
+            cacheid: 'gcc-qt6',
           }
     env:
       BUILD_OPTIONS: ${{ matrix.config.options }}
@@ -41,14 +41,14 @@ jobs:
         path: ~/.ccache
         key: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache-${{ steps.get-timestamp.outputs.timestamp }}
         restore-keys: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache-
-    - name: Pull the Focal Image
-      run: docker-compose pull focal
+    - name: Pull the Docker Image
+      run: docker-compose pull focal-qt6
     - name: Print ccache stats
-      run: docker-compose run focal ccache -s
+      run: docker-compose run focal-qt6 ccache -s
     - name: Build Qbs
-      run: docker-compose run focal ${{ matrix.config.script }}
+      run: docker-compose run focal-qt6 ${{ matrix.config.script }}
     - name: Print ccache stats
-      run: docker-compose run focal ccache -s
+      run: docker-compose run focal-qt6 ccache -s
     - name: Upload artifacts
       uses: 'actions/upload-artifact@v2'
       with:
@@ -66,7 +66,7 @@ jobs:
         - {
             name: 'Build on Linux (clang_tidy)',
             script: './scripts/run-analyzer.sh',
-            image: 'focal',
+            image: 'focal-qt6',
             options: 'profile:qt-clang_64 modules.cpp.compilerWrapper:ccache',
             cacheid: 'clang',
           }
@@ -77,17 +77,8 @@ jobs:
             cacheid: 'cmake',
           }
         - {
-            name: 'Build on Linux (gcc, Qt 6.2)',
-            image: 'focal-qt6',
-            script: './scripts/build-qbs-with-qbs.sh',
-            options: 'modules.cpp.compilerWrapper:ccache
-                      modules.qbs.debugInformation:true
-                      modules.qbsbuildconfig.enableBundledQt:true',
-            cacheid: 'gcc-qt6',
-          }
-        - {
             name: 'Build on Linux (gcc, ASAN)',
-            image: 'focal',
+            image: 'focal-qt6',
             script: './scripts/build-qbs-with-qbs.sh',
             options: 'modules.cpp.compilerWrapper:ccache
                       modules.qbsbuildconfig.enableAddressSanitizer:true
@@ -97,7 +88,7 @@ jobs:
           }
         - {
             name: 'Build on Linux (gcc, UBSAN)',
-            image: 'focal',
+            image: 'focal-qt6',
             script: './scripts/build-qbs-with-qbs.sh',
             options: 'modules.cpp.compilerWrapper:ccache
                       modules.qbsbuildconfig.enableUbSanitizer:true
@@ -105,13 +96,20 @@ jobs:
                       modules.qbsbuildconfig.enableBundledQt:true',
             cacheid: 'gcc-ubsan',
           }
+        - {
+            name: 'Build on Linux (gcc, Qt 5.15)',
+            image: 'focal',
+            script: './scripts/build-qbs-with-qbs.sh',
+            options: 'modules.cpp.compilerWrapper:ccache
+                      modules.qbs.debugInformation:true
+                      modules.qbsbuildconfig.enableBundledQt:true',
+            cacheid: 'gcc-qt5',
+          }
     env:
       BUILD_OPTIONS: ${{ matrix.config.options }}
       QTEST_FUNCTION_TIMEOUT: 9000000
     steps:
     - uses: actions/checkout@v1
-      with:
-        submodules: true
     - name: Create .ccache dir
       run: mkdir -p ~/.ccache
     - name: prepare timestamp
@@ -123,7 +121,7 @@ jobs:
         path: ~/.ccache
         key: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache-${{ steps.get-timestamp.outputs.timestamp }}
         restore-keys: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache-
-    - name: Pull the Focal Image
+    - name: Pull the Docker Image
       run: docker-compose pull ${{ matrix.config.image }}
     - name: Print ccache stats
       run: docker-compose run ${{ matrix.config.image }} ccache -s
@@ -286,14 +284,13 @@ jobs:
     - name: Install Qt
       uses: ./.github/actions/download-qt
       with:
-        toolchain: win64_mingw81
+        toolchain: win64_mingw
     - name: Install Qt Creator
       uses: ./.github/actions/download-qtc
     - name: Install MinGW
       uses: ./.github/actions/download-mingw
     - name: Setup Qbs
       run: |
-        qbs setup-toolchains --detect
         qbs setup-toolchains --type mingw $(which g++).exe mingw-qt
         qbs setup-qt $(which qmake).exe qt
         qbs config profiles.qt.baseProfile mingw-qt
@@ -316,7 +313,7 @@ jobs:
   test-linux:
     name: ${{ matrix.config.name }}
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
     needs: build-linux
     strategy:
       fail-fast: false
@@ -441,7 +438,7 @@ jobs:
         path: ./
     - name: Unpack artifact
       run: mkdir -p release/install-root/ && tar xzf qbs-linux-${{ github.run_id }}.tar.gz -C release/install-root/
-    - name: Pull the Focal-Baremetal Image
+    - name: Pull the Docker Image
       run: docker-compose pull focal-baremetal
     - name: arm-none-eabi-gcc-9_2
       run: QBS_AUTOTEST_PROFILE=arm-none-eabi-gcc-9_2 docker-compose run focal-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
@@ -620,6 +617,7 @@ jobs:
       QTEST_FUNCTION_TIMEOUT: 9000000
       QBS_AUTOTEST_PROFILE: 'qt'
       QBS_TEST_SOURCE_ROOT: 'tests'
+      QBS_EXTRA_GRPC_LIBS: 'absl_synchronization,gpr'
     strategy:
       fail-fast: false
       matrix:
@@ -687,8 +685,6 @@ jobs:
           }
     steps:
     - uses: actions/checkout@v1
-      with:
-        submodules: true
     - name: Download artifact
       uses: actions/download-artifact@v1
       with:

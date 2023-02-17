@@ -22,7 +22,7 @@ Product {
         prepare: {
             var binary;
             var prefixArgs;
-            if (Host.os().contains("windows")) {
+            if (Host.os().includes("windows")) {
                 binary = product.qbs.windowsShellPath;
                 prefixArgs = ["/c", "type"];
             } else {

@@ -3,7 +3,7 @@ CppApplication {
     property string linkerVariant
     Probe {
         id: gccProbe
-        property bool isGcc: qbs.toolchain.contains("gcc")
+        property bool isGcc: qbs.toolchain.includes("gcc")
         configure: {
             console.info("is GCC: " + isGcc);
             if (isGcc)

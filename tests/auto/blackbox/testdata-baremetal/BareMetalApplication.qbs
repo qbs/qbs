@@ -22,7 +22,7 @@ BareMetalProduct {
     }
 
     Group {
-        condition: qbs.toolchain.contains("cosmic")
+        condition: qbs.toolchain.includes("cosmic")
         files: "cosmic.lkf"
         fileTags: "linkerscript"
     }
