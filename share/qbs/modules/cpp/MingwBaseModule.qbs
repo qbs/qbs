@@ -47,7 +47,7 @@ GenericGCC {
     runtimeLibrary: "dynamic"
 
     Properties {
-        condition: product.multiplexByQbsProperties.contains("buildVariants")
+        condition: product.multiplexByQbsProperties.includes("buildVariants")
                    && qbs.buildVariants && qbs.buildVariants.length > 1
                    && qbs.buildVariant !== "release"
                    && product.type.containsAny(["staticlibrary", "dynamiclibrary"])
@@ -96,9 +96,9 @@ GenericGCC {
                 var tf;
                 try {
                     tf = new TextFile(outputFilePath, TextFile.WriteOnly);
-                    if (productType.contains("application"))
+                    if (productType.includes("application"))
                         tf.write("1 "); // CREATEPROCESS_MANIFEST_RESOURCE_ID
-                    else if (productType.contains("dynamiclibrary"))
+                    else if (productType.includes("dynamiclibrary"))
                         tf.write("2 "); // ISOLATIONAWARE_MANIFEST_RESOURCE_ID
                     tf.write("24 "); // RT_MANIFEST
                     tf.writeLine(Utilities.cStringQuote(inputFilePath));

@@ -36,7 +36,7 @@ import "cpp.js" as Cpp
 import "keil.js" as KEIL
 
 CppModule {
-    condition: Host.os().contains("windows") && qbs.toolchain && qbs.toolchain.contains("keil")
+    condition: Host.os().includes("windows") && qbs.toolchain && qbs.toolchain.includes("keil")
 
     Probes.BinaryProbe {
         id: compilerPathProbe

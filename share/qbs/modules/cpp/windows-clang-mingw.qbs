@@ -38,8 +38,8 @@ import "msvc.js" as MSVC
 import "setuprunenv.js" as SetupRunEnv
 
 MingwBaseModule {
-    condition: qbs.targetOS.contains("windows") &&
-               qbs.toolchain && qbs.toolchain.contains("clang")
+    condition: qbs.targetOS.includes("windows") &&
+               qbs.toolchain && qbs.toolchain.includes("clang")
     priority: 0
 
     // llvm-as and llvm-objopy are not shipped with the official binaries on Windows at the
@@ -69,7 +69,7 @@ MingwBaseModule {
                                                    "llvm-rc" + compilerExtension)
 
     setupBuildEnvironment: {
-        if (Host.os().contains("windows") && product.qbs.sysroot) {
+        if (Host.os().includes("windows") && product.qbs.sysroot) {
             var v = new ModUtils.EnvironmentVariable("PATH", FileInfo.pathListSeparator(), true);
             v.prepend(FileInfo.joinPaths(product.qbs.sysroot, "bin"));
             v.set();
@@ -77,7 +77,7 @@ MingwBaseModule {
     }
 
     setupRunEnvironment: {
-        if (Host.os().contains("windows") && product.qbs.sysroot) {
+        if (Host.os().includes("windows") && product.qbs.sysroot) {
             var v = new ModUtils.EnvironmentVariable("PATH", FileInfo.pathListSeparator(), true);
             v.prepend(FileInfo.joinPaths(product.qbs.sysroot, "bin"));
             v.set();

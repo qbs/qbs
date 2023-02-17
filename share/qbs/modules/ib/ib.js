@@ -116,7 +116,7 @@ function ibtooldArguments(product, inputs, input, outputs, overrideOutput) {
 
     var outputFormat = ModUtils.moduleProperty(product, "outputFormat");
     if (outputFormat) {
-        if (!["binary1", "xml1", "human-readable-text"].contains(outputFormat))
+        if (!["binary1", "xml1", "human-readable-text"].includes(outputFormat))
             throw("Invalid ibtoold output format: " + outputFormat + ". " +
                   "Must be in [binary1, xml1, human-readable-text].");
 
@@ -205,9 +205,9 @@ function ibtooldArguments(product, inputs, input, outputs, overrideOutput) {
 
 function ibtoolFileTaggers(fileTags) {
     var ext;
-    if (fileTags.contains("nib") && !fileTags.contains("storyboard"))
+    if (fileTags.includes("nib") && !fileTags.includes("storyboard"))
         ext = "nib";
-    if (fileTags.contains("storyboard") && !fileTags.contains("nib"))
+    if (fileTags.includes("storyboard") && !fileTags.includes("nib"))
         ext = "storyboard";
 
     if (!ext)
@@ -223,9 +223,9 @@ function ibtoolFileTaggers(fileTags) {
 
 function ibtoolCompiledDirSuffix(product, input) {
     var suffix = input.completeBaseName;
-    if (input.fileTags.contains("nib"))
+    if (input.fileTags.includes("nib"))
         suffix += ModUtils.moduleProperty(product, "compiledNibSuffix");
-    else if (input.fileTags.contains("storyboard"))
+    else if (input.fileTags.includes("storyboard"))
         suffix += ModUtils.moduleProperty(product, "compiledStoryboardSuffix");
     return suffix;
 }
@@ -252,7 +252,7 @@ function ibtoolOutputArtifacts(product, inputs, input) {
     var artifacts = tracker.artifacts(ibtoolBuildDirectory);
 
     if (product.moduleProperty("ib", "ibtoolVersionMajor") >= 6) {
-        var prefix = input.fileTags.contains("storyboard") ? "SB" : "";
+        var prefix = input.fileTags.includes("storyboard") ? "SB" : "";
         var path = FileInfo.joinPaths(product.destinationDirectory, input.completeBaseName +
                                       "-" + prefix + "PartialInfo.plist");
         artifacts.push({ filePath: path, fileTags: ["partial_infoplist"] });
@@ -261,7 +261,7 @@ function ibtoolOutputArtifacts(product, inputs, input) {
     // Let the output artifacts known the "main" output
     // This can be either a file or directory so the artifact might already exist in the output list
     for (var i = 0; i < artifacts.length; ++i) {
-        if (artifacts[i].fileTags.contains("compiled_ibdoc"))
+        if (artifacts[i].fileTags.includes("compiled_ibdoc"))
             artifacts[i].bundle = {
                 _bundleFilePath: artifacts[i].filePath.replace(ibtoolBuildDirectory, main)
             };
@@ -296,7 +296,7 @@ function actoolOutputArtifacts(product, inputs) {
     }
 
     for (var i = 0; i < artifacts.length; ++i) {
-        if (artifacts[i].fileTags.contains("compiled_assetcatalog")) {
+        if (artifacts[i].fileTags.includes("compiled_assetcatalog")) {
             artifacts[i].bundle = {
                 _bundleFilePath: artifacts[i].filePath.replace(
                     product.buildDirectory + "/actool.dir",

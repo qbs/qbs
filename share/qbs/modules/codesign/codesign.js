@@ -43,7 +43,7 @@ function findSigningIdentities(searchString, team) {
     var matchedIdentities = {};
     for (var key in identities) {
         var identity = identities[key];
-        if (team && ![identity.subjectInfo.O, identity.subjectInfo.OU].contains(team))
+        if (team && ![identity.subjectInfo.O, identity.subjectInfo.OU].includes(team))
             continue;
         if (searchString === key
                 || (identity.subjectInfo.CN && identity.subjectInfo.CN.startsWith(searchString))) {
@@ -105,7 +105,7 @@ function findBestProvisioningProfile(product, files) {
     // Provisioning profiles are not normally used with ad-hoc code signing or non-apps
     // We do these checks down here only for the automatic selection but not above because
     // if the user explicitly selects a provisioning profile it should be used no matter what
-    if (actualSigningIdentity.SHA1 === "-" || !product.type.contains("application"))
+    if (actualSigningIdentity.SHA1 === "-" || !product.type.includes("application"))
         return undefined;
 
     // Filter out any provisioning profiles we know to be unsuitable from the start
@@ -116,7 +116,7 @@ function findBestProvisioningProfile(product, files) {
             var certCommonNames = (data["DeveloperCertificates"] || []).map(function (cert) {
                 return Utilities.certificateInfo(cert).subjectInfo.CN;
             });
-            if (!certCommonNames.contains(actualSigningIdentity.subjectInfo.CN)) {
+            if (!certCommonNames.includes(actualSigningIdentity.subjectInfo.CN)) {
                 console.log("Skipping provisioning profile with no matching certificate names for '"
                             + actualSigningIdentity.subjectInfo.CN
                             + "' (found " + certCommonNames.join(", ") + "): "
@@ -126,7 +126,7 @@ function findBestProvisioningProfile(product, files) {
         }
 
         var platforms = data["Platform"] || [];
-        if (platforms.length > 0 && profilePlatform && !platforms.contains(profilePlatform)) {
+        if (platforms.length > 0 && profilePlatform && !platforms.includes(profilePlatform)) {
             console.log("Skipping provisioning profile for platform " + platforms.join(", ")
                         + " (current platform " + profilePlatform + ")"
                         + ": " + profile.filePath);
@@ -134,7 +134,7 @@ function findBestProvisioningProfile(product, files) {
         }
 
         if (teamIdentifier
-                && !data["TeamIdentifier"].contains(teamIdentifier)
+                && !data["TeamIdentifier"].includes(teamIdentifier)
                 && data["TeamName"] !== teamIdentifier) {
             console.log("Skipping provisioning profile for team " + data["TeamIdentifier"]
                         + " (" + data["TeamName"] + ") (current team " + teamIdentifier + ")"
@@ -225,7 +225,7 @@ function findBestSignToolSearchPaths(arch) {
         });
 
         function addSearchPath(searchPath) {
-            if (File.exists(searchPath) && !searchPaths.contains(searchPath)) {
+            if (File.exists(searchPath) && !searchPaths.includes(searchPath)) {
                 searchPaths.push(searchPath);
                 return true;
             }

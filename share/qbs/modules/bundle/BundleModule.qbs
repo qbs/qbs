@@ -47,13 +47,13 @@ Module {
 
     Probe {
         id: bundleSettingsProbe
-        condition: qbs.targetOS.contains("darwin")
+        condition: qbs.targetOS.includes("darwin")
 
         property string xcodeDeveloperPath: xcode.developerPath
         property var xcodeArchSettings: xcode._architectureSettings
         property string productTypeIdentifier: _productTypeIdentifier
         property bool useXcodeBuildSpecs: !useBuiltinXcodeBuildSpecs
-        property bool isMacOs: qbs.targetOS.contains("macos")
+        property bool isMacOs: qbs.targetOS.includes("macos")
         property bool xcodePresent: xcode.present
         property string xcodeVersion: xcode.version
 
@@ -74,9 +74,9 @@ Module {
             "LOCAL_LIBRARY_DIR": Environment.getEnv("HOME") + "/Library",
             // actually, this is cpp.targetAbi, but XCode does not set it for non-simulator builds
             // while Qbs set it to "macho".
-            "LLVM_TARGET_TRIPLE_SUFFIX": qbs.targetOS.contains("simulator") ? "-simulator" : "",
+            "LLVM_TARGET_TRIPLE_SUFFIX": qbs.targetOS.includes("simulator") ? "-simulator" : "",
             "SWIFT_PLATFORM_TARGET_PREFIX": isMacOs ? "macos"
-                                                    : qbs.targetOS.contains("ios") ? "ios" : "",
+                                                    : qbs.targetOS.includes("ios") ? "ios" : "",
             "TARGET_BUILD_DIR": product.buildDirectory,
             "WRAPPER_NAME": bundleName,
             "WRAPPER_EXTENSION": extension
@@ -118,7 +118,7 @@ Module {
     additionalProductTypes: !(product.multiplexed || product.aggregate)
                             || !product.multiplexConfigurationId ? ["bundle.content"] : []
 
-    property bool isBundle: !product.consoleApplication && qbs.targetOS.contains("darwin")
+    property bool isBundle: !product.consoleApplication && qbs.targetOS.includes("darwin")
 
     readonly property bool isShallow: bundleSettingsProbe.xcodeSettings["SHALLOW_BUNDLE"] === "YES"
 
@@ -152,7 +152,7 @@ Module {
     property var infoPlist
     property bool processInfoPlist: true
     property bool embedInfoPlist: product.consoleApplication && !isBundle
-    property string infoPlistFormat: qbs.targetOS.contains("macos") ? "same-as-input" : "binary1"
+    property string infoPlistFormat: qbs.targetOS.includes("macos") ? "same-as-input" : "binary1"
 
     property string localizedResourcesFolderSuffix: ".lproj"
 
@@ -227,7 +227,7 @@ Module {
     }
 
     validate: {
-        if (!qbs.targetOS.contains("darwin"))
+        if (!qbs.targetOS.includes("darwin"))
             return;
         if (!bundleSettingsProbe.found) {
             var error = "Bundle product type " + _productTypeIdentifier + " is not supported.";
@@ -273,7 +273,7 @@ Module {
     }
 
     Rule {
-        condition: qbs.targetOS.contains("darwin")
+        condition: qbs.targetOS.includes("darwin")
         multiplex: true
         requiresInputs: false // TODO: The resources property should probably be a tag instead.
         inputs: ["infoplist", "partial_infoplist"]
@@ -455,7 +455,7 @@ Module {
                     infoPlistFormat = "xml1";
 
                 var validFormats = [ "xml1", "binary1", "json" ];
-                if (!validFormats.contains(infoPlistFormat))
+                if (!validFormats.includes(infoPlistFormat))
                     throw("Invalid Info.plist format " + infoPlistFormat + ". " +
                           "Must be in [xml1, binary1, json].");
 
@@ -473,7 +473,7 @@ Module {
     }
 
     Rule {
-        condition: qbs.targetOS.contains("darwin")
+        condition: qbs.targetOS.includes("darwin")
         multiplex: true
         inputs: ["aggregate_infoplist"]
 
@@ -514,7 +514,7 @@ Module {
     }
 
     Rule {
-        condition: qbs.targetOS.contains("darwin")
+        condition: qbs.targetOS.includes("darwin")
         multiplex: true
         inputs: ["bundle.input",
                  "aggregate_infoplist", "pkginfo", "hpp",
@@ -540,7 +540,7 @@ Module {
                     var fp = inputs["bundle.input"][i].moduleProperty("bundle", "_bundleFilePath");
                     if (!fp)
                         throw("Artifact " + inputs["bundle.input"][i].filePath + " has no associated bundle file path");
-                    var extraTags = inputs["bundle.input"][i].fileTags.contains("application")
+                    var extraTags = inputs["bundle.input"][i].fileTags.includes("application")
                             ? ["bundle.application-executable"] : [];
                     artifacts.push({
                         filePath: fp,
@@ -621,7 +621,7 @@ Module {
                 for (var i = 0; i < artifacts.length; ++i)
                     artifacts[i].bundle = { wrapperPath: wrapperPath };
 
-                if (Host.os().contains("darwin") && product.codesign
+                if (Host.os().includes("darwin") && product.codesign
                         && product.codesign.enableCodeSigning) {
                     artifacts.push({
                         filePath: FileInfo.joinPaths(product.bundle.contentsFolderPath, "_CodeSignature/CodeResources"),
@@ -772,12 +772,12 @@ Module {
             if (cmd.sources && cmd.sources.length)
                 commands.push(cmd);
 
-            if (product.moduleProperty("qbs", "hostOS").contains("darwin")) {
+            if (product.moduleProperty("qbs", "hostOS").includes("darwin")) {
                 Array.prototype.push.apply(commands, Codesign.prepareSign(
                                                project, product, inputs, outputs, input, output));
 
                 if (bundleType === "application"
-                        && product.moduleProperty("qbs", "targetOS").contains("macos")) {
+                        && product.moduleProperty("qbs", "targetOS").includes("macos")) {
                     var bundlePath = FileInfo.joinPaths(
                         product.destinationDirectory, product.bundle.bundleName);
                     cmd = new Command(ModUtils.moduleProperty(product, "lsregisterPath"),

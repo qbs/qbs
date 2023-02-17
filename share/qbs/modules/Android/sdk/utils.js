@@ -84,7 +84,7 @@ function prepareDex(project, product, inputs, outputs, input, output, explicitly
             return;
 
         dep.artifacts["java.jar"].forEach(function(artifact) {
-            if (!jarFiles.contains(artifact.filePath))
+            if (!jarFiles.includes(artifact.filePath))
                 jarFiles.push(artifact.filePath);
         });
         dep.dependencies.forEach(traverseJarDeps);
@@ -93,7 +93,7 @@ function prepareDex(project, product, inputs, outputs, input, output, explicitly
 
     if (typeof product.artifacts["java.jar"] !== "undefined") {
         product.artifacts["java.jar"].forEach(function(artifact) {
-            if (!jarFiles.contains(artifact.filePath))
+            if (!jarFiles.includes(artifact.filePath))
                 jarFiles.push(artifact.filePath);
         });
     }
@@ -166,7 +166,7 @@ function commonAaptPackageArgs(project, product, inputs, outputs, input, output,
                 throw "File '" + resources[i].filePath + "' is tagged as an Android resource, "
                         + "but is not located under a directory called 'res'.";
             }
-            if (!resourceDirs.contains(resDir))
+            if (!resourceDirs.includes(resDir))
                 resourceDirs.push(resDir);
         }
     }
@@ -181,7 +181,7 @@ function commonAaptPackageArgs(project, product, inputs, outputs, input, output,
                 throw "File '" + assets[i].filePath + "' is tagged as an Android asset, "
                         + "but is not located under a directory called 'assets'.";
             }
-            if (!assetDirs.contains(assetDir))
+            if (!assetDirs.includes(assetDir))
                 assetDirs.push(assetDir);
         }
     }
@@ -265,7 +265,7 @@ function prepareAapt2Link(project, product, inputs, outputs, input, output, expl
                 throw "File '" + assets[i].filePath + "' is tagged as an Android asset, "
                         + "but is not located under a directory called 'assets'.";
             }
-            if (!assetDirs.contains(assetDir))
+            if (!assetDirs.includes(assetDir))
                 assetDirs.push(assetDir);
         }
     }
@@ -429,7 +429,7 @@ function stlDeploymentData(product, inputs, type)
         return data;
     for (var i = 0; i < theInputs.length; ++i) {
         var currentInput = theInputs[i];
-        if (uniqueFilePaths.contains(currentInput.filePath))
+        if (uniqueFilePaths.includes(currentInput.filePath))
             continue;
         uniqueFilePaths.push(currentInput.filePath);
         data.uniqueInputs.push(currentInput);

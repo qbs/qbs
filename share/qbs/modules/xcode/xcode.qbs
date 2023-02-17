@@ -26,8 +26,8 @@ Module {
         sdksPath: xcodeModule.sdksPath
     }
 
-    condition: qbs.targetOS.contains("darwin") &&
-               qbs.toolchain && qbs.toolchain.contains("xcode")
+    condition: qbs.targetOS.includes("darwin") &&
+               qbs.toolchain && qbs.toolchain.includes("xcode")
 
     version: xcodeProbe.xcodeVersion
 

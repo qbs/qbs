@@ -33,7 +33,7 @@ import qbs.ModUtils
 import qbs.Probes
 
 Module {
-    condition: qbs.targetOS.contains("windows")
+    condition: qbs.targetOS.includes("windows")
 
     Probes.InnoSetupProbe {
         id: innoSetupProbe

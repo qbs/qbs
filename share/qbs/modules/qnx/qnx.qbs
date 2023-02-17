@@ -40,7 +40,7 @@ Module {
     Probes.PathProbe {
         id: qnxSdkProbe
         names: ["qnx700", "qnx660", "qnx650"]
-        searchPaths: Host.os().contains("windows")
+        searchPaths: Host.os().includes("windows")
                       ? [Environment.getEnv("USERPROFILE"), Environment.getEnv("SystemDrive")]
                       : [Environment.getEnv("HOME"), "/opt"]
     }
@@ -78,11 +78,11 @@ Module {
     property string hostArch: qnx7 ? "x86_64" : "x86"
 
     property string hostOs: {
-        if (Host.os().contains("linux"))
+        if (Host.os().includes("linux"))
             return "linux";
-        if (Host.os().contains("macos"))
+        if (Host.os().includes("macos"))
             return "darwin";
-        if (Host.os().contains("windows"))
+        if (Host.os().includes("windows"))
             return qnx7 ? "win64" : "win32";
     }
 

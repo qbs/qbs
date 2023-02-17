@@ -396,7 +396,7 @@ function buildLinkerMapFilePath(target, suffix) {
 // We need to replace the '\r\n\' line endings with the'\n' line
 // endings for each generated object file.
 function patchObjectFile(project, product, inputs, outputs, input, output) {
-    var isWindows = Host.os().contains("windows");
+    var isWindows = Host.os().includes("windows");
     if (isWindows && input.cpp.debugInformation) {
         var cmd = new JavaScriptCommand();
         cmd.objectPath = outputs.obj[0].filePath;

@@ -83,7 +83,7 @@ var _productTypeIdentifiers = {
 
 function productTypeIdentifier(productType) {
     for (var k in _productTypeIdentifiers) {
-        if (productType.contains(k))
+        if (productType.includes(k))
             return _productTypeIdentifiers[k];
     }
     return "com.apple.package-type.wrapper";

@@ -32,8 +32,8 @@ import qbs.Host
 import qbs.Process
 
 UnixGCC {
-    condition: qbs.targetOS.contains('linux') &&
-               qbs.toolchain && qbs.toolchain.contains('gcc')
+    condition: qbs.targetOS.includes('linux') &&
+               qbs.toolchain && qbs.toolchain.includes('gcc')
     priority: 1
 
     targetVendor: "pc"

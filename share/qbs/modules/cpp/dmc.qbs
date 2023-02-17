@@ -38,7 +38,7 @@ import "dmc.js" as DMC
 import "cpp.js" as Cpp
 
 CppModule {
-    condition: Host.os().contains("windows") && qbs.toolchain && qbs.toolchain.contains("dmc")
+    condition: Host.os().includes("windows") && qbs.toolchain && qbs.toolchain.includes("dmc")
 
     Probes.BinaryProbe {
         id: compilerPathProbe

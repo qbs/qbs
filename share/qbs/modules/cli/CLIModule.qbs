@@ -5,9 +5,9 @@ import qbs.ModUtils
 import "cli.js" as CLI
 
 Module {
-    Depends { name: "bundle"; condition: qbs.targetOS.contains("darwin") }
+    Depends { name: "bundle"; condition: qbs.targetOS.includes("darwin") }
     Properties {
-        condition: qbs.targetOS.contains("darwin")
+        condition: qbs.targetOS.includes("darwin")
         bundle.isBundle: false
     }
 
@@ -89,7 +89,7 @@ Module {
 
     setupBuildEnvironment: {
         var v = new ModUtils.EnvironmentVariable("PATH", FileInfo.pathListSeparator(),
-                                                 Host.os().contains("windows"));
+                                                 Host.os().includes("windows"));
         v.prepend(product.cli.toolchainInstallPath);
         v.set();
     }

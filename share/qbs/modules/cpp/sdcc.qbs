@@ -35,7 +35,7 @@ import "cpp.js" as Cpp
 import "sdcc.js" as SDCC
 
 CppModule {
-    condition: qbs.toolchain && qbs.toolchain.contains("sdcc")
+    condition: qbs.toolchain && qbs.toolchain.includes("sdcc")
 
     Probes.BinaryProbe {
         id: compilerPathProbe

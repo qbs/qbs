@@ -56,15 +56,15 @@ function targetFlags(platform, architecture, extender, consoleApp, type) {
         var flags = [];
         if (architecture === "x86_16") {
             flags.push("-ml");
-            if (type.contains("application") && !consoleApp)
+            if (type.includes("application") && !consoleApp)
                 flags.push("-WA");
-            else if (type.contains("dynamiclibrary"))
+            else if (type.includes("dynamiclibrary"))
                 flags.push("-WD");
         } else if (architecture === "x86") {
             flags.push("-mn");
-            if (type.contains("application"))
+            if (type.includes("application"))
                 flags.push("-WA");
-            else if (type.contains("dynamiclibrary"))
+            else if (type.includes("dynamiclibrary"))
                 flags.push("-WD");
         }
         return flags;
@@ -350,12 +350,12 @@ function linkerFlags(project, product, inputs, outputs) {
         }));
 
         // Output.
-        if (product.type.contains("application")) {
+        if (product.type.includes("application")) {
             args.push("-o" + FileInfo.toWindowsSeparators(outputs.application[0].filePath));
             args.push("-L/" + (product.cpp.generateLinkerMapFile ? "MAP" : "NOMAP"));
             if (product.qbs.targetPlatform === "windows" && product.qbs.architecture === "x86")
                 args.push("-L/SUBSYSTEM:" + (product.consoleApplication ? "CONSOLE" : "WINDOWS"));
-        } else if (product.type.contains("dynamiclibrary")) {
+        } else if (product.type.includes("dynamiclibrary")) {
             args.push("-o" + FileInfo.toWindowsSeparators(outputs.dynamiclibrary[0].filePath));
             if (product.qbs.targetPlatform === "windows" && product.qbs.architecture === "x86") {
                 args.push("kernel32.lib");

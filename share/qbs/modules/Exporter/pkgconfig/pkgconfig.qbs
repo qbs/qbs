@@ -34,9 +34,9 @@ Module {
         auxiliaryInputs: {
             if (!autoDetect)
                 return undefined;
-            if (product.type.contains("staticlibrary"))
+            if (product.type.includes("staticlibrary"))
                 return ["staticlibrary"];
-            if (product.type.contains("dynamiclibrary"))
+            if (product.type.includes("dynamiclibrary"))
                 return ["dynamiclibrary"];
         }
 

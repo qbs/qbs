@@ -39,7 +39,7 @@ import 'gcc.js' as Gcc
 LinuxGCC {
     Depends { name: "Android.ndk" }
 
-    condition: qbs.targetOS.contains("android") && qbs.toolchain && qbs.toolchain.contains("llvm")
+    condition: qbs.targetOS.includes("android") && qbs.toolchain && qbs.toolchain.includes("llvm")
     priority: 2
     rpaths: []
 
@@ -58,7 +58,7 @@ LinuxGCC {
             return "i686";
         }
     }
-    property string targetDir: "android" + (["armeabi", "armeabi-v7a"].contains(Android.ndk.abi) ? "eabi" : "")
+    property string targetDir: "android" + (["armeabi", "armeabi-v7a"].includes(Android.ndk.abi) ? "eabi" : "")
     property string triple: [archLibsDir, targetSystem, targetDir].join("-")
     property string libsDir: FileInfo.joinPaths(sysroot, "usr", "lib", triple);
 
@@ -155,7 +155,7 @@ LinuxGCC {
 
     target: [targetArch, targetSystem, targetAbi].join("-")
     targetSystem: "linux"
-    targetAbi: "android" + (["armeabi", "armeabi-v7a"].contains(Android.ndk.abi) ? "eabi" : "") +
+    targetAbi: "android" + (["armeabi", "armeabi-v7a"].includes(Android.ndk.abi) ? "eabi" : "") +
                Android.ndk.platformVersion
 
     endianness: "little"

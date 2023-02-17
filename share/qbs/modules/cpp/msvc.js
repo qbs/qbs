@@ -80,7 +80,7 @@ function hasCxx17Option(input)
     // Probably this is not the earliest version to support the flag, but we have tested this one
     // and it's a pain to find out the exact minimum.
     return Utilities.versionCompare(input.cpp.compilerVersion, "19.12.25831") >= 0
-            || (input.qbs.toolchain.contains("clang-cl") && input.cpp.compilerVersionMajor >= 7);
+            || (input.qbs.toolchain.includes("clang-cl") && input.cpp.compilerVersionMajor >= 7);
 }
 
 function hasZCplusPlusOption(input)
@@ -93,23 +93,23 @@ function hasZCplusPlusOption(input)
     // ignores this option, so this doesn't really matter
     // https://reviews.llvm.org/D45877
     return Utilities.versionCompare(input.cpp.compilerVersion, "19.14.26433") >= 0
-            || (input.qbs.toolchain.contains("clang-cl") && input.cpp.compilerVersionMajor >= 9);
+            || (input.qbs.toolchain.includes("clang-cl") && input.cpp.compilerVersionMajor >= 9);
 }
 
 function hasCxx20Option(input)
 {
     return Utilities.versionCompare(input.cpp.compilerVersion, "19.29.30133.0") >= 0
-            || (input.qbs.toolchain.contains("clang-cl") && input.cpp.compilerVersionMajor >= 13);
+            || (input.qbs.toolchain.includes("clang-cl") && input.cpp.compilerVersionMajor >= 13);
 }
 
 function hasCVerOption(input)
 {
     return Utilities.versionCompare(input.cpp.compilerVersion, "19.29.30138.0") >= 0
-            || (input.qbs.toolchain.contains("clang-cl") && input.cpp.compilerVersionMajor >= 13);
+            || (input.qbs.toolchain.includes("clang-cl") && input.cpp.compilerVersionMajor >= 13);
 }
 
 function supportsExternalIncludesOption(input) {
-    if (input.qbs.toolchain.contains("clang-cl"))
+    if (input.qbs.toolchain.includes("clang-cl"))
         return false; // Exclude clang-cl.
     // This option was introcuded since MSVC 2017 v15.6 (aka _MSC_VER 19.13).
     // But due to some MSVC bugs:
@@ -127,7 +127,7 @@ function addCxxLanguageVersionFlag(input, args) {
     // Visual C++ 2013, Update 3
     var hasStdOption = Utilities.versionCompare(input.cpp.compilerVersion, "18.00.30723") >= 0
             // or clang-cl
-            || input.qbs.toolchain.contains("clang-cl");
+            || input.qbs.toolchain.includes("clang-cl");
     if (!hasStdOption)
         return;
 
@@ -164,7 +164,7 @@ function addCLanguageVersionFlag(input, args) {
 }
 
 function handleClangClArchitectureFlags(product, architecture, flags) {
-    if (product.qbs.toolchain.contains("clang-cl")) {
+    if (product.qbs.toolchain.includes("clang-cl")) {
         if (architecture === "x86")
             flags.push("-m32");
         else if (architecture === "x86_64")
@@ -181,7 +181,7 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
 
     // Determine which C-language we're compiling
     var tag = ModUtils.fileTagForTargetLanguage(input.fileTags.concat(Object.keys(outputs)));
-    if (!["c", "cpp"].contains(tag))
+    if (!["c", "cpp"].includes(tag))
         throw ("unsupported source language");
 
     var enableExceptions = input.cpp.enableExceptions;
@@ -313,7 +313,7 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
     var pchInputs = explicitlyDependsOn[tag + "_pch"];
     if (pchOutput) {
         // create PCH
-        if (input.qbs.toolchain.contains("clang-cl")) {
+        if (input.qbs.toolchain.includes("clang-cl")) {
             // clang-cl does not support /Yc flag without filename
             args.push("/Yc" + FileInfo.toWindowsSeparators(input.filePath));
             // clang-cl complains when pch file is not included
@@ -396,7 +396,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
             return a.filePath;
         });
     var generateManifestFiles = !linkDLL && product.cpp.generateManifestFile;
-    var useClangCl = product.qbs.toolchain.contains("clang-cl");
+    var useClangCl = product.qbs.toolchain.includes("clang-cl");
     var canEmbedManifest = useClangCl || product.cpp.compilerVersionMajor >= 17 // VS 2012
 
     var linkerPath = effectiveLinkerPath(product, inputs);

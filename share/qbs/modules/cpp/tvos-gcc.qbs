@@ -30,16 +30,16 @@
 
 DarwinGCC {
     priority: 1
-    condition: qbs.targetOS.contains('tvos') &&
-               qbs.toolchain && qbs.toolchain.contains('gcc')
+    condition: qbs.targetOS.includes('tvos') &&
+               qbs.toolchain && qbs.toolchain.includes('gcc')
 
     targetSystem: "tvos" + (minimumTvosVersion || "")
 
     minimumDarwinVersion: minimumTvosVersion
-    minimumDarwinVersionCompilerFlag: qbs.targetOS.contains("tvos-simulator")
+    minimumDarwinVersionCompilerFlag: qbs.targetOS.includes("tvos-simulator")
                                       ? "-mtvos-simulator-version-min"
                                       : "-mtvos-version-min"
-    minimumDarwinVersionLinkerFlag: qbs.targetOS.contains("tvos-simulator")
+    minimumDarwinVersionLinkerFlag: qbs.targetOS.includes("tvos-simulator")
                                     ? "-tvos_simulator_version_min"
                                     : "-tvos_version_min"
 }

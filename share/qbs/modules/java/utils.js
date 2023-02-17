@@ -79,7 +79,7 @@ function findJdkPath(hostOS, arch, environmentPaths, searchPaths) {
             return environmentPaths[i];
     }
 
-    if (hostOS.contains("windows")) {
+    if (hostOS.includes("windows")) {
         var rootKey = jdkRootRegistryKey(useWow64Key(arch));
         if (rootKey) {
             var current = Utilities.getNativeSetting(rootKey, "CurrentVersion"); // 1.8 etc.
@@ -94,7 +94,7 @@ function findJdkPath(hostOS, arch, environmentPaths, searchPaths) {
         return undefined;
     }
 
-    if (hostOS.contains("macos")) {
+    if (hostOS.includes("macos")) {
         var p = new Process();
         try {
             // We filter by architecture here so that we'll get a compatible JVM for JNI use.
@@ -114,7 +114,7 @@ function findJdkPath(hostOS, arch, environmentPaths, searchPaths) {
         }
     }
 
-    if (hostOS.contains("unix")) {
+    if (hostOS.includes("unix")) {
         var requiredTools = ["javac", "java", "jar"];
         for (i = 0; i < searchPaths.length; ++i) {
             function fullToolPath(tool) {
@@ -246,7 +246,7 @@ function helperFullyQualifiedNames(type) {
     ];
     if (type === "java") {
         return names.filter(function (name) {
-            return !name.contains("$");
+            return !name.includes("$");
         });
     } else if (type === "class") {
         return names;

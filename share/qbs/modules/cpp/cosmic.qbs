@@ -37,7 +37,7 @@ import "cosmic.js" as COSMIC
 import "cpp.js" as Cpp
 
 CppModule {
-    condition: qbs.toolchain && qbs.toolchain.contains("cosmic")
+    condition: qbs.toolchain && qbs.toolchain.includes("cosmic")
 
     Probes.BinaryProbe {
         id: compilerPathProbe

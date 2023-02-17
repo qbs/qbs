@@ -43,7 +43,7 @@ import 'cpp.js' as Cpp
 import 'gcc.js' as Gcc
 
 CppModule {
-    condition: qbs.toolchain && qbs.toolchain.contains("gcc")
+    condition: qbs.toolchain && qbs.toolchain.includes("gcc")
     priority: -100
 
     Depends { name: "codesign" }
@@ -123,9 +123,9 @@ CppModule {
 
     precompiledHeaderSuffix: ".gch"
 
-    property bool compilerHasTargetOption: qbs.toolchain.contains("clang")
+    property bool compilerHasTargetOption: qbs.toolchain.includes("clang")
                                            && Utilities.versionCompare(compilerVersion, "3.1") >= 0
-    property bool assemblerHasTargetOption: qbs.toolchain.contains("xcode")
+    property bool assemblerHasTargetOption: qbs.toolchain.includes("xcode")
                                             && Utilities.versionCompare(compilerVersion, "7") >= 0
     property string target: targetArch
                             ? [targetArch, targetVendor, targetSystem, targetAbi].join("-")
@@ -182,9 +182,9 @@ CppModule {
     property string toolchainPathPrefix: Gcc.pathPrefix(toolchainInstallPath, toolchainPrefix)
     property string binutilsPathPrefix: Gcc.pathPrefix(binutilsPath, toolchainPrefix)
 
-    property string cCompilerName: (qbs.toolchain.contains("clang") ? "clang" : "gcc")
+    property string cCompilerName: (qbs.toolchain.includes("clang") ? "clang" : "gcc")
                                    + compilerExtension
-    property string cxxCompilerName: (qbs.toolchain.contains("clang") ? "clang++" : "g++")
+    property string cxxCompilerName: (qbs.toolchain.includes("clang") ? "clang++" : "g++")
                                      + compilerExtension
 
     compilerPathByLanguage: ({
@@ -216,7 +216,7 @@ CppModule {
     linkerScriptFlag: "-T"
 
     readonly property bool shouldCreateSymlinks: {
-        return createSymlinks && internalVersion && ["macho", "elf"].contains(cpp.imageFormat);
+        return createSymlinks && internalVersion && ["macho", "elf"].includes(cpp.imageFormat);
     }
 
     readonly property bool shouldSignArtifacts: codesign._canSignArtifacts
@@ -251,18 +251,18 @@ CppModule {
 
     property var buildEnv: {
         var env = {};
-        if (qbs.toolchain.contains("mingw"))
+        if (qbs.toolchain.includes("mingw"))
             env.PATH = [toolchainInstallPath]; // For libwinpthread etc
         return env;
     }
 
     exceptionHandlingModel: {
-        if (qbs.toolchain.contains("mingw")) {
+        if (qbs.toolchain.includes("mingw")) {
             // https://gcc.gnu.org/onlinedocs/cpp/Common-Predefined-Macros.html claims
             // __USING_SJLJ_EXCEPTIONS__ is defined as 1 when using SJLJ exceptions, but there don't
             // seem to be defines for the other models, so use the presence of the DLLs for now.
             var prefix = toolchainInstallPath;
-            if (!Host.os().contains("windows"))
+            if (!Host.os().includes("windows"))
                 prefix = FileInfo.joinPaths(toolchainInstallPath, "..", "lib", "gcc",
                                             toolchainPrefix,
                                             [compilerVersionMajor, compilerVersionMinor].join("."));
@@ -314,7 +314,7 @@ CppModule {
         if (gccProbe.targetPlatform) {
             // Can't differentiate Darwin OSes at the compiler level alone
             if (gccProbe.targetPlatform === "darwin"
-                    ? !qbs.targetOS.contains("darwin")
+                    ? !qbs.targetOS.includes("darwin")
                     : qbs.targetPlatform !== gccProbe.targetPlatform)
                 isWrongTriple = true;
         } else if (qbs.targetPlatform) {
@@ -351,7 +351,7 @@ CppModule {
         var validateFlagsFunction = function (value) {
             if (value) {
                 for (var i = 0; i < value.length; ++i) {
-                    if (["-target", "-triple", "-arch"].contains(value[i]))
+                    if (["-target", "-triple", "-arch"].includes(value[i]))
                         return false;
                 }
             }
@@ -403,7 +403,7 @@ CppModule {
         inputs: {
             var tags = ["obj", "res", "linkerscript", "versionscript"];
             if (product.bundle && product.bundle.embedInfoPlist
-                    && product.qbs.targetOS.contains("darwin")) {
+                    && product.qbs.targetOS.includes("darwin")) {
                 tags.push("aggregate_infoplist");
             }
             return tags;
@@ -483,9 +483,9 @@ CppModule {
             var objCount = objs ? objs.length : 0;
             for (var i = 0; i < objCount; ++i) {
                 var ft = objs[i].fileTags;
-                if (ft.contains("c_obj"))
+                if (ft.includes("c_obj"))
                     tags.push("c_staticlibrary");
-                if (ft.contains("cpp_obj"))
+                if (ft.includes("cpp_obj"))
                     tags.push("cpp_staticlibrary");
             }
             return [{
@@ -521,7 +521,7 @@ CppModule {
         inputs: {
             var tags = ["obj", "res", "linkerscript"];
             if (product.bundle && product.bundle.embedInfoPlist
-                    && product.qbs.targetOS.contains("darwin")) {
+                    && product.qbs.targetOS.includes("darwin")) {
                 tags.push("aggregate_infoplist");
             }
             return tags;
@@ -564,7 +564,7 @@ CppModule {
         inputs: {
             var tags = ["obj", "res", "linkerscript"];
             if (product.bundle && product.bundle.embedInfoPlist
-                    && product.qbs.targetOS.contains("darwin")) {
+                    && product.qbs.targetOS.includes("darwin")) {
                 tags.push("aggregate_infoplist");
             }
             return tags;

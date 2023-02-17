@@ -123,10 +123,10 @@ Module {
         } else {
             paths.push(FileInfo.joinPaths(jdkPath, "include"));
 
-            var hostOS = Host.os().contains("windows") ? Host.os().concat(["win32"]) : Host.os();
+            var hostOS = Host.os().includes("windows") ? Host.os().concat(["win32"]) : Host.os();
             var platforms = ["win32", "darwin", "linux", "bsd", "solaris"];
             for (var i = 0; i < platforms.length; ++i) {
-                if (hostOS.contains(platforms[i])) {
+                if (hostOS.includes(platforms[i])) {
                     // Corresponds to JDK_INCLUDE_SUBDIR in the JDK Makefiles
                     paths.push(FileInfo.joinPaths(jdkPath, "include", platforms[i]));
                     break;
@@ -141,7 +141,7 @@ Module {
     property path classFilesDir: FileInfo.joinPaths(product.buildDirectory, "classes")
     property path internalClassFilesDir: FileInfo.joinPaths(product.buildDirectory, ".classes")
 
-    property bool isAppleJava: Host.os().contains("darwin")
+    property bool isAppleJava: Host.os().includes("darwin")
                                && (compilerVersionMajor < 1
                                    || (compilerVersionMajor === 1 && compilerVersionMinor < 7))
 
