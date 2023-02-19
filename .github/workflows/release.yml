@@ -154,8 +154,7 @@ jobs:
         modules.qbsbuildconfig.enableUnitTests:false
         modules.cpp.treatWarningsAsErrors:true
         project.withDocumentation:true
-        config:release-64 profile:qt64
-        config:release profile:qt
+        config:release profile:qt64
     - name: Print clcache stats
       run: docker-compose run --rm windows clcache -s
     - name: Get archive name
@@ -169,7 +168,6 @@ jobs:
         path: |
           release/qbs.*.nupkg
           release/qbs-windows-*.zip
-          release-64/qbs-windows-*.zip
 
   create-archives:
     name: Create Archives
@@ -211,12 +209,11 @@ jobs:
       uses: actions/download-artifact@v1
       with:
         name: qbs-windows-${{ github.run_id }}
-        path: ./tmp
+        path: ./tmp/release
     - name: Copy Windows artifacts
       run: |
         cp ./tmp/release/qbs.*.nupkg ./release
-        cp ./tmp/release/qbs-windows-x86-*.zip ./release
-        cp ./tmp/release-64/qbs-windows-x86_64-*.zip ./release
+        cp ./tmp/release/qbs-windows-x86_64-*.zip ./release
     - name: Copy changelog
       run: cp changelogs/changes-${{ steps.get-version-name.outputs.version-name }}.md release || echo "changelog not found"
     - name: Generate checksums
@@ -236,7 +233,6 @@ jobs:
           release/qbs-src-*.tar.gz
           release/qbs-linux-*.tar.gz
           release/qbs.*.nupkg
-          release/qbs-windows-x86-*.zip
           release/qbs-windows-x86_64-*.zip
           release/changes-*.md
           release/md5sums.txt
