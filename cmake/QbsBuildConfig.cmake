@@ -175,6 +175,9 @@ function(add_qbs_library target_name)
             RUNTIME DESTINATION ${QBS_DLL_INSTALL_DIR}
         )
     endif()
+    if(MSVC)
+      target_compile_options(${target_name} PUBLIC /EHsc)
+    endif()
 endfunction()
 
 function(add_qbs_plugin target_name)
