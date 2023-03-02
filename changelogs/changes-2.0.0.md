@@ -3,6 +3,9 @@
 * Removed the long-deprecated loadFile() and loadExtension() functions
 * Removed the qmake project files
 
+# Qt support
+* Adapt to androiddeployqt on Windows no longer accepting tool paths without suffix in 6.4 (QTBUG-111558)
+
 # BareMetal support
 * Added support for HPPA architectures
 
