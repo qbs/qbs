@@ -380,6 +380,12 @@ jobs:
             script: './scripts/test-qt-for-android.sh',
           }
         - {
+              name: 'Run Android tests (Qt 6.4.2)',
+              image: 'focal-android-642',
+              profile: '',
+              script: './scripts/test-qt-for-android.sh',
+            }
+        - {
             name: 'Run Android tests (ndk r19c)',
             image: 'focal-android-ndk-r19c',
             profile: '',
