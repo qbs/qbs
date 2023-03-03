@@ -70,15 +70,12 @@
 #include <mutex>
 #include <vector>
 
-QT_BEGIN_NAMESPACE
-class QScriptEngine;
-QT_END_NAMESPACE
-
 namespace qbs {
 namespace Internal {
 class BuildGraphLocker;
 class BuildGraphLoader;
 class BuildGraphVisitor;
+class ScriptEngine;
 
 class FileTagger
 {
@@ -335,8 +332,8 @@ class PrivateScriptFunction
     friend bool operator==(const PrivateScriptFunction &a, const PrivateScriptFunction &b);
 public:
     void initialize(const ScriptFunctionPtr &sharedData) { m_sharedData = sharedData; }
-    mutable JSValue scriptFunction = JS_UNDEFINED; // not stored
 
+    JSValue getFunction(ScriptEngine *engine, const QString &errorMessage) const;
     QString &sourceCode() const { return m_sharedData->sourceCode; }
     CodeLocation &location()  const { return m_sharedData->location; }
     ResolvedFileContextConstPtr &fileContext() const { return m_sharedData->fileContext; }
@@ -349,6 +346,7 @@ public:
 
 private:
     ScriptFunctionPtr m_sharedData;
+    mutable JSValue scriptFunction = JS_UNDEFINED; // not stored
 };
 
 bool operator==(const PrivateScriptFunction &a, const PrivateScriptFunction &b);

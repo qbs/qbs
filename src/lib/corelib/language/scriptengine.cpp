@@ -185,6 +185,10 @@ ScriptEngine::~ScriptEngine()
         JS_FreeValue(m_context, ext);
     for (const JSValue &s : qAsConst(m_stringCache))
         JS_FreeValue(m_context, s);
+    for (JSValue * const externalRef : std::as_const(m_externallyCachedValues)) {
+        JS_FreeValue(m_context, *externalRef);
+        *externalRef = JS_UNDEFINED;
+    }
     setPropertyOnGlobalObject(QLatin1String("console"), JS_UNDEFINED);
     JS_FreeContext(m_context);
     JS_FreeRuntime(m_jsRuntime);

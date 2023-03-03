@@ -976,5 +976,21 @@ bool operator==(const ExportedModule &m1, const ExportedModule &m2)
             && depMapsEqual(m1.dependencyParameters, m2.dependencyParameters);
 }
 
+JSValue PrivateScriptFunction::getFunction(ScriptEngine *engine, const QString &errorMessage) const
+{
+    if (JS_IsUndefined(scriptFunction)) {
+        ScopedJsValue val(engine->context(),
+                          engine->evaluate(JsValueOwner::Caller, sourceCode(),
+                                           location().filePath(), location().line()));
+        if (Q_UNLIKELY(!JS_IsFunction(engine->context(), val)))
+            throw ErrorInfo(errorMessage, location());
+        scriptFunction = val.release();
+        engine->addExternallyCachedValue(&scriptFunction);
+    } else {
+        QBS_CHECK(JS_IsFunction(engine->context(), scriptFunction));
+    }
+    return scriptFunction;
+}
+
 } // namespace Internal
 } // namespace qbs
