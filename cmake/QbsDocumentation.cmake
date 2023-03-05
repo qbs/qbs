@@ -40,23 +40,6 @@ function(qt_query_qmake)
     endforeach()
 endfunction()
 
-# Find programs:
-function(_qbs_doc_find_program result_var)
-    if (NOT TARGET Qt${QT_VERSION_MAJOR}::qmake)
-        message(FATAL_ERROR "QDoc is only available in Qt projects")
-    endif()
-
-    get_target_property(_qmake_binary Qt${QT_VERSION_MAJOR}::qmake IMPORTED_LOCATION)
-    get_filename_component(_qmake_dir "${_qmake_binary}" DIRECTORY)
-    find_program("_prg_${result_var}" ${ARGN} HINTS "${_qmake_dir}")
-    if ("_prg_${result_var}" STREQUAL "_prg_${result_var}-NOTFOUND")
-        set("_prg_${result_var}" "${result_var}-NOTFOUND")
-        message(WARNING "Could not find binary for ${result_var}")
-    endif()
-
-    set(${result_var} "${_prg_${result_var}}" PARENT_SCOPE)
-endfunction()
-
 function(_qbs_setup_doc_targets)
     # Set up important targets:
     if (NOT TARGET qbs_html_docs)
@@ -113,6 +96,8 @@ function(_qbs_setup_qdoc_targets _qdocconf_file _retval)
         endif()
         list(APPEND _env "${_export}=${${_export}}")
     endforeach()
+
+    get_target_property(_qdoc Qt${QT_VERSION_MAJOR}::qdoc IMPORTED_LOCATION)
 
     set(_full_qdoc_command "${_qdoc}")
     if (_env)
@@ -246,8 +231,7 @@ endfunction()
 function(_qbs_qdoc_build_qdocconf_file _qdocconf_file)
     _qbs_setup_doc_targets()
 
-    _qbs_doc_find_program(_qdoc NAMES qdoc qdoc-qt5)
-    if (_qdoc STREQUAL "_prg__qdoc-NOTFOUND")
+    if (NOT TARGET Qt${QT_VERSION_MAJOR}::qdoc)
         message(WARNING "No qdoc binary found: No documentation targets were generated")
         return()
     endif()
