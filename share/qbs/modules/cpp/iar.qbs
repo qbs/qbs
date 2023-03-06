@@ -37,7 +37,7 @@ import "cpp.js" as Cpp
 import "iar.js" as IAR
 
 CppModule {
-    condition: qbs.toolchain && qbs.toolchain.contains("iar")
+    condition: qbs.toolchain && qbs.toolchain.includes("iar")
 
     Probes.BinaryProbe {
         id: compilerPathProbe

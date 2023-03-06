@@ -104,7 +104,7 @@ function dmgbuildSettings(product, inputs) {
                             "dmg.sourceBase '" + a.dmg.sourceBase + "'.");
         }
 
-        var isSymlink = a.fileTags.contains("dmg.input.symlink");
+        var isSymlink = a.fileTags.includes("dmg.input.symlink");
         return {
             "x": a.dmg.iconX,
             "y": a.dmg.iconY,

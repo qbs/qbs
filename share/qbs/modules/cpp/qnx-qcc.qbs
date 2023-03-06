@@ -33,8 +33,8 @@ import qbs.FileInfo
 UnixGCC {
     Depends { name: "qnx" }
 
-    condition: qbs.targetOS.contains("qnx") &&
-               qbs.toolchain && qbs.toolchain.contains("qcc")
+    condition: qbs.targetOS.includes("qnx") &&
+               qbs.toolchain && qbs.toolchain.includes("qcc")
     priority: 1
 
     distributionIncludePaths: FileInfo.joinPaths(qnx.targetDir, "usr", "include")
@@ -79,7 +79,7 @@ UnixGCC {
 
     toolchainPrefix: target + "-"
 
-    targetVendor: ["x86", "x86_64"].contains(qbs.architecture) ? "pc" : base
+    targetVendor: ["x86", "x86_64"].includes(qbs.architecture) ? "pc" : base
     targetSystem: "nto"
     targetAbi: "qnx" + qnx.version + (qnxTargetArchName === "armv7le" ? "eabi" : "")
 

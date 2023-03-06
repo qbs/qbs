@@ -43,7 +43,7 @@ import "gcc.js" as Gcc
 UnixGCC {
     condition: false
 
-    Depends { name: "xcode"; required: qbs.toolchain && qbs.toolchain.contains("xcode") }
+    Depends { name: "xcode"; required: qbs.toolchain && qbs.toolchain.includes("xcode") }
 
     Probes.BinaryProbe {
         id: lipoProbe
@@ -76,7 +76,7 @@ UnixGCC {
     dynamicLibrarySuffix: ".dylib"
 
     Properties {
-        condition: product.multiplexByQbsProperties.contains("buildVariants")
+        condition: product.multiplexByQbsProperties.includes("buildVariants")
                    && qbs.buildVariants && qbs.buildVariants.length > 1
                    && (!product.aggregate || !!product.multiplexConfigurationId)
                    && qbs.buildVariant !== "release"
@@ -107,7 +107,7 @@ UnixGCC {
     property var defaultInfoPlist: {
         var dict = {};
 
-        if (qbs.targetOS.contains("macos")) {
+        if (qbs.targetOS.includes("macos")) {
             dict["NSPrincipalClass"] = "NSApplication"; // needed for Retina display support
 
             // QBS-1670: set this flag by default to avoid extensive GPU usage
@@ -117,32 +117,32 @@ UnixGCC {
                 dict["LSMinimumSystemVersion"] = minimumMacosVersion;
         }
 
-        if (qbs.targetOS.contains("ios") && minimumIosVersion)
+        if (qbs.targetOS.includes("ios") && minimumIosVersion)
             dict["MinimumOSVersion"] = minimumIosVersion;
-        else if (qbs.targetOS.contains("tvos") && minimumTvosVersion)
+        else if (qbs.targetOS.includes("tvos") && minimumTvosVersion)
             dict["MinimumOSVersion"] = minimumTvosVersion;
-        else if (qbs.targetOS.contains("watchos") && minimumWatchosVersion)
+        else if (qbs.targetOS.includes("watchos") && minimumWatchosVersion)
             dict["MinimumOSVersion"] = minimumWatchosVersion;
 
         if (qbs.targetOS.containsAny(["ios", "tvos"])) {
             dict["LSRequiresIPhoneOS"] = true;
 
             if (xcode.platformType === "device") {
-                if (qbs.targetOS.contains("ios")) {
+                if (qbs.targetOS.includes("ios")) {
                     if (qbs.architecture === "arm64")
                         dict["UIRequiredDeviceCapabilities"] = ["arm64"];
                     else
                         dict["UIRequiredDeviceCapabilities"] = ["armv7"];
                 }
 
-                if (qbs.targetOS.contains("tvos"))
+                if (qbs.targetOS.includes("tvos"))
                     dict["UIRequiredDeviceCapabilities"] = ["arm64"];
             }
         }
 
         if (xcode.present) {
             var targetDevices = DarwinTools.targetedDeviceFamily(xcode.targetDevices);
-            if (qbs.targetOS.contains("ios"))
+            if (qbs.targetOS.includes("ios"))
                 dict["UIDeviceFamily"] = targetDevices;
 
             if (qbs.targetOS.containsAny(["ios", "watchos"])) {
@@ -153,13 +153,13 @@ UnixGCC {
                     "UIInterfaceOrientationLandscapeRight"
                 ];
 
-                if (targetDevices.contains("ipad"))
+                if (targetDevices.includes("ipad"))
                     dict["UISupportedInterfaceOrientations~ipad"] = orientations;
 
-                if (targetDevices.contains("watch"))
+                if (targetDevices.includes("watch"))
                     dict["UISupportedInterfaceOrientations"] = orientations.slice(0, 2);
 
-                if (targetDevices.contains("iphone")) {
+                if (targetDevices.includes("iphone")) {
                     orientations.splice(1, 1);
                     dict["UISupportedInterfaceOrientations"] = orientations;
                 }
@@ -199,13 +199,13 @@ UnixGCC {
 
         // Set the corresponding environment variable even if the minimum OS version is undefined,
         // because this indicates the default deployment target for that OS
-        if (qbs.targetOS.contains("ios") && minimumIosVersion)
+        if (qbs.targetOS.includes("ios") && minimumIosVersion)
             env["IPHONEOS_DEPLOYMENT_TARGET"] = minimumIosVersion;
-        if (qbs.targetOS.contains("macos") && minimumMacosVersion)
+        if (qbs.targetOS.includes("macos") && minimumMacosVersion)
             env["MACOSX_DEPLOYMENT_TARGET"] = minimumMacosVersion;
-        if (qbs.targetOS.contains("watchos") && minimumWatchosVersion)
+        if (qbs.targetOS.includes("watchos") && minimumWatchosVersion)
             env["WATCHOS_DEPLOYMENT_TARGET"] = minimumWatchosVersion;
-        if (qbs.targetOS.contains("tvos") && minimumTvosVersion)
+        if (qbs.targetOS.includes("tvos") && minimumTvosVersion)
             env["TVOS_DEPLOYMENT_TARGET"] = minimumTvosVersion;
 
         if (xcode.present)
@@ -218,7 +218,7 @@ UnixGCC {
     property string minimumDarwinVersionCompilerFlag
     property string minimumDarwinVersionLinkerFlag
 
-    property bool libcxxAvailable: qbs.toolchain.contains("clang") && cxxLanguageVersion !== "c++98"
+    property bool libcxxAvailable: qbs.toolchain.includes("clang") && cxxLanguageVersion !== "c++98"
 
     Rule {
         condition: enableAggregationRules
@@ -271,7 +271,7 @@ UnixGCC {
     }
 
     Rule {
-        condition: qbs.targetOS.contains("darwin")
+        condition: qbs.targetOS.includes("darwin")
         multiplex: true
 
         Artifact {

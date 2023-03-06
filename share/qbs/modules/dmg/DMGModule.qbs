@@ -40,7 +40,7 @@ import "dmg.js" as Dmg
 Module {
     Depends { name: "xcode"; required: false }
 
-    condition: Host.os().contains("darwin") && qbs.targetOS.contains("darwin")
+    condition: Host.os().includes("darwin") && qbs.targetOS.includes("darwin")
 
     property string volumeName: product.targetName
     PropertyOptions {

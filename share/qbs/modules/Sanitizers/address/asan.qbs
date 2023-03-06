@@ -34,9 +34,9 @@ Module {
     Depends { name: "cpp" }
 
     property bool enabled: true
-    readonly property bool _supported: qbs.toolchain.contains("gcc")
-        || qbs.toolchain.contains("clang-cl")
-        || (qbs.toolchain.contains("msvc")
+    readonly property bool _supported: qbs.toolchain.includes("gcc")
+        || qbs.toolchain.includes("clang-cl")
+        || (qbs.toolchain.includes("msvc")
             && Utilities.versionCompare(cpp.compilerVersion, "19.28.29500.0") >= 0)
     readonly property bool _enabled: enabled && _supported
 
@@ -53,7 +53,7 @@ Module {
         var flags = [];
         if (!_enabled)
             return flags;
-        if (qbs.toolchain.contains("msvc") && !qbs.toolchain.contains("clang-cl")) {
+        if (qbs.toolchain.includes("msvc") && !qbs.toolchain.includes("clang-cl")) {
             flags.push("/fsanitize=address");
             if (detectUseAfterReturn !== "never")
                 flags.push("/fsanitize-address-use-after-return");
@@ -63,7 +63,7 @@ Module {
         if (detectUseAfterScope)
             flags.push("-fsanitize-address-use-after-scope");
         if (detectUseAfterReturn) {
-            if (qbs.toolchain.contains("llvm")) {
+            if (qbs.toolchain.includes("llvm")) {
                 if (Utilities.versionCompare(cpp.compilerVersion, "13") >= 0)
                     flags.push("-fsanitize-address-use-after-return=" + detectUseAfterReturn);
             } else if (detectUseAfterReturn === "never") {

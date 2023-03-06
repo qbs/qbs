@@ -35,7 +35,7 @@ var ModUtils = require("qbs.ModUtils"); // TODO: append/prepend functionality sh
 
 function addNewElement(list, elem)
 {
-    if (!list.contains(elem))
+    if (!list.includes(elem))
         list.push(elem);
 }
 
@@ -49,7 +49,7 @@ function artifactDir(artifact)
 function addExternalLibPath(product, list, path)
 {
     addNewElement(list, path);
-    if (Host.os().contains("windows") && FileInfo.fileName(path) === "lib") {
+    if (Host.os().includes("windows") && FileInfo.fileName(path) === "lib") {
         var binPath = FileInfo.joinPaths(FileInfo.path(path), "bin");
         if (File.exists(binPath))
             addNewElement(list, binPath);
@@ -58,7 +58,7 @@ function addExternalLibPath(product, list, path)
 
 function gatherPaths(product, libPaths, frameworkPaths, seenProducts)
 {
-    if (seenProducts.contains(product.name))
+    if (seenProducts.includes(product.name))
         return;
     seenProducts.push(product.name);
 
@@ -106,7 +106,7 @@ function gatherPaths(product, libPaths, frameworkPaths, seenProducts)
 
 function setupRunEnvironment(product, config)
 {
-    if (config.contains("ignore-lib-dependencies"))
+    if (config.includes("ignore-lib-dependencies"))
         return;
 
     if (Host.platform() !== product.qbs.targetPlatform)
@@ -120,8 +120,8 @@ function setupRunEnvironment(product, config)
     if (runPaths && runPaths.length > 0) {
         var canonicalRunPaths = runPaths.map(function(p) { return File.canonicalFilePath(p); });
         var filterFunc = function(libPath) {
-            return !runPaths.contains(libPath)
-                    && !canonicalRunPaths.contains(File.canonicalFilePath(libPath));
+            return !runPaths.includes(libPath)
+                    && !canonicalRunPaths.includes(File.canonicalFilePath(libPath));
         };
         libPaths = libPaths.filter(filterFunc);
         frameworkPaths = frameworkPaths.filter(filterFunc);
@@ -129,19 +129,19 @@ function setupRunEnvironment(product, config)
 
     if (libPaths.length > 0) {
         var envVarName;
-        if (product.qbs.targetOS.contains("windows"))
+        if (product.qbs.targetOS.includes("windows"))
             envVarName = "PATH";
-        else if (product.qbs.targetOS.contains("macos"))
+        else if (product.qbs.targetOS.includes("macos"))
             envVarName = "DYLD_LIBRARY_PATH";
         else
             envVarName = "LD_LIBRARY_PATH";
         var envVar = new ModUtils.EnvironmentVariable(envVarName, FileInfo.pathListSeparator(),
-                                                      Host.os().contains("windows"));
+                                                      Host.os().includes("windows"));
         libPaths.forEach(function(p) { envVar.prepend(p); });
         envVar.set();
     }
 
-    if (product.qbs.targetOS.contains("macos") && frameworkPaths.length > 0) {
+    if (product.qbs.targetOS.includes("macos") && frameworkPaths.length > 0) {
         envVar = new ModUtils.EnvironmentVariable("DYLD_FRAMEWORK_PATH", ':', false);
         frameworkPaths.forEach(function(p) { envVar.prepend(p); });
         envVar.set();

@@ -85,13 +85,13 @@ Module {
                                                                        "tmp", "nodejs.intermediate")
 
     setupBuildEnvironment: {
-        var v = new ModUtils.EnvironmentVariable("PATH", FileInfo.pathListSeparator(), Host.os().contains("windows"));
+        var v = new ModUtils.EnvironmentVariable("PATH", FileInfo.pathListSeparator(), Host.os().includes("windows"));
         v.prepend(product.nodejs.toolchainInstallPath);
         v.set();
     }
 
     setupRunEnvironment: {
-        var v = new ModUtils.EnvironmentVariable("NODE_PATH", FileInfo.pathListSeparator(), Host.os().contains("windows"));
+        var v = new ModUtils.EnvironmentVariable("NODE_PATH", FileInfo.pathListSeparator(), Host.os().includes("windows"));
         v.prepend(FileInfo.path(Environment.getEnv("QBS_RUN_FILE_PATH")));
         v.set();
     }
@@ -119,7 +119,7 @@ Module {
 
         outputArtifacts: {
             var tags = ["nodejs_processed_js"];
-            if (input.fileTags.contains("application_js") ||
+            if (input.fileTags.includes("application_js") ||
                 product.moduleProperty("nodejs", "applicationFile") === input.filePath)
                 tags.push("application");
 

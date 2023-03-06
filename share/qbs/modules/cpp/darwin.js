@@ -73,7 +73,7 @@ function lipoOutputArtifacts(product, inputs, fileTag, debugSuffix) {
     // approach for all bundle types.
     var defaultVariant;
     if (!buildVariants.some(function (x) { return x.name === "release"; })
-            && product.multiplexByQbsProperties.contains("buildVariants")
+            && product.multiplexByQbsProperties.includes("buildVariants")
             && product.qbs.buildVariants && product.qbs.buildVariants.length > 1) {
         var defaultBuildVariant = product.qbs.defaultBuildVariant;
         buildVariants.map(function (variant) {
@@ -137,7 +137,7 @@ function prepareLipo(project, product, inputs, outputs, input, output) {
     for (var p in inputs)
         inputs[p] = inputs[p].filter(function(inp) { return inp.product.name === product.name; });
     var allInputs = [].concat.apply([], Object.keys(inputs).map(function (tag) {
-        return ["application", "dynamiclibrary", "staticlibrary", "loadablemodule"].contains(tag)
+        return ["application", "dynamiclibrary", "staticlibrary", "loadablemodule"].includes(tag)
                 ? inputs[tag] : [];
     }));
 

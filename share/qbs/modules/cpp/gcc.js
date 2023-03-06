@@ -230,7 +230,7 @@ function escapeLinkerFlags(product, inputs, linkerFlags) {
 
     if (useCompilerDriverLinker(product, inputs)) {
         var sep = ",";
-        var useXlinker = linkerFlags.some(function (f) { return f.contains(sep); });
+        var useXlinker = linkerFlags.some(function (f) { return f.includes(sep); });
         if (useXlinker) {
             // One or more linker arguments contain the separator character itself
             // Use -Xlinker to handle these
@@ -247,7 +247,7 @@ function escapeLinkerFlags(product, inputs, linkerFlags) {
             return xlinkerFlags;
         }
 
-        if (product.cpp.enableSuspiciousLinkerFlagWarnings && linkerFlags.contains("-Xlinker")) {
+        if (product.cpp.enableSuspiciousLinkerFlagWarnings && linkerFlags.includes("-Xlinker")) {
             console.warn("Encountered -Xlinker linker flag escape sequence. This may cause the " +
                          "target to fail to link. Please do not escape these flags manually; " +
                          "qbs does that for you.");
@@ -262,7 +262,7 @@ function escapeLinkerFlags(product, inputs, linkerFlags) {
 }
 
 function linkerFlags(project, product, inputs, outputs, primaryOutput, linkerPath) {
-    var isDarwin = product.qbs.targetOS.contains("darwin");
+    var isDarwin = product.qbs.targetOS.includes("darwin");
     var libraryDependencies = collectLibraryDependencies(product, isDarwin);
     var frameworks = product.cpp.frameworks;
     var weakFrameworks = product.cpp.weakFrameworks;
@@ -275,7 +275,7 @@ function linkerFlags(project, product, inputs, outputs, primaryOutput, linkerPat
 
     var escapableLinkerFlags = [];
 
-    if (primaryOutput.fileTags.contains("dynamiclibrary")) {
+    if (primaryOutput.fileTags.includes("dynamiclibrary")) {
         if (isDarwin) {
             args.push((function () {
                 var tags = ["c", "cpp", "objc", "objcpp", "asm_cpp"];
@@ -300,7 +300,7 @@ function linkerFlags(project, product, inputs, outputs, primaryOutput, linkerPat
         }
     }
 
-    if (primaryOutput.fileTags.contains("loadablemodule"))
+    if (primaryOutput.fileTags.includes("loadablemodule"))
         args.push(isDarwin ? "-bundle" : "-shared");
 
     if (primaryOutput.fileTags.containsAny(["dynamiclibrary", "loadablemodule"])) {
@@ -323,7 +323,7 @@ function linkerFlags(project, product, inputs, outputs, primaryOutput, linkerPat
 
     var sysroot = product.cpp.syslibroot;
     if (sysroot) {
-        if (product.qbs.toolchain.contains("qcc"))
+        if (product.qbs.toolchain.includes("qcc"))
             escapableLinkerFlags.push("--sysroot=" + sysroot);
         else if (isDarwin)
             escapableLinkerFlags.push("-syslibroot", sysroot);
@@ -340,7 +340,7 @@ function linkerFlags(project, product, inputs, outputs, primaryOutput, linkerPat
 
     function fixupRPath(rpath) {
         // iOS, tvOS, watchOS, and others, are fine
-        if (!product.qbs.targetOS.contains("macos"))
+        if (!product.qbs.targetOS.includes("macos"))
             return rpath;
 
         // ...as are newer versions of macOS
@@ -356,11 +356,11 @@ function linkerFlags(project, product, inputs, outputs, primaryOutput, linkerPat
     }
 
     function isNotSystemRunPath(p) {
-        return !FileInfo.isAbsolutePath(p) || (!systemRunPaths.contains(p)
-                && !canonicalSystemRunPaths.contains(File.canonicalFilePath(p)));
+        return !FileInfo.isAbsolutePath(p) || (!systemRunPaths.includes(p)
+                && !canonicalSystemRunPaths.includes(File.canonicalFilePath(p)));
     };
 
-    if (!product.qbs.targetOS.contains("windows")) {
+    if (!product.qbs.targetOS.includes("windows")) {
         for (i in rpaths) {
             if (isNotSystemRunPath(rpaths[i]))
                 escapableLinkerFlags.push("-rpath", fixupRPath(rpaths[i]));
@@ -370,7 +370,7 @@ function linkerFlags(project, product, inputs, outputs, primaryOutput, linkerPat
     if (product.cpp.entryPoint)
         escapableLinkerFlags.push("-e", product.cpp.entryPoint);
 
-    if (product.qbs.toolchain.contains("mingw")) {
+    if (product.qbs.toolchain.includes("mingw")) {
         if (product.consoleApplication !== undefined)
             escapableLinkerFlags.push("-subsystem",
                                       product.consoleApplication ? "console" : "windows");
@@ -398,7 +398,7 @@ function linkerFlags(project, product, inputs, outputs, primaryOutput, linkerPat
     var stdlib = isLinkingCppObjects
             ? product.cpp.cxxStandardLibrary
             : undefined;
-    if (stdlib && product.qbs.toolchain.contains("clang"))
+    if (stdlib && product.qbs.toolchain.includes("clang"))
         args.push("-stdlib=" + stdlib);
 
     // Flags for library search paths
@@ -472,7 +472,7 @@ function linkerFlags(project, product, inputs, outputs, primaryOutput, linkerPat
 
         var symbolLinkMode = dep.symbolLinkMode;
         if (isDarwin && symbolLinkMode) {
-            if (!["lazy", "reexport", "upward", "weak"].contains(symbolLinkMode))
+            if (!["lazy", "reexport", "upward", "weak"].includes(symbolLinkMode))
                 throw new Error("unknown value '" + symbolLinkMode + "' for cpp.symbolLinkMode");
 
             if (FileInfo.isAbsolutePath(lib) || lib.startsWith('@'))
@@ -530,7 +530,7 @@ function linkerFlags(project, product, inputs, outputs, primaryOutput, linkerPat
     Array.prototype.push.apply(escapedLinkerFlags, args);
     if (useCompilerDriver)
         escapedLinkerFlags = escapedLinkerFlags.concat(Cpp.collectMiscLinkerArguments(product));
-    if (product.qbs.toolchain.contains("mingw") && product.cpp.runtimeLibrary === "static")
+    if (product.qbs.toolchain.includes("mingw") && product.cpp.runtimeLibrary === "static")
         escapedLinkerFlags = ['-static-libgcc', '-static-libstdc++'].concat(escapedLinkerFlags);
     return escapedLinkerFlags;
 }
@@ -577,7 +577,7 @@ function languageTagFromFileExtension(toolchain, fileName) {
         "s"     : "asm",
         "S"     : "asm_cpp"
     };
-    if (!toolchain.contains("clang"))
+    if (!toolchain.includes("clang"))
         m["sx"] = "asm_cpp"; // clang does NOT recognize .sx
     return m[fileName.substring(i + 1)];
 }
@@ -585,7 +585,7 @@ function languageTagFromFileExtension(toolchain, fileName) {
 // Older versions of the QNX SDK have C and C++ compilers whose filenames differ only by case,
 // which won't work in case insensitive environments like Win32+NTFS, HFS+ and APFS
 function isLegacyQnxSdk(config) {
-    return config.qbs.toolchain.contains("qcc") && config.qnx && !config.qnx.qnx7;
+    return config.qbs.toolchain.includes("qcc") && config.qnx && !config.qnx.qnx7;
 }
 
 function effectiveCompilerInfo(toolchain, input, output) {
@@ -593,7 +593,7 @@ function effectiveCompilerInfo(toolchain, input, output) {
     var tag = ModUtils.fileTagForTargetLanguage(input.fileTags.concat(output.fileTags));
 
     // Whether we're compiling a precompiled header or normal source file
-    var pchOutput = output.fileTags.contains(tag + "_pch");
+    var pchOutput = output.fileTags.includes(tag + "_pch");
 
     var compilerPathByLanguage = input.cpp.compilerPathByLanguage;
     if (compilerPathByLanguage)
@@ -601,7 +601,7 @@ function effectiveCompilerInfo(toolchain, input, output) {
     if (!compilerPath
             || tag !== languageTagFromFileExtension(toolchain, input.fileName)
             || isLegacyQnxSdk(input)) {
-        if (input.qbs.toolchain.contains("qcc"))
+        if (input.qbs.toolchain.includes("qcc"))
             language = qnxLangArgs(input, tag);
         else
             language = ["-x", languageName(tag) + (pchOutput ? '-header' : '')];
@@ -749,7 +749,7 @@ function standardFallbackValueOrDefault(toolchain, compilerVersion, languageVers
     if (m) {
         for (var idx = 0; idx < m.toolchains.length; ++idx) {
             var tc = m.toolchains[idx];
-            if (toolchain.contains(tc.name)) {
+            if (toolchain.includes(tc.name)) {
                 // If we found our toolchain and it doesn't yet support the language standard
                 // we're requesting, or we're using an older version that only supports the
                 // preliminary flag, use that.
@@ -771,7 +771,7 @@ function compilerFlags(project, product, input, output, explicitlyDependsOn) {
 
     // Determine which C-language we're compiling
     var tag = ModUtils.fileTagForTargetLanguage(input.fileTags.concat(output.fileTags));
-    if (!["c", "cpp", "objc", "objcpp", "asm_cpp"].contains(tag))
+    if (!["c", "cpp", "objc", "objcpp", "asm_cpp"].includes(tag))
         throw ("unsupported source language: " + tag);
 
     var compilerInfo = effectiveCompilerInfo(product.qbs.toolchain,
@@ -804,12 +804,12 @@ function compilerFlags(project, product, input, output, explicitlyDependsOn) {
 
     args = args.concat(configFlags(input));
 
-    if (!input.qbs.toolchain.contains("qcc"))
+    if (!input.qbs.toolchain.includes("qcc"))
         args.push('-pipe');
 
     if (input.cpp.enableReproducibleBuilds) {
         var toolchain = product.qbs.toolchain;
-        if (!toolchain.contains("clang")) {
+        if (!toolchain.includes("clang")) {
             var hashString = FileInfo.relativePath(project.sourceDirectory, input.filePath);
             var hash = Utilities.getHash(hashString);
             args.push("-frandom-seed=0x" + hash.substring(0, 8));
@@ -817,8 +817,8 @@ function compilerFlags(project, product, input, output, explicitlyDependsOn) {
 
         var major = product.cpp.compilerVersionMajor;
         var minor = product.cpp.compilerVersionMinor;
-        if ((toolchain.contains("clang") && (major > 3 || (major === 3 && minor >= 5))) ||
-            (toolchain.contains("gcc") && (major > 4 || (major === 4 && minor >= 9)))) {
+        if ((toolchain.includes("clang") && (major > 3 || (major === 3 && minor >= 5))) ||
+            (toolchain.includes("gcc") && (major > 4 || (major === 4 && minor >= 9)))) {
             args.push("-Wdate-time");
         }
     }
@@ -846,7 +846,7 @@ function compilerFlags(project, product, input, output, explicitlyDependsOn) {
     }
 
     var visibility = input.cpp.visibility;
-    if (!product.qbs.toolchain.contains("mingw")) {
+    if (!product.qbs.toolchain.includes("mingw")) {
         if (visibility === 'hidden' || visibility === 'minimal')
             args.push('-fvisibility=hidden');
         if ((visibility === 'hiddenInlines' || visibility === 'minimal') && tag === 'cpp')
@@ -862,7 +862,7 @@ function compilerFlags(project, product, input, output, explicitlyDependsOn) {
     args = args.concat(Cpp.collectMiscCompilerArguments(input, tag));
 
     var pchTag = compilerInfo.tag + "_pch";
-    var pchOutput = output.fileTags.contains(pchTag);
+    var pchOutput = output.fileTags.includes(pchTag);
     var pchInputs = explicitlyDependsOn[pchTag];
     if (!pchOutput && pchInputs && pchInputs.length === 1
             && ModUtils.moduleProperty(input, 'usePrecompiledHeader', tag)) {
@@ -875,7 +875,7 @@ function compilerFlags(project, product, input, output, explicitlyDependsOn) {
     args = args.concat(Cpp.collectPreincludePathsArguments(input));
 
     var positionIndependentCode = input.cpp.positionIndependentCode;
-    if (positionIndependentCode && !product.qbs.targetOS.contains("windows"))
+    if (positionIndependentCode && !product.qbs.targetOS.includes("windows"))
         args.push('-fPIC');
 
     var cppFlags = input.cpp.cppFlags;
@@ -887,7 +887,7 @@ function compilerFlags(project, product, input, output, explicitlyDependsOn) {
     args = args.concat(Cpp.collectSystemIncludePathsArguments(input));
 
     var minimumWindowsVersion = input.cpp.minimumWindowsVersion;
-    if (minimumWindowsVersion && product.qbs.targetOS.contains("windows")) {
+    if (minimumWindowsVersion && product.qbs.targetOS.includes("windows")) {
         var hexVersion = WindowsUtils.getWindowsVersionInFormat(minimumWindowsVersion, 'hex');
         if (hexVersion) {
             var versionDefs = [ 'WINVER', '_WIN32_WINNT', '_WIN32_WINDOWS' ];
@@ -921,7 +921,7 @@ function compilerFlags(project, product, input, output, explicitlyDependsOn) {
 
     if (tag === "cpp" || tag === "objcpp") {
         var cxxStandardLibrary = product.cpp.cxxStandardLibrary;
-        if (cxxStandardLibrary && product.qbs.toolchain.contains("clang")) {
+        if (cxxStandardLibrary && product.qbs.toolchain.includes("clang")) {
             args.push("-stdlib=" + cxxStandardLibrary);
         }
     }
@@ -936,7 +936,7 @@ function additionalCompilerAndLinkerFlags(product) {
     var args = []
 
     var requireAppExtensionSafeApi = product.cpp.requireAppExtensionSafeApi;
-    if (requireAppExtensionSafeApi !== undefined && product.qbs.targetOS.contains("darwin")) {
+    if (requireAppExtensionSafeApi !== undefined && product.qbs.targetOS.includes("darwin")) {
         args.push(requireAppExtensionSafeApi ? "-fapplication-extension" : "-fno-application-extension");
     }
 
@@ -987,7 +987,7 @@ function prepareAssembler(project, product, inputs, outputs, input, output) {
 
 function compilerEnvVars(config, compilerInfo)
 {
-    if (config.qbs.toolchain.contains("qcc"))
+    if (config.qbs.toolchain.includes("qcc"))
         return ["QCC_CONF_PATH"];
 
     var list = ["CPATH", "TMPDIR"];
@@ -999,15 +999,15 @@ function compilerEnvVars(config, compilerInfo)
         list.push("OBJC_INCLUDE_PATH");
     else if (compilerInfo.tag === "objccpp")
         list.push("OBJCPLUS_INCLUDE_PATH");
-    if (config.qbs.targetOS.contains("macos"))
+    if (config.qbs.targetOS.includes("macos"))
         list.push("MACOSX_DEPLOYMENT_TARGET");
-    else if (config.qbs.targetOS.contains("ios"))
+    else if (config.qbs.targetOS.includes("ios"))
         list.push("IPHONEOS_DEPLOYMENT_TARGET");
-    else if (config.qbs.targetOS.contains("tvos"))
+    else if (config.qbs.targetOS.includes("tvos"))
         list.push("TVOS_DEPLOYMENT_TARGET");
-    else if (config.qbs.targetOS.contains("watchos"))
+    else if (config.qbs.targetOS.includes("watchos"))
         list.push("WATCHOS_DEPLOYMENT_TARGET");
-    if (config.qbs.toolchain.contains("clang")) {
+    if (config.qbs.toolchain.includes("clang")) {
         list.push("TEMP", "TMP");
     } else {
         list.push("LANG", "LC_CTYPE", "LC_MESSAGES", "LC_ALL", "GCC_COMPARE_DEBUG",
@@ -1018,7 +1018,7 @@ function compilerEnvVars(config, compilerInfo)
 
 function linkerEnvVars(config, inputs)
 {
-    if (config.qbs.toolchain.contains("clang") || config.qbs.toolchain.contains("qcc"))
+    if (config.qbs.toolchain.includes("clang") || config.qbs.toolchain.includes("qcc"))
         return [];
     var list = ["GNUTARGET", "LDEMULATION", "COLLECT_NO_DEMANGLE"];
     if (useCompilerDriverLinker(config, inputs))
@@ -1028,7 +1028,7 @@ function linkerEnvVars(config, inputs)
 
 function setResponseFileThreshold(command, product)
 {
-    if (product.qbs.targetOS.contains("windows") && Host.os().contains("windows"))
+    if (product.qbs.targetOS.includes("windows") && Host.os().includes("windows"))
         command.responseFileThreshold = 10000;
 }
 
@@ -1036,7 +1036,7 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
     var compilerInfo = effectiveCompilerInfo(product.qbs.toolchain,
                                              input, output);
     var compilerPath = compilerInfo.path;
-    var pchOutput = output.fileTags.contains(compilerInfo.tag + "_pch");
+    var pchOutput = output.fileTags.includes(compilerInfo.tag + "_pch");
 
     var args = compilerFlags(project, product, input, output, explicitlyDependsOn);
     var wrapperArgsLength = 0;
@@ -1126,7 +1126,7 @@ function getSymbolInfo(product, inputFile)
         // construct the list of defined symbols by subtracting.
         var undefinedGlobalSymbols = collectStdoutLines(command, args.concat(["-u", inputFile]));
         result.definedGlobalSymbols = result.allGlobalSymbols.filter(function(line) {
-            return !undefinedGlobalSymbols.contains(line); });
+            return !undefinedGlobalSymbols.includes(line); });
         result.success = true;
     } catch (e) {
         console.debug("Failed to collect symbols for shared library: nm command '"
@@ -1338,7 +1338,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     var responseFileArgumentIndex = wrapperArgsLength;
 
     // qcc doesn't properly handle response files, so we have to do it manually
-    var useQnxResponseFileHack = product.qbs.toolchain.contains("qcc")
+    var useQnxResponseFileHack = product.qbs.toolchain.includes("qcc")
             && useCompilerDriverLinker(product, inputs);
     if (useQnxResponseFileHack) {
         // qcc needs to see at least one object/library file to think it has something to do,
@@ -1358,7 +1358,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     setResponseFileThreshold(cmd, product);
     commands.push(cmd);
 
-    if (product.qbs.targetOS.contains("darwin")) {
+    if (product.qbs.targetOS.includes("darwin")) {
         if (!product.aggregate) {
             commands = commands.concat(separateDebugInfoCommandsDarwin(
                                            product, outputs, [primaryOutput]));
@@ -1492,7 +1492,7 @@ function dumpDefaultPaths(env, compilerFilePath, args, nullDevice, pathListSepar
         if (libraryPaths.length === 0)
             libraryPaths.push(sysroot + "/lib", sysroot + "/usr/lib");
 
-        if (frameworkPaths.length === 0 && targetOS.contains("darwin"))
+        if (frameworkPaths.length === 0 && targetOS.includes("darwin"))
             frameworkPaths.push(sysroot + "/System/Library/Frameworks");
 
         return {
@@ -1520,9 +1520,9 @@ function targetLinkerFlags(targetArch, targetOS) {
             "x86_64": "elf_x86_64",
         }
     };
-    if (targetOS.contains("windows"))
+    if (targetOS.includes("windows"))
         return linkerFlags["windows"][targetArch];
-    else if (targetOS.contains("freebsd"))
+    else if (targetOS.includes("freebsd"))
         return linkerFlags["freebsd"][targetArch];
     return linkerFlags["other"][targetArch];
 }

@@ -1409,11 +1409,11 @@
 
     \code
     Properties {
-        condition: qbs.toolchain.contains("gcc")
+        condition: qbs.toolchain.includes("gcc")
         cpp.linkerVariant: "gold"
     }
     Properties {
-        condition: qbs.toolchain.contains("clang-cl")
+        condition: qbs.toolchain.includes("clang-cl")
         cpp.linkerVariant: "lld"
     }
     \endcode

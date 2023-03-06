@@ -31,16 +31,16 @@
 
 DarwinGCC {
     priority: 1
-    condition: qbs.targetOS.contains('watchos') &&
-               qbs.toolchain && qbs.toolchain.contains('gcc')
+    condition: qbs.targetOS.includes('watchos') &&
+               qbs.toolchain && qbs.toolchain.includes('gcc')
 
     targetSystem: "watchos" + (minimumWatchosVersion || "")
 
     minimumDarwinVersion: minimumWatchosVersion
-    minimumDarwinVersionCompilerFlag: qbs.targetOS.contains("watchos-simulator")
+    minimumDarwinVersionCompilerFlag: qbs.targetOS.includes("watchos-simulator")
                                       ? "-mwatchos-simulator-version-min"
                                       : "-mwatchos-version-min"
-    minimumDarwinVersionLinkerFlag: qbs.targetOS.contains("watchos-simulator")
+    minimumDarwinVersionLinkerFlag: qbs.targetOS.includes("watchos-simulator")
                                     ? "-watchos_simulator_version_min"
                                     : "-watchos_version_min"
 }

@@ -1257,7 +1257,7 @@
     This is how you do it:
     \code
         Group {
-            condition: qbs.targetOS.contains("windows")
+            condition: qbs.targetOS.includes("windows")
             files: [
                 "harddiskdeleter_win.cpp",
                 "blowupmonitor_win.cpp",
@@ -1265,7 +1265,7 @@
             ]
         }
         Group {
-            condition: qbs.targetOS.contains("linux")
+            condition: qbs.targetOS.includes("linux")
             files: [
                 "harddiskdeleter_linux.cpp",
                 "blowupmonitor_linux.cpp",

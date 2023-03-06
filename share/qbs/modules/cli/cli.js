@@ -59,16 +59,16 @@ function prepareCompiler(product, inputs, output) {
         "cli.fsharp": fsharpCompilerPath
     };
 
-    var pathFunction = product.moduleProperty("qbs", "hostOS").contains("windows")
+    var pathFunction = product.moduleProperty("qbs", "hostOS").includes("windows")
             ? FileInfo.toWindowsSeparators
             : function (path) { return path; };
 
     var outputDescription = "assembly";
-    if (output.fileTags.contains("application")) {
+    if (output.fileTags.includes("application")) {
         args.push("/target:" + (product.consoleApplication === false ? "winexe" : "exe"));
-    } else if (output.fileTags.contains("dynamiclibrary")) {
+    } else if (output.fileTags.includes("dynamiclibrary")) {
         args.push("/target:library");
-    } else if (output.fileTags.contains("cli.netmodule")) {
+    } else if (output.fileTags.includes("cli.netmodule")) {
         args.push("/target:module");
         outputDescription = "netmodule";
     }
@@ -77,7 +77,7 @@ function prepareCompiler(product, inputs, output) {
     var keys = Object.keys(inputs);
     var language;
     for (i in keys) {
-        if (Object.keys(compilers).contains(keys[i])) {
+        if (Object.keys(compilers).includes(keys[i])) {
             if (language)
                 throw("You cannot compile source files in more than one CLI language into a single " + outputDescription + ".");
             language = keys[i];

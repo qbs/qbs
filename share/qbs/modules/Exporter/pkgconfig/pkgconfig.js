@@ -33,7 +33,7 @@ var ModUtils = require("qbs.ModUtils");
 
 function quote(value)
 {
-    if (value.contains(" ") || value.contains("'") || value.contains('"')) {
+    if (value.includes(" ") || value.includes("'") || value.includes('"')) {
         return '"' + value.replace(/(["'\\])/g, "\\$1") + '"';
     }
     return value;
@@ -105,12 +105,12 @@ function collectAutodetectedData(topLevelProduct)
         var libArtifacts;
         var isProduct = !productOrModule.present;
         var considerDynamicLibs = !isProduct || (productOrModule.type
-                && productOrModule.type.contains("dynamiclibrary"));
+                && productOrModule.type.includes("dynamiclibrary"));
         if (considerDynamicLibs) {
             libArtifacts = productOrModule.artifacts.dynamiclibrary;
         } else {
             var considerStaticLibs = !isProduct || (productOrModule.type
-                    && productOrModule.type.contains("staticlibrary"));
+                    && productOrModule.type.includes("staticlibrary"));
             if (considerStaticLibs)
                 libArtifacts = productOrModule.artifacts.staticlibrary;
         }
@@ -186,7 +186,7 @@ function collectAutodetectedData(topLevelProduct)
             exportedDepNames.push(exportedDeps[i].name);
         for (i = 0; i < (productOrModule.dependencies || []).length; ++i) {
             var dep = productOrModule.dependencies[i];
-            if (exportedDepNames.contains(dep.name))
+            if (exportedDepNames.includes(dep.name))
                 continue;
             privateDeps.push(dep);
         }
@@ -197,22 +197,22 @@ function collectAutodetectedData(topLevelProduct)
             var depHasPkgConfig = dep.Exporter && dep.Exporter.pkgconfig;
             if (depHasPkgConfig) {
                 var entry = FileInfo.completeBaseName(dep.Exporter.pkgconfig.fileName);
-                if (excludedDeps.contains(entry))
+                if (excludedDeps.includes(entry))
                     return;
-                if (isPrivateDep && !data.requiresPrivate.contains(entry)
-                        && !explicitRequiresPrivate.contains(entry)) {
+                if (isPrivateDep && !data.requiresPrivate.includes(entry)
+                        && !explicitRequiresPrivate.includes(entry)) {
                     data.requiresPrivate.push(entry);
                 }
-                if (!isPrivateDep && !data.requires.contains(entry)
-                        && !explicitRequires.contains(entry)) {
+                if (!isPrivateDep && !data.requires.includes(entry)
+                        && !explicitRequires.includes(entry)) {
                     data.requires.push(entry);
                 }
             } else {
-                if (excludedDeps.contains(dep.name))
+                if (excludedDeps.includes(dep.name))
                     return;
-                if (isPrivateDep && explicitRequiresPrivate.contains(dep.name))
+                if (isPrivateDep && explicitRequiresPrivate.includes(dep.name))
                     return;
-                if (!isPrivateDep && explicitRequires.contains(dep.name))
+                if (!isPrivateDep && explicitRequires.includes(dep.name))
                     return;
                 collectAutodetectedDataRecursive(dep, isPrivateDep);
             }

@@ -37,7 +37,7 @@ import qbs.Probes
 import "codesign.js" as CodeSign
 
 CodeSignModule {
-    condition: qbs.targetOS.contains("android")
+    condition: qbs.targetOS.includes("android")
     priority: 1
     enableCodeSigning: true
 
@@ -55,7 +55,7 @@ CodeSignModule {
     property string keytoolName: "keytool"
 
     property string debugKeystorePath: FileInfo.joinPaths(
-                                           Environment.getEnv(Host.os().contains("windows")
+                                           Environment.getEnv(Host.os().includes("windows")
                                                               ? "USERPROFILE" : "HOME"),
                                            ".android", "debug.keystore")
     readonly property string debugKeystorePassword: "android"

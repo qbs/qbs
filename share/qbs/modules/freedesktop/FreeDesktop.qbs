@@ -46,7 +46,7 @@ Module {
             'Version': '1.1',
         }
     }
-    property bool _fdoSupported: qbs.targetOS.contains("unix") && !qbs.targetOS.contains("darwin")
+    property bool _fdoSupported: qbs.targetOS.includes("unix") && !qbs.targetOS.includes("darwin")
 
     additionalProductTypes: "freedesktop.desktopfile"
 

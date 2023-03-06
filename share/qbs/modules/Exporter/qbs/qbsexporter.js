@@ -74,7 +74,7 @@ function writeTargetArtifactGroups(product, output, moduleFile)
         var tag = product.Exporter.qbs._artifactTypes[i];
         var artifactsForTag = product.artifacts[tag] || [];
         for (var j = 0; j < artifactsForTag.length; ++j) {
-            if (!relevantArtifacts.contains(artifactsForTag[j]))
+            if (!relevantArtifacts.includes(artifactsForTag[j]))
                 relevantArtifacts.push(artifactsForTag[j]);
         }
     }
@@ -82,7 +82,7 @@ function writeTargetArtifactGroups(product, output, moduleFile)
     var artifactCount = relevantArtifacts ? relevantArtifacts.length : 0;
     for (i = 0; i < artifactCount; ++i) {
         var artifact = relevantArtifacts[i];
-        if (!artifact.fileTags.contains("installable"))
+        if (!artifact.fileTags.includes("installable"))
             continue;
 
         // Put all artifacts with the same set of file tags into the same group, so we don't
@@ -172,7 +172,7 @@ function writeProperty(project, product, moduleInstallDir, prop, indentation, co
     var moduleName;
     if (isModuleProperty) {
         moduleName = prop.name.slice(0, separatorIndex);
-        if ((product.Exporter.qbs.excludedDependencies || []).contains(moduleName))
+        if ((product.Exporter.qbs.excludedDependencies || []).includes(moduleName))
             return;
     }
     line += prop.name + ": ";
@@ -244,7 +244,7 @@ function isExcludedDependency(product, childItem)
     for (var i = 0; i < childItem.properties.length; ++i) {
         var prop = childItem.properties[i];
         var unquotedRhs = prop.sourceCode.slice(1, -1);
-        if (prop.name === "name" && product.Exporter.qbs.excludedDependencies.contains(unquotedRhs))
+        if (prop.name === "name" && product.Exporter.qbs.excludedDependencies.includes(unquotedRhs))
             return true;
     }
     return false;
@@ -264,7 +264,7 @@ function writeImportStatements(product, moduleFile)
     var imports = product.exports.imports;
 
     // We potentially use FileInfo ourselves when transforming paths in stringifyValue().
-    if (!imports.contains("import qbs.FileInfo"))
+    if (!imports.includes("import qbs.FileInfo"))
         imports.push("import qbs.FileInfo");
 
     for (var i = 0; i < imports.length; ++i)

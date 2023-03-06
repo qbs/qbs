@@ -55,7 +55,7 @@
             name: "Runtime resources"
             files: "*.qml"
             qbs.install: true
-            qbs.installDir: condition: qbs.targetOS.contains("unix")
+            qbs.installDir: condition: qbs.targetOS.includes("unix")
                 ? "share/myapp" : "resources"
         }
         Group {
@@ -64,7 +64,7 @@
             qbs.install: true
             qbs.installDir: "bin"
         }
-        qbs.installPrefix: condition: qbs.targetOS.contains("unix")
+        qbs.installPrefix: condition: qbs.targetOS.includes("unix")
             ? "usr/local" : "MyApp"
     }
     \endcode
@@ -477,12 +477,12 @@
     \code
         Properties {
             // flags for GCC
-            condition: qbs.toolchain.contains("gcc")
+            condition: qbs.toolchain.includes("gcc")
             cpp.commonCompilerFlags: ...
         }
         Properties {
             // flags for MSVC
-            condition: qbs.toolchain.contains("msvc")
+            condition: qbs.toolchain.includes("msvc")
             cpp.commonCompilerFlags: ...
         }
     \endcode
@@ -498,7 +498,7 @@
     use:
 
     \code
-    qbs.toolchain.contains("gcc")
+    qbs.toolchain.includes("gcc")
     \endcode
 
     since XCode, GCC and Clang belong to the \c "gcc" family.
@@ -645,17 +645,17 @@
     \code
         Group {
             // Includes all Unix-like platforms, such as: Linux, BSD, Apple platforms and others.
-            condition: qbs.targetOS.contains("unix")
+            condition: qbs.targetOS.includes("unix")
             files: ...
         }
         Group {
             // Includes all Apple platforms, such as macOS, iOS, and iOS Simulator.
-            condition: qbs.targetOS.contains("darwin")
+            condition: qbs.targetOS.includes("darwin")
             files: ...
         }
         Group {
             // Includes only macOS
-            condition: qbs.targetOS.contains("macos")
+            condition: qbs.targetOS.includes("macos")
             files: ...
         }
     \endcode
@@ -668,7 +668,7 @@
     use
 
     \code
-    qbs.targetOS.contains("darwin")
+    qbs.targetOS.includes("darwin")
 
     \endcode
 
@@ -681,7 +681,7 @@
 
     versus
     \code
-    qbs.targetOS.contains("linux") && !qbs.targetOS.contains("android")
+    qbs.targetOS.includes("linux") && !qbs.targetOS.includes("android")
     \endcode
 
     For the complete list of possible values, see

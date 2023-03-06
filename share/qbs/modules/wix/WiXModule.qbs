@@ -36,7 +36,7 @@ import qbs.Probes
 import qbs.Utilities
 
 Module {
-    condition: qbs.targetOS.contains("windows")
+    condition: qbs.targetOS.includes("windows")
 
     Probes.WiXProbe {
         id: wixProbe
@@ -113,19 +113,19 @@ Module {
         description: "the list of localizations to build the MSI for; leave undefined to build all localizations"
     }
 
-    property stringList extensions: product.type.contains("wixsetup") ? ["WixBalExtension"] : [] // default to WiX Standard Bootstrapper extension
+    property stringList extensions: product.type.includes("wixsetup") ? ["WixBalExtension"] : [] // default to WiX Standard Bootstrapper extension
 
     // private properties
     property string targetSuffix: {
-        if (product.type.contains("msi")) {
+        if (product.type.includes("msi")) {
             return windowsInstallerSuffix;
-        } else if (product.type.contains("wixsetup")) {
+        } else if (product.type.includes("wixsetup")) {
             return executableSuffix;
         }
     }
 
     // MSI/MSM package validation only works natively on Windows
-    property bool enablePackageValidation: Host.os().contains("windows")
+    property bool enablePackageValidation: Host.os().includes("windows")
 
     property string executableSuffix: ".exe"
     property string windowsInstallerSuffix: ".msi"
@@ -227,7 +227,7 @@ Module {
             if (ModUtils.moduleProperty(input, "visualStudioCompatibility")) {
                 var toolchain = product.moduleProperty("qbs", "toolchain");
                 var toolchainInstallPath = product.moduleProperty("cpp", "toolchainInstallPath");
-                if (toolchain && toolchain.contains("msvc") && toolchainInstallPath) {
+                if (toolchain && toolchain.includes("msvc") && toolchainInstallPath) {
                     var vcDir = toolchainInstallPath.replace(/[\\/]bin$/i, "");
                     var vcRootDir = vcDir.replace(/[\\/]VC$/i, "");
                     args.push("-dDevEnvDir=" + FileInfo.toWindowsSeparators(FileInfo.joinPaths(vcRootDir, 'Common7', 'IDE')));
@@ -335,12 +335,12 @@ Module {
         multiplex: true
         inputs: ["wixobj", "wxl"]
         auxiliaryInputs: ["installable"]
-        inputsFromDependencies: product.type.contains("wixsetup") ? ["msi"] : []
+        inputsFromDependencies: product.type.includes("wixsetup") ? ["msi"] : []
 
         outputArtifacts: {
             var artifacts = [];
 
-            if (product.type.contains("wixsetup")) {
+            if (product.type.includes("wixsetup")) {
                 artifacts.push({
                     fileTags: ["wixsetup", "application"],
                     filePath: FileInfo.joinPaths(product.destinationDirectory,
@@ -350,7 +350,7 @@ Module {
                 });
             }
 
-            if (product.type.contains("msi")) {
+            if (product.type.includes("msi")) {
                 artifacts.push({
                     fileTags: ["msi"],
                     filePath: FileInfo.joinPaths(product.destinationDirectory,
@@ -376,9 +376,9 @@ Module {
         prepare: {
             var i;
             var primaryOutput;
-            if (product.type.contains("wixsetup")) {
+            if (product.type.includes("wixsetup")) {
                 primaryOutput = outputs.wixsetup[0];
-            } else if (product.type.contains("msi")) {
+            } else if (product.type.includes("msi")) {
                 primaryOutput = outputs.msi[0];
             } else {
                 throw("WiX: Unsupported product type '" + product.type + "'");
@@ -427,7 +427,7 @@ Module {
                 args.push(FileInfo.toWindowsSeparators(inputs.wxl[i].filePath));
             }
 
-            if (product.type.contains("msi")) {
+            if (product.type.includes("msi")) {
                 var cultures = ModUtils.moduleProperty(product, "cultures");
                 args.push("-cultures:"
                     + (cultures && cultures.length > 0 ? cultures.join(";") : "null"));

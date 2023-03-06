@@ -37,8 +37,8 @@ import 'cpp.js' as Cpp
 import "setuprunenv.js" as SetupRunEnv
 
 MingwBaseModule {
-    condition: qbs.targetOS.contains("windows") &&
-               qbs.toolchain && qbs.toolchain.contains("mingw")
+    condition: qbs.targetOS.includes("windows") &&
+               qbs.toolchain && qbs.toolchain.includes("mingw")
     priority: 0
 
     probeEnv: buildEnv

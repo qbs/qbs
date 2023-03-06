@@ -54,7 +54,7 @@ Module {
         names: ["7z"]
         platformSearchPaths: {
             var paths = base;
-            if (Host.os().contains("windows")) {
+            if (Host.os().includes("windows")) {
                 var env32 = Environment.getEnv("PROGRAMFILES(X86)");
                 var env64 = Environment.getEnv("PROGRAMFILES");
                 if (env64 === env32 && env64.endsWith(" (x86)"))
@@ -212,7 +212,7 @@ Module {
                     args.push("-0");
                 } else {
                     compression = compression === "bz2" ? "bzip2" : compression;
-                    if (["store", "deflate", "bzip2"].contains(compression))
+                    if (["store", "deflate", "bzip2"].includes(compression))
                         args.push("-Z", compression);
 
                     if (compressionLevel)
@@ -221,7 +221,7 @@ Module {
 
                 args.push("-r", output.filePath, ".", "-i@" + input.filePath);
                 args = args.concat(product.moduleProperty("archiver", "flags"));
-            } else if (["tar", "zip", "jar"].contains(binaryName)) {
+            } else if (["tar", "zip", "jar"].includes(binaryName)) {
                 throw binaryName + ": unrecognized archive type: '" + type + "'";
             } else if (binaryName) {
                 throw "unrecognized archive tool: '" + binaryName + "'";

@@ -169,7 +169,7 @@
     \qml
     Module {
         property bool featureEnabled:
-                (product.type.contains("application")) ?  true : false
+                (product.type.includes("application")) ?  true : false
     }
     \endqml
 

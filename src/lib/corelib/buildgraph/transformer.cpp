@@ -259,18 +259,12 @@ AbstractCommandPtr Transformer::createCommandFromScriptValue(
 void Transformer::createCommands(ScriptEngine *engine, const PrivateScriptFunction &script,
                                  const JSValueList &args)
 {
-    if (JS_IsUndefined(script.scriptFunction))  {
-        script.scriptFunction = engine->evaluate(JsValueOwner::ScriptEngine, script.sourceCode(),
-                                                  script.location().filePath(),
-                                                  script.location().line());
-        if (Q_UNLIKELY(!JS_IsFunction(engine->context(), script.scriptFunction)))
-            throw ErrorInfo(Tr::tr("Invalid prepare script."), script.location());
-    }
     JSValueList argv(args.cbegin(), args.cend());
+    const JSValue function = script.getFunction(engine, Tr::tr("Invalid prepare script."));
     const ScopedJsValue scriptValue(
                 engine->context(),
-                JS_Call(engine->context(), script.scriptFunction, engine->globalObject(),
-                        int(argv.size()), argv.data()));
+                JS_Call(engine->context(), function, engine->globalObject(),
+                int(argv.size()), argv.data()));
     propertiesRequestedInPrepareScript = engine->propertiesRequestedInScript();
     propertiesRequestedFromArtifactInPrepareScript = engine->propertiesRequestedFromArtifact();
     importedFilesUsedInPrepareScript = engine->importedFilesUsedInScript();

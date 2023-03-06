@@ -50,7 +50,7 @@ Module {
         }
     }
 
-    condition: Host.os().contains("darwin") && qbs.targetOS.contains("darwin")
+    condition: Host.os().includes("darwin") && qbs.targetOS.includes("darwin")
 
     property bool warnings: true
     property bool errors: true
@@ -196,7 +196,7 @@ Module {
             cmd.highlight = 'compiler';
 
             // May not be strictly needed, but is set by some versions of Xcode
-            if (input.fileTags.contains("storyboard"))
+            if (input.fileTags.includes("storyboard"))
                 cmd.environment.push("IBSC_MINIMUM_COMPATIBILITY_VERSION=" +
                                      (product.moduleProperty("cpp", "minimumDarwinVersion") || ""));
 

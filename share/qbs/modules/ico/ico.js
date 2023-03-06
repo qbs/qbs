@@ -40,20 +40,20 @@ function prepareIconset(project, product, inputs, outputs, input, output) {
             ico: {}
         };
     });
-    inputs = {"png": inputs.filter(function (a) { return a.fileTags.contains("png"); })};
+    inputs = {"png": inputs.filter(function (a) { return a.fileTags.includes("png"); })};
     input = undefined;
     return prepare(project, product, inputs, outputs, input, output);
 }
 
 function prepare(project, product, inputs, outputs, input, output) {
     var args = ["--create", "--output=" + output.filePath];
-    if (output.fileTags.contains("ico")) {
+    if (output.fileTags.includes("ico")) {
         args.push("--icon");
         if (product.ico.alphaThreshold !== undefined)
             args.push("--alpha-threshold=" + product.ico.alphaThreshold);
     }
 
-    var isCursor = output.fileTags.contains("cur");
+    var isCursor = output.fileTags.includes("cur");
     if (isCursor)
         args.push("--cursor");
 

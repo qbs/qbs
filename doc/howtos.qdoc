@@ -390,19 +390,19 @@
         Depends { name: "cpp" }
         cpp.includePaths: ["/somewhere/include"]
         Properties {
-            condition: qbs.targetOS.contains("android")
+            condition: qbs.targetOS.includes("android")
             cpp.dynamicLibraries: ["/somewhere/android/" + Android.ndk.abi + "/lib1.so"]
         }
         Properties {
-            condition: qbs.targetOS.contains("macos")
+            condition: qbs.targetOS.includes("macos")
             cpp.dynamicLibraries: ["/somewhere/macos/lib1.dylib"]
         }
         Properties {
-            condition: qbs.targetOS.contains("windows") && qbs.architecture === "x86"
+            condition: qbs.targetOS.includes("windows") && qbs.architecture === "x86"
             cpp.dynamicLibraries: ["/somewhere/windows_x86/lib1.lib"]
         }
         Properties {
-            condition: qbs.targetOS.contains("windows") && qbs.architecture === "x86_64"
+            condition: qbs.targetOS.includes("windows") && qbs.architecture === "x86_64"
             cpp.dynamicLibraries: ["/somewhere/windows_x86_64/lib1.lib"]
         }
     }
@@ -532,7 +532,7 @@
     CppApplication {
         // ...
 
-        readonly property bool isMsvc: qbs.toolchain.contains("msvc")
+        readonly property bool isMsvc: qbs.toolchain.includes("msvc")
 
         cpp.commonCompilerFlags: isMsvc ? "/wd4996" : "-Wno-deprecated-declarations"
     }
@@ -755,7 +755,7 @@
     \c qbs.targetOS has the wrong value:
 
     \code
-    readonly property bool unix: qbs.targetOS.contains("unix")
+    readonly property bool unix: qbs.targetOS.includes("unix")
     \endcode
 
     To find out the value of \c qbs.targetOS, use \c {console.info()}:
@@ -763,7 +763,7 @@
     \code
     readonly property bool unix: {
         console.info("qbs.targetOS: " + qbs.targetOS)
-        return qbs.targetOS.contains("unix")
+        return qbs.targetOS.includes("unix")
     }
     \endcode
 
@@ -771,9 +771,9 @@
     be useful if the property contains invalid or unsupported value:
     \code
     readonly property bool unix: {
-        if (qbs.targetOS.contains("darwin"))
+        if (qbs.targetOS.includes("darwin"))
             throw "Apple platforms are not supported";
-        return qbs.targetOS.contains("unix")
+        return qbs.targetOS.includes("unix")
     }
     \endcode
 

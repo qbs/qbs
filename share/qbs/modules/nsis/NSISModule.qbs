@@ -35,7 +35,7 @@ import qbs.ModUtils
 import qbs.Utilities
 
 Module {
-    condition: qbs.targetOS.contains("windows")
+    condition: qbs.targetOS.includes("windows")
 
     property path toolchainInstallPath: Utilities.getNativeSetting(registryKey)
 
@@ -90,7 +90,7 @@ Module {
 
     // Private properties
     property string registryKey: {
-        if (!Host.os().contains("windows"))
+        if (!Host.os().includes("windows"))
             return undefined;
 
         var keys = [ "HKEY_LOCAL_MACHINE\\SOFTWARE\\NSIS", "HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\NSIS" ];
@@ -105,7 +105,7 @@ Module {
 
         // Only *require* the toolchain install path on Windows
         // On other (Unix-like) operating systems it'll probably be in the PATH
-        if (qbs.targetOS.contains("windows"))
+        if (qbs.targetOS.includes("windows"))
             validator.setRequiredProperty("toolchainInstallPath", toolchainInstallPath);
 
         validator.setRequiredProperty("versionMajor", versionMajor);
@@ -159,7 +159,7 @@ Module {
             var args = [];
 
             // Prefix character for makensis options
-            var opt = product.moduleProperty("qbs", "hostOS").contains("windows") ? "/" : "-";
+            var opt = product.moduleProperty("qbs", "hostOS").includes("windows") ? "/" : "-";
 
             if (ModUtils.moduleProperty(product, "disableConfig")) {
                 args.push(opt + "NOCONFIG");

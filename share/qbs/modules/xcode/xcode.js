@@ -207,25 +207,25 @@ function archsSpecsPath(version, targetOS, platformType, platformPath, devicePla
     if (Utilities.versionCompare(version, "13.3") >= 0) {
         var baseDir = FileInfo.joinPaths(developerPath, "..",
                                          "PlugIns/XCBSpecifications.ideplugin/Contents/Resources");
-        var baseName = targetOS.contains("macos") ? "MacOSX Architectures"
-                : targetOS.contains("ios-simulator") ? "iOS Simulator"
-                : targetOS.contains("ios") ? "iOS Device"
-                : targetOS.contains("tvos-simulator") ? "tvOS Simulator"
-                : targetOS.contains("tvos") ? "tvOS Device"
-                : targetOS.contains("watchos-simulator") ? "watchOS Simulator" : "watchOS Device";
+        var baseName = targetOS.includes("macos") ? "MacOSX Architectures"
+                : targetOS.includes("ios-simulator") ? "iOS Simulator"
+                : targetOS.includes("ios") ? "iOS Device"
+                : targetOS.includes("tvos-simulator") ? "tvOS Simulator"
+                : targetOS.includes("tvos") ? "tvOS Device"
+                : targetOS.includes("watchos-simulator") ? "watchOS Simulator" : "watchOS Device";
         return FileInfo.joinPaths(baseDir, baseName + ".xcspec");
     }
     var _specsPluginBaseName;
     if (Utilities.versionCompare(version, "12") >= 0) {
-        if (targetOS.contains("macos"))
+        if (targetOS.includes("macos"))
             _specsPluginBaseName = "OSX";
     }
     if (Utilities.versionCompare(version, "7") >= 0) {
-        if (targetOS.contains("ios"))
+        if (targetOS.includes("ios"))
             _specsPluginBaseName = "iOSPlatform";
-        if (targetOS.contains("tvos"))
+        if (targetOS.includes("tvos"))
             _specsPluginBaseName = "AppleTV";
-        if (targetOS.contains("watchos"))
+        if (targetOS.includes("watchos"))
             _specsPluginBaseName = "Watch";
     }
 
@@ -236,8 +236,8 @@ function archsSpecsPath(version, targetOS, platformType, platformPath, devicePla
                                  "Resources")
             : FileInfo.joinPaths(platformPath, "Developer", "Library", "Xcode", "Specifications");
 
-    var _archSpecsFileBaseName = targetOS.contains("ios")
-            ? (targetOS.contains("ios-simulator") ? "iPhone Simulator " : "iPhoneOS")
+    var _archSpecsFileBaseName = targetOS.includes("ios")
+            ? (targetOS.includes("ios-simulator") ? "iPhone Simulator " : "iPhoneOS")
             : DarwinTools.applePlatformDirectoryName(targetOS, platformType) + " ";
 
     if (_specsPluginBaseName) {

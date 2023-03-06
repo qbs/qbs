@@ -37,7 +37,7 @@ import "cpp.js" as Cpp
 import "watcom.js" as WATCOM
 
 CppModule {
-    condition: qbs.toolchain && qbs.toolchain.contains("watcom")
+    condition: qbs.toolchain && qbs.toolchain.includes("watcom")
 
     Probes.BinaryProbe {
         id: compilerPathProbe
@@ -170,7 +170,7 @@ CppModule {
 
     Rule {
         id: dynamicLibraryLinker
-        condition: qbs.targetOS.contains("windows")
+        condition: qbs.targetOS.includes("windows")
         multiplex: true
         inputs: ["obj", "res"]
         inputsFromDependencies: ["staticlibrary", "dynamiclibrary_import"]

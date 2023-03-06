@@ -81,11 +81,11 @@ function targetFlag(platform, architecture, type) {
             return "-bos2v2";
     } else if (platform === "windows") {
         if (architecture === "x86_16") {
-            if (type.contains("dynamiclibrary"))
+            if (type.includes("dynamiclibrary"))
                 return "-bwindows_dll";
             return "-bwindows";
         } else if (architecture === "x86") {
-            if (type.contains("dynamiclibrary"))
+            if (type.includes("dynamiclibrary"))
                 return "-bnt_dll";
             return "-bnt";
         }
@@ -130,9 +130,9 @@ function guessEnvironment(hostOs, platform, architecture,
     setVariable("WATCOM", [toolchainRootPath], undefined, pathListSeparator);
     setVariable("EDPATH", ["eddat"], toolchainRootPath, pathListSeparator);
 
-    if (hostOs.contains("linux"))
+    if (hostOs.includes("linux"))
         setVariable("PATH", ["binl64", "binl"], toolchainRootPath, pathListSeparator);
-    else if (hostOs.contains("windows"))
+    else if (hostOs.includes("windows"))
         setVariable("PATH", ["binnt64", "binnt"], toolchainRootPath, pathListSeparator);
 
     if (platform === "linux") {
@@ -311,12 +311,12 @@ function compilerFlags(project, product, input, outputs, explicitlyDependsOn) {
                             product.type);
     args.push(target);
 
-    if (product.type.contains("application")) {
+    if (product.type.includes("application")) {
         if (product.qbs.targetPlatform === "windows") {
             var consoleApplication = product.consoleApplication;
             args.push(consoleApplication ? "-mconsole" : "-mwindows");
         }
-    } else if (product.type.contains("dynamiclibrary")) {
+    } else if (product.type.includes("dynamiclibrary")) {
         args.push("-shared");
     }
 
@@ -423,11 +423,11 @@ function linkerFlags(project, product, inputs, outputs) {
                                 product.type);
         args.push(target);
 
-        if (product.type.contains("application")) {
+        if (product.type.includes("application")) {
             args.push("-o", FileInfo.toNativeSeparators(outputs.application[0].filePath));
             if (product.cpp.generateLinkerMapFile)
                 args.push("-fm=" + FileInfo.toNativeSeparators(outputs.mem_map[0].filePath));
-        } else if (product.type.contains("dynamiclibrary")) {
+        } else if (product.type.includes("dynamiclibrary")) {
             if (product.qbs.targetPlatform === "windows") {
                 args.push("-Wl, option implib=" + FileInfo.toNativeSeparators(
                               outputs.dynamiclibrary_import[0].filePath));

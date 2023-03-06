@@ -164,6 +164,8 @@ public:
     void addImportRequestedInScript(quintptr importValueId);
     std::vector<QString> importedFilesUsedInScript() const;
 
+    void addExternallyCachedValue(JSValue *v) { m_externallyCachedValues.push_back(v); }
+
     void setUsesIo() { m_usesIo = true; }
     void clearUsesIo() { m_usesIo = false; }
     bool usesIo() const { return m_usesIo; }
@@ -381,6 +383,7 @@ private:
     QHash<QString, JSValue> m_internalExtensions;
     QHash<QString, JSValue> m_stringCache;
     QHash<JSValue, int> m_evalResults;
+    std::vector<JSValue *> m_externallyCachedValues;
     QHash<QPair<Artifact *, QString>, JSValue> m_artifactsScriptValues;
     QVariantMap m_properties;
     std::recursive_mutex m_artifactsMutex;

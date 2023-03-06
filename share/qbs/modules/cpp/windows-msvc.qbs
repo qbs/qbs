@@ -34,9 +34,9 @@ import qbs.Probes
 import "windows-msvc-base.qbs" as MsvcBaseModule
 
 MsvcBaseModule {
-    condition: Host.os().contains('windows') &&
-               qbs.targetOS.contains('windows') &&
-               qbs.toolchain && qbs.toolchain.contains('msvc')
+    condition: Host.os().includes('windows') &&
+               qbs.targetOS.includes('windows') &&
+               qbs.toolchain && qbs.toolchain.includes('msvc')
     priority: 50
 
     Probes.ClBinaryProbe {

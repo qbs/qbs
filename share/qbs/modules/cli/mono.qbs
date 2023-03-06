@@ -3,7 +3,7 @@ import qbs.Host
 import qbs.Probes
 
 CLIModule {
-    condition: qbs.toolchain && qbs.toolchain.contains("mono")
+    condition: qbs.toolchain && qbs.toolchain.includes("mono")
 
     debugInfoSuffix: ".mdb"
     csharpCompilerName: "mcs"
@@ -15,9 +15,9 @@ CLIModule {
         names: ["mono"]
         platformSearchPaths: {
             var paths = [];
-            if (Host.os().contains("macos"))
+            if (Host.os().includes("macos"))
                 paths.push("/Library/Frameworks/Mono.framework/Commands");
-            if (Host.os().contains("unix"))
+            if (Host.os().includes("unix"))
                 paths.push("/usr/bin");
             return paths;
         }

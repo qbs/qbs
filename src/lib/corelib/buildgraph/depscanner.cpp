@@ -238,16 +238,11 @@ QStringList UserDependencyScanner::evaluate(Artifact *artifact,
     const ScopedJsValueList argsMgr(m_engine->context(), args);
 
     const TemporaryGlobalObjectSetter gos(m_engine, m_global);
-    JSValue &function = script.scriptFunction;
-    if (!JS_IsFunction(m_engine->context(), function)) {
-        function = m_engine->evaluate(JsValueOwner::ScriptEngine, script.sourceCode());
-        if (Q_UNLIKELY(!JS_IsFunction(m_engine->context(), function)))
-            throw ErrorInfo(Tr::tr("Invalid scan script."), script.location());
-    }
+    const JSValue function = script.getFunction(m_engine, Tr::tr("Invalid scan script."));
     const ScopedJsValue result(
                 m_engine->context(),
                 JS_Call(m_engine->context(), function, m_engine->globalObject(),
-                        int(args.size()), args.data()));
+                int(args.size()), args.data()));
     m_engine->clearRequestedProperties();
     if (JsException ex = m_engine->checkAndClearException(script.location())) {
         ErrorInfo err = ex.toErrorInfo();

@@ -43,14 +43,14 @@ import "codesign.js" as CodeSign
 import "../xcode/xcode.js" as XcodeUtils
 
 CodeSignModule {
-    Depends { name: "xcode"; required: qbs.toolchain && qbs.toolchain.contains("xcode") }
+    Depends { name: "xcode"; required: qbs.toolchain && qbs.toolchain.includes("xcode") }
 
     Probes.BinaryProbe {
         id: codesignProbe
         names: [codesignName]
     }
 
-    condition: Host.os().contains("macos") && qbs.targetOS.contains("darwin")
+    condition: Host.os().includes("macos") && qbs.targetOS.includes("darwin")
     priority: 0
 
     enableCodeSigning: _codeSigningRequired
@@ -78,15 +78,15 @@ CodeSignModule {
 
         var isDebug = qbs.buildVariant !== "release";
 
-        if (qbs.targetOS.contains("ios") || qbs.targetOS.contains("tvos")
-                || qbs.targetOS.contains("watchos")) {
+        if (qbs.targetOS.includes("ios") || qbs.targetOS.includes("tvos")
+                || qbs.targetOS.includes("watchos")) {
             switch (signingType) {
             case "app-store":
                 return isDebug ? "iPhone Developer" : "iPhone Distribution";
             }
         }
 
-        if (qbs.targetOS.contains("macos")) {
+        if (qbs.targetOS.includes("macos")) {
             switch (signingType) {
             case "app-store":
                 return isDebug ? "Mac Developer" : "3rd Party Mac Developer Application";
@@ -161,22 +161,22 @@ CodeSignModule {
     readonly property bool _provisioningProfileAllowed:
         product.bundle
         && product.bundle.isBundle
-        && product.type.contains("application")
+        && product.type.includes("application")
         && xcode.platformType !== "simulator"
 
     // Required for tvOS, iOS, and watchOS (not simulators)
     // PROVISIONING_PROFILE_REQUIRED is specified only in Embedded-Device.xcspec in the
     // IDEiOSSupportCore IDE plugin, so we'll just write out the logic here manually
     readonly property bool _provisioningProfileRequired:
-        _provisioningProfileAllowed && !qbs.targetOS.contains("macos")
+        _provisioningProfileAllowed && !qbs.targetOS.includes("macos")
 
     // Not used on simulator platforms either but provisioning profiles aren't used there anyways
     readonly property string _provisioningProfilePlatform: {
-        if (qbs.targetOS.contains("macos"))
+        if (qbs.targetOS.includes("macos"))
             return "OSX";
-        if (qbs.targetOS.contains("ios") || qbs.targetOS.contains("watchos"))
+        if (qbs.targetOS.includes("ios") || qbs.targetOS.includes("watchos"))
             return "iOS";
-        if (qbs.targetOS.contains("tvos"))
+        if (qbs.targetOS.includes("tvos"))
             return "tvOS";
     }
 

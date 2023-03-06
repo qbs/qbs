@@ -220,9 +220,11 @@ Module {
                     f.writeLine('"qml-import-paths": "' + product.qmlImportPaths.join(',') + '",');
 
                 if (Utilities.versionCompare(product.Qt.android_support.version, "6.0") >= 0) {
-                    f.writeLine('"qml-importscanner-binary": "' +
-                                product.Qt.core.qmlImportScannerFilePath + '",');
-                    f.writeLine('"rcc-binary": "' + product.Qt.android_support.rccFilePath + '",');
+                    f.writeLine('"qml-importscanner-binary": "'
+                                + product.Qt.core.qmlImportScannerFilePath + FileInfo.executableSuffix()
+                                + '",');
+                    f.writeLine('"rcc-binary": "' + product.Qt.android_support.rccFilePath
+                                + FileInfo.executableSuffix() + '",');
 
                     if (inputs["qrc"] && inputs["qrc"].length > 0) {
                         var qrcFiles = [];

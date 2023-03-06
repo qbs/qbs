@@ -44,7 +44,7 @@
     \code
     Product {
         Properties {
-            condition: qbs.targetOS.contains("windows")
+            condition: qbs.targetOS.includes("windows")
             cpp.defines: ["ON_WINDOWS"]
             cpp.includePaths: ["extraWindowsIncludes"]
         }
@@ -57,12 +57,12 @@
     \code
     Product {
         Properties {
-            condition: qbs.targetOS.contains("windows")
+            condition: qbs.targetOS.includes("windows")
             cpp.defines: ["ON_WINDOWS"]
             cpp.includePaths: ["myWindowsIncludes"]
         }
         Properties {
-            condition: qbs.targetOS.contains("linux")
+            condition: qbs.targetOS.includes("linux")
             cpp.defines: ["ON_LINUX"]
             cpp.includePaths: ["myLinuxIncludes"]
         }
@@ -73,16 +73,16 @@
     \code
     Product {
         cpp.defines: {
-            if (qbs.targetOS.contains("windows"))
+            if (qbs.targetOS.includes("windows"))
                 return ["ON_WINDOWS"];
-            if (qbs.targetOS.contains("linux"))
+            if (qbs.targetOS.includes("linux"))
                 return ["ON_LINUX"];
             return ["ON_UNKNOWN_PLATFORM"];
         }
         cpp.includePaths: {
-            if (qbs.targetOS.contains("windows"))
+            if (qbs.targetOS.includes("windows"))
                 return ["myWindowsIncludes"];
-            if (qbs.targetOS.contains("linux"))
+            if (qbs.targetOS.includes("linux"))
                 return ["myLinuxIncludes"];
             return base;
         }
@@ -94,11 +94,11 @@
     \code
     Product {
         Properties {
-            condition: qbs.targetOS.contains("windows")
+            condition: qbs.targetOS.includes("windows")
             cpp.defines: outer.concat("ON_WINDOWS")     // === ["FOO", "ON_WINDOWS"]
         }
         Properties {
-            condition: qbs.targetOS.contains("linux")
+            condition: qbs.targetOS.includes("linux")
             cpp.defines: ["ON_LINUX"]                   // === ["ON_LINUX"]
         }
         cpp.defines: ["FOO"]

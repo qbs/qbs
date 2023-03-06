@@ -42,7 +42,7 @@ function languageVersion(versionArray, knownValues, lang) {
         return versions[0];
     for (var i = 0; i < knownValues.length; ++i) {
         var candidate = knownValues[i];
-        if (versions.contains(candidate))
+        if (versions.includes(candidate))
             return candidate;
     }
     var version = versions[0];
@@ -134,7 +134,7 @@ function assemblerOutputArtifacts(input) {
 }
 
 function compilerOutputArtifacts(input, inputs) {
-    var objTags = input.fileTags.contains("cpp_intermediate_object")
+    var objTags = input.fileTags.includes("cpp_intermediate_object")
         ? ["intermediate_obj"]
         : ["obj"];
     if (inputs) {
@@ -233,7 +233,7 @@ function collectLibraryDependencies(product) {
         var artifactFilePaths = artifacts.map(function(a) { return a.filePath; });
         var wholeArchive = dep.parameters.cpp && dep.parameters.cpp.linkWholeArchive;
         var artifactsAreImportLibs = artifacts.length > 0
-                && artifacts[0].fileTags.contains("dynamiclibrary_import");
+                && artifacts[0].fileTags.includes("dynamiclibrary_import");
         for (var i = 0; i < artifactFilePaths.length; ++i) {
             addFilePath(artifactFilePaths[i], wholeArchive,
                         artifactsAreImportLibs ? dep.name : undefined);
@@ -254,7 +254,7 @@ function collectLibraryDependencies(product) {
             externalLibs.forEach(function(libName) {
                 var isObjectFile = objSuffix && libName.endsWith(objSuffix);
                 if (isObjectFile) {
-                    if (seenObjectFiles.contains(libName))
+                    if (seenObjectFiles.includes(libName))
                         return;
                     seenObjectFiles.push(libName);
                 }

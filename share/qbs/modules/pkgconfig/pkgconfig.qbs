@@ -47,7 +47,7 @@ Module {
     }
 
     property path sysroot: {
-        if (qbs.targetOS.contains("macos"))
+        if (qbs.targetOS.includes("macos"))
             return "";
         return qbs.sysroot;
     }
