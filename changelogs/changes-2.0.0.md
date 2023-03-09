@@ -9,6 +9,9 @@
 # BareMetal support
 * Added support for HPPA architectures
 
+# Other modules
+* Renamed "name" to "appName" in the freedesktop module to prevent clash with built-in property
+
 # Infrastructure
 * Added USBSAN CI job
 

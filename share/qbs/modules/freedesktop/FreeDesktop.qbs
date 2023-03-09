@@ -34,13 +34,14 @@ import "freedesktop.js" as Fdo
 
 Module {
     property string name: product.name
+    property string appName: name
 
     property var desktopKeys
 
     readonly property var defaultDesktopKeys: {
         return {
             'Type': 'Application',
-            'Name': product.freedesktop.name,
+            'Name': product.freedesktop.appName,
             'Exec': product.targetName,
             'Terminal': 'false',
             'Version': '1.1',

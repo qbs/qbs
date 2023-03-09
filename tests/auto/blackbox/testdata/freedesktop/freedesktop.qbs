@@ -10,7 +10,7 @@ Project {
 
         Depends { name: "freedesktop" }
 
-        freedesktop.name: "My App"
+        freedesktop.appName: "My App"
         freedesktop.desktopKeys: ({
             'Icon': "myapp.png"
         })

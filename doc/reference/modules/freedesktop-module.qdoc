@@ -119,7 +119,7 @@
 */
 
 /*!
-    \qmlproperty string freedesktop::name
+    \qmlproperty string freedesktop::appName
 
     The display name of the application which will be stored in the \c{.desktop} file.
 
