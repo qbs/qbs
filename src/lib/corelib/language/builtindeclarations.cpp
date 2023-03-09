@@ -345,7 +345,11 @@ ItemDeclaration BuiltinDeclarations::moduleLikeItem(ItemType type)
             << ItemType::Probe
             << ItemType::PropertyOptions
             << ItemType::Scanner);
-    item << nameProperty();
+    PropertyDeclaration nameDecl = nameProperty();
+    PropertyDeclaration::Flags nameFlags = nameDecl.flags();
+    nameFlags |= PropertyDeclaration::ReadOnlyFlag;
+    nameDecl.setFlags(nameFlags);
+    item << nameDecl;
     item << conditionProperty();
     PropertyDeclaration setupBuildEnvDecl(StringConstants::setupBuildEnvironmentProperty(),
                                           PropertyDeclaration::Variant, QString(),
