@@ -1,3 +1,0 @@
-shift:SymbolTable.h
-alignment:qscriptengine_p.h
-
