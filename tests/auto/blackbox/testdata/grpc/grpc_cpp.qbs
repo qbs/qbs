@@ -11,7 +11,7 @@ CppApplication {
     }
 
     Depends { name: "cpp" }
-    cpp.cxxLanguageVersion: "c++11"
+    cpp.cxxLanguageVersion: "c++14"
     cpp.minimumMacosVersion: "10.8"
     cpp.warningLevel: "none"
 
