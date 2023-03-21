@@ -712,6 +712,25 @@ private:
             ScopedJsValue sv(engine->context(), engine->evaluate(JsValueOwner::Caller,
                     alternative->condition.value, {}, 1, scopeChain));
             if (JsException ex = engine->checkAndClearException(alternative->condition.location)) {
+
+                // This handles cases like the following:
+                //   Depends { name: "cpp" }
+                //   Properties {
+                //     condition: qbs.targetOS.contains("darwin")
+                //     bundle.isBundle: false
+                //   }
+                // On non-Darwin platforms, bundle never gets instantiated, and thus bundle.isBundle
+                // has no scope, so the qbs item in the condition is not found.
+                // TODO: Ideally, we would never evaluate values in placeholder items, but
+                //       there are currently several contexts where we do that, e.g. Export
+                //       and Group items. Perhaps change that, or try to collect all such
+                //       exceptions and don't try to evaluate other cases.
+                if (itemOfProperty->type() == ItemType::ModuleInstancePlaceholder) {
+                    result.scriptValue = JS_UNDEFINED;
+                    result.tryNextAlternative = false;
+                    return result;
+                }
+
                 result.scriptValue = engine->throwError(ex.toErrorInfo().toString());
                 //result.scriptValue = JS_Throw(engine->context(), ex.takeValue());
                 //result.scriptValue = ex.takeValue();

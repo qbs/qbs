@@ -135,17 +135,10 @@ LookupResult ScriptEngine::doExtraScopeLookup(JSContext *ctx, JSAtom prop)
 
     ScriptEngine * const engine = engineForContext(ctx);
     engine->m_lastLookupWasSuccess = false;
+
     JSValueList scopes;
-
-    // FIXME: This is probably wrong, and kept only for "bug compatibility"
-    // The correct code should be the one commented out below. Fix for 2.1.
-    for (const auto &l : qAsConst(engine->m_scopeChains)) {
-        for (const auto &s : l)
-            scopes.push_back(s);
-    }
-    //    if (!engine->m_scopeChains.isEmpty())
-    //        scopes = engine->m_scopeChains.last();
-
+    if (!engine->m_scopeChains.isEmpty())
+        scopes = engine->m_scopeChains.last();
     if (JS_IsObject(engine->m_globalObject))
         scopes.insert(scopes.begin(), engine->m_globalObject);
     for (auto it = scopes.rbegin(); it != scopes.rend(); ++it) {
