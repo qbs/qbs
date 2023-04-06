@@ -152,13 +152,15 @@ function _assign(target, source) {
 
 function macOSSpecsPaths(version, developerPath) {
     var result = [];
-    if (Utilities.versionCompare(version, "12.5") >= 0) {
+    if (Utilities.versionCompare(version, "14.3") >= 0) {
+        result.push(FileInfo.joinPaths(
+                    developerPath, "Library", "Xcode", "Plug-ins", "XCBSpecifications.ideplugin",
+                    "Contents", "Resources"));
+    } else if (Utilities.versionCompare(version, "12.5") >= 0) {
         result.push(FileInfo.joinPaths(
                     developerPath, "..", "PlugIns", "XCBSpecifications.ideplugin",
                     "Contents", "Resources"));
-    }
-
-    if (Utilities.versionCompare(version, "12") >= 0) {
+    } else if (Utilities.versionCompare(version, "12") >= 0) {
         result.push(FileInfo.joinPaths(
                     developerPath, "Platforms", "MacOSX.platform", "Developer", "Library", "Xcode",
                     "PrivatePlugIns", "IDEOSXSupportCore.ideplugin", "Contents", "Resources"));
