@@ -99,8 +99,8 @@ QVariantMap certificateInfo(const QByteArray &data)
     return {
         {QStringLiteral("SHA1"), sha1},
         {QStringLiteral("subjectInfo"), subjectInfo(cert)},
-        {QStringLiteral("validBefore"), cert.effectiveDate()},
-        {QStringLiteral("validAfter"), cert.expiryDate()}
+        {QStringLiteral("validAfter"), cert.effectiveDate()},
+        {QStringLiteral("validBefore"), cert.expiryDate()}
     };
 }
 
