@@ -377,6 +377,9 @@ function linkerFlags(project, product, inputs, outputs, primaryOutput, linkerPat
 
         var minimumWindowsVersion = product.cpp.minimumWindowsVersion;
         if (minimumWindowsVersion) {
+            // workaround for QBS-1724, mingw seems to be broken
+            if (Utilities.versionCompare(minimumWindowsVersion, "6.2") > 0)
+                minimumWindowsVersion = "6.2";
             var subsystemVersion = WindowsUtils.getWindowsVersionInFormat(minimumWindowsVersion, 'subsystem');
             if (subsystemVersion) {
                 var major = subsystemVersion.split('.')[0];
