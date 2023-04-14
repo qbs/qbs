@@ -43,6 +43,7 @@
 
 #include <QtCore/qfile.h>
 #include <QtCore/qsocketnotifier.h>
+#include <QtCore/qthread.h>
 #include <QtCore/qtimer.h>
 
 #include <cerrno>
@@ -111,46 +112,183 @@ public:
     WindowsStdinReader(QObject *parent) : StdinReader(parent) {}
 
 private:
+#ifdef Q_OS_WIN32
+    class FileReaderThread : public QThread
+    {
+    public:
+        FileReaderThread(WindowsStdinReader &parent, HANDLE stdInHandle, HANDLE exitEventHandle)
+            : QThread(&parent), m_stdIn{stdInHandle}, m_exitEvent{exitEventHandle} { }
+        ~FileReaderThread()
+        {
+            wait();
+            CloseHandle(m_exitEvent);
+        }
+
+        void run() override
+        {
+            WindowsStdinReader *r = static_cast<WindowsStdinReader *>(parent());
+
+            char buf[1024];
+            while (true) {
+                DWORD bytesRead = 0;
+                if (!ReadFile(m_stdIn, buf, sizeof buf, &bytesRead, nullptr)) {
+                    emit r->errorOccurred(tr("Failed to read from input channel."));
+                    break;
+                }
+                if (!bytesRead)
+                    break;
+                emit r->dataAvailable(QByteArray(buf, bytesRead));
+            }
+        }
+    private:
+        HANDLE m_stdIn;
+        HANDLE m_exitEvent;
+    };
+
+    class ConsoleReaderThread : public QThread
+    {
+    public:
+        ConsoleReaderThread(WindowsStdinReader &parent, HANDLE stdInHandle, HANDLE exitEventHandle)
+            : QThread(&parent), m_stdIn{stdInHandle}, m_exitEvent{exitEventHandle} { }
+        virtual ~ConsoleReaderThread() override
+        {
+            SetEvent(m_exitEvent);
+            wait();
+            CloseHandle(m_exitEvent);
+        }
+
+        void run() override
+        {
+            WindowsStdinReader *r = static_cast<WindowsStdinReader *>(parent());
+
+            DWORD origConsoleMode;
+            GetConsoleMode(m_stdIn, &origConsoleMode);
+            DWORD consoleMode = ENABLE_PROCESSED_INPUT;
+            SetConsoleMode(m_stdIn, consoleMode);
+
+            HANDLE handles[2] = {m_exitEvent, m_stdIn};
+            char buf[1024];
+            while (true) {
+                auto result = WaitForMultipleObjects(2, handles, FALSE, INFINITE);
+                if (result == WAIT_OBJECT_0)
+                    break;
+                INPUT_RECORD consoleInput;
+                DWORD inputsRead = 0;
+                if (!PeekConsoleInputA(m_stdIn, &consoleInput, 1, &inputsRead)) {
+                    emit r->errorOccurred(tr("Failed to read from input channel."));
+                    break;
+                }
+                if (inputsRead) {
+                    if (consoleInput.EventType != KEY_EVENT
+                            || !consoleInput.Event.KeyEvent.bKeyDown
+                            || !consoleInput.Event.KeyEvent.uChar.AsciiChar) {
+                        if (!ReadConsoleInputA(m_stdIn, &consoleInput, 1, &inputsRead)) {
+                            emit r->errorOccurred(tr("Failed to read console input."));
+                            break;
+                        }
+                    } else {
+                        DWORD bytesRead = 0;
+                        if (!ReadConsoleA(m_stdIn, buf, sizeof buf, &bytesRead, nullptr)) {
+                            emit r->errorOccurred(tr("Failed to read console."));
+                            break;
+                        }
+                        emit r->dataAvailable(QByteArray(buf, bytesRead));
+                    }
+                }
+            }
+            SetConsoleMode(m_stdIn, origConsoleMode);
+        }
+    private:
+        HANDLE m_stdIn;
+        HANDLE m_exitEvent;
+    };
+
+    class PipeReaderThread : public QThread
+    {
+    public:
+        PipeReaderThread(WindowsStdinReader &parent, HANDLE stdInHandle, HANDLE exitEventHandle)
+            : QThread(&parent), m_stdIn{stdInHandle}, m_exitEvent{exitEventHandle} { }
+        virtual ~PipeReaderThread() override
+        {
+            SetEvent(m_exitEvent);
+            wait();
+            CloseHandle(m_exitEvent);
+        }
+
+        void run() override
+        {
+            WindowsStdinReader *r = static_cast<WindowsStdinReader *>(parent());
+
+            OVERLAPPED overlapped = {};
+            overlapped.hEvent = CreateEventA(NULL, TRUE, TRUE, NULL);
+            if (!overlapped.hEvent) {
+                emit r->errorOccurred(StdinReader::tr("Failed to create handle for overlapped event."));
+                return;
+            }
+
+            char buf[1024];
+            DWORD bytesRead;
+            HANDLE handles[2] = {m_exitEvent, overlapped.hEvent};
+            while (true) {
+                bytesRead = 0;
+                auto readResult = ReadFile(m_stdIn, buf, sizeof buf, NULL, &overlapped);
+                if (!readResult) {
+                    if (GetLastError() != ERROR_IO_PENDING) {
+                        emit r->errorOccurred(StdinReader::tr("ReadFile Failed."));
+                        break;
+                    }
+
+                    auto result = WaitForMultipleObjects(2, handles, FALSE, INFINITE);
+                    if (result == WAIT_OBJECT_0)
+                        break;
+                }
+                if (!GetOverlappedResult(m_stdIn, &overlapped, &bytesRead, FALSE)) {
+                    if (GetLastError() != ERROR_HANDLE_EOF)
+                        emit r->errorOccurred(StdinReader::tr("Error GetOverlappedResult."));
+                    break;
+                }
+                emit r->dataAvailable(QByteArray(buf, bytesRead));
+            }
+            CancelIo(m_stdIn);
+            CloseHandle(overlapped.hEvent);
+        }
+    private:
+        HANDLE m_stdIn;
+        HANDLE m_exitEvent;
+    };
+#endif
+
     void start() override
     {
 #ifdef Q_OS_WIN32
-        m_stdinHandle = GetStdHandle(STD_INPUT_HANDLE);
-        if (!m_stdinHandle) {
-            emit errorOccurred(tr("Failed to create handle for standard input."));
+        HANDLE stdInHandle = GetStdHandle(STD_INPUT_HANDLE);
+        if (!stdInHandle) {
+            emit errorOccurred(StdinReader::tr("Failed to create handle for standard input."));
+            return;
+        }
+        HANDLE exitEventHandle = CreateEventA(NULL, TRUE, FALSE, NULL);
+        if (!exitEventHandle) {
+            emit errorOccurred(StdinReader::tr("Failed to create handle for exit event."));
             return;
         }
 
-        // A timer seems slightly less awful than to block in a thread
-        // (how would we abort that one?), but ideally we'd like
-        // to have a signal-based approach like in the Unix variant.
-        const auto timer = new QTimer(this);
-        connect(timer, &QTimer::timeout, this, [this, timer] {
-            char buf[1024];
-            DWORD bytesAvail;
-            if (!PeekNamedPipe(m_stdinHandle, nullptr, 0, nullptr, &bytesAvail, nullptr)) {
-                timer->stop();
-                emit errorOccurred(tr("Failed to read from input channel."));
-                return;
-            }
-            while (bytesAvail > 0) {
-                DWORD bytesRead;
-                if (!ReadFile(m_stdinHandle, buf, std::min<DWORD>(bytesAvail, sizeof buf),
-                              &bytesRead, nullptr)) {
-                    timer->stop();
-                    emit errorOccurred(tr("Failed to read from input channel."));
-                    return;
-                }
-                emit dataAvailable(QByteArray(buf, bytesRead));
-                bytesAvail -= bytesRead;
-            }
-        });
-        timer->start(10);
+        auto result = GetFileType(stdInHandle);
+        switch (result) {
+        case FILE_TYPE_CHAR:
+            (new ConsoleReaderThread(*this, stdInHandle, exitEventHandle))->start();
+            return;
+        case FILE_TYPE_PIPE:
+            (new PipeReaderThread(*this, stdInHandle, exitEventHandle))->start();
+            return;
+        case FILE_TYPE_DISK:
+            (new FileReaderThread(*this, stdInHandle, exitEventHandle))->start();
+            return;
+        default:
+            emit errorOccurred(StdinReader::tr("Unable to handle unknown input type"));
+            return;
+        }
 #endif
     }
-
-#ifdef Q_OS_WIN32
-    HANDLE m_stdinHandle;
-#endif
 };
 
 StdinReader *StdinReader::create(QObject *parent)
