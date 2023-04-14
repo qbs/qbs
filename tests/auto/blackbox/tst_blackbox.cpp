@@ -8222,7 +8222,7 @@ void TestBlackbox::minimumSystemVersion_data()
             return "__MAC_OS_X_VERSION_MIN_REQUIRED=1070\nversion 10.7\n";
 
         if (HostOsInfo::isWindowsHost())
-            return "WINVER=1536\n6.00 operating system version\n6.00 subsystem version\n";
+            return "WINVER=1538\n6.02 operating system version\n6.02 subsystem version\n";
 
         return "";
     }();

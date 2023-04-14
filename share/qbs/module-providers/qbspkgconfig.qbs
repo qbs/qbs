@@ -211,7 +211,9 @@ ModuleProvider {
                 continue;
             }
             if (packageName.startsWith("Qt")) {
-                setupQt(pkg);
+                if (!sysroot) {
+                    setupQt(pkg);
+                }
                 continue;
             }
             var moduleName = getModuleName(moduleMapping[packageName]

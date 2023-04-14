@@ -95,12 +95,12 @@ QVariantMap certificateInfo(const QByteArray &data)
             map.insert(QString::fromUtf8(attr), cert.subjectInfo(attr).front());
         return map;
     };
-
+    const auto sha1 = QString::fromLatin1(cert.digest(QCryptographicHash::Sha1).toHex().toUpper());
     return {
-        {QStringLiteral("SHA1"), cert.digest(QCryptographicHash::Sha1).toHex().toUpper()},
+        {QStringLiteral("SHA1"), sha1},
         {QStringLiteral("subjectInfo"), subjectInfo(cert)},
-        {QStringLiteral("validBefore"), cert.effectiveDate()},
-        {QStringLiteral("validAfter"), cert.expiryDate()}
+        {QStringLiteral("validAfter"), cert.effectiveDate()},
+        {QStringLiteral("validBefore"), cert.expiryDate()}
     };
 }
 

@@ -181,7 +181,7 @@ CodeSignModule {
     }
 
     readonly property string _embeddedProfileName:
-        (xcode._platformProps || {})["EMBEDDED_PROFILE_NAME"]
+        (xcode._platformProps || {})["EMBEDDED_PROFILE_NAME"] || "embedded.mobileprovision"
 
     setupBuildEnvironment: {
         var prefixes = product.xcode ? [
