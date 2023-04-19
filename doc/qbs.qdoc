@@ -1207,27 +1207,17 @@
         }
     \endcode
 
-    A module can implicitly depend on other modules. For example, the
-    \l{Qt.core} module depends on the \l{cpp} module. However, to set the
-    properties of a module, you must make the dependency explicit.
+    A module can depend on other modules. For example, the
+    \l{Qt.core} module depends on the \l{cpp} module. The module dependencies are transitive,
+    i.e. in a Product, all dependent modules are accessible:
 
     \code
-        // THIS DOES NOT WORK
         Application {
             name: "helloworld"
             files: ["main.cpp"]
             Depends { name: "Qt.core" }
-            cpp.optimization: "ludicrousSpeed"
-            // ERROR! We do not know about "cpp" here,
-            // though "Qt.core" depends on "cpp".
-        }
-
-        // THIS WORKS
-        Application {
-            name: "helloworld"
-            files: ["main.cpp"]
-            Depends { name: "Qt.core" }
-            Depends { name: "cpp" }
+            // the "cpp" module is available since
+            // "Qt.core" depends on "cpp".
             cpp.optimization: "ludicrousSpeed"
         }
     \endcode
