@@ -369,7 +369,7 @@ template<> XmlDomNode<QDomNode> *XmlDomNode<QDomDocument>::createTextNode(const 
 
 template<> bool XmlDomNode<QDomDocument>::setContent(const QString &content)
 {
-    return m_value.setContent(content);
+    return static_cast<bool>(m_value.setContent(content));
 }
 
 template<> QString XmlDomNode<QDomDocument>::toString(int indent)

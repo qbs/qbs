@@ -232,6 +232,7 @@ JSValue makeJsVariant(JSContext *ctx, const QVariant &v)
         return makeJsVariantMap(ctx, v.toMap());
     case QMetaType::QByteArray:
         QBS_ASSERT(!"QByteArray is not a valid type for JS variant", return JS_UNDEFINED);
+        [[fallthrough]];
     default:
         return JS_UNDEFINED;
     }
