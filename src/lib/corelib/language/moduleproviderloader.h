@@ -43,7 +43,8 @@
 
 #include "projecttreebuilder.h"
 #include "moduleproviderinfo.h"
-#include "probesresolver.h"
+
+#include <tools/setupprojectparameters.h>
 
 #include <QtCore/qmap.h>
 #include <QtCore/qvariant.h>
@@ -52,6 +53,7 @@ namespace qbs {
 namespace Internal {
 class ItemReader;
 class Logger;
+class ProbesResolver;
 
 class ModuleProviderLoader
 {

@@ -152,6 +152,7 @@ public:
     void copyProperties(const Item *sourceProject, Item *targetProject);
     bool mergeExportItems(ProductContext &productContext);
     bool checkExportItemCondition(Item *exportItem, const ProductContext &product);
+    void resolveProbes(ProductContext &product, Item *item);
 
     Item *loadBaseModule(ProductContext &product, Item *item);
 
@@ -183,7 +184,7 @@ public:
     ProgressObserver *progressObserver = nullptr;
     TimingData timingData;
     ItemReader reader{logger};
-    ProbesResolver probesResolver{&evaluator, logger};
+    ProbesResolver probesResolver{parameters, evaluator, logger};
     ModuleProviderLoader moduleProviderLoader{&reader, &evaluator, &probesResolver, logger};
     ModuleLoader moduleLoader{parameters, reader, evaluator, logger};
     ModulePropertyMerger propertyMerger{parameters, evaluator, logger};
@@ -235,7 +236,6 @@ ProjectTreeBuilder::ProjectTreeBuilder(const SetupProjectParameters &parameters,
     d->reader.setDeprecationWarningMode(parameters.deprecationWarningMode());
     d->reader.setEnableTiming(parameters.logElapsedTime());
     d->moduleProviderLoader.setProjectParameters(parameters);
-    d->probesResolver.setProjectParameters(parameters);
     d->settings = std::make_unique<Settings>(parameters.settingsDirectory());
 }
 
@@ -495,7 +495,7 @@ void ProjectTreeBuilder::Private::handleProject(
     for (Item * const child : projectItem->children())
         child->setScope(projectContext.scope);
 
-    probesResolver.resolveProbes(&dummyProductContext, projectItem);
+    resolveProbes(dummyProductContext, projectItem);
     projectContext.topLevelProject->probes << dummyProductContext.info.probes;
 
     localProfiles.collectProfilesFromItems(projectItem, projectContext.scope);
@@ -699,7 +699,7 @@ void ProjectTreeBuilder::Private::handleProduct(ProductContext &product, Deferra
             continue;
         }
         try {
-            probesResolver.resolveProbes(&product, module.item);
+            resolveProbes(product, module.item);
             if (module.versionRange.minimum.isValid()
                 || module.versionRange.maximum.isValid()) {
                 if (module.versionRange.maximum.isValid()
@@ -732,7 +732,7 @@ void ProjectTreeBuilder::Private::handleProduct(ProductContext &product, Deferra
                 return;
         }
     }
-    probesResolver.resolveProbes(&product, product.item);
+    resolveProbes(product, product.item);
 
     // After the probes have run, we can switch on the evaluator cache.
     FileTags fileTags = evaluator.fileTagsValue(product.item, StringConstants::typeProperty());
@@ -1572,6 +1572,11 @@ bool ProjectTreeBuilder::Private::checkExportItemCondition(Item *exportItem,
         Item * const m_exportItem;
     } scopeHandler(exportItem, product, &tempScopeItem);
     return checkItemCondition(exportItem);
+}
+
+void ProjectTreeBuilder::Private::resolveProbes(ProductContext &product, Item *item)
+{
+    product.info.probes << probesResolver.resolveProbes({product.name, product.uniqueName()}, item);
 }
 
 static void checkForModuleNamePrefixCollision(

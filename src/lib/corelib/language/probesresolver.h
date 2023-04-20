@@ -41,23 +41,35 @@
 #ifndef PROBESRESOLVER_H
 #define PROBESRESOLVER_H
 
-#include "projecttreebuilder.h"
+#include "forward_decls.h"
 
-#include <tools/setupprojectparameters.h>
+#include <tools/filetime.h>
+
+#include <QString>
+
+#include <vector>
 
 namespace qbs {
+class SetupProjectParameters;
 namespace Internal {
+class Item;
+class Evaluator;
+class Logger;
 
 class ProbesResolver
 {
 public:
-    explicit ProbesResolver(Evaluator *evaluator, Logger &logger);
-    void setProjectParameters(SetupProjectParameters parameters);
+    explicit ProbesResolver(const SetupProjectParameters &parameters, Evaluator &evaluator,
+                            Logger &logger);
     void setOldProjectProbes(const std::vector<ProbeConstPtr> &oldProbes);
     void setOldProductProbes(const QHash<QString, std::vector<ProbeConstPtr>> &oldProbes);
-    void resolveProbes(ProductContext *productContext, Item *item);
-    void resolveProbe(ProductContext *productContext, Item *parent, Item *probe);
     void printProfilingInfo(int indent);
+
+    struct ProductContext {
+        const QString &name;
+        const QString &uniqueName;
+    };
+    std::vector<ProbeConstPtr> resolveProbes(const ProductContext &productContext, Item *item);
 
 private:
     ProbeConstPtr findOldProjectProbe(const QString &globalId, bool condition,
@@ -72,6 +84,7 @@ private:
     bool probeMatches(const ProbeConstPtr &probe, bool condition,
                       const QVariantMap &initialProperties, const QString &configureScript,
                       CompareScript compareScript) const;
+    ProbeConstPtr resolveProbe(const ProductContext &productContext, Item *parent, Item *probe);
 
     qint64 m_elapsedTimeProbes = 0;
     quint64 m_probesEncountered = 0;
@@ -79,8 +92,8 @@ private:
     quint64 m_probesCachedCurrent = 0;
     quint64 m_probesCachedOld = 0;
 
-    SetupProjectParameters m_parameters;
-    Evaluator *m_evaluator = nullptr;
+    const SetupProjectParameters &m_parameters;
+    Evaluator &m_evaluator;
     Logger &m_logger;
     QHash<QString, std::vector<ProbeConstPtr>> m_oldProjectProbes;
     QHash<QString, std::vector<ProbeConstPtr>> m_oldProductProbes;

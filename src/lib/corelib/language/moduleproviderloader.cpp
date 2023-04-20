@@ -363,7 +363,8 @@ QStringList ModuleProviderLoader::evaluateModuleProvider(
 
     providerItem->overrideProperties(moduleConfig, name, m_parameters, m_logger);
 
-    m_probesResolver->resolveProbes(&product, providerItem);
+    product.info.probes << m_probesResolver->resolveProbes({product.name, product.uniqueName()},
+                                                           providerItem);
 
     EvalContextSwitcher contextSwitcher(m_evaluator->engine(), EvalContext::ModuleProvider);
     return m_evaluator->stringListValue(providerItem, QStringLiteral("searchPaths"));

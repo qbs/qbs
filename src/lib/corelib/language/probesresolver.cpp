@@ -40,13 +40,11 @@
 
 #include "probesresolver.h"
 
-#include "builtindeclarations.h"
 #include "evaluator.h"
 #include "filecontext.h"
 #include "item.h"
 #include "itemreader.h"
 #include "language.h"
-#include "qualifiedid.h"
 #include "scriptengine.h"
 #include "value.h"
 
@@ -57,6 +55,7 @@
 #include <logging/translator.h>
 #include <tools/profiling.h>
 #include <tools/scripttools.h>
+#include <tools/setupprojectparameters.h>
 #include <tools/stringconstants.h>
 
 #include <quickjs.h>
@@ -82,17 +81,10 @@ static QString probeGlobalId(Item *probe)
     return id + QLatin1Char('_') + probe->file()->filePath();
 }
 
-ProbesResolver::ProbesResolver(Evaluator *evaluator, Logger &logger)
-    : m_evaluator(evaluator)
-    , m_logger(logger)
+ProbesResolver::ProbesResolver(const SetupProjectParameters &parameters, Evaluator &evaluator,
+                               Logger &logger)
+    : m_parameters(parameters), m_evaluator(evaluator), m_logger(logger)
 {
-}
-
-void ProbesResolver::setProjectParameters(SetupProjectParameters parameters)
-{
-    m_parameters = std::move(parameters);
-    m_elapsedTimeProbes = m_probesEncountered = m_probesRun = m_probesCachedCurrent
-            = m_probesCachedOld = 0;
 }
 
 void ProbesResolver::setOldProjectProbes(const std::vector<ProbeConstPtr> &oldProbes)
@@ -108,17 +100,19 @@ void ProbesResolver::setOldProductProbes(
     m_oldProductProbes = oldProbes;
 }
 
-void ProbesResolver::resolveProbes(ProductContext *productContext, Item *item)
+std::vector<ProbeConstPtr> ProbesResolver::resolveProbes(const ProductContext &productContext, Item *item)
 {
     AccumulatingTimer probesTimer(m_parameters.logElapsedTime() ? &m_elapsedTimeProbes : nullptr);
-    EvalContextSwitcher evalContextSwitcher(m_evaluator->engine(), EvalContext::ProbeExecution);
+    EvalContextSwitcher evalContextSwitcher(m_evaluator.engine(), EvalContext::ProbeExecution);
+    std::vector<ProbeConstPtr> probes;
     for (Item * const child : item->children())
         if (child->type() == ItemType::Probe)
-            resolveProbe(productContext, item, child);
+            probes.push_back(resolveProbe(productContext, item, child));
+    return probes;
 }
 
-void ProbesResolver::resolveProbe(ProductContext *productContext, Item *parent,
-                                  Item *probe)
+ProbeConstPtr ProbesResolver::resolveProbe(const ProductContext &productContext, Item *parent,
+                                           Item *probe)
 {
     qCDebug(lcModuleLoader) << "Resolving Probe at " << probe->location().toString();
     ++m_probesEncountered;
@@ -132,7 +126,7 @@ void ProbesResolver::resolveProbe(ProductContext *productContext, Item *parent,
         throw ErrorInfo(Tr::tr("Probe.configure must be set."), probe->location());
     using ProbeProperty = std::pair<QString, ScopedJsValue>;
     std::vector<ProbeProperty> probeBindings;
-    ScriptEngine * const engine = m_evaluator->engine();
+    ScriptEngine * const engine = m_evaluator.engine();
     JSContext * const ctx = engine->context();
     QVariantMap initialProperties;
     for (Item *obj = probe; obj; obj = obj->prototype()) {
@@ -141,22 +135,21 @@ void ProbesResolver::resolveProbe(ProductContext *productContext, Item *parent,
             const QString &name = it.key();
             if (name == StringConstants::configureProperty())
                 continue;
-            const JSValue value = m_evaluator->value(probe, name);
+            const JSValue value = m_evaluator.value(probe, name);
             probeBindings.emplace_back(name, ScopedJsValue(ctx, value));
             if (name != StringConstants::conditionProperty())
                 initialProperties.insert(name, getJsVariant(ctx, value));
         }
     }
-    const bool condition = m_evaluator->boolValue(probe, StringConstants::conditionProperty());
+    const bool condition = m_evaluator.boolValue(probe, StringConstants::conditionProperty());
     const QString &sourceCode = configureScript->sourceCode().toString();
     ProbeConstPtr resolvedProbe;
     if (parent->type() == ItemType::Project
-            || productContext->name.startsWith(StringConstants::shadowProductPrefix())) {
+        || productContext.name.startsWith(StringConstants::shadowProductPrefix())) {
         resolvedProbe = findOldProjectProbe(probeId, condition, initialProperties, sourceCode);
     } else {
-        const QString &uniqueProductName = productContext->uniqueName();
-        resolvedProbe
-                = findOldProductProbe(uniqueProductName, condition, initialProperties, sourceCode);
+        resolvedProbe = findOldProductProbe(productContext.uniqueName, condition,
+                                            initialProperties, sourceCode);
     }
     if (!resolvedProbe) {
         resolvedProbe = findCurrentProbe(probe->location(), condition, initialProperties);
@@ -176,7 +169,7 @@ void ProbesResolver::resolveProbe(ProductContext *productContext, Item *parent,
         ++m_probesRun;
         qCDebug(lcModuleLoader) << "configure script needs to run";
         const Evaluator::FileContextScopes fileCtxScopes
-                = m_evaluator->fileContextScopes(configureScript->file());
+            = m_evaluator.fileContextScopes(configureScript->file());
         configureScope.setValue(engine->newObject());
         for (const ProbeProperty &b : probeBindings)
             setJsProperty(ctx, configureScope, b.first, JS_DupValue(ctx, b.second));
@@ -201,7 +194,7 @@ void ProbesResolver::resolveProbe(ProductContext *productContext, Item *parent,
                 const JSValue saved = v;
                 ScopedJsValue valueMgr(ctx, saved);
                 const PropertyDeclaration decl = probe->propertyDeclaration(b.first);
-                m_evaluator->convertToPropertyType(decl, probe->location(), v);
+                m_evaluator.convertToPropertyType(decl, probe->location(), v);
 
                 // If the value was converted from scalar to array as per our convenience
                 // functionality, then the original value is now the only element of a
@@ -229,7 +222,7 @@ void ProbesResolver::resolveProbe(ProductContext *productContext, Item *parent,
                                       importedFilesUsedInConfigure);
         m_currentProbes[probe->location()] << resolvedProbe;
     }
-    productContext->info.probes << resolvedProbe;
+    return resolvedProbe;
 }
 
 ProbeConstPtr ProbesResolver::findOldProjectProbe(
