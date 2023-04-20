@@ -42,6 +42,7 @@
 #include "forward_decls.h"
 #include "filetags.h"
 #include "moduleproviderinfo.h"
+#include "moduleproviderloader.h"
 #include "qualifiedid.h"
 
 #include <tools/filetime.h>
@@ -73,8 +74,6 @@ public:
 };
 
 class ProjectContext;
-
-enum class FallbackMode { Enabled, Disabled };
 
 using ModulePropertiesPerGroup = std::unordered_map<const Item *, QualifiedIdSet>;
 

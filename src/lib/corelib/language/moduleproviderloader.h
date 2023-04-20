@@ -41,25 +41,32 @@
 #ifndef MODULEPROVIDERLOADER_H
 #define MODULEPROVIDERLOADER_H
 
-#include "projecttreebuilder.h"
+#include "forward_decls.h"
 #include "moduleproviderinfo.h"
-
-#include <tools/setupprojectparameters.h>
 
 #include <QtCore/qmap.h>
 #include <QtCore/qvariant.h>
 
+#include <optional>
+#include <vector>
+
 namespace qbs {
+class SetupProjectParameters;
 namespace Internal {
+class Evaluator;
+class Item;
 class ItemReader;
 class Logger;
 class ProbesResolver;
 
+enum class FallbackMode { Enabled, Disabled };
+
 class ModuleProviderLoader
 {
 public:
-    explicit ModuleProviderLoader(ItemReader *itemReader, Evaluator *evaluator,
-                                  ProbesResolver *probesResolver, Logger &logger);
+    explicit ModuleProviderLoader(const SetupProjectParameters &parameters, ItemReader &itemReader,
+                                  Evaluator &evaluator, ProbesResolver &probesResolver,
+                                  Logger &logger);
 
     enum class ModuleProviderLookup { Scoped, Named, Fallback };
 
@@ -74,6 +81,9 @@ public:
         ModuleProviderResult() = default;
         ModuleProviderResult(bool ran, bool added)
             : providerFound(ran), providerAddedSearchPaths(added) {}
+
+        std::vector<ProbeConstPtr> probes;
+        QVariantMap providerConfig;
         bool providerFound = false;
         bool providerAddedSearchPaths = false;
     };
@@ -88,33 +98,36 @@ public:
         m_storedModuleProviderInfo = std::move(moduleProviderInfo);
     }
 
-    void setProjectParameters(SetupProjectParameters parameters)
-    {
-        m_parameters = std::move(parameters);
-    }
-
     const Set<QString> &tempQbsFiles() const { return m_tempQbsFiles; }
 
+    struct ProductContext {
+        Item * const productItem;
+        Item * const projectItem;
+        const QString &name;
+        const QString &uniqueName;
+        const QVariantMap &moduleProperties;
+        const std::optional<QVariantMap> providerConfig;
+    };
     ModuleProviderResult executeModuleProviders(
-            ProductContext &productContext,
+            const ProductContext &productContext,
             const CodeLocation &dependsItemLocation,
             const QualifiedId &moduleName,
             FallbackMode fallbackMode);
 
 private:
     ModuleProviderResult executeModuleProvidersHelper(
-            ProductContext &product,
+            const ProductContext &product,
             const CodeLocation &dependsItemLocation,
             const std::vector<Provider> &providers);
-    QVariantMap getModuleProviderConfig(ProductContext &product);
+    QVariantMap getModuleProviderConfig(const ProductContext &product);
 
     std::optional<std::vector<QualifiedId>> getModuleProviders(Item *item);
 
     QString findModuleProviderFile(const QualifiedId &name, ModuleProviderLookup lookupType);
-    QVariantMap evaluateQbsModule(ProductContext &product) const;
-    Item *createProviderScope(ProductContext &product, const QVariantMap &qbsModule);
-    QStringList evaluateModuleProvider(
-            ProductContext &product,
+    QVariantMap evaluateQbsModule(const ProductContext &product) const;
+    Item *createProviderScope(const ProductContext &product, const QVariantMap &qbsModule);
+    std::pair<QStringList, std::vector<ProbeConstPtr>> evaluateModuleProvider(
+            const ProductContext &product,
             const CodeLocation &location,
             const QualifiedId &name,
             const QString &providerFile,
@@ -122,11 +135,10 @@ private:
             const QVariantMap &qbsModule);
 
 private:
-    ItemReader *const m_reader{nullptr};
-    Evaluator *const m_evaluator{nullptr};
-    ProbesResolver *const m_probesResolver{nullptr};
-
-    SetupProjectParameters m_parameters;
+    const SetupProjectParameters &m_parameters;
+    ItemReader &m_reader;
+    Evaluator &m_evaluator;
+    ProbesResolver &m_probesResolver;
     Logger &m_logger;
     StoredModuleProviderInfo m_storedModuleProviderInfo;
     Set<QString> m_tempQbsFiles;

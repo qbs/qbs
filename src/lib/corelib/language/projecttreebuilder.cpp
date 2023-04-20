@@ -49,7 +49,6 @@
 #include "moduleinstantiator.h"
 #include "moduleloader.h"
 #include "modulepropertymerger.h"
-#include "moduleproviderloader.h"
 #include "probesresolver.h"
 #include "productitemmultiplexer.h"
 #include "scriptengine.h"
@@ -185,7 +184,7 @@ public:
     TimingData timingData;
     ItemReader reader{logger};
     ProbesResolver probesResolver{parameters, evaluator, logger};
-    ModuleProviderLoader moduleProviderLoader{&reader, &evaluator, &probesResolver, logger};
+    ModuleProviderLoader moduleProviderLoader{parameters, reader, evaluator, probesResolver, logger};
     ModuleLoader moduleLoader{parameters, reader, evaluator, logger};
     ModulePropertyMerger propertyMerger{parameters, evaluator, logger};
     ModuleInstantiator moduleInstantiator{parameters, itemPool, propertyMerger, logger};
@@ -235,7 +234,6 @@ ProjectTreeBuilder::ProjectTreeBuilder(const SetupProjectParameters &parameters,
 {
     d->reader.setDeprecationWarningMode(parameters.deprecationWarningMode());
     d->reader.setEnableTiming(parameters.logElapsedTime());
-    d->moduleProviderLoader.setProjectParameters(parameters);
     d->settings = std::make_unique<Settings>(parameters.settingsDirectory());
 }
 
@@ -2021,10 +2019,15 @@ Item *ProjectTreeBuilder::Private::searchAndLoadModuleFile(
         AccumulatingTimer providersTimer(
             parameters.logElapsedTime() ? &timingData.moduleProviders : nullptr);
         auto result = moduleProviderLoader.executeModuleProviders(
-            *productContext,
+            {productContext->item, productContext->project->item, productContext->name,
+             productContext->uniqueName(), productContext->moduleProperties,
+             productContext->theModuleProviderConfig},
             dependsItemLocation,
             moduleName,
             fallbackMode);
+        productContext->info.probes << result.probes;
+        if (!productContext->theModuleProviderConfig)
+            productContext->theModuleProviderConfig = result.providerConfig;
         if (result.providerAddedSearchPaths) {
             qCDebug(lcModuleLoader) << "Re-checking for module" << moduleName.toString()
                                     << "with newly added search paths from module provider";
