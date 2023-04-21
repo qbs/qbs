@@ -673,7 +673,7 @@ void TestLanguage::evalErrorInNonPresentModule_data()
     QTest::addColumn<QString>("errorMessage");
 
     QTest::newRow("module required")
-            << true << "broken.qbs:4:5 Element at index 0 of list property 'broken' "
+            << true << "broken.qbs:2:5 Element at index 0 of list property 'broken' "
                        "does not have string type";
     QTest::newRow("module not required") << false << QString();
 }

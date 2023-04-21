@@ -1070,11 +1070,11 @@ void TestBlackbox::deprecatedProperty()
     QVERIFY(runQbs(params) != 0);
     m_qbsStderr = QDir::fromNativeSeparators(QString::fromLocal8Bit(m_qbsStderr)).toLocal8Bit();
     const bool hasExpiringWarning = m_qbsStderr.contains(QByteArray(
-            "deprecated-property.qbs:6:29 The property 'expiringProp' is "
+            "deprecated-property.qbs:4:29 The property 'expiringProp' is "
             "deprecated and will be removed in Qbs ") + version.toLocal8Bit());
     QVERIFY2(expiringWarning == hasExpiringWarning, m_qbsStderr.constData());
     const bool hasRemovedOutput = m_qbsStderr.contains(
-                "deprecated-property.qbs:7:28 The property 'veryOldProp' can no "
+                "deprecated-property.qbs:5:28 The property 'veryOldProp' can no "
                 "longer be used. It was removed in Qbs 1.3.0.");
     QVERIFY2(hasRemovedOutput == !expiringError, m_qbsStderr.constData());
     QVERIFY2(m_qbsStderr.contains("Property 'forgottenProp' was scheduled for removal in version "
