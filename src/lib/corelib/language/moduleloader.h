@@ -39,41 +39,56 @@
 
 #pragma once
 
+#include "forward_decls.h"
 #include "item.h"
 
 #include <QString>
 #include <QVariantMap>
 
+#include <vector>
+
 namespace qbs {
+class CodeLocation;
 class SetupProjectParameters;
 namespace Internal {
 class Evaluator;
+enum class FallbackMode;
 class ItemReader;
 class Logger;
+class ModuleProviderLoader;
 
 class ModuleLoader
 {
 public:
-    ModuleLoader(const SetupProjectParameters &setupParameters, ItemReader &itemReader,
+    ModuleLoader(const SetupProjectParameters &setupParameters,
+                 ModuleProviderLoader &providerLoader, ItemReader &itemReader,
                  Evaluator &evaluator, Logger &logger);
     ~ModuleLoader();
 
     struct ProductContext {
-        const Item *item = nullptr;
+        Item * const productItem;
+        const Item * const projectItem;
         const QString &name;
+        const QString &uniqueName;
         const QString &profile;
+        const QString &multiplexId;
+        const QVariantMap &moduleProperties;
         const QVariantMap &profileModuleProperties;
     };
-    // TODO: Entry point should be searchAndLoadModuleFile(). Needs ProviderLoader clean-up first.
-    std::pair<Item *, bool> loadModuleFile(const ProductContext &product,
-                                           const QString &moduleName, const QString &filePath);
+    struct Result {
+        Item *moduleItem = nullptr;
+        std::vector<ProbeConstPtr> providerProbes;
+    };
+    Result searchAndLoadModuleFile(const ProductContext &productContext,
+                                   const CodeLocation &dependsItemLocation,
+                                   const QualifiedId &moduleName,
+                                   FallbackMode fallbackMode, bool isRequired);
 
-    void checkDependencyParameterDeclarations(const ProductContext &product) const;
+    void checkDependencyParameterDeclarations(const Item *productItem,
+                                              const QString &productName) const;
     void forwardParameterDeclarations(const Item *dependsItem, const Item::Modules &modules);
+    void printProfilingInfo(int indent);
 
-    // TODO: Remove once entry point is changed.
-    void checkProfileErrorsForModule(Item *module, const QString &moduleName,
-                                     const QString &productName, const QString &profileName);
 private:
     class Private;
     Private * const d;

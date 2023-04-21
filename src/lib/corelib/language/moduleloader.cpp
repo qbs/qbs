@@ -41,15 +41,22 @@
 
 #include "evaluator.h"
 #include "itemreader.h"
+#include "moduleproviderloader.h"
+#include "productitemmultiplexer.h"
 #include "value.h"
 
 #include <api/languageinfo.h>
 #include <logging/categories.h>
 #include <logging/translator.h>
 #include <tools/error.h>
+#include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
+#include <tools/profiling.h>
 #include <tools/setupprojectparameters.h>
 #include <tools/stringconstants.h>
+
+#include <QDirIterator>
+#include <QHash>
 
 #include <unordered_map>
 #include <utility>
@@ -59,11 +66,13 @@ namespace qbs::Internal {
 class ModuleLoader::Private
 {
 public:
-    Private(const SetupProjectParameters &setupParameters, ItemReader &itemReader,
-            Evaluator &evaluator, Logger &logger)
-        : setupParameters(setupParameters), itemReader(itemReader), evaluator(evaluator),
-        logger(logger) {}
+    Private(const SetupProjectParameters &setupParameters, ModuleProviderLoader &providerLoader,
+            ItemReader &itemReader, Evaluator &evaluator, Logger &logger)
+        : setupParameters(setupParameters), providerLoader(providerLoader),
+          itemReader(itemReader), evaluator(evaluator), logger(logger) {}
 
+    std::pair<Item *, bool> loadModuleFile(const ProductContext &product,
+                                           const QString &moduleName, const QString &filePath);
     std::pair<Item *, bool> getModulePrototype(const ModuleLoader::ProductContext &product,
                                                const QString &moduleName, const QString &filePath);
     bool evaluateModuleCondition(const ModuleLoader::ProductContext &product, Item *module,
@@ -72,6 +81,7 @@ public:
                                       const Item::Modules &modules);
 
     const SetupProjectParameters &setupParameters;
+    ModuleProviderLoader &providerLoader;
     ItemReader &itemReader;
     Evaluator &evaluator;
     Logger &logger;
@@ -85,34 +95,213 @@ public:
 
     std::unordered_map<const Item *, std::vector<ErrorInfo>> unknownProfilePropertyErrors;
     std::unordered_map<const Item *, Item::PropertyDeclarationMap> parameterDeclarations;
+    std::unordered_map<const Item *, std::optional<QVariantMap>> providerConfigsPerProduct;
+    QHash<std::pair<QString, QualifiedId>, std::optional<QString>> existingModulePathCache;
+    std::map<QString, QStringList> moduleDirListCache;
+
+    qint64 elapsedTimeModuleProviders = 0;
 };
 
-ModuleLoader::ModuleLoader(const SetupProjectParameters &setupParameters, ItemReader &itemReader,
-                           Evaluator &evaluator, Logger &logger)
-    : d(new Private(setupParameters, itemReader, evaluator, logger)) { }
+ModuleLoader::ModuleLoader(
+    const SetupProjectParameters &setupParameters, ModuleProviderLoader &providerLoader,
+    ItemReader &itemReader, Evaluator &evaluator, Logger &logger)
+    : d(new Private(setupParameters, providerLoader, itemReader, evaluator, logger)) { }
 
 ModuleLoader::~ModuleLoader() { delete d; }
 
-std::pair<Item *, bool> ModuleLoader::loadModuleFile(
+struct PrioritizedItem
+{
+    PrioritizedItem(Item *item, int priority, int searchPathIndex)
+        : item(item), priority(priority), searchPathIndex(searchPathIndex) { }
+
+    Item * const item;
+    int priority = 0;
+    const int searchPathIndex;
+};
+
+static Item *chooseModuleCandidate(const std::vector<PrioritizedItem> &candidates,
+                                   const QString &moduleName)
+{
+    // TODO: This should also consider the version requirement.
+
+    auto maxIt = std::max_element(
+        candidates.begin(), candidates.end(),
+        [] (const PrioritizedItem &a, const PrioritizedItem &b) {
+            if (a.priority < b.priority)
+                return true;
+            if (a.priority > b.priority)
+                return false;
+            return a.searchPathIndex > b.searchPathIndex;
+        });
+
+    size_t nmax = std::count_if(
+        candidates.begin(), candidates.end(),
+        [maxIt] (const PrioritizedItem &i) {
+            return i.priority == maxIt->priority && i.searchPathIndex == maxIt->searchPathIndex;
+        });
+
+    if (nmax > 1) {
+        ErrorInfo e(Tr::tr("There is more than one equally prioritized candidate for module '%1'.")
+                        .arg(moduleName));
+        for (size_t i = 0; i < candidates.size(); ++i) {
+            const auto candidate = candidates.at(i);
+            if (candidate.priority == maxIt->priority) {
+                //: The %1 denotes the number of the candidate.
+                e.append(Tr::tr("candidate %1").arg(i + 1), candidates.at(i).item->location());
+            }
+        }
+        throw e;
+    }
+
+    return maxIt->item;
+}
+
+ModuleLoader::Result ModuleLoader::searchAndLoadModuleFile(
+    const ProductContext &productContext, const CodeLocation &dependsItemLocation,
+    const QualifiedId &moduleName, FallbackMode fallbackMode, bool isRequired)
+{
+    const auto findExistingModulePath = [&](const QString &searchPath) {
+        // isFileCaseCorrect is a very expensive call on macOS, so we cache the value for the
+        // modules and search paths we've already processed
+        auto &moduleInfo = d->existingModulePathCache[{searchPath, moduleName}];
+        if (moduleInfo)
+            return *moduleInfo;
+
+        QString dirPath = searchPath + QStringLiteral("/modules");
+        for (const QString &moduleNamePart : moduleName) {
+            dirPath = FileInfo::resolvePath(dirPath, moduleNamePart);
+            if (!FileInfo::exists(dirPath) || !FileInfo::isFileCaseCorrect(dirPath)) {
+                return *(moduleInfo = QString());
+            }
+        }
+
+        return *(moduleInfo = dirPath);
+    };
+    const auto findExistingModulePaths = [&] {
+        const QStringList &searchPaths = d->itemReader.allSearchPaths();
+        QStringList result;
+        result.reserve(searchPaths.size());
+        for (const auto &path: searchPaths) {
+            const QString dirPath = findExistingModulePath(path);
+            if (!dirPath.isEmpty())
+                result.append(dirPath);
+        }
+        return result;
+    };
+
+    Result loadResult;
+    auto existingPaths = findExistingModulePaths();
+    if (existingPaths.isEmpty()) { // no suitable names found, try to use providers
+        AccumulatingTimer providersTimer(
+            d->setupParameters.logElapsedTime() ? &d->elapsedTimeModuleProviders : nullptr);
+        std::optional<QVariantMap> &providerConfig
+            = d->providerConfigsPerProduct[productContext.productItem];
+        auto result = d->providerLoader.executeModuleProviders(
+            {productContext.productItem, productContext.projectItem, productContext.name,
+             productContext.uniqueName, productContext.moduleProperties, providerConfig},
+            dependsItemLocation,
+            moduleName,
+            fallbackMode);
+        loadResult.providerProbes << result.probes;
+        if (!providerConfig)
+            providerConfig = result.providerConfig;
+        if (result.providerAddedSearchPaths) {
+            qCDebug(lcModuleLoader) << "Re-checking for module" << moduleName.toString()
+                                    << "with newly added search paths from module provider";
+            existingPaths = findExistingModulePaths();
+        }
+    }
+
+    const auto getModuleFileNames = [&](const QString &dirPath) -> QStringList & {
+        QStringList &moduleFileNames = d->moduleDirListCache[dirPath];
+        if (moduleFileNames.empty()) {
+            QDirIterator dirIter(dirPath, StringConstants::qbsFileWildcards());
+            while (dirIter.hasNext())
+                moduleFileNames += dirIter.next();
+        }
+        return moduleFileNames;
+    };
+
+    const QString fullName = moduleName.toString();
+    bool triedToLoadModule = false;
+    std::vector<PrioritizedItem> candidates;
+    candidates.reserve(size_t(existingPaths.size()));
+    for (int i = 0; i < existingPaths.size(); ++i) {
+        const QString &dirPath = existingPaths.at(i);
+        QStringList &moduleFileNames = getModuleFileNames(dirPath);
+        for (auto it = moduleFileNames.begin(); it != moduleFileNames.end(); ) {
+            const QString &filePath = *it;
+            const auto [module, triedToLoad] = d->loadModuleFile(productContext, fullName,
+                                                                 filePath);
+            if (module)
+                candidates.emplace_back(module, 0, i);
+            if (!triedToLoad)
+                it = moduleFileNames.erase(it);
+            else
+                ++it;
+            triedToLoadModule = triedToLoadModule || triedToLoad;
+        }
+    }
+
+    if (candidates.empty()) {
+        if (!isRequired) {
+            loadResult.moduleItem = createNonPresentModule(
+                *productContext.projectItem->pool(), fullName, QStringLiteral("not found"),
+                nullptr);
+            return loadResult;
+        }
+        if (Q_UNLIKELY(triedToLoadModule)) {
+            throw ErrorInfo(Tr::tr("Module %1 could not be loaded.").arg(fullName),
+                            dependsItemLocation);
+        }
+        return loadResult;
+    }
+
+    if (candidates.size() == 1) {
+        loadResult.moduleItem = candidates.at(0).item;
+    } else {
+        for (auto &candidate : candidates) {
+            candidate.priority = d->evaluator.intValue(candidate.item,
+                                                       StringConstants::priorityProperty(),
+                                                       candidate.priority);
+        }
+        loadResult.moduleItem = chooseModuleCandidate(candidates, fullName);
+    }
+
+    const QString fullProductName = ProductItemMultiplexer::fullProductDisplayName(
+        productContext.name, productContext.multiplexId);
+    const auto it = d->unknownProfilePropertyErrors.find(loadResult.moduleItem);
+    if (it != d->unknownProfilePropertyErrors.cend()) {
+        ErrorInfo error(Tr::tr("Loading module '%1' for product '%2' failed due to invalid values "
+                               "in profile '%3':")
+                            .arg(moduleName.toString(), fullProductName, productContext.profile));
+        for (const ErrorInfo &e : it->second)
+            error.append(e.toString());
+        handlePropertyError(error, d->setupParameters, d->logger);
+    }
+
+    return loadResult;
+}
+
+std::pair<Item *, bool> ModuleLoader::Private::loadModuleFile(
     const ProductContext &product, const QString &moduleName, const QString &filePath)
 {
     qCDebug(lcModuleLoader) << "loadModuleFile" << moduleName << "from" << filePath;
 
-    const auto [module, triedToLoad] =
-        d->getModulePrototype(product, moduleName, filePath);
+    const auto [module, triedToLoad] = getModulePrototype(product, moduleName, filePath);
     if (!module)
         return {nullptr, triedToLoad};
 
-    const auto key = std::make_pair(module, product.item);
-    const auto it = d->modulePrototypeEnabledInfo.find(key);
-    if (it != d->modulePrototypeEnabledInfo.end()) {
+    const auto key = std::make_pair(module, product.productItem);
+    const auto it = modulePrototypeEnabledInfo.find(key);
+    if (it != modulePrototypeEnabledInfo.end()) {
         qCDebug(lcModuleLoader) << "prototype cache hit (level 2)";
         return {it->second ? module : nullptr, triedToLoad};
     }
 
-    if (!d->evaluateModuleCondition(product, module, moduleName)) {
+    if (!evaluateModuleCondition(product, module, moduleName)) {
         qCDebug(lcModuleLoader) << "condition of module" << moduleName << "is false";
-        d->modulePrototypeEnabledInfo.insert({key, false});
+        modulePrototypeEnabledInfo.insert({key, false});
         return {nullptr, triedToLoad};
     }
 
@@ -122,7 +311,7 @@ std::pair<Item *, bool> ModuleLoader::loadModuleFile(
         module->setProperty(QStringLiteral("hostArchitecture"),
                             VariantValue::create(HostOsInfo::hostOSArchitecture()));
         module->setProperty(QStringLiteral("libexecPath"),
-                            VariantValue::create(d->setupParameters.libexecPath()));
+                            VariantValue::create(setupParameters.libexecPath()));
 
         const Version qbsVersion = LanguageInfo::qbsVersion();
         module->setProperty(QStringLiteral("versionMajor"),
@@ -141,24 +330,11 @@ std::pair<Item *, bool> ModuleLoader::loadModuleFile(
             for (auto it = paramDecls.begin(); it != paramDecls.end(); ++it)
                 decls.insert(it.key(), it.value());
         }
-        d->parameterDeclarations.insert({module, decls});
+        parameterDeclarations.insert({module, decls});
     }
 
-    d->modulePrototypeEnabledInfo.insert({key, true});
+    modulePrototypeEnabledInfo.insert({key, true});
     return {module, triedToLoad};
-}
-
-void ModuleLoader::checkProfileErrorsForModule(
-    Item *module, const QString &moduleName, const QString &productName, const QString &profileName)
-{
-    const auto it = d->unknownProfilePropertyErrors.find(module);
-    if (it != d->unknownProfilePropertyErrors.cend()) {
-        ErrorInfo error(Tr::tr("Loading module '%1' for product '%2' failed due to invalid values "
-                               "in profile '%3':").arg(moduleName, productName, profileName));
-        for (const ErrorInfo &e : it->second)
-            error.append(e.toString());
-        handlePropertyError(error, d->setupParameters, d->logger);
-    }
 }
 
 std::pair<Item *, bool> ModuleLoader::Private::getModulePrototype(
@@ -219,7 +395,7 @@ bool ModuleLoader::Private::evaluateModuleCondition(const ProductContext &produc
             if (m_needsQbsItem) {
                 m_prevQbsItemValue = module->property(StringConstants::qbsModule());
                 module->setProperty(StringConstants::qbsModule(),
-                                    product.item->property(StringConstants::qbsModule()));
+                                    product.productItem->property(StringConstants::qbsModule()));
             }
         }
         ~TempQbsModuleProvider()
@@ -296,10 +472,11 @@ private:
     const std::unordered_map<const Item *, Item::PropertyDeclarationMap> &m_parameterDeclarations;
 };
 
-void ModuleLoader::checkDependencyParameterDeclarations(const ProductContext &product) const
+void ModuleLoader::checkDependencyParameterDeclarations(const Item *productItem,
+                                                        const QString &productName) const
 {
-    DependencyParameterDeclarationCheck dpdc(product.name, product.item, d->parameterDeclarations);
-    for (const Item::Module &dep : product.item->modules()) {
+    DependencyParameterDeclarationCheck dpdc(productName, productItem, d->parameterDeclarations);
+    for (const Item::Module &dep : productItem->modules()) {
         if (!dep.parameters.empty())
             dpdc(dep.parameters);
     }
@@ -334,6 +511,16 @@ void ModuleLoader::Private::forwardParameterDeclarations(const QualifiedId &modu
                                          modules);
         }
     }
+}
+
+void ModuleLoader::printProfilingInfo(int indent)
+{
+    if (!d->setupParameters.logElapsedTime())
+        return;
+    d->logger.qbsLog(LoggerInfo, true)
+        << QByteArray(indent, ' ')
+        << Tr::tr("Running module providers took %1.")
+               .arg(elapsedTimeString(d->elapsedTimeModuleProviders));
 }
 
 } // namespace qbs::Internal

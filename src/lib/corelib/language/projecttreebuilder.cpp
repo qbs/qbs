@@ -108,8 +108,6 @@ public:
     QVariantMap defaultParameters; // In Export item.
     QStringList searchPaths;
 
-    std::optional<QVariantMap> theModuleProviderConfig;
-
     struct ResolvedDependsItem {
         Item *item = nullptr;
         QualifiedId name;
@@ -223,7 +221,6 @@ class TimingData {
 public:
     qint64 prepareProducts = 0;
     qint64 productDependencies = 0;
-    qint64 moduleProviders = 0;
     qint64 handleProducts = 0;
     qint64 propertyChecking = 0;
 };
@@ -285,10 +282,6 @@ public:
     LoadModuleResult loadModule(ProductContext &product, Item *loadingItem,
                                 const ProductContext::ResolvedAndMultiplexedDependsItem &dependency,
                                 Deferral deferral);
-    Item *searchAndLoadModuleFile(ProductContext *productContext,
-                                  const CodeLocation &dependsItemLocation,
-                                  const QualifiedId &moduleName,
-                                  FallbackMode fallbackMode, bool isRequired);
 
     std::optional<ProductContext::ResolvedDependsItem>
     resolveDependsItem(const ProductContext &product, Item *dependsItem);
@@ -307,7 +300,7 @@ public:
     ItemReader reader{logger};
     ProbesResolver probesResolver{parameters, evaluator, logger};
     ModuleProviderLoader moduleProviderLoader{parameters, reader, evaluator, probesResolver, logger};
-    ModuleLoader moduleLoader{parameters, reader, evaluator, logger};
+    ModuleLoader moduleLoader{parameters, moduleProviderLoader, reader, evaluator, logger};
     ModulePropertyMerger propertyMerger{parameters, evaluator, logger};
     ModuleInstantiator moduleInstantiator{parameters, itemPool, propertyMerger, logger};
     ProductItemMultiplexer multiplexer{parameters, evaluator, logger, [this](Item *productItem) {
@@ -332,8 +325,6 @@ public:
 
     Version qbsVersion;
     Item *tempScopeItem = nullptr;
-    QHash<std::pair<QString, QualifiedId>, std::optional<QString>> existingModulePathCache;
-    QMap<QString, QStringList> moduleDirListCache;
 
 private:
     class TempBaseModuleAttacher {
@@ -919,7 +910,7 @@ void ProjectTreeBuilder::Private::handleProduct(ProductContext &product, Deferra
     propertyMerger.doFinalMerge(product.item);
 
     const bool enabled = checkItemCondition(product.item);
-    moduleLoader.checkDependencyParameterDeclarations({product.item, product.name, {}, {}});
+    moduleLoader.checkDependencyParameterDeclarations(product.item, product.name);
 
     groupsHandler.setupGroups(product.item, product.scope);
     product.info.modulePropertiesSetInGroups = groupsHandler.modulePropertiesSetInGroups();
@@ -1171,9 +1162,7 @@ void ProjectTreeBuilder::Private::printProfilingInfo()
     logger.qbsLog(LoggerInfo, true) << "    "
                                     << Tr::tr("Setting up product dependencies took %1.")
                                            .arg(elapsedTimeString(timingData.productDependencies));
-    logger.qbsLog(LoggerInfo, true) << "      "
-                                    << Tr::tr("Running module providers took %1.")
-                                           .arg(elapsedTimeString(timingData.moduleProviders));
+    moduleLoader.printProfilingInfo(6);
     moduleInstantiator.printProfilingInfo(6);
     propertyMerger.printProfilingInfo(6);
     groupsHandler.printProfilingInfo(4);
@@ -1830,9 +1819,15 @@ ProjectTreeBuilder::Private::loadModule(ProductContext &product, Item *loadingIt
                 }
             } else {
                 // No matching product found, look for a "real" module.
-                moduleItem = searchAndLoadModuleFile(&product, dependency.location(),
-                                                     dependency.name, dependency.fallbackMode,
-                                                     dependency.requiredGlobally);
+                const ModuleLoader::ProductContext loaderContext{
+                    product.item, product.project->item, product.name, product.uniqueName(),
+                    product.profileName, product.multiplexConfigurationId, product.moduleProperties,
+                    product.profileModuleProperties};
+                const ModuleLoader::Result loaderResult = moduleLoader.searchAndLoadModuleFile(
+                    loaderContext, dependency.location(), dependency.name, dependency.fallbackMode,
+                    dependency.requiredGlobally);
+                moduleItem = loaderResult.moduleItem;
+                product.info.probes << loaderResult.providerProbes;
 
                 if (moduleItem) {
                     Item * const proto = moduleItem;
@@ -2053,170 +2048,6 @@ QVariantMap ProjectTreeBuilder::Private::extractParameters(Item *dependsItem) co
     }
     dependsItem->setProperties(origProperties);
     return result;
-}
-
-// TODO Move the search & load stuff into ModuleLoader once we untangled the data types
-struct PrioritizedItem
-{
-    PrioritizedItem(Item *item, int priority, int searchPathIndex)
-        : item(item), priority(priority), searchPathIndex(searchPathIndex) { }
-
-    Item * const item;
-    int priority = 0;
-    const int searchPathIndex;
-};
-
-static Item *chooseModuleCandidate(const std::vector<PrioritizedItem> &candidates,
-                                   const QString &moduleName)
-{
-    // TODO: This should also consider the version requirement.
-
-    auto maxIt = std::max_element(
-        candidates.begin(), candidates.end(),
-        [] (const PrioritizedItem &a, const PrioritizedItem &b) {
-            if (a.priority < b.priority)
-                return true;
-            if (a.priority > b.priority)
-                return false;
-            return a.searchPathIndex > b.searchPathIndex;
-        });
-
-    size_t nmax = std::count_if(
-        candidates.begin(), candidates.end(),
-        [maxIt] (const PrioritizedItem &i) {
-            return i.priority == maxIt->priority && i.searchPathIndex == maxIt->searchPathIndex;
-        });
-
-    if (nmax > 1) {
-        ErrorInfo e(Tr::tr("There is more than one equally prioritized candidate for module '%1'.")
-                        .arg(moduleName));
-        for (size_t i = 0; i < candidates.size(); ++i) {
-            const auto candidate = candidates.at(i);
-            if (candidate.priority == maxIt->priority) {
-                //: The %1 denotes the number of the candidate.
-                e.append(Tr::tr("candidate %1").arg(i + 1), candidates.at(i).item->location());
-            }
-        }
-        throw e;
-    }
-
-    return maxIt->item;
-}
-
-Item *ProjectTreeBuilder::Private::searchAndLoadModuleFile(
-    ProductContext *productContext, const CodeLocation &dependsItemLocation,
-    const QualifiedId &moduleName, FallbackMode fallbackMode, bool isRequired)
-{
-    const auto findExistingModulePath = [&](const QString &searchPath) {
-        // isFileCaseCorrect is a very expensive call on macOS, so we cache the value for the
-        // modules and search paths we've already processed
-        auto &moduleInfo = existingModulePathCache[{searchPath, moduleName}];
-        if (moduleInfo)
-            return *moduleInfo;
-
-        QString dirPath = searchPath + QStringLiteral("/modules");
-        for (const QString &moduleNamePart : moduleName) {
-            dirPath = FileInfo::resolvePath(dirPath, moduleNamePart);
-            if (!FileInfo::exists(dirPath) || !FileInfo::isFileCaseCorrect(dirPath)) {
-                return *(moduleInfo = QString());
-            }
-        }
-
-        return *(moduleInfo = dirPath);
-    };
-    const auto findExistingModulePaths = [&] {
-        const QStringList &searchPaths = reader.allSearchPaths();
-        QStringList result;
-        result.reserve(searchPaths.size());
-        for (const auto &path: searchPaths) {
-            const QString dirPath = findExistingModulePath(path);
-            if (!dirPath.isEmpty())
-                result.append(dirPath);
-        }
-        return result;
-    };
-
-    auto existingPaths = findExistingModulePaths();
-    if (existingPaths.isEmpty()) { // no suitable names found, try to use providers
-        AccumulatingTimer providersTimer(
-            parameters.logElapsedTime() ? &timingData.moduleProviders : nullptr);
-        auto result = moduleProviderLoader.executeModuleProviders(
-            {productContext->item, productContext->project->item, productContext->name,
-             productContext->uniqueName(), productContext->moduleProperties,
-             productContext->theModuleProviderConfig},
-            dependsItemLocation,
-            moduleName,
-            fallbackMode);
-        productContext->info.probes << result.probes;
-        if (!productContext->theModuleProviderConfig)
-            productContext->theModuleProviderConfig = result.providerConfig;
-        if (result.providerAddedSearchPaths) {
-            qCDebug(lcModuleLoader) << "Re-checking for module" << moduleName.toString()
-                                    << "with newly added search paths from module provider";
-            existingPaths = findExistingModulePaths();
-        }
-    }
-
-    const auto getModuleFileNames = [&](const QString &dirPath) -> QStringList & {
-        QStringList &moduleFileNames = moduleDirListCache[dirPath];
-        if (moduleFileNames.empty()) {
-            QDirIterator dirIter(dirPath, StringConstants::qbsFileWildcards());
-            while (dirIter.hasNext())
-                moduleFileNames += dirIter.next();
-        }
-        return moduleFileNames;
-    };
-
-    const QString fullName = moduleName.toString();
-    bool triedToLoadModule = false;
-    std::vector<PrioritizedItem> candidates;
-    candidates.reserve(size_t(existingPaths.size()));
-    for (int i = 0; i < existingPaths.size(); ++i) {
-        const QString &dirPath = existingPaths.at(i);
-        QStringList &moduleFileNames = getModuleFileNames(dirPath);
-        for (auto it = moduleFileNames.begin(); it != moduleFileNames.end(); ) {
-            const QString &filePath = *it;
-            const auto [module, triedToLoad] = moduleLoader.loadModuleFile(
-                {productContext->item, productContext->name, productContext->profileName,
-                 productContext->profileModuleProperties},
-                fullName, filePath);
-            if (module)
-                candidates.emplace_back(module, 0, i);
-            if (!triedToLoad)
-                it = moduleFileNames.erase(it);
-            else
-                ++it;
-            triedToLoadModule = triedToLoadModule || triedToLoad;
-        }
-    }
-
-    if (candidates.empty()) {
-        if (!isRequired)
-            return createNonPresentModule(itemPool, fullName, QStringLiteral("not found"), nullptr);
-        if (Q_UNLIKELY(triedToLoadModule)) {
-            throw ErrorInfo(Tr::tr("Module %1 could not be loaded.").arg(fullName),
-                            dependsItemLocation);
-        }
-        return nullptr;
-    }
-
-    Item *moduleItem;
-    if (candidates.size() == 1) {
-        moduleItem = candidates.at(0).item;
-    } else {
-        for (auto &candidate : candidates) {
-            candidate.priority = evaluator.intValue(candidate.item,
-                                                     StringConstants::priorityProperty(),
-                                                     candidate.priority);
-        }
-        moduleItem = chooseModuleCandidate(candidates, fullName);
-    }
-
-    const QString fullProductName = ProductItemMultiplexer::fullProductDisplayName(
-        productContext->name, productContext->multiplexConfigurationId);
-    moduleLoader.checkProfileErrorsForModule(moduleItem, fullName, fullProductName,
-                                               productContext->profileName);
-    return moduleItem;
 }
 
 std::optional<ProductContext::ResolvedDependsItem>

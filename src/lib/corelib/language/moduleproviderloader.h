@@ -102,7 +102,7 @@ public:
 
     struct ProductContext {
         Item * const productItem;
-        Item * const projectItem;
+        const Item * const projectItem;
         const QString &name;
         const QString &uniqueName;
         const QVariantMap &moduleProperties;
