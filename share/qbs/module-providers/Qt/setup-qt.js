@@ -48,9 +48,8 @@ var Utilities = require("qbs.Utilities");
 
 function splitNonEmpty(s, c) { return s.split(c).filter(function(e) { return e; }); }
 function toNative(p) { return FileInfo.toNativeSeparators(p); }
-function exeSuffix(qbs) { return FileInfo.executableSuffix(); }
 
-function getQmakeFilePaths(qmakeFilePaths, qbs) {
+function getQmakeFilePaths(qmakeFilePaths) {
     if (qmakeFilePaths && qmakeFilePaths.length > 0)
         return qmakeFilePaths;
     console.info("Detecting Qt installations...");
@@ -58,9 +57,8 @@ function getQmakeFilePaths(qmakeFilePaths, qbs) {
     var pathValue = Environment.getEnv("PATH");
     if (pathValue) {
         var dirs = splitNonEmpty(pathValue, FileInfo.pathListSeparator());
-        var suffix = exeSuffix(qbs);
         for (var i = 0; i < dirs.length; ++i) {
-            var candidate = FileInfo.joinPaths(dirs[i], "qmake" + suffix);
+            var candidate = FileInfo.joinPaths(dirs[i], "qmake" + FileInfo.executableSuffix());
             var canonicalCandidate = FileInfo.canonicalPath(candidate);
             if (!canonicalCandidate || !File.exists(canonicalCandidate))
                 continue;
@@ -248,7 +246,7 @@ function abiToArchitecture(abi) {
     }
 }
 
-function getQtProperties(qmakeFilePath, qbs) {
+function getQtProperties(qmakeFilePath) {
     var queryResult = queryQmake(qmakeFilePath);
     var qtProps = {};
     qtProps.installPrefixPath = pathQueryValue(queryResult, "QT_INSTALL_PREFIX");
@@ -1579,10 +1577,10 @@ function copyTemplateFile(fileName, targetDirectory, qtProps, abi, location, all
     targetFile.close();
 }
 
-function setupOneQt(qmakeFilePath, outputBaseDir, uniquify, location, qbs) {
+function setupOneQt(qmakeFilePath, outputBaseDir, uniquify, location) {
     if (!File.exists(qmakeFilePath))
         throw "The specified qmake file path '" + toNative(qmakeFilePath) + "' does not exist.";
-    var qtProps = getQtProperties(qmakeFilePath, qbs);
+    var qtProps = getQtProperties(qmakeFilePath);
     var androidAbis = [];
     if (qtProps.androidAbis !== undefined)
         // Multiple androidAbis detected: Qt >= 5.14
@@ -1655,7 +1653,7 @@ function setupOneQt(qmakeFilePath, outputBaseDir, uniquify, location, qbs) {
                                  allFiles);
                 var qmlcacheStr = "qmlcache";
                 if (File.exists(FileInfo.joinPaths(qtProps.qmlLibExecPath,
-                                                   "qmlcachegen" + exeSuffix(qbs)))) {
+                                                   "qmlcachegen" + FileInfo.executableSuffix()))) {
                     copyTemplateFile(qmlcacheStr + ".qbs",
                                      FileInfo.joinPaths(qbsQtModuleBaseDir, qmlcacheStr), qtProps,
                                      androidAbis[a], location, allFiles);
@@ -1685,8 +1683,8 @@ function setupOneQt(qmakeFilePath, outputBaseDir, uniquify, location, qbs) {
     return relativeSearchPaths;
 }
 
-function doSetup(qmakeFilePaths, outputBaseDir, location, qbs) {
-    qmakeFilePaths = getQmakeFilePaths(qmakeFilePaths, qbs);
+function doSetup(qmakeFilePaths, outputBaseDir, location) {
+    qmakeFilePaths = getQmakeFilePaths(qmakeFilePaths);
     if (!qmakeFilePaths || qmakeFilePaths.length === 0)
         return [];
     var uniquifySearchPath = qmakeFilePaths.length > 1;
@@ -1695,7 +1693,7 @@ function doSetup(qmakeFilePaths, outputBaseDir, location, qbs) {
         try {
             console.info("Setting up Qt at '" + toNative(qmakeFilePaths[i]) + "'...");
             var searchPaths = setupOneQt(qmakeFilePaths[i], outputBaseDir, uniquifySearchPath,
-                                         location, qbs);
+                                         location);
             if (searchPaths.length > 0) {
                 for (var j = 0; j < searchPaths.length; ++j )
                     allSearchPaths.push(searchPaths[j]);
