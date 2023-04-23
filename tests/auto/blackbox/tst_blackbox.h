@@ -197,10 +197,6 @@ private slots:
     void makefileGenerator();
     void maximumCLanguageVersion();
     void maximumCxxLanguageVersion();
-    void moduleProviders();
-    void moduleProvidersCache();
-    void fallbackModuleProvider_data();
-    void fallbackModuleProvider();
     void minimumSystemVersion();
     void minimumSystemVersion_data();
     void missingBuildGraph();
@@ -245,7 +241,6 @@ private slots:
     void probeProperties();
     void probesAndShadowProducts();
     void probeInExportedModule();
-    void probeInModuleProvider();
     void probesAndArrayProperties();
     void probesInNestedModules();
     void productDependenciesByType();
@@ -261,19 +256,10 @@ private slots:
     void protobuf_data();
     void protobuf();
     void protobufLibraryInstall();
-    void providersProperties();
     void pseudoMultiplexing();
     void qbsConfig();
     void qbsConfigAddProfile();
     void qbsConfigAddProfile_data();
-    void qbsModulePropertiesInProviders();
-    void qbsModuleProviders();
-    void qbsModuleProviders_data();
-    void qbsModuleProvidersCliOverride();
-    void qbsModuleProvidersCliOverride_data();
-    void qbsModuleProvidersCompatibility();
-    void qbsModuleProvidersCompatibility_data();
-    void qbspkgconfigModuleProvider();
     void qbsSession();
     void qbsVersion();
     void qtBug51237();

@@ -9,6 +9,7 @@ Project {
         "blackbox/blackbox-examples.qbs",
         "blackbox/blackbox-java.qbs",
         "blackbox/blackbox-joblimits.qbs",
+        "blackbox/blackbox-providers.qbs",
         "blackbox/blackbox-qt.qbs",
         "blackbox/blackbox-windows.qbs",
         "blackbox/blackbox.qbs",

@@ -63,6 +63,14 @@ add_qbs_test(blackbox-joblimits
         tst_blackboxjoblimits.cpp
     )
 
+add_qbs_test(blackbox-providers
+    SOURCES
+        ../shared.h
+        tst_blackboxbase.cpp
+        tst_blackboxbase.h
+        tst_blackboxproviders.cpp
+    )
+
 add_qbs_test(blackbox-qt
     SOURCES
         ../shared.h
