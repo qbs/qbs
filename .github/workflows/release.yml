@@ -21,6 +21,7 @@ jobs:
             options: 'qbs.installPrefix:""
                       modules.cpp.compilerWrapper:ccache
                       modules.qbsbuildconfig.enableAddressSanitizer:false
+                      project.withTests:false
                       modules.qbsbuildconfig.enableUnitTests:false
                       modules.qbsbuildconfig.enableBundledQt:true
                       products.qbs_archive.targetName:qbs-linux-${{ github.run_id }}',
@@ -70,6 +71,7 @@ jobs:
       BUILD_OPTIONS: |
         qbs.installPrefix:""
         modules.cpp.compilerWrapper:ccache
+        project.withTests:false
         modules.qbsbuildconfig.enableUnitTests:false
         modules.qbsbuildconfig.enableAddressSanitizer:false
         modules.qbsbuildconfig.enableBundledQt:true
@@ -150,6 +152,7 @@ jobs:
         -p dist
         qbs.buildVariant:release
         modules.cpp.compilerWrapper:clcache
+        project.withTests:false
         modules.qbsbuildconfig.enableBundledQt:true
         modules.qbsbuildconfig.enableUnitTests:false
         modules.cpp.treatWarningsAsErrors:true
