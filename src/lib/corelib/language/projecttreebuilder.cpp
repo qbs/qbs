@@ -129,9 +129,9 @@ public:
             versionRange(dependency.versionRange), parameters(dependency.parameters),
             fallbackMode(FallbackMode::Disabled), checkProduct(false) {}
         ResolvedAndMultiplexedDependsItem(const ResolvedDependsItem &dependency,
-                                          const QualifiedId &name,
-                                          const QString &profile, const QString &multiplexId)
-            : item(dependency.item), name(name), profile(profile), multiplexId(multiplexId),
+                                          QualifiedId name, QString profile, QString multiplexId)
+            : item(dependency.item), name(std::move(name)), profile(std::move(profile)),
+            multiplexId(std::move(multiplexId)),
             versionRange(dependency.versionRange), parameters(dependency.parameters),
             limitToSubProject(dependency.limitToSubProject), fallbackMode(dependency.fallbackMode),
             requiredLocally(dependency.requiredLocally),
@@ -1926,7 +1926,7 @@ ProjectTreeBuilder::Private::loadModule(ProductContext &product, Item *loadingIt
     QString loadingName;
     if (loadingItem == product.item) {
         loadingName = product.name;
-    } else if (product.resolveDependenciesState.size() > 0) {
+    } else if (!product.resolveDependenciesState.empty()) {
         const auto &loadingItemOrigin = product.resolveDependenciesState.front().loadingItemOrigin;
         loadingName = loadingItemOrigin.name.toString() + loadingItemOrigin.multiplexId
                       + loadingItemOrigin.profile;
