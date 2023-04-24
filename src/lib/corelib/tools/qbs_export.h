@@ -53,14 +53,14 @@
 #else
 #   ifdef QBS_LIBRARY
 #       define QBS_EXPORT QBS_DECL_EXPORT
-#       ifdef QBS_ENABLE_UNIT_TESTS
+#       ifdef QBS_WITH_TESTS
 #           define QBS_AUTOTEST_EXPORT QBS_DECL_EXPORT
 #       else
 #           define QBS_AUTOTEST_EXPORT
 #       endif
 #   else
 #       define QBS_EXPORT QBS_DECL_IMPORT
-#       ifdef QBS_ENABLE_UNIT_TESTS
+#       ifdef QBS_WITH_TESTS
 #           define QBS_AUTOTEST_EXPORT QBS_DECL_IMPORT
 #       else
 #           define QBS_AUTOTEST_EXPORT

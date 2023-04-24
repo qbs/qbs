@@ -14,14 +14,19 @@ QbsLibrary {
         ".",
         "../.." // for the plugin headers
     ])
-    property stringList enableUnitTestsDefines:
-        qbsbuildconfig.enableUnitTests ? ["QBS_ENABLE_UNIT_TESTS"] : []
-    property stringList systemSettingsDirDefines: qbsbuildconfig.systemSettingsDir
-        ? ['QBS_SYSTEM_SETTINGS_DIR="' + qbsbuildconfig.systemSettingsDir + '"'] : []
-    cpp.defines: base.concat([
-        "QBS_RELATIVE_LIBEXEC_PATH=" + Utilities.cStringQuote(qbsbuildconfig.relativeLibexecPath),
-        "QBS_VERSION=" + Utilities.cStringQuote(version),
-    ]).concat(enableUnitTestsDefines).concat(systemSettingsDirDefines)
+    cpp.defines: {
+        var defines = base.concat([
+            "QBS_RELATIVE_LIBEXEC_PATH=" + Utilities.cStringQuote(qbsbuildconfig.relativeLibexecPath),
+            "QBS_VERSION=" + Utilities.cStringQuote(version),
+        ]);
+        if (project.withTests)
+            defines.push("QBS_WITH_TESTS");
+        if (qbsbuildconfig.enableUnitTests)
+            defines.push("QBS_ENABLE_UNIT_TESTS");
+        if (qbsbuildconfig.systemSettingsDir)
+            defines.push('QBS_SYSTEM_SETTINGS_DIR="' + qbsbuildconfig.systemSettingsDir + '"');
+        return defines;
+    }
 
     Properties {
         condition: qbs.targetOS.contains("windows")
