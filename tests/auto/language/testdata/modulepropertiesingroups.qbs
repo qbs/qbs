@@ -80,4 +80,13 @@ Project {
             }
         }
     }
+
+    Product {
+        name: "module-property-in-group-condition"
+        Depends { name: "cpp" }
+        Group {
+            condition: qbs.architecture === "x86_64"
+            cpp.includePaths: "."
+        }
+    }
 }

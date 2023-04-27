@@ -57,7 +57,9 @@ Value::Value(Type t, bool createdByPropertiesBlock) : m_type(t)
 Value::Value(const Value &other)
     : m_type(other.m_type),
       m_scope(other.m_scope),
+      m_scopeName(other.m_scopeName),
       m_next(other.m_next ? other.m_next->clone() : ValuePtr()),
+      m_candidates(other.m_candidates),
       m_flags(other.m_flags)
 {
 }

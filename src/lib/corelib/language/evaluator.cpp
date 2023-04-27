@@ -570,7 +570,8 @@ private:
             if (data->item->propertyDeclaration(*propertyName).isScalar()) {
                 const Item *item = itemOfProperty;
 
-                if (item->type() != ItemType::ModuleInstance) {
+                if (item->type() != ItemType::ModuleInstance
+                    && item->type() != ItemType::ModuleInstancePlaceholder) {
                     const QString errorMessage = Tr::tr("The special value 'original' can only "
                                                         "be used with module properties.");
                     extraScope = throwError(engine->context(), errorMessage);
