@@ -78,14 +78,10 @@ public:
 
     struct ModuleProviderResult
     {
-        ModuleProviderResult() = default;
-        ModuleProviderResult(bool ran, bool added)
-            : providerFound(ran), providerAddedSearchPaths(added) {}
-
         std::vector<ProbeConstPtr> probes;
         QVariantMap providerConfig;
         bool providerFound = false;
-        bool providerAddedSearchPaths = false;
+        std::optional<QStringList> searchPaths;
     };
 
     const StoredModuleProviderInfo &storedModuleProviderInfo() const

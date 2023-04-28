@@ -105,6 +105,16 @@ private:
     qint64 m_elapsedTime = -1;
 };
 
+class SearchPathsManager {
+public:
+    SearchPathsManager(ItemReader &itemReader, const QStringList &extraSearchPaths = {});
+    ~SearchPathsManager();
+
+private:
+    ItemReader &m_itemReader;
+    size_t m_oldSize{0};
+};
+
 } // namespace Internal
 } // namespace qbs
 

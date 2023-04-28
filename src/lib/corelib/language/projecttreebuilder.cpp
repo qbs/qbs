@@ -202,21 +202,6 @@ using ShadowProductInfo = std::pair<bool, QString>;
 enum class Deferral { Allowed, NotAllowed };
 enum class HandleDependency { Use, Ignore, Defer };
 
-class SearchPathsManager {
-public:
-    SearchPathsManager(ItemReader &itemReader, const QStringList &extraSearchPaths);
-    SearchPathsManager(ItemReader &itemReader, ProductContext &product);
-    ~SearchPathsManager();
-
-private:
-    SearchPathsManager(ItemReader &itemReader, ProductContext *product,
-                       const QStringList &extraSearchPaths);
-
-    ItemReader &m_itemReader;
-    ProductContext * const m_product = nullptr;
-    size_t m_oldSize{0};
-};
-
 class TimingData {
 public:
     qint64 prepareProducts = 0;
@@ -946,7 +931,7 @@ bool ProjectTreeBuilder::Private::resolveDependencies(ProductContext &product, D
                     ProductContext::ResolvedAndMultiplexedDependsItem::makeBaseDependency());
     }
 
-    SearchPathsManager searchPathsMgr(reader, product);
+    SearchPathsManager searchPathsMgr(reader, product.searchPaths);
 
     while (!product.resolveDependenciesState.empty()) {
 fixme:
@@ -2168,32 +2153,6 @@ ProjectTreeBuilder::Private::multiplexDependency(
         }
     }
     return dependencies;
-}
-
-SearchPathsManager::SearchPathsManager(ItemReader &itemReader, const QStringList &extraSearchPaths)
-    : SearchPathsManager(itemReader, nullptr, extraSearchPaths) {}
-
-SearchPathsManager::SearchPathsManager(ItemReader &itemReader, ProductContext &product)
-    : SearchPathsManager(itemReader, &product, product.searchPaths) {}
-
-SearchPathsManager::SearchPathsManager(ItemReader &itemReader, ProductContext *product,
-                                       const QStringList &extraSearchPaths)
-    : m_itemReader(itemReader), m_product(product),
-      m_oldSize(itemReader.extraSearchPathsStack().size())
-{
-    if (!extraSearchPaths.isEmpty())
-        m_itemReader.pushExtraSearchPaths(extraSearchPaths);
-}
-
-SearchPathsManager::~SearchPathsManager()
-{
-    while (m_itemReader.extraSearchPathsStack().size() > m_oldSize) {
-        if (m_product && m_itemReader.extraSearchPathsStack().size() > m_oldSize + 1) {
-            for (const QString &pathFromProvider : m_itemReader.extraSearchPathsStack().back())
-                m_product->searchPaths.prepend(pathFromProvider);
-        }
-        m_itemReader.popExtraSearchPaths();
-    }
 }
 
 QString ProductContext::uniqueName() const

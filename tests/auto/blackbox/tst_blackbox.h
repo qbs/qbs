@@ -198,6 +198,7 @@ private slots:
     void maximumCLanguageVersion();
     void maximumCxxLanguageVersion();
     void moduleProviders();
+    void moduleProvidersCache();
     void fallbackModuleProvider_data();
     void fallbackModuleProvider();
     void minimumSystemVersion();

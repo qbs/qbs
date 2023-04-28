@@ -220,5 +220,19 @@ Item *ItemReader::setupItemFromFile(
     return item;
 }
 
+SearchPathsManager::SearchPathsManager(ItemReader &itemReader, const QStringList &extraSearchPaths)
+    : m_itemReader(itemReader),
+      m_oldSize(itemReader.extraSearchPathsStack().size())
+{
+    if (!extraSearchPaths.isEmpty())
+        m_itemReader.pushExtraSearchPaths(extraSearchPaths);
+}
+
+SearchPathsManager::~SearchPathsManager()
+{
+    while (m_itemReader.extraSearchPathsStack().size() > m_oldSize)
+        m_itemReader.popExtraSearchPaths();
+}
+
 } // namespace Internal
 } // namespace qbs

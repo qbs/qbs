@@ -8105,6 +8105,30 @@ void TestBlackbox::moduleProviders()
     QVERIFY2(m_qbsStdout.contains("The letters are Z and Y"), m_qbsStdout.constData());
 }
 
+// Checks regression - when loading 2 modules from the same provider, the second module should
+// come from provider cache
+void TestBlackbox::moduleProvidersCache()
+{
+    QDir::setCurrent(testDataDir + "/module-providers-cache");
+
+    QbsRunParameters params("resolve", {"-v"});
+    QCOMPARE(runQbs(params), 0);
+    const auto qbsmetatestmoduleMessage = "Re-checking for module \"qbsmetatestmodule\" with "
+                                          "newly added search paths from module provider";
+    const auto qbsothermoduleMessage = "Re-checking for module \"qbsothermodule\" with "
+                                       "newly added search paths from module provider";
+    QCOMPARE(m_qbsStderr.count(qbsmetatestmoduleMessage), 1);
+    QCOMPARE(m_qbsStderr.count(qbsothermoduleMessage), 1);
+    QCOMPARE(m_qbsStderr.count("Re-using provider \"provider_a\" from cache"), 1);
+
+    // We didn't change providers, so both modules should come from cache.
+    params.arguments << "project.dummyProp:value";
+    QCOMPARE(runQbs(params), 0);
+    QCOMPARE(m_qbsStderr.count(qbsmetatestmoduleMessage), 1);
+    QCOMPARE(m_qbsStderr.count(qbsothermoduleMessage), 1);
+    QCOMPARE(m_qbsStderr.count("Re-using provider \"provider_a\" from cache"), 2);
+}
+
 void TestBlackbox::fallbackModuleProvider_data()
 {
     QTest::addColumn<bool>("fallbacksEnabledGlobally");

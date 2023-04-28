@@ -147,7 +147,7 @@ ModuleProviderLoader::ModuleProviderResult ModuleProviderLoader::executeModulePr
             continue;
         }
         if (fromCache)
-            qCDebug(lcModuleLoader) << "Re-using provider" << name << "from cache";
+            qCDebug(lcModuleLoader) << "Re-using provider" << name.toString() << "from cache";
 
         result.providerFound = true;
         if (info.searchPaths.empty()) {
@@ -163,8 +163,7 @@ ModuleProviderLoader::ModuleProviderResult ModuleProviderLoader::executeModulePr
     if (allSearchPaths.isEmpty())
         return result;
 
-    m_reader.pushExtraSearchPaths(allSearchPaths);
-    result.providerAddedSearchPaths = true;
+    result.searchPaths = std::move(allSearchPaths);
 
     return result;
 }

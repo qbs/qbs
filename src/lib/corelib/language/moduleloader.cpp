@@ -189,6 +189,8 @@ ModuleLoader::Result ModuleLoader::searchAndLoadModuleFile(
         return result;
     };
 
+    SearchPathsManager searchPathsManager(d->itemReader);
+
     Result loadResult;
     auto existingPaths = findExistingModulePaths();
     if (existingPaths.isEmpty()) { // no suitable names found, try to use providers
@@ -205,9 +207,10 @@ ModuleLoader::Result ModuleLoader::searchAndLoadModuleFile(
         loadResult.providerProbes << result.probes;
         if (!providerConfig)
             providerConfig = result.providerConfig;
-        if (result.providerAddedSearchPaths) {
+        if (result.searchPaths) {
             qCDebug(lcModuleLoader) << "Re-checking for module" << moduleName.toString()
                                     << "with newly added search paths from module provider";
+            d->itemReader.pushExtraSearchPaths(*result.searchPaths);
             existingPaths = findExistingModulePaths();
         }
     }
