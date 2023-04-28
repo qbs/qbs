@@ -41,7 +41,6 @@
 
 #include "artifactproperties.h"
 #include "builtindeclarations.h"
-#include "productitemmultiplexer.h"
 #include "propertymapinternal.h"
 #include "scriptengine.h"
 
@@ -52,6 +51,7 @@
 #include <buildgraph/rulegraph.h> // TODO: Move to language?
 #include <buildgraph/transformer.h>
 #include <jsextensions/jsextensions.h>
+#include <loader/productitemmultiplexer.h>
 #include <logging/categories.h>
 #include <logging/translator.h>
 #include <tools/buildgraphlocker.h>

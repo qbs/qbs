@@ -39,13 +39,13 @@
 
 #include "loader.h"
 
-#include "evaluator.h"
-#include "itempool.h"
-#include "language.h"
 #include "projectresolver.h"
 #include "projecttreebuilder.h"
-#include "scriptengine.h"
 
+#include <language/evaluator.h>
+#include <language/itempool.h>
+#include <language/language.h>
+#include <language/scriptengine.h>
 #include <logging/translator.h>
 #include <tools/fileinfo.h>
 #include <tools/profile.h>

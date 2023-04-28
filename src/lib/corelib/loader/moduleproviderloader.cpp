@@ -40,18 +40,16 @@
 
 #include "moduleproviderloader.h"
 
-#include "builtindeclarations.h"
-#include "evaluator.h"
-#include "item.h"
 #include "itemreader.h"
 #include "probesresolver.h"
 
+#include <language/builtindeclarations.h>
+#include <language/evaluator.h>
+#include <language/item.h>
 #include <language/scriptengine.h>
 #include <language/value.h>
-
 #include <logging/categories.h>
 #include <logging/translator.h>
-
 #include <tools/fileinfo.h>
 #include <tools/jsliterals.h>
 #include <tools/scripttools.h>

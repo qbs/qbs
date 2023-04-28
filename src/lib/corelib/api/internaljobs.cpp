@@ -49,8 +49,8 @@
 #include <buildgraph/productinstaller.h>
 #include <buildgraph/rulesevaluationcontext.h>
 #include <language/language.h>
-#include <language/loader.h>
 #include <language/scriptengine.h>
+#include <loader/loader.h>
 #include <logging/logger.h>
 #include <logging/translator.h>
 #include <tools/buildgraphlocker.h>

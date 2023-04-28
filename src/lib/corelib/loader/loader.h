@@ -39,8 +39,8 @@
 #ifndef  QBS_LOADER_H
 #define  QBS_LOADER_H
 
-#include "forward_decls.h"
-#include "moduleproviderinfo.h"
+#include <language/forward_decls.h>
+#include <language/moduleproviderinfo.h>
 #include <logging/logger.h>
 #include <tools/filetime.h>
 

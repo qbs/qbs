@@ -39,12 +39,12 @@
 
 #include "moduleinstantiator.h"
 
-#include "item.h"
-#include "itempool.h"
 #include "modulepropertymerger.h"
-#include "qualifiedid.h"
-#include "value.h"
 
+#include <language/item.h>
+#include <language/itempool.h>
+#include <language/qualifiedid.h>
+#include <language/value.h>
 #include <logging/logger.h>
 #include <logging/translator.h>
 #include <tools/profiling.h>

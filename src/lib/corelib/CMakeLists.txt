@@ -183,10 +183,6 @@ list_transform_prepend(JS_EXTENSIONS_MACOS_SOURCES jsextensions/)
 set(LANGUAGE_SOURCES
     artifactproperties.cpp
     artifactproperties.h
-    astimportshandler.cpp
-    astimportshandler.h
-    astpropertiesitemhandler.cpp
-    astpropertiesitemhandler.h
     asttools.cpp
     asttools.h
     builtindeclarations.cpp
@@ -200,8 +196,6 @@ set(LANGUAGE_SOURCES
     filecontextbase.h
     filetags.cpp
     filetags.h
-    groupshandler.cpp
-    groupshandler.h
     identifiersearch.cpp
     identifiersearch.h
     item.cpp
@@ -211,39 +205,13 @@ set(LANGUAGE_SOURCES
     itemobserver.h
     itempool.cpp
     itempool.h
-    itemreader.cpp
-    itemreader.h
-    itemreaderastvisitor.cpp
-    itemreaderastvisitor.h
-    itemreadervisitorstate.cpp
-    itemreadervisitorstate.h
     itemtype.h
     jsimports.h
     language.cpp
     language.h
-    loader.cpp
-    loader.h
-    localprofiles.cpp
-    localprofiles.h
-    moduleinstantiator.cpp
-    moduleinstantiator.h
-    moduleloader.cpp
-    moduleloader.h
-    modulepropertymerger.cpp
-    modulepropertymerger.h
     moduleproviderinfo.h
-    moduleproviderloader.cpp
-    moduleproviderloader.h
     preparescriptobserver.cpp
     preparescriptobserver.h
-    probesresolver.cpp
-    probesresolver.h
-    productitemmultiplexer.cpp
-    productitemmultiplexer.h
-    projectresolver.cpp
-    projectresolver.h
-    projecttreebuilder.cpp
-    projecttreebuilder.h
     property.cpp
     property.h
     propertydeclaration.cpp
@@ -266,6 +234,42 @@ set(LANGUAGE_SOURCES
 list_transform_prepend(LANGUAGE_SOURCES language/)
 
 set(LANGUAGE_HEADERS language/forward_decls.h)
+
+set(LOADER_SOURCES
+    astimportshandler.cpp
+    astimportshandler.h
+    astpropertiesitemhandler.cpp
+    astpropertiesitemhandler.h
+    groupshandler.cpp
+    groupshandler.h
+    itemreader.cpp
+    itemreader.h
+    itemreaderastvisitor.cpp
+    itemreaderastvisitor.h
+    itemreadervisitorstate.cpp
+    itemreadervisitorstate.h
+    loader.cpp
+    loader.h
+    localprofiles.cpp
+    localprofiles.h
+    moduleinstantiator.cpp
+    moduleinstantiator.h
+    moduleloader.cpp
+    moduleloader.h
+    modulepropertymerger.cpp
+    modulepropertymerger.h
+    moduleproviderloader.cpp
+    moduleproviderloader.h
+    probesresolver.cpp
+    probesresolver.h
+    productitemmultiplexer.cpp
+    productitemmultiplexer.h
+    projectresolver.cpp
+    projectresolver.h
+    projecttreebuilder.cpp
+    projecttreebuilder.h
+    )
+list_transform_prepend(LOADER_SOURCES loader/)
 
 set(LOGGING_SOURCES
     categories.cpp
@@ -459,6 +463,7 @@ add_qbs_library(qbscore
         ${JS_EXTENSIONS_MACOS_SOURCES}
         ${LANGUAGE_SOURCES}
         ${LANGUAGE_HEADERS}
+        ${LOADER_SOURCES}
         ${LOGGING_SOURCES}
         ${LOGGING_HEADERS}
         ${PARSER_SOURCES}

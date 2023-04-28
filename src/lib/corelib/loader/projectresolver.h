@@ -40,12 +40,12 @@
 #ifndef PROJECTRESOLVER_H
 #define PROJECTRESOLVER_H
 
-#include "filetags.h"
-#include "item.h"
-#include "itemtype.h"
 #include "projecttreebuilder.h"
-#include "qualifiedid.h"
 
+#include <language/filetags.h>
+#include <language/item.h>
+#include <language/itemtype.h>
+#include <language/qualifiedid.h>
 #include <logging/logger.h>
 #include <tools/set.h>
 #include <tools/setupprojectparameters.h>

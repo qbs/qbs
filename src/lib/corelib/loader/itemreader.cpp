@@ -39,12 +39,12 @@
 
 #include "itemreader.h"
 
-#include "deprecationinfo.h"
-#include "evaluator.h"
-#include "item.h"
 #include "itemreadervisitorstate.h"
-#include "value.h"
 
+#include <language/deprecationinfo.h>
+#include <language/evaluator.h>
+#include <language/item.h>
+#include <language/value.h>
 #include <tools/profiling.h>
 #include <tools/stringconstants.h>
 #include <tools/stlutils.h>

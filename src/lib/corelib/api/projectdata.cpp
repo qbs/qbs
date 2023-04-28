@@ -41,8 +41,8 @@
 #include "projectdata_p.h"
 #include "propertymap_p.h"
 #include <language/language.h>
-#include <language/productitemmultiplexer.h>
 #include <language/propertymapinternal.h>
+#include <loader/productitemmultiplexer.h>
 #include <tools/fileinfo.h>
 #include <tools/jsliterals.h>
 #include <tools/qbsassert.h>

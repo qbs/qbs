@@ -45,15 +45,15 @@
 #include "projectbuilddata.h"
 #include "rulenode.h"
 #include "rulecommands.h"
-#include "rulesevaluationcontext.h"
 #include "transformer.h"
 
+#include <buildgraph/rulesevaluationcontext.h>
 #include <language/artifactproperties.h>
 #include <language/language.h>
-#include <language/loader.h>
 #include <language/propertymapinternal.h>
 #include <language/qualifiedid.h>
 #include <language/resolvedfilecontext.h>
+#include <loader/loader.h>
 #include <logging/categories.h>
 #include <logging/translator.h>
 #include <tools/buildgraphlocker.h>

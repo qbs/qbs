@@ -61,7 +61,6 @@
 #include <buildgraph/timestampsupdater.h>
 #include <buildgraph/transformer.h>
 #include <language/language.h>
-#include <language/projectresolver.h>
 #include <language/propertymapinternal.h>
 #include <logging/logger.h>
 #include <logging/translator.h>

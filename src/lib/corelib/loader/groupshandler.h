@@ -39,54 +39,39 @@
 
 #pragma once
 
-#include "forward_decls.h"
-#include "item.h"
+#include <language/qualifiedid.h>
+#include <tools/set.h>
 
-#include <QString>
-#include <QVariantMap>
-
-#include <vector>
+#include <unordered_map>
+#include <utility>
 
 namespace qbs {
-class CodeLocation;
 class SetupProjectParameters;
 namespace Internal {
 class Evaluator;
-enum class FallbackMode;
-class ItemReader;
+class Item;
 class Logger;
-class ModuleProviderLoader;
+class ModuleInstantiator;
 
-class ModuleLoader
+// Sets up Group items for the actual resolving stage. Responsibilities:
+//   - Moving Group items located in modules over to the product.
+//   - Identifying groups declaring target artifacts and marking them accordingly.
+//   - Setting up group-level module instances to ensure proper resolving of per-group module
+//     properties.
+//   - As a side effect of the above point, collecting all properties set on the Group level
+//     to help the ProjectResolver decide which properties need to be re-evaluated at all,
+//     which is an important optimization (see commit 9cd8653eef).
+class GroupsHandler
 {
 public:
-    ModuleLoader(const SetupProjectParameters &setupParameters,
-                 ModuleProviderLoader &providerLoader, ItemReader &itemReader,
-                 Evaluator &evaluator, Logger &logger);
-    ~ModuleLoader();
+    GroupsHandler(const SetupProjectParameters &parameters, ModuleInstantiator &instantiator,
+                  Evaluator &evaluator, Logger &logger);
+    ~GroupsHandler();
 
-    struct ProductContext {
-        Item * const productItem;
-        const Item * const projectItem;
-        const QString &name;
-        const QString &uniqueName;
-        const QString &profile;
-        const QString &multiplexId;
-        const QVariantMap &moduleProperties;
-        const QVariantMap &profileModuleProperties;
-    };
-    struct Result {
-        Item *moduleItem = nullptr;
-        std::vector<ProbeConstPtr> providerProbes;
-    };
-    Result searchAndLoadModuleFile(const ProductContext &productContext,
-                                   const CodeLocation &dependsItemLocation,
-                                   const QualifiedId &moduleName,
-                                   FallbackMode fallbackMode, bool isRequired);
+    void setupGroups(Item *product, Item *productScope);
+    std::unordered_map<const Item *, QualifiedIdSet> modulePropertiesSetInGroups() const;
+    Set<Item *> disabledGroups() const;
 
-    void checkDependencyParameterDeclarations(const Item *productItem,
-                                              const QString &productName) const;
-    void forwardParameterDeclarations(const Item *dependsItem, const Item::Modules &modules);
     void printProfilingInfo(int indent);
 
 private:
@@ -96,4 +81,3 @@ private:
 
 } // namespace Internal
 } // namespace qbs
-

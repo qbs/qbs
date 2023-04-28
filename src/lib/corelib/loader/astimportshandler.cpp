@@ -38,12 +38,12 @@
 ****************************************************************************/
 #include "astimportshandler.h"
 
-#include "asttools.h"
-#include "builtindeclarations.h"
-#include "filecontext.h"
 #include "itemreadervisitorstate.h"
-#include "jsextensions/jsextensions.h"
 
+#include <jsextensions/jsextensions.h>
+#include <language/asttools.h>
+#include <language/builtindeclarations.h>
+#include <language/filecontext.h>
 #include <logging/logger.h>
 #include <logging/translator.h>
 #include <parser/qmljsast_p.h>

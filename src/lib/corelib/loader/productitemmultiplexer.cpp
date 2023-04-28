@@ -39,11 +39,10 @@
 
 #include "productitemmultiplexer.h"
 
-#include "evaluator.h"
-#include "item.h"
-#include "scriptengine.h"
-#include "value.h"
-
+#include <language/evaluator.h>
+#include <language/item.h>
+#include <language/scriptengine.h>
+#include <language/value.h>
 #include <logging/translator.h>
 #include <tools/scripttools.h>
 #include <tools/setupprojectparameters.h>

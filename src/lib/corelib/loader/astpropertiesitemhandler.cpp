@@ -38,8 +38,8 @@
 ****************************************************************************/
 #include "astpropertiesitemhandler.h"
 
-#include "item.h"
-#include "value.h"
+#include <language/item.h>
+#include <language/value.h>
 
 #include <logging/translator.h>
 #include <tools/error.h>

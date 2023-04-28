@@ -41,7 +41,7 @@
 #ifndef PROBESRESOLVER_H
 #define PROBESRESOLVER_H
 
-#include "forward_decls.h"
+#include <language/forward_decls.h>
 
 #include <tools/filetime.h>
 

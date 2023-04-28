@@ -39,22 +39,22 @@
 
 #include "projecttreebuilder.h"
 
-#include "builtindeclarations.h"
-#include "evaluator.h"
-#include "filecontext.h"
-#include "filetags.h"
 #include "groupshandler.h"
 #include "itemreader.h"
-#include "language.h"
 #include "localprofiles.h"
 #include "moduleinstantiator.h"
 #include "moduleloader.h"
 #include "modulepropertymerger.h"
 #include "probesresolver.h"
 #include "productitemmultiplexer.h"
-#include "scriptengine.h"
-#include "value.h"
 
+#include <language/builtindeclarations.h>
+#include <language/evaluator.h>
+#include <language/filecontext.h>
+#include <language/filetags.h>
+#include <language/language.h>
+#include <language/scriptengine.h>
+#include <language/value.h>
 #include <logging/categories.h>
 #include <logging/translator.h>
 #include <tools/fileinfo.h>

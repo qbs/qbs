@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2023 The Qt Company Ltd.
+** Copyright (C) 2016 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -36,68 +36,59 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
+#ifndef QBS_ASTIMPORTSHANDLER_H
+#define QBS_ASTIMPORTSHANDLER_H
 
-#pragma once
+#include <language/forward_decls.h>
 
-#include "forward_decls.h"
-#include "moduleproviderinfo.h"
-#include "moduleproviderloader.h"
-#include "qualifiedid.h"
+#include <parser/qmljsastfwd_p.h>
+#include <tools/set.h>
 
-#include <QString>
-#include <QVariant>
+#include <QtCore/qhash.h>
+#include <QtCore/qstringlist.h>
 
 namespace qbs {
-class SetupProjectParameters;
+class CodeLocation;
+class Version;
+
 namespace Internal {
-class Evaluator;
-class FileTime;
-class Item;
-class ItemPool;
-class ProgressObserver;
+class ItemReaderVisitorState;
+class JsImport;
+class Logger;
 
-using ModulePropertiesPerGroup = std::unordered_map<const Item *, QualifiedIdSet>;
-
-// TODO: This class only needs to be known inside the ProjectResolver; no need to
-//       instantiate them separately when they always appear together.
-//       Possibly we can get rid of the Loader class altogether.
-class ProjectTreeBuilder
+class ASTImportsHandler
 {
 public:
-    ProjectTreeBuilder(const SetupProjectParameters &parameters, ItemPool &itemPool,
-                       Evaluator &evaluator, Logger &logger);
-    ~ProjectTreeBuilder();
+    ASTImportsHandler(ItemReaderVisitorState &visitorState, Logger &logger,
+                      const FileContextPtr &file);
 
-    struct Result
-    {
-        struct ProductInfo
-        {
-            std::vector<ProbeConstPtr> probes;
-            ModulePropertiesPerGroup modulePropertiesSetInGroups;
-            ErrorInfo delayedError;
-        };
+    void handleImports(const QbsQmlJS::AST::UiImportList *uiImportList);
 
-        Item *root = nullptr;
-        std::unordered_map<Item *, ProductInfo> productInfos;
-        std::vector<ProbeConstPtr> projectProbes;
-        StoredModuleProviderInfo storedModuleProviderInfo;
-        Set<QString> qbsFiles;
-        QVariantMap profileConfigs;
-    };
-    Result load();
-
-    void setProgressObserver(ProgressObserver *progressObserver);
-    void setSearchPaths(const QStringList &searchPaths);
-    void setOldProjectProbes(const std::vector<ProbeConstPtr> &oldProbes);
-    void setOldProductProbes(const QHash<QString, std::vector<ProbeConstPtr>> &oldProbes);
-    void setLastResolveTime(const FileTime &time);
-    void setStoredProfiles(const QVariantMap &profiles);
-    void setStoredModuleProviderInfo(const StoredModuleProviderInfo &moduleProviderInfo);
+    QHash<QStringList, QString> typeNameFileMap() const { return m_typeNameToFile; }
 
 private:
-    class Private;
-    Private * const d;
+    static Version readImportVersion(const QString &str, const CodeLocation &location);
+
+    bool addPrototype(const QString &fileName, const QString &filePath, const QString &as,
+                      bool needsCheck);
+    void checkImportVersion(const QbsQmlJS::AST::SourceLocation &versionToken) const;
+    void collectPrototypes(const QString &path, const QString &as);
+    void collectPrototypesAndJsCollections(const QString &path, const QString &as,
+                                           const CodeLocation &location);
+    void handleImport(const QbsQmlJS::AST::UiImport *import, bool *baseImported);
+
+    ItemReaderVisitorState &m_visitorState;
+    Logger &m_logger;
+    const FileContextPtr &m_file;
+    const QString m_directory;
+    QHash<QStringList, QString> m_typeNameToFile;
+    Set<QString> m_importAsNames;
+
+    using JsImportsHash = QHash<QString, JsImport>;
+    JsImportsHash m_jsImports;
 };
 
 } // namespace Internal
 } // namespace qbs
+
+#endif // Include guard

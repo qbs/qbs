@@ -41,16 +41,16 @@
 
 #include "astimportshandler.h"
 #include "astpropertiesitemhandler.h"
-#include "asttools.h"
-#include "builtindeclarations.h"
-#include "filecontext.h"
-#include "identifiersearch.h"
-#include "item.h"
 #include "itemreadervisitorstate.h"
-#include "value.h"
 
 #include <api/languageinfo.h>
 #include <jsextensions/jsextensions.h>
+#include <language/asttools.h>
+#include <language/builtindeclarations.h>
+#include <language/filecontext.h>
+#include <language/identifiersearch.h>
+#include <language/item.h>
+#include <language/value.h>
 #include <parser/qmljsast_p.h>
 #include <tools/codelocation.h>
 #include <tools/error.h>

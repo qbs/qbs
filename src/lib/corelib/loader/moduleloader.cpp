@@ -39,13 +39,13 @@
 
 #include "moduleloader.h"
 
-#include "evaluator.h"
 #include "itemreader.h"
 #include "moduleproviderloader.h"
 #include "productitemmultiplexer.h"
-#include "value.h"
 
 #include <api/languageinfo.h>
+#include <language/evaluator.h>
+#include <language/value.h>
 #include <logging/categories.h>
 #include <logging/translator.h>
 #include <tools/error.h>

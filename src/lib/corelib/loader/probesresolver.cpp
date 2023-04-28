@@ -40,16 +40,15 @@
 
 #include "probesresolver.h"
 
-#include "evaluator.h"
-#include "filecontext.h"
-#include "item.h"
 #include "itemreader.h"
-#include "language.h"
-#include "scriptengine.h"
-#include "value.h"
 
 #include <api/languageinfo.h>
+#include <language/evaluator.h>
+#include <language/filecontext.h>
+#include <language/item.h>
 #include <language/language.h>
+#include <language/scriptengine.h>
+#include <language/value.h>
 #include <logging/categories.h>
 #include <logging/logger.h>
 #include <logging/translator.h>

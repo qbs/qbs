@@ -41,7 +41,7 @@
 #define TST_LANGUAGE_H
 
 #include <language/forward_decls.h>
-#include <language/loader.h>
+#include <loader/loader.h>
 #include <logging/ilogsink.h>
 #include <tools/setupprojectparameters.h>
 

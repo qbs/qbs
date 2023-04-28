@@ -39,12 +39,11 @@
 
 #include "localprofiles.h"
 
-#include "evaluator.h"
-#include "item.h"
-#include "qualifiedid.h"
-#include "scriptengine.h"
-#include "value.h"
-
+#include <language/evaluator.h>
+#include <language/item.h>
+#include <language/qualifiedid.h>
+#include <language/scriptengine.h>
+#include <language/value.h>
 #include <logging/translator.h>
 #include <tools/profile.h>
 #include <tools/scripttools.h>

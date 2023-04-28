@@ -38,10 +38,10 @@
 ****************************************************************************/
 #include "itemreadervisitorstate.h"
 
-#include "asttools.h"
-#include "filecontext.h"
 #include "itemreaderastvisitor.h"
 
+#include <language/asttools.h>
+#include <language/filecontext.h>
 #include <logging/translator.h>
 #include <parser/qmljsengine_p.h>
 #include <parser/qmljslexer_p.h>

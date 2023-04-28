@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2023 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -37,61 +37,68 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_ITEMREADERASTVISITOR_H
-#define QBS_ITEMREADERASTVISITOR_H
+#pragma once
 
-#include "forward_decls.h"
-#include "itemtype.h"
+#include "moduleproviderloader.h"
 
-#include <logging/logger.h>
-#include <parser/qmljsastvisitor_p.h>
+#include <language/forward_decls.h>
+#include <language/moduleproviderinfo.h>
+#include <language/qualifiedid.h>
 
-#include <QtCore/qhash.h>
-#include <QtCore/qstringlist.h>
+#include <QString>
+#include <QVariant>
 
 namespace qbs {
-class CodeLocation;
-
+class SetupProjectParameters;
 namespace Internal {
+class Evaluator;
+class FileTime;
 class Item;
 class ItemPool;
-class ItemReaderVisitorState;
+class ProgressObserver;
 
-class ItemReaderASTVisitor : public QbsQmlJS::AST::Visitor
+using ModulePropertiesPerGroup = std::unordered_map<const Item *, QualifiedIdSet>;
+
+// TODO: This class only needs to be known inside the ProjectResolver; no need to
+//       instantiate them separately when they always appear together.
+//       Possibly we can get rid of the Loader class altogether.
+class ProjectTreeBuilder
 {
 public:
-    ItemReaderASTVisitor(ItemReaderVisitorState &visitorState, FileContextPtr file,
-                         ItemPool *itemPool, Logger &logger);
-    void checkItemTypes() { doCheckItemTypes(rootItem()); }
+    ProjectTreeBuilder(const SetupProjectParameters &parameters, ItemPool &itemPool,
+                       Evaluator &evaluator, Logger &logger);
+    ~ProjectTreeBuilder();
 
-    Item *rootItem() const { return m_item; }
+    struct Result
+    {
+        struct ProductInfo
+        {
+            std::vector<ProbeConstPtr> probes;
+            ModulePropertiesPerGroup modulePropertiesSetInGroups;
+            ErrorInfo delayedError;
+        };
+
+        Item *root = nullptr;
+        std::unordered_map<Item *, ProductInfo> productInfos;
+        std::vector<ProbeConstPtr> projectProbes;
+        StoredModuleProviderInfo storedModuleProviderInfo;
+        Set<QString> qbsFiles;
+        QVariantMap profileConfigs;
+    };
+    Result load();
+
+    void setProgressObserver(ProgressObserver *progressObserver);
+    void setSearchPaths(const QStringList &searchPaths);
+    void setOldProjectProbes(const std::vector<ProbeConstPtr> &oldProbes);
+    void setOldProductProbes(const QHash<QString, std::vector<ProbeConstPtr>> &oldProbes);
+    void setLastResolveTime(const FileTime &time);
+    void setStoredProfiles(const QVariantMap &profiles);
+    void setStoredModuleProviderInfo(const StoredModuleProviderInfo &moduleProviderInfo);
 
 private:
-    bool visit(QbsQmlJS::AST::UiProgram *uiProgram) override;
-    bool visit(QbsQmlJS::AST::UiObjectDefinition *ast) override;
-    bool visit(QbsQmlJS::AST::UiPublicMember *ast) override;
-    bool visit(QbsQmlJS::AST::UiScriptBinding *ast) override;
-
-    bool handleBindingRhs(QbsQmlJS::AST::Statement *statement, const JSSourceValuePtr &value);
-    CodeLocation toCodeLocation(const QbsQmlJS::AST::SourceLocation &location) const;
-    void checkDuplicateBinding(Item *item, const QStringList &bindingName,
-            const QbsQmlJS::AST::SourceLocation &sourceLocation);
-    Item *targetItemForBinding(const QStringList &binding, const JSSourceValueConstPtr &value);
-    static void inheritItem(Item *dst, const Item *src);
-    void checkDeprecationStatus(ItemType itemType, const QString &itemName,
-                                const CodeLocation &itemLocation);
-    void doCheckItemTypes(const Item *item);
-
-    ItemReaderVisitorState &m_visitorState;
-    const FileContextPtr m_file;
-    ItemPool * const m_itemPool;
-    Logger &m_logger;
-    QHash<QStringList, QString> m_typeNameToFile;
-    Item *m_item = nullptr;
-    ItemType m_instanceItemType = ItemType::ModuleInstancePlaceholder;
+    class Private;
+    Private * const d;
 };
 
 } // namespace Internal
 } // namespace qbs
-
-#endif // QBS_ITEMREADERASTVISITOR_H

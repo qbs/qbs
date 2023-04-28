@@ -39,11 +39,11 @@
 
 #include "groupshandler.h"
 
-#include "evaluator.h"
-#include "item.h"
 #include "moduleinstantiator.h"
-#include "value.h"
 
+#include <language/evaluator.h>
+#include <language/item.h>
+#include <language/value.h>
 #include <logging/translator.h>
 #include <tools/profiling.h>
 #include <tools/setupprojectparameters.h>

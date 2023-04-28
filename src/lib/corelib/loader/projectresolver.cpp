@@ -39,19 +39,18 @@
 
 #include "projectresolver.h"
 
-#include "artifactproperties.h"
-#include "builtindeclarations.h"
-#include "evaluator.h"
-#include "filecontext.h"
-#include "item.h"
-#include "language.h"
-#include "propertymapinternal.h"
-#include "resolvedfilecontext.h"
-#include "scriptengine.h"
-#include "value.h"
-
 #include <jsextensions/jsextensions.h>
 #include <jsextensions/moduleproperties.h>
+#include <language/artifactproperties.h>
+#include <language/builtindeclarations.h>
+#include <language/evaluator.h>
+#include <language/filecontext.h>
+#include <language/item.h>
+#include <language/language.h>
+#include <language/propertymapinternal.h>
+#include <language/resolvedfilecontext.h>
+#include <language/scriptengine.h>
+#include <language/value.h>
 #include <logging/categories.h>
 #include <logging/translator.h>
 #include <tools/error.h>
