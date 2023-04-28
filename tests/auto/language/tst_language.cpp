@@ -947,6 +947,8 @@ void TestLanguage::erroneousFiles_data()
                "Product.multiplexByQbsProperties.";
     QTest::newRow("invalid-references")
             << "invalid-references.qbs:2:17.*Cannot open '.*nosuchproject.qbs'";
+    QTest::newRow("missing-js-file")
+            << "missing-js-file-module.qbs.*Cannot open '.*javascriptfile.js'";
 }
 
 void TestLanguage::erroneousFiles()
