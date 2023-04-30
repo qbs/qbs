@@ -629,17 +629,17 @@ jobs:
             toolchain: 'clang_64',
             xcodeVersion: '14.2',
             testProfile: 'xcode_14_2-macosx-x86_64',
-            qtVersion: '5.15.2',
+            qtVersion: '6.5.0',
             script: './scripts/test-qbs.sh',
           }
         - {
-            name: 'Run macOS tests (Xcode 14.2, Qt 6.3)',
+            name: 'Run macOS tests (Xcode 14.2, Qt 5.15)',
             runner: 'macos-12',
             target: 'desktop',
             toolchain: 'clang_64',
             xcodeVersion: '14.2',
             testProfile: 'xcode_14_2-macosx-x86_64',
-            qtVersion: '6.3.1',
+            qtVersion: '5.15.2',
             script: './scripts/test-qt.sh',
           }
         - {
@@ -649,7 +649,7 @@ jobs:
             toolchain: 'ios',
             xcodeVersion: '14.2',
             testProfile: 'xcode_14_1-iphoneos-arm64',
-            qtVersion: '5.15.2',
+            qtVersion: '6.3.2',
             script: './scripts/test-qbs.sh',
           }
         - {
@@ -659,7 +659,7 @@ jobs:
             toolchain: 'ios',
             xcodeVersion: '14.2',
             testProfile: 'xcode_14_1-iphonesimulator-x86_64',
-            qtVersion: '5.15.2',
+            qtVersion: '6.3.2',
             script: './scripts/test-qbs.sh',
           }
         - {
@@ -669,7 +669,7 @@ jobs:
             toolchain: 'clang_64',
             xcodeVersion: '13.4.1',
             testProfile: 'xcode_13_4_1-macosx-x86_64',
-            qtVersion: '5.15.2',
+            qtVersion: '6.5.0',
             script: './scripts/test-qbs.sh',
           }
 
@@ -680,7 +680,7 @@ jobs:
             toolchain: 'clang_64',
             xcodeVersion: '12.5.1',
             testProfile: 'xcode_12_5_1-macosx-x86_64',
-            qtVersion: '5.15.2',
+            qtVersion: '6.5.0',
             script: './scripts/test-qbs.sh',
           }
     steps:
@@ -696,6 +696,13 @@ jobs:
       run: echo "./release/install-root/usr/local/bin" >> $GITHUB_PATH
     - name: Install required packages
       run: brew install capnp ccache grpc icoutils makensis protobuf p7zip
+    - name: Install Host Qt
+      if: matrix.config.toolchain == 'ios'
+      uses: ./.github/actions/download-qt
+      with:
+        target: 'desktop'
+        toolchain: 'clang_64'
+        version: ${{ matrix.config.qtVersion }}
     - name: Install Qt
       uses: ./.github/actions/download-qt
       with:
