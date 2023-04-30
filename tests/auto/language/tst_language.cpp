@@ -1566,25 +1566,20 @@ void TestLanguage::invalidOverrides_data()
 class JSSourceValueCreator
 {
     FileContextPtr m_fileContext;
-    QList<QString *> m_strings;
+    std::vector<std::unique_ptr<QString>> m_strings;
 public:
     JSSourceValueCreator(const FileContextPtr &fileContext)
         : m_fileContext(fileContext)
     {
     }
 
-    ~JSSourceValueCreator()
-    {
-        qDeleteAll(m_strings);
-    }
-
     JSSourceValuePtr create(const QString &sourceCode)
     {
         JSSourceValuePtr value = JSSourceValue::create();
         value->setFile(m_fileContext);
-        const auto str = new QString(sourceCode);
-        m_strings.push_back(str);
-        value->setSourceCode(*str);
+        auto str = std::make_unique<QString>(sourceCode);
+        value->setSourceCode(*str.get());
+        m_strings.push_back(std::move(str));
         return value;
     }
 };
