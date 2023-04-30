@@ -623,41 +623,41 @@ jobs:
       matrix:
         config:
         - {
-            name: 'Run macOS tests (Xcode 14.1)',
+            name: 'Run macOS tests (Xcode 14.2)',
             runner: 'macos-12',
             target: 'desktop',
             toolchain: 'clang_64',
-            xcodeVersion: '14.1',
-            testProfile: 'xcode_14_1-macosx-x86_64',
+            xcodeVersion: '14.2',
+            testProfile: 'xcode_14_2-macosx-x86_64',
             qtVersion: '5.15.2',
             script: './scripts/test-qbs.sh',
           }
         - {
-            name: 'Run macOS tests (Xcode 14.1, Qt 6.3)',
+            name: 'Run macOS tests (Xcode 14.2, Qt 6.3)',
             runner: 'macos-12',
             target: 'desktop',
             toolchain: 'clang_64',
-            xcodeVersion: '14.1',
-            testProfile: 'xcode_14_1-macosx-x86_64',
+            xcodeVersion: '14.2',
+            testProfile: 'xcode_14_2-macosx-x86_64',
             qtVersion: '6.3.1',
             script: './scripts/test-qt.sh',
           }
         - {
-            name: 'Run iOS tests (Xcode 14.1)',
+            name: 'Run iOS tests (Xcode 14.2)',
             runner: 'macos-12',
             target: 'ios',
             toolchain: 'ios',
-            xcodeVersion: '14.1',
+            xcodeVersion: '14.2',
             testProfile: 'xcode_14_1-iphoneos-arm64',
             qtVersion: '5.15.2',
             script: './scripts/test-qbs.sh',
           }
         - {
-            name: 'Run iOS-sim tests (Xcode 14.1)',
+            name: 'Run iOS-sim tests (Xcode 14.2)',
             runner: 'macos-12',
             target: 'ios',
             toolchain: 'ios',
-            xcodeVersion: '14.1',
+            xcodeVersion: '14.2',
             testProfile: 'xcode_14_1-iphonesimulator-x86_64',
             qtVersion: '5.15.2',
             script: './scripts/test-qbs.sh',
