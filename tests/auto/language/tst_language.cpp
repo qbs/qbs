@@ -1584,7 +1584,7 @@ public:
         value->setFile(m_fileContext);
         const auto str = new QString(sourceCode);
         m_strings.push_back(str);
-        value->setSourceCode(QStringRef(str));
+        value->setSourceCode(*str);
         return value;
     }
 };
