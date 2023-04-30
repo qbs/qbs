@@ -150,7 +150,7 @@ void XcodeProbe::detectDeveloperPaths()
     if (!selectedXcode.waitForFinished(-1) || selectedXcode.exitCode()) {
         qbsInfo() << Tr::tr("Could not detect selected Xcode with /usr/bin/xcode-select");
     } else {
-        QString path = QString::fromLocal8Bit(selectedXcode.readAllStandardOutput());
+        QString path = QString::fromLocal8Bit(selectedXcode.readAllStandardOutput().trimmed());
         addDeveloperPath(path);
     }
     addDeveloperPath(defaultDeveloperPath);
