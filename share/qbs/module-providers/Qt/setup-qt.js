@@ -768,9 +768,11 @@ function doSetupLibraries(modInfo, qtProps, debugBuild, nonExistingPrlFiles, and
             var parts = extractPaths(line.slice(equalsOffset + 1).trim(), prlFilePath);
             for (i = 0; i < parts.length; ++i) {
                 var part = parts[i];
+                var defaultInstallPrefix = "/Users/qt/work/qt/qtbase/build/target";
                 part = part.replace("$$[QT_INSTALL_LIBS]", qtProps.libraryPath);
                 part = part.replace("$$[QT_INSTALL_PLUGINS]", qtProps.pluginPath);
                 part = part.replace("$$[QT_INSTALL_PREFIX]", qtProps.installPrefixPath);
+                part = part.replace(defaultInstallPrefix, qtProps.installPrefixPath);
                 if (part.startsWith("-l")) {
                     libs.push(part.slice(2));
                 } else if (part.startsWith("-L")) {
