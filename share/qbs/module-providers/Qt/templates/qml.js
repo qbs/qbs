@@ -39,17 +39,32 @@ function getPrlRhs(line)
     return line.split('=')[1].trim();
 }
 
-function getLibsForPlugin(pluginData, buildVariant, targetOS, toolchain, qtLibDir, qtPluginDir,
-                          qtDir)
+function getLibsForPlugin(pluginData, product)
 {
+    var targetOS = product.qbs.targetOS;
+    var toolchain = product.qbs.toolchain;
+    var buildVariant = product.Qt.core.qtBuildVariant;
+    var qtLibDir = product.Qt.core.libPath;
+    var qtPluginDir = product.Qt.core.pluginPath;
+    var qtDir = product.Qt.core.installPrefixPath;
+    var qtQmlPath = product.Qt.qml.qmlPath;
+
     if (!pluginData.path)
         return "";
     var prlFileName = "";
     if (!targetOS.contains("windows"))
         prlFileName += "lib";
     prlFileName += pluginData.plugin;
-    if (buildVariant === "debug" && targetOS.contains("windows"))
-        prlFileName += "d";
+    if (buildVariant === "debug") {
+        if (targetOS.contains("windows")) {
+            prlFileName += "d";
+        } else if (product.Qt.core.versionMajor >= 6 &&
+                   (targetOS.contains("ios")
+                    || targetOS.contains("tvos")
+                    || targetOS.contains("watchos"))) {
+            prlFileName += "_debug";
+        }
+    }
     prlFileName += ".prl";
     var prlFilePath = FileInfo.joinPaths(pluginData.path, prlFileName);
     if (!File.exists(prlFilePath)) {
@@ -77,6 +92,7 @@ function getLibsForPlugin(pluginData, buildVariant, targetOS, toolchain, qtLibDi
                 otherLibsLine = otherLibsLine.replace(/\$\$\[QT_INSTALL_LIBS\]/g, qtLibDir);
                 otherLibsLine = otherLibsLine.replace(/\$\$\[QT_INSTALL_PLUGINS\]/g, qtPluginDir);
                 otherLibsLine = otherLibsLine.replace(/\$\$\[QT_INSTALL_PREFIX\]/g, qtDir);
+                otherLibsLine = otherLibsLine.replace(/\$\$\[QT_INSTALL_QML\]/g, qtQmlPath);
                 otherLibs = otherLibs.concat(otherLibsLine.split(' '));
             }
         }
