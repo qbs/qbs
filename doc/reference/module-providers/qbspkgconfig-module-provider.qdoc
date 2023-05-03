@@ -116,9 +116,7 @@
 
     If set to true, dependencies are merged by pkg-config meaning each generated module
     is self-contained and does not depend on other modules. If set to false, generated modules
-    may depend on other modules and property merging is done by \QBS. The latter approach gives
-    \QBS more information about dependencies, but may have performance implications during resolve
-    phase, e.g. when using ABSEIL library.
+    may depend on other modules and property merging is done by \QBS.
 
-    \defaultvalue \c true
+    \defaultvalue \c false
 */

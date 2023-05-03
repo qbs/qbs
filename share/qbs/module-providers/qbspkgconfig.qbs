@@ -58,7 +58,8 @@ ModuleProvider {
     property path sysroot: qbs.toolchain && qbs.toolchain.includes("xcode")
                            ? undefined : qbs.sysroot
 
-    property bool mergeDependencies: true
+    // TODO: deprecate in 2.2, remove in 2.3
+    property bool mergeDependencies: false
 
     relativeSearchPaths: {
 
