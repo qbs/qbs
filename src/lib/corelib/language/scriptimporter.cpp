@@ -142,10 +142,11 @@ JSValue ScriptImporter::importSourceCode(const QString &sourceCode, const QStrin
         code = QLatin1String("(function(){\n") + sourceCode + extractor.suffix();
     }
 
-    JSValue result = m_engine->evaluate(JsValueOwner::Caller, code, filePath, 0);
+    ScopedJsValue result(m_engine->context(),
+                         m_engine->evaluate(JsValueOwner::Caller, code, filePath, 0));
     throwOnEvaluationError(m_engine, [&filePath] () { return CodeLocation(filePath, 0); });
     copyProperties(m_engine->context(), result, targetObject);
-    return result;
+    return result.release();
 }
 
 void ScriptImporter::copyProperties(JSContext *ctx, const JSValue &src, JSValue &dst)

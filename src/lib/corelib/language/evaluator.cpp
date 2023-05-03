@@ -268,9 +268,9 @@ Evaluator::FileContextScopes Evaluator::fileContextScopes(const FileContextConst
     }
     if (!JS_IsObject(result.importScope)) {
         try {
-            result.importScope = m_scriptEngine->newObject();
-            setupScriptEngineForFile(m_scriptEngine, file, result.importScope,
-                                     ObserveMode::Enabled);
+            ScopedJsValue importScope(m_scriptEngine->context(), m_scriptEngine->newObject());
+            setupScriptEngineForFile(m_scriptEngine, file, importScope, ObserveMode::Enabled);
+            result.importScope = importScope.release();
         } catch (const ErrorInfo &e) {
             result.importScope = throwError(m_scriptEngine->context(), e.toString());
         }
