@@ -170,13 +170,7 @@ QtModule {
                         }
                         if (cppFile)
                             cppFile.writeLine("Q_IMPORT_PLUGIN(" + className + ")");
-                        var libs = Qml.getLibsForPlugin(scannerData[p],
-                                                        product.Qt.core.qtBuildVariant,
-                                                        product.qbs.targetOS,
-                                                        product.qbs.toolchain,
-                                                        product.Qt.core.libPath,
-                                                        product.Qt.core.pluginPath,
-                                                        product.Qt.core.installPrefixPath);
+                        var libs = Qml.getLibsForPlugin(scannerData[p], product);
                         for (var i = 0; i < libs.length; ++i) {
                             var lib = libs[i];
                             if (!lib.endsWith(product.cpp.objectSuffix)
