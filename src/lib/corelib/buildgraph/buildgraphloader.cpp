@@ -340,7 +340,6 @@ void BuildGraphLoader::trackProjectChanges()
     if (!m_parameters.overrideBuildGraphData())
         m_parameters.setEnvironment(restoredProject->environment);
     Loader ldr(m_evalContext->engine(), m_logger);
-    ldr.setSearchPaths(m_parameters.searchPaths());
     ldr.setProgressObserver(m_evalContext->observer());
     ldr.setOldProjectProbes(restoredProject->probes);
     if (!m_parameters.forceProbeExecution())

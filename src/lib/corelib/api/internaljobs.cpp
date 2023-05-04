@@ -325,7 +325,6 @@ void InternalSetupProjectJob::execute()
 void InternalSetupProjectJob::resolveProjectFromScratch(ScriptEngine *engine)
 {
     Loader loader(engine, logger());
-    loader.setSearchPaths(m_parameters.searchPaths());
     loader.setProgressObserver(observer());
     m_newProject = loader.loadProject(m_parameters);
     QBS_CHECK(m_newProject);

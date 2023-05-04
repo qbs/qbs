@@ -74,21 +74,6 @@ void Loader::setProgressObserver(ProgressObserver *observer)
     m_progressObserver = observer;
 }
 
-void Loader::setSearchPaths(const QStringList &_searchPaths)
-{
-    QStringList searchPaths;
-    for (const QString &searchPath : _searchPaths) {
-        if (!FileInfo::exists(searchPath)) {
-            m_logger.qbsWarning() << Tr::tr("Search path '%1' does not exist.")
-                    .arg(QDir::toNativeSeparators(searchPath));
-        } else {
-            searchPaths += searchPath;
-        }
-    }
-
-    m_searchPaths = searchPaths;
-}
-
 void Loader::setOldProjectProbes(const std::vector<ProbeConstPtr> &oldProbes)
 {
     m_oldProjectProbes = oldProbes;
@@ -153,7 +138,6 @@ TopLevelProjectPtr Loader::loadProject(const SetupProjectParameters &_parameters
     ItemPool pool;
     ProjectTreeBuilder projectTreeBuilder(parameters, pool, evaluator, m_logger);
     projectTreeBuilder.setProgressObserver(m_progressObserver);
-    projectTreeBuilder.setSearchPaths(m_searchPaths);
     projectTreeBuilder.setOldProjectProbes(m_oldProjectProbes);
     projectTreeBuilder.setOldProductProbes(m_oldProductProbes);
     projectTreeBuilder.setLastResolveTime(m_lastResolveTime);

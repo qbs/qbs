@@ -49,6 +49,7 @@
 #include <memory>
 
 namespace qbs {
+class SetupProjectParameters;
 namespace Internal {
 class Evaluator;
 class Item;
@@ -67,11 +68,10 @@ class ItemReaderVisitorState;
 class ItemReader
 {
 public:
-    ItemReader(Logger &logger);
+    ItemReader(const SetupProjectParameters &parameters, Logger &logger);
     ~ItemReader();
 
     void setPool(ItemPool *pool) { m_pool = pool; }
-    void setSearchPaths(const QStringList &searchPaths);
     void pushExtraSearchPaths(const QStringList &extraSearchPaths);
     void popExtraSearchPaths();
     const std::vector<QStringList> &extraSearchPathsStack() const;
@@ -86,12 +86,10 @@ public:
 
     Set<QString> filesRead() const;
 
-    void setEnableTiming(bool on);
     qint64 elapsedTime() const { return m_elapsedTime; }
 
-    void setDeprecationWarningMode(DeprecationWarningMode mode);
-
 private:
+    void setSearchPaths(const QStringList &searchPaths);
     Item *readFile(const QString &filePath);
     Item *readFile(const QString &filePath, const CodeLocation &referencingLocation);
     void handlePropertyOptions(Item *optionsItem, Evaluator &evaluator);

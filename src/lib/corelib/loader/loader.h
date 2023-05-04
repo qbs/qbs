@@ -60,7 +60,6 @@ public:
     Loader(ScriptEngine *engine, Logger logger);
 
     void setProgressObserver(ProgressObserver *observer);
-    void setSearchPaths(const QStringList &searchPaths);
     void setOldProjectProbes(const std::vector<ProbeConstPtr> &oldProbes);
     void setOldProductProbes(const QHash<QString, std::vector<ProbeConstPtr>> &oldProbes);
     void setLastResolveTime(const FileTime &time) { m_lastResolveTime = time; }
@@ -74,7 +73,6 @@ private:
     Logger m_logger;
     ProgressObserver *m_progressObserver;
     ScriptEngine * const m_engine;
-    QStringList m_searchPaths;
     std::vector<ProbeConstPtr> m_oldProjectProbes;
     QHash<QString, std::vector<ProbeConstPtr>> m_oldProductProbes;
     StoredModuleProviderInfo m_storedModuleProviderInfo;

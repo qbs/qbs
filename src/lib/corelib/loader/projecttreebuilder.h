@@ -88,7 +88,6 @@ public:
     Result load();
 
     void setProgressObserver(ProgressObserver *progressObserver);
-    void setSearchPaths(const QStringList &searchPaths);
     void setOldProjectProbes(const std::vector<ProbeConstPtr> &oldProbes);
     void setOldProductProbes(const QHash<QString, std::vector<ProbeConstPtr>> &oldProbes);
     void setLastResolveTime(const FileTime &time);

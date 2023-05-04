@@ -282,7 +282,7 @@ public:
     Logger &logger;
     ProgressObserver *progressObserver = nullptr;
     TimingData timingData;
-    ItemReader reader{logger};
+    ItemReader reader{parameters, logger};
     ProbesResolver probesResolver{parameters, evaluator, logger};
     ModuleProviderLoader moduleProviderLoader{parameters, reader, evaluator, probesResolver, logger};
     ModuleLoader moduleLoader{parameters, moduleProviderLoader, reader, evaluator, logger};
@@ -297,7 +297,7 @@ public:
     QVariantMap storedProfiles;
 
     Set<Item *> disabledItems;
-    std::unique_ptr<Settings> settings;
+    Settings settings{parameters.settingsDirectory()};
     Set<QString> projectNamesUsedInOverrides;
     Set<QString> productNamesUsedInOverrides;
     Set<QString> disabledProjects;
@@ -328,24 +328,12 @@ private:
 
 ProjectTreeBuilder::ProjectTreeBuilder(const SetupProjectParameters &parameters, ItemPool &itemPool,
                                        Evaluator &evaluator, Logger &logger)
-    : d(new Private(parameters, itemPool, evaluator, logger))
-{
-    d->reader.setDeprecationWarningMode(parameters.deprecationWarningMode());
-    d->reader.setEnableTiming(parameters.logElapsedTime());
-    d->settings = std::make_unique<Settings>(parameters.settingsDirectory());
-}
-
+    : d(new Private(parameters, itemPool, evaluator, logger)) {}
 ProjectTreeBuilder::~ProjectTreeBuilder() { delete d; }
 
 void ProjectTreeBuilder::setProgressObserver(ProgressObserver *progressObserver)
 {
     d->progressObserver = progressObserver;
-}
-
-void ProjectTreeBuilder::setSearchPaths(const QStringList &searchPaths)
-{
-    d->reader.setSearchPaths(searchPaths);
-    qCDebug(lcModuleLoader) << "initial search paths:" << searchPaths;
 }
 
 void ProjectTreeBuilder::setOldProjectProbes(const std::vector<ProbeConstPtr> &oldProbes)
@@ -685,7 +673,7 @@ void ProjectTreeBuilder::Private::prepareProduct(ProjectContext &projectContext,
     const auto it = projectContext.result->profileConfigs.constFind(productContext.profileName);
     QVariantMap flatConfig;
     if (it == projectContext.result->profileConfigs.constEnd()) {
-        const Profile profile(productContext.profileName, settings.get(), localProfiles.profiles());
+        const Profile profile(productContext.profileName, &settings, localProfiles.profiles());
         if (!profile.exists()) {
             ErrorInfo error(Tr::tr("Profile '%1' does not exist.").arg(profile.name()),
                             productItem->location());

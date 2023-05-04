@@ -45,7 +45,9 @@
 #include <language/evaluator.h>
 #include <language/item.h>
 #include <language/value.h>
+#include <logging/categories.h>
 #include <tools/profiling.h>
+#include <tools/setupprojectparameters.h>
 #include <tools/stringconstants.h>
 #include <tools/stlutils.h>
 
@@ -64,15 +66,19 @@ static void makePathsCanonical(QStringList &paths)
     });
 }
 
-ItemReader::ItemReader(Logger &logger)
+ItemReader::ItemReader(const SetupProjectParameters &parameters, Logger &logger)
     : m_visitorState(std::make_unique<ItemReaderVisitorState>(logger))
 {
+    setSearchPaths(parameters.searchPaths());
+    m_visitorState->setDeprecationWarningMode(parameters.deprecationWarningMode());
+    m_elapsedTime = parameters.logElapsedTime() ? 0 : -1;
 }
 
 ItemReader::~ItemReader() = default;
 
 void ItemReader::setSearchPaths(const QStringList &searchPaths)
 {
+    qCDebug(lcModuleLoader) << "initial search paths:" << searchPaths;
     m_searchPaths = searchPaths;
     makePathsCanonical(m_searchPaths);
     m_allSearchPaths.clear();
@@ -141,16 +147,6 @@ Item *ItemReader::readFile(const QString &filePath, const CodeLocation &referenc
 Set<QString> ItemReader::filesRead() const
 {
     return m_visitorState->filesRead();
-}
-
-void ItemReader::setEnableTiming(bool on)
-{
-    m_elapsedTime = on ? 0 : -1;
-}
-
-void ItemReader::setDeprecationWarningMode(DeprecationWarningMode mode)
-{
-    m_visitorState->setDeprecationWarningMode(mode);
 }
 
 void ItemReader::handlePropertyOptions(Item *optionsItem, Evaluator &evaluator)

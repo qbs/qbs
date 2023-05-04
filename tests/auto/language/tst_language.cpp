@@ -177,12 +177,11 @@ void TestLanguage::initTestCase()
     m_logger = Logger(m_logSink);
     m_engine = ScriptEngine::create(m_logger, EvalContext::PropertyEvaluation);
     loader = new Loader(m_engine.get(), m_logger);
-    loader->setSearchPaths(QStringList()
-                           << (testDataDir() + "/../../../../share/qbs"));
     defaultParameters.setTopLevelProfile(profileName());
     defaultParameters.setConfigurationName("default");
     defaultParameters.expandBuildConfiguration();
     defaultParameters.setEnvironment(QProcessEnvironment::systemEnvironment());
+    defaultParameters.setSearchPaths({testDataDir() + "/../../../../share/qbs"});
     QVERIFY(QFileInfo(m_wildcardsTestDirPath).isAbsolute());
 }
 
