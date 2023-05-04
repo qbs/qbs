@@ -67,6 +67,7 @@
                \li  \l{Generators}
                \li  \l{Multiplexing}
                \li  \l{Custom Modules and Items}
+               \li  \l{Special Property Values}
                \li  \l{Module Providers}
            \endlist
        \li  \l{How-tos}
@@ -1061,6 +1062,7 @@
         \li  \l{Generators}
         \li  \l{Multiplexing}
         \li  \l{Custom Modules and Items}
+        \li  \l{Special Property Values}
         \li  \l{Module Providers}
     \endlist
 
@@ -1649,7 +1651,7 @@
 /*!
     \previouspage multiplexing.html
     \page custom-modules.html
-    \nextpage module-providers.html
+    \nextpage special-property-values.html
 
     \title Custom Modules and Items
 
@@ -1721,6 +1723,163 @@
 
 /*!
     \previouspage custom-modules.html
+    \page special-property-values.html
+    \nextpage module-providers.html
+
+    \title Special Property Values
+
+    Depending on the context, \QBS provides the following special values for use in property
+    bindings and JavaScript code:
+
+    \list
+        \li \l base
+        \li \l exportingProduct
+        \li \l filePath
+        \li \l importingProduct
+        \li \l original
+        \li \l outer
+        \li \l path
+        \li \l product
+        \li \l project
+    \endlist
+
+    \section2 \c base
+    This value is useful when making use of inheritance. It stands for the value of the respective
+    property in the item one level up in the inheritance chain. For instance:
+    \code
+    Product { // defined in MyProduct.qbs
+        Depends { name: "mymodule" }
+        mymodule.someProperty: ["value1"]
+    }
+    ------ some other file ------
+    MyProduct {
+        mymodule.someProperty: base.concat(["value2"]) // => ["value1", "value2"]
+    }
+    \endcode
+
+    \section2 \c exportingProduct
+    Within an \l Export item, you can use the \c exportingProduct variable to refer to
+    the product which defines the Export item:
+
+    \code
+    Product {
+        Export {
+            Depends { name: "cpp" }
+            cpp.includePaths: exportingProduct.sourceDirectory
+        }
+    }
+    \endcode
+
+    \section2 \c filePath
+
+    This value holds the full file path to the \c .qbs file it appears in. This property is
+    rarely used, but might be useful when debugging:
+    \code
+    Product {
+        property bool dummy: {
+            console.info("I'm located at " + filePath);
+        }
+    }
+    \endcode
+
+    \section2 \c importingProduct
+    Within an \l Export item, you can use the \c importingProduct variable to refer to
+    the product that pulls in the resulting module:
+
+    \code
+    Product {
+        Export {
+            Depends { name: "cpp" }
+            cpp.includePaths: importingProduct.buildDirectory
+        }
+    }
+    \endcode
+    Usually, you should use the \l product variable instead for consistency with \l Module items.
+
+    \section2 \c original
+    On the right-hand side of a module property binding, this refers to the value of the property
+    in the module itself (possibly overridden from a profile). Use it to set a module property
+    conditionally:
+    \code
+    Module { // This is mymodule
+        property string aProperty: "z"
+    }
+    ----------
+    Product {
+        Depends { name: "mymodule" }
+        Depends { name: "myothermodule" }
+        // "y" if myothermodule.anotherProperty is "x", "z" otherwise:
+        mymodule.aProperty: myothermodule.anotherProperty === "x" ? "y" : original
+    }
+    \endcode
+
+    \section2 \c outer
+    This value is used in nested items, where it refers to the value of the respective property
+    in the surrounding item. It is only valid in \l{Group} and \l{Properties} items:
+    \code
+    Product {
+        Depends { name: "mymodule" }
+        mymodule.someProperty: ["value1"]
+        Group {
+            name: "special files"
+            files: ["somefile1", "somefile2"]
+            mymodule.someProperty: outer.concat(["value"]) // => ["value1", "value2"]
+        }
+    }
+    \endcode
+
+    \section2 \c path
+
+    This value holds the path to the folder where the \c .qbs file is located. Use it to e.g. add
+    the product's directory to file paths:
+    \code
+    Product {
+        Depends { name: "cpp" }
+        cpp.includePaths: path
+    }
+    \endcode
+
+    \section2 \c product
+
+    This value holds the properties of the product that contains the current item or pulls in the
+    current module:
+    \code
+    Module {
+        Rule {
+            Artifact {
+                fileTags: product.type
+                filePath: {
+                    var result = input.fileName;
+                    // module properties are available as well
+                    if (product.qbs.buildVariant === "debug")
+                        result = result + "_debug";
+                    result = result + ".out";
+                    return result;
+                }
+            }
+        }
+    }
+    \endcode
+    Within the \l Export item, same as \l importingProduct.
+
+    \section2 \c project
+    This value holds the properties of the project that references the current item or pulls in the
+    current module:
+    \code
+    Project {
+        property bool enableProduct: true
+        Product {
+            name: "theProduct"
+            condition: project.enableProduct
+        }
+    }
+    \endcode
+    If the nearest project in the project tree does not have the desired property, \QBS looks it
+    up in the parent project, potentially all the way up to the top-level project.
+*/
+
+/*!
+    \previouspage special-property-values.html
     \page module-providers.html
     \nextpage howtos.html
 

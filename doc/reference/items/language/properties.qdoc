@@ -89,7 +89,7 @@
     }
     \endcode
 
-    In Properties items, one can access the \l{Module#outer}{outer value} of a
+    In Properties items, one can access the \l{Special Property Values#outer}{outer} value of a
     property.
     \code
     Product {

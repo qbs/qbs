@@ -173,60 +173,11 @@
     }
     \endqml
 
-    \section1 Special Property Values
+    \section2 Special Property Values
 
-    For every property defined in a module, \QBS provides the following special
-    built-in values:
-
-    \list
-        \li \l base
-        \li \l original
-        \li \l outer
-    \endlist
-
-    \section2 \c base
-    This value is useful when making use of inheritance. It stands for the value of the respective
-    property in the item one level up in the inheritance chain. For instance:
-    \code
-    Product { // defined in MyProduct.qbs
-        Depends { name: "mymodule" }
-        mymodule.someProperty: ["value1"]
-    }
-    ------ some other file ------
-    MyProduct {
-        mymodule.someProperty: base.concat(["value2"]) // => ["value1", "value2"]
-    }
-    \endcode
-
-    \section2 \c original
-    This is the value of the property in the module itself (possibly overridden from a profile or
-    the command line). Use it to set a module property conditionally:
-    \code
-    Module { // This is mymodule
-        property string aProperty: "z"
-    }
-    ----------
-    Product {
-        Depends { name: "mymodule" }
-        Depends { name: "myothermodule" }
-        mymodule.aProperty: myothermodule.anotherProperty === "x" ? "y" : original // => "y" if myothermodule.anotherProperty is "x", "z" otherwise
-    \endcode
-
-    \section2 \c outer
-    This value is used in nested items, where it refers to the value of the respective property
-    in the surrounding item. It is only valid in \l{Group} and \l{Properties} items:
-    \code
-    Product {
-        Depends { name: "mymodule" }
-        mymodule.someProperty: ["value1"]
-        Group {
-            name: "special files"
-            files: ["somefile1", "somefile2"]
-            mymodule.someProperty: outer.concat(["value"]) // => ["value1", "value2"]
-        }
-    }
-    \endcode
-
+    For every property defined in a module, \QBS provides the special
+    \l{Special Property Values#original}{original} value containing the value of the property in
+    the module itself (possibly overridden from a profile).
 
     \section1 Dependency Parameters
 
