@@ -159,8 +159,7 @@ TopLevelProjectPtr Loader::loadProject(const SetupProjectParameters &_parameters
     projectTreeBuilder.setLastResolveTime(m_lastResolveTime);
     projectTreeBuilder.setStoredProfiles(m_storedProfiles);
     projectTreeBuilder.setStoredModuleProviderInfo(m_storedModuleProviderInfo);
-    const ProjectTreeBuilder::Result loadResult = projectTreeBuilder.load();
-    ProjectResolver resolver(&evaluator, loadResult, std::move(parameters), m_logger);
+    ProjectResolver resolver(parameters, projectTreeBuilder.load(), evaluator, m_logger);
     resolver.setProgressObserver(m_progressObserver);
     TopLevelProjectPtr project = resolver.resolve();
     project->lastStartResolveTime = resolveTime;

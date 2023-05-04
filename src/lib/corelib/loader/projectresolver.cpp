@@ -45,6 +45,7 @@
 #include <language/builtindeclarations.h>
 #include <language/evaluator.h>
 #include <language/filecontext.h>
+#include <language/filetags.h>
 #include <language/item.h>
 #include <language/language.h>
 #include <language/propertymapinternal.h>
@@ -52,6 +53,7 @@
 #include <language/scriptengine.h>
 #include <language/value.h>
 #include <logging/categories.h>
+#include <logging/logger.h>
 #include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/fileinfo.h>
@@ -62,6 +64,7 @@
 #include <tools/scripttools.h>
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
+#include <tools/set.h>
 #include <tools/setupprojectparameters.h>
 #include <tools/stlutils.h>
 #include <tools/stringconstants.h>
@@ -74,6 +77,8 @@
 #include <algorithm>
 #include <memory>
 #include <queue>
+#include <utility>
+#include <vector>
 
 namespace qbs {
 namespace Internal {
@@ -86,7 +91,7 @@ static const FileTag unknownFileTag()
     return tag;
 }
 
-struct ProjectResolver::ProjectContext
+struct ProjectContext
 {
     ProjectContext *parentContext = nullptr;
     ResolvedProjectPtr project;
@@ -96,18 +101,19 @@ struct ProjectResolver::ProjectContext
     ResolvedModulePtr dummyModule;
 };
 
-struct ProjectResolver::ProductContext
+using FileLocations = QHash<std::pair<QString, QString>, CodeLocation>;
+struct ProductContext
 {
     ResolvedProductPtr product;
     QString buildDirectory;
     Item *item = nullptr;
     using ArtifactPropertiesInfo = std::pair<ArtifactPropertiesPtr, std::vector<CodeLocation>>;
     QHash<QStringList, ArtifactPropertiesInfo> artifactPropertiesPerFilter;
-    ProjectResolver::FileLocations sourceArtifactLocations;
+    FileLocations sourceArtifactLocations;
     GroupConstPtr currentGroup;
 };
 
-struct ProjectResolver::ModuleContext
+struct ModuleContext
 {
     ResolvedModulePtr module;
     JobLimits jobLimits;
@@ -115,24 +121,145 @@ struct ProjectResolver::ModuleContext
 
 class CancelException { };
 
-
-ProjectResolver::ProjectResolver(Evaluator *evaluator, ProjectTreeBuilder::Result loadResult,
-        SetupProjectParameters setupParameters, Logger &logger)
-    : m_evaluator(evaluator)
-    , m_logger(logger)
-    , m_engine(m_evaluator->engine())
-    , m_progressObserver(nullptr)
-    , m_setupParams(std::move(setupParameters))
-    , m_loadResult(std::move(loadResult))
+class ProjectResolver::Private
 {
-    QBS_CHECK(FileInfo::isAbsolute(m_setupParams.buildRoot()));
+public:
+    Private(const SetupProjectParameters &setupParameters,
+            ProjectTreeBuilder::Result &&loadResult,
+            Evaluator &evaluator, Logger &logger)
+        : setupParams(setupParameters), loadResult(std::move(loadResult)), evaluator(evaluator),
+          logger(logger), engine(evaluator.engine())
+    {}
+
+    static void applyFileTaggers(const SourceArtifactPtr &artifact,
+                                 const ResolvedProductConstPtr &product);
+    static SourceArtifactPtr createSourceArtifact(
+        const ResolvedProductPtr &rproduct, const QString &fileName, const GroupPtr &group,
+        bool wildcard, const CodeLocation &filesLocation = CodeLocation(),
+        FileLocations *fileLocations = nullptr, ErrorInfo *errorInfo = nullptr);
+    void checkCancelation() const;
+    QString verbatimValue(const ValueConstPtr &value, bool *propertyWasSet = nullptr) const;
+    QString verbatimValue(Item *item, const QString &name, bool *propertyWasSet = nullptr) const;
+    ScriptFunctionPtr scriptFunctionValue(Item *item, const QString &name) const;
+    ResolvedFileContextPtr resolvedFileContext(const FileContextConstPtr &ctx) const;
+    void ignoreItem(Item *item, ProjectContext *projectContext);
+    TopLevelProjectPtr resolveTopLevelProject();
+    void resolveProject(Item *item, ProjectContext *projectContext);
+    void resolveProjectFully(Item *item, ProjectContext *projectContext);
+    void resolveSubProject(Item *item, ProjectContext *projectContext);
+    void resolveProduct(Item *item, ProjectContext *projectContext);
+    void resolveProductFully(Item *item, ProjectContext *projectContext);
+    void resolveModules(const Item *item, ProjectContext *projectContext);
+    void resolveModule(const QualifiedId &moduleName, Item *item, bool isProduct,
+                       const QVariantMap &parameters, JobLimits &jobLimits,
+                       ProjectContext *projectContext);
+    void gatherProductTypes(ResolvedProduct *product, Item *item);
+    QVariantMap resolveAdditionalModuleProperties(const Item *group,
+                                                  const QVariantMap &currentValues);
+    void resolveGroup(Item *item, ProjectContext *projectContext);
+    void resolveGroupFully(Item *item, ProjectContext *projectContext, bool isEnabled);
+    void resolveShadowProduct(Item *item, ProjectContext *);
+    void resolveExport(Item *exportItem, ProjectContext *);
+    std::unique_ptr<ExportedItem> resolveExportChild(const Item *item,
+                                                     const ExportedModule &module);
+    void resolveRule(Item *item, ProjectContext *projectContext);
+    void resolveRuleArtifact(const RulePtr &rule, Item *item);
+    void resolveRuleArtifactBinding(const RuleArtifactPtr &ruleArtifact, Item *item,
+                                    const QStringList &namePrefix,
+                                    QualifiedIdSet *seenBindings);
+    void resolveFileTagger(Item *item, ProjectContext *projectContext);
+    void resolveJobLimit(Item *item, ProjectContext *projectContext);
+    void resolveScanner(Item *item, ProjectContext *projectContext);
+    void resolveProductDependencies();
+    void postProcess(const ResolvedProductPtr &product, ProjectContext *projectContext) const;
+    void applyFileTaggers(const ResolvedProductPtr &product) const;
+    QVariantMap evaluateModuleValues(Item *item, bool lookupPrototype = true);
+    QVariantMap evaluateProperties(Item *item, bool lookupPrototype, bool checkErrors);
+    QVariantMap evaluateProperties(const Item *item, const Item *propertiesContainer,
+                                   const QVariantMap &tmplt, bool lookupPrototype,
+                                   bool checkErrors);
+    void evaluateProperty(const Item *item, const QString &propName, const ValuePtr &propValue,
+                          QVariantMap &result, bool checkErrors);
+    void checkAllowedValues(
+        const QVariant &v, const CodeLocation &loc, const PropertyDeclaration &decl,
+        const QString &key) const;
+    void createProductConfig(ResolvedProduct *product);
+    ProjectContext createProjectContext(ProjectContext *parentProjectContext) const;
+    void adaptExportedPropertyValues(const Item *shadowProductItem);
+    void collectExportedProductDependencies();
+
+    struct ProductDependencyInfo
+    {
+        ProductDependencyInfo(ResolvedProductPtr product,
+                              QVariantMap parameters = QVariantMap())
+            : product(std::move(product)), parameters(std::move(parameters))
+        {
+        }
+
+        ResolvedProductPtr product;
+        QVariantMap parameters;
+    };
+
+    QString sourceCodeAsFunction(const JSSourceValueConstPtr &value,
+                                 const PropertyDeclaration &decl) const;
+    QString sourceCodeForEvaluation(const JSSourceValueConstPtr &value) const;
+    static void matchArtifactProperties(const ResolvedProductPtr &product,
+                                        const std::vector<SourceArtifactPtr> &artifacts);
+    void printProfilingInfo();
+
+    void collectPropertiesForExportItem(Item *productModuleInstance);
+    void collectPropertiesForModuleInExportItem(const Item::Module &module);
+
+    void collectPropertiesForExportItem(const QualifiedId &moduleName,
+                                        const ValuePtr &value, Item *moduleInstance, QVariantMap &moduleProps);
+    void setupExportedProperties(const Item *item, const QString &namePrefix,
+                                 std::vector<ExportedProperty> &properties);
+
+
+    typedef void (ProjectResolver::Private::*ItemFuncPtr)(Item *item,
+                                                          ProjectContext *projectContext);
+    using ItemFuncMap = QMap<ItemType, ItemFuncPtr>;
+    void callItemFunction(const ItemFuncMap &mappings, Item *item, ProjectContext *projectContext);
+
+    const SetupProjectParameters &setupParams;
+    ProjectTreeBuilder::Result loadResult;
+    Evaluator &evaluator;
+    Logger &logger;
+    ScriptEngine * const engine;
+    ProgressObserver *progressObserver = nullptr;
+    ProductContext *productContext = nullptr;
+    ModuleContext *moduleContext = nullptr;
+    QHash<Item *, ResolvedProductPtr> productsByItem;
+    QHash<FileTag, QList<ResolvedProductPtr>> productsByType;
+    QHash<ResolvedProductPtr, Item *> productItemMap;
+    mutable QHash<FileContextConstPtr, ResolvedFileContextPtr> fileContextMap;
+    mutable QHash<CodeLocation, ScriptFunctionPtr> scriptFunctionMap;
+    mutable QHash<std::pair<QStringView, QStringList>, QString> scriptFunctions;
+    mutable QHash<QStringView, QString> sourceCode;
+    Set<CodeLocation> groupLocationWarnings;
+    std::vector<std::pair<ResolvedProductPtr, Item *>> productExportInfo;
+    std::vector<ErrorInfo> queuedErrors;
+    qint64 elapsedTimeModPropEval = 0;
+    qint64 elapsedTimeAllPropEval = 0;
+    qint64 elapsedTimeGroups = 0;
+};
+
+
+ProjectResolver::ProjectResolver(const SetupProjectParameters &setupParameters, ProjectTreeBuilder::Result &&loadResult,
+    Evaluator &evaluator, Logger &logger)
+    : d(new Private(setupParameters, std::move(loadResult), evaluator, logger))
+{
+    QBS_CHECK(FileInfo::isAbsolute(d->setupParams.buildRoot()));
 }
 
-ProjectResolver::~ProjectResolver() = default;
+ProjectResolver::~ProjectResolver()
+{
+    delete d;
+}
 
 void ProjectResolver::setProgressObserver(ProgressObserver *observer)
 {
-    m_progressObserver = observer;
+    d->progressObserver = observer;
 }
 
 static void checkForDuplicateProductNames(const TopLevelProjectConstPtr &project)
@@ -156,31 +283,30 @@ static void checkForDuplicateProductNames(const TopLevelProjectConstPtr &project
 
 TopLevelProjectPtr ProjectResolver::resolve()
 {
-    TimedActivityLogger projectResolverTimer(m_logger, Tr::tr("ProjectResolver"),
-                                             m_setupParams.logElapsedTime());
-    qCDebug(lcProjectResolver) << "resolving" << m_loadResult.root->file()->filePath();
+    TimedActivityLogger projectResolverTimer(d->logger, Tr::tr("ProjectResolver"),
+                                             d->setupParams.logElapsedTime());
+    qCDebug(lcProjectResolver) << "resolving" << d->loadResult.root->file()->filePath();
 
-    m_productContext = nullptr;
-    m_moduleContext = nullptr;
-    m_elapsedTimeModPropEval = m_elapsedTimeAllPropEval = m_elapsedTimeGroups = 0;
     TopLevelProjectPtr tlp;
     try {
-        tlp = resolveTopLevelProject();
-        printProfilingInfo();
+        tlp = d->resolveTopLevelProject();
+        d->printProfilingInfo();
     } catch (const CancelException &) {
         throw ErrorInfo(Tr::tr("Project resolving canceled for configuration '%1'.")
-                    .arg(TopLevelProject::deriveId(m_setupParams.finalBuildConfigurationTree())));
+                            .arg(TopLevelProject::deriveId(
+                                d->setupParams.finalBuildConfigurationTree())));
     }
     return tlp;
 }
 
-void ProjectResolver::checkCancelation() const
+void ProjectResolver::Private::checkCancelation() const
 {
-    if (m_progressObserver && m_progressObserver->canceled())
+    if (progressObserver && progressObserver->canceled())
         throw CancelException();
 }
 
-QString ProjectResolver::verbatimValue(const ValueConstPtr &value, bool *propertyWasSet) const
+QString ProjectResolver::Private::verbatimValue(
+    const ValueConstPtr &value, bool *propertyWasSet) const
 {
     QString result;
     if (value && value->type() == Value::JSSourceValueType) {
@@ -196,12 +322,13 @@ QString ProjectResolver::verbatimValue(const ValueConstPtr &value, bool *propert
     return result;
 }
 
-QString ProjectResolver::verbatimValue(Item *item, const QString &name, bool *propertyWasSet) const
+QString ProjectResolver::Private::verbatimValue(Item *item, const QString &name,
+                                                bool *propertyWasSet) const
 {
     return verbatimValue(item->property(name), propertyWasSet);
 }
 
-void ProjectResolver::ignoreItem(Item *item, ProjectContext *projectContext)
+void ProjectResolver::Private::ignoreItem(Item *item, ProjectContext *projectContext)
 {
     Q_UNUSED(item);
     Q_UNUSED(projectContext);
@@ -230,35 +357,36 @@ static void makeSubProjectNamesUniqe(const ResolvedProjectPtr &parentProject)
     }
 }
 
-TopLevelProjectPtr ProjectResolver::resolveTopLevelProject()
+TopLevelProjectPtr ProjectResolver::Private::resolveTopLevelProject()
 {
-    if (m_progressObserver)
-        m_progressObserver->setMaximum(int(m_loadResult.productInfos.size()));
+    if (progressObserver)
+        progressObserver->setMaximum(int(loadResult.productInfos.size()));
     TopLevelProjectPtr project = TopLevelProject::create();
-    project->buildDirectory = TopLevelProject::deriveBuildDirectory(m_setupParams.buildRoot(),
-            TopLevelProject::deriveId(m_setupParams.finalBuildConfigurationTree()));
-    project->buildSystemFiles = m_loadResult.qbsFiles;
-    project->profileConfigs = m_loadResult.profileConfigs;
-    project->probes = m_loadResult.projectProbes;
-    project->moduleProviderInfo = m_loadResult.storedModuleProviderInfo;
+    project->buildDirectory = TopLevelProject::deriveBuildDirectory(
+        setupParams.buildRoot(),
+        TopLevelProject::deriveId(setupParams.finalBuildConfigurationTree()));
+    project->buildSystemFiles = loadResult.qbsFiles;
+    project->profileConfigs = loadResult.profileConfigs;
+    project->probes = loadResult.projectProbes;
+    project->moduleProviderInfo = loadResult.storedModuleProviderInfo;
     ProjectContext projectContext;
     projectContext.project = project;
 
-    resolveProject(m_loadResult.root, &projectContext);
+    resolveProject(loadResult.root, &projectContext);
     ErrorInfo accumulatedErrors;
-    for (const ErrorInfo &e : m_queuedErrors)
+    for (const ErrorInfo &e : queuedErrors)
         appendError(accumulatedErrors, e);
     if (accumulatedErrors.hasError())
         throw accumulatedErrors;
 
-    project->setBuildConfiguration(m_setupParams.finalBuildConfigurationTree());
-    project->overriddenValues = m_setupParams.overriddenValues();
-    project->canonicalFilePathResults = m_engine->canonicalFilePathResults();
-    project->fileExistsResults = m_engine->fileExistsResults();
-    project->directoryEntriesResults = m_engine->directoryEntriesResults();
-    project->fileLastModifiedResults = m_engine->fileLastModifiedResults();
-    project->environment = m_engine->environment();
-    project->buildSystemFiles.unite(m_engine->imports());
+    project->setBuildConfiguration(setupParams.finalBuildConfigurationTree());
+    project->overriddenValues = setupParams.overriddenValues();
+    project->canonicalFilePathResults = engine->canonicalFilePathResults();
+    project->fileExistsResults = engine->fileExistsResults();
+    project->directoryEntriesResults = engine->directoryEntriesResults();
+    project->fileLastModifiedResults = engine->fileLastModifiedResults();
+    project->environment = engine->environment();
+    project->buildSystemFiles.unite(engine->imports());
     makeSubProjectNamesUniqe(project);
     resolveProductDependencies();
     collectExportedProductDependencies();
@@ -277,11 +405,11 @@ TopLevelProjectPtr ProjectResolver::resolveTopLevelProject()
                 artifact->fileTags += "installable";
         }
     }
-    project->warningsEncountered = m_logger.warnings();
+    project->warningsEncountered = logger.warnings();
     return project;
 }
 
-void ProjectResolver::resolveProject(Item *item, ProjectContext *projectContext)
+void ProjectResolver::Private::resolveProject(Item *item, ProjectContext *projectContext)
 {
     checkCancelation();
 
@@ -296,24 +424,23 @@ void ProjectResolver::resolveProject(Item *item, ProjectContext *projectContext)
                                        << projectContext->project->location << error.toString();
             return;
         }
-        if (m_setupParams.productErrorMode() == ErrorHandlingMode::Strict)
+        if (setupParams.productErrorMode() == ErrorHandlingMode::Strict)
             throw;
-        m_logger.printWarning(error);
+        logger.printWarning(error);
     }
 }
 
-void ProjectResolver::resolveProjectFully(Item *item, ProjectResolver::ProjectContext *projectContext)
+void ProjectResolver::Private::resolveProjectFully(Item *item, ProjectContext *projectContext)
 {
     projectContext->project->enabled = projectContext->project->enabled
-            && m_evaluator->boolValue(item, StringConstants::conditionProperty());
-    projectContext->project->name = m_evaluator->stringValue(item, StringConstants::nameProperty());
+        && evaluator.boolValue(item, StringConstants::conditionProperty());
+    projectContext->project->name = evaluator.stringValue(item, StringConstants::nameProperty());
     if (projectContext->project->name.isEmpty())
         projectContext->project->name = FileInfo::baseName(item->location().filePath()); // FIXME: Must also be changed in item?
     QVariantMap projectProperties;
     if (!projectContext->project->enabled) {
         projectProperties.insert(StringConstants::profileProperty(),
-                                 m_evaluator->stringValue(item,
-                                                          StringConstants::profileProperty()));
+                                 evaluator.stringValue(item, StringConstants::profileProperty()));
         projectContext->project->setProjectProperties(projectProperties);
         return;
     }
@@ -327,27 +454,27 @@ void ProjectResolver::resolveProjectFully(Item *item, ProjectResolver::ProjectCo
             continue;
         const ValueConstPtr v = item->property(it.key());
         QBS_ASSERT(v && v->type() != Value::ItemValueType, continue);
-        const ScopedJsValue sv(m_engine->context(), m_evaluator->value(item, it.key()));
-        projectProperties.insert(it.key(), getJsVariant(m_engine->context(), sv));
+        const ScopedJsValue sv(engine->context(), evaluator.value(item, it.key()));
+        projectProperties.insert(it.key(), getJsVariant(engine->context(), sv));
     }
     projectContext->project->setProjectProperties(projectProperties);
 
     static const ItemFuncMap mapping = {
-        { ItemType::Project, &ProjectResolver::resolveProject },
-        { ItemType::SubProject, &ProjectResolver::resolveSubProject },
-        { ItemType::Product, &ProjectResolver::resolveProduct },
-        { ItemType::Probe, &ProjectResolver::ignoreItem },
-        { ItemType::FileTagger, &ProjectResolver::resolveFileTagger },
-        { ItemType::JobLimit, &ProjectResolver::resolveJobLimit },
-        { ItemType::Rule, &ProjectResolver::resolveRule },
-        { ItemType::PropertyOptions, &ProjectResolver::ignoreItem }
+        { ItemType::Project, &ProjectResolver::Private::resolveProject },
+        { ItemType::SubProject, &ProjectResolver::Private::resolveSubProject },
+        { ItemType::Product, &ProjectResolver::Private::resolveProduct },
+        { ItemType::Probe, &ProjectResolver::Private::ignoreItem },
+        { ItemType::FileTagger, &ProjectResolver::Private::resolveFileTagger },
+        { ItemType::JobLimit, &ProjectResolver::Private::resolveJobLimit },
+        { ItemType::Rule, &ProjectResolver::Private::resolveRule },
+        { ItemType::PropertyOptions, &ProjectResolver::Private::ignoreItem }
     };
 
     for (Item * const child : item->children()) {
         try {
             callItemFunction(mapping, child, projectContext);
         } catch (const ErrorInfo &e) {
-            m_queuedErrors.push_back(e);
+            queuedErrors.push_back(e);
         }
     }
 
@@ -355,7 +482,7 @@ void ProjectResolver::resolveProjectFully(Item *item, ProjectResolver::ProjectCo
         postProcess(product, projectContext);
 }
 
-void ProjectResolver::resolveSubProject(Item *item, ProjectResolver::ProjectContext *projectContext)
+void ProjectResolver::Private::resolveSubProject(Item *item, ProjectContext *projectContext)
 {
     ProjectContext subProjectContext = createProjectContext(projectContext);
 
@@ -369,38 +496,15 @@ void ProjectResolver::resolveSubProject(Item *item, ProjectResolver::ProjectCont
     subProjectContext.project->enabled = false;
     Item * const propertiesItem = item->child(ItemType::PropertiesInSubProject);
     if (propertiesItem) {
-        subProjectContext.project->name
-                = m_evaluator->stringValue(propertiesItem, StringConstants::nameProperty());
+        subProjectContext.project->name = evaluator.stringValue(
+            propertiesItem, StringConstants::nameProperty());
     }
 }
 
-class ProjectResolver::ProductContextSwitcher
-{
-public:
-    ProductContextSwitcher(ProjectResolver *resolver, ProductContext *newContext,
-                           ProgressObserver *progressObserver)
-        : m_resolver(resolver), m_progressObserver(progressObserver)
-    {
-        QBS_CHECK(!m_resolver->m_productContext);
-        m_resolver->m_productContext = newContext;
-    }
-
-    ~ProductContextSwitcher()
-    {
-        if (m_progressObserver)
-            m_progressObserver->incrementProgressValue();
-        m_resolver->m_productContext = nullptr;
-    }
-
-private:
-    ProjectResolver * const m_resolver;
-    ProgressObserver * const m_progressObserver;
-};
-
-void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
+void ProjectResolver::Private::resolveProduct(Item *item, ProjectContext *projectContext)
 {
     checkCancelation();
-    m_evaluator->clearPropertyDependencies();
+    evaluator.clearPropertyDependencies();
     ProductContext productContext;
     productContext.item = item;
     ResolvedProductPtr product = ResolvedProduct::create();
@@ -409,9 +513,25 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
     product->project = projectContext->project;
     productContext.product = product;
     product->location = item->location();
-    ProductContextSwitcher contextSwitcher(this, &productContext, m_progressObserver);
+    class ProductContextSwitcher {
+    public:
+        ProductContextSwitcher(ProjectResolver::Private &resolver, ProductContext &newContext,
+                               ProgressObserver *progressObserver)
+            : m_resolver(resolver), m_progressObserver(progressObserver) {
+            QBS_CHECK(!m_resolver.productContext);
+            m_resolver.productContext = &newContext;
+        }
+        ~ProductContextSwitcher() {
+            if (m_progressObserver)
+                m_progressObserver->incrementProgressValue();
+            m_resolver.productContext = nullptr;
+        }
+    private:
+        ProjectResolver::Private &m_resolver;
+        ProgressObserver * const m_progressObserver;
+    } contextSwitcher(*this, productContext, progressObserver);
     const auto errorFromDelayedError = [&] {
-        ProjectTreeBuilder::Result::ProductInfo &pi = m_loadResult.productInfos[item];
+        ProjectTreeBuilder::Result::ProductInfo &pi = loadResult.productInfos[item];
         if (pi.delayedError.hasError()) {
             ErrorInfo errorInfo;
 
@@ -445,41 +565,41 @@ void ProjectResolver::resolveProduct(Item *item, ProjectContext *projectContext)
             qCDebug(lcProjectResolver) << fullError.toString();
             return;
         }
-        if (m_setupParams.productErrorMode() == ErrorHandlingMode::Strict)
+        if (setupParams.productErrorMode() == ErrorHandlingMode::Strict)
             throw fullError;
-        m_logger.printWarning(fullError);
-        m_logger.printWarning(ErrorInfo(Tr::tr("Product '%1' had errors and was disabled.")
-                                        .arg(product->name), item->location()));
+        logger.printWarning(fullError);
+        logger.printWarning(ErrorInfo(Tr::tr("Product '%1' had errors and was disabled.")
+                                          .arg(product->name), item->location()));
         product->enabled = false;
     }
 }
 
-void ProjectResolver::resolveProductFully(Item *item, ProjectContext *projectContext)
+void ProjectResolver::Private::resolveProductFully(Item *item, ProjectContext *projectContext)
 {
-    const ResolvedProductPtr product = m_productContext->product;
-    m_productItemMap.insert(product, item);
+    const ResolvedProductPtr product = productContext->product;
+    productItemMap.insert(product, item);
     projectContext->project->products.push_back(product);
-    product->name = m_evaluator->stringValue(item, StringConstants::nameProperty());
+    product->name = evaluator.stringValue(item, StringConstants::nameProperty());
 
     // product->buildDirectory() isn't valid yet, because the productProperties map is not ready.
-    m_productContext->buildDirectory
-            = m_evaluator->stringValue(item, StringConstants::buildDirectoryProperty());
+    productContext->buildDirectory
+        = evaluator.stringValue(item, StringConstants::buildDirectoryProperty());
     product->multiplexConfigurationId
-            = m_evaluator->stringValue(item, StringConstants::multiplexConfigurationIdProperty());
+        = evaluator.stringValue(item, StringConstants::multiplexConfigurationIdProperty());
     qCDebug(lcProjectResolver) << "resolveProduct" << product->uniqueName();
-    m_productsByItem.insert(item, product);
+    productsByItem.insert(item, product);
     product->enabled = product->enabled
-            && m_evaluator->boolValue(item, StringConstants::conditionProperty());
-    ProjectTreeBuilder::Result::ProductInfo &pi = m_loadResult.productInfos[item];
+                       && evaluator.boolValue(item, StringConstants::conditionProperty());
+    ProjectTreeBuilder::Result::ProductInfo &pi = loadResult.productInfos[item];
     gatherProductTypes(product.get(), item);
-    product->targetName = m_evaluator->stringValue(item, StringConstants::targetNameProperty());
-    product->sourceDirectory = m_evaluator->stringValue(
+    product->targetName = evaluator.stringValue(item, StringConstants::targetNameProperty());
+    product->sourceDirectory = evaluator.stringValue(
                 item, StringConstants::sourceDirectoryProperty());
-    product->destinationDirectory = m_evaluator->stringValue(
+    product->destinationDirectory = evaluator.stringValue(
                 item, StringConstants::destinationDirProperty());
 
     if (product->destinationDirectory.isEmpty()) {
-        product->destinationDirectory = m_productContext->buildDirectory;
+        product->destinationDirectory = productContext->buildDirectory;
     } else {
         product->destinationDirectory = FileInfo::resolvePath(
                     product->topLevelProject()->buildDirectory,
@@ -489,7 +609,7 @@ void ProjectResolver::resolveProductFully(Item *item, ProjectContext *projectCon
     createProductConfig(product.get());
     product->productProperties.insert(StringConstants::destinationDirProperty(),
                                       product->destinationDirectory);
-    ModuleProperties::init(m_evaluator->engine(), m_evaluator->scriptValue(item), product.get());
+    ModuleProperties::init(evaluator.engine(), evaluator.scriptValue(item), product.get());
 
     QList<Item *> subItems = item->children();
     const ValuePtr filesProperty = item->property(StringConstants::filesProperty());
@@ -504,20 +624,20 @@ void ProjectResolver::resolveProductFully(Item *item, ProjectContext *projectCon
                                item->property(StringConstants::excludeFilesProperty()));
         fakeGroup->setProperty(StringConstants::overrideTagsProperty(),
                                VariantValue::falseValue());
-        fakeGroup->setupForBuiltinType(m_setupParams.deprecationWarningMode(), m_logger);
+        fakeGroup->setupForBuiltinType(setupParams.deprecationWarningMode(), logger);
         subItems.prepend(fakeGroup);
     }
 
     static const ItemFuncMap mapping = {
-        { ItemType::Depends, &ProjectResolver::ignoreItem },
-        { ItemType::Rule, &ProjectResolver::resolveRule },
-        { ItemType::FileTagger, &ProjectResolver::resolveFileTagger },
-        { ItemType::JobLimit, &ProjectResolver::resolveJobLimit },
-        { ItemType::Group, &ProjectResolver::resolveGroup },
-        { ItemType::Product, &ProjectResolver::resolveShadowProduct },
-        { ItemType::Export, &ProjectResolver::resolveExport },
-        { ItemType::Probe, &ProjectResolver::ignoreItem },
-        { ItemType::PropertyOptions, &ProjectResolver::ignoreItem }
+        { ItemType::Depends, &ProjectResolver::Private::ignoreItem },
+        { ItemType::Rule, &ProjectResolver::Private::resolveRule },
+        { ItemType::FileTagger, &ProjectResolver::Private::resolveFileTagger },
+        { ItemType::JobLimit, &ProjectResolver::Private::resolveJobLimit },
+        { ItemType::Group, &ProjectResolver::Private::resolveGroup },
+        { ItemType::Product, &ProjectResolver::Private::resolveShadowProduct },
+        { ItemType::Export, &ProjectResolver::Private::resolveExport },
+        { ItemType::Probe, &ProjectResolver::Private::ignoreItem },
+        { ItemType::PropertyOptions, &ProjectResolver::Private::ignoreItem }
     };
 
     for (Item * const child : qAsConst(subItems))
@@ -531,10 +651,10 @@ void ProjectResolver::resolveProductFully(Item *item, ProjectContext *projectCon
     resolveModules(item, projectContext);
 
     for (const FileTag &t : qAsConst(product->fileTags))
-        m_productsByType[t].push_back(product);
+        productsByType[t].push_back(product);
 }
 
-void ProjectResolver::resolveModules(const Item *item, ProjectContext *projectContext)
+void ProjectResolver::Private::resolveModules(const Item *item, ProjectContext *projectContext)
 {
     JobLimits jobLimits;
     for (const Item::Module &m : item->modules()) {
@@ -543,28 +663,28 @@ void ProjectResolver::resolveModules(const Item *item, ProjectContext *projectCo
     }
     for (int i = 0; i < jobLimits.count(); ++i) {
         const JobLimit &moduleJobLimit = jobLimits.jobLimitAt(i);
-        if (m_productContext->product->jobLimits.getLimit(moduleJobLimit.pool()) == -1)
-            m_productContext->product->jobLimits.setJobLimit(moduleJobLimit);
+        if (productContext->product->jobLimits.getLimit(moduleJobLimit.pool()) == -1)
+            productContext->product->jobLimits.setJobLimit(moduleJobLimit);
     }
 }
 
-void ProjectResolver::resolveModule(const QualifiedId &moduleName, Item *item, bool isProduct,
-                                    const QVariantMap &parameters, JobLimits &jobLimits,
-                                    ProjectContext *projectContext)
+void ProjectResolver::Private::resolveModule(
+    const QualifiedId &moduleName, Item *item, bool isProduct, const QVariantMap &parameters,
+    JobLimits &jobLimits, ProjectContext *projectContext)
 {
     checkCancelation();
     if (!item->isPresentModule())
         return;
 
-    ModuleContext * const oldModuleContext = m_moduleContext;
-    ModuleContext moduleContext;
-    moduleContext.module = ResolvedModule::create();
-    m_moduleContext = &moduleContext;
+    ModuleContext * const oldModuleContext = moduleContext;
+    ModuleContext newModuleContext;
+    newModuleContext.module = ResolvedModule::create();
+    moduleContext = &newModuleContext;
 
-    const ResolvedModulePtr &module = moduleContext.module;
+    const ResolvedModulePtr &module = newModuleContext.module;
     module->name = moduleName.toString();
     module->isProduct = isProduct;
-    module->product = m_productContext->product.get();
+    module->product = productContext->product.get();
     module->setupBuildEnvironmentScript.initialize(
                 scriptFunctionValue(item, StringConstants::setupBuildEnvironmentProperty()));
     module->setupRunEnvironmentScript.initialize(
@@ -575,45 +695,45 @@ void ProjectResolver::resolveModule(const QualifiedId &moduleName, Item *item, b
             module->moduleDependencies += m.name.toString();
     }
 
-    m_productContext->product->modules.push_back(module);
+    productContext->product->modules.push_back(module);
     if (!parameters.empty())
-        m_productContext->product->moduleParameters[module] = parameters;
+        productContext->product->moduleParameters[module] = parameters;
 
     static const ItemFuncMap mapping {
-        { ItemType::Group, &ProjectResolver::ignoreItem },
-        { ItemType::Rule, &ProjectResolver::resolveRule },
-        { ItemType::FileTagger, &ProjectResolver::resolveFileTagger },
-        { ItemType::JobLimit, &ProjectResolver::resolveJobLimit },
-        { ItemType::Scanner, &ProjectResolver::resolveScanner },
-        { ItemType::PropertyOptions, &ProjectResolver::ignoreItem },
-        { ItemType::Depends, &ProjectResolver::ignoreItem },
-        { ItemType::Parameter, &ProjectResolver::ignoreItem },
-        { ItemType::Properties, &ProjectResolver::ignoreItem },
-        { ItemType::Probe, &ProjectResolver::ignoreItem }
+        { ItemType::Group, &ProjectResolver::Private::ignoreItem },
+        { ItemType::Rule, &ProjectResolver::Private::resolveRule },
+        { ItemType::FileTagger, &ProjectResolver::Private::resolveFileTagger },
+        { ItemType::JobLimit, &ProjectResolver::Private::resolveJobLimit },
+        { ItemType::Scanner, &ProjectResolver::Private::resolveScanner },
+        { ItemType::PropertyOptions, &ProjectResolver::Private::ignoreItem },
+        { ItemType::Depends, &ProjectResolver::Private::ignoreItem },
+        { ItemType::Parameter, &ProjectResolver::Private::ignoreItem },
+        { ItemType::Properties, &ProjectResolver::Private::ignoreItem },
+        { ItemType::Probe, &ProjectResolver::Private::ignoreItem }
     };
     for (Item *child : item->children())
         callItemFunction(mapping, child, projectContext);
-    for (int i = 0; i < moduleContext.jobLimits.count(); ++i) {
-        const JobLimit &newJobLimit = moduleContext.jobLimits.jobLimitAt(i);
+    for (int i = 0; i < newModuleContext.jobLimits.count(); ++i) {
+        const JobLimit &newJobLimit = newModuleContext.jobLimits.jobLimitAt(i);
         const int oldLimit = jobLimits.getLimit(newJobLimit.pool());
         if (oldLimit == -1 || oldLimit > newJobLimit.limit())
             jobLimits.setJobLimit(newJobLimit);
     }
 
-    m_moduleContext = oldModuleContext;
+    moduleContext = oldModuleContext; // FIXME: Exception safety
 }
 
-void ProjectResolver::gatherProductTypes(ResolvedProduct *product, Item *item)
+void ProjectResolver::Private::gatherProductTypes(ResolvedProduct *product, Item *item)
 {
     const VariantValuePtr type = item->variantProperty(StringConstants::typeProperty());
     if (type)
         product->fileTags = FileTags::fromStringList(type->value().toStringList());
 }
 
-SourceArtifactPtr ProjectResolver::createSourceArtifact(const ResolvedProductPtr &rproduct,
-        const QString &fileName, const GroupPtr &group, bool wildcard,
-        const CodeLocation &filesLocation, FileLocations *fileLocations,
-        ErrorInfo *errorInfo)
+SourceArtifactPtr ProjectResolver::Private::createSourceArtifact(
+    const ResolvedProductPtr &rproduct, const QString &fileName, const GroupPtr &group,
+    bool wildcard, const CodeLocation &filesLocation, FileLocations *fileLocations,
+    ErrorInfo *errorInfo)
 {
     const QString &baseDir = FileInfo::path(group->location.filePath());
     const QString absFilePath = QDir::cleanPath(FileInfo::resolvePath(baseDir, fileName));
@@ -661,12 +781,12 @@ static QualifiedIdSet propertiesToEvaluate(std::deque<QualifiedId> initialProps,
     return allProperties;
 }
 
-QVariantMap ProjectResolver::resolveAdditionalModuleProperties(const Item *group,
-                                                               const QVariantMap &currentValues)
+QVariantMap ProjectResolver::Private::resolveAdditionalModuleProperties(
+    const Item *group, const QVariantMap &currentValues)
 {
     // Step 1: Retrieve the properties directly set in the group
     const ModulePropertiesPerGroup &mp = mapValue(
-            m_loadResult.productInfos, m_productContext->item).modulePropertiesSetInGroups;
+            loadResult.productInfos, productContext->item).modulePropertiesSetInGroups;
     const auto it = mp.find(group);
     if (it == mp.end())
         return {};
@@ -674,8 +794,8 @@ QVariantMap ProjectResolver::resolveAdditionalModuleProperties(const Item *group
 
     // Step 2: Gather all properties that depend on these properties.
     const QualifiedIdSet &propsToEval = propertiesToEvaluate(
-            rangeTo<std::deque<QualifiedId>>(propsSetInGroup),
-            m_evaluator->propertyDependencies());
+        rangeTo<std::deque<QualifiedId>>(propsSetInGroup),
+        evaluator.propertyDependencies());
 
     // Step 3: Evaluate all these properties and replace their values in the map
     QVariantMap modulesMap = currentValues;
@@ -685,7 +805,7 @@ QVariantMap ProjectResolver::resolveAdditionalModuleProperties(const Item *group
                 = QualifiedId(fullPropName.mid(0, fullPropName.size() - 1)).toString();
         propsPerModule[moduleName] << fullPropName.last();
     }
-    EvalCacheEnabler cachingEnabler(m_evaluator, m_productContext->product->sourceDirectory);
+    EvalCacheEnabler cachingEnabler(&evaluator, productContext->product->sourceDirectory);
     for (const Item::Module &module : group->modules()) {
         const QString &fullModName = module.name.toString();
         const QStringList propsForModule = propsPerModule.take(fullModName);
@@ -700,14 +820,14 @@ QVariantMap ProjectResolver::resolveAdditionalModuleProperties(const Item *group
     return modulesMap;
 }
 
-void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
+void ProjectResolver::Private::resolveGroup(Item *item, ProjectContext *projectContext)
 {
     checkCancelation();
-    const bool parentEnabled = m_productContext->currentGroup
-            ? m_productContext->currentGroup->enabled
-            : m_productContext->product->enabled;
+    const bool parentEnabled = productContext->currentGroup
+            ? productContext->currentGroup->enabled
+            : productContext->product->enabled;
     const bool isEnabled = parentEnabled
-            && m_evaluator->boolValue(item, StringConstants::conditionProperty());
+                           && evaluator.boolValue(item, StringConstants::conditionProperty());
     try {
         resolveGroupFully(item, projectContext, isEnabled);
     } catch (const ErrorInfo &error) {
@@ -716,17 +836,16 @@ void ProjectResolver::resolveGroup(Item *item, ProjectContext *projectContext)
                                        << error.toString();
             return;
         }
-        if (m_setupParams.productErrorMode() == ErrorHandlingMode::Strict)
+        if (setupParams.productErrorMode() == ErrorHandlingMode::Strict)
             throw;
-        m_logger.printWarning(error);
+        logger.printWarning(error);
     }
 }
 
-void ProjectResolver::resolveGroupFully(Item *item, ProjectResolver::ProjectContext *projectContext,
-                                        bool isEnabled)
+void ProjectResolver::Private::resolveGroupFully(
+    Item *item, ProjectContext *projectContext, bool isEnabled)
 {
-    AccumulatingTimer groupTimer(m_setupParams.logElapsedTime()
-                                       ? &m_elapsedTimeGroups : nullptr);
+    AccumulatingTimer groupTimer(setupParams.logElapsedTime() ? &elapsedTimeGroups : nullptr);
 
     const auto getGroupPropertyMap = [this, item](const ArtifactProperties *existingProps) {
         PropertyMapPtr moduleProperties;
@@ -735,9 +854,9 @@ void ProjectResolver::resolveGroupFully(Item *item, ProjectResolver::ProjectCont
             moduleProperties = existingProps->propertyMap();
         if (!moduleProperties) {
             newPropertyMapRequired = true;
-            moduleProperties = m_productContext->currentGroup
-                    ? m_productContext->currentGroup->properties
-                    : m_productContext->product->moduleProperties;
+            moduleProperties = productContext->currentGroup
+                    ? productContext->currentGroup->properties
+                    : productContext->product->moduleProperties;
         }
         const QVariantMap newModuleProperties
                 = resolveAdditionalModuleProperties(item, moduleProperties->value());
@@ -749,12 +868,12 @@ void ProjectResolver::resolveGroupFully(Item *item, ProjectResolver::ProjectCont
         return moduleProperties;
     };
 
-    QStringList files = m_evaluator->stringListValue(item, StringConstants::filesProperty());
+    QStringList files = evaluator.stringListValue(item, StringConstants::filesProperty());
     bool fileTagsSet;
-    const FileTags fileTags = m_evaluator->fileTagsValue(item, StringConstants::fileTagsProperty(),
-                                                         &fileTagsSet);
+    const FileTags fileTags = evaluator.fileTagsValue(item, StringConstants::fileTagsProperty(),
+                                                      &fileTagsSet);
     const QStringList fileTagsFilter
-            = m_evaluator->stringListValue(item, StringConstants::fileTagsFilterProperty());
+        = evaluator.stringListValue(item, StringConstants::fileTagsFilterProperty());
     if (!fileTagsFilter.empty()) {
         if (Q_UNLIKELY(!files.empty()))
             throw ErrorInfo(Tr::tr("Group.files and Group.fileTagsFilters are exclusive."),
@@ -764,7 +883,7 @@ void ProjectResolver::resolveGroupFully(Item *item, ProjectResolver::ProjectCont
             return;
 
         ProductContext::ArtifactPropertiesInfo &apinfo
-                = m_productContext->artifactPropertiesPerFilter[fileTagsFilter];
+                = productContext->artifactPropertiesPerFilter[fileTagsFilter];
         if (apinfo.first) {
             const auto it = std::find_if(apinfo.second.cbegin(), apinfo.second.cend(),
                                          [item](const CodeLocation &loc) {
@@ -779,7 +898,7 @@ void ProjectResolver::resolveGroupFully(Item *item, ProjectResolver::ProjectCont
         } else {
             apinfo.first = ArtifactProperties::create();
             apinfo.first->setFileTagsFilter(FileTags::fromStringList(fileTagsFilter));
-            m_productContext->product->artifactProperties.push_back(apinfo.first);
+            productContext->product->artifactProperties.push_back(apinfo.first);
         }
         apinfo.second.push_back(item->location());
         apinfo.first->setPropertyMapInternal(getGroupPropertyMap(apinfo.first.get()));
@@ -793,10 +912,10 @@ void ProjectResolver::resolveGroupFully(Item *item, ProjectResolver::ProjectCont
     }
     GroupPtr group = ResolvedGroup::create();
     bool prefixWasSet = false;
-    group->prefix = m_evaluator->stringValue(item, StringConstants::prefixProperty(), QString(),
-                                             &prefixWasSet);
-    if (!prefixWasSet && m_productContext->currentGroup)
-        group->prefix = m_productContext->currentGroup->prefix;
+    group->prefix = evaluator.stringValue(item, StringConstants::prefixProperty(), QString(),
+                                          &prefixWasSet);
+    if (!prefixWasSet && productContext->currentGroup)
+        group->prefix = productContext->currentGroup->prefix;
     if (!group->prefix.isEmpty()) {
         for (auto it = files.rbegin(), end = files.rend(); it != end; ++it)
             it->prepend(group->prefix);
@@ -805,12 +924,12 @@ void ProjectResolver::resolveGroupFully(Item *item, ProjectResolver::ProjectCont
     group->enabled = isEnabled;
     group->properties = getGroupPropertyMap(nullptr);
     group->fileTags = fileTags;
-    group->overrideTags = m_evaluator->boolValue(item, StringConstants::overrideTagsProperty());
+    group->overrideTags = evaluator.boolValue(item, StringConstants::overrideTagsProperty());
     if (group->overrideTags && fileTagsSet) {
         if (group->fileTags.empty() )
             group->fileTags.insert(unknownFileTag());
-    } else if (m_productContext->currentGroup) {
-        group->fileTags.unite(m_productContext->currentGroup->fileTags);
+    } else if (productContext->currentGroup) {
+        group->fileTags.unite(productContext->currentGroup->fileTags);
     }
 
     const CodeLocation filesLocation = item->property(StringConstants::filesProperty())->location();
@@ -823,34 +942,34 @@ void ProjectResolver::resolveGroupFully(Item *item, ProjectResolver::ProjectCont
         group->wildcards = std::make_unique<SourceWildCards>();
         SourceWildCards *wildcards = group->wildcards.get();
         wildcards->group = group.get();
-        wildcards->excludePatterns = m_evaluator->stringListValue(
-                    item, StringConstants::excludeFilesProperty());
+        wildcards->excludePatterns = evaluator.stringListValue(
+            item, StringConstants::excludeFilesProperty());
         wildcards->patterns = patterns;
         const Set<QString> files = wildcards->expandPatterns(group,
                 FileInfo::path(item->file()->filePath()),
                 projectContext->project->topLevelProject()->buildDirectory);
         for (const QString &fileName : files)
-            createSourceArtifact(m_productContext->product, fileName, group, true, filesLocation,
-                                 &m_productContext->sourceArtifactLocations, &fileError);
+            createSourceArtifact(productContext->product, fileName, group, true, filesLocation,
+                                 &productContext->sourceArtifactLocations, &fileError);
     }
 
     for (const QString &fileName : qAsConst(files)) {
-        createSourceArtifact(m_productContext->product, fileName, group, false, filesLocation,
-                             &m_productContext->sourceArtifactLocations, &fileError);
+        createSourceArtifact(productContext->product, fileName, group, false, filesLocation,
+                             &productContext->sourceArtifactLocations, &fileError);
     }
     if (fileError.hasError()) {
         if (group->enabled) {
-            if (m_setupParams.productErrorMode() == ErrorHandlingMode::Strict)
+            if (setupParams.productErrorMode() == ErrorHandlingMode::Strict)
                 throw ErrorInfo(fileError);
-            m_logger.printWarning(fileError);
+            logger.printWarning(fileError);
         } else {
             qCDebug(lcProjectResolver) << "error for disabled group:" << fileError.toString();
         }
     }
-    group->name = m_evaluator->stringValue(item, StringConstants::nameProperty());
+    group->name = evaluator.stringValue(item, StringConstants::nameProperty());
     if (group->name.isEmpty())
-        group->name = Tr::tr("Group %1").arg(m_productContext->product->groups.size());
-    m_productContext->product->groups.push_back(group);
+        group->name = Tr::tr("Group %1").arg(productContext->product->groups.size());
+    productContext->product->groups.push_back(group);
 
     class GroupContextSwitcher {
     public:
@@ -863,19 +982,19 @@ void ProjectResolver::resolveGroupFully(Item *item, ProjectResolver::ProjectCont
         ProductContext &m_context;
         const GroupConstPtr m_oldGroup;
     };
-    GroupContextSwitcher groupSwitcher(*m_productContext, group);
+    GroupContextSwitcher groupSwitcher(*productContext, group);
     for (Item * const childItem : item->children())
         resolveGroup(childItem, projectContext);
 }
 
-void ProjectResolver::adaptExportedPropertyValues(const Item *shadowProductItem)
+void ProjectResolver::Private::adaptExportedPropertyValues(const Item *shadowProductItem)
 {
-    ExportedModule &m = m_productContext->product->exportedModule;
+    ExportedModule &m = productContext->product->exportedModule;
     const QVariantList prefixList = m.propertyValues.take(
                 StringConstants::prefixMappingProperty()).toList();
-    const QString shadowProductName = m_evaluator->stringValue(
+    const QString shadowProductName = evaluator.stringValue(
                 shadowProductItem, StringConstants::nameProperty());
-    const QString shadowProductBuildDir = m_evaluator->stringValue(
+    const QString shadowProductBuildDir = evaluator.stringValue(
                 shadowProductItem, StringConstants::buildDirectoryProperty());
     QVariantMap prefixMap;
     for (const QVariant &v : prefixList) {
@@ -934,11 +1053,11 @@ void ProjectResolver::adaptExportedPropertyValues(const Item *shadowProductItem)
     }
 }
 
-void ProjectResolver::collectExportedProductDependencies()
+void ProjectResolver::Private::collectExportedProductDependencies()
 {
     ResolvedProductPtr dummyProduct = ResolvedProduct::create();
     dummyProduct->enabled = false;
-    for (const auto &exportingProductInfo : qAsConst(m_productExportInfo)) {
+    for (const auto &exportingProductInfo : qAsConst(productExportInfo)) {
         const ResolvedProductPtr exportingProduct = exportingProductInfo.first;
         if (!exportingProduct->enabled)
             continue;
@@ -950,7 +1069,7 @@ void ProjectResolver::collectExportedProductDependencies()
                 continue;
             for (const Item::Module &dep : m.item->modules()) {
                 if (dep.productInfo) {
-                    directDeps.emplace_back(m_productsByItem.value(dep.productInfo->item),
+                    directDeps.emplace_back(productsByItem.value(dep.productInfo->item),
                                             m.parameters);
                 }
             }
@@ -971,12 +1090,12 @@ void ProjectResolver::collectExportedProductDependencies()
     }
 }
 
-void ProjectResolver::resolveShadowProduct(Item *item, ProjectResolver::ProjectContext *)
+void ProjectResolver::Private::resolveShadowProduct(Item *item, ProjectContext *)
 {
-    if (!m_productContext->product->enabled)
+    if (!productContext->product->enabled)
         return;
     for (const auto &m : item->modules()) {
-        if (m.name.toString() != m_productContext->product->name)
+        if (m.name.toString() != productContext->product->name)
             continue;
         collectPropertiesForExportItem(m.item);
         for (const auto &dep : m.item->modules())
@@ -986,11 +1105,11 @@ void ProjectResolver::resolveShadowProduct(Item *item, ProjectResolver::ProjectC
     try {
         adaptExportedPropertyValues(item);
     } catch (const ErrorInfo &) {}
-    m_productExportInfo.emplace_back(m_productContext->product, item);
+    productExportInfo.emplace_back(productContext->product, item);
 }
 
-void ProjectResolver::setupExportedProperties(const Item *item, const QString &namePrefix,
-                                              std::vector<ExportedProperty> &properties)
+void ProjectResolver::Private::setupExportedProperties(
+    const Item *item, const QString &namePrefix, std::vector<ExportedProperty> &properties)
 {
     const auto &props = item->properties();
     for (auto it = props.cbegin(); it != props.cend(); ++it) {
@@ -1030,7 +1149,7 @@ void ProjectResolver::setupExportedProperties(const Item *item, const QString &n
         }
 
         // Do not add built-in properties that were left at their default value.
-        if (!exportedProperty.isBuiltin || m_evaluator->isNonDefaultValue(item, it.key()))
+        if (!exportedProperty.isBuiltin || evaluator.isNonDefaultValue(item, it.key()))
             properties.push_back(exportedProperty);
     }
 
@@ -1092,9 +1211,9 @@ static QString getLineAtLocation(const CodeLocation &loc, const QString &content
     return content.mid(pos, eolPos - pos);
 }
 
-void ProjectResolver::resolveExport(Item *exportItem, ProjectContext *)
+void ProjectResolver::Private::resolveExport(Item *exportItem, ProjectContext *)
 {
-    ExportedModule &exportedModule = m_productContext->product->exportedModule;
+    ExportedModule &exportedModule = productContext->product->exportedModule;
     setupExportedProperties(exportItem, QString(), exportedModule.m_properties);
     static const auto cmpFunc = [](const ExportedProperty &p1, const ExportedProperty &p2) {
         return p1.fullName < p2.fullName;
@@ -1120,8 +1239,8 @@ void ProjectResolver::resolveExport(Item *exportItem, ProjectContext *)
 }
 
 // TODO: This probably wouldn't be necessary if we had item serialization.
-std::unique_ptr<ExportedItem> ProjectResolver::resolveExportChild(const Item *item,
-                                                                  const ExportedModule &module)
+std::unique_ptr<ExportedItem> ProjectResolver::Private::resolveExportChild(
+    const Item *item, const ExportedModule &module)
 {
     std::unique_ptr<ExportedItem> exportedItem(new ExportedItem);
 
@@ -1137,11 +1256,11 @@ std::unique_ptr<ExportedItem> ProjectResolver::resolveExportChild(const Item *it
     return exportedItem;
 }
 
-QString ProjectResolver::sourceCodeAsFunction(const JSSourceValueConstPtr &value,
-                                              const PropertyDeclaration &decl) const
+QString ProjectResolver::Private::sourceCodeAsFunction(const JSSourceValueConstPtr &value,
+                                                       const PropertyDeclaration &decl) const
 {
-    QString &scriptFunction = m_scriptFunctions[std::make_pair(value->sourceCode(),
-                                                          decl.functionArgumentNames())];
+    QString &scriptFunction = scriptFunctions[std::make_pair(value->sourceCode(),
+                                                             decl.functionArgumentNames())];
     if (!scriptFunction.isNull())
         return scriptFunction;
     const QString args = decl.functionArgumentNames().join(QLatin1Char(','));
@@ -1159,19 +1278,20 @@ QString ProjectResolver::sourceCodeAsFunction(const JSSourceValueConstPtr &value
     return scriptFunction;
 }
 
-QString ProjectResolver::sourceCodeForEvaluation(const JSSourceValueConstPtr &value) const
+QString ProjectResolver::Private::sourceCodeForEvaluation(const JSSourceValueConstPtr &value) const
 {
-    QString &code = m_sourceCode[value->sourceCode()];
+    QString &code = sourceCode[value->sourceCode()];
     if (!code.isNull())
         return code;
     code = value->sourceCodeForEvaluation();
     return code;
 }
 
-ScriptFunctionPtr ProjectResolver::scriptFunctionValue(Item *item, const QString &name) const
+ScriptFunctionPtr ProjectResolver::Private::scriptFunctionValue(
+    Item *item, const QString &name) const
 {
     JSSourceValuePtr value = item->sourceProperty(name);
-    ScriptFunctionPtr &script = m_scriptFunctionMap[value ? value->location() : CodeLocation()];
+    ScriptFunctionPtr &script = scriptFunctionMap[value ? value->location() : CodeLocation()];
     if (!script.get()) {
         script = ScriptFunction::create();
         const PropertyDeclaration decl = item->propertyDeclaration(name);
@@ -1182,19 +1302,20 @@ ScriptFunctionPtr ProjectResolver::scriptFunctionValue(Item *item, const QString
     return script;
 }
 
-ResolvedFileContextPtr ProjectResolver::resolvedFileContext(const FileContextConstPtr &ctx) const
+ResolvedFileContextPtr ProjectResolver::Private::resolvedFileContext(
+    const FileContextConstPtr &ctx) const
 {
-    ResolvedFileContextPtr &result = m_fileContextMap[ctx];
+    ResolvedFileContextPtr &result = fileContextMap[ctx];
     if (!result)
         result = ResolvedFileContext::create(*ctx);
     return result;
 }
 
-void ProjectResolver::resolveRule(Item *item, ProjectContext *projectContext)
+void ProjectResolver::Private::resolveRule(Item *item, ProjectContext *projectContext)
 {
     checkCancelation();
 
-    if (!m_evaluator->boolValue(item, StringConstants::conditionProperty()))
+    if (!evaluator.boolValue(item, StringConstants::conditionProperty()))
         return;
 
     RulePtr rule = Rule::create();
@@ -1210,13 +1331,12 @@ void ProjectResolver::resolveRule(Item *item, ProjectContext *projectContext)
         resolveRuleArtifact(rule, child);
     }
 
-    rule->name = m_evaluator->stringValue(item, StringConstants::nameProperty());
+    rule->name = evaluator.stringValue(item, StringConstants::nameProperty());
     rule->prepareScript.initialize(
                 scriptFunctionValue(item, StringConstants::prepareProperty()));
     rule->outputArtifactsScript.initialize(
                 scriptFunctionValue(item, StringConstants::outputArtifactsProperty()));
-    rule->outputFileTags = m_evaluator->fileTagsValue(
-                item, StringConstants::outputFileTagsProperty());
+    rule->outputFileTags = evaluator.fileTagsValue(item, StringConstants::outputFileTagsProperty());
     if (rule->outputArtifactsScript.isValid()) {
         if (hasArtifactChildren)
             throw ErrorInfo(Tr::tr("The Rule.outputArtifacts script is not allowed in rules "
@@ -1227,29 +1347,29 @@ void ProjectResolver::resolveRule(Item *item, ProjectContext *projectContext)
         throw ErrorInfo(Tr::tr("A rule needs to have Artifact items or a non-empty "
                                "outputFileTags property."), item->location());
     }
-    rule->multiplex = m_evaluator->boolValue(item, StringConstants::multiplexProperty());
-    rule->alwaysRun = m_evaluator->boolValue(item, StringConstants::alwaysRunProperty());
-    rule->inputs = m_evaluator->fileTagsValue(item, StringConstants::inputsProperty());
+    rule->multiplex = evaluator.boolValue(item, StringConstants::multiplexProperty());
+    rule->alwaysRun = evaluator.boolValue(item, StringConstants::alwaysRunProperty());
+    rule->inputs = evaluator.fileTagsValue(item, StringConstants::inputsProperty());
     rule->inputsFromDependencies
-            = m_evaluator->fileTagsValue(item, StringConstants::inputsFromDependenciesProperty());
+        = evaluator.fileTagsValue(item, StringConstants::inputsFromDependenciesProperty());
     bool requiresInputsSet = false;
-    rule->requiresInputs = m_evaluator->boolValue(item, StringConstants::requiresInputsProperty(),
-                                                  &requiresInputsSet);
+    rule->requiresInputs = evaluator.boolValue(item, StringConstants::requiresInputsProperty(),
+                                               &requiresInputsSet);
     if (!requiresInputsSet)
         rule->requiresInputs = rule->declaresInputs();
     rule->auxiliaryInputs
-            = m_evaluator->fileTagsValue(item, StringConstants::auxiliaryInputsProperty());
+        = evaluator.fileTagsValue(item, StringConstants::auxiliaryInputsProperty());
     rule->excludedInputs
-            = m_evaluator->fileTagsValue(item, StringConstants::excludedInputsProperty());
+        = evaluator.fileTagsValue(item, StringConstants::excludedInputsProperty());
     if (rule->excludedInputs.empty()) {
-        rule->excludedInputs = m_evaluator->fileTagsValue(
+        rule->excludedInputs = evaluator.fileTagsValue(
                     item, StringConstants::excludedAuxiliaryInputsProperty());
     }
     rule->explicitlyDependsOn
-            = m_evaluator->fileTagsValue(item, StringConstants::explicitlyDependsOnProperty());
-    rule->explicitlyDependsOnFromDependencies = m_evaluator->fileTagsValue(
+        = evaluator.fileTagsValue(item, StringConstants::explicitlyDependsOnProperty());
+    rule->explicitlyDependsOnFromDependencies = evaluator.fileTagsValue(
                 item, StringConstants::explicitlyDependsOnFromDependenciesProperty());
-    rule->module = m_moduleContext ? m_moduleContext->module : projectContext->dummyModule;
+    rule->module = moduleContext ? moduleContext->module : projectContext->dummyModule;
     if (!rule->multiplex && !rule->declaresInputs()) {
         throw ErrorInfo(Tr::tr("Rule has no inputs, but is not a multiplex rule."),
                         item->location());
@@ -1262,15 +1382,15 @@ void ProjectResolver::resolveRule(Item *item, ProjectContext *projectContext)
         throw ErrorInfo(Tr::tr("Rule.requiresInputs is true, but the rule "
                                "does not declare any input tags."), item->location());
     }
-    if (m_productContext) {
-        rule->product = m_productContext->product.get();
-        m_productContext->product->rules.push_back(rule);
+    if (productContext) {
+        rule->product = productContext->product.get();
+        productContext->product->rules.push_back(rule);
     } else {
         projectContext->rules.push_back(rule);
     }
 }
 
-void ProjectResolver::resolveRuleArtifact(const RulePtr &rule, Item *item)
+void ProjectResolver::Private::resolveRuleArtifact(const RulePtr &rule, Item *item)
 {
     RuleArtifactPtr artifact = RuleArtifact::create();
     rule->artifacts.push_back(artifact);
@@ -1280,9 +1400,9 @@ void ProjectResolver::resolveRuleArtifact(const RulePtr &rule, Item *item)
         artifact->filePathLocation = sourceProperty->location();
 
     artifact->filePath = verbatimValue(item, StringConstants::filePathProperty());
-    artifact->fileTags = m_evaluator->fileTagsValue(item, StringConstants::fileTagsProperty());
-    artifact->alwaysUpdated = m_evaluator->boolValue(item,
-                                                     StringConstants::alwaysUpdatedProperty());
+    artifact->fileTags = evaluator.fileTagsValue(item, StringConstants::fileTagsProperty());
+    artifact->alwaysUpdated = evaluator.boolValue(item,
+                                                  StringConstants::alwaysUpdatedProperty());
 
     QualifiedIdSet seenBindings;
     for (Item *obj = item; obj; obj = obj->prototype()) {
@@ -1298,10 +1418,9 @@ void ProjectResolver::resolveRuleArtifact(const RulePtr &rule, Item *item)
     }
 }
 
-void ProjectResolver::resolveRuleArtifactBinding(const RuleArtifactPtr &ruleArtifact,
-                                                 Item *item,
-                                                 const QStringList &namePrefix,
-                                                 QualifiedIdSet *seenBindings)
+void ProjectResolver::Private::resolveRuleArtifactBinding(
+    const RuleArtifactPtr &ruleArtifact, Item *item, const QStringList &namePrefix,
+    QualifiedIdSet *seenBindings)
 {
     for (QMap<QString, ValuePtr>::const_iterator it = item->properties().constBegin();
          it != item->properties().constEnd(); ++it)
@@ -1327,20 +1446,20 @@ void ProjectResolver::resolveRuleArtifactBinding(const RuleArtifactPtr &ruleArti
     }
 }
 
-void ProjectResolver::resolveFileTagger(Item *item, ProjectContext *projectContext)
+void ProjectResolver::Private::resolveFileTagger(Item *item, ProjectContext *projectContext)
 {
     checkCancelation();
-    if (!m_evaluator->boolValue(item, StringConstants::conditionProperty()))
+    if (!evaluator.boolValue(item, StringConstants::conditionProperty()))
         return;
-    std::vector<FileTaggerConstPtr> &fileTaggers = m_productContext
-            ? m_productContext->product->fileTaggers
+    std::vector<FileTaggerConstPtr> &fileTaggers = productContext
+            ? productContext->product->fileTaggers
             : projectContext->fileTaggers;
-    const QStringList patterns = m_evaluator->stringListValue(item,
-                                                              StringConstants::patternsProperty());
+    const QStringList patterns = evaluator.stringListValue(item,
+                                                           StringConstants::patternsProperty());
     if (patterns.empty())
         throw ErrorInfo(Tr::tr("FileTagger.patterns must be a non-empty list."), item->location());
 
-    const FileTags fileTags = m_evaluator->fileTagsValue(item, StringConstants::fileTagsProperty());
+    const FileTags fileTags = evaluator.fileTagsValue(item, StringConstants::fileTagsProperty());
     if (fileTags.empty())
         throw ErrorInfo(Tr::tr("FileTagger.fileTags must not be empty."), item->location());
 
@@ -1349,21 +1468,21 @@ void ProjectResolver::resolveFileTagger(Item *item, ProjectContext *projectConte
             throw ErrorInfo(Tr::tr("A FileTagger pattern must not be empty."), item->location());
     }
 
-    const int priority = m_evaluator->intValue(item, StringConstants::priorityProperty());
+    const int priority = evaluator.intValue(item, StringConstants::priorityProperty());
     fileTaggers.push_back(FileTagger::create(patterns, fileTags, priority));
 }
 
-void ProjectResolver::resolveJobLimit(Item *item, ProjectResolver::ProjectContext *projectContext)
+void ProjectResolver::Private::resolveJobLimit(Item *item, ProjectContext *projectContext)
 {
-    if (!m_evaluator->boolValue(item, StringConstants::conditionProperty()))
+    if (!evaluator.boolValue(item, StringConstants::conditionProperty()))
         return;
-    const QString jobPool = m_evaluator->stringValue(item, StringConstants::jobPoolProperty());
+    const QString jobPool = evaluator.stringValue(item, StringConstants::jobPoolProperty());
     if (jobPool.isEmpty())
         throw ErrorInfo(Tr::tr("A JobLimit item needs to have a non-empty '%1' property.")
                         .arg(StringConstants::jobPoolProperty()), item->location());
     bool jobCountWasSet;
-    const int jobCount = m_evaluator->intValue(item, StringConstants::jobCountProperty(), -1,
-                                               &jobCountWasSet);
+    const int jobCount = evaluator.intValue(item, StringConstants::jobCountProperty(), -1,
+                                            &jobCountWasSet);
     if (!jobCountWasSet) {
         throw ErrorInfo(Tr::tr("A JobLimit item needs to have a '%1' property.")
                         .arg(StringConstants::jobCountProperty()), item->location());
@@ -1372,9 +1491,9 @@ void ProjectResolver::resolveJobLimit(Item *item, ProjectResolver::ProjectContex
         throw ErrorInfo(Tr::tr("A JobLimit item must have a non-negative '%1' property.")
                         .arg(StringConstants::jobCountProperty()), item->location());
     }
-    JobLimits &jobLimits = m_moduleContext
-            ? m_moduleContext->jobLimits
-            : m_productContext ? m_productContext->product->jobLimits
+    JobLimits &jobLimits = moduleContext
+            ? moduleContext->jobLimits
+            : productContext ? productContext->product->jobLimits
             : projectContext->jobLimits;
     JobLimit jobLimit(jobPool, jobCount);
     const int oldLimit = jobLimits.getLimit(jobPool);
@@ -1382,26 +1501,26 @@ void ProjectResolver::resolveJobLimit(Item *item, ProjectResolver::ProjectContex
         jobLimits.setJobLimit(jobLimit);
 }
 
-void ProjectResolver::resolveScanner(Item *item, ProjectResolver::ProjectContext *projectContext)
+void ProjectResolver::Private::resolveScanner(Item *item, ProjectContext *projectContext)
 {
     checkCancelation();
-    if (!m_evaluator->boolValue(item, StringConstants::conditionProperty())) {
+    if (!evaluator.boolValue(item, StringConstants::conditionProperty())) {
         qCDebug(lcProjectResolver) << "scanner condition is false";
         return;
     }
 
     ResolvedScannerPtr scanner = ResolvedScanner::create();
-    scanner->module = m_moduleContext ? m_moduleContext->module : projectContext->dummyModule;
-    scanner->inputs = m_evaluator->fileTagsValue(item, StringConstants::inputsProperty());
-    scanner->recursive = m_evaluator->boolValue(item, StringConstants::recursiveProperty());
+    scanner->module = moduleContext ? moduleContext->module : projectContext->dummyModule;
+    scanner->inputs = evaluator.fileTagsValue(item, StringConstants::inputsProperty());
+    scanner->recursive = evaluator.boolValue(item, StringConstants::recursiveProperty());
     scanner->searchPathsScript.initialize(
                 scriptFunctionValue(item, StringConstants::searchPathsProperty()));
     scanner->scanScript.initialize(
                 scriptFunctionValue(item, StringConstants::scanProperty()));
-    m_productContext->product->scanners.push_back(scanner);
+    productContext->product->scanners.push_back(scanner);
 }
 
-void ProjectResolver::matchArtifactProperties(const ResolvedProductPtr &product,
+void ProjectResolver::Private::matchArtifactProperties(const ResolvedProductPtr &product,
         const std::vector<SourceArtifactPtr> &artifacts)
 {
     for (const SourceArtifactPtr &artifact : artifacts) {
@@ -1414,18 +1533,18 @@ void ProjectResolver::matchArtifactProperties(const ResolvedProductPtr &product,
     }
 }
 
-void ProjectResolver::printProfilingInfo()
+void ProjectResolver::Private::printProfilingInfo()
 {
-    if (!m_setupParams.logElapsedTime())
+    if (!setupParams.logElapsedTime())
         return;
-    m_logger.qbsLog(LoggerInfo, true) << "\t" << Tr::tr("All property evaluation took %1.")
-                                         .arg(elapsedTimeString(m_elapsedTimeAllPropEval));
-    m_logger.qbsLog(LoggerInfo, true) << "\t" << Tr::tr("Module property evaluation took %1.")
-                                         .arg(elapsedTimeString(m_elapsedTimeModPropEval));
-    m_logger.qbsLog(LoggerInfo, true) << "\t"
+    logger.qbsLog(LoggerInfo, true) << "\t" << Tr::tr("All property evaluation took %1.")
+                                         .arg(elapsedTimeString(elapsedTimeAllPropEval));
+    logger.qbsLog(LoggerInfo, true) << "\t" << Tr::tr("Module property evaluation took %1.")
+                                         .arg(elapsedTimeString(elapsedTimeModPropEval));
+    logger.qbsLog(LoggerInfo, true) << "\t"
                                       << Tr::tr("Resolving groups (without module property "
                                                 "evaluation) took %1.")
-                                         .arg(elapsedTimeString(m_elapsedTimeGroups));
+                                         .arg(elapsedTimeString(elapsedTimeGroups));
 }
 
 class TempScopeSetter
@@ -1453,7 +1572,7 @@ private:
     Item *m_oldScope;
 };
 
-void ProjectResolver::collectPropertiesForExportItem(Item *productModuleInstance)
+void ProjectResolver::Private::collectPropertiesForExportItem(Item *productModuleInstance)
 {
     if (!productModuleInstance->isPresentModule())
         return;
@@ -1462,7 +1581,7 @@ void ProjectResolver::collectPropertiesForExportItem(Item *productModuleInstance
     QBS_CHECK(exportItem->type() == ItemType::Export);
     const ItemDeclaration::Properties exportDecls = BuiltinDeclarations::instance()
             .declarationsForType(ItemType::Export).properties();
-    ExportedModule &exportedModule = m_productContext->product->exportedModule;
+    ExportedModule &exportedModule = productContext->product->exportedModule;
     const auto &props = exportItem->properties();
     for (auto it = props.begin(); it != props.end(); ++it) {
         const auto match
@@ -1483,11 +1602,11 @@ void ProjectResolver::collectPropertiesForExportItem(Item *productModuleInstance
 }
 
 // Collects module properties assigned to in other (higher-level) modules.
-void ProjectResolver::collectPropertiesForModuleInExportItem(const Item::Module &module)
+void ProjectResolver::Private::collectPropertiesForModuleInExportItem(const Item::Module &module)
 {
     if (!module.item->isPresentModule())
         return;
-    ExportedModule &exportedModule = m_productContext->product->exportedModule;
+    ExportedModule &exportedModule = productContext->product->exportedModule;
     if (module.productInfo || module.name.first() == StringConstants::qbsModule())
         return;
     const auto checkName = [module](const ExportedModuleDependency &d) {
@@ -1514,14 +1633,14 @@ void ProjectResolver::collectPropertiesForModuleInExportItem(const Item::Module 
         collectPropertiesForModuleInExportItem(dep);
 }
 
-void ProjectResolver::resolveProductDependencies()
+void ProjectResolver::Private::resolveProductDependencies()
 {
-    for (auto it = m_productsByItem.cbegin(); it != m_productsByItem.cend(); ++it) {
+    for (auto it = productsByItem.cbegin(); it != productsByItem.cend(); ++it) {
         const ResolvedProductPtr &product = it.value();
         for (const Item::Module &module : it.key()->modules()) {
             if (!module.productInfo)
                 continue;
-            const ResolvedProductPtr &dep = m_productsByItem.value(module.productInfo->item);
+            const ResolvedProductPtr &dep = productsByItem.value(module.productInfo->item);
             QBS_CHECK(dep);
             QBS_CHECK(dep != product);
             it.value()->dependencies << dep;
@@ -1536,8 +1655,8 @@ void ProjectResolver::resolveProductDependencies()
     }
 }
 
-void ProjectResolver::postProcess(const ResolvedProductPtr &product,
-                                  ProjectContext *projectContext) const
+void ProjectResolver::Private::postProcess(const ResolvedProductPtr &product,
+                                           ProjectContext *projectContext) const
 {
     product->fileTaggers << projectContext->fileTaggers;
     std::sort(std::begin(product->fileTaggers), std::end(product->fileTaggers),
@@ -1551,13 +1670,13 @@ void ProjectResolver::postProcess(const ResolvedProductPtr &product,
     }
 }
 
-void ProjectResolver::applyFileTaggers(const ResolvedProductPtr &product) const
+void ProjectResolver::Private::applyFileTaggers(const ResolvedProductPtr &product) const
 {
     for (const SourceArtifactPtr &artifact : product->allEnabledFiles())
         applyFileTaggers(artifact, product);
 }
 
-void ProjectResolver::applyFileTaggers(const SourceArtifactPtr &artifact,
+void ProjectResolver::Private::applyFileTaggers(const SourceArtifactPtr &artifact,
         const ResolvedProductConstPtr &product)
 {
     if (!artifact->overrideFileTags || artifact->fileTags.empty()) {
@@ -1571,10 +1690,10 @@ void ProjectResolver::applyFileTaggers(const SourceArtifactPtr &artifact,
     }
 }
 
-QVariantMap ProjectResolver::evaluateModuleValues(Item *item, bool lookupPrototype)
+QVariantMap ProjectResolver::Private::evaluateModuleValues(Item *item, bool lookupPrototype)
 {
-    AccumulatingTimer modPropEvalTimer(m_setupParams.logElapsedTime()
-                                       ? &m_elapsedTimeModPropEval : nullptr);
+    AccumulatingTimer modPropEvalTimer(setupParams.logElapsedTime()
+                                       ? &elapsedTimeModPropEval : nullptr);
     QVariantMap moduleValues;
     for (const Item::Module &module : item->modules()) {
         if (!module.item->isPresentModule())
@@ -1586,17 +1705,19 @@ QVariantMap ProjectResolver::evaluateModuleValues(Item *item, bool lookupPrototy
     return moduleValues;
 }
 
-QVariantMap ProjectResolver::evaluateProperties(Item *item, bool lookupPrototype, bool checkErrors)
+QVariantMap ProjectResolver::Private::evaluateProperties(Item *item, bool lookupPrototype,
+                                                         bool checkErrors)
 {
     const QVariantMap tmplt;
     return evaluateProperties(item, item, tmplt, lookupPrototype, checkErrors);
 }
 
-QVariantMap ProjectResolver::evaluateProperties(const Item *item, const Item *propertiesContainer,
-        const QVariantMap &tmplt, bool lookupPrototype, bool checkErrors)
+QVariantMap ProjectResolver::Private::evaluateProperties(
+    const Item *item, const Item *propertiesContainer, const QVariantMap &tmplt,
+    bool lookupPrototype, bool checkErrors)
 {
-    AccumulatingTimer propEvalTimer(m_setupParams.logElapsedTime()
-                                    ? &m_elapsedTimeAllPropEval : nullptr);
+    AccumulatingTimer propEvalTimer(setupParams.logElapsedTime()
+                                    ? &elapsedTimeAllPropEval : nullptr);
     QVariantMap result = tmplt;
     for (QMap<QString, ValuePtr>::const_iterator it = propertiesContainer->properties().begin();
          it != propertiesContainer->properties().end(); ++it) {
@@ -1608,10 +1729,11 @@ QVariantMap ProjectResolver::evaluateProperties(const Item *item, const Item *pr
             : result;
 }
 
-void ProjectResolver::evaluateProperty(const Item *item, const QString &propName,
-        const ValuePtr &propValue, QVariantMap &result, bool checkErrors)
+void ProjectResolver::Private::evaluateProperty(
+    const Item *item, const QString &propName, const ValuePtr &propValue, QVariantMap &result,
+    bool checkErrors)
 {
-    JSContext * const ctx = m_engine->context();
+    JSContext * const ctx = engine->context();
     switch (propValue->type()) {
     case Value::ItemValueType:
     {
@@ -1627,8 +1749,8 @@ void ProjectResolver::evaluateProperty(const Item *item, const QString &propName
         if (pd.flags().testFlag(PropertyDeclaration::PropertyNotAvailableInConfig)) {
             break;
         }
-        const ScopedJsValue scriptValue(ctx, m_evaluator->property(item, propName));
-        if (JsException ex = m_evaluator->engine()->checkAndClearException(propValue->location())) {
+        const ScopedJsValue scriptValue(ctx, evaluator.property(item, propName));
+        if (JsException ex = evaluator.engine()->checkAndClearException(propValue->location())) {
             if (checkErrors)
                 throw ex.toErrorInfo();
         }
@@ -1681,7 +1803,7 @@ void ProjectResolver::evaluateProperty(const Item *item, const QString &propName
     }
 }
 
-void ProjectResolver::checkAllowedValues(
+void ProjectResolver::Private::checkAllowedValues(
         const QVariant &value, const CodeLocation &loc, const PropertyDeclaration &decl,
         const QString &key) const
 {
@@ -1702,7 +1824,7 @@ void ProjectResolver::checkAllowedValues(
             const auto message = Tr::tr("Value '%1' is not allowed for property '%2'.")
                     .arg(value, key);
             ErrorInfo error(message, loc);
-            handlePropertyError(error, m_setupParams, m_logger);
+            handlePropertyError(error, setupParams, logger);
         }
     };
 
@@ -1716,7 +1838,7 @@ void ProjectResolver::checkAllowedValues(
     }
 }
 
-void ProjectResolver::collectPropertiesForExportItem(const QualifiedId &moduleName,
+void ProjectResolver::Private::collectPropertiesForExportItem(const QualifiedId &moduleName,
          const ValuePtr &value, Item *moduleInstance, QVariantMap &moduleProps)
 {
     QBS_CHECK(value->type() == Value::ItemValueType);
@@ -1765,16 +1887,16 @@ void ProjectResolver::collectPropertiesForExportItem(const QualifiedId &moduleNa
     }
 }
 
-void ProjectResolver::createProductConfig(ResolvedProduct *product)
+void ProjectResolver::Private::createProductConfig(ResolvedProduct *product)
 {
-    EvalCacheEnabler cachingEnabler(m_evaluator, m_productContext->product->sourceDirectory);
-    product->moduleProperties->setValue(evaluateModuleValues(m_productContext->item));
-    product->productProperties = evaluateProperties(m_productContext->item, m_productContext->item,
+    EvalCacheEnabler cachingEnabler(&evaluator, productContext->product->sourceDirectory);
+    product->moduleProperties->setValue(evaluateModuleValues(productContext->item));
+    product->productProperties = evaluateProperties(productContext->item, productContext->item,
                                                     QVariantMap(), true, true);
 }
 
-void ProjectResolver::callItemFunction(const ItemFuncMap &mappings, Item *item,
-                                       ProjectContext *projectContext)
+void ProjectResolver::Private::callItemFunction(const ItemFuncMap &mappings, Item *item,
+                                                ProjectContext *projectContext)
 {
     const ItemFuncPtr f = mappings.value(item->type());
     QBS_CHECK(f);
@@ -1786,7 +1908,8 @@ void ProjectResolver::callItemFunction(const ItemFuncMap &mappings, Item *item,
     }
 }
 
-ProjectResolver::ProjectContext ProjectResolver::createProjectContext(ProjectContext *parentProjectContext) const
+ProjectContext ProjectResolver::Private::createProjectContext(
+    ProjectContext *parentProjectContext) const
 {
     ProjectContext subProjectContext;
     subProjectContext.parentContext = parentProjectContext;
