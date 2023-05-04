@@ -47,6 +47,7 @@
 #include <tools/qbsassert.h>
 #include <tools/scripttools.h>
 #include <tools/settings.h>
+#include <tools/stringconstants.h>
 
 #include <QtCore/qdir.h>
 #include <QtCore/qfileinfo.h>
@@ -104,7 +105,9 @@ public:
 
 } // namespace Internal
 
-SetupProjectParameters::SetupProjectParameters() : d(new Internal::SetupProjectParametersPrivate)
+using namespace Internal;
+
+SetupProjectParameters::SetupProjectParameters() : d(new SetupProjectParametersPrivate)
 {
 }
 
@@ -226,6 +229,44 @@ void SetupProjectParameters::setProjectFilePath(const QString &projectFilePath)
         d->projectFilePath = canonicalProjectFilePath;
 }
 
+void SetupProjectParameters::finalizeProjectFilePath()
+{
+    QString filePath = projectFilePath();
+    if (filePath.isEmpty())
+        filePath = QDir::currentPath();
+    const QFileInfo projectFileInfo(filePath);
+    if (!projectFileInfo.exists())
+        throw ErrorInfo(Tr::tr("Project file '%1' cannot be found.").arg(filePath));
+    if (projectFileInfo.isRelative())
+        filePath = projectFileInfo.absoluteFilePath();
+    if (projectFileInfo.isFile()) {
+        setProjectFilePath(filePath);
+        return;
+    }
+    if (!projectFileInfo.isDir())
+        throw ErrorInfo(Tr::tr("Project file '%1' has invalid type.").arg(filePath));
+
+    const QStringList &actualFileNames
+        = QDir(filePath).entryList(StringConstants::qbsFileWildcards(), QDir::Files);
+    if (actualFileNames.empty()) {
+        QString error;
+        if (projectFilePath().isEmpty())
+            error = Tr::tr("No project file given and none found in current directory.\n");
+        else
+            error = Tr::tr("No project file found in directory '%1'.").arg(filePath);
+        throw ErrorInfo(error);
+    }
+    if (actualFileNames.size() > 1) {
+        throw ErrorInfo(Tr::tr("More than one project file found in directory '%1'.")
+                            .arg(filePath));
+    }
+    filePath.append(QLatin1Char('/')).append(actualFileNames.front());
+
+    filePath = QDir::current().filePath(filePath);
+    filePath = QDir::cleanPath(filePath);
+    setProjectFilePath(filePath);
+}
+
 /*!
  * \brief Returns the base path of where to put the build artifacts and store the build graph.
  */
@@ -250,7 +291,7 @@ void SetupProjectParameters::setBuildRoot(const QString &buildRoot)
     // Calling mkpath() may be necessary to get the canonical build root, but if we do it,
     // it must be reverted immediately afterwards as not to create directories needlessly,
     // e.g in the case of a dry run build.
-    Internal::DirectoryManager dirManager(buildRoot, Internal::Logger());
+    DirectoryManager dirManager(buildRoot, Logger());
 
     // We don't do error checking here, as this is not a convenient place to report an error.
     // If creation of the build directory is not possible, we will get sensible error messages
@@ -361,7 +402,7 @@ static void provideValuesTree(const QVariantMap &values, QVariantMap *valueTree)
         const QStringList nameElements = (idx == -1)
                 ? QStringList() << name
                 : QStringList() << name.left(idx) << name.mid(idx + 1);
-        Internal::setConfigProperty(*valueTree, nameElements, it.value());
+        setConfigProperty(*valueTree, nameElements, it.value());
     }
 }
 
@@ -402,7 +443,7 @@ static QVariantMap expandedBuildConfigurationInternal(const Profile &profile,
         if (err.hasError())
             throw err;
         if (profileKeys.empty())
-            throw ErrorInfo(Internal::Tr::tr("Unknown or empty profile '%1'.").arg(profile.name()));
+            throw ErrorInfo(Tr::tr("Unknown or empty profile '%1'.").arg(profile.name()));
         for (const QString &profileKey : profileKeys) {
             buildConfig.insert(profileKey, profile.value(profileKey, QVariant(), &err));
                 if (err.hasError())
@@ -412,7 +453,7 @@ static QVariantMap expandedBuildConfigurationInternal(const Profile &profile,
 
     // (2) Build configuration name.
     if (configurationName.isEmpty())
-        throw ErrorInfo(Internal::Tr::tr("No build configuration name set."));
+        throw ErrorInfo(Tr::tr("No build configuration name set."));
     buildConfig.insert(QStringLiteral("qbs.configurationName"), configurationName);
     return buildConfig;
 }

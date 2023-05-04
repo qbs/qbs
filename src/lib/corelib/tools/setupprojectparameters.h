@@ -82,6 +82,7 @@ public:
 
     QString projectFilePath() const;
     void setProjectFilePath(const QString &projectFilePath);
+    void finalizeProjectFilePath();
 
     QString buildRoot() const;
     void setBuildRoot(const QString &buildRoot);

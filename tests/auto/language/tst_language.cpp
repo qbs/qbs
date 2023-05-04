@@ -2486,7 +2486,7 @@ void TestLanguage::projectFileLookup()
     try {
         SetupProjectParameters params;
         params.setProjectFilePath(projectFileInput);
-        Loader::setupProjectFilePath(params);
+        params.finalizeProjectFilePath();
         QVERIFY(!failureExpected);
         QCOMPARE(params.projectFilePath(), projectFileOutput);
     } catch (const ErrorInfo &) {

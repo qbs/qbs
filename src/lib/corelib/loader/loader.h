@@ -67,8 +67,6 @@ public:
     void setStoredModuleProviderInfo(const StoredModuleProviderInfo &providerInfo);
     TopLevelProjectPtr loadProject(const SetupProjectParameters &parameters);
 
-    static void setupProjectFilePath(SetupProjectParameters &parameters);
-
 private:
     Logger m_logger;
     ProgressObserver *m_progressObserver;

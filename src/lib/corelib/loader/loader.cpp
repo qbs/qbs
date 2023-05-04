@@ -110,7 +110,7 @@ TopLevelProjectPtr Loader::loadProject(const SetupProjectParameters &_parameters
         parameters.expandBuildConfiguration();
     }
 
-    setupProjectFilePath(parameters);
+    parameters.finalizeProjectFilePath();
     QBS_CHECK(QFileInfo(parameters.projectFilePath()).isAbsolute());
     m_logger.qbsDebug() << "Using project file '"
                         << QDir::toNativeSeparators(parameters.projectFilePath()) << "'.";
@@ -154,44 +154,6 @@ TopLevelProjectPtr Loader::loadProject(const SetupProjectParameters &_parameters
         m_progressObserver->setFinished();
 
     return project;
-}
-
-void Loader::setupProjectFilePath(SetupProjectParameters &parameters)
-{
-    QString projectFilePath = parameters.projectFilePath();
-    if (projectFilePath.isEmpty())
-        projectFilePath = QDir::currentPath();
-    const QFileInfo projectFileInfo(projectFilePath);
-    if (!projectFileInfo.exists())
-        throw ErrorInfo(Tr::tr("Project file '%1' cannot be found.").arg(projectFilePath));
-    if (projectFileInfo.isRelative())
-        projectFilePath = projectFileInfo.absoluteFilePath();
-    if (projectFileInfo.isFile()) {
-        parameters.setProjectFilePath(projectFilePath);
-        return;
-    }
-    if (!projectFileInfo.isDir())
-        throw ErrorInfo(Tr::tr("Project file '%1' has invalid type.").arg(projectFilePath));
-
-    const QStringList &actualFileNames
-            = QDir(projectFilePath).entryList(StringConstants::qbsFileWildcards(), QDir::Files);
-    if (actualFileNames.empty()) {
-        QString error;
-        if (parameters.projectFilePath().isEmpty())
-            error = Tr::tr("No project file given and none found in current directory.\n");
-        else
-            error = Tr::tr("No project file found in directory '%1'.").arg(projectFilePath);
-        throw ErrorInfo(error);
-    }
-    if (actualFileNames.size() > 1) {
-        throw ErrorInfo(Tr::tr("More than one project file found in directory '%1'.")
-                .arg(projectFilePath));
-    }
-    projectFilePath.append(QLatin1Char('/')).append(actualFileNames.front());
-
-    projectFilePath = QDir::current().filePath(projectFilePath);
-    projectFilePath = QDir::cleanPath(projectFilePath);
-    parameters.setProjectFilePath(projectFilePath);
 }
 
 } // namespace Internal

@@ -39,7 +39,6 @@
 #include "buildgraphloader.h"
 
 #include "buildgraph.h"
-#include "cycledetector.h"
 #include "emptydirectoriesremover.h"
 #include "productbuilddata.h"
 #include "projectbuilddata.h"
@@ -220,7 +219,7 @@ bool BuildGraphLoader::checkBuildGraphCompatibility(const TopLevelProjectConstPt
     if (m_parameters.projectFilePath().isEmpty())
         m_parameters.setProjectFilePath(project->location.filePath());
     else
-        Loader::setupProjectFilePath(m_parameters);
+        m_parameters.finalizeProjectFilePath();
     if (QFileInfo(project->location.filePath()) == QFileInfo(m_parameters.projectFilePath()))
         return true;
     QString message = Tr::tr("Stored build graph at '%1' is for project file '%2', but "
