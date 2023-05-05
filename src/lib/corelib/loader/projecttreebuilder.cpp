@@ -328,8 +328,8 @@ private:
 
 ProjectTreeBuilder::ProjectTreeBuilder(const SetupProjectParameters &parameters, ItemPool &itemPool,
                                        Evaluator &evaluator, Logger &logger)
-    : d(new Private(parameters, itemPool, evaluator, logger)) {}
-ProjectTreeBuilder::~ProjectTreeBuilder() { delete d; }
+    : d(makePimpl<Private>(parameters, itemPool, evaluator, logger)) {}
+ProjectTreeBuilder::~ProjectTreeBuilder() = default;
 
 void ProjectTreeBuilder::setProgressObserver(ProgressObserver *progressObserver)
 {

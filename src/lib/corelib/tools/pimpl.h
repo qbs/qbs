@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2023 Ivan Komissarov (abbapoh@gmail.com)
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -37,48 +37,25 @@
 **
 ****************************************************************************/
 
-#ifndef PROJECTRESOLVER_H
-#define PROJECTRESOLVER_H
+#ifndef PIMPL_H
+#define PIMPL_H
 
-#include <language/forward_decls.h>
-#include <logging/logger.h>
-#include <tools/pimpl.h>
-#include <tools/qbs_export.h>
-
-#include <QHash>
-#include <QVariant>
-
-#include <vector>
+#include <tools/propagate_const.h>
+#include <memory>
 
 namespace qbs {
-class SetupProjectParameters;
 namespace Internal {
-class FileTime;
-class Logger;
-class ProgressObserver;
-class ScriptEngine;
-class StoredModuleProviderInfo;
 
-class QBS_AUTOTEST_EXPORT ProjectResolver
+template<typename T>
+using Pimpl = KDToolBox::propagate_const<std::unique_ptr<T>>;
+
+template<typename T, typename... Args>
+Pimpl<T> makePimpl(Args&&... args)
 {
-public:
-    ProjectResolver(ScriptEngine *engine, Logger logger);
-    ~ProjectResolver();
-
-    void setProgressObserver(ProgressObserver *observer);
-    void setOldProjectProbes(const std::vector<ProbeConstPtr> &oldProbes);
-    void setOldProductProbes(const QHash<QString, std::vector<ProbeConstPtr>> &oldProbes);
-    void setLastResolveTime(const FileTime &time);
-    void setStoredProfiles(const QVariantMap &profiles);
-    void setStoredModuleProviderInfo(const StoredModuleProviderInfo &providerInfo);
-    TopLevelProjectPtr resolve(const SetupProjectParameters &parameters);
-
-private:
-    class Private;
-    Pimpl<Private> d;
-};
+    return Pimpl<T>(std::make_unique<T>(std::forward<Args>(args)...));
+}
 
 } // namespace Internal
 } // namespace qbs
 
-#endif // PROJECTRESOLVER_H
+#endif // PIMPL_H

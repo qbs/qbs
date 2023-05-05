@@ -95,16 +95,12 @@ QmlErrorPrivate::QmlErrorPrivate()
 /*!
     Creates an empty error object.
 */
-QmlError::QmlError()
-: d(nullptr)
-{
-}
+QmlError::QmlError() = default;
 
 /*!
     Creates a copy of \a other.
 */
 QmlError::QmlError(const QmlError &other)
-: d(nullptr)
 {
     *this = other;
 }
@@ -118,10 +114,9 @@ QmlError &QmlError::operator=(const QmlError &other)
         return *this;
 
     if (!other.d) {
-        delete d;
         d = nullptr;
     } else {
-        if (!d) d = new QmlErrorPrivate;
+        if (!d) d = qbs::Internal::makePimpl<QmlErrorPrivate>();
         d->url = other.d->url;
         d->description = other.d->description;
         d->line = other.d->line;
@@ -133,10 +128,7 @@ QmlError &QmlError::operator=(const QmlError &other)
 /*!
     \internal
 */
-QmlError::~QmlError()
-{
-    delete d; d = nullptr;
-}
+QmlError::~QmlError() = default;
 
 /*!
     Returns true if this error is valid, otherwise false.
@@ -160,7 +152,7 @@ QUrl QmlError::url() const
 */
 void QmlError::setUrl(const QUrl &url)
 {
-    if (!d) d = new QmlErrorPrivate;
+    if (!d) d = qbs::Internal::makePimpl<QmlErrorPrivate>();
     d->url = url;
 }
 
@@ -178,7 +170,7 @@ QString QmlError::description() const
 */
 void QmlError::setDescription(const QString &description)
 {
-    if (!d) d = new QmlErrorPrivate;
+    if (!d) d = qbs::Internal::makePimpl<QmlErrorPrivate>();
     d->description = description;
 }
 
@@ -196,7 +188,7 @@ int QmlError::line() const
 */
 void QmlError::setLine(int line)
 {
-    if (!d) d = new QmlErrorPrivate;
+    if (!d) qbs::Internal::makePimpl<QmlErrorPrivate>();
     d->line = line;
 }
 
@@ -214,7 +206,7 @@ int QmlError::column() const
 */
 void QmlError::setColumn(int column)
 {
-    if (!d) d = new QmlErrorPrivate;
+    if (!d) qbs::Internal::makePimpl<QmlErrorPrivate>();
     d->column = column;
 }
 

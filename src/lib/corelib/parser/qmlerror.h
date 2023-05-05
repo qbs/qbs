@@ -40,7 +40,7 @@
 #ifndef QQMLERROR_H
 #define QQMLERROR_H
 
-
+#include <tools/pimpl.h>
 
 #include <QtCore/qurl.h>
 #include <QtCore/qstring.h>
@@ -73,7 +73,7 @@ public:
 
     QString toString() const;
 private:
-    QmlErrorPrivate *d;
+    qbs::Internal::Pimpl<QmlErrorPrivate> d;
 };
 
 } // namespace QbsQmlJS

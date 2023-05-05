@@ -81,8 +81,8 @@ public:
 ModuleInstantiator::ModuleInstantiator(
     const SetupProjectParameters &parameters, ItemPool &itemPool,
     ModulePropertyMerger &propertyMerger, Logger &logger)
-    : d(new Private(parameters, itemPool, propertyMerger, logger)) {}
-ModuleInstantiator::~ModuleInstantiator() { delete d; }
+    : d(makePimpl<Private>(parameters, itemPool, propertyMerger, logger)) {}
+ModuleInstantiator::~ModuleInstantiator() = default;
 
 void ModuleInstantiator::instantiate(const Context &context)
 {

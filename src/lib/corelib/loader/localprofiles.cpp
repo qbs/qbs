@@ -69,8 +69,8 @@ public:
 
 LocalProfiles::LocalProfiles(const SetupProjectParameters &parameters, Evaluator &evaluator,
                              Logger &logger)
-    : d(new Private(parameters, evaluator, logger)) {}
-LocalProfiles::~LocalProfiles() { delete d; }
+    : d(makePimpl<Private>(parameters, evaluator, logger)) {}
+LocalProfiles::~LocalProfiles() = default;
 
 void LocalProfiles::collectProfilesFromItems(Item *productOrProject, Item *projectScope)
 {

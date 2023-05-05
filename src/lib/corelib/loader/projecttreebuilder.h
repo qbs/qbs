@@ -44,6 +44,7 @@
 #include <language/forward_decls.h>
 #include <language/moduleproviderinfo.h>
 #include <language/qualifiedid.h>
+#include <tools/pimpl.h>
 
 #include <QString>
 #include <QVariant>
@@ -93,7 +94,7 @@ public:
 
 private:
     class Private;
-    Private * const d;
+    Pimpl<Private> d;
 };
 
 } // namespace Internal

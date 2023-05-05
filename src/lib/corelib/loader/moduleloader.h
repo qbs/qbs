@@ -39,8 +39,10 @@
 
 #pragma once
 
+
 #include <language/forward_decls.h>
 #include <language/item.h>
+#include <tools/pimpl.h>
 
 #include <QString>
 #include <QVariantMap>
@@ -91,7 +93,7 @@ public:
 
 private:
     class Private;
-    Private * const d;
+    Pimpl<Private> d;
 };
 
 } // namespace Internal

@@ -251,15 +251,12 @@ public:
 
 
 ProjectResolver::ProjectResolver(ScriptEngine *engine, Logger logger)
-    : d(new Private(engine, std::move(logger)))
+    : d(makePimpl<Private>(engine, std::move(logger)))
 {
     d->logger.storeWarnings();
 }
 
-ProjectResolver::~ProjectResolver()
-{
-    delete d;
-}
+ProjectResolver::~ProjectResolver() = default;
 
 void ProjectResolver::setProgressObserver(ProgressObserver *observer)
 {

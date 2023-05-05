@@ -105,9 +105,9 @@ public:
 ModuleLoader::ModuleLoader(
     const SetupProjectParameters &setupParameters, ModuleProviderLoader &providerLoader,
     ItemReader &itemReader, Evaluator &evaluator, Logger &logger)
-    : d(new Private(setupParameters, providerLoader, itemReader, evaluator, logger)) { }
+    : d(makePimpl<Private>(setupParameters, providerLoader, itemReader, evaluator, logger)) { }
 
-ModuleLoader::~ModuleLoader() { delete d; }
+ModuleLoader::~ModuleLoader() = default;
 
 struct PrioritizedItem
 {

@@ -80,8 +80,8 @@ public:
 
 GroupsHandler::GroupsHandler(const SetupProjectParameters &parameters,
                              ModuleInstantiator &instantiator, Evaluator &evaluator, Logger &logger)
-    : d(new Private(parameters, instantiator, evaluator, logger)) {}
-GroupsHandler::~GroupsHandler() { delete d; }
+    : d(makePimpl<Private>(parameters, instantiator, evaluator, logger)) {}
+GroupsHandler::~GroupsHandler() = default;
 
 void GroupsHandler::setupGroups(Item *product, Item *productScope)
 {

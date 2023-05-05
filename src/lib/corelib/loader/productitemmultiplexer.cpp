@@ -93,9 +93,9 @@ public:
 ProductItemMultiplexer::ProductItemMultiplexer(
     const SetupProjectParameters &parameters, Evaluator &evaluator, Logger &logger,
     const QbsItemRetriever &qbsItemRetriever)
-    : d(new Private(parameters, evaluator, logger, qbsItemRetriever)) {}
+    : d(makePimpl<Private>(parameters, evaluator, logger, qbsItemRetriever)) {}
 
-ProductItemMultiplexer::~ProductItemMultiplexer() { delete d; }
+ProductItemMultiplexer::~ProductItemMultiplexer() = default;
 
 QList<Item *> ProductItemMultiplexer::multiplex(
     const QString &productName,

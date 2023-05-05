@@ -120,8 +120,8 @@ void ModulePropertyMerger::printProfilingInfo(int indent)
 
 ModulePropertyMerger::ModulePropertyMerger(
     const SetupProjectParameters &parameters, Evaluator &evaluator, Logger &logger)
-    : d(new Private(parameters, evaluator, logger)) { }
-ModulePropertyMerger::~ModulePropertyMerger() { delete d; }
+    : d(makePimpl<Private>(parameters, evaluator, logger)) { }
+ModulePropertyMerger::~ModulePropertyMerger() = default;
 
 int ModulePropertyMerger::Private::compareValuePriorities(
     const Item *productItem, const ValueConstPtr &v1, const ValueConstPtr &v2)

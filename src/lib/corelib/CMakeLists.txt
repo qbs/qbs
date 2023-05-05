@@ -343,6 +343,7 @@ set(TOOLS_SOURCES
     msvcinfo.cpp
     msvcinfo.h
     pathutils.h
+    pimpl.h
     persistence.cpp
     persistence.h
     porting.h
@@ -357,6 +358,7 @@ set(TOOLS_SOURCES
     progressobserver.cpp
     progressobserver.h
     projectgeneratormanager.cpp
+    propagate_const.h
     qbsassert.cpp
     qbsassert.h
     qbspluginmanager.cpp

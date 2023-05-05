@@ -39,6 +39,8 @@
 
 #pragma once
 
+#include <tools/pimpl.h>
+
 #include <QList>
 #include <QVariantMap>
 
@@ -77,7 +79,7 @@ public:
 
 private:
     class Private;
-    Private * const d;
+    Pimpl<Private> d;
 };
 
 } // namespace Internal

@@ -39,6 +39,7 @@
 
 #pragma once
 
+#include <tools/pimpl.h>
 #include <QtGlobal>
 
 QT_BEGIN_NAMESPACE
@@ -93,7 +94,7 @@ public:
 
 private:
     class Private;
-    Private * const d;
+    Pimpl<Private> d;
 };
 
 } // namespace Internal

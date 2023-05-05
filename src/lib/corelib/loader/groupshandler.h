@@ -41,6 +41,7 @@
 
 #include <language/qualifiedid.h>
 #include <tools/set.h>
+#include <tools/pimpl.h>
 
 #include <unordered_map>
 #include <utility>
@@ -76,7 +77,7 @@ public:
 
 private:
     class Private;
-    Private * const d;
+    Pimpl<Private> d;
 };
 
 } // namespace Internal
