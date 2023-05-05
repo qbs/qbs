@@ -58,6 +58,7 @@ RUN apt-get update -qq && \
         libprotobuf-dev \
         libgrpc++-dev \
         libxkbcommon-x11-0 \
+        locales \
         nanopb \
         ninja-build \
         nsis \
@@ -76,6 +77,13 @@ RUN apt-get update -qq && \
     update-alternatives --install /usr/bin/clang-check clang-check /usr/bin/clang-check-12 100 && \
     update-alternatives --install /usr/bin/python python /usr/bin/python3 100 && \
     pip install beautifulsoup4 lxml protobuf==3.19.1 pyyaml
+
+# Set the locale
+RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
+    locale-gen
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US:en
+ENV LC_ALL en_US.UTF-8
 
 ENV LLVM_INSTALL_DIR=/usr/lib/llvm-12
 
