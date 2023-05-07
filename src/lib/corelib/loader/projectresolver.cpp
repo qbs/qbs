@@ -39,6 +39,8 @@
 
 #include "projectresolver.h"
 
+#include "projecttreebuilder.h"
+
 #include <jsextensions/jsextensions.h>
 #include <jsextensions/moduleproperties.h>
 #include <language/artifactproperties.h>
@@ -47,6 +49,7 @@
 #include <language/filecontext.h>
 #include <language/filetags.h>
 #include <language/item.h>
+#include <language/itempool.h>
 #include <language/language.h>
 #include <language/propertymapinternal.h>
 #include <language/resolvedfilecontext.h>
@@ -125,10 +128,9 @@ class ProjectResolver::Private
 {
 public:
     Private(const SetupProjectParameters &setupParameters,
-            ProjectTreeBuilder::Result &&loadResult,
-            Evaluator &evaluator, Logger &logger)
-        : setupParams(setupParameters), loadResult(std::move(loadResult)), evaluator(evaluator),
-          logger(logger), engine(evaluator.engine())
+            ScriptEngine *engine, Logger &logger)
+        : setupParams(setupParameters), engine(engine), evaluator(engine),
+          logger(logger)
     {}
 
     static void applyFileTaggers(const SourceArtifactPtr &artifact,
@@ -215,17 +217,17 @@ public:
     void setupExportedProperties(const Item *item, const QString &namePrefix,
                                  std::vector<ExportedProperty> &properties);
 
-
-    typedef void (ProjectResolver::Private::*ItemFuncPtr)(Item *item,
-                                                          ProjectContext *projectContext);
+    using ItemFuncPtr = void (ProjectResolver::Private::*)(Item *item,
+                                                           ProjectContext *projectContext);
     using ItemFuncMap = QMap<ItemType, ItemFuncPtr>;
     void callItemFunction(const ItemFuncMap &mappings, Item *item, ProjectContext *projectContext);
 
     const SetupProjectParameters &setupParams;
     ProjectTreeBuilder::Result loadResult;
-    Evaluator &evaluator;
-    Logger &logger;
     ScriptEngine * const engine;
+    Evaluator evaluator;
+    Logger &logger;
+    ItemPool itemPool;
     ProgressObserver *progressObserver = nullptr;
     ProductContext *productContext = nullptr;
     ModuleContext *moduleContext = nullptr;
@@ -239,15 +241,20 @@ public:
     Set<CodeLocation> groupLocationWarnings;
     std::vector<std::pair<ResolvedProductPtr, Item *>> productExportInfo;
     std::vector<ErrorInfo> queuedErrors;
+    std::vector<ProbeConstPtr> oldProjectProbes;
+    QHash<QString, std::vector<ProbeConstPtr>> oldProductProbes;
+    StoredModuleProviderInfo storedModuleProviderInfo;
+    QVariantMap storedProfiles;
+    FileTime lastResolveTime;
     qint64 elapsedTimeModPropEval = 0;
     qint64 elapsedTimeAllPropEval = 0;
     qint64 elapsedTimeGroups = 0;
 };
 
 
-ProjectResolver::ProjectResolver(const SetupProjectParameters &setupParameters, ProjectTreeBuilder::Result &&loadResult,
-    Evaluator &evaluator, Logger &logger)
-    : d(new Private(setupParameters, std::move(loadResult), evaluator, logger))
+ProjectResolver::ProjectResolver(const SetupProjectParameters &setupParameters,
+                                 ScriptEngine *engine, Logger &logger)
+    : d(new Private(setupParameters, engine, logger))
 {
     QBS_CHECK(FileInfo::isAbsolute(d->setupParams.buildRoot()));
 }
@@ -260,6 +267,32 @@ ProjectResolver::~ProjectResolver()
 void ProjectResolver::setProgressObserver(ProgressObserver *observer)
 {
     d->progressObserver = observer;
+}
+
+void ProjectResolver::setOldProjectProbes(const std::vector<ProbeConstPtr> &oldProbes)
+{
+    d->oldProjectProbes = oldProbes;
+}
+
+void ProjectResolver::setOldProductProbes(
+    const QHash<QString, std::vector<ProbeConstPtr>> &oldProbes)
+{
+    d->oldProductProbes = oldProbes;
+}
+
+void ProjectResolver::setLastResolveTime(const FileTime &time)
+{
+    d->lastResolveTime = time;
+}
+
+void ProjectResolver::setStoredProfiles(const QVariantMap &profiles)
+{
+    d->storedProfiles = profiles;
+}
+
+void ProjectResolver::setStoredModuleProviderInfo(const StoredModuleProviderInfo &providerInfo)
+{
+    d->storedModuleProviderInfo = providerInfo;
 }
 
 static void checkForDuplicateProductNames(const TopLevelProjectConstPtr &project)
@@ -285,7 +318,16 @@ TopLevelProjectPtr ProjectResolver::resolve()
 {
     TimedActivityLogger projectResolverTimer(d->logger, Tr::tr("ProjectResolver"),
                                              d->setupParams.logElapsedTime());
-    qCDebug(lcProjectResolver) << "resolving" << d->loadResult.root->file()->filePath();
+    qCDebug(lcProjectResolver) << "resolving" << d->setupParams.projectFilePath();
+
+    ProjectTreeBuilder projectTreeBuilder(d->setupParams, d->itemPool, d->evaluator, d->logger);
+    projectTreeBuilder.setProgressObserver(d->progressObserver);
+    projectTreeBuilder.setOldProjectProbes(d->oldProjectProbes);
+    projectTreeBuilder.setOldProductProbes(d->oldProductProbes);
+    projectTreeBuilder.setLastResolveTime(d->lastResolveTime);
+    projectTreeBuilder.setStoredProfiles(d->storedProfiles);
+    projectTreeBuilder.setStoredModuleProviderInfo(d->storedModuleProviderInfo);
+    d->loadResult = projectTreeBuilder.load();
 
     TopLevelProjectPtr tlp;
     try {

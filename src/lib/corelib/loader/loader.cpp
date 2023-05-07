@@ -40,10 +40,7 @@
 #include "loader.h"
 
 #include "projectresolver.h"
-#include "projecttreebuilder.h"
 
-#include <language/evaluator.h>
-#include <language/itempool.h>
 #include <language/language.h>
 #include <language/scriptengine.h>
 #include <logging/translator.h>
@@ -134,17 +131,13 @@ TopLevelProjectPtr Loader::loadProject(const SetupProjectParameters &_parameters
     }
 
     const FileTime resolveTime = FileTime::currentTime();
-    Evaluator evaluator(m_engine);
-    ItemPool pool;
-    ProjectTreeBuilder projectTreeBuilder(parameters, pool, evaluator, m_logger);
-    projectTreeBuilder.setProgressObserver(m_progressObserver);
-    projectTreeBuilder.setOldProjectProbes(m_oldProjectProbes);
-    projectTreeBuilder.setOldProductProbes(m_oldProductProbes);
-    projectTreeBuilder.setLastResolveTime(m_lastResolveTime);
-    projectTreeBuilder.setStoredProfiles(m_storedProfiles);
-    projectTreeBuilder.setStoredModuleProviderInfo(m_storedModuleProviderInfo);
-    ProjectResolver resolver(parameters, projectTreeBuilder.load(), evaluator, m_logger);
+    ProjectResolver resolver(parameters, m_engine, m_logger);
     resolver.setProgressObserver(m_progressObserver);
+    resolver.setOldProjectProbes(m_oldProjectProbes);
+    resolver.setOldProductProbes(m_oldProductProbes);
+    resolver.setLastResolveTime(m_lastResolveTime);
+    resolver.setStoredProfiles(m_storedProfiles);
+    resolver.setStoredModuleProviderInfo(m_storedModuleProviderInfo);
     TopLevelProjectPtr project = resolver.resolve();
     project->lastStartResolveTime = resolveTime;
     project->lastEndResolveTime = FileTime::currentTime();

@@ -40,24 +40,35 @@
 #ifndef PROJECTRESOLVER_H
 #define PROJECTRESOLVER_H
 
-#include "projecttreebuilder.h"
+#include <language/forward_decls.h>
+
+#include <QHash>
+#include <QVariant>
+
+#include <vector>
 
 namespace qbs {
 class SetupProjectParameters;
 namespace Internal {
-class Evaluator;
+class FileTime;
 class Logger;
 class ProgressObserver;
+class ScriptEngine;
+class StoredModuleProviderInfo;
 
 class ProjectResolver
 {
 public:
     ProjectResolver(const SetupProjectParameters &setupParameters,
-                    ProjectTreeBuilder::Result &&loadResult,
-                    Evaluator &evaluator, Logger &logger);
+                    ScriptEngine *engine, Logger &logger);
     ~ProjectResolver();
 
     void setProgressObserver(ProgressObserver *observer);
+    void setOldProjectProbes(const std::vector<ProbeConstPtr> &oldProbes);
+    void setOldProductProbes(const QHash<QString, std::vector<ProbeConstPtr>> &oldProbes);
+    void setLastResolveTime(const FileTime &time);
+    void setStoredProfiles(const QVariantMap &profiles);
+    void setStoredModuleProviderInfo(const StoredModuleProviderInfo &providerInfo);
     TopLevelProjectPtr resolve();
 
 private:

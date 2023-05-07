@@ -59,9 +59,6 @@ class ProgressObserver;
 
 using ModulePropertiesPerGroup = std::unordered_map<const Item *, QualifiedIdSet>;
 
-// TODO: This class only needs to be known inside the ProjectResolver; no need to
-//       instantiate them separately when they always appear together.
-//       Possibly we can get rid of the Loader class altogether.
 class ProjectTreeBuilder
 {
 public:

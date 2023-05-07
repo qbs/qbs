@@ -90,8 +90,9 @@ public:
 using ModuleProviderInfoList = std::vector<ModuleProviderInfo>;
 
 // Persistent info stored between sessions
-struct StoredModuleProviderInfo
+class StoredModuleProviderInfo
 {
+public:
     using CacheKey = std::tuple<
         QString /*name*/,
         QVariantMap /*config*/,
