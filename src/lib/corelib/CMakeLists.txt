@@ -248,8 +248,6 @@ set(LOADER_SOURCES
     itemreaderastvisitor.h
     itemreadervisitorstate.cpp
     itemreadervisitorstate.h
-    loader.cpp
-    loader.h
     localprofiles.cpp
     localprofiles.h
     moduleinstantiator.cpp

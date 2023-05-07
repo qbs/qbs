@@ -41,6 +41,8 @@
 #define PROJECTRESOLVER_H
 
 #include <language/forward_decls.h>
+#include <logging/logger.h>
+#include <tools/qbs_export.h>
 
 #include <QHash>
 #include <QVariant>
@@ -56,11 +58,10 @@ class ProgressObserver;
 class ScriptEngine;
 class StoredModuleProviderInfo;
 
-class ProjectResolver
+class QBS_AUTOTEST_EXPORT ProjectResolver
 {
 public:
-    ProjectResolver(const SetupProjectParameters &setupParameters,
-                    ScriptEngine *engine, Logger &logger);
+    ProjectResolver(ScriptEngine *engine, Logger logger);
     ~ProjectResolver();
 
     void setProgressObserver(ProgressObserver *observer);
@@ -69,7 +70,7 @@ public:
     void setLastResolveTime(const FileTime &time);
     void setStoredProfiles(const QVariantMap &profiles);
     void setStoredModuleProviderInfo(const StoredModuleProviderInfo &providerInfo);
-    TopLevelProjectPtr resolve();
+    TopLevelProjectPtr resolve(const SetupProjectParameters &parameters);
 
 private:
     class Private;

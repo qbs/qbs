@@ -50,7 +50,7 @@
 #include <buildgraph/rulesevaluationcontext.h>
 #include <language/language.h>
 #include <language/scriptengine.h>
-#include <loader/loader.h>
+#include <loader/projectresolver.h>
 #include <logging/logger.h>
 #include <logging/translator.h>
 #include <tools/buildgraphlocker.h>
@@ -324,9 +324,9 @@ void InternalSetupProjectJob::execute()
 
 void InternalSetupProjectJob::resolveProjectFromScratch(ScriptEngine *engine)
 {
-    Loader loader(engine, logger());
-    loader.setProgressObserver(observer());
-    m_newProject = loader.loadProject(m_parameters);
+    ProjectResolver resolver(engine, logger());
+    resolver.setProgressObserver(observer());
+    m_newProject = resolver.resolve(m_parameters);
     QBS_CHECK(m_newProject);
 }
 

@@ -56,18 +56,19 @@
 #include <language/scriptengine.h>
 #include <language/value.h>
 #include <logging/categories.h>
-#include <logging/logger.h>
 #include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/fileinfo.h>
 #include <tools/joblimits.h>
 #include <tools/jsliterals.h>
+#include <tools/profile.h>
 #include <tools/profiling.h>
 #include <tools/progressobserver.h>
 #include <tools/scripttools.h>
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
 #include <tools/set.h>
+#include <tools/settings.h>
 #include <tools/setupprojectparameters.h>
 #include <tools/stlutils.h>
 #include <tools/stringconstants.h>
@@ -127,11 +128,7 @@ class CancelException { };
 class ProjectResolver::Private
 {
 public:
-    Private(const SetupProjectParameters &setupParameters,
-            ScriptEngine *engine, Logger &logger)
-        : setupParams(setupParameters), engine(engine), evaluator(engine),
-          logger(logger)
-    {}
+    Private(ScriptEngine *engine, Logger &&logger) : engine(engine), logger(std::move(logger)) {}
 
     static void applyFileTaggers(const SourceArtifactPtr &artifact,
                                  const ResolvedProductConstPtr &product);
@@ -139,6 +136,7 @@ public:
         const ResolvedProductPtr &rproduct, const QString &fileName, const GroupPtr &group,
         bool wildcard, const CodeLocation &filesLocation = CodeLocation(),
         FileLocations *fileLocations = nullptr, ErrorInfo *errorInfo = nullptr);
+    void finalizeProjectParameters();
     void checkCancelation() const;
     QString verbatimValue(const ValueConstPtr &value, bool *propertyWasSet = nullptr) const;
     QString verbatimValue(Item *item, const QString &name, bool *propertyWasSet = nullptr) const;
@@ -222,12 +220,12 @@ public:
     using ItemFuncMap = QMap<ItemType, ItemFuncPtr>;
     void callItemFunction(const ItemFuncMap &mappings, Item *item, ProjectContext *projectContext);
 
-    const SetupProjectParameters &setupParams;
-    ProjectTreeBuilder::Result loadResult;
     ScriptEngine * const engine;
-    Evaluator evaluator;
-    Logger &logger;
+    mutable Logger logger;
+    Evaluator evaluator{engine};
     ItemPool itemPool;
+    SetupProjectParameters setupParams;
+    ProjectTreeBuilder::Result loadResult;
     ProgressObserver *progressObserver = nullptr;
     ProductContext *productContext = nullptr;
     ModuleContext *moduleContext = nullptr;
@@ -252,11 +250,10 @@ public:
 };
 
 
-ProjectResolver::ProjectResolver(const SetupProjectParameters &setupParameters,
-                                 ScriptEngine *engine, Logger &logger)
-    : d(new Private(setupParameters, engine, logger))
+ProjectResolver::ProjectResolver(ScriptEngine *engine, Logger logger)
+    : d(new Private(engine, std::move(logger)))
 {
-    QBS_CHECK(FileInfo::isAbsolute(d->setupParams.buildRoot()));
+    d->logger.storeWarnings();
 }
 
 ProjectResolver::~ProjectResolver()
@@ -314,12 +311,36 @@ static void checkForDuplicateProductNames(const TopLevelProjectConstPtr &project
     }
 }
 
-TopLevelProjectPtr ProjectResolver::resolve()
+TopLevelProjectPtr ProjectResolver::resolve(const SetupProjectParameters &parameters)
 {
+    d->setupParams = parameters;
+    d->finalizeProjectParameters();
+    QBS_CHECK(FileInfo::isAbsolute(d->setupParams.buildRoot()));
+
     TimedActivityLogger projectResolverTimer(d->logger, Tr::tr("ProjectResolver"),
                                              d->setupParams.logElapsedTime());
     qCDebug(lcProjectResolver) << "resolving" << d->setupParams.projectFilePath();
 
+    d->engine->setEnvironment(d->setupParams.adjustedEnvironment());
+    d->engine->checkAndClearException({});
+    d->engine->clearImportsCache();
+    d->engine->clearRequestedProperties();
+    d->engine->enableProfiling(d->setupParams.logElapsedTime());
+    d->logger.clearWarnings();
+    EvalContextSwitcher evalContextSwitcher(d->engine, EvalContext::PropertyEvaluation);
+
+    // At this point, we cannot set a sensible total effort, because we know nothing about
+    // the project yet. That's why we use a placeholder here, so the user at least
+    // sees that an operation is starting. The real total effort will be set later when
+    // we have enough information.
+    if (d->progressObserver) {
+        d->progressObserver->initialize(Tr::tr("Resolving project for configuration %1")
+            .arg(TopLevelProject::deriveId(d->setupParams.finalBuildConfigurationTree())), 1);
+        d->progressObserver->setScriptEngine(d->engine);
+    }
+
+    const FileTime resolveTime = FileTime::currentTime();
+    TopLevelProjectPtr tlp;
     ProjectTreeBuilder projectTreeBuilder(d->setupParams, d->itemPool, d->evaluator, d->logger);
     projectTreeBuilder.setProgressObserver(d->progressObserver);
     projectTreeBuilder.setOldProjectProbes(d->oldProjectProbes);
@@ -328,8 +349,6 @@ TopLevelProjectPtr ProjectResolver::resolve()
     projectTreeBuilder.setStoredProfiles(d->storedProfiles);
     projectTreeBuilder.setStoredModuleProviderInfo(d->storedModuleProviderInfo);
     d->loadResult = projectTreeBuilder.load();
-
-    TopLevelProjectPtr tlp;
     try {
         tlp = d->resolveTopLevelProject();
         d->printProfilingInfo();
@@ -338,6 +357,12 @@ TopLevelProjectPtr ProjectResolver::resolve()
                             .arg(TopLevelProject::deriveId(
                                 d->setupParams.finalBuildConfigurationTree())));
     }
+    tlp->lastStartResolveTime = resolveTime;
+    tlp->lastEndResolveTime = FileTime::currentTime();
+
+    // E.g. if the top-level project is disabled.
+    if (d->progressObserver)
+        d->progressObserver->setFinished();
     return tlp;
 }
 
@@ -805,6 +830,23 @@ SourceArtifactPtr ProjectResolver::Private::createSourceArtifact(
     artifact->targetOfModule = group->targetOfModule;
     (wildcard ? group->wildcards->files : group->files).push_back(artifact);
     return artifact;
+}
+
+void ProjectResolver::Private::finalizeProjectParameters()
+{
+    if (setupParams.topLevelProfile().isEmpty()) {
+        Settings settings(setupParams.settingsDirectory());
+        QString profileName = settings.defaultProfile();
+        if (profileName.isEmpty()) {
+            logger.qbsDebug() << Tr::tr("No profile specified and no default profile exists. "
+                                          "Using default property values.");
+            profileName = Profile::fallbackName();
+        }
+        setupParams.setTopLevelProfile(profileName);
+        setupParams.expandBuildConfiguration();
+    }
+    setupParams.finalizeProjectFilePath();
+    QBS_CHECK(QFileInfo(setupParams.projectFilePath()).isAbsolute());
 }
 
 static QualifiedIdSet propertiesToEvaluate(std::deque<QualifiedId> initialProps,

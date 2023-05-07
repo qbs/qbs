@@ -52,7 +52,7 @@
 #include <language/propertymapinternal.h>
 #include <language/qualifiedid.h>
 #include <language/resolvedfilecontext.h>
-#include <loader/loader.h>
+#include <loader/projectresolver.h>
 #include <logging/categories.h>
 #include <logging/translator.h>
 #include <tools/buildgraphlocker.h>
@@ -338,19 +338,19 @@ void BuildGraphLoader::trackProjectChanges()
     markTransformersForChangeTracking(allRestoredProducts);
     if (!m_parameters.overrideBuildGraphData())
         m_parameters.setEnvironment(restoredProject->environment);
-    Loader ldr(m_evalContext->engine(), m_logger);
-    ldr.setProgressObserver(m_evalContext->observer());
-    ldr.setOldProjectProbes(restoredProject->probes);
+    ProjectResolver resolver(m_evalContext->engine(), m_logger);
+    resolver.setProgressObserver(m_evalContext->observer());
+    resolver.setOldProjectProbes(restoredProject->probes);
     if (!m_parameters.forceProbeExecution())
-        ldr.setStoredModuleProviderInfo(restoredProject->moduleProviderInfo);
-    ldr.setLastResolveTime(restoredProject->lastStartResolveTime);
+        resolver.setStoredModuleProviderInfo(restoredProject->moduleProviderInfo);
+    resolver.setLastResolveTime(restoredProject->lastStartResolveTime);
     QHash<QString, std::vector<ProbeConstPtr>> restoredProbes;
     for (const auto &restoredProduct : qAsConst(allRestoredProducts))
         restoredProbes.insert(restoredProduct->uniqueName(), restoredProduct->probes);
-    ldr.setOldProductProbes(restoredProbes);
+    resolver.setOldProductProbes(restoredProbes);
     if (!m_parameters.overrideBuildGraphData())
-        ldr.setStoredProfiles(restoredProject->profileConfigs);
-    m_result.newlyResolvedProject = ldr.loadProject(m_parameters);
+        resolver.setStoredProfiles(restoredProject->profileConfigs);
+    m_result.newlyResolvedProject = resolver.resolve(m_parameters);
 
     std::vector<ResolvedProductPtr> allNewlyResolvedProducts
             = m_result.newlyResolvedProject->allProducts();

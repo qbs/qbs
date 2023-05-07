@@ -41,7 +41,7 @@
 #define TST_LANGUAGE_H
 
 #include <language/forward_decls.h>
-#include <loader/loader.h>
+#include <loader/projectresolver.h>
 #include <logging/ilogsink.h>
 #include <tools/setupprojectparameters.h>
 
@@ -61,7 +61,7 @@ private:
     qbs::Settings * const m_settings;
     qbs::Internal::Logger m_logger;
     std::unique_ptr<qbs::Internal::ScriptEngine> m_engine;
-    qbs::Internal::Loader *loader;
+    qbs::Internal::ProjectResolver *m_resolver;
     qbs::Internal::TopLevelProjectPtr project;
     qbs::SetupProjectParameters defaultParameters;
     const QString m_wildcardsTestDirPath;
@@ -75,8 +75,8 @@ private:
 
 private slots:
     void init();
+    void cleanup();
     void initTestCase();
-    void cleanupTestCase();
 
     void additionalProductTypes();
     void baseProperty();
