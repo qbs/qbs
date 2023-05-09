@@ -95,9 +95,9 @@ static const FileTag unknownFileTag()
     return tag;
 }
 
-struct ProjectContext
+struct ResolverProjectContext
 {
-    ProjectContext *parentContext = nullptr;
+    ResolverProjectContext *parentContext = nullptr;
     ResolvedProjectPtr project;
     std::vector<FileTaggerConstPtr> fileTaggers;
     std::vector<RulePtr> rules;
@@ -106,7 +106,7 @@ struct ProjectContext
 };
 
 using FileLocations = QHash<std::pair<QString, QString>, CodeLocation>;
-struct ProductContext
+struct ResolverProductContext
 {
     ResolvedProductPtr product;
     QString buildDirectory;
@@ -142,36 +142,36 @@ public:
     QString verbatimValue(Item *item, const QString &name, bool *propertyWasSet = nullptr) const;
     ScriptFunctionPtr scriptFunctionValue(Item *item, const QString &name) const;
     ResolvedFileContextPtr resolvedFileContext(const FileContextConstPtr &ctx) const;
-    void ignoreItem(Item *item, ProjectContext *projectContext);
+    void ignoreItem(Item *item, ResolverProjectContext *projectContext);
     TopLevelProjectPtr resolveTopLevelProject();
-    void resolveProject(Item *item, ProjectContext *projectContext);
-    void resolveProjectFully(Item *item, ProjectContext *projectContext);
-    void resolveSubProject(Item *item, ProjectContext *projectContext);
-    void resolveProduct(Item *item, ProjectContext *projectContext);
-    void resolveProductFully(Item *item, ProjectContext *projectContext);
-    void resolveModules(const Item *item, ProjectContext *projectContext);
+    void resolveProject(Item *item, ResolverProjectContext *projectContext);
+    void resolveProjectFully(Item *item, ResolverProjectContext *projectContext);
+    void resolveSubProject(Item *item, ResolverProjectContext *projectContext);
+    void resolveProduct(Item *item, ResolverProjectContext *projectContext);
+    void resolveProductFully(Item *item, ResolverProjectContext *projectContext);
+    void resolveModules(const Item *item, ResolverProjectContext *projectContext);
     void resolveModule(const QualifiedId &moduleName, Item *item, bool isProduct,
                        const QVariantMap &parameters, JobLimits &jobLimits,
-                       ProjectContext *projectContext);
+                       ResolverProjectContext *projectContext);
     void gatherProductTypes(ResolvedProduct *product, Item *item);
     QVariantMap resolveAdditionalModuleProperties(const Item *group,
                                                   const QVariantMap &currentValues);
-    void resolveGroup(Item *item, ProjectContext *projectContext);
-    void resolveGroupFully(Item *item, ProjectContext *projectContext, bool isEnabled);
-    void resolveShadowProduct(Item *item, ProjectContext *);
-    void resolveExport(Item *exportItem, ProjectContext *);
+    void resolveGroup(Item *item, ResolverProjectContext *projectContext);
+    void resolveGroupFully(Item *item, ResolverProjectContext *projectContext, bool isEnabled);
+    void resolveShadowProduct(Item *item, ResolverProjectContext *);
+    void resolveExport(Item *exportItem, ResolverProjectContext *);
     std::unique_ptr<ExportedItem> resolveExportChild(const Item *item,
                                                      const ExportedModule &module);
-    void resolveRule(Item *item, ProjectContext *projectContext);
+    void resolveRule(Item *item, ResolverProjectContext *projectContext);
     void resolveRuleArtifact(const RulePtr &rule, Item *item);
     void resolveRuleArtifactBinding(const RuleArtifactPtr &ruleArtifact, Item *item,
                                     const QStringList &namePrefix,
                                     QualifiedIdSet *seenBindings);
-    void resolveFileTagger(Item *item, ProjectContext *projectContext);
-    void resolveJobLimit(Item *item, ProjectContext *projectContext);
-    void resolveScanner(Item *item, ProjectContext *projectContext);
+    void resolveFileTagger(Item *item, ResolverProjectContext *projectContext);
+    void resolveJobLimit(Item *item, ResolverProjectContext *projectContext);
+    void resolveScanner(Item *item, ResolverProjectContext *projectContext);
     void resolveProductDependencies();
-    void postProcess(const ResolvedProductPtr &product, ProjectContext *projectContext) const;
+    void postProcess(const ResolvedProductPtr &product, ResolverProjectContext *projectContext) const;
     void applyFileTaggers(const ResolvedProductPtr &product) const;
     QVariantMap evaluateModuleValues(Item *item, bool lookupPrototype = true);
     QVariantMap evaluateProperties(Item *item, bool lookupPrototype, bool checkErrors);
@@ -184,7 +184,7 @@ public:
         const QVariant &v, const CodeLocation &loc, const PropertyDeclaration &decl,
         const QString &key) const;
     void createProductConfig(ResolvedProduct *product);
-    ProjectContext createProjectContext(ProjectContext *parentProjectContext) const;
+    ResolverProjectContext createProjectContext(ResolverProjectContext *parentProjectContext) const;
     void adaptExportedPropertyValues(const Item *shadowProductItem);
     void collectExportedProductDependencies();
 
@@ -216,9 +216,9 @@ public:
                                  std::vector<ExportedProperty> &properties);
 
     using ItemFuncPtr = void (ProjectResolver::Private::*)(Item *item,
-                                                           ProjectContext *projectContext);
+                                                           ResolverProjectContext *projectContext);
     using ItemFuncMap = QMap<ItemType, ItemFuncPtr>;
-    void callItemFunction(const ItemFuncMap &mappings, Item *item, ProjectContext *projectContext);
+    void callItemFunction(const ItemFuncMap &mappings, Item *item, ResolverProjectContext *projectContext);
 
     ScriptEngine * const engine;
     mutable Logger logger;
@@ -227,7 +227,7 @@ public:
     SetupProjectParameters setupParams;
     ProjectTreeBuilder::Result loadResult;
     ProgressObserver *progressObserver = nullptr;
-    ProductContext *productContext = nullptr;
+    ResolverProductContext *productContext = nullptr;
     ModuleContext *moduleContext = nullptr;
     QHash<Item *, ResolvedProductPtr> productsByItem;
     QHash<FileTag, QList<ResolvedProductPtr>> productsByType;
@@ -392,7 +392,7 @@ QString ProjectResolver::Private::verbatimValue(Item *item, const QString &name,
     return verbatimValue(item->property(name), propertyWasSet);
 }
 
-void ProjectResolver::Private::ignoreItem(Item *item, ProjectContext *projectContext)
+void ProjectResolver::Private::ignoreItem(Item *item, ResolverProjectContext *projectContext)
 {
     Q_UNUSED(item);
     Q_UNUSED(projectContext);
@@ -433,7 +433,7 @@ TopLevelProjectPtr ProjectResolver::Private::resolveTopLevelProject()
     project->profileConfigs = loadResult.profileConfigs;
     project->probes = loadResult.projectProbes;
     project->moduleProviderInfo = loadResult.storedModuleProviderInfo;
-    ProjectContext projectContext;
+    ResolverProjectContext projectContext;
     projectContext.project = project;
 
     resolveProject(loadResult.root, &projectContext);
@@ -473,7 +473,7 @@ TopLevelProjectPtr ProjectResolver::Private::resolveTopLevelProject()
     return project;
 }
 
-void ProjectResolver::Private::resolveProject(Item *item, ProjectContext *projectContext)
+void ProjectResolver::Private::resolveProject(Item *item, ResolverProjectContext *projectContext)
 {
     checkCancelation();
 
@@ -494,7 +494,7 @@ void ProjectResolver::Private::resolveProject(Item *item, ProjectContext *projec
     }
 }
 
-void ProjectResolver::Private::resolveProjectFully(Item *item, ProjectContext *projectContext)
+void ProjectResolver::Private::resolveProjectFully(Item *item, ResolverProjectContext *projectContext)
 {
     projectContext->project->enabled = projectContext->project->enabled
         && evaluator.boolValue(item, StringConstants::conditionProperty());
@@ -546,9 +546,9 @@ void ProjectResolver::Private::resolveProjectFully(Item *item, ProjectContext *p
         postProcess(product, projectContext);
 }
 
-void ProjectResolver::Private::resolveSubProject(Item *item, ProjectContext *projectContext)
+void ProjectResolver::Private::resolveSubProject(Item *item, ResolverProjectContext *projectContext)
 {
-    ProjectContext subProjectContext = createProjectContext(projectContext);
+    ResolverProjectContext subProjectContext = createProjectContext(projectContext);
 
     Item * const projectItem = item->child(ItemType::Project);
     if (projectItem) {
@@ -565,11 +565,11 @@ void ProjectResolver::Private::resolveSubProject(Item *item, ProjectContext *pro
     }
 }
 
-void ProjectResolver::Private::resolveProduct(Item *item, ProjectContext *projectContext)
+void ProjectResolver::Private::resolveProduct(Item *item, ResolverProjectContext *projectContext)
 {
     checkCancelation();
     evaluator.clearPropertyDependencies();
-    ProductContext productContext;
+    ResolverProductContext productContext;
     productContext.item = item;
     ResolvedProductPtr product = ResolvedProduct::create();
     product->enabled = projectContext->project->enabled;
@@ -579,7 +579,7 @@ void ProjectResolver::Private::resolveProduct(Item *item, ProjectContext *projec
     product->location = item->location();
     class ProductContextSwitcher {
     public:
-        ProductContextSwitcher(ProjectResolver::Private &resolver, ProductContext &newContext,
+        ProductContextSwitcher(ProjectResolver::Private &resolver, ResolverProductContext &newContext,
                                ProgressObserver *progressObserver)
             : m_resolver(resolver), m_progressObserver(progressObserver) {
             QBS_CHECK(!m_resolver.productContext);
@@ -595,7 +595,7 @@ void ProjectResolver::Private::resolveProduct(Item *item, ProjectContext *projec
         ProgressObserver * const m_progressObserver;
     } contextSwitcher(*this, productContext, progressObserver);
     const auto errorFromDelayedError = [&] {
-        ProjectTreeBuilder::Result::ProductInfo &pi = loadResult.productInfos[item];
+        ProductInfo &pi = loadResult.productInfos[item];
         if (pi.delayedError.hasError()) {
             ErrorInfo errorInfo;
 
@@ -638,7 +638,7 @@ void ProjectResolver::Private::resolveProduct(Item *item, ProjectContext *projec
     }
 }
 
-void ProjectResolver::Private::resolveProductFully(Item *item, ProjectContext *projectContext)
+void ProjectResolver::Private::resolveProductFully(Item *item, ResolverProjectContext *projectContext)
 {
     const ResolvedProductPtr product = productContext->product;
     productItemMap.insert(product, item);
@@ -654,7 +654,7 @@ void ProjectResolver::Private::resolveProductFully(Item *item, ProjectContext *p
     productsByItem.insert(item, product);
     product->enabled = product->enabled
                        && evaluator.boolValue(item, StringConstants::conditionProperty());
-    ProjectTreeBuilder::Result::ProductInfo &pi = loadResult.productInfos[item];
+    ProductInfo &pi = loadResult.productInfos[item];
     gatherProductTypes(product.get(), item);
     product->targetName = evaluator.stringValue(item, StringConstants::targetNameProperty());
     product->sourceDirectory = evaluator.stringValue(
@@ -707,7 +707,7 @@ void ProjectResolver::Private::resolveProductFully(Item *item, ProjectContext *p
     for (Item * const child : qAsConst(subItems))
         callItemFunction(mapping, child, projectContext);
 
-    for (const ProjectContext *p = projectContext; p; p = p->parentContext) {
+    for (const ResolverProjectContext *p = projectContext; p; p = p->parentContext) {
         JobLimits tempLimits = p->jobLimits;
         product->jobLimits = tempLimits.update(product->jobLimits);
     }
@@ -718,7 +718,7 @@ void ProjectResolver::Private::resolveProductFully(Item *item, ProjectContext *p
         productsByType[t].push_back(product);
 }
 
-void ProjectResolver::Private::resolveModules(const Item *item, ProjectContext *projectContext)
+void ProjectResolver::Private::resolveModules(const Item *item, ResolverProjectContext *projectContext)
 {
     JobLimits jobLimits;
     for (const Item::Module &m : item->modules()) {
@@ -734,7 +734,7 @@ void ProjectResolver::Private::resolveModules(const Item *item, ProjectContext *
 
 void ProjectResolver::Private::resolveModule(
     const QualifiedId &moduleName, Item *item, bool isProduct, const QVariantMap &parameters,
-    JobLimits &jobLimits, ProjectContext *projectContext)
+    JobLimits &jobLimits, ResolverProjectContext *projectContext)
 {
     checkCancelation();
     if (!item->isPresentModule())
@@ -901,7 +901,7 @@ QVariantMap ProjectResolver::Private::resolveAdditionalModuleProperties(
     return modulesMap;
 }
 
-void ProjectResolver::Private::resolveGroup(Item *item, ProjectContext *projectContext)
+void ProjectResolver::Private::resolveGroup(Item *item, ResolverProjectContext *projectContext)
 {
     checkCancelation();
     const bool parentEnabled = productContext->currentGroup
@@ -924,7 +924,7 @@ void ProjectResolver::Private::resolveGroup(Item *item, ProjectContext *projectC
 }
 
 void ProjectResolver::Private::resolveGroupFully(
-    Item *item, ProjectContext *projectContext, bool isEnabled)
+    Item *item, ResolverProjectContext *projectContext, bool isEnabled)
 {
     AccumulatingTimer groupTimer(setupParams.logElapsedTime() ? &elapsedTimeGroups : nullptr);
 
@@ -963,7 +963,7 @@ void ProjectResolver::Private::resolveGroupFully(
         if (!isEnabled)
             return;
 
-        ProductContext::ArtifactPropertiesInfo &apinfo
+        ResolverProductContext::ArtifactPropertiesInfo &apinfo
                 = productContext->artifactPropertiesPerFilter[fileTagsFilter];
         if (apinfo.first) {
             const auto it = std::find_if(apinfo.second.cbegin(), apinfo.second.cend(),
@@ -1054,13 +1054,13 @@ void ProjectResolver::Private::resolveGroupFully(
 
     class GroupContextSwitcher {
     public:
-        GroupContextSwitcher(ProductContext &context, const GroupConstPtr &newGroup)
+        GroupContextSwitcher(ResolverProductContext &context, const GroupConstPtr &newGroup)
             : m_context(context), m_oldGroup(context.currentGroup) {
             m_context.currentGroup = newGroup;
         }
         ~GroupContextSwitcher() { m_context.currentGroup = m_oldGroup; }
     private:
-        ProductContext &m_context;
+        ResolverProductContext &m_context;
         const GroupConstPtr m_oldGroup;
     };
     GroupContextSwitcher groupSwitcher(*productContext, group);
@@ -1171,7 +1171,7 @@ void ProjectResolver::Private::collectExportedProductDependencies()
     }
 }
 
-void ProjectResolver::Private::resolveShadowProduct(Item *item, ProjectContext *)
+void ProjectResolver::Private::resolveShadowProduct(Item *item, ResolverProjectContext *)
 {
     if (!productContext->product->enabled)
         return;
@@ -1292,7 +1292,7 @@ static QString getLineAtLocation(const CodeLocation &loc, const QString &content
     return content.mid(pos, eolPos - pos);
 }
 
-void ProjectResolver::Private::resolveExport(Item *exportItem, ProjectContext *)
+void ProjectResolver::Private::resolveExport(Item *exportItem, ResolverProjectContext *)
 {
     ExportedModule &exportedModule = productContext->product->exportedModule;
     setupExportedProperties(exportItem, QString(), exportedModule.m_properties);
@@ -1392,7 +1392,7 @@ ResolvedFileContextPtr ProjectResolver::Private::resolvedFileContext(
     return result;
 }
 
-void ProjectResolver::Private::resolveRule(Item *item, ProjectContext *projectContext)
+void ProjectResolver::Private::resolveRule(Item *item, ResolverProjectContext *projectContext)
 {
     checkCancelation();
 
@@ -1527,7 +1527,7 @@ void ProjectResolver::Private::resolveRuleArtifactBinding(
     }
 }
 
-void ProjectResolver::Private::resolveFileTagger(Item *item, ProjectContext *projectContext)
+void ProjectResolver::Private::resolveFileTagger(Item *item, ResolverProjectContext *projectContext)
 {
     checkCancelation();
     if (!evaluator.boolValue(item, StringConstants::conditionProperty()))
@@ -1553,7 +1553,7 @@ void ProjectResolver::Private::resolveFileTagger(Item *item, ProjectContext *pro
     fileTaggers.push_back(FileTagger::create(patterns, fileTags, priority));
 }
 
-void ProjectResolver::Private::resolveJobLimit(Item *item, ProjectContext *projectContext)
+void ProjectResolver::Private::resolveJobLimit(Item *item, ResolverProjectContext *projectContext)
 {
     if (!evaluator.boolValue(item, StringConstants::conditionProperty()))
         return;
@@ -1582,7 +1582,7 @@ void ProjectResolver::Private::resolveJobLimit(Item *item, ProjectContext *proje
         jobLimits.setJobLimit(jobLimit);
 }
 
-void ProjectResolver::Private::resolveScanner(Item *item, ProjectContext *projectContext)
+void ProjectResolver::Private::resolveScanner(Item *item, ResolverProjectContext *projectContext)
 {
     checkCancelation();
     if (!evaluator.boolValue(item, StringConstants::conditionProperty())) {
@@ -1737,7 +1737,7 @@ void ProjectResolver::Private::resolveProductDependencies()
 }
 
 void ProjectResolver::Private::postProcess(const ResolvedProductPtr &product,
-                                           ProjectContext *projectContext) const
+                                           ResolverProjectContext *projectContext) const
 {
     product->fileTaggers << projectContext->fileTaggers;
     std::sort(std::begin(product->fileTaggers), std::end(product->fileTaggers),
@@ -1977,22 +1977,22 @@ void ProjectResolver::Private::createProductConfig(ResolvedProduct *product)
 }
 
 void ProjectResolver::Private::callItemFunction(const ItemFuncMap &mappings, Item *item,
-                                                ProjectContext *projectContext)
+                                                ResolverProjectContext *projectContext)
 {
     const ItemFuncPtr f = mappings.value(item->type());
     QBS_CHECK(f);
     if (item->type() == ItemType::Project) {
-        ProjectContext subProjectContext = createProjectContext(projectContext);
+        ResolverProjectContext subProjectContext = createProjectContext(projectContext);
         (this->*f)(item, &subProjectContext);
     } else {
         (this->*f)(item, projectContext);
     }
 }
 
-ProjectContext ProjectResolver::Private::createProjectContext(
-    ProjectContext *parentProjectContext) const
+ResolverProjectContext ProjectResolver::Private::createProjectContext(
+    ResolverProjectContext *parentProjectContext) const
 {
-    ProjectContext subProjectContext;
+    ResolverProjectContext subProjectContext;
     subProjectContext.parentContext = parentProjectContext;
     subProjectContext.project = ResolvedProject::create();
     parentProjectContext->project->subProjects.push_back(subProjectContext.project);

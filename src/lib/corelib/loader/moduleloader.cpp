@@ -66,10 +66,12 @@ namespace qbs::Internal {
 class ModuleLoader::Private
 {
 public:
-    Private(const SetupProjectParameters &setupParameters, ModuleProviderLoader &providerLoader,
+    Private(const SetupProjectParameters &setupParameters, ProbesResolver &probesResolver,
             ItemReader &itemReader, Evaluator &evaluator, Logger &logger)
-        : setupParameters(setupParameters), providerLoader(providerLoader),
-          itemReader(itemReader), evaluator(evaluator), logger(logger) {}
+        : setupParameters(setupParameters), itemReader(itemReader), evaluator(evaluator),
+          logger(logger),
+          providerLoader(setupParameters, itemReader, evaluator, probesResolver, logger)
+    {}
 
     std::pair<Item *, bool> loadModuleFile(const ProductContext &product,
                                            const QString &moduleName, const QString &filePath);
@@ -81,10 +83,10 @@ public:
                                       const Item::Modules &modules);
 
     const SetupProjectParameters &setupParameters;
-    ModuleProviderLoader &providerLoader;
     ItemReader &itemReader;
     Evaluator &evaluator;
     Logger &logger;
+    ModuleProviderLoader providerLoader;
 
     // The keys are file paths, the values are module prototype items accompanied by a profile.
     std::unordered_map<QString, std::vector<std::pair<Item *, QString>>> modulePrototypes;
@@ -103,9 +105,9 @@ public:
 };
 
 ModuleLoader::ModuleLoader(
-    const SetupProjectParameters &setupParameters, ModuleProviderLoader &providerLoader,
+    const SetupProjectParameters &setupParameters, ProbesResolver &probesResolver,
     ItemReader &itemReader, Evaluator &evaluator, Logger &logger)
-    : d(makePimpl<Private>(setupParameters, providerLoader, itemReader, evaluator, logger)) { }
+    : d(makePimpl<Private>(setupParameters, probesResolver, itemReader, evaluator, logger)) { }
 
 ModuleLoader::~ModuleLoader() = default;
 
@@ -284,6 +286,21 @@ ModuleLoader::Result ModuleLoader::searchAndLoadModuleFile(
     }
 
     return loadResult;
+}
+
+void ModuleLoader::setStoredModuleProviderInfo(const StoredModuleProviderInfo &moduleProviderInfo)
+{
+    d->providerLoader.setStoredModuleProviderInfo(moduleProviderInfo);
+}
+
+StoredModuleProviderInfo ModuleLoader::storedModuleProviderInfo() const
+{
+    return d->providerLoader.storedModuleProviderInfo();
+}
+
+const Set<QString> &ModuleLoader::tempQbsFiles() const
+{
+    return d->providerLoader.tempQbsFiles();
 }
 
 std::pair<Item *, bool> ModuleLoader::Private::loadModuleFile(

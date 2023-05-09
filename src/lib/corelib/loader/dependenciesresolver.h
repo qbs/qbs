@@ -39,63 +39,59 @@
 
 #pragma once
 
-
-#include <language/forward_decls.h>
-#include <language/item.h>
 #include <tools/pimpl.h>
 #include <tools/set.h>
 
-#include <QString>
-#include <QVariantMap>
+#include <QtGlobal>
 
-#include <vector>
+#include <functional>
+
+QT_BEGIN_NAMESPACE
+class QString;
+QT_END_NAMESPACE
 
 namespace qbs {
-class CodeLocation;
 class SetupProjectParameters;
 namespace Internal {
 class Evaluator;
-enum class FallbackMode;
+class Item;
+class ItemPool;
 class ItemReader;
 class Logger;
+class ModuleInstantiator;
 class ProbesResolver;
+class ProductContext;
 class StoredModuleProviderInfo;
+enum class Deferral;
 
-class ModuleLoader
+// Collects the products' dependencies and builds the list of modules from them.
+// Actual loading of module files is offloaded to ModuleLoader.
+class DependenciesResolver
 {
 public:
-    ModuleLoader(const SetupProjectParameters &setupParameters,
-                 ProbesResolver &probesResolver, ItemReader &itemReader,
-                 Evaluator &evaluator, Logger &logger);
-    ~ModuleLoader();
+    DependenciesResolver(const SetupProjectParameters &parameters, ItemPool &itemPool,
+                         Evaluator &evaluator, ItemReader &itemReader,
+                         ProbesResolver &probesResolver, ModuleInstantiator &moduleInstantiator,
+                         Logger &logger);
+    ~DependenciesResolver();
 
-    struct ProductContext {
-        Item * const productItem;
-        const Item * const projectItem;
-        const QString &name;
-        const QString &uniqueName;
-        const QString &profile;
-        const QString &multiplexId;
-        const QVariantMap &moduleProperties;
-        const QVariantMap &profileModuleProperties;
-    };
-    struct Result {
-        Item *moduleItem = nullptr;
-        std::vector<ProbeConstPtr> providerProbes;
-    };
-    Result searchAndLoadModuleFile(const ProductContext &productContext,
-                                   const CodeLocation &dependsItemLocation,
-                                   const QualifiedId &moduleName,
-                                   FallbackMode fallbackMode, bool isRequired);
+    // Returns false if the product has unhandled product dependencies and thus needs
+    // to be deferred, true otherwise.
+    bool resolveDependencies(ProductContext &product, Deferral deferral);
+
+    void checkDependencyParameterDeclarations(const Item *productItem,
+                                              const QString &productName) const;
 
     void setStoredModuleProviderInfo(const StoredModuleProviderInfo &moduleProviderInfo);
     StoredModuleProviderInfo storedModuleProviderInfo() const;
     const Set<QString> &tempQbsFiles() const;
 
-    void checkDependencyParameterDeclarations(const Item *productItem,
-                                              const QString &productName) const;
-    void forwardParameterDeclarations(const Item *dependsItem, const Item::Modules &modules);
     void printProfilingInfo(int indent);
+
+    // Note: This function is never called for regular loading of the base module into a product,
+    //       but only for the special cases of loading the dummy base module into a project
+    //       and temporarily providing a base module for product multiplexing.
+    Item *loadBaseModule(ProductContext &product, Item *item);
 
 private:
     class Private;
@@ -104,4 +100,3 @@ private:
 
 } // namespace Internal
 } // namespace qbs
-

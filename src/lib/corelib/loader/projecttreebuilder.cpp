@@ -39,11 +39,11 @@
 
 #include "projecttreebuilder.h"
 
+#include "dependenciesresolver.h"
 #include "groupshandler.h"
 #include "itemreader.h"
 #include "localprofiles.h"
 #include "moduleinstantiator.h"
-#include "moduleloader.h"
 #include "modulepropertymerger.h"
 #include "probesresolver.h"
 #include "productitemmultiplexer.h"
@@ -52,6 +52,7 @@
 #include <language/evaluator.h>
 #include <language/filecontext.h>
 #include <language/filetags.h>
+#include <language/item.h>
 #include <language/language.h>
 #include <language/scriptengine.h>
 #include <language/value.h>
@@ -85,127 +86,9 @@ namespace qbs::Internal {
 
 namespace {
 
-class ContextBase
-{
-public:
-    Item *item = nullptr;
-    Item *scope = nullptr;
-    QString name;
-};
-
-class ProjectContext;
-
-class ProductContext : public ContextBase
-{
-public:
-    ProjectContext *project = nullptr;
-    Item *mergedExportItem = nullptr;
-    ProjectTreeBuilder::Result::ProductInfo info;
-    QString profileName;
-    QString multiplexConfigurationId;
-    QVariantMap profileModuleProperties; // Tree-ified module properties from profile.
-    QVariantMap moduleProperties;        // Tree-ified module properties from profile + overridden values.
-    QVariantMap defaultParameters; // In Export item.
-    QStringList searchPaths;
-
-    struct ResolvedDependsItem {
-        Item *item = nullptr;
-        QualifiedId name;
-        QStringList subModules;
-        FileTags productTypes;
-        QStringList multiplexIds;
-        std::optional<QStringList> profiles;
-        VersionRange versionRange;
-        QVariantMap parameters;
-        bool limitToSubProject = false;
-        FallbackMode fallbackMode = FallbackMode::Enabled;
-        bool requiredLocally = true;
-        bool requiredGlobally = true;
-    };
-    struct ResolvedAndMultiplexedDependsItem {
-        ResolvedAndMultiplexedDependsItem(ProductContext *product,
-                                          const ResolvedDependsItem &dependency)
-            : product(product), item(dependency.item), name(product->name),
-            versionRange(dependency.versionRange), parameters(dependency.parameters),
-            fallbackMode(FallbackMode::Disabled), checkProduct(false) {}
-        ResolvedAndMultiplexedDependsItem(const ResolvedDependsItem &dependency,
-                                          QualifiedId name, QString profile, QString multiplexId)
-            : item(dependency.item), name(std::move(name)), profile(std::move(profile)),
-            multiplexId(std::move(multiplexId)),
-            versionRange(dependency.versionRange), parameters(dependency.parameters),
-            limitToSubProject(dependency.limitToSubProject), fallbackMode(dependency.fallbackMode),
-            requiredLocally(dependency.requiredLocally),
-            requiredGlobally(dependency.requiredGlobally) {}
-        ResolvedAndMultiplexedDependsItem() = default;
-        static ResolvedAndMultiplexedDependsItem makeBaseDependency() {
-            ResolvedAndMultiplexedDependsItem item;
-            item.fallbackMode = FallbackMode::Disabled;
-            item.name = StringConstants::qbsModule();
-            return item;
-        }
-
-        QString id() const;
-        CodeLocation location() const;
-        QString displayName() const;
-
-        ProductContext *product = nullptr;
-        Item *item = nullptr;
-        QualifiedId name;
-        QString profile;
-        QString multiplexId;
-        VersionRange versionRange;
-        QVariantMap parameters;
-        bool limitToSubProject = false;
-        FallbackMode fallbackMode = FallbackMode::Enabled;
-        bool requiredLocally = true;
-        bool requiredGlobally = true;
-        bool checkProduct = true;
-    };
-    struct DependenciesResolvingState {
-        Item *loadingItem = nullptr;
-        ResolvedAndMultiplexedDependsItem loadingItemOrigin;
-        std::queue<Item *> pendingDependsItems;
-        std::optional<ResolvedDependsItem> currentDependsItem;
-        std::queue<ResolvedAndMultiplexedDependsItem> pendingResolvedDependencies;
-        bool requiredByLoadingItem = true;
-    };
-    std::list<DependenciesResolvingState> resolveDependenciesState;
-
-    QString uniqueName() const;
-};
-
-class TopLevelProjectContext
-{
-public:
-    TopLevelProjectContext() = default;
-    TopLevelProjectContext(const TopLevelProjectContext &) = delete;
-    TopLevelProjectContext &operator=(const TopLevelProjectContext &) = delete;
-    ~TopLevelProjectContext() { qDeleteAll(projects); }
-
-    std::vector<ProjectContext *> projects;
-    std::list<std::pair<ProductContext *, int>> productsToHandle;
-    std::vector<ProbeConstPtr> probes;
-    QString buildDirectory;
-};
-
-class ProjectContext : public ContextBase
-{
-public:
-    TopLevelProjectContext *topLevelProject = nullptr;
-    ProjectTreeBuilder::Result *result = nullptr;
-    std::vector<ProductContext> products;
-    std::vector<QStringList> searchPathsStack;
-};
-
-
-using ShadowProductInfo = std::pair<bool, QString>;
-enum class Deferral { Allowed, NotAllowed };
-enum class HandleDependency { Use, Ignore, Defer };
-
 class TimingData {
 public:
     qint64 prepareProducts = 0;
-    qint64 productDependencies = 0;
     qint64 handleProducts = 0;
     qint64 propertyChecking = 0;
 };
@@ -224,28 +107,21 @@ public:
     void collectNameFromOverride(const QString &overrideString);
     Item *loadItemFromFile(const QString &filePath, const CodeLocation &referencingLocation);
     Item *wrapInProjectIfNecessary(Item *item);
-    void handleTopLevelProject(Result &loadResult, const Set<QString> &referencedFilePaths);
-    void handleProject(Result *loadResult, TopLevelProjectContext *topLevelProjectContext,
-                       Item *projectItem, const Set<QString> &referencedFilePaths);
+    void handleTopLevelProject(Item *projectItem, const Set<QString> &referencedFilePaths);
+    void handleProject(Item *projectItem, const Set<QString> &referencedFilePaths);
     void prepareProduct(ProjectContext &projectContext, Item *productItem);
-    void handleNextProduct(TopLevelProjectContext &tlp);
+    void handleNextProduct();
     void handleProduct(ProductContext &productContext, Deferral deferral);
-    bool resolveDependencies(ProductContext &product, Deferral deferral);
-    void setSearchPathsForProduct(ProductContext &product);
     void handleSubProject(ProjectContext &projectContext, Item *projectItem,
                           const Set<QString> &referencedFilePaths);
     void initProductProperties(const ProductContext &product);
     void printProfilingInfo();
-    void checkProjectNamesInOverrides(const TopLevelProjectContext &tlp);
+    void checkProjectNamesInOverrides();
     void checkProductNamesInOverrides();
-    void collectProductsByName(const TopLevelProjectContext &topLevelProject);
-    void adjustDependsItemForMultiplexing(const ProductContext &product, Item *dependsItem);
-    ShadowProductInfo getShadowProductInfo(const ProductContext &product) const;
-    void handleProductError(const ErrorInfo &error, ProductContext &productContext);
+    void collectProductsByName();
     void handleModuleSetupError(ProductContext &product, const Item::Module &module,
                                 const ErrorInfo &error);
     bool checkItemCondition(Item *item);
-    QStringList readExtraSearchPaths(Item *item, bool *wasSet = nullptr);
     QList<Item *> multiplexProductItem(ProductContext &dummyContext, Item *productItem);
     void checkCancelation() const;
     QList<Item *> loadReferencedFile(const QString &relativePath,
@@ -257,25 +133,6 @@ public:
     bool checkExportItemCondition(Item *exportItem, const ProductContext &product);
     void resolveProbes(ProductContext &product, Item *item);
 
-    Item *loadBaseModule(ProductContext &product, Item *item);
-
-    struct LoadModuleResult {
-        Item *moduleItem = nullptr;
-        ProductContext *product = nullptr;
-        HandleDependency handleDependency = HandleDependency::Use;
-    };
-    LoadModuleResult loadModule(ProductContext &product, Item *loadingItem,
-                                const ProductContext::ResolvedAndMultiplexedDependsItem &dependency,
-                                Deferral deferral);
-
-    std::optional<ProductContext::ResolvedDependsItem>
-    resolveDependsItem(const ProductContext &product, Item *dependsItem);
-    std::queue<ProductContext::ResolvedAndMultiplexedDependsItem>
-    multiplexDependency(const ProductContext &product,
-                        const ProductContext::ResolvedDependsItem &dependency);
-    static bool haveSameSubProject(const ProductContext &p1, const ProductContext &p2);
-    QVariantMap extractParameters(Item *dependsItem) const;
-
     const SetupProjectParameters &parameters;
     ItemPool &itemPool;
     Evaluator &evaluator;
@@ -284,8 +141,6 @@ public:
     TimingData timingData;
     ItemReader reader{parameters, logger};
     ProbesResolver probesResolver{parameters, evaluator, logger};
-    ModuleProviderLoader moduleProviderLoader{parameters, reader, evaluator, probesResolver, logger};
-    ModuleLoader moduleLoader{parameters, moduleProviderLoader, reader, evaluator, logger};
     ModulePropertyMerger propertyMerger{parameters, evaluator, logger};
     ModuleInstantiator moduleInstantiator{parameters, itemPool, propertyMerger, logger};
     ProductItemMultiplexer multiplexer{parameters, evaluator, logger, [this](Item *productItem) {
@@ -293,20 +148,16 @@ public:
                                        }};
     GroupsHandler groupsHandler{parameters, moduleInstantiator, evaluator, logger};
     LocalProfiles localProfiles{parameters, evaluator, logger};
+    DependenciesResolver dependenciesResolver{parameters, itemPool, evaluator, reader,
+                                              probesResolver, moduleInstantiator, logger};
     FileTime lastResolveTime;
     QVariantMap storedProfiles;
 
-    Set<Item *> disabledItems;
     Settings settings{parameters.settingsDirectory()};
     Set<QString> projectNamesUsedInOverrides;
     Set<QString> productNamesUsedInOverrides;
     Set<QString> disabledProjects;
-    Set<QString> erroneousProducts;
-    std::multimap<QString, ProductContext *> productsByName;
-
-    // For fast look-up when resolving Depends.productTypes.
-    // The contract is that it contains fully handled, error-free, enabled products.
-    std::multimap<FileTag, ProductContext *> productsByType;
+    TopLevelProjectContext topLevelProject;
 
     Version qbsVersion;
     Item *tempScopeItem = nullptr;
@@ -357,7 +208,7 @@ void ProjectTreeBuilder::setStoredProfiles(const QVariantMap &profiles)
 void ProjectTreeBuilder::setStoredModuleProviderInfo(
     const StoredModuleProviderInfo &moduleProviderInfo)
 {
-    d->moduleProviderLoader.setStoredModuleProviderInfo(moduleProviderInfo);
+    d->dependenciesResolver.setStoredModuleProviderInfo(moduleProviderInfo);
 }
 
 ProjectTreeBuilder::Result ProjectTreeBuilder::load()
@@ -370,15 +221,19 @@ ProjectTreeBuilder::Result ProjectTreeBuilder::load()
     d->reader.setPool(&d->itemPool);
 
     Result result;
-    result.profileConfigs = d->storedProfiles;
+    d->topLevelProject.profileConfigs = d->storedProfiles;
     result.root = d->loadTopLevelProjectItem();
-    d->handleTopLevelProject(result, {QDir::cleanPath(d->parameters.projectFilePath())});
+    d->handleTopLevelProject(result.root, {QDir::cleanPath(d->parameters.projectFilePath())});
 
-    result.qbsFiles = d->reader.filesRead() - d->moduleProviderLoader.tempQbsFiles();
+    result.qbsFiles = d->reader.filesRead() - d->dependenciesResolver.tempQbsFiles();
+    result.productInfos = d->topLevelProject.productInfos;
+    result.profileConfigs = d->topLevelProject.profileConfigs;
     for (auto it = d->localProfiles.profiles().begin(); it != d->localProfiles.profiles().end();
          ++it) {
         result.profileConfigs.remove(it.key());
     }
+    result.projectProbes = d->topLevelProject.probes;
+    result.storedModuleProviderInfo = d->dependenciesResolver.storedModuleProviderInfo();
 
     d->printProfilingInfo();
 
@@ -483,50 +338,43 @@ Item *ProjectTreeBuilder::Private::wrapInProjectIfNecessary(Item *item)
     return prj;
 }
 
-void ProjectTreeBuilder::Private::handleTopLevelProject(Result &loadResult,
+void ProjectTreeBuilder::Private::handleTopLevelProject(Item *projectItem,
                                                         const Set<QString> &referencedFilePaths)
 {
-    TopLevelProjectContext tlp;
-    tlp.buildDirectory = TopLevelProject::deriveBuildDirectory(
+    topLevelProject.buildDirectory = TopLevelProject::deriveBuildDirectory(
         parameters.buildRoot(),
         TopLevelProject::deriveId(parameters.finalBuildConfigurationTree()));
-    Item * const projectItem = loadResult.root;
     projectItem->setProperty(StringConstants::sourceDirectoryProperty(),
                              VariantValue::create(QFileInfo(projectItem->file()->filePath())
                                                       .absolutePath()));
     projectItem->setProperty(StringConstants::buildDirectoryProperty(),
-                             VariantValue::create(tlp.buildDirectory));
+                             VariantValue::create(topLevelProject.buildDirectory));
     projectItem->setProperty(StringConstants::profileProperty(),
                              VariantValue::create(parameters.topLevelProfile()));
-    handleProject(&loadResult, &tlp, projectItem, referencedFilePaths);
-    checkProjectNamesInOverrides(tlp);
-    collectProductsByName(tlp);
+    handleProject(projectItem, referencedFilePaths);
+    checkProjectNamesInOverrides();
+    collectProductsByName();
     checkProductNamesInOverrides();
 
-    for (ProjectContext * const projectContext : qAsConst(tlp.projects)) {
+    for (ProjectContext * const projectContext : qAsConst(topLevelProject.projects)) {
         for (ProductContext &productContext : projectContext->products)
-            tlp.productsToHandle.emplace_back(&productContext, -1);
+            topLevelProject.productsToHandle.emplace_back(&productContext, -1);
     }
-    while (!tlp.productsToHandle.empty())
-        handleNextProduct(tlp);
-
-    loadResult.projectProbes = tlp.probes;
-    loadResult.storedModuleProviderInfo = moduleProviderLoader.storedModuleProviderInfo();
+    while (!topLevelProject.productsToHandle.empty())
+        handleNextProduct();
 
     reader.clearExtraSearchPathsStack();
     AccumulatingTimer timer(parameters.logElapsedTime()
                                 ? &timingData.propertyChecking : nullptr);
-    checkPropertyDeclarations(projectItem, disabledItems, parameters, logger);
+    checkPropertyDeclarations(projectItem, topLevelProject.disabledItems, parameters, logger);
 }
 
-void ProjectTreeBuilder::Private::handleProject(
-    Result *loadResult, TopLevelProjectContext *topLevelProjectContext, Item *projectItem,
-    const Set<QString> &referencedFilePaths)
+void ProjectTreeBuilder::Private::handleProject(Item *projectItem,
+                                                const Set<QString> &referencedFilePaths)
 {
     auto p = std::make_unique<ProjectContext>();
     auto &projectContext = *p;
-    projectContext.topLevelProject = topLevelProjectContext;
-    projectContext.result = loadResult;
+    projectContext.topLevelProject = &topLevelProject;
     ItemValuePtr itemValue = ItemValue::create(projectItem);
     projectContext.scope = Item::create(&itemPool, ItemType::Scope);
     projectContext.scope->setFile(projectItem->file());
@@ -536,7 +384,7 @@ void ProjectTreeBuilder::Private::handleProject(
     dummyProductContext.moduleProperties = parameters.finalBuildConfigurationTree();
     dummyProductContext.profileModuleProperties = dummyProductContext.moduleProperties;
     dummyProductContext.profileName = parameters.topLevelProfile();
-    loadBaseModule(dummyProductContext, projectItem);
+    dependenciesResolver.loadBaseModule(dummyProductContext, projectItem);
 
     projectItem->overrideProperties(parameters.overriddenValuesTree(),
                                     StringConstants::projectPrefix(), parameters, logger);
@@ -553,8 +401,8 @@ void ProjectTreeBuilder::Private::handleProject(
         disabledProjects.insert(projectContext.name);
         return;
     }
-    topLevelProjectContext->projects.push_back(p.release());
-    SearchPathsManager searchPathsManager(reader, readExtraSearchPaths(projectItem)
+    topLevelProject.projects.push_back(p.release());
+    SearchPathsManager searchPathsManager(reader, reader.readExtraSearchPaths(projectItem, evaluator)
                                                       << projectItem->file()->dirPath());
     projectContext.searchPathsStack = reader.extraSearchPathsStack();
     projectContext.item = projectItem;
@@ -603,7 +451,7 @@ void ProjectTreeBuilder::Private::handleProject(
             break;
         case ItemType::Project:
             copyProperties(projectItem, child);
-            handleProject(loadResult, topLevelProjectContext, child, referencedFilePaths);
+            handleProject(child, referencedFilePaths);
             break;
         default:
             break;
@@ -633,7 +481,7 @@ void ProjectTreeBuilder::Private::handleProject(
             break;
         case ItemType::Project:
             copyProperties(projectItem, subItem);
-            handleProject(loadResult, topLevelProjectContext, subItem,
+            handleProject(subItem,
                           Set<QString>(referencedFilePaths) << subItem->file()->filePath());
             break;
         default:
@@ -670,19 +518,19 @@ void ProjectTreeBuilder::Private::prepareProduct(ProjectContext &projectContext,
     QBS_CHECK(!productContext.profileName.isEmpty());
 
     // Set up full module property map based on the profile.
-    const auto it = projectContext.result->profileConfigs.constFind(productContext.profileName);
+    const auto it = topLevelProject.profileConfigs.constFind(productContext.profileName);
     QVariantMap flatConfig;
-    if (it == projectContext.result->profileConfigs.constEnd()) {
+    if (it == topLevelProject.profileConfigs.constEnd()) {
         const Profile profile(productContext.profileName, &settings, localProfiles.profiles());
         if (!profile.exists()) {
             ErrorInfo error(Tr::tr("Profile '%1' does not exist.").arg(profile.name()),
                             productItem->location());
-            handleProductError(error, productContext);
+            productContext.handleError(error);
             return;
         }
         flatConfig = SetupProjectParameters::expandedBuildConfiguration(
             profile, parameters.configurationName());
-        projectContext.result->profileConfigs.insert(productContext.profileName, flatConfig);
+        topLevelProject.profileConfigs.insert(productContext.profileName, flatConfig);
     } else {
         flatConfig = it.value().toMap();
     }
@@ -731,24 +579,24 @@ void ProjectTreeBuilder::Private::prepareProduct(ProjectContext &projectContext,
     prepareProduct(projectContext, importer);
 }
 
-void ProjectTreeBuilder::Private::handleNextProduct(TopLevelProjectContext &tlp)
+void ProjectTreeBuilder::Private::handleNextProduct()
 {
-    auto [product, queueSizeOnInsert] = tlp.productsToHandle.front();
-    tlp.productsToHandle.pop_front();
+    auto [product, queueSizeOnInsert] = topLevelProject.productsToHandle.front();
+    topLevelProject.productsToHandle.pop_front();
 
     // If the queue of in-progress products has shrunk since the last time we tried handling
     // this product, there has been forward progress and we can allow a deferral.
     const Deferral deferral = queueSizeOnInsert == -1
-                                      || queueSizeOnInsert > int(tlp.productsToHandle.size())
+                                      || queueSizeOnInsert > int(topLevelProject.productsToHandle.size())
                                   ? Deferral::Allowed : Deferral::NotAllowed;
 
     reader.setExtraSearchPathsStack(product->project->searchPathsStack);
     try {
         handleProduct(*product, deferral);
         if (product->name.startsWith(StringConstants::shadowProductPrefix()))
-            tlp.probes << product->info.probes;
+            topLevelProject.probes << product->info.probes;
     } catch (const ErrorInfo &err) {
-        handleProductError(err, *product);
+        product->handleError(err);
     }
 
     // The search paths stack can change during dependency resolution (due to module providers);
@@ -757,8 +605,10 @@ void ProjectTreeBuilder::Private::handleNextProduct(TopLevelProjectContext &tlp)
 
     // If we encountered a dependency to an in-progress product or to a bulk dependency,
     // we defer handling this product if it hasn't failed yet and there is still forward progress.
-    if (!product->info.delayedError.hasError() && !product->resolveDependenciesState.empty())
-        tlp.productsToHandle.emplace_back(product, int(tlp.productsToHandle.size()));
+    if (!product->info.delayedError.hasError() && !product->dependenciesResolved) {
+        topLevelProject.productsToHandle.emplace_back(
+            product, int(topLevelProject.productsToHandle.size()));
+    }
 }
 
 void ProjectTreeBuilder::Private::handleProduct(ProductContext &product, Deferral deferral)
@@ -769,14 +619,15 @@ void ProjectTreeBuilder::Private::handleProduct(ProductContext &product, Deferra
     if (product.info.delayedError.hasError())
         return;
 
-    if (!resolveDependencies(product, deferral))
+    product.dependenciesResolved = dependenciesResolver.resolveDependencies(product, deferral);
+    if (!product.dependenciesResolved)
         return;
 
     // Run probes for modules and product.
     for (const Item::Module &module : product.item->modules()) {
         if (!module.item->isPresentModule())
             continue;
-        if (module.productInfo && disabledItems.contains(module.productInfo->item)) {
+        if (module.productInfo && topLevelProject.disabledItems.contains(module.productInfo->item)) {
             createNonPresentModule(itemPool, module.name.toString(),
                                    QLatin1String("module's exporting product is disabled"),
                                    module.item);
@@ -863,7 +714,7 @@ void ProjectTreeBuilder::Private::handleProduct(ProductContext &product, Deferra
                 continue;
             if (loadingItem->prototype() && loadingItem->prototype()->type() == ItemType::Export) {
                 QBS_CHECK(loadingItem->prototype()->parent()->type() == ItemType::Product);
-                if (disabledItems.contains(loadingItem->prototype()->parent()))
+                if (topLevelProject.disabledItems.contains(loadingItem->prototype()->parent()))
                     continue;
             }
             hasPresentLoadingItem = true;
@@ -883,179 +734,21 @@ void ProjectTreeBuilder::Private::handleProduct(ProductContext &product, Deferra
     propertyMerger.doFinalMerge(product.item);
 
     const bool enabled = checkItemCondition(product.item);
-    moduleLoader.checkDependencyParameterDeclarations(product.item, product.name);
+    dependenciesResolver.checkDependencyParameterDeclarations(product.item, product.name);
 
     groupsHandler.setupGroups(product.item, product.scope);
     product.info.modulePropertiesSetInGroups = groupsHandler.modulePropertiesSetInGroups();
-    disabledItems.unite(groupsHandler.disabledGroups());
+    topLevelProject.disabledItems.unite(groupsHandler.disabledGroups());
 
     // Collect the full list of fileTags, including the values contributed by modules.
     if (!product.info.delayedError.hasError() && enabled
         && !product.name.startsWith(StringConstants::shadowProductPrefix())) {
         for (const FileTag &tag : fileTags)
-            productsByType.insert({tag, &product});
+            topLevelProject.productsByType.insert({tag, &product});
         product.item->setProperty(StringConstants::typeProperty(),
                                   VariantValue::create(sorted(fileTags.toStringList())));
     }
-    product.project->result->productInfos[product.item] = product.info;
-}
-
-bool ProjectTreeBuilder::Private::resolveDependencies(ProductContext &product, Deferral deferral)
-{
-    AccumulatingTimer timer(parameters.logElapsedTime()
-                                ? &timingData.productDependencies : nullptr);
-
-    // Initialize the state with the direct Depends items of the product item.
-    // This branch is executed once per product, while the function might be entered
-    // multiple times due to deferrals.
-    if (product.resolveDependenciesState.empty()) {
-        setSearchPathsForProduct(product);
-        std::queue<Item *> topLevelDependsItems;
-        for (Item * const child : product.item->children()) {
-            if (child->type() == ItemType::Depends)
-                topLevelDependsItems.push(child);
-        }
-        product.resolveDependenciesState.push_front({product.item, {}, topLevelDependsItems, });
-        product.resolveDependenciesState.front().pendingResolvedDependencies.push(
-                    ProductContext::ResolvedAndMultiplexedDependsItem::makeBaseDependency());
-    }
-
-    SearchPathsManager searchPathsMgr(reader, product.searchPaths);
-
-    while (!product.resolveDependenciesState.empty()) {
-fixme:
-        auto &state = product.resolveDependenciesState.front();
-        while (!state.pendingResolvedDependencies.empty()) {
-            QBS_CHECK(!state.currentDependsItem);
-            const auto dependency = state.pendingResolvedDependencies.front();
-            try {
-                const LoadModuleResult res = loadModule(product, state.loadingItem, dependency,
-                                                        deferral);
-                switch (res.handleDependency) {
-                case HandleDependency::Defer:
-                    QBS_CHECK(deferral == Deferral::Allowed);
-                    if (res.product)
-                        state.pendingResolvedDependencies.front().product = res.product;
-                    return false;
-                case HandleDependency::Ignore:
-                    state.pendingResolvedDependencies.pop();
-                    continue;
-                case HandleDependency::Use:
-                    if (dependency.name.toString() == StringConstants::qbsModule()) {
-                        state.pendingResolvedDependencies.pop();
-                        continue;
-                    }
-                    break;
-                }
-
-                QBS_CHECK(res.moduleItem);
-                std::queue<Item *> moduleDependsItems;
-                for (Item * const child : res.moduleItem->children()) {
-                    if (child->type() == ItemType::Depends)
-                        moduleDependsItems.push(child);
-                }
-
-                state.pendingResolvedDependencies.pop();
-                product.resolveDependenciesState.push_front(
-                    {res.moduleItem, dependency, moduleDependsItems, {}, {},
-                     dependency.requiredGlobally || state.requiredByLoadingItem});
-                product.resolveDependenciesState.front().pendingResolvedDependencies.push(
-                    ProductContext::ResolvedAndMultiplexedDependsItem::makeBaseDependency());
-                break;
-            } catch (const ErrorInfo &e) {
-                if (dependency.name.toString() == StringConstants::qbsModule())
-                    throw e;
-
-                if (!dependency.requiredLocally) {
-                    state.pendingResolvedDependencies.pop();
-                    continue;
-                }
-
-                // See QBS-1338 for why we do not abort handling the product.
-                state.pendingResolvedDependencies.pop();
-                Item::Modules &modules = product.item->modules();
-                while (product.resolveDependenciesState.size() > 1) {
-                    const auto loadingItemModule = std::find_if(
-                        modules.begin(), modules.end(), [&](const Item::Module &m) {
-                            return m.item == product.resolveDependenciesState.front().loadingItem;
-                        });
-                    for (auto it = loadingItemModule; it != modules.end(); ++it) {
-                        createNonPresentModule(itemPool, it->name.toString(),
-                                               QLatin1String("error in Depends chain"), it->item);
-                    }
-                    modules.erase(loadingItemModule, modules.end());
-                    product.resolveDependenciesState.pop_front();
-                }
-                handleProductError(e, product);
-                goto fixme;
-            }
-        }
-        if (&state != &product.resolveDependenciesState.front())
-            continue;
-
-        if (state.currentDependsItem) {
-            QBS_CHECK(state.pendingResolvedDependencies.empty());
-
-            // We postpone handling Depends.productTypes for as long as possible, because
-            // the full type of a product becomes available only after its modules have been loaded.
-            if (!state.currentDependsItem->productTypes.empty() && deferral == Deferral::Allowed)
-                return false;
-
-            state.pendingResolvedDependencies = multiplexDependency(product,
-                                                                    *state.currentDependsItem);
-            state.currentDependsItem.reset();
-            continue;
-        }
-
-        while (!state.pendingDependsItems.empty()) {
-            QBS_CHECK(!state.currentDependsItem);
-            QBS_CHECK(state.pendingResolvedDependencies.empty());
-            Item * const dependsItem = state.pendingDependsItems.front();
-            state.pendingDependsItems.pop();
-            adjustDependsItemForMultiplexing(product, dependsItem);
-            state.currentDependsItem = resolveDependsItem(product, dependsItem);
-            if (!state.currentDependsItem)
-                continue;
-            state.currentDependsItem->requiredGlobally = state.currentDependsItem->requiredLocally
-                                                         && state.loadingItemOrigin.requiredGlobally;
-            goto fixme;
-        }
-
-        QBS_CHECK(!state.currentDependsItem);
-        QBS_CHECK(state.pendingResolvedDependencies.empty());
-        QBS_CHECK(state.pendingDependsItems.empty());
-
-        // This ensures a sorted module list in the product (dependers after dependencies).
-        if (product.resolveDependenciesState.size() > 1) {
-            QBS_CHECK(state.loadingItem->type() == ItemType::ModuleInstance);
-            Item::Modules &modules = product.item->modules();
-            const auto loadingItemModule = std::find_if(modules.begin(), modules.end(),
-                                                        [&](const Item::Module &m) {
-                return m.item == state.loadingItem;
-            });
-            QBS_CHECK(loadingItemModule != modules.end());
-            const Item::Module tempModule = *loadingItemModule;
-            modules.erase(loadingItemModule);
-            modules.push_back(tempModule);
-        }
-        product.resolveDependenciesState.pop_front();
-    }
-    return true;
-}
-
-void ProjectTreeBuilder::Private::setSearchPathsForProduct(ProductContext &product)
-{
-    QBS_CHECK(product.searchPaths.isEmpty());
-
-    product.searchPaths = readExtraSearchPaths(product.item);
-    Settings settings(parameters.settingsDirectory());
-    const QStringList prefsSearchPaths = Preferences(&settings, product.profileModuleProperties)
-                                             .searchPaths();
-    const QStringList &currentSearchPaths = reader.allSearchPaths();
-    for (const QString &p : prefsSearchPaths) {
-        if (!currentSearchPaths.contains(p) && FileInfo(p).exists())
-            product.searchPaths << p;
-    }
+    topLevelProject.productInfos[product.item] = product.info;
 }
 
 void ProjectTreeBuilder::Private::handleSubProject(
@@ -1104,8 +797,7 @@ void ProjectTreeBuilder::Private::handleSubProject(
 
     Item::addChild(projectItem, loadedItem);
     projectItem->setScope(projectContext.scope);
-    handleProject(projectContext.result, projectContext.topLevelProject, loadedItem,
-                  Set<QString>(referencedFilePaths) << subProjectFilePath);
+    handleProject(loadedItem, Set<QString>(referencedFilePaths) << subProjectFilePath);
 }
 
 void ProjectTreeBuilder::Private::initProductProperties(const ProductContext &product)
@@ -1133,10 +825,7 @@ void ProjectTreeBuilder::Private::printProfilingInfo()
     logger.qbsLog(LoggerInfo, true) << "  "
                                     << Tr::tr("Handling products took %1.")
                                            .arg(elapsedTimeString(timingData.handleProducts));
-    logger.qbsLog(LoggerInfo, true) << "    "
-                                    << Tr::tr("Setting up product dependencies took %1.")
-                                           .arg(elapsedTimeString(timingData.productDependencies));
-    moduleLoader.printProfilingInfo(6);
+    dependenciesResolver.printProfilingInfo(4);
     moduleInstantiator.printProfilingInfo(6);
     propertyMerger.printProfilingInfo(6);
     groupsHandler.printProfilingInfo(4);
@@ -1146,12 +835,12 @@ void ProjectTreeBuilder::Private::printProfilingInfo()
                                            .arg(elapsedTimeString(timingData.propertyChecking));
 }
 
-void ProjectTreeBuilder::Private::checkProjectNamesInOverrides(const TopLevelProjectContext &tlp)
+void ProjectTreeBuilder::Private::checkProjectNamesInOverrides()
 {
     for (const QString &projectNameInOverride : projectNamesUsedInOverrides) {
         if (disabledProjects.contains(projectNameInOverride))
             continue;
-        if (!any_of(tlp.projects, [&projectNameInOverride](const ProjectContext *p) {
+        if (!any_of(topLevelProject.projects, [&projectNameInOverride](const ProjectContext *p) {
                 return p->name == projectNameInOverride; })) {
             handlePropertyError(Tr::tr("Unknown project '%1' in property override.")
                                     .arg(projectNameInOverride), parameters, logger);
@@ -1162,9 +851,9 @@ void ProjectTreeBuilder::Private::checkProjectNamesInOverrides(const TopLevelPro
 void ProjectTreeBuilder::Private::checkProductNamesInOverrides()
 {
     for (const QString &productNameInOverride : productNamesUsedInOverrides) {
-        if (erroneousProducts.contains(productNameInOverride))
+        if (topLevelProject.erroneousProducts.contains(productNameInOverride))
             continue;
-        if (!any_of(productsByName, [&productNameInOverride](
+        if (!any_of(topLevelProject.productsByName, [&productNameInOverride](
                                         const std::pair<QString, ProductContext *> &elem) {
                 // In an override string such as "a.b.c:d, we cannot tell whether we have a product
                 // "a" and a module "b.c" or a product "a.b" and a module "c", so we need to take
@@ -1178,183 +867,19 @@ void ProjectTreeBuilder::Private::checkProductNamesInOverrides()
     }
 }
 
-void ProjectTreeBuilder::Private::collectProductsByName(
-    const TopLevelProjectContext &topLevelProject)
+void ProjectTreeBuilder::Private::collectProductsByName()
 {
     for (ProjectContext * const project : topLevelProject.projects) {
         for (ProductContext &product : project->products)
-            productsByName.insert({product.name, &product});
+            topLevelProject.productsByName.insert({product.name, &product});
     }
-}
-
-void ProjectTreeBuilder::Private::adjustDependsItemForMultiplexing(const ProductContext &product,
-                                                                    Item *dependsItem)
-{
-    const QString name = evaluator.stringValue(dependsItem, StringConstants::nameProperty());
-    const bool productIsMultiplexed = !product.multiplexConfigurationId.isEmpty();
-    if (name == product.name) {
-        QBS_CHECK(!productIsMultiplexed); // This product must be an aggregator.
-        return;
-    }
-    const auto productRange = productsByName.equal_range(name);
-    if (productRange.first == productRange.second)
-        return; // Dependency is a module. Nothing to adjust.
-
-    bool profilesPropertyIsSet;
-    const QStringList profiles = evaluator.stringListValue(
-        dependsItem, StringConstants::profilesProperty(), &profilesPropertyIsSet);
-
-    std::vector<const ProductContext *> multiplexedDependencies;
-    bool hasNonMultiplexedDependency = false;
-    for (auto it = productRange.first; it != productRange.second; ++it) {
-        if (!it->second->multiplexConfigurationId.isEmpty())
-            multiplexedDependencies.push_back(it->second);
-        else
-            hasNonMultiplexedDependency = true;
-    }
-    bool hasMultiplexedDependencies = !multiplexedDependencies.empty();
-
-    static const auto multiplexConfigurationIntersects = [](const QVariantMap &lhs,
-                                                            const QVariantMap &rhs) {
-        QBS_CHECK(!lhs.isEmpty() && !rhs.isEmpty());
-        for (auto lhsProperty = lhs.constBegin(); lhsProperty != lhs.constEnd(); lhsProperty++) {
-            const auto rhsProperty = rhs.find(lhsProperty.key());
-            const bool isCommonProperty = rhsProperty != rhs.constEnd();
-            if (isCommonProperty && lhsProperty.value() != rhsProperty.value())
-                return false;
-        }
-        return true;
-    };
-
-    // These are the allowed cases:
-    // (1) Normal dependency with no multiplexing whatsoever.
-    // (2) Both product and dependency are multiplexed.
-    //     (2a) The profiles property is not set, we want to depend on the best
-    //          matching variant.
-    //     (2b) The profiles property is set, we want to depend on all variants
-    //          with a matching profile.
-    // (3) The product is not multiplexed, but the dependency is.
-    //     (3a) The profiles property is not set, the dependency has an aggregator.
-    //          We want to depend on the aggregator.
-    //     (3b) The profiles property is not set, the dependency does not have an
-    //          aggregator. We want to depend on all the multiplexed variants.
-    //     (3c) The profiles property is set, we want to depend on all variants
-    //          with a matching profile regardless of whether an aggregator exists or not.
-    // (4) The product is multiplexed, but the dependency is not. We don't have to adapt
-    //     any Depends items.
-    // (5) The product is a "shadow product". In that case, we know which product
-    //     it should have a dependency on, and we make sure we depend on that.
-
-    // (1) and (4)
-    if (!hasMultiplexedDependencies)
-        return;
-
-    // (3a)
-    if (!productIsMultiplexed && hasNonMultiplexedDependency && !profilesPropertyIsSet)
-        return;
-
-    QStringList multiplexIds;
-    const ShadowProductInfo shadowProductInfo = getShadowProductInfo(product);
-    const bool isShadowProduct = shadowProductInfo.first && shadowProductInfo.second == name;
-    const auto productMultiplexConfig
-        = multiplexer.multiplexIdToVariantMap(product.multiplexConfigurationId);
-
-    for (const ProductContext *dependency : multiplexedDependencies) {
-        const bool depMatchesShadowProduct = isShadowProduct
-                                             && dependency->item == product.item->parent();
-        const QString depMultiplexId = dependency->multiplexConfigurationId;
-        if (depMatchesShadowProduct) { // (5)
-            dependsItem->setProperty(StringConstants::multiplexConfigurationIdsProperty(),
-                                     VariantValue::create(depMultiplexId));
-            return;
-        }
-        if (productIsMultiplexed && !profilesPropertyIsSet) { // 2a
-            if (dependency->multiplexConfigurationId == product.multiplexConfigurationId) {
-                const ValuePtr &multiplexId = product.item->property(
-                    StringConstants::multiplexConfigurationIdProperty());
-                dependsItem->setProperty(StringConstants::multiplexConfigurationIdsProperty(),
-                                         multiplexId);
-                return;
-
-            }
-            // Otherwise collect partial matches and decide later
-            const auto dependencyMultiplexConfig
-                = multiplexer.multiplexIdToVariantMap(dependency->multiplexConfigurationId);
-
-            if (multiplexConfigurationIntersects(dependencyMultiplexConfig, productMultiplexConfig))
-                multiplexIds << dependency->multiplexConfigurationId;
-        } else {
-            // (2b), (3b) or (3c)
-            const bool profileMatch = !profilesPropertyIsSet || profiles.empty()
-                                      || profiles.contains(dependency->profileName);
-            if (profileMatch)
-                multiplexIds << depMultiplexId;
-        }
-    }
-    if (multiplexIds.empty()) {
-        const QString productName = ProductItemMultiplexer::fullProductDisplayName(
-            product.name, product.multiplexConfigurationId);
-        throw ErrorInfo(Tr::tr("Dependency from product '%1' to product '%2' not fulfilled. "
-                               "There are no eligible multiplex candidates.").arg(productName,
-                                 name),
-                        dependsItem->location());
-    }
-
-    // In case of (2a), at most 1 match is allowed
-    if (productIsMultiplexed && !profilesPropertyIsSet && multiplexIds.size() > 1) {
-        const QString productName = ProductItemMultiplexer::fullProductDisplayName(
-            product.name, product.multiplexConfigurationId);
-        QStringList candidateNames;
-        for (const auto &id : qAsConst(multiplexIds))
-            candidateNames << ProductItemMultiplexer::fullProductDisplayName(name, id);
-        throw ErrorInfo(Tr::tr("Dependency from product '%1' to product '%2' is ambiguous. "
-                               "Eligible multiplex candidates: %3.").arg(
-                                productName, name, candidateNames.join(QLatin1String(", "))),
-                        dependsItem->location());
-    }
-
-    dependsItem->setProperty(StringConstants::multiplexConfigurationIdsProperty(),
-                             VariantValue::create(multiplexIds));
-}
-
-ShadowProductInfo ProjectTreeBuilder::Private::getShadowProductInfo(
-    const ProductContext &product) const
-{
-    const bool isShadowProduct = product.name.startsWith(StringConstants::shadowProductPrefix());
-    return std::make_pair(isShadowProduct, isShadowProduct
-                          ? product.name.mid(StringConstants::shadowProductPrefix().size())
-                                                           : QString());
-}
-
-void ProjectTreeBuilder::Private::handleProductError(const ErrorInfo &error,
-                                                     ProductContext &productContext)
-{
-    const bool alreadyHadError = productContext.info.delayedError.hasError();
-    if (!alreadyHadError) {
-        productContext.info.delayedError.append(Tr::tr("Error while handling product '%1':")
-                                                    .arg(productContext.name),
-                                                productContext.item->location());
-    }
-    if (error.isInternalError()) {
-        if (alreadyHadError) {
-            qCDebug(lcModuleLoader()) << "ignoring subsequent internal error" << error.toString()
-                                      << "in product" << productContext.name;
-            return;
-        }
-    }
-    const auto errorItems = error.items();
-    for (const ErrorItem &ei : errorItems)
-        productContext.info.delayedError.append(ei.description(), ei.codeLocation());
-    productContext.project->result->productInfos[productContext.item] = productContext.info;
-    disabledItems << productContext.item;
-    erroneousProducts.insert(productContext.name);
 }
 
 void ProjectTreeBuilder::Private::handleModuleSetupError(
     ProductContext &product, const Item::Module &module, const ErrorInfo &error)
 {
     if (module.required) {
-        handleProductError(error, product);
+        product.handleError(error);
     } else {
         qCDebug(lcModuleLoader()) << "non-required module" << module.name.toString()
                                   << "found, but not usable in product" << product.name
@@ -1366,27 +891,7 @@ void ProjectTreeBuilder::Private::handleModuleSetupError(
 
 bool ProjectTreeBuilder::Private::checkItemCondition(Item *item)
 {
-    if (evaluator.boolValue(item, StringConstants::conditionProperty()))
-        return true;
-    disabledItems += item;
-    return false;
-}
-
-QStringList ProjectTreeBuilder::Private::readExtraSearchPaths(Item *item, bool *wasSet)
-{
-    QStringList result;
-    const QStringList paths = evaluator.stringListValue(
-        item, StringConstants::qbsSearchPathsProperty(), wasSet);
-    const JSSourceValueConstPtr prop = item->sourceProperty(
-        StringConstants::qbsSearchPathsProperty());
-
-    // Value can come from within a project file or as an overridden value from the user
-    // (e.g command line).
-    const QString basePath = FileInfo::path(prop ? prop->file()->filePath()
-                                                 : parameters.projectFilePath());
-    for (const QString &path : paths)
-        result += FileInfo::resolvePath(basePath, path);
-    return result;
+    return topLevelProject.checkItemCondition(item, evaluator);
 }
 
 QList<Item *> ProjectTreeBuilder::Private::multiplexProductItem(ProductContext &dummyContext,
@@ -1498,33 +1003,6 @@ void ProjectTreeBuilder::Private::copyProperties(const Item *sourceProject, Item
 
         targetProject->setPropertyDeclaration(it.key(), it.value());
         sourceProject->copyProperty(it.key(), targetProject);
-    }
-}
-
-static void mergeParameters(QVariantMap &dst, const QVariantMap &src)
-{
-    for (auto it = src.begin(); it != src.end(); ++it) {
-        if (it.value().userType() == QMetaType::QVariantMap) {
-            QVariant &vdst = dst[it.key()];
-            QVariantMap mdst = vdst.toMap();
-            mergeParameters(mdst, it.value().toMap());
-            vdst = mdst;
-        } else {
-            dst[it.key()] = it.value();
-        }
-    }
-}
-
-static void adjustParametersScopes(Item *item, Item *scope)
-{
-    if (item->type() == ItemType::ModuleParameters) {
-        item->setScope(scope);
-        return;
-    }
-
-    for (const auto &value : item->properties()) {
-        if (value->type() == Value::ItemValueType)
-            adjustParametersScopes(std::static_pointer_cast<ItemValue>(value)->item(), scope);
     }
 }
 
@@ -1662,516 +1140,6 @@ void ProjectTreeBuilder::Private::resolveProbes(ProductContext &product, Item *i
     product.info.probes << probesResolver.resolveProbes({product.name, product.uniqueName()}, item);
 }
 
-static void checkForModuleNamePrefixCollision(
-    const Item *product, const ProductContext::ResolvedAndMultiplexedDependsItem &dependency)
-{
-    if (!product)
-        return;
-
-    for (const Item::Module &m : product->modules()) {
-        if (m.name.length() == dependency.name.length()
-            || m.name.front() != dependency.name.front()) {
-            continue;
-        }
-        QualifiedId shortName;
-        QualifiedId longName;
-        if (m.name < dependency.name) {
-            shortName = m.name;
-            longName = dependency.name;
-        } else {
-            shortName = dependency.name;
-            longName = m.name;
-        }
-        throw ErrorInfo(Tr::tr("The name of module '%1' is equal to the first component of the "
-                               "name of module '%2', which is not allowed")
-                            .arg(shortName.toString(), longName.toString()), dependency.location());
-    }
-}
-
-// Note: This function is never called for regular loading of the base module into a product,
-//       but only for the special cases of loading the dummy base module into a project
-//       and temporarily providing a base module for product multiplexing.
-Item *ProjectTreeBuilder::Private::loadBaseModule(ProductContext &product, Item *item)
-{
-    const QualifiedId baseModuleName(StringConstants::qbsModule());
-    const auto baseDependency
-        = ProductContext::ResolvedAndMultiplexedDependsItem::makeBaseDependency();
-    Item * const moduleItem = loadModule(product, item, baseDependency, Deferral::NotAllowed)
-                                 .moduleItem;
-    if (Q_UNLIKELY(!moduleItem))
-        throw ErrorInfo(Tr::tr("Cannot load base qbs module."));
-    return moduleItem;
-}
-
-ProjectTreeBuilder::Private::LoadModuleResult
-ProjectTreeBuilder::Private::loadModule(ProductContext &product, Item *loadingItem,
-    const ProductContext::ResolvedAndMultiplexedDependsItem &dependency,
-    Deferral deferral)
-{
-    qCDebug(lcModuleLoader) << "loadModule name:" << dependency.name.toString()
-                            << "id:" << dependency.id();
-
-    QBS_CHECK(loadingItem);
-
-    const auto findExistingModule = [&dependency](Item *item) -> std::pair<Item::Module *, Item *> {
-        if (!item) // Happens if and only if called via loadBaseModule().
-            return {};
-        Item *moduleWithSameName = nullptr;
-        for (Item::Module &m : item->modules()) {
-            if (m.name != dependency.name)
-                continue;
-            if (!m.productInfo) {
-                QBS_CHECK(!dependency.product);
-                return {&m, m.item};
-            }
-            if ((dependency.profile.isEmpty() || (m.productInfo->profile == dependency.profile))
-                && m.productInfo->multiplexId == dependency.multiplexId) {
-                return {&m, m.item};
-            }
-            moduleWithSameName = m.item;
-        }
-        return {nullptr, moduleWithSameName};
-    };
-    ProductContext *productDep = nullptr;
-    Item *moduleItem = nullptr;
-    static const auto displayName = [](const ProductContext &p) {
-        return ProductItemMultiplexer::fullProductDisplayName(p.name, p.multiplexConfigurationId);
-    };
-    const auto &[existingModule, moduleWithSameName] = findExistingModule(product.item);
-    if (existingModule) {
-        // Merge version range and required property. These will be checked again
-        // after probes resolving.
-        if (existingModule->name.toString() != StringConstants::qbsModule()) {
-            moduleLoader.forwardParameterDeclarations(dependency.item, product.item->modules());
-
-            // TODO: Use priorities like for property values. See QBS-1300.
-            mergeParameters(existingModule->parameters, dependency.parameters);
-
-            existingModule->versionRange.narrowDown(dependency.versionRange);
-            existingModule->required |= dependency.requiredGlobally;
-            if (int(product.resolveDependenciesState.size())
-                > existingModule->maxDependsChainLength) {
-                existingModule->maxDependsChainLength = product.resolveDependenciesState.size();
-            }
-        }
-        QBS_CHECK(existingModule->item);
-        moduleItem = existingModule->item;
-        if (!contains(existingModule->loadingItems, loadingItem))
-            existingModule->loadingItems.push_back(loadingItem);
-    } else if (dependency.product) {
-        // We have already done the look-up.
-        productDep = dependency.product;
-    } else {
-        // First check if there's a matching product.
-        const auto candidates = productsByName.equal_range(dependency.name.toString());
-        for (auto it = candidates.first; it != candidates.second; ++it) {
-            const auto candidate = it->second;
-            if (candidate->multiplexConfigurationId != dependency.multiplexId)
-                continue;
-            if (!dependency.profile.isEmpty() && dependency.profile != candidate->profileName)
-                continue;
-            if (dependency.limitToSubProject && !haveSameSubProject(product, *candidate))
-                continue;
-            productDep = candidate;
-            break;
-        }
-        if (!productDep) {
-            // If we can tell that this is supposed to be a product dependency, we can skip
-            // the module look-up.
-            if (!dependency.profile.isEmpty() || !dependency.multiplexId.isEmpty()) {
-                if (dependency.requiredGlobally) {
-                    if (!dependency.profile.isEmpty()) {
-                        throw ErrorInfo(Tr::tr("Product '%1' depends on '%2', which does not exist "
-                                               "for the requested profile '%3'.")
-                                            .arg(displayName(product), dependency.displayName(),
-                                                 dependency.profile),
-                                        product.item->location());
-                    }
-                    throw ErrorInfo(Tr::tr("Product '%1' depends on '%2', which does not exist.")
-                                        .arg(displayName(product), dependency.displayName()),
-                                    product.item->location());
-                }
-            } else {
-                // No matching product found, look for a "real" module.
-                const ModuleLoader::ProductContext loaderContext{
-                    product.item, product.project->item, product.name, product.uniqueName(),
-                    product.profileName, product.multiplexConfigurationId, product.moduleProperties,
-                    product.profileModuleProperties};
-                const ModuleLoader::Result loaderResult = moduleLoader.searchAndLoadModuleFile(
-                    loaderContext, dependency.location(), dependency.name, dependency.fallbackMode,
-                    dependency.requiredGlobally);
-                moduleItem = loaderResult.moduleItem;
-                product.info.probes << loaderResult.providerProbes;
-
-                if (moduleItem) {
-                    Item * const proto = moduleItem;
-                    moduleItem = moduleItem->clone();
-                    moduleItem->setPrototype(proto); // For parameter declarations.
-                } else if (dependency.requiredGlobally) {
-                    throw ErrorInfo(Tr::tr("Dependency '%1' not found for product '%2'.")
-                                        .arg(dependency.name.toString(), displayName(product)),
-                                    dependency.location());
-                }
-            }
-        }
-    }
-
-    if (productDep && dependency.checkProduct) {
-        if (productDep == &product) {
-            throw ErrorInfo(Tr::tr("Dependency '%1' refers to itself.")
-                                .arg(dependency.name.toString()),
-                            dependency.location());
-        }
-
-        if (any_of(product.project->topLevelProject->productsToHandle, [productDep](const auto &e) {
-                return e.first == productDep;
-            })) {
-            if (deferral == Deferral::Allowed)
-                return {nullptr, productDep, HandleDependency::Defer};
-            ErrorInfo e;
-            e.append(Tr::tr("Cyclic dependencies detected:"));
-            e.append(Tr::tr("First product is '%1'.")
-                         .arg(displayName(product)), product.item->location());
-            e.append(Tr::tr("Second product is '%1'.")
-                         .arg(displayName(*productDep)), productDep->item->location());
-            e.append(Tr::tr("Requested here."), dependency.location());
-            throw e;
-        }
-
-        // This covers both the case of user-disabled products and products with errors.
-        // The latter are force-disabled in handleProductError().
-        if (disabledItems.contains(productDep->item)) {
-            if (dependency.requiredGlobally) {
-                ErrorInfo e;
-                e.append(Tr::tr("Product '%1' depends on '%2',")
-                             .arg(displayName(product), displayName(*productDep)),
-                         product.item->location());
-                e.append(Tr::tr("but product '%1' is disabled.").arg(displayName(*productDep)),
-                         productDep->item->location());
-                throw e;
-            }
-            productDep = nullptr;
-        }
-    }
-
-    if (productDep) {
-        QBS_CHECK(productDep->mergedExportItem);
-        moduleItem = productDep->mergedExportItem->clone();
-        moduleItem->setParent(nullptr);
-
-        // Needed for isolated Export item evaluation.
-        moduleItem->setPrototype(productDep->mergedExportItem);
-    }
-
-    if (moduleItem) {
-        for (auto it = product.resolveDependenciesState.begin();
-             it != product.resolveDependenciesState.end(); ++it) {
-            Item *itemToCheck = moduleItem;
-            if (it->loadingItem != itemToCheck) {
-                if (!productDep)
-                    continue;
-                itemToCheck = productDep->item;
-            }
-            if (it->loadingItem != itemToCheck)
-                continue;
-            ErrorInfo e;
-            e.append(Tr::tr("Cyclic dependencies detected:"));
-            while (true) {
-                e.append(it->loadingItemOrigin.name.toString(),
-                         it->loadingItemOrigin.location());
-                if (it->loadingItem->type() == ItemType::ModuleInstance) {
-                    createNonPresentModule(itemPool, it->loadingItemOrigin.name.toString(),
-                                           QLatin1String("cyclic dependency"), it->loadingItem);
-                }
-                if (it == product.resolveDependenciesState.begin())
-                    break;
-                --it;
-            }
-            e.append(dependency.name.toString(), dependency.location());
-            throw e;
-        }
-        checkForModuleNamePrefixCollision(product.item, dependency);
-    }
-
-    // Can only happen with multiplexing.
-    if (moduleWithSameName && moduleWithSameName != moduleItem)
-        QBS_CHECK(productDep);
-
-    QString loadingName;
-    if (loadingItem == product.item) {
-        loadingName = product.name;
-    } else if (!product.resolveDependenciesState.empty()) {
-        const auto &loadingItemOrigin = product.resolveDependenciesState.front().loadingItemOrigin;
-        loadingName = loadingItemOrigin.name.toString() + loadingItemOrigin.multiplexId
-                      + loadingItemOrigin.profile;
-    }
-    moduleInstantiator.instantiate({
-        product.item, product.name, loadingItem, loadingName, moduleItem, moduleWithSameName,
-        productDep ? productDep->item : nullptr, product.scope, product.project->scope,
-        dependency.name, dependency.id(), bool(existingModule)});
-
-    // At this point, a null module item is only possible for a non-required dependency.
-    // Note that we still needed to to the instantiation above, as that injects the module
-    // name into the surrounding item for the ".present" check.
-    if (!moduleItem) {
-        QBS_CHECK(!dependency.requiredGlobally);
-        return {nullptr, nullptr, HandleDependency::Ignore};
-    }
-
-    const auto createModule = [&] {
-        Item::Module m;
-        m.item = moduleItem;
-        if (productDep) {
-            m.productInfo.emplace(productDep->item, productDep->multiplexConfigurationId,
-                                  productDep->profileName);
-        }
-        m.name = dependency.name;
-        m.required = dependency.requiredLocally;
-        m.versionRange = dependency.versionRange;
-        return m;
-    };
-    const auto addLocalModule = [&] {
-        if (loadingItem->type() == ItemType::ModuleInstance
-            && !findExistingModule(loadingItem).first) {
-            loadingItem->addModule(createModule());
-        }
-    };
-
-    // The module has already been loaded, so we don't need to add it to the product's list of
-    // modules, nor do we need to handle its dependencies. The only thing we might need to
-    // do is to add it to the "local" list of modules of the loading item, if it isn't in there yet.
-    if (existingModule) {
-       addLocalModule();
-       return {nullptr, nullptr, HandleDependency::Ignore};
-    }
-
-    qCDebug(lcModuleLoader) << "module loaded:" << dependency.name.toString();
-    if (product.item) {
-        Item::Module module = createModule();
-
-        if (module.name.toString() != StringConstants::qbsModule()) {
-            // TODO: Why do we have default parameters only for Export items and
-            //       property declarations only for modules? Does that make any sense?
-            if (productDep)
-                module.parameters = productDep->defaultParameters;
-            mergeParameters(module.parameters, dependency.parameters);
-        }
-        module.required = dependency.requiredGlobally;
-        module.loadingItems.push_back(loadingItem);
-        module.maxDependsChainLength = product.resolveDependenciesState.size();
-        product.item->addModule(module);
-        addLocalModule();
-    }
-    return {moduleItem, nullptr, HandleDependency::Use};
-}
-
-bool ProjectTreeBuilder::Private::haveSameSubProject(const ProductContext &p1,
-                                                     const ProductContext &p2)
-{
-    for (const Item *otherParent = p2.item->parent(); otherParent;
-         otherParent = otherParent->parent()) {
-        if (otherParent == p1.item->parent())
-            return true;
-    }
-    return false;
-}
-
-static Item::PropertyMap filterItemProperties(const Item::PropertyMap &properties)
-{
-    Item::PropertyMap result;
-    for (auto it = properties.begin(); it != properties.end(); ++it) {
-        if (it.value()->type() == Value::ItemValueType)
-            result.insert(it.key(), it.value());
-    }
-    return result;
-}
-
-static QVariantMap safeToVariant(JSContext *ctx, const JSValue &v)
-{
-    QVariantMap result;
-    handleJsProperties(ctx, v, [&](const JSAtom &prop, const JSPropertyDescriptor &desc) {
-        const JSValue u = desc.value;
-        if (JS_IsError(ctx, u))
-            throw ErrorInfo(getJsString(ctx, u));
-        const QString name = getJsString(ctx, prop);
-        result[name] = (JS_IsObject(u) && !JS_IsArray(ctx, u) && !JS_IsRegExp(ctx, u))
-                           ? safeToVariant(ctx, u) : getJsVariant(ctx, u);
-    });
-    return result;
-}
-
-QVariantMap ProjectTreeBuilder::Private::extractParameters(Item *dependsItem) const
-{
-    QVariantMap result;
-    const Item::PropertyMap &itemProperties = filterItemProperties(dependsItem->properties());
-    if (itemProperties.empty())
-        return result;
-    auto origProperties = dependsItem->properties();
-
-    // TODO: This is not exception-safe. Also, can't we do the item value check along the
-    //       way, without allocationg an extra map and exchanging the list of children?
-    dependsItem->setProperties(itemProperties);
-
-    JSValue sv = evaluator.scriptValue(dependsItem);
-    try {
-        result = safeToVariant(evaluator.engine()->context(), sv);
-    } catch (const ErrorInfo &exception) {
-        auto ei = exception;
-        ei.prepend(Tr::tr("Error in dependency parameter."), dependsItem->location());
-        throw ei;
-    }
-    dependsItem->setProperties(origProperties);
-    return result;
-}
-
-std::optional<ProductContext::ResolvedDependsItem>
-ProjectTreeBuilder::Private::resolveDependsItem(const ProductContext &product, Item *dependsItem)
-{
-    if (!checkItemCondition(dependsItem)) {
-        qCDebug(lcModuleLoader) << "Depends item disabled, ignoring.";
-        return {};
-    }
-
-    const QString name = evaluator.stringValue(dependsItem, StringConstants::nameProperty());
-    if (name == StringConstants::qbsModule()) // Redundant
-        return {};
-
-    bool submodulesPropertySet;
-    const QStringList submodules = evaluator.stringListValue(
-                dependsItem, StringConstants::submodulesProperty(), &submodulesPropertySet);
-    if (submodules.empty() && submodulesPropertySet) {
-        qCDebug(lcModuleLoader) << "Ignoring Depends item with empty submodules list.";
-        return {};
-    }
-    if (Q_UNLIKELY(submodules.size() > 1 && !dependsItem->id().isEmpty())) {
-        QString msg = Tr::tr("A Depends item with more than one module cannot have an id.");
-        throw ErrorInfo(msg, dependsItem->location());
-    }
-    bool productTypesWasSet;
-    const QStringList productTypes = evaluator.stringListValue(
-                dependsItem, StringConstants::productTypesProperty(), &productTypesWasSet);
-    if (!name.isEmpty() && !productTypes.isEmpty()) {
-        throw ErrorInfo(Tr::tr("The name and productTypes are mutually exclusive "
-                               "in a Depends item"), dependsItem->location());
-    }
-    if (productTypes.isEmpty() && productTypesWasSet) {
-        qCDebug(lcModuleLoader) << "Ignoring Depends item with empty productTypes list.";
-        return {};
-    }
-    if (name.isEmpty() && !productTypesWasSet) {
-        throw ErrorInfo(Tr::tr("Either name or productTypes must be set in a Depends item"),
-                        dependsItem->location());
-    }
-
-    const FallbackMode fallbackMode = parameters.fallbackProviderEnabled()
-            && evaluator.boolValue(dependsItem, StringConstants::enableFallbackProperty())
-            ? FallbackMode::Enabled : FallbackMode::Disabled;
-
-    bool profilesPropertyWasSet = false;
-    std::optional<QStringList> profiles;
-    bool required = true;
-    if (productTypes.isEmpty()) {
-        const QStringList profileList = evaluator.stringListValue(
-                    dependsItem, StringConstants::profilesProperty(), &profilesPropertyWasSet);
-        if (profilesPropertyWasSet)
-            profiles.emplace(profileList);
-        required = evaluator.boolValue(dependsItem, StringConstants::requiredProperty());
-    }
-    const Version minVersion = Version::fromString(
-                evaluator.stringValue(dependsItem, StringConstants::versionAtLeastProperty()));
-    const Version maxVersion = Version::fromString(
-                evaluator.stringValue(dependsItem, StringConstants::versionBelowProperty()));
-    const bool limitToSubProject = evaluator.boolValue(
-                dependsItem, StringConstants::limitToSubProjectProperty());
-    const QStringList multiplexIds = evaluator.stringListValue(
-                dependsItem, StringConstants::multiplexConfigurationIdsProperty());
-    adjustParametersScopes(dependsItem, dependsItem);
-    moduleLoader.forwardParameterDeclarations(dependsItem, product.item->modules());
-    const QVariantMap parameters = extractParameters(dependsItem);
-
-    return ProductContext::ResolvedDependsItem{dependsItem, QualifiedId::fromString(name),
-                submodules, FileTags::fromStringList(productTypes), multiplexIds, profiles,
-                {minVersion, maxVersion}, parameters, limitToSubProject, fallbackMode, required};
-}
-
-// Potentially multiplexes a dependency along Depends.productTypes, Depends.subModules and
-// Depends.profiles, as well as internally set up multiplexing axes.
-// Each entry in the resulting queue corresponds to exactly one product or module to pull in.
-std::queue<ProductContext::ResolvedAndMultiplexedDependsItem>
-ProjectTreeBuilder::Private::multiplexDependency(
-        const ProductContext &product, const ProductContext::ResolvedDependsItem &dependency)
-{
-    std::queue<ProductContext::ResolvedAndMultiplexedDependsItem> dependencies;
-    if (!dependency.productTypes.empty()) {
-        std::vector<ProductContext *> matchingProducts;
-        for (const FileTag &typeTag : dependency.productTypes) {
-            const auto range = productsByType.equal_range(typeTag);
-            for (auto it = range.first; it != range.second; ++it) {
-                if (it->second != &product
-                    && it->second->name != product.name
-                    && (!dependency.limitToSubProject
-                        || haveSameSubProject(product, *it->second))) {
-                    matchingProducts.push_back(it->second);
-                }
-            }
-        }
-        if (matchingProducts.empty()) {
-            qCDebug(lcModuleLoader) << "Depends.productTypes does not match anything."
-                                    << dependency.item->location();
-            return {};
-        }
-        for (ProductContext * const match : matchingProducts)
-            dependencies.emplace(match, dependency);
-        return dependencies;
-    }
-
-    const QStringList profiles = dependency.profiles && !dependency.profiles->isEmpty()
-            ? *dependency.profiles : QStringList(QString());
-    const QStringList multiplexIds = !dependency.multiplexIds.isEmpty()
-            ? dependency.multiplexIds : QStringList(QString());
-    const QStringList subModules = !dependency.subModules.isEmpty()
-            ? dependency.subModules : QStringList(QString());
-    for (const QString &profile : profiles) {
-        for (const QString &multiplexId : multiplexIds) {
-            for (const QString &subModule : subModules) {
-                QualifiedId name = dependency.name;
-                if (!subModule.isEmpty())
-                    name << subModule.split(QLatin1Char('.'));
-                dependencies.emplace(dependency, name, profile, multiplexId);
-            }
-        }
-    }
-    return dependencies;
-}
-
-QString ProductContext::uniqueName() const
-{
-    return ResolvedProduct::uniqueName(name, multiplexConfigurationId);
-}
-
-QString ProductContext::ResolvedAndMultiplexedDependsItem::id() const
-{
-    if (!item) {
-        QBS_CHECK(name.toString() == StringConstants::qbsModule());
-        return {};
-    }
-    return item->id();
-}
-
-CodeLocation ProductContext::ResolvedAndMultiplexedDependsItem::location() const
-{
-    if (!item) {
-        QBS_CHECK(name.toString() == StringConstants::qbsModule());
-        return {};
-    }
-    return item->location();
-}
-
-QString ProductContext::ResolvedAndMultiplexedDependsItem::displayName() const
-{
-    return ProductItemMultiplexer::fullProductDisplayName(name.toString(), multiplexId);
-}
-
 ProjectTreeBuilder::Private::TempBaseModuleAttacher::TempBaseModuleAttacher(
     ProjectTreeBuilder::Private *d, ProductContext &product)
     : m_productItem(product.item)
@@ -2182,7 +1150,7 @@ ProjectTreeBuilder::Private::TempBaseModuleAttacher::TempBaseModuleAttacher(
     if (qbsValue)
         m_origQbsValue = qbsValue->clone();
 
-    m_tempBaseModule = d->loadBaseModule(product, m_productItem);
+    m_tempBaseModule = d->dependenciesResolver.loadBaseModule(product, m_productItem);
 }
 
 void ProjectTreeBuilder::Private::TempBaseModuleAttacher::drop()

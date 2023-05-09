@@ -73,8 +73,7 @@ public:
         const std::function<void()> &dropTempQbsModule
         );
 
-    QVariantMap multiplexIdToVariantMap(const QString &multiplexId);
-
+    static QVariantMap multiplexIdToVariantMap(const QString &multiplexId);
     static QString fullProductDisplayName(const QString &name, const QString &multiplexId);
 
 private:

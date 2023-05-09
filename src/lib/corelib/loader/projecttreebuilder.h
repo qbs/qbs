@@ -39,7 +39,7 @@
 
 #pragma once
 
-#include "moduleproviderloader.h"
+#include "loaderutils.h"
 
 #include <language/forward_decls.h>
 #include <language/moduleproviderinfo.h>
@@ -58,8 +58,6 @@ class Item;
 class ItemPool;
 class ProgressObserver;
 
-using ModulePropertiesPerGroup = std::unordered_map<const Item *, QualifiedIdSet>;
-
 class ProjectTreeBuilder
 {
 public:
@@ -69,13 +67,6 @@ public:
 
     struct Result
     {
-        struct ProductInfo
-        {
-            std::vector<ProbeConstPtr> probes;
-            ModulePropertiesPerGroup modulePropertiesSetInGroups;
-            ErrorInfo delayedError;
-        };
-
         Item *root = nullptr;
         std::unordered_map<Item *, ProductInfo> productInfos;
         std::vector<ProbeConstPtr> projectProbes;

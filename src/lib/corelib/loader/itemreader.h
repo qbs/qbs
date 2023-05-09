@@ -84,6 +84,8 @@ public:
     Item *setupItemFromFile(const QString &filePath, const CodeLocation &referencingLocation,
                             Evaluator &evaluator);
 
+    QStringList readExtraSearchPaths(Item *item, Evaluator &evaluator, bool *wasSet = nullptr);
+
     Set<QString> filesRead() const;
 
     qint64 elapsedTime() const { return m_elapsedTime; }
@@ -100,6 +102,7 @@ private:
     std::vector<QStringList> m_extraSearchPaths;
     mutable QStringList m_allSearchPaths;
     const std::unique_ptr<ItemReaderVisitorState> m_visitorState;
+    const QString m_projectFilePath;
     qint64 m_elapsedTime = -1;
 };
 

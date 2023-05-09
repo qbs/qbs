@@ -43,9 +43,11 @@
 
 #include <language/deprecationinfo.h>
 #include <language/evaluator.h>
+#include <language/filecontext.h>
 #include <language/item.h>
 #include <language/value.h>
 #include <logging/categories.h>
+#include <tools/fileinfo.h>
 #include <tools/profiling.h>
 #include <tools/setupprojectparameters.h>
 #include <tools/stringconstants.h>
@@ -67,7 +69,8 @@ static void makePathsCanonical(QStringList &paths)
 }
 
 ItemReader::ItemReader(const SetupProjectParameters &parameters, Logger &logger)
-    : m_visitorState(std::make_unique<ItemReaderVisitorState>(logger))
+    : m_visitorState(std::make_unique<ItemReaderVisitorState>(logger)),
+      m_projectFilePath(parameters.projectFilePath())
 {
     setSearchPaths(parameters.searchPaths());
     m_visitorState->setDeprecationWarningMode(parameters.deprecationWarningMode());
@@ -214,6 +217,23 @@ Item *ItemReader::setupItemFromFile(
     Item *item = readFile(filePath, referencingLocation);
     handleAllPropertyOptionsItems(item, evaluator);
     return item;
+}
+
+QStringList ItemReader::readExtraSearchPaths(Item *item, Evaluator &evaluator, bool *wasSet)
+{
+    QStringList result;
+    const QStringList paths = evaluator.stringListValue(
+        item, StringConstants::qbsSearchPathsProperty(), wasSet);
+    const JSSourceValueConstPtr prop = item->sourceProperty(
+        StringConstants::qbsSearchPathsProperty());
+
+    // Value can come from within a project file or as an overridden value from the user
+    // (e.g command line).
+    const QString basePath = FileInfo::path(prop ? prop->file()->filePath()
+                                                 : m_projectFilePath);
+    for (const QString &path : paths)
+        result += FileInfo::resolvePath(basePath, path);
+    return result;
 }
 
 SearchPathsManager::SearchPathsManager(ItemReader &itemReader, const QStringList &extraSearchPaths)

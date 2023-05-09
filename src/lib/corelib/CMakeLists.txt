@@ -240,6 +240,8 @@ set(LOADER_SOURCES
     astimportshandler.h
     astpropertiesitemhandler.cpp
     astpropertiesitemhandler.h
+    dependenciesresolver.cpp
+    dependenciesresolver.h
     groupshandler.cpp
     groupshandler.h
     itemreader.cpp
@@ -248,6 +250,8 @@ set(LOADER_SOURCES
     itemreaderastvisitor.h
     itemreadervisitorstate.cpp
     itemreadervisitorstate.h
+    loaderutils.cpp
+    loaderutils.h
     localprofiles.cpp
     localprofiles.h
     moduleinstantiator.cpp

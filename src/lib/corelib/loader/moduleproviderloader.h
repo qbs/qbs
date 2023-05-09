@@ -41,6 +41,8 @@
 #ifndef MODULEPROVIDERLOADER_H
 #define MODULEPROVIDERLOADER_H
 
+#include "loaderutils.h"
+
 #include <language/forward_decls.h>
 #include <language/moduleproviderinfo.h>
 
@@ -58,8 +60,6 @@ class Item;
 class ItemReader;
 class Logger;
 class ProbesResolver;
-
-enum class FallbackMode { Enabled, Disabled };
 
 class ModuleProviderLoader
 {
