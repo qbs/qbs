@@ -24,12 +24,12 @@
 * Various fixes and improvements in the Debian Docker image; updated to to Qt 5.11.3.
 
 # Contributors
-* BogDan Vatra <bogdan@kde.org>
-* Christian Kandeler <christian.kandeler@qt.io>
-* Christian Stenger <christian.stenger@qt.io>
-* Davide Pesavento <pesa@gentoo.org>
-* Denis Shienkov <denis.shienkov@gmail.com>
-* hjk <hjk@qt.io>
-* Ivan Komissarov <ABBAPOH@gmail.com>
-* Joerg Bornemann <joerg.bornemann@qt.io>
-* Richard Weickelt <richard@weickelt.de>
+* BogDan Vatra
+* Christian Kandeler
+* Christian Stenger
+* Davide Pesavento
+* Denis Shienkov
+* hjk
+* Ivan Komissarov
+* Joerg Bornemann
+* Richard Weickelt

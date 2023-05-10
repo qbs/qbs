@@ -35,10 +35,10 @@
   Windows.
 
 # Contributors
-* Alberto Mardegan <mardy@users.sourceforge.net>
-* Christian Kandeler <christian.kandeler@qt.io>
-* Denis Shienkov <denis.shienkov@gmail.com>
-* Ivan Komissarov <ABBAPOH@gmail.com>
-* Jochen Ulrich <jochenulrich@t-online.de>
-* Joerg Bornemann <joerg.bornemann@qt.io>
-* Richard Weickelt <richard@weickelt.de>
+* Alberto Mardegan
+* Christian Kandeler
+* Denis Shienkov
+* Ivan Komissarov
+* Jochen Ulrich
+* Joerg Bornemann
+* Richard Weickelt
