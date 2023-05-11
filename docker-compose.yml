@@ -21,24 +21,24 @@ services:
   focal-qt5: &focal-qt5
     << : *linux
     hostname: focal-qt5
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:focal-5.15.2_1.20.1-2
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:focal-5.15.2_1.24.1-0
     build:
       dockerfile: docker/focal/Dockerfile
       context: .
       args:
         QT_VERSION: 5.15.2
-        QTCREATOR_VERSION: 5.0.3
+        QTCREATOR_VERSION: 9.0.2
 
   focal-qt6:
     << : *linux
     hostname: focal-qt6
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:focal-qt6-6.2.4_1.20.1-1
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:focal-qt6-6.5.0_1.24.1-0
     build:
       dockerfile: docker/focal/Dockerfile
       context: .
       args:
-        QT_VERSION: 6.2.4
-        QTCREATOR_VERSION: 5.0.3
+        QT_VERSION: 6.5.0
+        QTCREATOR_VERSION: 9.0.2
 
   focal:
     << : *focal-qt5

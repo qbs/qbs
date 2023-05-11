@@ -54,6 +54,7 @@ else()
   if(NOT TARGET Qt6Core5Compat)
     add_library(Qt6Core5Compat INTERFACE)
   endif()
+  find_package(Qt${QT_VERSION_MAJOR} OPTIONAL_COMPONENTS DocTools)
 endif()
 
 if (QBS_INSTALL_HTML_DOCS OR QBS_INSTALL_QCH_DOCS)

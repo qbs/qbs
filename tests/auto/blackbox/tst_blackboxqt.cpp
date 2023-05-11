@@ -376,6 +376,7 @@ void TestBlackboxQt::pkgconfigQt()
     QbsRunParameters params("build", {"-f", "pkgconfig-qt.qbs"});
     // need to override prefix for the downloaded Qt
     params.environment.insert("PKG_CONFIG_QT5CORE_PREFIX", prefix);
+    params.environment.insert("PKG_CONFIG_QT6CORE_PREFIX", prefix);
     params.arguments << "moduleProviders.qbspkgconfig.extraPaths:" + pkgConfigPath;
     params.arguments << arguments;
 
