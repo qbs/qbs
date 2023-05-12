@@ -93,7 +93,7 @@ function getLibsForPlugin(pluginData, product)
                 otherLibsLine = otherLibsLine.replace(/\$\$\[QT_INSTALL_PLUGINS\]/g, qtPluginDir);
                 otherLibsLine = otherLibsLine.replace(/\$\$\[QT_INSTALL_PREFIX\]/g, qtDir);
                 otherLibsLine = otherLibsLine.replace(/\$\$\[QT_INSTALL_QML\]/g, qtQmlPath);
-                otherLibs = otherLibs.concat(otherLibsLine.split(' '));
+                otherLibs = otherLibs.concat(otherLibsLine.split(' ').map(FileInfo.cleanPath));
             }
         }
         if (!pluginLib)
