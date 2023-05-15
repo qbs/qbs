@@ -21,7 +21,7 @@ Module {
     property string _qtBinaryDir
     property string _qtInstallDir
     property bool _enableSdkSupport: product.type && product.type.contains("android.package")
-                                     && !consoleApplication
+                                     && !product.consoleApplication
     property bool _enableNdkSupport: !product.aggregate || product.multiplexConfigurationId
     property string _templatesBaseDir: FileInfo.joinPaths(_qtInstallDir, "src", "android")
     property string _deployQtOutDir: FileInfo.joinPaths(product.buildDirectory, "deployqt_out")

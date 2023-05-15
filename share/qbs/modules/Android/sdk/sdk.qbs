@@ -52,7 +52,7 @@ Module {
 
     Probes.PathProbe {
         id: bundletoolProbe
-        platformSearchPaths: [Android.sdk.sdkDir]
+        platformSearchPaths: [sdkDir]
         names: ["bundletool-all"]
         nameSuffixes: ["-0.11.0.jar", "-0.12.0.jar", "-0.13.0.jar", "-0.13.3.jar", "-0.13.4.jar",
             "-0.14.0.jar", "-0.15.0.jar", "-1.0.0.jar", "-1.1.0.jar", "-1.2.0.jar", "-1.3.0.jar",
@@ -102,36 +102,36 @@ Module {
 
     Group {
         name: "java sources"
-        condition: Android.sdk.automaticSources
-        prefix: FileInfo.resolvePath(product.sourceDirectory, Android.sdk.sourcesDir + '/')
+        condition: product.Android.sdk.automaticSources
+        prefix: FileInfo.resolvePath(product.sourceDirectory, product.Android.sdk.sourcesDir + '/')
         files: "**/*.java"
     }
 
     Group {
         name: "android resources"
-        condition: Android.sdk.automaticSources
+        condition: product.Android.sdk.automaticSources
         fileTags: ["android.resources"]
-        prefix: FileInfo.resolvePath(product.sourceDirectory, Android.sdk.resourcesDir + '/')
+        prefix: FileInfo.resolvePath(product.sourceDirectory, product.Android.sdk.resourcesDir + '/')
         files: "**/*"
     }
 
     Group {
         name: "android assets"
-        condition: Android.sdk.automaticSources
+        condition: product.Android.sdk.automaticSources
         fileTags: ["android.assets"]
-        prefix: FileInfo.resolvePath(product.sourceDirectory, Android.sdk.assetsDir + '/')
+        prefix: FileInfo.resolvePath(product.sourceDirectory, product.Android.sdk.assetsDir + '/')
         files: "**/*"
     }
 
     Group {
         name: "manifest"
-        condition: Android.sdk.automaticSources
+        condition: product.Android.sdk.automaticSources
         fileTags: ["android.manifest"]
-        files: Android.sdk.manifestFile
-               && Android.sdk.manifestFile !== Android.sdk.defaultManifestFile
-               ? [Android.sdk.manifestFile]
-               : (File.exists(Android.sdk.defaultManifestFile)
-                  ? [Android.sdk.defaultManifestFile] : [])
+        files: product.Android.sdk.manifestFile
+               && product.Android.sdk.manifestFile !== product.Android.sdk.defaultManifestFile
+               ? [product.Android.sdk.manifestFile]
+               : (File.exists(product.Android.sdk.defaultManifestFile)
+                  ? [product.Android.sdk.defaultManifestFile] : [])
     }
 
 
@@ -196,8 +196,8 @@ Module {
         java.languageVersion: platformJavaVersion
         java.runtimeVersion: platformJavaVersion
         java.bootClassPaths: androidJarFilePath
-        codesign.apksignerFilePath: Android.sdk.apksignerFilePath
-        codesign._packageName: Android.sdk.apkBaseName + (_generateAab ? ".aab" : ".apk")
+        codesign.apksignerFilePath: apksignerFilePath
+        codesign._packageName: apkBaseName + (_generateAab ? ".aab" : ".apk")
         codesign.useApksigner: !_generateAab
     }
 
@@ -263,7 +263,7 @@ Module {
 
     property bool customManifestProcessing: false
     Group {
-        condition: !Android.sdk.customManifestProcessing
+        condition: !product.Android.sdk.customManifestProcessing
         fileTagsFilter: "android.manifest_processed"
         fileTags: "android.manifest_final"
     }
