@@ -9822,6 +9822,14 @@ BOOL JS_SetConstructorBit(JSContext *ctx, JSValueConst func_obj, BOOL val)
     return TRUE;
 }
 
+JS_BOOL JS_IsArrayBuffer(JSValueConst v)
+{
+    if (!JS_IsObject(v))
+        return FALSE;
+    JSObject *p = JS_VALUE_GET_OBJ(v);
+    return p->class_id == JS_CLASS_ARRAY_BUFFER || p->class_id == JS_CLASS_SHARED_ARRAY_BUFFER;
+}
+
 BOOL JS_IsError(JSContext *ctx, JSValueConst val)
 {
     JSObject *p;

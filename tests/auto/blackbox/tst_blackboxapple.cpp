@@ -684,6 +684,23 @@ void TestBlackboxApple::bundleStructure_data()
     QTest::newRow("G") << "G" << "com.apple.product-type.in-app-purchase-content";
 }
 
+void TestBlackboxApple::byteArrayInfoPlist()
+{
+    QDir::setCurrent(testDataDir + "/byteArrayInfoPlist");
+
+    QCOMPARE(runQbs(), 0);
+
+    const auto infoPlistPath = getInfoPlistPath(
+        relativeProductBuildDir("byteArrayInfoPlist") + "/byteArrayInfoPlist.app");
+    QVERIFY(QFile::exists(infoPlistPath));
+    const auto outFilePath =
+        relativeProductBuildDir("byteArrayInfoPlist") + "/bytearrayInfoPlist-Info.plist.out";
+    QFile file(outFilePath);
+    QVERIFY(file.exists());
+    QVERIFY(file.open(QIODevice::ReadOnly));
+    QCOMPARE(file.readAll(), "The data value");
+}
+
 void TestBlackboxApple::codesign()
 {
     QFETCH(bool, isBundle);

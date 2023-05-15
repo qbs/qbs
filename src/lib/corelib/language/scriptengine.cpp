@@ -481,6 +481,12 @@ void ScriptEngine::addInternalExtension(const char *name, JSValue ext)
     m_internalExtensions.insert(QLatin1String(name), JS_DupValue(m_context, ext));
 }
 
+JSValue ScriptEngine::asJsValue(const QByteArray &s)
+{
+    return JS_NewArrayBufferCopy(
+        m_context, reinterpret_cast<const uint8_t *>(s.constData()), s.size());
+}
+
 JSValue ScriptEngine::asJsValue(const QString &s)
 {
     const auto it = m_stringCache.constFind(s);

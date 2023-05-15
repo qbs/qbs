@@ -55,6 +55,7 @@ private slots:
     void assetCatalogsMultiple();
     void bundleStructure();
     void bundleStructure_data();
+    void byteArrayInfoPlist();
     void codesign();
     void codesign_data();
     void deploymentTarget();

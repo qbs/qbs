@@ -179,6 +179,11 @@ bool getJsBoolProperty(JSContext *ctx, JSValue obj, const QString &prop)
     return JS_VALUE_GET_BOOL(getJsProperty(ctx, obj, prop));
 }
 
+JSValue makeJsArrayBuffer(JSContext *ctx, const QByteArray &s)
+{
+    return ScriptEngine::engineForContext(ctx)->asJsValue(s);
+}
+
 JSValue makeJsString(JSContext *ctx, const QString &s)
 {
     return ScriptEngine::engineForContext(ctx)->asJsValue(s);
@@ -212,6 +217,8 @@ QStringList getJsStringList(JSContext *ctx, JSValue val)
 JSValue makeJsVariant(JSContext *ctx, const QVariant &v)
 {
     switch (static_cast<QMetaType::Type>(v.userType())) {
+    case QMetaType::QByteArray:
+        return makeJsArrayBuffer(ctx, v.toByteArray());
     case QMetaType::QString:
         return makeJsString(ctx, v.toString());
     case QMetaType::QStringList:
@@ -230,9 +237,6 @@ JSValue makeJsVariant(JSContext *ctx, const QVariant &v)
         return JS_NewBool(ctx, v.toBool());
     case QMetaType::QVariantMap:
         return makeJsVariantMap(ctx, v.toMap());
-    case QMetaType::QByteArray:
-        QBS_ASSERT(!"QByteArray is not a valid type for JS variant", return JS_UNDEFINED);
-        [[fallthrough]];
     default:
         return JS_UNDEFINED;
     }
@@ -254,6 +258,13 @@ static QVariant getJsVariantImpl(JSContext *ctx, JSValue val, QList<JSValue> pat
         return getJsString(ctx, val);
     if (JS_IsBool(val))
         return bool(JS_VALUE_GET_BOOL(val));
+    if (JS_IsArrayBuffer(val)) {
+        size_t size = 0;
+        const auto data = JS_GetArrayBuffer(ctx, &size, val);
+        if (!data || !size)
+            return QByteArray();
+        return QByteArray(reinterpret_cast<const char *>(data), size);
+    }
     if (JS_IsArray(ctx, val)) {
         if (path.contains(val))
             return {};

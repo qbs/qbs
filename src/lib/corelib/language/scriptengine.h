@@ -283,6 +283,7 @@ public:
 
     JSValue getInternalExtension(const char *name) const;
     void addInternalExtension(const char *name, JSValue ext);
+    JSValue asJsValue(const QByteArray &s);
     JSValue asJsValue(const QString &s);
     JSValue asJsValue(const QStringList &l);
     JSValue asJsValue(const QVariantList &l);

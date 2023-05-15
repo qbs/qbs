@@ -72,6 +72,7 @@ QVariant getJsVariantProperty(JSContext *ctx, JSValueConst obj, const QString &p
 QString getJsString(JSContext *ctx, JSValueConst val);
 QString getJsString(JSContext *ctx, JSAtom atom);
 QBS_AUTOTEST_EXPORT QVariant getJsVariant(JSContext *ctx, JSValueConst val);
+JSValue makeJsArrayBuffer(JSContext *ctx, const QByteArray &s);
 JSValue makeJsString(JSContext *ctx, const QString &s);
 JSValue makeJsStringList(JSContext *ctx, const QStringList &l);
 JSValue makeJsVariant(JSContext *ctx, const QVariant &v);
