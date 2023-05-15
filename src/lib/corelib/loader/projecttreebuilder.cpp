@@ -890,7 +890,8 @@ void ProjectTreeBuilder::Private::handleProduct(ProductContext &product, Deferra
     disabledItems.unite(groupsHandler.disabledGroups());
 
     // Collect the full list of fileTags, including the values contributed by modules.
-    if (!product.info.delayedError.hasError() && enabled) {
+    if (!product.info.delayedError.hasError() && enabled
+        && !product.name.startsWith(StringConstants::shadowProductPrefix())) {
         for (const FileTag &tag : fileTags)
             productsByType.insert({tag, &product});
         product.item->setProperty(StringConstants::typeProperty(),
