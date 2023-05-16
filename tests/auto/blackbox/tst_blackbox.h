@@ -93,6 +93,7 @@ private slots:
     void conflictingPropertyValues_data();
     void conflictingPropertyValues();
     void cpuFeatures();
+    void dateProperty();
     void dependenciesProperty();
     void dependencyScanningLoop();
     void deprecatedProperty();

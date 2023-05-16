@@ -667,6 +667,9 @@ JS_BOOL JS_IsConstructor(JSContext* ctx, JSValueConst val);
 JS_BOOL JS_SetConstructorBit(JSContext *ctx, JSValueConst func_obj, JS_BOOL val);
 JS_BOOL JS_IsArrayBuffer(JSValueConst v);
 
+JSValue JS_NewDate(JSContext *ctx, const char *s);
+JS_BOOL JS_IsDate(JSValueConst v);
+
 JSValue JS_NewArray(JSContext *ctx);
 int JS_IsArray(JSContext *ctx, JSValueConst val);
 

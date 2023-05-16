@@ -54321,3 +54321,23 @@ JS_BOOL JS_IsRegExp(JSContext *ctx, JSValue val)
         return FALSE;
     return JS_VALUE_GET_OBJ(val)->class_id == JS_CLASS_REGEXP;
 }
+
+int JS_IsDate(JSValue v)
+{
+    JSObject *p;
+    if (JS_VALUE_GET_TAG(v) != JS_TAG_OBJECT)
+        return FALSE;
+    return JS_VALUE_GET_OBJ(v)->class_id == JS_CLASS_DATE;
+}
+
+JSValue JS_NewDate(JSContext *ctx, const char *s)
+{
+    JSValue dateString = JS_NewString(ctx, s);
+    JSAtom constrAtom = JS_NewAtom(ctx, "Date");
+    JSValue constr = JS_GetGlobalVar(ctx, constrAtom, FALSE);
+    JSValue date = js_date_constructor(ctx, constr, 1, &dateString);
+    JS_FreeValue(ctx, constr);
+    JS_FreeValue(ctx, dateString);
+    JS_FreeAtom(ctx, constrAtom);
+    return date;
+}

@@ -2028,6 +2028,13 @@ void TestBlackbox::cpuFeatures()
     }
 }
 
+void TestBlackbox::dateProperty()
+{
+    QDir::setCurrent(testDataDir + "/date-property");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("The stored date was 1999-12-31"), m_qbsStdout.constData());
+}
+
 void TestBlackbox::renameDependency()
 {
     QDir::setCurrent(testDataDir + "/renameDependency");

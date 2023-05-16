@@ -43,6 +43,7 @@
 #include <tools/error.h>
 
 #include <QtCore/qdatastream.h>
+#include <QtCore/qdatetime.h>
 
 namespace qbs {
 namespace Internal {
@@ -235,6 +236,8 @@ JSValue makeJsVariant(JSContext *ctx, const QVariant &v)
         return JS_NewInt64(ctx, v.toInt());
     case QMetaType::Bool:
         return JS_NewBool(ctx, v.toBool());
+    case QMetaType::QDateTime:
+        return JS_NewDate(ctx, v.toDateTime().toString(Qt::ISODateWithMs).toUtf8().constData());
     case QMetaType::QVariantMap:
         return makeJsVariantMap(ctx, v.toMap());
     default:
@@ -276,6 +279,15 @@ static QVariant getJsVariantImpl(JSContext *ctx, JSValue val, QList<JSValue> pat
             l << getJsVariantImpl(ctx, sv, path);
         }
         return l;
+    }
+    if (JS_IsDate(val)) {
+        ScopedJsValue toString(ctx, getJsProperty(ctx, val, QLatin1String("toISOString")));
+        if (!JS_IsFunction(ctx, toString))
+            return {};
+        ScopedJsValue dateString(ctx, JS_Call(ctx, toString, val, 0, nullptr));
+        if (!JS_IsString(dateString))
+            return {};
+        return QDateTime::fromString(getJsString(ctx, dateString), Qt::ISODateWithMs);
     }
     if (JS_IsObject(val)) {
         if (path.contains(val))
