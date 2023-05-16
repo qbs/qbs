@@ -7,7 +7,10 @@ Project {
         qbs.targetPlatform: "android"
         Properties { condition: qbs.toolchain.includes("clang"); Android.ndk.appStl: "c++_shared" }
         Android.ndk.appStl: "stlport_shared"
-        qbs.architectures: !qbs.architecture ? ["armv7a", "x86"] : undefined
+        Properties {
+            qbs.architectures: !qbs.architecture ? ["armv7a", "x86"] : undefined
+            overrideListProperties: true
+        }
         cpp.useRPaths: false
     }
 
