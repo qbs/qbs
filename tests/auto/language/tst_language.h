@@ -95,6 +95,8 @@ private slots:
     void disabledSubProject();
     void dottedNames_data();
     void dottedNames();
+    void duplicateMultiplexValues_data();
+    void duplicateMultiplexValues();
     void emptyJsFile();
     void enumerateProjectProperties();
     void evalErrorInNonPresentModule_data();

@@ -181,11 +181,8 @@ MultiplexInfo ProductItemMultiplexer::Private::extractMultiplexInfo(Item *produc
         if (mappedKey.isEmpty())
             throw ErrorInfo(Tr::tr("There is no entry for '%1' in 'qbs.multiplexMap'.").arg(key));
 
-        if (!uniqueMultiplexByQbsProperties.insert(mappedKey).second) {
-            throw ErrorInfo(Tr::tr("Duplicate entry '%1' in Product.%2.")
-                                .arg(mappedKey, StringConstants::multiplexByQbsPropertiesProperty()),
-                            productItem->location());
-        }
+        if (!uniqueMultiplexByQbsProperties.insert(mappedKey).second)
+            continue;
 
         const ScopedJsValue arr(ctx, evaluator.value(qbsModuleItem, key));
         if (JS_IsUndefined(arr))
@@ -198,23 +195,20 @@ MultiplexInfo ProductItemMultiplexer::Private::extractMultiplexInfo(Item *produc
             continue;
 
         MultiplexRow mprow;
-        mprow.resize(arrlen);
+        mprow.reserve(arrlen);
         QVariantList entriesForKey;
         for (quint32 i = 0; i < arrlen; ++i) {
             const ScopedJsValue sv(ctx, JS_GetPropertyUint32(ctx, arr, i));
             const QVariant value = getJsVariant(ctx, sv);
-            if (entriesForKey.contains(value)) {
-                throw ErrorInfo(Tr::tr("Duplicate entry '%1' in qbs.%2.")
-                                    .arg(value.toString(), key), productItem->location());
-            }
+            if (entriesForKey.contains(value))
+                continue;
             entriesForKey << value;
-            mprow[i] = VariantValue::create(value);
+            mprow.push_back(VariantValue::create(value));
         }
         multiplexInfo.table = combine(multiplexInfo.table, mprow);
         multiplexInfo.properties.push_back(mappedKey);
     }
     return multiplexInfo;
-
 }
 
 MultiplexTable ProductItemMultiplexer::Private::combine(const MultiplexTable &table,

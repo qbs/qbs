@@ -626,6 +626,42 @@ void TestLanguage::dottedNames()
     }
 }
 
+void TestLanguage::duplicateMultiplexValues_data()
+{
+    QTest::addColumn<bool>("dummy");
+    QTest::newRow("duplicate-multiplex-value") << true;
+    QTest::newRow("duplicate-multiplex-value2") << true;
+}
+
+void TestLanguage::duplicateMultiplexValues()
+{
+    bool exceptionCaught = false;
+    try {
+        SetupProjectParameters params = defaultParameters;
+        const QString filePath = testDataDir() + QLatin1Char('/')
+            + QString::fromLocal8Bit(QTest::currentDataTag()) + QLatin1String(".qbs");
+        params.setProjectFilePath(filePath);
+        TopLevelProjectPtr project = m_resolver->resolve(params);
+        QVERIFY(project);
+        const std::vector<ResolvedProductPtr> products = project->allProducts();
+        QCOMPARE(products.size(), 2);
+        bool x86 = false;
+        bool arm = false;
+        for (const ResolvedProductPtr &p : products) {
+            if (p->moduleProperties->moduleProperty("qbs", "architecture").toString() == "x86")
+                x86 = true;
+            else if (p->moduleProperties->moduleProperty("qbs", "architecture").toString() == "arm")
+                arm = true;
+        }
+        QVERIFY(x86);
+        QVERIFY(arm);
+    } catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QVERIFY(!exceptionCaught);
+}
+
 void TestLanguage::emptyJsFile()
 {
     bool exceptionCaught = false;
@@ -937,11 +973,6 @@ void TestLanguage::erroneousFiles_data()
     QTest::newRow("dependency-profile-mismatch-2")
             << "dependency-profile-mismatch-2.qbs:15:9 Dependency from product 'main' to "
                "product 'dep' not fulfilled. There are no eligible multiplex candidates.";
-    QTest::newRow("duplicate-multiplex-value")
-            << "duplicate-multiplex-value.qbs:1:1.*Duplicate entry 'x86' in qbs.architectures.";
-    QTest::newRow("duplicate-multiplex-value2")
-            << "duplicate-multiplex-value2.qbs:1:1.*Duplicate entry 'architecture' in "
-               "Product.multiplexByQbsProperties.";
     QTest::newRow("invalid-references")
             << "invalid-references.qbs:2:17.*Cannot open '.*nosuchproject.qbs'";
     QTest::newRow("missing-js-file")

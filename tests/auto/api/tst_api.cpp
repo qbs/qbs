@@ -1885,26 +1885,23 @@ void TestApi::multiArch()
     QFile p2ArtifactInstalled(installRoot + "/host/host-tool.output");
     QVERIFY2(p2ArtifactInstalled.exists(), qPrintable(p2ArtifactInstalled.fileName()));
 
-    // Error check: Try to build for the same profile twice.
+    // Specifying the same profile twice should not result in an attempt to multiplex.
     overriddenValues.insert("project.targetProfile", hostProfile.name());
     setupParams.setOverriddenValues(overriddenValues);
     setupJob.reset(project.setupProject(setupParams, m_logSink, nullptr));
     waitForFinished(setupJob.get());
-    QVERIFY(setupJob->error().hasError());
-    QVERIFY2(setupJob->error().toString().contains("Duplicate entry 'host' in qbs.profiles."),
-             qPrintable(setupJob->error().toString()));
+    QVERIFY(!setupJob->error().hasError());
+    QCOMPARE(int(setupJob->project().projectData().products().size()), 2);
 
-    // Error check: Try to build for the same profile twice, this time attaching
-    // the properties via the product name.
+    // The same, but this time attaching the properties via the product name.
     overriddenValues.remove(QStringLiteral("project.targetProfile"));
     overriddenValues.insert("products.p1.myProfiles",
                             targetProfile.name() + ',' + targetProfile.name());
     setupParams.setOverriddenValues(overriddenValues);
     setupJob.reset(project.setupProject(setupParams, m_logSink, nullptr));
     waitForFinished(setupJob.get());
-    QVERIFY(setupJob->error().hasError());
-    QVERIFY2(setupJob->error().toString().contains("Duplicate entry 'target' in qbs.profiles."),
-             qPrintable(setupJob->error().toString()));
+    QVERIFY(!setupJob->error().hasError());
+    QCOMPARE(int(setupJob->project().projectData().products().size()), 2);
 }
 
 struct ProductDataSelector
