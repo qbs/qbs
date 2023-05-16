@@ -177,6 +177,8 @@ private slots:
     void qualifiedId();
     void recursiveProductDependencies();
     void rfc1034Identifier();
+    void throwThings_data();
+    void throwThings();
     void useInternalProfile();
     void versionCompare();
     void wildcards_data();
