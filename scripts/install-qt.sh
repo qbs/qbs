@@ -357,10 +357,11 @@ for COMPONENT in ${COMPONENTS}; do
         if [ "${TARGET_PLATFORM}" == "android" ] && [ ! "${VERSION}" \< "6.0.0" ]; then
             CONF_FILE="${UNPACK_DIR}/${VERSION}/${SUBDIR}/bin/target_qt.conf"
             ANDROID_QMAKE_FILE="${UNPACK_DIR}/${VERSION}/${SUBDIR}/bin/qmake"
-            if [[ "${VERSION}" == "6.4.2" ]] && [[ "${TOOLCHAIN}" == "android_armv7" ]]; then
+            if [ "${TOOLCHAIN}" == "android_armv7" ] && [ ! "${VERSION}" \< "6.4.2" ]; then
                 sed -i "s/\r//" "${CONF_FILE}"
                 sed -i "s|HostLibraryExecutables=.\/bin|HostLibraryExecutables=.\/libexec|g" "${CONF_FILE}"
                 chmod +x "${ANDROID_QMAKE_FILE}"
+                sed -i "s|\\\|\/|g" "${ANDROID_QMAKE_FILE}"
             fi
             sed -i "s|target|../$TOOLCHAIN|g" "${CONF_FILE}"
             sed -i "/HostPrefix/ s|$|gcc_64|g" "${CONF_FILE}"

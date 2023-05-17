@@ -309,7 +309,6 @@ void TestBlackboxAndroid::android_data()
         return QString("modules.Android.sdk.dexCompilerName:") + (enableD8 ? "d8" : "dx");
     };
     bool enableD8 = true;
-
     auto qtAppExpectedFiles = [&](bool generateAab, bool enableAapt2, bool codeSign = true,
             QString keyAlias="androiddebugkey") {
         QByteArrayList expectedFile;
@@ -357,6 +356,11 @@ void TestBlackboxAndroid::android_data()
                        "lib/${ARCH}/libplugins_imageformats_qtiff_${ARCH}.so",
                        "lib/${ARCH}/libplugins_imageformats_qwbmp_${ARCH}.so",
                        "lib/${ARCH}/libplugins_imageformats_qwebp_${ARCH}.so"}, generateAab);
+        if (version >= qbs::Version(6, 5))
+            expectedFile << expandArchs(ndkArchsForQt, {
+                       "lib/${ARCH}/libQt6Svg_${ARCH}.so",
+                       "lib/${ARCH}/libplugins_iconengines_qsvgicon_${ARCH}.so",
+                       "lib/${ARCH}/libplugins_imageformats_qsvg_${ARCH}.so"}, generateAab);
         if (!enableAapt2 && version < qbs::Version(6, 0))
             expectedFile << "res/layout/splash.xml";
         return expectedFile;
@@ -613,13 +617,25 @@ void TestBlackboxAndroid::android_data()
                            "lib/${ARCH}/libplugins_imageformats_qtiff_${ARCH}.so",
                            "lib/${ARCH}/libplugins_imageformats_qwbmp_${ARCH}.so",
                            "lib/${ARCH}/libplugins_imageformats_qwebp_${ARCH}.so"}, generateAab);
-            if (version >= qbs::Version(6, 0))
+            if (version >= qbs::Version(6, 5))
+                expectedFile << expandArchs(ndkArchsForQt, {
+                           "lib/${ARCH}/libQt6Svg_${ARCH}.so",
+                           "lib/${ARCH}/libplugins_iconengines_qsvgicon_${ARCH}.so",
+                           "lib/${ARCH}/libplugins_imageformats_qsvg_${ARCH}.so"}, generateAab);
+            if (version >= qbs::Version(6, 0)) {
                 expectedFile << expandArchs(ndkArchsForQt, {
                            "lib/${ARCH}/libQt6OpenGL_${ARCH}.so",
                            "lib/${ARCH}/libqml_QtQml_Models_modelsplugin_${ARCH}.so",
                            "lib/${ARCH}/libqml_QtQml_WorkerScript_workerscriptplugin_${ARCH}.so",
-                           "lib/${ARCH}/libqml_QtQml_qmlplugin_${ARCH}.so",
                            "lib/${ARCH}/libqml_QtQuick_qtquick2plugin_${ARCH}.so"}, generateAab);
+                if (version >= qbs::Version(6, 5))
+                    expectedFile << expandArchs(ndkArchsForQt, {
+                                "lib/${ARCH}/libqml_QtQml_Base_qmlplugin_${ARCH}.so",
+                                "lib/${ARCH}/libqml_QtQml_qmlmetaplugin_${ARCH}.so"}, generateAab);
+                else
+                    expectedFile << expandArchs(ndkArchsForQt, {
+                                "lib/${ARCH}/libqml_QtQml_qmlplugin_${ARCH}.so"}, generateAab);
+            }
             if (version >= qbs::Version(6, 2))
                 expectedFile << expandArchs(ndkArchsForQt, {
                            "lib/${ARCH}/libplugins_networkinformation_qandroidnetworkinformation_${ARCH}.so",
@@ -627,6 +643,7 @@ void TestBlackboxAndroid::android_data()
                            "lib/${ARCH}/libplugins_tls_qopensslbackend_${ARCH}.so",
                            "lib/${ARCH}/libqml_QtQuick_Window_quickwindowplugin_${ARCH}.so",
                                             }, generateAab);
+
             if (version >= qbs::Version(6, 0) && version < qbs::Version(6, 3)) {
                 expectedFile << expandArchs(ndkArchsForQt, {
                            "lib/${ARCH}/libQt6QuickControls2Impl_${ARCH}.so",
@@ -669,8 +686,8 @@ void TestBlackboxAndroid::android_data()
                                 "lib/${ARCH}/libqml_QtQuick_Dialogs_qtquickdialogsplugin_${ARCH}.so",
                                 "lib/${ARCH}/libqml_QtQuick_Dialogs_quickimpl_qtquickdialogs2quickimplplugin_${ARCH}.so"},
                                             generateAab);
-                    else
-                        expectedFile << expandArchs(ndkArchsForQt, {
+                else
+                    expectedFile << expandArchs(ndkArchsForQt, {
                                 "lib/${ARCH}/libqml_QtQuick_Window_quickwindow_${ARCH}.so",
                                 "lib/${ARCH}/libqml_QtQuick_tooling_quicktooling_${ARCH}.so"}, generateAab);
             }
@@ -774,13 +791,25 @@ void TestBlackboxAndroid::android_data()
                            "lib/${ARCH}/libplugins_imageformats_qtiff_${ARCH}.so",
                            "lib/${ARCH}/libplugins_imageformats_qwbmp_${ARCH}.so",
                            "lib/${ARCH}/libplugins_imageformats_qwebp_${ARCH}.so"}, generateAab);
-            if (version >= qbs::Version(6, 0))
+            if (version >= qbs::Version(6, 5))
+                expectedFile << expandArchs(ndkArchsForQt, {
+                           "lib/${ARCH}/libQt6Svg_${ARCH}.so",
+                           "lib/${ARCH}/libplugins_iconengines_qsvgicon_${ARCH}.so",
+                           "lib/${ARCH}/libplugins_imageformats_qsvg_${ARCH}.so"}, generateAab);
+            if (version >= qbs::Version(6, 0)) {
                 expectedFile << expandArchs(ndkArchsForQt, {
                            "lib/${ARCH}/libQt6OpenGL_${ARCH}.so",
                            "lib/${ARCH}/libqml_QtQml_Models_modelsplugin_${ARCH}.so",
                            "lib/${ARCH}/libqml_QtQml_WorkerScript_workerscriptplugin_${ARCH}.so",
-                           "lib/${ARCH}/libqml_QtQml_qmlplugin_${ARCH}.so",
                            "lib/${ARCH}/libqml_QtQuick_qtquick2plugin_${ARCH}.so"}, generateAab);
+                if (version >= qbs::Version(6, 5))
+                    expectedFile << expandArchs(ndkArchsForQt, {
+                                "lib/${ARCH}/libqml_QtQml_Base_qmlplugin_${ARCH}.so",
+                                "lib/${ARCH}/libqml_QtQml_qmlmetaplugin_${ARCH}.so"}, generateAab);
+                else
+                    expectedFile << expandArchs(ndkArchsForQt, {
+                                "lib/${ARCH}/libqml_QtQml_qmlplugin_${ARCH}.so"}, generateAab);
+            }
             if (version >= qbs::Version(6, 2))
                 expectedFile << expandArchs(ndkArchsForQt, {
                            "lib/${ARCH}/libplugins_networkinformation_qandroidnetworkinformation_${ARCH}.so",
@@ -967,14 +996,14 @@ void TestBlackboxAndroid::android_data()
                                << QStringList{aaptVersion(enableAapt2), packageType(generateAab)}
                                << enableAapt2 << generateAab << isIncrementalBuild << enableD8;
     enableAapt2 = true;
-    QTest::newRow("aidl") << "aidl" << QStringList("io.qbs.aidltest")
+    QTest::newRow("aidl aapt2") << "aidl" << QStringList("io.qbs.aidltest")
                                << (QList<QByteArrayList>() << (QByteArrayList()
                                                                << commonFiles(generateAab)
                                                                << "resources.arsc"))
                                << QStringList{aaptVersion(enableAapt2), packageType(generateAab)}
                                << enableAapt2 << generateAab << isIncrementalBuild << enableD8;
     generateAab = true;
-    QTest::newRow("aidl") << "aidl" << QStringList("io.qbs.aidltest")
+    QTest::newRow("aidl aab") << "aidl" << QStringList("io.qbs.aidltest")
                                << (QList<QByteArrayList>() << (QByteArrayList()
                                                                << commonFiles(generateAab)
                                                                << "base/resources.pb"))
@@ -1031,6 +1060,7 @@ void TestBlackboxAndroid::android_data()
             << QStringList{aaptVersion(enableAapt2), packageType(generateAab),
                dexCompilerVersion(enableD8)}
             << enableAapt2 << generateAab << isIncrementalBuild << enableD8;
+
     enableAapt2 = false;
     generateAab = false;
     auto expectedFiles1 = [&](bool generateAab) {
@@ -1054,7 +1084,6 @@ void TestBlackboxAndroid::android_data()
                                          cxxLibPath("libstlport_shared.so", false)}, generateAab);
         return expectedFile;
     };
-
     QTest::newRow("multiple apks")
             << "multiple-apks-per-project"
             << (QStringList() << "twolibs1" << "twolibs2")

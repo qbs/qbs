@@ -37,9 +37,17 @@ RUN apt-get update -qq && \
         curl \
         libasan5 \
         libglib2.0-0 \
+        locales \
         openjdk-8-jdk-headless \
         p7zip-full \
         unzip
+
+# Set the locale
+RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
+    locale-gen
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US:en
+ENV LC_ALL en_US.UTF-8
 
 ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
 RUN echo "export JAVA_HOME=${JAVA_HOME}" > /etc/profile.d/android.sh && \
