@@ -65,6 +65,7 @@
 #include <tools/settings.h>
 #include <tools/stlutils.h>
 
+#include <QtCore/qjsonobject.h>
 #include <QtCore/qprocess.h>
 
 #include <algorithm>
@@ -368,6 +369,40 @@ void TestLanguage::rfc1034Identifier()
         qDebug() << e.toString();
     }
     QCOMPARE(exceptionCaught, false);
+}
+
+void TestLanguage::throwThings_data()
+{
+    QTest::addColumn<QString>("type");
+    QTest::addColumn<QString>("result");
+    QTest::addRow("bool") << "bool" << "true";
+    QTest::addRow("int") << "int" << "43";
+    QTest::addRow("string") << "string" << "an error";
+    QTest::addRow("list") << "list" << R"([
+    "an",
+    "error"
+])";
+    QTest::addRow("object") << "object" << R"({
+    "reason": "overheating",
+    "result": "crash"
+})";
+}
+
+void TestLanguage::throwThings()
+{
+    QFETCH(QString, type);
+    QFETCH(QString, result);
+    bool exceptionCaught = false;
+    try {
+        SetupProjectParameters params = defaultParameters;
+        params.setProjectFilePath(testProject("throw.qbs"));
+        params.setOverriddenValues({{"project.throwType", type}});
+        m_resolver->resolve(params);
+    } catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        QVERIFY2(e.toString().contains(result), qPrintable(e.toString()));
+    }
+    QVERIFY(exceptionCaught);
 }
 
 void TestLanguage::conditionalDepends()

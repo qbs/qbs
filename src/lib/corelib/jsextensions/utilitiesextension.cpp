@@ -686,8 +686,8 @@ JSValue UtilitiesExtension::js_versionCompare(JSContext *ctx, JSValueConst,
     try {
         const auto args = getArguments<QString, QString>(ctx, "Utilities.versionCompare",
                                                          argc, argv);
-        const auto a = Version::fromString(std::get<0>(args));
-        const auto b = Version::fromString(std::get<1>(args));
+        const auto a = Version::fromString(std::get<0>(args), true);
+        const auto b = Version::fromString(std::get<1>(args), true);
         return JS_NewInt32(ctx, compare(a, b));
     } catch (const QString &error) { return throwError(ctx, error); }
 }

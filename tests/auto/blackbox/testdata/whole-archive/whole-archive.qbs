@@ -33,6 +33,7 @@ Project {
             property string dummy: product.linkWholeArchive // To force probe re-execution
             configure: {
                 if (!toolchain.includes("msvc")
+                        || toolchain.includes("clang-cl")
                         || Utilities.versionCompare(compilerVersion, "19.0.24215.1") >= 0) {
                     console.info("can link whole archives");
                 } else {

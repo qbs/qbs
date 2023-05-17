@@ -79,8 +79,8 @@ function hasCxx17Option(input)
 {
     // Probably this is not the earliest version to support the flag, but we have tested this one
     // and it's a pain to find out the exact minimum.
-    return Utilities.versionCompare(input.cpp.compilerVersion, "19.12.25831") >= 0
-            || (input.qbs.toolchain.includes("clang-cl") && input.cpp.compilerVersionMajor >= 7);
+    return (input.qbs.toolchain.includes("clang-cl") && input.cpp.compilerVersionMajor >= 7)
+        || Utilities.versionCompare(input.cpp.compilerVersion, "19.12.25831") >= 0;
 }
 
 function hasZCplusPlusOption(input)
@@ -92,20 +92,20 @@ function hasZCplusPlusOption(input)
     // clang-cl supports this option starting around-ish versions 8/9, but it
     // ignores this option, so this doesn't really matter
     // https://reviews.llvm.org/D45877
-    return Utilities.versionCompare(input.cpp.compilerVersion, "19.14.26433") >= 0
-            || (input.qbs.toolchain.includes("clang-cl") && input.cpp.compilerVersionMajor >= 9);
+    return (input.qbs.toolchain.includes("clang-cl") && input.cpp.compilerVersionMajor >= 9)
+        || Utilities.versionCompare(input.cpp.compilerVersion, "19.14.26433") >= 0;
 }
 
 function hasCxx20Option(input)
 {
-    return Utilities.versionCompare(input.cpp.compilerVersion, "19.29.30133.0") >= 0
-            || (input.qbs.toolchain.includes("clang-cl") && input.cpp.compilerVersionMajor >= 13);
+    return (input.qbs.toolchain.includes("clang-cl") && input.cpp.compilerVersionMajor >= 13)
+        || Utilities.versionCompare(input.cpp.compilerVersion, "19.29.30133.0") >= 0;
 }
 
 function hasCVerOption(input)
 {
-    return Utilities.versionCompare(input.cpp.compilerVersion, "19.29.30138.0") >= 0
-            || (input.qbs.toolchain.includes("clang-cl") && input.cpp.compilerVersionMajor >= 13);
+    return (input.qbs.toolchain.includes("clang-cl") && input.cpp.compilerVersionMajor >= 13)
+        || Utilities.versionCompare(input.cpp.compilerVersion, "19.29.30138.0") >= 0;
 }
 
 function supportsExternalIncludesOption(input) {
@@ -124,10 +124,9 @@ function addCxxLanguageVersionFlag(input, args) {
     if (!cxxVersion)
         return;
 
-    // Visual C++ 2013, Update 3
-    var hasStdOption = Utilities.versionCompare(input.cpp.compilerVersion, "18.00.30723") >= 0
-            // or clang-cl
-            || input.qbs.toolchain.includes("clang-cl");
+    // Visual C++ 2013, Update 3 or clang-cl
+    var hasStdOption = input.qbs.toolchain.includes("clang-cl")
+        || Utilities.versionCompare(input.cpp.compilerVersion, "18.00.30723") >= 0;
     if (!hasStdOption)
         return;
 
@@ -371,7 +370,8 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
 
 function linkerSupportsWholeArchive(product)
 {
-    return Utilities.versionCompare(product.cpp.compilerVersion, "19.0.24215.1") >= 0
+    return product.qbs.toolchainType.includes("clang-cl") ||
+        Utilities.versionCompare(product.cpp.compilerVersion, "19.0.24215.1") >= 0
 }
 
 function handleDiscardProperty(product, flags) {

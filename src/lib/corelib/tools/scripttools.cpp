@@ -44,6 +44,9 @@
 
 #include <QtCore/qdatastream.h>
 #include <QtCore/qdatetime.h>
+#include <QtCore/qjsonarray.h>
+#include <QtCore/qjsondocument.h>
+#include <QtCore/qjsonobject.h>
 
 namespace qbs {
 namespace Internal {
@@ -90,9 +93,22 @@ JsException::~JsException() { JS_FreeValue(m_ctx, m_exception); }
 
 QString JsException::message() const
 {
-    if (JS_IsString(m_exception))
-        return getJsString(m_ctx, m_exception);
-    return getJsStringProperty(m_ctx, m_exception, QStringLiteral("message"));
+    if (JS_IsError(m_ctx, m_exception))
+        return getJsStringProperty(m_ctx, m_exception, QStringLiteral("message"));
+    const QVariant v = getJsVariant(m_ctx, m_exception);
+    switch (static_cast<QMetaType::Type>(v.userType())) {
+    case QMetaType::QVariantMap:
+        return QString::fromUtf8(QJsonDocument(QJsonObject::fromVariantMap(v.toMap()))
+                                 .toJson(QJsonDocument::Indented));
+    case QMetaType::QStringList:
+        return QString::fromUtf8(QJsonDocument(QJsonArray::fromStringList(v.toStringList()))
+                                 .toJson(QJsonDocument::Indented));
+    case QMetaType::QVariantList:
+        return QString::fromUtf8(QJsonDocument(QJsonArray::fromVariantList(v.toList()))
+                                 .toJson(QJsonDocument::Indented));
+    default:
+        return v.toString();
+    }
 }
 
 const QStringList JsException::stackTrace() const
