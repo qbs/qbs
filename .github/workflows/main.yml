@@ -344,26 +344,8 @@ jobs:
             script: './scripts/test-qt.sh',
           }
         - {
-            name: 'Run Android tests (Qt 5.13)',
-            image: 'focal-android-513',
-            profile: '',
-            script: './scripts/test-qt-for-android.sh',
-          }
-        - {
-            name: 'Run Android tests (Qt 5.14)',
-            image: 'focal-android-514',
-            profile: '',
-            script: './scripts/test-qt-for-android.sh',
-          }
-        - {
             name: 'Run Android tests (Qt 5.15)',
             image: 'focal-android-515',
-            profile: '',
-            script: './scripts/test-qt-for-android.sh',
-          }
-        - {
-            name: 'Run Android tests (Qt 6.0.0)',
-            image: 'focal-android-600',
             profile: '',
             script: './scripts/test-qt-for-android.sh',
           }
