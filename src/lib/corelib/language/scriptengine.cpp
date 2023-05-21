@@ -174,9 +174,9 @@ ScriptEngine::~ScriptEngine()
         m_logger.qbsLog(LoggerInfo, true) << Tr::tr("Setting up imports took %1.")
                                              .arg(elapsedTimeString(m_elapsedTimeImporting));
     }
-    for (const auto &ext : qAsConst(m_internalExtensions))
+    for (const auto &ext : std::as_const(m_internalExtensions))
         JS_FreeValue(m_context, ext);
-    for (const JSValue &s : qAsConst(m_stringCache))
+    for (const JSValue &s : std::as_const(m_stringCache))
         JS_FreeValue(m_context, s);
     for (JSValue * const externalRef : std::as_const(m_externallyCachedValues)) {
         JS_FreeValue(m_context, *externalRef);
@@ -192,7 +192,7 @@ void ScriptEngine::reset()
     // TODO: Check whether we can keep file and imports cache.
     //       We'd have to find a solution for the scope name problem then.
     clearImportsCache();
-    for (const auto &e : qAsConst(m_jsFileCache))
+    for (const auto &e : std::as_const(m_jsFileCache))
         JS_FreeValue(m_context, e.second);
     m_jsFileCache.clear();
 
@@ -201,19 +201,19 @@ void ScriptEngine::reset()
             JS_FreeValue(m_context, it.key());
     }
     m_evalResults.clear();
-    for (const auto &e : qAsConst(m_projectScriptValues))
+    for (const auto &e : std::as_const(m_projectScriptValues))
         JS_FreeValue(m_context, e.second);
     m_projectScriptValues.clear();
-    for (const auto &e : qAsConst(m_baseProductScriptValues))
+    for (const auto &e : std::as_const(m_baseProductScriptValues))
         JS_FreeValue(m_context, e.second);
     m_baseProductScriptValues.clear();
-    for (const auto &e : qAsConst(m_productArtifactsMapScriptValues))
+    for (const auto &e : std::as_const(m_productArtifactsMapScriptValues))
         JS_FreeValue(m_context, e.second);
     m_productArtifactsMapScriptValues.clear();
-    for (const auto &e : qAsConst(m_moduleArtifactsMapScriptValues))
+    for (const auto &e : std::as_const(m_moduleArtifactsMapScriptValues))
         JS_FreeValue(m_context, e.second);
     m_moduleArtifactsMapScriptValues.clear();
-    for (const auto &e : qAsConst(m_baseModuleScriptValues))
+    for (const auto &e : std::as_const(m_baseModuleScriptValues))
         JS_FreeValue(m_context, e.second);
     m_baseModuleScriptValues.clear();
     for (auto it = m_artifactsScriptValues.cbegin(); it != m_artifactsScriptValues.cend(); ++it) {
@@ -279,7 +279,7 @@ void ScriptEngine::observeImport(JSValue &jsImport)
 
 void ScriptEngine::clearImportsCache()
 {
-    for (const auto &jsImport : qAsConst(m_jsImportCache))
+    for (const auto &jsImport : std::as_const(m_jsImportCache))
         JS_FreeValue(m_context, jsImport);
     m_jsImportCache.clear();
     m_filePathsPerImport.clear();

@@ -56,9 +56,9 @@ BuildGraphNode::BuildGraphNode() : buildState(Untouched)
 
 BuildGraphNode::~BuildGraphNode()
 {
-    for (BuildGraphNode *p : qAsConst(parents))
+    for (BuildGraphNode *p : std::as_const(parents))
         p->children.remove(this);
-    for (BuildGraphNode *c : qAsConst(children))
+    for (BuildGraphNode *c : std::as_const(children))
         c->parents.remove(this);
 }
 
@@ -69,7 +69,7 @@ void BuildGraphNode::onChildDisconnected(BuildGraphNode *child)
 
 void BuildGraphNode::acceptChildren(BuildGraphVisitor *visitor)
 {
-    for (BuildGraphNode *child : qAsConst(children))
+    for (BuildGraphNode *child : std::as_const(children))
         child->accept(visitor);
 }
 

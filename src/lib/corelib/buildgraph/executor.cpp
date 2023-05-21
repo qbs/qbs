@@ -204,7 +204,7 @@ private:
     {
         if (!m_seenProducts.insert(product).second)
             return;
-        for (const ResolvedProductPtr &dependency : qAsConst(product->dependencies))
+        for (const ResolvedProductPtr &dependency : std::as_const(product->dependencies))
             traverse(dependency);
         if (!product->buildData)
             return;
@@ -328,7 +328,7 @@ void Executor::updateLeaves(BuildGraphNode *node, NodeSet &seenNodes)
     }
 
     bool isLeaf = true;
-    for (BuildGraphNode *child : qAsConst(node->children)) {
+    for (BuildGraphNode *child : std::as_const(node->children)) {
         if (child->buildState != BuildGraphNode::Built) {
             isLeaf = false;
             updateLeaves(child, seenNodes);
@@ -451,7 +451,7 @@ bool Executor::isUpToDate(Artifact *artifact) const
             return false;
     }
 
-    for (FileDependency *fileDependency : qAsConst(artifact->fileDependencies)) {
+    for (FileDependency *fileDependency : std::as_const(artifact->fileDependencies)) {
         if (!fileDependency->timestamp().isValid()) {
             qCDebug(lcUpToDateCheck) << "file dependency doesn't exist"
                                      << fileDependency->filePath();
@@ -478,7 +478,7 @@ bool Executor::mustExecuteTransformer(const TransformerPtr &transformer) const
 
     bool hasAlwaysUpdatedArtifacts = false;
     bool hasUpToDateNotAlwaysUpdatedArtifacts = false;
-    for (Artifact *artifact : qAsConst(transformer->outputs)) {
+    for (Artifact *artifact : std::as_const(transformer->outputs)) {
         if (isUpToDate(artifact)) {
             if (artifact->alwaysUpdated)
                 hasAlwaysUpdatedArtifacts = true;
@@ -567,7 +567,7 @@ void Executor::finishJob(ExecutorJob *job, bool success)
     updateJobCounts(transformer.get(), -1);
     if (success) {
         m_project->buildData->setDirty();
-        for (Artifact * const artifact : qAsConst(transformer->outputs)) {
+        for (Artifact * const artifact : std::as_const(transformer->outputs)) {
             if (artifact->alwaysUpdated) {
                 artifact->setTimestamp(FileTime::currentTime());
                 for (Artifact * const parent : artifact->parentArtifacts())
@@ -626,7 +626,7 @@ static bool allChildrenBuilt(BuildGraphNode *node)
 void Executor::finishNode(BuildGraphNode *leaf)
 {
     leaf->buildState = BuildGraphNode::Built;
-    for (BuildGraphNode * const parent : qAsConst(leaf->parents)) {
+    for (BuildGraphNode * const parent : std::as_const(leaf->parents)) {
         if (parent->buildState != BuildGraphNode::Buildable) {
             qCDebug(lcExec).noquote() << "parent" << parent->toString()
                                       << "build state:" << toString(parent->buildState);
@@ -679,7 +679,7 @@ bool Executor::transformerHasMatchingInputFiles(const TransformerConstPtr &trans
         return false;
     if (transformer->inputs.empty())
         return true;
-    for (const Artifact * const input : qAsConst(transformer->inputs)) {
+    for (const Artifact * const input : std::as_const(transformer->inputs)) {
         const auto files = m_buildOptions.filesToConsider();
         for (const QString &filePath : files) {
             if (input->filePath() == filePath
@@ -695,7 +695,7 @@ bool Executor::transformerHasMatchingInputFiles(const TransformerConstPtr &trans
 void Executor::setupJobLimits()
 {
     Settings settings(m_buildOptions.settingsDirectory());
-    for (const auto &p : qAsConst(m_productsToBuild)) {
+    for (const auto &p : std::as_const(m_productsToBuild)) {
         const Preferences prefs(&settings, p->profile());
         const JobLimits &jobLimitsFromSettings = prefs.jobLimits();
         JobLimits effectiveJobLimits;
@@ -732,7 +732,7 @@ void Executor::setupProgressObserver()
     if (!m_progressObserver)
         return;
     int totalEffort = 1; // For the effort after the last rule application;
-    for (const auto &product : qAsConst(m_productsToBuild)) {
+    for (const auto &product : std::as_const(m_productsToBuild)) {
         QBS_CHECK(product->buildData);
         const auto filtered = filterByType<RuleNode>(product->buildData->allNodes());
         totalEffort += std::distance(filtered.begin(), filtered.end());
@@ -744,7 +744,7 @@ void Executor::doSanityChecks()
 {
     QBS_CHECK(m_project);
     QBS_CHECK(!m_productsToBuild.empty());
-    for (const auto &product : qAsConst(m_productsToBuild)) {
+    for (const auto &product : std::as_const(m_productsToBuild)) {
         QBS_CHECK(product->buildData);
         QBS_CHECK(product->topLevelProject() == m_project.get());
     }
@@ -915,7 +915,7 @@ bool Executor::checkForUnbuiltDependencies(Artifact *artifact)
 {
     bool buildingDependenciesFound = false;
     NodeSet unbuiltDependencies;
-    for (BuildGraphNode * const dependency : qAsConst(artifact->children)) {
+    for (BuildGraphNode * const dependency : std::as_const(artifact->children)) {
         switch (dependency->buildState) {
         case BuildGraphNode::Untouched:
         case BuildGraphNode::Buildable:
@@ -946,7 +946,7 @@ bool Executor::checkForUnbuiltDependencies(Artifact *artifact)
 
 void Executor::potentiallyRunTransformer(const TransformerPtr &transformer)
 {
-    for (Artifact * const output : qAsConst(transformer->outputs)) {
+    for (Artifact * const output : std::as_const(transformer->outputs)) {
         // Rescuing build data can introduce new dependencies, potentially delaying execution of
         // this transformer.
         bool childrenAddedDueToRescue;
@@ -969,7 +969,7 @@ void Executor::potentiallyRunTransformer(const TransformerPtr &transformer)
 
     const bool mustExecute = mustExecuteTransformer(transformer);
     if (mustExecute || m_buildOptions.forceTimestampCheck()) {
-        for (Artifact * const output : qAsConst(transformer->outputs)) {
+        for (Artifact * const output : std::as_const(transformer->outputs)) {
             // Scan all input artifacts. If new dependencies were found during scanning, delay
             // execution of this transformer.
             InputArtifactScanner scanner(output, m_inputArtifactScanContext, m_logger);
@@ -1000,7 +1000,7 @@ void Executor::runTransformer(const TransformerPtr &transformer)
 
     // create the output directories
     if (!m_buildOptions.dryRun()) {
-        for (Artifact * const output : qAsConst(transformer->outputs)) {
+        for (Artifact * const output : std::as_const(transformer->outputs)) {
             QDir outDir = QFileInfo(output->filePath()).absoluteDir();
             if (!outDir.exists() && !outDir.mkpath(StringConstants::dot())) {
                     throw ErrorInfo(tr("Failed to create directory '%1'.")
@@ -1011,7 +1011,7 @@ void Executor::runTransformer(const TransformerPtr &transformer)
 
     QBS_CHECK(!m_availableJobs.empty());
     ExecutorJob *job = m_availableJobs.takeFirst();
-    for (Artifact * const artifact : qAsConst(transformer->outputs))
+    for (Artifact * const artifact : std::as_const(transformer->outputs))
         artifact->buildState = BuildGraphNode::Building;
     m_processingJobs.insert(job, transformer);
     updateJobCounts(transformer.get(), 1);
@@ -1021,7 +1021,7 @@ void Executor::runTransformer(const TransformerPtr &transformer)
 void Executor::finishTransformer(const TransformerPtr &transformer)
 {
     transformer->markedForRerun = false;
-    for (Artifact * const artifact : qAsConst(transformer->outputs)) {
+    for (Artifact * const artifact : std::as_const(transformer->outputs)) {
         possiblyInstallArtifact(artifact);
         finishArtifact(artifact);
     }
@@ -1082,9 +1082,9 @@ void Executor::checkForUnbuiltProducts()
     if (m_buildOptions.executeRulesOnly())
         return;
     std::vector<ResolvedProductPtr> unbuiltProducts;
-    for (const ResolvedProductPtr &product : qAsConst(m_productsToBuild)) {
+    for (const ResolvedProductPtr &product : std::as_const(m_productsToBuild)) {
         bool productBuilt = true;
-        for (BuildGraphNode *rootNode : qAsConst(product->buildData->rootNodes())) {
+        for (BuildGraphNode *rootNode : std::as_const(product->buildData->rootNodes())) {
             if (rootNode->buildState != BuildGraphNode::Built) {
                 productBuilt = false;
                 unbuiltProducts.push_back(product);
@@ -1198,11 +1198,11 @@ void Executor::prepareAllNodes()
     for (const ResolvedProductPtr &product : m_allProducts) {
         if (product->enabled) {
             QBS_CHECK(product->buildData);
-            for (BuildGraphNode * const node : qAsConst(product->buildData->allNodes()))
+            for (BuildGraphNode * const node : std::as_const(product->buildData->allNodes()))
                 node->buildState = BuildGraphNode::Untouched;
         }
     }
-    for (const ResolvedProductPtr &product : qAsConst(m_productsToBuild)) {
+    for (const ResolvedProductPtr &product : std::as_const(m_productsToBuild)) {
         QBS_CHECK(product->buildData);
         for (Artifact * const artifact : filterByType<Artifact>(product->buildData->allNodes()))
             prepareArtifact(artifact);
@@ -1286,7 +1286,7 @@ void Executor::setupForBuildingSelectedFiles(const BuildGraphNode *node)
  */
 void Executor::prepareReachableNodes()
 {
-    for (BuildGraphNode * const root : qAsConst(m_roots))
+    for (BuildGraphNode * const root : std::as_const(m_roots))
         prepareReachableNodes_impl(root);
 }
 
@@ -1298,7 +1298,7 @@ void Executor::prepareReachableNodes_impl(BuildGraphNode *node)
         return;
 
     node->buildState = BuildGraphNode::Buildable;
-    for (BuildGraphNode *child : qAsConst(node->children))
+    for (BuildGraphNode *child : std::as_const(node->children))
         prepareReachableNodes_impl(child);
 }
 
@@ -1306,7 +1306,7 @@ void Executor::prepareProducts()
 {
     ProductPrioritySetter prioritySetter(m_allProducts);
     prioritySetter.apply();
-    for (const ResolvedProductPtr &product : qAsConst(m_productsToBuild)) {
+    for (const ResolvedProductPtr &product : std::as_const(m_productsToBuild)) {
         EnvironmentScriptRunner(product.get(), m_evalContext.get(), m_project->environment)
                 .setupForBuild();
     }
@@ -1315,7 +1315,7 @@ void Executor::prepareProducts()
 void Executor::setupRootNodes()
 {
     m_roots.clear();
-    for (const ResolvedProductPtr &product : qAsConst(m_productsToBuild))
+    for (const ResolvedProductPtr &product : std::as_const(m_productsToBuild))
         m_roots += product->buildData->rootNodes();
 }
 

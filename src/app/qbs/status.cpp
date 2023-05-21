@@ -145,7 +145,7 @@ int printStatus(const ProjectData &project)
                       << group.location().line() << ")";
             QStringList sourceFiles = group.allFilePaths();
             std::sort(sourceFiles.begin(), sourceFiles.end());
-            for (const QString &sourceFile : qAsConst(sourceFiles)) {
+            for (const QString &sourceFile : std::as_const(sourceFiles)) {
                 if (!QFileInfo::exists(sourceFile))
                     missingFiles.push_back(sourceFile);
                 qbsInfo() << "    " << sourceFile.mid(projectDirectoryPathLength + 1);
@@ -155,11 +155,11 @@ int printStatus(const ProjectData &project)
     }
 
     qbsInfo() << "\nMissing files:";
-    for (const QString &untrackedFile : qAsConst(missingFiles))
+    for (const QString &untrackedFile : std::as_const(missingFiles))
         qbsInfo() << "    " << untrackedFile.mid(projectDirectoryPathLength + 1);
 
     qbsInfo() << "\nUntracked files:";
-    for (const QString &missingFile : qAsConst(untrackedFilesInProject))
+    for (const QString &missingFile : std::as_const(untrackedFilesInProject))
         qbsInfo() << "    " << missingFile.mid(projectDirectoryPathLength + 1);
 
     return 0;

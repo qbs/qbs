@@ -127,7 +127,7 @@ std::vector<ProductData> dependenciesOf(const ProductData &qbsProduct,
 {
     std::vector<ProductData> result;
     const auto &depsNames = qbsProduct.dependencies();
-    for (const auto &product : qAsConst(genProject.products)) {
+    for (const auto &product : std::as_const(genProject.products)) {
         const auto pt = product.type();
         if (!pt.contains(QLatin1String("staticlibrary")))
             continue;

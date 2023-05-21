@@ -158,7 +158,7 @@ void InputArtifactScanner::scan()
     for (Artifact * const dependency : childrenAddedByScanner)
         disconnect(m_artifact, dependency);
 
-    for (Artifact * const inputArtifact : qAsConst(m_artifact->transformer->inputs))
+    for (Artifact * const inputArtifact : std::as_const(m_artifact->transformer->inputs))
         scanForFileDependencies(inputArtifact);
 }
 
@@ -224,7 +224,7 @@ Set<DependencyScanner *> InputArtifactScanner::scannersForArtifact(const Artifac
                 }
             }
         }
-        for (const DependencyScannerPtr &scanner : qAsConst(cache.scanners))
+        for (const DependencyScannerPtr &scanner : std::as_const(cache.scanners))
             scanners += scanner.get();
     }
     return scanners;
@@ -243,7 +243,7 @@ void InputArtifactScanner::scanForScannerFileDependencies(DependencyScanner *sca
         cache.searchPaths = scanner->collectSearchPaths(inputArtifact);
     }
     qCDebug(lcDepScan) << "include paths (cache" << (cacheHit ? "hit)" : "miss)");
-    for (const QString &s : qAsConst(cache.searchPaths))
+    for (const QString &s : std::as_const(cache.searchPaths))
         qCDebug(lcDepScan) << "    " << s;
 
     const QString &filePathToBeScanned = fileToBeScanned->filePath();
@@ -289,7 +289,7 @@ void InputArtifactScanner::resolveScanResultDependencies(const Artifact *inputAr
         }
 
         // try include paths
-        for (const QString &includePath : qAsConst(cache.searchPaths)) {
+        for (const QString &includePath : std::as_const(cache.searchPaths)) {
             resolveDepencency(dependency, inputArtifact->product.get(),
                               &resolvedDependency, includePath);
             if (resolvedDependency.isValid())

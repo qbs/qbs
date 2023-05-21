@@ -1719,7 +1719,7 @@ void TestBlackbox::clean()
     QVERIFY(!QFile(appExeFilePath).exists());
     QVERIFY(!QFile(depObjectFilePath).exists());
     QVERIFY(!QFile(depLibFilePath).exists());
-    for (const QString &symLink : qAsConst(symlinks))
+    for (const QString &symLink : std::as_const(symlinks))
         QVERIFY2(!symlinkExists(symLink), qPrintable(symLink));
 
     // Remove all, with a forced re-resolve in between.
@@ -1738,7 +1738,7 @@ void TestBlackbox::clean()
     QVERIFY(!QFile(appExeFilePath).exists());
     QVERIFY(!QFile(depObjectFilePath).exists());
     QVERIFY(!QFile(depLibFilePath).exists());
-    for (const QString &symLink : qAsConst(symlinks))
+    for (const QString &symLink : std::as_const(symlinks))
         QVERIFY2(!symlinkExists(symLink), qPrintable(symLink));
 
     // Dry run.
@@ -1750,7 +1750,7 @@ void TestBlackbox::clean()
     QVERIFY(regularFileExists(appExeFilePath));
     QVERIFY(regularFileExists(depObjectFilePath));
     QVERIFY(regularFileExists(depLibFilePath));
-    for (const QString &symLink : qAsConst(symlinks))
+    for (const QString &symLink : std::as_const(symlinks))
         QVERIFY2(symlinkExists(symLink), qPrintable(symLink));
 
     // Product-wise, dependency only.
@@ -1764,7 +1764,7 @@ void TestBlackbox::clean()
     QVERIFY(regularFileExists(appExeFilePath));
     QVERIFY(!QFile(depObjectFilePath).exists());
     QVERIFY(!QFile(depLibFilePath).exists());
-    for (const QString &symLink : qAsConst(symlinks))
+    for (const QString &symLink : std::as_const(symlinks))
         QVERIFY2(!symlinkExists(symLink), qPrintable(symLink));
 
     // Product-wise, dependent product only.
@@ -1778,7 +1778,7 @@ void TestBlackbox::clean()
     QVERIFY(!QFile(appExeFilePath).exists());
     QVERIFY(regularFileExists(depObjectFilePath));
     QVERIFY(regularFileExists(depLibFilePath));
-    for (const QString &symLink : qAsConst(symlinks))
+    for (const QString &symLink : std::as_const(symlinks))
         QVERIFY2(symlinkExists(symLink), qPrintable(symLink));
 }
 
@@ -4426,7 +4426,7 @@ void TestBlackbox::installPackage()
             cleanOutputLines.push_back(trimmedLine);
     }
     QCOMPARE(cleanOutputLines.size(), 3);
-    for (const QByteArray &line : qAsConst(cleanOutputLines)) {
+    for (const QByteArray &line : std::as_const(cleanOutputLines)) {
         QVERIFY2(line.contains("public_tool") || line.contains("mylib") || line.contains("lib.h"),
                  line.constData());
     }
@@ -4503,7 +4503,7 @@ void TestBlackbox::invalidLibraryNames()
     QbsRunParameters params(QStringList("project.valueIndex:" + index));
     params.expectFailure = !success;
     QCOMPARE(runQbs(params) == 0, success);
-    for (const QString &diag : qAsConst(diagnostics))
+    for (const QString &diag : std::as_const(diagnostics))
         QVERIFY2(m_qbsStderr.contains(diag.toLocal8Bit()), m_qbsStderr.constData());
 }
 
@@ -7340,7 +7340,7 @@ static bool haveMakeNsis()
     QStringList paths = QProcessEnvironment::systemEnvironment().value("PATH")
             .split(HostOsInfo::pathListSeparator(), QBS_SKIP_EMPTY_PARTS);
 
-    for (const QString &key : qAsConst(regKeys)) {
+    for (const QString &key : std::as_const(regKeys)) {
         QSettings settings(key, QSettings::NativeFormat);
         QString str = settings.value(QStringLiteral(".")).toString();
         if (!str.isEmpty())
@@ -7348,7 +7348,7 @@ static bool haveMakeNsis()
     }
 
     bool haveMakeNsis = false;
-    for (const QString &path : qAsConst(paths)) {
+    for (const QString &path : std::as_const(paths)) {
         if (regularFileExists(QDir::fromNativeSeparators(path) +
                           HostOsInfo::appendExecutableSuffix(QStringLiteral("/makensis")))) {
             haveMakeNsis = true;
@@ -7994,7 +7994,7 @@ void TestBlackbox::missingBuildGraph()
     QbsRunParameters params;
     params.expectFailure = true;
     params.arguments << QLatin1String("config:") + actualConfigName;
-    for (const QString &command : qAsConst(commands)) {
+    for (const QString &command : std::as_const(commands)) {
         params.command = command;
         QVERIFY2(runQbs(params) != 0, qPrintable(command));
         const QString expectedErrorMessage = QString("Build graph not found for "

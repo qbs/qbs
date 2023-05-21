@@ -91,7 +91,7 @@ bool CycleDetector::visitNode(BuildGraphNode *node)
 
     m_nodesInCurrentPath += node;
     m_parent = node;
-    for (BuildGraphNode * const child : qAsConst(node->children))
+    for (BuildGraphNode * const child : std::as_const(node->children))
         child->accept(this);
     m_nodesInCurrentPath -= node;
     m_allNodes += node;

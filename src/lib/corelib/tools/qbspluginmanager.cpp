@@ -79,7 +79,7 @@ QbsPluginManager::~QbsPluginManager()
 {
     unloadStaticPlugins();
 
-    for (QLibrary * const lib : qAsConst(d->libs)) {
+    for (QLibrary * const lib : std::as_const(d->libs)) {
         auto unload = reinterpret_cast<QbsPluginUnloadFunction>(lib->resolve("QbsPluginUnload"));
         if (unload)
             unload();

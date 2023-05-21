@@ -321,7 +321,7 @@ Item *ItemReaderASTVisitor::targetItemForBinding(const QStringList &bindingName,
 void ItemReaderASTVisitor::inheritItem(Item *dst, const Item *src)
 {
     int insertPos = 0;
-    for (Item *child : qAsConst(src->m_children)) {
+    for (Item *child : std::as_const(src->m_children)) {
         dst->m_children.insert(insertPos++, child);
         child->m_parent = dst;
     }

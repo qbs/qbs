@@ -182,7 +182,7 @@ void ProjectFileUpdater::apply()
         if (!parserMessages.empty()) {
             ErrorInfo errorInfo;
             errorInfo.append(Tr::tr("Failure parsing project file."));
-            for (const DiagnosticMessage &msg : qAsConst(parserMessages))
+            for (const DiagnosticMessage &msg : std::as_const(parserMessages))
                 errorInfo.append(msg.message, toCodeLocation(file.fileName(), msg.loc));
             throw errorInfo;
         }
@@ -480,7 +480,7 @@ void ProjectFileFilesRemover::doApply(QString &fileContent, UiProgram *ast)
         }
         QString filesString;
         filesString += QLatin1String("[\n");
-        for (const QString &file : qAsConst(newFilesList)) {
+        for (const QString &file : std::as_const(newFilesList)) {
             filesString += QString(arrayElemIndentation, QLatin1Char(' '));
             filesString += QStringLiteral("\"%1\",\n").arg(file);
         }

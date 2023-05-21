@@ -164,7 +164,7 @@ QString Command::supportedOptionsDescription() const
     }
 
     QString s = Tr::tr("The possible options are:\n");
-    for (const CommandLineOption *option : qAsConst(optionMap))
+    for (const CommandLineOption *option : std::as_const(optionMap))
         s += option->description(type());
     return s;
 }

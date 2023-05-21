@@ -61,7 +61,7 @@ std::string LanguageInfo::qmlTypeInfo()
     // Individual Components:
     auto typeNames = builtins.allTypeNames();
     typeNames.sort();
-    for (const QString &typeName : qAsConst(typeNames)) {
+    for (const QString &typeName : std::as_const(typeNames)) {
         const auto typeNameString = typeName.toStdString();
         result.append("    Component {\n");
         result.append("        name: \"" + typeNameString + "\"\n");
@@ -81,7 +81,7 @@ std::string LanguageInfo::qmlTypeInfo()
                   (const Internal::PropertyDeclaration &a, const Internal::PropertyDeclaration &b) {
             return a.name() < b.name();
         });
-        for (const Internal::PropertyDeclaration &property : qAsConst(properties)) {
+        for (const Internal::PropertyDeclaration &property : std::as_const(properties)) {
             result.append("        Property { name: \"");
             result.append(property.name().toUtf8().data());
             result.append("\"; ");

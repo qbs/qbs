@@ -332,15 +332,15 @@ void qbs::MakefileGenerator::generate()
         }
 
         stream << "all:";
-        for (const QString &target : qAsConst(allDefaultTargets))
+        for (const QString &target : std::as_const(allDefaultTargets))
             stream << ' ' << target;
         stream << '\n';
         stream << "install:";
-        for (const QString &target : qAsConst(allDefaultTargets))
+        for (const QString &target : std::as_const(allDefaultTargets))
             stream << ' ' << "install-" << target;
         stream << '\n';
         stream << "clean:";
-        for (const QString &target : qAsConst(allTargets))
+        for (const QString &target : std::as_const(allTargets))
             stream << ' ' << "clean-" << target;
         stream << '\n';
         if (!filesCreatedByJsCommands.empty()) {

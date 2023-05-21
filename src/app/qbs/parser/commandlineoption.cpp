@@ -334,7 +334,7 @@ void StringListOption::doParse(const QString &representation, QStringList &input
         throw ErrorInfo(Tr::tr("Invalid use of option '%1': Argument list must not be empty.\n"
                            "Usage: %2").arg(representation, description(command())));
     }
-    for (const QString &element : qAsConst(m_arguments)) {
+    for (const QString &element : std::as_const(m_arguments)) {
         if (element.isEmpty()) {
             throw ErrorInfo(Tr::tr("Invalid use of option '%1': Argument list must not contain "
                                "empty elements.\nUsage: %2")

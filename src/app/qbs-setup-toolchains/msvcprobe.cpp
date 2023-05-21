@@ -140,7 +140,7 @@ void msvcProbe(Settings *settings, std::vector<Profile> &profiles)
         }
     }
 
-    for (const WinSDK &sdk : qAsConst(winSDKs)) {
+    for (const WinSDK &sdk : std::as_const(winSDKs)) {
         qbsInfo() << Tr::tr("  Windows SDK %1 detected:\n"
                             "    installed in %2").arg(sdk.version, sdk.vcInstallPath);
         if (sdk.isDefault)
@@ -150,7 +150,7 @@ void msvcProbe(Settings *settings, std::vector<Profile> &profiles)
     // 2) Installed MSVCs
     std::vector<MSVC> msvcs = MSVC::installedCompilers(ConsoleLogger::instance());
 
-    for (const MSVC &msvc : qAsConst(msvcs)) {
+    for (const MSVC &msvc : std::as_const(msvcs)) {
         qbsInfo() << Tr::tr("  MSVC %1 (%2) detected in\n"
                             "    %3").arg(msvc.version, msvc.architecture,
                                           QDir::toNativeSeparators(msvc.binPath));

@@ -402,7 +402,7 @@ static void makeSubProjectNamesUniqe(const ResolvedProjectPtr &parentProject)
 {
     Set<QString> subProjectNames;
     Set<ResolvedProjectPtr> projectsInNeedOfNameChange;
-    for (const ResolvedProjectPtr &p : qAsConst(parentProject->subProjects)) {
+    for (const ResolvedProjectPtr &p : std::as_const(parentProject->subProjects)) {
         if (!subProjectNames.insert(p->name).second)
             projectsInNeedOfNameChange << p;
         makeSubProjectNamesUniqe(p);
@@ -704,7 +704,7 @@ void ProjectResolver::Private::resolveProductFully(Item *item, ResolverProjectCo
         { ItemType::PropertyOptions, &ProjectResolver::Private::ignoreItem }
     };
 
-    for (Item * const child : qAsConst(subItems))
+    for (Item * const child : std::as_const(subItems))
         callItemFunction(mapping, child, projectContext);
 
     for (const ResolverProjectContext *p = projectContext; p; p = p->parentContext) {
@@ -714,7 +714,7 @@ void ProjectResolver::Private::resolveProductFully(Item *item, ResolverProjectCo
 
     resolveModules(item, projectContext);
 
-    for (const FileTag &t : qAsConst(product->fileTags))
+    for (const FileTag &t : std::as_const(product->fileTags))
         productsByType[t].push_back(product);
 }
 
@@ -893,7 +893,7 @@ QVariantMap ProjectResolver::Private::resolveAdditionalModuleProperties(
         if (propsForModule.empty())
             continue;
         QVariantMap reusableValues = modulesMap.value(fullModName).toMap();
-        for (const QString &prop : qAsConst(propsForModule))
+        for (const QString &prop : std::as_const(propsForModule))
             reusableValues.remove(prop);
         modulesMap.insert(fullModName,
                           evaluateProperties(module.item, module.item, reusableValues, true, true));
@@ -1034,7 +1034,7 @@ void ProjectResolver::Private::resolveGroupFully(
                                  &productContext->sourceArtifactLocations, &fileError);
     }
 
-    for (const QString &fileName : qAsConst(files)) {
+    for (const QString &fileName : std::as_const(files)) {
         createSourceArtifact(productContext->product, fileName, group, false, filesLocation,
                              &productContext->sourceArtifactLocations, &fileError);
     }
@@ -1138,7 +1138,7 @@ void ProjectResolver::Private::collectExportedProductDependencies()
 {
     ResolvedProductPtr dummyProduct = ResolvedProduct::create();
     dummyProduct->enabled = false;
-    for (const auto &exportingProductInfo : qAsConst(productExportInfo)) {
+    for (const auto &exportingProductInfo : std::as_const(productExportInfo)) {
         const ResolvedProductPtr exportingProduct = exportingProductInfo.first;
         if (!exportingProduct->enabled)
             continue;

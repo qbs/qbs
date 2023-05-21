@@ -3313,7 +3313,7 @@ void TestLanguage::wildcards()
     }
 
     // create files
-    for (QString filePath : qAsConst(filesToCreate)) {
+    for (QString filePath : std::as_const(filesToCreate)) {
         filePath.prepend(m_wildcardsTestDirPath + '/');
         QFileInfo fi(filePath);
         if (!QDir(fi.path()).exists())

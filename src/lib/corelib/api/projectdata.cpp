@@ -636,14 +636,14 @@ const QList<ArtifactData> ProductData::targetArtifacts() const
 const QList<ArtifactData> ProductData::installableArtifacts() const
 {
     QList<ArtifactData> artifacts;
-    for (const GroupData &g : qAsConst(d->groups)) {
+    for (const GroupData &g : std::as_const(d->groups)) {
         const auto sourceArtifacts = g.allSourceArtifacts();
         for (const ArtifactData &a : sourceArtifacts) {
             if (a.installData().isInstallable())
                 artifacts << a;
         }
     }
-    for (const ArtifactData &a : qAsConst(d->generatedArtifacts)) {
+    for (const ArtifactData &a : std::as_const(d->generatedArtifacts)) {
         if (a.installData().isInstallable())
             artifacts << a;
     }
@@ -868,7 +868,7 @@ const QList<ProjectData> &ProjectData::subProjects() const
 const QList<ProductData> ProjectData::allProducts() const
 {
     QList<ProductData> productList = products();
-    for (const ProjectData &pd : qAsConst(d->subProjects))
+    for (const ProjectData &pd : std::as_const(d->subProjects))
         productList << pd.allProducts();
     return productList;
 }
@@ -991,7 +991,7 @@ static QString mapToString(const QVariantMap &map, const QString &prefix)
     QStringList keys(map.keys());
     std::sort(keys.begin(), keys.end());
     QString stringRep;
-    for (const QString &key : qAsConst(keys)) {
+    for (const QString &key : std::as_const(keys)) {
         const QVariant &val = map.value(key);
         if (val.userType() == QMetaType::QVariantMap) {
             stringRep += mapToString(val.value<QVariantMap>(), prefix + key + QLatin1Char('.'));

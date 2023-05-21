@@ -131,7 +131,7 @@ static void addDependencies(QVector<ResolvedProductPtr> &products)
 {
     for (int i = 0; i < products.size(); ++i) {
         const ResolvedProductPtr &product = products.at(i);
-        for (const ResolvedProductPtr &dependency : qAsConst(product->dependencies)) {
+        for (const ResolvedProductPtr &dependency : std::as_const(product->dependencies)) {
             if (!products.contains(dependency))
                 products.push_back(dependency);
         }
@@ -191,7 +191,7 @@ static QVector<ResolvedProductPtr> enabledInternalProducts(const ResolvedProject
         if (p->enabled && (includingNonDefault || p->builtByDefault()))
             products.push_back(p);
     }
-    for (const auto &subProject : qAsConst(project->subProjects))
+    for (const auto &subProject : std::as_const(project->subProjects))
         products << enabledInternalProducts(subProject, includingNonDefault);
     return products;
 }
@@ -215,7 +215,7 @@ static ResolvedProductPtr internalProductForProject(const ResolvedProjectConstPt
         if (matches(product, resolvedProduct))
             return resolvedProduct;
     }
-    for (const auto &subProject : qAsConst(project->subProjects)) {
+    for (const auto &subProject : std::as_const(project->subProjects)) {
         const ResolvedProductPtr &p = internalProductForProject(subProject, product);
         if (p)
             return p;
@@ -374,7 +374,7 @@ ProjectPrivate::GroupUpdateContext ProjectPrivate::getGroupContext(const Product
     context.resolvedProducts = internalProducts(context.products);
 
     const QString groupName = group.isValid() ? group.name() : product.name();
-    for (const ResolvedProductPtr &p : qAsConst(context.resolvedProducts)) {
+    for (const ResolvedProductPtr &p : std::as_const(context.resolvedProducts)) {
         for (const GroupPtr &g : p->groups) {
             if (g->name == groupName) {
                 context.resolvedGroups << g;
@@ -384,7 +384,7 @@ ProjectPrivate::GroupUpdateContext ProjectPrivate::getGroupContext(const Product
     }
     if (context.resolvedGroups.empty())
         throw ErrorInfo(Tr::tr("Group '%1' does not exist.").arg(groupName));
-    for (const ProductData &p : qAsConst(context.products)) {
+    for (const ProductData &p : std::as_const(context.products)) {
         const GroupData &g = findGroupData(p, groupName);
         QBS_CHECK(p.isValid());
         context.groups << g;
@@ -399,7 +399,7 @@ static bool matchesWildcard(const QString &filePath, const GroupConstPtr &group)
 {
     if (!group->wildcards)
         return false;
-    for (const QString &pattern : qAsConst(group->wildcards->patterns)) {
+    for (const QString &pattern : std::as_const(group->wildcards->patterns)) {
         QString fullPattern;
         if (QFileInfo(group->prefix).isAbsolute()) {
             fullPattern = group->prefix;
@@ -463,8 +463,8 @@ void ProjectPrivate::addFiles(const ProductData &product, const GroupData &group
 
     // We do not check for entries in other groups, because such doublettes might be legitimate
     // due to conditions.
-    for (const GroupPtr &group : qAsConst(groupContext.resolvedGroups)) {
-        for (const QString &filePath : qAsConst(filesContext.absoluteFilePaths)) {
+    for (const GroupPtr &group : std::as_const(groupContext.resolvedGroups)) {
+        for (const QString &filePath : std::as_const(filesContext.absoluteFilePaths)) {
             for (const auto &sa : group->files) {
                 if (sa->absoluteFilePath == filePath) {
                     throw ErrorInfo(Tr::tr("File '%1' already exists in group '%2'.")
@@ -527,7 +527,7 @@ void ProjectPrivate::prepareChangeToProject()
 RuleCommandList ProjectPrivate::ruleCommandListForTransformer(const Transformer *transformer)
 {
     RuleCommandList list;
-    for (const AbstractCommandPtr &internalCommand : qAsConst(transformer->commands.commands())) {
+    for (const AbstractCommandPtr &internalCommand : std::as_const(transformer->commands.commands())) {
         RuleCommand externalCommand;
         externalCommand.d->description = internalCommand->description();
         externalCommand.d->extendedDescription = internalCommand->extendedDescription();
@@ -568,11 +568,11 @@ RuleCommandList ProjectPrivate::ruleCommands(const ProductData &product,
     QBS_CHECK(resolvedProduct->buildData);
     const ArtifactSet &outputArtifacts = resolvedProduct->buildData->artifactsByFileTag()
             .value(FileTag(outputFileTag.toLocal8Bit()));
-    for (const Artifact * const outputArtifact : qAsConst(outputArtifacts)) {
+    for (const Artifact * const outputArtifact : std::as_const(outputArtifacts)) {
         const TransformerConstPtr transformer = outputArtifact->transformer;
         if (!transformer)
             continue;
-        for (const Artifact * const inputArtifact : qAsConst(transformer->inputs)) {
+        for (const Artifact * const inputArtifact : std::as_const(transformer->inputs)) {
             if (inputArtifact->filePath() == inputFilePath)
                 return ruleCommandListForTransformer(transformer.get());
         }
@@ -690,7 +690,7 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
             }
         }
         for (const ResolvedProductPtr &resolvedDependentProduct
-             : qAsConst(resolvedProduct->dependencies)) {
+             : std::as_const(resolvedProduct->dependencies)) {
             product.d->dependencies << resolvedDependentProduct->fullDisplayName();
         }
         std::sort(product.d->type.begin(), product.d->type.end());
@@ -699,7 +699,7 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
         product.d->isValid = true;
         projectData.d->products << product;
     }
-    for (const auto &internalSubProject : qAsConst(internalProject->subProjects)) {
+    for (const auto &internalSubProject : std::as_const(internalProject->subProjects)) {
         if (!internalSubProject->enabled)
             continue;
         ProjectData subProject;

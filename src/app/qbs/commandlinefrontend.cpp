@@ -97,9 +97,9 @@ void CommandLineFrontend::checkCancelStatus()
         m_cancelTimer->stop();
         if (m_resolveJobs.empty() && m_buildJobs.empty())
             std::exit(EXIT_FAILURE);
-        for (AbstractJob * const job : qAsConst(m_resolveJobs))
+        for (AbstractJob * const job : std::as_const(m_resolveJobs))
             job->cancel();
-        for (AbstractJob * const job : qAsConst(m_buildJobs))
+        for (AbstractJob * const job : std::as_const(m_buildJobs))
             job->cancel();
         break;
     case CancelStatusCanceling:
@@ -349,7 +349,7 @@ CommandLineFrontend::ProductMap CommandLineFrontend::productsToUse() const
     ProductMap products;
     QStringList productNames;
     const bool useAll = m_parser.products().empty();
-    for (const Project &project : qAsConst(m_projects)) {
+    for (const Project &project : std::as_const(m_projects)) {
         QList<ProductData> &productList = products[project];
         const ProjectData projectData = project.projectData();
         for (const ProductData &product : projectData.allProducts()) {
@@ -432,7 +432,7 @@ void CommandLineFrontend::handleProjectsResolved()
 void CommandLineFrontend::makeClean()
 {
     if (m_parser.products().empty()) {
-        for (const Project &project : qAsConst(m_projects)) {
+        for (const Project &project : std::as_const(m_projects)) {
             m_buildJobs << project.cleanAllProducts(m_parser.cleanOptions(project.profile()), this);
         }
     } else {
@@ -504,7 +504,7 @@ void CommandLineFrontend::build()
     if (m_parser.products().empty()) {
         const Project::ProductSelection productSelection = m_parser.withNonDefaultProducts()
                 ? Project::ProductSelectionWithNonDefault : Project::ProductSelectionDefaultOnly;
-        for (const Project &project : qAsConst(m_projects))
+        for (const Project &project : std::as_const(m_projects))
             m_buildJobs << project.buildAllProducts(buildOptions(project), productSelection, this);
     } else {
         const ProductMap &products = productsToUse();
@@ -610,7 +610,7 @@ void CommandLineFrontend::listProducts()
 
 void CommandLineFrontend::connectBuildJobs()
 {
-    for (AbstractJob * const job : qAsConst(m_buildJobs))
+    for (AbstractJob * const job : std::as_const(m_buildJobs))
         connectBuildJob(job);
 }
 
@@ -672,7 +672,7 @@ ProductData CommandLineFrontend::getTheOneRunnableProduct()
     ErrorInfo error(Tr::tr("Ambiguous use of command '%1': No product given, but project "
                            "has more than one runnable product.").arg(m_parser.commandName()));
     error.append(Tr::tr("Use the '--products' option with one of the following products:"));
-    for (const ProductData &p : qAsConst(runnableProducts)) {
+    for (const ProductData &p : std::as_const(runnableProducts)) {
         QString productRepr = QLatin1String("\t") + p.name();
         if (p.profile() != m_projects.front().profile()) {
             productRepr.append(QLatin1String(" [")).append(p.profile())

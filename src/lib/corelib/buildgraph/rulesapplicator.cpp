@@ -146,7 +146,7 @@ void RulesApplicator::handleRemovedRuleOutputs(const ArtifactSet &inputArtifacts
         project->buildData->removeArtifactAndExclusiveDependents(removedArtifact, logger, true,
                                                                  &artifactsToRemove);
     }
-    for (Artifact * const artifact : qAsConst(artifactsToRemove)) {
+    for (Artifact * const artifact : std::as_const(artifactsToRemove)) {
         QBS_CHECK(!inputArtifacts.contains(artifact));
         removedArtifacts << artifact->filePath();
         delete artifact;
@@ -247,8 +247,8 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, JSValue prepare
     if (outputArtifacts.empty())
         return;
 
-    for (Artifact * const outputArtifact : qAsConst(outputArtifacts)) {
-        for (Artifact * const dependency : qAsConst(m_transformer->explicitlyDependsOn))
+    for (Artifact * const outputArtifact : std::as_const(outputArtifacts)) {
+        for (Artifact * const dependency : std::as_const(m_transformer->explicitlyDependsOn))
             connect(outputArtifact, dependency);
     }
 
@@ -313,7 +313,7 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, JSValue prepare
             || m_oldTransformer->commands != m_transformer->commands
             || commandsNeedRerun(m_transformer.get(), m_product.get(), m_productsByName,
                                  m_projectsByName)) {
-        for (Artifact * const output : qAsConst(outputArtifacts)) {
+        for (Artifact * const output : std::as_const(outputArtifacts)) {
             output->clearTimestamp();
             m_invalidatedArtifacts += output;
         }

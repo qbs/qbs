@@ -856,7 +856,7 @@ void DependenciesResolver::Private::adjustDependsItemForMultiplexing(Item *depen
     // In case of (2a), at most 1 match is allowed
     if (productIsMultiplexed && !profilesPropertyIsSet && multiplexIds.size() > 1) {
         QStringList candidateNames;
-        for (const auto &id : qAsConst(multiplexIds))
+        for (const auto &id : std::as_const(multiplexIds))
             candidateNames << ProductItemMultiplexer::fullProductDisplayName(name, id);
         throw ErrorInfo(
             Tr::tr("Dependency from product '%1' to product '%2' is ambiguous. "

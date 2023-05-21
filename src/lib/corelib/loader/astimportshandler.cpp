@@ -269,7 +269,7 @@ void ASTImportsHandler::collectPrototypes(const QString &path, const QString &as
 {
     QStringList fileNames; // Yes, file *names*.
     if (m_visitorState.findDirectoryEntries(path, &fileNames)) {
-        for (const QString &fileName : qAsConst(fileNames))
+        for (const QString &fileName : std::as_const(fileNames))
             addPrototype(fileName, path + QLatin1Char('/') + fileName, as, false);
         return;
     }

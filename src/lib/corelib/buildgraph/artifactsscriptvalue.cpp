@@ -135,7 +135,7 @@ static int getArtifactsPropertyNames(JSContext *ctx, JSPropertyEnum **ptab, uint
     if (!tags.isEmpty()) {
         *ptab = reinterpret_cast<JSPropertyEnum *>(js_malloc(ctx, *plen * sizeof **ptab));
         JSPropertyEnum *entry = *ptab;
-        for (const QString &tag : qAsConst(tags)) {
+        for (const QString &tag : std::as_const(tags)) {
             entry->atom = JS_NewAtom(ctx, tag.toUtf8().constData());
             entry->is_enumerable = 1;
             ++entry;

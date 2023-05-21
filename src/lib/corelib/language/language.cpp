@@ -313,7 +313,7 @@ void ResolvedProduct::accept(BuildGraphVisitor *visitor) const
 {
     if (!buildData)
         return;
-    for (BuildGraphNode * const node : qAsConst(buildData->rootNodes()))
+    for (BuildGraphNode * const node : std::as_const(buildData->rootNodes()))
         node->accept(visitor);
 }
 
@@ -347,7 +347,7 @@ FileTags ResolvedProduct::fileTagsForFileName(const QString &fileName) const
 {
     FileTags result;
     std::unique_ptr<int> priority;
-    for (const FileTaggerConstPtr &tagger : qAsConst(fileTaggers)) {
+    for (const FileTaggerConstPtr &tagger : std::as_const(fileTaggers)) {
         for (const QRegularExpression &pattern : tagger->patterns()) {
             if (pattern.match(fileName).hasMatch()) {
                 if (priority) {
@@ -514,7 +514,7 @@ void ResolvedProject::accept(BuildGraphVisitor *visitor) const
 {
     for (const ResolvedProductPtr &product : products)
         product->accept(visitor);
-    for (const ResolvedProjectPtr &subProject : qAsConst(subProjects))
+    for (const ResolvedProjectPtr &subProject : std::as_const(subProjects))
         subProject->accept(visitor);
 }
 
@@ -541,7 +541,7 @@ std::vector<ResolvedProjectPtr> ResolvedProject::allSubProjects() const
 std::vector<ResolvedProductPtr> ResolvedProject::allProducts() const
 {
     std::vector<ResolvedProductPtr> productList = products;
-    for (const auto &subProject : qAsConst(subProjects))
+    for (const auto &subProject : std::as_const(subProjects))
         productList << subProject->allProducts();
     return productList;
 }
@@ -553,11 +553,11 @@ void ResolvedProject::load(PersistentPool &pool)
                   [](const ResolvedProductPtr &p) {
         if (!p->buildData)
             return;
-        for (BuildGraphNode * const node : qAsConst(p->buildData->allNodes())) {
+        for (BuildGraphNode * const node : std::as_const(p->buildData->allNodes())) {
             node->product = p;
 
             // restore parent links
-            for (BuildGraphNode * const child : qAsConst(node->children))
+            for (BuildGraphNode * const child : std::as_const(node->children))
                 child->parents.insert(node);
         }
     });
@@ -666,7 +666,7 @@ void TopLevelProject::store(PersistentPool &pool)
 void TopLevelProject::cleanupModuleProviderOutput()
 {
     QString error;
-    for (const ModuleProviderInfo &m : qAsConst(moduleProviderInfo.providers)) {
+    for (const ModuleProviderInfo &m : std::as_const(moduleProviderInfo.providers)) {
         if (m.transientOutput) {
             if (!removeDirectoryWithContents(m.outputDirPath(buildDirectory), &error))
                 qCWarning(lcBuildGraph) << "Error removing module provider output:" << error;

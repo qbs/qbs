@@ -124,7 +124,7 @@ void ProjectCreator::serializeProject(const ProjectCreator::Project &project)
             fileContents << indent << "Depends { name: \"cpp\" }\n";
         }
         fileContents << indent << "files: [\n";
-        for (const QString &fileName : qAsConst(project.fileNames))
+        for (const QString &fileName : std::as_const(project.fileNames))
             fileContents << indent << indent << qbs::toJSLiteral(fileName) << ",\n";
         fileContents << indent << "]\n";
         for (const ProjectPtr &p : project.subProjects)
@@ -152,7 +152,7 @@ void ProjectCreator::addGroups(QTextStream &stream, const QDir &baseDir,
            << qbs::toJSLiteral(baseDir.relativeFilePath(subProject.dirPath) + QLatin1Char('/'))
            << '\n';
     stream << indent << indent << "files: [\n";
-    for (const QString &fileName : qAsConst(subProject.fileNames))
+    for (const QString &fileName : std::as_const(subProject.fileNames))
         stream << indent << indent << indent << qbs::toJSLiteral(fileName) << ",\n";
     stream << indent << indent << "]\n";
     stream << indent << "}\n";
@@ -184,7 +184,7 @@ ProjectCreator::ProductFlags ProjectCreator::getFlags(const ProjectCreator::Proj
 void ProjectCreator::getFlagsFromFileNames(const ProjectCreator::Project &project,
                                            ProductFlags &flags)
 {
-    for (const QString &fileName : qAsConst(project.fileNames)) {
+    for (const QString &fileName : std::as_const(project.fileNames)) {
         if (flags.testFlag(IsApp) && flags.testFlag(NeedsQt))
             return;
         const QFileInfo fi(project.dirPath + QLatin1Char('/') + fileName);
@@ -210,7 +210,7 @@ void ProjectCreator::getFlagsFromFileNames(const ProjectCreator::Project &projec
 void ProjectCreator::getFlagsFromFileContents(const ProjectCreator::Project &project,
                                               ProductFlags &flags)
 {
-    for (const QString &fileName : qAsConst(project.fileNames)) {
+    for (const QString &fileName : std::as_const(project.fileNames)) {
         QFile f (project.dirPath + QLatin1Char('/') + fileName);
         if (!f.open(QIODevice::ReadOnly)) {
             qDebug() << "Ignoring failure to read" << f.fileName();

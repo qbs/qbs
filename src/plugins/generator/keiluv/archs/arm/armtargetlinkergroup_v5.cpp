@@ -101,7 +101,7 @@ struct LinkerPageOptions final
         if (scatterFiles.count() > 0)
             mainScatterFile = scatterFiles.takeFirst();
 
-        for (const auto &scatterFile : qAsConst(scatterFiles)) {
+        for (const auto &scatterFile : std::as_const(scatterFiles)) {
             const auto control = QStringLiteral("--scatter %1").arg(scatterFile);
             miscControls.push_back(control);
         }

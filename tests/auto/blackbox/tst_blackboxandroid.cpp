@@ -131,7 +131,7 @@ void TestBlackboxAndroid::android()
         buildParams.buildDirectory = buildSubDir;
         buildParams.profile = p.name();
         QCOMPARE(runQbs(buildParams), 0);
-        for (const QString &productName : qAsConst(productNames)) {
+        for (const QString &productName : std::as_const(productNames)) {
             const QByteArray tag(QTest::currentDataTag());
             QCOMPARE(m_qbsStdout.count("generating BuildConfig.java"),
                      isIncrementalBuild ? 0 : productNames.size());
@@ -262,7 +262,7 @@ void TestBlackboxAndroid::android_data()
         QByteArray base( aabPackage ? "base/" : "");
         for (const QByteArray &entry : lst) {
             if (entry.contains(archPlaceHolder)) {
-                for (const QByteArray &arch : qAsConst(archs))
+                for (const QByteArray &arch : std::as_const(archs))
                     result << (base + QByteArray(entry).replace(archPlaceHolder, arch));
             } else {
                 result << (base + entry);

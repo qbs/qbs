@@ -91,18 +91,18 @@ Evaluator::Evaluator(ScriptEngine *scriptEngine)
 Evaluator::~Evaluator()
 {
     Set<JSValue> valuesToFree;
-    for (const auto &data : qAsConst(m_scriptValueMap)) {
+    for (const auto &data : std::as_const(m_scriptValueMap)) {
         const auto evalData = attachedPointer<EvaluationData>(data, m_scriptClass);
         valuesToFree << data;
         for (const JSValue cachedValue : evalData->valueCache)
             JS_FreeValue(m_scriptEngine->context(), cachedValue);
         delete evalData;
     }
-    for (const auto &scopes : qAsConst(m_fileContextScopesMap)) {
+    for (const auto &scopes : std::as_const(m_fileContextScopesMap)) {
         valuesToFree << scopes.fileScope;
         valuesToFree << scopes.importScope;
     }
-    for (const JSValue v : qAsConst(valuesToFree)) {
+    for (const JSValue v : std::as_const(valuesToFree)) {
         JS_FreeValue(m_scriptEngine->context(), v);
     }
     m_scriptEngine->unregisterEvaluator(this);
@@ -227,7 +227,7 @@ void Evaluator::clearCache(const Item *item)
     const auto data = attachedPointer<EvaluationData>(m_scriptValueMap.value(item),
                                                       m_scriptEngine->dataWithPtrClass());
     if (data) {
-        for (const auto value : qAsConst(data->valueCache))
+        for (const auto value : std::as_const(data->valueCache))
             JS_FreeValue(m_scriptEngine->context(), value);
         data->valueCache.clear();
     }
@@ -837,7 +837,7 @@ static void collectValuesFromNextChain(
     *result = engine->newArray(int(lst.size()), JsValueOwner::ScriptEngine);
     quint32 k = 0;
     JSContext * const ctx = engine->context();
-    for (const JSValue &v : qAsConst(lst)) {
+    for (const JSValue &v : std::as_const(lst)) {
         QBS_ASSERT(!JS_IsError(ctx, v), continue);
         if (JS_IsArray(ctx, v)) {
             const quint32 vlen = getJsIntProperty(ctx, v, StringConstants::lengthProperty());

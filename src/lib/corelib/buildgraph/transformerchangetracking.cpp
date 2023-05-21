@@ -257,7 +257,7 @@ const ResolvedProduct *TrafoChangeTracker::getProduct(const QString &name) const
 
 bool TrafoChangeTracker::prepareScriptNeedsRerun() const
 {
-    for (const Property &property : qAsConst(m_transformer->propertiesRequestedInPrepareScript)) {
+    for (const Property &property : std::as_const(m_transformer->propertiesRequestedInPrepareScript)) {
         if (checkForPropertyChange(property, propertyMapByKind(property)))
             return true;
     }
@@ -269,7 +269,7 @@ bool TrafoChangeTracker::prepareScriptNeedsRerun() const
 
     for (auto it = m_transformer->propertiesRequestedFromArtifactInPrepareScript.constBegin();
          it != m_transformer->propertiesRequestedFromArtifactInPrepareScript.constEnd(); ++it) {
-        for (const Property &property : qAsConst(it.value())) {
+        for (const Property &property : std::as_const(it.value())) {
             const Artifact * const artifact = getArtifact(it.key(), property.productName);
             if (!artifact)
                 return true;
@@ -297,14 +297,14 @@ bool TrafoChangeTracker::prepareScriptNeedsRerun() const
 
 bool TrafoChangeTracker::commandsNeedRerun() const
 {
-    for (const Property &property : qAsConst(m_transformer->propertiesRequestedInCommands)) {
+    for (const Property &property : std::as_const(m_transformer->propertiesRequestedInCommands)) {
         if (checkForPropertyChange(property, propertyMapByKind(property)))
             return true;
     }
 
     for (auto it = m_transformer->propertiesRequestedFromArtifactInCommands.cbegin();
          it != m_transformer->propertiesRequestedFromArtifactInCommands.cend(); ++it) {
-        for (const Property &property : qAsConst(it.value())) {
+        for (const Property &property : std::as_const(it.value())) {
             const Artifact * const artifact = getArtifact(it.key(), property.productName);
             if (!artifact)
                 return true;
@@ -331,7 +331,7 @@ bool TrafoChangeTracker::commandsNeedRerun() const
         return true;
 
     // TODO: Also track env access in JS commands and prepare scripts
-    for (const AbstractCommandPtr &c : qAsConst(m_transformer->commands.commands())) {
+    for (const AbstractCommandPtr &c : std::as_const(m_transformer->commands.commands())) {
         if (c->type() != AbstractCommand::ProcessCommandType)
             continue;
         const ProcessCommandPtr &processCmd = std::static_pointer_cast<ProcessCommand>(c);

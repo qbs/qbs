@@ -276,7 +276,7 @@ void ErrorInfo::clear()
 QString ErrorInfo::toString() const
 {
     QStringList lines;
-    for (const ErrorItem &e : qAsConst(d->items)) {
+    for (const ErrorItem &e : std::as_const(d->items)) {
         if (e.isBacktraceItem()) {
             QString line;
             if (!e.description().isEmpty())

@@ -61,11 +61,11 @@ void RuleGraph::build(const std::vector<RulePtr> &rules, const FileTags &product
     m_parents.resize(rules.size());
     m_children.resize(rules.size());
 
-    for (const auto &rule : qAsConst(m_rules)) {
+    for (const auto &rule : std::as_const(m_rules)) {
         FileTags inFileTags = rule->inputs;
         inFileTags += rule->auxiliaryInputs;
         inFileTags += rule->explicitlyDependsOn;
-        for (const FileTag &fileTag : qAsConst(inFileTags)) {
+        for (const FileTag &fileTag : std::as_const(inFileTags)) {
             inputFileTagToRule[fileTag].push_back(rule.get());
             for (const Rule * const producingRule : m_outputFileTagToRule.value(fileTag)) {
                 if (!producingRule->collectedOutputFileTags().intersects(
@@ -82,14 +82,14 @@ void RuleGraph::build(const std::vector<RulePtr> &rules, const FileTags &product
         productRules << rules;
         //### check: the rule graph must be a in valid shape!
     }
-    for (const Rule *r : qAsConst(productRules))
+    for (const Rule *r : std::as_const(productRules))
         m_rootRules += r->ruleGraphId;
 }
 
 void RuleGraph::accept(RuleGraphVisitor *visitor) const
 {
     const RuleConstPtr nullParent;
-    for (int rootIndex : qAsConst(m_rootRules))
+    for (int rootIndex : std::as_const(m_rootRules))
         traverse(visitor, nullParent, m_rules.at(rootIndex));
 }
 
@@ -98,10 +98,10 @@ void RuleGraph::dump() const
     QByteArray indent;
     std::printf("---rule graph dump:\n");
     Set<int> rootRules;
-    for (const auto &rule : qAsConst(m_rules))
+    for (const auto &rule : std::as_const(m_rules))
         if (m_parents[rule->ruleGraphId].empty())
             rootRules += rule->ruleGraphId;
-    for (int idx : qAsConst(rootRules))
+    for (int idx : std::as_const(rootRules))
         dump_impl(indent, idx);
 }
 
@@ -113,7 +113,7 @@ void RuleGraph::dump_impl(QByteArray &indent, int rootIndex) const
     std::printf("\n");
 
     indent.append("  ");
-    for (int childIndex : qAsConst(m_children[rootIndex]))
+    for (int childIndex : std::as_const(m_children[rootIndex]))
         dump_impl(indent, childIndex);
     indent.chop(2);
 }

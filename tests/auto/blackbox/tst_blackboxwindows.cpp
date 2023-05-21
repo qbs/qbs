@@ -230,7 +230,7 @@ static bool haveWiX(const Profile &profile)
     QStringList paths = QProcessEnvironment::systemEnvironment().value("PATH")
             .split(HostOsInfo::pathListSeparator(), QBS_SKIP_EMPTY_PARTS);
 
-    for (const QString &key : qAsConst(regKeys)) {
+    for (const QString &key : std::as_const(regKeys)) {
         const QStringList versions = QSettings(key, QSettings::NativeFormat).childGroups();
         for (const QString &version : versions) {
             QSettings settings(key + version, QSettings::NativeFormat);
@@ -240,7 +240,7 @@ static bool haveWiX(const Profile &profile)
         }
     }
 
-    for (const QString &path : qAsConst(paths)) {
+    for (const QString &path : std::as_const(paths)) {
         if (regularFileExists(QDir::fromNativeSeparators(path) +
                           HostOsInfo::appendExecutableSuffix(QStringLiteral("/candle"))) &&
             regularFileExists(QDir::fromNativeSeparators(path) +

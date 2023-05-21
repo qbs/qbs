@@ -96,7 +96,7 @@ void TestBlackboxJava::java()
 
     // Now check whether we correctly predicted the class file output paths.
     QCOMPARE(runQbs(QbsRunParameters("clean")), 0);
-    for (const QString &classFile : qAsConst(classFiles1)) {
+    for (const QString &classFile : std::as_const(classFiles1)) {
         QVERIFY2(!regularFileExists(classFile), qPrintable(classFile));
     }
 

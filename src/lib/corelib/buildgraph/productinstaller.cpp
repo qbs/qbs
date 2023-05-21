@@ -96,7 +96,7 @@ void ProductInstaller::install()
         removeInstallRoot();
 
     QList<const Artifact *> artifactsToInstall;
-    for (const auto &product : qAsConst(m_products)) {
+    for (const auto &product : std::as_const(m_products)) {
         QBS_CHECK(product->buildData);
         for (const Artifact *artifact : filterByType<Artifact>(product->buildData->allNodes())) {
             if (artifact->properties->qbsPropertyValue(StringConstants::installProperty()).toBool())
@@ -105,7 +105,7 @@ void ProductInstaller::install()
     }
     m_observer->initialize(Tr::tr("Installing"), artifactsToInstall.size());
 
-    for (const Artifact * const a : qAsConst(artifactsToInstall)) {
+    for (const Artifact * const a : std::as_const(artifactsToInstall)) {
         copyFile(a);
         m_observer->incrementProgressValue();
     }

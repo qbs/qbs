@@ -526,7 +526,7 @@ void gccProbe(Settings *settings, std::vector<Profile> &profiles, const QString 
 
     std::vector<QFileInfo> candidates;
     const auto filters = buildCompilerNameFilters(compilerName);
-    for (const auto &searchPath : qAsConst(searchPaths)) {
+    for (const auto &searchPath : std::as_const(searchPaths)) {
         const QDir dir(searchPath);
         const QStringList fileNames = dir.entryList(
                     filters, QDir::Files | QDir::Executable);
@@ -574,7 +574,7 @@ void gccProbe(Settings *settings, std::vector<Profile> &profiles, const QString 
         });
     }
 
-    for (const auto &candidate : qAsConst(candidates)) {
+    for (const auto &candidate : std::as_const(candidates)) {
         const QString toolchainType = toolchainTypeFromCompilerName(
                     candidate.baseName());
         const QString profileName = buildProfileName(candidate);

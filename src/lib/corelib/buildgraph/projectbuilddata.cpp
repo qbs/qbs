@@ -157,7 +157,7 @@ void ProjectBuildData::insertFileDependency(FileDependency *dependency)
 static void disconnectArtifactChildren(Artifact *artifact)
 {
     qCDebug(lcBuildGraph) << "disconnect children of" << relativeArtifactFileName(artifact);
-    for (BuildGraphNode * const child : qAsConst(artifact->children))
+    for (BuildGraphNode * const child : std::as_const(artifact->children))
         child->parents.remove(artifact);
     artifact->children.clear();
     artifact->childrenAddedByScanner.clear();
@@ -166,7 +166,7 @@ static void disconnectArtifactChildren(Artifact *artifact)
 static void disconnectArtifactParents(Artifact *artifact)
 {
     qCDebug(lcBuildGraph) << "disconnect parents of" << relativeArtifactFileName(artifact);
-    for (BuildGraphNode * const parent : qAsConst(artifact->parents)) {
+    for (BuildGraphNode * const parent : std::as_const(artifact->parents)) {
         parent->children.remove(artifact);
         if (parent->type() != BuildGraphNode::ArtifactNodeType)
             continue;
@@ -257,7 +257,7 @@ void ProjectBuildData::setClean()
 void ProjectBuildData::load(PersistentPool &pool)
 {
     serializationOp<PersistentPool::Load>(pool);
-    for (FileDependency * const dep : qAsConst(fileDependencies))
+    for (FileDependency * const dep : std::as_const(fileDependencies))
         insertIntoLookupTable(dep);
     m_isDirty = false;
 }
@@ -337,7 +337,7 @@ private:
     {
         if (!m_rulesOnPath.insert(rule.get()).second) {
             QString pathstr;
-            for (const Rule *r : qAsConst(m_rulePath)) {
+            for (const Rule *r : std::as_const(m_rulePath)) {
                 pathstr += QLatin1Char('\n') + r->toString() + QLatin1Char('\t')
                         + r->prepareScript.location().toString();
             }
@@ -394,7 +394,7 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
     product->buildData = std::make_unique<ProductBuildData>();
     ArtifactSetByFileTag artifactsPerFileTag;
 
-    for (const auto &dependency : qAsConst(product->dependencies)) {
+    for (const auto &dependency : std::as_const(product->dependencies)) {
         QBS_CHECK(dependency->enabled);
         resolveProductBuildData(dependency);
     }

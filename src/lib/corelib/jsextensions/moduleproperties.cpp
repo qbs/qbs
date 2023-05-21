@@ -177,7 +177,7 @@ static JSValue js_moduleDependencies(JSContext *ctx, JSValueConst this_val, int 
     const auto module = attachedPointer<ResolvedModule>(this_val, engine->dataWithPtrClass());
     JSValue result = JS_NewArray(engine->context());
     quint32 idx = 0;
-    for (const QString &depName : qAsConst(module->moduleDependencies)) {
+    for (const QString &depName : std::as_const(module->moduleDependencies)) {
         for (const auto &dep : module->product->modules) {
             if (dep->name != depName)
                 continue;

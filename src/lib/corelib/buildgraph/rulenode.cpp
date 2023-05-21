@@ -229,7 +229,7 @@ int RuleNode::transformerCount() const
 ArtifactSet RuleNode::currentInputArtifacts() const
 {
     ArtifactSet s;
-    for (const FileTag &t : qAsConst(m_rule->inputs)) {
+    for (const FileTag &t : std::as_const(m_rule->inputs)) {
         for (Artifact *artifact : product->lookupArtifactsByFileTag(t)) {
             if (artifact->isTargetOfModule())
                 continue;
@@ -246,7 +246,7 @@ ArtifactSet RuleNode::currentInputArtifacts() const
 
     if (m_rule->inputsFromDependencies.empty())
         return s;
-    for (const FileTag &t : qAsConst(m_rule->inputsFromDependencies)) {
+    for (const FileTag &t : std::as_const(m_rule->inputsFromDependencies)) {
         for (Artifact *artifact : product->lookupArtifactsByFileTag(t)) {
             if (!artifact->isTargetOfModule())
                 continue;
@@ -258,7 +258,7 @@ ArtifactSet RuleNode::currentInputArtifacts() const
         }
     }
 
-    for (const auto &dep : qAsConst(product->dependencies)) {
+    for (const auto &dep : std::as_const(product->dependencies)) {
         if (!dep->buildData)
             continue;
         for (Artifact * const a : filterByType<Artifact>(dep->buildData->allNodes())) {

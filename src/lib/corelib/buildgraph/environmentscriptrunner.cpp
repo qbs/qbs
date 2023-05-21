@@ -137,7 +137,7 @@ void EnvironmentScriptRunner::setupEnvironment()
     QHash<const ResolvedModule*, QList<const ResolvedModule*> > moduleParents;
     QHash<const ResolvedModule*, QList<const ResolvedModule*> > moduleChildren;
     for (const auto &module : m_product->modules) {
-        for (const QString &moduleName : qAsConst(module->moduleDependencies)) {
+        for (const QString &moduleName : std::as_const(module->moduleDependencies)) {
             const ResolvedModule * const depmod = moduleMap.value(moduleName);
             QBS_ASSERT(depmod, return);
             moduleParents[depmod].push_back(module.get());

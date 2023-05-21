@@ -230,7 +230,7 @@ struct TargetPageOptions final
         }
 
         const QString toolkitPath = IarewUtils::toolkitRootPath(qbsProduct);
-        for (const QVariant &configPath : qAsConst(configPaths)) {
+        for (const QVariant &configPath : std::as_const(configPaths)) {
             const QString fullConfigPath = configPath.toString();
             // We interested only in a config paths shipped inside of a toolkit.
             if (!fullConfigPath.startsWith(toolkitPath, Qt::CaseInsensitive))

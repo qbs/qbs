@@ -413,7 +413,7 @@ QString CommandLineParser::CommandLineParserPrivate::generalHelp() const
     for (const Command * command : commands)
         commandMap.insert(command->representation(), command);
 
-    for (const Command * command : qAsConst(commandMap)) {
+    for (const Command * command : std::as_const(commandMap)) {
         help.append(QLatin1String("  ")).append(command->representation());
         const QString whitespace
                 = QString(rhsIndentation - 2 - command->representation().size(), QLatin1Char(' '));
@@ -424,7 +424,7 @@ QString CommandLineParser::CommandLineParserPrivate::generalHelp() const
     toolNames.sort();
     if (!toolNames.empty()) {
         help.append(QLatin1Char('\n')).append(Tr::tr("Auxiliary commands:\n"));
-        for (const QString &toolName : qAsConst(toolNames)) {
+        for (const QString &toolName : std::as_const(toolNames)) {
             help.append(QLatin1String("  ")).append(toolName);
             const QString whitespace = QString(rhsIndentation - 2 - toolName.size(),
                                                QLatin1Char(' '));
@@ -507,7 +507,7 @@ void CommandLineParser::CommandLineParserPrivate::setupBuildConfigurations()
 
     const QVariantMap globalProperties = propertiesPerConfiguration.takeFirst().second;
     QList<QVariantMap> buildConfigs;
-    for (const PropertyListItem &item : qAsConst(propertiesPerConfiguration)) {
+    for (const PropertyListItem &item : std::as_const(propertiesPerConfiguration)) {
         QVariantMap properties = item.second;
         for (QVariantMap::ConstIterator globalPropIt = globalProperties.constBegin();
                  globalPropIt != globalProperties.constEnd(); ++globalPropIt) {

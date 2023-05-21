@@ -55,7 +55,7 @@ void ArtifactVisitor::visitProduct(const ResolvedProductConstPtr &product)
 {
     if (!product->buildData)
         return;
-    for (BuildGraphNode *node : qAsConst(product->buildData->allNodes()))
+    for (BuildGraphNode *node : std::as_const(product->buildData->allNodes()))
         node->accept(this);
 }
 

@@ -90,7 +90,7 @@ Item *Item::clone() const
     dup->m_modules = m_modules;
 
     dup->m_children.reserve(m_children.size());
-    for (const Item * const child : qAsConst(m_children)) {
+    for (const Item * const child : std::as_const(m_children)) {
         Item *clonedChild = child->clone();
         clonedChild->m_parent = dup;
         dup->m_children.push_back(clonedChild);
@@ -345,7 +345,7 @@ void Item::dump(int indentation) const
     }
     if (!m_children.empty())
         qDebug("%schildren:", indent.constData());
-    for (const Item * const child : qAsConst(m_children))
+    for (const Item * const child : std::as_const(m_children))
         child->dump(indentation + 4);
     if (prototype()) {
         qDebug("%sprototype:", indent.constData());

@@ -144,7 +144,7 @@ void LauncherSocket::handleRequests()
     const auto socket = m_socket.load();
     QBS_ASSERT(socket, return);
     std::lock_guard<std::mutex> locker(m_requestsMutex);
-    for (const QByteArray &request : qAsConst(m_requests))
+    for (const QByteArray &request : std::as_const(m_requests))
         socket->write(request);
     m_requests.clear();
 }

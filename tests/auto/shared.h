@@ -158,7 +158,7 @@ inline QByteArray diffText(const QByteArray &actual, const QByteArray &expected)
         n++;
     }
     auto addLines = [&result, &n] (const QList<QByteArray> &lines) {
-        for (const QByteArray &line : qAsConst(lines)) {
+        for (const QByteArray &line : std::as_const(lines)) {
             result += QStringLiteral("%1:          %2\n")
                     .arg(n)
                     .arg(QString::fromUtf8(line))

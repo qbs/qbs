@@ -356,7 +356,7 @@ void ProjectTreeBuilder::Private::handleTopLevelProject(Item *projectItem,
     collectProductsByName();
     checkProductNamesInOverrides();
 
-    for (ProjectContext * const projectContext : qAsConst(topLevelProject.projects)) {
+    for (ProjectContext * const projectContext : std::as_const(topLevelProject.projects)) {
         for (ProductContext &productContext : projectContext->products)
             topLevelProject.productsToHandle.emplace_back(&productContext, -1);
     }
@@ -437,7 +437,7 @@ void ProjectTreeBuilder::Private::handleProject(Item *projectItem,
         if (child->type() == ItemType::Product)
             multiplexedProducts << multiplexProductItem(dummyProductContext, child);
     }
-    for (Item * const additionalProductItem : qAsConst(multiplexedProducts))
+    for (Item * const additionalProductItem : std::as_const(multiplexedProducts))
         Item::addChild(projectItem, additionalProductItem);
 
     const QList<Item *> originalChildren = projectItem->children();
@@ -473,7 +473,7 @@ void ProjectTreeBuilder::Private::handleProject(Item *projectItem,
             logger.printWarning(error);
         }
     }
-    for (Item * const subItem : qAsConst(additionalProjectChildren)) {
+    for (Item * const subItem : std::as_const(additionalProjectChildren)) {
         Item::addChild(projectContext.item, subItem);
         switch (subItem->type()) {
         case ItemType::Product:
@@ -1060,7 +1060,7 @@ bool ProjectTreeBuilder::Private::mergeExportItems(ProductContext &productContex
     merged->setProperty(nameKey, nameValue);
     Set<FileContextConstPtr> filesWithExportItem;
     QVariantMap defaultParameters;
-    for (Item * const exportItem : qAsConst(exportItems)) {
+    for (Item * const exportItem : std::as_const(exportItems)) {
         checkCancelation();
         if (Q_UNLIKELY(filesWithExportItem.contains(exportItem->file())))
             throw ErrorInfo(Tr::tr("Multiple Export items in one product are prohibited."),

@@ -1291,7 +1291,7 @@ void TestApi::fallbackGcc()
     QVERIFY(project.isValid());
     QList<qbs::ProductData> products = project.allProducts();
     QCOMPARE(products.size(), 2);
-    for (const qbs::ProductData &p : qAsConst(products)) {
+    for (const qbs::ProductData &p : std::as_const(products)) {
         if (p.profile() == "unixProfile") {
             qbs::PropertyMap moduleProps = p.moduleProperties();
             QCOMPARE(moduleProps.getModuleProperty("qbs", "targetOS").toStringList(),
@@ -1563,7 +1563,7 @@ void TestApi::linkDynamicAndStaticLibs()
     if (profileToolchain(buildProfile).contains("gcc")) {
         static const std::regex appLinkCmdRex(" -o [^ ]*/HelloWorld" QBS_HOST_EXE_SUFFIX " ");
         QString appLinkCmd;
-        for (const QString &line : qAsConst(bdr.descriptionLines)) {
+        for (const QString &line : std::as_const(bdr.descriptionLines)) {
             const auto ln = line.toStdString();
             if (std::regex_search(ln, appLinkCmdRex)) {
                 appLinkCmd = line;
@@ -1596,7 +1596,7 @@ void TestApi::linkStaticAndDynamicLibs()
     if (profileToolchain(buildProfile).contains("gcc")) {
         static const std::regex appLinkCmdRex(" -o [^ ]*/HelloWorld" QBS_HOST_EXE_SUFFIX " ");
         QString appLinkCmd;
-        for (const QString &line : qAsConst(bdr.descriptionLines)) {
+        for (const QString &line : std::as_const(bdr.descriptionLines)) {
             const auto ln = line.toStdString();
             if (std::regex_search(ln, appLinkCmdRex)) {
                 appLinkCmd = line;
@@ -1660,7 +1660,7 @@ void TestApi::localProfiles()
     qbs::ProductData libClang;
     qbs::ProductData appDebug;
     qbs::ProductData appRelease;
-    for (const qbs::ProductData &p : qAsConst(products)) {
+    for (const qbs::ProductData &p : std::as_const(products)) {
         if (p.name() == "lib") {
             if (p.profile() == "mingwProfile")
                 libMingw = p;
@@ -1730,7 +1730,7 @@ void TestApi::localProfiles()
     products = project.allProducts();
     QCOMPARE(products.size(), 4);
     int clangProfiles = 0;
-    for (const qbs::ProductData &p : qAsConst(products)) {
+    for (const qbs::ProductData &p : std::as_const(products)) {
         if (p.profile() == "clangProfile") {
             ++clangProfiles;
             moduleProps = p.moduleProperties();

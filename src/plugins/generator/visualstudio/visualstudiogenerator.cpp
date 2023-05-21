@@ -189,7 +189,7 @@ void VisualStudioGenerator::addPropertySheets(const GeneratableProject &project)
 void VisualStudioGenerator::addPropertySheets(
         const std::shared_ptr<MSBuildTargetProject> &targetProject)
 {
-    for (const auto &pair : qAsConst(d->propertySheetNames)) {
+    for (const auto &pair : std::as_const(d->propertySheetNames)) {
         targetProject->appendPropertySheet(
                     QStringLiteral("$(SolutionDir)\\") + pair.first, pair.second);
     }

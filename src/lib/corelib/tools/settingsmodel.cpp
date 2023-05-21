@@ -78,7 +78,7 @@ QString Node::uniqueChildName() const
     bool unique;
     do {
         unique = true;
-        for (const Node *childNode : qAsConst(children)) {
+        for (const Node *childNode : std::as_const(children)) {
             if (childNode->name == newName) {
                 unique = false;
                 newName += QLatin1Char('_');
@@ -361,7 +361,7 @@ void SettingsModel::SettingsModelPrivate::addNode(qbs::Internal::Node *parentNod
         const QString &currentNamePart, const QStringList &restOfName, const QVariant &value)
 {
     Node *currentNode = nullptr;
-    for (Node * const n : qAsConst(parentNode->children)) {
+    for (Node * const n : std::as_const(parentNode->children)) {
         if (n->name == currentNamePart) {
             currentNode = n;
             break;
@@ -385,7 +385,7 @@ void SettingsModel::SettingsModelPrivate::doSave(const Node *node, const QString
     }
 
     const QString newPrefix = prefix + node->name + QLatin1Char('.');
-    for (const Node * const child : qAsConst(node->children))
+    for (const Node * const child : std::as_const(node->children))
         doSave(child, newPrefix);
 }
 
