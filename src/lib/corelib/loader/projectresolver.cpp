@@ -230,8 +230,6 @@ public:
     ResolverProductContext *productContext = nullptr;
     ModuleContext *moduleContext = nullptr;
     QHash<Item *, ResolvedProductPtr> productsByItem;
-    QHash<FileTag, QList<ResolvedProductPtr>> productsByType;
-    QHash<ResolvedProductPtr, Item *> productItemMap;
     mutable QHash<FileContextConstPtr, ResolvedFileContextPtr> fileContextMap;
     mutable QHash<CodeLocation, ScriptFunctionPtr> scriptFunctionMap;
     mutable QHash<std::pair<QStringView, QStringList>, QString> scriptFunctions;
@@ -641,7 +639,6 @@ void ProjectResolver::Private::resolveProduct(Item *item, ResolverProjectContext
 void ProjectResolver::Private::resolveProductFully(Item *item, ResolverProjectContext *projectContext)
 {
     const ResolvedProductPtr product = productContext->product;
-    productItemMap.insert(product, item);
     projectContext->project->products.push_back(product);
     product->name = evaluator.stringValue(item, StringConstants::nameProperty());
 
@@ -713,9 +710,6 @@ void ProjectResolver::Private::resolveProductFully(Item *item, ResolverProjectCo
     }
 
     resolveModules(item, projectContext);
-
-    for (const FileTag &t : std::as_const(product->fileTags))
-        productsByType[t].push_back(product);
 }
 
 void ProjectResolver::Private::resolveModules(const Item *item, ResolverProjectContext *projectContext)
