@@ -1029,10 +1029,11 @@ void TestApi::excludedInputs()
     waitForFinished(buildJob.get());
     QVERIFY2(!buildJob->error().hasError(), qPrintable(job->error().toString()));
     QVERIFY(project.isValid());
-    QCOMPARE(project.projectData().products().size(), 2);
+    const qbs::ProjectData projectData = project.projectData();
+    QCOMPARE(projectData.products().size(), 2);
     qbs::ProductData depProduct;
     qbs::ProductData pProduct;
-    for (const qbs::ProductData &p : project.projectData().products()) {
+    for (const qbs::ProductData &p : projectData.products()) {
         if (p.name() == "dep")
             depProduct = p;
         else if (p.name() == "p")
@@ -1826,7 +1827,8 @@ void TestApi::multiArch()
     QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
     qbs::Project project = setupJob->project();
     QCOMPARE(project.profile(), profileName());
-    const QList<qbs::ProductData> &products = project.projectData().products();
+    const qbs::ProjectData projectData = project.projectData();
+    const QList<qbs::ProductData> &products = projectData.products();
     QCOMPARE(products.size(), 3);
     QList<qbs::ProductData> hostProducts;
     QList<qbs::ProductData> targetProducts;
