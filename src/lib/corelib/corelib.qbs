@@ -355,6 +355,8 @@ QbsLibrary {
             "probesresolver.h",
             "productitemmultiplexer.cpp",
             "productitemmultiplexer.h",
+            "productscollector.cpp",
+            "productscollector.h",
             "projectresolver.cpp",
             "projectresolver.h",
             "projecttreebuilder.cpp",

@@ -219,6 +219,18 @@ Item *ItemReader::setupItemFromFile(
     return item;
 }
 
+Item *ItemReader::wrapInProjectIfNecessary(Item *item, const SetupProjectParameters &parameters)
+{
+    if (item->type() == ItemType::Project)
+        return item;
+    Item *prj = Item::create(item->pool(), ItemType::Project);
+    Item::addChild(prj, item);
+    prj->setFile(item->file());
+    prj->setLocation(item->location());
+    prj->setupForBuiltinType(parameters.deprecationWarningMode(), m_visitorState->logger());
+    return prj;
+}
+
 QStringList ItemReader::readExtraSearchPaths(Item *item, Evaluator &evaluator, bool *wasSet)
 {
     QStringList result;

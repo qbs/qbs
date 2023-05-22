@@ -84,6 +84,7 @@ public:
     Item *setupItemFromFile(const QString &filePath, const CodeLocation &referencingLocation,
                             Evaluator &evaluator);
 
+    Item *wrapInProjectIfNecessary(Item *item, const SetupProjectParameters &parameters);
     QStringList readExtraSearchPaths(Item *item, Evaluator &evaluator, bool *wasSet = nullptr);
 
     Set<QString> filesRead() const;

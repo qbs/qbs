@@ -50,10 +50,13 @@
 
 #include <vector>
 
-namespace qbs::Internal {
+namespace qbs {
+class SetupProjectParameters;
+namespace Internal {
 class Evaluator;
 class Item;
 class ProductContext;
+class ProgressObserver;
 class ProjectContext;
 
 using ModulePropertiesPerGroup = std::unordered_map<const Item *, QualifiedIdSet>;
@@ -102,16 +105,20 @@ public:
     ~TopLevelProjectContext() { qDeleteAll(projects); }
 
     bool checkItemCondition(Item *item, Evaluator &evaluator);
+    void checkCancelation(const SetupProjectParameters &parameters);
 
     std::vector<ProjectContext *> projects;
     std::list<std::pair<ProductContext *, int>> productsToHandle;
     std::multimap<QString, ProductContext *> productsByName;
     std::unordered_map<Item *, ProductInfo> productInfos;
+    Set<QString> projectNamesUsedInOverrides;
+    Set<QString> productNamesUsedInOverrides;
     Set<Item *> disabledItems;
     Set<QString> erroneousProducts;
     std::vector<ProbeConstPtr> probes;
     QString buildDirectory;
     QVariantMap profileConfigs;
+    ProgressObserver *progressObserver = nullptr;
 
     // For fast look-up when resolving Depends.productTypes.
     // The contract is that it contains fully handled, error-free, enabled products.
@@ -133,4 +140,5 @@ void mergeParameters(QVariantMap &dst, const QVariantMap &src);
 ShadowProductInfo getShadowProductInfo(const ProductContext &product);
 void adjustParametersScopes(Item *item, Item *scope);
 
-} // namespace qbs::Internal
+} // namespace Internal
+} // namespace qbs

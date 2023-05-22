@@ -47,6 +47,8 @@
 #include <language/value.h>
 #include <logging/categories.h>
 #include <logging/translator.h>
+#include <tools/progressobserver.h>
+#include <tools/setupprojectparameters.h>
 #include <tools/stringconstants.h>
 
 namespace qbs::Internal {
@@ -125,6 +127,15 @@ bool TopLevelProjectContext::checkItemCondition(Item *item, Evaluator &evaluator
         return true;
     disabledItems += item;
     return false;
+}
+
+void TopLevelProjectContext::checkCancelation(const SetupProjectParameters &parameters)
+{
+    if (progressObserver && progressObserver->canceled()) {
+        throw ErrorInfo(Tr::tr("Project resolving canceled for configuration %1.")
+                            .arg(TopLevelProject::deriveId(
+                                parameters.finalBuildConfigurationTree())));
+    }
 }
 
 } // namespace qbs::Internal
