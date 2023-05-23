@@ -268,6 +268,8 @@ set(LOADER_SOURCES
     productitemmultiplexer.h
     productscollector.cpp
     productscollector.h
+    productshandler.cpp
+    productshandler.h
     projectresolver.cpp
     projectresolver.h
     projecttreebuilder.cpp
