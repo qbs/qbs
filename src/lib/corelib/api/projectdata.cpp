@@ -988,11 +988,10 @@ QVariant PropertyMap::getModuleProperty(const QString &moduleName,
 
 static QString mapToString(const QVariantMap &map, const QString &prefix)
 {
-    QStringList keys(map.keys());
-    std::sort(keys.begin(), keys.end());
     QString stringRep;
-    for (const QString &key : std::as_const(keys)) {
-        const QVariant &val = map.value(key);
+    for (auto it = map.cbegin(), end = map.cend(); it != end; ++it) {
+        const QString &key = it.key();
+        const QVariant &val = it.value();
         if (val.userType() == QMetaType::QVariantMap) {
             stringRep += mapToString(val.value<QVariantMap>(), prefix + key + QLatin1Char('.'));
         } else {
