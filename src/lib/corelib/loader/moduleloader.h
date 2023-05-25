@@ -52,21 +52,15 @@
 
 namespace qbs {
 class CodeLocation;
-class SetupProjectParameters;
 namespace Internal {
-class Evaluator;
 enum class FallbackMode;
-class ItemReader;
-class Logger;
-class ProbesResolver;
+class LoaderState;
 class StoredModuleProviderInfo;
 
 class ModuleLoader
 {
 public:
-    ModuleLoader(const SetupProjectParameters &setupParameters,
-                 ProbesResolver &probesResolver, ItemReader &itemReader,
-                 Evaluator &evaluator, Logger &logger);
+    ModuleLoader(LoaderState &loaderState);
     ~ModuleLoader();
 
     struct ProductContext {

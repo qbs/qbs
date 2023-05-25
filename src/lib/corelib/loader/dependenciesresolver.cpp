@@ -150,13 +150,7 @@ static QVariantMap safeToVariant(JSContext *ctx, const JSValue &v);
 class DependenciesResolver::Private
 {
 public:
-    Private(const SetupProjectParameters &parameters, Evaluator &evaluator, ItemPool &itemPool,
-            ItemReader &itemReader, ProbesResolver &probesResolver,
-            ModuleInstantiator &moduleInstantiator, Logger &logger)
-        : parameters(parameters), itemPool(itemPool), evaluator(evaluator), itemReader(itemReader),
-          moduleInstantiator(moduleInstantiator), logger(logger),
-          moduleLoader(parameters, probesResolver, itemReader, evaluator, logger)
-    {}
+    Private(LoaderState &loaderState) : loaderState(loaderState) {}
 
     void initializeState();
     void evaluateNextDependsItem();
@@ -181,13 +175,8 @@ public:
     void setSearchPathsForProduct();
     QVariantMap extractParameters(Item *dependsItem) const;
 
-    const SetupProjectParameters &parameters;
-    ItemPool &itemPool;
-    Evaluator &evaluator;
-    ItemReader &itemReader;
-    ModuleInstantiator &moduleInstantiator;
-    Logger &logger;
-    ModuleLoader moduleLoader;
+    LoaderState &loaderState;
+    ModuleLoader moduleLoader{loaderState};
     std::unordered_map<ProductContext *, std::list<DependenciesResolvingState>> statePerProduct;
     qint64 elapsedTime = 0;
 
@@ -196,26 +185,23 @@ public:
     Deferral deferral = Deferral::Allowed;
 };
 
-DependenciesResolver::DependenciesResolver(
-    const SetupProjectParameters &parameters, ItemPool &itemPool, Evaluator &evaluator,
-    ItemReader &itemReader, ProbesResolver &probesResolver, ModuleInstantiator &moduleInstantiator,
-    Logger &logger)
-    : d(makePimpl<Private>(parameters, evaluator, itemPool, itemReader, probesResolver,
-                           moduleInstantiator, logger)) {}
+DependenciesResolver::DependenciesResolver(LoaderState &loaderState)
+    : d(makePimpl<Private>(loaderState)) {}
 DependenciesResolver::~DependenciesResolver() = default;
 
 bool DependenciesResolver::resolveDependencies(ProductContext &product, Deferral deferral)
 {
     QBS_CHECK(!product.dependenciesResolved);
 
-    AccumulatingTimer timer(d->parameters.logElapsedTime() ? &d->elapsedTime : nullptr);
+    AccumulatingTimer timer(d->loaderState.parameters().logElapsedTime()
+                            ? &d->elapsedTime : nullptr);
 
     d->product = &product;
     d->deferral = deferral;
     d->stateStack = &d->statePerProduct[&product];
 
     d->initializeState();
-    SearchPathsManager searchPathsMgr(d->itemReader, product.searchPaths);
+    SearchPathsManager searchPathsMgr(d->loaderState.itemReader(), product.searchPaths);
 
     while (!d->stateStack->empty()) {
         auto &state = d->stateStack->front();
@@ -299,10 +285,10 @@ const Set<QString> &DependenciesResolver::tempQbsFiles() const
 
 void DependenciesResolver::printProfilingInfo(int indent)
 {
-    if (!d->parameters.logElapsedTime())
+    if (!d->loaderState.parameters().logElapsedTime())
         return;
     const QByteArray prefix(indent, ' ');
-    d->logger.qbsLog(LoggerInfo, true)
+    d->loaderState.logger().qbsLog(LoggerInfo, true)
         << prefix
         << Tr::tr("Setting up product dependencies took %1.")
                .arg(elapsedTimeString(d->elapsedTime));
@@ -427,7 +413,7 @@ HandleDependency DependenciesResolver::Private::handleResolvedDependencies()
                         return m.item == stateStack->front().loadingItem;
                     });
                 for (auto it = loadingItemModule; it != modules.end(); ++it) {
-                    createNonPresentModule(itemPool, it->name.toString(),
+                    createNonPresentModule(loaderState.itemPool(), it->name.toString(),
                                            QLatin1String("error in Depends chain"), it->item);
                 }
                 modules.erase(loadingItemModule, modules.end());
@@ -517,7 +503,7 @@ LoadModuleResult DependenciesResolver::Private::loadModule(
         loadingName = loadingItemOrigin.name.toString() + loadingItemOrigin.multiplexId
                       + loadingItemOrigin.profile;
     }
-    moduleInstantiator.instantiate({
+    loaderState.moduleInstantiator().instantiate({
         product->item, product->name, loadingItem, loadingName, moduleItem, moduleWithSameName,
         productDep ? productDep->item : nullptr, product->scope, product->project->scope,
         dependency.name, dependency.id(), bool(existingModule)});
@@ -728,7 +714,8 @@ void DependenciesResolver::Private::checkModule(
             e.append(it->loadingItemOrigin.name.toString(),
                      it->loadingItemOrigin.location());
             if (it->loadingItem->type() == ItemType::ModuleInstance) {
-                createNonPresentModule(itemPool, it->loadingItemOrigin.name.toString(),
+                createNonPresentModule(loaderState.itemPool(),
+                                       it->loadingItemOrigin.name.toString(),
                                        QLatin1String("cyclic dependency"), it->loadingItem);
             }
             if (it == stateStack->begin())
@@ -743,6 +730,7 @@ void DependenciesResolver::Private::checkModule(
 
 void DependenciesResolver::Private::adjustDependsItemForMultiplexing(Item *dependsItem)
 {
+    Evaluator &evaluator = loaderState.evaluator();
     const QString name = evaluator.stringValue(dependsItem, StringConstants::nameProperty());
     const bool productIsMultiplexed = !product->multiplexConfigurationId.isEmpty();
     if (name == product->name) {
@@ -872,6 +860,7 @@ void DependenciesResolver::Private::adjustDependsItemForMultiplexing(Item *depen
 
 std::optional<EvaluatedDependsItem> DependenciesResolver::Private::evaluateDependsItem(Item *item)
 {
+    Evaluator &evaluator = loaderState.evaluator();
     if (!product->project->topLevelProject->checkItemCondition(item, evaluator)) {
         qCDebug(lcModuleLoader) << "Depends item disabled, ignoring.";
         return {};
@@ -909,7 +898,7 @@ std::optional<EvaluatedDependsItem> DependenciesResolver::Private::evaluateDepen
     }
 
     const FallbackMode fallbackMode
-        = parameters.fallbackProviderEnabled()
+            = loaderState.parameters().fallbackProviderEnabled()
                   && evaluator.boolValue(item, StringConstants::enableFallbackProperty())
               ? FallbackMode::Enabled : FallbackMode::Disabled;
 
@@ -994,11 +983,11 @@ void DependenciesResolver::Private::setSearchPathsForProduct()
 {
     QBS_CHECK(product->searchPaths.isEmpty());
 
-    product->searchPaths = itemReader.readExtraSearchPaths(product->item, evaluator);
-    Settings settings(parameters.settingsDirectory());
+    product->searchPaths = loaderState.itemReader().readExtraSearchPaths(product->item);
+    Settings settings(loaderState.parameters().settingsDirectory());
     const QStringList prefsSearchPaths = Preferences(&settings, product->profileModuleProperties)
                                              .searchPaths();
-    const QStringList &currentSearchPaths = itemReader.allSearchPaths();
+    const QStringList &currentSearchPaths = loaderState.itemReader().allSearchPaths();
     for (const QString &p : prefsSearchPaths) {
         if (!currentSearchPaths.contains(p) && FileInfo(p).exists())
             product->searchPaths << p;
@@ -1017,9 +1006,9 @@ QVariantMap DependenciesResolver::Private::extractParameters(Item *dependsItem) 
     //       way, without allocationg an extra map and exchanging the list of children?
     dependsItem->setProperties(itemProperties);
 
-    JSValue sv = evaluator.scriptValue(dependsItem);
+    JSValue sv = loaderState.evaluator().scriptValue(dependsItem);
     try {
-        result = safeToVariant(evaluator.engine()->context(), sv);
+        result = safeToVariant(loaderState.evaluator().engine()->context(), sv);
     } catch (const ErrorInfo &exception) {
         auto ei = exception;
         ei.prepend(Tr::tr("Error in dependency parameter."), dependsItem->location());

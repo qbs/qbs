@@ -46,13 +46,9 @@
 #include <unordered_map>
 #include <utility>
 
-namespace qbs {
-class SetupProjectParameters;
-namespace Internal {
-class Evaluator;
+namespace qbs::Internal {
 class Item;
-class Logger;
-class ModuleInstantiator;
+class LoaderState;
 
 // Sets up Group items for the actual resolving stage. Responsibilities:
 //   - Moving Group items located in modules over to the product.
@@ -65,8 +61,7 @@ class ModuleInstantiator;
 class GroupsHandler
 {
 public:
-    GroupsHandler(const SetupProjectParameters &parameters, ModuleInstantiator &instantiator,
-                  Evaluator &evaluator, Logger &logger);
+    GroupsHandler(LoaderState &loaderState);
     ~GroupsHandler();
 
     void setupGroups(Item *product, Item *productScope);
@@ -80,5 +75,4 @@ private:
     Pimpl<Private> d;
 };
 
-} // namespace Internal
-} // namespace qbs
+} // namespace qbs::Internal

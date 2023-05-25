@@ -43,12 +43,9 @@
 
 #include <QtGlobal>
 
-namespace qbs {
-class SetupProjectParameters;
-namespace Internal {
-class Evaluator;
+namespace qbs::Internal {
 class Item;
-class Logger;
+class LoaderState;
 
 // This class comprises functions for collecting values attached to module properties
 // in different contexts.
@@ -68,8 +65,7 @@ class Logger;
 class ModulePropertyMerger
 {
 public:
-    ModulePropertyMerger(const SetupProjectParameters &parameters, Evaluator &evaluator,
-                         Logger &logger);
+    ModulePropertyMerger(LoaderState &loaderState);
     ~ModulePropertyMerger();
 
     // This function is called when a module is loaded via a Depends item.
@@ -97,5 +93,4 @@ private:
     Pimpl<Private> d;
 };
 
-} // namespace Internal
-} // namespace qbs
+} // namespace qbs::Internal

@@ -49,18 +49,14 @@
 
 #include <vector>
 
-namespace qbs {
-class SetupProjectParameters;
-namespace Internal {
+namespace qbs::Internal {
 class Item;
-class Evaluator;
-class Logger;
+class LoaderState;
 
 class ProbesResolver
 {
 public:
-    explicit ProbesResolver(const SetupProjectParameters &parameters, Evaluator &evaluator,
-                            Logger &logger);
+    explicit ProbesResolver(LoaderState &loaderState);
     void setOldProjectProbes(const std::vector<ProbeConstPtr> &oldProbes);
     void setOldProductProbes(const QHash<QString, std::vector<ProbeConstPtr>> &oldProbes);
     void printProfilingInfo(int indent);
@@ -92,16 +88,13 @@ private:
     quint64 m_probesCachedCurrent = 0;
     quint64 m_probesCachedOld = 0;
 
-    const SetupProjectParameters &m_parameters;
-    Evaluator &m_evaluator;
-    Logger &m_logger;
+    LoaderState &m_loaderState;
     QHash<QString, std::vector<ProbeConstPtr>> m_oldProjectProbes;
     QHash<QString, std::vector<ProbeConstPtr>> m_oldProductProbes;
     FileTime m_lastResolveTime;
     QHash<CodeLocation, std::vector<ProbeConstPtr>> m_currentProbes;
 };
 
-} // namespace Internal
-} // namespace qbs
+} // namespace qbs::Internal
 
 #endif // PROBESRESOLVER_H

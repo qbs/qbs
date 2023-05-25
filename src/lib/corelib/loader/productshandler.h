@@ -41,17 +41,8 @@
 
 #include <tools/pimpl.h>
 
-namespace qbs {
-class SetupProjectParameters;
-namespace Internal {
-class DependenciesResolver;
-class Evaluator;
-class ItemReader;
-class Logger;
-class ModuleInstantiator;
-class ModulePropertyMerger;
-class ProbesResolver;
-class TopLevelProjectContext;
+namespace qbs::Internal {
+class LoaderState;
 
 // Responsibilities:
 //   - Resolving dependencies to modules and other products (via DependenciesResolver).
@@ -61,11 +52,7 @@ class TopLevelProjectContext;
 class ProductsHandler
 {
 public:
-    ProductsHandler(const SetupProjectParameters &parameters,
-                    TopLevelProjectContext &topLevelProject, ItemReader &itemReader,
-                    DependenciesResolver &dependenciesResolver, ProbesResolver &probesResolver,
-                    ModulePropertyMerger &propertyMerger, ModuleInstantiator &instantiator,
-                    Evaluator &evaluator, Logger &logger);
+    ProductsHandler(LoaderState &loaderState);
     ~ProductsHandler();
 
     void run();
@@ -76,5 +63,4 @@ private:
     Pimpl<Private> d;
 };
 
-} // namespace Internal
-} // namespace qbs
+} // namespace qbs::Internal

@@ -50,16 +50,9 @@ QT_BEGIN_NAMESPACE
 class QString;
 QT_END_NAMESPACE
 
-namespace qbs {
-class SetupProjectParameters;
-namespace Internal {
-class Evaluator;
+namespace qbs::Internal {
 class Item;
-class ItemPool;
-class ItemReader;
-class Logger;
-class ModuleInstantiator;
-class ProbesResolver;
+class LoaderState;
 class ProductContext;
 class StoredModuleProviderInfo;
 enum class Deferral;
@@ -69,10 +62,7 @@ enum class Deferral;
 class DependenciesResolver
 {
 public:
-    DependenciesResolver(const SetupProjectParameters &parameters, ItemPool &itemPool,
-                         Evaluator &evaluator, ItemReader &itemReader,
-                         ProbesResolver &probesResolver, ModuleInstantiator &moduleInstantiator,
-                         Logger &logger);
+    DependenciesResolver(LoaderState &loaderState);
     ~DependenciesResolver();
 
     // Returns false if the product has unhandled product dependencies and thus needs
@@ -98,5 +88,4 @@ private:
     Pimpl<Private> d;
 };
 
-} // namespace Internal
-} // namespace qbs
+} // namespace qbs::Internal

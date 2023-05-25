@@ -62,16 +62,8 @@
 namespace qbs {
 namespace Internal {
 
-ModuleProviderLoader::ModuleProviderLoader(
-    const SetupProjectParameters &parameters, ItemReader &reader, Evaluator &evaluator,
-    ProbesResolver &probesResolver, Logger &logger)
-    : m_parameters(parameters)
-    , m_reader(reader)
-    , m_evaluator(evaluator)
-    , m_probesResolver(probesResolver)
-    , m_logger(logger)
-{
-}
+ModuleProviderLoader::ModuleProviderLoader(LoaderState &loaderState)
+    : m_loaderState(loaderState) {}
 
 ModuleProviderLoader::ModuleProviderResult ModuleProviderLoader::executeModuleProviders(
         const ProductContext &productContext,
@@ -136,7 +128,7 @@ ModuleProviderLoader::ModuleProviderResult ModuleProviderLoader::executeModulePr
                     product, dependsItemLocation, name, info.providerFile, config, qbsModule);
                 info.searchPaths = evalResult.first;
                 result.probes << evalResult.second;
-                info.transientOutput = m_parameters.dryRun();
+                info.transientOutput = m_loaderState.parameters().dryRun();
             }
         }
         if (info.providerFile.isEmpty()) {
@@ -185,9 +177,9 @@ QVariantMap ModuleProviderLoader::getModuleProviderConfig(const ProductContext &
                     continue;
                 }
                 case Value::JSSourceValueType: {
-                    const ScopedJsValue sv(m_evaluator.engine()->context(),
-                                           m_evaluator.value(item, it.key()));
-                    value = getJsVariant(m_evaluator.engine()->context(), sv);
+                    const ScopedJsValue sv(m_loaderState.evaluator().engine()->context(),
+                                           m_loaderState.evaluator().value(item, it.key()));
+                    value = getJsVariant(m_loaderState.evaluator().engine()->context(), sv);
                     break;
                 }
                 case Value::VariantValueType:
@@ -222,8 +214,8 @@ QVariantMap ModuleProviderLoader::getModuleProviderConfig(const ProductContext &
 std::optional<std::vector<QualifiedId>> ModuleProviderLoader::getModuleProviders(Item *item)
 {
     while (item) {
-        const auto providers =
-            m_evaluator.optionalStringListValue(item, StringConstants::qbsModuleProviders());
+        const auto providers = m_loaderState.evaluator().optionalStringListValue(
+                    item, StringConstants::qbsModuleProviders());
         if (providers) {
             return transformed<std::vector<QualifiedId>>(*providers, [](const auto &provider) {
                 return QualifiedId::fromString(provider); });
@@ -236,7 +228,7 @@ std::optional<std::vector<QualifiedId>> ModuleProviderLoader::getModuleProviders
 QString ModuleProviderLoader::findModuleProviderFile(
         const QualifiedId &name, ModuleProviderLookup lookupType)
 {
-    for (const QString &path : m_reader.allSearchPaths()) {
+    for (const QString &path : m_loaderState.itemReader().allSearchPaths()) {
         QString fullPath = FileInfo::resolvePath(path, QStringLiteral("module-providers"));
         switch (lookupType) {
         case ModuleProviderLookup::Named: {
@@ -276,9 +268,9 @@ QVariantMap ModuleProviderLoader::evaluateQbsModule(const ProductContext &produc
         product.productItem->property(StringConstants::qbsModule()));
     QVariantMap result;
     for (const auto &property : properties) {
-        const ScopedJsValue val(m_evaluator.engine()->context(),
-                                m_evaluator.value(qbsItemValue->item(), property));
-        auto value = getJsVariant(m_evaluator.engine()->context(), val);
+        const ScopedJsValue val(m_loaderState.evaluator().engine()->context(),
+                                m_loaderState.evaluator().value(qbsItemValue->item(), property));
+        auto value = getJsVariant(m_loaderState.evaluator().engine()->context(), val);
         if (!value.isValid())
             continue;
 
@@ -349,8 +341,8 @@ std::pair<QStringList, std::vector<ProbeConstPtr> > ModuleProviderLoader::evalua
            << endl;
     stream << "}" << endl;
     stream.flush();
-    Item * const providerItem = m_reader.setupItemFromFile(
-        dummyItemFile.fileName(), dependsItemLocation, m_evaluator);
+    Item * const providerItem = m_loaderState.itemReader().setupItemFromFile(
+                dummyItemFile.fileName(), dependsItemLocation);
     if (providerItem->type() != ItemType::ModuleProvider) {
         throw ErrorInfo(Tr::tr("File '%1' declares an item of type '%2', "
                                "but '%3' was expected.")
@@ -359,12 +351,15 @@ std::pair<QStringList, std::vector<ProbeConstPtr> > ModuleProviderLoader::evalua
     }
 
     providerItem->setScope(createProviderScope(product, qbsModule));
-    providerItem->overrideProperties(moduleConfig, name, m_parameters, m_logger);
-    std::vector<ProbeConstPtr> probes = m_probesResolver.resolveProbes(
+    providerItem->overrideProperties(moduleConfig, name, m_loaderState.parameters(),
+                                     m_loaderState.logger());
+    std::vector<ProbeConstPtr> probes = m_loaderState.probesResolver().resolveProbes(
         {product.name, product.uniqueName}, providerItem);
 
-    EvalContextSwitcher contextSwitcher(m_evaluator.engine(), EvalContext::ModuleProvider);
-    return std::make_pair(m_evaluator.stringListValue(providerItem, QStringLiteral("searchPaths")),
+    EvalContextSwitcher contextSwitcher(m_loaderState.evaluator().engine(),
+                                        EvalContext::ModuleProvider);
+    return std::make_pair(m_loaderState.evaluator().stringListValue(
+                              providerItem, QStringLiteral("searchPaths")),
                           std::move(probes));
 }
 

@@ -39,6 +39,7 @@
 
 #include "moduleinstantiator.h"
 
+#include "loaderutils.h"
 #include "modulepropertymerger.h"
 
 #include <language/item.h>
@@ -57,10 +58,7 @@ namespace qbs::Internal {
 class ModuleInstantiator::Private
 {
 public:
-    Private(const SetupProjectParameters &parameters, ItemPool &itemPool,
-            ModulePropertyMerger &propertyMerger, Logger &logger)
-        : parameters(parameters), itemPool(itemPool), propertyMerger(propertyMerger),
-          logger(logger) {}
+    Private(LoaderState &loaderState) : loaderState(loaderState) {}
 
     void overrideProperties(const Context &context);
     void setupScope(const Context &context);
@@ -71,22 +69,18 @@ public:
     getOrSetModuleInstanceItem(Item *container, Item *moduleItem, const QualifiedId &moduleName,
                                const QString &id, bool replace);
 
-    const SetupProjectParameters &parameters;
-    ItemPool &itemPool;
-    ModulePropertyMerger &propertyMerger;
-    Logger &logger;
+    LoaderState &loaderState;
     qint64 elapsedTime = 0;
 };
 
-ModuleInstantiator::ModuleInstantiator(
-    const SetupProjectParameters &parameters, ItemPool &itemPool,
-    ModulePropertyMerger &propertyMerger, Logger &logger)
-    : d(makePimpl<Private>(parameters, itemPool, propertyMerger, logger)) {}
+ModuleInstantiator::ModuleInstantiator(LoaderState &loaderState)
+    : d(makePimpl<Private>(loaderState)) {}
 ModuleInstantiator::~ModuleInstantiator() = default;
 
 void ModuleInstantiator::instantiate(const Context &context)
 {
-    AccumulatingTimer timer(d->parameters.logElapsedTime() ? &d->elapsedTime : nullptr);
+    AccumulatingTimer timer(d->loaderState.parameters().logElapsedTime()
+                            ? &d->elapsedTime : nullptr);
 
     // This part needs to be done only once per module and product, and only if the module
     // was successfully loaded.
@@ -141,8 +135,8 @@ void ModuleInstantiator::Private::exchangePlaceholderItem(
     // non-present module.
     QBS_CHECK(newItem);
     if (!moduleItemForItemValues) {
-        createNonPresentModule(itemPool, moduleName.toString(), QLatin1String("not found"),
-                               newItem);
+        createNonPresentModule(loaderState.itemPool(), moduleName.toString(),
+                               QLatin1String("not found"), newItem);
         return;
     }
 
@@ -178,8 +172,8 @@ void ModuleInstantiator::Private::exchangePlaceholderItem(
     }
 
     // Now merge the locally attached values into the actual module instance.
-    propertyMerger.mergeFromLocalInstance(product, loadingItem, loadingName,
-                                          oldItem, moduleItemForItemValues);
+    loaderState.propertyMerger().mergeFromLocalInstance(product, loadingItem, loadingName,
+                                                        oldItem, moduleItemForItemValues);
 
     // TODO: We'd like to delete the placeholder item here, because it's not
     //       being referenced anymore and there's a lot of them. However, this
@@ -242,16 +236,21 @@ std::pair<const Item *, Item *> ModuleInstantiator::Private::getOrSetModuleInsta
             if (i == itemValueName.size() - 1) {
                 if (replace && instance != moduleItem
                     && instance->type() == ItemType::ModuleInstancePlaceholder) {
-                    if (!moduleItem)
-                        moduleItem = Item::create(&itemPool, ItemType::ModuleInstancePlaceholder);
+                    if (!moduleItem) {
+                        moduleItem = Item::create(&loaderState.itemPool(),
+                                                  ItemType::ModuleInstancePlaceholder);
+                    }
                     itemValue->setItem(moduleItem);
                 }
                 return {instance, itemValue->item()};
             }
         } else {
             Item *newItem = i < itemValueName.size() - 1
-                                ? Item::create(&itemPool, ItemType::ModulePrefix) : moduleItem
-                                      ? moduleItem : Item::create(&itemPool, ItemType::ModuleInstancePlaceholder);
+                                ? Item::create(&loaderState.itemPool(), ItemType::ModulePrefix)
+                                : moduleItem
+                                  ? moduleItem
+                                  : Item::create(&loaderState.itemPool(),
+                                                 ItemType::ModuleInstancePlaceholder);
             instance->setProperty(moduleNameSegment, ItemValue::create(newItem));
             instance = newItem;
         }
@@ -261,11 +260,12 @@ std::pair<const Item *, Item *> ModuleInstantiator::Private::getOrSetModuleInsta
 
 void ModuleInstantiator::printProfilingInfo(int indent)
 {
-    if (!d->parameters.logElapsedTime())
+    if (!d->loaderState.parameters().logElapsedTime())
         return;
-    d->logger.qbsLog(LoggerInfo, true) << QByteArray(indent, ' ')
-                                       << Tr::tr("Instantiating modules took %1.")
-                                              .arg(elapsedTimeString(d->elapsedTime));
+    d->loaderState.logger().qbsLog(LoggerInfo, true)
+            << QByteArray(indent, ' ')
+            << Tr::tr("Instantiating modules took %1.")
+               .arg(elapsedTimeString(d->elapsedTime));
 }
 
 void ModuleInstantiator::Private::overrideProperties(const ModuleInstantiator::Context &context)
@@ -281,6 +281,8 @@ void ModuleInstantiator::Private::overrideProperties(const ModuleInstantiator::C
     const QString generalOverrideKey = QStringLiteral("modules.") + fullName;
     const QString perProductOverrideKey = StringConstants::productsOverridePrefix()
                                           + context.productName + QLatin1Char('.') + fullName;
+    const SetupProjectParameters &parameters = loaderState.parameters();
+    Logger &logger = loaderState.logger();
     context.module->overrideProperties(parameters.overriddenValuesTree(), generalOverrideKey,
                                        parameters, logger);
     if (fullName == StringConstants::qbsModule()) {
@@ -293,7 +295,7 @@ void ModuleInstantiator::Private::overrideProperties(const ModuleInstantiator::C
 
 void ModuleInstantiator::Private::setupScope(const ModuleInstantiator::Context &context)
 {
-    Item * const scope = Item::create(&itemPool, ItemType::Scope);
+    Item * const scope = Item::create(&loaderState.itemPool(), ItemType::Scope);
     QBS_CHECK(context.module->file());
     scope->setFile(context.module->file());
     QBS_CHECK(context.projectScope);

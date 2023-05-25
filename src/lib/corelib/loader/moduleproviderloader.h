@@ -52,21 +52,14 @@
 #include <optional>
 #include <vector>
 
-namespace qbs {
-class SetupProjectParameters;
-namespace Internal {
-class Evaluator;
+namespace qbs::Internal {
 class Item;
-class ItemReader;
-class Logger;
-class ProbesResolver;
+class LoaderState;
 
 class ModuleProviderLoader
 {
 public:
-    explicit ModuleProviderLoader(const SetupProjectParameters &parameters, ItemReader &itemReader,
-                                  Evaluator &evaluator, ProbesResolver &probesResolver,
-                                  Logger &logger);
+    explicit ModuleProviderLoader(LoaderState &loaderState);
 
     enum class ModuleProviderLookup { Scoped, Named, Fallback };
 
@@ -131,16 +124,11 @@ private:
             const QVariantMap &qbsModule);
 
 private:
-    const SetupProjectParameters &m_parameters;
-    ItemReader &m_reader;
-    Evaluator &m_evaluator;
-    ProbesResolver &m_probesResolver;
-    Logger &m_logger;
+    LoaderState &m_loaderState;
     StoredModuleProviderInfo m_storedModuleProviderInfo;
     Set<QString> m_tempQbsFiles;
 };
 
-} // namespace Internal
-} // namespace qbs
+} // namespace qbs::Internal
 
 #endif // MODULEPROVIDERLOADER_H

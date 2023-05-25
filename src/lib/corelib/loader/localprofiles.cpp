@@ -39,6 +39,8 @@
 
 #include "localprofiles.h"
 
+#include "loaderutils.h"
+
 #include <language/evaluator.h>
 #include <language/item.h>
 #include <language/qualifiedid.h>
@@ -53,23 +55,18 @@ namespace qbs::Internal {
 class LocalProfiles::Private
 {
 public:
-    Private(const SetupProjectParameters &parameters, Evaluator &evaluator, Logger &logger)
-        : parameters(parameters), evaluator(evaluator), logger(logger) {}
+    Private(LoaderState &loaderState) : loaderState(loaderState) {}
 
     void handleProfile(Item *profileItem);
     void evaluateProfileValues(const QualifiedId &namePrefix, Item *item, Item *profileItem,
                                QVariantMap &values);
     void collectProfiles(Item *productOrProject, Item *projectScope);
 
-    const SetupProjectParameters &parameters;
-    Evaluator &evaluator;
-    Logger &logger;
+    LoaderState &loaderState;
     QVariantMap profiles;
 };
 
-LocalProfiles::LocalProfiles(const SetupProjectParameters &parameters, Evaluator &evaluator,
-                             Logger &logger)
-    : d(makePimpl<Private>(parameters, evaluator, logger)) {}
+LocalProfiles::LocalProfiles(LoaderState &loaderState) : d(makePimpl<Private>(loaderState)) {}
 LocalProfiles::~LocalProfiles() = default;
 
 void LocalProfiles::collectProfilesFromItems(Item *productOrProject, Item *projectScope)
@@ -122,10 +119,10 @@ void LocalProfiles::Private::evaluateProfileValues(const QualifiedId &namePrefix
         case Value::JSSourceValueType:
             if (item != profileItem)
                 item->setScope(profileItem);
-            const ScopedJsValue sv(evaluator.engine()->context(),
-                                   evaluator.value(item, it.key()));
+            const ScopedJsValue sv(loaderState.evaluator().engine()->context(),
+                                   loaderState.evaluator().value(item, it.key()));
             values.insert(name.join(QLatin1Char('.')),
-                          getJsVariant(evaluator.engine()->context(), sv));
+                          getJsVariant(loaderState.evaluator().engine()->context(), sv));
             break;
         }
     }
@@ -149,7 +146,7 @@ void LocalProfiles::Private::collectProfiles(Item *productOrProject, Item *proje
             try {
                 handleProfile(childItem);
             } catch (const ErrorInfo &e) {
-                handlePropertyError(e, parameters, logger);
+                handlePropertyError(e, loaderState.parameters(), loaderState.logger());
             }
             it = productOrProject->children().erase(it); // TODO: delete item and scope
         } else {

@@ -41,33 +41,16 @@
 
 #include <tools/pimpl.h>
 
-namespace qbs {
-class SetupProjectParameters;
-namespace Internal {
-class DependenciesResolver;
-class Evaluator;
+namespace qbs::Internal {
 class Item;
-class ItemReader;
-class LocalProfiles;
-class Logger;
-class ProbesResolver;
-class ProductItemMultiplexer;
-class TopLevelProjectContext;
+class LoaderState;
 
 // Traverses the root project item and fills the TopLevelProjectContext with all the
 // product and sub-project information, including those coming from referenced files.
 class ProductsCollector
 {
 public:
-    ProductsCollector(const SetupProjectParameters &parameters,
-                      TopLevelProjectContext &topLevelProject,
-                      DependenciesResolver &dependenciesResolver,
-                      Evaluator &evaluator,
-                      ItemReader &itemReader,
-                      ProbesResolver &probesResolver,
-                      LocalProfiles &localProfiles,
-                      ProductItemMultiplexer &multiplexer,
-                      Logger &logger);
+    ProductsCollector(LoaderState &loaderState);
     ~ProductsCollector();
 
     void run(Item *rootProject);
@@ -78,5 +61,4 @@ private:
      Pimpl<Private> d;
 };
 
-} // namespace Internal
-} // namespace qbs
+} // namespace qbs::Internal

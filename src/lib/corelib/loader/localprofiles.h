@@ -42,18 +42,15 @@
 #include <tools/pimpl.h>
 #include <QVariantMap>
 
-namespace qbs {
-class SetupProjectParameters;
-namespace Internal {
-class Evaluator;
+namespace qbs::Internal {
 class Item;
-class Logger;
+class LoaderState;
 
 // This class evaluates all Profile items encountered in the project tree and holds the results.
 class LocalProfiles
 {
 public:
-    LocalProfiles(const SetupProjectParameters &parameters, Evaluator &evaluator, Logger &logger);
+    LocalProfiles(LoaderState &loaderState);
     ~LocalProfiles();
 
     void collectProfilesFromItems(Item *productOrProject, Item *projectScope);
@@ -64,6 +61,5 @@ private:
     Pimpl<Private> d;
 };
 
-} // namespace Internal
-} // namespace qbs
+} // namespace qbs::Internal
 

@@ -55,6 +55,7 @@ class Evaluator;
 class Item;
 class ItemPool;
 class ItemReaderVisitorState;
+class LoaderState;
 
 /*
  * Reads a qbs file and creates a tree of Item objects.
@@ -68,10 +69,10 @@ class ItemReaderVisitorState;
 class ItemReader
 {
 public:
-    ItemReader(const SetupProjectParameters &parameters, Logger &logger);
+    ItemReader(LoaderState &loaderState);
     ~ItemReader();
+    void init();
 
-    void setPool(ItemPool *pool) { m_pool = pool; }
     void pushExtraSearchPaths(const QStringList &extraSearchPaths);
     void popExtraSearchPaths();
     const std::vector<QStringList> &extraSearchPathsStack() const;
@@ -81,11 +82,10 @@ public:
 
     // Parses a file, creates an item for it, generates PropertyDeclarations from
     // PropertyOptions items and removes said items from the item tree.
-    Item *setupItemFromFile(const QString &filePath, const CodeLocation &referencingLocation,
-                            Evaluator &evaluator);
+    Item *setupItemFromFile(const QString &filePath, const CodeLocation &referencingLocation);
 
-    Item *wrapInProjectIfNecessary(Item *item, const SetupProjectParameters &parameters);
-    QStringList readExtraSearchPaths(Item *item, Evaluator &evaluator, bool *wasSet = nullptr);
+    Item *wrapInProjectIfNecessary(Item *item);
+    QStringList readExtraSearchPaths(Item *item, bool *wasSet = nullptr);
 
     Set<QString> filesRead() const;
 
@@ -95,15 +95,15 @@ private:
     void setSearchPaths(const QStringList &searchPaths);
     Item *readFile(const QString &filePath);
     Item *readFile(const QString &filePath, const CodeLocation &referencingLocation);
-    void handlePropertyOptions(Item *optionsItem, Evaluator &evaluator);
-    void handleAllPropertyOptionsItems(Item *item, Evaluator &evaluator);
+    void handlePropertyOptions(Item *optionsItem);
+    void handleAllPropertyOptionsItems(Item *item);
 
-    ItemPool *m_pool = nullptr;
+    LoaderState &m_loaderState;
     QStringList m_searchPaths;
     std::vector<QStringList> m_extraSearchPaths;
     mutable QStringList m_allSearchPaths;
-    const std::unique_ptr<ItemReaderVisitorState> m_visitorState;
-    const QString m_projectFilePath;
+    std::unique_ptr<ItemReaderVisitorState> m_visitorState;
+    QString m_projectFilePath;
     qint64 m_elapsedTime = -1;
 };
 

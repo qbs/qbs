@@ -39,6 +39,12 @@
 
 #include "loaderutils.h"
 
+#include "dependenciesresolver.h"
+#include "itemreader.h"
+#include "localprofiles.h"
+#include "moduleinstantiator.h"
+#include "modulepropertymerger.h"
+#include "probesresolver.h"
 #include "productitemmultiplexer.h"
 
 #include <language/evaluator.h>
@@ -137,5 +143,54 @@ void TopLevelProjectContext::checkCancelation(const SetupProjectParameters &para
                                 parameters.finalBuildConfigurationTree())));
     }
 }
+
+class LoaderState::Private
+{
+public:
+    Private(LoaderState &q, const SetupProjectParameters &parameters, ItemPool &itemPool,
+            Evaluator &evaluator, Logger &logger)
+        : parameters(parameters), itemPool(itemPool), evaluator(evaluator), logger(logger),
+          itemReader(q), probesResolver(q), propertyMerger(q), localProfiles(q),
+          moduleInstantiator(q), dependenciesResolver(q),
+          multiplexer(q, [this](Item *productItem) {
+            return moduleInstantiator.retrieveQbsItem(productItem);
+          })
+    {}
+
+    const SetupProjectParameters &parameters;
+    ItemPool &itemPool;
+    Evaluator &evaluator;
+    Logger &logger;
+
+    TopLevelProjectContext topLevelProject;
+    ItemReader itemReader;
+    ProbesResolver probesResolver;
+    ModulePropertyMerger propertyMerger;
+    LocalProfiles localProfiles;
+    ModuleInstantiator moduleInstantiator;
+    DependenciesResolver dependenciesResolver;
+    ProductItemMultiplexer multiplexer;
+};
+
+LoaderState::LoaderState(const SetupProjectParameters &parameters, ItemPool &itemPool,
+                         Evaluator &evaluator, Logger &logger)
+    : d(makePimpl<Private>(*this, parameters, itemPool, evaluator, logger))
+{
+    d->itemReader.init();
+}
+
+LoaderState::~LoaderState() = default;
+const SetupProjectParameters &LoaderState::parameters() const { return d->parameters; }
+DependenciesResolver &LoaderState::dependenciesResolver() { return d->dependenciesResolver; }
+ItemPool &LoaderState::itemPool() { return d->itemPool; }
+Evaluator &LoaderState::evaluator() { return d->evaluator; }
+Logger &LoaderState::logger() { return d->logger; }
+ModuleInstantiator &LoaderState::moduleInstantiator() { return d->moduleInstantiator; }
+ProductItemMultiplexer &LoaderState::multiplexer() { return d->multiplexer; }
+ItemReader &LoaderState::itemReader() { return d->itemReader; }
+LocalProfiles &LoaderState::localProfiles() { return d->localProfiles; }
+ProbesResolver &LoaderState::probesResolver() { return d->probesResolver; }
+ModulePropertyMerger &LoaderState::propertyMerger() { return d->propertyMerger; }
+TopLevelProjectContext &LoaderState::topLevelProject() { return d->topLevelProject; }
 
 } // namespace qbs::Internal

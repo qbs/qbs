@@ -39,6 +39,7 @@
 
 #include "groupshandler.h"
 
+#include "loaderutils.h"
 #include "moduleinstantiator.h"
 
 #include <language/evaluator.h>
@@ -53,10 +54,7 @@ namespace qbs::Internal {
 class GroupsHandler::Private
 {
 public:
-    Private(const SetupProjectParameters &parameters, ModuleInstantiator &instantiator,
-            Evaluator &evaluator, Logger &logger)
-        : parameters(parameters), moduleInstantiator(instantiator), evaluator(evaluator),
-        logger(logger) {}
+    Private(LoaderState &loaderState) : loaderState(loaderState) {}
 
     void gatherAssignedProperties(ItemValue *iv, const QualifiedId &prefix,
                                   QualifiedIdSet &properties);
@@ -69,23 +67,19 @@ public:
     void adjustScopesInGroupModuleInstances(Item *groupItem, const Item::Module &module);
     QualifiedIdSet gatherModulePropertiesSetInGroup(const Item *group);
 
-    const SetupProjectParameters &parameters;
-    ModuleInstantiator &moduleInstantiator;
-    Evaluator &evaluator;
-    Logger &logger;
+    LoaderState &loaderState;
     std::unordered_map<const Item *, QualifiedIdSet> modulePropsSetInGroups;
     Set<Item *> disabledGroups;
     qint64 elapsedTime = 0;
 };
 
-GroupsHandler::GroupsHandler(const SetupProjectParameters &parameters,
-                             ModuleInstantiator &instantiator, Evaluator &evaluator, Logger &logger)
-    : d(makePimpl<Private>(parameters, instantiator, evaluator, logger)) {}
+GroupsHandler::GroupsHandler(LoaderState &loaderState) : d(makePimpl<Private>(loaderState)) {}
 GroupsHandler::~GroupsHandler() = default;
 
 void GroupsHandler::setupGroups(Item *product, Item *productScope)
 {
-    AccumulatingTimer timer(d->parameters.logElapsedTime() ? &d->elapsedTime : nullptr);
+    AccumulatingTimer timer(d->loaderState.parameters().logElapsedTime()
+                            ? &d->elapsedTime : nullptr);
 
     d->modulePropsSetInGroups.clear();
     d->disabledGroups.clear();
@@ -108,11 +102,12 @@ Set<Item *> GroupsHandler::disabledGroups() const
 
 void GroupsHandler::printProfilingInfo(int indent)
 {
-    if (!d->parameters.logElapsedTime())
+    if (!d->loaderState.parameters().logElapsedTime())
         return;
-    d->logger.qbsLog(LoggerInfo, true) << QByteArray(indent, ' ')
-                                       << Tr::tr("Setting up Groups took %1.")
-                                              .arg(elapsedTimeString(d->elapsedTime));
+    d->loaderState.logger().qbsLog(LoggerInfo, true)
+            << QByteArray(indent, ' ')
+            << Tr::tr("Setting up Groups took %1.")
+               .arg(elapsedTimeString(d->elapsedTime));
 }
 
 void GroupsHandler::Private::gatherAssignedProperties(ItemValue *iv, const QualifiedId &prefix,
@@ -139,7 +134,7 @@ void GroupsHandler::Private::gatherAssignedProperties(ItemValue *iv, const Quali
 void GroupsHandler::Private::markModuleTargetGroups(Item *group, const Item::Module &module)
 {
     QBS_CHECK(group->type() == ItemType::Group);
-    if (evaluator.boolValue(group, StringConstants::filesAreTargetsProperty())) {
+    if (loaderState.evaluator().boolValue(group, StringConstants::filesAreTargetsProperty())) {
         group->setProperty(StringConstants::modulePropertyInternal(),
                            VariantValue::create(module.name.toString()));
     }
@@ -183,7 +178,8 @@ void GroupsHandler::Private::propagateModulesFromParent(Item *group)
 
     // Step 1: "Instantiate" the product's modules for the group.
     for (Item::Module m : group->parent()->modules()) {
-        Item * const targetItem = moduleInstantiator.retrieveModuleInstanceItem(group, m.name);
+        Item * const targetItem = loaderState.moduleInstantiator()
+                .retrieveModuleInstanceItem(group, m.name);
         QBS_CHECK(targetItem->type() == ItemType::ModuleInstancePlaceholder);
         targetItem->setPrototype(m.item);
 
@@ -235,7 +231,7 @@ void GroupsHandler::Private::propagateModulesFromParent(Item *group)
 void GroupsHandler::Private::handleGroup(Item *product, Item *group)
 {
     propagateModulesFromParent(group);
-    if (!evaluator.boolValue(group, StringConstants::conditionProperty()))
+    if (!loaderState.evaluator().boolValue(group, StringConstants::conditionProperty()))
         disabledGroups << group;
     for (Item * const child : group->children()) {
         if (child->type() == ItemType::Group)

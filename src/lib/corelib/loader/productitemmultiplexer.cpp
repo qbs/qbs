@@ -39,6 +39,8 @@
 
 #include "productitemmultiplexer.h"
 
+#include "loaderutils.h"
+
 #include <language/evaluator.h>
 #include <language/item.h>
 #include <language/scriptengine.h>
@@ -76,24 +78,19 @@ Q_GLOBAL_STATIC(MultiplexConfigurationByIdTable, multiplexConfigurationsById);
 class ProductItemMultiplexer::Private
 {
 public:
-    Private(const SetupProjectParameters &parameters, Evaluator &evaluator, Logger &logger,
-            QbsItemRetriever qbsItemRetriever)
-        : parameters(parameters), evaluator(evaluator), logger(logger),
-        qbsItemRetriever(std::move(qbsItemRetriever)) {}
+    Private(LoaderState &loaderState, QbsItemRetriever qbsItemRetriever)
+        : loaderState(loaderState), qbsItemRetriever(std::move(qbsItemRetriever)) {}
 
     MultiplexInfo extractMultiplexInfo(Item *productItem, Item *qbsModuleItem);
     MultiplexTable combine(const MultiplexTable &table, const MultiplexRow &values);
 
-    const SetupProjectParameters &parameters;
-    Evaluator &evaluator;
-    Logger &logger;
+    LoaderState &loaderState;
     const QbsItemRetriever qbsItemRetriever;
 };
 
-ProductItemMultiplexer::ProductItemMultiplexer(
-    const SetupProjectParameters &parameters, Evaluator &evaluator, Logger &logger,
+ProductItemMultiplexer::ProductItemMultiplexer(LoaderState &loaderState,
     const QbsItemRetriever &qbsItemRetriever)
-    : d(makePimpl<Private>(parameters, evaluator, logger, qbsItemRetriever)) {}
+    : d(makePimpl<Private>(loaderState, qbsItemRetriever)) {}
 
 ProductItemMultiplexer::~ProductItemMultiplexer() = default;
 
@@ -148,7 +145,8 @@ QList<Item *> ProductItemMultiplexer::multiplex(
             dependsItem->setProperty(StringConstants::profilesProperty(),
                                      VariantValue::create(QStringList()));
             dependsItem->setFile(aggregator->file());
-            dependsItem->setupForBuiltinType(d->parameters.deprecationWarningMode(), d->logger);
+            dependsItem->setupForBuiltinType(d->loaderState.parameters().deprecationWarningMode(),
+                                             d->loaderState.logger());
             Item::addChild(aggregator, dependsItem);
         }
     }
@@ -161,6 +159,7 @@ MultiplexInfo ProductItemMultiplexer::Private::extractMultiplexInfo(Item *produc
 {
     static const QString mpmKey = QStringLiteral("multiplexMap");
 
+    Evaluator &evaluator = loaderState.evaluator();
     JSContext * const ctx = evaluator.engine()->context();
     const ScopedJsValue multiplexMap(ctx, evaluator.value(qbsModuleItem, mpmKey));
     const QStringList multiplexByQbsProperties = evaluator.stringListValue(

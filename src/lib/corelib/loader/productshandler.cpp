@@ -60,14 +60,7 @@ namespace qbs::Internal {
 class ProductsHandler::Private
 {
 public:
-    Private(const SetupProjectParameters &paremeters, TopLevelProjectContext &topLevelProject,
-            ItemReader &itemReader, DependenciesResolver &dependenciesResolver,
-            ProbesResolver &probesResolver, ModulePropertyMerger &propertyMerger,
-            ModuleInstantiator &instantiator, Evaluator &evaluator, Logger &logger)
-        : parameters(paremeters), topLevelProject(topLevelProject), itemReader(itemReader),
-          dependenciesResolver(dependenciesResolver),probesResolver(probesResolver),
-          propertyMerger(propertyMerger), instantiator(instantiator),
-          evaluator(evaluator), logger(logger) {}
+    Private(LoaderState &loaderState) : loaderState(loaderState) {}
 
     void handleNextProduct();
     void handleProduct(ProductContext &product, Deferral deferral);
@@ -80,47 +73,35 @@ public:
     void updateModulePresentState(ProductContext &product, const Item::Module &module);
     void handleGroups(ProductContext &product);
 
-    const SetupProjectParameters &parameters;
-    TopLevelProjectContext &topLevelProject;
-    ItemReader &itemReader;
-    DependenciesResolver &dependenciesResolver;
-    ProbesResolver &probesResolver;
-    ModulePropertyMerger &propertyMerger;
-    ModuleInstantiator &instantiator;
-    Evaluator &evaluator;
-    Logger &logger;
-    GroupsHandler groupsHandler{parameters, instantiator, evaluator, logger};
+    LoaderState &loaderState;
+    GroupsHandler groupsHandler{loaderState};
     qint64 elapsedTime = 0;
 };
 
-ProductsHandler::ProductsHandler(
-        const SetupProjectParameters &parameters, TopLevelProjectContext &topLevelProject,
-        ItemReader &itemReader, DependenciesResolver &dependenciesResolver,
-        ProbesResolver &probesResolver, ModulePropertyMerger &propertyMerger,
-        ModuleInstantiator &instantiator, Evaluator &evaluator, Logger &logger)
-    : d(makePimpl<Private>(parameters, topLevelProject, itemReader, dependenciesResolver,
-                           probesResolver, propertyMerger, instantiator, evaluator, logger))
-{}
+ProductsHandler::ProductsHandler(LoaderState &loaderState) : d(makePimpl<Private>(loaderState)) {}
 
 void ProductsHandler::run()
 {
-    AccumulatingTimer timer(d->parameters.logElapsedTime() ? &d->elapsedTime : nullptr);
+    AccumulatingTimer timer(d->loaderState.parameters().logElapsedTime()
+                            ? &d->elapsedTime : nullptr);
 
-    for (ProjectContext * const projectContext : d->topLevelProject.projects) {
+    TopLevelProjectContext &topLevelProject = d->loaderState.topLevelProject();
+    for (ProjectContext * const projectContext : topLevelProject.projects) {
         for (ProductContext &productContext : projectContext->products)
-            d->topLevelProject.productsToHandle.emplace_back(&productContext, -1);
+            topLevelProject.productsToHandle.emplace_back(&productContext, -1);
     }
-    while (!d->topLevelProject.productsToHandle.empty())
+    while (!topLevelProject.productsToHandle.empty())
         d->handleNextProduct();
 }
 
 void ProductsHandler::printProfilingInfo(int indent)
 {
-    if (!d->parameters.logElapsedTime())
+    if (!d->loaderState.parameters().logElapsedTime())
         return;
-    d->logger.qbsLog(LoggerInfo, true) << "  "
-                                       << Tr::tr("Handling products took %1.")
-                                          .arg(elapsedTimeString(d->elapsedTime));
+    d->loaderState.logger().qbsLog(LoggerInfo, true)
+            << "  "
+            << Tr::tr("Handling products took %1.")
+               .arg(elapsedTimeString(d->elapsedTime));
     const QByteArray prefix(indent, ' ');
     d->groupsHandler.printProfilingInfo(indent + 2);
 }
@@ -129,6 +110,8 @@ ProductsHandler::~ProductsHandler() = default;
 
 void ProductsHandler::Private::handleNextProduct()
 {
+    TopLevelProjectContext &topLevelProject = loaderState.topLevelProject();
+
     auto [product, queueSizeOnInsert] = topLevelProject.productsToHandle.front();
     topLevelProject.productsToHandle.pop_front();
 
@@ -138,7 +121,7 @@ void ProductsHandler::Private::handleNextProduct()
             || queueSizeOnInsert > int(topLevelProject.productsToHandle.size())
             ? Deferral::Allowed : Deferral::NotAllowed;
 
-    itemReader.setExtraSearchPathsStack(product->project->searchPathsStack);
+    loaderState.itemReader().setExtraSearchPathsStack(product->project->searchPathsStack);
     try {
         handleProduct(*product, deferral);
         if (product->name.startsWith(StringConstants::shadowProductPrefix()))
@@ -149,7 +132,7 @@ void ProductsHandler::Private::handleNextProduct()
 
     // The search paths stack can change during dependency resolution (due to module providers);
     // check that we've rolled back all the changes
-    QBS_CHECK(itemReader.extraSearchPathsStack() == product->project->searchPathsStack);
+    QBS_CHECK(loaderState.itemReader().extraSearchPathsStack() == product->project->searchPathsStack);
 
     // If we encountered a dependency to an in-progress product or to a bulk dependency,
     // we defer handling this product if it hasn't failed yet and there is still forward progress.
@@ -161,12 +144,14 @@ void ProductsHandler::Private::handleNextProduct()
 
 void ProductsHandler::Private::handleProduct(ProductContext &product, Deferral deferral)
 {
-    topLevelProject.checkCancelation(parameters);
+    TopLevelProjectContext &topLevelProject = loaderState.topLevelProject();
+    topLevelProject.checkCancelation(loaderState.parameters());
 
     if (product.info.delayedError.hasError())
         return;
 
-    product.dependenciesResolved = dependenciesResolver.resolveDependencies(product, deferral);
+    product.dependenciesResolved = loaderState.dependenciesResolver()
+            .resolveDependencies(product, deferral);
     if (!product.dependenciesResolved)
         return;
 
@@ -174,6 +159,7 @@ void ProductsHandler::Private::handleProduct(ProductContext &product, Deferral d
     resolveProbes(product);
 
     // After the probes have run, we can switch on the evaluator cache.
+    Evaluator &evaluator = loaderState.evaluator();
     FileTags fileTags = evaluator.fileTagsValue(product.item, StringConstants::typeProperty());
     EvalCacheEnabler cacheEnabler(&evaluator, evaluator.stringValue(
                                                   product.item,
@@ -196,10 +182,11 @@ void ProductsHandler::Private::handleProduct(ProductContext &product, Deferral d
     // Now do the canonical module property values merge. Note that this will remove
     // previously attached values from modules that failed validation.
     // Evaluator cache entries that could potentially change due to this will be purged.
-    propertyMerger.doFinalMerge(product.item);
+    loaderState.propertyMerger().doFinalMerge(product.item);
 
     const bool enabled = topLevelProject.checkItemCondition(product.item, evaluator);
-    dependenciesResolver.checkDependencyParameterDeclarations(product.item, product.name);
+    loaderState.dependenciesResolver().checkDependencyParameterDeclarations(
+                product.item, product.name);
 
     handleGroups(product);
 
@@ -226,7 +213,8 @@ void ProductsHandler::Private::resolveProbes(ProductContext &product)
 
 void ProductsHandler::Private::resolveProbes(ProductContext &product, Item *item)
 {
-    product.info.probes << probesResolver.resolveProbes({product.name, product.uniqueName()}, item);
+    product.info.probes << loaderState.probesResolver().resolveProbes(
+                               {product.name, product.uniqueName()}, item);
 }
 
 void ProductsHandler::Private::handleModuleSetupError(
@@ -247,7 +235,8 @@ void ProductsHandler::Private::runModuleProbes(ProductContext &product, const It
 {
     if (!module.item->isPresentModule())
         return;
-    if (module.productInfo && topLevelProject.disabledItems.contains(module.productInfo->item)) {
+    if (module.productInfo && loaderState.topLevelProject().disabledItems.contains(
+                module.productInfo->item)) {
         createNonPresentModule(*module.item->pool(), module.name.toString(),
                                QLatin1String("module's exporting product is disabled"),
                                module.item);
@@ -265,8 +254,8 @@ void ProductsHandler::Private::runModuleProbes(ProductContext &product, const It
                                          module.name.toString()));
             }
             const Version moduleVersion = Version::fromString(
-                evaluator.stringValue(module.item,
-                                       StringConstants::versionProperty()));
+                        loaderState.evaluator().stringValue(module.item,
+                                                            StringConstants::versionProperty()));
             if (moduleVersion < module.versionRange.minimum) {
                 throw ErrorInfo(Tr::tr("Module '%1' has version %2, but it needs to be "
                                        "at least %3.").arg(module.name.toString(),
@@ -291,7 +280,7 @@ bool ProductsHandler::Private::validateModule(ProductContext &product, const Ite
     if (!module.item->isPresentModule())
         return true;
     try {
-        evaluator.boolValue(module.item, StringConstants::validateProperty());
+        loaderState.evaluator().boolValue(module.item, StringConstants::validateProperty());
         for (const auto &dep : module.item->modules()) {
             if (dep.required && !dep.item->isPresentModule()) {
                 throw ErrorInfo(Tr::tr("Module '%1' depends on module '%2', which was not "
@@ -322,8 +311,10 @@ void ProductsHandler::Private::updateModulePresentState(ProductContext &product,
             continue;
         if (loadingItem->prototype() && loadingItem->prototype()->type() == ItemType::Export) {
             QBS_CHECK(loadingItem->prototype()->parent()->type() == ItemType::Product);
-            if (topLevelProject.disabledItems.contains(loadingItem->prototype()->parent()))
+            if (loaderState.topLevelProject().disabledItems.contains(
+                        loadingItem->prototype()->parent())) {
                 continue;
+            }
         }
         hasPresentLoadingItem = true;
         break;
@@ -339,7 +330,7 @@ void ProductsHandler::Private::handleGroups(ProductContext &product)
 {
     groupsHandler.setupGroups(product.item, product.scope);
     product.info.modulePropertiesSetInGroups = groupsHandler.modulePropertiesSetInGroups();
-    topLevelProject.disabledItems.unite(groupsHandler.disabledGroups());
+    loaderState.topLevelProject().disabledItems.unite(groupsHandler.disabledGroups());
 }
 
 } // namespace qbs::Internal

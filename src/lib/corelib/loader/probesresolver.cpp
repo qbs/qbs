@@ -41,6 +41,7 @@
 #include "probesresolver.h"
 
 #include "itemreader.h"
+#include "loaderutils.h"
 
 #include <api/languageinfo.h>
 #include <language/evaluator.h>
@@ -80,11 +81,7 @@ static QString probeGlobalId(Item *probe)
     return id + QLatin1Char('_') + probe->file()->filePath();
 }
 
-ProbesResolver::ProbesResolver(const SetupProjectParameters &parameters, Evaluator &evaluator,
-                               Logger &logger)
-    : m_parameters(parameters), m_evaluator(evaluator), m_logger(logger)
-{
-}
+ProbesResolver::ProbesResolver(LoaderState &loaderState) : m_loaderState(loaderState) {}
 
 void ProbesResolver::setOldProjectProbes(const std::vector<ProbeConstPtr> &oldProbes)
 {
@@ -101,8 +98,10 @@ void ProbesResolver::setOldProductProbes(
 
 std::vector<ProbeConstPtr> ProbesResolver::resolveProbes(const ProductContext &productContext, Item *item)
 {
-    AccumulatingTimer probesTimer(m_parameters.logElapsedTime() ? &m_elapsedTimeProbes : nullptr);
-    EvalContextSwitcher evalContextSwitcher(m_evaluator.engine(), EvalContext::ProbeExecution);
+    AccumulatingTimer probesTimer(m_loaderState.parameters().logElapsedTime()
+                                  ? &m_elapsedTimeProbes : nullptr);
+    EvalContextSwitcher evalContextSwitcher(m_loaderState.evaluator().engine(),
+                                            EvalContext::ProbeExecution);
     std::vector<ProbeConstPtr> probes;
     for (Item * const child : item->children())
         if (child->type() == ItemType::Probe)
@@ -125,7 +124,8 @@ ProbeConstPtr ProbesResolver::resolveProbe(const ProductContext &productContext,
         throw ErrorInfo(Tr::tr("Probe.configure must be set."), probe->location());
     using ProbeProperty = std::pair<QString, ScopedJsValue>;
     std::vector<ProbeProperty> probeBindings;
-    ScriptEngine * const engine = m_evaluator.engine();
+    Evaluator &evaluator = m_loaderState.evaluator();
+    ScriptEngine * const engine = evaluator.engine();
     JSContext * const ctx = engine->context();
     QVariantMap initialProperties;
     for (Item *obj = probe; obj; obj = obj->prototype()) {
@@ -134,13 +134,13 @@ ProbeConstPtr ProbesResolver::resolveProbe(const ProductContext &productContext,
             const QString &name = it.key();
             if (name == StringConstants::configureProperty())
                 continue;
-            const JSValue value = m_evaluator.value(probe, name);
+            const JSValue value = evaluator.value(probe, name);
             probeBindings.emplace_back(name, ScopedJsValue(ctx, value));
             if (name != StringConstants::conditionProperty())
                 initialProperties.insert(name, getJsVariant(ctx, value));
         }
     }
-    const bool condition = m_evaluator.boolValue(probe, StringConstants::conditionProperty());
+    const bool condition = evaluator.boolValue(probe, StringConstants::conditionProperty());
     const QString &sourceCode = configureScript->sourceCode().toString();
     ProbeConstPtr resolvedProbe;
     if (parent->type() == ItemType::Project
@@ -168,7 +168,7 @@ ProbeConstPtr ProbesResolver::resolveProbe(const ProductContext &productContext,
         ++m_probesRun;
         qCDebug(lcModuleLoader) << "configure script needs to run";
         const Evaluator::FileContextScopes fileCtxScopes
-            = m_evaluator.fileContextScopes(configureScript->file());
+                = evaluator.fileContextScopes(configureScript->file());
         configureScope.setValue(engine->newObject());
         for (const ProbeProperty &b : probeBindings)
             setJsProperty(ctx, configureScope, b.first, JS_DupValue(ctx, b.second));
@@ -193,7 +193,7 @@ ProbeConstPtr ProbesResolver::resolveProbe(const ProductContext &productContext,
                 const JSValue saved = v;
                 ScopedJsValue valueMgr(ctx, saved);
                 const PropertyDeclaration decl = probe->propertyDeclaration(b.first);
-                m_evaluator.convertToPropertyType(decl, probe->location(), v);
+                evaluator.convertToPropertyType(decl, probe->location(), v);
 
                 // If the value was converted from scalar to array as per our convenience
                 // functionality, then the original value is now the only element of a
@@ -230,7 +230,7 @@ ProbeConstPtr ProbesResolver::findOldProjectProbe(
         const QVariantMap &initialProperties,
         const QString &sourceCode) const
 {
-    if (m_parameters.forceProbeExecution())
+    if (m_loaderState.parameters().forceProbeExecution())
         return {};
 
     for (const ProbeConstPtr &oldProbe : m_oldProjectProbes.value(globalId)) {
@@ -247,7 +247,7 @@ ProbeConstPtr ProbesResolver::findOldProductProbe(
         const QVariantMap &initialProperties,
         const QString &sourceCode) const
 {
-    if (m_parameters.forceProbeExecution())
+    if (m_loaderState.parameters().forceProbeExecution())
         return {};
 
     for (const ProbeConstPtr &oldProbe : m_oldProductProbes.value(productName)) {
@@ -284,13 +284,13 @@ bool ProbesResolver::probeMatches(const ProbeConstPtr &probe, bool condition,
 
 void ProbesResolver::printProfilingInfo(int indent)
 {
-    if (!m_parameters.logElapsedTime())
+    if (!m_loaderState.parameters().logElapsedTime())
         return;
     const QByteArray prefix(indent, ' ');
-    m_logger.qbsLog(LoggerInfo, true)
+    m_loaderState.logger().qbsLog(LoggerInfo, true)
         << prefix
         << Tr::tr("Running Probes took %1.").arg(elapsedTimeString(m_elapsedTimeProbes));
-    m_logger.qbsLog(LoggerInfo, true)
+    m_loaderState.logger().qbsLog(LoggerInfo, true)
         << prefix
         << Tr::tr("%1 probes encountered, %2 configure scripts executed, "
                   "%3 re-used from current run, %4 re-used from earlier run.")

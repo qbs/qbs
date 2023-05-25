@@ -89,8 +89,7 @@ class ProjectTreeBuilder::Private
 {
 public:
     Private(const SetupProjectParameters &parameters, ItemPool &itemPool, Evaluator &evaluator,
-            Logger &logger)
-        : parameters(parameters), itemPool(itemPool), evaluator(evaluator), logger(logger) {}
+            Logger &logger) : state(parameters, itemPool, evaluator, logger) {}
 
     Item *loadTopLevelProjectItem();
     void checkOverriddenValues();
@@ -98,28 +97,12 @@ public:
     void handleTopLevelProject(Item *projectItem);
     void printProfilingInfo();
 
-    const SetupProjectParameters &parameters;
-    ItemPool &itemPool;
-    Evaluator &evaluator;
-    Logger &logger;
-    ItemReader reader{parameters, logger};
-    ProbesResolver probesResolver{parameters, evaluator, logger};
-    ModulePropertyMerger propertyMerger{parameters, evaluator, logger};
-    ModuleInstantiator moduleInstantiator{parameters, itemPool, propertyMerger, logger};
-    ProductItemMultiplexer multiplexer{parameters, evaluator, logger, [this](Item *productItem) {
-                                           return moduleInstantiator.retrieveQbsItem(productItem);
-                                       }};
-    LocalProfiles localProfiles{parameters, evaluator, logger};
-    DependenciesResolver dependenciesResolver{parameters, itemPool, evaluator, reader,
-                                              probesResolver, moduleInstantiator, logger};
-    ProductsCollector productsCollector{parameters, topLevelProject, dependenciesResolver,
-                evaluator, reader, probesResolver, localProfiles, multiplexer, logger};
-    ProductsHandler productsHandler{parameters, topLevelProject, reader, dependenciesResolver,
-                probesResolver, propertyMerger, moduleInstantiator, evaluator, logger};
+    LoaderState state;
+    ProductsCollector productsCollector{state};
+    ProductsHandler productsHandler{state};
     FileTime lastResolveTime;
     QVariantMap storedProfiles;
 
-    TopLevelProjectContext topLevelProject;
     qint64 elapsedTimePropertyChecking = 0;
 };
 
@@ -130,18 +113,18 @@ ProjectTreeBuilder::~ProjectTreeBuilder() = default;
 
 void ProjectTreeBuilder::setProgressObserver(ProgressObserver *progressObserver)
 {
-    d->topLevelProject.progressObserver = progressObserver;
+    d->state.topLevelProject().progressObserver = progressObserver;
 }
 
 void ProjectTreeBuilder::setOldProjectProbes(const std::vector<ProbeConstPtr> &oldProbes)
 {
-    d->probesResolver.setOldProjectProbes(oldProbes);
+    d->state.probesResolver().setOldProjectProbes(oldProbes);
 }
 
 void ProjectTreeBuilder::setOldProductProbes(
     const QHash<QString, std::vector<ProbeConstPtr>> &oldProbes)
 {
-    d->probesResolver.setOldProductProbes(oldProbes);
+    d->state.probesResolver().setOldProductProbes(oldProbes);
 }
 
 void ProjectTreeBuilder::setLastResolveTime(const FileTime &time) { d->lastResolveTime = time; }
@@ -154,32 +137,32 @@ void ProjectTreeBuilder::setStoredProfiles(const QVariantMap &profiles)
 void ProjectTreeBuilder::setStoredModuleProviderInfo(
     const StoredModuleProviderInfo &moduleProviderInfo)
 {
-    d->dependenciesResolver.setStoredModuleProviderInfo(moduleProviderInfo);
+    d->state.dependenciesResolver().setStoredModuleProviderInfo(moduleProviderInfo);
 }
 
 ProjectTreeBuilder::Result ProjectTreeBuilder::load()
 {
-    TimedActivityLogger mainTimer(d->logger, Tr::tr("ProjectTreeBuilder"),
-                                  d->parameters.logElapsedTime());
-    qCDebug(lcModuleLoader) << "load" << d->parameters.projectFilePath();
+    TimedActivityLogger mainTimer(d->state.logger(), Tr::tr("ProjectTreeBuilder"),
+                                  d->state.parameters().logElapsedTime());
+    qCDebug(lcModuleLoader) << "load" << d->state.parameters().projectFilePath();
 
     d->checkOverriddenValues();
-    d->reader.setPool(&d->itemPool);
 
     Result result;
-    d->topLevelProject.profileConfigs = d->storedProfiles;
+    TopLevelProjectContext &project = d->state.topLevelProject();
+    project.profileConfigs = d->storedProfiles;
     result.root = d->loadTopLevelProjectItem();
     d->handleTopLevelProject(result.root);
 
-    result.qbsFiles = d->reader.filesRead() - d->dependenciesResolver.tempQbsFiles();
-    result.productInfos = d->topLevelProject.productInfos;
-    result.profileConfigs = d->topLevelProject.profileConfigs;
-    for (auto it = d->localProfiles.profiles().begin(); it != d->localProfiles.profiles().end();
-         ++it) {
+    result.qbsFiles = d->state.itemReader().filesRead()
+            - d->state.dependenciesResolver() .tempQbsFiles();
+    result.productInfos = project.productInfos;
+    result.profileConfigs = project.profileConfigs;
+    const QVariantMap &profiles = d->state.localProfiles().profiles();
+    for (auto it = profiles.begin(); it != profiles.end(); ++it)
         result.profileConfigs.remove(it.key());
-    }
-    result.projectProbes = d->topLevelProject.probes;
-    result.storedModuleProviderInfo = d->dependenciesResolver.storedModuleProviderInfo();
+    result.projectProbes = project.probes;
+    result.storedModuleProviderInfo = d->state.dependenciesResolver().storedModuleProviderInfo();
 
     d->printProfilingInfo();
 
@@ -189,17 +172,18 @@ ProjectTreeBuilder::Result ProjectTreeBuilder::load()
 Item *ProjectTreeBuilder::Private::loadTopLevelProjectItem()
 {
     const QStringList topLevelSearchPaths
-        = parameters.finalBuildConfigurationTree()
+            = state.parameters().finalBuildConfigurationTree()
               .value(StringConstants::projectPrefix()).toMap()
               .value(StringConstants::qbsSearchPathsProperty()).toStringList();
-    SearchPathsManager searchPathsManager(reader, topLevelSearchPaths);
-    Item * const root = reader.setupItemFromFile(parameters.projectFilePath(), {}, evaluator);
+    SearchPathsManager searchPathsManager(state.itemReader(), topLevelSearchPaths);
+    Item * const root = state.itemReader().setupItemFromFile(
+                state.parameters().projectFilePath(), {});
     if (!root)
         return {};
 
     switch (root->type()) {
     case ItemType::Product:
-        return reader.wrapInProjectIfNecessary(root, parameters);
+        return state.itemReader().wrapInProjectIfNecessary(root);
     case ItemType::Project:
         return root;
     default:
@@ -222,7 +206,7 @@ void ProjectTreeBuilder::Private::checkOverriddenValues()
         }
         return false;
     };
-    const QVariantMap &overriddenValues = parameters.overriddenValues();
+    const QVariantMap &overriddenValues = state.parameters().overriddenValues();
     for (auto it = overriddenValues.begin(); it != overriddenValues.end(); ++it) {
         if (matchesPrefix(it.key())) {
             collectNameFromOverride(it.key());
@@ -238,7 +222,7 @@ void ProjectTreeBuilder::Private::checkOverriddenValues()
                                             "<property-name>:value"));
         e.append(QLatin1Char('\t') + Tr::tr("moduleProviders.<provider-name>."
                                             "<property-name>:value"));
-        handlePropertyError(e, parameters, logger);
+        handlePropertyError(e, state.parameters(), state.logger());
     }
 }
 
@@ -255,12 +239,12 @@ void ProjectTreeBuilder::Private::collectNameFromOverride(const QString &overrid
     };
     const QString &projectName = extract(StringConstants::projectsOverridePrefix(), overrideString);
     if (!projectName.isEmpty()) {
-        topLevelProject.projectNamesUsedInOverrides.insert(projectName);
+        state.topLevelProject().projectNamesUsedInOverrides.insert(projectName);
         return;
     }
     const QString &productName = extract(StringConstants::productsOverridePrefix(), overrideString);
     if (!productName.isEmpty()) {
-        topLevelProject.productNamesUsedInOverrides.insert(productName.left(
+        state.topLevelProject().productNamesUsedInOverrides.insert(productName.left(
             productName.indexOf(StringConstants::dot())));
         return;
     }
@@ -268,40 +252,43 @@ void ProjectTreeBuilder::Private::collectNameFromOverride(const QString &overrid
 
 void ProjectTreeBuilder::Private::handleTopLevelProject(Item *projectItem)
 {
-    topLevelProject.buildDirectory = TopLevelProject::deriveBuildDirectory(
-        parameters.buildRoot(),
-        TopLevelProject::deriveId(parameters.finalBuildConfigurationTree()));
+    state.topLevelProject().buildDirectory = TopLevelProject::deriveBuildDirectory(
+                state.parameters().buildRoot(),
+                TopLevelProject::deriveId(state.parameters().finalBuildConfigurationTree()));
     projectItem->setProperty(StringConstants::sourceDirectoryProperty(),
                              VariantValue::create(QFileInfo(projectItem->file()->filePath())
                                                       .absolutePath()));
     projectItem->setProperty(StringConstants::buildDirectoryProperty(),
-                             VariantValue::create(topLevelProject.buildDirectory));
+                             VariantValue::create(state.topLevelProject().buildDirectory));
     projectItem->setProperty(StringConstants::profileProperty(),
-                             VariantValue::create(parameters.topLevelProfile()));
+                             VariantValue::create(state.parameters().topLevelProfile()));
     productsCollector.run(projectItem);
     productsHandler.run();
 
-    reader.clearExtraSearchPathsStack(); // TODO: Unneeded?
-    AccumulatingTimer timer(parameters.logElapsedTime()
+    state.itemReader().clearExtraSearchPathsStack(); // TODO: Unneeded?
+    AccumulatingTimer timer(state.parameters().logElapsedTime()
                             ? &elapsedTimePropertyChecking : nullptr);
-    checkPropertyDeclarations(projectItem, topLevelProject.disabledItems, parameters, logger);
+    checkPropertyDeclarations(projectItem, state.topLevelProject().disabledItems,
+                              state.parameters(), state.logger());
 }
 
 void ProjectTreeBuilder::Private::printProfilingInfo()
 {
-    if (!parameters.logElapsedTime())
+    if (!state.parameters().logElapsedTime())
         return;
-    logger.qbsLog(LoggerInfo, true) << "  "
-                                    << Tr::tr("Project file loading and parsing took %1.")
-                                           .arg(elapsedTimeString(reader.elapsedTime()));
+    state.logger().qbsLog(LoggerInfo, true)
+            << "  "
+            << Tr::tr("Project file loading and parsing took %1.")
+               .arg(elapsedTimeString(state.itemReader().elapsedTime()));
     productsCollector.printProfilingInfo(2);
-    dependenciesResolver.printProfilingInfo(4);
-    moduleInstantiator.printProfilingInfo(6);
-    propertyMerger.printProfilingInfo(6);
-    probesResolver.printProfilingInfo(4);
-    logger.qbsLog(LoggerInfo, true) << "  "
-                                    << Tr::tr("Property checking took %1.")
-                                       .arg(elapsedTimeString(elapsedTimePropertyChecking));
+    state.dependenciesResolver().printProfilingInfo(4);
+    state.moduleInstantiator().printProfilingInfo(6);
+    state.propertyMerger().printProfilingInfo(6);
+    state.probesResolver().printProfilingInfo(4);
+    state.logger().qbsLog(LoggerInfo, true)
+            << "  "
+            << Tr::tr("Property checking took %1.")
+               .arg(elapsedTimeString(elapsedTimePropertyChecking));
 }
 
 } // namespace qbs::Internal

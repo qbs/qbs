@@ -42,6 +42,7 @@
 #include <language/filetags.h>
 #include <language/forward_decls.h>
 #include <language/qualifiedid.h>
+#include <tools/pimpl.h>
 #include <tools/set.h>
 #include <tools/version.h>
 
@@ -53,9 +54,18 @@
 namespace qbs {
 class SetupProjectParameters;
 namespace Internal {
+class DependenciesResolver;
 class Evaluator;
 class Item;
+class ItemPool;
+class ItemReader;
+class LocalProfiles;
+class Logger;
+class ModuleInstantiator;
+class ModulePropertyMerger;
+class ProbesResolver;
 class ProductContext;
+class ProductItemMultiplexer;
 class ProgressObserver;
 class ProjectContext;
 
@@ -134,6 +144,31 @@ public:
     TopLevelProjectContext *topLevelProject = nullptr;
     std::vector<ProductContext> products;
     std::vector<QStringList> searchPathsStack;
+};
+
+class LoaderState
+{
+public:
+    LoaderState(const SetupProjectParameters &parameters, ItemPool &itemPool, Evaluator &evaluator,
+                Logger &logger);
+    ~LoaderState();
+
+    DependenciesResolver &dependenciesResolver();
+    Evaluator &evaluator();
+    ItemPool &itemPool();
+    ItemReader &itemReader();
+    LocalProfiles &localProfiles();
+    Logger &logger();
+    ModuleInstantiator &moduleInstantiator();
+    ProductItemMultiplexer &multiplexer();
+    const SetupProjectParameters &parameters() const;
+    ProbesResolver &probesResolver();
+    ModulePropertyMerger &propertyMerger();
+    TopLevelProjectContext &topLevelProject();
+
+private:
+    class Private;
+    Pimpl<Private> d;
 };
 
 void mergeParameters(QVariantMap &dst, const QVariantMap &src);

@@ -46,13 +46,9 @@ QT_BEGIN_NAMESPACE
 class QString;
 QT_END_NAMESPACE
 
-namespace qbs {
-class SetupProjectParameters;
-namespace Internal {
+namespace qbs::Internal {
 class Item;
-class ItemPool;
-class Logger;
-class ModulePropertyMerger;
+class LoaderState;
 class QualifiedId;
 
 // This class is responsible for setting up a proper module instance from a bunch of items:
@@ -66,8 +62,7 @@ class QualifiedId;
 class ModuleInstantiator
 {
 public:
-    ModuleInstantiator(const SetupProjectParameters &parameters, ItemPool &itemPool,
-                       ModulePropertyMerger &propertyMerger, Logger &logger);
+    ModuleInstantiator(LoaderState &loaderState);
     ~ModuleInstantiator();
 
     struct Context {
@@ -97,6 +92,5 @@ private:
     Pimpl<Private> d;
 };
 
-} // namespace Internal
-} // namespace qbs
+} // namespace qbs::Internal
 

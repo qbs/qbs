@@ -46,12 +46,9 @@
 
 #include <functional>
 
-namespace qbs {
-class SetupProjectParameters;
-namespace Internal {
-class Evaluator;
+namespace qbs::Internal {
 class Item;
-class Logger;
+class LoaderState;
 
 // This class deals with product multiplexing over the various defined axes.
 // For instance, a product with qbs.architectures: ["x86", "arm"] will get multiplexed into
@@ -60,8 +57,7 @@ class ProductItemMultiplexer
 {
 public:
     using QbsItemRetriever = std::function<Item *(Item *)>;
-    ProductItemMultiplexer(const SetupProjectParameters &parameters, Evaluator &evaluator,
-                           Logger &logger, const QbsItemRetriever &qbsItemRetriever);
+    ProductItemMultiplexer(LoaderState &loaderState, const QbsItemRetriever &qbsItemRetriever);
     ~ProductItemMultiplexer();
 
     // Checks whether the product item is to be multiplexed and returns the list of additional
@@ -81,5 +77,4 @@ private:
     Pimpl<Private> d;
 };
 
-} // namespace Internal
-} // namespace qbs
+} // namespace qbs::Internal

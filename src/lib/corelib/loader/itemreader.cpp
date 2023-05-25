@@ -40,6 +40,7 @@
 #include "itemreader.h"
 
 #include "itemreadervisitorstate.h"
+#include "loaderutils.h"
 
 #include <language/deprecationinfo.h>
 #include <language/evaluator.h>
@@ -68,13 +69,15 @@ static void makePathsCanonical(QStringList &paths)
     });
 }
 
-ItemReader::ItemReader(const SetupProjectParameters &parameters, Logger &logger)
-    : m_visitorState(std::make_unique<ItemReaderVisitorState>(logger)),
-      m_projectFilePath(parameters.projectFilePath())
+ItemReader::ItemReader(LoaderState &loaderState) : m_loaderState(loaderState) {}
+
+void ItemReader::init()
 {
-    setSearchPaths(parameters.searchPaths());
-    m_visitorState->setDeprecationWarningMode(parameters.deprecationWarningMode());
-    m_elapsedTime = parameters.logElapsedTime() ? 0 : -1;
+    m_visitorState = std::make_unique<ItemReaderVisitorState>(m_loaderState.logger());
+    m_visitorState->setDeprecationWarningMode(m_loaderState.parameters().deprecationWarningMode());
+    m_projectFilePath  = m_loaderState.parameters().projectFilePath();
+    setSearchPaths(m_loaderState.parameters().searchPaths());
+    m_elapsedTime = m_loaderState.parameters().logElapsedTime() ? 0 : -1;
 }
 
 ItemReader::~ItemReader() = default;
@@ -133,7 +136,7 @@ const QStringList &ItemReader::allSearchPaths() const
 Item *ItemReader::readFile(const QString &filePath)
 {
     AccumulatingTimer readFileTimer(m_elapsedTime != -1 ? &m_elapsedTime : nullptr);
-    return m_visitorState->readFile(filePath, allSearchPaths(), m_pool);
+    return m_visitorState->readFile(filePath, allSearchPaths(), &m_loaderState.itemPool());
 }
 
 Item *ItemReader::readFile(const QString &filePath, const CodeLocation &referencingLocation)
@@ -152,8 +155,9 @@ Set<QString> ItemReader::filesRead() const
     return m_visitorState->filesRead();
 }
 
-void ItemReader::handlePropertyOptions(Item *optionsItem, Evaluator &evaluator)
+void ItemReader::handlePropertyOptions(Item *optionsItem)
 {
+    Evaluator &evaluator = m_loaderState.evaluator();
     const QString name = evaluator.stringValue(optionsItem, StringConstants::nameProperty());
     if (name.isEmpty()) {
         throw ErrorInfo(Tr::tr("PropertyOptions item needs a name property"),
@@ -194,32 +198,31 @@ void ItemReader::handlePropertyOptions(Item *optionsItem, Evaluator &evaluator)
     optionsItem->parent()->setPropertyDeclaration(name, decl);
 }
 
-void ItemReader::handleAllPropertyOptionsItems(Item *item, Evaluator &evaluator)
+void ItemReader::handleAllPropertyOptionsItems(Item *item)
 {
     QList<Item *> childItems = item->children();
     auto childIt = childItems.begin();
     while (childIt != childItems.end()) {
         Item * const child = *childIt;
         if (child->type() == ItemType::PropertyOptions) {
-            handlePropertyOptions(child, evaluator);
+            handlePropertyOptions(child);
             childIt = childItems.erase(childIt);
         } else {
-            handleAllPropertyOptionsItems(child, evaluator);
+            handleAllPropertyOptionsItems(child);
             ++childIt;
         }
     }
     item->setChildren(childItems);
 }
 
-Item *ItemReader::setupItemFromFile(
-    const QString &filePath, const CodeLocation &referencingLocation, Evaluator &evaluator)
+Item *ItemReader::setupItemFromFile(const QString &filePath, const CodeLocation &referencingLocation)
 {
     Item *item = readFile(filePath, referencingLocation);
-    handleAllPropertyOptionsItems(item, evaluator);
+    handleAllPropertyOptionsItems(item);
     return item;
 }
 
-Item *ItemReader::wrapInProjectIfNecessary(Item *item, const SetupProjectParameters &parameters)
+Item *ItemReader::wrapInProjectIfNecessary(Item *item)
 {
     if (item->type() == ItemType::Project)
         return item;
@@ -227,14 +230,15 @@ Item *ItemReader::wrapInProjectIfNecessary(Item *item, const SetupProjectParamet
     Item::addChild(prj, item);
     prj->setFile(item->file());
     prj->setLocation(item->location());
-    prj->setupForBuiltinType(parameters.deprecationWarningMode(), m_visitorState->logger());
+    prj->setupForBuiltinType(m_loaderState.parameters().deprecationWarningMode(),
+                             m_visitorState->logger());
     return prj;
 }
 
-QStringList ItemReader::readExtraSearchPaths(Item *item, Evaluator &evaluator, bool *wasSet)
+QStringList ItemReader::readExtraSearchPaths(Item *item, bool *wasSet)
 {
     QStringList result;
-    const QStringList paths = evaluator.stringListValue(
+    const QStringList paths = m_loaderState.evaluator().stringListValue(
         item, StringConstants::qbsSearchPathsProperty(), wasSet);
     const JSSourceValueConstPtr prop = item->sourceProperty(
         StringConstants::qbsSearchPathsProperty());

@@ -39,6 +39,8 @@
 
 #include "modulepropertymerger.h"
 
+#include "loaderutils.h"
+
 #include <language/evaluator.h>
 #include <language/item.h>
 #include <language/value.h>
@@ -51,8 +53,7 @@ namespace qbs::Internal {
 class ModulePropertyMerger::Private
 {
 public:
-    Private(const SetupProjectParameters &parameters, Evaluator &evaluator, Logger &logger)
-        : parameters(parameters), evaluator(evaluator), logger(logger) {}
+    Private(LoaderState &loaderState) : loaderState(loaderState) {}
 
     int compareValuePriorities(const Item *productItem, const ValueConstPtr &v1,
                                const ValueConstPtr &v2);
@@ -64,9 +65,7 @@ public:
     bool doFinalMerge(const Item *productItem, const PropertyDeclaration &propertyDecl,
                       ValuePtr &propertyValue);
 
-    const SetupProjectParameters &parameters;
-    Evaluator &evaluator;
-    Logger &logger;
+    LoaderState &loaderState;
     qint64 elapsedTime = 0;
 };
 
@@ -74,7 +73,7 @@ void ModulePropertyMerger::mergeFromLocalInstance(
     const Item *productItem, Item *loadingItem, const QString &loadingName,
     const Item *localInstance, Item *globalInstance)
 {
-    AccumulatingTimer t(d->parameters.logElapsedTime() ? &d->elapsedTime : nullptr);
+    AccumulatingTimer t(d->loaderState.parameters().logElapsedTime() ? &d->elapsedTime : nullptr);
 
     for (auto it = localInstance->properties().constBegin();
          it != localInstance->properties().constEnd(); ++it) {
@@ -85,7 +84,7 @@ void ModulePropertyMerger::mergeFromLocalInstance(
 
 void ModulePropertyMerger::doFinalMerge(const Item *productItem)
 {
-    AccumulatingTimer t(d->parameters.logElapsedTime() ? &d->elapsedTime : nullptr);
+    AccumulatingTimer t(d->loaderState.parameters().logElapsedTime() ? &d->elapsedTime : nullptr);
 
     Set<const Item *> itemsToInvalidate;
     for (const Item::Module &module : productItem->modules()) {
@@ -106,21 +105,21 @@ void ModulePropertyMerger::doFinalMerge(const Item *productItem)
     };
     collectDependentItems(productItem, collectDependentItems);
     for (const Item * const item : itemsToInvalidate)
-        d->evaluator.clearCache(item);
+        d->loaderState.evaluator().clearCache(item);
 }
 
 void ModulePropertyMerger::printProfilingInfo(int indent)
 {
-    if (!d->parameters.logElapsedTime())
+    if (!d->loaderState.parameters().logElapsedTime())
         return;
-    d->logger.qbsLog(LoggerInfo, true) << QByteArray(indent, ' ')
-                                       << Tr::tr("Merging module property values took %1.")
-                                              .arg(elapsedTimeString(d->elapsedTime));
+    d->loaderState.logger().qbsLog(LoggerInfo, true)
+            << QByteArray(indent, ' ')
+            << Tr::tr("Merging module property values took %1.")
+               .arg(elapsedTimeString(d->elapsedTime));
 }
 
-ModulePropertyMerger::ModulePropertyMerger(
-    const SetupProjectParameters &parameters, Evaluator &evaluator, Logger &logger)
-    : d(makePimpl<Private>(parameters, evaluator, logger)) { }
+ModulePropertyMerger::ModulePropertyMerger(LoaderState &loaderState)
+    : d(makePimpl<Private>(loaderState)) { }
 ModulePropertyMerger::~ModulePropertyMerger() = default;
 
 int ModulePropertyMerger::Private::compareValuePriorities(
@@ -174,9 +173,9 @@ void ModulePropertyMerger::Private::mergePropertyFromLocalInstance(
                             .arg(name), value->location());
     }
     if (const ErrorInfo error = decl.checkForDeprecation(
-            parameters.deprecationWarningMode(), value->location(), logger);
-        error.hasError()) {
-        handlePropertyError(error, parameters, logger);
+                loaderState.parameters().deprecationWarningMode(), value->location(),
+                loaderState.logger()); error.hasError()) {
+        handlePropertyError(error, loaderState.parameters(), loaderState.logger());
         return;
     }
     if (value->setInternally()) { // E.g. qbs.architecture after multiplexing.
@@ -272,7 +271,7 @@ bool ModulePropertyMerger::Private::doFinalMerge(
                     error.append({}, v->location());
             }
             if (error.items().size() > 2)
-                logger.printWarning(error);
+                loaderState.logger().printWarning(error);
         }
 
         if (propertyValue == chosenValue)
