@@ -98,11 +98,11 @@ void ProductsHandler::printProfilingInfo(int indent)
 {
     if (!d->loaderState.parameters().logElapsedTime())
         return;
+    const QByteArray prefix(indent, ' ');
     d->loaderState.logger().qbsLog(LoggerInfo, true)
-            << "  "
+            << prefix
             << Tr::tr("Handling products took %1.")
                .arg(elapsedTimeString(d->elapsedTime));
-    const QByteArray prefix(indent, ' ');
     d->groupsHandler.printProfilingInfo(indent + 2);
 }
 

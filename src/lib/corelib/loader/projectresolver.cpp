@@ -312,8 +312,6 @@ TopLevelProjectPtr ProjectResolver::resolve(const SetupProjectParameters &parame
     d->finalizeProjectParameters();
     QBS_CHECK(FileInfo::isAbsolute(d->setupParams.buildRoot()));
 
-    TimedActivityLogger projectResolverTimer(d->logger, Tr::tr("ProjectResolver"),
-                                             d->setupParams.logElapsedTime());
     qCDebug(lcProjectResolver) << "resolving" << d->setupParams.projectFilePath();
 
     d->engine->setEnvironment(d->setupParams.adjustedEnvironment());
@@ -346,7 +344,6 @@ TopLevelProjectPtr ProjectResolver::resolve(const SetupProjectParameters &parame
     d->loadResult = projectTreeBuilder.load();
     try {
         tlp = d->resolveTopLevelProject();
-        d->printProfilingInfo();
     } catch (const CancelException &) {
         throw ErrorInfo(Tr::tr("Project resolving canceled for configuration '%1'.")
                             .arg(TopLevelProject::deriveId(
@@ -356,8 +353,10 @@ TopLevelProjectPtr ProjectResolver::resolve(const SetupProjectParameters &parame
     tlp->lastEndResolveTime = FileTime::currentTime();
 
     // E.g. if the top-level project is disabled.
-    if (d->progressObserver)
+    if (d->progressObserver) {
         d->progressObserver->setFinished();
+        d->printProfilingInfo();
+    }
     return tlp;
 }
 
@@ -1612,14 +1611,16 @@ void ProjectResolver::Private::printProfilingInfo()
 {
     if (!setupParams.logElapsedTime())
         return;
-    logger.qbsLog(LoggerInfo, true) << "\t" << Tr::tr("All property evaluation took %1.")
-                                         .arg(elapsedTimeString(elapsedTimeAllPropEval));
-    logger.qbsLog(LoggerInfo, true) << "\t" << Tr::tr("Module property evaluation took %1.")
-                                         .arg(elapsedTimeString(elapsedTimeModPropEval));
-    logger.qbsLog(LoggerInfo, true) << "\t"
-                                      << Tr::tr("Resolving groups (without module property "
-                                                "evaluation) took %1.")
-                                         .arg(elapsedTimeString(elapsedTimeGroups));
+    logger.qbsLog(LoggerInfo, true)
+        << "  " << Tr::tr("All property evaluation took %1.")
+                       .arg(elapsedTimeString(elapsedTimeAllPropEval));
+    logger.qbsLog(LoggerInfo, true)
+        << "  " << Tr::tr("Module property evaluation took %1.")
+                       .arg(elapsedTimeString(elapsedTimeModPropEval));
+    logger.qbsLog(LoggerInfo, true)
+        << "  " << Tr::tr("Resolving groups (without module property "
+                          "evaluation) took %1.")
+                       .arg(elapsedTimeString(elapsedTimeGroups));
 }
 
 class TempScopeSetter

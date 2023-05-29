@@ -142,8 +142,9 @@ void ProjectTreeBuilder::setStoredModuleProviderInfo(
 
 ProjectTreeBuilder::Result ProjectTreeBuilder::load()
 {
-    TimedActivityLogger mainTimer(d->state.logger(), Tr::tr("ProjectTreeBuilder"),
-                                  d->state.parameters().logElapsedTime());
+    auto mainTimer = std::make_unique<TimedActivityLogger>(
+        d->state.logger(), Tr::tr("ProjectTreeBuilder"),
+        d->state.parameters().logElapsedTime());
     qCDebug(lcModuleLoader) << "load" << d->state.parameters().projectFilePath();
 
     d->checkOverriddenValues();
@@ -164,6 +165,7 @@ ProjectTreeBuilder::Result ProjectTreeBuilder::load()
     result.projectProbes = project.probes;
     result.storedModuleProviderInfo = d->state.dependenciesResolver().storedModuleProviderInfo();
 
+    mainTimer.reset();
     d->printProfilingInfo();
 
     return result;
@@ -281,6 +283,7 @@ void ProjectTreeBuilder::Private::printProfilingInfo()
             << Tr::tr("Project file loading and parsing took %1.")
                .arg(elapsedTimeString(state.itemReader().elapsedTime()));
     productsCollector.printProfilingInfo(2);
+    productsHandler.printProfilingInfo(2);
     state.dependenciesResolver().printProfilingInfo(4);
     state.moduleInstantiator().printProfilingInfo(6);
     state.propertyMerger().printProfilingInfo(6);
