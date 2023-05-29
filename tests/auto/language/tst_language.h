@@ -41,8 +41,9 @@
 #define TST_LANGUAGE_H
 
 #include <language/forward_decls.h>
-#include <loader/projectresolver.h>
+#include <language/scriptengine.h>
 #include <logging/ilogsink.h>
+#include <logging/logger.h>
 #include <tools/setupprojectparameters.h>
 
 #include <QtCore/qrandom.h>
@@ -56,26 +57,8 @@ public:
     TestLanguage(qbs::ILogSink *logSink, qbs::Settings *settings);
     ~TestLanguage();
 
-private:
-    qbs::ILogSink *m_logSink;
-    qbs::Settings * const m_settings;
-    qbs::Internal::Logger m_logger;
-    std::unique_ptr<qbs::Internal::ScriptEngine> m_engine;
-    qbs::Internal::ProjectResolver *m_resolver;
-    qbs::Internal::TopLevelProjectPtr project;
-    qbs::SetupProjectParameters defaultParameters;
-    const QString m_wildcardsTestDirPath;
-
-    QHash<QString, qbs::Internal::ResolvedProductPtr> productsFromProject(
-            qbs::Internal::ResolvedProjectPtr project);
-    qbs::Internal::ResolvedModuleConstPtr findModuleByName(
-            qbs::Internal::ResolvedProductPtr product, const QString &name);
-    QVariant productPropertyValue(qbs::Internal::ResolvedProductPtr product, QString propertyName);
-    void handleInitCleanupDataTags(const char *projectFileName, bool *handled);
-
 private slots:
     void init();
-    void cleanup();
     void initTestCase();
 
     void additionalProductTypes();
@@ -188,6 +171,21 @@ private slots:
     void wildcards();
 
 private:
+    QHash<QString, qbs::Internal::ResolvedProductPtr> productsFromProject(
+        qbs::Internal::ResolvedProjectPtr project);
+    qbs::Internal::ResolvedModuleConstPtr findModuleByName(
+        qbs::Internal::ResolvedProductPtr product, const QString &name);
+    QVariant productPropertyValue(qbs::Internal::ResolvedProductPtr product, QString propertyName);
+    void handleInitCleanupDataTags(const char *projectFileName, bool *handled);
+    qbs::Internal::TopLevelProjectPtr resolveProject(const char *relProjectFilePath = nullptr);
+
+    qbs::ILogSink * const m_logSink;
+    qbs::Settings * const m_settings;
+    qbs::Internal::Logger m_logger;
+    std::unique_ptr<qbs::Internal::ScriptEngine> m_engine;
+    qbs::Internal::TopLevelProjectPtr project;
+    qbs::SetupProjectParameters defaultParameters;
+    const QString m_wildcardsTestDirPath;
     QTemporaryDir m_tempDir;
     QRandomGenerator m_rand;
 };
