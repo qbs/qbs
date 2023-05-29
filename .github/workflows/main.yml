@@ -649,7 +649,7 @@ jobs:
             toolchain: 'ios',
             xcodeVersion: '14.2',
             testProfile: 'xcode_14_1-iphoneos-arm64',
-            qtVersion: '6.3.2',
+            qtVersion: '6.5.0',
             script: './scripts/test-qbs.sh',
           }
         - {
@@ -659,7 +659,7 @@ jobs:
             toolchain: 'ios',
             xcodeVersion: '14.2',
             testProfile: 'xcode_14_1-iphonesimulator-x86_64',
-            qtVersion: '6.3.2',
+            qtVersion: '6.5.0',
             script: './scripts/test-qbs.sh',
           }
         - {
