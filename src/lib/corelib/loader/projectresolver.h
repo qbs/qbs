@@ -62,7 +62,7 @@ class StoredModuleProviderInfo;
 class QBS_AUTOTEST_EXPORT ProjectResolver
 {
 public:
-    ProjectResolver(ScriptEngine *engine, Logger logger);
+    ProjectResolver(const SetupProjectParameters &parameters, ScriptEngine *engine, Logger logger);
     ~ProjectResolver();
 
     void setProgressObserver(ProgressObserver *observer);
@@ -71,7 +71,7 @@ public:
     void setLastResolveTime(const FileTime &time);
     void setStoredProfiles(const QVariantMap &profiles);
     void setStoredModuleProviderInfo(const StoredModuleProviderInfo &providerInfo);
-    TopLevelProjectPtr resolve(const SetupProjectParameters &parameters);
+    TopLevelProjectPtr resolve();
 
 private:
     class Private;

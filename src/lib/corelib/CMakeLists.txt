@@ -272,8 +272,6 @@ set(LOADER_SOURCES
     productshandler.h
     projectresolver.cpp
     projectresolver.h
-    projecttreebuilder.cpp
-    projecttreebuilder.h
     )
 list_transform_prepend(LOADER_SOURCES loader/)
 

@@ -324,9 +324,9 @@ void InternalSetupProjectJob::execute()
 
 void InternalSetupProjectJob::resolveProjectFromScratch(ScriptEngine *engine)
 {
-    ProjectResolver resolver(engine, logger());
+    ProjectResolver resolver(m_parameters, engine, logger());
     resolver.setProgressObserver(observer());
-    m_newProject = resolver.resolve(m_parameters);
+    m_newProject = resolver.resolve();
     QBS_CHECK(m_newProject);
 }
 

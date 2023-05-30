@@ -39,7 +39,15 @@
 
 #include "projectresolver.h"
 
-#include "projecttreebuilder.h"
+#include "dependenciesresolver.h"
+#include "itemreader.h"
+#include "loaderutils.h"
+#include "localprofiles.h"
+#include "moduleinstantiator.h"
+#include "modulepropertymerger.h"
+#include "probesresolver.h"
+#include "productscollector.h"
+#include "productshandler.h"
 
 #include <jsextensions/jsextensions.h>
 #include <jsextensions/moduleproperties.h>
@@ -95,6 +103,29 @@ static const FileTag unknownFileTag()
     return tag;
 }
 
+static SetupProjectParameters finalizedProjectParameters(const SetupProjectParameters &in,
+                                                         Logger &logger)
+{
+    SetupProjectParameters params = in;
+    if (params.topLevelProfile().isEmpty()) {
+        Settings settings(params.settingsDirectory());
+        QString profileName = settings.defaultProfile();
+        if (profileName.isEmpty()) {
+            logger.qbsDebug() << Tr::tr("No profile specified and no default profile exists. "
+                                        "Using default property values.");
+            profileName = Profile::fallbackName();
+        }
+        params.setTopLevelProfile(profileName);
+        params.expandBuildConfiguration();
+    }
+    params.finalizeProjectFilePath();
+
+    QBS_CHECK(QFileInfo(params.projectFilePath()).isAbsolute());
+    QBS_CHECK(FileInfo::isAbsolute(params.buildRoot()));
+
+    return params;
+}
+
 struct ResolverProjectContext
 {
     ResolverProjectContext *parentContext = nullptr;
@@ -128,7 +159,9 @@ class CancelException { };
 class ProjectResolver::Private
 {
 public:
-    Private(ScriptEngine *engine, Logger &&logger) : engine(engine), logger(std::move(logger)) {}
+    Private(const SetupProjectParameters &parameters, ScriptEngine *engine, Logger &&logger)
+        : setupParams(finalizedProjectParameters(parameters, logger)), engine(engine),
+          logger(std::move(logger)) {}
 
     static void applyFileTaggers(const SourceArtifactPtr &artifact,
                                  const ResolvedProductConstPtr &product);
@@ -136,7 +169,6 @@ public:
         const ResolvedProductPtr &rproduct, const QString &fileName, const GroupPtr &group,
         bool wildcard, const CodeLocation &filesLocation = CodeLocation(),
         FileLocations *fileLocations = nullptr, ErrorInfo *errorInfo = nullptr);
-    void finalizeProjectParameters();
     void checkCancelation() const;
     QString verbatimValue(const ValueConstPtr &value, bool *propertyWasSet = nullptr) const;
     QString verbatimValue(Item *item, const QString &name, bool *propertyWasSet = nullptr) const;
@@ -187,6 +219,10 @@ public:
     ResolverProjectContext createProjectContext(ResolverProjectContext *parentProjectContext) const;
     void adaptExportedPropertyValues(const Item *shadowProductItem);
     void collectExportedProductDependencies();
+    void checkOverriddenValues();
+    void collectNameFromOverride(const QString &overrideString);
+    void loadTopLevelProjectItem();
+    void buildProjectTree();
 
     struct ProductDependencyInfo
     {
@@ -220,12 +256,15 @@ public:
     using ItemFuncMap = QMap<ItemType, ItemFuncPtr>;
     void callItemFunction(const ItemFuncMap &mappings, Item *item, ResolverProjectContext *projectContext);
 
+    const SetupProjectParameters setupParams;
     ScriptEngine * const engine;
     mutable Logger logger;
     Evaluator evaluator{engine};
     ItemPool itemPool;
-    SetupProjectParameters setupParams;
-    ProjectTreeBuilder::Result loadResult;
+    LoaderState state{setupParams, itemPool, evaluator, logger};
+    ProductsCollector productsCollector{state};
+    ProductsHandler productsHandler{state};
+    Item *rootProjectItem = nullptr;
     ProgressObserver *progressObserver = nullptr;
     ResolverProductContext *productContext = nullptr;
     ModuleContext *moduleContext = nullptr;
@@ -237,19 +276,16 @@ public:
     Set<CodeLocation> groupLocationWarnings;
     std::vector<std::pair<ResolvedProductPtr, Item *>> productExportInfo;
     std::vector<ErrorInfo> queuedErrors;
-    std::vector<ProbeConstPtr> oldProjectProbes;
-    QHash<QString, std::vector<ProbeConstPtr>> oldProductProbes;
-    StoredModuleProviderInfo storedModuleProviderInfo;
-    QVariantMap storedProfiles;
     FileTime lastResolveTime;
     qint64 elapsedTimeModPropEval = 0;
     qint64 elapsedTimeAllPropEval = 0;
     qint64 elapsedTimeGroups = 0;
+    qint64 elapsedTimePropertyChecking = 0;
 };
 
-
-ProjectResolver::ProjectResolver(ScriptEngine *engine, Logger logger)
-    : d(makePimpl<Private>(engine, std::move(logger)))
+ProjectResolver::ProjectResolver(const SetupProjectParameters &parameters, ScriptEngine *engine,
+                                 Logger logger)
+    : d(makePimpl<Private>(parameters, engine, std::move(logger)))
 {
     d->logger.storeWarnings();
 }
@@ -259,17 +295,18 @@ ProjectResolver::~ProjectResolver() = default;
 void ProjectResolver::setProgressObserver(ProgressObserver *observer)
 {
     d->progressObserver = observer;
+    d->state.topLevelProject().progressObserver = observer;
 }
 
 void ProjectResolver::setOldProjectProbes(const std::vector<ProbeConstPtr> &oldProbes)
 {
-    d->oldProjectProbes = oldProbes;
+    d->state.probesResolver().setOldProjectProbes(oldProbes);
 }
 
 void ProjectResolver::setOldProductProbes(
     const QHash<QString, std::vector<ProbeConstPtr>> &oldProbes)
 {
-    d->oldProductProbes = oldProbes;
+    d->state.probesResolver().setOldProductProbes(oldProbes);
 }
 
 void ProjectResolver::setLastResolveTime(const FileTime &time)
@@ -279,12 +316,12 @@ void ProjectResolver::setLastResolveTime(const FileTime &time)
 
 void ProjectResolver::setStoredProfiles(const QVariantMap &profiles)
 {
-    d->storedProfiles = profiles;
+    d->state.topLevelProject().profileConfigs = profiles;
 }
 
 void ProjectResolver::setStoredModuleProviderInfo(const StoredModuleProviderInfo &providerInfo)
 {
-    d->storedModuleProviderInfo = providerInfo;
+    d->state.dependenciesResolver().setStoredModuleProviderInfo(providerInfo);
 }
 
 static void checkForDuplicateProductNames(const TopLevelProjectConstPtr &project)
@@ -306,12 +343,8 @@ static void checkForDuplicateProductNames(const TopLevelProjectConstPtr &project
     }
 }
 
-TopLevelProjectPtr ProjectResolver::resolve(const SetupProjectParameters &parameters)
+TopLevelProjectPtr ProjectResolver::resolve()
 {
-    d->setupParams = parameters;
-    d->finalizeProjectParameters();
-    QBS_CHECK(FileInfo::isAbsolute(d->setupParams.buildRoot()));
-
     qCDebug(lcProjectResolver) << "resolving" << d->setupParams.projectFilePath();
 
     d->engine->setEnvironment(d->setupParams.adjustedEnvironment());
@@ -334,15 +367,10 @@ TopLevelProjectPtr ProjectResolver::resolve(const SetupProjectParameters &parame
 
     const FileTime resolveTime = FileTime::currentTime();
     TopLevelProjectPtr tlp;
-    ProjectTreeBuilder projectTreeBuilder(d->setupParams, d->itemPool, d->evaluator, d->logger);
-    projectTreeBuilder.setProgressObserver(d->progressObserver);
-    projectTreeBuilder.setOldProjectProbes(d->oldProjectProbes);
-    projectTreeBuilder.setOldProductProbes(d->oldProductProbes);
-    projectTreeBuilder.setLastResolveTime(d->lastResolveTime);
-    projectTreeBuilder.setStoredProfiles(d->storedProfiles);
-    projectTreeBuilder.setStoredModuleProviderInfo(d->storedModuleProviderInfo);
-    d->loadResult = projectTreeBuilder.load();
     try {
+        d->checkOverriddenValues();
+        d->loadTopLevelProjectItem();
+        d->buildProjectTree();
         tlp = d->resolveTopLevelProject();
     } catch (const CancelException &) {
         throw ErrorInfo(Tr::tr("Project resolving canceled for configuration '%1'.")
@@ -421,19 +449,24 @@ static void makeSubProjectNamesUniqe(const ResolvedProjectPtr &parentProject)
 TopLevelProjectPtr ProjectResolver::Private::resolveTopLevelProject()
 {
     if (progressObserver)
-        progressObserver->setMaximum(int(loadResult.productInfos.size()));
+        progressObserver->setMaximum(int(state.topLevelProject().productInfos.size()));
     TopLevelProjectPtr project = TopLevelProject::create();
     project->buildDirectory = TopLevelProject::deriveBuildDirectory(
         setupParams.buildRoot(),
         TopLevelProject::deriveId(setupParams.finalBuildConfigurationTree()));
-    project->buildSystemFiles = loadResult.qbsFiles;
-    project->profileConfigs = loadResult.profileConfigs;
-    project->probes = loadResult.projectProbes;
-    project->moduleProviderInfo = loadResult.storedModuleProviderInfo;
+    project->buildSystemFiles = state.itemReader().filesRead()
+            - state.dependenciesResolver().tempQbsFiles();
+    project->profileConfigs = state.topLevelProject().profileConfigs;
+    const QVariantMap &profiles = state.localProfiles().profiles();
+    for (auto it = profiles.begin(); it != profiles.end(); ++it)
+        project->profileConfigs.remove(it.key());
+
+    project->probes = state.topLevelProject().probes;
+    project->moduleProviderInfo = state.dependenciesResolver().storedModuleProviderInfo();
     ResolverProjectContext projectContext;
     projectContext.project = project;
 
-    resolveProject(loadResult.root, &projectContext);
+    resolveProject(rootProjectItem, &projectContext);
     ErrorInfo accumulatedErrors;
     for (const ErrorInfo &e : queuedErrors)
         appendError(accumulatedErrors, e);
@@ -592,7 +625,7 @@ void ProjectResolver::Private::resolveProduct(Item *item, ResolverProjectContext
         ProgressObserver * const m_progressObserver;
     } contextSwitcher(*this, productContext, progressObserver);
     const auto errorFromDelayedError = [&] {
-        ProductInfo &pi = loadResult.productInfos[item];
+        ProductInfo &pi = state.topLevelProject().productInfos[item];
         if (pi.delayedError.hasError()) {
             ErrorInfo errorInfo;
 
@@ -650,7 +683,7 @@ void ProjectResolver::Private::resolveProductFully(Item *item, ResolverProjectCo
     productsByItem.insert(item, product);
     product->enabled = product->enabled
                        && evaluator.boolValue(item, StringConstants::conditionProperty());
-    ProductInfo &pi = loadResult.productInfos[item];
+    ProductInfo &pi = state.topLevelProject().productInfos[item];
     gatherProductTypes(product.get(), item);
     product->targetName = evaluator.stringValue(item, StringConstants::targetNameProperty());
     product->sourceDirectory = evaluator.stringValue(
@@ -822,23 +855,6 @@ SourceArtifactPtr ProjectResolver::Private::createSourceArtifact(
     return artifact;
 }
 
-void ProjectResolver::Private::finalizeProjectParameters()
-{
-    if (setupParams.topLevelProfile().isEmpty()) {
-        Settings settings(setupParams.settingsDirectory());
-        QString profileName = settings.defaultProfile();
-        if (profileName.isEmpty()) {
-            logger.qbsDebug() << Tr::tr("No profile specified and no default profile exists. "
-                                          "Using default property values.");
-            profileName = Profile::fallbackName();
-        }
-        setupParams.setTopLevelProfile(profileName);
-        setupParams.expandBuildConfiguration();
-    }
-    setupParams.finalizeProjectFilePath();
-    QBS_CHECK(QFileInfo(setupParams.projectFilePath()).isAbsolute());
-}
-
 static QualifiedIdSet propertiesToEvaluate(std::deque<QualifiedId> initialProps,
                                            const PropertyDependencies &deps)
 {
@@ -860,7 +876,7 @@ QVariantMap ProjectResolver::Private::resolveAdditionalModuleProperties(
 {
     // Step 1: Retrieve the properties directly set in the group
     const ModulePropertiesPerGroup &mp = mapValue(
-            loadResult.productInfos, productContext->item).modulePropertiesSetInGroups;
+            state.topLevelProject().productInfos, productContext->item).modulePropertiesSetInGroups;
     const auto it = mp.find(group);
     if (it == mp.end())
         return {};
@@ -1162,6 +1178,108 @@ void ProjectResolver::Private::collectExportedProductDependencies()
         auto &productDeps = exportingProduct->exportedModule.productDependencies;
         std::sort(productDeps.begin(), productDeps.end());
     }
+}
+
+void ProjectResolver::Private::checkOverriddenValues()
+{
+    static const auto matchesPrefix = [](const QString &key) {
+        static const QStringList prefixes({StringConstants::projectPrefix(),
+                                           QStringLiteral("projects"),
+                                           QStringLiteral("products"), QStringLiteral("modules"),
+                                           StringConstants::moduleProviders(),
+                                           StringConstants::qbsModule()});
+        return any_of(prefixes, [&key](const QString &prefix) {
+            return key.startsWith(prefix + QLatin1Char('.')); });
+    };
+    const QVariantMap &overriddenValues = state.parameters().overriddenValues();
+    for (auto it = overriddenValues.begin(); it != overriddenValues.end(); ++it) {
+        if (matchesPrefix(it.key())) {
+            collectNameFromOverride(it.key());
+            continue;
+        }
+
+        ErrorInfo e(Tr::tr("Property override key '%1' not understood.").arg(it.key()));
+        e.append(Tr::tr("Please use one of the following:"));
+        e.append(QLatin1Char('\t') + Tr::tr("projects.<project-name>.<property-name>:value"));
+        e.append(QLatin1Char('\t') + Tr::tr("products.<product-name>.<property-name>:value"));
+        e.append(QLatin1Char('\t') + Tr::tr("modules.<module-name>.<property-name>:value"));
+        e.append(QLatin1Char('\t') + Tr::tr("products.<product-name>.<module-name>."
+                                            "<property-name>:value"));
+        e.append(QLatin1Char('\t') + Tr::tr("moduleProviders.<provider-name>."
+                                            "<property-name>:value"));
+        handlePropertyError(e, state.parameters(), state.logger());
+    }
+}
+
+void ProjectResolver::Private::collectNameFromOverride(const QString &overrideString)
+{
+    const auto extract = [&overrideString](const QString &prefix) {
+        if (!overrideString.startsWith(prefix))
+            return QString();
+        const int startPos = prefix.length();
+        const int endPos = overrideString.lastIndexOf(StringConstants::dot());
+        if (endPos == -1)
+            return QString();
+        return overrideString.mid(startPos, endPos - startPos);
+    };
+    const QString &projectName = extract(StringConstants::projectsOverridePrefix());
+    if (!projectName.isEmpty()) {
+        state.topLevelProject().projectNamesUsedInOverrides.insert(projectName);
+        return;
+    }
+    const QString &productName = extract(StringConstants::productsOverridePrefix());
+    if (!productName.isEmpty()) {
+        state.topLevelProject().productNamesUsedInOverrides.insert(productName.left(
+            productName.indexOf(StringConstants::dot())));
+        return;
+    }
+}
+
+void ProjectResolver::Private::loadTopLevelProjectItem()
+{
+    const QStringList topLevelSearchPaths
+            = state.parameters().finalBuildConfigurationTree()
+              .value(StringConstants::projectPrefix()).toMap()
+              .value(StringConstants::qbsSearchPathsProperty()).toStringList();
+    SearchPathsManager searchPathsManager(state.itemReader(), topLevelSearchPaths);
+    Item * const root = state.itemReader().setupItemFromFile(
+                state.parameters().projectFilePath(), {});
+    if (!root)
+        return;
+
+    switch (root->type()) {
+    case ItemType::Product:
+        rootProjectItem = state.itemReader().wrapInProjectIfNecessary(root);
+        break;
+    case ItemType::Project:
+        rootProjectItem = root;
+        break;
+    default:
+        throw ErrorInfo(Tr::tr("The top-level item must be of type 'Project' or 'Product', but it"
+                               " is of type '%1'.").arg(root->typeName()), root->location());
+    }
+}
+
+void ProjectResolver::Private::buildProjectTree()
+{
+    state.topLevelProject().buildDirectory = TopLevelProject::deriveBuildDirectory(
+                state.parameters().buildRoot(),
+                TopLevelProject::deriveId(state.parameters().finalBuildConfigurationTree()));
+    rootProjectItem->setProperty(StringConstants::sourceDirectoryProperty(),
+                                 VariantValue::create(QFileInfo(rootProjectItem->file()->filePath())
+                                                      .absolutePath()));
+    rootProjectItem->setProperty(StringConstants::buildDirectoryProperty(),
+                                 VariantValue::create(state.topLevelProject().buildDirectory));
+    rootProjectItem->setProperty(StringConstants::profileProperty(),
+                                 VariantValue::create(state.parameters().topLevelProfile()));
+    productsCollector.run(rootProjectItem);
+    productsHandler.run();
+
+    state.itemReader().clearExtraSearchPathsStack(); // TODO: Unneeded?
+    AccumulatingTimer timer(state.parameters().logElapsedTime()
+                            ? &elapsedTimePropertyChecking : nullptr);
+    checkPropertyDeclarations(rootProjectItem, state.topLevelProject().disabledItems,
+                              state.parameters(), state.logger());
 }
 
 void ProjectResolver::Private::resolveShadowProduct(Item *item, ResolverProjectContext *)
@@ -1611,6 +1729,20 @@ void ProjectResolver::Private::printProfilingInfo()
 {
     if (!setupParams.logElapsedTime())
         return;
+    logger.qbsLog(LoggerInfo, true)
+            << "  "
+            << Tr::tr("Project file loading and parsing took %1.")
+               .arg(elapsedTimeString(state.itemReader().elapsedTime()));
+    productsCollector.printProfilingInfo(2);
+    productsHandler.printProfilingInfo(2);
+    state.dependenciesResolver().printProfilingInfo(4);
+    state.moduleInstantiator().printProfilingInfo(6);
+    state.propertyMerger().printProfilingInfo(6);
+    state.probesResolver().printProfilingInfo(4);
+    state.logger().qbsLog(LoggerInfo, true)
+            << "  "
+            << Tr::tr("Property checking took %1.")
+               .arg(elapsedTimeString(elapsedTimePropertyChecking));
     logger.qbsLog(LoggerInfo, true)
         << "  " << Tr::tr("All property evaluation took %1.")
                        .arg(elapsedTimeString(elapsedTimeAllPropEval));

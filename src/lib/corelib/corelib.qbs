@@ -361,8 +361,6 @@ QbsLibrary {
             "productshandler.h",
             "projectresolver.cpp",
             "projectresolver.h",
-            "projecttreebuilder.cpp",
-            "projecttreebuilder.h",
         ]
     }
     Group {

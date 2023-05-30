@@ -159,8 +159,8 @@ TopLevelProjectPtr TestLanguage::resolveProject(const char *relProjectFilePath)
     if (relProjectFilePath)
         defaultParameters.setProjectFilePath(testProject(relProjectFilePath));
     defaultParameters.expandBuildConfiguration();
-    ProjectResolver resolver(m_engine.get(), m_logger);
-    return project = resolver.resolve(defaultParameters);
+    ProjectResolver resolver(defaultParameters, m_engine.get(), m_logger);
+    return project = resolver.resolve();
 }
 
 void TestLanguage::init()

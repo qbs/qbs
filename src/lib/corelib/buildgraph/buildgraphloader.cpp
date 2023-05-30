@@ -338,7 +338,7 @@ void BuildGraphLoader::trackProjectChanges()
     markTransformersForChangeTracking(allRestoredProducts);
     if (!m_parameters.overrideBuildGraphData())
         m_parameters.setEnvironment(restoredProject->environment);
-    ProjectResolver resolver(m_evalContext->engine(), m_logger);
+    ProjectResolver resolver(m_parameters, m_evalContext->engine(), m_logger);
     resolver.setProgressObserver(m_evalContext->observer());
     resolver.setOldProjectProbes(restoredProject->probes);
     if (!m_parameters.forceProbeExecution())
@@ -350,7 +350,7 @@ void BuildGraphLoader::trackProjectChanges()
     resolver.setOldProductProbes(restoredProbes);
     if (!m_parameters.overrideBuildGraphData())
         resolver.setStoredProfiles(restoredProject->profileConfigs);
-    m_result.newlyResolvedProject = resolver.resolve(m_parameters);
+    m_result.newlyResolvedProject = resolver.resolve();
 
     std::vector<ResolvedProductPtr> allNewlyResolvedProducts
             = m_result.newlyResolvedProject->allProducts();
