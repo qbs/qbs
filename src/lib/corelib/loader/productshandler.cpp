@@ -125,7 +125,7 @@ void ProductsHandler::Private::handleNextProduct()
     try {
         handleProduct(*product, deferral);
         if (product->name.startsWith(StringConstants::shadowProductPrefix()))
-            topLevelProject.probes << product->info.probes;
+            topLevelProject.probes << product->probes;
     } catch (const ErrorInfo &err) {
         product->handleError(err);
     }
@@ -136,7 +136,7 @@ void ProductsHandler::Private::handleNextProduct()
 
     // If we encountered a dependency to an in-progress product or to a bulk dependency,
     // we defer handling this product if it hasn't failed yet and there is still forward progress.
-    if (!product->info.delayedError.hasError() && !product->dependenciesResolved) {
+    if (!product->delayedError.hasError() && !product->dependenciesResolved) {
         topLevelProject.productsToHandle.emplace_back(
             product, int(topLevelProject.productsToHandle.size()));
     }
@@ -147,7 +147,7 @@ void ProductsHandler::Private::handleProduct(ProductContext &product, Deferral d
     TopLevelProjectContext &topLevelProject = loaderState.topLevelProject();
     topLevelProject.checkCancelation(loaderState.parameters());
 
-    if (product.info.delayedError.hasError())
+    if (product.delayedError.hasError())
         return;
 
     product.dependenciesResolved = loaderState.dependenciesResolver()
@@ -191,21 +191,20 @@ void ProductsHandler::Private::handleProduct(ProductContext &product, Deferral d
     handleGroups(product);
 
     // Collect the full list of fileTags, including the values contributed by modules.
-    if (!product.info.delayedError.hasError() && enabled
+    if (!product.delayedError.hasError() && enabled
         && !product.name.startsWith(StringConstants::shadowProductPrefix())) {
         for (const FileTag &tag : fileTags)
             topLevelProject.productsByType.insert({tag, &product});
         product.item->setProperty(StringConstants::typeProperty(),
                                   VariantValue::create(sorted(fileTags.toStringList())));
     }
-    topLevelProject.productInfos[product.item] = product.info;
 }
 
 void ProductsHandler::Private::resolveProbes(ProductContext &product)
 {
     for (const Item::Module &module : product.item->modules()) {
         runModuleProbes(product, module);
-        if (product.info.delayedError.hasError())
+        if (product.delayedError.hasError())
             return;
     }
     resolveProbes(product, product.item);
@@ -213,8 +212,8 @@ void ProductsHandler::Private::resolveProbes(ProductContext &product)
 
 void ProductsHandler::Private::resolveProbes(ProductContext &product, Item *item)
 {
-    product.info.probes << loaderState.probesResolver().resolveProbes(
-                               {product.name, product.uniqueName()}, item);
+    product.probes << loaderState.probesResolver().resolveProbes(
+        {product.name, product.uniqueName()}, item);
 }
 
 void ProductsHandler::Private::handleModuleSetupError(
@@ -290,7 +289,7 @@ bool ProductsHandler::Private::validateModule(ProductContext &product, const Ite
         }
     } catch (const ErrorInfo &error) {
         handleModuleSetupError(product, module, error);
-        if (product.info.delayedError.hasError())
+        if (product.delayedError.hasError())
             return false;
     }
     return true;
@@ -329,7 +328,7 @@ void ProductsHandler::Private::updateModulePresentState(ProductContext &product,
 void ProductsHandler::Private::handleGroups(ProductContext &product)
 {
     groupsHandler.setupGroups(product.item, product.scope);
-    product.info.modulePropertiesSetInGroups = groupsHandler.modulePropertiesSetInGroups();
+    product.modulePropertiesSetInGroups = groupsHandler.modulePropertiesSetInGroups();
     loaderState.topLevelProject().disabledItems.unite(groupsHandler.disabledGroups());
 }
 

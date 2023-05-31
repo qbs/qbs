@@ -638,7 +638,7 @@ Item *DependenciesResolver::Private::findMatchingModule(
         dependency.requiredGlobally);
 
     Item *moduleItem = loaderResult.moduleItem;
-    product->info.probes << loaderResult.providerProbes;
+    product->probes << loaderResult.providerProbes;
     if (moduleItem) {
         Item * const proto = moduleItem;
         moduleItem = moduleItem->clone();

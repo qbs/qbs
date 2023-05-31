@@ -136,18 +136,6 @@ struct ResolverProjectContext
     ResolvedModulePtr dummyModule;
 };
 
-using FileLocations = QHash<std::pair<QString, QString>, CodeLocation>;
-struct ResolverProductContext
-{
-    ResolvedProductPtr product;
-    QString buildDirectory;
-    Item *item = nullptr;
-    using ArtifactPropertiesInfo = std::pair<ArtifactPropertiesPtr, std::vector<CodeLocation>>;
-    QHash<QStringList, ArtifactPropertiesInfo> artifactPropertiesPerFilter;
-    FileLocations sourceArtifactLocations;
-    GroupConstPtr currentGroup;
-};
-
 struct ModuleContext
 {
     ResolvedModulePtr module;
@@ -266,7 +254,7 @@ public:
     ProductsHandler productsHandler{state};
     Item *rootProjectItem = nullptr;
     ProgressObserver *progressObserver = nullptr;
-    ResolverProductContext *productContext = nullptr;
+    ProductContext *productContext = nullptr;
     ModuleContext *moduleContext = nullptr;
     QHash<Item *, ResolvedProductPtr> productsByItem;
     mutable QHash<FileContextConstPtr, ResolvedFileContextPtr> fileContextMap;
@@ -449,7 +437,7 @@ static void makeSubProjectNamesUniqe(const ResolvedProjectPtr &parentProject)
 TopLevelProjectPtr ProjectResolver::Private::resolveTopLevelProject()
 {
     if (progressObserver)
-        progressObserver->setMaximum(int(state.topLevelProject().productInfos.size()));
+        progressObserver->setMaximum(int(state.topLevelProject().productsByItem.size()));
     TopLevelProjectPtr project = TopLevelProject::create();
     project->buildDirectory = TopLevelProject::deriveBuildDirectory(
         setupParams.buildRoot(),
@@ -599,21 +587,26 @@ void ProjectResolver::Private::resolveProduct(Item *item, ResolverProjectContext
 {
     checkCancelation();
     evaluator.clearPropertyDependencies();
-    ResolverProductContext productContext;
-    productContext.item = item;
+
+    const auto it = state.topLevelProject().productsByItem.find(item);
+    QBS_CHECK(it != state.topLevelProject().productsByItem.end());
+    ProductContext * const productContext = it->second;
+    QBS_CHECK(productContext);
+    QBS_CHECK(productContext->item == item);
+
     ResolvedProductPtr product = ResolvedProduct::create();
     product->enabled = projectContext->project->enabled;
     product->moduleProperties = PropertyMapInternal::create();
     product->project = projectContext->project;
-    productContext.product = product;
+    productContext->product = product;
     product->location = item->location();
     class ProductContextSwitcher {
     public:
-        ProductContextSwitcher(ProjectResolver::Private &resolver, ResolverProductContext &newContext,
+        ProductContextSwitcher(ProjectResolver::Private &resolver, ProductContext *context,
                                ProgressObserver *progressObserver)
             : m_resolver(resolver), m_progressObserver(progressObserver) {
             QBS_CHECK(!m_resolver.productContext);
-            m_resolver.productContext = &newContext;
+            m_resolver.productContext = context;
         }
         ~ProductContextSwitcher() {
             if (m_progressObserver)
@@ -625,16 +618,15 @@ void ProjectResolver::Private::resolveProduct(Item *item, ResolverProjectContext
         ProgressObserver * const m_progressObserver;
     } contextSwitcher(*this, productContext, progressObserver);
     const auto errorFromDelayedError = [&] {
-        ProductInfo &pi = state.topLevelProject().productInfos[item];
-        if (pi.delayedError.hasError()) {
+        if (productContext->delayedError.hasError()) {
             ErrorInfo errorInfo;
 
             // First item is "main error", gets prepended again in the catch clause.
-            const QList<ErrorItem> &items = pi.delayedError.items();
+            const QList<ErrorItem> &items = productContext->delayedError.items();
             for (int i = 1; i < items.size(); ++i)
                 errorInfo.append(items.at(i));
 
-            pi.delayedError.clear();
+            productContext->delayedError.clear();
             return errorInfo;
         }
         return ErrorInfo();
@@ -683,7 +675,6 @@ void ProjectResolver::Private::resolveProductFully(Item *item, ResolverProjectCo
     productsByItem.insert(item, product);
     product->enabled = product->enabled
                        && evaluator.boolValue(item, StringConstants::conditionProperty());
-    ProductInfo &pi = state.topLevelProject().productInfos[item];
     gatherProductTypes(product.get(), item);
     product->targetName = evaluator.stringValue(item, StringConstants::targetNameProperty());
     product->sourceDirectory = evaluator.stringValue(
@@ -698,7 +689,7 @@ void ProjectResolver::Private::resolveProductFully(Item *item, ResolverProjectCo
                     product->topLevelProject()->buildDirectory,
                     product->destinationDirectory);
     }
-    product->probes = pi.probes;
+    product->probes = productContext->probes;
     createProductConfig(product.get());
     product->productProperties.insert(StringConstants::destinationDirProperty(),
                                       product->destinationDirectory);
@@ -875,8 +866,7 @@ QVariantMap ProjectResolver::Private::resolveAdditionalModuleProperties(
     const Item *group, const QVariantMap &currentValues)
 {
     // Step 1: Retrieve the properties directly set in the group
-    const ModulePropertiesPerGroup &mp = mapValue(
-            state.topLevelProject().productInfos, productContext->item).modulePropertiesSetInGroups;
+    const ModulePropertiesPerGroup &mp = productContext->modulePropertiesSetInGroups;
     const auto it = mp.find(group);
     if (it == mp.end())
         return {};
@@ -972,7 +962,7 @@ void ProjectResolver::Private::resolveGroupFully(
         if (!isEnabled)
             return;
 
-        ResolverProductContext::ArtifactPropertiesInfo &apinfo
+        ProductContext::ArtifactPropertiesInfo &apinfo
                 = productContext->artifactPropertiesPerFilter[fileTagsFilter];
         if (apinfo.first) {
             const auto it = std::find_if(apinfo.second.cbegin(), apinfo.second.cend(),
@@ -1063,13 +1053,13 @@ void ProjectResolver::Private::resolveGroupFully(
 
     class GroupContextSwitcher {
     public:
-        GroupContextSwitcher(ResolverProductContext &context, const GroupConstPtr &newGroup)
+        GroupContextSwitcher(ProductContext &context, const GroupConstPtr &newGroup)
             : m_context(context), m_oldGroup(context.currentGroup) {
             m_context.currentGroup = newGroup;
         }
         ~GroupContextSwitcher() { m_context.currentGroup = m_oldGroup; }
     private:
-        ResolverProductContext &m_context;
+        ProductContext &m_context;
         const GroupConstPtr m_oldGroup;
     };
     GroupContextSwitcher groupSwitcher(*productContext, group);

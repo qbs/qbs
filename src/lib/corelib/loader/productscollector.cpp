@@ -86,7 +86,7 @@ public:
     bool checkExportItemCondition(Item *exportItem, const ProductContext &product);
     void initProductProperties(const ProductContext &product);
     void checkProjectNamesInOverrides();
-    void collectProductsByName();
+    void collectProductsByNameAndItem();
     void checkProductNamesInOverrides();
 
     LoaderState &loaderState;
@@ -120,7 +120,7 @@ void ProductsCollector::run(Item *rootProject)
 {
     d->handleProject(rootProject, {QDir::cleanPath(d->loaderState.parameters().projectFilePath())});
     d->checkProjectNamesInOverrides();
-    d->collectProductsByName();
+    d->collectProductsByNameAndItem();
     d->checkProductNamesInOverrides();
 }
 
@@ -292,7 +292,8 @@ void ProductsCollector::Private::prepareProduct(ProjectContext &projectContext, 
     topLevelProject.checkCancelation(parameters);
     qCDebug(lcModuleLoader) << "prepareProduct" << productItem->file()->filePath();
 
-    ProductContext productContext;
+    projectContext.products.push_back({});
+    ProductContext &productContext = projectContext.products.back();
     productContext.item = productItem;
     productContext.project = &projectContext;
 
@@ -346,8 +347,6 @@ void ProductsCollector::Private::prepareProduct(ProjectContext &projectContext, 
     const bool hasExportItems = mergeExportItems(productContext);
 
     setScopeForDescendants(productItem, productContext.scope);
-
-    projectContext.products.push_back(productContext);
 
     if (!hasExportItems || getShadowProductInfo(productContext).first)
         return;
@@ -676,12 +675,14 @@ void ProductsCollector::Private::checkProjectNamesInOverrides()
     }
 }
 
-void ProductsCollector::Private::collectProductsByName()
+void ProductsCollector::Private::collectProductsByNameAndItem()
 {
     TopLevelProjectContext &topLevelProject = loaderState.topLevelProject();
     for (ProjectContext * const project : topLevelProject.projects) {
-        for (ProductContext &product : project->products)
+        for (ProductContext &product : project->products) {
+            topLevelProject.productsByItem.insert({product.item, &product});
             topLevelProject.productsByName.insert({product.name, &product});
+        }
     }
 }
 

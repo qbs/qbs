@@ -107,10 +107,10 @@ QString ProductContext::displayName() const
 
 void ProductContext::handleError(const ErrorInfo &error)
 {
-    const bool alreadyHadError = info.delayedError.hasError();
+    const bool alreadyHadError = delayedError.hasError();
     if (!alreadyHadError) {
-        info.delayedError.append(Tr::tr("Error while handling product '%1':")
-                                     .arg(name), item->location());
+        delayedError.append(Tr::tr("Error while handling product '%1':")
+                                .arg(name), item->location());
     }
     if (error.isInternalError()) {
         if (alreadyHadError) {
@@ -121,8 +121,7 @@ void ProductContext::handleError(const ErrorInfo &error)
     }
     const auto errorItems = error.items();
     for (const ErrorItem &ei : errorItems)
-        info.delayedError.append(ei.description(), ei.codeLocation());
-    project->topLevelProject->productInfos[item] = info;
+        delayedError.append(ei.description(), ei.codeLocation());
     project->topLevelProject->disabledItems << item;
     project->topLevelProject->erroneousProducts.insert(name);
 }

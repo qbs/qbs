@@ -71,17 +71,10 @@ class ProjectContext;
 
 using ModulePropertiesPerGroup = std::unordered_map<const Item *, QualifiedIdSet>;
 using ShadowProductInfo = std::pair<bool, QString>;
+using FileLocations = QHash<std::pair<QString, QString>, CodeLocation>;
 
 enum class FallbackMode { Enabled, Disabled };
 enum class Deferral { Allowed, NotAllowed };
-
-class ProductInfo
-{
-public:
-    std::vector<ProbeConstPtr> probes;
-    ModulePropertiesPerGroup modulePropertiesSetInGroups;
-    ErrorInfo delayedError;
-};
 
 class ProductContext
 {
@@ -91,17 +84,25 @@ public:
     void handleError(const ErrorInfo &error);
 
     QString name;
+    QString buildDirectory;
     Item *item = nullptr;
     Item *scope = nullptr;
     ProjectContext *project = nullptr;
     Item *mergedExportItem = nullptr;
-    ProductInfo info;
+    std::vector<ProbeConstPtr> probes;
+    ModulePropertiesPerGroup modulePropertiesSetInGroups;
+    ErrorInfo delayedError;
     QString profileName;
     QString multiplexConfigurationId;
     QVariantMap profileModuleProperties; // Tree-ified module properties from profile.
     QVariantMap moduleProperties;        // Tree-ified module properties from profile + overridden values.
     QVariantMap defaultParameters; // In Export item.
     QStringList searchPaths;
+    ResolvedProductPtr product;
+    using ArtifactPropertiesInfo = std::pair<ArtifactPropertiesPtr, std::vector<CodeLocation>>;
+    QHash<QStringList, ArtifactPropertiesInfo> artifactPropertiesPerFilter;
+    FileLocations sourceArtifactLocations;
+    GroupConstPtr currentGroup;
 
     bool dependenciesResolved = false;
 };
@@ -120,7 +121,7 @@ public:
     std::vector<ProjectContext *> projects;
     std::list<std::pair<ProductContext *, int>> productsToHandle;
     std::multimap<QString, ProductContext *> productsByName;
-    std::unordered_map<Item *, ProductInfo> productInfos;
+    std::unordered_map<Item *, ProductContext *> productsByItem;
     Set<QString> projectNamesUsedInOverrides;
     Set<QString> productNamesUsedInOverrides;
     Set<Item *> disabledItems;
