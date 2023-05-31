@@ -1243,7 +1243,7 @@ function allQt5Modules(qtProps, androidAbi) {
                 }
             }
         }
-        if (hasV2 && !hasModuleEntry)
+        if (hasV2 && !hasModuleEntry && !moduleInfo.isStaticLibrary)
             moduleInfo.hasLibrary = false;
 
         // Fix include paths for Apple frameworks.

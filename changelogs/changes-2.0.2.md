@@ -4,6 +4,7 @@
 
 # Qt Support
 * Added special handling for unclean paths in prl files (QBS-1732).
+* Fixed support for static plugins and Qt >= 6.5 (QBS-1732).
 
 # Contributors
 * Christian Kandeler
