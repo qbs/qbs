@@ -49,10 +49,51 @@
 #include <QtCore/qdir.h>
 #include <QtCore/qfile.h>
 #include <QtCore/qtextstream.h>
+#include <QtCore/qjsondocument.h>
+#include <QtCore/qjsonobject.h>
 
 #include <cstdio>
 
 using namespace qbs;
+
+static QJsonObject settingsToJSONObject(
+    Settings &settings, qbs::Settings::Scopes scopes, const QString &parentGroup = {})
+{
+    QJsonObject result;
+
+    const auto allKeys = settings.directChildren(parentGroup, scopes);
+    for (const auto& key : allKeys) {
+        const auto fullKey = parentGroup.isEmpty()
+            ? key
+            : QStringLiteral("%1.%2").arg(parentGroup, key);
+        const auto value = settings.value(fullKey, scopes);
+        if (value.isValid()) { // looks like a real value
+            result[key] = QJsonValue::fromVariant(value);
+        } else { // looks like a group
+            result[key] = settingsToJSONObject(settings, scopes, fullKey);
+        }
+    }
+
+    return result;
+}
+
+static void settingsFromJSONObject(
+    Settings &settings, const QJsonObject &object, const QString &parentGroup = {})
+{
+    for (auto it = object.begin(), end = object.end(); it != end; ++it) {
+        const auto key = it.key();
+        const auto value = it.value();
+        const auto fullKey = parentGroup.isEmpty()
+            ? key
+            : QStringLiteral("%1.%2").arg(parentGroup, key);
+        if (value.isObject()) {
+            settingsFromJSONObject(settings, it.value().toObject(), fullKey);
+        } else {
+            settings.setValue(fullKey, value.toVariant());
+        }
+    }
+}
+
 
 ConfigCommandExecutor::ConfigCommandExecutor(Settings *settings, Settings::Scopes scope)
     : m_settings(settings), m_scope(scope)
@@ -139,12 +180,20 @@ void ConfigCommandExecutor::exportSettings(const QString &filename)
         throw ErrorInfo(tr("Could not open file '%1' for writing: %2")
                 .arg(QDir::toNativeSeparators(filename), file.errorString()));
     }
-    QTextStream stream(&file);
-    setupDefaultCodec(stream);
-    const auto keys = m_settings->allKeys(m_scope);
-    for (const QString &key : keys)
-        stream << key << ": " << qbs::settingsValueToRepresentation(m_settings->value(key, m_scope))
-               << Qt::endl;
+
+    if (QFileInfo(filename).suffix() == u"json") {
+        QJsonDocument doc;
+        doc.setObject(settingsToJSONObject(*m_settings, m_scope));
+        file.write(doc.toJson());
+    } else {
+        QTextStream stream(&file);
+        setupDefaultCodec(stream);
+        const auto keys = m_settings->allKeys(m_scope);
+        for (const QString &key : keys)
+            stream << key << ": "
+                << qbs::settingsValueToRepresentation(m_settings->value(key, m_scope))
+                << Qt::endl;
+    }
 }
 
 void ConfigCommandExecutor::importSettings(const QString &filename)
@@ -159,15 +208,21 @@ void ConfigCommandExecutor::importSettings(const QString &filename)
     for (const QString &key : keys)
         m_settings->remove(key);
 
-    QTextStream stream(&file);
-    setupDefaultCodec(stream);
-    while (!stream.atEnd()) {
-        QString line = stream.readLine();
-        int colon = line.indexOf(QLatin1Char(':'));
-        if (colon >= 0 && !line.startsWith(QLatin1Char('#'))) {
-            const QString key = line.left(colon).trimmed();
-            const QString value = line.mid(colon + 1).trimmed();
-            m_settings->setValue(key, representationToSettingsValue(value));
+    if (QFileInfo(filename).suffix() == u"json") {
+        const auto doc = QJsonDocument::fromJson(file.readAll());
+        const auto object = doc.object();
+        settingsFromJSONObject(*m_settings, doc.object());
+    } else {
+        QTextStream stream(&file);
+        setupDefaultCodec(stream);
+        while (!stream.atEnd()) {
+            QString line = stream.readLine();
+            int colon = line.indexOf(QLatin1Char(':'));
+            if (colon >= 0 && !line.startsWith(QLatin1Char('#'))) {
+                const QString key = line.left(colon).trimmed();
+                const QString value = line.mid(colon + 1).trimmed();
+                m_settings->setValue(key, representationToSettingsValue(value));
+            }
         }
     }
 }

@@ -135,13 +135,22 @@ QStringList Settings::allKeys(Scopes scopes) const
     return keys;
 }
 
-QStringList Settings::directChildren(const QString &parentGroup, Scope scope) const
+QStringList Settings::directChildren(const QString &parentGroup, Scopes scopes) const
 {
-    QSettings * const settings = settingsForScope(scope);
-    settings->beginGroup(internalRepresentation(parentGroup));
-    QStringList children = settings->childGroups();
-    children << settings->childKeys();
-    settings->endGroup();
+    auto helper = [this, &parentGroup](const Scope scope) {
+        QSettings * const settings = settingsForScope(scope);
+        settings->beginGroup(internalRepresentation(parentGroup));
+        QStringList children = settings->childGroups();
+        children << settings->childKeys();
+        settings->endGroup();
+        return children;
+    };
+
+    QStringList children;
+    if (scopes & UserScope)
+        children += helper(UserScope);
+    if (scopes & SystemScope)
+        children += helper(SystemScope);
     fixupKeys(children);
     return children;
 }

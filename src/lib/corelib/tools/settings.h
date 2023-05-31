@@ -70,7 +70,7 @@ public:
     QVariant value(const QString &key, Scopes scopes,
                    const QVariant &defaultValue = QVariant()) const;
     QStringList allKeys(Scopes scopes) const;
-    QStringList directChildren(const QString &parentGroup, Scope scope) const; // Keys and groups.
+    QStringList directChildren(const QString &parentGroup, Scopes scopes) const; // Keys and groups.
     QStringList allKeysWithPrefix(const QString &group, Scopes scopes) const;
     void setValue(const QString &key, const QVariant &value);
     void remove(const QString &key);

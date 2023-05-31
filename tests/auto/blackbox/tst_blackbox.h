@@ -261,6 +261,10 @@ private slots:
     void qbsConfig();
     void qbsConfigAddProfile();
     void qbsConfigAddProfile_data();
+    void qbsConfigImport();
+    void qbsConfigImport_data();
+    void qbsConfigExport();
+    void qbsConfigExport_data();
     void qbsSession();
     void qbsVersion();
     void qtBug51237();

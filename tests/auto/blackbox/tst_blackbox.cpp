@@ -6105,6 +6105,10 @@ void TestBlackbox::qbsConfig()
     if (!canWriteToSystemSettings) {
         QVERIFY2(m_qbsStderr.contains("You do not have permission to write to that location."),
                  m_qbsStderr.constData());
+    } else {
+        // cleanup system settings
+        params.arguments = QStringList{"--system", "--unset", "key.subkey.scalar"};
+        QCOMPARE(runQbs(params) == 0, canWriteToSystemSettings);
     }
 }
 
@@ -6167,6 +6171,92 @@ void TestBlackbox::qbsConfigAddProfile_data()
                                    << QString("Profile properties must be key/value pairs");
     QTest::newRow("missing values") << QStringList{"p", "p1", "v1", "p2"}
                                     << QString("Profile properties must be key/value pairs");
+}
+
+void TestBlackbox::qbsConfigImport()
+{
+    QFETCH(QString, format);
+
+    QDir::setCurrent(testDataDir + "/qbs-config-import-export");
+
+    QbsRunParameters params("config");
+    QTemporaryDir settingsDir;
+    QVERIFY(settingsDir.isValid());
+    const QStringList settingsDirArgs = QStringList{"--settings-dir", settingsDir.path()};
+    params.arguments = settingsDirArgs;
+    params.arguments << "--import" << "config." + format;
+
+    QCOMPARE(runQbs(params), 0);
+
+    params.arguments = settingsDirArgs;
+    params.arguments << "--list";
+    QCOMPARE(runQbs(params), 0);
+    const QByteArray output = m_qbsStdout;
+    const auto lines = output.split('\n');
+    QCOMPARE(lines.count(), 5);
+    QCOMPARE(lines[0], "group.key1: \"value1\"");
+    QCOMPARE(lines[1], "group.key2: \"value2\"");
+    QCOMPARE(lines[2], "key: \"value\"");
+    QCOMPARE(lines[3], "listKey: [\"valueOne\", \"valueTwo\"]");
+    QCOMPARE(lines[4], "");
+}
+
+void TestBlackbox::qbsConfigImport_data()
+{
+    QTest::addColumn<QString>("format");
+
+    QTest::newRow("text") << QStringLiteral("txt");
+    QTest::newRow("json") << QStringLiteral("json");
+}
+
+void TestBlackbox::qbsConfigExport()
+{
+    QFETCH(QString, format);
+
+    QDir::setCurrent(testDataDir + "/qbs-config-import-export");
+
+    QbsRunParameters params("config");
+    QTemporaryDir settingsDir;
+    const QString fileName = "config." + format;
+    const QString filePath = settingsDir.path() + "/" + fileName;
+    QVERIFY(settingsDir.isValid());
+    const QStringList commonArgs = QStringList{"--settings-dir", settingsDir.path(), "--user"};
+
+    std::pair<QString, QString> values[] = {
+        {"key", "value"},
+        {"listKey", "[\"valueOne\",\"valueTwo\"]"},
+        {"group.key1", "value1"},
+        {"group.key2", "value2"}
+    };
+
+    for (const auto &value: values) {
+        params.arguments = commonArgs;
+        params.arguments << value.first << value.second;
+        QCOMPARE(runQbs(params), 0);
+    }
+
+    params.arguments = commonArgs;
+    params.arguments << "--export" << filePath;
+
+    QCOMPARE(runQbs(params), 0);
+
+    QVERIFY(QFileInfo(filePath).canonicalPath() != QFileInfo(fileName).canonicalPath());
+
+    QFile exported(filePath);
+    QFile expected(fileName);
+
+    QVERIFY(exported.open(QIODevice::ReadOnly | QIODevice::Text));
+    QVERIFY(expected.open(QIODevice::ReadOnly | QIODevice::Text));
+
+    QCOMPARE(exported.readAll(), expected.readAll());
+}
+
+void TestBlackbox::qbsConfigExport_data()
+{
+    QTest::addColumn<QString>("format");
+
+    QTest::newRow("text") << QStringLiteral("txt");
+    QTest::newRow("json") << QStringLiteral("json");
 }
 
 static QJsonObject getNextSessionPacket(QProcess &session, QByteArray &data)
