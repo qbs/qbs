@@ -8,20 +8,6 @@ endif()
 # below we copy some files that are required to run qbs from the build directory
 # emulating the same layout we will have after the installation
 
-# copy & install dmgbuild
-install(
-    PROGRAMS ../src/3rdparty/python/bin/dmgbuild
-    DESTINATION "${QBS_LIBEXEC_INSTALL_DIR}"
-    )
-set(_DMGBUILD_INSTALL_PATH ${CMAKE_BINARY_DIR}/${QBS_OUTPUT_PREFIX}${QBS_LIBEXEC_INSTALL_DIR}/dmgbuild)
-add_custom_command(
-    OUTPUT ${_DMGBUILD_INSTALL_PATH}
-    COMMAND ${CMAKE_COMMAND} -E copy
-        ${CMAKE_CURRENT_SOURCE_DIR}/../src/3rdparty/python/bin/dmgbuild
-        ${CMAKE_BINARY_DIR}/${QBS_OUTPUT_PREFIX}${QBS_LIBEXEC_INSTALL_DIR}
-    COMMENT "Copying dmgbuild script"
-    )
-
 # copy & install python packages
 set(_SITE_PACKAGES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../src/3rdparty/python/lib/python2.7/site-packages/)
 file(GLOB_RECURSE _SITE_PACKAGES_RELATIVE RELATIVE "${_SITE_PACKAGES_DIR}" "${_SITE_PACKAGES_DIR}/*.py")
@@ -102,7 +88,6 @@ add_custom_command(
 add_custom_target(
     BuildQbsResources ALL
     DEPENDS
-    "${_DMGBUILD_INSTALL_PATH}"
     ${_SITE_PACKAGES_DST}
     ${_QBS_RESOURCES_DST}
     "${_QMLTYPES_INSTALL_PATH}"

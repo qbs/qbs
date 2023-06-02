@@ -18,15 +18,6 @@ Product {
     }
 
     Group {
-        name: "Python executables"
-        files: ["../src/3rdparty/python/bin/dmgbuild"]
-        fileTags: ["qbs resources"]
-        qbs.install: true
-        qbs.installDir: qbsbuildconfig.libexecInstallDir
-        qbs.installSourceBase: "../src/3rdparty/python/bin"
-    }
-
-    Group {
         name: "Python packages"
         prefix: "../src/3rdparty/python/**/"
         files: ["*.py"]

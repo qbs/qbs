@@ -154,7 +154,7 @@ function dmgbuildSettings(product, inputs) {
         },
         "format": product.dmg.format,
         "compression-level": product.dmg.compressionLevel,
-        "license": {
+        "build_license": {
             "default-language": product.dmg.defaultLicenseLocale,
             "licenses": reduceLicensesForKey(licenseFileObjects, "licenses"),
             "buttons": reduceLicensesForKey(licenseFileObjects, "buttons")
@@ -199,8 +199,10 @@ function prepareDmg(project, product, inputs, outputs, input, output) {
     cmds.push(cmd);
 
     // Create the actual DMG via dmgbuild
-    cmd = new Command(FileInfo.joinPaths(product.qbs.libexecPath, "dmgbuild"),
-                      [product.dmg.volumeName,
+    cmd = new Command(product.dmg.pythonExePath,
+                      ["-m",
+                      "dmgbuild",
+                       product.dmg.volumeName,
                        output.filePath,
                        "--no-hidpi", // qbs handles this by itself
                        "--settings", settingsJsonFilePath]);
