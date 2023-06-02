@@ -99,16 +99,44 @@ function findJdkPath(hostOS, arch, environmentPaths, searchPaths) {
         try {
             // We filter by architecture here so that we'll get a compatible JVM for JNI use.
             var args = [];
+            var canonicalArch;
             if (arch) {
                 // Hardcoding apple/macosx/macho here is fine because we know we're on macOS
-                args.push("--arch",
-                          Utilities.canonicalTargetArchitecture(arch, undefined,
-                                                                "apple", "macosx", "macho"));
+                canonicalArch = Utilities.canonicalTargetArchitecture(arch, undefined, "apple",
+                                                                      "macosx", "macho");
+                args.push("--arch", canonicalArch);
             }
 
             // --failfast doesn't print the default JVM if nothing matches the filter(s).
             var status = p.exec("/usr/libexec/java_home", args.concat(["--failfast"]));
-            return status === 0 ? p.readStdOut().trim() : undefined;
+            if (status === 0)
+                return p.readStdOut().trim();
+
+            // It has been obvserved that java_home fails for any architecture that is passed,
+            // so try without the filter and look up the JDK architecture manually.
+            if (!canonicalArch)
+                return undefined;
+
+            if (p.exec("/usr/libexec/java_home", ["--failfast"]) !== 0)
+                return undefined;
+            var jdkPath = p.readStdOut().trim();
+            var releaseFile = new TextFile(jdkPath + "/release", TextFile.ReadOnly);
+            var line;
+            while ((line = releaseFile.readLine())) {
+                if (!line.startsWith("OS_ARCH="))
+                    continue;
+                var firstQuote = line.indexOf('"');
+                if (firstQuote === -1)
+                    break;
+                var secondQuote = line.indexOf('"', firstQuote + 1);
+                if (secondQuote === -1)
+                    break;
+                var archFromFile = line.substring(firstQuote + 1, secondQuote);
+                if (archFromFile !== canonicalArch)
+                    break;
+                return jdkPath;
+            }
+            return undefined;
         } finally {
             p.close();
         }
