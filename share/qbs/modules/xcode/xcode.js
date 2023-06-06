@@ -112,7 +112,7 @@ function sdkInfoList(sdksPath) {
         if (!sdks[i].match(/[0-9]+/))
             continue;
 
-        if (sdks[i].startsWith("DriverKit"))
+        if (sdks[i].startsWith("DriverKit") || sdks[i].startsWith("AssetRuntime"))
             continue;
 
         var settingsPlist = FileInfo.joinPaths(sdksPath, sdks[i], "SDKSettings.plist");
