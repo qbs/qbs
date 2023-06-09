@@ -2760,6 +2760,7 @@ void TestLanguage::qbsPropertiesInProjectCondition()
     try {
         resolveProject("qbs-properties-in-project-condition.qbs");
         QVERIFY(!!project);
+        QVERIFY(!project->enabled);
         const QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
         QCOMPARE(products.size(), 0);
     } catch (const ErrorInfo &e) {

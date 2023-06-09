@@ -73,7 +73,8 @@ class ProductsCollector::Private
 public:
     Private(LoaderState &loaderState) : loaderState(loaderState) {}
 
-    void handleProject(Item *projectItem, const Set<QString> &referencedFilePaths);
+    void handleProject(Item *projectItem, ProjectContext *parentProject,
+                       const Set<QString> &referencedFilePaths);
     QList<Item *> multiplexProductItem(ProductContext &dummyContext, Item *productItem);
     void prepareProduct(ProjectContext &projectContext, Item *productItem);
     void handleSubProject(ProjectContext &projectContext, Item *projectItem,
@@ -118,7 +119,8 @@ ProductsCollector::~ProductsCollector() = default;
 
 void ProductsCollector::run(Item *rootProject)
 {
-    d->handleProject(rootProject, {QDir::cleanPath(d->loaderState.parameters().projectFilePath())});
+    d->handleProject(rootProject, nullptr,
+                     {QDir::cleanPath(d->loaderState.parameters().projectFilePath())});
     d->checkProjectNamesInOverrides();
     d->collectProductsByNameAndItem();
     d->checkProductNamesInOverrides();
@@ -135,7 +137,7 @@ void ProductsCollector::printProfilingInfo(int indent)
            .arg(elapsedTimeString(d->elapsedTimePrepareProducts));
 }
 
-void ProductsCollector::Private::handleProject(Item *projectItem,
+void ProductsCollector::Private::handleProject(Item *projectItem, ProjectContext *parentProject,
                                                const Set<QString> &referencedFilePaths)
 {
     const SetupProjectParameters &parameters = loaderState.parameters();
@@ -146,6 +148,8 @@ void ProductsCollector::Private::handleProject(Item *projectItem,
 
     auto p = std::make_unique<ProjectContext>();
     auto &projectContext = *p;
+    projectContext.item = projectItem;
+    projectContext.parent = parentProject;
     projectContext.topLevelProject = &topLevelProject;
     ItemValuePtr itemValue = ItemValue::create(projectItem);
     projectContext.scope = Item::create(projectItem->pool(), ItemType::Scope);
@@ -166,6 +170,9 @@ void ProductsCollector::Private::handleProject(Item *projectItem,
         projectItem->setProperty(StringConstants::nameProperty(),
                                  VariantValue::create(projectContext.name));
     }
+    topLevelProject.projects.push_back(p.release());
+    if (parentProject)
+        parentProject->children.push_back(topLevelProject.projects.back());
     projectItem->overrideProperties(parameters.overriddenValuesTree(),
                                     StringConstants::projectsOverridePrefix() + projectContext.name,
                                     parameters, logger);
@@ -173,11 +180,9 @@ void ProductsCollector::Private::handleProject(Item *projectItem,
         disabledProjects.insert(projectContext.name);
         return;
     }
-    topLevelProject.projects.push_back(p.release());
     SearchPathsManager searchPathsManager(itemReader, itemReader.readExtraSearchPaths(projectItem)
                                           << projectItem->file()->dirPath());
     projectContext.searchPathsStack = itemReader.extraSearchPathsStack();
-    projectContext.item = projectItem;
 
     const QString minVersionStr
         = evaluator.stringValue(projectItem, StringConstants::minimumQbsVersionProperty(),
@@ -223,7 +228,7 @@ void ProductsCollector::Private::handleProject(Item *projectItem,
             break;
         case ItemType::Project:
             copyProperties(projectItem, child);
-            handleProject(child, referencedFilePaths);
+            handleProject(child, &projectContext, referencedFilePaths);
             break;
         default:
             break;
@@ -253,7 +258,7 @@ void ProductsCollector::Private::handleProject(Item *projectItem,
             break;
         case ItemType::Project:
             copyProperties(projectItem, subItem);
-            handleProject(subItem,
+            handleProject(subItem, &projectContext,
                           Set<QString>(referencedFilePaths) << subItem->file()->filePath());
             break;
         default:
@@ -425,7 +430,7 @@ void ProductsCollector::Private::handleSubProject(
 
     Item::addChild(projectItem, loadedItem);
     projectItem->setScope(projectContext.scope);
-    handleProject(loadedItem, Set<QString>(referencedFilePaths) << subProjectFilePath);
+    handleProject(loadedItem, &projectContext, Set<QString>(referencedFilePaths) << subProjectFilePath);
 }
 
 void ProductsCollector::Private::copyProperties(const Item *sourceProject, Item *targetProject)

@@ -42,6 +42,7 @@
 #include <language/filetags.h>
 #include <language/forward_decls.h>
 #include <language/qualifiedid.h>
+#include <tools/joblimits.h>
 #include <tools/pimpl.h>
 #include <tools/set.h>
 #include <tools/version.h>
@@ -143,8 +144,15 @@ public:
     Item *item = nullptr;
     Item *scope = nullptr;
     TopLevelProjectContext *topLevelProject = nullptr;
+    ProjectContext *parent = nullptr;
+    std::vector<ProjectContext *> children;
     std::vector<ProductContext> products;
     std::vector<QStringList> searchPathsStack;
+    ResolvedProjectPtr project;
+    std::vector<FileTaggerConstPtr> fileTaggers;
+    std::vector<RulePtr> rules;
+    JobLimits jobLimits;
+    ResolvedModulePtr dummyModule;
 };
 
 class LoaderState
