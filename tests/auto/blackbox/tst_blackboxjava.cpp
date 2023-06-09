@@ -39,7 +39,9 @@
 using qbs::Internal::HostOsInfo;
 using qbs::Profile;
 
-TestBlackboxJava::TestBlackboxJava() : TestBlackboxBase (SRCDIR "/testdata-java", "blackbox-java")
+TestBlackboxJava::TestBlackboxJava()
+    : TestBlackboxBase (SRCDIR "/testdata-java", "blackbox-java"),
+      m_blacklistedJdks(qgetenv("QBS_AUTOTEST_JDK_BLACKLIST"))
 {
 }
 
@@ -148,8 +150,11 @@ void TestBlackboxJava::javaDependencyTracking()
     QDir::setCurrent(testDataDir + "/java");
     QbsRunParameters rp;
     rp.arguments.push_back("--check-outputs");
-    if (!jdkPath.isEmpty())
+    if (!jdkPath.isEmpty()) {
+        if (m_blacklistedJdks.contains(jdkPath))
+            QSKIP("skipping blacklisted JDK");
         rp.arguments << ("modules.java.jdkPath:" + jdkPath);
+    }
     if (!javaVersion.isEmpty())
         rp.arguments << ("modules.java.languageVersion:'" + javaVersion + "'");
     rmDirR(relativeBuildDir());
