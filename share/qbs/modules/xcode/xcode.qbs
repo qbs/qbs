@@ -134,6 +134,7 @@ Module {
 
     readonly property var _sdkSettings: {
         if (_availableSdks) {
+            // see 'sdk' property doc to understand why this loop is needed
             for (var i in _availableSdks) {
                 if (_availableSdks[i]["Version"] === sdk)
                     return _availableSdks[i];
@@ -141,7 +142,7 @@ Module {
                     return _availableSdks[i];
             }
 
-            // Latest SDK available for the platform
+            // Latest SDK available for the platform (default case)
             if (DarwinTools.applePlatformName(qbs.targetOS, platformType) === sdk)
                 return _latestSdk;
         }

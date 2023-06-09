@@ -170,7 +170,7 @@ void TestBlackboxJava::javaDependencyTracking_data()
     auto getSpecificJdkVersion = [](const QString &jdkVersion) -> QString {
         if (HostOsInfo::isMacosHost()) {
             QProcess java_home;
-            java_home.start("/usr/libexec/java_home", QStringList() << "--version" << jdkVersion);
+            java_home.start("/usr/libexec/java_home", {"--version", jdkVersion, "--failfast"});
             java_home.waitForFinished();
             if (java_home.exitStatus() == QProcess::NormalExit && java_home.exitCode() == 0)
                 return QString::fromLocal8Bit(java_home.readAllStandardOutput().trimmed());
