@@ -41,6 +41,7 @@
 
 #include <language/filetags.h>
 #include <language/forward_decls.h>
+#include <language/propertydeclaration.h>
 #include <language/qualifiedid.h>
 #include <tools/joblimits.h>
 #include <tools/pimpl.h>
@@ -118,11 +119,21 @@ public:
 
     bool checkItemCondition(Item *item, Evaluator &evaluator);
     void checkCancelation(const SetupProjectParameters &parameters);
+    QString sourceCodeForEvaluation(const JSSourceValueConstPtr &value);
+    ScriptFunctionPtr scriptFunctionValue(Item *item, const QString &name);
+    QString sourceCodeAsFunction(const JSSourceValueConstPtr &value,
+                                 const PropertyDeclaration &decl);
+    const ResolvedFileContextPtr &resolvedFileContext(const FileContextConstPtr &ctx);
 
     std::vector<ProjectContext *> projects;
     std::list<std::pair<ProductContext *, int>> productsToHandle;
     std::multimap<QString, ProductContext *> productsByName;
     std::unordered_map<Item *, ProductContext *> productsByItem;
+    std::unordered_map<QStringView, QString> sourceCode;
+    QHash<CodeLocation, ScriptFunctionPtr> scriptFunctionMap;
+    std::unordered_map<std::pair<QStringView, QStringList>, QString> scriptFunctions;
+    std::unordered_map<FileContextConstPtr, ResolvedFileContextPtr> fileContextMap;
+    std::vector<std::pair<ResolvedProductPtr, Item *>> productExportInfo;
     Set<QString> projectNamesUsedInOverrides;
     Set<QString> productNamesUsedInOverrides;
     Set<Item *> disabledItems;
@@ -155,6 +166,13 @@ public:
     ResolvedModulePtr dummyModule;
 };
 
+class ModuleContext
+{
+public:
+    ResolvedModulePtr module;
+    JobLimits jobLimits;
+};
+
 class LoaderState
 {
 public:
@@ -183,6 +201,13 @@ private:
 void mergeParameters(QVariantMap &dst, const QVariantMap &src);
 ShadowProductInfo getShadowProductInfo(const ProductContext &product);
 void adjustParametersScopes(Item *item, Item *scope);
+void resolveRule(LoaderState &state, Item *item, ProjectContext *projectContext,
+                 ProductContext *productContext, ModuleContext *moduleContext);
+void resolveJobLimit(LoaderState &state, Item *item, ProjectContext *projectContext,
+                     ProductContext *productContext, ModuleContext *moduleContext);
+void resolveFileTagger(LoaderState &state, Item *item, ProjectContext *projectContext,
+                       ProductContext *productContext);
+const FileTag unknownFileTag();
 
 } // namespace Internal
 } // namespace qbs

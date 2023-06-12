@@ -42,13 +42,14 @@
 #include <tools/pimpl.h>
 
 namespace qbs::Internal {
+class Item;
 class LoaderState;
+class ProjectContext;
 
 // Responsibilities:
 //   - Resolving dependencies to modules and other products (via DependenciesResolver).
 //   - Module validation.
 //   - Running probes (via ProbesResolver) in Product and Module items.
-//   - Preparing Group items for property evaluation.
 class ProductsHandler
 {
 public:
@@ -57,6 +58,9 @@ public:
 
     void run();
     void printProfilingInfo(int indent);
+
+    // TODO: Remove from interface, call from handleProduct()
+    void resolveProduct(Item *item, ProjectContext *projectContext);
 
 private:
     class Private;
