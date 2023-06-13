@@ -78,12 +78,15 @@ using FileLocations = QHash<std::pair<QString, QString>, CodeLocation>;
 enum class FallbackMode { Enabled, Disabled };
 enum class Deferral { Allowed, NotAllowed };
 
+class CancelException { };
+
 class ProductContext
 {
 public:
     QString uniqueName() const;
     QString displayName() const;
     void handleError(const ErrorInfo &error);
+    bool dependenciesResolvingPending() const;
 
     QString name;
     QString buildDirectory;
@@ -119,7 +122,7 @@ public:
     ~TopLevelProjectContext() { qDeleteAll(projects); }
 
     bool checkItemCondition(Item *item, Evaluator &evaluator);
-    void checkCancelation(const SetupProjectParameters &parameters);
+    void checkCancelation();
     QString sourceCodeForEvaluation(const JSSourceValueConstPtr &value);
     ScriptFunctionPtr scriptFunctionValue(Item *item, const QString &name);
     QString sourceCodeAsFunction(const JSSourceValueConstPtr &value,
@@ -139,9 +142,11 @@ public:
     Set<Item *> disabledItems;
     Set<QString> erroneousProducts;
     std::vector<ProbeConstPtr> probes;
+    std::vector<ErrorInfo> queuedErrors;
     QString buildDirectory;
     QVariantMap profileConfigs;
     ProgressObserver *progressObserver = nullptr;
+    qint64 elapsedTimePropertyChecking = 0;
 
     // For fast look-up when resolving Depends.productTypes.
     // The contract is that it contains fully handled, error-free, enabled products.

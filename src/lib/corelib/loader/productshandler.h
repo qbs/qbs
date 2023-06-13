@@ -59,9 +59,6 @@ public:
     void run();
     void printProfilingInfo(int indent);
 
-    // TODO: Remove from interface, call from handleProduct()
-    void resolveProduct(Item *item, ProjectContext *projectContext);
-
 private:
     class Private;
     Pimpl<Private> d;

@@ -127,13 +127,10 @@ bool TopLevelProjectContext::checkItemCondition(Item *item, Evaluator &evaluator
     return false;
 }
 
-void TopLevelProjectContext::checkCancelation(const SetupProjectParameters &parameters)
+void TopLevelProjectContext::checkCancelation()
 {
-    if (progressObserver && progressObserver->canceled()) {
-        throw ErrorInfo(Tr::tr("Project resolving canceled for configuration %1.")
-                            .arg(TopLevelProject::deriveId(
-                                parameters.finalBuildConfigurationTree())));
-    }
+    if (progressObserver && progressObserver->canceled())
+        throw CancelException();
 }
 
 QString TopLevelProjectContext::sourceCodeForEvaluation(const JSSourceValueConstPtr &value)
@@ -445,6 +442,11 @@ const FileTag unknownFileTag()
 {
     static const FileTag tag("unknown-file-tag");
     return tag;
+}
+
+bool ProductContext::dependenciesResolvingPending() const
+{
+    return !dependenciesResolved && !product && !delayedError.hasError();
 }
 
 } // namespace qbs::Internal

@@ -296,7 +296,7 @@ void ProductsCollector::Private::prepareProduct(ProjectContext &projectContext, 
     TopLevelProjectContext &topLevelProject = loaderState.topLevelProject();
 
     AccumulatingTimer timer(parameters.logElapsedTime() ? &elapsedTimePrepareProducts : nullptr);
-    topLevelProject.checkCancelation(parameters);
+    topLevelProject.checkCancelation();
     qCDebug(lcModuleLoader) << "prepareProduct" << productItem->file()->filePath();
 
     if (mainProduct)
@@ -584,7 +584,7 @@ bool ProductsCollector::Private::mergeExportItems(ProductContext &productContext
     Set<FileContextConstPtr> filesWithExportItem;
     QVariantMap defaultParameters;
     for (Item * const exportItem : exportItems) {
-        topLevelProject.checkCancelation(parameters);
+        topLevelProject.checkCancelation();
         if (Q_UNLIKELY(filesWithExportItem.contains(exportItem->file())))
             throw ErrorInfo(Tr::tr("Multiple Export items in one product are prohibited."),
                             exportItem->location());

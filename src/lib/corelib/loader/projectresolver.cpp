@@ -118,8 +118,6 @@ static SetupProjectParameters finalizedProjectParameters(const SetupProjectParam
     return params;
 }
 
-class CancelException { };
-
 class ProjectResolver::Private
 {
 public:
@@ -127,24 +125,17 @@ public:
         : setupParams(finalizedProjectParameters(parameters, logger)), engine(engine),
           logger(std::move(logger)) {}
 
-    static void applyFileTaggers(const SourceArtifactPtr &artifact,
-                                 const ResolvedProductConstPtr &product);
-    void checkCancelation() const;
     TopLevelProjectPtr resolveTopLevelProject();
     void resolveProject(ProjectContext *projectContext);
     void resolveProjectFully(ProjectContext *projectContext);
     void resolveSubProject(Item *item, ProjectContext *projectContext);
     void resolveProductDependencies();
-    void postProcess(const ResolvedProductPtr &product, ProjectContext *projectContext) const;
-    void applyFileTaggers(const ResolvedProductPtr &product) const;
     void collectExportedProductDependencies();
     void checkOverriddenValues();
     void collectNameFromOverride(const QString &overrideString);
     void loadTopLevelProjectItem();
     void buildProjectTree();
 
-    static void matchArtifactProperties(const ResolvedProductPtr &product,
-                                        const std::vector<SourceArtifactPtr> &artifacts);
     void printProfilingInfo();
 
     const SetupProjectParameters setupParams;
@@ -157,9 +148,7 @@ public:
     ProductsHandler productsHandler{state};
     Item *rootProjectItem = nullptr;
     ProgressObserver *progressObserver = nullptr;
-    std::vector<ErrorInfo> queuedErrors;
     FileTime lastResolveTime;
-    qint64 elapsedTimePropertyChecking = 0;
 };
 
 ProjectResolver::ProjectResolver(const SetupProjectParameters &parameters, ScriptEngine *engine,
@@ -267,12 +256,6 @@ TopLevelProjectPtr ProjectResolver::resolve()
     return tlp;
 }
 
-void ProjectResolver::Private::checkCancelation() const
-{
-    if (progressObserver && progressObserver->canceled())
-        throw CancelException();
-}
-
 static void makeSubProjectNamesUniqe(const ResolvedProjectPtr &parentProject)
 {
     Set<QString> subProjectNames;
@@ -304,27 +287,27 @@ TopLevelProjectPtr ProjectResolver::Private::resolveTopLevelProject()
     project->buildDirectory = TopLevelProject::deriveBuildDirectory(
         setupParams.buildRoot(),
         TopLevelProject::deriveId(setupParams.finalBuildConfigurationTree()));
-    project->buildSystemFiles = state.itemReader().filesRead()
-            - state.dependenciesResolver().tempQbsFiles();
-    project->profileConfigs = state.topLevelProject().profileConfigs;
-    const QVariantMap &profiles = state.localProfiles().profiles();
-    for (auto it = profiles.begin(); it != profiles.end(); ++it)
-        project->profileConfigs.remove(it.key());
-
-    project->probes = state.topLevelProject().probes;
-    project->moduleProviderInfo = state.dependenciesResolver().storedModuleProviderInfo();
     if (!state.topLevelProject().projects.empty()) {
         ProjectContext * const projectContext = state.topLevelProject().projects.front();
         QBS_CHECK(projectContext->item == rootProjectItem);
         projectContext->project = project;
         resolveProject(projectContext);
     }
+    productsHandler.run();
     ErrorInfo accumulatedErrors;
-    for (const ErrorInfo &e : queuedErrors)
+    for (const ErrorInfo &e : state.topLevelProject().queuedErrors)
         appendError(accumulatedErrors, e);
     if (accumulatedErrors.hasError())
         throw accumulatedErrors;
 
+    project->buildSystemFiles = state.itemReader().filesRead()
+            - state.dependenciesResolver().tempQbsFiles();
+    project->profileConfigs = state.topLevelProject().profileConfigs;
+    const QVariantMap &profiles = state.localProfiles().profiles();
+    for (auto it = profiles.begin(); it != profiles.end(); ++it)
+        project->profileConfigs.remove(it.key());
+    project->probes = state.topLevelProject().probes;
+    project->moduleProviderInfo = state.dependenciesResolver().storedModuleProviderInfo();
     project->setBuildConfiguration(setupParams.finalBuildConfigurationTree());
     project->overriddenValues = setupParams.overriddenValues();
     project->canonicalFilePathResults = engine->canonicalFilePathResults();
@@ -338,26 +321,13 @@ TopLevelProjectPtr ProjectResolver::Private::resolveTopLevelProject()
     collectExportedProductDependencies();
     checkForDuplicateProductNames(project);
 
-    for (const ResolvedProductPtr &product : project->allProducts()) {
-        if (!product->enabled)
-            continue;
-
-        applyFileTaggers(product);
-        matchArtifactProperties(product, product->allEnabledFiles());
-
-        // Let a positive value of qbs.install imply the file tag "installable".
-        for (const SourceArtifactPtr &artifact : product->allFiles()) {
-            if (artifact->properties->qbsPropertyValue(StringConstants::installProperty()).toBool())
-                artifact->fileTags += "installable";
-        }
-    }
     project->warningsEncountered = logger.warnings();
     return project;
 }
 
 void ProjectResolver::Private::resolveProject(ProjectContext *projectContext)
 {
-    checkCancelation();
+    state.topLevelProject().checkCancelation();
 
     if (projectContext->parent) {
         projectContext->project = ResolvedProject::create();
@@ -412,14 +382,11 @@ void ProjectResolver::Private::resolveProjectFully(ProjectContext *projectContex
     projectContext->project->setProjectProperties(projectProperties);
 
     for (Item * const child : item->children()) {
-        checkCancelation();
+        state.topLevelProject().checkCancelation();
         try {
             switch (child->type()) {
             case ItemType::SubProject:
                 resolveSubProject(child, projectContext);
-                break;
-            case ItemType::Product:
-                productsHandler.resolveProduct(child, projectContext);
                 break;
             case ItemType::FileTagger:
                 resolveFileTagger(state, child, projectContext, nullptr);
@@ -434,15 +401,12 @@ void ProjectResolver::Private::resolveProjectFully(ProjectContext *projectContex
                 break;
             }
         } catch (const ErrorInfo &e) {
-            queuedErrors.push_back(e);
+            state.topLevelProject().queuedErrors.push_back(e);
         }
     }
 
     for (ProjectContext * const childContext : projectContext->children)
         resolveProject(childContext);
-
-    for (const ResolvedProductPtr &product : projectContext->project->products)
-        postProcess(product, projectContext);
 }
 
 void ProjectResolver::Private::resolveSubProject(Item *item, ProjectContext *projectContext)
@@ -596,26 +560,11 @@ void ProjectResolver::Private::buildProjectTree()
     rootProjectItem->setProperty(StringConstants::profileProperty(),
                                  VariantValue::create(state.parameters().topLevelProfile()));
     productsCollector.run(rootProjectItem);
-    productsHandler.run();
 
-    state.itemReader().clearExtraSearchPathsStack(); // TODO: Unneeded?
     AccumulatingTimer timer(state.parameters().logElapsedTime()
-                            ? &elapsedTimePropertyChecking : nullptr);
+                            ? &state.topLevelProject().elapsedTimePropertyChecking : nullptr);
     checkPropertyDeclarations(rootProjectItem, state.topLevelProject().disabledItems,
                               state.parameters(), state.logger());
-}
-
-void ProjectResolver::Private::matchArtifactProperties(const ResolvedProductPtr &product,
-        const std::vector<SourceArtifactPtr> &artifacts)
-{
-    for (const SourceArtifactPtr &artifact : artifacts) {
-        for (const auto &artifactProperties : product->artifactProperties) {
-            if (!artifact->isTargetOfModule()
-                    && artifact->fileTags.intersects(artifactProperties->fileTagsFilter())) {
-                artifact->properties = artifactProperties->propertyMap();
-            }
-        }
-    }
 }
 
 void ProjectResolver::Private::printProfilingInfo()
@@ -628,14 +577,14 @@ void ProjectResolver::Private::printProfilingInfo()
                .arg(elapsedTimeString(state.itemReader().elapsedTime()));
     productsCollector.printProfilingInfo(2);
     productsHandler.printProfilingInfo(2);
-    state.dependenciesResolver().printProfilingInfo(4);
-    state.moduleInstantiator().printProfilingInfo(6);
-    state.propertyMerger().printProfilingInfo(6);
-    state.probesResolver().printProfilingInfo(4);
+    state.dependenciesResolver().printProfilingInfo(2);
+    state.moduleInstantiator().printProfilingInfo(4);
+    state.propertyMerger().printProfilingInfo(4);
+    state.probesResolver().printProfilingInfo(2);
     state.logger().qbsLog(LoggerInfo, true)
             << "  "
             << Tr::tr("Property checking took %1.")
-               .arg(elapsedTimeString(elapsedTimePropertyChecking));
+               .arg(elapsedTimeString(state.topLevelProject().elapsedTimePropertyChecking));
 }
 
 void ProjectResolver::Private::resolveProductDependencies()
@@ -661,41 +610,6 @@ void ProjectResolver::Private::resolveProductDependencies()
                   [](const ResolvedProductPtr &p1, const ResolvedProductPtr &p2) {
             return p1->fullDisplayName() < p2->fullDisplayName();
         });
-    }
-}
-
-void ProjectResolver::Private::postProcess(const ResolvedProductPtr &product,
-                                           ProjectContext *projectContext) const
-{
-    product->fileTaggers << projectContext->fileTaggers;
-    std::sort(std::begin(product->fileTaggers), std::end(product->fileTaggers),
-              [] (const FileTaggerConstPtr &a, const FileTaggerConstPtr &b) {
-        return a->priority() > b->priority();
-    });
-    for (const RulePtr &rule : projectContext->rules) {
-        RulePtr clonedRule = rule->clone();
-        clonedRule->product = product.get();
-        product->rules.push_back(clonedRule);
-    }
-}
-
-void ProjectResolver::Private::applyFileTaggers(const ResolvedProductPtr &product) const
-{
-    for (const SourceArtifactPtr &artifact : product->allEnabledFiles())
-        applyFileTaggers(artifact, product);
-}
-
-void ProjectResolver::Private::applyFileTaggers(const SourceArtifactPtr &artifact,
-        const ResolvedProductConstPtr &product)
-{
-    if (!artifact->overrideFileTags || artifact->fileTags.empty()) {
-        const QString fileName = FileInfo::fileName(artifact->absoluteFilePath);
-        const FileTags fileTags = product->fileTagsForFileName(fileName);
-        artifact->fileTags.unite(fileTags);
-        if (artifact->fileTags.empty())
-            artifact->fileTags.insert(unknownFileTag());
-        qCDebug(lcProjectResolver) << "adding file tags" << artifact->fileTags
-                                   << "to" << fileName;
     }
 }
 

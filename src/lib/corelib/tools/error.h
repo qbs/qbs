@@ -113,6 +113,7 @@ public:
     QJsonObject toJson() const;
     bool isInternalError() const;
     bool hasLocation() const;
+    bool isCancelException() const;
 
     void load(Internal::PersistentPool &pool);
     void store(Internal::PersistentPool &pool) const;

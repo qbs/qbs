@@ -317,6 +317,13 @@ bool ErrorInfo::hasLocation() const
         return ei.codeLocation().isValid(); });
 }
 
+bool ErrorInfo::isCancelException() const
+{
+    return Internal::any_of(d->items, [](const ErrorItem &ei) {
+        return ei.description() == QLatin1String("interrupted");
+    });
+}
+
 void ErrorInfo::load(Internal::PersistentPool &pool)
 {
     pool.load(*d);

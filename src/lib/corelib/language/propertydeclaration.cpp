@@ -318,7 +318,11 @@ public:
         , m_params(params)
         , m_logger(logger)
     { }
-    void operator()(Item *item) { handleItem(item); }
+    void operator()(Item *item)
+    {
+        m_checkingProject = item->type() == ItemType::Project;
+        handleItem(item);
+    }
 
 private:
     void handle(JSSourceValue *value) override
@@ -373,6 +377,8 @@ private:
     }
     void handleItem(Item *item)
     {
+        if (m_checkingProject && item->type() == ItemType::Product)
+            return;
         if (!m_handledItems.insert(item).second)
             return;
         if (m_disabledItems.contains(item)
@@ -436,6 +442,7 @@ private:
     QString m_currentName;
     const SetupProjectParameters &m_params;
     Logger &m_logger;
+    bool m_checkingProject = false;
 };
 } // namespace
 

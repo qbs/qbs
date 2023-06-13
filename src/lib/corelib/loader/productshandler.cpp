@@ -75,6 +75,7 @@ public:
 
     void handleNextProduct();
     void handleProduct(ProductContext &product, Deferral deferral);
+    void setupProductForResolving(ProductContext &product, Deferral deferral);
     void resolveProbes(ProductContext &product);
     void resolveProbes(ProductContext &product, Item *item);
     void handleModuleSetupError(ProductContext &product, const Item::Module &module,
@@ -83,8 +84,10 @@ public:
     bool validateModule(ProductContext &product, const Item::Module &module);
     void updateModulePresentState(ProductContext &product, const Item::Module &module);
     void handleGroups(ProductContext &product);
+    void checkPropertyDeclarations(const ProductContext &product);
 
     void resolveProduct(ProductContext &productContext);
+    void resolveProductFully(ProductContext &productContext);
     void createProductConfig(ProductContext &productContext);
     QVariantMap evaluateModuleValues(Item *item, bool lookupPrototype = true);
     QVariantMap evaluateProperties(Item *item, bool lookupPrototype, bool checkErrors);
@@ -95,6 +98,8 @@ public:
                           QVariantMap &result, bool checkErrors);
     void checkAllowedValues(const QVariant &value, const CodeLocation &loc,
                             const PropertyDeclaration &decl, const QString &key) const;
+    void applyFileTaggers(const ProductContext &productContext);
+    void finalizeArtifactProperties(const ResolvedProduct &product);
 
     // TODO: Move to GroupsHandler?
     void resolveGroup(Item *item, ProductContext &productContext);
@@ -127,7 +132,6 @@ public:
 
     LoaderState &loaderState;
     GroupsHandler groupsHandler{loaderState};
-    qint64 elapsedTime = 0;
     qint64 elapsedTimePropEval = 0;
     qint64 elapsedTimeGroups = 0;
 };
@@ -136,9 +140,6 @@ ProductsHandler::ProductsHandler(LoaderState &loaderState) : d(makePimpl<Private
 
 void ProductsHandler::run()
 {
-    AccumulatingTimer timer(d->loaderState.parameters().logElapsedTime()
-                            ? &d->elapsedTime : nullptr);
-
     TopLevelProjectContext &topLevelProject = d->loaderState.topLevelProject();
     for (ProjectContext * const projectContext : topLevelProject.projects) {
         for (ProductContext &productContext : projectContext->products)
@@ -153,13 +154,9 @@ void ProductsHandler::printProfilingInfo(int indent)
     if (!d->loaderState.parameters().logElapsedTime())
         return;
     const QByteArray prefix(indent, ' ');
-    d->loaderState.logger().qbsLog(LoggerInfo, true)
-            << prefix
-            << Tr::tr("Handling products took %1.")
-               .arg(elapsedTimeString(d->elapsedTime));
     d->groupsHandler.printProfilingInfo(indent + 2);
     d->loaderState.logger().qbsLog(LoggerInfo, true)
-        << (prefix + "  ") << Tr::tr("Property evaluation took %1.")
+        << prefix << Tr::tr("Property evaluation took %1.")
            .arg(elapsedTimeString(d->elapsedTimePropEval));
     d->loaderState.logger().qbsLog(LoggerInfo, true)
         << prefix << Tr::tr("Resolving groups (without module property "
@@ -167,32 +164,26 @@ void ProductsHandler::printProfilingInfo(int indent)
                        .arg(elapsedTimeString(d->elapsedTimeGroups));
 }
 
-void ProductsHandler::resolveProduct(Item *item, ProjectContext *projectContext)
+void ProductsHandler::Private::resolveProduct(ProductContext &productContext)
 {
-    d->loaderState.evaluator().clearPropertyDependencies();
-
-    const auto it = d->loaderState.topLevelProject().productsByItem.find(item);
-    QBS_CHECK(it != d->loaderState.topLevelProject().productsByItem.end());
-    ProductContext * const productContext = it->second;
-    QBS_CHECK(productContext);
-    QBS_CHECK(productContext->item == item);
+    loaderState.evaluator().clearPropertyDependencies();
 
     ResolvedProductPtr product = ResolvedProduct::create();
-    product->enabled = projectContext->project->enabled;
+    product->enabled = productContext.project->project->enabled;
     product->moduleProperties = PropertyMapInternal::create();
-    product->project = projectContext->project;
-    productContext->product = product;
-    product->location = item->location();
+    product->project = productContext.project->project;
+    productContext.product = product;
+    product->location = productContext.item->location();
     const auto errorFromDelayedError = [&] {
-        if (productContext->delayedError.hasError()) {
+        if (productContext.delayedError.hasError()) {
             ErrorInfo errorInfo;
 
             // First item is "main error", gets prepended again in the catch clause.
-            const QList<ErrorItem> &items = productContext->delayedError.items();
+            const QList<ErrorItem> &items = productContext.delayedError.items();
             for (int i = 1; i < items.size(); ++i)
                 errorInfo.append(items.at(i));
 
-            productContext->delayedError.clear();
+            productContext.delayedError.clear();
             return errorInfo;
         }
         return ErrorInfo();
@@ -202,7 +193,7 @@ void ProductsHandler::resolveProduct(Item *item, ProjectContext *projectContext)
     // to provide IDEs with useful data (e.g. the list of files).
     // If we encounter a follow-up error, suppress it and report the original one instead.
     try {
-        d->resolveProduct(*productContext);
+        resolveProductFully(productContext);
         if (const ErrorInfo error = errorFromDelayedError(); error.hasError())
             throw error;
     } catch (ErrorInfo e) {
@@ -211,18 +202,18 @@ void ProductsHandler::resolveProduct(Item *item, ProjectContext *projectContext)
         QString mainErrorString = !product->name.isEmpty()
                 ? Tr::tr("Error while handling product '%1':").arg(product->name)
                 : Tr::tr("Error while handling product:");
-        ErrorInfo fullError(mainErrorString, item->location());
+        ErrorInfo fullError(mainErrorString, product->location);
         appendError(fullError, e);
         if (!product->enabled) {
             qCDebug(lcProjectResolver) << fullError.toString();
             return;
         }
-        if (d->loaderState.parameters().productErrorMode() == ErrorHandlingMode::Strict)
+        if (loaderState.parameters().productErrorMode() == ErrorHandlingMode::Strict)
             throw fullError;
-        d->loaderState.logger().printWarning(fullError);
-        d->loaderState.logger().printWarning(
+        loaderState.logger().printWarning(fullError);
+        loaderState.logger().printWarning(
                     ErrorInfo(Tr::tr("Product '%1' had errors and was disabled.")
-                              .arg(product->name), item->location()));
+                              .arg(product->name), product->location));
         product->enabled = false;
     }
 }
@@ -243,11 +234,7 @@ void ProductsHandler::Private::handleNextProduct()
             ? Deferral::Allowed : Deferral::NotAllowed;
 
     loaderState.itemReader().setExtraSearchPathsStack(product->project->searchPathsStack);
-    try {
-        handleProduct(*product, deferral);
-    } catch (const ErrorInfo &err) {
-        product->handleError(err);
-    }
+    handleProduct(*product, deferral);
 
     // The search paths stack can change during dependency resolution (due to module providers);
     // check that we've rolled back all the changes
@@ -255,7 +242,7 @@ void ProductsHandler::Private::handleNextProduct()
 
     // If we encountered a dependency to an in-progress product or to a bulk dependency,
     // we defer handling this product if it hasn't failed yet and there is still forward progress.
-    if (!product->delayedError.hasError() && !product->dependenciesResolved) {
+    if (product->dependenciesResolvingPending()) {
         topLevelProject.productsToHandle.emplace_back(
             product, int(topLevelProject.productsToHandle.size()));
     }
@@ -263,8 +250,31 @@ void ProductsHandler::Private::handleNextProduct()
 
 void ProductsHandler::Private::handleProduct(ProductContext &product, Deferral deferral)
 {
+    try {
+        setupProductForResolving(product, deferral);
+    } catch (const ErrorInfo &err) {
+        if (err.isCancelException())
+            throw CancelException();
+        product.handleError(err);
+    }
+
+    if (product.dependenciesResolvingPending())
+        return;
+
+    // TODO: The weird double-forwarded error handling can hopefully be simplified now.
+    try {
+        resolveProduct(product);
+    } catch (const ErrorInfo &err) {
+        if (err.isCancelException())
+            throw CancelException();
+        loaderState.topLevelProject().queuedErrors << err;
+    }
+}
+
+void ProductsHandler::Private::setupProductForResolving(ProductContext &product, Deferral deferral)
+{
     TopLevelProjectContext &topLevelProject = loaderState.topLevelProject();
-    topLevelProject.checkCancelation(loaderState.parameters());
+    topLevelProject.checkCancelation();
 
     if (product.delayedError.hasError())
         return;
@@ -318,13 +328,17 @@ void ProductsHandler::Private::handleProduct(ProductContext &product, Deferral d
                                   VariantValue::create(sorted(fileTags.toStringList())));
     }
 
+    checkPropertyDeclarations(product);
+
     if (!product.shadowProduct)
         return;
     cacheEnabler.reset();
     try {
-        handleProduct(*product.shadowProduct, Deferral::NotAllowed);
+        setupProductForResolving(*product.shadowProduct, Deferral::NotAllowed);
         topLevelProject.probes << product.shadowProduct->probes;
     } catch (const ErrorInfo &e) {
+        if (e.isCancelException())
+            throw CancelException();
         product.shadowProduct->handleError(e);
     }
 }
@@ -461,7 +475,16 @@ void ProductsHandler::Private::handleGroups(ProductContext &product)
     loaderState.topLevelProject().disabledItems.unite(groupsHandler.disabledGroups());
 }
 
-void ProductsHandler::Private::resolveProduct(ProductContext &productContext)
+void ProductsHandler::Private::checkPropertyDeclarations(const ProductContext &product)
+{
+    AccumulatingTimer timer(loaderState.parameters().logElapsedTime()
+                            ? &loaderState.topLevelProject().elapsedTimePropertyChecking : nullptr);
+    qbs::Internal::checkPropertyDeclarations(
+                product.item, loaderState.topLevelProject().disabledItems,
+                loaderState.parameters(), loaderState.logger());
+}
+
+void ProductsHandler::Private::resolveProductFully(ProductContext &productContext)
 {
     Item * const item = productContext.item;
     const ResolvedProductPtr product = productContext.product;
@@ -539,14 +562,21 @@ void ProductsHandler::Private::resolveProduct(ProductContext &productContext)
         }
     }
 
-    resolveShadowProduct(productContext);
-
     for (const ProjectContext *p = productContext.project; p; p = p->parent) {
         JobLimits tempLimits = p->jobLimits;
         product->jobLimits = tempLimits.update(product->jobLimits);
     }
 
+    resolveShadowProduct(productContext);
     resolveModules(item, productContext);
+    applyFileTaggers(productContext);
+    finalizeArtifactProperties(*product);
+
+    for (const RulePtr &rule : productContext.project->rules) {
+        RulePtr clonedRule = rule->clone();
+        clonedRule->product = product.get();
+        product->rules.push_back(clonedRule);
+    }
 }
 
 void ProductsHandler::Private::createProductConfig(ProductContext &productContext)
@@ -700,6 +730,43 @@ void ProductsHandler::Private::checkAllowedValues(
         }
     } else if (type == PropertyDeclaration::String) {
         checkValue(value.toString());
+    }
+}
+
+void ProductsHandler::Private::applyFileTaggers(const ProductContext &productContext)
+{
+    productContext.product->fileTaggers << productContext.project->fileTaggers;
+    productContext.product->fileTaggers = sorted(productContext.product->fileTaggers,
+              [] (const FileTaggerConstPtr &a, const FileTaggerConstPtr &b) {
+        return a->priority() > b->priority();
+    });
+    for (const SourceArtifactPtr &artifact : productContext.product->allEnabledFiles()) {
+        if (!artifact->overrideFileTags || artifact->fileTags.empty()) {
+            const QString fileName = FileInfo::fileName(artifact->absoluteFilePath);
+            const FileTags fileTags = productContext.product->fileTagsForFileName(fileName);
+            artifact->fileTags.unite(fileTags);
+            if (artifact->fileTags.empty())
+                artifact->fileTags.insert(unknownFileTag());
+            qCDebug(lcProjectResolver) << "adding file tags" << artifact->fileTags
+                                       << "to" << fileName;
+        }
+    }
+}
+
+void ProductsHandler::Private::finalizeArtifactProperties(const ResolvedProduct &product)
+{
+    for (const SourceArtifactPtr &artifact : product.allEnabledFiles()) {
+        for (const auto &artifactProperties : product.artifactProperties) {
+            if (!artifact->isTargetOfModule()
+                    && artifact->fileTags.intersects(artifactProperties->fileTagsFilter())) {
+                // FIXME: Should be merged, not overwritten.
+                artifact->properties = artifactProperties->propertyMap();
+            }
+        }
+
+        // Let a positive value of qbs.install imply the file tag "installable".
+        if (artifact->properties->qbsPropertyValue(StringConstants::installProperty()).toBool())
+            artifact->fileTags += "installable";
     }
 }
 
@@ -1064,7 +1131,7 @@ void ProductsHandler::Private::collectPropertiesForExportItem(
             ~EvalPreparer()
             {
                 if (!hadName)
-                    valueItem->setProperty(StringConstants::nameProperty(), VariantValuePtr());
+                    valueItem->removeProperty(StringConstants::nameProperty());
             }
             Item * const valueItem;
             const bool hadName;
