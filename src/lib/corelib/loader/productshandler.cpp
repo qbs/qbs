@@ -106,14 +106,14 @@ public:
         const ResolvedProductPtr &rproduct, const QString &fileName, const GroupPtr &group,
         bool wildcard, const CodeLocation &filesLocation = CodeLocation(),
         FileLocations *fileLocations = nullptr, ErrorInfo *errorInfo = nullptr);
-    void resolveShadowProduct(Item *item, ProductContext &productContext);
+    void resolveShadowProduct(ProductContext &productContext);
     void collectPropertiesForExportItem(ProductContext &productContext,
                                         Item *productModuleInstance);
     void collectPropertiesForExportItem(const QualifiedId &moduleName, const ValuePtr &value,
                                         Item *moduleInstance, QVariantMap &moduleProps);
     void collectPropertiesForModuleInExportItem(ProductContext &productContext,
                                                 const Item::Module &module);
-    void adaptExportedPropertyValues(ProductContext &productContext, const Item *shadowProductItem);
+    void adaptExportedPropertyValues(ProductContext &productContext);
     void resolveExport(Item *exportItem, ProductContext &productContext);
     void setupExportedProperties(const Item *item, const QString &namePrefix,
                                  std::vector<ExportedProperty> &properties);
@@ -245,8 +245,6 @@ void ProductsHandler::Private::handleNextProduct()
     loaderState.itemReader().setExtraSearchPathsStack(product->project->searchPathsStack);
     try {
         handleProduct(*product, deferral);
-        if (product->name.startsWith(StringConstants::shadowProductPrefix()))
-            topLevelProject.probes << product->probes;
     } catch (const ErrorInfo &err) {
         product->handleError(err);
     }
@@ -318,6 +316,16 @@ void ProductsHandler::Private::handleProduct(ProductContext &product, Deferral d
             topLevelProject.productsByType.insert({tag, &product});
         product.item->setProperty(StringConstants::typeProperty(),
                                   VariantValue::create(sorted(fileTags.toStringList())));
+    }
+
+    if (!product.shadowProduct)
+        return;
+    cacheEnabler.reset();
+    try {
+        handleProduct(*product.shadowProduct, Deferral::NotAllowed);
+        topLevelProject.probes << product.shadowProduct->probes;
+    } catch (const ErrorInfo &e) {
+        product.shadowProduct->handleError(e);
     }
 }
 
@@ -523,9 +531,6 @@ void ProductsHandler::Private::resolveProduct(ProductContext &productContext)
         case ItemType::Group:
             resolveGroup(child, productContext);
             break;
-        case ItemType::Product:
-            resolveShadowProduct(child, productContext);
-            break;
         case ItemType::Export:
             resolveExport(child, productContext);
             break;
@@ -533,6 +538,8 @@ void ProductsHandler::Private::resolveProduct(ProductContext &productContext)
             break;
         }
     }
+
+    resolveShadowProduct(productContext);
 
     for (const ProjectContext *p = productContext.project; p; p = p->parent) {
         JobLimits tempLimits = p->jobLimits;
@@ -954,11 +961,13 @@ SourceArtifactPtr ProductsHandler::Private::createSourceArtifact(
     return artifact;
 }
 
-void ProductsHandler::Private::resolveShadowProduct(Item *item, ProductContext &productContext)
+void ProductsHandler::Private::resolveShadowProduct(ProductContext &productContext)
 {
     if (!productContext.product->enabled)
         return;
-    for (const auto &m : item->modules()) {
+    if (!productContext.shadowProduct)
+        return;
+    for (const auto &m : productContext.shadowProduct->item->modules()) {
         if (m.name.toString() != productContext.product->name)
             continue;
         collectPropertiesForExportItem(productContext, m.item);
@@ -967,9 +976,8 @@ void ProductsHandler::Private::resolveShadowProduct(Item *item, ProductContext &
         break;
     }
     try {
-        adaptExportedPropertyValues(productContext, item);
+        adaptExportedPropertyValues(productContext);
     } catch (const ErrorInfo &) {}
-    loaderState.topLevelProject().productExportInfo.emplace_back(productContext.product, item);
 }
 
 class TempScopeSetter
@@ -1110,16 +1118,16 @@ void ProductsHandler::Private::collectPropertiesForModuleInExportItem(
         collectPropertiesForModuleInExportItem(productContext, dep);
 }
 
-void ProductsHandler::Private::adaptExportedPropertyValues(ProductContext &productContext,
-                                                           const Item *shadowProductItem)
+void ProductsHandler::Private::adaptExportedPropertyValues(ProductContext &productContext)
 {
+    QBS_CHECK(productContext.shadowProduct);
     ExportedModule &m = productContext.product->exportedModule;
     const QVariantList prefixList = m.propertyValues.take(
                 StringConstants::prefixMappingProperty()).toList();
     const QString shadowProductName = loaderState.evaluator().stringValue(
-                shadowProductItem, StringConstants::nameProperty());
+                productContext.shadowProduct->item, StringConstants::nameProperty());
     const QString shadowProductBuildDir = loaderState.evaluator().stringValue(
-                shadowProductItem, StringConstants::buildDirectoryProperty());
+                productContext.shadowProduct->item, StringConstants::buildDirectoryProperty());
     QVariantMap prefixMap;
     for (const QVariant &v : prefixList) {
         const QVariantMap o = v.toMap();

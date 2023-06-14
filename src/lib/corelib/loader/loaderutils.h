@@ -51,6 +51,7 @@
 #include <QStringList>
 #include <QVariant>
 
+#include <memory.h>
 #include <vector>
 
 namespace qbs {
@@ -72,7 +73,6 @@ class ProgressObserver;
 class ProjectContext;
 
 using ModulePropertiesPerGroup = std::unordered_map<const Item *, QualifiedIdSet>;
-using ShadowProductInfo = std::pair<bool, QString>;
 using FileLocations = QHash<std::pair<QString, QString>, CodeLocation>;
 
 enum class FallbackMode { Enabled, Disabled };
@@ -90,6 +90,7 @@ public:
     Item *item = nullptr;
     Item *scope = nullptr;
     ProjectContext *project = nullptr;
+    std::unique_ptr<ProductContext> shadowProduct;
     Item *mergedExportItem = nullptr;
     std::vector<ProbeConstPtr> probes;
     ModulePropertiesPerGroup modulePropertiesSetInGroups;
@@ -133,7 +134,6 @@ public:
     QHash<CodeLocation, ScriptFunctionPtr> scriptFunctionMap;
     std::unordered_map<std::pair<QStringView, QStringList>, QString> scriptFunctions;
     std::unordered_map<FileContextConstPtr, ResolvedFileContextPtr> fileContextMap;
-    std::vector<std::pair<ResolvedProductPtr, Item *>> productExportInfo;
     Set<QString> projectNamesUsedInOverrides;
     Set<QString> productNamesUsedInOverrides;
     Set<Item *> disabledItems;
@@ -199,7 +199,6 @@ private:
 };
 
 void mergeParameters(QVariantMap &dst, const QVariantMap &src);
-ShadowProductInfo getShadowProductInfo(const ProductContext &product);
 void adjustParametersScopes(Item *item, Item *scope);
 void resolveRule(LoaderState &state, Item *item, ProjectContext *projectContext,
                  ProductContext *productContext, ModuleContext *moduleContext);

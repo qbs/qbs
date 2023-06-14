@@ -139,7 +139,9 @@ public:
         m_evaluator->setPathPropertiesBaseDir(baseDir);
     }
 
-    ~EvalCacheEnabler()
+    ~EvalCacheEnabler() { reset(); }
+
+    void reset()
     {
         m_evaluator->setCachingEnabled(false);
         m_evaluator->clearPathPropertiesBaseDir();

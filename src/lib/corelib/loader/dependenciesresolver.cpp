@@ -730,6 +730,9 @@ void DependenciesResolver::Private::checkModule(
 
 void DependenciesResolver::Private::adjustDependsItemForMultiplexing(Item *dependsItem)
 {
+    if (product->name.startsWith(StringConstants::shadowProductPrefix()))
+        return;
+
     Evaluator &evaluator = loaderState.evaluator();
     const QString name = evaluator.stringValue(dependsItem, StringConstants::nameProperty());
     const bool productIsMultiplexed = !product->multiplexConfigurationId.isEmpty();
@@ -783,9 +786,6 @@ void DependenciesResolver::Private::adjustDependsItemForMultiplexing(Item *depen
     //          with a matching profile regardless of whether an aggregator exists or not.
     // (4) The product is multiplexed, but the dependency is not. We don't have to adapt
     //     any Depends items.
-    // (5) The product is a "shadow product". In that case, we know which product
-    //     it should have a dependency on, and we make sure we depend on that.
-
     // (1) and (4)
     if (!hasMultiplexedDependencies)
         return;
@@ -795,20 +795,10 @@ void DependenciesResolver::Private::adjustDependsItemForMultiplexing(Item *depen
         return;
 
     QStringList multiplexIds;
-    const ShadowProductInfo shadowProductInfo = getShadowProductInfo(*product);
-    const bool isShadowProduct = shadowProductInfo.first && shadowProductInfo.second == name;
     const auto productMultiplexConfig
         = ProductItemMultiplexer::multiplexIdToVariantMap(product->multiplexConfigurationId);
 
     for (const ProductContext *dependency : multiplexedDependencies) {
-        const bool depMatchesShadowProduct = isShadowProduct
-                                             && dependency->item == product->item->parent();
-        const QString depMultiplexId = dependency->multiplexConfigurationId;
-        if (depMatchesShadowProduct) { // (5)
-            dependsItem->setProperty(StringConstants::multiplexConfigurationIdsProperty(),
-                                     VariantValue::create(depMultiplexId));
-            return;
-        }
         if (productIsMultiplexed && !profilesPropertyIsSet) { // 2a
             if (dependency->multiplexConfigurationId == product->multiplexConfigurationId) {
                 const ValuePtr &multiplexId = product->item->property(
@@ -829,7 +819,7 @@ void DependenciesResolver::Private::adjustDependsItemForMultiplexing(Item *depen
             const bool profileMatch = !profilesPropertyIsSet || profiles.empty()
                                       || profiles.contains(dependency->profileName);
             if (profileMatch)
-                multiplexIds << depMultiplexId;
+                multiplexIds << dependency->multiplexConfigurationId;
         }
     }
     if (multiplexIds.empty()) {

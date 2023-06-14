@@ -465,11 +465,15 @@ void ProjectResolver::Private::collectExportedProductDependencies()
 {
     ResolvedProductPtr dummyProduct = ResolvedProduct::create();
     dummyProduct->enabled = false;
-    for (const auto &exportingProductInfo : state.topLevelProject().productExportInfo) {
-        const ResolvedProductPtr exportingProduct = exportingProductInfo.first;
-        if (!exportingProduct->enabled)
+    for (auto it = state.topLevelProject().productsByItem.cbegin();
+         it != state.topLevelProject().productsByItem.cend(); ++it) {
+        ProductContext &productContext = *it->second;
+        if (!productContext.shadowProduct)
             continue;
-        Item * const importingProductItem = exportingProductInfo.second;
+        const ResolvedProductPtr exportingProduct = productContext.product;
+        if (!exportingProduct || !exportingProduct->enabled)
+            continue;
+        Item * const importingProductItem = productContext.shadowProduct->item;
 
         std::vector<std::pair<ResolvedProductPtr, QVariantMap>> directDeps;
         for (const Item::Module &m : importingProductItem->modules()) {

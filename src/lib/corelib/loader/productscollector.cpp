@@ -76,7 +76,8 @@ public:
     void handleProject(Item *projectItem, ProjectContext *parentProject,
                        const Set<QString> &referencedFilePaths);
     QList<Item *> multiplexProductItem(ProductContext &dummyContext, Item *productItem);
-    void prepareProduct(ProjectContext &projectContext, Item *productItem);
+    void prepareProduct(ProjectContext &projectContext, Item *productItem,
+                        ProductContext *mainProduct = nullptr);
     void handleSubProject(ProjectContext &projectContext, Item *projectItem,
                           const Set<QString> &referencedFilePaths);
     void copyProperties(const Item *sourceProject, Item *targetProject);
@@ -287,7 +288,8 @@ QList<Item *> ProductsCollector::Private::multiplexProductItem(ProductContext &d
                                                [&] { tbma.drop(); });
 }
 
-void ProductsCollector::Private::prepareProduct(ProjectContext &projectContext, Item *productItem)
+void ProductsCollector::Private::prepareProduct(ProjectContext &projectContext, Item *productItem,
+                                                ProductContext *mainProduct)
 {
     const SetupProjectParameters &parameters = loaderState.parameters();
     Evaluator &evaluator = loaderState.evaluator();
@@ -297,8 +299,12 @@ void ProductsCollector::Private::prepareProduct(ProjectContext &projectContext, 
     topLevelProject.checkCancelation(parameters);
     qCDebug(lcModuleLoader) << "prepareProduct" << productItem->file()->filePath();
 
-    projectContext.products.push_back({});
-    ProductContext &productContext = projectContext.products.back();
+    if (mainProduct)
+        mainProduct->shadowProduct = std::make_unique<ProductContext>();
+    else
+        projectContext.products.emplace_back();
+    ProductContext &productContext = mainProduct
+            ? *mainProduct->shadowProduct : projectContext.products.back();
     productContext.item = productItem;
     productContext.project = &projectContext;
 
@@ -353,7 +359,7 @@ void ProductsCollector::Private::prepareProduct(ProjectContext &projectContext, 
 
     setScopeForDescendants(productItem, productContext.scope);
 
-    if (!hasExportItems || getShadowProductInfo(productContext).first)
+    if (!hasExportItems)
         return;
 
     // This "shadow product" exists only to pull in a dependency on the actual product
@@ -373,9 +379,10 @@ void ProductsCollector::Private::prepareProduct(ProjectContext &projectContext, 
     dependsItem->setFile(importer->file());
     dependsItem->setLocation(importer->location());
     dependsItem->setupForBuiltinType(parameters.deprecationWarningMode(), loaderState.logger());
+    dependsItem->setProperty(StringConstants::multiplexConfigurationIdsProperty(),
+                             VariantValue::create(productContext.multiplexConfigurationId));
     Item::addChild(importer, dependsItem);
-    Item::addChild(productItem, importer);
-    prepareProduct(projectContext, importer);
+    prepareProduct(projectContext, importer, &productContext);
 }
 
 void ProductsCollector::Private::handleSubProject(

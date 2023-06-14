@@ -75,15 +75,6 @@ void mergeParameters(QVariantMap &dst, const QVariantMap &src)
     }
 }
 
-ShadowProductInfo getShadowProductInfo(const ProductContext &product)
-{
-    const bool isShadowProduct = product.name.startsWith(StringConstants::shadowProductPrefix());
-    return std::make_pair(isShadowProduct,
-                          isShadowProduct
-                              ? product.name.mid(StringConstants::shadowProductPrefix().size())
-                              : QString());
-}
-
 void adjustParametersScopes(Item *item, Item *scope)
 {
     if (item->type() == ItemType::ModuleParameters) {
