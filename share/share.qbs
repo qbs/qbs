@@ -24,7 +24,7 @@ Product {
         fileTags: ["qbs resources"]
         qbs.install: true
         qbs.installDir: qbsbuildconfig.resourcesInstallDir + "/share/qbs/python"
-        qbs.installSourceBase: "../src/3rdparty/python/lib/python2.7/site-packages"
+        qbs.installSourceBase: "../src/3rdparty/python/lib/python3.9/site-packages"
     }
 
     Group {
