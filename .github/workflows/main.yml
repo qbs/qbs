@@ -622,7 +622,7 @@ jobs:
             target: 'desktop',
             toolchain: 'clang_64',
             xcodeVersion: '14.3',
-            testProfile: 'xcode_14_2-macosx-x86_64',
+            testProfile: 'xcode_14_3-macosx-x86_64',
             qtVersion: '6.5.0',
             script: './scripts/test-qbs.sh',
           }
@@ -632,7 +632,7 @@ jobs:
             target: 'desktop',
             toolchain: 'clang_64',
             xcodeVersion: '14.3',
-            testProfile: 'xcode_14_2-macosx-x86_64',
+            testProfile: 'xcode_14_3-macosx-x86_64',
             qtVersion: '5.15.2',
             script: './scripts/test-qt.sh',
           }
@@ -642,7 +642,7 @@ jobs:
             target: 'ios',
             toolchain: 'ios',
             xcodeVersion: '14.3',
-            testProfile: 'xcode_14_1-iphoneos-arm64',
+            testProfile: 'xcode_14_3-iphoneos-arm64',
             qtVersion: '6.5.0',
             script: './scripts/test-qbs.sh',
           }
@@ -652,7 +652,7 @@ jobs:
             target: 'ios',
             toolchain: 'ios',
             xcodeVersion: '14.3',
-            testProfile: 'xcode_14_1-iphonesimulator-x86_64',
+            testProfile: 'xcode_14_3-iphonesimulator-x86_64',
             qtVersion: '6.5.0',
             script: './scripts/test-qbs.sh',
           }
