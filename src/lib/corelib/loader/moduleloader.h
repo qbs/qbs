@@ -72,6 +72,7 @@ public:
         const QString &multiplexId;
         const QVariantMap &moduleProperties;
         const QVariantMap &profileModuleProperties;
+        qint64 &elapsedTimeModuleProviders;
     };
     struct Result {
         Item *moduleItem = nullptr;
@@ -89,7 +90,6 @@ public:
     void checkDependencyParameterDeclarations(const Item *productItem,
                                               const QString &productName) const;
     void forwardParameterDeclarations(const Item *dependsItem, const Item::Modules &modules);
-    void printProfilingInfo(int indent);
 
 private:
     class Private;

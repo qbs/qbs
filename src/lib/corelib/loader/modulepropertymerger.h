@@ -46,6 +46,7 @@
 namespace qbs::Internal {
 class Item;
 class LoaderState;
+class ProductContext;
 
 // This class comprises functions for collecting values attached to module properties
 // in different contexts.
@@ -75,7 +76,7 @@ public:
     // localInstance is the module instance placeholder in the ItemValue of a property binding,
     //               i.e. the "cpp" in "cpp.defines".
     // globalInstance is the actual module into which the properties from localInstance get merged.
-    void mergeFromLocalInstance(const Item *productItem, Item *loadingItem,
+    void mergeFromLocalInstance(ProductContext &product, Item *loadingItem,
                                 const QString &loadingName, const Item *localInstance,
                                 Item *globalInstance);
 
@@ -84,9 +85,7 @@ public:
     // favor different scalar values. It can also remove previously merged-in values again;
     // this can happen if a module fails to load after it already merged some values, or
     // if it fails validation in the end.
-    void doFinalMerge(const Item *productItem);
-
-    void printProfilingInfo(int indent);
+    void doFinalMerge(ProductContext &product);
 
 private:
     class Private;

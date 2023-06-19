@@ -49,6 +49,7 @@ QT_END_NAMESPACE
 namespace qbs::Internal {
 class Item;
 class LoaderState;
+class ProductContext;
 class QualifiedId;
 
 // This class is responsible for setting up a proper module instance from a bunch of items:
@@ -66,15 +67,12 @@ public:
     ~ModuleInstantiator();
 
     struct Context {
-        Item * const product;
-        const QString &productName;
+        ProductContext &product;
         Item * const loadingItem;
         const QString &loadingName;
         Item * const module;
         Item * const moduleWithSameName;
         Item * const exportingProduct;
-        Item * const productScope;
-        Item * const projectScope;
         const QualifiedId &moduleName;
         const QString &id;
         const bool alreadyLoaded;
@@ -84,8 +82,6 @@ public:
     // Note that these will also create the respective item value if it does not exist yet.
     Item *retrieveModuleInstanceItem(Item *containerItem, const QualifiedId &name);
     Item *retrieveQbsItem(Item *containerItem);
-
-    void printProfilingInfo(int indent);
 
 private:
     class Private;

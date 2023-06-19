@@ -66,29 +66,30 @@ public:
                       ValuePtr &propertyValue);
 
     LoaderState &loaderState;
-    qint64 elapsedTime = 0;
 };
 
 void ModulePropertyMerger::mergeFromLocalInstance(
-    const Item *productItem, Item *loadingItem, const QString &loadingName,
-    const Item *localInstance, Item *globalInstance)
+        ProductContext &product, Item *loadingItem, const QString &loadingName,
+        const Item *localInstance, Item *globalInstance)
 {
-    AccumulatingTimer t(d->loaderState.parameters().logElapsedTime() ? &d->elapsedTime : nullptr);
+    AccumulatingTimer t(d->loaderState.parameters().logElapsedTime()
+                        ? &product.timingData.propertyMerging : nullptr);
 
     for (auto it = localInstance->properties().constBegin();
          it != localInstance->properties().constEnd(); ++it) {
-        d->mergePropertyFromLocalInstance(productItem, loadingItem, loadingName,
+        d->mergePropertyFromLocalInstance(product.item, loadingItem, loadingName,
                                   globalInstance, it.key(), it.value());
     }
 }
 
-void ModulePropertyMerger::doFinalMerge(const Item *productItem)
+void ModulePropertyMerger::doFinalMerge(ProductContext &product)
 {
-    AccumulatingTimer t(d->loaderState.parameters().logElapsedTime() ? &d->elapsedTime : nullptr);
+    AccumulatingTimer t(d->loaderState.parameters().logElapsedTime()
+                        ? &product.timingData.propertyMerging : nullptr);
 
     Set<const Item *> itemsToInvalidate;
-    for (const Item::Module &module : productItem->modules()) {
-        if (d->doFinalMerge(productItem, module.item))
+    for (const Item::Module &module : product.item->modules()) {
+        if (d->doFinalMerge(product.item, module.item))
             itemsToInvalidate << module.item;
     }
     const auto collectDependentItems = [&itemsToInvalidate](const Item *item,
@@ -103,19 +104,9 @@ void ModulePropertyMerger::doFinalMerge(const Item *productItem)
             itemsToInvalidate << item;
         return addItem || alreadyInSet;
     };
-    collectDependentItems(productItem, collectDependentItems);
+    collectDependentItems(product.item, collectDependentItems);
     for (const Item * const item : itemsToInvalidate)
         d->loaderState.evaluator().clearCache(item);
-}
-
-void ModulePropertyMerger::printProfilingInfo(int indent)
-{
-    if (!d->loaderState.parameters().logElapsedTime())
-        return;
-    d->loaderState.logger().qbsLog(LoggerInfo, true)
-            << QByteArray(indent, ' ')
-            << Tr::tr("Merging module property values took %1.")
-               .arg(elapsedTimeString(d->elapsedTime));
 }
 
 ModulePropertyMerger::ModulePropertyMerger(LoaderState &loaderState)

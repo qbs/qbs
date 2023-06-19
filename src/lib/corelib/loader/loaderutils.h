@@ -80,6 +80,23 @@ enum class Deferral { Allowed, NotAllowed };
 
 class CancelException { };
 
+class TimingData
+{
+public:
+    TimingData &operator+=(const TimingData &other);
+
+    qint64 dependenciesResolving = 0;
+    qint64 moduleProviders = 0;
+    qint64 moduleInstantiation = 0;
+    qint64 propertyMerging = 0;
+    qint64 groupsSetup = 0;
+    qint64 groupsResolving = 0;
+    qint64 preparingProducts = 0;
+    qint64 probes = 0;
+    qint64 propertyEvaluation = 0;
+    qint64 propertyChecking = 0;
+};
+
 class ProductContext
 {
 public:
@@ -109,6 +126,7 @@ public:
     QHash<QStringList, ArtifactPropertiesInfo> artifactPropertiesPerFilter;
     FileLocations sourceArtifactLocations;
     GroupConstPtr currentGroup;
+    TimingData timingData;
 
     bool dependenciesResolved = false;
 };
@@ -146,7 +164,7 @@ public:
     QString buildDirectory;
     QVariantMap profileConfigs;
     ProgressObserver *progressObserver = nullptr;
-    qint64 elapsedTimePropertyChecking = 0;
+    TimingData timingData;
 
     // For fast look-up when resolving Depends.productTypes.
     // The contract is that it contains fully handled, error-free, enabled products.

@@ -83,7 +83,6 @@ public:
     void runModuleProbes(ProductContext &product, const Item::Module &module);
     bool validateModule(ProductContext &product, const Item::Module &module);
     void updateModulePresentState(ProductContext &product, const Item::Module &module);
-    void handleGroups(ProductContext &product);
     void checkPropertyDeclarations(const ProductContext &product);
 
     void resolveProduct(ProductContext &productContext);
@@ -132,8 +131,6 @@ public:
 
     LoaderState &loaderState;
     GroupsHandler groupsHandler{loaderState};
-    qint64 elapsedTimePropEval = 0;
-    qint64 elapsedTimeGroups = 0;
 };
 
 ProductsHandler::ProductsHandler(LoaderState &loaderState) : d(makePimpl<Private>(loaderState)) {}
@@ -147,21 +144,6 @@ void ProductsHandler::run()
     }
     while (!topLevelProject.productsToHandle.empty())
         d->handleNextProduct();
-}
-
-void ProductsHandler::printProfilingInfo(int indent)
-{
-    if (!d->loaderState.parameters().logElapsedTime())
-        return;
-    const QByteArray prefix(indent, ' ');
-    d->groupsHandler.printProfilingInfo(indent + 2);
-    d->loaderState.logger().qbsLog(LoggerInfo, true)
-        << prefix << Tr::tr("Property evaluation took %1.")
-           .arg(elapsedTimeString(d->elapsedTimePropEval));
-    d->loaderState.logger().qbsLog(LoggerInfo, true)
-        << prefix << Tr::tr("Resolving groups (without module property "
-                          "evaluation) took %1.")
-                       .arg(elapsedTimeString(d->elapsedTimeGroups));
 }
 
 void ProductsHandler::Private::resolveProduct(ProductContext &productContext)
@@ -246,6 +228,7 @@ void ProductsHandler::Private::handleNextProduct()
         topLevelProject.productsToHandle.emplace_back(
             product, int(topLevelProject.productsToHandle.size()));
     }
+    topLevelProject.timingData += product->timingData;
 }
 
 void ProductsHandler::Private::handleProduct(ProductContext &product, Deferral deferral)
@@ -311,13 +294,13 @@ void ProductsHandler::Private::setupProductForResolving(ProductContext &product,
     // Now do the canonical module property values merge. Note that this will remove
     // previously attached values from modules that failed validation.
     // Evaluator cache entries that could potentially change due to this will be purged.
-    loaderState.propertyMerger().doFinalMerge(product.item);
+    loaderState.propertyMerger().doFinalMerge(product);
 
     const bool enabled = topLevelProject.checkItemCondition(product.item, evaluator);
     loaderState.dependenciesResolver().checkDependencyParameterDeclarations(
                 product.item, product.name);
 
-    handleGroups(product);
+    groupsHandler.setupGroups(product);
 
     // Collect the full list of fileTags, including the values contributed by modules.
     if (!product.delayedError.hasError() && enabled
@@ -468,17 +451,10 @@ void ProductsHandler::Private::updateModulePresentState(ProductContext &product,
     }
 }
 
-void ProductsHandler::Private::handleGroups(ProductContext &product)
-{
-    groupsHandler.setupGroups(product.item, product.scope);
-    product.modulePropertiesSetInGroups = groupsHandler.modulePropertiesSetInGroups();
-    loaderState.topLevelProject().disabledItems.unite(groupsHandler.disabledGroups());
-}
-
 void ProductsHandler::Private::checkPropertyDeclarations(const ProductContext &product)
 {
     AccumulatingTimer timer(loaderState.parameters().logElapsedTime()
-                            ? &loaderState.topLevelProject().elapsedTimePropertyChecking : nullptr);
+                            ? &loaderState.topLevelProject().timingData.propertyChecking : nullptr);
     qbs::Internal::checkPropertyDeclarations(
                 product.item, loaderState.topLevelProject().disabledItems,
                 loaderState.parameters(), loaderState.logger());
@@ -612,7 +588,8 @@ QVariantMap ProductsHandler::Private::evaluateProperties(
         bool lookupPrototype, bool checkErrors)
 {
     AccumulatingTimer propEvalTimer(loaderState.parameters().logElapsedTime()
-                                    ? &elapsedTimePropEval : nullptr);
+                                    ? &loaderState.topLevelProject().timingData.propertyEvaluation
+                                    : nullptr);
     QVariantMap result = tmplt;
     for (auto it = propertiesContainer->properties().begin();
          it != propertiesContainer->properties().end(); ++it) {
@@ -795,7 +772,8 @@ void ProductsHandler::Private::resolveGroupFully(Item *item, ProductContext &pro
                                                  bool isEnabled)
 {
     AccumulatingTimer groupTimer(loaderState.parameters().logElapsedTime()
-                                 ? &elapsedTimeGroups : nullptr);
+                                 ? &loaderState.topLevelProject().timingData.groupsResolving
+                                 : nullptr);
 
     const auto getGroupPropertyMap = [&](const ArtifactProperties *existingProps) {
         PropertyMapPtr moduleProperties;

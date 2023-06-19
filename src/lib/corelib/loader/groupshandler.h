@@ -49,6 +49,7 @@
 namespace qbs::Internal {
 class Item;
 class LoaderState;
+class ProductContext;
 
 // Sets up Group items for the actual resolving stage. Responsibilities:
 //   - Moving Group items located in modules over to the product.
@@ -64,11 +65,7 @@ public:
     GroupsHandler(LoaderState &loaderState);
     ~GroupsHandler();
 
-    void setupGroups(Item *product, Item *productScope);
-    std::unordered_map<const Item *, QualifiedIdSet> modulePropertiesSetInGroups() const;
-    Set<Item *> disabledGroups() const;
-
-    void printProfilingInfo(int indent);
+    void setupGroups(ProductContext &product);
 
 private:
     class Private;

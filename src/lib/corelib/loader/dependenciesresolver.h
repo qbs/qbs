@@ -76,8 +76,6 @@ public:
     StoredModuleProviderInfo storedModuleProviderInfo() const;
     const Set<QString> &tempQbsFiles() const;
 
-    void printProfilingInfo(int indent);
-
     // Note: This function is never called for regular loading of the base module into a product,
     //       but only for the special cases of loading the dummy base module into a project
     //       and temporarily providing a base module for product multiplexing.

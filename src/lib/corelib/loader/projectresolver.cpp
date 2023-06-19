@@ -562,7 +562,7 @@ void ProjectResolver::Private::buildProjectTree()
     productsCollector.run(rootProjectItem);
 
     AccumulatingTimer timer(state.parameters().logElapsedTime()
-                            ? &state.topLevelProject().elapsedTimePropertyChecking : nullptr);
+                            ? &state.topLevelProject().timingData.propertyChecking : nullptr);
     checkPropertyDeclarations(rootProjectItem, state.topLevelProject().disabledItems,
                               state.parameters(), state.logger());
 }
@@ -571,20 +571,29 @@ void ProjectResolver::Private::printProfilingInfo()
 {
     if (!setupParams.logElapsedTime())
         return;
-    logger.qbsLog(LoggerInfo, true)
-            << "  "
-            << Tr::tr("Project file loading and parsing took %1.")
-               .arg(elapsedTimeString(state.itemReader().elapsedTime()));
-    productsCollector.printProfilingInfo(2);
-    productsHandler.printProfilingInfo(2);
-    state.dependenciesResolver().printProfilingInfo(2);
-    state.moduleInstantiator().printProfilingInfo(4);
-    state.propertyMerger().printProfilingInfo(4);
+    const auto print = [this](int indent, const QString &pattern, qint64 time) {
+        logger.qbsLog(LoggerInfo, true) << QByteArray(indent, ' ')
+                                        << pattern.arg(elapsedTimeString(time));
+    };
+    print(2, Tr::tr("Project file loading and parsing took %1."), state.itemReader().elapsedTime());
+    print(2, Tr::tr("Preparing products took %1."),
+          state.topLevelProject().timingData.preparingProducts);
+    print(2, Tr::tr("Setting up Groups took %1."), state.topLevelProject().timingData.groupsSetup);
+    print(2, Tr::tr("Setting up product dependencies took %1."),
+          state.topLevelProject().timingData.dependenciesResolving);
+    print(4, Tr::tr("Running module providers took %1."),
+          state.topLevelProject().timingData.moduleProviders);
+    print(4, Tr::tr("Instantiating modules took %1."),
+          state.topLevelProject().timingData.moduleInstantiation);
+    print(4, Tr::tr("Merging module property values took %1."),
+          state.topLevelProject().timingData.propertyMerging);
     state.probesResolver().printProfilingInfo(2);
-    state.logger().qbsLog(LoggerInfo, true)
-            << "  "
-            << Tr::tr("Property checking took %1.")
-               .arg(elapsedTimeString(state.topLevelProject().elapsedTimePropertyChecking));
+    print(2, Tr::tr("Property checking took %1."),
+          state.topLevelProject().timingData.propertyChecking);
+    print(2, Tr::tr("Property evaluation took %1."),
+          state.topLevelProject().timingData.propertyEvaluation);
+    print(2, Tr::tr("Resolving groups (without module property evaluation) took %1."),
+          state.topLevelProject().timingData.groupsResolving);
 }
 
 void ProjectResolver::Private::resolveProductDependencies()

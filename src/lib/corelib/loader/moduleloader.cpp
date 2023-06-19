@@ -93,8 +93,6 @@ public:
     std::unordered_map<const Item *, std::optional<QVariantMap>> providerConfigsPerProduct;
     QHash<std::pair<QString, QualifiedId>, std::optional<QString>> existingModulePathCache;
     std::map<QString, QStringList> moduleDirListCache;
-
-    qint64 elapsedTimeModuleProviders = 0;
 };
 
 ModuleLoader::ModuleLoader(LoaderState &loaderState) : d(makePimpl<Private>(loaderState)) { }
@@ -187,7 +185,7 @@ ModuleLoader::Result ModuleLoader::searchAndLoadModuleFile(
     auto existingPaths = findExistingModulePaths();
     if (existingPaths.isEmpty()) { // no suitable names found, try to use providers
         AccumulatingTimer providersTimer(d->loaderState.parameters().logElapsedTime()
-                                             ? &d->elapsedTimeModuleProviders : nullptr);
+                                         ? &productContext.elapsedTimeModuleProviders : nullptr);
         std::optional<QVariantMap> &providerConfig
             = d->providerConfigsPerProduct[productContext.productItem];
         auto result = d->providerLoader.executeModuleProviders(
@@ -521,16 +519,6 @@ void ModuleLoader::Private::forwardParameterDeclarations(const QualifiedId &modu
                                          modules);
         }
     }
-}
-
-void ModuleLoader::printProfilingInfo(int indent)
-{
-    if (!d->loaderState.parameters().logElapsedTime())
-        return;
-    d->loaderState.logger().qbsLog(LoggerInfo, true)
-        << QByteArray(indent, ' ')
-        << Tr::tr("Running module providers took %1.")
-               .arg(elapsedTimeString(d->elapsedTimeModuleProviders));
 }
 
 } // namespace qbs::Internal

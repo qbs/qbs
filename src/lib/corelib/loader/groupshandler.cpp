@@ -62,52 +62,27 @@ public:
     void moveGroupsFromModuleToProduct(Item *product, Item *productScope,
                                        const Item::Module &module);
     void moveGroupsFromModulesToProduct(Item *product, Item *productScope);
-    void propagateModulesFromParent(Item *group);
-    void handleGroup(Item *product, Item *group);
+    void propagateModulesFromParent(ProductContext &product, Item *group);
+    void handleGroup(ProductContext &product, Item *group);
     void adjustScopesInGroupModuleInstances(Item *groupItem, const Item::Module &module);
     QualifiedIdSet gatherModulePropertiesSetInGroup(const Item *group);
 
     LoaderState &loaderState;
-    std::unordered_map<const Item *, QualifiedIdSet> modulePropsSetInGroups;
-    Set<Item *> disabledGroups;
-    qint64 elapsedTime = 0;
 };
 
 GroupsHandler::GroupsHandler(LoaderState &loaderState) : d(makePimpl<Private>(loaderState)) {}
 GroupsHandler::~GroupsHandler() = default;
 
-void GroupsHandler::setupGroups(Item *product, Item *productScope)
+void GroupsHandler::setupGroups(ProductContext &product)
 {
     AccumulatingTimer timer(d->loaderState.parameters().logElapsedTime()
-                            ? &d->elapsedTime : nullptr);
+                            ? &product.timingData.groupsSetup : nullptr);
 
-    d->modulePropsSetInGroups.clear();
-    d->disabledGroups.clear();
-    d->moveGroupsFromModulesToProduct(product, productScope);
-    for (Item * const child : product->children()) {
+    d->moveGroupsFromModulesToProduct(product.item, product.scope);
+    for (Item * const child : product.item->children()) {
         if (child->type() == ItemType::Group)
             d->handleGroup(product, child);
     }
-}
-
-std::unordered_map<const Item *, QualifiedIdSet> GroupsHandler::modulePropertiesSetInGroups() const
-{
-    return d->modulePropsSetInGroups;
-}
-
-Set<Item *> GroupsHandler::disabledGroups() const
-{
-    return d->disabledGroups;
-}
-
-void GroupsHandler::printProfilingInfo(int indent)
-{
-    if (!d->loaderState.parameters().logElapsedTime())
-        return;
-    d->loaderState.logger().qbsLog(LoggerInfo, true)
-            << QByteArray(indent, ' ')
-            << Tr::tr("Setting up Groups took %1.")
-               .arg(elapsedTimeString(d->elapsedTime));
 }
 
 void GroupsHandler::Private::gatherAssignedProperties(ItemValue *iv, const QualifiedId &prefix,
@@ -171,7 +146,7 @@ void GroupsHandler::Private::moveGroupsFromModulesToProduct(Item *product, Item 
 //       and too little here. In particular, I'm not sure why we should even have to do anything
 //       with groups that don't attach properties.
 //       Set aside a day or two at some point to fully grasp all the details and rewrite accordingly.
-void GroupsHandler::Private::propagateModulesFromParent(Item *group)
+void GroupsHandler::Private::propagateModulesFromParent(ProductContext &product, Item *group)
 {
     QBS_CHECK(group->type() == ItemType::Group);
     QHash<QualifiedId, Item *> moduleInstancesForGroup;
@@ -220,7 +195,7 @@ void GroupsHandler::Private::propagateModulesFromParent(Item *group)
     const QualifiedIdSet &propsSetInGroup = gatherModulePropertiesSetInGroup(group);
     if (propsSetInGroup.empty())
         return;
-    modulePropsSetInGroups.insert(std::make_pair(group, propsSetInGroup));
+    product.modulePropertiesSetInGroups.insert(std::make_pair(group, propsSetInGroup));
 
     // Step 3: Adapt scopes in values. This is potentially necessary if module properties
     //         get assigned on the group level.
@@ -228,11 +203,11 @@ void GroupsHandler::Private::propagateModulesFromParent(Item *group)
         adjustScopesInGroupModuleInstances(group, module);
 }
 
-void GroupsHandler::Private::handleGroup(Item *product, Item *group)
+void GroupsHandler::Private::handleGroup(ProductContext &product, Item *group)
 {
-    propagateModulesFromParent(group);
+    propagateModulesFromParent(product, group);
     if (!loaderState.evaluator().boolValue(group, StringConstants::conditionProperty()))
-        disabledGroups << group;
+        loaderState.topLevelProject().disabledItems << group;
     for (Item * const child : group->children()) {
         if (child->type() == ItemType::Group)
             handleGroup(product, child);

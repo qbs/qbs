@@ -54,7 +54,6 @@ public:
     ~ProductsCollector();
 
     void run(Item *rootProject);
-    void printProfilingInfo(int indent);
 
 private:
      class Private;

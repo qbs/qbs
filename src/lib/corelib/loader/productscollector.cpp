@@ -96,7 +96,6 @@ public:
     Set<QString> disabledProjects;
     Version qbsVersion;
     Item *tempScopeItem = nullptr;
-    qint64 elapsedTimePrepareProducts = 0;
 
 private:
     class TempBaseModuleAttacher {
@@ -125,17 +124,6 @@ void ProductsCollector::run(Item *rootProject)
     d->checkProjectNamesInOverrides();
     d->collectProductsByNameAndItem();
     d->checkProductNamesInOverrides();
-}
-
-void ProductsCollector::printProfilingInfo(int indent)
-{
-    if (!d->loaderState.parameters().logElapsedTime())
-        return;
-    const QByteArray prefix(indent, ' ');
-    d->loaderState.logger().qbsLog(LoggerInfo, true)
-        << prefix
-        << Tr::tr("Preparing products took %1.")
-           .arg(elapsedTimeString(d->elapsedTimePrepareProducts));
 }
 
 void ProductsCollector::Private::handleProject(Item *projectItem, ProjectContext *parentProject,
@@ -295,7 +283,8 @@ void ProductsCollector::Private::prepareProduct(ProjectContext &projectContext, 
     Evaluator &evaluator = loaderState.evaluator();
     TopLevelProjectContext &topLevelProject = loaderState.topLevelProject();
 
-    AccumulatingTimer timer(parameters.logElapsedTime() ? &elapsedTimePrepareProducts : nullptr);
+    AccumulatingTimer timer(parameters.logElapsedTime()
+                            ? &topLevelProject.timingData.preparingProducts : nullptr);
     topLevelProject.checkCancelation();
     qCDebug(lcModuleLoader) << "prepareProduct" << productItem->file()->filePath();
 

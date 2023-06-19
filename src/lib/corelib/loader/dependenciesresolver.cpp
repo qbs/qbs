@@ -178,7 +178,6 @@ public:
     LoaderState &loaderState;
     ModuleLoader moduleLoader{loaderState};
     std::unordered_map<ProductContext *, std::list<DependenciesResolvingState>> statePerProduct;
-    qint64 elapsedTime = 0;
 
     ProductContext *product = nullptr;
     std::list<DependenciesResolvingState> *stateStack = nullptr;
@@ -194,7 +193,7 @@ bool DependenciesResolver::resolveDependencies(ProductContext &product, Deferral
     QBS_CHECK(!product.dependenciesResolved);
 
     AccumulatingTimer timer(d->loaderState.parameters().logElapsedTime()
-                            ? &d->elapsedTime : nullptr);
+                            ? &product.timingData.dependenciesResolving : nullptr);
 
     d->product = &product;
     d->deferral = deferral;
@@ -281,18 +280,6 @@ StoredModuleProviderInfo DependenciesResolver::storedModuleProviderInfo() const
 const Set<QString> &DependenciesResolver::tempQbsFiles() const
 {
     return d->moduleLoader.tempQbsFiles();
-}
-
-void DependenciesResolver::printProfilingInfo(int indent)
-{
-    if (!d->loaderState.parameters().logElapsedTime())
-        return;
-    const QByteArray prefix(indent, ' ');
-    d->loaderState.logger().qbsLog(LoggerInfo, true)
-        << prefix
-        << Tr::tr("Setting up product dependencies took %1.")
-               .arg(elapsedTimeString(d->elapsedTime));
-    d->moduleLoader.printProfilingInfo(indent + 2);
 }
 
 Item *DependenciesResolver::loadBaseModule(ProductContext &product, Item *item)
@@ -504,9 +491,9 @@ LoadModuleResult DependenciesResolver::Private::loadModule(
                       + loadingItemOrigin.profile;
     }
     loaderState.moduleInstantiator().instantiate({
-        product->item, product->name, loadingItem, loadingName, moduleItem, moduleWithSameName,
-        productDep ? productDep->item : nullptr, product->scope, product->project->scope,
-        dependency.name, dependency.id(), bool(existingModule)});
+        *product, loadingItem, loadingName, moduleItem, moduleWithSameName,
+        productDep ? productDep->item : nullptr, dependency.name, dependency.id(),
+        bool(existingModule)});
 
     // At this point, a null module item is only possible for a non-required dependency.
     // Note that we still needed to to the instantiation above, as that injects the module
@@ -632,7 +619,7 @@ Item *DependenciesResolver::Private::findMatchingModule(
     const ModuleLoader::ProductContext loaderContext{
         product->item, product->project->item, product->name, product->uniqueName(),
         product->profileName, product->multiplexConfigurationId, product->moduleProperties,
-        product->profileModuleProperties};
+        product->profileModuleProperties, product->timingData.moduleProviders};
     const ModuleLoader::Result loaderResult = moduleLoader.searchAndLoadModuleFile(
         loaderContext, dependency.location(), dependency.name, dependency.fallbackMode,
         dependency.requiredGlobally);

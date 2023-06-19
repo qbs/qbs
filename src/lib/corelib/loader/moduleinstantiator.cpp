@@ -62,7 +62,7 @@ public:
 
     void overrideProperties(const Context &context);
     void setupScope(const Context &context);
-    void exchangePlaceholderItem(Item *product, Item *loadingItem, const QString &loadingName,
+    void exchangePlaceholderItem(ProductContext &product, Item *loadingItem, const QString &loadingName,
         Item *moduleItemForItemValues, const QualifiedId &moduleName, const QString &id,
         bool isProductDependency, bool alreadyLoaded);
     std::pair<const Item *, Item *>
@@ -70,7 +70,6 @@ public:
                                const QString &id, bool replace);
 
     LoaderState &loaderState;
-    qint64 elapsedTime = 0;
 };
 
 ModuleInstantiator::ModuleInstantiator(LoaderState &loaderState)
@@ -80,7 +79,7 @@ ModuleInstantiator::~ModuleInstantiator() = default;
 void ModuleInstantiator::instantiate(const Context &context)
 {
     AccumulatingTimer timer(d->loaderState.parameters().logElapsedTime()
-                            ? &d->elapsedTime : nullptr);
+                            ? &context.product.timingData.moduleInstantiation : nullptr);
 
     // This part needs to be done only once per module and product, and only if the module
     // was successfully loaded.
@@ -113,16 +112,18 @@ void ModuleInstantiator::instantiate(const Context &context)
         context.product, context.loadingItem, context.loadingName, moduleItemForItemValues,
         context.moduleName, context.id, context.exportingProduct, context.alreadyLoaded);
 
-    if (!context.alreadyLoaded && context.product && context.product != context.loadingItem) {
+    if (!context.alreadyLoaded && context.product.item
+            && context.product.item != context.loadingItem) {
         d->exchangePlaceholderItem(
-            context.product, context.product, context.productName, moduleItemForItemValues,
+            context.product, context.product.item, context.product.name, moduleItemForItemValues,
             context.moduleName, context.id, context.exportingProduct, context.alreadyLoaded);
     }
 }
 
 void ModuleInstantiator::Private::exchangePlaceholderItem(
-    Item *product, Item *loadingItem, const QString &loadingName, Item *moduleItemForItemValues,
-    const QualifiedId &moduleName, const QString &id, bool isProductModule, bool alreadyLoaded)
+    ProductContext &product, Item *loadingItem, const QString &loadingName,
+    Item *moduleItemForItemValues, const QualifiedId &moduleName, const QString &id,
+    bool isProductModule, bool alreadyLoaded)
 {
     // If we have a module item, set an item value pointing to it as a property on the loading item.
     // Evict a possibly existing placeholder item, and return it to us, so we can merge its values
@@ -258,16 +259,6 @@ std::pair<const Item *, Item *> ModuleInstantiator::Private::getOrSetModuleInsta
     return {nullptr, instance};
 }
 
-void ModuleInstantiator::printProfilingInfo(int indent)
-{
-    if (!d->loaderState.parameters().logElapsedTime())
-        return;
-    d->loaderState.logger().qbsLog(LoggerInfo, true)
-            << QByteArray(indent, ' ')
-            << Tr::tr("Instantiating modules took %1.")
-               .arg(elapsedTimeString(d->elapsedTime));
-}
-
 void ModuleInstantiator::Private::overrideProperties(const ModuleInstantiator::Context &context)
 {
     // Users can override module properties on the command line with the
@@ -280,7 +271,7 @@ void ModuleInstantiator::Private::overrideProperties(const ModuleInstantiator::C
     const QString fullName = context.moduleName.toString();
     const QString generalOverrideKey = QStringLiteral("modules.") + fullName;
     const QString perProductOverrideKey = StringConstants::productsOverridePrefix()
-                                          + context.productName + QLatin1Char('.') + fullName;
+                                          + context.product.name + QLatin1Char('.') + fullName;
     const SetupProjectParameters &parameters = loaderState.parameters();
     Logger &logger = loaderState.logger();
     context.module->overrideProperties(parameters.overriddenValuesTree(), generalOverrideKey,
@@ -298,10 +289,10 @@ void ModuleInstantiator::Private::setupScope(const ModuleInstantiator::Context &
     Item * const scope = Item::create(&loaderState.itemPool(), ItemType::Scope);
     QBS_CHECK(context.module->file());
     scope->setFile(context.module->file());
-    QBS_CHECK(context.projectScope);
-    context.projectScope->copyProperty(StringConstants::projectVar(), scope);
-    if (context.productScope)
-        context.productScope->copyProperty(StringConstants::productVar(), scope);
+    QBS_CHECK(context.product.project->scope);
+    context.product.project->scope->copyProperty(StringConstants::projectVar(), scope);
+    if (context.product.scope)
+        context.product.scope->copyProperty(StringConstants::productVar(), scope);
     else
         QBS_CHECK(context.moduleName.toString() == StringConstants::qbsModule()); // Dummy product.
 
@@ -320,7 +311,7 @@ void ModuleInstantiator::Private::setupScope(const ModuleInstantiator::Context &
         const auto exportingProductItemValue = ItemValue::create(context.exportingProduct);
         scope->setProperty(QStringLiteral("exportingProduct"), exportingProductItemValue);
 
-        const auto importingProductItemValue = ItemValue::create(context.product);
+        const auto importingProductItemValue = ItemValue::create(context.product.item);
         scope->setProperty(QStringLiteral("importingProduct"), importingProductItemValue);
 
         // FIXME: This looks wrong. Introduce exportingProject variable?

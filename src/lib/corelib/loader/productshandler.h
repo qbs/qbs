@@ -57,7 +57,6 @@ public:
     ~ProductsHandler();
 
     void run();
-    void printProfilingInfo(int indent);
 
 private:
     class Private;

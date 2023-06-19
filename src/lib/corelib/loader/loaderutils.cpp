@@ -449,4 +449,19 @@ bool ProductContext::dependenciesResolvingPending() const
     return !dependenciesResolved && !product && !delayedError.hasError();
 }
 
+TimingData &TimingData::operator+=(const TimingData &other)
+{
+    dependenciesResolving += other.dependenciesResolving;
+    moduleProviders += other.moduleProviders;
+    moduleInstantiation += other.moduleInstantiation;
+    propertyMerging += other.propertyMerging;
+    groupsSetup += other.groupsSetup;
+    groupsResolving += other.groupsResolving;
+    preparingProducts += other.preparingProducts;
+    probes += other.probes;
+    propertyEvaluation += other.propertyEvaluation;
+    propertyChecking += other.propertyChecking;
+    return *this;
+}
+
 } // namespace qbs::Internal

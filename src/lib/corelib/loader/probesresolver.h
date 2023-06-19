@@ -82,7 +82,6 @@ private:
                       CompareScript compareScript) const;
     ProbeConstPtr resolveProbe(const ProductContext &productContext, Item *parent, Item *probe);
 
-    qint64 m_elapsedTimeProbes = 0;
     quint64 m_probesEncountered = 0;
     quint64 m_probesRun = 0;
     quint64 m_probesCachedCurrent = 0;
