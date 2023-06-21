@@ -115,22 +115,9 @@ ModuleProviderLoader::ModuleProviderResult ModuleProviderLoader::executeModulePr
     const auto qbsModule = evaluateQbsModule(product);
     for (const auto &[name, lookupType] : providers) {
         const QVariantMap config = result.providerConfig.value(name.toString()).toMap();
-        ModuleProviderInfo &info = m_storedModuleProviderInfo.providers[
-            {name.toString(), config, qbsModule, int(lookupType)}];
-        const bool fromCache = !info.name.isEmpty();
-        if (!fromCache) {
-            info.name = name;
-            info.config = config;
-            info.providerFile = findModuleProviderFile(name, lookupType);
-            if (!info.providerFile.isEmpty()) {
-                qCDebug(lcModuleLoader) << "Running provider" << name << "at" << info.providerFile;
-                const auto evalResult = evaluateModuleProvider(
-                    product, dependsItemLocation, name, info.providerFile, config, qbsModule);
-                info.searchPaths = evalResult.first;
-                result.probes << evalResult.second;
-                info.transientOutput = m_loaderState.parameters().dryRun();
-            }
-        }
+        const auto &[info, probes, fromCache] = findOrCreateProviderInfo(
+                    product, dependsItemLocation, name, lookupType, config, qbsModule);
+        result.probes << probes;
         if (info.providerFile.isEmpty()) {
             if (lookupType == ModuleProviderLookup::Named)
                 throw ErrorInfo(Tr::tr("Unknown provider '%1'").arg(name.toString()));
@@ -156,6 +143,31 @@ ModuleProviderLoader::ModuleProviderResult ModuleProviderLoader::executeModulePr
     result.searchPaths = std::move(allSearchPaths);
 
     return result;
+}
+
+std::tuple<const ModuleProviderInfo &, std::vector<ProbeConstPtr>, bool>
+ModuleProviderLoader::findOrCreateProviderInfo(
+        const ProductContext &product, const CodeLocation &dependsItemLocation,
+        const QualifiedId &name, ModuleProviderLookup lookupType, const QVariantMap &config,
+        const QVariantMap &qbsModule)
+{
+    ModuleProviderInfo &info = m_storedModuleProviderInfo.providers[
+        {name.toString(), config, qbsModule, int(lookupType)}];
+    if (!info.name.isEmpty())
+        return {info, {}, true};
+
+    info.name = name;
+    info.config = config;
+    info.providerFile = findModuleProviderFile(name, lookupType);
+    if (info.providerFile.isEmpty())
+        return {info, {}, false};
+
+    qCDebug(lcModuleLoader) << "Running provider" << name << "at" << info.providerFile;
+    const auto evalResult = evaluateModuleProvider(
+                product, dependsItemLocation, name, info.providerFile, config, qbsModule);
+    info.searchPaths = evalResult.first;
+    info.transientOutput = m_loaderState.parameters().dryRun();
+    return {info, evalResult.second, false};
 }
 
 QVariantMap ModuleProviderLoader::getModuleProviderConfig(const ProductContext &product)
@@ -314,7 +326,7 @@ std::pair<QStringList, std::vector<ProbeConstPtr> > ModuleProviderLoader::evalua
                                "for dependency '%1': %2").arg(name.toString(),
                                                               dummyItemFile.errorString()));
     }
-    m_tempQbsFiles << dummyItemFile.fileName();
+    updateTempFilesList(dummyItemFile.fileName());
     qCDebug(lcModuleLoader) << "Instantiating module provider at" << providerFile;
     const QString projectBuildDir = product.projectItem->variantProperty(
                 StringConstants::buildDirectoryProperty())->value().toString();
@@ -361,6 +373,11 @@ std::pair<QStringList, std::vector<ProbeConstPtr> > ModuleProviderLoader::evalua
     return std::make_pair(m_loaderState.evaluator().stringListValue(
                               providerItem, QStringLiteral("searchPaths")),
                           std::move(probes));
+}
+
+void ModuleProviderLoader::updateTempFilesList(const QString &filePath)
+{
+    m_tempQbsFiles << filePath;
 }
 
 } // namespace Internal

@@ -108,6 +108,10 @@ private:
             const ProductContext &product,
             const CodeLocation &dependsItemLocation,
             const std::vector<Provider> &providers);
+    std::tuple<const ModuleProviderInfo &, std::vector<ProbeConstPtr>, bool>
+    findOrCreateProviderInfo(const ProductContext &product, const CodeLocation &dependsItemLocation,
+                             const QualifiedId &name, ModuleProviderLookup lookupType,
+                             const QVariantMap &config, const QVariantMap &qbsModule);
     QVariantMap getModuleProviderConfig(const ProductContext &product);
 
     std::optional<std::vector<QualifiedId>> getModuleProviders(Item *item);
@@ -122,8 +126,8 @@ private:
             const QString &providerFile,
             const QVariantMap &moduleConfig,
             const QVariantMap &qbsModule);
+    void updateTempFilesList(const QString &filePath);
 
-private:
     LoaderState &m_loaderState;
     StoredModuleProviderInfo m_storedModuleProviderInfo;
     Set<QString> m_tempQbsFiles;
