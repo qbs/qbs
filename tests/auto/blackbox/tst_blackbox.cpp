@@ -4832,6 +4832,10 @@ void TestBlackbox::jsExtensionsBinaryFile()
     QCOMPARE(data.at(5), char(0x05));
     QCOMPARE(data.at(6), char(0x06));
     QCOMPARE(data.at(7), char(0xFF));
+    QFile destination2("destination2.dat");
+    QVERIFY(destination2.exists());
+    QVERIFY(destination2.open(QIODevice::ReadOnly));
+    QCOMPARE(destination2.readAll(), data);
 }
 
 void TestBlackbox::lastModuleCandidateBroken()
