@@ -64,6 +64,11 @@ CppApplication {
     cpp.automaticReferenceCounting: true
     cpp.frameworks: [ "UIKit", "Foundation", "CoreGraphics" ]
 
+    // sample code signing settings:
+    // codesign.enableCodeSigning: true
+    // codesign.provisioningProfile: "my provisioning profile name"
+    // codesign.signingIdentity: "Apple Development: My Team Name"
+
     Group {
         prefix: "CocoaTouchApplication/"
         files: [

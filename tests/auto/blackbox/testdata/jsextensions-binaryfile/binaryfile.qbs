@@ -36,6 +36,9 @@ Product {
                 destination.write(source.atEof() ? [ 0xFF ] : [ 0x00 ]);
                 source.close();
                 destination.close();
+                source = new BinaryFile("destination.dat", BinaryFile.ReadOnly);
+                destination = new BinaryFile("destination2.dat", BinaryFile.WriteOnly);
+                destination.write(source.read(8));
             };
             commands.push(cmd);
             return commands;

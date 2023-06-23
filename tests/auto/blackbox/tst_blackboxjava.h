@@ -43,6 +43,9 @@ private slots:
     void javaDependencyTracking();
     void javaDependencyTracking_data();
     void javaDependencyTrackingInnerClass();
+
+private:
+    const QStringList m_blacklistedJdks;
 };
 
 #endif // TST_BLACKBOX_H

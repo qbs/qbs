@@ -176,8 +176,10 @@ public:
     static JSValue toJsValue(JSContext *ctx, const QByteArray &data)
     {
         const JSValue array = JS_NewArray(ctx);
-        for (int i = 0; i < data.size(); ++i)
-            JS_SetPropertyUint32(ctx, array, i, JS_NewInt32(ctx, data.at(i)));
+        for (int i = 0; i < data.size(); ++i) {
+            JS_SetPropertyUint32(ctx, array, i,
+                                 JS_NewUint32(ctx, static_cast<unsigned char>(data.at(i))));
+        }
         return array;
     }
     static JSValue toJsValue(JSContext *ctx, const QVariantMap &m)
@@ -277,9 +279,9 @@ template<> struct FromArgHelper<QByteArray> {
             const JSValue jsNumber = JS_GetPropertyUint32(ctx, v, i);
             if (JS_VALUE_GET_TAG(jsNumber) != JS_TAG_INT)
                 throwError();
-            int32_t n;
-            JS_ToInt32(ctx, &n, jsNumber);
-            if (n < 0 || n > 0xff)
+            uint32_t n;
+            JS_ToUint32(ctx, &n, jsNumber);
+            if (n > 0xff)
                 throwError();
             data[i] = n;
         }
