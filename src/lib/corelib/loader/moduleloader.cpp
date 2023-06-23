@@ -69,11 +69,11 @@ class ModuleLoader::Private
 public:
     Private(LoaderState &loaderState) : loaderState(loaderState) {}
 
-    std::pair<Item *, bool> loadModuleFile(const ProductContext &product,
+    std::pair<Item *, bool> loadModuleFile(ProductContext &product,
                                            const QString &moduleName, const QString &filePath);
-    std::pair<Item *, bool> getModulePrototype(const ModuleLoader::ProductContext &product,
+    std::pair<Item *, bool> getModulePrototype(ProductContext &product,
                                                const QString &moduleName, const QString &filePath);
-    bool evaluateModuleCondition(const ModuleLoader::ProductContext &product, Item *module,
+    bool evaluateModuleCondition(ProductContext &product, Item *module,
                                  const QString &fullModuleName);
     void forwardParameterDeclarations(const QualifiedId &moduleName, Item *item,
                                       const Item::Modules &modules);
@@ -147,7 +147,7 @@ static Item *chooseModuleCandidate(const std::vector<PrioritizedItem> &candidate
 }
 
 ModuleLoader::Result ModuleLoader::searchAndLoadModuleFile(
-    const ProductContext &productContext, const CodeLocation &dependsItemLocation,
+    ProductContext &productContext, const CodeLocation &dependsItemLocation,
     const QualifiedId &moduleName, FallbackMode fallbackMode, bool isRequired)
 {
     const auto findExistingModulePath = [&](const QString &searchPath) {
@@ -185,12 +185,12 @@ ModuleLoader::Result ModuleLoader::searchAndLoadModuleFile(
     auto existingPaths = findExistingModulePaths();
     if (existingPaths.isEmpty()) { // no suitable names found, try to use providers
         AccumulatingTimer providersTimer(d->loaderState.parameters().logElapsedTime()
-                                         ? &productContext.elapsedTimeModuleProviders : nullptr);
+                                         ? &productContext.timingData.moduleProviders : nullptr);
         std::optional<QVariantMap> &providerConfig
-            = d->providerConfigsPerProduct[productContext.productItem];
+            = d->providerConfigsPerProduct[productContext.item];
         auto result = d->providerLoader.executeModuleProviders(
-            {productContext.productItem, productContext.projectItem, productContext.name,
-             productContext.uniqueName, productContext.moduleProperties, providerConfig},
+            {productContext.item, productContext.project->item, productContext.name,
+             productContext.uniqueName(), productContext.moduleProperties, providerConfig},
             dependsItemLocation,
             moduleName,
             fallbackMode);
@@ -239,7 +239,7 @@ ModuleLoader::Result ModuleLoader::searchAndLoadModuleFile(
     if (candidates.empty()) {
         if (!isRequired) {
             loadResult.moduleItem = createNonPresentModule(
-                *productContext.projectItem->pool(), fullName, QStringLiteral("not found"),
+                d->loaderState.itemPool(), fullName, QStringLiteral("not found"),
                 nullptr);
             return loadResult;
         }
@@ -262,12 +262,12 @@ ModuleLoader::Result ModuleLoader::searchAndLoadModuleFile(
     }
 
     const QString fullProductName = ProductItemMultiplexer::fullProductDisplayName(
-        productContext.name, productContext.multiplexId);
+        productContext.name, productContext.multiplexConfigurationId);
     const auto it = d->unknownProfilePropertyErrors.find(loadResult.moduleItem);
     if (it != d->unknownProfilePropertyErrors.cend()) {
         ErrorInfo error(Tr::tr("Loading module '%1' for product '%2' failed due to invalid values "
                                "in profile '%3':")
-                            .arg(moduleName.toString(), fullProductName, productContext.profile));
+                        .arg(moduleName.toString(), fullProductName, productContext.profileName));
         for (const ErrorInfo &e : it->second)
             error.append(e.toString());
         handlePropertyError(error, d->loaderState.parameters(), d->loaderState.logger());
@@ -291,8 +291,7 @@ const Set<QString> &ModuleLoader::tempQbsFiles() const
     return d->providerLoader.tempQbsFiles();
 }
 
-std::pair<Item *, bool> ModuleLoader::Private::loadModuleFile(
-    const ProductContext &product, const QString &moduleName, const QString &filePath)
+std::pair<Item *, bool> ModuleLoader::Private::loadModuleFile(ProductContext &product, const QString &moduleName, const QString &filePath)
 {
     qCDebug(lcModuleLoader) << "loadModuleFile" << moduleName << "from" << filePath;
 
@@ -300,7 +299,7 @@ std::pair<Item *, bool> ModuleLoader::Private::loadModuleFile(
     if (!module)
         return {nullptr, triedToLoad};
 
-    const auto key = std::make_pair(module, product.productItem);
+    const auto key = std::make_pair(module, product.item);
     const auto it = modulePrototypeEnabledInfo.find(key);
     if (it != modulePrototypeEnabledInfo.end()) {
         qCDebug(lcModuleLoader) << "prototype cache hit (level 2)";
@@ -345,12 +344,11 @@ std::pair<Item *, bool> ModuleLoader::Private::loadModuleFile(
     return {module, triedToLoad};
 }
 
-std::pair<Item *, bool> ModuleLoader::Private::getModulePrototype(
-    const ProductContext &product, const QString &moduleName, const QString &filePath)
+std::pair<Item *, bool> ModuleLoader::Private::getModulePrototype(ProductContext &product, const QString &moduleName, const QString &filePath)
 {
     auto &prototypeList = modulePrototypes[filePath];
     for (const auto &prototype : prototypeList) {
-        if (prototype.second == product.profile) {
+        if (prototype.second == product.profileName) {
             qCDebug(lcModuleLoader) << "prototype cache hit (level 1)";
             return {prototype.first, true};
         }
@@ -363,7 +361,7 @@ std::pair<Item *, bool> ModuleLoader::Private::getModulePrototype(
             << module->typeName() << "', so it's not a module after all.";
         return {nullptr, false};
     }
-    prototypeList.emplace_back(module, product.profile);
+    prototypeList.emplace_back(module, product.profileName);
 
     // Module properties that are defined in the profile are used as default values.
     // This is the reason we need to have different items per profile.
@@ -386,7 +384,7 @@ std::pair<Item *, bool> ModuleLoader::Private::getModulePrototype(
     return {module, true};
 }
 
-bool ModuleLoader::Private::evaluateModuleCondition(const ProductContext &product,
+bool ModuleLoader::Private::evaluateModuleCondition(ProductContext &product,
                                                     Item *module, const QString &fullModuleName)
 {
     // Evaluator reqires module name to be set.
@@ -403,7 +401,7 @@ bool ModuleLoader::Private::evaluateModuleCondition(const ProductContext &produc
             if (m_needsQbsItem) {
                 m_prevQbsItemValue = module->property(StringConstants::qbsModule());
                 module->setProperty(StringConstants::qbsModule(),
-                                    product.productItem->property(StringConstants::qbsModule()));
+                                    product.item->property(StringConstants::qbsModule()));
             }
         }
         ~TempQbsModuleProvider()

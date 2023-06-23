@@ -616,12 +616,8 @@ Item *DependenciesResolver::Private::findMatchingModule(
         return nullptr;
     }
 
-    const ModuleLoader::ProductContext loaderContext{
-        product->item, product->project->item, product->name, product->uniqueName(),
-        product->profileName, product->multiplexConfigurationId, product->moduleProperties,
-        product->profileModuleProperties, product->timingData.moduleProviders};
     const ModuleLoader::Result loaderResult = moduleLoader.searchAndLoadModuleFile(
-        loaderContext, dependency.location(), dependency.name, dependency.fallbackMode,
+        *product, dependency.location(), dependency.name, dependency.fallbackMode,
         dependency.requiredGlobally);
 
     Item *moduleItem = loaderResult.moduleItem;

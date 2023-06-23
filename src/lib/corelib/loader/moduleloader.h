@@ -55,6 +55,7 @@ class CodeLocation;
 namespace Internal {
 enum class FallbackMode;
 class LoaderState;
+class ProductContext;
 class StoredModuleProviderInfo;
 
 class ModuleLoader
@@ -63,22 +64,11 @@ public:
     ModuleLoader(LoaderState &loaderState);
     ~ModuleLoader();
 
-    struct ProductContext {
-        Item * const productItem;
-        const Item * const projectItem;
-        const QString &name;
-        const QString &uniqueName;
-        const QString &profile;
-        const QString &multiplexId;
-        const QVariantMap &moduleProperties;
-        const QVariantMap &profileModuleProperties;
-        qint64 &elapsedTimeModuleProviders;
-    };
     struct Result {
         Item *moduleItem = nullptr;
         std::vector<ProbeConstPtr> providerProbes;
     };
-    Result searchAndLoadModuleFile(const ProductContext &productContext,
+    Result searchAndLoadModuleFile(ProductContext &productContext,
                                    const CodeLocation &dependsItemLocation,
                                    const QualifiedId &moduleName,
                                    FallbackMode fallbackMode, bool isRequired);
