@@ -41,6 +41,7 @@ ProtobufBase {
             result.push(includePath);
         return result;
     }
+    cpp.cxxLanguageVersion: qbs.targetOS.contains("darwin") ? ["c++17"] : ["c++11"]
 
     Rule {
         inputs: ["protobuf.input"]
