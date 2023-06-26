@@ -52,6 +52,7 @@
 #include <QVariant>
 
 #include <memory.h>
+#include <optional>
 #include <vector>
 
 namespace qbs {
@@ -119,6 +120,7 @@ public:
     QString multiplexConfigurationId;
     QVariantMap profileModuleProperties; // Tree-ified module properties from profile.
     QVariantMap moduleProperties;        // Tree-ified module properties from profile + overridden values.
+    std::optional<QVariantMap> providerConfig;
     QVariantMap defaultParameters; // In Export item.
     QStringList searchPaths;
     ResolvedProductPtr product;
@@ -127,6 +129,10 @@ public:
     FileLocations sourceArtifactLocations;
     GroupConstPtr currentGroup;
     TimingData timingData;
+
+    // The keys are module prototypes, the values specify whether the module's
+    // condition is true for this product.
+    std::unordered_map<Item *, bool> modulePrototypeEnabledInfo;
 
     bool dependenciesResolved = false;
 };

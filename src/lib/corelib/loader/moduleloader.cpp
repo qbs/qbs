@@ -84,13 +84,8 @@ public:
     // The keys are file paths, the values are module prototype items accompanied by a profile.
     std::unordered_map<QString, std::vector<std::pair<Item *, QString>>> modulePrototypes;
 
-    // The keys are module prototypes and products, the values specify whether the module's
-    // condition is true for that product.
-    std::unordered_map<std::pair<Item *, const Item *>, bool> modulePrototypeEnabledInfo;
-
     std::unordered_map<const Item *, std::vector<ErrorInfo>> unknownProfilePropertyErrors;
     std::unordered_map<const Item *, Item::PropertyDeclarationMap> parameterDeclarations;
-    std::unordered_map<const Item *, std::optional<QVariantMap>> providerConfigsPerProduct;
     QHash<std::pair<QString, QualifiedId>, std::optional<QString>> existingModulePathCache;
     std::map<QString, QStringList> moduleDirListCache;
 };
@@ -186,8 +181,7 @@ ModuleLoader::Result ModuleLoader::searchAndLoadModuleFile(
     if (existingPaths.isEmpty()) { // no suitable names found, try to use providers
         AccumulatingTimer providersTimer(d->loaderState.parameters().logElapsedTime()
                                          ? &productContext.timingData.moduleProviders : nullptr);
-        std::optional<QVariantMap> &providerConfig
-            = d->providerConfigsPerProduct[productContext.item];
+        std::optional<QVariantMap> &providerConfig = productContext.providerConfig;
         auto result = d->providerLoader.executeModuleProviders(
             {productContext.item, productContext.project->item, productContext.name,
              productContext.uniqueName(), productContext.moduleProperties, providerConfig},
@@ -299,16 +293,15 @@ std::pair<Item *, bool> ModuleLoader::Private::loadModuleFile(ProductContext &pr
     if (!module)
         return {nullptr, triedToLoad};
 
-    const auto key = std::make_pair(module, product.item);
-    const auto it = modulePrototypeEnabledInfo.find(key);
-    if (it != modulePrototypeEnabledInfo.end()) {
+    const auto it = product.modulePrototypeEnabledInfo.find(module);
+    if (it != product.modulePrototypeEnabledInfo.end()) {
         qCDebug(lcModuleLoader) << "prototype cache hit (level 2)";
         return {it->second ? module : nullptr, triedToLoad};
     }
 
     if (!evaluateModuleCondition(product, module, moduleName)) {
         qCDebug(lcModuleLoader) << "condition of module" << moduleName << "is false";
-        modulePrototypeEnabledInfo.insert({key, false});
+        product.modulePrototypeEnabledInfo.insert({module, false});
         return {nullptr, triedToLoad};
     }
 
@@ -340,7 +333,7 @@ std::pair<Item *, bool> ModuleLoader::Private::loadModuleFile(ProductContext &pr
         parameterDeclarations.insert({module, decls});
     }
 
-    modulePrototypeEnabledInfo.insert({key, true});
+    product.modulePrototypeEnabledInfo.insert({module, true});
     return {module, triedToLoad};
 }
 
