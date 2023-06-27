@@ -77,6 +77,8 @@ public:
                                  const QString &fullModuleName);
     void forwardParameterDeclarations(const QualifiedId &moduleName, Item *item,
                                       const Item::Modules &modules);
+    void checkForUnknownProfileProperties(const ProductContext &product,
+                                          const QualifiedId &moduleName, const Item *module);
 
     LoaderState &loaderState;
     ModuleProviderLoader providerLoader{loaderState};
@@ -255,17 +257,7 @@ ModuleLoader::Result ModuleLoader::searchAndLoadModuleFile(
         loadResult.moduleItem = chooseModuleCandidate(candidates, fullName);
     }
 
-    const QString fullProductName = ProductItemMultiplexer::fullProductDisplayName(
-        productContext.name, productContext.multiplexConfigurationId);
-    const auto it = d->unknownProfilePropertyErrors.find(loadResult.moduleItem);
-    if (it != d->unknownProfilePropertyErrors.cend()) {
-        ErrorInfo error(Tr::tr("Loading module '%1' for product '%2' failed due to invalid values "
-                               "in profile '%3':")
-                        .arg(moduleName.toString(), fullProductName, productContext.profileName));
-        for (const ErrorInfo &e : it->second)
-            error.append(e.toString());
-        handlePropertyError(error, d->loaderState.parameters(), d->loaderState.logger());
-    }
+    d->checkForUnknownProfileProperties(productContext, moduleName, loadResult.moduleItem);
 
     return loadResult;
 }
@@ -510,6 +502,21 @@ void ModuleLoader::Private::forwardParameterDeclarations(const QualifiedId &modu
                                          modules);
         }
     }
+}
+
+void ModuleLoader::Private::checkForUnknownProfileProperties(
+        const ProductContext &product, const QualifiedId &moduleName, const Item *module)
+{
+    const auto it = unknownProfilePropertyErrors.find(module);
+    if (it == unknownProfilePropertyErrors.cend())
+        return;
+
+    ErrorInfo error(Tr::tr("Loading module '%1' for product '%2' failed due to invalid values "
+                           "in profile '%3':")
+                    .arg(moduleName.toString(), product.displayName(), product.profileName));
+    for (const ErrorInfo &e : it->second)
+        error.append(e.toString());
+    handlePropertyError(error, loaderState.parameters(), loaderState.logger());
 }
 
 } // namespace qbs::Internal
