@@ -1,6 +1,5 @@
 import qbs.FileInfo
 import qbs.ModUtils
-import "../QtModule.qbs" as QtModule
 import "dbus.js" as DBus
 
 QtModule {

@@ -1,5 +1,3 @@
-import '../QtPlugin.qbs' as QtPlugin
-
 QtPlugin {
     qtModuleName: @name@
     Depends { name: "Qt"; submodules: @dependencies@}

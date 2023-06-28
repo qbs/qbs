@@ -1,6 +1,5 @@
 import qbs.FileInfo
 import qbs.Utilities
-import "../QtModule.qbs" as QtModule
 
 QtModule {
     qtModuleName: "Scxml"
