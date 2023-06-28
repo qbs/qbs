@@ -67,7 +67,7 @@ public:
 
     // Returns false if the product has unhandled product dependencies and thus needs
     // to be deferred, true otherwise.
-    bool resolveDependencies(ProductContext &product, Deferral deferral);
+    void resolveDependencies(ProductContext &product, Deferral deferral);
 
     void checkDependencyParameterDeclarations(const Item *productItem,
                                               const QString &productName) const;

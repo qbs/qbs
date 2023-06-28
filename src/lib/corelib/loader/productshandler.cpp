@@ -262,9 +262,9 @@ void ProductsHandler::Private::setupProductForResolving(ProductContext &product,
     if (product.delayedError.hasError())
         return;
 
-    product.dependenciesResolved = loaderState.dependenciesResolver()
-            .resolveDependencies(product, deferral);
-    if (!product.dependenciesResolved)
+    loaderState.dependenciesResolver().resolveDependencies(product, deferral);
+    QBS_CHECK(product.dependenciesContext);
+    if (!product.dependenciesContext->dependenciesResolved)
         return;
 
     // Run probes for modules and product.

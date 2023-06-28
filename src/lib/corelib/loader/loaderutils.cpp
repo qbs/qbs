@@ -446,7 +446,8 @@ const FileTag unknownFileTag()
 
 bool ProductContext::dependenciesResolvingPending() const
 {
-    return !dependenciesResolved && !product && !delayedError.hasError();
+    return (!dependenciesContext || !dependenciesContext->dependenciesResolved)
+            && !product && !delayedError.hasError();
 }
 
 TimingData &TimingData::operator+=(const TimingData &other)
@@ -463,5 +464,7 @@ TimingData &TimingData::operator+=(const TimingData &other)
     propertyChecking += other.propertyChecking;
     return *this;
 }
+
+DependenciesContext::~DependenciesContext() = default;
 
 } // namespace qbs::Internal

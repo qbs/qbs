@@ -51,7 +51,7 @@
 #include <QStringList>
 #include <QVariant>
 
-#include <memory.h>
+#include <memory>
 #include <optional>
 #include <vector>
 
@@ -98,6 +98,14 @@ public:
     qint64 propertyChecking = 0;
 };
 
+class DependenciesContext
+{
+public:
+    virtual ~DependenciesContext();
+
+    bool dependenciesResolved = false;
+};
+
 class ProductContext
 {
 public:
@@ -129,12 +137,11 @@ public:
     FileLocations sourceArtifactLocations;
     GroupConstPtr currentGroup;
     TimingData timingData;
+    std::unique_ptr<DependenciesContext> dependenciesContext;
 
     // The keys are module prototypes, the values specify whether the module's
     // condition is true for this product.
     std::unordered_map<Item *, bool> modulePrototypeEnabledInfo;
-
-    bool dependenciesResolved = false;
 };
 
 class TopLevelProjectContext
