@@ -338,7 +338,7 @@ jobs:
             script: './scripts/test-qt.sh',
           }
         - {
-            name: 'Run Linux tests (gcc, Qt 6.3 static)',
+            name: 'Run Linux tests (gcc, Qt 6.5 static)',
             image: 'focal-qt6-static',
             profile: 'qt-gcc_64',
             script: './scripts/test-qt.sh',

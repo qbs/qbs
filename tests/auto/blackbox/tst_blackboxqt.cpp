@@ -470,6 +470,16 @@ void TestBlackboxQt::pluginSupport()
     }
 }
 
+void TestBlackboxQt::qdoc()
+{
+    QDir::setCurrent(testDataDir + "/qdoc");
+    QCOMPARE(runQbs(QbsRunParameters("resolve")), 0);
+    if (m_qbsStdout.contains("Qt is too old"))
+        QSKIP("Skip test since qdoc3 does not work properly");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(QFileInfo(relativeProductBuildDir("QDoc Test") + "/qdoctest.qch").exists());
+}
+
 void TestBlackboxQt::qmlDebugging()
 {
     QDir::setCurrent(testDataDir + "/qml-debugging");

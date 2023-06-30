@@ -18,6 +18,8 @@ ProtobufBase {
     property string grpcIncludePath: grpcIncludeProbe.found ? grpcIncludeProbe.path : undefined
     property string grpcLibraryPath: grpcLibraryProbe.found ? grpcLibraryProbe.path : undefined
 
+    property string _cxxLanguageVersion: qbs.targetOS.contains("darwin") ? "c++17" : "c++14"
+
     readonly property string _libraryName: {
         var libraryName;
         if (libraryProbe.found) {
@@ -87,6 +89,7 @@ ProtobufBase {
             result.push(grpcIncludePath);
         return result;
     }
+    cpp.cxxLanguageVersion: _cxxLanguageVersion
 
     Rule {
         inputs: ["protobuf.input", "protobuf.grpc"]

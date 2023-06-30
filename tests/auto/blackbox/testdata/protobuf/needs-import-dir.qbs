@@ -13,7 +13,6 @@ CppApplication {
     property path theImportDir
     protobuf.cpp.importPaths: (theImportDir ? [theImportDir] : []).concat([sourceDirectory])
 
-    cpp.cxxLanguageVersion: "c++11"
     cpp.minimumMacosVersion: "10.8"
 
     Depends { name: "protobuf.cpp"; required: false }

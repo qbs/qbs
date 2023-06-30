@@ -5,7 +5,6 @@ CppApplication {
     condition: protobuf.cpp.present && qbs.targetPlatform === Host.platform()
 
     Depends { name: "cpp" }
-    cpp.cxxLanguageVersion: "c++17"
     cpp.minimumMacosVersion: "10.8"
 
     Depends { name: "protobuf.cpp"; required: false }

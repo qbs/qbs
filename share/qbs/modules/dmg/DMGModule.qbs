@@ -34,6 +34,7 @@ import qbs.FileInfo
 import qbs.Host
 import qbs.ModUtils
 import qbs.Process
+import qbs.Probes
 import qbs.TextFile
 import "dmg.js" as Dmg
 
@@ -72,6 +73,12 @@ Module {
     property string dmgSuffix: ".dmg"
 
     property string sourceBase
+
+    Probes.BinaryProbe {
+        id: pythonProbe
+        names: ["python3"]
+    }
+    property string pythonExePath: pythonProbe.found ? pythonProbe.filePath : "python3"
 
     readonly property string pythonPath: File.canonicalFilePath(FileInfo.joinPaths(path,
                                                                 "..", "..",

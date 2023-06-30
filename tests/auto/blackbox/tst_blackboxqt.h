@@ -65,6 +65,7 @@ private slots:
     void pluginMetaData();
     void pluginSupport_data();
     void pluginSupport();
+    void qdoc();
     void qmlDebugging();
     void qobjectInObjectiveCpp();
     void qmlTypeRegistrar_data();

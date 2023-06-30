@@ -1,0 +1,13 @@
+project = QDoc Test
+description = QDoc Test
+
+headerdirs = .
+sourcedirs = .
+exampledirs = .
+
+outputdir = doc/html
+
+qhp.projects               = QDocTest
+qhp.QDocTest.file          = qdoctest.qhp
+qhp.QDocTest.namespace     = org.qt-project.QDocTest
+qhp.QDocTest.virtualFolder = doc

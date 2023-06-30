@@ -43,6 +43,7 @@ RUN apt-get update -qq && \
     build-essential \
     git \
     perl \
+    clang-12 \
     cmake \
     python \
     zlib1g-dev \
@@ -56,6 +57,7 @@ RUN apt-get update -qq && \
     libvulkan-dev \
     libicu-dev \
     libb2-dev \
+    libclang-12-dev \
     libsystemd-dev \
     libfontconfig1-dev \
     libfreetype6-dev \
@@ -101,6 +103,7 @@ RUN apt-get update -qq && \
     libxcb-damage0-dev \
     libxcb-dpms0-dev \
     libgstreamer1.0-dev \
+    llvm-12-dev \
     apt-transport-https
 
 ENV QT_HOME="/home/${USER_NAME}/qt"
@@ -153,8 +156,8 @@ RUN apt-get update -qq && \
         ca-certificates \
         capnproto \
         ccache \
-        clang-8 \
-        clang-tidy-8 \
+        clang-12 \
+        clang-tidy-12 \
         cmake \
         curl \
         flex \
@@ -186,9 +189,9 @@ RUN apt-get update -qq && \
         zip \
         libb2-1 \
         libpcre++ && \
-    update-alternatives --install /usr/bin/clang clang /usr/bin/clang-8 100 && \
-    update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-8 100 && \
-    update-alternatives --install /usr/bin/clang-check clang-check /usr/bin/clang-check-8 100 && \
+    update-alternatives --install /usr/bin/clang clang /usr/bin/clang-12 100 && \
+    update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-12 100 && \
+    update-alternatives --install /usr/bin/clang-check clang-check /usr/bin/clang-check-12 100 && \
     update-alternatives --install /usr/bin/python python /usr/bin/python3 100 && \
     pip install beautifulsoup4 lxml protobuf pyyaml
 

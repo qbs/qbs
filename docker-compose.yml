@@ -46,13 +46,13 @@ services:
   focal-qt6-static:
     << : *linux
     hostname: focal-qt6-static
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:focal-qt6-static-6.3.1_1.20.1-0
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:focal-qt6-static-6.5.0_1.24.1-0
     build:
       dockerfile: docker/focal/test-qt6-static.Dockerfile
       context: .
       args:
-        QT_VERSION: 6.3.1
-        QTCREATOR_VERSION: 5.0.3
+        QT_VERSION: 6.5.0
+        QTCREATOR_VERSION: 9.0.2
 
   focal-android-515:
     << : *linux

@@ -11,7 +11,6 @@ Project {
         name: "proto_lib"
 
         Depends { name: "cpp" }
-        cpp.cxxLanguageVersion: "c++17"
         cpp.minimumMacosVersion: "10.8"
 
         protobuf.cpp.importPaths: product.sourceDirectory
