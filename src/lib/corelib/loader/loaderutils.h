@@ -182,6 +182,8 @@ public:
     // For fast look-up when resolving Depends.productTypes.
     // The contract is that it contains fully handled, error-free, enabled products.
     std::multimap<FileTag, ProductContext *> productsByType;
+
+    bool canceled = false;
 };
 
 class ProjectContext

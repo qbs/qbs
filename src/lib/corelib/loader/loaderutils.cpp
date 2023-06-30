@@ -130,6 +130,8 @@ bool TopLevelProjectContext::checkItemCondition(Item *item, Evaluator &evaluator
 void TopLevelProjectContext::checkCancelation()
 {
     if (progressObserver && progressObserver->canceled())
+        canceled = true;
+    if (canceled)
         throw CancelException();
 }
 

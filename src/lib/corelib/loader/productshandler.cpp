@@ -217,6 +217,8 @@ void ProductsHandler::Private::handleNextProduct()
 
     loaderState.itemReader().setExtraSearchPathsStack(product->project->searchPathsStack);
     handleProduct(*product, deferral);
+    if (topLevelProject.canceled)
+        throw CancelException();
 
     // The search paths stack can change during dependency resolution (due to module providers);
     // check that we've rolled back all the changes
@@ -236,8 +238,10 @@ void ProductsHandler::Private::handleProduct(ProductContext &product, Deferral d
     try {
         setupProductForResolving(product, deferral);
     } catch (const ErrorInfo &err) {
-        if (err.isCancelException())
-            throw CancelException();
+        if (err.isCancelException()) {
+            loaderState.topLevelProject().canceled = true;
+            return;
+        }
         product.handleError(err);
     }
 
@@ -248,8 +252,10 @@ void ProductsHandler::Private::handleProduct(ProductContext &product, Deferral d
     try {
         resolveProduct(product);
     } catch (const ErrorInfo &err) {
-        if (err.isCancelException())
-            throw CancelException();
+        if (err.isCancelException()) {
+            loaderState.topLevelProject().canceled = true;
+            return;
+        }
         loaderState.topLevelProject().queuedErrors << err;
     }
 }
