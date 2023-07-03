@@ -98,8 +98,10 @@ void ProbesResolver::setOldProductProbes(
 
 std::vector<ProbeConstPtr> ProbesResolver::resolveProbes(const ProductContext &productContext, Item *item)
 {
+    // FIXME: Needs to use timing data from ProductContext
     AccumulatingTimer probesTimer(m_loaderState.parameters().logElapsedTime()
-                                  ? &m_loaderState.topLevelProject().timingData.probes : nullptr);
+                                  ? &m_loaderState.topLevelProject().timingData().probes : nullptr);
+
     EvalContextSwitcher evalContextSwitcher(m_loaderState.evaluator().engine(),
                                             EvalContext::ProbeExecution);
     std::vector<ProbeConstPtr> probes;
@@ -290,7 +292,7 @@ void ProbesResolver::printProfilingInfo(int indent)
     m_loaderState.logger().qbsLog(LoggerInfo, true)
         << prefix
         << Tr::tr("Running Probes took %1.")
-           .arg(elapsedTimeString(m_loaderState.topLevelProject().timingData.probes));
+           .arg(elapsedTimeString(m_loaderState.topLevelProject().timingData().probes));
     m_loaderState.logger().qbsLog(LoggerInfo, true)
         << prefix
         << Tr::tr("%1 probes encountered, %2 configure scripts executed, "

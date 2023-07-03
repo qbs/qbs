@@ -51,8 +51,10 @@
 #include <QStringList>
 #include <QVariant>
 
+#include <functional>
 #include <memory>
 #include <optional>
+#include <utility>
 #include <vector>
 
 namespace qbs {
@@ -150,40 +152,98 @@ public:
     TopLevelProjectContext() = default;
     TopLevelProjectContext(const TopLevelProjectContext &) = delete;
     TopLevelProjectContext &operator=(const TopLevelProjectContext &) = delete;
-    ~TopLevelProjectContext() { qDeleteAll(projects); }
+    ~TopLevelProjectContext() { qDeleteAll(m_projects); }
 
     bool checkItemCondition(Item *item, Evaluator &evaluator);
-    void checkCancelation();
     QString sourceCodeForEvaluation(const JSSourceValueConstPtr &value);
     ScriptFunctionPtr scriptFunctionValue(Item *item, const QString &name);
     QString sourceCodeAsFunction(const JSSourceValueConstPtr &value,
                                  const PropertyDeclaration &decl);
     const ResolvedFileContextPtr &resolvedFileContext(const FileContextConstPtr &ctx);
 
-    std::vector<ProjectContext *> projects;
-    std::list<std::pair<ProductContext *, int>> productsToHandle;
-    std::multimap<QString, ProductContext *> productsByName;
-    std::unordered_map<Item *, ProductContext *> productsByItem;
-    std::unordered_map<QStringView, QString> sourceCode;
-    QHash<CodeLocation, ScriptFunctionPtr> scriptFunctionMap;
-    std::unordered_map<std::pair<QStringView, QStringList>, QString> scriptFunctions;
-    std::unordered_map<FileContextConstPtr, ResolvedFileContextPtr> fileContextMap;
-    Set<QString> projectNamesUsedInOverrides;
-    Set<QString> productNamesUsedInOverrides;
-    Set<Item *> disabledItems;
-    Set<QString> erroneousProducts;
-    std::vector<ProbeConstPtr> probes;
-    std::vector<ErrorInfo> queuedErrors;
-    QString buildDirectory;
-    QVariantMap profileConfigs;
-    ProgressObserver *progressObserver = nullptr;
-    TimingData timingData;
+    void setCanceled();
+    void checkCancelation();
+    bool isCanceled() const;
+
+    int productCount() const;
+
+    void addProductToHandle(ProductContext &product);
+    void reinsertProductToHandle(ProductContext &product);
+    bool hasProductsToHandle() const;
+    bool isProductQueuedForHandling(const ProductContext &product) const;
+    std::pair<ProductContext *, Deferral> nextProductToHandle();
+
+    void addDisabledItem(Item *item);
+    const Set<Item *> &disabledItems() const { return m_disabledItems; }
+    bool isDisabledItem(Item *item) const;
+
+    void addErroneousProduct(const QString &productName);
+    bool isErroneousProduct(const QString &productName);
+
+    void setProgressObserver(ProgressObserver *observer);
+    ProgressObserver *progressObserver() const;
+
+    void addProject(ProjectContext *project) { m_projects.push_back(project); }
+    const std::vector<ProjectContext *> &projects() const { return m_projects; }
+
+    void addQueuedError(const ErrorInfo &error);
+    const std::vector<ErrorInfo> &queuedErrors() const { return m_queuedErrors; }
+
+    void setProfileConfigs(const QVariantMap &profileConfigs) { m_profileConfigs = profileConfigs; }
+    void addProfileConfig(const QString &profileName, const QVariantMap &profileConfig);
+    const QVariantMap &profileConfigs() const { return m_profileConfigs; }
+    std::optional<QVariantMap> profileConfig(const QString &profileName) const;
+
+    void addProbes(const std::vector<ProbeConstPtr> &probes);
+    const std::vector<ProbeConstPtr> probes() const { return m_probes; }
+
+    void addProduct(ProductContext &product);
+    void addProductByType(ProductContext &product, const FileTags &tags);
+    void forEachProduct(const std::function<void(ProductContext &)> &handler) const;
+    ProductContext *productForItem(Item *item) const;
+    ProductContext *productWithNameAndConstraint(
+            const QString &name, const std::function<bool(ProductContext &)> &constraint);
+    std::vector<ProductContext *> productsWithNameAndConstraint(
+            const QString &name, const std::function<bool(ProductContext &)> &constraint);
+    std::vector<ProductContext *> productsWithTypeAndConstraint(
+            const FileTags &tags, const std::function<bool(ProductContext &)> &constraint);
+
+    void addProjectNameUsedInOverrides(const QString &name);
+    const Set<QString> &projectNamesUsedInOverrides() const;
+
+    void addProductNameUsedInOverrides(const QString &name);
+    const Set<QString> &productNamesUsedInOverrides() const;
+
+    void setBuildDirectory(const QString &buildDir) { m_buildDirectory = buildDir; }
+    const QString &buildDirectory() const { return m_buildDirectory; }
+
+    TimingData &timingData() { return m_timingData; }
+
+private:
+    std::vector<ProjectContext *> m_projects;
+    std::list<std::pair<ProductContext *, int>> m_productsToHandle;
+    std::multimap<QString, ProductContext *> m_productsByName;
+    std::unordered_map<Item *, ProductContext *> m_productsByItem;
+    std::unordered_map<QStringView, QString> m_sourceCode;
+    QHash<CodeLocation, ScriptFunctionPtr> m_scriptFunctionMap;
+    std::unordered_map<std::pair<QStringView, QStringList>, QString> m_scriptFunctions;
+    std::unordered_map<FileContextConstPtr, ResolvedFileContextPtr> m_fileContextMap;
+    Set<QString> m_projectNamesUsedInOverrides;
+    Set<QString> m_productNamesUsedInOverrides;
+    Set<Item *> m_disabledItems;
+    Set<QString> m_erroneousProducts;
+    std::vector<ProbeConstPtr> m_probes;
+    std::vector<ErrorInfo> m_queuedErrors;
+    QString m_buildDirectory;
+    QVariantMap m_profileConfigs;
+    ProgressObserver *m_progressObserver = nullptr;
+    TimingData m_timingData;
 
     // For fast look-up when resolving Depends.productTypes.
     // The contract is that it contains fully handled, error-free, enabled products.
-    std::multimap<FileTag, ProductContext *> productsByType;
+    std::multimap<FileTag, ProductContext *> m_productsByType;
 
-    bool canceled = false;
+    bool m_canceled = false;
 };
 
 class ProjectContext

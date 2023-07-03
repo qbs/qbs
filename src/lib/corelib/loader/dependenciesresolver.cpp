@@ -589,19 +589,18 @@ void DependenciesResolverImpl::updateModule(
 ProductContext *DependenciesResolverImpl::findMatchingProduct(
     const FullyResolvedDependsItem &dependency)
 {
-    const auto candidates = m_product.project->topLevelProject
-                                ->productsByName.equal_range(dependency.name.toString());
-    for (auto it = candidates.first; it != candidates.second; ++it) {
-        ProductContext * const candidate = it->second;
-        if (candidate->multiplexConfigurationId != dependency.multiplexId)
-            continue;
-        if (!dependency.profile.isEmpty() && dependency.profile != candidate->profileName)
-            continue;
-        if (dependency.limitToSubProject && !haveSameSubProject(m_product, *candidate))
-            continue;
-        return candidate;
-    }
-    return nullptr;
+    const auto constraint = [this, &dependency](ProductContext &product) {
+        if (product.multiplexConfigurationId != dependency.multiplexId)
+            return false;
+        if (!dependency.profile.isEmpty() && dependency.profile != product.profileName)
+            return false;
+        if (dependency.limitToSubProject && !haveSameSubProject(m_product, product))
+            return false;
+        return true;
+
+    };
+    return m_product.project->topLevelProject->productWithNameAndConstraint(
+                dependency.name.toString(), constraint);
 }
 
 Item *DependenciesResolverImpl::findMatchingModule(
@@ -656,9 +655,7 @@ std::pair<bool, HandleDependency> DependenciesResolverImpl::checkProductDependen
                         depSpec.location());
     }
 
-    if (any_of(m_product.project->topLevelProject->productsToHandle, [&dep](const auto &e) {
-            return e.first == &dep;
-        })) {
+    if (m_product.project->topLevelProject->isProductQueuedForHandling(dep)) {
         if (m_deferral == Deferral::Allowed)
             return {false, HandleDependency::Defer};
         ErrorInfo e;
@@ -673,7 +670,7 @@ std::pair<bool, HandleDependency> DependenciesResolverImpl::checkProductDependen
 
     // This covers both the case of user-disabled products and products with errors.
     // The latter are force-disabled in ProductContext::handleError().
-    if (m_product.project->topLevelProject->disabledItems.contains(dep.item)) {
+    if (m_product.project->topLevelProject->isDisabledItem(dep.item)) {
         if (depSpec.requiredGlobally) {
             ErrorInfo e;
             e.append(Tr::tr("Product '%1' depends on '%2',")
@@ -737,35 +734,18 @@ void DependenciesResolverImpl::adjustDependsItemForMultiplexing(Item *dependsIte
         QBS_CHECK(!productIsMultiplexed); // This product must be an aggregator.
         return;
     }
-    const auto productRange = m_product.project->topLevelProject->productsByName.equal_range(name);
-    if (productRange.first == productRange.second)
-        return; // Dependency is a module. Nothing to adjust.
 
-    bool profilesPropertyIsSet;
-    const QStringList profiles = evaluator.stringListValue(
-        dependsItem, StringConstants::profilesProperty(), &profilesPropertyIsSet);
-
-    std::vector<const ProductContext *> multiplexedDependencies;
     bool hasNonMultiplexedDependency = false;
-    for (auto it = productRange.first; it != productRange.second; ++it) {
-        if (!it->second->multiplexConfigurationId.isEmpty())
-            multiplexedDependencies.push_back(it->second);
-        else
+    const std::vector<ProductContext *> multiplexedDependencies = m_product.project
+            ->topLevelProject->productsWithNameAndConstraint(name, [&hasNonMultiplexedDependency]
+                                                             (const ProductContext &product) {
+        if (product.multiplexConfigurationId.isEmpty()) {
             hasNonMultiplexedDependency = true;
-    }
-    bool hasMultiplexedDependencies = !multiplexedDependencies.empty();
-
-    static const auto multiplexConfigurationIntersects = [](const QVariantMap &lhs,
-                                                            const QVariantMap &rhs) {
-        QBS_CHECK(!lhs.isEmpty() && !rhs.isEmpty());
-        for (auto lhsProperty = lhs.constBegin(); lhsProperty != lhs.constEnd(); lhsProperty++) {
-            const auto rhsProperty = rhs.find(lhsProperty.key());
-            const bool isCommonProperty = rhsProperty != rhs.constEnd();
-            if (isCommonProperty && lhsProperty.value() != rhsProperty.value())
-                return false;
+            return false;
         }
         return true;
-    };
+    });
+    const bool hasMultiplexedDependencies = !multiplexedDependencies.empty();
 
     // These are the allowed cases:
     // (1) Normal dependency with no multiplexing whatsoever.
@@ -787,9 +767,25 @@ void DependenciesResolverImpl::adjustDependsItemForMultiplexing(Item *dependsIte
     if (!hasMultiplexedDependencies)
         return;
 
+    bool profilesPropertyIsSet;
+    const QStringList profiles = evaluator.stringListValue(
+        dependsItem, StringConstants::profilesProperty(), &profilesPropertyIsSet);
+
     // (3a)
     if (!productIsMultiplexed && hasNonMultiplexedDependency && !profilesPropertyIsSet)
         return;
+
+    static const auto multiplexConfigurationIntersects = [](const QVariantMap &lhs,
+                                                            const QVariantMap &rhs) {
+        QBS_CHECK(!lhs.isEmpty() && !rhs.isEmpty());
+        for (auto lhsProperty = lhs.constBegin(); lhsProperty != lhs.constEnd(); lhsProperty++) {
+            const auto rhsProperty = rhs.find(lhsProperty.key());
+            const bool isCommonProperty = rhsProperty != rhs.constEnd();
+            if (isCommonProperty && lhsProperty.value() != rhsProperty.value())
+                return false;
+        }
+        return true;
+    };
 
     QStringList multiplexIds;
     const auto productMultiplexConfig
@@ -925,17 +921,12 @@ DependenciesResolverImpl::multiplexDependency(const EvaluatedDependsItem &depend
 {
     std::queue<FullyResolvedDependsItem> dependencies;
     if (!dependency.productTypes.empty()) {
-        std::vector<ProductContext *> matchingProducts;
-        for (const FileTag &typeTag : dependency.productTypes) {
-            const auto range = m_product.project->topLevelProject->productsByType.equal_range(typeTag);
-            for (auto it = range.first; it != range.second; ++it) {
-                if (it->second != &m_product && it->second->name != m_product.name
-                    && (!dependency.limitToSubProject
-                        || haveSameSubProject(m_product, *it->second))) {
-                    matchingProducts.push_back(it->second);
-                }
-            }
-        }
+        const auto constraint = [&](const ProductContext &product) {
+            return &product != &m_product && product.name != m_product.name
+                    && (!dependency.limitToSubProject || haveSameSubProject(m_product, product));
+        };
+        const std::vector<ProductContext *> matchingProducts = m_product.project->topLevelProject
+                ->productsWithTypeAndConstraint(dependency.productTypes, constraint);
         if (matchingProducts.empty()) {
             qCDebug(lcModuleLoader) << "Depends.productTypes does not match anything."
                                     << dependency.item->location();

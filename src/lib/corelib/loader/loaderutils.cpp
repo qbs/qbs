@@ -115,29 +115,34 @@ void ProductContext::handleError(const ErrorInfo &error)
     const auto errorItems = error.items();
     for (const ErrorItem &ei : errorItems)
         delayedError.append(ei.description(), ei.codeLocation());
-    project->topLevelProject->disabledItems << item;
-    project->topLevelProject->erroneousProducts.insert(name);
+    project->topLevelProject->addDisabledItem(item);
+    project->topLevelProject->addErroneousProduct(name);
 }
 
 bool TopLevelProjectContext::checkItemCondition(Item *item, Evaluator &evaluator)
 {
     if (evaluator.boolValue(item, StringConstants::conditionProperty()))
         return true;
-    disabledItems += item;
+    addDisabledItem(item);
     return false;
 }
 
 void TopLevelProjectContext::checkCancelation()
 {
-    if (progressObserver && progressObserver->canceled())
-        canceled = true;
-    if (canceled)
+    if (m_progressObserver && m_progressObserver->canceled())
+        m_canceled = true;
+    if (m_canceled)
         throw CancelException();
+}
+
+bool TopLevelProjectContext::isCanceled() const
+{
+    return m_canceled;
 }
 
 QString TopLevelProjectContext::sourceCodeForEvaluation(const JSSourceValueConstPtr &value)
 {
-    QString &code = sourceCode[value->sourceCode()];
+    QString &code = m_sourceCode[value->sourceCode()];
     if (!code.isNull())
         return code;
     code = value->sourceCodeForEvaluation();
@@ -147,7 +152,7 @@ QString TopLevelProjectContext::sourceCodeForEvaluation(const JSSourceValueConst
 ScriptFunctionPtr TopLevelProjectContext::scriptFunctionValue(Item *item, const QString &name)
 {
     JSSourceValuePtr value = item->sourceProperty(name);
-    ScriptFunctionPtr &script = scriptFunctionMap[value ? value->location() : CodeLocation()];
+    ScriptFunctionPtr &script = m_scriptFunctionMap[value ? value->location() : CodeLocation()];
     if (!script.get()) {
         script = ScriptFunction::create();
         const PropertyDeclaration decl = item->propertyDeclaration(name);
@@ -161,7 +166,7 @@ ScriptFunctionPtr TopLevelProjectContext::scriptFunctionValue(Item *item, const 
 QString TopLevelProjectContext::sourceCodeAsFunction(const JSSourceValueConstPtr &value,
                                                      const PropertyDeclaration &decl)
 {
-    QString &scriptFunction = scriptFunctions[std::make_pair(value->sourceCode(),
+    QString &scriptFunction = m_scriptFunctions[std::make_pair(value->sourceCode(),
                                                              decl.functionArgumentNames())];
     if (!scriptFunction.isNull())
         return scriptFunction;
@@ -183,10 +188,189 @@ QString TopLevelProjectContext::sourceCodeAsFunction(const JSSourceValueConstPtr
 const ResolvedFileContextPtr &TopLevelProjectContext::resolvedFileContext(
         const FileContextConstPtr &ctx)
 {
-    ResolvedFileContextPtr &result = fileContextMap[ctx];
+    ResolvedFileContextPtr &result = m_fileContextMap[ctx];
     if (!result)
         result = ResolvedFileContext::create(*ctx);
     return result;
+}
+
+void TopLevelProjectContext::setCanceled()
+{
+    m_canceled = true;
+}
+
+int TopLevelProjectContext::productCount() const
+{
+    return m_productsByItem.size();
+}
+
+void TopLevelProjectContext::addProductToHandle(ProductContext &product)
+{
+    m_productsToHandle.emplace_back(&product, -1);
+}
+
+void TopLevelProjectContext::reinsertProductToHandle(ProductContext &product)
+{
+    m_productsToHandle.emplace_back(&product, int(m_productsToHandle.size()));
+}
+
+bool TopLevelProjectContext::hasProductsToHandle() const
+{
+    return !m_productsToHandle.empty();
+}
+
+bool TopLevelProjectContext::isProductQueuedForHandling(const ProductContext &product) const
+{
+    return any_of(m_productsToHandle, [&product](const auto &e) { return e.first == &product; });
+}
+
+std::pair<ProductContext *, Deferral> TopLevelProjectContext::nextProductToHandle()
+{
+    const auto [product, queueSizeOnInsert] = m_productsToHandle.front();
+    m_productsToHandle.pop_front();
+
+    // If the queue of in-progress products has shrunk since the last time we tried handling
+    // this product, there has been forward progress and we can allow a deferral.
+    const Deferral deferral = queueSizeOnInsert == -1
+            || queueSizeOnInsert > int(m_productsToHandle.size())
+            ? Deferral::Allowed : Deferral::NotAllowed;
+    return {product, deferral};
+}
+
+void TopLevelProjectContext::addDisabledItem(Item *item)
+{
+    m_disabledItems << item;
+}
+
+bool TopLevelProjectContext::isDisabledItem(Item *item) const
+{
+    return m_disabledItems.contains(item);
+}
+
+void TopLevelProjectContext::addErroneousProduct(const QString &productName)
+{
+    m_erroneousProducts << productName;
+}
+
+bool TopLevelProjectContext::isErroneousProduct(const QString &productName)
+{
+    return m_erroneousProducts.contains(productName);
+}
+
+void TopLevelProjectContext::setProgressObserver(ProgressObserver *observer)
+{
+    m_progressObserver = observer;
+}
+
+ProgressObserver *TopLevelProjectContext::progressObserver() const { return m_progressObserver; }
+
+void TopLevelProjectContext::addQueuedError(const ErrorInfo &error)
+{
+    m_queuedErrors << error;
+}
+
+void TopLevelProjectContext::addProfileConfig(const QString &profileName,
+                                              const QVariantMap &profileConfig)
+{
+    m_profileConfigs.insert(profileName, profileConfig);
+}
+
+std::optional<QVariantMap> TopLevelProjectContext::profileConfig(const QString &profileName) const
+{
+    const auto it = m_profileConfigs.constFind(profileName);
+    if (it == m_profileConfigs.constEnd())
+        return {};
+    return it.value().toMap();
+}
+
+void TopLevelProjectContext::addProbes(const std::vector<ProbeConstPtr> &probes)
+{
+    m_probes << probes;
+}
+
+void TopLevelProjectContext::addProduct(ProductContext &product)
+{
+    m_productsByItem.insert({product.item, &product});
+    m_productsByName.insert({product.name, &product});
+}
+
+void TopLevelProjectContext::addProductByType(ProductContext &product, const FileTags &tags)
+{
+    for (const FileTag &tag : tags)
+        m_productsByType.insert({tag, &product});
+}
+
+void TopLevelProjectContext::forEachProduct(
+    const std::function<void (ProductContext &)> &handler) const
+{
+    for (const auto &e : m_productsByItem)
+        handler(*e.second);
+}
+
+ProductContext *TopLevelProjectContext::productForItem(Item *item) const
+{
+    if (const auto it = m_productsByItem.find(item); it != m_productsByItem.cend())
+        return it->second;
+    return nullptr;
+}
+
+ProductContext *TopLevelProjectContext::productWithNameAndConstraint(
+        const QString &name, const std::function<bool (ProductContext &)> &constraint)
+{
+    const auto candidates = m_productsByName.equal_range(name);
+    for (auto it = candidates.first; it != candidates.second; ++it) {
+        ProductContext * const candidate = it->second;
+        if (constraint(*candidate))
+            return candidate;
+    }
+    return nullptr;
+}
+
+std::vector<ProductContext *> TopLevelProjectContext::productsWithNameAndConstraint(
+        const QString &name, const std::function<bool (ProductContext &)> &constraint)
+{
+    std::vector<ProductContext *> result;
+    const auto candidates = m_productsByName.equal_range(name);
+    for (auto it = candidates.first; it != candidates.second; ++it) {
+        ProductContext * const candidate = it->second;
+        if (constraint(*candidate))
+            result << candidate;
+    }
+    return result;
+}
+
+std::vector<ProductContext *> TopLevelProjectContext::productsWithTypeAndConstraint(
+        const FileTags &tags, const std::function<bool (ProductContext &)> &constraint)
+{
+    std::vector<ProductContext *> matchingProducts;
+    for (const FileTag &typeTag : tags) {
+        const auto range = m_productsByType.equal_range(typeTag);
+        for (auto it = range.first; it != range.second; ++it) {
+            if (constraint(*it->second))
+                matchingProducts.push_back(it->second);
+        }
+    }
+    return matchingProducts;
+}
+
+void TopLevelProjectContext::addProjectNameUsedInOverrides(const QString &name)
+{
+    m_projectNamesUsedInOverrides << name;
+}
+
+const Set<QString> &TopLevelProjectContext::projectNamesUsedInOverrides() const
+{
+    return m_projectNamesUsedInOverrides;
+}
+
+void TopLevelProjectContext::addProductNameUsedInOverrides(const QString &name)
+{
+    m_productNamesUsedInOverrides << name;
+}
+
+const Set<QString> &TopLevelProjectContext::productNamesUsedInOverrides() const
+{
+    return m_productNamesUsedInOverrides;
 }
 
 class LoaderState::Private

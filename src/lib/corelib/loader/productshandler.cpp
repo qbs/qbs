@@ -83,16 +83,18 @@ public:
     void runModuleProbes(ProductContext &product, const Item::Module &module);
     bool validateModule(ProductContext &product, const Item::Module &module);
     void updateModulePresentState(ProductContext &product, const Item::Module &module);
-    void checkPropertyDeclarations(const ProductContext &product);
+    void checkPropertyDeclarations(ProductContext &product);
 
     void resolveProduct(ProductContext &productContext);
     void resolveProductFully(ProductContext &productContext);
     void createProductConfig(ProductContext &productContext);
-    QVariantMap evaluateModuleValues(Item *item, bool lookupPrototype = true);
-    QVariantMap evaluateProperties(Item *item, bool lookupPrototype, bool checkErrors);
-    QVariantMap evaluateProperties(const Item *item, const Item *propertiesContainer,
-                                   const QVariantMap &tmplt, bool lookupPrototype,
+    QVariantMap evaluateModuleValues(ProductContext &productContext, Item *item,
+                                     bool lookupPrototype = true);
+    QVariantMap evaluateProperties(ProductContext &productContext, Item *item, bool lookupPrototype,
                                    bool checkErrors);
+    QVariantMap evaluateProperties(
+            ProductContext &productContext, const Item *item, const Item *propertiesContainer,
+            const QVariantMap &tmplt, bool lookupPrototype, bool checkErrors);
     void evaluateProperty(const Item *item, const QString &propName, const ValuePtr &propValue,
                           QVariantMap &result, bool checkErrors);
     void checkAllowedValues(const QVariant &value, const CodeLocation &loc,
@@ -113,8 +115,9 @@ public:
     void resolveShadowProduct(ProductContext &productContext);
     void collectPropertiesForExportItem(ProductContext &productContext,
                                         Item *productModuleInstance);
-    void collectPropertiesForExportItem(const QualifiedId &moduleName, const ValuePtr &value,
-                                        Item *moduleInstance, QVariantMap &moduleProps);
+    void collectPropertiesForExportItem(
+            ProductContext &productContext, const QualifiedId &moduleName, const ValuePtr &value,
+            Item *moduleInstance, QVariantMap &moduleProps);
     void collectPropertiesForModuleInExportItem(ProductContext &productContext,
                                                 const Item::Module &module);
     void adaptExportedPropertyValues(ProductContext &productContext);
@@ -138,11 +141,11 @@ ProductsHandler::ProductsHandler(LoaderState &loaderState) : d(makePimpl<Private
 void ProductsHandler::run()
 {
     TopLevelProjectContext &topLevelProject = d->loaderState.topLevelProject();
-    for (ProjectContext * const projectContext : topLevelProject.projects) {
+    for (ProjectContext * const projectContext : topLevelProject.projects()) {
         for (ProductContext &productContext : projectContext->products)
-            topLevelProject.productsToHandle.emplace_back(&productContext, -1);
+            topLevelProject.addProductToHandle(productContext);
     }
-    while (!topLevelProject.productsToHandle.empty())
+    while (topLevelProject.hasProductsToHandle())
         d->handleNextProduct();
 }
 
@@ -205,19 +208,10 @@ ProductsHandler::~ProductsHandler() = default;
 void ProductsHandler::Private::handleNextProduct()
 {
     TopLevelProjectContext &topLevelProject = loaderState.topLevelProject();
-
-    auto [product, queueSizeOnInsert] = topLevelProject.productsToHandle.front();
-    topLevelProject.productsToHandle.pop_front();
-
-    // If the queue of in-progress products has shrunk since the last time we tried handling
-    // this product, there has been forward progress and we can allow a deferral.
-    const Deferral deferral = queueSizeOnInsert == -1
-            || queueSizeOnInsert > int(topLevelProject.productsToHandle.size())
-            ? Deferral::Allowed : Deferral::NotAllowed;
-
+    const auto [product, deferral] = topLevelProject.nextProductToHandle();
     loaderState.itemReader().setExtraSearchPathsStack(product->project->searchPathsStack);
     handleProduct(*product, deferral);
-    if (topLevelProject.canceled)
+    if (topLevelProject.isCanceled())
         throw CancelException();
 
     // The search paths stack can change during dependency resolution (due to module providers);
@@ -226,11 +220,9 @@ void ProductsHandler::Private::handleNextProduct()
 
     // If we encountered a dependency to an in-progress product or to a bulk dependency,
     // we defer handling this product if it hasn't failed yet and there is still forward progress.
-    if (product->dependenciesResolvingPending()) {
-        topLevelProject.productsToHandle.emplace_back(
-            product, int(topLevelProject.productsToHandle.size()));
-    }
-    topLevelProject.timingData += product->timingData;
+    if (product->dependenciesResolvingPending())
+        topLevelProject.reinsertProductToHandle(*product);
+    topLevelProject.timingData() += product->timingData;
 }
 
 void ProductsHandler::Private::handleProduct(ProductContext &product, Deferral deferral)
@@ -239,7 +231,7 @@ void ProductsHandler::Private::handleProduct(ProductContext &product, Deferral d
         setupProductForResolving(product, deferral);
     } catch (const ErrorInfo &err) {
         if (err.isCancelException()) {
-            loaderState.topLevelProject().canceled = true;
+            loaderState.topLevelProject().setCanceled();
             return;
         }
         product.handleError(err);
@@ -253,10 +245,10 @@ void ProductsHandler::Private::handleProduct(ProductContext &product, Deferral d
         resolveProduct(product);
     } catch (const ErrorInfo &err) {
         if (err.isCancelException()) {
-            loaderState.topLevelProject().canceled = true;
+            loaderState.topLevelProject().setCanceled();
             return;
         }
-        loaderState.topLevelProject().queuedErrors << err;
+        loaderState.topLevelProject().addQueuedError(err);
     }
 }
 
@@ -311,8 +303,7 @@ void ProductsHandler::Private::setupProductForResolving(ProductContext &product,
     // Collect the full list of fileTags, including the values contributed by modules.
     if (!product.delayedError.hasError() && enabled
         && !product.name.startsWith(StringConstants::shadowProductPrefix())) {
-        for (const FileTag &tag : fileTags)
-            topLevelProject.productsByType.insert({tag, &product});
+        topLevelProject.addProductByType(product, fileTags);
         product.item->setProperty(StringConstants::typeProperty(),
                                   VariantValue::create(sorted(fileTags.toStringList())));
     }
@@ -324,7 +315,7 @@ void ProductsHandler::Private::setupProductForResolving(ProductContext &product,
     cacheEnabler.reset();
     try {
         setupProductForResolving(*product.shadowProduct, Deferral::NotAllowed);
-        topLevelProject.probes << product.shadowProduct->probes;
+        topLevelProject.addProbes(product.shadowProduct->probes);
     } catch (const ErrorInfo &e) {
         if (e.isCancelException())
             throw CancelException();
@@ -366,7 +357,7 @@ void ProductsHandler::Private::runModuleProbes(ProductContext &product, const It
 {
     if (!module.item->isPresentModule())
         return;
-    if (module.productInfo && loaderState.topLevelProject().disabledItems.contains(
+    if (module.productInfo && loaderState.topLevelProject().isDisabledItem(
                 module.productInfo->item)) {
         createNonPresentModule(*module.item->pool(), module.name.toString(),
                                QLatin1String("module's exporting product is disabled"),
@@ -442,10 +433,8 @@ void ProductsHandler::Private::updateModulePresentState(ProductContext &product,
             continue;
         if (loadingItem->prototype() && loadingItem->prototype()->type() == ItemType::Export) {
             QBS_CHECK(loadingItem->prototype()->parent()->type() == ItemType::Product);
-            if (loaderState.topLevelProject().disabledItems.contains(
-                        loadingItem->prototype()->parent())) {
+            if (loaderState.topLevelProject().isDisabledItem(loadingItem->prototype()->parent()))
                 continue;
-            }
         }
         hasPresentLoadingItem = true;
         break;
@@ -457,12 +446,12 @@ void ProductsHandler::Private::updateModulePresentState(ProductContext &product,
     }
 }
 
-void ProductsHandler::Private::checkPropertyDeclarations(const ProductContext &product)
+void ProductsHandler::Private::checkPropertyDeclarations(ProductContext &product)
 {
     AccumulatingTimer timer(loaderState.parameters().logElapsedTime()
-                            ? &loaderState.topLevelProject().timingData.propertyChecking : nullptr);
+                            ? &product.timingData.propertyChecking : nullptr);
     qbs::Internal::checkPropertyDeclarations(
-                product.item, loaderState.topLevelProject().disabledItems,
+                product.item, loaderState.topLevelProject().disabledItems(),
                 loaderState.parameters(), loaderState.logger());
 }
 
@@ -565,36 +554,39 @@ void ProductsHandler::Private::createProductConfig(ProductContext &productContex
 {
     EvalCacheEnabler cachingEnabler(&loaderState.evaluator(),
                                     productContext.product->sourceDirectory);
-    productContext.product->moduleProperties->setValue(evaluateModuleValues(productContext.item));
-    productContext.product->productProperties = evaluateProperties(
+    productContext.product->moduleProperties->setValue(
+                evaluateModuleValues(productContext, productContext.item));
+    productContext.product->productProperties = evaluateProperties(productContext,
                 productContext.item, productContext.item, QVariantMap(), true, true);
 }
 
-QVariantMap ProductsHandler::Private::evaluateModuleValues(Item *item, bool lookupPrototype)
+QVariantMap ProductsHandler::Private::evaluateModuleValues(
+        ProductContext &productContext, Item *item, bool lookupPrototype)
 {
     QVariantMap moduleValues;
     for (const Item::Module &module : item->modules()) {
         if (!module.item->isPresentModule())
             continue;
         const QString fullName = module.name.toString();
-        moduleValues[fullName] = evaluateProperties(module.item, lookupPrototype, true);
+        moduleValues[fullName] = evaluateProperties(productContext, module.item, lookupPrototype,
+                                                    true);
     }
     return moduleValues;
 }
 
-QVariantMap ProductsHandler::Private::evaluateProperties(Item *item, bool lookupPrototype,
-                                                         bool checkErrors)
+QVariantMap ProductsHandler::Private::evaluateProperties(
+        ProductContext &productContext, Item *item, bool lookupPrototype, bool checkErrors)
 {
     const QVariantMap tmplt;
-    return evaluateProperties(item, item, tmplt, lookupPrototype, checkErrors);
+    return evaluateProperties(productContext, item, item, tmplt, lookupPrototype, checkErrors);
 }
 
 QVariantMap ProductsHandler::Private::evaluateProperties(
-        const Item *item, const Item *propertiesContainer, const QVariantMap &tmplt,
-        bool lookupPrototype, bool checkErrors)
+        ProductContext &productContext, const Item *item, const Item *propertiesContainer,
+        const QVariantMap &tmplt, bool lookupPrototype, bool checkErrors)
 {
     AccumulatingTimer propEvalTimer(loaderState.parameters().logElapsedTime()
-                                    ? &loaderState.topLevelProject().timingData.propertyEvaluation
+                                    ? &productContext.timingData.propertyEvaluation
                                     : nullptr);
     QVariantMap result = tmplt;
     for (auto it = propertiesContainer->properties().begin();
@@ -602,7 +594,8 @@ QVariantMap ProductsHandler::Private::evaluateProperties(
         evaluateProperty(item, it.key(), it.value(), result, checkErrors);
     }
     return lookupPrototype && propertiesContainer->prototype()
-            ? evaluateProperties(item, propertiesContainer->prototype(), result, true, checkErrors)
+            ? evaluateProperties(productContext, item, propertiesContainer->prototype(), result,
+                                 true, checkErrors)
             : result;
 }
 
@@ -778,7 +771,7 @@ void ProductsHandler::Private::resolveGroupFully(Item *item, ProductContext &pro
                                                  bool isEnabled)
 {
     AccumulatingTimer groupTimer(loaderState.parameters().logElapsedTime()
-                                 ? &loaderState.topLevelProject().timingData.groupsResolving
+                                 ? &productContext.timingData.groupsResolving
                                  : nullptr);
 
     const auto getGroupPropertyMap = [&](const ArtifactProperties *existingProps) {
@@ -972,7 +965,8 @@ QVariantMap ProductsHandler::Private::resolveAdditionalModuleProperties(
         for (const QString &prop : std::as_const(propsForModule))
             reusableValues.remove(prop);
         modulesMap.insert(fullModName,
-                          evaluateProperties(module.item, module.item, reusableValues, true, true));
+                          evaluateProperties(productContext, module.item, module.item,
+                                             reusableValues, true, true));
     }
     return modulesMap;
 }
@@ -1076,7 +1070,8 @@ void ProductsHandler::Private::collectPropertiesForExportItem(ProductContext &pr
             continue;
         }
         if (it.value()->type() == Value::ItemValueType) {
-            collectPropertiesForExportItem(it.key(), it.value(), productModuleInstance,
+            collectPropertiesForExportItem(productContext, it.key(), it.value(),
+                                           productModuleInstance,
                                            exportedModule.modulePropertyValues);
         } else {
             TempScopeSetter tss(it.value(), productModuleInstance);
@@ -1087,8 +1082,8 @@ void ProductsHandler::Private::collectPropertiesForExportItem(ProductContext &pr
 }
 
 void ProductsHandler::Private::collectPropertiesForExportItem(
-        const QualifiedId &moduleName, const ValuePtr &value, Item *moduleInstance,
-        QVariantMap &moduleProps)
+        ProductContext &productContext, const QualifiedId &moduleName, const ValuePtr &value,
+        Item *moduleInstance, QVariantMap &moduleProps)
 {
     QBS_CHECK(value->type() == Value::ItemValueType);
     Item * const itemValueItem = std::static_pointer_cast<ItemValue>(value)->item();
@@ -1124,7 +1119,7 @@ void ProductsHandler::Private::collectPropertiesForExportItem(
         std::vector<TempScopeSetter> tss;
         for (const ValuePtr &v : itemValueItem->properties())
             tss.emplace_back(v, moduleInstance);
-        moduleProps.insert(moduleName.toString(), evaluateProperties(itemValueItem, false, false));
+        moduleProps.insert(moduleName.toString(), evaluateProperties(productContext, itemValueItem, false, false));
         return;
     }
     QBS_CHECK(itemValueItem->type() == ItemType::ModulePrefix);
@@ -1132,7 +1127,8 @@ void ProductsHandler::Private::collectPropertiesForExportItem(
     for (auto it = props.begin(); it != props.end(); ++it) {
         QualifiedId fullModuleName = moduleName;
         fullModuleName << it.key();
-        collectPropertiesForExportItem(fullModuleName, it.value(), moduleInstance, moduleProps);
+        collectPropertiesForExportItem(productContext, fullModuleName, it.value(), moduleInstance,
+                                       moduleProps);
     }
 }
 
@@ -1160,8 +1156,10 @@ void ProductsHandler::Private::collectPropertiesForModuleInExportItem(
     ExportedModuleDependency dep;
     dep.name = module.name.toString();
     for (auto it = props.begin(); it != props.end(); ++it) {
-        if (it.value()->type() == Value::ItemValueType)
-            collectPropertiesForExportItem(it.key(), it.value(), module.item, dep.moduleProperties);
+        if (it.value()->type() == Value::ItemValueType) {
+            collectPropertiesForExportItem(productContext, it.key(), it.value(), module.item,
+                                           dep.moduleProperties);
+        }
     }
     exportedModule.moduleDependencies.push_back(dep);
 

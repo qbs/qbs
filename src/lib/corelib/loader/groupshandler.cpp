@@ -207,7 +207,7 @@ void GroupsHandler::Private::handleGroup(ProductContext &product, Item *group)
 {
     propagateModulesFromParent(product, group);
     if (!loaderState.evaluator().boolValue(group, StringConstants::conditionProperty()))
-        loaderState.topLevelProject().disabledItems << group;
+        loaderState.topLevelProject().addDisabledItem(group);
     for (Item * const child : group->children()) {
         if (child->type() == ItemType::Group)
             handleGroup(product, child);

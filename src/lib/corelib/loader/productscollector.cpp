@@ -158,9 +158,9 @@ void ProductsCollector::Private::handleProject(Item *projectItem, ProjectContext
         projectItem->setProperty(StringConstants::nameProperty(),
                                  VariantValue::create(projectContext.name));
     }
-    topLevelProject.projects.push_back(p.release());
     if (parentProject)
-        parentProject->children.push_back(topLevelProject.projects.back());
+        parentProject->children.push_back(p.get());
+    topLevelProject.addProject(p.release());
     projectItem->overrideProperties(parameters.overriddenValuesTree(),
                                     StringConstants::projectsOverridePrefix() + projectContext.name,
                                     parameters, logger);
@@ -192,8 +192,8 @@ void ProductsCollector::Private::handleProject(Item *projectItem, ProjectContext
     for (Item * const child : projectItem->children())
         child->setScope(projectContext.scope);
 
-    projectContext.topLevelProject->probes << loaderState.probesResolver().resolveProbes(
-            {dummyProduct.name, dummyProduct.uniqueName()}, projectItem);
+    projectContext.topLevelProject->addProbes(loaderState.probesResolver().resolveProbes(
+            {dummyProduct.name, dummyProduct.uniqueName()}, projectItem));
 
     loaderState.localProfiles().collectProfilesFromItems(projectItem, projectContext.scope);
 
@@ -283,7 +283,7 @@ void ProductsCollector::Private::prepareProduct(ProjectContext &projectContext, 
     TopLevelProjectContext &topLevelProject = loaderState.topLevelProject();
 
     AccumulatingTimer timer(parameters.logElapsedTime()
-                            ? &topLevelProject.timingData.preparingProducts : nullptr);
+                            ? &topLevelProject.timingData().preparingProducts : nullptr);
     topLevelProject.checkCancelation();
     qCDebug(lcModuleLoader) << "prepareProduct" << productItem->file()->filePath();
 
@@ -312,9 +312,9 @@ void ProductsCollector::Private::prepareProduct(ProjectContext &projectContext, 
     QBS_CHECK(!productContext.profileName.isEmpty());
 
     // Set up full module property map based on the profile.
-    const auto it = topLevelProject.profileConfigs.constFind(productContext.profileName);
-    QVariantMap flatConfig;
-    if (it == topLevelProject.profileConfigs.constEnd()) {
+    std::optional<QVariantMap> flatConfig
+            = topLevelProject.profileConfig(productContext.profileName);
+    if (!flatConfig) {
         const Profile profile(productContext.profileName, &settings,
                               loaderState.localProfiles().profiles());
         if (!profile.exists()) {
@@ -325,14 +325,12 @@ void ProductsCollector::Private::prepareProduct(ProjectContext &projectContext, 
         }
         flatConfig = SetupProjectParameters::expandedBuildConfiguration(
             profile, parameters.configurationName());
-        topLevelProject.profileConfigs.insert(productContext.profileName, flatConfig);
-    } else {
-        flatConfig = it.value().toMap();
+        topLevelProject.addProfileConfig(productContext.profileName, *flatConfig);
     }
     productContext.profileModuleProperties = SetupProjectParameters::finalBuildConfigurationTree(
-        flatConfig, {});
+        *flatConfig, {});
     productContext.moduleProperties = SetupProjectParameters::finalBuildConfigurationTree(
-        flatConfig, parameters.overriddenValues());
+        *flatConfig, parameters.overriddenValues());
     initProductProperties(productContext);
 
     // Set up product scope. This is mainly for using the "product" and "project"
@@ -651,7 +649,7 @@ void ProductsCollector::Private::initProductProperties(const ProductContext &pro
 {
     QString buildDir = ResolvedProduct::deriveBuildDirectoryName(product.name,
                                                                  product.multiplexConfigurationId);
-    buildDir = FileInfo::resolvePath(product.project->topLevelProject->buildDirectory, buildDir);
+    buildDir = FileInfo::resolvePath(product.project->topLevelProject->buildDirectory(), buildDir);
     product.item->setProperty(StringConstants::buildDirectoryProperty(),
                               VariantValue::create(buildDir));
     const QString sourceDir = QFileInfo(product.item->file()->filePath()).absolutePath();
@@ -662,10 +660,10 @@ void ProductsCollector::Private::initProductProperties(const ProductContext &pro
 void ProductsCollector::Private::checkProjectNamesInOverrides()
 {
     for (const QString &projectNameInOverride
-         : loaderState.topLevelProject().projectNamesUsedInOverrides) {
+         : loaderState.topLevelProject().projectNamesUsedInOverrides()) {
         if (disabledProjects.contains(projectNameInOverride))
             continue;
-        if (!any_of(loaderState.topLevelProject().projects,
+        if (!any_of(loaderState.topLevelProject().projects(),
                     [&projectNameInOverride](const ProjectContext *p) {
                 return p->name == projectNameInOverride; })) {
             handlePropertyError(Tr::tr("Unknown project '%1' in property override.")
@@ -678,27 +676,25 @@ void ProductsCollector::Private::checkProjectNamesInOverrides()
 void ProductsCollector::Private::collectProductsByNameAndItem()
 {
     TopLevelProjectContext &topLevelProject = loaderState.topLevelProject();
-    for (ProjectContext * const project : topLevelProject.projects) {
-        for (ProductContext &product : project->products) {
-            topLevelProject.productsByItem.insert({product.item, &product});
-            topLevelProject.productsByName.insert({product.name, &product});
-        }
+    for (ProjectContext * const project : topLevelProject.projects()) {
+        for (ProductContext &product : project->products)
+            topLevelProject.addProduct(product);
     }
 }
 
 void ProductsCollector::Private::checkProductNamesInOverrides()
 {
     TopLevelProjectContext &topLevelProject = loaderState.topLevelProject();
-    for (const QString &productNameInOverride : topLevelProject.productNamesUsedInOverrides) {
-        if (topLevelProject.erroneousProducts.contains(productNameInOverride))
+    for (const QString &productNameInOverride : topLevelProject.productNamesUsedInOverrides()) {
+        if (topLevelProject.isErroneousProduct(productNameInOverride))
             continue;
-        if (!any_of(topLevelProject.productsByName, [&productNameInOverride](
-                                        const std::pair<QString, ProductContext *> &elem) {
+        if (!topLevelProject.productWithNameAndConstraint(
+                    productNameInOverride, [&productNameInOverride](const ProductContext &product) {
                 // In an override string such as "a.b.c:d, we cannot tell whether we have a product
                 // "a" and a module "b.c" or a product "a.b" and a module "c", so we need to take
                 // care not to emit false positives here.
-                return elem.first == productNameInOverride
-                       || elem.first.startsWith(productNameInOverride + StringConstants::dot());
+                return product.name == productNameInOverride
+                       || product.name.startsWith(productNameInOverride + StringConstants::dot());
             })) {
             handlePropertyError(Tr::tr("Unknown product '%1' in property override.")
                                 .arg(productNameInOverride),

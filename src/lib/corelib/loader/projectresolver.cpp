@@ -147,7 +147,6 @@ public:
     ProductsCollector productsCollector{state};
     ProductsHandler productsHandler{state};
     Item *rootProjectItem = nullptr;
-    ProgressObserver *progressObserver = nullptr;
     FileTime lastResolveTime;
 };
 
@@ -162,8 +161,7 @@ ProjectResolver::~ProjectResolver() = default;
 
 void ProjectResolver::setProgressObserver(ProgressObserver *observer)
 {
-    d->progressObserver = observer;
-    d->state.topLevelProject().progressObserver = observer;
+    d->state.topLevelProject().setProgressObserver(observer);
 }
 
 void ProjectResolver::setOldProjectProbes(const std::vector<ProbeConstPtr> &oldProbes)
@@ -184,7 +182,7 @@ void ProjectResolver::setLastResolveTime(const FileTime &time)
 
 void ProjectResolver::setStoredProfiles(const QVariantMap &profiles)
 {
-    d->state.topLevelProject().profileConfigs = profiles;
+    d->state.topLevelProject().setProfileConfigs(profiles);
 }
 
 void ProjectResolver::setStoredModuleProviderInfo(const StoredModuleProviderInfo &providerInfo)
@@ -227,10 +225,10 @@ TopLevelProjectPtr ProjectResolver::resolve()
     // the project yet. That's why we use a placeholder here, so the user at least
     // sees that an operation is starting. The real total effort will be set later when
     // we have enough information.
-    if (d->progressObserver) {
-        d->progressObserver->initialize(Tr::tr("Resolving project for configuration %1")
+    if (ProgressObserver * const observer = d->state.topLevelProject().progressObserver()) {
+        observer->initialize(Tr::tr("Resolving project for configuration %1")
             .arg(TopLevelProject::deriveId(d->setupParams.finalBuildConfigurationTree())), 1);
-        d->progressObserver->setScriptEngine(d->engine);
+        observer->setScriptEngine(d->engine);
     }
 
     const FileTime resolveTime = FileTime::currentTime();
@@ -249,8 +247,8 @@ TopLevelProjectPtr ProjectResolver::resolve()
     tlp->lastEndResolveTime = FileTime::currentTime();
 
     // E.g. if the top-level project is disabled.
-    if (d->progressObserver) {
-        d->progressObserver->setFinished();
+    if (ProgressObserver * const observer = d->state.topLevelProject().progressObserver()) {
+        observer->setFinished();
         d->printProfilingInfo();
     }
     return tlp;
@@ -281,32 +279,32 @@ static void makeSubProjectNamesUniqe(const ResolvedProjectPtr &parentProject)
 
 TopLevelProjectPtr ProjectResolver::Private::resolveTopLevelProject()
 {
-    if (progressObserver)
-        progressObserver->setMaximum(int(state.topLevelProject().productsByItem.size()));
+    if (ProgressObserver * const observer = state.topLevelProject().progressObserver())
+        observer->setMaximum(state.topLevelProject().productCount());
     TopLevelProjectPtr project = TopLevelProject::create();
     project->buildDirectory = TopLevelProject::deriveBuildDirectory(
         setupParams.buildRoot(),
         TopLevelProject::deriveId(setupParams.finalBuildConfigurationTree()));
-    if (!state.topLevelProject().projects.empty()) {
-        ProjectContext * const projectContext = state.topLevelProject().projects.front();
+    if (!state.topLevelProject().projects().empty()) {
+        ProjectContext * const projectContext = state.topLevelProject().projects().front();
         QBS_CHECK(projectContext->item == rootProjectItem);
         projectContext->project = project;
         resolveProject(projectContext);
     }
     productsHandler.run();
     ErrorInfo accumulatedErrors;
-    for (const ErrorInfo &e : state.topLevelProject().queuedErrors)
+    for (const ErrorInfo &e : state.topLevelProject().queuedErrors())
         appendError(accumulatedErrors, e);
     if (accumulatedErrors.hasError())
         throw accumulatedErrors;
 
     project->buildSystemFiles = state.itemReader().filesRead()
             - state.dependenciesResolver().tempQbsFiles();
-    project->profileConfigs = state.topLevelProject().profileConfigs;
+    project->profileConfigs = state.topLevelProject().profileConfigs();
     const QVariantMap &profiles = state.localProfiles().profiles();
     for (auto it = profiles.begin(); it != profiles.end(); ++it)
         project->profileConfigs.remove(it.key());
-    project->probes = state.topLevelProject().probes;
+    project->probes = state.topLevelProject().probes();
     project->moduleProviderInfo = state.dependenciesResolver().storedModuleProviderInfo();
     project->setBuildConfiguration(setupParams.finalBuildConfigurationTree());
     project->overriddenValues = setupParams.overriddenValues();
@@ -401,7 +399,7 @@ void ProjectResolver::Private::resolveProjectFully(ProjectContext *projectContex
                 break;
             }
         } catch (const ErrorInfo &e) {
-            state.topLevelProject().queuedErrors.push_back(e);
+            state.topLevelProject().addQueuedError(e);
         }
     }
 
@@ -427,16 +425,12 @@ void ProjectResolver::Private::resolveSubProject(Item *item, ProjectContext *pro
 
 void ProjectResolver::Private::collectExportedProductDependencies()
 {
-    ResolvedProductPtr dummyProduct = ResolvedProduct::create();
-    dummyProduct->enabled = false;
-    for (auto it = state.topLevelProject().productsByItem.cbegin();
-         it != state.topLevelProject().productsByItem.cend(); ++it) {
-        ProductContext &productContext = *it->second;
+    state.topLevelProject().forEachProduct([this](ProductContext &productContext) {
         if (!productContext.shadowProduct)
-            continue;
+            return;
         const ResolvedProductPtr exportingProduct = productContext.product;
         if (!exportingProduct || !exportingProduct->enabled)
-            continue;
+            return;
         Item * const importingProductItem = productContext.shadowProduct->item;
 
         std::vector<std::pair<ResolvedProductPtr, QVariantMap>> directDeps;
@@ -446,8 +440,8 @@ void ProjectResolver::Private::collectExportedProductDependencies()
             for (const Item::Module &dep : m.item->modules()) {
                 if (dep.productInfo) {
                     directDeps.emplace_back(state.topLevelProject()
-                                            .productsByItem[dep.productInfo->item]->product,
-                            m.parameters);
+                                            .productForItem(dep.productInfo->item)->product,
+                                            m.parameters);
                 }
             }
         }
@@ -464,7 +458,7 @@ void ProjectResolver::Private::collectExportedProductDependencies()
         }
         auto &productDeps = exportingProduct->exportedModule.productDependencies;
         std::sort(productDeps.begin(), productDeps.end());
-    }
+    });
 }
 
 void ProjectResolver::Private::checkOverriddenValues()
@@ -511,12 +505,12 @@ void ProjectResolver::Private::collectNameFromOverride(const QString &overrideSt
     };
     const QString &projectName = extract(StringConstants::projectsOverridePrefix());
     if (!projectName.isEmpty()) {
-        state.topLevelProject().projectNamesUsedInOverrides.insert(projectName);
+        state.topLevelProject().addProjectNameUsedInOverrides(projectName);
         return;
     }
     const QString &productName = extract(StringConstants::productsOverridePrefix());
     if (!productName.isEmpty()) {
-        state.topLevelProject().productNamesUsedInOverrides.insert(productName.left(
+        state.topLevelProject().addProductNameUsedInOverrides(productName.left(
             productName.indexOf(StringConstants::dot())));
         return;
     }
@@ -549,21 +543,21 @@ void ProjectResolver::Private::loadTopLevelProjectItem()
 
 void ProjectResolver::Private::buildProjectTree()
 {
-    state.topLevelProject().buildDirectory = TopLevelProject::deriveBuildDirectory(
+    state.topLevelProject().setBuildDirectory(TopLevelProject::deriveBuildDirectory(
                 state.parameters().buildRoot(),
-                TopLevelProject::deriveId(state.parameters().finalBuildConfigurationTree()));
+                TopLevelProject::deriveId(state.parameters().finalBuildConfigurationTree())));
     rootProjectItem->setProperty(StringConstants::sourceDirectoryProperty(),
                                  VariantValue::create(QFileInfo(rootProjectItem->file()->filePath())
                                                       .absolutePath()));
     rootProjectItem->setProperty(StringConstants::buildDirectoryProperty(),
-                                 VariantValue::create(state.topLevelProject().buildDirectory));
+                                 VariantValue::create(state.topLevelProject().buildDirectory()));
     rootProjectItem->setProperty(StringConstants::profileProperty(),
                                  VariantValue::create(state.parameters().topLevelProfile()));
     productsCollector.run(rootProjectItem);
 
     AccumulatingTimer timer(state.parameters().logElapsedTime()
-                            ? &state.topLevelProject().timingData.propertyChecking : nullptr);
-    checkPropertyDeclarations(rootProjectItem, state.topLevelProject().disabledItems,
+                            ? &state.topLevelProject().timingData().propertyChecking : nullptr);
+    checkPropertyDeclarations(rootProjectItem, state.topLevelProject().disabledItems(),
                               state.parameters(), state.logger());
 }
 
@@ -577,37 +571,37 @@ void ProjectResolver::Private::printProfilingInfo()
     };
     print(2, Tr::tr("Project file loading and parsing took %1."), state.itemReader().elapsedTime());
     print(2, Tr::tr("Preparing products took %1."),
-          state.topLevelProject().timingData.preparingProducts);
-    print(2, Tr::tr("Setting up Groups took %1."), state.topLevelProject().timingData.groupsSetup);
+          state.topLevelProject().timingData().preparingProducts);
+    print(2, Tr::tr("Setting up Groups took %1."),
+          state.topLevelProject().timingData().groupsSetup);
     print(2, Tr::tr("Setting up product dependencies took %1."),
-          state.topLevelProject().timingData.dependenciesResolving);
+          state.topLevelProject().timingData().dependenciesResolving);
     print(4, Tr::tr("Running module providers took %1."),
-          state.topLevelProject().timingData.moduleProviders);
+          state.topLevelProject().timingData().moduleProviders);
     print(4, Tr::tr("Instantiating modules took %1."),
-          state.topLevelProject().timingData.moduleInstantiation);
+          state.topLevelProject().timingData().moduleInstantiation);
     print(4, Tr::tr("Merging module property values took %1."),
-          state.topLevelProject().timingData.propertyMerging);
+          state.topLevelProject().timingData().propertyMerging);
     state.probesResolver().printProfilingInfo(2);
     print(2, Tr::tr("Property checking took %1."),
-          state.topLevelProject().timingData.propertyChecking);
+          state.topLevelProject().timingData().propertyChecking);
     print(2, Tr::tr("Property evaluation took %1."),
-          state.topLevelProject().timingData.propertyEvaluation);
+          state.topLevelProject().timingData().propertyEvaluation);
     print(2, Tr::tr("Resolving groups (without module property evaluation) took %1."),
-          state.topLevelProject().timingData.groupsResolving);
+          state.topLevelProject().timingData().groupsResolving);
 }
 
 void ProjectResolver::Private::resolveProductDependencies()
 {
-    for (auto it = state.topLevelProject().productsByItem.cbegin();
-         it != state.topLevelProject().productsByItem.cend(); ++it) {
-        const ResolvedProductPtr &product = it->second->product;
+    state.topLevelProject().forEachProduct([this](ProductContext &productContext) {
+        const ResolvedProductPtr &product = productContext.product;
         if (!product)
-            continue;
-        for (const Item::Module &module : it->first->modules()) {
+            return;
+        for (const Item::Module &module : productContext.item->modules()) {
             if (!module.productInfo)
                 continue;
             const ResolvedProductPtr &dep = state.topLevelProject()
-                    .productsByItem[module.productInfo->item]->product;
+                    .productForItem(module.productInfo->item)->product;
             QBS_CHECK(dep);
             QBS_CHECK(dep != product);
             product->dependencies << dep;
@@ -619,7 +613,7 @@ void ProjectResolver::Private::resolveProductDependencies()
                   [](const ResolvedProductPtr &p1, const ResolvedProductPtr &p2) {
             return p1->fullDisplayName() < p2->fullDisplayName();
         });
-    }
+    });
 }
 
 } // namespace Internal
