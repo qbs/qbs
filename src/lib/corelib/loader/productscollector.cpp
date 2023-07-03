@@ -119,8 +119,7 @@ ProductsCollector::~ProductsCollector() = default;
 
 void ProductsCollector::run(Item *rootProject)
 {
-    d->handleProject(rootProject, nullptr,
-                     {QDir::cleanPath(d->loaderState.parameters().projectFilePath())});
+    d->handleProject(rootProject, nullptr, {rootProject->file()->filePath()});
     d->checkProjectNamesInOverrides();
     d->collectProductsByNameAndItem();
     d->checkProductNamesInOverrides();
