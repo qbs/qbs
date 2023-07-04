@@ -143,7 +143,7 @@ static Item *chooseModuleCandidate(const std::vector<PrioritizedItem> &candidate
     return maxIt->item;
 }
 
-ModuleLoader::Result ModuleLoader::searchAndLoadModuleFile(
+Item *ModuleLoader::searchAndLoadModuleFile(
     ProductContext &productContext, const CodeLocation &dependsItemLocation,
     const QualifiedId &moduleName, FallbackMode fallbackMode, bool isRequired)
 {
@@ -178,21 +178,12 @@ ModuleLoader::Result ModuleLoader::searchAndLoadModuleFile(
 
     SearchPathsManager searchPathsManager(d->loaderState.itemReader());
 
-    Result loadResult;
     auto existingPaths = findExistingModulePaths();
     if (existingPaths.isEmpty()) { // no suitable names found, try to use providers
         AccumulatingTimer providersTimer(d->loaderState.parameters().logElapsedTime()
                                          ? &productContext.timingData.moduleProviders : nullptr);
-        std::optional<QVariantMap> &providerConfig = productContext.providerConfig;
         auto result = d->providerLoader.executeModuleProviders(
-            {productContext.item, productContext.project->item, productContext.name,
-             productContext.uniqueName(), productContext.moduleProperties, providerConfig},
-            dependsItemLocation,
-            moduleName,
-            fallbackMode);
-        loadResult.providerProbes << result.probes;
-        if (!providerConfig)
-            providerConfig = result.providerConfig;
+                    productContext, dependsItemLocation, moduleName, fallbackMode);
         if (result.searchPaths) {
             qCDebug(lcModuleLoader) << "Re-checking for module" << moduleName.toString()
                                     << "with newly added search paths from module provider";
@@ -234,32 +225,31 @@ ModuleLoader::Result ModuleLoader::searchAndLoadModuleFile(
 
     if (candidates.empty()) {
         if (!isRequired) {
-            loadResult.moduleItem = createNonPresentModule(
-                d->loaderState.itemPool(), fullName, QStringLiteral("not found"),
-                nullptr);
-            return loadResult;
+            return createNonPresentModule(d->loaderState.itemPool(), fullName,
+                                          QStringLiteral("not found"), nullptr);
         }
         if (Q_UNLIKELY(triedToLoadModule)) {
             throw ErrorInfo(Tr::tr("Module %1 could not be loaded.").arg(fullName),
                             dependsItemLocation);
         }
-        return loadResult;
+        return nullptr;
     }
 
+    Item *moduleItem = nullptr;
     if (candidates.size() == 1) {
-        loadResult.moduleItem = candidates.at(0).item;
+        moduleItem = candidates.at(0).item;
     } else {
         for (auto &candidate : candidates) {
             candidate.priority = d->loaderState.evaluator()
                     .intValue(candidate.item, StringConstants::priorityProperty(),
                               candidate.priority);
         }
-        loadResult.moduleItem = chooseModuleCandidate(candidates, fullName);
+        moduleItem = chooseModuleCandidate(candidates, fullName);
     }
 
-    d->checkForUnknownProfileProperties(productContext, moduleName, loadResult.moduleItem);
+    d->checkForUnknownProfileProperties(productContext, moduleName, moduleItem);
 
-    return loadResult;
+    return moduleItem;
 }
 
 void ModuleLoader::setStoredModuleProviderInfo(const StoredModuleProviderInfo &moduleProviderInfo)

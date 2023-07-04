@@ -335,8 +335,7 @@ void ProductsHandler::Private::resolveProbes(ProductContext &product)
 
 void ProductsHandler::Private::resolveProbes(ProductContext &product, Item *item)
 {
-    product.probes << loaderState.probesResolver().resolveProbes(
-        {product.name, product.uniqueName()}, item);
+    loaderState.probesResolver().resolveProbes(product, item);
 }
 
 void ProductsHandler::Private::handleModuleSetupError(

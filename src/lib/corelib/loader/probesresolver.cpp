@@ -96,22 +96,20 @@ void ProbesResolver::setOldProductProbes(
     m_oldProductProbes = oldProbes;
 }
 
-std::vector<ProbeConstPtr> ProbesResolver::resolveProbes(const ProductContext &productContext, Item *item)
+void ProbesResolver::resolveProbes(ProductContext &productContext, Item *item)
 {
-    // FIXME: Needs to use timing data from ProductContext
     AccumulatingTimer probesTimer(m_loaderState.parameters().logElapsedTime()
-                                  ? &m_loaderState.topLevelProject().timingData().probes : nullptr);
+                                  ? &productContext.timingData.probes : nullptr);
 
     EvalContextSwitcher evalContextSwitcher(m_loaderState.evaluator().engine(),
                                             EvalContext::ProbeExecution);
-    std::vector<ProbeConstPtr> probes;
-    for (Item * const child : item->children())
+    for (Item * const child : item->children()) {
         if (child->type() == ItemType::Probe)
-            probes.push_back(resolveProbe(productContext, item, child));
-    return probes;
+            productContext.probes.push_back(resolveProbe(productContext, item, child));
+    }
 }
 
-ProbeConstPtr ProbesResolver::resolveProbe(const ProductContext &productContext, Item *parent,
+ProbeConstPtr ProbesResolver::resolveProbe(ProductContext &productContext, Item *parent,
                                            Item *probe)
 {
     qCDebug(lcModuleLoader) << "Resolving Probe at " << probe->location().toString();
@@ -149,7 +147,7 @@ ProbeConstPtr ProbesResolver::resolveProbe(const ProductContext &productContext,
         || productContext.name.startsWith(StringConstants::shadowProductPrefix())) {
         resolvedProbe = findOldProjectProbe(probeId, condition, initialProperties, sourceCode);
     } else {
-        resolvedProbe = findOldProductProbe(productContext.uniqueName, condition,
+        resolvedProbe = findOldProductProbe(productContext.uniqueName(), condition,
                                             initialProperties, sourceCode);
     }
     if (!resolvedProbe) {

@@ -46,15 +46,16 @@
 #include <language/forward_decls.h>
 #include <language/moduleproviderinfo.h>
 
-#include <QtCore/qmap.h>
 #include <QtCore/qvariant.h>
 
 #include <optional>
+#include <utility>
 #include <vector>
 
 namespace qbs::Internal {
 class Item;
 class LoaderState;
+class ProductContext;
 
 class ModuleProviderLoader
 {
@@ -71,8 +72,6 @@ public:
 
     struct ModuleProviderResult
     {
-        std::vector<ProbeConstPtr> probes;
-        QVariantMap providerConfig;
         bool providerFound = false;
         std::optional<QStringList> searchPaths;
     };
@@ -89,38 +88,30 @@ public:
 
     const Set<QString> &tempQbsFiles() const { return m_tempQbsFiles; }
 
-    struct ProductContext {
-        Item * const productItem;
-        const Item * const projectItem;
-        const QString &name;
-        const QString &uniqueName;
-        const QVariantMap &moduleProperties;
-        const std::optional<QVariantMap> providerConfig;
-    };
     ModuleProviderResult executeModuleProviders(
-            const ProductContext &productContext,
+            ProductContext &productContext,
             const CodeLocation &dependsItemLocation,
             const QualifiedId &moduleName,
             FallbackMode fallbackMode);
 
 private:
     ModuleProviderResult executeModuleProvidersHelper(
-            const ProductContext &product,
+            ProductContext &product,
             const CodeLocation &dependsItemLocation,
             const std::vector<Provider> &providers);
-    std::tuple<const ModuleProviderInfo &, std::vector<ProbeConstPtr>, bool>
-    findOrCreateProviderInfo(const ProductContext &product, const CodeLocation &dependsItemLocation,
+    std::pair<const ModuleProviderInfo &, bool>
+    findOrCreateProviderInfo(ProductContext &product, const CodeLocation &dependsItemLocation,
                              const QualifiedId &name, ModuleProviderLookup lookupType,
                              const QVariantMap &config, const QVariantMap &qbsModule);
-    QVariantMap getModuleProviderConfig(const ProductContext &product);
+    void setupModuleProviderConfig(ProductContext &product);
 
     std::optional<std::vector<QualifiedId>> getModuleProviders(Item *item);
 
     QString findModuleProviderFile(const QualifiedId &name, ModuleProviderLookup lookupType);
     QVariantMap evaluateQbsModule(const ProductContext &product) const;
     Item *createProviderScope(const ProductContext &product, const QVariantMap &qbsModule);
-    std::pair<QStringList, std::vector<ProbeConstPtr>> evaluateModuleProvider(
-            const ProductContext &product,
+    QStringList evaluateModuleProvider(
+            ProductContext &product,
             const CodeLocation &location,
             const QualifiedId &name,
             const QString &providerFile,

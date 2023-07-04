@@ -46,9 +46,6 @@
 #include <tools/set.h>
 
 #include <QString>
-#include <QVariantMap>
-
-#include <vector>
 
 namespace qbs {
 class CodeLocation;
@@ -64,14 +61,10 @@ public:
     ModuleLoader(LoaderState &loaderState);
     ~ModuleLoader();
 
-    struct Result {
-        Item *moduleItem = nullptr;
-        std::vector<ProbeConstPtr> providerProbes;
-    };
-    Result searchAndLoadModuleFile(ProductContext &productContext,
-                                   const CodeLocation &dependsItemLocation,
-                                   const QualifiedId &moduleName,
-                                   FallbackMode fallbackMode, bool isRequired);
+    Item *searchAndLoadModuleFile(ProductContext &productContext,
+                                  const CodeLocation &dependsItemLocation,
+                                  const QualifiedId &moduleName,
+                                  FallbackMode fallbackMode, bool isRequired);
 
     void setStoredModuleProviderInfo(const StoredModuleProviderInfo &moduleProviderInfo);
     StoredModuleProviderInfo storedModuleProviderInfo() const;

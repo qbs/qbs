@@ -624,12 +624,9 @@ Item *DependenciesResolverImpl::findMatchingModule(
         return nullptr;
     }
 
-    const ModuleLoader::Result loaderResult = m_moduleLoader.searchAndLoadModuleFile(
+    Item *moduleItem = m_moduleLoader.searchAndLoadModuleFile(
         m_product, dependency.location(), dependency.name, dependency.fallbackMode,
         dependency.requiredGlobally);
-
-    Item *moduleItem = loaderResult.moduleItem;
-    m_product.probes << loaderResult.providerProbes;
     if (moduleItem) {
         Item * const proto = moduleItem;
         moduleItem = moduleItem->clone();

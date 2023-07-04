@@ -52,6 +52,7 @@
 namespace qbs::Internal {
 class Item;
 class LoaderState;
+class ProductContext;
 
 class ProbesResolver
 {
@@ -61,11 +62,7 @@ public:
     void setOldProductProbes(const QHash<QString, std::vector<ProbeConstPtr>> &oldProbes);
     void printProfilingInfo(int indent);
 
-    struct ProductContext {
-        const QString &name;
-        const QString &uniqueName;
-    };
-    std::vector<ProbeConstPtr> resolveProbes(const ProductContext &productContext, Item *item);
+    void resolveProbes(ProductContext &productContext, Item *item);
 
 private:
     ProbeConstPtr findOldProjectProbe(const QString &globalId, bool condition,
@@ -80,7 +77,7 @@ private:
     bool probeMatches(const ProbeConstPtr &probe, bool condition,
                       const QVariantMap &initialProperties, const QString &configureScript,
                       CompareScript compareScript) const;
-    ProbeConstPtr resolveProbe(const ProductContext &productContext, Item *parent, Item *probe);
+    ProbeConstPtr resolveProbe(ProductContext &productContext, Item *parent, Item *probe);
 
     quint64 m_probesEncountered = 0;
     quint64 m_probesRun = 0;
