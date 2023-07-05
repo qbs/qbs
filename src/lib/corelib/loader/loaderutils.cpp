@@ -116,7 +116,6 @@ void ProductContext::handleError(const ErrorInfo &error)
     for (const ErrorItem &ei : errorItems)
         delayedError.append(ei.description(), ei.codeLocation());
     project->topLevelProject->addDisabledItem(item);
-    project->topLevelProject->addErroneousProduct(name);
 }
 
 bool TopLevelProjectContext::checkItemCondition(Item *item, Evaluator &evaluator)
@@ -245,16 +244,6 @@ void TopLevelProjectContext::addDisabledItem(Item *item)
 bool TopLevelProjectContext::isDisabledItem(Item *item) const
 {
     return m_disabledItems.contains(item);
-}
-
-void TopLevelProjectContext::addErroneousProduct(const QString &productName)
-{
-    m_erroneousProducts << productName;
-}
-
-bool TopLevelProjectContext::isErroneousProduct(const QString &productName)
-{
-    return m_erroneousProducts.contains(productName);
 }
 
 void TopLevelProjectContext::setProgressObserver(ProgressObserver *observer)

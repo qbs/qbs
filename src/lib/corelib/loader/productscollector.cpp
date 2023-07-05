@@ -686,8 +686,6 @@ void ProductsCollector::Private::checkProductNamesInOverrides()
 {
     TopLevelProjectContext &topLevelProject = loaderState.topLevelProject();
     for (const QString &productNameInOverride : topLevelProject.productNamesUsedInOverrides()) {
-        if (topLevelProject.isErroneousProduct(productNameInOverride))
-            continue;
         if (!topLevelProject.productWithNameAndConstraint(
                     productNameInOverride, [&productNameInOverride](const ProductContext &product) {
                 // In an override string such as "a.b.c:d, we cannot tell whether we have a product

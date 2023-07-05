@@ -177,9 +177,6 @@ public:
     const Set<Item *> &disabledItems() const { return m_disabledItems; }
     bool isDisabledItem(Item *item) const;
 
-    void addErroneousProduct(const QString &productName);
-    bool isErroneousProduct(const QString &productName);
-
     void setProgressObserver(ProgressObserver *observer);
     ProgressObserver *progressObserver() const;
 
@@ -231,7 +228,6 @@ private:
     Set<QString> m_projectNamesUsedInOverrides;
     Set<QString> m_productNamesUsedInOverrides;
     Set<Item *> m_disabledItems;
-    Set<QString> m_erroneousProducts;
     std::vector<ProbeConstPtr> m_probes;
     std::vector<ErrorInfo> m_queuedErrors;
     QString m_buildDirectory;
