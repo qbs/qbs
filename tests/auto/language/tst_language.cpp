@@ -854,6 +854,8 @@ void TestLanguage::erroneousFiles_data()
             << "Cyclic dependencies detected.";
     QTest::newRow("dependency_cycle3")
             << "Cyclic dependencies detected.";
+    QTest::newRow("dependency_cycle3a")
+            << "Cyclic dependencies detected.";
     QTest::newRow("dependency_cycle4")
             << "Cyclic dependencies detected.";
     QTest::newRow("references_cycle")
@@ -986,6 +988,7 @@ void TestLanguage::erroneousFiles()
     }
     QEXPECT_FAIL("undeclared_property_in_Properties_item", "Too expensive to check", Continue);
     QEXPECT_FAIL("original-in-export-item3", "Too expensive to check", Continue);
+    QEXPECT_FAIL("dependency_cycle3a", "Depends.productTypes is tricky", Continue);
     QVERIFY(!"No error thrown on invalid input.");
 }
 
