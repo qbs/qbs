@@ -26,6 +26,8 @@
 **
 ****************************************************************************/
 
+#include "../shared.h"
+
 #include <app/qbs/parser/commandlineparser.h>
 #include <app/shared/logging/consolelogger.h>
 #include <tools/buildoptions.h>
@@ -53,6 +55,25 @@ private slots:
     {
         QVERIFY(m_projectFile.open());
         m_fileArgs = QStringList() << "-f" << m_projectFile.fileName();
+    }
+
+    void testResolve_data()
+    {
+        QTest::addColumn<QStringList>("args");
+        QTest::addColumn<int>("expectedJobCount");
+
+        QTest::newRow("default job count") << QStringList() << BuildOptions::defaultMaxJobCount();
+        QTest::newRow("explicit job count") << QStringList("-j5") << 5;
+    }
+    void testResolve()
+    {
+        QFETCH(QStringList, args);
+        QFETCH(int, expectedJobCount);
+
+        CommandLineParser parser;
+        QVERIFY(parser.parseCommandLine(QStringList("resolve") << args << m_fileArgs));
+        QCOMPARE(parser.command(), ResolveCommandType);
+        QCOMPARE(parser.jobCount(profileName()), expectedJobCount);
     }
 
     void testValidCommandLine()

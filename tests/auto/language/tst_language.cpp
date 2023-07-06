@@ -195,6 +195,7 @@ void TestLanguage::init()
     defaultParameters.setPropertyCheckingMode(ErrorHandlingMode::Strict);
     defaultParameters.setSettingsDirectory(m_settings->baseDirectory());
     defaultParameters.setTopLevelProfile(profileName());
+    defaultParameters.setMaxJobCount(1);
     defaultParameters.setConfigurationName("default");
     defaultParameters.setEnvironment(QProcessEnvironment::systemEnvironment());
     defaultParameters.setSearchPaths({SRCDIR "/../../../share/qbs"});

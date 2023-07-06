@@ -125,6 +125,7 @@
     \row    \li force-probe-execution        \li bool                \li no
     \row    \li log-time                     \li bool                \li no
     \row    \li log-level                    \li \l LogLevel         \li no
+    \row    \li max-job-count                \li int                 \li no
     \row    \li module-properties            \li list of strings     \li no
     \row    \li overridden-properties        \li object              \li no
     \row    \li project-file-path            \li FilePath            \li if resolving from scratch

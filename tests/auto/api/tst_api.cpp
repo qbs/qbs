@@ -2522,6 +2522,7 @@ qbs::SetupProjectParameters TestApi::defaultSetupParameters(const QString &proje
     setupParams.setLibexecPath(QDir::cleanPath(QCoreApplication::applicationDirPath()
             + QLatin1String("/" QBS_RELATIVE_LIBEXEC_PATH)));
     setupParams.setTopLevelProfile(profileName());
+    setupParams.setMaxJobCount(2);
     setupParams.setConfigurationName(QStringLiteral("default"));
     setupParams.setSettingsDirectory(settings()->baseDirectory());
     return setupParams;

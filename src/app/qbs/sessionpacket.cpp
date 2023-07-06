@@ -99,7 +99,7 @@ QJsonObject SessionPacket::helloMessage()
 {
     return QJsonObject{
         {StringConstants::type(), QLatin1String("hello")},
-        {QLatin1String("api-level"), 3},
+        {QLatin1String("api-level"), 4},
         {QLatin1String("api-compat-level"), 2}
     };
 }

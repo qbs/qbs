@@ -184,6 +184,7 @@ void CommandLineFrontend::start()
             params.setConfigurationName(configurationName);
             params.setBuildRoot(buildDirectory(profileName));
             params.setOverriddenValues(userConfig);
+            params.setMaxJobCount(m_parser.jobCount(profileName));
             SetupProjectJob * const job = Project().setupProject(params,
                     ConsoleLogger::instance().logSink(), this);
             connectJob(job);

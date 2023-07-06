@@ -156,17 +156,11 @@ QString CommandLineParser::projectBuildDirectory() const
 
 BuildOptions CommandLineParser::buildOptions(const QString &profile) const
 {
-    Settings settings(settingsDir());
-    Preferences preferences(&settings, profile);
-
-    if (d->buildOptions.maxJobCount() <= 0) {
-        d->buildOptions.setMaxJobCount(preferences.jobs());
-    }
-
+    d->buildOptions.setMaxJobCount(jobCount(profile));
     if (d->buildOptions.echoMode() < 0) {
-        d->buildOptions.setEchoMode(preferences.defaultEchoMode());
+        Settings settings(settingsDir());
+        d->buildOptions.setEchoMode(Preferences(&settings, profile).defaultEchoMode());
     }
-
     return d->buildOptions;
 }
 
@@ -201,6 +195,15 @@ InstallOptions CommandLineParser::installOptions(const QString &profile) const
     options.setKeepGoing(buildOptions(profile).keepGoing());
     options.setLogElapsedTime(logTime());
     return options;
+}
+
+int CommandLineParser::jobCount(const QString &profile) const
+{
+    if (const int explicitJobCount = d->optionPool.jobsOption()->jobCount(); explicitJobCount > 0)
+        return explicitJobCount;
+
+    Settings settings(settingsDir());
+    return Preferences(&settings, profile).jobs();
 }
 
 bool CommandLineParser::forceTimestampCheck() const

@@ -209,6 +209,7 @@ static QList<CommandLineOption::Type> resolveOptions()
             CommandLineOption::ForceProbesOptionType,
             CommandLineOption::LogTimeOptionType,
             CommandLineOption::DeprecationWarningsOptionType,
+            CommandLineOption::JobsOptionType,
             CommandLineOption::DisableFallbackProviderType};
 }
 
@@ -279,7 +280,6 @@ static QList<CommandLineOption::Type> buildOptions()
             << CommandLineOption::ForceTimestampCheckOptionType
             << CommandLineOption::ForceOutputCheckOptionType
             << CommandLineOption::BuildNonDefaultOptionType
-            << CommandLineOption::JobsOptionType
             << CommandLineOption::CommandEchoModeOptionType
             << CommandLineOption::NoInstallOptionType
             << CommandLineOption::RemoveFirstOptionType

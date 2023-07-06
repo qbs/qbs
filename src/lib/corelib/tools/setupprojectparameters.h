@@ -99,6 +99,9 @@ public:
     QString settingsDirectory() const;
     void setSettingsDirectory(const QString &settingsBaseDir);
 
+    int maxJobCount() const;
+    void setMaxJobCount(int jobCount);
+
     QVariantMap overriddenValues() const;
     void setOverriddenValues(const QVariantMap &values);
     QVariantMap overriddenValuesTree() const;

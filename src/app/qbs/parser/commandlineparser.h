@@ -75,6 +75,7 @@ public:
     CleanOptions cleanOptions(const QString &profile) const;
     GenerateOptions generateOptions() const;
     InstallOptions installOptions(const QString &profile) const;
+    int jobCount(const QString &profile) const;
     bool forceTimestampCheck() const;
     bool forceOutputCheck() const;
     bool dryRun() const;

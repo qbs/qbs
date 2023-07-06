@@ -38,6 +38,8 @@
 ****************************************************************************/
 #include "setupprojectparameters.h"
 
+#include "buildoptions.h"
+
 #include <logging/logger.h>
 #include <logging/translator.h>
 #include <tools/buildgraphlocker.h>
@@ -90,6 +92,7 @@ public:
     mutable QVariantMap buildConfigurationTree;
     mutable QVariantMap overriddenValuesTree;
     mutable QVariantMap finalBuildConfigTree;
+    int maxJobCount = 0;
     bool overrideBuildGraphData;
     bool dryRun;
     bool logElapsedTime;
@@ -154,6 +157,9 @@ SetupProjectParameters SetupProjectParameters::fromJson(const QJsonObject &data)
     setValueFromJson(params.d->projectFilePath, data, "project-file-path");
     setValueFromJson(params.d->buildRoot, data, "build-root");
     setValueFromJson(params.d->settingsBaseDir, data, "settings-directory");
+    setValueFromJson(params.d->maxJobCount, data, "max-job-count");
+    if (params.maxJobCount() <= 0)
+        params.setMaxJobCount(BuildOptions::defaultMaxJobCount());
     setValueFromJson(params.d->overriddenValues, data, "overridden-properties");
     setValueFromJson(params.d->dryRun, data, "dry-run");
     setValueFromJson(params.d->logElapsedTime, data, "log-time");
@@ -370,6 +376,27 @@ QString SetupProjectParameters::settingsDirectory() const
 void SetupProjectParameters::setSettingsDirectory(const QString &settingsBaseDir)
 {
     d->settingsBaseDir = settingsBaseDir;
+}
+
+/*!
+ * \brief Returns the maximum number of threads to employ when resolving the project.
+ * If the value is not valid (i.e. <= 0), a sensible one will be derived from the number of
+ * available processor cores.
+ * The default is 0.
+ * \sa BuildOptions::defaultMaxJobCount
+ */
+int SetupProjectParameters::maxJobCount() const
+{
+    return d->maxJobCount;
+}
+
+/*!
+ * \brief Controls how many threads to employ when resolving the project.
+ * A value <= 0 leaves the decision to qbs.
+ */
+void SetupProjectParameters::setMaxJobCount(int jobCount)
+{
+    d->maxJobCount = jobCount;
 }
 
 /*!

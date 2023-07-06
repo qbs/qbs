@@ -6345,7 +6345,7 @@ void TestBlackbox::qbsSession()
     // Wait for and verify hello packet.
     QJsonObject receivedMessage = getNextSessionPacket(sessionProc, incomingData);
     QCOMPARE(receivedMessage.value("type"), "hello");
-    QCOMPARE(receivedMessage.value("api-level").toInt(), 3);
+    QCOMPARE(receivedMessage.value("api-level").toInt(), 4);
     QCOMPARE(receivedMessage.value("api-compat-level").toInt(), 2);
 
     // Resolve & verify structure
@@ -6361,6 +6361,7 @@ void TestBlackbox::qbsSession()
     resolveMessage.insert("overridden-properties", overriddenValues);
     resolveMessage.insert("environment", envToJson(QbsRunParameters::defaultEnvironment()));
     resolveMessage.insert("data-mode", "only-if-changed");
+    resolveMessage.insert("max-job-count", 2);
     resolveMessage.insert("log-time", true);
     resolveMessage.insert("module-properties",
                           QJsonArray::fromStringList({"cpp.cxxLanguageVersion"}));
