@@ -652,7 +652,8 @@ std::pair<bool, HandleDependency> DependenciesResolverImpl::checkProductDependen
                         depSpec.location());
     }
 
-    if (m_product.project->topLevelProject->isProductQueuedForHandling(dep)) {
+    if ((!dep.shadowProduct || &m_product != dep.shadowProduct.get())
+            && m_product.project->topLevelProject->isProductQueuedForHandling(dep)) {
         if (m_deferral == Deferral::Allowed)
             return {false, HandleDependency::Defer};
         ErrorInfo e;

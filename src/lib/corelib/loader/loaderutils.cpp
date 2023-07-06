@@ -203,37 +203,14 @@ int TopLevelProjectContext::productCount() const
     return m_productsByItem.size();
 }
 
-void TopLevelProjectContext::addProductToHandle(ProductContext &product)
+void TopLevelProjectContext::removeProductToHandle(const ProductContext &product)
 {
-    m_productsToHandle.emplace_back(&product, -1);
-}
-
-void TopLevelProjectContext::reinsertProductToHandle(ProductContext &product)
-{
-    m_productsToHandle.emplace_back(&product, int(m_productsToHandle.size()));
-}
-
-bool TopLevelProjectContext::hasProductsToHandle() const
-{
-    return !m_productsToHandle.empty();
+    m_productsToHandle.remove(&product);
 }
 
 bool TopLevelProjectContext::isProductQueuedForHandling(const ProductContext &product) const
 {
-    return any_of(m_productsToHandle, [&product](const auto &e) { return e.first == &product; });
-}
-
-std::pair<ProductContext *, Deferral> TopLevelProjectContext::nextProductToHandle()
-{
-    const auto [product, queueSizeOnInsert] = m_productsToHandle.front();
-    m_productsToHandle.pop_front();
-
-    // If the queue of in-progress products has shrunk since the last time we tried handling
-    // this product, there has been forward progress and we can allow a deferral.
-    const Deferral deferral = queueSizeOnInsert == -1
-            || queueSizeOnInsert > int(m_productsToHandle.size())
-            ? Deferral::Allowed : Deferral::NotAllowed;
-    return {product, deferral};
+    return m_productsToHandle.contains(&product);
 }
 
 void TopLevelProjectContext::addDisabledItem(Item *item)

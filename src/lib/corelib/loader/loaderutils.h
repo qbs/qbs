@@ -167,11 +167,9 @@ public:
 
     int productCount() const;
 
-    void addProductToHandle(ProductContext &product);
-    void reinsertProductToHandle(ProductContext &product);
-    bool hasProductsToHandle() const;
+    void addProductToHandle(const ProductContext &product) { m_productsToHandle << &product; }
+    void removeProductToHandle(const ProductContext &product);
     bool isProductQueuedForHandling(const ProductContext &product) const;
-    std::pair<ProductContext *, Deferral> nextProductToHandle();
 
     void addDisabledItem(Item *item);
     const Set<Item *> &disabledItems() const { return m_disabledItems; }
@@ -218,7 +216,7 @@ public:
 
 private:
     std::vector<ProjectContext *> m_projects;
-    std::list<std::pair<ProductContext *, int>> m_productsToHandle;
+    Set<const ProductContext *> m_productsToHandle;
     std::multimap<QString, ProductContext *> m_productsByName;
     std::unordered_map<Item *, ProductContext *> m_productsByItem;
     std::unordered_map<QStringView, QString> m_sourceCode;

@@ -66,6 +66,8 @@
 #include <tools/setupprojectparameters.h>
 #include <tools/stringconstants.h>
 
+#include <queue>
+
 namespace qbs::Internal {
 
 class ProductsHandler::Private
@@ -73,7 +75,6 @@ class ProductsHandler::Private
 public:
     Private(LoaderState &loaderState) : loaderState(loaderState) {}
 
-    void handleNextProduct();
     void handleProduct(ProductContext &product, Deferral deferral);
     void setupProductForResolving(ProductContext &product, Deferral deferral);
     void resolveProbes(ProductContext &product);
@@ -141,12 +142,42 @@ ProductsHandler::ProductsHandler(LoaderState &loaderState) : d(makePimpl<Private
 void ProductsHandler::run()
 {
     TopLevelProjectContext &topLevelProject = d->loaderState.topLevelProject();
+    std::queue<std::pair<ProductContext *, int>> productsToHandle;
     for (ProjectContext * const projectContext : topLevelProject.projects()) {
-        for (ProductContext &productContext : projectContext->products)
+        for (ProductContext &productContext : projectContext->products) {
             topLevelProject.addProductToHandle(productContext);
+            productsToHandle.emplace(&productContext, -1);
+        }
     }
-    while (topLevelProject.hasProductsToHandle())
-        d->handleNextProduct();
+    while (!productsToHandle.empty()) {
+        const auto [product, queueSizeOnInsert] = productsToHandle.front();
+        productsToHandle.pop();
+
+        // If the queue of in-progress products has shrunk since the last time we tried handling
+        // this product, there has been forward progress and we can allow a deferral.
+        const Deferral deferral = queueSizeOnInsert == -1
+                || queueSizeOnInsert > int(productsToHandle.size())
+                ? Deferral::Allowed : Deferral::NotAllowed;
+        d->loaderState.itemReader().setExtraSearchPathsStack(product->project->searchPathsStack);
+        d->handleProduct(*product, deferral);
+        if (topLevelProject.isCanceled())
+            throw CancelException();
+
+        // The search paths stack can change during dependency resolution (due to module providers);
+        // check that we've rolled back all the changes
+        QBS_CHECK(d->loaderState.itemReader().extraSearchPathsStack()
+                  == product->project->searchPathsStack);
+
+        // If we encountered a dependency to an in-progress product or to a bulk dependency,
+        // we defer handling this product if it hasn't failed yet and there is still
+        // forward progress.
+        if (product->dependenciesResolvingPending())
+            productsToHandle.emplace(product, int(productsToHandle.size()));
+        else
+            topLevelProject.removeProductToHandle(*product);
+
+        topLevelProject.timingData() += product->timingData;
+    }
 }
 
 void ProductsHandler::Private::resolveProduct(ProductContext &productContext)
@@ -204,26 +235,6 @@ void ProductsHandler::Private::resolveProduct(ProductContext &productContext)
 }
 
 ProductsHandler::~ProductsHandler() = default;
-
-void ProductsHandler::Private::handleNextProduct()
-{
-    TopLevelProjectContext &topLevelProject = loaderState.topLevelProject();
-    const auto [product, deferral] = topLevelProject.nextProductToHandle();
-    loaderState.itemReader().setExtraSearchPathsStack(product->project->searchPathsStack);
-    handleProduct(*product, deferral);
-    if (topLevelProject.isCanceled())
-        throw CancelException();
-
-    // The search paths stack can change during dependency resolution (due to module providers);
-    // check that we've rolled back all the changes
-    QBS_CHECK(loaderState.itemReader().extraSearchPathsStack() == product->project->searchPathsStack);
-
-    // If we encountered a dependency to an in-progress product or to a bulk dependency,
-    // we defer handling this product if it hasn't failed yet and there is still forward progress.
-    if (product->dependenciesResolvingPending())
-        topLevelProject.reinsertProductToHandle(*product);
-    topLevelProject.timingData() += product->timingData;
-}
 
 void ProductsHandler::Private::handleProduct(ProductContext &product, Deferral deferral)
 {
