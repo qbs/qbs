@@ -32,6 +32,7 @@ import qbs.Utilities
 
 Project {
     condition: Utilities.versionCompare(qbs.version, "1.14") >= 0
+    qbsModuleProviders: "qbspkgconfig"
 
     Application {
         Depends { name: "cpp" }

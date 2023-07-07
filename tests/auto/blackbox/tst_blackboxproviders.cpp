@@ -193,6 +193,7 @@ void TestBlackboxProviders::probeInModuleProvider()
     touch("probe-in-module-provider.qbs");
     QCOMPARE(runQbs(), 0);
     QVERIFY2(m_qbsStdout.contains("p.qbsmetatestmodule.boolProp: true"), m_qbsStdout);
+    QVERIFY2(m_qbsStdout.contains("p.qbsmetatestmodule.prop: \"value\""), m_qbsStdout);
     QVERIFY2(!m_qbsStdout.contains("Running probe"), m_qbsStdout);
 }
 
