@@ -51,14 +51,11 @@
 #include <tools/stringconstants.h>
 
 #include <QJsonDocument>
-#include <QThreadStorage>
 
 #include <vector>
 
-
 namespace qbs::Internal {
 namespace {
-using MultiplexConfigurationByIdTable = QThreadStorage<QHash<QString, QVariantMap>>;
 using MultiplexRow = std::vector<VariantValuePtr>;
 using MultiplexTable = std::vector<MultiplexRow>;
 class MultiplexInfo
@@ -69,11 +66,9 @@ public:
     bool aggregate = false;
     VariantValuePtr multiplexedType;
 
-    QString toIdString(size_t row) const;
+    QString toIdString(size_t row, LoaderState &loaderState) const;
 };
 } // namespace
-
-Q_GLOBAL_STATIC(MultiplexConfigurationByIdTable, multiplexConfigurationsById);
 
 class ProductItemMultiplexer::Private
 {
@@ -116,7 +111,7 @@ QList<Item *> ProductItemMultiplexer::multiplex(
             item = productItem->clone();
             additionalProductItems.push_back(item);
         }
-        const QString multiplexConfigurationId = multiplexInfo.toIdString(row);
+        const QString multiplexConfigurationId = multiplexInfo.toIdString(row, d->loaderState);
         const VariantValuePtr multiplexConfigurationIdValue
             = VariantValue::create(multiplexConfigurationId);
         if (multiplexInfo.table.size() > 1 || aggregator) {
@@ -234,18 +229,6 @@ MultiplexTable ProductItemMultiplexer::Private::combine(const MultiplexTable &ta
     return result;
 }
 
-QVariantMap ProductItemMultiplexer::multiplexIdToVariantMap(const QString &multiplexId)
-{
-    if (multiplexId.isEmpty())
-        return QVariantMap();
-
-    // We assume that MultiplexInfo::toIdString() has been called for this
-    // particular multiplex configuration.
-    QVariantMap result = multiplexConfigurationsById->localData().value(multiplexId);
-    QBS_CHECK(!result.isEmpty());
-    return result;
-}
-
 QString ProductItemMultiplexer::fullProductDisplayName(const QString &name,
                                                        const QString &multiplexId)
 {
@@ -258,7 +241,7 @@ QString ProductItemMultiplexer::fullProductDisplayName(const QString &name,
     return result;
 }
 
-QString MultiplexInfo::toIdString(size_t row) const
+QString MultiplexInfo::toIdString(size_t row, LoaderState &loaderState) const
 {
     const auto &mprow = table.at(row);
     QVariantMap multiplexConfiguration;
@@ -272,7 +255,7 @@ QString MultiplexInfo::toIdString(size_t row) const
                                    .toBase64());
 
     // Cache for later use in multiplexIdToVariantMap()
-    multiplexConfigurationsById->localData().insert(id, multiplexConfiguration);
+    loaderState.topLevelProject().addMultiplexConfiguration(id, multiplexConfiguration);
 
     return id;
 }

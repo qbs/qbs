@@ -212,6 +212,9 @@ public:
     void setBuildDirectory(const QString &buildDir) { m_buildDirectory = buildDir; }
     const QString &buildDirectory() const { return m_buildDirectory; }
 
+    void addMultiplexConfiguration(const QString &id, const QVariantMap &config);
+    QVariantMap multiplexConfiguration(const QString &id) const;
+
     TimingData &timingData() { return m_timingData; }
 
 private:
@@ -220,6 +223,7 @@ private:
     std::multimap<QString, ProductContext *> m_productsByName;
     std::unordered_map<Item *, ProductContext *> m_productsByItem;
     std::unordered_map<QStringView, QString> m_sourceCode;
+    std::unordered_map<QString, QVariantMap> m_multiplexConfigsById;
     QHash<CodeLocation, ScriptFunctionPtr> m_scriptFunctionMap;
     std::unordered_map<std::pair<QStringView, QStringList>, QString> m_scriptFunctions;
     std::unordered_map<FileContextConstPtr, ResolvedFileContextPtr> m_fileContextMap;

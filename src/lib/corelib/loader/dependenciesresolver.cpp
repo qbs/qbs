@@ -786,8 +786,8 @@ void DependenciesResolverImpl::adjustDependsItemForMultiplexing(Item *dependsIte
     };
 
     QStringList multiplexIds;
-    const auto productMultiplexConfig
-            = ProductItemMultiplexer::multiplexIdToVariantMap(m_product.multiplexConfigurationId);
+    const auto productMultiplexConfig = m_loaderState.topLevelProject().multiplexConfiguration(
+                m_product.multiplexConfigurationId);
 
     for (const ProductContext *dependency : multiplexedDependencies) {
         if (productIsMultiplexed && !profilesPropertyIsSet) { // 2a
@@ -800,8 +800,8 @@ void DependenciesResolverImpl::adjustDependsItemForMultiplexing(Item *dependsIte
 
             }
             // Otherwise collect partial matches and decide later
-            const auto dependencyMultiplexConfig = ProductItemMultiplexer::multiplexIdToVariantMap(
-                dependency->multiplexConfigurationId);
+            const auto dependencyMultiplexConfig = m_loaderState.topLevelProject()
+                    .multiplexConfiguration(dependency->multiplexConfigurationId);
 
             if (multiplexConfigurationIntersects(dependencyMultiplexConfig, productMultiplexConfig))
                 multiplexIds << dependency->multiplexConfigurationId;

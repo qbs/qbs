@@ -339,6 +339,20 @@ const Set<QString> &TopLevelProjectContext::productNamesUsedInOverrides() const
     return m_productNamesUsedInOverrides;
 }
 
+void TopLevelProjectContext::addMultiplexConfiguration(const QString &id, const QVariantMap &config)
+{
+    m_multiplexConfigsById.insert(std::make_pair(id, config));
+}
+
+QVariantMap TopLevelProjectContext::multiplexConfiguration(const QString &id) const
+{
+    if (id.isEmpty())
+        return {};
+    const auto it = m_multiplexConfigsById.find(id);
+    QBS_CHECK(it != m_multiplexConfigsById.end() && !it->second.isEmpty());
+    return it->second;
+}
+
 class LoaderState::Private
 {
 public:
