@@ -42,6 +42,8 @@
 #include "sessionpacket.h"
 #include "stdinreader.h"
 
+#include <QPointer>
+
 namespace qbs {
 namespace Internal {
 
@@ -64,8 +66,13 @@ void SessionPacketReader::start()
     StdinReader * const stdinReader = StdinReader::create(this);
     connect(stdinReader, &StdinReader::errorOccurred, this, &SessionPacketReader::errorOccurred);
     connect(stdinReader, &StdinReader::dataAvailable, this, [this](const QByteArray &data) {
+        /* Because this SessionPacketReader can be destroyed in the emit packetReceived,
+         * use a `QPointer self(this)` to check whether this instance still exists.
+         * When self evaluates to false, this instance should no longer be referenced,
+         * so the parent QObject and d should no longer be used in any way. */
+        QPointer self(this);
         d->incomingData += data;
-        while (!d->incomingData.isEmpty()) {
+        while (self && !d->incomingData.isEmpty()) {
             switch (d->currentPacket.parseInput(d->incomingData)) {
             case SessionPacket::Status::Invalid:
                 emit errorOccurred(tr("Received invalid input."));

@@ -14,4 +14,5 @@ CppApplication {
         "main.cpp",
         "README.md",
     ]
+    qbsModuleProviders: "qbspkgconfig"
 }
