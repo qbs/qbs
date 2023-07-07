@@ -65,8 +65,6 @@ public:
     DependenciesResolver(LoaderState &loaderState);
     ~DependenciesResolver();
 
-    // Returns false if the product has unhandled product dependencies and thus needs
-    // to be deferred, true otherwise.
     void resolveDependencies(ProductContext &product, Deferral deferral);
 
     void checkDependencyParameterDeclarations(const Item *productItem,
