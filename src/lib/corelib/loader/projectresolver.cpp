@@ -43,8 +43,6 @@
 #include "itemreader.h"
 #include "loaderutils.h"
 #include "localprofiles.h"
-#include "moduleinstantiator.h"
-#include "modulepropertymerger.h"
 #include "probesresolver.h"
 #include "productscollector.h"
 #include "productshandler.h"
@@ -129,7 +127,6 @@ public:
     void resolveProject(ProjectContext *projectContext);
     void resolveProjectFully(ProjectContext *projectContext);
     void resolveSubProject(Item *item, ProjectContext *projectContext);
-    void collectExportedProductDependencies();
     void checkOverriddenValues();
     void collectNameFromOverride(const QString &overrideString);
     void loadTopLevelProjectItem();
@@ -314,7 +311,6 @@ TopLevelProjectPtr ProjectResolver::Private::resolveTopLevelProject()
     project->environment = engine->environment();
     project->buildSystemFiles.unite(engine->imports());
     makeSubProjectNamesUniqe(project);
-    collectExportedProductDependencies();
     checkForDuplicateProductNames(project);
 
     project->warningsEncountered = logger.warnings();
@@ -419,44 +415,6 @@ void ProjectResolver::Private::resolveSubProject(Item *item, ProjectContext *pro
     projectContext->project->subProjects << project;
     if (Item * const propertiesItem = item->child(ItemType::PropertiesInSubProject))
         project->name = evaluator.stringValue(propertiesItem, StringConstants::nameProperty());
-}
-
-void ProjectResolver::Private::collectExportedProductDependencies()
-{
-    state.topLevelProject().forEachProduct([this](ProductContext &productContext) {
-        if (!productContext.shadowProduct)
-            return;
-        const ResolvedProductPtr exportingProduct = productContext.product;
-        if (!exportingProduct || !exportingProduct->enabled)
-            return;
-        Item * const importingProductItem = productContext.shadowProduct->item;
-
-        std::vector<std::pair<ResolvedProductPtr, QVariantMap>> directDeps;
-        for (const Item::Module &m : importingProductItem->modules()) {
-            if (m.name.toString() != exportingProduct->name)
-                continue;
-            for (const Item::Module &dep : m.item->modules()) {
-                if (dep.productInfo) {
-                    directDeps.emplace_back(state.topLevelProject()
-                                            .productForItem(dep.productInfo->item)->product,
-                                            m.parameters);
-                }
-            }
-        }
-        for (const auto &dep : directDeps) {
-            if (!contains(exportingProduct->exportedModule.productDependencies,
-                          dep.first->uniqueName())) {
-                exportingProduct->exportedModule.productDependencies.push_back(
-                    dep.first->uniqueName());
-            }
-            if (!dep.second.isEmpty()) {
-                exportingProduct->exportedModule.dependencyParameters.insert(dep.first,
-                                                                             dep.second);
-            }
-        }
-        auto &productDeps = exportingProduct->exportedModule.productDependencies;
-        std::sort(productDeps.begin(), productDeps.end());
-    });
 }
 
 void ProjectResolver::Private::checkOverriddenValues()

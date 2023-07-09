@@ -89,6 +89,7 @@ public:
     void resolveProduct(ProductContext &productContext);
     void resolveProductFully(ProductContext &productContext);
     void buildProductDependencyList(ProductContext &productContext);
+    void collectExportedProductDependencies(ProductContext &productContext);
     void createProductConfig(ProductContext &productContext);
     QVariantMap evaluateModuleValues(ProductContext &productContext, Item *item,
                                      bool lookupPrototype = true);
@@ -561,6 +562,7 @@ void ProductsHandler::Private::resolveProductFully(ProductContext &productContex
     }
 
     buildProductDependencyList(productContext);
+    collectExportedProductDependencies(productContext);
 }
 
 void ProductsHandler::Private::buildProductDependencyList(ProductContext &productContext)
@@ -586,6 +588,42 @@ void ProductsHandler::Private::buildProductDependencyList(ProductContext &produc
               [](const ResolvedProductPtr &p1, const ResolvedProductPtr &p2) {
         return p1->fullDisplayName() < p2->fullDisplayName();
     });
+}
+
+void ProductsHandler::Private::collectExportedProductDependencies(ProductContext &productContext)
+{
+    if (!productContext.shadowProduct)
+        return;
+    const ResolvedProductPtr exportingProduct = productContext.product;
+    if (!exportingProduct || !exportingProduct->enabled)
+        return;
+    Item * const importingProductItem = productContext.shadowProduct->item;
+
+    std::vector<std::pair<ResolvedProductPtr, QVariantMap>> directDeps;
+    for (const Item::Module &m : importingProductItem->modules()) {
+        if (m.name.toString() != exportingProduct->name)
+            continue;
+        for (const Item::Module &dep : m.item->modules()) {
+            if (dep.productInfo) {
+                directDeps.emplace_back(loaderState.topLevelProject()
+                                            .productForItem(dep.productInfo->item)->product,
+                                        m.parameters);
+            }
+        }
+    }
+    for (const auto &dep : directDeps) {
+        if (!contains(exportingProduct->exportedModule.productDependencies,
+                      dep.first->uniqueName())) {
+            exportingProduct->exportedModule.productDependencies.push_back(
+                dep.first->uniqueName());
+        }
+        if (!dep.second.isEmpty()) {
+            exportingProduct->exportedModule.dependencyParameters.insert(dep.first,
+                                                                         dep.second);
+        }
+    }
+    auto &productDeps = exportingProduct->exportedModule.productDependencies;
+    std::sort(productDeps.begin(), productDeps.end());
 }
 
 void ProductsHandler::Private::createProductConfig(ProductContext &productContext)
