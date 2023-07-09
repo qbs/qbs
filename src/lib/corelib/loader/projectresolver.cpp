@@ -140,8 +140,6 @@ public:
     Evaluator evaluator{engine};
     ItemPool itemPool;
     LoaderState state{setupParams, itemPool, evaluator, logger};
-    ProductsCollector productsCollector{state};
-    ProductsHandler productsHandler{state};
     Item *rootProjectItem = nullptr;
     FileTime lastResolveTime;
 };
@@ -287,7 +285,7 @@ TopLevelProjectPtr ProjectResolver::Private::resolveTopLevelProject()
         projectContext->project = project;
         resolveProject(projectContext);
     }
-    productsHandler.run();
+    ProductsHandler(state).run();
     ErrorInfo accumulatedErrors;
     for (const ErrorInfo &e : state.topLevelProject().queuedErrors())
         appendError(accumulatedErrors, e);
@@ -509,7 +507,7 @@ void ProjectResolver::Private::buildProjectTree()
                                  VariantValue::create(state.topLevelProject().buildDirectory()));
     rootProjectItem->setProperty(StringConstants::profileProperty(),
                                  VariantValue::create(state.parameters().topLevelProfile()));
-    productsCollector.run(rootProjectItem);
+    ProductsCollector(state).run(rootProjectItem);
 
     AccumulatingTimer timer(state.parameters().logElapsedTime()
                             ? &state.topLevelProject().timingData().propertyChecking : nullptr);
