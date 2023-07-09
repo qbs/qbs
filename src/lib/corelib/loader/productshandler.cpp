@@ -88,6 +88,7 @@ public:
 
     void resolveProduct(ProductContext &productContext);
     void resolveProductFully(ProductContext &productContext);
+    void buildProductDependencyList(ProductContext &productContext);
     void createProductConfig(ProductContext &productContext);
     QVariantMap evaluateModuleValues(ProductContext &productContext, Item *item,
                                      bool lookupPrototype = true);
@@ -558,6 +559,33 @@ void ProductsHandler::Private::resolveProductFully(ProductContext &productContex
         clonedRule->product = product.get();
         product->rules.push_back(clonedRule);
     }
+
+    buildProductDependencyList(productContext);
+}
+
+void ProductsHandler::Private::buildProductDependencyList(ProductContext &productContext)
+{
+    const ResolvedProductPtr &product = productContext.product;
+    if (!product)
+        return;
+    for (const Item::Module &module : productContext.item->modules()) {
+        if (!module.productInfo)
+            continue;
+
+        // TODO: module.productInfo could just be the ProductContext nowadays, no?
+        const ResolvedProductPtr &dep = loaderState.topLevelProject()
+                                            .productForItem(module.productInfo->item)->product;
+        QBS_CHECK(dep);
+        QBS_CHECK(dep != product);
+        product->dependencies << dep;
+        product->dependencyParameters.insert(dep, module.parameters); // TODO: Streamline this with normal module dependencies?
+    }
+
+    // TODO: We might want to keep the topological sorting and get rid of "module module dependencies".
+    std::sort(product->dependencies.begin(),product->dependencies.end(),
+              [](const ResolvedProductPtr &p1, const ResolvedProductPtr &p2) {
+        return p1->fullDisplayName() < p2->fullDisplayName();
+    });
 }
 
 void ProductsHandler::Private::createProductConfig(ProductContext &productContext)

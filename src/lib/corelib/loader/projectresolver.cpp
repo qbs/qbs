@@ -129,7 +129,6 @@ public:
     void resolveProject(ProjectContext *projectContext);
     void resolveProjectFully(ProjectContext *projectContext);
     void resolveSubProject(Item *item, ProjectContext *projectContext);
-    void resolveProductDependencies();
     void collectExportedProductDependencies();
     void checkOverriddenValues();
     void collectNameFromOverride(const QString &overrideString);
@@ -315,7 +314,6 @@ TopLevelProjectPtr ProjectResolver::Private::resolveTopLevelProject()
     project->environment = engine->environment();
     project->buildSystemFiles.unite(engine->imports());
     makeSubProjectNamesUniqe(project);
-    resolveProductDependencies();
     collectExportedProductDependencies();
     checkForDuplicateProductNames(project);
 
@@ -589,31 +587,6 @@ void ProjectResolver::Private::printProfilingInfo()
           state.topLevelProject().timingData().propertyEvaluation);
     print(2, Tr::tr("Resolving groups (without module property evaluation) took %1."),
           state.topLevelProject().timingData().groupsResolving);
-}
-
-void ProjectResolver::Private::resolveProductDependencies()
-{
-    state.topLevelProject().forEachProduct([this](ProductContext &productContext) {
-        const ResolvedProductPtr &product = productContext.product;
-        if (!product)
-            return;
-        for (const Item::Module &module : productContext.item->modules()) {
-            if (!module.productInfo)
-                continue;
-            const ResolvedProductPtr &dep = state.topLevelProject()
-                    .productForItem(module.productInfo->item)->product;
-            QBS_CHECK(dep);
-            QBS_CHECK(dep != product);
-            product->dependencies << dep;
-            product->dependencyParameters.insert(dep, module.parameters); // TODO: Streamline this with normal module dependencies?
-        }
-
-        // TODO: We might want to keep the topological sorting and get rid of "module module dependencies".
-        std::sort(product->dependencies.begin(),product->dependencies.end(),
-                  [](const ResolvedProductPtr &p1, const ResolvedProductPtr &p2) {
-            return p1->fullDisplayName() < p2->fullDisplayName();
-        });
-    });
 }
 
 } // namespace Internal
