@@ -96,6 +96,7 @@ Evaluator::~Evaluator()
         valuesToFree << data;
         for (const JSValue cachedValue : evalData->valueCache)
             JS_FreeValue(m_scriptEngine->context(), cachedValue);
+        evalData->item->removeObserver(this);
         delete evalData;
     }
     for (const auto &scopes : std::as_const(m_fileContextScopesMap)) {
@@ -224,22 +225,11 @@ JSValue Evaluator::scriptValue(const Item *item)
     const auto edata = new EvaluationData;
     edata->evaluator = this;
     edata->item = item;
-    edata->item->setObserver(this);
+    edata->item->addObserver(this);
 
     scriptValue = JS_NewObjectClass(m_scriptEngine->context(), m_scriptClass);
     attachPointerTo(scriptValue, edata);
     return scriptValue;
-}
-
-void Evaluator::clearCache(const Item *item)
-{
-    const auto data = attachedPointer<EvaluationData>(m_scriptValueMap.value(item),
-                                                      m_scriptEngine->dataWithPtrClass());
-    if (data) {
-        for (const auto value : std::as_const(data->valueCache))
-            JS_FreeValue(m_scriptEngine->context(), value);
-        data->valueCache.clear();
-    }
 }
 
 void Evaluator::handleEvaluationError(const Item *item, const QString &name)
@@ -285,6 +275,42 @@ Evaluator::FileContextScopes Evaluator::fileContextScopes(const FileContextConst
         }
     }
     return result;
+}
+
+// This is the only function in this class that can be called from a thread that is not
+// the evaluating one. For this reason, we do not clear the cache here, as that would
+// incur enourmous synchronization overhead. Instead, we mark the item's cache as invalidated
+// and do the actual clearing only at the very few places where the cache is actually accessed.
+void Evaluator::invalidateCache(const Item *item)
+{
+    std::lock_guard lock(m_cacheInvalidationMutex);
+    m_invalidatedCaches << item;
+}
+
+void Evaluator::clearCache(const Item *item)
+{
+    std::lock_guard lock(m_cacheInvalidationMutex);
+    if (const auto data = attachedPointer<EvaluationData>(m_scriptValueMap.value(item),
+                                                          m_scriptEngine->dataWithPtrClass())) {
+        clearCache(*data);
+        m_invalidatedCaches.remove(data->item);
+    }
+}
+
+void Evaluator::clearCacheIfInvalidated(EvaluationData &edata)
+{
+    std::lock_guard lock(m_cacheInvalidationMutex);
+    if (const auto it = m_invalidatedCaches.find(edata.item); it != m_invalidatedCaches.end()) {
+        clearCache(edata);
+        m_invalidatedCaches.erase(it);
+    }
+}
+
+void Evaluator::clearCache(EvaluationData &edata)
+{
+    for (const auto value : std::as_const(edata.valueCache))
+        JS_FreeValue(m_scriptEngine->context(), value);
+    edata.valueCache.clear();
 }
 
 void throwOnEvaluationError(ScriptEngine *engine,
@@ -862,7 +888,7 @@ static void collectValuesFromNextChain(
 
 struct EvalResult { JSValue v = JS_UNDEFINED; bool found = false; };
 static EvalResult getEvalProperty(ScriptEngine *engine, JSValue obj, const Item *item,
-                                  const QString &name, const EvaluationData *data)
+                                  const QString &name, EvaluationData *data)
 {
     Evaluator * const evaluator = data->evaluator;
     const bool isModuleInstance = item->type() == ItemType::ModuleInstance
@@ -881,6 +907,7 @@ static EvalResult getEvalProperty(ScriptEngine *engine, JSValue obj, const Item 
                                               evaluator->propertyDependencies());
         JSValue result;
         if (evaluator->cachingEnabled()) {
+            data->evaluator->clearCacheIfInvalidated(*data);
             const auto result = data->valueCache.constFind(name);
             if (result != data->valueCache.constEnd()) {
                 if (debugProperties)
@@ -903,6 +930,7 @@ static EvalResult getEvalProperty(ScriptEngine *engine, JSValue obj, const Item 
             qDebug() << "[SC] cache miss " << name << ": "
                      << resultToString(engine->context(), result);
         if (evaluator->cachingEnabled()) {
+            data->evaluator->clearCacheIfInvalidated(*data);
             const auto it = data->valueCache.find(name);
             if (it != data->valueCache.end()) {
                 JS_FreeValue(engine->context(), it.value());

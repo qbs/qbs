@@ -53,6 +53,7 @@ Q_DECLARE_LOGGING_CATEGORY(lcModuleLoader)
 Q_DECLARE_LOGGING_CATEGORY(lcPluginManager)
 Q_DECLARE_LOGGING_CATEGORY(lcProjectResolver)
 Q_DECLARE_LOGGING_CATEGORY(lcUpToDateCheck)
+Q_DECLARE_LOGGING_CATEGORY(lcLoaderScheduling)
 
 } // namespace Internal
 } // namespace qbs

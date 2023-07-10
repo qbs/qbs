@@ -41,6 +41,8 @@
 
 #include <QtCore/qglobal.h>
 
+#include <vector>
+
 QT_BEGIN_NAMESPACE
 class QString;
 QT_END_NAMESPACE
@@ -66,13 +68,13 @@ public:
     // Call this to ensure that the progress bar always goes to 100%.
     void setFinished();
 
-    void setScriptEngine(ScriptEngine *engine) { m_scriptEngine = engine; }
+    void addScriptEngine(ScriptEngine *engine) { m_scriptEngines.push_back(engine); }
 
 protected:
-    ScriptEngine *scriptEngine() const { return m_scriptEngine; }
+    const std::vector<ScriptEngine *> &scriptEngines() const { return m_scriptEngines; }
 
 private:
-    ScriptEngine *m_scriptEngine = nullptr;
+    std::vector<ScriptEngine *> m_scriptEngines;
 };
 
 } // namespace Internal

@@ -190,10 +190,8 @@ void resolveProduct(ProductContext &product, Deferral deferral, LoaderState &loa
     if (product.dependenciesResolvingPending())
         return;
 
-    if (product.name.startsWith(StringConstants::shadowProductPrefix())) {
-        loaderState.topLevelProject().addProjectLevelProbes(product.probes);
+    if (product.name.startsWith(StringConstants::shadowProductPrefix()))
         return;
-    }
 
     // TODO: The weird double-forwarded error handling can hopefully be simplified now.
     try {
@@ -522,7 +520,6 @@ void ProductResolverStage2::resolveProductFully()
 {
     Item * const item = m_product.item;
     const ResolvedProductPtr product = m_product.product;
-    product->project->products.push_back(product);
     Evaluator &evaluator = m_loaderState.evaluator();
     product->name = evaluator.stringValue(item, StringConstants::nameProperty());
 
@@ -1331,6 +1328,7 @@ void ExportsResolver::collectPropertiesForModuleInExportItem(const Item::Module 
         modulePrototype = modulePrototype->prototype();
     if (!modulePrototype) // Can happen for broken products in relaxed mode.
         return;
+    ModuleItemLocker locker(*modulePrototype);
     const Item::PropertyMap &props = modulePrototype->properties();
     ExportedModuleDependency dep;
     dep.name = module.name.toString();

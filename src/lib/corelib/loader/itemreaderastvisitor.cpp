@@ -75,6 +75,8 @@ ItemReaderASTVisitor::ItemReaderASTVisitor(ItemReaderVisitorState &visitorState,
 {
 }
 
+ItemReaderASTVisitor::~ItemReaderASTVisitor() = default;
+
 bool ItemReaderASTVisitor::visit(AST::UiProgram *uiProgram)
 {
     ASTImportsHandler importsHandler(m_visitorState, m_logger, m_file);
@@ -135,10 +137,15 @@ bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
 
     item->m_type = itemType;
 
-    if (m_item)
+    if (m_item) {
         Item::addChild(m_item, item); // Add this item to the children of the parent item.
-    else
+    } else {
         m_item = item; // This is the root item.
+        if (itemType == ItemType::Module) {
+            QBS_CHECK(!m_moduleItemLocker);
+            m_moduleItemLocker = std::make_unique<ModuleItemLocker>(*m_item);
+        }
+    }
 
     if (ast->initializer) {
         Item *mdi = m_visitorState.mostDerivingItem();
@@ -335,6 +342,9 @@ void ItemReaderASTVisitor::inheritItem(Item *dst, const Item *src)
         dst->setPropertyDeclaration(pd.name(), pd);
     }
 
+    std::unique_ptr<ModuleItemLocker> locker;
+    if (src->type() == ItemType::Module)
+        locker = std::make_unique<ModuleItemLocker>(*src);
     for (auto it = src->properties().constBegin(); it != src->properties().constEnd(); ++it) {
         ValuePtr &v = dst->m_properties[it.key()];
         if (!v) {

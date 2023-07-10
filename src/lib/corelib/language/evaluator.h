@@ -49,11 +49,13 @@
 #include <QtCore/qhash.h>
 
 #include <functional>
+#include <mutex>
 #include <optional>
 #include <stack>
 
 namespace qbs {
 namespace Internal {
+class EvaluationData;
 class FileTags;
 class Logger;
 class PropertyDeclaration;
@@ -101,6 +103,8 @@ public:
     void setCachingEnabled(bool enabled) { m_valueCacheEnabled = enabled; }
     bool cachingEnabled() const { return m_valueCacheEnabled; }
     void clearCache(const Item *item);
+    void invalidateCache(const Item *item);
+    void clearCacheIfInvalidated(EvaluationData &edata);
 
     PropertyDependencies &propertyDependencies() { return m_propertyDependencies; }
     void clearPropertyDependencies() { m_propertyDependencies.clear(); }
@@ -115,9 +119,10 @@ public:
 
     bool isNonDefaultValue(const Item *item, const QString &name) const;
 private:
-    void onItemPropertyChanged(Item *item) override { clearCache(item); }
+    void onItemPropertyChanged(Item *item) override { invalidateCache(item); }
     bool evaluateProperty(JSValue *result, const Item *item, const QString &name,
             bool *propertyWasSet);
+    void clearCache(EvaluationData &edata);
 
     ScriptEngine * const m_scriptEngine;
     const JSClassID m_scriptClass;
@@ -126,6 +131,8 @@ private:
     QString m_pathPropertiesBaseDir;
     PropertyDependencies m_propertyDependencies;
     std::stack<QualifiedId> m_requestedProperties;
+    std::mutex m_cacheInvalidationMutex;
+    Set<const Item *> m_invalidatedCaches;
     bool m_valueCacheEnabled = false;
 };
 

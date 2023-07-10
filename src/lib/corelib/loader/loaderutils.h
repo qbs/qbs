@@ -56,9 +56,12 @@
 #include <QStringList>
 #include <QVariant>
 
+#include <atomic>
 #include <functional>
 #include <memory>
+#include <mutex>
 #include <optional>
+#include <shared_mutex>
 #include <thread>
 #include <utility>
 #include <vector>
@@ -73,14 +76,22 @@ class Logger;
 class ProductContext;
 class ProgressObserver;
 class ProjectContext;
+class ScriptEngine;
 
 using ModulePropertiesPerGroup = std::unordered_map<const Item *, QualifiedIdSet>;
 using FileLocations = QHash<std::pair<QString, QString>, CodeLocation>;
 
 enum class FallbackMode { Enabled, Disabled };
 enum class Deferral { Allowed, NotAllowed };
+enum class ProductDependency { None, Single, Bulk };
 
 class CancelException { };
+
+template<typename DataType, typename MutexType = std::shared_mutex>
+struct GuardedData {
+    DataType data;
+    mutable MutexType mutex;
+};
 
 class TimingData
 {
@@ -95,6 +106,7 @@ public:
     qint64 groupsResolving = 0;
     qint64 preparingProducts = 0;
     qint64 resolvingProducts = 0;
+    qint64 schedulingProducts = 0;
     qint64 probes = 0;
     qint64 propertyEvaluation = 0;
     qint64 propertyChecking = 0;
@@ -114,7 +126,7 @@ public:
         void removeProcessingThread();
 
     private:
-        Set<std::thread::id> m_processingThreads;
+        GuardedData<Set<std::thread::id>, std::recursive_mutex> m_processingThreads;
     };
 
     const Set<QString> &filesRead() const { return m_filesRead; }
@@ -125,15 +137,15 @@ public:
 
 private:
     Set<QString> m_filesRead;
-    std::unordered_map<QString, std::optional<QStringList>> m_directoryEntries; // TODO: Merge with module dir entries cache?
-    std::unordered_map<QString, AstCacheEntry> m_astCache;
+    GuardedData<std::unordered_map<QString, std::optional<QStringList>>, std::mutex> m_directoryEntries; // TODO: Merge with module dir entries cache?
+    GuardedData<std::unordered_map<QString, AstCacheEntry>, std::mutex> m_astCache;
 };
 
 class DependenciesContext
 {
 public:
     virtual ~DependenciesContext();
-    virtual bool hasDependencyToUnresolvedProduct() const = 0;
+    virtual std::pair<ProductDependency, ProductContext *> pendingDependency() const = 0;
 
     bool dependenciesResolved = false;
 };
@@ -145,7 +157,7 @@ public:
     QString displayName() const;
     void handleError(const ErrorInfo &error);
     bool dependenciesResolvingPending() const;
-    bool hasDependencyToUnresolvedProduct() const;
+    std::pair<ProductDependency, ProductContext *> pendingDependency() const;
 
     QString name;
     QString buildDirectory;
@@ -188,17 +200,17 @@ public:
     ScriptFunctionPtr scriptFunctionValue(Item *item, const QString &name);
     QString sourceCodeAsFunction(const JSSourceValueConstPtr &value,
                                  const PropertyDeclaration &decl);
-    const ResolvedFileContextPtr &resolvedFileContext(const FileContextConstPtr &ctx);
 
-    void setCanceled();
+    void setCanceled() { m_canceled = true; }
     void checkCancelation();
-    bool isCanceled() const;
+    bool isCanceled() const { return m_canceled; }
 
-    int productCount() const;
+    int productCount() const { return m_productsByName.size(); }
 
-    void addProductToHandle(const ProductContext &product) { m_productsToHandle << &product; }
+    void addProductToHandle(const ProductContext &product) { m_productsToHandle.data << &product; }
     void removeProductToHandle(const ProductContext &product);
     bool isProductQueuedForHandling(const ProductContext &product) const;
+    int productsToHandleCount() const { return m_productsToHandle.data.size(); }
 
     void addDisabledItem(Item *item);
     bool isDisabledItem(Item *item) const;
@@ -210,7 +222,7 @@ public:
     const std::vector<ProjectContext *> &projects() const { return m_projects; }
 
     void addQueuedError(const ErrorInfo &error);
-    const std::vector<ErrorInfo> &queuedErrors() const { return m_queuedErrors; }
+    const std::vector<ErrorInfo> &queuedErrors() const { return m_queuedErrors.data; }
 
     void setProfileConfigs(const QVariantMap &profileConfigs) { m_profileConfigs = profileConfigs; }
     void addProfileConfig(const QString &profileName, const QVariantMap &profileConfig);
@@ -243,13 +255,15 @@ public:
 
     Set<QString> buildSystemFiles() const { return m_itemReaderCache.filesRead(); }
 
+    std::lock_guard<std::mutex> moduleProvidersCacheLock();
     void setModuleProvidersCache(const ModuleProvidersCache &cache);
     const ModuleProvidersCache &moduleProvidersCache() const { return m_moduleProvidersCache; }
     ModuleProviderInfo *moduleProvider(const ModuleProvidersCacheKey &key);
     ModuleProviderInfo &addModuleProvider(const ModuleProvidersCacheKey &key,
                                           const ModuleProviderInfo &provider);
 
-    void addParameterDeclarations(const Item *moduleProto, const Item::PropertyDeclarationMap &decls);
+    void addParameterDeclarations(const Item *moduleProto,
+                                  const Item::PropertyDeclarationMap &decls);
     Item::PropertyDeclarationMap parameterDeclarations(Item *moduleProto) const;
 
     // An empty string means no matching module directory was found.
@@ -271,10 +285,11 @@ public:
     const QVariantMap localProfiles() { return m_localProfiles; }
 
     using ProbeFilter = std::function<bool(const ProbeConstPtr &)>;
+    std::lock_guard<std::mutex> probesCacheLock();
     void setOldProjectProbes(const std::vector<ProbeConstPtr> &oldProbes);
     void setOldProductProbes(const QHash<QString, std::vector<ProbeConstPtr>> &oldProbes);
     void addNewlyResolvedProbe(const ProbeConstPtr &probe);
-    void addProjectLevelProbes(const std::vector<ProbeConstPtr> &probes);
+    void addProjectLevelProbe(const ProbeConstPtr &probe);
     const std::vector<ProbeConstPtr> projectLevelProbes() const;
     ProbeConstPtr findOldProjectProbe(const QString &id, const ProbeFilter &filter) const;
     ProbeConstPtr findOldProductProbe(const QString &productName, const ProbeFilter &filter) const;
@@ -294,43 +309,53 @@ public:
     void incProductDeferrals() { ++m_productDeferrals; }
     int productDeferrals() const { return m_productDeferrals; }
 
+    void collectDataFromEngine(const ScriptEngine &engine);
+
 private:
+    const ResolvedFileContextPtr &resolvedFileContext(const FileContextConstPtr &ctx);
+
     std::vector<ProjectContext *> m_projects;
-    Set<const ProductContext *> m_productsToHandle;
+    GuardedData<Set<const ProductContext *>> m_productsToHandle;
     std::multimap<QString, ProductContext *> m_productsByName;
-    std::unordered_map<QStringView, QString> m_sourceCode;
+    GuardedData<std::unordered_map<QStringView, QString>, std::mutex> m_sourceCode;
     std::unordered_map<QString, QVariantMap> m_multiplexConfigsById;
-    QHash<CodeLocation, ScriptFunctionPtr> m_scriptFunctionMap;
-    std::unordered_map<std::pair<QStringView, QStringList>, QString> m_scriptFunctions;
+    GuardedData<QHash<CodeLocation, ScriptFunctionPtr>, std::mutex> m_scriptFunctionMap;
+    GuardedData<std::unordered_map<std::pair<QStringView, QStringList>, QString>,
+                std::mutex> m_scriptFunctions;
     std::unordered_map<FileContextConstPtr, ResolvedFileContextPtr> m_fileContextMap;
     Set<QString> m_projectNamesUsedInOverrides;
     Set<QString> m_productNamesUsedInOverrides;
-    Set<Item *> m_disabledItems;
-    std::vector<ErrorInfo> m_queuedErrors;
+    GuardedData<Set<Item *>> m_disabledItems;
+    GuardedData<std::vector<ErrorInfo>, std::mutex> m_queuedErrors;
     QString m_buildDirectory;
     QVariantMap m_profileConfigs;
     ProgressObserver *m_progressObserver = nullptr;
     TimingData m_timingData;
     ModuleProvidersCache m_moduleProvidersCache;
+    std::mutex m_moduleProvidersCacheMutex;
     QVariantMap m_localProfiles;
     ItemReaderCache m_itemReaderCache;
 
     // For fast look-up when resolving Depends.productTypes.
     // The contract is that it contains fully handled, error-free, enabled products.
-    std::multimap<FileTag, ProductContext *> m_productsByType;
+    GuardedData<std::multimap<FileTag, ProductContext *>> m_productsByType;
 
     // The keys are module prototypes.
-    std::unordered_map<const Item *, Item::PropertyDeclarationMap> m_parameterDeclarations;
-    std::unordered_map<const Item *, std::vector<ErrorInfo>> m_unknownProfilePropertyErrors;
+    GuardedData<std::unordered_map<const Item *,
+                                   Item::PropertyDeclarationMap>> m_parameterDeclarations;
+    GuardedData<std::unordered_map<const Item *,
+                                   std::vector<ErrorInfo>>> m_unknownProfilePropertyErrors;
 
     // The keys are search path + module name, the values are directories.
-    QHash<std::pair<QString, QualifiedId>, std::optional<QString>> m_modulePathCache;
+    GuardedData<QHash<std::pair<QString, QualifiedId>, std::optional<QString>>,
+                std::mutex> m_modulePathCache;
 
     // The keys are file paths, the values are module prototype items accompanied by a profile.
-    std::unordered_map<QString, std::vector<std::pair<Item *, QString>>> m_modulePrototypes;
+    GuardedData<std::unordered_map<QString, std::vector<std::pair<Item *, QString>>>,
+                std::mutex> m_modulePrototypes;
 
-    std::map<QString, std::optional<QStringList>> m_moduleFilesPerDirectory;
-
+    GuardedData<std::map<QString, std::optional<QStringList>>,
+                std::mutex> m_moduleFilesPerDirectory;
 
     struct {
         QHash<QString, std::vector<ProbeConstPtr>> oldProjectProbes;
@@ -343,11 +368,12 @@ private:
         quint64 probesCachedCurrent = 0;
         quint64 probesCachedOld = 0;
     } m_probesInfo;
+    std::mutex m_probesMutex;
 
     FileTime m_lastResolveTime;
 
+    std::atomic_bool m_canceled = false;
     int m_productDeferrals = 0;
-    bool m_canceled = false;
 };
 
 class ProjectContext
@@ -378,8 +404,8 @@ public:
 class LoaderState
 {
 public:
-    LoaderState(const SetupProjectParameters &parameters, ItemPool &itemPool, Evaluator &evaluator,
-                Logger &logger);
+    LoaderState(const SetupProjectParameters &parameters, TopLevelProjectContext &topLevelProject,
+                ItemPool &itemPool, Evaluator &evaluator, Logger &logger);
     ~LoaderState();
 
     Evaluator &evaluator();

@@ -134,9 +134,10 @@ public:
     const SetupProjectParameters setupParams;
     ScriptEngine * const engine;
     mutable Logger logger;
-    Evaluator evaluator{engine};
     ItemPool itemPool;
-    LoaderState state{setupParams, itemPool, evaluator, logger};
+    Evaluator evaluator{engine};
+    TopLevelProjectContext topLevelProject;
+    LoaderState state{setupParams, topLevelProject, itemPool, evaluator, logger};
     Item *rootProjectItem = nullptr;
 };
 
@@ -218,7 +219,7 @@ TopLevelProjectPtr ProjectResolver::resolve()
     if (ProgressObserver * const observer = d->state.topLevelProject().progressObserver()) {
         observer->initialize(Tr::tr("Resolving project for configuration %1")
             .arg(TopLevelProject::deriveId(d->setupParams.finalBuildConfigurationTree())), 1);
-        observer->setScriptEngine(d->engine);
+        observer->addScriptEngine(d->engine);
     }
 
     const FileTime resolveTime = FileTime::currentTime();
@@ -288,7 +289,7 @@ TopLevelProjectPtr ProjectResolver::Private::resolveTopLevelProject()
     if (accumulatedErrors.hasError())
         throw accumulatedErrors;
 
-    project->buildSystemFiles = state.topLevelProject().buildSystemFiles();
+    project->buildSystemFiles.unite(state.topLevelProject().buildSystemFiles());
     project->profileConfigs = state.topLevelProject().profileConfigs();
     const QVariantMap &profiles = state.topLevelProject().localProfiles();
     for (auto it = profiles.begin(); it != profiles.end(); ++it)
@@ -297,12 +298,7 @@ TopLevelProjectPtr ProjectResolver::Private::resolveTopLevelProject()
     project->moduleProviderInfo.providers = state.topLevelProject().moduleProvidersCache();
     project->setBuildConfiguration(setupParams.finalBuildConfigurationTree());
     project->overriddenValues = setupParams.overriddenValues();
-    project->canonicalFilePathResults = engine->canonicalFilePathResults();
-    project->fileExistsResults = engine->fileExistsResults();
-    project->directoryEntriesResults = engine->directoryEntriesResults();
-    project->fileLastModifiedResults = engine->fileLastModifiedResults();
-    project->environment = engine->environment();
-    project->buildSystemFiles.unite(engine->imports());
+    state.topLevelProject().collectDataFromEngine(*engine);
     makeSubProjectNamesUniqe(project);
     checkForDuplicateProductNames(project);
 
@@ -522,6 +518,8 @@ void ProjectResolver::Private::printProfilingInfo()
           state.topLevelProject().timingData().preparingProducts);
     print(2, Tr::tr("Setting up Groups took %1."),
           state.topLevelProject().timingData().groupsSetup);
+    print(2, Tr::tr("Scheduling products took %1."),
+          state.topLevelProject().timingData().schedulingProducts);
     print(2, Tr::tr("Resolving products took %1."),
           state.topLevelProject().timingData().resolvingProducts);
     print(4, Tr::tr("Property evaluation took %1."),

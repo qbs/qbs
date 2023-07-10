@@ -50,6 +50,7 @@ Q_LOGGING_CATEGORY(lcModuleLoader, "qbs.moduleloader", QtCriticalMsg)
 Q_LOGGING_CATEGORY(lcPluginManager, "qbs.pluginmanager", QtCriticalMsg)
 Q_LOGGING_CATEGORY(lcProjectResolver, "qbs.projectresolver", QtCriticalMsg)
 Q_LOGGING_CATEGORY(lcUpToDateCheck, "qbs.uptodate", QtCriticalMsg)
+Q_LOGGING_CATEGORY(lcLoaderScheduling, "qbs.loader.scheduling", QtCriticalMsg)
 
 } // namespace Internal
 } // namespace qbs

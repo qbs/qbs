@@ -49,6 +49,8 @@
 #include <QtCore/qhash.h>
 #include <QtCore/qstringlist.h>
 
+#include <memory.h>
+
 namespace qbs {
 class CodeLocation;
 
@@ -56,12 +58,15 @@ namespace Internal {
 class Item;
 class ItemPool;
 class ItemReaderVisitorState;
+class ModuleItemLocker;
 
 class ItemReaderASTVisitor : public QbsQmlJS::AST::Visitor
 {
 public:
     ItemReaderASTVisitor(ItemReaderVisitorState &visitorState, FileContextPtr file,
                          ItemPool *itemPool, Logger &logger);
+    ~ItemReaderASTVisitor();
+
     void checkItemTypes() { doCheckItemTypes(rootItem()); }
 
     Item *rootItem() const { return m_item; }
@@ -88,6 +93,7 @@ private:
     Logger &m_logger;
     QHash<QStringList, QString> m_typeNameToFile;
     Item *m_item = nullptr;
+    std::unique_ptr<ModuleItemLocker> m_moduleItemLocker;
     ItemType m_instanceItemType = ItemType::ModuleInstancePlaceholder;
 };
 

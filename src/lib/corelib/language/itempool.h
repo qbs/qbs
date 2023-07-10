@@ -43,6 +43,7 @@
 #include <parser/qmljsmemorypool_p.h>
 #include <tools/qbs_export.h>
 
+#include <mutex>
 #include <vector>
 
 namespace qbs {
@@ -62,6 +63,7 @@ public:
 
 private:
     QbsQmlJS::MemoryPool m_pool;
+    std::mutex m_mutex;
     std::vector<Item *> m_items;
 };
 

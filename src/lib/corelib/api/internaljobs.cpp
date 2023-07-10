@@ -77,8 +77,8 @@ public:
     {
         std::lock_guard<std::mutex> lock(m_cancelMutex);
         m_canceled = true;
-        if (scriptEngine())
-            scriptEngine()->cancel();
+        for (ScriptEngine * const engine : scriptEngines())
+            engine->cancel();
     }
 
 private:

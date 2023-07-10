@@ -92,18 +92,20 @@ void ProbesResolver::resolveProbes(ProductContext &productContext, Item *item)
                                             EvalContext::ProbeExecution);
     for (Item * const child : item->children()) {
         if (child->type() == ItemType::Probe)
-            productContext.probes.push_back(resolveProbe(productContext, item, child));
+            resolveProbe(productContext, item, child);
     }
 }
 
-ProbeConstPtr ProbesResolver::resolveProbe(ProductContext &productContext, Item *parent,
+void ProbesResolver::resolveProbe(ProductContext &productContext, Item *parent,
                                            Item *probe)
 {
     qCDebug(lcModuleLoader) << "Resolving Probe at " << probe->location().toString();
-    m_loaderState.topLevelProject().incrementProbesCount();
     const QString &probeId = probeGlobalId(probe);
     if (Q_UNLIKELY(probeId.isEmpty()))
         throw ErrorInfo(Tr::tr("Probe.id must be set."), probe->location());
+    const bool isProjectLevelProbe
+        = parent->type() == ItemType::Project
+          || productContext.name.startsWith(StringConstants::shadowProductPrefix());
     const JSSourceValueConstPtr configureScript
             = probe->sourceProperty(StringConstants::configureProperty());
     QBS_CHECK(configureScript);
@@ -130,8 +132,9 @@ ProbeConstPtr ProbesResolver::resolveProbe(ProductContext &productContext, Item 
     const bool condition = evaluator.boolValue(probe, StringConstants::conditionProperty());
     const QString &sourceCode = configureScript->sourceCode().toString();
     ProbeConstPtr resolvedProbe;
-    if (parent->type() == ItemType::Project
-        || productContext.name.startsWith(StringConstants::shadowProductPrefix())) {
+    std::lock_guard lock(m_loaderState.topLevelProject().probesCacheLock());
+    m_loaderState.topLevelProject().incrementProbesCount();
+    if (isProjectLevelProbe) {
         resolvedProbe = findOldProjectProbe(probeId, condition, initialProperties, sourceCode);
     } else {
         resolvedProbe = findOldProductProbe(productContext.uniqueName(), condition,
@@ -228,7 +231,10 @@ ProbeConstPtr ProbesResolver::resolveProbe(ProductContext &productContext, Item 
                                       importedFilesUsedInConfigure);
         m_loaderState.topLevelProject().addNewlyResolvedProbe(resolvedProbe);
     }
-    return resolvedProbe;
+    if (isProjectLevelProbe)
+        m_loaderState.topLevelProject().addProjectLevelProbe(resolvedProbe);
+    else
+        productContext.probes << resolvedProbe;
 }
 
 ProbeConstPtr ProbesResolver::findOldProjectProbe(

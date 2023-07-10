@@ -53,6 +53,8 @@
 #include <QtCore/qlist.h>
 #include <QtCore/qmap.h>
 
+#include <atomic>
+#include <mutex>
 #include <vector>
 
 namespace qbs {
@@ -63,6 +65,7 @@ namespace Internal {
 class ItemObserver;
 class ItemPool;
 class Logger;
+class ModuleItemLocker;
 class ProductContext;
 
 class QBS_AUTOTEST_EXPORT Item : public QbsQmlJS::Managed
@@ -70,6 +73,7 @@ class QBS_AUTOTEST_EXPORT Item : public QbsQmlJS::Managed
     friend class ASTPropertiesItemHandler;
     friend class ItemPool;
     friend class ItemReaderASTVisitor;
+    friend class ModuleItemLocker;
     Q_DISABLE_COPY(Item)
     Item(ItemType type) : m_type(type) {}
 
@@ -111,8 +115,8 @@ public:
     const QList<Item *> &children() const { return m_children; }
     QList<Item *> &children() { return m_children; }
     Item *child(ItemType type, bool checkForMultiple = true) const;
-    const PropertyMap &properties() const { return m_properties; }
-    PropertyMap &properties() { return m_properties; }
+    const PropertyMap &properties() const { assertModuleLocked(); return m_properties; }
+    PropertyMap &properties() { assertModuleLocked(); return m_properties; }
     const PropertyDeclarationMap &propertyDeclarations() const { return m_propertyDeclarations; }
     PropertyDeclaration propertyDeclaration(const QString &name, bool allowExpired = true) const;
 
@@ -138,9 +142,10 @@ public:
     JSSourceValuePtr sourceProperty(const QString &name) const;
     VariantValuePtr variantProperty(const QString &name) const;
     bool isOfTypeOrhasParentOfType(ItemType type) const;
-    void setObserver(ItemObserver *observer) const;
+    void addObserver(ItemObserver *observer) const;
+    void removeObserver(ItemObserver *observer) const;
     void setProperty(const QString &name, const ValuePtr &value);
-    void setProperties(const PropertyMap &props) { m_properties = props; }
+    void setProperties(const PropertyMap &props) { assertModuleLocked(); m_properties = props; }
     void removeProperty(const QString &name);
     void setPropertyDeclaration(const QString &name, const PropertyDeclaration &declaration);
     void setPropertyDeclarations(const PropertyDeclarationMap &decls);
@@ -176,7 +181,12 @@ private:
 
     void dump(int indentation) const;
 
-    mutable ItemObserver *m_observer = nullptr;
+    void lockModule() const;
+    void unlockModule() const;
+    void assertModuleLocked() const;
+
+    mutable std::vector<ItemObserver *> m_observers;
+    mutable std::mutex m_observersMutex;
     QString m_id;
     CodeLocation m_location;
     Item *m_prototype = nullptr;
@@ -190,6 +200,10 @@ private:
     PropertyDeclarationMap m_expiredPropertyDeclarations;
     Modules m_modules;
     ItemType m_type;
+    mutable std::mutex m_moduleMutex;
+#ifndef NDEBUG
+    mutable std::atomic_bool m_moduleLocked = false;
+#endif
 };
 
 inline bool operator<(const Item::Module &m1, const Item::Module &m2) { return m1.name < m2.name; }
@@ -197,6 +211,22 @@ inline bool operator<(const Item::Module &m1, const Item::Module &m2) { return m
 Item *createNonPresentModule(ItemPool &pool, const QString &name, const QString &reason,
                              Item *module);
 void setScopeForDescendants(Item *item, Item *scope);
+
+// This mechanism is needed because Module items are shared between products (not doing so
+// would be prohibitively expensive).
+// The competing accesses are between
+//  - Attaching a temporary qbs module for evaluating the Module condition.
+//  - Cloning the module when creating an instance.
+//  - Directly accessing Module properties, which happens rarely (as opposed to properties of
+//    an instance).
+class ModuleItemLocker
+{
+public:
+    ModuleItemLocker(const Item &item) : m_item(item) { item.lockModule(); }
+    ~ModuleItemLocker() { m_item.unlockModule(); }
+private:
+    const Item &m_item;
+};
 
 } // namespace Internal
 } // namespace qbs

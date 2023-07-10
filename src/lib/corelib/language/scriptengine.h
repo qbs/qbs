@@ -58,6 +58,7 @@
 #include <QtCore/qprocess.h>
 #include <QtCore/qstring.h>
 
+#include <atomic>
 #include <functional>
 #include <memory>
 #include <mutex>
@@ -360,7 +361,7 @@ private:
     std::unordered_map<QString, JSValue> m_jsFileCache;
     bool m_propertyCacheEnabled = true;
     bool m_active = false;
-    bool m_canceling = false;
+    std::atomic_bool m_canceling = false;
     QHash<PropertyCacheKey, QVariant> m_propertyCache;
     PropertySet m_propertiesRequestedInScript;
     QHash<QString, PropertySet> m_propertiesRequestedFromArtifact;

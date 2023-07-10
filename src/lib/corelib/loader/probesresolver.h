@@ -46,8 +46,6 @@
 
 #include <QString>
 
-#include <vector>
-
 namespace qbs::Internal {
 class Item;
 class LoaderState;
@@ -72,7 +70,7 @@ private:
     bool probeMatches(const ProbeConstPtr &probe, bool condition,
                       const QVariantMap &initialProperties, const QString &configureScript,
                       CompareScript compareScript) const;
-    ProbeConstPtr resolveProbe(ProductContext &productContext, Item *parent, Item *probe);
+    void resolveProbe(ProductContext &productContext, Item *parent, Item *probe);
 
     LoaderState &m_loaderState;
 };

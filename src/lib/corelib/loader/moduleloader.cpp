@@ -190,6 +190,7 @@ Item *ModuleLoader::load()
         moduleItem = candidates.at(0).item;
     } else {
         for (auto &candidate : candidates) {
+            ModuleItemLocker lock(*candidate.item);
             candidate.priority = m_loaderState.evaluator()
                     .intValue(candidate.item, StringConstants::priorityProperty(),
                               candidate.priority);
@@ -250,6 +251,9 @@ Item *ModuleLoader::createAndInitModuleItem(const QString &moduleName, const QSt
         return nullptr;
     }
 
+    // Not technically needed, but we want to keep the invariant in item.cpp.
+    ModuleItemLocker locker(*module);
+
     module->setProperty(StringConstants::nameProperty(), VariantValue::create(moduleName));
     if (moduleName == StringConstants::qbsModule()) {
         module->setProperty(QStringLiteral("hostPlatform"),
@@ -302,6 +306,8 @@ Item *ModuleLoader::createAndInitModuleItem(const QString &moduleName, const QSt
 
 bool ModuleLoader::evaluateModuleCondition(Item *module, const QString &fullModuleName)
 {
+    ModuleItemLocker locker(*module);
+
     // Temporarily make the product's qbs module instance available, so the condition
     // can use qbs.targetOS etc.
     class TempQbsModuleProvider {

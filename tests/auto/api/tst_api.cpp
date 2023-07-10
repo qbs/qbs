@@ -928,14 +928,7 @@ void TestApi::dependencyOnMultiplexedType()
         } else {
             QVERIFY(p.name() == "p2");
             ++p2Count;
-
-            // FIXME: This is an odd effect of our current algorithm: We collect the products
-            // matching the requested type and add Depends items with their names ("p1" in
-            // this case). Later, the algorithm checking for compatibility regarding the
-            // multiplexing axes picks the aggregate. However, the aggregate does not have
-            // a matching type... It's not entirely clear what the real expected
-            // result should be here.
-            QCOMPARE(p.dependencies().size(), 2);
+            QVERIFY(p.dependencies().contains("dep"));
         }
     }
     QCOMPARE(depCount, 1);

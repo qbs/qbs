@@ -148,12 +148,11 @@ public:
     std::list<DependenciesResolvingState> stateStack;
 
 private:
-    bool hasDependencyToUnresolvedProduct() const override;
+    std::pair<ProductDependency, ProductContext *> pendingDependency() const override;
 
-    void setSearchPathsForProduct();
+    void setSearchPathsForProduct(LoaderState &loaderState);
 
     ProductContext &m_product;
-    LoaderState &m_loaderState;
 };
 
 class DependenciesResolver
@@ -192,7 +191,7 @@ private:
 
     LoaderState &m_loaderState;
     ProductContext &m_product;
-    const Deferral m_deferral;
+    Deferral m_deferral;
 };
 
 static bool haveSameSubProject(const ProductContext &p1, const ProductContext &p2);
@@ -256,6 +255,8 @@ void DependenciesResolver::resolve()
 
             state.pendingResolvedDependencies = multiplexDependency(*state.currentDependsItem);
             state.currentDependsItem.reset();
+            m_deferral = Deferral::Allowed; // We made progress.
+
             continue;
         }
 
@@ -336,6 +337,7 @@ HandleDependency DependenciesResolver::handleResolvedDependencies()
                     state.pendingResolvedDependencies.pop();
                     continue;
                 }
+                m_deferral = Deferral::Allowed; // We made progress.
                 break;
             }
 
@@ -594,6 +596,7 @@ Item *DependenciesResolver::findMatchingModule(
                                                    dependency.name, dependency.fallbackMode)) {
         QBS_CHECK(moduleItem->type() == ItemType::Module);
         Item * const proto = moduleItem;
+        ModuleItemLocker locker(*moduleItem);
         moduleItem = moduleItem->clone(m_loaderState.itemPool());
         moduleItem->setPrototype(proto); // For parameter declarations.
         return moduleItem;
@@ -1105,9 +1108,9 @@ QVariantMap safeToVariant(JSContext *ctx, const JSValue &v)
 }
 
 DependenciesContextImpl::DependenciesContextImpl(ProductContext &product, LoaderState &loaderState)
-    : m_product(product), m_loaderState(loaderState)
+    : m_product(product)
 {
-    setSearchPathsForProduct();
+    setSearchPathsForProduct(loaderState);
 
     // Initialize the state with the direct Depends items of the product item.
     DependenciesResolvingState newState{product.item,};
@@ -1120,25 +1123,44 @@ DependenciesContextImpl::DependenciesContextImpl(ProductContext &product, Loader
         FullyResolvedDependsItem::makeBaseDependency());
 }
 
-bool DependenciesContextImpl::hasDependencyToUnresolvedProduct() const
+std::pair<ProductDependency, ProductContext *> DependenciesContextImpl::pendingDependency() const
 {
     QBS_CHECK(!stateStack.empty());
-    if (stateStack.front().pendingResolvedDependencies.empty())
-        return false;
-    const ProductContext * const dep
-        = stateStack.front().pendingResolvedDependencies.front().product;
-    return dep && m_loaderState.topLevelProject().isProductQueuedForHandling(*dep);
+    if (stateStack.front().currentDependsItem
+        && !stateStack.front().currentDependsItem->productTypes.empty()) {
+        qCDebug(lcLoaderScheduling) << "product" << m_product.displayName()
+                                    << "to be delayed because of bulk dependency";
+        return {ProductDependency::Bulk, nullptr};
+    }
+    if (!stateStack.front().pendingResolvedDependencies.empty()) {
+        if (ProductContext * const dep = stateStack.front().pendingResolvedDependencies
+                .front().product) {
+            if (m_product.project->topLevelProject->isProductQueuedForHandling(*dep)) {
+                qCDebug(lcLoaderScheduling) << "product" << m_product.displayName()
+                                            << "to be delayed because of dependency "
+                                               "to unfinished product" << dep->displayName();
+                return {ProductDependency::Single, dep};
+            } else {
+                qCDebug(lcLoaderScheduling) << "product" << m_product.displayName()
+                                            << "to be re-scheduled, as dependency "
+                                            << dep->displayName()
+                                            << "appears to have finished in the meantime";
+                return {ProductDependency::None, dep};
+            }
+        }
+    }
+    return {ProductDependency::None, nullptr};
 }
 
-void DependenciesContextImpl::setSearchPathsForProduct()
+void DependenciesContextImpl::setSearchPathsForProduct(LoaderState &loaderState)
 {
     QBS_CHECK(m_product.searchPaths.isEmpty());
 
-    m_product.searchPaths = m_loaderState.itemReader().readExtraSearchPaths(m_product.item);
-    Settings settings(m_loaderState.parameters().settingsDirectory());
+    m_product.searchPaths = loaderState.itemReader().readExtraSearchPaths(m_product.item);
+    Settings settings(loaderState.parameters().settingsDirectory());
     const QStringList prefsSearchPaths = Preferences(&settings, m_product.profileModuleProperties)
             .searchPaths();
-    const QStringList &currentSearchPaths = m_loaderState.itemReader().allSearchPaths();
+    const QStringList &currentSearchPaths = loaderState.itemReader().allSearchPaths();
     for (const QString &p : prefsSearchPaths) {
         if (!currentSearchPaths.contains(p) && FileInfo(p).exists())
             m_product.searchPaths << p;

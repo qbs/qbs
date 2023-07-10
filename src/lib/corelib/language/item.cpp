@@ -67,6 +67,8 @@ Item *Item::create(ItemPool *pool, ItemType type)
 
 Item *Item::clone(ItemPool &pool) const
 {
+    assertModuleLocked();
+
     Item *dup = create(&pool, type());
     dup->m_id = m_id;
     dup->m_location = m_location;
@@ -117,6 +119,7 @@ QString Item::typeName() const
 
 bool Item::hasProperty(const QString &name) const
 {
+    assertModuleLocked();
     const Item *item = this;
     do {
         if (item->m_properties.contains(name))
@@ -128,11 +131,13 @@ bool Item::hasProperty(const QString &name) const
 
 bool Item::hasOwnProperty(const QString &name) const
 {
+    assertModuleLocked();
     return m_properties.contains(name);
 }
 
 ValuePtr Item::property(const QString &name) const
 {
+    assertModuleLocked();
     ValuePtr value;
     const Item *item = this;
     do {
@@ -145,6 +150,7 @@ ValuePtr Item::property(const QString &name) const
 
 ValuePtr Item::ownProperty(const QString &name) const
 {
+    assertModuleLocked();
     return m_properties.value(name);
 }
 
@@ -200,6 +206,28 @@ bool Item::isOfTypeOrhasParentOfType(ItemType type) const
     return false;
 }
 
+void Item::addObserver(ItemObserver *observer) const
+{
+    // Cached Module properties never change.
+    if (m_type == ItemType::Module)
+        return;
+
+    std::lock_guard lock(m_observersMutex);
+    if (!qEnvironmentVariableIsEmpty("QBS_SANITY_CHECKS"))
+        QBS_CHECK(!contains(m_observers, observer));
+    m_observers << observer;
+}
+
+void Item::removeObserver(ItemObserver *observer) const
+{
+    if (m_type == ItemType::Module)
+        return;
+    std::lock_guard lock(m_observersMutex);
+    const auto it = std::find(m_observers.begin(), m_observers.end(), observer);
+    QBS_CHECK(it != m_observers.end());
+    m_observers.erase(it);
+}
+
 PropertyDeclaration Item::propertyDeclaration(const QString &name, bool allowExpired) const
 {
     auto it = m_propertyDeclarations.find(name);
@@ -234,17 +262,13 @@ void Item::addModule(const Item::Module &module)
     m_modules.push_back(module);
 }
 
-void Item::setObserver(ItemObserver *observer) const
-{
-    QBS_ASSERT(!observer || !m_observer, return);   // warn if accidentally overwritten
-    m_observer = observer;
-}
-
 void Item::setProperty(const QString &name, const ValuePtr &value)
 {
+    assertModuleLocked();
     m_properties.insert(name, value);
-    if (m_observer)
-        m_observer->onItemPropertyChanged(this);
+    std::lock_guard lock(m_observersMutex);
+    for (ItemObserver * const observer : m_observers)
+        observer->onItemPropertyChanged(this);
 }
 
 void Item::dump() const
@@ -261,6 +285,7 @@ bool Item::isPresentModule() const
 
 void Item::setupForBuiltinType(DeprecationWarningMode deprecationMode, Logger &logger)
 {
+    assertModuleLocked();
     const BuiltinDeclarations &builtins = BuiltinDeclarations::instance();
     const auto properties = builtins.declarationsForType(type()).properties();
     for (const PropertyDeclaration &pd : properties) {
@@ -342,8 +367,39 @@ void Item::dump(int indentation) const
     }
 }
 
+void Item::lockModule() const
+{
+    QBS_CHECK(m_type == ItemType::Module);
+    m_moduleMutex.lock();
+#ifndef NDEBUG
+    QBS_CHECK(!m_moduleLocked);
+    m_moduleLocked = true;
+#endif
+}
+
+void Item::unlockModule() const
+{
+    QBS_CHECK(m_type == ItemType::Module);
+#ifndef NDEBUG
+    QBS_CHECK(m_moduleLocked);
+    m_moduleLocked = false;
+#endif
+    m_moduleMutex.unlock();
+}
+
+// This safeguard verifies that all contexts which access Module properties have really
+// acquired the lock via ModuleItemLocker, as they must.
+void Item::assertModuleLocked() const
+{
+#ifndef NDEBUG
+    if (m_type == ItemType::Module)
+        QBS_CHECK(m_moduleLocked);
+#endif
+}
+
 void Item::removeProperty(const QString &name)
 {
+    assertModuleLocked();
     m_properties.remove(name);
 }
 

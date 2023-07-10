@@ -214,6 +214,14 @@ void ItemReader::handleAllPropertyOptionsItems(Item *item)
 Item *ItemReader::setupItemFromFile(const QString &filePath, const CodeLocation &referencingLocation)
 {
     Item *item = readFile(filePath, referencingLocation);
+
+    // This is technically not needed, because files are only set up once and then served
+    // from a cache. But it simplifies the checks in item.cpp if we require the locking invariant
+    // to always hold.
+    std::unique_ptr<ModuleItemLocker> locker;
+    if (item->type() == ItemType::Module)
+        locker = std::make_unique<ModuleItemLocker>(*item);
+
     handleAllPropertyOptionsItems(item);
     return item;
 }

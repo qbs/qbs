@@ -169,6 +169,7 @@ ModuleProviderLoader::findOrCreateProviderInfo(
         const QVariantMap &qbsModule)
 {
     const QVariantMap config = product.providerConfig->value(name.toString()).toMap();
+    std::lock_guard lock(m_loaderState.topLevelProject().moduleProvidersCacheLock());
     ModuleProvidersCacheKey cacheKey{name.toString(), {}, config, qbsModule, int(lookupType)};
     // TODO: get rid of non-eager providers and eliminate following if-logic
     // first, try to find eager provider (stored with an empty module name)
