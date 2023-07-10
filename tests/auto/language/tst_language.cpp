@@ -1041,6 +1041,7 @@ void TestLanguage::exports()
         product = products.value("B");
         QVERIFY(!!product);
         QVERIFY(product->dependencies.empty());
+        QCOMPARE(product->exportedModule.productDependencies, std::vector<QString>{"C"});
         product = products.value("C");
         QVERIFY(!!product);
         QVERIFY(product->dependencies.empty());

@@ -272,6 +272,20 @@ void ProductsHandler::Private::setupProductForResolving(ProductContext &product,
     if (product.delayedError.hasError())
         return;
 
+    if (product.shadowProduct) {
+        try {
+            setupProductForResolving(*product.shadowProduct, deferral);
+            QBS_CHECK(product.shadowProduct->dependenciesContext);
+            if (!product.shadowProduct->dependenciesContext->dependenciesResolved)
+                return;
+            topLevelProject.addProbes(product.shadowProduct->probes);
+        } catch (const ErrorInfo &e) {
+            if (e.isCancelException())
+                throw CancelException();
+            product.shadowProduct->handleError(e);
+        }
+    }
+
     loaderState.dependenciesResolver().resolveDependencies(product, deferral);
     QBS_CHECK(product.dependenciesContext);
     if (!product.dependenciesContext->dependenciesResolved)
@@ -321,18 +335,6 @@ void ProductsHandler::Private::setupProductForResolving(ProductContext &product,
     }
 
     checkPropertyDeclarations(product);
-
-    if (!product.shadowProduct)
-        return;
-    cacheEnabler.reset();
-    try {
-        setupProductForResolving(*product.shadowProduct, Deferral::NotAllowed);
-        topLevelProject.addProbes(product.shadowProduct->probes);
-    } catch (const ErrorInfo &e) {
-        if (e.isCancelException())
-            throw CancelException();
-        product.shadowProduct->handleError(e);
-    }
 }
 
 void ProductsHandler::Private::resolveProbes(ProductContext &product)
