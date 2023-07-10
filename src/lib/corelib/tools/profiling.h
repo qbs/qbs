@@ -52,7 +52,7 @@ namespace qbs {
 namespace Internal {
 class Logger;
 
-QString elapsedTimeString(qint64 elapsedTimeInMs);
+QString elapsedTimeString(qint64 elapsedTimeInNs);
 
 class TimedActivityLogger
 {

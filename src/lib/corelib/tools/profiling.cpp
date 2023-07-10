@@ -72,7 +72,7 @@ void TimedActivityLogger::finishActivity()
 {
     if (!d)
         return;
-    const QString timeString = elapsedTimeString(d->timer.elapsed());
+    const QString timeString = elapsedTimeString(d->timer.nsecsElapsed());
     d->logger.qbsLog(LoggerInfo, true)
             << Tr::tr("Activity '%2' took %3.").arg(d->activity, timeString);
     d.reset();
@@ -98,13 +98,13 @@ void AccumulatingTimer::stop()
 {
     if (!m_timer.isValid())
         return;
-    *m_elapsedTime += m_timer.elapsed();
+    *m_elapsedTime += m_timer.nsecsElapsed();
     m_timer.invalidate();
 }
 
-QString elapsedTimeString(qint64 elapsedTimeInMs)
+QString elapsedTimeString(qint64 elapsedTimeInNs)
 {
-    qint64 ms = elapsedTimeInMs;
+    qint64 ms = elapsedTimeInNs / (1000 * 1000);
     qint64 s = ms/1000;
     ms -= s*1000;
     qint64 m = s/60;
