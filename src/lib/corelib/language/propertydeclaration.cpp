@@ -46,6 +46,7 @@
 #include "value.h"
 
 #include <api/languageinfo.h>
+#include <loader/loaderutils.h>
 #include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/setupprojectparameters.h>
@@ -104,7 +105,6 @@ public:
     QStringList functionArgumentNames;
     DeprecationInfo deprecationInfo;
 };
-
 
 PropertyDeclaration::PropertyDeclaration()
     : d(new PropertyDeclarationData)
@@ -312,12 +312,7 @@ namespace {
 class PropertyDeclarationCheck : public ValueHandler
 {
 public:
-    PropertyDeclarationCheck(const Set<Item *> &disabledItems,
-                             const SetupProjectParameters &params, Logger &logger)
-        : m_disabledItems(disabledItems)
-        , m_params(params)
-        , m_logger(logger)
-    { }
+    PropertyDeclarationCheck(LoaderState &loaderState) : m_loaderState(loaderState) {}
     void operator()(Item *item)
     {
         m_checkingProject = item->type() == ItemType::Project;
@@ -330,7 +325,7 @@ private:
         if (!value->createdByPropertiesBlock()) {
             const ErrorInfo error(Tr::tr("Property '%1' is not declared.")
                                       .arg(m_currentName), value->location());
-            handlePropertyError(error, m_params, m_logger);
+            handlePropertyError(error, m_loaderState.parameters(), m_loaderState.logger());
         }
     }
     void handle(ItemValue *value) override
@@ -369,7 +364,7 @@ private:
             const ErrorInfo error(Tr::tr("Item '%1' is not declared. "
                                          "Did you forget to add a Depends item?")
                                       .arg(m_currentModuleName.toString()), location);
-            handlePropertyError(error, m_params, m_logger);
+            handlePropertyError(error, m_loaderState.parameters(), m_loaderState.logger());
             return false;
         }
 
@@ -381,14 +376,15 @@ private:
             return;
         if (!m_handledItems.insert(item).second)
             return;
-        if (m_disabledItems.contains(item)
-            || item->type() == ItemType::Module
+        if (item->type() == ItemType::Module
             || item->type() == ItemType::Export
             || (item->type() == ItemType::ModuleInstance && !item->isPresentModule())
             || item->type() == ItemType::Properties
 
             // The Properties child of a SubProject item is not a regular item.
-            || item->type() == ItemType::PropertiesInSubProject) {
+            || item->type() == ItemType::PropertiesInSubProject
+
+            || m_loaderState.topLevelProject().isDisabledItem(item)) {
             return;
         }
 
@@ -401,9 +397,12 @@ private:
             const PropertyDeclaration decl = item->propertyDeclaration(it.key());
             if (decl.isValid()) {
                 const ErrorInfo deprecationError = decl.checkForDeprecation(
-                    m_params.deprecationWarningMode(), it.value()->location(), m_logger);
-                if (deprecationError.hasError())
-                    handlePropertyError(deprecationError, m_params, m_logger);
+                    m_loaderState.parameters().deprecationWarningMode(), it.value()->location(),
+                            m_loaderState.logger());
+                if (deprecationError.hasError()) {
+                    handlePropertyError(deprecationError, m_loaderState.parameters(),
+                                        m_loaderState.logger());
+                }
                 continue;
             }
             m_currentName = it.key();
@@ -435,21 +434,18 @@ private:
 
     Item *parentItem() const { return m_parentItems.back(); }
 
-    const Set<Item *> &m_disabledItems;
+    LoaderState &m_loaderState;
     Set<Item *> m_handledItems;
     std::vector<Item *> m_parentItems;
     QualifiedId m_currentModuleName;
     QString m_currentName;
-    const SetupProjectParameters &m_params;
-    Logger &m_logger;
     bool m_checkingProject = false;
 };
 } // namespace
 
-void checkPropertyDeclarations(Item *topLevelItem, const Set<Item *> &disabledItems,
-                               const SetupProjectParameters &params, Logger &logger)
+void checkPropertyDeclarations(Item *topLevelItem, LoaderState &loaderState)
 {
-    PropertyDeclarationCheck(disabledItems, params, logger)(topLevelItem);
+    (PropertyDeclarationCheck(loaderState))(topLevelItem);
 }
 
 } // namespace Internal

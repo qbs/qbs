@@ -460,9 +460,7 @@ void ProductsHandler::Private::checkPropertyDeclarations(ProductContext &product
 {
     AccumulatingTimer timer(loaderState.parameters().logElapsedTime()
                             ? &product.timingData.propertyChecking : nullptr);
-    qbs::Internal::checkPropertyDeclarations(
-                product.item, loaderState.topLevelProject().disabledItems(),
-                loaderState.parameters(), loaderState.logger());
+    qbs::Internal::checkPropertyDeclarations(product.item, loaderState);
 }
 
 void ProductsHandler::Private::resolveProductFully(ProductContext &productContext)

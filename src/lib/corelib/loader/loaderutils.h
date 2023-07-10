@@ -172,7 +172,6 @@ public:
     bool isProductQueuedForHandling(const ProductContext &product) const;
 
     void addDisabledItem(Item *item);
-    const Set<Item *> &disabledItems() const { return m_disabledItems; }
     bool isDisabledItem(Item *item) const;
 
     void setProgressObserver(ProgressObserver *observer);

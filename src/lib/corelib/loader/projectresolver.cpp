@@ -511,8 +511,7 @@ void ProjectResolver::Private::buildProjectTree()
 
     AccumulatingTimer timer(state.parameters().logElapsedTime()
                             ? &state.topLevelProject().timingData().propertyChecking : nullptr);
-    checkPropertyDeclarations(rootProjectItem, state.topLevelProject().disabledItems(),
-                              state.parameters(), state.logger());
+    checkPropertyDeclarations(rootProjectItem, state);
 }
 
 void ProjectResolver::Private::printProfilingInfo()
