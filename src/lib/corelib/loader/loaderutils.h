@@ -134,10 +134,6 @@ public:
     QVariantMap defaultParameters; // In Export item.
     QStringList searchPaths;
     ResolvedProductPtr product;
-    using ArtifactPropertiesInfo = std::pair<ArtifactPropertiesPtr, std::vector<CodeLocation>>;
-    QHash<QStringList, ArtifactPropertiesInfo> artifactPropertiesPerFilter;
-    FileLocations sourceArtifactLocations;
-    GroupConstPtr currentGroup;
     TimingData timingData;
     std::unique_ptr<DependenciesContext> dependenciesContext;
 

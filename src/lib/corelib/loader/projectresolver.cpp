@@ -45,7 +45,7 @@
 #include "localprofiles.h"
 #include "probesresolver.h"
 #include "productscollector.h"
-#include "productshandler.h"
+#include "productsresolver.h"
 
 #include <jsextensions/jsextensions.h>
 #include <jsextensions/moduleproperties.h>
@@ -285,7 +285,7 @@ TopLevelProjectPtr ProjectResolver::Private::resolveTopLevelProject()
         projectContext->project = project;
         resolveProject(projectContext);
     }
-    ProductsHandler(state).run();
+    resolveProducts(state);
     ErrorInfo accumulatedErrors;
     for (const ErrorInfo &e : state.topLevelProject().queuedErrors())
         appendError(accumulatedErrors, e);

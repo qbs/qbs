@@ -266,10 +266,12 @@ set(LOADER_SOURCES
     probesresolver.h
     productitemmultiplexer.cpp
     productitemmultiplexer.h
+    productresolver.cpp
+    productresolver.h
     productscollector.cpp
     productscollector.h
-    productshandler.cpp
-    productshandler.h
+    productsresolver.cpp
+    productsresolver.h
     projectresolver.cpp
     projectresolver.h
     )

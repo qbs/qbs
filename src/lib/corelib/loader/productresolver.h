@@ -39,28 +39,17 @@
 
 #pragma once
 
-#include <tools/pimpl.h>
-
 namespace qbs::Internal {
-class Item;
+enum class Deferral;
 class LoaderState;
-class ProjectContext;
+class ProductContext;
 
 // Responsibilities:
 //   - Resolving dependencies to modules and other products (via DependenciesResolver).
 //   - Module validation.
 //   - Running probes (via ProbesResolver) in Product and Module items.
-class ProductsHandler
-{
-public:
-    ProductsHandler(LoaderState &loaderState);
-    ~ProductsHandler();
-
-    void run();
-
-private:
-    class Private;
-    Pimpl<Private> d;
-};
+//   - Evaluating product and module properties.
+//   - Handling all Product child items, such as FileTaggers, Rules and so on.
+void resolveProduct(ProductContext &product, Deferral deferral, LoaderState &loaderState);
 
 } // namespace qbs::Internal
