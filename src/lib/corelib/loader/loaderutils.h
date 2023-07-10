@@ -194,8 +194,6 @@ public:
 
     void addProduct(ProductContext &product);
     void addProductByType(ProductContext &product, const FileTags &tags);
-    void forEachProduct(const std::function<void(ProductContext &)> &handler) const;
-    ProductContext *productForItem(Item *item) const;
     ProductContext *productWithNameAndConstraint(
             const QString &name, const std::function<bool(ProductContext &)> &constraint);
     std::vector<ProductContext *> productsWithNameAndConstraint(
@@ -221,7 +219,6 @@ private:
     std::vector<ProjectContext *> m_projects;
     Set<const ProductContext *> m_productsToHandle;
     std::multimap<QString, ProductContext *> m_productsByName;
-    std::unordered_map<Item *, ProductContext *> m_productsByItem;
     std::unordered_map<QStringView, QString> m_sourceCode;
     std::unordered_map<QString, QVariantMap> m_multiplexConfigsById;
     QHash<CodeLocation, ScriptFunctionPtr> m_scriptFunctionMap;

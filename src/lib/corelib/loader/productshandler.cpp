@@ -369,8 +369,7 @@ void ProductsHandler::Private::runModuleProbes(ProductContext &product, const It
 {
     if (!module.item->isPresentModule())
         return;
-    if (module.productInfo && loaderState.topLevelProject().isDisabledItem(
-                module.productInfo->item)) {
+    if (module.product && loaderState.topLevelProject().isDisabledItem(module.product->item)) {
         createNonPresentModule(*module.item->pool(), module.name.toString(),
                                QLatin1String("module's exporting product is disabled"),
                                module.item);
@@ -571,12 +570,9 @@ void ProductsHandler::Private::buildProductDependencyList(ProductContext &produc
     if (!product)
         return;
     for (const Item::Module &module : productContext.item->modules()) {
-        if (!module.productInfo)
+        if (!module.product)
             continue;
-
-        // TODO: module.productInfo could just be the ProductContext nowadays, no?
-        const ResolvedProductPtr &dep = loaderState.topLevelProject()
-                                            .productForItem(module.productInfo->item)->product;
+        const ResolvedProductPtr &dep = module.product->product;
         QBS_CHECK(dep);
         QBS_CHECK(dep != product);
         product->dependencies << dep;
@@ -604,11 +600,8 @@ void ProductsHandler::Private::collectExportedProductDependencies(ProductContext
         if (m.name.toString() != exportingProduct->name)
             continue;
         for (const Item::Module &dep : m.item->modules()) {
-            if (dep.productInfo) {
-                directDeps.emplace_back(loaderState.topLevelProject()
-                                            .productForItem(dep.productInfo->item)->product,
-                                        m.parameters);
-            }
+            if (dep.product)
+                directDeps.emplace_back(dep.product->product, m.parameters);
         }
     }
     for (const auto &dep : directDeps) {
@@ -1215,7 +1208,7 @@ void ProductsHandler::Private::collectPropertiesForModuleInExportItem(
     if (!module.item->isPresentModule())
         return;
     ExportedModule &exportedModule = productContext.product->exportedModule;
-    if (module.productInfo || module.name.first() == StringConstants::qbsModule())
+    if (module.product || module.name.first() == StringConstants::qbsModule())
         return;
     const auto checkName = [module](const ExportedModuleDependency &d) {
         return module.name.toString() == d.name;
@@ -1463,10 +1456,8 @@ std::unique_ptr<ExportedItem> ProductsHandler::Private::resolveExportChild(
 void ProductsHandler::Private::resolveModules(const Item *item, ProductContext &productContext)
 {
     JobLimits jobLimits;
-    for (const Item::Module &m : item->modules()) {
-        resolveModule(m.name, m.item, m.productInfo.has_value(), m.parameters, jobLimits,
-                      productContext);
-    }
+    for (const Item::Module &m : item->modules())
+        resolveModule(m.name, m.item, m.product, m.parameters, jobLimits, productContext);
     for (int i = 0; i < jobLimits.count(); ++i) {
         const JobLimit &moduleJobLimit = jobLimits.jobLimitAt(i);
         if (productContext.product->jobLimits.getLimit(moduleJobLimit.pool()) == -1)

@@ -40,13 +40,13 @@
 #include "item.h"
 
 #include "builtindeclarations.h"
-#include "deprecationinfo.h"
 #include "filecontext.h"
 #include "itemobserver.h"
 #include "itempool.h"
 #include "value.h"
 
 #include <api/languageinfo.h>
+#include <loader/loaderutils.h>
 #include <logging/categories.h>
 #include <logging/logger.h>
 #include <logging/translator.h>
@@ -230,12 +230,12 @@ void Item::addModule(const Item::Module &module)
         QBS_CHECK(none_of(m_modules, [&](const Module &m) {
             if (m.name != module.name)
                 return false;
-            if (!!module.productInfo != !!m.productInfo)
+            if (!!module.product != !!m.product)
                 return true;
-            if (!module.productInfo)
+            if (!module.product)
                 return true;
-            if (module.productInfo->multiplexId == m.productInfo->multiplexId
-                    && module.productInfo->profile == m.productInfo->profile) {
+            if (module.product->multiplexConfigurationId == m.product->multiplexConfigurationId
+                    && module.product->profileName == m.product->profileName) {
                 return true;
             }
             return false;

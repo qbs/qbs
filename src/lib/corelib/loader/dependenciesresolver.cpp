@@ -556,12 +556,12 @@ std::pair<Item::Module *, Item *> DependenciesResolverImpl::findExistingModule(
     for (Item::Module &m : item->modules()) {
         if (m.name != dependency.name)
             continue;
-        if (!m.productInfo) {
+        if (!m.product) {
             QBS_CHECK(!dependency.product);
             return {&m, m.item};
         }
-        if ((dependency.profile.isEmpty() || (m.productInfo->profile == dependency.profile))
-            && m.productInfo->multiplexId == dependency.multiplexId) {
+        if ((dependency.profile.isEmpty() || (m.product->profileName == dependency.profile))
+            && m.product->multiplexConfigurationId == dependency.multiplexId) {
             return {&m, m.item};
         }
 
@@ -1015,10 +1015,7 @@ Item::Module DependenciesResolverImpl::createModule(
 {
     Item::Module m;
     m.item = item;
-    if (productDep) {
-        m.productInfo.emplace(productDep->item, productDep->multiplexConfigurationId,
-                              productDep->profileName);
-    }
+    m.product = productDep;
     m.name = dependency.name;
     m.required = dependency.requiredLocally;
     m.versionRange = dependency.versionRange;

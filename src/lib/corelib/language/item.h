@@ -53,7 +53,6 @@
 #include <QtCore/qlist.h>
 #include <QtCore/qmap.h>
 
-#include <optional>
 #include <vector>
 
 namespace qbs {
@@ -64,6 +63,7 @@ namespace Internal {
 class ItemObserver;
 class ItemPool;
 class Logger;
+class ProductContext;
 
 class QBS_AUTOTEST_EXPORT Item : public QbsQmlJS::Managed
 {
@@ -78,14 +78,7 @@ public:
     {
         QualifiedId name;
         Item *item = nullptr;
-        struct ProductInfo {
-            ProductInfo(Item *i, const QString &m, const QString &p)
-                : item(i), multiplexId(m), profile(p) {}
-            Item *item = nullptr;
-            QString multiplexId;
-            QString profile;
-        };
-        std::optional<ProductInfo> productInfo; // Set if and only if the dep is a product.
+        ProductContext *product = nullptr; // Set if and only if the dep is a product.
 
         // All items that declared an explicit dependency on this module. Can contain any
         // number of module instances and at most one product.

@@ -200,7 +200,7 @@ void TopLevelProjectContext::setCanceled()
 
 int TopLevelProjectContext::productCount() const
 {
-    return m_productsByItem.size();
+    return m_productsByName.size();
 }
 
 void TopLevelProjectContext::removeProductToHandle(const ProductContext &product)
@@ -256,7 +256,6 @@ void TopLevelProjectContext::addProbes(const std::vector<ProbeConstPtr> &probes)
 
 void TopLevelProjectContext::addProduct(ProductContext &product)
 {
-    m_productsByItem.insert({product.item, &product});
     m_productsByName.insert({product.name, &product});
 }
 
@@ -264,20 +263,6 @@ void TopLevelProjectContext::addProductByType(ProductContext &product, const Fil
 {
     for (const FileTag &tag : tags)
         m_productsByType.insert({tag, &product});
-}
-
-void TopLevelProjectContext::forEachProduct(
-    const std::function<void (ProductContext &)> &handler) const
-{
-    for (const auto &e : m_productsByItem)
-        handler(*e.second);
-}
-
-ProductContext *TopLevelProjectContext::productForItem(Item *item) const
-{
-    if (const auto it = m_productsByItem.find(item); it != m_productsByItem.cend())
-        return it->second;
-    return nullptr;
 }
 
 ProductContext *TopLevelProjectContext::productWithNameAndConstraint(
