@@ -136,7 +136,6 @@ public:
     void resolveScanner(Item *item, ProductContext &productContext, ModuleContext &moduleContext);
 
     LoaderState &loaderState;
-    GroupsHandler groupsHandler{loaderState};
 };
 
 ProductsHandler::ProductsHandler(LoaderState &loaderState) : d(makePimpl<Private>(loaderState)) {}
@@ -311,7 +310,7 @@ void ProductsHandler::Private::setupProductForResolving(ProductContext &product,
     loaderState.dependenciesResolver().checkDependencyParameterDeclarations(
                 product.item, product.name);
 
-    groupsHandler.setupGroups(product);
+    setupGroups(product, loaderState);
 
     // Collect the full list of fileTags, including the values contributed by modules.
     if (!product.delayedError.hasError() && enabled

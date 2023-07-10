@@ -51,41 +51,47 @@
 #include <tools/stringconstants.h>
 
 namespace qbs::Internal {
-class GroupsHandler::Private
+class GroupsHandler
 {
 public:
-    Private(LoaderState &loaderState) : loaderState(loaderState) {}
+    GroupsHandler(ProductContext &product, LoaderState &loaderState)
+        : m_product(product), m_loaderState(loaderState) {}
 
+    void run();
+
+private:
     void gatherAssignedProperties(ItemValue *iv, const QualifiedId &prefix,
                                   QualifiedIdSet &properties);
     void markModuleTargetGroups(Item *group, const Item::Module &module);
-    void moveGroupsFromModuleToProduct(Item *product, Item *productScope,
-                                       const Item::Module &module);
-    void moveGroupsFromModulesToProduct(Item *product, Item *productScope);
-    void propagateModulesFromParent(ProductContext &product, Item *group);
-    void handleGroup(ProductContext &product, Item *group);
+    void moveGroupsFromModuleToProduct(const Item::Module &module);
+    void moveGroupsFromModulesToProduct();
+    void propagateModulesFromParent(Item *group);
+    void handleGroup(Item *group);
     void adjustScopesInGroupModuleInstances(Item *groupItem, const Item::Module &module);
     QualifiedIdSet gatherModulePropertiesSetInGroup(const Item *group);
 
-    LoaderState &loaderState;
+    ProductContext &m_product;
+    LoaderState &m_loaderState;
 };
 
-GroupsHandler::GroupsHandler(LoaderState &loaderState) : d(makePimpl<Private>(loaderState)) {}
-GroupsHandler::~GroupsHandler() = default;
-
-void GroupsHandler::setupGroups(ProductContext &product)
+void setupGroups(ProductContext &product, LoaderState &loaderState)
 {
-    AccumulatingTimer timer(d->loaderState.parameters().logElapsedTime()
-                            ? &product.timingData.groupsSetup : nullptr);
+    GroupsHandler(product, loaderState).run();
+}
 
-    d->moveGroupsFromModulesToProduct(product.item, product.scope);
-    for (Item * const child : product.item->children()) {
+void GroupsHandler::run()
+{
+    AccumulatingTimer timer(m_loaderState.parameters().logElapsedTime()
+                            ? &m_product.timingData.groupsSetup : nullptr);
+
+    moveGroupsFromModulesToProduct();
+    for (Item * const child : m_product.item->children()) {
         if (child->type() == ItemType::Group)
-            d->handleGroup(product, child);
+            handleGroup(child);
     }
 }
 
-void GroupsHandler::Private::gatherAssignedProperties(ItemValue *iv, const QualifiedId &prefix,
+void GroupsHandler::gatherAssignedProperties(ItemValue *iv, const QualifiedId &prefix,
                                                       QualifiedIdSet &properties)
 {
     const Item::PropertyMap &props = iv->item()->properties();
@@ -106,10 +112,10 @@ void GroupsHandler::Private::gatherAssignedProperties(ItemValue *iv, const Quali
     }
 }
 
-void GroupsHandler::Private::markModuleTargetGroups(Item *group, const Item::Module &module)
+void GroupsHandler::markModuleTargetGroups(Item *group, const Item::Module &module)
 {
     QBS_CHECK(group->type() == ItemType::Group);
-    if (loaderState.evaluator().boolValue(group, StringConstants::filesAreTargetsProperty())) {
+    if (m_loaderState.evaluator().boolValue(group, StringConstants::filesAreTargetsProperty())) {
         group->setProperty(StringConstants::modulePropertyInternal(),
                            VariantValue::create(module.name.toString()));
     }
@@ -117,8 +123,7 @@ void GroupsHandler::Private::markModuleTargetGroups(Item *group, const Item::Mod
         markModuleTargetGroups(child, module);
 }
 
-void GroupsHandler::Private::moveGroupsFromModuleToProduct(Item *product, Item *productScope,
-                                                           const Item::Module &module)
+void GroupsHandler::moveGroupsFromModuleToProduct(const Item::Module &module)
 {
     if (!module.item->isPresentModule())
         return;
@@ -128,32 +133,32 @@ void GroupsHandler::Private::moveGroupsFromModuleToProduct(Item *product, Item *
             ++it;
             continue;
         }
-        child->setScope(productScope);
-        setScopeForDescendants(child, productScope);
-        Item::addChild(product, child);
+        child->setScope(m_product.scope);
+        setScopeForDescendants(child, m_product.scope);
+        Item::addChild(m_product.item, child);
         markModuleTargetGroups(child, module);
         it = module.item->children().erase(it);
     }
 }
 
-void GroupsHandler::Private::moveGroupsFromModulesToProduct(Item *product, Item *productScope)
+void GroupsHandler::moveGroupsFromModulesToProduct()
 {
-    for (const Item::Module &module : product->modules())
-        moveGroupsFromModuleToProduct(product, productScope, module);
+    for (const Item::Module &module : m_product.item->modules())
+        moveGroupsFromModuleToProduct(module);
 }
 
 // TODO: I don't completely understand this function, and I suspect we do both too much
 //       and too little here. In particular, I'm not sure why we should even have to do anything
 //       with groups that don't attach properties.
 //       Set aside a day or two at some point to fully grasp all the details and rewrite accordingly.
-void GroupsHandler::Private::propagateModulesFromParent(ProductContext &product, Item *group)
+void GroupsHandler::propagateModulesFromParent(Item *group)
 {
     QBS_CHECK(group->type() == ItemType::Group);
     QHash<QualifiedId, Item *> moduleInstancesForGroup;
 
     // Step 1: "Instantiate" the product's modules for the group.
     for (Item::Module m : group->parent()->modules()) {
-        Item * const targetItem = loaderState.moduleInstantiator()
+        Item * const targetItem = m_loaderState.moduleInstantiator()
                 .retrieveModuleInstanceItem(group, m.name);
         QBS_CHECK(targetItem->type() == ItemType::ModuleInstancePlaceholder);
         targetItem->setPrototype(m.item);
@@ -195,7 +200,7 @@ void GroupsHandler::Private::propagateModulesFromParent(ProductContext &product,
     const QualifiedIdSet &propsSetInGroup = gatherModulePropertiesSetInGroup(group);
     if (propsSetInGroup.empty())
         return;
-    product.modulePropertiesSetInGroups.insert(std::make_pair(group, propsSetInGroup));
+    m_product.modulePropertiesSetInGroups.insert(std::make_pair(group, propsSetInGroup));
 
     // Step 3: Adapt scopes in values. This is potentially necessary if module properties
     //         get assigned on the group level.
@@ -203,17 +208,17 @@ void GroupsHandler::Private::propagateModulesFromParent(ProductContext &product,
         adjustScopesInGroupModuleInstances(group, module);
 }
 
-void GroupsHandler::Private::handleGroup(ProductContext &product, Item *group)
+void GroupsHandler::handleGroup(Item *group)
 {
-    propagateModulesFromParent(product, group);
-    loaderState.topLevelProject().checkItemCondition(group, loaderState.evaluator());
+    propagateModulesFromParent(group);
+    m_loaderState.topLevelProject().checkItemCondition(group, m_loaderState.evaluator());
     for (Item * const child : group->children()) {
         if (child->type() == ItemType::Group)
-            handleGroup(product, child);
+            handleGroup(child);
     }
 }
 
-void GroupsHandler::Private::adjustScopesInGroupModuleInstances(Item *groupItem,
+void GroupsHandler::adjustScopesInGroupModuleInstances(Item *groupItem,
                                                                 const Item::Module &module)
 {
     if (!module.item->isPresentModule())
@@ -274,7 +279,7 @@ void GroupsHandler::Private::adjustScopesInGroupModuleInstances(Item *groupItem,
     }
 }
 
-QualifiedIdSet GroupsHandler::Private::gatherModulePropertiesSetInGroup(const Item *group)
+QualifiedIdSet GroupsHandler::gatherModulePropertiesSetInGroup(const Item *group)
 {
     QualifiedIdSet propsSetInGroup;
     const Item::PropertyMap &props = group->properties();
