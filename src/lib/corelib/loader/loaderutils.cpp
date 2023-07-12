@@ -44,7 +44,6 @@
 #include "localprofiles.h"
 #include "moduleinstantiator.h"
 #include "modulepropertymerger.h"
-#include "probesresolver.h"
 #include "productitemmultiplexer.h"
 
 #include <language/evaluator.h>
@@ -249,9 +248,14 @@ std::optional<QVariantMap> TopLevelProjectContext::profileConfig(const QString &
     return it.value().toMap();
 }
 
-void TopLevelProjectContext::addProbes(const std::vector<ProbeConstPtr> &probes)
+void TopLevelProjectContext::addProjectLevelProbes(const std::vector<ProbeConstPtr> &probes)
 {
-    m_probes << probes;
+    m_probesInfo.projectLevelProbes << probes;
+}
+
+const std::vector<ProbeConstPtr> TopLevelProjectContext::projectLevelProbes() const
+{
+    return m_probesInfo.projectLevelProbes;
 }
 
 void TopLevelProjectContext::addProduct(ProductContext &product)
@@ -338,13 +342,60 @@ QVariantMap TopLevelProjectContext::multiplexConfiguration(const QString &id) co
     return it->second;
 }
 
+void TopLevelProjectContext::setOldProjectProbes(const std::vector<ProbeConstPtr> &oldProbes)
+{
+    for (const ProbeConstPtr& probe : oldProbes)
+        m_probesInfo.oldProjectProbes[probe->globalId()] << probe;
+}
+
+ProbeConstPtr TopLevelProjectContext::findOldProjectProbe(const QString &id,
+                                                          const ProbeFilter &filter) const
+{
+    for (const ProbeConstPtr &oldProbe : m_probesInfo.oldProjectProbes.value(id)) {
+        if (filter(oldProbe))
+            return oldProbe;
+    }
+    return {};
+}
+
+void TopLevelProjectContext::setOldProductProbes(
+        const QHash<QString, std::vector<ProbeConstPtr>> &oldProbes)
+{
+    m_probesInfo.oldProductProbes = oldProbes;
+}
+
+ProbeConstPtr TopLevelProjectContext::findOldProductProbe(const QString &productName,
+                                                          const ProbeFilter &filter) const
+{
+    for (const ProbeConstPtr &oldProbe : m_probesInfo.oldProductProbes.value(productName)) {
+        if (filter(oldProbe))
+            return oldProbe;
+    }
+    return {};
+}
+
+void TopLevelProjectContext::addNewlyResolvedProbe(const ProbeConstPtr &probe)
+{
+    m_probesInfo.currentProbes[probe->location()] << probe;
+}
+
+ProbeConstPtr TopLevelProjectContext::findCurrentProbe(const CodeLocation &location,
+                                                       const ProbeFilter &filter) const
+{
+    for (const ProbeConstPtr &probe : m_probesInfo.currentProbes.value(location)) {
+        if (filter(probe))
+            return probe;
+    }
+    return {};
+}
+
 class LoaderState::Private
 {
 public:
     Private(LoaderState &q, const SetupProjectParameters &parameters, ItemPool &itemPool,
             Evaluator &evaluator, Logger &logger)
         : parameters(parameters), itemPool(itemPool), evaluator(evaluator), logger(logger),
-          itemReader(q), probesResolver(q), propertyMerger(q), localProfiles(q),
+          itemReader(q), propertyMerger(q), localProfiles(q),
           moduleInstantiator(q), dependenciesResolver(q),
           multiplexer(q, [this](Item *productItem) {
             return moduleInstantiator.retrieveQbsItem(productItem);
@@ -358,7 +409,6 @@ public:
 
     TopLevelProjectContext topLevelProject;
     ItemReader itemReader;
-    ProbesResolver probesResolver;
     ModulePropertyMerger propertyMerger;
     LocalProfiles localProfiles;
     ModuleInstantiator moduleInstantiator;
@@ -383,7 +433,6 @@ ModuleInstantiator &LoaderState::moduleInstantiator() { return d->moduleInstanti
 ProductItemMultiplexer &LoaderState::multiplexer() { return d->multiplexer; }
 ItemReader &LoaderState::itemReader() { return d->itemReader; }
 LocalProfiles &LoaderState::localProfiles() { return d->localProfiles; }
-ProbesResolver &LoaderState::probesResolver() { return d->probesResolver; }
 ModulePropertyMerger &LoaderState::propertyMerger() { return d->propertyMerger; }
 TopLevelProjectContext &LoaderState::topLevelProject() { return d->topLevelProject; }
 

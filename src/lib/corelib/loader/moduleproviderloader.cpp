@@ -398,7 +398,7 @@ ModuleProviderLoader::EvaluationResult ModuleProviderLoader::evaluateModuleProvi
             VariantValue::create(moduleName.toString()));
     }
 
-    m_loaderState.probesResolver().resolveProbes(product, providerItem);
+    ProbesResolver(m_loaderState).resolveProbes(product, providerItem);
 
     EvalContextSwitcher contextSwitcher(m_loaderState.evaluator().engine(),
                                         EvalContext::ModuleProvider);

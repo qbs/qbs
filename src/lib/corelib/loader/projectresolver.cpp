@@ -141,7 +141,6 @@ public:
     ItemPool itemPool;
     LoaderState state{setupParams, itemPool, evaluator, logger};
     Item *rootProjectItem = nullptr;
-    FileTime lastResolveTime;
 };
 
 ProjectResolver::ProjectResolver(const SetupProjectParameters &parameters, ScriptEngine *engine,
@@ -160,18 +159,18 @@ void ProjectResolver::setProgressObserver(ProgressObserver *observer)
 
 void ProjectResolver::setOldProjectProbes(const std::vector<ProbeConstPtr> &oldProbes)
 {
-    d->state.probesResolver().setOldProjectProbes(oldProbes);
+    d->state.topLevelProject().setOldProjectProbes(oldProbes);
 }
 
 void ProjectResolver::setOldProductProbes(
     const QHash<QString, std::vector<ProbeConstPtr>> &oldProbes)
 {
-    d->state.probesResolver().setOldProductProbes(oldProbes);
+    d->state.topLevelProject().setOldProductProbes(oldProbes);
 }
 
 void ProjectResolver::setLastResolveTime(const FileTime &time)
 {
-    d->lastResolveTime = time;
+    d->state.topLevelProject().setLastResolveTime(time);
 }
 
 void ProjectResolver::setStoredProfiles(const QVariantMap &profiles)
@@ -298,7 +297,7 @@ TopLevelProjectPtr ProjectResolver::Private::resolveTopLevelProject()
     const QVariantMap &profiles = state.localProfiles().profiles();
     for (auto it = profiles.begin(); it != profiles.end(); ++it)
         project->profileConfigs.remove(it.key());
-    project->probes = state.topLevelProject().probes();
+    project->probes = state.topLevelProject().projectLevelProbes();
     project->moduleProviderInfo = state.dependenciesResolver().storedModuleProviderInfo();
     project->setBuildConfiguration(setupParams.finalBuildConfigurationTree());
     project->overriddenValues = setupParams.overriddenValues();
@@ -535,7 +534,15 @@ void ProjectResolver::Private::printProfilingInfo()
           state.topLevelProject().timingData().moduleInstantiation);
     print(4, Tr::tr("Merging module property values took %1."),
           state.topLevelProject().timingData().propertyMerging);
-    state.probesResolver().printProfilingInfo(2);
+    print(2, Tr::tr("Running Probes took %1."), state.topLevelProject().timingData().probes);
+    state.logger().qbsLog(LoggerInfo, true)
+        << "    "
+        << Tr::tr("%1 probes encountered, %2 configure scripts executed, "
+                  "%3 re-used from current run, %4 re-used from earlier run.")
+           .arg(state.topLevelProject().probesEncounteredCount())
+           .arg(state.topLevelProject().probesRunCount())
+           .arg(state.topLevelProject().reusedCurrentProbesCount())
+           .arg(state.topLevelProject().reusedOldProbesCount());
     print(2, Tr::tr("Property checking took %1."),
           state.topLevelProject().timingData().propertyChecking);
     print(2, Tr::tr("Property evaluation took %1."),

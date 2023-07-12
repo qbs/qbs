@@ -124,6 +124,7 @@ public:
 
     const QString &globalId() const { return m_globalId; }
     bool condition() const { return m_condition; }
+    const CodeLocation &location() const { return m_location; }
     const QString &configureScript() const { return m_configureScript; }
     const QVariantMap &properties() const { return m_properties; }
     const QVariantMap &initialProperties() const { return m_initialProperties; }

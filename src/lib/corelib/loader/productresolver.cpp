@@ -191,7 +191,7 @@ void ProductResolverStage1::start()
             QBS_CHECK(m_product.shadowProduct->dependenciesContext);
             if (!m_product.shadowProduct->dependenciesContext->dependenciesResolved)
                 return;
-            topLevelProject.addProbes(m_product.shadowProduct->probes);
+            topLevelProject.addProjectLevelProbes(m_product.shadowProduct->probes);
         } catch (const ErrorInfo &e) {
             if (e.isCancelException())
                 throw CancelException();
@@ -262,7 +262,7 @@ void ProductResolverStage1::resolveProbes()
 
 void ProductResolverStage1::resolveProbes(Item *item)
 {
-    m_loaderState.probesResolver().resolveProbes(m_product, item);
+    ProbesResolver(m_loaderState).resolveProbes(m_product, item);
 }
 
 void ProductResolverStage1::runModuleProbes(const Item::Module &module)

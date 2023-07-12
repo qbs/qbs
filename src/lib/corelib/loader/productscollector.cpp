@@ -192,8 +192,8 @@ void ProductsCollector::Private::handleProject(Item *projectItem, ProjectContext
     for (Item * const child : projectItem->children())
         child->setScope(projectContext.scope);
 
-    loaderState.probesResolver().resolveProbes(dummyProduct, projectItem);
-    projectContext.topLevelProject->addProbes(dummyProduct.probes);
+    ProbesResolver(loaderState).resolveProbes(dummyProduct, projectItem);
+    projectContext.topLevelProject->addProjectLevelProbes(dummyProduct.probes);
 
     loaderState.localProfiles().collectProfilesFromItems(projectItem, projectContext.scope);
 

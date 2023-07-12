@@ -43,6 +43,7 @@
 #include <language/forward_decls.h>
 #include <language/propertydeclaration.h>
 #include <language/qualifiedid.h>
+#include <tools/filetime.h>
 #include <tools/joblimits.h>
 #include <tools/pimpl.h>
 #include <tools/set.h>
@@ -69,7 +70,6 @@ class LocalProfiles;
 class Logger;
 class ModuleInstantiator;
 class ModulePropertyMerger;
-class ProbesResolver;
 class ProductContext;
 class ProductItemMultiplexer;
 class ProgressObserver;
@@ -184,9 +184,6 @@ public:
     const QVariantMap &profileConfigs() const { return m_profileConfigs; }
     std::optional<QVariantMap> profileConfig(const QString &profileName) const;
 
-    void addProbes(const std::vector<ProbeConstPtr> &probes);
-    const std::vector<ProbeConstPtr> probes() const { return m_probes; }
-
     void addProduct(ProductContext &product);
     void addProductByType(ProductContext &product, const FileTags &tags);
     ProductContext *productWithNameAndConstraint(
@@ -208,6 +205,27 @@ public:
     void addMultiplexConfiguration(const QString &id, const QVariantMap &config);
     QVariantMap multiplexConfiguration(const QString &id) const;
 
+    void setLastResolveTime(const FileTime &time) { m_lastResolveTime = time; }
+    const FileTime &lastResolveTime() const { return m_lastResolveTime; }
+
+    using ProbeFilter = std::function<bool(const ProbeConstPtr &)>;
+    void setOldProjectProbes(const std::vector<ProbeConstPtr> &oldProbes);
+    void setOldProductProbes(const QHash<QString, std::vector<ProbeConstPtr>> &oldProbes);
+    void addNewlyResolvedProbe(const ProbeConstPtr &probe);
+    void addProjectLevelProbes(const std::vector<ProbeConstPtr> &probes);
+    const std::vector<ProbeConstPtr> projectLevelProbes() const;
+    ProbeConstPtr findOldProjectProbe(const QString &id, const ProbeFilter &filter) const;
+    ProbeConstPtr findOldProductProbe(const QString &productName, const ProbeFilter &filter) const;
+    ProbeConstPtr findCurrentProbe(const CodeLocation &location, const ProbeFilter &filter) const;
+    void incrementProbesCount() { ++m_probesInfo.probesEncountered; }
+    void incrementReusedCurrentProbesCount() { ++m_probesInfo.probesCachedCurrent; }
+    void incrementReusedOldProbesCount() { ++m_probesInfo.probesCachedOld; }
+    void incrementRunProbesCount() { ++m_probesInfo.probesRun; }
+    int probesEncounteredCount() const { return m_probesInfo.probesEncountered; }
+    int probesRunCount() const { return m_probesInfo.probesRun; }
+    int reusedOldProbesCount() const { return m_probesInfo.probesCachedOld; }
+    int reusedCurrentProbesCount() const { return m_probesInfo.probesCachedCurrent; }
+
     TimingData &timingData() { return m_timingData; }
 
 private:
@@ -222,7 +240,6 @@ private:
     Set<QString> m_projectNamesUsedInOverrides;
     Set<QString> m_productNamesUsedInOverrides;
     Set<Item *> m_disabledItems;
-    std::vector<ProbeConstPtr> m_probes;
     std::vector<ErrorInfo> m_queuedErrors;
     QString m_buildDirectory;
     QVariantMap m_profileConfigs;
@@ -232,6 +249,20 @@ private:
     // For fast look-up when resolving Depends.productTypes.
     // The contract is that it contains fully handled, error-free, enabled products.
     std::multimap<FileTag, ProductContext *> m_productsByType;
+
+    struct {
+        QHash<QString, std::vector<ProbeConstPtr>> oldProjectProbes;
+        QHash<QString, std::vector<ProbeConstPtr>> oldProductProbes;
+        QHash<CodeLocation, std::vector<ProbeConstPtr>> currentProbes;
+        std::vector<ProbeConstPtr> projectLevelProbes;
+
+        quint64 probesEncountered = 0;
+        quint64 probesRun = 0;
+        quint64 probesCachedCurrent = 0;
+        quint64 probesCachedOld = 0;
+    } m_probesInfo;
+
+    FileTime m_lastResolveTime;
 
     bool m_canceled = false;
 };
@@ -277,7 +308,6 @@ public:
     ModuleInstantiator &moduleInstantiator();
     ProductItemMultiplexer &multiplexer();
     const SetupProjectParameters &parameters() const;
-    ProbesResolver &probesResolver();
     ModulePropertyMerger &propertyMerger();
     TopLevelProjectContext &topLevelProject();
 
