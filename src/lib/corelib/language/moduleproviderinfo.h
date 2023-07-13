@@ -89,21 +89,19 @@ public:
     bool transientOutput = false; // Not to be serialized.
 };
 
-using ModuleProviderInfoList = std::vector<ModuleProviderInfo>;
+using ModuleProvidersCacheKey = std::tuple<
+    QString /*name*/,
+    QString /*moduleName*/,
+    QVariantMap /*config*/,
+    QVariantMap /*qbsModule*/,
+    int /*lookup*/
+>;
+using ModuleProvidersCache = QHash<ModuleProvidersCacheKey, ModuleProviderInfo>;
 
 // Persistent info stored between sessions
 class StoredModuleProviderInfo
 {
 public:
-    using CacheKey = std::tuple<
-        QString /*name*/,
-        QString /*moduleName*/,
-        QVariantMap /*config*/,
-        QVariantMap /*qbsModule*/,
-        int /*lookup*/
-    >;
-    using ModuleProvidersCache = QHash<CacheKey, ModuleProviderInfo>;
-
     ModuleProvidersCache providers;
 
     template<PersistentPool::OpType opType> void completeSerializationOp(PersistentPool &pool)

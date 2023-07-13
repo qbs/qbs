@@ -180,7 +180,7 @@ void ProjectResolver::setStoredProfiles(const QVariantMap &profiles)
 
 void ProjectResolver::setStoredModuleProviderInfo(const StoredModuleProviderInfo &providerInfo)
 {
-    d->state.dependenciesResolver().setStoredModuleProviderInfo(providerInfo);
+    d->state.topLevelProject().setModuleProvidersCache(providerInfo.providers);
 }
 
 static void checkForDuplicateProductNames(const TopLevelProjectConstPtr &project)
@@ -292,13 +292,13 @@ TopLevelProjectPtr ProjectResolver::Private::resolveTopLevelProject()
         throw accumulatedErrors;
 
     project->buildSystemFiles = state.itemReader().filesRead()
-            - state.dependenciesResolver().tempQbsFiles();
+            - state.topLevelProject().tempQbsFiles();
     project->profileConfigs = state.topLevelProject().profileConfigs();
     const QVariantMap &profiles = state.localProfiles().profiles();
     for (auto it = profiles.begin(); it != profiles.end(); ++it)
         project->profileConfigs.remove(it.key());
     project->probes = state.topLevelProject().projectLevelProbes();
-    project->moduleProviderInfo = state.dependenciesResolver().storedModuleProviderInfo();
+    project->moduleProviderInfo.providers = state.topLevelProject().moduleProvidersCache();
     project->setBuildConfiguration(setupParams.finalBuildConfigurationTree());
     project->overriddenValues = setupParams.overriddenValues();
     project->canonicalFilePathResults = engine->canonicalFilePathResults();

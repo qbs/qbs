@@ -342,6 +342,29 @@ QVariantMap TopLevelProjectContext::multiplexConfiguration(const QString &id) co
     return it->second;
 }
 
+void TopLevelProjectContext::updateTempFilesList(const QString &filePath)
+{
+    m_tempQbsFiles << filePath;
+}
+
+void TopLevelProjectContext::setModuleProvidersCache(const ModuleProvidersCache &cache)
+{
+    m_moduleProvidersCache = cache;
+}
+
+ModuleProviderInfo *TopLevelProjectContext::moduleProvider(const ModuleProvidersCacheKey &key)
+{
+    if (const auto it = m_moduleProvidersCache.find(key); it != m_moduleProvidersCache.end())
+        return &(*it);
+    return nullptr;
+}
+
+ModuleProviderInfo &TopLevelProjectContext::addModuleProvider(const ModuleProvidersCacheKey &key,
+                                                              const ModuleProviderInfo &provider)
+{
+    return m_moduleProvidersCache[key] = provider;
+}
+
 void TopLevelProjectContext::setOldProjectProbes(const std::vector<ProbeConstPtr> &oldProbes)
 {
     for (const ProbeConstPtr& probe : oldProbes)

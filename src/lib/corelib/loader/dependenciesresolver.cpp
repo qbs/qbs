@@ -222,22 +222,6 @@ void DependenciesResolver::checkDependencyParameterDeclarations(
     d->moduleLoader.checkDependencyParameterDeclarations(productItem, productName);
 }
 
-void DependenciesResolver::setStoredModuleProviderInfo(
-    const StoredModuleProviderInfo &moduleProviderInfo)
-{
-    d->moduleLoader.setStoredModuleProviderInfo(moduleProviderInfo);
-}
-
-StoredModuleProviderInfo DependenciesResolver::storedModuleProviderInfo() const
-{
-    return d->moduleLoader.storedModuleProviderInfo();
-}
-
-const Set<QString> &DependenciesResolver::tempQbsFiles() const
-{
-    return d->moduleLoader.tempQbsFiles();
-}
-
 Item *DependenciesResolver::loadBaseModule(ProductContext &product, Item *item)
 {
     const auto baseDependency = FullyResolvedDependsItem::makeBaseDependency();

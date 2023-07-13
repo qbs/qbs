@@ -70,10 +70,6 @@ public:
     void checkDependencyParameterDeclarations(const Item *productItem,
                                               const QString &productName) const;
 
-    void setStoredModuleProviderInfo(const StoredModuleProviderInfo &moduleProviderInfo);
-    StoredModuleProviderInfo storedModuleProviderInfo() const;
-    const Set<QString> &tempQbsFiles() const;
-
     // Note: This function is never called for regular loading of the base module into a product,
     //       but only for the special cases of loading the dummy base module into a project
     //       and temporarily providing a base module for product multiplexing.

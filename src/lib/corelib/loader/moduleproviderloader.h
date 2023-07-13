@@ -62,32 +62,10 @@ class ModuleProviderLoader
 public:
     explicit ModuleProviderLoader(LoaderState &loaderState);
 
-    enum class ModuleProviderLookup { Scoped, Named, Fallback };
-
-    struct Provider
-    {
-        QualifiedId name;
-        ModuleProviderLookup lookup;
-    };
-
-    struct ModuleProviderResult
-    {
+    struct ModuleProviderResult {
         bool providerFound = false;
         std::optional<QStringList> searchPaths;
     };
-
-    const StoredModuleProviderInfo &storedModuleProviderInfo() const
-    {
-        return m_storedModuleProviderInfo;
-    }
-
-    void setStoredModuleProviderInfo(StoredModuleProviderInfo moduleProviderInfo)
-    {
-        m_storedModuleProviderInfo = std::move(moduleProviderInfo);
-    }
-
-    const Set<QString> &tempQbsFiles() const { return m_tempQbsFiles; }
-
     ModuleProviderResult executeModuleProviders(
             ProductContext &productContext,
             const CodeLocation &dependsItemLocation,
@@ -95,6 +73,11 @@ public:
             FallbackMode fallbackMode);
 
 private:
+    enum class ModuleProviderLookup { Scoped, Named, Fallback };
+    struct Provider {
+        QualifiedId name;
+        ModuleProviderLookup lookup;
+    };
     ModuleProviderResult executeModuleProvidersHelper(
             ProductContext &product,
             const CodeLocation &dependsItemLocation,
@@ -120,11 +103,8 @@ private:
             const QString &providerFile,
             const QVariantMap &moduleConfig,
             const QVariantMap &qbsModule);
-    void updateTempFilesList(const QString &filePath);
 
     LoaderState &m_loaderState;
-    StoredModuleProviderInfo m_storedModuleProviderInfo;
-    Set<QString> m_tempQbsFiles;
 };
 
 } // namespace qbs::Internal

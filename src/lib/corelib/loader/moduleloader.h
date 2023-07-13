@@ -66,10 +66,6 @@ public:
                                   const QualifiedId &moduleName,
                                   FallbackMode fallbackMode, bool isRequired);
 
-    void setStoredModuleProviderInfo(const StoredModuleProviderInfo &moduleProviderInfo);
-    StoredModuleProviderInfo storedModuleProviderInfo() const;
-    const Set<QString> &tempQbsFiles() const;
-
     void checkDependencyParameterDeclarations(const Item *productItem,
                                               const QString &productName) const;
     void forwardParameterDeclarations(const Item *dependsItem, const Item::Modules &modules);

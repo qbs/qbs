@@ -151,42 +151,35 @@ ModuleProviderLoader::findOrCreateProviderInfo(
         const QualifiedId &moduleName, const QualifiedId &name, ModuleProviderLookup lookupType,
         const QVariantMap &qbsModule)
 {
-    auto &providersCache = m_storedModuleProviderInfo.providers;
     const QVariantMap config = product.providerConfig->value(name.toString()).toMap();
-    auto cacheKey = StoredModuleProviderInfo::CacheKey{
-        name.toString(), {}, config, qbsModule, int(lookupType)};
+    ModuleProvidersCacheKey cacheKey{name.toString(), {}, config, qbsModule, int(lookupType)};
     // TODO: get rid of non-eager providers and eliminate following if-logic
     // first, try to find eager provider (stored with an empty module name)
-    auto it = providersCache.find(cacheKey);
-    if (it == providersCache.end()) {
-        // second, try to find non-eager provider for a specific module name
-        std::get<1>(cacheKey) = moduleName.toString(); // override moduleName
-        it = providersCache.find(cacheKey);
+    if (ModuleProviderInfo *provider = m_loaderState.topLevelProject().moduleProvider(cacheKey))
+        return {*provider, true};
+    // second, try to find non-eager provider for a specific module name
+    std::get<1>(cacheKey) = moduleName.toString(); // override moduleName
+    if (ModuleProviderInfo *provider = m_loaderState.topLevelProject().moduleProvider(cacheKey))
+        return {*provider, true};
+    bool isEager = false;
+    ModuleProviderInfo info;
+    info.name = name;
+    info.config = config;
+    info.providerFile = findModuleProviderFile(name, lookupType);
+    if (!info.providerFile.isEmpty()) {
+        qCDebug(lcModuleLoader) << "Running provider" << name << "at" << info.providerFile;
+        std::tie(info.searchPaths, isEager) = evaluateModuleProvider(
+                    product,
+                    dependsItemLocation,
+                    moduleName,
+                    name,
+                    info.providerFile,
+                    config,
+                    qbsModule);
+        info.transientOutput = m_loaderState.parameters().dryRun();
     }
-    const bool fromCache = it != providersCache.end();
-    if (!fromCache) {
-        bool isEager = false;
-        ModuleProviderInfo info;
-        info.name = name;
-        info.config = config;
-        info.providerFile = findModuleProviderFile(name, lookupType);
-        if (!info.providerFile.isEmpty()) {
-            qCDebug(lcModuleLoader) << "Running provider" << name << "at" << info.providerFile;
-            std::tie(info.searchPaths, isEager) = evaluateModuleProvider(
-                product,
-                dependsItemLocation,
-                moduleName,
-                name,
-                info.providerFile,
-                config,
-                qbsModule);
-            info.transientOutput = m_loaderState.parameters().dryRun();
-        }
-        std::get<1>(cacheKey) = isEager ? QString() : moduleName.toString();
-        it = providersCache.insert(cacheKey, info);
-    }
-
-    return {*it, fromCache};
+    std::get<1>(cacheKey) = isEager ? QString() : moduleName.toString();
+    return {m_loaderState.topLevelProject().addModuleProvider(cacheKey, info), false};
 }
 
 void ModuleProviderLoader::setupModuleProviderConfig(ProductContext &product)
@@ -350,7 +343,7 @@ ModuleProviderLoader::EvaluationResult ModuleProviderLoader::evaluateModuleProvi
                                "for dependency '%1': %2").arg(name.toString(),
                                                               dummyItemFile.errorString()));
     }
-    updateTempFilesList(dummyItemFile.fileName());
+    m_loaderState.topLevelProject().updateTempFilesList(dummyItemFile.fileName());
     qCDebug(lcModuleLoader) << "Instantiating module provider at" << providerFile;
     const QString projectBuildDir = product.project->item->variantProperty(
                 StringConstants::buildDirectoryProperty())->value().toString();
@@ -404,11 +397,6 @@ ModuleProviderLoader::EvaluationResult ModuleProviderLoader::evaluateModuleProvi
                                         EvalContext::ModuleProvider);
     return {m_loaderState.evaluator().stringListValue(providerItem, QStringLiteral("searchPaths")),
             isEager};
-}
-
-void ModuleProviderLoader::updateTempFilesList(const QString &filePath)
-{
-    m_tempQbsFiles << filePath;
 }
 
 } // namespace Internal

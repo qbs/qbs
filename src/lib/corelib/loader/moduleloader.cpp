@@ -81,7 +81,6 @@ public:
                                           const QualifiedId &moduleName, const Item *module);
 
     LoaderState &loaderState;
-    ModuleProviderLoader providerLoader{loaderState};
 
     // The keys are file paths, the values are module prototype items accompanied by a profile.
     std::unordered_map<QString, std::vector<std::pair<Item *, QString>>> modulePrototypes;
@@ -182,7 +181,7 @@ Item *ModuleLoader::searchAndLoadModuleFile(
     if (existingPaths.isEmpty()) { // no suitable names found, try to use providers
         AccumulatingTimer providersTimer(d->loaderState.parameters().logElapsedTime()
                                          ? &productContext.timingData.moduleProviders : nullptr);
-        auto result = d->providerLoader.executeModuleProviders(
+        auto result = ModuleProviderLoader(d->loaderState).executeModuleProviders(
                     productContext, dependsItemLocation, moduleName, fallbackMode);
         if (result.searchPaths) {
             qCDebug(lcModuleLoader) << "Re-checking for module" << moduleName.toString()
@@ -250,21 +249,6 @@ Item *ModuleLoader::searchAndLoadModuleFile(
     d->checkForUnknownProfileProperties(productContext, moduleName, moduleItem);
 
     return moduleItem;
-}
-
-void ModuleLoader::setStoredModuleProviderInfo(const StoredModuleProviderInfo &moduleProviderInfo)
-{
-    d->providerLoader.setStoredModuleProviderInfo(moduleProviderInfo);
-}
-
-StoredModuleProviderInfo ModuleLoader::storedModuleProviderInfo() const
-{
-    return d->providerLoader.storedModuleProviderInfo();
-}
-
-const Set<QString> &ModuleLoader::tempQbsFiles() const
-{
-    return d->providerLoader.tempQbsFiles();
 }
 
 std::pair<Item *, bool> ModuleLoader::Private::loadModuleFile(ProductContext &product, const QString &moduleName, const QString &filePath)

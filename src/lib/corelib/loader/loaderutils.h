@@ -41,6 +41,7 @@
 
 #include <language/filetags.h>
 #include <language/forward_decls.h>
+#include <language/moduleproviderinfo.h>
 #include <language/propertydeclaration.h>
 #include <language/qualifiedid.h>
 #include <tools/filetime.h>
@@ -208,6 +209,15 @@ public:
     void setLastResolveTime(const FileTime &time) { m_lastResolveTime = time; }
     const FileTime &lastResolveTime() const { return m_lastResolveTime; }
 
+    void updateTempFilesList(const QString &filePath);
+    const Set<QString> &tempQbsFiles() const { return m_tempQbsFiles; }
+
+    void setModuleProvidersCache(const ModuleProvidersCache &cache);
+    const ModuleProvidersCache &moduleProvidersCache() const { return m_moduleProvidersCache; }
+    ModuleProviderInfo *moduleProvider(const ModuleProvidersCacheKey &key);
+    ModuleProviderInfo &addModuleProvider(const ModuleProvidersCacheKey &key,
+                                          const ModuleProviderInfo &provider);
+
     using ProbeFilter = std::function<bool(const ProbeConstPtr &)>;
     void setOldProjectProbes(const std::vector<ProbeConstPtr> &oldProbes);
     void setOldProductProbes(const QHash<QString, std::vector<ProbeConstPtr>> &oldProbes);
@@ -245,6 +255,8 @@ private:
     QVariantMap m_profileConfigs;
     ProgressObserver *m_progressObserver = nullptr;
     TimingData m_timingData;
+    Set<QString> m_tempQbsFiles;
+    ModuleProvidersCache m_moduleProvidersCache;
 
     // For fast look-up when resolving Depends.productTypes.
     // The contract is that it contains fully handled, error-free, enabled products.
