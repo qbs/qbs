@@ -49,6 +49,7 @@
 #include <language/value.h>
 #include <logging/categories.h>
 #include <logging/translator.h>
+#include <tools/codelocation.h>
 #include <tools/error.h>
 #include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
@@ -64,36 +65,35 @@
 
 namespace qbs::Internal {
 
-class ModuleLoader::Private
+class ModuleLoader
 {
 public:
-    Private(LoaderState &loaderState) : loaderState(loaderState) {}
+    ModuleLoader(LoaderState &loaderState, ProductContext &product,
+                 const CodeLocation &dependsItemLocation, const QualifiedId &moduleName,
+                 FallbackMode fallbackMode, bool isRequired)
+        : m_loaderState(loaderState), m_product(product),
+          m_dependsItemLocation(dependsItemLocation), m_moduleName(moduleName),
+          m_fallbackMode(fallbackMode), m_isRequired(isRequired)
+    {}
 
-    std::pair<Item *, bool> loadModuleFile(ProductContext &product,
-                                           const QString &moduleName, const QString &filePath);
-    std::pair<Item *, bool> getModulePrototype(ProductContext &product,
-                                               const QString &moduleName, const QString &filePath);
-    bool evaluateModuleCondition(ProductContext &product, Item *module,
-                                 const QString &fullModuleName);
-    void forwardParameterDeclarations(const QualifiedId &moduleName, Item *item,
-                                      const Item::Modules &modules);
-    void checkForUnknownProfileProperties(const ProductContext &product,
-                                          const QualifiedId &moduleName, const Item *module);
+    Item *load();
 
-    LoaderState &loaderState;
+private:
+    std::pair<Item *, bool> loadModuleFile(const QString &moduleName, const QString &filePath);
+    Item *getModulePrototype(const QString &moduleName, const QString &filePath);
+    bool evaluateModuleCondition(Item *module, const QString &fullModuleName);
+    void checkForUnknownProfileProperties(const Item *module);
+    QString findModuleDirectory(const QString &searchPath);
+    QStringList findModuleDirectories();
+    QStringList getModuleFilePaths(const QString &dir);
 
-    // The keys are file paths, the values are module prototype items accompanied by a profile.
-    std::unordered_map<QString, std::vector<std::pair<Item *, QString>>> modulePrototypes;
-
-    std::unordered_map<const Item *, std::vector<ErrorInfo>> unknownProfilePropertyErrors;
-    std::unordered_map<const Item *, Item::PropertyDeclarationMap> parameterDeclarations;
-    QHash<std::pair<QString, QualifiedId>, std::optional<QString>> existingModulePathCache;
-    std::map<QString, QStringList> moduleDirListCache;
+    LoaderState &m_loaderState;
+    ProductContext &m_product;
+    const CodeLocation &m_dependsItemLocation;
+    const QualifiedId &m_moduleName;
+    const FallbackMode m_fallbackMode;
+    const bool m_isRequired;
 };
-
-ModuleLoader::ModuleLoader(LoaderState &loaderState) : d(makePimpl<Private>(loaderState)) { }
-
-ModuleLoader::~ModuleLoader() = default;
 
 struct PrioritizedItem
 {
@@ -142,94 +142,56 @@ static Item *chooseModuleCandidate(const std::vector<PrioritizedItem> &candidate
     return maxIt->item;
 }
 
-Item *ModuleLoader::searchAndLoadModuleFile(
-    ProductContext &productContext, const CodeLocation &dependsItemLocation,
-    const QualifiedId &moduleName, FallbackMode fallbackMode, bool isRequired)
+Item *searchAndLoadModuleFile(LoaderState &loaderState, ProductContext &product,
+        const CodeLocation &dependsItemLocation, const QualifiedId &moduleName,
+        FallbackMode fallbackMode, bool isRequired)
 {
-    const auto findExistingModulePath = [&](const QString &searchPath) {
-        // isFileCaseCorrect is a very expensive call on macOS, so we cache the value for the
-        // modules and search paths we've already processed
-        auto &moduleInfo = d->existingModulePathCache[{searchPath, moduleName}];
-        if (moduleInfo)
-            return *moduleInfo;
+    return ModuleLoader(loaderState, product, dependsItemLocation, moduleName,
+                        fallbackMode, isRequired).load();
+}
 
-        QString dirPath = searchPath + QStringLiteral("/modules");
-        for (const QString &moduleNamePart : moduleName) {
-            dirPath = FileInfo::resolvePath(dirPath, moduleNamePart);
-            if (!FileInfo::exists(dirPath) || !FileInfo::isFileCaseCorrect(dirPath)) {
-                return *(moduleInfo = QString());
-            }
-        }
+Item *ModuleLoader::load()
+{
+    SearchPathsManager searchPathsManager(m_loaderState.itemReader());
 
-        return *(moduleInfo = dirPath);
-    };
-    const auto findExistingModulePaths = [&] {
-        const QStringList &searchPaths = d->loaderState.itemReader().allSearchPaths();
-        QStringList result;
-        result.reserve(searchPaths.size());
-        for (const auto &path: searchPaths) {
-            const QString dirPath = findExistingModulePath(path);
-            if (!dirPath.isEmpty())
-                result.append(dirPath);
-        }
-        return result;
-    };
-
-    SearchPathsManager searchPathsManager(d->loaderState.itemReader());
-
-    auto existingPaths = findExistingModulePaths();
+    QStringList existingPaths = findModuleDirectories();
     if (existingPaths.isEmpty()) { // no suitable names found, try to use providers
-        AccumulatingTimer providersTimer(d->loaderState.parameters().logElapsedTime()
-                                         ? &productContext.timingData.moduleProviders : nullptr);
-        auto result = ModuleProviderLoader(d->loaderState).executeModuleProviders(
-                    productContext, dependsItemLocation, moduleName, fallbackMode);
+        AccumulatingTimer providersTimer(m_loaderState.parameters().logElapsedTime()
+                                         ? &m_product.timingData.moduleProviders : nullptr);
+        auto result = ModuleProviderLoader(m_loaderState).executeModuleProviders(
+                    m_product, m_dependsItemLocation, m_moduleName, m_fallbackMode);
         if (result.searchPaths) {
-            qCDebug(lcModuleLoader) << "Re-checking for module" << moduleName.toString()
+            qCDebug(lcModuleLoader) << "Re-checking for module" << m_moduleName.toString()
                                     << "with newly added search paths from module provider";
-            d->loaderState.itemReader().pushExtraSearchPaths(*result.searchPaths);
-            existingPaths = findExistingModulePaths();
+            m_loaderState.itemReader().pushExtraSearchPaths(*result.searchPaths);
+            existingPaths = findModuleDirectories();
         }
     }
 
-    const auto getModuleFileNames = [&](const QString &dirPath) -> QStringList & {
-        QStringList &moduleFileNames = d->moduleDirListCache[dirPath];
-        if (moduleFileNames.empty()) {
-            QDirIterator dirIter(dirPath, StringConstants::qbsFileWildcards());
-            while (dirIter.hasNext())
-                moduleFileNames += dirIter.next();
-        }
-        return moduleFileNames;
-    };
-
-    const QString fullName = moduleName.toString();
+    const QString fullName = m_moduleName.toString();
     bool triedToLoadModule = false;
     std::vector<PrioritizedItem> candidates;
     candidates.reserve(size_t(existingPaths.size()));
     for (int i = 0; i < existingPaths.size(); ++i) {
-        const QString &dirPath = existingPaths.at(i);
-        QStringList &moduleFileNames = getModuleFileNames(dirPath);
-        for (auto it = moduleFileNames.begin(); it != moduleFileNames.end(); ) {
-            const QString &filePath = *it;
-            const auto [module, triedToLoad] = d->loadModuleFile(productContext, fullName,
-                                                                 filePath);
+        const QStringList &moduleFileNames = getModuleFilePaths(existingPaths.at(i));
+        for (const QString &filePath : moduleFileNames) {
+            const auto [module, triedToLoad] = loadModuleFile(fullName, filePath);
             if (module)
                 candidates.emplace_back(module, 0, i);
             if (!triedToLoad)
-                it = moduleFileNames.erase(it);
-            else
-                ++it;
+                m_loaderState.topLevelProject().removeModuleFileFromDirectoryCache(filePath);
             triedToLoadModule = triedToLoadModule || triedToLoad;
         }
     }
 
     if (candidates.empty()) {
-        if (!isRequired) {
-            return createNonPresentModule(d->loaderState.itemPool(), fullName,
+        if (!m_isRequired) {
+            return createNonPresentModule(m_loaderState.itemPool(), fullName,
                                           QStringLiteral("not found"), nullptr);
         }
         if (Q_UNLIKELY(triedToLoadModule)) {
             throw ErrorInfo(Tr::tr("Module %1 could not be loaded.").arg(fullName),
-                            dependsItemLocation);
+                            m_dependsItemLocation);
         }
         return nullptr;
     }
@@ -239,36 +201,36 @@ Item *ModuleLoader::searchAndLoadModuleFile(
         moduleItem = candidates.at(0).item;
     } else {
         for (auto &candidate : candidates) {
-            candidate.priority = d->loaderState.evaluator()
+            candidate.priority = m_loaderState.evaluator()
                     .intValue(candidate.item, StringConstants::priorityProperty(),
                               candidate.priority);
         }
         moduleItem = chooseModuleCandidate(candidates, fullName);
     }
 
-    d->checkForUnknownProfileProperties(productContext, moduleName, moduleItem);
-
+    checkForUnknownProfileProperties(moduleItem);
     return moduleItem;
 }
 
-std::pair<Item *, bool> ModuleLoader::Private::loadModuleFile(ProductContext &product, const QString &moduleName, const QString &filePath)
+std::pair<Item *, bool> ModuleLoader::loadModuleFile(const QString &moduleName,
+                                                     const QString &filePath)
 {
     qCDebug(lcModuleLoader) << "loadModuleFile" << moduleName << "from" << filePath;
 
-    const auto [module, triedToLoad] = getModulePrototype(product, moduleName, filePath);
+    Item * const module = getModulePrototype(moduleName, filePath);
     if (!module)
-        return {nullptr, triedToLoad};
+        return {nullptr, false};
 
-    const auto it = product.modulePrototypeEnabledInfo.find(module);
-    if (it != product.modulePrototypeEnabledInfo.end()) {
+    const auto it = m_product.modulePrototypeEnabledInfo.find(module);
+    if (it != m_product.modulePrototypeEnabledInfo.end()) {
         qCDebug(lcModuleLoader) << "prototype cache hit (level 2)";
-        return {it->second ? module : nullptr, triedToLoad};
+        return {it->second ? module : nullptr, true};
     }
 
-    if (!evaluateModuleCondition(product, module, moduleName)) {
+    if (!evaluateModuleCondition(module, moduleName)) {
         qCDebug(lcModuleLoader) << "condition of module" << moduleName << "is false";
-        product.modulePrototypeEnabledInfo.insert({module, false});
-        return {nullptr, triedToLoad};
+        m_product.modulePrototypeEnabledInfo.insert({module, false});
+        return {nullptr, true};
     }
 
     if (moduleName == StringConstants::qbsModule()) {
@@ -277,7 +239,7 @@ std::pair<Item *, bool> ModuleLoader::Private::loadModuleFile(ProductContext &pr
         module->setProperty(QStringLiteral("hostArchitecture"),
                             VariantValue::create(HostOsInfo::hostOSArchitecture()));
         module->setProperty(QStringLiteral("libexecPath"),
-                            VariantValue::create(loaderState.parameters().libexecPath()));
+                            VariantValue::create(m_loaderState.parameters().libexecPath()));
 
         const Version qbsVersion = LanguageInfo::qbsVersion();
         module->setProperty(QStringLiteral("versionMajor"),
@@ -296,40 +258,43 @@ std::pair<Item *, bool> ModuleLoader::Private::loadModuleFile(ProductContext &pr
             for (auto it = paramDecls.begin(); it != paramDecls.end(); ++it)
                 decls.insert(it.key(), it.value());
         }
-        parameterDeclarations.insert({module, decls});
+        m_loaderState.topLevelProject().addParameterDeclarations(module, decls);
     }
 
-    product.modulePrototypeEnabledInfo.insert({module, true});
-    return {module, triedToLoad};
+    m_product.modulePrototypeEnabledInfo.insert({module, true});
+    return {module, true};
 }
 
-std::pair<Item *, bool> ModuleLoader::Private::getModulePrototype(ProductContext &product, const QString &moduleName, const QString &filePath)
+Item * ModuleLoader::getModulePrototype(const QString &moduleName, const QString &filePath)
 {
-    auto &prototypeList = modulePrototypes[filePath];
-    for (const auto &prototype : prototypeList) {
-        if (prototype.second == product.profileName) {
-            qCDebug(lcModuleLoader) << "prototype cache hit (level 1)";
-            return {prototype.first, true};
-        }
-    }
-
-    Item * const module = loaderState.itemReader().setupItemFromFile(filePath, CodeLocation());
-    if (module->type() != ItemType::Module) {
+    bool fromCache = true;
+    Item * const module = m_loaderState.topLevelProject().getModulePrototype(
+                filePath, m_product.profileName, [&]() -> Item * {
+        fromCache = false;
+                    Item * const module = m_loaderState.itemReader().setupItemFromFile(filePath, CodeLocation());
+        if (module->type() == ItemType::Module)
+            return module;
         qCDebug(lcModuleLoader).nospace()
-            << "Alleged module " << moduleName << " has type '"
-            << module->typeName() << "', so it's not a module after all.";
-        return {nullptr, false};
+                << "Alleged module " << moduleName << " has type '"
+                << module->typeName() << "', so it's not a module after all.";
+        return nullptr;
+    });
+
+    if (!module)
+        return nullptr;
+    if (fromCache) {
+        qCDebug(lcModuleLoader) << "prototype cache hit (level 1)";
+        return module;
     }
-    prototypeList.emplace_back(module, product.profileName);
 
     // Module properties that are defined in the profile are used as default values.
     // This is the reason we need to have different items per profile.
     const QVariantMap profileModuleProperties
-        = product.profileModuleProperties.value(moduleName).toMap();
+            = m_product.profileModuleProperties.value(moduleName).toMap();
     for (auto it = profileModuleProperties.cbegin(); it != profileModuleProperties.cend(); ++it) {
         if (Q_UNLIKELY(!module->hasProperty(it.key()))) {
-            unknownProfilePropertyErrors[module].emplace_back(Tr::tr("Unknown property: %1.%2")
-                                                                  .arg(moduleName, it.key()));
+            m_loaderState.topLevelProject().addUnknownProfilePropertyError(
+                        module, {Tr::tr("Unknown property: %1.%2").arg(moduleName, it.key())});
             continue;
         }
         const PropertyDeclaration decl = module->propertyDeclaration(it.key());
@@ -340,11 +305,10 @@ std::pair<Item *, bool> ModuleLoader::Private::getModulePrototype(ProductContext
         module->setProperty(it.key(), v);
     }
 
-    return {module, true};
+    return module;
 }
 
-bool ModuleLoader::Private::evaluateModuleCondition(ProductContext &product,
-                                                    Item *module, const QString &fullModuleName)
+bool ModuleLoader::evaluateModuleCondition(Item *module, const QString &fullModuleName)
 {
     // Evaluator reqires module name to be set.
     module->setProperty(StringConstants::nameProperty(), VariantValue::create(fullModuleName));
@@ -378,119 +342,63 @@ bool ModuleLoader::Private::evaluateModuleCondition(ProductContext &product,
         const bool m_needsQbsItem;
     };
 
-    const TempQbsModuleProvider tempQbs(product, module, fullModuleName);
-    return loaderState.evaluator().boolValue(module, StringConstants::conditionProperty());
+    const TempQbsModuleProvider tempQbs(m_product, module, fullModuleName);
+    return m_loaderState.evaluator().boolValue(module, StringConstants::conditionProperty());
 }
 
-class DependencyParameterDeclarationCheck
+void ModuleLoader::checkForUnknownProfileProperties(const Item *module)
 {
-public:
-    DependencyParameterDeclarationCheck(
-            const QString &productName, const Item *productItem,
-            const std::unordered_map<const Item *, Item::PropertyDeclarationMap> &decls)
-        : m_productName(productName), m_productItem(productItem), m_parameterDeclarations(decls)
-    {}
-
-    void operator()(const QVariantMap &parameters) const { check(parameters, QualifiedId()); }
-
-private:
-    void check(const QVariantMap &parameters, const QualifiedId &moduleName) const
-    {
-        for (auto it = parameters.begin(); it != parameters.end(); ++it) {
-            if (it.value().userType() == QMetaType::QVariantMap) {
-                check(it.value().toMap(), QualifiedId(moduleName) << it.key());
-            } else {
-                const auto &deps = m_productItem->modules();
-                auto m = std::find_if(deps.begin(), deps.end(),
-                                      [&moduleName] (const Item::Module &module) {
-                                          return module.name == moduleName;
-                                      });
-
-                if (m == deps.end()) {
-                    const QualifiedId fullName = QualifiedId(moduleName) << it.key();
-                    throw ErrorInfo(Tr::tr("Cannot set parameter '%1', "
-                                           "because '%2' does not have a dependency on '%3'.")
-                                        .arg(fullName.toString(), m_productName, moduleName.toString()),
-                                    m_productItem->location());
-                }
-
-                const auto decls = m_parameterDeclarations.find(m->item->rootPrototype());
-                if (decls == m_parameterDeclarations.end() || !decls->second.contains(it.key())) {
-                    const QualifiedId fullName = QualifiedId(moduleName) << it.key();
-                    throw ErrorInfo(Tr::tr("Parameter '%1' is not declared.")
-                                        .arg(fullName.toString()), m_productItem->location());
-                }
-            }
-        }
-    }
-
-    bool moduleExists(const QualifiedId &name) const
-    {
-        const auto &deps = m_productItem->modules();
-        return any_of(deps, [&name](const Item::Module &module) {
-            return module.name == name;
-        });
-    }
-
-    const QString &m_productName;
-    const Item * const m_productItem;
-    const std::unordered_map<const Item *, Item::PropertyDeclarationMap> &m_parameterDeclarations;
-};
-
-void ModuleLoader::checkDependencyParameterDeclarations(const Item *productItem,
-                                                        const QString &productName) const
-{
-    DependencyParameterDeclarationCheck dpdc(productName, productItem, d->parameterDeclarations);
-    for (const Item::Module &dep : productItem->modules()) {
-        if (!dep.parameters.empty())
-            dpdc(dep.parameters);
-    }
-}
-
-void ModuleLoader::forwardParameterDeclarations(const Item *dependsItem,
-                                                const Item::Modules &modules)
-{
-    for (auto it = dependsItem->properties().begin(); it != dependsItem->properties().end(); ++it) {
-        if (it.value()->type() != Value::ItemValueType)
-            continue;
-        d->forwardParameterDeclarations(it.key(),
-                                        std::static_pointer_cast<ItemValue>(it.value())->item(),
-                                        modules);
-    }
-}
-
-void ModuleLoader::Private::forwardParameterDeclarations(const QualifiedId &moduleName, Item *item,
-                                                         const Item::Modules &modules)
-{
-    auto it = std::find_if(modules.begin(), modules.end(), [&moduleName] (const Item::Module &m) {
-        return m.name == moduleName;
-    });
-    if (it != modules.end()) {
-        item->setPropertyDeclarations(parameterDeclarations[it->item->rootPrototype()]);
-    } else {
-        for (auto it = item->properties().begin(); it != item->properties().end(); ++it) {
-            if (it.value()->type() != Value::ItemValueType)
-                continue;
-            forwardParameterDeclarations(QualifiedId(moduleName) << it.key(),
-                                         std::static_pointer_cast<ItemValue>(it.value())->item(),
-                                         modules);
-        }
-    }
-}
-
-void ModuleLoader::Private::checkForUnknownProfileProperties(
-        const ProductContext &product, const QualifiedId &moduleName, const Item *module)
-{
-    const auto it = unknownProfilePropertyErrors.find(module);
-    if (it == unknownProfilePropertyErrors.cend())
+    const std::vector<ErrorInfo> &errors
+            = m_loaderState.topLevelProject().unknownProfilePropertyErrors(module);
+    if (errors.empty())
         return;
 
     ErrorInfo error(Tr::tr("Loading module '%1' for product '%2' failed due to invalid values "
                            "in profile '%3':")
-                    .arg(moduleName.toString(), product.displayName(), product.profileName));
-    for (const ErrorInfo &e : it->second)
+                    .arg(m_moduleName.toString(), m_product.displayName(), m_product.profileName));
+    for (const ErrorInfo &e : errors)
         error.append(e.toString());
-    handlePropertyError(error, loaderState.parameters(), loaderState.logger());
+    handlePropertyError(error, m_loaderState.parameters(), m_loaderState.logger());
+}
+
+QString ModuleLoader::findModuleDirectory(const QString &searchPath)
+{
+    // isFileCaseCorrect is a very expensive call on macOS, so we cache the value for the
+    // modules and search paths we've already processed
+    return m_loaderState.topLevelProject().findModuleDirectory(m_moduleName, searchPath,
+                                                             [&] {
+        QString dirPath = searchPath + QStringLiteral("/modules");
+        for (const QString &moduleNamePart : m_moduleName) {
+            dirPath = FileInfo::resolvePath(dirPath, moduleNamePart);
+            if (!FileInfo::exists(dirPath) || !FileInfo::isFileCaseCorrect(dirPath))
+                return QString();
+        }
+        return dirPath;
+    });
+}
+
+QStringList ModuleLoader::findModuleDirectories()
+{
+    const QStringList &searchPaths = m_loaderState.itemReader().allSearchPaths();
+    QStringList result;
+    result.reserve(searchPaths.size());
+    for (const auto &path: searchPaths) {
+        const QString dirPath = findModuleDirectory(path);
+        if (!dirPath.isEmpty())
+            result.append(dirPath);
+    }
+    return result;
+}
+
+QStringList ModuleLoader::getModuleFilePaths(const QString &dir)
+{
+    return m_loaderState.topLevelProject().getModuleFilesForDirectory(dir, [&] {
+        QStringList moduleFiles;
+        QDirIterator dirIter(dir, StringConstants::qbsFileWildcards());
+        while (dirIter.hasNext())
+            moduleFiles += dirIter.next();
+        return moduleFiles;
+    });
 }
 
 } // namespace qbs::Internal

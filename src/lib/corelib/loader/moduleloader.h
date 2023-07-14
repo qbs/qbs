@@ -39,41 +39,19 @@
 
 #pragma once
 
-
-#include <language/forward_decls.h>
-#include <language/item.h>
-#include <tools/pimpl.h>
-#include <tools/set.h>
-
-#include <QString>
-
 namespace qbs {
 class CodeLocation;
 namespace Internal {
 enum class FallbackMode;
+class Item;
 class LoaderState;
 class ProductContext;
-class StoredModuleProviderInfo;
+class QualifiedId;
 
-class ModuleLoader
-{
-public:
-    ModuleLoader(LoaderState &loaderState);
-    ~ModuleLoader();
-
-    Item *searchAndLoadModuleFile(ProductContext &productContext,
-                                  const CodeLocation &dependsItemLocation,
-                                  const QualifiedId &moduleName,
-                                  FallbackMode fallbackMode, bool isRequired);
-
-    void checkDependencyParameterDeclarations(const Item *productItem,
-                                              const QString &productName) const;
-    void forwardParameterDeclarations(const Item *dependsItem, const Item::Modules &modules);
-
-private:
-    class Private;
-    Pimpl<Private> d;
-};
+Item *searchAndLoadModuleFile(LoaderState &loaderState, ProductContext &product,
+                              const CodeLocation &dependsItemLocation,
+                              const QualifiedId &moduleName, FallbackMode fallbackMode,
+                              bool isRequired);
 
 } // namespace Internal
 } // namespace qbs

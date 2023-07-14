@@ -83,6 +83,9 @@ private:
     bool validateModule(const Item::Module &module);
     void handleModuleSetupError(const Item::Module &module, const ErrorInfo &error);
     void checkPropertyDeclarations();
+    void checkDependencyParameterDeclarations(const Item *productItem,
+                                              const QString &productName) const;
+
 
     ProductContext &m_product;
     LoaderState &m_loaderState;
@@ -234,8 +237,7 @@ void ProductResolverStage1::start()
     m_loaderState.propertyMerger().doFinalMerge(m_product);
 
     const bool enabled = topLevelProject.checkItemCondition(m_product.item, evaluator);
-    m_loaderState.dependenciesResolver().checkDependencyParameterDeclarations(
-                m_product.item, m_product.name);
+    checkDependencyParameterDeclarations(m_product.item, m_product.name);
 
     setupGroups(m_product, m_loaderState);
 
@@ -375,6 +377,72 @@ void ProductResolverStage1::checkPropertyDeclarations()
     AccumulatingTimer timer(m_loaderState.parameters().logElapsedTime()
                             ? &m_product.timingData.propertyChecking : nullptr);
     qbs::Internal::checkPropertyDeclarations(m_product.item, m_loaderState);
+}
+
+class DependencyParameterDeclarationCheck
+{
+public:
+    DependencyParameterDeclarationCheck(const QString &productName, const Item *productItem,
+                                        const TopLevelProjectContext &topLevelProject)
+        : m_productName(productName), m_productItem(productItem), m_topLevelProject(topLevelProject)
+    {}
+
+    void operator()(const QVariantMap &parameters) const { check(parameters, QualifiedId()); }
+
+private:
+    void check(const QVariantMap &parameters, const QualifiedId &moduleName) const
+    {
+        for (auto it = parameters.begin(); it != parameters.end(); ++it) {
+            if (it.value().userType() == QMetaType::QVariantMap) {
+                check(it.value().toMap(), QualifiedId(moduleName) << it.key());
+            } else {
+                const auto &deps = m_productItem->modules();
+                auto m = std::find_if(deps.begin(), deps.end(),
+                                      [&moduleName] (const Item::Module &module) {
+                                          return module.name == moduleName;
+                                      });
+
+                if (m == deps.end()) {
+                    const QualifiedId fullName = QualifiedId(moduleName) << it.key();
+                    throw ErrorInfo(Tr::tr("Cannot set parameter '%1', "
+                                           "because '%2' does not have a dependency on '%3'.")
+                                        .arg(fullName.toString(), m_productName, moduleName.toString()),
+                                    m_productItem->location());
+                }
+
+                const auto decls = m_topLevelProject.parameterDeclarations(
+                            m->item->rootPrototype());
+                if (!decls.contains(it.key())) {
+                    const QualifiedId fullName = QualifiedId(moduleName) << it.key();
+                    throw ErrorInfo(Tr::tr("Parameter '%1' is not declared.")
+                                        .arg(fullName.toString()), m_productItem->location());
+                }
+            }
+        }
+    }
+
+    bool moduleExists(const QualifiedId &name) const
+    {
+        const auto &deps = m_productItem->modules();
+        return any_of(deps, [&name](const Item::Module &module) {
+            return module.name == name;
+        });
+    }
+
+    const QString &m_productName;
+    const Item * const m_productItem;
+    const TopLevelProjectContext &m_topLevelProject;
+};
+
+void ProductResolverStage1::checkDependencyParameterDeclarations(const Item *productItem,
+                                                                 const QString &productName) const
+{
+    DependencyParameterDeclarationCheck dpdc(productName, productItem,
+                                             m_loaderState.topLevelProject());
+    for (const Item::Module &dep : productItem->modules()) {
+        if (!dep.parameters.empty())
+            dpdc(dep.parameters);
+    }
 }
 
 

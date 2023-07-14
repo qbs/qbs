@@ -48,12 +48,12 @@
 
 #include <language/evaluator.h>
 #include <language/filecontext.h>
-#include <language/item.h>
 #include <language/language.h>
 #include <language/resolvedfilecontext.h>
 #include <language/value.h>
 #include <logging/categories.h>
 #include <logging/translator.h>
+#include <tools/fileinfo.h>
 #include <tools/progressobserver.h>
 #include <tools/setupprojectparameters.h>
 #include <tools/stringconstants.h>
@@ -363,6 +363,78 @@ ModuleProviderInfo &TopLevelProjectContext::addModuleProvider(const ModuleProvid
                                                               const ModuleProviderInfo &provider)
 {
     return m_moduleProvidersCache[key] = provider;
+}
+
+void TopLevelProjectContext::addParameterDeclarations(const Item *moduleProto,
+                                                      const Item::PropertyDeclarationMap &decls)
+{
+    m_parameterDeclarations.insert({moduleProto, decls});
+}
+
+Item::PropertyDeclarationMap TopLevelProjectContext::parameterDeclarations(Item *moduleProto) const
+{
+    if (const auto it = m_parameterDeclarations.find(moduleProto);
+            it != m_parameterDeclarations.end()) {
+        return it->second;
+    }
+    return {};
+}
+
+QString TopLevelProjectContext::findModuleDirectory(
+        const QualifiedId &module, const QString &searchPath,
+        const std::function<QString()> &findOnDisk)
+{
+    auto &path = m_modulePathCache[{searchPath, module}];
+    if (!path)
+        path = findOnDisk();
+    return *path;
+}
+
+QStringList TopLevelProjectContext::getModuleFilesForDirectory(
+        const QString &dir, const std::function<QStringList ()> &findOnDisk)
+{
+    auto &list = m_moduleFilesPerDirectory[dir];
+    if (!list)
+        list = findOnDisk();
+    return *list;
+}
+
+void TopLevelProjectContext::removeModuleFileFromDirectoryCache(const QString &filePath)
+{
+    const auto it = m_moduleFilesPerDirectory.find(FileInfo::path(filePath));
+    QBS_CHECK(it != m_moduleFilesPerDirectory.end());
+    it->second->removeOne(filePath);
+}
+
+void TopLevelProjectContext::addUnknownProfilePropertyError(const Item *moduleProto,
+                                                            const ErrorInfo &error)
+{
+    m_unknownProfilePropertyErrors[moduleProto].push_back(error);
+}
+
+const std::vector<ErrorInfo> &TopLevelProjectContext::unknownProfilePropertyErrors(
+        const Item *moduleProto) const
+{
+    if (const auto it = m_unknownProfilePropertyErrors.find(moduleProto);
+            it != m_unknownProfilePropertyErrors.end()) {
+        return it->second;
+    }
+    static const std::vector<ErrorInfo> empty;
+    return empty;
+}
+
+Item *TopLevelProjectContext::getModulePrototype(const QString &filePath, const QString &profile,
+                                                 const std::function<Item *()> &produce)
+{
+    auto &prototypeList = m_modulePrototypes[filePath];
+    for (const auto &prototype : prototypeList) {
+        if (prototype.second == profile)
+            return prototype.first;
+    }
+    Item * const module = produce();
+    if (module)
+        prototypeList.emplace_back(module, profile);
+    return module;
 }
 
 void TopLevelProjectContext::setOldProjectProbes(const std::vector<ProbeConstPtr> &oldProbes)

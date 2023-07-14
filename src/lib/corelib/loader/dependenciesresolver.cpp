@@ -156,10 +156,8 @@ private:
 class DependenciesResolverImpl
 {
 public:
-    DependenciesResolverImpl(LoaderState &loaderState, ModuleLoader &moduleLoader,
-                             ProductContext &product, Deferral deferral)
-        : m_loaderState(loaderState), m_moduleLoader(moduleLoader), m_product(product),
-          m_deferral(deferral) {}
+    DependenciesResolverImpl(LoaderState &loaderState, ProductContext &product, Deferral deferral)
+        : m_loaderState(loaderState), m_product(product), m_deferral(deferral) {}
 
     void resolve();
     LoadModuleResult loadModule(Item *loadingItem, const FullyResolvedDependsItem &dependency);
@@ -184,10 +182,12 @@ private:
     std::queue<FullyResolvedDependsItem> multiplexDependency(
         const EvaluatedDependsItem &dependency);
     QVariantMap extractParameters(Item *dependsItem) const;
+    void forwardParameterDeclarations(const Item *dependsItem, const Item::Modules &modules);
+    void forwardParameterDeclarations(const QualifiedId &moduleName, Item *item,
+                                      const Item::Modules &modules);
     std::list<DependenciesResolvingState> &stateStack();
 
     LoaderState &m_loaderState;
-    ModuleLoader &m_moduleLoader;
     ProductContext &m_product;
     const Deferral m_deferral;
 };
@@ -204,7 +204,6 @@ public:
     Private(LoaderState &loaderState) : loaderState(loaderState) {}
 
     LoaderState &loaderState;
-    ModuleLoader moduleLoader{loaderState};
 };
 
 DependenciesResolver::DependenciesResolver(LoaderState &loaderState)
@@ -213,20 +212,14 @@ DependenciesResolver::~DependenciesResolver() = default;
 
 void DependenciesResolver::resolveDependencies(ProductContext &product, Deferral deferral)
 {
-    DependenciesResolverImpl(d->loaderState, d->moduleLoader, product, deferral).resolve();
-}
-
-void DependenciesResolver::checkDependencyParameterDeclarations(
-    const Item *productItem, const QString &productName) const
-{
-    d->moduleLoader.checkDependencyParameterDeclarations(productItem, productName);
+    DependenciesResolverImpl(d->loaderState, product, deferral).resolve();
 }
 
 Item *DependenciesResolver::loadBaseModule(ProductContext &product, Item *item)
 {
     const auto baseDependency = FullyResolvedDependsItem::makeBaseDependency();
-    Item * const moduleItem = DependenciesResolverImpl(d->loaderState, d->moduleLoader,
-                                                       product, Deferral::NotAllowed)
+    Item * const moduleItem = DependenciesResolverImpl(d->loaderState, product,
+                                                       Deferral::NotAllowed)
             .loadModule(item, baseDependency).moduleItem;
     if (Q_UNLIKELY(!moduleItem))
         throw ErrorInfo(Tr::tr("Cannot load base qbs module."));
@@ -559,7 +552,7 @@ std::pair<Item::Module *, Item *> DependenciesResolverImpl::findExistingModule(
 void DependenciesResolverImpl::updateModule(
     Item::Module &module, const FullyResolvedDependsItem &dependency)
 {
-    m_moduleLoader.forwardParameterDeclarations(dependency.item, m_product.item->modules());
+    forwardParameterDeclarations(dependency.item, m_product.item->modules());
 
     // TODO: Use priorities like for property values. See QBS-1300.
     mergeParameters(module.parameters, dependency.parameters);
@@ -608,9 +601,9 @@ Item *DependenciesResolverImpl::findMatchingModule(
         return nullptr;
     }
 
-    Item *moduleItem = m_moduleLoader.searchAndLoadModuleFile(
-        m_product, dependency.location(), dependency.name, dependency.fallbackMode,
-        dependency.requiredGlobally);
+    Item *moduleItem = searchAndLoadModuleFile(
+                m_loaderState, m_product, dependency.location(), dependency.name,
+                dependency.fallbackMode, dependency.requiredGlobally);
     if (moduleItem) {
         Item * const proto = moduleItem;
         moduleItem = moduleItem->clone();
@@ -886,7 +879,7 @@ std::optional<EvaluatedDependsItem> DependenciesResolverImpl::evaluateDependsIte
     const QStringList multiplexIds = evaluator.stringListValue(
         item, StringConstants::multiplexConfigurationIdsProperty());
     adjustParametersScopes(item, item);
-    m_moduleLoader.forwardParameterDeclarations(item, m_product.item->modules());
+    forwardParameterDeclarations(item, m_product.item->modules());
     const QVariantMap parameters = extractParameters(item);
 
     return EvaluatedDependsItem{
@@ -960,6 +953,38 @@ QVariantMap DependenciesResolverImpl::extractParameters(Item *dependsItem) const
     }
     dependsItem->setProperties(origProperties);
     return result;
+}
+
+void DependenciesResolverImpl::forwardParameterDeclarations(const Item *dependsItem,
+                                                            const Item::Modules &modules)
+{
+    for (auto it = dependsItem->properties().begin(); it != dependsItem->properties().end(); ++it) {
+        if (it.value()->type() != Value::ItemValueType)
+            continue;
+        forwardParameterDeclarations(it.key(),
+                                     std::static_pointer_cast<ItemValue>(it.value())->item(),
+                                     modules);
+    }
+}
+
+void DependenciesResolverImpl::forwardParameterDeclarations(
+        const QualifiedId &moduleName, Item *item, const Item::Modules &modules)
+{
+    auto it = std::find_if(modules.begin(), modules.end(), [&moduleName] (const Item::Module &m) {
+        return m.name == moduleName;
+    });
+    if (it != modules.end()) {
+        item->setPropertyDeclarations(m_loaderState.topLevelProject().parameterDeclarations(
+                                          it->item->rootPrototype()));
+    } else {
+        for (auto it = item->properties().begin(); it != item->properties().end(); ++it) {
+            if (it.value()->type() != Value::ItemValueType)
+                continue;
+            forwardParameterDeclarations(QualifiedId(moduleName) << it.key(),
+                                         std::static_pointer_cast<ItemValue>(it.value())->item(),
+                                         modules);
+        }
+    }
 }
 
 std::list<DependenciesResolvingState> &DependenciesResolverImpl::stateStack()

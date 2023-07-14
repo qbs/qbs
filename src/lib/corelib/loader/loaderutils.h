@@ -41,6 +41,7 @@
 
 #include <language/filetags.h>
 #include <language/forward_decls.h>
+#include <language/item.h>
 #include <language/moduleproviderinfo.h>
 #include <language/propertydeclaration.h>
 #include <language/qualifiedid.h>
@@ -50,6 +51,7 @@
 #include <tools/set.h>
 #include <tools/version.h>
 
+#include <QHash>
 #include <QStringList>
 #include <QVariant>
 
@@ -64,7 +66,6 @@ class SetupProjectParameters;
 namespace Internal {
 class DependenciesResolver;
 class Evaluator;
-class Item;
 class ItemPool;
 class ItemReader;
 class LocalProfiles;
@@ -218,6 +219,23 @@ public:
     ModuleProviderInfo &addModuleProvider(const ModuleProvidersCacheKey &key,
                                           const ModuleProviderInfo &provider);
 
+    void addParameterDeclarations(const Item *moduleProto, const Item::PropertyDeclarationMap &decls);
+    Item::PropertyDeclarationMap parameterDeclarations(Item *moduleProto) const;
+
+    // An empty string means no matching module directory was found.
+    QString findModuleDirectory(const QualifiedId &module, const QString &searchPath,
+                                const std::function<QString()> &findOnDisk);
+
+    QStringList getModuleFilesForDirectory(const QString &dir,
+                                           const std::function<QStringList()> &findOnDisk);
+    void removeModuleFileFromDirectoryCache(const QString &filePath);
+
+    void addUnknownProfilePropertyError(const Item *moduleProto, const ErrorInfo &error);
+    const std::vector<ErrorInfo> &unknownProfilePropertyErrors(const Item *moduleProto) const;
+
+    Item *getModulePrototype(const QString &filePath, const QString &profile,
+                             const std::function<Item *()> &produce);
+
     using ProbeFilter = std::function<bool(const ProbeConstPtr &)>;
     void setOldProjectProbes(const std::vector<ProbeConstPtr> &oldProbes);
     void setOldProductProbes(const QHash<QString, std::vector<ProbeConstPtr>> &oldProbes);
@@ -261,6 +279,19 @@ private:
     // For fast look-up when resolving Depends.productTypes.
     // The contract is that it contains fully handled, error-free, enabled products.
     std::multimap<FileTag, ProductContext *> m_productsByType;
+
+    // The keys are module prototypes.
+    std::unordered_map<const Item *, Item::PropertyDeclarationMap> m_parameterDeclarations;
+    std::unordered_map<const Item *, std::vector<ErrorInfo>> m_unknownProfilePropertyErrors;
+
+    // The keys are search path + module name, the values are directories.
+    QHash<std::pair<QString, QualifiedId>, std::optional<QString>> m_modulePathCache;
+
+    // The keys are file paths, the values are module prototype items accompanied by a profile.
+    std::unordered_map<QString, std::vector<std::pair<Item *, QString>>> m_modulePrototypes;
+
+    std::map<QString, std::optional<QStringList>> m_moduleFilesPerDirectory;
+
 
     struct {
         QHash<QString, std::vector<ProbeConstPtr>> oldProjectProbes;
