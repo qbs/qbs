@@ -39,42 +39,19 @@
 
 #pragma once
 
-#include <tools/pimpl.h>
-#include <tools/set.h>
-
-#include <QtGlobal>
-
-#include <functional>
-
-QT_BEGIN_NAMESPACE
-class QString;
-QT_END_NAMESPACE
-
 namespace qbs::Internal {
 class Item;
 class LoaderState;
 class ProductContext;
-class StoredModuleProviderInfo;
 enum class Deferral;
 
 // Collects the products' dependencies and builds the list of modules from them.
 // Actual loading of module files is offloaded to ModuleLoader.
-class DependenciesResolver
-{
-public:
-    DependenciesResolver(LoaderState &loaderState);
-    ~DependenciesResolver();
+void resolveDependencies(ProductContext &product, Deferral deferral, LoaderState &loaderState);
 
-    void resolveDependencies(ProductContext &product, Deferral deferral);
-
-    // Note: This function is never called for regular loading of the base module into a product,
-    //       but only for the special cases of loading the dummy base module into a project
-    //       and temporarily providing a base module for product multiplexing.
-    Item *loadBaseModule(ProductContext &product, Item *item);
-
-private:
-    class Private;
-    Pimpl<Private> d;
-};
+// Note: This function is never called for regular loading of the base module into a product,
+//       but only for the special cases of loading the dummy base module into a project
+//       and temporarily providing a base module for product multiplexing.
+Item *loadBaseModule(ProductContext &product, Item *item, LoaderState &loaderState);
 
 } // namespace qbs::Internal

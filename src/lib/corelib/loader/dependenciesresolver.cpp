@@ -43,7 +43,6 @@
 #include "loaderutils.h"
 #include "moduleinstantiator.h"
 #include "moduleloader.h"
-#include "moduleproviderloader.h"
 #include "productitemmultiplexer.h"
 
 #include <language/scriptengine.h>
@@ -153,10 +152,10 @@ private:
     void setSearchPathsForProduct(ProductContext &product, LoaderState &loaderState);
 };
 
-class DependenciesResolverImpl
+class DependenciesResolver
 {
 public:
-    DependenciesResolverImpl(LoaderState &loaderState, ProductContext &product, Deferral deferral)
+    DependenciesResolver(LoaderState &loaderState, ProductContext &product, Deferral deferral)
         : m_loaderState(loaderState), m_product(product), m_deferral(deferral) {}
 
     void resolve();
@@ -198,28 +197,15 @@ static QVariantMap safeToVariant(JSContext *ctx, const JSValue &v);
 
 } // namespace
 
-class DependenciesResolver::Private
+void resolveDependencies(ProductContext &product, Deferral deferral, LoaderState &loaderState)
 {
-public:
-    Private(LoaderState &loaderState) : loaderState(loaderState) {}
-
-    LoaderState &loaderState;
-};
-
-DependenciesResolver::DependenciesResolver(LoaderState &loaderState)
-    : d(makePimpl<Private>(loaderState)) {}
-DependenciesResolver::~DependenciesResolver() = default;
-
-void DependenciesResolver::resolveDependencies(ProductContext &product, Deferral deferral)
-{
-    DependenciesResolverImpl(d->loaderState, product, deferral).resolve();
+    DependenciesResolver(loaderState, product, deferral).resolve();
 }
 
-Item *DependenciesResolver::loadBaseModule(ProductContext &product, Item *item)
+Item *loadBaseModule(ProductContext &product, Item *item, LoaderState &loaderState)
 {
     const auto baseDependency = FullyResolvedDependsItem::makeBaseDependency();
-    Item * const moduleItem = DependenciesResolverImpl(d->loaderState, product,
-                                                       Deferral::NotAllowed)
+    Item * const moduleItem = DependenciesResolver(loaderState, product, Deferral::NotAllowed)
             .loadModule(item, baseDependency).moduleItem;
     if (Q_UNLIKELY(!moduleItem))
         throw ErrorInfo(Tr::tr("Cannot load base qbs module."));
@@ -228,7 +214,7 @@ Item *DependenciesResolver::loadBaseModule(ProductContext &product, Item *item)
 
 namespace {
 
-void DependenciesResolverImpl::resolve()
+void DependenciesResolver::resolve()
 {
     AccumulatingTimer timer(m_loaderState.parameters().logElapsedTime()
                             ? &m_product.timingData.dependenciesResolving : nullptr);
@@ -299,7 +285,7 @@ void DependenciesResolverImpl::resolve()
     m_product.dependenciesContext->dependenciesResolved = true;
 }
 
-void DependenciesResolverImpl::evaluateNextDependsItem()
+void DependenciesResolver::evaluateNextDependsItem()
 {
     auto &state = stateStack().front();
     while (!state.pendingDependsItems.empty()) {
@@ -317,7 +303,7 @@ void DependenciesResolverImpl::evaluateNextDependsItem()
     }
 }
 
-HandleDependency DependenciesResolverImpl::handleResolvedDependencies()
+HandleDependency DependenciesResolver::handleResolvedDependencies()
 {
     DependenciesResolvingState &state = stateStack().front();
     while (!state.pendingResolvedDependencies.empty()) {
@@ -407,7 +393,7 @@ HandleDependency DependenciesResolverImpl::handleResolvedDependencies()
 // created module is added to the module list of the product item and additionally to the
 // loading item's one, if it is not the product. Its name is also injected into the respective
 // scopes.
-LoadModuleResult DependenciesResolverImpl::loadModule(
+LoadModuleResult DependenciesResolver::loadModule(
     Item *loadingItem, const FullyResolvedDependsItem &dependency)
 {
     qCDebug(lcModuleLoader) << "loadModule name:" << dependency.name.toString()
@@ -524,7 +510,7 @@ LoadModuleResult DependenciesResolverImpl::loadModule(
     return {moduleItem, nullptr, HandleDependency::Use};
 }
 
-std::pair<Item::Module *, Item *> DependenciesResolverImpl::findExistingModule(
+std::pair<Item::Module *, Item *> DependenciesResolver::findExistingModule(
     const FullyResolvedDependsItem &dependency, Item *item)
 {
     if (!item) // Happens if and only if called via loadBaseModule().
@@ -549,7 +535,7 @@ std::pair<Item::Module *, Item *> DependenciesResolverImpl::findExistingModule(
     return {nullptr, moduleWithSameName};
 }
 
-void DependenciesResolverImpl::updateModule(
+void DependenciesResolver::updateModule(
     Item::Module &module, const FullyResolvedDependsItem &dependency)
 {
     forwardParameterDeclarations(dependency.item, m_product.item->modules());
@@ -563,7 +549,7 @@ void DependenciesResolverImpl::updateModule(
         module.maxDependsChainLength = stateStack().size();
 }
 
-ProductContext *DependenciesResolverImpl::findMatchingProduct(
+ProductContext *DependenciesResolver::findMatchingProduct(
     const FullyResolvedDependsItem &dependency)
 {
     const auto constraint = [this, &dependency](ProductContext &product) {
@@ -580,7 +566,7 @@ ProductContext *DependenciesResolverImpl::findMatchingProduct(
                 dependency.name.toString(), constraint);
 }
 
-Item *DependenciesResolverImpl::findMatchingModule(
+Item *DependenciesResolver::findMatchingModule(
     const FullyResolvedDependsItem &dependency)
 {
     // If we can tell that this is supposed to be a product dependency, we can skip
@@ -616,7 +602,7 @@ Item *DependenciesResolverImpl::findMatchingModule(
     return moduleItem;
 }
 
-std::pair<bool, HandleDependency> DependenciesResolverImpl::checkProductDependency(
+std::pair<bool, HandleDependency> DependenciesResolver::checkProductDependency(
     const FullyResolvedDependsItem &depSpec, const ProductContext &dep)
 {
     // Optimization: If we already checked the product earlier and then deferred, we don't
@@ -660,7 +646,7 @@ std::pair<bool, HandleDependency> DependenciesResolverImpl::checkProductDependen
     return {true, HandleDependency::Use};
 }
 
-void DependenciesResolverImpl::checkModule(
+void DependenciesResolver::checkModule(
     const FullyResolvedDependsItem &dependency, Item *moduleItem, ProductContext *productDep)
 {
     // When loading a pseudo or temporary qbs module in early setup via loadBaseModule(),
@@ -697,7 +683,7 @@ void DependenciesResolverImpl::checkModule(
     checkForModuleNamePrefixCollision(dependency);
 }
 
-void DependenciesResolverImpl::adjustDependsItemForMultiplexing(Item *dependsItem)
+void DependenciesResolver::adjustDependsItemForMultiplexing(Item *dependsItem)
 {
     if (m_product.name.startsWith(StringConstants::shadowProductPrefix()))
         return;
@@ -816,7 +802,7 @@ void DependenciesResolverImpl::adjustDependsItemForMultiplexing(Item *dependsIte
 
 }
 
-std::optional<EvaluatedDependsItem> DependenciesResolverImpl::evaluateDependsItem(Item *item)
+std::optional<EvaluatedDependsItem> DependenciesResolver::evaluateDependsItem(Item *item)
 {
     Evaluator &evaluator = m_loaderState.evaluator();
     if (!m_product.project->topLevelProject->checkItemCondition(item, evaluator)) {
@@ -892,7 +878,7 @@ std::optional<EvaluatedDependsItem> DependenciesResolverImpl::evaluateDependsIte
 // Depends.profiles, as well as internally set up multiplexing axes.
 // Each entry in the resulting queue corresponds to exactly one product or module to pull in.
 std::queue<FullyResolvedDependsItem>
-DependenciesResolverImpl::multiplexDependency(const EvaluatedDependsItem &dependency)
+DependenciesResolver::multiplexDependency(const EvaluatedDependsItem &dependency)
 {
     std::queue<FullyResolvedDependsItem> dependencies;
     if (!dependency.productTypes.empty()) {
@@ -931,7 +917,7 @@ DependenciesResolverImpl::multiplexDependency(const EvaluatedDependsItem &depend
     return dependencies;
 }
 
-QVariantMap DependenciesResolverImpl::extractParameters(Item *dependsItem) const
+QVariantMap DependenciesResolver::extractParameters(Item *dependsItem) const
 {
     QVariantMap result;
     const Item::PropertyMap &itemProperties = filterItemProperties(dependsItem->properties());
@@ -955,7 +941,7 @@ QVariantMap DependenciesResolverImpl::extractParameters(Item *dependsItem) const
     return result;
 }
 
-void DependenciesResolverImpl::forwardParameterDeclarations(const Item *dependsItem,
+void DependenciesResolver::forwardParameterDeclarations(const Item *dependsItem,
                                                             const Item::Modules &modules)
 {
     for (auto it = dependsItem->properties().begin(); it != dependsItem->properties().end(); ++it) {
@@ -967,7 +953,7 @@ void DependenciesResolverImpl::forwardParameterDeclarations(const Item *dependsI
     }
 }
 
-void DependenciesResolverImpl::forwardParameterDeclarations(
+void DependenciesResolver::forwardParameterDeclarations(
         const QualifiedId &moduleName, Item *item, const Item::Modules &modules)
 {
     auto it = std::find_if(modules.begin(), modules.end(), [&moduleName] (const Item::Module &m) {
@@ -987,13 +973,13 @@ void DependenciesResolverImpl::forwardParameterDeclarations(
     }
 }
 
-std::list<DependenciesResolvingState> &DependenciesResolverImpl::stateStack()
+std::list<DependenciesResolvingState> &DependenciesResolver::stateStack()
 {
     QBS_CHECK(m_product.dependenciesContext);
     return static_cast<DependenciesContextImpl *>(m_product.dependenciesContext.get())->stateStack;
 }
 
-void DependenciesResolverImpl::checkForModuleNamePrefixCollision(
+void DependenciesResolver::checkForModuleNamePrefixCollision(
     const FullyResolvedDependsItem &dependency)
 {
     if (!m_product.item)
@@ -1019,7 +1005,7 @@ void DependenciesResolverImpl::checkForModuleNamePrefixCollision(
     }
 }
 
-Item::Module DependenciesResolverImpl::createModule(
+Item::Module DependenciesResolver::createModule(
     const FullyResolvedDependsItem &dependency, Item *item, ProductContext *productDep)
 {
     Item::Module m;

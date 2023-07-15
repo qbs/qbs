@@ -148,7 +148,7 @@ void ProductsCollector::Private::handleProject(Item *projectItem, ProjectContext
     dummyProduct.moduleProperties = parameters.finalBuildConfigurationTree();
     dummyProduct.profileModuleProperties = dummyProduct.moduleProperties;
     dummyProduct.profileName = parameters.topLevelProfile();
-    loaderState.dependenciesResolver().loadBaseModule(dummyProduct, projectItem);
+    loadBaseModule(dummyProduct, projectItem, loaderState);
 
     projectItem->overrideProperties(parameters.overriddenValuesTree(),
                                     StringConstants::projectPrefix(), parameters, logger);
@@ -711,7 +711,7 @@ ProductsCollector::Private::TempBaseModuleAttacher::TempBaseModuleAttacher(
     if (qbsValue)
         m_origQbsValue = qbsValue->clone();
 
-    m_tempBaseModule = d->loaderState.dependenciesResolver().loadBaseModule(product, m_productItem);
+    m_tempBaseModule = loadBaseModule(product, m_productItem, d->loaderState);
 }
 
 void ProductsCollector::Private::TempBaseModuleAttacher::drop()

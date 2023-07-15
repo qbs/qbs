@@ -64,7 +64,6 @@
 namespace qbs {
 class SetupProjectParameters;
 namespace Internal {
-class DependenciesResolver;
 class Evaluator;
 class ItemPool;
 class ItemReader;
@@ -342,7 +341,6 @@ public:
                 Logger &logger);
     ~LoaderState();
 
-    DependenciesResolver &dependenciesResolver();
     Evaluator &evaluator();
     ItemPool &itemPool();
     ItemReader &itemReader();

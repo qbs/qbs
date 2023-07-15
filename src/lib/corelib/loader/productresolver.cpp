@@ -202,7 +202,7 @@ void ProductResolverStage1::start()
         }
     }
 
-    m_loaderState.dependenciesResolver().resolveDependencies(m_product, m_deferral);
+    resolveDependencies(m_product, m_deferral, m_loaderState);
     QBS_CHECK(m_product.dependenciesContext);
     if (!m_product.dependenciesContext->dependenciesResolved)
         return;

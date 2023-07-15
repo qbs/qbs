@@ -39,7 +39,6 @@
 
 #include "loaderutils.h"
 
-#include "dependenciesresolver.h"
 #include "itemreader.h"
 #include "localprofiles.h"
 #include "moduleinstantiator.h"
@@ -491,8 +490,7 @@ public:
             Evaluator &evaluator, Logger &logger)
         : parameters(parameters), itemPool(itemPool), evaluator(evaluator), logger(logger),
           itemReader(q), propertyMerger(q), localProfiles(q),
-          moduleInstantiator(q), dependenciesResolver(q),
-          multiplexer(q, [this](Item *productItem) {
+          moduleInstantiator(q), multiplexer(q, [this](Item *productItem) {
             return moduleInstantiator.retrieveQbsItem(productItem);
           })
     {}
@@ -507,7 +505,6 @@ public:
     ModulePropertyMerger propertyMerger;
     LocalProfiles localProfiles;
     ModuleInstantiator moduleInstantiator;
-    DependenciesResolver dependenciesResolver;
     ProductItemMultiplexer multiplexer;
 };
 
@@ -520,7 +517,6 @@ LoaderState::LoaderState(const SetupProjectParameters &parameters, ItemPool &ite
 
 LoaderState::~LoaderState() = default;
 const SetupProjectParameters &LoaderState::parameters() const { return d->parameters; }
-DependenciesResolver &LoaderState::dependenciesResolver() { return d->dependenciesResolver; }
 ItemPool &LoaderState::itemPool() { return d->itemPool; }
 Evaluator &LoaderState::evaluator() { return d->evaluator; }
 Logger &LoaderState::logger() { return d->logger; }
