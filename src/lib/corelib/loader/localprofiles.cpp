@@ -52,34 +52,26 @@
 #include <tools/stringconstants.h>
 
 namespace qbs::Internal {
-class LocalProfiles::Private
+class LocalProfiles
 {
 public:
-    Private(LoaderState &loaderState) : loaderState(loaderState) {}
+    LocalProfiles(LoaderState &loaderState) : m_loaderState(loaderState) {}
 
+    void collectProfiles(Item *productOrProject, Item *projectScope);
+
+private:
     void handleProfile(Item *profileItem);
     void evaluateProfileValues(const QualifiedId &namePrefix, Item *item, Item *profileItem,
                                QVariantMap &values);
-    void collectProfiles(Item *productOrProject, Item *projectScope);
-
-    LoaderState &loaderState;
-    QVariantMap profiles;
+    LoaderState &m_loaderState;
 };
 
-LocalProfiles::LocalProfiles(LoaderState &loaderState) : d(makePimpl<Private>(loaderState)) {}
-LocalProfiles::~LocalProfiles() = default;
-
-void LocalProfiles::collectProfilesFromItems(Item *productOrProject, Item *projectScope)
+void collectProfilesFromItems(Item *productOrProject, Item *projectScope, LoaderState &loaderState)
 {
-    d->collectProfiles(productOrProject, projectScope);
+    LocalProfiles(loaderState).collectProfiles(productOrProject, projectScope);
 }
 
-const QVariantMap &LocalProfiles::profiles() const
-{
-    return d->profiles;
-}
-
-void LocalProfiles::Private::handleProfile(Item *profileItem)
+void LocalProfiles::handleProfile(Item *profileItem)
 {
     QVariantMap values;
     evaluateProfileValues(QualifiedId(), profileItem, profileItem, values);
@@ -93,15 +85,11 @@ void LocalProfiles::Private::handleProfile(Item *profileItem)
         throw ErrorInfo(Tr::tr("Reserved name '%1' cannot be used for an actual profile.")
                             .arg(profileName), profileItem->location());
     }
-    if (profiles.contains(profileName)) {
-        throw ErrorInfo(Tr::tr("Local profile '%1' redefined.").arg(profileName),
-                        profileItem->location());
-    }
-    profiles.insert(profileName, values);
+    m_loaderState.topLevelProject().addLocalProfile(profileName, values, profileItem->location());
 }
 
-void LocalProfiles::Private::evaluateProfileValues(const QualifiedId &namePrefix, Item *item,
-                                                   Item *profileItem, QVariantMap &values)
+void LocalProfiles::evaluateProfileValues(const QualifiedId &namePrefix, Item *item,
+                                          Item *profileItem, QVariantMap &values)
 {
     const Item::PropertyMap &props = item->properties();
     for (auto it = props.begin(); it != props.end(); ++it) {
@@ -119,16 +107,16 @@ void LocalProfiles::Private::evaluateProfileValues(const QualifiedId &namePrefix
         case Value::JSSourceValueType:
             if (item != profileItem)
                 item->setScope(profileItem);
-            const ScopedJsValue sv(loaderState.evaluator().engine()->context(),
-                                   loaderState.evaluator().value(item, it.key()));
+            const ScopedJsValue sv(m_loaderState.evaluator().engine()->context(),
+                                   m_loaderState.evaluator().value(item, it.key()));
             values.insert(name.join(QLatin1Char('.')),
-                          getJsVariant(loaderState.evaluator().engine()->context(), sv));
+                          getJsVariant(m_loaderState.evaluator().engine()->context(), sv));
             break;
         }
     }
 }
 
-void LocalProfiles::Private::collectProfiles(Item *productOrProject, Item *projectScope)
+void LocalProfiles::collectProfiles(Item *productOrProject, Item *projectScope)
 {
     Item * scope = productOrProject->type() == ItemType::Project ? projectScope : nullptr;
     for (auto it = productOrProject->children().begin();
@@ -146,7 +134,7 @@ void LocalProfiles::Private::collectProfiles(Item *productOrProject, Item *proje
             try {
                 handleProfile(childItem);
             } catch (const ErrorInfo &e) {
-                handlePropertyError(e, loaderState.parameters(), loaderState.logger());
+                handlePropertyError(e, m_loaderState.parameters(), m_loaderState.logger());
             }
             it = productOrProject->children().erase(it); // TODO: delete item and scope
         } else {

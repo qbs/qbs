@@ -39,27 +39,11 @@
 
 #pragma once
 
-#include <tools/pimpl.h>
-#include <QVariantMap>
-
 namespace qbs::Internal {
 class Item;
 class LoaderState;
 
-// This class evaluates all Profile items encountered in the project tree and holds the results.
-class LocalProfiles
-{
-public:
-    LocalProfiles(LoaderState &loaderState);
-    ~LocalProfiles();
-
-    void collectProfilesFromItems(Item *productOrProject, Item *projectScope);
-    const QVariantMap &profiles() const;
-
-private:
-    class Private;
-    Pimpl<Private> d;
-};
+void collectProfilesFromItems(Item *productOrProject, Item *projectScope, LoaderState &loaderState);
 
 } // namespace qbs::Internal
 

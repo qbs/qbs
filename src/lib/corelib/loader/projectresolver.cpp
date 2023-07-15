@@ -39,11 +39,8 @@
 
 #include "projectresolver.h"
 
-#include "dependenciesresolver.h"
 #include "itemreader.h"
 #include "loaderutils.h"
-#include "localprofiles.h"
-#include "probesresolver.h"
 #include "productscollector.h"
 #include "productsresolver.h"
 
@@ -294,7 +291,7 @@ TopLevelProjectPtr ProjectResolver::Private::resolveTopLevelProject()
     project->buildSystemFiles = state.itemReader().filesRead()
             - state.topLevelProject().tempQbsFiles();
     project->profileConfigs = state.topLevelProject().profileConfigs();
-    const QVariantMap &profiles = state.localProfiles().profiles();
+    const QVariantMap &profiles = state.topLevelProject().localProfiles();
     for (auto it = profiles.begin(); it != profiles.end(); ++it)
         project->profileConfigs.remove(it.key());
     project->probes = state.topLevelProject().projectLevelProbes();

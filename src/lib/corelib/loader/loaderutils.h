@@ -67,7 +67,6 @@ namespace Internal {
 class Evaluator;
 class ItemPool;
 class ItemReader;
-class LocalProfiles;
 class Logger;
 class ModuleInstantiator;
 class ModulePropertyMerger;
@@ -235,6 +234,10 @@ public:
     Item *getModulePrototype(const QString &filePath, const QString &profile,
                              const std::function<Item *()> &produce);
 
+    void addLocalProfile(const QString &name, const QVariantMap &values,
+                         const CodeLocation &location);
+    const QVariantMap localProfiles() { return m_localProfiles; }
+
     using ProbeFilter = std::function<bool(const ProbeConstPtr &)>;
     void setOldProjectProbes(const std::vector<ProbeConstPtr> &oldProbes);
     void setOldProductProbes(const QHash<QString, std::vector<ProbeConstPtr>> &oldProbes);
@@ -274,6 +277,7 @@ private:
     TimingData m_timingData;
     Set<QString> m_tempQbsFiles;
     ModuleProvidersCache m_moduleProvidersCache;
+    QVariantMap m_localProfiles;
 
     // For fast look-up when resolving Depends.productTypes.
     // The contract is that it contains fully handled, error-free, enabled products.
@@ -344,7 +348,6 @@ public:
     Evaluator &evaluator();
     ItemPool &itemPool();
     ItemReader &itemReader();
-    LocalProfiles &localProfiles();
     Logger &logger();
     ModuleInstantiator &moduleInstantiator();
     ProductItemMultiplexer &multiplexer();

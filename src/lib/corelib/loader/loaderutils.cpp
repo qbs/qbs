@@ -40,7 +40,6 @@
 #include "loaderutils.h"
 
 #include "itemreader.h"
-#include "localprofiles.h"
 #include "moduleinstantiator.h"
 #include "modulepropertymerger.h"
 #include "productitemmultiplexer.h"
@@ -436,6 +435,13 @@ Item *TopLevelProjectContext::getModulePrototype(const QString &filePath, const 
     return module;
 }
 
+void TopLevelProjectContext::addLocalProfile(const QString &name, const QVariantMap &values, const CodeLocation &location)
+{
+    if (m_localProfiles.contains(name))
+        throw ErrorInfo(Tr::tr("Local profile '%1' redefined.").arg(name), location);
+    m_localProfiles.insert(name, values);
+}
+
 void TopLevelProjectContext::setOldProjectProbes(const std::vector<ProbeConstPtr> &oldProbes)
 {
     for (const ProbeConstPtr& probe : oldProbes)
@@ -489,7 +495,7 @@ public:
     Private(LoaderState &q, const SetupProjectParameters &parameters, ItemPool &itemPool,
             Evaluator &evaluator, Logger &logger)
         : parameters(parameters), itemPool(itemPool), evaluator(evaluator), logger(logger),
-          itemReader(q), propertyMerger(q), localProfiles(q),
+          itemReader(q), propertyMerger(q),
           moduleInstantiator(q), multiplexer(q, [this](Item *productItem) {
             return moduleInstantiator.retrieveQbsItem(productItem);
           })
@@ -503,7 +509,6 @@ public:
     TopLevelProjectContext topLevelProject;
     ItemReader itemReader;
     ModulePropertyMerger propertyMerger;
-    LocalProfiles localProfiles;
     ModuleInstantiator moduleInstantiator;
     ProductItemMultiplexer multiplexer;
 };
@@ -523,7 +528,6 @@ Logger &LoaderState::logger() { return d->logger; }
 ModuleInstantiator &LoaderState::moduleInstantiator() { return d->moduleInstantiator; }
 ProductItemMultiplexer &LoaderState::multiplexer() { return d->multiplexer; }
 ItemReader &LoaderState::itemReader() { return d->itemReader; }
-LocalProfiles &LoaderState::localProfiles() { return d->localProfiles; }
 ModulePropertyMerger &LoaderState::propertyMerger() { return d->propertyMerger; }
 TopLevelProjectContext &LoaderState::topLevelProject() { return d->topLevelProject; }
 

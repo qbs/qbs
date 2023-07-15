@@ -195,7 +195,7 @@ void ProductsCollector::Private::handleProject(Item *projectItem, ProjectContext
     ProbesResolver(loaderState).resolveProbes(dummyProduct, projectItem);
     projectContext.topLevelProject->addProjectLevelProbes(dummyProduct.probes);
 
-    loaderState.localProfiles().collectProfilesFromItems(projectItem, projectContext.scope);
+    collectProfilesFromItems(projectItem, projectContext.scope, loaderState);
 
     QList<Item *> multiplexedProducts;
     for (Item * const child : projectItem->children()) {
@@ -316,7 +316,7 @@ void ProductsCollector::Private::prepareProduct(ProjectContext &projectContext, 
             = topLevelProject.profileConfig(productContext.profileName);
     if (!flatConfig) {
         const Profile profile(productContext.profileName, &settings,
-                              loaderState.localProfiles().profiles());
+                              loaderState.topLevelProject().localProfiles());
         if (!profile.exists()) {
             ErrorInfo error(Tr::tr("Profile '%1' does not exist.").arg(profile.name()),
                             productItem->location());
@@ -504,7 +504,7 @@ QList<Item *> ProductsCollector::Private::loadReferencedFile(
     QList<Item *> loadedItems;
     loadedItems << subItem;
     if (subItem->type() == ItemType::Product) {
-        loaderState.localProfiles().collectProfilesFromItems(subItem, dummyContext.project->scope);
+        collectProfilesFromItems(subItem, dummyContext.project->scope, loaderState);
         loadedItems << multiplexProductItem(dummyContext, subItem);
     }
     return loadedItems;
