@@ -49,6 +49,8 @@
 #include <tools/set.h>
 #include <tools/setupprojectparameters.h>
 
+#include <unordered_set>
+
 namespace qbs::Internal {
 class ModulePropertyMerger::Private
 {
@@ -86,21 +88,28 @@ void ModulePropertyMerger::doFinalMerge(const Item *productItem)
 {
     AccumulatingTimer t(d->loaderState.parameters().logElapsedTime() ? &d->elapsedTime : nullptr);
 
-    Set<const Item *> itemsToInvalidate;
+    std::unordered_set<const Item *> itemsToInvalidate;
     for (const Item::Module &module : productItem->modules()) {
         if (d->doFinalMerge(productItem, module.item))
-            itemsToInvalidate << module.item;
+            itemsToInvalidate.insert(module.item);
     }
-    const auto collectDependentItems = [&itemsToInvalidate](const Item *item,
-                                                            const auto &collect) -> bool {
-        const bool alreadyInSet = itemsToInvalidate.contains(item);
+
+    // For each module item, if it requires invalidation, we also add modules that depend on
+    // that module item, all the way up to the Product item.
+    std::unordered_set<const Item *> visitedItems;
+    const auto collectDependentItems =
+        [&itemsToInvalidate, &visitedItems](const Item *item, const auto &collect) -> bool
+    {
+        const bool alreadyInSet = itemsToInvalidate.count(item);
+        if (!visitedItems.insert(item).second) // item handled already
+            return alreadyInSet;
         bool addItem = false;
         for (const Item::Module &m : item->modules()) {
             if (collect(m.item, collect))
                 addItem = true;
         }
         if (addItem && !alreadyInSet)
-            itemsToInvalidate << item;
+            itemsToInvalidate.insert(item);
         return addItem || alreadyInSet;
     };
     collectDependentItems(productItem, collectDependentItems);
