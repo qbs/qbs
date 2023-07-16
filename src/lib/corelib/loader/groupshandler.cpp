@@ -158,8 +158,7 @@ void GroupsHandler::propagateModulesFromParent(Item *group)
 
     // Step 1: "Instantiate" the product's modules for the group.
     for (Item::Module m : group->parent()->modules()) {
-        Item * const targetItem = m_loaderState.moduleInstantiator()
-                .retrieveModuleInstanceItem(group, m.name);
+        Item * const targetItem = retrieveModuleInstanceItem(group, m.name, m_loaderState);
         QBS_CHECK(targetItem->type() == ItemType::ModuleInstancePlaceholder);
         targetItem->setPrototype(m.item);
 

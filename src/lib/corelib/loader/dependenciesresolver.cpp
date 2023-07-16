@@ -462,10 +462,9 @@ LoadModuleResult DependenciesResolver::loadModule(
         loadingName = loadingItemOrigin.name.toString() + loadingItemOrigin.multiplexId
                       + loadingItemOrigin.profile;
     }
-    m_loaderState.moduleInstantiator().instantiate({
-        m_product, loadingItem, loadingName, moduleItem, moduleWithSameName,
+    instantiateModule({m_product, loadingItem, loadingName, moduleItem, moduleWithSameName,
         productDep ? productDep->item : nullptr, dependency.name, dependency.id(),
-        bool(existingModule)});
+        bool(existingModule)}, m_loaderState);
 
     // At this point, a null module item is only possible for a non-required dependency.
     // Note that we still needed to to the instantiation above, as that injects the module

@@ -39,7 +39,6 @@
 
 #pragma once
 
-#include <tools/pimpl.h>
 #include <QtGlobal>
 
 QT_BEGIN_NAMESPACE
@@ -52,41 +51,32 @@ class LoaderState;
 class ProductContext;
 class QualifiedId;
 
-// This class is responsible for setting up a proper module instance from a bunch of items:
+class InstantiationContext {
+public:
+    ProductContext &product;
+    Item * const loadingItem;
+    const QString &loadingName;
+    Item * const module;
+    Item * const moduleWithSameName;
+    Item * const exportingProduct;
+    const QualifiedId &moduleName;
+    const QString &id;
+    const bool alreadyLoaded;
+};
+
+// This function is responsible for setting up a proper module instance from a bunch of items:
 //    - Set the item type to ItemType::ModuleInstance (from Module or Export).
 //    - Apply possible command-line overrides for module properties.
 //    - Replace a possible module instance placeholder in the loading item with the actual instance
 //      and merge their values employing the ModulePropertyMerger.
 //    - Setting up the module instance scope.
-// In addition, it also provides helper functions for retrieving/setting module instance items
-// for special purposes.
-class ModuleInstantiator
-{
-public:
-    ModuleInstantiator(LoaderState &loaderState);
-    ~ModuleInstantiator();
+void instantiateModule(const InstantiationContext &context, LoaderState &loaderState);
 
-    struct Context {
-        ProductContext &product;
-        Item * const loadingItem;
-        const QString &loadingName;
-        Item * const module;
-        Item * const moduleWithSameName;
-        Item * const exportingProduct;
-        const QualifiedId &moduleName;
-        const QString &id;
-        const bool alreadyLoaded;
-    };
-    void instantiate(const Context &context);
-
-    // Note that these will also create the respective item value if it does not exist yet.
-    Item *retrieveModuleInstanceItem(Item *containerItem, const QualifiedId &name);
-    Item *retrieveQbsItem(Item *containerItem);
-
-private:
-    class Private;
-    Pimpl<Private> d;
-};
+// Helper functions for retrieving/setting module instance items for special purposes.
+// Note that these will also create the respective item value if it does not exist yet.
+Item *retrieveModuleInstanceItem(Item *containerItem, const QualifiedId &name,
+                                 LoaderState &loaderState);
+Item *retrieveQbsItem(Item *containerItem, LoaderState &loaderState);
 
 } // namespace qbs::Internal
 

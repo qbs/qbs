@@ -496,8 +496,8 @@ public:
             Evaluator &evaluator, Logger &logger)
         : parameters(parameters), itemPool(itemPool), evaluator(evaluator), logger(logger),
           itemReader(q), propertyMerger(q),
-          moduleInstantiator(q), multiplexer(q, [this](Item *productItem) {
-            return moduleInstantiator.retrieveQbsItem(productItem);
+          multiplexer(q, [&q](Item *productItem) {
+            return retrieveQbsItem(productItem, q);
           })
     {}
 
@@ -509,7 +509,6 @@ public:
     TopLevelProjectContext topLevelProject;
     ItemReader itemReader;
     ModulePropertyMerger propertyMerger;
-    ModuleInstantiator moduleInstantiator;
     ProductItemMultiplexer multiplexer;
 };
 
@@ -525,7 +524,6 @@ const SetupProjectParameters &LoaderState::parameters() const { return d->parame
 ItemPool &LoaderState::itemPool() { return d->itemPool; }
 Evaluator &LoaderState::evaluator() { return d->evaluator; }
 Logger &LoaderState::logger() { return d->logger; }
-ModuleInstantiator &LoaderState::moduleInstantiator() { return d->moduleInstantiator; }
 ProductItemMultiplexer &LoaderState::multiplexer() { return d->multiplexer; }
 ItemReader &LoaderState::itemReader() { return d->itemReader; }
 ModulePropertyMerger &LoaderState::propertyMerger() { return d->propertyMerger; }

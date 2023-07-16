@@ -55,38 +55,39 @@
 #include <utility>
 
 namespace qbs::Internal {
-class ModuleInstantiator::Private
+
+static std::pair<const Item *, Item *>
+getOrSetModuleInstanceItem(Item *container, Item *moduleItem, const QualifiedId &moduleName,
+                           const QString &id, bool replace, LoaderState &loaderState);
+
+class ModuleInstantiator
 {
 public:
-    Private(LoaderState &loaderState) : loaderState(loaderState) {}
+    ModuleInstantiator(const InstantiationContext &context, LoaderState &loaderState)
+        : context(context), loaderState(loaderState) {}
 
-    void overrideProperties(const Context &context);
-    void setupScope(const Context &context);
-    void exchangePlaceholderItem(ProductContext &product, Item *loadingItem, const QString &loadingName,
-        Item *moduleItemForItemValues, const QualifiedId &moduleName, const QString &id,
-        bool isProductDependency, bool alreadyLoaded);
-    std::pair<const Item *, Item *>
-    getOrSetModuleInstanceItem(Item *container, Item *moduleItem, const QualifiedId &moduleName,
-                               const QString &id, bool replace);
+    void instantiate();
 
+private:
+    void overrideProperties();
+    void setupScope();
+    void exchangePlaceholderItem(Item *loadingItem, Item *moduleItemForItemValues);
+
+    const InstantiationContext &context;
     LoaderState &loaderState;
 };
 
-ModuleInstantiator::ModuleInstantiator(LoaderState &loaderState)
-    : d(makePimpl<Private>(loaderState)) {}
-ModuleInstantiator::~ModuleInstantiator() = default;
-
-void ModuleInstantiator::instantiate(const Context &context)
+void ModuleInstantiator::instantiate()
 {
-    AccumulatingTimer timer(d->loaderState.parameters().logElapsedTime()
+    AccumulatingTimer timer(loaderState.parameters().logElapsedTime()
                             ? &context.product.timingData.moduleInstantiation : nullptr);
 
     // This part needs to be done only once per module and product, and only if the module
     // was successfully loaded.
     if (context.module && !context.alreadyLoaded) {
         context.module->setType(ItemType::ModuleInstance);
-        d->overrideProperties(context);
-        d->setupScope(context);
+        overrideProperties();
+        setupScope();
     }
 
     // This strange-looking code deals with the fact that our syntax cannot properly handle
@@ -108,35 +109,28 @@ void ModuleInstantiator::instantiate(const Context &context)
     //  }
     // It's debatable whether that's a good feature, but it has been working (accidentally?)
     // for a long time, and removing it now would break a lot of existing projects.
-    d->exchangePlaceholderItem(
-        context.product, context.loadingItem, context.loadingName, moduleItemForItemValues,
-        context.moduleName, context.id, context.exportingProduct, context.alreadyLoaded);
+    exchangePlaceholderItem(context.loadingItem, moduleItemForItemValues);
 
     if (!context.alreadyLoaded && context.product.item
             && context.product.item != context.loadingItem) {
-        d->exchangePlaceholderItem(
-            context.product, context.product.item, context.product.name, moduleItemForItemValues,
-            context.moduleName, context.id, context.exportingProduct, context.alreadyLoaded);
+        exchangePlaceholderItem(context.product.item, moduleItemForItemValues);
     }
 }
 
-void ModuleInstantiator::Private::exchangePlaceholderItem(
-    ProductContext &product, Item *loadingItem, const QString &loadingName,
-    Item *moduleItemForItemValues, const QualifiedId &moduleName, const QString &id,
-    bool isProductModule, bool alreadyLoaded)
+void ModuleInstantiator::exchangePlaceholderItem(Item *loadingItem, Item *moduleItemForItemValues)
 {
     // If we have a module item, set an item value pointing to it as a property on the loading item.
     // Evict a possibly existing placeholder item, and return it to us, so we can merge its values
     // into the instance.
     const auto &[oldItem, newItem] = getOrSetModuleInstanceItem(
-        loadingItem, moduleItemForItemValues, moduleName, id, true);
+        loadingItem, moduleItemForItemValues, context.moduleName, context.id, true, loaderState);
 
     // The new item always exists, even if we don't have a module item. In that case, the
     // function created a placeholder item for us, which we then have to turn into a
     // non-present module.
     QBS_CHECK(newItem);
     if (!moduleItemForItemValues) {
-        createNonPresentModule(loaderState.itemPool(), moduleName.toString(),
+        createNonPresentModule(loaderState.itemPool(), context.moduleName.toString(),
                                QLatin1String("not found"), newItem);
         return;
     }
@@ -149,7 +143,7 @@ void ModuleInstantiator::Private::exchangePlaceholderItem(
     //      (see getOrSetModuleInstanceItem() below for details).
     if (oldItem == newItem) {
         QBS_CHECK(oldItem->type() == ItemType::ModuleInstance);
-        QBS_CHECK(alreadyLoaded || isProductModule);
+        QBS_CHECK(context.alreadyLoaded || context.exportingProduct);
         return;
     }
 
@@ -173,93 +167,26 @@ void ModuleInstantiator::Private::exchangePlaceholderItem(
     }
 
     // Now merge the locally attached values into the actual module instance.
-    loaderState.propertyMerger().mergeFromLocalInstance(product, loadingItem, loadingName,
-                                                        oldItem, moduleItemForItemValues);
+    loaderState.propertyMerger().mergeFromLocalInstance(
+        context.product, loadingItem, context.loadingName, oldItem, moduleItemForItemValues);
 
     // TODO: We'd like to delete the placeholder item here, because it's not
     //       being referenced anymore and there's a lot of them. However, this
     //       is not supported by ItemPool. Investigate the use of std::pmr.
 }
 
-Item *ModuleInstantiator::retrieveModuleInstanceItem(Item *containerItem, const QualifiedId &name)
+Item *retrieveModuleInstanceItem(Item *containerItem, const QualifiedId &name,
+                                 LoaderState &loaderState)
 {
-    return d->getOrSetModuleInstanceItem(containerItem, nullptr, name, {}, false).second;
+    return getOrSetModuleInstanceItem(containerItem, nullptr, name, {}, false, loaderState).second;
 }
 
-Item *ModuleInstantiator::retrieveQbsItem(Item *containerItem)
+Item *retrieveQbsItem(Item *containerItem, LoaderState &loaderState)
 {
-    return retrieveModuleInstanceItem(containerItem, StringConstants::qbsModule());
+    return retrieveModuleInstanceItem(containerItem, StringConstants::qbsModule(), loaderState);
 }
 
-// This important function deals with retrieving and setting (pseudo-)module instances from/on
-// items.
-// Use case 1: Suppose we resolve the dependency cpp in module Qt.core, which also contains
-//             property bindings for cpp such as "cpp.defines: [...]".
-//             The "cpp" part of this binding is represented by an ItemValue whose
-//             item is of type ModuleInstancePlaceholder, originally set up by ItemReaderASTVisitor.
-//             This function will be called with the actual cpp module item and will
-//             replace the placeholder item in the item value. It will also return
-//             the placeholder item for subsequent merging of its properties with the
-//             ones of the actual module (in ModulePropertyMerger::mergeFromLocalInstance()).
-//             If there were no cpp property bindings defined in Qt.core, then we'd still
-//             have to replace the placeholder item, because references to "cpp" on the
-//             right-hand-side of other properties must refer to the module item.
-//             This is the common use of this function as employed by resolveProdsucDependencies().
-//             Note that if a product has dependencies on more than one variant of a multiplexed
-//             product, these dependencies are competing for the item value property name,
-//             i.e. this case is not properly supported by the syntax. You must therefore not
-//             export properties from multiplexed products that will be different between the
-//             variants. In this function, the condition manifests itself by a module instance
-//             being encountered instead of a module instance placeholder, in which case
-//             nothing is done at all.
-// Use case 2: We inject a fake qbs module into a project item, so qbs properties set in profiles
-//             can be accessed in the project level. Doing this is discouraged, and the
-//             functionality is kept mostly for backwards compatibility. The moduleItem
-//             parameter is null in this case, and the item will be created by the function itself.
-// Use case 3: A temporary qbs module is attached to a product during low-level setup, namely
-//             in product multiplexing and setting qbs.profile.
-// Use case 4: Module propagation to the the Group level.
-// In all cases, the first returned item is the existing one, and the second returned item
-// is the new one. Depending on the use case, they might be null and might also be the same item.
-std::pair<const Item *, Item *> ModuleInstantiator::Private::getOrSetModuleInstanceItem(
-    Item *container, Item *moduleItem, const QualifiedId &moduleName, const QString &id,
-    bool replace)
-{
-    Item *instance = container;
-    const QualifiedId itemValueName
-        = !id.isEmpty() ? QualifiedId::fromString(id) : moduleName;
-    for (int i = 0; i < itemValueName.size(); ++i) {
-        const QString &moduleNameSegment = itemValueName.at(i);
-        const ValuePtr v = instance->ownProperty(itemValueName.at(i));
-        if (v && v->type() == Value::ItemValueType) {
-            ItemValue * const itemValue = std::static_pointer_cast<ItemValue>(v).get();
-            instance = itemValue->item();
-            if (i == itemValueName.size() - 1) {
-                if (replace && instance != moduleItem
-                    && instance->type() == ItemType::ModuleInstancePlaceholder) {
-                    if (!moduleItem) {
-                        moduleItem = Item::create(&loaderState.itemPool(),
-                                                  ItemType::ModuleInstancePlaceholder);
-                    }
-                    itemValue->setItem(moduleItem);
-                }
-                return {instance, itemValue->item()};
-            }
-        } else {
-            Item *newItem = i < itemValueName.size() - 1
-                                ? Item::create(&loaderState.itemPool(), ItemType::ModulePrefix)
-                                : moduleItem
-                                  ? moduleItem
-                                  : Item::create(&loaderState.itemPool(),
-                                                 ItemType::ModuleInstancePlaceholder);
-            instance->setProperty(moduleNameSegment, ItemValue::create(newItem));
-            instance = newItem;
-        }
-    }
-    return {nullptr, instance};
-}
-
-void ModuleInstantiator::Private::overrideProperties(const ModuleInstantiator::Context &context)
+void ModuleInstantiator::overrideProperties()
 {
     // Users can override module properties on the command line with the
     // modules.<module-name>.<property-name>:<value> syntax.
@@ -284,7 +211,7 @@ void ModuleInstantiator::Private::overrideProperties(const ModuleInstantiator::C
                                        parameters, logger);
 }
 
-void ModuleInstantiator::Private::setupScope(const ModuleInstantiator::Context &context)
+void ModuleInstantiator::setupScope()
 {
     Item * const scope = Item::create(&loaderState.itemPool(), ItemType::Scope);
     QBS_CHECK(context.module->file());
@@ -325,6 +252,79 @@ void ModuleInstantiator::Private::setupScope(const ModuleInstantiator::Context &
         context.module->setProperty(pd.name(), context.exportingProduct->property(
                                                    StringConstants::sourceDirectoryProperty()));
     }
+}
+
+void instantiateModule(const InstantiationContext &context, LoaderState &loaderState)
+{
+    ModuleInstantiator(context, loaderState).instantiate();
+}
+
+// This important function deals with retrieving and setting (pseudo-)module instances from/on
+// items.
+// Use case 1: Suppose we resolve the dependency cpp in module Qt.core, which also contains
+//             property bindings for cpp such as "cpp.defines: [...]".
+//             The "cpp" part of this binding is represented by an ItemValue whose
+//             item is of type ModuleInstancePlaceholder, originally set up by ItemReaderASTVisitor.
+//             This function will be called with the actual cpp module item and will
+//             replace the placeholder item in the item value. It will also return
+//             the placeholder item for subsequent merging of its properties with the
+//             ones of the actual module (in ModulePropertyMerger::mergeFromLocalInstance()).
+//             If there were no cpp property bindings defined in Qt.core, then we'd still
+//             have to replace the placeholder item, because references to "cpp" on the
+//             right-hand-side of other properties must refer to the module item.
+//             This is the common use of this function as employed by resolveProdsucDependencies().
+//             Note that if a product has dependencies on more than one variant of a multiplexed
+//             product, these dependencies are competing for the item value property name,
+//             i.e. this case is not properly supported by the syntax. You must therefore not
+//             export properties from multiplexed products that will be different between the
+//             variants. In this function, the condition manifests itself by a module instance
+//             being encountered instead of a module instance placeholder, in which case
+//             nothing is done at all.
+// Use case 2: We inject a fake qbs module into a project item, so qbs properties set in profiles
+//             can be accessed in the project level. Doing this is discouraged, and the
+//             functionality is kept mostly for backwards compatibility. The moduleItem
+//             parameter is null in this case, and the item will be created by the function itself.
+// Use case 3: A temporary qbs module is attached to a product during low-level setup, namely
+//             in product multiplexing and setting qbs.profile.
+// Use case 4: Module propagation to the the Group level.
+// In all cases, the first returned item is the existing one, and the second returned item
+// is the new one. Depending on the use case, they might be null and might also be the same item.
+std::pair<const Item *, Item *> getOrSetModuleInstanceItem(
+    Item *container, Item *moduleItem, const QualifiedId &moduleName, const QString &id,
+    bool replace, LoaderState &loaderState)
+{
+    Item *instance = container;
+    const QualifiedId itemValueName
+        = !id.isEmpty() ? QualifiedId::fromString(id) : moduleName;
+    for (int i = 0; i < itemValueName.size(); ++i) {
+        const QString &moduleNameSegment = itemValueName.at(i);
+        const ValuePtr v = instance->ownProperty(itemValueName.at(i));
+        if (v && v->type() == Value::ItemValueType) {
+            ItemValue * const itemValue = std::static_pointer_cast<ItemValue>(v).get();
+            instance = itemValue->item();
+            if (i == itemValueName.size() - 1) {
+                if (replace && instance != moduleItem
+                    && instance->type() == ItemType::ModuleInstancePlaceholder) {
+                    if (!moduleItem) {
+                        moduleItem = Item::create(&loaderState.itemPool(),
+                                                  ItemType::ModuleInstancePlaceholder);
+                    }
+                    itemValue->setItem(moduleItem);
+                }
+                return {instance, itemValue->item()};
+            }
+        } else {
+            Item *newItem = i < itemValueName.size() - 1
+                                ? Item::create(&loaderState.itemPool(), ItemType::ModulePrefix)
+                                : moduleItem
+                                      ? moduleItem
+                                      : Item::create(&loaderState.itemPool(),
+                                                     ItemType::ModuleInstancePlaceholder);
+            instance->setProperty(moduleNameSegment, ItemValue::create(newItem));
+            instance = newItem;
+        }
+    }
+    return {nullptr, instance};
 }
 
 } // namespace qbs::Internal

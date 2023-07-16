@@ -68,7 +68,6 @@ class Evaluator;
 class ItemPool;
 class ItemReader;
 class Logger;
-class ModuleInstantiator;
 class ModulePropertyMerger;
 class ProductContext;
 class ProductItemMultiplexer;
@@ -349,7 +348,6 @@ public:
     ItemPool &itemPool();
     ItemReader &itemReader();
     Logger &logger();
-    ModuleInstantiator &moduleInstantiator();
     ProductItemMultiplexer &multiplexer();
     const SetupProjectParameters &parameters() const;
     ModulePropertyMerger &propertyMerger();
