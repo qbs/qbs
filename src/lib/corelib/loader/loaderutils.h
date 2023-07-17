@@ -68,7 +68,6 @@ class Evaluator;
 class ItemPool;
 class ItemReader;
 class Logger;
-class ModulePropertyMerger;
 class ProductContext;
 class ProgressObserver;
 class ProjectContext;
@@ -348,7 +347,6 @@ public:
     ItemReader &itemReader();
     Logger &logger();
     const SetupProjectParameters &parameters() const;
-    ModulePropertyMerger &propertyMerger();
     TopLevelProjectContext &topLevelProject();
 
 private:

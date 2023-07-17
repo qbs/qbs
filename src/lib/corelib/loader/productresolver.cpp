@@ -234,7 +234,7 @@ void ProductResolverStage1::start()
     // Now do the canonical module property values merge. Note that this will remove
     // previously attached values from modules that failed validation.
     // Evaluator cache entries that could potentially change due to this will be purged.
-    m_loaderState.propertyMerger().doFinalMerge(m_product);
+    doFinalMerge(m_product, m_loaderState);
 
     const bool enabled = topLevelProject.checkItemCondition(m_product.item, evaluator);
     checkDependencyParameterDeclarations(m_product.item, m_product.name);

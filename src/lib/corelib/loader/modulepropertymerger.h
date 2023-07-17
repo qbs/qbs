@@ -39,16 +39,18 @@
 
 #pragma once
 
-#include <tools/pimpl.h>
-
 #include <QtGlobal>
+
+QT_BEGIN_NAMESPACE
+class QString;
+QT_END_NAMESPACE
 
 namespace qbs::Internal {
 class Item;
 class LoaderState;
 class ProductContext;
 
-// This class comprises functions for collecting values attached to module properties
+// This module comprises functions for collecting values attached to module properties
 // in different contexts.
 // For example, in the Qt.core module you will find a property binding such as this:
 //   cpp.defines: "QT_CORE_LIB"
@@ -63,33 +65,23 @@ class ProductContext;
 // with the same priority trigger a warning message.
 // Since the right-hand side of a binding can refer to properties of the surrounding context,
 // each such value gets its own scope.
-class ModulePropertyMerger
-{
-public:
-    ModulePropertyMerger(LoaderState &loaderState);
-    ~ModulePropertyMerger();
 
-    // This function is called when a module is loaded via a Depends item.
-    // loadingItem is the product or module containing the Depends item.
-    // loadingName is the name of that module. It is used as a tie-breaker for list property values
-    //             with equal priority.
-    // localInstance is the module instance placeholder in the ItemValue of a property binding,
-    //               i.e. the "cpp" in "cpp.defines".
-    // globalInstance is the actual module into which the properties from localInstance get merged.
-    void mergeFromLocalInstance(ProductContext &product, Item *loadingItem,
-                                const QString &loadingName, const Item *localInstance,
-                                Item *globalInstance);
+// This function is called when a module is loaded via a Depends item.
+// loadingItem is the product or module containing the Depends item.
+// loadingName is the name of that module. It is used as a tie-breaker for list property values
+//             with equal priority.
+// localInstance is the module instance placeholder in the ItemValue of a property binding,
+//               i.e. the "cpp" in "cpp.defines".
+// globalInstance is the actual module into which the properties from localInstance get merged.
+void mergeFromLocalInstance(ProductContext &product, Item *loadingItem,
+                            const QString &loadingName, const Item *localInstance,
+                            Item *globalInstance, LoaderState &loaderState);
 
-    // This function is called after all dependencies have been resolved. It uses its global
-    // knowledge of module priorities to potentially adjust the order of list values or
-    // favor different scalar values. It can also remove previously merged-in values again;
-    // this can happen if a module fails to load after it already merged some values, or
-    // if it fails validation in the end.
-    void doFinalMerge(ProductContext &product);
-
-private:
-    class Private;
-    Pimpl<Private> d;
-};
+// This function is called after all dependencies have been resolved. It uses its global
+// knowledge of module priorities to potentially adjust the order of list values or
+// favor different scalar values. It can also remove previously merged-in values again;
+// this can happen if a module fails to load after it already merged some values, or
+// if it fails validation in the end.
+void doFinalMerge(ProductContext &product, LoaderState &loaderState);
 
 } // namespace qbs::Internal

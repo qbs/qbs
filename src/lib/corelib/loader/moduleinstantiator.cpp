@@ -167,8 +167,8 @@ void ModuleInstantiator::exchangePlaceholderItem(Item *loadingItem, Item *module
     }
 
     // Now merge the locally attached values into the actual module instance.
-    loaderState.propertyMerger().mergeFromLocalInstance(
-        context.product, loadingItem, context.loadingName, oldItem, moduleItemForItemValues);
+    mergeFromLocalInstance(context.product, loadingItem, context.loadingName, oldItem,
+                           moduleItemForItemValues, loaderState);
 
     // TODO: We'd like to delete the placeholder item here, because it's not
     //       being referenced anymore and there's a lot of them. However, this

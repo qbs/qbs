@@ -40,7 +40,6 @@
 #include "loaderutils.h"
 
 #include "itemreader.h"
-#include "modulepropertymerger.h"
 
 #include <language/evaluator.h>
 #include <language/filecontext.h>
@@ -504,7 +503,7 @@ public:
     Private(LoaderState &q, const SetupProjectParameters &parameters, ItemPool &itemPool,
             Evaluator &evaluator, Logger &logger)
         : parameters(parameters), itemPool(itemPool), evaluator(evaluator), logger(logger),
-          itemReader(q), propertyMerger(q)
+          itemReader(q)
     {}
 
     const SetupProjectParameters &parameters;
@@ -514,7 +513,6 @@ public:
 
     TopLevelProjectContext topLevelProject;
     ItemReader itemReader;
-    ModulePropertyMerger propertyMerger;
 };
 
 LoaderState::LoaderState(const SetupProjectParameters &parameters, ItemPool &itemPool,
@@ -530,7 +528,6 @@ ItemPool &LoaderState::itemPool() { return d->itemPool; }
 Evaluator &LoaderState::evaluator() { return d->evaluator; }
 Logger &LoaderState::logger() { return d->logger; }
 ItemReader &LoaderState::itemReader() { return d->itemReader; }
-ModulePropertyMerger &LoaderState::propertyMerger() { return d->propertyMerger; }
 TopLevelProjectContext &LoaderState::topLevelProject() { return d->topLevelProject; }
 
 static QString verbatimValue(LoaderState &state, const ValueConstPtr &value)
