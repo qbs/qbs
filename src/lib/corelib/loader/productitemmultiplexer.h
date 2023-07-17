@@ -39,41 +39,26 @@
 
 #pragma once
 
-#include <tools/pimpl.h>
-
 #include <QList>
-#include <QVariantMap>
 
 #include <functional>
+
+QT_BEGIN_NAMESPACE
+class QString;
+QT_END_NAMESPACE
 
 namespace qbs::Internal {
 class Item;
 class LoaderState;
 
-// This class deals with product multiplexing over the various defined axes.
-// For instance, a product with qbs.architectures: ["x86", "arm"] will get multiplexed into
-// two products with qbs.architecture: "x86" and qbs.architecture: "arm", respectively.
-class ProductItemMultiplexer
-{
-public:
-    using QbsItemRetriever = std::function<Item *(Item *)>;
-    ProductItemMultiplexer(LoaderState &loaderState, const QbsItemRetriever &qbsItemRetriever);
-    ~ProductItemMultiplexer();
-
-    // Checks whether the product item is to be multiplexed and returns the list of additional
-    // product items. In the normal, non-multiplex case, this list is empty.
-    QList<Item *> multiplex(
-        const QString &productName,
-        Item *productItem,
-        Item *tempQbsModuleItem,
-        const std::function<void()> &dropTempQbsModule
-        );
-
-    static QString fullProductDisplayName(const QString &name, const QString &multiplexId);
-
-private:
-    class Private;
-    Pimpl<Private> d;
-};
+// Checks whether the product item is to be multiplexed and returns the list of additional
+// product items. In the normal, non-multiplex case, this list is empty.
+QList<Item *> multiplex(
+    const QString &productName,
+    Item *productItem,
+    Item *tempQbsModuleItem,
+    const std::function<void()> &dropTempQbsModule,
+    LoaderState &loaderState
+    );
 
 } // namespace qbs::Internal

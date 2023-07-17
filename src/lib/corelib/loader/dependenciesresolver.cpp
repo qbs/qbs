@@ -43,7 +43,6 @@
 #include "loaderutils.h"
 #include "moduleinstantiator.h"
 #include "moduleloader.h"
-#include "productitemmultiplexer.h"
 
 #include <language/scriptengine.h>
 #include <language/evaluator.h>
@@ -776,8 +775,7 @@ void DependenciesResolver::adjustDependsItemForMultiplexing(Item *dependsItem)
         }
     }
     if (multiplexIds.empty()) {
-        const QString productName = ProductItemMultiplexer::fullProductDisplayName(
-                    m_product.name, m_product.multiplexConfigurationId);
+        const QString productName = m_product.displayName();
         throw ErrorInfo(Tr::tr("Dependency from product '%1' to product '%2' not fulfilled. "
                                "There are no eligible multiplex candidates.").arg(productName,
                                  name),
@@ -788,7 +786,7 @@ void DependenciesResolver::adjustDependsItemForMultiplexing(Item *dependsItem)
     if (productIsMultiplexed && !profilesPropertyIsSet && multiplexIds.size() > 1) {
         QStringList candidateNames;
         for (const auto &id : std::as_const(multiplexIds))
-            candidateNames << ProductItemMultiplexer::fullProductDisplayName(name, id);
+            candidateNames << fullProductDisplayName(name, id);
         throw ErrorInfo(
             Tr::tr("Dependency from product '%1' to product '%2' is ambiguous. "
                    "Eligible multiplex candidates: %3.").arg(
@@ -1061,7 +1059,7 @@ CodeLocation FullyResolvedDependsItem::location() const
 
 QString FullyResolvedDependsItem::displayName() const
 {
-    return ProductItemMultiplexer::fullProductDisplayName(name.toString(), multiplexId);
+    return fullProductDisplayName(name.toString(), multiplexId);
 }
 
 bool haveSameSubProject(const ProductContext &p1, const ProductContext &p2)

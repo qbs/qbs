@@ -51,7 +51,7 @@
 #include <buildgraph/rulegraph.h> // TODO: Move to language?
 #include <buildgraph/transformer.h>
 #include <jsextensions/jsextensions.h>
-#include <loader/productitemmultiplexer.h>
+#include <loader/loaderutils.h>
 #include <logging/categories.h>
 #include <logging/translator.h>
 #include <tools/buildgraphlocker.h>
@@ -427,7 +427,7 @@ QString ResolvedProduct::uniqueName() const
 
 QString ResolvedProduct::fullDisplayName() const
 {
-    return ProductItemMultiplexer::fullProductDisplayName(name, multiplexConfigurationId);
+    return fullProductDisplayName(name, multiplexConfigurationId);
 }
 
 QString ResolvedProduct::profile() const

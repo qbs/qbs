@@ -70,7 +70,6 @@ class ItemReader;
 class Logger;
 class ModulePropertyMerger;
 class ProductContext;
-class ProductItemMultiplexer;
 class ProgressObserver;
 class ProjectContext;
 
@@ -348,7 +347,6 @@ public:
     ItemPool &itemPool();
     ItemReader &itemReader();
     Logger &logger();
-    ProductItemMultiplexer &multiplexer();
     const SetupProjectParameters &parameters() const;
     ModulePropertyMerger &propertyMerger();
     TopLevelProjectContext &topLevelProject();
@@ -358,6 +356,7 @@ private:
     Pimpl<Private> d;
 };
 
+QString fullProductDisplayName(const QString &name, const QString &multiplexId);
 void mergeParameters(QVariantMap &dst, const QVariantMap &src);
 void adjustParametersScopes(Item *item, Item *scope);
 void resolveRule(LoaderState &state, Item *item, ProjectContext *projectContext,

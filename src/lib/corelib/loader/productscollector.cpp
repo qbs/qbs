@@ -98,6 +98,7 @@ public:
     Item *tempScopeItem = nullptr;
 
 private:
+    // TODO: Put this in loaderutils
     class TempBaseModuleAttacher {
     public:
         TempBaseModuleAttacher(Private *d, ProductContext &product);
@@ -271,8 +272,8 @@ QList<Item *> ProductsCollector::Private::multiplexProductItem(ProductContext &d
                                     loaderState.parameters(), loaderState.logger());
     dummyContext.item = productItem;
     TempBaseModuleAttacher tbma(this, dummyContext);
-    return loaderState.multiplexer().multiplex(productName, productItem, tbma.tempBaseModuleItem(),
-                                               [&] { tbma.drop(); });
+    return multiplex(productName, productItem, tbma.tempBaseModuleItem(),
+        [&] { tbma.drop(); }, loaderState);
 }
 
 void ProductsCollector::Private::prepareProduct(ProjectContext &projectContext, Item *productItem,

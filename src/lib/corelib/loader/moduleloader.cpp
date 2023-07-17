@@ -42,7 +42,6 @@
 #include "itemreader.h"
 #include "loaderutils.h"
 #include "moduleproviderloader.h"
-#include "productitemmultiplexer.h"
 
 #include <api/languageinfo.h>
 #include <language/evaluator.h>

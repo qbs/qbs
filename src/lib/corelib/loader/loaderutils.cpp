@@ -40,9 +40,7 @@
 #include "loaderutils.h"
 
 #include "itemreader.h"
-#include "moduleinstantiator.h"
 #include "modulepropertymerger.h"
-#include "productitemmultiplexer.h"
 
 #include <language/evaluator.h>
 #include <language/filecontext.h>
@@ -57,6 +55,17 @@
 #include <tools/stringconstants.h>
 
 namespace qbs::Internal {
+
+QString fullProductDisplayName(const QString &name, const QString &multiplexId)
+{
+    static const auto multiplexIdToString =[](const QString &id) {
+        return QString::fromUtf8(QByteArray::fromBase64(id.toUtf8()));
+    };
+    QString result = name;
+    if (!multiplexId.isEmpty())
+        result.append(QLatin1Char(' ')).append(multiplexIdToString(multiplexId));
+    return result;
+}
 
 void mergeParameters(QVariantMap &dst, const QVariantMap &src)
 {
@@ -92,7 +101,7 @@ QString ProductContext::uniqueName() const
 
 QString ProductContext::displayName() const
 {
-    return ProductItemMultiplexer::fullProductDisplayName(name, multiplexConfigurationId);
+    return fullProductDisplayName(name, multiplexConfigurationId);
 }
 
 void ProductContext::handleError(const ErrorInfo &error)
@@ -495,10 +504,7 @@ public:
     Private(LoaderState &q, const SetupProjectParameters &parameters, ItemPool &itemPool,
             Evaluator &evaluator, Logger &logger)
         : parameters(parameters), itemPool(itemPool), evaluator(evaluator), logger(logger),
-          itemReader(q), propertyMerger(q),
-          multiplexer(q, [&q](Item *productItem) {
-            return retrieveQbsItem(productItem, q);
-          })
+          itemReader(q), propertyMerger(q)
     {}
 
     const SetupProjectParameters &parameters;
@@ -509,7 +515,6 @@ public:
     TopLevelProjectContext topLevelProject;
     ItemReader itemReader;
     ModulePropertyMerger propertyMerger;
-    ProductItemMultiplexer multiplexer;
 };
 
 LoaderState::LoaderState(const SetupProjectParameters &parameters, ItemPool &itemPool,
@@ -524,7 +529,6 @@ const SetupProjectParameters &LoaderState::parameters() const { return d->parame
 ItemPool &LoaderState::itemPool() { return d->itemPool; }
 Evaluator &LoaderState::evaluator() { return d->evaluator; }
 Logger &LoaderState::logger() { return d->logger; }
-ProductItemMultiplexer &LoaderState::multiplexer() { return d->multiplexer; }
 ItemReader &LoaderState::itemReader() { return d->itemReader; }
 ModulePropertyMerger &LoaderState::propertyMerger() { return d->propertyMerger; }
 TopLevelProjectContext &LoaderState::topLevelProject() { return d->topLevelProject; }
