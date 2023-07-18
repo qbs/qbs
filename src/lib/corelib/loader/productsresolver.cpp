@@ -46,41 +46,69 @@
 #include <queue>
 
 namespace qbs::Internal {
+class ProductsResolver
+{
+public:
+    ProductsResolver(LoaderState &loaderState) : m_loaderState(loaderState) {}
+    void resolve();
+
+private:
+    void initialize();
+    void runScheduler();
+
+    LoaderState &m_loaderState;
+    std::queue<std::pair<ProductContext *, int>> m_productsToHandle;
+};
 
 void resolveProducts(LoaderState &loaderState)
 {
-    TopLevelProjectContext &topLevelProject = loaderState.topLevelProject();
-    std::queue<std::pair<ProductContext *, int>> productsToHandle;
+    ProductsResolver(loaderState).resolve();
+}
+
+void ProductsResolver::resolve()
+{
+    initialize();
+    runScheduler();
+}
+
+void ProductsResolver::initialize()
+{
+    TopLevelProjectContext &topLevelProject = m_loaderState.topLevelProject();
     for (ProjectContext * const projectContext : topLevelProject.projects()) {
         for (ProductContext &productContext : projectContext->products) {
             topLevelProject.addProductToHandle(productContext);
-            productsToHandle.emplace(&productContext, -1);
+            m_productsToHandle.emplace(&productContext, -1);
         }
     }
-    while (!productsToHandle.empty()) {
-        const auto [product, queueSizeOnInsert] = productsToHandle.front();
-        productsToHandle.pop();
+}
+
+void ProductsResolver::runScheduler()
+{
+    TopLevelProjectContext &topLevelProject = m_loaderState.topLevelProject();
+    while (!m_productsToHandle.empty()) {
+        const auto [product, queueSizeOnInsert] = m_productsToHandle.front();
+        m_productsToHandle.pop();
 
         // If the queue of in-progress products has shrunk since the last time we tried handling
         // this product, there has been forward progress and we can allow a deferral.
         const Deferral deferral = queueSizeOnInsert == -1
-                || queueSizeOnInsert > int(productsToHandle.size())
-                ? Deferral::Allowed : Deferral::NotAllowed;
-        loaderState.itemReader().setExtraSearchPathsStack(product->project->searchPathsStack);
-        resolveProduct(*product, deferral, loaderState);
+                                          || queueSizeOnInsert > int(m_productsToHandle.size())
+                                      ? Deferral::Allowed : Deferral::NotAllowed;
+        m_loaderState.itemReader().setExtraSearchPathsStack(product->project->searchPathsStack);
+        resolveProduct(*product, deferral, m_loaderState);
         if (topLevelProject.isCanceled())
             throw CancelException();
 
         // The search paths stack can change during dependency resolution (due to module providers);
         // check that we've rolled back all the changes
-        QBS_CHECK(loaderState.itemReader().extraSearchPathsStack()
+        QBS_CHECK(m_loaderState.itemReader().extraSearchPathsStack()
                   == product->project->searchPathsStack);
 
         // If we encountered a dependency to an in-progress product or to a bulk dependency,
         // we defer handling this product if it hasn't failed yet and there is still
         // forward progress.
         if (product->dependenciesResolvingPending())
-            productsToHandle.emplace(product, int(productsToHandle.size()));
+            m_productsToHandle.emplace(product, int(m_productsToHandle.size()));
         else
             topLevelProject.removeProductToHandle(*product);
 
