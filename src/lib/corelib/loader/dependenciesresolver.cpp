@@ -148,7 +148,12 @@ public:
     std::list<DependenciesResolvingState> stateStack;
 
 private:
-    void setSearchPathsForProduct(ProductContext &product, LoaderState &loaderState);
+    bool hasDependencyToUnresolvedProduct() const override;
+
+    void setSearchPathsForProduct();
+
+    ProductContext &m_product;
+    LoaderState &m_loaderState;
 };
 
 class DependenciesResolver
@@ -1096,8 +1101,9 @@ QVariantMap safeToVariant(JSContext *ctx, const JSValue &v)
 }
 
 DependenciesContextImpl::DependenciesContextImpl(ProductContext &product, LoaderState &loaderState)
+    : m_product(product), m_loaderState(loaderState)
 {
-    setSearchPathsForProduct(product, loaderState);
+    setSearchPathsForProduct();
 
     // Initialize the state with the direct Depends items of the product item.
     DependenciesResolvingState newState{product.item,};
@@ -1110,19 +1116,28 @@ DependenciesContextImpl::DependenciesContextImpl(ProductContext &product, Loader
         FullyResolvedDependsItem::makeBaseDependency());
 }
 
-void DependenciesContextImpl::setSearchPathsForProduct(ProductContext &product,
-                                                       LoaderState &loaderState)
+bool DependenciesContextImpl::hasDependencyToUnresolvedProduct() const
 {
-    QBS_CHECK(product.searchPaths.isEmpty());
+    QBS_CHECK(!stateStack.empty());
+    if (stateStack.front().pendingResolvedDependencies.empty())
+        return false;
+    const ProductContext * const dep
+        = stateStack.front().pendingResolvedDependencies.front().product;
+    return dep && m_loaderState.topLevelProject().isProductQueuedForHandling(*dep);
+}
 
-    product.searchPaths = loaderState.itemReader().readExtraSearchPaths(product.item);
-    Settings settings(loaderState.parameters().settingsDirectory());
-    const QStringList prefsSearchPaths = Preferences(&settings, product.profileModuleProperties)
+void DependenciesContextImpl::setSearchPathsForProduct()
+{
+    QBS_CHECK(m_product.searchPaths.isEmpty());
+
+    m_product.searchPaths = m_loaderState.itemReader().readExtraSearchPaths(m_product.item);
+    Settings settings(m_loaderState.parameters().settingsDirectory());
+    const QStringList prefsSearchPaths = Preferences(&settings, m_product.profileModuleProperties)
             .searchPaths();
-    const QStringList &currentSearchPaths = loaderState.itemReader().allSearchPaths();
+    const QStringList &currentSearchPaths = m_loaderState.itemReader().allSearchPaths();
     for (const QString &p : prefsSearchPaths) {
         if (!currentSearchPaths.contains(p) && FileInfo(p).exists())
-            product.searchPaths << p;
+            m_product.searchPaths << p;
     }
 }
 

@@ -132,6 +132,7 @@ class DependenciesContext
 {
 public:
     virtual ~DependenciesContext();
+    virtual bool hasDependencyToUnresolvedProduct() const = 0;
 
     bool dependenciesResolved = false;
 };
@@ -143,6 +144,7 @@ public:
     QString displayName() const;
     void handleError(const ErrorInfo &error);
     bool dependenciesResolvingPending() const;
+    bool hasDependencyToUnresolvedProduct() const;
 
     QString name;
     QString buildDirectory;

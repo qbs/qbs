@@ -744,6 +744,11 @@ bool ProductContext::dependenciesResolvingPending() const
             && !product && !delayedError.hasError();
 }
 
+bool ProductContext::hasDependencyToUnresolvedProduct() const
+{
+    return dependenciesContext && dependenciesContext->hasDependencyToUnresolvedProduct();
+}
+
 TimingData &TimingData::operator+=(const TimingData &other)
 {
     dependenciesResolving += other.dependenciesResolving;

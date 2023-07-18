@@ -115,6 +115,14 @@ void ProductsResolver::runScheduler()
         const Deferral deferral = queueSizeOnInsert == -1
                                           || queueSizeOnInsert > int(m_productsToHandle.size())
                                       ? Deferral::Allowed : Deferral::NotAllowed;
+
+        // If we already know that there's a dependency to an unresolved product pending,
+        // we don't start up the machinery, but put the product back into the queue right away.
+        if (deferral == Deferral::Allowed && product->hasDependencyToUnresolvedProduct()) {
+            m_productsToHandle.emplace(product, int(m_productsToHandle.size()));
+            continue;
+        }
+
         m_loaderState.itemReader().setExtraSearchPathsStack(product->project->searchPathsStack);
         resolveProduct(*product, deferral, m_loaderState);
         if (topLevelProject.isCanceled())
