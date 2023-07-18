@@ -45,10 +45,12 @@
 
 #include <tools/stringconstants.h>
 
+#include <algorithm>
 #include <queue>
 #include <vector>
 
 namespace qbs::Internal {
+
 class ProductsResolver
 {
 public:
@@ -59,6 +61,9 @@ private:
     void initialize();
     void runScheduler();
     void postProcess();
+
+    static int dependsItemCount(const Item *item);
+    static int dependsItemCount(ProductContext &product);
 
     LoaderState &m_loaderState;
     std::queue<std::pair<ProductContext *, int>> m_productsToHandle;
@@ -80,13 +85,21 @@ void ProductsResolver::resolve()
 void ProductsResolver::initialize()
 {
     TopLevelProjectContext &topLevelProject = m_loaderState.topLevelProject();
+    std::vector<ProductContext *> sortedProducts;
     for (ProjectContext * const projectContext : topLevelProject.projects()) {
-        for (ProductContext &productContext : projectContext->products) {
-            topLevelProject.addProductToHandle(productContext);
-            m_productsToHandle.emplace(&productContext, -1);
-            if (productContext.shadowProduct)
-                m_productsToHandle.emplace(productContext.shadowProduct.get(), -1);
+        for (ProductContext &product : projectContext->products) {
+            topLevelProject.addProductToHandle(product);
+            const auto it = std::lower_bound(sortedProducts.begin(), sortedProducts.end(), product,
+                                             [&product](ProductContext *p1, const ProductContext &) {
+                return dependsItemCount(*p1) < dependsItemCount(product);
+            });
+            sortedProducts.insert(it, &product);
         }
+    }
+    for (ProductContext * const product : sortedProducts) {
+        m_productsToHandle.emplace(product, -1);
+        if (product->shadowProduct)
+            m_productsToHandle.emplace(product->shadowProduct.get(), -1);
     }
 }
 
@@ -117,6 +130,7 @@ void ProductsResolver::runScheduler()
         // forward progress.
         if (product->dependenciesResolvingPending()) {
             m_productsToHandle.emplace(product, int(m_productsToHandle.size()));
+            topLevelProject.incProductDeferrals();
         } else {
             topLevelProject.removeProductToHandle(*product);
             if (!product->name.startsWith(StringConstants::shadowProductPrefix()))
@@ -133,6 +147,23 @@ void ProductsResolver::postProcess()
     // regarding dependency resolving.
     for (ProductContext * const product : m_finishedProducts)
         setupExports(*product, m_loaderState);
+}
+
+int ProductsResolver::dependsItemCount(const Item *item)
+{
+    int count = 0;
+    for (const Item * const child : item->children()) {
+        if (child->type() == ItemType::Depends)
+            ++count;
+    }
+    return count;
+}
+
+int ProductsResolver::dependsItemCount(ProductContext &product)
+{
+    if (product.dependsItemCount == -1)
+        product.dependsItemCount = dependsItemCount(product.item);
+    return product.dependsItemCount;
 }
 
 } // namespace qbs::Internal

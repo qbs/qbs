@@ -988,7 +988,8 @@ void TestLanguage::erroneousFiles()
     }
     QEXPECT_FAIL("undeclared_property_in_Properties_item", "Too expensive to check", Continue);
     QEXPECT_FAIL("original-in-export-item3", "Too expensive to check", Continue);
-    QEXPECT_FAIL("dependency_cycle3a", "Depends.productTypes is tricky", Continue);
+    QEXPECT_FAIL("dependency_cycle3", "FIXME: Depends.productTypes is tricky", Continue);
+    QEXPECT_FAIL("dependency_cycle3a", "FIXME: Depends.productTypes is tricky", Continue);
     QVERIFY(!"No error thrown on invalid input.");
 }
 

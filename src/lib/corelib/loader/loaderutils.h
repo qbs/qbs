@@ -168,6 +168,8 @@ public:
     // The keys are module prototypes, the values specify whether the module's
     // condition is true for this product.
     std::unordered_map<Item *, bool> modulePrototypeEnabledInfo;
+
+    int dependsItemCount = -1;
 };
 
 class TopLevelProjectContext
@@ -287,6 +289,9 @@ public:
     TimingData &timingData() { return m_timingData; }
     ItemReaderCache &itemReaderCache() { return m_itemReaderCache; }
 
+    void incProductDeferrals() { ++m_productDeferrals; }
+    int productDeferrals() const { return m_productDeferrals; }
+
 private:
     std::vector<ProjectContext *> m_projects;
     Set<const ProductContext *> m_productsToHandle;
@@ -340,6 +345,7 @@ private:
 
     FileTime m_lastResolveTime;
 
+    int m_productDeferrals = 0;
     bool m_canceled = false;
 };
 

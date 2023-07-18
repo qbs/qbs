@@ -530,6 +530,10 @@ void ProjectResolver::Private::printProfilingInfo()
           state.topLevelProject().timingData().moduleInstantiation);
     print(4, Tr::tr("Merging module property values took %1."),
           state.topLevelProject().timingData().propertyMerging);
+    logger.qbsLog(LoggerInfo, true) << QByteArray(4, ' ') << "There were "
+                                    << state.topLevelProject().productDeferrals()
+                                    << " product deferrals with a total of "
+                                    << state.topLevelProject().productCount() << " products.";
     print(2, Tr::tr("Running Probes took %1."), state.topLevelProject().timingData().probes);
     state.logger().qbsLog(LoggerInfo, true)
         << "    "
