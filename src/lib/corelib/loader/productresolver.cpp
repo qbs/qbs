@@ -66,6 +66,27 @@
 
 namespace qbs::Internal {
 
+class PropertiesEvaluator
+{
+public:
+    PropertiesEvaluator(ProductContext &product, LoaderState &loaderState)
+        : m_product(product), m_loaderState(loaderState) {}
+
+    QVariantMap evaluateProperties(Item *item, bool lookupPrototype, bool checkErrors);
+    QVariantMap evaluateProperties(const Item *item, const Item *propertiesContainer,
+                                   const QVariantMap &tmplt, bool lookupPrototype,
+                                   bool checkErrors);
+    void evaluateProperty(const Item *item, const QString &propName, const ValuePtr &propValue,
+                          QVariantMap &result, bool checkErrors);
+
+private:
+    void checkAllowedValues(const QVariant &value, const CodeLocation &loc,
+                            const PropertyDeclaration &decl, const QString &key) const;
+
+    ProductContext &m_product;
+    LoaderState &m_loaderState;
+};
+
 // Dependency resolving, Probe execution.
 // Run for real products and shadow products.
 class ProductResolverStage1
@@ -117,21 +138,7 @@ private:
     void setupExportedProperties(const Item *item, const QString &namePrefix,
                                  std::vector<ExportedProperty> &properties);
     QVariantMap evaluateModuleValues(Item *item, bool lookupPrototype = true);
-    QVariantMap evaluateProperties(Item *item, bool lookupPrototype, bool checkErrors);
-    QVariantMap evaluateProperties(const Item *item, const Item *propertiesContainer,
-                                   const QVariantMap &tmplt, bool lookupPrototype,
-                                   bool checkErrors);
-    void evaluateProperty(const Item *item, const QString &propName, const ValuePtr &propValue,
-                          QVariantMap &result, bool checkErrors);
-    void checkAllowedValues(const QVariant &value, const CodeLocation &loc,
-                            const PropertyDeclaration &decl, const QString &key) const;
 
-    void resolveShadowProduct();
-    void collectPropertiesForExportItem(Item *productModuleInstance);
-    void collectPropertiesForExportItem(const QualifiedId &moduleName, const ValuePtr &value,
-                                        Item *moduleInstance, QVariantMap &moduleProps);
-    void collectPropertiesForModuleInExportItem(const Item::Module &module);
-    void adaptExportedPropertyValues();
     void resolveScanner(Item *item, ModuleContext &moduleContext);
     void resolveModules();
     void resolveModule(const QualifiedId &moduleName, Item *item, bool isProduct,
@@ -139,15 +146,36 @@ private:
     void applyFileTaggers();
     void finalizeArtifactProperties();
     void collectProductDependencies();
-    void collectExportedProductDependencies();
 
     ProductContext &m_product;
     LoaderState &m_loaderState;
     GroupConstPtr m_currentGroup;
     FileLocations m_sourceArtifactLocations;
+    PropertiesEvaluator m_propertiesEvaluator{m_product, m_loaderState};
 
     using ArtifactPropertiesInfo = std::pair<ArtifactPropertiesPtr, std::vector<CodeLocation>>;
     QHash<QStringList, ArtifactPropertiesInfo> m_artifactPropertiesPerFilter;
+};
+
+class ExportsResolver
+{
+public:
+    ExportsResolver(ProductContext &product, LoaderState &loaderState)
+        : m_product(product), m_loaderState(loaderState) {}
+    void start();
+
+private:
+    void resolveShadowProduct();
+    void collectPropertiesForExportItem(Item *productModuleInstance);
+    void collectPropertiesForExportItem(const QualifiedId &moduleName, const ValuePtr &value,
+                                        Item *moduleInstance, QVariantMap &moduleProps);
+    void collectPropertiesForModuleInExportItem(const Item::Module &module);
+    void adaptExportedPropertyValues();
+    void collectExportedProductDependencies();
+
+    ProductContext &m_product;
+    LoaderState &m_loaderState;
+    PropertiesEvaluator m_propertiesEvaluator{m_product, m_loaderState};
 };
 
 void resolveProduct(ProductContext &product, Deferral deferral, LoaderState &loaderState)
@@ -165,6 +193,11 @@ void resolveProduct(ProductContext &product, Deferral deferral, LoaderState &loa
     if (product.dependenciesResolvingPending())
         return;
 
+    if (product.name.startsWith(StringConstants::shadowProductPrefix())) {
+        loaderState.topLevelProject().addProjectLevelProbes(product.probes);
+        return;
+    }
+
     // TODO: The weird double-forwarded error handling can hopefully be simplified now.
     try {
         ProductResolverStage2(product, loaderState).start();
@@ -177,6 +210,11 @@ void resolveProduct(ProductContext &product, Deferral deferral, LoaderState &loa
     }
 }
 
+void setupExports(ProductContext &product, LoaderState &loaderState)
+{
+    ExportsResolver(product, loaderState).start();
+}
+
 void ProductResolverStage1::start()
 {
     TopLevelProjectContext &topLevelProject = m_loaderState.topLevelProject();
@@ -184,23 +222,6 @@ void ProductResolverStage1::start()
 
     if (m_product.delayedError.hasError())
         return;
-
-    if (m_product.shadowProduct) {
-        try {
-            // TODO: This is probably not technically safe, e.g. if the Export item
-            //       has a Depends item with productTypes. Think about this some more
-            //       and come up with test cases.
-            ProductResolverStage1(*m_product.shadowProduct, m_deferral, m_loaderState).start();
-            QBS_CHECK(m_product.shadowProduct->dependenciesContext);
-            if (!m_product.shadowProduct->dependenciesContext->dependenciesResolved)
-                return;
-            topLevelProject.addProjectLevelProbes(m_product.shadowProduct->probes);
-        } catch (const ErrorInfo &e) {
-            if (e.isCancelException())
-                throw CancelException();
-            m_product.shadowProduct->handleError(e);
-        }
-    }
 
     resolveDependencies(m_product, m_deferral, m_loaderState);
     QBS_CHECK(m_product.dependenciesContext);
@@ -583,7 +604,6 @@ void ProductResolverStage2::resolveProductFully()
         product->jobLimits = tempLimits.update(product->jobLimits);
     }
 
-    resolveShadowProduct();
     resolveModules();
     applyFileTaggers();
     finalizeArtifactProperties();
@@ -595,7 +615,6 @@ void ProductResolverStage2::resolveProductFully()
     }
 
     collectProductDependencies();
-    collectExportedProductDependencies();
 }
 
 void ProductResolverStage2::createProductConfig()
@@ -603,8 +622,8 @@ void ProductResolverStage2::createProductConfig()
     EvalCacheEnabler cachingEnabler(&m_loaderState.evaluator(),
                                     m_product.product->sourceDirectory);
     m_product.product->moduleProperties->setValue(evaluateModuleValues(m_product.item));
-    m_product.product->productProperties = evaluateProperties(m_product.item, m_product.item,
-                                                              QVariantMap(), true, true);
+    m_product.product->productProperties = m_propertiesEvaluator.evaluateProperties(
+        m_product.item, m_product.item, QVariantMap(), true, true);
 }
 
 void ProductResolverStage2::resolveGroup(Item *item)
@@ -854,8 +873,8 @@ QVariantMap ProductResolverStage2::resolveAdditionalModuleProperties(
         QVariantMap reusableValues = modulesMap.value(fullModName).toMap();
         for (const QString &prop : std::as_const(propsForModule))
             reusableValues.remove(prop);
-        modulesMap.insert(fullModName,
-                          evaluateProperties(module.item, module.item, reusableValues, true, true));
+        modulesMap.insert(fullModName, m_propertiesEvaluator.evaluateProperties(
+                                           module.item, module.item, reusableValues, true, true));
     }
     return modulesMap;
 }
@@ -1017,365 +1036,10 @@ QVariantMap ProductResolverStage2::evaluateModuleValues(Item *item, bool lookupP
         if (!module.item->isPresentModule())
             continue;
         const QString fullName = module.name.toString();
-        moduleValues[fullName] = evaluateProperties(module.item, lookupPrototype, true);
+        moduleValues[fullName] = m_propertiesEvaluator.evaluateProperties(
+            module.item, lookupPrototype, true);
     }
     return moduleValues;
-}
-
-QVariantMap ProductResolverStage2::evaluateProperties(
-        const Item *item, const Item *propertiesContainer, const QVariantMap &tmplt,
-        bool lookupPrototype, bool checkErrors)
-{
-    AccumulatingTimer propEvalTimer(m_loaderState.parameters().logElapsedTime()
-                                    ? &m_product.timingData.propertyEvaluation
-                                    : nullptr);
-    QVariantMap result = tmplt;
-    for (auto it = propertiesContainer->properties().begin();
-         it != propertiesContainer->properties().end(); ++it) {
-        evaluateProperty(item, it.key(), it.value(), result, checkErrors);
-    }
-    return lookupPrototype && propertiesContainer->prototype()
-            ? evaluateProperties(item, propertiesContainer->prototype(), result, true, checkErrors)
-            : result;
-}
-
-QVariantMap ProductResolverStage2::evaluateProperties(Item *item, bool lookupPrototype,
-                                                      bool checkErrors)
-{
-    const QVariantMap tmplt;
-    return evaluateProperties(item, item, tmplt, lookupPrototype, checkErrors);
-}
-
-void ProductResolverStage2::evaluateProperty(
-        const Item *item, const QString &propName, const ValuePtr &propValue, QVariantMap &result,
-        bool checkErrors)
-{
-    JSContext * const ctx = m_loaderState.evaluator().engine()->context();
-    switch (propValue->type()) {
-    case Value::ItemValueType:
-    {
-        // Ignore items. Those point to module instances
-        // and are handled in evaluateModuleValues().
-        break;
-    }
-    case Value::JSSourceValueType:
-    {
-        if (result.contains(propName))
-            break;
-        const PropertyDeclaration pd = item->propertyDeclaration(propName);
-        if (pd.flags().testFlag(PropertyDeclaration::PropertyNotAvailableInConfig)) {
-            break;
-        }
-        const ScopedJsValue scriptValue(ctx, m_loaderState.evaluator().property(item, propName));
-        if (JsException ex = m_loaderState.evaluator().engine()->checkAndClearException(
-                    propValue->location())) {
-            if (checkErrors)
-                throw ex.toErrorInfo();
-        }
-
-        // NOTE: Loses type information if scriptValue.isUndefined == true,
-        //       as such QScriptValues become invalid QVariants.
-        QVariant v;
-        if (JS_IsFunction(ctx, scriptValue)) {
-            v = getJsString(ctx, scriptValue);
-        } else {
-            v = getJsVariant(ctx, scriptValue);
-            QVariantMap m = v.toMap();
-            if (m.contains(StringConstants::importScopeNamePropertyInternal())) {
-                QVariantMap tmp = m;
-                const ScopedJsValue proto(ctx, JS_GetPrototype(ctx, scriptValue));
-                m = getJsVariant(ctx, proto).toMap();
-                for (auto it = tmp.begin(); it != tmp.end(); ++it)
-                    m.insert(it.key(), it.value());
-                v = m;
-            }
-        }
-
-        if (pd.type() == PropertyDeclaration::Path && v.isValid()) {
-            v = v.toString();
-        } else if (pd.type() == PropertyDeclaration::PathList
-                   || pd.type() == PropertyDeclaration::StringList) {
-            v = v.toStringList();
-        } else if (pd.type() == PropertyDeclaration::VariantList) {
-            v = v.toList();
-        }
-        checkAllowedValues(v, propValue->location(), pd, propName);
-        result[propName] = v;
-        break;
-    }
-    case Value::VariantValueType:
-    {
-        if (result.contains(propName))
-            break;
-        VariantValuePtr vvp = std::static_pointer_cast<VariantValue>(propValue);
-        QVariant v = vvp->value();
-
-        const PropertyDeclaration pd = item->propertyDeclaration(propName);
-        if (v.isNull() && !pd.isScalar()) // QTBUG-51237
-            v = QStringList();
-
-        checkAllowedValues(v, propValue->location(), pd, propName);
-        result[propName] = v;
-        break;
-    }
-    }
-}
-
-void ProductResolverStage2::checkAllowedValues(
-        const QVariant &value, const CodeLocation &loc, const PropertyDeclaration &decl,
-        const QString &key) const
-{
-    const auto type = decl.type();
-    if (type != PropertyDeclaration::String && type != PropertyDeclaration::StringList)
-        return;
-
-    if (value.isNull())
-        return;
-
-    const auto &allowedValues = decl.allowedValues();
-    if (allowedValues.isEmpty())
-        return;
-
-    const auto checkValue = [this, &loc, &allowedValues, &key](const QString &value)
-    {
-        if (!allowedValues.contains(value)) {
-            const auto message = Tr::tr("Value '%1' is not allowed for property '%2'.")
-                    .arg(value, key);
-            ErrorInfo error(message, loc);
-            handlePropertyError(error, m_loaderState.parameters(), m_loaderState.logger());
-        }
-    };
-
-    if (type == PropertyDeclaration::StringList) {
-        const auto strings = value.toStringList();
-        for (const auto &string: strings) {
-            checkValue(string);
-        }
-    } else if (type == PropertyDeclaration::String) {
-        checkValue(value.toString());
-    }
-}
-
-void ProductResolverStage2::resolveShadowProduct()
-{
-    if (!m_product.product->enabled)
-        return;
-    if (!m_product.shadowProduct)
-        return;
-    for (const auto &m : m_product.shadowProduct->item->modules()) {
-        if (m.name.toString() != m_product.product->name)
-            continue;
-        collectPropertiesForExportItem(m.item);
-        for (const auto &dep : m.item->modules())
-            collectPropertiesForModuleInExportItem(dep);
-        break;
-    }
-    try {
-        adaptExportedPropertyValues();
-    } catch (const ErrorInfo &) {}
-}
-
-class TempScopeSetter
-{
-public:
-    TempScopeSetter(const ValuePtr &value, Item *newScope) : m_value(value), m_oldScope(value->scope())
-    {
-        value->setScope(newScope, {});
-    }
-    ~TempScopeSetter() { if (m_value) m_value->setScope(m_oldScope, {}); }
-
-    TempScopeSetter(const TempScopeSetter &) = delete;
-    TempScopeSetter &operator=(const TempScopeSetter &) = delete;
-    TempScopeSetter &operator=(TempScopeSetter &&) = delete;
-
-    TempScopeSetter(TempScopeSetter &&other) noexcept
-        : m_value(std::move(other.m_value)), m_oldScope(other.m_oldScope)
-    {
-        other.m_value.reset();
-        other.m_oldScope = nullptr;
-    }
-
-private:
-    ValuePtr m_value;
-    Item *m_oldScope;
-};
-
-void ProductResolverStage2::collectPropertiesForExportItem(
-        const QualifiedId &moduleName, const ValuePtr &value, Item *moduleInstance,
-        QVariantMap &moduleProps)
-{
-    QBS_CHECK(value->type() == Value::ItemValueType);
-    Item * const itemValueItem = std::static_pointer_cast<ItemValue>(value)->item();
-    if (itemValueItem->propertyDeclarations().isEmpty()) {
-        for (const Item::Module &module : moduleInstance->modules()) {
-            if (module.name == moduleName) {
-                itemValueItem->setPropertyDeclarations(module.item->propertyDeclarations());
-                break;
-            }
-        }
-    }
-    if (itemValueItem->type() == ItemType::ModuleInstancePlaceholder) {
-        struct EvalPreparer {
-            EvalPreparer(Item *valueItem, const QualifiedId &moduleName)
-                : valueItem(valueItem),
-                  hadName(!!valueItem->variantProperty(StringConstants::nameProperty()))
-            {
-                if (!hadName) {
-                    // Evaluator expects a name here.
-                    valueItem->setProperty(StringConstants::nameProperty(),
-                                           VariantValue::create(moduleName.toString()));
-                }
-            }
-            ~EvalPreparer()
-            {
-                if (!hadName)
-                    valueItem->removeProperty(StringConstants::nameProperty());
-            }
-            Item * const valueItem;
-            const bool hadName;
-        };
-        EvalPreparer ep(itemValueItem, moduleName);
-        std::vector<TempScopeSetter> tss;
-        for (const ValuePtr &v : itemValueItem->properties())
-            tss.emplace_back(v, moduleInstance);
-        moduleProps.insert(moduleName.toString(), evaluateProperties(itemValueItem, false, false));
-        return;
-    }
-    QBS_CHECK(itemValueItem->type() == ItemType::ModulePrefix);
-    const Item::PropertyMap &props = itemValueItem->properties();
-    for (auto it = props.begin(); it != props.end(); ++it) {
-        QualifiedId fullModuleName = moduleName;
-        fullModuleName << it.key();
-        collectPropertiesForExportItem(fullModuleName, it.value(), moduleInstance, moduleProps);
-    }
-}
-
-void ProductResolverStage2::collectPropertiesForExportItem(Item *productModuleInstance)
-{
-    if (!productModuleInstance->isPresentModule())
-        return;
-    Item * const exportItem = productModuleInstance->prototype();
-    QBS_CHECK(exportItem);
-    QBS_CHECK(exportItem->type() == ItemType::Export);
-    const ItemDeclaration::Properties exportDecls = BuiltinDeclarations::instance()
-            .declarationsForType(ItemType::Export).properties();
-    ExportedModule &exportedModule = m_product.product->exportedModule;
-    const auto &props = exportItem->properties();
-    for (auto it = props.begin(); it != props.end(); ++it) {
-        const auto match
-                = [it](const PropertyDeclaration &decl) { return decl.name() == it.key(); };
-        if (it.key() != StringConstants::prefixMappingProperty() &&
-                std::find_if(exportDecls.begin(), exportDecls.end(), match) != exportDecls.end()) {
-            continue;
-        }
-        if (it.value()->type() == Value::ItemValueType) {
-            collectPropertiesForExportItem(it.key(), it.value(), productModuleInstance,
-                                           exportedModule.modulePropertyValues);
-        } else {
-            TempScopeSetter tss(it.value(), productModuleInstance);
-            evaluateProperty(exportItem, it.key(), it.value(), exportedModule.propertyValues,
-                             false);
-        }
-    }
-}
-
-// Collects module properties assigned to in other (higher-level) modules.
-void ProductResolverStage2::collectPropertiesForModuleInExportItem(const Item::Module &module)
-{
-    if (!module.item->isPresentModule())
-        return;
-    ExportedModule &exportedModule = m_product.product->exportedModule;
-    if (module.product || module.name.first() == StringConstants::qbsModule())
-        return;
-    const auto checkName = [module](const ExportedModuleDependency &d) {
-        return module.name.toString() == d.name;
-    };
-    if (any_of(exportedModule.moduleDependencies, checkName))
-        return;
-
-    Item *modulePrototype = module.item->prototype();
-    while (modulePrototype && modulePrototype->type() != ItemType::Module)
-        modulePrototype = modulePrototype->prototype();
-    if (!modulePrototype) // Can happen for broken products in relaxed mode.
-        return;
-    const Item::PropertyMap &props = modulePrototype->properties();
-    ExportedModuleDependency dep;
-    dep.name = module.name.toString();
-    for (auto it = props.begin(); it != props.end(); ++it) {
-        if (it.value()->type() == Value::ItemValueType)
-            collectPropertiesForExportItem(it.key(), it.value(), module.item, dep.moduleProperties);
-    }
-    exportedModule.moduleDependencies.push_back(dep);
-
-    for (const auto &dep : module.item->modules())
-        collectPropertiesForModuleInExportItem(dep);
-}
-
-void ProductResolverStage2::adaptExportedPropertyValues()
-{
-    QBS_CHECK(m_product.shadowProduct);
-    ExportedModule &m = m_product.product->exportedModule;
-    const QVariantList prefixList = m.propertyValues.take(
-                StringConstants::prefixMappingProperty()).toList();
-    const QString shadowProductName = m_loaderState.evaluator().stringValue(
-                m_product.shadowProduct->item, StringConstants::nameProperty());
-    const QString shadowProductBuildDir = m_loaderState.evaluator().stringValue(
-                m_product.shadowProduct->item, StringConstants::buildDirectoryProperty());
-    QVariantMap prefixMap;
-    for (const QVariant &v : prefixList) {
-        const QVariantMap o = v.toMap();
-        prefixMap.insert(o.value(QStringLiteral("prefix")).toString(),
-                         o.value(QStringLiteral("replacement")).toString());
-    }
-    const auto valueRefersToImportingProduct
-            = [shadowProductName, shadowProductBuildDir](const QString &value) {
-        return value.toLower().contains(shadowProductName.toLower())
-                || value.contains(shadowProductBuildDir);
-    };
-    static const auto stringMapper = [](const QVariantMap &mappings, const QString &value)
-            -> QString {
-        for (auto it = mappings.cbegin(); it != mappings.cend(); ++it) {
-            if (value.startsWith(it.key()))
-                return it.value().toString() + value.mid(it.key().size());
-        }
-        return value;
-    };
-    const auto stringListMapper = [&valueRefersToImportingProduct](
-            const QVariantMap &mappings, const QStringList &value)  -> QStringList {
-        QStringList result;
-        result.reserve(value.size());
-        for (const QString &s : value) {
-            if (!valueRefersToImportingProduct(s))
-                result.push_back(stringMapper(mappings, s));
-        }
-        return result;
-    };
-    const std::function<QVariant(const QVariantMap &, const QVariant &)> mapper
-            = [&stringListMapper, &mapper](
-            const QVariantMap &mappings, const QVariant &value) -> QVariant {
-        switch (static_cast<QMetaType::Type>(value.userType())) {
-        case QMetaType::QString:
-            return stringMapper(mappings, value.toString());
-        case QMetaType::QStringList:
-            return stringListMapper(mappings, value.toStringList());
-        case QMetaType::QVariantMap: {
-            QVariantMap m = value.toMap();
-            for (auto it = m.begin(); it != m.end(); ++it)
-                it.value() = mapper(mappings, it.value());
-            return m;
-        }
-        default:
-            return value;
-        }
-    };
-    for (auto it = m.propertyValues.begin(); it != m.propertyValues.end(); ++it)
-        it.value() = mapper(prefixMap, it.value());
-    for (auto it = m.modulePropertyValues.begin(); it != m.modulePropertyValues.end(); ++it)
-        it.value() = mapper(prefixMap, it.value());
-    for (ExportedModuleDependency &dep : m.moduleDependencies) {
-        for (auto it = dep.moduleProperties.begin(); it != dep.moduleProperties.end(); ++it)
-            it.value() = mapper(prefixMap, it.value());
-    }
 }
 
 void ProductResolverStage2::resolveScanner(Item *item, ModuleContext &moduleContext)
@@ -1521,7 +1185,236 @@ void ProductResolverStage2::collectProductDependencies()
     });
 }
 
-void ProductResolverStage2::collectExportedProductDependencies()
+void ExportsResolver::start()
+{
+    resolveShadowProduct();
+    collectExportedProductDependencies();
+}
+
+void ExportsResolver::resolveShadowProduct()
+{
+    if (!m_product.product->enabled)
+        return;
+    if (!m_product.shadowProduct)
+        return;
+    for (const auto &m : m_product.shadowProduct->item->modules()) {
+        if (m.name.toString() != m_product.product->name)
+            continue;
+        collectPropertiesForExportItem(m.item);
+        for (const auto &dep : m.item->modules())
+            collectPropertiesForModuleInExportItem(dep);
+        break;
+    }
+    try {
+        adaptExportedPropertyValues();
+    } catch (const ErrorInfo &) {}
+}
+
+class TempScopeSetter
+{
+public:
+    TempScopeSetter(const ValuePtr &value, Item *newScope) : m_value(value), m_oldScope(value->scope())
+    {
+        value->setScope(newScope, {});
+    }
+    ~TempScopeSetter() { if (m_value) m_value->setScope(m_oldScope, {}); }
+
+    TempScopeSetter(const TempScopeSetter &) = delete;
+    TempScopeSetter &operator=(const TempScopeSetter &) = delete;
+    TempScopeSetter &operator=(TempScopeSetter &&) = delete;
+
+    TempScopeSetter(TempScopeSetter &&other) noexcept
+        : m_value(std::move(other.m_value)), m_oldScope(other.m_oldScope)
+    {
+        other.m_value.reset();
+        other.m_oldScope = nullptr;
+    }
+
+private:
+    ValuePtr m_value;
+    Item *m_oldScope;
+};
+
+void ExportsResolver::collectPropertiesForExportItem(
+    const QualifiedId &moduleName, const ValuePtr &value, Item *moduleInstance,
+    QVariantMap &moduleProps)
+{
+    QBS_CHECK(value->type() == Value::ItemValueType);
+    Item * const itemValueItem = std::static_pointer_cast<ItemValue>(value)->item();
+    if (itemValueItem->propertyDeclarations().isEmpty()) {
+        for (const Item::Module &module : moduleInstance->modules()) {
+            if (module.name == moduleName) {
+                itemValueItem->setPropertyDeclarations(module.item->propertyDeclarations());
+                break;
+            }
+        }
+    }
+    if (itemValueItem->type() == ItemType::ModuleInstancePlaceholder) {
+        struct EvalPreparer {
+            EvalPreparer(Item *valueItem, const QualifiedId &moduleName)
+                : valueItem(valueItem),
+                hadName(!!valueItem->variantProperty(StringConstants::nameProperty()))
+            {
+                if (!hadName) {
+                    // Evaluator expects a name here.
+                    valueItem->setProperty(StringConstants::nameProperty(),
+                                           VariantValue::create(moduleName.toString()));
+                }
+            }
+            ~EvalPreparer()
+            {
+                if (!hadName)
+                    valueItem->removeProperty(StringConstants::nameProperty());
+            }
+            Item * const valueItem;
+            const bool hadName;
+        };
+        EvalPreparer ep(itemValueItem, moduleName);
+        std::vector<TempScopeSetter> tss;
+        for (const ValuePtr &v : itemValueItem->properties())
+            tss.emplace_back(v, moduleInstance);
+        moduleProps.insert(moduleName.toString(), m_propertiesEvaluator.evaluateProperties(
+                                                      itemValueItem, false, false));
+        return;
+    }
+    QBS_CHECK(itemValueItem->type() == ItemType::ModulePrefix);
+    const Item::PropertyMap &props = itemValueItem->properties();
+    for (auto it = props.begin(); it != props.end(); ++it) {
+        QualifiedId fullModuleName = moduleName;
+        fullModuleName << it.key();
+        collectPropertiesForExportItem(fullModuleName, it.value(), moduleInstance, moduleProps);
+    }
+}
+
+void ExportsResolver::collectPropertiesForExportItem(Item *productModuleInstance)
+{
+    if (!productModuleInstance->isPresentModule())
+        return;
+    Item * const exportItem = productModuleInstance->prototype();
+    QBS_CHECK(exportItem);
+    QBS_CHECK(exportItem->type() == ItemType::Export);
+    const ItemDeclaration::Properties exportDecls = BuiltinDeclarations::instance()
+                                                        .declarationsForType(ItemType::Export).properties();
+    ExportedModule &exportedModule = m_product.product->exportedModule;
+    const auto &props = exportItem->properties();
+    for (auto it = props.begin(); it != props.end(); ++it) {
+        const auto match
+            = [it](const PropertyDeclaration &decl) { return decl.name() == it.key(); };
+        if (it.key() != StringConstants::prefixMappingProperty() &&
+            std::find_if(exportDecls.begin(), exportDecls.end(), match) != exportDecls.end()) {
+            continue;
+        }
+        if (it.value()->type() == Value::ItemValueType) {
+            collectPropertiesForExportItem(it.key(), it.value(), productModuleInstance,
+                                           exportedModule.modulePropertyValues);
+        } else {
+            TempScopeSetter tss(it.value(), productModuleInstance);
+            m_propertiesEvaluator.evaluateProperty(
+                exportItem, it.key(), it.value(), exportedModule.propertyValues, false);
+        }
+    }
+}
+
+// Collects module properties assigned to in other (higher-level) modules.
+void ExportsResolver::collectPropertiesForModuleInExportItem(const Item::Module &module)
+{
+    if (!module.item->isPresentModule())
+        return;
+    ExportedModule &exportedModule = m_product.product->exportedModule;
+    if (module.product || module.name.first() == StringConstants::qbsModule())
+        return;
+    const auto checkName = [module](const ExportedModuleDependency &d) {
+        return module.name.toString() == d.name;
+    };
+    if (any_of(exportedModule.moduleDependencies, checkName))
+        return;
+
+    Item *modulePrototype = module.item->prototype();
+    while (modulePrototype && modulePrototype->type() != ItemType::Module)
+        modulePrototype = modulePrototype->prototype();
+    if (!modulePrototype) // Can happen for broken products in relaxed mode.
+        return;
+    const Item::PropertyMap &props = modulePrototype->properties();
+    ExportedModuleDependency dep;
+    dep.name = module.name.toString();
+    for (auto it = props.begin(); it != props.end(); ++it) {
+        if (it.value()->type() == Value::ItemValueType)
+            collectPropertiesForExportItem(it.key(), it.value(), module.item, dep.moduleProperties);
+    }
+    exportedModule.moduleDependencies.push_back(dep);
+
+    for (const auto &dep : module.item->modules())
+        collectPropertiesForModuleInExportItem(dep);
+}
+
+void ExportsResolver::adaptExportedPropertyValues()
+{
+    QBS_CHECK(m_product.shadowProduct);
+    ExportedModule &m = m_product.product->exportedModule;
+    const QVariantList prefixList = m.propertyValues.take(
+                                                        StringConstants::prefixMappingProperty()).toList();
+    const QString shadowProductName = m_loaderState.evaluator().stringValue(
+        m_product.shadowProduct->item, StringConstants::nameProperty());
+    const QString shadowProductBuildDir = m_loaderState.evaluator().stringValue(
+        m_product.shadowProduct->item, StringConstants::buildDirectoryProperty());
+    QVariantMap prefixMap;
+    for (const QVariant &v : prefixList) {
+        const QVariantMap o = v.toMap();
+        prefixMap.insert(o.value(QStringLiteral("prefix")).toString(),
+                         o.value(QStringLiteral("replacement")).toString());
+    }
+    const auto valueRefersToImportingProduct
+        = [shadowProductName, shadowProductBuildDir](const QString &value) {
+              return value.toLower().contains(shadowProductName.toLower())
+                     || value.contains(shadowProductBuildDir);
+          };
+    static const auto stringMapper = [](const QVariantMap &mappings, const QString &value)
+        -> QString {
+        for (auto it = mappings.cbegin(); it != mappings.cend(); ++it) {
+            if (value.startsWith(it.key()))
+                return it.value().toString() + value.mid(it.key().size());
+        }
+        return value;
+    };
+    const auto stringListMapper = [&valueRefersToImportingProduct](
+                                      const QVariantMap &mappings, const QStringList &value)  -> QStringList {
+        QStringList result;
+        result.reserve(value.size());
+        for (const QString &s : value) {
+            if (!valueRefersToImportingProduct(s))
+                result.push_back(stringMapper(mappings, s));
+        }
+        return result;
+    };
+    const std::function<QVariant(const QVariantMap &, const QVariant &)> mapper
+        = [&stringListMapper, &mapper](
+              const QVariantMap &mappings, const QVariant &value) -> QVariant {
+        switch (static_cast<QMetaType::Type>(value.userType())) {
+        case QMetaType::QString:
+            return stringMapper(mappings, value.toString());
+        case QMetaType::QStringList:
+            return stringListMapper(mappings, value.toStringList());
+        case QMetaType::QVariantMap: {
+            QVariantMap m = value.toMap();
+            for (auto it = m.begin(); it != m.end(); ++it)
+                it.value() = mapper(mappings, it.value());
+            return m;
+        }
+        default:
+            return value;
+        }
+    };
+    for (auto it = m.propertyValues.begin(); it != m.propertyValues.end(); ++it)
+        it.value() = mapper(prefixMap, it.value());
+    for (auto it = m.modulePropertyValues.begin(); it != m.modulePropertyValues.end(); ++it)
+        it.value() = mapper(prefixMap, it.value());
+    for (ExportedModuleDependency &dep : m.moduleDependencies) {
+        for (auto it = dep.moduleProperties.begin(); it != dep.moduleProperties.end(); ++it)
+            it.value() = mapper(prefixMap, it.value());
+    }
+}
+
+void ExportsResolver::collectExportedProductDependencies()
 {
     if (!m_product.shadowProduct)
         return;
@@ -1552,6 +1445,140 @@ void ProductResolverStage2::collectExportedProductDependencies()
     }
     auto &productDeps = exportingProduct->exportedModule.productDependencies;
     std::sort(productDeps.begin(), productDeps.end());
+}
+
+QVariantMap PropertiesEvaluator::evaluateProperties(
+    const Item *item, const Item *propertiesContainer, const QVariantMap &tmplt,
+    bool lookupPrototype, bool checkErrors)
+{
+    AccumulatingTimer propEvalTimer(m_loaderState.parameters().logElapsedTime()
+                                        ? &m_product.timingData.propertyEvaluation
+                                        : nullptr);
+    QVariantMap result = tmplt;
+    for (auto it = propertiesContainer->properties().begin();
+         it != propertiesContainer->properties().end(); ++it) {
+        evaluateProperty(item, it.key(), it.value(), result, checkErrors);
+    }
+    return lookupPrototype && propertiesContainer->prototype()
+               ? evaluateProperties(item, propertiesContainer->prototype(), result, true, checkErrors)
+               : result;
+}
+
+QVariantMap PropertiesEvaluator::evaluateProperties(Item *item, bool lookupPrototype,
+                                                    bool checkErrors)
+{
+    const QVariantMap tmplt;
+    return evaluateProperties(item, item, tmplt, lookupPrototype, checkErrors);
+}
+
+void PropertiesEvaluator::evaluateProperty(
+    const Item *item, const QString &propName, const ValuePtr &propValue, QVariantMap &result,
+    bool checkErrors)
+{
+    JSContext * const ctx = m_loaderState.evaluator().engine()->context();
+    switch (propValue->type()) {
+    case Value::ItemValueType:
+    {
+        // Ignore items. Those point to module instances
+        // and are handled in evaluateModuleValues().
+        break;
+    }
+    case Value::JSSourceValueType:
+    {
+        if (result.contains(propName))
+            break;
+        const PropertyDeclaration pd = item->propertyDeclaration(propName);
+        if (pd.flags().testFlag(PropertyDeclaration::PropertyNotAvailableInConfig)) {
+            break;
+        }
+        const ScopedJsValue scriptValue(ctx, m_loaderState.evaluator().property(item, propName));
+        if (JsException ex = m_loaderState.evaluator().engine()->checkAndClearException(
+                propValue->location())) {
+            if (checkErrors)
+                throw ex.toErrorInfo();
+        }
+
+        // NOTE: Loses type information if scriptValue.isUndefined == true,
+        //       as such QScriptValues become invalid QVariants.
+        QVariant v;
+        if (JS_IsFunction(ctx, scriptValue)) {
+            v = getJsString(ctx, scriptValue);
+        } else {
+            v = getJsVariant(ctx, scriptValue);
+            QVariantMap m = v.toMap();
+            if (m.contains(StringConstants::importScopeNamePropertyInternal())) {
+                QVariantMap tmp = m;
+                const ScopedJsValue proto(ctx, JS_GetPrototype(ctx, scriptValue));
+                m = getJsVariant(ctx, proto).toMap();
+                for (auto it = tmp.begin(); it != tmp.end(); ++it)
+                    m.insert(it.key(), it.value());
+                v = m;
+            }
+        }
+
+        if (pd.type() == PropertyDeclaration::Path && v.isValid()) {
+            v = v.toString();
+        } else if (pd.type() == PropertyDeclaration::PathList
+                   || pd.type() == PropertyDeclaration::StringList) {
+            v = v.toStringList();
+        } else if (pd.type() == PropertyDeclaration::VariantList) {
+            v = v.toList();
+        }
+        checkAllowedValues(v, propValue->location(), pd, propName);
+        result[propName] = v;
+        break;
+    }
+    case Value::VariantValueType:
+    {
+        if (result.contains(propName))
+            break;
+        VariantValuePtr vvp = std::static_pointer_cast<VariantValue>(propValue);
+        QVariant v = vvp->value();
+
+        const PropertyDeclaration pd = item->propertyDeclaration(propName);
+        if (v.isNull() && !pd.isScalar()) // QTBUG-51237
+            v = QStringList();
+
+        checkAllowedValues(v, propValue->location(), pd, propName);
+        result[propName] = v;
+        break;
+    }
+    }
+}
+
+void PropertiesEvaluator::checkAllowedValues(
+    const QVariant &value, const CodeLocation &loc, const PropertyDeclaration &decl,
+    const QString &key) const
+{
+    const auto type = decl.type();
+    if (type != PropertyDeclaration::String && type != PropertyDeclaration::StringList)
+        return;
+
+    if (value.isNull())
+        return;
+
+    const auto &allowedValues = decl.allowedValues();
+    if (allowedValues.isEmpty())
+        return;
+
+    const auto checkValue = [this, &loc, &allowedValues, &key](const QString &value)
+    {
+        if (!allowedValues.contains(value)) {
+            const auto message = Tr::tr("Value '%1' is not allowed for property '%2'.")
+                                     .arg(value, key);
+            ErrorInfo error(message, loc);
+            handlePropertyError(error, m_loaderState.parameters(), m_loaderState.logger());
+        }
+    };
+
+    if (type == PropertyDeclaration::StringList) {
+        const auto strings = value.toStringList();
+        for (const auto &string: strings) {
+            checkValue(string);
+        }
+    } else if (type == PropertyDeclaration::String) {
+        checkValue(value.toString());
+    }
 }
 
 } // namespace qbs::Internal

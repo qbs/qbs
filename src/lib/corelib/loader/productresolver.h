@@ -52,4 +52,6 @@ class ProductContext;
 //   - Handling all Product child items, such as FileTaggers, Rules and so on.
 void resolveProduct(ProductContext &product, Deferral deferral, LoaderState &loaderState);
 
+void setupExports(ProductContext &product, LoaderState &loaderState);
+
 } // namespace qbs::Internal

@@ -43,7 +43,10 @@
 #include "loaderutils.h"
 #include "productresolver.h"
 
+#include <tools/stringconstants.h>
+
 #include <queue>
+#include <vector>
 
 namespace qbs::Internal {
 class ProductsResolver
@@ -55,9 +58,11 @@ public:
 private:
     void initialize();
     void runScheduler();
+    void postProcess();
 
     LoaderState &m_loaderState;
     std::queue<std::pair<ProductContext *, int>> m_productsToHandle;
+    std::vector<ProductContext *> m_finishedProducts;
 };
 
 void resolveProducts(LoaderState &loaderState)
@@ -69,6 +74,7 @@ void ProductsResolver::resolve()
 {
     initialize();
     runScheduler();
+    postProcess();
 }
 
 void ProductsResolver::initialize()
@@ -78,6 +84,8 @@ void ProductsResolver::initialize()
         for (ProductContext &productContext : projectContext->products) {
             topLevelProject.addProductToHandle(productContext);
             m_productsToHandle.emplace(&productContext, -1);
+            if (productContext.shadowProduct)
+                m_productsToHandle.emplace(productContext.shadowProduct.get(), -1);
         }
     }
 }
@@ -107,13 +115,24 @@ void ProductsResolver::runScheduler()
         // If we encountered a dependency to an in-progress product or to a bulk dependency,
         // we defer handling this product if it hasn't failed yet and there is still
         // forward progress.
-        if (product->dependenciesResolvingPending())
+        if (product->dependenciesResolvingPending()) {
             m_productsToHandle.emplace(product, int(m_productsToHandle.size()));
-        else
+        } else {
             topLevelProject.removeProductToHandle(*product);
-
-        topLevelProject.timingData() += product->timingData;
+            if (!product->name.startsWith(StringConstants::shadowProductPrefix()))
+                m_finishedProducts.push_back(product);
+            topLevelProject.timingData() += product->timingData;
+        }
     }
+}
+
+void ProductsResolver::postProcess()
+{
+    // This has to be done at the end, because we need both product and shadow product to be
+    // ready, and contrary to what one might assume, there is no proper ordering between them
+    // regarding dependency resolving.
+    for (ProductContext * const product : m_finishedProducts)
+        setupExports(*product, m_loaderState);
 }
 
 } // namespace qbs::Internal
