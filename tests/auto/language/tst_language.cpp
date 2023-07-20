@@ -2402,6 +2402,29 @@ void TestLanguage::pathProperties()
     QCOMPARE(exceptionCaught, false);
 }
 
+void TestLanguage::probesAndMultiplexing()
+{
+    bool exceptionCaught = false;
+    try {
+        resolveProject("probes-and-multiplexing.qbs");
+        QVERIFY(project);
+        QCOMPARE(int(project->products.size()), 3);
+        QStringList architectures{"x86", "x86_64", "arm"};
+        for (const ResolvedProductPtr &product : project->products) {
+             const QString arch = product->moduleProperties->moduleProperty("qbs", "architecture")
+                                      .toString();
+             QVERIFY2(architectures.removeOne(arch), qPrintable(arch));
+             if (arch != "x86")
+                QEXPECT_FAIL("", "FIXME: Add items for ids as in ModuleInstantiator", Continue);
+             QCOMPARE(product->productProperties.value("archFromProbe").toString(), arch);
+        }
+    } catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+}
+
 void TestLanguage::profileValuesAndOverriddenValues()
 {
     bool exceptionCaught = false;

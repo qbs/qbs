@@ -138,6 +138,7 @@ private slots:
     void overriddenVariantProperty();
     void parameterTypes();
     void pathProperties();
+    void probesAndMultiplexing();
     void productConditions();
     void productDirectories();
     void profileValuesAndOverriddenValues();
