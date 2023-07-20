@@ -76,6 +76,10 @@
                 \li  \l{tutorial-2.html}{Static Library}
                 \li  \l{tutorial-3.html}{Dynamic Library}
                 \li  \l{tutorial-4.html}{Convenience Items}
+                \li  \l{tutorial-5.html}{Autotest}
+                \li  \l{tutorial-6.html}{Project Properties}
+                \li  \l{tutorial-7.html}{Buildconfig Module}
+                \li  \l{tutorial-8.html}{Configurable Library}
             \endlist
        \li  \l{How-tos}
        \li  \l{Reference}
