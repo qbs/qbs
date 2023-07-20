@@ -65,6 +65,7 @@
 #include <QtCore/qmap.h>
 #include <QtCore/qtextstream.h>
 
+#include <algorithm>
 #include <utility>
 
 #ifdef Q_OS_UNIX
@@ -334,7 +335,19 @@ void CommandLineParser::CommandLineParserPrivate::doParse()
     } else {
         command = commandFromString(commandLine.front());
         if (command) {
-            commandLine.removeFirst();
+            const QString commandName = commandLine.takeFirst();
+
+            // if the command line contains a `<command>` with
+            // either `-h` or `--help` switch, we transform
+            // it to corresponding `help <command>` instead
+            const QStringList helpSwitches = {QStringLiteral("-h"), QStringLiteral("--help")};
+            if (auto it = std::find_first_of(
+                    commandLine.begin(), commandLine.end(),
+                    helpSwitches.begin(), helpSwitches.end());
+                    it != commandLine.end()) {
+                command = commandPool.getCommand(HelpCommandType);
+                commandLine = QList{commandName}; // keep only command's name
+            }
         } else { // No command given.
             if (commandLine.front() == QLatin1String("-h")
                     || commandLine.front() == QLatin1String("--help")) {
