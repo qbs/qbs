@@ -2414,8 +2414,6 @@ void TestLanguage::probesAndMultiplexing()
              const QString arch = product->moduleProperties->moduleProperty("qbs", "architecture")
                                       .toString();
              QVERIFY2(architectures.removeOne(arch), qPrintable(arch));
-             if (arch != "x86")
-                QEXPECT_FAIL("", "FIXME: Add items for ids as in ModuleInstantiator", Continue);
              QCOMPARE(product->productProperties.value("archFromProbe").toString(), arch);
         }
     } catch (const ErrorInfo &e) {
