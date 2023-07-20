@@ -30,6 +30,7 @@ Project {
             "fixnavi.pl",
             "howtos.qdoc",
             "qbs.qdoc",
+            "tutorial.qdoc",
             "qbs-online.qdocconf",
             "config/*.qdocconf",
             "config/style/qt5-sidebar.html",

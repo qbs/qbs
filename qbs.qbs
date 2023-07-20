@@ -12,6 +12,7 @@ Project {
         "examples/examples.qbs",
         "share/share.qbs",
         "scripts/scripts.qbs",
+        "tutorial/tutorial.qbs",
     ]
 
     SubProject {

@@ -11,6 +11,7 @@ Project {
         "blackbox/blackbox-joblimits.qbs",
         "blackbox/blackbox-providers.qbs",
         "blackbox/blackbox-qt.qbs",
+        "blackbox/blackbox-tutorial.qbs",
         "blackbox/blackbox-windows.qbs",
         "blackbox/blackbox.qbs",
         "buildgraph/buildgraph.qbs",

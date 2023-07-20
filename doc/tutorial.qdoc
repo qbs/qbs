@@ -1,0 +1,293 @@
+/****************************************************************************
+**
+** Copyright (C) 2024 Ivan Komissarov (abbapoh@gmail.com).
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+/*!
+    \previouspage module-providers.html
+    \page tutorial.html
+    \nextpage howtos.html
+
+    \title Tutorial
+
+    The tutorial describes the process of creating a typical \QBS project and explains core
+    concepts.
+
+    \list
+        \li  \l{tutorial-1.html}{Application}
+        \li  \l{tutorial-2.html}{Static Library}
+        \li  \l{tutorial-3.html}{Dynamic Library}
+        \li  \l{tutorial-4.html}{Convenience Items}
+    \endlist
+*/
+
+/*!
+    \previouspage tutorial.html
+    \page tutorial-1.html
+    \nextpage tutorial-2.html
+
+    \title Application
+
+    Let's start with a mandatory Hello World example. There is a Hello World example in the
+    \l{overview.html#well-defined-language}{overview section}, but this time we will create a
+    real-world project.
+
+    We will start with a simple \QBS project file:
+    \snippet ../tutorial/chapter-1/myproject.qbs 0
+
+    Here, we set the \l{Project::name}{name} of the project to \c "My Project" - it is mainly
+    used for IDEs but can also be used to reference a project when setting properties from
+    command-line. We also set the \l{Project::minimumQbsVersion}{minimumQbsVersion} - this property
+    can be useful if the project depends on features that are not present in earlier \QBS
+    versions.
+
+    The \l{Project::references}{references} property contains the path to a file
+    that describes our application. This file is located in a separate \c app directory -
+    typically, projects tend to have quite a complicated structure but \QBS does not enforce any
+    specific layout, so we will simply put each product in a separate directory.
+
+    The application file sets several properties:
+    \snippet ../tutorial/chapter-1/app/app.qbs 0
+
+    The \l{Product::name}{name} property identifies the product.
+    The \l{Product::targetName}{targetName} property sets the name of the resulting binary
+    (without the \c .exe extension on Windows, which is appended automatically). By default,
+    \l{Product::targetName}{targetName} defaults to \l{Product::name}{name}. The
+    \l{Product::files}{files} property contains a single \c main.c file which is a trivial
+    \e{hello world} application:
+    \snippet ../tutorial/chapter-1/app/main.c 0
+
+    We set \l{Product::consoleApplication}{consoleApplication} to \c true to indicate that our
+    application is going to be used from a terminal. For example, on Windows, this will spawn a
+    new console window if you double-click the resulting binary, while on macOS it will create a
+    standalone binary file instead of an
+    \l{https://developer.apple.com/library/archive/documentation/CoreFoundation/Conceptual/CFBundles/BundleTypes/BundleTypes.html}{application bundle}.
+
+    By default, the \l{Application::install}{CppApplication.install} property is \c false and thus
+    \QBS does not install the binary. If the \l{Application::install}{install} property is
+    \c true, when building a project, \QBS will also install it into an \e{installation root}
+    folder which by default is named \c install-root and located under the build directory. This
+    folder will contain only resulting artifacts without the build leftovers and files will have
+    the same layout as in the target system. The \l{Application::install}{install} property should
+    be set to \c true for all products that are to be distributed.
+    See the \l{installing-files.html}{Installing Files} section for more details.
+
+    We can now build and run our application from the project directory:
+    \code
+    chapter-1 $ qbs build
+    ...
+    Building for configuration default
+    compiling main.c [My Application]
+    ...
+    linking myapp [My Application]
+    ...
+    Build done for configuration default.
+
+    chapter-1 $ qbs run
+    ...
+    Starting target. Full command line: .../default/install-root/usr/local/bin/myapp
+    Hello, world
+    \endcode
+
+    The \QBS output to console and default installation location may vary between different
+    platforms.
+
+    In most cases, \QBS should be able to find the default compiler (for example, GCC or
+    Clang on Linux, Visual Studio on Windows, or Xcode on macOS), but if that's not the
+    case, see the \l{configuring.html}{configuring} section.
+
+    In the following chapters, we will continue to improve our project: we will add a library and
+    make it configurable.
+*/
+
+/*!
+    \previouspage tutorial-1.html
+    \page tutorial-2.html
+    \nextpage tutorial-3.html
+
+    \title Static Library
+
+    Let's add a static library to our project so we can reuse some code. Analogous to what we did
+    for the application, we put the file into the \c{lib} directory and add it to the
+    \l{Project::references}{references} property in our project. The modified project may look
+    like this:
+
+    \snippet ../tutorial/chapter-2/myproject.qbs 0
+
+    Let's take a look at the the library file now:
+
+    \snippet ../tutorial/chapter-2/lib/lib.qbs 0
+    It contains the \l{StaticLibrary} item which sets the \l{Product::type}{type} of the product
+    to \c "staticlibrary" and sets some defaults like where to install that library.
+    As before, we set the \l{Product::files}{files} property with a header:
+    \snippet ../tutorial/chapter-2/lib/lib.h 0
+    And we set the implementation file of our library:
+    \snippet ../tutorial/chapter-2/lib/lib.c 0
+
+    We will keep our library really simple - it only contains one function, which we will later use
+    in our application. The source file requires a \c "CRUCIAL_DEFINE" to be
+    passed to a preprocessor. That is why we set the \l{cpp::defines}{cpp.defines} property:
+    \snippet ../tutorial/chapter-2/lib/lib.qbs 1
+
+    Note that unlike the \l{CppApplication} item, the \l{StaticLibrary} does not pull in the
+    dependency on the \l{cpp} module automatically - that is why we have to pull it in manually
+    using the \l{Depends} item. Without the \l{cpp} module, \QBS would not know how to turn a
+    \c{.c} file into an object file and the object file into a library. See
+    \l{Rules and Product Types} for details.
+
+    Next, we need to tell \QBS where to look for public headers of our library when building
+    products that depend on it. By default, \QBS knows nothing about the layout of our
+    library, so we tell it to look for headers in the library's source directory using the
+    \l{Export} item:
+
+    \snippet ../tutorial/chapter-2/lib/lib.qbs 2
+    You can export any \l{Module} property within the \l{Export} item - it will be merged in the
+    depending product with other properties. For example, you can export
+    \l{cpp::defines}{cpp.defines} or specific \l{cpp::commonCompilerFlags}{compiler flags} that
+    are required to use this product.
+
+    We depend on the \l{cpp} module twice - once within the \l{StaticLibrary}
+    item and once in the \l{Export} item. This is because by default \QBS does not export anything
+    when depending on this product and the dependencies in this item (as well as
+    properties set in this item) are private to this product while dependencies and properties
+    set in the \l{Export} item are for export only.
+
+    Finally, we have some Apple-specific settings. You can skip this part of the tutorial if you
+    are using some other platform. We depend on the \l{bundle} module and set the
+    \l{bundle::isBundle}{bundle.isBundle} to false:
+    \snippet ../tutorial/chapter-2/lib/lib.qbs 3
+    By default, \QBS builds static and dynamic libraries as
+    \l{https://developer.apple.com/library/archive/documentation/MacOSX/Conceptual/BPFrameworks/Concepts/WhatAreFrameworks.html}{Frameworks}
+    on macOS. So, to keep things simple, we disable the framework build and build a plain old
+    static library file here.
+*/
+
+/*!
+    \previouspage tutorial-2.html
+    \page tutorial-3.html
+    \nextpage tutorial-4.html
+
+    \title Dynamic Library
+
+    Let's now turn our static library into a dynamic library. It is a bit trickier with dynamic
+    libraries since several things should be tweaked. First, we need to be able to mark methods
+    (or classes) in our library as exported. Second, we need to tell our application where to look
+    for our library at run time using \l{https://en.wikipedia.org/wiki/Rpath}{rpaths}.
+
+    Some compilers, like MSVC, require us to mark which symbols we want to export or import. The
+    \l{https://stackoverflow.com/a/6840659}{canonical} way would be to define some helper macros.
+    Let's start with a header that defines those helper macros:
+    \snippet ../tutorial/chapter-3/lib/lib_global.h 0
+
+    This header defines the \c MYLIB_EXPORT macro that expands either to an "export" or to an
+    "import" directive based on the presence of the \c MYLIB_LIBRARY macro. We can use this macro
+    to mark a function as follows:
+    \snippet ../tutorial/chapter-3/lib/lib.h 0
+
+    The modified library product may look like this:
+
+    \snippet ../tutorial/chapter-3/lib/lib.qbs 0
+
+    The most important change is that we changed the item type from \l{StaticLibrary} to
+    \l{DynamicLibrary}. We also added the \c MYLIB_LIBRARY to the list of
+    \l{cpp::defines}{defines}. We do this only when building the library but we are not exporting
+    it - that way the users of our library will have methods marked for import rather than export.
+
+    Finally, we set \l{cpp::sonamePrefix}{cpp.sonamePrefix} to \c "@rpath". This is required only
+    for Apple platforms, see
+    \l{https://developer.apple.com/library/archive/documentation/DeveloperTools/Conceptual/DynamicLibraries/100-Articles/RunpathDependentLibraries.html}{Run-Path Dependent Libraries}
+    for details.
+
+    It is also required to set \l{cpp::rpaths}{cpp.rpaths} in our application file. Since the
+    library is installed to the \c{lib} directory and the application is installed to the \c{bin}
+    directory, we need to tell the loader to look in the \c{lib} directory. The
+    \l{jsextension-fileinfo.html#relativePath}{FileInfo.relativePath} method can help us:
+    \snippet ../tutorial/chapter-3/app/app.qbs 0
+
+    On Linux, this expression would be equivalent to this: \c{cpp.rpaths: ["$ORIGIN/../lib"]}.
+    Don't forget to \c{import qbs.FileInfo} in order to be able to use the
+    \l{jsextension-fileinfo.html} extension.
+
+    To make the example complete, here's how the full \c app/app.qbs file should look like:
+    \snippet ../tutorial/chapter-3/app/app.qbs 1
+*/
+
+/*!
+    \previouspage tutorial-3.html
+    \page tutorial-4.html
+    \nextpage howtos.html
+
+    \title Convenience Items
+
+    As you might have noticed, we are repeating ourselves when setting the same properties in our
+    products - we set \l{Product::version}{version}, \l{Application::install}{install},
+    \l{cpp::rpaths}{cpp.rpaths}, and so on. For a single application and a library, that is not a
+    big deal, but what if we have a dozen libraries? Luckily, this can be achieved using item
+    \l{language-introduction.html#reusing-project-file-code}{inheritance} - we move the common code
+    to the base item and in the real product we will only set what is specific to that product (for
+    example, the list of \l{Product::files}{files}).
+
+    First, we need to tell \QBS where to look for our new base items. This can be achieved using
+    the \l{Project::qbsSearchPaths}{qbsSearchPaths} property. We set this property to \c "qbs" so
+    that \QBS will search our items in the \c{qbs} directory located in the project directory:
+    \snippet ../tutorial/chapter-4/myproject.qbs 0
+
+    \note This directory has a pre-defined structure: base items should be located under the
+    \c{imports} subdirectory. See \l{Custom Modules and Items} for details.
+
+    Let's create a base item for all our applications and move common code there:
+    \snippet ../tutorial/chapter-4/qbs/imports/MyApplication.qbs 0
+
+    As you see, we managed to extract most of the code here, and our application file now only
+    contains what's relevant to it:
+    \snippet ../tutorial/chapter-4/app/app.qbs 0
+
+    Now let's do the same for our library:
+    \snippet ../tutorial/chapter-4/qbs/imports/MyLibrary.qbs 0
+
+    Here, we introduce a helper property, \c libraryMacro, with a default value calculated based
+    on the capitalized product name. Since the name of out library product is \c "mylib", this
+    property will expand to \c "MYLIB_LIBRARY". We can also override the default value
+    for the macro in products that inherit our item like this:
+    \code
+    MyLibrary {
+        libraryMacro: "SOME_OTHER_LIBRARY_MACRO"
+    }
+    \endcode
+
+    Let's take a look at the refactored library file:
+    \snippet ../tutorial/chapter-4/lib/lib.qbs 0
+
+    We managed to extract the reusable parts to common base items leaving the actual products clean
+    and simple.
+
+    Unfortunately, item inheritance comes with a price - when both parent and child items set the
+    same property (\l{cpp::defines}{cpp.defines} in our case), the value in the child item wins.
+    To work around this, the special \l{special-property-values.html#base}{base} value
+    exists - it gives access to the base item's value of the current property and makes it possible
+    to extend its value rather than override it. Here, we concatenate the list of defines from the
+    base item \c{["MYLIB_LIBRARY"]} with a new list, specific to this product (namely,
+    \c{['CRUCIAL_DEFINE']}).
+*/

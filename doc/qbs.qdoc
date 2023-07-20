@@ -70,6 +70,13 @@
                \li  \l{Special Property Values}
                \li  \l{Module Providers}
            \endlist
+        \li  \l{Tutorial}
+           \list
+                \li  \l{tutorial-1.html}{Application}
+                \li  \l{tutorial-2.html}{Static Library}
+                \li  \l{tutorial-3.html}{Dynamic Library}
+                \li  \l{tutorial-4.html}{Convenience Items}
+            \endlist
        \li  \l{How-tos}
        \li  \l{Reference}
            \list
@@ -1068,7 +1075,6 @@
 
 */
 
-
 /*!
     \previouspage usage.html
     \page language-introduction.html
@@ -1881,7 +1887,7 @@
 /*!
     \previouspage special-property-values.html
     \page module-providers.html
-    \nextpage howtos.html
+    \nextpage tutorial.html
 
     \title Module Providers
 
