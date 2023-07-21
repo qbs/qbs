@@ -8,4 +8,8 @@ Product {
         property string archOut
         configure: { archOut = archIn; }
     }
+    Group {
+        name: "theGroup"
+        qbs.sysroot: "/" + theProbe.archOut
+    }
 }

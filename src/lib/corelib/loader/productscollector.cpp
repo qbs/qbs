@@ -351,11 +351,13 @@ void ProductsCollector::Private::prepareProduct(ProjectContext &projectContext, 
     for (Item * const child : productItem->children()) {
         if (child->id().isEmpty())
             continue;
-       if (productItem->scope() == productContext.project->scope) {
+        if (productItem->scope() == productContext.project->scope) {
             productItem->setScope(Item::create(productItem->pool(), ItemType::Scope));
             productItem->scope()->setScope(productContext.project->scope);
         }
-        productItem->scope()->setProperty(child->id(), ItemValue::create(child));
+        const ItemValuePtr childValue = ItemValue::create(child);
+        productItem->scope()->setProperty(child->id(), childValue);
+        productContext.scope->setProperty(child->id(), childValue);
     }
 
     const bool hasExportItems = mergeExportItems(productContext);

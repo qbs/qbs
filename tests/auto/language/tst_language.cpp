@@ -2415,6 +2415,14 @@ void TestLanguage::probesAndMultiplexing()
                                       .toString();
              QVERIFY2(architectures.removeOne(arch), qPrintable(arch));
              QCOMPARE(product->productProperties.value("archFromProbe").toString(), arch);
+             bool foundGroup = false;
+             for (const GroupPtr &group : product->groups) {
+                if (group->name == "theGroup") {
+                    foundGroup = true;
+                    QCOMPARE(group->properties->moduleProperty("qbs", "sysroot"), "/" + arch);
+                }
+             }
+             QVERIFY(foundGroup);
         }
     } catch (const ErrorInfo &e) {
         exceptionCaught = true;
