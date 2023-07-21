@@ -57,10 +57,20 @@
 #include <tools/stlutils.h>
 #include <tools/stringconstants.h>
 
-#include <QtCore/qtemporaryfile.h>
+#include <QtCore/qcryptographichash.h>
+#include <QtCore/qjsondocument.h>
+#include <QtCore/qjsonobject.h>
 
 namespace qbs {
 namespace Internal {
+
+static QString getConfigHash(const QVariantMap& config)
+{
+    QJsonDocument doc;
+    doc.setObject(QJsonObject::fromVariantMap(config));
+    return QString::fromLatin1(
+        QCryptographicHash::hash(doc.toJson(), QCryptographicHash::Sha1).toHex().left(16));
+}
 
 ModuleProviderLoader::ModuleProviderLoader(LoaderState &loaderState)
     : m_loaderState(loaderState) {}
@@ -337,13 +347,6 @@ ModuleProviderLoader::EvaluationResult ModuleProviderLoader::evaluateModuleProvi
         const QVariantMap &moduleConfig,
         const QVariantMap &qbsModule)
 {
-    QTemporaryFile dummyItemFile;
-    if (!dummyItemFile.open()) {
-        throw ErrorInfo(Tr::tr("Failed to create temporary file for running module provider "
-                               "for dependency '%1': %2").arg(name.toString(),
-                                                              dummyItemFile.errorString()));
-    }
-    m_loaderState.topLevelProject().updateTempFilesList(dummyItemFile.fileName());
     qCDebug(lcModuleLoader) << "Instantiating module provider at" << providerFile;
     const QString projectBuildDir = product.project->item->variantProperty(
                 StringConstants::buildDirectoryProperty())->value().toString();
@@ -353,25 +356,9 @@ ModuleProviderLoader::EvaluationResult ModuleProviderLoader::evaluateModuleProvi
     auto jsConfig = moduleConfig;
     jsConfig[StringConstants::qbsModule()] = qbsModule;
 
-    QTextStream stream(&dummyItemFile);
-    using Qt::endl;
-    setupDefaultCodec(stream);
-    stream << "import qbs.FileInfo" << endl;
-    stream << "import qbs.Utilities" << endl;
-    stream << "import '" << providerFile << "' as Provider" << endl;
-    stream << "Provider {" << endl;
-    stream << "    name: " << toJSLiteral(name.toString()) << endl;
-    stream << "    property var config: (" << toJSLiteral(jsConfig) << ')' << endl;
-    stream << "    outputBaseDir: FileInfo.joinPaths(baseDirPrefix, "
-              "        Utilities.getHash(JSON.stringify(config)))" << endl;
-    stream << "    property string baseDirPrefix: " << toJSLiteral(searchPathBaseDir) << endl;
-    stream << "    property stringList searchPaths: (relativeSearchPaths || [])"
-              "        .map(function(p) { return FileInfo.joinPaths(outputBaseDir, p); })"
-           << endl;
-    stream << "}" << endl;
-    stream.flush();
+    QString outputBaseDir = searchPathBaseDir + QLatin1Char('/') + getConfigHash(jsConfig);
     Item * const providerItem = m_loaderState.itemReader().setupItemFromFile(
-                dummyItemFile.fileName(), dependsItemLocation);
+                providerFile, dependsItemLocation);
     if (providerItem->type() != ItemType::ModuleProvider) {
         throw ErrorInfo(Tr::tr("File '%1' declares an item of type '%2', "
                                "but '%3' was expected.")
@@ -380,6 +367,12 @@ ModuleProviderLoader::EvaluationResult ModuleProviderLoader::evaluateModuleProvi
     }
 
     providerItem->setScope(createProviderScope(product, qbsModule));
+    providerItem->setProperty(
+        StringConstants::nameProperty(),
+        VariantValue::create(name.toString()));
+    providerItem->setProperty(
+        QStringLiteral("outputBaseDir"),
+        VariantValue::create(outputBaseDir));
     providerItem->overrideProperties(moduleConfig, name,
                                      m_loaderState.parameters(), m_loaderState.logger());
 
@@ -395,8 +388,13 @@ ModuleProviderLoader::EvaluationResult ModuleProviderLoader::evaluateModuleProvi
 
     EvalContextSwitcher contextSwitcher(m_loaderState.evaluator().engine(),
                                         EvalContext::ModuleProvider);
-    return {m_loaderState.evaluator().stringListValue(providerItem, QStringLiteral("searchPaths")),
-            isEager};
+    auto searchPaths = m_loaderState.evaluator().stringListValue(
+        providerItem, QStringLiteral("relativeSearchPaths"));
+    auto prependBaseDir = [&outputBaseDir](const auto &path) {
+        return outputBaseDir + QLatin1Char('/') + path;
+    };
+    std::transform(searchPaths.begin(), searchPaths.end(), searchPaths.begin(), prependBaseDir);
+    return {searchPaths, isEager};
 }
 
 } // namespace Internal

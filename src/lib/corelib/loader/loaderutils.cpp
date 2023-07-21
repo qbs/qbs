@@ -348,11 +348,6 @@ QVariantMap TopLevelProjectContext::multiplexConfiguration(const QString &id) co
     return it->second;
 }
 
-void TopLevelProjectContext::updateTempFilesList(const QString &filePath)
-{
-    m_tempQbsFiles << filePath;
-}
-
 void TopLevelProjectContext::setModuleProvidersCache(const ModuleProvidersCache &cache)
 {
     m_moduleProvidersCache = cache;

@@ -240,8 +240,7 @@ public:
     void setLastResolveTime(const FileTime &time) { m_lastResolveTime = time; }
     const FileTime &lastResolveTime() const { return m_lastResolveTime; }
 
-    void updateTempFilesList(const QString &filePath);
-    Set<QString> buildSystemFiles() const { return m_itemReaderCache.filesRead() - m_tempQbsFiles; }
+    Set<QString> buildSystemFiles() const { return m_itemReaderCache.filesRead(); }
 
     void setModuleProvidersCache(const ModuleProvidersCache &cache);
     const ModuleProvidersCache &moduleProvidersCache() const { return m_moduleProvidersCache; }
@@ -311,7 +310,6 @@ private:
     QVariantMap m_profileConfigs;
     ProgressObserver *m_progressObserver = nullptr;
     TimingData m_timingData;
-    Set<QString> m_tempQbsFiles;
     ModuleProvidersCache m_moduleProvidersCache;
     QVariantMap m_localProfiles;
     ItemReaderCache m_itemReaderCache;
