@@ -45,6 +45,7 @@
 #include <language/moduleproviderinfo.h>
 #include <language/propertydeclaration.h>
 #include <language/qualifiedid.h>
+#include <parser/qmljsengine_p.h>
 #include <tools/filetime.h>
 #include <tools/joblimits.h>
 #include <tools/pimpl.h>
@@ -58,6 +59,7 @@
 #include <functional>
 #include <memory>
 #include <optional>
+#include <thread>
 #include <utility>
 #include <vector>
 
@@ -95,6 +97,35 @@ public:
     qint64 probes = 0;
     qint64 propertyEvaluation = 0;
     qint64 propertyChecking = 0;
+};
+
+class ItemReaderCache
+{
+public:
+    class AstCacheEntry
+    {
+    public:
+        QString code;
+        QbsQmlJS::Engine engine;
+        QbsQmlJS::AST::UiProgram *ast = nullptr;
+
+        bool addProcessingThread();
+        void removeProcessingThread();
+
+    private:
+        Set<std::thread::id> m_processingThreads;
+    };
+
+    const Set<QString> &filesRead() const { return m_filesRead; }
+    AstCacheEntry &retrieveOrSetupCacheEntry(const QString &filePath,
+                                             const std::function<void(AstCacheEntry &)> &setup);
+    const QStringList &retrieveOrSetDirectoryEntries(
+        const QString &dir, const std::function<QStringList()> &findOnDisk);
+
+private:
+    Set<QString> m_filesRead;
+    std::unordered_map<QString, std::optional<QStringList>> m_directoryEntries; // TODO: Merge with module dir entries cache?
+    std::unordered_map<QString, AstCacheEntry> m_astCache;
 };
 
 class DependenciesContext
@@ -206,7 +237,7 @@ public:
     const FileTime &lastResolveTime() const { return m_lastResolveTime; }
 
     void updateTempFilesList(const QString &filePath);
-    const Set<QString> &tempQbsFiles() const { return m_tempQbsFiles; }
+    Set<QString> buildSystemFiles() const { return m_itemReaderCache.filesRead() - m_tempQbsFiles; }
 
     void setModuleProvidersCache(const ModuleProvidersCache &cache);
     const ModuleProvidersCache &moduleProvidersCache() const { return m_moduleProvidersCache; }
@@ -254,6 +285,7 @@ public:
     int reusedCurrentProbesCount() const { return m_probesInfo.probesCachedCurrent; }
 
     TimingData &timingData() { return m_timingData; }
+    ItemReaderCache &itemReaderCache() { return m_itemReaderCache; }
 
 private:
     std::vector<ProjectContext *> m_projects;
@@ -275,6 +307,7 @@ private:
     Set<QString> m_tempQbsFiles;
     ModuleProvidersCache m_moduleProvidersCache;
     QVariantMap m_localProfiles;
+    ItemReaderCache m_itemReaderCache;
 
     // For fast look-up when resolving Depends.productTypes.
     // The contract is that it contains fully handled, error-free, enabled products.

@@ -73,7 +73,8 @@ ItemReader::ItemReader(LoaderState &loaderState) : m_loaderState(loaderState) {}
 
 void ItemReader::init()
 {
-    m_visitorState = std::make_unique<ItemReaderVisitorState>(m_loaderState.logger());
+    m_visitorState = std::make_unique<ItemReaderVisitorState>(
+        m_loaderState.topLevelProject().itemReaderCache(), m_loaderState.logger());
     m_visitorState->setDeprecationWarningMode(m_loaderState.parameters().deprecationWarningMode());
     m_projectFilePath  = m_loaderState.parameters().projectFilePath();
     setSearchPaths(m_loaderState.parameters().searchPaths());
@@ -148,11 +149,6 @@ Item *ItemReader::readFile(const QString &filePath, const CodeLocation &referenc
             throw;
         throw ErrorInfo(e.toString(), referencingLocation);
     }
-}
-
-Set<QString> ItemReader::filesRead() const
-{
-    return m_visitorState->filesRead();
 }
 
 void ItemReader::handlePropertyOptions(Item *optionsItem)

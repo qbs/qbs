@@ -50,21 +50,19 @@ namespace qbs {
 namespace Internal {
 class Item;
 class ItemPool;
+class ItemReaderCache;
 class Logger;
 
 class ItemReaderVisitorState
 {
 public:
-    ItemReaderVisitorState(Logger &logger);
-    ~ItemReaderVisitorState();
+    ItemReaderVisitorState(ItemReaderCache &cache, Logger &logger);
 
     Logger &logger() { return m_logger; }
-    Set<QString> filesRead() const { return m_filesRead; }
 
     Item *readFile(const QString &filePath, const QStringList &searchPaths, ItemPool *itemPool);
 
-    void cacheDirectoryEntries(const QString &dirPath, const QStringList &entries);
-    bool findDirectoryEntries(const QString &dirPath, QStringList *entries) const;
+    void findDirectoryEntries(const QString &dirPath, QStringList *entries) const;
 
     Item *mostDerivingItem() const;
     void setMostDerivingItem(Item *item);
@@ -74,13 +72,9 @@ public:
 
 private:
     DeprecationWarningMode m_deprecationWarningMode = defaultDeprecationWarningMode();
+    ItemReaderCache &m_cache;
     Logger &m_logger;
-    Set<QString> m_filesRead;
-    QHash<QString, QStringList> m_directoryEntries;
     Item *m_mostDerivingItem = nullptr;
-
-    class ASTCache;
-    const std::unique_ptr<ASTCache> m_astCache;
 };
 
 } // namespace Internal

@@ -87,8 +87,6 @@ public:
     Item *wrapInProjectIfNecessary(Item *item);
     QStringList readExtraSearchPaths(Item *item, bool *wasSet = nullptr);
 
-    Set<QString> filesRead() const;
-
     qint64 elapsedTime() const { return m_elapsedTime; }
 
 private:

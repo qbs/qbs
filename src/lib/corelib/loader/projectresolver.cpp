@@ -288,8 +288,7 @@ TopLevelProjectPtr ProjectResolver::Private::resolveTopLevelProject()
     if (accumulatedErrors.hasError())
         throw accumulatedErrors;
 
-    project->buildSystemFiles = state.itemReader().filesRead()
-            - state.topLevelProject().tempQbsFiles();
+    project->buildSystemFiles = state.topLevelProject().buildSystemFiles();
     project->profileConfigs = state.topLevelProject().profileConfigs();
     const QVariantMap &profiles = state.topLevelProject().localProfiles();
     for (auto it = profiles.begin(); it != profiles.end(); ++it)

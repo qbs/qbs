@@ -761,4 +761,34 @@ TimingData &TimingData::operator+=(const TimingData &other)
 
 DependenciesContext::~DependenciesContext() = default;
 
+ItemReaderCache::AstCacheEntry &ItemReaderCache::retrieveOrSetupCacheEntry(
+    const QString &filePath, const std::function<void (AstCacheEntry &)> &setup)
+{
+    AstCacheEntry &entry = m_astCache[filePath];
+    if (!entry.ast) {
+        setup(entry);
+        m_filesRead << filePath;
+    }
+    return entry;
+}
+
+const QStringList &ItemReaderCache::retrieveOrSetDirectoryEntries(
+    const QString &dir, const std::function<QStringList ()> &findOnDisk)
+{
+    auto &entries = m_directoryEntries[dir];
+    if (!entries)
+        entries = findOnDisk();
+    return *entries;
+}
+
+bool ItemReaderCache::AstCacheEntry::addProcessingThread()
+{
+    return m_processingThreads.insert(std::this_thread::get_id()).second;
+}
+
+void ItemReaderCache::AstCacheEntry::removeProcessingThread()
+{
+    m_processingThreads.remove(std::this_thread::get_id());
+}
+
 } // namespace qbs::Internal

@@ -268,21 +268,9 @@ void ASTImportsHandler::checkImportVersion(const QbsQmlJS::AST::SourceLocation &
 void ASTImportsHandler::collectPrototypes(const QString &path, const QString &as)
 {
     QStringList fileNames; // Yes, file *names*.
-    if (m_visitorState.findDirectoryEntries(path, &fileNames)) {
-        for (const QString &fileName : std::as_const(fileNames))
-            addPrototype(fileName, path + QLatin1Char('/') + fileName, as, false);
-        return;
-    }
-
-    QDirIterator dirIter(path, StringConstants::qbsFileWildcards());
-    while (dirIter.hasNext()) {
-        const QString filePath = dirIter.next();
-        const QString fileName = dirIter.fileName();
-        if (addPrototype(fileName, filePath, as, true))
-            fileNames << fileName;
-    }
-    m_visitorState.cacheDirectoryEntries(path, fileNames);
-
+    m_visitorState.findDirectoryEntries(path, &fileNames);
+    for (const QString &fileName : std::as_const(fileNames))
+        addPrototype(fileName, path + QLatin1Char('/') + fileName, as, false);
 }
 
 void ASTImportsHandler::collectPrototypesAndJsCollections(const QString &path, const QString &as,

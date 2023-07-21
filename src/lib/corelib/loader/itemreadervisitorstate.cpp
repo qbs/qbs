@@ -39,6 +39,7 @@
 #include "itemreadervisitorstate.h"
 
 #include "itemreaderastvisitor.h"
+#include "loaderutils.h"
 
 #include <language/asttools.h>
 #include <language/filecontext.h>
@@ -47,89 +48,35 @@
 #include <parser/qmljslexer_p.h>
 #include <parser/qmljsparser_p.h>
 #include <tools/error.h>
+#include <tools/stringconstants.h>
 
-#include <QtCore/qshareddata.h>
+#include <QtCore/qdiriterator.h>
 #include <QtCore/qfile.h>
 #include <QtCore/qfileinfo.h>
-#include <QtCore/qshareddata.h>
 #include <QtCore/qtextstream.h>
 
 namespace qbs {
 namespace Internal {
 
-class ASTCacheValueData : public QSharedData
+ItemReaderVisitorState::ItemReaderVisitorState(ItemReaderCache &cache, Logger &logger)
+    : m_cache(cache), m_logger(logger)
 {
-    Q_DISABLE_COPY(ASTCacheValueData)
-public:
-    ASTCacheValueData()
-        : ast(nullptr)
-        , processing(false)
-    {
-    }
-
-    QString code;
-    QbsQmlJS::Engine engine;
-    QbsQmlJS::AST::UiProgram *ast;
-    bool processing;
-};
-
-class ASTCacheValue
-{
-public:
-    ASTCacheValue()
-        : d(new ASTCacheValueData)
-    {
-    }
-
-    ASTCacheValue(const ASTCacheValue &other) = default;
-
-    void setProcessingFlag(bool b) { d->processing = b; }
-    bool isProcessing() const { return d->processing; }
-
-    void setCode(const QString &code) { d->code = code; }
-    QString code() const { return d->code; }
-
-    QbsQmlJS::Engine *engine() const { return &d->engine; }
-
-    void setAst(QbsQmlJS::AST::UiProgram *ast) { d->ast = ast; }
-    QbsQmlJS::AST::UiProgram *ast() const { return d->ast; }
-    bool isValid() const { return d->ast; }
-
-private:
-    QExplicitlySharedDataPointer<ASTCacheValueData> d;
-};
-
-class ItemReaderVisitorState::ASTCache : public std::unordered_map<QString, ASTCacheValue> {};
-
-
-ItemReaderVisitorState::ItemReaderVisitorState(Logger &logger)
-    : m_logger(logger)
-    , m_astCache(std::make_unique<ASTCache>())
-{
-
 }
-
-ItemReaderVisitorState::~ItemReaderVisitorState() = default;
 
 Item *ItemReaderVisitorState::readFile(const QString &filePath, const QStringList &searchPaths,
                                   ItemPool *itemPool)
 {
-    ASTCacheValue &cacheValue = (*m_astCache)[filePath];
-    if (cacheValue.isValid()) {
-        if (Q_UNLIKELY(cacheValue.isProcessing()))
-            throw ErrorInfo(Tr::tr("Loop detected when importing '%1'.").arg(filePath));
-    } else {
+    const auto setupCacheEntry = [&](ItemReaderCache::AstCacheEntry &entry) {
         QFile file(filePath);
         if (Q_UNLIKELY(!file.open(QFile::ReadOnly)))
             throw ErrorInfo(Tr::tr("Cannot open '%1'.").arg(filePath));
 
-        m_filesRead.insert(filePath);
         QTextStream stream(&file);
         setupDefaultCodec(stream);
         const QString &code = stream.readAll();
-        QbsQmlJS::Lexer lexer(cacheValue.engine());
+        QbsQmlJS::Lexer lexer(&entry.engine);
         lexer.setCode(code, 1);
-        QbsQmlJS::Parser parser(cacheValue.engine());
+        QbsQmlJS::Parser parser(&entry.engine);
 
         file.close();
         if (!parser.parse()) {
@@ -142,42 +89,49 @@ Item *ItemReaderVisitorState::readFile(const QString &filePath, const QStringLis
             }
         }
 
-        cacheValue.setCode(code);
-        cacheValue.setAst(parser.ast());
-    }
+        entry.code = code;
+        entry.ast = parser.ast();
+    };
 
+    ItemReaderCache::AstCacheEntry &cacheEntry = m_cache.retrieveOrSetupCacheEntry(
+        filePath, setupCacheEntry);
     const FileContextPtr file = FileContext::create();
     file->setFilePath(QFileInfo(filePath).absoluteFilePath());
-    file->setContent(cacheValue.code());
+    file->setContent(cacheEntry.code);
     file->setSearchPaths(searchPaths);
 
     ItemReaderASTVisitor astVisitor(*this, file, itemPool, m_logger);
     {
         class ProcessingFlagManager {
         public:
-            ProcessingFlagManager(ASTCacheValue &v) : m_cacheValue(v) { v.setProcessingFlag(true); }
-            ~ProcessingFlagManager() { m_cacheValue.setProcessingFlag(false); }
+            ProcessingFlagManager(ItemReaderCache::AstCacheEntry &e, const QString &filePath)
+                : m_cacheEntry(e)
+            {
+                if (!e.addProcessingThread())
+                    throw ErrorInfo(Tr::tr("Loop detected when importing '%1'.").arg(filePath));
+            }
+            ~ProcessingFlagManager() { m_cacheEntry.removeProcessingThread(); }
+
         private:
-            ASTCacheValue &m_cacheValue;
-        } processingFlagManager(cacheValue);
-        cacheValue.ast()->accept(&astVisitor);
+            ItemReaderCache::AstCacheEntry &m_cacheEntry;
+        } processingFlagManager(cacheEntry, filePath);
+        cacheEntry.ast->accept(&astVisitor);
     }
     astVisitor.checkItemTypes();
     return astVisitor.rootItem();
 }
 
-void ItemReaderVisitorState::cacheDirectoryEntries(const QString &dirPath, const QStringList &entries)
+void ItemReaderVisitorState::findDirectoryEntries(const QString &dirPath, QStringList *entries) const
 {
-    m_directoryEntries.insert(dirPath, entries);
-}
-
-bool ItemReaderVisitorState::findDirectoryEntries(const QString &dirPath, QStringList *entries) const
-{
-    const auto it = m_directoryEntries.constFind(dirPath);
-    if (it == m_directoryEntries.constEnd())
-        return false;
-    *entries = it.value();
-    return true;
+    *entries = m_cache.retrieveOrSetDirectoryEntries(dirPath, [&dirPath] {
+        QStringList fileNames;
+        QDirIterator dirIter(dirPath, StringConstants::qbsFileWildcards());
+        while (dirIter.hasNext()) {
+            dirIter.next();
+            fileNames << dirIter.fileName();
+        }
+        return fileNames;
+    });
 }
 
 Item *ItemReaderVisitorState::mostDerivingItem() const
