@@ -342,6 +342,23 @@ void ProductsCollector::Private::prepareProduct(ProjectContext &projectContext, 
     productContext.scope->setFile(productItem->file());
     productContext.scope->setScope(productContext.project->scope);
 
+    // If there are any child items with an id, set up a scope for them. This is mostly
+    // relevant for Probe items. While we might get away with using the file's id scope
+    // in the absence of multiplexing, having a proper per-product scope seems cleaner.
+    QBS_CHECK(productItem->scope());
+    QBS_CHECK(productItem->scope() == productContext.project->scope);
+    for (Item * const child : productItem->children()) {
+        if (child->id().isEmpty())
+            continue;
+        if (productItem->scope() == productContext.project->scope) {
+            productItem->setScope(Item::create(productItem->pool(), ItemType::Scope));
+            productItem->scope()->setScope(productContext.project->scope);
+        }
+        const ItemValuePtr childValue = ItemValue::create(child);
+        productItem->scope()->setProperty(child->id(), childValue);
+        productContext.scope->setProperty(child->id(), childValue);
+    }
+
     const bool hasExportItems = mergeExportItems(productContext);
 
     setScopeForDescendants(productItem, productContext.scope);

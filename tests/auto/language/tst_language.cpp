@@ -2406,6 +2406,35 @@ void TestLanguage::pathProperties()
     QCOMPARE(exceptionCaught, false);
 }
 
+void TestLanguage::probesAndMultiplexing()
+{
+    bool exceptionCaught = false;
+    try {
+        resolveProject("probes-and-multiplexing.qbs");
+        QVERIFY(project);
+        QCOMPARE(int(project->products.size()), 3);
+        QStringList architectures{"x86", "x86_64", "arm"};
+        for (const ResolvedProductPtr &product : project->products) {
+             const QString arch = product->moduleProperties->moduleProperty("qbs", "architecture")
+                                      .toString();
+             QVERIFY2(architectures.removeOne(arch), qPrintable(arch));
+             QCOMPARE(product->productProperties.value("archFromProbe").toString(), arch);
+             bool foundGroup = false;
+             for (const GroupPtr &group : product->groups) {
+                if (group->name == "theGroup") {
+                    foundGroup = true;
+                    QCOMPARE(group->properties->moduleProperty("qbs", "sysroot"), "/" + arch);
+                }
+             }
+             QVERIFY(foundGroup);
+        }
+    } catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+}
+
 void TestLanguage::profileValuesAndOverriddenValues()
 {
     bool exceptionCaught = false;

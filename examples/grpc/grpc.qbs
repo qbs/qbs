@@ -37,7 +37,7 @@ Project {
     Application {
         Depends { name: "cpp" }
         Depends { name: "protobuf.cpp"; required: false }
-        condition: protobuf.cpp.present && qbs.targetOS === qbs.hostOS
+        condition: protobuf.cpp.present && qbs.targetPlatform === qbs.hostPlatform
         protobuf.cpp.useGrpc: true
         consoleApplication: true
         cpp.cxxLanguageVersion: "c++17"
@@ -57,7 +57,7 @@ Project {
     Application {
         Depends { name: "cpp" }
         Depends { name: "protobuf.cpp"; required: false }
-        condition: protobuf.cpp.present && qbs.targetOS === qbs.hostOS
+        condition: protobuf.cpp.present && qbs.targetPlatform === qbs.hostPlatform
         protobuf.cpp.useGrpc: true
         consoleApplication: true
         cpp.cxxLanguageVersion: "c++17"
