@@ -313,7 +313,8 @@ var XcodeBuildSpecsReader = (function () {
     };
     XcodeBuildSpecsReader.prototype.expandedSetting = function (typeIdentifier, baseSettings,
                                                                 settingName) {
-        var obj = baseSettings || {};
+        var obj = {};
+        _assign(obj, baseSettings); // todo: copy recursively
         obj = _assign(obj, this.settings(typeIdentifier, true));
         if (obj) {
             for (var x in this._additionalSettings) {

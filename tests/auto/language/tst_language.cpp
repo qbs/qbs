@@ -186,6 +186,9 @@ TopLevelProjectPtr TestLanguage::resolveProject(const char *relProjectFilePath)
 
 void TestLanguage::init()
 {
+    // clear caches, otherwise StoredVariantValues may end up being at the same address
+    // as the destroyed value
+    m_engine->reset();
     m_logSink->setLogLevel(LoggerInfo);
     defaultParameters = {};
     defaultParameters.setBuildRoot(m_tempDir.path() + "/buildroot");
@@ -1013,6 +1016,8 @@ void TestLanguage::erroneousFiles_data()
             << "invalid-references.qbs:2:17.*Cannot open '.*nosuchproject.qbs'";
     QTest::newRow("missing-js-file")
             << "missing-js-file-module.qbs.*Cannot open '.*javascriptfile.js'";
+    QTest::newRow("frozen-object") << "'key' is read-only";
+    QTest::newRow("frozen-object-list") << "object is not extensible";
 }
 
 void TestLanguage::erroneousFiles()

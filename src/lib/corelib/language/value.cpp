@@ -240,6 +240,14 @@ ValuePtr ItemValue::clone(ItemPool &pool) const
     return create(m_item->clone(pool), createdByPropertiesBlock());
 }
 
+class StoredVariantValue : public VariantValue
+{
+public:
+    explicit StoredVariantValue(QVariant v) : VariantValue(std::move(v)) {}
+
+    quintptr id() const override { return quintptr(this); }
+};
+
 VariantValue::VariantValue(QVariant v)
     : Value(VariantValueType, false)
     , m_value(std::move(v))
@@ -249,13 +257,24 @@ VariantValue::VariantValue(QVariant v)
 VariantValue::VariantValue(const VariantValue &other, ItemPool &pool)
     : Value(other, pool), m_value(other.m_value) {}
 
-VariantValuePtr VariantValue::create(const QVariant &v)
+template<typename T>
+VariantValuePtr createImpl(const QVariant &v)
 {
     if (!v.isValid())
-        return invalidValue();
+        return VariantValue::invalidValue();
     if (static_cast<QMetaType::Type>(v.userType()) == QMetaType::Bool)
         return v.toBool() ? VariantValue::trueValue() : VariantValue::falseValue();
-    return std::make_shared<VariantValue>(v);
+    return std::make_shared<T>(v);
+}
+
+VariantValuePtr VariantValue::create(const QVariant &v)
+{
+    return createImpl<VariantValue>(v);
+}
+
+VariantValuePtr VariantValue::createStored(const QVariant &v)
+{
+    return createImpl<StoredVariantValue>(v);
 }
 
 ValuePtr VariantValue::clone(ItemPool &pool) const

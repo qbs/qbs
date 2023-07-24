@@ -170,6 +170,8 @@ ProbeConstPtr ProbesResolver::resolveProbe(ProductContext &productContext, Item 
         importedFilesUsedInConfigure = resolvedProbe->importedFilesUsed();
     }
     QVariantMap properties;
+    VariantValuePtr storedValue;
+    QMap<QString, VariantValuePtr> storedValues;
     for (const ProbeProperty &b : probeBindings) {
         QVariant newValue;
         if (resolvedProbe) {
@@ -207,14 +209,22 @@ ProbeConstPtr ProbesResolver::resolveProbe(ProductContext &productContext, Item 
                 newValue = initialProperties.value(b.first);
             }
         }
-        if (newValue != getJsVariant(ctx, b.second))
-            probe->setProperty(b.first, VariantValue::create(newValue));
-        if (!resolvedProbe)
+        if (newValue != getJsVariant(ctx, b.second)) {
+            if (!resolvedProbe)
+                storedValue = VariantValue::createStored(newValue);
+            else
+                storedValue = resolvedProbe->values().value(b.first);
+
+            probe->setProperty(b.first, storedValue);
+        }
+        if (!resolvedProbe) {
             properties.insert(b.first, newValue);
+            storedValues[b.first] = storedValue;
+        }
     }
     if (!resolvedProbe) {
         resolvedProbe = Probe::create(probeId, probe->location(), condition,
-                                      sourceCode, properties, initialProperties,
+                                      sourceCode, properties, initialProperties, storedValues,
                                       importedFilesUsedInConfigure);
         m_loaderState.topLevelProject().addNewlyResolvedProbe(resolvedProbe);
     }

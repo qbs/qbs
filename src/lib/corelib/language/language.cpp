@@ -51,6 +51,7 @@
 #include <buildgraph/rulegraph.h> // TODO: Move to language?
 #include <buildgraph/transformer.h>
 #include <jsextensions/jsextensions.h>
+#include <language/value.h>
 #include <loader/loaderutils.h>
 #include <logging/categories.h>
 #include <logging/translator.h>
@@ -117,6 +118,12 @@ bool Probe::needsReconfigure(const FileTime &referenceTime) const
     return Internal::any_of(m_importedFilesUsed, criterion);
 }
 
+void Probe::restoreValues()
+{
+    for (auto it = m_properties.begin(), end = m_properties.end(); it != end; ++it) {
+        m_values[it.key()] = VariantValue::createStored(it.value());
+    }
+}
 
 /*!
  * \class SourceArtifact

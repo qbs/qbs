@@ -708,6 +708,8 @@ int JS_DeleteProperty(JSContext *ctx, JSValueConst obj, JSAtom prop, int flags);
 int JS_SetPrototype(JSContext *ctx, JSValueConst obj, JSValueConst proto_val);
 JSValue JS_GetPrototype(JSContext *ctx, JSValueConst val);
 
+JSValue JS_ObjectSeal(JSContext *ctx, JSValueConst obj, int freeze);
+
 #define JS_GPN_STRING_MASK  (1 << 0)
 #define JS_GPN_SYMBOL_MASK  (1 << 1)
 #define JS_GPN_PRIVATE_MASK (1 << 2)

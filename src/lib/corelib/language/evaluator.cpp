@@ -782,7 +782,7 @@ private:
 
     void handle(VariantValue *variantValue) override
     {
-        *result = engine->toScriptValue(variantValue->value());
+        *result = engine->toScriptValue(variantValue->value(), variantValue->id());
         engine->takeOwnership(*result);
     }
 };

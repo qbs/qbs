@@ -236,11 +236,13 @@ public:
     explicit VariantValue(QVariant v);
     VariantValue(const VariantValue &v, ItemPool &pool);
     static VariantValuePtr create(const QVariant &v = QVariant());
+    static VariantValuePtr createStored(const QVariant &v = QVariant());
 
     void apply(ValueHandler *handler) override { handler->handle(this); }
     ValuePtr clone(ItemPool &pool) const override;
 
     const QVariant &value() const { return m_value; }
+    virtual quintptr id() const { return 0; }
 
     static const VariantValuePtr &falseValue();
     static const VariantValuePtr &trueValue();

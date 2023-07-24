@@ -204,7 +204,7 @@ public:
     JSValue newArray(int length, JsValueOwner owner);
     void takeOwnership(JSValue v);
     JSValue undefinedValue() const { return JS_UNDEFINED; }
-    JSValue toScriptValue(const QVariant &v) const { return makeJsVariant(m_context, v); }
+    JSValue toScriptValue(const QVariant &v, quintptr id = 0) { return asJsValue(v, id); }
     JSValue evaluate(JsValueOwner resultOwner, const QString &code,
                      const QString &filePath = QString(), int line = 1,
                      const JSValueList &scopeChain = {});
@@ -283,11 +283,12 @@ public:
 
     JSValue getInternalExtension(const char *name) const;
     void addInternalExtension(const char *name, JSValue ext);
+    JSValue asJsValue(const QVariant &v, quintptr id = 0, bool frozen = false);
     JSValue asJsValue(const QByteArray &s);
     JSValue asJsValue(const QString &s);
     JSValue asJsValue(const QStringList &l);
-    JSValue asJsValue(const QVariantList &l);
-    JSValue asJsValue(const QVariantMap &m);
+    JSValue asJsValue(const QVariantList &l, quintptr id = 0, bool frozen = false);
+    JSValue asJsValue(const QVariantMap &m, quintptr id = 0, bool frozen = false);
 
     QVariant property(const char *name) const { return m_properties.value(QLatin1String(name)); }
     void setProperty(const char *k, const QVariant &v) { m_properties.insert(QLatin1String(k), v); }
@@ -396,6 +397,7 @@ private:
     QHash<QString, JSClassID> m_classes;
     QHash<QString, JSValue> m_internalExtensions;
     QHash<QString, JSValue> m_stringCache;
+    QHash<quintptr, JSValue> m_jsValueCache;
     QHash<JSValue, int> m_evalResults;
     std::vector<JSValue *> m_externallyCachedValues;
     QHash<QPair<Artifact *, QString>, JSValue> m_artifactsScriptValues;

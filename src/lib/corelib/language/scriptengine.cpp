@@ -58,6 +58,7 @@
 #include <tools/stlutils.h>
 #include <tools/stringconstants.h>
 
+#include <QtCore/qdatetime.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qdiriterator.h>
 #include <QtCore/qfile.h>
@@ -195,6 +196,10 @@ void ScriptEngine::reset()
     for (const auto &e : std::as_const(m_jsFileCache))
         JS_FreeValue(m_context, e.second);
     m_jsFileCache.clear();
+
+    for (const JSValue &s : std::as_const(m_jsValueCache))
+        JS_FreeValue(m_context, s);
+    m_jsValueCache.clear();
 
     for (auto it = m_evalResults.cbegin(); it != m_evalResults.cend(); ++it) {
         for (int i = 0; i < it.value(); ++i)
@@ -481,6 +486,37 @@ void ScriptEngine::addInternalExtension(const char *name, JSValue ext)
     m_internalExtensions.insert(QLatin1String(name), JS_DupValue(m_context, ext));
 }
 
+JSValue ScriptEngine::asJsValue(const QVariant &v, quintptr id, bool frozen)
+{
+    switch (static_cast<QMetaType::Type>(v.userType())) {
+    case QMetaType::QByteArray:
+        return asJsValue(v.toByteArray());
+    case QMetaType::QString:
+        return asJsValue(v.toString());
+    case QMetaType::QStringList:
+        return asJsValue(v.toStringList());
+    case QMetaType::QVariantList:
+        return asJsValue(v.toList(), id, frozen);
+    case QMetaType::Int:
+    case QMetaType::UInt:
+        return JS_NewInt32(m_context, v.toInt());
+    case QMetaType::Long:
+    case QMetaType::ULong:
+    case QMetaType::LongLong:
+    case QMetaType::ULongLong:
+        return JS_NewInt64(m_context, v.toInt());
+    case QMetaType::Bool:
+        return JS_NewBool(m_context, v.toBool());
+    case QMetaType::QDateTime:
+        return JS_NewDate(
+            m_context, v.toDateTime().toString(Qt::ISODateWithMs).toUtf8().constData());
+    case QMetaType::QVariantMap:
+        return asJsValue(v.toMap(), id, frozen);
+    default:
+        return JS_UNDEFINED;
+    }
+}
+
 JSValue ScriptEngine::asJsValue(const QByteArray &s)
 {
     return JS_NewArrayBufferCopy(
@@ -506,12 +542,21 @@ JSValue ScriptEngine::asJsValue(const QStringList &l)
     return array;
 }
 
-JSValue ScriptEngine::asJsValue(const QVariantMap &m)
+JSValue ScriptEngine::asJsValue(const QVariantMap &m, quintptr id, bool frozen)
 {
+    const auto it = id ? m_jsValueCache.constFind(id) : m_jsValueCache.constEnd();
+    if (it != m_jsValueCache.constEnd())
+        return JS_DupValue(m_context, it.value());
+    frozen = id || frozen;
     JSValue obj = JS_NewObject(m_context);
     for (auto it = m.begin(); it != m.end(); ++it)
-        setJsProperty(m_context, obj, it.key(), makeJsVariant(m_context, it.value()));
-    return obj;
+        setJsProperty(m_context, obj, it.key(), asJsValue(it.value(), 0, frozen));
+    if (frozen)
+        JS_ObjectSeal(m_context, obj, true);
+    if (!id)
+        return obj;
+    m_jsValueCache[id] = obj;
+    return JS_DupValue(m_context, obj);
 }
 
 void ScriptEngine::setPropertyOnGlobalObject(const QString &property, JSValue value)
@@ -520,13 +565,22 @@ void ScriptEngine::setPropertyOnGlobalObject(const QString &property, JSValue va
     setJsProperty(m_context, globalObject, property, value);
 }
 
-JSValue ScriptEngine::asJsValue(const QVariantList &l)
+JSValue ScriptEngine::asJsValue(const QVariantList &l, quintptr id, bool frozen)
 {
+    const auto it = id ? m_jsValueCache.constFind(id) : m_jsValueCache.constEnd();
+    if (it != m_jsValueCache.constEnd())
+        return JS_DupValue(m_context, it.value());
+    frozen = id || frozen;
     JSValue array = JS_NewArray(m_context);
     setJsProperty(m_context, array, QLatin1String("length"), JS_NewInt32(m_context, l.size()));
     for (int i = 0; i < l.size(); ++i)
-        JS_SetPropertyUint32(m_context, array, i, makeJsVariant(m_context, l.at(i)));
-    return array;
+        JS_SetPropertyUint32(m_context, array, i, asJsValue(l.at(i), 0, frozen));
+    if (frozen)
+        JS_ObjectSeal(m_context, array, true);
+    if (!id)
+        return array;
+    m_jsValueCache[id] = array;
+    return JS_DupValue(m_context, array);
 }
 
 JSValue ScriptEngine::loadInternalExtension(const QString &uri)

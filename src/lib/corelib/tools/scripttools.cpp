@@ -231,44 +231,19 @@ QStringList getJsStringList(JSContext *ctx, JSValue val)
     return l;
 }
 
-JSValue makeJsVariant(JSContext *ctx, const QVariant &v)
+JSValue makeJsVariant(JSContext *ctx, const QVariant &v, quintptr id)
 {
-    switch (static_cast<QMetaType::Type>(v.userType())) {
-    case QMetaType::QByteArray:
-        return makeJsArrayBuffer(ctx, v.toByteArray());
-    case QMetaType::QString:
-        return makeJsString(ctx, v.toString());
-    case QMetaType::QStringList:
-        return makeJsStringList(ctx, v.toStringList());
-    case QMetaType::QVariantList:
-        return makeJsVariantList(ctx, v.toList());
-    case QMetaType::Int:
-    case QMetaType::UInt:
-        return JS_NewInt32(ctx, v.toInt());
-    case QMetaType::Long:
-    case QMetaType::ULong:
-    case QMetaType::LongLong:
-    case QMetaType::ULongLong:
-        return JS_NewInt64(ctx, v.toInt());
-    case QMetaType::Bool:
-        return JS_NewBool(ctx, v.toBool());
-    case QMetaType::QDateTime:
-        return JS_NewDate(ctx, v.toDateTime().toString(Qt::ISODateWithMs).toUtf8().constData());
-    case QMetaType::QVariantMap:
-        return makeJsVariantMap(ctx, v.toMap());
-    default:
-        return JS_UNDEFINED;
-    }
+    return ScriptEngine::engineForContext(ctx)->asJsValue(v, id);
 }
 
-JSValue makeJsVariantList(JSContext *ctx, const QVariantList &l)
+JSValue makeJsVariantList(JSContext *ctx, const QVariantList &l, quintptr id)
 {
-    return ScriptEngine::engineForContext(ctx)->asJsValue(l);
+    return ScriptEngine::engineForContext(ctx)->asJsValue(l, id);
 }
 
-JSValue makeJsVariantMap(JSContext *ctx, const QVariantMap &m)
+JSValue makeJsVariantMap(JSContext *ctx, const QVariantMap &m, quintptr id)
 {
-    return ScriptEngine::engineForContext(ctx)->asJsValue(m);
+    return ScriptEngine::engineForContext(ctx)->asJsValue(m, id);
 }
 
 static QVariant getJsVariantImpl(JSContext *ctx, JSValue val, QList<JSValue> path)
