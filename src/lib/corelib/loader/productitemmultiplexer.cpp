@@ -101,7 +101,8 @@ QList<Item *> ProductItemMultiplexer::multiplex()
     if (multiplexInfo.table.size() > 1)
         m_productItem->setProperty(StringConstants::multiplexedProperty(), VariantValue::trueValue());
     VariantValuePtr productNameValue = VariantValue::create(m_productName);
-    Item *aggregator = multiplexInfo.aggregate ? m_productItem->clone() : nullptr;
+    Item *aggregator = multiplexInfo.aggregate ? m_productItem->clone(m_loaderState.itemPool())
+                                               : nullptr;
     QList<Item *> additionalProductItems;
     std::vector<VariantValuePtr> multiplexConfigurationIdValues;
     for (size_t row = 0; row < multiplexInfo.table.size(); ++row) {
@@ -109,7 +110,7 @@ QList<Item *> ProductItemMultiplexer::multiplex()
         const auto &mprow = multiplexInfo.table.at(row);
         QBS_CHECK(mprow.size() == multiplexInfo.properties.size());
         if (row > 0) {
-            item = m_productItem->clone();
+            item = m_productItem->clone(m_loaderState.itemPool());
             additionalProductItems.push_back(item);
         }
         const QString multiplexConfigurationId = multiplexInfo.toIdString(row, m_loaderState);
@@ -135,7 +136,7 @@ QList<Item *> ProductItemMultiplexer::multiplex()
 
         // Add dependencies to all multiplexed instances.
         for (const auto &v : multiplexConfigurationIdValues) {
-            Item *dependsItem = Item::create(aggregator->pool(), ItemType::Depends);
+            Item *dependsItem = Item::create(&m_loaderState.itemPool(), ItemType::Depends);
             dependsItem->setProperty(StringConstants::nameProperty(), productNameValue);
             dependsItem->setProperty(StringConstants::multiplexConfigurationIdsProperty(), v);
             dependsItem->setProperty(StringConstants::profilesProperty(),

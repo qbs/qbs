@@ -60,25 +60,14 @@
 namespace qbs {
 namespace Internal {
 
-Item::Item(ItemPool *pool, ItemType type)
-    : m_pool(pool)
-    , m_observer(nullptr)
-    , m_prototype(nullptr)
-    , m_scope(nullptr)
-    , m_outerItem(nullptr)
-    , m_parent(nullptr)
-    , m_type(type)
-{
-}
-
 Item *Item::create(ItemPool *pool, ItemType type)
 {
     return pool->allocateItem(type);
 }
 
-Item *Item::clone() const
+Item *Item::clone(ItemPool &pool) const
 {
-    Item *dup = create(pool(), type());
+    Item *dup = create(&pool, type());
     dup->m_id = m_id;
     dup->m_location = m_location;
     dup->m_prototype = m_prototype;
@@ -91,14 +80,14 @@ Item *Item::clone() const
 
     dup->m_children.reserve(m_children.size());
     for (const Item * const child : std::as_const(m_children)) {
-        Item *clonedChild = child->clone();
+        Item *clonedChild = child->clone(pool);
         clonedChild->m_parent = dup;
         dup->m_children.push_back(clonedChild);
     }
 
     for (PropertyMap::const_iterator it = m_properties.constBegin(); it != m_properties.constEnd();
          ++it) {
-        dup->m_properties.insert(it.key(), it.value()->clone());
+        dup->m_properties.insert(it.key(), it.value()->clone(pool));
     }
 
     return dup;
@@ -159,18 +148,18 @@ ValuePtr Item::ownProperty(const QString &name) const
     return m_properties.value(name);
 }
 
-ItemValuePtr Item::itemProperty(const QString &name, const Item *itemTemplate)
+ItemValuePtr Item::itemProperty(const QString &name, ItemPool &pool, const Item *itemTemplate)
 {
-    return itemProperty(name, itemTemplate, ItemValueConstPtr());
+    return itemProperty(name, itemTemplate, ItemValueConstPtr(), pool);
 }
 
-ItemValuePtr Item::itemProperty(const QString &name, const ItemValueConstPtr &value)
+ItemValuePtr Item::itemProperty(const QString &name, const ItemValueConstPtr &value, ItemPool &pool)
 {
-    return itemProperty(name, value->item(), value);
+    return itemProperty(name, value->item(), value, pool);
 }
 
 ItemValuePtr Item::itemProperty(const QString &name, const Item *itemTemplate,
-                                const ItemValueConstPtr &itemValue)
+                                const ItemValueConstPtr &itemValue, ItemPool &pool)
 {
     const ValuePtr v = property(name);
     if (v && v->type() == Value::ItemValueType)
@@ -178,7 +167,7 @@ ItemValuePtr Item::itemProperty(const QString &name, const Item *itemTemplate,
     if (!itemTemplate)
         return ItemValuePtr();
     const bool createdByPropertiesBlock = itemValue && itemValue->createdByPropertiesBlock();
-    ItemValuePtr result = ItemValue::create(Item::create(m_pool, itemTemplate->type()),
+    ItemValuePtr result = ItemValue::create(Item::create(&pool, itemTemplate->type()),
                                             createdByPropertiesBlock);
     setProperty(name, result);
     return result;

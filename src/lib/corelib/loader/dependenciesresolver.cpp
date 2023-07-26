@@ -438,7 +438,7 @@ LoadModuleResult DependenciesResolver::loadModule(
 
         if (checkResult.first) {
             QBS_CHECK(productDep->mergedExportItem);
-            moduleItem = productDep->mergedExportItem->clone();
+            moduleItem = productDep->mergedExportItem->clone(m_loaderState.itemPool());
             moduleItem->setParent(nullptr);
 
             // Needed for isolated Export item evaluation.
@@ -595,7 +595,7 @@ Item *DependenciesResolver::findMatchingModule(
                 dependency.fallbackMode, dependency.requiredGlobally);
     if (moduleItem) {
         Item * const proto = moduleItem;
-        moduleItem = moduleItem->clone();
+        moduleItem = moduleItem->clone(m_loaderState.itemPool());
         moduleItem->setPrototype(proto); // For parameter declarations.
     } else if (dependency.requiredGlobally) {
         throw ErrorInfo(Tr::tr("Dependency '%1' not found for product '%2'.")

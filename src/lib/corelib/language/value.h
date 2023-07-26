@@ -50,6 +50,7 @@
 namespace qbs {
 namespace Internal {
 class Item;
+class ItemPool;
 class ValueHandler;
 
 class Value
@@ -76,12 +77,13 @@ public:
     Q_DECLARE_FLAGS(Flags, Flag)
 
     Value(Type t, bool createdByPropertiesBlock);
-    Value(const Value &other);
+    Value(const Value &other) = delete;
+    Value(const Value &other, ItemPool &pool);
     virtual ~Value();
 
     Type type() const { return m_type; }
     virtual void apply(ValueHandler *) = 0;
-    virtual ValuePtr clone() const = 0;
+    virtual ValuePtr clone(ItemPool &) const = 0;
     virtual CodeLocation location() const { return {}; }
 
     Item *scope() const { return m_scope; }
@@ -144,13 +146,13 @@ class JSSourceValue : public Value
 
 public:
     explicit JSSourceValue(bool createdByPropertiesBlock);
-    JSSourceValue(const JSSourceValue &other);
+    JSSourceValue(const JSSourceValue &other, ItemPool &pool);
 
     static JSSourceValuePtr QBS_AUTOTEST_EXPORT create(bool createdByPropertiesBlock = false);
     ~JSSourceValue() override;
 
     void apply(ValueHandler *handler) override { handler->handle(this); }
-    ValuePtr clone() const override;
+    ValuePtr clone(ItemPool &pool) const override;
 
     void setSourceCode(QStringView sourceCode) { m_sourceCode = sourceCode; }
     QStringView sourceCode() const { return m_sourceCode; }
@@ -180,10 +182,10 @@ public:
         Alternative() = default;
         Alternative(PropertyData c, PropertyData o, JSSourceValuePtr v)
             : condition(std::move(c)), overrideListProperties(std::move(o)), value(std::move(v)) {}
-        Alternative clone() const
+        Alternative clone(ItemPool &pool) const
         {
             return Alternative(condition, overrideListProperties,
-                               std::static_pointer_cast<JSSourceValue>(value->clone()));
+                               std::static_pointer_cast<JSSourceValue>(value->clone(pool)));
         }
 
         PropertyData condition;
@@ -222,7 +224,7 @@ public:
 
 private:
     void apply(ValueHandler *handler) override { handler->handle(this); }
-    ValuePtr clone() const override;
+    ValuePtr clone(ItemPool &pool) const override;
 
     Item *m_item;
 };
@@ -232,10 +234,11 @@ class VariantValue : public Value
 {
 public:
     explicit VariantValue(QVariant v);
+    VariantValue(const VariantValue &v, ItemPool &pool);
     static VariantValuePtr create(const QVariant &v = QVariant());
 
     void apply(ValueHandler *handler) override { handler->handle(this); }
-    ValuePtr clone() const override;
+    ValuePtr clone(ItemPool &pool) const override;
 
     const QVariant &value() const { return m_value; }
 

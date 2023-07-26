@@ -125,7 +125,7 @@ void LocalProfiles::collectProfiles(Item *productOrProject, Item *projectScope)
         if (childItem->type() == ItemType::Profile) {
             if (!scope) {
                 const ItemValuePtr itemValue = ItemValue::create(productOrProject);
-                scope = Item::create(productOrProject->pool(), ItemType::Scope);
+                scope = Item::create(&m_loaderState.itemPool(), ItemType::Scope);
                 scope->setProperty(StringConstants::productVar(), itemValue);
                 scope->setFile(productOrProject->file());
                 scope->setScope(projectScope);

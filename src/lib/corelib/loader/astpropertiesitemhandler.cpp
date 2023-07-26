@@ -49,7 +49,8 @@
 namespace qbs {
 namespace Internal {
 
-ASTPropertiesItemHandler::ASTPropertiesItemHandler(Item *parentItem) : m_parentItem(parentItem)
+ASTPropertiesItemHandler::ASTPropertiesItemHandler(Item *parentItem, ItemPool &itemPool)
+    : m_parentItem(parentItem), m_itemPool(itemPool)
 {
 }
 
@@ -82,9 +83,11 @@ class PropertiesBlockConverter
 public:
     PropertiesBlockConverter(const JSSourceValue::AltProperty &condition,
                              const JSSourceValue::AltProperty &overrideListProperties,
-                             Item *propertiesBlockContainer, const Item *propertiesBlock)
+                             Item *propertiesBlockContainer, const Item *propertiesBlock,
+                             ItemPool &pool)
         : m_propertiesBlockContainer(propertiesBlockContainer)
         , m_propertiesBlock(propertiesBlock)
+        , m_itemPool(pool)
     {
         m_alternative.condition = condition;
         m_alternative.overrideListProperties = overrideListProperties;
@@ -99,6 +102,7 @@ private:
     JSSourceValue::Alternative m_alternative;
     Item * const m_propertiesBlockContainer;
     const Item * const m_propertiesBlock;
+    ItemPool &m_itemPool;
 
     void doApply(Item *outer, const Item *inner)
     {
@@ -111,9 +115,9 @@ private:
             }
             if (it.value()->type() == Value::ItemValueType) {
                 Item * const innerVal = std::static_pointer_cast<ItemValue>(it.value())->item();
-                ItemValuePtr outerVal = outer->itemProperty(it.key());
+                ItemValuePtr outerVal = outer->itemProperty(it.key(), m_itemPool);
                 if (!outerVal) {
-                    outerVal = ItemValue::create(Item::create(outer->pool(), innerVal->type()),
+                    outerVal = ItemValue::create(Item::create(&m_itemPool, innerVal->type()),
                                                  true);
                     outer->setProperty(it.key(), outerVal);
                 }
@@ -185,7 +189,7 @@ void ASTPropertiesItemHandler::handlePropertiesBlock(const Item *propertiesItem)
     const auto overrideListProperties = getPropertyData(propertiesItem,
             StringConstants::overrideListPropertiesProperty());
     PropertiesBlockConverter(condition, overrideListProperties, m_parentItem,
-                             propertiesItem).apply();
+                             propertiesItem, m_itemPool).apply();
 }
 
 } // namespace Internal

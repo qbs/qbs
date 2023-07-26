@@ -222,7 +222,7 @@ Item *ItemReader::wrapInProjectIfNecessary(Item *item)
 {
     if (item->type() == ItemType::Project)
         return item;
-    Item *prj = Item::create(item->pool(), ItemType::Project);
+    Item *prj = Item::create(&m_loaderState.itemPool(), ItemType::Project);
     Item::addChild(prj, item);
     prj->setFile(item->file());
     prj->setLocation(item->location());

@@ -162,7 +162,7 @@ void GroupsHandler::propagateModulesFromParent(Item *group)
         QBS_CHECK(targetItem->type() == ItemType::ModuleInstancePlaceholder);
         targetItem->setPrototype(m.item);
 
-        Item * const moduleScope = Item::create(targetItem->pool(), ItemType::Scope);
+        Item * const moduleScope = Item::create(&m_loaderState.itemPool(), ItemType::Scope);
         moduleScope->setFile(group->file());
         moduleScope->setProperties(m.item->scope()->properties()); // "project", "product", ids
         moduleScope->setScope(group);
@@ -189,7 +189,8 @@ void GroupsHandler::propagateModulesFromParent(Item *group)
             adaptedModules << depMod;
             if (depMod.name.front() == module.name.front())
                 continue;
-            const ItemValuePtr &modulePrefix = group->itemProperty(depMod.name.front());
+            const ItemValuePtr &modulePrefix = group->itemProperty(depMod.name.front(),
+                                                                   m_loaderState.itemPool());
             QBS_CHECK(modulePrefix);
             module.item->setProperty(depMod.name.front(), modulePrefix);
         }
@@ -257,7 +258,7 @@ void GroupsHandler::adjustScopesInGroupModuleInstances(Item *groupItem,
             continue;
 
         if (propValue->scope())
-            module.item->setProperty(propName, propValue->clone());
+            module.item->setProperty(propName, propValue->clone(m_loaderState.itemPool()));
     }
 
     for (const ValuePtr &prop : module.item->properties()) {

@@ -71,7 +71,7 @@ class QBS_AUTOTEST_EXPORT Item : public QbsQmlJS::Managed
     friend class ItemPool;
     friend class ItemReaderASTVisitor;
     Q_DISABLE_COPY(Item)
-    Item(ItemPool *pool, ItemType type);
+    Item(ItemType type) : m_type(type) {}
 
 public:
     struct Module
@@ -98,8 +98,7 @@ public:
     using PropertyMap = QMap<QString, ValuePtr>;
 
     static Item *create(ItemPool *pool, ItemType type);
-    Item *clone() const;
-    ItemPool *pool() const { return m_pool; }
+    Item *clone(ItemPool &pool) const;
 
     const QString &id() const { return m_id; }
     const CodeLocation &location() const { return m_location; }
@@ -134,8 +133,8 @@ public:
     bool hasOwnProperty(const QString &name) const;
     ValuePtr property(const QString &name) const;
     ValuePtr ownProperty(const QString &name) const;
-    ItemValuePtr itemProperty(const QString &name, const Item *itemTemplate = nullptr);
-    ItemValuePtr itemProperty(const QString &name, const ItemValueConstPtr &value);
+    ItemValuePtr itemProperty(const QString &name, ItemPool &pool, const Item *itemTemplate = nullptr);
+    ItemValuePtr itemProperty(const QString &name, const ItemValueConstPtr &value, ItemPool &pool);
     JSSourceValuePtr sourceProperty(const QString &name) const;
     VariantValuePtr variantProperty(const QString &name) const;
     bool isOfTypeOrhasParentOfType(ItemType type) const;
@@ -173,18 +172,17 @@ public:
 
 private:
     ItemValuePtr itemProperty(const QString &name, const Item *itemTemplate,
-                              const ItemValueConstPtr &itemValue);
+                              const ItemValueConstPtr &itemValue, ItemPool &pool);
 
     void dump(int indentation) const;
 
-    ItemPool *m_pool;
-    mutable ItemObserver *m_observer;
+    mutable ItemObserver *m_observer = nullptr;
     QString m_id;
     CodeLocation m_location;
-    Item *m_prototype;
-    Item *m_scope;
-    Item *m_outerItem;
-    Item *m_parent;
+    Item *m_prototype = nullptr;
+    Item *m_scope = nullptr;
+    Item *m_outerItem = nullptr;
+    Item *m_parent = nullptr;
     QList<Item *> m_children;
     FileContextPtr m_file;
     PropertyMap m_properties;

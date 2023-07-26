@@ -198,7 +198,7 @@ void ModuleProviderLoader::setupModuleProviderConfig(ProductContext &product)
         return;
     QVariantMap providerConfig;
     const ItemValueConstPtr configItemValue =
-        product.item->itemProperty(StringConstants::moduleProviders());
+        product.item->itemProperty(StringConstants::moduleProviders(), m_loaderState.itemPool());
     if (configItemValue) {
         const std::function<void(const Item *, QualifiedId)> collectMap
                 = [this, &providerConfig, &collectMap](const Item *item, const QualifiedId &name) {
@@ -326,13 +326,13 @@ Item *ModuleProviderLoader::createProviderScope(
     const auto qbsItemValue = std::static_pointer_cast<ItemValue>(
         product.item->property(StringConstants::qbsModule()));
 
-    Item *fakeQbsModule = Item::create(product.item->pool(), ItemType::Scope);
+    Item *fakeQbsModule = Item::create(&m_loaderState.itemPool(), ItemType::Scope);
 
     for (auto it = qbsModule.begin(), end = qbsModule.end(); it != end; ++it) {
         fakeQbsModule->setProperty(it.key(), VariantValue::create(it.value()));
     }
 
-    Item *scope = Item::create(product.item->pool(), ItemType::Scope);
+    Item *scope = Item::create(&m_loaderState.itemPool(), ItemType::Scope);
     scope->setFile(qbsItemValue->item()->file());
     scope->setProperty(StringConstants::qbsModule(), ItemValue::create(fakeQbsModule));
     return scope;

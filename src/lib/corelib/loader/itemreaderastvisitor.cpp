@@ -153,7 +153,7 @@ bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
         m_visitorState.setMostDerivingItem(mdi);
     }
 
-    ASTPropertiesItemHandler(item).handlePropertiesItems();
+    ASTPropertiesItemHandler(item, *m_itemPool).handlePropertiesItems();
 
     // Inheritance resolving, part 2 (depends on alternatives having been set up).
     if (baseItem) {
@@ -241,7 +241,7 @@ bool ItemReaderASTVisitor::visit(AST::UiScriptBinding *ast)
             throw ErrorInfo(Tr::tr("id: must be followed by identifier"));
         m_item->m_id = idExp->name.toString();
         m_file->ensureIdScope(m_itemPool);
-        ItemValueConstPtr existingId = m_file->idScope()->itemProperty(m_item->id());
+        ItemValueConstPtr existingId = m_file->idScope()->itemProperty(m_item->id(), *m_itemPool);
         if (existingId) {
             ErrorInfo e(Tr::tr("The id '%1' is not unique.").arg(m_item->id()));
             e.append(Tr::tr("First occurrence is here."), existingId->item()->location());

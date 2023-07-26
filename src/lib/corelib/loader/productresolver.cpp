@@ -293,7 +293,7 @@ void ProductResolverStage1::runModuleProbes(const Item::Module &module)
     if (!module.item->isPresentModule())
         return;
     if (module.product && m_loaderState.topLevelProject().isDisabledItem(module.product->item)) {
-        createNonPresentModule(*module.item->pool(), module.name.toString(),
+        createNonPresentModule(m_loaderState.itemPool(), module.name.toString(),
                                QLatin1String("module's exporting product is disabled"),
                                module.item);
         return;
@@ -352,7 +352,7 @@ void ProductResolverStage1::updateModulePresentState(const Item::Module &module)
         break;
     }
     if (!hasPresentLoadingItem) {
-        createNonPresentModule(*module.item->pool(), module.name.toString(),
+        createNonPresentModule(m_loaderState.itemPool(), module.name.toString(),
                                QLatin1String("imported only by disabled module(s)"),
                                module.item);
     }
@@ -388,7 +388,7 @@ void ProductResolverStage1::handleModuleSetupError(const Item::Module &module,
         qCDebug(lcModuleLoader()) << "non-required module" << module.name.toString()
                                   << "found, but not usable in product" << m_product.name
                                   << error.toString();
-        createNonPresentModule(*module.item->pool(), module.name.toString(),
+        createNonPresentModule(m_loaderState.itemPool(), module.name.toString(),
                                QStringLiteral("failed validation"), module.item);
     }
 }
@@ -562,7 +562,7 @@ void ProductResolverStage2::resolveProductFully()
     QList<Item *> subItems = item->children();
     const ValuePtr filesProperty = item->property(StringConstants::filesProperty());
     if (filesProperty) {
-        Item *fakeGroup = Item::create(item->pool(), ItemType::Group);
+        Item *fakeGroup = Item::create(&m_loaderState.itemPool(), ItemType::Group);
         fakeGroup->setFile(item->file());
         fakeGroup->setLocation(item->location());
         fakeGroup->setScope(item);
