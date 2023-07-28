@@ -9,7 +9,7 @@ endif()
 # emulating the same layout we will have after the installation
 
 # copy & install python packages
-set(_SITE_PACKAGES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../src/3rdparty/python/lib/python2.7/site-packages/)
+set(_SITE_PACKAGES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../src/3rdparty/python/lib/python3.9/site-packages/)
 file(GLOB_RECURSE _SITE_PACKAGES_RELATIVE RELATIVE "${_SITE_PACKAGES_DIR}" "${_SITE_PACKAGES_DIR}/*.py")
 
 set(_SITE_PACKAGES_SRC ${_SITE_PACKAGES_RELATIVE})
