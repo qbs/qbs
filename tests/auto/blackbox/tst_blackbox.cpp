@@ -4115,7 +4115,8 @@ void TestBlackbox::exportsQbs()
     paramsExternalBuild.buildDirectory = QDir::currentPath() + "/external-consumer-profile";
     paramsExternalBuild.expectFailure = true;
     QVERIFY(runQbs(paramsExternalBuild) != 0);
-    QVERIFY2(m_qbsStderr.contains("MyLib could not be loaded"), m_qbsStderr.constData());
+    QVERIFY2(m_qbsStderr.contains("Dependency 'MyLib' not found for product 'consumer'"),
+             m_qbsStderr.constData());
 
     // Removing the condition from the generated module leaves us with two conflicting
     // candidates.
@@ -4844,7 +4845,8 @@ void TestBlackbox::lastModuleCandidateBroken()
     QbsRunParameters params;
     params.expectFailure = true;
     QVERIFY(runQbs(params) != 0);
-    QVERIFY2(m_qbsStderr.contains("Module Foo could not be loaded"), m_qbsStderr);
+    QVERIFY2(m_qbsStderr.contains("Dependency 'Foo' not found for product "
+                                  "'last-module-candidate-broken'"), m_qbsStderr);
 }
 
 void TestBlackbox::ld()

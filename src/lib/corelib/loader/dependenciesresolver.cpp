@@ -590,19 +590,23 @@ Item *DependenciesResolver::findMatchingModule(
         return nullptr;
     }
 
-    Item *moduleItem = searchAndLoadModuleFile(
-                m_loaderState, m_product, dependency.location(), dependency.name,
-                dependency.fallbackMode, dependency.requiredGlobally);
-    if (moduleItem) {
+    if (Item *moduleItem = searchAndLoadModuleFile(m_loaderState, m_product, dependency.location(),
+                                                   dependency.name, dependency.fallbackMode)) {
+        QBS_CHECK(moduleItem->type() == ItemType::Module);
         Item * const proto = moduleItem;
         moduleItem = moduleItem->clone(m_loaderState.itemPool());
         moduleItem->setPrototype(proto); // For parameter declarations.
-    } else if (dependency.requiredGlobally) {
-        throw ErrorInfo(Tr::tr("Dependency '%1' not found for product '%2'.")
-                        .arg(dependency.name.toString(), m_product.displayName()),
-                        dependency.location());
+        return moduleItem;
     }
-    return moduleItem;
+
+    if (!dependency.requiredGlobally) {
+        return createNonPresentModule(m_loaderState.itemPool(), dependency.name.toString(),
+                                      QStringLiteral("not found"), nullptr);
+    }
+
+    throw ErrorInfo(Tr::tr("Dependency '%1' not found for product '%2'.")
+                        .arg(dependency.name.toString(), m_product.displayName()),
+                    dependency.location());
 }
 
 std::pair<bool, HandleDependency> DependenciesResolver::checkProductDependency(

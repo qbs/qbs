@@ -50,8 +50,7 @@ class QualifiedId;
 
 Item *searchAndLoadModuleFile(LoaderState &loaderState, ProductContext &product,
                               const CodeLocation &dependsItemLocation,
-                              const QualifiedId &moduleName, FallbackMode fallbackMode,
-                              bool isRequired);
+                              const QualifiedId &moduleName, FallbackMode fallbackMode);
 
 } // namespace Internal
 } // namespace qbs

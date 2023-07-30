@@ -69,10 +69,10 @@ class ModuleLoader
 public:
     ModuleLoader(LoaderState &loaderState, ProductContext &product,
                  const CodeLocation &dependsItemLocation, const QualifiedId &moduleName,
-                 FallbackMode fallbackMode, bool isRequired)
+                 FallbackMode fallbackMode)
         : m_loaderState(loaderState), m_product(product),
           m_dependsItemLocation(dependsItemLocation), m_moduleName(moduleName),
-          m_fallbackMode(fallbackMode), m_isRequired(isRequired)
+          m_fallbackMode(fallbackMode)
     {}
 
     Item *load();
@@ -91,7 +91,6 @@ private:
     const CodeLocation &m_dependsItemLocation;
     const QualifiedId &m_moduleName;
     const FallbackMode m_fallbackMode;
-    const bool m_isRequired;
 };
 
 struct PrioritizedItem
@@ -143,10 +142,9 @@ static Item *chooseModuleCandidate(const std::vector<PrioritizedItem> &candidate
 
 Item *searchAndLoadModuleFile(LoaderState &loaderState, ProductContext &product,
         const CodeLocation &dependsItemLocation, const QualifiedId &moduleName,
-        FallbackMode fallbackMode, bool isRequired)
+        FallbackMode fallbackMode)
 {
-    return ModuleLoader(loaderState, product, dependsItemLocation, moduleName,
-                        fallbackMode, isRequired).load();
+    return ModuleLoader(loaderState, product, dependsItemLocation, moduleName, fallbackMode).load();
 }
 
 Item *ModuleLoader::load()
@@ -183,17 +181,8 @@ Item *ModuleLoader::load()
         }
     }
 
-    if (candidates.empty()) {
-        if (!m_isRequired) {
-            return createNonPresentModule(m_loaderState.itemPool(), fullName,
-                                          QStringLiteral("not found"), nullptr);
-        }
-        if (Q_UNLIKELY(triedToLoadModule)) {
-            throw ErrorInfo(Tr::tr("Module %1 could not be loaded.").arg(fullName),
-                            m_dependsItemLocation);
-        }
+    if (candidates.empty())
         return nullptr;
-    }
 
     Item *moduleItem = nullptr;
     if (candidates.size() == 1) {
