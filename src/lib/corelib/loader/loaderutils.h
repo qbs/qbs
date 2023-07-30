@@ -94,6 +94,7 @@ public:
     qint64 groupsSetup = 0;
     qint64 groupsResolving = 0;
     qint64 preparingProducts = 0;
+    qint64 resolvingProducts = 0;
     qint64 probes = 0;
     qint64 propertyEvaluation = 0;
     qint64 propertyChecking = 0;

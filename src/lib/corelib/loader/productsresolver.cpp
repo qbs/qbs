@@ -43,6 +43,8 @@
 #include "loaderutils.h"
 #include "productresolver.h"
 
+#include <tools/profiling.h>
+#include <tools/setupprojectparameters.h>
 #include <tools/stringconstants.h>
 
 #include <algorithm>
@@ -106,6 +108,9 @@ void ProductsResolver::initialize()
 void ProductsResolver::runScheduler()
 {
     TopLevelProjectContext &topLevelProject = m_loaderState.topLevelProject();
+    AccumulatingTimer timer(m_loaderState.parameters().logElapsedTime()
+                                ? &topLevelProject.timingData().resolvingProducts : nullptr);
+
     while (!m_productsToHandle.empty()) {
         const auto [product, queueSizeOnInsert] = m_productsToHandle.front();
         m_productsToHandle.pop();

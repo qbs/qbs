@@ -522,13 +522,19 @@ void ProjectResolver::Private::printProfilingInfo()
           state.topLevelProject().timingData().preparingProducts);
     print(2, Tr::tr("Setting up Groups took %1."),
           state.topLevelProject().timingData().groupsSetup);
-    print(2, Tr::tr("Setting up product dependencies took %1."),
+    print(2, Tr::tr("Resolving products took %1."),
+          state.topLevelProject().timingData().resolvingProducts);
+    print(4, Tr::tr("Property evaluation took %1."),
+          state.topLevelProject().timingData().propertyEvaluation);
+    print(4, Tr::tr("Resolving groups (without module property evaluation) took %1."),
+          state.topLevelProject().timingData().groupsResolving);
+    print(4, Tr::tr("Setting up product dependencies took %1."),
           state.topLevelProject().timingData().dependenciesResolving);
-    print(4, Tr::tr("Running module providers took %1."),
+    print(6, Tr::tr("Running module providers took %1."),
           state.topLevelProject().timingData().moduleProviders);
-    print(4, Tr::tr("Instantiating modules took %1."),
+    print(6, Tr::tr("Instantiating modules took %1."),
           state.topLevelProject().timingData().moduleInstantiation);
-    print(4, Tr::tr("Merging module property values took %1."),
+    print(6, Tr::tr("Merging module property values took %1."),
           state.topLevelProject().timingData().propertyMerging);
     logger.qbsLog(LoggerInfo, true) << QByteArray(4, ' ') << "There were "
                                     << state.topLevelProject().productDeferrals()
@@ -545,10 +551,6 @@ void ProjectResolver::Private::printProfilingInfo()
            .arg(state.topLevelProject().reusedOldProbesCount());
     print(2, Tr::tr("Property checking took %1."),
           state.topLevelProject().timingData().propertyChecking);
-    print(2, Tr::tr("Property evaluation took %1."),
-          state.topLevelProject().timingData().propertyEvaluation);
-    print(2, Tr::tr("Resolving groups (without module property evaluation) took %1."),
-          state.topLevelProject().timingData().groupsResolving);
 }
 
 } // namespace Internal

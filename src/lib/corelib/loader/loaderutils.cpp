@@ -753,6 +753,7 @@ TimingData &TimingData::operator+=(const TimingData &other)
     groupsSetup += other.groupsSetup;
     groupsResolving += other.groupsResolving;
     preparingProducts += other.preparingProducts;
+    resolvingProducts += other.resolvingProducts;
     probes += other.probes;
     propertyEvaluation += other.propertyEvaluation;
     propertyChecking += other.propertyChecking;
