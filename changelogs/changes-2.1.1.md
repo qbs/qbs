@@ -1,8 +1,9 @@
 # General
 * Fixed Probe lookup in multiplexed products.
 * Fixed excessively slow module merging in some circumstances.
-* Fixed building QuickJS on x86 systems.
+* Fixed QuickJS for x86.
 
 # Contributors
 * Christian Kandeler
+* Dmitry Shachnev
 * Ivan Komissarov

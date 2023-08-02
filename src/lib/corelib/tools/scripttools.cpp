@@ -318,7 +318,7 @@ static QVariant getJsVariantImpl(JSContext *ctx, JSValue val, QList<JSValue> pat
     const auto tag = JS_VALUE_GET_TAG(val);
     if (tag == JS_TAG_INT)
         return JS_VALUE_GET_INT(val);
-    else if (tag == JS_TAG_FLOAT64)
+    else if (JS_TAG_IS_FLOAT64(tag))
         return JS_VALUE_GET_FLOAT64(val);
     return {};
 }
