@@ -856,7 +856,8 @@ static EvalResult getEvalProperty(ScriptEngine *engine, JSValue obj, const Item 
                                   const QString &name, const EvaluationData *data)
 {
     Evaluator * const evaluator = data->evaluator;
-    const bool isModuleInstance = item->type() == ItemType::ModuleInstance;
+    const bool isModuleInstance = item->type() == ItemType::ModuleInstance
+            || item->type() == ItemType::ModuleInstancePlaceholder;
     for (; item; item = item->prototype()) {
         if (isModuleInstance
             && (item->type() == ItemType::Module || item->type() == ItemType::Export)) {

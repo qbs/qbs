@@ -1460,8 +1460,9 @@ QVariantMap PropertiesEvaluator::evaluateProperties(
         evaluateProperty(item, it.key(), it.value(), result, checkErrors);
     }
     return lookupPrototype && propertiesContainer->prototype()
-               ? evaluateProperties(item, propertiesContainer->prototype(), result, true, checkErrors)
-               : result;
+            && propertiesContainer->prototype()->type() != ItemType::Module
+            ? evaluateProperties(item, propertiesContainer->prototype(), result, true, checkErrors)
+            : result;
 }
 
 QVariantMap PropertiesEvaluator::evaluateProperties(Item *item, bool lookupPrototype,
