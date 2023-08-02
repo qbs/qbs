@@ -938,6 +938,9 @@ void TestApi::dependencyOnMultiplexedType()
             QCOMPARE(p.dependencies().size(), 2);
         }
     }
+    QCOMPARE(depCount, 1);
+    QCOMPARE(p1Count, 3);
+    QCOMPARE(p2Count, 1);
     std::unique_ptr<qbs::BuildJob> buildJob(project.buildAllProducts(qbs::BuildOptions()));
     waitForFinished(buildJob.get());
     QVERIFY2(!buildJob->error().hasError(), qPrintable(buildJob->error().toString()));
