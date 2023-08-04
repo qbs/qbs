@@ -201,9 +201,11 @@ QVariant QBS_AUTOTEST_EXPORT getConfigProperty(const QVariantMap &cfg, const QSt
 } // namespace qbs
 
 // Only to be used for objects!
+#ifndef JS_NAN_BOXING
 inline bool operator==(JSValue v1, JSValue v2) { return v1.u.ptr == v2.u.ptr; }
 inline bool operator!=(JSValue v1, JSValue v2) { return !(v1 == v2); }
 inline bool operator<(JSValue v1, JSValue v2) { return v1.u.ptr < v2.u.ptr; }
 inline qbs::QHashValueType qHash(const JSValue &v) { return QT_PREPEND_NAMESPACE(qHash)(v.u.ptr); }
+#endif
 
 #endif // QBS_SCRIPTTOOLS_H

@@ -54232,6 +54232,17 @@ JSValue JS_NewCFunctionMagic(JSContext *ctx, JSCFunctionMagic *func,
                             magic);
 }
 
+#ifdef JS_NAN_BOXING
+JSValue mkVal(int32_t tag, int32_t val)
+{
+    return ((uint64_t)(tag) << 32) | (uint32_t)(val);
+}
+
+JSValue mkPtr(int32_t tag, void *p)
+{
+    return ((uint64_t)(tag) << 32) | (uintptr_t)(p);
+}
+#else
 JSValue mkVal(int32_t tag, int32_t val)
 {
     return (JSValue){ (JSValueUnion){ .int32 = val }, tag };
@@ -54241,6 +54252,7 @@ JSValue mkPtr(int32_t tag, void *p)
 {
     return (JSValue){ (JSValueUnion){ .ptr = p }, tag };
 }
+#endif
 
 void JS_FreeValue(JSContext *ctx, JSValue v) {
     if (JS_VALUE_HAS_REF_COUNT(v)) {
