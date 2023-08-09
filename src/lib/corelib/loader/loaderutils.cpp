@@ -155,8 +155,9 @@ QString TopLevelProjectContext::sourceCodeForEvaluation(const JSSourceValueConst
 
 ScriptFunctionPtr TopLevelProjectContext::scriptFunctionValue(Item *item, const QString &name)
 {
-    JSSourceValuePtr value = item->sourceProperty(name);
-    ScriptFunctionPtr &script = m_scriptFunctionMap[value ? value->location() : CodeLocation()];
+    const JSSourceValuePtr value = item->sourceProperty(name);
+    QBS_CHECK(value);
+    ScriptFunctionPtr &script = m_scriptFunctionMap[value->location()];
     if (!script.get()) {
         script = ScriptFunction::create();
         const PropertyDeclaration decl = item->propertyDeclaration(name);
