@@ -34,8 +34,12 @@ XPCService {
     type: base.concat(["applicationextension"])
 
     property bool _useLegacyExtensionLibraries:
-        qbs.targetOS.contains("macos") && parseInt(xcode.sdkVersion.split(".")[1], 10) < 11 ||
-        qbs.targetOS.contains("ios") && parseInt(xcode.sdkVersion.split(".")[0], 10) < 9
+        qbs.targetOS.contains("macos")
+            && xcode.present
+            && parseInt(xcode.sdkVersion.split(".")[1], 10) < 11
+        || qbs.targetOS.contains("ios")
+            && xcode.present
+            && parseInt(xcode.sdkVersion.split(".")[0], 10) < 9
 
     cpp.entryPoint: "_NSExtensionMain"
     cpp.frameworkPaths: base.concat(_useLegacyExtensionLibraries
