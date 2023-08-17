@@ -31,6 +31,8 @@
 
 #include "tst_blackboxbase.h"
 
+#include <optional>
+
 namespace qbs {
 class Version;
 } // namespace qbs
@@ -72,8 +74,8 @@ private slots:
     void xcode();
 
 private:
-    QVariantMap findXcode(int *status = nullptr);
-    qbs::Version findXcodeVersion();
+    std::optional<QVariantMap> findXcode(int *status = nullptr);
+    std::optional<qbs::Version> findXcodeVersion();
 };
 
 #endif // TST_BLACKBOXAPPLE_H

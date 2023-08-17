@@ -14,7 +14,9 @@ Product {
             cmd.description = output.filePath;
             cmd.sourceCode = function() {
                 var tools = {};
-                if (product.moduleProperty("xcode", "present")) {
+                var present = product.moduleProperty("xcode", "present");
+                tools["present"] = !!present;
+                if (present) {
                     var keys = [
                         "developerPath",
                         "version"

@@ -191,10 +191,12 @@ void TestBlackboxApple::initTestCase()
 void TestBlackboxApple::appleMultiConfig()
 {
     const auto xcodeVersion = findXcodeVersion();
+    if (!xcodeVersion)
+        QSKIP("requires Xcode profile");
     QDir::setCurrent(testDataDir + "/apple-multiconfig");
     QCOMPARE(runQbs(QbsRunParameters(QStringList{
         "qbs.installPrefix:''",
-        QStringLiteral("project.xcodeVersion:") + xcodeVersion.toString()})), 0);
+        QStringLiteral("project.xcodeVersion:") + xcodeVersion->toString()})), 0);
 
     if (m_qbsStdout.contains("isShallow: false")) {
         QVERIFY(QFileInfo2(defaultInstallRoot + "/singleapp.app/Contents/MacOS/singleapp").isExecutable());
@@ -304,6 +306,10 @@ void TestBlackboxApple::appleMultiConfig()
 void TestBlackboxApple::aggregateDependencyLinking()
 {
     const auto xcodeVersion = findXcodeVersion();
+
+    if (!xcodeVersion)
+        QSKIP("requires Xcode profile");
+
     // XCode 11 produces warning about deprecation of 32-bit apps, but still works
     const bool hasX86Mac = xcodeVersion < qbs::Version(12);
     const bool hasArmMac = xcodeVersion >= qbs::Version(12, 2);
@@ -362,6 +368,9 @@ void TestBlackboxApple::assetCatalog()
     QDir::setCurrent(testDataDir + QLatin1String("/ib/assetcatalog"));
 
     rmDirR(relativeBuildDir());
+
+    if (!findXcode())
+        QSKIP("requires Xcode profile");
 
     QbsRunParameters params;
     const QString flattens = "modules.ib.flatten:" + QString(flatten ? "true" : "false");
@@ -709,6 +718,9 @@ void TestBlackboxApple::codesign()
 
     const auto xcodeVersion = findXcodeVersion();
 
+    if (!xcodeVersion)
+        QSKIP("requires Xcode profile");
+
     QDir::setCurrent(testDataDir + "/codesign");
     QbsRunParameters params(QStringList{"qbs.installPrefix:''"});
     params.arguments
@@ -716,7 +728,7 @@ void TestBlackboxApple::codesign()
     params.arguments
             << QStringLiteral("project.enableSigning:%1").arg(enableSigning ? "true" : "false");
     if (multiArch)
-        params.arguments << QStringLiteral("project.xcodeVersion:") + xcodeVersion.toString();
+        params.arguments << QStringLiteral("project.xcodeVersion:") + xcodeVersion->toString();
 
     rmDirR(relativeBuildDir());
     QCOMPARE(runQbs(params), 0);
@@ -790,6 +802,9 @@ void TestBlackboxApple::deploymentTarget()
     QFETCH(QString, lflags);
 
     QDir::setCurrent(testDataDir + "/deploymentTarget");
+
+    if (!findXcode())
+        QSKIP("requires Xcode profile");
 
     QbsRunParameters params;
     params.arguments = QStringList()
@@ -1097,6 +1112,9 @@ void TestBlackboxApple::overrideInfoPlist()
 
 void TestBlackboxApple::xcode()
 {
+    if (!findXcode())
+        QSKIP("requires Xcode profile");
+
     QProcess xcodeSelect;
     xcodeSelect.start("xcode-select", QStringList() << "--print-path");
     QVERIFY2(xcodeSelect.waitForStarted(), qPrintable(xcodeSelect.errorString()));
@@ -1149,7 +1167,7 @@ void TestBlackboxApple::xcode()
 
 QTEST_MAIN(TestBlackboxApple)
 
-QVariantMap TestBlackboxApple::findXcode(int *status)
+std::optional<QVariantMap> TestBlackboxApple::findXcode(int *status)
 {
     QTemporaryDir temp;
     QbsRunParameters params = QStringList({"-f", testDataDir + "/find/find-xcode.qbs"});
@@ -1161,10 +1179,16 @@ QVariantMap TestBlackboxApple::findXcode(int *status)
                + "/xcode.json");
     if (!file.open(QIODevice::ReadOnly))
         return {};
-    return QJsonDocument::fromJson(file.readAll()).toVariant().toMap();
+    auto result = QJsonDocument::fromJson(file.readAll()).toVariant().toMap();
+    if (!result["present"].toBool())
+        return {};
+    return result;
 }
 
-qbs::Version TestBlackboxApple::findXcodeVersion()
+std::optional<qbs::Version> TestBlackboxApple::findXcodeVersion()
 {
-    return qbs::Version::fromString(findXcode().value("version").toString());
+    const auto xcode = findXcode();
+    if (!xcode)
+        return {};
+    return qbs::Version::fromString(xcode->value("version").toString());
 }
