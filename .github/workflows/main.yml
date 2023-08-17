@@ -676,6 +676,16 @@ jobs:
             qtVersion: '6.5.0',
             script: './scripts/test-qbs.sh',
           }
+        - {
+            name: 'Run macOS tests (Xcode-less)',
+            runner: 'macos-13',
+            target: 'desktop',
+            toolchain: 'clang_64',
+            xcodeVersion: '',
+            testProfile: 'xcode_13_4_1-macosx-x86_64',
+            qtVersion: '6.5.0',
+            script: './scripts/test-qbs.sh',
+          }
     steps:
     - uses: actions/checkout@v1
     - name: Download artifact
@@ -704,6 +714,7 @@ jobs:
         version: ${{ matrix.config.qtVersion }}
     - name: Select Xcode
       run: sudo xcode-select --switch /Applications/Xcode_${{ matrix.config.xcodeVersion }}.app
+      if: matrix.config.xcodeVersion != ''
     - name: Setup Qbs
       run: |
         qbs setup-toolchains --detect
@@ -711,6 +722,15 @@ jobs:
         qbs config profiles.qt.baseProfile ${{ matrix.config.testProfile }}
         qbs config defaultProfile qt
         qbs config --list
+      if: matrix.config.xcodeVersion != ''
+    - name: Setup Qbs (Xcode-less)
+      run: |
+        qbs setup-toolchains /usr/bin/clang++ ${{ matrix.config.testProfile }}
+        qbs setup-qt $(which qmake) qt
+        qbs config profiles.qt.baseProfile ${{ matrix.config.testProfile }}
+        qbs config defaultProfile qt
+        qbs config --list
+      if: matrix.config.xcodeVersion == ''
     - name: Run Tests
       run: |
         sudo chmod g+w /cores
