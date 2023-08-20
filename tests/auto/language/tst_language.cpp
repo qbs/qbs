@@ -86,6 +86,27 @@ static QString testProject(const char *fileName) {
     return testDataDir() + QLatin1Char('/') + QLatin1String(fileName);
 }
 
+class JSSourceValueCreator
+{
+    FileContextPtr m_fileContext;
+    std::vector<std::unique_ptr<QString>> m_strings;
+public:
+    JSSourceValueCreator(const FileContextPtr &fileContext)
+        : m_fileContext(fileContext)
+    {
+    }
+
+    JSSourceValuePtr create(const QString &sourceCode)
+    {
+        JSSourceValuePtr value = JSSourceValue::create();
+        value->setFile(m_fileContext);
+        auto str = std::make_unique<QString>(sourceCode);
+        value->setSourceCode(*str.get());
+        m_strings.push_back(std::move(str));
+        return value;
+    }
+};
+
 TestLanguage::TestLanguage(ILogSink *logSink, Settings *settings)
     : m_logSink(logSink)
     , m_settings(settings)
@@ -495,6 +516,29 @@ void TestLanguage::conditionalDepends()
         qDebug() << e.toString();
     }
     QCOMPARE(exceptionCaught, false);
+}
+
+void TestLanguage::convertStringList()
+{
+    FileContextPtr fileContext = FileContext::create();
+    fileContext->setFilePath("/dev/null");
+    JSSourceValueCreator sourceValueCreator(fileContext);
+    ItemPool pool;
+    Item *scope = Item::create(&pool, ItemType::Scope);
+    scope->setProperty("x", sourceValueCreator.create("[\"a\", \"b\"]"));
+
+    Evaluator evaluator(m_engine.get());
+    auto variantValue = evaluator.variantValue(scope, "x");
+    // despite we have a stringList prop, we evaluate it as a QVariantList
+    QCOMPARE(variantValue.userType(), QMetaType::Type::QVariantList);
+    // and we have to convert it explicitly
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+    variantValue.convert(QMetaType(QMetaType::QStringList));
+#else
+    variantValue.convert(QMetaType::QStringList);
+#endif
+    QCOMPARE(variantValue.userType(), QMetaType::Type::QStringList);
+    QCOMPARE(variantValue, QStringList({"a", "b"}));
 }
 
 void TestLanguage::delayedError()
@@ -1563,27 +1607,6 @@ void TestLanguage::invalidOverrides_data()
     QTest::newRow("valid per-product module property override")
             << "products.MyOtherProduct.cpp.useRPaths" << QString();
 }
-
-class JSSourceValueCreator
-{
-    FileContextPtr m_fileContext;
-    std::vector<std::unique_ptr<QString>> m_strings;
-public:
-    JSSourceValueCreator(const FileContextPtr &fileContext)
-        : m_fileContext(fileContext)
-    {
-    }
-
-    JSSourceValuePtr create(const QString &sourceCode)
-    {
-        JSSourceValuePtr value = JSSourceValue::create();
-        value->setFile(m_fileContext);
-        auto str = std::make_unique<QString>(sourceCode);
-        value->setSourceCode(*str.get());
-        m_strings.push_back(std::move(str));
-        return value;
-    }
-};
 
 void TestLanguage::itemPrototype()
 {

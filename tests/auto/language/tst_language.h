@@ -71,6 +71,7 @@ private slots:
     void chainedProbes();
     void canonicalArchitecture();
     void conditionalDepends();
+    void convertStringList();
     void delayedError();
     void delayedError_data();
     void dependencyOnAllProfiles();

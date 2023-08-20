@@ -191,6 +191,15 @@ std::optional<QStringList> Evaluator::optionalStringListValue(
     return toStringList(m_scriptEngine, v);
 }
 
+QVariant Evaluator::variantValue(const Item *item, const QString &name, bool *propertySet)
+{
+    const ScopedJsValue jsValue(m_scriptEngine->context(), property(item, name));
+    handleEvaluationError(item, name);
+    if (propertySet)
+        *propertySet = isNonDefaultValue(item, name);
+    return getJsVariant(m_scriptEngine->context(), jsValue);
+}
+
 bool Evaluator::isNonDefaultValue(const Item *item, const QString &name) const
 {
     const ValueConstPtr v = item->property(name);

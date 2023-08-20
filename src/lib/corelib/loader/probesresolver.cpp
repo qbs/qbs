@@ -193,6 +193,16 @@ ProbeConstPtr ProbesResolver::resolveProbe(ProductContext &productContext, Item 
                 if (JsException ex = engine->checkAndClearException({}))
                     throw ex.toErrorInfo();
                 newValue = getJsVariant(ctx, v);
+                // special case, string lists are represented as js arrays and and we don't type
+                // info when converting
+                if (decl.type() == PropertyDeclaration::StringList
+                    && newValue.userType() == QMetaType::QVariantList) {
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+                    newValue.convert(QMetaType(QMetaType::QStringList));
+#else
+                    newValue.convert(QMetaType::QStringList);
+#endif
+                }
             } else {
                 newValue = initialProperties.value(b.first);
             }

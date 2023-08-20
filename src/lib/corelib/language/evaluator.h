@@ -83,6 +83,8 @@ public:
     std::optional<QStringList> optionalStringListValue(const Item *item, const QString &name,
                                 bool *propertyWasSet = nullptr);
 
+    QVariant variantValue(const Item *item, const QString &name, bool *propertySet = nullptr);
+
     void convertToPropertyType(const PropertyDeclaration& decl, const CodeLocation &loc,
                                JSValue &v);
 
