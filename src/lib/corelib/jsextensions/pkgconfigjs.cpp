@@ -121,7 +121,6 @@ QVariantMap packageToMap(const PcPackage &package)
         case Type::AlwaysMatch:
             break;
         }
-        result[QStringLiteral("comparison")] = QVariant::fromValue(qint32(version.comparison));
         return result;
     };
 
