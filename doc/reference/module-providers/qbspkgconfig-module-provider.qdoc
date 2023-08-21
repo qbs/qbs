@@ -111,6 +111,7 @@
 
 /*!
     \qmlproperty bool qbspkgconfig::mergeDependencies
+    \obsolete
 
     Holds whether dependencies should be merged by pkg-config or \QBS.
 
@@ -119,4 +120,6 @@
     may depend on other modules and property merging is done by \QBS.
 
     \defaultvalue \c false
+
+    Deprecated in \QBS 2.2.0.
 */
