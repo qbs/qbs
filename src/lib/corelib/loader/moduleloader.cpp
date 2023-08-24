@@ -80,6 +80,7 @@ public:
 private:
     std::pair<Item *, bool> loadModuleFile(const QString &moduleName, const QString &filePath);
     Item *getModulePrototype(const QString &moduleName, const QString &filePath);
+    Item *createAndInitModuleItem(const QString &moduleName, const QString &filePath);
     bool evaluateModuleCondition(Item *module, const QString &fullModuleName);
     void checkForUnknownProfileProperties(const Item *module);
     QString findModuleDirectory(const QString &searchPath);
@@ -221,6 +222,35 @@ std::pair<Item *, bool> ModuleLoader::loadModuleFile(const QString &moduleName,
         return {nullptr, true};
     }
 
+    m_product.modulePrototypeEnabledInfo.insert({module, true});
+    return {module, true};
+}
+
+Item * ModuleLoader::getModulePrototype(const QString &moduleName, const QString &filePath)
+{
+    bool fromCache = true;
+    Item * const module = m_loaderState.topLevelProject().getModulePrototype(
+                filePath, m_product.profileName, [&] {
+        fromCache = false;
+        return createAndInitModuleItem(moduleName, filePath);
+    });
+
+    if (fromCache)
+        qCDebug(lcModuleLoader) << "prototype cache hit (level 1)";
+    return module;
+}
+
+Item *ModuleLoader::createAndInitModuleItem(const QString &moduleName, const QString &filePath)
+{
+    Item * const module = m_loaderState.itemReader().setupItemFromFile(filePath, {});
+    if (module->type() != ItemType::Module) {
+        qCDebug(lcModuleLoader).nospace()
+            << "Alleged module " << moduleName << " has type '"
+            << module->typeName() << "', so it's not a module after all.";
+        return nullptr;
+    }
+
+    module->setProperty(StringConstants::nameProperty(), VariantValue::create(moduleName));
     if (moduleName == StringConstants::qbsModule()) {
         module->setProperty(QStringLiteral("hostPlatform"),
                             VariantValue::create(HostOsInfo::hostOSIdentifier()));
@@ -249,40 +279,14 @@ std::pair<Item *, bool> ModuleLoader::loadModuleFile(const QString &moduleName,
         m_loaderState.topLevelProject().addParameterDeclarations(module, decls);
     }
 
-    m_product.modulePrototypeEnabledInfo.insert({module, true});
-    return {module, true};
-}
-
-Item * ModuleLoader::getModulePrototype(const QString &moduleName, const QString &filePath)
-{
-    bool fromCache = true;
-    Item * const module = m_loaderState.topLevelProject().getModulePrototype(
-                filePath, m_product.profileName, [&]() -> Item * {
-        fromCache = false;
-                    Item * const module = m_loaderState.itemReader().setupItemFromFile(filePath, CodeLocation());
-        if (module->type() == ItemType::Module)
-            return module;
-        qCDebug(lcModuleLoader).nospace()
-                << "Alleged module " << moduleName << " has type '"
-                << module->typeName() << "', so it's not a module after all.";
-        return nullptr;
-    });
-
-    if (!module)
-        return nullptr;
-    if (fromCache) {
-        qCDebug(lcModuleLoader) << "prototype cache hit (level 1)";
-        return module;
-    }
-
     // Module properties that are defined in the profile are used as default values.
     // This is the reason we need to have different items per profile.
     const QVariantMap profileModuleProperties
-            = m_product.profileModuleProperties.value(moduleName).toMap();
+        = m_product.profileModuleProperties.value(moduleName).toMap();
     for (auto it = profileModuleProperties.cbegin(); it != profileModuleProperties.cend(); ++it) {
         if (Q_UNLIKELY(!module->hasProperty(it.key()))) {
             m_loaderState.topLevelProject().addUnknownProfilePropertyError(
-                        module, {Tr::tr("Unknown property: %1.%2").arg(moduleName, it.key())});
+                module, {Tr::tr("Unknown property: %1.%2").arg(moduleName, it.key())});
             continue;
         }
         const PropertyDeclaration decl = module->propertyDeclaration(it.key());
@@ -298,9 +302,6 @@ Item * ModuleLoader::getModulePrototype(const QString &moduleName, const QString
 
 bool ModuleLoader::evaluateModuleCondition(Item *module, const QString &fullModuleName)
 {
-    // Evaluator reqires module name to be set.
-    module->setProperty(StringConstants::nameProperty(), VariantValue::create(fullModuleName));
-
     // Temporarily make the product's qbs module instance available, so the condition
     // can use qbs.targetOS etc.
     class TempQbsModuleProvider {
