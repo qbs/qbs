@@ -193,6 +193,11 @@ Module {
     property string _productTypeIdentifier: Bundle.productTypeIdentifier(product.type)
     property stringList _productTypeIdentifierChain: bundleSettingsProbe.productTypeIdentifierChain
 
+    readonly property path _developerPath: xcode.developerPath
+    readonly property path _platformInfoPlist: xcode.platformInfoPlist
+    readonly property path _sdkSettingsPlist: xcode.sdkSettingsPlist
+    readonly property path _toolchainInfoPlist: xcode.toolchainInfoPlist
+
     property bool _useXcodeBuildSpecs: true // TODO: remove in 1.25
 
     property var extraEnv: ({
@@ -310,10 +315,10 @@ Module {
             // TODO: bundle module should know nothing about cpp module
             cmd.buildEnv = product.moduleProperty("cpp", "buildEnv");
 
-            cmd.developerPath = product.xcode.developerPath;
-            cmd.platformInfoPlist = product.xcode.platformInfoPlist;
-            cmd.sdkSettingsPlist = product.xcode.sdkSettingsPlist;
-            cmd.toolchainInfoPlist = product.xcode.toolchainInfoPlist;
+            cmd.developerPath = product.bundle._developerPath;
+            cmd.platformInfoPlist = product.bundle._platformInfoPlist;
+            cmd.sdkSettingsPlist = product.bundle._sdkSettingsPlist;
+            cmd.toolchainInfoPlist = product.bundle._toolchainInfoPlist;
 
             cmd.osBuildVersion = product.qbs.hostOSBuildVersion;
 
