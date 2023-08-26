@@ -82,34 +82,41 @@ ModuleProviderLoader::ModuleProviderResult ModuleProviderLoader::executeModulePr
         FallbackMode fallbackMode)
 {
     ModuleProviderLoader::ModuleProviderResult result;
-    std::vector<Provider> providersToRun;
-    qCDebug(lcModuleLoader) << "Module" << moduleName.toString()
-                            << "not found, checking for module providers";
-    const auto providerNames = getModuleProviders(productContext.item);
-    if (providerNames) {
-        providersToRun = transformed<std::vector<Provider>>(*providerNames, [](const auto &name) {
-            return Provider{name, ModuleProviderLookup::Named}; });
-    } else {
-        for (QualifiedId providerName = moduleName; !providerName.empty();
-            providerName.pop_back()) {
-                providersToRun.push_back({providerName, ModuleProviderLookup::Scoped});
+    try {
+        std::vector<Provider> providersToRun;
+        qCDebug(lcModuleLoader) << "Module" << moduleName.toString()
+                                << "not found, checking for module providers";
+        const auto providerNames = getModuleProviders(productContext.item);
+        if (providerNames) {
+            providersToRun = transformed<std::vector<Provider>>(*providerNames, [](const auto &name) {
+                return Provider{name, ModuleProviderLookup::Named}; });
+        } else {
+            for (QualifiedId providerName = moduleName; !providerName.empty();
+                providerName.pop_back()) {
+                    providersToRun.push_back({providerName, ModuleProviderLookup::Scoped});
+            }
         }
-    }
-    result = executeModuleProvidersHelper(
-        productContext, dependsItemLocation, moduleName, providersToRun);
-
-    if (fallbackMode == FallbackMode::Enabled
-            && !result.providerFound
-            && !providerNames) {
-            qCDebug(lcModuleLoader) << "Specific module provider not found for"
-                                << moduleName.toString()  << ", setting up fallback.";
         result = executeModuleProvidersHelper(
-                productContext,
-                dependsItemLocation,
-                moduleName,
-                {{moduleName, ModuleProviderLookup::Fallback}});
-    }
+            productContext, dependsItemLocation, moduleName, providersToRun);
 
+        if (fallbackMode == FallbackMode::Enabled
+                && !result.providerFound
+                && !providerNames) {
+                qCDebug(lcModuleLoader) << "Specific module provider not found for"
+                                    << moduleName.toString()  << ", setting up fallback.";
+            result = executeModuleProvidersHelper(
+                    productContext,
+                    dependsItemLocation,
+                    moduleName,
+                    {{moduleName, ModuleProviderLookup::Fallback}});
+        }
+    } catch (const ErrorInfo &error) {
+        auto ei = error;
+        ei.prepend(
+            Tr::tr("Error executing provider for module '%1':").arg(moduleName.toString()),
+            dependsItemLocation);
+        productContext.handleError(ei);
+    }
     return result;
 }
 

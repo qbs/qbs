@@ -41,6 +41,7 @@ public:
     TestBlackboxProviders();
 
 private slots:
+    void brokenProvider();
     void fallbackModuleProvider_data();
     void fallbackModuleProvider();
     void moduleProviders();

@@ -49,6 +49,18 @@ TestBlackboxProviders::TestBlackboxProviders()
 {
 }
 
+void TestBlackboxProviders::brokenProvider()
+{
+    QDir::setCurrent(testDataDir + "/broken-provider");
+    QbsRunParameters params;
+    params.expectFailure = true;
+    QVERIFY(runQbs(params) != 0);
+
+    QVERIFY(m_qbsStderr.contains("Error executing provider for module 'qbsothermodule'"));
+    QVERIFY(m_qbsStderr.contains("Error executing provider for module 'qbsmetatestmodule'"));
+    QCOMPARE(m_qbsStderr.count("This provider is broken"), 2);
+}
+
 void TestBlackboxProviders::fallbackModuleProvider_data()
 {
     QTest::addColumn<bool>("fallbacksEnabledGlobally");
