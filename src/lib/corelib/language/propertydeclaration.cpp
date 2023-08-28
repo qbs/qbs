@@ -308,6 +308,43 @@ QVariant PropertyDeclaration::convertToPropertyType(const QVariant &v, Type t,
     return c;
 }
 
+void PropertyDeclaration::checkAllowedValues(
+    const QVariant &value,
+    const CodeLocation &loc,
+    const QString &key,
+    LoaderState &loaderState) const
+{
+    const auto type = d->type;
+    if (type != PropertyDeclaration::String && type != PropertyDeclaration::StringList)
+        return;
+
+    if (value.isNull())
+        return;
+
+    const auto &allowedValues = d->allowedValues;
+    if (allowedValues.isEmpty())
+        return;
+
+    const auto checkValue = [&loc, &allowedValues, &key, &loaderState](const QString &value)
+    {
+        if (!allowedValues.contains(value)) {
+            const auto message = Tr::tr("Value '%1' is not allowed for property '%2'.")
+                                     .arg(value, key);
+            ErrorInfo error(message, loc);
+            handlePropertyError(error, loaderState.parameters(), loaderState.logger());
+        }
+    };
+
+    if (type == PropertyDeclaration::StringList) {
+        const auto strings = value.toStringList();
+        for (const auto &string: strings) {
+            checkValue(string);
+        }
+    } else if (type == PropertyDeclaration::String) {
+        checkValue(value.toString());
+    }
+}
+
 namespace {
 class PropertyDeclarationCheck : public ValueHandler
 {

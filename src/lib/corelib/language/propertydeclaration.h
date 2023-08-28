@@ -129,6 +129,12 @@ public:
     static QVariant convertToPropertyType(
             const QVariant &v, Type t, const QStringList &namePrefix, const QString &key);
 
+    void checkAllowedValues(
+        const QVariant &value,
+        const CodeLocation &loc,
+        const QString &key,
+        LoaderState &loaderState) const;
+
 private:
     QSharedDataPointer<PropertyDeclarationData> d;
 };

@@ -80,9 +80,6 @@ public:
                           QVariantMap &result, bool checkErrors);
 
 private:
-    void checkAllowedValues(const QVariant &value, const CodeLocation &loc,
-                            const PropertyDeclaration &decl, const QString &key) const;
-
     ProductContext &m_product;
     LoaderState &m_loaderState;
 };
@@ -1525,7 +1522,7 @@ void PropertiesEvaluator::evaluateProperty(
         } else if (pd.type() == PropertyDeclaration::VariantList) {
             v = v.toList();
         }
-        checkAllowedValues(v, propValue->location(), pd, propName);
+        pd.checkAllowedValues(v, propValue->location(), propName, m_loaderState);
         result[propName] = v;
         break;
     }
@@ -1540,45 +1537,10 @@ void PropertiesEvaluator::evaluateProperty(
         if (v.isNull() && !pd.isScalar()) // QTBUG-51237
             v = QStringList();
 
-        checkAllowedValues(v, propValue->location(), pd, propName);
+        pd.checkAllowedValues(v, propValue->location(), propName, m_loaderState);
         result[propName] = v;
         break;
     }
-    }
-}
-
-void PropertiesEvaluator::checkAllowedValues(
-    const QVariant &value, const CodeLocation &loc, const PropertyDeclaration &decl,
-    const QString &key) const
-{
-    const auto type = decl.type();
-    if (type != PropertyDeclaration::String && type != PropertyDeclaration::StringList)
-        return;
-
-    if (value.isNull())
-        return;
-
-    const auto &allowedValues = decl.allowedValues();
-    if (allowedValues.isEmpty())
-        return;
-
-    const auto checkValue = [this, &loc, &allowedValues, &key](const QString &value)
-    {
-        if (!allowedValues.contains(value)) {
-            const auto message = Tr::tr("Value '%1' is not allowed for property '%2'.")
-                                     .arg(value, key);
-            ErrorInfo error(message, loc);
-            handlePropertyError(error, m_loaderState.parameters(), m_loaderState.logger());
-        }
-    };
-
-    if (type == PropertyDeclaration::StringList) {
-        const auto strings = value.toStringList();
-        for (const auto &string: strings) {
-            checkValue(string);
-        }
-    } else if (type == PropertyDeclaration::String) {
-        checkValue(value.toString());
     }
 }
 
