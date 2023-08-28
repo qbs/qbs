@@ -57,6 +57,7 @@ private slots:
     void qbsModuleProvidersCompatibility();
     void qbsModuleProvidersCompatibility_data();
     void qbspkgconfigModuleProvider();
+    void removalVersion();
 };
 
 #endif // TST_BLACKBOXPROVIDERS_H
