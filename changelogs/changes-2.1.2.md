@@ -1,5 +1,6 @@
 # General
 * Fixed handling JS floating-point values for x86.
+* Fixed scope pollution and potential crash when assigning to provider properties (QBS-1747).
 
 # Apple
 * Fixed bundle module with Xcode-less profiles.
