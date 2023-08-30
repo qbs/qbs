@@ -1,0 +1,135 @@
+/****************************************************************************
+**
+** Copyright (C) 2024 Raphael Cotty (raphael.cotty@gmail.com)
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:LGPL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 3 as published by the Free Software
+** Foundation and appearing in the file LICENSE.LGPL3 included in the
+** packaging of this file. Please review the following information to
+** ensure the GNU Lesser General Public License version 3 requirements
+** will be met: https://www.gnu.org/licenses/lgpl-3.0.html.
+**
+** GNU General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU
+** General Public License version 2.0 or (at your option) the GNU General
+** Public license version 3 or any later version approved by the KDE Free
+** Qt Foundation. The licenses are as published by the Free Software
+** Foundation and appearing in the file LICENSE.GPL2 and LICENSE.GPL3
+** included in the packaging of this file. Please review the following
+** information to ensure the GNU General Public License requirements will
+** be met: https://www.gnu.org/licenses/gpl-2.0.html and
+** https://www.gnu.org/licenses/gpl-3.0.html.
+**
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+/*!
+    \qmltype Exporter.cmake
+    \inqmlmodule QbsModules
+    \since Qbs 2.3
+
+    \brief Provides support for generating \CMAKE packages from dynamic, static and header library
+    products.
+
+    The Exporter.cmake module contains the properties and rules to create a \CMAKE config
+    \l{https://cmake.org/cmake/help/v3.29/manual/cmake-packages.7.html#config-file-packages}{files}
+    from the \l Export item of a \l Product.
+
+    For instance, suppose you are creating a library. To allow exporting to \CMAKE, you would write
+    something like the following:
+    \code
+    DynamicLibrary {
+        name: "mylibrary"
+        qbs.installPrefix: "/opt/mylibrary"
+        Depends { name: "Exporter.cmake" }
+        Exporter.cmake.packageName: "MyLibrary"
+        property string headersInstallDir: "include"
+        // ...
+        Group {
+            name: "API headers"
+            files: ["mylib.h"]
+            qbs.install: true
+            qbs.installDir: headersInstallDir
+        }
+        Group {
+            fileTagsFilter: ["Exporter.cmake.package"]
+            qbs.installDir: "lib/cmake/MyLibrary"
+        }
+        Export {
+            Depends { name: "cpp" }
+            cpp.includePaths: FileInfo.joinPaths(
+                exportingProduct.qbs.installRoot,
+                exportingProduct.qbs.installPrefix,
+                exportingProduct.headersInstallDir)
+        }
+    }
+    \endcode
+    To build against this library, from within your \CMAKE project, you simply
+    use \l{https://cmake.org/cmake/help/v3.29/command/find_package.html}{find_package}:
+    \code
+        find_package(MyLibrary PATHS REQUIRED)
+        add_executable(Consumer main.cpp)
+        target_link_libraries(Consumer MyLibrary)
+    \endcode
+
+    \section2 Relevant File Tags
+    \target filetags-exporter-qbs
+
+    \table
+    \header
+        \li Tag
+        \li Since
+        \li Description
+    \row
+        \li \c{"Exporter.cmake.package"}
+        \li 2.3.0
+        \li This tag is attached to all generated module files.
+    \row
+        \li \c{"Exporter.cmake.configFile"}
+        \li 2.3.0
+        \li This tag is attached to the generated config file.
+    \row
+        \li \c{"Exporter.cmake.versionFile"}
+        \li 2.3.0
+        \li This tag is attached to the generated version file.
+    \endtable
+*/
+
+/*!
+    \qmlproperty string Exporter.cmake::configFileName
+
+    The name of the generated config file.
+
+    \defaultvalue \c{packageName + "Config.cmake"}
+*/
+
+/*!
+    \qmlproperty string Exporter.cmake::versionFileName
+
+    The name of the generated version file.
+
+    \defaultvalue \c{packageName + "ConfigVersion.cmake"}
+*/
+
+/*!
+    \qmlproperty string Exporter.cmake::packageName
+
+    The name of the \CMAKE package.
+
+    \defaultvalue \l{Product::targetName}{Product.targetName}
+*/
+

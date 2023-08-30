@@ -58,5 +58,10 @@ MyLibrary {
         qbs.install: true
         qbs.installDir: headersInstallDir
     }
+    Export {
+        Depends { name: "cpp" }
+        cpp.dynamicLibraries: "z"
+        cpp.libraryPaths: "/opt/local/lib"
+    }
 }
 

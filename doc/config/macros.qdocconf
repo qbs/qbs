@@ -51,6 +51,8 @@ macro.endfloat.HTML         = "</div>"
 macro.clearfloat.HTML       = "<br style=\"clear: both\" />"
 macro.emptyspan.HTML        = "<span></span>"
 
+macro.CMAKE               = "CMake"
+
 # Embed YouTube content by video ID - Example: \youtube dQw4w9WgXcQ
 # Also requires a <ID>.jpg thumbnail for offline docs. In .qdocconf, add:
 #
