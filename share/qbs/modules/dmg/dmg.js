@@ -135,7 +135,7 @@ function dmgbuildSettings(product, inputs) {
         }
     });
 
-    return {
+    var result = {
         "title": product.dmg.volumeName,
         "icon": !product.dmg.badgeVolumeIcon ? volumeIcon : undefined,
         "badge-icon": product.dmg.badgeVolumeIcon ? volumeIcon : undefined,
@@ -154,13 +154,16 @@ function dmgbuildSettings(product, inputs) {
         },
         "format": product.dmg.format,
         "compression-level": product.dmg.compressionLevel,
-        "build_license": {
+        "contents": contentsArray
+    };
+    if (licenseFileObjects.length >= 0) {
+        result["license"] = {
             "default-language": product.dmg.defaultLicenseLocale,
             "licenses": reduceLicensesForKey(licenseFileObjects, "licenses"),
             "buttons": reduceLicensesForKey(licenseFileObjects, "buttons")
-        },
-        "contents": contentsArray
-    };
+        };
+    }
+    return result;
 }
 
 function prepareLicense(project, product, inputs, outputs, input, output) {
