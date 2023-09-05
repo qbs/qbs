@@ -43,6 +43,7 @@
 
 #include <language/evaluator.h>
 #include <language/filecontext.h>
+#include <language/itempool.h>
 #include <language/language.h>
 #include <language/resolvedfilecontext.h>
 #include <language/scriptengine.h>
@@ -123,6 +124,8 @@ void ProductContext::handleError(const ErrorInfo &error)
         delayedError.append(ei.description(), ei.codeLocation());
     project->topLevelProject->addDisabledItem(item);
 }
+
+TopLevelProjectContext::~TopLevelProjectContext() { qDeleteAll(m_projects); }
 
 bool TopLevelProjectContext::checkItemCondition(Item *item, Evaluator &evaluator)
 {
@@ -519,29 +522,35 @@ void TopLevelProjectContext::collectDataFromEngine(const ScriptEngine &engine)
     project->buildSystemFiles.unite(engine.imports());
 }
 
+ItemPool &TopLevelProjectContext::createItemPool()
+{
+    m_itemPools.push_back(std::make_unique<ItemPool>());
+    return *m_itemPools.back();
+}
+
 class LoaderState::Private
 {
 public:
     Private(LoaderState &q, const SetupProjectParameters &parameters,
-            TopLevelProjectContext &topLevelProject, ItemPool &itemPool, Evaluator &evaluator,
+            TopLevelProjectContext &topLevelProject, ItemPool &itemPool, ScriptEngine &engine,
             Logger &logger)
         : parameters(parameters), topLevelProject(topLevelProject), itemPool(itemPool),
-          evaluator(evaluator), logger(logger), itemReader(q)
+          logger(logger), itemReader(q), evaluator(&engine)
     {}
 
     const SetupProjectParameters &parameters;
     TopLevelProjectContext &topLevelProject;
     ItemPool &itemPool;
-    Evaluator &evaluator;
     Logger &logger;
 
     ItemReader itemReader;
+    Evaluator evaluator;
 };
 
 LoaderState::LoaderState(const SetupProjectParameters &parameters,
                          TopLevelProjectContext &topLevelProject, ItemPool &itemPool,
-                         Evaluator &evaluator, Logger &logger)
-    : d(makePimpl<Private>(*this, parameters, topLevelProject, itemPool, evaluator, logger))
+                         ScriptEngine &engine, Logger &logger)
+    : d(makePimpl<Private>(*this, parameters, topLevelProject, itemPool, engine, logger))
 {
     d->itemReader.init();
 }

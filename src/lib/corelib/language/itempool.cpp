@@ -53,9 +53,6 @@ ItemPool::~ItemPool()
 
 Item *ItemPool::allocateItem(const ItemType &type)
 {
-    // TODO: This mutex seems to be hotly contested. Try using per-thread item pools.
-    std::lock_guard lock(m_mutex);
-
     const auto item = new (&m_pool) Item(type);
     m_items.push_back(item);
     return item;

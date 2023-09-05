@@ -193,7 +193,7 @@ public:
     TopLevelProjectContext() = default;
     TopLevelProjectContext(const TopLevelProjectContext &) = delete;
     TopLevelProjectContext &operator=(const TopLevelProjectContext &) = delete;
-    ~TopLevelProjectContext() { qDeleteAll(m_projects); }
+    ~TopLevelProjectContext();
 
     bool checkItemCondition(Item *item, Evaluator &evaluator);
     QString sourceCodeForEvaluation(const JSSourceValueConstPtr &value);
@@ -311,6 +311,8 @@ public:
 
     void collectDataFromEngine(const ScriptEngine &engine);
 
+    ItemPool &createItemPool();
+
 private:
     const ResolvedFileContextPtr &resolvedFileContext(const FileContextConstPtr &ctx);
 
@@ -370,6 +372,8 @@ private:
     } m_probesInfo;
     std::mutex m_probesMutex;
 
+    std::vector<std::unique_ptr<ItemPool>> m_itemPools;
+
     FileTime m_lastResolveTime;
 
     std::atomic_bool m_canceled = false;
@@ -405,7 +409,7 @@ class LoaderState
 {
 public:
     LoaderState(const SetupProjectParameters &parameters, TopLevelProjectContext &topLevelProject,
-                ItemPool &itemPool, Evaluator &evaluator, Logger &logger);
+                ItemPool &itemPool, ScriptEngine &engine, Logger &logger);
     ~LoaderState();
 
     Evaluator &evaluator();

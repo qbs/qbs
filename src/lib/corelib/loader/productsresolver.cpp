@@ -43,7 +43,6 @@
 #include "loaderutils.h"
 #include "productresolver.h"
 
-#include <language/evaluator.h>
 #include <language/language.h>
 #include <language/scriptengine.h>
 #include <logging/categories.h>
@@ -65,19 +64,19 @@
 namespace qbs::Internal {
 namespace {
 struct ThreadInfo {
-    ThreadInfo(std::future<void> &&future, Evaluator *evaluator)
-        : future(std::move(future)), evaluator(evaluator)
+    ThreadInfo(std::future<void> &&future, LoaderState &loaderState)
+        : future(std::move(future)), loaderState(loaderState)
     {}
     std::future<void> future;
-    Evaluator * const evaluator;
+    LoaderState &loaderState;
     bool done = false;
 };
 
-struct ProductWithEvaluator {
-    ProductWithEvaluator(ProductContext &product, Evaluator *evaluator)
-        : product(&product), evaluator(evaluator) {}
+struct ProductWithLoaderState {
+    ProductWithLoaderState(ProductContext &product, LoaderState *loaderState)
+        : product(&product), loaderState(loaderState) {}
     ProductContext * const product;
-    Evaluator *evaluator;
+    LoaderState *loaderState;
 };
 
 class ThreadsLocker {
@@ -99,18 +98,18 @@ public:
 private:
     void initialize();
     void initializeProductQueue();
-    void initializeEvaluatorPool();
+    void initializeLoaderStatePool();
     void runScheduler();
     void scheduleNext();
-    bool tryToReserveEvaluator(ProductWithEvaluator &product, Deferral deferral);
+    bool tryToReserveLoaderState(ProductWithLoaderState &product, Deferral deferral);
     std::optional<std::pair<ProductContext *, Deferral>>
-    unblockProductWaitingForEvaluator(Evaluator &evaluator);
-    void startJob(const ProductWithEvaluator &product, Deferral deferral);
+    unblockProductWaitingForLoaderState(LoaderState &loaderState);
+    void startJob(const ProductWithLoaderState &product, Deferral deferral);
     void checkForCancelation();
     void handleFinishedThreads();
-    void queueProductForScheduling(const ProductWithEvaluator &product, Deferral deferral);
-    void waitForSingleDependency(const ProductWithEvaluator &product, ProductContext &dependency);
-    void waitForBulkDependency(const ProductWithEvaluator &product);
+    void queueProductForScheduling(const ProductWithLoaderState &product, Deferral deferral);
+    void waitForSingleDependency(const ProductWithLoaderState &product, ProductContext &dependency);
+    void waitForBulkDependency(const ProductWithLoaderState &product);
     void unblockProductsWaitingForDependency(ProductContext &finishedProduct);
     void postProcess();
 
@@ -118,19 +117,18 @@ private:
     static int dependsItemCount(ProductContext &product);
 
     LoaderState &m_loaderState;
-    std::queue<std::pair<ProductWithEvaluator, int>> m_productsToSchedule;
+    std::queue<std::pair<ProductWithLoaderState, int>> m_productsToSchedule;
     std::vector<ProductContext *> m_finishedProducts;
     std::unordered_map<ProductContext *,
-                       std::vector<ProductWithEvaluator>> m_waitingForSingleDependency;
-    std::vector<ProductWithEvaluator> m_waitingForBulkDependency;
-    std::unordered_map<Evaluator *,
-                       std::queue<std::pair<ProductContext *, Deferral>>> m_waitingForEvaluator;
+    std::vector<ProductWithLoaderState>> m_waitingForSingleDependency;
+    std::vector<ProductWithLoaderState> m_waitingForBulkDependency;
+    std::unordered_map<LoaderState *, std::queue<std::pair<ProductContext *, Deferral>>> m_waitingForLoaderState;
     std::unordered_map<ProductContext *, ThreadInfo> m_runningThreads;
     std::mutex m_threadsMutex;
     std::condition_variable m_threadsNotifier;
     std::vector<std::unique_ptr<ScriptEngine>> m_enginePool;
-    std::vector<std::unique_ptr<Evaluator>> m_evaluatorPool;
-    std::vector<Evaluator *> m_availableEvaluators;
+    std::vector<std::unique_ptr<LoaderState>> m_loaderStatePool;
+    std::vector<LoaderState *> m_availableLoaderStates;
     std::mutex m_cancelingMutex;
     std::launch m_asyncMode = std::launch::async;
     int m_maxJobCount = m_loaderState.parameters().maxJobCount();
@@ -158,7 +156,7 @@ void ProductsResolver::resolve()
 void ProductsResolver::initialize()
 {
     initializeProductQueue();
-    initializeEvaluatorPool();
+    initializeLoaderStatePool();
 }
 
 void ProductsResolver::initializeProductQueue()
@@ -177,16 +175,16 @@ void ProductsResolver::initializeProductQueue()
     }
 
     for (ProductContext * const product : sortedProducts) {
-        queueProductForScheduling(ProductWithEvaluator(*product, nullptr), Deferral::Allowed);
+        queueProductForScheduling(ProductWithLoaderState(*product, nullptr), Deferral::Allowed);
         if (product->shadowProduct) {
             topLevelProject.addProductToHandle(*product->shadowProduct);
-            queueProductForScheduling(ProductWithEvaluator(*product->shadowProduct, nullptr),
+            queueProductForScheduling(ProductWithLoaderState(*product->shadowProduct, nullptr),
                                       Deferral::Allowed);
         }
     }
 }
 
-void ProductsResolver::initializeEvaluatorPool()
+void ProductsResolver::initializeLoaderStatePool()
 {
     TopLevelProjectContext &topLevelProject = m_loaderState.topLevelProject();
 
@@ -198,24 +196,28 @@ void ProductsResolver::initializeEvaluatorPool()
     if (m_maxJobCount > topLevelProject.productsToHandleCount())
         m_maxJobCount = topLevelProject.productsToHandleCount();
 
-    // The number of engines and evaluators we need to allocate here is one less than the
-    // total number of concurrent jobs, as we already have one evaluator that we can re-use.
+    // The number of engines and loader states we need to allocate here is one less than the
+    // total number of concurrent jobs, as we already have one loader state that we can re-use.
     if (m_maxJobCount > 1)
         m_enginePool.reserve(m_maxJobCount - 1);
-    m_evaluatorPool.reserve(m_enginePool.size());
-    m_availableEvaluators.reserve(m_enginePool.size() + 1);
-    m_availableEvaluators.push_back(&m_loaderState.evaluator());
+    m_loaderStatePool.reserve(m_enginePool.size());
+    m_availableLoaderStates.reserve(m_enginePool.size() + 1);
+    m_availableLoaderStates.push_back(&m_loaderState);
     for (std::size_t i = 0; i < m_enginePool.capacity(); ++i) {
-        m_enginePool.emplace_back(
+        ScriptEngine &engine = *m_enginePool.emplace_back(
             ScriptEngine::create(m_loaderState.logger(), EvalContext::PropertyEvaluation));
-        m_enginePool.back()->setEnvironment(m_loaderState.parameters().adjustedEnvironment());
-        m_evaluatorPool.push_back(std::make_unique<Evaluator>(m_enginePool.back().get()));
-        m_availableEvaluators.push_back(m_evaluatorPool.back().get());
+        ItemPool &itemPool = topLevelProject.createItemPool();
+        engine.setEnvironment(m_loaderState.parameters().adjustedEnvironment());
+        auto loaderState = std::make_unique<LoaderState>(
+                    m_loaderState.parameters(), topLevelProject, itemPool, engine,
+                    m_loaderState.logger());
+        m_loaderStatePool.push_back(std::move(loaderState));
+        m_availableLoaderStates.push_back(m_loaderStatePool.back().get());
         if (topLevelProject.progressObserver())
             topLevelProject.progressObserver()->addScriptEngine(m_enginePool.back().get());
     }
-    qCDebug(lcLoaderScheduling) << "using" << m_availableEvaluators.size() << "evaluators";
-    if (int(m_availableEvaluators.size()) == 1)
+    qCDebug(lcLoaderScheduling) << "using" << m_availableLoaderStates.size() << "loader states";
+    if (int(m_availableLoaderStates.size()) == 1)
         m_asyncMode = std::launch::deferred;
 }
 
@@ -266,7 +268,7 @@ void ProductsResolver::scheduleNext()
                 || toHandleCountOnInsert > topLevelProject.productsToHandleCount()
                 ? Deferral::Allowed : Deferral::NotAllowed;
 
-        if (!tryToReserveEvaluator(product, deferral))
+        if (!tryToReserveLoaderState(product, deferral))
             continue;
 
         startJob(product, deferral);
@@ -290,7 +292,7 @@ void ProductsResolver::scheduleNext()
         return;
 
     // b)
-    for (const ProductWithEvaluator &product : m_waitingForBulkDependency)
+    for (const ProductWithLoaderState &product : m_waitingForBulkDependency)
         queueProductForScheduling(product, Deferral::NotAllowed);
     if (!m_productsToSchedule.empty()) {
         m_waitingForBulkDependency.clear();
@@ -300,65 +302,62 @@ void ProductsResolver::scheduleNext()
 
     // c)
     for (const auto &e : m_waitingForSingleDependency) {
-        for (const ProductWithEvaluator &p : e.second)
+        for (const ProductWithLoaderState &p : e.second)
             queueProductForScheduling(p, Deferral::NotAllowed);
     }
     QBS_CHECK(!m_productsToSchedule.empty());
     scheduleNext();
 }
 
-bool ProductsResolver::tryToReserveEvaluator(ProductWithEvaluator &product, Deferral deferral)
+bool ProductsResolver::tryToReserveLoaderState(ProductWithLoaderState &product, Deferral deferral)
 {
-    QBS_CHECK(!m_availableEvaluators.empty());
-    if (!product.evaluator) {
-        product.evaluator = m_availableEvaluators.back();
-        m_availableEvaluators.pop_back();
+    QBS_CHECK(!m_availableLoaderStates.empty());
+    if (!product.loaderState) {
+        product.loaderState = m_availableLoaderStates.back();
+        m_availableLoaderStates.pop_back();
         return true;
     }
-    if (const auto it = std::find(m_availableEvaluators.begin(), m_availableEvaluators.end(),
-                                  product.evaluator); it != m_availableEvaluators.end()) {
-        m_availableEvaluators.erase(it);
+    if (const auto it = std::find(m_availableLoaderStates.begin(), m_availableLoaderStates.end(),
+                                  product.loaderState); it != m_availableLoaderStates.end()) {
+        m_availableLoaderStates.erase(it);
         return true;
     }
-    qCDebug(lcLoaderScheduling) << "evaluator" << product.evaluator << " for product"
+    qCDebug(lcLoaderScheduling) << "loader state" << product.loaderState << " for product"
                                 << product.product->displayName()
                                 << "not available, adding product to wait queue";
-    m_waitingForEvaluator[product.evaluator].push({product.product, deferral});
+    m_waitingForLoaderState[product.loaderState].push({product.product, deferral});
     return false;
 }
 
 std::optional<std::pair<ProductContext *, Deferral>>
-ProductsResolver::unblockProductWaitingForEvaluator(Evaluator &evaluator)
+ProductsResolver::unblockProductWaitingForLoaderState(LoaderState &loaderState)
 {
-    auto &waitingForEvaluator = m_waitingForEvaluator[&evaluator];
-    if (waitingForEvaluator.empty())
+    auto &waitingForLoaderState = m_waitingForLoaderState[&loaderState];
+    if (waitingForLoaderState.empty())
         return {};
-    const auto product = waitingForEvaluator.front();
-    waitingForEvaluator.pop();
-    qCDebug(lcLoaderScheduling) << "evaluator" << &evaluator << "now available for product"
+    const auto product = waitingForLoaderState.front();
+    waitingForLoaderState.pop();
+    qCDebug(lcLoaderScheduling) << "loader state" << &loaderState << "now available for product"
               << product.first->displayName();
     return product;
 }
 
-void ProductsResolver::startJob(const ProductWithEvaluator &product, Deferral deferral)
+void ProductsResolver::startJob(const ProductWithLoaderState &product, Deferral deferral)
 {
-    QBS_CHECK(product.evaluator);
+    QBS_CHECK(product.loaderState);
     qCDebug(lcLoaderScheduling) << "scheduling product" << product.product->displayName()
-                                << "with evaluator" << product.evaluator
+                                << "with loader state" << product.loaderState
                                 << "and deferral mode" << int(deferral);
     try {
         const auto it = m_runningThreads.emplace(product.product, ThreadInfo(std::async(m_asyncMode,
             [this, product, deferral] {
-                LoaderState loaderState(m_loaderState.parameters(), m_loaderState.topLevelProject(),
-                                        m_loaderState.itemPool(), *product.evaluator,
-                                        m_loaderState.logger());
-                loaderState.itemReader().setExtraSearchPathsStack(
+                product.loaderState->itemReader().setExtraSearchPathsStack(
                 product.product->project->searchPathsStack);
-                resolveProduct(*product.product, deferral, loaderState);
+                resolveProduct(*product.product, deferral, *product.loaderState);
 
                 // The search paths stack can change during dependency resolution
                 // (due to module providers); check that we've rolled back all the changes
-                QBS_CHECK(loaderState.itemReader().extraSearchPathsStack()
+                QBS_CHECK(product.loaderState->itemReader().extraSearchPathsStack()
                           == product.product->project->searchPathsStack);
 
                 std::lock_guard cancelingLock(m_cancelingMutex);
@@ -373,7 +372,7 @@ void ProductsResolver::startJob(const ProductWithEvaluator &product, Deferral de
                                                 << "finished, waking up scheduler";
                     m_threadsNotifier.notify_one();
                 }
-                }), product.evaluator));
+            }), *product.loaderState));
 
         // With just one worker thread, the notify/wait overhead would be excessive, so
         // we run the task synchronously.
@@ -390,7 +389,7 @@ void ProductsResolver::startJob(const ProductWithEvaluator &product, Deferral de
             qCWarning(lcLoaderScheduling) << "throttling down to" << m_maxJobCount << "jobs";
         }
         queueProductForScheduling(product, deferral);
-        m_availableEvaluators.push_back(product.evaluator);
+        m_availableLoaderStates.push_back(product.loaderState);
     }
 }
 
@@ -412,7 +411,7 @@ void ProductsResolver::handleFinishedThreads()
     AccumulatingTimer timer(m_loaderState.parameters().logElapsedTime()
                             ? &topLevelProject.timingData().schedulingProducts : nullptr);
 
-    std::vector<std::pair<ProductWithEvaluator, Deferral>> productsToScheduleDirectly;
+    std::vector<std::pair<ProductWithLoaderState, Deferral>> productsToScheduleDirectly;
     for (auto it = m_runningThreads.begin(); it != m_runningThreads.end();) {
         ThreadInfo &ti = it->second;
         if (!ti.done) {
@@ -421,7 +420,7 @@ void ProductsResolver::handleFinishedThreads()
         }
         ti.future.wait();
         ProductContext &product = *it->first;
-        Evaluator &evaluator = *ti.evaluator;
+        LoaderState &loaderState = ti.loaderState;
         it = m_runningThreads.erase(it);
 
         qCDebug(lcLoaderScheduling) << "handling finished thread for product"
@@ -429,15 +428,17 @@ void ProductsResolver::handleFinishedThreads()
                                     << "current unhandled product count is"
                                     << topLevelProject.productsToHandleCount();
 
-        // If there are products waiting for the evaluator used in the finished thread,
+        // If there are products waiting for the loader state used in the finished thread,
         // we can start a job for one of them right away (but not in the loop,
         // because startJob() modifies the thread list we are currently iterating over).
-        if (const auto productInfo = unblockProductWaitingForEvaluator(evaluator)) {
+        if (const auto productInfo = unblockProductWaitingForLoaderState(loaderState)) {
             productsToScheduleDirectly.emplace_back(
-                ProductWithEvaluator(*productInfo->first, &evaluator), productInfo->second);
+                        ProductWithLoaderState(*productInfo->first, &loaderState),
+                        productInfo->second);
         } else {
-            qCDebug(lcLoaderScheduling) << "making evaluator" << &evaluator << "available again";
-            m_availableEvaluators.push_back(&evaluator);
+            qCDebug(lcLoaderScheduling) << "making loader state" << &loaderState
+                                        << "available again";
+            m_availableLoaderStates.push_back(&loaderState);
         }
 
         // If we encountered a dependency to an in-progress product or to a bulk dependency,
@@ -448,16 +449,17 @@ void ProductsResolver::handleFinishedThreads()
             const auto pending = product.pendingDependency();
             switch (pending.first) {
             case ProductDependency::Single:
-                waitForSingleDependency(ProductWithEvaluator(product, &evaluator), *pending.second);
+                waitForSingleDependency(ProductWithLoaderState(product, &loaderState),
+                                        *pending.second);
                 break;
             case ProductDependency::Bulk:
-                waitForBulkDependency(ProductWithEvaluator(product, &evaluator));
+                waitForBulkDependency(ProductWithLoaderState(product, &loaderState));
                 break;
             case ProductDependency::None:
                 // This can happen if the dependency has finished in between the check in
                 // DependencyResolver and the one here.
                 QBS_CHECK(pending.second);
-                queueProductForScheduling(ProductWithEvaluator(product, &evaluator),
+                queueProductForScheduling(ProductWithLoaderState(product, &loaderState),
                                           Deferral::Allowed);
                 break;
             }
@@ -476,7 +478,7 @@ void ProductsResolver::handleFinishedThreads()
         startJob(productInfo.first, productInfo.second);
 }
 
-void ProductsResolver::queueProductForScheduling(const ProductWithEvaluator &product,
+void ProductsResolver::queueProductForScheduling(const ProductWithLoaderState &product,
                                                  Deferral deferral)
 {
     qCDebug(lcLoaderScheduling) << "queueing product" << product.product->displayName()
@@ -485,7 +487,7 @@ void ProductsResolver::queueProductForScheduling(const ProductWithEvaluator &pro
             ? -1 : m_loaderState.topLevelProject().productsToHandleCount());
 }
 
-void ProductsResolver::waitForSingleDependency(const ProductWithEvaluator &product,
+void ProductsResolver::waitForSingleDependency(const ProductWithLoaderState &product,
                                                ProductContext &dependency)
 {
     qCDebug(lcLoaderScheduling) << "product" << product.product->displayName()
@@ -494,7 +496,7 @@ void ProductsResolver::waitForSingleDependency(const ProductWithEvaluator &produ
     m_waitingForSingleDependency[&dependency].push_back(product);
 }
 
-void ProductsResolver::waitForBulkDependency(const ProductWithEvaluator &product)
+void ProductsResolver::waitForBulkDependency(const ProductWithLoaderState &product)
 {
     qCDebug(lcLoaderScheduling) << "product" << product.product->displayName()
                                 << "now waiting for bulk dependency";
@@ -509,7 +511,7 @@ void ProductsResolver::unblockProductsWaitingForDependency(ProductContext &finis
 
     qCDebug(lcLoaderScheduling) << "unblocking all products waiting for now-finished product" <<
                                    finishedProduct.displayName();
-    for (const ProductWithEvaluator &p : it->second) {
+    for (const ProductWithLoaderState &p : it->second) {
         qCDebug(lcLoaderScheduling) << "  unblocking product" << p.product->displayName();
         queueProductForScheduling(p, Deferral::Allowed);
     }

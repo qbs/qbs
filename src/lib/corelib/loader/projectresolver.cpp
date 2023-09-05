@@ -135,9 +135,8 @@ public:
     ScriptEngine * const engine;
     mutable Logger logger;
     ItemPool itemPool;
-    Evaluator evaluator{engine};
     TopLevelProjectContext topLevelProject;
-    LoaderState state{setupParams, topLevelProject, itemPool, evaluator, logger};
+    LoaderState state{setupParams, topLevelProject, itemPool, *engine, logger};
     Item *rootProjectItem = nullptr;
 };
 
@@ -336,14 +335,16 @@ void ProjectResolver::Private::resolveProjectFully(ProjectContext *projectContex
 {
     Item * const item = projectContext->item;
     projectContext->project->enabled = projectContext->project->enabled
-        && evaluator.boolValue(item, StringConstants::conditionProperty());
-    projectContext->project->name = evaluator.stringValue(item, StringConstants::nameProperty());
+            && state.evaluator().boolValue(item, StringConstants::conditionProperty());
+    projectContext->project->name = state.evaluator().stringValue(
+                item, StringConstants::nameProperty());
     if (projectContext->project->name.isEmpty())
         projectContext->project->name = FileInfo::baseName(item->location().filePath()); // FIXME: Must also be changed in item?
     QVariantMap projectProperties;
     if (!projectContext->project->enabled) {
         projectProperties.insert(StringConstants::profileProperty(),
-                                 evaluator.stringValue(item, StringConstants::profileProperty()));
+                                 state.evaluator().stringValue(
+                                     item, StringConstants::profileProperty()));
         projectContext->project->setProjectProperties(projectProperties);
         return;
     }
@@ -357,7 +358,7 @@ void ProjectResolver::Private::resolveProjectFully(ProjectContext *projectContex
             continue;
         const ValueConstPtr v = item->property(it.key());
         QBS_ASSERT(v && v->type() != Value::ItemValueType, continue);
-        const ScopedJsValue sv(engine->context(), evaluator.value(item, it.key()));
+        const ScopedJsValue sv(engine->context(), state.evaluator().value(item, it.key()));
         projectProperties.insert(it.key(), getJsVariant(engine->context(), sv));
     }
     projectContext->project->setProjectProperties(projectProperties);
@@ -402,8 +403,10 @@ void ProjectResolver::Private::resolveSubProject(Item *item, ProjectContext *pro
     project->enabled = false;
     project->parentProject = projectContext->project;
     projectContext->project->subProjects << project;
-    if (Item * const propertiesItem = item->child(ItemType::PropertiesInSubProject))
-        project->name = evaluator.stringValue(propertiesItem, StringConstants::nameProperty());
+    if (Item * const propertiesItem = item->child(ItemType::PropertiesInSubProject)) {
+        project->name = state.evaluator().stringValue(propertiesItem,
+                                                      StringConstants::nameProperty());
+    }
 }
 
 void ProjectResolver::Private::checkOverriddenValues()
