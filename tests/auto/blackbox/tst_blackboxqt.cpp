@@ -38,7 +38,6 @@
 #define WAIT_FOR_NEW_TIMESTAMP() waitForNewTimestamp(testDataDir)
 
 using qbs::Internal::HostOsInfo;
-using qbs::Profile;
 
 TestBlackboxQt::TestBlackboxQt() : TestBlackboxBase (SRCDIR "/testdata-qt", "blackbox-qt")
 {
@@ -240,7 +239,7 @@ void TestBlackboxQt::mixedBuildVariants()
 {
     QDir::setCurrent(testDataDir + "/mixed-build-variants");
     const SettingsPtr s = settings();
-    Profile profile(profileName(), s.get());
+    qbs::Profile profile(profileName(), s.get());
     if (profileToolchain(profile).contains("msvc")) {
         QbsRunParameters params;
         params.arguments << "qbs.buildVariant:debug";
@@ -484,18 +483,22 @@ void TestBlackboxQt::qmlDebugging()
 {
     QDir::setCurrent(testDataDir + "/qml-debugging");
     QCOMPARE(runQbs(), 0);
-    const SettingsPtr s = settings();
-    Profile profile(profileName(), s.get());
-    if (!profileToolchain(profile).contains("gcc"))
-        return;
+
+    const bool isGcc = m_qbsStdout.contains("is gcc: true");
+    const bool isNotGcc = m_qbsStdout.contains("is gcc: false");
+    if (isNotGcc)
+        QSKIP("The remainder of this test only applies to gcc");
+    QVERIFY(isGcc);
+
     QProcess nm;
     nm.start("nm", QStringList(relativeExecutableFilePath("debuggable-app")));
-    if (nm.waitForStarted()) { // Let's ignore hosts without nm.
-        QVERIFY2(nm.waitForFinished(), qPrintable(nm.errorString()));
-        QVERIFY2(nm.exitCode() == 0, nm.readAllStandardError().constData());
-        const QByteArray output = nm.readAllStandardOutput();
-        QVERIFY2(output.toLower().contains("debugginghelper"), output.constData());
-    }
+    if (!nm.waitForStarted())
+        QSKIP("The remainder of this test requires nm");
+
+    QVERIFY2(nm.waitForFinished(), qPrintable(nm.errorString()));
+    QVERIFY2(nm.exitCode() == 0, nm.readAllStandardError().constData());
+    const QByteArray output = nm.readAllStandardOutput();
+    QVERIFY2(output.toLower().contains("debugginghelper"), output.constData());
 }
 
 void TestBlackboxQt::qobjectInObjectiveCpp()

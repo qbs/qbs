@@ -20,4 +20,9 @@ Project {
         cpp.rpaths: qbs.installRoot + "/lib"
         cpp.systemRunPaths: project.setRunPaths ? [qbs.installRoot + "/lib"] : []
     }
+    Probe {
+        id: checker
+        property bool isUnix: qbs.targetOS.contains("unix")
+        configure: { console.info("is unix: " + isUnix); }
+    }
 }

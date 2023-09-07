@@ -63,7 +63,6 @@
 #define WAIT_FOR_NEW_TIMESTAMP() waitForNewTimestamp(testDataDir)
 
 using qbs::Internal::HostOsInfo;
-using qbs::Profile;
 
 class MacosTarHealer {
 public:
@@ -139,7 +138,7 @@ QString TestBlackbox::findArchiver(const QString &fileName, int *status)
     QString binary = findExecutable(QStringList(fileName));
     if (binary.isEmpty()) {
         const SettingsPtr s = settings();
-        Profile p(profileName(), s.get());
+        qbs::Profile p(profileName(), s.get());
         binary = findExecutable(p.value("archiver.command").toStringList());
     }
     return binary;
@@ -1594,14 +1593,14 @@ void TestBlackbox::versionCheck_data()
 
 void TestBlackbox::versionScript()
 {
-    const SettingsPtr s = settings();
-    Profile buildProfile(profileName(), s.get());
-    QStringList toolchain = profileToolchain(buildProfile);
-    if (!toolchain.contains("gcc") || targetOs() != HostOsInfo::HostOsLinux)
-        QSKIP("version script test only applies to Linux");
     QDir::setCurrent(testDataDir + "/versionscript");
-    QCOMPARE(runQbs(QbsRunParameters(QStringList("-q")
-                                     << ("qbs.installRoot:" + QDir::currentPath()))), 0);
+    QCOMPARE(runQbs(QbsRunParameters("resolve", {"qbs.installRoot:" + QDir::currentPath()})), 0);
+    const bool isLinuxGcc = m_qbsStdout.contains("is gcc for Linux: true");
+    const bool isNotLinuxGcc = m_qbsStdout.contains("is gcc for Linux: false");
+    if (isNotLinuxGcc)
+        QSKIP("version script test only applies to Linux");
+    QVERIFY(isLinuxGcc);
+    QCOMPARE(runQbs(QbsRunParameters(QStringList("-q"))), 0);
     const QString output = QString::fromLocal8Bit(m_qbsStderr);
     const QRegularExpression pattern(QRegularExpression::anchoredPattern(".*---(.*)---.*"),
                                      QRegularExpression::DotMatchesEverythingOption);
@@ -2068,10 +2067,13 @@ void TestBlackbox::separateDebugInfo()
     const bool isDarwin = m_qbsStdout.contains("is darwin: yes");
     const bool isNotDarwin = m_qbsStdout.contains("is darwin: no");
     QVERIFY(isDarwin != isNotDarwin);
+    const bool isGcc = m_qbsStdout.contains("is gcc: yes");
+    const bool isNotGcc = m_qbsStdout.contains("is gcc: no");
+    QVERIFY(isGcc != isNotGcc);
+    const bool isMsvc = m_qbsStdout.contains("is msvc: yes");
+    const bool isNotMsvc = m_qbsStdout.contains("is msvc: no");
+    QVERIFY(isMsvc != isNotMsvc);
 
-    const SettingsPtr s = settings();
-    Profile buildProfile(profileName(), s.get());
-    QStringList toolchain = profileToolchain(buildProfile);
     if (isDarwin) {
         QVERIFY(directoryExists(relativeProductBuildDir("app1") + "/app1.app.dSYM"));
         QVERIFY(regularFileExists(relativeProductBuildDir("app1")
@@ -2151,7 +2153,7 @@ void TestBlackbox::separateDebugInfo()
             + "/bar4.bundle.dSYM/Contents/Resources/DWARF")
                 .entryInfoList(QDir::NoDotAndDotDot | QDir::AllEntries).size(), 1);
         QVERIFY(regularFileExists(relativeProductBuildDir("bar5") + "/bar5.bundle.dwarf"));
-    } else if (toolchain.contains("gcc")) {
+    } else if (isGcc) {
         const QString exeSuffix = isWindows ? ".exe" : "";
         const QString dllPrefix = isWindows ? "" : "lib";
         const QString dllSuffix = isWindows ? ".dll" : ".so";
@@ -2165,7 +2167,7 @@ void TestBlackbox::separateDebugInfo()
                               + '/' + dllPrefix +  "bar1" + dllSuffix + ".debug"));
         QVERIFY(!QFile::exists(relativeProductBuildDir("bar2")
                                + '/' + dllPrefix + "bar2" + dllSuffix + ".debug"));
-    } else if (toolchain.contains("msvc")) {
+    } else if (isMsvc) {
         QVERIFY(QFile::exists(relativeProductBuildDir("app1") + "/app1.pdb"));
         QVERIFY(QFile::exists(relativeProductBuildDir("foo1") + "/foo1.pdb"));
         QVERIFY(QFile::exists(relativeProductBuildDir("bar1") + "/bar1.pdb"));
@@ -2222,6 +2224,9 @@ void TestBlackbox::trackExternalProductChanges()
     QVERIFY(!m_qbsStdout.contains("compiling jsFileChange.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling fileExists.cpp"));
 
+    const bool isGcc = m_qbsStdout.contains("is gcc: true");
+    const bool isNotGcc = m_qbsStdout.contains("is gcc: false");
+
     QbsRunParameters params;
     params.environment.insert("QBS_TEST_PULL_IN_FILE_VIA_ENV", "1");
     QCOMPARE(runQbs(params), 0);
@@ -2271,12 +2276,11 @@ void TestBlackbox::trackExternalProductChanges()
     QVERIFY(!m_qbsStdout.contains("compiling jsFileChange.cpp"));
     QVERIFY(m_qbsStdout.contains("compiling fileExists.cpp"));
 
+    if (isNotGcc)
+        QSKIP("The remainder of this test requires a GCC-like toolchain");
+    QVERIFY(isGcc);
+
     rmDirR(relativeBuildDir());
-    const SettingsPtr s = settings();
-    const Profile profile(profileName(), s.get());
-    const QStringList toolchainTypes = profileToolchain(profile);
-    if (!toolchainTypes.contains("gcc"))
-        QSKIP("Need GCC-like compiler to run this test");
     params.environment = QbsRunParameters::defaultEnvironment();
     params.environment.insert("INCLUDE_PATH_TEST", "1");
     params.expectFailure = true;
@@ -2569,22 +2573,21 @@ void TestBlackbox::removeDuplicateLibraries()
 
 void TestBlackbox::reproducibleBuild()
 {
-    const SettingsPtr s = settings();
-    const Profile profile(profileName(), s.get());
-    const QStringList toolchains = profileToolchain(profile);
-    if (!toolchains.contains("gcc"))
-        QSKIP("reproducible builds only supported for gcc");
-    if (toolchains.contains("clang"))
-        QSKIP("reproducible builds are not supported for clang");
-
     QFETCH(bool, reproducible);
 
     QDir::setCurrent(testDataDir + "/reproducible-build");
-    QbsRunParameters params;
+    QbsRunParameters params("resolve");
     params.arguments << QString("modules.cpp.enableReproducibleBuilds:")
                         + (reproducible ? "true" : "false");
     rmDirR(relativeBuildDir());
     QCOMPARE(runQbs(params), 0);
+    const bool isGcc = m_qbsStdout.contains("is gcc: true");
+    const bool isNotGcc = m_qbsStdout.contains("is gcc: false");
+    if (isNotGcc)
+        QSKIP("reproducible builds only supported for gcc");
+    QVERIFY(isGcc);
+
+    QCOMPARE(runQbs(), 0);
     QFile object(relativeProductBuildDir("the product") + '/' + inputDirHash(".") + '/'
                  + objectFileName("file1.cpp", profileName()));
     QVERIFY2(object.open(QIODevice::ReadOnly), qPrintable(object.fileName()));
@@ -2592,6 +2595,7 @@ void TestBlackbox::reproducibleBuild()
     object.close();
     QCOMPARE(runQbs(QbsRunParameters("clean")), 0);
     QVERIFY(!object.exists());
+    params.command = "build";
     QCOMPARE(runQbs(params), 0);
     if (reproducible) {
         QVERIFY(object.open(QIODevice::ReadOnly));
@@ -3802,7 +3806,7 @@ void TestBlackbox::emptyProfile()
     QDir::setCurrent(testDataDir + "/empty-profile");
 
     const SettingsPtr s = settings();
-    const Profile buildProfile(profileName(), s.get());
+    const qbs::Profile buildProfile(profileName(), s.get());
     bool isMsvc = false;
     auto toolchainType = buildProfile.value(QStringLiteral("qbs.toolchainType")).toString();
     QbsRunParameters params;
@@ -3923,15 +3927,16 @@ void TestBlackbox::errorInfo()
 
 void TestBlackbox::escapedLinkerFlags()
 {
-    const SettingsPtr s = settings();
-    const Profile buildProfile(profileName(), s.get());
-    const QStringList toolchain = profileToolchain(buildProfile);
-    if (!toolchain.contains("gcc"))
-        QSKIP("escaped linker flags test only applies with gcc and GNU ld");
-    if (targetOs() == HostOsInfo::HostOsMacos)
-        QSKIP("Does not apply on macOS");
     QDir::setCurrent(testDataDir + "/escaped-linker-flags");
-    QbsRunParameters params(QStringList("products.app.escapeLinkerFlags:false"));
+    QbsRunParameters params("resolve", QStringList("products.app.escapeLinkerFlags:false"));
+    QCOMPARE(runQbs(params), 0);
+    const bool isGcc = m_qbsStdout.contains("is gcc: true");
+    const bool isNotGcc = m_qbsStdout.contains("is gcc: false");
+    if (isNotGcc)
+        QSKIP("escaped linker flags test only applies on plain unix with gcc and GNU ld");
+    QVERIFY(isGcc);
+
+    params.command = "build";
     QCOMPARE(runQbs(params), 0);
     params.command = "resolve";
     params.arguments = QStringList() << "products.app.escapeLinkerFlags:true";
@@ -3988,25 +3993,23 @@ void TestBlackbox::exportedPropertyInDisabledProduct_data()
 
 void TestBlackbox::systemRunPaths()
 {
-    const SettingsPtr s = settings();
-    const Profile buildProfile(profileName(), s.get());
-    switch (targetOs()) {
-    case HostOsInfo::HostOsLinux:
-    case HostOsInfo::HostOsMacos:
-    case HostOsInfo::HostOsOtherUnix:
-        break;
-    default:
-        QSKIP("only applies on Unix");
-    }
-
     const QString lddFilePath = findExecutable(QStringList() << "ldd");
     if (lddFilePath.isEmpty())
         QSKIP("ldd not found");
+
     QDir::setCurrent(testDataDir + "/system-run-paths");
     QFETCH(bool, setRunPaths);
     rmDirR(relativeBuildDir());
-    QbsRunParameters params;
+    QbsRunParameters params("resolve");
     params.arguments << QString("project.setRunPaths:") + (setRunPaths ? "true" : "false");
+    QCOMPARE(runQbs(params), 0);
+    const bool isUnix = m_qbsStdout.contains("is unix: true");
+    const bool isNotUnix = m_qbsStdout.contains("is unix: false");
+    if (isNotUnix)
+        QSKIP("only applies on Unix");
+    QVERIFY(isUnix);
+
+    params.command = "build";
     QCOMPARE(runQbs(params), 0);
     QProcess ldd;
     ldd.start(lddFilePath, QStringList() << relativeExecutableFilePath("app"));
@@ -4565,7 +4568,7 @@ void TestBlackbox::cli()
     QCOMPARE(status, 0);
 
     const SettingsPtr s = settings();
-    Profile p("qbs_autotests-cli", s.get());
+    qbs::Profile p("qbs_autotests-cli", s.get());
     const QStringList toolchain = profileToolchain(p);
     if (!p.exists() || !(toolchain.contains("dotnet") || toolchain.contains("mono")))
         QSKIP("No suitable Common Language Infrastructure test profile");
@@ -5085,22 +5088,20 @@ void TestBlackbox::lexyaccOutputs_data()
 
 void TestBlackbox::linkerLibraryDuplicates()
 {
-    const SettingsPtr s = settings();
-    Profile buildProfile(profileName(), s.get());
-    QStringList toolchain = profileToolchain(buildProfile);
-    if (!toolchain.contains("gcc"))
-        QSKIP("linkerLibraryDuplicates test only applies to GCC toolchain");
-
     QDir::setCurrent(testDataDir + "/linker-library-duplicates");
     rmDirR(relativeBuildDir());
-
     QFETCH(QString, removeDuplicateLibraries);
     QStringList runParams;
-    if (!removeDuplicateLibraries.isEmpty()) {
+    if (!removeDuplicateLibraries.isEmpty())
         runParams.append(removeDuplicateLibraries);
-    }
 
     QCOMPARE(runQbs(QbsRunParameters("resolve", runParams)), 0);
+    const bool isGcc = m_qbsStdout.contains("is gcc: true");
+    const bool isNotGcc = m_qbsStdout.contains("is gcc: false");
+    if (isNotGcc)
+        QSKIP("linkerLibraryDuplicates test only applies to GCC toolchain");
+    QVERIFY(isGcc);
+
     QCOMPARE(runQbs(QStringList { "--command-echo-mode", "command-line" }), 0);
     const QByteArrayList output = m_qbsStdout.split('\n');
     QByteArray linkLine;
@@ -5165,19 +5166,19 @@ void TestBlackbox::linkerLibraryDuplicates_data()
 
 void TestBlackbox::linkerScripts()
 {
-    const SettingsPtr s = settings();
-    Profile buildProfile(profileName(), s.get());
-    QStringList toolchain = profileToolchain(buildProfile);
-    if (!toolchain.contains("gcc") || targetOs() != HostOsInfo::HostOsLinux)
-        QSKIP("linker script test only applies to Linux ");
-
-    QbsRunParameters runParams(QStringList()
-//                               << "--log-level" << "debug"
-                               << ("qbs.installRoot:" + QDir::currentPath()));
     const QString sourceDir = QDir::cleanPath(testDataDir + "/linkerscripts");
+    QbsRunParameters runParams("resolve", {"qbs.installRoot:" + QDir::currentPath()});
     runParams.buildDirectory = sourceDir + "/build";
     runParams.workingDir = sourceDir;
 
+    QCOMPARE(runQbs(runParams), 0);
+    const bool isGcc = m_qbsStdout.contains("is Linux gcc: true");
+    const bool isNotGcc = m_qbsStdout.contains("is Linux gcc: false");
+    if (isNotGcc)
+        QSKIP("linker script test only applies to Linux");
+    QVERIFY(isGcc);
+
+    runParams.command = "build";
     QCOMPARE(runQbs(runParams), 0);
     const QString output = QString::fromLocal8Bit(m_qbsStderr);
     const QRegularExpression pattern(QRegularExpression::anchoredPattern(".*---(.*)---.*"),
@@ -7673,7 +7674,7 @@ void TestBlackbox::generator_data()
 void TestBlackbox::nodejs()
 {
     const SettingsPtr s = settings();
-    Profile p(profileName(), s.get());
+    qbs::Profile p(profileName(), s.get());
 
     int status;
     findNodejs(&status);
@@ -7714,7 +7715,7 @@ void TestBlackbox::typescript()
         QSKIP("Skip this test when running on GitHub");
 
     const SettingsPtr s = settings();
-    Profile p(profileName(), s.get());
+    qbs::Profile p(profileName(), s.get());
 
     int status;
     findTypeScript(&status);

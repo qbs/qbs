@@ -16,7 +16,11 @@ Project {
             id: osCheck
             property bool isNormalUnix: qbs.targetOS.includes("unix")
                                         && !qbs.targetOS.includes("darwin")
-            configure: { console.info("is normal unix: " + (isNormalUnix ? "yes" : "no")); }
+            property bool isGcc: qbs.toolchain.contains("gcc")
+            configure: {
+                console.info("is normal unix: " + (isNormalUnix ? "yes" : "no"));
+                console.info("is gcc: " + isGcc);
+            }
         }
     }
 

@@ -40,6 +40,11 @@ Project {
         name: "static2"
         files: [ "static2.cpp", "static2.h" ]
         Depends { name: "cpp" }
+        Probe {
+            id: tcPrinter
+            property bool isGcc: qbs.toolchain.contains("gcc")
+            configure: { console.info("is gcc: " + isGcc); }
+        }
     }
 }
 

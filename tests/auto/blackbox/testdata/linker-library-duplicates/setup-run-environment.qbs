@@ -6,6 +6,11 @@ Project {
         files: ["lib1.cpp"]
         Depends { name: "bundle" }
         bundle.isBundle: false
+        Probe {
+            id: checker
+            property bool isGcc: qbs.toolchain.contains("gcc")
+            configure: { console.info("is gcc: " + isGcc); }
+        }
     }
 
     DynamicLibrary {

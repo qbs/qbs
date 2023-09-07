@@ -8,10 +8,13 @@ Project {
         Probe {
             id: osProbe
             property stringList targetOS: qbs.targetOS
+            property stringList toolchain: qbs.toolchain
             configure: {
                 console.info("is windows: " + (targetOS.includes("windows") ? "yes" : "no"));
                 console.info("is macos: " + (targetOS.includes("macos") ? "yes" : "no"));
                 console.info("is darwin: " + (targetOS.includes("darwin") ? "yes" : "no"));
+                console.info("is gcc: " + (toolchain.includes("gcc") ? "yes" : "no"));
+                console.info("is msvc: " + (toolchain.includes("msvc") ? "yes" : "no"));
             }
         }
     }

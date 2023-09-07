@@ -20,6 +20,12 @@ DynamicLibrary {
             return [cmd];
         }
     }
+    Probe {
+        id: checker
+        property bool isLinux: qbs.targetOS.includes("linux")
+        property bool isGcc: qbs.toolchain.contains("gcc")
+        configure: { console.info("is gcc for Linux: " + (isLinux && isGcc)); }
+    }
 
     qbs.installPrefix: ""
     install: true

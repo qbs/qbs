@@ -11,4 +11,9 @@ CppApplication {
         name: "file that needs help from the environment to find a header"
         files: "including.cpp"
     }
+    Probe {
+        id: checker
+        property bool isGcc: qbs.toolchain.contains("gcc")
+        configure: { console.info("is gcc: " + isGcc); }
+    }
 }
