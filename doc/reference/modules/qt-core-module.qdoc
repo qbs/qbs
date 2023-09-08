@@ -211,6 +211,32 @@
 */
 
 /*!
+    \qmlproperty string Qt.core::generatedHeadersDir
+
+    The directory where tools that generate headers (such as \c moc or \c uic) put resulting
+    files.
+
+    Normally, you don't need to change this property. The one use-case is when there are several
+    files with the same file name in the Product. The file name produced by \c moc is based
+    only on the source file's base file name (without the directory path) which leads to a conflict
+    in the mentioned case. You can resolve the conflict by setting this property to a non-default
+    value for one of the files. For example:
+
+    \code
+        QtApplication {
+            files: ["my_cool_header.h", "main.cpp"]
+            Group {
+                name: "legacy"
+                files: "legacy/my_cool_header.h"
+                Qt.core.generatedHeadersDir: "qt.legacy.headers"
+            }
+        }
+    \endcode
+
+    \defaultvalue \c product.buildDirectory + "/qt.headers"
+*/
+
+/*!
     \qmlproperty bool Qt.core::metaTypesInstallDir
 
     The directory to install the metatypes file into. If this property is empty or undefined,
@@ -352,6 +378,14 @@
 */
 
 /*!
+    \qmlproperty string Qt.core::qdocOutputDir
+
+    The directory name where the \c qdoc tool writes its output.
+
+    \defaultvalue \c{product.buildDirectory + "/qdoc_html"}
+*/
+
+/*!
     \qmlproperty string Qt.core::qmBaseName
 
     The base name of the \c .qm file to be built from the \c .ts files in the
@@ -360,6 +394,14 @@
     This property is ignored if \l{Qt.core::}{lreleaseMultiplexMode} is \c false.
 
     \defaultvalue \l{Product::targetName}{product.targetName}
+*/
+
+/*!
+    \qmlproperty string Qt.core::qmDir
+
+    The directory name where to put the \c .qm file to be built.
+
+    \defaultvalue \l{Product::destinationDirectory}{product.destinationDirectory}
 */
 
 /*!

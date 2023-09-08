@@ -1080,8 +1080,7 @@ ScriptEngine::Importer::Importer(
 
 ScriptEngine::Importer::~Importer()
 {
-    if (m_engine.m_observeMode == ObserveMode::Enabled)
-        m_engine.m_requireResults.clear();
+    m_engine.m_requireResults.clear();
     m_engine.m_currentDirPathStack.pop();
     m_engine.m_extensionSearchPathsStack.pop();
     m_engine.uninstallImportFunctions();

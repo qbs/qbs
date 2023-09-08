@@ -77,10 +77,11 @@
 
     The base directory from which artifacts installed into the disk image will be copied.
     This directory is always considered to be relative to \l{qbs::installRoot}
-    {qbs.installRoot}.
+    {qbs.installRoot}/\l{qbs::installPrefix}
+    {qbs.installPrefix}.
     For example, if the application Example.app exists at
-    \c{qbs.installRoot/Applications/Example.app}, and the value of this property
-    is \c{"/Applications"}, the application will be located at\c{/Example.app}
+    \c{qbs.installRoot/qbs.installPrefix/Applications/Example.app}, and the value of this property
+    is \c{"/Applications"}, the application will be located at \c{/Example.app}
     relative to the disk image root. Therefore, its full path when the disk
     image is mounted would be something like \c{/Volumes/Example-1.0/Example.app}.
 

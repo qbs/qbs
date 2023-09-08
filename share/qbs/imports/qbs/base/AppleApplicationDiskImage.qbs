@@ -34,7 +34,8 @@ import qbs.ModUtils
 
 AppleDiskImage {
     property string sourceBase: "/Applications"
-    readonly property string absoluteSourceBase: FileInfo.joinPaths(qbs.installRoot, sourceBase)
+    readonly property string absoluteSourceBase:
+        FileInfo.joinPaths(qbs.installRoot, qbs.installPrefix, sourceBase)
     property stringList symlinks: ["/Applications:Applications"]
 
     readonly property string stageDirectory: FileInfo.joinPaths(destinationDirectory, "Volumes", dmg.volumeName)

@@ -74,10 +74,13 @@
         }
     }
     \endcode
-    When specifying files, you can use the wildcards "*", "?" and "[]", which have their usual meaning.
-    By default, matching files are only picked up directly from the parent directory, but you can tell \QBS to
-    consider the whole directory tree. It is also possible to exclude certain files from the list.
-    The pattern ** used in a pathname expansion context will match all files and zero or more
+    When specifying files, you can use the wildcards \c "*", \c "?" and \c "[]", which
+    have their
+    \l{https://en.wikipedia.org/wiki/Wildcard_character#File_and_directory_patterns}{usual meaning}
+    as in Unix Shell. By default, matching files are only picked up directly from the
+    parent directory, but you can tell \QBS to consider the whole directory tree.
+    It is also possible to exclude certain files from the list.
+    The pattern \c "**" used in a pathname expansion context will match all files and zero or more
     directories and subdirectories.
     For example:
     \snippet reference/items/language/group.qbs 0
@@ -114,12 +117,14 @@
 */
 
 /*!
-    \qmlproperty list Group::files
+    \qmlproperty pathList Group::files
 
     The files in the group. Mutually exclusive with \l{fileTagsFilter}.
     Relative paths are resolved using the parent directory of the file
     that contains the Group item. However, if the \l{prefix} property is set to
     an absolute path, then that one becomes the base directory.
+
+    The values can contain wildcards.
 
     \defaultvalue An empty list
 */
@@ -146,7 +151,7 @@
 */
 
 /*!
-    \qmlproperty list Group::fileTagsFilter
+    \qmlproperty stringList Group::fileTagsFilter
 
     List of \l{Artifact::fileTags}{artifact.fileTags} to match. Any properties
     set in this group will be applied to the product's artifacts whose file tags
@@ -170,7 +175,7 @@
 */
 
 /*!
-    \qmlproperty list Group::fileTags
+    \qmlproperty stringList Group::fileTags
 
     A list of file tags to attach to the group's files. These can then be
     matched by a \l{Rule}{rule}.
@@ -196,10 +201,13 @@
 */
 
 /*!
-    \qmlproperty list Group::excludeFiles
+    \qmlproperty pathList Group::excludeFiles
 
-    A list of files that are \e subtracted from the files list. Useful when
-    using wildcards.
+    A list of files that are \e subtracted from the \l{files} list.
+
+    The values can contain wildcards.
+
+    This property is ignored if \l{fileTagsFilter} is set.
 
     \defaultvalue An empty list
 */

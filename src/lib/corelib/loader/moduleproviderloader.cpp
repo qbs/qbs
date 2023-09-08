@@ -221,6 +221,7 @@ void ModuleProviderLoader::setupModuleProviderConfig(ProductContext &product)
                     continue;
                 }
                 case Value::JSSourceValueType: {
+                    it.value()->setScope(item->scope(), {});
                     const ScopedJsValue sv(m_loaderState.evaluator().engine()->context(),
                                            m_loaderState.evaluator().value(item, it.key()));
                     value = getJsVariant(m_loaderState.evaluator().engine()->context(), sv);

@@ -10,10 +10,11 @@ Project {
     readonly property string beginning: "beginning"
     CppApplication {
         name: "app1"
+        property string chooseLettersFrom: project.beginning // This indirection tests QBS-1747.
         Depends { name: "mygenerator.module1" }
         Depends { name: "mygenerator.module2" }
         Depends { name: "othergenerator" }
-        moduleProviders.mygenerator.chooseLettersFrom: project.beginning
+        moduleProviders.mygenerator.chooseLettersFrom: chooseLettersFrom
         moduleProviders.othergenerator.someDefines: name
         files: "main.cpp"
     }

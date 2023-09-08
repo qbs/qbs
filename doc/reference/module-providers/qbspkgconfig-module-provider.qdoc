@@ -100,7 +100,7 @@
     Setting this property to \c undefined or empty (\c "") value will use pkg-config's default
     search paths:
     \code
-        qbs build module-providers.pkgconfig.sysroot:undefined
+        qbs resolve moduleProviders.qbspkgconfig.sysroot:undefined
     \endcode
 
     This property is the equivalent of the \c{PKG_CONFIG_SYSROOT_DIR} variable for the
