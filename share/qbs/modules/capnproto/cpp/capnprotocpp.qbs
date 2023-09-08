@@ -39,6 +39,7 @@ CapnProtoBase {
     Depends { name: "capnp-rpc"; condition: useRpc }
 
     pluginName: "capnpc-c++"
+    version: capnp.version
 
     cpp.systemIncludePaths: outputDir
     cpp.cxxLanguageVersion: "c++14"
