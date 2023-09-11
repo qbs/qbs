@@ -329,7 +329,7 @@ void SettingsModel::SettingsModelPrivate::readSettings()
         addNodeFromSettings(&rootNode, topLevelKey);
     for (QVariantMap::ConstIterator it = additionalProperties.constBegin();
          it != additionalProperties.constEnd(); ++it) {
-        const QStringList nameAsList = it.key().split(QLatin1Char('.'), QBS_SKIP_EMPTY_PARTS);
+        const QStringList nameAsList = it.key().split(QLatin1Char('.'), Qt::SkipEmptyParts);
         addNode(&rootNode, nameAsList.front(), nameAsList.mid(1), it.value());
     }
     dirty = false;

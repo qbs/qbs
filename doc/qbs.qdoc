@@ -462,7 +462,7 @@
     To build \QBS from the source, you need:
 
     \list
-        \li Qt 5.14, or later
+        \li Qt 5.15, or later
         \li Windows: MinGW with GCC 4.9 or Microsoft Visual Studio 2015,
             or later
         \li Linux: GCC 4.9, or later, or Clang 3.9.0, or later

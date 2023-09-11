@@ -228,7 +228,7 @@ static bool haveWiX(const Profile &profile)
             << QStringLiteral("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows Installer XML\\");
 
     QStringList paths = QProcessEnvironment::systemEnvironment().value("PATH")
-            .split(HostOsInfo::pathListSeparator(), QBS_SKIP_EMPTY_PARTS);
+            .split(HostOsInfo::pathListSeparator(), Qt::SkipEmptyParts);
 
     for (const QString &key : std::as_const(regKeys)) {
         const QStringList versions = QSettings(key, QSettings::NativeFormat).childGroups();

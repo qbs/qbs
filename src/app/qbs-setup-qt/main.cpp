@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
                 QString profileName = QLatin1String("qt-") + qtEnvironment.qtVersion.toString();
                 if (SetupQt::checkIfMoreThanOneQtWithTheSameVersion(qtEnvironment.qtVersion, qtEnvironments)) {
                     QStringList prefixPathParts = QFileInfo(qtEnvironment.qmakeFilePath).path()
-                            .split(QLatin1Char('/'), QBS_SKIP_EMPTY_PARTS);
+                            .split(QLatin1Char('/'), Qt::SkipEmptyParts);
                     if (!prefixPathParts.empty())
                         profileName += QLatin1String("-") + prefixPathParts.last();
                 }

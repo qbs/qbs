@@ -298,7 +298,7 @@ void TestBlackbox::textTemplate()
 
 static QStringList sortedFileList(const QByteArray &ba)
 {
-    auto list = QString::fromUtf8(ba).split(QRegularExpression("[\r\n]"), QBS_SKIP_EMPTY_PARTS);
+    auto list = QString::fromUtf8(ba).split(QRegularExpression("[\r\n]"), Qt::SkipEmptyParts);
     std::sort(list.begin(), list.end());
     return list;
 }
@@ -698,7 +698,7 @@ void TestBlackbox::buildDirectories()
     QDir::setCurrent(projectDir);
     QCOMPARE(runQbs(), 0);
     const QStringList outputLines
-            = QString::fromLocal8Bit(m_qbsStdout.trimmed()).split('\n', QBS_SKIP_EMPTY_PARTS);
+            = QString::fromLocal8Bit(m_qbsStdout.trimmed()).split('\n', Qt::SkipEmptyParts);
     QVERIFY2(outputLines.contains(projectDir + '/' + relativeProductBuildDir("p1")),
              m_qbsStdout.constData());
     QVERIFY2(outputLines.contains(projectDir + '/' + relativeProductBuildDir("p2")),
@@ -3827,7 +3827,7 @@ void TestBlackbox::emptyProfile()
                 QDir::toNativeSeparators(
                         buildProfile.value(QStringLiteral("cpp.toolchainInstallPath")).toString());
         auto paths = params.environment.value(QStringLiteral("PATH"))
-                .split(HostOsInfo::pathListSeparator(), QBS_SKIP_EMPTY_PARTS);
+                .split(HostOsInfo::pathListSeparator(), Qt::SkipEmptyParts);
         if (!tcPath.isEmpty() && !paths.contains(tcPath)) {
             paths.prepend(tcPath);
             params.environment.insert(
@@ -7436,7 +7436,7 @@ static bool haveMakeNsis()
             << QStringLiteral("HKEY_LOCAL_MACHINE\\SOFTWARE\\NSIS");
 
     QStringList paths = QProcessEnvironment::systemEnvironment().value("PATH")
-            .split(HostOsInfo::pathListSeparator(), QBS_SKIP_EMPTY_PARTS);
+            .split(HostOsInfo::pathListSeparator(), Qt::SkipEmptyParts);
 
     for (const QString &key : std::as_const(regKeys)) {
         QSettings settings(key, QSettings::NativeFormat);

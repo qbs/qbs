@@ -163,7 +163,7 @@ void XcodeProbe::detectDeveloperPaths()
         qbsInfo() << Tr::tr("Could not detect additional Xcode installations with /usr/bin/mdfind");
     } else {
         const auto paths = QString::fromLocal8Bit(launchServices.readAllStandardOutput())
-                .split(QLatin1Char('\n'), QBS_SKIP_EMPTY_PARTS);
+                .split(QLatin1Char('\n'), Qt::SkipEmptyParts);
         for (const QString &path : paths)
             addDeveloperPath(path + QStringLiteral("/Contents/Developer"));
     }

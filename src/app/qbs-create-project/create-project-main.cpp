@@ -80,9 +80,9 @@ int main(int argc, char *argv[])
     const ProjectStructure projectStructure = parser.isSet(flatOpt)
             ? ProjectStructure::Flat : ProjectStructure::Composite;
     const QStringList whiteList = parser.value(whiteListOpt).split(QLatin1Char(','),
-                                                                   QBS_SKIP_EMPTY_PARTS);
+                                                                   Qt::SkipEmptyParts);
     const QStringList blackList = parser.value(blackListOpt).split(QLatin1Char(','),
-                                                                   QBS_SKIP_EMPTY_PARTS);
+                                                                   Qt::SkipEmptyParts);
     try {
         ProjectCreator().run(QDir::currentPath(), projectStructure, whiteList, blackList);
     } catch (const ErrorInfo &e) {

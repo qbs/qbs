@@ -221,7 +221,7 @@ void TestBlackboxBase::validateTestProfile()
 QString TestBlackboxBase::findExecutable(const QStringList &fileNames)
 {
     const QStringList path = QString::fromLocal8Bit(qgetenv("PATH"))
-            .split(HostOsInfo::pathListSeparator(), QBS_SKIP_EMPTY_PARTS);
+            .split(HostOsInfo::pathListSeparator(), Qt::SkipEmptyParts);
 
     for (const QString &fileName : fileNames) {
         QFileInfo fi(fileName);

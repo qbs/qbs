@@ -1131,7 +1131,7 @@ void TestBlackboxApple::xcode()
     QVERIFY2(xcodebuildShowSdks.exitCode() == 0,
              qPrintable(xcodebuildShowSdks.readAllStandardError().constData()));
     const auto lines = QString::fromLocal8Bit(xcodebuildShowSdks.readAllStandardOutput().trimmed())
-            .split('\n', QBS_SKIP_EMPTY_PARTS);
+            .split('\n', Qt::SkipEmptyParts);
     for (const QString &line : lines) {
         static const std::regex regexp("^.+\\s+\\-sdk\\s+([a-z]+)([0-9]+\\.[0-9]+)$");
         const auto ln = line.toStdString();

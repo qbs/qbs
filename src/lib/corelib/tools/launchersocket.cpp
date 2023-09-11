@@ -82,12 +82,7 @@ void LauncherSocket::setSocket(QLocalSocket *socket)
     QBS_ASSERT(!m_socket, return);
     m_socket.store(socket);
     m_packetParser.setDevice(m_socket);
-    connect(m_socket,
-#if (QT_VERSION < QT_VERSION_CHECK(5, 15, 0))
-            static_cast<void(QLocalSocket::*)(QLocalSocket::LocalSocketError)>(&QLocalSocket::error),
-#else
-            &QLocalSocket::errorOccurred,
-#endif
+    connect(m_socket, &QLocalSocket::errorOccurred,
             this, &LauncherSocket::handleSocketError);
     connect(m_socket, &QLocalSocket::readyRead,
             this, &LauncherSocket::handleSocketDataAvailable);

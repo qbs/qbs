@@ -210,11 +210,7 @@ ProjectFileGroupInserter::ProjectFileGroupInserter(ProductData product, QString 
 
 static int extractLine(const QString &fileContent, int pos)
 {
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 2)
-    return fileContent.leftRef(pos).count(QLatin1Char('\n'));
-#else
     return QStringView{fileContent}.left(pos).count(QLatin1Char('\n'));
-#endif
 }
 
 void ProjectFileGroupInserter::doApply(QString &fileContent, UiProgram *ast)

@@ -120,7 +120,7 @@ QString ExecutableFinder::findInPath(const QString &filePath, const QString &wor
     fullProgramPath = filePath;
     qCDebug(lcExec) << "looking for executable in PATH" << fullProgramPath;
     QStringList pathEnv = m_environment.value(StringConstants::pathEnvVar())
-            .split(HostOsInfo::pathListSeparator(), QBS_SKIP_EMPTY_PARTS);
+            .split(HostOsInfo::pathListSeparator(), Qt::SkipEmptyParts);
     if (HostOsInfo::isWindowsHost())
         pathEnv.prepend(StringConstants::dot());
     for (QString directory : std::as_const(pathEnv)) {

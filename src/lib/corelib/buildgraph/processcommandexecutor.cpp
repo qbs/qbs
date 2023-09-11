@@ -291,7 +291,7 @@ void ProcessCommandExecutor::getProcessOutput(bool stdOut, ProcessResult &result
     } else {
         if (!contentString.isEmpty() && contentString.endsWith(QLatin1Char('\n')))
             contentString.chop(1);
-        *target = contentString.split(QLatin1Char('\n'), QBS_SKIP_EMPTY_PARTS);
+        *target = contentString.split(QLatin1Char('\n'), Qt::SkipEmptyParts);
     }
 }
 

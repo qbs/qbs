@@ -2,7 +2,7 @@ Product {
     Depends { name: "qbsbuildconfig" }
     Depends { name: "qbsversion" }
     Depends { name: "Qt.core"; versionAtLeast: minimumQtVersion }
-    property string minimumQtVersion: "5.14.0"
+    property string minimumQtVersion: "5.15.2"
     property bool install: true
     property string targetInstallDir
     cpp.defines: {
