@@ -115,6 +115,7 @@ private slots:
     void jsExtensions();
     void jsImportUsedInMultipleScopes_data();
     void jsImportUsedInMultipleScopes();
+    void localProfileAsTopLevelProfile();
     void moduleMergingVariantValues();
     void modulePrioritizationBySearchPath_data();
     void modulePrioritizationBySearchPath();

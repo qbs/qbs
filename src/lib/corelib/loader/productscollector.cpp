@@ -125,6 +125,8 @@ void ProductsCollector::run(Item *rootProject)
     d->checkProjectNamesInOverrides();
     d->collectProductsByNameAndItem();
     d->checkProductNamesInOverrides();
+    d->loaderState.topLevelProject().checkForLocalProfileAsTopLevelProfile(
+                d->loaderState.parameters().topLevelProfile());
 }
 
 void ProductsCollector::Private::handleProject(Item *projectItem, ProjectContext *parentProject,

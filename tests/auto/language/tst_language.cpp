@@ -1706,6 +1706,24 @@ void TestLanguage::jsImportUsedInMultipleScopes()
     QVERIFY(!exceptionCaught);
 }
 
+void TestLanguage::localProfileAsTopLevelProfile()
+{
+    bool exceptionCaught = false;
+    try {
+        defaultParameters.setTopLevelProfile("test-profile");
+        resolveProject("local-profile-as-top-level-profile.qbs");
+        QVERIFY(!!project);
+        QCOMPARE(int(project->products.size()), 1);
+        const PropertyMapConstPtr &props = project->products.front()->moduleProperties;
+        QCOMPARE(props->qbsPropertyValue("architecture"), "arm");
+        QCOMPARE(props->qbsPropertyValue("targetPlatform"), "macos");
+    } catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+}
+
 void TestLanguage::moduleMergingVariantValues()
 {
     bool exceptionCaught = false;

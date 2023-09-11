@@ -451,11 +451,27 @@ Item *TopLevelProjectContext::getModulePrototype(const QString &filePath, const 
     return module;
 }
 
-void TopLevelProjectContext::addLocalProfile(const QString &name, const QVariantMap &values, const CodeLocation &location)
+void TopLevelProjectContext::addLocalProfile(const QString &name, const QVariantMap &values,
+                                             const CodeLocation &location)
 {
     if (m_localProfiles.contains(name))
         throw ErrorInfo(Tr::tr("Local profile '%1' redefined.").arg(name), location);
     m_localProfiles.insert(name, values);
+}
+
+void TopLevelProjectContext::checkForLocalProfileAsTopLevelProfile(const QString &topLevelProfile)
+{
+    for (auto it = m_localProfiles.cbegin(); it != m_localProfiles.cend(); ++it) {
+        if (it.key() != topLevelProfile)
+            continue;
+
+        // This covers the edge case that a locally defined profile was specified as the
+        // top-level profile, in which case we must invalidate the qbs module prototype that was
+        // created in early setup before local profiles were handled.
+        QBS_CHECK(m_modulePrototypes.data.size() == 1);
+        m_modulePrototypes.data.clear();
+        break;
+    }
 }
 
 std::lock_guard<std::mutex> TopLevelProjectContext::probesCacheLock()

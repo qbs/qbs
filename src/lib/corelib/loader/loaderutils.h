@@ -283,6 +283,7 @@ public:
     void addLocalProfile(const QString &name, const QVariantMap &values,
                          const CodeLocation &location);
     const QVariantMap localProfiles() { return m_localProfiles; }
+    void checkForLocalProfileAsTopLevelProfile(const QString &topLevelProfile);
 
     using ProbeFilter = std::function<bool(const ProbeConstPtr &)>;
     std::lock_guard<std::mutex> probesCacheLock();
