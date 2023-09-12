@@ -2217,7 +2217,7 @@ void TestApi::newPatternMatch()
 void TestApi::nonexistingProjectPropertyFromProduct()
 {
     qbs::SetupProjectParameters setupParams
-            = defaultSetupParameters("nonexistingprojectproperties");
+            = defaultSetupParameters("nonexistingprojectproperties/invalidaccessfromproduct.qbs");
     std::unique_ptr<qbs::SetupProjectJob> job(qbs::Project().setupProject(setupParams,
                                                                         m_logSink, nullptr));
     waitForFinished(job.get());
