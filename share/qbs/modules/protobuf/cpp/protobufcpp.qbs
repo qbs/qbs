@@ -18,7 +18,7 @@ ProtobufBase {
     property string grpcIncludePath: grpcIncludeProbe.found ? grpcIncludeProbe.path : undefined
     property string grpcLibraryPath: grpcLibraryProbe.found ? grpcLibraryProbe.path : undefined
 
-    property string _cxxLanguageVersion: qbs.targetOS.contains("darwin") ? "c++17" : "c++14"
+    property string _cxxLanguageVersion: "c++17"
 
     readonly property string _libraryName: {
         var libraryName;
