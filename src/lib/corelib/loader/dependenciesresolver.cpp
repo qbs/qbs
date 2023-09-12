@@ -876,8 +876,11 @@ std::optional<EvaluatedDependsItem> DependenciesResolver::evaluateDependsItem(It
     forwardParameterDeclarations(item, m_product.item->modules());
     const QVariantMap parameters = extractParameters(item);
 
+    const FileTags productTypeTags = FileTags::fromStringList(productTypes);
+    if (!productTypeTags.empty())
+        m_product.bulkDependencies.emplace_back(productTypeTags, item->location());
     return EvaluatedDependsItem{
-        item, QualifiedId::fromString(name), submodules, FileTags::fromStringList(productTypes),
+        item, QualifiedId::fromString(name), submodules, productTypeTags,
         multiplexIds, profiles, {minVersion, maxVersion}, parameters, limitToSubProject,
         fallbackMode, required};
 }

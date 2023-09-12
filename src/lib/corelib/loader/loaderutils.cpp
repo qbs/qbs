@@ -314,6 +314,20 @@ std::vector<ProductContext *> TopLevelProjectContext::productsWithTypeAndConstra
     return matchingProducts;
 }
 
+std::vector<std::pair<ProductContext *, CodeLocation>>
+TopLevelProjectContext::finishedProductsWithBulkDependency(const FileTag &tag) const
+{
+    return m_reverseBulkDependencies.value(tag);
+}
+
+void TopLevelProjectContext::registerBulkDependencies(ProductContext &product)
+{
+    for (const auto &tagAndLoc : product.bulkDependencies) {
+        for (const FileTag &tag : tagAndLoc.first)
+            m_reverseBulkDependencies[tag].emplace_back(&product, tagAndLoc.second);
+    }
+}
+
 void TopLevelProjectContext::addProjectNameUsedInOverrides(const QString &name)
 {
     m_projectNamesUsedInOverrides << name;

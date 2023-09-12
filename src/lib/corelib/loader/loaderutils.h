@@ -180,6 +180,10 @@ public:
     TimingData timingData;
     std::unique_ptr<DependenciesContext> dependenciesContext;
 
+    // This is needed because complex cyclic dependencies that involve Depends.productTypes
+    // may only be detected after a product has already been fully resolved.
+    std::vector<std::pair<FileTags, CodeLocation>> bulkDependencies;
+
     // The keys are module prototypes, the values specify whether the module's
     // condition is true for this product.
     std::unordered_map<Item *, bool> modulePrototypeEnabledInfo;
@@ -237,6 +241,9 @@ public:
             const QString &name, const std::function<bool(ProductContext &)> &constraint);
     std::vector<ProductContext *> productsWithTypeAndConstraint(
             const FileTags &tags, const std::function<bool(ProductContext &)> &constraint);
+    std::vector<std::pair<ProductContext *, CodeLocation>>
+    finishedProductsWithBulkDependency(const FileTag &tag) const;
+    void registerBulkDependencies(ProductContext &product);
 
     void addProjectNameUsedInOverrides(const QString &name);
     const Set<QString> &projectNamesUsedInOverrides() const;
@@ -338,6 +345,7 @@ private:
     std::mutex m_moduleProvidersCacheMutex;
     QVariantMap m_localProfiles;
     ItemReaderCache m_itemReaderCache;
+    QHash<FileTag, std::vector<std::pair<ProductContext *, CodeLocation>>> m_reverseBulkDependencies;
 
     // For fast look-up when resolving Depends.productTypes.
     // The contract is that it contains fully handled, error-free, enabled products.

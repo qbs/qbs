@@ -46,6 +46,7 @@
 #include <language/language.h>
 #include <language/scriptengine.h>
 #include <logging/categories.h>
+#include <logging/translator.h>
 #include <tools/profiling.h>
 #include <tools/progressobserver.h>
 #include <tools/setupprojectparameters.h>
@@ -112,6 +113,7 @@ private:
     void waitForBulkDependency(const ProductWithLoaderState &product);
     void unblockProductsWaitingForDependency(ProductContext &finishedProduct);
     void postProcess();
+    void checkForMissedBulkDependencies(const ProductContext &product);
 
     static int dependsItemCount(const Item *item);
     static int dependsItemCount(ProductContext &product);
@@ -470,6 +472,8 @@ void ProductsResolver::handleFinishedThreads()
             if (!product.name.startsWith(StringConstants::shadowProductPrefix()))
                 m_finishedProducts.push_back(&product);
             topLevelProject.timingData() += product.timingData;
+            checkForMissedBulkDependencies(product);
+            topLevelProject.registerBulkDependencies(product);
             unblockProductsWaitingForDependency(product);
         }
     }
@@ -539,6 +543,40 @@ void ProductsResolver::postProcess()
     QBS_CHECK(project);
     for (LoaderState * const loaderState : m_availableLoaderStates)
         project->warningsEncountered << loaderState->logger().warnings();
+}
+
+void ProductsResolver::checkForMissedBulkDependencies(const ProductContext &product)
+{
+    if (!product.product || !product.product->enabled || !product.bulkDependencies.empty())
+        return;
+    for (const FileTag &tag : product.product->fileTags) {
+        for (const auto &[p, location]
+             : m_loaderState.topLevelProject().finishedProductsWithBulkDependency(tag)) {
+            if (!p->product->enabled)
+                continue;
+            if (p->name == product.name)
+                continue;
+            ErrorInfo e;
+            e.append(Tr::tr("Cyclic dependencies detected:"));
+            e.append(Tr::tr("First product is '%1'.")
+                     .arg(product.displayName()), product.item->location());
+            e.append(Tr::tr("Second product is '%1'.")
+                     .arg(p->displayName()), p->item->location());
+            e.append(Tr::tr("Dependency from %1 to %2 was established via Depends.productTypes.")
+                     .arg(p->displayName(), product.displayName()), location);
+            if (m_loaderState.parameters().productErrorMode() == ErrorHandlingMode::Strict)
+                throw e;
+            m_loaderState.logger().printWarning(e);
+            m_loaderState.logger().printWarning(
+                        ErrorInfo(Tr::tr("Product '%1' had errors and was disabled.")
+                                  .arg(product.displayName()), product.item->location()));
+            m_loaderState.logger().printWarning(
+                        ErrorInfo(Tr::tr("Product '%1' had errors and was disabled.")
+                                  .arg(p->displayName()), p->item->location()));
+            product.product->enabled = false;
+            p->product->enabled = false;
+        }
+    }
 }
 
 int ProductsResolver::dependsItemCount(const Item *item)
