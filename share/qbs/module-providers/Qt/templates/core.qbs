@@ -76,6 +76,8 @@ Module {
     property string qtBuildVariant: {
         if (availableBuildVariants.contains(qbs.buildVariant))
             return qbs.buildVariant;
+        if (qbs.buildVariant === "profiling" && availableBuildVariants.contains("release"))
+            return "release";
         return availableBuildVariants.length > 0 ? availableBuildVariants[0] : "";
     }
 
