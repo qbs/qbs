@@ -64,7 +64,8 @@ Module {
             flags.push("-fsanitize-address-use-after-scope");
         if (detectUseAfterReturn) {
             if (qbs.toolchain.includes("llvm")) {
-                if (Utilities.versionCompare(cpp.compilerVersion, "13") >= 0)
+                var minVersion = qbs.toolchain.contains("xcode") ? "14" : "13";
+                if (Utilities.versionCompare(cpp.compilerVersion, minVersion) >= 0)
                     flags.push("-fsanitize-address-use-after-return=" + detectUseAfterReturn);
             } else if (detectUseAfterReturn === "never") {
                 flags.push("--param", "asan-use-after-return=0");
