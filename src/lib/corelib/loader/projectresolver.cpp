@@ -300,8 +300,8 @@ TopLevelProjectPtr ProjectResolver::Private::resolveTopLevelProject()
     state.topLevelProject().collectDataFromEngine(*engine);
     makeSubProjectNamesUniqe(project);
     checkForDuplicateProductNames(project);
+    project->warningsEncountered << logger.warnings();
 
-    project->warningsEncountered = logger.warnings();
     return project;
 }
 

@@ -410,7 +410,7 @@ class LoaderState
 {
 public:
     LoaderState(const SetupProjectParameters &parameters, TopLevelProjectContext &topLevelProject,
-                ItemPool &itemPool, ScriptEngine &engine, Logger &logger);
+                ItemPool &itemPool, ScriptEngine &engine, Logger logger);
     ~LoaderState();
 
     Evaluator &evaluator();

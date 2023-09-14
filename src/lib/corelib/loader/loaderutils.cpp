@@ -549,24 +549,27 @@ class LoaderState::Private
 public:
     Private(LoaderState &q, const SetupProjectParameters &parameters,
             TopLevelProjectContext &topLevelProject, ItemPool &itemPool, ScriptEngine &engine,
-            Logger &logger)
+            Logger &&logger)
         : parameters(parameters), topLevelProject(topLevelProject), itemPool(itemPool),
-          logger(logger), itemReader(q), evaluator(&engine)
-    {}
+          logger(std::move(logger)), itemReader(q), evaluator(&engine)
+    {
+        this->logger.clearWarnings();
+        this->logger.storeWarnings();
+    }
 
     const SetupProjectParameters &parameters;
     TopLevelProjectContext &topLevelProject;
     ItemPool &itemPool;
-    Logger &logger;
 
+    Logger logger;
     ItemReader itemReader;
     Evaluator evaluator;
 };
 
 LoaderState::LoaderState(const SetupProjectParameters &parameters,
                          TopLevelProjectContext &topLevelProject, ItemPool &itemPool,
-                         ScriptEngine &engine, Logger &logger)
-    : d(makePimpl<Private>(*this, parameters, topLevelProject, itemPool, engine, logger))
+                         ScriptEngine &engine, Logger logger)
+    : d(makePimpl<Private>(*this, parameters, topLevelProject, itemPool, engine, std::move(logger)))
 {
     d->itemReader.init();
 }

@@ -532,6 +532,13 @@ void ProductsResolver::postProcess()
 
     for (const auto &engine : m_enginePool)
         m_loaderState.topLevelProject().collectDataFromEngine(*engine);
+
+    QBS_CHECK(!m_loaderState.topLevelProject().projects().empty());
+    const auto project = std::dynamic_pointer_cast<TopLevelProject>(
+                m_loaderState.topLevelProject().projects().front()->project);
+    QBS_CHECK(project);
+    for (LoaderState * const loaderState : m_availableLoaderStates)
+        project->warningsEncountered << loaderState->logger().warnings();
 }
 
 int ProductsResolver::dependsItemCount(const Item *item)

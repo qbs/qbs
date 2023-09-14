@@ -2711,12 +2711,14 @@ void TestApi::restoredWarnings()
     waitForFinished(job.get());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     job.reset(nullptr);
-    QCOMPARE(toSet(m_logSink->warnings).size(), 3);
+    QCOMPARE(toSet(m_logSink->warnings).size(), 5);
     const auto beforeErrors = m_logSink->warnings;
     for (const qbs::ErrorInfo &e : beforeErrors) {
         const QString msg = e.toString();
         QVERIFY2(msg.contains("Superfluous version")
                  || msg.contains("Property 'blubb' is not declared")
+                 || msg.contains("this one comes from a thread")
+                 || msg.contains("Product 'theOtherProduct' had errors and was disabled")
                  || msg.contains("Product 'theProduct' had errors and was disabled"),
                  qPrintable(msg));
     }
@@ -2727,7 +2729,7 @@ void TestApi::restoredWarnings()
     waitForFinished(job.get());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     job.reset(nullptr);
-    QCOMPARE(toSet(m_logSink->warnings).size(), 3);
+    QCOMPARE(toSet(m_logSink->warnings).size(), 5);
     m_logSink->warnings.clear();
 
     // Re-resolving with changes: Errors come from the re-resolving, stored ones must be suppressed.
@@ -2738,13 +2740,15 @@ void TestApi::restoredWarnings()
     waitForFinished(job.get());
     QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
     job.reset(nullptr);
-    QCOMPARE(toSet(m_logSink->warnings).size(), 4); // One more for the additional group
+    QCOMPARE(toSet(m_logSink->warnings).size(), 6); // One more for the additional group
     const auto afterErrors = m_logSink->warnings;
     for (const qbs::ErrorInfo &e : afterErrors) {
         const QString msg = e.toString();
         QVERIFY2(msg.contains("Superfluous version")
                  || msg.contains("Property 'blubb' is not declared")
                  || msg.contains("blubb.cpp' does not exist")
+                 || msg.contains("this one comes from a thread")
+                 || msg.contains("Product 'theOtherProduct' had errors and was disabled")
                  || msg.contains("Product 'theProduct' had errors and was disabled"),
                  qPrintable(msg));
     }
