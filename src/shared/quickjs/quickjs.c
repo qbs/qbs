@@ -37165,7 +37165,7 @@ exception:
 JSValue JS_ObjectSeal(JSContext *ctx, JSValueConst obj, int freeze)
 {
     JSValueConst argv[] = {obj};
-    JS_FreeValue(ctx, js_object_seal(ctx, JS_UNDEFINED, 1, &argv, freeze));
+    JS_FreeValue(ctx, js_object_seal(ctx, JS_UNDEFINED, 1, argv, freeze));
     return obj;
 }
 
