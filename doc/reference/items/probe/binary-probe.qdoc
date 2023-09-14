@@ -50,6 +50,7 @@
     For example, BinaryProbe can be used to search for a protobuf compiler executable as follows:
 
     \code
+    // Assuming module is called "myproto"
     import qbs.File
     import qbs.Probes
 
@@ -70,10 +71,10 @@
         Rule {
             // rule input/outputs here...
 
-            // run executable
+            // run executable for the module called "myproto":
             prepare: {
                 var args = // initialize arguments...
-                var cmd = new Command(executableFilePath, args);
+                var cmd = new Command(input.myproto.executableFilePath, args);
                 cmd.highlight = "codegen";
                 cmd.description = "generating protobuf files for " + input.fileName;
                 return [cmd];
