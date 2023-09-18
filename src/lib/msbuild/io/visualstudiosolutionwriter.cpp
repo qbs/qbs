@@ -108,20 +108,6 @@ bool VisualStudioSolutionWriter::write(const VisualStudioSolution *solution)
             << project->guid().toString().toStdString()
             << u8"\"\n";
 
-        const auto dependencies = solution->dependencies(project);
-        if (!dependencies.empty()) {
-            out << u8"\tProjectSection(ProjectDependencies) = postProject\n";
-
-            for (const auto &dependency : dependencies)
-                out << u8"\t\t"
-                    << dependency->guid().toString().toStdString()
-                    << u8" = "
-                    << dependency->guid().toString().toStdString()
-                    << u8"\n";
-
-            out << u8"\tEndProjectSection\n";
-        }
-
         out << u8"EndProject\n";
     }
 
