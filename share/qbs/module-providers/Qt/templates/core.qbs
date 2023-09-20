@@ -109,6 +109,7 @@ Module {
     property string libFilePathRelease: @libFilePathRelease@
     property string libFilePath: qtBuildVariant === "debug"
                                       ? libFilePathDebug : libFilePathRelease
+    property bool useRPaths: qbs.targetOS.contains("linux") && !qbs.targetOS.contains("android")
 
     property stringList coreLibPaths: @libraryPaths@
     property bool hasLibrary: true
@@ -198,8 +199,7 @@ Module {
             return undefined;
         return frameworks;
     }
-    cpp.rpaths: qbs.targetOS.contains('linux') && !qbs.targetOS.contains("android") ? [libPath] :
-                                                                                      undefined
+    cpp.rpaths: useRPaths ? libPath : undefined
     cpp.runtimeLibrary: qbs.toolchain.contains("msvc")
         ? config.contains("static_runtime") ? "static" : "dynamic"
         : original

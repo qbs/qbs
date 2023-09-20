@@ -510,3 +510,11 @@
 
     \defaultvalue \c{versionParts[2]}
 */
+
+/*!
+    \qmlproperty bool Qt.core::useRPaths
+
+    Whether to add \l{Qt.core::libPath}{Qt.core.libPath} to \l{cpp::rpaths}{cpp.rpaths}.
+
+    \defaultvalue \c true on Linux, \c false everywhere else.
+*/
