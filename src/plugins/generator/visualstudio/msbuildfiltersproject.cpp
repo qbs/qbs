@@ -45,48 +45,192 @@
 
 namespace qbs {
 
-static QStringList sourceFileExtensions()
+namespace {
+
+const QStringList & sourceFileExtensions()
 {
-    return {QStringLiteral("c"), QStringLiteral("C"), QStringLiteral("cpp"),
-            QStringLiteral("cxx"), QStringLiteral("c++"), QStringLiteral("cc"),
-            QStringLiteral("cs"), QStringLiteral("def"), QStringLiteral("java"),
-            QStringLiteral("m"), QStringLiteral("mm")};
+    static const QStringList EXTENSIONS{
+        QStringLiteral("c"),
+        QStringLiteral("C"),
+        QStringLiteral("cpp"),
+        QStringLiteral("cxx"),
+        QStringLiteral("c++"),
+        QStringLiteral("cc"),
+        QStringLiteral("cs"),
+        QStringLiteral("def"),
+        QStringLiteral("java"),
+        QStringLiteral("m"),
+        QStringLiteral("mm")};
+
+    return EXTENSIONS;
 }
 
-static QStringList headerFileExtensions()
+const QStringList & headerFileExtensions()
 {
-    return {QStringLiteral("h"), QStringLiteral("H"), QStringLiteral("hpp"),
-            QStringLiteral("hxx"),  QStringLiteral("h++")};
+    static const QStringList EXTENSIONS{
+        QStringLiteral("h"),
+        QStringLiteral("H"),
+        QStringLiteral("hpp"),
+        QStringLiteral("hxx"),
+        QStringLiteral("h++")};
+
+    return EXTENSIONS;
 }
 
-static std::vector<MSBuildFilter *> defaultItemGroupFilters(IMSBuildItemGroup *parent = nullptr)
+struct FilterInfo
 {
-    const auto sourceFilter = new MSBuildFilter(QStringLiteral("Source Files"), sourceFileExtensions(), parent);
-    const auto headerFilter = new MSBuildFilter(QStringLiteral("Header Files"), headerFileExtensions(), parent);
+    QString name;
+    QList<QString> extensions;
+    bool parseFiles{ true };
+    bool sourceControlFiles{ true };
+};
 
-    const auto formFilter = new MSBuildFilter(QStringLiteral("Form Files"),
-                                              QStringList() << QStringLiteral("ui"), parent);
-    const auto resourceFilter = new MSBuildFilter(QStringLiteral("Resource Files"),
-                                                  QStringList()
-                                                  << QStringLiteral("qrc")
-                                                  << QStringLiteral("rc")
-                                                  << QStringLiteral("*"), parent);
-    resourceFilter->setParseFiles(false);
-    const auto generatedFilter = new MSBuildFilter(QStringLiteral("Generated Files"),
-                                                   QStringList() << QStringLiteral("moc"), parent);
-    generatedFilter->setSourceControlFiles(false);
-    const auto translationFilter = new MSBuildFilter(QStringLiteral("Translation Files"),
-                                                     QStringList() << QStringLiteral("ts"), parent);
-    translationFilter->setParseFiles(false);
-
-    return std::vector<MSBuildFilter *> {
-        sourceFilter, headerFilter, formFilter, resourceFilter, generatedFilter, translationFilter
+const std::vector<FilterInfo> & getDefaultFilterInfo()
+{
+    static const std::vector<FilterInfo> INFOS {
+        {QStringLiteral("Source Files"), sourceFileExtensions()},
+        {QStringLiteral("Header Files"), headerFileExtensions()},
+        {QStringLiteral("Form Files"), QStringList() << QStringLiteral("ui")},
+        {QStringLiteral("Resource Files"), QStringList() << QStringLiteral("qrc") << QStringLiteral("rc") << QStringLiteral("*"), false},
+        {QStringLiteral("Generated Files"), QStringList() << QStringLiteral("moc"), true, false},
+        {QStringLiteral("Translation Files"), QStringList() << QStringLiteral("ts"), false},
     };
+
+    return INFOS;
 }
 
-static bool matchesFilter(const MSBuildFilter *filter, const QString &filePath)
+MSBuildFilter * makeBuildFilter(const FilterInfo &filterInfo,
+                               MSBuildItemGroup *itemFiltersGroup)
 {
-    return filter->extensions().contains(QFileInfo(filePath).completeSuffix());
+    const auto filter = new MSBuildFilter(filterInfo.name, filterInfo.extensions, itemFiltersGroup);
+    filter->appendProperty(QStringLiteral("ParseFiles"), filterInfo.parseFiles);
+    filter->appendProperty(QStringLiteral("SourceControlFiles"), filterInfo.sourceControlFiles);
+    return filter;
+}
+
+bool matchesFilter(const FilterInfo &filterInfo,
+                   const QString &filePath)
+{
+    return filterInfo.extensions.contains(QFileInfo(filePath).completeSuffix());
+}
+
+bool isHeaderFile(const QString &filePath)
+{
+    return headerFileExtensions().contains(QFileInfo(filePath).completeSuffix());
+}
+
+bool isSourceFile(const QString &filePath)
+{
+    return sourceFileExtensions().contains(QFileInfo(filePath).completeSuffix());
+}
+
+MSBuildFileItem * makeFileItem(const QString& filePath,
+                              MSBuildItemGroup *itemGroup)
+{
+    if (isHeaderFile(filePath))
+        return new MSBuildClInclude(itemGroup);
+
+    if (isSourceFile(filePath))
+        return new MSBuildClCompile(itemGroup);
+
+    return new MSBuildNone(itemGroup);
+}
+
+
+class ProductProcessor
+{
+public:
+    using StringSet = Internal::Set<QString>;
+
+    ProductProcessor(MSBuildProject *parent)
+        : m_parent(parent)
+        , m_itemFiltersGroup(new MSBuildItemGroup(m_parent))
+    {
+    }
+
+    void operator()(const QList<ProductData> &productDatas)
+    {
+        for (const auto &productData : productDatas) {
+            auto productName = productData.name();
+
+            for (const auto &groupData : productData.groups()) {
+                if (groupData.name() == productName) {
+                    processProductFiles(Internal::rangeTo<StringSet>(groupData.allFilePaths()));
+                } else {
+                    processGroup(groupData);
+                }
+            }
+        }
+    }
+
+    void processProductFiles(const StringSet &files)
+    {
+        for (const auto &filePath : files) {
+            MSBuildFileItem *fileItem = nullptr;
+
+            for (const auto &filterInfo : getDefaultFilterInfo()) {
+                if (matchesFilter(filterInfo, filePath)) {
+                    makeFilter(filterInfo);
+
+                    if (filterInfo.name == QStringLiteral("Header Files")) {
+                        if (!m_headerFilesGroup)
+                            m_headerFilesGroup = new MSBuildItemGroup(m_parent);
+                        fileItem = new MSBuildClInclude(m_headerFilesGroup);
+                    } else if (filterInfo.name == QStringLiteral("Source Files")) {
+                        if (!m_sourceFilesGroup)
+                            m_sourceFilesGroup = new MSBuildItemGroup(m_parent);
+                        fileItem = new MSBuildClCompile(m_sourceFilesGroup);
+                    }
+
+                    if (fileItem) {
+                        fileItem->setFilterName(filterInfo.name);
+                        break;
+                    }
+                }
+            }
+
+            if (!fileItem) {
+                if (!m_filesGroup) {
+                    m_filesGroup = new MSBuildItemGroup(m_parent);
+                }
+
+                fileItem = new MSBuildNone(m_filesGroup);
+            }
+
+            fileItem->setFilePath(filePath);
+        }
+    }
+
+    void processGroup(const GroupData &groupData)
+    {
+        makeFilter({groupData.name(), QStringList() << QStringLiteral("*")});
+
+        auto *itemGroup = new MSBuildItemGroup(m_parent);
+        const auto &files = groupData.allFilePaths();
+        for (const auto &filePath : files) {
+            auto *fileItem = makeFileItem(filePath, itemGroup);
+            fileItem->setFilePath(filePath);
+            fileItem->setFilterName(groupData.name());
+        }
+    }
+
+    void makeFilter(const FilterInfo &filterInfo)
+    {
+        if (!m_createdFilters.contains(filterInfo.name)) {
+            makeBuildFilter(filterInfo, m_itemFiltersGroup);
+            m_createdFilters.insert(filterInfo.name);
+        }
+    }
+
+private:
+    MSBuildProject *m_parent = nullptr;
+    MSBuildItemGroup *m_itemFiltersGroup = nullptr;
+    MSBuildItemGroup *m_headerFilesGroup = nullptr;
+    MSBuildItemGroup *m_sourceFilesGroup = nullptr;
+    MSBuildItemGroup *m_filesGroup = nullptr;
+    QSet<QString> m_createdFilters;
+};
+
 }
 
 MSBuildFiltersProject::MSBuildFiltersProject(const GeneratableProductData &product,
@@ -97,58 +241,7 @@ MSBuildFiltersProject::MSBuildFiltersProject(const GeneratableProductData &produ
     // filters projects are always v4.0
     setToolsVersion(QStringLiteral("4.0"));
 
-    const auto itemGroup = new MSBuildItemGroup(this);
-    const auto filterOptions = defaultItemGroupFilters();
-    for (const auto options : filterOptions) {
-        const auto filter = new MSBuildFilter(options->include(), options->extensions(), itemGroup);
-        filter->appendProperty(QStringLiteral("ParseFiles"), options->parseFiles());
-        filter->appendProperty(QStringLiteral("SourceControlFiles"), options->sourceControlFiles());
-    }
-
-    using StringSet = Internal::Set<QString>;
-    StringSet allFiles;
-    const auto productDatas = product.data.values();
-    for (const auto &productData : productDatas) {
-        for (const auto &groupData : productData.groups())
-            if (groupData.isEnabled())
-                allFiles.unite(Internal::rangeTo<StringSet>(groupData.allFilePaths()));
-    }
-
-    MSBuildItemGroup *headerFilesGroup = nullptr;
-    MSBuildItemGroup *sourceFilesGroup = nullptr;
-    MSBuildItemGroup *filesGroup = nullptr;
-
-    for (const auto &filePath : allFiles) {
-        MSBuildFileItem *fileItem = nullptr;
-
-        for (const MSBuildFilter *options : filterOptions) {
-            if (matchesFilter(options, filePath)) {
-                if (options->include() == QStringLiteral("Header Files")) {
-                    if (!headerFilesGroup)
-                        headerFilesGroup = new MSBuildItemGroup(this);
-                    fileItem = new MSBuildClInclude(headerFilesGroup);
-                } else if (options->include() == QStringLiteral("Source Files")) {
-                    if (!sourceFilesGroup)
-                        sourceFilesGroup = new MSBuildItemGroup(this);
-                    fileItem = new MSBuildClCompile(sourceFilesGroup);
-                }
-
-                if (fileItem) {
-                    fileItem->setFilterName(options->include());
-                    break;
-                }
-            }
-        }
-
-        if (!fileItem) {
-            if (!filesGroup)
-                filesGroup = new MSBuildItemGroup(this);
-            fileItem = new MSBuildNone(filesGroup);
-        }
-        fileItem->setFilePath(filePath);
-    }
-
-    qDeleteAll(filterOptions);
+    ProductProcessor(this)(product.data.values());
 }
 
 } // namespace qbs
