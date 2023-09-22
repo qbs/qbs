@@ -354,8 +354,8 @@ CommandLineFrontend::ProductMap CommandLineFrontend::productsToUse() const
         QList<ProductData> &productList = products[project];
         const ProjectData projectData = project.projectData();
         for (const ProductData &product : projectData.allProducts()) {
-            productNames << product.name();
-            if (useAll || m_parser.products().contains(product.name())) {
+            productNames << product.fullDisplayName();
+            if (useAll || m_parser.products().contains(product.fullDisplayName())) {
                 productList.push_back(product);
             }
         }
@@ -566,7 +566,7 @@ int CommandLineFrontend::runTarget()
     const QString executableFilePath = productToRun.targetExecutable();
     if (executableFilePath.isEmpty()) {
         throw ErrorInfo(Tr::tr("Cannot run: Product '%1' is not an application.")
-                    .arg(productToRun.name()));
+                    .arg(productToRun.fullDisplayName()));
     }
     RunEnvironment runEnvironment = m_projects.front().getRunEnvironment(productToRun,
             m_parser.installOptions(m_projects.front().profile()),
@@ -649,7 +649,7 @@ ProductData CommandLineFrontend::getTheOneRunnableProduct()
 
     if (m_parser.products().size() == 1) {
         for (const ProductData &p : m_projects.front().projectData().allProducts()) {
-            if (p.name() == m_parser.products().constFirst())
+            if (p.fullDisplayName() == m_parser.products().constFirst())
                 return p;
         }
         QBS_CHECK(false);
@@ -673,14 +673,8 @@ ProductData CommandLineFrontend::getTheOneRunnableProduct()
     ErrorInfo error(Tr::tr("Ambiguous use of command '%1': No product given, but project "
                            "has more than one runnable product.").arg(m_parser.commandName()));
     error.append(Tr::tr("Use the '--products' option with one of the following products:"));
-    for (const ProductData &p : std::as_const(runnableProducts)) {
-        QString productRepr = QLatin1String("\t") + p.name();
-        if (p.profile() != m_projects.front().profile()) {
-            productRepr.append(QLatin1String(" [")).append(p.profile())
-                    .append(QLatin1Char(']'));
-        }
-        error.append(productRepr);
-    }
+    for (const ProductData &p : std::as_const(runnableProducts))
+        error.append(QLatin1String("\t") + p.fullDisplayName());
     throw error;
 }
 

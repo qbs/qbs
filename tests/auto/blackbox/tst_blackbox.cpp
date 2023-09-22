@@ -2741,6 +2741,25 @@ void TestBlackbox::ruleWithNonRequiredInputs()
     QVERIFY2(m_qbsStdout.contains("generating"), m_qbsStdout.constData());
 }
 
+void TestBlackbox::runMultiplexed()
+{
+    QDir::setCurrent(testDataDir + "/run-multiplexed");
+    QCOMPARE(runQbs({"resolve"}), 0);
+    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+        QSKIP("Cannot run binaries in cross-compiled build");
+
+    QbsRunParameters params("run");
+    params.expectFailure = true;
+    QVERIFY(runQbs(params) != 0);
+    params.arguments = QStringList{"-p", "app"};
+    QVERIFY(runQbs(params) != 0);
+    params.expectFailure = false;
+    params.arguments.last() = "app {\"buildVariant\":\"debug\"}";
+    QCOMPARE(runQbs(params), 0);
+    params.arguments.last() = "app {\"buildVariant\":\"release\"}";
+    QCOMPARE(runQbs(params), 0);
+}
+
 void TestBlackbox::sanitizer_data()
 {
     QTest::addColumn<QString>("sanitizer");
