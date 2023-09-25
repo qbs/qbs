@@ -327,7 +327,10 @@ function collectIncludePaths(input) {
     var includePaths = input.cpp.includePaths;
     if (includePaths)
         allIncludePaths = allIncludePaths.uniqueConcat(includePaths);
-    return allIncludePaths;
+    var builtIns = input.cpp.compilerIncludePaths;
+    return allIncludePaths.filter(function(p) {
+        return !builtIns.includes(p);
+    });
 }
 
 function collectSystemIncludePaths(input) {
@@ -338,7 +341,10 @@ function collectSystemIncludePaths(input) {
     var distributionIncludePaths = input.cpp.distributionIncludePaths;
     if (distributionIncludePaths)
         allIncludePaths = allIncludePaths.uniqueConcat(distributionIncludePaths);
-    return allIncludePaths;
+    var builtIns = input.cpp.compilerIncludePaths;
+    return allIncludePaths.filter(function(p) {
+        return !builtIns.includes(p);
+    });
 }
 
 function collectPreincludePaths(input) {
