@@ -151,7 +151,7 @@ public:
     void operator()(const QList<ProductData> &productDatas)
     {
         for (const auto &productData : productDatas) {
-            auto productName = productData.name();
+            const auto &productName = productData.name();
 
             for (const auto &groupData : productData.groups()) {
                 if (groupData.name() == productName) {
@@ -231,7 +231,7 @@ private:
     QSet<QString> m_createdFilters;
 };
 
-}
+} // namespace
 
 MSBuildFiltersProject::MSBuildFiltersProject(const GeneratableProductData &product,
                                              QObject *parent)
