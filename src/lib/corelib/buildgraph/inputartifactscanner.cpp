@@ -250,14 +250,9 @@ void InputArtifactScanner::scanForScannerFileDependencies(DependencyScanner *sca
     RawScanResults::ScanData &scanData = m_rawScanResults.findScanData(fileToBeScanned, scanner,
                                                                        m_artifact->properties);
     if (scanData.lastScanTime < fileToBeScanned->timestamp()) {
-        try {
-            qCDebug(lcDepScan) << "scanning" << FileInfo::fileName(filePathToBeScanned);
-            scanWithScannerPlugin(scanner, inputArtifact, fileToBeScanned, &scanData.rawScanResult);
-            scanData.lastScanTime = FileTime::currentTime();
-        } catch (const ErrorInfo &error) {
-            m_logger.printWarning(error);
-            return;
-        }
+        qCDebug(lcDepScan) << "scanning" << FileInfo::fileName(filePathToBeScanned);
+        scanWithScannerPlugin(scanner, inputArtifact, fileToBeScanned, &scanData.rawScanResult);
+        scanData.lastScanTime = FileTime::currentTime();
     }
 
     resolveScanResultDependencies(inputArtifact, scanData.rawScanResult, filesToScan, cache);

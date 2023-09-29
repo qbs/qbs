@@ -1422,6 +1422,9 @@ void TestApi::infiniteLoopBuilding_data()
     QTest::addColumn<QString>("projectDirName");
     QTest::newRow("JS Command") << QString("infinite-loop-js");
     QTest::newRow("Process Command") << QString("infinite-loop-process");
+    QTest::newRow("Scanner (scan property)") << QString("infinite-loop-scanning-scan");
+    QTest::newRow("Scanner (searchPaths property)")
+            << QString("infinite-loop-scanning-searchpaths");
 }
 
 void TestApi::infiniteLoopResolving()

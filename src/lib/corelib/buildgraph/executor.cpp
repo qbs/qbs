@@ -263,6 +263,7 @@ void Executor::doBuild()
     QBS_CHECK(!m_project->buildData->evaluationContext);
     m_project->buildData->evaluationContext = std::make_shared<RulesEvaluationContext>(m_logger);
     m_evalContext = m_project->buildData->evaluationContext;
+    m_progressObserver->addScriptEngine(m_evalContext->engine());
 
     m_elapsedTimeRules = m_elapsedTimeScanners = m_elapsedTimeInstalling = 0;
     m_evalContext->engine()->enableProfiling(m_buildOptions.logElapsedTime());
