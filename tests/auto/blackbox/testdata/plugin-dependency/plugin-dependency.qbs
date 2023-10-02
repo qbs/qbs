@@ -11,8 +11,8 @@ Project {
         Depends { name: "plugin2" }                     // not to be linked
         Depends {
             name: "plugin3"                             // supposed to be linked
-            //property bool theCondition: true
-            cpp.link: /*theCondition && */product.name === "myapp"  // TODO: Make this work
+            property bool theCondition: true
+            cpp.link: theCondition && product.name === "myapp"
         }
         Depends { name: "plugin4" }                     // supposed to be linked
         Depends { name: "helper1" }                     // supposed to be linked

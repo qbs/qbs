@@ -195,7 +195,6 @@ private:
 };
 
 static bool haveSameSubProject(const ProductContext &p1, const ProductContext &p2);
-static Item::PropertyMap filterItemProperties(const Item::PropertyMap &properties);
 static QVariantMap safeToVariant(JSContext *ctx, const JSValue &v);
 
 } // namespace
@@ -930,26 +929,23 @@ DependenciesResolver::multiplexDependency(const EvaluatedDependsItem &dependency
 
 QVariantMap DependenciesResolver::extractParameters(Item *dependsItem) const
 {
-    QVariantMap result;
-    const Item::PropertyMap &itemProperties = filterItemProperties(dependsItem->properties());
-    if (itemProperties.empty())
-        return result;
-    auto origProperties = dependsItem->properties();
-
-    // TODO: This is not exception-safe. Also, can't we do the item value check along the
-    //       way, without allocationg an extra map and exchanging the list of children?
-    dependsItem->setProperties(itemProperties);
-
-    JSValue sv = m_loaderState.evaluator().scriptValue(dependsItem);
     try {
-        result = safeToVariant(m_loaderState.evaluator().engine()->context(), sv);
+        QVariantMap result;
+        const auto &properties = dependsItem->properties();
+        Evaluator &evaluator = m_loaderState.evaluator();
+        for (auto it = properties.begin(); it != properties.end(); ++it) {
+            if (it.value()->type() != Value::ItemValueType)
+                continue;
+            const JSValue sv = evaluator.scriptValue(
+                        std::static_pointer_cast<ItemValue>(it.value())->item());
+            result.insert(it.key(), safeToVariant(evaluator.engine()->context(), sv));
+        }
+        return result;
     } catch (const ErrorInfo &exception) {
         auto ei = exception;
         ei.prepend(Tr::tr("Error in dependency parameter."), dependsItem->location());
         throw ei;
     }
-    dependsItem->setProperties(origProperties);
-    return result;
 }
 
 void DependenciesResolver::forwardParameterDeclarations(const Item *dependsItem,
@@ -1084,16 +1080,6 @@ bool haveSameSubProject(const ProductContext &p1, const ProductContext &p2)
             return true;
     }
     return false;
-}
-
-Item::PropertyMap filterItemProperties(const Item::PropertyMap &properties)
-{
-    Item::PropertyMap result;
-    for (auto it = properties.begin(); it != properties.end(); ++it) {
-        if (it.value()->type() == Value::ItemValueType)
-            result.insert(it.key(), it.value());
-    }
-    return result;
 }
 
 QVariantMap safeToVariant(JSContext *ctx, const JSValue &v)
