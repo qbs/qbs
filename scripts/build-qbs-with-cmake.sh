@@ -100,6 +100,6 @@ fi
 #
 (while true; do echo "" && sleep 590; done) &
 trap "kill $!; wait $! 2>/dev/null || true; killall sleep || true" EXIT
-ctest -j $(nproc --all)
+ctest -j $(nproc --all) --output-on-failure
 
 popd
