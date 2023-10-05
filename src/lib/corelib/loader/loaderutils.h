@@ -217,7 +217,7 @@ public:
     int productsToHandleCount() const { return m_productsToHandle.data.size(); }
 
     void addDisabledItem(Item *item);
-    bool isDisabledItem(Item *item) const;
+    bool isDisabledItem(const Item *item) const;
 
     void setProgressObserver(ProgressObserver *observer);
     ProgressObserver *progressObserver() const;
@@ -272,6 +272,9 @@ public:
     void addParameterDeclarations(const Item *moduleProto,
                                   const Item::PropertyDeclarationMap &decls);
     Item::PropertyDeclarationMap parameterDeclarations(Item *moduleProto) const;
+
+    void setParameters(const Item *moduleProto, const QVariantMap &parameters);
+    QVariantMap parameters(Item *moduleProto) const;
 
     // An empty string means no matching module directory was found.
     QString findModuleDirectory(const QualifiedId &module, const QString &searchPath,
@@ -335,7 +338,7 @@ private:
     std::unordered_map<FileContextConstPtr, ResolvedFileContextPtr> m_fileContextMap;
     Set<QString> m_projectNamesUsedInOverrides;
     Set<QString> m_productNamesUsedInOverrides;
-    GuardedData<Set<Item *>> m_disabledItems;
+    GuardedData<Set<const Item *>> m_disabledItems;
     GuardedData<std::vector<ErrorInfo>, std::mutex> m_queuedErrors;
     QString m_buildDirectory;
     QVariantMap m_profileConfigs;
@@ -354,6 +357,7 @@ private:
     // The keys are module prototypes.
     GuardedData<std::unordered_map<const Item *,
                                    Item::PropertyDeclarationMap>> m_parameterDeclarations;
+    GuardedData<std::unordered_map<const Item *, QVariantMap>> m_parameters;
     GuardedData<std::unordered_map<const Item *,
                                    std::vector<ErrorInfo>>> m_unknownProfilePropertyErrors;
 
@@ -433,8 +437,12 @@ private:
     Pimpl<Private> d;
 };
 
+// List must be sorted by priority in ascending order.
+[[nodiscard]] QVariantMap mergeDependencyParameters(
+        std::vector<Item::Module::ParametersWithPriority> &&candidates);
+[[nodiscard]] QVariantMap mergeDependencyParameters(const QVariantMap &m1, const QVariantMap &m2);
+
 QString fullProductDisplayName(const QString &name, const QString &multiplexId);
-void mergeParameters(QVariantMap &dst, const QVariantMap &src);
 void adjustParametersScopes(Item *item, Item *scope);
 void resolveRule(LoaderState &state, Item *item, ProjectContext *projectContext,
                  ProductContext *productContext, ModuleContext *moduleContext);
