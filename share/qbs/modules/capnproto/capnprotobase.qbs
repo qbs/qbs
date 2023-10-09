@@ -40,7 +40,7 @@ Module {
 
     property pathList importPaths: []
 
-    readonly property string outputDir: product.buildDirectory + "/capnp"
+    property string outputDir: product.buildDirectory + "/capnp"
 
     Probes.BinaryProbe {
         id: compilerProbe
