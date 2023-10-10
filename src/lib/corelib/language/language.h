@@ -259,10 +259,9 @@ inline bool operator!=(const SourceArtifactInternal &sa1, const SourceArtifactIn
 class SourceWildCards
 {
 public:
-    Set<QString> expandPatterns(const GroupConstPtr &group, const QString &baseDir,
-                                 const QString &buildDir);
+    Set<QString> expandPatterns(const QString &prefix, const QString &baseDir,
+                                const QString &buildDir);
 
-    const ResolvedGroup *group = nullptr;       // The owning group.
     QStringList patterns;
     QStringList excludePatterns;
     std::vector<std::pair<QString, FileTime>> dirTimeStamps;
@@ -274,11 +273,10 @@ public:
     }
 
 private:
-    Set<QString> expandPatterns(const GroupConstPtr &group, const QStringList &patterns,
-                                 const QString &baseDir, const QString &buildDir);
-    void expandPatterns(Set<QString> &result, const GroupConstPtr &group,
-                        const QStringList &parts, const QString &baseDir,
-                        const QString &buildDir);
+    Set<QString> expandPatterns(const QString &prefix, const QStringList &patterns,
+                                const QString &baseDir, const QString &buildDir);
+    void expandPatterns(Set<QString> &result, const QStringList &parts,
+                        const QString &baseDir, const QString &buildDir);
 };
 
 class QBS_AUTOTEST_EXPORT ResolvedGroup
@@ -300,11 +298,7 @@ public:
 
     std::vector<SourceArtifactPtr> allFiles() const;
 
-    void load(PersistentPool &pool);
-    void store(PersistentPool &pool);
-
-private:
-    template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
+    template<PersistentPool::OpType opType> void completeSerializationOp(PersistentPool &pool)
     {
         pool.serializationOp<opType>(name, enabled, location, prefix, files, wildcards, properties,
                                      fileTags, targetOfModule, overrideTags);

@@ -787,11 +787,10 @@ void ProductResolverStage2::resolveGroupFully(Item *item, bool isEnabled)
     if (!patterns.empty()) {
         group->wildcards = std::make_unique<SourceWildCards>();
         SourceWildCards *wildcards = group->wildcards.get();
-        wildcards->group = group.get();
         wildcards->excludePatterns = evaluator.stringListValue(
             item, StringConstants::excludeFilesProperty());
         wildcards->patterns = patterns;
-        const Set<QString> files = wildcards->expandPatterns(group,
+        const Set<QString> files = wildcards->expandPatterns(group->prefix,
                 FileInfo::path(item->file()->filePath()),
                 m_product.project->project->topLevelProject()->buildDirectory);
         for (const QString &fileName : files)

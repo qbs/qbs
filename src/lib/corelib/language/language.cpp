@@ -166,18 +166,6 @@ std::vector<SourceArtifactPtr> ResolvedGroup::allFiles() const
     return lst;
 }
 
-void ResolvedGroup::load(PersistentPool &pool)
-{
-    serializationOp<PersistentPool::Load>(pool);
-    if (wildcards)
-        wildcards->group = this;
-}
-
-void ResolvedGroup::store(PersistentPool &pool)
-{
-    serializationOp<PersistentPool::Store>(pool);
-}
-
 /*!
  * \class RuleArtifact
  * \brief The \c RuleArtifact class represents an Artifact item encountered in the context
@@ -717,19 +705,19 @@ void TopLevelProject::cleanupModuleProviderOutput()
  * \brief The \c SourceArtifacts resulting from the expanded list of matching files.
  */
 
-Set<QString> SourceWildCards::expandPatterns(const GroupConstPtr &group,
-                                              const QString &baseDir, const QString &buildDir)
+Set<QString> SourceWildCards::expandPatterns(const QString &prefix, const QString &baseDir,
+                                             const QString &buildDir)
 {
-    Set<QString> files = expandPatterns(group, patterns, baseDir, buildDir);
-    files -= expandPatterns(group, excludePatterns, baseDir, buildDir);
+    Set<QString> files = expandPatterns(prefix, patterns, baseDir, buildDir);
+    files -= expandPatterns(prefix, excludePatterns, baseDir, buildDir);
     return files;
 }
 
-Set<QString> SourceWildCards::expandPatterns(const GroupConstPtr &group,
-        const QStringList &patterns, const QString &baseDir, const QString &buildDir)
+Set<QString> SourceWildCards::expandPatterns(const QString &prefix, const QStringList &patterns,
+                                             const QString &baseDir, const QString &buildDir)
 {
     Set<QString> files;
-    QString expandedPrefix = group->prefix;
+    QString expandedPrefix = prefix;
     if (expandedPrefix.startsWith(StringConstants::tildeSlash()))
         expandedPrefix.replace(0, 1, QDir::homePath());
     for (QString pattern : patterns) {
@@ -745,17 +733,16 @@ Set<QString> SourceWildCards::expandPatterns(const GroupConstPtr &group,
             } else {
                 rootDir = QLatin1Char('/');
             }
-            expandPatterns(files, group, parts, rootDir, buildDir);
+            expandPatterns(files, parts, rootDir, buildDir);
         } else {
-            expandPatterns(files, group, parts, baseDir, buildDir);
+            expandPatterns(files, parts, baseDir, buildDir);
         }
     }
 
     return files;
 }
 
-void SourceWildCards::expandPatterns(Set<QString> &result, const GroupConstPtr &group,
-                                     const QStringList &parts,
+void SourceWildCards::expandPatterns(Set<QString> &result, const QStringList &parts,
                                      const QString &baseDir, const QString &buildDir)
 {
     // People might build directly in the project source directory. This is okay, since
@@ -806,7 +793,7 @@ void SourceWildCards::expandPatterns(Set<QString> &result, const GroupConstPtr &
         if (!isDir && it.fileInfo().isDir() && !it.fileInfo().isSymLink())
             continue;
         if (isDir) {
-            expandPatterns(result, group, changed_parts, filePath, buildDir);
+            expandPatterns(result, changed_parts, filePath, buildDir);
         } else {
             if (parentDir != baseDir)
                 dirTimeStamps.emplace_back(parentDir, FileInfo(baseDir).lastModified());

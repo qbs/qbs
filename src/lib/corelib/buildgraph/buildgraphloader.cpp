@@ -606,7 +606,7 @@ bool BuildGraphLoader::hasProductFileChanged(const std::vector<ResolvedProductPt
                 });
                 if (!reExpansionRequired)
                     continue;
-                const Set<QString> files = group->wildcards->expandPatterns(group,
+                const Set<QString> files = group->wildcards->expandPatterns(group->prefix,
                         FileInfo::path(group->location.filePath()),
                         product->topLevelProject()->buildDirectory);
                 Set<QString> wcFiles;
