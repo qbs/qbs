@@ -739,7 +739,7 @@ void TestLanguage::enumerateProjectProperties()
         auto products = productsFromProject(project);
         QCOMPARE(products.size(), 1);
         auto product = products.values().front();
-        auto files = product->groups.front()->allFiles();
+        auto files = product->groups.front()->files;
         QCOMPARE(product->groups.size(), size_t(1));
         QCOMPARE(files.size(), size_t(1));
         auto fileName = FileInfo::fileName(files.front()->absoluteFilePath);
@@ -3049,7 +3049,7 @@ void TestLanguage::relaxedErrorMode()
         QVERIFY(missingFile->enabled);
         QCOMPARE(missingFile->groups.size(), size_t(1));
         QVERIFY(missingFile->groups.front()->enabled);
-        QCOMPARE(missingFile->groups.front()->allFiles().size(), size_t(2));
+        QCOMPARE(missingFile->groups.front()->files.size(), size_t(2));
         const ResolvedProductConstPtr fine = productMap.value("fine");
         QVERIFY(fine->enabled);
         QCOMPARE(fine->allFiles().size(), size_t(1));
@@ -3445,10 +3445,10 @@ void TestLanguage::wildcards()
             group = product->groups.front();
         }
         QVERIFY(!!group);
-        QCOMPARE(group->files.size(), size_t(0));
+        QCOMPARE(group->files.size(), expected.size()); // we assume all files are wildcards
         QVERIFY(!!group->wildcards);
         QStringList actualFilePaths;
-        for (const SourceArtifactPtr &artifact : group->wildcards->files) {
+        for (const SourceArtifactPtr &artifact : group->files) {
             QString str = artifact->absoluteFilePath;
             int idx = str.indexOf(m_wildcardsTestDirPath);
             if (idx != -1)

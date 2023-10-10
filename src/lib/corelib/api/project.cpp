@@ -269,14 +269,10 @@ GroupData ProjectPrivate::createGroupDataFromGroup(const GroupPtr &resolvedGroup
     for (const auto &sa : resolvedGroup->files) {
         ArtifactData artifact = createApiSourceArtifact(sa);
         setupInstallData(artifact, product);
-        group.d->sourceArtifacts.push_back(artifact);
-    }
-    if (resolvedGroup->wildcards) {
-        for (const auto &sa : resolvedGroup->wildcards->files) {
-            ArtifactData artifact = createApiSourceArtifact(sa);
-            setupInstallData(artifact, product);
+        if (sa->fromWildcard)
             group.d->sourceArtifactsFromWildcards.push_back(artifact);
-        }
+        else
+            group.d->sourceArtifacts.push_back(artifact);
     }
     std::sort(group.d->sourceArtifacts.begin(),
               group.d->sourceArtifacts.end());

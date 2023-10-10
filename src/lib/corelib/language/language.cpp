@@ -144,27 +144,14 @@ void Probe::restoreValues()
  /*!
   * \variable ResolvedGroup::files
   * \brief The files listed in the group item's "files" binding.
-  * Note that these do not include expanded wildcards.
   */
 
 /*!
  * \variable ResolvedGroup::wildcards
- * \brief Represents the wildcard elements in this group's "files" binding.
+ * \brief Represents the wildcard patterns in this group's "files" binding.
  *  If no wildcards are specified there, this variable is null.
  * \sa SourceWildCards
  */
-
-/*!
- * \brief Returns all files specified in the group item as source artifacts.
- * This includes the expanded list of wildcards.
- */
-std::vector<SourceArtifactPtr> ResolvedGroup::allFiles() const
-{
-    std::vector<SourceArtifactPtr> lst = files;
-    if (wildcards)
-        lst << wildcards->files;
-    return lst;
-}
 
 /*!
  * \class RuleArtifact
@@ -320,7 +307,7 @@ std::vector<SourceArtifactPtr> ResolvedProduct::allFiles() const
 {
     std::vector<SourceArtifactPtr> lst;
     for (const auto &group : groups)
-        lst << group->allFiles();
+        lst << group->files;
     return lst;
 }
 
@@ -333,7 +320,7 @@ std::vector<SourceArtifactPtr> ResolvedProduct::allEnabledFiles() const
     std::vector<SourceArtifactPtr> lst;
     for (const auto &group : groups) {
         if (group->enabled)
-            lst << group->allFiles();
+            lst << group->files;
     }
     return lst;
 }
@@ -369,6 +356,8 @@ void ResolvedProduct::load(PersistentPool &pool)
         rule->product = this;
     for (const ResolvedModulePtr &module : modules)
         module->product = this;
+    for (const auto &group: groups)
+        group->restoreWildcards(buildDirectory());
 }
 
 void ResolvedProduct::store(PersistentPool &pool)
@@ -496,6 +485,19 @@ QString ResolvedProduct::cachedExecutablePath(const QString &origFilePath) const
 {
     std::lock_guard<std::mutex> locker(m_executablePathCacheLock);
     return m_executablePathCache.value(origFilePath);
+}
+
+void ResolvedGroup::restoreWildcards(const QString &buildDir)
+{
+    if (wildcards) {
+        wildcards->buildDir = buildDir;
+        wildcards->prefix = prefix;
+        wildcards->baseDir = FileInfo::path(location.filePath());
+        for (const auto &sourceArtifact : files) {
+            if (sourceArtifact->fromWildcard)
+                wildcards->expandedFiles += sourceArtifact->absoluteFilePath;
+        }
+    }
 }
 
 
@@ -705,16 +707,13 @@ void TopLevelProject::cleanupModuleProviderOutput()
  * \brief The \c SourceArtifacts resulting from the expanded list of matching files.
  */
 
-Set<QString> SourceWildCards::expandPatterns(const QString &prefix, const QString &baseDir,
-                                             const QString &buildDir)
+void SourceWildCards::expandPatterns()
 {
-    Set<QString> files = expandPatterns(prefix, patterns, baseDir, buildDir);
-    files -= expandPatterns(prefix, excludePatterns, baseDir, buildDir);
-    return files;
+    dirTimeStamps.clear();
+    expandedFiles = expandPatterns(patterns) - expandPatterns(excludePatterns);
 }
 
-Set<QString> SourceWildCards::expandPatterns(const QString &prefix, const QStringList &patterns,
-                                             const QString &baseDir, const QString &buildDir)
+Set<QString> SourceWildCards::expandPatterns(const QStringList &patterns)
 {
     Set<QString> files;
     QString expandedPrefix = prefix;
@@ -733,9 +732,9 @@ Set<QString> SourceWildCards::expandPatterns(const QString &prefix, const QStrin
             } else {
                 rootDir = QLatin1Char('/');
             }
-            expandPatterns(files, parts, rootDir, buildDir);
+            expandPatterns(files, parts, rootDir);
         } else {
-            expandPatterns(files, parts, baseDir, buildDir);
+            expandPatterns(files, parts, baseDir);
         }
     }
 
@@ -743,7 +742,7 @@ Set<QString> SourceWildCards::expandPatterns(const QString &prefix, const QStrin
 }
 
 void SourceWildCards::expandPatterns(Set<QString> &result, const QStringList &parts,
-                                     const QString &baseDir, const QString &buildDir)
+                                     const QString &baseDir)
 {
     // People might build directly in the project source directory. This is okay, since
     // we keep the build data in a "container" directory. However, we must make sure we don't
@@ -793,13 +792,28 @@ void SourceWildCards::expandPatterns(Set<QString> &result, const QStringList &pa
         if (!isDir && it.fileInfo().isDir() && !it.fileInfo().isSymLink())
             continue;
         if (isDir) {
-            expandPatterns(result, changed_parts, filePath, buildDir);
+            expandPatterns(result, changed_parts, filePath);
         } else {
             if (parentDir != baseDir)
                 dirTimeStamps.emplace_back(parentDir, FileInfo(baseDir).lastModified());
             result += QDir::cleanPath(filePath);
         }
     }
+}
+
+bool SourceWildCards::hasChangedSinceExpansion() const
+{
+    const bool reExpansionRequired =
+        Internal::any_of(dirTimeStamps,
+                         [](const std::pair<QString, FileTime> &pair) {
+                             return FileInfo(pair.first).lastModified() > pair.second;
+                         });
+    if (reExpansionRequired)
+        return true;
+
+    auto wc = *this;
+    wc.expandPatterns();
+    return this->expandedFiles != wc.expandedFiles;
 }
 
 template<typename L>

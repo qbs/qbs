@@ -49,6 +49,7 @@
 
 #include <buildgraph/forward_decls.h>
 #include <tools/codelocation.h>
+#include <tools/fileinfo.h>
 #include <tools/filetime.h>
 #include <tools/joblimits.h>
 #include <tools/persistence.h>
@@ -241,11 +242,12 @@ public:
     bool overrideFileTags;
     QString targetOfModule;
     PropertyMapPtr properties;
+    bool fromWildcard;
 
     template<PersistentPool::OpType opType> void completeSerializationOp(PersistentPool &pool)
     {
         pool.serializationOp<opType>(absoluteFilePath, fileTags, overrideFileTags, properties,
-                                     targetOfModule);
+                                     targetOfModule, fromWildcard);
     }
 
 private:
@@ -259,24 +261,28 @@ inline bool operator!=(const SourceArtifactInternal &sa1, const SourceArtifactIn
 class SourceWildCards
 {
 public:
-    Set<QString> expandPatterns(const QString &prefix, const QString &baseDir,
-                                const QString &buildDir);
+    void expandPatterns();
+    bool hasChangedSinceExpansion() const;
 
+    // to be restored by the owning class
+    QString prefix;
+    QString baseDir;
+    QString buildDir;
+    Set<QString> expandedFiles;
+
+    // stored
     QStringList patterns;
     QStringList excludePatterns;
     std::vector<std::pair<QString, FileTime>> dirTimeStamps;
-    std::vector<SourceArtifactPtr> files;
 
     template<PersistentPool::OpType opType> void completeSerializationOp(PersistentPool &pool)
     {
-        pool.serializationOp<opType>(patterns, excludePatterns, dirTimeStamps, files);
+        pool.serializationOp<opType>(patterns, excludePatterns, dirTimeStamps);
     }
 
 private:
-    Set<QString> expandPatterns(const QString &prefix, const QStringList &patterns,
-                                const QString &baseDir, const QString &buildDir);
-    void expandPatterns(Set<QString> &result, const QStringList &parts,
-                        const QString &baseDir, const QString &buildDir);
+    Set<QString> expandPatterns(const QStringList &patterns);
+    void expandPatterns(Set<QString> &result, const QStringList &parts, const QString &baseDir);
 };
 
 class QBS_AUTOTEST_EXPORT ResolvedGroup
@@ -296,7 +302,7 @@ public:
     QString targetOfModule;
     bool overrideTags = false;
 
-    std::vector<SourceArtifactPtr> allFiles() const;
+    void restoreWildcards(const QString &buildDir);
 
     template<PersistentPool::OpType opType> void completeSerializationOp(PersistentPool &pool)
     {

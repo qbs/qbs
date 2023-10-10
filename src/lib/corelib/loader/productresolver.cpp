@@ -794,10 +794,11 @@ void ProductResolverStage2::resolveGroupFully(Item *item, bool isEnabled)
         wildcards->excludePatterns = evaluator.stringListValue(
             item, StringConstants::excludeFilesProperty());
         wildcards->patterns = patterns;
-        const Set<QString> files = wildcards->expandPatterns(group->prefix,
-                FileInfo::path(item->file()->filePath()),
-                m_product.project->project->topLevelProject()->buildDirectory);
-        for (const QString &fileName : files)
+        wildcards->prefix = group->prefix;
+        wildcards->baseDir = FileInfo::path(item->file()->filePath());
+        wildcards->buildDir = m_product.project->project->topLevelProject()->buildDirectory;
+        wildcards->expandPatterns();
+        for (const QString &fileName : wildcards->expandedFiles)
             createSourceArtifact(fileName, group, true, filesLocation, &fileError);
     }
 
@@ -864,7 +865,8 @@ SourceArtifactPtr ProductResolverStage2::createSourceArtifact(
     artifact->overrideFileTags = group->overrideTags;
     artifact->properties = group->properties;
     artifact->targetOfModule = group->targetOfModule;
-    (wildcard ? group->wildcards->files : group->files).push_back(artifact);
+    artifact->fromWildcard = wildcard;
+    group->files.push_back(artifact);
     return artifact;
 }
 

@@ -598,25 +598,11 @@ bool BuildGraphLoader::hasProductFileChanged(const std::vector<ResolvedProductPt
             AccumulatingTimer wildcardTimer(m_parameters.logElapsedTime()
                                             ? &m_wildcardExpansionEffort : nullptr);
             for (const GroupPtr &group : product->groups) {
-                if (!group->wildcards)
-                    continue;
-                const bool reExpansionRequired = Internal::any_of(group->wildcards->dirTimeStamps,
-                            [](const std::pair<QString, FileTime> &pair) {
-                                return FileInfo(pair.first).lastModified() > pair.second;
-                });
-                if (!reExpansionRequired)
-                    continue;
-                const Set<QString> files = group->wildcards->expandPatterns(group->prefix,
-                        FileInfo::path(group->location.filePath()),
-                        product->topLevelProject()->buildDirectory);
-                Set<QString> wcFiles;
-                for (const auto &sourceArtifact : group->wildcards->files)
-                    wcFiles += sourceArtifact->absoluteFilePath;
-                if (files == wcFiles)
-                    continue;
-                hasChanged = true;
-                changedProducts.push_back(product);
-                break;
+                if (group->wildcards && group->wildcards->hasChangedSinceExpansion()) {
+                    hasChanged = true;
+                    changedProducts.push_back(product);
+                    break;
+                }
             }
         }
     }
