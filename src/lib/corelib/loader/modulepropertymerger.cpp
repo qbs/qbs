@@ -287,6 +287,11 @@ bool ModulePropertyMerger::doFinalMerge(const PropertyDeclaration &propertyDecl,
 
         if (propertyValue == chosenValue)
             return false;
+        std::vector<ValuePtr> candidates = propertyValue->candidates();
+        candidates.erase(std::find(candidates.begin(), candidates.end(), chosenValue));
+        chosenValue->setCandidates(candidates);
+        chosenValue->addCandidate(propertyValue);
+        propertyValue->setCandidates({});
         propertyValue = chosenValue;
         return true;
     }
