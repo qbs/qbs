@@ -406,8 +406,8 @@ function linkerFlags(project, product, inputs, outputs, primaryOutput, linkerPat
 
     // Flags for library search paths
     var allLibraryPaths = Cpp.collectLibraryPaths(product);
-    if (systemRunPaths.length > 0)
-        allLibraryPaths = allLibraryPaths.filter(isNotSystemRunPath);
+    var builtIns = product.cpp.compilerLibraryPaths
+    allLibraryPaths = allLibraryPaths.filter(function(p) { return !builtIns.includes(p); });
     args = args.concat(allLibraryPaths.map(function(path) { return product.cpp.libraryPathFlag + path }));
 
     escapableLinkerFlags = escapableLinkerFlags.concat(Cpp.collectLinkerScriptPathsArguments(product, inputs));
