@@ -55,6 +55,7 @@
 
 #include <atomic>
 #include <mutex>
+#include <utility>
 #include <vector>
 
 namespace qbs {
@@ -86,7 +87,9 @@ public:
 
         // All items that declared an explicit dependency on this module. Can contain any
         // number of module instances and at most one product.
-        std::vector<Item *> loadingItems;
+        using ParametersWithPriority = std::pair<QVariantMap, int>;
+        using LoadingItemInfo = std::pair<Item *, ParametersWithPriority>;
+        std::vector<LoadingItemInfo> loadingItems;
 
         QVariantMap parameters;
         VersionRange versionRange;

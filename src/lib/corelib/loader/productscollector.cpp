@@ -603,9 +603,9 @@ bool ProductsCollector::Private::mergeExportItems(ProductContext &productContext
         for (Item * const child : exportItem->children()) {
             if (child->type() == ItemType::Parameters) {
                 adjustParametersScopes(child, child);
-                mergeParameters(defaultParameters,
-                                getJsVariant(evaluator.engine()->context(),
-                                             evaluator.scriptValue(child)).toMap());
+                defaultParameters = mergeDependencyParameters(defaultParameters,
+                                          getJsVariant(evaluator.engine()->context(),
+                                                       evaluator.scriptValue(child)).toMap());
             } else {
                 Item::addChild(merged, child);
             }

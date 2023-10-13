@@ -104,12 +104,10 @@
 
 /*!
     \qmlproperty string capnproto.cpp::outputDir
-    \readonly
 
     The directory where the \c capnpc compiler generated files are placed.
 
-    The value of this property is automatically set by \QBS and cannot be
-    changed by the user.
+    \defaultvalue \c product.buildDirectory + "/capnp"
 */
 
 /*!

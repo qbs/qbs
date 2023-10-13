@@ -5956,7 +5956,6 @@ void TestBlackbox::protobuf_data()
     QTest::addColumn<QStringList>("properties");
     QTest::addColumn<bool>("hasModules");
     QTest::addColumn<bool>("successExpected");
-    QTest::newRow("cpp") << QString("addressbook_cpp.qbs") << QStringList() << false << true;
     QTest::newRow("cpp-pkgconfig")
         << QString("addressbook_cpp.qbs")
         << QStringList("project.qbsModuleProviders:qbspkgconfig")
@@ -8366,8 +8365,6 @@ void TestBlackbox::grpc_data()
     QTest::addColumn<QString>("projectFile");
     QTest::addColumn<QStringList>("arguments");
     QTest::addColumn<bool>("hasModules");
-
-    QTest::newRow("cpp") << QString("grpc_cpp.qbs") << QStringList() << false;
 
     QStringList pkgConfigArgs("project.qbsModuleProviders:qbspkgconfig");
     // on macOS, openSSL is hidden from pkg-config by default

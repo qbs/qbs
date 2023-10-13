@@ -45,6 +45,7 @@
 
 #include <api/languageinfo.h>
 #include <language/evaluator.h>
+#include <language/scriptengine.h>
 #include <language/value.h>
 #include <logging/categories.h>
 #include <logging/translator.h>
@@ -274,11 +275,17 @@ Item *ModuleLoader::createAndInitModuleItem(const QString &moduleName, const QSt
         Item::PropertyDeclarationMap decls;
         const auto &moduleChildren = module->children();
         for (Item *param : moduleChildren) {
-            if (param->type() != ItemType::Parameter)
-                continue;
-            const auto &paramDecls = param->propertyDeclarations();
-            for (auto it = paramDecls.begin(); it != paramDecls.end(); ++it)
-                decls.insert(it.key(), it.value());
+            if (param->type() == ItemType::Parameter) {
+                const auto &paramDecls = param->propertyDeclarations();
+                for (auto it = paramDecls.begin(); it != paramDecls.end(); ++it)
+                    decls.insert(it.key(), it.value());
+            } else if (param->type() == ItemType::Parameters) {
+                adjustParametersScopes(param, param);
+                Evaluator &evaluator = m_loaderState.evaluator();
+                QVariantMap parameters = getJsVariant(evaluator.engine()->context(),
+                                                      evaluator.scriptValue(param)).toMap();
+                m_loaderState.topLevelProject().setParameters(module, parameters);
+            }
         }
         m_loaderState.topLevelProject().addParameterDeclarations(module, decls);
     }

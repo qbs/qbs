@@ -258,7 +258,6 @@ void BuiltinDeclarations::addExportItem()
     item << PropertyDeclaration(StringConstants::prefixMappingProperty(),
                                 PropertyDeclaration::Variant);
     auto allowedChildTypes = item.allowedChildTypes();
-    allowedChildTypes.insert(ItemType::Parameters);
     allowedChildTypes.insert(ItemType::Properties);
     item.setAllowedChildTypes(allowedChildTypes);
     insert(item);
@@ -339,16 +338,10 @@ void BuiltinDeclarations::addModuleProviderItem()
 ItemDeclaration BuiltinDeclarations::moduleLikeItem(ItemType type)
 {
     ItemDeclaration item(type);
-    item.setAllowedChildTypes(ItemDeclaration::TypeNames()
-            << ItemType::Group
-            << ItemType::Depends
-            << ItemType::FileTagger
-            << ItemType::JobLimit
-            << ItemType::Rule
-            << ItemType::Parameter
-            << ItemType::Probe
-            << ItemType::PropertyOptions
-            << ItemType::Scanner);
+    item.setAllowedChildTypes({ItemType::Depends, ItemType::FileTagger, ItemType::Group,
+                               ItemType::JobLimit, ItemType::Parameter, ItemType::Parameters,
+                               ItemType::Probe, ItemType::PropertyOptions,
+                               ItemType::Rule, ItemType::Scanner});
     PropertyDeclaration nameDecl = nameProperty();
     PropertyDeclaration::Flags nameFlags = nameDecl.flags();
     nameFlags |= PropertyDeclaration::ReadOnlyFlag;

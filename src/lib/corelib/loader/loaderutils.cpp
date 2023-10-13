@@ -68,20 +68,6 @@ QString fullProductDisplayName(const QString &name, const QString &multiplexId)
     return result;
 }
 
-void mergeParameters(QVariantMap &dst, const QVariantMap &src)
-{
-    for (auto it = src.begin(); it != src.end(); ++it) {
-        if (it.value().userType() == QMetaType::QVariantMap) {
-            QVariant &vdst = dst[it.key()];
-            QVariantMap mdst = vdst.toMap();
-            mergeParameters(mdst, it.value().toMap());
-            vdst = mdst;
-        } else {
-            dst[it.key()] = it.value();
-        }
-    }
-}
-
 void adjustParametersScopes(Item *item, Item *scope)
 {
     if (item->type() == ItemType::ModuleParameters) {
@@ -219,7 +205,7 @@ void TopLevelProjectContext::addDisabledItem(Item *item)
     m_disabledItems.data << item;
 }
 
-bool TopLevelProjectContext::isDisabledItem(Item *item) const
+bool TopLevelProjectContext::isDisabledItem(const Item *item) const
 {
     std::shared_lock lock(m_disabledItems.mutex);
     return m_disabledItems.data.contains(item);
@@ -397,6 +383,21 @@ Item::PropertyDeclarationMap TopLevelProjectContext::parameterDeclarations(Item 
     std::shared_lock lock(m_parameterDeclarations.mutex);
     if (const auto it = m_parameterDeclarations.data.find(moduleProto);
             it != m_parameterDeclarations.data.end()) {
+        return it->second;
+    }
+    return {};
+}
+
+void TopLevelProjectContext::setParameters(const Item *moduleProto, const QVariantMap &parameters)
+{
+    std::unique_lock lock(m_parameters.mutex);
+    m_parameters.data.insert({moduleProto, parameters});
+}
+
+QVariantMap TopLevelProjectContext::parameters(Item *moduleProto) const
+{
+    std::shared_lock lock(m_parameters.mutex);
+    if (const auto it = m_parameters.data.find(moduleProto); it != m_parameters.data.end()) {
         return it->second;
     }
     return {};
@@ -866,6 +867,88 @@ void ItemReaderCache::AstCacheEntry::removeProcessingThread()
 {
     std::lock_guard lock(m_processingThreads.mutex);
     m_processingThreads.data.remove(std::this_thread::get_id());
+}
+
+class DependencyParametersMerger
+{
+public:
+    DependencyParametersMerger(std::vector<Item::Module::ParametersWithPriority> &&candidates)
+        : m_candidates(std::move(candidates)) { }
+    QVariantMap merge();
+
+private:
+    void merge(QVariantMap &current, const QVariantMap &next, int nextPrio);
+
+    const std::vector<Item::Module::ParametersWithPriority> m_candidates;
+
+    struct Conflict {
+        Conflict(QStringList path, QVariant val1, QVariant val2, int prio)
+            : path(std::move(path)), val1(std::move(val1)), val2(std::move(val2)), priority(prio) {}
+        QStringList path;
+        QVariant val1;
+        QVariant val2;
+        int priority;
+    };
+    std::vector<Conflict> m_conflicts;
+    QVariantMap m_currentValue;
+    int m_currentPrio = INT_MIN;
+    QStringList m_path;
+};
+
+QVariantMap mergeDependencyParameters(std::vector<Item::Module::ParametersWithPriority> &&candidates)
+{
+    return DependencyParametersMerger(std::move(candidates)).merge();
+}
+
+QVariantMap mergeDependencyParameters(const QVariantMap &m1, const QVariantMap &m2)
+{
+    return mergeDependencyParameters({std::make_pair(m1, 0), std::make_pair(m2, 0)});
+}
+
+QVariantMap DependencyParametersMerger::merge()
+{
+    for (const auto &next : m_candidates) {
+        merge(m_currentValue, next.first, next.second);
+        m_currentPrio = next.second;
+    }
+
+    if (!m_conflicts.empty()) {
+        ErrorInfo error(Tr::tr("Conflicting parameter values encountered:"));
+        for (const Conflict &conflict : m_conflicts) {
+            // TODO: Location would be nice ...
+            error.append(Tr::tr("  Parameter '%1' cannot be both '%2' and '%3'.")
+                         .arg(conflict.path.join(QLatin1Char('.')),
+                              conflict.val1.toString(), conflict.val2.toString()));
+        }
+        throw error;
+    }
+
+    return m_currentValue;
+}
+
+void DependencyParametersMerger::merge(QVariantMap &current, const QVariantMap &next, int nextPrio)
+{
+    for (auto it = next.begin(); it != next.end(); ++it) {
+        m_path << it.key();
+        const QVariant &newValue = it.value();
+        QVariant &currentValue = current[it.key()];
+        if (newValue.userType() == QMetaType::QVariantMap) {
+            QVariantMap mdst = currentValue.toMap();
+            merge(mdst, it.value().toMap(), nextPrio);
+            currentValue = mdst;
+        } else {
+            if (m_currentPrio == nextPrio) {
+                if (currentValue.isValid() && currentValue != newValue)
+                    m_conflicts.emplace_back(m_path, currentValue, newValue, m_currentPrio);
+            } else {
+                removeIf(m_conflicts, [this](const Conflict &conflict) {
+                    return m_path == conflict.path;
+                });
+            }
+            currentValue = newValue;
+        }
+        m_path.removeLast();
+    }
 }
 
 } // namespace qbs::Internal

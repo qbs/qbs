@@ -222,12 +222,12 @@ Module {
             return "libc++";
         return original;
     }
-    cpp.minimumWindowsVersion: @minWinVersion@
-    cpp.minimumMacosVersion: @minMacVersion@
-    cpp.minimumIosVersion: @minIosVersion@
-    cpp.minimumTvosVersion: @minTvosVersion@
-    cpp.minimumWatchosVersion: @minWatchosVersion@
-    cpp.minimumAndroidVersion: @minAndroidVersion@
+    cpp.minimumWindowsVersion: @minWinVersion_optional@
+    cpp.minimumMacosVersion: @minMacVersion_optional@
+    cpp.minimumIosVersion: @minIosVersion_optional@
+    cpp.minimumTvosVersion: @minTvosVersion_optional@
+    cpp.minimumWatchosVersion: @minWatchosVersion_optional@
+    cpp.minimumAndroidVersion: @minAndroidVersion_optional@
 
     // Universal Windows Platform support
     cpp.windowsApiFamily: mkspecName.startsWith("winrt-") ? "pc" : undefined

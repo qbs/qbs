@@ -170,6 +170,7 @@ private:
     std::pair<Item::Module *, Item *> findExistingModule(const FullyResolvedDependsItem &dependency,
                                                          Item *item);
     void updateModule(Item::Module &module, const FullyResolvedDependsItem &dependency);
+    int dependsChainLength();
     ProductContext *findMatchingProduct(const FullyResolvedDependsItem &dependency);
     Item *findMatchingModule(const FullyResolvedDependsItem &dependency);
     std::pair<bool, HandleDependency> checkProductDependency(
@@ -409,6 +410,12 @@ LoadModuleResult DependenciesResolver::loadModule(
     ProductContext *productDep = nullptr;
     Item *moduleItem = nullptr;
 
+    const auto addLoadingItem = [&](Item::Module &module, Item &loadingItem) {
+        module.loadingItems.emplace_back(&loadingItem,
+                                         std::make_pair(dependency.parameters,
+                                                        INT_MAX - dependsChainLength()));
+    };
+
     // The module might already have been loaded for this product (directly or indirectly).
     const auto &[existingModule, moduleWithSameName]
             = findExistingModule(dependency, m_product.item);
@@ -420,8 +427,15 @@ LoadModuleResult DependenciesResolver::loadModule(
 
         QBS_CHECK(existingModule->item);
         moduleItem = existingModule->item;
-        if (!contains(existingModule->loadingItems, loadingItem))
-            existingModule->loadingItems.push_back(loadingItem);
+        const auto matcher = [loadingItem](const Item::Module::LoadingItemInfo &info) {
+            return info.first == loadingItem;
+        };
+        const auto it = std::find_if(existingModule->loadingItems.begin(),
+                                     existingModule->loadingItems.end(), matcher);
+        if (it == existingModule->loadingItems.end())
+            addLoadingItem(*existingModule, *loadingItem);
+        else
+            it->second.first = mergeDependencyParameters(it->second.first, dependency.parameters);
     } else if (dependency.product) {
         productDep = dependency.product; // We have already done the look-up.
     } else if (!(productDep = findMatchingProduct(dependency))) {
@@ -497,17 +511,9 @@ LoadModuleResult DependenciesResolver::loadModule(
     qCDebug(lcModuleLoader) << "module loaded:" << dependency.name.toString();
     if (m_product.item) {
         Item::Module module = createModule(dependency, moduleItem, productDep);
-
-        if (module.name.toString() != StringConstants::qbsModule()) {
-            // TODO: Why do we have default parameters only for Export items and
-            //       property declarations only for modules? Does that make any sense?
-            if (productDep)
-                module.parameters = productDep->defaultParameters;
-            mergeParameters(module.parameters, dependency.parameters);
-        }
         module.required = dependency.requiredGlobally;
-        module.loadingItems.push_back(loadingItem);
-        module.maxDependsChainLength = m_product.dependenciesContext ? stateStack().size() : 1;
+        addLoadingItem(module, *loadingItem);
+        module.maxDependsChainLength = dependsChainLength();
         m_product.item->addModule(module);
         addLocalModule();
     }
@@ -543,14 +549,15 @@ void DependenciesResolver::updateModule(
     Item::Module &module, const FullyResolvedDependsItem &dependency)
 {
     forwardParameterDeclarations(dependency.item, m_product.item->modules());
-
-    // TODO: Use priorities like for property values. See QBS-1300.
-    mergeParameters(module.parameters, dependency.parameters);
-
     module.versionRange.narrowDown(dependency.versionRange);
     module.required |= dependency.requiredGlobally;
-    if (int(stateStack().size()) > module.maxDependsChainLength)
-        module.maxDependsChainLength = stateStack().size();
+    if (dependsChainLength() > module.maxDependsChainLength)
+        module.maxDependsChainLength = dependsChainLength();
+}
+
+int DependenciesResolver::dependsChainLength()
+{
+    return m_product.dependenciesContext ? stateStack().size() : 1;
 }
 
 ProductContext *DependenciesResolver::findMatchingProduct(

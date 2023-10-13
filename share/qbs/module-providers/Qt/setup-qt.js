@@ -1416,7 +1416,7 @@ function findVariable(content, start) {
 }
 
 function minVersionJsString(minVersion) {
-    return !minVersion ? "original" : ModUtils.toJSLiteral(minVersion);
+    return !minVersion ? "" : ModUtils.toJSLiteral(minVersion);
 }
 
 function replaceSpecialValues(content, module, qtProps, abi) {
@@ -1470,12 +1470,12 @@ function replaceSpecialValues(content, module, qtProps, abi) {
         libNameForLinkerRelease: ModUtils.toJSLiteral(libNameForLinker(module, qtProps, false)),
         entryPointLibsDebug: ModUtils.toJSLiteral(qtProps.entryPointLibsDebug),
         entryPointLibsRelease: ModUtils.toJSLiteral(qtProps.entryPointLibsRelease),
-        minWinVersion: minVersionJsString(qtProps.windowsVersion),
-        minMacVersion: minVersionJsString(qtProps.macosVersion),
-        minIosVersion: minVersionJsString(qtProps.iosVersion),
-        minTvosVersion: minVersionJsString(qtProps.tvosVersion),
-        minWatchosVersion: minVersionJsString(qtProps.watchosVersion),
-        minAndroidVersion: minVersionJsString(qtProps.androidVersion),
+        minWinVersion_optional: minVersionJsString(qtProps.windowsVersion),
+        minMacVersion_optional: minVersionJsString(qtProps.macosVersion),
+        minIosVersion_optional: minVersionJsString(qtProps.iosVersion),
+        minTvosVersion_optional: minVersionJsString(qtProps.tvosVersion),
+        minWatchosVersion_optional: minVersionJsString(qtProps.watchosVersion),
+        minAndroidVersion_optional: minVersionJsString(qtProps.androidVersion),
     };
 
     var additionalContent = "";
@@ -1546,9 +1546,21 @@ function replaceSpecialValues(content, module, qtProps, abi) {
 
     for (var pos = findVariable(content, 0); pos[0] !== -1;
          pos = findVariable(content, pos[0])) {
-        var replacement = dict[content.slice(pos[0] + 1, pos[1])] || "";
-        content = content.slice(0, pos[0]) + replacement + content.slice(pos[1] + 1);
-        pos[0] += replacement.length;
+        var varName = content.slice(pos[0] + 1, pos[1]);
+        var replacement = dict[varName] || "";
+        if (!replacement && varName.endsWith("_optional")) {
+            var prevNewline = content.lastIndexOf('\n', pos[0]);
+            if (prevNewline === -1)
+                prevNewline = 0;
+            var nextNewline = content.indexOf('\n', pos[0]);
+            if (nextNewline === -1)
+                prevNewline = content.length;
+            content = content.slice(0, prevNewline) + content.slice(nextNewline);
+            pos[0] = prevNewline;
+        } else {
+            content = content.slice(0, pos[0]) + replacement + content.slice(pos[1] + 1);
+            pos[0] += replacement.length;
+        }
     }
     return content;
 }

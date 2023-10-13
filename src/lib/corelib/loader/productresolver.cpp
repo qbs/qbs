@@ -64,6 +64,8 @@
 #include <tools/setupprojectparameters.h>
 #include <tools/stringconstants.h>
 
+#include <algorithm>
+
 namespace qbs::Internal {
 
 class PropertiesEvaluator
@@ -101,9 +103,9 @@ private:
     bool validateModule(const Item::Module &module);
     void handleModuleSetupError(const Item::Module &module, const ErrorInfo &error);
     void checkPropertyDeclarations();
+    void mergeDependencyParameters();
     void checkDependencyParameterDeclarations(const Item *productItem,
                                               const QString &productName) const;
-
 
     ProductContext &m_product;
     LoaderState &m_loaderState;
@@ -257,6 +259,8 @@ void ProductResolverStage1::start()
     doFinalMerge(m_product, m_loaderState);
 
     const bool enabled = topLevelProject.checkItemCondition(m_product.item, evaluator);
+
+    mergeDependencyParameters();
     checkDependencyParameterDeclarations(m_product.item, m_product.name);
 
     setupGroups(m_product, m_loaderState);
@@ -335,7 +339,8 @@ void ProductResolverStage1::updateModulePresentState(const Item::Module &module)
     if (!module.item->isPresentModule())
         return;
     bool hasPresentLoadingItem = false;
-    for (const Item * const loadingItem : module.loadingItems) {
+    for (const auto &loadingItemInfo : module.loadingItems) {
+        const Item * const loadingItem = loadingItemInfo.first;
         if (loadingItem == m_product.item) {
             hasPresentLoadingItem = true;
             break;
@@ -397,6 +402,44 @@ void ProductResolverStage1::checkPropertyDeclarations()
     AccumulatingTimer timer(m_loaderState.parameters().logElapsedTime()
                             ? &m_product.timingData.propertyChecking : nullptr);
     qbs::Internal::checkPropertyDeclarations(m_product.item, m_loaderState);
+}
+
+void ProductResolverStage1::mergeDependencyParameters()
+{
+    if (m_loaderState.topLevelProject().isDisabledItem(m_product.item))
+        return;
+
+    for (Item::Module &module : m_product.item->modules()) {
+        if (module.name.toString() == StringConstants::qbsModule())
+            continue;
+        if (!module.item->isPresentModule())
+            continue;
+
+        using PP = Item::Module::ParametersWithPriority;
+        std::vector<PP> priorityList;
+        const QVariantMap defaultParameters = module.product
+                ? module.product->defaultParameters
+                : m_loaderState.topLevelProject().parameters(module.item->prototype());
+        priorityList.emplace_back(defaultParameters, INT_MIN);
+        for (const Item::Module::LoadingItemInfo &info : module.loadingItems) {
+            const QVariantMap &parameters = info.second.first;
+
+            // Empty parameter maps and inactive loading modules do not contribute to the
+            // final parameter map.
+            if (parameters.isEmpty())
+                continue;
+            if (info.first->type() == ItemType::ModuleInstance && !info.first->isPresentModule())
+                continue;
+
+            // Build a list sorted by priority.
+            static const auto cmp = [](const PP &elem, int prio) { return elem.second < prio; };
+            const auto it = std::lower_bound(priorityList.begin(), priorityList.end(),
+                                             info.second.second, cmp);
+            priorityList.insert(it, info.second);
+        }
+
+        module.parameters = qbs::Internal::mergeDependencyParameters(std::move(priorityList));
+    }
 }
 
 class DependencyParameterDeclarationCheck
