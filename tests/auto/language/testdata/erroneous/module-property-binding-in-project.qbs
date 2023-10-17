@@ -1,0 +1,3 @@
+Project {
+    qbs.sysroot: "/"
+}

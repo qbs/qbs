@@ -176,6 +176,11 @@ void ModulePropertyMerger::mergePropertyFromLocalInstance(
     Item *loadingItem, const QString &loadingName, Item *globalInstance,
     const QString &name, const ValuePtr &value)
 {
+    if (loadingItem->type() == ItemType::Project) {
+        throw ErrorInfo(Tr::tr("Module properties cannot be set in Project items."),
+                        value->location());
+    }
+
     const PropertyDeclaration decl = globalInstance->propertyDeclaration(name);
     if (!decl.isValid()) {
         if (value->type() == Value::ItemValueType || value->createdByPropertiesBlock())

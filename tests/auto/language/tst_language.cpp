@@ -1019,6 +1019,8 @@ void TestLanguage::erroneousFiles_data()
             << "missing-js-file-module.qbs.*Cannot open '.*javascriptfile.js'";
     QTest::newRow("frozen-object") << "'key' is read-only";
     QTest::newRow("frozen-object-list") << "object is not extensible";
+    QTest::newRow("module-property-binding-in-project")
+        << "Module properties cannot be set in Project items";
 }
 
 void TestLanguage::erroneousFiles()
