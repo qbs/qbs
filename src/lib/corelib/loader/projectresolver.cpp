@@ -290,6 +290,7 @@ TopLevelProjectPtr ProjectResolver::Private::resolveTopLevelProject()
 
     project->buildSystemFiles.unite(state.topLevelProject().buildSystemFiles());
     project->profileConfigs = state.topLevelProject().profileConfigs();
+    project->codeLinks = state.topLevelProject().codeLinks();
     const QVariantMap &profiles = state.topLevelProject().localProfiles();
     for (auto it = profiles.begin(); it != profiles.end(); ++it)
         project->profileConfigs.remove(it.key());

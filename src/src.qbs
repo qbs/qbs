@@ -7,6 +7,7 @@ Project {
         "plugins/plugins.qbs",
         "shared/bundledqt/bundledqt.qbs",
         "shared/json/json.qbs",
+        "shared/lsp/lsp.qbs",
         "shared/quickjs/quickjs.qbs",
         "shared/variant/variant.qbs",
     ]

@@ -94,6 +94,7 @@
     \header \li Property          \li Type
     \row    \li api-level         \li int
     \row    \li api-compat-level  \li int
+    \row    \li lsp-socket        \li string
     \endtable
 
     The value of \c api-level is increased whenever the API is extended, for instance
@@ -107,6 +108,10 @@
 
     The value of \c api-compat-level is always less than or equal to the
     value of \c api-level.
+
+    The value of \c lsp-socket is a path to a local domain socket (on Unix) or
+    a named pipe (on Windows). It provides a server implementing the
+    \l{https://microsoft.github.io/language-server-protocol}{Language Server Protocol}.
 
     \section1 Resolving a Project
 

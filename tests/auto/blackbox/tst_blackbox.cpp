@@ -6320,6 +6320,102 @@ static QJsonObject getNextSessionPacket(QProcess &session, QByteArray &data)
     return QJsonDocument::fromJson(QByteArray::fromBase64(msg)).object();
 }
 
+static void sendSessionPacket(QProcess &sessionProc, const QJsonObject &message)
+{
+    const QByteArray data = QJsonDocument(message).toJson().toBase64();
+    sessionProc.write("qbsmsg:");
+    sessionProc.write(QByteArray::number(data.length()));
+    sessionProc.write("\n");
+    sessionProc.write(data);
+}
+
+void TestBlackbox::qbsLanguageServer_data()
+{
+    QTest::addColumn<QString>("request");
+    QTest::addColumn<QString>("location");
+    QTest::addColumn<QString>("expectedReply");
+
+    QTest::addRow("follow to module") << "--goto-def"
+                                      << (testDataDir + "/lsp/lsp.qbs:4:9")
+                                      << (testDataDir + "/lsp/modules/m/m.qbs:1:1");
+    QTest::addRow("follow to submodules")
+            << "--goto-def"
+            << (testDataDir + "/lsp/lsp.qbs:5:35")
+            << ((testDataDir + "/lsp/modules/Prefix/m1/m1.qbs:1:1\n")
+                + (testDataDir + "/lsp/modules/Prefix/m2/m2.qbs:1:1\n")
+                + (testDataDir + "/lsp/modules/Prefix/m3/m3.qbs:1:1"));
+    QTest::addRow("follow to product") << "--goto-def"
+                                       << (testDataDir + "/lsp/lsp.qbs:8:19")
+                                       << (testDataDir + "/lsp/lsp.qbs:2:5");
+}
+
+void TestBlackbox::qbsLanguageServer()
+{
+    QFETCH(QString, request);
+    QFETCH(QString, location);
+    QFETCH(QString, expectedReply);
+
+    QDir::setCurrent(testDataDir + "/lsp");
+    QProcess sessionProc;
+    sessionProc.start(qbsExecutableFilePath, QStringList("session"));
+
+    QVERIFY(sessionProc.waitForStarted());
+
+    QByteArray incomingData;
+
+    // Wait for and verify hello packet.
+    QJsonObject receivedMessage = getNextSessionPacket(sessionProc, incomingData);
+    const QString socketPath = receivedMessage.value("lsp-socket").toString();
+    QVERIFY(!socketPath.isEmpty());
+
+    // Resolve project.
+    QJsonObject resolveMessage;
+    resolveMessage.insert("type", "resolve-project");
+    resolveMessage.insert("top-level-profile", profileName());
+    resolveMessage.insert("project-file-path", QDir::currentPath() + "/lsp.qbs");
+    resolveMessage.insert("build-root", QDir::currentPath());
+    resolveMessage.insert("settings-directory", settings()->baseDirectory());
+    sendSessionPacket(sessionProc, resolveMessage);
+    bool receivedReply = false;
+    while (!receivedReply) {
+        receivedMessage = getNextSessionPacket(sessionProc, incomingData);
+        QVERIFY(!receivedMessage.isEmpty());
+        const QString msgType = receivedMessage.value("type").toString();
+        if (msgType == "project-resolved") {
+            receivedReply = true;
+            const QJsonObject error = receivedMessage.value("error").toObject();
+            if (!error.isEmpty())
+                qDebug() << error;
+            QVERIFY(error.isEmpty());
+        }
+    }
+    QVERIFY(receivedReply);
+
+    // Employ client app to send request.
+    QProcess lspClient;
+    const QFileInfo qbsFileInfo(qbsExecutableFilePath);
+    const QString clientFilePath = HostOsInfo::appendExecutableSuffix(
+                qbsFileInfo.absolutePath() + "/qbs_lspclient");
+    lspClient.start(clientFilePath, {"--socket", socketPath, request, location});
+    QVERIFY2(lspClient.waitForStarted(), qPrintable(lspClient.errorString()));
+    QVERIFY2(lspClient.waitForFinished(), qPrintable(lspClient.errorString()));
+    QString errMsg;
+    if (lspClient.exitStatus() != QProcess::NormalExit)
+        errMsg = lspClient.errorString();
+    if (errMsg.isEmpty())
+        errMsg = QString::fromLocal8Bit(lspClient.readAllStandardError());
+    QVERIFY2(lspClient.exitCode() == 0, qPrintable(errMsg));
+    QVERIFY2(errMsg.isEmpty(), qPrintable(errMsg));
+    QString output = QString::fromUtf8(lspClient.readAllStandardOutput().trimmed());
+    output.replace("\r\n", "\n");
+    QCOMPARE(output, expectedReply);
+
+    QJsonObject quitRequest;
+    quitRequest.insert("type", "quit");
+    sendSessionPacket(sessionProc, quitRequest);
+    QVERIFY(sessionProc.waitForFinished(3000));
+}
+
 void TestBlackbox::qbsSession()
 {
     QDir::setCurrent(testDataDir + "/qbs-session");
@@ -6336,11 +6432,7 @@ void TestBlackbox::qbsSession()
     QVERIFY(sessionProc.waitForStarted());
 
     const auto sendPacket = [&sessionProc](const QJsonObject &message) {
-        const QByteArray data = QJsonDocument(message).toJson().toBase64();
-        sessionProc.write("qbsmsg:");
-        sessionProc.write(QByteArray::number(data.length()));
-        sessionProc.write("\n");
-        sessionProc.write(data);
+        sendSessionPacket(sessionProc, message);
     };
 
     static const auto envToJson = [](const QProcessEnvironment &env) {
@@ -6364,7 +6456,7 @@ void TestBlackbox::qbsSession()
     // Wait for and verify hello packet.
     QJsonObject receivedMessage = getNextSessionPacket(sessionProc, incomingData);
     QCOMPARE(receivedMessage.value("type"), "hello");
-    QCOMPARE(receivedMessage.value("api-level").toInt(), 4);
+    QCOMPARE(receivedMessage.value("api-level").toInt(), 5);
     QCOMPARE(receivedMessage.value("api-compat-level").toInt(), 2);
 
     // Resolve & verify structure

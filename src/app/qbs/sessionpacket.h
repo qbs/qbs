@@ -55,7 +55,7 @@ public:
     QJsonObject retrievePacket();
 
     static QByteArray createPacket(const QJsonObject &packet);
-    static QJsonObject helloMessage();
+    static QJsonObject helloMessage(const QString &lspSocket);
 
 private:
     bool isComplete() const;

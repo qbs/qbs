@@ -106,6 +106,7 @@ private:
     void mergeDependencyParameters();
     void checkDependencyParameterDeclarations(const Item *productItem,
                                               const QString &productName) const;
+    void collectCodeLinks();
 
     ProductContext &m_product;
     LoaderState &m_loaderState;
@@ -260,6 +261,7 @@ void ProductResolverStage1::start()
 
     const bool enabled = topLevelProject.checkItemCondition(m_product.item, evaluator);
 
+    collectCodeLinks();
     mergeDependencyParameters();
     checkDependencyParameterDeclarations(m_product.item, m_product.name);
 
@@ -509,6 +511,21 @@ void ProductResolverStage1::checkDependencyParameterDeclarations(const Item *pro
     for (const Item::Module &dep : productItem->modules()) {
         if (!dep.parameters.empty())
             dpdc(dep.parameters);
+    }
+}
+
+void ProductResolverStage1::collectCodeLinks()
+{
+    for (const Item::Module &module : m_product.item->modules()) {
+        if (module.name.first() == StringConstants::qbsModule())
+            continue;
+        for (const Item::Module::LoadContext &context : module.loadContexts) {
+            m_loaderState.topLevelProject().addCodeLink(
+                        context.dependsItem->location().filePath(),
+                        context.dependsItem->codeRange(),
+                        module.product ? module.product->item->location()
+                                       : module.item->location());
+        }
     }
 }
 

@@ -403,6 +403,15 @@ QVariantMap TopLevelProjectContext::parameters(Item *moduleProto) const
     return {};
 }
 
+void TopLevelProjectContext::addCodeLink(const QString &sourceFile, const CodeRange &sourceRange,
+                                         const CodeLocation &target)
+{
+    std::lock_guard lock(m_codeLinks.mutex);
+    QList<CodeLocation> &links = m_codeLinks.data[sourceFile][sourceRange];
+    if (!links.contains(target))
+        links << target;
+}
+
 QString TopLevelProjectContext::findModuleDirectory(
         const QualifiedId &module, const QString &searchPath,
         const std::function<QString()> &findOnDisk)

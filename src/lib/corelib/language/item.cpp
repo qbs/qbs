@@ -72,6 +72,7 @@ Item *Item::clone(ItemPool &pool) const
     Item *dup = create(&pool, type());
     dup->m_id = m_id;
     dup->m_location = m_location;
+    dup->m_endPosition = m_endPosition;
     dup->m_prototype = m_prototype;
     dup->m_scope = m_scope;
     dup->m_outerItem = m_outerItem;
@@ -500,6 +501,11 @@ void setScopeForDescendants(Item *item, Item *scope)
         child->setScope(scope);
         setScopeForDescendants(child, scope);
     }
+}
+
+CodeRange Item::codeRange() const
+{
+    return {{m_location.line(), m_location.column()}, m_endPosition};
 }
 
 } // namespace Internal

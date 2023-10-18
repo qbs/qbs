@@ -1,0 +1,57 @@
+add_qbs_library(qtclsp
+    STATIC
+    DEPENDS Qt6Core5Compat
+    SOURCES
+      algorithm.h
+      basemessage.cpp
+      basemessage.h
+      callhierarchy.cpp
+      callhierarchy.h
+      client.cpp
+      client.h
+      clientcapabilities.cpp
+      clientcapabilities.h
+      completion.cpp
+      completion.h
+      diagnostics.cpp
+      diagnostics.h
+      initializemessages.cpp
+      initializemessages.h
+      jsonkeys.h
+      jsonobject.cpp
+      jsonobject.h
+      jsonrpcmessages.cpp
+      jsonrpcmessages.h
+      languagefeatures.cpp
+      languagefeatures.h
+      languageserverprotocol_global.h
+      languageserverprotocoltr.h
+      lsptypes.cpp
+      lsptypes.h
+      lsputils.cpp
+      lsputils.h
+      messages.cpp
+      messages.h
+      progresssupport.cpp
+      progresssupport.h
+      semantictokens.cpp
+      semantictokens.h
+      servercapabilities.cpp
+      servercapabilities.h
+      shutdownmessages.cpp
+      shutdownmessages.h
+      textsynchronization.cpp
+      textsynchronization.h
+      textutils.cpp
+      textutils.h
+      workspace.cpp
+      workspace.h
+  )
+target_include_directories(
+    qtclsp
+    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/corelib
+    PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/..
+)
+target_compile_definitions(qtclsp
+  PUBLIC "LANGUAGESERVERPROTOCOL_STATIC_LIBRARY"
+)

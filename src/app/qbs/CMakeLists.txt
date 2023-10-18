@@ -7,6 +7,8 @@ set(SOURCES
     consoleprogressobserver.h
     ctrlchandler.cpp
     ctrlchandler.h
+    lspserver.cpp
+    lspserver.h
     main.cpp
     qbstool.cpp
     qbstool.h
@@ -43,7 +45,11 @@ add_qbs_app(qbs
         "QBS_RELATIVE_LIBEXEC_PATH=\"${QBS_RELATIVE_LIBEXEC_PATH}\""
         "QBS_RELATIVE_SEARCH_PATH=\"${QBS_RELATIVE_SEARCH_PATH}\""
         "QBS_RELATIVE_PLUGINS_PATH=\"${QBS_RELATIVE_PLUGINS_PATH}\""
-    DEPENDS qbscore qbsconsolelogger
+    DEPENDS
+        qbscore
+        qbsconsolelogger
+        qtclsp
+        Qt${QT_VERSION_MAJOR}::Network
     SOURCES ${SOURCES} ${PARSER_SOURCES}
     )
 

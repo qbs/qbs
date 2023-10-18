@@ -136,6 +136,7 @@ public:
     QVariantMap projectConfiguration() const;
 
     std::set<QString> buildSystemFiles() const;
+    CodeLinks codeLinks() const;
 
     RuleCommandList ruleCommands(const ProductData &product, const QString &inputFilePath,
                                  const QString &outputFileTag, ErrorInfo *error = nullptr) const;

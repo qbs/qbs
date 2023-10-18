@@ -2,12 +2,16 @@ import qbs.Utilities
 
 QbsApp {
     name: "qbs_app"
-    Depends { name: "qbs resources" }
     targetName: "qbs"
+
+    Depends { name: "qbs resources" }
+    Depends { name: "qtclsp" }
+    Depends { name: "Qt.network" }
     Depends {
         condition: Qt.core.staticBuild || qbsbuildconfig.staticBuild
         productTypes: ["qbsplugin"]
     }
+
     cpp.defines: base.concat([
         "QBS_VERSION=" + Utilities.cStringQuote(qbsversion.version),
         "QBS_RELATIVE_LIBEXEC_PATH=" + Utilities.cStringQuote(qbsbuildconfig.relativeLibexecPath),
@@ -52,6 +56,14 @@ QbsApp {
             "commandtype.h",
             "parsercommand.cpp",
             "parsercommand.h",
+        ]
+    }
+    Group {
+        name: "lsp"
+        cpp.defines: outer.filter(function(d) { return d !== "QT_NO_CAST_FROM_ASCII"; })
+        files: [
+            "lspserver.cpp",
+            "lspserver.h",
         ]
     }
 }

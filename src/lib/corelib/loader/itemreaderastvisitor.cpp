@@ -108,6 +108,8 @@ bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
     Item *item = Item::create(m_itemPool, ItemType::Unknown);
     item->setFile(m_file);
     item->setLocation(itemLocation);
+    const AST::SourceLocation &endLoc = ast->lastSourceLocation();
+    item->setEndPosition(CodePosition(endLoc.startLine, endLoc.startColumn));
 
     // Inheritance resolving, part 1: Find out our actual type name (needed for setting
     // up children and alternatives).

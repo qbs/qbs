@@ -703,6 +703,7 @@ public:
     QHash<QString, bool> fileExistsResults; // Results of calls to "File.exists()".
     QHash<std::pair<QString, quint32>, QStringList> directoryEntriesResults; // Results of calls to "File.directoryEntries()".
     QHash<QString, FileTime> fileLastModifiedResults; // Results of calls to "File.lastModified()".
+    CodeLinks codeLinks;
     std::unique_ptr<ProjectBuildData> buildData;
     BuildGraphLocker *bgLocker; // This holds the system-wide build graph file lock.
     bool locked; // This is the API-level lock for the project instance.
@@ -734,7 +735,7 @@ private:
                                      directoryEntriesResults, fileLastModifiedResults, environment,
                                      probes, profileConfigs, overriddenValues, buildSystemFiles,
                                      lastStartResolveTime, lastEndResolveTime, warningsEncountered,
-                                     buildData, moduleProviderInfo);
+                                     buildData, moduleProviderInfo, codeLinks);
     }
     void load(PersistentPool &pool) override;
     void store(PersistentPool &pool) override;

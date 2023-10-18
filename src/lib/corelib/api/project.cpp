@@ -956,6 +956,12 @@ std::set<QString> Project::buildSystemFiles() const
     return rangeTo<std::set<QString>>(d->internalProject->buildSystemFiles);
 }
 
+CodeLinks Project::codeLinks() const
+{
+    QBS_ASSERT(isValid(), return {});
+    return d->internalProject->codeLinks;
+}
+
 RuleCommandList Project::ruleCommands(const ProductData &product,
         const QString &inputFilePath, const QString &outputFileTag, ErrorInfo *error) const
 {

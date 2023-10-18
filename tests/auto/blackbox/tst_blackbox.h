@@ -265,6 +265,8 @@ private slots:
     void qbsConfigImport_data();
     void qbsConfigExport();
     void qbsConfigExport_data();
+    void qbsLanguageServer_data();
+    void qbsLanguageServer();
     void qbsSession();
     void qbsVersion();
     void qtBug51237();

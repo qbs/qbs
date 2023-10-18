@@ -182,4 +182,44 @@ bool operator<(const CodeLocation &cl1, const CodeLocation &cl2)
     return cl1.toString() < cl2.toString();
 }
 
+void CodePosition::load(Internal::PersistentPool &pool) { pool.load(m_line, m_column); }
+void CodePosition::store(Internal::PersistentPool &pool) const { pool.store(m_line, m_column); }
+
+bool operator==(const CodePosition &pos1, const CodePosition &pos2)
+{
+    return pos1.line() == pos2.line() && pos1.column() == pos2.column();
+}
+bool operator!=(const CodePosition &pos1, const CodePosition &pos2) { return !(pos1 == pos2); }
+
+bool operator<(const CodePosition &pos1, const CodePosition &pos2)
+{
+    const int lineDiff = pos1.line() - pos2.line();
+    if (lineDiff < 0)
+        return true;
+    if (lineDiff > 0)
+        return false;
+    return pos1.column() < pos2.column();
+}
+bool operator>(const CodePosition &pos1, const CodePosition &pos2) { return pos2 < pos1; }
+bool operator<=(const CodePosition &pos1, const CodePosition &pos2) { return !(pos1 > pos2); }
+bool operator>=(const CodePosition &pos1, const CodePosition &pos2) { return !(pos1 < pos2); }
+
+CodeRange::CodeRange(const CodePosition &start, const CodePosition &end)
+    : m_start(start), m_end(end) {}
+
+void CodeRange::load(Internal::PersistentPool &pool) { pool.load(m_start, m_end); }
+void CodeRange::store(Internal::PersistentPool &pool) const { pool.store(m_start, m_end); }
+
+bool CodeRange::contains(const CodePosition &pos) const
+{
+    return start() <= pos && end() > pos;
+}
+
+bool operator==(const CodeRange &r1, const CodeRange &r2)
+{
+    return r1.start() == r2.start() && r1.end() == r2.end();
+}
+bool operator!=(const CodeRange &r1, const CodeRange &r2) { return !(r1 == r2); }
+bool operator<(const CodeRange &r1, const CodeRange &r2) { return r1.start() < r2.start(); }
+
 } // namespace qbs

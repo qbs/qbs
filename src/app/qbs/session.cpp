@@ -39,6 +39,7 @@
 
 #include "session.h"
 
+#include "lspserver.h"
 #include "sessionpacket.h"
 #include "sessionpacketreader.h"
 
@@ -66,7 +67,6 @@
 #include <QtCore/qobject.h>
 #include <QtCore/qprocess.h>
 
-#include <algorithm>
 #include <cstdlib>
 #include <iostream>
 #include <memory>
@@ -166,6 +166,7 @@ private:
     FileUpdateData prepareFileUpdate(const QJsonObject &request);
 
     SessionPacketReader m_packetReader;
+    LspServer m_lspServer;
     Project m_project;
     ProjectData m_projectData;
     SessionLogSink m_logSink;
@@ -193,7 +194,7 @@ Session::Session()
         qApp->exit(EXIT_FAILURE);
     }
 #endif
-    sendPacket(SessionPacket::helloMessage());
+    sendPacket(SessionPacket::helloMessage(m_lspServer.socketPath()));
     connect(&m_logSink, &SessionLogSink::newMessage, this, &Session::sendPacket);
     connect(&m_packetReader, &SessionPacketReader::errorOccurred,
             this, [](const QString &msg) {
@@ -287,6 +288,7 @@ void Session::setupProject(const QJsonObject &request)
         const ProjectData oldProjectData = m_projectData;
         m_project = setupJob->project();
         m_projectData = m_project.projectData();
+        m_lspServer.updateProjectData(m_project.codeLinks());
         QJsonObject reply;
         reply.insert(StringConstants::type(), QLatin1String("project-resolved"));
         if (success)

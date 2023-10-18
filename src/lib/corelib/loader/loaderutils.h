@@ -46,6 +46,7 @@
 #include <language/propertydeclaration.h>
 #include <language/qualifiedid.h>
 #include <parser/qmljsengine_p.h>
+#include <tools/codelocation.h>
 #include <tools/filetime.h>
 #include <tools/joblimits.h>
 #include <tools/pimpl.h>
@@ -276,6 +277,10 @@ public:
     void setParameters(const Item *moduleProto, const QVariantMap &parameters);
     QVariantMap parameters(Item *moduleProto) const;
 
+    void addCodeLink(const QString &sourceFile, const CodeRange &sourceRange,
+                     const CodeLocation &target);
+    CodeLinks codeLinks() const { return m_codeLinks.data; }
+
     // An empty string means no matching module directory was found.
     QString findModuleDirectory(const QualifiedId &module, const QString &searchPath,
                                 const std::function<QString()> &findOnDisk);
@@ -371,6 +376,7 @@ private:
 
     GuardedData<std::map<QString, std::optional<QStringList>>,
                 std::mutex> m_moduleFilesPerDirectory;
+    GuardedData<CodeLinks> m_codeLinks;
 
     struct {
         QHash<QString, std::vector<ProbeConstPtr>> oldProjectProbes;

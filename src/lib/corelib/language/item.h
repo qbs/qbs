@@ -124,6 +124,7 @@ public:
 
     const QString &id() const { return m_id; }
     const CodeLocation &location() const { return m_location; }
+    CodeRange codeRange() const;
     Item *prototype() const { return m_prototype; }
     Item *rootPrototype();
     Item *scope() const { return m_scope; }
@@ -168,6 +169,7 @@ public:
     void setPropertyDeclaration(const QString &name, const PropertyDeclaration &declaration);
     void setPropertyDeclarations(const PropertyDeclarationMap &decls);
     void setLocation(const CodeLocation &location) { m_location = location; }
+    void setEndPosition(const CodePosition &position) { m_endPosition = position; }
     void setPrototype(Item *prototype) { m_prototype = prototype; }
     void setFile(const FileContextPtr &file) { m_file = file; }
     void setId(const QString &id) { m_id = id; }
@@ -207,6 +209,7 @@ private:
     mutable std::mutex m_observersMutex;
     QString m_id;
     CodeLocation m_location;
+    CodePosition m_endPosition;
     Item *m_prototype = nullptr;
     Item *m_scope = nullptr;
     Item *m_outerItem = nullptr;

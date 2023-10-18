@@ -86,10 +86,78 @@ private:
 QBS_EXPORT bool operator==(const CodeLocation &cl1, const CodeLocation &cl2);
 QBS_EXPORT bool operator!=(const CodeLocation &cl1, const CodeLocation &cl2);
 QBS_EXPORT bool operator<(const CodeLocation &cl1, const CodeLocation &cl2);
-
 inline auto qHash(const CodeLocation &cl) { return qHash(cl.toString()); }
-
 QDebug operator<<(QDebug debug, const CodeLocation &location);
+
+class QBS_EXPORT CodePosition
+{
+public:
+    CodePosition(int line, int column) : m_line(line), m_column(column) {}
+
+    CodePosition() = default;
+    CodePosition(const CodePosition &other) = default;
+    CodePosition(CodePosition &&other) = default;
+    CodePosition &operator=(const CodePosition &other) = default;
+    CodePosition &operator=(CodePosition &&other) = default;
+
+    int line() const { return m_line; }
+    void setLine(int newLine) { m_line = newLine; }
+
+    int column() const { return m_column; }
+    void setColumn(int newColumn) { m_column = newColumn; }
+
+    void load(Internal::PersistentPool &pool);
+    void store(Internal::PersistentPool &pool) const;
+
+private:
+    int m_line = 0;
+    int m_column = 0;
+};
+
+QBS_EXPORT bool operator==(const CodePosition &pos1, const CodePosition &pos2);
+QBS_EXPORT bool operator!=(const CodePosition &pos1, const CodePosition &pos2);
+QBS_EXPORT bool operator<(const CodePosition &pos1, const CodePosition &pos2);
+QBS_EXPORT bool operator>(const CodePosition &pos1, const CodePosition &pos2);
+QBS_EXPORT bool operator<=(const CodePosition &pos1, const CodePosition &pos2);
+QBS_EXPORT bool operator>=(const CodePosition &pos1, const CodePosition &pos2);
+inline auto qHash(const CodePosition &pos)
+{
+    return QT_PREPEND_NAMESPACE(qHash)(pos.line()) ^ QT_PREPEND_NAMESPACE(qHash)(pos.column());
+}
+
+class QBS_EXPORT CodeRange
+{
+public:
+    CodeRange(const CodePosition &start, const CodePosition &end);
+
+    CodeRange() = default;
+    CodeRange(const CodeRange &other) = default;
+    CodeRange(CodeRange &&other) = default;
+    CodeRange &operator=(const CodeRange &other) = default;
+    CodeRange &operator=(CodeRange &&other) = default;
+
+    const CodePosition &start() const & { return m_start; }
+    const CodePosition &end() const & { return m_end; }
+    CodePosition start() && { return std::move(m_start); }
+    CodePosition end() && { return std::move(m_end); }
+
+    bool contains(const CodePosition &pos) const;
+
+    void load(Internal::PersistentPool &pool);
+    void store(Internal::PersistentPool &pool) const;
+
+private:
+    CodePosition m_start;
+    CodePosition m_end;
+};
+
+QBS_EXPORT bool operator==(const CodeRange &r1, const CodeRange &r2);
+QBS_EXPORT bool operator!=(const CodeRange &r1, const CodeRange &r2);
+QBS_EXPORT bool operator<(const CodeRange &r1, const CodeRange &r2);
+inline auto qHash(const CodeRange &range) { return qHash(range.start()) ^ qHash(range.end()); }
+
+using CodeLinksInFile = QHash<CodeRange, QList<CodeLocation>>;
+using CodeLinks = QHash<QString, CodeLinksInFile>;
 
 } // namespace qbs
 

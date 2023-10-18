@@ -5,6 +5,7 @@ Project {
         "auto/auto.qbs",
         "benchmarker/benchmarker.qbs",
         "fuzzy-test/fuzzy-test.qbs",
+        "lspclient/lspclient.qbs",
     ]
 
     AutotestRunner {

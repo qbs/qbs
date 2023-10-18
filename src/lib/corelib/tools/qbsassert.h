@@ -59,6 +59,11 @@ QBS_EXPORT void writeAssertLocation(const char *condition, const char *file, int
 // The do {} while (0) is here to enforce the use of a semicolon after QBS_ASSERT.
 // action can also be continue or break. Copied from qtcassert.h in Qt Creator.
 
+#define QBS_GUARD(cond) \
+    (Q_LIKELY(cond)     \
+        ? true          \
+        : (::qbs::Internal::writeAssertLocation(#cond, __FILE__, __LINE__), false))
+
 #define QBS_CHECK(cond)\
     do {\
         if (Q_LIKELY(cond)) {} else {\
