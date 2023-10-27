@@ -410,8 +410,8 @@ LoadModuleResult DependenciesResolver::loadModule(
     ProductContext *productDep = nullptr;
     Item *moduleItem = nullptr;
 
-    const auto addLoadingItem = [&](Item::Module &module, Item &loadingItem) {
-        module.loadContexts.emplace_back(&loadingItem,
+    const auto addLoadContext = [&](Item::Module &module) {
+        module.loadContexts.emplace_back(dependency.item,
                                          std::make_pair(dependency.parameters,
                                                         INT_MAX - dependsChainLength()));
     };
@@ -428,12 +428,12 @@ LoadModuleResult DependenciesResolver::loadModule(
         QBS_CHECK(existingModule->item);
         moduleItem = existingModule->item;
         const auto matcher = [loadingItem](const Item::Module::LoadContext &context) {
-            return context.loadingItem == loadingItem;
+            return context.loadingItem() == loadingItem;
         };
         const auto it = std::find_if(existingModule->loadContexts.begin(),
                                      existingModule->loadContexts.end(), matcher);
         if (it == existingModule->loadContexts.end())
-            addLoadingItem(*existingModule, *loadingItem);
+            addLoadContext(*existingModule);
         else
             it->parameters.first = mergeDependencyParameters(it->parameters.first,
                                                              dependency.parameters);
@@ -513,7 +513,7 @@ LoadModuleResult DependenciesResolver::loadModule(
     if (m_product.item) {
         Item::Module module = createModule(dependency, moduleItem, productDep);
         module.required = dependency.requiredGlobally;
-        addLoadingItem(module, *loadingItem);
+        addLoadContext(module);
         module.maxDependsChainLength = dependsChainLength();
         m_product.item->addModule(module);
         addLocalModule();

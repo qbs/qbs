@@ -338,9 +338,11 @@ void ProductResolverStage1::updateModulePresentState(const Item::Module &module)
 {
     if (!module.item->isPresentModule())
         return;
+    if (module.name.first() == StringConstants::qbsModule())
+        return;
     bool hasPresentLoadingItem = false;
     for (const Item::Module::LoadContext &loadContext : module.loadContexts) {
-        const Item * const loadingItem = loadContext.loadingItem;
+        const Item * const loadingItem = loadContext.loadingItem();
         if (loadingItem == m_product.item) {
             hasPresentLoadingItem = true;
             break;
@@ -428,8 +430,8 @@ void ProductResolverStage1::mergeDependencyParameters()
             // final parameter map.
             if (parameters.isEmpty())
                 continue;
-            if (context.loadingItem->type() == ItemType::ModuleInstance
-                    && !context.loadingItem->isPresentModule()) {
+            if (context.loadingItem()->type() == ItemType::ModuleInstance
+                    && !context.loadingItem()->isPresentModule()) {
                 continue;
             }
 

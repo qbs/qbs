@@ -89,18 +89,19 @@ public:
         // number of module instances and at most one product.
         using ParametersWithPriority = std::pair<QVariantMap, int>;
         struct LoadContext {
-            LoadContext(Item *loadingItem,
+            LoadContext(Item *dependsItem,
                         const ParametersWithPriority &parameters)
-                : loadingItem(loadingItem), parameters(parameters) {}
-            LoadContext(Item *loadingItem, ParametersWithPriority &&parameters)
-                : loadingItem(loadingItem), parameters(std::move(parameters)) {}
+                : dependsItem(dependsItem), parameters(parameters) {}
+            LoadContext(Item *dependsItem, ParametersWithPriority &&parameters)
+                : dependsItem(dependsItem), parameters(std::move(parameters)) {}
 
             LoadContext(const LoadContext &) = default;
             LoadContext(LoadContext &&) = default;
             LoadContext &operator=(const LoadContext &) = default;
             LoadContext &operator=(LoadContext &&) = default;
 
-            Item *loadingItem;
+            Item *loadingItem() const { return dependsItem ? dependsItem->parent() : nullptr; }
+            Item *dependsItem;
             ParametersWithPriority parameters;
         };
         std::vector<LoadContext> loadContexts;
