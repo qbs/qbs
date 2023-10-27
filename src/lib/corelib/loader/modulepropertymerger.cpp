@@ -176,6 +176,11 @@ void ModulePropertyMerger::mergePropertyFromLocalInstance(
     Item *loadingItem, const QString &loadingName, Item *globalInstance,
     const QString &name, const ValuePtr &value)
 {
+    if (loadingItem->type() == ItemType::Project) {
+        throw ErrorInfo(Tr::tr("Module properties cannot be set in Project items."),
+                        value->location());
+    }
+
     const PropertyDeclaration decl = globalInstance->propertyDeclaration(name);
     if (!decl.isValid()) {
         if (value->type() == Value::ItemValueType || value->createdByPropertiesBlock())
@@ -287,6 +292,11 @@ bool ModulePropertyMerger::doFinalMerge(const PropertyDeclaration &propertyDecl,
 
         if (propertyValue == chosenValue)
             return false;
+        std::vector<ValuePtr> candidates = propertyValue->candidates();
+        candidates.erase(std::find(candidates.begin(), candidates.end(), chosenValue));
+        chosenValue->setCandidates(candidates);
+        chosenValue->addCandidate(propertyValue);
+        propertyValue->setCandidates({});
         propertyValue = chosenValue;
         return true;
     }

@@ -33,7 +33,6 @@ import qbs.FileInfo
 import qbs.Process
 import qbs.TextFile
 import qbs.Utilities
-import '../QtModule.qbs' as QtModule
 import 'quick.js' as QC
 
 QtModule {

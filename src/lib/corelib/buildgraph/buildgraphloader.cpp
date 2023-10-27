@@ -858,8 +858,10 @@ void BuildGraphLoader::replaceFileDependencyWithArtifact(const ResolvedProductPt
 bool BuildGraphLoader::checkConfigCompatibility()
 {
     const TopLevelProjectConstPtr restoredProject = m_result.loadedProject;
-    if (m_parameters.topLevelProfile().isEmpty())
+    if (m_parameters.topLevelProfile().isEmpty()) {
         m_parameters.setTopLevelProfile(restoredProject->profile());
+        m_parameters.expandBuildConfiguration();
+    }
     if (!m_parameters.overrideBuildGraphData()) {
         if (!m_parameters.overriddenValues().empty()
                 && m_parameters.overriddenValues() != restoredProject->overriddenValues) {

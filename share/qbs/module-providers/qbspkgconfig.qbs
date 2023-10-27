@@ -42,6 +42,8 @@ import qbs.File
 import qbs.FileInfo
 import qbs.ModUtils
 import qbs.PkgConfig
+import qbs.ProviderUtils
+import qbs.Probes
 import qbs.Process
 import qbs.TextFile
 
@@ -64,30 +66,19 @@ ModuleProvider {
         removalVersion: "2.3.0"
     }
 
+    Probes.QbsPkgConfigProbe {
+        id: theProbe
+        // TODO: without explicit 'parent' we do not have access to the fake "qbs" scope
+        _executableFilePath: parent.executableFilePath
+        _extraPaths: parent.extraPaths
+        _sysroot: parent.sysroot
+        _libDirs: parent.libDirs
+        _staticMode: parent.staticMode
+    }
+
+    isEager: false
+
     relativeSearchPaths: {
-
-        function exeSuffix(qbs) { return FileInfo.executableSuffix(); }
-
-        // we need Probes in Providers...
-        function getPkgConfigExecutable(qbs) {
-            function splitNonEmpty(s, c) { return s.split(c).filter(function(e) { return e; }) }
-
-            var pathValue = Environment.getEnv("PATH");
-            if (!pathValue)
-                return undefined;
-            var dirs = splitNonEmpty(pathValue, FileInfo.pathListSeparator());
-            var suffix = exeSuffix(qbs);
-            var filePaths = [];
-            for (var i = 0; i < dirs.length; ++i) {
-                var candidate = FileInfo.joinPaths(dirs[i], "pkg-config" + suffix);
-                var canonicalCandidate = FileInfo.canonicalPath(candidate);
-                if (!canonicalCandidate || !File.exists(canonicalCandidate))
-                    continue;
-                return canonicalCandidate;
-            }
-            return undefined;
-        }
-
         function getModuleInfo(pkg, staticMode) {
             var result = {};
 
@@ -129,14 +120,12 @@ ModuleProvider {
             return result;
         }
 
-        function getModuleName(packageName) { return packageName.replace(/\./g, '-'); }
-
         function getModuleDependencies(pkg, staticMode) {
             var mapper = function(p) {
                 var result = {};
                 for (var key in p)
                     result[key] = p[key];
-                result.name = getModuleName(result.name);
+                result.name = ProviderUtils.pkgConfigToModuleName(result.name);
                 return result;
             }
             var result = pkg.requires.map(mapper);
@@ -145,138 +134,85 @@ ModuleProvider {
             return result;
         }
 
-        console.debug("Running pkgconfig provider.")
+        console.debug("Running pkgconfig provider for " + moduleName + ".");
 
         var outputDir = FileInfo.joinPaths(outputBaseDir, "modules");
         File.makePath(outputDir);
 
-        var options = {};
-        options.libDirs = libDirs;
-        options.sysroot = sysroot;
-        if (options.sysroot)
-            options.allowSystemLibraryPaths = true;
-        options.staticMode = staticMode;
-        options.mergeDependencies = mergeDependencies;
-        options.extraPaths = extraPaths;
-        if (options.sysroot && !options.libDirs) {
-            options.libDirs = [
-                sysroot + "/usr/lib/pkgconfig",
-                sysroot + "/usr/share/pkgconfig"
-            ];
-        }
-        if (!options.libDirs) {
-            // if we have pkg-config installed, let's ask it for its search paths (since
-            // built-in search paths can differ between platforms)
-            var executable = executableFilePath ? executableFilePath : getPkgConfigExecutable(qbs);
-            if (executable) {
-                var p = new Process()
-                if (p.exec(executable, ['pkg-config', '--variable=pc_path']) === 0) {
-                    var stdout = p.readStdOut().trim();
-                    // TODO: pathListSeparator? depends on what pkg-config prints on Windows
-                    options.libDirs = stdout ? stdout.split(':'): [];
-                }
-            }
-        }
-
-        function setupQt(pkg) {
-            var packageName = pkg.baseFileName;
-            if (packageName === "QtCore"
-                    || packageName === "Qt5Core"
-                    || packageName === "Qt6Core") {
-                var binDir = pkg.variables["bindir"] || pkg.variables["host_bins"];
-                if (!binDir) {
-                    if (packageName === "QtCore") { // Qt4 does not have host_bins
-                        var mocLocation = pkg.variables["moc_location"];
-                        if (!mocLocation) {
-                            console.warn("No moc_location variable in " + packageName);
-                            return;
-                        }
-                        binDir = FileInfo.path(mocLocation);
-                    } else {
-                        console.warn("No 'bindir' or 'host_bins' variable in " + packageName);
-                        return;
-                    }
-                }
-                var suffix = exeSuffix(qbs);
-                var qmakePaths = [FileInfo.joinPaths(binDir, "qmake" + suffix)];
-                var qtProviderDir = FileInfo.joinPaths(path, "Qt");
-                SetupQt.doSetup(qmakePaths, outputBaseDir, qtProviderDir, qbs);
-            }
-        }
-
+        // TODO: ponder how we can solve forward mapping with Packages so we can fill deps
         var moduleMapping = {
             "protobuf": "protobuflib",
             "grpc++": "grpcpp"
         }
+        var reverseMapping = {}
+        for (var key in moduleMapping)
+            reverseMapping[moduleMapping[key]] = key
 
-        var pkgConfig = new PkgConfig(options);
+        if (moduleName.startsWith("Qt")) {
+            function setupQt(packageName, qtInfos) {
+                if (qtInfos === undefined)
+                    return [];
+                var qtProviderDir = FileInfo.joinPaths(path, "Qt");
+                return SetupQt.doSetup(packageName, qtInfos, outputBaseDir, qtProviderDir);
+            }
 
-        var brokenPackages = [];
-        var packages = pkgConfig.packages();
-        for (var packageName in packages) {
-            var pkg = packages[packageName];
-            if (pkg.isBroken) {
-                brokenPackages.push(pkg);
-                continue;
+            if (!sysroot) {
+                return setupQt(moduleName, theProbe.qtInfos);
             }
-            if (packageName.startsWith("Qt")) {
-                if (!sysroot) {
-                    setupQt(pkg);
-                }
-                continue;
-            }
-            var moduleName = getModuleName(moduleMapping[packageName]
-                    ? moduleMapping[packageName]
-                    : packageName);
-            var moduleInfo = getModuleInfo(pkg, staticMode);
-            var deps = getModuleDependencies(pkg, staticMode);
-
-            var moduleDir = FileInfo.joinPaths(outputDir, moduleName);
-            File.makePath(moduleDir);
-            var module =
-                    new TextFile(FileInfo.joinPaths(moduleDir, "module.qbs"), TextFile.WriteOnly);
-            module.writeLine("Module {");
-            module.writeLine("    version: " + ModUtils.toJSLiteral(moduleInfo.version));
-            module.writeLine("    Depends { name: 'cpp' }");
-            deps.forEach(function(dep) {
-                var depName = getModuleName(
-                        moduleMapping[dep.name] ? moduleMapping[dep.name] : dep.name);
-                module.write("    Depends { name: '" + depName + "'");
-                for (var k in dep) {
-                    if (k === "name")
-                        continue;
-                    module.write("; " + k + ": " + ModUtils.toJSLiteral(dep[k]));
-                }
-                module.writeLine(" }");
-            })
-            function writeProperty(propertyName) {
-                var value = moduleInfo[propertyName];
-                if (value.length !== 0) { // skip empty props for simplicity of the module file
-                    module.writeLine(
-                            "    cpp." + propertyName + ":" + ModUtils.toJSLiteral(value));
-                }
-            }
-            writeProperty("includePaths");
-            writeProperty("systemIncludePaths");
-            writeProperty("defines");
-            writeProperty("commonCompilerFlags");
-            writeProperty("dynamicLibraries");
-            writeProperty("staticLibraries");
-            writeProperty("libraryPaths");
-            writeProperty("frameworks");
-            writeProperty("frameworkPaths");
-            writeProperty("driverLinkerFlags");
-            module.writeLine("}");
-            module.close();
+            return [];
         }
 
-        if (brokenPackages.length !== 0) {
-            console.warn("Failed to load some pkg-config packages:");
-            for (var i = 0; i < brokenPackages.length; ++i) {
-                console.warn("    " + brokenPackages[i].filePath
-                    + ": " + brokenPackages[i].errorText);
+        var pkg;
+        pkg = theProbe.packages[reverseMapping[moduleName]];
+        if (pkg === undefined)
+            pkg = theProbe.packagesByModuleName[moduleName];
+        if (pkg === undefined)
+            return [];
+
+        if (pkg.isBroken) {
+            console.warn("Failed to load " + moduleName + " as it's pkg-config package is broken");
+            return [];
+        }
+        var moduleInfo = getModuleInfo(pkg, staticMode);
+        var deps = getModuleDependencies(pkg, staticMode);
+
+        var moduleDir = FileInfo.joinPaths(outputDir, moduleName);
+        File.makePath(moduleDir);
+        var module =
+                new TextFile(FileInfo.joinPaths(moduleDir, "module.qbs"), TextFile.WriteOnly);
+        module.writeLine("Module {");
+        module.writeLine("    version: " + ModUtils.toJSLiteral(moduleInfo.version));
+        module.writeLine("    Depends { name: 'cpp' }");
+        deps.forEach(function(dep) {
+            var depName = ProviderUtils.pkgConfigToModuleName(
+                    moduleMapping[dep.name] ? moduleMapping[dep.name] : dep.name);
+            module.write("    Depends { name: '" + depName + "'");
+            for (var k in dep) {
+                if (k === "name")
+                    continue;
+                module.write("; " + k + ": " + ModUtils.toJSLiteral(dep[k]));
+            }
+            module.writeLine(" }");
+        })
+        function writeProperty(propertyName) {
+            var value = moduleInfo[propertyName];
+            if (value.length !== 0) { // skip empty props for simplicity of the module file
+                module.writeLine(
+                        "    cpp." + propertyName + ":" + ModUtils.toJSLiteral(value));
             }
         }
+        writeProperty("includePaths");
+        writeProperty("systemIncludePaths");
+        writeProperty("defines");
+        writeProperty("commonCompilerFlags");
+        writeProperty("dynamicLibraries");
+        writeProperty("staticLibraries");
+        writeProperty("libraryPaths");
+        writeProperty("frameworks");
+        writeProperty("frameworkPaths");
+        writeProperty("driverLinkerFlags");
+        module.writeLine("}");
+        module.close();
 
         return "";
     }

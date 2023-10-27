@@ -1,7 +1,6 @@
 import qbs.FileInfo
 import qbs.Host
 import qbs.TextFile
-import '../QtModule.qbs' as QtModule
 import "qml.js" as Qml
 
 QtModule {
