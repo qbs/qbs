@@ -339,8 +339,8 @@ void ProductResolverStage1::updateModulePresentState(const Item::Module &module)
     if (!module.item->isPresentModule())
         return;
     bool hasPresentLoadingItem = false;
-    for (const auto &loadingItemInfo : module.loadingItems) {
-        const Item * const loadingItem = loadingItemInfo.first;
+    for (const Item::Module::LoadContext &loadContext : module.loadContexts) {
+        const Item * const loadingItem = loadContext.loadingItem;
         if (loadingItem == m_product.item) {
             hasPresentLoadingItem = true;
             break;
@@ -421,21 +421,23 @@ void ProductResolverStage1::mergeDependencyParameters()
                 ? module.product->defaultParameters
                 : m_loaderState.topLevelProject().parameters(module.item->prototype());
         priorityList.emplace_back(defaultParameters, INT_MIN);
-        for (const Item::Module::LoadingItemInfo &info : module.loadingItems) {
-            const QVariantMap &parameters = info.second.first;
+        for (const Item::Module::LoadContext &context : module.loadContexts) {
+            const QVariantMap &parameters = context.parameters.first;
 
             // Empty parameter maps and inactive loading modules do not contribute to the
             // final parameter map.
             if (parameters.isEmpty())
                 continue;
-            if (info.first->type() == ItemType::ModuleInstance && !info.first->isPresentModule())
+            if (context.loadingItem->type() == ItemType::ModuleInstance
+                    && !context.loadingItem->isPresentModule()) {
                 continue;
+            }
 
             // Build a list sorted by priority.
             static const auto cmp = [](const PP &elem, int prio) { return elem.second < prio; };
             const auto it = std::lower_bound(priorityList.begin(), priorityList.end(),
-                                             info.second.second, cmp);
-            priorityList.insert(it, info.second);
+                                             context.parameters.second, cmp);
+            priorityList.insert(it, context.parameters);
         }
 
         module.parameters = qbs::Internal::mergeDependencyParameters(std::move(priorityList));

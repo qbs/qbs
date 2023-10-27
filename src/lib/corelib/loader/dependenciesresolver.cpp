@@ -411,7 +411,7 @@ LoadModuleResult DependenciesResolver::loadModule(
     Item *moduleItem = nullptr;
 
     const auto addLoadingItem = [&](Item::Module &module, Item &loadingItem) {
-        module.loadingItems.emplace_back(&loadingItem,
+        module.loadContexts.emplace_back(&loadingItem,
                                          std::make_pair(dependency.parameters,
                                                         INT_MAX - dependsChainLength()));
     };
@@ -427,15 +427,16 @@ LoadModuleResult DependenciesResolver::loadModule(
 
         QBS_CHECK(existingModule->item);
         moduleItem = existingModule->item;
-        const auto matcher = [loadingItem](const Item::Module::LoadingItemInfo &info) {
-            return info.first == loadingItem;
+        const auto matcher = [loadingItem](const Item::Module::LoadContext &context) {
+            return context.loadingItem == loadingItem;
         };
-        const auto it = std::find_if(existingModule->loadingItems.begin(),
-                                     existingModule->loadingItems.end(), matcher);
-        if (it == existingModule->loadingItems.end())
+        const auto it = std::find_if(existingModule->loadContexts.begin(),
+                                     existingModule->loadContexts.end(), matcher);
+        if (it == existingModule->loadContexts.end())
             addLoadingItem(*existingModule, *loadingItem);
         else
-            it->second.first = mergeDependencyParameters(it->second.first, dependency.parameters);
+            it->parameters.first = mergeDependencyParameters(it->parameters.first,
+                                                             dependency.parameters);
     } else if (dependency.product) {
         productDep = dependency.product; // We have already done the look-up.
     } else if (!(productDep = findMatchingProduct(dependency))) {

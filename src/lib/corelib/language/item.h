@@ -85,11 +85,25 @@ public:
         Item *item = nullptr;
         ProductContext *product = nullptr; // Set if and only if the dep is a product.
 
-        // All items that declared an explicit dependency on this module. Can contain any
+        // All the sites that declared an explicit dependency on this module. Can contain any
         // number of module instances and at most one product.
         using ParametersWithPriority = std::pair<QVariantMap, int>;
-        using LoadingItemInfo = std::pair<Item *, ParametersWithPriority>;
-        std::vector<LoadingItemInfo> loadingItems;
+        struct LoadContext {
+            LoadContext(Item *loadingItem,
+                        const ParametersWithPriority &parameters)
+                : loadingItem(loadingItem), parameters(parameters) {}
+            LoadContext(Item *loadingItem, ParametersWithPriority &&parameters)
+                : loadingItem(loadingItem), parameters(std::move(parameters)) {}
+
+            LoadContext(const LoadContext &) = default;
+            LoadContext(LoadContext &&) = default;
+            LoadContext &operator=(const LoadContext &) = default;
+            LoadContext &operator=(LoadContext &&) = default;
+
+            Item *loadingItem;
+            ParametersWithPriority parameters;
+        };
+        std::vector<LoadContext> loadContexts;
 
         QVariantMap parameters;
         VersionRange versionRange;
