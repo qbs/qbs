@@ -249,7 +249,8 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
         return input.cpp.includeFlag + FileInfo.toWindowsSeparators(path);
     }));
 
-    var includeFlag = input.qbs.toolchain.includes("clang-cl") ? input.cpp.systemIncludeFlag : input.cpp.includeFlag;
+    var includeFlag = input.qbs.toolchain.includes("clang-cl")
+        ? input.cpp.systemIncludeFlag : input.cpp.includeFlag;
     if (!input.qbs.toolchain.includes("clang-cl")) {
         if (supportsExternalIncludesOption(input)) {
             args.push("/experimental:external");
