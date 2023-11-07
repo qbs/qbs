@@ -48,6 +48,7 @@
 #include <parser/qmljsengine_p.h>
 #include <tools/codelocation.h>
 #include <tools/filetime.h>
+#include <tools/mutexdata.h>
 #include <tools/joblimits.h>
 #include <tools/pimpl.h>
 #include <tools/set.h>
@@ -127,7 +128,7 @@ public:
         void removeProcessingThread();
 
     private:
-        GuardedData<Set<std::thread::id>, std::recursive_mutex> m_processingThreads;
+        MutexData<Set<std::thread::id>, std::recursive_mutex> m_processingThreads;
     };
 
     const Set<QString> &filesRead() const { return m_filesRead; }
@@ -138,8 +139,8 @@ public:
 
 private:
     Set<QString> m_filesRead;
-    GuardedData<std::unordered_map<QString, std::optional<QStringList>>, std::mutex> m_directoryEntries; // TODO: Merge with module dir entries cache?
-    GuardedData<std::unordered_map<QString, AstCacheEntry>, std::mutex> m_astCache;
+    MutexData<std::unordered_map<QString, std::optional<QStringList>>, std::mutex> m_directoryEntries; // TODO: Merge with module dir entries cache?
+    MutexData<std::unordered_map<QString, AstCacheEntry>, std::mutex> m_astCache;
 };
 
 class DependenciesContext
@@ -226,8 +227,9 @@ public:
     void addProject(ProjectContext *project) { m_projects.push_back(project); }
     const std::vector<ProjectContext *> &projects() const { return m_projects; }
 
+    using QueuedErrors = MutexData<std::vector<ErrorInfo>, std::mutex>;
     void addQueuedError(const ErrorInfo &error);
-    const std::vector<ErrorInfo> &queuedErrors() const { return m_queuedErrors.data; }
+    QueuedErrors::UniqueConstGuard queuedErrors() const { return m_queuedErrors.lock(); }
 
     void setProfileConfigs(const QVariantMap &profileConfigs) { m_profileConfigs = profileConfigs; }
     void addProfileConfig(const QString &profileName, const QVariantMap &profileConfig);
@@ -279,7 +281,7 @@ public:
 
     void addCodeLink(const QString &sourceFile, const CodeRange &sourceRange,
                      const CodeLocation &target);
-    CodeLinks codeLinks() const { return m_codeLinks.data; }
+    CodeLinks codeLinks() const { return m_codeLinks.lock().get(); }
 
     // An empty string means no matching module directory was found.
     QString findModuleDirectory(const QualifiedId &module, const QString &searchPath,
@@ -335,16 +337,16 @@ private:
     std::vector<ProjectContext *> m_projects;
     GuardedData<Set<const ProductContext *>> m_productsToHandle;
     std::multimap<QString, ProductContext *> m_productsByName;
-    GuardedData<std::unordered_map<QStringView, QString>, std::mutex> m_sourceCode;
+    MutexData<std::unordered_map<QStringView, QString>, std::mutex> m_sourceCode;
     std::unordered_map<QString, QVariantMap> m_multiplexConfigsById;
-    GuardedData<QHash<CodeLocation, ScriptFunctionPtr>, std::mutex> m_scriptFunctionMap;
-    GuardedData<std::unordered_map<std::pair<QStringView, QStringList>, QString>,
+    MutexData<QHash<CodeLocation, ScriptFunctionPtr>, std::mutex> m_scriptFunctionMap;
+    MutexData<std::unordered_map<std::pair<QStringView, QStringList>, QString>,
                 std::mutex> m_scriptFunctions;
     std::unordered_map<FileContextConstPtr, ResolvedFileContextPtr> m_fileContextMap;
     Set<QString> m_projectNamesUsedInOverrides;
     Set<QString> m_productNamesUsedInOverrides;
-    GuardedData<Set<const Item *>> m_disabledItems;
-    GuardedData<std::vector<ErrorInfo>, std::mutex> m_queuedErrors;
+    MutexData<Set<const Item *>> m_disabledItems;
+    QueuedErrors m_queuedErrors;
     QString m_buildDirectory;
     QVariantMap m_profileConfigs;
     ProgressObserver *m_progressObserver = nullptr;
@@ -357,26 +359,26 @@ private:
 
     // For fast look-up when resolving Depends.productTypes.
     // The contract is that it contains fully handled, error-free, enabled products.
-    GuardedData<std::multimap<FileTag, ProductContext *>> m_productsByType;
+    MutexData<std::multimap<FileTag, ProductContext *>> m_productsByType;
 
     // The keys are module prototypes.
-    GuardedData<std::unordered_map<const Item *,
+    MutexData<std::unordered_map<const Item *,
                                    Item::PropertyDeclarationMap>> m_parameterDeclarations;
-    GuardedData<std::unordered_map<const Item *, QVariantMap>> m_parameters;
-    GuardedData<std::unordered_map<const Item *,
+    MutexData<std::unordered_map<const Item *, QVariantMap>> m_parameters;
+    MutexData<std::unordered_map<const Item *,
                                    std::vector<ErrorInfo>>> m_unknownProfilePropertyErrors;
 
     // The keys are search path + module name, the values are directories.
-    GuardedData<QHash<std::pair<QString, QualifiedId>, std::optional<QString>>,
+    MutexData<QHash<std::pair<QString, QualifiedId>, std::optional<QString>>,
                 std::mutex> m_modulePathCache;
 
     // The keys are file paths, the values are module prototype items accompanied by a profile.
-    GuardedData<std::unordered_map<QString, std::vector<std::pair<Item *, QString>>>,
+    MutexData<std::unordered_map<QString, std::vector<std::pair<Item *, QString>>>,
                 std::mutex> m_modulePrototypes;
 
-    GuardedData<std::map<QString, std::optional<QStringList>>,
+    MutexData<std::map<QString, std::optional<QStringList>>,
                 std::mutex> m_moduleFilesPerDirectory;
-    GuardedData<CodeLinks> m_codeLinks;
+    MutexData<CodeLinks> m_codeLinks;
 
     struct {
         QHash<QString, std::vector<ProbeConstPtr>> oldProjectProbes;

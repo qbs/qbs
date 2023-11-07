@@ -131,8 +131,8 @@ void TopLevelProjectContext::checkCancelation()
 
 QString TopLevelProjectContext::sourceCodeForEvaluation(const JSSourceValueConstPtr &value)
 {
-    std::lock_guard lock(m_sourceCode.mutex);
-    QString &code = m_sourceCode.data[value->sourceCode()];
+    const auto sourceCodeGuard = m_sourceCode.lock();
+    QString &code = sourceCodeGuard.get()[value->sourceCode()];
     if (!code.isNull())
         return code;
     code = value->sourceCodeForEvaluation();
@@ -143,8 +143,8 @@ ScriptFunctionPtr TopLevelProjectContext::scriptFunctionValue(Item *item, const 
 {
     const JSSourceValuePtr value = item->sourceProperty(name);
     QBS_CHECK(value);
-    std::lock_guard lock(m_scriptFunctionMap.mutex);
-    ScriptFunctionPtr &script = m_scriptFunctionMap.data[value->location()];
+    const auto scriptFunctionMapGuard = m_scriptFunctionMap.lock();
+    ScriptFunctionPtr &script = scriptFunctionMapGuard.get()[value->location()];
     if (!script.get()) {
         script = ScriptFunction::create();
         const PropertyDeclaration decl = item->propertyDeclaration(name);
@@ -158,9 +158,9 @@ ScriptFunctionPtr TopLevelProjectContext::scriptFunctionValue(Item *item, const 
 QString TopLevelProjectContext::sourceCodeAsFunction(const JSSourceValueConstPtr &value,
                                                      const PropertyDeclaration &decl)
 {
-    std::lock_guard lock(m_scriptFunctions.mutex);
-    QString &scriptFunction = m_scriptFunctions.data[std::make_pair(value->sourceCode(),
-                                                                    decl.functionArgumentNames())];
+    const auto scriptFunctionMapGuard = m_scriptFunctions.lock();
+    QString &scriptFunction = scriptFunctionMapGuard.get()[std::make_pair(value->sourceCode(),
+                                                           decl.functionArgumentNames())];
     if (!scriptFunction.isNull())
         return scriptFunction;
     const QString args = decl.functionArgumentNames().join(QLatin1Char(','));
@@ -201,14 +201,12 @@ bool TopLevelProjectContext::isProductQueuedForHandling(const ProductContext &pr
 
 void TopLevelProjectContext::addDisabledItem(Item *item)
 {
-    std::unique_lock lock(m_disabledItems.mutex);
-    m_disabledItems.data << item;
+    m_disabledItems.lock().get() << item;
 }
 
 bool TopLevelProjectContext::isDisabledItem(const Item *item) const
 {
-    std::shared_lock lock(m_disabledItems.mutex);
-    return m_disabledItems.data.contains(item);
+    return m_disabledItems.lock_shared().get().contains(item);
 }
 
 void TopLevelProjectContext::setProgressObserver(ProgressObserver *observer)
@@ -220,8 +218,7 @@ ProgressObserver *TopLevelProjectContext::progressObserver() const { return m_pr
 
 void TopLevelProjectContext::addQueuedError(const ErrorInfo &error)
 {
-    std::lock_guard lock(m_queuedErrors.mutex);
-    m_queuedErrors.data << error;
+    m_queuedErrors.lock().get() << error;
 }
 
 void TopLevelProjectContext::addProfileConfig(const QString &profileName,
@@ -255,9 +252,9 @@ void TopLevelProjectContext::addProduct(ProductContext &product)
 
 void TopLevelProjectContext::addProductByType(ProductContext &product, const FileTags &tags)
 {
-    std::unique_lock lock(m_productsByType.mutex);
+    const auto productsByTypeGuard = m_productsByType.lock();
     for (const FileTag &tag : tags)
-        m_productsByType.data.insert({tag, &product});
+        productsByTypeGuard.get().insert({tag, &product});
 }
 
 ProductContext *TopLevelProjectContext::productWithNameAndConstraint(
@@ -288,10 +285,10 @@ std::vector<ProductContext *> TopLevelProjectContext::productsWithNameAndConstra
 std::vector<ProductContext *> TopLevelProjectContext::productsWithTypeAndConstraint(
         const FileTags &tags, const std::function<bool (ProductContext &)> &constraint)
 {
-    std::shared_lock lock(m_productsByType.mutex);
+    const auto productsByTypeGuard = m_productsByType.lock_shared();
     std::vector<ProductContext *> matchingProducts;
     for (const FileTag &typeTag : tags) {
-        const auto range = m_productsByType.data.equal_range(typeTag);
+        const auto range = productsByTypeGuard.get().equal_range(typeTag);
         for (auto it = range.first; it != range.second; ++it) {
             if (constraint(*it->second))
                 matchingProducts.push_back(it->second);
@@ -374,15 +371,14 @@ ModuleProviderInfo &TopLevelProjectContext::addModuleProvider(const ModuleProvid
 void TopLevelProjectContext::addParameterDeclarations(const Item *moduleProto,
                                                       const Item::PropertyDeclarationMap &decls)
 {
-    std::unique_lock lock(m_parameterDeclarations.mutex);
-    m_parameterDeclarations.data.insert({moduleProto, decls});
+    m_parameterDeclarations.lock().get().insert({moduleProto, decls});
 }
 
 Item::PropertyDeclarationMap TopLevelProjectContext::parameterDeclarations(Item *moduleProto) const
 {
-    std::shared_lock lock(m_parameterDeclarations.mutex);
-    if (const auto it = m_parameterDeclarations.data.find(moduleProto);
-            it != m_parameterDeclarations.data.end()) {
+    const auto parameterDeclarationsGuard = m_parameterDeclarations.lock_shared();
+    const auto &declarations = parameterDeclarationsGuard.get();
+    if (const auto it = declarations.find(moduleProto); it != declarations.end()) {
         return it->second;
     }
     return {};
@@ -390,14 +386,14 @@ Item::PropertyDeclarationMap TopLevelProjectContext::parameterDeclarations(Item 
 
 void TopLevelProjectContext::setParameters(const Item *moduleProto, const QVariantMap &parameters)
 {
-    std::unique_lock lock(m_parameters.mutex);
-    m_parameters.data.insert({moduleProto, parameters});
+    m_parameters.lock().get().insert({moduleProto, parameters});
 }
 
 QVariantMap TopLevelProjectContext::parameters(Item *moduleProto) const
 {
-    std::shared_lock lock(m_parameters.mutex);
-    if (const auto it = m_parameters.data.find(moduleProto); it != m_parameters.data.end()) {
+    const auto parametersGuard = m_parameters.lock_shared();
+    const auto &parameters = parametersGuard.get();
+    if (const auto it = parameters.find(moduleProto); it != parameters.end()) {
         return it->second;
     }
     return {};
@@ -406,8 +402,8 @@ QVariantMap TopLevelProjectContext::parameters(Item *moduleProto) const
 void TopLevelProjectContext::addCodeLink(const QString &sourceFile, const CodeRange &sourceRange,
                                          const CodeLocation &target)
 {
-    std::lock_guard lock(m_codeLinks.mutex);
-    QList<CodeLocation> &links = m_codeLinks.data[sourceFile][sourceRange];
+    const auto codeLinksGuard = m_codeLinks.lock();
+    QList<CodeLocation> &links = codeLinksGuard.get()[sourceFile][sourceRange];
     if (!links.contains(target))
         links << target;
 }
@@ -416,8 +412,8 @@ QString TopLevelProjectContext::findModuleDirectory(
         const QualifiedId &module, const QString &searchPath,
         const std::function<QString()> &findOnDisk)
 {
-    std::lock_guard lock(m_modulePathCache.mutex);
-    auto &path = m_modulePathCache.data[{searchPath, module}];
+    const auto modulePathCacheGuard = m_modulePathCache.lock();
+    auto &path = modulePathCacheGuard.get()[{searchPath, module}];
     if (!path)
         path = findOnDisk();
     return *path;
@@ -426,8 +422,8 @@ QString TopLevelProjectContext::findModuleDirectory(
 QStringList TopLevelProjectContext::getModuleFilesForDirectory(
         const QString &dir, const std::function<QStringList ()> &findOnDisk)
 {
-    std::lock_guard lock(m_moduleFilesPerDirectory.mutex);
-    auto &list = m_moduleFilesPerDirectory.data[dir];
+    const auto moduleFilesGuard = m_moduleFilesPerDirectory.lock();
+    auto &list = moduleFilesGuard.get()[dir];
     if (!list)
         list = findOnDisk();
     return *list;
@@ -435,25 +431,25 @@ QStringList TopLevelProjectContext::getModuleFilesForDirectory(
 
 void TopLevelProjectContext::removeModuleFileFromDirectoryCache(const QString &filePath)
 {
-    std::lock_guard lock(m_moduleFilesPerDirectory.mutex);
-    const auto it = m_moduleFilesPerDirectory.data.find(FileInfo::path(filePath));
-    QBS_CHECK(it != m_moduleFilesPerDirectory.data.end());
+    const auto moduleFilesGuard = m_moduleFilesPerDirectory.lock();
+    auto &moduleFiles = moduleFilesGuard.get();
+    const auto it = moduleFiles.find(FileInfo::path(filePath));
+    QBS_CHECK(it != moduleFiles.end());
     it->second->removeOne(filePath);
 }
 
 void TopLevelProjectContext::addUnknownProfilePropertyError(const Item *moduleProto,
                                                             const ErrorInfo &error)
 {
-    std::unique_lock lock(m_unknownProfilePropertyErrors.mutex);
-    m_unknownProfilePropertyErrors.data[moduleProto].push_back(error);
+    m_unknownProfilePropertyErrors.lock().get()[moduleProto].push_back(error);
 }
 
 const std::vector<ErrorInfo> &TopLevelProjectContext::unknownProfilePropertyErrors(
         const Item *moduleProto) const
 {
-    std::shared_lock lock(m_unknownProfilePropertyErrors.mutex);
-    if (const auto it = m_unknownProfilePropertyErrors.data.find(moduleProto);
-            it != m_unknownProfilePropertyErrors.data.end()) {
+    const auto errorsGuard = m_unknownProfilePropertyErrors.lock_shared();
+    const auto &errors = errorsGuard.get();
+    if (const auto it = errors.find(moduleProto); it != errors.end()) {
         return it->second;
     }
     static const std::vector<ErrorInfo> empty;
@@ -463,8 +459,8 @@ const std::vector<ErrorInfo> &TopLevelProjectContext::unknownProfilePropertyErro
 Item *TopLevelProjectContext::getModulePrototype(const QString &filePath, const QString &profile,
                                                  const std::function<Item *()> &produce)
 {
-    std::lock_guard lock(m_modulePrototypes.mutex);
-    auto &prototypeList = m_modulePrototypes.data[filePath];
+    const auto modulePrototypesGuard = m_modulePrototypes.lock();
+    auto &prototypeList = modulePrototypesGuard.get()[filePath];
     for (const auto &prototype : prototypeList) {
         if (prototype.second == profile)
             return prototype.first;
@@ -492,8 +488,10 @@ void TopLevelProjectContext::checkForLocalProfileAsTopLevelProfile(const QString
         // This covers the edge case that a locally defined profile was specified as the
         // top-level profile, in which case we must invalidate the qbs module prototype that was
         // created in early setup before local profiles were handled.
-        QBS_CHECK(m_modulePrototypes.data.size() == 1);
-        m_modulePrototypes.data.clear();
+        const auto prototypesGuard = m_modulePrototypes.lock();
+        auto &modulePrototypes = prototypesGuard.get();
+        QBS_CHECK(modulePrototypes.size() == 1);
+        modulePrototypes.clear();
         break;
     }
 }
@@ -847,8 +845,8 @@ DependenciesContext::~DependenciesContext() = default;
 ItemReaderCache::AstCacheEntry &ItemReaderCache::retrieveOrSetupCacheEntry(
     const QString &filePath, const std::function<void (AstCacheEntry &)> &setup)
 {
-    std::lock_guard lock(m_astCache.mutex);
-    AstCacheEntry &entry = m_astCache.data[filePath];
+    const auto astCacheGuard = m_astCache.lock();
+    AstCacheEntry &entry = astCacheGuard.get()[filePath];
     if (!entry.ast) {
         setup(entry);
         m_filesRead << filePath;
@@ -859,8 +857,8 @@ ItemReaderCache::AstCacheEntry &ItemReaderCache::retrieveOrSetupCacheEntry(
 const QStringList &ItemReaderCache::retrieveOrSetDirectoryEntries(
     const QString &dir, const std::function<QStringList ()> &findOnDisk)
 {
-    std::lock_guard lock(m_directoryEntries.mutex);
-    auto &entries = m_directoryEntries.data[dir];
+    const auto directoryEntriesGuard = m_directoryEntries.lock();
+    auto &entries = directoryEntriesGuard.get()[dir];
     if (!entries)
         entries = findOnDisk();
     return *entries;
@@ -868,14 +866,12 @@ const QStringList &ItemReaderCache::retrieveOrSetDirectoryEntries(
 
 bool ItemReaderCache::AstCacheEntry::addProcessingThread()
 {
-    std::lock_guard lock(m_processingThreads.mutex);
-    return m_processingThreads.data.insert(std::this_thread::get_id()).second;
+    return m_processingThreads.lock().get().insert(std::this_thread::get_id()).second;
 }
 
 void ItemReaderCache::AstCacheEntry::removeProcessingThread()
 {
-    std::lock_guard lock(m_processingThreads.mutex);
-    m_processingThreads.data.remove(std::this_thread::get_id());
+    m_processingThreads.lock().get().remove(std::this_thread::get_id());
 }
 
 class DependencyParametersMerger

@@ -412,6 +412,7 @@ set(TOOLS_HEADERS
     generateoptions.h
     installoptions.h
     joblimits.h
+    mutexdata.h
     preferences.h
     processresult.h
     profile.h
