@@ -1402,8 +1402,8 @@
     will result in the \c {-fuse-ld} option being emitted when linking with \c gcc,
     \c clang or \c clang-cl. Other toolchains do not support this property.
 
-    The possible values for \c clang and \c gcc are \c "bfd", \c "gold" and \c "lld",
-    the possible values for \c clang-cl are \c "link" and \c "lld".
+    The possible values for \c clang and \c gcc are \c "bfd", \c "gold", \c "lld"
+    and \c "mold", the possible values for \c clang-cl are \c "link" and \c "lld".
 
     The following example demonstrates how to change the linker for different toolchains:
 
