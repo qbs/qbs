@@ -92,7 +92,7 @@ private:
     std::optional<std::vector<QualifiedId>> getModuleProviders(Item *item);
 
     QString findModuleProviderFile(const QualifiedId &name, ModuleProviderLookup lookupType);
-    QVariantMap evaluateQbsModule(const ProductContext &product) const;
+    QVariantMap evaluateQbsModule(ProductContext &product) const;
     Item *createProviderScope(const ProductContext &product, const QVariantMap &qbsModule);
     using EvaluationResult = std::pair<QStringList, bool /*isEager*/>;
     EvaluationResult evaluateModuleProvider(
