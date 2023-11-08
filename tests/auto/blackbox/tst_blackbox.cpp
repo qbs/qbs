@@ -6334,26 +6334,43 @@ void TestBlackbox::qbsLanguageServer_data()
 {
     QTest::addColumn<QString>("request");
     QTest::addColumn<QString>("location");
+    QTest::addColumn<QString>("insertLocation");
+    QTest::addColumn<QString>("insertString");
     QTest::addColumn<QString>("expectedReply");
 
     QTest::addRow("follow to module") << "--goto-def"
                                       << (testDataDir + "/lsp/lsp.qbs:4:9")
+                                      << QString() << QString()
                                       << (testDataDir + "/lsp/modules/m/m.qbs:1:1");
     QTest::addRow("follow to submodules")
             << "--goto-def"
             << (testDataDir + "/lsp/lsp.qbs:5:35")
+            << QString() << QString()
             << ((testDataDir + "/lsp/modules/Prefix/m1/m1.qbs:1:1\n")
                 + (testDataDir + "/lsp/modules/Prefix/m2/m2.qbs:1:1\n")
                 + (testDataDir + "/lsp/modules/Prefix/m3/m3.qbs:1:1"));
     QTest::addRow("follow to product") << "--goto-def"
                                        << (testDataDir + "/lsp/lsp.qbs:8:19")
+                                       << QString() << QString()
                                        << (testDataDir + "/lsp/lsp.qbs:2:5");
+    QTest::addRow("follow to module, non-invalidating insert")
+            << "--goto-def"
+            << (testDataDir + "/lsp/lsp.qbs:4:9")
+            << "5:9" << QString("property bool dummy\n")
+            << (testDataDir + "/lsp/modules/m/m.qbs:1:1");
+    QTest::addRow("follow to module, invalidating insert")
+            << "--goto-def"
+            << (testDataDir + "/lsp/lsp.qbs:4:9")
+            << QString() << QString("property bool dummy\n")
+            << QString();
 }
 
 void TestBlackbox::qbsLanguageServer()
 {
     QFETCH(QString, request);
     QFETCH(QString, location);
+    QFETCH(QString, insertLocation);
+    QFETCH(QString, insertString);
     QFETCH(QString, expectedReply);
 
     QDir::setCurrent(testDataDir + "/lsp");
@@ -6397,7 +6414,12 @@ void TestBlackbox::qbsLanguageServer()
     const QFileInfo qbsFileInfo(qbsExecutableFilePath);
     const QString clientFilePath = HostOsInfo::appendExecutableSuffix(
                 qbsFileInfo.absolutePath() + "/qbs_lspclient");
-    lspClient.start(clientFilePath, {"--socket", socketPath, request, location});
+    QStringList args{"--socket", socketPath, request, location};
+    if (!insertString.isEmpty())
+        args << "--insert-code" << insertString;
+    if (!insertLocation.isEmpty())
+        args << "--insert-location" << insertLocation;
+    lspClient.start(clientFilePath, args);
     QVERIFY2(lspClient.waitForStarted(), qPrintable(lspClient.errorString()));
     QVERIFY2(lspClient.waitForFinished(), qPrintable(lspClient.errorString()));
     QString errMsg;

@@ -29,6 +29,7 @@
 #include <lsp/clientcapabilities.h>
 #include <lsp/initializemessages.h>
 #include <lsp/languagefeatures.h>
+#include <lsp/textsynchronization.h>
 
 #include <QBuffer>
 #include <QCommandLineOption>
@@ -44,8 +45,9 @@ enum class Command { GotoDefinition, };
 class LspClient : public QObject
 {
 public:
-    LspClient(Command command, const QString &socketPath, const QString &filePath,
-              int line, int column);
+    LspClient(Command command, const QString &socketPath, const QString &codeToInsert,
+              int insertLine, int insertColumn,
+              const QString &filePath, int line, int column);
     void start();
 
 private:
@@ -57,6 +59,8 @@ private:
     void sendMessage(const lsp::JsonRpcMessage &msg);
     void handleCurrentMessage();
     void handleInitializeReply();
+    void openDocument();
+    void insertCode();
     void sendRequest();
     void handleResponse();
     void sendGotoDefinitionRequest();
@@ -66,16 +70,19 @@ private:
 
     const Command m_command;
     const QString m_socketPath;
+    const QString m_codeToInsert;
+    const int m_insertLine;
+    const int m_insertColumn;
     const QString m_filePath;
-    const int m_line;
-    const int m_column;
+    int m_line;
+    int m_column;
     QLocalSocket m_socket;
     QBuffer m_incomingData;
     lsp::BaseMessage m_currentMessage;
     QJsonObject m_messageObject;
 
     enum class State { Inactive, Connecting, Initializing, RunningCommand }
-                     m_state = State::Inactive;
+    m_state = State::Inactive;
 };
 
 int main(int argc, char *argv[])
@@ -86,8 +93,15 @@ int main(int argc, char *argv[])
                                           "socket");
     const QCommandLineOption gotoDefinitionOption(
                 {"goto-def", "g"}, "Go to definition from the specified location.");
+    const QCommandLineOption insertCodeOption("insert-code",
+                                          "A piece of code to insert before doing the actual "
+                                          "operation.",
+                                          "code");
+    const QCommandLineOption insertLocationOption("insert-location",
+                                                "The location at which to insert the code.",
+                                                "<line>:<column>");
     QCommandLineParser parser;
-    parser.addOptions({socketOption, gotoDefinitionOption});
+    parser.addOptions({socketOption, insertCodeOption, insertLocationOption, gotoDefinitionOption});
     parser.addHelpOption();
     parser.addPositionalArgument("location", "The location at which to operate.",
                                  "<file>:<line>:<column>");
@@ -134,17 +148,34 @@ int main(int argc, char *argv[])
     const int line = extractNumber(loc.mid(sep1 + 1, sep2 - sep1 - 1));
     const int column = extractNumber(loc.mid(sep2 + 1));
 
-    LspClient client(command, parser.value(socketOption),
+    const QString insertLoc = parser.value(insertLocationOption);
+    int insertLine = -1;
+    int insertColumn = -1;
+    if (insertLoc.isEmpty()) {
+        insertLine = line;
+        insertColumn = column;
+    } else {
+        const int sep = insertLoc.indexOf(':');
+        if (sep <= 0)
+            complainAboutLocationString();
+        insertLine = extractNumber(insertLoc.left(sep));
+        insertColumn = extractNumber(insertLoc.mid(sep + 1));
+    }
+
+    LspClient client(command, parser.value(socketOption), parser.value(insertCodeOption),
+                     insertLine, insertColumn,
                      QDir::fromNativeSeparators(loc.left(sep1)), line, column);
     QMetaObject::invokeMethod(&client, &LspClient::start, Qt::QueuedConnection);
 
     return app.exec();
 }
 
-LspClient::LspClient(Command command, const QString &socketPath, const QString &filePath,
-                     int line, int column)
-    : m_command(command), m_socketPath(socketPath), m_filePath(filePath),
-      m_line(line), m_column(column)
+LspClient::LspClient(Command command, const QString &socketPath, const QString &codeToInsert,
+                     int insertLine, int insertColumn,
+                     const QString &filePath, int line, int column)
+    : m_command(command), m_socketPath(socketPath), m_codeToInsert(codeToInsert),
+      m_insertLine(insertLine), m_insertColumn(insertColumn),
+      m_filePath(filePath), m_line(line), m_column(column)
 {
     connect(&m_socket, &QLocalSocket::disconnected, this, [this] {
         finishWithError("Server disconnected unexpectedly.");
@@ -240,6 +271,8 @@ void LspClient::handleCurrentMessage()
         break;
     case State::Initializing:
         handleInitializeReply();
+        openDocument();
+        insertCode();
         sendRequest();
         break;
     case State::RunningCommand:
@@ -261,6 +294,45 @@ void LspClient::handleInitializeReply()
     sendMessage(lsp::InitializeNotification(lsp::InitializedParams()));
 }
 
+void LspClient::openDocument()
+{
+    QFile file(m_filePath);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        return finishWithError(QString::fromLatin1("Could not open '%1': %2")
+                                   .arg(m_filePath, file.errorString()));
+    }
+    lsp::TextDocumentItem item;
+    item.setUri(uri());
+    item.setVersion(0);
+    item.setText(QString::fromUtf8(file.readAll()));
+    item.setLanguageId("application/x-qt.qbs+qml");
+    sendMessage(lsp::DidOpenTextDocumentNotification(lsp::DidOpenTextDocumentParams(item)));
+}
+
+void LspClient::insertCode()
+{
+    if (m_codeToInsert.isEmpty())
+        return;
+
+    lsp::VersionedTextDocumentIdentifier docId;
+    docId.setUri(uri());
+    docId.setVersion(1);
+    lsp::DidChangeTextDocumentParams params(docId);
+    lsp::DidChangeTextDocumentParams::TextDocumentContentChangeEvent change;
+    const lsp::Position insertPos(m_insertLine - 1, m_insertColumn- 1);
+    change.setRange({insertPos, insertPos});
+    change.setText(m_codeToInsert);
+    params.setContentChanges({change});
+    sendMessage(lsp::DidChangeTextDocumentNotification(params));
+
+    if (m_insertLine > m_line || (m_insertLine == m_line && m_insertColumn > m_column))
+        return;
+
+    const int newlineCount = m_codeToInsert.count('\n');
+    m_line += newlineCount;
+    m_column += m_codeToInsert.size() - (newlineCount == 0 ? 0 : m_codeToInsert.lastIndexOf('\n'));
+}
+
 void LspClient::sendRequest()
 {
     m_state = State::RunningCommand;
@@ -272,6 +344,11 @@ void LspClient::sendRequest()
 
 void LspClient::handleResponse()
 {
+    const QString error = m_messageObject.value(lsp::errorKey).toObject()
+                              .value("message").toString();
+    if (!error.isEmpty())
+        return finishWithError(error);
+
     switch (m_command) {
     case Command::GotoDefinition:
         return handleGotoDefinitionResponse();
