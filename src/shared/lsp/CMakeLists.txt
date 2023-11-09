@@ -1,6 +1,6 @@
 add_qbs_library(qtclsp
     STATIC
-    DEPENDS Qt6Core5Compat
+    DEPENDS Qt${QT_VERSION_MAJOR}::Core Qt6Core5Compat
     SOURCES
       algorithm.h
       basemessage.cpp
