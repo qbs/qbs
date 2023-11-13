@@ -32,10 +32,10 @@
     \ingroup list-of-items
     \keyword QML.Parameters
 
-    \brief Defines default values for dependency parameters within Export items.
+    \brief Defines default values for dependency parameters within Module and Export items.
 
     The Parameters item defines default values for dependency parameters within
-    \l{Export} items.
+    \l{Module} and \l{Export} items.
 
     Example:
     \code
