@@ -85,6 +85,8 @@ MsvcBaseModule {
     linkerName: "lld-link.exe"
     linkerPath: FileInfo.joinPaths(toolchainInstallPath, linkerName)
 
+    systemIncludeFlag: "/imsvc"
+
     validateFunc: {
         var baseFunc = base;
         return function() {

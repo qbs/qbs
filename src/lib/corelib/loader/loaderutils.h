@@ -176,6 +176,7 @@ public:
     QVariantMap profileModuleProperties; // Tree-ified module properties from profile.
     QVariantMap moduleProperties;        // Tree-ified module properties from profile + overridden values.
     std::optional<QVariantMap> providerConfig;
+    std::optional<QVariantMap> providerQbsModule;
     QVariantMap defaultParameters; // In Export item.
     QStringList searchPaths;
     ResolvedProductPtr product;

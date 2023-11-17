@@ -249,14 +249,17 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
         return input.cpp.includeFlag + FileInfo.toWindowsSeparators(path);
     }));
 
-    var includeFlag = input.cpp.includeFlag;
-    if (supportsExternalIncludesOption(input)) {
-        args.push("/experimental:external");
-        var enforcesSlashW =
-                Utilities.versionCompare(input.cpp.compilerVersion, "19.29.30037") >= 0
-        if (enforcesSlashW)
-            args.push("/external:W0")
-        includeFlag = input.cpp.systemIncludeFlag;
+    var includeFlag = input.qbs.toolchain.includes("clang-cl")
+        ? input.cpp.systemIncludeFlag : input.cpp.includeFlag;
+    if (!input.qbs.toolchain.includes("clang-cl")) {
+        if (supportsExternalIncludesOption(input)) {
+            args.push("/experimental:external");
+            var enforcesSlashW =
+                    Utilities.versionCompare(input.cpp.compilerVersion, "19.29.30037") >= 0
+            if (enforcesSlashW)
+                args.push("/external:W0")
+            includeFlag = input.cpp.systemIncludeFlag;
+        }
     }
     var systemIncludePaths = Cpp.collectSystemIncludePaths(input);
     args = args.concat([].uniqueConcat(systemIncludePaths).map(function(path) {

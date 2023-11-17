@@ -170,7 +170,7 @@ CppModule {
     property string linkerVariant
     PropertyOptions {
         name: "linkerVariant"
-        allowedValues: ["bfd", "gold", "lld"]
+        allowedValues: ["bfd", "gold", "lld", "mold"]
         description: "Allows to specify the linker variant. Maps to gcc's and clang's -fuse-ld "
                      + "option."
     }
