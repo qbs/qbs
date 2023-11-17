@@ -303,8 +303,10 @@ QString ModuleProviderLoader::findModuleProviderFile(
     return {};
 }
 
-QVariantMap ModuleProviderLoader::evaluateQbsModule(const ProductContext &product) const
+QVariantMap ModuleProviderLoader::evaluateQbsModule(ProductContext &product) const
 {
+    if (product.providerQbsModule)
+        return *product.providerQbsModule;
     const QString properties[] = {
         QStringLiteral("sysroot"),
         QStringLiteral("toolchain"),
@@ -326,7 +328,7 @@ QVariantMap ModuleProviderLoader::evaluateQbsModule(const ProductContext &produc
 
         result[property] = std::move(value);
     }
-    return result;
+    return *(product.providerQbsModule = result);
 }
 
 Item *ModuleProviderLoader::createProviderScope(
