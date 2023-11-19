@@ -63,9 +63,9 @@ Project {
         name: "custom-buttons"
 
         Group {
-            files: ["de_DE.lproj/eula.txt"]
-            dmg.licenseLocale: "sv_SE" // override auto-detected de_DE with sv_SE
-            dmg.licenseLanguageName: "Swedish, not Deutsch"
+            files: ["ru_RU.lproj/eula.txt"]
+            dmg.licenseLocale: "sv_SE" // override auto-detected ru_RU with sv_SE
+            dmg.licenseLanguageName: "Swedish, not Russian"
             dmg.licenseAgreeButtonText: "Of course"
             dmg.licenseDisagreeButtonText: "Never!"
             dmg.licensePrintButtonText: "Make Paper"
@@ -75,7 +75,7 @@ Project {
 
         Group {
             files: ["*.lproj/**"]
-            excludeFiles: ["de_DE.lproj/eula.txt"]
+            excludeFiles: ["ru_RU.lproj/eula.txt"]
         }
     }
 }
