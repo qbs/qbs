@@ -283,9 +283,11 @@ TopLevelProjectPtr ProjectResolver::Private::resolveTopLevelProject()
     }
     resolveProducts(state);
     ErrorInfo accumulatedErrors;
-    const auto queuedErrors = state.topLevelProject().queuedErrors().get();
-    for (const ErrorInfo &e : queuedErrors)
-        appendError(accumulatedErrors, e);
+    {
+        const auto queuedErrors = state.topLevelProject().queuedErrors();
+        for (const ErrorInfo &e : queuedErrors.get())
+            appendError(accumulatedErrors, e);
+    }
     if (accumulatedErrors.hasError())
         throw accumulatedErrors;
 
