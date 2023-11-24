@@ -176,6 +176,7 @@ static QVariantMap getMsvcDefines(const QString &compilerFilePath,
                << qEnvironmentVariable("COMSPEC")
                << QStringLiteral("/c")
                << languageSwitch
+               << QStringLiteral("/Zs")
                << QStringLiteral("NUL"),
                compilerEnv, true, commands)).split(QLatin1Char('\n'));
 

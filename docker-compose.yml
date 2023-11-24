@@ -167,12 +167,12 @@ services:
         QTCREATOR_VERSION: 5.0.3
 
   windows:
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:windowsservercore-6.5.0_1.24.0-0
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:windowsservercore-6.6.0_1.24.0-0
     build:
       dockerfile: docker/windowsservercore/Dockerfile
       context: .
       args:
-        QT_VERSION: 6.5.0
+        QT_VERSION: 6.6.0
         QTCREATOR_VERSION: 9.0.1
     working_dir: 'C:/qbs'
     environment:
