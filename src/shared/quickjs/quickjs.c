@@ -42103,6 +42103,7 @@ static JSValue js___date_now(JSContext *ctx, JSValueConst this_val,
 #endif
 
 /* OS dependent: return the UTC time in microseconds since 1970. */
+// FIXME: Unused, remove?
 static JSValue js___date_clock(JSContext *ctx, JSValueConst this_val,
                                int argc, JSValueConst *argv)
 {
@@ -48332,7 +48333,7 @@ static int64_t date_now(void) {
     GetSystemTime(&st);
     int64_t d;
     SystemTimeToFileTime(&st, (FILETIME *) &d);
-    return d /= 10000;
+    return (d - 116444736000000000ULL) / 10000;
 #else
     struct timeval tv;
     gettimeofday(&tv, NULL);
