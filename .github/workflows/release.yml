@@ -104,7 +104,7 @@ jobs:
       run: |
         qbs setup-toolchains --detect
         qbs setup-qt --detect
-        qbs config profiles.qt.baseProfile xcode_11_7-macosx-x86_64
+        qbs config profiles.qt.baseProfile xcode_13_2_1-macosx-x86_64
         qbs config defaultProfile qt
         qbs config --list
     - name: Print ccache stats
