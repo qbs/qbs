@@ -318,10 +318,9 @@ function replaceSpecialValues(content, module, qtProps, abi) {
         additionalContent += "Group {\n";
         if (module.isPlugin) {
             additionalContent += indent + indent
-                    + "condition: Qt[\"" + module.qbsName + "\"].enableLinking\n";
+                    + "condition: enableLinking\n";
         }
-        additionalContent += indent + indent + "files: [Qt[\"" + module.qbsName + "\"]"
-                + ".libFilePath]\n"
+        additionalContent += indent + indent + "files: libFilePath\n"
                 + indent + indent + "filesAreTargets: true\n"
                 + indent + indent + "fileTags: [\"" + libraryFileTag(module, qtProps)
                                   + "\"]\n"

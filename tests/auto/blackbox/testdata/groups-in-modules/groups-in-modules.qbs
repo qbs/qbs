@@ -14,6 +14,9 @@ Project {
             name: "helper3"
             required: false
         }
+        Depends { name: "helper7" }
+        helper7.fileName: "helper7.c"
+
         type: ["diamond"]
 
         files: [

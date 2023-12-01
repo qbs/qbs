@@ -8456,6 +8456,7 @@ void TestBlackbox::groupsInModules()
     QVERIFY(m_qbsStdout.contains("compiling helper4.c"));
     QVERIFY(m_qbsStdout.contains("compiling helper5.c"));
     QVERIFY(!m_qbsStdout.contains("compiling helper6.c"));
+    QVERIFY(m_qbsStdout.contains("compiling helper7.c"));
 
     QCOMPARE(runQbs(params), 0);
     QVERIFY(!m_qbsStdout.contains("compiling rock.coal to rock.diamond"));

@@ -133,8 +133,13 @@ void GroupsHandler::moveGroupsFromModuleToProduct(const Item::Module &module)
             ++it;
             continue;
         }
-        child->setScope(m_product.scope);
-        setScopeForDescendants(child, m_product.scope);
+
+        Item * const scope = Item::create(&m_loaderState.itemPool(), ItemType::Scope);
+        scope->setProperties(module.item->properties());
+        scope->setScope(m_product.scope);
+        child->setScope(scope);
+        setScopeForDescendants(child, scope);
+
         Item::addChild(m_product.item, child);
         markModuleTargetGroups(child, module);
         it = module.item->children().erase(it);
