@@ -5957,21 +5957,22 @@ void TestBlackbox::protobuf_data()
     QTest::addColumn<QStringList>("properties");
     QTest::addColumn<bool>("hasModules");
     QTest::addColumn<bool>("successExpected");
+    QTest::newRow("cpp-fallback") << QString("addressbook_cpp.qbs") << QStringList() << true << true;
     QTest::newRow("cpp-pkgconfig")
         << QString("addressbook_cpp.qbs")
-        << QStringList("project.qbsModuleProviders:qbspkgconfig")
+        << QStringList({"project.qbsModuleProviders:qbspkgconfig", "--no-fallback-module-provider"})
         << true
         << true;
     QTest::newRow("objc") << QString("addressbook_objc.qbs") << QStringList() << false << true;
     QTest::newRow("nanopb") << QString("addressbook_nanopb.qbs") << QStringList() << false << true;
-    QTest::newRow("import") << QString("import.qbs") << QStringList() << false << true;
+    QTest::newRow("import") << QString("import.qbs") << QStringList() << true << true;
     QTest::newRow("missing import dir") << QString("needs-import-dir.qbs")
-                                        << QStringList() << false << false;
+                                        << QStringList() << true << false;
     QTest::newRow("provided import dir")
             << QString("needs-import-dir.qbs")
-            << QStringList("products.app.theImportDir:subdir") << false << true;
+            << QStringList("products.app.theImportDir:subdir") << true << true;
     QTest::newRow("create proto library")
-            << QString("create-proto-library.qbs") << QStringList() << false << true;
+            << QString("create-proto-library.qbs") << QStringList() << true << true;
 }
 
 void TestBlackbox::protobuf()
@@ -8373,7 +8374,10 @@ void TestBlackbox::grpc_data()
     QTest::addColumn<QStringList>("arguments");
     QTest::addColumn<bool>("hasModules");
 
-    QStringList pkgConfigArgs("project.qbsModuleProviders:qbspkgconfig");
+    QTest::newRow("cpp-fallback") << QString("grpc_cpp.qbs") << QStringList() << true;
+
+    QStringList pkgConfigArgs({
+        "project.qbsModuleProviders:qbspkgconfig", "--no-fallback-module-provider"});
     // on macOS, openSSL is hidden from pkg-config by default
     if (qbs::Internal::HostOsInfo::isMacosHost()) {
         pkgConfigArgs

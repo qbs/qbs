@@ -19,14 +19,13 @@ ProtobufBase {
     Depends {
         name: "protobuflib";
         condition: _linkLibraries;
-        required: false;
-        enableFallback: false
+        required: false
     }
     Depends {
-        name: "grpcpp";
+        name: "grpc++";
+        id: grpcpp
         condition: _linkLibraries && useGrpc;
-        required: false;
-        enableFallback: false
+        required: false
     }
 
     property path grpcPluginPath: grpcPluginProbe.filePath

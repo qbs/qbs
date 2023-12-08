@@ -85,6 +85,12 @@ Probe {
                     && p.exec(executable, versionArgs.concat(packageNames)) !== 0) {
                 return;
             }
+
+            // protobuf is reserved as qbs module name, which depends on the protobuflib module
+            packageNames = packageNames.map(function(name) {
+                return name === "protobuflib" ? "protobuf" : name;
+            });
+
             var args = packageNames;
             if (p.exec(executable, args.concat([ '--cflags' ])) === 0) {
                 stdout = p.readStdOut().trim();

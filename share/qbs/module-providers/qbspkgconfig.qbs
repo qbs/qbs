@@ -144,8 +144,7 @@ ModuleProvider {
 
         // TODO: ponder how we can solve forward mapping with Packages so we can fill deps
         var moduleMapping = {
-            "protobuf": "protobuflib",
-            "grpc++": "grpcpp"
+            "protobuf": "protobuflib"
         }
         var reverseMapping = {}
         for (var key in moduleMapping)
