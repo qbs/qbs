@@ -477,7 +477,10 @@ function linkerFlags(project, product, inputs, outputs, primaryOutput, linkerPat
         if (isDarwin && symbolLinkMode) {
             if (!["lazy", "reexport", "upward", "weak"].includes(symbolLinkMode))
                 throw new Error("unknown value '" + symbolLinkMode + "' for cpp.symbolLinkMode");
+        }
 
+        var supportsLazyMode = Utilities.versionCompare(product.cpp.compilerVersion, "15.0.0") < 0;
+        if (isDarwin && symbolLinkMode && (symbolLinkMode !== "lazy" || supportsLazyMode)) {
             if (FileInfo.isAbsolutePath(lib) || lib.startsWith('@'))
                 escapableLinkerFlags.push("-" + symbolLinkMode + "_library", lib);
             else if (dep.framework)
