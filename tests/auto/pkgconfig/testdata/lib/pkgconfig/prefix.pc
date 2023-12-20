@@ -1,0 +1,13 @@
+prefix=/usr
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=/usr/include
+usrdir=/usrdir
+
+Name: Prefix test
+Description: This tests prefix auto detection
+Version: 1.0.0
+Requires:
+Libs: -lprefix
+Libs.private: -lm
+Cflags: -I${includedir}

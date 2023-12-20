@@ -81,7 +81,7 @@ function configureQt(pkg) {
 }
 
 function configure(
-    executableFilePath, extraPaths, libDirs, staticMode, sysroot, mergeDependencies) {
+    executableFilePath, extraPaths, libDirs, staticMode, definePrefix, sysroot, mergeDependencies) {
 
     var result = {};
     result.packages = [];
@@ -92,6 +92,7 @@ function configure(
     var options = {};
     options.libDirs = libDirs;
     options.sysroot = sysroot;
+    options.definePrefix = definePrefix;
     if (options.sysroot)
         options.allowSystemLibraryPaths = true;
     options.staticMode = staticMode;

@@ -87,6 +87,18 @@
 */
 
 /*!
+    \qmlproperty bool qbspkgconfig::definePrefix
+
+    If this property is \c true, then \QBS will override the ${prefix} variable in the packages
+    with a value that is guessed based on the location of the .pc file.
+
+    This option corresponds to the \c --define-prefix / \c --dont-define-prefix command line
+    options of the \c pkg-config tool.
+
+    \defaultvalue \c true on Windows, \c false otherwise
+*/
+
+/*!
     \qmlproperty path qbspkgconfig::sysroot
 
     Set this property if you need to overwrite the default search sysroot path used by

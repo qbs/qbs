@@ -40,6 +40,7 @@
 import qbs.Environment
 import qbs.File
 import qbs.FileInfo
+import qbs.Host
 import qbs.ModUtils
 import qbs.PkgConfig
 import qbs.ProviderUtils
@@ -54,6 +55,7 @@ ModuleProvider {
     property stringList extraPaths
     property stringList libDirs
     property bool staticMode: false
+    property bool definePrefix: Host.os().includes("windows")
 
     // We take the sysroot default from qbs.sysroot, except for Xcode toolchains, where
     // the sysroot points into the Xcode installation and does not contain .pc files.
@@ -74,6 +76,7 @@ ModuleProvider {
         _sysroot: parent.sysroot
         _libDirs: parent.libDirs
         _staticMode: parent.staticMode
+        _definePrefix: parent.definePrefix
     }
 
     isEager: false

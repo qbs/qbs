@@ -112,12 +112,14 @@ public:
     std::vector<RequiredVersion> requiresPublic;
     std::vector<RequiredVersion> requiresPrivate;
     std::vector<RequiredVersion> conflicts;
+    std::optional<std::string> oldPrefix;
 
     using VariablesMap = std::map<std::string, std::string, std::less<>>;
     VariablesMap variables;
 
     bool uninstalled{false};
 
+    static bool shouldRewriteSysroot(std::string_view sysroot, std::string_view value);
     PcPackage prependSysroot(std::string_view sysroot) &&;
     PcPackage removeSystemLibraryPaths(const std::unordered_set<std::string> &libraryPaths) &&;
 };
@@ -180,6 +182,26 @@ inline bool operator!=(const PcPackage::Flag &lhs, const PcPackage::Flag &rhs)
 {
     return !(lhs == rhs);
 }
+
+namespace Internal {
+
+// fast versions (no allocations) of the QFileInfo methods
+std::string_view fileName(std::string_view filePath);
+std::string_view completeBaseName(std::string_view filePath);
+std::string_view parentPath(std::string_view path);
+
+inline bool startsWith(std::string_view haystack, std::string_view needle)
+{
+    return haystack.size() >= needle.size() && haystack.compare(0, needle.size(), needle) == 0;
+}
+
+inline bool endsWith(std::string_view haystack, std::string_view needle)
+{
+    return haystack.size() >= needle.size()
+            && haystack.compare(haystack.size() - needle.size(), needle.size(), needle) == 0;
+}
+
+} // Internal
 
 } // namespace qbs
 

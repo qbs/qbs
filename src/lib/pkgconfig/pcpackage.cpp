@@ -43,6 +43,8 @@
 
 namespace qbs {
 
+using Internal::startsWith;
+
 using ComparisonType = PcPackage::RequiredVersion::ComparisonType;
 
 std::string_view PcPackage::Flag::typeToString(Type t)
@@ -123,6 +125,26 @@ std::optional<ComparisonType> PcPackage::RequiredVersion::comparisonFromString(s
     return std::nullopt;
 }
 
+// see https://github.com/pkgconf/pkgconf/blob/pkgconf-2.1.0/libpkgconf/tuple.c#L194
+bool PcPackage::shouldRewriteSysroot(std::string_view sysroot, std::string_view value)
+{
+    if (sysroot.empty() || value.empty())
+        return false;
+
+    if (value.front() != '/')
+        return false;
+
+    if (sysroot == "/")
+        return false;
+
+    if (startsWith(value, sysroot))
+        return false;
+
+    return true;
+}
+
+// TODO: pkg-config only prepends sysroot to flags; while pkgconf does this as a part of the
+// variable substitution and thus this affects all variables, not only flags
 PcPackage PcPackage::prependSysroot(std::string_view sysroot) &&
 {
     PcPackage package(std::move(*this));
@@ -132,6 +154,8 @@ PcPackage PcPackage::prependSysroot(std::string_view sysroot) &&
         if (sysroot.empty())
             return flags;
         for (auto &flag : flags) {
+            if (!shouldRewriteSysroot(sysroot, flag.value))
+                continue;
             if (flag.type == Flag::Type::IncludePath
                     || flag.type == Flag::Type::SystemIncludePath
                     || flag.type == Flag::Type::DirAfterIncludePath
@@ -168,5 +192,52 @@ PcPackage PcPackage::removeSystemLibraryPaths(
     package.libsPrivate = doRemove(package.libsPrivate);
     return package;
 }
+
+namespace Internal {
+
+std::string_view fileName(std::string_view filePath)
+{
+    const auto pos = filePath.rfind('/');
+    if (pos == std::string_view::npos) {
+#if defined(WIN32)
+        if (filePath.size() >= 2 && filePath[1] == ':')
+            return filePath.substr(2);
+#endif
+        return filePath;
+    }
+    return filePath.substr(pos + 1);
+}
+
+std::string_view completeBaseName(std::string_view filePath)
+{
+    filePath = fileName(filePath);
+    const auto pos = filePath.rfind('.');
+    return pos == std::string_view::npos
+            ? filePath
+            : filePath.substr(0, pos);
+}
+
+std::string_view parentPath(std::string_view path)
+{
+    if (path.empty())
+        return {};
+    auto pos = path.rfind('/');
+    if (pos == std::string_view::npos) {
+#if defined(WIN32)
+        if (path.size() >= 2 && path[1] == ':')
+            return path.substr(0, 2);
+#endif
+        return ".";
+    }
+    if (pos == 0)
+        return "/";
+#if defined(WIN32)
+    if (pos == 2 && path[1] == ':')
+        return path.substr(0, pos + 1);
+#endif
+    return path.substr(0, pos);
+};
+
+} // namespace Internal
 
 } // namespace qbs
