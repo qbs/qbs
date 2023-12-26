@@ -130,6 +130,22 @@ jobs:
     - name: Print ccache stats
       run: docker-compose run ${{ matrix.config.image }} ccache -s
 
+  clang-format:
+    name: Check Style
+    runs-on: macos-13
+    timeout-minutes: 60
+    strategy:
+        fail-fast: false
+    steps:
+    - uses: actions/checkout@v1
+    - name: Update PATH
+      run: echo "$(brew --prefix llvm@15)/bin" >> ${GITHUB_PATH}
+    - name: Run clang-format
+      run: |
+        git diff -U0 --no-color --relative HEAD^ | $(brew --prefix llvm@15)/share/clang/clang-format-diff.py -i -p1 -regex ".*\.(cxx|cpp|hpp|h)" -v
+    - name: Check diff
+      run: git diff --exit-code
+
   build-macos:
     name: Build on macOS
     runs-on: macos-11
