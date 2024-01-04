@@ -2977,6 +2977,36 @@ void TestBlackbox::setupRunEnvironment()
              m_qbsStdout.constData());
 }
 
+void TestBlackbox::staticLibDeps()
+{
+    QFETCH(bool, withExport);
+    QFETCH(bool, importPrivateLibraries);
+    QFETCH(bool, successExpected);
+
+    QDir::setCurrent(testDataDir + "/static-lib-deps");
+    rmDirR(relativeBuildDir());
+
+    QStringList args{
+        QStringLiteral("project.useExport:%1").arg(withExport ? "true" : "false"),
+        QStringLiteral("modules.cpp.importPrivateLibraries:%1")
+            .arg(importPrivateLibraries ? "true" : "false")};
+    QbsRunParameters params(args);
+    params.expectFailure = !successExpected;
+    QCOMPARE(runQbs(params) == 0, successExpected);
+}
+
+void TestBlackbox::staticLibDeps_data()
+{
+    QTest::addColumn<bool>("withExport");
+    QTest::addColumn<bool>("importPrivateLibraries");
+    QTest::addColumn<bool>("successExpected");
+
+    QTest::newRow("no Export, with import") << false << true << true;
+    QTest::newRow("no Export, no import") << false << false << false;
+    QTest::newRow("with Export, with import") << true << true << true;
+    QTest::newRow("with Export, no import") << true << false << true;
+}
+
 void TestBlackbox::smartRelinking()
 {
     QDir::setCurrent(testDataDir + "/smart-relinking");

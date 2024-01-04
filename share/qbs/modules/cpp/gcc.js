@@ -187,7 +187,8 @@ function collectLibraryDependencies(product, isDarwin) {
         if (isStaticLibrary) {
             if (!isBelowIndirectDynamicLib) {
                 addArtifactFilePaths(dep, "staticlibrary", addPublicFilePath);
-                addExternalLibs(dep);
+                if (product.cpp.importPrivateLibraries)
+                    addExternalLibs(dep);
                 publicDeps[dep.name] = true;
             }
         } else if (isDynamicLibrary) {

@@ -283,7 +283,8 @@ function collectLibraryDependencies(product) {
             seen[dep.name] = true;
             dep.dependencies.forEach(traverse);
             addArtifactFilePaths(dep, staticLibraryArtifacts);
-            addExternalLibs(dep);
+            if (product.cpp.importPrivateLibraries)
+                addExternalLibs(dep);
         } else if (dynamicLibraryArtifacts) {
             seen[dep.name] = true;
             addArtifactFilePaths(dep, dynamicLibraryArtifacts);

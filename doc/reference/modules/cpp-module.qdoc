@@ -1941,3 +1941,38 @@
     \windowsproperty
     \defaultvalue \c{true} for MSVC, \c{false} for clang-cl
 */
+
+/*!
+    \qmlproperty string cpp::importPrivateLibraries
+    \since Qbs 2.4
+
+    Whether to automatically import external libraries from dependencies.
+
+    If set to true in the product that depends on the static library, the external dependencies
+    (such as \l{cpp::staticLibraries}{staticLibraries} and
+    \l{cpp::dynamicLibraries}{dynamicLibraries}) of this library are also added to products that
+    depend on this library.
+    \code
+    StaticLibrary {
+        files: "lib.cpp"
+        cpp.staticLibraries: ["l", "y"]
+    }
+    \endcode
+
+    If set to false, the explicit \l{Export} item is required:
+    \code
+    StaticLibrary {
+        files: "lib.cpp"
+        Export {
+            Depends { name: "cpp" }
+            cpp.staticLibraries: ["l", "y"]
+        }
+    }
+    \endcode
+
+    We recommend using the \l{Export} item as it provides more flexibility.
+
+    \note The default value is subject to change.
+
+    \defaultvalue \c{true}
+*/

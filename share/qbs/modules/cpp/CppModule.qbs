@@ -417,6 +417,8 @@ Module {
 
     property bool validateTargetTriple: true // undocumented
 
+    property bool importPrivateLibraries: true
+
     // TODO: The following four rules could use a convenience base item if rule properties
     //       were available in Artifact items and prepare scripts.
     Rule {
