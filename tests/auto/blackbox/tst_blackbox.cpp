@@ -2657,6 +2657,32 @@ void TestBlackbox::retaggedOutputArtifact()
     QVERIFY2(!QFile::exists(a3), qPrintable(a3));
 }
 
+void TestBlackbox::rpathlinkDeduplication()
+{
+    QDir::setCurrent(testDataDir + "/rpathlink-deduplication");
+    QbsRunParameters resolveParams{"resolve"};
+    QCOMPARE(runQbs(resolveParams), 0);
+    const bool useRPathLink = m_qbsStdout.contains("useRPathLink: true");
+    const bool dontUseRPathLink = m_qbsStdout.contains("useRPathLink: false");
+    QVERIFY2(useRPathLink || dontUseRPathLink, m_qbsStdout);
+    if (dontUseRPathLink)
+        QSKIP("Only applies to toolchains that support rPathLink");
+    const QString output = QString::fromLocal8Bit(m_qbsStdout);
+    const QRegularExpression pattern(QRegularExpression::anchoredPattern(".*===(.*)===.*"),
+                                     QRegularExpression::DotMatchesEverythingOption);
+    const QRegularExpressionMatch match = pattern.match(output);
+    QVERIFY2(match.hasMatch(), qPrintable(output));
+    QCOMPARE(pattern.captureCount(), 1);
+    const QString linkFlag = match.captured(1);
+
+    QbsRunParameters buildParams;
+    buildParams.arguments = QStringList({"--command-echo-mode", "command-line"});
+    QCOMPARE(runQbs(buildParams), 0);
+    // private DynamicLibraryA is a dependency for 2 other libs but should only appear once
+    const auto libDir = QFileInfo(relativeProductBuildDir("DynamicLibraryA")).absoluteFilePath();
+    QCOMPARE(m_qbsStdout.count((linkFlag + libDir).toUtf8()), 1);
+}
+
 void TestBlackbox::ruleConditions()
 {
     QDir::setCurrent(testDataDir + "/ruleConditions");

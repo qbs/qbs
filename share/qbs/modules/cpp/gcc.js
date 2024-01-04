@@ -78,6 +78,7 @@ function useCompilerDriverLinker(product, inputs) {
 
 function collectLibraryDependencies(product, isDarwin) {
     var publicDeps = {};
+    var privateDeps = {};
     var objects = [];
     var objectByFilePath = {};
     var tagForLinkingAgainstSharedLib = product.cpp.imageFormat === "pe"
@@ -170,6 +171,8 @@ function collectLibraryDependencies(product, isDarwin) {
                 && typeof dep.artifacts[tagForLinkingAgainstSharedLib] !== "undefined";
         if (!isStaticLibrary && !isDynamicLibrary)
             return;
+        if (isBelowIndirectDynamicLib && privateDeps[dep.name])
+            return;
 
         var nextIsBelowIndirectDynamicLib = isBelowIndirectDynamicLib || isDynamicLibrary;
         dep.dependencies.forEach(function(depdep) {
@@ -193,6 +196,7 @@ function collectLibraryDependencies(product, isDarwin) {
                 publicDeps[dep.name] = true;
             } else {
                 addArtifactFilePaths(dep, tagForLinkingAgainstSharedLib, addPrivateFilePath);
+                privateDeps[dep.name] = true;
             }
         }
     }
@@ -204,7 +208,6 @@ function collectLibraryDependencies(product, isDarwin) {
     product.dependencies.forEach(traverseDirectDependency);
     addExternalLibs(product);
 
-    var seenRPathLinkDirs = {};
     var result = { libraries: [], rpath_link: [] };
     objects.forEach(
                 function (obj) {
@@ -215,10 +218,7 @@ function collectLibraryDependencies(product, isDarwin) {
                                                 framework: obj.framework });
                     } else {
                         var dirPath = FileInfo.path(obj.filePath);
-                        if (!seenRPathLinkDirs.hasOwnProperty(dirPath)) {
-                            seenRPathLinkDirs[dirPath] = true;
-                            result.rpath_link.push(dirPath);
-                        }
+                        result.rpath_link.push(dirPath);
                     }
                 });
     return result;

@@ -283,6 +283,7 @@ private slots:
     void rescueTransformerData();
     void responseFiles();
     void retaggedOutputArtifact();
+    void rpathlinkDeduplication();
     void ruleConditions();
     void ruleConnectionWithExcludedInputs();
     void ruleCycle();
