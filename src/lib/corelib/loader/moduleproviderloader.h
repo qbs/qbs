@@ -103,6 +103,7 @@ private:
             const QString &providerFile,
             const QVariantMap &moduleConfig,
             const QVariantMap &qbsModule);
+    void checkAllowedValues(Item *providerItem);
 
     LoaderState &m_loaderState;
 };

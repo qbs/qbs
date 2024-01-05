@@ -49,6 +49,32 @@ TestBlackboxProviders::TestBlackboxProviders()
 {
 }
 
+void TestBlackboxProviders::allowedValues()
+{
+    QFETCH(QStringList, arguments);
+    QFETCH(bool, expectFailure);
+
+    QDir::setCurrent(testDataDir + "/allowed-values");
+    rmDirR(relativeBuildDir());
+    QbsRunParameters params;
+    params.arguments = arguments;
+    params.expectFailure = expectFailure;
+
+    QVERIFY2(runQbs(params) == int(expectFailure), m_qbsStderr);
+}
+
+void TestBlackboxProviders::allowedValues_data()
+{
+    QTest::addColumn<QStringList>("arguments");
+    QTest::addColumn<bool>("expectFailure");
+
+    QTest::newRow("invalid js value") << QStringList{} << true;
+    QTest::newRow("invalid variant value")
+        << QStringList{"moduleProviders.provider.aProperty:three"} << true;
+    QTest::newRow("valid variant value")
+        << QStringList{"moduleProviders.provider.aProperty:one"} << false;
+}
+
 void TestBlackboxProviders::brokenProvider()
 {
     QDir::setCurrent(testDataDir + "/broken-provider");

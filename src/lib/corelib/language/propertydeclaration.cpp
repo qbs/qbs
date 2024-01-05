@@ -308,6 +308,13 @@ QVariant PropertyDeclaration::convertToPropertyType(const QVariant &v, Type t,
     return c;
 }
 
+bool PropertyDeclaration::shouldCheckAllowedValues() const
+{
+    return isValid()
+           && (d->type == PropertyDeclaration::String || d->type == PropertyDeclaration::StringList)
+           && !d->allowedValues.empty();
+}
+
 void PropertyDeclaration::checkAllowedValues(
     const QVariant &value,
     const CodeLocation &loc,
@@ -315,15 +322,13 @@ void PropertyDeclaration::checkAllowedValues(
     LoaderState &loaderState) const
 {
     const auto type = d->type;
-    if (type != PropertyDeclaration::String && type != PropertyDeclaration::StringList)
+    if (!shouldCheckAllowedValues())
         return;
 
     if (value.isNull())
         return;
 
     const auto &allowedValues = d->allowedValues;
-    if (allowedValues.isEmpty())
-        return;
 
     const auto checkValue = [&loc, &allowedValues, &key, &loaderState](const QString &value)
     {

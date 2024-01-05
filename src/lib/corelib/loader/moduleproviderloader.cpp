@@ -399,6 +399,8 @@ ModuleProviderLoader::EvaluationResult ModuleProviderLoader::evaluateModuleProvi
 
     EvalContextSwitcher contextSwitcher(m_loaderState.evaluator().engine(),
                                         EvalContext::ModuleProvider);
+
+    checkAllowedValues(providerItem);
     auto searchPaths = m_loaderState.evaluator().stringListValue(
         providerItem, QStringLiteral("relativeSearchPaths"));
     auto prependBaseDir = [&outputBaseDir](const auto &path) {
@@ -406,6 +408,21 @@ ModuleProviderLoader::EvaluationResult ModuleProviderLoader::evaluateModuleProvi
     };
     std::transform(searchPaths.begin(), searchPaths.end(), searchPaths.begin(), prependBaseDir);
     return {searchPaths, isEager};
+}
+
+void ModuleProviderLoader::checkAllowedValues(Item *providerItem)
+{
+    for (const auto &propertyDeclaration : providerItem->propertyDeclarations()) {
+        if (!propertyDeclaration.shouldCheckAllowedValues())
+            continue;
+        const auto &name = propertyDeclaration.name();
+        if (name == QStringLiteral("relativeSearchPaths"))
+            continue;
+        const auto value = m_loaderState.evaluator().variantValue(providerItem, name);
+        const auto propertyValue = providerItem->property(name);
+        propertyDeclaration.checkAllowedValues(
+            value, propertyValue->location(), name, m_loaderState);
+    }
 }
 
 } // namespace Internal
